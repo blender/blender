@@ -249,7 +249,7 @@ void wm_event_do_notifiers(bContext *C)
 	
 	/* cache & catch WM level notifiers, such as frame change, scene/screen set */
 	for (win = wm->windows.first; win; win = win->next) {
-		int do_anim = FALSE;
+		bool do_anim = false;
 		
 		CTX_wm_window_set(C, win);
 		
@@ -777,7 +777,7 @@ int WM_operator_repeat(bContext *C, wmOperator *op)
  * simple check for now but may become more involved.
  * To be sure the operator can run call WM_operator_poll(C, op->type) also, since this call
  * checks if WM_operator_repeat() can run at all, not that it WILL run at any time. */
-int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
+bool WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 {
 	if (op->type->exec != NULL) {
 		return true;

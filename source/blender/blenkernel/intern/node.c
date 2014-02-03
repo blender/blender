@@ -1478,7 +1478,7 @@ void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, boo
 /* hack warning! this function is only used for shader previews, and 
  * since it gets called multiple times per pixel for Ztransp we only
  * add the color once. Preview gets cleared before it starts render though */
-void BKE_node_preview_set_pixel(bNodePreview *preview, const float col[4], int x, int y, int do_manage)
+void BKE_node_preview_set_pixel(bNodePreview *preview, const float col[4], int x, int y, bool do_manage)
 {
 	if (preview) {
 		if (x >= 0 && y >= 0) {

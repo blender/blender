@@ -364,17 +364,17 @@ void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo)
 		snode->tree_idname[0] = '\0';
 }
 
-int ED_node_is_compositor(struct SpaceNode *snode)
+bool ED_node_is_compositor(struct SpaceNode *snode)
 {
 	return STREQ(snode->tree_idname, ntreeType_Composite->idname);
 }
 
-int ED_node_is_shader(struct SpaceNode *snode)
+bool ED_node_is_shader(struct SpaceNode *snode)
 {
 	return STREQ(snode->tree_idname, ntreeType_Shader->idname);
 }
 
-int ED_node_is_texture(struct SpaceNode *snode)
+bool ED_node_is_texture(struct SpaceNode *snode)
 {
 	return STREQ(snode->tree_idname, ntreeType_Texture->idname);
 }
@@ -1130,7 +1130,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	bNodeTree *ntree = snode->edittree;
 	bNode *node, *newnode, *lastnode;
 	bNodeLink *link, *newlink, *lastlink;
-	int keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
+	const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
 	
 	ED_preview_kill_jobs(C);
 	

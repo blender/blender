@@ -307,7 +307,7 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieTrackingTrack *track = tracksbase->first, *next;
 	MovieTrackingPlaneTrack *plane_track, *plane_track_next;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
-	int has_selection = 0;
+	bool has_selection = false;
 	bool changed = false;
 
 	while (track) {
@@ -1335,8 +1335,8 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	struct MovieTrackingContext *context;
 	MovieClipUser *user, fake_user = {0};
 	int framenr, sfra, efra;
-	int backwards = RNA_boolean_get(op->ptr, "backwards");
-	int sequence = RNA_boolean_get(op->ptr, "sequence");
+	const bool backwards = RNA_boolean_get(op->ptr, "backwards");
+	const bool sequence = RNA_boolean_get(op->ptr, "sequence");
 	int frames_limit;
 
 	if (RNA_struct_property_is_set(op->ptr, "clip")) {
@@ -1846,7 +1846,7 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	int action = RNA_enum_get(op->ptr, "action");
-	int clear_active = RNA_boolean_get(op->ptr, "clear_active");
+	const bool clear_active = RNA_boolean_get(op->ptr, "clear_active");
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	if (clear_active) {
@@ -2186,7 +2186,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
                      MovieTrackingTrack *track, char axis)
 {
 	Object *camera = get_camera_with_movieclip(scene, clip);
-	int is_camera = tracking_object->flag & TRACKING_OBJECT_CAMERA;
+	const bool is_camera = (tracking_object->flag & TRACKING_OBJECT_CAMERA) != 0;
 	bool flip = false;
 	float mat[4][4], vec[3], obmat[4][4], dvec[3];
 

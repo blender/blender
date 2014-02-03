@@ -620,7 +620,7 @@ static int calc_curve_deform(Object *par, float co[3],
 	Curve *cu = par->data;
 	float fac, loc[4], dir[3], new_quat[4], radius;
 	short index;
-	const int is_neg_axis = (axis > 2);
+	const bool is_neg_axis = (axis > 2);
 
 	/* to be sure, mostly after file load */
 	if (par->curve_cache->path == NULL) {
@@ -711,7 +711,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 	int a;
 	CurveDeform cd;
 	int use_vgroups;
-	const int is_neg_axis = (defaxis > 2);
+	const bool is_neg_axis = (defaxis > 2);
 
 	if (cuOb->type != OB_CURVE)
 		return;
@@ -1147,7 +1147,7 @@ void BKE_lattice_center_bounds(Lattice *lt, float cent[3])
 	mid_v3_v3v3(cent, min, max);
 }
 
-void BKE_lattice_translate(Lattice *lt, float offset[3], int do_keys)
+void BKE_lattice_translate(Lattice *lt, float offset[3], bool do_keys)
 {
 	int i, numVerts;
 

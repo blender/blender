@@ -1336,11 +1336,11 @@ static struct GPUMaterialState {
 	float (*gviewmat)[4];
 	float (*gviewinv)[4];
 
-	int backface_culling;
+	bool backface_culling;
 
 	GPUBlendMode *alphablend;
 	GPUBlendMode alphablend_fixed[FIXEDMAT];
-	int use_alpha_pass, is_alpha_pass;
+	bool use_alpha_pass, is_alpha_pass;
 
 	int lastmatnr, lastretval;
 	GPUBlendMode lastalphablend;
@@ -1397,9 +1397,9 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUMaterial *gpumat;
 	GPUBlendMode alphablend;
 	int a;
-	int gamma = BKE_scene_check_color_management_enabled(scene);
-	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
-	int use_matcap = (v3d->flag2 & V3D_SHOW_SOLID_MATCAP); /* assumes v3d->defmaterial->preview is set */
+	const bool gamma = BKE_scene_check_color_management_enabled(scene);
+	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
+	const bool use_matcap = (v3d->flag2 & V3D_SHOW_SOLID_MATCAP) != 0;  /* assumes v3d->defmaterial->preview is set */
 
 	ob = BKE_object_lod_matob_get(ob, scene);
 	
@@ -1409,7 +1409,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.lastretval = -1;
 	GMS.lastalphablend = GPU_BLEND_SOLID;
 
-	GMS.backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING);
+	GMS.backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING) != 0;
 
 	GMS.gob = ob;
 	GMS.gscene = scene;

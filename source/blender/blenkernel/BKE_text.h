@@ -62,7 +62,7 @@ char   *txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
 void	txt_order_cursors	(struct Text *text, const bool reverse);
 int		txt_find_string		(struct Text *text, const char *findstr, int wrap, int match_case);
-int		txt_has_sel			(struct Text *text);
+bool	txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
 int		txt_utf8_offset_to_index(const char *str, int offset);
 int		txt_utf8_index_to_offset(const char *str, int index);
@@ -112,13 +112,13 @@ void	txt_print_undo		(struct Text *text);
 #endif
 
 /* utility functions, could be moved somewhere more generic but are python/text related  */
-int text_check_bracket(const char ch);
-int text_check_delim(const char ch);
-int text_check_digit(const char ch);
-int text_check_identifier(const char ch);
-int text_check_identifier_nodigit(const char ch);
-int text_check_whitespace(const char ch);
-int text_find_identifier_start(const char *str, int i);
+int  text_check_bracket(const char ch);
+bool text_check_delim(const char ch);
+bool text_check_digit(const char ch);
+bool text_check_identifier(const char ch);
+bool text_check_identifier_nodigit(const char ch);
+bool text_check_whitespace(const char ch);
+int  text_find_identifier_start(const char *str, int i);
 
 /* defined in bpy_interface.c */
 extern int text_check_identifier_unicode(const unsigned int ch);

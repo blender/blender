@@ -94,7 +94,8 @@ static void track_context_free(void *customdata)
  * for thread-safe tracking, allowing clip modifications during
  * tracking.
  */
-MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards, short sequence)
+MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user,
+                                               const bool backwards, const bool sequence)
 {
 	MovieTrackingContext *context = MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
 	MovieTracking *tracking = &clip->tracking;

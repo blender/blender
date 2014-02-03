@@ -548,7 +548,7 @@ float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
 /* (these functions are used for NLA-Tracks and also for nested/meta-strips) */
 
 /* Check if there is any space in the given list to add the given strip */
-short BKE_nlastrips_has_space(ListBase *strips, float start, float end)
+bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
 {
 	NlaStrip *strip;
 	
@@ -967,7 +967,7 @@ void BKE_nlatrack_set_active(ListBase *tracks, NlaTrack *nlt_a)
 }
 
 /* Check if there is any space in the given track to add a strip of the given length */
-short BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
+bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
 {
 	/* sanity checks 
 	 *  - track must exist

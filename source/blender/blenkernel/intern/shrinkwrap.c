@@ -51,10 +51,10 @@
 #include "BKE_lattice.h"
 
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
 #include "BKE_subsurf.h"
-#include "BKE_mesh.h"
 #include "BKE_editmesh.h"
+
+#include "BLI_strict_flags.h"
 
 /* for timing... */
 #if 0
@@ -281,7 +281,6 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	int i;
 
 	/* Options about projection direction */
-	const char use_normal   = calc->smd->shrinkOpts;
 	const float proj_limit_squared = calc->smd->projLimit * calc->smd->projLimit;
 	float proj_axis[3]      = {0.0f, 0.0f, 0.0f};
 
@@ -300,7 +299,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 
 	/* If the user doesn't allows to project in any direction of projection axis
 	 * then theres nothing todo. */
-	if ((use_normal & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
+	if ((calc->smd->shrinkOpts & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
 		return;
 
 
@@ -370,7 +369,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 			hit.dist = 10000.0f; /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
 
 			/* Project over positive direction of axis */
-			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
+			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 
 				if (auxData.tree) {
 					BKE_shrinkwrap_project_normal(0, tmp_co, tmp_no,
@@ -384,7 +383,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 			}
 
 			/* Project over negative direction of axis */
-			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR) {
+			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR) {
 				float inv_no[3];
 				negate_v3_v3(inv_no, tmp_no);
 

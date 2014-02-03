@@ -3460,7 +3460,7 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 	BMIter iter, liter;
 	MTexPoly *tface;
 	MLoopUV *luv;
-	int clear = RNA_boolean_get(op->ptr, "clear");
+	const bool clear = RNA_boolean_get(op->ptr, "clear");
 	
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
@@ -3589,7 +3589,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 	BMIter iter, liter;
 	MLoopUV *luv;
 	MTexPoly *tf;
-	int swap = RNA_boolean_get(op->ptr, "unselected");
+	const bool swap = RNA_boolean_get(op->ptr, "unselected");
 	Image *ima = sima ? sima->image : NULL;
 	const int use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
 
@@ -3950,8 +3950,8 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	BMEdge *editedge;
 	float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
-	char mark_seams = RNA_boolean_get(op->ptr, "mark_seams");
-	char mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
+	const bool mark_seams = RNA_boolean_get(op->ptr, "mark_seams");
+	const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
 
 	BMesh *bm;
 	BMIter iter;

@@ -164,7 +164,7 @@ void BLI_freeAdjacencyList(BGraph *graph)
 	}
 }
 
-int BLI_hasAdjacencyList(BGraph *graph)
+bool BLI_hasAdjacencyList(BGraph *graph)
 {
 	BNode *node;
 	
@@ -317,9 +317,9 @@ void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph)
 
 /*************************************** CYCLE DETECTION ***********************************************/
 
-static int detectCycle(BNode *node, BArc *src_arc)
+static bool detectCycle(BNode *node, BArc *src_arc)
 {
-	int value = 0;
+	bool value = false;
 	
 	if (node->flag == 0) {
 		int i;
@@ -343,10 +343,10 @@ static int detectCycle(BNode *node, BArc *src_arc)
 	return value;
 }
 
-int BLI_isGraphCyclic(BGraph *graph)
+bool BLI_isGraphCyclic(BGraph *graph)
 {
 	BNode *node;
-	int value = 0;
+	bool value = false;
 	
 	/* NEED TO CHECK IF ADJACENCY LIST EXIST */
 	

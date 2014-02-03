@@ -60,7 +60,7 @@ void ED_mask_draw_region(struct Mask *mask, struct ARegion *ar,
                          const char draw_flag, const char draw_type, const char overlay_mode,
                          const int width_i, const int height_i,
                          const float aspx, const float aspy,
-                         const short do_scale_applied, const short do_draw_cb,
+                         const bool do_scale_applied, const bool do_draw_cb,
                          float stabmat[4][4],
                          const struct bContext *C);
 
@@ -76,7 +76,7 @@ short ED_masklayer_frames_looper(struct MaskLayer *masklay, struct Scene *scene,
                                  short (*masklay_shape_cb)(struct MaskLayerShape *, struct Scene *));
 void ED_masklayer_make_cfra_list(struct MaskLayer *masklay, ListBase *elems, short onlysel);
 
-short ED_masklayer_frame_select_check(struct MaskLayer *masklay);
+bool  ED_masklayer_frame_select_check(struct MaskLayer *masklay);
 void  ED_masklayer_frame_select_set(struct MaskLayer *masklay, short mode);
 void  ED_masklayer_frames_select_border(struct MaskLayer *masklay, float min, float max, short select_mode);
 void  ED_mask_select_frames(struct MaskLayer *masklay, short select_mode);

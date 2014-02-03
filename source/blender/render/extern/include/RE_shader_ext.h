@@ -168,8 +168,8 @@ typedef struct ShadeInput {
 	float surfnor[3], surfdist;
 
 	/* from initialize, part or renderlayer */
-	short do_preview;		/* for nodes, in previewrender */
-	short do_manage;		/* color management flag */
+	bool do_preview;		/* for nodes, in previewrender */
+	bool do_manage;			/* color management flag */
 	short thread, sample;	/* sample: ShadeSample array index */
 	short nodes;			/* indicate node shading, temp hack to prevent recursion */
 	

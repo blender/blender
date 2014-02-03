@@ -990,7 +990,7 @@ void filelist_select(struct FileList *filelist, FileSelection *sel, FileSelType 
 	}
 }
 
-int filelist_is_selected(struct FileList *filelist, int index, FileCheckType check)
+bool filelist_is_selected(struct FileList *filelist, int index, FileCheckType check)
 {
 	struct direntry *file = filelist_file(filelist, index);
 	if (!file) {
@@ -1003,7 +1003,7 @@ int filelist_is_selected(struct FileList *filelist, int index, FileCheckType che
 			return S_ISREG(file->type) && (file->selflag & SELECTED_FILE);
 		case CHECK_ALL:
 		default:
-			return (file->selflag & SELECTED_FILE);
+			return (file->selflag & SELECTED_FILE) != 0;
 	}
 }
 
@@ -1028,7 +1028,7 @@ void filelist_sort(struct FileList *filelist, short sort)
 }
 
 
-int filelist_islibrary(struct FileList *filelist, char *dir, char *group)
+bool filelist_islibrary(struct FileList *filelist, char *dir, char *group)
 {
 	return BLO_is_a_library(filelist->dir, dir, group);
 }

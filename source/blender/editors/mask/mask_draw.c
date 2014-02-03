@@ -56,7 +56,7 @@
 
 #include "mask_intern.h"  /* own include */
 
-static void mask_spline_color_get(MaskLayer *masklay, MaskSpline *spline, const int is_sel,
+static void mask_spline_color_get(MaskLayer *masklay, MaskSpline *spline, const bool is_sel,
                                   unsigned char r_rgb[4])
 {
 	if (is_sel) {
@@ -76,7 +76,7 @@ static void mask_spline_color_get(MaskLayer *masklay, MaskSpline *spline, const 
 	r_rgb[3] = 255;
 }
 
-static void mask_spline_feather_color_get(MaskLayer *UNUSED(masklay), MaskSpline *UNUSED(spline), const int is_sel,
+static void mask_spline_feather_color_get(MaskLayer *UNUSED(masklay), MaskSpline *UNUSED(spline), const bool is_sel,
                                           unsigned char r_rgb[4])
 {
 	if (is_sel) {
@@ -136,7 +136,7 @@ static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], const float c
 static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline *spline,
                                const char UNUSED(draw_flag), const char draw_type)
 {
-	const int is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
+	const bool is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
 	unsigned char rgb_spline[4];
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -212,7 +212,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 
 		float handle[2];
 		float vert[2];
-		int has_handle = BKE_mask_point_has_handle(point);
+		const bool has_handle = BKE_mask_point_has_handle(point);
 
 		copy_v2_v2(vert, bezt->vec[1]);
 		BKE_mask_point_handle(point_deform, handle);
@@ -295,7 +295,7 @@ static void mask_color_active_tint(unsigned char r_rgb[4], const unsigned char r
 }
 
 static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*orig_points)[2], int tot_point,
-                                 const short is_feather, const short is_smooth, const short is_active,
+                                 const bool is_feather, const bool is_smooth, const bool is_active,
                                  const unsigned char rgb_spline[4], const char draw_type)
 {
 	const int draw_method = (spline->flag & MASK_SPLINE_CYCLIC) ? GL_LINE_LOOP : GL_LINE_STRIP;
@@ -407,7 +407,7 @@ static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*
 
 static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline *spline,
                               const char draw_flag, const char draw_type,
-                              const short is_active,
+                              const bool is_active,
                               int width, int height)
 {
 	const unsigned int resol = max_ii(BKE_mask_spline_feather_resolution(spline, width, height),
@@ -415,9 +415,9 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
 
 	unsigned char rgb_tmp[4];
 
-	const short is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
-	const short is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH);
-	const short is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
+	const bool is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
+	const bool is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH) != 0;
+	const bool is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 	unsigned int tot_diff_point;
 	float (*diff_points)[2];
@@ -489,7 +489,7 @@ static void draw_masklays(const bContext *C, Mask *mask, const char draw_flag, c
 
 	for (masklay = mask->masklayers.first, i = 0; masklay; masklay = masklay->next, i++) {
 		MaskSpline *spline;
-		const short is_active = (i == mask->masklay_act);
+		const bool is_active = (i == mask->masklay_act);
 
 		if (masklay->restrictflag & MASK_RESTRICT_VIEW) {
 			continue;
@@ -623,7 +623,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
                          const char draw_flag, const char draw_type, const char overlay_mode,
                          const int width_i, const int height_i,  /* convert directly into aspect corrected vars */
                          const float aspx, const float aspy,
-                         const short do_scale_applied, const short do_draw_cb,
+                         const bool do_scale_applied, const bool do_draw_cb,
                          float stabmat[4][4], /* optional - only used by clip */
                          const bContext *C    /* optional - only used when do_post_draw is set or called from clip editor */
                          )

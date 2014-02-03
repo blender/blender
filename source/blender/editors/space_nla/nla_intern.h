@@ -141,7 +141,7 @@ void NLA_OT_selected_objects_add(wmOperatorType *ot);
 int nlaop_poll_tweakmode_off(bContext *C);
 int nlaop_poll_tweakmode_on(bContext *C);
 
-short nlaedit_is_tweakmode_on(bAnimContext *ac);
+bool nlaedit_is_tweakmode_on(bAnimContext *ac);
 
 /* --- */
 

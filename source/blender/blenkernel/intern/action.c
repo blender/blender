@@ -1007,7 +1007,7 @@ void BKE_pose_remove_group(Object *ob)
 /* ************** F-Curve Utilities for Actions ****************** */
 
 /* Check if the given action has any keyframes */
-short action_has_motion(const bAction *act)
+bool action_has_motion(const bAction *act)
 {
 	FCurve *fcu;
 	

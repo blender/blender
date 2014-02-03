@@ -298,7 +298,7 @@ static void set_pose_keys(Object *ob)
  *
  * > returns: whether the bone that we pasted to if we succeeded
  */
-static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, short selOnly, short flip)
+static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bool selOnly, const bool flip)
 {
 	bPoseChannel *pchan;
 	char name[MAXBONENAME];
@@ -459,8 +459,8 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	Scene *scene = CTX_data_scene(C);
 	bPoseChannel *chan;
-	int flip = RNA_boolean_get(op->ptr, "flipped");
-	int selOnly = RNA_boolean_get(op->ptr, "selected_mask");
+	const bool flip = RNA_boolean_get(op->ptr, "flipped");
+	bool selOnly = RNA_boolean_get(op->ptr, "selected_mask");
 
 	/* get KeyingSet to use */
 	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);

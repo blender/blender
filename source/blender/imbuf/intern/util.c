@@ -450,7 +450,7 @@ int imb_get_anim_type(const char *name)
 	return ANIM_NONE;
 }
  
-int IMB_isanim(const char *filename)
+bool IMB_isanim(const char *filename)
 {
 	int type;
 	

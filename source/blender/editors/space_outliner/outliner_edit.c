@@ -149,7 +149,7 @@ TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float fmval[2]
 
 /* Toggle Open/Closed ------------------------------------------- */
 
-static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement *te, int all, const float mval[2])
+static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement *te, const bool all, const float mval[2])
 {
 	
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
@@ -183,7 +183,7 @@ static int outliner_item_openclose(bContext *C, wmOperator *op, const wmEvent *e
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	int all = RNA_boolean_get(op->ptr, "all");
+	const bool all = RNA_boolean_get(op->ptr, "all");
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
 	
@@ -852,7 +852,7 @@ static int outliner_one_level_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
-	int add = RNA_boolean_get(op->ptr, "open");
+	const bool add = RNA_boolean_get(op->ptr, "open");
 	int level;
 	
 	level = outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1);

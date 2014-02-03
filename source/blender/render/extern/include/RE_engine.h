@@ -142,7 +142,7 @@ void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);
 
-int RE_engine_is_external(struct Render *re);
+bool RE_engine_is_external(struct Render *re);
 
 /* Engine Types */
 

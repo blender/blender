@@ -765,7 +765,7 @@ void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 	}
 }
 
-int file_draw_check_exists(SpaceFile *sfile)
+bool file_draw_check_exists(SpaceFile *sfile)
 {
 	if (sfile->op) { /* fails on reload */
 		if (RNA_struct_find_property(sfile->op->ptr, "check_existing")) {

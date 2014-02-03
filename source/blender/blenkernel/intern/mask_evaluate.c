@@ -505,7 +505,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline, float (*fe
 static float (*mask_spline_feather_differentiated_points_with_resolution__even(MaskSpline *spline,
                                                                                unsigned int *tot_feather_point,
                                                                                const unsigned int resol,
-                                                                               const int do_feather_isect
+                                                                               const bool do_feather_isect
                                                                                ))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
@@ -578,7 +578,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__even(M
 static float (*mask_spline_feather_differentiated_points_with_resolution__double(MaskSpline *spline,
                                                                                  unsigned int *tot_feather_point,
                                                                                  const unsigned int resol,
-                                                                                 const int do_feather_isect
+                                                                                 const bool do_feather_isect
                                                                                  ))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
@@ -715,7 +715,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline,
                                                                       unsigned int *tot_feather_point,
                                                                       const unsigned int resol,
-                                                                      const int do_feather_isect
+                                                                      const bool do_feather_isect
                                                                       ))[2]
 {
 	switch (spline->offset_mode) {

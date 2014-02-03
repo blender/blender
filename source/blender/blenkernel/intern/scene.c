@@ -744,7 +744,7 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
                              Scene **scene, int val, Base **base, Object **ob)
 {
-	int run_again = 1;
+	bool run_again = true;
 	
 	/* init */
 	if (val == 0) {
@@ -1671,7 +1671,7 @@ SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
 	return srl;
 }
 
-int BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
+bool BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
 {
 	const int act = BLI_findindex(&scene->r.layers, srl);
 	Scene *sce;
@@ -1766,7 +1766,7 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 	return NULL;
 }
 
-int BKE_scene_use_new_shading_nodes(Scene *scene)
+bool BKE_scene_use_new_shading_nodes(Scene *scene)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	return (type && type->flag & RE_USE_SHADING_NODES);
@@ -1810,12 +1810,12 @@ void BKE_scene_disable_color_management(Scene *scene)
 	}
 }
 
-int BKE_scene_check_color_management_enabled(const Scene *scene)
+bool BKE_scene_check_color_management_enabled(const Scene *scene)
 {
 	return strcmp(scene->display_settings.display_device, "None") != 0;
 }
 
-int BKE_scene_check_rigidbody_active(const Scene *scene)
+bool BKE_scene_check_rigidbody_active(const Scene *scene)
 {
 	return scene && scene->rigidbody_world && scene->rigidbody_world->group && !(scene->rigidbody_world->flag & RBW_FLAG_MUTED);
 }

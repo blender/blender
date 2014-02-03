@@ -72,7 +72,7 @@ void                filelist_setdir(struct FileList *filelist, const char *dir);
 struct direntry *   filelist_file(struct FileList *filelist, int index);
 void                filelist_select(struct FileList *filelist, FileSelection *sel, FileSelType select, unsigned int flag, FileCheckType check);
 void                filelist_select_file(struct FileList *filelist, int index, FileSelType select, unsigned int flag, FileCheckType check);
-int                 filelist_is_selected(struct FileList *filelist, int index, FileCheckType check);
+bool                filelist_is_selected(struct FileList *filelist, int index, FileCheckType check);
 void                filelist_hidedot(struct FileList *filelist, short hide);
 void                filelist_setfilter(struct FileList *filelist, unsigned int filter);
 void                filelist_setfilter_types(struct FileList *filelist, const char *filter_glob);
@@ -87,7 +87,7 @@ int                 filelist_empty(struct FileList *filelist);
 void                filelist_parent(struct FileList *filelist);
 
 struct BlendHandle *filelist_lib(struct FileList *filelist);
-int                 filelist_islibrary(struct FileList *filelist, char *dir, char *group);
+bool                filelist_islibrary(struct FileList *filelist, char *dir, char *group);
 void                filelist_from_main(struct FileList *filelist);
 void                filelist_from_library(struct FileList *filelist);
 void                filelist_freelib(struct FileList *filelist);

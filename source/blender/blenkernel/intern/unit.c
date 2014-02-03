@@ -423,7 +423,7 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, bUn
 /* Used for drawing number buttons, try keep fast.
  * Return the length of the generated string.
  */
-size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, bool pad)
+size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 

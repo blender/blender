@@ -899,7 +899,7 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 		CCGKey highGridKey, lowGridKey;
 		CCGSubSurf *ss;
 		int i, numGrids, highGridSize;
-		int has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
+		const bool has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
 		/* create subsurf DM from original mesh at high level */
 		cddm = CDDM_from_mesh(me);
@@ -1170,7 +1170,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm)
 			CCGKey highGridKey, lowGridKey;
 			CCGSubSurf *ss;
 			int i, j, numGrids, highGridSize, lowGridSize;
-			int has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
+			const bool has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
 			/* create subsurf DM from original mesh at high level */
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
@@ -1233,7 +1233,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm)
 		}
 		else {
 			DerivedMesh *cddm, *subdm;
-			int has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
+			const bool has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me);

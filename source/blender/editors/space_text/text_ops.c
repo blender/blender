@@ -231,7 +231,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char str[FILE_MAX];
-	short internal = RNA_boolean_get(op->ptr, "internal");
+	const bool internal = RNA_boolean_get(op->ptr, "internal");
 
 	RNA_string_get(op->ptr, "filepath", str);
 
@@ -3190,7 +3190,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 static int text_to_3d_object_exec(bContext *C, wmOperator *op)
 {
 	Text *text = CTX_data_edit_text(C);
-	int split_lines = RNA_boolean_get(op->ptr, "split_lines");
+	const bool split_lines = RNA_boolean_get(op->ptr, "split_lines");
 
 	ED_text_to_object(C, text, split_lines);
 

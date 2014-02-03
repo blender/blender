@@ -101,12 +101,12 @@ void node_socket_select(bNode *node, bNodeSocket *sock)
 		node->flag |= SELECT;
 }
 
-void node_socket_deselect(bNode *node, bNodeSocket *sock, int deselect_node)
+void node_socket_deselect(bNode *node, bNodeSocket *sock, const bool deselect_node)
 {
 	sock->flag &= ~SELECT;
 	
 	if (node && deselect_node) {
-		int sel = 0;
+		bool sel = 0;
 		
 		/* if no selected sockets remain, also deselect the node */
 		for (sock = node->inputs.first; sock; sock = sock->next) {
@@ -144,7 +144,7 @@ void node_deselect_all(SpaceNode *snode)
 		nodeSetSelected(node, FALSE);
 }
 
-void node_deselect_all_input_sockets(SpaceNode *snode, int deselect_nodes)
+void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -175,7 +175,7 @@ void node_deselect_all_input_sockets(SpaceNode *snode, int deselect_nodes)
 	}
 }
 
-void node_deselect_all_output_sockets(SpaceNode *snode, int deselect_nodes)
+void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_nodes)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -186,7 +186,7 @@ void node_deselect_all_output_sockets(SpaceNode *snode, int deselect_nodes)
 	 */
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		int sel = 0;
+		bool sel = false;
 		
 		for (sock = node->outputs.first; sock; sock = sock->next)
 			sock->flag &= ~SELECT;
@@ -473,7 +473,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 
 static int node_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	int tweak = RNA_boolean_get(op->ptr, "tweak");
+	const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 	
 	if (tweak) {
 		/* prevent initiating the border select if the mouse is over a node */
@@ -835,8 +835,8 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 	bNode **node_array;
 	bNode *active = nodeGetActive(snode->edittree);
 	int totnodes;
-	int revert = RNA_boolean_get(op->ptr, "prev");
-	int same_type = 1;
+	const bool revert = RNA_boolean_get(op->ptr, "prev");
+	const bool same_type = 1;
 	
 	ntreeGetDependencyList(snode->edittree, &node_array, &totnodes);
 	

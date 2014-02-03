@@ -228,16 +228,16 @@ int binarysearch_bezt_index(struct BezTriple array[], float frame, int arraylen,
 
 /* get the time extents for F-Curve */
 bool calc_fcurve_range(struct FCurve *fcu, float *min, float *max,
-                       const short do_sel_only, const short do_min_length);
+                       const bool do_sel_only, const bool do_min_length);
 
 /* get the bounding-box extents for F-Curve */
-short calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
-                         const short do_sel_only, const short include_handles);
+bool calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
+                        const bool do_sel_only, const bool include_handles);
 
 /* .............. */
 
 /* Are keyframes on F-Curve of any use (to final result, and to show in editors)? */
-short fcurve_are_keyframes_usable(struct FCurve *fcu);
+bool fcurve_are_keyframes_usable(struct FCurve *fcu);
 
 /* Can keyframes be added to F-Curve? */
 bool fcurve_is_keyframable(struct FCurve *fcu);

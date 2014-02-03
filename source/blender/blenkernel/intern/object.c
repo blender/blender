@@ -3224,7 +3224,7 @@ void object_delete_ptcache(Object *ob, int index)
 /* shape key utility function */
 
 /************************* Mesh ************************/
-static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int from_mix)
+static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, const bool from_mix)
 {
 	Mesh *me = ob->data;
 	Key *key = me->key;
@@ -3256,7 +3256,7 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int 
 	return kb;
 }
 /************************* Lattice ************************/
-static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int from_mix)
+static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, const bool from_mix)
 {
 	Lattice *lt = ob->data;
 	Key *key = lt->key;
@@ -3294,7 +3294,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 	return kb;
 }
 /************************* Curve ************************/
-static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int from_mix)
+static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, const bool from_mix)
 {
 	Curve *cu = ob->data;
 	Key *key = cu->key;
@@ -3334,7 +3334,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 	return kb;
 }
 
-KeyBlock *BKE_object_insert_shape_key(Scene *scene, Object *ob, const char *name, int from_mix)
+KeyBlock *BKE_object_insert_shape_key(Scene *scene, Object *ob, const char *name, const bool from_mix)
 {	
 	switch (ob->type) {
 		case OB_MESH:

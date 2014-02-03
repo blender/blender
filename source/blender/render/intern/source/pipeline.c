@@ -2391,7 +2391,7 @@ static int check_composite_output(Scene *scene)
 	return node_tree_has_composite_output(scene->nodetree);
 }
 
-int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
+bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
 {
 	SceneRenderLayer *srl;
 	int scemode = check_mode_full_sample(&scene->r);
@@ -2659,7 +2659,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 
 	/* write movie or image */
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		int do_free = FALSE;
+		bool do_free = false;
 		ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
 
 		/* note; the way it gets 32 bits rects is weak... */

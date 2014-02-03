@@ -220,7 +220,7 @@ void BKE_sequence_free(struct Scene *scene, struct Sequence *seq);
 const char *BKE_sequence_give_name(struct Sequence *seq);
 void BKE_sequence_calc(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_calc_disp(struct Scene *scene, struct Sequence *seq);
-void BKE_sequence_reload_new_file(struct Scene *scene, struct Sequence *seq, int lock_range);
+void BKE_sequence_reload_new_file(struct Scene *scene, struct Sequence *seq, const bool lock_range);
 int BKE_sequencer_evaluate_frame(struct Scene *scene, int cfra);
 
 struct StripElem *BKE_sequencer_give_stripelem(struct Sequence *seq, int cfra);

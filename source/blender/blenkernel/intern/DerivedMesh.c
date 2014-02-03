@@ -1444,9 +1444,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	const bool do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
 #endif
 	const bool do_final_wmcol = FALSE;
-	int do_init_wmcol = ((dataMask & CD_MASK_PREVIEW_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
+	const bool do_init_wmcol = ((dataMask & CD_MASK_PREVIEW_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
 	/* XXX Same as above... For now, only weights preview in WPaint mode. */
-	const int do_mod_wmcol = do_init_wmcol;
+	const bool do_mod_wmcol = do_init_wmcol;
 
 	VirtualModifierData virtualModifierData;
 
@@ -1938,7 +1938,7 @@ float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *numVerts_r))[3]
 	return cos;
 }
 
-int editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
+bool editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
@@ -1965,9 +1965,9 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 	int draw_flag = dm_drawflag_calc(scene->toolsettings);
 
-	// const int do_mod_mcol = true; // (ob->mode == OB_MODE_OBJECT);
+	// const bool do_mod_mcol = true; // (ob->mode == OB_MODE_OBJECT);
 #if 0 /* XXX Will re-enable this when we have global mod stack options. */
-	const int do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
+	const bool do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
 #endif
 	const bool do_final_wmcol = FALSE;
 	const bool do_init_wmcol = ((((Mesh *)ob->data)->drawflag & ME_DRAWEIGHT) && !do_final_wmcol);
@@ -2697,7 +2697,8 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 			{
 				float *verts[4], *tex_coords[4];
 				const int nr_verts = mface[f].v4 != 0 ? 4 : 3;
-				int i, is_degenerate;
+				bool is_degenerate;
+				int i;
 
 				verts[0] = mvert[mface[f].v1].co; verts[1] = mvert[mface[f].v2].co; verts[2] = mvert[mface[f].v3].co;
 				tex_coords[0] = mtface[f].uv[0]; tex_coords[1] = mtface[f].uv[1]; tex_coords[2] = mtface[f].uv[2];
@@ -2725,7 +2726,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					/* verify the winding is consistent */
 					if (is_degenerate == 0) {
 						float prev_edge[2];
-						int is_signed = 0;
+						bool is_signed = 0;
 						sub_v2_v2v2(prev_edge, tex_coords[0], tex_coords[3]);
 
 						i = 0;

@@ -710,7 +710,7 @@ static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
-	int do_draw = FALSE;
+	bool do_draw = false;
 
 	for (ar = win->screen->regionbase.first; ar; ar = ar->next) {
 		if (ar->do_draw_overlay) {

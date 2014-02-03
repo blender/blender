@@ -1596,7 +1596,7 @@ void BKE_ffmpeg_codec_settings_verify(RenderData *rd)
 	ffmpeg_set_expert_options(rd);
 }
 
-int BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
+bool BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 {
 	int codec = rd->ffcodecdata.codec;
 

@@ -72,10 +72,10 @@
 #include <assert.h>
 
 /* return true if the element should be hidden/shown */
-static int is_effected(PartialVisArea area,
-                       float planes[4][4],
-                       const float co[3],
-                       const float mask)
+static bool is_effected(PartialVisArea area,
+                        float planes[4][4],
+                        const float co[3],
+                        const float mask)
 {
 	if (area == PARTIALVIS_ALL)
 		return 1;

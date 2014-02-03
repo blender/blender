@@ -1461,7 +1461,7 @@ static void dynamicPaint_setInitialColor(Scene *scene, DynamicPaintSurface *surf
 	PaintPoint *pPoint = (PaintPoint *)sData->type_data;
 	DerivedMesh *dm = surface->canvas->dm;
 	int i;
-	bool scene_color_manage = BKE_scene_check_color_management_enabled(scene);
+	const bool scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 
 	if (surface->type != MOD_DPAINT_SURFACE_T_PAINT)
 		return;

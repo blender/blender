@@ -147,7 +147,7 @@ typedef int (*DMSetMaterial)(int mat_nr, void *attribs);
 typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_index);
 typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
 typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
-typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTFace *tface, int has_vcol, int matnr);
+typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTFace *tface, const bool has_vcol, int matnr);
 
 typedef enum DMDrawFlag {
 	DM_DRAW_USE_COLORS = 1,
@@ -673,7 +673,7 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(struct Scene *scene, struct Ob
                                                   struct BMEditMesh *em, DerivedMesh **final_r,
                                                   CustomDataMask dataMask);
 float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *numVerts_r))[3];
-int editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
+bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
 void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *em, 
                      CustomDataMask dataMask, int build_shapekey_layers);
 

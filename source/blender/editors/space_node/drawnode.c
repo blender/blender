@@ -3202,7 +3202,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 #define LINK_ARROW  12  /* position of arrow on the link, LINK_RESOL/2 */
 #define ARROW_SIZE 7
 void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
-                           int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3)
+                           int th_col1, bool do_shaded, int th_col2, bool do_triple, int th_col3)
 {
 	float coord_array[LINK_RESOL + 1][2];
 	
@@ -3388,8 +3388,9 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 /* note; this is used for fake links in groups too */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
-	int do_shaded = FALSE, th_col1 = TH_HEADER, th_col2 = TH_HEADER;
-	int do_triple = FALSE, th_col3 = TH_WIRE;
+	bool do_shaded = false;
+	bool do_triple = false;
+	int th_col1 = TH_HEADER, th_col2 = TH_HEADER, th_col3 = TH_WIRE;
 	
 	if (link->fromsock == NULL && link->tosock == NULL)
 		return;

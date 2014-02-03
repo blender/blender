@@ -653,7 +653,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 }
 
 /* keep these functions in sync */
-static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_torus, float r_rgb[4])
+static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const bool is_torus, float r_rgb[4])
 {
 	if (is_torus) {
 		x %= ibuf->x;
@@ -671,7 +671,7 @@ static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_toru
 		straight_uchar_to_premul_float(r_rgb, rrgb);
 	}
 }
-static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_torus, const float rgb[4])
+static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const bool is_torus, const float rgb[4])
 {
 	if (is_torus) {
 		x %= ibuf->x;
@@ -715,7 +715,7 @@ static int paint_2d_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, flo
 	return 1;
 }
 
-static void paint_2d_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, const short is_torus)
+static void paint_2d_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, const bool is_torus)
 {
 	int x, y, count, xi, yi, xo, yo;
 	int out_off[2], in_off[2], dim[2];

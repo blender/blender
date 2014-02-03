@@ -345,7 +345,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 	BL::RenderSettings r = b_scene.render();
 	SceneParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-	int shadingsystem = RNA_boolean_get(&cscene, "shading_system");
+	const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
 
 	if(shadingsystem == 0)
 		params.shadingsystem = SceneParams::SVM;
@@ -494,7 +494,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 		params.progressive = true;
 
 	/* shading system - scene level needs full refresh */
-	int shadingsystem = RNA_boolean_get(&cscene, "shading_system");
+	const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
 
 	if(shadingsystem == 0)
 		params.shadingsystem = SessionParams::SVM;

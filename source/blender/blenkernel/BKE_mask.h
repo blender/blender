@@ -87,7 +87,7 @@ float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoi
                                  float start_u, const float co[2], const eMaskSign sign);
 
 /* point */
-int BKE_mask_point_has_handle(struct MaskSplinePoint *point);
+bool BKE_mask_point_has_handle(struct MaskSplinePoint *point);
 void BKE_mask_point_handle(struct MaskSplinePoint *point, float handle[2]);
 void BKE_mask_point_set_handle(struct MaskSplinePoint *point, float loc[2], bool keep_direction,
                                float orig_handle[2], float orig_vec[3][3]);
@@ -100,8 +100,8 @@ float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *p
 struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point, struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
-void BKE_mask_point_select_set(struct MaskSplinePoint *point, const short do_select);
-void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const short do_select);
+void BKE_mask_point_select_set(struct MaskSplinePoint *point, const bool do_select);
+void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const bool do_select);
 
 /* general */
 struct Mask *BKE_mask_new(struct Main *bmain, const char *name);
@@ -131,7 +131,7 @@ void BKE_mask_calc_handle_adjacent_interp(struct MaskSpline *spline, struct Mask
 void BKE_mask_calc_tangent_polyline(struct MaskSpline *spline, struct MaskSplinePoint *point, float t[2]);
 void BKE_mask_calc_handle_point(struct MaskSpline *spline, struct MaskSplinePoint *point);
 void BKE_mask_calc_handle_point_auto(struct MaskSpline *spline, struct MaskSplinePoint *point,
-                                     const short do_recalc_length);
+                                     const bool do_recalc_length);
 void BKE_mask_get_handle_point_adjacent(struct MaskSpline *spline, struct MaskSplinePoint *point,
                                         struct MaskSplinePoint **r_point_prev, struct MaskSplinePoint **r_point_next);
 void BKE_mask_layer_calc_handles(struct MaskLayer *masklay);
@@ -199,7 +199,7 @@ float (*BKE_mask_spline_differentiate_with_resolution(struct MaskSpline *spline,
 void    BKE_mask_spline_feather_collapse_inner_loops(struct MaskSpline *spline, float (*feather_points)[2], const unsigned int tot_feather_point);
 float (*BKE_mask_spline_differentiate(struct MaskSpline *spline, int width, int height, unsigned int *tot_diff_point))[2];
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(struct MaskSpline *spline, unsigned int *tot_feather_point,
-                                                                      const unsigned int resol, const int do_feather_isect))[2];
+                                                                      const unsigned int resol, const bool do_feather_isect))[2];
 
 /* *** mask point functions which involve evaluation *** */
 float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feather_point))[2];
@@ -220,8 +220,8 @@ MaskRasterHandle *BKE_maskrasterize_handle_new(void);
 void              BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle);
 void              BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
                                                 const int width, const int height,
-                                                const short do_aspect_correct, const short do_mask_aa,
-                                                const short do_feather);
+                                                const bool do_aspect_correct, const bool do_mask_aa,
+                                                const bool do_feather);
 float             BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2]);
 
 void              BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,

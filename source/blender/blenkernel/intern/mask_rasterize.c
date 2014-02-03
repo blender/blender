@@ -192,7 +192,7 @@ typedef struct MaskRasterSplineInfo {
 	unsigned int vertex_total_cap_head;
 	unsigned int vertex_total_cap_tail;
 
-	unsigned int is_cyclic;
+	bool is_cyclic;
 } MaskRasterSplineInfo;
 
 /**
@@ -256,7 +256,7 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 
 static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2], float (*diff_points)[2],
                                                             const unsigned int tot_diff_point, const float ofs,
-                                                            const short do_test)
+                                                            const bool do_test)
 {
 	unsigned int k_prev = tot_diff_point - 2;
 	unsigned int k_curr = tot_diff_point - 1;
@@ -558,8 +558,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
 void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
                                    const int width, const int height,
-                                   const short do_aspect_correct, const short do_mask_aa,
-                                   const short do_feather)
+                                   const bool do_aspect_correct, const bool do_mask_aa,
+                                   const bool do_feather)
 {
 	const rctf default_bounds = {0.0f, 1.0f, 0.0f, 1.0f};
 	const float pixel_size = 1.0f / (float)min_ii(width, height);
@@ -613,8 +613,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
-			const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
-			const unsigned int is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
+			const bool is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
+			const bool is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 			float (*diff_points)[2];
 			unsigned int tot_diff_point;

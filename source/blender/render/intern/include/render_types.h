@@ -132,7 +132,7 @@ struct Render
 	short flag, osa, ok, result_ok;
 	
 	/* due to performance issues, getting initialized from color management settings once on Render initialization */
-	short scene_color_manage;
+	bool scene_color_manage;
 	
 	/* result of rendering */
 	RenderResult *result;

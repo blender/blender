@@ -1610,7 +1610,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
 	ObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
-	int toggle = RNA_boolean_get(op->ptr, "toggle");
+	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	if (!ob || !object_mode_compat_test(ob, mode))
 		return OPERATOR_PASS_THROUGH;

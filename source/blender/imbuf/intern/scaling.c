@@ -58,7 +58,7 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 	short a, r, g, b;
 	int x, y;
 	float af, rf, gf, bf, *p1f, *_p1f, *destf;
-	int do_rect, do_float;
+	bool do_rect, do_float;
 
 	if (ibuf1 == NULL) return (NULL);
 	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
@@ -1130,7 +1130,8 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 	float val_bf, nval_bf, diff_bf;
 	float val_gf, nval_gf, diff_gf;
 	float val_rf, nval_rf, diff_rf;
-	int x, y, do_rect = FALSE, do_float = FALSE;
+	int x, y;
+	bool do_rect = false, do_float = false;
 
 	val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
 	val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;

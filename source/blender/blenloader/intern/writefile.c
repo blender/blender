@@ -3418,7 +3418,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 
 /* do reverse file history: .blend1 -> .blend2, .blend -> .blend1 */
 /* return: success(0), failure(1) */
-static int do_history(const char *name, ReportList *reports)
+static bool do_history(const char *name, ReportList *reports)
 {
 	char tempname1[FILE_MAX], tempname2[FILE_MAX];
 	int hisnr= U.versions;
@@ -3524,7 +3524,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	/* file save to temporary file was successful */
 	/* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
 	if (write_flags & G_FILE_HISTORY) {
-		int err_hist = do_history(filepath, reports);
+		const bool err_hist = do_history(filepath, reports);
 		if (err_hist) {
 			BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
 			return 0;

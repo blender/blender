@@ -53,7 +53,7 @@ typedef struct {
 /* Callbacks */
 
 /* returns 1 if the search should continue from this node, 0 otherwise */
-typedef int (*BKE_pbvh_SearchCallback)(PBVHNode *node, void *data);
+typedef bool (*BKE_pbvh_SearchCallback)(PBVHNode *node, void *data);
 
 typedef void (*BKE_pbvh_HitCallback)(PBVHNode *node, void *data);
 typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *tmin);
@@ -174,9 +174,9 @@ void BKE_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max
 float BKE_pbvh_node_get_tmin(PBVHNode *node);
 
 /* test if AABB is at least partially inside the planes' volume */
-int BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
+bool BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
 /* test if AABB is at least partially outside the planes' volume */
-int BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
+bool BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
 
 struct GSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 struct GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
@@ -203,7 +203,7 @@ void BKE_pbvh_node_layer_disp_free(PBVHNode *node);
 /* vertex deformer */
 float (*BKE_pbvh_get_vertCos(struct PBVH *pbvh))[3];
 void BKE_pbvh_apply_vertCos(struct PBVH *pbvh, float (*vertCos)[3]);
-int BKE_pbvh_isDeformed(struct PBVH *pbvh);
+bool BKE_pbvh_isDeformed(struct PBVH *pbvh);
 
 /* Vertex Iterator */
 
@@ -330,6 +330,6 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***nodes,  int *totnode);
 //void BKE_pbvh_node_BB_reset(PBVHNode *node);
 //void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
-void pbvh_show_diffuse_color_set(PBVH *bvh, int show_diffuse_color);
+void pbvh_show_diffuse_color_set(PBVH *bvh, bool show_diffuse_color);
 
 #endif /* __BKE_PBVH_H__ */

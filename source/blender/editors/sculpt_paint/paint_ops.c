@@ -313,8 +313,8 @@ static Brush *brush_tool_toggle(Main *bmain, Brush *brush_orig, const int tool, 
 
 static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
                                   const size_t tool_offset, const int ob_mode,
-                                  const char *tool_name, int create_missing,
-                                  int toggle)
+                                  const char *tool_name, const bool create_missing,
+                                  const bool toggle)
 {
 	Brush *brush, *brush_orig = BKE_paint_brush(paint);
 
@@ -350,8 +350,8 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
 	Paint *paint = NULL;
 	int tool, paint_mode = RNA_enum_get(op->ptr, "paint_mode");
-	int create_missing = RNA_boolean_get(op->ptr, "create_missing");
-	int toggle = RNA_boolean_get(op->ptr, "toggle");
+	const bool create_missing = RNA_boolean_get(op->ptr, "create_missing");
+	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	const char *tool_name = "Brush";
 	size_t tool_offset;
 

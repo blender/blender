@@ -53,7 +53,7 @@ void file_calc_previews(const bContext *C, ARegion *ar);
 void file_draw_list(const bContext *C, ARegion *ar);
 
 void file_draw_check_cb(bContext *C, void *arg1, void *arg2);
-int file_draw_check_exists(SpaceFile *sfile);
+bool file_draw_check_exists(SpaceFile *sfile);
 
 /* file_ops.h */
 struct wmOperatorType;

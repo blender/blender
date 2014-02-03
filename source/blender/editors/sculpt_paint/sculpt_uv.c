@@ -500,7 +500,7 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static int uv_element_offset_from_face_get(UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, int doIslands)
+static int uv_element_offset_from_face_get(UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, const bool doIslands)
 {
 	UvElement *element = BM_uv_element_get(map, efa, l);
 	if (!element || (doIslands && element->island != island_index)) {
@@ -555,7 +555,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 		GHash *edgeHash;
 		GHashIterator *ghi;
 
-		int do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
+		bool do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
 		int island_index = 0;
 		/* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
 		int *uniqueUv;

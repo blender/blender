@@ -1230,7 +1230,7 @@ void txt_order_cursors(Text *text, const bool reverse)
 	}
 }
 
-int txt_has_sel(Text *text)
+bool txt_has_sel(Text *text)
 {
 	return ((text->curl != text->sell) || (text->curc != text->selc));
 }
@@ -3010,7 +3010,7 @@ int text_check_bracket(const char ch)
 }
 
 /* TODO, have a function for operators - http://docs.python.org/py3k/reference/lexical_analysis.html#operators */
-int text_check_delim(const char ch)
+bool text_check_delim(const char ch)
 {
 	int a;
 	char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,@";
@@ -3022,14 +3022,14 @@ int text_check_delim(const char ch)
 	return 0;
 }
 
-int text_check_digit(const char ch)
+bool text_check_digit(const char ch)
 {
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
 	return 0;
 }
 
-int text_check_identifier(const char ch)
+bool text_check_identifier(const char ch)
 {
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
@@ -3040,7 +3040,7 @@ int text_check_identifier(const char ch)
 	return 0;
 }
 
-int text_check_identifier_nodigit(const char ch)
+bool text_check_identifier_nodigit(const char ch)
 {
 	if (ch <= '9') return 0;
 	if (ch < 'A') return 0;
@@ -3051,18 +3051,18 @@ int text_check_identifier_nodigit(const char ch)
 }
 
 #ifndef WITH_PYTHON
-int text_check_identifier_unicode(const unsigned int ch)
+bool text_check_identifier_unicode(const unsigned int ch)
 {
 	return (ch < 255 && text_check_identifier((char)ch));
 }
 
-int text_check_identifier_nodigit_unicode(const unsigned int ch)
+bool text_check_identifier_nodigit_unicode(const unsigned int ch)
 {
 	return (ch < 255 && text_check_identifier_nodigit((char)ch));
 }
 #endif  /* WITH_PYTHON */
 
-int text_check_whitespace(const char ch)
+bool text_check_whitespace(const char ch)
 {
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
 		return 1;

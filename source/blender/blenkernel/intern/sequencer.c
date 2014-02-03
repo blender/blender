@@ -176,7 +176,7 @@ static void seq_free_strip(Strip *strip)
 }
 
 /* only give option to skip cache locally (static func) */
-static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const int do_cache)
+static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const bool do_cache)
 {
 	if (seq->strip)
 		seq_free_strip(seq->strip);
@@ -752,7 +752,7 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
 }
 
 /* note: caller should run BKE_sequence_calc(scene, seq) after */
-void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
+void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_range)
 {
 	char str[FILE_MAX];
 	int prev_startdisp = 0, prev_enddisp = 0;
@@ -1925,7 +1925,7 @@ int BKE_sequencer_input_have_to_preprocess(const SeqRenderData *UNUSED(context),
 }
 
 static ImBuf *input_preprocess(const SeqRenderData *context, Sequence *seq, float cfra, ImBuf *ibuf,
-                               int is_proxy_image, int is_preprocessed)
+                               const bool is_proxy_image, const bool is_preprocessed)
 {
 	Scene *scene = context->scene;
 	float mul;
@@ -2457,11 +2457,11 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	 * -jahka
 	 */
 
-	const short is_rendering = G.is_rendering;
-	const short is_background = G.background;
-	const int do_seq_gl = is_rendering ?
-	            0 /* (context->scene->r.seq_flag & R_SEQ_GL_REND) */ :
-	            (context->scene->r.seq_flag & R_SEQ_GL_PREV);
+	const bool is_rendering = G.is_rendering;
+	const bool  is_background = G.background;
+	const bool do_seq_gl = is_rendering ?
+	        0 /* (context->scene->r.seq_flag & R_SEQ_GL_REND) */ :
+	        (context->scene->r.seq_flag & R_SEQ_GL_PREV) != 0;
 	int do_seq;
 	// int have_seq = FALSE;  /* UNUSED */
 	int have_comp = FALSE;
@@ -2756,12 +2756,12 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context, Sequence *s
 static ImBuf *seq_render_strip(const SeqRenderData *context, Sequence *seq, float cfra)
 {
 	ImBuf *ibuf = NULL;
-	int use_preprocess = FALSE;
-	int is_proxy_image = FALSE;
+	bool use_preprocess = false;
+	bool is_proxy_image = false;
 	float nr = give_stripelem_index(seq, cfra);
 	/* all effects are handled similarly with the exception of speed effect */
 	int type = (seq->type & SEQ_TYPE_EFFECT && seq->type != SEQ_TYPE_SPEED) ? SEQ_TYPE_EFFECT : seq->type;
-	int is_preprocessed = !ELEM3(type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SCENE);
+	bool is_preprocessed = !ELEM3(type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SCENE);
 
 	ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 

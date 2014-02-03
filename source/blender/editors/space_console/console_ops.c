@@ -668,8 +668,8 @@ static int console_clear_exec(bContext *C, wmOperator *op)
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ARegion *ar = CTX_wm_region(C);
 	
-	short scrollback = RNA_boolean_get(op->ptr, "scrollback");
-	short history = RNA_boolean_get(op->ptr, "history");
+	const bool scrollback = RNA_boolean_get(op->ptr, "scrollback");
+	const bool history = RNA_boolean_get(op->ptr, "history");
 	
 	/*ConsoleLine *ci = */ console_history_verify(C);
 	
@@ -715,7 +715,7 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 
 	ConsoleLine *ci = console_history_verify(C); /* TODO - stupid, just prevents crashes when no command line */
-	short reverse = RNA_boolean_get(op->ptr, "reverse"); /* assumes down, reverse is up */
+	const bool reverse = RNA_boolean_get(op->ptr, "reverse"); /* assumes down, reverse is up */
 	int prev_len = ci->len;
 
 	/* keep a copy of the line above so when history is cycled
@@ -783,7 +783,7 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 	ConsoleLine *ci = console_history_verify(C);
 	char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, don't free */
 	int cursor = RNA_int_get(op->ptr, "current_character");
-	short rem_dupes = RNA_boolean_get(op->ptr, "remove_duplicates");
+	const bool rem_dupes = RNA_boolean_get(op->ptr, "remove_duplicates");
 	int prev_len = ci->len;
 
 	if (rem_dupes) {

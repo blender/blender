@@ -561,7 +561,7 @@ void BKE_image_merge(Image *dest, Image *source)
 }
 
 /* note, we could be clever and scale all imbuf's but since some are mipmaps its not so simple */
-int BKE_image_scale(Image *image, int width, int height)
+bool BKE_image_scale(Image *image, int width, int height)
 {
 	ImBuf *ibuf;
 	void *lock;
@@ -1264,7 +1264,7 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 	else return R_IMF_IMTYPE_INVALID;
 }
 
-static int do_add_image_extension(char *string, const char imtype, const ImageFormatData *im_format)
+static bool do_add_image_extension(char *string, const char imtype, const ImageFormatData *im_format)
 {
 	const char *extension = NULL;
 	const char *extension_test;
@@ -3149,7 +3149,7 @@ void BKE_image_release_ibuf(Image *ima, ImBuf *ibuf, void *lock)
 }
 
 /* checks whether there's an image buffer for given image and user */
-int BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
+bool BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf;
 
@@ -3284,7 +3284,7 @@ void BKE_image_pool_release_ibuf(Image *ima, ImBuf *ibuf, ImagePool *pool)
 	}
 }
 
-int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, short *r_is_in_range)
+int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool *r_is_in_range)
 {
 	const int len = (iuser->fie_ima * iuser->frames) / 2;
 
@@ -3346,7 +3346,7 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, shor
 void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 {
 	if (iuser) {
-		short is_in_range;
+		bool is_in_range;
 		const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr, &is_in_range);
 
 		if (is_in_range) {
@@ -3404,7 +3404,7 @@ void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
 	BLI_path_abs(filepath, ID_BLEND_PATH(G.main, &ima->id));
 }
 
-int BKE_image_has_alpha(struct Image *image)
+bool BKE_image_has_alpha(struct Image *image)
 {
 	ImBuf *ibuf;
 	void *lock;

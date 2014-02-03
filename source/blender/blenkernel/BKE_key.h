@@ -69,7 +69,7 @@ struct KeyBlock *BKE_keyblock_from_object(struct Object *ob);
 struct KeyBlock *BKE_keyblock_from_object_reference(struct Object *ob);
 
 struct KeyBlock *BKE_keyblock_add(struct Key *key, const char *name);
-struct KeyBlock *BKE_keyblock_add_ctime(struct Key *key, const char *name, const short do_force);
+struct KeyBlock *BKE_keyblock_add_ctime(struct Key *key, const char *name, const bool do_force);
 struct KeyBlock *BKE_keyblock_from_key(struct Key *key, int index);
 struct KeyBlock *BKE_keyblock_find_name(struct Key *key, const char name[]);
 void             BKE_keyblock_copy_settings(struct KeyBlock *kb_dst, const struct KeyBlock *kb_src);

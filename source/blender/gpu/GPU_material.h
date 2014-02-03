@@ -114,8 +114,8 @@ GPUNodeLink *GPU_texture(int size, float *pixels);
 GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, int dynamictype, void *data);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
 
-int GPU_link(GPUMaterial *mat, const char *name, ...);
-int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
+bool GPU_link(GPUMaterial *mat, const char *name, ...);
+bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_enable_alpha(GPUMaterial *material);
@@ -235,7 +235,7 @@ void GPU_free_shader_export(GPUShaderExport *shader);
 GPULamp *GPU_lamp_from_blender(struct Scene *scene, struct Object *ob, struct Object *par);
 void GPU_lamp_free(struct Object *ob);
 
-int GPU_lamp_has_shadow_buffer(GPULamp *lamp);
+bool GPU_lamp_has_shadow_buffer(GPULamp *lamp);
 void GPU_lamp_update_buffer_mats(GPULamp *lamp);
 void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[4][4], int *winsize, float winmat[4][4]);
 void GPU_lamp_shadow_buffer_unbind(GPULamp *lamp);

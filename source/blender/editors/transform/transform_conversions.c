@@ -5110,7 +5110,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
-			short do_loc = FALSE, do_rot = FALSE, do_scale = FALSE;
+			bool do_loc = false, do_rot = false, do_scale = false;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 			if (tmode == TFM_TRANSLATION) {

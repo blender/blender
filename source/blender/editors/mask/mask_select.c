@@ -256,7 +256,7 @@ static int select_exec(bContext *C, wmOperator *op)
 	bool deselect = RNA_boolean_get(op->ptr, "deselect");
 	bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
-	int is_handle = 0;
+	bool is_handle = 0;
 	const float threshold = 19;
 
 	RNA_float_get_array(op->ptr, "location", co);
@@ -703,7 +703,7 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	float co[2];
 	int do_select = !RNA_boolean_get(op->ptr, "deselect");
 
-	int is_handle = 0;
+	bool is_handle = false;
 	const float threshold = 19;
 	bool changed = false;
 

@@ -86,10 +86,10 @@
 #include "uvedit_intern.h"
 #include "uvedit_parametrizer.h"
 
-static void modifier_unwrap_state(Object *obedit, Scene *scene, short *use_subsurf)
+static void modifier_unwrap_state(Object *obedit, Scene *scene, bool *r_use_subsurf)
 {
 	ModifierData *md;
-	short subsurf = scene->toolsettings->uvcalc_flag & UVCALC_USESUBSURF;
+	bool subsurf = (scene->toolsettings->uvcalc_flag & UVCALC_USESUBSURF) != 0;
 
 	md = obedit->modifiers.first;
 
@@ -101,7 +101,7 @@ static void modifier_unwrap_state(Object *obedit, Scene *scene, short *use_subsu
 			subsurf = FALSE;
 	}
 
-	*use_subsurf = subsurf;
+	*r_use_subsurf = subsurf;
 }
 
 static bool ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
@@ -256,8 +256,8 @@ static void construct_param_handle_face_add(ParamHandle *handle, Scene *scene,
 }
 
 static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh *em,
-                                           short implicit, short fill, short sel,
-                                           short correct_aspect)
+                                           const bool implicit, const bool fill, const bool sel,
+                                           const bool correct_aspect)
 {
 	BMesh *bm = em->bm;
 	ParamHandle *handle;
@@ -516,7 +516,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	MinStretch *ms;
-	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
+	const bool fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	bool implicit = true;
 
 	if (!uvedit_have_selection(scene, em, implicit)) {
@@ -802,9 +802,9 @@ static ParamHandle *liveHandle = NULL;
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	short abf = scene->toolsettings->unwrapper == 0;
-	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
-	short use_subsurf;
+	const bool abf = (scene->toolsettings->unwrapper == 0);
+	const bool fillholes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0;
+	bool use_subsurf;
 
 	modifier_unwrap_state(obedit, scene, &use_subsurf);
 
@@ -1068,9 +1068,9 @@ static void uv_map_clip_correct(Scene *scene, Object *ob, BMEditMesh *em, wmOper
 	BMIter iter, liter;
 	MLoopUV *luv;
 	float dx, dy, min[2], max[2];
-	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
-	int clip_to_bounds = RNA_boolean_get(op->ptr, "clip_to_bounds");
-	int scale_to_bounds = RNA_boolean_get(op->ptr, "scale_to_bounds");
+	const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
+	const bool clip_to_bounds = RNA_boolean_get(op->ptr, "clip_to_bounds");
+	const bool scale_to_bounds = RNA_boolean_get(op->ptr, "scale_to_bounds");
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
@@ -1135,9 +1135,9 @@ void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ParamHandle *handle;
 
-	const short fill_holes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
-	const short correct_aspect = !(scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT);
-	short use_subsurf;
+	const bool fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0;
+	const bool correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) != 0;
+	bool use_subsurf;
 
 	modifier_unwrap_state(obedit, scene, &use_subsurf);
 
@@ -1164,10 +1164,10 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	int method = RNA_enum_get(op->ptr, "method");
-	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
-	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
-	int use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
-	short use_subsurf_final;
+	const bool fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
+	const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
+	const bool use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
+	bool use_subsurf_final;
 	float obsize[3];
 	bool implicit = false;
 

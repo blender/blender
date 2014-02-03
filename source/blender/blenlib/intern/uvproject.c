@@ -39,7 +39,7 @@ typedef struct ProjCameraInfo {
 	float shiftx, shifty;
 	float rotmat[4][4];
 	float caminv[4][4];
-	short do_persp, do_pano, do_rotmat;
+	bool do_persp, do_pano, do_rotmat;
 } ProjCameraInfo;
 
 void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo *uci)

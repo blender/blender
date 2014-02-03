@@ -641,7 +641,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 			short indent = 0, offset = 0, sel = 0, group = 0;
 			int special = -1;
 			char name[128];
-			short do_draw = FALSE;
+			bool do_draw = false;
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {

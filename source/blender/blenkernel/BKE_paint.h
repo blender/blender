@@ -140,7 +140,7 @@ typedef struct SculptSession {
 
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;
-	int show_diffuse_color;
+	bool show_diffuse_color;
 
 	/* Paiting on deformed mesh */
 	int modifiers_active; /* object is deformed with some modifiers */

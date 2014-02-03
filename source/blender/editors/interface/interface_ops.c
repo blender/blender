@@ -185,7 +185,8 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
-	int index, all = RNA_boolean_get(op->ptr, "all");
+	int index;
+	const bool all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to reset the nominated setting to its default value */
 	uiContextActiveProperty(C, &ptr, &prop, &index);
@@ -333,7 +334,8 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr, lptr, idptr;
 	PropertyRNA *prop, *lprop;
 	int success = 0;
-	int index, all = RNA_boolean_get(op->ptr, "all");
+	int index;
+	const bool all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to reset the nominated setting to its default value */
 	uiContextActiveProperty(C, &ptr, &prop, &index);

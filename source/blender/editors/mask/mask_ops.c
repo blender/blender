@@ -60,7 +60,7 @@
 /******************** utility functions *********************/
 
 MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const float normal_co[2], const float threshold,
-                                            MaskLayer **masklay_r, MaskSpline **spline_r, int *is_handle_r,
+                                            MaskLayer **masklay_r, MaskSpline **spline_r, bool *is_handle_r,
                                             float *score)
 {
 	ScrArea *sa = CTX_wm_area(C);
@@ -471,8 +471,9 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 	MaskSpline *spline, *cv_spline, *feather_spline;
 	MaskSplinePoint *point, *cv_point, *feather_point;
 	MaskSplinePointUW *uw = NULL;
-	int is_handle = FALSE, width, height, action = SLIDE_ACTION_NONE;
-	int slide_feather = RNA_boolean_get(op->ptr, "slide_feather");
+	int width, height, action = SLIDE_ACTION_NONE;
+	bool is_handle = false;
+	const bool slide_feather = RNA_boolean_get(op->ptr, "slide_feather");
 	float co[2], cv_score, feather_score;
 	const float threshold = 19;
 

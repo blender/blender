@@ -995,7 +995,7 @@ typedef struct {
 } SculptSearchSphereData;
 
 /* Test AABB against sphere */
-static int sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
+static bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 {
 	SculptSearchSphereData *data = data_v;
 	float *center = data->ss->cache->location, nearest[3];
@@ -3552,7 +3552,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
 
 	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
-	ss->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
+	ss->show_diffuse_color = (sd->flags & SCULPT_SHOW_DIFFUSE) != 0;
 
 	if (need_mask) {
 		if (mmd == NULL) {

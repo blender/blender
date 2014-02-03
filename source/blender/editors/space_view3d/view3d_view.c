@@ -748,10 +748,10 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
 	float clipsta, clipend, x1, y1, x2, y2;
-	int orth;
+	bool is_ortho;
 	
-	orth = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
-	rv3d->is_persp = !orth;
+	is_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
+	rv3d->is_persp = !is_ortho;
 
 #if 0
 	printf("%s: %d %d %f %f %f %f %f %f\n", __func__, winx, winy,
@@ -774,12 +774,12 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)
 		rect->ymax /= (float)ar->winy;
 		rect->ymax = y1 + rect->ymax * (y2 - y1);
 		
-		if (orth) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
+		if (is_ortho) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
 		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
 
 	}
 	else {
-		if (orth) wmOrtho(x1, x2, y1, y2, clipsta, clipend);
+		if (is_ortho) wmOrtho(x1, x2, y1, y2, clipsta, clipend);
 		else wmFrustum(x1, x2, y1, y2, clipsta, clipend);
 	}
 

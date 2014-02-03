@@ -927,7 +927,7 @@ static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_IS_SOUND(_seq) ((_seq->type & SEQ_TYPE_SOUND_RAM) && !(_seq->type & SEQ_TYPE_EFFECT))
 
-#define SEQ_IS_EFFECT(_seq) (_seq->type & SEQ_TYPE_EFFECT)
+#define SEQ_IS_EFFECT(_seq) ((_seq->type & SEQ_TYPE_EFFECT) != 0)
 
 #define SEQ_USE_DATA(_seq) (ELEM3(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
@@ -970,7 +970,7 @@ static bool select_grouped_type_effect(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
 	bool changed = false;
-	short is_effect = SEQ_IS_EFFECT(actseq);
+	const bool is_effect = SEQ_IS_EFFECT(actseq);
 
 	SEQP_BEGIN (ed, seq)
 	{
@@ -1093,7 +1093,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq = NULL;
 	bool changed = false;
-	short is_audio = ((actseq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(actseq));
+	const bool is_audio = ((actseq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(actseq));
 	int startdisp = actseq->startdisp;
 	int enddisp   = actseq->enddisp;
 	int machine   = actseq->machine;

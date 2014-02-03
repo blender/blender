@@ -119,7 +119,7 @@ void BKE_scene_update_tagged(struct EvaluationContext *eval_ctx, struct Main *bm
 void BKE_scene_update_for_newframe(struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *sce, unsigned int lay);
 
 struct SceneRenderLayer *BKE_scene_add_render_layer(struct Scene *sce, const char *name);
-int BKE_scene_remove_render_layer(struct Main *main, struct Scene *scene, struct SceneRenderLayer *srl);
+bool BKE_scene_remove_render_layer(struct Main *main, struct Scene *scene, struct SceneRenderLayer *srl);
 
 /* render profile */
 int get_render_subsurf_level(struct RenderData *r, int level);
@@ -127,11 +127,11 @@ int get_render_child_particle_number(struct RenderData *r, int num);
 int get_render_shadow_samples(struct RenderData *r, int samples);
 float get_render_aosss_error(struct RenderData *r, float error);
 
-int BKE_scene_use_new_shading_nodes(struct Scene *scene);
+bool BKE_scene_use_new_shading_nodes(struct Scene *scene);
 
 void BKE_scene_disable_color_management(struct Scene *scene);
-int BKE_scene_check_color_management_enabled(const struct Scene *scene);
-int BKE_scene_check_rigidbody_active(const struct Scene *scene);
+bool BKE_scene_check_color_management_enabled(const struct Scene *scene);
+bool BKE_scene_check_rigidbody_active(const struct Scene *scene);
 
 int BKE_scene_num_threads(const struct Scene *scene);
 int BKE_render_num_threads(const struct RenderData *r);

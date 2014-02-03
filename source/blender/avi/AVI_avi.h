@@ -235,7 +235,7 @@ typedef enum {
 /**
  * Test whether this is an avi-format.
  */
-int AVI_is_avi(const char *name);
+bool AVI_is_avi(const char *name);
 
 
 /**

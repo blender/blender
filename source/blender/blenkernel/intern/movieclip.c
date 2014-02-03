@@ -176,7 +176,7 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 }
 
 /* supposed to work with sequences only */
-static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistorted, int framenr, char *name)
+static void get_proxy_fname(MovieClip *clip, int proxy_render_size, bool undistorted, int framenr, char *name)
 {
 	int size = rendersize_to_number(proxy_render_size);
 	char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
@@ -482,7 +482,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 	return NULL;
 }
 
-static int has_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
+static bool has_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 {
 	if (clip->cache) {
 		MovieClipImBufCacheKey key;
@@ -1046,7 +1046,7 @@ ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float
 
 }
 
-int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
+bool BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
 
@@ -1290,7 +1290,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 	scopes->ok = TRUE;
 }
 
-static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, int proxy_render_size, int undistorted, bool threaded)
+static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, int proxy_render_size, bool undistorted, bool threaded)
 {
 	char name[FILE_MAX];
 	int quality, rectx, recty;
@@ -1335,7 +1335,7 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
  * (meaning scaling shall be threaded)
  */
 void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct MovieDistortion *distortion,
-                                     int cfra, int *build_sizes, int build_count, int undistorted)
+                                     int cfra, int *build_sizes, int build_count, bool undistorted)
 {
 	ImBuf *ibuf;
 	MovieClipUser user;
@@ -1370,7 +1370,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
  * (different threads handles different frames, no threading within frame is needed)
  */
 void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip, ImBuf *ibuf, struct MovieDistortion *distortion,
-                                              int cfra, int *build_sizes, int build_count, int undistorted)
+                                              int cfra, int *build_sizes, int build_count, bool undistorted)
 {
 	if (!build_count)
 		return;
@@ -1508,9 +1508,9 @@ ImBuf *BKE_movieclip_anim_ibuf_for_frame(MovieClip *clip, MovieClipUser *user)
 	return ibuf;
 }
 
-int BKE_movieclip_has_cached_frame(MovieClip *clip, MovieClipUser *user)
+bool BKE_movieclip_has_cached_frame(MovieClip *clip, MovieClipUser *user)
 {
-	int has_frame = FALSE;
+	bool has_frame = false;
 
 	BLI_lock_thread(LOCK_MOVIECLIP);
 	has_frame = has_imbuf_cache(clip, user, clip->flag);
@@ -1519,7 +1519,7 @@ int BKE_movieclip_has_cached_frame(MovieClip *clip, MovieClipUser *user)
 	return has_frame;
 }
 
-int BKE_movieclip_put_frame_if_possible(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
+bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
 {
 	bool result;
 

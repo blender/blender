@@ -211,7 +211,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 	VFont *vfont = NULL;
 	PackedFile *pf;
 	PackedFile *temp_pf = NULL;
-	int is_builtin;
+	bool is_builtin;
 	
 	if (STREQ(name, FO_BUILTIN_NAME)) {
 		BLI_strncpy(filename, name, sizeof(filename));

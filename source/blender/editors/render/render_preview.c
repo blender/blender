@@ -1035,7 +1035,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 {
 	IconPreview *ip = (IconPreview *)customdata;
 	IconPreviewSize *cur_size = ip->sizes.first;
-	int use_new_shading = BKE_scene_use_new_shading_nodes(ip->scene);
+	const bool use_new_shading = BKE_scene_use_new_shading_nodes(ip->scene);
 
 	while (cur_size) {
 		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");

@@ -859,7 +859,7 @@ static void rearrange_animchannel_flatten_islands(ListBase *islands, ListBase *s
 /* ............................. */
 
 /* performing rearranging of channels using islands */
-static short rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp rearrange_func, short mode, short type)
+static bool rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp rearrange_func, short mode, short type)
 {
 	ListBase islands = {NULL, NULL};
 	Link *channel, *chanNext = NULL;
@@ -1027,7 +1027,7 @@ static void join_groups_action_temp(bAction *act)
 static void rearrange_action_channels(bAnimContext *ac, bAction *act, short mode)
 {
 	bActionGroup tgrp;
-	short do_channels;
+	bool do_channels;
 	
 	/* get rearranging function */
 	AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);

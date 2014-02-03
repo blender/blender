@@ -59,7 +59,7 @@ struct NlaStrip *add_nla_soundstrip(struct Scene *scene, struct Speaker *spk);
 /* ----------------------------- */
 /* API */
 
-short BKE_nlastrips_has_space(ListBase *strips, float start, float end);
+bool BKE_nlastrips_has_space(ListBase *strips, float start, float end);
 void BKE_nlastrips_sort_strips(ListBase *strips);
 
 short BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
@@ -78,7 +78,7 @@ void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt);
 
 void BKE_nlatrack_solo_toggle(struct AnimData *adt, struct NlaTrack *nlt);
 
-short BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
+bool BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
 void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
 short BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);

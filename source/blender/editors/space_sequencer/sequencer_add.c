@@ -179,7 +179,8 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, i
 
 static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 {
-	int relative = RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path");
+	PropertyRNA *prop;
+	const bool relative = (prop = RNA_struct_find_property(op->ptr, "relative_path")) && RNA_property_boolean_get(op->ptr, prop);
 	int is_file = -1;
 	memset(seq_load, 0, sizeof(SeqLoadInfo));
 
@@ -189,12 +190,12 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	seq_load->channel =      RNA_int_get(op->ptr, "channel");
 	seq_load->len =          1; // images only, if endframe isn't set!
 
-	if (RNA_struct_find_property(op->ptr, "filepath")) {
-		RNA_string_get(op->ptr, "filepath", seq_load->path); /* full path, file is set by the caller */
+	if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
+		RNA_property_string_get(op->ptr, prop, seq_load->path); /* full path, file is set by the caller */
 		is_file = 1;
 	}
-	else if (RNA_struct_find_property(op->ptr, "directory")) {
-		RNA_string_get(op->ptr, "directory", seq_load->path); /* full path, file is set by the caller */
+	else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
+		RNA_property_string_get(op->ptr, prop, seq_load->path); /* full path, file is set by the caller */
 		is_file = 0;
 	}
 
@@ -202,17 +203,17 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 		BLI_path_rel(seq_load->path, G.main->name);
 
 	
-	if (RNA_struct_find_property(op->ptr, "frame_end")) {
-		seq_load->end_frame = RNA_int_get(op->ptr, "frame_end");
+	if ((prop = RNA_struct_find_property(op->ptr, "frame_end"))) {
+		seq_load->end_frame = RNA_property_int_get(op->ptr, prop);
 	}
 
-	if (RNA_struct_find_property(op->ptr, "replace_sel") && RNA_boolean_get(op->ptr, "replace_sel"))
+	if ((prop = RNA_struct_find_property(op->ptr, "replace_sel")) && RNA_property_boolean_get(op->ptr, prop))
 		seq_load->flag |= SEQ_LOAD_REPLACE_SEL;
 
-	if (RNA_struct_find_property(op->ptr, "cache") && RNA_boolean_get(op->ptr, "cache"))
+	if ((prop = RNA_struct_find_property(op->ptr, "cache")) && RNA_property_boolean_get(op->ptr, prop))
 		seq_load->flag |= SEQ_LOAD_SOUND_CACHE;
 
-	if (RNA_struct_find_property(op->ptr, "sound") && RNA_boolean_get(op->ptr, "sound"))
+	if ((prop = RNA_struct_find_property(op->ptr, "sound")) && RNA_property_boolean_get(op->ptr, prop))
 		seq_load->flag |= SEQ_LOAD_MOVIE_SOUND;
 
 	/* always use this for ops */
@@ -222,17 +223,17 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	if (is_file == 1) {
 		BLI_strncpy(seq_load->name, BLI_path_basename(seq_load->path), sizeof(seq_load->name));
 	}
-	else if (RNA_struct_find_property(op->ptr, "files")) {
+	else if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
 		/* used for image strip */
 		/* best guess, first images name */
-		RNA_BEGIN (op->ptr, itemptr, "files")
+		RNA_PROP_BEGIN (op->ptr, itemptr, prop)
 		{
 			char *name = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
 			BLI_strncpy(seq_load->name, name, sizeof(seq_load->name));
 			MEM_freeN(name);
 			break;
 		}
-		RNA_END;
+		RNA_PROP_END;
 	}
 }
 

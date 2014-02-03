@@ -75,7 +75,7 @@
 
 /*********************** add shape key ***********************/
 
-static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int from_mix)
+static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, const bool from_mix)
 {
 	KeyBlock *kb;
 	if ((kb = BKE_object_insert_shape_key(scene, ob, NULL, from_mix))) {
@@ -312,7 +312,7 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_context(C);
-	int from_mix = RNA_boolean_get(op->ptr, "from_mix");
+	const bool from_mix = RNA_boolean_get(op->ptr, "from_mix");
 
 	ED_object_shape_key_add(C, scene, ob, from_mix);
 

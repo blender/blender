@@ -554,7 +554,7 @@ void            BKE_node_preview_clear_tree(struct bNodeTree *ntree);
 void            BKE_node_preview_sync_tree(struct bNodeTree *to_ntree, struct bNodeTree *from_ntree);
 void            BKE_node_preview_merge_tree(struct bNodeTree *to_ntree, struct bNodeTree *from_ntree, bool remove_old);
 
-void            BKE_node_preview_set_pixel(struct bNodePreview *preview, const float col[4], int x, int y, int do_manage);
+void            BKE_node_preview_set_pixel(struct bNodePreview *preview, const float col[4], int x, int y, bool do_manage);
 
 
 /* ************** NODE TYPE ACCESS *************** */

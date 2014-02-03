@@ -39,8 +39,6 @@
 
 #include <Python.h>
 
-#include "GPU_material.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
@@ -57,6 +55,8 @@
 #include "bpy_rna.h"
 
 #include "../generic/py_capi_utils.h"
+
+#include "GPU_material.h"
 
 #include "gpu.h"
 

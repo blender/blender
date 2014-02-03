@@ -880,12 +880,12 @@ static void BKE_pbvh_search_callback_occluded(PBVH *bvh,
 	}
 }
 
-static int update_search_cb(PBVHNode *node, void *data_v)
+static bool update_search_cb(PBVHNode *node, void *data_v)
 {
 	int flag = GET_INT_FROM_POINTER(data_v);
 
 	if (node->flag & PBVH_Leaf)
-		return (node->flag & flag);
+		return (node->flag & flag) != 0;
 
 	return 1;
 }
@@ -1362,7 +1362,7 @@ typedef struct {
 	int original;
 } RaycastData;
 
-static int ray_aabb_intersect(PBVHNode *node, void *data_v)
+static bool ray_aabb_intersect(PBVHNode *node, void *data_v)
 {
 	RaycastData *rcd = data_v;
 	float bb_min[3], bb_max[3];
@@ -1387,11 +1387,11 @@ void BKE_pbvh_raycast(PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
 	BKE_pbvh_search_callback_occluded(bvh, ray_aabb_intersect, &rcd, cb, data);
 }
 
-int ray_face_intersection(const float ray_start[3],
-                          const float ray_normal[3],
-                          const float *t0, const float *t1,
-                          const float *t2, const float *t3,
-                          float *fdist)
+bool ray_face_intersection(const float ray_start[3],
+                           const float ray_normal[3],
+                           const float t0[3], const float t1[3],
+                           const float t2[3], const float t3[3],
+                           float *fdist)
 {
 	float dist;
 
@@ -1406,14 +1406,15 @@ int ray_face_intersection(const float ray_start[3],
 	}
 }
 
-static int pbvh_faces_node_raycast(PBVH *bvh, const PBVHNode *node,
-                                   float (*origco)[3],
-                                   const float ray_start[3],
-                                   const float ray_normal[3], float *dist)
+static bool pbvh_faces_node_raycast(PBVH *bvh, const PBVHNode *node,
+                                    float (*origco)[3],
+                                    const float ray_start[3],
+                                    const float ray_normal[3], float *dist)
 {
 	const MVert *vert = bvh->verts;
 	const int *faces = node->prim_indices;
-	int i, hit = 0, totface = node->totprim;
+	int i, totface = node->totprim;
+	bool hit = false;
 
 	for (i = 0; i < totface; ++i) {
 		const MFace *f = bvh->faces + faces[i];
@@ -1501,7 +1502,7 @@ int BKE_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use
                           const float ray_start[3], const float ray_normal[3],
                           float *dist)
 {
-	int hit = 0;
+	bool hit = false;
 
 	if (node->flag & PBVH_FullyHidden)
 		return 0;
@@ -1641,7 +1642,7 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 	return ret;
 }
 
-int BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
+bool BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 {
 	float bb_min[3], bb_max[3];
 	
@@ -1649,7 +1650,7 @@ int BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_OUTSIDE;
 }
 
-int BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
+bool BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
 {
 	float bb_min[3], bb_max[3];
 	
@@ -1788,7 +1789,7 @@ void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 	}
 }
 
-int BKE_pbvh_isDeformed(PBVH *pbvh)
+bool BKE_pbvh_isDeformed(PBVH *pbvh)
 {
 	return pbvh->deformed;
 }
@@ -1911,7 +1912,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 		vi->vmask = CustomData_get_layer(bvh->vdata, CD_PAINT_MASK);
 }
 
-void pbvh_show_diffuse_color_set(PBVH *bvh, int show_diffuse_color)
+void pbvh_show_diffuse_color_set(PBVH *bvh, bool show_diffuse_color)
 {
 	bvh->show_diffuse_color = show_diffuse_color;
 }

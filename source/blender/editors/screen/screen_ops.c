@@ -2073,8 +2073,8 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	float cfra;
-	short next = RNA_boolean_get(op->ptr, "next");
-	short done = FALSE;
+	const bool next = RNA_boolean_get(op->ptr, "next");
+	bool done = false;
 	
 	/* sanity checks */
 	if (scene == NULL)
@@ -2164,7 +2164,7 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	TimeMarker *marker;
 	int closest = CFRA;
-	short next = RNA_boolean_get(op->ptr, "next");
+	const bool next = RNA_boolean_get(op->ptr, "next");
 	bool found = false;
 
 	/* find matching marker in the right direction */

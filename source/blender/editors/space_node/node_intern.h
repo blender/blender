@@ -104,9 +104,9 @@ void node_keymap(struct wmKeyConfig *keyconf);
 /* node_select.c */
 void node_deselect_all(struct SpaceNode *snode);
 void node_socket_select(struct bNode *node, struct bNodeSocket *sock);
-void node_socket_deselect(struct bNode *node, struct bNodeSocket *sock, int deselect_node);
-void node_deselect_all_input_sockets(struct SpaceNode *snode, int deselect_nodes);
-void node_deselect_all_output_sockets(struct SpaceNode *snode, int deselect_nodes);
+void node_socket_deselect(struct bNode *node, struct bNodeSocket *sock, const bool deselect_node);
+void node_deselect_all_input_sockets(struct SpaceNode *snode, const bool deselect_nodes);
+void node_deselect_all_output_sockets(struct SpaceNode *snode, const bool deselect_nodes);
 int node_select_same_type(struct SpaceNode *snode);
 int node_select_same_type_np(struct SpaceNode *snode, int dir);
 void node_select_single(struct bContext *C, struct bNode *node);
@@ -136,7 +136,7 @@ void NODE_OT_backimage_sample(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link);
-void node_draw_link_bezier(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3);
+void node_draw_link_bezier(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link, int th_col1, bool do_shaded, int th_col2, bool do_triple, int th_col3);
 int  node_link_bezier_points(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link, float coord_array[][2], int resol);
 // void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 void draw_nodespace_back_pix(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, bNodeInstanceKey parent_key);

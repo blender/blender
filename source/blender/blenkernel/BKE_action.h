@@ -103,7 +103,7 @@ short action_get_item_transforms(struct bAction *act, struct Object *ob, struct 
 void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
 
 /* Does action have any motion data at all? */
-short action_has_motion(const struct bAction *act);
+bool action_has_motion(const struct bAction *act);
 
 /* Action Groups API ----------------- */
 

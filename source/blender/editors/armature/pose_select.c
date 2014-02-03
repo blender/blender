@@ -526,8 +526,8 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 	bArmature *arm = ob->data;
 	Bone *curbone, *pabone, *chbone;
 	int direction = RNA_enum_get(op->ptr, "direction");
-	int add_to_sel = RNA_boolean_get(op->ptr, "extend");
-	int found = 0;
+	const bool add_to_sel = RNA_boolean_get(op->ptr, "extend");
+	bool found = false;
 	
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
 	{

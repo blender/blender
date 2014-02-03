@@ -657,7 +657,7 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	float aspx, aspy, zoomx, zoomy, w, h;
 	int width, height;
-	int fit_view = RNA_boolean_get(op->ptr, "fit_view");
+	const bool fit_view = RNA_boolean_get(op->ptr, "fit_view");
 
 	/* retrieve state */
 	sima = CTX_wm_space_image(C);
@@ -2118,7 +2118,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 static bool image_pack_test(bContext *C, wmOperator *op)
 {
 	Image *ima = CTX_data_edit_image(C);
-	int as_png = RNA_boolean_get(op->ptr, "as_png");
+	const bool as_png = RNA_boolean_get(op->ptr, "as_png");
 
 	if (!ima)
 		return 0;
@@ -2138,7 +2138,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 	struct Main *bmain = CTX_data_main(C);
 	Image *ima = CTX_data_edit_image(C);
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-	int as_png = RNA_boolean_get(op->ptr, "as_png");
+	const bool as_png = RNA_boolean_get(op->ptr, "as_png");
 
 	if (!image_pack_test(C, op))
 		return OPERATOR_CANCELLED;
@@ -2166,7 +2166,7 @@ static int image_pack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	ImBuf *ibuf;
 	uiPopupMenu *pup;
 	uiLayout *layout;
-	int as_png = RNA_boolean_get(op->ptr, "as_png");
+	const bool as_png = RNA_boolean_get(op->ptr, "as_png");
 
 	if (!image_pack_test(C, op))
 		return OPERATOR_CANCELLED;

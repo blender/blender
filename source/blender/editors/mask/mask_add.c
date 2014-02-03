@@ -408,9 +408,9 @@ static int add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay,
 	int point_index;
 	float tangent_point[2];
 	float tangent_co[2];
-	int do_cyclic_correct = FALSE;
-	int do_recalc_src = FALSE;  /* when extruding from endpoints only */
-	int do_prev;                /* use prev point rather then next?? */
+	bool do_cyclic_correct = false;
+	bool do_recalc_src = false;  /* when extruding from endpoints only */
+	bool do_prev;                /* use prev point rather then next?? */
 
 	if (!masklay) {
 		return FALSE;
@@ -584,8 +584,8 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 		MaskSpline *spline = masklay->act_spline;
 		MaskSplinePoint *point = masklay->act_point;
 
-		int is_sta = (point == spline->points);
-		int is_end = (point == &spline->points[spline->tot_point - 1]);
+		const bool is_sta = (point == spline->points);
+		const bool is_end = (point == &spline->points[spline->tot_point - 1]);
 
 		/* then check are we overlapping the mouse */
 		if ((is_sta || is_end) && equals_v2v2(co, point->bezt.vec[1])) {

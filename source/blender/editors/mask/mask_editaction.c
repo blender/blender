@@ -110,7 +110,7 @@ void ED_masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short only
 /* Selection Tools */
 
 /* check if one of the frames in this layer is selected */
-short ED_masklayer_frame_select_check(MaskLayer *masklay)
+bool ED_masklayer_frame_select_check(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape;
 

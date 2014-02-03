@@ -3019,7 +3019,8 @@ static int hide_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
-	int a, sel, invert = RNA_boolean_get(op->ptr, "unselected");
+	int a, sel;
+	const bool invert = RNA_boolean_get(op->ptr, "unselected");
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {

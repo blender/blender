@@ -2092,7 +2092,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	int linked = RNA_boolean_get(op->ptr, "linked");
+	const bool linked = RNA_boolean_get(op->ptr, "linked");
 	int dupflag = (linked) ? 0 : U.dupflag;
 
 	BKE_main_id_clear_newpoins(bmain);
@@ -2161,7 +2161,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Base *basen, *base;
 	Object *ob;
-	int linked = RNA_boolean_get(op->ptr, "linked");
+	const bool linked = RNA_boolean_get(op->ptr, "linked");
 	int dupflag = (linked) ? 0 : U.dupflag;
 	char name[MAX_ID_NAME - 2];
 

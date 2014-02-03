@@ -297,7 +297,7 @@ int autokeyframe_cfra_can_key(struct Scene *scene, struct ID *id);
 /* Lesser Keyframe Checking API call:
  *	- Used for the buttons to check for keyframes...
  */
-short fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
+bool fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
 
 /* Main Keyframe Checking API call:
  * Checks whether a keyframe exists for the given ID-block one the given frame.

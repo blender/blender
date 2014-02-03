@@ -1613,7 +1613,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 }
 
 /* used by add constraint operators to add the constraint required */
-static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase *list, int type, short setTarget)
+static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase *list, int type, const bool setTarget)
 {
 	Main *bmain = CTX_data_main(C);
 	bPoseChannel *pchan;
@@ -1907,7 +1907,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 static int pose_ik_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
-	int with_targets = RNA_boolean_get(op->ptr, "with_targets");
+	const bool with_targets = RNA_boolean_get(op->ptr, "with_targets");
 	
 	/* add the constraint - all necessary checks should have been done by the invoke() callback already... */
 	return constraint_add_exec(C, op, ob, get_active_constraints(ob), CONSTRAINT_TYPE_KINEMATIC, with_targets);

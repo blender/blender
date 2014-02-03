@@ -259,7 +259,7 @@ void removenotused_scredges(bScreen *sc)
 	}
 }
 
-int scredge_is_horizontal(ScrEdge *se)
+bool scredge_is_horizontal(ScrEdge *se)
 {
 	return (se->v1->vec.y == se->v2->vec.y);
 }

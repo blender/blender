@@ -1655,12 +1655,12 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
-	int link_strokes = RNA_boolean_get(ptr, "use_link_strokes");
+	const bool link_strokes = RNA_boolean_get(ptr, "use_link_strokes");
 	int timing_mode = RNA_enum_get(ptr, "timing_mode");
 	bool realtime = RNA_boolean_get(ptr, "use_realtime");
 	float gap_duration = RNA_float_get(ptr, "gap_duration");
 	float gap_randomness = RNA_float_get(ptr, "gap_randomness");
-	int valid_timing = RNA_boolean_get(ptr, "use_timing_data");
+	const bool valid_timing = RNA_boolean_get(ptr, "use_timing_data");
 
 	/* Always show those props */
 	if (strcmp(prop_id, "type") == 0 ||

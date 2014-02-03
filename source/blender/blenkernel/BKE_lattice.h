@@ -85,7 +85,7 @@ struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);
 void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3]);
 void BKE_lattice_center_median(struct Lattice *lt, float cent[3]);
 void BKE_lattice_center_bounds(struct Lattice *lt, float cent[3]);
-void BKE_lattice_translate(struct Lattice *lt, float offset[3], int do_keys);
+void BKE_lattice_translate(struct Lattice *lt, float offset[3], bool do_keys);
 
 int  BKE_lattice_index_from_uvw(struct Lattice *lt, const int u, const int v, const int w);
 void BKE_lattice_index_to_uvw(struct Lattice *lt, const int index, int *r_u, int *r_v, int *r_w);

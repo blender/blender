@@ -1749,7 +1749,7 @@ void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double value, bool pad, int float_precision)
 {
 	UnitSettings *unit = but->block->unit;
-	int do_split = unit->flag & USER_UNIT_OPT_SPLIT;
+	int do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
 	int unit_type = uiButGetUnitType(but);
 	int precision;
 

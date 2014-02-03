@@ -502,7 +502,8 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
 	short success = 0;
-	int index, all = RNA_boolean_get(op->ptr, "all");
+	int index;
+	const bool all = RNA_boolean_get(op->ptr, "all");
 	
 	/* try to create driver using property retrieved from UI */
 	uiContextActiveProperty(C, &ptr, &prop, &index);
@@ -556,7 +557,8 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
 	short success = 0;
-	int index, all = RNA_boolean_get(op->ptr, "all");
+	int index;
+	const bool all = RNA_boolean_get(op->ptr, "all");
 	
 	/* try to find driver using property retrieved from UI */
 	uiContextActiveProperty(C, &ptr, &prop, &index);

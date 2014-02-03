@@ -80,7 +80,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
  * vertex index (in case the weight table does not cover the whole vertices...).
  */
 void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws, int num,
-                        const int *indices, const float *weights, int do_add,
-                        float add_thresh, int do_rem, float rem_thresh);
+                        const int *indices, const float *weights, const bool do_add,
+                        const float add_thresh, const bool do_rem, const float rem_thresh);
 
 #endif /* __MOD_WEIGHTVG_UTIL_H__ */

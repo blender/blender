@@ -1191,7 +1191,7 @@ GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
 	return link;
 }
 
-int GPU_link(GPUMaterial *mat, const char *name, ...)
+bool GPU_link(GPUMaterial *mat, const char *name, ...)
 {
 	GPUNode *node;
 	GPUFunction *function;
@@ -1227,7 +1227,7 @@ int GPU_link(GPUMaterial *mat, const char *name, ...)
 	return 1;
 }
 
-int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...)
+bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...)
 {
 	GPUNode *node;
 	GPUFunction *function;

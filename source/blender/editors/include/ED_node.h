@@ -91,9 +91,9 @@ void ED_node_link_insert(struct ScrArea *sa);
 
 /* node_edit.c */
 void ED_node_set_tree_type(struct SpaceNode *snode, struct bNodeTreeType *typeinfo);
-int ED_node_is_compositor(struct SpaceNode *snode);
-int ED_node_is_shader(struct SpaceNode *snode);
-int ED_node_is_texture(struct SpaceNode *snode);
+bool ED_node_is_compositor(struct SpaceNode *snode);
+bool ED_node_is_shader(struct SpaceNode *snode);
+bool ED_node_is_texture(struct SpaceNode *snode);
 
 void ED_node_shader_default(const struct bContext *C, struct ID *id);
 void ED_node_composit_default(const struct bContext *C, struct Scene *scene);

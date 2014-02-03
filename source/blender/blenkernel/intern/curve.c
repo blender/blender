@@ -2524,7 +2524,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 	struct BevelSort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu = 0, len = 0;
 	int do_tilt, do_radius, do_weight;
-	int is_editmode = 0;
+	bool is_editmode = false;
 	ListBase *bev;
 
 	/* this function needs an object, because of tflag and upflag */
@@ -4092,7 +4092,7 @@ bool BKE_curve_center_bounds(Curve *cu, float cent[3])
 	return false;
 }
 
-void BKE_curve_translate(Curve *cu, float offset[3], int do_keys)
+void BKE_curve_translate(Curve *cu, float offset[3], const bool do_keys)
 {
 	ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
 	Nurb *nu;

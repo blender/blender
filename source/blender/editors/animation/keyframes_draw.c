@@ -513,7 +513,7 @@ static void set_touched_actkeyblock(ActKeyBlock *ab)
 /* --------- */
 
 /* Checks if ActKeyBlock should exist... */
-short actkeyblock_is_valid(ActKeyBlock *ab, DLRBT_Tree *keys)
+bool actkeyblock_is_valid(ActKeyBlock *ab, DLRBT_Tree *keys)
 {
 	ActKeyColumn *ak;
 	short startCurves, endCurves, totCurves;

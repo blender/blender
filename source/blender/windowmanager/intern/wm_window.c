@@ -267,7 +267,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
 	wmWindow *tmpwin;
-	int do_exit = 0;
+	bool do_exit = false;
 	
 	/* first check if we have to quit (there are non-temp remaining windows) */
 	for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {

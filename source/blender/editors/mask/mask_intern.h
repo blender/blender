@@ -73,7 +73,7 @@ bool ED_mask_feather_find_nearest(
 
 struct MaskSplinePoint *ED_mask_point_find_nearest(
         const struct bContext *C, struct Mask *mask, const float normal_co[2], const float threshold,
-        struct MaskLayer **masklay_r, struct MaskSpline **spline_r, int *is_handle_r,
+        struct MaskLayer **masklay_r, struct MaskSpline **spline_r, bool *is_handle_r,
         float *score);
 
 void MASK_OT_layer_move(struct wmOperatorType *ot);

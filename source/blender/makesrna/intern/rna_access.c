@@ -1254,8 +1254,8 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 	if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
 		int i;
 		/* Note: Only do those tests once, and then use BLF_pgettext. */
-		int do_iface = BLF_translate_iface();
-		int do_tooltip = BLF_translate_tooltips();
+		bool do_iface = BLF_translate_iface();
+		bool do_tooltip = BLF_translate_tooltips();
 		EnumPropertyItem *nitem;
 
 		if (!(do_iface || do_tooltip))

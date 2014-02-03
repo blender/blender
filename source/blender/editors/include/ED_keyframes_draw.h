@@ -154,6 +154,6 @@ short compare_ak_cfraPtr(void *node, void *data);
 short compare_ab_cfraPtr(void *node, void *data);
 
 /* Checks if ActKeyBlock can be used (i.e. drawn/used to detect "holds") */
-short actkeyblock_is_valid(ActKeyBlock *ab, struct DLRBT_Tree *keys);
+bool actkeyblock_is_valid(ActKeyBlock *ab, struct DLRBT_Tree *keys);
 
 #endif  /*  __ED_KEYFRAMES_DRAW_H__ */

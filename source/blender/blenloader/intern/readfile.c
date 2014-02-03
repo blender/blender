@@ -8703,11 +8703,11 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link, const short active_lay)
+static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const bool is_link, const short active_lay)
 {
 	Object *ob;
 	Base *base;
-	const short is_group_append = (is_link==FALSE && idcode==ID_GR);
+	const bool is_group_append = (is_link == false && idcode == ID_GR);
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for (ob = mainvar->object.first; ob; ob = ob->id.next) {
@@ -9015,7 +9015,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		
 		/* give a base to loose objects. If group append, do it for objects too */
 		if (scene) {
-			const short is_link = (flag & FILE_LINK) != 0;
+			const bool is_link = (flag & FILE_LINK) != 0;
 			if (idcode == ID_SCE) {
 				/* don't instance anything when linking in scenes, assume the scene its self instances the data */
 			}

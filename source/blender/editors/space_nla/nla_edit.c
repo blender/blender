@@ -1587,7 +1587,7 @@ static int nlaedit_sync_actlen_exec(bContext *C, wmOperator *op)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	short active_only = RNA_boolean_get(op->ptr, "active");
+	const bool active_only = RNA_boolean_get(op->ptr, "active");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -2004,7 +2004,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	
 	FModifier *fcm;
 	int type = RNA_enum_get(op->ptr, "type");
-	short onlyActive = RNA_boolean_get(op->ptr, "only_active");
+	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -2021,7 +2021,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 		
 		for (strip = nlt->strips.first; strip; strip = strip->next) {
 			/* can F-Modifier be added to the current strip? */
-			if (onlyActive) {
+			if (active_only) {
 				/* if not active, cannot add since we're only adding to active strip */
 				if ((strip->flag & NLASTRIP_FLAG_ACTIVE) == 0)
 					continue;

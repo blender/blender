@@ -433,7 +433,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *
 
 /* helper for calc_fcurve_* functions -> find first and last BezTriple to be used */
 static short get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple **last,
-                                      const short do_sel_only)
+                                      const bool do_sel_only)
 {
 	short found = FALSE;
 	
@@ -482,12 +482,12 @@ static short get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple 
 
 
 /* Calculate the extents of F-Curve's data */
-short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
-                         const short do_sel_only, const short include_handles)
+bool calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
+                        const bool do_sel_only, const bool include_handles)
 {
 	float xminv = 999999999.0f, xmaxv = -999999999.0f;
 	float yminv = 999999999.0f, ymaxv = -999999999.0f;
-	short foundvert = FALSE;
+	bool foundvert = false;
 	unsigned int i;
 	
 	if (fcu->totvert) {
@@ -578,7 +578,7 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 
 /* Calculate the extents of F-Curve's keyframes */
 bool calc_fcurve_range(FCurve *fcu, float *start, float *end,
-                       const short do_sel_only, const short do_min_length)
+                       const bool do_sel_only, const bool do_min_length)
 {
 	float min = 999999999.0f, max = -999999999.0f;
 	short foundvert = FALSE;
@@ -631,7 +631,7 @@ bool calc_fcurve_range(FCurve *fcu, float *start, float *end,
  * Usability of keyframes refers to whether they should be displayed,
  * and also whether they will have any influence on the final result.
  */
-short fcurve_are_keyframes_usable(FCurve *fcu)
+bool fcurve_are_keyframes_usable(FCurve *fcu)
 {
 	/* F-Curve must exist */
 	if (fcu == NULL)

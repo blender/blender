@@ -138,7 +138,7 @@ void BLI_removeArc(BGraph *graph, BArc *arc);
 void BLI_flagNodes(BGraph *graph, int flag);
 void BLI_flagArcs(BGraph *graph, int flag);
 
-int BLI_hasAdjacencyList(BGraph *rg);
+bool BLI_hasAdjacencyList(BGraph *rg);
 void BLI_buildAdjacencyList(BGraph *rg);
 void BLI_rebuildAdjacencyListForNode(BGraph *rg, BNode *node);
 void BLI_freeAdjacencyList(BGraph *rg);
@@ -159,7 +159,7 @@ BNode *BLI_FindNodeByPosition(BGraph *graph, const float p[3], const float limit
 
 BArc  *BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v);
 
-int    BLI_isGraphCyclic(BGraph *graph);
+bool   BLI_isGraphCyclic(BGraph *graph);
 
 /*------------ Symmetry handling ------------*/
 void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit);

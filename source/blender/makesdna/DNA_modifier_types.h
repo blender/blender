@@ -738,7 +738,8 @@ typedef struct ShrinkwrapModifierData {
 	char vgroup_name[64];     /* optional vertexgroup name, MAX_VGROUP_NAME */
 	float keepDist;           /* distance offset to keep from mesh/projection point */
 	short shrinkType;         /* shrink type projection */
-	short shrinkOpts;         /* shrink options */
+	char  shrinkOpts;         /* shrink options */
+	char  pad1;
 	float projLimit;          /* limit the projection ray cast */
 	char  projAxis;           /* axis to project over */
 

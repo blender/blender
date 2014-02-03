@@ -140,7 +140,7 @@ enum {
 #define IMA_CHAN_FLAG_ALPHA 4
 
 /* checks whether there's an image buffer for given image and user */
-int BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
+bool BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
 
 /* same as above, but can be used to retrieve images being rendered in
  * a thread safe way, always call both acquire and release */
@@ -181,7 +181,7 @@ void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
 /* called on frame change or before render */
 void BKE_image_user_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);
 void BKE_image_user_check_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);
-int  BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, int fieldnr, short *r_is_in_range);
+int  BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, int fieldnr, bool *r_is_in_range);
 void BKE_image_user_file_path(struct ImageUser *iuser, struct Image *ima, char *path); 
 void BKE_image_update_frame(const struct Main *bmain, int cfra);
 
@@ -216,10 +216,10 @@ struct Image *BKE_image_copy(struct Main *bmain, struct Image *ima);
 void BKE_image_merge(struct Image *dest, struct Image *source);
 
 /* scale the image */
-int BKE_image_scale(struct Image *image, int width, int height);
+bool BKE_image_scale(struct Image *image, int width, int height);
 
 /* check if texture has alpha (depth=32) */
-int BKE_image_has_alpha(struct Image *image);
+bool BKE_image_has_alpha(struct Image *image);
 
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *width, int *height);
 void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float size[2]);

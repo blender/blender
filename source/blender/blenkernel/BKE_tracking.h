@@ -209,7 +209,7 @@ void BKE_tracking_disable_channels(struct ImBuf *ibuf, bool disable_red, bool di
 
 /* **** 2D tracking **** */
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user,
-                                                      short backwards, short sequence);
+                                                      const bool backwards, const bool sequence);
 void BKE_tracking_context_free(struct MovieTrackingContext *context);
 void BKE_tracking_context_sync(struct MovieTrackingContext *context);
 void BKE_tracking_context_sync_user(const struct MovieTrackingContext *context, struct MovieClipUser *user);

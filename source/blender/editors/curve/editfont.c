@@ -631,7 +631,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
 	WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, obedit);
 }
 
-void ED_text_to_object(bContext *C, Text *text, int split_lines)
+void ED_text_to_object(bContext *C, Text *text, const bool split_lines)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	TextLine *line;

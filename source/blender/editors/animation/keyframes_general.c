@@ -73,7 +73,7 @@
  * Not recommended to be used many times successively. For that
  * there is delete_fcurve_keys(). 
  */
-void delete_fcurve_key(FCurve *fcu, int index, short do_recalc)
+void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
 {
 	/* sanity check */
 	if (fcu == NULL) 

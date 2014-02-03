@@ -101,10 +101,10 @@ int nlaop_poll_tweakmode_on(bContext *C)
 }
 
 /* is tweakmode enabled - for use in NLA operator code */
-short nlaedit_is_tweakmode_on(bAnimContext *ac)
+bool nlaedit_is_tweakmode_on(bAnimContext *ac)
 {
 	if (ac && ac->scene)
-		return (ac->scene->flag & SCE_NLA_EDIT_ON);
+		return (ac->scene->flag & SCE_NLA_EDIT_ON) != 0;
 	return 0;
 }
 

@@ -4950,7 +4950,7 @@ static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMIter iter;
 	FreestyleEdge *fed;
-	int clear = RNA_boolean_get(op->ptr, "clear");
+	const bool clear = RNA_boolean_get(op->ptr, "clear");
 
 	if (em == NULL)
 		return OPERATOR_FINISHED;
@@ -5012,7 +5012,7 @@ static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 	BMFace *efa;
 	BMIter iter;
 	FreestyleFace *ffa;
-	int clear = RNA_boolean_get(op->ptr, "clear");
+	const bool clear = RNA_boolean_get(op->ptr, "clear");
 
 	if (em == NULL) return OPERATOR_FINISHED;
 

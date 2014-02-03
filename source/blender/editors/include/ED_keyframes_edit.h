@@ -236,7 +236,7 @@ void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */
 
-void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc);
+void delete_fcurve_key(struct FCurve *fcu, int index, bool do_recalc);
 bool delete_fcurve_keys(struct FCurve *fcu);
 void clear_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);

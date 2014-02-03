@@ -114,7 +114,7 @@ typedef struct IslandStitchData {
 	/* flag an island to be considered for determining static island */
 	char stitchableCandidate;
 	/* if edge rotation is used, flag so that vertex rotation is not used */
-	char use_edge_rotation;
+	bool use_edge_rotation;
 } IslandStitchData;
 
 /* just for averaging UVs */
@@ -142,17 +142,17 @@ typedef struct UvEdge {
 typedef struct StitchState {
 	float aspect;
 	/* use limit flag */
-	char use_limit;
+	bool use_limit;
 	/* limit to operator, same as original operator */
 	float limit_dist;
 	/* snap uv islands together during stitching */
-	char snap_islands;
+	bool snap_islands;
 	/* stich at midpoints or at islands */
-	char midpoints;
+	bool midpoints;
 	/* editmesh, cached for use in modal handler */
 	BMEditMesh *em;
 	/* clear seams of stitched edges after stitch */
-	char clear_seams;
+	bool clear_seams;
 	/* element map for getting info about uv connectivity */
 	UvElementMap *element_map;
 	/* edge container */
@@ -271,10 +271,10 @@ static void stitch_update_header(StitchState *state, bContext *C)
 	if (sa) {
 		BLI_snprintf(msg, HEADER_LENGTH, str,
 		             state->mode == STITCH_VERT ? "Vertex" : "Edge",
-		             state->snap_islands ? "On" : "Off",
-		             state->midpoints    ? "On" : "Off",
+		             WM_bool_as_string(state->snap_islands),
+		             WM_bool_as_string(state->midpoints),
 		             state->limit_dist,
-		             state->use_limit    ? "On" : "Off");
+		             WM_bool_as_string(state->use_limit));
 
 		ED_area_headerprint(sa, msg);
 	}

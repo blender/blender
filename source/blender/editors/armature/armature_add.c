@@ -527,7 +527,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	bArmature *arm;
 	EditBone *newbone, *ebone, *flipbone, *first = NULL;
 	int a, totbone = 0, do_extrude;
-	int forked = RNA_boolean_get(op->ptr, "forked");
+	bool forked = RNA_boolean_get(op->ptr, "forked");
 
 	obedit = CTX_data_edit_object(C);
 	arm = obedit->data;

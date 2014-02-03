@@ -184,11 +184,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	int defgrp_index;
 	int i;
 	/* Flags. */
-	int do_add  = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
-	int do_rem  = (wmd->edit_flags & MOD_WVG_EDIT_REMFVG) != 0;
+	const bool do_add  = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
+	const bool do_rem  = (wmd->edit_flags & MOD_WVG_EDIT_REMFVG) != 0;
 	/* Only do weight-preview in Object, Sculpt and Pose modes! */
 #if 0
-	int do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview);
+	const bool do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview);
 #endif
 
 	/* Get number of verts. */

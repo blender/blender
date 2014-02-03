@@ -206,7 +206,7 @@ void AVI_set_debug(int mode)
 	AVI_DEBUG = mode;
 }
 
-int AVI_is_avi(char *name)
+bool AVI_is_avi(char *name)
 {
 	FILE *fp;
 	int ret;
@@ -230,7 +230,7 @@ int AVI_is_avi(char *name)
 }
 #endif
 
-int AVI_is_avi(const char *name)
+bool AVI_is_avi(const char *name)
 {
 	int temp, fcca, j;
 	AviMovie movie = {NULL};

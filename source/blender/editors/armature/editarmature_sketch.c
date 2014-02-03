@@ -1147,7 +1147,7 @@ static int sk_addStrokeSnapPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk,
 	return point_added;
 }
 
-static void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short snap)
+static void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, const bool snap)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	int point_added = 0;
@@ -1165,7 +1165,7 @@ static void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK
 	}
 }
 
-static void sk_getStrokePoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short snap)
+static void sk_getStrokePoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, const bool snap)
 {
 	int point_added = 0;
 
@@ -2180,7 +2180,7 @@ static void sk_start_draw_gesture(SK_Sketch *sketch)
 	sketch->gesture = sk_createStroke();
 }
 
-static int sk_draw_stroke(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short snap)
+static int sk_draw_stroke(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, bool snap)
 {
 	if (sk_stroke_filtermval(dd)) {
 		sk_addStrokePoint(C, sketch, stk, dd, snap);
@@ -2383,7 +2383,7 @@ static void sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
 
 static int sketch_draw_stroke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	short snap = RNA_boolean_get(op->ptr, "snap");
+	const bool snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
 	SK_Sketch *sketch = contextSketch(C, 1);
 
@@ -2408,7 +2408,7 @@ static void sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
 
 static int sketch_draw_gesture(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	short snap = RNA_boolean_get(op->ptr, "snap");
+	const bool snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	sk_cancelStroke(sketch);
@@ -2426,7 +2426,7 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, const wmEvent *event
 
 static int sketch_draw_modal(bContext *C, wmOperator *op, const wmEvent *event, short gesture, SK_Stroke *stk)
 {
-	short snap = RNA_boolean_get(op->ptr, "snap");
+	bool snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd = op->customdata;
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	int retval = OPERATOR_RUNNING_MODAL;
@@ -2434,7 +2434,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, const wmEvent *event, 
 	switch (event->type) {
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
-			snap = event->ctrl;
+			snap = event->ctrl != 0;
 			RNA_boolean_set(op->ptr, "snap", snap);
 			break;
 		case MOUSEMOVE:
@@ -2496,7 +2496,7 @@ static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, const wmEvent 
 
 static int sketch_draw_preview(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	short snap = RNA_boolean_get(op->ptr, "snap");
+	const bool snap = RNA_boolean_get(op->ptr, "snap");
 	SK_Sketch *sketch = contextSketch(C, 0);
 
 	if (sketch) {

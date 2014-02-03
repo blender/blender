@@ -838,7 +838,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	float (*obmat)[4];
 	int a, b, hair = 0;
 	int totpart, totchild, totgroup = 0 /*, pa_num */;
-	int dupli_type_hack = !BKE_scene_use_new_shading_nodes(scene);
+	const bool dupli_type_hack = !BKE_scene_use_new_shading_nodes(scene);
 
 	int no_draw_flag = PARS_UNEXIST;
 

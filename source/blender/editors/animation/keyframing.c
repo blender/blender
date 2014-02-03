@@ -1649,7 +1649,8 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	char *path;
 	float cfra = (float)CFRA;
 	short success = 0;
-	int a, index, length, all = RNA_boolean_get(op->ptr, "all");
+	int a, index, length;
+	const bool all = RNA_boolean_get(op->ptr, "all");
 	short flag = 0;
 	
 	/* flags for inserting keyframes */
@@ -1740,7 +1741,8 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 	char *path;
 	float cfra = (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success = 0;
-	int a, index, length, all = RNA_boolean_get(op->ptr, "all");
+	int a, index, length;
+	const bool all = RNA_boolean_get(op->ptr, "all");
 	
 	/* try to insert keyframe using property retrieved from UI */
 	uiContextActiveProperty(C, &ptr, &prop, &index);
@@ -1809,7 +1811,8 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 	PropertyRNA *prop = NULL;
 	char *path;
 	short success = 0;
-	int a, index, length, all = RNA_boolean_get(op->ptr, "all");
+	int a, index, length;
+	const bool all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to insert keyframe using property retrieved from UI */
 	uiContextActiveProperty(C, &ptr, &prop, &index);
@@ -1898,7 +1901,7 @@ int autokeyframe_cfra_can_key(Scene *scene, ID *id)
 /* --------------- API/Per-Datablock Handling ------------------- */
 
 /* Checks if some F-Curve has a keyframe for a given frame */
-short fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
+bool fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
 {
 	/* quick sanity check */
 	if (ELEM(NULL, fcu, fcu->bezt))

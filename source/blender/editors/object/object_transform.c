@@ -794,7 +794,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 		Object *ob = ctx_ob->ptr.data;
 
 		if ((ob->flag & OB_DONE) == 0) {
-			int do_inverse_offset = FALSE;
+			bool do_inverse_offset = false;
 			ob->flag |= OB_DONE;
 
 			if (centermode == ORIGIN_TO_CURSOR) {

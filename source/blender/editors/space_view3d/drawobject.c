@@ -3373,7 +3373,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Object *ob = BKE_object_lod_meshob_get(base->object, scene);
 	Mesh *me = ob->data;
 	Material *ma = give_current_material(ob, 1);
-	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO) && !BKE_scene_use_new_shading_nodes(scene));
+	const bool hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO) && !BKE_scene_use_new_shading_nodes(scene));
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF;
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);

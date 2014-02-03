@@ -434,7 +434,7 @@ float BKE_mask_spline_project_co(MaskSpline *spline, MaskSplinePoint *point,
 
 /* point */
 
-int BKE_mask_point_has_handle(MaskSplinePoint *point)
+bool BKE_mask_point_has_handle(MaskSplinePoint *point)
 {
 	BezTriple *bezt = &point->bezt;
 
@@ -671,7 +671,7 @@ void BKE_mask_point_add_uw(MaskSplinePoint *point, float u, float w)
 	BKE_mask_point_sort_uw(point, &point->uw[point->tot_uw - 1]);
 }
 
-void BKE_mask_point_select_set(MaskSplinePoint *point, const short do_select)
+void BKE_mask_point_select_set(MaskSplinePoint *point, const bool do_select)
 {
 	int i;
 
@@ -692,7 +692,7 @@ void BKE_mask_point_select_set(MaskSplinePoint *point, const short do_select)
 	}
 }
 
-void BKE_mask_point_select_set_handle(MaskSplinePoint *point, const short do_select)
+void BKE_mask_point_select_set_handle(MaskSplinePoint *point, const bool do_select)
 {
 	if (do_select) {
 		MASKPOINT_SEL_HANDLE(point);
@@ -1298,7 +1298,7 @@ void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline, MaskSplinePoint *p
  * Useful for giving sane defaults.
  */
 void BKE_mask_calc_handle_point_auto(MaskSpline *spline, MaskSplinePoint *point,
-                                     const short do_recalc_length)
+                                     const bool do_recalc_length)
 {
 	MaskSplinePoint *point_prev, *point_next;
 	const char h_back[2] = {point->bezt.h1, point->bezt.h2};

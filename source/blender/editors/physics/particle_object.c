@@ -588,7 +588,7 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 	Object *ob= ED_object_context(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= NULL;
-	int all = RNA_boolean_get(op->ptr, "all");
+	const bool all = RNA_boolean_get(op->ptr, "all");
 
 	if (!ob)
 		return OPERATOR_CANCELLED;
@@ -739,7 +739,7 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 	Object *ob= ED_object_context(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= NULL;
-	int all = RNA_boolean_get(op->ptr, "all");
+	const bool all = RNA_boolean_get(op->ptr, "all");
 	int any_connected = FALSE;
 
 	if (!ob)

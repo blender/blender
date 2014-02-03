@@ -34,7 +34,7 @@ extern "C" {
 /* in all cases the value is assumed to be scaled by the user preference */
 
 /* humanly readable representation of a value in units (used for button drawing) */
-size_t  bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, bool pad);
+size_t  bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
 
 /* replace units with values, used before python button evaluation */
 int     bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);

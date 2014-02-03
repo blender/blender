@@ -73,7 +73,7 @@ typedef struct Global {
 	short winpos, displaymode;  /* used to be in Render */
 
 	/* to indicate render is busy, prevent renderwindow events etc */
-	short is_rendering;
+	bool is_rendering;
 
 	/* debug value, can be set from the UI and python, used for testing nonstandard features */
 	short debug_value;

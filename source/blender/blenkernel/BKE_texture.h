@@ -64,7 +64,7 @@ void BKE_texture_free(struct Tex *t);
 
 void init_colorband(struct ColorBand *coba, bool rangetype);
 struct ColorBand *add_colorband(bool rangetype);
-int do_colorband(const struct ColorBand *coba, float in, float out[4]);
+bool do_colorband(const struct ColorBand *coba, float in, float out[4]);
 void colorband_table_RGBA(struct ColorBand *coba, float **array, int *size);
 struct CBData *colorband_element_add(struct ColorBand *coba, float position);
 int colorband_element_remove(struct ColorBand *coba, int index);

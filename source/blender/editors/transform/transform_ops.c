@@ -250,9 +250,9 @@ static void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
 static int create_orientation_exec(bContext *C, wmOperator *op)
 {
 	char name[MAX_NAME];
-	int use = RNA_boolean_get(op->ptr, "use");
-	int overwrite = RNA_boolean_get(op->ptr, "overwrite");
-	int use_view = RNA_boolean_get(op->ptr, "use_view");
+	const bool use = RNA_boolean_get(op->ptr, "use");
+	const bool overwrite = RNA_boolean_get(op->ptr, "overwrite");
+	const bool use_view = RNA_boolean_get(op->ptr, "use_view");
 
 	RNA_string_get(op->ptr, "name", name);
 

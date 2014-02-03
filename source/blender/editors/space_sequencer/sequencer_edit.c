@@ -475,7 +475,7 @@ int ED_space_sequencer_maskedit_mask_poll(bContext *C)
 	return ED_space_sequencer_maskedit_poll(C);
 }
 
-int ED_space_sequencer_check_show_maskedit(SpaceSeq *sseq, Scene *scene)
+bool ED_space_sequencer_check_show_maskedit(SpaceSeq *sseq, Scene *scene)
 {
 	if (sseq && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		return (BKE_sequencer_mask_get(scene) != NULL);
@@ -497,7 +497,7 @@ int ED_space_sequencer_maskedit_poll(bContext *C)
 }
 
 /* are we displaying the seq output (not channels or histogram)*/
-int ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
+bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 {
 	return (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
 	        ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
@@ -1394,7 +1394,7 @@ static int sequencer_reload_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
-	int adjust_length = RNA_boolean_get(op->ptr, "adjust_length");
+	const bool adjust_length = RNA_boolean_get(op->ptr, "adjust_length");
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
@@ -2414,7 +2414,7 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 
 static int find_next_prev_edit(Scene *scene, int cfra,
                                const short side,
-                               const short do_skip_mute, const short do_center)
+                               const bool do_skip_mute, const bool do_center)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq, *best_seq = NULL, *frame_seq = NULL;
@@ -2488,7 +2488,7 @@ static int find_next_prev_edit(Scene *scene, int cfra,
 
 static bool strip_jump_internal(Scene *scene,
                                 const short side,
-                                const short do_skip_mute, const short do_center)
+                                const bool do_skip_mute, const bool do_center)
 {
 	bool changed = false;
 	int cfra = CFRA;
@@ -2515,8 +2515,8 @@ static int sequencer_strip_jump_poll(bContext *C)
 static int sequencer_strip_jump_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	short next = RNA_boolean_get(op->ptr, "next");
-	short center = RNA_boolean_get(op->ptr, "center");
+	const bool next = RNA_boolean_get(op->ptr, "next");
+	const bool center = RNA_boolean_get(op->ptr, "center");
 
 	/* currently do_skip_mute is always TRUE */
 	if (!strip_jump_internal(scene, next ? SEQ_SIDE_RIGHT : SEQ_SIDE_LEFT, TRUE, center)) {

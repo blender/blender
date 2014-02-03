@@ -743,8 +743,8 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	short do_zoom_x = true;
-	short do_zoom_y = true;
+	bool do_zoom_x = true;
+	bool do_zoom_y = true;
 
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoom_poll(C))
