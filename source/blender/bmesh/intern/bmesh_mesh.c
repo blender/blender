@@ -687,7 +687,6 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 			bm->vtable = MEM_mallocN(sizeof(void **) * bm->totvert, "bm->vtable");
 			bm->vtable_tot = bm->totvert;
 		}
-		bm->elem_table_dirty &= ~BM_VERT;
 	}
 	if (htype_needed & BM_EDGE) {
 		if (bm->etable && bm->totedge <= bm->etable_tot && bm->totedge * 2 >= bm->etable_tot) {
@@ -699,7 +698,6 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 			bm->etable = MEM_mallocN(sizeof(void **) * bm->totedge, "bm->etable");
 			bm->etable_tot = bm->totedge;
 		}
-		bm->elem_table_dirty &= ~BM_EDGE;
 	}
 	if (htype_needed & BM_FACE) {
 		if (bm->ftable && bm->totface <= bm->ftable_tot && bm->totface * 2 >= bm->ftable_tot) {
@@ -711,7 +709,6 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 			bm->ftable = MEM_mallocN(sizeof(void **) * bm->totface, "bm->ftable");
 			bm->ftable_tot = bm->totface;
 		}
-		bm->elem_table_dirty &= ~BM_FACE;
 	}
 
 #pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
@@ -734,6 +731,20 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 				BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)bm->ftable, bm->totface);
 			}
 		}
+	}
+
+	/* Only clear dirty flags when all the pointers and data are actually valid.
+	 * This prevents possible threading issues when dirty flag check failed but
+	 * data wasn't ready still.
+	 */
+	if (htype_needed & BM_VERT) {
+		bm->elem_table_dirty &= ~BM_VERT;
+	}
+	if (htype_needed & BM_EDGE) {
+		bm->elem_table_dirty &= ~BM_EDGE;
+	}
+	if (htype_needed & BM_FACE) {
+		bm->elem_table_dirty &= ~BM_FACE;
 	}
 }
 
