@@ -1984,7 +1984,6 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 {
 	Curve *cu;
 	float vec[4], dir[3], quat[4], radius, ctime;
-	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	unit_m4(mat);
 	
@@ -2019,15 +2018,6 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 		
 		CLAMP(ctime, 0.0f, 1.0f);
 	}
-	
-	/* time calculus is correct, now apply distance offset */
-	if (cu->flag & CU_OFFS_PATHDIST) {
-		ctime += timeoffs / par->curve_cache->path->totdist;
-
-		/* restore */
-		SWAP(float, sf_orig, ob->sf);
-	}
-	
 	
 	/* vec: 4 items! */
 	if (where_on_path(par, ctime, vec, dir, cu->flag & CU_FOLLOW ? quat : NULL, &radius, NULL)) {

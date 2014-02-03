@@ -214,7 +214,6 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
         # these are for paths only
         row = layout.row()
         row.prop(curve, "use_path_follow")
-        row.prop(curve, "use_time_offset", text="Offset Children")
 
 
 class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
