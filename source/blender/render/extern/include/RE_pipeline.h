@@ -217,9 +217,6 @@ void RE_DataBase_ApplyWindow(struct Render *re);
 /* rotate scene again, for incremental render */
 void RE_DataBase_IncrementalView(struct Render *re, float viewmat[4][4], int restore);
 
-/* override the scene setting for amount threads, commandline */
-void RE_set_max_threads(int threads);
-
 /* set the render threads based on the commandline and autothreads setting */
 void RE_init_threadcount(Render *re);
 

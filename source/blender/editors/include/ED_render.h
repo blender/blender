@@ -52,7 +52,6 @@ void ED_render_id_flush_update(struct Main *bmain, struct ID *id);
 void ED_render_engine_changed(struct Main *bmain);
 void ED_render_engine_area_exit(struct ScrArea *sa);
 void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated);
-void ED_render_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa);
 
 void ED_viewport_render_kill_jobs(const struct bContext *C, bool free_database);
 struct Scene *ED_render_job_get_scene(const struct bContext *C);

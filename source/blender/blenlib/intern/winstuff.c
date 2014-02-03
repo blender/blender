@@ -225,6 +225,8 @@ void get_default_root(char *root)
 	}
 }
 
+/* UNUSED */
+#if 0
 int check_file_chars(char *filename)
 {
 	char *p = filename;
@@ -245,6 +247,7 @@ int check_file_chars(char *filename)
 	}
 	return 1;
 }
+#endif
 
 #else
 

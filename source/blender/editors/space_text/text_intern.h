@@ -75,8 +75,6 @@ int text_get_char_pos(struct SpaceText *st, const char *line, int cur);
 void text_drawcache_tag_update(struct SpaceText *st, int full);
 void text_free_caches(struct SpaceText *st);
 
-int text_file_modified(struct Text *text);
-
 int text_do_suggest_select(struct SpaceText *st, struct ARegion *ar);
 void text_pop_suggest_list(void);
 

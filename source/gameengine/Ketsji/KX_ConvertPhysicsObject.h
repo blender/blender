@@ -138,14 +138,6 @@ struct KX_ObjectProperties
 	} m_boundobject;
 };
 
-void	KX_ConvertDynamoObject(KX_GameObject* gameobj,
-	RAS_MeshObject* meshobj,
-	KX_Scene* kxscene,
-	struct	PHY_ShapeProps* shapeprops,
-	struct	PHY_MaterialProps*	smmaterial,
-	struct	KX_ObjectProperties*	objprop);
-
-
 #ifdef WITH_BULLET
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,

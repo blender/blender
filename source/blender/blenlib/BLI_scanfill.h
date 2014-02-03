@@ -112,9 +112,6 @@ void BLI_scanfill_end(ScanFillContext *sf_ctx);
 void BLI_scanfill_begin_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
 void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
 
-/* These callbacks are needed to make the lib finction properly */
-void BLI_setErrorCallBack(void (*f)(const char *));
-
 #ifdef __cplusplus
 }
 #endif

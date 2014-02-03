@@ -162,7 +162,6 @@ typedef enum {
 
 /* outliner_tree.c ----------------------------------------------- */
 
-void outliner_rebuild_treehash(struct SpaceOops *soops);
 void outliner_free_tree(ListBase *lb);
 void outliner_cleanup_tree(struct SpaceOops *soops);
 

@@ -90,7 +90,6 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op);
 void bmo_rotate_exec(BMesh *bm, BMOperator *op);
 void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op);
 void bmo_scale_exec(BMesh *bm, BMOperator *op);
-void bmo_shortest_path_exec(BMesh *bm, BMOperator *op);
 void bmo_similar_edges_exec(BMesh *bm, BMOperator *op);
 void bmo_similar_faces_exec(BMesh *bm, BMOperator *op);
 void bmo_similar_verts_exec(BMesh *bm, BMOperator *op);
