@@ -941,11 +941,15 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 
 		if (keymap && (!keymap->poll || keymap->poll((bContext *)C))) {
 			for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+				/* skip disabled keymap items [T38447] */
+				if (kmi->flag & KMI_INACTIVE)
+					continue;
 				
 				if (strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0]) {
-					if (is_hotkey)
+					if (is_hotkey) {
 						if (!ISHOTKEY(kmi->type))
 							continue;
+					}
 
 					if (properties) {
 
