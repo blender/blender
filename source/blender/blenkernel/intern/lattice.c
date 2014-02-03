@@ -623,8 +623,8 @@ static int calc_curve_deform(Object *par, float co[3],
 	const bool is_neg_axis = (axis > 2);
 
 	/* to be sure, mostly after file load */
-	if (par->curve_cache->path == NULL) {
-		return 0;  // happens on append...
+	if (ELEM(NULL, par->curve_cache, par->curve_cache->path)) {
+		return 0;  // happens on append and cyclic dependencies...
 	}
 	
 	/* options */
