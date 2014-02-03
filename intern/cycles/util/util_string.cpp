@@ -93,7 +93,7 @@ bool string_endswith(const string& s, const char *end)
 	if(len > s.size())
 		return 0;
 	else
-        return strncmp(s.c_str() + s.size() - len, end, len) == 0;
+		return strncmp(s.c_str() + s.size() - len, end, len) == 0;
 }
 
 string string_strip(const string& s)

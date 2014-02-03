@@ -488,9 +488,9 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *UNUSED(C), Point
 
 static void rna_Object_empty_draw_type_set(PointerRNA *ptr, int value)
 {
-    Object *ob = (Object *)ptr->data;
+	Object *ob = (Object *)ptr->data;
 
-    BKE_object_empty_draw_type_set(ob, value);
+	BKE_object_empty_draw_type_set(ob, value);
 }
 
 static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *UNUSED(C), PointerRNA *ptr,

@@ -2659,23 +2659,23 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 
 void BKE_object_empty_draw_type_set(Object *ob, const int value)
 {
-    ob->empty_drawtype = value;
+	ob->empty_drawtype = value;
 
-    if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
-        if (!ob->iuser) {
-            ob->iuser = MEM_callocN(sizeof(ImageUser), "image user");
-            ob->iuser->ok = 1;
-            ob->iuser->frames = 100;
-            ob->iuser->sfra = 1;
-            ob->iuser->fie_ima = 2;
-        }
-    }
-    else {
-        if (ob->iuser) {
-            MEM_freeN(ob->iuser);
-            ob->iuser = NULL;
-        }
-    }
+	if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+		if (!ob->iuser) {
+			ob->iuser = MEM_callocN(sizeof(ImageUser), "image user");
+			ob->iuser->ok = 1;
+			ob->iuser->frames = 100;
+			ob->iuser->sfra = 1;
+			ob->iuser->fie_ima = 2;
+		}
+	}
+	else {
+		if (ob->iuser) {
+			MEM_freeN(ob->iuser);
+			ob->iuser = NULL;
+		}
+	}
 }
 
 bool BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const bool use_hidden)

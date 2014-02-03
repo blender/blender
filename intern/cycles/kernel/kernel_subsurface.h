@@ -250,8 +250,8 @@ ccl_device int subsurface_scatter_multi_step(KernelGlobals *kg, ShaderData *sd, 
 	}
 
 	/* sample point on disk */
-    float phi = M_2PI_F * disk_u;
-    float disk_r = disk_v;
+	float phi = M_2PI_F * disk_u;
+	float disk_r = disk_v;
 	float disk_height;
 
 	bssrdf_sample(sc, disk_r, &disk_r, &disk_height);

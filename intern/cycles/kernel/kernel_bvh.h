@@ -1043,10 +1043,10 @@ ccl_device_inline float3 curvetangent(float t, float3 p0, float3 p1, float3 p2, 
 	float fc = 0.71f;
 	float data[4];
 	float t2 = t * t;
-    data[0] = -3.0f * fc          * t2  + 4.0f * fc * t                  - fc;
-    data[1] =  3.0f * (2.0f - fc) * t2  + 2.0f * (fc - 3.0f) * t;
-    data[2] =  3.0f * (fc - 2.0f) * t2  + 2.0f * (3.0f - 2.0f * fc) * t  + fc;
-    data[3] =  3.0f * fc          * t2  - 2.0f * fc * t;
+	data[0] = -3.0f * fc          * t2  + 4.0f * fc * t                  - fc;
+	data[1] =  3.0f * (2.0f - fc) * t2  + 2.0f * (fc - 3.0f) * t;
+	data[2] =  3.0f * (fc - 2.0f) * t2  + 2.0f * (3.0f - 2.0f * fc) * t  + fc;
+	data[3] =  3.0f * fc          * t2  - 2.0f * fc * t;
 	return data[0] * p0 + data[1] * p1 + data[2] * p2 + data[3] * p3;
 }
 

@@ -55,18 +55,18 @@ namespace Freestyle {
 class LIB_STROKE_EXPORT TextStrokeRenderer : public StrokeRenderer
 {
 public:
-  TextStrokeRenderer(const char *iFileName = NULL);
-  virtual ~TextStrokeRenderer();
+	TextStrokeRenderer(const char *iFileName = NULL);
+	virtual ~TextStrokeRenderer();
 
-  /*! Renders a stroke rep */
-  virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;
-  virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const;
+	/*! Renders a stroke rep */
+	virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;
+	virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const;
 
-  /*! Closes the output file */
-  void Close();
+	/*! Closes the output file */
+	void Close();
 
 protected:
-  mutable ofstream _ofstream;
+	mutable ofstream _ofstream;
 };
 
 } /* namespace Freestyle */

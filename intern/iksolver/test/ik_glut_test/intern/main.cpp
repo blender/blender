@@ -40,62 +40,58 @@
 #include "MyGlutMouseHandler.h"	
 #include "MyGlutKeyHandler.h"
 #include "ChainDrawer.h"
- 
-void
-init(MT_Vector3 min,MT_Vector3 max)
+
+void init(MT_Vector3 min,MT_Vector3 max)
 {
- 
 	GLfloat light_diffuse0[] = {1.0, 0.0, 0.0, 1.0};  /* Red diffuse light. */
 	GLfloat light_position0[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
 	GLfloat light_diffuse1[] = {1.0, 1.0, 1.0, 1.0};  /* Red diffuse light. */
 	GLfloat light_position1[] = {1.0, 0, 0, 0.0};  /* Infinite light location. */
 
-  /* Enable a single OpenGL light. */
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse0);
-  glLightfv(GL_LIGHT0, GL_POSITION, light_position0);
+	/* Enable a single OpenGL light. */
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse0);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position0);
 
-  glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse1);
-  glLightfv(GL_LIGHT1, GL_POSITION, light_position1);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse1);
+	glLightfv(GL_LIGHT1, GL_POSITION, light_position1);
 
-  glEnable(GL_LIGHT0);
-  glEnable(GL_LIGHT1);
-  glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHTING);
 
-  /* Use depth buffering for hidden surface elimination. */
-  glEnable(GL_DEPTH_TEST);
+	/* Use depth buffering for hidden surface elimination. */
+	glEnable(GL_DEPTH_TEST);
 
-  /* Setup the view of the cube. */
-  glMatrixMode(GL_PROJECTION);
+	/* Setup the view of the cube. */
+	glMatrixMode(GL_PROJECTION);
 
 	// center of the box + 3* depth of box
 
-  MT_Vector3 center = (min + max) * 0.5;
-  MT_Vector3 diag = max - min;
+	MT_Vector3 center = (min + max) * 0.5;
+	MT_Vector3 diag = max - min;
 
 	float depth = diag.length();
 	float distance = 2;
 
-  gluPerspective( 
-	/* field of view in degree */ 40.0,
-    /* aspect ratio */ 1.0,
-    /* Z near */ 1.0, 
-	/* Z far */ distance * depth * 2
-  );
-  glMatrixMode(GL_MODELVIEW);	
+	gluPerspective(/* field of view in degree */ 40.0,
+	               /* aspect ratio */ 1.0,
+	               /* Z near */ 1.0,
+	               /* Z far */ distance * depth * 2
+	               );
+	glMatrixMode(GL_MODELVIEW);
 
 
-  gluLookAt(
-	center.x(), center.y(), center.z() + distance*depth,  /* eye is at (0,0,5) */
-    center.x(), center.y(), center.z(),      /* center is at (0,0,0) */
-    0.0, 1.0, 0.);      /* up is in positive Y direction */
+	gluLookAt(center.x(), center.y(), center.z() + distance*depth,  /* eye is at (0,0,5) */
+	          center.x(), center.y(), center.z(),      /* center is at (0,0,0) */
+	          0.0, 1.0, 0.);      /* up is in positive Y direction */
 
-  glPushMatrix();	
+	glPushMatrix();
 
- 
+
 }
-int
-main(int argc, char **argv)
+
+int main(int argc, char **argv)
 {
 
 

@@ -264,7 +264,7 @@ ccl_device_inline bool transform_uniform_scale(const Transform& tfm, float& scal
 	/* the epsilon here is quite arbitrary, but this function is only used for
 	 * surface area and bump, where we except it to not be so sensitive */
 	Transform ttfm = transform_transpose(tfm);
-	float eps = 1e-6f; 
+	float eps = 1e-6f;
 	
 	float sx = len_squared(float4_to_float3(tfm.x));
 	float sy = len_squared(float4_to_float3(tfm.y));
@@ -275,12 +275,13 @@ ccl_device_inline bool transform_uniform_scale(const Transform& tfm, float& scal
 
 	if(fabsf(sx - sy) < eps && fabsf(sx - sz) < eps &&
 	   fabsf(sx - stx) < eps && fabsf(sx - sty) < eps &&
-	   fabsf(sx - stz) < eps) {
+	   fabsf(sx - stz) < eps)
+	{
 		scale = sx;
 		return true;
 	}
-   
-   return false;
+
+	return false;
 }
 
 ccl_device_inline bool transform_negative_scale(const Transform& tfm)

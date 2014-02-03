@@ -2135,7 +2135,7 @@ static VMesh *make_cube_corner_straight(MemArena *mem_arena, int nseg)
 	float co[3];
 	int i, j, k, ns2;
 
-    ns2 = nseg / 2;
+	ns2 = nseg / 2;
 	vm = new_adj_vmesh(mem_arena, 3, nseg, NULL);
 	vm->count = 0;  // reset, so following loop will end up with correct count
 	for (i = 0; i < 3; i++) {

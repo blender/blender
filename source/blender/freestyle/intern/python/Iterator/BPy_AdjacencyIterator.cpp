@@ -102,9 +102,9 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
 
 static PyObject *AdjacencyIterator_iter(BPy_AdjacencyIterator *self)
 {
-    Py_INCREF(self);
-    self->at_start = true;
-    return (PyObject *) self;
+	Py_INCREF(self);
+	self->at_start = true;
+	return (PyObject *) self;
 }
 
 static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
