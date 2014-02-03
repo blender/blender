@@ -179,7 +179,7 @@ static int CheckTexfaceDM(void *mcol, int index)
 }
 */
 
-static DMDrawOption CheckTexDM(MTFace *tface, int has_mcol, int matnr)
+static DMDrawOption CheckTexDM(MTFace *tface, const bool has_mcol, int matnr)
 {
 
 	// index is the original face index, retrieve the polygon
