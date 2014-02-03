@@ -97,6 +97,7 @@ public:
 	void finish();
 
 	bool writeGlobalAsset(const COLLADAFW::FileInfo*);
+	std::string get_import_version(const COLLADAFW::FileInfo *asset);
 
 	bool writeScene(const COLLADAFW::Scene*);
 
@@ -169,6 +170,7 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
 	std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map;
 
+	std::string import_from_version;
 };
 
 #endif

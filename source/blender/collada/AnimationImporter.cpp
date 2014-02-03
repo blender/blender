@@ -648,12 +648,17 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 			//Add the curves of the current animation to the object
 			for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 				FCurve *fcu = *iter;
-				/* All anim_types whose values are to be converted from Degree to Radians can be ORed here
-				 *XXX What About " rotation " ? */
-				if (BLI_strcaseeq("spot_size", anim_type))	{
-						/* Convert current values to Radians */
+				/* All anim_types whose values are to be converted from Degree to Radians can be ORed here */
+				if (strcmp("spot_size", anim_type)==0) {
+					/* NOTE: Do NOT convert if imported file was made by blender <= 2.69.10
+					 * Reason: old blender versions stored spot_size in radians (was a bug)
+					 */
+					if (this->import_from_version == "" || BLI_natstrcmp(this->import_from_version.c_str(), "2.69.10") != -1) {
 						fcurve_deg_to_rad(fcu);
+					}
 				}
+				/** XXX What About animtype "rotation" ? */
+
 				BLI_addtail(AnimCurves, fcu);
 			}
 		}
@@ -2011,3 +2016,7 @@ void AnimationImporter::add_bezt(FCurve *fcu, float fra, float value)
 	calchandles_fcurve(fcu);
 }
 
+void AnimationImporter::set_import_from_version(std::string import_from_version)
+{
+	this->import_from_version = import_from_version;
+}

@@ -89,6 +89,8 @@ private:
 	
 	int typeFlag;
 
+	std::string import_from_version;
+
 	enum lightAnim
 	{
 //		INANIMATE = 0,
@@ -137,6 +139,7 @@ public:
 
 	~AnimationImporter();
 
+	void set_import_from_version(std::string import_from_version);
 	bool write_animation(const COLLADAFW::Animation* anim);
 	
 	// called on post-process stage after writeVisualScenes
