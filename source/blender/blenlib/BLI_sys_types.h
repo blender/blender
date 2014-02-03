@@ -147,17 +147,6 @@ typedef unsigned __int64 uint64_t;
 #  endif // _WIN64 ]
 #endif // SIZE_MAX ]
 
-// WCHAR_MIN and WCHAR_MAX are also defined in <wchar.h>
-#ifndef WCHAR_MIN // [
-#  define WCHAR_MIN  0
-#endif  // WCHAR_MIN ]
-#ifndef WCHAR_MAX // [
-#  define WCHAR_MAX  _UI16_MAX
-#endif  // WCHAR_MAX ]
-
-#define WINT_MIN  0
-#define WINT_MAX  _UI16_MAX
-
 #endif // __STDC_LIMIT_MACROS ]
 
 #ifndef _INTPTR_T_DEFINED
