@@ -419,4 +419,15 @@ void av_frame_free(AVFrame **frame)
 }
 #endif
 
+FFMPEG_INLINE
+AVRational av_get_r_frame_rate_compat(const AVStream *stream)
+{
+	/* Stupid way to distinguish FFmpeg from Libav. */
+#if LIBAVCODEC_VERSION_MICRO >= 100
+	return stream->r_frame_rate;
+#else
+	return stream->avg_frame_rate;
+#endif
+}
+
 #endif

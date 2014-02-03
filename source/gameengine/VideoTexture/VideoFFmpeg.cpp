@@ -220,7 +220,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 		codecCtx->frame_rate_base=1000;
 	m_baseFrameRate = (double)codecCtx->frame_rate / (double)codecCtx->frame_rate_base;
 #else
-	m_baseFrameRate = av_q2d(formatCtx->streams[videoStream]->r_frame_rate);
+	m_baseFrameRate = av_q2d(av_get_r_frame_rate_compat(formatCtx->streams[videoStream]));
 #endif
 	if (m_baseFrameRate <= 0.0) 
 		m_baseFrameRate = defFrameRate;
