@@ -225,7 +225,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				sc->N = N;
 				sc->data0 = param1;
 
-				float eta = fmaxf(param2, 1.0f + 1e-5f);
+				float eta = fmaxf(param2, 1e-5f);
 				sc->data1 = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
 				/* setup bsdf */
@@ -247,7 +247,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				break;
 #endif
 			/* index of refraction */
-			float eta = fmaxf(param2, 1.0f + 1e-5f);
+			float eta = fmaxf(param2, 1e-5f);
 			eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
 			/* fresnel */

@@ -25,7 +25,7 @@ ccl_device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, 
 	float eta = (stack_valid(ior_offset))? stack_load_float(stack, ior_offset): __uint_as_float(ior_value);
 	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
 	
-	eta = fmaxf(eta, 1.0f + 1e-5f);
+	eta = fmaxf(eta, 1e-5f);
 	eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
 	float f = fresnel_dielectric_cos(dot(sd->I, normal_in), eta);

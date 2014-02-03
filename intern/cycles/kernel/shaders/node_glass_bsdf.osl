@@ -25,7 +25,7 @@ shader node_glass_bsdf(
 	normal Normal = N,
 	output closure color BSDF = 0)
 {
-	float f = max(IOR, 1.0 + 1e-5);
+	float f = max(IOR, 1e-5);
 	float eta = backfacing() ? 1.0 / f: f;
 	float cosi = dot(I, Normal);
 	float Fr = fresnel_dielectric_cos(cosi, eta);
