@@ -1038,6 +1038,16 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 			NSUInteger masks = [m_window styleMask];
 
 			if (!m_fullScreen && !(masks & NSFullScreenWindowMask)) {
+				/* Starting with 10.9, we always use Lion fullscreen, since it
+				 * now has proper multi-monitor support for fullscreen */
+				struct { SInt32 major, minor; } systemversion;
+				Gestalt(gestaltSystemVersionMajor, &systemversion.major);
+				Gestalt(gestaltSystemVersionMinor, &systemversion.minor);
+
+				if (systemversion.major > 10 || (systemversion.major == 10 && systemversion.minor >= 9)) {
+					[m_window toggleFullScreen:nil];
+					break;
+				}
 #else
 			if (!m_fullScreen) {
 #endif
@@ -1100,7 +1110,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
 				
 				[pool drain];
-				}
+			}
 			break;
 		}
 		case GHOST_kWindowStateNormal:
