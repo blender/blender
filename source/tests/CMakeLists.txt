@@ -36,7 +36,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 # all calls to blender use this
 if(APPLE)
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
-		set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/$(CONFIGURATION)/blender.app/Contents/MacOS/blender)
+		set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/Debug/blender.app/Contents/MacOS/blender)
 	else()
 		set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender.app/Contents/MacOS/blender)
 	endif()
