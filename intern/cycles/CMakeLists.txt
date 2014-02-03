@@ -15,17 +15,24 @@ include(cmake/external_libs.cmake)
 # todo: refactor this code to match scons
 
 if(WIN32 AND MSVC)
+	# /arch:AVX for VC2012 and above
+	if(NOT MSVC_VERSION LESS 1700)
+		set(CYCLES_AVX_ARCH_FLAGS "/arch:AVX")
+	elseif(NOT CMAKE_CL_64)
+		set(CYCLES_AVX_ARCH_FLAGS "/arch:SSE2")
+	endif()
+
 	# there is no /arch:SSE3, but intrinsics are available anyway
 	if(CMAKE_CL_64)
 		set(CYCLES_SSE2_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
 		set(CYCLES_SSE3_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
 		set(CYCLES_SSE41_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
-		set(CYCLES_AVX_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-") #/arch:AVX for VC2012 and above
+		set(CYCLES_AVX_KERNEL_FLAGS "${CYCLES_AVX_ARCH_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
 	else()
 		set(CYCLES_SSE2_KERNEL_FLAGS "/arch:SSE2 /fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
 		set(CYCLES_SSE3_KERNEL_FLAGS "/arch:SSE2 /fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
 		set(CYCLES_SSE41_KERNEL_FLAGS "/arch:SSE2 /fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
-		set(CYCLES_AVX_KERNEL_FLAGS "/arch:SSE2 /fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-") #/arch:AVX for VC2012 and above
+		set(CYCLES_AVX_KERNEL_FLAGS "${CYCLES_AVX_ARCH_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-") 
 	endif()
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /Gs-")
