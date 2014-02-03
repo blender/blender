@@ -46,7 +46,6 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
-#include "DNA_userdef_types.h"
 #include "BKE_global.h"
 
 #include "imbuf.h"
@@ -181,7 +180,7 @@ const char *imb_ext_audio[] = {
 	NULL
 };
 
-static int IMB_ispic_name(const char *name)
+int IMB_ispic(const char *name)
 {
 	/* increased from 32 to 64 because of the bitmaps header size */
 #define HEADER_SIZE 64
@@ -230,24 +229,6 @@ static int IMB_ispic_name(const char *name)
 
 #undef HEADER_SIZE
 }
-
-int IMB_ispic(const char *filename)
-{
-	if (U.uiflag & USER_FILTERFILEEXTS) {
-		if ((BLI_testextensie_array(filename, imb_ext_image)) ||
-		    (G.have_quicktime && BLI_testextensie_array(filename, imb_ext_image_qt)))
-		{
-			return IMB_ispic_name(filename);
-		}
-		else {
-			return FALSE;
-		}
-	}
-	else { /* no FILTERFILEEXTS */
-		return IMB_ispic_name(filename);
-	}
-}
-
 
 
 static int isavi(const char *name)
@@ -454,27 +435,7 @@ bool IMB_isanim(const char *filename)
 {
 	int type;
 	
-	if (U.uiflag & USER_FILTERFILEEXTS) {
-		if (G.have_quicktime) {
-			if (BLI_testextensie_array(filename, imb_ext_movie_qt)) {	
-				type = imb_get_anim_type(filename);
-			}
-			else {
-				return(FALSE);
-			}
-		}
-		else { /* no quicktime */
-			if (BLI_testextensie_array(filename, imb_ext_movie)) {
-				type = imb_get_anim_type(filename);
-			}
-			else {
-				return(FALSE);
-			}
-		}
-	}
-	else { /* no FILTERFILEEXTS */
-		type = imb_get_anim_type(filename);
-	}
+	type = imb_get_anim_type(filename);
 	
 	return (type && type != ANIM_SEQUENCE);
 }
