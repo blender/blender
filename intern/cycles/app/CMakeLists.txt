@@ -68,7 +68,7 @@ if(WITH_CYCLES_NETWORK)
 		cycles_server.cpp
 	)
 	add_executable(cycles_server ${SRC})
-	target_link_libraries(cycles_server ${LIBRARIES})
+	target_link_libraries(cycles_server ${LIBRARIES} ${CMAKE_DL_LIBS})
 
 	if(UNIX AND NOT APPLE)
 		set_target_properties(cycles_server PROPERTIES INSTALL_RPATH $ORIGIN/lib)
