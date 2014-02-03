@@ -2510,8 +2510,6 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 		v = vm->boundstart;
 		do {
 			i = v->index;
-			f = boundvert_rep_face(v);
-			f2 = boundvert_rep_face(v->next);
 			if (!v->any_seam) {
 				for (ring = 1; ring < ns2; ring++) {
 					BMVert *v_uv = mesh_vert(vm, i, ring, ns2)->v;
