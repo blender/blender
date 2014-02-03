@@ -337,7 +337,7 @@ static bool boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
 
 static void testvertexnearedge(ScanFillContext *sf_ctx)
 {
-	/* only vertices with (->h == 1) are being tested for
+	/* only vertices with (->edge_tot == 1) are being tested for
 	 * being close to an edge, if true insert */
 
 	ScanFillVert *eve;
@@ -927,48 +927,64 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	}
 
 	/* STEP 2: remove loose edges and strings of edges */
-	for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
-		if (eed->v1->edge_tot++ > 250) break;
-		if (eed->v2->edge_tot++ > 250) break;
-	}
-	if (eed) {
-		/* otherwise it's impossible to be sure you can clear vertices */
+	if (flag & BLI_SCANFILL_CALC_LOOSE) {
+		for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
+			if (eed->v1->edge_tot++ > 250) break;
+			if (eed->v2->edge_tot++ > 250) break;
+		}
+		if (eed) {
+			/* otherwise it's impossible to be sure you can clear vertices */
 #ifdef DEBUG
-		printf("No vertices with 250 edges allowed!\n");
+			printf("No vertices with 250 edges allowed!\n");
 #endif
-		return 0;
-	}
-	
-	/* does it only for vertices with (->h == 1) */
-	testvertexnearedge(sf_ctx);
+			return 0;
+		}
 
-	ok = true;
-	while (ok) {
-		ok = false;
+		/* does it only for vertices with (->edge_tot == 1) */
+		testvertexnearedge(sf_ctx);
 
-		toggle++;
-		for (eed = (toggle & 1) ? sf_ctx->filledgebase.first : sf_ctx->filledgebase.last;
-		     eed;
-		     eed = eed_next)
-		{
-			eed_next = (toggle & 1) ? eed->next : eed->prev;
-			if (eed->v1->edge_tot == 1) {
-				eed->v2->edge_tot--;
-				BLI_remlink(&sf_ctx->fillvertbase, eed->v1);
-				BLI_remlink(&sf_ctx->filledgebase, eed);
-				ok = true;
-			}
-			else if (eed->v2->edge_tot == 1) {
-				eed->v1->edge_tot--;
-				BLI_remlink(&sf_ctx->fillvertbase, eed->v2);
-				BLI_remlink(&sf_ctx->filledgebase, eed);
-				ok = true;
+		ok = true;
+		while (ok) {
+			ok = false;
+
+			toggle++;
+			for (eed = (toggle & 1) ? sf_ctx->filledgebase.first : sf_ctx->filledgebase.last;
+			     eed;
+			     eed = eed_next)
+			{
+				eed_next = (toggle & 1) ? eed->next : eed->prev;
+				if (eed->v1->edge_tot == 1) {
+					eed->v2->edge_tot--;
+					BLI_remlink(&sf_ctx->fillvertbase, eed->v1);
+					BLI_remlink(&sf_ctx->filledgebase, eed);
+					ok = true;
+				}
+				else if (eed->v2->edge_tot == 1) {
+					eed->v1->edge_tot--;
+					BLI_remlink(&sf_ctx->fillvertbase, eed->v2);
+					BLI_remlink(&sf_ctx->filledgebase, eed);
+					ok = true;
+				}
 			}
 		}
+		if (sf_ctx->filledgebase.first == NULL) {
+			/* printf("All edges removed\n"); */
+			return 0;
+		}
 	}
-	if (sf_ctx->filledgebase.first == NULL) {
-		/* printf("All edges removed\n"); */
-		return 0;
+	else {
+		/* skip checks for loose edges */
+		for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
+			eed->v1->edge_tot++;
+			eed->v2->edge_tot++;
+		}
+#ifdef DEBUG
+		/* ensure we're right! */
+		for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
+			BLI_assert(eed->v1->edge_tot != 1);
+			BLI_assert(eed->v2->edge_tot != 1);
+		}
+#endif
 	}
 
 

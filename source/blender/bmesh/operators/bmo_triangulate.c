@@ -104,7 +104,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		normal_pt = normal;
 	}
 
-	BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_HOLES, normal_pt);
+	BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_LOOSE, normal_pt);
 	
 	for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
