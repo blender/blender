@@ -75,20 +75,15 @@ ccl_device bool BVH_FUNCTION_NAME
 	
 	const __m128 pn = _mm_castsi128_ps(_mm_set_epi32(0x80000000, 0x80000000, 0, 0));
 	__m128 Psplat[3], idirsplat[3];
+	shuffle_swap_t shufflexyz[3];
 
 	Psplat[0] = _mm_set_ps1(P.x);
 	Psplat[1] = _mm_set_ps1(P.y);
 	Psplat[2] = _mm_set_ps1(P.z);
 
-	idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
-	idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
-	idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
-
 	__m128 tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
-	shuffle_swap_t shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
-	shuffle_swap_t shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
-	shuffle_swap_t shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
+	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
 	/* traversal loop */
@@ -163,9 +158,9 @@ ccl_device bool BVH_FUNCTION_NAME
 				float4 cnodes = ((float4*)bvh_nodes)[3];
 
 				/* intersect ray against child nodes */
-				const __m128 tminmaxx = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[0], shufflex), Psplat[0]), idirsplat[0]);
-				const __m128 tminmaxy = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[1], shuffley), Psplat[1]), idirsplat[1]);
-				const __m128 tminmaxz = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[2], shufflez), Psplat[2]), idirsplat[2]);
+				const __m128 tminmaxx = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[0], shufflexyz[0]), Psplat[0]), idirsplat[0]);
+				const __m128 tminmaxy = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[1], shufflexyz[1]), Psplat[1]), idirsplat[1]);
+				const __m128 tminmaxz = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[2], shufflexyz[2]), Psplat[2]), idirsplat[2]);
 
 				const __m128 tminmax = _mm_xor_ps(_mm_max_ps(_mm_max_ps(tminmaxx, tminmaxy), _mm_max_ps(tminmaxz, tsplat)), pn);
 				const __m128 lrhit = _mm_cmple_ps(tminmax, shuffle<2, 3, 0, 1>(tminmax));
@@ -286,15 +281,9 @@ ccl_device bool BVH_FUNCTION_NAME
 					Psplat[1] = _mm_set_ps1(P.y);
 					Psplat[2] = _mm_set_ps1(P.z);
 
-					idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
-					idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
-					idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
-
 					tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
-					shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
-					shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
-					shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
+					gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
 					++stackPtr;
@@ -322,15 +311,9 @@ ccl_device bool BVH_FUNCTION_NAME
 			Psplat[1] = _mm_set_ps1(P.y);
 			Psplat[2] = _mm_set_ps1(P.z);
 
-			idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
-			idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
-			idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
-
 			tsplat = _mm_set_ps(-isect->t, -isect->t, 0.0f, 0.0f);
 
-			shufflex = (idir.x >= 0)? shuf_identity: shuf_swap;
-			shuffley = (idir.y >= 0)? shuf_identity: shuf_swap;
-			shufflez = (idir.z >= 0)? shuf_identity: shuf_swap;
+			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
 			object = ~0;

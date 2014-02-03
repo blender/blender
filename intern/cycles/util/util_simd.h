@@ -69,6 +69,36 @@ ccl_device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf
 
 #endif
 
+#ifdef __KERNEL_SSE41__
+ccl_device_inline void gen_idirsplat_swap(const __m128 &pn, const shuffle_swap_t &shuf_identity, const shuffle_swap_t &shuf_swap,
+										  const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
+{
+	const __m128 idirsplat_raw[] = { _mm_set_ps1(idir.x), _mm_set_ps1(idir.y), _mm_set_ps1(idir.z) };
+	idirsplat[0] = _mm_xor_ps(idirsplat_raw[0], pn);
+	idirsplat[1] = _mm_xor_ps(idirsplat_raw[1], pn);
+	idirsplat[2] = _mm_xor_ps(idirsplat_raw[2], pn);
+
+	const __m128 signmask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+	const __m128 shuf_identity_f = _mm_castsi128_ps(shuf_identity);
+	const __m128 shuf_swap_f = _mm_castsi128_ps(shuf_swap);
+	shufflexyz[0] = _mm_castps_si128(_mm_blendv_ps(shuf_identity_f, shuf_swap_f, _mm_and_ps(idirsplat_raw[0], signmask)));
+	shufflexyz[1] = _mm_castps_si128(_mm_blendv_ps(shuf_identity_f, shuf_swap_f, _mm_and_ps(idirsplat_raw[1], signmask)));
+	shufflexyz[2] = _mm_castps_si128(_mm_blendv_ps(shuf_identity_f, shuf_swap_f, _mm_and_ps(idirsplat_raw[2], signmask)));
+}
+#else
+ccl_device_inline void gen_idirsplat_swap(const __m128 &pn, const shuffle_swap_t &shuf_identity, const shuffle_swap_t &shuf_swap,
+										  const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
+{
+	idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
+	idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
+	idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
+
+	shufflexyz[0] = (idir.x >= 0)? shuf_identity: shuf_swap;
+	shufflexyz[1] = (idir.y >= 0)? shuf_identity: shuf_swap;
+	shufflexyz[2] = (idir.z >= 0)? shuf_identity: shuf_swap;
+}
+#endif
+
 template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& a, const __m128& b)
 {
 	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
