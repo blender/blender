@@ -210,6 +210,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 
 _EVENT_TYPES = set()
 _EVENT_TYPE_MAP = {}
+_EVENT_TYPE_MAP_EXTRA = {}
 
 
 def draw_filtered(display_keymaps, filter_type, filter_text, layout):
@@ -226,7 +227,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                                     for key, item in enum.items()})
 
             del enum
-            _EVENT_TYPE_MAP.update({
+            _EVENT_TYPE_MAP_EXTRA.update({
                 "`": 'ACCENT_GRAVE',
                 "*": 'NUMPAD_ASTERIX',
                 "/": 'NUMPAD_SLASH',
@@ -234,7 +235,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                 "LMB": 'LEFTMOUSE',
                 "MMB": 'MIDDLEMOUSE',
                 })
-            _EVENT_TYPE_MAP.update({
+            _EVENT_TYPE_MAP_EXTRA.update({
                 "%d" % i: "NUMPAD_%d" % i for i in range(9)
                 })
         # done with once off init
@@ -275,19 +276,20 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                 kmi_type_set.add(kmi_type)
             else:
                 # replacement table
-                kmi_type_test = _EVENT_TYPE_MAP.get(kmi_type)
-                if kmi_type_test is not None:
-                    kmi_type_set.add(kmi_type_test)
-                else:
-                    # print("Unknown Type:", kmi_type)
+                for event_type_map in (_EVENT_TYPE_MAP, _EVENT_TYPE_MAP_EXTRA):
+                    kmi_type_test = event_type_map.get(kmi_type)
+                    if kmi_type_test is not None:
+                        kmi_type_set.add(kmi_type_test)
+                    else:
+                        # print("Unknown Type:", kmi_type)
 
-                    # Partial match
-                    for k, v in _EVENT_TYPE_MAP.items():
-                        if (kmi_type in k) or (kmi_type in v):
-                            kmi_type_set.add(v)
+                        # Partial match
+                        for k, v in event_type_map.items():
+                            if (kmi_type in k) or (kmi_type in v):
+                                kmi_type_set.add(v)
 
-                    if not kmi_type_set:
-                        return False
+                        if not kmi_type_set:
+                            return False
 
             kmi_test_dict["type"] = kmi_type_set
 
