@@ -3720,8 +3720,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 		v3d = vod->v3d;
 	}
 	else {
-		ar = CTX_wm_region(C);
-		v3d = CTX_wm_view3d(C);
+		ED_view3d_context_user_region(C, &v3d, &ar);
 	}
 
 	rv3d = ar->regiondata;
@@ -3753,15 +3752,15 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
 
-	/* makes op->customdata */
-	viewops_data_alloc(C, op);
-	viewops_data_create(C, op, event);
-	vod = op->customdata;
-
 	if (RNA_struct_property_is_set(op->ptr, "angle")) {
 		viewroll_exec(C, op);
 	}
 	else {
+		/* makes op->customdata */
+		viewops_data_alloc(C, op);
+		viewops_data_create(C, op, event);
+		vod = op->customdata;
+
 		/* overwrite the mouse vector with the view direction */
 		normalize_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
 		negate_v3(vod->mousevec);
