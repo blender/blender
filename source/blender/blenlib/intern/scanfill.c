@@ -270,7 +270,7 @@ static bool addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 }
 
 
-static ScanFillVertLink *addedgetoscanlist(ScanFillContext *sf_ctx, ScanFillEdge *eed, unsigned int len)
+static ScanFillVertLink *addedgetoscanlist(ScanFillVertLink *scdata, ScanFillEdge *eed, unsigned int len)
 {
 	/* inserts edge at correct location in ScanFillVertLink list */
 	/* returns sc when edge already exists */
@@ -292,7 +292,7 @@ static ScanFillVertLink *addedgetoscanlist(ScanFillContext *sf_ctx, ScanFillEdge
 	}
 	/* find location in list */
 	scsearch.vert = eed->v1;
-	sc = (ScanFillVertLink *)bsearch(&scsearch, sf_ctx->_scdata, len,
+	sc = (ScanFillVertLink *)bsearch(&scsearch, scdata, len,
 	                                 sizeof(ScanFillVertLink), vergscdata);
 
 	if (UNLIKELY(sc == NULL)) {
@@ -425,6 +425,7 @@ static void splitlist(ScanFillContext *sf_ctx, ListBase *tempve, ListBase *tempe
 
 static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 {
+	ScanFillVertLink *scdata;
 	ScanFillVertLink *sc = NULL, *sc1;
 	ScanFillVert *eve, *v1, *v2, *v3;
 	ScanFillEdge *eed, *eed_next, *ed1, *ed2, *ed3;
@@ -470,7 +471,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 	/* STEP 1: make using FillVert and FillEdge lists a sorted
 	 * ScanFillVertLink list
 	 */
-	sc = sf_ctx->_scdata = (ScanFillVertLink *)MEM_callocN(pf->verts * sizeof(ScanFillVertLink), "Scanfill1");
+	sc = scdata = (ScanFillVertLink *)MEM_callocN(pf->verts * sizeof(ScanFillVertLink), "Scanfill1");
 	verts = 0;
 	for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 		if (eve->poly_nr == nr) {
@@ -484,7 +485,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 		}
 	}
 
-	qsort(sf_ctx->_scdata, verts, sizeof(ScanFillVertLink), vergscdata);
+	qsort(scdata, verts, sizeof(ScanFillVertLink), vergscdata);
 
 	if (flag & BLI_SCANFILL_CALC_REMOVE_DOUBLES) {
 		for (eed = sf_ctx->filledgebase.first; eed; eed = eed_next) {
@@ -510,7 +511,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 					eed->v2 = eed->v2->tmp.v;
 			}
 			if (eed->v1 != eed->v2) {
-				addedgetoscanlist(sf_ctx, eed, verts);
+				addedgetoscanlist(scdata, eed, verts);
 			}
 		}
 	}
@@ -519,7 +520,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 			eed_next = eed->next;
 			BLI_remlink(&sf_ctx->filledgebase, eed);
 			if (eed->v1 != eed->v2) {
-				addedgetoscanlist(sf_ctx, eed, verts);
+				addedgetoscanlist(scdata, eed, verts);
 			}
 		}
 	}
@@ -549,7 +550,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 		maxface = verts - 2;       /* when we don't calc any holes, we assume face is a non overlapping loop */
 	}
 
-	sc = sf_ctx->_scdata;
+	sc = scdata;
 	for (a = 0; a < verts; a++) {
 		/* printf("VERTEX %d index %d\n", a, sc->vert->tmp.u); */
 		/* set connectflags  */
@@ -678,7 +679,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 					ed3->v2->edge_tot++;
 					
 					/* printf("add new edge %x %x\n", v1, v3); */
-					sc1 = addedgetoscanlist(sf_ctx, ed3, verts);
+					sc1 = addedgetoscanlist(scdata, ed3, verts);
 					
 					if (sc1) {  /* ed3 already exists: remove if a boundary */
 						/* printf("Edge exists\n"); */
@@ -716,8 +717,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 		sc++;
 	}
 
-	MEM_freeN(sf_ctx->_scdata);
-	sf_ctx->_scdata = NULL;
+	MEM_freeN(scdata);
 
 	BLI_assert(totface <= maxface);
 

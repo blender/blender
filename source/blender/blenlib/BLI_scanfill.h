@@ -51,7 +51,6 @@ typedef struct ScanFillContext {
 	unsigned short poly_nr;
 
 	/* private */
-	struct ScanFillVertLink *_scdata;
 	struct MemArena *arena;
 } ScanFillContext;
 
