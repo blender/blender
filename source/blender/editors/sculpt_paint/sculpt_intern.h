@@ -132,4 +132,6 @@ void sculpt_undo_push_end(void);
 
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 
+void sculpt_update_object_bounding_box(struct Object *ob);
+
 #endif

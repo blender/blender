@@ -487,8 +487,12 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			tag_update |= 1;
 		}
 
-		if (tag_update)
+		if (tag_update) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
+		else {
+			sculpt_update_object_bounding_box(ob);
+		}
 
 		/* for non-PBVH drawing, need to recreate VBOs */
 		GPU_drawobject_free(ob->derivedFinal);

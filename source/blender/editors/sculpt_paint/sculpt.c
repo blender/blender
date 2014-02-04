@@ -4376,7 +4376,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 }
 
 /* Copy the PBVH bounding box into the object's bounding box */
-static void sculpt_update_object_bounding_box(Object *ob)
+void sculpt_update_object_bounding_box(Object *ob)
 {
 	if (ob->bb) {
 		float bb_min[3], bb_max[3];
