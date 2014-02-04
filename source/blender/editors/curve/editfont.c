@@ -248,7 +248,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 		return 0;
 }
 
-static void text_update_edited(bContext *C, Object *obedit, const bool recalc, int mode)
+static void text_update_edited(bContext *C, Object *obedit, int mode)
 {
 	struct Main *bmain = CTX_data_main(C);
 	Curve *cu = obedit->data;
@@ -265,10 +265,14 @@ static void text_update_edited(bContext *C, Object *obedit, const bool recalc, i
 		}
 	}
 
-	BKE_vfont_to_curve(bmain, obedit, mode);
-
-	if (recalc)
+	if (mode == FO_EDIT) {
+		/* re-tesselllate */
 		DAG_id_tag_update(obedit->data, 0);
+	}
+	else {
+		/* depsgraph runs above, but since we're not tagging for update, call direct */
+		BKE_vfont_to_curve(bmain, obedit, mode);
+	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
@@ -437,7 +441,7 @@ static int paste_from_file(bContext *C, ReportList *reports, const char *filenam
 
 
 	if (strp && font_paste_utf8(C, strp, filelen)) {
-		text_update_edited(C, obedit, 1, FO_EDIT);
+		text_update_edited(C, obedit, FO_EDIT);
 		retval = OPERATOR_FINISHED;
 
 	}
@@ -520,7 +524,7 @@ static int paste_from_clipboard(bContext *C, ReportList *reports)
 	}
 
 	if ((filelen <= MAXTEXT) && font_paste_utf8(C, strp, filelen)) {
-		text_update_edited(C, obedit, 1, FO_EDIT);
+		text_update_edited(C, obedit, FO_EDIT);
 		retval = OPERATOR_FINISHED;
 	}
 	else {
@@ -813,7 +817,7 @@ static int font_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 		ef->selend = ef->len;
 		ef->pos = ef->len;
 
-		text_update_edited(C, obedit, true, FO_SELCHANGE);
+		text_update_edited(C, obedit, FO_SELCHANGE);
 
 		return OPERATOR_FINISHED;
 	}
@@ -889,7 +893,7 @@ static int cut_text_exec(bContext *C, wmOperator *UNUSED(op))
 	copy_selection(obedit);
 	kill_selection(obedit, 0);
 
-	text_update_edited(C, obedit, 1, FO_EDIT);
+	text_update_edited(C, obedit, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -933,7 +937,7 @@ static int paste_text_exec(bContext *C, wmOperator *op)
 	if (!paste_selection(obedit, op->reports))
 		return OPERATOR_CANCELLED;
 
-	text_update_edited(C, obedit, 1, FO_EDIT);
+	text_update_edited(C, obedit, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1066,10 +1070,10 @@ static int move_cursor(bContext *C, int type, int select)
 		}
 	}
 
-	text_update_edited(C, obedit, select, cursmove);
-
 	if (select)
 		ef->selend = ef->pos;
+
+	text_update_edited(C, obedit, cursmove);
 
 	return OPERATOR_FINISHED;
 }
@@ -1144,7 +1148,7 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
 
 	ef->textbufinfo[ef->pos - 1].kern = kern;
 
-	text_update_edited(C, obedit, 1, FO_EDIT);
+	text_update_edited(C, obedit, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1188,7 +1192,7 @@ static int change_character_exec(bContext *C, wmOperator *op)
 
 	ef->textbuf[ef->pos - 1] = character;
 
-	text_update_edited(C, obedit, 1, FO_EDIT);
+	text_update_edited(C, obedit, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1223,7 +1227,7 @@ static int line_break_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ef->selstart = ef->selend = 0;
 
-	text_update_edited(C, obedit, 1, FO_EDIT);
+	text_update_edited(C, obedit, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1309,7 +1313,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 
-	text_update_edited(C, obedit, 1, FO_EDIT);
+	text_update_edited(C, obedit, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1357,7 +1361,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	MEM_freeN(inserted_utf8);
 
 	kill_selection(obedit, 1);
-	text_update_edited(C, obedit, 1, FO_EDIT);
+	text_update_edited(C, obedit, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1427,12 +1431,12 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 			
 			kill_selection(obedit, 1);
-			text_update_edited(C, obedit, 1, FO_EDIT);
+			text_update_edited(C, obedit, FO_EDIT);
 		}
 		else {
 			inserted_text[0] = ascii;
 			insert_into_textbuf(obedit, ascii);
-			text_update_edited(C, obedit, 1, FO_EDIT);
+			text_update_edited(C, obedit, FO_EDIT);
 		}
 	}
 	else
@@ -1660,7 +1664,7 @@ static int set_case(bContext *C, int ccase)
 			}
 		}
 
-		text_update_edited(C, obedit, 1, FO_EDIT);
+		text_update_edited(C, obedit, FO_EDIT);
 	}
 
 	return OPERATOR_FINISHED;
