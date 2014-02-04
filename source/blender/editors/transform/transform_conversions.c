@@ -2420,10 +2420,26 @@ void flushTransNodes(TransInfo *t)
 
 #define SEQ_TX_NESTED_METAS
 
+BLI_INLINE void trans_update_seq(Scene *sce, Sequence *seq, int old_start, int sel_flag)
+{
+	if (seq->depth == 0) {
+		/* Calculate this strip and all nested strips.
+		 * Children are ALWAYS transformed first so we don't need to do this in another loop.
+		 */
+		BKE_sequence_calc(sce, seq);
+	}
+	else {
+		BKE_sequence_calc_disp(sce, seq);
+	}
+
+	if (sel_flag == SELECT)
+		BKE_sequencer_offset_animdata(sce, seq, seq->start - old_start);
+}
+
 void flushTransSeq(TransInfo *t)
 {
 	ListBase *seqbasep = BKE_sequencer_editing_get(t->scene, FALSE)->seqbasep; /* Editing null check already done */
-	int a, new_frame, old_start;
+	int a, new_frame;
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	TransDataSeq *tdsq = NULL;
@@ -2435,9 +2451,11 @@ void flushTransSeq(TransInfo *t)
 	 * if the transdata order is changed this will mess up
 	 * but so will TransDataSeq */
 	Sequence *seq_prev = NULL;
+	int old_start_prev = 0, sel_flag_prev = 0;
 
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data, td2d = t->data2d; a < t->total; a++, td++, td2d++) {
+		int old_start;
 		tdsq = (TransDataSeq *)td->extra;
 		seq = tdsq->seq;
 		old_start = seq->start;
@@ -2469,21 +2487,27 @@ void flushTransSeq(TransInfo *t)
 				break;
 		}
 
+		/* Update *previous* seq! Else, we would update a seq after its first transform, and if it has more than one
+		 * (like e.g. SEQ_LEFTSEL and SEQ_RIGHTSEL), the others are not updated! See T38469.
+		 */
 		if (seq != seq_prev) {
-			if (seq->depth == 0) {
-				/* Calculate this strip and all nested strips
-				 * children are ALWAYS transformed first
-				 * so we don't need to do this in another loop. */
-				BKE_sequence_calc(t->scene, seq);
-			}
-			else {
-				BKE_sequence_calc_disp(t->scene, seq);
+			if (seq_prev) {
+				trans_update_seq(t->scene, seq_prev, old_start_prev, sel_flag_prev);
 			}
 
-			if (tdsq->sel_flag == SELECT)
-				BKE_sequencer_offset_animdata(t->scene, seq, seq->start - old_start);
+			seq_prev = seq;
+			old_start_prev = old_start;
+			sel_flag_prev = tdsq->sel_flag;
 		}
-		seq_prev = seq;
+		else {
+			/* We want to accumulate *all* sel_flags for this seq! */
+			sel_flag_prev |= tdsq->sel_flag;
+		}
+	}
+
+	/* Don't forget to update the last seq! */
+	if (seq_prev) {
+		trans_update_seq(t->scene, seq_prev, old_start_prev, sel_flag_prev);
 	}
 
 
