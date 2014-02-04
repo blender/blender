@@ -382,7 +382,6 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 								ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
 								
 								/* printf("fill: vertex near edge %x\n", eve); */
-								ed1->f = 0;
 								ed1->poly_nr = eed->poly_nr;
 								eed->v1 = eve;
 								eve->edge_tot = 3;
@@ -773,7 +772,6 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	ScanFillEdge *eed, *eed_next;
 	PolyFill *pflist, *pf;
 	float *min_xy_p, *max_xy_p;
-	unsigned int totverts = 0, toggle = 0;
 	unsigned int totfaces = 0;  /* total faces added */
 	unsigned short a, c, poly = 0;
 	bool ok;
@@ -781,16 +779,20 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 
 	BLI_assert(!nor_proj || len_squared_v3(nor_proj) > FLT_EPSILON);
 
+#ifdef DEBUG
 	for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 		/* these values used to be set,
 		 * however they should always be zero'd so check instead */
 		BLI_assert(eve->f == 0);
 		BLI_assert(eve->poly_nr == 0);
 		BLI_assert(eve->edge_tot == 0);
-		totverts++;
 	}
+#endif
 
+#if 0
 	if (flag & BLI_SCANFILL_CALC_QUADTRI_FASTPATH) {
+		const int totverts = BLI_countlist(&sf_ctx->fillvertbase);
+
 		if (totverts == 3) {
 			eve = sf_ctx->fillvertbase.first;
 
@@ -817,6 +819,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 			return 2;
 		}
 	}
+#endif
 
 	/* first test vertices if they are in edges */
 	/* including resetting of flags */
@@ -826,15 +829,13 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 		eed->v2->f = SF_VERT_AVAILABLE;
 	}
 
-	ok = false;
 	for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 		if (eve->f & SF_VERT_AVAILABLE) {
-			ok = true;
 			break;
 		}
 	}
 
-	if (UNLIKELY(ok == false)) {
+	if (UNLIKELY(eve == NULL)) {
 		return 0;
 	}
 	else {
@@ -877,6 +878,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 
 			/* get first vertex with no poly number */
 			if (eve->poly_nr == 0) {
+				unsigned int toggle = 0;
 				poly++;
 				/* now a sort of select connected */
 				ok = true;
@@ -928,6 +930,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 
 	/* STEP 2: remove loose edges and strings of edges */
 	if (flag & BLI_SCANFILL_CALC_LOOSE) {
+		unsigned int toggle = 0;
 		for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
 			if (eed->v1->edge_tot++ > 250) break;
 			if (eed->v2->edge_tot++ > 250) break;
