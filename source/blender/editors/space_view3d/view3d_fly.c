@@ -1043,7 +1043,7 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	FlyInfo *fly;
 
-	if (rv3d->viewlock)
+	if (rv3d->viewlock & RV3D_LOCKED)
 		return OPERATOR_CANCELLED;
 
 	fly = MEM_callocN(sizeof(FlyInfo), "FlyOperation");

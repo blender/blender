@@ -1331,7 +1331,7 @@ static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	WalkInfo *walk;
 
-	if (rv3d->viewlock)
+	if (rv3d->viewlock & RV3D_LOCKED)
 		return OPERATOR_CANCELLED;
 
 	walk = MEM_callocN(sizeof(WalkInfo), "NavigationWalkOperation");

@@ -178,7 +178,7 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
 
 		if (ar) {
 			RegionView3D *rv3d = ar->regiondata;
-			if (rv3d && rv3d->viewlock == 0) {
+			if (rv3d && (rv3d->viewlock & RV3D_LOCKED) == 0) {
 				*r_v3d = v3d;
 				*r_ar = ar;
 				return true;
@@ -190,7 +190,7 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
 					/* find the first unlocked rv3d */
 					if (ar->regiondata && ar->regiontype == RGN_TYPE_WINDOW) {
 						rv3d = ar->regiondata;
-						if (rv3d->viewlock == 0) {
+						if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
 							ar_unlock = ar;
 							if (rv3d->persp == RV3D_PERSP || rv3d->persp == RV3D_CAMOB) {
 								ar_unlock_user = ar;

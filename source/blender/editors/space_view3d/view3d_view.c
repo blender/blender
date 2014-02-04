@@ -434,7 +434,7 @@ static int view3d_camera_to_view_poll(bContext *C)
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d && v3d->camera && v3d->camera->id.lib == NULL) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
-		if (rv3d && !rv3d->viewlock) {
+		if (rv3d && (rv3d->viewlock & RV3D_LOCKED) == 0) {
 			return 1;
 		}
 	}
@@ -854,7 +854,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 
 
 		/* should be moved to better initialize later on XXX */
-		if (rv3d->viewlock)
+		if (rv3d->viewlock & RV3D_LOCKED)
 			ED_view3d_lock(rv3d);
 		
 		quat_to_mat4(rv3d->viewmat, rv3d->viewquat);
