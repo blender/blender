@@ -39,6 +39,7 @@
 #define ccl_constant
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
+
 #define ccl_device_inline static __forceinline
 #ifdef __KERNEL_64_BIT__
 #define ccl_align(...) __declspec(align(__VA_ARGS__))
@@ -46,13 +47,18 @@
 #define ccl_align(...) /* not support for function arguments (error C2719) */
 #endif
 #define ccl_may_alias
+#define ccl_always_inline __forceinline
+
 #else
+
 #define ccl_device_inline static inline __attribute__((always_inline))
 #ifndef FREE_WINDOWS64
 #define __forceinline inline __attribute__((always_inline))
 #endif
 #define ccl_align(...) __attribute__((aligned(__VA_ARGS__)))
 #define ccl_may_alias __attribute__((__may_alias__))
+#define ccl_always_inline __attribute__((always_inline))
+
 #endif
 
 #endif

@@ -37,20 +37,20 @@ CCL_NAMESPACE_BEGIN
  * pointer lookup. */
 
 template<typename T> struct texture  {
-	T fetch(int index)
+	ccl_always_inline T fetch(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
 		return data[index];
 	}
 
 #if 0
-	__m128 fetch_m128(int index)
+	ccl_always_inline __m128 fetch_m128(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
 		return ((__m128*)data)[index];
 	}
 
-	__m128i fetch_m128i(int index)
+	ccl_always_inline __m128i fetch_m128i(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
 		return ((__m128i*)data)[index];
@@ -62,18 +62,18 @@ template<typename T> struct texture  {
 };
 
 template<typename T> struct texture_image  {
-	float4 read(float4 r)
+	ccl_always_inline float4 read(float4 r)
 	{
 		return r;
 	}
 
-	float4 read(uchar4 r)
+	ccl_always_inline float4 read(uchar4 r)
 	{
 		float f = 1.0f/255.0f;
 		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
 	}
 
-	int wrap_periodic(int x, int width)
+	ccl_always_inline int wrap_periodic(int x, int width)
 	{
 		x %= width;
 		if(x < 0)
@@ -81,19 +81,19 @@ template<typename T> struct texture_image  {
 		return x;
 	}
 
-	int wrap_clamp(int x, int width)
+	ccl_always_inline int wrap_clamp(int x, int width)
 	{
 		return clamp(x, 0, width-1);
 	}
 
-	float frac(float x, int *ix)
+	ccl_always_inline float frac(float x, int *ix)
 	{
 		int i = float_to_int(x) - ((x < 0.0f)? 1: 0);
 		*ix = i;
 		return x - (float)i;
 	}
 
-	float4 interp(float x, float y, bool periodic = true)
+	ccl_always_inline float4 interp(float x, float y, bool periodic = true)
 	{
 		if(!data)
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
