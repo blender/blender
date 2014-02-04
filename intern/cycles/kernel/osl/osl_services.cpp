@@ -947,10 +947,19 @@ int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg, ustring filenam
 	return 0;
 }
 
-int OSLRenderServices::pointcloud_get(ustring filename, size_t *indices, int count,
+int OSLRenderServices::pointcloud_get(OSL::ShaderGlobals *sg, ustring filename, size_t *indices, int count,
                                       ustring attr_name, TypeDesc attr_type, void *out_data)
 {
 	return 0;
+}
+
+bool OSLRenderServices::pointcloud_write(OSL::ShaderGlobals *sg,
+                                         ustring filename, const OSL::Vec3 &pos,
+                                         int nattribs, const ustring *names,
+                                         const TypeDesc *types,
+                                         const void **data)
+{
+	return false;
 }
 
 bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,

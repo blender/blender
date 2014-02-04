@@ -75,8 +75,14 @@ public:
 	                      float radius, int max_points, bool sort, size_t *out_indices,
 	                      float *out_distances, int derivs_offset);
 
-	int pointcloud_get(ustring filename, size_t *indices, int count, ustring attr_name,
-	                   TypeDesc attr_type, void *out_data);
+	int pointcloud_get(OSL::ShaderGlobals *sg, ustring filename, size_t *indices, int count,
+	                   ustring attr_name, TypeDesc attr_type, void *out_data);
+
+	bool pointcloud_write(OSL::ShaderGlobals *sg,
+	                      ustring filename, const OSL::Vec3 &pos,
+	                      int nattribs, const ustring *names,
+	                      const TypeDesc *types,
+	                      const void **data);
 
 	bool trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 	           const OSL::Vec3 &P, const OSL::Vec3 &dPdx,
