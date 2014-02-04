@@ -117,7 +117,7 @@ ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
 	/* just zero out the rest */
 	zero_v2(sf_v->xy);
 	sf_v->keyindex = 0;
-	sf_v->poly_nr = 0;
+	sf_v->poly_nr = sf_ctx->poly_nr;
 	sf_v->edge_tot = 0;
 	sf_v->f = 0;
 
@@ -135,7 +135,7 @@ ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, S
 	sf_ed->v2 = v2;
 
 	/* just zero out the rest */
-	sf_ed->poly_nr = 0;
+	sf_ed->poly_nr = sf_ctx->poly_nr;
 	sf_ed->f = 0;
 	sf_ed->tmp.c = 0;
 
@@ -784,7 +784,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 		/* these values used to be set,
 		 * however they should always be zero'd so check instead */
 		BLI_assert(eve->f == 0);
-		BLI_assert(eve->poly_nr == 0);
+		BLI_assert(sf_ctx->poly_nr || eve->poly_nr == 0);
 		BLI_assert(eve->edge_tot == 0);
 	}
 #endif
@@ -824,7 +824,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	/* first test vertices if they are in edges */
 	/* including resetting of flags */
 	for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
-		BLI_assert(eed->poly_nr == 0);
+		BLI_assert(sf_ctx->poly_nr || eed->poly_nr == 0);
 		eed->v1->f = SF_VERT_AVAILABLE;
 		eed->v2->f = SF_VERT_AVAILABLE;
 	}
@@ -872,7 +872,12 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 
 
 	/* STEP 1: COUNT POLYS */
-	if (flag & BLI_SCANFILL_CALC_HOLES) {
+	if (sf_ctx->poly_nr) {
+		poly = sf_ctx->poly_nr;
+		sf_ctx->poly_nr = 0;
+	}
+
+	if (flag & BLI_SCANFILL_CALC_HOLES && (poly == 0)) {
 		for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 			mul_v2_m3v3(eve->xy, mat_2d, eve->co);
 
@@ -914,6 +919,12 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 			}
 		}
 		/* printf("amount of poly's: %d\n", poly); */
+	}
+	else if (poly) {
+		/* we pre-calculated poly_nr */
+		for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
+			mul_v2_m3v3(eve->xy, mat_2d, eve->co);
+		}
 	}
 	else {
 		poly = 1;

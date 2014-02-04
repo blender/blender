@@ -481,6 +481,9 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 					cont = 1;
 				else if (charidx == dl->charidx) { /* character with needed index */
 					if (colnr == dl->col) {
+
+						sf_ctx.poly_nr++;
+
 						/* make editverts and edges */
 						f1 = dl->verts;
 						a = dl->nr;

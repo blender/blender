@@ -46,6 +46,10 @@ typedef struct ScanFillContext {
 	ListBase filledgebase;
 	ListBase fillfacebase;
 
+	/* increment this value before adding each curve to skip having to calculate
+	 * 'poly_nr' for edges and verts (which can take approx half scanfill time) */
+	unsigned short poly_nr;
+
 	/* private */
 	struct ScanFillVertLink *_scdata;
 	struct MemArena *arena;

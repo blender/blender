@@ -647,6 +647,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				float co[3];
 				co[2] = 0.0f;
 
+				sf_ctx.poly_nr++;
+
 				if (do_aspect_correct) {
 					if (width != height) {
 						float *fp;
