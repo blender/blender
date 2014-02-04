@@ -985,7 +985,8 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	viewops_data_create(C, op, event);
 	vod = op->customdata;
 
-	if (vod->rv3d->viewlock) { /* poll should check but in some cases fails, see poll func for details */
+	/* poll should check but in some cases fails, see poll func for details */
+	if (vod->rv3d->viewlock && RV3D_VIEW_IS_AXIS(vod->rv3d->view)) {
 		viewops_data_free(C, op);
 		return OPERATOR_PASS_THROUGH;
 	}
