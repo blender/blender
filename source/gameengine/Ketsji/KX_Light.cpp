@@ -101,6 +101,8 @@ CValue*		KX_LightObject::GetReplica()
 	
 	replica->m_lightobj.m_light = replica;
 	m_rasterizer->AddLight(&replica->m_lightobj);
+	if (m_base)
+		m_base = NULL;
 
 	return replica;
 }
