@@ -313,6 +313,8 @@ bool ED_view3d_lock(struct RegionView3D *rv3d);
 uint64_t ED_view3d_datamask(struct Scene *scene, struct View3D *v3d);
 uint64_t ED_view3d_screen_datamask(struct bScreen *screen);
 
+bool ED_view3d_view_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
+
 bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
 
 /* camera lock functions */

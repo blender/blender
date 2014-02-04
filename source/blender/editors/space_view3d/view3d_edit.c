@@ -85,6 +85,26 @@
 /* for ndof prints */
 // #define DEBUG_NDOF_MOTION
 
+/**
+ * Mostly this function just checks ``rv3d->viewlock & RV3D_LOCKED`` however there is a
+ * special case where the flag is set but the user already switched out of an axis locked view.
+ *
+ * The 'view' in the function name refers to #RegionView3D.view which we may be locked.
+ *
+ * Functions which change the 'view' should call this check first, or...
+ * only apply to the user view (in the instance of a quad-view setup).
+ */
+bool ED_view3d_view_lock_check(View3D *UNUSED(v3d), RegionView3D *rv3d)
+{
+	if (rv3d->viewlock & RV3D_LOCKED) {
+		if ((RV3D_VIEW_IS_AXIS(rv3d->view) || rv3d->view == RV3D_VIEW_CAMERA)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d)
 {
 	return (rv3d->persp != RV3D_CAMOB) && (v3d->ob_centre_cursor || v3d->ob_centre);
@@ -986,7 +1006,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	vod = op->customdata;
 
 	/* poll should check but in some cases fails, see poll func for details */
-	if ((vod->rv3d->viewlock & RV3D_LOCKED) && RV3D_VIEW_IS_AXIS(vod->rv3d->view)) {
+	if (ED_view3d_view_lock_check(vod->v3d, vod->rv3d)) {
 		viewops_data_free(C, op);
 		return OPERATOR_PASS_THROUGH;
 	}
@@ -2262,7 +2282,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	vod = op->customdata;
 
 	/* poll should check but in some cases fails, see poll func for details */
-	if ((vod->rv3d->viewlock & RV3D_LOCKED) && RV3D_VIEW_IS_AXIS(vod->rv3d->view)) {
+	if (ED_view3d_view_lock_check(vod->v3d, vod->rv3d)) {
 		viewops_data_free(C, op);
 		return OPERATOR_PASS_THROUGH;
 	}
