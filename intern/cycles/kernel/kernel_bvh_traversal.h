@@ -55,8 +55,8 @@ ccl_device bool BVH_FUNCTION_NAME
 
 	/* ray parameters in registers */
 	const float tmax = ray->t;
-	float3 P = ray->P;
-	float3 idir = bvh_inverse_direction(ray->D);
+	ccl_align(16) float3 P = ray->P;
+	ccl_align(16) float3 idir = bvh_inverse_direction(ray->D);
 	int object = ~0;
 
 #if FEATURE(BVH_MOTION)

@@ -148,6 +148,12 @@ ccl_device_inline const __m128 fma(const __m128& a, const __m128& b, const __m12
 	return _mm_add_ps(_mm_mul_ps(a, b), c);
 }
 
+/* calculate a*b-c (replacement for fused multiply-subtract on SSE CPUs) */
+ccl_device_inline const __m128 fms(const __m128& a, const __m128& b, const __m128& c)
+{
+	return _mm_sub_ps(_mm_mul_ps(a, b), c);
+}
+
 template<size_t N> ccl_device_inline const __m128 broadcast(const __m128& a)
 {
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a), _MM_SHUFFLE(N, N, N, N)));
@@ -166,6 +172,12 @@ ccl_device_inline const __m128 uint32_to_float(const __m128i &in)
 	__m128 d = _mm_cvtepi32_ps(b);
 	__m128 e = _mm_sub_ps(_mm_castsi128_ps(c), _mm_castsi128_ps(_mm_set1_epi32(0x53000000)));
 	return _mm_add_ps(e, d);
+}
+
+template<size_t S1, size_t S2, size_t S3, size_t S4>
+ccl_device_inline const __m128 set_sign_bit(const __m128 &a)
+{
+	return _mm_xor_ps(a, _mm_castsi128_ps(_mm_setr_epi32(S1 << 31, S2 << 31, S3 << 31, S4 << 31)));
 }
 
 #endif /* __KERNEL_SSE2__ */
