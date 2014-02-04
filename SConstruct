@@ -33,14 +33,6 @@
 # TODO: directory copy functions are far too complicated, see:
 #       http://wiki.blender.org/index.php/User:Ideasman42/SConsNotSimpleInstallingFiles
 
-import platform as pltfrm
-
-# Need a better way to do this. Automagical maybe is not the best thing, maybe it is.
-if pltfrm.architecture()[0] == '64bit':
-    bitness = 64
-else:
-    bitness = 32
-
 import sys
 import os
 import os.path
@@ -112,15 +104,9 @@ btools.print_targets(B.targets, B.bc)
 # handling cmd line arguments & config file
 
 # bitness stuff
-tempbitness = int(B.arguments.get('BF_BITNESS', bitness)) # default to bitness found as per starting python
-if tempbitness in (32, 64): # only set if 32 or 64 has been given
-    bitness = int(tempbitness)
-
-if bitness:
-    B.bitness = bitness
-else:
+tempbitness = int(B.arguments.get('BF_BITNESS', B.bitness)) # default to bitness found as per starting python
+if tempbitness in B.allowed_bitnesses.values() :
     B.bitness = tempbitness
-
 
 # first check cmdline for toolset and we create env to work on
 quickie = B.arguments.get('BF_QUICK', None)
@@ -149,7 +135,7 @@ if toolset:
         if env:
             btools.SetupSpawn(env)
 else:
-    if bitness==64 and platform=='win32':
+    if B.bitness==64 and platform=='win32':
         env = BlenderEnvironment(ENV = os.environ, MSVS_ARCH='amd64', TARGET_ARCH='x86_64', MSVC_VERSION=vcver)
     else:
         env = BlenderEnvironment(ENV = os.environ, TARGET_ARCH='x86', MSVC_VERSION=vcver)
@@ -167,9 +153,9 @@ if cxx:
 
 if sys.platform=='win32':
     if env['CC'] in ['cl', 'cl.exe']:
-        platform = 'win64-vc' if bitness == 64 else 'win32-vc'
+        platform = 'win64-vc' if B.bitness == 64 else 'win32-vc'
     elif env['CC'] in ['gcc']:
-        platform = 'win64-mingw' if bitness == 64 else 'win32-mingw'
+        platform = 'win64-mingw' if B.bitness == 64 else 'win32-mingw'
 
 if 'mingw' in platform:
     print "Setting custom spawn function"
@@ -219,7 +205,7 @@ opts = btools.read_opts(env, optfiles, B.arguments)
 opts.Update(env)
 
 if sys.platform=='win32':
-    if bitness==64:
+    if B.bitness==64:
         env.Append(CPPFLAGS=['-DWIN64']) # -DWIN32 needed too, as it's used all over to target Windows generally
 
 if not env['BF_FANCY']:
@@ -1111,7 +1097,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     # Since the thumb handler is loaded by Explorer, architecture is
     # strict: the x86 build fails on x64 Windows. We need to ship
     # both builds in x86 packages.
-    if bitness == 32:
+    if B.bitness == 32:
         dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb.dll')
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
 

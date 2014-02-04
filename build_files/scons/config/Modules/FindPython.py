@@ -1,4 +1,5 @@
 import os
+import platform
 
 def FindPython():
     all_abi_flags = ['m', 'mu', '']
@@ -7,7 +8,7 @@ def FindPython():
     abi_flags = "m"  # Most common for linux distros
     version = "3.3"
 
-    _arch = "x86_64-linux-gnu"
+    _arch = platform.uname()[4] + "-linux-gnu"
 
     # Determine ABI flags used on this system
     include = os.path.join(python, "include")

@@ -15,8 +15,8 @@ to kill any code duplication
 """
 
 import os
-import os.path
 import string
+import ctypes as ct
 import glob
 import time
 import sys
@@ -51,10 +51,8 @@ program_list = [] # A list holding Nodes to final binaries, used to create insta
 arguments = None
 targets = None
 resources = []
-bitness = 0
-
-#some internals
-blenderdeps = [] # don't manipulate this one outside this module!
+allowed_bitnesses = {4 : 32, 8 : 64} # only expecting 32-bit or 64-bit
+bitness = allowed_bitnesses[ct.sizeof(ct.c_void_p)]
 
 ##### LIB STUFF ##########
 
