@@ -1652,6 +1652,16 @@ check_package_DEB() {
   fi
 }
 
+check_package_installed_DEB() {
+  r=`dpkg -s $1 | grep -c '$1'`
+
+  if [ $r -ge 1 ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 check_package_version_match_DEB() {
   v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*([0-9]+:)(([0-9]+\.?)+).*/\2/'`
 
@@ -1778,7 +1788,16 @@ install_DEB() {
   fi
 
   if $WITH_ALL; then
-    _packages="$_packages libspnav-dev libjack-dev"
+    _packages="$_packages libspnav-dev"
+    # Only install jack if jack2 is not already installed!
+    JACK="libjack-dev"
+    JACK2="libjack-jackd2-dev"
+    check_package_installed_DEB JACK2
+    if [ $? -eq 0 ]; then
+      _packages="$_packages $JACK2"
+    else
+      _packages="$_packages $JACK"
+    fi
   fi
 
   PRINT ""
