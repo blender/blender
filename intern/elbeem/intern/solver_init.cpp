@@ -799,6 +799,15 @@ bool LbmFsgrSolver::initializeSolverMemory()
 		mLevel[i].avgOmegaCnt = 0.0;
 	}
 
+	/*
+	// DG: this would be the correct sanity check, not the "hack below" */
+	// if(( mSizey / mNumOMPThreads) * mNumOMPThreads != mSizey) {
+		// setNumOMPThreads();
+	//}
+	if( mSizey < mNumOMPThreads ) {
+		setNumOMPThreads(mSizey);
+	}
+
 	// init sizes
 	mLevel[mMaxRefine].lSizex = mSizex;
 	mLevel[mMaxRefine].lSizey = mSizey;
