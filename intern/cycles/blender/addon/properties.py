@@ -107,6 +107,11 @@ enum_integrator = (
     ('BRANCHED_PATH', "Branched Path Tracing", "Path tracing integrator that branches on the first bounce, giving more control over the number of light and material samples"),
     ('PATH', "Path Tracing", "Pure path tracing integrator"),
     )
+    
+enum_volume_homogeneous_sampling = (
+    ('DISTANCE', "Distance", "Use Distance Sampling"),
+    ('EQUI_ANGULAR', "Equi-angular", "Use Equi-angular Sampling"),
+    )
 
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
@@ -139,6 +144,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Method to sample lights and materials",
                 items=enum_integrator,
                 default='PATH',
+                )
+                
+        cls.volume_homogeneous_sampling = EnumProperty(
+                name="Homogeneous Sampling",
+                description="Sampling method to use for homogeneous volumes",
+                items=enum_volume_homogeneous_sampling,
+                default='DISTANCE',
                 )
 
         cls.use_square_samples = BoolProperty(

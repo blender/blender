@@ -167,6 +167,10 @@ class CyclesRender_PT_volume_sampling(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
 
+        layout.prop(cscene, "volume_homogeneous_sampling", text="Homogeneous")
+
+        layout.label("Heterogeneous:")
+
         split = layout.split()
         split.prop(cscene, "volume_step_size")
         split.prop(cscene, "volume_max_steps")

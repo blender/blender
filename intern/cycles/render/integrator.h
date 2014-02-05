@@ -41,6 +41,7 @@ public:
 	bool transparent_probalistic;
 	bool transparent_shadows;
 
+	int volume_homogeneous_sampling;
 	int volume_max_steps;
 	float volume_step_size;
 

@@ -824,7 +824,6 @@ typedef struct KernelIntegrator {
 	/* clamp */
 	float sample_clamp_direct;
 	float sample_clamp_indirect;
-	float pad1, pad2, pad3;
 
 	/* branched path */
 	int branched;
@@ -843,10 +842,12 @@ typedef struct KernelIntegrator {
 	int sampling_pattern;
 
 	/* volume render */
+	int volume_homogeneous_sampling;
 	int use_volumes;
 	int volume_max_steps;
 	float volume_step_size;
 	int volume_samples;
+	int pad1, pad2;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

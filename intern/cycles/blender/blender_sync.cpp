@@ -172,6 +172,7 @@ void BlenderSync::sync_integrator()
 	integrator->transparent_min_bounce = get_int(cscene, "transparent_min_bounces");
 	integrator->transparent_shadows = get_boolean(cscene, "use_transparent_shadows");
 
+	integrator->volume_homogeneous_sampling = RNA_enum_get(&cscene, "volume_homogeneous_sampling");
 	integrator->volume_max_steps = get_int(cscene, "volume_max_steps");
 	integrator->volume_step_size = get_float(cscene, "volume_step_size");
 

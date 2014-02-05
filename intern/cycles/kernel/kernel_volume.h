@@ -228,21 +228,72 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 		else
 			sample_sigma_t = sigma_t.z;
 
-		/* xi is [0, 1[ so log(0) should never happen, division by zero is
-		 * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
-		float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
-		float sample_t = min(t, -logf(1.0f - xi)/sample_sigma_t);
+		/* distance sampling */
+		if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
+			/* xi is [0, 1[ so log(0) should never happen, division by zero is
+			 * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
+			float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
+			float sample_t = min(t, -logf(1.0f - xi)/sample_sigma_t);
 
-		transmittance = volume_color_attenuation(sigma_t, sample_t);
+			transmittance = volume_color_attenuation(sigma_t, sample_t);
 
-		if(sample_t < t) {
-			float pdf = dot(sigma_t, transmittance);
-			new_tp = *throughput * coeff.sigma_s * transmittance * (3.0f / pdf);
-			t = sample_t;
+			if(sample_t < t) {
+				float pdf = dot(sigma_t, transmittance);
+				new_tp = *throughput * coeff.sigma_s * transmittance * (3.0f / pdf);
+				t = sample_t;
+			}
+			else {
+				float pdf = (transmittance.x + transmittance.y + transmittance.z);
+				new_tp = *throughput * transmittance * (3.0f / pdf);
+			}
 		}
+		/* equi-angular sampling */
 		else {
-			float pdf = (transmittance.x + transmittance.y + transmittance.z);
-			new_tp = *throughput * transmittance * (3.0f / pdf);
+			/* decide if we are going to scatter or not, based on sigma_t. this
+			 * is not ideal, instead we should perhaps split the path here and
+			 * do both, and at least add multiple importance sampling */
+			float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
+			float sample_transmittance = expf(-sample_sigma_t * t);
+
+			if(xi < sample_transmittance) {
+				/* no scattering */
+				float3 transmittance = volume_color_attenuation(sigma_t, t);
+				float pdf = (transmittance.x + transmittance.y + transmittance.z);
+				new_tp = *throughput * transmittance * (3.0f / pdf);
+			}
+			else {
+				/* rescale random number so we can reuse it */
+				xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
+
+				/* equi-angular scattering somewhere on segment 0..t */
+				/* see "Importance Sampling Techniques for Path Tracing in Participating Media" */
+
+				/* light RNGs */
+				float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
+				float light_u, light_v;
+				path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
+
+				/* light sample */
+				LightSample ls;
+				light_sample(kg, light_t, light_u, light_v, ray->time, ray->P, &ls);
+				if(ls.pdf == 0.0f)
+					return VOLUME_PATH_MISSED;
+
+				/* sampling */
+				float delta = dot((ls.P - ray->P) , ray->D);
+				float D = sqrtf(len_squared(ls.P - ray->P) - delta * delta);
+				float theta_a = -atan2f(delta, D);
+				float theta_b = atan2f(t - delta, D);
+				float t_ = D * tan((xi * theta_b) + (1 - xi) * theta_a);
+
+				float pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
+				float sample_t = min(t, delta + t_);
+
+				transmittance = volume_color_attenuation(sigma_t, sample_t);
+
+				new_tp = *throughput * coeff.sigma_s * transmittance / ((1.0f - sample_transmittance) * pdf);
+				t = sample_t;
+			}
 		}
 	}
 	else if(closure_flag & SD_ABSORPTION) {

@@ -41,6 +41,7 @@ Integrator::Integrator()
 	transparent_probalistic = true;
 	transparent_shadows = false;
 
+	volume_homogeneous_sampling = 0;
 	volume_max_steps = 1024;
 	volume_step_size = 0.1;
 
@@ -104,6 +105,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 	kintegrator->transparent_shadows = transparent_shadows;
 
+	kintegrator->volume_homogeneous_sampling = volume_homogeneous_sampling;
 	kintegrator->volume_max_steps = volume_max_steps;
 	kintegrator->volume_step_size = volume_step_size;
 
@@ -176,6 +178,7 @@ bool Integrator::modified(const Integrator& integrator)
 		transparent_max_bounce == integrator.transparent_max_bounce &&
 		transparent_probalistic == integrator.transparent_probalistic &&
 		transparent_shadows == integrator.transparent_shadows &&
+		volume_homogeneous_sampling == integrator.volume_homogeneous_sampling &&
 		volume_max_steps == integrator.volume_max_steps &&
 		volume_step_size == integrator.volume_step_size &&
 		no_caustics == integrator.no_caustics &&
