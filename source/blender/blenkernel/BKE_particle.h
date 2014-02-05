@@ -330,6 +330,7 @@ void psys_apply_hair_lattice(struct Scene *scene, struct Object *ob, struct Part
 struct ParticleSystem *psys_get_target_system(struct Object *ob, struct ParticleTarget *pt);
 void psys_count_keyed_targets(struct ParticleSimulationData *sim);
 void psys_update_particle_tree(struct ParticleSystem *psys, float cfra);
+void psys_changed_type(struct Object *ob, struct ParticleSystem *psys);
 
 void psys_make_temp_pointcache(struct Object *ob, struct ParticleSystem *psys);
 void psys_get_pointcache_start_end(struct Scene *scene, ParticleSystem *psys, int *sfra, int *efra);

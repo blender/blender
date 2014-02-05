@@ -4794,15 +4794,15 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 }
 
 /* system type has changed so set sensible defaults and clear non applicable flags */
-static void psys_changed_type(ParticleSimulationData *sim)
+void psys_changed_type(Object *ob, ParticleSystem *psys)
 {
-	ParticleSettings *part = sim->psys->part;
+	ParticleSettings *part = psys->part;
 	PTCacheID pid;
 
-	BKE_ptcache_id_from_particles(&pid, sim->ob, sim->psys);
+	BKE_ptcache_id_from_particles(&pid, ob, psys);
 
 	if (part->phystype != PART_PHYS_KEYED)
-		sim->psys->flag &= ~PSYS_KEYED;
+		psys->flag &= ~PSYS_KEYED;
 
 	if (part->type == PART_HAIR) {
 		if (ELEM4(part->ren_as, PART_DRAW_NOT, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR)==0)
@@ -4820,13 +4820,13 @@ static void psys_changed_type(ParticleSimulationData *sim)
 		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
 	}
 	else {
-		free_hair(sim->ob, sim->psys, 1);
+		free_hair(ob, psys, 1);
 
 		CLAMP(part->path_start, 0.0f, MAX2(100.0f, part->end + part->lifetime));
 		CLAMP(part->path_end, 0.0f, MAX2(100.0f, part->end + part->lifetime));
 	}
 
-	psys_reset(sim->psys, PSYS_RESET_ALL);
+	psys_reset(psys, PSYS_RESET_ALL);
 }
 void psys_check_boid_data(ParticleSystem *psys)
 {
@@ -4961,7 +4961,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 
 	if (psys->recalc & PSYS_RECALC_TYPE)
-		psys_changed_type(&sim);
+		psys_changed_type(sim.ob, sim.psys);
 
 	if (psys->recalc & PSYS_RECALC_RESET)
 		psys->totunexist = 0;

@@ -2984,6 +2984,11 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 				
 				psys = ob->particlesystem.first;
 				while (psys) {
+					/* ensure this update always happens even if psys is disabled */
+					if (psys->recalc & PSYS_RECALC_TYPE) {
+						psys_changed_type(ob, psys);
+					}
+
 					if (psys_check_enabled(ob, psys)) {
 						/* check use of dupli objects here */
 						if (psys->part && (psys->part->draw_as == PART_DRAW_REND || eval_ctx->for_render) &&
