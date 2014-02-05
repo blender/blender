@@ -1540,23 +1540,26 @@ void psys_threads_free(ParticleThread *threads)
 	MEM_freeN(threads);
 }
 
-/* set particle parameters that don't change during particle's life */
-void initialize_particle(ParticleSimulationData *sim, ParticleData *pa, int p)
+static void initialize_particle_texture(ParticleSimulationData *sim, ParticleData *pa, int p)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	ParticleTexture ptex;
 
-	pa->flag &= ~PARS_UNEXIST;
-
 	if (part->type != PART_FLUID) {
 		psys_get_texture(sim, pa, &ptex, PAMAP_INIT, 0.f);
-		
+
 		if (ptex.exist < PSYS_FRAND(p+125))
 			pa->flag |= PARS_UNEXIST;
 
 		pa->time = (part->type == PART_HAIR) ? 0.f : part->sta + (part->end - part->sta)*ptex.time;
 	}
+}
+
+/* set particle parameters that don't change during particle's life */
+void initialize_particle(ParticleData *pa)
+{
+	pa->flag &= ~PARS_UNEXIST;
 
 	pa->hair_index = 0;
 	/* we can't reset to -1 anymore since we've figured out correct index in distribute_particles */
@@ -1572,7 +1575,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 
 	LOOP_PARTICLES {
 		if ((pa->flag & PARS_UNEXIST)==0)
-			initialize_particle(sim, pa, p);
+			initialize_particle(pa);
 
 		if (pa->flag & PARS_UNEXIST)
 			psys->totunexist++;
@@ -1983,6 +1986,13 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	}
 
 	psys_get_birth_coordinates(sim, pa, &pa->state, dtime, cfra);
+
+	/* Initialize particle settings which depends on texture.
+	 *
+	 * We could only do it now because we'll need to know coordinate
+	 * before sampling the texture.
+	 */
+	initialize_particle_texture(sim, pa, p);
 
 	if (part->phystype==PART_PHYS_BOIDS && pa->boid) {
 		BoidParticle *bpa = pa->boid;
