@@ -180,9 +180,12 @@ static void panels_collapse_all(ScrArea *sa, ARegion *ar, Panel *from_pa)
 		from_pt = from_pa->type;
 
 		/* close panels with headers in the same context */
-		if (pt && from_pt && !(pt->flag & PNL_NO_HEADER))
-			if (!pt->context[0] || strcmp(pt->context, from_pt->context) == 0)
-				pa->flag = flag;
+		if (pt && from_pt && !(pt->flag & PNL_NO_HEADER)) {
+			if (!pt->context[0] || strcmp(pt->context, from_pt->context) == 0) {
+				pa->flag &= ~PNL_CLOSED;
+				pa->flag |= flag;
+			}
+		}
 	}
 }
 
