@@ -181,7 +181,7 @@ struct uiBut {
 	/* both these values use depends on the button type
 	 * (polymorphic struct or union would be nicer for this stuff) */
 
-	/* (type == COLOR),      Use UI_GRAD_* values.
+	/* (type == HSVCUBE),      Use UI_GRAD_* values.
 	 * (type == NUM),        Use to store RNA 'step' value, for dragging and click-step.
 	 * (type == LABEL),      Use (a1 == 1.0f) to use a2 as a blending factor (wow, this is imaginative!).
 	 * (type == SCROLL)      Use as scroll size.

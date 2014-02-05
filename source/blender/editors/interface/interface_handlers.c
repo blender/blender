@@ -5822,7 +5822,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			retval = ui_do_but_BUT(C, but, data, event);
 			break;
 		case COLOR:
-			if (but->a1 == UI_GRAD_V_ALT)  /* signal to prevent calling up color picker */
+			if (but->a1 == -1)  /* signal to prevent calling up color picker */
 				retval = ui_do_but_EXIT(C, but, data, event);
 			else
 				retval = ui_do_but_COLOR(C, but, data, event);
