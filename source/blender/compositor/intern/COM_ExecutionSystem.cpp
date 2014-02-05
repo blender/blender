@@ -46,9 +46,10 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 #endif
 
-ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation,
+ExecutionSystem::ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editingtree, bool rendering, bool fastcalculation,
                                  const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
 {
+	this->m_context.setScene(scene);
 	this->m_context.setbNodeTree(editingtree);
 	this->m_context.setPreviewHash(editingtree->previews);
 	this->m_context.setFastCalculation(fastcalculation);

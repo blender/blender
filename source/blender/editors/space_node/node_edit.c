@@ -259,7 +259,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	// XXX BIF_store_spare();
 	
 	/* 1 is do_previews */
-	ntreeCompositExecTree(ntree, &cj->scene->r, FALSE, TRUE, &scene->view_settings, &scene->display_settings);
+	ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, FALSE, TRUE, &scene->view_settings, &scene->display_settings);
 
 	ntree->test_break = NULL;
 	ntree->stats_draw = NULL;

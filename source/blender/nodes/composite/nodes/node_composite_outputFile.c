@@ -179,8 +179,6 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
 	ImageFormatData *format = NULL;
 	node->storage = nimf;
 	
-	node->id = &scene->id;
-	
 	if (scene) {
 		RenderData *rd = &scene->r;
 

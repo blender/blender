@@ -167,7 +167,7 @@ public:
 	 * @param editingtree [bNodeTree *]
 	 * @param rendering [true false]
 	 */
-	ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation,
+	ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editingtree, bool rendering, bool fastcalculation,
 	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 
 	/**

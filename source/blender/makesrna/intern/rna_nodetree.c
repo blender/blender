@@ -4841,7 +4841,7 @@ static void def_cmp_map_uv(StructRNA *srna)
 static void def_cmp_defocus(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
+
 	static EnumPropertyItem bokeh_items[] = {
 		{8, "OCTAGON",  0, "Octagonal",  "8 sides"},
 		{7, "HEPTAGON", 0, "Heptagonal", "7 sides"},
@@ -4852,9 +4852,17 @@ static void def_cmp_defocus(StructRNA *srna)
 		{0, "CIRCLE",   0, "Circular",   ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
+	prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Node_scene_set", NULL, NULL);
+	RNA_def_property_struct_type(prop, "Scene");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Scene", "Scene from which to select the active camera (render scene if undefined)");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
 	RNA_def_struct_sdna_from(srna, "NodeDefocus", "storage");
-	
+
 	prop = RNA_def_property(srna, "bokeh", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bktype");
 	RNA_def_property_enum_items(prop, bokeh_items);

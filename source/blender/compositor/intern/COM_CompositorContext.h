@@ -51,6 +51,8 @@ private:
 	 */
 	CompositorQuality m_quality;
 
+	Scene *m_scene;
+
 	/**
 	 * @brief Reference to the render data that is being composited.
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
@@ -120,6 +122,9 @@ public:
 	 * @brief get the scene of the context
 	 */
 	const RenderData *getRenderData() const { return this->m_rd; }
+	
+	void setScene(Scene *scene) { m_scene = scene; }
+	Scene *getScene() const { return m_scene; }
 
 	/**
 	 * @brief set the preview image hash table

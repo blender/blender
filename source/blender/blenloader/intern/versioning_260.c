@@ -2686,4 +2686,18 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	{
+		/* nodes don't use fixed node->id any more, clean up */
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
+						node->id = NULL;
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
+	}
 }

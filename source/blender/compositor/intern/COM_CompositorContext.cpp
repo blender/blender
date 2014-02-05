@@ -26,6 +26,7 @@
 
 CompositorContext::CompositorContext()
 {
+	this->m_scene = NULL;
 	this->m_rd = NULL;
 	this->m_quality = COM_QUALITY_HIGH;
 	this->m_hasActiveOpenCLDevices = false;

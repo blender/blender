@@ -727,8 +727,17 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 		if (sce1->set == sce)
 			sce1->set = NULL;
 	
-	/* check render layer nodes in other scenes */
-	clear_scene_in_nodes(bmain, sce);
+	for (sce1 = bmain->scene.first; sce1; sce1 = sce1->id.next) {
+		bNode *node;
+		
+		if (sce1 == sce || !sce1->nodetree)
+			continue;
+		
+		for (node = sce1->nodetree->nodes.first; node; node = node->next) {
+			if (node->id == &sce->id)
+				node->id = NULL;
+		}
+	}
 	
 	/* al screens */
 	for (sc = bmain->screen.first; sc; sc = sc->id.next)

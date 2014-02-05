@@ -1242,7 +1242,7 @@ static void node_composit_buts_bilateralblur(uiLayout *layout, bContext *UNUSED(
 	uiItemR(col, ptr, "sigma_space", 0, NULL, ICON_NONE);
 }
 
-static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiLayout *sub, *col;
 	
@@ -1262,7 +1262,9 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), Po
 
 	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "use_preview", 0, NULL, ICON_NONE);
-	
+
+	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
+
 	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	sub = uiLayoutColumn(col, FALSE);

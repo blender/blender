@@ -48,10 +48,8 @@ static bNodeSocketTemplate cmp_node_defocus_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_init_defocus(const bContext *C, PointerRNA *ptr)
+static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	Scene *scene = CTX_data_scene(C);
-	bNode *node = ptr->data;
 	/* qdn: defocus node */
 	NodeDefocus *nbd = MEM_callocN(sizeof(NodeDefocus), "node defocus data");
 	nbd->bktype = 0;
@@ -65,8 +63,6 @@ static void node_composit_init_defocus(const bContext *C, PointerRNA *ptr)
 	nbd->scale = 1.f;
 	nbd->no_zbuf = 1;
 	node->storage = nbd;
-	
-	node->id = &scene->id;
 }
 
 void register_node_type_cmp_defocus(void)
@@ -75,7 +71,7 @@ void register_node_type_cmp_defocus(void)
 
 	cmp_node_type_base(&ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER, 0);
 	node_type_socket_templates(&ntype, cmp_node_defocus_in, cmp_node_defocus_out);
-	ntype.initfunc_api = node_composit_init_defocus;
+	node_type_init(&ntype, node_composit_init_defocus);
 	node_type_storage(&ntype, "NodeDefocus", node_free_standard_storage, node_copy_standard_storage);
 
 	nodeRegisterType(&ntype);

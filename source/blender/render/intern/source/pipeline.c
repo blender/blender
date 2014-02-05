@@ -1940,7 +1940,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			ntreeCompositTagRender(re->scene);
 			ntreeCompositTagAnimated(ntree);
 			
-			ntreeCompositExecTree(ntree, &re->r, TRUE, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
+			ntreeCompositExecTree(re->scene, ntree, &re->r, TRUE, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 		}
 		
 		/* ensure we get either composited result or the active layer */
@@ -2136,7 +2136,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
 				else {
-					ntreeCompositExecTree(ntree, &re->r, TRUE, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
+					ntreeCompositExecTree(re->scene, ntree, &re->r, TRUE, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 				}
 				
 				ntree->stats_draw = NULL;

@@ -42,9 +42,9 @@ DefocusNode::DefocusNode(bNode *editorNode) : Node(editorNode)
 void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *node = this->getbNode();
-	Scene *scene = (Scene *)node->id;
-	Object *camob = (scene) ? scene->camera : NULL;
 	NodeDefocus *data = (NodeDefocus *)node->storage;
+	Scene *scene = node->id ? (Scene *)node->id : context->getScene();
+	Object *camob = scene ? scene->camera : NULL;
 
 	NodeOperation *radiusOperation;
 	if (data->no_zbuf) {

@@ -931,7 +931,7 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 
 /* API */
 struct CompBuf;
-void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int rendering, int do_previews,
+void ntreeCompositExecTree(struct Scene *scene, struct bNodeTree *ntree, struct RenderData *rd, int rendering, int do_previews,
                            const struct ColorManagedViewSettings *view_settings, const struct ColorManagedDisplaySettings *display_settings);
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
@@ -998,7 +998,5 @@ int ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target,
 
 void init_nodesystem(void);
 void free_nodesystem(void);
-
-void clear_scene_in_nodes(struct Main *bmain, struct Scene *sce);
 
 #endif

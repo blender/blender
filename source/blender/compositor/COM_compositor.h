@@ -315,7 +315,7 @@ extern "C" {
  *            should be checked further, probably it'll be also needed for preview
  *            generation in display space
  */
-void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
+void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rendering,
                  const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 
 /**

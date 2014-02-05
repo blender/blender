@@ -40,7 +40,7 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	InputSocket *depthSocket = this->getInputSocket(2);
 
 	CompositorOperation *compositorOperation = new CompositorOperation();
-	compositorOperation->setSceneName(editorNode->id->name);
+	compositorOperation->setSceneName(context->getScene()->id.name);
 	compositorOperation->setRenderData(context->getRenderData());
 	compositorOperation->setbNodeTree(context->getbNodeTree());
 	compositorOperation->setIgnoreAlpha(editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA);

@@ -43,21 +43,12 @@ static bNodeSocketTemplate cmp_node_composite_in[] = {
 	{	-1, 0, ""	}
 };
 
-static void init(const bContext *C, PointerRNA *ptr)
-{
-	Scene *scene = CTX_data_scene(C);
-	bNode *node = ptr->data;
-	
-	node->id = &scene->id;
-}
-
 void register_node_type_cmp_composite(void)
 {
 	static bNodeType ntype;
 
 	cmp_node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_composite_in, NULL);
-	ntype.initfunc_api = init;
 
 	/* Do not allow muting for this node. */
 	node_type_internal_links(&ntype, NULL);
