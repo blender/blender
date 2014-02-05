@@ -458,7 +458,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 	DispList *dlnew = NULL, *dl;
 	float *f1;
 	int colnr = 0, charidx = 0, cont = 1, tot, a, *index, nextcol = 0;
-	intptr_t totvert;
+	int totvert;
 
 	if (dispbase == NULL)
 		return;
@@ -541,23 +541,22 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 					f1 += 3;
 
 					/* index number */
-					sf_vert->tmp.l = totvert;
+					sf_vert->tmp.i = totvert;
 					totvert++;
 				}
 
 				/* index data */
-				sf_tri = sf_ctx.fillfacebase.first;
+
 				index = dlnew->index;
-				while (sf_tri) {
-					index[0] = (intptr_t)sf_tri->v1->tmp.l;
-					index[1] = (intptr_t)sf_tri->v2->tmp.l;
-					index[2] = (intptr_t)sf_tri->v3->tmp.l;
+				for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+					index[0] = sf_tri->v1->tmp.i;
+					index[1] = sf_tri->v2->tmp.i;
+					index[2] = sf_tri->v3->tmp.i;
 
 					if (flipnormal)
 						SWAP(int, index[0], index[2]);
 
 					index += 3;
-					sf_tri = sf_tri->next;
 				}
 			}
 
