@@ -799,6 +799,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 		mLevel[i].avgOmegaCnt = 0.0;
 	}
 
+#if PARALLEL == 1
 	/*
 	// DG: this would be the correct sanity check, not the "hack below" */
 	// if(( mSizey / mNumOMPThreads) * mNumOMPThreads != mSizey) {
@@ -807,6 +808,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 	if( mSizey < mNumOMPThreads ) {
 		setNumOMPThreads(mSizey);
 	}
+#endif
 
 	// init sizes
 	mLevel[mMaxRefine].lSizex = mSizex;
