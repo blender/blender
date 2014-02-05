@@ -2574,6 +2574,10 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 {
 	if (id == NULL) return;
 
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
+		printf("%s: id=%s flag=%d\n", __func__, id->name, flag);
+	}
+
 	/* tag ID for update */
 	if (flag) {
 		if (flag & OB_RECALC_OB)
