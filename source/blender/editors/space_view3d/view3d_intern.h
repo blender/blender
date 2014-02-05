@@ -139,6 +139,8 @@ void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag, const unsigned char col[4]);
 void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, float mat[4][4]);
 
+bool check_object_draw_texture(struct Scene *scene, struct View3D *v3d, const char drawtype);
+
 enum {
 	V3D_CACHE_TEXT_ZBUF         = (1 << 0),
 	V3D_CACHE_TEXT_WORLDSPACE   = (1 << 1),

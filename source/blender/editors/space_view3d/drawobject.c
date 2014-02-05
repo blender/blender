@@ -180,7 +180,7 @@ static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], con
 }
 
 /* this condition has been made more complex since editmode can draw textures */
-static bool check_object_draw_texture(Scene *scene, View3D *v3d, const char drawtype)
+bool check_object_draw_texture(Scene *scene, View3D *v3d, const char drawtype)
 {
 	/* texture and material draw modes */
 	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID) {

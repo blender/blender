@@ -2034,6 +2034,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			    (dob->type == OB_DUPLIGROUP && dob->animated) ||
 			    !(bb_tmp = BKE_object_boundbox_get(dob->ob)) ||
 			    draw_glsl_material(scene, dob->ob, v3d, dt) ||
+			    check_object_draw_texture(scene, v3d, dt) ||
 			    (base->object == OBACT && v3d->flag2 & V3D_SOLID_MATCAP))
 			{
 				// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name + 2);
