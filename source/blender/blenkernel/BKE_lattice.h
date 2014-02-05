@@ -34,6 +34,8 @@
  *  \since June 2001
  */
 
+#include "BLI_compiler_attrs.h"
+
 struct Lattice;
 struct Main;
 struct Object;
