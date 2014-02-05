@@ -675,7 +675,7 @@ struct CCLDeviceInfo;
 struct CCLDeviceInfo *CCL_compute_device_list(int opencl) RET_NULL
 
 /* compositor */
-void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
+void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rendering,
                  const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings) RET_NONE
 
 #endif // WITH_GAMEENGINE
