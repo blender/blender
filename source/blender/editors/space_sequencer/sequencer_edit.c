@@ -419,12 +419,12 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 }
 
 
-static int seq_is_parent(Sequence *par, Sequence *seq)
+static bool seq_is_parent(Sequence *par, Sequence *seq)
 {
 	return ((par->seq1 == seq) || (par->seq2 == seq) || (par->seq3 == seq));
 }
 
-static int seq_is_predecessor(Sequence *pred, Sequence *seq)
+static bool seq_is_predecessor(Sequence *pred, Sequence *seq)
 {
 	if (!pred) return 0;
 	if (pred == seq) return 0;

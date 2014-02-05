@@ -8691,7 +8691,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 
 /* ***************************** */
 	
-static int object_in_any_scene(Main *mainvar, Object *ob)
+static bool object_in_any_scene(Main *mainvar, Object *ob)
 {
 	Scene *sce;
 	

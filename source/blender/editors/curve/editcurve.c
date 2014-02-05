@@ -988,7 +988,7 @@ static void calc_shapeKeys(Object *obedit)
 
 /* ********************* Amimation data *************** */
 
-static int curve_is_animated(Curve *cu)
+static bool curve_is_animated(Curve *cu)
 {
 	AnimData *ad = BKE_animdata_from_id(&cu->id);
 

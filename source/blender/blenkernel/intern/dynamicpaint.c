@@ -1101,7 +1101,7 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 /*
  * Initialize modifier data
  */
-int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene)
+bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene)
 {
 	if (pmd) {
 		if (type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
@@ -1628,7 +1628,7 @@ void dynamicPaint_clearSurface(Scene *scene, DynamicPaintSurface *surface)
 }
 
 /* completely (re)initializes surface (only for point cache types)*/
-int dynamicPaint_resetSurface(Scene *scene, DynamicPaintSurface *surface)
+bool dynamicPaint_resetSurface(Scene *scene, DynamicPaintSurface *surface)
 {
 	int numOfPoints = dynamicPaint_surfaceNumOfPoints(surface);
 	/* free existing data */
@@ -1655,7 +1655,7 @@ int dynamicPaint_resetSurface(Scene *scene, DynamicPaintSurface *surface)
 }
 
 /* make sure allocated surface size matches current requirements */
-static int dynamicPaint_checkSurfaceData(Scene *scene, DynamicPaintSurface *surface)
+static bool dynamicPaint_checkSurfaceData(Scene *scene, DynamicPaintSurface *surface)
 {
 	if (!surface->data || ((dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points))) {
 		return dynamicPaint_resetSurface(scene, surface);

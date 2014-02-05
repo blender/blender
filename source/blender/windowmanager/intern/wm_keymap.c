@@ -1167,7 +1167,7 @@ void WM_keyconfig_update_operatortype(void)
 	wm_keymap_update_flag |= WM_KEYMAP_UPDATE_OPERATORTYPE;
 }
 
-static int wm_keymap_test_and_clear_update(wmKeyMap *km)
+static bool wm_keymap_test_and_clear_update(wmKeyMap *km)
 {
 	wmKeyMapItem *kmi;
 	int update;
@@ -1180,7 +1180,7 @@ static int wm_keymap_test_and_clear_update(wmKeyMap *km)
 		kmi->flag &= ~KMI_UPDATE;
 	}
 	
-	return update;
+	return (update != 0);
 }
 
 static wmKeyMap *wm_keymap_preset(wmWindowManager *wm, wmKeyMap *km)

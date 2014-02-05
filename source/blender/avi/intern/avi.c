@@ -141,7 +141,7 @@ static int fcc_get_stream(int fcc)
 	return 10 * (fccs[0] - '0') + (fccs[1] - '0');
 }
 
-static int fcc_is_data(int fcc)
+static bool fcc_is_data(int fcc)
 {
 	char fccs[4];
 

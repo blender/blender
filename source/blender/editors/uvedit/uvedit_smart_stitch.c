@@ -304,7 +304,7 @@ static void stitch_uv_rotate(float mat[2][2], float medianPoint[2], float uv[2],
 }
 
 /* check if two uvelements are stitchable. This should only operate on -different- separate UvElements */
-static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_iter, StitchState *state)
+static bool stitch_check_uvs_stitchable(UvElement *element, UvElement *element_iter, StitchState *state)
 {
 	BMesh *bm = state->em->bm;
 	float limit;
@@ -339,7 +339,7 @@ static int stitch_check_uvs_stitchable(UvElement *element, UvElement *element_it
 	}
 }
 
-static int stitch_check_edges_stitchable(UvEdge *edge, UvEdge *edge_iter, StitchState *state)
+static bool stitch_check_edges_stitchable(UvEdge *edge, UvEdge *edge_iter, StitchState *state)
 {
 	BMesh *bm = state->em->bm;
 	float limit;
@@ -381,7 +381,7 @@ static int stitch_check_edges_stitchable(UvEdge *edge, UvEdge *edge_iter, Stitch
 	}
 }
 
-static int stitch_check_uvs_state_stitchable(UvElement *element, UvElement *element_iter, StitchState *state)
+static bool stitch_check_uvs_state_stitchable(UvElement *element, UvElement *element_iter, StitchState *state)
 {
 	if ((state->snap_islands && element->island == element_iter->island) ||
 	    (!state->midpoints && element->island == element_iter->island))
@@ -393,7 +393,7 @@ static int stitch_check_uvs_state_stitchable(UvElement *element, UvElement *elem
 }
 
 
-static int stitch_check_edges_state_stitchable(UvEdge *edge, UvEdge *edge_iter, StitchState *state)
+static bool stitch_check_edges_state_stitchable(UvEdge *edge, UvEdge *edge_iter, StitchState *state)
 {
 	if ((state->snap_islands && edge->element->island == edge_iter->element->island) ||
 	    (!state->midpoints && edge->element->island == edge_iter->element->island))

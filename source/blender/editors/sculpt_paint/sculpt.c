@@ -587,7 +587,7 @@ BLI_INLINE bool sculpt_brush_test_clipping(SculptBrushTest *test, const float co
 	return (rv3d && (ED_view3d_clipping_test(rv3d, co, true)));
 }
 
-static int sculpt_brush_test(SculptBrushTest *test, const float co[3])
+static bool sculpt_brush_test(SculptBrushTest *test, const float co[3])
 {
 	float distsq = len_squared_v3v3(co, test->location);
 
@@ -603,7 +603,7 @@ static int sculpt_brush_test(SculptBrushTest *test, const float co[3])
 	}
 }
 
-static int sculpt_brush_test_sq(SculptBrushTest *test, const float co[3])
+static bool sculpt_brush_test_sq(SculptBrushTest *test, const float co[3])
 {
 	float distsq = len_squared_v3v3(co, test->location);
 
@@ -619,7 +619,7 @@ static int sculpt_brush_test_sq(SculptBrushTest *test, const float co[3])
 	}
 }
 
-static int sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
+static bool sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
 {
 	if (sculpt_brush_test_clipping(test, co)) {
 		return 0;
@@ -627,7 +627,7 @@ static int sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
 	return len_squared_v3v3(co, test->location) <= test->radius_squared;
 }
 
-static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float local[4][4])
+static bool sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float local[4][4])
 {
 	float side = M_SQRT1_2;
 	float local_co[3];
@@ -680,7 +680,7 @@ static float frontface(Brush *br, const float sculpt_normal[3],
 
 #if 0
 
-static int sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float location[3], float an[3])
+static bool sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float location[3], float an[3])
 {
 	if (sculpt_brush_test_fast(test, co)) {
 		float t1[3], t2[3], t3[3], dist;

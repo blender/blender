@@ -1113,7 +1113,7 @@ void end_render_materials(Main *bmain)
 			end_render_material(ma);
 }
 
-static int material_in_nodetree(bNodeTree *ntree, Material *mat)
+static bool material_in_nodetree(bNodeTree *ntree, Material *mat)
 {
 	bNode *node;
 

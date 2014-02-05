@@ -67,7 +67,7 @@ struct BLaplacianSystem {
 typedef struct BLaplacianSystem LaplacianSystem;
 
 static float cotan_weight(float *v1, float *v2, float *v3);
-static int vert_is_boundary(BMVert *v);
+static bool vert_is_boundary(BMVert *v);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts);
 static void init_laplacian_matrix(LaplacianSystem *sys);
 static void delete_laplacian_system(LaplacianSystem *sys);
@@ -392,7 +392,7 @@ static float cotan_weight(float *v1, float *v2, float *v3)
 	return dot_v3v3(a, b) / clen;
 }
 
-static int vert_is_boundary(BMVert *v)
+static bool vert_is_boundary(BMVert *v)
 {
 	BMEdge *ed;
 	BMFace *f;

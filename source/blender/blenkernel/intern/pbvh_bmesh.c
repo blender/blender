@@ -494,7 +494,7 @@ typedef struct {
 	int cd_vert_mask_offset;
 } EdgeQueueContext;
 
-static int edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
+static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
 	BMVert *v_tri[3];
 	float c[3];

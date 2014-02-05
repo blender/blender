@@ -1540,7 +1540,7 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 /* Undo functions */
 /******************/
 
-static int max_undo_test(Text *text, int x)
+static bool max_undo_test(Text *text, int x)
 {
 	while (text->undo_pos + x >= text->undo_len) {
 		if (text->undo_len * 2 > TXT_MAX_UNDO) {

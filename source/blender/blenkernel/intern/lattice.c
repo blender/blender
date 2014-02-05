@@ -563,7 +563,7 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
  *
  * returns OK: 1/0
  */
-static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
+static bool where_on_path_deform(Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
 {
 	BevList *bl;
 	float ctime1;
@@ -614,8 +614,8 @@ static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir
 /* co: local coord, result local too */
 /* returns quaternion for rotation, using cd->no_rot_axis */
 /* axis is using another define!!! */
-static int calc_curve_deform(Object *par, float co[3],
-                             const short axis, CurveDeform *cd, float quat_r[4])
+static bool calc_curve_deform(Object *par, float co[3],
+                              const short axis, CurveDeform *cd, float quat_r[4])
 {
 	Curve *cu = par->data;
 	float fac, loc[4], dir[3], new_quat[4], radius;
@@ -921,7 +921,7 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	end_latt_deform(lattice_deform_data);
 }
 
-int object_deform_mball(Object *ob, ListBase *dispbase)
+bool object_deform_mball(Object *ob, ListBase *dispbase)
 {
 	if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
 		DispList *dl;

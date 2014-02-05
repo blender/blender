@@ -913,7 +913,7 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 }
 
 /* overlapping regions only in the following restricted cases */
-static int region_is_overlap(wmWindow *win, ScrArea *sa, ARegion *ar)
+static bool region_is_overlap(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
 	if (U.uiflag2 & USER_REGION_OVERLAP) {
 		if (WM_is_draw_triple(win)) {

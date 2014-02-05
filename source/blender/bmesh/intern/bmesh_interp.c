@@ -355,8 +355,8 @@ static void mdisp_axis_from_quad(float v1[3], float v2[3], float UNUSED(v3[3]), 
 
 /* tl is loop to project onto, l is loop whose internal displacement, co, is being
  * projected.  x and y are location in loop's mdisps grid of point co. */
-static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
-                              int res, float axis_x[3], float axis_y[3])
+static bool mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
+                               int res, float axis_x[3], float axis_y[3])
 {
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;

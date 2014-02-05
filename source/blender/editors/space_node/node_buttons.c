@@ -100,7 +100,7 @@ static int node_tree_interface_poll(const bContext *C, PanelType *UNUSED(pt))
 	return (snode && snode->edittree && (snode->edittree->inputs.first || snode->edittree->outputs.first));
 }
 
-static int node_tree_find_active_socket(bNodeTree *ntree, bNodeSocket **r_sock, int *r_in_out)
+static bool node_tree_find_active_socket(bNodeTree *ntree, bNodeSocket **r_sock, int *r_in_out)
 {
 	bNodeSocket *sock;
 	for (sock = ntree->inputs.first; sock; sock = sock->next) {

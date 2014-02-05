@@ -1282,7 +1282,7 @@ void CustomData_update_typemap(CustomData *data)
 
 /* currently only used in BLI_assert */
 #ifndef NDEBUG
-static int customdata_typemap_is_valid(const CustomData *data)
+static bool customdata_typemap_is_valid(const CustomData *data)
 {
 	CustomData data_copy = *data;
 	CustomData_update_typemap(&data_copy);

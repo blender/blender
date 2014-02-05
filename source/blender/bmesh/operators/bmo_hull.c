@@ -535,7 +535,7 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op,
 }
 
 /* Check that there are at least three vertices in the input */
-static int hull_num_input_verts_is_ok(BMOperator *op)
+static bool hull_num_input_verts_is_ok(BMOperator *op)
 {
 	BMOIter oiter;
 	BMVert *v;

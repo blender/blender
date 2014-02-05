@@ -78,7 +78,7 @@ static int sort_nodes_locx(void *a, void *b)
 		return 0;
 }
 
-static int socket_is_available(bNodeTree *UNUSED(ntree), bNodeSocket *sock, const bool allow_used)
+static bool socket_is_available(bNodeTree *UNUSED(ntree), bNodeSocket *sock, const bool allow_used)
 {
 	if (nodeSocketIsHidden(sock))
 		return 0;

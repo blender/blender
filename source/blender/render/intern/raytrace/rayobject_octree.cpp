@@ -223,7 +223,7 @@ static Node *addnode(Octree *oc)
 	return oc->adrnode[index] + (oc->nodecount & 4095);
 }
 
-static int face_in_node(RayFace *face, short x, short y, short z, float rtf[4][3])
+static bool face_in_node(RayFace *face, short x, short y, short z, float rtf[4][3])
 {
 	static float nor[3], d;
 	float fx, fy, fz;

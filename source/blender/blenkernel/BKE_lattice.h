@@ -58,7 +58,7 @@ __attribute__((warn_unused_result))
 void calc_latt_deform(struct LatticeDeformData *lattice_deform_data, float co[3], float weight);
 void end_latt_deform(struct LatticeDeformData *lattice_deform_data);
 
-int object_deform_mball(struct Object *ob, struct ListBase *dispbase);
+bool object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
 void curve_deform_verts(struct Object *cuOb, struct Object *target,

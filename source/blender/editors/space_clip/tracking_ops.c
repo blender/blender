@@ -1101,7 +1101,7 @@ typedef struct TrackMarkersJob {
 	struct bScreen *screen;
 } TrackMarkersJob;
 
-static int track_markers_testbreak(void)
+static bool track_markers_testbreak(void)
 {
 	return G.is_break;
 }

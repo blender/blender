@@ -119,10 +119,10 @@ static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 		((View3D *)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
 }
 
-static int wm_area_test_invalid_backbuf(ScrArea *sa)
+static bool wm_area_test_invalid_backbuf(ScrArea *sa)
 {
 	if (sa->spacetype == SPACE_VIEW3D)
-		return (((View3D *)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF);
+		return (((View3D *)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF) != 0;
 	else
 		return 1;
 }
@@ -706,7 +706,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 /****************** main update call **********************/
 
 /* quick test to prevent changing window drawable */
-static int wm_draw_update_test_window(wmWindow *win)
+static bool wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;

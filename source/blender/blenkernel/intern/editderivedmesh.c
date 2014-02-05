@@ -1205,7 +1205,7 @@ static int emDM_getNumPolys(DerivedMesh *dm)
 	return bmdm->em->bm->totface;
 }
 
-static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *r_vert)
+static void bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *r_vert)
 {
 	float *f;
 
@@ -1218,8 +1218,6 @@ static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *r_vert)
 	if ((f = CustomData_bmesh_get(&bm->vdata, ev->head.data, CD_BWEIGHT))) {
 		r_vert->bweight = (unsigned char)((*f) * 255.0f);
 	}
-
-	return 1;
 }
 
 static void emDM_getVert(DerivedMesh *dm, int index, MVert *r_vert)

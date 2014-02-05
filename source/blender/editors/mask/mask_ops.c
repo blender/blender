@@ -437,7 +437,7 @@ typedef struct SlidePointData {
 	short initial_feather, overall_feather;
 } SlidePointData;
 
-static int slide_point_check_initial_feather(MaskSpline *spline)
+static bool slide_point_check_initial_feather(MaskSpline *spline)
 {
 	int i;
 

@@ -66,7 +66,7 @@ extern "C" {
 #define DEFAULT_DKR_EPSILON   0.0f
 
 // Freestyle configuration
-static short freestyle_is_initialized = 0;
+static bool freestyle_is_initialized = false;
 static Config::Path *pathconfig = NULL;
 static Controller *controller = NULL;
 static AppView *view = NULL;

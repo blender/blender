@@ -745,19 +745,17 @@ void filelist_setfilter_types(struct FileList *filelist, const char *filter_glob
 }
 
 /* would recognize .blend as well */
-static int file_is_blend_backup(const char *str)
+static bool file_is_blend_backup(const char *str)
 {
-	short a, b;
-	int retval = 0;
-	
-	a = strlen(str);
-	b = 7;
-	
+	const size_t a = strlen(str);
+	size_t b = 7;
+	bool retval = 0;
+
 	if (a == 0 || b >= a) {
 		/* pass */
 	}
 	else {
-		char *loc;
+		const char *loc;
 		
 		if (a > b + 1)
 			b++;

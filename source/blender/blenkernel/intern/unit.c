@@ -498,7 +498,7 @@ static const char *unit_find_str(const char *str, const char *substr)
  */
 
 /* not too strict, (- = * /) are most common  */
-static int ch_is_op(char op)
+static bool ch_is_op(char op)
 {
 	switch (op) {
 		case '+':

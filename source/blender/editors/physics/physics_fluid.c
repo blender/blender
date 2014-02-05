@@ -133,7 +133,7 @@ static float get_fluid_size_m(Scene *scene, Object *domainob, FluidsimSettings *
 	}
 }
 
-static int fluid_is_animated_mesh(FluidsimSettings *fss)
+static bool fluid_is_animated_mesh(FluidsimSettings *fss)
 {
 	return ((fss->type == OB_FLUIDSIM_CONTROL) || fss->domainNovecgen);
 }
@@ -496,7 +496,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		float *verts=NULL;
 		int *tris=NULL;
 		int numVerts=0, numTris=0;
-		int deform = fluid_is_animated_mesh(fluidmd->fss);
+		bool deform = fluid_is_animated_mesh(fluidmd->fss);
 		
 		elbeemMesh fsmesh;
 		

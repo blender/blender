@@ -415,7 +415,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 /*************************** selection utilities *******************************/
 
-static int key_test_depth(PEData *data, const float co[3], const int screen_co[2])
+static bool key_test_depth(PEData *data, const float co[3], const int screen_co[2])
 {
 	View3D *v3d= data->vc.v3d;
 	ViewDepths *vd = data->vc.rv3d->depths;
@@ -453,7 +453,7 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 		return 1;
 }
 
-static int key_inside_circle(PEData *data, float rad, const float co[3], float *distance)
+static bool key_inside_circle(PEData *data, float rad, const float co[3], float *distance)
 {
 	float dx, dy, dist;
 	int screen_co[2];
@@ -480,7 +480,7 @@ static int key_inside_circle(PEData *data, float rad, const float co[3], float *
 	return 0;
 }
 
-static int key_inside_rect(PEData *data, const float co[3])
+static bool key_inside_rect(PEData *data, const float co[3])
 {
 	int screen_co[2];
 
@@ -497,7 +497,7 @@ static int key_inside_rect(PEData *data, const float co[3])
 	return 0;
 }
 
-static int key_inside_test(PEData *data, const float co[3])
+static bool key_inside_test(PEData *data, const float co[3])
 {
 	if (data->mval)
 		return key_inside_circle(data, data->rad, co, NULL);
@@ -505,7 +505,7 @@ static int key_inside_test(PEData *data, const float co[3])
 		return key_inside_rect(data, co);
 }
 
-static int point_is_selected(PTCacheEditPoint *point)
+static bool point_is_selected(PTCacheEditPoint *point)
 {
 	KEY_K;
 

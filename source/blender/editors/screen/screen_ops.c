@@ -2217,7 +2217,7 @@ static void SCREEN_OT_marker_jump(wmOperatorType *ot)
 
 /* ************** switch screen operator ***************************** */
 
-static int screen_set_is_ok(bScreen *screen, bScreen *screen_prev)
+static bool screen_set_is_ok(bScreen *screen, bScreen *screen_prev)
 {
 	return ((screen->winid == 0)    &&
 	        (screen->full == 0)     &&

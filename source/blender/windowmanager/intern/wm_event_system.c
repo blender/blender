@@ -146,7 +146,7 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 
 /* ********************* notifiers, listeners *************** */
 
-static int wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, void *reference)
+static bool wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, void *reference)
 {
 	wmNotifier *note;
 

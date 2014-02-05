@@ -2292,7 +2292,7 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4
 	}
 }
 
-static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[4][4])
+static bool where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[4][4])
 {
 	float *fp1, *fp2;
 	float fac1, fac2;
