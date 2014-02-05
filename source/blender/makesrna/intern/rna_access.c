@@ -5249,13 +5249,14 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 			if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
 				/* represent as a python set */
 				if (val) {
-					EnumPropertyItem *item = NULL;
+					EnumPropertyItem *item_array;
 					bool free;
 
 					BLI_dynstr_append(dynstr, "{");
 
-					RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
-					if (item) {
+					RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
+					if (item_array) {
+						EnumPropertyItem *item = item_array;
 						bool is_first = true;
 						for (; item->identifier; item++) {
 							if (item->identifier[0] && item->value & val) {
@@ -5265,7 +5266,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 						}
 
 						if (free) {
-							MEM_freeN(item);
+							MEM_freeN(item_array);
 						}
 					}
 
