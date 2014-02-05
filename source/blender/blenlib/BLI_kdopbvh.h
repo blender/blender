@@ -39,8 +39,6 @@
 extern "C" { 
 #endif
 
-#include <float.h>
-
 struct BVHTree;
 typedef struct BVHTree BVHTree;
 

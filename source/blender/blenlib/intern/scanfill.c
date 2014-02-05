@@ -471,7 +471,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 	/* STEP 1: make using FillVert and FillEdge lists a sorted
 	 * ScanFillVertLink list
 	 */
-	sc = scdata = (ScanFillVertLink *)MEM_callocN(pf->verts * sizeof(ScanFillVertLink), "Scanfill1");
+	sc = scdata = MEM_mallocN(sizeof(*scdata) * pf->verts, "Scanfill1");
 	verts = 0;
 	for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 		if (eve->poly_nr == nr) {
@@ -479,6 +479,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 				verts++;
 				eve->f = 0;  /* flag for connectedges later on */
 				sc->vert = eve;
+				sc->edge_first = sc->edge_last = NULL;
 				/* if (even->tmp.v == NULL) eve->tmp.u = verts; */ /* Note, debug print only will work for curve polyfill, union is in use for mesh */
 				sc++;
 			}
@@ -1014,12 +1015,14 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 
 
 	/* STEP 3: MAKE POLYFILL STRUCT */
-	pflist = (PolyFill *)MEM_callocN((size_t)poly * sizeof(PolyFill), "edgefill");
+	pflist = MEM_mallocN(sizeof(*pflist) * (size_t)poly, "edgefill");
 	pf = pflist;
 	for (a = 1; a <= poly; a++) {
-		pf->nr = a;
+		pf->edges = pf->verts = 0;
 		pf->min_xy[0] = pf->min_xy[1] =  1.0e20f;
 		pf->max_xy[0] = pf->max_xy[1] = -1.0e20f;
+		pf->f = 0;
+		pf->nr = a;
 		pf++;
 	}
 	for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
@@ -1057,8 +1060,8 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 			pf++;
 		}
 #endif
-	
-		polycache = pc = MEM_callocN(sizeof(short) * (size_t)poly, "polycache");
+
+		polycache = pc = MEM_callocN(sizeof(*polycache) * (size_t)poly, "polycache");
 		pf = pflist;
 		for (a = 0; a < poly; a++, pf++) {
 			for (c = (unsigned short)(a + 1); c < poly; c++) {
