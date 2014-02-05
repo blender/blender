@@ -224,8 +224,10 @@ class INFO_MT_render(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("render.render", text="Render Image", icon='RENDER_STILL')
-        layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
+        layout.operator("render.render", text="Render Image", icon='RENDER_STILL').use_viewport = True
+        props = layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION')
+        props.animation = True
+        props.use_viewport = True
 
         layout.separator()
 
