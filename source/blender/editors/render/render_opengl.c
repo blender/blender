@@ -90,8 +90,6 @@ typedef struct OGLRender {
 	ScrArea *prevsa;
 	ARegion *prevar;
 
-	short obcenter_dia_back; /* temp overwrite */
-
 	bool is_sequencer;
 	SpaceSeq *sseq;
 
@@ -402,9 +400,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	}
 
 
-	oglrender->obcenter_dia_back = U.obcenter_dia;
-	U.obcenter_dia = 0;
-
 	oglrender->prevsa = prevsa;
 	oglrender->prevar = prevar;
 
@@ -467,8 +462,6 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	WM_cursor_modal_restore(oglrender->win);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
-
-	U.obcenter_dia = oglrender->obcenter_dia_back;
 
 	GPU_offscreen_free(oglrender->ofs);
 
