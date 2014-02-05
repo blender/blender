@@ -58,8 +58,8 @@ struct DMCoNo;
 enum PaintMode;
 
 /* paint_stroke.c */
-typedef int (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
-typedef int (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
+typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
+typedef bool (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
 typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke, struct PointerRNA *itemptr);
 typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
 typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);

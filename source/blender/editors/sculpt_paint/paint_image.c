@@ -599,7 +599,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	}
 }
 
-static int paint_stroke_test_start(bContext *UNUSED(C), wmOperator *UNUSED(op), const float UNUSED(mouse[2]))
+static bool paint_stroke_test_start(bContext *UNUSED(C), wmOperator *UNUSED(op), const float UNUSED(mouse[2]))
 {
 	return true;
 }

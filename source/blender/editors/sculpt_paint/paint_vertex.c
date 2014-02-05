@@ -2196,7 +2196,7 @@ static bool wpaint_ensure_data(bContext *C, wmOperator *op)
 	return TRUE;
 }
 
-static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
+static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
 {
 	Scene *scene = CTX_data_scene(C);
 	struct PaintStroke *stroke = op->customdata;
@@ -2779,7 +2779,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 	                              tessface_origindex, me->totface);
 }
 
-static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const float UNUSED(mouse[2]))
+static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const float UNUSED(mouse[2]))
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct PaintStroke *stroke = op->customdata;
@@ -2793,12 +2793,12 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	/* context checks could be a poll() */
 	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0)
-		return OPERATOR_PASS_THROUGH;
+		return false;
 	
 	if (me->mloopcol == NULL)
 		make_vertexcol(ob);
 	if (me->mloopcol == NULL)
-		return OPERATOR_CANCELLED;
+		return false;
 
 	/* Update tessface data if needed
 	 * Added here too because e.g. switching to/from edit mode would remove tessface data,

@@ -4261,7 +4261,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
  */
-int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
+bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 {
 	ViewContext vc;
 	Object *ob;
@@ -4430,7 +4430,7 @@ static void sculpt_flush_update(bContext *C)
 
 /* Returns whether the mouse/stylus is over the mesh (1)
  * or over the background (0) */
-static int over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float y)
+static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float y)
 {
 	float mouse[2], co[3];
 
@@ -4440,7 +4440,7 @@ static int over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float 
 	return sculpt_stroke_get_location(C, co, mouse);
 }
 
-static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
+static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
                                     const float mouse[2])
 {
 	/* Don't start the stroke until mouse goes over the mesh.

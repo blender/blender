@@ -63,7 +63,7 @@ void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct 
                                  int need_pmap, int need_mask);
 
 /* Stroke */
-int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2]);
+bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2]);
 
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
