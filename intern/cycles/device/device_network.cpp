@@ -53,6 +53,7 @@ public:
 	NetworkDevice(DeviceInfo& info, Stats &stats, const char *address)
 	: Device(info, stats, true), socket(io_service)
 	{
+		error_func = NetworkError();
 		stringstream portstr;
 		portstr << SERVER_PORT;
 
@@ -69,14 +70,14 @@ public:
 		}
 
 		if(error)
-			throw boost::system::system_error(error);
+			error_func.network_error(error.message());
 
 		mem_counter = 0;
 	}
 
 	~NetworkDevice()
 	{
-		RPCSend snd(socket, "stop");
+		RPCSend snd(socket, &error_func, "stop");
 		snd.write();
 	}
 
@@ -86,7 +87,7 @@ public:
 
 		mem.device_pointer = ++mem_counter;
 
-		RPCSend snd(socket, "mem_alloc");
+		RPCSend snd(socket, &error_func, "mem_alloc");
 
 		snd.add(mem);
 		snd.add(type);
@@ -97,7 +98,7 @@ public:
 	{
 		thread_scoped_lock lock(rpc_lock);
 
-		RPCSend snd(socket, "mem_copy_to");
+		RPCSend snd(socket, &error_func, "mem_copy_to");
 
 		snd.add(mem);
 		snd.write();
@@ -110,7 +111,7 @@ public:
 
 		size_t data_size = mem.memory_size();
 
-		RPCSend snd(socket, "mem_copy_from");
+		RPCSend snd(socket, &error_func, "mem_copy_from");
 
 		snd.add(mem);
 		snd.add(y);
@@ -119,7 +120,7 @@ public:
 		snd.add(elem);
 		snd.write();
 
-		RPCReceive rcv(socket);
+		RPCReceive rcv(socket, &error_func);
 		rcv.read_buffer((void*)mem.data_pointer, data_size);
 	}
 
@@ -127,7 +128,7 @@ public:
 	{
 		thread_scoped_lock lock(rpc_lock);
 
-		RPCSend snd(socket, "mem_zero");
+		RPCSend snd(socket, &error_func, "mem_zero");
 
 		snd.add(mem);
 		snd.write();
@@ -138,7 +139,7 @@ public:
 		if(mem.device_pointer) {
 			thread_scoped_lock lock(rpc_lock);
 
-			RPCSend snd(socket, "mem_free");
+			RPCSend snd(socket, &error_func, "mem_free");
 
 			snd.add(mem);
 			snd.write();
@@ -151,7 +152,7 @@ public:
 	{
 		thread_scoped_lock lock(rpc_lock);
 
-		RPCSend snd(socket, "const_copy_to");
+		RPCSend snd(socket, &error_func, "const_copy_to");
 
 		string name_string(name);
 
@@ -167,7 +168,7 @@ public:
 
 		mem.device_pointer = ++mem_counter;
 
-		RPCSend snd(socket, "tex_alloc");
+		RPCSend snd(socket, &error_func, "tex_alloc");
 
 		string name_string(name);
 
@@ -184,7 +185,7 @@ public:
 		if(mem.device_pointer) {
 			thread_scoped_lock lock(rpc_lock);
 
-			RPCSend snd(socket, "tex_free");
+			RPCSend snd(socket, &error_func, "tex_free");
 
 			snd.add(mem);
 			snd.write();
@@ -195,14 +196,17 @@ public:
 
 	bool load_kernels(bool experimental)
 	{
+		if(error_func.have_error())
+			return false;
+
 		thread_scoped_lock lock(rpc_lock);
 
-		RPCSend snd(socket, "load_kernels");
+		RPCSend snd(socket, &error_func, "load_kernels");
 		snd.add(experimental);
 		snd.write();
 
 		bool result;
-		RPCReceive rcv(socket);
+		RPCReceive rcv(socket, &error_func);
 		rcv.read(result);
 
 		return result;
@@ -214,7 +218,7 @@ public:
 
 		the_task = task;
 
-		RPCSend snd(socket, "task_add");
+		RPCSend snd(socket, &error_func, "task_add");
 		snd.add(task);
 		snd.write();
 	}
@@ -223,7 +227,7 @@ public:
 	{
 		thread_scoped_lock lock(rpc_lock);
 
-		RPCSend snd(socket, "task_wait");
+		RPCSend snd(socket, &error_func, "task_wait");
 		snd.write();
 
 		lock.unlock();
@@ -232,10 +236,13 @@ public:
 
 		/* todo: run this threaded for connecting to multiple clients */
 		for(;;) {
+			if(error_func.have_error())
+				break;
+
 			RenderTile tile;
 
 			lock.lock();
-			RPCReceive rcv(socket);
+			RPCReceive rcv(socket, &error_func);
 
 			if(rcv.name == "acquire_tile") {
 				lock.unlock();
@@ -245,14 +252,14 @@ public:
 					the_tiles.push_back(tile);
 
 					lock.lock();
-					RPCSend snd(socket, "acquire_tile");
+					RPCSend snd(socket, &error_func, "acquire_tile");
 					snd.add(tile);
 					snd.write();
 					lock.unlock();
 				}
 				else {
 					lock.lock();
-					RPCSend snd(socket, "acquire_tile_none");
+					RPCSend snd(socket, &error_func, "acquire_tile_none");
 					snd.write();
 					lock.unlock();
 				}
@@ -272,7 +279,7 @@ public:
 				the_task.release_tile(tile);
 
 				lock.lock();
-				RPCSend snd(socket, "release_tile");
+				RPCSend snd(socket, &error_func, "release_tile");
 				snd.write();
 				lock.unlock();
 			}
@@ -288,9 +295,12 @@ public:
 	void task_cancel()
 	{
 		thread_scoped_lock lock(rpc_lock);
-		RPCSend snd(socket, "task_cancel");
+		RPCSend snd(socket, &error_func, "task_cancel");
 		snd.write();
 	}
+
+private:
+	NetworkError error_func;
 };
 
 Device *device_network_create(DeviceInfo& info, Stats &stats, const char *address)
@@ -316,9 +326,16 @@ class DeviceServer {
 public:
 	thread_mutex rpc_lock;
 
+	void network_error(const string &message){
+		error_func.network_error(message);
+	}
+
+	bool have_error() { return error_func.have_error(); }
+
 	DeviceServer(Device *device_, tcp::socket& socket_)
 	: device(device_), socket(socket_), stop(false), blocked_waiting(false)
 	{
+		error_func = NetworkError();
 	}
 
 	void listen()
@@ -336,7 +353,7 @@ protected:
 	void listen_step()
 	{
 		thread_scoped_lock lock(rpc_lock);
-		RPCReceive rcv(socket);
+		RPCReceive rcv(socket, &error_func);
 
 		if(rcv.name == "stop")
 			stop = true;
@@ -493,7 +510,7 @@ protected:
 
 			size_t data_size = mem.memory_size();
 
-			RPCSend snd(socket);
+			RPCSend snd(socket, &error_func, "mem_copy_from");
 			snd.write();
 			snd.write_buffer((uint8_t*)mem.data_pointer, data_size);
 			lock.unlock();
@@ -588,7 +605,7 @@ protected:
 
 			bool result;
 			result = device->load_kernels(experimental);
-			RPCSend snd(socket);
+			RPCSend snd(socket, &error_func, "load_kernels");
 			snd.add(result);
 			snd.write();
 			lock.unlock();
@@ -631,7 +648,7 @@ protected:
 			blocked_waiting = false;
 
 			lock.lock();
-			RPCSend snd(socket, "task_wait_done");
+			RPCSend snd(socket, &error_func, "task_wait_done");
 			snd.write();
 			lock.unlock();
 		}
@@ -670,7 +687,7 @@ protected:
 
 		bool result = false;
 
-		RPCSend snd(socket, "acquire_tile");
+		RPCSend snd(socket, &error_func, "acquire_tile");
 		snd.write();
 
 		do {
@@ -700,7 +717,7 @@ protected:
 					cout << "Error: unexpected acquire RPC receive call \"" + entry.name + "\"\n";
 				}
 			}
-		} while(acquire_queue.empty() && !stop);
+		} while(acquire_queue.empty() && !stop && !have_error());
 
 		return result;
 	}
@@ -724,7 +741,7 @@ protected:
 
 		{
 			thread_scoped_lock lock(rpc_lock);
-			RPCSend snd(socket, "release_tile");
+			RPCSend snd(socket, &error_func, "release_tile");
 			snd.add(tile);
 			snd.write();
 			lock.unlock();
@@ -776,8 +793,11 @@ protected:
 
 	bool stop;
 	bool blocked_waiting;
+private:
+	NetworkError error_func;
 
 	/* todo: free memory and device (osl) on network error */
+
 };
 
 void Device::server_run()

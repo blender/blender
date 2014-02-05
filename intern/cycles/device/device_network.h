@@ -21,6 +21,8 @@
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -53,6 +55,14 @@ static const int DISCOVER_PORT = 5121;
 static const string DISCOVER_REQUEST_MSG = "REQUEST_RENDER_SERVER_IP";
 static const string DISCOVER_REPLY_MSG = "REPLY_RENDER_SERVER_IP";
 
+#if 0
+typedef boost::archive::text_oarchive o_archive;
+typedef boost::archive::text_iarchive i_archive;
+#else
+typedef boost::archive::binary_oarchive o_archive;
+typedef boost::archive::binary_iarchive i_archive;
+#endif
+
 /* Serialization of device memory */
 
 class network_device_memory : public device_memory
@@ -64,15 +74,40 @@ public:
 	vector<char> local_data;
 };
 
+/* Common netowrk error function / object for both DeviceNetwork and DeviceServer*/
+class NetworkError {
+public:
+	NetworkError() {
+		error = "";
+		error_count = 0;
+	}
+
+	~NetworkError() {}
+
+	void network_error(const string& message) {
+		error = message;
+		error_count += 1;
+	}
+
+	bool have_error() {
+		return true ? error_count > 0 : false;
+	}
+
+private:
+	string error;
+	int error_count;
+};
+
+
 /* Remote procedure call Send */
 
 class RPCSend {
 public:
-	RPCSend(tcp::socket& socket_, const string& name_ = "")
+	RPCSend(tcp::socket& socket_, NetworkError* e, const string& name_ = "")
 	: name(name_), socket(socket_), archive(archive_stream), sent(false)
 	{
 		archive & name_;
-
+		error_func = e;
 		fprintf(stderr, "rpc send %s\n", name.c_str());
 	}
 
@@ -94,7 +129,6 @@ public:
 	void add(const DeviceTask& task)
 	{
 		int type = (int)task.type;
-
 		archive & type & task.x & task.y & task.w & task.h;
 		archive & task.rgba_byte & task.rgba_half & task.buffer & task.sample & task.num_samples;
 		archive & task.offset & task.stride;
@@ -128,7 +162,7 @@ public:
 			boost::asio::transfer_all(), error);
 
 		if(error.value())
-			cout << "Network send error: " << error.message() << "\n";
+			error_func->network_error(error.message());
 
 		/* then send actual data */
 		boost::asio::write(socket,
@@ -136,7 +170,7 @@ public:
 			boost::asio::transfer_all(), error);
 		
 		if(error.value())
-			cout << "Network send error: " << error.message() << "\n";
+			error_func->network_error(error.message());
 
 		sent = true;
 	}
@@ -150,27 +184,34 @@ public:
 			boost::asio::transfer_all(), error);
 		
 		if(error.value())
-			cout << "Network send error: " << error.message() << "\n";
+			error_func->network_error(error.message());
 	}
 
 protected:
 	string name;
 	tcp::socket& socket;
 	ostringstream archive_stream;
-	boost::archive::text_oarchive archive;
+	o_archive archive;
 	bool sent;
+	NetworkError *error_func;
 };
 
 /* Remote procedure call Receive */
 
 class RPCReceive {
 public:
-	RPCReceive(tcp::socket& socket_)
+	RPCReceive(tcp::socket& socket_, NetworkError* e )
 	: socket(socket_), archive_stream(NULL), archive(NULL)
 	{
+		error_func = e;
 		/* read head with fixed size */
 		vector<char> header(8);
-		size_t len = boost::asio::read(socket, boost::asio::buffer(header));
+		boost::system::error_code error;
+		size_t len = boost::asio::read(socket, boost::asio::buffer(header), error);
+
+		if(error.value()){
+			error_func->network_error(error.message());
+		}
 
 		/* verify if we got something */
 		if(len == header.size()) {
@@ -183,30 +224,31 @@ public:
 			if((header_stream >> hex >> data_size)) {
 
 				vector<char> data(data_size);
-				size_t len = boost::asio::read(socket, boost::asio::buffer(data));
+				size_t len = boost::asio::read(socket, boost::asio::buffer(data), error);
+
+				if(error.value())
+					error_func->network_error(error.message());
+
 
 				if(len == data_size) {
 					archive_str = (data.size())? string(&data[0], data.size()): string("");
-#if 0
-					istringstream archive_stream(archive_str);
-					boost::archive::text_iarchive archive(archive_stream);
-#endif
+
 					archive_stream = new istringstream(archive_str);
-					archive = new boost::archive::text_iarchive(*archive_stream);
+					archive = new i_archive(*archive_stream);
 
 					*archive & name;
 					fprintf(stderr, "rpc receive %s\n", name.c_str());
 				}
 				else {
-					cout << "Network receive error: data size doesn't match header\n";
+					error_func->network_error("Network receive error: data size doesn't match header");
 				}
 			}
 			else {
-				cout << "Network receive error: can't decode data size from header\n";
+				error_func->network_error("Network receive error: can't decode data size from header");
 			}
 		}
 		else {
-			cout << "Network receive error: invalid header size\n";
+			error_func->network_error("Network receive error: invalid header size");
 		}
 	}
 
@@ -231,7 +273,12 @@ public:
 
 	void read_buffer(void *buffer, size_t size)
 	{
-		size_t len = boost::asio::read(socket, boost::asio::buffer(buffer, size));
+		boost::system::error_code error;
+		size_t len = boost::asio::read(socket, boost::asio::buffer(buffer, size), error);
+
+		if(error.value()){
+			error_func->network_error(error.message());
+		}
 
 		if(len != size)
 			cout << "Network receive error: buffer size doesn't match expected size\n";
@@ -267,7 +314,8 @@ protected:
 	tcp::socket& socket;
 	string archive_str;
 	istringstream *archive_stream;
-	boost::archive::text_iarchive *archive;
+	i_archive *archive;
+	NetworkError *error_func;
 };
 
 /* Server auto discovery */
