@@ -173,7 +173,7 @@ void BKE_object_sculpt_modifiers_changed(struct Object *ob);
 int BKE_object_obdata_texspace_get(struct Object *ob, short **r_texflag, float **r_loc, float **r_size, float **r_rot);
 
 int BKE_object_insert_ptcache(struct Object *ob);
-// void object_delete_ptcache(struct Object *ob, int index);
+void BKE_object_delete_ptcache(struct Object *ob, int index);
 struct KeyBlock *BKE_object_insert_shape_key(struct Scene *scene, struct Object *ob, const char *name, const bool from_mix);
 
 bool BKE_object_is_child_recursive(struct Object *ob_parent, struct Object *ob_child);

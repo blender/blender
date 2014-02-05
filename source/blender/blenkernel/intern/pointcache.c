@@ -3483,6 +3483,13 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 	BKE_ptcache_id_time(pid, NULL, 0.0f, NULL, NULL, NULL);
 
 	BKE_ptcache_update_info(pid);
+
+	if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
+		if (cache->index) {
+			BKE_object_delete_ptcache(pid->ob, cache->index);
+			cache->index = -1;
+		}
+	}
 }
 
 void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const char *name_dst)

@@ -3188,7 +3188,6 @@ int BKE_object_insert_ptcache(Object *ob)
 	return i;
 }
 
-#if 0
 static int pc_findindex(ListBase *listbase, int index)
 {
 	LinkData *link = NULL;
@@ -3198,7 +3197,7 @@ static int pc_findindex(ListBase *listbase, int index)
 	
 	link = listbase->first;
 	while (link) {
-		if ((int)link->data == index)
+		if (GET_INT_FROM_POINTER(link->data) == index)
 			return number;
 		
 		number++;
@@ -3208,13 +3207,12 @@ static int pc_findindex(ListBase *listbase, int index)
 	return -1;
 }
 
-void object_delete_ptcache(Object *ob, int index) 
+void BKE_object_delete_ptcache(Object *ob, int index)
 {
 	int list_index = pc_findindex(&ob->pc_ids, index);
 	LinkData *link = BLI_findlink(&ob->pc_ids, list_index);
 	BLI_freelinkN(&ob->pc_ids, link);
 }
-#endif
 
 /* shape key utility function */
 
