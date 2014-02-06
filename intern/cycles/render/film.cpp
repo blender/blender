@@ -261,6 +261,7 @@ Film::Film()
 {
 	exposure = 0.8f;
 	Pass::add(PASS_COMBINED, passes);
+	pass_alpha_threshold = 0.5f;
 
 	filter_type = FILTER_BOX;
 	filter_width = 1.0f;
@@ -399,6 +400,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	}
 
 	kfilm->pass_stride = align_up(kfilm->pass_stride, 4);
+	kfilm->pass_alpha_threshold = pass_alpha_threshold;
 
 	/* update filter table */
 	vector<float> table = filter_table(filter_type, filter_width);
@@ -425,8 +427,12 @@ bool Film::modified(const Film& film)
 {
 	return !(exposure == film.exposure
 		&& Pass::equals(passes, film.passes)
+		&& pass_alpha_threshold == film.pass_alpha_threshold
 		&& filter_type == film.filter_type
-		&& filter_width == film.filter_width);
+		&& filter_width == film.filter_width
+		&& mist_start == film.mist_start
+		&& mist_depth == film.mist_depth
+		&& mist_falloff == film.mist_falloff);
 }
 
 void Film::tag_passes_update(Scene *scene, const vector<Pass>& passes_)

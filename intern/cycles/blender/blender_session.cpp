@@ -382,6 +382,7 @@ void BlenderSession::render()
 		end_render_result(b_engine, b_rr, true, false);
 
 		buffer_params.passes = passes;
+		scene->film->pass_alpha_threshold = b_iter->pass_alpha_threshold();
 		scene->film->tag_passes_update(scene, passes);
 		scene->film->tag_update(scene);
 		scene->integrator->tag_update(scene);

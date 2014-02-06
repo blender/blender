@@ -187,7 +187,7 @@ typedef struct SceneRenderLayer {
 	int pass_xor;
 
 	int samples;
-	int pad;
+	float pass_alpha_threshold;
 	
 	struct FreestyleConfig freestyleConfig;
 } SceneRenderLayer;

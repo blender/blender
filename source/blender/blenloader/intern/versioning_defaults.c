@@ -48,8 +48,10 @@ void BLO_update_defaults_startup_blend(Main *main)
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 		scene->r.im_format.compress = 15;
 
-		for (srl = scene->r.layers.first; srl; srl = srl->next)
+		for (srl = scene->r.layers.first; srl; srl = srl->next) {
 			srl->freestyleConfig.sphere_radius = 0.1f;
+			srl->pass_alpha_threshold = 0.5f;
+		}
 	}
 
 	for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next)

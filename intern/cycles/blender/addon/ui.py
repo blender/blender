@@ -391,6 +391,8 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.separator()
         col.prop(rl, "use_pass_shadow")
         col.prop(rl, "use_pass_ambient_occlusion")
+        col.separator()
+        col.prop(rl, "pass_alpha_threshold")
 
         col = split.column()
         col.label(text="Diffuse:")

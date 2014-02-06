@@ -38,7 +38,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device int bsdf_transparent_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_TRANSPARENT_ID;
-	return SD_BSDF;
+	return SD_BSDF|SD_TRANSPARENT;
 }
 
 ccl_device void bsdf_transparent_blur(ShaderClosure *sc, float roughness)

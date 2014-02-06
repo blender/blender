@@ -234,6 +234,7 @@ enum PathRayFlag {
 	PATH_RAY_DIFFUSE_ANCESTOR = 2048,
 	PATH_RAY_GLOSSY_ANCESTOR = 4096,
 	PATH_RAY_BSSRDF_ANCESTOR = 8192,
+	PATH_RAY_SINGLE_PASS_DONE = 8192,
 
 	/* this gives collisions with localview bits
 	 * see: blender_util.h, grr - Campbell */
@@ -519,23 +520,24 @@ enum ShaderDataFlag {
 	SD_ABSORPTION = 128,	/* have volume absorption closure? */
 	SD_SCATTER = 256,		/* have volume phase closure? */
 	SD_AO = 512,			/* have ao closure? */
+	SD_TRANSPARENT = 1024,	/* have transparent closure? */
 
 	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|SD_BSSRDF|SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO),
 
 	/* shader flags */
-	SD_USE_MIS = 1024,					/* direct light sample */
-	SD_HAS_TRANSPARENT_SHADOW = 2048,	/* has transparent shadow */
-	SD_HAS_VOLUME = 4096,				/* has volume shader */
-	SD_HAS_ONLY_VOLUME = 8192,			/* has only volume shader, no surface */
-	SD_HETEROGENEOUS_VOLUME = 16384,	/* has heterogeneous volume */
-	SD_HAS_BSSRDF_BUMP = 32768,			/* bssrdf normal uses bump */
+	SD_USE_MIS = 2048,					/* direct light sample */
+	SD_HAS_TRANSPARENT_SHADOW = 4096,	/* has transparent shadow */
+	SD_HAS_VOLUME = 8192,				/* has volume shader */
+	SD_HAS_ONLY_VOLUME = 16384,			/* has only volume shader, no surface */
+	SD_HETEROGENEOUS_VOLUME = 32768,	/* has heterogeneous volume */
+	SD_HAS_BSSRDF_BUMP = 65536,			/* bssrdf normal uses bump */
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|SD_HAS_BSSRDF_BUMP),
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 65536,			/* holdout for camera rays */
-	SD_OBJECT_MOTION = 131072,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 262144, 		/* vertices have transform applied */
+	SD_HOLDOUT_MASK = 131072,			/* holdout for camera rays */
+	SD_OBJECT_MOTION = 262144,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 524288, 		/* vertices have transform applied */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED)
 };
@@ -758,7 +760,7 @@ typedef struct KernelFilm {
 	int pass_emission;
 	int pass_background;
 	int pass_ao;
-	int pass_pad1;
+	float pass_alpha_threshold;
 
 	int pass_shadow;
 	float pass_shadow_scale;

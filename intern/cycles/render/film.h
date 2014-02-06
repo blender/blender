@@ -50,6 +50,7 @@ class Film {
 public:
 	float exposure;
 	vector<Pass> passes;
+	float pass_alpha_threshold;
 
 	FilterType filter_type;
 	float filter_width;
