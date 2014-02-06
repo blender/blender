@@ -2273,7 +2273,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 		RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 		prop = RNA_def_property(srna, "pass_alpha_threshold", PROP_FLOAT, PROP_FACTOR);
-		RNA_def_property_ui_text(prop, "Alpha Treshold", "Z, Index, normal, UV and vector passes are"
+		RNA_def_property_ui_text(prop, "Alpha Threshold", "Z, Index, normal, UV and vector passes are"
 		                               "only affected by surfaces with alpha transparency equal to"
 									   "or higher than this threshold");
 		RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
