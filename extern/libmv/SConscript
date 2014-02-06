@@ -16,6 +16,7 @@ if env['WITH_BF_LIBMV']:
     defs.append('GOOGLE_GLOG_DLL_DECL=')
     defs.append('WITH_LIBMV')
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
+    defs.append('LIBMV_NO_FAST_DETECTOR')
 
     src = env.Glob("libmv-capi.cc")
     src += env.Glob('libmv/image/*.cc')
@@ -23,7 +24,6 @@ if env['WITH_BF_LIBMV']:
     src += env.Glob('libmv/numeric/*.cc')
     src += env.Glob('libmv/simple_pipeline/*.cc')
     src += env.Glob('libmv/tracking/*.cc')
-    src += env.Glob('third_party/fast/*.c')
     src += env.Glob('third_party/gflags/*.cc')
 
     incs += ' ../Eigen3 third_party/ceres/include ../../intern/guardedalloc'

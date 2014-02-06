@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <queue>
-#include <third_party/fast/fast.h>
 
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/image/array_nd.h"
@@ -33,6 +32,10 @@
 #include "libmv/image/convolve.h"
 #include "libmv/logging/logging.h"
 #include "libmv/simple_pipeline/detect.h"
+
+#ifndef LIBMV_NO_FAST_DETECTOR
+#  include <third_party/fast/fast.h>
+#endif
 
 #ifdef __SSE2__
 #  include <emmintrin.h>
@@ -92,6 +95,7 @@ void FilterFeaturesByDistance(const vector<Feature> &all_features,
 void DetectFAST(const FloatImage &grayscale_image,
                 const DetectOptions &options,
                 vector<Feature> *detected_features) {
+#ifndef LIBMV_NO_FAST_DETECTOR
   const int min_distance = options.min_distance;
   const int min_trackness = options.fast_min_trackness;
   const int margin = options.margin;
@@ -140,6 +144,12 @@ void DetectFAST(const FloatImage &grayscale_image,
   }
   free(scores);
   free(nonmax);
+#else
+  (void) grayscale_image;  // Ignored.
+  (void) options;  // Ignored.
+  (void) detected_features;  // Ignored.
+  LOG(FATAL) << "FAST detector is disabled in this build.";
+#endif
 }
 
 #ifdef __SSE2__

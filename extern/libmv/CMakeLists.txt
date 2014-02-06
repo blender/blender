@@ -40,6 +40,7 @@ if(WITH_LIBMV)
 		-DWITH_LIBMV
 		-DWITH_LIBMV_GUARDED_ALLOC
 		-DGOOGLE_GLOG_DLL_DECL=
+		-DLIBMV_NO_FAST_DETECTOR=
 	)
 
 	list(APPEND INC
@@ -86,12 +87,6 @@ if(WITH_LIBMV)
 		libmv/tracking/track_region.cc
 		libmv/tracking/trklt_region_tracker.cc
 
-		third_party/fast/fast_10.c
-		third_party/fast/fast_11.c
-		third_party/fast/fast_12.c
-		third_party/fast/fast_9.c
-		third_party/fast/fast.c
-		third_party/fast/nonmax.c
 		third_party/gflags/gflags.cc
 		third_party/gflags/gflags_completions.cc
 		third_party/gflags/gflags_reporting.cc
@@ -145,7 +140,6 @@ if(WITH_LIBMV)
 		libmv/tracking/track_region.h
 		libmv/tracking/trklt_region_tracker.h
 
-		third_party/fast/fast.h
 		third_party/gflags/config.h
 		third_party/gflags/gflags/gflags_completions.h
 		third_party/gflags/gflags/gflags_declare.h

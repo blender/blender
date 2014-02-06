@@ -128,6 +128,7 @@ if(WITH_LIBMV)
 		-DWITH_LIBMV
 		-DWITH_LIBMV_GUARDED_ALLOC
 		-DGOOGLE_GLOG_DLL_DECL=
+		-DLIBMV_NO_FAST_DETECTOR=
 	)
 
 	list(APPEND INC
@@ -231,6 +232,7 @@ if env['WITH_BF_LIBMV']:
     defs.append('GOOGLE_GLOG_DLL_DECL=')
     defs.append('WITH_LIBMV')
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
+    defs.append('LIBMV_NO_FAST_DETECTOR')
 
     src = env.Glob("libmv-capi.cc")
 $src

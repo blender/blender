@@ -76,16 +76,6 @@ libmv/tracking/track_region.cc
 libmv/tracking/track_region.h
 libmv/tracking/trklt_region_tracker.cc
 libmv/tracking/trklt_region_tracker.h
-third_party/fast/fast_10.c
-third_party/fast/fast_11.c
-third_party/fast/fast_12.c
-third_party/fast/fast_9.c
-third_party/fast/fast.c
-third_party/fast/fast.h
-third_party/fast/LICENSE
-third_party/fast/nonmax.c
-third_party/fast/README
-third_party/fast/README.libmv
 third_party/gflags/AUTHORS
 third_party/gflags/ChangeLog
 third_party/gflags/config.h

@@ -1,3 +1,14 @@
+commit b1381540305d69c702eb2f051bd543fb5c1c3e2c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Feb 6 18:01:58 2014 +0600
+
+    Made FAST detector optional
+    
+    This way it's possible to bundle Libmv sources subset
+    to applications which doesn't need FAST detector.
+    
+    Mainly this is done for Blender integration.
+
 commit da4607f010bca0b3532cd4444afbb10bc774fc32
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Tue Jan 28 18:32:39 2014 +0600
@@ -680,21 +691,3 @@ Date:   Sun Apr 7 21:53:23 2013 +0600
     usage pipeline. Anyway, deprecation shall not
     happen spontaneously as a part of other changes.
     And for sure shall not break anything.
-
-commit c9eb9d36bb1ca5d3037ce66633d812a224f77958
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Apr 6 20:49:05 2013 +0600
-
-    Revert "Change libmv's bilinear sampling to assume the same"
-    
-    Revert changes to bilinear sampler which were originally
-    aimed to match blender's pixel center (where integer coord
-    is a left-bottom corner, x.5 coords are centers.
-    
-    The reason of revert is changing this assumption in only
-    sampler didn't work well and lead to wrong results of
-    BlurredImageAndDerivativesChannels for example.
-    
-    Discovered when was doing unit-tests for brute region tracker.
-    
-    This reverts commit daa354c0735b954b0cd7725626e9a3d67416d46b.
