@@ -532,7 +532,6 @@ static int startffmpeg(struct anim *anim)
 	anim->duration = ceil(pFormatCtx->duration *
 	                      av_q2d(frame_rate) /
 	                      AV_TIME_BASE);
-	printf("%d\n", anim->duration);
 
 	frs_num = frame_rate.num;
 	frs_den = frame_rate.den;
