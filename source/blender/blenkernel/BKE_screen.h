@@ -242,7 +242,7 @@ typedef struct MenuType {
 	char idname[BKE_ST_MAXNAME];        /* unique name */
 	char label[BKE_ST_MAXNAME];         /* for button text */
 	char translation_context[BKE_ST_MAXNAME];
-	char *description;
+	const char *description;
 
 	/* verify if the menu should draw or not */
 	int (*poll)(const struct bContext *, struct MenuType *);

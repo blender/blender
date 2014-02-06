@@ -686,10 +686,11 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 	int have_function[2];
 	size_t over_alloc = 0; /* warning, if this becomes a bess, we better do another alloc */
 	size_t description_size = 0;
-	char _menu_descr[RNA_DYN_DESCR_MAX] = {0};
+	char _menu_descr[RNA_DYN_DESCR_MAX];
 
 	/* setup dummy menu & menu type to store static properties in */
 	dummymenu.type = &dummymt;
+	_menu_descr[0] = '\0';
 	dummymenu.type->description = _menu_descr;
 	RNA_pointer_create(NULL, &RNA_Menu, &dummymenu, &dummymtr);
 
