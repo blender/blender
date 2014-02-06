@@ -739,6 +739,8 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         layout.template_ID(strip, "scene_camera")
 
         if scene:
+            layout.prop(scene, "audio_volume", text="Audio Volume")
+
             sta = scene.frame_start
             end = scene.frame_end
             layout.label(text=iface_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
