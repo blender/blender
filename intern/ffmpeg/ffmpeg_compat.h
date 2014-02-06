@@ -426,7 +426,12 @@ AVRational av_get_r_frame_rate_compat(const AVStream *stream)
 #if LIBAVCODEC_VERSION_MICRO >= 100
 	return stream->r_frame_rate;
 #else
+#  if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 23, 1)
+	/* For until r_frame_rate was deprecated use it. */
+	return stream->r_frame_rate;
+#  else
 	return stream->avg_frame_rate;
+#  endif
 #endif
 }
 
