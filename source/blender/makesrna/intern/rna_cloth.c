@@ -100,6 +100,17 @@ static void rna_ClothSettings_max_struct_set(struct PointerRNA *ptr, float value
 	settings->max_struct = value;
 }
 
+static void rna_ClothSettings_max_sewing_set(struct PointerRNA *ptr, float value)
+{
+	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
+
+	/* check for clipping */
+	if (value < 0.0f)
+		value = 0.0f;
+
+	settings->max_sewing = value;
+}
+
 static void rna_ClothSettings_mass_vgroup_get(PointerRNA *ptr, char *value)
 {
 	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
@@ -116,6 +127,24 @@ static void rna_ClothSettings_mass_vgroup_set(PointerRNA *ptr, const char *value
 {
 	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_mass);
+}
+
+static void rna_ClothSettings_shrink_vgroup_get(PointerRNA *ptr, char *value)
+{
+	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	rna_object_vgroup_name_index_get(ptr, value, sim->vgroup_shrink);
+}
+
+static int rna_ClothSettings_shrink_vgroup_length(PointerRNA *ptr)
+{
+	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	return rna_object_vgroup_name_index_length(ptr, sim->vgroup_shrink);
+}
+
+static void rna_ClothSettings_shrink_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_shrink);
 }
 
 static void rna_ClothSettings_struct_vgroup_get(PointerRNA *ptr, char *value)
@@ -351,6 +380,24 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	                         "Quality of the simulation in steps per frame (higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+	prop = RNA_def_property(srna, "vertex_group_shrink", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ClothSettings_shrink_vgroup_get", "rna_ClothSettings_shrink_vgroup_length",
+	                              "rna_ClothSettings_shrink_vgroup_set");
+	RNA_def_property_ui_text(prop, "Shrink Vertex Group", "Vertex Group for shrinking cloth");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop = RNA_def_property(srna, "shrink_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "shrink_min");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Shrink Factor Min", "min amount to shrink cloth by");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop = RNA_def_property(srna, "shrink_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "shrink_max");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Shrink Factor Max", "max amount to shrink cloth by");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
 	/* springs */
 
 	prop = RNA_def_property(srna, "use_stiffness_scale", PROP_BOOLEAN, PROP_NONE);
@@ -380,6 +427,13 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Structural Stiffness Maximum", "Maximum structural stiffness value");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+	prop = RNA_def_property(srna, "sewing_force_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "max_sewing");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_max_sewing_set", NULL);
+	RNA_def_property_ui_text(prop, "Sewing Force Maximum", "Maximum sewing force");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
 	prop = RNA_def_property(srna, "vertex_group_structural_stiffness", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_struct_vgroup_get",
 	                              "rna_ClothSettings_struct_vgroup_length",
@@ -401,6 +455,11 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_max_bend_set", NULL);
 	RNA_def_property_ui_text(prop, "Bending Stiffness Maximum", "Maximum bending stiffness value");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop = RNA_def_property(srna, "use_sewing_springs", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_SEW);
+	RNA_def_property_ui_text(prop, "Sew Cloth", "Pulls loose edges together");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "vertex_group_bending", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_bend_vgroup_get", "rna_ClothSettings_bend_vgroup_length",

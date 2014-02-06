@@ -77,6 +77,16 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         col.prop(cloth, "structural_stiffness", text="Structural")
         col.prop(cloth, "bending_stiffness", text="Bending")
 
+        col.label(text="Sewing:")
+        col.prop(cloth, "use_sewing_springs", text="Use Sewing Springs")
+        col.prop(cloth, "sewing_force_max", text="Sewing Force")
+
+        sub = col.column()
+        col.label(text="Shrinking:")
+        col.prop_search(cloth, "vertex_group_shrink", ob, "vertex_groups", text="")
+        col.prop(cloth, "shrink_min", text="Min")
+        col.prop(cloth, "shrink_max", text="Max")
+
         col = split.column()
 
         col.label(text="Damping:")

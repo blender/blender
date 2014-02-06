@@ -1260,7 +1260,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	}
 	
 	// calculate force of structural + shear springs
-	if ((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR)) {
+	if ((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR) || (s->type & CLOTH_SPRING_TYPE_SEWING) ) {
 		if (length > L || no_compress) {
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
@@ -1271,7 +1271,16 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
 
 			// TODO: verify, half verified (couldn't see error)
-			mul_fvector_S(stretch_force, dir, k*(length-L));
+ 			if(s->type & CLOTH_SPRING_TYPE_SEWING) {
+ 				// sewing springs usually have a large distance at first so clamp the force so we don't get tunnelling through colission objects
+ 				float force = k*(length-L);
+ 				if(force > clmd->sim_parms->max_sewing) {
+ 					force = clmd->sim_parms->max_sewing;
+ 				}
+ 				mul_fvector_S(stretch_force, dir, force);
+ 			} else {
+  				mul_fvector_S(stretch_force, dir, k*(length-L));
+ 			}
 
 			VECADD(s->f, s->f, stretch_force);
 

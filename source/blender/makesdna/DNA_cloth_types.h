@@ -58,6 +58,7 @@ typedef struct ClothSimSettings {
 	float	max_bend; 	/* max bending scaling value, min is "bending" */
 	float	max_struct; 	/* max structural scaling value, min is "structural" */
 	float	max_shear; 	/* max shear scaling value, UNUSED */
+	float	max_sewing; 	/* max sewing force */
 	float 	avg_spring_len; /* used for normalized springs */
 	float 	timescale; /* parameter how fast cloth runs */
 	float	maxgoal; 	/* see SB */
@@ -70,6 +71,8 @@ typedef struct ClothSimSettings {
 	float	velocity_smooth; /* smoothing of velocities for hair */
 	float	collider_friction; /* friction with colliders */
 	float	vel_damping; /* damp the velocity to speed up getting to the resting position */
+	float	shrink_min;  /* min amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
+	float	shrink_max;  /* max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
 
 	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
@@ -79,10 +82,11 @@ typedef struct ClothSimSettings {
 	short	vgroup_bend;	/* vertex group for scaling bending stiffness */
 	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
 	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
+	short	vgroup_shrink;  /* vertex group for shrinking cloth */
 	short	shapekey_rest;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
 	short 	reset;
-	short pad;
+	char    pad[4];
 
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;

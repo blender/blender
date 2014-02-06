@@ -106,6 +106,7 @@ typedef struct ClothVertex {
 	float	bend_stiff;
 	float 	shear_stiff;
 	int 	spring_count; /* how many springs attached? */
+	float	shrink_factor; /* how much to shrink this cloth */
 }
 ClothVertex;
 
@@ -149,7 +150,8 @@ typedef enum {
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
 	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
 	CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12),	/* edit cache in editmode */
-	CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS = (1 << 13) /* don't allow spring compression */
+    CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS = (1 << 13), /* don't allow spring compression */
+	CLOTH_SIMSETTINGS_FLAG_SEW = (1 << 14), /* pull ends of loose edges together */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */
@@ -163,7 +165,8 @@ typedef enum {
 	CLOTH_SPRING_TYPE_STRUCTURAL  = (1 << 1),
 	CLOTH_SPRING_TYPE_SHEAR       = (1 << 2),
 	CLOTH_SPRING_TYPE_BENDING     = (1 << 3),
-	CLOTH_SPRING_TYPE_GOAL        = (1 << 4)
+	CLOTH_SPRING_TYPE_GOAL        = (1 << 4),
+	CLOTH_SPRING_TYPE_SEWING      = (1 << 5)
 } CLOTH_SPRING_TYPES;
 
 /* SPRING FLAGS */
