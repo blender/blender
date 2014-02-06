@@ -77,16 +77,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         col.prop(cloth, "structural_stiffness", text="Structural")
         col.prop(cloth, "bending_stiffness", text="Bending")
 
-        col.label(text="Sewing:")
-        col.prop(cloth, "use_sewing_springs", text="Use Sewing Springs")
-        col.prop(cloth, "sewing_force_max", text="Sewing Force")
-
-        sub = col.column()
-        col.label(text="Shrinking:")
-        col.prop_search(cloth, "vertex_group_shrink", ob, "vertex_groups", text="")
-        col.prop(cloth, "shrink_min", text="Min")
-        col.prop(cloth, "shrink_max", text="Max")
-
         col = split.column()
 
         col.label(text="Damping:")
@@ -199,6 +189,39 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
         col.label(text="Bending Stiffness:")
         col.prop_search(cloth, "vertex_group_bending", ob, "vertex_groups", text="")
         col.prop(cloth, "bending_stiffness_max", text="Max")
+
+
+class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
+    bl_label = "Cloth Sewing Springs"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        cloth = context.cloth.settings
+
+        self.layout.active = cloth_panel_enabled(context.cloth)
+        self.layout.prop(cloth, "use_sewing_springs", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        md = context.cloth
+        ob = context.object
+        cloth = context.cloth.settings
+
+        layout.active = (cloth.use_sewing_springs and cloth_panel_enabled(md))
+
+        layout.prop(cloth, "sewing_force_max", text="Sewing Force")
+
+        split = layout.split()
+
+        col = split.column(align=True)
+        col.label(text="Shrinking:")
+        col.prop_search(cloth, "vertex_group_shrink", ob, "vertex_groups", text="")
+
+        col = split.column(align=True)
+        col.label()
+        col.prop(cloth, "shrink_min", text="Min")
+        col.prop(cloth, "shrink_max", text="Max")
 
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
