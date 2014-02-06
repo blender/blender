@@ -350,9 +350,9 @@ struct uiBlock {
 
 	bool color_profile;         /* color profile for correcting linear colors for display */
 
-	const char *display_device; /* display device name used to display this block,
-	                             * used by color widgets to transform colors from/to scene linear
-	                             */
+	char display_device[64]; /* display device name used to display this block,
+	                          * used by color widgets to transform colors from/to scene linear
+	                          */
 };
 
 typedef struct uiSafetyRct {

@@ -2299,7 +2299,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 		 * would slow down redraw, so only lookup for actual transform when it's indeed
 		 * needed
 		 */
-		block->display_device = scn->display_settings.display_device;
+		BLI_strncpy(block->display_device, scn->display_settings.display_device, sizeof(block->display_device));
 
 		/* copy to avoid crash when scene gets deleted with ui still open */
 		block->unit = MEM_mallocN(sizeof(scn->unit), "UI UnitSettings");
