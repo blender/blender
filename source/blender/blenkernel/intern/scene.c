@@ -51,6 +51,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -717,10 +718,30 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 	return NULL;
 }
 
+static void scene_unlink_space_node(SpaceNode *snode, Scene *sce)
+{
+	if (snode->id == &sce->id) {
+		/* nasty DNA logic for SpaceNode:
+		 * ideally should be handled by editor code, but would be bad level call
+		 */
+		bNodeTreePath *path, *path_next;
+		for (path = snode->treepath.first; path; path = path_next) {
+			path_next = path->next;
+			MEM_freeN(path);
+		}
+		snode->treepath.first = snode->treepath.last = NULL;
+		
+		snode->id = NULL;
+		snode->from = NULL;
+		snode->nodetree = NULL;
+		snode->edittree = NULL;
+	}
+}
+
 void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 {
 	Scene *sce1;
-	bScreen *sc;
+	bScreen *screen;
 
 	/* check all sets */
 	for (sce1 = bmain->scene.first; sce1; sce1 = sce1->id.next)
@@ -739,10 +760,21 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 		}
 	}
 	
-	/* al screens */
-	for (sc = bmain->screen.first; sc; sc = sc->id.next)
-		if (sc->scene == sce)
-			sc->scene = newsce;
+	/* all screens */
+	for (screen = bmain->screen.first; screen; screen = screen->id.next) {
+		ScrArea *area;
+		
+		if (screen->scene == sce)
+			screen->scene = newsce;
+		
+		for (area = screen->areabase.first; area; area = area->next) {
+			SpaceLink *space_link;
+			for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
+				if (space_link->spacetype == SPACE_NODE)
+					scene_unlink_space_node((SpaceNode *)space_link, sce);
+			}
+		}
+	}
 
 	BKE_libblock_free(bmain, sce);
 }
