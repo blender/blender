@@ -584,7 +584,7 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
 static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **but_p, uiBut **but_old_p)
 {
 	/* flags from the buttons we want to refresh, may want to add more here... */
-	const int flag_copy = UI_BUT_REDALERT;
+	const int flag_copy = UI_BUT_REDALERT | UI_BUT_DRAG_MULTI;
 	const int drawflag_copy = 0;  /* None currently. */
 
 	uiBlock *oldblock = block->oldblock;
@@ -676,6 +676,8 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 		/* note: if layout hasn't been applied yet, it uses old button pointers... */
 	}
 	else {
+		but->flag = (but->flag & ~flag_copy) | (oldbut->flag & flag_copy);
+
 		/* ensures one button can get activated, and in case the buttons
 		 * draw are the same this gives O(1) lookup for each button */
 		BLI_remlink(&oldblock->buttons, oldbut);
@@ -1572,6 +1574,32 @@ bool ui_is_but_unit(const uiBut *but)
 		if (unit_type != PROP_UNIT_ROTATION) {
 			return false;
 		}
+	}
+
+	return true;
+}
+
+/**
+ * Check if this button is similar enough to be grouped with another.
+ */
+bool ui_is_but_compatible(const uiBut *but_a, const uiBut *but_b)
+{
+	if (but_a->type != but_b->type)
+		return false;
+	if (but_a->pointype != but_b->pointype)
+		return false;
+
+	if (but_a->rnaprop) {
+		if (but_a->rnapoin.type != but_b->rnapoin.type)
+			return false;
+		if (but_a->rnapoin.data != but_b->rnapoin.data)
+			return false;
+		if (but_a->rnapoin.id.data != but_b->rnapoin.id.data)
+			return false;
+		if (RNA_property_type(but_a->rnaprop) != RNA_property_type(but_b->rnaprop))
+			return false;
+		if (RNA_property_subtype(but_a->rnaprop) != RNA_property_subtype(but_b->rnaprop))
+			return false;
 	}
 
 	return true;

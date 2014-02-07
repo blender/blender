@@ -172,6 +172,7 @@ enum {
 	UI_BUT_VEC_SIZE_LOCK = (1 << 22),  /* used to flag if color hsv-circle should keep luminance */
 	UI_BUT_COLOR_CUBIC   = (1 << 23),  /* cubic saturation for the color wheel */
 	UI_BUT_LIST_ITEM     = (1 << 24),  /* This but is "inside" a list item (currently used to change theme colors). */
+	UI_BUT_DRAG_MULTI    = (1 << 25),  /* edit this button as well as the active button (not just dragging) */
 };
 
 #define UI_PANEL_WIDTH          340

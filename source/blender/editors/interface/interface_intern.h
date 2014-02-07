@@ -402,6 +402,7 @@ extern void ui_check_but(uiBut *but);
 extern bool ui_is_but_float(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_is_but_bool(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_is_but_unit(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_is_but_compatible(const uiBut *but_a, const uiBut *but_b) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_is_but_rna_valid(uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_is_but_utf8(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_is_but_search_unlink_visible(const uiBut *but) ATTR_WARN_UNUSED_RESULT;

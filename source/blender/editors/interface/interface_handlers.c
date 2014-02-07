@@ -47,7 +47,11 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_linklist.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 #include "BLI_string_cursor_utf8.h"
 
@@ -85,6 +89,9 @@
 #define USE_CONT_MOUSE_CORRECT
 /* support dragging toggle buttons */
 #define USE_DRAG_TOGGLE
+
+/* support dragging multiple number buttons at once */
+#define USE_DRAG_MULTINUM
 
 /* so we can avoid very small mouse-moves from jumping away from keyboard navigation [#34936] */
 #define USE_KEYNAV_LIMIT
@@ -133,6 +140,59 @@ typedef enum uiHandleButtonState {
 	BUTTON_STATE_WAIT_DRAG,
 	BUTTON_STATE_EXIT
 } uiHandleButtonState;
+
+
+#ifdef USE_DRAG_MULTINUM
+
+/* how far to drag before we check for gesture direction (in pixels),
+ * note: half the height of a button is about right... */
+#define DRAG_MULTINUM_THRESHOLD_DRAG_X (UI_UNIT_Y / 4)
+
+/* how far to drag horizontally before we stop checkign which buttons the gesture spans (in pixels),
+ * locking down the buttons so we can drag freely without worrying about vertical movement. */
+#define DRAG_MULTINUM_THRESHOLD_DRAG_Y (UI_UNIT_Y / 4)
+
+/* how strict to be when detecting a vertical gesture, [0.5 == sloppy], [0.9 == strict], (unsigned dot-product)
+ * note: we should be quite strict here, since doing a vertical gesture by accident should be avoided,
+ * however with some care a user should be able to do a vertical movement without *missing*. */
+#define DRAG_MULTINUM_THRESHOLD_VERTICAL (0.75f)
+
+
+/* a simple version of uiHandleButtonData when accessing multiple buttons */
+typedef struct uiButMultiState {
+	double origvalue;
+	uiBut *but;
+} uiButMultiState;
+
+typedef struct uiHandleButtonMulti {
+	enum {
+		BUTTON_MULTI_INIT_UNSET = 0,    /* gesture direction unknown, wait until mouse has moved enough... */
+		BUTTON_MULTI_INIT_SETUP,        /* vertical gesture detected, flag buttons interactively (UI_BUT_DRAG_MULTI) */
+		BUTTON_MULTI_INIT_ENABLE,       /* flag buttons finished, apply horizontal motion to active and flagged */
+		BUTTON_MULTI_INIT_DISABLE,      /* vertical gesture _not_ detected, take no further action */
+	} init;
+
+	bool has_mbuts;  /* any buttons flagged UI_BUT_DRAG_MULTI */
+	LinkNode *mbuts;
+	uiButStore *bs_mbuts;
+
+	/* before activating, we need to check gesture direction
+	 * accumulate signed cursor movement here so we can tell if this is a vertical motion or not. */
+	float drag_dir[2];
+
+	/* values copied direct from event->x,y
+	 * used to detect buttons between the current and initial mouse position */
+	int drag_start[2];
+
+	/* store x location once BUTTON_MULTI_INIT_SETUP is set,
+	 * moving outside this sets BUTTON_MULTI_INIT_ENABLE */
+	int drag_lock_x;
+
+} uiHandleButtonMulti;
+
+#endif  /* USE_DRAG_MULTINUM */
+
+
 
 typedef struct uiHandleButtonData {
 	wmWindowManager *wm;
@@ -197,6 +257,11 @@ typedef struct uiHandleButtonData {
 	struct uiKeyNavLock searchbox_keynav_state;
 #endif
 
+#ifdef USE_DRAG_MULTINUM
+	/* Multi-buttons will be updated in unison with the active button. */
+	uiHandleButtonMulti multi_data;
+#endif
+
 	/* post activate */
 	uiButtonActivateType posttype;
 	uiBut *postbut;
@@ -250,6 +315,11 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *userdata);
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
 static void button_timers_tooltip_remove(bContext *C, uiBut *but);
+
+#ifdef USE_DRAG_MULTINUM
+static void ui_multibut_restore(uiHandleButtonData *data, uiBlock *block);
+static uiButMultiState *ui_multibut_lookup(uiHandleButtonData *data, const uiBut *but);
+#endif
 
 /* buttons clipboard */
 static ColorBand but_copypaste_coba = {0};
@@ -735,6 +805,182 @@ static void ui_apply_but_CURVE(bContext *C, uiBut *but, uiHandleButtonData *data
 }
 
 /* ****************** drag drop code *********************** */
+
+
+#ifdef USE_DRAG_MULTINUM
+
+/* small multi-but api */
+static void ui_multibut_add(uiHandleButtonData *data, uiBut *but)
+{
+	uiButMultiState *mbut_state;
+
+	BLI_assert(but->flag & UI_BUT_DRAG_MULTI);
+	BLI_assert(data->multi_data.has_mbuts);
+
+
+	mbut_state = MEM_callocN(sizeof(*mbut_state), __func__);
+	mbut_state->but = but;
+	mbut_state->origvalue = ui_get_but_val(but);
+
+	BLI_linklist_prepend(&data->multi_data.mbuts, mbut_state);
+
+	UI_butstore_register(data->multi_data.bs_mbuts, &mbut_state->but);
+}
+
+static uiButMultiState *ui_multibut_lookup(uiHandleButtonData *data, const uiBut *but)
+{
+	LinkNode *l;
+
+	for (l = data->multi_data.mbuts; l; l = l->next) {
+		uiButMultiState *mbut_state;
+
+		mbut_state = l->link;
+
+		if (mbut_state->but == but) {
+			return mbut_state;
+		}
+	}
+
+	return NULL;
+}
+
+static void ui_multibut_restore(uiHandleButtonData *data, uiBlock *block)
+{
+	uiBut *but;
+
+	for (but = block->buttons.first; but; but = but->next) {
+		if (but->flag & UI_BUT_DRAG_MULTI) {
+			uiButMultiState *mbut_state = ui_multibut_lookup(data, but);
+			if (mbut_state) {
+				ui_set_but_val(but, mbut_state->origvalue);
+			}
+		}
+	}
+}
+
+static void ui_multibut_free(uiHandleButtonData *data, uiBlock *block)
+{
+	BLI_linklist_freeN(data->multi_data.mbuts);
+	data->multi_data.mbuts = NULL;
+
+	if (data->multi_data.bs_mbuts) {
+		UI_butstore_free(block, data->multi_data.bs_mbuts);
+		data->multi_data.bs_mbuts = NULL;
+	}
+}
+
+static bool ui_multibut_states_tag(uiBut *but_active, uiHandleButtonData *data, const wmEvent *event)
+{
+	uiBut *but;
+	float seg[2][2];
+	bool changed = false;
+
+	seg[0][0] = data->multi_data.drag_start[0];
+	seg[0][1] = data->multi_data.drag_start[1];
+
+	seg[1][0] = event->x;
+	seg[1][1] = event->y;
+
+	BLI_assert(data->multi_data.init == BUTTON_MULTI_INIT_SETUP);
+
+	ui_window_to_block_fl(data->region, but_active->block, &seg[0][0], &seg[0][1]);
+	ui_window_to_block_fl(data->region, but_active->block, &seg[1][0], &seg[1][1]);
+
+	data->multi_data.has_mbuts = false;
+
+	/* follow ui_but_find_mouse_over_ex logic */
+	for (but = but_active->block->buttons.first; but; but = but->next) {
+		bool drag_prev = false;
+		bool drag_curr = false;
+
+		/* re-set each time */
+		if (but->flag & UI_BUT_DRAG_MULTI) {
+			but->flag &= ~UI_BUT_DRAG_MULTI;
+			drag_prev = true;
+		}
+
+		if (ui_is_but_interactive(but, false)) {
+
+			/* drag checks */
+			if (but_active != but) {
+				if (ui_is_but_compatible(but_active, but)) {
+
+					BLI_assert(but->active == NULL);
+
+					/* finally check for overlap */
+					if (BLI_rctf_isect_segment(&but->rect, seg[0], seg[1])) {
+
+						but->flag |= UI_BUT_DRAG_MULTI;
+						data->multi_data.has_mbuts = true;
+						drag_curr = true;
+					}
+				}
+			}
+		}
+
+		changed |= (drag_prev != drag_curr);
+	}
+
+	return changed;
+}
+
+static void ui_multibut_states_create(uiBut *but_active, uiHandleButtonData *data)
+{
+	uiBut *but;
+
+	BLI_assert(data->multi_data.init == BUTTON_MULTI_INIT_SETUP);
+
+	data->multi_data.bs_mbuts = UI_butstore_create(but_active->block);
+
+	for (but = but_active->block->buttons.first; but; but = but->next) {
+		if (but->flag & UI_BUT_DRAG_MULTI) {
+			ui_multibut_add(data, but);
+		}
+	}
+}
+
+static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBlock *block)
+{
+	ARegion *ar = data->region;
+	const double value_delta = data->value - data->origvalue;
+	uiBut *but;
+
+	BLI_assert(data->multi_data.init == BUTTON_MULTI_INIT_ENABLE);
+
+	for (but = block->buttons.first; but; but = but->next) {
+		if (but->flag & UI_BUT_DRAG_MULTI) {
+			/* mbut_states for delta */
+			uiButMultiState *mbut_state = ui_multibut_lookup(data, but);
+
+			if (mbut_state) {
+				void *active_back;
+
+				ui_button_execute_begin(C, ar, but, &active_back);
+				BLI_assert(active_back == NULL);
+				/* no need to check 'data->state' here */
+				if (data->str) {
+					/* entering text (set all) */
+					but->active->value = data->value;
+					ui_set_but_string(C, but, data->str);
+				}
+				else {
+					/* dragging (use delta) */
+					but->active->value = mbut_state->origvalue + value_delta;
+				}
+				ui_button_execute_end(C, ar, but, active_back);
+			}
+			else {
+				/* highly unlikely */
+				printf("%s: cant find button\n", __func__);
+			}
+			/* end */
+
+		}
+	}
+}
+
+#endif  /* USE_DRAG_MULTINUM */
+
 
 #ifdef USE_DRAG_TOGGLE
 
@@ -1353,6 +1599,19 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		default:
 			break;
 	}
+
+#ifdef USE_DRAG_MULTINUM
+	if (data->multi_data.has_mbuts) {
+		if (data->multi_data.init == BUTTON_MULTI_INIT_ENABLE) {
+			if (data->cancel) {
+				ui_multibut_restore(data, block);
+			}
+			else {
+				ui_multibut_states_apply(C, data, block);
+			}
+		}
+	}
+#endif
 
 	but->editstr = editstr;
 	but->editval = editval;
@@ -3184,6 +3443,10 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				retval = WM_UI_HANDLER_BREAK;
 			}
+
+#ifdef USE_DRAG_MULTINUM
+			copy_v2_v2_int(data->multi_data.drag_start, &event->x);
+#endif
 		}
 		
 	}
@@ -3205,12 +3468,24 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			const enum eSnapType snap = ui_event_to_snap(event);
 			float fac;
 
+#ifdef USE_DRAG_MULTINUM
+			data->multi_data.drag_dir[0] += fabsf(data->draglastx - mx);
+			data->multi_data.drag_dir[1] += fabsf(data->draglasty - my);
+#endif
+
 			fac = 1.0f;
 			if (event->shift) fac /= 10.0f;
 			if (event->alt)   fac /= 20.0f;
 
 			if (ui_numedit_but_NUM(but, data, (ui_is_a_warp_but(but) ? screen_mx : mx), snap, fac))
 				ui_numedit_apply(C, block, but, data);
+#ifdef USE_DRAG_MULTINUM
+			else if (data->multi_data.has_mbuts) {
+				if (data->multi_data.init == BUTTON_MULTI_INIT_ENABLE) {
+					ui_multibut_states_apply(C, data, block);
+				}
+			}
+#endif
 		}
 		retval = WM_UI_HANDLER_BREAK;
 	}
@@ -3286,6 +3561,9 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		retval = WM_UI_HANDLER_BREAK;
 	}
 	
+	data->draglastx = mx;
+	data->draglasty = my;
+
 	return retval;
 }
 
@@ -3451,6 +3729,9 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				retval = WM_UI_HANDLER_BREAK;
 			}
 		}
+#ifdef USE_DRAG_MULTINUM
+		copy_v2_v2_int(data->multi_data.drag_start, &event->x);
+#endif
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
 		if (event->type == ESCKEY || event->type == RIGHTMOUSE) {
@@ -3467,8 +3748,20 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				click = 1;
 		}
 		else if (event->type == MOUSEMOVE) {
+#ifdef USE_DRAG_MULTINUM
+			data->multi_data.drag_dir[0] += fabsf(data->draglastx - mx);
+			data->multi_data.drag_dir[1] += fabsf(data->draglasty - my);
+#endif
 			if (ui_numedit_but_SLI(but, data, mx, true, event->ctrl != 0, event->shift != 0))
 				ui_numedit_apply(C, block, but, data);
+
+#ifdef USE_DRAG_MULTINUM
+			else if (data->multi_data.has_mbuts) {
+				if (data->multi_data.init == BUTTON_MULTI_INIT_ENABLE) {
+					ui_multibut_states_apply(C, data, block);
+				}
+			}
+#endif
 		}
 		retval = WM_UI_HANDLER_BREAK;
 	}
@@ -3536,6 +3829,9 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			retval = WM_UI_HANDLER_BREAK;
 		}
 	}
+
+	data->draglastx = mx;
+	data->draglasty = my;
 	
 	return retval;
 }
@@ -5872,6 +6168,60 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 	}
 
+#ifdef USE_DRAG_MULTINUM
+	if (data) {
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) ||
+		    /* if we started dragging, progress on any event */
+		    (data->multi_data.init == BUTTON_MULTI_INIT_SETUP))
+		{
+			if (ELEM(but->type, NUM, NUMSLI) &&
+			    ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING))
+			{
+				/* initialize! */
+				if (data->multi_data.init == BUTTON_MULTI_INIT_UNSET) {
+					/* --> (BUTTON_MULTI_INIT_SETUP | BUTTON_MULTI_INIT_DISABLE) */
+
+					const float margin_y = DRAG_MULTINUM_THRESHOLD_DRAG_Y / sqrtf(block->aspect);
+
+					/* check if we have a vertical gesture */
+					if (len_squared_v2(data->multi_data.drag_dir) > (margin_y * margin_y)) {
+						const float dir_nor_y[2] = {0.0, 1.0f};
+						float dir_nor_drag[2];
+
+						normalize_v2_v2(dir_nor_drag, data->multi_data.drag_dir);
+
+						if (fabsf(dot_v2v2(dir_nor_drag, dir_nor_y)) > DRAG_MULTINUM_THRESHOLD_VERTICAL) {
+							data->multi_data.init = BUTTON_MULTI_INIT_SETUP;
+							data->multi_data.drag_lock_x = event->x;
+						}
+						else {
+							data->multi_data.init = BUTTON_MULTI_INIT_DISABLE;
+						}
+					}
+				}
+				else if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
+					/* --> (BUTTON_MULTI_INIT_ENABLE) */
+					const float margin_x = DRAG_MULTINUM_THRESHOLD_DRAG_X / sqrtf(block->aspect);
+					/* check if we're dont setting buttons */
+					if ((data->str && ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING)) ||
+					    ((abs(data->multi_data.drag_lock_x - event->x) > margin_x) &&
+					     /* just to be sure, check we're dragging more hoz then virt */
+					     abs(event->prevx - event->x) > abs(event->prevy - event->y)))
+					{
+						ui_multibut_states_create(but, data);
+						data->multi_data.init = BUTTON_MULTI_INIT_ENABLE;
+					}
+				}
+
+				if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
+					if (ui_multibut_states_tag(but, data, event)) {
+						ED_region_tag_redraw(data->region);
+					}
+				}
+			}
+		}
+	}
+#endif  /* USE_DRAG_MULTINUM */
 
 	return retval;
 }
@@ -6366,6 +6716,22 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 	if (!onfree)
 		ui_apply_button(C, block, but, data, false);
 
+#ifdef USE_DRAG_MULTINUM
+	if (data->multi_data.has_mbuts) {
+		for (bt = block->buttons.first; bt; bt = bt->next) {
+			if (bt->flag & UI_BUT_DRAG_MULTI) {
+				bt->flag &= ~UI_BUT_DRAG_MULTI;
+
+				if (!data->cancel) {
+					ui_apply_autokey(C, bt);
+				}
+			}
+		}
+
+		ui_multibut_free(data, block);
+	}
+#endif
+
 	/* if this button is in a menu, this will set the button return
 	 * value to the button value and the menu return value to ok, the
 	 * menu return value will be picked up and the menu will close */
@@ -6677,8 +7043,9 @@ void ui_button_execute_end(struct bContext *C, struct ARegion *UNUSED(ar), uiBut
 {
 	ui_apply_button(C, but->block, but, but->active, true);
 
-	ui_apply_autokey(C, but);
-
+	if ((but->flag & UI_BUT_DRAG_MULTI) == 0) {
+		ui_apply_autokey(C, but);
+	}
 	/* use onfree event so undo is handled by caller and apply is already done above */
 	button_activate_exit((bContext *)C, but, but->active, false, true);
 	but->active = active_back;
