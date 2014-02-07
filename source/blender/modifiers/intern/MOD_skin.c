@@ -774,7 +774,11 @@ static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
 
 	avg[0] = half_v2(evs[0]->radius);
 	avg[1] = half_v2(evs[1]->radius);
-	num_subdivisions = (int)((float)edge_len / (avg[0] + avg[1]));
+
+	if (avg[0] + avg[1] == 0.0f)
+		num_subdivisions = 0;
+	else
+		num_subdivisions = (int)((float)edge_len / (avg[0] + avg[1]));
 
 	/* If both ends are branch nodes, two intermediate nodes are
 	 * required */
