@@ -28,7 +28,7 @@ getopt \
 --long source:,install:,tmp:,threads:,help,with-all,with-opencollada,force-all,\
 force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-opencollada,\
 force-ffmpeg,skip-python,skip-numpy,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg,\
-skip-opencollada,required-numpy \
+skip-opencollada,required-numpy,libyaml-cpp-ver: \
 -- "$@" \
 )
 
@@ -161,7 +161,11 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --required-numpy
         Use this in case your distro features a valid python package, but no matching Numpy one.
-        It will force compilation of both python 3.3 and numpy 1.7.\""
+        It will force compilation of both python 3.3 and numpy 1.7.
+
+    --libyaml-cpp-ver=<ver>
+        Ubuntu hack: you may have to force installation of a non-defaut version of libyaml-cpp
+        (e.g. ocio in trusty uses 0.3, while default version is 0.5... *sigh*)\""
 
 ##### Main Vars #####
 
@@ -190,6 +194,8 @@ OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
 OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
+LIBYAML_CPP_VER_DEFINED=false
+LIBYAML_CPP_VER="0.0"
 
 OPENEXR_VERSION="2.1.0"
 OPENEXR_VERSION_MIN="2.0.1"
@@ -422,6 +428,9 @@ while true; do
     ;;
     --required-numpy)
       NUMPY_REQUIRED=true; shift; continue
+    ;;
+    --libyaml-cpp-ver)
+      LIBYAML_CPP_VER_DEFINED=true; LIBYAML_CPP_VER="$2"; shift; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -1648,6 +1657,10 @@ install_DEB() {
   PRINT ""
   INFO "Installing dependencies for DEB-based distribution"
   PRINT ""
+  WARNING "Ubuntu users: Beware of Trusty!!!"
+  PRINT "Ubuntu 14.4 comes with a default libyaml-cpp in 0.5 version, while their ocio package still uses the 0.3 version"
+  PRINT "You have to use '--libyaml-cpp-ver=0.3' option (else Blender will builds with 0.5, and break when using packaged ocio)..."
+  PRINT ""
   PRINT "`eval _echo "$COMMON_INFO"`"
   PRINT ""
 
@@ -1697,10 +1710,23 @@ install_DEB() {
   OGG_USE=true
   THEORA_USE=true
 
+  PRINT "$LIBYAML_CPP_VER"
   # Some not-so-old distro (ubuntu 12.4) do not have it, do not fail in this case, just warn.
   YAMLCPP_DEV="libyaml-cpp-dev"
   check_package_DEB $YAMLCPP_DEV
   if [ $? -eq 0 ]; then
+    # Another Ubuntu hack - in 14.4, ocio uses (old) 0.3, while default is now 0.5... grrrrr.
+    if $LIBYAML_CPP_VER_DEFINED; then
+      YAMLCPP_VER_DEV="libyaml-cpp$LIBYAML_CPP_VER-dev"
+      check_package_DEB $YAMLCPP_VER_DEV
+      if [ $? -eq 0 ]; then
+        YAMLCPP_DEV=$YAMLCPP_VER_DEV
+      else
+        PRINT ""
+        WARNING "libyaml-cpp$LIBYAML_CPP_VER-dev not found!"
+        PRINT ""
+      fi
+    fi
     _packages="$_packages $YAMLCPP_DEV"
   else
     PRINT ""
