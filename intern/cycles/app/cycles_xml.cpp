@@ -1036,8 +1036,10 @@ static void xml_read_include(const XMLReadState& state, const string& src)
 
 		xml_read_scene(substate, doc);
 	}
-	else
+	else {
 		fprintf(stderr, "%s read error: %s\n", src.c_str(), parse_result.description());
+		exit(EXIT_FAILURE);
+	}
 }
 
 /* File */
