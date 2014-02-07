@@ -723,7 +723,11 @@ bool uiButActiveOnly(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
 /* simulate button click */
 void uiButExecute(const bContext *C, uiBut *but)
 {
-	ui_button_execute_do((bContext *)C, CTX_wm_region(C), but);
+	ARegion *ar = CTX_wm_region(C);
+	void *active_back;
+	ui_button_execute_begin((bContext *)C, ar, but, &active_back);
+	/* Value is applied in begin. No further action required. */
+	ui_button_execute_end((bContext *)C, ar, but, active_back);
 }
 
 /* use to check if we need to disable undo, but don't make any changes

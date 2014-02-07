@@ -6662,18 +6662,25 @@ void ui_button_activate_do(bContext *C, ARegion *ar, uiBut *but)
 	ui_do_button(C, but->block, but, &event);
 }
 
-void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but)
+void ui_button_execute_begin(struct bContext *UNUSED(C), struct ARegion *ar, uiBut *but, void **active_back)
 {
 	/* note: ideally we would not have to change 'but->active' howevwer
 	 * some functions we call don't use data (as they should be doing) */
-	void *active_back = but->active;
-	uiHandleButtonData *data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData_Fake");
+	uiHandleButtonData *data;
+	*active_back = but->active;
+	data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData_Fake");
 	but->active = data;
 	data->region = ar;
-	ui_apply_button(C, but->block, but, data, true);
-	/* use onfree event so undo is handled by caller and apply is already done above */
+}
+
+void ui_button_execute_end(struct bContext *C, struct ARegion *UNUSED(ar), uiBut *but, void *active_back)
+{
+	ui_apply_button(C, but->block, but, but->active, true);
+
 	ui_apply_autokey(C, but);
-	button_activate_exit((bContext *)C, but, data, false, true);
+
+	/* use onfree event so undo is handled by caller and apply is already done above */
+	button_activate_exit((bContext *)C, but, but->active, false, true);
 	but->active = active_back;
 }
 
