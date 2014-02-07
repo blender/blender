@@ -699,7 +699,12 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 {
 	Shader *shader = new Shader();
+
 	xml_read_string(&shader->name, node, "name");
+	xml_read_bool(&shader->use_mis, node, "use_mis");
+	xml_read_bool(&shader->use_transparent_shadow, node, "use_transparent_shadow");
+	xml_read_bool(&shader->heterogeneous_volume, node, "heterogeneous_volume");
+
 	xml_read_shader_graph(state, shader, node);
 	state.scene->shaders.push_back(shader);
 }
