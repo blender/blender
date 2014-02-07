@@ -27,6 +27,7 @@
 extern "C" {
 	#include "BLI_utildefines.h"
 	#include "BKE_object.h"
+	#include "BLI_listbase.h"
 }
 
 #include "SceneExporter.h"
