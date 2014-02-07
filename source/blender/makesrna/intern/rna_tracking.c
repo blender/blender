@@ -819,7 +819,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_default_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED);
-	RNA_def_property_ui_text(prop, "Show Expanded", "Show the expanded in the user interface");
+	RNA_def_property_ui_text(prop, "Show Expanded", "Show default options expanded in the user interface");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+
+	/* ** extra tracker settings ** */
+	prop = RNA_def_property(srna, "show_extra_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_SETTINGS_SHOW_EXTRA_EXPANDED);
+	RNA_def_property_ui_text(prop, "Show Expanded", "Show extra options expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 	/* solver settings */

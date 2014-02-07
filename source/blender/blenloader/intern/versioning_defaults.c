@@ -30,6 +30,8 @@
 #include "DNA_freestyle_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_main.h"
@@ -56,5 +58,22 @@ void BLO_update_defaults_startup_blend(Main *main)
 
 	for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next)
 		linestyle->flag = LS_SAME_OBJECT;
+
+	{
+		bScreen *screen;
+
+		for (screen = main->screen.first; screen; screen = screen->id.next) {
+			ScrArea *area;
+			for (area = screen->areabase.first; area; area = area->next) {
+				SpaceLink *space_link;
+				for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
+					if (space_link->spacetype == SPACE_CLIP) {
+						SpaceClip *space_clip = (SpaceClip *) space_link;
+						space_clip->flag &= ~SC_MANUAL_CALIBRATION;
+					}
+				}
+			}
+		}
+	}
 }
 

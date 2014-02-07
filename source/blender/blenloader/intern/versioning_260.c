@@ -2699,5 +2699,24 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		} FOREACH_NODETREE_END
+
+		{
+			bScreen *screen;
+
+			for (screen = main->screen.first; screen; screen = screen->id.next) {
+				ScrArea *area;
+				for (area = screen->areabase.first; area; area = area->next) {
+					SpaceLink *space_link;
+					for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
+						if (space_link->spacetype == SPACE_CLIP) {
+							SpaceClip *space_clip = (SpaceClip *) space_link;
+							if (space_clip->mode != SC_MODE_MASKEDIT) {
+								space_clip->mode = SC_MODE_TRACKING;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }

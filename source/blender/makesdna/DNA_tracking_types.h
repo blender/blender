@@ -402,7 +402,8 @@ enum {
 
 /* MovieTrackingSettings->flag */
 enum {
-	TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED = (1 << 0)
+	TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED = (1 << 0),
+	TRACKING_SETTINGS_SHOW_EXTRA_EXPANDED = (1 << 1)
 };
 
 /* MovieTrackingSettings->motion_flag */

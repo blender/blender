@@ -216,21 +216,24 @@ class MASK_PT_display():
         layout = self.layout
 
         space_data = context.space_data
-
-        layout.prop(space_data, "mask_draw_type", text="")
-        layout.prop(space_data, "show_mask_smooth")
-
-        layout.prop(space_data, "show_mask_overlay")
-        row = layout.row()
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(space_data, "show_mask_smooth", text="Smooth")
+        row.prop(space_data, "mask_draw_type", text="")
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(space_data, "show_mask_overlay", text="Overlay")
         row.active = space_data.show_mask_overlay
         row.prop(space_data, "mask_overlay_mode", text="")
 
 
-class MASK_PT_tools():
+class MASK_PT_transforms():
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'TOOLS'
-    bl_label = "Mask Tools"
+    bl_label = "Transforms"
+    bl_category = "Mask"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -247,24 +250,63 @@ class MASK_PT_tools():
         col.operator("transform.resize", text="Scale")
         col.operator("transform.transform", text="Scale Feather").mode = 'MASK_SHRINKFATTEN'
 
+
+class MASK_PT_tools():
+    # subclasses must define...
+    #~ bl_space_type = 'CLIP_EDITOR'
+    #~ bl_region_type = 'TOOLS'
+    bl_label = "Mask Tools"
+    bl_category = "Mask"
+
+    @classmethod
+    def poll(cls, context):
+        space_data = context.space_data
+        return space_data.mask and space_data.mode == 'MASK'
+
+    def draw(self, context):
+        layout = self.layout
+
         col = layout.column(align=True)
         col.label(text="Spline:")
         col.operator("mask.delete")
         col.operator("mask.cyclic_toggle")
         col.operator("mask.switch_direction")
         col.operator("mask.handle_type_set")
+        col.operator("mask.feather_weight_clear")
 
         col = layout.column(align=True)
         col.label(text="Parenting:")
-        col.operator("mask.parent_set")
-        col.operator("mask.parent_clear")
+        row = col.row(align=True)
+        row.operator("mask.parent_set", text="Parent")
+        row.operator("mask.parent_clear", text="Clear")
 
         col = layout.column(align=True)
         col.label(text="Animation:")
-        col.operator("mask.shape_key_clear")
-        col.operator("mask.shape_key_insert")
-        col.operator("mask.shape_key_feather_reset")
-        col.operator("mask.shape_key_rekey")
+        row = col.row(align=True)
+        row.operator("mask.shape_key_clear", text="Insert Key")
+        row.operator("mask.shape_key_insert", text="Clear Key")
+        col.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
+        col.operator("mask.shape_key_rekey", text="Re-Key Shape Points")
+
+
+class MASK_PT_add():
+    # subclasses must define...
+    #~ bl_space_type = 'CLIP_EDITOR'
+    #~ bl_region_type = 'TOOLS'
+    bl_label = "Add"
+    bl_category = "Mask"
+
+    @classmethod
+    def poll(cls, context):
+        space_data = context.space_data
+        return space_data.mode == 'MASK'
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.operator("mask.primitive_circle_add", icon="MESH_CIRCLE")
+        col.operator("mask.primitive_square_add", icon="MESH_PLANE")
 
 
 class MASK_MT_mask(Menu):
@@ -284,10 +326,6 @@ class MASK_MT_mask(Menu):
         layout.separator()
         layout.operator("mask.parent_clear")
         layout.operator("mask.parent_set")
-
-        layout.separator()
-        layout.operator("mask.copy_splines")
-        layout.operator("mask.paste_splines")
 
         layout.separator()
         layout.menu("MASK_MT_visibility")
@@ -349,6 +387,7 @@ class MASK_MT_select(Menu):
 
         layout.operator("mask.select_all").action = 'TOGGLE'
         layout.operator("mask.select_all", text="Inverse").action = 'INVERT'
+        layout.operator("mask.select_linked", text="Select Linked")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

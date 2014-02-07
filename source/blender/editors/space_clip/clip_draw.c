@@ -1527,9 +1527,6 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	float dx = (float)width / n, dy = (float)height / n * aspy;
 	float offsx = 0.0f, offsy = 0.0f;
 
-	if (sc->mode != SC_MODE_DISTORTION)
-		return;
-
 	if (!tracking->camera.focal)
 		return;
 
@@ -1818,7 +1815,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 	if (onlyv2d) {
 		/* if manual calibration is used then grease pencil data is already
 		 * drawn in draw_distortion */
-		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0 || sc->mode != SC_MODE_DISTORTION) {
+		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0) {
 			glPushMatrix();
 			glMultMatrixf(sc->unistabmat);
 

@@ -504,7 +504,7 @@ void ED_clip_mouse_pos(SpaceClip *sc, ARegion *ar, const int mval[2], float co[2
 bool ED_space_clip_check_show_trackedit(SpaceClip *sc)
 {
 	if (sc) {
-		return ELEM3(sc->mode, SC_MODE_TRACKING, SC_MODE_RECONSTRUCTION, SC_MODE_DISTORTION);
+		return sc->mode == SC_MODE_TRACKING;
 	}
 
 	return false;
