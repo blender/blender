@@ -525,6 +525,17 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 	return true;
 }
 
+static uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new)
+{
+	uiBut *but_old;
+	for (but_old = block_old->buttons.first; but_old; but_old = but_old->next) {
+		if (ui_but_equals_old(but_new, but_old)) {
+			break;
+		}
+	}
+	return but_old;
+}
+
 /* oldbut is being inserted in new block, so we use the lines from new button, and replace button pointers */
 static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut)
 {
@@ -557,96 +568,91 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
 	}
 }
 
-static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **butpp)
+/**
+ * \return true when \a but_p is set (only done for active buttons).
+ */
+static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **but_p)
 {
 	/* flags from the buttons we want to refresh, may want to add more here... */
 	const int flag_copy = UI_BUT_REDALERT;
 	const int drawflag_copy = 0;  /* None currently. */
 
 	uiBlock *oldblock;
-	uiBut *oldbut, *but = *butpp;
-	int found = 0;
+	uiBut *oldbut, *but = *but_p;
+	bool found_active = false;
 
-	oldblock = block->oldblock;
-	if (!oldblock)
-		return found;
+	oldbut = ui_but_find_old(oldblock, but);
 
-	for (oldbut = oldblock->buttons.first; oldbut; oldbut = oldbut->next) {
-		if (ui_but_equals_old(but, oldbut)) {
-			if (oldbut->active) {
+	if (!oldbut)
+		return found_active;
+
+	if (oldbut->active) {
+		found_active = true;
+
 #if 0
-//				but->flag = oldbut->flag;
-#else
-				/* exception! redalert flag can't be update from old button. 
-				 * perhaps it should only copy specific flags rather than all. */
-//				but->flag = (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
+		but->flag = oldbut->flag;
+		but->active = oldbut->active;
+		but->pos = oldbut->pos;
+		but->ofs = oldbut->ofs;
+		but->editstr = oldbut->editstr;
+		but->editval = oldbut->editval;
+		but->editvec = oldbut->editvec;
+		but->editcoba = oldbut->editcoba;
+		but->editcumap = oldbut->editcumap;
+		but->selsta = oldbut->selsta;
+		but->selend = oldbut->selend;
+		but->softmin = oldbut->softmin;
+		but->softmax = oldbut->softmax;
+		but->linkto[0] = oldbut->linkto[0];
+		but->linkto[1] = oldbut->linkto[1];
+		oldbut->active = NULL;
 #endif
-//				but->active = oldbut->active;
-//				but->pos = oldbut->pos;
-//				but->ofs = oldbut->ofs;
-//				but->editstr = oldbut->editstr;
-//				but->editval = oldbut->editval;
-//				but->editvec = oldbut->editvec;
-//				but->editcoba = oldbut->editcoba;
-//				but->editcumap = oldbut->editcumap;
-//				but->selsta = oldbut->selsta;
-//				but->selend = oldbut->selend;
-//				but->softmin = oldbut->softmin;
-//				but->softmax = oldbut->softmax;
-//				but->linkto[0] = oldbut->linkto[0];
-//				but->linkto[1] = oldbut->linkto[1];
-				found = 1;
-//				oldbut->active = NULL;
-			
-				/* move button over from oldblock to new block */
-				BLI_remlink(&oldblock->buttons, oldbut);
-				BLI_insertlinkafter(&block->buttons, but, oldbut);
-				oldbut->block = block;
-				*butpp = oldbut;
-				
-				/* still stuff needs to be copied */
-				oldbut->rect = but->rect;
-				oldbut->context = but->context; /* set by Layout */
 
-				/* drawing */
-				oldbut->icon = but->icon;
-				oldbut->iconadd = but->iconadd;
-				oldbut->alignnr = but->alignnr;
-				
-				/* typically the same pointers, but not on undo/redo */
-				/* XXX some menu buttons store button itself in but->poin. Ugly */
-				if (oldbut->poin != (char *)oldbut) {
-					SWAP(char *, oldbut->poin, but->poin);
-					SWAP(void *, oldbut->func_argN, but->func_argN);
-				}
+		/* move button over from oldblock to new block */
+		BLI_remlink(&oldblock->buttons, oldbut);
+		BLI_insertlinkafter(&block->buttons, but, oldbut);
+		oldbut->block = block;
+		*but_p = oldbut;
 
-				oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
-				oldbut->drawflag = (oldbut->drawflag & ~drawflag_copy) | (but->drawflag & drawflag_copy);
+		/* still stuff needs to be copied */
+		oldbut->rect = but->rect;
+		oldbut->context = but->context; /* set by Layout */
 
-				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
-				 * when scrolling without moving mouse (see [#28432]) */
-				if (ELEM(oldbut->type, ROW, LISTROW))
-					oldbut->hardmax = but->hardmax;
-				
-				ui_but_update_linklines(block, oldbut, but);
-				
-				BLI_remlink(&block->buttons, but);
-				ui_free_but(C, but);
-				
-				/* note: if layout hasn't been applied yet, it uses old button pointers... */
-			}
-			else {
-				/* ensures one button can get activated, and in case the buttons
-				 * draw are the same this gives O(1) lookup for each button */
-				BLI_remlink(&oldblock->buttons, oldbut);
-				ui_free_but(C, oldbut);
-			}
-			
-			break;
+		/* drawing */
+		oldbut->icon = but->icon;
+		oldbut->iconadd = but->iconadd;
+		oldbut->alignnr = but->alignnr;
+
+		/* typically the same pointers, but not on undo/redo */
+		/* XXX some menu buttons store button itself in but->poin. Ugly */
+		if (oldbut->poin != (char *)oldbut) {
+			SWAP(char *, oldbut->poin, but->poin);
+			SWAP(void *, oldbut->func_argN, but->func_argN);
 		}
+
+		oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
+		oldbut->drawflag = (oldbut->drawflag & ~drawflag_copy) | (but->drawflag & drawflag_copy);
+
+		/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
+		 * when scrolling without moving mouse (see [#28432]) */
+		if (ELEM(oldbut->type, ROW, LISTROW))
+			oldbut->hardmax = but->hardmax;
+
+		ui_but_update_linklines(block, oldbut, but);
+
+		BLI_remlink(&block->buttons, but);
+		ui_free_but(C, but);
+
+		/* note: if layout hasn't been applied yet, it uses old button pointers... */
 	}
-	
-	return found;
+	else {
+		/* ensures one button can get activated, and in case the buttons
+		 * draw are the same this gives O(1) lookup for each button */
+		BLI_remlink(&oldblock->buttons, oldbut);
+		ui_free_but(C, oldbut);
+	}
+
+	return found_active;
 }
 
 /* needed for temporarily rename buttons, such as in outliner or file-select,
@@ -663,14 +669,12 @@ bool uiButActiveOnly(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
 		activate = true;
 	}
 	else {
-		for (oldbut = oldblock->buttons.first; oldbut; oldbut = oldbut->next) {
-			if (ui_but_equals_old(oldbut, but)) {
-				found = true;
-				
-				if (oldbut->active)
-					isactive = true;
-				
-				break;
+		oldbut = ui_but_find_old(oldblock, but);
+		if (oldbut) {
+			found = true;
+
+			if (oldbut->active) {
+				isactive = true;
 			}
 		}
 	}
@@ -989,6 +993,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 
 void uiEndBlock(const bContext *C, uiBlock *block)
 {
+	const bool has_old = (block->oldblock != NULL);
 	uiBut *but;
 	Scene *scene = CTX_data_scene(C);
 
@@ -997,8 +1002,9 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	 * blocking, while still allowing buttons to be remade each redraw as it
 	 * is expected by blender code */
 	for (but = block->buttons.first; but; but = but->next) {
-		if (ui_but_update_from_old_block(C, block, &but))
+		if (has_old && ui_but_update_from_old_block(C, block, &but)) {
 			ui_check_but(but);
+		}
 		
 		/* temp? Proper check for graying out */
 		if (but->optype) {
