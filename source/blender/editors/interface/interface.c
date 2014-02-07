@@ -571,20 +571,40 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
 /**
  * \return true when \a but_p is set (only done for active buttons).
  */
-static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **but_p)
+static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **but_p, uiBut **but_old_p)
 {
 	/* flags from the buttons we want to refresh, may want to add more here... */
 	const int flag_copy = UI_BUT_REDALERT;
 	const int drawflag_copy = 0;  /* None currently. */
 
-	uiBlock *oldblock;
-	uiBut *oldbut, *but = *but_p;
+	uiBlock *oldblock = block->oldblock;
+	uiBut *oldbut = NULL, *but = *but_p;
 	bool found_active = false;
 
-	oldbut = ui_but_find_old(oldblock, but);
 
-	if (!oldbut)
+#if 0
+	/* simple/stupid - search every time */
+	oldbut = ui_but_find_old(oldblock, but);
+	(void)but_old_p;
+#else
+	BLI_assert(*but_old_p == NULL || BLI_findindex(&oldblock->buttons, *but_old_p) != -1);
+
+	/* fastpath - avoid loop-in-loop, calling 'ui_but_find_old'
+	 * as long as old/new buttons are aligned */
+	if (LIKELY(*but_old_p && ui_but_equals_old(but, *but_old_p))) {
+		oldbut = *but_old_p;
+	}
+	else {
+		/* fallback to block search */
+		oldbut = ui_but_find_old(oldblock, but);
+	}
+	(*but_old_p) = oldbut ? oldbut->next : NULL;
+#endif
+
+
+	if (!oldbut) {
 		return found_active;
+	}
 
 	if (oldbut->active) {
 		found_active = true;
@@ -994,6 +1014,9 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 void uiEndBlock(const bContext *C, uiBlock *block)
 {
 	const bool has_old = (block->oldblock != NULL);
+	/* avoid searches when old/new lists align */
+	uiBut *but_old = has_old ? block->oldblock->buttons.first : NULL;
+
 	uiBut *but;
 	Scene *scene = CTX_data_scene(C);
 
@@ -1002,7 +1025,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	 * blocking, while still allowing buttons to be remade each redraw as it
 	 * is expected by blender code */
 	for (but = block->buttons.first; but; but = but->next) {
-		if (has_old && ui_but_update_from_old_block(C, block, &but)) {
+		if (has_old && ui_but_update_from_old_block(C, block, &but, &but_old)) {
 			ui_check_but(but);
 		}
 		
