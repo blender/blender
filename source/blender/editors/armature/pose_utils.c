@@ -129,7 +129,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks, Object *ob, bAction *a
 	/* if no PoseChannels were found, try a second pass, doing visible ones instead
 	 * i.e. if nothing selected, do whole pose
 	 */
-	if (pfLinks->first == NULL) {
+	if (BLI_listbase_is_empty(pfLinks)) {
 		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
 		{
 			fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);

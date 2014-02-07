@@ -227,7 +227,7 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
 	/* in the case of only one editable thing, set pset->edittype accordingly */
-	if (pidlist.first && pidlist.first == pidlist.last) {
+	if (BLI_listbase_is_single(&pidlist)) {
 		pid = pidlist.first;
 		switch (pid->type) {
 			case PTCACHE_TYPE_PARTICLES:
@@ -4266,7 +4266,7 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 	if (cache && cache->flag & PTCACHE_DISK_CACHE)
 		return;
 
-	if (psys == NULL && (cache && cache->mem_cache.first == NULL))
+	if (psys == NULL && (cache && BLI_listbase_is_empty(&cache->mem_cache)))
 		return;
 
 	edit = (psys) ? psys->edit : cache->edit;
@@ -4285,7 +4285,7 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 			psys->free_edit= PE_free_ptcache_edit;
 
 			edit->pathcache = NULL;
-			edit->pathcachebufs.first = edit->pathcachebufs.last = NULL;
+			BLI_listbase_clear(&edit->pathcachebufs);
 
 			pa = psys->particles;
 			LOOP_POINTS {

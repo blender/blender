@@ -50,13 +50,13 @@ void BKE_freestyle_config_init(FreestyleConfig *config)
 {
 	config->mode = FREESTYLE_CONTROL_EDITOR_MODE;
 
-	config->modules.first = config->modules.last = NULL;
+	BLI_listbase_clear(&config->modules);
 	config->flags = 0;
 	config->sphere_radius = 0.1f;
 	config->dkr_epsilon = 0.0f;
 	config->crease_angle = DEG2RADF(134.43f);
 
-	config->linesets.first = config->linesets.last = NULL;
+	BLI_listbase_clear(&config->linesets);
 }
 
 void BKE_freestyle_config_free(FreestyleConfig *config)
@@ -88,14 +88,14 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *con
 	new_config->dkr_epsilon = config->dkr_epsilon;
 	new_config->crease_angle = config->crease_angle;
 
-	new_config->linesets.first = new_config->linesets.last = NULL;
+	BLI_listbase_clear(&new_config->linesets);
 	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		new_lineset = alloc_lineset();
 		copy_lineset(new_lineset, lineset);
 		BLI_addtail(&new_config->linesets, (void *)new_lineset);
 	}
 
-	new_config->modules.first = new_config->modules.last = NULL;
+	BLI_listbase_clear(&new_config->modules);
 	for (module = (FreestyleModuleConfig *)config->modules.first; module; module = module->next) {
 		new_module = alloc_module();
 		copy_module(new_module, module);

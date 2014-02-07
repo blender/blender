@@ -1197,7 +1197,7 @@ static void count_images(MultiresBakeRender *bkr)
 	DerivedMesh *dm = bkr->lores_dm;
 	MTFace *mtface = CustomData_get_layer(&dm->faceData, CD_MTFACE);
 
-	bkr->image.first = bkr->image.last = NULL;
+	BLI_listbase_clear(&bkr->image);
 	bkr->tot_image = 0;
 
 	totface = dm->getNumTessFaces(dm);

@@ -319,7 +319,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		ma = give_current_material(ob, ob->actcol);
 
 	/* fill users */
-	users->first = users->last = NULL;
+	BLI_listbase_clear(users);
 
 	if (ma && !limited_mode)
 		buttons_texture_users_find_nodetree(users, &ma->id, ma->nodetree, "Material");

@@ -3978,7 +3978,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 	/* temporarily disable other paint cursors */
 	wm = CTX_wm_manager(C);
 	rc->orig_paintcursors = wm->paintcursors;
-	wm->paintcursors.first = wm->paintcursors.last = NULL;
+	BLI_listbase_clear(&wm->paintcursors);
 
 	/* add radial control paint cursor */
 	rc->cursor = WM_paint_cursor_activate(wm, op->type->poll,

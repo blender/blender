@@ -2210,8 +2210,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				sce->r.yparts = 4;
 
 			/* adds default layer */
-			if (sce->r.layers.first == NULL)
+			if (BLI_listbase_is_empty(&sce->r.layers)) {
 				BKE_scene_add_render_layer(sce, NULL);
+			}
 			else {
 				SceneRenderLayer *srl;
 				/* new layer flag for sky, was default for solid */

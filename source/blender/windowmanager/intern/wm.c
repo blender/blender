@@ -369,8 +369,10 @@ void WM_check(bContext *C)
 		wm = CTX_data_main(C)->wm.first;
 		CTX_wm_manager_set(C, wm);
 	}
-	if (wm == NULL) return;
-	if (wm->windows.first == NULL) return;
+
+	if (wm == NULL || BLI_listbase_is_empty(&wm->windows)) {
+		return;
+	}
 
 	if (!G.background) {
 		/* case: fileread */
@@ -401,8 +403,10 @@ void wm_clear_default_size(bContext *C)
 		wm = CTX_data_main(C)->wm.first;
 		CTX_wm_manager_set(C, wm);
 	}
-	if (wm == NULL) return;
-	if (wm->windows.first == NULL) return;
+
+	if (wm == NULL || BLI_listbase_is_empty(&wm->windows)) {
+		return;
+	}
 	
 	for (win = wm->windows.first; win; win = win->next) {
 		win->sizex = 0;

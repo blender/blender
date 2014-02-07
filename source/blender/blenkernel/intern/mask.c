@@ -742,8 +742,7 @@ Mask *BKE_mask_copy_nolib(Mask *mask)
 	/*take care here! - we may want to copy anim data  */
 	mask_new->adt = NULL;
 
-	mask_new->masklayers.first = NULL;
-	mask_new->masklayers.last = NULL;
+	BLI_listbase_clear(&mask_new->masklayers);
 
 	BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
 
@@ -762,8 +761,7 @@ Mask *BKE_mask_copy(Mask *mask)
 
 	mask_new = BKE_libblock_copy(&mask->id);
 
-	mask_new->masklayers.first = NULL;
-	mask_new->masklayers.last = NULL;
+	BLI_listbase_clear(&mask_new->masklayers);
 
 	BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
 
@@ -1947,7 +1945,7 @@ int BKE_mask_get_duration(Mask *mask)
 static void mask_clipboard_free_ex(bool final_free)
 {
 	BKE_mask_spline_free_list(&mask_clipboard.splines);
-	mask_clipboard.splines.first = mask_clipboard.splines.last = NULL;
+	BLI_listbase_clear(&mask_clipboard.splines);
 	if (mask_clipboard.id_hash) {
 		if (final_free) {
 			BLI_ghash_free(mask_clipboard.id_hash, NULL, MEM_freeN);
@@ -2005,7 +2003,7 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
 /* Check clipboard is empty. */
 bool BKE_mask_clipboard_is_empty(void)
 {
-	return mask_clipboard.splines.first == NULL;
+	return BLI_listbase_is_empty(&mask_clipboard.splines);
 }
 
 /* Paste the contents of clipboard to given mask layer */

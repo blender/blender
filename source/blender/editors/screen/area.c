@@ -1447,7 +1447,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 				break;
 		
 		/* old spacedata... happened during work on 2.50, remove */
-		if (sl && sl->regionbase.first == NULL) {
+		if (sl && BLI_listbase_is_empty(&sl->regionbase)) {
 			st->free(sl);
 			BLI_freelinkN(&sa->spacedata, sl);
 			if (slold == sl) {
@@ -1460,7 +1460,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 			/* swap regions */
 			slold->regionbase = sa->regionbase;
 			sa->regionbase = sl->regionbase;
-			sl->regionbase.first = sl->regionbase.last = NULL;
+			BLI_listbase_clear(&sl->regionbase);
 			
 			/* put in front of list */
 			BLI_remlink(&sa->spacedata, sl);
@@ -1476,7 +1476,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 				if (slold)
 					slold->regionbase = sa->regionbase;
 				sa->regionbase = sl->regionbase;
-				sl->regionbase.first = sl->regionbase.last = NULL;
+				BLI_listbase_clear(&sl->regionbase);
 			}
 		}
 		

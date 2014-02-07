@@ -140,7 +140,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	 *	- must have verts and therefore verts assigned to vgroups to do anything useful
 	 */
 	if (!(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) ||
-	    (maxVerts == 0) || (ob->defbase.first == NULL))
+	    (maxVerts == 0) || BLI_listbase_is_empty(&ob->defbase))
 	{
 		return dm;
 	}

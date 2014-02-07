@@ -1342,7 +1342,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 					qsort(tear + skip, totelem - skip, sizeof(tTreeSort), treesort_alpha_ob);
 			}
 			
-			lb->first = lb->last = NULL;
+			BLI_listbase_clear(lb);
 			tp = tear;
 			while (totelem--) {
 				BLI_addtail(lb, tp->te);
@@ -1443,7 +1443,7 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 	}
 	
 	/* if there are still items in the list, that means that there were still some matches */
-	return (lb->first != NULL);
+	return (BLI_listbase_is_empty(lb) == false);
 }
 
 static void outliner_add_library_contents(Main *mainvar, SpaceOops *soops, TreeElement *te, Library *lib)

@@ -386,8 +386,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
 	/* setup context */
 	{
-		pc.state_lb.first = NULL;
-		pc.state_lb.last = NULL;
+		BLI_listbase_clear(&pc.state_lb);
 		pc.link_pool = BLI_mempool_create(sizeof(PathLink), 1, 512, BLI_MEMPOOL_SYSMALLOC);
 	}
 
@@ -486,7 +485,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (pc.state_lb.first == NULL) {
+	if (BLI_listbase_is_empty(&pc.state_lb)) {
 		found_all = false;
 	}
 

@@ -149,7 +149,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	/* set up renderdata */
 	envre->r = re->r;
 	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
-	envre->r.layers.first = envre->r.layers.last = NULL;
+	BLI_listbase_clear(&envre->r.layers);
 	envre->r.filtertype = 0;
 	envre->r.tilex = envre->r.xsch / 2;
 	envre->r.tiley = envre->r.ysch / 2;
@@ -202,11 +202,11 @@ static void envmap_free_render_copy(Render *envre)
 	envre->totlamp = 0;
 	envre->totinstance = 0;
 	envre->sortedhalos = NULL;
-	envre->lights.first = envre->lights.last = NULL;
-	envre->objecttable.first = envre->objecttable.last = NULL;
-	envre->customdata_names.first = envre->customdata_names.last = NULL;
+	BLI_listbase_clear(&envre->lights);
+	BLI_listbase_clear(&envre->objecttable);
+	BLI_listbase_clear(&envre->customdata_names);
 	envre->raytree = NULL;
-	envre->instancetable.first = envre->instancetable.last = NULL;
+	BLI_listbase_clear(&envre->instancetable);
 	envre->objectinstance = NULL;
 	envre->qmcsamplers = NULL;
 	

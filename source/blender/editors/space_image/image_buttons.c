@@ -493,7 +493,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 
 	if (rr == NULL || iuser == NULL)
 		return;
-	if (rr->layers.first == NULL) {
+	if (BLI_listbase_is_empty(&rr->layers)) {
 		uiItemL(row, IFACE_("No Layers in Render Result"), ICON_NONE);
 		return;
 	}

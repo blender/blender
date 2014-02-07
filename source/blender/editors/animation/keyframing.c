@@ -183,7 +183,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 		fcu = MEM_callocN(sizeof(FCurve), "FCurve");
 		
 		fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
-		if (act->curves.first == NULL)
+		if (BLI_listbase_is_empty(&act->curves))
 			fcu->flag |= FCURVE_ACTIVE;  /* first one added active */
 			
 		/* store path - make copy, and store that */

@@ -1455,7 +1455,7 @@ static void action_to_animato(ID *id, bAction *act, ListBase *groups, ListBase *
 	bConstraintChannel *conchan, *conchann;
 	
 	/* only continue if there are Action Channels (indicating unconverted data) */
-	if (act->chanbase.first == NULL)
+	if (BLI_listbase_is_empty(&act->chanbase))
 		return;
 		
 	/* get rid of all Action Groups */

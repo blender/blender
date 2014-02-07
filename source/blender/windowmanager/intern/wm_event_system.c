@@ -2114,7 +2114,9 @@ static void wm_paintcursor_test(bContext *C, wmEvent *event)
 
 static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
-	if (wm->drags.first == NULL) return;
+	if (BLI_listbase_is_empty(&wm->drags)) {
+		return;
+	}
 	
 	if (event->type == MOUSEMOVE)
 		win->screen->do_draw_drag = TRUE;

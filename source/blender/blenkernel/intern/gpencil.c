@@ -61,7 +61,7 @@
 bool free_gpencil_strokes(bGPDframe *gpf)
 {
 	bGPDstroke *gps, *gpsn;
-	bool changed = (gpf->strokes.first != NULL);
+	bool changed = (BLI_listbase_is_empty(&gpf->strokes) == false);
 
 	/* free strokes */
 	for (gps = gpf->strokes.first; gps; gps = gpsn) {
@@ -234,7 +234,7 @@ bGPDframe *gpencil_frame_duplicate(bGPDframe *src)
 	dst->prev = dst->next = NULL;
 	
 	/* copy strokes */
-	dst->strokes.first = dst->strokes.last = NULL;
+	BLI_listbase_clear(&dst->strokes);
 	for (gps = src->strokes.first; gps; gps = gps->next) {
 		/* make copy of source stroke, then adjust pointer to points too */
 		gpsd = MEM_dupallocN(gps);
@@ -262,7 +262,7 @@ bGPDlayer *gpencil_layer_duplicate(bGPDlayer *src)
 	dst->prev = dst->next = NULL;
 	
 	/* copy frames */
-	dst->frames.first = dst->frames.last = NULL;
+	BLI_listbase_clear(&dst->frames);
 	for (gpf = src->frames.first; gpf; gpf = gpf->next) {
 		/* make a copy of source frame */
 		gpfd = gpencil_frame_duplicate(gpf);
@@ -291,7 +291,7 @@ bGPdata *gpencil_data_duplicate(bGPdata *src)
 	dst = MEM_dupallocN(src);
 	
 	/* copy layers */
-	dst->layers.first = dst->layers.last = NULL;
+	BLI_listbase_clear(&dst->layers);
 	for (gpl = src->layers.first; gpl; gpl = gpl->next) {
 		/* make a copy of source layer and its data */
 		gpld = gpencil_layer_duplicate(gpl);
@@ -319,7 +319,7 @@ void gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 	BLI_freelinkN(&gpf->strokes, gps);
 	
 	/* if frame has no strokes after this, delete it */
-	if (gpf->strokes.first == NULL) {
+	if (BLI_listbase_is_empty(&gpf->strokes)) {
 		gpencil_layer_delframe(gpl, gpf);
 		gpencil_layer_getframe(gpl, cfra, 0);
 	}

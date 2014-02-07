@@ -467,7 +467,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		changed = object_select_all_by_dup_group(C, ob);
 	}
 	else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
-		if (ob->particlesystem.first == NULL)
+		if (BLI_listbase_is_empty(&ob->particlesystem))
 			return OPERATOR_CANCELLED;
 
 		changed = object_select_all_by_particle(C, ob);

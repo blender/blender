@@ -269,7 +269,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node)
 	
 	/* store current nodes in oldsocklist, then clear socket list */
 	oldsocklist = node->outputs;
-	node->outputs.first = node->outputs.last = NULL;
+	BLI_listbase_clear(&node->outputs);
 	
 	/* XXX make callback */
 	cmp_node_image_create_outputs(ntree, node);

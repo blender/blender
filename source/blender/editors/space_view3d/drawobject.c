@@ -748,7 +748,7 @@ typedef struct ViewCachedString {
 void view3d_cached_text_draw_begin(void)
 {
 	ListBase *strings = &CachedText[CachedTextLevel];
-	strings->first = strings->last = NULL;
+	BLI_listbase_clear(strings);
 	CachedTextLevel++;
 }
 
@@ -4068,7 +4068,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 
 			if (BKE_mball_is_basis(ob)) {
 				lb = &ob->curve_cache->disp;
-				if (lb->first == NULL) {
+				if (BLI_listbase_is_empty(lb)) {
 					return true;
 				}
 
@@ -6584,7 +6584,7 @@ static void draw_object_matcap_check(View3D *v3d, Object *ob)
 
 		v3d->defmaterial = MEM_mallocN(sizeof(Material), "matcap material");
 		*(v3d->defmaterial) = defmaterial;
-		v3d->defmaterial->gpumaterial.first = v3d->defmaterial->gpumaterial.last = NULL;
+		BLI_listbase_clear(&v3d->defmaterial->gpumaterial);
 		v3d->defmaterial->preview = NULL;
 	}
 	/* first time users */

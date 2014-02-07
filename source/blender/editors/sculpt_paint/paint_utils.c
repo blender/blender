@@ -41,6 +41,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_rect.h"
 
 #include "BLF_translation.h"
@@ -523,7 +524,7 @@ static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = ob->data;
 
-	if ((ob->defbase.first == NULL) || (me->dvert == NULL)) {
+	if (BLI_listbase_is_empty(&ob->defbase) || (me->dvert == NULL)) {
 		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
 		return OPERATOR_CANCELLED;
 	}

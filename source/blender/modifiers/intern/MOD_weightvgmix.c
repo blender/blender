@@ -31,6 +31,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_listbase.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -244,7 +245,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Check if we can just return the original mesh.
 	 * Must have verts and therefore verts assigned to vgroups to do anything useful!
 	 */
-	if ((numVerts == 0) || (ob->defbase.first == NULL))
+	if ((numVerts == 0) || BLI_listbase_is_empty(&ob->defbase))
 		return dm;
 
 	/* Get vgroup idx from its name. */

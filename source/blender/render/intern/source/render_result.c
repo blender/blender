@@ -576,7 +576,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBSURFACE_COLOR);
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
-	if (rr->layers.first == NULL && !(layername && layername[0])) {
+	if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		

@@ -262,7 +262,7 @@ static ListBase *knife_empty_list(KnifeTool_OpData *kcd)
 	ListBase *lst;
 
 	lst = BLI_memarena_alloc(kcd->arena, sizeof(ListBase));
-	lst->first = lst->last = NULL;
+	BLI_listbase_clear(lst);
 	return lst;
 }
 

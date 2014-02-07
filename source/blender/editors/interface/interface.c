@@ -252,7 +252,7 @@ void ui_bounds_block(uiBlock *block)
 	uiBut *bt;
 	int xof;
 	
-	if (block->buttons.first == NULL) {
+	if (BLI_listbase_is_empty(&block->buttons)) {
 		if (block->panel) {
 			block->rect.xmin = 0.0; block->rect.xmax = block->panel->sizex;
 			block->rect.ymin = 0.0; block->rect.ymax = block->panel->sizey;
@@ -3535,7 +3535,7 @@ void uiBlockFlipOrder(uiBlock *block)
 	}
 	
 	/* also flip order in block itself, for example for arrowkey */
-	lb.first = lb.last = NULL;
+	BLI_listbase_clear(&lb);
 	but = block->buttons.first;
 	while (but) {
 		next = but->next;

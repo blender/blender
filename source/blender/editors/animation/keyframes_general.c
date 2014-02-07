@@ -505,7 +505,7 @@ void free_anim_copybuf(void)
 	}
 	
 	/* restore initial state */
-	animcopybuf.first = animcopybuf.last = NULL;
+	BLI_listbase_clear(&animcopybuf);
 	animcopy_firstframe = 999999999.0f;
 	animcopy_lastframe = -999999999.0f;
 }
@@ -774,19 +774,19 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 	
 	const Scene *scene = (ac->scene);
 	
-	const short from_single = (animcopybuf.first == animcopybuf.last);
-	const short to_simple = (anim_data->first == anim_data->last);
+	const bool from_single = BLI_listbase_is_single(&animcopybuf);
+	const bool to_simple = BLI_listbase_is_single(anim_data);
 	
 	float offset = 0.0f;
 	int pass;
 
 	/* check if buffer is empty */
-	if (animcopybuf.first == NULL) {
+	if (BLI_listbase_is_empty(&animcopybuf)) {
 		BKE_report(ac->reports, RPT_ERROR, "No animation data in buffer to paste");
 		return -1;
 	}
 
-	if (anim_data->first == NULL) {
+	if (BLI_listbase_is_empty(anim_data)) {
 		BKE_report(ac->reports, RPT_ERROR, "No selected F-Curves to paste into");
 		return -1;
 	}

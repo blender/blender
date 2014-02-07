@@ -1136,8 +1136,8 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_
 	/* in case a running nodetree is copied */
 	newtree->execdata = NULL;
 	
-	newtree->nodes.first = newtree->nodes.last = NULL;
-	newtree->links.first = newtree->links.last = NULL;
+	BLI_listbase_clear(&newtree->nodes);
+	BLI_listbase_clear(&newtree->links);
 	
 	last = ntree->nodes.last;
 	for (node = ntree->nodes.first; node; node = node->next) {
@@ -2538,13 +2538,13 @@ void BKE_node_clipboard_clear(void)
 		link_next = link->next;
 		nodeRemLink(NULL, link);
 	}
-	node_clipboard.links.first = node_clipboard.links.last = NULL;
+	BLI_listbase_clear(&node_clipboard.links);
 	
 	for (node = node_clipboard.nodes.first; node; node = node_next) {
 		node_next = node->next;
 		node_free_node_ex(NULL, node, false, false);
 	}
-	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
+	BLI_listbase_clear(&node_clipboard.nodes);
 
 #ifdef USE_NODE_CB_VALIDATE
 	BLI_freelistN(&node_clipboard.nodes_extra_info);

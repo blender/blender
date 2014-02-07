@@ -709,7 +709,7 @@ static void init_iconfile_list(struct ListBase *list)
 	int totfile, i, index = 1;
 	const char *icondir;
 
-	list->first = list->last = NULL;
+	BLI_listbase_clear(list);
 	icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
 
 	if (icondir == NULL)

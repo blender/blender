@@ -392,7 +392,7 @@ static void node_group_input_update(bNodeTree *ntree, bNode *node)
 	ListBase tmplinks;
 	
 	/* find links from the extension socket and store them */
-	tmplinks.first = tmplinks.last = NULL;
+	BLI_listbase_clear(&tmplinks);
 	for (link = ntree->links.first; link; link = link->next) {
 		if (nodeLinkIsHidden(link))
 			continue;
@@ -479,7 +479,7 @@ static void node_group_output_update(bNodeTree *ntree, bNode *node)
 	ListBase tmplinks;
 	
 	/* find links to the extension socket and store them */
-	tmplinks.first = tmplinks.last = NULL;
+	BLI_listbase_clear(&tmplinks);
 	for (link = ntree->links.first; link; link = link->next) {
 		if (nodeLinkIsHidden(link))
 			continue;

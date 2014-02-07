@@ -2398,7 +2398,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	Base *base;
 	Object *ob;
 	
-	shadows.first = shadows.last = NULL;
+	BLI_listbase_clear(&shadows);
 	
 	/* update lamp transform and gather shadow lamps */
 	for (SETLOOPER(scene, sce_iter, base)) {

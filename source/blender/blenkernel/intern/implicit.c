@@ -746,7 +746,7 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 		printf("implicit_init\n");
 
 	// init memory guard
-	// MEMORY_BASE.first = MEMORY_BASE.last = NULL;
+	// BLI_listbase_clear(&MEMORY_BASE);
 
 	cloth = (Cloth *)clmd->clothObject;
 	verts = cloth->verts;

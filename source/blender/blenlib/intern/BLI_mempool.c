@@ -233,7 +233,7 @@ static void mempool_chunk_free_all(ListBase *chunks, const unsigned int flag)
 		mpchunk_next = mpchunk->next;
 		mempool_chunk_free(mpchunk, flag);
 	}
-	chunks->first = chunks->last = NULL;
+	BLI_listbase_clear(chunks);
 }
 
 BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
@@ -268,7 +268,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 	pool->flag = flag;
 	pool->pchunk = pchunk;
 	pool->csize = esize * pchunk;
-	pool->chunks.first = pool->chunks.last = NULL;
+	BLI_listbase_clear(&pool->chunks);
 	pool->free = NULL;  /* mempool_chunk_add assigns */
 	pool->maxchunks = maxchunks;
 #ifdef USE_TOTALLOC
@@ -598,7 +598,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 #endif
 
 	chunks_temp = pool->chunks;
-	pool->chunks.first = pool->chunks.last = NULL;
+	BLI_listbase_clear(&pool->chunks);
 
 	while ((mpchunk = BLI_pophead(&chunks_temp))) {
 		lasttail = mempool_chunk_add(pool, mpchunk, lasttail);

@@ -279,7 +279,7 @@ void BKE_sequencer_free_clipboard(void)
 		nseq = seq->next;
 		seq_free_clipboard_recursive(seq);
 	}
-	seqbase_clipboard.first = seqbase_clipboard.last = NULL;
+	BLI_listbase_clear(&seqbase_clipboard);
 }
 
 /* -------------------------------------------------------------------- */
@@ -880,8 +880,8 @@ void BKE_sequencer_sort(Scene *scene)
 	if (ed == NULL)
 		return;
 
-	seqbase.first = seqbase.last = NULL;
-	effbase.first = effbase.last = NULL;
+	BLI_listbase_clear(&seqbase);
+	BLI_listbase_clear(&effbase);
 
 	while ((seq = BLI_pophead(ed->seqbasep))) {
 
@@ -2502,7 +2502,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
 	oldmarkers = scene->markers;
-	scene->markers.first = scene->markers.last = NULL;
+	BLI_listbase_clear(&scene->markers);
 #else
 	(void)oldmarkers;
 #endif
@@ -4381,7 +4381,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	}
 
 	if (seqn->modifiers.first) {
-		seqn->modifiers.first = seqn->modifiers.last = NULL;
+		BLI_listbase_clear(&seqn->modifiers);
 
 		BKE_sequence_modifier_list_copy(seqn, seq);
 	}
@@ -4389,7 +4389,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	if (seq->type == SEQ_TYPE_META) {
 		seqn->strip->stripdata = NULL;
 
-		seqn->seqbase.first = seqn->seqbase.last = NULL;
+		BLI_listbase_clear(&seqn->seqbase);
 		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
 		/* - seq_dupli_recursive(&seq->seqbase, &seqn->seqbase);*/
 	}

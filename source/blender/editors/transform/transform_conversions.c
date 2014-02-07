@@ -3051,11 +3051,11 @@ static void posttrans_gpd_clean(bGPdata *gpd)
 		}
 		
 		/* error checking: it is unlikely, but may be possible to have none selected */
-		if (sel_buffer.first == NULL)
+		if (BLI_listbase_is_empty(&sel_buffer))
 			continue;
 		
 		/* if all were selected (i.e. gpl->frames is empty), then just transfer sel-buf over */
-		if (gpl->frames.first == NULL) {
+		if (BLI_listbase_is_empty(&gpl->frames)) {
 			gpl->frames.first = sel_buffer.first;
 			gpl->frames.last = sel_buffer.last;
 			
@@ -3141,11 +3141,11 @@ static void posttrans_mask_clean(Mask *mask)
 		}
 
 		/* error checking: it is unlikely, but may be possible to have none selected */
-		if (sel_buffer.first == NULL)
+		if (BLI_listbase_is_empty(&sel_buffer))
 			continue;
 
 		/* if all were selected (i.e. masklay->splines_shapes is empty), then just transfer sel-buf over */
-		if (masklay->splines_shapes.first == NULL) {
+		if (BLI_listbase_is_empty(&masklay->splines_shapes)) {
 			masklay->splines_shapes.first = sel_buffer.first;
 			masklay->splines_shapes.last = sel_buffer.last;
 

@@ -2537,7 +2537,7 @@ static int minmax_armature(Object *ob, float r_min[3], float r_max[3])
 		minmax_v3v3_v3(r_min, r_max, pchan->pose_tail);
 	}
 
-	return (ob->pose->chanbase.first != NULL);
+	return (BLI_listbase_is_empty(&ob->pose->chanbase) == false);
 }
 
 static void boundbox_armature(Object *ob, float loc[3], float size[3])

@@ -2002,7 +2002,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	clipboard_nodes_lb = BKE_node_clipboard_get_nodes();
 	clipboard_links_lb = BKE_node_clipboard_get_links();
 
-	if (clipboard_nodes_lb->first == NULL) {
+	if (BLI_listbase_is_empty(clipboard_nodes_lb)) {
 		BKE_report(op->reports, RPT_ERROR, "Clipboard is empty");
 		return OPERATOR_CANCELLED;
 	}

@@ -1014,7 +1014,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 	/* NT fluid sim defaults */
 	ob->fluidsimSettings = NULL;
 
-	ob->pc_ids.first = ob->pc_ids.last = NULL;
+	BLI_listbase_clear(&ob->pc_ids);
 	
 	/* Animation Visualization defaults */
 	animviz_settings_init(&ob->avs);
@@ -1284,8 +1284,8 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->effectors = NULL;
 	psysn->tree = NULL;
 	
-	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
-	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
+	BLI_listbase_clear(&psysn->pathcachebufs);
+	BLI_listbase_clear(&psysn->childcachebufs);
 	psysn->renderdata = NULL;
 	
 	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, FALSE);
@@ -1311,7 +1311,7 @@ void BKE_object_copy_particlesystems(Object *obn, Object *ob)
 		return;
 	}
 
-	obn->particlesystem.first = obn->particlesystem.last = NULL;
+	BLI_listbase_clear(&obn->particlesystem);
 	for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 		npsys = copy_particlesystem(psys);
 
@@ -1459,7 +1459,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 	if (ob->bb) obn->bb = MEM_dupallocN(ob->bb);
 	obn->flag &= ~OB_FROMGROUP;
 	
-	obn->modifiers.first = obn->modifiers.last = NULL;
+	BLI_listbase_clear(&obn->modifiers);
 	
 	for (md = ob->modifiers.first; md; md = md->next) {
 		ModifierData *nmd = modifier_new(md->type);
@@ -1468,7 +1468,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 		BLI_addtail(&obn->modifiers, nmd);
 	}
 
-	obn->prop.first = obn->prop.last = NULL;
+	BLI_listbase_clear(&obn->prop);
 	BKE_bproperty_copy_list(&obn->prop, &ob->prop);
 	
 	copy_sensors(&obn->sensors, &ob->sensors);
@@ -1516,8 +1516,8 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;
 
-	obn->gpulamp.first = obn->gpulamp.last = NULL;
-	obn->pc_ids.first = obn->pc_ids.last = NULL;
+	BLI_listbase_clear(&obn->gpulamp);
+	BLI_listbase_clear(&obn->pc_ids);
 
 	obn->mpath = NULL;
 

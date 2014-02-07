@@ -892,7 +892,7 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 				
 			/* if we don't have any paths now, then this still qualifies as invalid context */
 			// FIXME: we need some error conditions (to be retrieved from the iterator why this failed!)
-			if (ks->paths.first == NULL)
+			if (BLI_listbase_is_empty(&ks->paths))
 				return MODIFYKEY_INVALID_CONTEXT;
 		}
 		else {

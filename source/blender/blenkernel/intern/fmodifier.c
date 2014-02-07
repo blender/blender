@@ -1102,7 +1102,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type)
 	BLI_addtail(modifiers, fcm);
 	
 	/* tag modifier as "active" if no other modifiers exist in the stack yet */
-	if (modifiers->first == modifiers->last)
+	if (BLI_listbase_is_single(modifiers))
 		fcm->flag |= FMODIFIER_FLAG_ACTIVE;
 	
 	/* add modifier's data */
@@ -1149,7 +1149,7 @@ void copy_fmodifiers(ListBase *dst, ListBase *src)
 	if (ELEM(NULL, dst, src))
 		return;
 	
-	dst->first = dst->last = NULL;
+	BLI_listbase_clear(dst);
 	BLI_duplicatelist(dst, src);
 	
 	for (fcm = dst->first, srcfcm = src->first; fcm && srcfcm; srcfcm = srcfcm->next, fcm = fcm->next) {

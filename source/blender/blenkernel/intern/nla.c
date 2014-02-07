@@ -152,7 +152,7 @@ void free_nladata(ListBase *tracks)
 	}
 	
 	/* clear the list's pointers to be safe */
-	tracks->first = tracks->last = NULL;
+	BLI_listbase_clear(tracks);
 }
 
 /* Copying ------------------------------------------- */
@@ -180,7 +180,7 @@ NlaStrip *copy_nlastrip(NlaStrip *strip)
 	copy_fmodifiers(&strip_d->modifiers, &strip->modifiers);
 	
 	/* make a copy of all the child-strips, one at a time */
-	strip_d->strips.first = strip_d->strips.last = NULL;
+	BLI_listbase_clear(&strip_d->strips);
 	
 	for (cs = strip->strips.first; cs; cs = cs->next) {
 		cs_d = copy_nlastrip(cs);
@@ -206,7 +206,7 @@ NlaTrack *copy_nlatrack(NlaTrack *nlt)
 	nlt_d->next = nlt_d->prev = NULL;
 	
 	/* make a copy of all the strips, one at a time */
-	nlt_d->strips.first = nlt_d->strips.last = NULL;
+	BLI_listbase_clear(&nlt_d->strips);
 	
 	for (strip = nlt->strips.first; strip; strip = strip->next) {
 		strip_d = copy_nlastrip(strip);
@@ -227,7 +227,7 @@ void copy_nladata(ListBase *dst, ListBase *src)
 		return;
 		
 	/* clear out the destination list first for precautions... */
-	dst->first = dst->last = NULL;
+	BLI_listbase_clear(dst);
 		
 	/* copy each NLA-track, one at a time */
 	for (nlt = src->first; nlt; nlt = nlt->next) {

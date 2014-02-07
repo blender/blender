@@ -808,7 +808,7 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
 		
 		/* get chains (ends on chains) */
 		chains_find_tips(arm->edbo, &chains);
-		if (chains.first == NULL) return OPERATOR_CANCELLED;
+		if (BLI_listbase_is_empty(&chains)) return OPERATOR_CANCELLED;
 		
 		/* each 'chain' is the last bone in the chain (with no children) */
 		for (chain = chains.first; chain; chain = nchain) {
@@ -916,7 +916,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
-	if (chains.first == NULL) return OPERATOR_CANCELLED;
+	if (BLI_listbase_is_empty(&chains)) return OPERATOR_CANCELLED;
 	
 	/* ensure that mirror bones will also be operated on */
 	armature_tag_select_mirrored(arm);

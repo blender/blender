@@ -1030,7 +1030,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 		/* not essential but confuses users when there are keys with no data!
 		 * assume if they delete all data from the layer they also dont care about keys */
-		if (masklay->splines.first == NULL) {
+		if (BLI_listbase_is_empty(&masklay->splines)) {
 			BKE_mask_layer_free_shapes(masklay);
 		}
 	}

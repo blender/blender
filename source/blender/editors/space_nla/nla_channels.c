@@ -464,7 +464,7 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
 		BLI_assert(adt->flag & ADT_UI_SELECTED);
 		
 		/* ensure it is empty */
-		if (adt->nla_tracks.first == NULL) {
+		if (BLI_listbase_is_empty(&adt->nla_tracks)) {
 			/* add new track to this AnimData block then */
 			add_nlatrack(adt, NULL);
 			added = true;

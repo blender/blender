@@ -2814,7 +2814,7 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 		ob->actdef = 1;
 
 	/* remove all dverts */
-	if (ob->defbase.first == NULL) {
+	if (BLI_listbase_is_empty(&ob->defbase)) {
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
@@ -2963,7 +2963,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 		ob->actdef = 1;
 
 	/* remove all dverts */
-	if (ob->defbase.first == NULL) {
+	if (BLI_listbase_is_empty(&ob->defbase)) {
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
@@ -4057,7 +4057,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	{
 		if (ob_act != ob_src) {
 
-			if (ob_src->defbase.first == NULL) {
+			if (BLI_listbase_is_empty(&ob_src->defbase)) {
 				BKE_reportf(op->reports, RPT_WARNING,
 				            "Skipping object '%s' it has no vertex groups", ob_src->id.name + 2);
 				continue;
@@ -4133,7 +4133,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		if (op->reports->list.first == NULL) {
+		if (BLI_listbase_is_empty(&op->reports->list)) {
 			BKE_report(op->reports, RPT_WARNING, "Failed, no other selected objects with vertex groups found");
 		}
 

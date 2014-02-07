@@ -1348,7 +1348,7 @@ static void SaveState(bContext *C, wmWindow *win)
 	
 	queue_back = win->queue;
 	
-	win->queue.first = win->queue.last = NULL;
+	BLI_listbase_clear(&win->queue);
 	
 	//XXX waitcursor(1);
 }

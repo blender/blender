@@ -163,8 +163,8 @@ static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
 	BLI_freelistN(&dopesheet->coverage_segments);
 
 	/* Ensure lists are clean. */
-	dopesheet->channels.first = dopesheet->channels.last = NULL;
-	dopesheet->coverage_segments.first = dopesheet->coverage_segments.last = NULL;
+	BLI_listbase_clear(&dopesheet->channels);
+	BLI_listbase_clear(&dopesheet->coverage_segments);
 	dopesheet->tot_channel = 0;
 }
 
@@ -330,7 +330,7 @@ void BKE_tracking_clipboard_free(void)
 		track = next_track;
 	}
 
-	tracking_clipboard.tracks.first = tracking_clipboard.tracks.last = NULL;
+	BLI_listbase_clear(&tracking_clipboard.tracks);
 }
 
 /* Copy selected tracks from specified object to the clipboard. */
@@ -357,7 +357,7 @@ void BKE_tracking_clipboard_copy_tracks(MovieTracking *tracking, MovieTrackingOb
 /* Check whether there're any tracks in the clipboard. */
 bool BKE_tracking_clipboard_has_tracks(void)
 {
-	return tracking_clipboard.tracks.first != NULL;
+	return (BLI_listbase_is_empty(&tracking_clipboard.tracks) == false);
 }
 
 /* Paste tracks from clipboard to specified object.

@@ -755,7 +755,7 @@ void BKE_bpath_list_restore(Main *bmain, const int flag, void *ls_handle)
 void BKE_bpath_list_free(void *ls_handle)
 {
 	ListBase *ls = ls_handle;
-	BLI_assert(ls->first == NULL);  /* assumes we were used */
+	BLI_assert(BLI_listbase_is_empty(ls));  /* assumes we were used */
 	BLI_freelistN(ls);
 	MEM_freeN(ls);
 }

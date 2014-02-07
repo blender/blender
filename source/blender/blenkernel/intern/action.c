@@ -193,7 +193,7 @@ bAction *BKE_action_copy(bAction *src)
 	BLI_duplicatelist(&dst->markers, &src->markers);
 	
 	/* copy F-Curves, fixing up the links as we go */
-	dst->curves.first = dst->curves.last = NULL;
+	BLI_listbase_clear(&dst->curves);
 	
 	for (sfcu = src->curves.first; sfcu; sfcu = sfcu->next) {
 		/* duplicate F-Curve */
@@ -319,7 +319,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 		return;
 	
 	/* if no channels anywhere, just add to two lists at the same time */
-	if (act->curves.first == NULL) {
+	if (BLI_listbase_is_empty(&act->curves)) {
 		fcurve->next = fcurve->prev = NULL;
 		
 		agrp->channels.first = agrp->channels.last = fcurve;
@@ -390,8 +390,7 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
 		
 		if (agrp->channels.first == agrp->channels.last) {
 			if (agrp->channels.first == fcu) {
-				agrp->channels.first = NULL;
-				agrp->channels.last = NULL;
+				BLI_listbase_clear(&agrp->channels);
 			}
 		}
 		else if (agrp->channels.first == fcu) {
@@ -998,7 +997,7 @@ void BKE_pose_remove_group(Object *ob)
 		/* now, remove it from the pose */
 		BLI_freelinkN(&pose->agroups, grp);
 		pose->active_group--;
-		if (pose->active_group < 0 || pose->agroups.first == NULL) {
+		if (pose->active_group < 0 || BLI_listbase_is_empty(&pose->agroups)) {
 			pose->active_group = 0;
 		}
 	}

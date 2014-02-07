@@ -306,7 +306,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 				if (done == 0) {
 					/* clear nla & action from object */
 					nlastrips = target->nlastrips;
-					target->nlastrips.first = target->nlastrips.last = NULL;
+					BLI_listbase_clear(&target->nlastrips);
 					action = target->action;
 					target->action = NULL;
 					target->nlaflag |= OB_NLA_OVERRIDE;
@@ -323,7 +323,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 			target->nlastrips = nlastrips;
 			target->action = action;
 			
-			nlastrips.first = nlastrips.last = NULL;  /* not needed, but yah... :) */
+			BLI_listbase_clear(&nlastrips);  /* not needed, but yah... :) */
 			action = NULL;
 			done = FALSE;
 		}

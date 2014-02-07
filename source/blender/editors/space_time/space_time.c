@@ -691,7 +691,7 @@ static SpaceLink *time_duplicate(SpaceLink *sl)
 	SpaceTime *stime = (SpaceTime *)sl;
 	SpaceTime *stimen = MEM_dupallocN(stime);
 	
-	stimen->caches.first = stimen->caches.last = NULL;
+	BLI_listbase_clear(&stimen->caches);
 	
 	return (SpaceLink *)stimen;
 }

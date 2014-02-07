@@ -121,7 +121,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* if no blocks, popup error? */
-	if (anim_data.first == NULL) {
+	if (BLI_listbase_is_empty(&anim_data)) {
 		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
 	}
@@ -185,7 +185,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* if no blocks, popup error? */
-	if (anim_data.first == NULL) {
+	if (BLI_listbase_is_empty(&anim_data)) {
 		BKE_report(ac->reports, RPT_ERROR, "No AnimData blocks in tweak mode to exit from");
 		return false;
 	}
@@ -1304,7 +1304,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 		/* special case: if there is only 1 island (i.e. temp meta BUT NOT unselected/normal/normal-meta strips) left after this, 
 		 * and this island has two strips inside it, then we should be able to just swap these still...
 		 */
-		if ((nlt->strips.first == nlt->strips.last) && (nlt->strips.first != NULL)) {
+		if (BLI_listbase_is_empty(&nlt->strips) == false) {
 			NlaStrip *mstrip = (NlaStrip *)nlt->strips.first;
 			
 			if ((mstrip->flag & NLASTRIP_FLAG_TEMP_META) && (BLI_countlist(&mstrip->strips) == 2)) {

@@ -451,7 +451,7 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 	SpaceOops *soutliner = (SpaceOops *)sl;
 	SpaceOops *soutlinern = MEM_dupallocN(soutliner);
 
-	soutlinern->tree.first = soutlinern->tree.last = NULL;
+	BLI_listbase_clear(&soutlinern->tree);
 	soutlinern->treestore = NULL;
 	soutlinern->treehash = NULL;
 	

@@ -500,7 +500,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 	BLI_duplicatelist(&to->vertbase, &from->vertbase);
 	BLI_duplicatelist(&to->edgebase, &from->edgebase);
 	BLI_duplicatelist(&to->areabase, &from->areabase);
-	to->regionbase.first = to->regionbase.last = NULL;
+	BLI_listbase_clear(&to->regionbase);
 	
 	s2 = to->vertbase.first;
 	for (s1 = from->vertbase.first; s1; s1 = s1->next, s2 = s2->next) {
@@ -520,10 +520,10 @@ static void screen_copy(bScreen *to, bScreen *from)
 		sa->v3 = sa->v3->newv;
 		sa->v4 = sa->v4->newv;
 
-		sa->spacedata.first = sa->spacedata.last = NULL;
-		sa->regionbase.first = sa->regionbase.last = NULL;
-		sa->actionzones.first = sa->actionzones.last = NULL;
-		sa->handlers.first = sa->handlers.last = NULL;
+		BLI_listbase_clear(&sa->spacedata);
+		BLI_listbase_clear(&sa->regionbase);
+		BLI_listbase_clear(&sa->actionzones);
+		BLI_listbase_clear(&sa->handlers);
 		
 		area_copy_data(sa, saf, 0);
 	}

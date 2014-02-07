@@ -1980,7 +1980,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 		Sequence *seq;
 
-		if (ed->metastack.first == NULL)
+		if (BLI_listbase_is_empty(&ed->metastack))
 			return OPERATOR_CANCELLED;
 
 		ms = ed->metastack.last;
@@ -2114,8 +2114,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BLI_movelisttolist(ed->seqbasep, &last_seq->seqbase);
 
-	last_seq->seqbase.first = NULL;
-	last_seq->seqbase.last = NULL;
+	BLI_listbase_clear(&last_seq->seqbase);
 
 	BLI_remlink(ed->seqbasep, last_seq);
 	BKE_sequence_free(scene, last_seq);

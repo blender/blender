@@ -3045,12 +3045,9 @@ static PointCache *ptcache_copy(PointCache *cache, int copy_data)
 
 	ncache= MEM_dupallocN(cache);
 
-	ncache->mem_cache.first = NULL;
-	ncache->mem_cache.last = NULL;
+	BLI_listbase_clear(&ncache->mem_cache);
 
 	if (copy_data == FALSE) {
-		ncache->mem_cache.first = NULL;
-		ncache->mem_cache.last = NULL;
 		ncache->cached_frames = NULL;
 
 		/* flag is a mix of user settings and simulator/baking state */
@@ -3089,7 +3086,7 @@ PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old
 {
 	PointCache *cache = ptcaches_old->first;
 
-	ptcaches_new->first = ptcaches_new->last = NULL;
+	BLI_listbase_clear(ptcaches_new);
 
 	for (; cache; cache=cache->next)
 		BLI_addtail(ptcaches_new, ptcache_copy(cache, copy_data));

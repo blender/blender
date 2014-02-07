@@ -729,7 +729,7 @@ static void scene_unlink_space_node(SpaceNode *snode, Scene *sce)
 			path_next = path->next;
 			MEM_freeN(path);
 		}
-		snode->treepath.first = snode->treepath.last = NULL;
+		BLI_listbase_clear(&snode->treepath);
 		
 		snode->id = NULL;
 		snode->from = NULL;

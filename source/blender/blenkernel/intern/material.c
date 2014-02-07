@@ -245,7 +245,7 @@ Material *BKE_material_copy(Material *ma)
 		man->nodetree = ntreeCopyTree(ma->nodetree);
 	}
 
-	man->gpumaterial.first = man->gpumaterial.last = NULL;
+	BLI_listbase_clear(&man->gpumaterial);
 	
 	return man;
 }
@@ -275,7 +275,7 @@ Material *localize_material(Material *ma)
 	if (ma->nodetree)
 		man->nodetree = ntreeLocalize(ma->nodetree);
 	
-	man->gpumaterial.first = man->gpumaterial.last = NULL;
+	BLI_listbase_clear(&man->gpumaterial);
 	
 	return man;
 }
@@ -1567,7 +1567,7 @@ void copy_matcopybuf(Material *ma)
 	}
 	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, FALSE);
 	matcopybuf.preview = NULL;
-	matcopybuf.gpumaterial.first = matcopybuf.gpumaterial.last = NULL;
+	BLI_listbase_clear(&matcopybuf.gpumaterial);
 	matcopied = 1;
 }
 

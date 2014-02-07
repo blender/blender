@@ -1380,7 +1380,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	/* 1. duplicate geometry and check for valid selection for separate */
 	adduplicateflagNurb(oldob, &newnurb, SELECT, true);
 
-	if (newnurb.first == NULL) {
+	if (BLI_listbase_is_empty(&newnurb)) {
 		WM_cursor_wait(0);
 		BKE_report(op->reports, RPT_ERROR, "Cannot separate current selection");
 		return OPERATOR_CANCELLED;
@@ -1444,7 +1444,7 @@ static int curve_split_exec(bContext *C, wmOperator *op)
 
 	adduplicateflagNurb(obedit, &newnurb, SELECT, true);
 
-	if (newnurb.first != NULL) {
+	if (BLI_listbase_is_empty(&newnurb) == false) {
 		curve_delete_segments(obedit, true);
 		BLI_movelisttolist(editnurb, &newnurb);
 
@@ -2245,7 +2245,7 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 		nu = nu->prev;
 	}
 
-	if (newnurb->first != NULL) {
+	if (BLI_listbase_is_empty(newnurb) == false) {
 		cu->actnu = cu->actvert = CU_ACT_NONE;
 
 		for (nu = newnurb->first; nu; nu = nu->next) {
@@ -5915,7 +5915,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 	adduplicateflagNurb(obedit, &newnurb, SELECT, false);
 
-	if (newnurb.first != NULL) {
+	if (BLI_listbase_is_empty(&newnurb) == false) {
 		BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
@@ -6511,7 +6511,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	tempbase.first = tempbase.last = NULL;
+	BLI_listbase_clear(&tempbase);
 	
 	/* trasnform all selected curves inverse in obact */
 	invert_m4_m4(imat, ob->obmat);

@@ -1299,7 +1299,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		ob->adt = NULL;
 
 		ob->parent = NULL;
-		ob->constraints.first = ob->constraints.last = NULL;
+		BLI_listbase_clear(&ob->constraints);
 		ob->curve_cache = NULL;
 		ob->transflag &= ~OB_DUPLI;
 		ob->lay = base->lay;

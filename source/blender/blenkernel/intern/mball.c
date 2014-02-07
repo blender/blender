@@ -1901,8 +1901,7 @@ static void subdivide_metaball_octal_node(octal_node *node, float size_x, float 
 		for (i = 0; i < 8; i++)
 			node->nodes[a]->nodes[i] = NULL;
 		node->nodes[a]->parent = node;
-		node->nodes[a]->elems.first = NULL;
-		node->nodes[a]->elems.last = NULL;
+		BLI_listbase_clear(&node->nodes[a]->elems);
 		node->nodes[a]->count = 0;
 		node->nodes[a]->neg = 0;
 		node->nodes[a]->pos = 0;
@@ -2171,8 +2170,7 @@ static void init_metaball_octal_tree(PROCESS *process, int depth)
 	process->metaball_tree->neg = node->neg = 0;
 	process->metaball_tree->pos = node->pos = 0;
 	
-	node->elems.first = NULL;
-	node->elems.last = NULL;
+	BLI_listbase_clear(&node->elems);
 	node->count = 0;
 
 	for (a = 0; a < 8; a++)
@@ -2420,7 +2418,7 @@ bool BKE_mball_minmax(MetaBall *mb, float min[3], float max[3])
 		minmax_v3v3_v3(min, max, &ml->x);
 	}
 
-	return (mb->elems.first != NULL);
+	return (BLI_listbase_is_empty(&mb->elems) == false);
 }
 
 bool BKE_mball_center_median(MetaBall *mb, float r_cent[3])

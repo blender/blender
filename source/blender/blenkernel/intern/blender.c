@@ -204,7 +204,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	char mode;
 
 	/* 'u' = undo save, 'n' = no UI load */
-	if (bfd->main->screen.first == NULL) mode = 'u';
+	if (BLI_listbase_is_empty(&bfd->main->screen)) mode = 'u';
 	else if (G.fileflags & G_FILE_NO_UI) mode = 'n';
 	else mode = 0;
 

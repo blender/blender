@@ -857,7 +857,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 					if (event->ctrl ||
 					    /* weak - but user friendly */
-					    (ruler_info->items.first == NULL))
+					    BLI_listbase_is_empty(&ruler_info->items))
 					{
 						View3D *v3d = CTX_wm_view3d(C);
 						const bool use_depth = (v3d->drawtype >= OB_SOLID);

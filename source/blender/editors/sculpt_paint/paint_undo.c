@@ -191,7 +191,7 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 		}
 	}
 	else if (step == -1) {
-		if ((stack->current != NULL && stack->current->next == NULL) || stack->elems.first == NULL) {
+		if ((stack->current != NULL && stack->current->next == NULL) || BLI_listbase_is_empty(&stack->elems)) {
 			/* pass */
 		}
 		else {

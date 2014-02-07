@@ -344,7 +344,7 @@ static wmKeyMap *wm_keymap_copy(wmKeyMap *keymap)
 
 	keymapn->modal_items = keymap->modal_items;
 	keymapn->poll = keymap->poll;
-	keymapn->items.first = keymapn->items.last = NULL;
+	BLI_listbase_clear(&keymapn->items);
 	keymapn->flag &= ~(KEYMAP_UPDATE | KEYMAP_EXPANDED);
 
 	for (kmdi = keymap->diff_items.first; kmdi; kmdi = kmdi->next) {

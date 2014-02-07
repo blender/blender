@@ -944,7 +944,7 @@ static void RIG_joinArcs(RigGraph *rg, RigNode *node, RigArc *joined_arc1, RigAr
 	
 	joined_arc1->tail = joined_arc2->tail;
 	
-	joined_arc2->edges.first = joined_arc2->edges.last = NULL;
+	BLI_listbase_clear(&joined_arc2->edges);
 	
 	BLI_removeArc((BGraph *)rg, (BArc *)joined_arc2);
 	
@@ -2593,7 +2593,7 @@ void BIF_retargetArc(bContext *C, ReebArc *earc, RigGraph *template_rigg)
 		template_rigg = armatureSelectedToGraph(C, ob, ob->data);
 	}
 	
-	if (template_rigg->arcs.first == NULL) {
+	if (BLI_listbase_is_empty(&template_rigg->arcs)) {
 //		XXX
 //		error("No Template and no deforming bones selected");
 		return;

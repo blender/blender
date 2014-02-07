@@ -542,7 +542,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 
 	/* copy to avoid recursive calls */
 	funcs = UIAfterFuncs;
-	UIAfterFuncs.first = UIAfterFuncs.last = NULL;
+	BLI_listbase_clear(&UIAfterFuncs);
 
 	for (afterf = funcs.first; afterf; afterf = after.next) {
 		after = *afterf; /* copy to avoid memleak on exit() */
@@ -7906,8 +7906,9 @@ static int ui_handler_region(bContext *C, const wmEvent *event, void *UNUSED(use
 	ar = CTX_wm_region(C);
 	retval = WM_UI_HANDLER_CONTINUE;
 
-	if (ar == NULL) return retval;
-	if (ar->uiblocks.first == NULL) return retval;
+	if (ar == NULL || BLI_listbase_is_empty(&ar->uiblocks)) {
+		return retval;
+	}
 
 	/* either handle events for already activated button or try to activate */
 	but = ui_but_find_activated(ar);

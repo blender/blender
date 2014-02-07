@@ -156,7 +156,7 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 	 * threads, so we keep track of the number of users. */
 	scheduler->do_exit = false;
 
-	scheduler->queue.first = scheduler->queue.last = NULL;
+	BLI_listbase_clear(&scheduler->queue);
 	BLI_mutex_init(&scheduler->queue_mutex);
 	BLI_condition_init(&scheduler->queue_cond);
 

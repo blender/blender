@@ -2183,7 +2183,7 @@ static bool wpaint_ensure_data(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	if (ob->defbase.first == NULL) {
+	if (BLI_listbase_is_empty(&ob->defbase)) {
 		ED_vgroup_add(ob);
 	}
 

@@ -815,7 +815,7 @@ void IMB_exr_multilayer_convert(void *handle, void *base,
 	ExrLayer *lay;
 	ExrPass *pass;
 
-	if (data->layers.first == NULL) {
+	if (BLI_listbase_is_empty(&data->layers)) {
 		printf("cannot convert multilayer, no layers in handle\n");
 		return;
 	}

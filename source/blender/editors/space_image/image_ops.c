@@ -1051,7 +1051,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	if (RNA_struct_property_is_set(op->ptr, "files") && RNA_struct_property_is_set(op->ptr, "directory")) {	
 		ListBase frames;
 
-		frames.first = frames.last = NULL;
+		BLI_listbase_clear(&frames);
 		image_sequence_get_frames(op->ptr, &frames, path, sizeof(path));
 		frame_seq_len = image_sequence_get_len(&frames, &frame_ofs);
 		BLI_freelistN(&frames);

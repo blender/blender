@@ -71,7 +71,7 @@ void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
 {
 	bDeformGroup *defgroup, *defgroupn;
 
-	outbase->first = outbase->last = NULL;
+	BLI_listbase_clear(outbase);
 
 	for (defgroup = inbase->first; defgroup; defgroup = defgroup->next) {
 		defgroupn = defgroup_duplicate(defgroup);

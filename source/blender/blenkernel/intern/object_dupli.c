@@ -337,7 +337,7 @@ static void make_duplis_frames(const DupliContext *ctx)
 	/* if we don't have any data/settings which will lead to object movement,
 	 * don't waste time trying, as it will all look the same...
 	 */
-	if (ob->parent == NULL && ob->constraints.first == NULL && ob->adt == NULL)
+	if (ob->parent == NULL && BLI_listbase_is_empty(&ob->constraints) && ob->adt == NULL)
 		return;
 
 	/* make a copy of the object's original data (before any dupli-data overwrites it)
@@ -877,7 +877,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				return;
 		}
 		else { /*PART_DRAW_GR */
-			if (part->dup_group == NULL || part->dup_group->gobject.first == NULL)
+			if (part->dup_group == NULL || BLI_listbase_is_empty(&part->dup_group->gobject))
 				return;
 
 			if (BLI_findptr(&part->dup_group->gobject, par, offsetof(GroupObject, ob))) {

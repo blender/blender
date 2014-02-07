@@ -184,7 +184,7 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 	int a;
 
 	if (threadbase != NULL && tot > 0) {
-		threadbase->first = threadbase->last = NULL;
+		BLI_listbase_clear(threadbase);
 	
 		if (tot > RE_MAX_THREAD) tot = RE_MAX_THREAD;
 		else if (tot < 1) tot = 1;
@@ -318,7 +318,7 @@ void BLI_end_threads(ListBase *threadbase)
 	/* only needed if there's actually some stuff to end
 	 * this way we don't end up decrementing thread_levels on an empty threadbase 
 	 * */
-	if (threadbase && threadbase->first != NULL) {
+	if (threadbase && (BLI_listbase_is_empty(threadbase) == false)) {
 		for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 			if (tslot->avail == 0) {
 				pthread_join(tslot->pthread, NULL);

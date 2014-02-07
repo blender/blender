@@ -523,7 +523,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 
 			/* Deprecated */
 			smd->domain->point_cache[1] = NULL;
-			smd->domain->ptcaches[1].first = smd->domain->ptcaches[1].last = NULL;
+			BLI_listbase_clear(&smd->domain->ptcaches[1]);
 			/* set some standard values */
 			smd->domain->fluid = NULL;
 			smd->domain->fluid_mutex = BLI_rw_mutex_alloc();

@@ -275,7 +275,7 @@ void free_gpcopybuf()
 {
 	free_gpencil_layers(&gpcopybuf); 
 	
-	gpcopybuf.first = gpcopybuf.last = NULL;
+	BLI_listbase_clear(&gpcopybuf);
 	gpcopy_firstframe = 999999999;
 }
 
@@ -311,7 +311,7 @@ void copy_gpdata()
 		gpls = (bGPDlayer *)ale->data;
 		gpln = MEM_callocN(sizeof(bGPDlayer), "GPCopyPasteLayer");
 		
-		gpln->frames.first = gpln->frames.last = NULL;
+		BLI_listbase_clear(&gpln->frames);
 		BLI_strncpy(gpln->info, gpls->info, sizeof(gpln->info));
 		
 		BLI_addtail(&gpcopybuf, gpln);
@@ -449,7 +449,7 @@ void paste_gpdata(Scene *scene)
 				}
 				
 				/* if no strokes (i.e. new frame) added, free gpf */
-				if (gpf->strokes.first == NULL)
+				if (BLI_listbase_is_empty(&gpf->strokes))
 					gpencil_layer_delframe(gpld, gpf);
 			}
 			

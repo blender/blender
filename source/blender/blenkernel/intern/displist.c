@@ -462,7 +462,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 
 	if (dispbase == NULL)
 		return;
-	if (dispbase->first == NULL)
+	if (BLI_listbase_is_empty(dispbase))
 		return;
 
 	sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
@@ -588,7 +588,8 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	float *fp, *fp1;
 	int a, dpoly;
 
-	front.first = front.last = back.first = back.last = NULL;
+	BLI_listbase_clear(&front);
+	BLI_listbase_clear(&back);
 
 	dl = dispbase->first;
 	while (dl) {
@@ -1409,7 +1410,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 				if (bl->nr) { /* blank bevel lists can happen */
 
 					/* exception handling; curve without bevel or extrude, with width correction */
-					if (dlbev.first == NULL) {
+					if (BLI_listbase_is_empty(&dlbev)) {
 						dl = MEM_callocN(sizeof(DispList), "makeDispListbev");
 						dl->verts = MEM_callocN(3 * sizeof(float) * bl->nr, "dlverts");
 						BLI_addtail(dispbase, dl);

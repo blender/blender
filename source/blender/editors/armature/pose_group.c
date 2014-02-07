@@ -399,7 +399,7 @@ static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
 	qsort(agrp_array, agrp_count, sizeof(tSortActionGroup), compare_agroup);
 
 	/* create sorted bone group list from sorted array */
-	pose->agroups.first = pose->agroups.last = NULL;
+	BLI_listbase_clear(&pose->agroups);
 	for (i = 0; i < agrp_count; i++) {
 		BLI_addtail(&pose->agroups, agrp_array[i].agrp);
 	}

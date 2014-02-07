@@ -252,7 +252,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool, ListBase *lb, const in
 	/* lb is now full of free'd items, overwrite */
 	*lb = lb_tmp;
 
-	return (lb->first != NULL);
+	return (BLI_listbase_is_empty(lb) == false);
 }
 
 bool BM_mesh_edgeloops_find_path(BMesh *bm, ListBase *r_eloops,

@@ -77,6 +77,13 @@ void BLI_reverselist(struct ListBase *lb);
 void BLI_rotatelist_first(struct ListBase *lb, void *vlink);
 void BLI_rotatelist_last(struct ListBase *lb, void *vlink);
 
+/**
+ * Utility functions to avoid first/last references inline all over.
+ */
+BLI_INLINE bool BLI_listbase_is_single(const struct ListBase *lb) { return (lb->first && lb->first == lb->last); }
+BLI_INLINE bool BLI_listbase_is_empty(const struct ListBase *lb) { return (lb->first == NULL); }
+BLI_INLINE void BLI_listbase_clear(struct ListBase *lb) { lb->first = lb->last = NULL; }
+
 /* create a generic list node containing link to provided data */
 struct LinkData *BLI_genericNodeN(void *data);
 

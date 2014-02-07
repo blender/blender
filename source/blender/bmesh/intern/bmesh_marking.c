@@ -874,7 +874,6 @@ void _bm_select_history_store_after(BMesh *bm, BMEditSelection *ese_ref, BMHeade
 void BM_select_history_clear(BMesh *bm)
 {
 	BLI_freelistN(&bm->selected);
-	bm->selected.first = bm->selected.last = NULL;
 }
 
 

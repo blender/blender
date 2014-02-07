@@ -411,7 +411,7 @@ void free_hair(Object *UNUSED(ob), ParticleSystem *psys, int dynamics)
 		if (dynamics) {
 			BKE_ptcache_free_list(&psys->ptcaches);
 			psys->clmd->point_cache = psys->pointcache = NULL;
-			psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = NULL;
+			BLI_listbase_clear(&psys->clmd->ptcaches);
 
 			modifier_free((ModifierData *)psys->clmd);
 			
@@ -712,8 +712,8 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[4][4], floa
 	psys->pathcache = NULL;
 	psys->childcache = NULL;
 	psys->totchild = psys->totcached = psys->totchildcache = 0;
-	psys->pathcachebufs.first = psys->pathcachebufs.last = NULL;
-	psys->childcachebufs.first = psys->childcachebufs.last = NULL;
+	BLI_listbase_clear(&psys->pathcachebufs);
+	BLI_listbase_clear(&psys->childcachebufs);
 
 	copy_m4_m4(data->winmat, winmat);
 	mul_m4_m4m4(data->viewmat, viewmat, ob->obmat);

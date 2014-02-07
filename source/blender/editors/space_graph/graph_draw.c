@@ -801,7 +801,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	/* No curve to modify/visualise the result? 
 	 * => We still want to show the 1-1 default... 
 	 */
-	if ((fcu->totvert == 0) && (fcu->modifiers.first == NULL)) {
+	if ((fcu->totvert == 0) && BLI_listbase_is_empty(&fcu->modifiers)) {
 		float t;
 		
 		/* draw with thin dotted lines in style of what curve would have been */

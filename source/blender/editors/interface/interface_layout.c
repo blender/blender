@@ -2703,7 +2703,7 @@ static void ui_item_estimate(uiItem *item)
 		for (subitem = litem->items.first; subitem; subitem = subitem->next)
 			ui_item_estimate(subitem);
 
-		if (litem->items.first == NULL)
+		if (BLI_listbase_is_empty(&litem->items))
 			return;
 
 		if (litem->scale[0] != 0.0f || litem->scale[1] != 0.0f)
@@ -2793,7 +2793,7 @@ static void ui_item_layout(uiItem *item)
 	if (item->type != ITEM_BUTTON) {
 		uiLayout *litem = (uiLayout *)item;
 
-		if (litem->items.first == NULL)
+		if (BLI_listbase_is_empty(&litem->items))
 			return;
 
 		if (litem->align)

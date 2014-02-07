@@ -116,9 +116,9 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 			// BKE_copy_constraints NULLs listb, no need to make extern for this operation.
 			BKE_copy_constraints(&listb, &pchan->constraints, FALSE);
 			pchan->constraints= listb;
-		} else {
-			pchan->constraints.first = NULL;
-			pchan->constraints.last = NULL;
+		}
+		else {
+			BLI_listbase_clear(&pchan->constraints);
 		}
 
 		if (pchan->custom) {

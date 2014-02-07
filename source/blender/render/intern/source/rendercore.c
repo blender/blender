@@ -926,7 +926,7 @@ static void freeps(ListBase *lb)
 			MEM_freeN(psm->ps);
 		MEM_freeN(psm);
 	}
-	lb->first= lb->last= NULL;
+	BLI_listbase_clear(lb);
 }
 
 static void addps(ListBase *lb, intptr_t *rd, int obi, int facenr, int z, int maskz, unsigned short mask)

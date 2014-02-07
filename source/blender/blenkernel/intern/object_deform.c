@@ -29,6 +29,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 
 #include "BKE_action.h"
 #include "BKE_object_deform.h"  /* own include */
@@ -75,7 +76,7 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 	//int defbase_tot = BLI_countlist(&ob->defbase);
 	VirtualModifierData virtualModifierData;
 
-	if (ob->defbase.first == NULL) {
+	if (BLI_listbase_is_empty(&ob->defbase)) {
 		return NULL;
 	}
 

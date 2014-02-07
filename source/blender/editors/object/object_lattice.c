@@ -523,7 +523,7 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
 	BPoint *bp;
 	int a, tot;
 
-	if (obedit->defbase.first == NULL || lt->dvert == NULL) {
+	if (BLI_listbase_is_empty(&obedit->defbase) || lt->dvert == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
 		return OPERATOR_CANCELLED;
 	}

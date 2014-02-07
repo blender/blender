@@ -122,7 +122,7 @@ bArgs *BLI_argsInit(int argc, const char **argv)
 	bArgs *ba = MEM_callocN(sizeof(bArgs), "bArgs");
 	ba->passes = MEM_callocN(sizeof(int) * argc, "bArgs passes");
 	ba->items = BLI_ghash_new(keyhash, keycmp, "bArgs passes gh");
-	ba->docs.first = ba->docs.last = NULL;
+	BLI_listbase_clear(&ba->docs);
 	ba->argc = argc;
 	ba->argv = argv;
 

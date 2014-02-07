@@ -189,7 +189,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		colladaNode.end();
 	}
 
-	if (ob->constraints.first != NULL ) {
+	if (BLI_listbase_is_empty(&ob->constraints) == false) {
 		bConstraint *con = (bConstraint *) ob->constraints.first;
 		while (con) {
 			std::string con_name(id_name(con));

@@ -1062,11 +1062,11 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
 	short found = 0;
 	
 	/* abort if list is empty */
-	if (matches->first == NULL) 
+	if (BLI_listbase_is_empty(matches))
 		return NULL;
 		
 	/* if list only has 1 item, remove it from the list and return */
-	if (matches->first == matches->last) {
+	if (BLI_listbase_is_single(matches)) {
 		/* need to remove from the list, otherwise it gets freed and then we can't return it */
 		return BLI_pophead(matches);
 	}

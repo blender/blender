@@ -122,8 +122,8 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	
 	/* TODO - duplicate?, then we also need to duplicate the py namespace */
-	sconsolen->scrollback.first = sconsolen->scrollback.last = NULL;
-	sconsolen->history.first = sconsolen->history.last = NULL;
+	BLI_listbase_clear(&sconsolen->scrollback);
+	BLI_listbase_clear(&sconsolen->history);
 	
 	return (SpaceLink *)sconsolen;
 }
@@ -216,7 +216,7 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
 
-	if (sc->scrollback.first == NULL)
+	if (BLI_listbase_is_empty(&sc->scrollback))
 		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
 
 	/* clear and setup matrix */

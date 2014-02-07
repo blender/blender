@@ -188,7 +188,7 @@ Text *BKE_text_add(Main *bmain, const char *name)
 	if ((U.flag & USER_TXT_TABSTOSPACES_DISABLE) == 0)
 		ta->flags |= TXT_TABSTOSPACES;
 
-	ta->lines.first = ta->lines.last = NULL;
+	BLI_listbase_clear(&ta->lines);
 
 	tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line = (char *) MEM_mallocN(1, "textline_string");
@@ -293,7 +293,7 @@ int BKE_text_reload(Text *text)
 	
 	BLI_freelistN(&text->lines);
 
-	text->lines.first = text->lines.last = NULL;
+	BLI_listbase_clear(&text->lines);
 	text->curl = text->sell = NULL;
 
 	/* clear undo buffer */
@@ -382,7 +382,7 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(str));
 	ta->id.us = 1;
 
-	ta->lines.first = ta->lines.last = NULL;
+	BLI_listbase_clear(&ta->lines);
 	ta->curl = ta->sell = NULL;
 
 	if ((U.flag & USER_TXT_TABSTOSPACES_DISABLE) == 0)
@@ -488,7 +488,7 @@ Text *BKE_text_copy(Text *ta)
 
 	tan->flags = ta->flags | TXT_ISDIRTY;
 	
-	tan->lines.first = tan->lines.last = NULL;
+	BLI_listbase_clear(&tan->lines);
 	tan->curl = tan->sell = NULL;
 	
 	tan->nlines = ta->nlines;

@@ -1175,7 +1175,7 @@ static size_t animfilter_act_group(bAnimContext *ac, ListBase *anim_data, bDopeS
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -1429,7 +1429,7 @@ static size_t animdata_filter_gpencil(ListBase *anim_data, void *UNUSED(data), i
 			
 			/* now add the list of collected channels */
 			BLI_movelisttolist(anim_data, &tmp_data);
-			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+			BLI_assert(BLI_listbase_is_empty(&tmp_data));
 			items += tmp_items;
 		}
 	}
@@ -1496,7 +1496,7 @@ static size_t animdata_filter_mask(ListBase *anim_data, void *UNUSED(data), int 
 			
 			/* now add the list of collected channels */
 			BLI_movelisttolist(anim_data, &tmp_data);
-			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+			BLI_assert(BLI_listbase_is_empty(&tmp_data));
 			items += tmp_items;
 		}
 	}
@@ -1532,7 +1532,7 @@ static size_t animdata_filter_ds_nodetree_group(bAnimContext *ac, ListBase *anim
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -1614,7 +1614,7 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data
 				
 				/* now add the list of collected channels */
 				BLI_movelisttolist(anim_data, &tmp_data);
-				BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+				BLI_assert(BLI_listbase_is_empty(&tmp_data));
 				items += tmp_items;
 			}
 		}
@@ -1659,7 +1659,7 @@ static size_t animdata_filter_ds_texture(bAnimContext *ac, ListBase *anim_data, 
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -1757,7 +1757,7 @@ static size_t animdata_filter_ds_material(bAnimContext *ac, ListBase *anim_data,
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -1877,7 +1877,7 @@ static size_t animdata_filter_ds_modifiers(bAnimContext *ac, ListBase *anim_data
 	if (afm.items) {
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &afm.tmp_data);
-		BLI_assert((afm.tmp_data.first == afm.tmp_data.last) && (afm.tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&afm.tmp_data));
 		items += afm.items;
 	}
 	
@@ -1920,7 +1920,7 @@ static size_t animdata_filter_ds_particles(bAnimContext *ac, ListBase *anim_data
 			
 			/* now add the list of collected channels */
 			BLI_movelisttolist(anim_data, &tmp_data);
-			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+			BLI_assert(BLI_listbase_is_empty(&tmp_data));
 			items += tmp_items;
 		}
 	}
@@ -2068,7 +2068,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, b
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -2102,7 +2102,7 @@ static size_t animdata_filter_ds_keyanim(bAnimContext *ac, ListBase *anim_data, 
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -2158,7 +2158,7 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -2228,7 +2228,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -2270,7 +2270,7 @@ static size_t animdata_filter_ds_world(bAnimContext *ac, ListBase *anim_data, bD
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -2324,7 +2324,7 @@ static size_t animdata_filter_ds_scene(bAnimContext *ac, ListBase *anim_data, bD
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	
@@ -2381,7 +2381,7 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 		
 		/* now add the list of collected channels */
 		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
 		items += tmp_items;
 	}
 	

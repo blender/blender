@@ -206,7 +206,7 @@ Curve *BKE_curve_copy(Curve *cu)
 	int a;
 
 	cun = BKE_libblock_copy(&cu->id);
-	cun->nurb.first = cun->nurb.last = NULL;
+	BLI_listbase_clear(&cun->nurb);
 	BKE_nurbList_duplicate(&(cun->nurb), &(cu->nurb));
 
 	cun->mat = MEM_dupallocN(cu->mat);
@@ -534,7 +534,7 @@ void BKE_nurbList_free(ListBase *lb)
 		BKE_nurb_free(nu);
 		nu = next;
 	}
-	lb->first = lb->last = NULL;
+	BLI_listbase_clear(lb);
 }
 
 Nurb *BKE_nurb_duplicate(Nurb *nu)
@@ -1628,7 +1628,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 	int nr, a;
 
 	cu = ob->data;
-	disp->first = disp->last = NULL;
+	BLI_listbase_clear(disp);
 
 	/* if a font object is being edited, then do nothing */
 // XXX	if ( ob == obedit && ob->type == OB_FONT ) return;
@@ -4039,7 +4039,7 @@ bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
 	for (nu = nurb_lb->first; nu; nu = nu->next)
 		BKE_nurb_minmax(nu, use_radius, min, max);
 
-	return (nurb_lb->first != NULL);
+	return (BLI_listbase_is_empty(nurb_lb) == false);
 }
 
 bool BKE_curve_center_median(Curve *cu, float cent[3])

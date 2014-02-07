@@ -64,8 +64,7 @@ SK_Sketch *createSketch(void)
 	sketch->active_stroke = NULL;
 	sketch->gesture = NULL;
 
-	sketch->strokes.first = NULL;
-	sketch->strokes.last = NULL;
+	BLI_listbase_clear(&sketch->strokes);
 
 	return sketch;
 }

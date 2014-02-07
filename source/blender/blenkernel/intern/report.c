@@ -97,7 +97,7 @@ void BKE_reports_clear(ReportList *reports)
 		report = report_next;
 	}
 
-	reports->list.first = reports->list.last = NULL;
+	BLI_listbase_clear(&reports->list);
 }
 
 void BKE_report(ReportList *reports, ReportType type, const char *_message)

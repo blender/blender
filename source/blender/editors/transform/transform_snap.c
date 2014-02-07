@@ -719,7 +719,7 @@ void removeSnapPoint(TransInfo *t)
 		if (t->tsnap.selectedPoint) {
 			BLI_freelinkN(&t->tsnap.points, t->tsnap.selectedPoint);
 
-			if (t->tsnap.points.first == NULL) {
+			if (BLI_listbase_is_empty(&t->tsnap.points)) {
 				t->tsnap.status &= ~MULTI_POINTS;
 			}
 
@@ -908,7 +908,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			float max_dist = FLT_MAX;
 			float p[3] = {0.0f, 0.0f, 0.0f};
 			
-			depth_peels.first = depth_peels.last = NULL;
+			BLI_listbase_clear(&depth_peels);
 			
 			peelObjectsTransForm(t, &depth_peels, mval, t->tsnap.modeSelect);
 			

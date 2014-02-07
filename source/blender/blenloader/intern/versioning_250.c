@@ -934,7 +934,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
 
 			//for (pid = pidlist.first; pid; pid = pid->next) {
-			//	if (pid->ptcaches->first == NULL)
+			//	if (BLI_listbase_is_empty(pid->ptcaches))
 			//		pid->ptcaches->first = pid->ptcaches->last = pid->cache;
 			//}
 

@@ -583,7 +583,7 @@ static void colormanage_free_config(void)
 
 		colorspace = colorspace_next;
 	}
-	global_colorspaces.first = global_colorspaces.last = NULL;
+	BLI_listbase_clear(&global_colorspaces);
 	global_tot_colorspace = 0;
 
 	/* free displays */
@@ -604,7 +604,7 @@ static void colormanage_free_config(void)
 		MEM_freeN(display);
 		display = display_next;
 	}
-	global_displays.first = global_displays.last = NULL;
+	BLI_listbase_clear(&global_displays);
 	global_tot_display = 0;
 
 	/* free views */

@@ -622,7 +622,7 @@ void BKE_sequence_modifier_clear(Sequence *seq)
 		BKE_sequence_modifier_free(smd);
 	}
 
-	seq->modifiers.first = seq->modifiers.last = NULL;
+	BLI_listbase_clear(&seq->modifiers);
 }
 
 void BKE_sequence_modifier_free(SequenceModifierData *smd)

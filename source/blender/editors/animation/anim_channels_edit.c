@@ -80,7 +80,7 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int f
 	
 	/* try to build list of filtered items */
 	ANIM_animdata_filter(ac, &anim_data, filter, data, datatype);
-	if (anim_data.first == NULL)
+	if (BLI_listbase_is_empty(&anim_data))
 		return;
 		
 	/* only clear the 'active' flag for the channels of the same type */
@@ -550,7 +550,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
 			/* if group has no more channels, remove it too, 
 			 * otherwise can have many dangling groups [#33541]
 			 */
-			if (agrp->channels.first == NULL) {
+			if (BLI_listbase_is_empty(&agrp->channels)) {
 				BLI_freelinkN(&act->groups, agrp);
 			}
 		}
@@ -565,7 +565,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
 		 * channel list that are empty, and linger around long after the data they
 		 * are for has disappeared (and probably won't come back).
 		 */
-		if ((act->curves.first == NULL) && (adt->flag & ADT_NLA_EDIT_ON) == 0) {
+		if (BLI_listbase_is_empty(&act->curves) && (adt->flag & ADT_NLA_EDIT_ON) == 0) {
 			id_us_min(&act->id);
 			adt->action = NULL;
 		}
@@ -844,7 +844,7 @@ static void rearrange_animchannel_flatten_islands(ListBase *islands, ListBase *s
 	tReorderChannelIsland *island, *isn = NULL;
 	
 	/* make sure srcList is empty now */
-	BLI_assert(srcList->first == NULL);
+	BLI_assert(BLI_listbase_is_empty(srcList));
 	
 	/* go through merging islands */
 	for (island = islands->first; island; island = isn) {
@@ -866,7 +866,7 @@ static bool rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp re
 	short done = FALSE;
 	
 	/* don't waste effort on an empty list */
-	if (list->first == NULL)
+	if (BLI_listbase_is_empty(list))
 		return 0;
 	
 	/* group channels into islands */
@@ -1221,7 +1221,7 @@ static void animchannels_group_channels(bAnimContext *ac, bAnimListElem *adt_ref
 				/* remove F-Curve from group, then group too if it is now empty */
 				action_groups_remove_channel(act, fcu);
 				
-				if ((grp) && (grp->channels.first == NULL)) {
+				if ((grp) && BLI_listbase_is_empty(&grp->channels)) {
 					BLI_freelinkN(&act->groups, grp);
 				}
 				
@@ -1326,7 +1326,7 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator *UNUSED(op))
 				BLI_addtail(&act->curves, fcu);
 				
 				/* delete group if it is now empty */
-				if (agrp->channels.first == NULL) {
+				if (BLI_listbase_is_empty(&agrp->channels)) {
 					BLI_freelinkN(&act->groups, agrp);
 				}
 			}

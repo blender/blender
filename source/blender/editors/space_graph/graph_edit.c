@@ -430,7 +430,7 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 	sipo = (SpaceIpo *)ac.sl;
 		
 	/* if no ghost curves, don't do anything */
-	if (sipo->ghostCurves.first == NULL)
+	if (BLI_listbase_is_empty(&sipo->ghostCurves))
 		return OPERATOR_CANCELLED;
 	
 	/* free ghost curves */

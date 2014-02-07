@@ -257,7 +257,7 @@ void BKE_sequencer_preprocessed_cache_cleanup(void)
 	}
 	BLI_freelistN(&preprocess_cache->elems);
 
-	preprocess_cache->elems.first = preprocess_cache->elems.last = NULL;
+	BLI_listbase_clear(&preprocess_cache->elems);
 }
 
 static void preprocessed_cache_destruct(void)

@@ -1379,7 +1379,7 @@ static void dag_scene_build(Main *bmain, Scene *sce)
 	ListBase tempbase;
 	Base *base;
 
-	tempbase.first = tempbase.last = NULL;
+	BLI_listbase_clear(&tempbase);
 	
 	build_dag(bmain, sce, DAG_RL_ALL_BUT_DATA);
 	
@@ -1941,7 +1941,7 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 				break;
 			case OB_FONT:
 				cu = ob->data;
-				if (cu->nurb.first == NULL && cu->str && cu->vfont)
+				if (BLI_listbase_is_empty(&cu->nurb) && cu->str && cu->vfont)
 					ob->recalc |= OB_RECALC_DATA;
 				break;
 			case OB_LATTICE:
@@ -2078,7 +2078,7 @@ static void dag_current_scene_layers(Main *bmain, ListBase *lb)
 	wmWindowManager *wm;
 	wmWindow *win;
 	
-	lb->first = lb->last = NULL;
+	BLI_listbase_clear(lb);
 
 	/* if we have a windowmanager, look into windows */
 	if ((wm = bmain->wm.first)) {
@@ -2411,7 +2411,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 	/* get list of visible scenes and layers */
 	dag_current_scene_layers(bmain, &listbase);
 
-	if (listbase.first == NULL)
+	if (BLI_listbase_is_empty(&listbase))
 		return;
 
 	/* loop over all ID types */
@@ -2774,7 +2774,7 @@ void DAG_pose_sort(Object *ob)
 	dag_check_cycle(dag);
 	
 	/* now we try to sort... */
-	tempbase.first = tempbase.last = NULL;
+	BLI_listbase_clear(&tempbase);
 
 	nqueue = queue_create(DAGQUEUEALLOC);
 	

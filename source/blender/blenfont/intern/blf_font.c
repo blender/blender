@@ -701,8 +701,7 @@ static void blf_font_fill(FontBLF *font)
 	font->flags = 0;
 	font->dpi = 0;
 	font->size = 0;
-	font->cache.first = NULL;
-	font->cache.last = NULL;
+	BLI_listbase_clear(&font->cache);
 	font->glyph_cache = NULL;
 	font->blur = 0;
 	font->max_tex_size = -1;

@@ -326,7 +326,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 			
 			/* Library structs themselves */
 			bfd->main->library = oldmain->library;
-			oldmain->library.first = oldmain->library.last = NULL;
+			BLI_listbase_clear(&oldmain->library);
 			
 			/* add the Library mainlist to the new main */
 			BLI_remlink(&mainlist, oldmain);

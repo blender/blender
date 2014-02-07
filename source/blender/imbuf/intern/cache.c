@@ -375,7 +375,7 @@ static unsigned int *imb_thread_cache_get_tile(ImThreadTileCache *cache, ImBuf *
 	}
 
 	/* not found, have to do slow lookup in global cache */
-	if (cache->unused.first == NULL) {
+	if (BLI_listbase_is_empty(&cache->unused)) {
 		ttile = cache->tiles.last;
 		replacetile = ttile->global;
 		BLI_remlink(&cache->tiles, ttile);

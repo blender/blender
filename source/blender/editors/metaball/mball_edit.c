@@ -131,7 +131,7 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	int action = RNA_enum_get(op->ptr, "action");
 
-	if (mb->editelems->first == NULL)
+	if (BLI_listbase_is_empty(mb->editelems))
 		return OPERATOR_CANCELLED;
 
 	if (action == SEL_TOGGLE) {
@@ -702,7 +702,6 @@ static void *editMball_to_undoMball(void *lbe, void *UNUSED(obe))
 
 	/* allocate memory for undo ListBase */
 	lb = MEM_callocN(sizeof(ListBase), "listbase undo");
-	lb->first = lb->last = NULL;
 	
 	/* copy contents of current ListBase to the undo ListBase */
 	ml = editelems->first;

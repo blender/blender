@@ -655,8 +655,7 @@ static void ED_armature_ebone_listbase_free(ListBase *lb)
 		MEM_freeN(ebone);
 	}
 
-	lb->first = NULL;
-	lb->last = NULL;
+	BLI_listbase_clear(lb);
 }
 
 static void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
@@ -664,7 +663,7 @@ static void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
 	EditBone *ebone_src;
 	EditBone *ebone_dst;
 
-	BLI_assert(lb_dst->first == NULL);
+	BLI_assert(BLI_listbase_is_empty(lb_dst));
 
 	for (ebone_src = lb_src->first; ebone_src; ebone_src = ebone_src->next) {
 		ebone_dst = MEM_dupallocN(ebone_src);

@@ -979,7 +979,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		float mvalf[2];
 
 		BLI_freelistN(&sketch->depth_peels);
-		sketch->depth_peels.first = sketch->depth_peels.last = NULL;
+		BLI_listbase_clear(&sketch->depth_peels);
 
 		mvalf[0] = dd->mval[0];
 		mvalf[1] = dd->mval[1];
@@ -1915,8 +1915,8 @@ void sk_applyConvertGesture(bContext *C, SK_Gesture *UNUSED(gest), SK_Sketch *sk
 
 static void sk_initGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 {
-	gest->intersections.first = gest->intersections.last = NULL;
-	gest->self_intersections.first = gest->self_intersections.last = NULL;
+	BLI_listbase_clear(&gest->intersections);
+	BLI_listbase_clear(&gest->self_intersections);
 
 	gest->segments = sk_createStroke();
 	gest->stk = sketch->gesture;
@@ -2093,8 +2093,7 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 	}
 
 #if 0
-	if (sketch->depth_peels.first != NULL)
-	{
+	if (BLI_listbase_is_empty(&sketch->depth_peels) == false) {
 		float colors[8][3] = {
 			{1, 0, 0},
 			{0, 1, 0},

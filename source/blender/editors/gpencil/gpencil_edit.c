@@ -1422,7 +1422,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 		return;
 
 	/* only convert if there are any strokes on this layer's frame to convert */
-	if (gpf->strokes.first == NULL)
+	if (BLI_listbase_is_empty(&gpf->strokes))
 		return;
 
 	/* initialize camera framing */

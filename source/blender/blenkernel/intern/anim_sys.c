@@ -273,7 +273,7 @@ AnimData *BKE_copy_animdata(AnimData *adt, const bool do_action)
 	copy_fcurves(&dadt->drivers, &adt->drivers);
 	
 	/* don't copy overrides */
-	dadt->overrides.first = dadt->overrides.last = NULL;
+	BLI_listbase_clear(&dadt->overrides);
 	
 	/* return */
 	return dadt;
@@ -465,7 +465,7 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
 				/* if group is empty and tagged, then we can remove as this operation
 				 * moved out all the channels that were formerly here
 				 */
-				if (agrp->channels.first == NULL)
+				if (BLI_listbase_is_empty(&agrp->channels))
 					BLI_freelinkN(&srcAct->groups, agrp);
 				else
 					agrp->flag &= ~AGRP_TEMP;
@@ -1900,7 +1900,7 @@ static void nlaevalchan_buffers_accumulate(ListBase *channels, ListBase *tmp_buf
 	NlaEvalChannel *nec, *necn, *necd;
 	
 	/* optimize - abort if no channels */
-	if (tmp_buffer->first == NULL)
+	if (BLI_listbase_is_empty(tmp_buffer))
 		return;
 	
 	/* accumulate results in tmp_channels buffer to the accumulation buffer */
@@ -2308,7 +2308,7 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 	}
 	
 	/* only continue if there are strips to evaluate */
-	if (estrips.first == NULL)
+	if (BLI_listbase_is_empty(&estrips))
 		return;
 	
 	
@@ -2524,7 +2524,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 	 * however, if there are some curves, we will need to make sure that their 'ctime' property gets
 	 * set correctly, so this optimization must be skipped in that case...
 	 */
-	if ((main->action.first == NULL) && (main->curve.first == NULL)) {
+	if (BLI_listbase_is_empty(&main->action) && BLI_listbase_is_empty(&main->curve)) {
 		if (G.debug & G_DEBUG)
 			printf("\tNo Actions, so no animation needs to be evaluated...\n");
 			
