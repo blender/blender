@@ -23,6 +23,7 @@ typedef struct LightSample {
 	float3 Ng;			/* normal on light */
 	float3 D;			/* direction from shading point to light */
 	float t;			/* distance to light (FLT_MAX for distant light) */
+	float u, v;			/* parametric coordinate on primitive */
 	float pdf;			/* light sampling probability density function */
 	float eval_fac;		/* intensity multiplier */
 	int object;			/* object id for triangle/curve lights */
@@ -219,6 +220,8 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 	ls->object = ~0;
 	ls->prim = ~0;
 	ls->lamp = lamp;
+	ls->u = randu;
+	ls->v = randv;
 
 	if(type == LIGHT_DISTANT) {
 		/* distant light */
@@ -309,6 +312,9 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 	ls->object = ~0;
 	ls->prim = ~0;
 	ls->lamp = lamp;
+	/* todo: missing texture coordinates */
+	ls->u = 0.0f;
+	ls->v = 0.0f;
 
 	if(!(ls->shader & SHADER_USE_MIS))
 		return false;
@@ -443,14 +449,24 @@ ccl_device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls
 ccl_device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	float randu, float randv, float time, LightSample *ls)
 {
+	float u, v;
+
+	/* compute random point in triangle */
+	randu = sqrtf(randu);
+
+	u = 1.0f - randu;
+	v = randv*randu;
+
 	/* triangle, so get position, normal, shader */
-	ls->P = triangle_sample_MT(kg, prim, randu, randv);
+	ls->P = triangle_point_MT(kg, prim, u, v);
 	ls->Ng = triangle_normal_MT(kg, prim, &ls->shader);
 	ls->object = object;
 	ls->prim = prim;
 	ls->lamp = ~0;
 	ls->shader |= SHADER_USE_MIS;
 	ls->t = 0.0f;
+	ls->u = u;
+	ls->v = v;
 	ls->type = LIGHT_TRIANGLE;
 	ls->eval_fac = 1.0f;
 
@@ -504,6 +520,8 @@ ccl_device void curve_segment_light_sample(KernelGlobals *kg, int prim, int obje
 	ls->prim = prim;
 	ls->lamp = ~0;
 	ls->t = 0.0f;
+	ls->u = randu;
+	ls->v = randv;
 	ls->type = LIGHT_STRAND;
 	ls->eval_fac = 1.0f;
 	ls->shader = __float_as_int(v00.z) | SHADER_USE_MIS;

@@ -31,18 +31,6 @@ ccl_device_inline float3 triangle_point_MT(KernelGlobals *kg, int tri_index, flo
 	return (u*v0 + v*v1 + t*v2);
 }
 
-/* Sample point on triangle */
-ccl_device_inline float3 triangle_sample_MT(KernelGlobals *kg, int tri_index, float randu, float randv)
-{
-	/* compute point */
-	randu = sqrtf(randu);
-
-	float u = 1.0f - randu;
-	float v = randv*randu;
-
-	return triangle_point_MT(kg, tri_index, u, v);
-}
-
 /* Normal for Moller-Trumbore triangles */
 ccl_device_inline float3 triangle_normal_MT(KernelGlobals *kg, int tri_index, int *shader)
 {
