@@ -407,6 +407,7 @@ texture_node_categories = [
         NodeItem("TextureNodeScale"),
         NodeItem("TextureNodeTranslate"),
         NodeItem("TextureNodeRotate"),
+        NodeItem("TextureNodeAt"),
         ]),
     TextureNodeCategory("TEX_GROUP", "Group", items=node_group_items),
     TextureNodeCategory("TEX_LAYOUT", "Layout", items=[
