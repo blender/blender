@@ -525,7 +525,7 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 	return true;
 }
 
-static uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new)
+uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new)
 {
 	uiBut *but_old;
 	for (but_old = block_old->buttons.first; but_old; but_old = but_old->next) {
@@ -534,6 +534,16 @@ static uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new)
 		}
 	}
 	return but_old;
+}
+uiBut *ui_but_find_new(uiBlock *block_new, const uiBut *but_old)
+{
+	uiBut *but_new;
+	for (but_new = block_new->buttons.first; but_new; but_new = but_new->next) {
+		if (ui_but_equals_old(but_new, but_old)) {
+			break;
+		}
+	}
+	return but_new;
 }
 
 /* oldbut is being inserted in new block, so we use the lines from new button, and replace button pointers */
@@ -1019,6 +1029,11 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 	uiBut *but;
 	Scene *scene = CTX_data_scene(C);
+
+
+	if (has_old && BLI_listbase_is_empty(&block->oldblock->butstore) == false) {
+		UI_butstore_update(block);
+	}
 
 	/* inherit flags from 'old' buttons that was drawn here previous, based
 	 * on matching buttons, we need this to make button event handling non
@@ -2228,6 +2243,8 @@ static void ui_free_but(const bContext *C, uiBut *but)
 		IMB_freeImBuf((struct ImBuf *)but->poin);
 	}
 
+	BLI_assert(UI_butstore_is_registered(but->block, but) == false);
+
 	MEM_freeN(but);
 }
 
@@ -2235,6 +2252,8 @@ static void ui_free_but(const bContext *C, uiBut *but)
 void uiFreeBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
+
+	UI_butstore_clear(block);
 
 	while ((but = BLI_pophead(&block->buttons))) {
 		ui_free_but(C, but);

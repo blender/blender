@@ -280,6 +280,8 @@ struct uiBlock {
 	Panel *panel;
 	uiBlock *oldblock;
 
+	ListBase butstore;  /* UI_butstore_* runtime function */
+
 	ListBase layouts;
 	struct uiLayout *curlayout;
 
@@ -526,6 +528,8 @@ extern int ui_button_open_menu_direction(uiBut *but);
 extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
 void ui_button_clipboard_free(void);
 void ui_panel_menu(struct bContext *C, ARegion *ar, Panel *pa);
+uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new);
+uiBut *ui_but_find_new(uiBlock *block_old, const uiBut *but_new);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);

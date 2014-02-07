@@ -942,6 +942,20 @@ void UI_template_fix_linking(void);
 bool UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
 
+/* UI_butstore_ helpers */
+typedef struct uiButStore uiButStore;
+typedef struct uiButStoreElem uiButStoreElem;
+
+uiButStore *UI_butstore_create(uiBlock *block);
+void UI_butstore_clear(uiBlock *block);
+void UI_butstore_update(uiBlock *block);
+void UI_butstore_free(uiBlock *block, uiButStore *bs);
+bool UI_butstore_is_valid(uiButStore *bs);
+bool UI_butstore_is_registered(uiBlock *block, uiBut *but);
+void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p);
+void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
+
+
 /* Float precision helpers */
 #define UI_PRECISION_FLOAT_MAX 7
 

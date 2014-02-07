@@ -34,20 +34,25 @@
 #include <assert.h>
 
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_listbase.h"
 
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
 
+#include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "interface_intern.h"
 
 
 /*************************** RNA Utilities ******************************/
@@ -280,3 +285,160 @@ int uiFloatPrecisionCalc(int prec, double value)
 
 	return prec;
 }
+
+
+/* -------------------------------------------------------------------- */
+/* Modal Button Store API */
+
+/** \name Button Store
+ *
+ * Store for modal operators & handlers to register button pointers
+ * which are maintained while drawing or NULL when removed.
+ *
+ * This is needed since button pointers are continuously freed and re-allocated.
+ *
+ * \{ */
+
+typedef struct uiButStore {
+	struct uiButStore *next, *prev;
+	uiBlock *block;
+	ListBase items;
+} uiButStore;
+
+typedef struct uiButStoreElem {
+	struct uiButStoreElem *next, *prev;
+	uiBut **but_p;
+} uiButStoreElem;
+
+/**
+ * Create a new button sture, the caller must manage and run #UI_butstore_free
+ */
+uiButStore *UI_butstore_create(uiBlock *block)
+{
+	uiButStore *bs_handle = MEM_callocN(sizeof(uiButStore), __func__);
+
+	bs_handle->block = block;
+	BLI_addtail(&block->butstore, bs_handle);
+
+	return bs_handle;
+}
+
+void UI_butstore_free(uiBlock *block, uiButStore *bs_handle)
+{
+	BLI_freelistN(&bs_handle->items);
+	BLI_remlink(&block->butstore, bs_handle);
+
+	MEM_freeN(bs_handle);
+}
+
+bool UI_butstore_is_valid(uiButStore *bs)
+{
+	return (bs->block != NULL);
+}
+
+bool UI_butstore_is_registered(uiBlock *block, uiBut *but)
+{
+	uiButStore *bs_handle;
+
+	for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
+		uiButStoreElem *bs_elem;
+
+		for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+			if (*bs_elem->but_p == but) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p)
+{
+	uiButStoreElem *bs_elem = MEM_callocN(sizeof(uiButStoreElem), __func__);
+	BLI_assert(*but_p);
+	bs_elem->but_p = but_p;
+
+	BLI_addtail(&bs_handle->items, bs_elem);
+
+}
+
+void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
+{
+	uiButStoreElem *bs_elem, *bs_elem_next;
+
+	for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem_next) {
+		bs_elem_next = bs_elem->next;
+		if (bs_elem->but_p == but_p) {
+			BLI_remlink(&bs_handle->items, bs_elem);
+			MEM_freeN(bs_elem);
+		}
+	}
+
+	BLI_assert(0);
+}
+
+/**
+ * NULL all pointers, don't free since the owner needs to be able to inspect.
+ */
+void UI_butstore_clear(uiBlock *block)
+{
+	uiButStore *bs_handle;
+
+	for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
+		uiButStoreElem *bs_elem;
+
+		bs_handle->block = NULL;
+
+		for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+			*bs_elem->but_p = NULL;
+		}
+	}
+}
+
+/**
+ * Map freed buttons from the old block and update pointers.
+ */
+void UI_butstore_update(uiBlock *block)
+{
+	uiButStore *bs_handle;
+
+	/* move this list to the new block */
+	if (block->oldblock) {
+		if (block->oldblock->butstore.first) {
+			block->butstore = block->oldblock->butstore;
+			BLI_listbase_clear(&block->oldblock->butstore);
+		}
+	}
+
+	if (LIKELY(block->butstore.first == NULL))
+		return;
+
+	/* warning, loop-in-loop, in practice we only store <10 buttons at a time,
+	 * so this isn't going to be a problem, if that changes old-new mapping can be cached first */
+	for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
+
+		BLI_assert((bs_handle->block == NULL) ||
+		           (bs_handle->block == block) ||
+		           (block->oldblock && block->oldblock == bs_handle->block));
+
+		if (bs_handle->block == block->oldblock) {
+			uiButStoreElem *bs_elem;
+
+			bs_handle->block = block;
+
+			for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+				if (*bs_elem->but_p) {
+					uiBut *but_new = ui_but_find_new(block, *bs_elem->but_p);
+
+					/* can be NULL if the buttons removed,
+					 * note: we could allow passing in a callback when buttons are removed
+					 * so the caller can cleanup */
+					*bs_elem->but_p = but_new;
+				}
+			}
+		}
+	}
+}
+
+/** \} */
