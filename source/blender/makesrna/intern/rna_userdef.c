@@ -2973,7 +2973,7 @@ static void rna_def_userdef_addon_pref(BlenderRNA *brna)
 	RNA_define_verify_sdna(0);
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "module");
-	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
+	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_define_verify_sdna(1);
 }
 
