@@ -176,6 +176,8 @@ typedef struct uiHandleButtonMulti {
 	LinkNode *mbuts;
 	uiButStore *bs_mbuts;
 
+	bool is_proportional;
+
 	/* before activating, we need to check gesture direction
 	 * accumulate signed cursor movement here so we can tell if this is a vertical motion or not. */
 	float drag_dir[2];
@@ -937,12 +939,22 @@ static void ui_multibut_states_create(uiBut *but_active, uiHandleButtonData *dat
 			ui_multibut_add(data, but);
 		}
 	}
+
+	/* edit buttons proportionally to eachother
+	 * note: if we mix buttons which are proportional and others which are not,
+	 * this may work a bit strangely */
+	if (but_active->rnaprop) {
+		if ((data->origvalue != 0.0) && (RNA_property_flag(but_active->rnaprop) & PROP_PROPORTIONAL)) {
+			data->multi_data.is_proportional = true;
+		}
+	}
 }
 
 static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBlock *block)
 {
 	ARegion *ar = data->region;
 	const double value_delta = data->value - data->origvalue;
+	const double value_scale = data->multi_data.is_proportional ? (data->value / data->origvalue) : 0.0;
 	uiBut *but;
 
 	BLI_assert(data->multi_data.init == BUTTON_MULTI_INIT_ENABLE);
@@ -965,7 +977,12 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 				}
 				else {
 					/* dragging (use delta) */
-					but->active->value = mbut_state->origvalue + value_delta;
+					if (data->multi_data.is_proportional) {
+						but->active->value = mbut_state->origvalue * value_scale;
+					}
+					else {
+						but->active->value = mbut_state->origvalue + value_delta;
+					}
 				}
 				ui_button_execute_end(C, ar, but, active_back);
 			}
