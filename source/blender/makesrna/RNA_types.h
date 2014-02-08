@@ -187,6 +187,11 @@ typedef enum PropertyFlag {
 	PROP_REGISTER                = (1 << 4),
 	PROP_REGISTER_OPTIONAL       = PROP_REGISTER | (1 << 5),
 
+	/* numbers */
+
+	/* each value is related proportionally (object scale, image size) */
+	PROP_PROPORTIONAL            = (1 << 26),
+
 	/* pointers */
 	PROP_ID_REFCOUNT             = (1 << 6),
 

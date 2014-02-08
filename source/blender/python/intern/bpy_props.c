@@ -63,10 +63,11 @@ static EnumPropertyItem property_flag_items[] = {
 	{PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
 	{PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
+	{PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to eachother", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #define BPY_PROPDEF_OPTIONS_DOC \
-"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE'].\n" \
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE', 'PROPORTIONAL'].\n" \
 "   :type options: set\n" \
 
 static EnumPropertyItem property_flag_enum_items[] = {
