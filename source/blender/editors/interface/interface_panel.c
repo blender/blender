@@ -1404,6 +1404,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	const int tab_v_pad = iroundf((4 + (2 * px * dpi_fac)) * zoom);  /* padding between tabs */
 	const float tab_curve_radius = ((px * 3) * dpi_fac) * zoom;
 	const int roundboxtype = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
+	bool is_alpha;
 	bool do_scaletabs = false;
 #ifdef USE_FLAT_INACTIVE
 	bool is_active_prev = false;
@@ -1446,6 +1447,8 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	blend_color_interpolate_byte(theme_col_tab_divider, theme_col_back, theme_col_tab_outline, 0.3f);
 	blend_color_interpolate_byte(theme_col_tab_highlight, theme_col_back, theme_col_text_hi, 0.2f);
 	blend_color_interpolate_byte(theme_col_tab_highlight_inactive, theme_col_tab_inactive, theme_col_text_hi, 0.12f);
+
+	is_alpha = (ar->overlap && (theme_col_back[3] != 255));
 
 	if (fstyle->kerning == 1) {
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
@@ -1497,8 +1500,19 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	glEnable(GL_LINE_SMOOTH);
 
 	/* draw the background */
-	glColor3ubv(theme_col_tab_bg);
+	if (is_alpha) {
+		glEnable(GL_BLEND);
+		glColor4ubv(theme_col_tab_bg);
+	}
+	else {
+		glColor3ubv(theme_col_tab_bg);
+	}
+
 	glRecti(v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
+
+	if (is_alpha) {
+		glDisable(GL_BLEND);
+	}
 
 	for (pc_dyn = ar->panels_category.first; pc_dyn; pc_dyn = pc_dyn->next) {
 		const rcti *rct = &pc_dyn->rect;
