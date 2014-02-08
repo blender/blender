@@ -620,8 +620,14 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 
 				for (unsigned int uvset_index = 0; uvset_index < index_list_array.getCount(); uvset_index++) {
 					// get mtface by face index and uv set index
-					MLoopUV  *mloopuv = (MLoopUV  *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uvset_index);
-					set_face_uv(mloopuv+loop_index, uvs, start_index, *index_list_array[uvset_index], vcount);
+					COLLADAFW::IndexList& index_list = *index_list_array[uvset_index];
+					MLoopUV  *mloopuv = (MLoopUV  *)CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, index_list.getName().c_str());
+					if (mloopuv == NULL) {
+						fprintf(stderr, "Collada import: Mesh [%s] : Unknown reference to TEXCOORD [#%s].", me->id.name, index_list.getName().c_str() );
+					}
+					else {
+						set_face_uv(mloopuv+loop_index, uvs, start_index, *index_list_array[uvset_index], vcount);
+					}
 				}
 
 				if (mp_has_normals) {
