@@ -496,10 +496,6 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap = WM_keymap_find(wm->defaultconf, "Lattice", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	/* armature sketching needs to take over mouse */
-	keymap = WM_keymap_find(wm->defaultconf, "Armature Sketch", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
-
 	keymap = WM_keymap_find(wm->defaultconf, "Particle", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 

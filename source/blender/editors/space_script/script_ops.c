@@ -59,11 +59,8 @@ void script_operatortypes(void)
 	WM_operatortype_append(SCRIPT_OT_autoexec_warn_clear);
 }
 
-void script_keymap(wmKeyConfig *keyconf)
+void script_keymap(wmKeyConfig *UNUSED(keyconf))
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Script", SPACE_SCRIPT, 0);
-
-	/* TODO - this is just while we have no way to load a text datablock */
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", PKEY, KM_PRESS, KM_CTRL | KM_SHIFT | KM_ALT, 0)->ptr, "filepath", "test.py");
+	/* Script space is deprecated, and doesn't need a keymap */
 }
 

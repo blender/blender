@@ -52,7 +52,6 @@ KM_HIERARCHY = [
         ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
         ('Sculpt', 'EMPTY', 'WINDOW', []),
 
-        ('Armature Sketch', 'EMPTY', 'WINDOW', []),
         ('Particle', 'EMPTY', 'WINDOW', []),
 
         ('Knife Tool Modal Map', 'EMPTY', 'WINDOW', []),
