@@ -1296,24 +1296,24 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 
 bool RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *r_value)
 {
-	EnumPropertyItem *item, *item_array;
+	EnumPropertyItem *item;
 	bool free;
 	bool found;
 
-	RNA_property_enum_items(C, ptr, prop, &item_array, NULL, &free);
+	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 
-	if (item_array) {
-		for (item = item_array; item->identifier; item++) {
-			if (item->identifier[0] && strcmp(item->identifier, identifier) == 0) {
-				*r_value = item->value;
-				break;
-			}
+	if (item) {
+		const int i = RNA_enum_from_identifier(item, identifier);
+		if (i != -1) {
+			*r_value = item[i].value;
+			found = true;
+		}
+		else {
+			found = false;
 		}
 
-		found = (item->identifier != NULL); /* could be alloc'd, assign before free */
-
 		if (free) {
-			MEM_freeN(item_array);
+			MEM_freeN(item);
 		}
 	}
 	else {
@@ -1322,15 +1322,16 @@ bool RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, co
 	return found;
 }
 
-bool RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier)
+bool RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **r_identifier)
 {
-	for (; item->identifier; item++) {
-		if (item->identifier[0] && item->value == value) {
-			*identifier = item->identifier;
-			return true;
-		}
+	const int i = RNA_enum_from_value(item, value);
+	if (i != -1) {
+		*r_identifier = item[i].identifier;
+		return true;
 	}
-	return false;
+	else {
+		return false;
+	}
 }
 
 int RNA_enum_bitflag_identifiers(EnumPropertyItem *item, const int value, const char **r_identifier)
@@ -1347,24 +1348,48 @@ int RNA_enum_bitflag_identifiers(EnumPropertyItem *item, const int value, const 
 
 bool RNA_enum_name(EnumPropertyItem *item, const int value, const char **r_name)
 {
-	for (; item->identifier; item++) {
-		if (item->identifier[0] && item->value == value) {
-			*r_name = item->name;
-			return true;
-		}
+	const int i = RNA_enum_from_value(item, value);
+	if (i != -1) {
+		*r_name = item[i].name;
+		return true;
 	}
-	return false;
+	else {
+		return false;
+	}
 }
 
 bool RNA_enum_description(EnumPropertyItem *item, const int value, const char **r_description)
 {
-	for (; item->identifier; item++) {
-		if (item->identifier[0] && item->value == value) {
-			*r_description = item->description;
-			return true;
+	const int i = RNA_enum_from_value(item, value);
+	if (i != -1) {
+		*r_description = item[i].description;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+int RNA_enum_from_identifier(EnumPropertyItem *item, const char *identifier)
+{
+	int i = 0;
+	for (; item->identifier; item++, i++) {
+		if (item->identifier[0] && STREQ(item->identifier, identifier)) {
+			return i;
 		}
 	}
-	return false;
+	return -1;
+}
+
+int RNA_enum_from_value(EnumPropertyItem *item, const int value)
+{
+	int i = 0;
+	for (; item->identifier; item++, i++) {
+		if (item->identifier[0] && item->value == value) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 bool RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value,
@@ -4701,14 +4726,22 @@ bool RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const cha
 	bool free;
 
 	if (prop) {
+		int i;
+		bool cmp;
+
 		RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+		i = RNA_enum_from_identifier(item, enumname);
+		if (i != -1) {
+			cmp = (item[i].value == RNA_property_enum_get(ptr, prop));
+		}
 
-		for (; item->identifier; item++)
-			if (strcmp(item->identifier, enumname) == 0)
-				return (item->value == RNA_property_enum_get(ptr, prop));
-
-		if (free)
+		if (free) {
 			MEM_freeN(item);
+		}
+
+		if (i != -1) {
+			return cmp;
+		}
 
 		printf("%s: %s.%s item %s not found.\n", __func__, ptr->type->identifier, name, enumname);
 		return false;
@@ -4721,50 +4754,50 @@ bool RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const cha
 
 bool RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *r_value)
 {
-	for (; item->identifier; item++) {
-		if (strcmp(item->identifier, identifier) == 0) {
-			*r_value = item->value;
-			return true;
-		}
+	const int i = RNA_enum_from_identifier(item, identifier);
+	if (i != -1) {
+		*r_value = item[i].value;
+		return true;
 	}
-	
-	return false;
+	else {
+		return false;
+	}
 }
 
 bool RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **r_identifier)
 {
-	for (; item->identifier; item++) {
-		if (item->value == value) {
-			*r_identifier = item->identifier;
-			return true;
-		}
+	const int i = RNA_enum_from_value(item, value);
+	if (i != -1) {
+		*r_identifier = item[i].identifier;
+		return true;
 	}
-
-	return false;
+	else {
+		return false;
+	}
 }
 
 bool RNA_enum_icon_from_value(EnumPropertyItem *item, int value, int *r_icon)
 {
-	for (; item->identifier; item++) {
-		if (item->value == value) {
-			*r_icon = item->icon;
-			return true;
-		}
+	const int i = RNA_enum_from_value(item, value);
+	if (i != -1) {
+		*r_icon = item[i].icon;
+		return true;
 	}
-	
-	return false;
+	else {
+		return false;
+	}
 }
 
 bool RNA_enum_name_from_value(EnumPropertyItem *item, int value, const char **r_name)
 {
-	for (; item->identifier; item++) {
-		if (item->value == value) {
-			*r_name = item->name;
-			return true;
-		}
+	const int i = RNA_enum_from_value(item, value);
+	if (i != -1) {
+		*r_name = item[i].name;
+		return true;
 	}
-	
-	return false;
+	else {
+		return false;
+	}
 }
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
