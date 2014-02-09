@@ -350,8 +350,6 @@ struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
 void uiPupMenuOkee(struct bContext *C, const char *opname, const char *str, ...) ATTR_PRINTF_FORMAT(3, 4);
 void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, const char *filename);
-void uiPupMenuNotice(struct bContext *C, const char *str, ...) ATTR_PRINTF_FORMAT(2, 3);
-void uiPupMenuError(struct bContext *C, const char *str, ...) ATTR_PRINTF_FORMAT(2, 3);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
 void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registered menu */
 

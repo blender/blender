@@ -2687,30 +2687,6 @@ void uiPupMenuSaveOver(bContext *C, wmOperator *op, const char *filename)
 	confirm_operator(C, op, IFACE_("Save Over?"), filename);
 }
 
-void uiPupMenuNotice(bContext *C, const char *str, ...)
-{
-	va_list ap;
-
-	va_start(ap, str);
-	vconfirm_opname(C, NULL, NULL, str, ap);
-	va_end(ap);
-}
-
-void uiPupMenuError(bContext *C, const char *str, ...)
-{
-	va_list ap;
-	char nfmt[256];
-	char titlestr[256];
-
-	BLI_snprintf(titlestr, sizeof(titlestr), IFACE_("Error %%i%d"), ICON_ERROR);
-
-	BLI_strncpy(nfmt, str, sizeof(nfmt));
-
-	va_start(ap, str);
-	vconfirm_opname(C, NULL, titlestr, nfmt, ap);
-	va_end(ap);
-}
-
 void uiPupMenuReports(bContext *C, ReportList *reports)
 {
 	Report *report;
