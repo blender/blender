@@ -1470,6 +1470,9 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 	float unit = BLI_rctf_size_x(butr) / 14.0f;
 	float xs = butr->xmin;
 	float ys = butr->ymin;
+	PointerRNA ptr;
+
+	RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRamp, coba, &ptr);
 
 	split = uiLayoutSplit(layout, 0.4f, false);
 
@@ -1493,10 +1496,8 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	row = uiLayoutRow(split, false);
-	bt = uiDefButS(block, MENU, 0, IFACE_("Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4"),
-	               0, ys + UI_UNIT_Y, 8.0f * unit, UI_UNIT_Y, &coba->ipotype, 0.0, 0.0, 0, 0,
-	               TIP_("Set interpolation between color stops"));
-	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+
+	uiItemR(row, &ptr, "interpolation", 0, "", ICON_NONE);
 
 	row = uiLayoutRow(layout, false);
 
@@ -1507,7 +1508,6 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 
 	if (coba->tot) {
 		CBData *cbd = coba->data + coba->cur;
-		PointerRNA ptr;
 
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
 
