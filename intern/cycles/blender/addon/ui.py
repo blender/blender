@@ -41,11 +41,12 @@ class CyclesButtonsPanel():
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
+    COMPAT_ENGINES = {'CYCLES'}
 
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return rd.engine == 'CYCLES'
+        return rd.engine in cls.COMPAT_ENGINES
 
 
 def draw_samples_info(layout, cscene):
