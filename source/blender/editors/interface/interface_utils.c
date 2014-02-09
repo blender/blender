@@ -313,16 +313,16 @@ int uiFloatPrecisionCalc(int prec, double value)
  *
  * \{ */
 
-typedef struct uiButStore {
+struct uiButStore {
 	struct uiButStore *next, *prev;
 	uiBlock *block;
 	ListBase items;
-} uiButStore;
+};
 
-typedef struct uiButStoreElem {
+struct uiButStoreElem {
 	struct uiButStoreElem *next, *prev;
 	uiBut **but_p;
-} uiButStoreElem;
+};
 
 /**
  * Create a new button sture, the caller must manage and run #UI_butstore_free
