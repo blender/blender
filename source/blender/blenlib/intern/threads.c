@@ -54,7 +54,7 @@
 #  include <sys/time.h>
 #endif
 
-#if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+#if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
 #  define USE_APPLE_OMP_FIX
 #endif
 

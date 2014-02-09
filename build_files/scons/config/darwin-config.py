@@ -109,7 +109,7 @@ BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True
 BF_ZLIB = '/usr'
-BF_ZLIB_INC = '${BF_ZLIB}/include'
+#BF_ZLIB_INC = '${BF_ZLIB}/include' # don't use this, it breaks -isysroot ${MACOSX_SDK}
 BF_ZLIB_LIB = 'z'
 
 WITH_BF_INTERNATIONAL = True

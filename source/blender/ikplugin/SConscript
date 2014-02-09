@@ -46,4 +46,7 @@ defs = [
     'WITH_IK_SOLVER',
     ]
 
-env.BlenderLib('bf_ikplugin', sources, incs, defs, libtype=['core', 'player'], priority=[180, 190])
+if env['OURPLATFORM']=='darwin' and env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4': # workaround for friend declaration specifies a default argument expression, not allowed anymore
+    env.BlenderLib('bf_ikplugin', sources, incs, defs, libtype=['core', 'player'], priority=[180, 190], cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++')
+else:
+    env.BlenderLib('bf_ikplugin', sources, incs, defs, libtype=['core', 'player'], priority=[180, 190])

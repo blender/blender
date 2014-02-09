@@ -410,7 +410,7 @@ if env['OURPLATFORM']=='darwin':
     #Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
     # if your compiler does not have accurate suffix you may have to enable it by hand !
     if env['WITH_BF_OPENMP'] == 1:
-        if env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.6.1': # strip down to version string if any
+        if env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.6.1' or env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4':
             env['WITH_BF_OPENMP'] = 1  # multithreading for fluids, cloth, sculpt and smoke
             print B.bc.OKGREEN + "Using OpenMP"
         else:
@@ -420,7 +420,7 @@ if env['OURPLATFORM']=='darwin':
     if env['WITH_BF_CYCLES_OSL'] == 1:
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
         # we need 2 variants of passing the oslexec with the force_load option, string and list type atm
-        if env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.8': # strip down to version string if any
+        if env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.8' or env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4':
             env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-loslexec','-loslquery'])
         else:
             env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
