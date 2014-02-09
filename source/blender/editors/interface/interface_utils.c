@@ -44,6 +44,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -229,6 +230,19 @@ int uiIconFromID(ID *id)
 	RNA_id_pointer_create(id, &ptr);
 
 	return (ptr.type) ? RNA_struct_ui_icon(ptr.type) : ICON_NONE;
+}
+
+/* see: report_type_str */
+int uiIconFromReportType(int type)
+{
+	if (type & RPT_ERROR_ALL)
+		return ICON_ERROR;
+	else if (type & RPT_WARNING_ALL)
+		return ICON_ERROR;
+	else if (type & RPT_INFO_ALL)
+		return ICON_INFO;
+	else
+		return ICON_NONE;
 }
 
 /********************************** Misc **************************************/

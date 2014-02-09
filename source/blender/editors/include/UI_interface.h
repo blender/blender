@@ -350,7 +350,7 @@ struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
 void uiPupMenuOkee(struct bContext *C, const char *opname, const char *str, ...) ATTR_PRINTF_FORMAT(3, 4);
 void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, const char *filename);
-void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
+void uiPupMenuReports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
 void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registered menu */
 
 /* Popup Blocks
@@ -578,6 +578,7 @@ void uiButGetStrInfo(struct bContext *C, uiBut *but, ...) ATTR_SENTINEL(0);
 #define UI_ID_FULL          (UI_ID_RENAME | UI_ID_BROWSE | UI_ID_ADD_NEW | UI_ID_OPEN | UI_ID_ALONE | UI_ID_DELETE | UI_ID_LOCAL)
 
 int uiIconFromID(struct ID *id);
+int uiIconFromReportType(int type);
 
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, const char *str, int x, int y, short width, short height, const char *tip);
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, const char *str, int x, int y, short width, short height, const char *tip);

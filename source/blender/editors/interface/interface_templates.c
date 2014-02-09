@@ -1,5 +1,4 @@
 /*
-
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -3285,7 +3284,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBut *but;
 	uiStyle *style = UI_GetStyle();
 	int width;
-	int icon = 0;
+	int icon;
 	
 	/* if the report display has timed out, don't show */
 	if (!reports->reporttimer) return;
@@ -3317,12 +3316,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	
 	
 	/* icon and report message on top */
-	if (report->type & RPT_ERROR_ALL)
-		icon = ICON_ERROR;
-	else if (report->type & RPT_WARNING_ALL)
-		icon = ICON_ERROR;
-	else if (report->type & RPT_INFO_ALL)
-		icon = ICON_INFO;
+	icon = uiIconFromReportType(report->type);
 	
 	/* XXX: temporary operator to dump all reports to a text block, but only if more than 1 report 
 	 * to be shown instead of icon when appropriate...

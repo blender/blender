@@ -2690,37 +2690,50 @@ void uiPupMenuSaveOver(bContext *C, wmOperator *op, const char *filename)
 void uiPupMenuReports(bContext *C, ReportList *reports)
 {
 	Report *report;
-	DynStr *ds;
-	char *str;
 
-	if (!reports || !reports->list.first)
-		return;
+	uiPopupMenu *pup = NULL;
+	uiLayout *layout;
+
 	if (!CTX_wm_window(C))
 		return;
 
-	ds = BLI_dynstr_new();
-
 	for (report = reports->list.first; report; report = report->next) {
+		int icon;
+		const char *msg, *msg_next;
+
 		if (report->type < reports->printlevel) {
-			/* pass */
+			continue;
 		}
-		else if (report->type >= RPT_ERROR) {
-			BLI_dynstr_appendf(ds, IFACE_("Error %%i%d%%t|%s"), ICON_ERROR, report->message);
+
+		if (pup == NULL) {
+			char title[UI_MAX_DRAW_STR];
+			BLI_snprintf(title, sizeof(title), "%s: %s", IFACE_("Report"), report->typestr);
+			pup = uiPupMenuBegin(C, title, ICON_NONE);
+			layout = uiPupMenuLayout(pup);
 		}
-		else if (report->type >= RPT_WARNING) {
-			BLI_dynstr_appendf(ds, IFACE_("Warning %%i%d%%t|%s"), ICON_ERROR, report->message);
+		else {
+			uiItemS(layout);
 		}
-		else if (report->type >= RPT_INFO) {
-			BLI_dynstr_appendf(ds, IFACE_("Info %%i%d%%t|%s"), ICON_INFO, report->message);
-		}
+
+		/* split each newline into a label */
+		msg = report->message;
+		icon = uiIconFromReportType(report->type);
+		do {
+			char buf[UI_MAX_DRAW_STR];
+			msg_next = strchr(msg, '\n');
+			if (msg_next) {
+				msg_next++;
+				BLI_strncpy(buf, msg, MIN2(sizeof(buf), msg_next - msg));
+				msg = buf;
+			}
+			uiItemL(layout, msg, icon);
+			icon = ICON_NONE;
+		} while ((msg = msg_next) && *msg);
 	}
 
-	str = BLI_dynstr_get_cstring(ds);
-	if (str[0] != '\0')
-		ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
-	MEM_freeN(str);
-
-	BLI_dynstr_free(ds);
+	if (pup) {
+		uiPupMenuEnd(C, pup);
+	}
 }
 
 void uiPupMenuInvoke(bContext *C, const char *idname)
