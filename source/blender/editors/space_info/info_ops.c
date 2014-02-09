@@ -188,8 +188,7 @@ static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
 	}
 	
 	if (ima) {
-		uiPupMenuOkee(C, "FILE_OT_pack_all", "Some images are painted on. These changes will be lost. Continue?");
-		return OPERATOR_CANCELLED;
+		return WM_operator_confirm_message(C, op, "Some images are painted on. These changes will be lost. Continue?");
 	}
 	
 	return pack_all_exec(C, op);

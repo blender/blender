@@ -348,10 +348,8 @@ struct uiPopupMenu *uiPupMenuBegin(struct bContext *C, const char *title, int ic
 void uiPupMenuEnd(struct bContext *C, struct uiPopupMenu *head);
 struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
-void uiPupMenuOkee(struct bContext *C, const char *opname, const char *str, ...) ATTR_PRINTF_FORMAT(3, 4);
-void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, const char *filename);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
-void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registered menu */
+void uiPupMenuInvoke(struct bContext *C, const char *idname) ATTR_NONNULL();
 
 /* Popup Blocks
  *

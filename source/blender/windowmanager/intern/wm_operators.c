@@ -1107,7 +1107,9 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(eve
 }
 
 /* Can't be used as an invoke directly, needs message arg (can be NULL) */
-int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message)
+int WM_operator_confirm_message_ex(bContext *C, wmOperator *op,
+                                   const char *title, const int icon,
+                                   const char *message)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -1118,7 +1120,7 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message
 	else
 		properties = NULL;
 
-	pup = uiPupMenuBegin(C, IFACE_("OK?"), ICON_QUESTION);
+	pup = uiPupMenuBegin(C, title, icon);
 	layout = uiPupMenuLayout(pup);
 	uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0);
 	uiPupMenuEnd(C, pup);
@@ -1126,6 +1128,10 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message
 	return OPERATOR_CANCELLED;
 }
 
+int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message)
+{
+	return WM_operator_confirm_message_ex(C, op, IFACE_("OK?"), ICON_QUESTION, message);
+}
 
 int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
@@ -2796,8 +2802,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
 	if (G.save_over) {
 		if (BLI_exists(name)) {
-			uiPupMenuSaveOver(C, op, name);
-			ret = OPERATOR_RUNNING_MODAL;
+			ret = WM_operator_confirm_message_ex(C, op, IFACE_("Save Over?"), ICON_QUESTION, name);
 		}
 		else {
 			ret = wm_save_as_mainfile_exec(C, op);
