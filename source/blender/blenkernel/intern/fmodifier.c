@@ -785,6 +785,7 @@ static void fcm_noise_new_data(void *mdata)
 	data->size = 1.0f;
 	data->strength = 1.0f;
 	data->phase = 1.0f;
+	data->offset = 0.0f;
 	data->depth = 0;
 	data->modification = FCM_NOISE_MODIF_REPLACE;
 }
@@ -798,7 +799,7 @@ static void fcm_noise_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float *cvalu
 	 *	- 0.1 is passed as the 'z' value, otherwise evaluation fails for size = phase = 1
 	 *	  with evaltime being an integer (which happens when evaluating on frame by frame basis)
 	 */
-	noise = BLI_turbulence(data->size, evaltime, data->phase, 0.1f, data->depth);
+	noise = BLI_turbulence(data->size, evaltime - data->offset, data->phase, 0.1f, data->depth);
 	
 	/* combine the noise with existing motion data */
 	switch (data->modification) {

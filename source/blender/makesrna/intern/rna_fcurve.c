@@ -1174,6 +1174,11 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "phase");
 	RNA_def_property_ui_text(prop, "Phase", "A random seed for the noise effect");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_ui_text(prop, "Offset", "Time offset for the noise effect");
+	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "depth");

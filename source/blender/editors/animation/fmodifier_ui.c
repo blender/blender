@@ -320,6 +320,7 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	col = uiLayoutColumn(split, FALSE);
 	uiItemR(col, &ptr, "scale", 0, NULL, ICON_NONE);
 	uiItemR(col, &ptr, "strength", 0, NULL, ICON_NONE);
+	uiItemR(col, &ptr, "offset", 0, NULL, ICON_NONE);
 	
 	/* col 2 */
 	col = uiLayoutColumn(split, FALSE);
