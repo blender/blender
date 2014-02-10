@@ -2736,9 +2736,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	if ((roundboxalign & UI_CNR_TOP_LEFT) && (roundboxalign & UI_CNR_BOTTOM_LEFT))
+	if ((roundboxalign & UI_CNR_TOP_LEFT) || (roundboxalign & UI_CNR_BOTTOM_LEFT))
 		rect->xmin += toffs;
-	if ((roundboxalign & UI_CNR_TOP_RIGHT) && (roundboxalign & UI_CNR_BOTTOM_RIGHT))
+	if ((roundboxalign & UI_CNR_TOP_RIGHT) || (roundboxalign & UI_CNR_BOTTOM_RIGHT))
 		rect->xmax -= toffs;
 }
 
