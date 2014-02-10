@@ -733,6 +733,7 @@ class View3DPaintPanel(UnifiedPaintPanel):
 
 
 class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
+    bl_category = "Tools"
     bl_label = "Brush"
 
     @classmethod
@@ -960,8 +961,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
+    bl_category = "Options"
     bl_label = "Overlay"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1026,6 +1027,7 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
+    bl_category = "Tools"
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1050,6 +1052,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "imagepaint"
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1073,6 +1076,7 @@ class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
+    bl_category = "Tools"
     bl_label = "Stroke"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1163,6 +1167,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
+    bl_category = "Tools"
     bl_label = "Curve"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1190,6 +1195,7 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
+    bl_category = "Tools"
     bl_label = "Topology"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1225,6 +1231,7 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
+    bl_category = "Options"
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1261,6 +1268,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
+    bl_category = "Tools"
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1285,8 +1293,8 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
+    bl_category = "Options"
     bl_label = "Appearance"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1332,6 +1340,7 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
+    bl_category = "Tools"
     bl_context = "weightpaint"
     bl_label = "Weight Tools"
 
@@ -1354,6 +1363,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
+    bl_category = "Options"
     bl_context = "weightpaint"
     bl_label = "Options"
 
@@ -1391,6 +1401,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
+    bl_category = "Options"
     bl_context = "vertexpaint"
     bl_label = "Options"
 
@@ -1418,6 +1429,7 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
 
 
 class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
+    bl_category = "Options"
     bl_context = "imagepaint"
     bl_label = "Project Paint"
 
@@ -1478,8 +1490,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
 
 
 class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
+    bl_category = "Options"
     bl_label = "Options"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
