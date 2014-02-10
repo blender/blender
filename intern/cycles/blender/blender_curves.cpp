@@ -174,8 +174,8 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 				CData->curvekey_time.reserve(CData->curvekey_time.size() + num_add*(ren_step+1));
 
 				for(; pa_no < totparts+totchild; pa_no++) {
+					int keynum = 0;
 					CData->curve_firstkey.push_back(keyno);
-					CData->curve_keynum.push_back(ren_step+1);
 					
 					float curve_length = 0.0f;
 					float3 pcKey;
@@ -184,14 +184,20 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 						b_psys.co_hair(*b_ob, pa_no, step_no, nco);
 						float3 cKey = make_float3(nco[0], nco[1], nco[2]);
 						cKey = transform_point(&itfm, cKey);
-						if(step_no > 0)
-							curve_length += len(cKey - pcKey);
+						if(step_no > 0) {
+							float step_length = len(cKey - pcKey);
+							if(step_length == 0.0f)
+								continue;
+							curve_length += step_length;
+						}
 						CData->curvekey_co.push_back(cKey);
 						CData->curvekey_time.push_back(curve_length);
 						pcKey = cKey;
 						keyno++;
+						keynum++;
 					}
 
+					CData->curve_keynum.push_back(keynum);
 					CData->curve_length.push_back(curve_length);
 					curvenum++;
 				}
