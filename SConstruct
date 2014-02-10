@@ -287,9 +287,9 @@ if env['OURPLATFORM']=='darwin':
     command = ["%s"%env['CC'], "--version"]
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=False)
     line = process.communicate()[0]
-    ver = re.search(r'[0-9]+(\.[0-9]+)+', line)
+    ver = re.search(r'[0-9]+(\.[0-9]+[svn]+)+', line) or re.search(r'[0-9]+(\.[0-9]+)+', line) # read the "based on LLVM x.xsvn" version here, not the Apple version
     if ver:
-        env['CCVERSION'] = ver.group(0)
+        env['CCVERSION'] = ver.group(0).strip('svn')
     frontend = re.search(r'gcc', line) or re.search(r'clang', line) or re.search(r'llvm-gcc', line)  or re.search(r'icc', line)
     if frontend:
         env['C_COMPILER_ID'] = frontend.group(0)
