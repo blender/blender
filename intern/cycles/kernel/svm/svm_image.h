@@ -112,10 +112,8 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 
 ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
-#if defined(__KERNEL_CPU__) && defined(__KERNEL_SSE2__)
-	union { float4 rgba; __m128 m128; } r = { kernel_tex_image_interp(id, x, y) };
-#elif defined(__KERNEL_CPU__)
-	float4 r = kernel_tex_image_interp(id, x, y);
+#ifdef __KERNEL_CPU__
+	ccl_align(16) float4 r = kernel_tex_image_interp(id, x, y);
 #else
 	float4 r;
 
@@ -236,21 +234,20 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 #endif
 
 #ifdef __KERNEL_SSE2__
-	if(use_alpha && r.rgba.w != 1.0f && r.rgba.w != 0.0f) {
-		float alpha = r.rgba.w;
-		r.m128 = _mm_div_ps(r.m128, _mm_set1_ps(alpha));
+	__m128 &r_m128 = (__m128&)r;
+	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
+		float alpha = r.w;
+		r_m128 = _mm_div_ps(r_m128, _mm_set1_ps(alpha));
 		if(id >= TEX_NUM_FLOAT_IMAGES)
-			r.m128 = _mm_min_ps(r.m128, _mm_set1_ps(1.0f));
-		r.rgba.w = alpha;
+			r_m128 = _mm_min_ps(r_m128, _mm_set1_ps(1.0f));
+		r.w = alpha;
 	}
 
 	if(srgb) {
-		float alpha = r.rgba.w;
-		r.m128 = color_srgb_to_scene_linear(r.m128);
-		r.rgba.w = alpha;
+		float alpha = r.w;
+		r_m128 = color_srgb_to_scene_linear(r_m128);
+		r.w = alpha;
 	}
-
-	return r.rgba;
 #else
 	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
 		float invw = 1.0f/r.w;
@@ -270,9 +267,9 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 		r.y = color_srgb_to_scene_linear(r.y);
 		r.z = color_srgb_to_scene_linear(r.z);
 	}
+#endif
 
 	return r;
-#endif
 }
 
 #endif
