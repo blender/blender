@@ -272,6 +272,10 @@ public:
 	
 	/** public function to get the window containing the OpenGL view */
 	CocoaWindow *getCocoaWindow() const {return m_window;};
+
+	/* Internal value to ensure proper redraws during animations */
+	void setImmediateDraw(bool value) { m_immediateDraw = value; }
+	bool getImmediateDraw(void) const { return m_immediateDraw; }
 	
 protected:
 	/**
@@ -338,6 +342,10 @@ protected:
 	NSCursor *m_customCursor;
 
 	GHOST_TabletData m_tablet;
+
+	bool m_lionStyleFullScreen;
+
+	bool m_immediateDraw;
 };
 
 #endif // __GHOST_WINDOWCOCOA_H__
