@@ -802,7 +802,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, int 
 	/* obtain general settings */
 	bool use_curves = scene->curve_system_manager->use_curves;
 
-	if(!(use_curves && b_ob.mode() == b_ob.mode_OBJECT)) {
+	if(!(use_curves && b_ob.mode() != b_ob.mode_PARTICLE_EDIT)) {
 		if(!motion)
 			mesh->compute_bounds();
 		return;
