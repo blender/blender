@@ -349,7 +349,7 @@ void uiPupMenuEnd(struct bContext *C, struct uiPopupMenu *head);
 struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
-void uiPupMenuInvoke(struct bContext *C, const char *idname) ATTR_NONNULL();
+bool uiPupMenuInvoke(struct bContext *C, const char *idname, struct ReportList *reports) ATTR_NONNULL(1, 2);
 
 /* Popup Blocks
  *

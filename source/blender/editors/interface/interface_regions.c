@@ -47,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_idcode.h"
+#include "BKE_report.h"
 #include "BKE_global.h"
 
 #include "WM_api.h"
@@ -2369,7 +2370,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	}
 }
 
-void uiPupMenuInvoke(bContext *C, const char *idname)
+bool uiPupMenuInvoke(bContext *C, const char *idname, ReportList *reports)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -2377,12 +2378,12 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	MenuType *mt = WM_menutype_find(idname, true);
 
 	if (mt == NULL) {
-		printf("%s: named menu \"%s\" not found\n", __func__, idname);
-		return;
+		BKE_reportf(reports, RPT_ERROR, "menu \"%s\" not found\n", idname);
+		return false;
 	}
 
 	if (mt->poll && mt->poll(C, mt) == 0)
-		return;
+		return false;
 
 	pup = uiPupMenuBegin(C, IFACE_(mt->label), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
@@ -2397,6 +2398,8 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	mt->draw(C, &menu);
 
 	uiPupMenuEnd(C, pup);
+
+	return true;
 }
 
 
