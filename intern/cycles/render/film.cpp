@@ -288,12 +288,15 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	device_free(device, dscene, scene);
 
 	KernelFilm *kfilm = &dscene->data.film;
+	KernelIntegrator *kintegrator = &dscene->data.integrator;
+	
+	bool use_clamping = (kintegrator->sample_clamp_direct != FLT_MAX) || (kintegrator->sample_clamp_indirect != FLT_MAX);
 
 	/* update __data */
 	kfilm->exposure = exposure;
 	kfilm->pass_flag = 0;
 	kfilm->pass_stride = 0;
-	kfilm->use_light_pass = use_light_visibility;
+	kfilm->use_light_pass = use_light_visibility || use_clamping;
 
 	foreach(Pass& pass, passes) {
 		kfilm->pass_flag |= pass.type;

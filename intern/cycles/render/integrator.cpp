@@ -48,7 +48,8 @@ Integrator::Integrator()
 	filter_glossy = 0.0f;
 	seed = 0;
 	layer_flag = ~0;
-	sample_clamp = 0.0f;
+	sample_clamp_direct = 0.0f;
+	sample_clamp_indirect = 0.0f;
 	motion_blur = false;
 
 	aa_samples = 0;
@@ -115,7 +116,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->use_ambient_occlusion =
 		((dscene->data.film.pass_flag & PASS_AO) || dscene->data.background.ao_factor != 0.0f);
 	
-	kintegrator->sample_clamp = (sample_clamp == 0.0f)? FLT_MAX: sample_clamp*3.0f;
+	kintegrator->sample_clamp_direct = (sample_clamp_direct == 0.0f)? FLT_MAX: sample_clamp_direct*3.0f;
+	kintegrator->sample_clamp_indirect = (sample_clamp_indirect == 0.0f)? FLT_MAX: sample_clamp_indirect*3.0f;
 
 	kintegrator->branched = (method == BRANCHED_PATH);
 	kintegrator->aa_samples = aa_samples;
@@ -180,7 +182,8 @@ bool Integrator::modified(const Integrator& integrator)
 		filter_glossy == integrator.filter_glossy &&
 		layer_flag == integrator.layer_flag &&
 		seed == integrator.seed &&
-		sample_clamp == integrator.sample_clamp &&
+		sample_clamp_direct == integrator.sample_clamp_direct &&
+		sample_clamp_indirect == integrator.sample_clamp_indirect &&
 		method == integrator.method &&
 		aa_samples == integrator.aa_samples &&
 		diffuse_samples == integrator.diffuse_samples &&

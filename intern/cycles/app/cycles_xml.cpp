@@ -276,7 +276,8 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 	xml_read_float(&integrator->filter_glossy, node, "filter_glossy");
 	
 	xml_read_int(&integrator->seed, node, "seed");
-	xml_read_float(&integrator->sample_clamp, node, "sample_clamp");
+	xml_read_float(&integrator->sample_clamp_direct, node, "sample_clamp_direct");
+	xml_read_float(&integrator->sample_clamp_indirect, node, "sample_clamp_indirect");
 }
 
 /* Camera */

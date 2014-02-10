@@ -50,7 +50,8 @@ public:
 	int seed;
 	int layer_flag;
 
-	float sample_clamp;
+	float sample_clamp_direct;
+	float sample_clamp_indirect;
 	bool motion_blur;
 
 	int aa_samples;

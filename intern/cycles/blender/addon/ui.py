@@ -120,7 +120,8 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.label("Settings:")
         sub.prop(cscene, "seed")
-        sub.prop(cscene, "sample_clamp")
+        sub.prop(cscene, "sample_clamp_direct")
+        sub.prop(cscene, "sample_clamp_indirect")
 
         if cscene.progressive == 'PATH':
             col = split.column()

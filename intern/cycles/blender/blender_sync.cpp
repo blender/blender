@@ -182,7 +182,8 @@ void BlenderSync::sync_integrator()
 
 	integrator->layer_flag = render_layer.layer;
 
-	integrator->sample_clamp = get_float(cscene, "sample_clamp");
+	integrator->sample_clamp_direct = get_float(cscene, "sample_clamp_direct");
+	integrator->sample_clamp_indirect = get_float(cscene, "sample_clamp_indirect");
 #ifdef __CAMERA_MOTION__
 	if(!preview) {
 		if(integrator->motion_blur != r.use_motion_blur()) {

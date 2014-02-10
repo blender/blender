@@ -822,7 +822,9 @@ typedef struct KernelIntegrator {
 	int layer_flag;
 
 	/* clamp */
-	float sample_clamp;
+	float sample_clamp_direct;
+	float sample_clamp_indirect;
+	float pad1, pad2, pad3;
 
 	/* branched path */
 	int branched;

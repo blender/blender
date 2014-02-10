@@ -363,9 +363,18 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=0,
                 )
 
-        cls.sample_clamp = FloatProperty(
-                name="Clamp",
-                description="If non-zero, the maximum value for a sample, "
+        cls.sample_clamp_direct = FloatProperty(
+                name="Clamp Direct",
+                description="If non-zero, the maximum value for a direct sample, "
+                            "higher values will be scaled down to avoid too "
+                            "much noise and slow convergence at the cost of accuracy",
+                min=0.0, max=1e8,
+                default=0.0,
+                )
+                
+        cls.sample_clamp_indirect = FloatProperty(
+                name="Clamp Indirect",
+                description="If non-zero, the maximum value for an indirect sample, "
                             "higher values will be scaled down to avoid too "
                             "much noise and slow convergence at the cost of accuracy",
                 min=0.0, max=1e8,
