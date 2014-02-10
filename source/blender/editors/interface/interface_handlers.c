@@ -8065,12 +8065,22 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 		/* here we check return conditions for menus */
 		if (block->flag & UI_BLOCK_LOOP) {
 			/* if we click outside the block, verify if we clicked on the
-			 * button that opened us, otherwise we need to close */
+			 * button that opened us, otherwise we need to close,
+			 *
+			 * note that there is an exception for root level menus and
+			 * popups which you can click again to close.
+			 */
 			if (inside == 0) {
 				uiSafetyRct *saferct = block->saferct.first;
 
-				if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val == KM_PRESS) {
-					if (saferct && !BLI_rctf_isect_pt(&saferct->parent, event->x, event->y)) {
+				if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) &&
+				    ELEM(event->val, KM_PRESS, KM_DBL_CLICK))
+				{
+					if ((level == 0) && (U.uiflag & USER_MENUOPENAUTO) == 0) {
+						/* for root menus, allow clicking to close */
+						menu->menuretval = UI_RETURN_OUT;
+					}
+					else if (saferct && !BLI_rctf_isect_pt(&saferct->parent, event->x, event->y)) {
 						if (block->flag & (UI_BLOCK_OUT_1))
 							menu->menuretval = UI_RETURN_OK;
 						else
