@@ -382,7 +382,7 @@ if env['OURPLATFORM']=='darwin':
     if env['MACOSX_ARCHITECTURE'] == 'x86_64':
         env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-mssse3']
 
-    if env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '5.0':
+    if env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.3':
         env['CCFLAGS'].append('-ftemplate-depth=1024') # only valid for clang bundled with xcode 5
 
     # 3DconnexionClient.framework, optionally install
