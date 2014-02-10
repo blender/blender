@@ -2113,7 +2113,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		/* minimum width to enforece */
 		minwidth = BLI_rctf_size_x(&pup->but->rect);
 
-		if (pup->but->type == PULLDOWN || pup->but->menu_create_func) {
+		/* settings (typically rna-enum-popups) show above the button,
+		 * menu's like file-menu, show below */
+		if (pup->but->type == PULLDOWN || (uiButGetMenuType(pup->but) != NULL)) {
 			direction = UI_DOWN;
 			flip = 1;
 		}
