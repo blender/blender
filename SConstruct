@@ -373,7 +373,7 @@ if env['OURPLATFORM']=='darwin':
     #Intel Macs are CoreDuo and Up
     if env['MACOSX_ARCHITECTURE'] == 'i386' or env['MACOSX_ARCHITECTURE'] == 'x86_64':
         env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-msse','-msse2','-msse3']
-        if env['C_COMPILER_ID'] != 'clang' or (env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '5.0'):
+        if env['C_COMPILER_ID'] != 'clang' or (env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.3'):
             env['REL_CCFLAGS'] = env['REL_CCFLAGS']+['-ftree-vectorize'] # clang xcode 4 does not accept flag
     else:
         env['CCFLAGS'] =  env['CCFLAGS']+['-fno-strict-aliasing']
