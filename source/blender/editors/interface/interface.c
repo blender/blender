@@ -48,11 +48,9 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 
-#include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_library.h"
 #include "BKE_unit.h"
 #include "BKE_screen.h"
 #include "BKE_idprop.h"
@@ -81,6 +79,8 @@
 /* avoid unneeded calls to ui_get_but_val */
 #define UI_BUT_VALUE_UNSET DBL_MAX
 #define UI_GET_BUT_VALUE_INIT(_but, _value) if (_value == DBL_MAX) {  (_value) = ui_get_but_val(_but); } (void)0
+
+#define B_NOP -1
 
 /* 
  * a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt
@@ -669,6 +669,25 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 			oldbut->hardmax = but->hardmax;
 
 		ui_but_update_linklines(block, oldbut, but);
+
+		/* move/copy string from the new button to the old */
+		/* needed for alt+mouse wheel over enums */
+		if (but->str != but->strdata) {
+			if (oldbut->str != oldbut->strdata) {
+				SWAP(char *, but->str, oldbut->str);
+			}
+			else {
+				oldbut->str = but->str;
+				but->str = but->strdata;
+			}
+		}
+		else {
+			if (oldbut->str != oldbut->strdata) {
+				MEM_freeN(oldbut->str);
+				oldbut->str = oldbut->strdata;
+			}
+			BLI_strncpy(oldbut->strdata, but->strdata, sizeof(oldbut->strdata));
+		}
 
 		BLI_remlink(&block->buttons, but);
 		ui_free_but(C, but);
@@ -2469,15 +2488,6 @@ void ui_check_but(uiBut *but)
 	
 	/* name: */
 	switch (but->type) {
-	
-		case MENU:
-		
-			if (BLI_rctf_size_x(&but->rect) > 24.0f) {
-				UI_GET_BUT_VALUE_INIT(but, value);
-				ui_set_name_menu(but, (int)value);
-			}
-			break;
-	
 		case NUM:
 		case NUMSLI:
 
@@ -2966,6 +2976,127 @@ static void ui_def_but_rna__disable(uiBut *but)
 	but->lockstr = "";
 }
 
+static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p)
+{
+	uiBlock *block = uiLayoutGetBlock(layout);
+	uiPopupBlockHandle *handle = block->handle;
+	uiBut *but = (uiBut *)but_p;
+
+	/* see comment in ui_item_enum_expand, re: uiname  */
+	EnumPropertyItem *item, *item_array;
+	bool free;
+
+	uiLayout *split, *column = NULL;
+
+	int totitems = 0;
+	int columns, rows, a, b;
+	int column_start = 0, column_end = 0;
+	int nbr_entries_nosepr = 0;
+
+	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
+
+	RNA_property_enum_items_gettexted(block->evil_C, &but->rnapoin, but->rnaprop, &item_array, NULL, &free);
+
+
+	/* we dont want nested rows, cols in menus */
+	uiBlockSetCurLayout(block, layout);
+
+	for (item = item_array; item->identifier; item++, totitems++) {
+		if (!item->identifier[0]) {
+			/* inconsistent, but menus with labels do not look good flipped */
+			if (item->name) {
+				block->flag |= UI_BLOCK_NO_FLIP;
+				nbr_entries_nosepr++;
+			}
+			/* We do not want simple separators in nbr_entries_nosepr count */
+			continue;
+		}
+		nbr_entries_nosepr++;
+	}
+
+	/* Columns and row estimation. Ignore simple separators here. */
+	columns = (nbr_entries_nosepr + 20) / 20;
+	if (columns < 1)
+		columns = 1;
+	if (columns > 8)
+		columns = (nbr_entries_nosepr + 25) / 25;
+
+	rows = totitems / columns;
+	if (rows < 1)
+		rows = 1;
+	while (rows * columns < totitems)
+		rows++;
+
+	/* Title */
+	uiDefBut(block, LABEL, 0, RNA_property_ui_name(but->rnaprop),
+	         0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	uiItemS(layout);
+
+	/* note, item_array[...] is reversed on access */
+
+	/* create items */
+	split = uiLayoutSplit(layout, 0.0f, false);
+
+	for (a = 0; a < totitems; a++) {
+		if (a == column_end) {
+			/* start new column, and find out where it ends in advance, so we
+			 * can flip the order of items properly per column */
+			column_start = a;
+			column_end = totitems;
+
+			for (b = a + 1; b < totitems; b++) {
+				item = &item_array[ b];
+
+				/* new column on N rows or on separation label */
+				if (((b - a) % rows == 0) || (!item->identifier[0] && item->name)) {
+					column_end = b;
+					break;
+				}
+			}
+
+			column = uiLayoutColumn(split, false);
+		}
+
+		if (block->flag & UI_BLOCK_NO_FLIP) {
+			item = &item_array[a];
+		}
+		else {
+			item = &item_array[(column_start + column_end - 1 - a)];
+		}
+
+		if (!item->identifier[0]) {
+			if (item->name) {
+				if (item->icon) {
+					uiItemL(column, item->name, item->icon);
+				}
+				else {
+					/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
+					uiDefBut(block, LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+				}
+			}
+			else {
+				uiItemS(column);
+			}
+		}
+		else {
+			if (item->icon) {
+				uiDefIconTextButF(block, BUTM, B_NOP, item->icon, item->name, 0, 0,
+				                  UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, (float) item->value, 0.0, 0, -1, item->description);
+			}
+			else {
+				uiDefButF(block, BUTM, B_NOP, item->name, 0, 0,
+				          UI_UNIT_X * 5, UI_UNIT_X, &handle->retvalue, (float) item->value, 0.0, 0, -1, item->description);
+			}
+		}
+	}
+
+	uiBlockSetCurLayout(block, layout);
+
+	if (free) {
+		MEM_freeN(item_array);
+	}
+}
+
 /**
  * ui_def_but_rna_propname and ui_def_but_rna
  * both take the same args except for propname vs prop, this is done so we can
@@ -2982,6 +3113,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	const PropertyType proptype = RNA_property_type(prop);
 	uiBut *but;
 	int freestr = 0, icon = 0;
+	uiMenuCreateFunc func = NULL;
 
 	if (ELEM3(type, COLOR, HSVCIRCLE, HSVCUBE)) {
 		BLI_assert(index == -1);
@@ -2991,38 +3123,30 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	if (!str) {
 		if (type == MENU && proptype == PROP_ENUM) {
 			EnumPropertyItem *item;
-			DynStr *dynstr;
-			int i, totitem, value;
+			int totitem, value;
 			bool free;
+			int i;
 
-			RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
+			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 			value = RNA_property_enum_get(ptr, prop);
-
-			dynstr = BLI_dynstr_new();
-			BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
-			for (i = 0; i < totitem; i++) {
-				if (!item[i].identifier[0]) {
-					if (item[i].name)
-						BLI_dynstr_appendf(dynstr, "|%s%%l", item[i].name);
-					else
-						BLI_dynstr_append(dynstr, "|%l");
-				}
-				else if (item[i].icon)
-					BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
-				else
-					BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
-
-				if (value == item[i].value)
-					icon = item[i].icon;
+			i = RNA_enum_from_value(item, value);
+			if (i != -1) {
+				str = item[i].name;
+				icon = item[i].icon;
 			}
-			str = BLI_dynstr_get_cstring(dynstr);
-			BLI_dynstr_free(dynstr);
+			else {
+				str = "";
+			}
 
 			if (free) {
 				MEM_freeN(item);
 			}
 
-			freestr = 1;
+#ifdef WITH_INTERNATIONAL
+			str = CTX_IFACE_(RNA_property_translation_context(prop), str);
+#endif
+
+			func = ui_def_but_rna__menu;
 		}
 		else if (ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
 			EnumPropertyItem *item, *item_array = NULL;
@@ -3121,6 +3245,11 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	/* If this button uses units, calculate the step from this */
 	if ((proptype == PROP_FLOAT) && ui_is_but_unit(but)) {
 		but->a1 = ui_get_but_step_unit(but, but->a1);
+	}
+
+	if (func) {
+		but->menu_create_func = func;
+		but->poin = (char *)but;
 	}
 
 	if (freestr) {

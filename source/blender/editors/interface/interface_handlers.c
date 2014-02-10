@@ -2821,7 +2821,6 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	uiBlockCreateFunc func = NULL;
 	uiBlockHandleCreateFunc handlefunc = NULL;
 	uiMenuCreateFunc menufunc = NULL;
-	char *menustr = NULL;
 	void *arg = NULL;
 
 	switch (but->type) {
@@ -2837,17 +2836,9 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			}
 			break;
 		case MENU:
-			if (but->menu_create_func) {
-				menufunc = but->menu_create_func;
-				arg = but->poin;
-			}
-			else {
-				data->origvalue = ui_get_but_val(but);
-				data->value = data->origvalue;
-				but->editval = &data->value;
-
-				menustr = but->str;
-			}
+			BLI_assert(but->menu_create_func);
+			menufunc = but->menu_create_func;
+			arg = but->poin;
 			break;
 		case COLOR:
 			ui_get_but_vectorf(but, data->origvec);
@@ -2868,8 +2859,8 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 		if (but->block->handle)
 			data->menu->popup = but->block->handle->popup;
 	}
-	else if (menufunc || menustr) {
-		data->menu = ui_popup_menu_create(C, data->region, but, menufunc, arg, menustr);
+	else if (menufunc) {
+		data->menu = ui_popup_menu_create(C, data->region, but, menufunc, arg);
 		if (but->block->handle)
 			data->menu->popup = but->block->handle->popup;
 	}

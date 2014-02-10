@@ -490,11 +490,10 @@ uiPopupBlockHandle *ui_popup_block_create(struct bContext *C, struct ARegion *bu
                                           uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func,
                                           void *arg);
 uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
-                                         uiMenuCreateFunc create_func, void *arg, char *str);
+                                         uiMenuCreateFunc create_func, void *arg);
 
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
-void ui_set_name_menu(uiBut *but, int value);
 int ui_step_name_menu(uiBut *but, int step);
 
 struct AutoComplete;
