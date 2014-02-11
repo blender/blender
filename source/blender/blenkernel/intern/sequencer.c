@@ -2834,7 +2834,7 @@ static int seq_get_early_out_for_blend_mode(Sequence *seq)
 	struct SeqEffectHandle sh = BKE_sequence_get_blend(seq);
 	float facf = seq->blend_opacity / 100.0f;
 	int early_out = sh.early_out(seq, facf, facf);
-	
+
 	if (ELEM(early_out, EARLY_DO_EFFECT, EARLY_NO_INPUT)) {
 		return early_out;
 	}
@@ -2848,6 +2848,30 @@ static int seq_get_early_out_for_blend_mode(Sequence *seq)
 		}
 	}
 	return early_out;
+}
+
+static ImBuf *seq_render_strip_stack_apply_effect(const SeqRenderData *context, Sequence *seq,
+                                                  float cfra, ImBuf *ibuf1, ImBuf *ibuf2)
+{
+	ImBuf *out;
+	struct SeqEffectHandle sh = BKE_sequence_get_blend(seq);
+	float facf = seq->blend_opacity / 100.0f;
+	int swap_input = seq_must_swap_input_in_blend_mode(seq);
+
+	if (swap_input) {
+		if (sh.multithreaded)
+			out = seq_render_effect_execute_threaded(&sh, context, seq, cfra, facf, facf, ibuf2, ibuf1, NULL);
+		else
+			out = sh.execute(context, seq, cfra, facf, facf, ibuf2, ibuf1, NULL);
+	}
+	else {
+		if (sh.multithreaded)
+			out = seq_render_effect_execute_threaded(&sh, context, seq, cfra, facf, facf, ibuf1, ibuf2, NULL);
+		else
+			out = sh.execute(context, seq, cfra, facf, facf, ibuf1, ibuf2, NULL);
+	}
+
+	return out;
 }
 
 static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seqbasep, float cfra, int chanshown)
@@ -2878,7 +2902,35 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seq
 	}
 	
 	if (count == 1) {
-		out = seq_render_strip(context, seq_arr[0], cfra);
+		/* Some of the blend modes are unclear how to apply with only single input,
+		 * or some of them will just produce an empty result..
+		 */
+		if (ELEM3(seq_arr[0]->blend_mode, SEQ_BLEND_REPLACE, SEQ_TYPE_CROSS, SEQ_TYPE_ALPHAOVER)) {
+			int early_out = seq_get_early_out_for_blend_mode(seq_arr[0]);
+			if (ELEM(early_out, EARLY_NO_INPUT, EARLY_USE_INPUT_2)) {
+				out = seq_render_strip(context, seq_arr[0], cfra);
+			}
+			else if (early_out == EARLY_USE_INPUT_1) {
+				out = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
+			}
+			else {
+				out = seq_render_strip(context, seq_arr[0], cfra);
+
+				if (early_out == EARLY_DO_EFFECT) {
+					ImBuf *ibuf1 = IMB_allocImBuf(context->rectx, context->recty, 32,
+					                              out->rect_float ? IB_rectfloat : IB_rect);
+					ImBuf *ibuf2 = out;
+
+					out = seq_render_strip_stack_apply_effect(context, seq_arr[0], cfra, ibuf1, ibuf2);
+
+					IMB_freeImBuf(ibuf1);
+					IMB_freeImBuf(ibuf2);
+				}
+			}
+		}
+		else {
+			out = seq_render_strip(context, seq_arr[0], cfra);
+		}
 
 		BKE_sequencer_cache_put(context, seq_arr[0], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 
@@ -2931,26 +2983,11 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seq
 		Sequence *seq = seq_arr[i];
 
 		if (seq_get_early_out_for_blend_mode(seq) == EARLY_DO_EFFECT) {
-			struct SeqEffectHandle sh = BKE_sequence_get_blend(seq);
 			ImBuf *ibuf1 = out;
 			ImBuf *ibuf2 = seq_render_strip(context, seq, cfra);
 
-			float facf = seq->blend_opacity / 100.0f;
-			int swap_input = seq_must_swap_input_in_blend_mode(seq);
+			out = seq_render_strip_stack_apply_effect(context, seq, cfra, ibuf1, ibuf2);
 
-			if (swap_input) {
-				if (sh.multithreaded)
-					out = seq_render_effect_execute_threaded(&sh, context, seq, cfra, facf, facf, ibuf2, ibuf1, NULL);
-				else
-					out = sh.execute(context, seq, cfra, facf, facf, ibuf2, ibuf1, NULL);
-			}
-			else {
-				if (sh.multithreaded)
-					out = seq_render_effect_execute_threaded(&sh, context, seq, cfra, facf, facf, ibuf1, ibuf2, NULL);
-				else
-					out = sh.execute(context, seq, cfra, facf, facf, ibuf1, ibuf2, NULL);
-			}
-		
 			IMB_freeImBuf(ibuf1);
 			IMB_freeImBuf(ibuf2);
 		}
