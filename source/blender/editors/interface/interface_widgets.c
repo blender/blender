@@ -2734,12 +2734,11 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	wtb.outline = 1;
 	wtb.inner = 0;
 	widgetbase_draw(&wtb, wcol);
-	
-	/* text space */
-	if ((roundboxalign & UI_CNR_TOP_LEFT) || (roundboxalign & UI_CNR_BOTTOM_LEFT))
-		rect->xmin += toffs;
-	if ((roundboxalign & UI_CNR_TOP_RIGHT) || (roundboxalign & UI_CNR_BOTTOM_RIGHT))
-		rect->xmax -= toffs;
+
+	/* add space at either side of the button so text aligns with numbuttons (which have arrow icons) */
+	rect->xmax -= toffs;
+	rect->xmin += toffs;
+
 }
 
 /* I think 3 is sufficient border to indicate keyed status */
