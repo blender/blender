@@ -538,7 +538,7 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 	if (BKE_brush_use_alpha_pressure(scene, brush))
 		BKE_brush_alpha_set(scene, brush, max_ff(0.0f, startalpha * pressure));
 	if (BKE_brush_use_size_pressure(scene, brush))
-		BKE_brush_size_set(scene, brush, max_ff(1.0f, startsize * pressure));
+		BKE_brush_size_set(scene, brush, (int)max_ff(1.0f, startsize * pressure));
 
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
 		paint_proj_stroke(C, pop->custom_paint, pop->prevmouse, mouse);

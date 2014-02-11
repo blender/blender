@@ -724,7 +724,7 @@ bool ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy
 /**
  * Use instead of: ``bglPolygonOffset(rv3d->dist, ...)`` see bug [#37727]
  */
-void ED_view3d_polygon_offset(const RegionView3D *rv3d, float dist)
+void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 {
 	float viewdist = rv3d->dist;
 

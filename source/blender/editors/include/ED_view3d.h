@@ -257,7 +257,7 @@ unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 /* draws and does a 4x4 sample */
 bool ED_view3d_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d,
                         const int mval[2], float mouse_worldloc[3],
-                        bool alphaoverride, const float fallback_depth_pt[3]);
+                        const bool alphaoverride, const float fallback_depth_pt[3]);
 
 /* only draw so ED_view3d_autodist_simple can be called many times after */
 void ED_view3d_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, int mode);

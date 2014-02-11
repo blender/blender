@@ -45,7 +45,7 @@ typedef struct TransVertStore {
 	int transverts_tot;
 } TransVertStore;
 
-void ED_transverts_create_from_obedit(TransVertStore *tvs, struct Object *obedit, int mode);
+void ED_transverts_create_from_obedit(TransVertStore *tvs, struct Object *obedit, const int mode);
 void ED_transverts_update_obedit(TransVertStore *tvs, struct Object *obedit);
 void ED_transverts_free(TransVertStore *tvs);
 bool ED_transverts_check_obedit(Object *obedit);
