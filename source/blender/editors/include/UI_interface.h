@@ -418,7 +418,7 @@ void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int max
 
 int     uiBlocksGetYMin(struct ListBase *lb);
 
-void    uiBlockSetDirection(uiBlock *block, int direction);
+void    uiBlockSetDirection(uiBlock *block, char direction);
 void    uiBlockFlipOrder(uiBlock *block);
 void    uiBlockSetFlag(uiBlock *block, int flag);
 void    uiBlockClearFlag(uiBlock *block, int flag);

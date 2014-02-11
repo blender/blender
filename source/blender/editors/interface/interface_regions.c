@@ -2102,7 +2102,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	uiBlock *block;
 	uiBut *bt;
 	uiPopupMenu *pup = arg_pup;
-	int offset[2], direction, minwidth, width, height, flip;
+	int offset[2], minwidth, width, height;
+	char direction;
+	bool flip;
 
 	if (pup->menu_func) {
 		pup->block->handle = handle;
@@ -2116,20 +2118,25 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 		/* settings (typically rna-enum-popups) show above the button,
 		 * menu's like file-menu, show below */
-		if (pup->but->type == PULLDOWN || (uiButGetMenuType(pup->but) != NULL)) {
+		if (pup->block->direction != 0) {
+			/* allow overriding the direction from menu_func */
+			direction = pup->block->direction;
+		}
+		else if ((pup->but->type == PULLDOWN) ||
+		    (uiButGetMenuType(pup->but) != NULL))
+		{
 			direction = UI_DOWN;
-			flip = 1;
 		}
 		else {
 			direction = UI_TOP;
-			flip = 0;
 		}
 	}
 	else {
 		minwidth = 50;
 		direction = UI_DOWN;
-		flip = 1;
 	}
+
+	flip = (direction == UI_DOWN);
 
 	block = pup->block;
 	

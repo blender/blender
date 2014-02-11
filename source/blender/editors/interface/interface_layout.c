@@ -1793,6 +1793,9 @@ static void menu_item_enum_opname_menu(bContext *UNUSED(C), uiLayout *layout, vo
 
 	uiLayoutSetOperatorContext(layout, lvl->opcontext);
 	uiItemsEnumO(layout, lvl->opname, lvl->propname);
+
+	/* override default, needed since this was assumed pre 2.70 */
+	uiBlockSetDirection(layout->root->block, UI_DOWN);
 }
 
 void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name, int icon)

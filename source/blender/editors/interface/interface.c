@@ -3684,7 +3684,7 @@ int uiBlocksGetYMin(ListBase *lb)
 	return min;
 }
 
-void uiBlockSetDirection(uiBlock *block, int direction)
+void uiBlockSetDirection(uiBlock *block, char direction)
 {
 	block->direction = direction;
 }
