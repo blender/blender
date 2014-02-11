@@ -61,6 +61,7 @@ public:
 	float mist_falloff;
 
 	bool use_light_visibility;
+	bool use_sample_clamp;
 
 	bool need_update;
 

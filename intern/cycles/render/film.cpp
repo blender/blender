@@ -272,6 +272,7 @@ Film::Film()
 	mist_falloff = 1.0f;
 
 	use_light_visibility = false;
+	use_sample_clamp = false;
 
 	need_update = true;
 }
@@ -288,15 +289,12 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	device_free(device, dscene, scene);
 
 	KernelFilm *kfilm = &dscene->data.film;
-	KernelIntegrator *kintegrator = &dscene->data.integrator;
-	
-	bool use_clamping = (kintegrator->sample_clamp_direct != FLT_MAX) || (kintegrator->sample_clamp_indirect != FLT_MAX);
 
 	/* update __data */
 	kfilm->exposure = exposure;
 	kfilm->pass_flag = 0;
 	kfilm->pass_stride = 0;
-	kfilm->use_light_pass = use_light_visibility || use_clamping;
+	kfilm->use_light_pass = use_light_visibility || use_sample_clamp;
 
 	foreach(Pass& pass, passes) {
 		kfilm->pass_flag |= pass.type;
@@ -431,6 +429,7 @@ bool Film::modified(const Film& film)
 	return !(exposure == film.exposure
 		&& Pass::equals(passes, film.passes)
 		&& pass_alpha_threshold == film.pass_alpha_threshold
+		&& use_sample_clamp == film.use_sample_clamp
 		&& filter_type == film.filter_type
 		&& filter_width == film.filter_width
 		&& mist_start == film.mist_start
