@@ -637,40 +637,56 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 					result = ORIENTATION_FACE;
 				}
-				else if (em->bm->totedgesel == 1) {
-					BMEdge *eed = NULL;
-					BMIter iter;
-					
-					BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							/* use average vert normals as plane and edge vector as normal */
-							copy_v3_v3(plane, eed->v1->no);
-							add_v3_v3(plane, eed->v2->no);
-							sub_v3_v3v3(normal, eed->v2->co, eed->v1->co);
-							break;
-						}
-					}
-					result = ORIENTATION_EDGE;
-				}
-				else if (em->bm->totvertsel == 2) {
+				else if (em->bm->totedgesel == 1 || em->bm->totvertsel == 2) {
 					BMVert *v1 = NULL, *v2 = NULL;
 					BMIter iter;
-
-					BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							if (v1 == NULL) {
-								v1 = eve; 
-							}
-							else {
-								v2 = eve;
-								
-								copy_v3_v3(normal, v1->no);
-								add_v3_v3(normal, v2->no);
-								sub_v3_v3v3(plane, v2->co, v1->co);
-								break; 
+					
+					if (em->bm->totedgesel == 1) {
+						BMEdge *eed = NULL;
+						BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+							if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+								v1 = eed->v1;
+								v2 = eed->v2;
 							}
 						}
 					}
+					else {
+						BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+							if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+								if (v1 == NULL) {
+									v1 = eve;
+								}
+								else {
+									v2 = eve;
+									break;
+								}
+							}
+						}
+					}
+
+					/* should never fail */
+					if (LIKELY(v1 && v2)) {
+						/* Logic explained:
+						 *
+						 * - Edges and vert-pairs treated the same way.
+						 * - Point the Z axis along the edge vector (towards the active vertex).
+						 * - Point the Y axis outwards (the same direction as the normals).
+						 *
+						 * Note that this is at odds a little with face select (and 3 vertices)
+						 * which point the Z axis along the normal, however in both cases Z is the dominant axis.
+						 */
+
+						/* be deterministic where possible and ensure v1 is active */
+						if (BM_mesh_active_vert_get(em->bm) == v2) {
+							SWAP(BMVert *, v1, v2);
+						}
+
+						add_v3_v3v3(plane, v1->no, v2->no);
+						sub_v3_v3v3(normal, v1->co, v2->co);
+						/* flip the plane normal so we point outwards */
+						negate_v3(plane);
+					}
+
 					result = ORIENTATION_EDGE;
 				}
 				else if (em->bm->totvertsel == 1) {
