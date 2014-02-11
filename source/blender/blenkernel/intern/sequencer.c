@@ -2902,26 +2902,35 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seq
 	}
 	
 	if (count == 1) {
+		Sequence *seq = seq_arr[0];
+
 		/* Some of the blend modes are unclear how to apply with only single input,
 		 * or some of them will just produce an empty result..
 		 */
-		if (ELEM3(seq_arr[0]->blend_mode, SEQ_BLEND_REPLACE, SEQ_TYPE_CROSS, SEQ_TYPE_ALPHAOVER)) {
-			int early_out = seq_get_early_out_for_blend_mode(seq_arr[0]);
+		if (ELEM3(seq->blend_mode, SEQ_BLEND_REPLACE, SEQ_TYPE_CROSS, SEQ_TYPE_ALPHAOVER)) {
+			int early_out;
+			if (seq->blend_mode == SEQ_BLEND_REPLACE) {
+				early_out = EARLY_NO_INPUT;
+			}
+			else {
+				early_out = seq_get_early_out_for_blend_mode(seq);
+			}
+
 			if (ELEM(early_out, EARLY_NO_INPUT, EARLY_USE_INPUT_2)) {
-				out = seq_render_strip(context, seq_arr[0], cfra);
+				out = seq_render_strip(context, seq, cfra);
 			}
 			else if (early_out == EARLY_USE_INPUT_1) {
 				out = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
 			}
 			else {
-				out = seq_render_strip(context, seq_arr[0], cfra);
+				out = seq_render_strip(context, seq, cfra);
 
 				if (early_out == EARLY_DO_EFFECT) {
 					ImBuf *ibuf1 = IMB_allocImBuf(context->rectx, context->recty, 32,
 					                              out->rect_float ? IB_rectfloat : IB_rect);
 					ImBuf *ibuf2 = out;
 
-					out = seq_render_strip_stack_apply_effect(context, seq_arr[0], cfra, ibuf1, ibuf2);
+					out = seq_render_strip_stack_apply_effect(context, seq, cfra, ibuf1, ibuf2);
 
 					IMB_freeImBuf(ibuf1);
 					IMB_freeImBuf(ibuf2);
@@ -2929,10 +2938,10 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seq
 			}
 		}
 		else {
-			out = seq_render_strip(context, seq_arr[0], cfra);
+			out = seq_render_strip(context, seq, cfra);
 		}
 
-		BKE_sequencer_cache_put(context, seq_arr[0], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
+		BKE_sequencer_cache_put(context, seq, cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 
 		return out;
 	}
