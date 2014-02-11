@@ -2171,7 +2171,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				ma->mode |= MA_TANGENT_STR;
 			}
 			if (ma->mode & MA_TRACEBLE)
-				ma->mode |= MA_SHADBUF;
+				ma->mode |= MA_CASTSHADOW;
 		}
 	}
 

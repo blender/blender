@@ -118,7 +118,7 @@ MALWAYS_INLINE int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRe
 	if (is->mode == RE_RAY_MIRROR)
 		return !(vlr->mat->mode & MA_ONLYCAST);
 	else
-		return (is->lay & obi->lay);
+		return (vlr->mat->mode & MA_CASTSHADOW) && (is->lay & obi->lay);
 }
 
 MALWAYS_INLINE int vlr_check_intersect_solid(Isect *UNUSED(is), ObjectInstanceRen *UNUSED(obi), VlakRen *vlr)

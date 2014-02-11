@@ -596,7 +596,7 @@ static bool ConvertMaterial(
 		material->ras_mode |= ( mat->game.flag & GEMAT_BACKCULL )?0:TWOSIDED;
 
 		// cast shadows?
-		material->ras_mode |= ( mat->mode & MA_SHADBUF )?CAST_SHADOW:0;
+		material->ras_mode |= ( mat->mode & MA_CASTSHADOW )?CAST_SHADOW:0;
 		MTex *mttmp = 0;
 		int valid_index = 0;
 		

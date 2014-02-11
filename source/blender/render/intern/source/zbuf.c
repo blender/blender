@@ -2368,7 +2368,7 @@ void zbuffer_shadow(Render *re, float winmat[4][4], LampRen *lar, int *rectz, in
 			if (vlr->mat!= ma) {
 				ma= vlr->mat;
 				ok= 1;
-				if ((ma->mode & MA_SHADBUF)==0) ok= 0;
+				if ((ma->mode & MA_CASTSHADOW)==0) ok= 0;
 			}
 
 			if (ok && (obi->lay & lay) && !(vlr->flag & R_HIDDEN)) {
@@ -2421,7 +2421,7 @@ void zbuffer_shadow(Render *re, float winmat[4][4], LampRen *lar, int *rectz, in
 					if (sseg.buffer->ma!= ma) {
 						ma= sseg.buffer->ma;
 						ok= 1;
-						if ((ma->mode & MA_SHADBUF)==0) ok= 0;
+						if ((ma->mode & MA_CASTSHADOW)==0) ok= 0;
 					}
 
 					if (ok && (sseg.buffer->lay & lay)) {
@@ -3349,7 +3349,7 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 			if (vlr->mat!=ma) {
 				ma= vlr->mat;
 				if (shadow)
-					dofill= (ma->mode & MA_SHADBUF);
+					dofill= (ma->mode & MA_CASTSHADOW);
 				else
 					dofill= (((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP)) && !(ma->mode & MA_ONLYCAST));
 			}

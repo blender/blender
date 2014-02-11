@@ -267,7 +267,7 @@ typedef struct Material {
 #define MA_RAYBIAS		0x400000
 #define MA_FULL_OSA		0x800000
 #define MA_TANGENT_STR	0x1000000
-#define MA_SHADBUF		0x2000000
+#define MA_CASTSHADOW		0x2000000
 		/* note; we drop MA_TANGENT_STR later to become tangent_u */
 #define MA_TANGENT_V	0x4000000
 /* qdn: a bit clumsy this, tangents needed for normal maps separated from shading */

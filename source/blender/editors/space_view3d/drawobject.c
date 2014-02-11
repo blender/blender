@@ -3620,7 +3620,7 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 	if (v3d->flag2 & V3D_RENDER_SHADOW) {
 		for (i = 0; i < ob->totcol; ++i) {
 			Material *ma = give_current_material(ob, i);
-			if (ma && !(ma->mode & MA_SHADBUF)) {
+			if (ma && !(ma->mode & MA_CASTSHADOW)) {
 				return true;
 			}
 		}

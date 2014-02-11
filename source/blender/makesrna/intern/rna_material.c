@@ -1937,10 +1937,16 @@ void RNA_def_material(BlenderRNA *brna)
 	                         "Force this material to render full shading/textures for all anti-aliasing samples");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
+	prop = RNA_def_property(srna, "use_cast_shadows", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_CASTSHADOW);
+	RNA_def_property_ui_text(prop, "Cast Shadows",
+	                         "Allow this material to cast shadows");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
 	prop = RNA_def_property(srna, "use_cast_buffer_shadows", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_SHADBUF);
-	RNA_def_property_ui_text(prop, "Cast Buffer Shadows",
-	                         "Allow this material to cast shadows from shadow buffer lamps");
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_CASTSHADOW);
+	RNA_def_property_ui_text(prop, "Cast Shadows",
+	                         "This is obsolete RNA path, please use 'use_cast_shadows' instead");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop = RNA_def_property(srna, "use_cast_approximate", PROP_BOOLEAN, PROP_NONE);

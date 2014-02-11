@@ -222,7 +222,7 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, Panel):
 
         col.prop(mat, "use_cast_shadows_only", text="Cast Only")
         col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
-        col.prop(mat, "use_cast_buffer_shadows")
+        col.prop(mat, "use_cast_shadows")
         col.prop(mat, "use_cast_approximate")
         col.prop(mat, "pass_index")
 
@@ -824,9 +824,9 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):
 
         col = split.column()
         if simple_material(base_mat):
-            col.prop(mat, "use_cast_buffer_shadows")
+            col.prop(mat, "use_cast_shadows")
         sub = col.column()
-        sub.active = mat.use_cast_buffer_shadows
+        sub.active = mat.use_cast_shadows
         sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
         col.prop(mat, "use_ray_shadow_bias", text="Auto Ray Bias")
         sub = col.column()

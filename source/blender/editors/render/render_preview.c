@@ -350,7 +350,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 						if (base->object->id.name[2] == 'c') {
 							Material *shadmat = give_current_material(base->object, base->object->actcol);
 							if (shadmat) {
-								if (mat->mode & MA_SHADBUF) shadmat->septex = 0;
+								if (mat->mode & MA_CASTSHADOW) shadmat->septex = 0;
 								else shadmat->septex |= 1;
 							}
 						}
