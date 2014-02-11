@@ -449,7 +449,11 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 	me->size[0] = me->size[1] = me->size[2] = 1.0;
 	me->smoothresh = 30;
 	me->texflag = ME_AUTOSPACE;
+
+	/* disable because its slow on many GPU's, see [#37518] */
+#if 0
 	me->flag = ME_TWOSIDED;
+#endif
 	me->drawflag = ME_DRAWEDGES | ME_DRAWFACES | ME_DRAWCREASES;
 
 	CustomData_reset(&me->vdata);
