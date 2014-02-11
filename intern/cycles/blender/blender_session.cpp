@@ -669,12 +669,12 @@ void BlenderSession::update_status_progress()
 		status += " | " + substatus;
 
 	if(status != last_status) {
+		b_engine.update_stats("", (timestatus + scene + status).c_str());
 		b_engine.update_memory_stats(mem_used, mem_peak);
 		last_status = status;
 	}
 	if(progress != last_progress) {
 		b_engine.update_progress(progress);
-		b_engine.update_stats("", (timestatus + scene + status).c_str());
 		last_progress = progress;
 	}
 }
