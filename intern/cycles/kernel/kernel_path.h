@@ -886,10 +886,6 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 	float3 L_sum = path_radiance_clamp_and_sum(kg, &L);
 
-#ifdef __CLAMP_SAMPLE__
-	path_radiance_reject(&L, &L_sum);
-#endif
-
 	kernel_write_light_passes(kg, buffer, &L, sample);
 
 	return make_float4(L_sum.x, L_sum.y, L_sum.z, 1.0f - L_transparent);
@@ -1321,10 +1317,6 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 	}
 
 	float3 L_sum = path_radiance_clamp_and_sum(kg, &L);
-
-#ifdef __CLAMP_SAMPLE__
-	path_radiance_reject(&L, &L_sum);
-#endif
 
 	kernel_write_light_passes(kg, buffer, &L, sample);
 

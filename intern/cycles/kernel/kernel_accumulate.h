@@ -318,21 +318,44 @@ ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L)
 
 ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadiance *L)
 {
+	float3 L_sum, L_direct, L_indirect;
+	float clamp_direct = kernel_data.integrator.sample_clamp_direct;
+	float clamp_indirect = kernel_data.integrator.sample_clamp_indirect;
+
+	/* Light Passes are used */
 #ifdef __PASSES__
 	if(L->use_light_pass) {
 		path_radiance_sum_indirect(L);
 
-		float3 L_direct = L->direct_diffuse + L->direct_glossy + L->direct_transmission + L->direct_subsurface + L->emission;
-		float3 L_indirect = L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission + L->indirect_subsurface;
-		
+		L_direct = L->direct_diffuse + L->direct_glossy + L->direct_transmission + L->direct_subsurface + L->emission;
+		L_indirect = L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission + L->indirect_subsurface;
+
 		if(!kernel_data.background.transparent)
 			L_direct += L->background;
 
-#ifdef __CLAMP_SAMPLE__ 
-		float clamp_direct = kernel_data.integrator.sample_clamp_direct;
-		float clamp_indirect = kernel_data.integrator.sample_clamp_indirect;
+		L_sum = L_direct + L_indirect;
+		float sum = fabsf((L_sum).x) + fabsf((L_sum).y) + fabsf((L_sum).z);
 
-		if(clamp_direct != FLT_MAX || clamp_indirect != FLT_MAX) {
+		/* Reject invalid value */
+		if(!isfinite(sum)) {
+			L_sum = make_float3(0.0f, 0.0f, 0.0f);
+
+			L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+			L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
+			L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
+			L->direct_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+
+			L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+			L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
+			L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
+			L->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
+
+			L->emission = make_float3(0.0f, 0.0f, 0.0f);
+		}
+
+		/* Clamp direct and indirect samples */
+#ifdef __CLAMP_SAMPLE__
+		else if(sum > clamp_direct || sum > clamp_indirect) {
 			float scale;
 
 			/* Direct */
@@ -360,44 +383,28 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 				L->indirect_transmission *= scale;
 				L->indirect_subsurface *= scale;
 			}
+
+			/* Sum again, after clamping */
+			L_sum = L_direct + L_indirect;
 		}
 #endif
-		/* Combine */
-		float3 L_sum = L_direct + L_indirect;
 
 		return L_sum;
 	}
+
+	/* No Light Passes */
 	else
-		return L->emission;
+		L_sum = L->emission;
 #else
-	return *L;
+	L_sum = *L;
 #endif
-}
 
-ccl_device_inline void path_radiance_reject(PathRadiance *L, float3 *L_sum)
-{
-	float sum = fabsf((*L_sum).x) + fabsf((*L_sum).y) + fabsf((*L_sum).z);
+	/* Reject invalid value */
+	float sum = fabsf((L_sum).x) + fabsf((L_sum).y) + fabsf((L_sum).z);
+	if(!isfinite(sum))
+		L_sum = make_float3(0.0f, 0.0f, 0.0f);
 
-	if(!isfinite(sum)) {
-		/* invalid value, reject */
-		*L_sum = make_float3(0.0f, 0.0f, 0.0f);
-
-#ifdef __PASSES__
-		if(L->use_light_pass) {
-			L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-			L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
-			L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
-			L->direct_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-
-			L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-			L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
-			L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
-			L->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-
-			L->emission = make_float3(0.0f, 0.0f, 0.0f);
-		}
-#endif
-	}
+	return L_sum;
 }
 
 CCL_NAMESPACE_END
