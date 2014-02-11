@@ -346,7 +346,6 @@ static void ui_imageuser_layer_menu(bContext *UNUSED(C), uiLayout *layout, void 
 
 	if (fake_name) {
 		BLI_strncpy(rl_fake.name, fake_name, sizeof(rl_fake.name));
-		rl_fake.prev = rr->layers.last;
 		nr += 1;
 	}
 
@@ -356,10 +355,13 @@ final:
 		          UI_UNIT_X * 5, UI_UNIT_X, &iuser->layer, (float) nr, 0.0, 0, -1, "");
 	}
 
-	if (fake_name && nr != -1) {
+	if (fake_name) {
+		fake_name = NULL;
 		rl = &rl_fake;
 		goto final;
 	}
+
+	BLI_assert(nr == -1);
 }
 
 static const char *ui_imageuser_pass_fake_name(RenderLayer *rl)
@@ -398,21 +400,23 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 
 	if (fake_name) {
 		BLI_strncpy(rpass_fake.name, fake_name, sizeof(rpass_fake.name));
-		rpass = &rpass_fake;
 		nr += 1;
 	}
 
 	/* rendered results don't have a Combined pass */
-	for (rpass = rl->passes.last; rpass; rpass = rpass->prev, nr--) {
+	for (rpass = rl ? rl->passes.last : NULL; rpass; rpass = rpass->prev, nr--) {
 final:
 		uiDefButS(block, BUTM, B_NOP, IFACE_(rpass->name), 0, 0,
 		          UI_UNIT_X * 5, UI_UNIT_X, &iuser->pass, (float) nr, 0.0, 0, -1, "");
 	}
 
-	if (fake_name && nr != -1) {
+	if (fake_name) {
+		fake_name = NULL;
 		rpass = &rpass_fake;
 		goto final;
 	}
+
+	BLI_assert(nr == -1);
 }
 
 /* 5 layer button callbacks... */
