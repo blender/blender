@@ -2386,7 +2386,7 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, const wmEvent *event)
 	SK_DrawData *dd;
 	SK_Sketch *sketch = contextSketch(C, 1);
 
-	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
+	op->customdata = dd = MEM_callocN(sizeof(SK_DrawData), "SketchDrawData");
 	sk_initDrawData(dd, event->mval);
 
 	sk_start_draw_stroke(sketch);
@@ -2412,7 +2412,7 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, const wmEvent *event
 	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	sk_cancelStroke(sketch);
 
-	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
+	op->customdata = dd = MEM_callocN(sizeof(SK_DrawData), "SketchDrawData");
 	sk_initDrawData(dd, event->mval);
 
 	sk_start_draw_gesture(sketch);
