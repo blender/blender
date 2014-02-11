@@ -34,6 +34,19 @@
 #  pragma warning (disable:4786)
 #endif
 
+/* Since threaded object update we've disabled in-place
+ * curve evaluation (in cases when applying curve modifier
+ * with target curve non-evaluated yet).
+ *
+ * This requires game engine to take care of DAG and object
+ * evaluation (currently it's designed to export only objects
+ * it able to render).
+ *
+ * This workaround will make sure that curve_cache for curves
+ * is up-to-date.
+ */
+#define THREADED_DAG_WORKAROUND
+
 #include <math.h>
 #include <vector>
 #include <algorithm>
@@ -143,6 +156,7 @@ extern "C" {
 #include "BKE_material.h" /* give_current_material */
 #include "BKE_image.h"
 #include "IMB_imbuf_types.h"
+#include "BKE_displist.h"
 
 extern Material defmaterial;	/* material.c */
 }
@@ -1984,6 +1998,15 @@ static KX_GameObject *gameobject_from_blenderobject(
 			kxscene->AddFont(static_cast<KX_FontObject*>(gameobj));
 		break;
 	}
+
+#ifdef THREADED_DAG_WORKAROUND
+	case OB_CURVE:
+	{
+		if (ob->curve_cache == NULL) {
+			BKE_displist_make_curveTypes(blenderscene, ob, FALSE);
+		}
+	}
+#endif
 
 	}
 	if (gameobj) 
