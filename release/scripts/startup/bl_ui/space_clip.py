@@ -141,7 +141,7 @@ class CLIP_HT_header(Header):
 
         sc = context.space_data
 
-        if sc.mode in {'TRACKING', 'RECONSTRUCTION', 'DISTORTION'}:
+        if sc.mode in {'TRACKING'}:
             self._draw_tracking(context)
         else:
             self._draw_masking(context)
@@ -223,7 +223,7 @@ class CLIP_PT_reconstruction_panel:
         sc = context.space_data
         clip = sc.clip
 
-        return clip and sc.mode == 'RECONSTRUCTION' and sc.view == 'CLIP'
+        return clip and sc.view == 'CLIP'
 
 
 class CLIP_PT_tools_clip(Panel):
@@ -540,44 +540,6 @@ class CLIP_PT_tools_object(CLIP_PT_reconstruction_panel, Panel):
         col.prop(settings, "object_distance")
 
 
-class CLIP_PT_tools_grease_pencil(Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_label = "Grease Pencil"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        if not clip:
-            return False
-
-        if sc.mode == 'DISTORTION':
-            return sc.view == 'CLIP'
-        elif sc.mode == 'MASK':
-            return True
-
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
-        row = col.row(align=True)
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-
-        row = col.row(align=True)
-        row.operator("gpencil.draw", text="Poly").mode = 'DRAW_POLY'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
-
-        row = col.row(align=True)
-        row.prop(context.tool_settings, "use_grease_pencil_sessions")
-
-
 class CLIP_PT_objects(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
@@ -744,7 +706,7 @@ class CLIP_PT_tracking_camera(Panel):
         if CLIP_PT_clip_view_panel.poll(context):
             sc = context.space_data
 
-            return sc.mode in {'TRACKING', 'DISTORTION'} and sc.clip
+            return sc.mode in {'TRACKING'} and sc.clip
 
         return False
 
@@ -784,7 +746,7 @@ class CLIP_PT_tracking_lens(Panel):
         if CLIP_PT_clip_view_panel.poll(context):
             sc = context.space_data
 
-            return sc.mode in {'TRACKING', 'DISTORTION'} and sc.clip
+            return sc.mode in {'TRACKING'} and sc.clip
 
         return False
 
@@ -882,11 +844,40 @@ class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
         row.prop(sc, "show_tiny_markers", text="Thin")
 
 
+class CLIP_PT_marker(CLIP_PT_tracking_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Marker"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        clip = context.space_data.clip
+        act_track = clip.tracking.tracks.active
+
+        if act_track:
+            layout.template_marker(sc, "clip", sc.clip_user, act_track, False)
+        else:
+            layout.active = False
+            layout.label(text="No active track")
+
+
 class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "2D Stabilization"
+    bl_category = "Stabilization"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if CLIP_PT_clip_view_panel.poll(context):
+            sc = context.space_data
+
+            return sc.mode in {'TRACKING'} and sc.clip
+
+        return False
 
     def draw_header(self, context):
         stab = context.space_data.clip.tracking.stabilization
@@ -934,25 +925,6 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         row.prop(stab, "influence_rotation")
 
         layout.prop(stab, "filter_type")
-
-
-class CLIP_PT_marker(CLIP_PT_tracking_panel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-    bl_label = "Marker"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        sc = context.space_data
-        clip = context.space_data.clip
-        act_track = clip.tracking.tracks.active
-
-        if act_track:
-            layout.template_marker(sc, "clip", sc.clip_user, act_track, False)
-        else:
-            layout.active = False
-            layout.label(text="No active track")
 
 
 class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
@@ -1065,6 +1037,29 @@ class CLIP_PT_tools_mask(MASK_PT_tools, Panel):
     bl_region_type = 'TOOLS'
 
 # --- end mask ---
+
+
+class CLIP_PT_tools_grease_pencil(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Grease Pencil"
+    bl_category = "Grease Pencil"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+
+        row = col.row(align=True)
+        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+
+        row = col.row(align=True)
+        row.operator("gpencil.draw", text="Poly").mode = 'DRAW_POLY'
+        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+
+        row = col.row(align=True)
+        row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
 
 class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
