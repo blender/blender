@@ -113,7 +113,13 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
 #ifdef __KERNEL_CPU__
-	ccl_align(16) float4 r = kernel_tex_image_interp(id, x, y);
+#ifdef __KERNEL_SSE2__
+	__m128 r_m128;
+	float4 &r = (float4 &)r_m128;
+	r = kernel_tex_image_interp(id, x, y);
+#else
+	float4 r = kernel_tex_image_interp(id, x, y);
+#endif
 #else
 	float4 r;
 
@@ -234,9 +240,9 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 #endif
 
 #ifdef __KERNEL_SSE2__
-	__m128 &r_m128 = (__m128&)r;
-	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
-		float alpha = r.w;
+	float alpha = r.w;
+
+	if(use_alpha && alpha != 1.0f && alpha != 0.0f) {
 		r_m128 = _mm_div_ps(r_m128, _mm_set1_ps(alpha));
 		if(id >= TEX_NUM_FLOAT_IMAGES)
 			r_m128 = _mm_min_ps(r_m128, _mm_set1_ps(1.0f));
@@ -244,7 +250,6 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	}
 
 	if(srgb) {
-		float alpha = r.w;
 		r_m128 = color_srgb_to_scene_linear(r_m128);
 		r.w = alpha;
 	}
