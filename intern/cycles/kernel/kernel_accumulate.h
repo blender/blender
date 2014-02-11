@@ -324,6 +324,9 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 
 		float3 L_direct = L->direct_diffuse + L->direct_glossy + L->direct_transmission + L->direct_subsurface + L->emission;
 		float3 L_indirect = L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission + L->indirect_subsurface;
+		
+		if(!kernel_data.background.transparent)
+			L_direct += L->background;
 
 #ifdef __CLAMP_SAMPLE__ 
 		float clamp_direct = kernel_data.integrator.sample_clamp_direct;
@@ -343,6 +346,7 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 				L->direct_transmission *= scale;
 				L->direct_subsurface *= scale;
 				L->emission *= scale;
+				L->background *= scale;
 			}
 
 			/* Indirect */
@@ -360,9 +364,6 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 #endif
 		/* Combine */
 		float3 L_sum = L_direct + L_indirect;
-
-		if(!kernel_data.background.transparent)
-			L_sum += L->background;
 
 		return L_sum;
 	}
