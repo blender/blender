@@ -167,13 +167,14 @@ static int uv_sculpt_brush_poll(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *toolsettings = scene->toolsettings;
 
-	if (!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH)
+	if (!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH ||
+	    !sima || ED_space_image_show_render(sima) || (sima->mode == SI_MODE_PAINT))
 		return 0;
 
 	em = BKE_editmesh_from_object(obedit);
 	ret = EDBM_mtexpoly_check(em);
 
-	if (ret && sima) {
+	if (ret) {
 		ARegion *ar = CTX_wm_region(C);
 		if ((toolsettings->use_uv_sculpt) && ar->regiontype == RGN_TYPE_WINDOW)
 			return 1;
