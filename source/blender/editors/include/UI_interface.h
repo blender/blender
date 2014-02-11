@@ -440,6 +440,8 @@ void    uiButClearFlag(uiBut *but, int flag);
 void    uiButSetDrawFlag(uiBut *but, int flag);
 void    uiButClearDrawFlag(uiBut *but, int flag);
 
+void    uiButSetMenuFromPulldown(uiBut *but);
+
 /* special button case, only draw it when used actively, for outliner etc */
 bool    uiButActiveOnly(const struct bContext *C, struct ARegion *ar, uiBlock *block, uiBut *but);
 

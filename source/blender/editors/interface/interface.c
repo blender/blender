@@ -3757,6 +3757,14 @@ void uiButClearDrawFlag(uiBut *but, int flag)
 	but->drawflag &= ~flag;
 }
 
+void uiButSetMenuFromPulldown(uiBut *but)
+{
+	BLI_assert(but->type == PULLDOWN);
+	but->type = MENU;
+	uiButClearDrawFlag(but, UI_BUT_TEXT_RIGHT);
+	uiButSetDrawFlag(but, UI_BUT_TEXT_LEFT);
+}
+
 int uiButGetRetVal(uiBut *but)
 {
 	return but->retval;

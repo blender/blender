@@ -562,8 +562,8 @@ void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSo
 	else
 		but = uiDefIconMenuBut(block, ui_template_node_link_menu, NULL, ICON_NONE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "");
 
-	but->type = MENU;
-	but->drawflag |= UI_BUT_TEXT_LEFT;
+	uiButSetMenuFromPulldown(but);
+
 	but->flag |= UI_BUT_NODE_LINK;
 	but->poin = (char *)but;
 	but->func_argN = arg;

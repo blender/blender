@@ -576,8 +576,8 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	}
 
 	/* some cosmetic tweaks */
-	but->type = MENU;
-	but->drawflag |= UI_BUT_TEXT_LEFT;
+	uiButSetMenuFromPulldown(but);
+
 	but->flag &= ~UI_ICON_SUBMENU;
 }
 

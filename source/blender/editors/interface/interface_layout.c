@@ -1654,8 +1654,7 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 	if (ELEM(layout->root->type, UI_LAYOUT_PANEL, UI_LAYOUT_TOOLBAR) ||
 	    (force_menu && layout->root->type != UI_LAYOUT_MENU))  /* We never want a dropdown in menu! */
 	{
-		but->type = MENU;
-		but->drawflag |= UI_BUT_TEXT_LEFT;
+		uiButSetMenuFromPulldown(but);
 	}
 }
 
