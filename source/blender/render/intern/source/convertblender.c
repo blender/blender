@@ -746,7 +746,7 @@ static Material *give_render_material(Render *re, Object *ob, short nr)
 	
 	if (ma->material_type == MA_TYPE_VOLUME) {
 		ma->mode |= MA_TRANSP;
-		ma->mode &= ~MA_CASTSHADOW;
+		ma->mode &= ~MA_SHADBUF;
 	}
 	if ((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		re->flag |= R_ZTRA;

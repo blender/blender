@@ -860,7 +860,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 		/* test if we should skip it */
 		ma = obr->strandbuf->ma;
 
-		if (shadow && !(ma->mode & MA_CASTSHADOW))
+		if (shadow && !(ma->mode & MA_SHADBUF))
 			continue;
 		else if (!shadow && (ma->mode & MA_ONLYCAST))
 			continue;

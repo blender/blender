@@ -660,7 +660,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 			if (vlr->mat!= ma) {
 				ma= vlr->mat;
 				ok= 1;
-				if ((ma->mode & MA_CASTSHADOW)==0) ok= 0;
+				if ((ma->mode & MA_SHADBUF)==0) ok= 0;
 			}
 			
 			if (ok && (obi->lay & lay)) {
@@ -2013,7 +2013,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 			if (vlr->mat!= ma) {
 				ma= vlr->mat;
 				ok= 1;
-				if ((ma->mode & MA_CASTSHADOW)==0) ok= 0;
+				if ((ma->mode & MA_SHADBUF)==0) ok= 0;
 				if (ma->material_type == MA_TYPE_WIRE) ok= 0;
 				zspanstrand.shad_alpha= zspan.shad_alpha= ma->shad_alpha;
 			}
