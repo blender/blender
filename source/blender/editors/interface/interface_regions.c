@@ -2123,7 +2123,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			direction = pup->block->direction;
 		}
 		else if ((pup->but->type == PULLDOWN) ||
-		    (uiButGetMenuType(pup->but) != NULL))
+		         (uiButGetMenuType(pup->but) != NULL))
 		{
 			direction = UI_DOWN;
 		}

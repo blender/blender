@@ -938,4 +938,3 @@ class LodGenerate(Operator):
         scene.objects.active = ob
 
         return {'FINISHED'}
-

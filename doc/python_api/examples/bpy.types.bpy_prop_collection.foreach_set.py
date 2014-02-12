@@ -8,4 +8,3 @@ collection.foreach_set(attr, some_seq)
 # Python equivalent
 for i in range(len(some_seq)):
     setattr(collection[i], attr, some_seq[i])
-

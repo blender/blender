@@ -1285,7 +1285,6 @@ class I18n:
                 return path, env[tuple_id]
         return None, None  # No data...
 
-
     def parse(self, kind, src, langs=set()):
         self.parsers[kind](self, src, langs)
 
@@ -1372,6 +1371,7 @@ class I18n:
               ({} currently).
         """.format(self.settings.PARSER_TEMPLATE_ID)
         default_context = self.settings.DEFAULT_CONTEXT
+
         def _gen_py(self, langs, tab="    "):
             _lencomm = len(self.settings.PO_COMMENT_PREFIX)
             _lengen = len(self.settings.PO_COMMENT_PREFIX_GENERATED)
@@ -1451,7 +1451,7 @@ class I18n:
                         ret.append(tab + lngsp + '  "' + comments[-1] + '"))),')
                     else:
                         ret[-1] = ret[-1] + " (" + (('"' + comments[0] + '",') if comments else "") + "))),"
-                    
+
                 ret.append(tab + "),")
             ret += [
                 ")",

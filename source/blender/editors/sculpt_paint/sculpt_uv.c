@@ -169,7 +169,9 @@ static int uv_sculpt_brush_poll(bContext *C)
 
 	if (!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH ||
 	    !sima || ED_space_image_show_render(sima) || (sima->mode == SI_MODE_PAINT))
+	{
 		return 0;
+	}
 
 	em = BKE_editmesh_from_object(obedit);
 	ret = EDBM_mtexpoly_check(em);

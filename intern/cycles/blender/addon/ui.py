@@ -1195,7 +1195,7 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
         layout.prop(ccscene, "primitive", text="Primitive")
         layout.prop(ccscene, "shape", text="Shape")
 
-        if (ccscene.primitive in {'CURVE_SEGMENTS', 'LINE_SEGMENTS'} and ccscene.shape == 'RIBBONS') == False:
+        if not (ccscene.primitive in {'CURVE_SEGMENTS', 'LINE_SEGMENTS'} and ccscene.shape == 'RIBBONS'):
             layout.prop(ccscene, "cull_backfacing", text="Cull back-faces")
 
         if ccscene.primitive == 'TRIANGLES' and ccscene.shape == 'THICK':
@@ -1381,6 +1381,7 @@ def get_panels():
         ]
 
     return [getattr(types, p) for p in panels if hasattr(types, p)]
+
 
 def register():
     bpy.types.RENDER_PT_render.append(draw_device)

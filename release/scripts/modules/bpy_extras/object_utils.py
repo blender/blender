@@ -232,7 +232,8 @@ def object_add_grid_scale_apply_operator(operator, context):
         if not properties.is_property_set(prop_id):
             prop_def = properties_def[prop_id]
             if prop_def.unit == 'LENGTH' and prop_def.subtype == 'DISTANCE':
-                setattr(operator, prop_id, getattr(operator, prop_id) * grid_scale)
+                setattr(operator, prop_id,
+                        getattr(operator, prop_id) * grid_scale)
 
 
 def object_image_guess(obj, bm=None):

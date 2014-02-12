@@ -22,7 +22,7 @@
 This module has utility functions for renaming
 rna values in fcurves and drivers.
 
-Currently unused, but might become useful later again. 
+Currently unused, but might become useful later again.
 """
 
 IS_TESTING = False

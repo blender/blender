@@ -133,7 +133,7 @@ def write_sysinfo(op):
 
     oiio = bpy.app.oiio
     output.write("OpenImageIO: ")
-    if ocio.supported :
+    if ocio.supported:
         output.write("%s\n" % (oiio.version_string))
     else:
         output.write("Blender was built without OpenImageIO support\n")

@@ -34,4 +34,3 @@ print("Close points within 0.5 distance")
 co_find = context.scene.cursor_location
 for (co, index, dist) in kd.find_range(co_find, 0.5):
     print("    ", co, index, dist)
-

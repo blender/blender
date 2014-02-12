@@ -399,15 +399,15 @@ void DebugInfo::graphviz(ExecutionSystem *system)
 
 #else
 
-std::string DebugInfo::node_name(NodeBase */*node*/) { return ""; }
+std::string DebugInfo::node_name(NodeBase * /*node*/) { return ""; }
 void DebugInfo::convert_started() {}
-void DebugInfo::execute_started(ExecutionSystem */*system*/) {}
-void DebugInfo::node_added(Node */*node*/) {}
-void DebugInfo::node_to_operations(Node */*node*/) {}
-void DebugInfo::operation_added(NodeOperation */*operation*/) {}
-void DebugInfo::operation_read_write_buffer(NodeOperation */*operation*/) {}
-void DebugInfo::execution_group_started(ExecutionGroup */*group*/) {}
-void DebugInfo::execution_group_finished(ExecutionGroup */*group*/) {}
-void DebugInfo::graphviz(ExecutionSystem */*system*/) {}
+void DebugInfo::execute_started(ExecutionSystem * /*system*/) {}
+void DebugInfo::node_added(Node * /*node*/) {}
+void DebugInfo::node_to_operations(Node * /*node*/) {}
+void DebugInfo::operation_added(NodeOperation * /*operation*/) {}
+void DebugInfo::operation_read_write_buffer(NodeOperation * /*operation*/) {}
+void DebugInfo::execution_group_started(ExecutionGroup * /*group*/) {}
+void DebugInfo::execution_group_finished(ExecutionGroup * /*group*/) {}
+void DebugInfo::graphviz(ExecutionSystem * /*system*/) {}
 
 #endif

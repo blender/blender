@@ -40,6 +40,7 @@ def draw_repeat_tools(context, layout):
     col.operator("screen.repeat_last")
     col.operator("screen.repeat_history", text="History...")
 
+
 # Keyframing tools
 def draw_keyframing_tools(context, layout):
     col = layout.column(align=True)
@@ -47,6 +48,7 @@ def draw_keyframing_tools(context, layout):
     row = col.row(align=True)
     row.operator("anim.keyframe_insert_menu", text="Insert")
     row.operator("anim.keyframe_delete_v3d", text="Remove")
+
 
 # Grease Pencil tools
 def draw_gpencil_tools(context, layout):
@@ -60,15 +62,16 @@ def draw_gpencil_tools(context, layout):
     row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
     col.separator()
-    
+
     col.prop(context.tool_settings, "use_grease_pencil_sessions")
 
     col.separator()
-    
+
     col.label(text="Measure:")
     col.operator("view3d.ruler")
 
 # ********** default tools for object-mode ****************
+
 
 class VIEW3D_PT_tools_transform(View3DPanel, Panel):
     bl_category = "Tools"
@@ -88,6 +91,7 @@ class VIEW3D_PT_tools_transform(View3DPanel, Panel):
 
             col = layout.column(align=True)
             col.operator("transform.mirror", text="Mirror")
+
 
 class VIEW3D_PT_tools_object(View3DPanel, Panel):
     bl_category = "Tools"
@@ -119,6 +123,7 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
             row.operator("object.shade_smooth", text="Smooth")
             row.operator("object.shade_flat", text="Flat")
 
+
 class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
     bl_category = "Tools"
     bl_context = "objectmode"
@@ -136,14 +141,15 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+
 class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
     bl_category = "Create"
     bl_context = "objectmode"
     bl_label = "Add Primitive"
-    
-    def draw (self, context):
+
+    def draw(self, context):
         layout = self.layout
-        
+
         col = layout.column(align=True)
         col.label(text="Mesh:")
         col.operator("mesh.primitive_plane_add", text="Plane", icon="MESH_PLANE")
@@ -154,27 +160,28 @@ class VIEW3D_PT_tools_add_mesh(View3DPanel, Panel):
         col.operator("mesh.primitive_cylinder_add", text="Cylinder", icon="MESH_CYLINDER")
         col.operator("mesh.primitive_cone_add", text="Cone", icon="MESH_CONE")
         col.operator("mesh.primitive_torus_add", text="Torus", icon="MESH_TORUS")
-        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")   
-        
+        col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
+
         col = layout.column(align=True)
         col.label(text="Curve:")
         col.operator("curve.primitive_bezier_curve_add", text="Curve", icon="CURVE_BEZCURVE")
         col.operator("curve.primitive_bezier_circle_add", text="Circle", icon="CURVE_BEZCIRCLE")
-        col.operator("curve.primitive_nurbs_path_add", text="Path" , icon="CURVE_PATH")
+        col.operator("curve.primitive_nurbs_path_add", text="Path", icon="CURVE_PATH")
 
         col.label(text="Lamp:")
-        col.operator("object.lamp_add", text="Point", icon="LAMP_POINT").type='POINT'
-        col.operator("object.lamp_add", text="Sun", icon="LAMP_SUN").type='SUN'
-        col.operator("object.lamp_add", text="Spot", icon="LAMP_SPOT").type='SPOT'
-        col.operator("object.lamp_add", text="Hemi", icon="LAMP_HEMI").type='HEMI'
-        col.operator("object.lamp_add", text="Area", icon="LAMP_AREA").type='AREA'
-              
+        col.operator("object.lamp_add", text="Point", icon="LAMP_POINT").type = 'POINT'
+        col.operator("object.lamp_add", text="Sun", icon="LAMP_SUN").type = 'SUN'
+        col.operator("object.lamp_add", text="Spot", icon="LAMP_SPOT").type = 'SPOT'
+        col.operator("object.lamp_add", text="Hemi", icon="LAMP_HEMI").type = 'HEMI'
+        col.operator("object.lamp_add", text="Area", icon="LAMP_AREA").type = 'AREA'
+
         col.label(text="Other:")
-        col.operator("object.text_add", text="Text", icon ="OUTLINER_OB_FONT")
-        col.operator("object.armature_add",text="Armature", icon="OUTLINER_OB_ARMATURE")
-        col.operator("object.add", text="Lattice", icon="OUTLINER_OB_LATTICE").type='LATTICE'
-        col.operator("object.empty_add", text="Empty", icon="OUTLINER_OB_EMPTY").type='PLAIN_AXES'
+        col.operator("object.text_add", text="Text", icon="OUTLINER_OB_FONT")
+        col.operator("object.armature_add", text="Armature", icon="OUTLINER_OB_ARMATURE")
+        col.operator("object.add", text="Lattice", icon="OUTLINER_OB_LATTICE").type = 'LATTICE'
+        col.operator("object.empty_add", text="Empty", icon="OUTLINER_OB_EMPTY").type = 'PLAIN_AXES'
         col.operator("object.camera_add", text="Camera", icon="OUTLINER_OB_CAMERA")
+
 
 class VIEW3D_PT_tools_relations(View3DPanel, Panel):
     bl_category = "Relations"
@@ -190,25 +197,26 @@ class VIEW3D_PT_tools_relations(View3DPanel, Panel):
         col.operator("group.create", text="New Group")
         col.operator("group.objects_add_active", text="Add to Active")
         col.operator("group.objects_remove", text="Remove from Group")
-        
+
         col.separator()
-        
+
         col.label(text="Parent:")
         row = col.row(align=True)
         row.operator("object.parent_set", text="Set")
         row.operator("object.parent_clear", text="Clear")
 
         col.separator()
-        
+
         col.label(text="Object Data:")
         col.operator("object.make_links_data")
         col.operator("object.make_single_user")
-        
+
         col.separator()
 
         col.label(text="Linked Objects:")
         col.operator("object.make_local")
         col.operator("object.proxy_make")
+
 
 class VIEW3D_PT_tools_animation(View3DPanel, Panel):
     bl_category = "Animation"
@@ -230,6 +238,7 @@ class VIEW3D_PT_tools_animation(View3DPanel, Panel):
 
         col.label(text="Action:")
         col.operator("nla.bake", text="Bake Action")
+
 
 class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
     bl_category = "Physics"
@@ -274,6 +283,7 @@ class VIEW3D_PT_tools_transform_mesh(View3DPanel, Panel):
         col.operator("transform.resize", text="Scale")
         col.operator("transform.shrink_fatten", text="Shrink/Fatten")
         col.operator("transform.push_pull", text="Push/Pull")
+
 
 class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
     bl_category = "Tools"
@@ -322,12 +332,13 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+
 class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
     bl_category = "Create"
     bl_context = "mesh_edit"
     bl_label = "Add Meshes"
 
-    def draw (self, context):
+    def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
@@ -345,6 +356,7 @@ class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
         col.label(text="Special:")
         col.operator("mesh.primitive_grid_add", text="Grid", icon="MESH_GRID")
         col.operator("mesh.primitive_monkey_add", text="Monkey", icon="MESH_MONKEY")
+
 
 class VIEW3D_PT_tools_shading(View3DPanel, Panel):
     bl_category = "Shading / UVs"
@@ -370,6 +382,7 @@ class VIEW3D_PT_tools_uvs(View3DPanel, Panel):
     bl_category = "Shading / UVs"
     bl_context = "mesh_edit"
     bl_label = "UVs"
+
     def draw(self, context):
         layout = self.layout
 
@@ -378,7 +391,7 @@ class VIEW3D_PT_tools_uvs(View3DPanel, Panel):
         col.menu("VIEW3D_MT_uv_map", text="Unwrap")
         col.operator("mesh.mark_seam").clear = False
         col.operator("mesh.mark_seam", text="Clear Seam").clear = True
-        
+
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Options"
@@ -417,6 +430,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 
 # ********** default tools for editmode_curve ****************
 
+
 class VIEW3D_PT_tools_transform_curve(View3DPanel, Panel):
     bl_category = "Tools"
     bl_context = "curve_edit"
@@ -433,6 +447,7 @@ class VIEW3D_PT_tools_transform_curve(View3DPanel, Panel):
         col = layout.column(align=True)
         col.operator("transform.tilt", text="Tilt")
         col.operator("transform.transform", text="Scale Feather").mode = 'CURVE_SHRINKFATTEN'
+
 
 class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
     bl_category = "Tools"
@@ -471,12 +486,13 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+
 class VIEW3D_PT_tools_add_curve_edit(View3DPanel, Panel):
     bl_category = "Create"
     bl_context = "curve_edit"
     bl_label = "Add Curves"
 
-    def draw (self, context):
+    def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
@@ -488,9 +504,10 @@ class VIEW3D_PT_tools_add_curve_edit(View3DPanel, Panel):
         col.label(text="Nurbs:")
         col.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon="CURVE_NCURVE")
         col.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon="CURVE_NCIRCLE")
-        col.operator("curve.primitive_nurbs_path_add", text="Nurbs Path" , icon="CURVE_PATH")
+        col.operator("curve.primitive_nurbs_path_add", text="Nurbs Path", icon="CURVE_PATH")
 
 # ********** default tools for editmode_surface ****************
+
 
 class VIEW3D_PT_tools_transform_surface(View3DPanel, Panel):
     bl_category = "Tools"
@@ -504,6 +521,7 @@ class VIEW3D_PT_tools_transform_surface(View3DPanel, Panel):
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
+
 
 class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
     bl_category = "Tools"
@@ -527,12 +545,13 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+
 class VIEW3D_PT_tools_add_surface_edit(View3DPanel, Panel):
     bl_category = "Create"
     bl_context = "surface_edit"
     bl_label = "Add Surfaces"
 
-    def draw (self, context):
+    def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
@@ -628,12 +647,13 @@ class VIEW3D_PT_tools_mballedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+
 class VIEW3D_PT_tools_add_mball_edit(View3DPanel, Panel):
     bl_category = "Create"
     bl_context = "mball_edit"
     bl_label = "Add Metaball"
 
-    def draw (self, context):
+    def draw(self, context):
         layout = self.layout
 
         col = layout.column(align=True)
@@ -1283,11 +1303,12 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
 
         layout.label(text="Lock:")
-        
+
         row = layout.row(align=True)
         row.prop(sculpt, "lock_x", text="X", toggle=True)
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
+
 
 class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     bl_category = "Options"
@@ -1590,6 +1611,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
             sub = col.row(align=True)
             sub.active = pe.use_fade_time
             sub.prop(pe, "fade_frames", slider=True)
+
 
 # Grease Pencil tools
 class VIEW3D_PT_tools_greasepencil(View3DPanel, Panel):

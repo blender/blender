@@ -33,7 +33,7 @@ enum_devices = (
     )
 
 if _cycles.with_network:
-  enum_devices += (('NETWORK', "Networked Device", "Use networked device for rendering"),)
+    enum_devices += (('NETWORK', "Networked Device", "Use networked device for rendering"),)
 
 enum_feature_set = (
     ('SUPPORTED', "Supported", "Only use finished and supported features"),
@@ -371,7 +371,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 min=0.0, max=1e8,
                 default=0.0,
                 )
-                
+
         cls.sample_clamp_indirect = FloatProperty(
                 name="Clamp Indirect",
                 description="If non-zero, the maximum value for an indirect sample, "

@@ -118,7 +118,7 @@ def protect_format_seq(msg):
             dlt = 2
             while (idx + dlt) < ln and msg[idx + dlt] in digits:
                 dlt += 1
-            if (idx + dlt) < ln  and msg[idx + dlt] is '|':
+            if (idx + dlt) < ln and msg[idx + dlt] is '|':
                 dlt += 1
         # %.4f
         elif idx < (ln - 3) and msg[idx] == '%' and msg[idx + 1] in digits:

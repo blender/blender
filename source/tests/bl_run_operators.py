@@ -450,7 +450,7 @@ def main():
     for operators_test in ((), operators):
         # Run the operator tests in different contexts
         run_ops(operators_test, setup_func=lambda: None)
-        
+
         if USE_FILES:
             continue
 

@@ -409,7 +409,9 @@ def path_reference(filepath,
     if mode == 'ABSOLUTE':
         return filepath_abs
     elif mode == 'RELATIVE':
-        try:  # can't always find the relative path (between drive letters on windows)
+        # can't always find the relative path
+        # (between drive letters on windows)
+        try:
             return os.path.relpath(filepath_abs, base_dst)
         except ValueError:
             return filepath_abs
