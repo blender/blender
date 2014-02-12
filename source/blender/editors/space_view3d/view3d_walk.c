@@ -1208,7 +1208,7 @@ static int walkApply_ndof(bContext *C, WalkInfo *walk)
 	bool do_translate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM)) != 0;
 #endif
 
-	bool do_rotate = false;
+	bool do_rotate = true;
 	bool do_translate = true;
 
 	float view_inv[4];
