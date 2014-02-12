@@ -53,7 +53,7 @@ public:
 
 	/* sync */
 	bool sync_recalc();
-	void sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const char *layer = 0);
+	void sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, void **python_thread_state, const char *layer = 0);
 	void sync_render_layers(BL::SpaceView3D b_v3d, const char *layer);
 	void sync_integrator();
 	void sync_camera(BL::RenderSettings b_render, BL::Object b_override, int width, int height);
@@ -72,7 +72,7 @@ private:
 	void sync_lamps(bool update_all);
 	void sync_materials(bool update_all);
 	void sync_objects(BL::SpaceView3D b_v3d, int motion = 0);
-	void sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override);
+	void sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void **python_thread_state);
 	void sync_film();
 	void sync_view();
 	void sync_world(bool update_all);

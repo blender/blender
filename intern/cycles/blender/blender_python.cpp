@@ -35,17 +35,15 @@
 
 CCL_NAMESPACE_BEGIN
 
-static PyThreadState *python_thread_state = NULL;
-
-void python_thread_state_save()
+void python_thread_state_save(void **python_thread_state)
 {
-	python_thread_state = PyEval_SaveThread();
+	*python_thread_state = (void*)PyEval_SaveThread();
 }
 
-void python_thread_state_restore()
+void python_thread_state_restore(void **python_thread_state)
 {
-	PyEval_RestoreThread(python_thread_state);
-	python_thread_state = NULL;
+	PyEval_RestoreThread((PyThreadState*)*python_thread_state);
+	*python_thread_state = NULL;
 }
 
 static PyObject *init_func(PyObject *self, PyObject *args)
@@ -100,8 +98,6 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 	/* create session */
 	BlenderSession *session;
 
-	python_thread_state_save();
-
 	if(rv3d) {
 		/* interactive viewport session */
 		int width = region.width();
@@ -122,7 +118,11 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 		session = new BlenderSession(engine, userpref, data, scene);
 	}
 
-	python_thread_state_restore();
+	python_thread_state_save(&session->python_thread_state);
+
+	session->create();
+
+	python_thread_state_restore(&session->python_thread_state);
 
 	return PyLong_FromVoidPtr(session);
 }
@@ -136,12 +136,13 @@ static PyObject *free_func(PyObject *self, PyObject *value)
 
 static PyObject *render_func(PyObject *self, PyObject *value)
 {
-	python_thread_state_save();
-
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(value);
+
+	python_thread_state_save(&session->python_thread_state);
+
 	session->render();
 
-	python_thread_state_restore();
+	python_thread_state_restore(&session->python_thread_state);
 
 	Py_RETURN_NONE;
 }
@@ -183,23 +184,24 @@ static PyObject *reset_func(PyObject *self, PyObject *args)
 	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
 	BL::Scene b_scene(sceneptr);
 
-	python_thread_state_save();
+	python_thread_state_save(&session->python_thread_state);
 
 	session->reset_session(b_data, b_scene);
 
-	python_thread_state_restore();
+	python_thread_state_restore(&session->python_thread_state);
 
 	Py_RETURN_NONE;
 }
 
 static PyObject *sync_func(PyObject *self, PyObject *value)
 {
-	python_thread_state_save();
-
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(value);
+
+	python_thread_state_save(&session->python_thread_state);
+
 	session->synchronize();
 
-	python_thread_state_restore();
+	python_thread_state_restore(&session->python_thread_state);
 
 	Py_RETURN_NONE;
 }

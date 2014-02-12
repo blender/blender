@@ -40,6 +40,8 @@ public:
 
 	~BlenderSession();
 
+	void create();
+
 	/* session */
 	void create_session();
 	void free_session();
@@ -89,6 +91,8 @@ public:
 
 	int width, height;
 	double start_resize_time;
+
+	void *python_thread_state;
 
 protected:
 	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only);

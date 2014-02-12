@@ -135,7 +135,7 @@ bool BlenderSync::sync_recalc()
 	return recalc;
 }
 
-void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const char *layer)
+void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, void **python_thread_state, const char *layer)
 {
 	sync_render_layers(b_v3d, layer);
 	sync_integrator();
@@ -143,7 +143,7 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const 
 	sync_shaders();
 	sync_curve_settings();
 	sync_objects(b_v3d);
-	sync_motion(b_v3d, b_override);
+	sync_motion(b_v3d, b_override, python_thread_state);
 }
 
 /* Integrator */
