@@ -803,6 +803,17 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
 	mat3_to_quat(rv3d->viewquat, tmat);
 }
 
+char ED_view3d_lock_view_from_index(int index)
+{
+	switch (index) {
+		case 0:  return RV3D_VIEW_FRONT;
+		case 1:  return RV3D_VIEW_TOP;
+		case 2:  return RV3D_VIEW_RIGHT;
+		default: return RV3D_VIEW_USER;
+	}
+
+}
+
 bool ED_view3d_lock(RegionView3D *rv3d)
 {
 	switch (rv3d->view) {
