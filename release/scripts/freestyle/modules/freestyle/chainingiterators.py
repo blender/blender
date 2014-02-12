@@ -72,7 +72,8 @@ class pyChainSilhouetteIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for i in range(len(natures)):
                 currentNature = self.current_edge.nature
                 if (natures[i] & currentNature) != 0:
@@ -130,7 +131,8 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for i in range(len(natures)):
                 currentNature = self.current_edge.nature
                 if (natures[i] & currentNature) != 0:
@@ -243,7 +245,8 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for i in range(len(natures)):
                 currentNature = self.current_edge.nature
                 if (natures[i] & currentNature) != 0:
@@ -352,7 +355,8 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for nat in natures:
                 if (self.current_edge.nature & nat) != 0:
                     count=0
@@ -448,7 +452,8 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for nat in natures:
                 if (self.current_edge.nature & nat) != 0:
                     count=0
@@ -520,7 +525,8 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for nat in natures:
                 if (self.current_edge.nature & nat) != 0:
                     count=0
@@ -622,7 +628,8 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for nat in natures:
                 if (self.current_edge.nature & nat) != 0:
                     count=0
@@ -744,7 +751,8 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
                 it.increment()
         else:
             ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
+            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
+                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
             for i in range(len(natures)):
                 currentNature = self.current_edge.nature
                 if (natures[i] & currentNature) != 0:

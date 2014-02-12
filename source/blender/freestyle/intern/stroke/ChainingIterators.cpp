@@ -140,11 +140,13 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait)
 		//soc NonTVertex *nontvertex = (NonTVertex*)nextVertex;
 		ViewEdge *newEdge(0);
 		// we'll try to chain the edges by keeping the same nature...
-		// the preseance order is : SILHOUETTE, BORDER, CREASE, SUGGESTIVE, VALLEY, RIDGE
-		Nature::EdgeNature natures[6] = {
+		// the preseance order is : SILHOUETTE, BORDER, CREASE, MATERIAL_BOUNDARY, EDGE_MARK, SUGGESTIVE, VALLEY, RIDGE
+		Nature::EdgeNature natures[8] = {
 			Nature::SILHOUETTE,
 			Nature::BORDER,
 			Nature::CREASE,
+			Nature::MATERIAL_BOUNDARY,
+			Nature::EDGE_MARK,
 			Nature::SUGGESTIVE_CONTOUR,
 			Nature::VALLEY,
 			Nature::RIDGE
