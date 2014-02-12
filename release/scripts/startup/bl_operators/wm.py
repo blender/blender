@@ -191,10 +191,38 @@ class WM_OT_context_set_int(Operator):  # same as enum
     execute = execute_context_assign
 
 
+class WM_OT_context_scale_float(Operator):
+    """Scale a float context value"""
+    bl_idname = "wm.context_scale_float"
+    bl_label = "Context Scale Float"
+    bl_options = {'UNDO', 'INTERNAL'}
+
+    data_path = rna_path_prop
+    value = FloatProperty(
+            name="Value",
+            description="Assign value",
+            default=1.0,
+            )
+
+    def execute(self, context):
+        data_path = self.data_path
+        if context_path_validate(context, data_path) is Ellipsis:
+            return {'PASS_THROUGH'}
+
+        value = self.value
+
+        if value == 1.0:  # nothing to do
+            return {'CANCELLED'}
+
+        exec("context.%s *= value" % data_path)
+
+        return operator_path_undo_return(context, data_path)
+
+
 class WM_OT_context_scale_int(Operator):
     """Scale an int context value"""
     bl_idname = "wm.context_scale_int"
-    bl_label = "Context Set"
+    bl_label = "Context Scale Int"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop

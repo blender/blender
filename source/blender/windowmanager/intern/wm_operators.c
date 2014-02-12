@@ -4321,48 +4321,6 @@ static void WM_OT_dependency_relations(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
-{
-	const float min = 0.25f, max = 4.0f; /* TODO: get these from RNA property */
-	float change;
-	float sensitivity = U.ndof_sensitivity;
-
-	if (RNA_boolean_get(op->ptr, "fast"))
-		change = 0.5f;  /* 50% change */
-	else
-		change = 0.1f;  /* 10% */
-
-	if (RNA_boolean_get(op->ptr, "decrease")) {
-		sensitivity -= sensitivity * change; 
-		if (sensitivity < min)
-			sensitivity = min;
-	}
-	else {
-		sensitivity += sensitivity * change; 
-		if (sensitivity > max)
-			sensitivity = max;
-	}
-
-	if (sensitivity != U.ndof_sensitivity) {
-		U.ndof_sensitivity = sensitivity;
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-static void WM_OT_ndof_sensitivity_change(wmOperatorType *ot)
-{
-	ot->name = "Change NDOF Sensitivity";
-	ot->idname = "WM_OT_ndof_sensitivity_change";
-	ot->description = "Change NDOF sensitivity";
-	
-	ot->exec = wm_ndof_sensitivity_exec;
-
-	RNA_def_boolean(ot->srna, "decrease", 1, "Decrease NDOF sensitivity", "If true then action decreases NDOF sensitivity instead of increasing");
-	RNA_def_boolean(ot->srna, "fast", 0, "Fast NDOF sensitivity change", "If true then sensitivity changes 50%, otherwise 10%");
-} 
-
-
 static void operatortype_ghash_free_cb(wmOperatorType *ot)
 {
 	if (ot->last_properties) {
@@ -4419,7 +4377,6 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
 	WM_operatortype_append(WM_OT_radial_control);
-	WM_operatortype_append(WM_OT_ndof_sensitivity_change);
 #if defined(WIN32)
 	WM_operatortype_append(WM_OT_console_toggle);
 #endif
@@ -4615,6 +4572,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Window", 0, 0);
 	wmKeyMapItem *kmi;
+	const char *data_path;
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
@@ -4700,21 +4658,25 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "value", "DOPESHEET_EDITOR");
 	
 	/* ndof speed */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_PLUS, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "decrease", FALSE);
-	RNA_boolean_set(kmi->ptr, "fast", FALSE);
+	data_path = "user_preferences.inputs.ndof_sensitivity";
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_scale_float", NDOF_BUTTON_PLUS, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", data_path);
+	RNA_float_set(kmi->ptr, "value", 1.1f);
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_MINUS, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "decrease", TRUE);
-	RNA_boolean_set(kmi->ptr, "fast", FALSE);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_scale_float", NDOF_BUTTON_MINUS, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", data_path);
+	RNA_float_set(kmi->ptr, "value", 1.0f / 1.1f);
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_PLUS, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "decrease", FALSE);
-	RNA_boolean_set(kmi->ptr, "fast", TRUE);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_scale_float", NDOF_BUTTON_PLUS, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", data_path);
+	RNA_float_set(kmi->ptr, "value", 1.5f);
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_ndof_sensitivity_change", NDOF_BUTTON_MINUS, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "decrease", TRUE);
-	RNA_boolean_set(kmi->ptr, "fast", TRUE);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_scale_float", NDOF_BUTTON_MINUS, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", data_path);
+	RNA_float_set(kmi->ptr, "value", 1.0f / 1.5f);
+	data_path = NULL;
+	(void)data_path;
+
 
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);

@@ -4039,11 +4039,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	/* 3D mouse settings */
 	/* global options */
 	prop = RNA_def_property(srna, "ndof_sensitivity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.25f, 4.0f);
+	RNA_def_property_range(prop, 0.25f, 40.0f);
 	RNA_def_property_ui_text(prop, "Sensitivity", "Overall sensitivity of the 3D Mouse for panning");
 	
 	prop = RNA_def_property(srna, "ndof_orbit_sensitivity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.25f, 4.0f);
+	RNA_def_property_range(prop, 0.25f, 40.0f);
 	RNA_def_property_ui_text(prop, "Orbit Sensitivity", "Overall sensitivity of the 3D Mouse for orbiting");
 
 	prop = RNA_def_property(srna, "ndof_zoom_updown", PROP_BOOLEAN, PROP_NONE);
