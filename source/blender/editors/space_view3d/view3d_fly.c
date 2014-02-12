@@ -39,6 +39,8 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
+#include "BLF_translation.h"
+
 #include "BIF_gl.h"
 
 #include "WM_api.h"
@@ -271,6 +273,28 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 	glEnd();
 }
 
+static void fly_update_header(bContext *C, FlyInfo *fly)
+{
+#define HEADER_LENGTH 256
+	char header[HEADER_LENGTH];
+
+	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB/Return: confirm, "
+	                                           "RMB/Esc: cancel, "
+	                                           "MMB: pan, "
+	                                           "WASDRF: direction, "
+	                                           "Shift: slow, "
+	                                           "Ctrl: free look, "
+	                                           "X: Upright x axis (%s), "
+	                                           "Z: Upright z axis (%s), "
+                                               "(+/- | Wheel): speed, "),
+
+	    WM_bool_as_string(fly->xlock != FLY_AXISLOCK_STATE_OFF),
+		WM_bool_as_string(fly->zlock != FLY_AXISLOCK_STATE_OFF));
+
+	ED_area_headerprint(CTX_wm_area(C), header);
+#undef HEADER_LENGTH
+}
+
 /* FlyInfo->state */
 enum {
 	FLY_RUNNING     = 0,
@@ -376,6 +400,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 	/* center the mouse, probably the UI mafia are against this but without its quite annoying */
 	WM_cursor_warp(win, fly->ar->winrct.xmin + fly->center_mval[0], fly->ar->winrct.ymin + fly->center_mval[1]);
 
+	fly_update_header(C, fly);
 	return 1;
 }
 
@@ -414,7 +439,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	return OPERATOR_CANCELLED;
 }
 
-static void flyEvent(FlyInfo *fly, const wmEvent *event)
+static void flyEvent(bContext *C, FlyInfo *fly, const wmEvent *event)
 {
 	if (event->type == TIMER && event->customdata == fly->timer) {
 		fly->redraw = 1;
@@ -622,6 +647,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 					fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;
 					fly->xlock_momentum = 0.0;
 				}
+				fly_update_header(C, fly);
 				break;
 			case FLY_MODAL_AXIS_LOCK_Z:
 				if (fly->zlock != FLY_AXISLOCK_STATE_OFF)
@@ -630,6 +656,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 					fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
 					fly->zlock_momentum = 0.0;
 				}
+				fly_update_header(C, fly);
 				break;
 
 			case FLY_MODAL_PRECISION_ENABLE:
@@ -1055,7 +1082,7 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	flyEvent(fly, event);
+	flyEvent(C, fly, event);
 
 	WM_event_add_modal_handler(C, op);
 
@@ -1081,7 +1108,7 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	fly->redraw = 0;
 
-	flyEvent(fly, event);
+	flyEvent(C, fly, event);
 
 	if (fly->ndof) { /* 3D mouse overrules [2D mouse + timer] */
 		if (event->type == NDOF_MOTION) {
@@ -1107,6 +1134,9 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		// puts("redraw!"); // too frequent, commented with NDOF_FLY_DRAW_TOOMUCH for now
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
+
+	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED))
+		ED_area_headerprint(CTX_wm_area(C), NULL);
 
 	return exit_code;
 }
