@@ -538,6 +538,21 @@ void WM_event_print(const wmEvent *event)
 		       event->x, event->y, event->ascii,
 		       BLI_str_utf8_size(event->utf8_buf), event->utf8_buf,
 		       event->keymap_idname, (void *)event);
+
+		if (ISNDOF(event->type)) {
+			const wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+			if (event->type == NDOF_MOTION) {
+				printf("   ndof: rot: (%.4f %.4f %.4f),\n"
+				       "          tx: (%.4f %.4f %.4f),\n"
+				       "          dt: %.4f, progress: %d\n",
+				       UNPACK3(ndof->rvec),
+				       UNPACK3(ndof->tvec),
+				       ndof->dt, ndof->progress);
+			}
+			else {
+				/* ndof buttons printed already */
+			}
+		}
 	}
 	else {
 		printf("wmEvent - NULL\n");
