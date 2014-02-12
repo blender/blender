@@ -92,35 +92,16 @@ static void emDM_ensureVertNormals(EditDerivedBMesh *bmdm)
 		const float (*vertexCos)[3], (*polyNos)[3];
 		float (*vertexNos)[3];
 
-		BMFace *efa;
-		BMVert *eve;
-		BMIter fiter;
-		BMIter viter;
-		int i;
-
-		vertexCos = bmdm->vertexCos;
-		vertexNos = MEM_callocN(sizeof(*vertexNos) * bm->totvert, __func__);
-
 		/* calculate vertex normals from poly normals */
 		emDM_ensurePolyNormals(bmdm);
 
 		BM_mesh_elem_index_ensure(bm, BM_FACE);
 
-		vertexCos = bmdm->vertexCos;
 		polyNos = bmdm->polyNos;
+		vertexCos = bmdm->vertexCos;
+		vertexNos = MEM_callocN(sizeof(*vertexNos) * bm->totvert, __func__);
 
-		BM_ITER_MESH_INDEX (eve, &viter, bm, BM_VERTS_OF_MESH, i) {
-			float *no = vertexNos[i];
-			BM_ITER_ELEM (efa, &fiter, eve, BM_FACES_OF_VERT) {
-				add_v3_v3(no, polyNos[BM_elem_index_get(efa)]);
-			}
-
-			/* following Mesh convention; we use vertex coordinate itself
-			 * for normal in this case */
-			if (UNLIKELY(normalize_v3(no) == 0.0f)) {
-				normalize_v3_v3(no, vertexCos[i]);
-			}
-		}
+		BM_verts_calc_normal_vcos(bm, polyNos, vertexCos, vertexNos);
 
 		bmdm->vertexNos = (const float (*)[3])vertexNos;
 	}

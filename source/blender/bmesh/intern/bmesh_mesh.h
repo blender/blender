@@ -38,6 +38,7 @@ void   BM_mesh_data_free(BMesh *bm);
 void   BM_mesh_clear(BMesh *bm);
 
 void BM_mesh_normals_update(BMesh *bm);
+void BM_verts_calc_normal_vcos(BMesh *bm, const float (*fnos)[3], const float (*vcos)[3], float (*vnos)[3]);
 
 void bmesh_edit_begin(BMesh *bm, const BMOpTypeFlag type_flag);
 void bmesh_edit_end(BMesh *bm, const BMOpTypeFlag type_flag);

@@ -272,71 +272,55 @@ void BM_mesh_free(BMesh *bm)
 }
 
 /**
- * \brief BMesh Compute Normals
- *
- * Updates the normals of a mesh.
+ * Helpers for #BM_mesh_normals_update and #BM_verts_calc_normal_vcos
  */
-void BM_mesh_normals_update(BMesh *bm)
+static void bm_mesh_edges_calc_vectors(BMesh *bm, float (*edgevec)[3], const float (*vcos)[3])
 {
-	float (*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
+	BMIter eiter;
+	BMEdge *e;
+	int index;
 
-#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
-	{
-#pragma omp section
-		{
-			/* calculate all face normals */
-			BMIter fiter;
-			BMFace *f;
+	if (vcos) {
+		BM_mesh_elem_index_ensure(bm, BM_VERT);
+	}
 
-			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-				BM_face_normal_update(f);
-			}
+	BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, index) {
+		BM_elem_index_set(e, index); /* set_inline */
+
+		if (e->l) {
+			const float *v1_co = vcos ? vcos[BM_elem_index_get(e->v1)] : e->v1->co;
+			const float *v2_co = vcos ? vcos[BM_elem_index_get(e->v2)] : e->v2->co;
+			sub_v3_v3v3(edgevec[index], v2_co, v1_co);
+			normalize_v3(edgevec[index]);
 		}
-#pragma omp section
-		{
-			/* Zero out vertex normals */
-			BMIter viter;
-			BMVert *v;
-			BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-				zero_v3(v->no);
-			}
-		}
-#pragma omp section
-		{
-			/* compute normalized direction vectors for each edge. directions will be
-			 * used below for calculating the weights of the face normals on the vertex
-			 * normals */
-			BMIter eiter;
-			BMEdge *e;
-			int index;
-			BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, index) {
-				BM_elem_index_set(e, index); /* set_inline */
-
-				if (e->l) {
-					sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
-					normalize_v3(edgevec[index]);
-				}
-				else {
-					/* the edge vector will not be needed when the edge has no radial */
-				}
-			}
-			bm->elem_index_dirty &= ~BM_EDGE;
+		else {
+			/* the edge vector will not be needed when the edge has no radial */
 		}
 	}
-	/* end omp */
+	bm->elem_index_dirty &= ~BM_EDGE;
+}
 
+static void bm_mesh_verts_calc_normals(BMesh *bm, const float (*edgevec)[3], const float (*fnos)[3],
+                                       const float (*vcos)[3], float (*vnos)[3])
+{
+	BM_mesh_elem_index_ensure(bm, (vnos) ? (BM_EDGE | BM_VERT) : BM_EDGE);
 
 	/* add weighted face normals to vertices */
 	{
 		BMIter fiter;
 		BMFace *f;
-		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+		int i;
+
+		BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
 			BMLoop *l_first, *l_iter;
+			const float *f_no = fnos ? fnos[i] : f->no;
+
 			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 			do {
 				const float *e1diff, *e2diff;
 				float dotprod;
 				float fac;
+				float *v_no = vnos ? vnos[BM_elem_index_get(l_iter->v)] : l_iter->v->no;
 
 				/* calculate the dot product of the two edges that
 				 * meet at the loop's vertex */
@@ -354,10 +338,9 @@ void BM_mesh_normals_update(BMesh *bm)
 				fac = saacos(-dotprod);
 
 				/* accumulate weighted face normal into the vertex's normal */
-				madd_v3_v3fl(l_iter->v->no, f->no, fac);
+				madd_v3_v3fl(v_no, f_no, fac);
 			} while ((l_iter = l_iter->next) != l_first);
 		}
-		MEM_freeN(edgevec);
 	}
 
 
@@ -365,13 +348,87 @@ void BM_mesh_normals_update(BMesh *bm)
 	{
 		BMIter viter;
 		BMVert *v;
+		int i;
 
-		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-			if (UNLIKELY(normalize_v3(v->no) == 0.0f)) {
-				normalize_v3_v3(v->no, v->co);
+		BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+			float *v_no = vnos ? vnos[i] : v->no;
+			if (UNLIKELY(normalize_v3(v_no) == 0.0f)) {
+				const float *v_co = vcos ? vcos[i] : v->co;
+				normalize_v3_v3(v_no, v_co);
 			}
 		}
 	}
+}
+
+/**
+ * \brief BMesh Compute Normals
+ *
+ * Updates the normals of a mesh.
+ */
+void BM_mesh_normals_update(BMesh *bm)
+{
+	float (*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
+
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+	{
+#pragma omp section
+		{
+			/* calculate all face normals */
+			BMIter fiter;
+			BMFace *f;
+			int i;
+
+			BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
+				BM_elem_index_set(f, i); /* set_inline */
+				BM_face_normal_update(f);
+			}
+			bm->elem_index_dirty &= ~BM_FACE;
+		}
+#pragma omp section
+		{
+			/* Zero out vertex normals */
+			BMIter viter;
+			BMVert *v;
+			int i;
+
+			BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+				BM_elem_index_set(v, i); /* set_inline */
+				zero_v3(v->no);
+			}
+			bm->elem_index_dirty &= ~BM_VERT;
+		}
+#pragma omp section
+		{
+			/* Compute normalized direction vectors for each edge.
+			 * Directions will be used for calculating the weights of the face normals on the vertex normals.
+			 */
+			bm_mesh_edges_calc_vectors(bm, edgevec, NULL);
+		}
+	}
+	/* end omp */
+
+	/* Add weighted face normals to vertices, and normalize vert normals. */
+	bm_mesh_verts_calc_normals(bm, (const float(*)[3])edgevec, NULL, NULL, NULL);
+	MEM_freeN(edgevec);
+}
+
+/**
+ * \brief BMesh Compute Normals from/to external data.
+ *
+ * Computes the vertex normals of a mesh into vnos, using given vertex coordinates (vcos) and polygon normals (fnos).
+ */
+void BM_verts_calc_normal_vcos(BMesh *bm, const float (*fnos)[3], const float (*vcos)[3], float (*vnos)[3])
+{
+	float (*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
+
+	/* Compute normalized direction vectors for each edge.
+	 * Directions will be used for calculating the weights of the face normals on the vertex normals.
+	 */
+	bm_mesh_edges_calc_vectors(bm, edgevec, vcos);
+
+	/* Add weighted face normals to vertices, and normalize vert normals. */
+	bm_mesh_verts_calc_normals(bm, (const float(*)[3])edgevec, fnos, vcos, vnos);
+	MEM_freeN(edgevec);
 }
 
 static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
