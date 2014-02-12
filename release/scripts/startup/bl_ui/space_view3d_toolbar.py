@@ -52,8 +52,6 @@ def draw_keyframing_tools(context, layout):
 def draw_gpencil_tools(context, layout):
     col = layout.column(align=True)
 
-    col.label(text="Grease Pencil:")
-
     row = col.row(align=True)
     row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
     row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
