@@ -219,7 +219,7 @@ ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, fl
 				*domega_in_dy = dTdy;
 #endif
 
-				if (m_ag <= 1e-4f) {
+				if (m_ag <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
 					// some high number for MIS
 					*pdf = 1e6f;
 					*eval = make_float3(1e6f, 1e6f, 1e6f);
@@ -450,7 +450,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 N
 				*domega_in_dx = dTdx;
 				*domega_in_dy = dTdy;
 #endif
-				if (m_ab <= 1e-4f) {
+				if (m_ab <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
 					// some high number for MIS
 					*pdf = 1e6f;
 					*eval = make_float3(1e6f, 1e6f, 1e6f);
