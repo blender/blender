@@ -123,6 +123,7 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
 
 int constrain_rgb(float *r, float *g, float *b);
 void minmax_rgb(short c[3]);
+void hsv_clamp_v(float hsv[3], float v_max);
 
 void rgb_float_set_hue_float_offset(float *rgb, float hue_offset);
 void rgb_byte_set_hue_float_offset(unsigned char *rgb, float hue_offset);

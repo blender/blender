@@ -347,6 +347,16 @@ void rgb_to_hsv_compat_v(const float rgb[3], float r_hsv[3])
 	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], &r_hsv[0], &r_hsv[1], &r_hsv[2]);
 }
 
+/* clamp hsv to usable values */
+void hsv_clamp_v(float hsv[3], float v_max)
+{
+	if (UNLIKELY(hsv[0] < 0.0f || hsv[0] > 1.0f)) {
+		hsv[0] = hsv[0] - floorf(hsv[0]);
+	}
+	CLAMP(hsv[1], 0.0f, 1.0f);
+	CLAMP(hsv[2], 0.0f, v_max);
+}
+
 /*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html */
 
 void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int colorspace)

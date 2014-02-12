@@ -4380,6 +4380,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
                                     const enum eSnapType snap, const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
+	const float hsv_v_max = max_ff(hsv[2], but->softmax);
 	float rgb[3];
 	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 	bool use_display_colorspace = ui_hsvcube_use_display_colorspace(but);
@@ -4431,6 +4432,9 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 			ui_color_snap_hue(snap, &hsv[0]);
 		}
 	}
+
+	/* ndof specific: the changes above aren't clamping */
+	hsv_clamp_v(hsv, hsv_v_max);
 
 	hsv_to_rgb_v(hsv, rgb);
 
