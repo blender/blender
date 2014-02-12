@@ -6887,6 +6887,7 @@ void createTransData(bContext *C, TransInfo *t)
 	Scene *scene = t->scene;
 	Object *ob = OBACT;
 
+	/* if tests must match recalcData for correct updates */
 	if (t->options & CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		createTransTexspace(t);

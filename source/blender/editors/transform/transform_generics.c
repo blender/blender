@@ -689,8 +689,8 @@ static void recalcData_spaceclip(TransInfo *t)
 	}
 }
 
-/* helper for recalcData() - for 3d-view transforms */
-static void recalcData_view3d(TransInfo *t)
+/* helper for recalcData() - for object transforms, typically in the 3D view */
+static void recalcData_objects(TransInfo *t)
 {
 	Base *base = t->scene->basact;
 	
@@ -939,29 +939,36 @@ static void recalcData_sequencer(TransInfo *t)
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	if (t->spacetype == SPACE_NODE) {
-		flushTransNodes(t);
+	/* if tests must match createTransData for correct updates */
+	if (t->options & CTX_TEXTURE) {
+		recalcData_objects(t);
 	}
-	else if (t->spacetype == SPACE_SEQ) {
-		recalcData_sequencer(t);
-	}
-	else if (t->spacetype == SPACE_ACTION) {
-		recalcData_actedit(t);
-	}
-	else if (t->spacetype == SPACE_IPO) {
-		recalcData_graphedit(t);
-	}
-	else if (t->spacetype == SPACE_NLA) {
-		recalcData_nla(t);
+	else if (t->options & CTX_EDGE) {
+		recalcData_objects(t);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		recalcData_image(t);
 	}
-	else if (t->spacetype == SPACE_VIEW3D) {
-		recalcData_view3d(t);
+	else if (t->spacetype == SPACE_ACTION) {
+		recalcData_actedit(t);
+	}
+	else if (t->spacetype == SPACE_NLA) {
+		recalcData_nla(t);
+	}
+	else if (t->spacetype == SPACE_SEQ) {
+		recalcData_sequencer(t);
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		recalcData_graphedit(t);
+	}
+	else if (t->spacetype == SPACE_NODE) {
+		flushTransNodes(t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		recalcData_spaceclip(t);
+	}
+	else {
+		recalcData_objects(t);
 	}
 }
 
