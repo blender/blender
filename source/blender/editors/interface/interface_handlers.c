@@ -6764,7 +6764,7 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 
 		/* popup menu memory */
 		if (block->flag & UI_BLOCK_POPUP_MEMORY)
-			ui_popup_menu_memory(block, but);
+			ui_popup_menu_memory_set(block, but);
 	}
 
 	/* disable tooltips until mousemove + last active flag */

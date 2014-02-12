@@ -2037,7 +2037,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 
 /************************ Popup Menu Memory ****************************/
 
-static int ui_popup_string_hash(const char *str)
+static unsigned int ui_popup_string_hash(const char *str)
 {
 	/* sometimes button contains hotkey, sometimes not, strip for proper compare */
 	int hash;
@@ -2050,16 +2050,19 @@ static int ui_popup_string_hash(const char *str)
 	return hash;
 }
 
-static int ui_popup_menu_hash(const char *str)
+static unsigned int ui_popup_menu_hash(const char *str)
 {
 	return BLI_ghashutil_strhash(str);
 }
 
 /* but == NULL read, otherwise set */
-uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
+static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 {
-	static int mem[256], first = 1;
-	int hash = block->puphash;
+	static unsigned int mem[256];
+	static bool first = false;
+
+	const unsigned int hash = block->puphash;
+	const unsigned int hash_mod = hash & 255;
 	
 	if (first) {
 		/* init */
@@ -2069,17 +2072,27 @@ uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
 
 	if (but) {
 		/* set */
-		mem[hash & 255] = ui_popup_string_hash(but->str);
+		mem[hash_mod] = ui_popup_string_hash(but->str);
 		return NULL;
 	}
 	else {
 		/* get */
 		for (but = block->buttons.first; but; but = but->next)
-			if (ui_popup_string_hash(but->str) == mem[hash & 255])
+			if (ui_popup_string_hash(but->str) == mem[hash_mod])
 				return but;
 
 		return NULL;
 	}
+}
+
+uiBut *ui_popup_menu_memory_get(uiBlock *block)
+{
+	return ui_popup_menu_memory__internal(block, NULL);
+}
+
+void ui_popup_menu_memory_set(uiBlock *block, uiBut *but)
+{
+	ui_popup_menu_memory__internal(block, but);
 }
 
 /******************** Popup Menu with callback or string **********************/
@@ -2156,7 +2169,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 		/* offset the mouse position, possibly based on earlier selection */
 		if ((block->flag & UI_BLOCK_POPUP_MEMORY) &&
-		    (bt = ui_popup_menu_memory(block, NULL)))
+		    (bt = ui_popup_menu_memory_get(block)))
 		{
 			/* position mouse on last clicked item, at 0.8*width of the
 			 * button, so it doesn't overlap the text too much, also note

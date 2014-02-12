@@ -293,7 +293,7 @@ struct uiBlock {
 	rctf rect;
 	float aspect;
 
-	int puphash;  /* popup menu hash for memory */
+	unsigned int puphash;  /* popup menu hash for memory */
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -466,7 +466,8 @@ uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, voi
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
-uiBut *ui_popup_menu_memory(struct uiBlock *block, struct uiBut *but);
+uiBut *ui_popup_menu_memory_get(struct uiBlock *block);
+void   ui_popup_menu_memory_set(struct uiBlock *block, struct uiBut *but);
 
 float *ui_block_hsv_get(struct uiBlock *block);
 void ui_popup_block_scrolltest(struct uiBlock *block);
