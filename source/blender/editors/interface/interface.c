@@ -583,8 +583,6 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
  */
 static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **but_p, uiBut **but_old_p)
 {
-	/* flags from the buttons we want to refresh, may want to add more here... */
-	const int flag_copy = UI_BUT_REDALERT | UI_BUT_DRAG_MULTI;
 	const int drawflag_copy = 0;  /* None currently. */
 
 	uiBlock *oldblock = block->oldblock;
@@ -617,6 +615,9 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 	}
 
 	if (oldbut->active) {
+		/* flags from the buttons we want to refresh, may want to add more here... */
+		const int flag_copy = UI_BUT_REDALERT;
+
 		found_active = true;
 
 #if 0
@@ -695,6 +696,8 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 		/* note: if layout hasn't been applied yet, it uses old button pointers... */
 	}
 	else {
+		const int flag_copy = UI_BUT_DRAG_MULTI;
+
 		but->flag = (but->flag & ~flag_copy) | (oldbut->flag & flag_copy);
 
 		/* ensures one button can get activated, and in case the buttons
