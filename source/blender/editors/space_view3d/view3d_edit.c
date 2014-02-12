@@ -3305,16 +3305,14 @@ static EnumPropertyItem prop_view_items[] = {
 /* would like to make this a generic function - outside of transform */
 
 static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
-                          float q1, float q2, float q3, float q4,
+                          const float quat_[4],
                           short view, int perspo, bool align_active,
                           const int smooth_viewtx)
 {
 	RegionView3D *rv3d = ar->regiondata; /* no NULL check is needed, poll checks */
-	float new_quat[4];
+	float quat[4];
 
-	new_quat[0] = q1; new_quat[1] = q2;
-	new_quat[2] = q3; new_quat[3] = q4;
-	normalize_qt(new_quat);
+	normalize_qt_qt(quat, quat_);
 
 	if (align_active) {
 		/* align to active object */
@@ -3332,7 +3330,7 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 
 			mat3_to_quat(obact_quat, twmat);
 			invert_qt(obact_quat);
-			mul_qt_qtqt(new_quat, new_quat, obact_quat);
+			mul_qt_qtqt(quat, quat, obact_quat);
 
 			rv3d->view = view = RV3D_VIEW_USER;
 		}
@@ -3372,12 +3370,12 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 		ED_view3d_smooth_view(C, v3d, ar, v3d->camera, NULL,
-		                      rv3d->ofs, new_quat, NULL, NULL,
+		                      rv3d->ofs, quat, NULL, NULL,
 		                      smooth_viewtx);
 	}
 	else {
 		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      NULL, new_quat, NULL, NULL,
+		                      NULL, quat, NULL, NULL,
 		                      smooth_viewtx);
 	}
 
@@ -3414,108 +3412,79 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 		nextperspo = perspo;
 	}
 
-	switch (viewnum) {
-		case RV3D_VIEW_BOTTOM:
-			axis_set_view(C, v3d, ar, 0.0, -1.0, 0.0, 0.0,
-			              viewnum, nextperspo, align_active, smooth_viewtx);
-			break;
+	if (RV3D_VIEW_IS_AXIS(viewnum)) {
+		float quat[4];
 
-		case RV3D_VIEW_BACK:
-			axis_set_view(C, v3d, ar, 0.0, 0.0, -M_SQRT1_2, -M_SQRT1_2,
-			              viewnum, nextperspo, align_active, smooth_viewtx);
-			break;
+		ED_view3d_quat_from_axis_view(viewnum, quat);
+		axis_set_view(C, v3d, ar, quat, viewnum, nextperspo, align_active, smooth_viewtx);
+	}
+	else if (viewnum == RV3D_VIEW_CAMERA) {
+		if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
+			/* lastview -  */
 
-		case RV3D_VIEW_LEFT:
-			axis_set_view(C, v3d, ar, 0.5, -0.5, 0.5, 0.5,
-			              viewnum, nextperspo, align_active, smooth_viewtx);
-			break;
+			if (rv3d->persp != RV3D_CAMOB) {
+				Object *ob = OBACT;
 
-		case RV3D_VIEW_TOP:
-			axis_set_view(C, v3d, ar, 1.0, 0.0, 0.0, 0.0,
-			              viewnum, nextperspo, align_active, smooth_viewtx);
-			break;
-
-		case RV3D_VIEW_FRONT:
-			axis_set_view(C, v3d, ar, M_SQRT1_2, -M_SQRT1_2, 0.0, 0.0,
-			              viewnum, nextperspo, align_active, smooth_viewtx);
-			break;
-
-		case RV3D_VIEW_RIGHT:
-			axis_set_view(C, v3d, ar, 0.5, -0.5, -0.5, -0.5,
-			              viewnum, nextperspo, align_active, smooth_viewtx);
-			break;
-
-		case RV3D_VIEW_CAMERA:
-			if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
-				/* lastview -  */
-
-				if (rv3d->persp != RV3D_CAMOB) {
-					Object *ob = OBACT;
-
-					if (!rv3d->smooth_timer) {
-						/* store settings of current view before allowing overwriting with camera view
-						 * only if we're not currently in a view transition */
-						copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
-						rv3d->lview = rv3d->view;
-						rv3d->lpersp = rv3d->persp;
-					}
+				if (!rv3d->smooth_timer) {
+					/* store settings of current view before allowing overwriting with camera view
+					 * only if we're not currently in a view transition */
+					copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
+					rv3d->lview = rv3d->view;
+					rv3d->lpersp = rv3d->persp;
+				}
 
 #if 0
-					if (G.qual == LR_ALTKEY) {
-						if (oldcamera && is_an_active_object(oldcamera)) {
-							v3d->camera = oldcamera;
-						}
-						handle_view3d_lock();
+				if (G.qual == LR_ALTKEY) {
+					if (oldcamera && is_an_active_object(oldcamera)) {
+						v3d->camera = oldcamera;
 					}
+					handle_view3d_lock();
+				}
 #endif
-					
-					/* first get the default camera for the view lock type */
-					if (v3d->scenelock) {
-						/* sets the camera view if available */
-						v3d->camera = scene->camera;
-					}
-					else {
-						/* use scene camera if one is not set (even though we're unlocked) */
-						if (v3d->camera == NULL) {
-							v3d->camera = scene->camera;
-						}
-					}
 
-					/* if the camera isn't found, check a number of options */
-					if (v3d->camera == NULL && ob && ob->type == OB_CAMERA)
-						v3d->camera = ob;
-					
-					if (v3d->camera == NULL)
-						v3d->camera = BKE_scene_camera_find(scene);
-
-					/* couldnt find any useful camera, bail out */
-					if (v3d->camera == NULL)
-						return OPERATOR_CANCELLED;
-					
-					/* important these don't get out of sync for locked scenes */
-					if (v3d->scenelock)
-						scene->camera = v3d->camera;
-
-					/* finally do snazzy view zooming */
-					rv3d->persp = RV3D_CAMOB;
-					ED_view3d_smooth_view(C, v3d, ar, NULL, v3d->camera,
-					                      rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens,
-					                      smooth_viewtx);
-
+				/* first get the default camera for the view lock type */
+				if (v3d->scenelock) {
+					/* sets the camera view if available */
+					v3d->camera = scene->camera;
 				}
 				else {
-					/* return to settings of last view */
-					/* does view3d_smooth_view too */
-					axis_set_view(C, v3d, ar,
-					              rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3],
-					              rv3d->lview, rv3d->lpersp, 0,
-					              smooth_viewtx);
+					/* use scene camera if one is not set (even though we're unlocked) */
+					if (v3d->camera == NULL) {
+						v3d->camera = scene->camera;
+					}
 				}
-			}
-			break;
 
-		default:
-			break;
+				/* if the camera isn't found, check a number of options */
+				if (v3d->camera == NULL && ob && ob->type == OB_CAMERA)
+					v3d->camera = ob;
+
+				if (v3d->camera == NULL)
+					v3d->camera = BKE_scene_camera_find(scene);
+
+				/* couldnt find any useful camera, bail out */
+				if (v3d->camera == NULL)
+					return OPERATOR_CANCELLED;
+
+				/* important these don't get out of sync for locked scenes */
+				if (v3d->scenelock)
+					scene->camera = v3d->camera;
+
+				/* finally do snazzy view zooming */
+				rv3d->persp = RV3D_CAMOB;
+				ED_view3d_smooth_view(C, v3d, ar, NULL, v3d->camera,
+				                      rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens,
+				                      smooth_viewtx);
+
+			}
+			else {
+				/* return to settings of last view */
+				/* does view3d_smooth_view too */
+				axis_set_view(C, v3d, ar,
+				              rv3d->lviewquat,
+				              rv3d->lview, rv3d->lpersp, 0,
+				              smooth_viewtx);
+			}
+		}
 	}
 
 	if (rv3d->persp != RV3D_CAMOB) perspo = rv3d->persp;
