@@ -1304,18 +1304,23 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		View3D *v3d = CTX_wm_view3d(C);
 		ViewOpsData *vod;
-		RegionView3D *rv3d = CTX_wm_region_view3d(C);
-		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+		View3D *v3d;
+		RegionView3D *rv3d;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
+		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
 		viewops_data_alloc(C, op);
 		viewops_data_create(C, op, event);
-		vod = op->customdata;
 
-		rv3d->rot_angle = 0.f; /* off by default, until changed later this function */
+		vod = op->customdata;
+		v3d = vod->v3d;
+		rv3d = vod->rv3d;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
+
+		/* off by default, until changed later this function */
+		rv3d->rot_angle = 0.0f;
 
 		if (ndof->progress != P_FINISHING) {
 			/* tune these until everything feels right */
@@ -1332,7 +1337,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 #endif
 
 			if (rv3d->viewlock & RV3D_LOCKED) {
- 				view3d_ndof_pan(ndof, vod->sa, vod->ar);
+				view3d_ndof_pan(ndof, vod->sa, vod->ar);
 			}
 
 			if (has_rotation) {
@@ -1341,11 +1346,11 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 		}
 
-		viewops_data_free(C, op);
-		
 		ED_view3d_camera_lock_sync(v3d, rv3d);
-		
-		ED_region_tag_redraw(CTX_wm_region(C));
+
+		ED_region_tag_redraw(vod->ar);
+
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1374,17 +1379,22 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	}
 	else {
 		ViewOpsData *vod;
-		View3D *v3d = CTX_wm_view3d(C);
-		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		View3D *v3d;
+		RegionView3D *rv3d;
+
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
-
-		ED_view3d_camera_lock_init(v3d, rv3d);
-
-		rv3d->rot_angle = 0.f; /* off by default, until changed later this function */
 
 		viewops_data_alloc(C, op);
 		viewops_data_create(C, op, event);
+
 		vod = op->customdata;
+		v3d = vod->v3d;
+		rv3d = vod->rv3d;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
+
+		/* off by default, until changed later this function */
+		rv3d->rot_angle = 0.0f;
 
 		if (ndof->progress != P_FINISHING) {
 			/* tune these until everything feels right */
@@ -1424,11 +1434,11 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			}
 		}
 
-		viewops_data_free(C, op);
-		
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 
-		ED_region_tag_redraw(CTX_wm_region(C));
+		ED_region_tag_redraw(vod->ar);
+
+		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1513,14 +1523,16 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 	else {
 		ViewOpsData *vod;
+		View3D *v3d;
 		RegionView3D *rv3d;
 		
-		View3D *v3d = CTX_wm_view3d(C);
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
 		viewops_data_alloc(C, op);
 		viewops_data_create(C, op, event);
+
 		vod = op->customdata;
+		v3d = vod->v3d;
 		rv3d = vod->rv3d;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
@@ -1533,12 +1545,12 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 			view3d_ndof_orbit(ndof, rv3d, rot_sensitivity, ndof->dt, vod);
 		}
-		
-		viewops_data_free(C, op);
-		
+
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 
-		ED_region_tag_redraw(CTX_wm_region(C));
+		ED_region_tag_redraw(vod->ar);
+
+		viewops_data_free(C, op);
 		
 		return OPERATOR_FINISHED;
 	}
