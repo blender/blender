@@ -1254,7 +1254,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			pos = but->pos;
 			if (pos >= but->ofs) {
 				if (drawstr[0] != 0) {
-					t = BLF_width(fstyle->uifont_id, drawstr + but->ofs, pos - but->ofs) / but->aspect;
+					t = BLF_width(fstyle->uifont_id, drawstr + but->ofs, pos - but->ofs);
 				}
 
 				glColor3f(0.20, 0.6, 0.9);

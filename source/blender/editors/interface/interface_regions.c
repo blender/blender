@@ -1379,7 +1379,6 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 		BLI_rctf_translate(&bt->rect, xof, yof);
 
-		bt->aspect = 1.0f;
 		/* ui_check_but recalculates drawstring size in pixels */
 		ui_check_but(bt);
 	}

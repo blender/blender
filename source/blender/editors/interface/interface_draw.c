@@ -1195,10 +1195,10 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	          BLI_rcti_size_y(&scissor_new));
 
 	/* calculate offset and zoom */
-	zoomx = (BLI_rcti_size_x(rect) - 2.0f * but->aspect) / BLI_rctf_size_x(&cumap->curr);
-	zoomy = (BLI_rcti_size_y(rect) - 2.0f * but->aspect) / BLI_rctf_size_y(&cumap->curr);
-	offsx = cumap->curr.xmin - but->aspect / zoomx;
-	offsy = cumap->curr.ymin - but->aspect / zoomy;
+	zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&cumap->curr);
+	zoomy = (BLI_rcti_size_y(rect) - 2.0f) / BLI_rctf_size_y(&cumap->curr);
+	offsx = cumap->curr.xmin - (1.0f / zoomx);
+	offsy = cumap->curr.ymin - (1.0f / zoomy);
 	
 	/* backdrop */
 	if (but->a1 == UI_GRAD_H) {

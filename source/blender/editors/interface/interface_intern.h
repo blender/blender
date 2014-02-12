@@ -196,7 +196,6 @@ struct uiBut {
 	 */
 	float a2;
 
-	float aspect;
 	unsigned char col[4];
 
 	uiButHandleFunc func;
