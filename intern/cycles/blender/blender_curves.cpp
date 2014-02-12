@@ -437,7 +437,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resol
 				continue;
 
 			float3 firstxbasis = cross(make_float3(1.0f,0.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]);
-			if(len_squared(firstxbasis)!= 0.0f)
+			if(!is_zero(firstxbasis))
 				firstxbasis = normalize(firstxbasis);
 			else
 				firstxbasis = normalize(cross(make_float3(0.0f,1.0f,0.0f),CData->curvekey_co[CData->curve_firstkey[curve]+1] - CData->curvekey_co[CData->curve_firstkey[curve]]));
