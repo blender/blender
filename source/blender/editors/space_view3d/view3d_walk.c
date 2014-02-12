@@ -41,6 +41,8 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -332,11 +334,28 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 	glVertex2i(xoff - inner_length, yoff);
 	glVertex2i(xoff - outter_length, yoff);
 	glEnd();
-
-	/* XXX print shortcuts for modal options, and current values */
 }
 
-static void walk_navigation_mode_set(WalkInfo *walk, eWalkMethod mode)
+static void walk_update_header(bContext *C, WalkInfo *walk)
+{
+	bool gravity = walk->navigation_mode == WALK_MODE_GRAVITY ||
+	(walk->teleport.state == WALK_TELEPORT_STATE_ON &&
+	 walk->teleport.navigation_mode == WALK_MODE_GRAVITY);
+
+#define HEADER_LENGTH 256
+	char header[HEADER_LENGTH];
+
+	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB/Return: confirm, Esc/RMB: cancel, "
+                                               "Tab: gravity (%s), "
+	                                           "WASD: move around, "
+	                                           "QE: up and down, MMB/Space: teleport, V: jump, "
+	                                           "Pad +/Wheel Up: increase speed, Pad -/Wheel Down: decrease speed"),
+	             WM_bool_as_string(gravity));
+	ED_area_headerprint(CTX_wm_area(C), header);
+#undef HEADER_LENGTH
+}
+
+static void walk_navigation_mode_set(bContext *C, WalkInfo *walk, eWalkMethod mode)
 {
 	if (mode == WALK_MODE_FREE) {
 		walk->navigation_mode = WALK_MODE_FREE;
@@ -346,6 +365,8 @@ static void walk_navigation_mode_set(WalkInfo *walk, eWalkMethod mode)
 		walk->navigation_mode = WALK_MODE_GRAVITY;
 		walk->gravity = WALK_GRAVITY_STATE_START;
 	}
+
+	walk_update_header(C, walk);
 }
 
 /**
@@ -481,9 +502,9 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->mouse_speed = U.walk_navigation.mouse_speed;
 
 	if ((U.walk_navigation.flag & USER_WALK_GRAVITY))
-		walk_navigation_mode_set(walk, WALK_MODE_GRAVITY);
+		walk_navigation_mode_set(C, walk, WALK_MODE_GRAVITY);
 	else
-		walk_navigation_mode_set(walk, WALK_MODE_FREE);
+		walk_navigation_mode_set(C, walk, WALK_MODE_FREE);
 
 	walk->view_height = U.walk_navigation.view_height;
 	walk->jump_height = U.walk_navigation.jump_height;
@@ -794,7 +815,7 @@ static void walkEvent(bContext *C, wmOperator *UNUSED(op), WalkInfo *walk, const
 					teleport->duration = U.walk_navigation.teleport_time;
 
 					teleport->navigation_mode = walk->navigation_mode;
-					walk_navigation_mode_set(walk, WALK_MODE_FREE);
+					walk_navigation_mode_set(C, walk, WALK_MODE_FREE);
 
 					copy_v3_v3(teleport->origin, walk->rv3d->viewinv[3]);
 
@@ -817,10 +838,10 @@ static void walkEvent(bContext *C, wmOperator *UNUSED(op), WalkInfo *walk, const
 
 			case WALK_MODAL_TOGGLE:
 				if (walk->navigation_mode == WALK_MODE_GRAVITY) {
-					walk_navigation_mode_set(walk, WALK_MODE_FREE);
+					walk_navigation_mode_set(C, walk, WALK_MODE_FREE);
 				}
 				else { /* WALK_MODE_FREE */
-					walk_navigation_mode_set(walk, WALK_MODE_GRAVITY);
+					walk_navigation_mode_set(C, walk, WALK_MODE_GRAVITY);
 				}
 				break;
 		}
@@ -1149,7 +1170,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 				if (t >= 1.0f) {
 					t = 1.0f;
 					walk->teleport.state = WALK_TELEPORT_STATE_OFF;
-					walk_navigation_mode_set(walk, walk->teleport.navigation_mode);
+					walk_navigation_mode_set(C, walk, walk->teleport.navigation_mode);
 				}
 
 				mul_v3_v3fl(new_loc, walk->teleport.direction, t);
@@ -1395,6 +1416,9 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		// puts("redraw!"); // too frequent, commented with NDOF_WALK_DRAW_TOOMUCH for now
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
+
+	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED))
+		ED_area_headerprint(CTX_wm_area(C), NULL);
 
 	return exit_code;
 }
