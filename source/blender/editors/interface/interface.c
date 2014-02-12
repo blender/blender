@@ -3114,7 +3114,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 {
 	const PropertyType proptype = RNA_property_type(prop);
 	uiBut *but;
-	int freestr = 0, icon = 0;
+	int icon = 0;
 	uiMenuCreateFunc func = NULL;
 
 	if (ELEM3(type, COLOR, HSVCIRCLE, HSVCUBE)) {
@@ -3252,10 +3252,6 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	if (func) {
 		but->menu_create_func = func;
 		but->poin = (char *)but;
-	}
-
-	if (freestr) {
-		MEM_freeN((void *)str);
 	}
 
 	return but;
