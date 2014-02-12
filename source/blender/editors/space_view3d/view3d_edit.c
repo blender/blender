@@ -1150,11 +1150,76 @@ void ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
 	axis_angle_to_quat(q, axis, angle);
 }
 
-static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D *rv3d, const float view_inv[4],
+static void view3d_ndof_pan(const struct wmNDOFMotionData *ndof, ScrArea *sa, ARegion *ar)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	const float dt = ndof->dt;
+	float view_inv[4];
+#if 0 /* ------------------------------------------- zoom with Z */
+	/* tune these until everything feels right */
+	const float zoom_sensitivity = 1.f;
+	const float pan_sensitivity = 1.f;
+
+	float pan_vec[3] = {
+		ndof->tx, ndof->ty, 0
+	};
+
+	/* "zoom in" or "translate"? depends on zoom mode in user settings? */
+	if (ndof->tz) {
+		float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
+		rv3d->dist += zoom_distance;
+	}
+
+	mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
+#else /* ------------------------------------------------------- dolly with Z */
+	float speed = rv3d->dist; /* uses distance from pivot to define dolly */
+
+	/* tune these until everything feels right */
+	const float forward_sensitivity = 1.f;
+	const float vertical_sensitivity = 0.4f;
+	const float lateral_sensitivity = 0.6f;
+
+	float pan_vec[3];
+
+	if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
+		pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
+	else
+		pan_vec[0] = lateral_sensitivity * ndof->tvec[0];
+
+	if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS)
+		pan_vec[1] = -vertical_sensitivity * ndof->tvec[1];
+	else
+		pan_vec[1] = vertical_sensitivity * ndof->tvec[1];
+
+	if (U.ndof_flag & NDOF_PANY_INVERT_AXIS)
+		pan_vec[2] = -forward_sensitivity * ndof->tvec[2];
+	else
+		pan_vec[2] = forward_sensitivity * ndof->tvec[2];
+
+	mul_v3_fl(pan_vec, speed * dt);
+#endif
+	/* transform motion from view to world coordinates */
+	invert_qt_qt(view_inv, rv3d->viewquat);
+	mul_qt_v3(view_inv, pan_vec);
+
+	/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+	sub_v3_v3(rv3d->ofs, pan_vec);
+
+	if (rv3d->viewlock & RV3D_BOXVIEW) {
+		view3d_boxview_sync(sa, ar);
+	}
+}
+
+
+static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D *rv3d,
                               const float rot_sensitivity, const float dt,
                               /* optional, can be NULL*/
                               ViewOpsData *vod)
 {
+	float view_inv[4];
+
+	invert_qt_qt(view_inv, rv3d->viewquat);
+
 	if (U.ndof_flag & NDOF_TURNTABLE) {
 
 		/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
@@ -1253,18 +1318,13 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		rv3d->rot_angle = 0.f; /* off by default, until changed later this function */
 
 		if (ndof->progress != P_FINISHING) {
-			const float dt = ndof->dt;
-
 			/* tune these until everything feels right */
 			const float rot_sensitivity = 1.f;
 #if 0
 			const float zoom_sensitivity = 1.f;
 #endif
-			const float pan_sensitivity = 1.f;
+//			const float pan_sensitivity = 1.f;
 			const bool has_rotation = ((rv3d->viewlock & RV3D_LOCKED) == 0) && !is_zero_v3(ndof->rvec);
-
-			float view_inv[4];
-			invert_qt_qt(view_inv, rv3d->viewquat);
 
 #ifdef DEBUG_NDOF_MOTION
 			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
@@ -1272,21 +1332,12 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 #endif
 
 			if (rv3d->viewlock & RV3D_LOCKED) {
-				/* rotation not allowed -- explore panning options instead */
-				float pan_vec[3] = {ndof->tx, ndof->ty, 0.0f};
-				mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
-
-				/* transform motion from view to world coordinates */
-				invert_qt_qt(view_inv, rv3d->viewquat);
-				mul_qt_v3(view_inv, pan_vec);
-
-				/* move center of view opposite of hand motion (this is camera mode, not object mode) */
-				sub_v3_v3(rv3d->ofs, pan_vec);
+ 				view3d_ndof_pan(ndof, vod->sa, vod->ar);
 			}
 
 			if (has_rotation) {
 				rv3d->view = RV3D_VIEW_USER;
-				view3d_ndof_orbit(ndof, rv3d, view_inv, rot_sensitivity, dt, vod);
+				view3d_ndof_orbit(ndof, rv3d, rot_sensitivity, ndof->dt, vod);
 			}
 		}
 
@@ -1315,7 +1366,6 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 	ot->flag = 0;
 }
 
-
 static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	
@@ -1337,18 +1387,13 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		vod = op->customdata;
 
 		if (ndof->progress != P_FINISHING) {
-			const float dt = ndof->dt;
-
 			/* tune these until everything feels right */
 			const float rot_sensitivity = 1.f;
 
 			const float zoom_sensitivity = 1.f;
 
-			const float pan_sensitivity = 1.f;
+//			const float pan_sensitivity = 1.f;
 			const bool has_rotation = ((rv3d->viewlock & RV3D_LOCKED) == 0) && !is_zero_v3(ndof->rvec);
-
-			float view_inv[4];
-			invert_qt_qt(view_inv, rv3d->viewquat);
 
 #ifdef DEBUG_NDOF_MOTION
 			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
@@ -1361,7 +1406,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 				 * [got that?]
 				 * proportional to arclength = radius * angle
 				 */
-				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
+				float zoom_distance = zoom_sensitivity * rv3d->dist * ndof->dt * ndof->tz;
 
 				if (U.ndof_flag & NDOF_ZOOM_INVERT)
 					zoom_distance = -zoom_distance;
@@ -1370,21 +1415,12 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			}
 			
 			if (rv3d->viewlock & RV3D_LOCKED) {
-				/* rotation not allowed -- explore panning options instead */
-				float pan_vec[3] = {ndof->tx, ndof->ty, 0.0f};
-				mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
-
-				/* transform motion from view to world coordinates */
-				invert_qt_qt(view_inv, rv3d->viewquat);
-				mul_qt_v3(view_inv, pan_vec);
-
-				/* move center of view opposite of hand motion (this is camera mode, not object mode) */
-				sub_v3_v3(rv3d->ofs, pan_vec);
+				view3d_ndof_pan(ndof, vod->sa, vod->ar);
 			}
 
 			if (has_rotation) {
 				rv3d->view = RV3D_VIEW_USER;
-				view3d_ndof_orbit(ndof, rv3d, view_inv, rot_sensitivity, dt, vod);
+				view3d_ndof_orbit(ndof, rv3d, rot_sensitivity, ndof->dt, vod);
 			}
 		}
 
@@ -1434,57 +1470,13 @@ static int ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		rv3d->rot_angle = 0.f; /* we're panning here! so erase any leftover rotation from other operators */
 
 		if (ndof->progress != P_FINISHING) {
-			const float dt = ndof->dt;
-			float view_inv[4];
-#if 0 /* ------------------------------------------- zoom with Z */
-			/* tune these until everything feels right */
-			const float zoom_sensitivity = 1.f;
-			const float pan_sensitivity = 1.f;
+			ScrArea *sa;
+			ARegion *ar;
 
-			float pan_vec[3] = {
-				ndof->tx, ndof->ty, 0
-			};
+			sa = CTX_wm_area(C);
+			ar = CTX_wm_region(C);
 
-			/* "zoom in" or "translate"? depends on zoom mode in user settings? */
-			if (ndof->tz) {
-				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
-				rv3d->dist += zoom_distance;
-			}
-
-			mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
-#else /* ------------------------------------------------------- dolly with Z */
-			float speed = rv3d->dist; /* uses distance from pivot to define dolly */
-
-			/* tune these until everything feels right */
-			const float forward_sensitivity = 1.f;
-			const float vertical_sensitivity = 0.4f;
-			const float lateral_sensitivity = 0.6f;
-
-			float pan_vec[3];
-
-			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
-				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
-			else
-				pan_vec[0] = lateral_sensitivity * ndof->tvec[0];
-
-			if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS)
-				pan_vec[1] = -vertical_sensitivity * ndof->tvec[1];
-			else
-				pan_vec[1] = vertical_sensitivity * ndof->tvec[1];
-
-			if (U.ndof_flag & NDOF_PANY_INVERT_AXIS)
-				pan_vec[2] = -forward_sensitivity * ndof->tvec[2];
-			else
-				pan_vec[2] = forward_sensitivity * ndof->tvec[2];
-
-			mul_v3_fl(pan_vec, speed * dt);
-#endif
-			/* transform motion from view to world coordinates */
-			invert_qt_qt(view_inv, rv3d->viewquat);
-			mul_qt_v3(view_inv, pan_vec);
-
-			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
-			sub_v3_v3(rv3d->ofs, pan_vec);
+			view3d_ndof_pan(ndof, sa, ar);
 		}
 
 		ED_view3d_camera_lock_sync(v3d, rv3d);
@@ -1534,46 +1526,12 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		if (ndof->progress != P_FINISHING) {
-
-			const float dt = ndof->dt;
-			float view_inv[4];
-
-			float speed = rv3d->dist; /* uses distance from pivot to define dolly */
-
 			/* tune these until everything feels right */
-			const float forward_sensitivity = 1.f;
-			const float vertical_sensitivity = 0.4f;
-			const float lateral_sensitivity = 0.6f;
-			float pan_vec[3];
 			const float rot_sensitivity = 1.f;
 
-			/* inverse view */
-			invert_qt_qt(view_inv, rv3d->viewquat);
-			
-			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
-				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
-			else
-				pan_vec[0] = lateral_sensitivity * ndof->tvec[0];
+			view3d_ndof_pan(ndof, vod->sa, vod->ar);
 
-			if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS)
-				pan_vec[1] = -vertical_sensitivity * ndof->tvec[1];
-			else
-				pan_vec[1] = vertical_sensitivity * ndof->tvec[1];
-
-			if (U.ndof_flag & NDOF_PANY_INVERT_AXIS)
-				pan_vec[2] = -forward_sensitivity * ndof->tvec[2];
-			else
-				pan_vec[2] = forward_sensitivity * ndof->tvec[2];
-
-			mul_v3_fl(pan_vec, speed * dt);
-
-			/* transform motion from view to world coordinates */
-			mul_qt_v3(view_inv, pan_vec);
-
-			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
-			sub_v3_v3(rv3d->ofs, pan_vec);
-
-			view3d_ndof_orbit(ndof, rv3d, view_inv, rot_sensitivity, dt, vod);
+			view3d_ndof_orbit(ndof, rv3d, rot_sensitivity, ndof->dt, vod);
 		}
 		
 		viewops_data_free(C, op);
