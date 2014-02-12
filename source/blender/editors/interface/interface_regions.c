@@ -2059,7 +2059,7 @@ static unsigned int ui_popup_menu_hash(const char *str)
 static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 {
 	static unsigned int mem[256];
-	static bool first = false;
+	static bool first = true;
 
 	const unsigned int hash = block->puphash;
 	const unsigned int hash_mod = hash & 255;
