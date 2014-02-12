@@ -2166,7 +2166,7 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Origin";
-	ot->description = "Set active marker as origin by moving camera (or it's parent if present) in 3D space";
+	ot->description = "Set active marker as origin by moving camera (or its parent if present) in 3D space";
 	ot->idname = "CLIP_OT_set_origin";
 
 	/* api callbacks */
@@ -2415,7 +2415,7 @@ void CLIP_OT_set_plane(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Set Plane";
-	ot->description = "Set plane based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
+	ot->description = "Set plane based on 3 selected bundles by moving camera (or its parent if present) in 3D space";
 	ot->idname = "CLIP_OT_set_plane";
 
 	/* api callbacks */
@@ -2487,7 +2487,7 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Set Axis";
-	ot->description = "Set direction of scene axis rotating camera (or it's parent if present) and assuming selected track lies on real axis joining it with the origin";
+	ot->description = "Set direction of scene axis rotating camera (or its parent if present) and assume selected track lies on real axis, joining it with the origin";
 	ot->idname = "CLIP_OT_set_axis";
 
 	/* api callbacks */
@@ -2621,7 +2621,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Scale";
-	ot->description = "Set scale of scene by scaling camera (or it's parent if present)";
+	ot->description = "Set scale of scene by scaling camera (or its parent if present)";
 	ot->idname = "CLIP_OT_set_scale";
 
 	/* api callbacks */
@@ -3424,7 +3424,7 @@ void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Stabilization Tracks";
-	ot->description = "Select track which are used for stabilization";
+	ot->description = "Select tracks which are used for stabilization";
 	ot->idname = "CLIP_OT_stabilize_2d_select";
 
 	/* api callbacks */

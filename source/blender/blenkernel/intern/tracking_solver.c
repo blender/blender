@@ -344,7 +344,7 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObj
 		/* automatic keyframe selection does not require any pre-process checks */
 		if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
 			BLI_strncpy(error_msg,
-			            N_("At least 8 common tracks on both of keyframes are needed for reconstruction"),
+			            N_("At least 8 common tracks on both keyframes are needed for reconstruction"),
 			            error_size);
 
 			return false;
