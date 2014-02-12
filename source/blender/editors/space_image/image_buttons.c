@@ -525,6 +525,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 		char str[64];
 		BLI_snprintf(str, sizeof(str), IFACE_("Slot %d"), *render_slot + 1);
 		but = uiDefMenuBut(block, ui_imageuser_slot_menu, render_slot, str, 0, 0, wmenu1, UI_UNIT_Y, TIP_("Select Slot"));
+		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		uiButSetMenuFromPulldown(but);
 	}
 
