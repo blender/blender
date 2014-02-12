@@ -90,23 +90,24 @@ def brush_texture_settings(layout, brush, sculpt):
         layout.operator("brush.stencil_reset_transform")
 
     # angle and texture_angle_source
-    col = layout.column()
-    col.active = brush.brush_capabilities.has_texture_angle_source
-    col.label(text="Angle:")
-    if brush.brush_capabilities.has_random_texture_angle:
-        if sculpt:
-            if brush.sculpt_capabilities.has_random_texture_angle:
-                col.prop(brush, "texture_angle_source_random", text="")
-            else:
-                col.prop(brush, "texture_angle_source_no_random", text="")
+    if brush.brush_capabilities.has_texture_angle:
+        col = layout.column()
+        col.label(text="Angle:")
+        row = col.row(align=True)
+        if brush.brush_capabilities.has_texture_angle_source:
+            if brush.brush_capabilities.has_random_texture_angle:
+                if sculpt:
+                    if brush.sculpt_capabilities.has_random_texture_angle:
+                        row.prop(brush, "texture_angle_source_random", text="")
+                    else:
+                        row.prop(brush, "texture_angle_source_no_random", text="")
 
-        else:
-            col.prop(brush, "texture_angle_source_random", text="")
-    else:
-        col.prop(brush, "texture_angle_source_no_random", text="")
-    col = layout.column()
-    col.active = brush.brush_capabilities.has_texture_angle
-    col.prop(tex_slot, "angle", text="")
+                else:
+                    row.prop(brush, "texture_angle_source_random", text="")
+            else:
+                row.prop(brush, "texture_angle_source_no_random", text="")
+
+        row.prop(tex_slot, "angle", text="")
 
     # scale and offset
     split = layout.split()
