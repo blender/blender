@@ -361,8 +361,10 @@ void BPY_python_start(int argc, const char **argv)
 void BPY_python_end(void)
 {
 	// fprintf(stderr, "Ending Python!\n");
+	PyGILState_STATE gilstate;
 
-	PyGILState_Ensure(); /* finalizing, no need to grab the state */
+	/* finalizing, no need to grab the state, except when we are a module */
+	gilstate = PyGILState_Ensure();
 	
 	/* free other python data. */
 	pyrna_free_types();
@@ -373,10 +375,12 @@ void BPY_python_end(void)
 
 #ifndef WITH_PYTHON_MODULE
 	BPY_atexit_unregister(); /* without this we get recursive calls to WM_exit */
-#endif
 
 	Py_Finalize();
-	
+#else
+	PyGILState_Release(gilstate);
+#endif
+
 #ifdef TIME_PY_RUN
 	/* measure time since py started */
 	bpy_timer = PIL_check_seconds_timer() - bpy_timer;

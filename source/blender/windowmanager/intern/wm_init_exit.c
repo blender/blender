@@ -522,20 +522,21 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		MEM_printmemlist();
 	}
 	wm_autosave_delete();
-	
-	printf("\nBlender quit\n");
-	
-#ifdef WIN32   
-	/* ask user to press a key when in debug mode */
-	if (G.debug & G_DEBUG) {
-		printf("Press any key to exit . . .\n\n");
-		wait_for_console_key();
-	}
-#endif 
 }
 
 void WM_exit(bContext *C)
 {
 	WM_exit_ext(C, 1);
+
+	printf("\nBlender quit\n");
+
+#ifdef WIN32
+	/* ask user to press a key when in debug mode */
+	if (G.debug & G_DEBUG) {
+		printf("Press any key to exit . . .\n\n");
+		wait_for_console_key();
+	}
+#endif
+
 	exit(G.is_break == TRUE);
 }

@@ -1746,7 +1746,7 @@ int main(int argc, const char **argv)
 #ifdef WITH_PYTHON_MODULE
 void main_python_exit(void)
 {
-	WM_exit((bContext *)evil_C);
+	WM_exit_ext((bContext *)evil_C, true);
 	evil_C = NULL;
 }
 #endif
