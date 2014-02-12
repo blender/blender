@@ -281,6 +281,56 @@ static void view3d_boxview_clip(ScrArea *sa)
 	MEM_freeN(bb);
 }
 
+/**
+ * Find which axis values are shared between both views and copy to \a rv3d_dst
+ * taking axis flipping into account.
+ */
+static void view3d_boxview_sync_axis(RegionView3D *rv3d_dst, RegionView3D *rv3d_src)
+{
+	/* absolute axis values above this are considered to be set (will be ~1.0f) */
+	const float axis_eps = 0.5f;
+	float viewinv[4];
+
+	/* use the view rotation to identify which axis to sync on */
+	float view_axis_all[4][3] = {
+	    {1.0f, 0.0f, 0.0f},
+	    {0.0f, 1.0f, 0.0f},
+	    {1.0f, 0.0f, 0.0f},
+	    {0.0f, 1.0f, 0.0f}};
+
+	float *view_src_x = &view_axis_all[0][0];
+	float *view_src_y = &view_axis_all[1][0];
+
+	float *view_dst_x = &view_axis_all[2][0];
+	float *view_dst_y = &view_axis_all[3][0];
+	int i;
+
+
+	/* we could use rv3d->viewinv, but better not depend on view matrix being updated */
+	if (UNLIKELY(ED_view3d_quat_from_axis_view(rv3d_src->view, viewinv) == false)) {
+		return;
+	}
+	invert_qt(viewinv);
+	mul_qt_v3(viewinv, view_src_x);
+	mul_qt_v3(viewinv, view_src_y);
+
+	if (UNLIKELY(ED_view3d_quat_from_axis_view(rv3d_dst->view, viewinv) == false)) {
+		return;
+	}
+	invert_qt(viewinv);
+	mul_qt_v3(viewinv, view_dst_x);
+	mul_qt_v3(viewinv, view_dst_y);
+
+	/* check source and dest have a matching axis */
+	for (i = 0; i < 3; i++) {
+		if (((fabsf(view_src_x[i]) > axis_eps) || (fabsf(view_src_y[i]) > axis_eps)) &&
+		    ((fabsf(view_dst_x[i]) > axis_eps) || (fabsf(view_dst_y[i]) > axis_eps)))
+		{
+			rv3d_dst->ofs[i] = rv3d_src->ofs[i];
+		}
+	}
+}
+
 /* sync center/zoom view of region to others, for view transforms */
 static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 {
@@ -294,26 +344,7 @@ static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 
 			if (rv3dtest->viewlock & RV3D_LOCKED) {
 				rv3dtest->dist = rv3d->dist;
-
-				if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
-					if (ELEM(rv3dtest->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK))
-						rv3dtest->ofs[0] = rv3d->ofs[0];
-					else if (ELEM(rv3dtest->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
-						rv3dtest->ofs[1] = rv3d->ofs[1];
-				}
-				else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
-					if (ELEM(rv3dtest->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
-						rv3dtest->ofs[0] = rv3d->ofs[0];
-					else if (ELEM(rv3dtest->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
-						rv3dtest->ofs[2] = rv3d->ofs[2];
-				}
-				else if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
-					if (ELEM(rv3dtest->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
-						rv3dtest->ofs[1] = rv3d->ofs[1];
-					if (ELEM(rv3dtest->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK))
-						rv3dtest->ofs[2] = rv3d->ofs[2];
-				}
-
+				view3d_boxview_sync_axis(rv3dtest, rv3d);
 				clip |= rv3dtest->viewlock & RV3D_BOXCLIP;
 
 				ED_region_tag_redraw(artest);
