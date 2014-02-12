@@ -40,6 +40,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_mesh_types.h"  /* init_userdef_factory */
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -2446,4 +2447,11 @@ void init_userdef_factory(void)
 
 	U.versions = 1;
 	U.savetime = 2;
+
+	{
+		Mesh *me;
+		for (me = G.main->mesh.first; me; me = me->id.next) {
+			me->flag &= ~ME_TWOSIDED;
+		}
+	}
 }
