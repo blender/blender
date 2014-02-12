@@ -37,6 +37,9 @@ float *BKE_image_get_float_pixels_for_frame(void *image, int frame);
 
 CCL_NAMESPACE_BEGIN
 
+void python_thread_state_save();
+void python_thread_state_restore();
+
 static inline BL::Mesh object_to_mesh(BL::BlendData data, BL::Object object, BL::Scene scene, bool apply_modifiers, bool render, bool calc_undeformed)
 {
 	return data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, true, calc_undeformed);

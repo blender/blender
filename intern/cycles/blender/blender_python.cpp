@@ -35,6 +35,19 @@
 
 CCL_NAMESPACE_BEGIN
 
+static PyThreadState *python_thread_state = NULL;
+
+void python_thread_state_save()
+{
+	python_thread_state = PyEval_SaveThread();
+}
+
+void python_thread_state_restore()
+{
+	PyEval_RestoreThread(python_thread_state);
+	python_thread_state = NULL;
+}
+
 static PyObject *init_func(PyObject *self, PyObject *args)
 {
 	const char *path, *user_path;
@@ -87,7 +100,7 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 	/* create session */
 	BlenderSession *session;
 
-	Py_BEGIN_ALLOW_THREADS
+	python_thread_state_save();
 
 	if(rv3d) {
 		/* interactive viewport session */
@@ -109,7 +122,7 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 		session = new BlenderSession(engine, userpref, data, scene);
 	}
 
-	Py_END_ALLOW_THREADS
+	python_thread_state_restore();
 
 	return PyLong_FromVoidPtr(session);
 }
@@ -123,12 +136,12 @@ static PyObject *free_func(PyObject *self, PyObject *value)
 
 static PyObject *render_func(PyObject *self, PyObject *value)
 {
-	Py_BEGIN_ALLOW_THREADS
+	python_thread_state_save();
 
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(value);
 	session->render();
 
-	Py_END_ALLOW_THREADS
+	python_thread_state_restore();
 
 	Py_RETURN_NONE;
 }
@@ -170,23 +183,23 @@ static PyObject *reset_func(PyObject *self, PyObject *args)
 	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
 	BL::Scene b_scene(sceneptr);
 
-	Py_BEGIN_ALLOW_THREADS
+	python_thread_state_save();
 
 	session->reset_session(b_data, b_scene);
 
-	Py_END_ALLOW_THREADS
+	python_thread_state_restore();
 
 	Py_RETURN_NONE;
 }
 
 static PyObject *sync_func(PyObject *self, PyObject *value)
 {
-	Py_BEGIN_ALLOW_THREADS
+	python_thread_state_save();
 
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(value);
 	session->synchronize();
 
-	Py_END_ALLOW_THREADS
+	python_thread_state_restore();
 
 	Py_RETURN_NONE;
 }
