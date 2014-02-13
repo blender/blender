@@ -2672,6 +2672,41 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 269, 11)) {
+		bScreen *sc;
+
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *space_link;
+
+				for (space_link = sa->spacedata.first; space_link; space_link = space_link->next) {
+					if (space_link->spacetype == SPACE_IMAGE) {
+						ARegion *ar;
+						ListBase *lb;
+
+						if (space_link == sa->spacedata.first) {
+							lb = &sa->regionbase;
+						}
+						else {
+							lb = &space_link->regionbase;
+						}
+
+						for (ar = lb->first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_PREVIEW) {
+								ar->regiontype = RGN_TYPE_TOOLS;
+								ar->alignment = RGN_ALIGN_LEFT;
+							}
+							else if (ar->regiontype == RGN_TYPE_UI) {
+								ar->alignment = RGN_ALIGN_RIGHT;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "float", "profile")) {
 		Object *ob;
 

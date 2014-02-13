@@ -42,7 +42,7 @@ extern "C" {
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION         269
-#define BLENDER_SUBVERSION      10
+#define BLENDER_SUBVERSION      11
 /* 262 was the last editmesh release but it has compatibility code for bmesh data */
 #define BLENDER_MINVERSION      262
 #define BLENDER_MINSUBVERSION   0

@@ -47,7 +47,7 @@ struct bNodeTree;
 
 /* space_image.c */
 struct ARegion *image_has_buttons_region(struct ScrArea *sa);
-struct ARegion *image_has_scope_region(struct ScrArea *sa);
+struct ARegion *image_has_tools_region(struct ScrArea *sa);
 
 extern const char *image_context_dir[]; /* doc access */
 
@@ -91,7 +91,7 @@ void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
 void IMAGE_OT_properties(struct wmOperatorType *ot);
-void IMAGE_OT_scopes(struct wmOperatorType *ot);
+void IMAGE_OT_toolshelf(struct wmOperatorType *ot);
 
 #endif /* __IMAGE_INTERN_H__ */
 
