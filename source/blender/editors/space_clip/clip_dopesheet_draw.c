@@ -160,8 +160,9 @@ static void clip_draw_dopesheet_background(ARegion *ar, MovieClip *clip)
 			int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, coverage_segment->start_frame);
 			int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, coverage_segment->end_frame);
 
-			if (coverage_segment->coverage == TRACKING_COVERAGE_BAD)
+			if (coverage_segment->coverage == TRACKING_COVERAGE_BAD) {
 				glColor4f(1.0f, 0.0f, 0.0f, 0.07f);
+			}
 			else
 				glColor4f(1.0f, 1.0f, 0.0f, 0.07f);
 

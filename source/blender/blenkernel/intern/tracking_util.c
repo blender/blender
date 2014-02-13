@@ -70,6 +70,8 @@ TracksMap *tracks_map_new(const char *object_name, bool is_camera, int num_track
 
 	map->hash = BLI_ghash_ptr_new("TracksMap hash");
 
+	BLI_spin_init(&map->spin_lock);
+
 	return map;
 }
 
@@ -139,6 +141,8 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 			if (BLI_findindex(old_tracks, old_track) != -1) {
 				BLI_remlink(old_tracks, old_track);
 
+				BLI_spin_lock(&map->spin_lock);
+
 				/* Copy flags like selection back to the track map. */
 				track->flag = old_track->flag;
 				track->pat_flag = old_track->pat_flag;
@@ -148,6 +152,8 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 				MEM_freeN(old_track->markers);
 				*old_track = *track;
 				old_track->markers = MEM_dupallocN(old_track->markers);
+
+				BLI_spin_unlock(&map->spin_lock);
 
 				BLI_addtail(&tracks, old_track);
 
@@ -210,6 +216,9 @@ void tracks_map_free(TracksMap *map, void (*customdata_free)(void *customdata))
 		MEM_freeN(map->customdata);
 
 	MEM_freeN(map->tracks);
+
+	BLI_spin_end(&map->spin_lock);
+
 	MEM_freeN(map);
 }
 

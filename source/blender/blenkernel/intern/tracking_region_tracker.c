@@ -669,11 +669,10 @@ bool BKE_tracking_context_step(MovieTrackingContext *context)
 				                                    dst_pixel_x, dst_pixel_y);
 			}
 
-#pragma omp critical
-			{
-				tracking_insert_new_marker(context, track, marker, curfra, tracked,
-				                           frame_width, frame_height, dst_pixel_x, dst_pixel_y);
-			}
+			BLI_spin_lock(&context->tracks_map->spin_lock);
+			tracking_insert_new_marker(context, track, marker, curfra, tracked,
+			                           frame_width, frame_height, dst_pixel_x, dst_pixel_y);
+			BLI_spin_unlock(&context->tracks_map->spin_lock);
 
 			ok = true;
 		}

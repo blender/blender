@@ -35,6 +35,8 @@
 #ifndef __TRACKING_PRIVATE_H__
 #define __TRACKING_PRIVATE_H__
 
+#include "BLI_threads.h"
+
 struct GHash;
 struct MovieTracking;
 struct MovieTrackingMarker;
@@ -54,6 +56,9 @@ typedef struct TracksMap {
 	struct GHash *hash;
 
 	int ptr;
+
+	/* Spin lock is used to sync context during tracking. */
+	SpinLock spin_lock;
 } TracksMap;
 
 struct TracksMap *tracks_map_new(const char *object_name, bool is_camera, int num_tracks, int customdata_size);
