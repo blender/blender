@@ -3,12 +3,19 @@ import subprocess
 CL_OUT = subprocess.Popen(["cl.exe"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 CL_STDOUT, CL_STDERR = CL_OUT.communicate()
 
-if "17.00." in CL_STDERR:
+if "18.00." in CL_STDERR:
+    VC_VERSION = '12.0'
+    LCGDIR = '#../lib/windows_vc12'
+elif "17.00." in CL_STDERR:
     VC_VERSION = '11.0'
     LCGDIR = '#../lib/windows_vc11'
-else:
+elif "15.00." in  CL_STDERR:
     VC_VERSION = '9.0'
     LCGDIR = '#../lib/windows'
+else:
+    import sys
+    print("Visual C version not supported {}\n".format(CL_STDERR))
+    sys.exit(1)
 
 LIBDIR = '${LCGDIR}'
 
@@ -76,7 +83,10 @@ WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR '
-BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
+if VC_VERSION == '12.0':
+    BF_OPENEXR_LIB = ' Iex-2_1 Half IlmImf-2_1 Imath-2_1 IlmThread-2_1 '
+else:
+    BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
@@ -197,7 +207,10 @@ WITH_BF_STATICOCIO = True
 WITH_BF_BOOST = True
 BF_BOOST = '${LIBDIR}/boost'
 BF_BOOST_INC = '${BF_BOOST}/include'
-if VC_VERSION == '11.0':
+if VC_VERSION == '12.0':
+    BF_BOOST_LIB = 'libboost_date_time-vc120-mt-s-1_55 libboost_filesystem-vc120-mt-s-1_55 libboost_regex-vc120-mt-s-1_55 libboost_system-vc120-mt-s-1_55 libboost_thread-vc120-mt-s-1_55 libboost_wave-vc120-mt-s-1_55'
+    BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc120-mt-s-1_55'
+elif VC_VERSION == '11.0':
     BF_BOOST_LIB = 'libboost_date_time-vc110-mt-s-1_53 libboost_filesystem-vc110-mt-s-1_53 libboost_regex-vc110-mt-s-1_53 libboost_system-vc110-mt-s-1_53 libboost_thread-vc110-mt-s-1_53 libboost_wave-vc110-mt-s-1_53'
     BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc110-mt-s-1_53'
 else:
