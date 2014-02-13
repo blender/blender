@@ -53,7 +53,6 @@
 #include <stdio.h>
 
 #include "MEM_guardedalloc.h"
-#include "DNA_sdna_types.h"
 
 #include "../blenlib/BLI_sys_types.h" // for intptr_t support
 

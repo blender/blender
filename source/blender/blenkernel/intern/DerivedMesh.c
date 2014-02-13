@@ -64,7 +64,6 @@
 #include "BKE_multires.h"
 #include "BKE_armature.h"
 #include "BKE_particle.h"
-#include "BKE_editmesh.h"
 #include "BKE_bvhutils.h"
 #include "BKE_deform.h"
 #include "BKE_global.h" /* For debug flag, DM_update_tessface_data() func. */

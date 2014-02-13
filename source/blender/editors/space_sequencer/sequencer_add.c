@@ -57,7 +57,6 @@
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 #include "BKE_movieclip.h"
-#include "BKE_sequencer.h"
 #include "BKE_mask.h"
 #include "BKE_report.h"
 

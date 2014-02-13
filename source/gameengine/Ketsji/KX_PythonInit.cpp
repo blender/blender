@@ -142,8 +142,6 @@ extern "C" {
 	#include "BKE_idcode.h"
 }
 
-#include "NG_NetworkScene.h" //Needed for sendMessage()
-
 // 'local' copy of canvas ptr, for window height/width python scripts
 
 #ifdef WITH_PYTHON

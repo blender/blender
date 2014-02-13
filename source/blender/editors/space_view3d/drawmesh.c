@@ -36,7 +36,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"

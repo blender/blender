@@ -61,7 +61,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_deform.h"
 #include "BKE_scene.h"
 
 

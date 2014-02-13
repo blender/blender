@@ -49,7 +49,6 @@
 #include "ED_node.h"
 #include "ED_render.h"
 #include "ED_screen.h"
-#include "ED_node.h"
 #include "WM_api.h"
 #include "WM_types.h"
 

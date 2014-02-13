@@ -120,7 +120,6 @@
 #include "texture.h"
 #include "volume_precache.h"
 #include "sss.h"
-#include "strand.h"
 #include "zbuf.h"
 #include "sunsky.h"
 

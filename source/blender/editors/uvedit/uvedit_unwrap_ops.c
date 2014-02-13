@@ -48,8 +48,8 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_uvproject.h"
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_scanfill.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_subsurf.h"
@@ -62,11 +62,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_editmesh.h"
-
-#include "BLI_math.h"
-#include "BLI_edgehash.h"
-#include "BLI_scanfill.h"
-#include "BLI_uvproject.h"
 
 #include "PIL_time.h"
 

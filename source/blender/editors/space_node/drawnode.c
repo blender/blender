@@ -49,12 +49,9 @@
 #include "BLF_api.h"
 #include "BLF_translation.h"
 
-#include "NOD_texture.h"
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BLF_translation.h"
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"

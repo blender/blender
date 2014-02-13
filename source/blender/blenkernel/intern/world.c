@@ -45,7 +45,6 @@
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_library.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_world.h"

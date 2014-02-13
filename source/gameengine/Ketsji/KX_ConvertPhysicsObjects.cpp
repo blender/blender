@@ -49,7 +49,6 @@
 #include "CTR_HashedPtr.h"
 
 #include "KX_PhysicsEngineEnums.h"
-#include "PHY_Pro.h"
 
 #include "KX_MotionState.h" // bridge between motionstate and scenegraph node
 

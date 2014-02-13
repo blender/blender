@@ -57,7 +57,6 @@ typedef unsigned long uint_ptr;
 #include "SG_Controller.h"
 #include "PHY_IGraphicController.h"
 #include "SG_Node.h"
-#include "SG_Controller.h"
 #include "KX_ClientObjectInfo.h"
 #include "RAS_BucketManager.h"
 #include "KX_RayCast.h"

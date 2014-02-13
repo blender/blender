@@ -84,7 +84,6 @@
 #include "PHY_IPhysicsEnvironment.h"
 
 #include "KX_KetsjiEngine.h"
-#include "KX_BlenderSceneConverter.h"
 #include "BL_BlenderDataConversion.h"
 
 void BL_ConvertSensors(struct Object* blenderobject,

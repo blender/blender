@@ -38,7 +38,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
 #include "BKE_cdderivedmesh.h"

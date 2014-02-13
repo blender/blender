@@ -377,6 +377,8 @@ void BPY_python_end(void)
 	BPY_atexit_unregister(); /* without this we get recursive calls to WM_exit */
 
 	Py_Finalize();
+
+	(void)gilstate;
 #else
 	PyGILState_Release(gilstate);
 #endif

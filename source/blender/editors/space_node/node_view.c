@@ -44,8 +44,6 @@
 #include "ED_space_api.h"
 #include "ED_image.h"
 
-#include "UI_view2d.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 

@@ -39,7 +39,6 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 

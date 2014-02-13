@@ -65,7 +65,6 @@
 #include "BKE_scene.h"
 
 #include "BKE_library.h"
-#include "BKE_image.h"
 #include "BKE_texture.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"

@@ -35,7 +35,6 @@
 
 #include "KX_Scene.h"
 #include "KX_GameObject.h"
-#include "KX_BlenderSceneConverter.h"
 #include "KX_IpoConvert.h"
 #include "RAS_MeshObject.h"
 #include "KX_PhysicsEngineEnums.h"
@@ -57,12 +56,10 @@
 #include "CcdPhysicsEnvironment.h"
 #endif
 
-#include "KX_BlenderSceneConverter.h"
 #include "KX_LibLoadStatus.h"
 #include "KX_BlenderScalarInterpolator.h"
 #include "BL_BlenderDataConversion.h"
 #include "BlenderWorldInfo.h"
-#include "KX_Scene.h"
 
 /* This little block needed for linking to Blender... */
 #ifdef WIN32
@@ -98,9 +95,7 @@ extern "C"
 /* Only for dynamic loading and merging */
 #include "RAS_BucketManager.h" // XXX cant stay
 #include "KX_BlenderSceneConverter.h"
-#include "BL_BlenderDataConversion.h"
 #include "KX_MeshProxy.h"
-#include "RAS_MeshObject.h"
 extern "C" {
 	#include "PIL_time.h"
 	#include "BKE_context.h"
@@ -254,7 +249,6 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 	return (Scene*)m_maggie->scene.first;
 
 }
-#include "KX_PythonInit.h"
 
 #ifdef WITH_BULLET
 
