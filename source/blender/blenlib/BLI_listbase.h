@@ -32,6 +32,7 @@
  *  \ingroup bli
  */
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "DNA_listBase.h"
 //struct ListBase;
@@ -41,42 +42,42 @@
 extern "C" {
 #endif
 
-int BLI_findindex(const struct ListBase *listbase, const void *vlink);
-int BLI_findstringindex(const struct ListBase *listbase, const char *id, const int offset);
+int BLI_findindex(const struct ListBase *listbase, const void *vlink) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_findstringindex(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* find forwards */
-void *BLI_findlink(const struct ListBase *listbase, int number);
-void *BLI_findstring(const struct ListBase *listbase, const char *id, const int offset);
-void *BLI_findstring_ptr(const struct ListBase *listbase, const char *id, const int offset);
-void *BLI_findptr(const struct ListBase *listbase, const void *ptr, const int offset);
+void *BLI_findlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_findstring(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_findstring_ptr(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_findptr(const struct ListBase *listbase, const void *ptr, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* find backwards */
-void *BLI_rfindlink(const struct ListBase *listbase, int number);
-void *BLI_rfindstring(const struct ListBase *listbase, const char *id, const int offset);
-void *BLI_rfindstring_ptr(const struct ListBase *listbase, const char *id, const int offset);
-void *BLI_rfindptr(const struct ListBase *listbase, const void *ptr, const int offset);
+void *BLI_rfindlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_rfindstring(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_rfindstring_ptr(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_rfindptr(const struct ListBase *listbase, const void *ptr, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
-void BLI_freelistN(struct ListBase *listbase);
-void BLI_addtail(struct ListBase *listbase, void *vlink);
-void BLI_remlink(struct ListBase *listbase, void *vlink);
-bool BLI_remlink_safe(struct ListBase *listbase, void *vlink);
-void *BLI_pophead(ListBase *listbase);
-void *BLI_poptail(ListBase *listbase);
+void BLI_freelistN(struct ListBase *listbase) ATTR_NONNULL(1);
+void BLI_addtail(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+void BLI_remlink(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+bool BLI_remlink_safe(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+void *BLI_pophead(ListBase *listbase) ATTR_NONNULL(1);
+void *BLI_poptail(ListBase *listbase) ATTR_NONNULL(1);
 
-void BLI_addhead(struct ListBase *listbase, void *vlink);
-void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);
-void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink);
-void BLI_sortlist(struct ListBase *listbase, int (*cmp)(void *, void *));
-void BLI_sortlist_r(ListBase *listbase, void *thunk, int (*cmp)(void *, void *, void *));
-void BLI_freelist(struct ListBase *listbase);
-int BLI_countlist(const struct ListBase *listbase);
-void BLI_freelinkN(struct ListBase *listbase, void *vlink);
+void BLI_addhead(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink) ATTR_NONNULL(1);
+void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink) ATTR_NONNULL(1);
+void BLI_sortlist(struct ListBase *listbase, int (*cmp)(void *, void *)) ATTR_NONNULL(1, 2);
+void BLI_sortlist_r(ListBase *listbase, void *thunk, int (*cmp)(void *, void *, void *)) ATTR_NONNULL(1, 3);
+void BLI_freelist(struct ListBase *listbase) ATTR_NONNULL(1);
+int BLI_countlist(const struct ListBase *listbase) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void BLI_freelinkN(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 
-void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src);
-void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src);
-void BLI_reverselist(struct ListBase *lb);
-void BLI_rotatelist_first(struct ListBase *lb, void *vlink);
-void BLI_rotatelist_last(struct ListBase *lb, void *vlink);
+void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
+void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src) ATTR_NONNULL(1, 2);
+void BLI_reverselist(struct ListBase *lb) ATTR_NONNULL(1);
+void BLI_rotatelist_first(struct ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
+void BLI_rotatelist_last(struct ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
 
 /**
  * Utility functions to avoid first/last references inline all over.
