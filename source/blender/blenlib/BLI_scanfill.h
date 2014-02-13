@@ -56,6 +56,13 @@ typedef struct ScanFillContext {
 
 #define BLI_SCANFILL_ARENA_SIZE MEM_SIZE_OPTIMAL(1 << 14)
 
+/**
+ * \note this is USHRT_MAX so incrementing  will set to zero
+ * which happens if callers choose to increment #ScanFillContext.poly_nr before adding each curve.
+ * Nowhere else in scanfill do we make use of intentional overflow like this.
+ */
+#define SF_POLY_UNSET ((unsigned short)-1)
+
 typedef struct ScanFillVert {
 	struct ScanFillVert *next, *prev;
 	union {
@@ -101,12 +108,15 @@ enum {
 	 * removing double verts. - campbell */
 	BLI_SCANFILL_CALC_REMOVE_DOUBLES   = (1 << 1),
 
+	/* calculate isolated polygons */
+	BLI_SCANFILL_CALC_POLYS            = (1 << 2),
+
 	/* note: This flag removes checks for overlapping polygons.
 	 * when this flag is set, we'll never get back more faces then (totvert - 2) */
-	BLI_SCANFILL_CALC_HOLES            = (1 << 2),
+	BLI_SCANFILL_CALC_HOLES            = (1 << 3),
 
 	/* checks valid edge users - can skip for simple loops */
-	BLI_SCANFILL_CALC_LOOSE            = (1 << 3),
+	BLI_SCANFILL_CALC_LOOSE            = (1 << 4),
 };
 void BLI_scanfill_begin(ScanFillContext *sf_ctx);
 unsigned int BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag);
@@ -116,6 +126,13 @@ void BLI_scanfill_end(ScanFillContext *sf_ctx);
 
 void BLI_scanfill_begin_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
 void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
+
+
+/* scanfill_utils.c */
+bool BLI_scanfill_calc_self_isect(
+        ScanFillContext *sf_ctx,
+        ListBase *fillvertbase,
+        ListBase *filledgebase);
 
 #ifdef __cplusplus
 }

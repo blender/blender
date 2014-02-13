@@ -220,6 +220,7 @@ enum {
 
 	/* no holes */
 	MASK_LAYERFLAG_FILL_DISCRETE = (1 << 6),
+	MASK_LAYERFLAG_FILL_OVERLAP  = (1 << 7),
 };
 
 /* masklay_shape->flag */

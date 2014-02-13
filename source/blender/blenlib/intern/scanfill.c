@@ -38,7 +38,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_callbacks.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -84,16 +83,6 @@ typedef struct ScanFillVertLink {
 /* PolyFill.status */
 #define SF_POLY_NEW   0  /* all polys initialized to this */
 #define SF_POLY_VALID 1  /* has at least 3 verts */
-
-
-/**
- * \note this is USHRT_MAX so incrementing  will set to zero
- * which happens if callers choose to increment #ScanFillContext.poly_nr before adding each curve.
- * Nowhere else in scanfill do we make use of intentional overflow like this.
- */
-#define SF_POLY_UNSET USHRT_MAX
-
-
 
 /* ****  FUNCTIONS FOR QSORT *************************** */
 
@@ -903,7 +892,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 		sf_ctx->poly_nr = SF_POLY_UNSET;
 	}
 
-	if (flag & BLI_SCANFILL_CALC_HOLES && (poly == 0)) {
+	if (flag & BLI_SCANFILL_CALC_POLYS && (poly == 0)) {
 		for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 			mul_v2_m3v3(eve->xy, mat_2d, eve->co);
 
