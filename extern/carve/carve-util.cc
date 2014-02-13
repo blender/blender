@@ -130,7 +130,7 @@ void meshset_minmax(const MeshSet<3> *mesh,
                     Vector *min,
                     Vector *max)
 {
-	for (uint i = 0; i < mesh->vertex_storage.size(); ++i) {
+	for (size_t i = 0; i < mesh->vertex_storage.size(); ++i) {
 		min->x = std::min(min->x, mesh->vertex_storage[i].v.x);
 		min->y = std::min(min->y, mesh->vertex_storage[i].v.y);
 		min->z = std::min(min->z, mesh->vertex_storage[i].v.z);
@@ -658,8 +658,8 @@ int triangulateNGon_importerTriangulator(struct ImportMeshData *import_data,
 			                            api_triangles[i][2]));
 	}
 
-	delete poly_2d;
-	delete api_triangles;
+	delete [] poly_2d;
+	delete [] api_triangles;
 
 	return num_triangles;
 }
