@@ -52,7 +52,7 @@ typedef struct PolyFill {
 	unsigned int edges, verts;
 	float min_xy[2], max_xy[2];
 	unsigned short nr;
-	unsigned char f;
+	bool f;
 } PolyFill;
 
 typedef struct ScanFillVertLink {
@@ -66,15 +66,25 @@ typedef struct ScanFillVertLink {
 #define SF_EPSILON   0.00003f
 #define SF_EPSILON_SQ (SF_EPSILON * SF_EPSILON)
 
+
+/* ScanFillVert.status */
 #define SF_VERT_NEW        0  /* all new verts have this flag set */
 #define SF_VERT_AVAILABLE  1  /* available - in an edge */
-#define SF_VERT_ZERO_LEN 255
+#define SF_VERT_ZERO_LEN   2
 
+
+/* ScanFillEdge.status */
 /* Optionally set ScanFillEdge f to this to mark original boundary edges.
  * Only needed if there are internal diagonal edges passed to BLI_scanfill_calc. */
 #define SF_EDGE_NEW      0  /* all new edges have this flag set */
 // #define SF_EDGE_BOUNDARY 1  /* UNUSED */
 #define SF_EDGE_INTERNAL 2  /* edge is created while scan-filling */
+
+
+/* PolyFill.status */
+#define SF_POLY_NEW   0  /* all polys initialized to this */
+#define SF_POLY_VALID 1  /* has at least 3 verts */
+
 
 /**
  * \note this is USHRT_MAX so incrementing  will set to zero
@@ -131,6 +141,7 @@ ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
 	sf_v->poly_nr = sf_ctx->poly_nr;
 	sf_v->edge_tot = 0;
 	sf_v->f = SF_VERT_NEW;
+	sf_v->user_flag = 0;
 
 	return sf_v;
 }
@@ -148,6 +159,7 @@ ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, S
 	/* just zero out the rest */
 	sf_ed->poly_nr = sf_ctx->poly_nr;
 	sf_ed->f = SF_EDGE_NEW;
+	sf_ed->user_flag = 0;
 	sf_ed->tmp.c = 0;
 
 	return sf_ed;
@@ -550,7 +562,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 
 	/* STEP 2: FILL LOOP */
 
-	if (pf->f == 0)
+	if (pf->f == SF_POLY_NEW)
 		twoconnected = true;
 
 	/* (temporal) security: never much more faces than vertices */
@@ -1035,7 +1047,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 		pf->edges = pf->verts = 0;
 		pf->min_xy[0] = pf->min_xy[1] =  1.0e20f;
 		pf->max_xy[0] = pf->max_xy[1] = -1.0e20f;
-		pf->f = 0;
+		pf->f = SF_POLY_NEW;
 		pf->nr = a;
 		pf++;
 	}
@@ -1052,7 +1064,9 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 		min_xy_p[1] = (min_xy_p[1]) < (eve->xy[1]) ? (min_xy_p[1]) : (eve->xy[1]);
 		max_xy_p[0] = (max_xy_p[0]) > (eve->xy[0]) ? (max_xy_p[0]) : (eve->xy[0]);
 		max_xy_p[1] = (max_xy_p[1]) > (eve->xy[1]) ? (max_xy_p[1]) : (eve->xy[1]);
-		if (eve->edge_tot > 2) pflist[eve->poly_nr].f = 1;
+		if (eve->edge_tot > 2) {
+			pflist[eve->poly_nr].f = SF_POLY_VALID;
+		}
 	}
 
 	/* STEP 4: FIND HOLES OR BOUNDS, JOIN THEM

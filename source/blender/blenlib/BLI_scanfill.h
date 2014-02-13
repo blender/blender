@@ -69,14 +69,16 @@ typedef struct ScanFillVert {
 	unsigned int keyindex; /* index, caller can use how it likes to match the scanfill result with own data */
 	unsigned short poly_nr;
 	unsigned char edge_tot;  /* number of edges using this vertex */
-	unsigned char f;
+	unsigned int f : 4;  /* vert status */
+	unsigned int user_flag : 4;  /* flag callers can use as they like */
 } ScanFillVert;
 
 typedef struct ScanFillEdge {
 	struct ScanFillEdge *next, *prev;
 	struct ScanFillVert *v1, *v2;
 	unsigned short poly_nr;
-	unsigned char f;
+	unsigned int f : 4;  /* edge status */
+	unsigned int user_flag : 4;  /* flag callers can use as they like */
 	union {
 		unsigned char c;
 	} tmp;
