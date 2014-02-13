@@ -51,6 +51,7 @@ incs = [
 defs = []
 
 if env ['WITH_BF_BOOLEAN']:
+    incs.append('#/extern/carve')
     defs.append('WITH_MOD_BOOLEAN')
 
 if env['WITH_BF_REMESH']:
