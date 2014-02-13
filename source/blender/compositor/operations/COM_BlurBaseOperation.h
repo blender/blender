@@ -33,8 +33,8 @@ private:
 protected:
 
 	BlurBaseOperation(DataType data_type);
-	float *make_gausstab(int rad);
-	float *make_dist_fac_inverse(int rad, int falloff);
+	float *make_gausstab(float rad, int size);
+	float *make_dist_fac_inverse(float rad, int size, int falloff);
 
 	void updateSize();
 

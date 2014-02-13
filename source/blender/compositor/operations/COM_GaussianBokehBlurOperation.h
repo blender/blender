@@ -54,10 +54,10 @@ private:
 	float **m_maintabs;
 	
 	void updateGauss();
-	int m_radx;
-	int m_rady;
-	float m_radxf;
-	float m_radyf;
+	int m_filtersizex;
+	int m_filtersizey;
+	float m_radx;
+	float m_rady;
 
 public:
 	GaussianBlurReferenceOperation();

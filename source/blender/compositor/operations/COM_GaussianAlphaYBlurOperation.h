@@ -32,7 +32,7 @@ private:
 	float *m_distbuf_inv;
 	bool m_do_subtract;
 	int m_falloff;
-	int m_rad;
+	int m_filtersize;
 	void updateGauss();
 public:
 	GaussianAlphaYBlurOperation();

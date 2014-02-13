@@ -69,17 +69,11 @@ void GaussianBokehBlurOperation::updateGauss()
 			updateSize();
 		}
 		radxf = this->m_size * (float)this->m_data->sizex;
-		if (radxf > width / 2.0f)
-			radxf = width / 2.0f;
-		else if (radxf < 1.0f)
-			radxf = 1.0f;
+		CLAMP(radxf, 0.0f, width / 2.0f);
 	
 		/* vertical */
 		radyf = this->m_size * (float)this->m_data->sizey;
-		if (radyf > height / 2.0f)
-			radyf = height / 2.0f;
-		else if (radyf < 1.0f)
-			radyf = 1.0f;
+		CLAMP(radyf, 0.0f, height / 2.0f);
 	
 		this->m_radx = ceil(radxf);
 		this->m_rady = ceil(radyf);
@@ -92,16 +86,19 @@ void GaussianBokehBlurOperation::updateGauss()
 		ddgauss = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 		dgauss = ddgauss;
 		float sum = 0.0f;
+		float facx = (radxf > 0.0f ? 1.0f/radxf : 0.0f);
+		float facy = (radyf > 0.0f ? 1.0f/radyf : 0.0f);
 		for (j = -this->m_rady; j <= this->m_rady; j++) {
 			for (i = -this->m_radx; i <= this->m_radx; i++, dgauss++) {
-				float fj = (float)j / radyf;
-				float fi = (float)i / radxf;
+				float fj = (float)j * facy;
+				float fi = (float)i * facx;
 				float dist = sqrt(fj * fj + fi * fi);
 				*dgauss = RE_filter_value(this->m_data->filtertype, dist);
 				
 				sum += *dgauss;
 			}
 		}
+
 		if (sum > 0.0f) {
 			/* normalize */
 			float norm = 1.0f / sum;
@@ -131,24 +128,21 @@ void GaussianBokehBlurOperation::executePixel(float output[4], int x, int y, voi
 	int bufferstartx = inputBuffer->getRect()->xmin;
 	int bufferstarty = inputBuffer->getRect()->ymin;
 
-	int miny = y - this->m_rady;
-	int maxy = y + this->m_rady;
-	int minx = x - this->m_radx;
-	int maxx = x + this->m_radx;
-	miny = max(miny, inputBuffer->getRect()->ymin);
-	minx = max(minx, inputBuffer->getRect()->xmin);
-	maxy = min(maxy, inputBuffer->getRect()->ymax);
-	maxx = min(maxx, inputBuffer->getRect()->xmax);
+	rcti &rect = *inputBuffer->getRect();
+	int ymin = max_ii(y - this->m_rady, rect.ymin);
+	int ymax = min_ii(y + this->m_rady + 1,  rect.ymax);
+	int xmin = max_ii(x - this->m_radx, rect.xmin);
+	int xmax = min_ii(x + this->m_radx + 1,  rect.xmax);
 
 	int index;
 	int step = QualityStepHelper::getStep();
 	int offsetadd = QualityStepHelper::getOffsetAdd();
-	const int addConst = (minx - x + this->m_radx);
+	const int addConst = (xmin - x + this->m_radx);
 	const int mulConst = (this->m_radx * 2 + 1);
-	for (int ny = miny; ny < maxy; ny += step) {
+	for (int ny = ymin; ny < ymax; ny += step) {
 		index = ((ny - y) + this->m_rady) * mulConst + addConst;
-		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
-		for (int nx = minx; nx < maxx; nx += step) {
+		int bufferindex = ((xmin - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
+		for (int nx = xmin; nx < xmax; nx += step) {
 			const float multiplier = this->m_gausstab[index];
 			madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplier);
 			multiplier_accum += multiplier;
@@ -239,32 +233,32 @@ void GaussianBlurReferenceOperation::initExecution()
 	
 	
 	/* horizontal */
-	m_radx = (float)this->m_data->sizex;
+	m_filtersizex = (float)this->m_data->sizex;
 	int imgx = getWidth() / 2;
-	if (m_radx > imgx)
-		m_radx = imgx;
-	else if (m_radx < 1)
-		m_radx = 1;
-	m_radxf = (float)m_radx;
+	if (m_filtersizex > imgx)
+		m_filtersizex = imgx;
+	else if (m_filtersizex < 1)
+		m_filtersizex = 1;
+	m_radx = (float)m_filtersizex;
 
 	/* vertical */
-	m_rady = (float)this->m_data->sizey;
+	m_filtersizey = (float)this->m_data->sizey;
 	int imgy = getHeight() / 2;
-	if (m_rady > imgy)
-		m_rady = imgy;
-	else if (m_rady < 1)
-		m_rady = 1;
-	m_radyf = (float)m_rady;
+	if (m_filtersizey > imgy)
+		m_filtersizey = imgy;
+	else if (m_filtersizey < 1)
+		m_filtersizey = 1;
+	m_rady = (float)m_filtersizey;
 	updateGauss();
 }
 
 void GaussianBlurReferenceOperation::updateGauss()
 {
 	int i;
-	int x = max(m_radx, m_rady);
-	this->m_maintabs = (float **)MEM_mallocN(x * sizeof(float *), "gauss array");
+	int x = max(m_filtersizex, m_filtersizey);
+	m_maintabs = (float **)MEM_mallocN(x * sizeof(float *), "gauss array");
 	for (i = 0; i < x; i++) {
-		m_maintabs[i] = make_gausstab(i + 1);
+		m_maintabs[i] = make_gausstab(i + 1, i + 1);
 	}
 }
 
@@ -283,11 +277,11 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
 	float tempSize[4];
 	this->m_inputSize->read(tempSize, x, y, data);
 	float refSize = tempSize[0];
-	int refradx = (int)(refSize * m_radxf);
-	int refrady = (int)(refSize * m_radyf);
-	if (refradx > m_radx) refradx = m_radx;
+	int refradx = (int)(refSize * m_radx);
+	int refrady = (int)(refSize * m_rady);
+	if (refradx > m_filtersizex) refradx = m_filtersizex;
 	else if (refradx < 1) refradx = 1;
-	if (refrady > m_rady) refrady = m_rady;
+	if (refrady > m_filtersizey) refrady = m_filtersizey;
 	else if (refrady < 1) refrady = 1;
 
 	if (refradx == 1 && refrady == 1) {
@@ -331,7 +325,7 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
 void GaussianBlurReferenceOperation::deinitExecution()
 {
 	int x, i;
-	x = max(this->m_radx, this->m_rady);
+	x = max(this->m_filtersizex, this->m_filtersizey);
 	for (i = 0; i < x; i++) {
 		MEM_freeN(this->m_maintabs[i]);
 	}

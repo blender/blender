@@ -28,7 +28,7 @@
 class GaussianXBlurOperation : public BlurBaseOperation {
 private:
 	float *m_gausstab;
-	int m_rad;
+	int m_filtersize;
 	void updateGauss();
 public:
 	GaussianXBlurOperation();

@@ -31,7 +31,7 @@ extern "C" {
 GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
 	this->m_gausstab = NULL;
-	this->m_rad = 0;
+	this->m_filtersize = 0;
 }
 
 void *GaussianYBlurOperation::initializeTileData(rcti *rect)
@@ -52,11 +52,10 @@ void GaussianYBlurOperation::initExecution()
 	initMutex();
 
 	if (this->m_sizeavailable) {
-		float rad = this->m_size * this->m_data->sizey;
-		CLAMP(rad, 1.0f, MAX_GAUSSTAB_RADIUS);
-
-		this->m_rad = rad;
-		this->m_gausstab = BlurBaseOperation::make_gausstab(rad);
+		float rad = max_ff(m_size * m_data->sizey, 0.0f);
+		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+		
+		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 	}
 }
 
@@ -64,11 +63,10 @@ void GaussianYBlurOperation::updateGauss()
 {
 	if (this->m_gausstab == NULL) {
 		updateSize();
-		float rad = this->m_size * this->m_data->sizey;
-		CLAMP(rad, 1.0f, MAX_GAUSSTAB_RADIUS);
-
-		this->m_rad = rad;
-		this->m_gausstab = BlurBaseOperation::make_gausstab(rad);
+		float rad = max_ff(m_size * m_data->sizey, 0.0f);
+		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+		
+		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 	}
 }
 
@@ -82,18 +80,16 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 	int bufferstartx = inputBuffer->getRect()->xmin;
 	int bufferstarty = inputBuffer->getRect()->ymin;
 
-	int miny = y - this->m_rad;
-	int maxy = y + this->m_rad;
-	int minx = x;
-	miny = max(miny, inputBuffer->getRect()->ymin);
-	minx = max(minx, inputBuffer->getRect()->xmin);
-	maxy = min(maxy, inputBuffer->getRect()->ymax - 1);
+	rcti &rect = *inputBuffer->getRect();
+	int xmin = max_ii(x,                    rect.xmin);
+	int ymin = max_ii(y - m_filtersize,     rect.ymin);
+	int ymax = min_ii(y + m_filtersize + 1, rect.ymax);
 
 	int index;
 	int step = getStep();
-	const int bufferIndexx = ((minx - bufferstartx) * 4);
-	for (int ny = miny; ny <= maxy; ny += step) {
-		index = (ny - y) + this->m_rad;
+	const int bufferIndexx = ((xmin - bufferstartx) * 4);
+	for (int ny = ymin; ny < ymax; ny += step) {
+		index = (ny - y) + this->m_filtersize;
 		int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
 		const float multiplier = this->m_gausstab[index];
 		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
@@ -132,8 +128,8 @@ bool GaussianYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 		if (this->m_sizeavailable && this->m_gausstab != NULL) {
 			newInput.xmax = input->xmax;
 			newInput.xmin = input->xmin;
-			newInput.ymax = input->ymax + this->m_rad + 1;
-			newInput.ymin = input->ymin - this->m_rad - 1;
+			newInput.ymax = input->ymax + this->m_filtersize + 1;
+			newInput.ymin = input->ymin - this->m_filtersize - 1;
 		}
 		else {
 			newInput.xmax = this->getWidth();
