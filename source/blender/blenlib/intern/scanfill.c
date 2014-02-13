@@ -1058,7 +1058,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	 *    the edgefill itself has good auto-hole detection)
 	 * WATCH IT: ONLY WORKS WITH SORTED POLYS!!! */
 	
-	if (poly > 1) {
+	if ((flag & BLI_SCANFILL_CALC_HOLES) && (poly > 1)) {
 		unsigned short *polycache, *pc;
 
 		/* so, sort first */

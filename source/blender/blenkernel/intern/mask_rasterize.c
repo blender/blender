@@ -916,6 +916,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			unsigned int sf_tri_tot;
 			rctf bounds;
 			unsigned int face_index;
+			int scanfill_flag = 0;
 
 			/* now we have all the splines */
 			face_coords = MEM_mallocN((sizeof(float) * 3) * sf_vert_tot, "maskrast_face_coords");
@@ -941,7 +942,10 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			}
 
 			/* main scan-fill */
-			sf_tri_tot = (unsigned int)BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_HOLES, zvec);
+			if ((masklay->flag & MASK_LAYERFLAG_FILL_DISCRETE) == 0)
+				scanfill_flag |= BLI_SCANFILL_CALC_HOLES;
+
+			sf_tri_tot = (unsigned int)BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, zvec);
 
 			face_array = MEM_mallocN(sizeof(*face_array) * ((size_t)sf_tri_tot + (size_t)tot_feather_quads), "maskrast_face_index");
 			face_index = 0;
