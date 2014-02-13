@@ -369,6 +369,10 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 
 			xml_read_string(&img->filename, node, "src");
 			img->filename = path_join(state.base, img->filename);
+			
+			xml_read_enum(&img->color_space, ImageTextureNode::color_space_enum, node, "color_space");
+			xml_read_enum(&img->projection, ImageTextureNode::projection_enum, node, "projection");
+			xml_read_float(&img->projection_blend, node, "projection_blend");
 
 			snode = img;
 		}
@@ -377,6 +381,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 
 			xml_read_string(&env->filename, node, "src");
 			env->filename = path_join(state.base, env->filename);
+			
+			xml_read_enum(&env->color_space, EnvironmentTextureNode::color_space_enum, node, "color_space");
+			xml_read_enum(&env->projection, EnvironmentTextureNode::projection_enum, node, "projection");
 
 			snode = env;
 		}
@@ -423,7 +430,14 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			snode = new CheckerTextureNode();
 		}
 		else if(string_iequals(node.name(), "brick_texture")) {
-			snode = new BrickTextureNode();
+			BrickTextureNode *brick = new BrickTextureNode();
+
+			xml_read_float(&brick->offset, node, "offset");
+			xml_read_int(&brick->offset_frequency, node, "offset_frequency");
+			xml_read_float(&brick->squash, node, "squash");
+			xml_read_int(&brick->squash_frequency, node, "squash_frequency");
+
+			snode = brick;
 		}
 		else if(string_iequals(node.name(), "gradient_texture")) {
 			GradientTextureNode *blend = new GradientTextureNode();
@@ -455,7 +469,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			snode = wave;
 		}
 		else if(string_iequals(node.name(), "normal")) {
-			snode = new NormalNode();
+			NormalNode *normal = new NormalNode();
+			xml_read_float3(&normal->direction, node, "direction");
+			snode = normal;
 		}
 		else if(string_iequals(node.name(), "mapping")) {
 			snode = new MappingNode();
@@ -495,6 +511,11 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_enum(&diel->distribution, RefractionBsdfNode::distribution_enum, node, "distribution");
 			snode = diel;
 		}
+		else if(string_iequals(node.name(), "hair_bsdf")) {
+			HairBsdfNode *hair = new HairBsdfNode();
+			xml_read_enum(&hair->component, HairBsdfNode::component_enum, node, "component");
+			snode = hair;
+		}
 		else if(string_iequals(node.name(), "emission")) {
 			EmissionNode *emission = new EmissionNode();
 			xml_read_bool(&emission->total_power, node, "total_power");
@@ -523,11 +544,20 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "texture_coordinate")) {
 			snode = new TextureCoordinateNode();
 		}
-		else if(string_iequals(node.name(), "lightPath")) {
+		else if(string_iequals(node.name(), "light_path")) {
 			snode = new LightPathNode();
 		}
-		else if(string_iequals(node.name(), "lightFalloff")) {
+		else if(string_iequals(node.name(), "light_falloff")) {
 			snode = new LightFalloffNode();
+		}
+		else if(string_iequals(node.name(), "object_info")) {
+			snode = new ObjectInfoNode();
+		}
+		else if(string_iequals(node.name(), "particle_info")) {
+			snode = new ParticleInfoNode();
+		}
+		else if(string_iequals(node.name(), "hair_info")) {
+			snode = new HairInfoNode();
 		}
 		else if(string_iequals(node.name(), "value")) {
 			ValueNode *value = new ValueNode();
@@ -600,6 +630,19 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_bool(&wire->use_pixel_size, node, "use_pixel_size");
 			snode = wire;
 		}
+		else if(string_iequals(node.name(), "normal_map")) {
+			NormalMapNode *nmap = new NormalMapNode;
+			xml_read_ustring(&nmap->attribute, node, "attribute");
+			xml_read_enum(&nmap->space, NormalMapNode::space_enum, node, "space");
+			snode = nmap;
+		}
+		else if(string_iequals(node.name(), "tangent")) {
+			TangentNode *tangent = new TangentNode;
+			xml_read_ustring(&tangent->attribute, node, "attribute");
+			xml_read_enum(&tangent->direction_type, TangentNode::direction_type_enum, node, "direction_type");
+			xml_read_enum(&tangent->axis, TangentNode::axis_enum, node, "axis");
+			snode = tangent;
+		}
 		else if(string_iequals(node.name(), "math")) {
 			MathNode *math = new MathNode();
 			xml_read_enum(&math->type, MathNode::type_enum, node, "type");
@@ -610,6 +653,13 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			VectorMathNode *vmath = new VectorMathNode();
 			xml_read_enum(&vmath->type, VectorMathNode::type_enum, node, "type");
 			snode = vmath;
+		}
+		else if(string_iequals(node.name(), "vector_transform")) {
+			VectorTransformNode *vtransform = new VectorTransformNode();
+			xml_read_enum(&vtransform->type, VectorTransformNode::type_enum, node, "type");
+			xml_read_enum(&vtransform->convert_from, VectorTransformNode::convert_space_enum, node, "convert_from");
+			xml_read_enum(&vtransform->convert_to, VectorTransformNode::convert_space_enum, node, "convert_to");
+			snode = vtransform;
 		}
 		else if(string_iequals(node.name(), "connect")) {
 			/* connect nodes */

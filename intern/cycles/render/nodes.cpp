@@ -2041,7 +2041,6 @@ static ShaderEnum hair_component_init()
 
 	enm.insert("Reflection", CLOSURE_BSDF_HAIR_REFLECTION_ID);
 	enm.insert("Transmission", CLOSURE_BSDF_HAIR_TRANSMISSION_ID);
-	
 
 	return enm;
 }
@@ -2055,7 +2054,6 @@ HairBsdfNode::HairBsdfNode()
 	add_input("Offset", SHADER_SOCKET_FLOAT);
 	add_input("RoughnessU", SHADER_SOCKET_FLOAT);
 	add_input("RoughnessV", SHADER_SOCKET_FLOAT);
-
 }
 
 void HairBsdfNode::compile(SVMCompiler& compiler)
@@ -2070,7 +2068,6 @@ void HairBsdfNode::compile(OSLCompiler& compiler)
 	compiler.parameter("component", component);
 
 	compiler.add(this, "node_hair_bsdf");
-
 }
 
 /* Geometry */
