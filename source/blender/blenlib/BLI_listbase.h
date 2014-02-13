@@ -67,6 +67,7 @@ void BLI_addhead(struct ListBase *listbase, void *vlink);
 void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);
 void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink);
 void BLI_sortlist(struct ListBase *listbase, int (*cmp)(void *, void *));
+void BLI_sortlist_r(ListBase *listbase, void *thunk, int (*cmp)(void *, void *, void *));
 void BLI_freelist(struct ListBase *listbase);
 int BLI_countlist(const struct ListBase *listbase);
 void BLI_freelinkN(struct ListBase *listbase, void *vlink);
