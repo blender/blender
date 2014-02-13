@@ -172,10 +172,10 @@ inline void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float min[3], float ma
 			}
 			for (int j = 0; j < 3; j++) {
 				max[j] = max_ff(max[j],
-				                max_ffff(res[4 * j + 0],
-				                         res[4 * j + 1],
-				                         res[4 * j + 2],
-				                         res[4 * j + 3]));
+				                max_ffff(res[4 * (j + 3) + 0],
+				                         res[4 * (j + 3) + 1],
+				                         res[4 * (j + 3) + 2],
+				                         res[4 * (j + 3) + 3]));
 			}
 		}
 
