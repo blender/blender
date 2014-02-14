@@ -119,7 +119,7 @@ void interp_v3_v3v3_uchar(char unsigned target[3], const unsigned char a[3], con
 }
 void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], const float t)
 {
-	interp_v3_v3v3_char((char *)target, (const char *)a, (const char *)b, t);
+	interp_v3_v3v3_uchar((unsigned char *)target, (const unsigned char *)a, (const unsigned char *)b, t);
 }
 
 void interp_v4_v4v4_uchar(char unsigned target[4], const unsigned char a[4], const unsigned char b[4], const float t)
@@ -133,7 +133,7 @@ void interp_v4_v4v4_uchar(char unsigned target[4], const unsigned char a[4], con
 }
 void interp_v4_v4v4_char(char target[4], const char a[4], const char b[4], const float t)
 {
-	interp_v4_v4v4_char((char *)target, (const char *)a, (const char *)b, t);
+	interp_v4_v4v4_uchar((unsigned char *)target, (const unsigned char *)a, (const unsigned char *)b, t);
 }
 
 void mid_v3_v3v3(float v[3], const float v1[3], const float v2[3])
