@@ -376,7 +376,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);
+	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
 
 	/* Support for dynamic vertex groups, changing from frame to frame */
 	cloth_apply_vgroup ( clmd, result );

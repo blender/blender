@@ -761,7 +761,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				}
 			}
 
-			effectors = pdInitEffectors(scene, ob, psys, part->effector_weights);
+			effectors = pdInitEffectors(scene, ob, psys, part->effector_weights, false);
 
 			if (effectors) {
 				for (eff = effectors->first; eff; eff = eff->next) {
