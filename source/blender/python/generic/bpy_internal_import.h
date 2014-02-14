@@ -43,6 +43,7 @@ struct Text;
 
 void bpy_import_init(PyObject *builtins);
 
+bool        bpy_text_compile(struct Text *text);
 PyObject   *bpy_text_import(struct Text *text);
 PyObject   *bpy_text_import_name(const char *name, int *found);
 PyObject   *bpy_text_reimport(PyObject *module, int *found);

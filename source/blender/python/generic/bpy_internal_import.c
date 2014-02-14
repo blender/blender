@@ -34,8 +34,6 @@
 #include <Python.h>
 #include <stddef.h>
 
-#include "bpy_internal_import.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_text_types.h"
@@ -48,6 +46,8 @@
 /* UNUSED */
 #include "BKE_text.h"  /* txt_to_buf */
 #include "BKE_main.h"
+
+#include "bpy_internal_import.h"  /* own include */
 
 static Main *bpy_import_main = NULL;
 static ListBase bpy_import_main_list;
@@ -130,25 +130,39 @@ void bpy_text_filename_get(char *fn, size_t fn_len, Text *text)
 	BLI_snprintf(fn, fn_len, "%s%c%s", ID_BLEND_PATH(bpy_import_main, &text->id), SEP, text->id.name + 2);
 }
 
+bool bpy_text_compile(Text *text)
+{
+	char fn_dummy[FILE_MAX];
+	char *buf;
+
+	bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
+
+	/* if previously compiled, free the object */
+	free_compiled_text(text);
+
+	buf = txt_to_buf(text);
+	text->compiled = Py_CompileString(buf, fn_dummy, Py_file_input);
+	MEM_freeN(buf);
+
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		PyErr_Clear();
+		PySys_SetObject("last_traceback", NULL);
+		free_compiled_text(text);
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
 PyObject *bpy_text_import(Text *text)
 {
-	char *buf = NULL;
 	char modulename[MAX_ID_NAME + 2];
 	int len;
 
 	if (!text->compiled) {
-		char fn_dummy[256];
-		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
-
-		buf = txt_to_buf(text);
-		text->compiled = Py_CompileString(buf, fn_dummy, Py_file_input);
-		MEM_freeN(buf);
-
-		if (PyErr_Occurred()) {
-			PyErr_Print();
-			PyErr_Clear();
-			PySys_SetObject("last_traceback", NULL);
-			free_compiled_text(text);
+		if (bpy_text_compile(text) == false) {
 			return NULL;
 		}
 	}
@@ -213,7 +227,6 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	Text *text;
 	const char *name;
 	char *filepath;
-	char *buf = NULL;
 //XXX	Main *maggie = bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie = bpy_import_main;
 	
@@ -240,23 +253,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	else
 		*found = 1;
 
-	/* if previously compiled, free the object */
-	/* (can't see how could be NULL, but check just in case) */ 
-	if (text->compiled) {
-		Py_DECREF((PyObject *)text->compiled);
-	}
-
-	/* compile the buffer */
-	buf = txt_to_buf(text);
-	text->compiled = Py_CompileString(buf, text->id.name + 2, Py_file_input);
-	MEM_freeN(buf);
-
-	/* if compile failed.... return this error */
-	if (PyErr_Occurred()) {
-		PyErr_Print();
-		PyErr_Clear();
-		PySys_SetObject("last_traceback", NULL);
-		free_compiled_text(text);
+	if (bpy_text_compile(text) == false) {
 		return NULL;
 	}
 
