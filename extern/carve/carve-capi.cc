@@ -522,7 +522,6 @@ void carve_exportMesh(CarveMeshDescr *mesh_descr,
 	std::unordered_map<VertexPair, int> edge_map;
 	for (int i = 0, edge_index = 0; i < poly->meshes.size(); ++i) {
 		carve::mesh::Mesh<3> *mesh = poly->meshes[i];
-
 		// Export closed edges.
 		exportMesh_handle_edges_list(poly,
 		                             mesh->closed_edges,
@@ -531,6 +530,7 @@ void carve_exportMesh(CarveMeshDescr *mesh_descr,
 		                             export_data,
 		                             edge_origindex_map,
 		                             &edge_map);
+		edge_index += mesh->closed_edges.size();
 
 		// Export open edges.
 		exportMesh_handle_edges_list(poly,
@@ -540,8 +540,7 @@ void carve_exportMesh(CarveMeshDescr *mesh_descr,
 		                             export_data,
 		                             edge_origindex_map,
 		                             &edge_map);
-
-		edge_index += mesh->closed_edges.size();
+		edge_index += mesh->open_edges.size();
 	}
 
 	// Export all the loops and polys.
