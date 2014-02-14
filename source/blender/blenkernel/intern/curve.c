@@ -3519,6 +3519,9 @@ void BKE_nurb_direction_switch(Nurb *nu)
 				bezt1->alfa = -bezt1->alfa;
 				bezt2->alfa = -bezt2->alfa;
 			}
+			else {
+				bezt1->alfa = -bezt1->alfa;
+			}
 			a--;
 			bezt1++;
 			bezt2--;
@@ -3536,6 +3539,12 @@ void BKE_nurb_direction_switch(Nurb *nu)
 			bp2->alfa = -bp2->alfa;
 			bp1++;
 			bp2--;
+		}
+		/* If there're odd number of points no need to touch coord of middle one,
+		 * but still need to change it's tilt.
+		 */
+		if (nu->pntsu & 1) {
+			bp1->alfa = -bp1->alfa;
 		}
 		if (nu->type == CU_NURBS) {
 			/* no knots for too short paths */
