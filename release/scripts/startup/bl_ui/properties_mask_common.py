@@ -220,15 +220,14 @@ class MASK_PT_display():
         layout = self.layout
 
         space_data = context.space_data
-        col = layout.column(align=True)
-        row = col.row(align=True)
+        row = layout.row(align=True)
         row.prop(space_data, "show_mask_smooth", text="Smooth")
         row.prop(space_data, "mask_draw_type", text="")
-        col = layout.column(align=True)
-        row = col.row(align=True)
+        row = layout.row(align=True)
         row.prop(space_data, "show_mask_overlay", text="Overlay")
-        row.active = space_data.show_mask_overlay
-        row.prop(space_data, "mask_overlay_mode", text="")
+        sub = row.row()
+        sub.active = space_data.show_mask_overlay
+        sub.prop(space_data, "mask_overlay_mode", text="")
 
 
 class MASK_PT_transforms():
