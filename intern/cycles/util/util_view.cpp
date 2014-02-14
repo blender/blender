@@ -42,7 +42,7 @@ struct View {
 
 	bool first_display;
 	bool redraw;
-	
+
 	int mouseX, mouseY;
 	int mouseBut0, mouseBut2;
 
@@ -104,9 +104,10 @@ void view_display_help()
 	view_display_text(x1+20, y2-120, "r:  Restart the render");
 	view_display_text(x1+20, y2-140, "q:  Quit the program");
 	view_display_text(x1+20, y2-160, "esc:  Cancel the render");
-	
-	view_display_text(x1+20, y2-190, "LMB:  Move camera");
-	view_display_text(x1+20, y2-210, "RMB:  Rotate camera");
+
+	view_display_text(x1+20, y2-190, "Interactive Mode (i-key):");
+	view_display_text(x1+20, y2-210, "LMB:  Move camera");
+	view_display_text(x1+20, y2-230, "RMB:  Rotate camera");
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 }
@@ -142,7 +143,7 @@ static void view_reshape(int width, int height)
 {
 	if(width <= 0 || height <= 0)
 		return;
-	
+
 	V.width = width;
 	V.height = height;
 
@@ -200,10 +201,10 @@ static void view_motion(int x, int y)
 	const int but = V.mouseBut0? 0:2;
 	const int distX = x - V.mouseX;
 	const int distY = y - V.mouseY;
-	
+
 	if(V.motion)
 		V.motion(distX, distY, but);
-	
+
 	V.mouseX = x;
 	V.mouseY = y;
 }

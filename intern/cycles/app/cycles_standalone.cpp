@@ -46,7 +46,7 @@ struct Options {
 	int width, height;
 	SceneParams scene_params;
 	SessionParams session_params;
-	bool quiet, show_help;
+	bool quiet, show_help, interactive;
 } options;
 
 static void session_print(const string& str)
@@ -101,7 +101,7 @@ static void session_init()
 	options.session = new Session(options.session_params);
 	options.session->reset(session_buffer_params(), options.session_params.samples);
 	options.session->scene = options.scene;
-	
+
 	if(options.session_params.background && !options.quiet)
 		options.session->progress.set_update_callback(function_bind(&session_print_status));
 #ifdef WITH_CYCLES_STANDALONE_GUI
@@ -118,7 +118,7 @@ static void scene_init(int width, int height)
 {
 	options.scene = new Scene(options.scene_params, options.session_params.device);
 	xml_read_file(options.scene, options.filepath.c_str());
-	
+
 	if (width == 0 || height == 0) {
 		options.width = options.scene->camera->width;
 		options.height = options.scene->camera->height;
@@ -148,7 +148,7 @@ static void display_info(Progress& progress)
 	static double latency = 0.0;
 	static double last = 0;
 	double elapsed = time_dt();
-	string str;
+	string str, interactive;
 
 	latency = (elapsed - last);
 	last = elapsed;
@@ -164,11 +164,13 @@ static void display_info(Progress& progress)
 	if(substatus != "")
 		status += ": " + substatus;
 
-	str = string_printf("%s        Time: %.2f        Latency: %.4f        Sample: %d        Average: %.4f",
-						status.c_str(), total_time, latency, sample, sample_time);
+	interactive = options.interactive? "On":"Off";
+
+	str = string_printf("%s        Time: %.2f        Latency: %.4f        Sample: %d        Average: %.4f        Interactive: %s",
+						status.c_str(), total_time, latency, sample, sample_time, interactive.c_str());
 
 	view_display_info(str.c_str());
-	
+
 	if(options.show_help)
 		view_display_help();
 }
@@ -182,26 +184,31 @@ static void display()
 
 static void motion(int x, int y, int button)
 {
-	/* Translate */
-	if(button == 0) {
-		float3 translate = make_float3(x*0.01, y*0.01, 0.0f);
-		options.session->scene->camera->matrix = options.session->scene->camera->matrix * transform_translate(translate);
+	if(options.interactive) {
+		Transform matrix = options.session->scene->camera->matrix;
+
+		/* Translate */
+		if(button == 0) {
+			float3 translate = make_float3(x * 0.01f, y * 0.01f, 0.0f);
+			matrix = matrix * transform_translate(translate);
+		}
+
+		/* Rotate */
+		else if(button == 2) {
+			float4 r1= make_float4(x * 0.1f, 0.0f, 1.0f, 0.0f);
+			matrix = matrix * transform_rotate(r1.x * M_PI/180.0f, make_float3(r1.y, r1.z, r1.w));
+
+			float4 r2 = make_float4(y*0.1, 1.0f, 0.0, 0.0f);
+			matrix = matrix * transform_rotate(r2.x * M_PI/180.0f, make_float3(r2.y, r2.z, r2.w));
+		}
+
+		/* Update and Reset */
+		options.session->scene->camera->matrix = matrix;
+		options.session->scene->camera->need_update = true;
+		options.session->scene->camera->need_device_update = true;
+
+		options.session->reset(session_buffer_params(), options.session_params.samples);
 	}
-	
-	/* Rotate */
-	else if(button == 2) {
-		float4 r1= make_float4(x*0.1, 0.0f, 1.0f, 0.0f);
-		options.session->scene->camera->matrix = options.session->scene->camera->matrix * transform_rotate(r1.x*M_PI/180.0f, make_float3(r1.y, r1.z, r1.w));
-		
-		float4 r2 = make_float4(y*0.1, 1.0f, 0.0, 0.0f);
-		options.session->scene->camera->matrix = options.session->scene->camera->matrix * transform_rotate(r2.x*M_PI/180.0f, make_float3(r2.y, r2.z, r2.w));
-	}
-	
-	/* Update and Reset */
-	options.session->scene->camera->need_update = true;
-	options.session->scene->camera->need_device_update = true;
-	
-	options.session->reset(session_buffer_params(), options.session_params.samples);
 }
 
 static void resize(int width, int height)
@@ -219,6 +226,8 @@ static void keyboard(unsigned char key)
 		options.session->reset(session_buffer_params(), options.session_params.samples);
 	else if(key == 'h')
 		options.show_help = !(options.show_help);
+	else if(key == 'i')
+		options.interactive = !(options.interactive);
 	else if(key == 27) // escape
 		options.session->progress.set_cancel("Canceled");
 }
@@ -277,7 +286,7 @@ static void options_parse(int argc, const char **argv)
 		"--list-devices", &list, "List information about all available devices",
 		"--help", &help, "Print help message",
 		NULL);
-	
+
 	if(ap.parse(argc, argv) < 0) {
 		fprintf(stderr, "%s\n", ap.geterror().c_str());
 		ap.usage();
@@ -304,7 +313,7 @@ static void options_parse(int argc, const char **argv)
 		options.scene_params.shadingsystem = SceneParams::OSL;
 	else if(ssname == "svm")
 		options.scene_params.shadingsystem = SceneParams::SVM;
-		
+
 #ifdef WITH_CYCLES_STANDALONE_GUI
 	/* Progressive rendering for GUI */
 	if(!options.session_params.background)
@@ -367,7 +376,7 @@ int main(int argc, const char **argv)
 {
 	path_init();
 	options_parse(argc, argv);
-	
+
 #ifdef WITH_CYCLES_STANDALONE_GUI
 	if(options.session_params.background) {
 #endif
