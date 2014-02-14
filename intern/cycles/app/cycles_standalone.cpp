@@ -114,15 +114,25 @@ static void session_init()
 	options.scene = NULL;
 }
 
-static void scene_init(int width, int height)
+static void scene_init()
 {
 	options.scene = new Scene(options.scene_params, options.session_params.device);
+
+	/* Read XML */
 	xml_read_file(options.scene, options.filepath.c_str());
 
-	if (width == 0 || height == 0) {
+	/* Camera width/height override? */
+	if (!(options.width == 0 || options.height == 0)) {
+		options.scene->camera->width = options.width;
+		options.scene->camera->height = options.height;
+	}
+	else {
 		options.width = options.scene->camera->width;
 		options.height = options.scene->camera->height;
 	}
+
+	/* Calculate Viewplane */
+	options.scene->camera->compute_auto_viewplane();
 }
 
 static void session_exit()
@@ -216,8 +226,16 @@ static void resize(int width, int height)
 	options.width = width;
 	options.height = height;
 
-	if(options.session)
+	if(options.session) {
+		/* Update camera */
+		options.session->scene->camera->width = width;
+		options.session->scene->camera->height = height;
+		options.session->scene->camera->compute_auto_viewplane();
+		options.session->scene->camera->need_update = true;
+		options.session->scene->camera->need_device_update = true;
+
 		options.session->reset(session_buffer_params(), options.session_params.samples);
+	}
 }
 
 static void keyboard(unsigned char key)
@@ -360,12 +378,12 @@ static void options_parse(int argc, const char **argv)
 		fprintf(stderr, "No file path specified\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	/* For smoother Viewport */
 	options.session_params.start_resolution = 64;
 
 	/* load scene */
-	scene_init(options.width, options.height);
+	scene_init();
 }
 
 CCL_NAMESPACE_END
