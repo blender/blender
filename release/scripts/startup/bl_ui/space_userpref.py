@@ -970,13 +970,13 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.prop(input_prefs, "ndof_panx_invert_axis")
             layout.prop(input_prefs, "ndof_pany_invert_axis")
             layout.prop(input_prefs, "ndof_panz_invert_axis")
+            layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
 
             layout.label(text="Zoom options")
             layout.prop(input_prefs, "ndof_zoom_invert")
-            layout.prop(input_prefs, "ndof_zoom_updown")
 
             layout.separator()
-            layout.label(text="Fly options")
+            layout.label(text="Fly/Walk options")
             layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
             layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
 

@@ -2855,33 +2855,20 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 {
 	wmNDOFMotionData *data = MEM_mallocN(sizeof(wmNDOFMotionData), "customdata NDOF");
 
-	const float s = U.ndof_sensitivity;
+	const float ts = U.ndof_sensitivity;
 	const float rs = U.ndof_orbit_sensitivity;
 
-	data->tx = s * ghost->tx;
+	mul_v3_v3fl(data->tvec, &ghost->tx, ts);
+	mul_v3_v3fl(data->rvec, &ghost->rx, rs);
 
-	data->rx = rs * ghost->rx;
-	data->ry = rs * ghost->ry;
-	data->rz = rs * ghost->rz;
-
-	if (U.ndof_flag & NDOF_ZOOM_UPDOWN) {
-		/* rotate so Y is where Z was */
-		data->ty = s * ghost->tz;
-		data->tz = s * ghost->ty;
-		/* maintain handed-ness? or just do what feels right? */
-
-		/* should this affect rotation also?
-		 * initial guess is 'yes', but get user feedback immediately!
-		 */
-#if 0
-		/* after turning this on, my guess becomes 'no' */
-		data->ry = s * ghost->rz;
-		data->rz = s * ghost->ry;
-#endif
-	}
-	else {
-		data->ty = s * ghost->ty;
-		data->tz = s * ghost->tz;
+	/**
+	 * \note
+	 * - optionally swap Y/Z.
+	 * - maintain handed-ness? or just do what feels right? not for now.
+	 * - after testing seems best not to apply this to rotation.
+	 */
+	if (U.ndof_flag & NDOF_PAN_YZ_SWAP_AXIS) {
+		SWAP(float, data->tvec[1], data->tvec[2]);
 	}
 
 	data->dt = ghost->dt;

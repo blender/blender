@@ -4046,10 +4046,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.25f, 40.0f);
 	RNA_def_property_ui_text(prop, "Orbit Sensitivity", "Overall sensitivity of the 3D Mouse for orbiting");
 
-	prop = RNA_def_property(srna, "ndof_zoom_updown", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ZOOM_UPDOWN);
-	RNA_def_property_ui_text(prop, "Zoom = Up/Down",
-	                         "Zoom using up/down on the device (otherwise forward/backward)");
+	prop = RNA_def_property(srna, "ndof_pan_yz_swap_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_PAN_YZ_SWAP_AXIS);
+	RNA_def_property_ui_text(prop, "Y/Z Swap Axis",
+	                         "Pan using up/down on the device (otherwise forward/backward)");
 
 	prop = RNA_def_property(srna, "ndof_zoom_invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ZOOM_INVERT);
