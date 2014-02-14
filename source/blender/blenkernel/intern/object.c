@@ -3360,7 +3360,7 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
 	int flag = 0;
 
 	if (BKE_key_from_object(ob)) {
-		flag |= eModifierMode_Render;
+		flag |= eModifierMode_Render | eModifierMode_Realtime;
 	}
 	else {
 		ModifierData *md;
