@@ -637,6 +637,11 @@ void curvemapping_premultiply(CurveMapping *cumap, int restore)
 				MEM_freeN(cumap->cm[a].table);
 				cumap->cm[a].table = cumap->cm[a].premultable;
 				cumap->cm[a].premultable = NULL;
+
+				copy_v2_v2(cumap->cm[a].ext_in, cumap->cm[a].premul_ext_in);
+				copy_v2_v2(cumap->cm[a].ext_out, cumap->cm[a].premul_ext_out);
+				zero_v2(cumap->cm[a].premul_ext_in);
+				zero_v2(cumap->cm[a].premul_ext_out);
 			}
 			
 			cumap->flag &= ~CUMA_PREMULLED;
@@ -662,6 +667,11 @@ void curvemapping_premultiply(CurveMapping *cumap, int restore)
 				for (b = 0; b <= CM_TABLE; b++) {
 					cumap->cm[a].table[b].y = curvemap_evaluateF(cumap->cm + 3, cumap->cm[a].table[b].y);
 				}
+
+				copy_v2_v2(cumap->cm[a].premul_ext_in, cumap->cm[a].ext_in);
+				copy_v2_v2(cumap->cm[a].premul_ext_out, cumap->cm[a].ext_out);
+				mul_v2_v2(cumap->cm[a].ext_in, cumap->cm[3].ext_in);
+				mul_v2_v2(cumap->cm[a].ext_out, cumap->cm[3].ext_out);
 			}
 			
 			cumap->flag |= CUMA_PREMULLED;

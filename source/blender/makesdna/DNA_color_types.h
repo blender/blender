@@ -60,7 +60,10 @@ typedef struct CurveMap {
 	float ext_in[2], ext_out[2];	/* for extrapolated curves, the direction vector */
 	CurveMapPoint *curve;			/* actual curve */
 	CurveMapPoint *table;			/* display and evaluate table */
+
 	CurveMapPoint *premultable;		/* for RGB curves, premulled table */
+	float premul_ext_in[2];			/* for RGB curves, premulled extrapolation vector */
+	float premul_ext_out[2];
 } CurveMap;
 
 /* cuma->flag */
