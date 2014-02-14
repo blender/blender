@@ -583,7 +583,7 @@ processEvents(
 		}
 
 #ifdef WITH_INPUT_NDOF
-		if (dynamic_cast<GHOST_NDOFManagerX11 *>(m_ndofManager)->processEvents()) {
+		if (static_cast<GHOST_NDOFManagerX11 *>(m_ndofManager)->processEvents()) {
 			anyProcessed = true;
 		}
 #endif
