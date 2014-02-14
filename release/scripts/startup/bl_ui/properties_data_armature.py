@@ -201,10 +201,6 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
 
             col.operator("poselib.action_sanitize", icon='HELP', text="")  # XXX: put in menu?
 
-            # properties for active marker
-            if pose_marker_active is not None:
-                layout.prop(pose_marker_active, "name")
-
 
 # TODO: this panel will soon be deprecated too
 class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
