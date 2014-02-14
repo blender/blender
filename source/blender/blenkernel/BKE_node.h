@@ -770,7 +770,7 @@ void            ntreeShaderGetTexcoMode(struct bNodeTree *ntree, int osa, short 
 extern void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 void            set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
 
-void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
+void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat, short compatibility);
 
 
 /* ************** COMPOSITE NODES *************** */

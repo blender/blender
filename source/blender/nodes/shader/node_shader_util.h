@@ -98,6 +98,6 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, struct bNodeSta
 void node_data_from_gpu_stack(struct bNodeStack *ns, struct GPUNodeStack *gs);
 void node_shader_gpu_tex_mapping(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out);
 
-void ntreeExecGPUNodes(struct bNodeTreeExec *exec, struct GPUMaterial *mat, int do_outputs);
+void ntreeExecGPUNodes(struct bNodeTreeExec *exec, struct GPUMaterial *mat, int do_outputs, short compatibility);
 
 #endif

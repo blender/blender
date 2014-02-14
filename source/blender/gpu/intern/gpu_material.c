@@ -1592,7 +1592,10 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 
 	if (!(scene->gm.flag & GAME_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
 		/* create nodes */
-		ntreeGPUMaterialNodes(ma->nodetree, mat);
+		if (BKE_scene_use_new_shading_nodes(scene))
+			ntreeGPUMaterialNodes(ma->nodetree, mat, NODE_NEW_SHADING);
+		else
+			ntreeGPUMaterialNodes(ma->nodetree, mat, NODE_OLD_SHADING);
 	}
 	else {
 		if (BKE_scene_use_new_shading_nodes(scene)) {

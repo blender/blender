@@ -187,14 +187,14 @@ void register_node_tree_type_sh(void)
 
 /* GPU material from shader nodes */
 
-void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
+void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibility)
 {
 	/* localize tree to create links for reroute and mute */
 	bNodeTree *localtree = ntreeLocalize(ntree);
 	bNodeTreeExec *exec;
 
 	exec = ntreeShaderBeginExecTree(localtree);
-	ntreeExecGPUNodes(exec, mat, 1);
+	ntreeExecGPUNodes(exec, mat, 1, compatibility);
 	ntreeShaderEndExecTree(exec);
 
 	ntreeFreeTree_ex(localtree, false);

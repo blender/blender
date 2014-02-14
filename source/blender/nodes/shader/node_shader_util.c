@@ -219,7 +219,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 	return inactivenode;
 }
 
-void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
+void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs, short compatibility)
 {
 	bNodeExec *nodeexec;
 	bNode *node;
@@ -238,8 +238,9 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 		do_it = FALSE;
 		/* for groups, only execute outputs for edited group */
 		if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
-			if (do_outputs && (node->flag & NODE_DO_OUTPUT))
-				do_it = TRUE;
+			if (node->typeinfo->compatibility & compatibility)
+				if (do_outputs && (node->flag & NODE_DO_OUTPUT))
+					do_it = TRUE;
 		}
 		else
 			do_it = TRUE;
