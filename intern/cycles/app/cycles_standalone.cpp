@@ -29,6 +29,7 @@
 #include "util_progress.h"
 #include "util_string.h"
 #include "util_time.h"
+#include "util_transform.h"
 
 #ifdef WITH_CYCLES_STANDALONE_GUI
 #include "util_view.h"
@@ -179,6 +180,30 @@ static void display()
 	display_info(options.session->progress);
 }
 
+static void motion(int x, int y, int button)
+{
+	/* Translate */
+	if(button == 0) {
+		float3 translate = make_float3(x*0.01, y*0.01, 0.0f);
+		options.session->scene->camera->matrix = options.session->scene->camera->matrix * transform_translate(translate);
+	}
+	
+	/* Rotate */
+	else if(button == 2) {
+		float4 r1= make_float4(x*0.1, 0.0f, 1.0f, 0.0f);
+		options.session->scene->camera->matrix = options.session->scene->camera->matrix * transform_rotate(r1.x*M_PI/180.0f, make_float3(r1.y, r1.z, r1.w));
+		
+		float4 r2 = make_float4(y*0.1, 1.0f, 0.0, 0.0f);
+		options.session->scene->camera->matrix = options.session->scene->camera->matrix * transform_rotate(r2.x*M_PI/180.0f, make_float3(r2.y, r2.z, r2.w));
+	}
+	
+	/* Update and Reset */
+	options.session->scene->camera->need_update = true;
+	options.session->scene->camera->need_device_update = true;
+	
+	options.session->reset(session_buffer_params(), options.session_params.samples);
+}
+
 static void resize(int width, int height)
 {
 	options.width = width;
@@ -326,6 +351,9 @@ static void options_parse(int argc, const char **argv)
 		fprintf(stderr, "No file path specified\n");
 		exit(EXIT_FAILURE);
 	}
+	
+	/* For smoother Viewport */
+	options.session_params.start_resolution = 64;
 
 	/* load scene */
 	scene_init(options.width, options.height);
@@ -353,7 +381,7 @@ int main(int argc, const char **argv)
 
 		/* init/exit are callback so they run while GL is initialized */
 		view_main_loop(title.c_str(), options.width, options.height,
-			session_init, session_exit, resize, display, keyboard);
+			session_init, session_exit, resize, display, keyboard, motion);
 	}
 #endif
 
