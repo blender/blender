@@ -46,7 +46,8 @@ struct Options {
 	int width, height;
 	SceneParams scene_params;
 	SessionParams session_params;
-	bool quiet, show_help, interactive;
+	bool quiet;
+	bool show_help, interactive, pause;
 } options;
 
 static void session_print(const string& str)
@@ -240,14 +241,50 @@ static void resize(int width, int height)
 
 static void keyboard(unsigned char key)
 {
-	if(key == 'r')
-		options.session->reset(session_buffer_params(), options.session_params.samples);
-	else if(key == 'h')
+	/* Toggle help */
+	if(key == 'h')
 		options.show_help = !(options.show_help);
-	else if(key == 'i')
-		options.interactive = !(options.interactive);
+
+	/* Reset */
+	else if(key == 'r')
+		options.session->reset(session_buffer_params(), options.session_params.samples);
+
+	/* Cancel */
 	else if(key == 27) // escape
 		options.session->progress.set_cancel("Canceled");
+
+	/* Pause */
+	else if(key == 'p') {
+		options.pause = !options.pause;
+		options.session->set_pause(options.pause);
+	}
+
+	/* Interactive Mode */
+	else if(key == 'i')
+		options.interactive = !(options.interactive);
+
+	else if(options.interactive && (key == 'w' || key == 'a' || key == 's' || key == 'd')) {
+		Transform matrix = options.session->scene->camera->matrix;
+		float3 translate;
+
+		if(key == 'w')
+			translate = make_float3(0.0f, 0.0f, 0.1f);
+		else if(key == 's')
+			translate = make_float3(0.0f, 0.0f, -0.1f);
+		else if(key == 'a')
+			translate = make_float3(-0.1f, 0.0f, 0.0f);
+		else if(key == 'd')
+			translate = make_float3(0.1f, 0.0f, 0.0f);
+
+		matrix = matrix * transform_translate(translate);
+
+		/* Update and Reset */
+		options.session->scene->camera->matrix = matrix;
+		options.session->scene->camera->need_update = true;
+		options.session->scene->camera->need_device_update = true;
+
+		options.session->reset(session_buffer_params(), options.session_params.samples);
+	}
 }
 #endif
 

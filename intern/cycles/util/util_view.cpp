@@ -100,14 +100,16 @@ void view_display_help()
 	view_display_text(x1+20, y2-20, "Cycles Renderer");
 	view_display_text(x1+20, y2-40, "(C) 2011-2014 Blender Foundation");
 	view_display_text(x1+20, y2-80, "Controls:");
-	view_display_text(x1+20, y2-100, "h:  Show/Hide this help message");
-	view_display_text(x1+20, y2-120, "r:  Restart the render");
-	view_display_text(x1+20, y2-140, "q:  Quit the program");
-	view_display_text(x1+20, y2-160, "esc:  Cancel the render");
+	view_display_text(x1+20, y2-100, "h:  Info/Help");
+	view_display_text(x1+20, y2-120, "r:  Reset");
+	view_display_text(x1+20, y2-140, "p:  Pause");
+	view_display_text(x1+20, y2-160, "esc:  Cancel");
+	view_display_text(x1+20, y2-180, "q:  Quit program");
 
-	view_display_text(x1+20, y2-190, "Interactive Mode (i-key):");
-	view_display_text(x1+20, y2-210, "LMB:  Move camera");
-	view_display_text(x1+20, y2-230, "RMB:  Rotate camera");
+	view_display_text(x1+20, y2-210, "i:  Interactive mode");
+	view_display_text(x1+20, y2-230, "Left mouse:  Move camera");
+	view_display_text(x1+20, y2-250, "Right mouse:  Rotate camera");
+	view_display_text(x1+20, y2-270, "W/A/S/D:  Move camera");
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 }
