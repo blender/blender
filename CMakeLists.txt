@@ -512,9 +512,12 @@ endif()
 #-----------------------------------------------------------------------------
 # Check for valid directories
 # ... a partial checkout may cause this.
+#
+# note: we need to check for a known subdir in both cases.
+#       since uninitialized git submodules will give blank dirs
 
 if(WITH_INTERNATIONAL)
-	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale/languages")
 		message(WARNING "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
 						"This is a 'git submodule', which are known not to work with bridges to other version "
 						"control systems, disabling 'WITH_INTERNATIONAL'.")
@@ -523,7 +526,7 @@ if(WITH_INTERNATIONAL)
 endif()
 
 if(WITH_PYTHON)
-	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons")
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons/modules")
 		message(WARNING "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
 						"This is a 'git submodule', which are known not to work with bridges to other version "
 						"control systems: * CONTINUING WITHOUT ADDONS *")
