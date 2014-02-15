@@ -77,12 +77,32 @@ bool GHOST_NDOFManagerX11::available()
 	return m_available;
 }
 
+/*
+ * Workaround for a problem where we don't enter the 'GHOST_kFinished' state,
+ * this causes any proceeding event to have a very high 'dt' (time delta),
+ * many seconds for eg, causing the view to jump.
+ *
+ * this workaround expect's continuous events, if we miss a motion event,
+ * immediately send a dummy event with no motion to ensure the finished state is reached.
+ */
+#define USE_FINISH_GLITCH_WORKAROUND
+
+
+#ifdef USE_FINISH_GLITCH_WORKAROUND
+static bool motion_test_prev = false;
+#endif
+
 bool GHOST_NDOFManagerX11::processEvents()
 {
 	bool anyProcessed = false;
 
 	if (m_available) {
 		spnav_event e;
+
+#ifdef USE_FINISH_GLITCH_WORKAROUND
+		bool motion_test = false;
+#endif
+
 		while (spnav_poll_event(&e)) {
 			switch (e.type) {
 				case SPNAV_EVENT_MOTION:
@@ -94,6 +114,9 @@ bool GHOST_NDOFManagerX11::processEvents()
 
 					updateTranslation(t, now);
 					updateRotation(r, now);
+#ifdef USE_FINISH_GLITCH_WORKAROUND
+					motion_test = true;
+#endif
 					break;
 				}
 				case SPNAV_EVENT_BUTTON:
@@ -103,6 +126,20 @@ bool GHOST_NDOFManagerX11::processEvents()
 			}
 			anyProcessed = true;
 		}
+
+#ifdef USE_FINISH_GLITCH_WORKAROUND
+		if (motion_test_prev == true && motion_test == false) {
+			GHOST_TUns64 now = m_system.getMilliSeconds();
+			const short v[3] = {0, 0, 0};
+
+			updateTranslation(v, now);
+			updateRotation(v, now);
+
+			anyProcessed = true;
+		}
+		motion_test_prev = motion_test;
+#endif
+
 	}
 
 	return anyProcessed;
