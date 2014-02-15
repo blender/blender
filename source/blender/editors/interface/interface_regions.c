@@ -325,12 +325,15 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
-		/* full string */
-		ui_get_but_string(but, buf, sizeof(buf));
-		if (buf[0]) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Value: %s"), buf);
-			data->color_id[data->totline] = UI_TIP_LC_NORMAL;
-			data->totline++;
+		/* better not show the value of a password */
+		if ((but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD)) == 0) {
+			/* full string */
+			ui_get_but_string(but, buf, sizeof(buf));
+			if (buf[0]) {
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Value: %s"), buf);
+				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
+				data->totline++;
+			}
 		}
 	}
 

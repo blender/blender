@@ -1677,6 +1677,13 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		return;
 	}
 
+	if (mode == 'c') {
+		/* disallow copying from any passwords */
+		if (but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD)) {
+			return;
+		}
+	}
+
 	if (mode == 'v') {
 		/* extract first line from clipboard in case of multi-line copies */
 		int pbuf_len;
