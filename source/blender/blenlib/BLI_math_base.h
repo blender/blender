@@ -240,7 +240,7 @@ MINLINE unsigned short highest_order_bit_s(unsigned short n);
 
 MINLINE float shell_angle_to_dist(const float angle);
 
-#if defined(MSC_VER) && (MSC_VER < 1800)
+#if defined(_MSC_VER) && (_MSC_VER < 1800)
 extern double copysign(double x, double y);
 extern double round(double x);
 #endif
