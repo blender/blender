@@ -187,7 +187,6 @@ void BIF_deleteSketch(struct bContext *C);
 void BIF_selectAllSketch(struct bContext *C, int mode); /* -1: deselect, 0: select, 1: toggle */
 
 void  BIF_makeListTemplates(const struct bContext *C);
-const char *BIF_listTemplates(const struct bContext *C);
 int   BIF_currentTemplate(const struct bContext *C);
 void  BIF_freeTemplates(struct bContext *C);
 void  BIF_setTemplate(struct bContext *C, int index);

@@ -102,13 +102,6 @@ void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagg
 
 struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-#if 0
-void IDnames_to_pupstring(const char **str, const char *title, const char *extraops,
-                          struct ListBase *lb, struct ID *link, short *nr);
-void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops,
-                           struct ListBase *lb, struct ID *link, short *nr);
-#endif
-
 void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
 void set_free_notifier_reference_cb(void (*func)(const void *) );
 

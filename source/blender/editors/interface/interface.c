@@ -4168,22 +4168,11 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 
 		if (type == BUT_GET_LABEL) {
 			if (but->str) {
-				/* Menu labels can have some complex formating stuff marked by pipes or %t, we don't want those here! */
-				const char *tc1, *tc2;
-
-				tc1 = strstr(but->str, "%t");
-				tc2 = strstr(but->str, UI_SEP_CHAR_S);
-
-				if (tc2 && (!tc1 || tc1 > tc2))
-					tc1 = tc2;
-
-				if (tc1)
-					tmp = BLI_strdupn(but->str, tc1 - but->str);
-				else
-					tmp = BLI_strdup(but->str);
+				tmp = BLI_strdup(but->str);
 			}
-			else
+			else {
 				type = BUT_GET_RNA_LABEL;  /* Fail-safe solution... */
+			}
 		}
 		else if (type == BUT_GET_TIP) {
 			if (but->tip && but->tip[0])

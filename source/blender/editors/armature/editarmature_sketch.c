@@ -165,6 +165,7 @@ void BIF_makeListTemplates(const bContext *C)
 	}
 }
 
+#if 0  /* UNUSED */
 const char *BIF_listTemplates(const bContext *UNUSED(C))
 {
 	GHashIterator ghi;
@@ -194,6 +195,7 @@ const char *BIF_listTemplates(const bContext *UNUSED(C))
 
 	return TEMPLATES_MENU;
 }
+#endif
 
 int   BIF_currentTemplate(const bContext *C)
 {
