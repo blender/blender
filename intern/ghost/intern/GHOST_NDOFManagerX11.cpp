@@ -89,8 +89,8 @@ bool GHOST_NDOFManagerX11::processEvents()
 				{
 					/* convert to blender view coords */
 					GHOST_TUns64 now = m_system.getMilliSeconds();
-					short t[3] = {(short)e.motion.x, (short)e.motion.y, (short)-e.motion.z};
-					short r[3] = {(short)-e.motion.rx, (short)-e.motion.ry, (short)e.motion.rz};
+					const short t[3] = {(short)e.motion.x, (short)e.motion.y, (short)-e.motion.z};
+					const short r[3] = {(short)-e.motion.rx, (short)-e.motion.ry, (short)e.motion.rz};
 
 					updateTranslation(t, now);
 					updateRotation(r, now);
