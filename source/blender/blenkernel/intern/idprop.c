@@ -334,12 +334,11 @@ IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 		prop->len = 1;  /* NULL string, has len of 1 to account for null byte. */
 	}
 	else {
-		int stlen = strlen(st);
+		/* include null terminator '\0' */
+		int stlen = strlen(st) + 1;
 
 		if (maxlen > 0 && maxlen < stlen)
 			stlen = maxlen;
-
-		stlen++; /* null terminator '\0' */
 
 		prop->data.pointer = MEM_mallocN(stlen, "id property string 2");
 		prop->len = prop->totallen = stlen;

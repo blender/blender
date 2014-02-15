@@ -2594,7 +2594,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 
 		group = RNA_struct_idprops(ptr, 1);
 		if (group)
-			IDP_AddToGroup(group, IDP_NewString(value, prop->identifier, RNA_property_string_maxlength(prop) - 1));
+			IDP_AddToGroup(group, IDP_NewString(value, prop->identifier, RNA_property_string_maxlength(prop)));
 	}
 }
 
