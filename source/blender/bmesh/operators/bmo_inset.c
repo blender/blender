@@ -390,6 +390,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	const bool use_even_offset     = BMO_slot_bool_get(op->slots_in, "use_even_offset");
 	const bool use_even_boundry    = use_even_offset; /* could make own option */
 	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
+	const bool use_edge_rail       = BMO_slot_bool_get(op->slots_in, "use_edge_rail");
 	const bool use_interpolate     = BMO_slot_bool_get(op->slots_in, "use_interpolate");
 	const float thickness          = BMO_slot_float_get(op->slots_in, "thickness");
 	const float depth              = BMO_slot_float_get(op->slots_in, "depth");
@@ -616,7 +617,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 							 * cross product between both face normals */
 							add_v3_v3v3(tvec, e_info_a->no, e_info_b->no);
 
-							if (f_a != f_b) {
+							if (use_edge_rail == false) {
+								/* pass */
+							}
+							else if (f_a != f_b) {
 								/* these lookups are very quick */
 								BMLoop *l_other_a = BM_loop_other_vert_loop(e_info_a->l, v_split);
 								BMLoop *l_other_b = BM_loop_other_vert_loop(e_info_b->l, v_split);

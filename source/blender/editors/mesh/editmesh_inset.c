@@ -196,6 +196,7 @@ static bool edbm_inset_calc(wmOperator *op)
 	const bool use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
 	const bool use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
 	const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
+	const bool use_edge_rail       = RNA_boolean_get(op->ptr, "use_edge_rail");
 	const float thickness          = RNA_float_get(op->ptr,   "thickness");
 	const float depth              = RNA_float_get(op->ptr,   "depth");
 	const bool use_outset          = RNA_boolean_get(op->ptr, "use_outset");
@@ -220,9 +221,9 @@ static bool edbm_inset_calc(wmOperator *op)
 	else {
 		EDBM_op_init(em, &bmop, op,
 		             "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b"
-		             " use_interpolate=%b thickness=%f depth=%f use_outset=%b",
+		             " use_interpolate=%b thickness=%f depth=%f use_outset=%b use_edge_rail=%b",
 		             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_interpolate,
-		             thickness, depth, use_outset);
+		             thickness, depth, use_outset, use_edge_rail);
 	}
 	BMO_op_exec(em->bm, &bmop);
 
@@ -502,6 +503,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_boundary",        true, "Boundary",  "Inset face boundaries");
 	RNA_def_boolean(ot->srna, "use_even_offset",     true, "Offset Even",      "Scale the offset to give more even thickness");
 	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
+	RNA_def_boolean(ot->srna, "use_edge_rail",     true, "Edge Rail", "Inset the region along existing edges");
 
 	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "Thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */

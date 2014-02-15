@@ -1673,6 +1673,7 @@ static BMOpDefine bmo_inset_region_def = {
 	 {"use_even_offset", BMO_OP_SLOT_BOOL},
 	 {"use_interpolate", BMO_OP_SLOT_BOOL},
 	 {"use_relative_offset", BMO_OP_SLOT_BOOL},
+	 {"use_edge_rail", BMO_OP_SLOT_BOOL},
 	 {"thickness", BMO_OP_SLOT_FLT},
 	 {"depth", BMO_OP_SLOT_FLT},
 	 {"use_outset", BMO_OP_SLOT_BOOL},
