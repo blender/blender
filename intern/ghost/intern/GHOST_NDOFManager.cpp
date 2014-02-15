@@ -506,7 +506,5 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	m_system.pushEvent(event);
 
-	m_prevMotionTime = m_motionTime;
-
 	return true;
 }

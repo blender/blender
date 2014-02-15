@@ -162,7 +162,7 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 	if (GHOST_NDOFManager3Dconnexion_available())
 	{
 		GHOST_NDOFManager3Dconnexion_UnregisterConnexionClient(m_clientID);
-        GHOST_NDOFManager3Dconnexion_UnregisterConnexionClient(m_clientID);
+		GHOST_NDOFManager3Dconnexion_UnregisterConnexionClient(m_clientID);
 
 		GHOST_NDOFManager3Dconnexion_CleanupConnexionHandlers();
 		ghost_system = NULL;

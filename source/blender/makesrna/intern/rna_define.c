@@ -2143,7 +2143,7 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 
 void RNA_def_property_update_runtime(PropertyRNA *prop, const void *func)
 {
-	prop->update = func;
+	prop->update = (void *)func;
 }
 
 void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength)
