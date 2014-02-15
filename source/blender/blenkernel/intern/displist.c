@@ -803,6 +803,8 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, ListBase *nurb,
 	float *keyVerts = NULL;
 	int required_mode;
 
+	modifiers_clearErrors(ob);
+
 	if (editmode)
 		app_flag |= MOD_APPLY_USECACHE;
 	if (renderResolution) {
