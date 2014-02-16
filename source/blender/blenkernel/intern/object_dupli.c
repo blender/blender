@@ -780,7 +780,7 @@ static void make_duplis_faces(const DupliContext *ctx)
 	bool for_render = ctx->eval_ctx->for_render;
 	FaceDupliData fdd;
 
-	fdd.use_scale = parent->transflag & OB_DUPLIFACES_SCALE;
+	fdd.use_scale = ((parent->transflag & OB_DUPLIFACES_SCALE) != 0);
 
 	/* gather mesh info */
 	{
