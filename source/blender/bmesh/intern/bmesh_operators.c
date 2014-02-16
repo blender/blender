@@ -1314,13 +1314,10 @@ static void bmo_flag_layer_free(BMesh *bm)
 
 static void bmo_flag_layer_clear(BMesh *bm)
 {
-	BMElemF *ele;
 	/* set the index values since we are looping over all data anyway,
 	 * may save time later on */
-	int i;
 	const BMFlagLayer zero_flag = {0};
 
-	BMIter iter;
 	const int totflags_offset = bm->totflags - 1;
 
 #pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
@@ -1328,6 +1325,9 @@ static void bmo_flag_layer_clear(BMesh *bm)
 		/* now go through and memcpy all the flag */
 #pragma omp section
 		{
+			BMIter iter;
+			BMElemF *ele;
+			int i;
 			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
 				ele->oflags[totflags_offset] = zero_flag;
 				BM_elem_index_set(ele, i); /* set_inline */
@@ -1335,6 +1335,9 @@ static void bmo_flag_layer_clear(BMesh *bm)
 		}
 #pragma omp section
 		{
+			BMIter iter;
+			BMElemF *ele;
+			int i;
 			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, i) {
 				ele->oflags[totflags_offset] = zero_flag;
 				BM_elem_index_set(ele, i); /* set_inline */
@@ -1342,6 +1345,9 @@ static void bmo_flag_layer_clear(BMesh *bm)
 		}
 #pragma omp section
 		{
+			BMIter iter;
+			BMElemF *ele;
+			int i;
 			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, i) {
 				ele->oflags[totflags_offset] = zero_flag;
 				BM_elem_index_set(ele, i); /* set_inline */
