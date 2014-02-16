@@ -1001,7 +1001,23 @@ elseif(WIN32)
 		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /MT /Zi /MP" CACHE STRING "MSVC MT flags " FORCE)
 
 		# most msvc warnings are C & C++
-		set(_WARNINGS "/W3 /wd4018 /wd4244 /wd4305 /wd4800 /wd4181 /wd4065 /wd4267 /we4013 /wd4200")
+		set(_WARNINGS
+			# warning level:
+			"/W3"
+			# disable:
+			"/wd4018"  # signed/unsigned mismatch
+			"/wd4065"  # switch statement contains 'default' but no 'case' labels
+			"/wd4181"  # qualifier applied to reference type; ignored
+			"/wd4200"  # zero-sized array in struct/union
+			"/wd4244"  # conversion from 'type1' to 'type2', possible loss of data
+			"/wd4267"  # conversion from 'size_t' to 'type', possible loss of data
+			"/wd4305"  # truncation from 'type1' to 'type2'
+			"/wd4800"  # forcing value to bool 'true' or 'false'
+			# errors:
+			"/we4013"  # 'function' undefined; assuming extern returning int
+		)
+
+		string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
 		set(C_WARNINGS "${_WARNINGS}")
 		set(CXX_WARNINGS "${_WARNINGS}")
 		unset(_WARNINGS)

@@ -38,4 +38,13 @@
 #  endif
 #endif
 
+#ifdef _MSC_VER
+#  pragma warning(error:4018)  /* signed/unsigned mismatch */
+#  pragma warning(error:4244)  /* conversion from 'type1' to 'type2', possible loss of data */
+#  pragma warning(error:4245)  /* conversion from 'int' to 'unsigned int' */
+#  pragma warning(error:4267)  /* conversion from 'size_t' to 'type', possible loss of data */
+#  pragma warning(error:4305)  /* truncation from 'type1' to 'type2' */
+#  pragma warning(error:4389)  /* signed/unsigned mismatch */
+#endif
+
 #endif  /* __BLI_STRICT_FLAGS_H__ */
