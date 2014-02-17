@@ -119,6 +119,7 @@ const char *imb_ext_image_qt[] = {
 	NULL
 };
 
+#if 0  /* UNUSED */
 const char *imb_ext_movie_qt[] = {
 	".avi",   
 	".flc",   
@@ -129,6 +130,7 @@ const char *imb_ext_movie_qt[] = {
 	".mv",
 	NULL
 };
+#endif
 
 const char *imb_ext_movie[] = {
 	".avi",

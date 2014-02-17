@@ -330,7 +330,7 @@ static void ui_imageuser_layer_menu(bContext *UNUSED(C), uiLayout *layout, void 
 	RenderResult *rr = rnd_data[0];
 	ImageUser *iuser = rnd_data[1];
 	RenderLayer *rl;
-	RenderLayer rl_fake = {0};
+	RenderLayer rl_fake = {NULL};
 	const char *fake_name;
 	int nr;
 
@@ -382,7 +382,7 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 	ImageUser *iuser = ptrpair[1];
 	/* rl==NULL means composite result */
 	RenderLayer *rl = ptrpair[2];
-	RenderPass rpass_fake = {0};
+	RenderPass rpass_fake = {NULL};
 	RenderPass *rpass;
 	const char *fake_name;
 	int nr;

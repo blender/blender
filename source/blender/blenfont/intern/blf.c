@@ -64,7 +64,7 @@
 #define BLF_MAX_FONT 16
 
 /* Font array. */
-static FontBLF *global_font[BLF_MAX_FONT] = {0};
+static FontBLF *global_font[BLF_MAX_FONT] = {NULL};
 
 /* Default size and dpi, for BLF_draw_default. */
 static int global_font_default = -1;
