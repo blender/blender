@@ -1502,81 +1502,83 @@ static int mask_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskLayer *mask_layer = BKE_mask_layer_active(mask);
-	MaskSpline *spline;
+	MaskLayer *mask_layer;
 
-	if (mask_layer == NULL) {
-		return OPERATOR_CANCELLED;
-	}
-
-	for (spline = mask_layer->splines.last;
-	     spline;
-	     spline = spline->prev)
+	for (mask_layer = mask->masklayers.first;
+	     mask_layer;
+	     mask_layer = mask_layer->next)
 	{
-		MaskSplinePoint *point = spline->points;
-		int i = 0;
-		while (i < spline->tot_point) {
-			int start = i, end = -1;
-			/* Find next selected segment. */
-			while (MASKPOINT_ISSEL_ANY(point)) {
-				BKE_mask_point_select_set(point, false);
-				end = i;
-				if (i >= spline->tot_point - 1) {
-					break;
+		MaskSpline *spline;
+
+		for (spline = mask_layer->splines.last;
+		     spline;
+		     spline = spline->prev)
+		{
+			MaskSplinePoint *point = spline->points;
+			int i = 0;
+			while (i < spline->tot_point) {
+				int start = i, end = -1;
+				/* Find next selected segment. */
+				while (MASKPOINT_ISSEL_ANY(point)) {
+					BKE_mask_point_select_set(point, false);
+					end = i;
+					if (i >= spline->tot_point - 1) {
+						break;
+					}
+					i++;
+					point++;
+				}
+				if (end >= start) {
+					MaskSpline *new_spline = BKE_mask_spline_add(mask_layer);
+					MaskSplinePoint *new_point;
+					int b;
+
+					/* BKE_mask_spline_add might allocate the points, need to free them in this case. */
+					if (new_spline->points) {
+						MEM_freeN(new_spline->points);
+					}
+
+					/* Copy options from old spline. */
+					new_spline->flag = spline->flag;
+					new_spline->offset_mode = spline->offset_mode;
+					new_spline->weight_interp = spline->weight_interp;
+					new_spline->parent = spline->parent;
+
+					/* Allocate new points and copy them from old spline. */
+					new_spline->tot_point = end - start + 1;
+					new_spline->points = MEM_mallocN(sizeof(MaskSplinePoint) * new_spline->tot_point,
+					                                 "duplicated mask points");
+
+					memcpy(new_spline->points, spline->points + start,
+					       new_spline->tot_point * sizeof(MaskSplinePoint));
+
+					/* Select points and duplicate their UWs (if needed). */
+					for (b = 0, new_point = new_spline->points;
+					     b < new_spline->tot_point;
+					     b++, new_point++)
+					{
+						if (new_point->uw) {
+							new_point->uw = MEM_dupallocN(new_point->uw);
+						}
+						BKE_mask_point_select_set(new_point, true);
+					}
+
+					/* Clear cyclic flag if we didn't copy the whole spline. */
+					if (new_spline->flag & MASK_SPLINE_CYCLIC) {
+						if (start != 0 || end != spline->tot_point - 1) {
+							new_spline->flag &= ~MASK_SPLINE_CYCLIC;
+						}
+					}
+
+					/* Flush selection to splines. */
+					new_spline->flag |= SELECT;
+					spline->flag &= ~SELECT;
+
+					mask_layer->act_spline = new_spline;
 				}
 				i++;
 				point++;
 			}
-			if (end >= start) {
-				MaskSpline *new_spline = BKE_mask_spline_add(mask_layer);
-				MaskSplinePoint *new_point;
-				int b;
-
-				/* BKE_mask_spline_add might allocate the points, need to free them in this case. */
-				if (new_spline->points) {
-					MEM_freeN(new_spline->points);
-				}
-
-				/* Copy options from old spline. */
-				new_spline->flag = spline->flag;
-				new_spline->offset_mode = spline->offset_mode;
-				new_spline->weight_interp = spline->weight_interp;
-				new_spline->parent = spline->parent;
-
-				/* Allocate new points and copy them from old spline. */
-				new_spline->tot_point = end - start + 1;
-				new_spline->points = MEM_mallocN(sizeof(MaskSplinePoint) * new_spline->tot_point,
-				                                 "duplicated mask points");
-
-				memcpy(new_spline->points, spline->points + start,
-				       new_spline->tot_point * sizeof(MaskSplinePoint));
-
-				/* Select points and duplicate their UWs (if needed). */
-				for (b = 0, new_point = new_spline->points;
-				     b < new_spline->tot_point;
-				     b++, new_point++)
-				{
-					if (new_point->uw) {
-						new_point->uw = MEM_dupallocN(new_point->uw);
-					}
-					BKE_mask_point_select_set(new_point, true);
-				}
-
-				/* Clear cyclic flag if we didn't copy the whole spline. */
-				if (new_spline->flag & MASK_SPLINE_CYCLIC) {
-					if (start != 0 || end != spline->tot_point - 1) {
-						new_spline->flag &= ~MASK_SPLINE_CYCLIC;
-					}
-				}
-
-				/* Flush selection to splines. */
-				new_spline->flag |= SELECT;
-				spline->flag &= ~SELECT;
-
-				mask_layer->act_spline = new_spline;
-			}
-			i++;
-			point++;
 		}
 	}
 
