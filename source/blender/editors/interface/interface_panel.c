@@ -1311,9 +1311,6 @@ static void ui_panel_category_draw_tab(int mode, float minx, float miny, float m
 		mul_v2_fl(vec[a], rad);
 	}
 
-	(void)use_shadow;
-	(void)use_highlight;
-
 	glBegin(mode);
 
 	/* start with corner right-top */
@@ -1641,6 +1638,25 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 				if (pc_dyn) {
 					UI_panel_category_active_set(ar, pc_dyn->idname);
 					ED_region_tag_redraw(ar);
+					retval = WM_UI_HANDLER_BREAK;
+				}
+			}
+			else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+				/* mouse wheel cycle tabs */
+
+				/* first check if the mouse is in the tab region */
+				if (event->ctrl || (event->x < ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmax)) {
+					const char *category = UI_panel_category_active_get(ar, false);
+					if (LIKELY(category)) {
+						PanelCategoryDyn *pc_dyn = UI_panel_category_find(ar, category);
+						if (LIKELY(pc_dyn)) {
+							pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
+							if (pc_dyn) {
+								UI_panel_category_active_set(ar, pc_dyn->idname);
+								ED_region_tag_redraw(ar);
+							}
+						}
+					}
 					retval = WM_UI_HANDLER_BREAK;
 				}
 			}
