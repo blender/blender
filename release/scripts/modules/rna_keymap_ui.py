@@ -274,7 +274,8 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
 
             if kmi_type in _EVENT_TYPES:
                 kmi_type_set.add(kmi_type)
-            else:
+
+            if not kmi_type_set or len(kmi_type) > 1:
                 # replacement table
                 for event_type_map in (_EVENT_TYPE_MAP, _EVENT_TYPE_MAP_EXTRA):
                     kmi_type_test = event_type_map.get(kmi_type)
@@ -288,10 +289,10 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                             if (kmi_type in k) or (kmi_type in v):
                                 kmi_type_set.add(v)
 
-                        if not kmi_type_set:
-                            return False
-
-            kmi_test_dict["type"] = kmi_type_set
+            if not kmi_type_set:
+                return False
+            else:
+                kmi_test_dict["type"] = kmi_type_set
 
         # main filter func, runs many times
         def filter_func(kmi):
