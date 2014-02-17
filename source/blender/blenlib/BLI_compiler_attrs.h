@@ -50,6 +50,13 @@
 #  define ATTR_NONNULL(...)
 #endif
 
+/* never returns NULL */
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 409  /* gcc4.9+ only */
+#  define ATTR_RETURNS_NONNULL __attribute__((returns_nonnull))
+#else
+#  define ATTR_RETURNS_NONNULL
+#endif
+
 /* hint to mark function as it wouldn't return */
 #if defined(__GNUC__) || defined(__clang__)
 #  define ATTR_NORETURN __attribute__((noreturn))
