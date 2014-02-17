@@ -1214,7 +1214,7 @@ EnumPropertyItem DummyRNA_DEFAULT_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item,
+void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **r_item,
                              int *r_totitem, bool *r_free)
 {
 	EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
@@ -1222,38 +1222,42 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 	*r_free = false;
 
 	if (eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
-		if (prop->flag & PROP_ENUM_NO_CONTEXT)
-			*item = eprop->itemf(NULL, ptr, prop, r_free);
-		else
-			*item = eprop->itemf(C, ptr, prop, r_free);
+		EnumPropertyItem *item;
 
-		if ((*item) == NULL) {
-			int tot = 0;
-			RNA_enum_item_end(item, &tot);
-		}
+		if (prop->flag & PROP_ENUM_NO_CONTEXT)
+			item = eprop->itemf(NULL, ptr, prop, r_free);
+		else
+			item = eprop->itemf(C, ptr, prop, r_free);
+
+		/* any callbacks returning NULL should be fixed */
+		BLI_assert(item != NULL);
 
 		if (r_totitem) {
-			int tot = 0;
-			for (; (*item)[tot].identifier; tot++) ;
+			int tot;
+			for (tot = 0; item[tot].identifier; tot++) {
+				/* pass */
+			}
 			*r_totitem = tot;
 		}
 
+		*r_item = item;
 	}
 	else {
-		*item = eprop->item;
+		*r_item = eprop->item;
 		if (r_totitem)
 			*r_totitem = eprop->totitem;
 	}
 }
 
-void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item,
-                                       int *r_totitem, bool *r_free)
+void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop,
+                                       EnumPropertyItem **r_item, int *r_totitem, bool *r_free)
 {
-	RNA_property_enum_items(C, ptr, prop, item, r_totitem, r_free);
+	RNA_property_enum_items(C, ptr, prop, r_item, r_totitem, r_free);
 
 #ifdef WITH_INTERNATIONAL
 	if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
 		int i;
+
 		/* Note: Only do those tests once, and then use BLF_pgettext. */
 		bool do_iface = BLF_translate_iface();
 		bool do_tooltip = BLF_translate_tooltips();
@@ -1263,19 +1267,24 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 			return;
 
 		if (*r_free) {
-			nitem = *item;
+			nitem = *r_item;
 		}
 		else {
-			int totitem = 0;
+			EnumPropertyItem *item = *r_item;
+			int tot;
 
-			/* count */
-			for (i = 0; (*item)[i].identifier; i++)
-				totitem++;
+			if (r_totitem) {
+				tot = *r_totitem;
+			}
+			else {
+				/* count */
+				for (tot = 0; item[tot].identifier; tot++) {
+					/* pass */
+				}
+			}
 
-			nitem = MEM_callocN(sizeof(EnumPropertyItem) * (totitem + 1), "enum_items_gettexted");
-
-			for (i = 0; (*item)[i].identifier; i++)
-				nitem[i] = (*item)[i];
+			nitem = MEM_mallocN(sizeof(EnumPropertyItem) * tot + 1, "enum_items_gettexted");
+			memcpy(nitem, item, sizeof(EnumPropertyItem) * tot + 1);
 
 			*r_free = true;
 		}
@@ -1289,7 +1298,7 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 			}
 		}
 
-		*item = nitem;
+		*r_item = nitem;
 	}
 #endif
 }
