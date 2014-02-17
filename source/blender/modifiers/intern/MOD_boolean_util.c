@@ -521,10 +521,6 @@ static void exporter_SetPoly(ExportMeshData *export_data,
 	mpoly->loopstart = start_loop;
 	mpoly->totloop = num_loops;
 
-	if (which_orig_mesh == CARVE_MESH_RIGHT) {
-		which_orig_mesh = CARVE_MESH_RIGHT;
-	}
-
 	/* Interpolate data for poly loops. */
 	{
 		MVert *source_mverts = which_mvert(export_data, which_orig_mesh);
