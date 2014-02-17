@@ -601,10 +601,12 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 	else {
 		/* Get normal to plane where meet point should be,
 		 * using cross product instead of f->no in case f is non-planar.
-		 * If e1-v-e2 is a reflex angle (viewed from vertex normal side), need to flip*/
+		 * If e1-v-e2 is a reflex angle (viewed from vertex normal side), need to flip.
+		 * Use f->no to figure out which side to look at angle from, as even if
+		 * f is non-planar, will be more accurate than vertex normal */
 		cross_v3_v3v3(norm_v, dir2, dir1);
 		normalize_v3(norm_v);
-		if (dot_v3v3(norm_v, v->no) < 0.0f)
+		if (dot_v3v3(norm_v, f ? f->no : v->no) < 0.0f)
 			negate_v3(norm_v);
 
 		/* get vectors perp to each edge, perp to norm_v, and pointing into face */
