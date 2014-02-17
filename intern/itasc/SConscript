@@ -35,7 +35,4 @@ incs = '. ../../extern/Eigen3'
 
 defs = []
 
-if env['OURPLATFORM']=='darwin' and env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4': # workaround for friend declaration specifies a default argument expression, not allowed anymore
-    env.BlenderLib ('bf_intern_itasc', sources, Split(incs), defs, libtype=['intern','player'], priority=[20,100], cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++' )
-else:
-    env.BlenderLib ('bf_intern_itasc', sources, Split(incs), defs, libtype=['intern','player'], priority=[20,100])
+env.BlenderLib ('bf_intern_itasc', sources, Split(incs), defs, libtype=['intern','player'], priority=[20,100])

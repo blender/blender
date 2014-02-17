@@ -45,7 +45,7 @@ namespace KDL
         bool operator ==(const Jacobian& arg);
         bool operator !=(const Jacobian& arg);
         
-        friend bool Equal(const Jacobian& a,const Jacobian& b,double eps=epsilon);
+        friend bool Equal(const Jacobian& a,const Jacobian& b,double eps);
         
 
         ~Jacobian();
@@ -63,6 +63,7 @@ namespace KDL
 
 
     };
+	bool Equal(const Jacobian&, const Jacobian&, double = epsilon);
 }
 
 #endif
