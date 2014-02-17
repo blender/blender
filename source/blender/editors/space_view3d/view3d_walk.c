@@ -1238,28 +1238,20 @@ static int walkApply_ndof(bContext *C, WalkInfo *walk)
 	rv3d->rot_angle = 0.0f; /* disable onscreen rotation doo-dad */
 
 	if (do_translate) {
-		const float forward_sensitivity  = 1.0f;
-		const float vertical_sensitivity = 0.4f;
-		const float lateral_sensitivity  = 0.6f;
-
 		float speed = 10.0f; /* blender units per second */
+		float trans[3];
 		/* ^^ this is ok for default cube scene, but should scale with.. something */
-
-		float trans[3] = {lateral_sensitivity  * ndof->tvec[0],
-		                  vertical_sensitivity * ndof->tvec[1],
-		                  forward_sensitivity  * ndof->tvec[2]};
-
 		if (walk->is_slow)
 			speed *= 0.2f;
 
-		mul_v3_fl(trans, speed * dt);
+		mul_v3_v3fl(trans, ndof->tvec, speed * dt);
 
 		/* transform motion from view to world coordinates */
 		mul_qt_v3(view_inv, trans);
 
 		if (flag & NDOF_FLY_HELICOPTER) {
 			/* replace world z component with device y (yes it makes sense) */
-			trans[2] = speed * dt * vertical_sensitivity * ndof->tvec[1];
+			trans[2] = speed * dt * ndof->tvec[1];
 		}
 
 		if (rv3d->persp == RV3D_CAMOB) {

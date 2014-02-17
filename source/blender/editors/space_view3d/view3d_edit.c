@@ -1178,12 +1178,6 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const float dt = ndof->dt;
-
-	/* tune these until everything feels right */
-	const float forward_sensitivity = 1.f;
-	const float vertical_sensitivity = 0.4f;
-	const float lateral_sensitivity = 0.6f;
-
 	float view_inv[4];
 	float pan_vec[3];
 
@@ -1191,9 +1185,9 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
 		return;
 	}
 
-	pan_vec[0] = lateral_sensitivity  * ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
-	pan_vec[1] = vertical_sensitivity * ndof->tvec[1] * ((U.ndof_flag & NDOF_PANZ_INVERT_AXIS) ? -1.0f : 1.0f);
-	pan_vec[2] = forward_sensitivity  * ndof->tvec[2] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
+	pan_vec[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
+	pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANZ_INVERT_AXIS) ? -1.0f : 1.0f);
+	pan_vec[2] = ndof->tvec[2] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
 
 	if (has_zoom) {
 		/* zoom with Z */
