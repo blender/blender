@@ -4243,7 +4243,7 @@ static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ImageFormatSettings");
 	
-	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_FILEPATH);
+	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "path");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_NodeOutputFileSlotFile_path_set");
 	RNA_def_struct_name_property(srna, prop);
