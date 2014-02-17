@@ -401,7 +401,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 	BLF_size(fontid, MIN2(24, font_size), U.dpi); /* clamp otherwise it can suck up a LOT of memory */
 	
 	/* title color */
-	UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.8f, 10);
+	UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.4f, 10);
 
 	width = BLF_width(fontid, label, sizeof(label));
 	ascender = BLF_ascender(fontid);
