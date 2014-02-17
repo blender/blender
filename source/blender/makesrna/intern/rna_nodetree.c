@@ -2613,10 +2613,14 @@ static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), Pointer
 	EnumPropertyItem *item = NULL;
 	RenderLayer *rl;
 	
-	if (!ima || !(ima->rr)) return NULL;
-	
-	rl = ima->rr->layers.first;
-	item = renderresult_layers_add_enum(rl);
+	if (ima && ima->rr) {
+		rl = ima->rr->layers.first;
+		item = renderresult_layers_add_enum(rl);
+	}
+	else {
+		int totitem = 0;
+		RNA_enum_item_end(&item, &totitem);
+	}
 	
 	*r_free = true;
 	
@@ -2631,10 +2635,14 @@ static EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *UNUSED(C), Pointer
 	EnumPropertyItem *item = NULL;
 	RenderLayer *rl;
 	
-	if (!sce) return NULL;
-	
-	rl = sce->r.layers.first;
-	item = renderresult_layers_add_enum(rl);
+	if (sce) {
+		rl = sce->r.layers.first;
+		item = renderresult_layers_add_enum(rl);
+	}
+	else {
+		int totitem = 0;
+		RNA_enum_item_end(&item, &totitem);
+	}
 	
 	*r_free = true;
 	
