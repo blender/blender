@@ -654,9 +654,6 @@ public:
 		cuda_assert(cuFuncSetBlockShape(cuPathTrace, xthreads, ythreads, 1))
 		cuda_assert(cuLaunchGridAsync(cuPathTrace, xblocks, yblocks, cuStream))
 
-		cuda_assert(cuEventRecord(tileDone, cuStream ))
-		cuda_assert(cuEventSynchronize(tileDone))
-
 		cuda_pop_context();
 	}
 
@@ -989,6 +986,8 @@ public:
 
 					task->update_progress(tile);
 				}
+				cuda_assert(cuEventRecord(tileDone, cuStream ))
+				cuda_assert(cuEventSynchronize(tileDone))
 
 				task->release_tile(tile);
 			}
