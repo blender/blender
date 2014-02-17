@@ -1311,6 +1311,8 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			BLI_ghash_insert(dupli_gh, dob, ob);
 		if (parent_gh)
 			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, SET_INT_IN_POINTER(dob->persistent_id[0])), ob);
+
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	if (use_hierarchy) {
