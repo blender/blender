@@ -1222,18 +1222,19 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 	*r_free = false;
 
 	if (eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
-		int tot = 0;
-
 		if (prop->flag & PROP_ENUM_NO_CONTEXT)
 			*item = eprop->itemf(NULL, ptr, prop, r_free);
 		else
 			*item = eprop->itemf(C, ptr, prop, r_free);
 
-		if (r_totitem) {
-			if (*item) {
-				for (; (*item)[tot].identifier; tot++) ;
-			}
+		if ((*item) == NULL) {
+			int tot = 0;
+			RNA_enum_item_end(item, &tot);
+		}
 
+		if (r_totitem) {
+			int tot = 0;
+			for (; (*item)[tot].identifier; tot++) ;
 			*r_totitem = tot;
 		}
 
