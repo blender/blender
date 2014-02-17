@@ -82,9 +82,6 @@
 
 #include "view3d_intern.h"  /* own include */
 
-/* for ndof prints */
-// #define DEBUG_NDOF_MOTION
-
 bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d)
 {
 	return (rv3d->persp != RV3D_CAMOB) && (v3d->ob_centre_cursor || v3d->ob_centre);
@@ -1353,21 +1350,16 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		v3d = vod->v3d;
 		rv3d = vod->rv3d;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
-
 		/* off by default, until changed later this function */
 		rv3d->rot_angle = 0.0f;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		if (ndof->progress != P_FINISHING) {
 			const bool has_rotation = NDOF_HAS_ROTATE;
 			/* if we can't rotate, fallback to translate (locked axis views) */
 			const bool has_translate = NDOF_HAS_TRANSLATE && (rv3d->viewlock & RV3D_LOCKED);
 			const bool has_zoom = !rv3d->is_persp;
-
-#ifdef DEBUG_NDOF_MOTION
-			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
-			       ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
-#endif
 
 			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
@@ -1423,10 +1415,10 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		v3d = vod->v3d;
 		rv3d = vod->rv3d;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
-
 		/* off by default, until changed later this function */
 		rv3d->rot_angle = 0.0f;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		if (ndof->progress != P_FINISHING) {
 			const bool has_rotation = NDOF_HAS_ROTATE && (RV3D_VIEW_IS_AXIS(rv3d->view) == false);
@@ -1435,10 +1427,6 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			/* always zoom since this is the main purpose of the function */
 			const bool has_zoom = true;
 
-#ifdef DEBUG_NDOF_MOTION
-			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
-			       ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
-#endif
 			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, true);
 			}
@@ -1489,12 +1477,13 @@ static int ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		const bool has_translate = NDOF_HAS_TRANSLATE;
 		const bool has_zoom = !rv3d->is_persp;
 
+		/* we're panning here! so erase any leftover rotation from other operators */
+		rv3d->rot_angle = 0.0f;
+
 		if (has_translate == false)
 			return OPERATOR_CANCELLED;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
-
-		rv3d->rot_angle = 0.f; /* we're panning here! so erase any leftover rotation from other operators */
 
 		if (ndof->progress != P_FINISHING) {
 			ScrArea *sa = CTX_wm_area(C);
@@ -1550,6 +1539,9 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		vod = op->customdata;
 		v3d = vod->v3d;
 		rv3d = vod->rv3d;
+
+		/* off by default, until changed later this function */
+		rv3d->rot_angle = 0.0f;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
