@@ -1183,8 +1183,8 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
 	}
 
 	pan_vec[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
-	pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANZ_INVERT_AXIS) ? -1.0f : 1.0f);
-	pan_vec[2] = ndof->tvec[2] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
+	pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
+	pan_vec[2] = ndof->tvec[2] * ((U.ndof_flag & NDOF_PANZ_INVERT_AXIS) ? -1.0f : 1.0f);
 
 	if (has_zoom) {
 		/* zoom with Z */

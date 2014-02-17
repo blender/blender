@@ -1333,6 +1333,7 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 	else {
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		ARegion *ar = CTX_wm_region(C);
+		float pan_vec[2];
 
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
@@ -1342,9 +1343,6 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 		const float zoom_sensitivity = 0.5f;  /* 50% per second (I think) */
 		const float pan_sensitivity = 300.0f; /* screen pixels per second */
 
-		float pan_x = pan_sensitivity * dt * ndof->tvec[0] / sc->zoom;
-		float pan_y = pan_sensitivity * dt * ndof->tvec[1] / sc->zoom;
-
 		/* "mouse zoom" factor = 1 + (dx + dy) / 300
 		 * what about "ndof zoom" factor? should behave like this:
 		 * at rest -> factor = 1
@@ -1353,12 +1351,17 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 		 */
 		float zoom_factor = 1.0f + zoom_sensitivity * dt * - ndof->tvec[2];
 
+		pan_vec[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
+		pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
+
+		mul_v2_fl(pan_vec, (pan_sensitivity * dt) / sc->zoom);
+
 		if (U.ndof_flag & NDOF_ZOOM_INVERT)
 			zoom_factor = -zoom_factor;
 
 		sclip_zoom_set_factor(C, zoom_factor, NULL);
-		sc->xof += pan_x;
-		sc->yof += pan_y;
+		sc->xof += pan_vec[0];
+		sc->yof += pan_vec[1];
 
 		ED_region_tag_redraw(ar);
 
