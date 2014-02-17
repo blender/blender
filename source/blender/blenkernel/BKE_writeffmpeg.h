@@ -80,7 +80,6 @@ void BKE_ffmpeg_image_type_verify(struct RenderData *rd, struct ImageFormatData 
 void BKE_ffmpeg_codec_settings_verify(struct RenderData *rd);
 bool BKE_ffmpeg_alpha_channel_is_supported(struct RenderData *rd);
 
-struct IDProperty *BKE_ffmpeg_property_add(struct RenderData *Rd, const char *type, int opt_index, int parent_index);
 int BKE_ffmpeg_property_add_string(struct RenderData *rd, const char *type, const char *str);
 void BKE_ffmpeg_property_del(struct RenderData *rd, void *type, void *prop_);
 

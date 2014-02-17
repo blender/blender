@@ -103,6 +103,9 @@ static AUD_Device *audio_mixdown_device = 0;
 
 #define PRINT if (G.debug & G_DEBUG_FFMPEG) printf
 
+static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
+static void ffmpeg_dict_set_float(AVDictionary **dict, const char *key, float value);
+
 /* Delete a picture buffer */
 
 static void delete_picture(AVFrame *f)
@@ -422,11 +425,10 @@ static AVFrame *generate_video_frame(uint8_t *pixels, ReportList *reports)
 	return current_frame;
 }
 
-static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
+static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop, AVDictionary **dictionary)
 {
 	char name[128];
 	char *param;
-	int fail = TRUE;
 
 	PRINT("FFMPEG expert option: %s: ", prop->name);
 
@@ -441,31 +443,27 @@ static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
 	switch (prop->type) {
 		case IDP_STRING:
 			PRINT("%s.\n", IDP_String(prop));
-			fail = av_opt_set(c, prop->name, IDP_String(prop), 0);
+			av_dict_set(dictionary, name, IDP_String(prop), 0);
 			break;
 		case IDP_FLOAT:
 			PRINT("%g.\n", IDP_Float(prop));
-			fail = av_opt_set_double(c, prop->name, IDP_Float(prop), 0);
+			ffmpeg_dict_set_float(dictionary, prop->name, IDP_Float(prop));
 			break;
 		case IDP_INT:
 			PRINT("%d.\n", IDP_Int(prop));
 
 			if (param) {
 				if (IDP_Int(prop)) {
-					fail = av_opt_set(c, name, param, 0);
+					av_dict_set(dictionary, name, param, 0);
 				}
 				else {
 					return;
 				}
 			}
 			else {
-				fail = av_opt_set_int(c, prop->name, IDP_Int(prop), 0);
+				ffmpeg_dict_set_int(dictionary, prop->name, IDP_Int(prop));
 			}
 			break;
-	}
-
-	if (fail) {
-		PRINT("ffmpeg-option not supported: %s! Skipping.\n", prop->name);
 	}
 }
 
@@ -483,7 +481,8 @@ static int ffmpeg_proprty_valid(AVCodecContext *c, const char *prop_name, IDProp
 	return valid;
 }
 
-static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char *prop_name)
+static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char *prop_name,
+                                  AVDictionary **dictionary)
 {
 	IDProperty *prop;
 	void *iter;
@@ -502,7 +501,7 @@ static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char 
 
 	while ((curr = IDP_GroupIterNext(iter)) != NULL) {
 		if (ffmpeg_proprty_valid(c, prop_name, curr))
-			set_ffmpeg_property_option(c, curr);
+			set_ffmpeg_property_option(c, curr, dictionary);
 	}
 }
 
@@ -514,6 +513,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	AVStream *st;
 	AVCodecContext *c;
 	AVCodec *codec;
+	AVDictionary *opts = NULL;
 
 	error[0] = '\0';
 
@@ -633,12 +633,14 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q(((double) rd->xasp / (double) rd->yasp), 255);
 
-	set_ffmpeg_properties(rd, c, "video");
-	
-	if (avcodec_open2(c, codec, NULL) < 0) {
+	set_ffmpeg_properties(rd, c, "video", &opts);
+
+	if (avcodec_open2(c, codec, &opts) < 0) {
 		BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
+		av_dict_free(&opts);
 		return NULL;
 	}
+	av_dict_free(&opts);
 
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
@@ -652,6 +654,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	AVStream *st;
 	AVCodecContext *c;
 	AVCodec *codec;
+	AVDictionary *opts = NULL;
 
 	error[0] = '\0';
 
@@ -715,13 +718,15 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
 
-	set_ffmpeg_properties(rd, c, "audio");
+	set_ffmpeg_properties(rd, c, "audio", &opts);
 
-	if (avcodec_open2(c, codec, NULL) < 0) {
+	if (avcodec_open2(c, codec, &opts) < 0) {
 		//XXX error("Couldn't initialize audio codec");
 		BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
+		av_dict_free(&opts);
 		return NULL;
 	}
+	av_dict_free(&opts);
 
 	/* need to prevent floating point exception when using vorbis audio codec,
 	 * initialize this value in the same way as it's done in FFmpeg iteslf (sergey) */
@@ -768,6 +773,15 @@ static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
 	char buffer[32];
 
 	BLI_snprintf(buffer, sizeof(buffer), "%d", value);
+
+	av_dict_set(dict, key, buffer, 0);
+}
+
+static void ffmpeg_dict_set_float(AVDictionary **dict, const char *key, float value)
+{
+	char buffer[32];
+
+	BLI_snprintf(buffer, sizeof(buffer), "%.8f", value);
 
 	av_dict_set(dict, key, buffer, 0);
 }
@@ -1246,11 +1260,9 @@ void BKE_ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
 	}
 }
 
-IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_index, int parent_index)
+static IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, const AVOption *o, const AVOption *parent)
 {
 	AVCodecContext c;
-	const AVOption *o;
-	const AVOption *parent;
 	IDProperty *group;
 	IDProperty *prop;
 	IDPropertyTemplate val;
@@ -1260,9 +1272,6 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 	val.i = 0;
 
 	avcodec_get_context_defaults3(&c, NULL);
-
-	o = c.av_class->option + opt_index;
-	parent = c.av_class->option + parent_index;
 
 	if (!rd->ffcodecdata.properties) {
 		rd->ffcodecdata.properties = IDP_New(IDP_GROUP, &val, "ffmpeg"); 
@@ -1275,14 +1284,14 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 		IDP_AddToGroup(rd->ffcodecdata.properties, group);
 	}
 
-	if (parent_index) {
+	if (parent) {
 		BLI_snprintf(name, sizeof(name), "%s:%s", parent->name, o->name);
 	}
 	else {
 		BLI_strncpy(name, o->name, sizeof(name));
 	}
 
-	PRINT("ffmpeg_property_add: %s %d %d %s\n", type, parent_index, opt_index, name);
+	PRINT("ffmpeg_property_add: %s %s\n", type, name);
 
 	prop = IDP_GetPropertyFromGroup(group, name);
 	if (prop) {
@@ -1320,22 +1329,6 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 
 /* not all versions of ffmpeg include that, so here we go ... */
 
-static const AVOption *my_av_find_opt(void *v, const char *name, const char *unit, int mask, int flags)
-{
-	AVClass *c = *(AVClass **)v;
-	const AVOption *o = c->option;
-
-	for (; o && o->name; o++) {
-		if (!strcmp(o->name, name) &&
-		    (!unit || (o->unit && !strcmp(o->unit, unit))) &&
-		    (o->flags & mask) == flags)
-		{
-			return o;
-		}
-	}
-	return NULL;
-}
-
 int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char *str)
 {
 	AVCodecContext c;
@@ -1363,21 +1356,25 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 		while (*param == ' ') param++;
 	}
 	
-	o = my_av_find_opt(&c, name, NULL, 0, 0);
+	o = av_opt_find(&c, name, NULL, 0, AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ);
 	if (!o) {
+		PRINT("Ignoring unknown expert option %s\n", str);
 		return 0;
 	}
 	if (param && o->type == AV_OPT_TYPE_CONST) {
 		return 0;
 	}
 	if (param && o->type != AV_OPT_TYPE_CONST && o->unit) {
-		p = my_av_find_opt(&c, param, o->unit, 0, 0);
+		p = av_opt_find(&c, param, o->unit, 0, AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ);
 		if (p) {
-			prop = BKE_ffmpeg_property_add(rd, (char *) type, p - c.av_class->option, o - c.av_class->option);
+			prop = BKE_ffmpeg_property_add(rd, (char *) type, p, o);
+		}
+		else {
+			PRINT("Ignoring unknown expert option %s\n", str);
 		}
 	}
 	else {
-		prop = BKE_ffmpeg_property_add(rd, (char *) type, o - c.av_class->option, 0);
+		prop = BKE_ffmpeg_property_add(rd, (char *) type, o, NULL);
 	}
 		
 
@@ -1427,9 +1424,9 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 		 */
 //		ffmpeg_property_add_string(rd, "video", "flags:loop"); // this breaks compatibility for QT
 		BKE_ffmpeg_property_add_string(rd, "video", "cmp:chroma");
-		BKE_ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
-		BKE_ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
-		BKE_ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");
+		BKE_ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");  // Deprecated.
+		BKE_ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");  // Deprecated.
+		BKE_ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");  // Deprecated.
 		BKE_ffmpeg_property_add_string(rd, "video", "me:hex");
 		BKE_ffmpeg_property_add_string(rd, "video", "subq:6");
 		BKE_ffmpeg_property_add_string(rd, "video", "me_range:16");
@@ -1441,15 +1438,21 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 		BKE_ffmpeg_property_add_string(rd, "video", "bf:3");
 		BKE_ffmpeg_property_add_string(rd, "video", "refs:2");
 		BKE_ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
-		BKE_ffmpeg_property_add_string(rd, "video", "directpred:3");
+		BKE_ffmpeg_property_add_string(rd, "video", "directpred:3");  // Deprecated.
+
 		BKE_ffmpeg_property_add_string(rd, "video", "trellis:0");
-		BKE_ffmpeg_property_add_string(rd, "video", "flags2:wpred");
-		BKE_ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");
-		BKE_ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:wpred");  // Deprecated.
+		BKE_ffmpeg_property_add_string(rd, "video", "weightb:1");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");  // Deprecated.
+		BKE_ffmpeg_property_add_string(rd, "video", "8x8dct:1");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");  // Deprecated.
+		BKE_ffmpeg_property_add_string(rd, "video", "fast-pskip:1");
 		BKE_ffmpeg_property_add_string(rd, "video", "wpredp:2");
 
-		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
-			BKE_ffmpeg_property_add_string(rd, "video", "cqp:0");
+		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT) {
+			BKE_ffmpeg_property_add_string(rd, "video", "cqp:0");  // Deprecated.
+			BKE_ffmpeg_property_add_string(rd, "video", "qp:0");
+		}
 	}
 	else if (codec_id == AV_CODEC_ID_DNXHD) {
 		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
