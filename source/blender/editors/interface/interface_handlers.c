@@ -4401,31 +4401,31 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	
 	switch ((int)but->a1) {
 		case UI_GRAD_SV:
-			hsv[2] += ndof->ry * sensitivity;
-			hsv[1] += ndof->rx * sensitivity;
+			hsv[2] += ndof->rvec[2] * sensitivity;
+			hsv[1] += ndof->rvec[0] * sensitivity;
 			break;
 		case UI_GRAD_HV:
-			hsv[0] += ndof->ry * sensitivity;
-			hsv[2] += ndof->rx * sensitivity;
+			hsv[0] += ndof->rvec[2] * sensitivity;
+			hsv[2] += ndof->rvec[0] * sensitivity;
 			break;
 		case UI_GRAD_HS:
-			hsv[0] += ndof->ry * sensitivity;
-			hsv[1] += ndof->rx * sensitivity;
+			hsv[0] += ndof->rvec[2] * sensitivity;
+			hsv[1] += ndof->rvec[0] * sensitivity;
 			break;
 		case UI_GRAD_H:
-			hsv[0] += ndof->ry * sensitivity;
+			hsv[0] += ndof->rvec[2] * sensitivity;
 			break;
 		case UI_GRAD_S:
-			hsv[1] += ndof->ry * sensitivity;
+			hsv[1] += ndof->rvec[2] * sensitivity;
 			break;
 		case UI_GRAD_V:
-			hsv[2] += ndof->ry * sensitivity;
+			hsv[2] += ndof->rvec[2] * sensitivity;
 			break;
 		case UI_GRAD_V_ALT:
 			/* vertical 'value' strip */
 			
 			/* exception only for value strip - use the range set in but->min/max */
-			hsv[2] += ndof->rx * sensitivity;
+			hsv[2] += ndof->rvec[0] * sensitivity;
 			
 			CLAMP(hsv[2], but->softmin, but->softmax);
 			break;
