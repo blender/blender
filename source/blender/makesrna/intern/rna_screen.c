@@ -81,13 +81,13 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 	/* exception: must use context so notifier gets to the right window  */
 	if (sc->newscene) {
 #ifdef WITH_PYTHON
-	BPy_BEGIN_ALLOW_THREADS;
+		BPy_BEGIN_ALLOW_THREADS;
 #endif
 
 		ED_screen_set_scene(C, sc, sc->newscene);
 
 #ifdef WITH_PYTHON
-	BPy_END_ALLOW_THREADS;
+		BPy_END_ALLOW_THREADS;
 #endif
 
 		WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, sc->newscene);

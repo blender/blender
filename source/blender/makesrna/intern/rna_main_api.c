@@ -104,6 +104,10 @@
 
 #include "BLF_translation.h"
 
+#ifdef WITH_PYTHON
+#  include "BPY_extern.h"
+#endif
+
 static Camera *rna_Main_cameras_new(Main *bmain, const char *name)
 {
 	ID *id = BKE_camera_add(bmain, name);
@@ -138,7 +142,17 @@ static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports
 	{
 		bScreen *sc = CTX_wm_screen(C);
 		if (sc->scene == scene) {
+
+#ifdef WITH_PYTHON
+			BPy_BEGIN_ALLOW_THREADS;
+#endif
+
 			ED_screen_set_scene(C, sc, scene_new);
+
+#ifdef WITH_PYTHON
+			BPy_END_ALLOW_THREADS;
+#endif
+
 		}
 
 		BKE_scene_unlink(bmain, scene, scene_new);
