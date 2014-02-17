@@ -1435,9 +1435,9 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		rv3d->rot_angle = 0.0f;
 
 		if (ndof->progress != P_FINISHING) {
-			const bool has_rotation = NDOF_HAS_ROTATE;
+			const bool has_rotation = NDOF_HAS_ROTATE && (RV3D_VIEW_IS_AXIS(rv3d->view) == false);
 			/* if we can't rotate, fallback to translate (locked axis views) */
-			const bool has_translate = NDOF_HAS_TRANSLATE && (rv3d->viewlock & RV3D_LOCKED);
+			const bool has_translate = NDOF_HAS_TRANSLATE;
 			/* always zoom since this is the main purpose of the function */
 			const bool has_zoom = true;
 
