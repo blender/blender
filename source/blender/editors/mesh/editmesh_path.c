@@ -449,14 +449,21 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *UNUSED(op), c
 {
 	ViewContext vc;
 	BMEditMesh *em;
+	BMElem *ele;
 
-	view3d_operator_needs_opengl(C);
 
 	em_setup_viewcontext(C, &vc);
 	copy_v2_v2_int(vc.mval, event->mval);
 	em = vc.em;
 
-	if (em->selectmode & SCE_SELECT_VERTEX) {
+	ele = BM_mesh_active_elem_get(em->bm);
+	if (ele == NULL) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	view3d_operator_needs_opengl(C);
+
+	if ((em->selectmode & SCE_SELECT_VERTEX) && (ele->head.htype == BM_VERT)) {
 		if (mouse_mesh_shortest_path_vert(&vc)) {
 			return OPERATOR_FINISHED;
 		}
@@ -464,7 +471,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *UNUSED(op), c
 			return OPERATOR_PASS_THROUGH;
 		}
 	}
-	else if (em->selectmode & SCE_SELECT_EDGE) {
+	else if ((em->selectmode & SCE_SELECT_EDGE) && (ele->head.htype == BM_EDGE)) {
 		if (mouse_mesh_shortest_path_edge(&vc)) {
 			return OPERATOR_FINISHED;
 		}
@@ -472,7 +479,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *UNUSED(op), c
 			return OPERATOR_PASS_THROUGH;
 		}
 	}
-	else if (em->selectmode & SCE_SELECT_FACE) {
+	else if ((em->selectmode & SCE_SELECT_FACE) && (ele->head.htype == BM_FACE)) {
 		if (mouse_mesh_shortest_path_face(&vc)) {
 			return OPERATOR_FINISHED;
 		}
