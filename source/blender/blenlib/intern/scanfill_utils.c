@@ -410,7 +410,13 @@ bool BLI_scanfill_calc_self_isect(
 	int totvert_new = 0;
 	bool changed = false;
 
-	PolyInfo *poly_info = MEM_callocN(sizeof(*poly_info) * poly_tot, __func__);
+	PolyInfo *poly_info;
+
+	if (UNLIKELY(sf_ctx->poly_nr == SF_POLY_UNSET)) {
+		return false;
+	}
+
+	poly_info = MEM_callocN(sizeof(*poly_info) * poly_tot, __func__);
 
 	/* get the polygon span */
 	if (sf_ctx->poly_nr == 0) {
