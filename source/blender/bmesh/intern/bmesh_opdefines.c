@@ -1034,8 +1034,7 @@ static BMOpDefine bmo_dissolve_degenerate_def = {
 	 {{'\0'}},
 	},
 	/* slots_out */
-	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* output vertices */
-	 {{'\0'}}},
+	{{{'\0'}}},
 	bmo_dissolve_degenerate_exec,
 	BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH,
 };
