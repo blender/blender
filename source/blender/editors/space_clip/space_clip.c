@@ -1186,7 +1186,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	if (sc->mode == SC_MODE_MASKEDIT) {
 		Mask *mask = CTX_data_edit_mask(C);
-		if (mask) {
+		if (mask && clip) {
 			ScrArea *sa = CTX_wm_area(C);
 			int mask_width, mask_height;
 			ED_mask_get_size(sa, &mask_width, &mask_height);

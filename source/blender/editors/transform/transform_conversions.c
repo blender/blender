@@ -6763,6 +6763,14 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	if (!mask)
 		return;
 
+	if (t->spacetype == SPACE_CLIP) {
+		SpaceClip *sc = t->sa->spacedata.first;
+		MovieClip *clip = ED_space_clip_get_clip(sc);
+		if (!clip) {
+			return;
+		}
+	}
+
 	/* count */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;

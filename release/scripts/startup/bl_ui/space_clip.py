@@ -124,17 +124,18 @@ class CLIP_HT_header(Header):
 
         layout.prop(sc, "mode", text="")
 
-        row = layout.row()
-        row.template_ID(sc, "mask", new="mask.new")
+        if clip:
+            row = layout.row()
+            row.template_ID(sc, "mask", new="mask.new")
 
-        layout.prop(sc, "pivot_point", text="", icon_only=True)
+            layout.prop(sc, "pivot_point", text="", icon_only=True)
 
-        row = layout.row(align=True)
-        row.prop(toolsettings, "use_proportional_edit_mask",
-                 text="", icon_only=True)
-        if toolsettings.use_proportional_edit_mask:
-            row.prop(toolsettings, "proportional_edit_falloff",
-                     text="", icon_only=True)
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_proportional_edit_mask",
+	             text="", icon_only=True)
+            if toolsettings.use_proportional_edit_mask:
+                row.prop(toolsettings, "proportional_edit_falloff",
+                         text="", icon_only=True)
 
     def draw(self, context):
         layout = self.layout

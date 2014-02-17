@@ -414,26 +414,34 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 		SpaceClip *sc = t->sa->spacedata.first;
 
 		if (t->options & CTX_MASK) {
-			/* not working quite right, TODO (see above too) */
-			float aspx, aspy;
-			float v[2];
+			MovieClip *clip = ED_space_clip_get_clip(sc);
 
-			ED_space_clip_get_aspect(sc, &aspx, &aspy);
+			if (clip) {
+				/* not working quite right, TODO (see above too) */
+				float aspx, aspy;
+				float v[2];
 
-			copy_v2_v2(v, vec);
+				ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-			v[0] = v[0] / aspx;
-			v[1] = v[1] / aspy;
+				copy_v2_v2(v, vec);
 
-			BKE_mask_coord_to_movieclip(sc->clip, &sc->user, v, v);
+				v[0] = v[0] / aspx;
+				v[1] = v[1] / aspy;
 
-			v[0] = v[0] / aspx;
-			v[1] = v[1] / aspy;
+				BKE_mask_coord_to_movieclip(sc->clip, &sc->user, v, v);
 
-			ED_clip_point_stable_pos__reverse(sc, t->ar, v, v);
+				v[0] = v[0] / aspx;
+				v[1] = v[1] / aspy;
 
-			adr[0] = v[0];
-			adr[1] = v[1];
+				ED_clip_point_stable_pos__reverse(sc, t->ar, v, v);
+
+				adr[0] = v[0];
+				adr[1] = v[1];
+			}
+			else {
+				adr[0] = 0;
+				adr[1] = 0;
+			}
 		}
 		else if (t->options & CTX_MOVIECLIP) {
 			float v[2], aspx, aspy;
