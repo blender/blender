@@ -2448,6 +2448,8 @@ void init_userdef_factory(void)
 	U.versions = 1;
 	U.savetime = 2;
 
+	U.ndof_flag |= NDOF_TURNTABLE;
+
 	{
 		Mesh *me;
 		for (me = G.main->mesh.first; me; me = me->id.next) {
