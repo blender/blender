@@ -2127,13 +2127,13 @@ static void rna_def_transform(StructRNA *srna)
 	prop = RNA_def_property(srna, "translate_start_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xIni");
 	RNA_def_property_ui_text(prop, "Translate X", "");
-	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 6);
+	RNA_def_property_ui_range(prop, -4000.0f, 4000.0f, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop = RNA_def_property(srna, "translate_start_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yIni");
 	RNA_def_property_ui_text(prop, "Translate Y", "");
-	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 6);
+	RNA_def_property_ui_range(prop, -4000.0f, 4000.0f, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop = RNA_def_property(srna, "rotation_start", PROP_FLOAT, PROP_NONE);
