@@ -2170,8 +2170,11 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	/* find object, create fake base */
 	RNA_string_get(op->ptr, "name", name);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, name);
-	if (ob == NULL)
+
+	if (ob == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Object not found");
 		return OPERATOR_CANCELLED;
+	}
 
 	base = MEM_callocN(sizeof(Base), "duplibase");
 	base->object = ob;
@@ -2185,6 +2188,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	if (basen == NULL) {
 		MEM_freeN(base);
+		BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");
 		return OPERATOR_CANCELLED;
 	}
 
