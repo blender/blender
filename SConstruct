@@ -694,6 +694,7 @@ if B.targets != ['cudakernels']:
     data_to_c_simple("release/datafiles/bmonofont.ttf")
 
     data_to_c_simple("release/datafiles/splash.png")
+    data_to_c_simple("release/datafiles/splash_2x.png")
 
     # data_to_c_simple("release/datafiles/blender_icons16.png")
     # data_to_c_simple("release/datafiles/blender_icons32.png")

@@ -41,6 +41,7 @@ sources.extend((
     os.path.join(env['DATA_SOURCES'], "bmonofont.ttf.c"),
 
     os.path.join(env['DATA_SOURCES'], "splash.png.c"),
+    os.path.join(env['DATA_SOURCES'], "splash_2x.png.c"),
     os.path.join(env['DATA_SOURCES'], "blender_icons16.png.c"),
     os.path.join(env['DATA_SOURCES'], "blender_icons32.png.c"),
     os.path.join(env['DATA_SOURCES'], "prvicons.png.c"),

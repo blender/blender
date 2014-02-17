@@ -47,6 +47,7 @@ if(WITH_BLENDER)
 
 		# images
 		data_to_c_simple(../../../../release/datafiles/splash.png SRC)
+		data_to_c_simple(../../../../release/datafiles/splash_2x.png SRC)
 		# XXX These are handy, but give nasty "false changes" in svn :/
 		#svg_to_png(../../../../release/datafiles/blender_icons.svg
 		           #../../../../release/datafiles/blender_icons16.png

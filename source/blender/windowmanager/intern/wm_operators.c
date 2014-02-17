@@ -1767,8 +1767,19 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 
-	ImBuf *ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_png,
-	                                    datatoc_splash_png_size, IB_rect, NULL, "<splash screen>");
+	extern char datatoc_splash_2x_png[];
+	extern int datatoc_splash_2x_png_size;
+
+	ImBuf *ibuf;
+
+	if (U.pixelsize == 2) {
+		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_2x_png,
+		                             datatoc_splash_2x_png_size, IB_rect, NULL, "<splash screen>");
+	}
+	else {
+		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_png,
+		                             datatoc_splash_png_size, IB_rect, NULL, "<splash screen>");
+	}
 #else
 	ImBuf *ibuf = NULL;
 #endif
@@ -1797,7 +1808,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	 * with the OS when the splash shows, window clipping in this case gives
 	 * ugly results and clipping the splash isn't useful anyway, just disable it [#32938] */
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
-	
+
 	/* XXX splash scales with pixelsize, should become widget-units */
 	but = uiDefBut(block, BUT_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.pixelsize * 501, U.pixelsize * 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
