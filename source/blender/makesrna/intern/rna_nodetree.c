@@ -6453,6 +6453,20 @@ static void rna_def_node_socket_float(BlenderRNA *brna, const char *idname, cons
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	float value_default;
+	
+	/* choose sensible common default based on subtype */
+	switch (subtype) {
+		case PROP_FACTOR:
+			value_default = 1.0f;
+			break;
+		case PROP_PERCENTAGE:
+			value_default = 100.0f;
+			break;
+		default:
+			value_default = 0.0f;
+			break;
+	}
 	
 	srna = RNA_def_struct(brna, idname, "NodeSocketStandard");
 	RNA_def_struct_ui_text(srna, "Float Node Socket", "Floating point number socket of a node");
@@ -6478,6 +6492,7 @@ static void rna_def_node_socket_float(BlenderRNA *brna, const char *idname, cons
 	
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, subtype);
 	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_float_default(prop, value_default);
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocketStandard_float_range");
 	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
@@ -6499,6 +6514,20 @@ static void rna_def_node_socket_int(BlenderRNA *brna, const char *identifier, co
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	int value_default;
+	
+	/* choose sensible common default based on subtype */
+	switch (subtype) {
+		case PROP_FACTOR:
+			value_default = 1;
+			break;
+		case PROP_PERCENTAGE:
+			value_default = 100;
+			break;
+		default:
+			value_default = 0;
+			break;
+	}
 	
 	srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
 	RNA_def_struct_ui_text(srna, "Integer Node Socket", "Integer number socket of a node");
@@ -6508,6 +6537,7 @@ static void rna_def_node_socket_int(BlenderRNA *brna, const char *identifier, co
 	
 	prop = RNA_def_property(srna, "default_value", PROP_INT, subtype);
 	RNA_def_property_int_sdna(prop, NULL, "value");
+	RNA_def_property_int_default(prop, value_default);
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_NodeSocketStandard_int_range");
 	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
@@ -6579,6 +6609,21 @@ static void rna_def_node_socket_vector(BlenderRNA *brna, const char *identifier,
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	const float *value_default;
+	
+	/* choose sensible common default based on subtype */
+	switch (subtype) {
+		case PROP_DIRECTION: {
+			static const float default_direction[3] = {0.0f, 0.0f, 1.0f};
+			value_default = default_direction;
+			break;
+		}
+		default: {
+			static const float default_vector[3] = {0.0f, 0.0f, 0.0f};
+			value_default = default_vector;
+			break;
+		}
+	}
 	
 	srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
 	RNA_def_struct_ui_text(srna, "Vector Node Socket", "3D vector socket of a node");
@@ -6588,6 +6633,7 @@ static void rna_def_node_socket_vector(BlenderRNA *brna, const char *identifier,
 	
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, subtype);
 	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_float_array_default(prop, value_default);
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocketStandard_vector_range");
 	RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
