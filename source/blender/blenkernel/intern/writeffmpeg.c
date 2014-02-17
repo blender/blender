@@ -138,6 +138,7 @@ static int write_audio_frame(void)
 
 #ifdef FFMPEG_HAVE_ENCODE_AUDIO2
 	frame = avcodec_alloc_frame();
+	avcodec_get_frame_defaults(frame);
 	frame->pts = audio_time / av_q2d(c->time_base);
 	frame->nb_samples = audio_input_samples;
 	frame->format = c->sample_fmt;
@@ -708,6 +709,10 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 		}
 		/* best is the closest supported sample rate (same as selected if best_dist == 0) */
 		st->codec->sample_rate = best;
+	}
+
+	if (of->oformat->flags & AVFMT_GLOBALHEADER) {
+		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
 
 	set_ffmpeg_properties(rd, c, "audio");
