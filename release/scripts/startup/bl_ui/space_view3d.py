@@ -2318,8 +2318,10 @@ class VIEW3D_MT_edit_mesh_clean(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.fill_holes")
+        layout.operator("mesh.dissolve_degenerate")
+        layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.vert_connect_nonplanar")
+        layout.operator("mesh.fill_holes")
 
 
 class VIEW3D_MT_edit_mesh_delete(Menu):

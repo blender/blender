@@ -474,3 +474,144 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 }
+
+
+#define EDGE_MARK 1
+#define EDGE_COLLAPSE 2
+
+static void bm_mesh_edge_collapse_flagged(BMesh *bm, const int flag, const short oflag)
+{
+	BMO_op_callf(bm, flag, "collapse edges=%fe", oflag);
+}
+
+void bmo_dissolve_degenerate_exec(BMesh *bm, BMOperator *op)
+{
+	const float dist = BMO_slot_float_get(op->slots_in, "dist");
+	const float dist_sq = dist * dist;
+
+	bool found;
+	BMIter eiter;
+	BMEdge *e;
+
+
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
+
+	/* collapse zero length edges, this accounts for zero area faces too */
+	found = false;
+	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+			if (BM_edge_calc_length_squared(e) < dist_sq) {
+				BMO_elem_flag_enable(bm, e, EDGE_COLLAPSE);
+				found = true;
+			}
+		}
+
+		/* clear all loop tags (checked later) */
+		if (e->l) {
+			BMLoop *l_iter, *l_first;
+			l_iter = l_first = e->l;
+			do {
+				BM_elem_flag_disable(l_iter, BM_ELEM_TAG);
+			} while ((l_iter = l_iter->radial_next) != l_first);
+		}
+	}
+
+	if (found) {
+		bm_mesh_edge_collapse_flagged(bm, op->flag, EDGE_COLLAPSE);
+	}
+
+
+	/* clip degenerate ears from the face */
+	found = false;
+	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+		if (e->l && BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+			BMLoop *l_iter, *l_first;
+			l_iter = l_first = e->l;
+			do {
+				if (
+				    /* check the loop hasn't already been tested (and flag not to test again) */
+				    !BM_elem_flag_test(l_iter, BM_ELEM_TAG) &&
+				    (BM_elem_flag_enable(l_iter, BM_ELEM_TAG),
+
+				     /* check we're marked to tested (radial edge already tested) */
+				     BMO_elem_flag_test(bm, l_iter->prev->e, EDGE_MARK) &&
+
+				     /* check edges are not already going to be collapsed */
+				     !BMO_elem_flag_test(bm, l_iter->e, EDGE_COLLAPSE) &&
+				     !BMO_elem_flag_test(bm, l_iter->prev->e, EDGE_COLLAPSE)))
+				{
+					/* test if the faces loop (ear) is degenerate */
+					float dir_prev[3], len_prev;
+					float dir_next[3], len_next;
+
+
+					sub_v3_v3v3(dir_prev, l_iter->prev->v->co, l_iter->v->co);
+					sub_v3_v3v3(dir_next, l_iter->next->v->co, l_iter->v->co);
+
+					len_prev = normalize_v3(dir_prev);
+					len_next = normalize_v3(dir_next);
+
+					if ((len_v3v3(dir_prev, dir_next) * min_ff(len_prev, len_next)) <= dist) {
+						bool reset = false;
+
+						if (fabsf(len_prev - len_next) <= dist) {
+							/* both edges the same length */
+							if (l_iter->f->len == 3) {
+								/* ideally this would have been discovered with short edge test above */
+								BMO_elem_flag_enable(bm, l_iter->next->e, EDGE_COLLAPSE);
+								found = true;
+							}
+							else {
+								/* add a joining edge and tag for removal */
+								BMLoop *l_split;
+								if (BM_face_split(bm, l_iter->f, l_iter->prev, l_iter->next, &l_split, NULL, true)) {
+									BMO_elem_flag_enable(bm, l_split->e, EDGE_COLLAPSE);
+									found = true;
+									reset = true;
+								}
+							}
+						}
+						else if (len_prev < len_next) {
+							/* split 'l_iter->e', then join the vert with next */
+							BMVert *v_new;
+							BMEdge *e_new;
+							BMLoop *l_split;
+							v_new = BM_edge_split(bm, l_iter->e, l_iter->v, &e_new, len_prev / len_next);
+							BLI_assert(v_new == l_iter->next->v);
+							(void)v_new;
+							if (BM_face_split(bm, l_iter->f, l_iter->prev, l_iter->next, &l_split, NULL, true)) {
+								BMO_elem_flag_enable(bm, l_split->e, EDGE_COLLAPSE);
+								found = true;
+							}
+							reset = true;
+						}
+						else if (len_next < len_prev) {
+							/* split 'l_iter->prev->e', then join the vert with next */
+							BMVert *v_new;
+							BMEdge *e_new;
+							BMLoop *l_split;
+							v_new = BM_edge_split(bm, l_iter->prev->e, l_iter->v, &e_new, len_next / len_prev);
+							BLI_assert(v_new == l_iter->prev->v);
+							(void)v_new;
+							if (BM_face_split(bm, l_iter->f, l_iter->prev, l_iter->next, &l_split, NULL, true)) {
+								BMO_elem_flag_enable(bm, l_split->e, EDGE_COLLAPSE);
+								found = true;
+							}
+							reset = true;
+						}
+
+						if (reset) {
+							/* we can't easily track where we are on the radial edge, reset! */
+							l_first = l_iter;
+						}
+					}
+				}
+			} while ((l_iter = l_iter->radial_next) != l_first);
+		}
+	}
+
+	if (found) {
+		bm_mesh_edge_collapse_flagged(bm, op->flag, EDGE_COLLAPSE);
+	}
+
+}

@@ -313,6 +313,12 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 	}
 }
 
+static void edbm_report_delete_info(ReportList *reports, BMesh *bm, const int totelem[3])
+{
+	BKE_reportf(reports, RPT_INFO,
+	            "Removed: %d vertices, %d edges, %d faces",
+	            totelem[0] - bm->totvert, totelem[1] - bm->totedge, totelem[2] - bm->totface);
+}
 
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
@@ -453,9 +459,7 @@ static int edbm_delete_loose_exec(bContext *C, wmOperator *op)
 
 	EDBM_update_generic(em, true, true);
 
-	BKE_reportf(op->reports, RPT_INFO,
-	            "Removed: %d vertices, %d edges, %d faces",
-	            totelem[0] - bm->totvert, totelem[1] - bm->totedge, totelem[2] - bm->totface);
+	edbm_report_delete_info(op->reports, bm, totelem);
 
 	return OPERATOR_FINISHED;
 }
@@ -3675,6 +3679,51 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	RNA_def_enum_flag(ot->srna, "delimit", mesh_delimit_mode_items, 0, "Delimit",
 	                  "Delimit dissolve operation");
 }
+
+static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const float thresh = RNA_float_get(op->ptr, "threshold");
+	BMesh *bm = em->bm;
+	const int totelem[3] = {bm->totvert, bm->totedge, bm->totface};
+
+	if (!EDBM_op_callf(
+	        em, op,
+	        "dissolve_degenerate edges=%he dist=%f",
+	        BM_ELEM_SELECT, thresh))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+	/* tricky to maintain correct selection here, so just flush up from verts */
+	EDBM_select_flush(em);
+
+	EDBM_update_generic(em, true, true);
+
+	edbm_report_delete_info(op->reports, bm, totelem);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_dissolve_degenerate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Degenerate Dissolve";
+	ot->idname = "MESH_OT_dissolve_degenerate";
+	ot->description = "Dissolve zero area faces and zero length edges";
+
+	/* api callbacks */
+	ot->exec = edbm_dissolve_degenerate_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Merge Distance",
+	              "Minimum distance between elements to merge", 0.00001, 10.0);
+}
+
 
 /* internally uses dissolve */
 static int edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
