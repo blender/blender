@@ -1854,6 +1854,12 @@ elseif(APPLE)
 			message(STATUS "OSL not found")
 		endif()
 	endif()
+	
+	if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
+		include_directories(${LIBDIR}/openmp/include)
+		LINK_DIRECTORIES(${LIBDIR}/openmp/lib)
+		execute_process(COMMAND cp ${LIBDIR}/openmp/lib/libiomp5.dylib ${CMAKE_BINARY_DIR}/bin/libiomp5.dylib) # needed for imtermediate binaries, due lib id is @loader_path
+	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)
 

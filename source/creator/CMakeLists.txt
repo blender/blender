@@ -773,6 +773,13 @@ elseif(APPLE)
 		\${TARGETDIR}/blender.app/Contents/
 	)
 
+	if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
+		install(
+			FILES ${LIBDIR}/openmp/lib/libiomp5.dylib
+			DESTINATION ${TARGETDIR}/blender.app/Contents/MacOS
+		)
+	endif()
+
 	# python
 	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
 		# the python zip is first extract as part of the build process,
@@ -843,7 +850,7 @@ elseif(APPLE)
 		endif()
 
 	endif()
-		
+
 endif()
 
 # -----------------------------------------------------------------------------
