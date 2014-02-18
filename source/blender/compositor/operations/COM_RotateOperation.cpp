@@ -38,8 +38,8 @@ void RotateOperation::initExecution()
 {
 	this->m_imageSocket = this->getInputSocketReader(0);
 	this->m_degreeSocket = this->getInputSocketReader(1);
-	this->m_centerX = this->getWidth() / 2.0;
-	this->m_centerY = this->getHeight() / 2.0;
+	this->m_centerX = (getWidth() - 1) / 2.0;
+	this->m_centerY = (getHeight() - 1) / 2.0;
 }
 
 void RotateOperation::deinitExecution()
