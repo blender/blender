@@ -548,6 +548,8 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 		int filter;
 		int i;
 		
+		UI_SetTheme(SPACE_IPO, RGN_TYPE_WINDOW);
+
 		/* build list of F-Curves which will be visible as channels in channel-region
 		 *  - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
 		 *    mismatch between channel-colors and the drawn curves
