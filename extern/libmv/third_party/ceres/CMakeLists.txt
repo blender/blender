@@ -360,4 +360,7 @@ else()
 	endif()
 endif()
 
+unset(HAVE_UNURDERED_MAP_IN_TR1_NAMESPACE)
+unset(HAVE_STD_UNORDERED_MAP_HEADER)
+
 blender_add_lib(extern_ceres "${SRC}" "${INC}" "${INC_SYS}")
