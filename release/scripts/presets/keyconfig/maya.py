@@ -1173,7 +1173,7 @@ kmi = km.keymap_items.new('uv.pin', 'P', 'PRESS')
 kmi.properties.clear = False
 kmi = km.keymap_items.new('uv.pin', 'P', 'PRESS', alt=True)
 kmi.properties.clear = True
-kmi = km.keymap_items.new('uv.unwrap', 'E', 'PRESS')
+kmi = km.keymap_items.new('uv.unwrap', 'U', 'PRESS')
 kmi = km.keymap_items.new('uv.hide', 'H', 'PRESS', ctrl=True)
 kmi.properties.unselected = False
 kmi = km.keymap_items.new('uv.hide', 'H', 'PRESS', alt=True)
