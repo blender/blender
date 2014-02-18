@@ -175,7 +175,7 @@ def _export_properties(prefix, properties, kmi_id, lines=None):
             elif properties.is_property_set(pname):
                 value = string_value(value)
                 if value != "":
-                    lines.append("set_kmi_prop(%s, '%s', %s, '%s')\n" % (prefix, pname, value, kmi_id))
+                    lines.append("kmi_props_setattr(%s, '%s', %s)\n" % (prefix, pname, value))
     return lines
 
 
@@ -221,11 +221,14 @@ def keyconfig_export(wm, kc, filepath):
 
     f.write("import bpy\n")
     f.write("import os\n\n")
-    f.write("def set_kmi_prop(kmiprops, prop, value, kmiid):\n"
-            "    if hasattr(kmiprops, prop):\n"
-            "        setattr(kmiprops, prop, value)\n"
-            "    else:\n"
-            "        print(\"Warning: property '%s' not found in keymap item '%s'\" % (prop, kmiid))\n\n")
+    f.write("def kmi_props_setattr(kmi_props, attr, value):\n"
+            "    try:\n"
+            "        setattr(kmi_props, attr, value)\n"
+            "    except AttributeError:\n"
+            "        print(\"Warning: property '%s' not found in keymap item '%s'\" %\n"
+            "              (attr, kmi_props.__class__.__name__))\n"
+            "    except Exception as e:\n"
+            "        print(\"Warning: %r\" % e)\n\n")
     f.write("wm = bpy.context.window_manager\n")
     f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n")  # keymap must be created by caller
 

@@ -494,10 +494,10 @@ def keyconfig_set(filepath, report=None):
     keyconfigs_old = keyconfigs[:]
 
     try:
-        keyfile = open(filepath)
-        exec(compile(keyfile.read(), filepath, "exec"), {"__file__": filepath})
-        keyfile.close()
         error_msg = ""
+        with open(filepath, 'r', encoding='utf-8') as keyfile:
+            exec(compile(keyfile.read(), filepath, "exec"),
+                 {"__file__": filepath})
     except:
         import traceback
         error_msg = traceback.format_exc()
