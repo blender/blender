@@ -954,7 +954,10 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                 row.prop(mod, "input_mask_type", expand=True)
 
                 if mod.input_mask_type == 'STRIP':
-                    box.prop_search(mod, "input_mask_strip", sequencer, "sequences", text="Mask")
+                    sequences_object = sequencer
+                    if len(sequencer.meta_stack):
+                        sequences_object = sequencer.meta_stack[-1]
+                    box.prop_search(mod, "input_mask_strip", sequences_object, "sequences", text="Mask")
                 else:
                     box.prop(mod, "input_mask_id")
 
