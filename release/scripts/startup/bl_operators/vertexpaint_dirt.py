@@ -99,7 +99,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
     active_col_layer = None
 
-    if len(me.vertex_colors):
+    if me.vertex_colors:
         for lay in me.vertex_colors:
             if lay.active:
                 active_col_layer = lay.data

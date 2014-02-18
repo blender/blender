@@ -279,7 +279,7 @@ class _GenericBone:
                 child = children_basename[0]
                 chain.append(child)
             else:
-                if len(children_basename):
+                if children_basename:
                     print("multiple basenames found, "
                           "this is probably not what you want!",
                           self.name, children_basename)
