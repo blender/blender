@@ -966,7 +966,6 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.prop(input_prefs, "ndof_roty_invert_axis")
             layout.prop(input_prefs, "ndof_rotz_invert_axis")
 
-
         # view2d use pan/zoom
         layout.separator()
         layout.label(text="Pan options")

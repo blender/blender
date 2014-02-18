@@ -86,8 +86,8 @@ void GaussianBokehBlurOperation::updateGauss()
 		ddgauss = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 		dgauss = ddgauss;
 		float sum = 0.0f;
-		float facx = (radxf > 0.0f ? 1.0f/radxf : 0.0f);
-		float facy = (radyf > 0.0f ? 1.0f/radyf : 0.0f);
+		float facx = (radxf > 0.0f ? 1.0f / radxf : 0.0f);
+		float facy = (radyf > 0.0f ? 1.0f / radyf : 0.0f);
 		for (j = -this->m_rady; j <= this->m_rady; j++) {
 			for (i = -this->m_radx; i <= this->m_radx; i++, dgauss++) {
 				float fj = (float)j * facy;

@@ -218,7 +218,7 @@ static int gpu_group_execute(GPUMaterial *mat, bNode *node, bNodeExecData *execd
 #if 0   /* XXX NODE_GROUP_EDIT is deprecated, depends on node space */
 	ntreeExecGPUNodes(exec, mat, (node->flag & NODE_GROUP_EDIT));
 #else
-	ntreeExecGPUNodes(exec, mat, 0, NODE_NEW_SHADING|NODE_OLD_SHADING);
+	ntreeExecGPUNodes(exec, mat, 0, NODE_NEW_SHADING | NODE_OLD_SHADING);
 #endif
 	group_gpu_move_outputs(node, out, exec->stack);
 	

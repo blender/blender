@@ -132,7 +132,7 @@ class CLIP_HT_header(Header):
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_proportional_edit_mask",
-	             text="", icon_only=True)
+                     text="", icon_only=True)
             if toolsettings.use_proportional_edit_mask:
                 row.prop(toolsettings, "proportional_edit_falloff",
                          text="", icon_only=True)

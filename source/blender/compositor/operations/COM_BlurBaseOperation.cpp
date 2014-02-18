@@ -78,7 +78,7 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
 	gausstab = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 
 	sum = 0.0f;
-	float fac = (rad > 0.0f ? 1.0f/rad : 0.0f);
+	float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
 	for (i = -size; i <= size; i++) {
 		val = RE_filter_value(this->m_data->filtertype, (float)i * fac);
 		sum += val;
@@ -103,7 +103,7 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
 
 	dist_fac_invert = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 
-	float fac = (rad > 0.0f ? 1.0f/rad : 0.0f);
+	float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
 	for (i = -size; i <= size; i++) {
 		val = 1.0f - fabsf((float)i * fac);
 

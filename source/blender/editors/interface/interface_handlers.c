@@ -3523,7 +3523,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		softmin = but->softmin;
 		softmax = but->softmax;
 
-		handlewidth = min_ff(BLI_rctf_size_x(&but->rect)/3, BLI_rctf_size_y(&but->rect));
+		handlewidth = min_ff(BLI_rctf_size_x(&but->rect) / 3, BLI_rctf_size_y(&but->rect));
 
 		if (!ui_is_but_float(but)) {
 			if (mx < (but->rect.xmin + handlewidth)) {

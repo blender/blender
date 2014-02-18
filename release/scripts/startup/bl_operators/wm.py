@@ -1105,6 +1105,7 @@ class WM_OT_properties_edit(Operator):
         if prop_type_old != prop_type:
             data_path = '["%s"]' % prop
             done = set()
+
             def _update(fcurves):
                 for fcu in fcurves:
                     if fcu not in done and fcu.data_path == data_path:

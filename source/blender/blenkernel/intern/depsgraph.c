@@ -1387,8 +1387,7 @@ static bool check_object_data_needs_evaluation(Object *object)
 	if (object->type == OB_MESH) {
 		return object->derivedFinal == NULL;
 	}
-	else if (ELEM5(object->type, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
-	{
+	else if (ELEM5(object->type, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 		return object->curve_cache == NULL;
 	}
 
@@ -1574,10 +1573,10 @@ static void dag_scene_build(Main *bmain, Scene *sce)
 	 * tagged for update).
 	 */
 	if (DAG_id_type_tagged(bmain, ID_OB) ||
-		DAG_id_type_tagged(bmain, ID_ME)  ||  /* Mesh */
-		DAG_id_type_tagged(bmain, ID_CU)  ||  /* Curve */
-		DAG_id_type_tagged(bmain, ID_MB)  ||  /* MetaBall */
-		DAG_id_type_tagged(bmain, ID_LT))     /* Lattice */
+	    DAG_id_type_tagged(bmain, ID_ME)  ||  /* Mesh */
+	    DAG_id_type_tagged(bmain, ID_CU)  ||  /* Curve */
+	    DAG_id_type_tagged(bmain, ID_MB)  ||  /* MetaBall */
+	    DAG_id_type_tagged(bmain, ID_LT))     /* Lattice */
 	{
 		dag_invisible_dependencies_flush(sce);
 	}
