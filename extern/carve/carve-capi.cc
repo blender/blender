@@ -29,6 +29,7 @@
 
 #include <carve/interpolator.hpp>
 #include <carve/rescale.hpp>
+#include <carve/csg_triangulator.hpp>
 
 using carve::mesh::MeshSet;
 
@@ -347,6 +348,9 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 		                     &output_descr->orig_face_mapping);
 
 		carve::csg::CSG csg;
+
+		csg.hooks.registerHook(new carve::csg::CarveHoleResolver,
+		                       carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 
 		output_descr->orig_vert_mapping.installHooks(csg);
 		output_descr->orig_face_edge_mapping.installHooks(csg);
