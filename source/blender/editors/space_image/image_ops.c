@@ -605,7 +605,6 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 
 		float dt = ndof->dt;
 		/* tune these until it feels right */
-		const float zoom_sensitivity = 0.5f; // 50% per second (I think)
 		const float pan_sensitivity = 300.f; // screen pixels per second
 
 		/* "mouse zoom" factor = 1 + (dx + dy) / 300
@@ -614,7 +613,7 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 		 * move forward -> factor > 1
 		 * move backward -> factor < 1
 		 */
-		float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->tvec[2];
+		float zoom_factor = dt * -ndof->tvec[2];
 
 		pan_vec[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
 		pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
@@ -624,7 +623,7 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 		if (U.ndof_flag & NDOF_ZOOM_INVERT)
 			zoom_factor = -zoom_factor;
 
-		sima_zoom_set_factor(sima, ar, zoom_factor, NULL);
+		sima_zoom_set_factor(sima, ar, 1.0f + zoom_factor, NULL);
 		sima->xof += pan_vec[0];
 		sima->yof += pan_vec[1];
 
