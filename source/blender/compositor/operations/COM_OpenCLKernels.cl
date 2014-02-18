@@ -41,6 +41,7 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 	float4 bokeh;
 	const float radius2 = radius*2.0f;
 	const int2 realCoordinate = coords + offsetOutput;
+	int2 imageCoordinates = realCoordinate - offsetInput;
 
 	tempBoundingBox = read_imagef(boundingBox, SAMPLER_NEAREST, coords).s0;
 
@@ -54,6 +55,11 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 		float2 uv;
 		int2 inputXy;
 		
+		if (radius < 2) {
+			color = read_imagef(inputImage, SAMPLER_NEAREST, imageCoordinates);
+			multiplyer = (float4)(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		
 		for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny += step, inputXy.y += step) {
 			uv.y = ((realCoordinate.y-ny)/radius2)*bokehImageDim.y+bokehImageCenter.y;
 			
@@ -65,10 +71,8 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 			}
 		}
 		color /= multiplyer;
-		
 	}
 	else {
-		int2 imageCoordinates = realCoordinate - offsetInput;
 		color = read_imagef(inputImage, SAMPLER_NEAREST, imageCoordinates);
 	}
 	
