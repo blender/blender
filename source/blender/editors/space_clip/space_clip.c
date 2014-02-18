@@ -695,7 +695,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks_clear", HKEY, KM_PRESS, KM_ALT, 0);
 
 	/* plane tracks */
-	WM_keymap_add_item(keymap, "CLIP_OT_slide_plane_marker", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_slide_plane_marker", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_keyframe_delete", IKEY, KM_PRESS, KM_ALT, 0);
