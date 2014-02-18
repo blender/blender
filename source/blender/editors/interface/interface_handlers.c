@@ -3517,13 +3517,16 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		/* we can click on the side arrows to increment/decrement,
 		 * or click inside to edit the value directly */
 		float tempf, softmin, softmax;
+		float handlewidth;
 		int temp;
 
 		softmin = but->softmin;
 		softmax = but->softmax;
 
+		handlewidth = min_ff(BLI_rctf_size_x(&but->rect)/3, BLI_rctf_size_y(&but->rect));
+
 		if (!ui_is_but_float(but)) {
-			if (mx < (but->rect.xmin + BLI_rctf_size_x(&but->rect) / 3 - 3)) {
+			if (mx < (but->rect.xmin + handlewidth)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp = (int)data->value - 1;
@@ -3534,7 +3537,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
-			else if (mx > (but->rect.xmin + (2 * BLI_rctf_size_x(&but->rect) / 3) + 3)) {
+			else if (mx > (but->rect.xmax - handlewidth)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp = (int)data->value + 1;
@@ -3550,7 +3553,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 		else {
-			if (mx < (but->rect.xmin + BLI_rctf_size_x(&but->rect) / 3 - 3)) {
+			if (mx < (but->rect.xmin + handlewidth)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf = (float)data->value - 0.01f * but->a1;
@@ -3559,7 +3562,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
-			else if (mx > but->rect.xmin + (2 * (BLI_rctf_size_x(&but->rect) / 3) + 3)) {
+			else if (mx > but->rect.xmax - handlewidth) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf = (float)data->value + 0.01f * but->a1;
