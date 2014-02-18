@@ -1283,8 +1283,8 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 				}
 			}
 
-			nitem = MEM_mallocN(sizeof(EnumPropertyItem) * tot + 1, "enum_items_gettexted");
-			memcpy(nitem, item, sizeof(EnumPropertyItem) * tot + 1);
+			nitem = MEM_mallocN(sizeof(EnumPropertyItem) * (tot + 1), "enum_items_gettexted");
+			memcpy(nitem, item, sizeof(EnumPropertyItem) * (tot + 1));
 
 			*r_free = true;
 		}
