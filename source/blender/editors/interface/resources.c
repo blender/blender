@@ -2446,8 +2446,6 @@ void init_userdef_factory(void)
 	U.uiflag |= USER_QUIT_PROMPT;
 	U.uiflag |= USER_CONTINUOUS_MOUSE;
 
-	U.ogl_multisamples = USER_MULTISAMPLE_4;
-
 	U.versions = 1;
 	U.savetime = 2;
 
