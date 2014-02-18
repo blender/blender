@@ -1769,21 +1769,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	extern char datatoc_splash_2x_png[];
 	extern int datatoc_splash_2x_png_size;
-
 	ImBuf *ibuf;
-
-	if (U.pixelsize == 2) {
-		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_2x_png,
-		                             datatoc_splash_2x_png_size, IB_rect, NULL, "<splash screen>");
-	}
-	else {
-		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_png,
-		                             datatoc_splash_png_size, IB_rect, NULL, "<splash screen>");
-	}
 #else
 	ImBuf *ibuf = NULL;
 #endif
-
 
 #ifdef WITH_BUILDINFO
 	int label_delta = 0;
@@ -1801,6 +1790,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	hash_width = (int)BLF_width(style->widgetlabel.uifont_id, hash_buf, sizeof(hash_buf)) + U.widget_unit;
 	date_width = (int)BLF_width(style->widgetlabel.uifont_id, date_buf, sizeof(date_buf)) + U.widget_unit;
 #endif  /* WITH_BUILDINFO */
+
+#ifndef WITH_HEADLESS
+	if (U.pixelsize == 2) {
+		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_2x_png,
+		                             datatoc_splash_2x_png_size, IB_rect, NULL, "<splash screen>");
+	}
+	else {
+		ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_png,
+		                             datatoc_splash_png_size, IB_rect, NULL, "<splash screen>");
+	}
+#endif
 
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 
