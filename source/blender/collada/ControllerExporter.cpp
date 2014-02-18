@@ -42,6 +42,7 @@ extern "C" {
 #include "BKE_mesh.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_idprop.h"
 }
 
 #include "ED_armature.h"
@@ -466,6 +467,80 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm, ListBase *defb
 	return source_id;
 }
 
+/**
+ * This function creates an arbitrary rest pose matrix from
+ * data provided as custom properties. This is a workaround
+ * for support of maya's restpose matrix which can be arbitrary
+ * in opposition to Blender where the Rest pose Matrix is always
+ * the Identity matrix.
+ *
+ * The custom properties are:
+ *
+ * restpose_scale_x
+ * restpose_scale_y
+ * restpose_scale_z
+ *
+ * restpose_rot_x
+ * restpose_rot_y
+ * restpose_rot_z
+ *
+ * restpose_loc_x
+ * restpose_loc_y
+ * restpose_loc_z
+ *
+ * The matrix is only setup if the scale AND the rot properties are defined.
+ * The presence of the loc properties is optional.
+ *
+ * This feature has been implemented to support Second Life "Fitted Mesh"
+ * TODO: Check if an arbitrary rest pose matrix makes sense within Blender.
+ * Eventually leverage the custom property data into an "official" 
+ * Edit_bone Property
+ */
+static bool create_restpose_mat(Bone *bone, float mat[4][4])
+{
+	bool is_valid = false;
+	const double PI = 3.1415926535897932384626433832795;
+
+	IDProperty *scale_x = IDP_GetPropertyFromGroup(bone->prop, "restpose_scale_x");
+	IDProperty *scale_y = IDP_GetPropertyFromGroup(bone->prop, "restpose_scale_y");
+	IDProperty *scale_z = IDP_GetPropertyFromGroup(bone->prop, "restpose_scale_z");
+
+	if (scale_x && scale_y && scale_z) {
+
+		IDProperty *rot_x = IDP_GetPropertyFromGroup(bone->prop, "restpose_rot_x");
+		IDProperty *rot_y = IDP_GetPropertyFromGroup(bone->prop, "restpose_rot_y");
+		IDProperty *rot_z = IDP_GetPropertyFromGroup(bone->prop, "restpose_rot_z");
+
+		if (rot_x && rot_y && rot_z) {
+			is_valid = true;
+
+			float loc[3] = {0,0,0};
+			IDProperty *loc_x = IDP_GetPropertyFromGroup(bone->prop, "restpose_loc_x");
+			IDProperty *loc_y = IDP_GetPropertyFromGroup(bone->prop, "restpose_loc_y");
+			IDProperty *loc_z = IDP_GetPropertyFromGroup(bone->prop, "restpose_loc_z");
+
+			if (loc_x && loc_y && loc_z) {
+				loc[0] = IDP_Float(loc_x);
+				loc[1] = IDP_Float(loc_y);
+				loc[2] = IDP_Float(loc_z);
+			}
+
+			float scale[3];
+			scale[0] = IDP_Float(scale_x);
+			scale[1] = IDP_Float(scale_y);
+			scale[2] = IDP_Float(scale_z);
+
+			float rot[3];
+			rot[0] = PI * IDP_Float(rot_x) / 180;
+			rot[1] = PI * IDP_Float(rot_y) / 180;
+			rot[2] = PI * IDP_Float(rot_z) / 180;
+
+			loc_eulO_size_to_mat4(mat, loc, rot, scale, 6);
+		}
+	}
+	return is_valid;
+}
+
 std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase *defbase, const std::string& controller_id)
 {
 	std::string source_id = controller_id + BIND_POSES_SOURCE_ID_SUFFIX;
@@ -507,6 +582,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 			float world[4][4];
 			float inv_bind_mat[4][4];
 
+			
 			// OPEN_SIM_COMPATIBILITY
 			if (export_settings->open_sim) {
 				// Only translations, no rotation vs armature
@@ -518,6 +594,12 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 			else {
 				// make world-space matrix, arm_mat is armature-space
 				mul_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
+			}
+
+			float restpose_mat[4][4];
+			bool is_valid = create_restpose_mat(pchan->bone, restpose_mat);
+			if (is_valid) {
+				mul_m4_m4m4(world, world, restpose_mat);
 			}
 
 			invert_m4_m4(mat, world);
