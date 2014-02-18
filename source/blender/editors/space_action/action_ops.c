@@ -216,6 +216,7 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	/* auto-set range */
 	WM_keymap_add_item(keymap, "ACTION_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 	/* animation module */
