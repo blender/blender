@@ -286,8 +286,8 @@ class MASK_PT_tools():
         col = layout.column(align=True)
         col.label(text="Animation:")
         row = col.row(align=True)
-        row.operator("mask.shape_key_clear", text="Insert Key")
-        row.operator("mask.shape_key_insert", text="Clear Key")
+        row.operator("mask.shape_key_insert", text="Insert Key")
+        row.operator("mask.shape_key_clear", text="Clear Key")
         col.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
         col.operator("mask.shape_key_rekey", text="Re-Key Shape Points")
 
