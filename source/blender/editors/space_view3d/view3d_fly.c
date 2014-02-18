@@ -152,6 +152,10 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_BACKWARD);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_LEFT);
 	WM_modalkeymap_add_item(keymap, DKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_RIGHT);
+	WM_modalkeymap_add_item(keymap, EKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_UP);
+	WM_modalkeymap_add_item(keymap, QKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_DOWN);
+
+	/* for legacy reasons, leave R/F working */
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_UP);
 	WM_modalkeymap_add_item(keymap, FKEY, KM_PRESS, 0, 0, FLY_MODAL_DIR_DOWN);
 
@@ -163,6 +167,10 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, XKEY, KM_PRESS, 0, 0, FLY_MODAL_AXIS_LOCK_X);
 	WM_modalkeymap_add_item(keymap, ZKEY, KM_PRESS, 0, 0, FLY_MODAL_AXIS_LOCK_Z);
 
+	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_PRECISION_ENABLE);
+	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_RELEASE, KM_ANY, 0, FLY_MODAL_PRECISION_DISABLE);
+
+	/* for legacy reasons, leave shift working */
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_PRECISION_ENABLE);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, FLY_MODAL_PRECISION_DISABLE);
 
@@ -281,8 +289,8 @@ static void fly_update_header(bContext *C, FlyInfo *fly)
 	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB/Return: confirm, "
 	                                           "RMB/Esc: cancel, "
 	                                           "MMB: pan, "
-	                                           "WASDRF: direction, "
-	                                           "Shift: slow, "
+	                                           "WASDQE: direction, "
+	                                           "Alt: slow, "
 	                                           "Ctrl: free look, "
 	                                           "X: Upright x axis (%s), "
 	                                           "Z: Upright z axis (%s), "

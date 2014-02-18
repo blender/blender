@@ -348,6 +348,7 @@ static void walk_update_header(bContext *C, WalkInfo *walk)
 	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB/Return: confirm, Esc/RMB: cancel, "
                                                "Tab: gravity (%s), "
 	                                           "WASD: move around, "
+	                                           "Shift: fast, Alt: slow, "
 	                                           "QE: up and down, MMB/Space: teleport, V: jump, "
 	                                           "Pad +/Wheel Up: increase speed, Pad -/Wheel Down: decrease speed"),
 	             WM_bool_as_string(gravity));
