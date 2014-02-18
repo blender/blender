@@ -65,6 +65,7 @@ struct wmDrag;
 struct ImBuf;
 struct ImageFormatData;
 struct ARegion;
+struct wmNDOFMotionData;
 
 typedef struct wmJob wmJob;
 
@@ -434,6 +435,12 @@ bool write_crash_blend(void);
 
 			/* Lock the interface for any communication */
 void        WM_set_locked_interface(struct wmWindowManager *wm, bool lock);
+
+void        WM_event_ndof_pan_get(const struct wmNDOFMotionData *ndof, float r_pan[3], const bool use_zoom);
+void        WM_event_ndof_rotate_get(const struct wmNDOFMotionData *ndof, float r_rot[3]);
+
+float       WM_event_ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3]);
+void        WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4]);
 
 #ifdef __cplusplus
 }

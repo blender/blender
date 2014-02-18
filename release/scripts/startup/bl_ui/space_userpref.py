@@ -962,9 +962,9 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.separator()
             layout.label(text="Orbit options")
             layout.row().prop(input_prefs, "ndof_view_rotate_method", text="")
-            layout.prop(input_prefs, "ndof_roll_invert_axis")
-            layout.prop(input_prefs, "ndof_tilt_invert_axis")
-            layout.prop(input_prefs, "ndof_rotate_invert_axis")
+            layout.prop(input_prefs, "ndof_rotx_invert_axis")
+            layout.prop(input_prefs, "ndof_roty_invert_axis")
+            layout.prop(input_prefs, "ndof_rotz_invert_axis")
 
 
         # view2d use pan/zoom

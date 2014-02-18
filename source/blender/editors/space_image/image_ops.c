@@ -599,13 +599,14 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 	else {
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ARegion *ar = CTX_wm_region(C);
-		float pan_vec[2];
+		float pan_vec[3];
 
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
 		float dt = ndof->dt;
+
 		/* tune these until it feels right */
-		const float pan_sensitivity = 300.f; // screen pixels per second
+		const float pan_sensitivity = 300.0f;  /* screen pixels per second */
 
 		/* "mouse zoom" factor = 1 + (dx + dy) / 300
 		 * what about "ndof zoom" factor? should behave like this:
@@ -613,17 +614,13 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 		 * move forward -> factor > 1
 		 * move backward -> factor < 1
 		 */
-		float zoom_factor = dt * -ndof->tvec[2];
 
-		pan_vec[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
-		pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
+		WM_event_ndof_pan_get(ndof, pan_vec, true);
 
 		mul_v2_fl(pan_vec, (pan_sensitivity * dt) / sima->zoom);
+		pan_vec[2] *= -dt;
 
-		if (U.ndof_flag & NDOF_ZOOM_INVERT)
-			zoom_factor = -zoom_factor;
-
-		sima_zoom_set_factor(sima, ar, 1.0f + zoom_factor, NULL);
+		sima_zoom_set_factor(sima, ar, 1.0f + pan_vec[2], NULL);
 		sima->xof += pan_vec[0];
 		sima->yof += pan_vec[1];
 

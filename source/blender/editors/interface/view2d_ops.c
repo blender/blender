@@ -1274,10 +1274,9 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		if (has_translate) {
 			if (view_pan_init(C, op)) {
 				v2dViewPanData *vpd;
-				float pan_vec[2];
+				float pan_vec[3];
 
-				pan_vec[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
-				pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
+				WM_event_ndof_pan_get(ndof, pan_vec, false);
 
 				pan_vec[0] *= pan_sensitivity;
 				pan_vec[1] *= pan_sensitivity;

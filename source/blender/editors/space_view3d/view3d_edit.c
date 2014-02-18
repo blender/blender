@@ -1151,20 +1151,6 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 #define NDOF_HAS_TRANSLATE ((!view3d_operator_offset_lock_check(C, op)) && !is_zero_v3(ndof->tvec))
 #define NDOF_HAS_ROTATE    (((rv3d->viewlock & RV3D_LOCKED) == 0) && !is_zero_v3(ndof->rvec))
 
-float ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3])
-{
-	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
-}
-
-void ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
-{
-	float axis[3];
-	float angle;
-
-	angle = ndof_to_axis_angle(ndof, axis);
-	axis_angle_to_quat(q, axis, angle);
-}
-
 /**
  * Zoom and pan in the same function since sometimes zoom is interpreted as dolly (pan forward).
  *
@@ -1182,9 +1168,7 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
 		return;
 	}
 
-	pan_vec[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
-	pan_vec[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
-	pan_vec[2] = ndof->tvec[2] * ((U.ndof_flag & NDOF_PANZ_INVERT_AXIS) ? -1.0f : 1.0f);
+	WM_event_ndof_pan_get(ndof, pan_vec, false);
 
 	if (has_zoom) {
 		/* zoom with Z */
@@ -1195,14 +1179,11 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
 		 * proportional to arclength = radius * angle
 		 */
 
-		/* tune these until everything feels right */
-		const float zoom_sensitivity = 1.f;
-
 		pan_vec[2] = 0.0f;
 
 		/* "zoom in" or "translate"? depends on zoom mode in user settings? */
-		if (ndof->tz) {
-			float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
+		if (ndof->tvec[2]) {
+			float zoom_distance = rv3d->dist * dt * ndof->tvec[2];
 
 			if (U.ndof_flag & NDOF_ZOOM_INVERT)
 				zoom_distance = -zoom_distance;
@@ -1242,7 +1223,6 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D 
                               /* optional, can be NULL*/
                               ViewOpsData *vod)
 {
-	const float rot_sensitivity = 1.0f;
 	float view_inv[4];
 
 	BLI_assert((rv3d->viewlock & RV3D_LOCKED) == 0);
@@ -1254,26 +1234,26 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D 
 	invert_qt_qt(view_inv, rv3d->viewquat);
 
 	if (U.ndof_flag & NDOF_TURNTABLE) {
+		float rot[3];
 
 		/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-		float angle, rot[4];
+		float angle, quat[4];
 		float xvec[3] = {1, 0, 0};
+
+		/* only use XY, ignore Z */
+		WM_event_ndof_rotate_get(ndof, rot);
 
 		/* Determine the direction of the x vector (for rotating up and down) */
 		mul_qt_v3(view_inv, xvec);
 
 		/* Perform the up/down rotation */
-		angle = rot_sensitivity * dt * ndof->rx;
-		if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-			angle = -angle;
-		rot[0] = cosf(angle);
-		mul_v3_v3fl(rot + 1, xvec, sin(angle));
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+		angle = dt * rot[0];
+		quat[0] = cosf(angle);
+		mul_v3_v3fl(quat + 1, xvec, sin(angle));
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 
 		/* Perform the orbital rotation */
-		angle = rot_sensitivity * dt * ndof->ry;
-		if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-			angle = -angle;
+		angle = dt * rot[1];
 
 		/* update the onscreen doo-dad */
 		rv3d->rot_angle = angle;
@@ -1281,21 +1261,17 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D 
 		rv3d->rot_axis[1] = 0;
 		rv3d->rot_axis[2] = 1;
 
-		rot[0] = cosf(angle);
-		rot[1] = rot[2] = 0.0;
-		rot[3] = sinf(angle);
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+		quat[0] = cosf(angle);
+		quat[1] = 0.0f;
+		quat[2] = 0.0f;
+		quat[3] = sinf(angle);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 
 	}
 	else {
-		float rot[4];
+		float quat[4];
 		float axis[3];
-		float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
-
-		if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)   axis[2] = -axis[2];
-		if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)   axis[0] = -axis[0];
-		if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS) axis[1] = -axis[1];
-
+		float angle = WM_event_ndof_to_axis_angle(ndof, axis);
 
 		/* transform rotation axis from view to world coordinates */
 		mul_qt_v3(view_inv, axis);
@@ -1304,10 +1280,10 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D 
 		rv3d->rot_angle = angle;
 		copy_v3_v3(rv3d->rot_axis, axis);
 
-		axis_angle_to_quat(rot, axis, angle);
+		axis_angle_to_quat(quat, axis, angle);
 
 		/* apply rotation */
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 	}
 
 	/* rotate around custom center */

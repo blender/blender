@@ -4648,14 +4648,14 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	v[1] = r * sinf(phi);
 	
 	/* Use ndof device y and x rotation to move the vector in 2d space */
-	v[0] += ndof->rz * sensitivity;
-	v[1] += ndof->rx * sensitivity;
+	v[0] += ndof->rvec[2] * sensitivity;
+	v[1] += ndof->rvec[0] * sensitivity;
 
 	/* convert back to polar coords on circle */
 	phi = atan2f(v[0], v[1]) / (2.0f * (float)M_PI) + 0.5f;
 	
-	/* use ndof z rotation to additionally rotate hue */
-	phi += ndof->ry * sensitivity * 0.5f;
+	/* use ndof Y rotation to additionally rotate hue */
+	phi += ndof->rvec[1] * sensitivity * 0.5f;
 	r = len_v2(v);
 
 	/* convert back to hsv values, in range [0,1] */

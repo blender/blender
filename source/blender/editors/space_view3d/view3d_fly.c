@@ -959,19 +959,21 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 
 	if (do_translate) {
 		float speed = 10.0f; /* blender units per second */
-		float trans[3];
+		float trans[3], trans_orig_y;
 		/* ^^ this is ok for default cube scene, but should scale with.. something */
 		if (fly->use_precision)
 			speed *= 0.2f;
 
-		mul_v3_v3fl(trans, ndof->tvec, speed * dt);
+		WM_event_ndof_pan_get(ndof, trans, false);
+		mul_v3_fl(trans, speed * dt);
+		trans_orig_y = trans[1];
 
 		/* transform motion from view to world coordinates */
 		mul_qt_v3(view_inv, trans);
 
 		if (flag & NDOF_FLY_HELICOPTER) {
 			/* replace world z component with device y (yes it makes sense) */
-			trans[2] = speed * dt * ndof->tvec[1];
+			trans[2] = trans_orig_y;
 		}
 
 		if (rv3d->persp == RV3D_CAMOB) {
@@ -997,7 +999,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 
 		float rotation[4];
 		float axis[3];
-		float angle = turn_sensitivity * ndof_to_axis_angle(ndof, axis);
+		float angle = turn_sensitivity * WM_event_ndof_to_axis_angle(ndof, axis);
 
 		if (fabsf(angle) > 0.0001f) {
 			do_rotate = true;
