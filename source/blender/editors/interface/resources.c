@@ -747,8 +747,8 @@ static void ui_theme_init_new_do(ThemeSpace *ts)
 	rgba_char_args_set(ts->list_text_hi,   255, 255, 255, 255);
 
 	rgba_char_args_set(ts->tab_active,     114, 114, 114, 255);
-	rgba_char_args_set(ts->tab_inactive,   100, 100, 100, 255);
-	rgba_char_args_set(ts->tab_back,       70, 70, 70, 255);
+	rgba_char_args_set(ts->tab_inactive,   83, 83, 83, 255);
+	rgba_char_args_set(ts->tab_back,       64, 64, 64, 255);
 	rgba_char_args_set(ts->tab_outline,    60, 60, 60, 255);
 }
 
@@ -2414,8 +2414,8 @@ void init_userdef_do_versions(void)
 
 			for (ts = UI_THEMESPACE_START(btheme); ts != UI_THEMESPACE_END(btheme); ts++) {
 				rgba_char_args_set(ts->tab_active, 114, 114, 114, 255);
-				rgba_char_args_set(ts->tab_inactive, 100, 100, 100, 255);
-				rgba_char_args_set(ts->tab_back, 70, 70, 70, 255);
+				rgba_char_args_set(ts->tab_inactive, 83, 83, 83, 255);
+				rgba_char_args_set(ts->tab_back, 64, 64, 64, 255);
 				rgba_char_args_set(ts->tab_outline, 60, 60, 60, 255);
 			}
 		}
