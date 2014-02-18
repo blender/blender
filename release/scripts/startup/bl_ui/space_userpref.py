@@ -950,11 +950,12 @@ class USERPREF_MT_ndof_settings(Menu):
 
         input_prefs = context.user_preferences.inputs
 
-        layout.separator()
         layout.prop(input_prefs, "ndof_sensitivity")
         layout.prop(input_prefs, "ndof_orbit_sensitivity")
 
-        if context.space_data.type == 'VIEW_3D':
+        is_view3d = context.space_data.type == 'VIEW_3D'
+
+        if is_view3d:
             layout.separator()
             layout.prop(input_prefs, "ndof_show_guide")
 
@@ -965,16 +966,19 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.prop(input_prefs, "ndof_tilt_invert_axis")
             layout.prop(input_prefs, "ndof_rotate_invert_axis")
 
-            layout.separator()
-            layout.label(text="Pan options")
-            layout.prop(input_prefs, "ndof_panx_invert_axis")
-            layout.prop(input_prefs, "ndof_pany_invert_axis")
-            layout.prop(input_prefs, "ndof_panz_invert_axis")
-            layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
 
-            layout.label(text="Zoom options")
-            layout.prop(input_prefs, "ndof_zoom_invert")
+        # view2d use pan/zoom
+        layout.separator()
+        layout.label(text="Pan options")
+        layout.prop(input_prefs, "ndof_panx_invert_axis")
+        layout.prop(input_prefs, "ndof_pany_invert_axis")
+        layout.prop(input_prefs, "ndof_panz_invert_axis")
+        layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
 
+        layout.label(text="Zoom options")
+        layout.prop(input_prefs, "ndof_zoom_invert")
+
+        if is_view3d:
             layout.separator()
             layout.label(text="Fly/Walk options")
             layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
