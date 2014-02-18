@@ -272,7 +272,11 @@ PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/STACK:2097152','/IN
 
 BF_BSC=False
 
-if VC_VERSION == '11.0':
+if VC_VERSION == '12.0':
+    BF_CYCLES_CUDA_ENV="C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
+    BF_BUILDDIR = '..\\build\\win32-vc12'
+    BF_INSTALLDIR='..\\install\\win32-vc12'
+elif VC_VERSION == '11.0':
     BF_BUILDDIR = '..\\build\\win32-vc11'
     BF_INSTALLDIR='..\\install\\win32-vc11'
 else:
