@@ -1368,6 +1368,113 @@ static void dag_scene_free(Scene *sce)
 	}
 }
 
+/* Chech whether object data needs to be evaluated before it
+ * might be used by others.
+ *
+ * Means that mesh object needs to have proper derivedFinal,
+ * curves-typed objects are to have proper curve cache.
+ *
+ * Other objects or objects which are tagged for data update are
+ * not considered to be in need of evaluation.
+ */
+static bool check_object_data_needs_evaluation(Object *object)
+{
+	if (object->recalc & OB_RECALC_DATA) {
+		/* Object is tagged for update anyway, no need to re-tag it. */
+		return false;
+	}
+
+	if (object->type == OB_MESH) {
+		return object->derivedFinal == NULL;
+	}
+	else if (ELEM5(object->type, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
+	{
+		return object->curve_cache == NULL;
+	}
+
+	return false;
+}
+
+/* Check whether object data is tagged for update. */
+static bool check_object_data_tagged_for_update(Object *object)
+{
+	if (object->recalc & OB_RECALC_DATA) {
+		return true;
+	}
+
+	if (ELEM6(object->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
+		ID *data_id = object->data;
+		return (data_id->flag & (LIB_ID_RECALC_DATA | LIB_ID_RECALC)) != 0;
+	}
+
+	return false;
+}
+
+/* Flush changes from tagged objects in the scene to their
+ * dependencies which are not evaluated yet.
+ *
+ * This is needed to ensure all the dependencies are met
+ * before objects gets handled by object_handle_update(),
+ *
+ * This is needed when visible layers are changed or changing
+ * scene graph layout which involved usage of objects which
+ * aren't in the scene or weren't visible yet.
+ */
+static void dag_invisible_dependencies_flush(Scene *scene)
+{
+	DagNode *root_node = scene->theDag->DagNode.first, *node;
+	DagNodeQueue *queue;
+
+	for (node = root_node; node != NULL; node = node->next) {
+		node->color = DAG_WHITE;
+	}
+
+	queue = queue_create(DAGQUEUEALLOC);
+
+	for (node = root_node; node != NULL; node = node->next) {
+		if (node->color == DAG_WHITE) {
+			push_stack(queue, node);
+			node->color = DAG_GRAY;
+
+			while (queue->count) {
+				DagNode *current_node = get_top_node_queue(queue);
+				DagAdjList *itA;
+				bool skip = false;
+
+				for (itA = current_node->child; itA; itA = itA->next) {
+					if (itA->node->color == DAG_WHITE) {
+						itA->node->color = DAG_GRAY;
+						push_stack(queue, itA->node);
+						skip = true;
+						break;
+					}
+				}
+
+				if (!skip) {
+					current_node = pop_queue(queue);
+
+					if (current_node->type == ID_OB) {
+						Object *current_object = current_node->ob;
+						if (check_object_data_needs_evaluation(current_object)) {
+							for (itA = current_node->child; itA; itA = itA->next) {
+								if (itA->node->type == ID_OB) {
+									Object *object = itA->node->ob;
+									if (check_object_data_tagged_for_update(object)) {
+										current_object->recalc |= OB_RECALC_DATA;
+									}
+								}
+							}
+						}
+					}
+					node->color = DAG_BLACK;
+				}
+			}
+		}
+	}
+
+	queue_delete(queue);
+}
+
 /* sort the base list on dependency order */
 static void dag_scene_build(Main *bmain, Scene *sce)
 {
@@ -1461,6 +1568,19 @@ static void dag_scene_build(Main *bmain, Scene *sce)
 
 	/* temporal...? */
 	sce->recalc |= SCE_PRV_CHANGED; /* test for 3d preview */
+
+	/* Make sure that new dependencies which came from invisble layers
+	 * are tagged for update (if they're needed for objects which were
+	 * tagged for update).
+	 */
+	if (DAG_id_type_tagged(bmain, ID_OB) ||
+		DAG_id_type_tagged(bmain, ID_ME)  ||  /* Mesh */
+		DAG_id_type_tagged(bmain, ID_CU)  ||  /* Curve */
+		DAG_id_type_tagged(bmain, ID_MB)  ||  /* MetaBall */
+		DAG_id_type_tagged(bmain, ID_LT))     /* Lattice */
+	{
+		dag_invisible_dependencies_flush(sce);
+	}
 }
 
 /* clear all dependency graphs */
@@ -2148,10 +2268,12 @@ static void dag_group_on_visible_update(Group *group)
 	for (go = group->gobject.first; go; go = go->next) {
 		if (ELEM6(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 			go->ob->recalc |= OB_RECALC_DATA;
+			go->ob->id.flag |= LIB_DOIT;
 			lib_id_recalc_tag(G.main, &go->ob->id);
 		}
 		if (go->ob->proxy_from) {
 			go->ob->recalc |= OB_RECALC_OB;
+			go->ob->id.flag |= LIB_DOIT;
 			lib_id_recalc_tag(G.main, &go->ob->id);
 		}
 
@@ -2175,7 +2297,8 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 		Object *ob;
 		DagNode *node;
 		unsigned int lay = dsl->layer, oblay;
-	
+		bool have_updated_objects = false;
+
 		/* derivedmeshes and displists are not saved to file so need to be
 		 * remade, tag them so they get remade in the scene update loop,
 		 * note armature poses or object matrices are preserved and do not
@@ -2191,6 +2314,8 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 			oblay = (node) ? node->lay : ob->lay;
 
 			if ((oblay & lay) & ~scene->lay_updated) {
+				have_updated_objects = true;
+
 				if (ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 					ob->recalc |= OB_RECALC_DATA;
 					lib_id_recalc_tag(bmain, &ob->id);
@@ -2199,9 +2324,16 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 					ob->proxy->recalc |= OB_RECALC_DATA;
 					lib_id_recalc_tag(bmain, &ob->id);
 				}
-				if (ob->dup_group) 
+				if (ob->dup_group)
 					dag_group_on_visible_update(ob->dup_group);
 			}
+		}
+
+		/* Make sure that object which needs for tagged ones and which are not
+		 * in the current scene are also tagged for update.
+		 */
+		if (have_updated_objects) {
+			dag_invisible_dependencies_flush(scene);
 		}
 
 		BKE_main_id_tag_idcode(bmain, ID_GR, false);
