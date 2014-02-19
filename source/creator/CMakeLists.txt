@@ -961,7 +961,6 @@ endif()
 		bf_imbuf_openimageio
 		bf_imbuf_dds
 		bf_collada
-		bf_intern_bsp
 		bf_intern_elbeem
 		bf_intern_memutil
 		bf_intern_guardedalloc

@@ -175,11 +175,6 @@ endif()
 	list(APPEND BLENDER_SORTED_LIBS extern_colamd)
 
 	if(WITH_MOD_BOOLEAN)
-		list(APPEND BLENDER_SORTED_LIBS bf_intern_bsp)
-		list(APPEND BLENDER_SORTED_LIBS bf_intern_moto)
-	endif()
-
-	if(WITH_MOD_BOOLEAN)
 		list(APPEND BLENDER_SORTED_LIBS extern_carve)
 	endif()
 
