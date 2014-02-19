@@ -15,3 +15,4 @@ settings.use_default_red_channel = True
 settings.use_default_green_channel = True
 settings.use_default_blue_channel = True
 settings.default_correlation_min = 0.6
+settings.default_weight = 1.0

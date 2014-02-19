@@ -2719,4 +2719,11 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingSettings", "float", "default_weight")) {
+		MovieClip *clip;
+		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+			clip->tracking.settings.default_weight = 1.0f;
+		}
+	}
 }

@@ -930,6 +930,10 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Blue Channel", "Use blue channel from footage for tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
+	prop = RNA_def_property(srna, "default_weight", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Weight", "Influence of newly created track on a final solution");
+
 	/* ** object tracking ** */
 
 	/* object distance */

@@ -210,6 +210,7 @@ typedef struct MovieTrackingSettings {
 	short default_margin;               /* margin from frame boundaries */
 	short default_pattern_match;        /* re-adjust every N frames */
 	short default_flag;                 /* default flags like color channels used by default */
+	float default_weight;               /* default weight of the track */
 
 	short motion_flag;      /* flags describes motion type */
 
@@ -222,7 +223,7 @@ typedef struct MovieTrackingSettings {
 		                             * were moved to per-tracking object settings
 		                             */
 
-	int reconstruction_flag, pad;
+	int reconstruction_flag;
 
 	/* which camera intrinsics to refine. uses on the REFINE_* flags */
 	short refine_camera_intrinsics, pad2;

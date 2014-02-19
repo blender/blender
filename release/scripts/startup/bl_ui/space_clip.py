@@ -335,6 +335,9 @@ class CLIP_PT_tracking_settings(CLIP_PT_tracking_panel, Panel):
             sub.prop(settings, "default_frames_limit")
             sub.prop(settings, "default_margin")
 
+            col = box.column()
+            col.prop(settings, "default_weight")
+
 
 class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
