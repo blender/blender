@@ -1,7 +1,7 @@
 import bpy
 camera = bpy.context.edit_movieclip.tracking.camera
 
-camera.sensor_width = 23.4
+camera.sensor_width = 24.33
 camera.units = 'MILLIMETERS'
 camera.pixel_aspect = 1
 camera.k1 = 0.0
