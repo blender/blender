@@ -21,10 +21,16 @@
 # <pep8 compliant>
 
 """
-Thumbnailer runs with python 2.6 and 3.x.
-To run automatically with nautilus:
-   gconftool --type boolean --set /desktop/gnome/thumbnailers/application@x-blender/enable true
-   gconftool --type string --set /desktop/gnome/thumbnailers/application@x-blender/command "blender-thumbnailer.py %u %o"
+Thumbnailer runs with python 2.7 and 3.x.
+To run automatically with a file manager such as Nautilus, save this file
+in a directory that is listed in PATH environment variable, and create
+blender.thumbnailer file in ${HOME}/.local/share/thumbnailers/ directory
+with the following contents:
+
+[Thumbnailer Entry]
+TryExec=blender-thumbnailer.py
+Exec=blender-thumbnailer.py %u %o
+MimeType=application/x-blender;
 """
 
 import struct
@@ -34,21 +40,47 @@ def open_wrapper_get():
     """ wrap OS spesific read functionality here, fallback to 'open()'
     """
 
-    def open_gio(path, mode):
-        g_file = gio.File(path).read()
-        g_file.orig_seek = g_file.seek
+    class GFileWrapper:
+        __slots__ = ("mode", "g_file")
+        def __init__(self, url, mode='r'):
+            self.mode = mode # used in gzip module
+            self.g_file = Gio.File.parse_name(url).read(None)
 
-        def new_seek(offset, whence=0):
-            return g_file.orig_seek(offset, [1, 0, 2][whence])
+        def read(self, size):
+            return self.g_file.read_bytes(size, None).get_data()
 
-        g_file.seek = new_seek
-        return g_file
+        def seek(self, offset, whence=0):
+            self.g_file.seek(offset, [1, 0, 2][whence], None)
+            return self.g_file.tell()
+
+        def tell(self):
+            return self.g_file.tell()
+
+        def close(self):
+            self.g_file.close(None)
+
+    def open_local_url(url, mode='r'):
+        o = urlparse(url)
+        if o.scheme == '':
+            path = o.path
+        elif o.scheme == 'file':
+            path = unquote(o.path)
+        else:
+            raise(IOError('URL scheme "%s" needs gi.repository.Gio module' % o.scheme))
+        return open(path, mode)
 
     try:
-        import gio
-        return open_gio
+        from gi.repository import Gio
+        return GFileWrapper
     except ImportError:
-        return open
+        try:
+            # Python 3
+            from urllib.parse import urlparse, unquote
+        except ImportError:
+            # Python 2
+            from urlparse import urlparse
+            from urllib import unquote
+        return open_local_url
 
 
 def blend_extract_thumb(path):
