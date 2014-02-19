@@ -121,6 +121,7 @@ def CLIP_default_settings_from_track(clip, track, framenr):
     settings.use_default_red_channel = track.use_red_channel
     settings.use_default_green_channel = track.use_green_channel
     settings.use_default_blue_channel = track.use_blue_channel
+    settings.default_weight = track.weight
 
 
 class CLIP_OT_track_to_empty(Operator):
