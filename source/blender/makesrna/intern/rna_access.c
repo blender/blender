@@ -1437,6 +1437,19 @@ bool RNA_property_enum_name(bContext *C, PointerRNA *ptr, PropertyRNA *prop, con
 	return false;
 }
 
+bool RNA_property_enum_name_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name)
+{
+	bool result;
+
+	result = RNA_property_enum_name(C, ptr, prop, value, name);
+
+	if (result) {
+		*name = BLF_pgettext(prop->translation_context, *name);
+	}
+
+	return result;
+}
+
 int RNA_property_enum_bitflag_identifiers(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value,
                                           const char **identifier)
 {
