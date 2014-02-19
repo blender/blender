@@ -506,6 +506,9 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 	int defbase_tot = BLI_countlist(&ob->defbase);
 	bool new_vgroup = false;
 
+	if (ob == ob_from)
+		return true;
+
 	ED_vgroup_parray_alloc(ob_from->data, &dvert_array_from, &dvert_tot_from, false);
 	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
 
@@ -514,7 +517,8 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 		new_vgroup = true;
 	}
 
-	if (ob == ob_from || dvert_tot == 0 || (dvert_tot != dvert_tot_from) || dvert_array_from == NULL || dvert_array == NULL) {
+	if (dvert_tot == 0 || (dvert_tot != dvert_tot_from) || dvert_array_from == NULL || dvert_array == NULL) {
+
 		if (dvert_array) MEM_freeN(dvert_array);
 		if (dvert_array_from) MEM_freeN(dvert_array_from);
 
@@ -522,7 +526,9 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 			/* free the newly added vgroup since it wasn't compatible */
 			vgroup_delete_all(ob);
 		}
-		return false;
+
+		/* if true: both are 0 and nothing needs changing, consider this a success */
+		return (dvert_tot == dvert_tot_from);
 	}
 
 	/* do the copy */
