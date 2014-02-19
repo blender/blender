@@ -467,6 +467,31 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm, ListBase *defb
 	return source_id;
 }
 
+static float get_property(Bone *bone, const char *key, float def)
+{
+	float result;
+	IDProperty *property = IDP_GetPropertyFromGroup(bone->prop, key);
+	if (property) {
+		switch(property->type) {
+			case IDP_INT:
+				result = (float)(IDP_Int(property));
+				break;
+			case IDP_FLOAT:
+				result = (float)(IDP_Float(property));
+				break;
+			case IDP_DOUBLE:
+				result = (float)(IDP_Double(property));
+				break;
+			default:
+				result = def;
+		}
+	}
+	else {
+		result = def;
+	}
+	return result;
+}
+
 /**
  * This function creates an arbitrary rest pose matrix from
  * data provided as custom properties. This is a workaround
@@ -496,49 +521,29 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm, ListBase *defb
  * Eventually leverage the custom property data into an "official" 
  * Edit_bone Property
  */
-static bool create_restpose_mat(Bone *bone, float mat[4][4])
+static void create_restpose_mat(Bone *bone, float mat[4][4])
 {
-	bool is_valid = false;
 	const double PI = 3.1415926535897932384626433832795;
 
-	IDProperty *scale_x = IDP_GetPropertyFromGroup(bone->prop, "restpose_scale_x");
-	IDProperty *scale_y = IDP_GetPropertyFromGroup(bone->prop, "restpose_scale_y");
-	IDProperty *scale_z = IDP_GetPropertyFromGroup(bone->prop, "restpose_scale_z");
+	float loc[3] = {
+		get_property(bone, "restpose_loc_x", 0.0),
+		get_property(bone, "restpose_loc_y", 0.0),
+		get_property(bone, "restpose_loc_z", 0.0)
+	};
 
-	if (scale_x && scale_y && scale_z) {
+	float rot[3] = {
+		PI * get_property(bone, "restpose_rot_x", 0.0) / 180.0,
+		PI * get_property(bone, "restpose_rot_y", 0.0) / 180.0,
+		PI * get_property(bone, "restpose_rot_z", 0.0) / 180.0
+	};
 
-		IDProperty *rot_x = IDP_GetPropertyFromGroup(bone->prop, "restpose_rot_x");
-		IDProperty *rot_y = IDP_GetPropertyFromGroup(bone->prop, "restpose_rot_y");
-		IDProperty *rot_z = IDP_GetPropertyFromGroup(bone->prop, "restpose_rot_z");
+	float scale[3] = {
+		get_property(bone, "restpose_scale_x", 1.0),
+		get_property(bone, "restpose_scale_y", 1.0),
+		get_property(bone, "restpose_scale_z", 1.0)
+	};
 
-		if (rot_x && rot_y && rot_z) {
-			is_valid = true;
-
-			float loc[3] = {0,0,0};
-			IDProperty *loc_x = IDP_GetPropertyFromGroup(bone->prop, "restpose_loc_x");
-			IDProperty *loc_y = IDP_GetPropertyFromGroup(bone->prop, "restpose_loc_y");
-			IDProperty *loc_z = IDP_GetPropertyFromGroup(bone->prop, "restpose_loc_z");
-
-			if (loc_x && loc_y && loc_z) {
-				loc[0] = IDP_Float(loc_x);
-				loc[1] = IDP_Float(loc_y);
-				loc[2] = IDP_Float(loc_z);
-			}
-
-			float scale[3];
-			scale[0] = IDP_Float(scale_x);
-			scale[1] = IDP_Float(scale_y);
-			scale[2] = IDP_Float(scale_z);
-
-			float rot[3];
-			rot[0] = PI * IDP_Float(rot_x) / 180;
-			rot[1] = PI * IDP_Float(rot_y) / 180;
-			rot[2] = PI * IDP_Float(rot_z) / 180;
-
-			loc_eulO_size_to_mat4(mat, loc, rot, scale, 6);
-		}
-	}
-	return is_valid;
+	loc_eulO_size_to_mat4(mat, loc, rot, scale, 6);
 }
 
 std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase *defbase, const std::string& controller_id)
@@ -583,24 +588,25 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 			float inv_bind_mat[4][4];
 
 			
-			// OPEN_SIM_COMPATIBILITY
+			// SL/OPEN_SIM COMPATIBILITY
 			if (export_settings->open_sim) {
 				// Only translations, no rotation vs armature
 				float temp[4][4];
 				unit_m4(temp);
 				copy_v3_v3(temp[3], pchan->bone->arm_mat[3]);
 				mul_m4_m4m4(world, ob_arm->obmat, temp);
+
+				// Add Maya restpose matrix (if defined as properties)
+				float restpose_mat[4][4];
+				create_restpose_mat(pchan->bone, restpose_mat);
+				mul_m4_m4m4(world, world, restpose_mat);
+
 			}
 			else {
 				// make world-space matrix, arm_mat is armature-space
 				mul_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
 			}
 
-			float restpose_mat[4][4];
-			bool is_valid = create_restpose_mat(pchan->bone, restpose_mat);
-			if (is_valid) {
-				mul_m4_m4m4(world, world, restpose_mat);
-			}
 
 			invert_m4_m4(mat, world);
 			converter.mat4_to_dae(inv_bind_mat, mat);
