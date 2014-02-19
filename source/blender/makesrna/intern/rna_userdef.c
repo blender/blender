@@ -3947,10 +3947,16 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{0, "RIGHT", 0, "Right", "Use Right Mouse Button for selection"},
 		{0, NULL, 0, NULL, NULL}
 	};
-		
+
 	static EnumPropertyItem view_rotation_items[] = {
 		{0, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport"},
 		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem ndof_view_navigation_items[] = {
+		{0, "FREE", 0, "Free", "Use full 6 degrees of freedom by default"},
+		{NDOF_MODE_ORBIT, "ORBIT", 0, "Orbit", "Orbit about the view center by default"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3959,7 +3965,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{0, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
 		{0, NULL, 0, NULL, NULL}
 	};
-		
+
 	static EnumPropertyItem view_zoom_styles[] = {
 		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down"},
 		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zoom in and out based on vertical mouse movement"},
@@ -4062,6 +4068,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	/* TODO: update description when fly-mode visuals are in place  ("projected position in fly mode")*/
 	
 	/* 3D view */
+	prop = RNA_def_property(srna, "ndof_view_navigate_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ndof_flag");
+	RNA_def_property_enum_items(prop, ndof_view_navigation_items);
+	RNA_def_property_ui_text(prop, "NDOF View Navigate", "Navigation style in the viewport");
+
 	prop = RNA_def_property(srna, "ndof_view_rotate_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ndof_flag");
 	RNA_def_property_enum_items(prop, ndof_view_rotation_items);

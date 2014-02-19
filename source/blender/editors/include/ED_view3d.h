@@ -335,6 +335,7 @@ void ED_view3D_background_image_clear(struct View3D *v3d);
 #define VIEW3D_MARGIN 1.4f
 #define VIEW3D_DIST_FALLBACK 1.0f
 float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float dist_fallback);
+void  ED_view3d_distance_set(struct RegionView3D *rv3d, const float dist);
 
 float ED_scene_grid_scale(struct Scene *scene, const char **grid_unit);
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit);

@@ -950,18 +950,22 @@ class USERPREF_MT_ndof_settings(Menu):
 
         input_prefs = context.user_preferences.inputs
 
-        layout.prop(input_prefs, "ndof_sensitivity")
-        layout.prop(input_prefs, "ndof_orbit_sensitivity")
-
         is_view3d = context.space_data.type == 'VIEW_3D'
+
+        layout.prop(input_prefs, "ndof_sensitivity")
+        if is_view3d:
+            layout.prop(input_prefs, "ndof_orbit_sensitivity")
 
         if is_view3d:
             layout.separator()
             layout.prop(input_prefs, "ndof_show_guide")
 
             layout.separator()
-            layout.label(text="Orbit options")
+            layout.label(text="Orbit style")
+            layout.row().prop(input_prefs, "ndof_view_navigate_method", text="")
             layout.row().prop(input_prefs, "ndof_view_rotate_method", text="")
+            layout.separator()
+            layout.label(text="Orbit options")
             layout.prop(input_prefs, "ndof_rotx_invert_axis")
             layout.prop(input_prefs, "ndof_roty_invert_axis")
             layout.prop(input_prefs, "ndof_rotz_invert_axis")

@@ -185,7 +185,6 @@ struct View3DCameraControl *ED_view3d_cameracontrol_aquire(
 		rv3d->dist = 0.0;
 	}
 	else {
-		float tvec[3];
 		/* perspective or ortho */
 		if (rv3d->persp == RV3D_ORTHO)
 			rv3d->persp = RV3D_PERSP;  /* if ortho projection, make perspective */
@@ -200,11 +199,7 @@ struct View3DCameraControl *ED_view3d_cameracontrol_aquire(
 		 * but to correct the dist removal we must
 		 * alter offset so the view doesn't jump. */
 
-		rv3d->dist = 0.0f;
-
-		copy_v3_fl3(tvec, 0.0f, 0.0f, vctrl->dist_backup);
-		mul_mat3_m4_v3(rv3d->viewinv, tvec);
-		sub_v3_v3(rv3d->ofs, tvec);
+		ED_view3d_distance_set(rv3d, 0.0f);
 		/* Done with correcting for the dist */
 	}
 
@@ -316,7 +311,6 @@ void ED_view3d_cameracontrol_release(
 	View3D *v3d        = vctrl->ctx_v3d;
 	RegionView3D *rv3d = vctrl->ctx_rv3d;
 
-	rv3d->dist = vctrl->dist_backup;
 	if (restore) {
 		/* Revert to original view? */
 		if (vctrl->persp_backup == RV3D_CAMOB) { /* a camera view */
@@ -334,21 +328,19 @@ void ED_view3d_cameracontrol_release(
 		}
 		/* always, is set to zero otherwise */
 		copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);
+		rv3d->dist = vctrl->dist_backup;
 	}
 	else if (vctrl->persp_backup == RV3D_CAMOB) { /* camera */
 		DAG_id_tag_update((ID *)view3d_cameracontrol_object(vctrl), OB_RECALC_OB);
 
 		/* always, is set to zero otherwise */
 		copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);
+		rv3d->dist = vctrl->dist_backup;
 	}
 	else { /* not camera */
-		float tvec[3];
-
 		/* Apply the fly mode view */
 		/* restore the dist */
-		copy_v3_fl3(tvec, 0.0f, 0.0f, vctrl->dist_backup);
-		mul_mat3_m4_v3(rv3d->viewinv, tvec);
-		add_v3_v3(rv3d->ofs, tvec);
+		ED_view3d_distance_set(rv3d, vctrl->dist_backup);
 		/* Done with correcting for the dist */
 	}
 
