@@ -107,6 +107,12 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 
+void view3d_ndof_fly(
+        const struct wmNDOFMotionData *ndof,
+        struct View3D *v3d, struct RegionView3D *rv3d,
+        const bool use_precision, const short protectflag,
+        bool *r_has_translate, bool *r_has_rotate);
+
 /* view3d_fly.c */
 void view3d_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_fly(struct wmOperatorType *ot);

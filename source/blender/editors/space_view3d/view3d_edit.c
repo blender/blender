@@ -1148,7 +1148,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
  * (should these functions live in this file?)
  */
 
-#define NDOF_HAS_TRANSLATE ((!view3d_operator_offset_lock_check(C, op)) && !is_zero_v3(ndof->tvec))
+#define NDOF_HAS_TRANSLATE ((!ED_view3d_offset_lock_check(v3d, rv3d)) && !is_zero_v3(ndof->tvec))
 #define NDOF_HAS_ROTATE    (((rv3d->viewlock & RV3D_LOCKED) == 0) && !is_zero_v3(ndof->rvec))
 
 /**
@@ -1302,6 +1302,117 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D 
 	}
 }
 
+/**
+ * Called from both fly mode and walk mode,
+ */
+void view3d_ndof_fly(
+        const wmNDOFMotionData *ndof,
+        View3D *v3d, RegionView3D *rv3d,
+        const bool use_precision, const short protectflag,
+        bool *r_has_translate, bool *r_has_rotate)
+{
+	/* shorthand for oft-used variables */
+	const float dt = ndof->dt;
+
+	bool has_translate = NDOF_HAS_TRANSLATE;
+	bool has_rotate = NDOF_HAS_ROTATE;
+
+	float view_inv[4];
+	invert_qt_qt(view_inv, rv3d->viewquat);
+
+	rv3d->rot_angle = 0.0f;  /* disable onscreen rotation doo-dad */
+
+	if (has_translate) {
+		float speed = 10.0f;  /* blender units per second */
+		float trans[3], trans_orig_y;
+		/* ^^ this is ok for default cube scene, but should scale with.. something */
+		if (use_precision)
+			speed *= 0.2f;
+
+		WM_event_ndof_pan_get(ndof, trans, false);
+		mul_v3_fl(trans, speed * dt);
+		trans_orig_y = trans[1];
+
+		/* transform motion from view to world coordinates */
+		mul_qt_v3(view_inv, trans);
+
+		if (U.ndof_flag & NDOF_FLY_HELICOPTER) {
+			/* replace world z component with device y (yes it makes sense) */
+			trans[2] = trans_orig_y;
+		}
+
+		if (rv3d->persp == RV3D_CAMOB) {
+			/* respect camera position locks */
+			if (protectflag & OB_LOCK_LOCX) trans[0] = 0.0f;
+			if (protectflag & OB_LOCK_LOCY) trans[1] = 0.0f;
+			if (protectflag & OB_LOCK_LOCZ) trans[2] = 0.0f;
+		}
+
+		if (!is_zero_v3(trans)) {
+			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+			sub_v3_v3(rv3d->ofs, trans);
+			has_translate = true;
+		}
+		else {
+			has_translate = false;
+		}
+	}
+
+	if (has_rotate) {
+		const float turn_sensitivity = 1.0f;
+
+		float rotation[4];
+		float axis[3];
+		float angle = turn_sensitivity * WM_event_ndof_to_axis_angle(ndof, axis);
+
+		if (fabsf(angle) > 0.0001f) {
+			has_rotate = true;
+
+			if (use_precision)
+				angle *= 0.2f;
+
+			/* transform rotation axis from view to world coordinates */
+			mul_qt_v3(view_inv, axis);
+
+			/* apply rotation to view */
+			axis_angle_to_quat(rotation, axis, angle);
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
+
+			if (U.ndof_flag & NDOF_LOCK_HORIZON) {
+				/* force an upright viewpoint
+				 * TODO: make this less... sudden */
+				float view_horizon[3] = {1.0f, 0.0f, 0.0f}; /* view +x */
+				float view_direction[3] = {0.0f, 0.0f, -1.0f}; /* view -z (into screen) */
+
+				/* find new inverse since viewquat has changed */
+				invert_qt_qt(view_inv, rv3d->viewquat);
+				/* could apply reverse rotation to existing view_inv to save a few cycles */
+
+				/* transform view vectors to world coordinates */
+				mul_qt_v3(view_inv, view_horizon);
+				mul_qt_v3(view_inv, view_direction);
+
+
+				/* find difference between view & world horizons
+				 * true horizon lives in world xy plane, so look only at difference in z */
+				angle = -asinf(view_horizon[2]);
+
+				/* rotate view so view horizon = world horizon */
+				axis_angle_to_quat(rotation, view_direction, angle);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
+			}
+
+			rv3d->view = RV3D_VIEW_USER;
+		}
+		else {
+			has_rotate = false;
+		}
+	}
+
+	*r_has_translate = has_translate;
+	*r_has_rotate    = has_rotate;
+}
+
 /* -- "orbit" navigation (trackball/turntable)
  * -- zooming
  * -- panning in rotationally-locked views
@@ -1440,7 +1551,7 @@ void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot)
 /* -- "pan" navigation
  * -- zoom or dolly?
  */
-static int ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;

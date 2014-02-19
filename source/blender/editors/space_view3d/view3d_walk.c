@@ -1217,128 +1217,23 @@ static int walkApply(bContext *C, WalkInfo *walk)
 #undef WALK_BOOST_FACTOR
 }
 
-static int walkApply_ndof(bContext *C, WalkInfo *walk)
+static void walkApply_ndof(bContext *C, WalkInfo *walk)
 {
-	/* shorthand for oft-used variables */
-	wmNDOFMotionData *ndof = walk->ndof;
-	const float dt = ndof->dt;
-	RegionView3D *rv3d = walk->rv3d;
-	const int flag = U.ndof_flag;
+	Object *lock_ob = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);
+	bool has_translate, has_rotate;
 
-#if 0
-	bool do_rotate = (flag & NDOF_SHOULD_ROTATE) && (walk->pan_view == false);
-	bool do_translate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM)) != 0;
-#endif
+	view3d_ndof_fly(walk->ndof,
+	                walk->v3d, walk->rv3d,
+	                walk->is_slow, lock_ob ? lock_ob->protectflag : 0,
+	                &has_translate, &has_rotate);
 
-	bool do_rotate = true;
-	bool do_translate = true;
-
-	float view_inv[4];
-	invert_qt_qt(view_inv, rv3d->viewquat);
-
-	rv3d->rot_angle = 0.0f; /* disable onscreen rotation doo-dad */
-
-	if (do_translate) {
-		float speed = 10.0f; /* blender units per second */
-		float trans[3], trans_orig_y;
-		/* ^^ this is ok for default cube scene, but should scale with.. something */
-		if (walk->is_slow)
-			speed *= 0.2f;
-
-		WM_event_ndof_pan_get(ndof, trans, false);
-		mul_v3_fl(trans, speed * dt);
-		trans_orig_y = trans[1];
-
-		/* transform motion from view to world coordinates */
-		mul_qt_v3(view_inv, trans);
-
-		if (flag & NDOF_FLY_HELICOPTER) {
-			/* replace world z component with device y (yes it makes sense) */
-			trans[2] = trans_orig_y;
-		}
-
-		if (rv3d->persp == RV3D_CAMOB) {
-			/* respect camera position locks */
-			Object *lock_ob = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);
-			if (lock_ob->protectflag & OB_LOCK_LOCX) trans[0] = 0.0f;
-			if (lock_ob->protectflag & OB_LOCK_LOCY) trans[1] = 0.0f;
-			if (lock_ob->protectflag & OB_LOCK_LOCZ) trans[2] = 0.0f;
-		}
-
-		if (!is_zero_v3(trans)) {
-			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
-			sub_v3_v3(rv3d->ofs, trans);
-			do_translate = true;
-		}
-		else {
-			do_translate = false;
-		}
-	}
-
-	if (do_rotate) {
-		const float turn_sensitivity = 1.0f;
-
-		float rotation[4];
-		float axis[3];
-		float angle = turn_sensitivity * WM_event_ndof_to_axis_angle(ndof, axis);
-
-		if (fabsf(angle) > 0.0001f) {
-			do_rotate = true;
-
-			if (walk->is_slow)
-				angle *= 0.2f;
-
-			/* transform rotation axis from view to world coordinates */
-			mul_qt_v3(view_inv, axis);
-
-			/* apply rotation to view */
-			axis_angle_to_quat(rotation, axis, angle);
-			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
-
-			if (flag & NDOF_LOCK_HORIZON) {
-				/* force an upright viewpoint
-				 * TODO: make this less... sudden */
-				float view_horizon[3] = {1.0f, 0.0f, 0.0f}; /* view +x */
-				float view_direction[3] = {0.0f, 0.0f, -1.0f}; /* view -z (into screen) */
-
-				/* find new inverse since viewquat has changed */
-				invert_qt_qt(view_inv, rv3d->viewquat);
-				/* could apply reverse rotation to existing view_inv to save a few cycles */
-
-				/* transform view vectors to world coordinates */
-				mul_qt_v3(view_inv, view_horizon);
-				mul_qt_v3(view_inv, view_direction);
-
-
-				/* find difference between view & world horizons
-				 * true horizon lives in world xy plane, so look only at difference in z */
-				angle = -asinf(view_horizon[2]);
-
-#ifdef NDOF_WALK_DEBUG
-				printf("lock horizon: adjusting %.1f degrees\n\n", RAD2DEG(angle));
-#endif
-
-				/* rotate view so view horizon = world horizon */
-				axis_angle_to_quat(rotation, view_direction, angle);
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
-			}
-
-			rv3d->view = RV3D_VIEW_USER;
-		}
-		else {
-			do_rotate = false;
-		}
-	}
-
-	if (do_translate || do_rotate) {
+	if (has_translate || has_rotate) {
 		walk->redraw = true;
 
-		if (rv3d->persp == RV3D_CAMOB) {
-			walkMoveCamera(C, walk, do_rotate, do_translate);
+		if (walk->rv3d->persp == RV3D_CAMOB) {
+			walkMoveCamera(C, walk, has_rotate, has_translate);
 		}
 	}
-
-	return OPERATOR_FINISHED;
 }
 
 /****** walk operator ******/
