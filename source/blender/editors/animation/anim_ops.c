@@ -277,6 +277,9 @@ static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	ED_area_tag_redraw(curarea);
 	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+	
 	return OPERATOR_FINISHED;
 } 
 
