@@ -2002,7 +2002,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_MeshPolygon_normal_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Polygon Normal", "Local space unit length normal vector for this polygon");
 
-	prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_MeshPolygon_center_get", NULL, NULL);
