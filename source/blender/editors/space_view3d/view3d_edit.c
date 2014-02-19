@@ -1333,6 +1333,10 @@ void view3d_ndof_fly(
 		mul_v3_fl(trans, speed * dt);
 		trans_orig_y = trans[1];
 
+		if (U.ndof_flag & NDOF_FLY_HELICOPTER) {
+			trans[1] = 0.0f;
+		}
+
 		/* transform motion from view to world coordinates */
 		mul_qt_v3(view_inv, trans);
 
