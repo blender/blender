@@ -2,8 +2,8 @@ import bpy
 settings = bpy.context.edit_movieclip.tracking.settings
 
 
-settings.default_pattern_size = 15
-settings.default_search_size = 51
+settings.default_pattern_size = 21
+settings.default_search_size = 71
 settings.default_motion_model = 'Loc'
 settings.use_default_brute = True
 settings.use_default_normalization = False

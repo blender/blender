@@ -197,8 +197,8 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
 
 	tracking->settings.default_motion_model = TRACK_MOTION_MODEL_TRANSLATION;
 	tracking->settings.default_minimum_correlation = 0.75;
-	tracking->settings.default_pattern_size = 15;
-	tracking->settings.default_search_size = 61;
+	tracking->settings.default_pattern_size = 21;
+	tracking->settings.default_search_size = 71;
 	tracking->settings.default_algorithm_flag |= TRACK_ALGORITHM_FLAG_USE_BRUTE;
 	tracking->settings.default_weight = 1.0f;
 	tracking->settings.dist = 1;
