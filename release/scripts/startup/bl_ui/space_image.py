@@ -69,7 +69,7 @@ class IMAGE_MT_view(Menu):
         show_render = sima.show_render
 
         layout.operator("image.properties", icon='MENU_PANEL')
-        layout.operator("image.scopes", icon='MENU_PANEL')
+        layout.operator("image.toolshelf", icon='MENU_PANEL')
 
         layout.separator()
 
