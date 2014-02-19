@@ -2867,6 +2867,7 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 	/* XXX not nice, eventually give this node its own socket type ... */
 	if (node->type == CMP_NODE_OUTPUT_FILE) {
 		node_file_output_socket_draw(C, layout, ptr, node_ptr);
+		return;
 	}
 	
 	if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_IN_USE) || (sock->flag & SOCK_HIDE_VALUE)) {
