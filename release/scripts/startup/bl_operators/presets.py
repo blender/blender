@@ -256,13 +256,25 @@ class AddPresetCamera(AddPresetBase, Operator):
         "cam = bpy.context.object.data"
     ]
 
-    preset_values = [
-        "cam.sensor_width",
-        "cam.sensor_height",
-        "cam.sensor_fit"
-    ]
-
     preset_subdir = "camera"
+
+    use_focal_length = BoolProperty(
+            name="Include Focal Length",
+            description="Include focal length into the preset",
+            options={'SKIP_SAVE'},
+            )
+
+    @property
+    def preset_values(self):
+        preset_values = [
+            "cam.sensor_width",
+            "cam.sensor_height",
+            "cam.sensor_fit"
+        ]
+        if self.use_focal_length:
+            preset_values.append("cam.lens")
+            preset_values.append("cam.lens_unit")
+        return preset_values
 
 
 class AddPresetSSS(AddPresetBase, Operator):
@@ -398,17 +410,28 @@ class AddPresetTrackingCamera(AddPresetBase, Operator):
         "camera = bpy.context.edit_movieclip.tracking.camera"
     ]
 
-    preset_values = [
-        "camera.sensor_width",
-        "camera.units",
-        "camera.focal_length",
-        "camera.pixel_aspect",
-        "camera.k1",
-        "camera.k2",
-        "camera.k3"
-    ]
-
     preset_subdir = "tracking_camera"
+
+    use_focal_length = BoolProperty(
+            name="Include Focal Length",
+            description="Include focal length into the preset",
+            options={'SKIP_SAVE'},
+            default=True
+            )
+
+    @property
+    def preset_values(self):
+        preset_values = [
+            "camera.sensor_width",
+            "camera.pixel_aspect",
+            "camera.k1",
+            "camera.k2",
+            "camera.k3"
+        ]
+        if self.use_focal_length:
+            preset_values.append("camera.units")
+            preset_values.append("camera.focal_length")
+        return preset_values
 
 
 class AddPresetTrackingTrackColor(AddPresetBase, Operator):
