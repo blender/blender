@@ -324,7 +324,7 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	BMO_op_finish(bm, &op);
 
-	BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_ONLYTAGGED);
+	BM_mesh_delete_hflag_tagged(bm, BM_ELEM_TAG, BM_EDGE | BM_FACE);
 
 	return TRUE;
 }
@@ -1430,7 +1430,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 
 	BLI_heap_free(heap, NULL);
 
-	BM_mesh_delete_hflag_context(so->bm, BM_ELEM_TAG, DEL_ONLYTAGGED);
+	BM_mesh_delete_hflag_tagged(so->bm, BM_ELEM_TAG, BM_EDGE | BM_FACE);
 
 }
 
