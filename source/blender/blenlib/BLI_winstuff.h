@@ -37,9 +37,7 @@
 #  error "This include is for Windows only!"
 #endif
 
-#ifndef FREE_WINDOWS
-#  pragma warning(once: 4761 4305 4244 4018)
-#else
+#ifdef FREE_WINDOWS
 #  ifdef WINVER
 #    undef WINVER
 #  endif

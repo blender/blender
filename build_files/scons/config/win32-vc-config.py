@@ -246,7 +246,7 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 CC = 'cl.exe'
 CXX = 'cl.exe'
 
-CCFLAGS = ['/nologo', '/J', '/W1', '/Gd', '/wd4018', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267', '/we4013']
+CCFLAGS = ['/nologo', '/J', '/W1', '/Gd', '/wd4018', '/wd4065', '/wd4127', '/wd4181', '/wd4200', '/wd4244', '/wd4267', '/wd4305', '/wd4800', '/we4013']
 CXXFLAGS = ['/EHsc']
 BGE_CXXFLAGS = ['/O2', '/Ob2', '/EHsc', '/GR', '/fp:fast', '/arch:SSE']
 

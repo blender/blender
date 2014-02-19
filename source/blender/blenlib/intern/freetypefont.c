@@ -32,11 +32,6 @@
  *  \ingroup bli
  */
 
-
-#ifdef _MSC_VER
-#  pragma warning (disable:4244)
-#endif
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
 /* not needed yet */

@@ -256,10 +256,6 @@ typedef struct PBVHVertexIter {
 	float *mask;
 } PBVHVertexIter;
 
-#ifdef _MSC_VER
-#pragma warning (disable:4127) // conditional expression is constant
-#endif
-
 void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
                            PBVHVertexIter *vi, int mode);
 

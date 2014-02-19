@@ -1007,6 +1007,7 @@ elseif(WIN32)
 			# disable:
 			"/wd4018"  # signed/unsigned mismatch
 			"/wd4065"  # switch statement contains 'default' but no 'case' labels
+			"/wd4127"  # conditional expression is constant
 			"/wd4181"  # qualifier applied to reference type; ignored
 			"/wd4200"  # zero-sized array in struct/union
 			"/wd4244"  # conversion from 'type1' to 'type2', possible loss of data
