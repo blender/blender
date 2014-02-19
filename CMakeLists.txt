@@ -1004,6 +1004,7 @@ elseif(WIN32)
 		set(_WARNINGS
 			# warning level:
 			"/W3"
+			"/w34062"  # switch statement contains 'default' but no 'case' labels
 			# disable:
 			"/wd4018"  # signed/unsigned mismatch
 			"/wd4065"  # switch statement contains 'default' but no 'case' labels
@@ -1016,6 +1017,7 @@ elseif(WIN32)
 			"/wd4800"  # forcing value to bool 'true' or 'false'
 			# errors:
 			"/we4013"  # 'function' undefined; assuming extern returning int
+			"/we4431"  # missing type specifier - int assumed
 		)
 
 		string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
