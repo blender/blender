@@ -311,6 +311,7 @@ static void buttons_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *
 			switch (wmn->data) {
 				case ND_SELECT:
 				case ND_DATA:
+				case ND_VERTEX_GROUP:
 					ED_area_tag_redraw(sa);
 					break;
 			}
