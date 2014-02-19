@@ -41,8 +41,6 @@ public:
 	CUdevice cuDevice;
 	CUcontext cuContext;
 	CUmodule cuModule;
-	CUstream cuStream;
-	CUevent tileDone;
 	map<device_ptr, bool> tex_interp_map;
 	int cuDevId;
 	int cuDevArchitecture;
@@ -209,9 +207,6 @@ public:
 		if(cuda_error_(result, "cuCtxCreate"))
 			return;
 
-		cuda_assert(cuStreamCreate(&cuStream, 0))
-		cuda_assert(cuEventCreate(&tileDone, 0x1))
-
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
 		cuDevArchitecture = major*100 + minor*10;
@@ -228,8 +223,6 @@ public:
 	{
 		task_pool.stop();
 
-		cuda_assert(cuEventDestroy(tileDone))
-		cuda_assert(cuStreamDestroy(cuStream))
 		cuda_assert(cuCtxDestroy(cuContext))
 	}
 
@@ -652,7 +645,9 @@ public:
 
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1))
 		cuda_assert(cuFuncSetBlockShape(cuPathTrace, xthreads, ythreads, 1))
-		cuda_assert(cuLaunchGridAsync(cuPathTrace, xblocks, yblocks, cuStream))
+		cuda_assert(cuLaunchGrid(cuPathTrace, xblocks, yblocks))
+
+		cuda_assert(cuCtxSynchronize())
 
 		cuda_pop_context();
 	}
@@ -986,8 +981,6 @@ public:
 
 					task->update_progress(tile);
 				}
-				cuda_assert(cuEventRecord(tileDone, cuStream ))
-				cuda_assert(cuEventSynchronize(tileDone))
 
 				task->release_tile(tile);
 			}
