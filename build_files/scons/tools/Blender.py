@@ -426,9 +426,18 @@ def buildinfo(lenv, build_type):
             build_hash = build_hash.strip()
             build_branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
 
+            if build_branch == 'HEAD':
+                master_check = os.popen('git branch --list master --contains ' + build_hash).read().strip()
+                if master_check == 'master':
+                    build_branch = 'master'
+
             if build_hash == '':
                 build_hash = os.popen('git rev-parse --short HEAD').read().strip()
                 no_upstream = True
+            else:
+                older_commits = os.popen('git log --oneline HEAD..@{u}').read().strip()
+                if older_commits:
+                    build_hash = os.popen('git rev-parse --short HEAD').read().strip()
 
             # ## Check for local modifications
             has_local_changes = False
@@ -440,7 +449,7 @@ def buildinfo(lenv, build_type):
             if changed_files:
                 has_local_changes = True
             elif no_upstream == False:
-                unpushed_log = os.popen('git log @{u}..').read().strip()
+                unpushed_log = os.popen('git log --oneline @{u}..').read().strip()
                 has_local_changes = unpushed_log != ''
 
             if has_local_changes:

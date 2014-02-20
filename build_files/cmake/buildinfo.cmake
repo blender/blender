@@ -14,25 +14,61 @@ if(EXISTS ${SOURCE_DIR}/.git)
 	if(GIT_FOUND)
 		message(STATUS "-- Found Git: ${GIT_EXECUTABLE}")
 
-		execute_process(COMMAND git rev-parse --short @{u}
-		                WORKING_DIRECTORY ${SOURCE_DIR}
-		                OUTPUT_VARIABLE MY_WC_HASH
-		                OUTPUT_STRIP_TRAILING_WHITESPACE
-		                ERROR_QUIET)
-
-		if (MY_WC_HASH STREQUAL "")
-			# Local branch, not set to upstream.
-			# Well, let's use HEAD for now
-			execute_process(COMMAND git rev-parse --short HEAD
-			                WORKING_DIRECTORY ${SOURCE_DIR}
-			                OUTPUT_VARIABLE MY_WC_HASH
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
-		endif()
-
 		execute_process(COMMAND git rev-parse --abbrev-ref HEAD
 		                WORKING_DIRECTORY ${SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_BRANCH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		if(MY_WC_BRANCH STREQUAL "HEAD")
+			# Detached HEAD, check whether commit hash is reachable
+			# in the master branch
+			execute_process(COMMAND git rev-parse --short HEAD
+			                WORKING_DIRECTORY ${SOURCE_DIR}
+			                OUTPUT_VARIABLE MY_WC_HASH
+			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+			execute_process(COMMAND git branch --list master --contains ${MY_WC_HASH}
+			                WORKING_DIRECTORY ${SOURCE_DIR}
+			                OUTPUT_VARIABLE _git_contains_check
+			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+			STRING(REGEX REPLACE "^[ \t]+" "" _git_contains_check "${_git_contains_check}")
+			if(_git_contains_check STREQUAL "master")
+				set(MY_WC_BRANCH "master")
+			endif()
+
+			unset(_git_contains_check)
+		else()
+			execute_process(COMMAND git log HEAD..@{u}
+			                WORKING_DIRECTORY ${SOURCE_DIR}
+			                OUTPUT_VARIABLE _git_below_check
+			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+			if(NOT _git_below_check STREQUAL "")
+				# If there're commits between HEAD and upstream this means
+				# that we're reset-ed to older revision. Use it's hash then.
+				execute_process(COMMAND git rev-parse --short HEAD
+				                WORKING_DIRECTORY ${SOURCE_DIR}
+				                OUTPUT_VARIABLE MY_WC_HASH
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+			else()
+				execute_process(COMMAND git rev-parse --short @{u}
+				                WORKING_DIRECTORY ${SOURCE_DIR}
+				                OUTPUT_VARIABLE MY_WC_HASH
+				                OUTPUT_STRIP_TRAILING_WHITESPACE
+				                ERROR_QUIET)
+
+				if(MY_WC_HASH STREQUAL "")
+					# Local branch, not set to upstream.
+					# Well, let's use HEAD for now
+					execute_process(COMMAND git rev-parse --short HEAD
+					                WORKING_DIRECTORY ${SOURCE_DIR}
+					                OUTPUT_VARIABLE MY_WC_HASH
+					                OUTPUT_STRIP_TRAILING_WHITESPACE)
+				endif()
+			endif()
+
+			unset(_git_below_check)
+		endif()
 
 		execute_process(COMMAND git log -1 --format=%ct
 		                WORKING_DIRECTORY ${SOURCE_DIR}
