@@ -545,7 +545,7 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 		d = ((float)a) * fac;
 		
 		/* we're looking for location (distance) 'd' in the array */
-		while ((d >= *fp) && fp < maxdist) {
+		while ((fp < maxdist) && (d >= *fp)) {
 			fp++;
 			if (bevp < bevplast) bevp++;
 			bevpn = bevp + 1;
