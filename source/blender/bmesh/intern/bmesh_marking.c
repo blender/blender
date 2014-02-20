@@ -236,55 +236,30 @@ void BM_mesh_select_mode_flush(BMesh *bm)
  */
 void BM_mesh_deselect_flush(BMesh *bm)
 {
-	BMEdge *e;
-	BMLoop *l_iter;
-	BMLoop *l_first;
-	BMFace *f;
-
 	BMIter eiter;
-	BMIter fiter;
+	BMEdge *e;
 
-	bool ok;
-
-	/* we can use 2 sections here because the second loop isnt checking edge selection */
-#pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
-	{
-#pragma omp section
-		{
-			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-				if (!(BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-				      BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-				      !BM_elem_flag_test(e, BM_ELEM_HIDDEN)))
+	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+		if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+				if (!BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
+				    !BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
 				{
 					BM_elem_flag_disable(e, BM_ELEM_SELECT);
 				}
 			}
-		}
 
-#pragma omp section
-		{
-			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-				ok = true;
-				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-					do {
-						if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-							ok = false;
-							break;
-						}
-					} while ((l_iter = l_iter->next) != l_first);
-				}
-				else {
-					ok = false;
-				}
+			if (e->l && !BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+				BMLoop *l_iter;
+				BMLoop *l_first;
 
-				if (ok == false) {
-					BM_elem_flag_disable(f, BM_ELEM_SELECT);
-				}
+				l_iter = l_first = e->l;
+				do {
+					BM_elem_flag_disable(l_iter->f, BM_ELEM_SELECT);
+				} while ((l_iter = l_iter->radial_next) != l_first);
 			}
 		}
 	}
-	/* end sections */
 
 	/* Remove any deselected elements from the BMEditSelection */
 	BM_select_history_validate(bm);
