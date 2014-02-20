@@ -4081,12 +4081,12 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	/* 3D view: yaw */
 	prop = RNA_def_property(srna, "ndof_rotx_invert_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ROTX_INVERT_AXIS);
-	RNA_def_property_ui_text(prop, "Invert Yaw (X) Axis", "");
+	RNA_def_property_ui_text(prop, "Invert Pitch (X) Axis", "");
 
 	/* 3D view: pitch */
 	prop = RNA_def_property(srna, "ndof_roty_invert_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ROTY_INVERT_AXIS);
-	RNA_def_property_ui_text(prop, "Invert Pitch (Y) Axis", "");
+	RNA_def_property_ui_text(prop, "Invert Yaw (Y) Axis", "");
 
 	/* 3D view: roll */
 	prop = RNA_def_property(srna, "ndof_rotz_invert_axis", PROP_BOOLEAN, PROP_NONE);

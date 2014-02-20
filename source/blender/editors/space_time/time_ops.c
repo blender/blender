@@ -192,5 +192,6 @@ void time_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TIME_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
 }
 
