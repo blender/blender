@@ -614,6 +614,26 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 		return seq;
 }
 
+static void del_seq_clear_modifiers_recurs(Scene *scene, Sequence *deleting_sequence)
+{
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Sequence *current_sequence;
+
+	SEQP_BEGIN(ed, current_sequence)
+	{
+		if (!(current_sequence->flag & SELECT) && current_sequence != deleting_sequence) {
+			SequenceModifierData *smd;
+
+			for (smd = current_sequence->modifiers.first; smd; smd = smd->next) {
+				if (smd->mask_sequence == deleting_sequence) {
+					smd->mask_sequence = NULL;
+				}
+			}
+		}
+	}
+	SEQ_END
+}
+
 static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short deleteall)
 {
 	Sequence *seq, *seqn;
@@ -1746,10 +1766,17 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	if (nothingSelected)
 		return OPERATOR_FINISHED;
 
-	/* for effects, try to find a replacement input */
-	for (seq = ed->seqbasep->first; seq; seq = seq->next)
-		if ((seq->type & SEQ_TYPE_EFFECT) && !(seq->flag & SELECT))
-			del_seq_find_replace_recurs(scene, seq);
+	/* for effects and modifiers, try to find a replacement input */
+	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+		if (!(seq->flag & SELECT)) {
+			if ((seq->type & SEQ_TYPE_EFFECT)) {
+				del_seq_find_replace_recurs(scene, seq);
+			}
+		}
+		else {
+			del_seq_clear_modifiers_recurs(scene, seq);
+		}
+	}
 
 	/* delete all selected strips */
 	recurs_del_seq_flag(scene, ed->seqbasep, SELECT, 0);
