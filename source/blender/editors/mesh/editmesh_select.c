@@ -2733,7 +2733,8 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 	}
 
 	if (select) {
-		EDBM_select_flush(em);
+		/* was EDBM_select_flush, but it over select in edge/face mode */
+		EDBM_selectmode_flush(em);
 	}
 	else {
 		EDBM_deselect_flush(em);
