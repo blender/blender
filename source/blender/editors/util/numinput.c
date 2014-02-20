@@ -55,6 +55,7 @@ enum {
 	NUM_INVALID         = (1 << 10),   /* Current expression for this value is invalid. */
 	NUM_NEGATE          = (1 << 11),   /* Current expression's result has to be negated. */
 	NUM_INVERSE         = (1 << 12),   /* Current expression's result has to be inverted. */
+	NUM_EDIT_FULL       = (1 << 13),   /* Enable full editing, with units and math operators support. */
 };
 
 /* ************************** Functions *************************** */
@@ -207,6 +208,19 @@ static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf
 	return true;
 }
 
+static bool editstr_is_simple_numinput(const char ascii)
+{
+	if (ascii >= '0' && ascii <= '9') {
+		return true;
+	}
+	else if (ascii == '.') {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 {
 	const char *utf8_buf = NULL;
@@ -319,9 +333,19 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			ascii[0] = '.';
 			utf8_buf = ascii;
 			break;
+		case EQUALKEY:
+			if (!(n->flag & NUM_EDIT_FULL)) {
+				n->flag |= NUM_EDIT_FULL;
+				return true;
+			}
+			else if (event->ctrl) {
+				n->flag &= ~NUM_EDIT_FULL;
+				return true;
+			}
+			/* fall-through */
 		case PADMINUS:
 		case MINUSKEY:
-			if (event->ctrl) {
+			if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
 				n->val_flag[idx] ^= NUM_NEGATE;
 				updated = true;
 				break;
@@ -329,7 +353,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			/* fall-through */
 		case PADSLASHKEY:
 		case SLASHKEY:
-			if (event->ctrl) {
+			if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
 				n->val_flag[idx] ^= NUM_INVERSE;
 				updated = true;
 				break;
@@ -377,6 +401,14 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	}
 
 	if (utf8_buf && utf8_buf[0]) {
+		if (!(n->flag & NUM_EDIT_FULL)) {
+			/* In simple edit mode, we only keep a few chars as valid! */
+			/* no need to decode unicode, ascii is first char only */
+			if (!editstr_is_simple_numinput(utf8_buf[0])) {
+				return false;
+			}
+		}
+
 		if (!editstr_insert_at_cursor(n, utf8_buf, BLI_str_utf8_size(utf8_buf))) {
 			return false;
 		}

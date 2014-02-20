@@ -51,6 +51,7 @@ typedef struct NumInput {
 /* NumInput.flag */
 enum {
 	NUM_AFFECT_ALL      = (1 << 0),
+	/* (1 << 9) and above are reserved for internal flags! */
 };
 
 /* NumInput.val_flag[] */
