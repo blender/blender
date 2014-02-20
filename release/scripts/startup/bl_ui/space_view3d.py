@@ -2893,11 +2893,12 @@ class VIEW3D_PT_view3d_motion_tracking(Panel):
 
         col = layout.column()
         col.active = view.show_reconstruction
-        col.prop(view, "show_bundle_names")
-        col.prop(view, "show_camera_path")
-        col.label(text="Tracks:")
-        col.prop(view, "tracks_draw_type", text="")
-        col.prop(view, "tracks_draw_size", text="Size")
+        col.prop(view, "show_camera_path", text="Camera Path")
+        col.prop(view, "show_bundle_names", text="3D Marker Names")
+        col.label(text="Track Type and Size:")
+        row = col.row(align=True)
+        row.prop(view, "tracks_draw_type", text="")
+        row.prop(view, "tracks_draw_size", text="")
 
 
 class VIEW3D_PT_view3d_meshdisplay(Panel):
