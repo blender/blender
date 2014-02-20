@@ -66,11 +66,7 @@ typedef struct MovieReconstructContext {
 	bool is_camera;
 	short motion_flag;
 
-	float focal_length;
-	float principal_point[2];
-	float k1, k2, k3;
-
-	int width, height;
+	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 
 	float reprojection_error;
 
@@ -134,22 +130,11 @@ static void reconstruct_retrieve_libmv_intrinsics(MovieReconstructContext *conte
 	struct libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
 	struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_reconstructionExtractIntrinsics(libmv_reconstruction);
 
-	float aspy = 1.0f / tracking->camera.pixel_aspect;
+	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
+	libmv_cameraIntrinsicsExtractOptions(libmv_intrinsics, &camera_intrinsics_options);
 
-	double focal_length, principal_x, principal_y, k1, k2, k3;
-	int width, height;
-
-	libmv_cameraIntrinsicsExtract(libmv_intrinsics, &focal_length, &principal_x, &principal_y,
-	                              &k1, &k2, &k3, &width, &height);
-
-	tracking->camera.focal = focal_length;
-
-	tracking->camera.principal[0] = principal_x;
-	tracking->camera.principal[1] = principal_y / (double)aspy;
-
-	tracking->camera.k1 = k1;
-	tracking->camera.k2 = k2;
-	tracking->camera.k3 = k3;
+	tracking_trackingCameraFromIntrinscisOptions(tracking,
+	                                             &camera_intrinsics_options);
 }
 
 /* Retrieve reconstructed tracks from libmv to blender.
@@ -369,7 +354,6 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
 {
 	MovieTracking *tracking = &clip->tracking;
 	MovieReconstructContext *context = MEM_callocN(sizeof(MovieReconstructContext), "MovieReconstructContext data");
-	MovieTrackingCamera *camera = &tracking->camera;
 	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 	int num_tracks = BLI_countlist(tracksbase);
@@ -383,16 +367,9 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
 	context->select_keyframes =
 		(tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) != 0;
 
-	context->focal_length = camera->focal;
-	context->principal_point[0] = camera->principal[0];
-	context->principal_point[1] = camera->principal[1] * aspy;
-
-	context->width = width;
-	context->height = height;
-
-	context->k1 = camera->k1;
-	context->k2 = camera->k2;
-	context->k3 = camera->k3;
+	tracking_cameraIntrinscisOptionsFromTracking(tracking,
+                                                 width, height,
+                                                 &context->camera_intrinsics_options);
 
 	context->tracks_map = tracks_map_new(context->object_name, context->is_camera, num_tracks, 0);
 
@@ -461,22 +438,6 @@ static void reconstruct_update_solve_cb(void *customdata, double progress, const
 
 	BLI_snprintf(progressdata->stats_message, progressdata->message_size, "Solving camera | %s", message);
 }
-/* FIll in camera intrinsics structure from reconstruction context. */
-static void camraIntrincicsOptionsFromContext(libmv_CameraIntrinsicsOptions *camera_intrinsics_options,
-                                              MovieReconstructContext *context)
-{
-	camera_intrinsics_options->focal_length = context->focal_length;
-
-	camera_intrinsics_options->principal_point_x = context->principal_point[0];
-	camera_intrinsics_options->principal_point_y = context->principal_point[1];
-
-	camera_intrinsics_options->k1 = context->k1;
-	camera_intrinsics_options->k2 = context->k2;
-	camera_intrinsics_options->k3 = context->k3;
-
-	camera_intrinsics_options->image_width = context->width;
-	camera_intrinsics_options->image_height = context->height;
-}
 
 /* Fill in reconstruction options structure from reconstruction context. */
 static void reconstructionOptionsFromContext(libmv_ReconstructionOptions *reconstruction_options,
@@ -506,7 +467,6 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 
 	ReconstructProgressData progressdata;
 
-	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 	libmv_ReconstructionOptions reconstruction_options;
 
 	progressdata.stop = stop;
@@ -515,18 +475,17 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 	progressdata.stats_message = stats_message;
 	progressdata.message_size = message_size;
 
-	camraIntrincicsOptionsFromContext(&camera_intrinsics_options, context);
 	reconstructionOptionsFromContext(&reconstruction_options, context);
 
 	if (context->motion_flag & TRACKING_MOTION_MODAL) {
 		context->reconstruction = libmv_solveModal(context->tracks,
-		                                           &camera_intrinsics_options,
+		                                           &context->camera_intrinsics_options,
 		                                           &reconstruction_options,
 		                                           reconstruct_update_solve_cb, &progressdata);
 	}
 	else {
 		context->reconstruction = libmv_solveReconstruction(context->tracks,
-		                                                    &camera_intrinsics_options,
+		                                                    &context->camera_intrinsics_options,
 		                                                    &reconstruction_options,
 		                                                    reconstruct_update_solve_cb, &progressdata);
 

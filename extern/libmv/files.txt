@@ -41,8 +41,11 @@ libmv/simple_pipeline/bundle.h
 libmv/simple_pipeline/callbacks.h
 libmv/simple_pipeline/camera_intrinsics.cc
 libmv/simple_pipeline/camera_intrinsics.h
+libmv/simple_pipeline/camera_intrinsics_impl.h
 libmv/simple_pipeline/detect.cc
 libmv/simple_pipeline/detect.h
+libmv/simple_pipeline/distortion_models.cc
+libmv/simple_pipeline/distortion_models.h
 libmv/simple_pipeline/initialize_reconstruction.cc
 libmv/simple_pipeline/initialize_reconstruction.h
 libmv/simple_pipeline/intersect.cc

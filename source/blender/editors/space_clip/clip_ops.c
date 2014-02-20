@@ -1018,8 +1018,11 @@ static void do_movie_proxy(void *pjv, int *UNUSED(build_sizes), int UNUSED(build
 
 	if (build_undistort_count) {
 		int threads = BLI_system_thread_count();
+		int width, height;
 
-		distortion = BKE_tracking_distortion_new();
+		BKE_movieclip_get_size(clip, NULL, &width, &height);
+
+		distortion = BKE_tracking_distortion_new(&clip->tracking, width, height);
 		BKE_tracking_distortion_set_threads(distortion, threads);
 	}
 
@@ -1185,8 +1188,11 @@ static void do_sequence_proxy(void *pjv, int *build_sizes, int build_count,
 		handle->build_undistort_count = build_undistort_count;
 		handle->build_undistort_sizes = build_undistort_sizes;
 
-		if (build_undistort_count)
-			handle->distortion = BKE_tracking_distortion_new();
+		if (build_undistort_count) {
+			int width, height;
+			BKE_movieclip_get_size(clip, NULL, &width, &height);
+			handle->distortion = BKE_tracking_distortion_new(&clip->tracking, width, height);
+		}
 
 		if (tot_thread > 1)
 			BLI_insert_thread(&threads, handle);

@@ -199,11 +199,6 @@ struct libmv_CameraIntrinsics *libmv_reconstructionExtractIntrinsics(
 	return NULL;
 }
 
-struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsNewEmpty(void)
-{
-	return NULL;
-}
-
 struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(
 		const libmv_CameraIntrinsicsOptions * /*libmv_camera_intrinsics_options*/)
 {
@@ -228,17 +223,12 @@ void libmv_cameraIntrinsicsSetThreads(struct libmv_CameraIntrinsics * /*libmv_in
 {
 }
 
-void libmv_cameraIntrinsicsExtract(const struct libmv_CameraIntrinsics * /*libmv_intrinsics*/, double * focal_length,
-                                   double * principal_x, double *principal_y, double *k1, double *k2, double *k3,
-                                   int *width, int *height)
+void libmv_cameraIntrinsicsExtractOptions(
+	const libmv_CameraIntrinsics */*libmv_intrinsics*/,
+	libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
 {
-	*focal_length = 1.0;
-	*principal_x = 0.0;
-	*principal_y = 0.0;
-	*k1 = 0.0;
-	*k2 = 0.0;
-	*width = 0.0;
-	*height = 0.0;
+	memset(camera_intrinsics_options, 0, sizeof(libmv_CameraIntrinsicsOptions));
+	camera_intrinsics_options->focal_length = 1.0;
 }
 
 void libmv_cameraIntrinsicsUndistortByte(const struct libmv_CameraIntrinsics * /*libmv_intrinsics*/,

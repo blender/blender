@@ -61,14 +61,21 @@ typedef struct MovieReconstructedCamera {
 typedef struct MovieTrackingCamera {
 	void *intrinsics;   /* intrinsics handle */
 
+	short distortion_model;
+	short pad;
+
 	float sensor_width; /* width of CCD sensor */
 	float pixel_aspect; /* pixel aspect ratio */
-	float pad;
 	float focal;        /* focal length */
 	short units;        /* units of focal length user is working with */
 	short pad1;
 	float principal[2]; /* principal point */
-	float k1, k2, k3;   /* radial distortion */
+
+	/* Polynomial distortion */
+	float k1, k2, k3;   /* polynomial radial distortion */
+
+	/* Division distortion model coefficients */
+	float division_k1, division_k2;
 } MovieTrackingCamera;
 
 typedef struct MovieTrackingMarker {
@@ -347,6 +354,12 @@ typedef struct MovieTracking {
 
 	MovieTrackingDopesheet dopesheet;   /* dopesheet data */
 } MovieTracking;
+
+/* MovieTrackingCamera->distortion_model */
+enum {
+	TRACKING_DISTORTION_MODEL_POLYNOMIAL = 0,
+	TRACKING_DISTORTION_MODEL_DIVISION = 1
+};
 
 /* MovieTrackingCamera->units */
 enum {

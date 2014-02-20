@@ -1733,32 +1733,19 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking *tracking, 
 
 /*********************** Distortion/Undistortion *************************/
 
-static void cameraIntrinscisOptionsFromTracking(libmv_CameraIntrinsicsOptions *camera_intrinsics_options,
-                                                MovieTracking *tracking, int calibration_width, int calibration_height)
-{
-	MovieTrackingCamera *camera = &tracking->camera;
-	float aspy = 1.0f / tracking->camera.pixel_aspect;
-
-	camera_intrinsics_options->focal_length = camera->focal;
-
-	camera_intrinsics_options->principal_point_x = camera->principal[0];
-	camera_intrinsics_options->principal_point_y = camera->principal[1] * aspy;
-
-	camera_intrinsics_options->k1 = camera->k1;
-	camera_intrinsics_options->k2 = camera->k2;
-	camera_intrinsics_options->k3 = camera->k3;
-
-	camera_intrinsics_options->image_width = calibration_width;
-	camera_intrinsics_options->image_height = (int) (calibration_height * aspy);
-}
-
-MovieDistortion *BKE_tracking_distortion_new(void)
+MovieDistortion *BKE_tracking_distortion_new(MovieTracking *tracking,
+                                             int calibration_width, int calibration_height)
 {
 	MovieDistortion *distortion;
+	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
+
+	tracking_cameraIntrinscisOptionsFromTracking(tracking,
+	                                             calibration_width,
+	                                             calibration_height,
+	                                             &camera_intrinsics_options);
 
 	distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
-
-	distortion->intrinsics = libmv_cameraIntrinsicsNewEmpty();
+	distortion->intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
 	return distortion;
 }
@@ -1768,8 +1755,10 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 {
 	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 
-	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking,
-	                                    calibration_width, calibration_height);
+	tracking_cameraIntrinscisOptionsFromTracking(tracking,
+	                                             calibration_width,
+	                                             calibration_height,
+	                                             &camera_intrinsics_options);
 
 	libmv_cameraIntrinsicsUpdate(&camera_intrinsics_options, distortion->intrinsics);
 }
@@ -1845,7 +1834,9 @@ void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r
 	double x, y;
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 
-	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking, 0, 0);
+	tracking_cameraIntrinscisOptionsFromTracking(tracking,
+	                                             0, 0,
+	                                             &camera_intrinsics_options);
 
 	/* normalize coords */
 	x = (co[0] - camera->principal[0]) / camera->focal;
@@ -1866,7 +1857,9 @@ void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float
 	double x = co[0], y = co[1];
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 
-	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking, 0, 0);
+	tracking_cameraIntrinscisOptionsFromTracking(tracking,
+	                                             0, 0,
+	                                             &camera_intrinsics_options);
 
 	libmv_cameraIntrinsicsInvert(&camera_intrinsics_options, x, y, &x, &y);
 
@@ -1879,8 +1872,9 @@ ImBuf *BKE_tracking_undistort_frame(MovieTracking *tracking, ImBuf *ibuf, int ca
 {
 	MovieTrackingCamera *camera = &tracking->camera;
 
-	if (camera->intrinsics == NULL)
-		camera->intrinsics = BKE_tracking_distortion_new();
+	if (camera->intrinsics == NULL) {
+		camera->intrinsics = BKE_tracking_distortion_new(tracking, calibration_width, calibration_height);
+	}
 
 	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, calibration_width,
 	                                    calibration_height, overscan, true);
@@ -1891,8 +1885,9 @@ ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking, ImBuf *ibuf, int cali
 {
 	MovieTrackingCamera *camera = &tracking->camera;
 
-	if (camera->intrinsics == NULL)
-		camera->intrinsics = BKE_tracking_distortion_new();
+	if (camera->intrinsics == NULL) {
+		camera->intrinsics = BKE_tracking_distortion_new(tracking, calibration_width, calibration_height);
+	}
 
 	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, calibration_width,
 	                                    calibration_height, overscan, false);

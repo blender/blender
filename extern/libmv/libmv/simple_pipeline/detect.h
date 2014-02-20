@@ -25,6 +25,7 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_DETECT_H_
 #define LIBMV_SIMPLE_PIPELINE_DETECT_H_
 
+#include <iostream>
 #include <vector>
 
 #include "libmv/base/vector.h"
@@ -34,22 +35,27 @@ namespace libmv {
 
 typedef unsigned char ubyte;
 
-/*!
-    A Feature is the 2D location of a detected feature in an image.
-
-    \a x, \a y is the position of the feature in pixels from the top left corner.
-    \a score is an estimate of how well the feature will be tracked.
-    \a size can be used as an initial pattern size to track the feature.
-
-    \sa Detect
-*/
+// A Feature is the 2D location of a detected feature in an image.
 struct Feature {
-  /// Position in pixels (from top-left corner)
-  /// \note libmv might eventually support subpixel precision.
+  Feature(float x, float y) : x(x), y(y) {}
+  Feature(float x, float y, float score, float size)
+    : x(x), y(y), score(score), size(size) {}
+
+  // Position of the feature in pixels from top-left corner.
+  // Note: Libmv detector might eventually support subpixel precision.
   float x, y;
-  /// Trackness of the feature
+
+  // An estimate of how well the feature will be tracked.
+  //
+  // Absolute values totally depends on particular detector type
+  // used for detection. It's only guaranteed that features with
+  // higher score from the same Detect() result will be tracked better.
   float score;
-  /// Size of the feature in pixels
+
+  // An approximate feature size in pixels.
+  //
+  // If the feature is approximately a 5x5 square region, then size will be 5.
+  // It can be used as an initial pattern size to track the feature.
   float size;
 };
 
@@ -98,6 +104,9 @@ struct DetectOptions {
 void Detect(const FloatImage &image,
             const DetectOptions &options,
             vector<Feature> *detected_features);
+
+std::ostream& operator <<(std::ostream &os,
+                          const Feature &feature);
 
 }  // namespace libmv
 

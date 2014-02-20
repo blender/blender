@@ -41,6 +41,8 @@ struct GHash;
 struct MovieTracking;
 struct MovieTrackingMarker;
 
+struct libmv_CameraIntrinsicsOptions;
+
 /*********************** Tracks map *************************/
 
 typedef struct TracksMap {
@@ -85,5 +87,12 @@ void tracking_set_marker_coords_from_tracking(int frame_width, int frame_height,
 
 void tracking_marker_insert_disabled(struct MovieTrackingTrack *track, const struct MovieTrackingMarker *ref_marker,
                                      bool before, bool overwrite);
+
+void tracking_cameraIntrinscisOptionsFromTracking(struct MovieTracking *tracking,
+                                                  int calibration_width, int calibration_height,
+                                                  struct libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
+
+void tracking_trackingCameraFromIntrinscisOptions(struct MovieTracking *tracking,
+                                                  const struct libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
 
 #endif  /* __TRACKING_PRIVATE_H__ */

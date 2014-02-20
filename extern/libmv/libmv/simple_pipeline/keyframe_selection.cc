@@ -33,22 +33,6 @@
 namespace libmv {
 namespace {
 
-Vec2 NorrmalizedToPixelSpace(const Vec2 &vec,
-                             const CameraIntrinsics &intrinsics) {
-  Vec2 result;
-
-  double focal_length_x = intrinsics.focal_length_x();
-  double focal_length_y = intrinsics.focal_length_y();
-
-  double principal_point_x = intrinsics.principal_point_x();
-  double principal_point_y = intrinsics.principal_point_y();
-
-  result(0) = vec(0) * focal_length_x + principal_point_x;
-  result(1) = vec(1) * focal_length_y + principal_point_y;
-
-  return result;
-}
-
 Mat3 IntrinsicsNormalizationMatrix(const CameraIntrinsics &intrinsics) {
   Mat3 T = Mat3::Identity(), S = Mat3::Identity();
 
@@ -151,7 +135,7 @@ void filterZeroWeightMarkersFromTracks(const Tracks &tracks,
 }  // namespace
 
 void SelectKeyframesBasedOnGRICAndVariance(const Tracks &_tracks,
-                                           CameraIntrinsics &intrinsics,
+                                           const CameraIntrinsics &intrinsics,
                                            vector<int> &keyframes) {
   // Mirza Tahir Ahmed, Matthew N. Dailey
   // Robust key frame extraction for 3D reconstruction from video streams
@@ -256,10 +240,13 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &_tracks,
       H_e.resize(x1.cols());
       F_e.resize(x1.cols());
       for (int i = 0; i < x1.cols(); i++) {
-        Vec2 current_x1 =
-          NorrmalizedToPixelSpace(Vec2(x1(0, i), x1(1, i)), intrinsics);
-        Vec2 current_x2 =
-          NorrmalizedToPixelSpace(Vec2(x2(0, i), x2(1, i)), intrinsics);
+        Vec2 current_x1, current_x2;
+
+        intrinsics.NormalizedToImageSpace(x1(0, i), x1(1, i),
+                                          &current_x1(0), &current_x1(1));
+
+        intrinsics.NormalizedToImageSpace(x2(0, i), x2(1, i),
+                                          &current_x2(0), &current_x2(1));
 
         H_e(i) = SymmetricGeometricDistance(H, current_x1, current_x2);
         F_e(i) = SymmetricEpipolarDistance(F, current_x1, current_x2);
@@ -378,7 +365,7 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &_tracks,
       success_intersects_factor_best = success_intersects_factor;
 
       Tracks two_frames_tracks(tracked_markers);
-      CameraIntrinsics empty_intrinsics;
+      PolynomialCameraIntrinsics empty_intrinsics;
       BundleEvaluation evaluation;
       evaluation.evaluate_jacobian = true;
 

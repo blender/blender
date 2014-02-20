@@ -51,6 +51,8 @@
 
 #include "tracking_private.h"
 
+#include "libmv-capi.h"
+
 /*********************** Tracks map *************************/
 
 TracksMap *tracks_map_new(const char *object_name, bool is_camera, int num_tracks, int customdata_size)
@@ -385,4 +387,69 @@ void tracking_marker_insert_disabled(MovieTrackingTrack *track, const MovieTrack
 
 	if (overwrite || !BKE_tracking_track_has_marker_at_frame(track, marker_new.framenr))
 		BKE_tracking_marker_insert(track, &marker_new);
+}
+
+
+/* Fill in Libmv C-API camera intrinsics options from tracking structure.
+ */
+void tracking_cameraIntrinscisOptionsFromTracking(MovieTracking *tracking,
+                                                  int calibration_width, int calibration_height,
+                                                  libmv_CameraIntrinsicsOptions *camera_intrinsics_options)
+{
+	MovieTrackingCamera *camera = &tracking->camera;
+	float aspy = 1.0f / tracking->camera.pixel_aspect;
+
+	camera_intrinsics_options->focal_length = camera->focal;
+
+	camera_intrinsics_options->principal_point_x = camera->principal[0];
+	camera_intrinsics_options->principal_point_y = camera->principal[1] * aspy;
+
+	switch (camera->distortion_model) {
+		case TRACKING_DISTORTION_MODEL_POLYNOMIAL:
+			camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_POLYNOMIAL;
+			camera_intrinsics_options->polynomial_k1 = camera->k1;
+			camera_intrinsics_options->polynomial_k2 = camera->k2;
+			camera_intrinsics_options->polynomial_k3 = camera->k3;
+			camera_intrinsics_options->polynomial_p1 = 0.0;
+			camera_intrinsics_options->polynomial_p2 = 0.0;
+			break;
+		case TRACKING_DISTORTION_MODEL_DIVISION:
+			camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_DIVISION;
+			camera_intrinsics_options->division_k1 = camera->division_k1;
+			camera_intrinsics_options->division_k2 = camera->division_k2;
+			break;
+		default:
+			BLI_assert(!"Unknown distortion model");
+	}
+
+	camera_intrinsics_options->image_width = calibration_width;
+	camera_intrinsics_options->image_height = (int) (calibration_height * aspy);
+}
+
+void tracking_trackingCameraFromIntrinscisOptions(MovieTracking *tracking,
+                                                  const libmv_CameraIntrinsicsOptions *camera_intrinsics_options)
+{
+	float aspy = 1.0f / tracking->camera.pixel_aspect;
+	MovieTrackingCamera *camera = &tracking->camera;
+
+	camera->focal = camera_intrinsics_options->focal_length;
+
+	camera->principal[0] = camera_intrinsics_options->principal_point_x;
+	camera->principal[1] = camera_intrinsics_options->principal_point_y / (double) aspy;
+
+	switch (camera_intrinsics_options->distortion_model) {
+		case LIBMV_DISTORTION_MODEL_POLYNOMIAL:
+			camera->distortion_model = TRACKING_DISTORTION_MODEL_POLYNOMIAL;
+			camera->k1 = camera_intrinsics_options->polynomial_k1;
+			camera->k2 = camera_intrinsics_options->polynomial_k2;
+			camera->k3 = camera_intrinsics_options->polynomial_k3;
+			break;
+		case LIBMV_DISTORTION_MODEL_DIVISION:
+			camera->distortion_model = TRACKING_DISTORTION_MODEL_DIVISION;
+			camera->division_k1 = camera_intrinsics_options->division_k1;
+			camera->division_k2 = camera_intrinsics_options->division_k2;
+			break;
+		default:
+			BLI_assert(!"Unknown distortion model");
+	}
 }

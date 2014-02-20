@@ -1,3 +1,127 @@
+commit ee21415a353396df67ef21e82adaffab2a8d2a0a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 17 16:26:12 2014 +0600
+
+    Support multiple distortion models, including a new division model
+    
+    This commit makes it so CameraIntrinsics is no longer hardcoded
+    to use the traditional polynomial radial distortion model. Currently
+    the distortion code has generic logic which is shared between
+    different distortion models, but had no other models until now.
+    
+    This moves everything specific to the polynomial radial distortion
+    to a subclass PolynomialDistortionCameraIntrinsics(), and adds a
+    new division distortion model suitable for cameras such as the
+    GoPro which have much stronger distortion due to their fisheye lens.
+    
+    This also cleans up the internal API of CameraIntrinsics to make
+    it easier to understand and reduces old C-style code.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    CC: jta
+    
+    Differential Revision: https://developer.blender.org/D335
+
+commit 313252083f6dfa69a93c287bed81dec616503c1b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Apr 15 18:23:38 2014 +0600
+
+    Fix failure of the image transform linear test
+    
+    Mainly was caused by the flakyness of image rotation in cases
+    when image has even size. The test was expecting the transform
+    code to rotate the image around pixel corner, which isn't a
+    common behavior in image processing applications. Rotation
+    is usually done around the pixel center.
+    
+    So now made it so RotateImage() rotates the image around the
+    pixel center which gives 100% proper result for odd sized images
+    (i.e. center pixel stays untouched).
+    
+    Also made the tests to use odd image sizes which are more
+    predictable by the humans. We can use even sized images in the
+    tests as well but their result wouldn't be so much spectacular.
+    
+    Another issue with the tests was caused by RescaleImageTranslation
+    test which did expect things which are not happening in the
+    function.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D463
+
+commit 80d6945bf5f996b97cd41df0e422afce5e10e7f9
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 14 00:01:32 2014 +0600
+
+    Unit tests for feature detector
+    
+    Currently covers only simplest cases with synthetic images.
+    Also at this point mainly Harris detector is being testes,
+    other detectors behaves a bit unexpected on synthetic images
+    and this is to be investigated further.
+    
+    Tests will be extended further later.
+    
+    Additional change:
+    
+    - Added constructor to Feature structure
+    - Added operator << for feature for easier debug dumps.
+    
+    TODO: Some tests are not giving the result which i was expected
+    to. This is to be investigated further by finding the reference
+    detector implementation. For until then keeping that tests
+    commented out.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D316
+
+commit 397c3d3ed46eb4967eb285c8369cc125bea4b132
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Apr 4 16:17:57 2014 +0600
+
+    Compilation error fix
+    
+    Not totally sure why this is needed, but multiview indeed
+    uses V3D library still, so it needs to be linked against it.
+    
+    Patc by Martijn Berger, thanks!
+
+commit 1c36279239cbffe152493106eb04e55df7ebd649
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Apr 4 14:03:43 2014 +0600
+
+    Upgrade Eigen to 3.2.1 version
+    
+    To main reasons for this:
+    - Probably this would solve strict compiler warnings
+    - It brings new stuff like sparse LU decomposition which
+      might be useful in the future.
+
+commit de698f442934f475478463445f78a00ea632e823
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 3 15:08:26 2014 +0600
+
+    Fix compilation error when using make from the sources root
+    
+    - Don't force flann to be static. It's a general rule on linux
+      to have dynamic libraries for all the bits instead of having
+      statically-linked dynamic libraries.
+    
+    - Some weirdo stuff was happening around OpenExif, it was only
+      built on Apple, so don't link targets against this lib on
+      other platforms.
+    
+    - Some libraries were missing for qt-tracker.
+
 commit 901b146f28825d3e05f4157ca2a34ae00261b91a
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed Mar 26 17:44:09 2014 +0600
@@ -550,86 +674,3 @@ Date:   Sun May 12 22:34:54 2013 +0600
     - Removed note about unsupported camera intrinsics
       refining flags. Technically, all combinations
       are possible.
-
-commit 4432eb80f27e929f8750229aaada625d4f3ac5ee
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sun May 12 22:19:31 2013 +0600
-
-    Remove check for zero focal length in BA cost functor
-    
-    This check is actually redundant, because empty intrinsics
-    will have focal length of 1.0, which means original comment
-    about BundleIntrinsics was not truth.
-    
-    It is possible that external user will send focal length of
-    zero to be refined, but blender prevents this from happening.
-
-commit 34a91c9b8acb0dba3382866fbd29bb9884edb98a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat May 11 20:33:54 2013 +0600
-
-    Fix compilation error with msvc2012
-    
-    Using change from glog's upstream for this.
-
-commit 87be4f030d025e4b29d9243d12bc458b2bb6762a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat May 11 19:50:57 2013 +0600
-
-    Style cleanup, mainly pointed by Sameer in Ceres's codereview
-
-commit 7fa9c0b83d5e0fbd331add2952045076c2028d1b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri May 10 18:30:40 2013 +0600
-
-    Keyframe selection improvements
-    
-    Added additional criteria, which ignores
-    keyframe pair if success intersection factor
-    is lower than current candidate pair factor.
-    
-    This solves issue with keyframe pair at which
-    most of the tracks are intersecting behind the
-    camera is accepted (because variance in this
-    case is really small),
-    
-    Also tweaked generalized inverse function,
-    which now doesn't scale epsilon by maximal
-    matrix element. This gave issues at really bad
-    candidates with unstable covariance. In this
-    case almost all eigen values getting zeroed
-    on inverse leading to small expected error.
-
-commit 0477ef1aa8fc92848f03c45e32539210be583b80
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri May 10 17:59:40 2013 +0600
-
-    Keyframe selection code cleanup
-    
-    - Updated comments in code.
-    - Removed currently unused functions.
-      Actually, they'd better be moved to some generic
-      logging module, but we don't have it now so was
-      lazy to create one now. Could happen later using
-      code from git history
-    - Renamed function to match better to what's going
-      on in it.
-
-commit fee2d7cc6003942f628c9a24b74008fd491b85b9
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri May 10 17:44:49 2013 +0600
-
-    Optimization for reconstruction variance
-    
-    Achieved by replacing SVD-based pseudo-inverse with
-    an eigen solver pseudo inverse.
-    
-    New function works in the same way: it decomposes
-    matrix to V*D*V^-1, then inverts diagonal of D
-    and composes matrix back.
-    
-    The same way is used to deal with gauges - last
-    7 eigen values are getting zeroed.
-    
-    In own tests gives approx 2x boost, without
-    visible affect on selected keyframe quality.

@@ -92,12 +92,24 @@ void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track,
 #define LIBMV_REFINE_RADIAL_DISTORTION_K1  (1 << 2)
 #define LIBMV_REFINE_RADIAL_DISTORTION_K2  (1 << 4)
 
+enum {
+	LIBMV_DISTORTION_MODEL_POLYNOMIAL = 0,
+	LIBMV_DISTORTION_MODEL_DIVISION = 1,
+};
+
 typedef struct libmv_CameraIntrinsicsOptions {
+	/* Common settings of all distortion models. */
+	int distortion_model;
+	int image_width, image_height;
 	double focal_length;
 	double principal_point_x, principal_point_y;
-	double k1, k2, k3;
-	double p1, p2;
-	int image_width, image_height;
+
+	/* Radial distortion model. */
+	double polynomial_k1, polynomial_k2, polynomial_k3;
+	double polynomial_p1, polynomial_p2;
+
+	/* Division distortion model. */
+	double division_k1, division_k2;
 } libmv_CameraIntrinsicsOptions;
 
 typedef struct libmv_ReconstructionOptions {
@@ -158,7 +170,6 @@ void libmv_getFeature(const struct libmv_Features *libmv_features, int number, d
                       double *size);
 
 /* Camera intrinsics */
-struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsNewEmpty(void);
 struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(
 		const libmv_CameraIntrinsicsOptions *libmv_camera_intrinsics_options);
 struct libmv_CameraIntrinsics *libmv_cameraIntrinsicsCopy(const struct libmv_CameraIntrinsics *libmv_intrinsics);
@@ -166,9 +177,9 @@ void libmv_cameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmv_intrinsi
 void libmv_cameraIntrinsicsUpdate(const libmv_CameraIntrinsicsOptions *libmv_camera_intrinsics_options,
                                   struct libmv_CameraIntrinsics *libmv_intrinsics);
 void libmv_cameraIntrinsicsSetThreads(struct libmv_CameraIntrinsics *libmv_intrinsics, int threads);
-void libmv_cameraIntrinsicsExtract(const struct libmv_CameraIntrinsics *libmv_intrinsics, double *focal_length,
-                                   double *principal_x, double *principal_y, double *k1, double *k2, double *k3,
-                                   int *width, int *height);
+void libmv_cameraIntrinsicsExtractOptions(
+	const struct libmv_CameraIntrinsics *libmv_intrinsics,
+	struct libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
 void libmv_cameraIntrinsicsUndistortByte(const struct libmv_CameraIntrinsics *libmv_intrinsics,
                                          unsigned char *src, unsigned char *dst, int width, int height,
                                          float overscan, int channels);

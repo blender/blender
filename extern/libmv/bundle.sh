@@ -146,10 +146,12 @@ if(WITH_LIBMV)
 
 	list(APPEND SRC
 		libmv-capi.cc
+		libmv-util.cc
 ${sources}
 
 ${third_sources}
 
+		libmv-util.h
 ${headers}
 
 ${third_headers}

@@ -175,7 +175,8 @@ void BKE_tracking_camera_get_reconstructed_interpolate(struct MovieTracking *tra
                                                        int framenr, float mat[4][4]);
 
 /* **** Distortion/Undistortion **** */
-struct MovieDistortion *BKE_tracking_distortion_new(void);
+struct MovieDistortion *BKE_tracking_distortion_new(struct MovieTracking *tracking,
+                                                    int calibration_width, int calibration_height);
 void BKE_tracking_distortion_update(struct MovieDistortion *distortion, struct MovieTracking *tracking,
                                     int calibration_width, int calibration_height);
 void BKE_tracking_distortion_set_threads(struct MovieDistortion *distortion, int threads);

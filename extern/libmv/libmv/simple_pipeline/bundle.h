@@ -114,12 +114,13 @@ enum BundleConstraints {
   BUNDLE_NO_CONSTRAINTS = 0,
   BUNDLE_NO_TRANSLATION = 1,
 };
-void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
-                                     const int bundle_intrinsics,
-                                     const int bundle_constraints,
-                                     EuclideanReconstruction *reconstruction,
-                                     CameraIntrinsics *intrinsics,
-                                     BundleEvaluation *evaluation = NULL);
+void EuclideanBundleCommonIntrinsics(
+    const Tracks &tracks,
+    const int bundle_intrinsics,
+    const int bundle_constraints,
+    EuclideanReconstruction *reconstruction,
+    CameraIntrinsics *intrinsics,
+    BundleEvaluation *evaluation = NULL);
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.

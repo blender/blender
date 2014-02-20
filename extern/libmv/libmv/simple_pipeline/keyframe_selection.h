@@ -43,9 +43,10 @@ namespace libmv {
 // \param intrinsics is camera intrinsics
 // \param keyframes will contain all images number which are considered
 //        good to be used for reconstruction
-void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
-                                           CameraIntrinsics &intrinsics,
-                                           vector<int> &keyframes);
+void SelectKeyframesBasedOnGRICAndVariance(
+    const Tracks &tracks,
+    const CameraIntrinsics &intrinsics,
+    vector<int> &keyframes);
 
 }  // namespace libmv
 

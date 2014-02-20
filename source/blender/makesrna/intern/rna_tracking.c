@@ -372,6 +372,17 @@ static void rna_tracking_stabTracks_active_index_range(PointerRNA *ptr, int *min
 	*max = max_ii(0, clip->tracking.stabilization.tot_track - 1);
 }
 
+static void rna_tracking_resetIntrinsics(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	MovieClip *clip = (MovieClip *)ptr->id.data;
+	MovieTracking *tracking = &clip->tracking;
+
+	if (tracking->camera.intrinsics) {
+		BKE_tracking_distortion_free(tracking->camera.intrinsics);
+		tracking->camera.intrinsics = NULL;
+	}
+}
+
 static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
@@ -990,6 +1001,13 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem distortion_model_items[] = {
+		{TRACKING_DISTORTION_MODEL_POLYNOMIAL, "POLYNOMIAL", 0, "Polynomial", "Radial distortion model which fits common cameras"},
+		{TRACKING_DISTORTION_MODEL_DIVISION, "DIVISION", 0, "Divisions", "Division distortion model which "
+		                                                                 "better represents wide-angle cameras"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static EnumPropertyItem camera_units_items[] = {
 		{CAMERA_UNITS_PX, "PIXELS", 0, "px", "Use pixels for units of focal length"},
 		{CAMERA_UNITS_MM, "MILLIMETERS", 0, "mm", "Use millimeters for units of focal length"},
@@ -999,6 +1017,13 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MovieTrackingCamera", NULL);
 	RNA_def_struct_path_func(srna, "rna_trackingCamera_path");
 	RNA_def_struct_ui_text(srna, "Movie tracking camera data", "Match-moving camera data for tracking");
+
+	/* Distortion model */
+	prop = RNA_def_property(srna, "distortion_model", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, distortion_model_items);
+	RNA_def_property_ui_text(prop, "Distortion Model", "Distortion model used for camera lenses");
+	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_resetIntrinsics");
 
 	/* Sensor */
 	prop = RNA_def_property(srna, "sensor_width", PROP_FLOAT, PROP_NONE);
@@ -1063,6 +1088,19 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
 	RNA_def_property_ui_text(prop, "K3", "Third coefficient of third order polynomial radial distortion");
+	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+	/* Division distortion parameters */
+	prop = RNA_def_property(srna, "division_k1", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+	RNA_def_property_ui_text(prop, "K1", "First coefficient of second order division distortion");
+	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+	prop = RNA_def_property(srna, "division_k2", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+	RNA_def_property_ui_text(prop, "K2", "First coefficient of second order division distortion");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
 
 	/* pixel aspect */

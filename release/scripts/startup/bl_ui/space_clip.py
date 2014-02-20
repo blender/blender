@@ -769,11 +769,19 @@ class CLIP_PT_tracking_lens(Panel):
             sub.prop(clip.tracking.camera, "focal_length_pixels")
         sub.prop(clip.tracking.camera, "units", text="")
 
-        col = layout.column(align=True)
+        col = layout.column()
         col.label(text="Lens Distortion:")
-        col.prop(clip.tracking.camera, "k1")
-        col.prop(clip.tracking.camera, "k2")
-        col.prop(clip.tracking.camera, "k3")
+        camera = clip.tracking.camera
+        col.prop(camera, "distortion_model", text="")
+        if camera.distortion_model == 'POLYNOMIAL':
+            col = layout.column(align=True)
+            col.prop(camera, "k1")
+            col.prop(camera, "k2")
+            col.prop(camera, "k3")
+        elif camera.distortion_model == 'DIVISION':
+            col = layout.column(align=True)
+            col.prop(camera, "division_k1")
+            col.prop(camera, "division_k2")
 
 
 class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
