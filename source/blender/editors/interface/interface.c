@@ -3255,6 +3255,10 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		but->drawflag |= UI_BUT_ICON_LEFT;
 	}
 	
+	if ((type == MENU) && (but->dt == UI_EMBOSSP)) {
+		but->flag |= UI_ICON_SUBMENU;
+	}
+
 	if (!RNA_property_editable(&but->rnapoin, prop)) {
 		ui_def_but_rna__disable(but);
 	}
