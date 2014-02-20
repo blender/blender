@@ -996,9 +996,6 @@ static int rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA v
 	if (seq == cur)
 		return FALSE;
 
-	if (BKE_sequence_check_depend(seq, cur))
-		return FALSE;
-
 	return TRUE;
 }
 
