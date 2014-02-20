@@ -3567,6 +3567,8 @@ void BKE_nurb_direction_switch(Nurb *nu)
 				a = KNOTSU(nu);
 				fp1 = nu->knotsu;
 				fp2 = tempf = MEM_mallocN(sizeof(float) * a, "switchdirect");
+				a--;
+				fp2[a] = fp1[a];
 				while (a--) {
 					fp2[0] = fabs(fp1[1] - fp1[0]);
 					fp1++;
