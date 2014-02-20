@@ -69,9 +69,9 @@ fw('''
 .SH DESCRIPTION
 .PP
 .B blender
-is a 3D modelling and rendering package. It is the in-house software of a high quality animation studio, Blender has proven to be an extremely fast and versatile design instrument. The software has a personal touch, offering a unique approach to the world of Three Dimensions.
+is a 3D modelling and rendering package. Originating as the in-house software of a high quality animation studio, Blender has proven to be an extremely fast and versatile design instrument. The software has a personal touch, offering a unique approach to the world of Three Dimensions.
 
-Use Blender to create TV commercials, to make technical visualizations, business graphics, to do some morphing, or design user interfaces. You can easy build and manage complex environments. The renderer is versatile and extremely fast. All basic animation principles (curves & keys) are well implemented.
+Use Blender to create TV commercials, to make technical visualizations, business graphics, to create content for games, or design user interfaces. You can easy build and manage complex environments. The renderer is versatile and extremely fast. All basic animation principles (curves & keys) are well implemented.
 
 http://www.blender.org''')
 
@@ -119,7 +119,7 @@ while lines:
 fw('''
 .br
 .SH SEE ALSO
-.B yafaray(1)
+.B luxrender(1)
 
 .br
 .SH AUTHORS
