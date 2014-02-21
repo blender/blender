@@ -1221,7 +1221,7 @@ enum {
 /* Triangulate methods - NGons */
 enum {
 	MOD_TRIANGULATE_NGON_BEAUTY = 0,
-	MOD_TRIANGULATE_NGON_SCANFILL,
+	MOD_TRIANGULATE_NGON_EARCLIP,
 };
 
 /* Triangulate methods - Quads */

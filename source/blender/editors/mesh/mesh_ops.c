@@ -366,7 +366,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "ngon_method", MOD_TRIANGULATE_NGON_BEAUTY);
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "quad_method", MOD_TRIANGULATE_QUAD_FIXED);
-	RNA_enum_set(kmi->ptr, "ngon_method", MOD_TRIANGULATE_NGON_SCANFILL);
+	RNA_enum_set(kmi->ptr, "ngon_method", MOD_TRIANGULATE_NGON_EARCLIP);
 
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 

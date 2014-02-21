@@ -122,8 +122,8 @@ EnumPropertyItem modifier_triangulate_quad_method_items[] = {
 };
 
 EnumPropertyItem modifier_triangulate_ngon_method_items[] = {
-	{MOD_TRIANGULATE_NGON_SCANFILL, "SCANFILL", 0, "Scanfill", "Split the polygons using a scanfill algorithm"},
-	{MOD_TRIANGULATE_NGON_BEAUTY, "BEAUTY", 0, "Beauty", "Arrange the new triangles nicely, slower method"},
+	{MOD_TRIANGULATE_NGON_BEAUTY, "BEAUTY", 0, "Beauty", "Arrange the new triangles evenly (slow)"},
+	{MOD_TRIANGULATE_NGON_EARCLIP, "CLIP", 0, "Clip", "Split the polygons with an ear clipping algorithm"},
 	{0, NULL, 0, NULL, NULL}
 };
 

@@ -2499,7 +2499,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 						}
 						else {
 							tmd->quad_method = MOD_TRIANGULATE_QUAD_FIXED;
-							tmd->ngon_method = MOD_TRIANGULATE_NGON_SCANFILL;
+							tmd->ngon_method = MOD_TRIANGULATE_NGON_EARCLIP;
 						}
 					}
 				}

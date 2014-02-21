@@ -1660,7 +1660,7 @@ static void ed_surf_delete_selected(Object *obedit)
 	BPoint *bp, *bpn, *newbp;
 	int a, b, newu, newv;
 
-	BLI_assert(obedit->type != OB_SURF);
+	BLI_assert(obedit->type == OB_SURF);
 
 	nu = editnurb->first;
 	while (nu) {
