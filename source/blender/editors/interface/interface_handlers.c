@@ -114,7 +114,7 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 #define BUTTON_AUTO_OPEN_THRESH     0.3
 #define BUTTON_MOUSE_TOWARDS_THRESH 1.0
 /* pixels to move the cursor to get out of keyboard navigation */
-#define BUTTON_KEYNAV_PX_LIMIT      4
+#define BUTTON_KEYNAV_PX_LIMIT      8
 
 #define MENU_TOWARDS_MARGIN 20  /* margin in pixels */
 #define MENU_TOWARDS_WIGGLE_ROOM 64  /* tolerance in pixels */
