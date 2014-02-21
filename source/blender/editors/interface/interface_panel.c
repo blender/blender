@@ -1645,7 +1645,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 				/* mouse wheel cycle tabs */
 
 				/* first check if the mouse is in the tab region */
-				if (event->ctrl || (event->x < ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmax)) {
+				if (event->ctrl || (event->mval[0] < ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmax)) {
 					const char *category = UI_panel_category_active_get(ar, false);
 					if (LIKELY(category)) {
 						PanelCategoryDyn *pc_dyn = UI_panel_category_find(ar, category);
