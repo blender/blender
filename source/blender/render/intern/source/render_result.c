@@ -868,7 +868,7 @@ void render_result_single_layer_end(Render *re)
 		BLI_remlink(&re->result->layers, rl);
 		
 		/* reconstruct render result layers */
-		for (nr = 0, srl = re->scene->r.layers.first; srl; srl = srl->next, nr++) {
+		for (nr = 0, srl = re->r.layers.first; srl; srl = srl->next, nr++) {
 			if (nr == re->r.actlay) {
 				BLI_addtail(&re->result->layers, rl);
 			}
