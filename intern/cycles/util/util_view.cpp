@@ -248,9 +248,7 @@ void view_main_loop(const char *title, int width, int height,
 	glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH);
 	glutCreateWindow(title);
 
-#ifndef __APPLE__
 	glewInit();
-#endif
 
 	view_reshape(width, height);
 
