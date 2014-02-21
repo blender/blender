@@ -503,6 +503,7 @@ static int check_mode_full_sample(RenderData *rd)
 void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *srl, int winx, int winy, rcti *disprect)
 {
 	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
+	int prev_actlay = re->r.actlay;
 
 	re->ok = TRUE;   /* maybe flag */
 	
@@ -602,7 +603,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 			re->result = NULL;
 		}
 		else if (re->result) {
-			if (re->result->rectx == re->rectx && re->result->recty == re->recty) {
+			if (re->result->rectx == re->rectx && re->result->recty == re->recty &&
+			    prev_actlay == re->r.actlay) {
 				/* keep render result, this avoids flickering black tiles
 				 * when the preview changes */
 			}
