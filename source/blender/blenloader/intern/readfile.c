@@ -6083,7 +6083,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					if (ntree)
 						snode->nodetree = ntree;
 					else
-						snode->nodetree = restore_pointer_by_name(newmain, (ID*)snode->nodetree, 0);
+						snode->nodetree = restore_pointer_by_name(newmain, (ID*)snode->nodetree, 2);
 					
 					for (path = snode->treepath.first; path; path = path->next) {
 						if (path == snode->treepath.first) {
