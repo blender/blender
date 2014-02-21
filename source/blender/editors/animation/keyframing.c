@@ -228,7 +228,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 	return fcu;
 }
 
-/* Helper */
+/* Helper for update_autoflags_fcurve() */
 static void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
 {
 	/* set additional flags for the F-Curve (i.e. only integer values) */
@@ -251,8 +251,8 @@ static void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
 	}
 }
 
-/*  Update integer/discrete flags of the FCurve (used when creating/inserting keyframes,
- *  but also through RNA when editing an ID prop, see T37103).
+/* Update integer/discrete flags of the FCurve (used when creating/inserting keyframes,
+ * but also through RNA when editing an ID prop, see T37103).
  */
 void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, PointerRNA *ptr)
 {
@@ -276,9 +276,10 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
 		            idname, fcu->rna_path);
 		return;
 	}
-
+	
+	/* update F-Curve flags */
 	update_autoflags_fcurve_direct(fcu, prop);
-
+	
 	if (old_flag != fcu->flag) {
 		/* Same as if keyframes had been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -884,6 +885,7 @@ short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *p
 		}
 	}
 	
+	/* update F-Curve flags to ensure proper behaviour for property type */
 	update_autoflags_fcurve_direct(fcu, prop);
 	
 	/* obtain value to give keyframe */

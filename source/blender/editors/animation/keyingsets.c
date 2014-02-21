@@ -927,7 +927,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 		/* use KeyingSet's flags as base */
 		kflag = ks->keyingflag;
 		
-		/* suppliment with info from the context */
+		/* supplement with info from the context */
 		kflag |= ANIM_get_keyframing_flags(scene, 1);
 	}
 	else if (mode == MODIFYKEY_MODE_DELETE)
