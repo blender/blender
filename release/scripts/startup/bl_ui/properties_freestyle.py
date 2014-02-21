@@ -60,7 +60,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
             layout.prop(rd, "line_thickness")
 
         row = layout.row()
-        row.label(text="Line style settings are found in the Render Layers context")
+        row.label(text="Line style settings are in the Render Layers tab")
         row.operator("wm.properties_context_change", text="", icon='BUTS').context = 'RENDER_LAYER'
 
 
