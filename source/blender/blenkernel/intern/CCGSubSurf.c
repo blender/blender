@@ -300,6 +300,22 @@ BLI_INLINE int ccg_edgebase(int level)
 #define NormCopy(av, bv) { float *_a = (float *) av, *_b = (float *) bv; _a[0]  = _b[0]; _a[1]  = _b[1]; _a[2]  = _b[2]; } (void)0
 #define NormAdd(av, bv)  { float *_a = (float *) av, *_b = (float *) bv; _a[0] += _b[0]; _a[1] += _b[1]; _a[2] += _b[2]; } (void)0
 
+BLI_INLINE void Normalize(float no[3])
+{
+	const float length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+
+	if (length > EPSILON) {
+		const float length_inv = 1.0f / length;
+
+		no[0] *= length_inv;
+		no[1] *= length_inv;
+		no[2] *= length_inv;
+	}
+	else {
+		NormZero(no);
+	}
+}
+
 /***/
 
 enum {
@@ -806,24 +822,12 @@ static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float no[3]
 	float *d = _face_getIFCo(f, lvl, S, x + 0, y + 1, levels, dataSize);
 	float a_cX = c[0] - a[0], a_cY = c[1] - a[1], a_cZ = c[2] - a[2];
 	float b_dX = d[0] - b[0], b_dY = d[1] - b[1], b_dZ = d[2] - b[2];
-	float length;
 
 	no[0] = b_dY * a_cZ - b_dZ * a_cY;
 	no[1] = b_dZ * a_cX - b_dX * a_cZ;
 	no[2] = b_dX * a_cY - b_dY * a_cX;
 
-	length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
-
-	if (length > EPSILON) {
-		float invLength = 1.0f / length;
-
-		no[0] *= invLength;
-		no[1] *= invLength;
-		no[2] *= invLength;
-	}
-	else {
-		NormZero(no);
-	}
+	Normalize(no);
 }
 
 static void _face_free(CCGFace *f, CCGSubSurf *ss)
@@ -1418,7 +1422,9 @@ CCGError ccgSubSurf_processSync(CCGSubSurf *ss)
 	return eCCGError_None;
 }
 
+#define VERT_getCo(v, lvl)                  _vert_getCo(v, lvl, vertDataSize)
 #define VERT_getNo(e, lvl)                  _vert_getNo(v, lvl, vertDataSize, normalDataOffset)
+#define EDGE_getCo(e, lvl, x)               _edge_getCo(e, lvl, x, vertDataSize)
 #define EDGE_getNo(e, lvl, x)               _edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
 #define FACE_getIFNo(f, lvl, S, x, y)       _face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
 #define FACE_calcIFNo(f, lvl, S, x, y, no)  _face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
@@ -1519,7 +1525,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	/* XXX can I reduce the number of normalisations here? */
 	for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
 		CCGVert *v = (CCGVert *) effectedV[ptrIdx];
-		float length, *no = VERT_getNo(v, lvl);
+		float *no = VERT_getNo(v, lvl);
 
 		NormZero(no);
 
@@ -1528,17 +1534,11 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 			NormAdd(no, FACE_getIFNo(f, lvl, _face_getVertIndex(f, v), gridSize - 1, gridSize - 1));
 		}
 
-		length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
+		if (UNLIKELY(v->numFaces == 0)) {
+			NormCopy(no, VERT_getCo(v, lvl));
+		}
 
-		if (length > EPSILON) {
-			float invLength = 1.0f / length;
-			no[0] *= invLength;
-			no[1] *= invLength;
-			no[2] *= invLength;
-		}
-		else {
-			NormZero(no);
-		}
+		Normalize(no);
 
 		for (i = 0; i < v->numFaces; i++) {
 			CCGFace *f = v->faces[i];
@@ -1590,17 +1590,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
 					float *no = FACE_getIFNo(f, lvl, S, x, y);
-					float length = sqrtf(no[0] * no[0] + no[1] * no[1] + no[2] * no[2]);
-
-					if (length > EPSILON) {
-						float invLength = 1.0f / length;
-						no[0] *= invLength;
-						no[1] *= invLength;
-						no[2] *= invLength;
-					}
-					else {
-						NormZero(no);
-					}
+					Normalize(no);
 				}
 			}
 
@@ -1633,15 +1623,15 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 			int x;
 
 			for (x = 0; x < edgeSize; x++) {
-				NormZero(EDGE_getNo(e, lvl, x));
+				float *no = EDGE_getNo(e, lvl, x);
+				NormCopy(no, EDGE_getCo(e, lvl, x));
+				Normalize(no);
 			}
 		}
 	}
 }
 #undef FACE_getIFNo
 
-#define VERT_getCo(v, lvl)              _vert_getCo(v, lvl, vertDataSize)
-#define EDGE_getCo(e, lvl, x)           _edge_getCo(e, lvl, x, vertDataSize)
 #define FACE_getIECo(f, lvl, S, x)      _face_getIECo(f, lvl, S, x, subdivLevels, vertDataSize)
 #define FACE_getIFCo(f, lvl, S, x, y)   _face_getIFCo(f, lvl, S, x, y, subdivLevels, vertDataSize)
 
