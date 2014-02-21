@@ -402,12 +402,12 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
 				          totedgedata == 1 ? IFACE_("Crease:") : IFACE_("Mean Crease:"),
 				          0, yi -= buth + but_margin, 200, buth,
-				          &(tfp->ve_median[M_CREASE]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
+				          &(tfp->ve_median[M_CREASE]), 0.0, 1.0, 1, 2, TIP_("Weight used by SubSurf modifier"));
 				/* customdata layer added on demand */
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
 				          totedgedata == 1 ? IFACE_("Bevel Weight:") : IFACE_("Mean Bevel Weight:"),
 				          0, yi -= buth + but_margin, 200, buth,
-				          &(tfp->ve_median[M_WEIGHT]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
+				          &(tfp->ve_median[M_WEIGHT]), 0.0, 1.0, 1, 2, TIP_("Weight used by Bevel modifier"));
 			}
 			if (totskinradius) {
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
