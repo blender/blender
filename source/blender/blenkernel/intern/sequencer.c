@@ -1158,17 +1158,41 @@ StripElem *BKE_sequencer_give_stripelem(Sequence *seq, int cfra)
 static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfra)
 {
 	Sequence *seq;
-	int totseq = 0;
+	Sequence *effect_inputs[MAXSEQ + 1];
+	int i, totseq = 0, num_effect_inputs = 0;
 
 	memset(seq_arr, 0, sizeof(Sequence *) * (MAXSEQ + 1));
 
 	seq = seqbase->first;
 	while (seq) {
 		if (seq->startdisp <= cfra && seq->enddisp > cfra) {
+			if ((seq->type & SEQ_TYPE_EFFECT)) {
+				if (seq->seq1) {
+					effect_inputs[num_effect_inputs++] = seq->seq1;
+				}
+
+				if (seq->seq2) {
+					effect_inputs[num_effect_inputs++] = seq->seq2;
+				}
+
+				if (seq->seq3) {
+					effect_inputs[num_effect_inputs++] = seq->seq3;
+				}
+			}
+
 			seq_arr[seq->machine] = seq;
 			totseq++;
 		}
 		seq = seq->next;
+	}
+
+	/* Drop strips which are used for effect inputs, we don't want
+	 *them to blend into render stack in any other way than effect
+	 * string rendering.
+	 */
+	for (i = 0; i < num_effect_inputs; i++) {
+		seq = effect_inputs[i];
+		seq_arr[seq->machine] = NULL;
 	}
 
 	return totseq;
