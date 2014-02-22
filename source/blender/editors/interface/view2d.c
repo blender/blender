@@ -2114,6 +2114,35 @@ void UI_view2d_setcenter(struct View2D *v2d, float x, float y)
 	UI_view2d_curRect_validate(v2d);
 }
 
+/**
+ * Simple pan function
+ *  (0.0, 0.0) bottom left
+ *  (0.5, 0.5) center
+ *  (1.0, 1.0) top right.
+ */
+void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
+{
+	if (xfac != -1.0f) {
+		const float xsize = BLI_rctf_size_x(&v2d->cur);
+		const float xmin = v2d->tot.xmin;
+		const float xmax = v2d->tot.xmax - xsize;
+
+		v2d->cur.xmin = (xmin * (1.0f - xfac)) + (xmax * xfac);
+		v2d->cur.xmax = v2d->cur.xmin + xsize;
+	}
+
+	if (yfac != -1.0f) {
+		const float ysize = BLI_rctf_size_y(&v2d->cur);
+		const float ymin = v2d->tot.ymin;
+		const float ymax = v2d->tot.ymax - ysize;
+
+		v2d->cur.ymin = (ymin * (1.0f - yfac)) + (ymax * yfac);
+		v2d->cur.ymax = v2d->cur.ymin + ysize;
+	}
+
+	UI_view2d_curRect_validate(v2d);
+}
+
 /* Check if mouse is within scrollers
  *	- Returns appropriate code for match
  *		'h' = in horizontal scroller

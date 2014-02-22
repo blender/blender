@@ -205,6 +205,8 @@ void UI_view2d_getscale_inverse(struct View2D *v2d, float *x, float *y);
 void UI_view2d_getcenter(struct View2D *v2d, float *x, float *y);
 void UI_view2d_setcenter(struct View2D *v2d, float x, float y);
 
+void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
+
 short UI_view2d_mouse_in_scrollers(const struct bContext *C, struct View2D *v2d, int x, int y);
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
