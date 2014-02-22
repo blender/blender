@@ -334,6 +334,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			utf8_buf = ascii;
 			break;
 		case EQUALKEY:
+		case PADASTERKEY:
 			if (!(n->flag & NUM_EDIT_FULL)) {
 				n->flag |= NUM_EDIT_FULL;
 				return true;
