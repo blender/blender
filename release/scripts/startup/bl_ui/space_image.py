@@ -45,6 +45,7 @@ class BrushButtonsPanel:
         toolsettings = context.tool_settings.image_paint
         return sima.show_paint and toolsettings.brush
 
+
 class UVToolsPanel:
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
@@ -54,6 +55,7 @@ class UVToolsPanel:
     def poll(cls, context):
         sima = context.space_data
         return sima.show_uvedit and not context.tool_settings.use_uv_sculpt
+
 
 class IMAGE_MT_view(Menu):
     bl_label = "View"
@@ -494,6 +496,7 @@ class IMAGE_PT_mask(MASK_PT_mask, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
 
+
 class IMAGE_PT_mask_layers(MASK_PT_layers, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -653,9 +656,10 @@ class IMAGE_PT_tools_transform_uvs(Panel, UVToolsPanel):
 
         col.operator("transform.shear")
 
+
 class IMAGE_PT_paint(Panel, ImagePaintPanel):
     bl_label = "Paint"
-    
+
     @classmethod
     def poll(cls, context):
         sima = context.space_data
@@ -985,6 +989,7 @@ class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
     bl_category = 'Mask'
 
 # --- end mask ---
+
 
 class IMAGE_PT_view_histogram(Panel):
     bl_space_type = 'IMAGE_EDITOR'

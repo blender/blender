@@ -457,7 +457,7 @@ static void setMPolyMaterial(ExportMeshData *export_data,
 		 * otherwise fallback to first material (material with index=0).
 		 */
 		if (!BLI_ghash_haskey(material_hash, orig_mat)) {
-			int a, mat_nr;;
+			int a, mat_nr;
 
 			mat_nr = 0;
 			for (a = 0; a < export_data->ob_left->totcol; a++) {

@@ -3106,7 +3106,7 @@ short DAG_get_eval_flags_for_object(struct Scene *scene, void *object)
 		return 0;
 	}
 
-	node = dag_find_node(scene->theDag, object);;
+	node = dag_find_node(scene->theDag, object);
 
 	if (node) {
 		return node->eval_flags;

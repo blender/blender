@@ -825,7 +825,7 @@ static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray_, int *UNUSED(in
 	MEdge *medge;
 	unsigned int *varray = (unsigned int *)varray_;
 	int i, totedge;
- 
+
 	medge = dm->getEdgeArray(dm);
 	totedge = dm->getNumEdges(dm);
 

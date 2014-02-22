@@ -1368,7 +1368,6 @@ int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
 			
 			return OPERATOR_FINISHED;
 		}
-		   
 	}
 	return OPERATOR_CANCELLED;
 }

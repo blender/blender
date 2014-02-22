@@ -23,6 +23,7 @@ from bpy.types import Panel, Header, Menu, UIList
 from bpy.app.translations import pgettext_iface as iface_
 from bl_ui.properties_grease_pencil_common import GreasePencilPanel
 
+
 class CLIP_UL_tracking_objects(UIList):
     def draw_item(self, context, layout, data, item, icon,
                   active_data, active_propname, index):

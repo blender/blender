@@ -610,7 +610,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		}
 		else if (re->result) {
 			if (re->result->rectx == re->rectx && re->result->recty == re->recty &&
-			    prev_actlay == re->r.actlay) {
+			    prev_actlay == re->r.actlay)
+			{
 				/* keep render result, this avoids flickering black tiles
 				 * when the preview changes */
 			}

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+
 class GreasePencilPanel():
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'

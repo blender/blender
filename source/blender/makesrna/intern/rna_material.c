@@ -744,7 +744,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Scattering Factor", "Amount texture affects scattering");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
-								  
+
 	prop = RNA_def_property(srna, "reflection_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "reflfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);

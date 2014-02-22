@@ -1528,7 +1528,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 */
 		if (deform_r) {
 			*deform_r = CDDM_from_mesh(me);
-			 
+
 			if (build_shapekey_layers)
 				add_shapekey_layers(dm, me, ob);
 			

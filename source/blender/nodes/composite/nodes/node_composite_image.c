@@ -397,7 +397,7 @@ void node_cmp_rlayers_force_hidden_passes(bNode *node)
 	
 	set_output_visible(node, passflag, RRES_OUT_IMAGE,                  SCE_PASS_COMBINED);
 	set_output_visible(node, passflag, RRES_OUT_ALPHA,                  SCE_PASS_COMBINED);
-	                                                                    
+
 	set_output_visible(node, passflag, RRES_OUT_Z,                      SCE_PASS_Z);
 	set_output_visible(node, passflag, RRES_OUT_NORMAL,                 SCE_PASS_NORMAL);
 	set_output_visible(node, passflag, RRES_OUT_VEC,                    SCE_PASS_VECTOR);

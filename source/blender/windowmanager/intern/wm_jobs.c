@@ -82,7 +82,7 @@
  * - it puts timer to sleep (or removes?)
  *
  */
- 
+
 struct wmJob {
 	struct wmJob *next, *prev;
 	
