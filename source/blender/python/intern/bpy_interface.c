@@ -496,15 +496,19 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 			 * incompatible'.
 			 * So now we load the script file data to a buffer */
 			{
-				char *pystring;
+				PyObject *py_dict_local, *fn_py;
+				const char *pystring = "with open(fn, 'r') as f: exec(f.read())";
 
 				fclose(fp);
 
-				pystring = MEM_mallocN(strlen(fn) + 37, "pystring");
-				pystring[0] = '\0';
-				sprintf(pystring, "f=open(r'%s');exec(f.read());f.close()", fn);
-				py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
-				MEM_freeN(pystring);
+				py_dict_local = PyDict_New();
+				fn_py = PyC_UnicodeFromByte(fn);
+				PyDict_SetItemString(py_dict_local, "fn", fn_py);
+				Py_DECREF(fn_py);
+
+				py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict_local);
+
+				Py_DECREF(py_dict_local);
 			}
 #else
 			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
