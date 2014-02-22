@@ -60,7 +60,7 @@ AMD64_PATH="$ENV_PATH/buildbot_${DEBIAN_BRANCH}_x86_64"
 I686_PATH="$ENV_PATH/buildbot_${DEBIAN_BRANCH}_i686"
 SOURCES_PATH="$ENV_PATH/sources"
 
-THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
+THREADS=$(nproc)
 
 # Force vpx be installed from the backports
 VPX_V="1.0.0-2~bpo60+1"
