@@ -4386,7 +4386,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 }
 
 static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
-                                    wmNDOFMotionData *ndof,
+                                    const wmNDOFMotionData *ndof,
                                     const enum eSnapType snap, const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
@@ -4480,7 +4480,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (event->type == NDOF_MOTION) {
-			wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+			const wmNDOFMotionData *ndof = event->customdata;
 			const enum eSnapType snap = ui_event_to_snap(event);
 			
 			ui_ndofedit_but_HSVCUBE(but, data, ndof, snap, event->shift != 0);
@@ -4630,7 +4630,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 }
 
 static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
-                                      wmNDOFMotionData *ndof,
+                                      const wmNDOFMotionData *ndof,
                                       const enum eSnapType snap, const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
@@ -4712,7 +4712,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 		else if (event->type == NDOF_MOTION) {
 			const enum eSnapType snap = ui_event_to_snap(event);
-			wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+			const wmNDOFMotionData *ndof = event->customdata;
 			
 			ui_ndofedit_but_HSVCIRCLE(but, data, ndof, snap, event->shift != 0);
 

@@ -460,7 +460,7 @@ static void flyEvent(bContext *C, FlyInfo *fly, const wmEvent *event)
 		// puts("ndof motion detected in fly mode!");
 		// static const char *tag_name = "3D mouse position";
 
-		wmNDOFMotionData *incoming_ndof = (wmNDOFMotionData *)event->customdata;
+		const wmNDOFMotionData *incoming_ndof = event->customdata;
 		switch (incoming_ndof->progress) {
 			case P_STARTING:
 				/* start keeping track of 3D mouse position */

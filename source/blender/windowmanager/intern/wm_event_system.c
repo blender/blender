@@ -540,7 +540,7 @@ void WM_event_print(const wmEvent *event)
 		       event->keymap_idname, (void *)event);
 
 		if (ISNDOF(event->type)) {
-			const wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+			const wmNDOFMotionData *ndof = event->customdata;
 			if (event->type == NDOF_MOTION) {
 				printf("   ndof: rot: (%.4f %.4f %.4f),\n"
 				       "          tx: (%.4f %.4f %.4f),\n"

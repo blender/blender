@@ -1262,12 +1262,11 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+		const wmNDOFMotionData *ndof = event->customdata;
 
-		float dt = ndof->dt;
 		/* tune these until it feels right */
 		const float zoom_sensitivity = 0.5f;
-		const float pan_sensitivity = 10.0f; /* match view3d ortho */
+		const float speed = 10.0f;  /* match view3d ortho */
 		const bool has_translate = (ndof->tvec[0] && ndof->tvec[1]) && view_pan_poll(C);
 		const bool has_zoom = (ndof->tvec[2] != 0.0f) && view_zoom_poll(C);
 
@@ -1278,8 +1277,8 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 				WM_event_ndof_pan_get(ndof, pan_vec, false);
 
-				pan_vec[0] *= pan_sensitivity;
-				pan_vec[1] *= pan_sensitivity;
+				pan_vec[0] *= speed;
+				pan_vec[1] *= speed;
 
 				vpd = op->customdata;
 
@@ -1292,7 +1291,7 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		if (has_zoom) {
 			if (view_zoomdrag_init(C, op)) {
 				v2dViewZoomData *vzd;
-				float zoom_factor = zoom_sensitivity * dt * -ndof->tvec[2];
+				float zoom_factor = zoom_sensitivity * ndof->dt * -ndof->tvec[2];
 
 				bool do_zoom_xy[2];
 

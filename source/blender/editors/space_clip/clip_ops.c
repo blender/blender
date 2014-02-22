@@ -1335,24 +1335,13 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 		ARegion *ar = CTX_wm_region(C);
 		float pan_vec[3];
 
-		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
-
-		float dt = ndof->dt;
-
-		/* tune these until it feels right */
-		const float pan_sensitivity = 300.0f;  /* screen pixels per second */
-
-		/* "mouse zoom" factor = 1 + (dx + dy) / 300
-		 * what about "ndof zoom" factor? should behave like this:
-		 * at rest -> factor = 1
-		 * move forward -> factor > 1
-		 * move backward -> factor < 1
-		 */
+		const wmNDOFMotionData *ndof = event->customdata;
+		const float speed = NDOF_PIXELS_PER_SECOND;
 
 		WM_event_ndof_pan_get(ndof, pan_vec, true);
 
-		mul_v2_fl(pan_vec, (pan_sensitivity * dt) / sc->zoom);
-		pan_vec[2] *= -dt;
+		mul_v2_fl(pan_vec, (speed * ndof->dt) / sc->zoom);
+		pan_vec[2] *= -ndof->dt;
 
 		sclip_zoom_set_factor(C, 1.0f + pan_vec[2], NULL);
 		sc->xof += pan_vec[0];

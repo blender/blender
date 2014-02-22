@@ -1151,6 +1151,17 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 #define NDOF_HAS_TRANSLATE ((!ED_view3d_offset_lock_check(v3d, rv3d)) && !is_zero_v3(ndof->tvec))
 #define NDOF_HAS_ROTATE    (((rv3d->viewlock & RV3D_LOCKED) == 0) && !is_zero_v3(ndof->rvec))
 
+static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
+{
+	float speed = rv3d->pixsize * NDOF_PIXELS_PER_SECOND;
+
+	if (rv3d->is_persp) {
+		speed *= ED_view3d_calc_zfac(rv3d, rv3d->ofs, NULL);
+	}
+
+	return speed;
+}
+
 /**
  * Zoom and pan in the same function since sometimes zoom is interpreted as dolly (pan forward).
  *
@@ -1160,7 +1171,6 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
                                  const bool has_translate, const bool has_zoom)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	const float dt = ndof->dt;
 	float view_inv[4];
 	float pan_vec[3];
 
@@ -1183,7 +1193,7 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
 
 		/* "zoom in" or "translate"? depends on zoom mode in user settings? */
 		if (ndof->tvec[2]) {
-			float zoom_distance = rv3d->dist * dt * ndof->tvec[2];
+			float zoom_distance = rv3d->dist * ndof->dt * ndof->tvec[2];
 
 			if (U.ndof_flag & NDOF_ZOOM_INVERT)
 				zoom_distance = -zoom_distance;
@@ -1201,9 +1211,9 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof, ScrArea *s
 	}
 
 	if (has_translate) {
-		const float speed = rv3d->dist; /* uses distance from pivot to define dolly */
+		const float speed = view3d_ndof_pan_speed_calc(rv3d);
 
-		mul_v3_fl(pan_vec, speed * dt);
+		mul_v3_fl(pan_vec, speed * ndof->dt);
 
 		/* transform motion from view to world coordinates */
 		invert_qt_qt(view_inv, rv3d->viewquat);
@@ -1314,9 +1324,6 @@ void view3d_ndof_fly(
         const bool use_precision, const short protectflag,
         bool *r_has_translate, bool *r_has_rotate)
 {
-	/* shorthand for oft-used variables */
-	const float dt = ndof->dt;
-
 	bool has_translate = NDOF_HAS_TRANSLATE;
 	bool has_rotate = NDOF_HAS_ROTATE;
 
@@ -1326,14 +1333,14 @@ void view3d_ndof_fly(
 	rv3d->rot_angle = 0.0f;  /* disable onscreen rotation doo-dad */
 
 	if (has_translate) {
-		float speed = 10.0f;  /* blender units per second */
+		float speed = view3d_ndof_pan_speed_calc(rv3d);
 		float trans[3], trans_orig_y;
-		/* ^^ this is ok for default cube scene, but should scale with.. something */
+
 		if (use_precision)
 			speed *= 0.2f;
 
 		WM_event_ndof_pan_get(ndof, trans, false);
-		mul_v3_fl(trans, speed * dt);
+		mul_v3_fl(trans, speed * ndof->dt);
 		trans_orig_y = trans[1];
 
 		if (U.ndof_flag & NDOF_FLY_HELICOPTER) {

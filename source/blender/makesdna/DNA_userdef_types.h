@@ -801,6 +801,8 @@ typedef enum eNdof_Flag {
 	NDOF_TURNTABLE          = (1 << 15),
 } eNdof_Flag;
 
+#define NDOF_PIXELS_PER_SECOND 600.0f
+
 /* compute_device_type */
 typedef enum eCompute_Device_Type {
 	USER_COMPUTE_DEVICE_NONE	= 0,

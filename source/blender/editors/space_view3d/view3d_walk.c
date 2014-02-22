@@ -645,7 +645,7 @@ static void walkEvent(bContext *C, wmOperator *UNUSED(op), WalkInfo *walk, const
 		// puts("ndof motion detected in walk mode!");
 		// static const char *tag_name = "3D mouse position";
 
-		wmNDOFMotionData *incoming_ndof = (wmNDOFMotionData *)event->customdata;
+		const wmNDOFMotionData *incoming_ndof = event->customdata;
 		switch (incoming_ndof->progress) {
 			case P_STARTING:
 				/* start keeping track of 3D mouse position */
