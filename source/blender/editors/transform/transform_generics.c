@@ -813,10 +813,10 @@ static void recalcData_objects(TransInfo *t)
 				 */
 				for (i = 0; i < t->total; i++, td++) {
 					if (td->extra) {
-						const float Z[3] = {0.0f, 0.0f, 1.0f};
+						const float z_axis[3] = {0.0f, 0.0f, 1.0f};
 
 						ebo = td->extra;
-						ebo->roll = td->ival + ED_rollBoneToVector(ebo, Z, false);
+						ebo->roll = td->ival + ED_rollBoneToVector(ebo, z_axis, false);
 					}
 				}
 			}
