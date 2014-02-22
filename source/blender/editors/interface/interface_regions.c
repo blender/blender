@@ -2400,7 +2400,7 @@ bool uiPupMenuInvoke(bContext *C, const char *idname, ReportList *reports)
 	MenuType *mt = WM_menutype_find(idname, true);
 
 	if (mt == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "menu \"%s\" not found", idname);
+		BKE_reportf(reports, RPT_ERROR, "Menu \"%s\" not found", idname);
 		return false;
 	}
 

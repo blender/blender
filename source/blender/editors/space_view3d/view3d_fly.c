@@ -294,7 +294,7 @@ static void fly_update_header(bContext *C, FlyInfo *fly)
 	                                           "Ctrl: free look, "
 	                                           "X: Upright x axis (%s), "
 	                                           "Z: Upright z axis (%s), "
-                                               "(+/- | Wheel): speed, "),
+                                               "(+/- | Wheel): speed"),
 
 	    WM_bool_as_string(fly->xlock != FLY_AXISLOCK_STATE_OFF),
 		WM_bool_as_string(fly->zlock != FLY_AXISLOCK_STATE_OFF));
