@@ -469,25 +469,24 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm, ListBase *defb
 
 static float get_property(Bone *bone, const char *key, float def)
 {
-	float result;
-	IDProperty *property = IDP_GetPropertyFromGroup(bone->prop, key);
-	if (property) {
-		switch(property->type) {
-			case IDP_INT:
-				result = (float)(IDP_Int(property));
-				break;
-			case IDP_FLOAT:
-				result = (float)(IDP_Float(property));
-				break;
-			case IDP_DOUBLE:
-				result = (float)(IDP_Double(property));
-				break;
-			default:
-				result = def;
+	float result = def;
+	if (bone->prop) {
+		IDProperty *property = IDP_GetPropertyFromGroup(bone->prop, key);
+		if (property) {
+			switch(property->type) {
+				case IDP_INT:
+					result = (float)(IDP_Int(property));
+					break;
+				case IDP_FLOAT:
+					result = (float)(IDP_Float(property));
+					break;
+				case IDP_DOUBLE:
+					result = (float)(IDP_Double(property));
+					break;
+				default:
+					result = def;
+			}
 		}
-	}
-	else {
-		result = def;
 	}
 	return result;
 }
