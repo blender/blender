@@ -130,6 +130,7 @@ extern "C" {
 #include "PHY_IPhysicsEnvironment.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
 #include "MEM_guardedalloc.h"
@@ -752,7 +753,7 @@ static PyObject *gLibNew(PyObject *, PyObject *args)
 		return NULL;
 	}
 	
-	Main *maggie= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
+	Main *maggie=BKE_main_new();
 	kx_scene->GetSceneConverter()->GetMainDynamic().push_back(maggie);
 	strncpy(maggie->name, path, sizeof(maggie->name)-1);
 	
