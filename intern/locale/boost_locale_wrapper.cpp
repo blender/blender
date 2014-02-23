@@ -113,6 +113,9 @@ const char *bl_locale_pgettext(const char *msgctxt, const char *msgid)
 			return r;
 		return msgid;
 	}
+	catch(std::bad_cast) { /* std::bad_cast if std::has_facet<Facet>(loc) == false */
+		return msgid;
+	}
 	catch(std::exception const &) {
 //		std::cout << "bl_locale_pgettext(" << msgctxt << ", " << msgid << "): " << e.what() << " \n";
 		return msgid;
