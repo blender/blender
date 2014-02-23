@@ -1013,7 +1013,8 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 	strwidth = BLF_width(fstyle->uifont_id, but->drawstr, max_len);
 
 	if (strwidth > okwidth) {
-		const char sep[] = "…";
+		/* utf8 ellipsis '...', some compilers complain */
+		const char sep[] = {0xe2, 0x80, 0xa6, 0x0};
 		const int sep_len = sizeof(sep) - 1;
 		size_t l_end;
 
