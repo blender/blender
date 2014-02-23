@@ -91,7 +91,7 @@ void GPG_Canvas::SetMouseState(RAS_MouseState mousestate)
 			m_window->setCursorVisibility(true);
 			break;
 		case MOUSE_NORMAL:
-			m_window->setCursorShape(GHOST_kStandardCursorRightArrow);
+			m_window->setCursorShape(GHOST_kStandardCursorDefault);
 			m_window->setCursorVisibility(true);
 			break;
 		}
