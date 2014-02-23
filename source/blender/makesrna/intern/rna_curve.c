@@ -252,6 +252,19 @@ static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max,
 	*max = max_ii(0, cu->totcol - 1);
 }
 
+/* simply offset by don't expose -1 */
+static int rna_ChariInfo_material_index_get(PointerRNA *ptr)
+{
+	CharInfo *info = ptr->data;
+	return info->mat_nr ? info->mat_nr - 1 : 0;
+}
+
+static void rna_ChariInfo_material_index_set(PointerRNA *ptr, int value)
+{
+	CharInfo *info = ptr->data;
+	info->mat_nr = value + 1;
+}
+
 static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int *max,
                                                  int *UNUSED(softmin), int *UNUSED(softmax))
 {
@@ -1137,6 +1150,12 @@ static void rna_def_charinfo(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_small_caps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_SMALLCAPS);
 	RNA_def_property_ui_text(prop, "Small Caps", "");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
+	// RNA_def_property_int_sdna(prop, NULL, "mat_nr");
+	RNA_def_property_ui_text(prop, "Material Index", "");
+	RNA_def_property_int_funcs(prop, "rna_ChariInfo_material_index_get", "rna_ChariInfo_material_index_set", "rna_Curve_material_index_range");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
