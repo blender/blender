@@ -1470,7 +1470,7 @@ namespace carve {
         heapval_t last;
         std::vector<heapval_t> heap;
 
-        point_enumerator_t(vector_t _origin, int _base, int _n_dp) : origin(_origin), rounding_fac(pow(_base, _n_dp)), last(-1.0, _origin), heap() {
+        point_enumerator_t(vector_t _origin, int _base, int _n_dp) : origin(_origin), rounding_fac(pow((double)_base, _n_dp)), last(-1.0, _origin), heap() {
           for (size_t i = 0; i < (1 << 3); ++i) {
             vector_t t = origin;
             for (size_t j = 0; j < 3; ++j) {
@@ -1527,7 +1527,7 @@ namespace carve {
         }
 
         aabb_t getAABB() const {
-          std::set<face_t *>::iterator i = faces.begin();
+          std::set<face_t *>::const_iterator i = faces.begin();
           aabb_t aabb = (*i)->getAABB();
           while (++i != faces.end()) {
             aabb.unionAABB((*i)->getAABB());
