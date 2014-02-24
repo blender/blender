@@ -126,13 +126,13 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 		for (x = 0; x < width; x++) {
 			h = 0.125f * floorf(x / checkerwidth);
 			
-			if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
-			    (fabs((y % checkerwidth) - (checkerwidth / 2)) < 4))
+			if ((abs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
+			    (abs((y % checkerwidth) - (checkerwidth / 2)) < 4))
 			{
-				if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
-				    (fabs((y % checkerwidth) - (checkerwidth / 2)) < 1))
+				if ((abs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
+				    (abs((y % checkerwidth) - (checkerwidth / 2)) < 1))
 				{
-					hsv[0] = fmodf(fabs(h - hoffs), 1.0f);
+					hsv[0] = fmodf(fabsf(h - hoffs), 1.0f);
 					hsv_to_rgb_v(hsv, rgb);
 					
 					if (rect) {
