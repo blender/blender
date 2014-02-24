@@ -247,6 +247,10 @@ CXX = 'cl.exe'
 CFLAGS = []
 CCFLAGS = ['/nologo', '/J', '/W3', '/Gd', '/w34062', '/wd4018', '/wd4065', '/wd4127', '/wd4181', '/wd4200', '/wd4244', '/wd4267', '/wd4305', '/wd4800', '/we4013', '/we4431']
 
+# We want to support Vista level ABI for x64
+if VC_VERSION == '12.0':
+    CCFLAGS.append('/D_WIN32_WINNT=0x600')
+
 CXXFLAGS = ['/EHsc']
 BGE_CXXFLAGS = ['/O2', '/Ob2', '/EHsc', '/GR', '/fp:fast']
 
