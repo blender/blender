@@ -110,13 +110,20 @@ bool ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
 	        (rv3d->persp == RV3D_CAMOB));
 }
 
-void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
+void ED_view3d_camera_lock_init_ex(View3D *v3d, RegionView3D *rv3d, const bool calc_dist)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
-		/* using a fallback dist is OK here since ED_view3d_from_object() compensates for it */
-		rv3d->dist = ED_view3d_offset_distance(v3d->camera->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+		if (calc_dist) {
+			/* using a fallback dist is OK here since ED_view3d_from_object() compensates for it */
+			rv3d->dist = ED_view3d_offset_distance(v3d->camera->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+		}
 		ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
+}
+
+void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
+{
+	ED_view3d_camera_lock_init_ex(v3d, rv3d, true);
 }
 
 /* return true if the camera is moved */
@@ -1044,14 +1051,15 @@ static void view3d_ensure_persp(struct View3D *v3d, ARegion *ar)
 
 	BLI_assert((rv3d->viewlock & RV3D_LOCKED) == 0);
 
+	if (ED_view3d_camera_lock_check(v3d, rv3d))
+		return;
+
 	if (rv3d->persp != RV3D_PERSP) {
 		if (rv3d->persp == RV3D_CAMOB) {
 			view3d_persp_switch_from_camera(v3d, rv3d, rv3d->lpersp);
 		}
 		else if ((U.uiflag & USER_AUTOPERSP) && RV3D_VIEW_IS_AXIS(rv3d->view)) {
-			if (!ED_view3d_camera_lock_check(v3d, rv3d)) {
-				rv3d->persp = RV3D_PERSP;
-			}
+			rv3d->persp = RV3D_PERSP;
 		}
 	}
 }
@@ -1469,7 +1477,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		/* off by default, until changed later this function */
 		rv3d->rot_angle = 0.0f;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
+		ED_view3d_camera_lock_init_ex(v3d, rv3d, false);
 
 		if (ndof->progress != P_FINISHING) {
 			const bool has_rotation = NDOF_HAS_ROTATE;
@@ -1535,7 +1543,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		/* off by default, until changed later this function */
 		rv3d->rot_angle = 0.0f;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
+		ED_view3d_camera_lock_init_ex(v3d, rv3d, false);
 
 		if (ndof->progress == P_FINISHING) {
 			/* pass */
@@ -1564,23 +1572,23 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			}
 		}
 		else {  /* free/explore (like fly mode) */
-			Scene *scene = CTX_data_scene(C);
 			const bool has_rotation = NDOF_HAS_ROTATE;
 			const bool has_translate = NDOF_HAS_TRANSLATE;
+			const bool has_zoom = (ndof->tvec[2] != 0.0f) && !rv3d->is_persp;
 
-			const float dist_backup = rv3d->dist;
+			float dist_backup;
 
-			if (has_translate) {
-				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, true, false);
+			if (has_translate || has_zoom) {
+				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
 			}
 
+			dist_backup = rv3d->dist;
 			ED_view3d_distance_set(rv3d, 0.0f);
 
 			if (has_rotation) {
 				view3d_ndof_orbit(ndof, vod->sa, vod->ar, NULL);
 			}
 
-			ED_view3d_update_viewmat(scene, v3d, vod->ar, NULL, NULL);
 			ED_view3d_distance_set(rv3d, dist_backup);
 		}
 
@@ -1631,7 +1639,7 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 		if (has_translate == false)
 			return OPERATOR_CANCELLED;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
+		ED_view3d_camera_lock_init_ex(v3d, rv3d, false);
 
 		if (ndof->progress != P_FINISHING) {
 			ScrArea *sa = CTX_wm_area(C);
@@ -1666,55 +1674,22 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 }
 
 
-/*
- * this is basically just the pan only code + the rotate only code crammed into one function that does both
+/**
+ * wraps #ndof_orbit_zoom but never restrict to orbit.
  */
 static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (event->type != NDOF_MOTION) {
-		return OPERATOR_CANCELLED;
-	}
-	else {
-		ViewOpsData *vod;
-		View3D *v3d;
-		RegionView3D *rv3d;
-		
-		const wmNDOFMotionData *ndof = event->customdata;
+	/* weak!, but it works */
+	const int ndof_flag = U.ndof_flag;
+	int ret;
 
-		viewops_data_create_ex(C, op, event, (U.uiflag & USER_ORBIT_SELECTION) != 0, false);
-		viewops_data_create(C, op, event);
+	U.ndof_flag &= ~NDOF_MODE_ORBIT;
 
-		vod = op->customdata;
-		v3d = vod->v3d;
-		rv3d = vod->rv3d;
+	ret = ndof_orbit_zoom_invoke(C, op, event);
 
-		/* off by default, until changed later this function */
-		rv3d->rot_angle = 0.0f;
+	U.ndof_flag = ndof_flag;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
-
-		if (ndof->progress != P_FINISHING) {
-			const bool has_rotation = NDOF_HAS_ROTATE;
-			const bool has_translate = NDOF_HAS_TRANSLATE;
-			const bool has_zoom = !rv3d->is_persp;
-
-			if (has_translate || has_zoom) {
-				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
-			}
-
-			if (has_rotation) {
-				view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod);
-			}
-		}
-
-		ED_view3d_camera_lock_sync(v3d, rv3d);
-
-		ED_region_tag_redraw(vod->ar);
-
-		viewops_data_free(C, op);
-		
-		return OPERATOR_FINISHED;
-	}
+	return ret;
 }
 
 void VIEW3D_OT_ndof_all(struct wmOperatorType *ot)
@@ -4625,12 +4600,19 @@ float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float
  */
 void ED_view3d_distance_set(RegionView3D *rv3d, const float dist)
 {
+	float viewinv[4];
 	float tvec[3];
 
 	BLI_assert(dist >= 0.0f);
 
 	copy_v3_fl3(tvec, 0.0f, 0.0f, rv3d->dist - dist);
+	/* rv3d->viewinv isn't always valid */
+#if 0
 	mul_mat3_m4_v3(rv3d->viewinv, tvec);
+#else
+	invert_qt_qt(viewinv, rv3d->viewquat);
+	mul_qt_v3(viewinv, tvec);
+#endif
 	sub_v3_v3(rv3d->ofs, tvec);
 
 	rv3d->dist = dist;

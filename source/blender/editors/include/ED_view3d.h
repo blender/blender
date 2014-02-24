@@ -322,6 +322,7 @@ bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
 /* camera lock functions */
 bool ED_view3d_camera_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the camera to the view before starting a view transformation */
+void ED_view3d_camera_lock_init_ex(struct View3D *v3d, struct RegionView3D *rv3d, const bool calc_dist);
 void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera, return TRUE if */
 bool ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
