@@ -251,6 +251,26 @@ static void rna_DriverVariable_type_set(PointerRNA *ptr, int value)
 	driver_change_variable_type(dvar, value);
 }
 
+/* ----------- */
+
+static DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
+{
+	/* call the API function for this */
+	return driver_add_new_variable(driver);
+}
+
+static void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, PointerRNA *dvar_ptr)
+{
+	DriverVar *dvar = dvar_ptr->data;
+	if (BLI_findindex(&driver->variables, dvar) == -1) {
+		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver");
+		return;
+	}
+
+	driver_free_variable(driver, dvar);
+	RNA_POINTER_INVALIDATE(dvar_ptr);
+}
+
 /* ****************************** */
 
 static void rna_FKeyframe_handle1_get(PointerRNA *ptr, float *values)
@@ -402,22 +422,10 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-static DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
+/* calculate time extents of F-Curve */
+static void rna_FCurve_range(FCurve *fcu, float range[2])
 {
-	/* call the API function for this */
-	return driver_add_new_variable(driver);
-}
-
-static void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, PointerRNA *dvar_ptr)
-{
-	DriverVar *dvar = dvar_ptr->data;
-	if (BLI_findindex(&driver->variables, dvar) == -1) {
-		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver");
-		return;
-	}
-
-	driver_free_variable(driver, dvar);
-	RNA_POINTER_INVALIDATE(dvar_ptr);
+	calc_fcurve_range(fcu, range, range + 1, FALSE, FALSE);
 }
 
 
@@ -738,12 +746,6 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, Pointe
 	delete_fcurve_key(fcu, index, !do_fast);
 	RNA_POINTER_INVALIDATE(bezt_ptr);
 }
-
-static void rna_fcurve_range(FCurve *fcu, float range[2])
-{
-	calc_fcurve_range(fcu, range, range + 1, FALSE, FALSE);
-}
-
 
 static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod, ReportList *reports, float frame)
 {
@@ -1855,6 +1857,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	rna_def_fcurve_modifiers(brna, prop);
 
 	/* Functions */
+	/* -- evaluate -- */
 	func = RNA_def_function(srna, "evaluate", "evaluate_fcurve"); /* calls the C/API direct */
 	RNA_def_function_ui_description(func, "Evaluate F-Curve");
 	parm = RNA_def_float(func, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame",
@@ -1863,15 +1866,17 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	/* return value */
 	parm = RNA_def_float(func, "position", 0, -FLT_MAX, FLT_MAX, "Position", "F-Curve position", -FLT_MAX, FLT_MAX);
 	RNA_def_function_return(func, parm);
-
-	func = RNA_def_function(srna, "range", "rna_fcurve_range");
+	
+	/* -- time extents/range -- */
+	func = RNA_def_function(srna, "range", "rna_FCurve_range");
 	RNA_def_function_ui_description(func, "Get the time extents for F-Curve");
 	/* return value */
 	parm = RNA_def_float_vector(func, "range", 2, NULL, -FLT_MAX, FLT_MAX, "Range",
 	                            "Min/Max values", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
-
+	
+	/* -- auto-flag validity (ensures valid handling for data type) -- */
 	func = RNA_def_function(srna, "update_autoflags", "update_autoflags_fcurve"); /* calls the C/API direct */
 	RNA_def_function_ui_description(func, "Update FCurve flags set automatically from affected property "
 	                                      "(currently, integer/discrete flags set when the property is not a float)");
