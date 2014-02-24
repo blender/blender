@@ -1741,9 +1741,13 @@ static void statvis_calc_overhang(
 	float dir[3];
 	int index;
 	const float minmax_irange = 1.0f / (max - min);
+	bool is_max;
 
 	/* fallback */
-	const char col_fallback[4] = {64, 64, 64, 255};
+	const char col_fallback[2][4] = {
+	    {64, 64, 64, 255},  /* gray */
+	    {0,  0,  0,  255},  /* max color */
+	};
 
 	BLI_assert(min <= max);
 
@@ -1754,12 +1758,19 @@ static void statvis_calc_overhang(
 		normalize_v3(dir);
 	}
 
+	/* fallback max */
+	{
+		float fcol[3];
+		weight_to_rgb(fcol, 1.0f);
+		rgb_float_to_uchar((unsigned char *)col_fallback[1], fcol);
+	}
+
 	/* now convert into global space */
 	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, index) {
 		float fac = angle_normalized_v3v3(polyNos ? polyNos[index] : f->no, dir) / (float)M_PI;
 
 		/* remap */
-		if (fac >= min && fac <= max) {
+		if ((is_max = (fac <= max)) && (fac >= min)) {
 			float fcol[3];
 			fac = (fac - min) * minmax_irange;
 			fac = 1.0f - fac;
@@ -1768,7 +1779,7 @@ static void statvis_calc_overhang(
 			rgb_float_to_uchar(r_face_colors[index], fcol);
 		}
 		else {
-			copy_v4_v4_char((char *)r_face_colors[index], (const char *)col_fallback);
+			copy_v4_v4_char((char *)r_face_colors[index], (const char *)(col_fallback[is_max]));
 		}
 	}
 }
