@@ -973,11 +973,24 @@ elseif(WIN32)
 			set(PLATFORM_LINKLIBS ${PLATFORM_LINKLIBS} dxguid)
 		endif()
 
-		add_definitions(/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_CONSOLE /D_LIB)
+		add_definitions(
+			-D_CRT_NONSTDC_NO_DEPRECATE
+			-D_CRT_SECURE_NO_DEPRECATE
+			-D_SCL_SECURE_NO_DEPRECATE
+			-D_CONSOLE
+			-D_LIB
+		)
 
 		# MSVC11 needs _ALLOW_KEYWORD_MACROS to build
-		if(MSVC11 OR MSVC12)
-			add_definitions(/D_ALLOW_KEYWORD_MACROS)
+		if(NOT MSVC_VERSION VERSION_LESS 1700)
+			add_definitions(-D_ALLOW_KEYWORD_MACROS)
+		endif()
+
+		if(CMAKE_CL_64)
+			# We want to support Vista level ABI for x64
+			if(NOT MSVC_VERSION VERSION_LESS 1700)
+				add_definitions(-D_WIN32_WINNT=0x600)
+			endif()
 		endif()
 
 		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc /MP" CACHE STRING "MSVC MT C++ flags " FORCE)
