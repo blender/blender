@@ -1423,7 +1423,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	 * and only transparent in the second 'alpha' pass.
 	 * - object transparency off: for glsl we draw both in a single pass, and
 	 * for solid we don't use transparency at all. */
-	GMS.use_alpha_pass = (do_alpha_after != NULL) && !new_shading_nodes;
+	GMS.use_alpha_pass = (do_alpha_after != NULL);
 	GMS.is_alpha_pass = (v3d->transp != FALSE);
 	if (GMS.use_alpha_pass)
 		*do_alpha_after = false;
@@ -1485,7 +1485,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 				/* fixed function opengl materials */
 				gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
 
-				if (GMS.use_alpha_pass && (ma->mode & MA_TRANSP)) {
+				if (GMS.use_alpha_pass && ((ma->mode & MA_TRANSP) || (new_shading_nodes && ma->alpha != 1.0f))) {
 					GMS.matbuf[a].diff[3]= ma->alpha;
 					alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 				}

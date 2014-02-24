@@ -1001,8 +1001,9 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
 
         split = layout.split()
 
-        col = split.column()
+        col = split.column(align=True)
         col.prop(mat, "diffuse_color", text="Viewport Color")
+        col.prop(mat, "alpha")
 
         col = split.column(align=True)
         col.label()
