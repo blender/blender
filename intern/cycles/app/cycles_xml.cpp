@@ -237,7 +237,7 @@ static ShaderSocketType xml_read_socket_type(pugi::xml_node node, const char *na
 			return SHADER_SOCKET_POINT;
 		else if (string_iequals(value, "normal"))
 			return SHADER_SOCKET_NORMAL;
-		else if (string_iequals(value, "closure"))
+		else if (string_iequals(value, "closure color"))
 			return SHADER_SOCKET_CLOSURE;
 		else if (string_iequals(value, "string"))
 			return SHADER_SOCKET_STRING;
