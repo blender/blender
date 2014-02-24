@@ -1210,7 +1210,7 @@ elseif(WIN32)
 				${LIBDIR}/jack/include/jack
 				${LIBDIR}/jack/include
 			)
-			set(JACK_LIBRARIES ${LIBDIR}/jack/lib/libjack.lib)
+			set(JACK_LIBRARIES optimized ${LIBDIR}/jack/lib/libjack.lib debug ${LIBDIR}/jack/lib/libjack_d.lib)
 		endif()
 
 		if(WITH_PYTHON)
