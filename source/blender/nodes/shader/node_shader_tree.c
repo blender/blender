@@ -79,7 +79,7 @@ static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tre
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 	
-	if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
+	if (!BKE_scene_use_new_shading_nodes(scene) || snode->shaderfrom == SNODE_SHADER_OBJECT) {
 		if (ob) {
 			*r_from = &ob->id;
 			if (ob->type == OB_LAMP) {

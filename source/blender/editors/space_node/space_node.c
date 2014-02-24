@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_library.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
 
@@ -383,11 +384,12 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 
 }
 
-static void node_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
+static void node_area_listener(bScreen *sc, ScrArea *sa, wmNotifier *wmn)
 {
 	/* note, ED_area_tag_refresh will re-execute compositor */
 	SpaceNode *snode = sa->spacedata.first;
-	short shader_type = snode->shaderfrom;
+	/* shaderfrom is only used for new shading nodes, otherwise all shaders are from objects */
+	short shader_type = BKE_scene_use_new_shading_nodes(sc->scene) ? snode->shaderfrom : SNODE_SHADER_OBJECT;
 
 	/* preview renders */
 	switch (wmn->category) {
