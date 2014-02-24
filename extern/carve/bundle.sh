@@ -111,6 +111,7 @@ cat > SConscript << EOF
 Import ('env')
 
 sources = env.Glob('lib/*.cpp')
+sources += env.Glob('*.cc')
 
 defs = []
 incs = ['include']

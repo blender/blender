@@ -1,6 +1,7 @@
 include/carve/vertex_impl.hpp
 include/carve/aabb_impl.hpp
 include/carve/csg.hpp
+include/carve/triangle_intersection.hpp
 include/carve/pointset_iter.hpp
 include/carve/debug_hooks.hpp
 include/carve/mesh.hpp

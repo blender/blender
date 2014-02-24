@@ -619,6 +619,7 @@ int triangulateNGon_carveTriangulator(const std::vector<Vector> &vertices,
 	}
 
 	carve::triangulate::triangulate(poly_2d, *triangles);
+	carve::triangulate::improve(poly_2d, *triangles);
 
 	return triangles->size();
 }
@@ -737,9 +738,9 @@ int carve_triangulatePoly(struct ImportMeshData *import_data,
 		}
 
 		for (int i = 0; i < triangles.size(); ++i) {
-			int v1 = triangles[i].c,
+			int v1 = triangles[i].a,
 			    v2 = triangles[i].b,
-			    v3 = triangles[i].a;
+			    v3 = triangles[i].c;
 
 			// Sanity check of the triangle.
 			assert(v1 != v2);
@@ -750,13 +751,15 @@ int carve_triangulatePoly(struct ImportMeshData *import_data,
 			assert(v3 < verts_per_poly);
 
 			face_indices->push_back(3);
-			face_indices->push_back(verts_of_poly[v3]);
-			face_indices->push_back(verts_of_poly[v2]);
 			face_indices->push_back(verts_of_poly[v1]);
+			face_indices->push_back(verts_of_poly[v2]);
+			face_indices->push_back(verts_of_poly[v3]);
 
 #define CHECK_TRIANGLE_LOOP_INDEX(v1, v2) \
 	{ \
-		if (v2 == v1 + 1) { \
+		int v1_ = std::min(v1, v2), \
+		    v2_ = std::max(v1, v2); \
+		if (v1_ + 1 == v2_ || v1_ + verts_per_poly == v2_ + 1) { \
 			orig_loop_index_map->push_back(start_loop_index + v1); \
 		} \
 		else { \

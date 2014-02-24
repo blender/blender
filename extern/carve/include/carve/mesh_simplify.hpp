@@ -32,8 +32,6 @@
 #include <algorithm>
 #include <vector>
 
-#include "write_ply.hpp"
-
 
 namespace carve {
   namespace mesh {
@@ -1184,6 +1182,33 @@ namespace carve {
         return modifications;
       }
 
+      void dissolveMeshEdges(mesh_t *mesh, std::unordered_set<edge_t *> dissolve_edges) {
+        while (dissolve_edges.size()) {
+            MeshSet<3>::edge_t *edge = *dissolve_edges.begin();
+            if (edge->face == edge->rev->face) {
+                dissolve_edges.erase(edge);
+                continue;
+            }
+
+            MeshSet<3>::edge_t *removed = edge->mergeFaces();
+            if (removed == NULL) {
+                dissolve_edges.erase(edge);
+            } else {
+                MeshSet<3>::edge_t *e = removed;
+                do {
+                    MeshSet<3>::edge_t *n = e->next;
+                    dissolve_edges.erase(std::min(e, e->rev));
+                    delete e->rev;
+                    delete e;
+                    e = n;
+                } while (e != removed);
+            }
+        }
+
+        removeRemnantFaces(mesh);
+        cleanFaceEdges(mesh);
+        mesh->cacheEdges();
+     }
 
 
       size_t improveMesh(meshset_t *meshset,

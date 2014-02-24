@@ -30,6 +30,7 @@
 #include <carve/interpolator.hpp>
 #include <carve/rescale.hpp>
 #include <carve/csg_triangulator.hpp>
+#include <carve/mesh_simplify.hpp>
 
 using carve::mesh::MeshSet;
 
@@ -38,6 +39,7 @@ typedef std::pair<MeshSet<3>::vertex_t *, MeshSet<3>::vertex_t *> VertexPair;
 typedef carve::interpolate::VertexAttr<OrigIndex> OrigVertMapping;
 typedef carve::interpolate::FaceAttr<OrigIndex> OrigFaceMapping;
 typedef carve::interpolate::FaceEdgeAttr<OrigIndex> OrigFaceEdgeMapping;
+typedef carve::interpolate::FaceEdgeAttr<bool> FaceEdgeTriangulatedFlag;
 
 typedef struct CarveMeshDescr {
 	// Stores mesh data itself.
@@ -56,6 +58,8 @@ typedef struct CarveMeshDescr {
 
 	// Mapping from the face edges back to (original edge index, original loop index).
 	OrigFaceEdgeMapping orig_face_edge_mapping;
+
+	FaceEdgeTriangulatedFlag face_edge_triangulated_flag;
 
 	// Mapping from the faces back to original poly index.
 	OrigFaceMapping orig_face_mapping;
@@ -131,6 +135,7 @@ void initOrigIndexMeshFaceMapping(CarveMeshDescr *mesh,
                                   const std::vector<int> &orig_poly_index_map,
                                   OrigVertMapping *orig_vert_mapping,
                                   OrigFaceEdgeMapping *orig_face_edge_mapping,
+                                  FaceEdgeTriangulatedFlag *face_edge_triangulated_flag,
                                   OrigFaceMapping *orig_face_attr)
 {
 	MeshSet<3> *poly = mesh->poly;
@@ -169,6 +174,9 @@ void initOrigIndexMeshFaceMapping(CarveMeshDescr *mesh,
 				                                     std::make_pair(which_mesh,
 				                                                    orig_loop_index));
 			}
+			else {
+				face_edge_triangulated_flag->setAttribute(face, edge_iter.idx(), true);
+			}
 		}
 	}
 }
@@ -177,6 +185,7 @@ void initOrigIndexMapping(CarveMeshDescr *left_mesh,
                           CarveMeshDescr *right_mesh,
                           OrigVertMapping *orig_vert_mapping,
                           OrigFaceEdgeMapping *orig_face_edge_mapping,
+                          FaceEdgeTriangulatedFlag *face_edge_triangulated_flag,
                           OrigFaceMapping *orig_face_mapping)
 {
 	initOrigIndexMeshFaceMapping(left_mesh,
@@ -185,6 +194,7 @@ void initOrigIndexMapping(CarveMeshDescr *left_mesh,
 	                             left_mesh->orig_poly_index_map,
 	                             orig_vert_mapping,
 	                             orig_face_edge_mapping,
+	                             face_edge_triangulated_flag,
 	                             orig_face_mapping);
 
 	initOrigIndexMeshFaceMapping(right_mesh,
@@ -193,7 +203,117 @@ void initOrigIndexMapping(CarveMeshDescr *left_mesh,
 	                             right_mesh->orig_poly_index_map,
 	                             orig_vert_mapping,
 	                             orig_face_edge_mapping,
+	                             face_edge_triangulated_flag,
 	                             orig_face_mapping);
+}
+
+void origEdgeMappingForFace(MeshSet<3>::face_t *face,
+                            OrigFaceEdgeMapping *orig_face_edge_mapping,
+                            std::unordered_map<VertexPair, OrigIndex> *edge_origindex_map)
+{
+	OrigIndex origindex_none = std::make_pair((int)CARVE_MESH_NONE, -1);
+
+	MeshSet<3>::edge_t *edge = face->edge;
+	for (int i = 0;
+	     i < face->n_edges;
+	     ++i, edge = edge->next)
+	{
+		MeshSet<3>::vertex_t *v1 = edge->vert;
+		MeshSet<3>::vertex_t *v2 = edge->next->vert;
+
+		OrigIndex orig_edge_index =
+			orig_face_edge_mapping->getAttribute(edge->face, i, origindex_none);
+
+		edgeIndexMap_put(edge_origindex_map, v1, v2, orig_edge_index);
+	}
+}
+
+void dissolveTriangulatedEdges(MeshSet<3>::mesh_t *mesh,
+                               OrigFaceEdgeMapping *orig_face_edge_mapping,
+                               FaceEdgeTriangulatedFlag *face_edge_triangulated_flag)
+{
+	typedef std::unordered_set<MeshSet<3>::edge_t *> edge_set_t;
+	typedef std::unordered_set<MeshSet<3>::face_t *> face_set_t;
+	edge_set_t triangulated_face_edges;
+
+	for (int face_index = 0; face_index < mesh->faces.size(); face_index++) {
+		MeshSet<3>::face_t *face = mesh->faces[face_index];
+		MeshSet<3>::edge_t *edge = face->edge;
+		for (int edge_index = 0;
+		     edge_index < face->n_edges;
+		     ++edge_index, edge = edge->next)
+		{
+			const bool is_triangulated_edge =
+				face_edge_triangulated_flag->getAttribute(face,
+				                                          edge_index,
+				                                          false);
+			if (is_triangulated_edge) {
+				MeshSet<3>::edge_t *e1 = std::min(edge, edge->rev);
+				triangulated_face_edges.insert(e1);
+			}
+		}
+	}
+
+	if (triangulated_face_edges.size()) {
+		face_set_t triangulated_faces;
+		std::unordered_map<VertexPair, OrigIndex> edge_origindex_map;
+
+		for (edge_set_t::iterator it = triangulated_face_edges.begin();
+		     it != triangulated_face_edges.end();
+		     ++it)
+		{
+			MeshSet<3>::edge_t *edge = *it;
+
+			origEdgeMappingForFace(edge->face,
+			                       orig_face_edge_mapping,
+			                       &edge_origindex_map);
+			triangulated_faces.insert(edge->face);
+
+			origEdgeMappingForFace(edge->rev->face,
+			                       orig_face_edge_mapping,
+			                       &edge_origindex_map);
+			triangulated_faces.insert(edge->rev->face);
+		}
+
+		carve::mesh::MeshSimplifier simplifier;
+		simplifier.dissolveMeshEdges(mesh, triangulated_face_edges);
+
+		for (int face_index = 0; face_index < mesh->faces.size(); face_index++) {
+			MeshSet<3>::face_t *face = mesh->faces[face_index];
+
+			if (triangulated_faces.find(face) != triangulated_faces.end()) {
+				MeshSet<3>::edge_t *edge = face->edge;
+				for (int edge_index = 0;
+				     edge_index < face->n_edges;
+				     ++edge_index, edge = edge->next)
+				{
+					MeshSet<3>::vertex_t *v1 = edge->vert;
+					MeshSet<3>::vertex_t *v2 = edge->next->vert;
+
+					OrigIndex orig_edge_index =
+						edgeIndexMap_get(edge_origindex_map,
+						                 v1,
+						                 v2);
+
+					orig_face_edge_mapping->setAttribute(face, edge_index, orig_edge_index);
+				}
+			}
+		}
+	}
+}
+
+void dissolveTriangulatedEdges(CarveMeshDescr *mesh_descr)
+{
+	MeshSet<3> *poly = mesh_descr->poly;
+	FaceEdgeTriangulatedFlag *face_edge_triangulated_flag =
+		&mesh_descr->face_edge_triangulated_flag;
+
+	for (int i = 0; i < poly->meshes.size(); ++i) {
+		MeshSet<3>::mesh_t *mesh = poly->meshes[i];
+		dissolveTriangulatedEdges(mesh,
+		                          &mesh_descr->orig_face_edge_mapping,
+		                          face_edge_triangulated_flag);
+	}
 }
 
 }  // namespace
@@ -271,6 +391,7 @@ CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
 			                                      &mesh_descr->orig_poly_index_map);
 
 			num_tessellated_polys += num_triangles;
+			loop_index += verts_per_poly;
 		}
 		else {
 			face_indices.push_back(verts_per_poly);
@@ -345,6 +466,7 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 		initOrigIndexMapping(left_mesh, right_mesh,
 		                     &output_descr->orig_vert_mapping,
 		                     &output_descr->orig_face_edge_mapping,
+		                     &output_descr->face_edge_triangulated_flag,
 		                     &output_descr->orig_face_mapping);
 
 		carve::csg::CSG csg;
@@ -354,6 +476,7 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 
 		output_descr->orig_vert_mapping.installHooks(csg);
 		output_descr->orig_face_edge_mapping.installHooks(csg);
+		output_descr->face_edge_triangulated_flag.installHooks(csg);
 		output_descr->orig_face_mapping.installHooks(csg);
 
 		// Prepare operands for actual boolean operation.
@@ -383,6 +506,8 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 		                                 carve::csg::CSG::CLASSIFY_EDGE);
 		if (output_descr->poly) {
 			output_descr->poly->transform(rev_r);
+
+			dissolveTriangulatedEdges(output_descr);
 		}
 	}
 	catch (carve::exception e) {
