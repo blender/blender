@@ -54,7 +54,7 @@ static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *exe
 			tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
 		else
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
-		tex_do_preview(execdata->preview, params.co, &target->tr);
+		tex_do_preview(execdata->preview, params.co, &target->tr, cdata->do_manage);
 	}
 	else {
 		/* 0 means don't care, so just use first */

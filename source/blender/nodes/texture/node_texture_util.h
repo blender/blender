@@ -84,7 +84,8 @@ typedef struct TexCallData {
 	float *dxt, *dyt;
 
 	int osatex;
-	char do_preview;
+	bool do_preview;
+	bool do_manage;
 	short thread;
 	short which_output;
 	int cfra;
@@ -126,7 +127,7 @@ void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread);
 float tex_input_value(bNodeStack *in, TexParams *params, short thread);
 
 void tex_output(bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *data);
-void tex_do_preview(bNodePreview *preview, const float coord[2], const float col[4]);
+void tex_do_preview(bNodePreview *preview, const float coord[2], const float col[4], bool do_manage);
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 
