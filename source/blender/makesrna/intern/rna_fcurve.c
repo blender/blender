@@ -49,15 +49,22 @@
 
 EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
-	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator", ""},
-	{FMODIFIER_TYPE_FN_GENERATOR, "FNGENERATOR", 0, "Built-In Function", ""},
-	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", 0, "Envelope", ""},
-	{FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", ""},
-	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", ""},
+	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator",
+	                           "Generate a curve using a factorised or expanded polynomial"},
+	{FMODIFIER_TYPE_FN_GENERATOR, "FNGENERATOR", 0, "Built-In Function",
+	                              "Generate a curve using standard math functions such as sin and cos"},
+	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", 0, "Envelope",
+	                        "Reshape F-Curve values - e.g. change amplitude of movements"},
+	{FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles",
+	                        "Cyclic extend/repeat keyframe sequence"},
+	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise",
+	                       "Add pseudo-random noise on top of F-Curves"},
 	/*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
 	/*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},	 *//* FIXME: not implemented yet! */
-	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
-	{FMODIFIER_TYPE_STEPPED, "STEPPED", 0, "Stepped Interpolation", ""},
+	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits",
+	                        "Restrict maximum and minimum values of F-Curve"},
+	{FMODIFIER_TYPE_STEPPED, "STEPPED", 0, "Stepped Interpolation",
+	                         "Snap values to nearest grid-step - e.g. for a stop-motion look"},
 	{0, NULL, 0, NULL, NULL}
 };
 
