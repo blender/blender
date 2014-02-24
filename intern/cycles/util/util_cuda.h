@@ -206,7 +206,8 @@ typedef enum CUjit_target_enum
 	CU_TARGET_COMPUTE_20,
 	CU_TARGET_COMPUTE_21,
 	CU_TARGET_COMPUTE_30,
-	CU_TARGET_COMPUTE_35
+	CU_TARGET_COMPUTE_35,
+	CU_TARGET_COMPUTE_50
 } CUjit_target;
 
 typedef enum CUjit_fallback_enum
