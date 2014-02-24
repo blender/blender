@@ -1636,7 +1636,7 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 		/* we're panning here! so erase any leftover rotation from other operators */
 		rv3d->rot_angle = 0.0f;
 
-		if (has_translate == false)
+		if (!(has_translate || has_zoom))
 			return OPERATOR_CANCELLED;
 
 		ED_view3d_camera_lock_init_ex(v3d, rv3d, false);
