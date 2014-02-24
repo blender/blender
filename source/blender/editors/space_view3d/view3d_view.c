@@ -265,7 +265,11 @@ void ED_view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcam
 
 			/* ensure it shows correct */
 			if (sms.to_camera) {
-				rv3d->persp = RV3D_PERSP;
+				/* use ortho if we move from an ortho view to an ortho camera */
+				rv3d->persp = (((rv3d->is_persp == false) &&
+				                (camera->type == OB_CAMERA) &&
+				                (((Camera *)camera->data)->type == CAM_ORTHO)) ?
+				                RV3D_ORTHO : RV3D_PERSP);
 			}
 
 			rv3d->rflag |= RV3D_NAVIGATING;
