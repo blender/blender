@@ -898,19 +898,19 @@ class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
             layout.label(text="Brush Unset")
             return
 
-        col = layout.column()
-        col.prop(toolsettings, "show_brush")
-
-        col = col.column()
-        col.prop(brush, "cursor_color_add", text="")
-        col.active = toolsettings.show_brush
-
-        layout.separator()
-
         col = layout.column(align=True)
+
+        col.prop(toolsettings, "show_brush")
+        sub = col.column()
+        sub.active = toolsettings.show_brush
+        sub.prop(brush, "cursor_color_add", text="")
+
+        col.separator()
+
         col.prop(brush, "use_custom_icon")
-        if brush.use_custom_icon:
-            col.prop(brush, "icon_filepath", text="")
+        sub = col.column()
+        sub.active = brush.use_custom_icon
+        sub.prop(brush, "icon_filepath", text="")
 
 
 class IMAGE_UV_sculpt_curve(Panel):

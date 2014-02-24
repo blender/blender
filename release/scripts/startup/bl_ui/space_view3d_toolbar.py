@@ -1316,24 +1316,25 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
         col = layout.column()
         col.prop(settings, "show_brush")
 
-        col = col.column()
-        col.active = settings.show_brush
+        sub = col.column()
+        sub.active = settings.show_brush
 
         if context.sculpt_object and context.tool_settings.sculpt:
             if brush.sculpt_capabilities.has_secondary_color:
-                col.row().prop(brush, "cursor_color_add", text="Add")
-                col.row().prop(brush, "cursor_color_subtract", text="Subtract")
+                sub.row().prop(brush, "cursor_color_add", text="Add")
+                sub.row().prop(brush, "cursor_color_subtract", text="Subtract")
             else:
-                col.prop(brush, "cursor_color_add", text="")
+                sub.prop(brush, "cursor_color_add", text="")
         else:
-            col.prop(brush, "cursor_color_add", text="")
+            sub.prop(brush, "cursor_color_add", text="")
 
-        layout.separator()
+        col.separator()
 
-        col = layout.column(align=True)
+        col = col.column(align=True)
         col.prop(brush, "use_custom_icon")
-        if brush.use_custom_icon:
-            col.prop(brush, "icon_filepath", text="")
+        sub = col.column()
+        sub.active = brush.use_custom_icon
+        sub.prop(brush, "icon_filepath", text="")
 
 # ********** default tools for weight-paint ****************
 
