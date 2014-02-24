@@ -219,6 +219,35 @@ static bool xml_read_enum(ustring *str, ShaderEnum& enm, pugi::xml_node node, co
 	return false;
 }
 
+static ShaderSocketType xml_read_socket_type(pugi::xml_node node, const char *name)
+{
+	pugi::xml_attribute attr = node.attribute(name);
+
+	if(attr) {
+		string value = attr.value();
+		if (string_iequals(value, "float"))
+			return SHADER_SOCKET_FLOAT;
+		else if (string_iequals(value, "int"))
+			return SHADER_SOCKET_INT;
+		else if (string_iequals(value, "color"))
+			return SHADER_SOCKET_COLOR;
+		else if (string_iequals(value, "vector"))
+			return SHADER_SOCKET_VECTOR;
+		else if (string_iequals(value, "point"))
+			return SHADER_SOCKET_POINT;
+		else if (string_iequals(value, "normal"))
+			return SHADER_SOCKET_NORMAL;
+		else if (string_iequals(value, "closure"))
+			return SHADER_SOCKET_CLOSURE;
+		else if (string_iequals(value, "string"))
+			return SHADER_SOCKET_STRING;
+		else
+			fprintf(stderr, "Unknown shader socket type \"%s\" for attribute \"%s\".\n", value.c_str(), name);
+	}
+	
+	return SHADER_SOCKET_UNDEFINED;
+}
+
 /* Film */
 
 static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
@@ -379,22 +408,37 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_string(&osl->filepath, node, "src");
 			osl->filepath = path_join(state.base, osl->filepath);
 
-			/* Outputs */
-			string output = "", output_type = "";
-			ShaderSocketType type = SHADER_SOCKET_FLOAT;
-
-			xml_read_string(&output, node, "output");
-			xml_read_string(&output_type, node, "output_type");
-			
-			if(output_type == "float")
-				type = SHADER_SOCKET_FLOAT;
-			else if(output_type == "closure color")
-				type = SHADER_SOCKET_CLOSURE;
-			else if(output_type == "color")
-				type = SHADER_SOCKET_COLOR;
-
-			osl->output_names.push_back(ustring(output));
-			osl->add_output(osl->output_names.back().c_str(), type);
+			/* Generate inputs/outputs from node sockets
+			 *
+			 * Note: ShaderInput/ShaderOutput store shallow string copies only!
+			 * Socket names must be stored in the extra lists instead. */
+			/* read input values */
+			for(pugi::xml_node param = node.first_child(); param; param = param.next_sibling()) {
+				if (string_iequals(param.name(), "input")) {
+					string name;
+					if (!xml_read_string(&name, param, "name"))
+						continue;
+					
+					ShaderSocketType type = xml_read_socket_type(param, "type");
+					if (type == SHADER_SOCKET_UNDEFINED)
+						continue;
+					
+					osl->input_names.push_back(ustring(name));
+					osl->add_input(osl->input_names.back().c_str(), type);
+				}
+				else if (string_iequals(param.name(), "output")) {
+					string name;
+					if (!xml_read_string(&name, param, "name"))
+						continue;
+					
+					ShaderSocketType type = xml_read_socket_type(param, "type");
+					if (type == SHADER_SOCKET_UNDEFINED)
+						continue;
+					
+					osl->output_names.push_back(ustring(name));
+					osl->add_output(osl->output_names.back().c_str(), type);
+				}
+			}
 			
 			snode = osl;
 		}
