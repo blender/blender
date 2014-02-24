@@ -691,12 +691,6 @@ static PointerRNA rna_UVProjector_object_get(PointerRNA *ptr)
 static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object **ob = (Object **)ptr->data;
-
-	if (*ob)
-		id_us_min((ID *)*ob);
-	if (value.data)
-		id_us_plus((ID *)value.data);
-
 	*ob = value.data;
 }
 
