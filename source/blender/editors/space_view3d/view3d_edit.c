@@ -524,7 +524,9 @@ static void viewops_data_alloc(bContext *C, wmOperator *op)
 /**
  * Calculate the values for #ViewOpsData
  */
-static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *event)
+static void viewops_data_create_ex(bContext *C, wmOperator *op, const wmEvent *event,
+                                   const bool use_orbit_select,
+                                   const bool use_orbit_zbuf)
 {
 	ViewOpsData *vod = op->customdata;
 	static float lastofs[3] = {0, 0, 0};
@@ -541,7 +543,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 	vod->origx = vod->oldx = event->x;
 	vod->origy = vod->oldy = event->y;
 	vod->origkey = event->type; /* the key that triggered the operator.  */
-	vod->use_dyn_ofs = (U.uiflag & USER_ORBIT_SELECTION) != 0;
+	vod->use_dyn_ofs = use_orbit_select;
 	copy_v3_v3(vod->ofs, rv3d->ofs);
 
 	if (vod->use_dyn_ofs) {
@@ -569,7 +571,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 
 		negate_v3_v3(vod->dyn_ofs, lastofs);
 	}
-	else if (U.uiflag & USER_ZBUF_ORBIT) {
+	else if (use_orbit_zbuf) {
 		Scene *scene = CTX_data_scene(C);
 		float fallback_depth_pt[3];
 
@@ -646,6 +648,14 @@ static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *even
 		vod->reverse = -1.0f;
 
 	rv3d->rflag |= RV3D_NAVIGATING;
+}
+
+static void viewops_data_create(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	viewops_data_create_ex(
+	        C, op, event,
+	        (U.uiflag & USER_ORBIT_SELECTION) != 0,
+	        (U.uiflag & USER_ZBUF_ORBIT) != 0);
 }
 
 static void viewops_data_free(bContext *C, wmOperator *op)
@@ -1449,7 +1459,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		const wmNDOFMotionData *ndof = event->customdata;
 
 		viewops_data_alloc(C, op);
-		viewops_data_create(C, op, event);
+		viewops_data_create_ex(C, op, event,
+		                       (U.uiflag & USER_ORBIT_SELECTION) != 0, false);
 
 		vod = op->customdata;
 		v3d = vod->v3d;
@@ -1514,7 +1525,8 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		const wmNDOFMotionData *ndof = event->customdata;
 
 		viewops_data_alloc(C, op);
-		viewops_data_create(C, op, event);
+		viewops_data_create_ex(C, op, event,
+		                       (U.uiflag & USER_ORBIT_SELECTION) != 0, false);
 
 		vod = op->customdata;
 		v3d = vod->v3d;
@@ -1669,7 +1681,7 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		
 		const wmNDOFMotionData *ndof = event->customdata;
 
-		viewops_data_alloc(C, op);
+		viewops_data_create_ex(C, op, event, (U.uiflag & USER_ORBIT_SELECTION) != 0, false);
 		viewops_data_create(C, op, event);
 
 		vod = op->customdata;
