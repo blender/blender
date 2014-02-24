@@ -1491,9 +1491,14 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 		}
 	}
 
-	// Per transform event, if present
-	if (t->handleEvent && !handled)
+	/* Per transform event, if present */
+	if (t->handleEvent &&
+	    (!handled ||
+	     /* Needed for vertex slide, see [#38756] */
+	     (event->type == MOUSEMOVE)))
+	{
 		t->redraw |= t->handleEvent(t, event);
+	}
 
 	/* Try to init modal numinput now, if possible. */
 	if (!(handled || t->redraw) && ((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) &&
