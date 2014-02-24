@@ -1795,6 +1795,21 @@ int ui_get_but_string_max_length(uiBut *but)
 		return UI_MAX_DRAW_STR;
 }
 
+uiBut *ui_get_but_drag_multi_edit(uiBut *but)
+{
+	uiBut *but_iter;
+
+	BLI_assert(but->flag & UI_BUT_DRAG_MULTI);
+
+	for (but_iter = but->block->buttons.first; but_iter; but_iter = but_iter->next) {
+		if (but_iter->editstr) {
+			break;
+		}
+	}
+
+	return but_iter;
+}
+
 static double ui_get_but_scale_unit(uiBut *but, double value)
 {
 	UnitSettings *unit = but->block->unit;

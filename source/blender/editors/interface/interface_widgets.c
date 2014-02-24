@@ -1190,7 +1190,6 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 }
 
-
 static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
 	int drawstr_left_len = UI_MAX_DRAW_STR;
@@ -1214,13 +1213,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	/* Special case: when we're entering text for multiple buttons,
 	 * don't draw the text for any of the multi-editing buttons */
 	if (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI)) {
-		uiBut *but_iter;
-		for (but_iter = but->block->buttons.first; but_iter; but_iter = but_iter->next) {
-			if (but_iter->editstr) {
-				drawstr = but_iter->editstr;
-				fstyle->align = UI_STYLE_TEXT_LEFT;
-				break;
-			}
+		uiBut *but_edit = ui_get_but_drag_multi_edit(but);
+		if (but_edit) {
+			drawstr = but_edit->editstr;
+			fstyle->align = UI_STYLE_TEXT_LEFT;
 		}
 	}
 
@@ -2417,9 +2413,11 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 
 	widgetbase_draw(&wtb, wcol);
 	
-	/* text space */
-	rect->xmin += textofs;
-	rect->xmax -= textofs;
+	if (!(state & UI_TEXTINPUT)) {
+		/* text space */
+		rect->xmin += textofs;
+		rect->xmax -= textofs;
+	}
 }
 
 static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -2735,8 +2733,10 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 
 	/* add space at either side of the button so text aligns with numbuttons (which have arrow icons) */
-	rect->xmax -= toffs;
-	rect->xmin += toffs;
+	if (!(state & UI_TEXTINPUT)) {
+		rect->xmax -= toffs;
+		rect->xmin += toffs;
+	}
 
 }
 
@@ -3539,8 +3539,13 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		roundboxalign = widget_roundbox_set(but, rect);
 
 		state = but->flag;
-		if (but->editstr) state |= UI_TEXTINPUT;
-		
+
+		if ((but->editstr) ||
+		    (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI) && ui_get_but_drag_multi_edit(but)))
+		{
+			state |= UI_TEXTINPUT;
+		}
+
 		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))
 			if (but->dt != UI_EMBOSSP)
 				disabled = true;

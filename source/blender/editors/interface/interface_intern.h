@@ -394,6 +394,7 @@ extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen) AT
 extern bool ui_set_but_string(struct bContext *C, uiBut *but, const char *str) ATTR_NONNULL();
 extern bool ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char *str, double *value) ATTR_NONNULL();
 extern int  ui_get_but_string_max_length(uiBut *but);
+extern uiBut *ui_get_but_drag_multi_edit(uiBut *but);
 
 extern void ui_set_but_default(struct bContext *C, const bool all, const bool use_afterfunc);
 
