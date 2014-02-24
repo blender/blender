@@ -42,3 +42,9 @@ class GreasePencilPanel():
         row = col.row(align=True)
         row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
+        if context.space_data.type == 'VIEW_3D':
+            col.separator()
+
+            col.label(text="Measure:")
+            col.operator("view3d.ruler")
+

@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel
+from bl_ui.properties_grease_pencil_common import GreasePencilPanel
 from bl_ui.properties_paint_common import (
         UnifiedPaintPanel,
         brush_texture_settings,
@@ -49,26 +50,6 @@ def draw_keyframing_tools(context, layout):
     row.operator("anim.keyframe_insert_menu", text="Insert")
     row.operator("anim.keyframe_delete_v3d", text="Remove")
 
-
-# Grease Pencil tools
-def draw_gpencil_tools(context, layout):
-    col = layout.column(align=True)
-
-    row = col.row(align=True)
-    row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-    row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-    row = col.row(align=True)
-    row.operator("gpencil.draw", text="Poly").mode = 'DRAW_POLY'
-    row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
-
-    col.separator()
-
-    col.prop(context.tool_settings, "use_grease_pencil_sessions")
-
-    col.separator()
-
-    col.label(text="Measure:")
-    col.operator("view3d.ruler")
 
 # ********** default tools for object-mode ****************
 
@@ -1614,13 +1595,10 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
 
 
 # Grease Pencil tools
-class VIEW3D_PT_tools_greasepencil(View3DPanel, Panel):
+class VIEW3D_PT_tools_grease_pencil(GreasePencilPanel, Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
     bl_category = "Grease Pencil"
-    bl_label = "Grease Pencil"
-
-    def draw(self, context):
-        layout = self.layout
-        draw_gpencil_tools(context, layout)
 
 
 if __name__ == "__main__":  # only for live edit.
