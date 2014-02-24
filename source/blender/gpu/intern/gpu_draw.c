@@ -1485,7 +1485,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 				/* fixed function opengl materials */
 				gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
 
-				if (GMS.use_alpha_pass) {
+				if (GMS.use_alpha_pass && (ma->mode & MA_TRANSP)) {
 					GMS.matbuf[a].diff[3]= ma->alpha;
 					alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 				}
