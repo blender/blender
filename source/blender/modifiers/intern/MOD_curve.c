@@ -120,7 +120,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
-	curve_deform_verts(cmd->object, ob, derivedData, vertexCos, numVerts,
+	curve_deform_verts(md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
 	                   cmd->name, cmd->defaxis - 1);
 }
 

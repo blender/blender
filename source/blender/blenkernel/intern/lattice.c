@@ -64,6 +64,11 @@
 
 #include "BKE_deform.h"
 
+/* Workaround for cyclic depenndnecy with curves.
+ * In such case curve_cache might not be ready yet,
+ */
+#define CYCLIC_DEPENDENCY_WORKAROUND
+
 int BKE_lattice_index_from_uvw(Lattice *lt,
                                const int u, const int v, const int w)
 {
@@ -614,7 +619,7 @@ static bool where_on_path_deform(Object *ob, float ctime, float vec[4], float di
 /* co: local coord, result local too */
 /* returns quaternion for rotation, using cd->no_rot_axis */
 /* axis is using another define!!! */
-static bool calc_curve_deform(Object *par, float co[3],
+static bool calc_curve_deform(Scene *scene, Object *par, float co[3],
                               const short axis, CurveDeform *cd, float quat_r[4])
 {
 	Curve *cu = par->data;
@@ -624,7 +629,12 @@ static bool calc_curve_deform(Object *par, float co[3],
 
 	/* to be sure, mostly after file load */
 	if (ELEM(NULL, par->curve_cache, par->curve_cache->path)) {
-		return 0;  // happens on append and cyclic dependencies...
+#ifdef CYCLIC_DEPENDENCY_WORKAROUND
+		BKE_displist_make_curveTypes(scene, par, FALSE);
+#endif
+		if (par->curve_cache->path == NULL) {
+			return 0;  // happens on append and cyclic dependencies...
+		}
 	}
 	
 	/* options */
@@ -704,7 +714,7 @@ static bool calc_curve_deform(Object *par, float co[3],
 	return 0;
 }
 
-void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
+void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
                         int numVerts, const char *vgroup, short defaxis)
 {
 	Curve *cu;
@@ -768,7 +778,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 					if (weight > 0.0f) {
 						mul_m4_v3(cd.curvespace, vertexCos[a]);
 						copy_v3_v3(vec, vertexCos[a]);
-						calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
+						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
 						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
 						mul_m4_v3(cd.objectspace, vertexCos[a]);
 					}
@@ -796,7 +806,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 					if (weight > 0.0f) {
 						/* already in 'cd.curvespace', prev for loop */
 						copy_v3_v3(vec, vertexCos[a]);
-						calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
+						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
 						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
 						mul_m4_v3(cd.objectspace, vertexCos[a]);
 					}
@@ -808,7 +818,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 		if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
 			for (a = 0; a < numVerts; a++) {
 				mul_m4_v3(cd.curvespace, vertexCos[a]);
-				calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd, NULL);
+				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
 				mul_m4_v3(cd.objectspace, vertexCos[a]);
 			}
 		}
@@ -823,7 +833,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 	
 			for (a = 0; a < numVerts; a++) {
 				/* already in 'cd.curvespace', prev for loop */
-				calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd, NULL);
+				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
 				mul_m4_v3(cd.objectspace, vertexCos[a]);
 			}
 		}
@@ -833,7 +843,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 /* input vec and orco = local coord in armature space */
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
-void curve_deform_vector(Object *cuOb, Object *target,
+void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
                          float orco[3], float vec[3], float mat[3][3], int no_rot_axis)
 {
 	CurveDeform cd;
@@ -852,7 +862,7 @@ void curve_deform_vector(Object *cuOb, Object *target,
 
 	mul_m4_v3(cd.curvespace, vec);
 	
-	if (calc_curve_deform(cuOb, vec, target->trackflag, &cd, quat)) {
+	if (calc_curve_deform(scene, cuOb, vec, target->trackflag, &cd, quat)) {
 		float qmat[3][3];
 		
 		quat_to_mat3(qmat, quat);

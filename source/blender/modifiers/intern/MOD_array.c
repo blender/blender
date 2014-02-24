@@ -65,6 +65,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Due to cyclic dependencies it's possible that curve used for
+ * deformation here is not evaluated at the time of evaluating
+ * this modifier.
+ */
+#define CYCLIC_DEPENDENCY_WORKAROUND
+
 static void initData(ModifierData *md)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
@@ -322,7 +328,7 @@ static void merge_first_last(BMesh *bm,
 }
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
-                                          Object *ob, DerivedMesh *dm,
+                                          Scene *scene, Object *ob, DerivedMesh *dm,
                                           ModifierApplyFlag flag)
 {
 	DerivedMesh *result;
@@ -377,7 +383,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if (cu) {
-			if (amd->curve_ob->curve_cache->path) {
+#ifdef CYCLIC_DEPENDENCY_WORKAROUND
+			if (amd->curve_ob->curve_cache == NULL) {
+				BKE_displist_make_curveTypes(scene, amd->curve_ob, FALSE);
+			}
+#endif
+
+			if (amd->curve_ob->curve_cache && amd->curve_ob->curve_cache->path) {
 				float scale = mat4_to_scale(amd->curve_ob->obmat);
 				length = scale * amd->curve_ob->curve_cache->path->totdist;
 			}
@@ -575,7 +587,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 
-	result = arrayModifier_doArray(amd, ob, dm, flag);
+	result = arrayModifier_doArray(amd, md->scene, ob, dm, flag);
 
 	return result;
 }
