@@ -62,10 +62,10 @@ EnumPropertyItem fmodifier_type_items[] = {
 };
 
 EnumPropertyItem beztriple_keyframe_type_items[] = {
-	{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", ""},
-	{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", ""},
-	{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", ""},
-	{BEZT_KEYTYPE_JITTER, "JITTER", 0, "Jitter", ""},
+	{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", "Normal keyframe - e.g. for key poses"},
+	{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", "A breakdown pose - e.g. for transitions between key poses"},
+	{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", "An 'extreme' pose, or some other purpose as needed"},
+	{BEZT_KEYTYPE_JITTER, "JITTER", 0, "Jitter", "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1763,14 +1763,17 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	PropertyRNA *parm;
 
 	static EnumPropertyItem prop_mode_extend_items[] = {
-		{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant", ""},
-		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear", ""},
+		{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant", "Hold values of endpoint keyframes"},
+		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear", "Use slope of curve leading in/out of endpoint keyframes"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem prop_mode_color_items[] = {
-		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", 0, "Auto Rainbow", ""},
-		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Auto XYZ to RGB", ""},
-		{FCURVE_COLOR_CUSTOM, "CUSTOM", 0, "User Defined", ""},
+		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", 0, "Auto Rainbow",
+		                            "Cycle through the rainbow, trying to give each curve a unique color"},
+		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Auto XYZ to RGB",
+		                        "Use axis colors for transform and color properties, and auto-rainbow for the rest"},
+		{FCURVE_COLOR_CUSTOM, "CUSTOM", 0, "User Defined",
+		                      "Use custom hand-picked color for F-Curve"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1782,7 +1785,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
-	RNA_def_property_ui_text(prop, "Extrapolation", "");
+	RNA_def_property_ui_text(prop, "Extrapolation", 
+	                         "Method used for evaluating value of F-Curve outside first and last keyframes");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FCurve_update_data");
 
 	/* Pointers */
