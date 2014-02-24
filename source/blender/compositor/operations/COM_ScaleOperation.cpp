@@ -271,10 +271,10 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, Read
 {
 	rcti newInput;
 
-	newInput.xmax = input->xmax * this->m_relX;
-	newInput.xmin = input->xmin * this->m_relX;
-	newInput.ymax = input->ymax * this->m_relY;
-	newInput.ymin = input->ymin * this->m_relY;
+	newInput.xmax = (input->xmax - m_offsetX) * this->m_relX;
+	newInput.xmin = (input->xmin - m_offsetX) * this->m_relX;
+	newInput.ymax = (input->ymax - m_offsetY) * this->m_relY;
+	newInput.ymin = (input->ymin - m_offsetY) * this->m_relY;
 
 	return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
