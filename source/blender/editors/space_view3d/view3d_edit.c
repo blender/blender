@@ -1144,9 +1144,8 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 }
 
-/* NDOF utility functions
- * (should these functions live in this file?)
- */
+/** \name NDOF Utility Functions
+ * \{ */
 
 #define NDOF_HAS_TRANSLATE ((!ED_view3d_offset_lock_check(v3d, rv3d)) && !is_zero_v3(ndof->tvec))
 #define NDOF_HAS_ROTATE    (((rv3d->viewlock & RV3D_LOCKED) == 0) && !is_zero_v3(ndof->rvec))
@@ -1156,7 +1155,9 @@ static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
 	float speed = rv3d->pixsize * NDOF_PIXELS_PER_SECOND;
 
 	if (rv3d->is_persp) {
-		speed *= ED_view3d_calc_zfac(rv3d, rv3d->ofs, NULL);
+		float tvec[3];
+		negate_v3_v3(tvec, rv3d->ofs);
+		speed *= ED_view3d_calc_zfac(rv3d, tvec, NULL);
 	}
 
 	return speed;
@@ -1427,6 +1428,9 @@ void view3d_ndof_fly(
 	*r_has_rotate    = has_rotate;
 }
 
+/** \} */
+
+
 /* -- "orbit" navigation (trackball/turntable)
  * -- zooming
  * -- panning in rotationally-locked views
@@ -1460,7 +1464,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			const bool has_rotation = NDOF_HAS_ROTATE;
 			/* if we can't rotate, fallback to translate (locked axis views) */
 			const bool has_translate = NDOF_HAS_TRANSLATE && (rv3d->viewlock & RV3D_LOCKED);
-			const bool has_zoom = !rv3d->is_persp;
+			const bool has_zoom = (ndof->tvec[2] != 0.0f) && !rv3d->is_persp;
 
 			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
@@ -1527,12 +1531,15 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		else if (RV3D_VIEW_IS_AXIS(rv3d->view)) {
 			/* if we can't rotate, fallback to translate (locked axis views) */
 			const bool has_translate = NDOF_HAS_TRANSLATE;
+			const bool has_zoom = (ndof->tvec[2] != 0.0f) && ED_view3d_offset_lock_check(v3d, rv3d);
 
-			if (has_translate) {
+			if (has_translate || has_zoom) {
 				view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, true);
 			}
 		}
-		else if (U.ndof_flag & NDOF_MODE_ORBIT) {
+		else if ((U.ndof_flag & NDOF_MODE_ORBIT) ||
+		         ED_view3d_offset_lock_check(v3d, rv3d))
+		{
 			const bool has_rotation = NDOF_HAS_ROTATE;
 			const bool has_zoom = (ndof->tvec[2] != 0.0f);
 
@@ -1604,7 +1611,7 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 		const wmNDOFMotionData *ndof = event->customdata;
 
 		const bool has_translate = NDOF_HAS_TRANSLATE;
-		const bool has_zoom = !rv3d->is_persp;
+		const bool has_zoom = (ndof->tvec[2] != 0.0f) && !rv3d->is_persp;
 
 		/* we're panning here! so erase any leftover rotation from other operators */
 		rv3d->rot_angle = 0.0f;
