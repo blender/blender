@@ -49,9 +49,10 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 
 	/* ray parameters in registers */
 	const float tmax = ray->t;
-	float3 P = ray->P;
-	float3 idir = bvh_inverse_direction(ray->D);
+	ccl_align(16) float3 P = ray->P;
+	ccl_align(16) float3 idir = bvh_inverse_direction(ray->D);
 	int object = ~0;
+	float isect_t = tmax;
 
 	const uint visibility = ~0;
 	uint num_hits = 0;
@@ -72,7 +73,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 	Psplat[1] = _mm_set_ps1(P.y);
 	Psplat[2] = _mm_set_ps1(P.z);
 
-	__m128 tsplat = _mm_set_ps(-tmax, -tmax, 0.0f, 0.0f);
+	__m128 tsplat = _mm_set_ps(-isect_t, -isect_t, 0.0f, 0.0f);
 
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
@@ -89,7 +90,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 
 #if !defined(__KERNEL_SSE2__)
 				/* Intersect two child bounding boxes, non-SSE version */
-				float t = tmax;
+				float t = isect_t;
 
 				/* fetch node data */
 				float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+0);
@@ -130,8 +131,8 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 				/* Intersect two child bounding boxes, SSE3 version adapted from Embree */
 
 				/* fetch node data */
-				__m128 *bvh_nodes = (__m128*)kg->__bvh_nodes.data + nodeAddr*BVH_NODE_SIZE;
-				float4 cnodes = ((float4*)bvh_nodes)[3];
+				const __m128 *bvh_nodes = (__m128*)kg->__bvh_nodes.data + nodeAddr*BVH_NODE_SIZE;
+				const float4 cnodes = ((float4*)bvh_nodes)[3];
 
 				/* intersect ray against child nodes */
 				const __m128 tminmaxx = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[0], shufflexyz[0]), Psplat[0]), idirsplat[0]);
@@ -215,7 +216,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 						if(tri_object == subsurface_object) {
 
 							/* intersect ray against primitive */
-							bvh_triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, tmax, &num_hits, lcg_state, max_hits);
+							bvh_triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 						}
 					}
 				}
@@ -225,11 +226,10 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
 						object = subsurface_object;
 
-						float t_ignore = FLT_MAX;
 #if FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &idir, &t_ignore, &ob_tfm, tmax);
+						bvh_instance_motion_push(kg, object, ray, &P, &idir, &isect_t, &ob_tfm, tmax);
 #else
-						bvh_instance_push(kg, object, ray, &P, &idir, &t_ignore, tmax);
+						bvh_instance_push(kg, object, ray, &P, &idir, &isect_t, tmax);
 #endif
 
 #if defined(__KERNEL_SSE2__)
@@ -237,7 +237,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 						Psplat[1] = _mm_set_ps1(P.y);
 						Psplat[2] = _mm_set_ps1(P.z);
 
-						tsplat = _mm_set_ps(-tmax, -tmax, 0.0f, 0.0f);
+						tsplat = _mm_set_ps(-isect_t, -isect_t, 0.0f, 0.0f);
 
 						gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
@@ -262,11 +262,10 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 			kernel_assert(object != ~0);
 
 			/* instance pop */
-			float t_ignore = FLT_MAX;
 #if FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &idir, &t_ignore, &ob_tfm, tmax);
+			bvh_instance_motion_pop(kg, object, ray, &P, &idir, &isect_t, &ob_tfm, tmax);
 #else
-			bvh_instance_pop(kg, object, ray, &P, &idir, &t_ignore, tmax);
+			bvh_instance_pop(kg, object, ray, &P, &idir, &isect_t, tmax);
 #endif
 
 #if defined(__KERNEL_SSE2__)
@@ -274,7 +273,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 			Psplat[1] = _mm_set_ps1(P.y);
 			Psplat[2] = _mm_set_ps1(P.z);
 
-			tsplat = _mm_set_ps(-tmax, -tmax, 0.0f, 0.0f);
+			tsplat = _mm_set_ps(-isect_t, -isect_t, 0.0f, 0.0f);
 
 			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
