@@ -221,7 +221,7 @@ class VIEW3D_PT_tools_animation(View3DPanel, Panel):
         col.operator("nla.bake", text="Bake Action")
 
 
-class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
+class VIEW3D_PT_tools_rigid_body(View3DPanel, Panel):
     bl_category = "Physics"
     bl_context = "objectmode"
     bl_label = "Rigid Body Tools"
