@@ -433,9 +433,6 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 	BL::Scene::objects_iterator b_ob;
 	BL::Scene b_sce = b_scene;
 
-	/* global particle index counter */
-	int particle_id = 1;
-
 	bool cancel = false;
 
 	for(; b_sce && !cancel; b_sce = b_sce.background_set()) {
@@ -470,13 +467,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 
 							/* sync possible particle data, note particle_id
 							 * starts counting at 1, first is dummy particle */
-							if(!motion && object && sync_dupli_particle(*b_ob, *b_dup, object)) {
-								if(particle_id != object->particle_id) {
-									object->particle_id = particle_id;
-									scene->object_manager->tag_update(scene);
-								}
-
-								particle_id++;
+							if(!motion && object) {
+								sync_dupli_particle(*b_ob, *b_dup, object);
 							}
 
 						}

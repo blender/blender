@@ -19,6 +19,7 @@
 #include "mesh.h"
 #include "curves.h"
 #include "object.h"
+#include "particles.h"
 #include "scene.h"
 
 #include "util_foreach.h"
@@ -38,7 +39,8 @@ Object::Object()
 	visibility = ~0;
 	random_id = 0;
 	pass_id = 0;
-	particle_id = 0;
+	particle_system = NULL;
+	particle_index = 0;
 	bounds = BoundBox::empty;
 	motion.pre = transform_identity();
 	motion.mid = transform_identity();
@@ -154,6 +156,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	float4 *objects_vector = NULL;
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
+	map<ParticleSystem*, int> particle_offset;
 	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
 	bool have_motion = false;
 	bool have_curves = false;
@@ -161,6 +164,15 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
 	if(need_motion == Scene::MOTION_PASS)
 		objects_vector = dscene->objects_vector.resize(OBJECT_VECTOR_SIZE*scene->objects.size());
+
+	/* particle system device offsets
+	 * 0 is dummy particle, index starts at 1
+	 */
+	int numparticles = 1;
+	foreach(ParticleSystem *psys, scene->particle_systems) {
+		particle_offset[psys] = numparticles;
+		numparticles += psys->particles.size();
+	}
 
 	foreach(Object *ob, scene->objects) {
 		Mesh *mesh = ob->mesh;
@@ -177,6 +189,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		float surface_area = 0.0f;
 		float pass_id = ob->pass_id;
 		float random_number = (float)ob->random_id * (1.0f/(float)0xFFFFFFFF);
+		int particle_index = (ob->particle_system)? ob->particle_index + particle_offset[ob->particle_system]: 0;
 
 		if(transform_uniform_scale(tfm, uniform_scale)) {
 			map<Mesh*, float>::iterator it = surface_area_map.find(mesh);
@@ -243,7 +256,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 		memcpy(&objects[offset], &tfm, sizeof(float4)*3);
 		memcpy(&objects[offset+4], &itfm, sizeof(float4)*3);
-		objects[offset+8] = make_float4(surface_area, pass_id, random_number, __int_as_float(ob->particle_id));
+		objects[offset+8] = make_float4(surface_area, pass_id, random_number, __int_as_float(particle_index));
 
 		if(need_motion == Scene::MOTION_PASS) {
 			/* motion transformations, is world/object space depending if mesh

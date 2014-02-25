@@ -27,6 +27,7 @@ CCL_NAMESPACE_BEGIN
 class Device;
 class DeviceScene;
 class Mesh;
+class ParticleSystem;
 class Progress;
 class Scene;
 struct Transform;
@@ -50,7 +51,8 @@ public:
 	float3 dupli_generated;
 	float2 dupli_uv;
 
-	int particle_id;
+	ParticleSystem *particle_system;
+	int particle_index;
 
 	Object();
 	~Object();
