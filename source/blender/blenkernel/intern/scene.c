@@ -1613,6 +1613,11 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 /* applies changes right away, does all sets too */
 void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Scene *sce, unsigned int lay)
 {
+	BKE_scene_update_for_newframe_ex(eval_ctx, bmain, sce, lay, false);
+}
+
+void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, Scene *sce, unsigned int lay, bool do_invisible_flush)
+{
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
 #ifdef DETAILED_ANALYSIS_OUTPUT
@@ -1648,7 +1653,7 @@ void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Sce
 
 	/* Following 2 functions are recursive
 	 * so don't call within 'scene_update_tagged_recursive' */
-	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
+	DAG_scene_update_flags(bmain, sce, lay, true, do_invisible_flush);   // only stuff that moves or needs display still
 
 	BKE_mask_evaluate_all_masks(bmain, ctime, true);
 

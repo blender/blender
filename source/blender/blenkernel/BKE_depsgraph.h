@@ -106,7 +106,7 @@ void DAG_scene_free(struct Scene *sce);
  * not cause any updates but is used by external render engines to detect if for
  * example a datablock was removed. */
 
-void DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int lay, const bool do_time);
+void DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int lay, const bool do_time, const bool do_invisible_flush);
 void DAG_on_visible_update(struct Main *bmain, const bool do_time);
 
 void DAG_id_tag_update(struct ID *id, short flag);

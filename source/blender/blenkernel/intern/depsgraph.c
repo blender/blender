@@ -1377,9 +1377,9 @@ static void dag_scene_free(Scene *sce)
  * Other objects or objects which are tagged for data update are
  * not considered to be in need of evaluation.
  */
-static bool check_object_data_needs_evaluation(Object *object)
+static bool check_object_needs_evaluation(Object *object)
 {
-	if (object->recalc & OB_RECALC_DATA) {
+	if (object->recalc & OB_RECALC_ALL) {
 		/* Object is tagged for update anyway, no need to re-tag it. */
 		return false;
 	}
@@ -1395,9 +1395,9 @@ static bool check_object_data_needs_evaluation(Object *object)
 }
 
 /* Check whether object data is tagged for update. */
-static bool check_object_data_tagged_for_update(Object *object)
+static bool check_object_tagged_for_update(Object *object)
 {
-	if (object->recalc & OB_RECALC_DATA) {
+	if (object->recalc & OB_RECALC_ALL) {
 		return true;
 	}
 
@@ -1454,12 +1454,12 @@ static void dag_invisible_dependencies_flush(Scene *scene)
 
 					if (current_node->type == ID_OB) {
 						Object *current_object = current_node->ob;
-						if (check_object_data_needs_evaluation(current_object)) {
+						if (check_object_needs_evaluation(current_object)) {
 							for (itA = current_node->child; itA; itA = itA->next) {
 								if (itA->node->type == ID_OB) {
 									Object *object = itA->node->ob;
-									if (check_object_data_tagged_for_update(object)) {
-										current_object->recalc |= OB_RECALC_DATA;
+									if (check_object_tagged_for_update(object)) {
+										current_object->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
 									}
 								}
 							}
@@ -1472,6 +1472,18 @@ static void dag_invisible_dependencies_flush(Scene *scene)
 	}
 
 	queue_delete(queue);
+}
+
+static void dag_invisible_dependencies_check_flush(Main *bmain, Scene *scene)
+{
+	if (DAG_id_type_tagged(bmain, ID_OB) ||
+	    DAG_id_type_tagged(bmain, ID_ME) ||  /* Mesh */
+	    DAG_id_type_tagged(bmain, ID_CU) ||  /* Curve */
+	    DAG_id_type_tagged(bmain, ID_MB) ||  /* MetaBall */
+	    DAG_id_type_tagged(bmain, ID_LT))    /* Lattice */
+	{
+		dag_invisible_dependencies_flush(scene);
+	}
 }
 
 /* sort the base list on dependency order */
@@ -1572,14 +1584,7 @@ static void dag_scene_build(Main *bmain, Scene *sce)
 	 * are tagged for update (if they're needed for objects which were
 	 * tagged for update).
 	 */
-	if (DAG_id_type_tagged(bmain, ID_OB) ||
-	    DAG_id_type_tagged(bmain, ID_ME)  ||  /* Mesh */
-	    DAG_id_type_tagged(bmain, ID_CU)  ||  /* Curve */
-	    DAG_id_type_tagged(bmain, ID_MB)  ||  /* MetaBall */
-	    DAG_id_type_tagged(bmain, ID_LT))     /* Lattice */
-	{
-		dag_invisible_dependencies_flush(sce);
-	}
+	dag_invisible_dependencies_check_flush(bmain, sce);
 }
 
 /* clear all dependency graphs */
@@ -2126,7 +2131,7 @@ static void dag_group_update_flags(Main *bmain, Scene *scene, Group *group, cons
 
 /* flag all objects that need recalc, for changes in time for example */
 /* do_time: make this optional because undo resets objects to their animated locations without this */
-void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const bool do_time)
+void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const bool do_time, const bool do_invisible_flush)
 {
 	Base *base;
 	Object *ob;
@@ -2181,7 +2186,10 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const b
 			group->id.flag &= ~LIB_DOIT;
 		}
 	}
-	
+
+	if (do_invisible_flush) {
+		dag_invisible_dependencies_check_flush(bmain, scene);
+	}
 }
 
 /* struct returned by DagSceneLayer */
@@ -2296,7 +2304,6 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 		Object *ob;
 		DagNode *node;
 		unsigned int lay = dsl->layer, oblay;
-		bool have_updated_objects = false;
 
 		/* derivedmeshes and displists are not saved to file so need to be
 		 * remade, tag them so they get remade in the scene update loop,
@@ -2313,8 +2320,6 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 			oblay = (node) ? node->lay : ob->lay;
 
 			if ((oblay & lay) & ~scene->lay_updated) {
-				have_updated_objects = true;
-
 				if (ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 					ob->recalc |= OB_RECALC_DATA;
 					lib_id_recalc_tag(bmain, &ob->id);
@@ -2328,17 +2333,10 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 			}
 		}
 
-		/* Make sure that object which needs for tagged ones and which are not
-		 * in the current scene are also tagged for update.
-		 */
-		if (have_updated_objects) {
-			dag_invisible_dependencies_flush(scene);
-		}
-
 		BKE_main_id_tag_idcode(bmain, ID_GR, false);
 
 		/* now tag update flags, to ensure deformers get calculated on redraw */
-		DAG_scene_update_flags(bmain, scene, lay, do_time);
+		DAG_scene_update_flags(bmain, scene, lay, do_time, true);
 		scene->lay_updated |= lay;
 	}
 	
