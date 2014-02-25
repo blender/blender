@@ -1025,6 +1025,7 @@ static int image_sequence_get_len(ListBase *frames, int *ofs)
 
 static int image_open_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceImage *sima = CTX_wm_space_image(C); /* XXX other space types can call */
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -1035,6 +1036,8 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	char path[FILE_MAX];
 	int frame_seq_len = 0;
 	int frame_ofs = 1;
+
+	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
 	if (RNA_struct_property_is_set(op->ptr, "files") && RNA_struct_property_is_set(op->ptr, "directory")) {	
 		ListBase frames;
@@ -1061,6 +1064,12 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	if (!op->customdata)
 		image_open_init(C, op);
+
+	/* only image path after save, never ibuf */
+	if (is_relative_path) {
+		const char *relbase = ID_BLEND_PATH(bmain, &ima->id);
+		BLI_path_rel(ima->name, relbase);
+	}
 
 	/* hook into UI */
 	iod = op->customdata;
