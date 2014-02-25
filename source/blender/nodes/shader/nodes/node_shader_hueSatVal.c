@@ -48,21 +48,21 @@ static bNodeSocketTemplate sh_node_hue_sat_out[] = {
 };
 
 /* note: it would be possible to use CMP version for both nodes */
-static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float *hue, float *sat, float *val, float *in, float *fac)
+static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat, float val, float in[4], float fac)
 {
-	if (*fac != 0.0f && (*hue != 0.5f || *sat != 1.0f || *val != 1.0f)) {
-		float col[3], hsv[3], mfac = 1.0f - *fac;
+	if (fac != 0.0f && (hue != 0.5f || sat != 1.0f || val != 1.0f)) {
+		float col[3], hsv[3], mfac = 1.0f - fac;
 		
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv + 1, hsv + 2);
-		hsv[0] += (*hue - 0.5f);
+		hsv[0] += (hue - 0.5f);
 		if (hsv[0] > 1.0f) hsv[0] -= 1.0f; else if (hsv[0] < 0.0f) hsv[0] += 1.0f;
-		hsv[1] *= *sat;
-		hsv[2] *= *val;
+		hsv[1] *= sat;
+		hsv[2] *= val;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col + 1, col + 2);
 
-		out[0] = mfac * in[0] + *fac * col[0];
-		out[1] = mfac * in[1] + *fac * col[1];
-		out[2] = mfac * in[2] + *fac * col[2];
+		out[0] = mfac * in[0] + fac * col[0];
+		out[1] = mfac * in[1] + fac * col[1];
+		out[2] = mfac * in[2] + fac * col[2];
 	}
 	else {
 		copy_v4_v4(out, in);
@@ -70,8 +70,15 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float *hue, float *s
 }
 
 static void node_shader_exec_hue_sat(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
-{	
-	do_hue_sat_fac(node, out[0]->vec, in[0]->vec, in[1]->vec, in[2]->vec, in[4]->vec, in[3]->vec);
+{
+	float hue, sat, val, fac;
+	float col[4];
+	nodestack_get_vec(&hue, SOCK_FLOAT, in[0]);
+	nodestack_get_vec(&sat, SOCK_FLOAT, in[1]);
+	nodestack_get_vec(&val, SOCK_FLOAT, in[2]);
+	nodestack_get_vec(&fac, SOCK_FLOAT, in[3]);
+	nodestack_get_vec(col, SOCK_RGBA, in[4]);
+	do_hue_sat_fac(node, out[0]->vec, hue, sat, val, col, fac);
 }
 
 

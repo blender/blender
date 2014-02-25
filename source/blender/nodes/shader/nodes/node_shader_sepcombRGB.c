@@ -46,9 +46,12 @@ static bNodeSocketTemplate sh_node_seprgb_out[] = {
 
 static void node_shader_exec_seprgb(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
-	out[0]->vec[0] = in[0]->vec[0];
-	out[1]->vec[0] = in[0]->vec[1];
-	out[2]->vec[0] = in[0]->vec[2];
+	float col[3];
+	nodestack_get_vec(col, SOCK_VECTOR, in[0]);
+	
+	out[0]->vec[0] = col[0];
+	out[1]->vec[0] = col[1];
+	out[2]->vec[0] = col[2];
 }
 
 static int gpu_shader_seprgb(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
@@ -85,9 +88,14 @@ static bNodeSocketTemplate sh_node_combrgb_out[] = {
 
 static void node_shader_exec_combrgb(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
-	out[0]->vec[0] = in[0]->vec[0];
-	out[0]->vec[1] = in[1]->vec[0];
-	out[0]->vec[2] = in[2]->vec[0];
+	float r, g, b;
+	nodestack_get_vec(&r, SOCK_FLOAT, in[0]);
+	nodestack_get_vec(&g, SOCK_FLOAT, in[1]);
+	nodestack_get_vec(&b, SOCK_FLOAT, in[2]);
+	
+	out[0]->vec[0] = r;
+	out[0]->vec[1] = g;
+	out[0]->vec[2] = b;
 }
 
 static int gpu_shader_combrgb(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

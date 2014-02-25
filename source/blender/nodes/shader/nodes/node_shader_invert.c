@@ -49,22 +49,20 @@ static bNodeSocketTemplate sh_node_invert_out[] = {
 static void node_shader_exec_invert(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, 
                                     bNodeStack **out)
 {
-	float col[3], facm;
+	float col[3], icol[3], fac;
 
-	col[0] = 1.0f - in[1]->vec[0];
-	col[1] = 1.0f - in[1]->vec[1];
-	col[2] = 1.0f - in[1]->vec[2];
+	nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
+	nodestack_get_vec(col, SOCK_VECTOR, in[1]);
+	
+	icol[0] = 1.0f - col[0];
+	icol[1] = 1.0f - col[1];
+	icol[2] = 1.0f - col[2];
 	
 	/* if fac, blend result against original input */
-	if (in[0]->vec[0] < 1.0f) {
-		facm = 1.0f - in[0]->vec[0];
-
-		col[0] = in[0]->vec[0] * col[0] + (facm * in[1]->vec[0]);
-		col[1] = in[0]->vec[0] * col[1] + (facm * in[1]->vec[1]);
-		col[2] = in[0]->vec[0] * col[2] + (facm * in[1]->vec[2]);
-	}
-	
-	copy_v3_v3(out[0]->vec, col);
+	if (fac < 1.0f)
+		interp_v3_v3v3(out[0]->vec, col, icol, fac);
+	else
+		copy_v3_v3(out[0]->vec, icol);
 }
 
 static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

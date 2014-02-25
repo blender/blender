@@ -101,13 +101,15 @@ static bNodeSocketTemplate sh_node_curve_rgb_out[] = {
 static void node_shader_exec_curve_rgb(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	float vec[3];
+	float fac;
 	
 	/* stack order input:  vec */
 	/* stack order output: vec */
+	nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
 	nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
 	curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
-	if (in[0]->vec[0] != 1.0f) {
-		interp_v3_v3v3(out[0]->vec, vec, out[0]->vec, *in[0]->vec);
+	if (fac != 1.0f) {
+		interp_v3_v3v3(out[0]->vec, vec, out[0]->vec, fac);
 	}
 }
 

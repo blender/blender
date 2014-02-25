@@ -47,64 +47,69 @@ static bNodeSocketTemplate sh_node_math_out[] = {
 
 static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out) 
 {
+	float a, b, r = 0.0f;
+	
+	nodestack_get_vec(&a, SOCK_FLOAT, in[0]);
+	nodestack_get_vec(&b, SOCK_FLOAT, in[1]);
+	
 	switch (node->custom1) {
 	
 		case 0: /* Add */
-			out[0]->vec[0] = in[0]->vec[0] + in[1]->vec[0];
+			r = a + b;
 			break;
 		case 1: /* Subtract */
-			out[0]->vec[0] = in[0]->vec[0] - in[1]->vec[0];
+			r = a - b;
 			break;
 		case 2: /* Multiply */
-			out[0]->vec[0] = in[0]->vec[0] * in[1]->vec[0];
+			r = a * b;
 			break;
 		case 3: /* Divide */
 		{
-			if (in[1]->vec[0] == 0) /* We don't want to divide by zero. */
-				out[0]->vec[0] = 0.0;
+			if (b == 0) /* We don't want to divide by zero. */
+				r = 0.0;
 			else
-				out[0]->vec[0] = in[0]->vec[0] / in[1]->vec[0];
+				r = a / b;
 			break;
 		}
 		case 4: /* Sine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
-				out[0]->vec[0] = sin(in[0]->vec[0]);
+				r = sin(a);
 			else
-				out[0]->vec[0] = sin(in[1]->vec[0]);
+				r = sin(b);
 			break;
 		}
 		case 5: /* Cosine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
-				out[0]->vec[0] = cos(in[0]->vec[0]);
+				r = cos(a);
 			else
-				out[0]->vec[0] = cos(in[1]->vec[0]);
+				r = cos(b);
 			break;
 		}
 		case 6: /* Tangent */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
-				out[0]->vec[0] = tan(in[0]->vec[0]);
+				r = tan(a);
 			else
-				out[0]->vec[0] = tan(in[1]->vec[0]);
+				r = tan(b);
 			break;
 		}
 		case 7: /* Arc-Sine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
 				/* Can't do the impossible... */
-				if (in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1)
-					out[0]->vec[0] = asin(in[0]->vec[0]);
+				if (a <= 1 && a >= -1)
+					r = asin(a);
 				else
-					out[0]->vec[0] = 0.0;
+					r = 0.0;
 			}
 			else {
 				/* Can't do the impossible... */
-				if (in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1)
-					out[0]->vec[0] = asin(in[1]->vec[0]);
+				if (b <= 1 && b >= -1)
+					r = asin(b);
 				else
-					out[0]->vec[0] = 0.0;
+					r = 0.0;
 			}
 			break;
 		}
@@ -112,43 +117,43 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
 				/* Can't do the impossible... */
-				if (in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1)
-					out[0]->vec[0] = acos(in[0]->vec[0]);
+				if (a <= 1 && a >= -1)
+					r = acos(a);
 				else
-					out[0]->vec[0] = 0.0;
+					r = 0.0;
 			}
 			else {
 				/* Can't do the impossible... */
-				if (in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1)
-					out[0]->vec[0] = acos(in[1]->vec[0]);
+				if (b <= 1 && b >= -1)
+					r = acos(b);
 				else
-					out[0]->vec[0] = 0.0;
+					r = 0.0;
 			}
 			break;
 		}
 		case 9: /* Arc-Tangent */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
-				out[0]->vec[0] = atan(in[0]->vec[0]);
+				r = atan(a);
 			else
-				out[0]->vec[0] = atan(in[1]->vec[0]);
+				r = atan(b);
 			break;
 		}
 		case 10: /* Power */
 		{
 			/* Only raise negative numbers by full integers */
-			if (in[0]->vec[0] >= 0) {
-				out[0]->vec[0] = pow(in[0]->vec[0], in[1]->vec[0]);
+			if (a >= 0) {
+				r = pow(a, b);
 			}
 			else {
-				float y_mod_1 = fabsf(fmodf(in[1]->vec[0], 1.0f));
+				float y_mod_1 = fabsf(fmodf(b, 1.0f));
 				
 				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
 				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
-					out[0]->vec[0] = powf(in[0]->vec[0], floorf(in[1]->vec[0] + 0.5f));
+					r = powf(a, floorf(b + 0.5f));
 				}
 				else {
-					out[0]->vec[0] = 0.0f;
+					r = 0.0f;
 				}
 			}
 
@@ -157,61 +162,63 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		case 11: /* Logarithm */
 		{
 			/* Don't want any imaginary numbers... */
-			if (in[0]->vec[0] > 0  && in[1]->vec[0] > 0)
-				out[0]->vec[0] = log(in[0]->vec[0]) / log(in[1]->vec[0]);
+			if (a > 0  && b > 0)
+				r = log(a) / log(b);
 			else
-				out[0]->vec[0] = 0.0;
+				r = 0.0;
 			break;
 		}
 		case 12: /* Minimum */
 		{
-			if (in[0]->vec[0] < in[1]->vec[0])
-				out[0]->vec[0] = in[0]->vec[0];
+			if (a < b)
+				r = a;
 			else
-				out[0]->vec[0] = in[1]->vec[0];
+				r = b;
 			break;
 		}
 		case 13: /* Maximum */
 		{
-			if (in[0]->vec[0] > in[1]->vec[0])
-				out[0]->vec[0] = in[0]->vec[0];
+			if (a > b)
+				r = a;
 			else
-				out[0]->vec[0] = in[1]->vec[0];
+				r = b;
 			break;
 		}
 		case 14: /* Round */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
-				out[0]->vec[0] = (in[0]->vec[0] < 0) ? (int)(in[0]->vec[0] - 0.5f) : (int)(in[0]->vec[0] + 0.5f);
+				r = (a < 0) ? (int)(a - 0.5f) : (int)(a + 0.5f);
 			else
-				out[0]->vec[0] = (in[1]->vec[0] < 0) ? (int)(in[1]->vec[0] - 0.5f) : (int)(in[1]->vec[0] + 0.5f);
+				r = (b < 0) ? (int)(b - 0.5f) : (int)(b + 0.5f);
 			break;
 		}
 		case 15: /* Less Than */
 		{
-			if (in[0]->vec[0] < in[1]->vec[0])
-				out[0]->vec[0] = 1.0f;
+			if (a < b)
+				r = 1.0f;
 			else
-				out[0]->vec[0] = 0.0f;
+				r = 0.0f;
 			break;
 		}
 		case 16: /* Greater Than */
 		{
-			if (in[0]->vec[0] > in[1]->vec[0])
-				out[0]->vec[0] = 1.0f;
+			if (a > b)
+				r = 1.0f;
 			else
-				out[0]->vec[0] = 0.0f;
+				r = 0.0f;
 			break;
 		}
 		case 17: /* Modulo */
 		{
-			if (in[1]->vec[0] == 0.0f)
-				out[0]->vec[0] = 0.0f;
+			if (b == 0.0f)
+				r = 0.0f;
 			else
-				out[0]->vec[0] = fmod(in[0]->vec[0], in[1]->vec[0]);
+				r = fmod(a, b);
 			break;
 		}
 	}
+	
+	out[0]->vec[0] = r;
 }
 
 static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
