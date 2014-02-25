@@ -212,6 +212,50 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
+PyDoc_STRVAR(bpy_escape_identifier_doc,
+".. function:: escape_identifier(string)\n"
+"\n"
+"   Simple string escaping function used for animation paths.\n"
+"\n"
+"   :arg string: text\n"
+"   :type string: string\n"
+"   :return: The escaped string.\n"
+"   :rtype: string\n"
+);
+static PyObject *bpy_escape_identifier(PyObject *UNUSED(self), PyObject *value)
+{
+	const char *value_str;
+	Py_ssize_t  value_str_len;
+
+	char       *value_escape_str;
+	Py_ssize_t  value_escape_str_len;
+	PyObject   *value_escape;
+	size_t size;
+
+	value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+
+	if (value_str == NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string");
+		return NULL;
+	}
+
+	size = (value_str_len * 2) + 1;
+	value_escape_str = PyMem_MALLOC(size);
+	value_escape_str_len = BLI_strescape(value_escape_str, value_str, size);
+
+	if (value_escape_str_len == value_str_len) {
+		Py_INCREF(value);
+		value_escape = value;
+	}
+	else {
+		value_escape = PyUnicode_FromStringAndSize(value_escape_str, value_escape_str_len);
+	}
+
+	PyMem_FREE(value_escape_str);
+
+	return value_escape;
+}
+
 static PyMethodDef meth_bpy_script_paths =
 	{"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
 static PyMethodDef meth_bpy_blend_paths =
@@ -220,7 +264,8 @@ static PyMethodDef meth_bpy_user_resource =
 	{"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS | METH_KEYWORDS, NULL};
 static PyMethodDef meth_bpy_resource_path =
 	{"resource_path", (PyCFunction)bpy_resource_path, METH_VARARGS | METH_KEYWORDS, bpy_resource_path_doc};
-
+static PyMethodDef meth_bpy_escape_identifier =
+	{"escape_identifier", (PyCFunction)bpy_escape_identifier, METH_O, bpy_escape_identifier_doc};
 
 static PyObject *bpy_import_test(const char *modname)
 {
@@ -307,6 +352,7 @@ void BPy_init_modules(void)
 	PyModule_AddObject(mod, meth_bpy_blend_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_blend_paths, NULL));
 	PyModule_AddObject(mod, meth_bpy_user_resource.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
 	PyModule_AddObject(mod, meth_bpy_resource_path.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_resource_path, NULL));
+	PyModule_AddObject(mod, meth_bpy_escape_identifier.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_escape_identifier, NULL));
 
 	/* register funcs (bpy_rna.c) */
 	PyModule_AddObject(mod, meth_bpy_register_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_register_class, NULL));

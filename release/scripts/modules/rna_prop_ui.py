@@ -92,6 +92,8 @@ def draw(layout, context, context_member, property_type, use_edit=True):
     if not rna_item:
         return
 
+    from bpy.utils import escape_identifier
+
     if rna_item.id_data.library is not None:
         use_edit = False
 
@@ -144,7 +146,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
             if key in rna_properties:
                 row.prop(rna_item, key, text="")
             else:
-                row.prop(rna_item, '["%s"]' % key, text="")
+                row.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
 
         if use_edit:
             row = split.row(align=True)
