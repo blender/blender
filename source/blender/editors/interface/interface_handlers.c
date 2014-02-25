@@ -1960,7 +1960,11 @@ static bool ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 	return changed;
 }
 
-/* note, but->block->aspect is used here, when drawing button style is getting scaled too */
+/**
+ * \param x  Screen space cursor location - #wmEvent.x
+ *
+ * \note ``but->block->aspect`` is used here, so drawing button style is getting scaled too.
+ */
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, const float x)
 {
 	uiStyle *style = UI_GetStyle();  // XXX pass on as arg
@@ -1969,7 +1973,10 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 	const short fstyle_points_prev = fstyle->points;
 
 	float startx = but->rect.xmin;
+	float starty_dummy = 0.0f;
 	char *origstr, password_str[UI_MAX_DRAW_STR];
+
+	ui_block_to_window_fl(data->region, but->block, &startx, &starty_dummy);
 
 	ui_fontscale(&fstyle->points, aspect);
 
@@ -1986,11 +1993,11 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (but->flag & UI_HAS_ICON) {
-			startx += UI_DPI_ICON_SIZE;
+			startx += UI_DPI_ICON_SIZE / aspect;
 		}
 	}
 	/* but this extra .05 makes clicks inbetween characters feel nicer */
-	startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit);
+	startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit) / aspect;
 	
 	/* mouse dragged outside the widget to the left */
 	if (x < startx) {
@@ -2001,7 +2008,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		while (i > 0) {
 			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
 				/* 0.25 == scale factor for less sensitivity */
-				if (BLF_width(fstyle->uifont_id, origstr + i, BLF_DRAW_STR_DUMMY_MAX) * aspect > (startx - x) * 0.25f) {
+				if (BLF_width(fstyle->uifont_id, origstr + i, BLF_DRAW_STR_DUMMY_MAX) > (startx - x) * 0.25f) {
 					break;
 				}
 			}
@@ -2023,12 +2030,12 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		but->pos = pos_prev = strlen(origstr) - but->ofs;
 
 		while (true) {
-			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs, BLF_DRAW_STR_DUMMY_MAX) * aspect;
+			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs, BLF_DRAW_STR_DUMMY_MAX);
 
 			/* check if position is found */
 			if (cdist < x) {
 				/* check is previous location was in fact closer */
-				if (((float)x - cdist) > (cdist_prev - (float)x)) {
+				if ((x - cdist) > (cdist_prev - x)) {
 					but->pos = pos_prev;
 				}
 				break;
@@ -2524,9 +2531,9 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				ui_window_to_block_fl(data->region, block, &mx, &my);
 
 				if (ui_but_contains_pt(but, mx, my)) {
-					ui_textedit_set_cursor_pos(but, data, mx);
+					ui_textedit_set_cursor_pos(but, data, event->x);
 					but->selsta = but->selend = but->pos;
-					data->selstartx = mx;
+					data->selstartx = event->x;
 
 					button_activate_state(C, but, BUTTON_STATE_TEXT_SELECTING);
 					retval = WM_UI_HANDLER_BREAK;
@@ -2738,7 +2745,7 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 			my = event->y;
 			ui_window_to_block(data->region, block, &mx, &my);
 
-			ui_textedit_set_cursor_select(but, data, mx);
+			ui_textedit_set_cursor_select(but, data, event->x);
 			retval = WM_UI_HANDLER_BREAK;
 			break;
 		}
