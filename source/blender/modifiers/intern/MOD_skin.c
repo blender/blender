@@ -753,10 +753,13 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
                                   const MEdge *e, int *degree)
 {
+	/* prevent memory errors [#38003] */
+#define NUM_SUBDIVISIONS_MAX 128
+
 	const MVertSkin *evs[2] = {&nodes[e->v1], &nodes[e->v2]};
-	float edge_len, avg[2];
-	int v1_branch = degree[e->v1] > 2;
-	int v2_branch = degree[e->v2] > 2;
+	float avg_radius;
+	const bool v1_branch = degree[e->v1] > 2;
+	const bool v2_branch = degree[e->v2] > 2;
 	int num_subdivisions;
 
 	/* If either end is a branch node marked 'loose', don't subdivide
@@ -770,15 +773,23 @@ static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
 			return 0;
 	}
 
-	edge_len = len_v3v3(mvert[e->v1].co, mvert[e->v2].co);
+	avg_radius = half_v2(evs[0]->radius) + half_v2(evs[1]->radius);
 
-	avg[0] = half_v2(evs[0]->radius);
-	avg[1] = half_v2(evs[1]->radius);
-
-	if (avg[0] + avg[1] == 0.0f)
+	if (avg_radius != 0.0f) {
+		/* possible (but unlikely) that we overflow INT_MAX */
+		float num_subdivisions_fl;
+		const float edge_len = len_v3v3(mvert[e->v1].co, mvert[e->v2].co);
+		num_subdivisions_fl = (edge_len / avg_radius);
+		if (num_subdivisions_fl < NUM_SUBDIVISIONS_MAX) {
+			num_subdivisions = (int)num_subdivisions_fl;
+		}
+		else {
+			num_subdivisions = NUM_SUBDIVISIONS_MAX;
+		}
+	}
+	else {
 		num_subdivisions = 0;
-	else
-		num_subdivisions = (int)((float)edge_len / (avg[0] + avg[1]));
+	}
 
 	/* If both ends are branch nodes, two intermediate nodes are
 	 * required */
@@ -786,6 +797,8 @@ static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
 		num_subdivisions = 2;
 
 	return num_subdivisions;
+
+#undef NUM_SUBDIVISIONS_MAX
 }
 
 /* Take a DerivedMesh and subdivide its edges to keep skin nodes
