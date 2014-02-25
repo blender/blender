@@ -1377,8 +1377,14 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		BLI_freelistN(&(ob->curve_cache->bev));
 
-		if (ob->curve_cache->path) free_path(ob->curve_cache->path);
-		ob->curve_cache->path = NULL;
+		/* We only re-evlauate path if evaluation is not happening for orco.
+		 * If the calculation happens for orco, we should never free data which
+		 * was needed before and only not needed for orco calculation.
+		 */
+		if (!forOrco) {
+			if (ob->curve_cache->path) free_path(ob->curve_cache->path);
+			ob->curve_cache->path = NULL;
+		}
 
 		if (ob->type == OB_FONT) {
 			BKE_vfont_to_curve_nubase(G.main, ob, FO_EDIT, &nubase);
