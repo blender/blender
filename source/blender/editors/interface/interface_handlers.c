@@ -1984,17 +1984,13 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
 
-	/* XXX solve generic, see: #widget_draw_text_icon */
-	if (but->type == NUM || but->type == NUMSLI) {
-		startx += (int)(UI_TEXT_MARGIN_X * U.widget_unit);
-	}
-	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (but->flag & UI_HAS_ICON) {
 			startx += UI_DPI_ICON_SIZE;
 		}
-		/* but this extra .05 makes clicks inbetween characters feel nicer */
-		startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit);
 	}
+	/* but this extra .05 makes clicks inbetween characters feel nicer */
+	startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit);
 	
 	/* mouse dragged outside the widget to the left */
 	if (x < startx) {
