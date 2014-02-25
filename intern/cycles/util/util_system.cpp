@@ -163,7 +163,7 @@ static CPUCapabilities& system_cpu_capabilities()
 
 			caps.fma3 = (result[2] & ((int)1 << 12)) != 0;
 			caps.avx = false;
-			bool os_uses_xsave_xrestore = result[2] & ((int)1 << 27) != 0;
+			bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
 			bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
 
 			if( os_uses_xsave_xrestore && cpu_avx_support) {
