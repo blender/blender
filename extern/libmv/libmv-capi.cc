@@ -330,8 +330,15 @@ int libmv_trackRegion(const libmv_TrackRegionOptions *options,
 	track_region_options.image1_mask = NULL;
 	track_region_options.use_brute_initialization = options->use_brute;
 	/* TODO(keir): This will make some cases better, but may be a regression until
-	 * the motion model is in. Since this is on trunk, enable it for now. */
-	track_region_options.attempt_refine_before_brute = true;
+	 * the motion model is in. Since this is on trunk, enable it for now.
+	 *
+	 * TODO(sergey): This gives much worse results on mango footage (see 04_2e)
+	 * so disabling for now for until proper prediction model is landed.
+	 *
+	 * The thing is, currently blender sends input coordinates as the guess to
+	 * region tracker and in case of fast motion such an early out ruins the track.
+	 */
+	track_region_options.attempt_refine_before_brute = false;
 	track_region_options.use_normalized_intensities = options->use_normalization;
 
 	if (options->image1_mask) {
