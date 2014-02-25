@@ -76,6 +76,8 @@ EnumPropertyItem sequence_modifier_type_items[] = {
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "IMB_imbuf.h"
+
 typedef struct SequenceSearchData {
 	Sequence *seq;
 	void *data;
@@ -601,6 +603,10 @@ static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
 {
 	StripProxy *proxy = (StripProxy *)(ptr->data);
 	BLI_split_dirfile(value, proxy->dir, proxy->file, sizeof(proxy->dir), sizeof(proxy->file));
+	if (proxy->anim) {
+		IMB_free_anim(proxy->anim);
+		proxy->anim = NULL;
+	}
 }
 
 static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
