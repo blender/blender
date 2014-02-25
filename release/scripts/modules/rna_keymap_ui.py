@@ -297,7 +297,15 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
         # main filter func, runs many times
         def filter_func(kmi):
             for kk, ki in kmi_test_dict.items():
-                if getattr(kmi, kk) not in ki:
+                val = getattr(kmi, kk)
+                if val == 'NONE' or val not in ki:
+                    # exception for 'type'
+                    # also inspect 'key_modifier' as a fallback
+                    if kk == "type":
+                        val = getattr(kmi, "key_modifier")
+                        if not (val == 'NONE' or val not in ki):
+                            continue
+
                     return False
             return True
 
