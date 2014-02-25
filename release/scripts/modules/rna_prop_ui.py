@@ -140,18 +140,23 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         row.label(text=key, translate=False)
 
         # explicit exception for arrays
+        is_rna = (key in rna_properties)
+
         if to_dict or to_list:
             row.label(text=val_draw, translate=False)
         else:
-            if key in rna_properties:
+            if is_rna:
                 row.prop(rna_item, key, text="")
             else:
                 row.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
 
         if use_edit:
             row = split.row(align=True)
-            props = row.operator("wm.properties_edit", text="Edit")
-            assign_props(props, val_draw, key)
+            if not is_rna:
+                props = row.operator("wm.properties_edit", text="Edit")
+                assign_props(props, val_draw, key)
+            else:
+                row.label(text="API Defined")
 
             props = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
             assign_props(props, val_draw, key)
