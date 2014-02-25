@@ -796,8 +796,6 @@ static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_mark_seam(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Mark Seam";
 	ot->idname = "MESH_OT_mark_seam";
@@ -810,8 +808,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
 
 static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
