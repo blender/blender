@@ -37,6 +37,7 @@
 #include "DNA_packedFile_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
 
 #include "BIF_gl.h"
 
@@ -277,6 +278,11 @@ static void rna_Image_gl_free(Image *image)
 	image->flag &= ~IMA_NOCOLLECT;
 }
 
+static void rna_Image_filepath_from_user(Image *image, ImageUser *image_user, char *filepath)
+{
+	BKE_image_user_file_path(image_user, image, filepath);
+}
+
 #else
 
 void RNA_api_image(StructRNA *srna)
@@ -349,6 +355,15 @@ void RNA_api_image(StructRNA *srna)
 
 	func = RNA_def_function(srna, "gl_free", "rna_Image_gl_free");
 	RNA_def_function_ui_description(func, "Free the image from OpenGL graphics memory");
+
+	/* path to an frame specified by image user */
+	func = RNA_def_function(srna, "filepath_from_user", "rna_Image_filepath_from_user");
+	RNA_def_function_ui_description(func, "Return the absolute path to the filepath of an image frame specified by the image user");
+	RNA_def_pointer(func, "image_user", "ImageUser", "", "Image user of the image to get filepath for");
+	parm = RNA_def_string_file_path(func, "filepath", NULL, FILE_MAX, "File Path",
+	                                "The resulting filepath from the image and it's user");
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);  /* needed for string return value */
+	RNA_def_function_output(func, parm);
 
 	/* TODO, pack/unpack, maybe should be generic functions? */
 }

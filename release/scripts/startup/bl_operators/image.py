@@ -90,8 +90,9 @@ class EditExternally(Operator):
 
     def invoke(self, context, event):
         import os
+        sd = context.space_data
         try:
-            image = context.space_data.image
+            image = sd.image
         except AttributeError:
             self.report({'ERROR'}, "Context incorrect, image not found")
             return {'CANCELLED'}
@@ -100,7 +101,12 @@ class EditExternally(Operator):
             self.report({'ERROR'}, "Image is packed, unpack before editing")
             return {'CANCELLED'}
 
-        filepath = bpy.path.abspath(image.filepath, library=image.library)
+        if sd.type == 'IMAGE_EDITOR':
+            filepath = image.filepath_from_user(sd.image_user)
+        else:
+            filepath = image.filepath
+
+        filepath = bpy.path.abspath(filepath, library=image.library)
 
         self.filepath = os.path.normpath(filepath)
         self.execute(context)
