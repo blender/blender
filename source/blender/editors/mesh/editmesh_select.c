@@ -271,7 +271,7 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 	
 	/* method in use for face selecting too */
 	if (vc->obedit == NULL) {
-		if (!(paint_facesel_test(vc->obact) || paint_vertsel_test(vc->obact))) {
+		if (!BKE_paint_select_elem_test(vc->obact)) {
 			return false;
 		}
 	}
@@ -320,7 +320,7 @@ bool EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 	
 	/* method in use for face selecting too */
 	if (vc->obedit == NULL) {
-		if (!(paint_facesel_test(vc->obact) || paint_vertsel_test(vc->obact))) {
+		if (!BKE_paint_select_elem_test(vc->obact)) {
 			return false;
 		}
 	}

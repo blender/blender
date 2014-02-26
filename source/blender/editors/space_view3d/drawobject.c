@@ -3412,7 +3412,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	const bool is_obact = (ob == OBACT);
-	int draw_flags = (is_obact && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
+	int draw_flags = (is_obact && BKE_paint_select_face_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if (!dm)
 		return;
@@ -3622,7 +3622,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	
-	if (is_obact && paint_vertsel_test(ob)) {
+	if (is_obact && BKE_paint_select_vert_test(ob)) {
 		const int use_depth = (v3d->flag & V3D_ZBUF_SELECT);
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));

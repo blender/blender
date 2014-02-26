@@ -265,7 +265,7 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 }
 
 /* are we in vertex paint or weight pain face select mode? */
-bool paint_facesel_test(Object *ob)
+bool BKE_paint_select_face_test(Object *ob)
 {
 	return ( (ob != NULL) &&
 	         (ob->type == OB_MESH) &&
@@ -276,7 +276,7 @@ bool paint_facesel_test(Object *ob)
 }
 
 /* are we in weight paint vertex select mode? */
-bool paint_vertsel_test(Object *ob)
+bool BKE_paint_select_vert_test(Object *ob)
 {
 	return ( (ob != NULL) &&
 	         (ob->type == OB_MESH) &&
@@ -284,6 +284,16 @@ bool paint_vertsel_test(Object *ob)
 	         (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_VERT_SEL) &&
 	         (ob->mode & OB_MODE_WEIGHT_PAINT)
 	         );
+}
+
+/**
+ * used to check if selection is possible
+ * (when we don't care if its face or vert)
+ */
+bool BKE_paint_select_elem_test(Object *ob)
+{
+	return (BKE_paint_select_vert_test(ob) ||
+	        BKE_paint_select_face_test(ob));
 }
 
 void BKE_paint_init(Paint *p, const char col[3])

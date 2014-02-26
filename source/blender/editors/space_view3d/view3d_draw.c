@@ -1276,7 +1276,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
 	if (base && (base->object->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
-	             paint_facesel_test(base->object)))
+	             BKE_paint_select_face_test(base->object)))
 	{
 		/* do nothing */
 	}

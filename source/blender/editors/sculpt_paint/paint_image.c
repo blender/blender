@@ -1128,16 +1128,16 @@ int image_texture_paint_poll(bContext *C)
 
 int facemask_paint_poll(bContext *C)
 {
-	return paint_facesel_test(CTX_data_active_object(C));
+	return BKE_paint_select_face_test(CTX_data_active_object(C));
 }
 
 int vert_paint_poll(bContext *C)
 {
-	return paint_vertsel_test(CTX_data_active_object(C));
+	return BKE_paint_select_vert_test(CTX_data_active_object(C));
 }
 
 int mask_paint_poll(bContext *C)
 {
-	return paint_facesel_test(CTX_data_active_object(C)) || paint_vertsel_test(CTX_data_active_object(C));
+	return BKE_paint_select_elem_test(CTX_data_active_object(C));
 }
 

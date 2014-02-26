@@ -2745,7 +2745,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	else if (paint_facesel_test(ob)) {
+	else if (BKE_paint_select_face_test(ob)) {
 		ok = paintface_minmax(ob, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {

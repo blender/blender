@@ -2223,7 +2223,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
                             int build_shapekey_layers)
 {
 	Object *obact = scene->basact ? scene->basact->object : NULL;
-	int editing = paint_facesel_test(ob);
+	bool editing = BKE_paint_select_face_test(ob);
 	/* weight paint and face select need original indices because of selection buffer drawing */
 	int needMapping = (ob == obact) && (editing || (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)));
 
@@ -2286,7 +2286,7 @@ static CustomDataMask object_get_datamask(Scene *scene, Object *ob)
 
 	if (ob == actob) {
 		/* check if we need tfaces & mcols due to face select or texture paint */
-		if (paint_facesel_test(ob) || (ob->mode & OB_MODE_TEXTURE_PAINT)) {
+		if (BKE_paint_select_face_test(ob) || (ob->mode & OB_MODE_TEXTURE_PAINT)) {
 			mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 		}
 
