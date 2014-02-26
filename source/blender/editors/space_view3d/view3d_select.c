@@ -2219,7 +2219,9 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 	bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	bool center = RNA_boolean_get(op->ptr, "center");
 	bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
-	bool object = (RNA_boolean_get(op->ptr, "object") && obedit);  /* only force object select for editmode */
+	/* only force object select for editmode to support vertex parenting,
+	 * or paint-select to allow pose bone select with vert/face select */
+	bool object = (RNA_boolean_get(op->ptr, "object") && (obedit || BKE_paint_select_elem_test(obact)));
 	bool retval = false;
 	int location[2];
 
