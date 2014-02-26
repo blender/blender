@@ -373,6 +373,12 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		if (win->eventstate == NULL)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
 		
+		/* store actual window size in blender window */
+		bounds = GHOST_GetClientBounds(win->ghostwin);
+		win->sizex = GHOST_GetWidthRectangle(bounds);
+		win->sizey = GHOST_GetHeightRectangle(bounds);
+		GHOST_DisposeRectangle(bounds);
+
 		/* set the state */
 		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
 
@@ -387,13 +393,6 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		/* needed here, because it's used before it reads userdef */
 		U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
 		BKE_userdef_state();
-		
-		/* store actual window size in blender window */
-		bounds = GHOST_GetClientBounds(win->ghostwin);
-		win->sizex = GHOST_GetWidthRectangle(bounds);
-		win->sizey = GHOST_GetHeightRectangle(bounds);
-		GHOST_DisposeRectangle(bounds);
-
 		
 		wm_window_swap_buffers(win);
 		
