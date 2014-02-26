@@ -823,10 +823,10 @@ static void recalcData_objects(TransInfo *t)
 
 						if (fabsf(dot_v3v3(vec, z_axis)) > 0.999999f) {
 							/* If our bone is Z-aligned, do not alter roll. See T38843. */
-							ebo->roll = td->ival2;
+							ebo->roll = td->ival;
 						}
 						else {
-							ebo->roll = td->ival + ED_rollBoneToVector(ebo, z_axis, false);
+							ebo->roll = ebo->temp_f + ED_rollBoneToVector(ebo, z_axis, false);
 						}
 					}
 				}

@@ -1074,12 +1074,12 @@ static void createTransArmatureVerts_init_roll_fix(TransData *td, EditBone *ebo)
 
 	if (fabsf(dot_v3v3(vec, z_axis)) > 0.999999f) {
 		/* If nearly aligned with Z axis, do not alter roll. See T38843. */
-		td->ival = ebo->roll;
+		ebo->temp_f = ebo->roll;
 	}
 	else {
-		td->ival = ebo->roll - ED_rollBoneToVector(ebo, z_axis, false);
+		ebo->temp_f = ebo->roll - ED_rollBoneToVector(ebo, z_axis, false);
 	}
-	td->ival2 = ebo->roll;
+	td->ival = ebo->roll;
 }
 
 static void createTransArmatureVerts(TransInfo *t)

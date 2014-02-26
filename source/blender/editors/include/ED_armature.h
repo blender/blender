@@ -59,7 +59,10 @@ typedef struct EditBone {
 	struct EditBone *parent; /* Editbones have a one-way link  (i.e. children refer
 	                          * to parents.  This is converted to a two-way link for
 	                          * normal bones when leaving editmode. */
-	void    *temp;          /* Used to store temporary data */
+	union {                  /* Used to store temporary data */
+		void    *temp;
+		float    temp_f;
+	};
 
 	char    name[64];       /* MAXBONENAME */
 	float   roll;           /* Roll along axis.  We'll ultimately use the axis/angle method
