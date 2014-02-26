@@ -281,6 +281,11 @@ int ED_operator_sequencer_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_SEQ);
 }
 
+int ED_operator_sequencer_active_editable(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_SEQ) && ED_operator_scene_editable(C);
+}
+
 int ED_operator_image_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IMAGE);

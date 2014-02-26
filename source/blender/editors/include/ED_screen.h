@@ -144,6 +144,7 @@ int     ED_operator_node_active(struct bContext *C);
 int     ED_operator_node_editable(struct bContext *C);
 int     ED_operator_graphedit_active(struct bContext *C);
 int     ED_operator_sequencer_active(struct bContext *C);
+int     ED_operator_sequencer_active_editable(struct bContext *C);
 int     ED_operator_image_active(struct bContext *C);
 int     ED_operator_nla_active(struct bContext *C);
 int     ED_operator_logic_active(struct bContext *C);

@@ -296,11 +296,6 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (!ED_operator_sequencer_active(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
-		return OPERATOR_CANCELLED;
-	}
-
 	if (!RNA_struct_property_is_set(op->ptr, "scene"))
 		return WM_enum_search_invoke(C, op, event);
 
@@ -324,7 +319,7 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	ot->invoke = sequencer_add_scene_strip_invoke;
 	ot->exec = sequencer_add_scene_strip_exec;
 
-	ot->poll = ED_operator_scene_editable;
+	ot->poll = ED_operator_sequencer_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -394,11 +389,6 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_movieclip_strip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (!ED_operator_sequencer_active(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
-		return OPERATOR_CANCELLED;
-	}
-
 	if (!RNA_struct_property_is_set(op->ptr, "clip"))
 		return WM_enum_search_invoke(C, op, event);
 
@@ -421,7 +411,7 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 	ot->invoke = sequencer_add_movieclip_strip_invoke;
 	ot->exec = sequencer_add_movieclip_strip_exec;
 
-	ot->poll = ED_operator_scene_editable;
+	ot->poll = ED_operator_sequencer_active_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -491,11 +481,6 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_mask_strip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (!ED_operator_sequencer_active(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
-		return OPERATOR_CANCELLED;
-	}
-
 	if (!RNA_struct_property_is_set(op->ptr, "mask"))
 		return WM_enum_search_invoke(C, op, event);
 
@@ -519,7 +504,7 @@ void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot)
 	ot->invoke = sequencer_add_mask_strip_invoke;
 	ot->exec = sequencer_add_mask_strip_exec;
 
-	ot->poll = ED_operator_scene_editable;
+	ot->poll = ED_operator_sequencer_active_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -608,12 +593,6 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-
-	if (!ED_operator_sequencer_active(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
-		return OPERATOR_CANCELLED;
-	}
-
 	/* This is for drag and drop */
 	if ((RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) ||
 	    RNA_struct_property_is_set(op->ptr, "filepath"))
@@ -643,7 +622,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	ot->invoke = sequencer_add_movie_strip_invoke;
 	ot->exec = sequencer_add_movie_strip_exec;
 
-	ot->poll = ED_operator_scene_editable;
+	ot->poll = ED_operator_sequencer_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -663,12 +642,6 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-
-	if (!ED_operator_sequencer_active(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
-		return OPERATOR_CANCELLED;
-	}
-	
 	/* This is for drag and drop */
 	if ((RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) ||
 	    RNA_struct_property_is_set(op->ptr, "filepath"))
@@ -698,7 +671,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	ot->invoke = sequencer_add_sound_strip_invoke;
 	ot->exec = sequencer_add_sound_strip_exec;
 
-	ot->poll = ED_operator_scene_editable;
+	ot->poll = ED_operator_sequencer_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -775,13 +748,6 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-
-	if (!ED_operator_sequencer_active(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
-		return OPERATOR_CANCELLED;
-	}
-
-
 	/* drag drop has set the names */
 	if (RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) {
 		sequencer_generic_invoke_xy__internal(C, op, SEQPROP_ENDFRAME | SEQPROP_NOPATHS, SEQ_TYPE_IMAGE);
@@ -807,7 +773,7 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	ot->invoke = sequencer_add_image_strip_invoke;
 	ot->exec = sequencer_add_image_strip_exec;
 
-	ot->poll = ED_operator_scene_editable;
+	ot->poll = ED_operator_sequencer_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -931,11 +897,6 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, const 
 	int type = -1;
 	int prop_flag = SEQPROP_ENDFRAME;
 
-	if (!ED_operator_sequencer_active(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
-		return OPERATOR_CANCELLED;
-	}
-
 	if (is_type_set) {
 		type = RNA_enum_get(op->ptr, "type");
 
@@ -964,7 +925,7 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	ot->invoke = sequencer_add_effect_strip_invoke;
 	ot->exec = sequencer_add_effect_strip_exec;
 
-	ot->poll = ED_operator_scene_editable;
+	ot->poll = ED_operator_sequencer_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
