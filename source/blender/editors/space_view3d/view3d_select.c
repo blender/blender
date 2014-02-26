@@ -2250,8 +2250,6 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 			retval = mouse_mball(C, location, extend, deselect, toggle);
 			
 	}
-	else if (obact && obact->mode & OB_MODE_SCULPT)
-		return OPERATOR_CANCELLED;
 	else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		return PE_mouse_particles(C, location, extend, deselect, toggle);
 	else if (obact && paint_facesel_test(obact))
