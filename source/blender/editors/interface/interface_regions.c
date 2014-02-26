@@ -665,8 +665,7 @@ int uiSearchBoxHeight(void)
 
 int uiSearchBoxWidth(void)
 {
-	/* was hardcoded at 150 */
-	return 9 * UI_UNIT_X;
+	return 12 * UI_UNIT_X;
 }
 
 int uiSearchItemFindIndex(uiSearchItems *items, const char *name)
