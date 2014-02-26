@@ -588,7 +588,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	}
 	
 	if (srl) {
-		int index = BLI_findindex(&re->r.layers, srl);
+		int index = BLI_findindex(&rd->layers, srl);
 		if (index != -1) {
 			re->r.actlay = index;
 			re->r.scemode |= R_SINGLE_LAYER;
