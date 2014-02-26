@@ -120,6 +120,9 @@ ccl_device_inline float path_rng_1D(KernelGlobals *kg, RNG *rng, int sample, int
 	/* Cranly-Patterson rotation using rng seed */
 	float shift;
 
+	/* using the same *rng value to offset seems to give correlation issues,
+	 * we could hash it with the dimension but this has a performance impact,
+	 * we need to find a solution for this */
 	if(dimension & 1)
 		shift = (*rng >> 16) * (1.0f/(float)0xFFFF);
 	else

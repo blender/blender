@@ -536,12 +536,17 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
 	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng)
 {
+	/* workaround to fix correlation bug in T38710, can find better solution
+	 * in random number generator later, for now this is done here to not impact
+	 * performance of rendering without volumes */
+	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
+
 	shader_setup_from_volume(kg, sd, ray, state->bounce);
 
 	if(volume_stack_is_heterogeneous(kg, state->volume_stack))
-		return kernel_volume_integrate_heterogeneous(kg, state, ray, sd, L, throughput, rng);
+		return kernel_volume_integrate_heterogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
 	else
-		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, rng);
+		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
 }
 
 /* Volume Stack
