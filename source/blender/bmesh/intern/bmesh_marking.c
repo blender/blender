@@ -900,13 +900,15 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 }
 
 void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hflag,
-                                     const bool respecthide, const char hflag_test)
+                                     const bool respecthide, const bool overwrite, const char hflag_test)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
 
 	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
+	const char hflag_nosel = hflag & ~BM_ELEM_SELECT;
 
 	int i;
 
@@ -946,17 +948,22 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 				ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 				for ( ; ele; ele = BM_iter_step(&iter)) {
 
-					if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
-						continue;
+					if (UNLIKELY(respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN))) {
+						/* pass */
 					}
-					if (hflag_test && !BM_elem_flag_test(ele, hflag_test)) {
-						continue;
+					else if (!hflag_test || BM_elem_flag_test(ele, hflag_test)) {
+						if (hflag & BM_ELEM_SELECT) {
+							BM_elem_select_set(bm, ele, false);
+						}
+						BM_elem_flag_disable(ele, hflag);
 					}
-
-					if (hflag & BM_ELEM_SELECT) {
-						BM_elem_select_set(bm, ele, false);
+					else if (overwrite) {
+						/* no match! */
+						if (hflag & BM_ELEM_SELECT) {
+							BM_elem_select_set(bm, ele, true);
+						}
+						BM_elem_flag_enable(ele, hflag_nosel);
 					}
-					BM_elem_flag_disable(ele, hflag);
 				}
 			}
 		}
@@ -964,7 +971,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 }
 
 void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hflag,
-                                    const bool respecthide, const char hflag_test)
+                                    const bool respecthide, const bool overwrite, const char hflag_test)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -996,17 +1003,23 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hfla
 			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 			for ( ; ele; ele = BM_iter_step(&iter)) {
 
-				if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {
-					continue;
+				if (UNLIKELY(respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN))) {
+					/* pass */
 				}
-				if (hflag_test && !BM_elem_flag_test(ele, hflag_test)) {
-					continue;
+				else if (!hflag_test || BM_elem_flag_test(ele, hflag_test)) {
+					/* match! */
+					if (hflag & BM_ELEM_SELECT) {
+						BM_elem_select_set(bm, ele, true);
+					}
+					BM_elem_flag_enable(ele, hflag_nosel);
 				}
-
-				if (hflag & BM_ELEM_SELECT) {
-					BM_elem_select_set(bm, ele, true);
+				else if (overwrite) {
+					/* no match! */
+					if (hflag & BM_ELEM_SELECT) {
+						BM_elem_select_set(bm, ele, false);
+					}
+					BM_elem_flag_disable(ele, hflag);
 				}
-				BM_elem_flag_enable(ele, hflag_nosel);
 			}
 		}
 	}
@@ -1016,14 +1029,14 @@ void BM_mesh_elem_hflag_disable_all(BMesh *bm, const char htype, const char hfla
                                     const bool respecthide)
 {
 	/* call with 0 hflag_test */
-	BM_mesh_elem_hflag_disable_test(bm, htype, hflag, respecthide, 0);
+	BM_mesh_elem_hflag_disable_test(bm, htype, hflag, respecthide, false, 0);
 }
 
 void BM_mesh_elem_hflag_enable_all(BMesh *bm, const char htype, const char hflag,
                                    const bool respecthide)
 {
 	/* call with 0 hflag_test */
-	BM_mesh_elem_hflag_enable_test(bm, htype, hflag, respecthide, 0);
+	BM_mesh_elem_hflag_enable_test(bm, htype, hflag, respecthide, false, 0);
 }
 
 /***************** Mesh Hiding stuff *********** */

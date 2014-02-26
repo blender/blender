@@ -44,9 +44,9 @@ void BM_face_hide_set(BMFace *f, const bool hide);
 void BM_elem_select_set(BMesh *bm, BMElem *ele, const bool select);
 
 void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hflag,
-                                    const bool respecthide, const char hflag_test);
+                                    const bool respecthide, const bool overwrite, const char hflag_test);
 void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hflag,
-                                     const bool respecthide, const char hflag_test);
+                                     const bool respecthide, const bool overwrite, const char hflag_test);
 
 void BM_mesh_elem_hflag_enable_all(BMesh *bm, const char htype, const char hflag,
                                    const bool respecthide);

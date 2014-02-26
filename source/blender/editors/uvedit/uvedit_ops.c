@@ -3802,7 +3802,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* re-select tagged faces */
-	BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, TRUE, BM_ELEM_TAG);
+	BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
