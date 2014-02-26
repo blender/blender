@@ -776,7 +776,8 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 	ot->poll = actionzone_area_poll;
 	ot->cancel = actionzone_cancel;
 	
-	ot->flag = OPTYPE_BLOCKING;
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 	
 	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "Modifier", "Modifier state", 0, 2);
 }
@@ -1251,7 +1252,8 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 	ot->modal = area_move_modal;
 	ot->poll = ED_operator_screen_mainwinactive; /* when mouse is over area-edge */
 	
-	ot->flag = OPTYPE_BLOCKING;
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
@@ -1703,7 +1705,9 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->cancel = area_split_cancel;
 	
 	ot->poll = screen_active_editable;
-	ot->flag = OPTYPE_BLOCKING;
+
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 	
 	/* rna */
 	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
@@ -1973,7 +1977,8 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 	
 	ot->poll = ED_operator_areaactive;
 	
-	ot->flag = OPTYPE_BLOCKING;
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 }
 
 
@@ -2287,7 +2292,7 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 	
 	ot->exec = screen_set_exec;
 	ot->poll = ED_operator_screenactive;
-	
+
 	/* rna */
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
@@ -2611,6 +2616,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->poll = screen_active_editable;
 	ot->cancel = area_join_cancel;
 	
+	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 	
 	/* rna */
@@ -2673,6 +2679,9 @@ static void SCREEN_OT_area_options(wmOperatorType *ot)
 	ot->invoke = screen_area_options_invoke;
 	
 	ot->poll = ED_operator_screen_mainwinactive;
+
+	/* flags */
+	ot->flag = OPTYPE_INTERNAL;
 }
 
 
@@ -3860,7 +3869,7 @@ static void SCREEN_OT_region_blend(wmOperatorType *ot)
 	ot->invoke = region_blend_invoke;
 	
 	/* flags */
-	ot->flag = 0;
+	ot->flag = OPTYPE_INTERNAL;
 	
 	/* properties */
 }

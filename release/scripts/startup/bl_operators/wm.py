@@ -757,6 +757,7 @@ class WM_OT_url_open(Operator):
     "Open a website in the web-browser"
     bl_idname = "wm.url_open"
     bl_label = ""
+    bl_options = {'INTERNAL'}
 
     url = StringProperty(
             name="URL",
@@ -773,6 +774,7 @@ class WM_OT_path_open(Operator):
     "Open a path in a file browser"
     bl_idname = "wm.path_open"
     bl_label = ""
+    bl_options = {'INTERNAL'}
 
     filepath = StringProperty(
             subtype='FILE_PATH',
@@ -2019,6 +2021,7 @@ class WM_OT_addon_expand(Operator):
     "Display more information on this addon"
     bl_idname = "wm.addon_expand"
     bl_label = ""
+    bl_options = {'INTERNAL'}
 
     module = StringProperty(
             name="Module",

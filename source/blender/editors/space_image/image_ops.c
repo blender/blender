@@ -628,6 +628,7 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke = image_view_ndof_invoke;
+	ot->poll = space_image_main_area_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_LOCK_BYPASS;

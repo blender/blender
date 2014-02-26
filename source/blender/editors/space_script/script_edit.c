@@ -83,6 +83,8 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 	ot->exec = run_pyfile_exec;
 	ot->poll = ED_operator_areaactive;
 
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
 	RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "Path", "");
 }
 

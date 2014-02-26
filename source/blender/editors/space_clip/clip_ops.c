@@ -1362,6 +1362,7 @@ void CLIP_OT_view_ndof(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = clip_view_ndof_invoke;
+	ot->poll = ED_space_clip_view_clip_poll;
 }
 
 /********************** Prefetch operator *********************/
