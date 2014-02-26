@@ -717,7 +717,7 @@ static MovieReconstructedCamera *rna_trackingCameras_find_frame(ID *id, MovieTra
 	return BKE_tracking_camera_get_reconstructed(tracking, object, framenr);
 }
 
-static void rna_trackingCameras_matrix_for_frame(ID *id, MovieTrackingReconstruction *reconstruction, int framenr, float matrix[16])
+static void rna_trackingCameras_matrix_from_frame(ID *id, MovieTrackingReconstruction *reconstruction, int framenr, float matrix[16])
 {
 	float mat[4][4];
 
@@ -1685,7 +1685,7 @@ static void rna_def_trackingReconstructedCameras(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "camera", "MovieReconstructedCamera", "", "Camera for a given frame");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "matrix_for_frame", "rna_trackingCameras_matrix_for_frame");
+	func = RNA_def_function(srna, "matrix_from_frame", "rna_trackingCameras_matrix_from_frame");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Return interpolated camera matrix for a given frame");
 	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to find camera for", MINFRAME, MAXFRAME);

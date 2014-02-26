@@ -195,7 +195,7 @@ class CLIP_OT_bundles_to_mesh(Operator):
         if camera:
             reconstruction = tracking_object.reconstruction
             framenr = scene.frame_current - clip.frame_start + 1
-            reconstructed_matrix = reconstruction.cameras.matrix_for_frame(framenr)
+            reconstructed_matrix = reconstruction.cameras.matrix_from_frame(framenr)
             matrix = camera.matrix_world * reconstructed_matrix.inverted()
 
         mesh = bpy.data.meshes.new(name="Tracks")
