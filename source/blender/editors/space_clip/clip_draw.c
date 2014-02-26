@@ -1637,10 +1637,12 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			int framenr = ED_space_clip_get_clip_frame_number(sc);
 			MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
 
-			offsx = marker->pos[0];
-			offsy = marker->pos[1];
+			if (marker) {
+				offsx = marker->pos[0];
+				offsy = marker->pos[1];
 
-			gpd = track->gpd;
+				gpd = track->gpd;
+			}
 		}
 
 	}
