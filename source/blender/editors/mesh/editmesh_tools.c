@@ -796,6 +796,8 @@ static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_mark_seam(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Mark Seam";
 	ot->idname = "MESH_OT_mark_seam";
@@ -808,7 +810,8 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
@@ -850,6 +853,8 @@ static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_mark_sharp(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Mark Sharp";
 	ot->idname = "MESH_OT_mark_sharp";
@@ -862,7 +867,8 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 
@@ -5052,6 +5058,8 @@ static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Mark Freestyle Edge";
 	ot->description = "(Un)mark selected edges as Freestyle feature edges";
@@ -5064,7 +5072,8 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
@@ -5113,6 +5122,8 @@ static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Mark Freestyle Face";
 	ot->description = "(Un)mark selected faces for exclusion from Freestyle feature edge detection";
@@ -5125,7 +5136,8 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 #endif
