@@ -1893,6 +1893,16 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
 	const int totvert_orig = em->bm->totvert;
 	int count;
+	char htype_select;
+
+	/* avoid loosing selection state (select -> tags) */
+	if      (em->selectmode & SCE_SELECT_VERTEX) htype_select = BM_VERT;
+	else if (em->selectmode & SCE_SELECT_EDGE)   htype_select = BM_EDGE;
+	else                                         htype_select = BM_FACE;
+
+	/* store selection as tags */
+	BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_TAG, true, true, BM_ELEM_SELECT);
+
 
 	if (use_unselected) {
 		EDBM_op_init(em, &bmop, op,
@@ -1922,6 +1932,10 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	
 	count = totvert_orig - em->bm->totvert;
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
+
+	/* restore selection from tags */
+	BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_SELECT, true, true, BM_ELEM_TAG);
+	EDBM_selectmode_flush(em);
 
 	EDBM_update_generic(em, true, true);
 
