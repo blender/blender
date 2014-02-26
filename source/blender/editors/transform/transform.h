@@ -257,7 +257,8 @@ typedef struct TransData {
 	float *loc;          /* Location of the data to transform                                              */
 	float  iloc[3];      /* Initial location                                                               */
 	float *val;          /* Value pointer for special transforms */
-	float  ival;         /* Old value*/
+	float  ival;         /* Old value */
+	float  ival2;        /* Another old value (for bone roll we need two different "old values" :/ ). */
 	float  center[3];	 /* Individual data center                                                         */
 	float  mtx[3][3];    /* Transformation matrix from data space to global space                          */
 	float  smtx[3][3];   /* Transformation matrix from global space to data space                          */

@@ -810,13 +810,24 @@ static void recalcData_objects(TransInfo *t)
 				 * armature's Z axis), and do the reverse to get final roll.
 				 * This method at least gives predictable, consistent results (the bone basically keeps "facing"
 				 * the armature's Z axis).
+				 * Note we need some special handling when bone is Z-aligned... sigh.
 				 */
 				for (i = 0; i < t->total; i++, td++) {
 					if (td->extra) {
 						const float z_axis[3] = {0.0f, 0.0f, 1.0f};
+						float vec[3];
 
 						ebo = td->extra;
-						ebo->roll = td->ival + ED_rollBoneToVector(ebo, z_axis, false);
+						sub_v3_v3v3(vec, ebo->tail, ebo->head);
+						normalize_v3(vec);
+
+						if (fabsf(dot_v3v3(vec, z_axis)) > 0.999999f) {
+							/* If our bone is Z-aligned, do not alter roll. See T38843. */
+							ebo->roll = td->ival2;
+						}
+						else {
+							ebo->roll = td->ival + ED_rollBoneToVector(ebo, z_axis, false);
+						}
 					}
 				}
 			}
