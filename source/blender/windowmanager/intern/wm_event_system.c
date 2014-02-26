@@ -1644,19 +1644,14 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 	return WM_HANDLER_BREAK;
 }
 
-/* fileselect handlers are only in the window queue, so it's save to switch screens or area types */
-static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
+/* fileselect handlers are only in the window queue, so it's safe to switch screens or area types */
+static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHandler *handler, int val)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile;
 	int action = WM_HANDLER_CONTINUE;
-	
-	if (event->type != EVT_FILESELECT)
-		return action;
-	if (handler->op != (wmOperator *)event->customdata)
-		return action;
-	
-	switch (event->val) {
+
+	switch (val) {
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 		{
@@ -1672,7 +1667,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				sa = handler->op_area;
 			}
 					
-			if (event->val == EVT_FILESELECT_OPEN) {
+			if (val == EVT_FILESELECT_OPEN) {
 				ED_area_newspace(C, sa, SPACE_FILE);     /* 'sa' is modified in-place */
 			}
 			else {
@@ -1703,7 +1698,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			/* remlink now, for load file case before removing*/
 			BLI_remlink(handlers, handler);
 				
-			if (event->val != EVT_FILESELECT_EXTERNAL_CANCEL) {
+			if (val != EVT_FILESELECT_EXTERNAL_CANCEL) {
 				if (screen != handler->filescreen) {
 					ED_screen_full_prevspace(C, CTX_wm_area(C));
 				}
@@ -1716,7 +1711,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 
 			/* needed for uiPupMenuReports */
 
-			if (event->val == EVT_FILESELECT_EXEC) {
+			if (val == EVT_FILESELECT_EXEC) {
 				int retval;
 
 				if (handler->op->type->flag & OPTYPE_UNDO)
@@ -1791,6 +1786,18 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 	}
 	
 	return action;
+}
+
+static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
+{
+	int action = WM_HANDLER_CONTINUE;
+	
+	if (event->type != EVT_FILESELECT)
+		return action;
+	if (handler->op != (wmOperator *)event->customdata)
+		return action;
+	
+	return wm_handler_fileselect_do(C, handlers, handler, event->val);
 }
 
 static bool handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
@@ -2409,10 +2416,25 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 		handlernext = handler->next;
 		
 		if (handler->type == WM_HANDLER_FILESELECT) {
-			if (handler->op)
-				WM_operator_free(handler->op);
-			BLI_remlink(&win->modalhandlers, handler);
-			wm_event_free_handler(handler);
+			bScreen *screen = CTX_wm_screen(C);
+			ScrArea *sa;
+
+			/* find the area with the file selector for this handler */
+			for (sa = screen->areabase.first; sa; sa = sa->next) {
+				if (sa->spacetype == SPACE_FILE) {
+					SpaceFile *sfile = sa->spacedata.first;
+
+					if (sfile->op == handler->op) {
+						CTX_wm_area_set(C, sa);
+						wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
+						break;
+					}
+				}
+			}
+
+			/* if not found we stop the handler without changing the screen */
+			if (!sa)
+				wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
 		}
 	}
 	
