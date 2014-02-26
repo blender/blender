@@ -2400,10 +2400,12 @@ static int check_composite_output(Scene *scene)
 	return node_tree_has_composite_output(scene->nodetree);
 }
 
-bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
+bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports, bool *r_scene_rlayer_update)
 {
 	SceneRenderLayer *srl;
 	int scemode = check_mode_full_sample(&scene->r);
+	if (r_scene_rlayer_update)
+		*r_scene_rlayer_update = false; /* becomes true if render layer is forced enabled */
 	
 	if (scene->r.mode & R_BORDER) {
 		if (scene->r.border.xmax <= scene->r.border.xmin ||
@@ -2481,6 +2483,8 @@ bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *
 		srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 		/* force layer to be enabled */
 		srl->layflag &= ~SCE_LAY_DISABLE;
+		if (r_scene_rlayer_update)
+			*r_scene_rlayer_update = true;
 	}
 	
 	for (srl = scene->r.layers.first; srl; srl = srl->next)

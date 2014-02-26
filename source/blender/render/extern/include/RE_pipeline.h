@@ -285,7 +285,7 @@ void RE_DataBase_GetView(struct Render *re, float mat[4][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4]);
 struct Scene *RE_GetScene(struct Render *re);
 
-bool RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
+bool RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports, bool *r_scene_rlayer_update);
 
 bool RE_allow_render_generic_object(struct Object *ob);
 
