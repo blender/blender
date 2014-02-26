@@ -131,9 +131,26 @@ Mat pseudoInverse(const Mat &matrix) {
 
   return V * D * V.inverse();
 }
+
+void filterZeroWeightMarkersFromTracks(const Tracks &tracks,
+                                       Tracks *filtered_tracks) {
+  vector<Marker> all_markers = tracks.AllMarkers();
+
+  for (int i = 0; i < all_markers.size(); ++i) {
+    Marker &marker = all_markers[i];
+    if (marker.weight != 0.0) {
+      filtered_tracks->Insert(marker.image,
+                              marker.track,
+                              marker.x,
+                              marker.y,
+                              marker.weight);
+    }
+  }
+}
+
 }  // namespace
 
-void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
+void SelectKeyframesBasedOnGRICAndVariance(const Tracks &_tracks,
                                            CameraIntrinsics &intrinsics,
                                            vector<int> &keyframes) {
   // Mirza Tahir Ahmed, Matthew N. Dailey
@@ -141,7 +158,10 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
   //
   // http://www.cs.ait.ac.th/~mdailey/papers/Tahir-KeyFrame.pdf
 
-  int max_image = tracks.MaxImage();
+  Tracks filtered_tracks;
+  filterZeroWeightMarkersFromTracks(_tracks, &filtered_tracks);
+
+  int max_image = filtered_tracks.MaxImage();
   int next_keyframe = 1;
   int number_keyframes = 0;
 
@@ -173,11 +193,13 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &tracks,
          candidate_image++) {
       // Conjunction of all markers from both keyframes
       vector<Marker> all_markers =
-        tracks.MarkersInBothImages(current_keyframe, candidate_image);
+        filtered_tracks.MarkersInBothImages(current_keyframe,
+                                            candidate_image);
 
       // Match keypoints between frames current_keyframe and candidate_image
       vector<Marker> tracked_markers =
-        tracks.MarkersForTracksInBothImages(current_keyframe, candidate_image);
+        filtered_tracks.MarkersForTracksInBothImages(current_keyframe,
+                                                     candidate_image);
 
       // Correspondences in normalized space
       Mat x1, x2;
