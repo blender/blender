@@ -563,6 +563,7 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		
 		/* raytrace likes to separate the spec color */
 		sub_v3_v3v3(shr->diff, shr->combined, shr->spec);
+		copy_v3_v3(shr->diffshad, shr->diff);
 	}
 
 }

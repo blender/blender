@@ -748,6 +748,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	shr->alpha = col[3];
 	
 	copy_v3_v3(shr->diff, shr->combined);
+	copy_v3_v3(shr->diffshad, shr->diff);
 }
 
 /* Traces a shadow through the object, 

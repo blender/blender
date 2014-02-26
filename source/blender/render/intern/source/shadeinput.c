@@ -118,8 +118,10 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		madd_v3_v3fl(shr->combined, shr_t.combined, fac);
 		if (shi->passflag & SCE_PASS_SPEC)
 			madd_v3_v3fl(shr->spec, shr_t.spec, fac);
-		if (shi->passflag & SCE_PASS_DIFFUSE)
+		if (shi->passflag & SCE_PASS_DIFFUSE) {
 			madd_v3_v3fl(shr->diff, shr_t.diff, fac);
+			madd_v3_v3fl(shr->diffshad, shr_t.diffshad, fac);
+		}
 		if (shi->passflag & SCE_PASS_SHADOW)
 			madd_v3_v3fl(shr->shad, shr_t.shad, fac);
 

@@ -216,8 +216,10 @@ static void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float
 		}
 		if (addpassflag & SCE_PASS_EMIT)
 			interpolate_vec3(shr1->emit, shr2->emit, t, negt, shr->emit);
-		if (addpassflag & SCE_PASS_DIFFUSE)
+		if (addpassflag & SCE_PASS_DIFFUSE) {
 			interpolate_vec3(shr1->diff, shr2->diff, t, negt, shr->diff);
+			interpolate_vec3(shr1->diffshad, shr2->diffshad, t, negt, shr->diffshad);
+		}
 		if (addpassflag & SCE_PASS_SPEC)
 			interpolate_vec3(shr1->spec, shr2->spec, t, negt, shr->spec);
 		if (addpassflag & SCE_PASS_SHADOW)

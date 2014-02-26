@@ -186,7 +186,7 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			/* Shadow, Reflect, Refract, Radiosity, Speed seem to cause problems inside
 			 * a node tree :( */
-			copy_v3_v3(out[MAT_OUT_DIFFUSE]->vec, shrnode.diff);
+			copy_v3_v3(out[MAT_OUT_DIFFUSE]->vec, shrnode.diffshad);
 			copy_v3_v3(out[MAT_OUT_SPEC]->vec, shrnode.spec);
 			copy_v3_v3(out[MAT_OUT_AO]->vec, shrnode.ao);
 		}
