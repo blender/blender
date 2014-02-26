@@ -690,6 +690,45 @@ static void rna_trackingPlaneMarkers_delete_frame(MovieTrackingPlaneTrack *plane
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 }
 
+static MovieTrackingObject *find_object_for_reconstruction(MovieTracking *tracking,
+                                                           MovieTrackingReconstruction *reconstruction)
+{
+	MovieTrackingObject *object;
+
+	for (object = tracking->objects.first; object; object = object->next) {
+		if (object->flag & TRACKING_OBJECT_CAMERA) {
+			if (&tracking->reconstruction == reconstruction) {
+				return object;
+			}
+		}
+		else if (&object->reconstruction == reconstruction) {
+			return object;
+		}
+	}
+
+	return NULL;
+}
+
+static MovieReconstructedCamera *rna_trackingCameras_find_frame(ID *id, MovieTrackingReconstruction *reconstruction, int framenr)
+{
+	MovieClip *clip = (MovieClip *) id;
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *object = find_object_for_reconstruction(tracking, reconstruction);
+	return BKE_tracking_camera_get_reconstructed(tracking, object, framenr);
+}
+
+static void rna_trackingCameras_matrix_for_frame(ID *id, MovieTrackingReconstruction *reconstruction, int framenr, float matrix[16])
+{
+	float mat[4][4];
+
+	MovieClip *clip = (MovieClip *) id;
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *object = find_object_for_reconstruction(tracking, reconstruction);
+	BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
+
+	memcpy(matrix, mat, sizeof(float) * 16);
+}
+
 #else
 
 static EnumPropertyItem tracker_motion_model[] = {
@@ -1629,6 +1668,33 @@ static void rna_def_reconstructedCamera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Average Error", "Average error of reconstruction");
 }
 
+static void rna_def_trackingReconstructedCameras(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	srna = RNA_def_struct(brna, "MovieTrackingReconstructedCameras", NULL);
+	RNA_def_struct_sdna(srna, "MovieTrackingReconstruction");
+	RNA_def_struct_ui_text(srna, "Reconstructed Cameras", "Collection of solved cameras");
+
+	func = RNA_def_function(srna, "find_frame", "rna_trackingCameras_find_frame");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Find a reconstructed camera for a give frame number");
+	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to find camera for", MINFRAME, MAXFRAME);
+	parm = RNA_def_pointer(func, "camera", "MovieReconstructedCamera", "", "Camera for a given frame");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "matrix_for_frame", "rna_trackingCameras_matrix_for_frame");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Return interpolated camera matrix for a given frame");
+	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to find camera for", MINFRAME, MAXFRAME);
+	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, FLT_MIN, FLT_MAX, "Matrix",
+	                            "Interpolated camera matrix for a given frame", FLT_MIN, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);  /* needed for string return value */
+	RNA_def_function_output(func, parm);
+}
+
 static void rna_def_trackingReconstruction(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1657,6 +1723,8 @@ static void rna_def_trackingReconstruction(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MovieReconstructedCamera");
 	RNA_def_property_collection_sdna(prop, NULL, "cameras", "camnr");
 	RNA_def_property_ui_text(prop, "Cameras", "Collection of solved cameras");
+	RNA_def_property_srna(prop, "MovieTrackingReconstructedCameras");
+
 }
 
 static void rna_def_trackingTracks(BlenderRNA *brna)
@@ -1915,6 +1983,7 @@ static void rna_def_tracking(BlenderRNA *brna)
 	rna_def_trackingObjectTracks(brna);
 	rna_def_trackingObjectPlaneTracks(brna);
 	rna_def_trackingStabilization(brna);
+	rna_def_trackingReconstructedCameras(brna);
 	rna_def_trackingReconstruction(brna);
 	rna_def_trackingObject(brna);
 	rna_def_trackingDopesheet(brna);
