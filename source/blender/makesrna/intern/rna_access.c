@@ -1444,7 +1444,11 @@ bool RNA_property_enum_name_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA 
 	result = RNA_property_enum_name(C, ptr, prop, value, name);
 
 	if (result) {
-		*name = BLF_pgettext(prop->translation_context, *name);
+		if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
+			if (BLF_translate_iface()) {
+				*name = BLF_pgettext(prop->translation_context, *name);
+			}
+		}
 	}
 
 	return result;
