@@ -16,7 +16,7 @@ git submodule update --init --recursive
 git submodule foreach git checkout master
 git submodule foreach git pull --rebase origin master
 
-# create cmake dir
+# create build dir
 mkdir ~/blender-git/build-cmake
 cd ~/blender-git/build-cmake
 
@@ -25,7 +25,7 @@ cd ~/blender-git/build-cmake
 cmake ../blender
 
 # make blender, will take some time
-make
+make -j$(nproc)
 
 # link the binary to blenders source directory to run quickly
 ln -s ~/blender-git/build-cmake/bin/blender ~/blender-git/blender/blender.bin
