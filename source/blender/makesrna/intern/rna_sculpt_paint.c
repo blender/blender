@@ -409,6 +409,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "detail_size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_ui_range(prop, 2, 100, 0, -1);
 	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting (in pixels)");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_SMOOTH_SHADING);
