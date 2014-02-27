@@ -2671,9 +2671,17 @@ void uiBlockBeginAlign(uiBlock *block)
 static bool buts_are_horiz(uiBut *but1, uiBut *but2)
 {
 	float dx, dy;
-	
-	dx = fabs(but1->rect.xmax - but2->rect.xmin);
-	dy = fabs(but1->rect.ymin - but2->rect.ymax);
+
+	/* simple case which can fail if buttons shift apart
+	 * with proportional layouts, see: [#38602] */
+	if ((but1->rect.ymin == but2->rect.ymin) &&
+	    (but1->rect.xmin != but2->rect.xmin))
+	{
+		return true;
+	}
+
+	dx = fabsf(but1->rect.xmax - but2->rect.xmin);
+	dy = fabsf(but1->rect.ymin - but2->rect.ymax);
 	
 	return (dx <= dy);
 }
