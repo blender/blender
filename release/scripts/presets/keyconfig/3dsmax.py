@@ -2149,7 +2149,7 @@ kmi.properties.quad_method = 'BEAUTY'
 kmi.properties.ngon_method = 'BEAUTY'
 kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'PRESS', shift=True, ctrl=True)
 kmi.properties.quad_method = 'FIXED'
-kmi.properties.ngon_method = 'SCANFILL'
+kmi.properties.ngon_method = 'CLIP'
 kmi = km.keymap_items.new('mesh.tris_convert_to_quads', 'J', 'PRESS', alt=True)
 kmi = km.keymap_items.new('mesh.rip_move', 'V', 'PRESS')
 kmi = km.keymap_items.new('mesh.rip_move_fill', 'V', 'PRESS', alt=True)
