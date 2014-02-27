@@ -235,7 +235,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 	int prim = kernel_tex_fetch(__prim_index, curveAddr);
 
 #ifdef __KERNEL_SSE2__
-	__m128 vdir = _mm_div_ps(_mm_set1_ps(1.0f), (__m128 &)idir);
+	__m128 vdir = _mm_div_ps(_mm_set1_ps(1.0f), load_m128(idir));
 	__m128 vcurve_coef[4];
 	const float3 *curve_coef = (float3 *)vcurve_coef;
 	
@@ -268,10 +268,11 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 		__m128 htfm2 = shuffle<1, 3, 2, 3>(mul_shuf, vdir0);
 
 		__m128 htfm[] = { htfm0, htfm1, htfm2 };
-		__m128 p0 = transform_point_T3(htfm, _mm_sub_ps(P0, (__m128 &)P));
-		__m128 p1 = transform_point_T3(htfm, _mm_sub_ps(P1, (__m128 &)P));
-		__m128 p2 = transform_point_T3(htfm, _mm_sub_ps(P2, (__m128 &)P));
-		__m128 p3 = transform_point_T3(htfm, _mm_sub_ps(P3, (__m128 &)P));
+		__m128 vP = load_m128(P);
+		__m128 p0 = transform_point_T3(htfm, _mm_sub_ps(P0, vP));
+		__m128 p1 = transform_point_T3(htfm, _mm_sub_ps(P1, vP));
+		__m128 p2 = transform_point_T3(htfm, _mm_sub_ps(P2, vP));
+		__m128 p3 = transform_point_T3(htfm, _mm_sub_ps(P3, vP));
 
 		float fc = 0.71f;
 		__m128 vfc = _mm_set1_ps(fc);

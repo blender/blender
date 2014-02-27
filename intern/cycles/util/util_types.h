@@ -37,6 +37,7 @@
 #define ccl_device_noinline static
 #define ccl_global
 #define ccl_constant
+#define __KERNEL_WITH_SSE_ALIGN__
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 
@@ -45,6 +46,7 @@
 #ifdef __KERNEL_64_BIT__
 #define ccl_try_align(...) __declspec(align(__VA_ARGS__))
 #else
+#undef __KERNEL_WITH_SSE_ALIGN__
 #define ccl_try_align(...) /* not support for function arguments (error C2719) */
 #endif
 #define ccl_may_alias

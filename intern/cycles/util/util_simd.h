@@ -180,6 +180,30 @@ ccl_device_inline const __m128 set_sign_bit(const __m128 &a)
 	return _mm_xor_ps(a, _mm_castsi128_ps(_mm_setr_epi32(S1 << 31, S2 << 31, S3 << 31, S4 << 31)));
 }
 
+#ifdef __KERNEL_WITH_SSE_ALIGN__
+ccl_device_inline const __m128 load_m128(const float4 &vec)
+{
+	return _mm_load_ps(&vec.x);
+}
+
+ccl_device_inline const __m128 load_m128(const float3 &vec)
+{
+	return _mm_load_ps(&vec.x);
+}
+
+#else
+
+ccl_device_inline const __m128 load_m128(const float4 &vec)
+{
+	return _mm_loadu_ps(&vec.x);
+}
+
+ccl_device_inline const __m128 load_m128(const float3 &vec)
+{
+	return _mm_loadu_ps(&vec.x);
+}
+#endif /* __KERNEL_WITH_SSE_ALIGN__ */
+
 #endif /* __KERNEL_SSE2__ */
 
 CCL_NAMESPACE_END

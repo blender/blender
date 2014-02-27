@@ -75,7 +75,7 @@ ccl_device void kernel_film_convert_to_half_float(KernelGlobals *kg,
 
 	float exposure = kernel_data.film.exposure;
 
-	ccl_align(16) float4 rgba_in = *in;
+	float4 rgba_in = *in;
 
 	if(exposure != 1.0f) {
 		rgba_in.x *= exposure;
@@ -83,7 +83,7 @@ ccl_device void kernel_film_convert_to_half_float(KernelGlobals *kg,
 		rgba_in.z *= exposure;
 	}
 
-	float4_store_half(out, &rgba_in, sample_scale);
+	float4_store_half(out, rgba_in, sample_scale);
 }
 
 CCL_NAMESPACE_END
