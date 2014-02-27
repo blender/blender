@@ -257,7 +257,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 
 			if(xi < sample_transmittance) {
 				/* no scattering */
-				float3 transmittance = volume_color_attenuation(sigma_t, t);
+				transmittance = volume_color_attenuation(sigma_t, t);
 				float pdf = (transmittance.x + transmittance.y + transmittance.z);
 				new_tp = *throughput * transmittance * (3.0f / pdf);
 			}
