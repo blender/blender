@@ -537,6 +537,8 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 
 	}
 	else if (sys->has_solution) {
+		nlMakeCurrent(sys->context);
+
 		nlBegin(NL_SYSTEM);
 		nlBegin(NL_MATRIX);
 
