@@ -408,9 +408,14 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	View3D *v3d;
+	ARegion *ar;
+	RegionView3D *rv3d;
+
 	ObjectTfmProtectedChannels obtfm;
+
+	ED_view3d_context_user_region(C, &v3d, &ar);
+	rv3d = ar->regiondata;
 
 	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
 	rv3d->lview = rv3d->view;
@@ -435,11 +440,17 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int view3d_camera_to_view_poll(bContext *C)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d && v3d->camera && v3d->camera->id.lib == NULL) {
-		RegionView3D *rv3d = CTX_wm_region_view3d(C);
-		if (rv3d && (rv3d->viewlock & RV3D_LOCKED) == 0) {
-			return 1;
+	View3D *v3d;
+	ARegion *ar;
+
+	if (ED_view3d_context_user_region(C, &v3d, &ar)) {
+		RegionView3D *rv3d = ar->regiondata;
+		if (v3d && v3d->camera && v3d->camera->id.lib == NULL) {
+			if (rv3d && (rv3d->viewlock & RV3D_LOCKED) == 0) {
+				if (rv3d->persp != RV3D_CAMOB) {
+					return 1;
+				}
+			}
 		}
 	}
 
