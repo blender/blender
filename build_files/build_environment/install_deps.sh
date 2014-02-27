@@ -45,10 +45,7 @@ WITH_ALL=false
 # Do not yet enable opencollada, use --with-opencollada (or --with-all) option to try it.
 WITH_OPENCOLLADA=false
 
-THREADS=`cat /proc/cpuinfo | grep processor | wc -l`
-if [ -z "$THREADS" ]; then
-  THREADS=1
-fi
+THREADS=$(nproc)
 
 COMMON_INFO="\"Source code of dependencies needed to be compiled will be downloaded and extracted into '\$SRC'.
 Built libs of dependencies needed to be compiled will be installed into '\$INST'.
