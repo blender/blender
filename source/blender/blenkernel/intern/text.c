@@ -3051,12 +3051,12 @@ bool text_check_identifier_nodigit(const char ch)
 }
 
 #ifndef WITH_PYTHON
-bool text_check_identifier_unicode(const unsigned int ch)
+int text_check_identifier_unicode(const unsigned int ch)
 {
-	return (ch < 255 && text_check_identifier((char)ch));
+	return (ch < 255 && text_check_identifier((unsigned int)ch));
 }
 
-bool text_check_identifier_nodigit_unicode(const unsigned int ch)
+int text_check_identifier_nodigit_unicode(const unsigned int ch)
 {
 	return (ch < 255 && text_check_identifier_nodigit((char)ch));
 }
