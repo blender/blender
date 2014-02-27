@@ -222,18 +222,25 @@ static int ui_layout_vary_direction(uiLayout *layout)
 }
 
 /* estimated size of text + icon */
-static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, int compact)
+static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool compact)
 {
-	float f5 = 0.25f * UI_UNIT_X;
-	float f10 = 0.5f * UI_UNIT_X;
-	int variable = ui_layout_vary_direction(layout) == UI_ITEM_VARY_X;
+	bool variable;
 
 	if (icon && !name[0])
 		return UI_UNIT_X;  /* icon only */
-	else if (icon)
-		return (variable) ? UI_GetStringWidth(name) + (compact ? f5 : f10) + UI_UNIT_X : 10 * UI_UNIT_X;  /* icon + text */
-	else
-		return (variable) ? UI_GetStringWidth(name) + (compact ? f5 : f10) + UI_UNIT_X : 10 * UI_UNIT_X;  /* text only */
+
+	variable = (ui_layout_vary_direction(layout) == UI_ITEM_VARY_X);
+
+	if (variable) {
+		/* it may seem odd that the icon only adds (UI_UNIT_X / 4)
+		 * but taking margins into account its fine */
+		return (UI_GetStringWidth(name) +
+		        (UI_UNIT_X * ((compact ? 1.25f : 1.50f) +
+		                      (icon    ? 0.25f : 0.0f))));
+	}
+	else {
+		return UI_UNIT_X * 10;
+	}
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)
@@ -1104,7 +1111,7 @@ static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, Point
 			RNA_property_enum_items_gettexted(layout->root->block->evil_C, ptr, prop, &item_array, NULL, &free);
 			for (item = item_array; item->identifier; item++) {
 				if (item->identifier[0]) {
-					w = max_ii(w, ui_text_icon_width(layout, item->name, icon, 0));
+					w = max_ii(w, ui_text_icon_width(layout, item->name, item->icon, 0));
 				}
 			}
 			if (free) {

@@ -2726,7 +2726,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SIPO_MODE_ANIMATION, "FCURVES", ICON_IPO, "F-Curve Editor",
+		{SIPO_MODE_ANIMATION, "FCURVES", ICON_IPO, "F-Curve",
 		 "Edit animation/keyframes displayed as 2D curves"},
 		{SIPO_MODE_DRIVERS, "DRIVERS", ICON_DRIVER, "Drivers", "Edit drivers"},
 		{0, NULL, 0, NULL, NULL}
