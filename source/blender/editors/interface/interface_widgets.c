@@ -956,7 +956,7 @@ static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 	but->ofs = 0;
 	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
 
-	if (but->strwidth > okwidth) {
+	if ((okwidth > 0.0f) && (but->strwidth > okwidth)) {
 		float strwidth;
 		but->ofs = BLF_width_to_rstrlen(fstyle->uifont_id, but->drawstr,
 		                                sizeof(but->drawstr), okwidth, &strwidth);
@@ -1009,7 +1009,7 @@ static float ui_text_clip_middle_ex(uiFontStyle *fstyle, char *str, const float 
 
 	strwidth = BLF_width(fstyle->uifont_id, str, max_len);
 
-	if (strwidth > okwidth) {
+	if ((okwidth > 0.0f) && (strwidth > okwidth)) {
 		/* utf8 ellipsis '...', some compilers complain */
 		const char sep[] = {0xe2, 0x80, 0xa6, 0x0};
 		const int sep_len = sizeof(sep) - 1;
