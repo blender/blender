@@ -234,7 +234,7 @@ enum PathRayFlag {
 	PATH_RAY_DIFFUSE_ANCESTOR = 2048,
 	PATH_RAY_GLOSSY_ANCESTOR = 4096,
 	PATH_RAY_BSSRDF_ANCESTOR = 8192,
-	PATH_RAY_SINGLE_PASS_DONE = 8192,
+	PATH_RAY_SINGLE_PASS_DONE = 16384,
 
 	/* this gives collisions with localview bits
 	 * see: blender_util.h, grr - Campbell */
