@@ -339,17 +339,13 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			utf8_buf = ascii;
 			break;
 		case EQUALKEY:
+			/* XXX Advanced mode toggle, hack around keyboards without direct access to '=' nor '*'... */
+			ascii[0] = '=';
+			break;
 		case PADASTERKEY:
-			if (!(n->flag & NUM_EDIT_FULL)) {
-				n->flag |= NUM_EDIT_FULL;
-				n->val_flag[idx] |= NUM_EDITED;
-				return true;
-			}
-			else if (event->ctrl) {
-				n->flag &= ~NUM_EDIT_FULL;
-				return true;
-			}
-			/* fall-through */
+			/* XXX Advanced mode toggle, hack around keyboards without direct access to '=' nor '*'... */
+			ascii[0] = '*';
+			break;
 		case PADMINUS:
 		case MINUSKEY:
 			if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
@@ -400,6 +396,19 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			utf8_buf = event->utf8_buf;
 			ascii[0] = event->ascii;
 			break;
+	}
+
+	/* XXX Hack around keyboards without direct access to '=' nor '*'... */
+	if (ELEM(ascii[0], '=', '*')) {
+		if (!(n->flag & NUM_EDIT_FULL)) {
+			n->flag |= NUM_EDIT_FULL;
+			n->val_flag[idx] |= NUM_EDITED;
+			return true;
+		}
+		else if (event->ctrl) {
+			n->flag &= ~NUM_EDIT_FULL;
+			return true;
+		}
 	}
 
 	if (utf8_buf && !utf8_buf[0] && ascii[0]) {
