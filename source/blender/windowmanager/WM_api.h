@@ -92,6 +92,7 @@ struct wmWindow	*WM_window_open	(struct bContext *C, const struct rcti *rect);
 
 int			WM_window_pixels_x		(struct wmWindow *win);
 int			WM_window_pixels_y		(struct wmWindow *win);
+bool		WM_window_is_fullscreen	(struct wmWindow *win);
 
 /* defines for 'type' WM_window_open_temp */
 #define WM_WINDOW_RENDER		0

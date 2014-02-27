@@ -1440,3 +1440,9 @@ int WM_window_pixels_y(wmWindow *win)
 	return (int)(f * (float)win->sizey);
 	
 }
+
+bool WM_window_is_fullscreen(wmWindow *win)
+{
+	return win->windowstate == GHOST_kWindowStateFullScreen;
+}
+

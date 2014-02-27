@@ -559,7 +559,7 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 /* ************************************************************ */
 
 
-static void area_azone_initialize(bScreen *screen, ScrArea *sa)
+static void area_azone_initialize(wmWindow *win, bScreen *screen, ScrArea *sa)
 {
 	AZone *az;
 	
@@ -570,15 +570,21 @@ static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 		return;
 	}
 
-	/* set area action zones */
-	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-	BLI_addtail(&(sa->actionzones), az);
-	az->type = AZONE_AREA;
-	az->x1 = sa->totrct.xmin;
-	az->y1 = sa->totrct.ymin;
-	az->x2 = sa->totrct.xmin + (AZONESPOT - 1);
-	az->y2 = sa->totrct.ymin + (AZONESPOT - 1);
-	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	/* can't click on bottom corners on OS X, already used for resizing */
+#ifdef __APPLE__
+	if(!(sa->totrct.xmin == 0 && sa->totrct.ymin == 0) || WM_window_is_fullscreen(win))
+#endif
+	{
+		/* set area action zones */
+		az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&(sa->actionzones), az);
+		az->type = AZONE_AREA;
+		az->x1 = sa->totrct.xmin;
+		az->y1 = sa->totrct.ymin;
+		az->x2 = sa->totrct.xmin + (AZONESPOT - 1);
+		az->y2 = sa->totrct.ymin + (AZONESPOT - 1);
+		BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	}
 	
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
@@ -1274,7 +1280,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	area_calc_totrct(sa, WM_window_pixels_x(win), WM_window_pixels_y(win));
 	
 	/* clear all azones, add the area triange widgets */
-	area_azone_initialize(win->screen, sa);
+	area_azone_initialize(win, win->screen, sa);
 
 	/* region rect sizes */
 	rect = sa->totrct;
