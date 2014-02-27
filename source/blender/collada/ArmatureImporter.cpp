@@ -337,18 +337,23 @@ void ArmatureImporter::create_armature_bones( )
 		if (get_armature_for_joint(*ri) != NULL) continue;
 		
 		Object *ob_arm = joint_parent_map[(*ri)->getUniqueId()];
-
 		if (!ob_arm)
 			continue;
 
-		ED_armature_to_edit((bArmature *)ob_arm->data);
+		bArmature * armature = (bArmature *)ob_arm->data;
+		if (!armature)
+			continue;
 
-		/*
-		 * TODO:
-		 * check if bones have already been created for a given joint
-		 */
+		char * bone_name = (char *)bc_get_joint_name(*ri);
+		Bone *bone = BKE_armature_find_bone_name(armature, bone_name);
+		if(bone) {
+			fprintf(stderr, "Reuse of child bone [%s] as root bone in same Armature is not supported.\n", bone_name);
+			continue;
+		}
 
-		create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature *)ob_arm->data);
+		ED_armature_to_edit(armature);
+
+		create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, armature);
 
 		//leaf bone tails are derived from the matrix, so no need of this.
 		fix_leaf_bones();
@@ -356,12 +361,12 @@ void ArmatureImporter::create_armature_bones( )
 		// exit armature edit mode
 		unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
-		ED_armature_from_edit((bArmature *)ob_arm->data);
+		ED_armature_from_edit(armature);
 
 		//This serves no purpose, as pose is automatically reset later, in BKE_where_is_bone()
 		//set_pose(ob_arm, *ri, NULL, NULL);
 
-		ED_armature_edit_free((bArmature *)ob_arm->data);
+		ED_armature_edit_free(armature);
 		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 	}
 }
