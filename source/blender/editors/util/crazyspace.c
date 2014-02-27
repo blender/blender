@@ -62,21 +62,27 @@ BLI_INLINE void tan_calc_v3(float a[3], const float b[3], const float c[3])
 	a[2] = b[2] + 0.2f * (b[2] - c[2]);
 }
 
+BLI_INLINE void tan_calc_quat_v3(
+        float r_quat[4],
+        const float co_1[3], const float co_2[3], const float co_3[3])
+{
+	float vec_u[3], vec_v[3];
+	tan_calc_v3(vec_u, co_1, co_2);
+	tan_calc_v3(vec_v, co_1, co_3);
+	if (tri_to_quat(r_quat, co_1, vec_u, vec_v) < FLT_EPSILON) {
+		unit_qt(r_quat);
+	}
+}
+
 static void set_crazy_vertex_quat(
         float r_quat[4],
         const float co_1[3], const float co_2[3], const float co_3[3],
         const float vd_1[3], const float vd_2[3], const float vd_3[3])
 {
-	float vec_u[3], vec_v[3];
 	float q1[4], q2[4];
 
-	tan_calc_v3(vec_u, co_1, co_2);
-	tan_calc_v3(vec_v, co_1, co_3);
-	tri_to_quat(q1, co_1, vec_u, vec_v);
-
-	tan_calc_v3(vec_u, vd_1, vd_2);
-	tan_calc_v3(vec_v, vd_1, vd_3);
-	tri_to_quat(q2, vd_1, vec_u, vec_v);
+	tan_calc_quat_v3(q1, co_1, co_2, co_3);
+	tan_calc_quat_v3(q2, vd_1, vd_2, vd_3);
 
 	sub_qt_qtqt(r_quat, q2, q1);
 }

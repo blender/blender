@@ -663,11 +663,17 @@ void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const f
 	mul_qt_qtqt(quat, q1, q2);
 }
 
-void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const float v3[3])
+/**
+ * \return the length of the normal, use to test for degenerate triangles.
+ */
+float tri_to_quat(float quat[4], const float v1[3], const float v2[3], const float v3[3])
 {
 	float vec[3];
-	normal_tri_v3(vec, v1, v2, v3);
+	float len;
+
+	len = normal_tri_v3(vec, v1, v2, v3);
 	tri_to_quat_ex(quat, v1, v2, v3, vec);
+	return len;
 }
 
 void print_qt(const char *str, const float q[4])
