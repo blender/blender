@@ -655,7 +655,8 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
 		return apply_objects_internal(C, op->reports, loc, rot, sca);
 	}
 	else {
-		return OPERATOR_CANCELLED;
+		/* allow for redo */
+		return OPERATOR_FINISHED;
 	}
 }
 
