@@ -3024,24 +3024,38 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 				}
 			}
 			if (leftviolate || rightviolate) { /* align left handle */
-				float h1[3], h2[3];
-				float dot;
+				if (mode != 0) {
+					/* simple 2d calculation */
+					float h1_x = p2_h1[0] - p2[0];
+					float h2_x = p2[0] - p2_h2[0];
 
-				sub_v3_v3v3(h1, p2_h1, p2);
-				sub_v3_v3v3(h2, p2, p2_h2);
-
-				len_a = normalize_v3(h1);
-				len_b = normalize_v3(h2);
-
-				dot = dot_v3v3(h1, h2);
-
-				if (leftviolate) {
-					mul_v3_fl(h1, dot * len_b);
-					sub_v3_v3v3(p2_h2, p2, h1);
+					if (leftviolate) {
+						p2_h2[1] = p2[1] + ((p2[1] - p2_h1[1]) / h1_x) * h2_x;
+					}
+					else {
+						p2_h1[1] = p2[1] + ((p2[1] - p2_h2[1]) / h2_x) * h1_x;
+					}
 				}
 				else {
-					mul_v3_fl(h2, dot * len_a);
-					add_v3_v3v3(p2_h1, p2, h2);
+					float h1[3], h2[3];
+					float dot;
+
+					sub_v3_v3v3(h1, p2_h1, p2);
+					sub_v3_v3v3(h2, p2, p2_h2);
+
+					len_a = normalize_v3(h1);
+					len_b = normalize_v3(h2);
+
+					dot = dot_v3v3(h1, h2);
+
+					if (leftviolate) {
+						mul_v3_fl(h1, dot * len_b);
+						sub_v3_v3v3(p2_h2, p2, h1);
+					}
+					else {
+						mul_v3_fl(h2, dot * len_a);
+						add_v3_v3v3(p2_h1, p2, h2);
+					}
 				}
 			}
 		}
