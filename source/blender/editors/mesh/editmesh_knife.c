@@ -1797,6 +1797,10 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 {
 	knife_pos_data_clear(&kcd->curr);
 	copy_v2_v2(kcd->curr.mval, kcd->mval);
+
+	/* view matrix may have changed, reproject */
+	knife_project_v2(kcd, kcd->prev.co, kcd->prev.mval);
+
 	if (kcd->angle_snapping != ANGLE_FREE && kcd->mode == MODE_DRAGGING)
 		knife_snap_angle(kcd);
 
