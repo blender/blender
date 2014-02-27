@@ -100,6 +100,8 @@ bool EuclideanIntersect(const vector<Marker> &markers,
 
   ceres::Problem problem;
 
+  // Add residual blocks to the problem.
+  int num_residuals = 0;
   for (int i = 0; i < markers.size(); ++i) {
     const Marker &marker = markers[i];
     if (marker.weight != 0.0) {
@@ -113,7 +115,25 @@ bool EuclideanIntersect(const vector<Marker> &markers,
               3>(new EuclideanIntersectCostFunctor(marker, camera)),
           NULL,
           &X(0));
+	  num_residuals++;
     }
+  }
+
+  // TODO(sergey): Once we'll update Ceres to the next version
+  // we wouldn't need this check anymore -- Ceres will deal with
+  // zero-sized problems nicely.
+  LG << "Number of residuals: " << num_residuals;
+  if (!num_residuals) {
+    LG << "Skipping running minimizer with zero residuals";
+
+	// We still add 3D point for the track regardless it was
+	// optimized or not. If track is a constant zero it'll use
+	// algebraic intersection result as a 3D coordinate.
+
+    Vec3 point = X.head<3>();
+    reconstruction->InsertPoint(markers[0].track, point);
+
+    return true;
   }
 
   // Configure the solve.
