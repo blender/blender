@@ -1155,7 +1155,7 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 {
 	bFollowPathConstraint *data = con->data;
 	
-	if (VALID_CONS_TARGET(ct)) {
+	if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVE)) {
 		Curve *cu = ct->tar->data;
 		float vec[4], dir[3], radius;
 		float totmat[4][4] = MAT4_UNITY;
