@@ -2883,14 +2883,11 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 	mul_v3_v3fl(data->tvec, &ghost->tx, ts);
 	mul_v3_v3fl(data->rvec, &ghost->rx, rs);
 
-	/**
-	 * \note
-	 * - optionally swap Y/Z.
-	 * - maintain handed-ness? or just do what feels right? not for now.
-	 * - after testing seems best not to apply this to rotation.
-	 */
 	if (U.ndof_flag & NDOF_PAN_YZ_SWAP_AXIS) {
-		SWAP(float, data->tvec[1], data->tvec[2]);
+		float t;
+		t =  data->tvec[1];
+		data->tvec[1] = -data->tvec[2];
+		data->tvec[2] = t;
 	}
 
 	data->dt = ghost->dt;
