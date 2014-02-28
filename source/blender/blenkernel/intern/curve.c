@@ -2961,7 +2961,13 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		tvec[0] = dvec_b[0] / len_b + dvec_a[0] / len_a;
 		tvec[1] = dvec_b[1] / len_b + dvec_a[1] / len_a;
 		tvec[2] = dvec_b[2] / len_b + dvec_a[2] / len_a;
-		len = len_v3(tvec) * 2.5614f;
+		if (mode != 0) {
+			len = tvec[0];
+		}
+		else {
+			len = len_v3(tvec);
+		}
+		len *=  2.5614f;
 
 		if (len != 0.0f) {
 			bool leftviolate = false, rightviolate = false;  /* for mode==2 */
