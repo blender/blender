@@ -256,26 +256,18 @@
 
 /* some misc stuff.... */
 
-/* avoid multiple access & type conversions for supported compilers */
+/* avoid multiple access for supported compilers */
 #if defined(__GNUC__) || defined(__clang__)
 
 #define ABS(a)  ({ \
 	typeof(a) a_ = (a); \
 	((a_) < 0 ? (-(a_)) : (a_)); })
 
-#define CLAMPIS(a, b, c)  ({ \
-	typeof(a) a_ = (a), b_ = (b), c_ = (c); \
-	((a_) < (b_) ? (b_) : (a_) > (c_) ? (c_) : (a_)); })
-
-#define CLAMP(a, b, c)  {            \
-	typeof(a) b_ = (b), c_ = (c);   \
-	if      ((a) < (b_)) (a) = (b_); \
-	else if ((a) > (c_)) (a) = (c_); \
-} (void)0
-
 #else
 
 #define ABS(a)  ((a) < 0 ? (-(a)) : (a))
+
+#endif
 
 #define CLAMPIS(a, b, c)  ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 
@@ -283,8 +275,6 @@
 	if      ((a) < (b)) (a) = (b);  \
 	else if ((a) > (c)) (a) = (c);  \
 } (void)0
-
-#endif
 
 
 #define IS_EQ(a, b)  ( \
