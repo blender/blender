@@ -67,11 +67,8 @@ class VIEW3D_PT_tools_transform(View3DPanel, Panel):
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
 
-        active_object = context.active_object
-        if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
-
-            col = layout.column(align=True)
-            col.operator("transform.mirror", text="Mirror")
+        col = layout.column(align=True)
+        col.operator("transform.mirror", text="Mirror")
 
 
 class VIEW3D_PT_tools_object(View3DPanel, Panel):
@@ -86,23 +83,26 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
         col.operator("object.duplicate_move", text="Duplicate")
         col.operator("object.duplicate_move_linked", text="Duplicate Linked")
 
-        active_object = context.active_object
-        if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
-            col = layout.column(align=True)
-            col.operator("object.join")
         col.operator("object.delete")
 
-        col = layout.column(align=True)
-        if active_object and active_object.type in {'MESH', 'CURVE', 'SURFACE'}:
+        obj = context.active_object
+        if obj:
+            obj_type = obj.type
 
-            col = layout.column(align=True)
-            col.operator("object.origin_set", text="Set Origin")
+            if obj_type in {'MESH', 'CURVE', 'SURFACE', 'ARMATURE'}:
+                col = layout.column(align=True)
+                col.operator("object.join")
 
-            col = layout.column(align=True)
-            col.label(text="Shading:")
-            row = col.row(align=True)
-            row.operator("object.shade_smooth", text="Smooth")
-            row.operator("object.shade_flat", text="Flat")
+            if obj_type in {'MESH', 'CURVE', 'SURFACE', 'ARMATURE', 'FONT', 'LATTICE'}:
+                col = layout.column(align=True)
+                col.operator_menu_enum("object.origin_set", "type", text="Set Origin")
+
+            if obj_type in {'MESH', 'CURVE', 'SURFACE'}:
+                col = layout.column(align=True)
+                col.label(text="Shading:")
+                row = col.row(align=True)
+                row.operator("object.shade_smooth", text="Smooth")
+                row.operator("object.shade_flat", text="Flat")
 
 
 class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
