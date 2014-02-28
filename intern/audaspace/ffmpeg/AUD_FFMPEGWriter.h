@@ -83,6 +83,16 @@ private:
 	AVFrame *m_frame;
 
 	/**
+	 * PTS of next frame to write.
+	 */
+	int m_frame_pts;
+
+	/**
+	 * Number of bytes per sample.
+	 */
+	int m_audio_sample_size;
+
+	/**
 	 * The input buffer for the format converted data before encoding.
 	 */
 	AUD_Buffer m_input_buffer;

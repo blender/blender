@@ -476,12 +476,6 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem ac3_format_items[] = {
-		{AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
-		{AUD_FORMAT_FLOAT32, "F32", 0, "F32", "32 bit floating point"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 #ifdef WITH_SNDFILE
 	static EnumPropertyItem flac_format_items[] = {
 		{AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
@@ -527,10 +521,9 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 
 	switch (container) {
 		case AUD_CONTAINER_AC3:
-			RNA_def_property_clear_flag(prop_format, PROP_HIDDEN);
-			RNA_def_property_enum_items(prop_format, ac3_format_items);
 			RNA_def_property_enum_items(prop_codec, all_codec_items);
 			RNA_enum_set(op->ptr, "codec", AUD_CODEC_AC3);
+			RNA_enum_set(op->ptr, "format", AUD_FORMAT_FLOAT32);
 			break;
 		case AUD_CONTAINER_FLAC:
 			RNA_def_property_flag(prop_bitrate, PROP_HIDDEN);
@@ -539,9 +532,8 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 #ifdef WITH_SNDFILE
 			RNA_def_property_clear_flag(prop_format, PROP_HIDDEN);
 			RNA_def_property_enum_items(prop_format, flac_format_items);
-#else
-			RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
 #endif
+			RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
 			break;
 		case AUD_CONTAINER_MATROSKA:
 			RNA_def_property_clear_flag(prop_codec, PROP_HIDDEN);
@@ -552,8 +544,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 					RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
 					break;
 				case AUD_CODEC_AC3:
-					RNA_def_property_enum_items(prop_format, ac3_format_items);
-					RNA_def_property_clear_flag(prop_format, PROP_HIDDEN);
+					RNA_enum_set(op->ptr, "format", AUD_FORMAT_FLOAT32);
 					break;
 				case AUD_CODEC_FLAC:
 					RNA_def_property_flag(prop_bitrate, PROP_HIDDEN);
@@ -565,6 +556,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 				case AUD_CODEC_MP3:
 					RNA_def_property_enum_items(prop_format, mp3_format_items);
 					RNA_def_property_clear_flag(prop_format, PROP_HIDDEN);
+					RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
 					break;
 				case AUD_CODEC_PCM:
 					RNA_def_property_flag(prop_bitrate, PROP_HIDDEN);
@@ -589,11 +581,13 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 			RNA_def_property_enum_items(prop_format, mp3_format_items);
 			RNA_def_property_enum_items(prop_codec, all_codec_items);
 			RNA_enum_set(op->ptr, "codec", AUD_CODEC_MP3);
+			RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
 			break;
 		case AUD_CONTAINER_OGG:
 			RNA_def_property_clear_flag(prop_codec, PROP_HIDDEN);
 			RNA_def_property_enum_items(prop_codec, ogg_codec_items);
 			RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
+			RNA_enum_set(op->ptr, "codec", AUD_CODEC_VORBIS);
 			break;
 		case AUD_CONTAINER_WAV:
 			RNA_def_property_flag(prop_bitrate, PROP_HIDDEN);
