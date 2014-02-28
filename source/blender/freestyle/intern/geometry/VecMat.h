@@ -704,7 +704,8 @@ public:
 			for (unsigned int j = 0; j < N; j++)
 				res(j, i) = this->_coord[i * N + j];
 		}
-		return res;
+		*this = res;
+		return *this;
 	}
 
 	template <class U>
