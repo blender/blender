@@ -2542,8 +2542,8 @@ BPY_PROPDEF_OPTIONS_ENUM_DOC
 "      For dynamic values a callback can be passed which returns a list in\n"
 "      the same format as the static list.\n"
 "      This function must take 2 arguments (self, context)\n"
-"      WARNING: Do not use generators here (they will work the first time, but will lead to empty values\n"
-"      in some unload/reload scenarii)!\n"
+"      WARNING: There is a known bug with using a callback,\n"
+"      Python must keep a reference to the strings returned or Blender will crash.\n"
 "   :type items: sequence of string tuples or a function\n"
 BPY_PROPDEF_UPDATE_DOC
 );
