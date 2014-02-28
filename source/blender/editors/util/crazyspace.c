@@ -152,7 +152,8 @@ float (*crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
 	return vertexcos;
 }
 
-void crazyspace_set_quats_editmesh(BMEditMesh *em, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4])
+void crazyspace_set_quats_editmesh(BMEditMesh *em, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4],
+                                   const bool use_select)
 {
 	BMFace *f;
 	BMIter iter;
@@ -172,8 +173,12 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float (*origcos)[3], float (*
 
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT) || BM_elem_flag_test(l_iter->v, BM_ELEM_HIDDEN))
+			if (BM_elem_flag_test(l_iter->v, BM_ELEM_HIDDEN) ||
+			    BM_elem_flag_test(l_iter->v, BM_ELEM_TAG) ||
+			    (use_select && !BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)))
+			{
 				continue;
+			}
 
 			if (!BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
 				const float *co_prev, *co_curr, *co_next;  /* orig */
