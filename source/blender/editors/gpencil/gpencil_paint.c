@@ -1145,7 +1145,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 				MovieClip *clip = ED_space_clip_get_clip(sc);
 				int framenr = ED_space_clip_get_clip_frame_number(sc);
 				MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
-				MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
+				MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 				
 				p->imat[3][0] -= marker->pos[0];
 				p->imat[3][1] -= marker->pos[1];
