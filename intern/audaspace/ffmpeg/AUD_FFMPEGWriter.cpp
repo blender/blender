@@ -175,8 +175,10 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 			m_output_buffer.resize(FF_MIN_BUFFER_SIZE);
 			int samplesize = AUD_MAX(AUD_SAMPLE_SIZE(m_specs), AUD_DEVICE_SAMPLE_SIZE(m_specs));
 
-			if(m_codecCtx->frame_size <= 1)
-				m_input_size = 0;
+			if(m_codecCtx->frame_size <= 1) {
+				m_input_size = FF_MIN_BUFFER_SIZE * 8 / m_codecCtx->bits_per_coded_sample / m_codecCtx->channels;
+				m_input_buffer.resize(m_input_size * samplesize);
+			}
 			else
 			{
 				m_input_buffer.resize(m_codecCtx->frame_size * samplesize);
@@ -190,7 +192,7 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 			avcodec_get_frame_defaults(m_frame);
 			m_frame->linesize[0]    = m_input_size * samplesize;
 			m_frame->format         = m_codecCtx->sample_fmt;
-			m_frame->nb_samples     = m_codecCtx->frame_size;
+			m_frame->nb_samples     = m_input_size;
 #  ifdef FFMPEG_HAVE_AVFRAME_SAMPLE_RATE
 			m_frame->sample_rate    = m_codecCtx->sample_rate;
 #  endif
