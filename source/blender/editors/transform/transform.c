@@ -4075,10 +4075,18 @@ static void initTranslation(TransInfo *t)
 
 	copy_v3_fl(t->num.val_inc, t->snap[1]);
 	t->num.unit_sys = t->scene->unit.system;
-	t->num.unit_type[0] = B_UNIT_LENGTH;
-	t->num.unit_type[1] = B_UNIT_LENGTH;
-	t->num.unit_type[2] = B_UNIT_LENGTH;
-
+	if (t->spacetype == SPACE_VIEW3D) {
+		/* Handling units makes only sense in 3Dview... See T38877. */
+		t->num.unit_type[0] = B_UNIT_LENGTH;
+		t->num.unit_type[1] = B_UNIT_LENGTH;
+		t->num.unit_type[2] = B_UNIT_LENGTH;
+	}
+	else {
+		/* SPACE_IPO, SPACE_ACTION, etc. could use some time units, when we have them... */
+		t->num.unit_type[0] = B_UNIT_NONE;
+		t->num.unit_type[1] = B_UNIT_NONE;
+		t->num.unit_type[2] = B_UNIT_NONE;
+	}
 }
 
 static void headerTranslation(TransInfo *t, float vec[3], char str[MAX_INFO_LEN])
