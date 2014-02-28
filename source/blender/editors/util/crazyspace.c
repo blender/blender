@@ -55,21 +55,23 @@ typedef struct {
 	BLI_bitmap *vertex_visit;
 } MappedUserData;
 
-BLI_INLINE void tan_calc_v3(float a[3], const float b[3], const float c[3])
-{
-	a[0] = b[0] + 0.2f * (b[0] - c[0]);
-	a[1] = b[1] + 0.2f * (b[1] - c[1]);
-	a[2] = b[2] + 0.2f * (b[2] - c[2]);
-}
-
 BLI_INLINE void tan_calc_quat_v3(
         float r_quat[4],
         const float co_1[3], const float co_2[3], const float co_3[3])
 {
 	float vec_u[3], vec_v[3];
-	tan_calc_v3(vec_u, co_1, co_2);
-	tan_calc_v3(vec_v, co_1, co_3);
-	if (tri_to_quat(r_quat, co_1, vec_u, vec_v) < FLT_EPSILON) {
+	float nor[3];
+
+	sub_v3_v3v3(vec_u, co_1, co_2);
+	sub_v3_v3v3(vec_v, co_1, co_3);
+
+	cross_v3_v3v3(nor, vec_u, vec_v);
+
+	if (normalize_v3(nor) > FLT_EPSILON) {
+		const float zero_vec[3] = {0.0f};
+		tri_to_quat_ex(r_quat, zero_vec, vec_u, vec_v, nor);
+	}
+	else {
 		unit_qt(r_quat);
 	}
 }
