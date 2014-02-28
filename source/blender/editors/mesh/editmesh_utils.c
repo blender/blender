@@ -132,16 +132,7 @@ void EDBM_mesh_clear(BMEditMesh *em)
 	BM_mesh_clear(em->bm);
 	
 	/* free derived meshes */
-	if (em->derivedCage) {
-		em->derivedCage->needsFree = 1;
-		em->derivedCage->release(em->derivedCage);
-	}
-	if (em->derivedFinal && em->derivedFinal != em->derivedCage) {
-		em->derivedFinal->needsFree = 1;
-		em->derivedFinal->release(em->derivedFinal);
-	}
-	
-	em->derivedCage = em->derivedFinal = NULL;
+	BKE_editmesh_free_derivedmesh(em);
 	
 	/* free tessellation data */
 	em->tottri = 0;

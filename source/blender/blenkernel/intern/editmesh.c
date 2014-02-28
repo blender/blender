@@ -187,21 +187,24 @@ void BKE_editmesh_update_linked_customdata(BMEditMesh *em)
 	}
 }
 
-/*does not free the BMEditMesh struct itself*/
-void BKE_editmesh_free(BMEditMesh *em)
+void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
 {
-	if (em->derivedFinal) {
-		if (em->derivedFinal != em->derivedCage) {
-			em->derivedFinal->needsFree = 1;
-			em->derivedFinal->release(em->derivedFinal);
-		}
-		em->derivedFinal = NULL;
-	}
 	if (em->derivedCage) {
 		em->derivedCage->needsFree = 1;
 		em->derivedCage->release(em->derivedCage);
-		em->derivedCage = NULL;
 	}
+	if (em->derivedFinal && em->derivedFinal != em->derivedCage) {
+		em->derivedFinal->needsFree = 1;
+		em->derivedFinal->release(em->derivedFinal);
+	}
+
+	em->derivedCage = em->derivedFinal = NULL;
+}
+
+/*does not free the BMEditMesh struct itself*/
+void BKE_editmesh_free(BMEditMesh *em)
+{
+	BKE_editmesh_free_derivedmesh(em);
 
 	BKE_editmesh_color_free(em);
 

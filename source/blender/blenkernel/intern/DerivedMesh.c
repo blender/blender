@@ -2256,18 +2256,7 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 	BKE_object_free_derived_caches(obedit);
 	BKE_object_sculpt_modifiers_changed(obedit);
 
-	if (em->derivedFinal) {
-		if (em->derivedFinal != em->derivedCage) {
-			em->derivedFinal->needsFree = 1;
-			em->derivedFinal->release(em->derivedFinal);
-		}
-		em->derivedFinal = NULL;
-	}
-	if (em->derivedCage) {
-		em->derivedCage->needsFree = 1;
-		em->derivedCage->release(em->derivedCage);
-		em->derivedCage = NULL;
-	}
+	BKE_editmesh_free_derivedmesh(em);
 
 	editbmesh_calc_modifiers(scene, obedit, em, &em->derivedCage, &em->derivedFinal, dataMask);
 	DM_set_object_boundbox(obedit, em->derivedFinal);
