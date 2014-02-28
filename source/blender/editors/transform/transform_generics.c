@@ -1715,11 +1715,8 @@ void calculateCenter(TransInfo *t)
 	/* for panning from cameraview */
 	if (t->flag & T_OBJECT) {
 		if (t->spacetype == SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
-			View3D *v3d = t->view;
-			Scene *scene = t->scene;
-			RegionView3D *rv3d = t->ar->regiondata;
 			
-			if (v3d->camera == OBACT && rv3d->persp == RV3D_CAMOB) {
+			if (t->flag & T_CAMERA) {
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */
 				copy_v3_v3(axis, t->viewinv[2]);

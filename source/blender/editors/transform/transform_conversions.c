@@ -4776,7 +4776,8 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 }
 
 /* transcribe given object into TransData for Transforming */
-static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
+static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob,
+                              const Object *ob_act)
 {
 	Scene *scene = t->scene;
 	bool constinv;
@@ -4902,7 +4903,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	}
 
 	/* set active flag */
-	if (ob == OBACT) {
+	if (ob == ob_act) {
 		td->flag |= TD_ACTIVE;
 	}
 }
@@ -5907,6 +5908,9 @@ int special_transform_moving(TransInfo *t)
 
 static void createTransObject(bContext *C, TransInfo *t)
 {
+	Scene *scene = t->scene;
+	const Object *ob_act = OBACT;
+
 	TransData *td = NULL;
 	TransDataExtension *tx;
 	int propmode = t->flag & T_PROP_EDIT;
@@ -5948,7 +5952,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 			td->flag |= TD_SKIP;
 		}
 		
-		ObjectToTransData(t, td, ob);
+		ObjectToTransData(t, td, ob, ob_act);
 		td->val = NULL;
 		td++;
 		tx++;
@@ -5956,7 +5960,6 @@ static void createTransObject(bContext *C, TransInfo *t)
 	CTX_DATA_END;
 	
 	if (propmode) {
-		Scene *scene = t->scene;
 		View3D *v3d = t->view;
 		Base *base;
 
@@ -5971,7 +5974,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 				td->ext = tx;
 				td->ext->rotOrder = ob->rotmode;
 				
-				ObjectToTransData(t, td, ob);
+				ObjectToTransData(t, td, ob, ob_act);
 				td->val = NULL;
 				td++;
 				tx++;
@@ -7052,11 +7055,15 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 
+		/* Check if we're transforming the camera from the camera */
 		if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
 			View3D *v3d = t->view;
-			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if (rv3d && (t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp == RV3D_CAMOB) {
-				t->flag |= T_CAMERA;
+			RegionView3D *rv3d = t->ar->regiondata;
+			if ((rv3d->persp == RV3D_CAMOB) && v3d->camera) {
+				/* we could have a flag to easily check an object is being transformed */
+				if (v3d->camera->recalc) {
+					t->flag |= T_CAMERA;
+				}
 			}
 		}
 	}
