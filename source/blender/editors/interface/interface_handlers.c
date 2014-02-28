@@ -1754,7 +1754,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			/* pass */
 		}
 		else if (mode == 'c') {
-			if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
+			if (but->rnaprop && RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
 				rgba[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
 			else
 				rgba[3] = 1.0f;
@@ -1776,7 +1776,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				ui_set_but_vectorf(but, rgba);
-				if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
+				if (but->rnaprop && RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
 					RNA_property_float_set_index(&but->rnapoin, but->rnaprop, 3, rgba[3]);
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
