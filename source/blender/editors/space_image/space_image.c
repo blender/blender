@@ -789,18 +789,26 @@ static void image_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 {
 	/* context changes */
 	switch (wmn->category) {
-		case NC_GPENCIL:
-			if (wmn->data == ND_DATA)
-				ED_region_tag_redraw(ar);
-			break;
-		case NC_BRUSH:
-			if (wmn->action == NA_EDITED)
-				ED_region_tag_redraw(ar);
-			break;
 		case NC_TEXTURE:
 		case NC_MATERIAL:
 			/* sending by texture render job and needed to properly update displaying
 			 * brush texture icon */
+			ED_region_tag_redraw(ar);
+			break;
+		case NC_SCENE:
+			switch (wmn->data) {
+				case ND_MODE:
+				case ND_RENDER_RESULT:
+				case ND_COMPO_RESULT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_IMAGE:
+			if (wmn->action != NA_PAINTING)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;
 	}
@@ -850,6 +858,14 @@ static void image_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 {
 	/* context changes */
 	switch (wmn->category) {
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_BRUSH:
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_MODE:
