@@ -1061,27 +1061,6 @@ static void createTransPose(TransInfo *t, Object *ob)
 
 /* ********************* armature ************** */
 
-static void createTransArmatureVerts_init_roll_fix(TransData *td, EditBone *ebo)
-{
-	/* To fix roll, see comments in transform_generic.c::recalcData_objects() */
-	const float z_axis[3] = {0.0f, 0.0f, 1.0f};
-	float vec[3];
-
-	sub_v3_v3v3(vec, ebo->tail, ebo->head);
-	normalize_v3(vec);
-
-	td->extra = ebo;
-
-	if (fabsf(dot_v3v3(vec, z_axis)) > 0.999999f) {
-		/* If nearly aligned with Z axis, do not alter roll. See T38843. */
-		ebo->temp_f = ebo->roll;
-	}
-	else {
-		ebo->temp_f = ebo->roll - ED_rollBoneToVector(ebo, z_axis, false);
-	}
-	td->ival = ebo->roll;
-}
-
 static void createTransArmatureVerts(TransInfo *t)
 {
 	EditBone *ebo;
@@ -1217,7 +1196,8 @@ static void createTransArmatureVerts(TransInfo *t)
 					ED_armature_ebone_to_mat3(ebo, td->axismtx);
 
 					if ((ebo->flag & BONE_ROOTSEL) == 0) {
-						createTransArmatureVerts_init_roll_fix(td, ebo);
+						td->extra = ebo;
+						td->ival = ebo->roll;
 					}
 
 					td->ext = NULL;
@@ -1239,7 +1219,8 @@ static void createTransArmatureVerts(TransInfo *t)
 
 					ED_armature_ebone_to_mat3(ebo, td->axismtx);
 
-					createTransArmatureVerts_init_roll_fix(td, ebo);
+					td->extra = ebo; /* to fix roll */
+					td->ival = ebo->roll;
 
 					td->ext = NULL;
 					td->val = NULL;

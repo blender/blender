@@ -798,35 +798,34 @@ static void recalcData_objects(TransInfo *t)
 			
 			if (!ELEM3(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONESIZE)) {
 				/* fix roll */
-				/* Previous method basically tried to get a rotation transform from org ebo Y axis to final ebo Y axis,
-				 * apply this same rotation to org ebo Z axis to get an "up_axis", and compute a new roll value
-				 * so that final ebo's Z axis would be "aligned" with that up_axis.
-				 * There are two issues with that method:
-				 *   - There are many cases where the computed up_axis does not gives a result people would expect.
-				 *   - Applying a same transform in a single step or in several smaller ones would not give the same
-				 *     result! See e.g. T38407.
-				 * Now, instead of trying to be smart with complex axis/angle handling, just store diff roll
-				 * (diff between real init roll and virtual init roll where bone's Z axis would be "aligned" with
-				 * armature's Z axis), and do the reverse to get final roll.
-				 * This method at least gives predictable, consistent results (the bone basically keeps "facing"
-				 * the armature's Z axis).
-				 * Note we need some special handling when bone is Z-aligned... sigh.
-				 */
 				for (i = 0; i < t->total; i++, td++) {
 					if (td->extra) {
-						const float z_axis[3] = {0.0f, 0.0f, 1.0f};
-						float vec[3];
-
+						float vec[3], up_axis[3];
+						float qrot[4];
+						float roll;
+						
 						ebo = td->extra;
-						sub_v3_v3v3(vec, ebo->tail, ebo->head);
-						normalize_v3(vec);
 
-						if (fabsf(dot_v3v3(vec, z_axis)) > 0.999999f) {
-							/* If our bone is Z-aligned, do not alter roll. See T38843. */
+						if (t->state == TRANS_CANCEL) {
+							/* restore roll */
 							ebo->roll = td->ival;
 						}
 						else {
-							ebo->roll = ebo->temp_f + ED_rollBoneToVector(ebo, z_axis, false);
+							copy_v3_v3(up_axis, td->axismtx[2]);
+							
+							if (t->mode != TFM_ROTATION) {
+								sub_v3_v3v3(vec, ebo->tail, ebo->head);
+								normalize_v3(vec);
+								rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
+								mul_qt_v3(qrot, up_axis);
+							}
+							else {
+								mul_m3_v3(t->mat, up_axis);
+							}
+							
+							/* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
+							roll = ED_rollBoneToVector(ebo, up_axis, false);
+							ebo->roll = angle_compat_rad(roll, td->ival);
 						}
 					}
 				}
