@@ -169,6 +169,19 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 			if(!codec)
 				AUD_THROW(AUD_ERROR_FFMPEG, codec_error);
 
+			if(codec->sample_fmts) {
+				// Check if the prefered sample format for this codec is supported.
+				const enum AVSampleFormat *p = codec->sample_fmts;
+				for(; *p != -1; p++) {
+					if(*p == m_stream->codec->sample_fmt)
+						break;
+				}
+				if(*p == -1) {
+					// Sample format incompatible with codec. Defaulting to a format known to work.
+					m_stream->codec->sample_fmt = codec->sample_fmts[0];
+				}
+			}
+
 			if(avcodec_open2(m_codecCtx, codec, NULL))
 				AUD_THROW(AUD_ERROR_FFMPEG, codec_error);
 
@@ -199,8 +212,11 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 #  ifdef FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
 			m_frame->channel_layout = m_codecCtx->channel_layout;
 #  endif
-			m_audio_sample_size = av_get_bytes_per_sample(m_codecCtx->sample_fmt);
+			m_sample_size = av_get_bytes_per_sample(m_codecCtx->sample_fmt);
 			m_frame_pts = 0;
+			m_deinterleave = av_sample_fmt_is_planar(m_codecCtx->sample_fmt);
+			if(m_deinterleave)
+				m_deinterleave_buffer.resize(m_input_size * m_codecCtx->channels * m_sample_size);
 #endif
 
 			try
@@ -283,6 +299,17 @@ void AUD_FFMPEGWriter::encode(sample_t* data)
 #ifdef FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
 	m_frame->channel_layout = m_codecCtx->channel_layout;
 #endif
+
+	if(m_deinterleave) {
+		for(int channel = 0; channel < m_codecCtx->channels; channel++) {
+			for(int i = 0; i < m_frame->nb_samples; i++) {
+				memcpy(reinterpret_cast<uint8_t*>(m_deinterleave_buffer.getBuffer()) + (i + channel * m_frame->nb_samples) * m_sample_size,
+					   reinterpret_cast<uint8_t*>(data) + (m_codecCtx->channels * i + channel) * m_sample_size, m_sample_size);
+			}
+		}
+
+		data = m_deinterleave_buffer.getBuffer();
+	}
 
 	avcodec_fill_audio_frame(m_frame, m_codecCtx->channels, m_codecCtx->sample_fmt, reinterpret_cast<uint8_t*>(data),
 	                         m_frame->nb_samples * av_get_bytes_per_sample(m_codecCtx->sample_fmt) * m_codecCtx->channels, 1);

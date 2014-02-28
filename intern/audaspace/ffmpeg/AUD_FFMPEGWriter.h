@@ -90,7 +90,14 @@ private:
 	/**
 	 * Number of bytes per sample.
 	 */
-	int m_audio_sample_size;
+	int m_sample_size;
+
+	/**
+	 * Need to de-interleave audio for planar sample formats.
+	 */
+	bool m_deinterleave;
+
+	AUD_Buffer m_deinterleave_buffer;
 
 	/**
 	 * The input buffer for the format converted data before encoding.
