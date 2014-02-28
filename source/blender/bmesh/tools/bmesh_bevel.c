@@ -1164,7 +1164,7 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int n,
 	}
 }
 
-/* Calculcate the actual coordinate values for bndv's profile.
+/* Calculate the actual coordinate values for bndv's profile.
  * This is only needed if bp->seg > 1.
  * Allocate the space for them if that hasn't been done already.
  * If bp->seg is not a power of 2, also need to calculate

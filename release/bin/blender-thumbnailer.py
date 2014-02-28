@@ -42,8 +42,9 @@ def open_wrapper_get():
 
     class GFileWrapper:
         __slots__ = ("mode", "g_file")
+
         def __init__(self, url, mode='r'):
-            self.mode = mode # used in gzip module
+            self.mode = mode  # used in gzip module
             self.g_file = Gio.File.parse_name(url).read(None)
 
         def read(self, size):

@@ -230,8 +230,9 @@ static int unset_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 
 	/* if there is a valid property that is editable... */
-	if (ptr.data && prop && RNA_property_editable(&ptr, prop)
-	    /*&& RNA_property_is_idprop(prop)*/ && RNA_property_is_set(&ptr, prop))
+	if (ptr.data && prop && RNA_property_editable(&ptr, prop) &&
+	    /* RNA_property_is_idprop(prop) && */
+	    RNA_property_is_set(&ptr, prop))
 	{
 		RNA_property_unset(&ptr, prop);
 		return operator_button_property_finish(C, &ptr, prop);
