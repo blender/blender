@@ -2636,7 +2636,12 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	}
 
 	/* note: in prop mode we need at least 1 selected */
-	if (countsel == 0) return;
+	if (countsel == 0) {
+		if (propconnected) {
+			MEM_freeN(island_enabled);
+		}
+		return;
+	}
 
 	t->total = (propmode) ? count : countsel;
 	t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(UV Editing)");

@@ -46,11 +46,6 @@ typedef struct PolyInfo {
 	ScanFillVert *vert_outer;
 } PolyInfo;
 
-typedef struct PolySort {
-	float area;
-	unsigned short poly_nr;
-} PolySort;
-
 typedef struct ScanFillIsect {
 	struct ScanFillIsect *next, *prev;
 	float co[3];

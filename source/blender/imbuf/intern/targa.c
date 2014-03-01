@@ -618,6 +618,9 @@ ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags, char colors
 	}
 	
 	if (flags & IB_test) {
+		if (cmap) {
+			MEM_freeN(cmap);
+		}
 		return ibuf;
 	}
 

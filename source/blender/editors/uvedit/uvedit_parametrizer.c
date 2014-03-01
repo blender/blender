@@ -200,7 +200,7 @@ typedef struct PChart {
 		} lscm;
 		struct PChartPack {
 			float rescale, area;
-			float size[2], trans[2];
+			float size[2] /* , trans[2] */;
 		} pack;
 	} u;
 
@@ -1100,7 +1100,7 @@ static PFace *p_face_add(PHandle *handle)
 }
 
 static PFace *p_face_add_construct(PHandle *handle, ParamKey key, ParamKey *vkeys,
-                                   float *co[3], float *uv[3], int i1, int i2, int i3,
+                                   float *co[4], float *uv[4], int i1, int i2, int i3,
                                    ParamBool *pin, ParamBool *select)
 {
 	PFace *f = p_face_add(handle);
@@ -4250,7 +4250,7 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
 }
 
 void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
-                    ParamKey *vkeys, float **co, float **uv,
+                    ParamKey *vkeys, float *co[4], float *uv[4],
                     ParamBool *pin, ParamBool *select, float normal[3])
 {
 	PHandle *phandle = (PHandle *)handle;

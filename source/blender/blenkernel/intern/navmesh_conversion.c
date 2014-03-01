@@ -400,7 +400,7 @@ int buildNavMeshData(const int nverts, const float *verts,
 		if (curpolyidx != prevpolyidx) {
 			if (curpolyidx != prevpolyidx + 1) {
 				printf("Converting navmesh: Error! Wrong order of detailed mesh faces\n");
-				return 0;
+				goto fail;
 			}
 			dmesh = dmesh == NULL ? dmeshes : dmesh + 4;
 			dmesh[2] = (unsigned short)i;  /* tbase */
@@ -427,6 +427,12 @@ int buildNavMeshData(const int nverts, const float *verts,
 	*dtrisToTrisMap_r = dtrisToTrisMap;
 
 	return 1;
+
+fail:
+	MEM_freeN(dmeshes);
+	MEM_freeN(dtrisToPolysMap);
+	MEM_freeN(dtrisToTrisMap);
+	return 0;
 }
 
 

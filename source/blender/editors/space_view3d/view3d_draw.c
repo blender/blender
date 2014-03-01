@@ -1217,7 +1217,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			vmargin = 0.035f * (y2 - y1);
 			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1 + vmargin, x2 - hmargin, y2 - vmargin, 2.0f);
 		}
-		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
+		if (ca->flag & CAM_SHOWSENSOR) {
 			/* determine sensor fit, and get sensor x/y, for auto fit we
 			 * assume and square sensor and only use sensor_x */
 			float sizex = scene->r.xsch * scene->r.xasp;
