@@ -198,6 +198,10 @@ void BKE_camera_params_init(CameraParams *params)
 	params->sensor_fit = CAMERA_SENSOR_FIT_AUTO;
 
 	params->zoom = 1.0f;
+
+	/* fallback for non camera objects */
+	params->clipsta = 0.1f;
+	params->clipsta = 100.0f;
 }
 
 void BKE_camera_params_from_object(CameraParams *params, Object *ob)

@@ -950,6 +950,9 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 
 	/* get camera viewplane */
 	BKE_camera_params_init(&params);
+	/* fallback for non camera objects */
+	params.clipsta = v3d->near;
+	params.clipend = v3d->far;
 	BKE_camera_params_from_object(&params, v3d->camera);
 	if (no_shift) {
 		params.shiftx = 0.0f;
@@ -2746,6 +2749,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 		CameraParams params;
 
 		BKE_camera_params_init(&params);
+		/* fallback for non camera objects */
+		params.clipsta = v3d->near;
+		params.clipend = v3d->far;
 		BKE_camera_params_from_object(&params, v3d->camera);
 		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
 		BKE_camera_params_compute_matrix(&params);

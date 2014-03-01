@@ -2533,6 +2533,8 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 			if (rv3d->persp == RV3D_CAMOB && ED_view3d_camera_lock_check(v3d, rv3d)) {
 				CameraParams params;
 				BKE_camera_params_init(&params);
+				params.clipsta = v3d->near;
+				params.clipend = v3d->far;
 				BKE_camera_params_from_object(&params, v3d->camera);
 
 				lens = params.lens;
