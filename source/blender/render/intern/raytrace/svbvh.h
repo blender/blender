@@ -36,7 +36,6 @@
 
 #include "bvh.h"
 #include "BLI_memarena.h"
-#include <stdio.h>
 #include <algorithm>
 
 struct SVBVHNode {
@@ -214,7 +213,7 @@ struct Reorganize_SVBVH {
 	
 	~Reorganize_SVBVH()
 	{
-#ifdef DEBUG
+#if 0
 		{
 			printf("%f childs per node\n", childs_per_node / nodes);
 			printf("%d childs BB are useless\n", useless_bb);

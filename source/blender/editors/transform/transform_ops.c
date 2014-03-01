@@ -206,7 +206,7 @@ static int delete_orientation_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BIF_removeTransformOrientationIndex(C, selected_index);
 	
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	WM_event_add_notifier(C, NC_SCENE | NA_EDITED, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
@@ -253,17 +253,18 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	const bool use = RNA_boolean_get(op->ptr, "use");
 	const bool overwrite = RNA_boolean_get(op->ptr, "overwrite");
 	const bool use_view = RNA_boolean_get(op->ptr, "use_view");
+	View3D *v3d = CTX_wm_view3d(C);
 
 	RNA_string_get(op->ptr, "name", name);
 
-	if (use && !CTX_wm_view3d(C)) {
+	if (use && !v3d) {
 		BKE_report(op->reports, RPT_ERROR, "Create Orientation's 'use' parameter only valid in a 3DView context");
 		return OPERATOR_CANCELLED;
 	}
 
 	BIF_createTransformOrientation(C, op->reports, name, use_view, use, overwrite);
 
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	WM_event_add_notifier(C, NC_SCENE | NA_EDITED, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;

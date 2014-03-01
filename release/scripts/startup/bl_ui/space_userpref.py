@@ -1100,6 +1100,7 @@ class USERPREF_PT_input(Panel):
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
         sub.prop(inputs, "ndof_orbit_sensitivity", text="NDOF Orbit Sensitivity")
+        sub.row().prop(inputs, "ndof_view_navigate_method", expand=True)
         sub.row().prop(inputs, "ndof_view_rotate_method", expand=True)
 
         row.separator()
