@@ -3935,13 +3935,13 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					
 				}
 				/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
-				 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
+				 *	- Check if we've got entire BezTriple selected and we're rotating that point,
 				 *	  then check if we're using auto-handles.
 				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
 				 */
-				if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
-				    ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
-				    ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+				if ((t->mode == TFM_ROTATION) &&
+				    ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
+				    ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM))
 				{
 					if (hdata && (sel1) && (sel3)) {
 						bezt->h1 = HD_ALIGN;
