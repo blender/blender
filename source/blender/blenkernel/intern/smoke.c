@@ -207,7 +207,14 @@ void smoke_reallocate_highres_fluid(SmokeDomainSettings *sds, float dx, int res[
 		sds->wt = NULL;
 		return;
 	}
+
+	/* smoke_turbulence_init uses non-threadsafe functions from fftw3 lib (like fftw_plan & co). */
+	BLI_lock_thread(LOCK_FFTW);
+
 	sds->wt = smoke_turbulence_init(res, sds->amplify + 1, sds->noise, BLI_temporary_dir(), use_fire, use_colors);
+
+	BLI_unlock_thread(LOCK_FFTW);
+
 	sds->res_wt[0] = res[0] * (sds->amplify + 1);
 	sds->res_wt[1] = res[1] * (sds->amplify + 1);
 	sds->res_wt[2] = res[2] * (sds->amplify + 1);
@@ -1550,7 +1557,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 {
 	if (!sfs->dm) return;
 	{
-		DerivedMesh *dm = sfs->dm;
+		DerivedMesh *dm;
 		int defgrp_index = sfs->vgroup_density - 1;
 		MDeformVert *dvert = NULL;
 		MVert *mvert = NULL;
@@ -1565,6 +1572,11 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		int has_velocity = 0;
 		int min[3], max[3], res[3];
 		int hires_multiplier = 1;
+
+		/* copy derivedmesh for thread safety because we modify it,
+		 * main issue is its VertArray being modified, then replaced and freed
+		 */
+		dm = CDDM_copy(sfs->dm);
 
 		CDDM_calc_normals(dm);
 		mvert = dm->getVertArray(dm);

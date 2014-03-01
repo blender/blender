@@ -846,6 +846,8 @@ void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, 
 	o->_fft_in = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex), "ocean_fft_in");
 	o->_htilda = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex), "ocean_htilda");
 
+	BLI_lock_thread(LOCK_FFTW);
+
 	if (o->_do_disp_y) {
 		o->_disp_y = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_y");
 		o->_disp_y_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in, o->_disp_y, FFTW_ESTIMATE);
@@ -890,6 +892,8 @@ void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, 
 		o->_Jxz_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jxz, o->_Jxz, FFTW_ESTIMATE);
 	}
 
+	BLI_unlock_thread(LOCK_FFTW);
+
 	BLI_rw_mutex_unlock(&o->oceanmutex);
 
 	set_height_normalize_factor(o);
@@ -902,6 +906,8 @@ void BKE_free_ocean_data(struct Ocean *oc)
 	if (!oc) return;
 
 	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_WRITE);
+
+	BLI_lock_thread(LOCK_FFTW);
 
 	if (oc->_do_disp_y) {
 		fftw_destroy_plan(oc->_disp_y_plan);
@@ -938,6 +944,8 @@ void BKE_free_ocean_data(struct Ocean *oc)
 		MEM_freeN(oc->_Jzz);
 		MEM_freeN(oc->_Jxz);
 	}
+
+	BLI_unlock_thread(LOCK_FFTW);
 
 	if (oc->_fft_in)
 		MEM_freeN(oc->_fft_in);
