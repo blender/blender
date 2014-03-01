@@ -4930,7 +4930,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
 				if (v != v_mirr) {
 					float co[3], co_mirr[3];
 
-					if ((v->co[axis] > v->co[axis]) == axis_sign) {
+					if ((v->co[axis] > v_mirr->co[axis]) == axis_sign) {
 						SWAP(BMVert *, v, v_mirr);
 					}
 
