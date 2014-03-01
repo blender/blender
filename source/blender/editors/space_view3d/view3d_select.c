@@ -2221,7 +2221,12 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 	bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
 	/* only force object select for editmode to support vertex parenting,
 	 * or paint-select to allow pose bone select with vert/face select */
-	bool object = (RNA_boolean_get(op->ptr, "object") && (obedit || BKE_paint_select_elem_test(obact)));
+	bool object = (RNA_boolean_get(op->ptr, "object") &&
+	               (obedit ||
+	                BKE_paint_select_elem_test(obact) ||
+	                /* so its possible to select bones in weightpaint mode (LMB select) */
+	                (obact && (obact->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(obact))));
+
 	bool retval = false;
 	int location[2];
 
