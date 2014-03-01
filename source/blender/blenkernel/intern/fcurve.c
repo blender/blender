@@ -2115,7 +2115,7 @@ static float fcurve_eval_samples(FCurve *fcu, FPoint *fpts, float evaltime)
 		cvalue = lastfpt->vec[1];
 	}
 	else {
-		float t = (float)abs(evaltime - (int)evaltime);
+		float t = fabsf(evaltime - floorf(evaltime));
 		
 		/* find the one on the right frame (assume that these are spaced on 1-frame intervals) */
 		fpt = prevfpt + (int)(evaltime - prevfpt->vec[0]);
