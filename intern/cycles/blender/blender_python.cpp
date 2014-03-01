@@ -493,7 +493,7 @@ void *CCL_python_module_init()
 	/* TODO(sergey): This gives us library we've been linking against.
 	 *               In theory with dynamic OSL library it might not be
 	 *               accurate, but there's nothing in OSL API which we
-	 *               might use th get version in runtime.
+	 *               might use to get version in runtime.
 	 */
 	int curversion = OSL_LIBRARY_VERSION_CODE;
 	PyModule_AddObject(mod, "with_osl", Py_True);

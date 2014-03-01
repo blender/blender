@@ -114,7 +114,7 @@ ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, VolumeStack *st
  * These functions are used to attenuate shadow rays to lights. Both absorption
  * and scattering will block light, represented by the extinction coefficient. */
 
-/* homogenous volume: assume shader evaluation at the starts gives
+/* homogeneous volume: assume shader evaluation at the starts gives
  * the extinction coefficient for the entire line segment */
 ccl_device void kernel_volume_shadow_homogeneous(KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd, float3 *throughput)
 {
@@ -192,7 +192,7 @@ ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, PathState *stat
 
 /* Volume Path */
 
-/* homogenous volume: assume shader evaluation at the starts gives
+/* homogeneous volume: assume shader evaluation at the start gives
  * the volume shading coefficient for the entire line segment */
 ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGlobals *kg,
 	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput,
@@ -431,7 +431,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 					accum_sigma_s = (accum_sigma_s + dt*sigma_s)/new_t;
 
 					/* todo: it's not clear to me that this is correct if we move
-					 * through a color volumed, needs verification */
+					 * through a color volume, needs verification */
 					float pdf = dot(accum_sigma_t, accum_transmittance);
 					new_tp = tp * accum_sigma_s * transmittance * (3.0f / pdf);
 
