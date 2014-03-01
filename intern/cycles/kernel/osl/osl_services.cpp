@@ -1001,6 +1001,7 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 	tracedata->ray = ray;
 	tracedata->setup = false;
 	tracedata->init = true;
+	tracedata->sd.osl_globals = sd->osl_globals;
 
 	/* raytrace */
 #ifdef __HAIR__
