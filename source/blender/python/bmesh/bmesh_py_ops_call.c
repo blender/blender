@@ -503,7 +503,7 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
 				{
 					/* can't convert from these */
 					PyErr_Format(PyExc_NotImplementedError,
-					             "This arguments mapping subtype %d is not supported", slot->slot_subtype);
+					             "This arguments mapping subtype %d is not supported", slot->slot_subtype.map);
 					return -1;
 				}
 			}

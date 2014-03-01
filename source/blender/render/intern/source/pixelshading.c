@@ -517,14 +517,14 @@ void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const
 		
 		if (blend<0.0f) skyflag= 0;
 		
-		blend= fabs(blend);
+		blend = fabsf(blend);
 	}
 	else if (R.wrld.skytype & WO_SKYPAPER) {
 		blend= 0.5f + 0.5f * view[1];
 	}
 	else {
 		/* the fraction of how far we are above the bottom of the screen */
-		blend= fabs(0.5f + view[1]);
+		blend = fabsf(0.5f + view[1]);
 	}
 
 	copy_v3_v3(hor, &R.wrld.horr);

@@ -2821,9 +2821,9 @@ static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
 		float sub[3];
 
 		sub_v3_v3v3(sub, (*pin1)->co, (*pin2)->co);
-		sub[0] = fabs(sub[0]);
-		sub[1] = fabs(sub[1]);
-		sub[2] = fabs(sub[2]);
+		sub[0] = fabsf(sub[0]);
+		sub[1] = fabsf(sub[1]);
+		sub[2] = fabsf(sub[2]);
 
 		if ((sub[0] > sub[1]) && (sub[0] > sub[2])) {
 			dirx = 0;

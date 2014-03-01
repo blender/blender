@@ -722,13 +722,13 @@ static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNo
 	
 	cross_v3_v3v3(nor, vec, axis);
 	
-	if (abs(nor[0]) > abs(nor[1]) && abs(nor[0]) > abs(nor[2]) && nor[0] < 0) {
+	if (fabsf(nor[0]) > fabsf(nor[1]) && fabsf(nor[0]) > fabsf(nor[2]) && nor[0] < 0) {
 		negate_v3(nor);
 	}
-	else if (abs(nor[1]) > abs(nor[0]) && abs(nor[1]) > abs(nor[2]) && nor[1] < 0) {
+	else if (fabsf(nor[1]) > fabsf(nor[0]) && fabsf(nor[1]) > fabsf(nor[2]) && nor[1] < 0) {
 		negate_v3(nor);
 	}
-	else if (abs(nor[2]) > abs(nor[1]) && abs(nor[2]) > abs(nor[0]) && nor[2] < 0) {
+	else if (fabsf(nor[2]) > fabsf(nor[1]) && fabsf(nor[2]) > fabsf(nor[0]) && nor[2] < 0) {
 		negate_v3(nor);
 	}
 	

@@ -3600,7 +3600,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
 				a--;
 				fp2[a] = fp1[a];
 				while (a--) {
-					fp2[0] = fabs(fp1[1] - fp1[0]);
+					fp2[0] = fabsf(fp1[1] - fp1[0]);
 					fp1++;
 					fp2++;
 				}

@@ -638,9 +638,9 @@ static bool sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float loc
 
 	mul_v3_m4v3(local_co, local, co);
 
-	local_co[0] = fabs(local_co[0]);
-	local_co[1] = fabs(local_co[1]);
-	local_co[2] = fabs(local_co[2]);
+	local_co[0] = fabsf(local_co[0]);
+	local_co[1] = fabsf(local_co[1]);
+	local_co[2] = fabsf(local_co[2]);
 
 	if (local_co[0] <= side && local_co[1] <= side && local_co[2] <= side) {
 		float p = 4.0f;
@@ -719,7 +719,7 @@ static float overlapped_curve(Brush *br, float x)
 	for (i = 0; i < n; i++) {
 		float xx;
 
-		xx = fabs(x0 + i * h);
+		xx = fabsf(x0 + i * h);
 
 		if (xx < 1.0f)
 			sum += BKE_brush_curve_strength(br, xx, 1);

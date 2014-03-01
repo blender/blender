@@ -1036,7 +1036,7 @@ static void spotvolume(float lvec[3], float vvec[3], const float inp)
 
 static void draw_spot_cone(Lamp *la, float x, float z)
 {
-	z = fabs(z);
+	z = fabsf(z);
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0.0f, 0.0f, -x);
@@ -1251,7 +1251,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 		glTranslatef(0.0, 0.0,  x);
 		if (la->mode & LA_SQUARE) {
 			float tvec[3];
-			float z_abs = fabs(z);
+			float z_abs = fabsf(z);
 
 			tvec[0] = tvec[1] = z_abs;
 			tvec[2] = 0.0;

@@ -1147,7 +1147,7 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		for (i = 0; i < 3; i++)
-			max_xyz = max_ff(max_xyz, fabs(v->co[i]));
+			max_xyz = max_ff(max_xyz, fabsf(v->co[i]));
 	}
 	kcd->ortho_extent = max_xyz;
 }
