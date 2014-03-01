@@ -3337,7 +3337,7 @@ static int brush_add(PEData *data, short number)
 	Object *ob= data->ob;
 	PTCacheEdit *edit = data->edit;
 	ParticleSystem *psys= edit->psys;
-	ParticleData *add_pars= MEM_callocN(number*sizeof(ParticleData), "ParticleData add");
+	ParticleData *add_pars;
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
 	ParticleSimulationData sim= {0};
 	ParticleEditSettings *pset= PE_settings(scene);
@@ -3354,6 +3354,8 @@ static int brush_add(PEData *data, short number)
 
 	if (psys->flag & PSYS_GLOBAL_HAIR)
 		return 0;
+
+	add_pars = MEM_callocN(number * sizeof(ParticleData), "ParticleData add");
 
 	rng = BLI_rng_new_srandom(psys->seed+data->mval[0]+data->mval[1]);
 
@@ -3548,8 +3550,8 @@ static int brush_add(PEData *data, short number)
 		if (tree)
 			BLI_kdtree_free(tree);
 	}
-	if (add_pars)
-		MEM_freeN(add_pars);
+
+	MEM_freeN(add_pars);
 	
 	if (!psmd->dm->deformedOnly)
 		dm->release(dm);
