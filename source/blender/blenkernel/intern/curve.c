@@ -2896,13 +2896,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 /* ****************** HANDLES ************** */
 
-/*
- *   handlecodes:
- *		0: nothing,  1:auto,  2:vector,  3:aligned
- */
-
-/* mode: is not zero when FCurve, is 2 when forced horizontal for autohandles */
-static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode, bool skip_align)
+static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *next,
+                                  bool is_fcurve, bool skip_align)
 {
 	/* defines to avoid confusion */
 #define p2_h1 (p2 - 3)
@@ -2943,7 +2938,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 	sub_v3_v3v3(dvec_a, p2, p1);
 	sub_v3_v3v3(dvec_b, p3, p2);
 
-	if (mode != 0) {
+	if (is_fcurve) {
 		len_a = dvec_a[0];
 		len_b = dvec_b[0];
 	}
@@ -2961,7 +2956,8 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		tvec[0] = dvec_b[0] / len_b + dvec_a[0] / len_a;
 		tvec[1] = dvec_b[1] / len_b + dvec_a[1] / len_a;
 		tvec[2] = dvec_b[2] / len_b + dvec_a[2] / len_a;
-		if (mode != 0) {
+
+		if (is_fcurve) {
 			len = tvec[0];
 		}
 		else {
@@ -2970,7 +2966,8 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		len *=  2.5614f;
 
 		if (len != 0.0f) {
-			bool leftviolate = false, rightviolate = false;  /* for mode==2 */
+			/* only for fcurves */
+			bool leftviolate = false, rightviolate = false;
 
 			if (len_a > 5.0f * len_b)
 				len_a = 5.0f * len_b;
@@ -3030,7 +3027,11 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 				}
 			}
 			if (leftviolate || rightviolate) { /* align left handle */
-				if (mode != 0) {
+				BLI_assert(is_fcurve);
+#if 0
+				if (is_fcurve)
+#endif
+				{
 					/* simple 2d calculation */
 					float h1_x = p2_h1[0] - p2[0];
 					float h2_x = p2[0] - p2_h2[0];
@@ -3042,6 +3043,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 						p2_h1[1] = p2[1] + ((p2[1] - p2_h2[1]) / h2_x) * h1_x;
 					}
 				}
+#if 0
 				else {
 					float h1[3], h2[3];
 					float dot;
@@ -3063,6 +3065,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 						add_v3_v3v3(p2_h1, p2, h2);
 					}
 				}
+#endif
 			}
 		}
 	}
@@ -3161,9 +3164,9 @@ static void calchandlesNurb_intern(Nurb *nu, bool skip_align)
 	}
 }
 
-void BKE_nurb_handle_calc(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
+void BKE_nurb_handle_calc(BezTriple *bezt, BezTriple *prev, BezTriple *next, const bool is_fcurve)
 {
-	calchandleNurb_intern(bezt, prev, next, mode, FALSE);
+	calchandleNurb_intern(bezt, prev, next, is_fcurve, false);
 }
 
 void BKE_nurb_handles_calc(Nurb *nu) /* first, if needed, set handle flags */
