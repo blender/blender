@@ -1168,17 +1168,45 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 #define NDOF_HAS_TRANSLATE ((!ED_view3d_offset_lock_check(v3d, rv3d)) && !is_zero_v3(ndof->tvec))
 #define NDOF_HAS_ROTATE    (((rv3d->viewlock & RV3D_LOCKED) == 0) && !is_zero_v3(ndof->rvec))
 
-static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
+/**
+ * \param depth_pt: A point to calculate the depth (in perspective mode)
+ */
+static float view3d_ndof_pan_speed_calc_ex(RegionView3D *rv3d, const float depth_pt[3])
 {
 	float speed = rv3d->pixsize * NDOF_PIXELS_PER_SECOND;
 
 	if (rv3d->is_persp) {
-		float tvec[3];
-		negate_v3_v3(tvec, rv3d->ofs);
-		speed *= ED_view3d_calc_zfac(rv3d, tvec, NULL);
+		speed *= ED_view3d_calc_zfac(rv3d, depth_pt, NULL);
 	}
 
 	return speed;
+}
+
+static float view3d_ndof_pan_speed_calc_from_dist(RegionView3D *rv3d, const float dist)
+{
+	float viewinv[4];
+	float tvec[3];
+
+	BLI_assert(dist >= 0.0f);
+
+	copy_v3_fl3(tvec, 0.0f, 0.0f, dist);
+	/* rv3d->viewinv isn't always valid */
+#if 0
+	mul_mat3_m4_v3(rv3d->viewinv, tvec);
+#else
+	invert_qt_qt(viewinv, rv3d->viewquat);
+	mul_qt_v3(viewinv, tvec);
+#endif
+
+	return view3d_ndof_pan_speed_calc_ex(rv3d, tvec);
+}
+
+static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
+{
+	float tvec[3];
+	negate_v3_v3(tvec, rv3d->ofs);
+
+	return view3d_ndof_pan_speed_calc_ex(rv3d, tvec);
 }
 
 /**
@@ -1352,7 +1380,9 @@ void view3d_ndof_fly(
 	rv3d->rot_angle = 0.0f;  /* disable onscreen rotation doo-dad */
 
 	if (has_translate) {
-		float speed = view3d_ndof_pan_speed_calc(rv3d);
+		/* ignore real 'dist' since fly has its own speed settings,
+		 * also its overwritten at this point. */
+		float speed = view3d_ndof_pan_speed_calc_from_dist(rv3d, 1.0f);
 		float trans[3], trans_orig_y;
 
 		if (use_precision)
