@@ -1152,7 +1152,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_mask_lasso_gesture", LEFTMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 
 	/* Toggle dynamic topology */
-	WM_keymap_add_item(keymap, "SCULPT_OT_dynamic_topology_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCULPT_OT_dynamic_topology_toggle", DKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* Dynamic-topology detail size
 	 * 
