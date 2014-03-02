@@ -74,7 +74,7 @@ endif
 # Get the number of cores for threaded build
 NPROCS:=1
 ifeq ($(OS), Linux)
-	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
+	NPROCS:=$(shell nproc)
 endif
 ifeq ($(OS), Darwin)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3)
