@@ -56,6 +56,7 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struc
 	bNodeSocket *sock = nodeAddStaticSocket(ntree, node, in_out, stemp->type, stemp->subtype, stemp->identifier, stemp->name);
 	
 	sock->flag |= stemp->flag;
+	sock->internal_links = stemp->internal_links;
 	
 	/* initialize default_value */
 	switch (stemp->type) {
@@ -117,6 +118,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 		sock->type = stemp->type;
 		sock->limit = (stemp->limit == 0 ? 0xFFF : stemp->limit);
 		sock->flag |= stemp->flag;
+		sock->internal_links = stemp->internal_links;
 		
 		BLI_remlink(socklist, sock);
 		

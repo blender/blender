@@ -37,7 +37,7 @@ static bNodeSocketTemplate sh_node_tex_environment_in[] = {
 };
 
 static bNodeSocketTemplate sh_node_tex_environment_out[] = {
-	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
 	{	-1, 0, ""	}
 };
 

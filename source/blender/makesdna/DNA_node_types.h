@@ -128,19 +128,23 @@ typedef struct bNodeSocket {
 
 	/* XXX deprecated, socket input values are stored in default_value now. kept for forward compatibility */
 	bNodeStack ns  DNA_DEPRECATED;	/* custom data for inputs, only UI writes in this */
+
+	/* optional: allowed inputs for internal links */
+	const bool *internal_links;
 } bNodeSocket;
 
 /* sock->type */
-#define SOCK_CUSTOM			-1	/* socket has no integer type */
-#define SOCK_FLOAT			0
-#define SOCK_VECTOR			1
-#define SOCK_RGBA			2
-#define SOCK_SHADER			3
-#define SOCK_BOOLEAN		4
-#define __SOCK_MESH			5	/* deprecated */
-#define SOCK_INT			6
-#define SOCK_STRING			7
-#define NUM_SOCKET_TYPES	8	/* must be last! */
+typedef enum eNodeSocketDatatype {
+	SOCK_CUSTOM			= -1,	/* socket has no integer type */
+	SOCK_FLOAT			= 0,
+	SOCK_VECTOR			= 1,
+	SOCK_RGBA			= 2,
+	SOCK_SHADER			= 3,
+	SOCK_BOOLEAN		= 4,
+	__SOCK_MESH			= 5,	/* deprecated */
+	SOCK_INT			= 6,
+	SOCK_STRING			= 7
+} eNodeSocketDatatype;
 
 /* socket side (input/output) */
 typedef enum eNodeSocketInOut {

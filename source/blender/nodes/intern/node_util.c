@@ -81,6 +81,7 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context), bNode *node, bNode
 	return NULL;  /* unused return */
 }
 
+
 /**** Labels ****/
 
 void node_blend_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
@@ -111,45 +112,139 @@ void node_filter_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int m
 	BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
+
+/**** Internal Links (mute and disconnect) ****/
+
+/* common datatype priorities, works for compositor, shader and texture nodes alike
+ * defines priority of datatype connection based on output type (to):
+ *   < 0  : never connect these types
+ *   >= 0 : priority of connection (higher values chosen first)
+ */
+static int node_datatype_priority(eNodeSocketDatatype from, eNodeSocketDatatype to)
+{
+	switch (to) {
+		case SOCK_RGBA:
+			switch (from) {
+				case SOCK_RGBA:     return 4;
+				case SOCK_FLOAT:    return 3;
+				case SOCK_INT:      return 2;
+				case SOCK_BOOLEAN:  return 1;
+				default: return -1;
+			}
+		case SOCK_VECTOR:
+			switch (from) {
+				case SOCK_VECTOR:   return 4;
+				case SOCK_FLOAT:    return 3;
+				case SOCK_INT:      return 2;
+				case SOCK_BOOLEAN:  return 1;
+				default:            return -1;
+			}
+		case SOCK_FLOAT:
+			switch (from) {
+				case SOCK_FLOAT:    return 5;
+				case SOCK_INT:      return 4;
+				case SOCK_BOOLEAN:  return 3;
+				case SOCK_RGBA:     return 2;
+				case SOCK_VECTOR:   return 1;
+				default:            return -1;
+			}
+		case SOCK_INT:
+			switch (from) {
+				case SOCK_INT:      return 5;
+				case SOCK_FLOAT:    return 4;
+				case SOCK_BOOLEAN:  return 3;
+				case SOCK_RGBA:     return 2;
+				case SOCK_VECTOR:   return 1;
+				default:            return -1;
+			}
+		case SOCK_BOOLEAN:
+			switch (from) {
+				case SOCK_BOOLEAN:  return 5;
+				case SOCK_INT:      return 4;
+				case SOCK_FLOAT:    return 3;
+				case SOCK_RGBA:     return 2;
+				case SOCK_VECTOR:   return 1;
+				default:            return -1;
+			}
+		case SOCK_SHADER:
+			switch (from) {
+				case SOCK_SHADER:   return 1;
+				default:            return -1;
+			}
+		case SOCK_STRING:
+			switch (from) {
+				case SOCK_STRING:   return 1;
+				default:            return -1;
+			}
+		default: return -1;
+	}
+}
+
+/* select a suitable input socket for an output */
+static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
+{
+	const bool *allowed_inputs = output->internal_links;
+	bNodeSocket *selected = NULL, *input;
+	int i;
+	int sel_priority = -1;
+	bool sel_is_linked = false;
+	
+	for (input = node->inputs.first, i = 0; input; input = input->next, ++i) {
+		int priority = node_datatype_priority(input->type, output->type);
+		bool is_linked = (input->link != NULL);
+		bool preferred;
+		
+		if (nodeSocketIsHidden(input) ||                /* ignore hidden sockets */
+		    (allowed_inputs && !allowed_inputs[i]) ||   /* ignore if input is not allowed */
+		    priority < 0 ||                             /* ignore incompatible types */
+		    (priority < sel_priority))                  /* ignore if we already found a higher priority input */
+			continue;
+		
+		/* determine if this input is preferred over the currently selected */
+		preferred = (priority > sel_priority) ||    /* prefer higher datatype priority */
+		            (is_linked && !sel_is_linked);  /* prefer linked over unlinked */
+		
+		if (preferred) {
+			selected = input;
+			sel_is_linked = is_linked;
+			sel_priority = priority;
+		}
+	}
+	
+	return selected;
+}
+
 void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link;
-	bNodeSocket *output, *input, *selected;
-
+	bNodeSocket *output, *input;
+	
 	/* sanity check */
 	if (!ntree)
 		return;
-
+	
 	/* use link pointer as a tag for handled sockets (for outputs is unused anyway) */
 	for (output = node->outputs.first; output; output = output->next)
 		output->link = NULL;
 	
 	for (link = ntree->links.first; link; link = link->next) {
+		if (nodeLinkIsHidden(link))
+			continue;
+		
 		output = link->fromsock;
 		if (link->fromnode != node || output->link)
+			continue;
+		if (nodeSocketIsHidden(output))
 			continue;
 		output->link = link; /* not really used, just for tagging handled sockets */
 		
 		/* look for suitable input */
-		selected = NULL;
-		for (input = node->inputs.first; input; input = input->next) {
-			/* only use if same type */
-			if (input->type == output->type) {
-				if (!selected) {
-					selected = input;
-				}
-				else {
-					/* linked inputs preferred */
-					if (input->link && !selected->link)
-						selected = input;
-				}
-			}
-		}
+		input = select_internal_link_input(node, output);
 		
-		if (selected) {
+		if (input) {
 			bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
 			ilink->fromnode = node;
-			ilink->fromsock = selected;
+			ilink->fromsock = input;
 			ilink->tonode = node;
 			ilink->tosock = output;
 			/* internal link is always valid */
@@ -162,6 +257,9 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 	for (output = node->outputs.first; output; output = output->next)
 		output->link = NULL;
 }
+
+
+/**** Default value RNA access ****/
 
 float node_socket_get_float(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock)
 {
