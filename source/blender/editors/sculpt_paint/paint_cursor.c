@@ -238,12 +238,6 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 						y = len * sinf(angle);
 					}
 
-					x *= mtex->size[0];
-					y *= mtex->size[1];
-
-					x += mtex->ofs[0];
-					y += mtex->ofs[1];
-
 					if (col) {
 						float rgba[4];
 

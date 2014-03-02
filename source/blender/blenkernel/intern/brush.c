@@ -561,11 +561,8 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 		x /= (br->stencil_dimension[0]);
 		y /= (br->stencil_dimension[1]);
 
-		x *= mtex->size[0];
-		y *= mtex->size[1];
-
-		co[0] = x + mtex->ofs[0];
-		co[1] = y + mtex->ofs[1];
+		co[0] = x;
+		co[1] = y;
 		co[2] = 0.0f;
 
 		hasrgb = externtex(mtex, co, &intensity,
@@ -621,11 +618,8 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 			y = flen * sinf(angle);
 		}
 
-		x *= mtex->size[0];
-		y *= mtex->size[1];
-
-		co[0] = x + mtex->ofs[0];
-		co[1] = y + mtex->ofs[1];
+		co[0] = x;
+		co[1] = y;
 		co[2] = 0.0f;
 
 		hasrgb = externtex(mtex, co, &intensity,
@@ -985,8 +979,9 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
 {
 	unsigned int *texcache = NULL;
 	MTex *mtex = (use_secondary) ? &br->mask_mtex : &br->mtex;
-	TexResult texres = {0};
-	int hasrgb, ix, iy;
+	float intensity;
+	float rgba[4];
+	int ix, iy;
 	int side = half_side * 2;
 
 	if (mtex->tex) {
@@ -1003,19 +998,13 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
 
 				/* This is copied from displace modifier code */
 				/* TODO(sergey): brush are always cacheing with CM enabled for now. */
-				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres, NULL, true);
-
-				/* if the texture gave an RGB value, we assume it didn't give a valid
-				 * intensity, so calculate one (formula from do_material_tex).
-				 * if the texture didn't give an RGB value, copy the intensity across
-				 */
-				if (hasrgb & TEX_RGB)
-					texres.tin = rgb_to_grayscale(&texres.tr);
+				externtex(mtex, co, &intensity,
+						  rgba, rgba + 1, rgba + 2, rgba + 3, 0, NULL);
 
 				((char *)texcache)[(iy * side + ix) * 4] =
 				((char *)texcache)[(iy * side + ix) * 4 + 1] =
 				((char *)texcache)[(iy * side + ix) * 4 + 2] =
-				((char *)texcache)[(iy * side + ix) * 4 + 3] = (char)(texres.tin * 255.0f);
+				((char *)texcache)[(iy * side + ix) * 4 + 3] = (char)(intensity * 255.0f);
 			}
 		}
 	}
