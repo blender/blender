@@ -65,8 +65,6 @@
 
 #endif
 
-#else
-#define ccl_align(...)
 #endif
 
 /* Standard Integer Types */
