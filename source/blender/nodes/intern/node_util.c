@@ -183,7 +183,6 @@ static int node_datatype_priority(eNodeSocketDatatype from, eNodeSocketDatatype 
 /* select a suitable input socket for an output */
 static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
 {
-	const bool *allowed_inputs = output->internal_links;
 	bNodeSocket *selected = NULL, *input;
 	int i;
 	int sel_priority = -1;
@@ -195,9 +194,9 @@ static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
 		bool preferred;
 		
 		if (nodeSocketIsHidden(input) ||                /* ignore hidden sockets */
-		    (allowed_inputs && !allowed_inputs[i]) ||   /* ignore if input is not allowed */
+		    input->flag & SOCK_NO_INTERNAL_LINK ||      /* ignore if input is not allowed for internal connections */
 		    priority < 0 ||                             /* ignore incompatible types */
-		    (priority < sel_priority))                  /* ignore if we already found a higher priority input */
+		    priority < sel_priority)                  /* ignore if we already found a higher priority input */
 			continue;
 		
 		/* determine if this input is preferred over the currently selected */
@@ -234,7 +233,7 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 		output = link->fromsock;
 		if (link->fromnode != node || output->link)
 			continue;
-		if (nodeSocketIsHidden(output))
+		if (nodeSocketIsHidden(output) || output->flag & SOCK_NO_INTERNAL_LINK)
 			continue;
 		output->link = link; /* not really used, just for tagging handled sockets */
 		

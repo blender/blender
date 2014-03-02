@@ -101,8 +101,6 @@ typedef struct bNodeSocketTemplate {
 	float min, max;
 	int subtype;  /* would use PropertySubType but this is a bad level include to use RNA */
 	int flag;
-	/* optional: allowed inputs for internal links */
-	const bool *internal_links;
 	
 	/* after this line is used internal only */
 	struct bNodeSocket *sock;		/* used to hold verified socket */

@@ -128,9 +128,6 @@ typedef struct bNodeSocket {
 
 	/* XXX deprecated, socket input values are stored in default_value now. kept for forward compatibility */
 	bNodeStack ns  DNA_DEPRECATED;	/* custom data for inputs, only UI writes in this */
-
-	/* optional: allowed inputs for internal links */
-	const bool *internal_links;
 } bNodeSocket;
 
 /* sock->type */
@@ -161,7 +158,8 @@ typedef enum eNodeSocketFlag {
 	// SOCK_INTERNAL = 32,				/* DEPRECATED  group socket should not be exposed */
 	SOCK_COLLAPSED = 64,				/* socket collapsed in UI */
 	SOCK_HIDE_VALUE = 128,				/* hide socket value, if it gets auto default */
-	SOCK_AUTO_HIDDEN__DEPRECATED = 256	/* socket hidden automatically, to distinguish from manually hidden */
+	SOCK_AUTO_HIDDEN__DEPRECATED = 256,	/* socket hidden automatically, to distinguish from manually hidden */
+	SOCK_NO_INTERNAL_LINK = 512
 } eNodeSocketFlag;
 
 /* limit data in bNode to what we want to see saved? */
