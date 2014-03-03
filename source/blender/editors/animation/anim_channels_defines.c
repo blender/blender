@@ -2034,7 +2034,7 @@ static bAnimChannelType ACF_DSNTREE =
 /* TODO: just get this from RNA? */
 static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
 {
-	return ICON_BRUSH_DATA; /* FIXME */
+	return ICON_LINE_DATA;
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */

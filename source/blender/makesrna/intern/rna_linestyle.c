@@ -918,7 +918,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "FreestyleLineStyle", "ID");
 	RNA_def_struct_ui_text(srna, "Freestyle Line Style", "Freestyle line style, reusable by multiple line sets");
-	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA); /* FIXME: use a proper icon */
+	RNA_def_struct_ui_icon(srna, ICON_LINE_DATA);
 
 	prop = RNA_def_property(srna, "panel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "panel");
