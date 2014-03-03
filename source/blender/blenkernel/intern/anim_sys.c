@@ -1798,7 +1798,7 @@ static void nlaevalchan_value_init(NlaEvalChannel *nec)
 }
 
 /* verify that an appropriate NlaEvalChannel for this F-Curve exists */
-static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes, FCurve *fcu)
+static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes, FCurve *fcu, bool *newChan)
 {
 	NlaEvalChannel *nec;
 	NlaStrip *strip = nes->strip;
@@ -1841,19 +1841,29 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 		
 		/* initialise value using default value of property [#35856] */
 		nlaevalchan_value_init(nec);
+		*newChan = true;
 	}
+	else
+		*newChan = false;
 	
 	/* we can now return */
 	return nec;
 }
 
 /* accumulate (i.e. blend) the given value on to the channel it affects */
-static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float value)
+static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float value, bool newChan)
 {
 	NlaStrip *strip = nes->strip;
 	short blendmode = strip->blendmode;
 	float inf = strip->influence;
 	
+	/* for replace blend mode, and if this is the first strip,
+	 * just replace the value regardless of the influence */
+	if (newChan && blendmode == NLASTRIP_MODE_REPLACE) {
+		nec->value = value;
+		return;
+	}
+
 	/* if this is being performed as part of transition evaluation, incorporate
 	 * an additional weighting factor for the influence
 	 */
@@ -1915,7 +1925,7 @@ static void nlaevalchan_buffers_accumulate(ListBase *channels, ListBase *tmp_buf
 		 * otherwise, add the current channel to the buffer for efficiency
 		 */
 		if (necd)
-			nlaevalchan_accumulate(necd, nes, nec->value);
+			nlaevalchan_accumulate(necd, nes, 0, nec->value);
 		else {
 			BLI_remlink(tmp_buffer, nec);
 			BLI_addtail(channels, nec);
@@ -2014,6 +2024,7 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 	for (fcu = strip->act->curves.first; fcu; fcu = fcu->next) {
 		NlaEvalChannel *nec;
 		float value = 0.0f;
+		bool newChan;
 		
 		/* check if this curve should be skipped */
 		if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))
@@ -2035,9 +2046,9 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 		/* get an NLA evaluation channel to work with, and accumulate the evaluated value with the value(s)
 		 * stored in this channel if it has been used already
 		 */
-		nec = nlaevalchan_verify(ptr, channels, nes, fcu);
+		nec = nlaevalchan_verify(ptr, channels, nes, fcu, &newChan);
 		if (nec)
-			nlaevalchan_accumulate(nec, nes, value);
+			nlaevalchan_accumulate(nec, nes, value, newChan);
 	}
 
 	/* free temporary storage */
