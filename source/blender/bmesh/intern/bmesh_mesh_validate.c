@@ -33,6 +33,7 @@
 #ifdef DEBUG
 
 #include "BLI_utildefines.h"
+#include "BLI_edgehash.h"
 
 #include "bmesh.h"
 
@@ -53,6 +54,7 @@
  */
 bool BM_mesh_validate(BMesh *bm)
 {
+	EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, bm->totedge);
 	int errtot;
 
 	BMIter iter;
@@ -84,8 +86,21 @@ bool BM_mesh_validate(BMesh *bm)
 
 	/* check edges */
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
-		if (e->v1 == e->v2)
-		ERRMSG("edge %d: duplicate index: %d", i, BM_elem_index_get(e->v1));
+		BMEdge *e_other;
+
+		if (e->v1 == e->v2) {
+			ERRMSG("edge %d: duplicate index: %d", i, BM_elem_index_get(e->v1));
+		}
+
+
+		/* build edgehash at the same time */
+		e_other = BLI_edgehash_lookup(edge_hash, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2));
+		if (e_other) {
+			ERRMSG("edge %d, %d: are duplicates", i, BM_elem_index_get(e_other));
+		}
+		else {
+			BLI_edgehash_insert(edge_hash, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2), e);
+		}
 	}
 
 	/* edge radial structure */
@@ -177,7 +192,7 @@ bool BM_mesh_validate(BMesh *bm)
 		}
 	}
 
-
+	BLI_edgehash_free(edge_hash, NULL);
 
 	ERRMSG("Finished - errors %d", errtot);
 
