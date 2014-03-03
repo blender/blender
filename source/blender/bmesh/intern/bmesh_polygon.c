@@ -860,7 +860,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			}
 		}
 
-		f_new = BM_face_split(bm, f, l_v1, l_v2, &l_new, NULL, false);
+		f_new = BM_face_split(bm, f, l_v1, l_v2, &l_new, NULL, true);
 		copy_v3_v3(f_new->no, f->no);
 
 		if (use_tag) {
