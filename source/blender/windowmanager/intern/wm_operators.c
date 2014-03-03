@@ -1813,7 +1813,26 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	but = uiDefBut(block, BUT_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.pixelsize * 501, U.pixelsize * 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
-	
+
+	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
+	 *  avoids recreating splash for version updates */
+	if (1) {
+		/* placed after the version number in the image,
+		 * placing y is tricky to match baseline */
+		int x = 254 - (2 * UI_DPI_WINDOW_FAC);
+		int y = 244 + (4 * UI_DPI_WINDOW_FAC);
+		int w = 240;
+
+		const char *version_suffix = "Testing";
+
+		/* hack to have text draw 'text_sel' */
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		but = uiDefBut(block, LABEL, 0, version_suffix, x * U.pixelsize, y * U.pixelsize, w * U.pixelsize, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		/* XXX, set internal flag - UI_SELECT */
+		uiButSetFlag(but, 1);
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+
 #ifdef WITH_BUILDINFO
 	if (build_commit_timestamp != 0) {
 		uiDefBut(block, LABEL, 0, date_buf, U.pixelsize * 494 - date_width, U.pixelsize * 270, date_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
