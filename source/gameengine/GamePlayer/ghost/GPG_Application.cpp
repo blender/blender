@@ -101,8 +101,6 @@ extern "C"
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
-#  include "AUD_I3DDevice.h"
-#  include "AUD_IDevice.h"
 #endif
 
 static void frameTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);
@@ -746,13 +744,9 @@ bool GPG_Application::startEngine(void)
 			m_ketsjiengine->InitDome(m_startScene->gm.dome.res, m_startScene->gm.dome.mode, m_startScene->gm.dome.angle, m_startScene->gm.dome.resbuf, m_startScene->gm.dome.tilt, m_startScene->gm.dome.warptext);
 
 		// initialize 3D Audio Settings
-		AUD_I3DDevice* dev = AUD_get3DDevice();
-		if (dev)
-		{
-			dev->setSpeedOfSound(m_startScene->audio.speed_of_sound);
-			dev->setDopplerFactor(m_startScene->audio.doppler_factor);
-			dev->setDistanceModel(AUD_DistanceModel(m_startScene->audio.distance_model));
-		}
+		AUD_setSpeedOfSound(m_startScene->audio.speed_of_sound);
+		AUD_setDopplerFactor(m_startScene->audio.doppler_factor);
+		AUD_setDistanceModel(AUD_DistanceModel(m_startScene->audio.distance_model));
 
 #ifdef WITH_PYTHON
 		// Set the GameLogic.globalDict from marshal'd data, so we can

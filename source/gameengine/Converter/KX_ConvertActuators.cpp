@@ -43,7 +43,6 @@
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
-#  include "AUD_ChannelMapperFactory.h"
 #endif
 
 // Actuators
@@ -385,7 +384,7 @@ void BL_ConvertActuators(const char* maggiename,
 				{
 					bSound* sound = soundact->sound;
 					bool is3d = soundact->flag & ACT_SND_3D_SOUND ? true : false;
-					boost::shared_ptr<AUD_IFactory> snd_sound;
+					AUD_Sound* snd_sound = NULL;
 					KX_3DSoundSettings settings;
 					settings.cone_inner_angle = RAD2DEGF(soundact->sound3D.cone_inner_angle);
 					settings.cone_outer_angle = RAD2DEGF(soundact->sound3D.cone_outer_angle);
@@ -404,27 +403,12 @@ void BL_ConvertActuators(const char* maggiename,
 					}
 					else
 					{
-						snd_sound = *reinterpret_cast<boost::shared_ptr<AUD_IFactory>*>(sound->playback_handle);
+						snd_sound = sound->playback_handle;
 
 						// if sound shall be 3D but isn't mono, we have to make it mono!
 						if (is3d)
 						{
-							try
-							{
-								boost::shared_ptr<AUD_IReader> reader = snd_sound->createReader();
-								if (reader->getSpecs().channels != AUD_CHANNELS_MONO)
-								{
-									AUD_DeviceSpecs specs;
-									specs.channels = AUD_CHANNELS_MONO;
-									specs.rate = AUD_RATE_INVALID;
-									specs.format = AUD_FORMAT_INVALID;
-									snd_sound = boost::shared_ptr<AUD_IFactory>(new AUD_ChannelMapperFactory(snd_sound, specs));
-								}
-							}
-							catch(AUD_Exception&)
-							{
-								// sound cannot be played... ignore
-							}
+							snd_sound = AUD_monoSound(snd_sound);
 						}
 					}
 					KX_SoundActuator* tmpsoundact =
@@ -435,6 +419,10 @@ void BL_ConvertActuators(const char* maggiename,
 						is3d,
 						settings,
 						soundActuatorType);
+
+					// if we made it mono, we have to free it
+					if(snd_sound != sound->playback_handle && snd_sound != NULL)
+						AUD_unload(snd_sound);
 
 					tmpsoundact->SetName(bact->name);
 					baseact = tmpsoundact;

@@ -176,6 +176,7 @@ void BKE_sound_init(struct Main *bmain)
 {
 	AUD_DeviceSpecs specs;
 	int device, buffersize;
+	const char* device_name;
 
 	device = U.audiodevice;
 	buffersize = U.mixbufsize;
@@ -185,6 +186,22 @@ void BKE_sound_init(struct Main *bmain)
 
 	if (force_device >= 0)
 		device = force_device;
+
+	switch(device)
+	{
+	case AUD_SDL_DEVICE:
+		device_name = "SDL";
+		break;
+	case AUD_OPENAL_DEVICE:
+		device_name = "OpenAL";
+		break;
+	case AUD_JACK_DEVICE:
+		device_name = "Jack";
+		break;
+	default:
+		device_name = "Null";
+		break;
+	}
 
 	if (buffersize < 128)
 		buffersize = AUD_DEFAULT_BUFFER_SIZE;
@@ -198,8 +215,8 @@ void BKE_sound_init(struct Main *bmain)
 	if (specs.channels <= AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
 
-	if (!AUD_init(device, specs, buffersize))
-		AUD_init(AUD_NULL_DEVICE, specs, buffersize);
+	if (!AUD_init(device_name, "Blender", specs, buffersize))
+		AUD_init("Null", "Blender", specs, buffersize);
 
 	BKE_sound_init_main(bmain);
 }
@@ -207,7 +224,7 @@ void BKE_sound_init(struct Main *bmain)
 void BKE_sound_init_main(struct Main *bmain)
 {
 #ifdef WITH_JACK
-	AUD_setSyncCallback(sound_sync_callback, bmain);
+	AUD_setSynchronizerCallback(sound_sync_callback, bmain);
 #else
 	(void)bmain; /* unused */
 #endif
@@ -557,7 +574,7 @@ void BKE_sound_play_scene(struct Scene *scene)
 	}
 
 	if (scene->audio.flag & AUDIO_SYNC)
-		AUD_startPlayback();
+		AUD_playSynchronizer();
 
 	AUD_unlock();
 }
@@ -568,7 +585,7 @@ void BKE_sound_stop_scene(struct Scene *scene)
 		AUD_pause(scene->playback_handle);
 
 		if (scene->audio.flag & AUDIO_SYNC)
-			AUD_stopPlayback();
+			AUD_stopSynchronizer();
 	}
 }
 
@@ -607,7 +624,7 @@ void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene)
 	if (scene->audio.flag & AUDIO_SCRUB && !animation_playing) {
 		if (scene->audio.flag & AUDIO_SYNC) {
 			AUD_seek(scene->playback_handle, cur_time);
-			AUD_seekSequencer(scene->playback_handle, cur_time);
+			AUD_seekSynchronizer(scene->playback_handle, cur_time);
 		}
 		else {
 			AUD_seek(scene->playback_handle, cur_time);
@@ -625,7 +642,7 @@ void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene)
 	}
 	else {
 		if (scene->audio.flag & AUDIO_SYNC) {
-			AUD_seekSequencer(scene->playback_handle, cur_time);
+			AUD_seekSynchronizer(scene->playback_handle, cur_time);
 		}
 		else {
 			if (status == AUD_STATUS_PLAYING) {
@@ -641,7 +658,7 @@ float BKE_sound_sync_scene(struct Scene *scene)
 {
 	if (scene->playback_handle) {
 		if (scene->audio.flag & AUDIO_SYNC)
-			return AUD_getSequencerPosition(scene->playback_handle);
+			return AUD_getSynchronizerPosition(scene->playback_handle);
 		else
 			return AUD_getPosition(scene->playback_handle);
 	}
@@ -651,7 +668,7 @@ float BKE_sound_sync_scene(struct Scene *scene)
 int BKE_sound_scene_playing(struct Scene *scene)
 {
 	if (scene->audio.flag & AUDIO_SYNC)
-		return AUD_doesPlayback();
+		return AUD_isSynchronizerPlaying();
 	else
 		return -1;
 }

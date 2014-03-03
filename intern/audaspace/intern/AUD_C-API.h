@@ -77,7 +77,7 @@ extern void AUD_exitOnce(void);
  * \param buffersize The buffersize for the device.
  * \return Whether the device has been initialized.
  */
-extern int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize);
+extern int AUD_init(const char* device, const char* name, AUD_DeviceSpecs specs, int buffersize);
 
 /**
  * Unitinitializes an audio device.
@@ -211,6 +211,8 @@ extern int AUD_resume(AUD_Handle *handle);
  * \return Whether the handle has been valid or not.
  */
 extern int AUD_stop(AUD_Handle *handle);
+
+extern void AUD_stopAll(void);
 
 /**
  * Sets the end behaviour of a playing or paused sound.
@@ -604,24 +606,24 @@ extern void AUD_setSequencerSpecs(AUD_Sound *sequencer, AUD_Specs specs);
  * \param handle Playback handle.
  * \param time Time in seconds to seek to.
  */
-extern void AUD_seekSequencer(AUD_Handle *handle, float time);
+extern void AUD_seekSynchronizer(AUD_Handle *handle, float time);
 
 /**
  * Returns the current sound scene playback time.
  * \param handle Playback handle.
  * \return The playback time in seconds.
  */
-extern float AUD_getSequencerPosition(AUD_Handle *handle);
+extern float AUD_getSynchronizerPosition(AUD_Handle *handle);
 
 /**
  * Starts the playback of jack transport if possible.
  */
-extern void AUD_startPlayback(void);
+extern void AUD_playSynchronizer(void);
 
 /**
  * Stops the playback of jack transport if possible.
  */
-extern void AUD_stopPlayback(void);
+extern void AUD_stopSynchronizer(void);
 
 #ifdef WITH_JACK
 /**
@@ -629,14 +631,14 @@ extern void AUD_stopPlayback(void);
  * \param function The callback function.
  * \param data The data parameter for the callback.
  */
-extern void AUD_setSyncCallback(AUD_syncFunction function, void *data);
+extern void AUD_setSynchronizerCallback(AUD_syncFunction function, void *data);
 #endif
 
 /**
  * Returns whether jack transport is currently playing.
  * \return Whether jack transport is currently playing.
  */
-extern int AUD_doesPlayback(void);
+extern int AUD_isSynchronizerPlaying(void);
 
 /**
  * Reads a sound into a buffer for drawing at a specific sampling rate.
@@ -747,36 +749,20 @@ extern AUD_Device *AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound *seque
  * \param sound The sound factory.
  * \return The python factory.
  */
-extern void *AUD_getPythonFactory(AUD_Sound *sound);
+extern void *AUD_getPythonSound(AUD_Sound *sound);
 
 /**
  * Retrieves the sound factory of a python factory.
  * \param sound The python factory.
  * \return The sound factory.
  */
-extern AUD_Sound *AUD_getPythonSound(void *sound);
+extern AUD_Sound *AUD_getSoundFromPython(void *sound);
 #endif
 
 extern int AUD_isJackSupported(void);
 
 #ifdef __cplusplus
 }
-
-#include <boost/shared_ptr.hpp>
-class AUD_IDevice;
-class AUD_I3DDevice;
-
-/**
- * Returns the current playback device.
- * \return The playback device.
- */
-boost::shared_ptr<AUD_IDevice> AUD_getDevice();
-
-/**
- * Returns the current playback 3D device.
- * \return The playback 3D device.
- */
-AUD_I3DDevice *AUD_get3DDevice();
 #endif
 
 #endif //__AUD_C_API_H__

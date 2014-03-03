@@ -36,9 +36,6 @@
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
-#  include "AUD_IFactory.h"
-#  include "AUD_IHandle.h"
-#  include <boost/shared_ptr.hpp>
 #endif
 
 #include "BKE_sound.h"
@@ -58,12 +55,12 @@ class KX_SoundActuator : public SCA_IActuator
 {
 	Py_Header
 	bool					m_isplaying;
-	boost::shared_ptr<AUD_IFactory>				m_sound;
+	AUD_Sound*				m_sound;
 	float					m_volume;
 	float					m_pitch;
 	bool					m_is3d;
 	KX_3DSoundSettings		m_3d;
-	boost::shared_ptr<AUD_IHandle>				m_handle;
+	AUD_Handle*				m_handle;
 
 	void play();
 
@@ -84,7 +81,7 @@ public:
 	KX_SOUNDACT_TYPE		m_type;
 
 	KX_SoundActuator(SCA_IObject* gameobj,
-					 boost::shared_ptr<AUD_IFactory> sound,
+					 AUD_Sound *sound,
 					 float volume,
 					 float pitch,
 					 bool is3d,

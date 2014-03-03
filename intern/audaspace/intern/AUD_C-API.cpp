@@ -130,7 +130,7 @@ void AUD_exitOnce()
 #endif
 }
 
-int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
+int AUD_init(const char* device, const char* name, AUD_DeviceSpecs specs, int buffersize)
 {
 	boost::shared_ptr<AUD_IDevice> dev;
 
@@ -138,47 +138,46 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 		AUD_exit();
 	}
 
+	std::string dname = device;
+
 	try {
-		switch(device) {
-		case AUD_NULL_DEVICE:
+		if(dname == "Null") {
 			dev = boost::shared_ptr<AUD_IDevice>(new AUD_NULLDevice());
-			break;
+		}
 #ifdef WITH_SDL
-		case AUD_SDL_DEVICE:
-			if (SDL_Init == (void *)0) {
-				printf("Warning: SDL libraries are not installed\n");
-				// No break, fall through to default, to return false
-			}
-			else {
-				dev = boost::shared_ptr<AUD_IDevice>(new AUD_SDLDevice(specs, buffersize));
-				break;
-			}
+		else if(dname == "SDL")
+		{
+			dev = boost::shared_ptr<AUD_IDevice>(new AUD_SDLDevice(specs, buffersize));
+		}
 #endif
 #ifdef WITH_OPENAL
-		case AUD_OPENAL_DEVICE:
+		else if(dname == "OpenAL")
+		{
 			dev = boost::shared_ptr<AUD_IDevice>(new AUD_OpenALDevice(specs, buffersize));
-			break;
+		}
 #endif
 #ifdef WITH_JACK
-		case AUD_JACK_DEVICE:
+		else if(dname == "Jack")
+		{
 #ifdef __APPLE__
 			struct stat st;
 			if (stat("/Library/Frameworks/Jackmp.framework", &st) != 0) {
 				printf("Warning: Jack Framework not installed\n");
-				// No break, fall through to default, to return false
+				return false;
 			}
 			else
 #endif
 			if (!AUD_jack_supported()) {
-				printf("Warning: Jack client not installed\n");
-				// No break, fall through to default, to return false
+				printf("Warning: Jack cllient not installed\n");
+				return false;
 			}
 			else {
-				dev = boost::shared_ptr<AUD_IDevice>(new AUD_JackDevice("Blender", specs, buffersize));
-				break;
+				dev = boost::shared_ptr<AUD_IDevice>(new AUD_JackDevice(name, specs, buffersize));
 			}
+		}
 #endif
-		default:
+		else
+		{
 			return false;
 		}
 
@@ -266,7 +265,7 @@ PyObject *AUD_initPython()
 	return module;
 }
 
-void *AUD_getPythonFactory(AUD_Sound *sound)
+void *AUD_getPythonSound(AUD_Sound *sound)
 {
 	if (sound) {
 		Factory *obj = (Factory *) Factory_empty();
@@ -279,7 +278,7 @@ void *AUD_getPythonFactory(AUD_Sound *sound)
 	return NULL;
 }
 
-AUD_Sound *AUD_getPythonSound(void *sound)
+AUD_Sound *AUD_getSoundFromPython(void *sound)
 {
 	Factory *factory = checkFactory((PyObject *)sound);
 
@@ -486,6 +485,11 @@ int AUD_stop(AUD_Handle *handle)
 	int result = (*handle)->stop();
 	delete handle;
 	return result;
+}
+
+void AUD_stopAll(void)
+{
+	AUD_device->stopAll();
 }
 
 int AUD_setKeep(AUD_Handle *handle, int keep)
@@ -1015,7 +1019,7 @@ void AUD_setSequencerSpecs(AUD_Sound *sequencer, AUD_Specs specs)
 	dynamic_cast<AUD_SequencerFactory *>(sequencer->get())->setSpecs(specs);
 }
 
-void AUD_seekSequencer(AUD_Handle *handle, float time)
+void AUD_seekSynchronizer(AUD_Handle *handle, float time)
 {
 #ifdef WITH_JACK
 	AUD_JackDevice *device = dynamic_cast<AUD_JackDevice *>(AUD_device.get());
@@ -1030,7 +1034,7 @@ void AUD_seekSequencer(AUD_Handle *handle, float time)
 	}
 }
 
-float AUD_getSequencerPosition(AUD_Handle *handle)
+float AUD_getSynchronizerPosition(AUD_Handle *handle)
 {
 #ifdef WITH_JACK
 	AUD_JackDevice *device = dynamic_cast<AUD_JackDevice *>(AUD_device.get());
@@ -1045,7 +1049,7 @@ float AUD_getSequencerPosition(AUD_Handle *handle)
 	}
 }
 
-void AUD_startPlayback()
+void AUD_playSynchronizer()
 {
 #ifdef WITH_JACK
 	AUD_JackDevice *device = dynamic_cast<AUD_JackDevice *>(AUD_device.get());
@@ -1055,7 +1059,7 @@ void AUD_startPlayback()
 #endif
 }
 
-void AUD_stopPlayback()
+void AUD_stopSynchronizer()
 {
 #ifdef WITH_JACK
 	AUD_JackDevice *device = dynamic_cast<AUD_JackDevice *>(AUD_device.get());
@@ -1066,7 +1070,7 @@ void AUD_stopPlayback()
 }
 
 #ifdef WITH_JACK
-void AUD_setSyncCallback(AUD_syncFunction function, void *data)
+void AUD_setSynchronizerCallback(AUD_syncFunction function, void *data)
 {
 	AUD_JackDevice *device = dynamic_cast<AUD_JackDevice *>(AUD_device.get());
 	if (device) {
@@ -1075,7 +1079,7 @@ void AUD_setSyncCallback(AUD_syncFunction function, void *data)
 }
 #endif
 
-int AUD_doesPlayback()
+int AUD_isSynchronizerPlaying()
 {
 #ifdef WITH_JACK
 	AUD_JackDevice *device = dynamic_cast<AUD_JackDevice *>(AUD_device.get());
@@ -1281,16 +1285,6 @@ AUD_Device *AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound *sequencer, f
 	{
 		return NULL;
 	}
-}
-
-boost::shared_ptr<AUD_IDevice> AUD_getDevice()
-{
-	return AUD_device;
-}
-
-AUD_I3DDevice *AUD_get3DDevice()
-{
-	return AUD_3ddevice;
 }
 
 int AUD_isJackSupported(void)
