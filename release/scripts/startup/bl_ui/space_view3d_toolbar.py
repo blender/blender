@@ -1531,6 +1531,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
     """Default tools for particle mode"""
     bl_context = "particlemode"
     bl_label = "Options"
+    bl_category = "Tools"
 
     def draw(self, context):
         layout = self.layout
