@@ -626,6 +626,24 @@ def WinPyBundle(target=None, source=None, env=None):
     print "Unpacking '" + py_tar + "' to '" + py_target + "'"
     untar_pybundle(py_tar,py_target,exclude_re)
 
+    # -------------
+    # Extract Numpy
+    py_tar = env.subst(env['LCGDIR'])
+    if py_tar[0] == '#':
+        py_tar = py_tar[1:]
+    py_tar += '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_numpy_1.8.tar.gz'
+
+    py_target = env.subst(env['BF_INSTALLDIR'])
+    if py_target[0] == '#':
+        py_target = py_target[1:]
+    py_target = os.path.join(py_target, VERSION, 'python', 'lib', 'site-packages')
+    # rmtree handled above
+    # files are cleaned up in their archive
+    exclude_re = []
+    print("Unpacking '" + py_tar + "' to '" + py_target + "'")
+    untar_pybundle(py_tar, py_target, exclude_re)
+
+
 def  my_appit_print(target, source, env):
     a = '%s' % (target[0])
     d, f = os.path.split(a)
