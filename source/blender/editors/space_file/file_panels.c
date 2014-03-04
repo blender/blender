@@ -135,6 +135,12 @@ static void file_panel_system(const bContext *C, Panel *pa)
 		file_panel_category(C, pa, FS_CATEGORY_SYSTEM, &sfile->systemnr, ICON_DISK_DRIVE, 0);
 }
 
+static int file_panel_system_bookmarks_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	SpaceFile *sfile = CTX_wm_space_file(C);
+	return (sfile && !(U.uiflag & USER_HIDE_SYSTEM_BOOKMARKS));
+}
+
 static void file_panel_system_bookmarks(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -157,6 +163,12 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 
 		file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, &sfile->bookmarknr, ICON_BOOKMARKS, 1);
 	}
+}
+
+static int file_panel_recent_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	SpaceFile *sfile = CTX_wm_space_file(C);
+	return (sfile && !(U.uiflag & USER_HIDE_RECENT));
 }
 
 static void file_panel_recent(const bContext *C, Panel *pa)
@@ -228,6 +240,7 @@ void file_panels_register(ARegionType *art)
 	strcpy(pt->label, N_("System Bookmarks"));
 	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = file_panel_system_bookmarks;
+	pt->poll = file_panel_system_bookmarks_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file bookmarks");
@@ -242,6 +255,7 @@ void file_panels_register(ARegionType *art)
 	strcpy(pt->label, N_("Recent"));
 	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = file_panel_recent;
+	pt->poll = file_panel_recent_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file operator properties");
