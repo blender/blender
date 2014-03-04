@@ -522,7 +522,19 @@ if(UNIX AND NOT APPLE)
 					PATTERN "*.a" EXCLUDE                   # ./core/lib/libnpymath.a - for linking, we dont need.
 				)
 			endif()
-			
+
+			# Copy requests, we need to generalize site-packages
+			if(WITH_PYTHON_INSTALL_REQUESTS)
+				install(
+					DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests
+					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/site-packages
+					PATTERN ".svn" EXCLUDE
+					PATTERN "__pycache__" EXCLUDE           # * any cache *
+					PATTERN "*.pyc" EXCLUDE                 # * any cache *
+					PATTERN "*.pyo" EXCLUDE                 # * any cache *
+					PATTERN "cacert.pem" EXCLUDE            # for now we don't deal with security
+				)
+			endif()
 			unset(_target_LIB)
 			
 		endif()

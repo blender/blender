@@ -265,6 +265,10 @@ option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install fol
 set(PYTHON_NUMPY_PATH            "" CACHE PATH "Python to python site-packages or dist-packages containing 'numpy' module")
 mark_as_advanced(PYTHON_NUMPY_PATH)
 
+if(UNIX AND NOT APPLE)
+	option(WITH_PYTHON_INSTALL_REQUESTS "Copy system requests into the blender install folder" ON)
+endif()
+
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
 option(WITH_CYCLES_STANDALONE		"Build cycles standalone application" OFF)
@@ -2253,6 +2257,17 @@ if(WITH_PYTHON)
 
 			unset(_PY_VER_SPLIT)
 			unset(_PY_VER_MAJOR)
+		endif()
+	endif()
+
+	if(WIN32 OR APPLE)
+		# pass, we have this in lib/python/site-packages
+	elseif(WITH_PYTHON_INSTALL_REQUESTS)
+		if(NOT EXISTS ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests)
+			message(WARNING "'requests' path could not be found in:\n"
+			                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests'\n"
+			                "WITH_PYTHON_INSTALL_REQUESTS option will be ignored when installing python")
+			set(WITH_PYTHON_INSTALL_REQUESTS OFF)
 		endif()
 	endif()
 endif()
