@@ -669,26 +669,30 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 				if (iter2) {
 					int index1 = map[iter1 - first_element];
 					int index2 = map[iter2 - first_element];
+					UvEdge edgetmp;
+					UvEdge *edge2, *eiter;
+					bool valid = true;
 
-					/* make certain we do not have the same edge! */
-					if (state->uvs[index2] != element2 && state->uvs[index1] != element1) {
-						UvEdge edgetmp;
-						UvEdge *edge2;
+					/* make sure the indices are well behaved */
+					if (index1 > index2) {
+						SWAP(int, index1, index2);
+					}
 
+					edgetmp.uv1 = index1;
+					edgetmp.uv2 = index2;
 
-						/* make sure the indices are well behaved */
-						if (index1 < index2) {
-							edgetmp.uv1 = index1;
-							edgetmp.uv2 = index2;
+					/* get the edge from the hash */
+					edge2 = BLI_ghash_lookup(edge_hash, &edgetmp);
+
+					/* more iteration to make sure non-manifold case is handled nicely */
+					for (eiter = edge; eiter; eiter = eiter->next){
+						if (edge2 == eiter) {
+							valid = false;
+							break;
 						}
-						else {
-							edgetmp.uv1 = index2;
-							edgetmp.uv2 = index1;
-						}
+					}
 
-						/* get the edge from the hash */
-						edge2 = BLI_ghash_lookup(edge_hash, &edgetmp);
-
+					if (valid) {
 						/* here I am taking care of non manifold case, assuming more than two matching edges.
 						 * I am not too sure we want this though */
 						last_set->next = edge2;
@@ -1889,7 +1893,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 				if (!(ts->uv_flag & UV_SYNC_SELECTION) && ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || !BM_elem_flag_test(efa, BM_ELEM_SELECT)))
 					continue;
 
-				BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					if (uvedit_edge_select_test(scene, l, cd_loop_uv_offset)) {
 						UvEdge *edge = uv_edge_get(l, state);
 						if (edge) {
