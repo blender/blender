@@ -558,7 +558,7 @@ static bool is_outside_edge(EdgeHalf *e, const float co[3])
 	float d_squared;
 
 	d_squared = dist_squared_to_line_segment_v3(co, e->e->v1->co, e->e->v2->co);
-	return d_squared > BEVEL_EPSILON_SQ;
+	return d_squared > 10000.0f * BEVEL_EPSILON_SQ;
 }
 
 /*
