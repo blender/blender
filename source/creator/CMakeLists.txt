@@ -839,6 +839,11 @@ elseif(APPLE)
 			${CMAKE_CURRENT_BINARY_DIR}/python
 			\${TARGETDIR_VER}
 		)
+		# copy site-packages files
+		install_dir(
+			${LIBDIR}/release/site-packages
+			${CMAKE_CURRENT_BINARY_DIR}/python/lib/python3.3/site-packages
+		)
 
 	endif()
 	
