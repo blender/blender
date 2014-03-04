@@ -755,27 +755,27 @@ static void LaplacianDeformModifier_do(
 		}
 	}
 	else {
-		if (lmd->total_verts > 0 && lmd->total_verts == numVerts) {
-			if (isValidVertexGroup(lmd, ob, dm)) {
-				filevertexCos = MEM_mallocN(sizeof(float[3]) * numVerts, "TempDeformCoordinates");
-				memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * numVerts);
-				MEM_SAFE_FREE(lmd->vertexco);
-				lmd->total_verts = 0;
-				initSystem(lmd, ob, dm, filevertexCos, numVerts);
-				sys = lmd->cache_system;
-				MEM_SAFE_FREE(filevertexCos);
-				laplacianDeformPreview(sys, vertexCos);
-			}
+		if (!isValidVertexGroup(lmd, ob, dm)) {
+			modifier_setError(&lmd->modifier, "Vertex group '%s' is not valid", lmd->anchor_grp_name);
+			lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
+		}
+		else if (lmd->total_verts > 0 && lmd->total_verts == numVerts) {
+			filevertexCos = MEM_mallocN(sizeof(float[3]) * numVerts, "TempDeformCoordinates");
+			memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * numVerts);
+			MEM_SAFE_FREE(lmd->vertexco);
+			lmd->total_verts = 0;
+			initSystem(lmd, ob, dm, filevertexCos, numVerts);
+			sys = lmd->cache_system;
+			MEM_SAFE_FREE(filevertexCos);
+			laplacianDeformPreview(sys, vertexCos);
 		}
 		else {
-			if (isValidVertexGroup(lmd, ob, dm)) {
-				initSystem(lmd, ob, dm, vertexCos, numVerts);
-				sys = lmd->cache_system;
-				laplacianDeformPreview(sys, vertexCos);
-			}
+			initSystem(lmd, ob, dm, vertexCos, numVerts);
+			sys = lmd->cache_system;
+			laplacianDeformPreview(sys, vertexCos);
 		}
 	}
-	if (sys->is_matrix_computed && !sys->has_solution) {
+	if (sys && sys->is_matrix_computed && !sys->has_solution) {
 		modifier_setError(&lmd->modifier, "The system did not find a solution");
 	}
 }
