@@ -426,6 +426,7 @@ namespace carve {
             findPerimeter(grp_tris, vloop, grp_perim);
             out_faces.push_back(face->create(grp_perim.begin(), grp_perim.end(), false));
           }
+          delete face;
         }
         std::swap(faces, out_faces);
       }

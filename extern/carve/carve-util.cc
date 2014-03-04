@@ -39,6 +39,7 @@ using carve::geom3d::Vector;
 using carve::math::Matrix3;
 using carve::mesh::Face;
 using carve::mesh::MeshSet;
+using carve::triangulate::tri_idx;
 using carve::triangulate::triangulate;
 
 typedef std::map< MeshSet<3>::mesh_t*, RTreeNode<3, Face<3> *> * > RTreeCache;
@@ -607,7 +608,7 @@ int triangulateNGon_carveTriangulator(const std::vector<Vector> &vertices,
                                       const int verts_per_poly,
                                       const int *verts_of_poly,
                                       const Matrix3 &axis_matrix,
-                                      std::vector<carve::triangulate::tri_idx> *triangles)
+                                      std::vector<tri_idx> *triangles)
 {
 	// Project vertices to 2D plane.
 	Vector projected;
@@ -630,7 +631,7 @@ int triangulateNGon_importerTriangulator(struct ImportMeshData *import_data,
                                          const int verts_per_poly,
                                          const int *verts_of_poly,
                                          const Matrix3 &axis_matrix,
-                                         std::vector<carve::triangulate::tri_idx> *triangles)
+                                         std::vector<tri_idx> *triangles)
 {
 	typedef float Vector2D[2];
 	typedef unsigned int Triangle[3];
@@ -653,10 +654,9 @@ int triangulateNGon_importerTriangulator(struct ImportMeshData *import_data,
 
 	triangles->reserve(num_triangles);
 	for (int i = 0; i < num_triangles; ++i) {
-		triangles->push_back(
-			carve::triangulate::tri_idx(api_triangles[i][0],
-			                            api_triangles[i][1],
-			                            api_triangles[i][2]));
+		triangles->push_back(tri_idx(api_triangles[i][0],
+			                         api_triangles[i][1],
+			                         api_triangles[i][2]));
 	}
 
 	delete [] poly_2d;
@@ -665,19 +665,52 @@ int triangulateNGon_importerTriangulator(struct ImportMeshData *import_data,
 	return num_triangles;
 }
 
+template <typename T>
+void sortThreeNumbers(T &a, T &b, T &c)
+{
+	if (a > b)
+		std::swap(a, b);
+	if (b > c)
+		std::swap(b, c);
+	if (a > b)
+		std::swap(a, b);
+}
+
+bool pushTriangle(int v1, int v2, int v3,
+                  std::vector<int> *face_indices,
+                  TrianglesStorage *triangles_storage)
+{
+
+	tri_idx triangle(v1, v2, v3);
+	sortThreeNumbers(triangle.a, triangle.b, triangle.c);
+
+	assert(triangle.a < triangle.b);
+	assert(triangle.b < triangle.c);
+
+	if (triangles_storage->find(triangle) == triangles_storage->end()) {
+		face_indices->push_back(3);
+		face_indices->push_back(v1);
+		face_indices->push_back(v2);
+		face_indices->push_back(v3);
+
+		triangles_storage->insert(triangle);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 }  // namespace
 
 int carve_triangulatePoly(struct ImportMeshData *import_data,
                           CarveMeshImporter *mesh_importer,
-                          int poly_index,
-                          int start_loop_index,
                           const std::vector<Vector> &vertices,
                           const int verts_per_poly,
                           const int *verts_of_poly,
                           const Matrix3 &axis_matrix,
                           std::vector<int> *face_indices,
-                          std::vector<int> *orig_loop_index_map,
-                          std::vector<int> *orig_poly_index_map)
+                          TrianglesStorage *triangles_storage)
 {
 	int num_triangles = 0;
 
@@ -690,51 +723,45 @@ int carve_triangulatePoly(struct ImportMeshData *import_data,
 		// TODO(sergey): Consider using shortest diagonal here. However
 		// display code in Blende use static 1-3 split, so some experiments
 		// are needed here.
-		face_indices->push_back(3);
-		face_indices->push_back(verts_of_poly[0]);
-		face_indices->push_back(verts_of_poly[1]);
-		face_indices->push_back(verts_of_poly[2]);
+		if (pushTriangle(verts_of_poly[0],
+		                 verts_of_poly[1],
+		                 verts_of_poly[2],
+		                 face_indices,
+		                 triangles_storage))
+		{
+			num_triangles++;
+		}
 
-		orig_loop_index_map->push_back(start_loop_index);
-		orig_loop_index_map->push_back(start_loop_index + 1);
-		orig_loop_index_map->push_back(-1);
-		orig_poly_index_map->push_back(poly_index);
-
-		face_indices->push_back(3);
-		face_indices->push_back(verts_of_poly[0]);
-		face_indices->push_back(verts_of_poly[2]);
-		face_indices->push_back(verts_of_poly[3]);
-
-		orig_loop_index_map->push_back(-1);
-		orig_loop_index_map->push_back(start_loop_index + 2);
-		orig_loop_index_map->push_back(start_loop_index + 3);
-		orig_poly_index_map->push_back(poly_index);
-
-		num_triangles = 2;
+		if (pushTriangle(verts_of_poly[0],
+		                 verts_of_poly[2],
+		                 verts_of_poly[3],
+		                 face_indices,
+		                 triangles_storage))
+		{
+			num_triangles++;
+		}
 	}
 	else {
-		std::vector<carve::triangulate::tri_idx> triangles;
+		std::vector<tri_idx> triangles;
 		triangles.reserve(verts_per_poly - 2);
 
 		// Make triangulator callback optional so we could do some tests
 		// in the future.
 		if (mesh_importer->triangulate2DPoly) {
-			num_triangles =
-				triangulateNGon_importerTriangulator(import_data,
-				                                     mesh_importer,
-				                                     vertices,
-				                                     verts_per_poly,
-				                                     verts_of_poly,
-				                                     axis_matrix,
-				                                     &triangles);
+			triangulateNGon_importerTriangulator(import_data,
+			                                     mesh_importer,
+			                                     vertices,
+			                                     verts_per_poly,
+			                                     verts_of_poly,
+			                                     axis_matrix,
+			                                     &triangles);
 		}
 		else {
-			num_triangles =
-				triangulateNGon_carveTriangulator(vertices,
-				                                  verts_per_poly,
-				                                  verts_of_poly,
-				                                  axis_matrix,
-				                                  &triangles);
+			triangulateNGon_carveTriangulator(vertices,
+			                                  verts_per_poly,
+			                                  verts_of_poly,
+			                                  axis_matrix,
+			                                  &triangles);
 		}
 
 		for (int i = 0; i < triangles.size(); ++i) {
@@ -750,30 +777,14 @@ int carve_triangulatePoly(struct ImportMeshData *import_data,
 			assert(v2 < verts_per_poly);
 			assert(v3 < verts_per_poly);
 
-			face_indices->push_back(3);
-			face_indices->push_back(verts_of_poly[v1]);
-			face_indices->push_back(verts_of_poly[v2]);
-			face_indices->push_back(verts_of_poly[v3]);
-
-#define CHECK_TRIANGLE_LOOP_INDEX(v1, v2) \
-	{ \
-		int v1_ = std::min(v1, v2), \
-		    v2_ = std::max(v1, v2); \
-		if (v1_ + 1 == v2_ || v1_ + verts_per_poly == v2_ + 1) { \
-			orig_loop_index_map->push_back(start_loop_index + v1); \
-		} \
-		else { \
-			orig_loop_index_map->push_back(-1); \
-		} \
-	} (void) 0
-
-			CHECK_TRIANGLE_LOOP_INDEX(v1, v2);
-			CHECK_TRIANGLE_LOOP_INDEX(v2, v3);
-			CHECK_TRIANGLE_LOOP_INDEX(v3, v1);
-
-#undef CHECK_TRIANGLE_LOOP_INDEX
-
-			orig_poly_index_map->push_back(poly_index);
+			if (pushTriangle(verts_of_poly[v1],
+			                 verts_of_poly[v2],
+			                 verts_of_poly[v3],
+			                 face_indices,
+			                 triangles_storage))
+			{
+				num_triangles++;
+			}
 		}
 	}
 
