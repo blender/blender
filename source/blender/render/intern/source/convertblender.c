@@ -5108,8 +5108,11 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 					if (re->test_break(re->tbh)) break;
 				}
 				
-				/* restore obmats */
-				for (dob= duplilist->first, i = 0; dob; dob= dob->next, ++i) {
+				/* restore obmats
+				 * NOTE: this has to happen in reverse order, since nested
+				 * dupli objects can repeatedly override the obmat
+				 */
+				for (dob= duplilist->last, i = totdob - 1; dob; dob= dob->prev, --i) {
 					copy_m4_m4(dob->ob->obmat, duplilist_extra[i].omat);
 				}
 				
