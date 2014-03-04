@@ -21,6 +21,35 @@
 
 remove_extra_strict_flags()
 
+if(WITH_EXTERNAL_AUDASPACE)
+
+	set(INC
+		.
+	)
+
+	set(INC_SYS
+		${CAUDASPACE_INCLUDE_DIRS}
+		${PYAUDASPACE_INCLUDE_DIRS}
+	)
+
+	set(SRC
+		intern/AUD_Set.cpp
+		intern/AUD_Set.h
+	)
+
+if(WITH_PYTHON)
+	list(APPEND INC_SYS
+		${PYTHON_INCLUDE_DIRS}
+	)
+	list(APPEND SRC
+		intern/AUD_PyInit.cpp
+		intern/AUD_PyInit.h
+	)
+	add_definitions(-DWITH_PYTHON)
+endif()
+
+else()
+
 set(INC
 	.
 	FX
@@ -315,6 +344,7 @@ if(WITH_PYTHON)
 		Python/AUD_PyAPI.h
 	)
 	add_definitions(-DWITH_PYTHON)
+endif()
 endif()
 
 blender_add_lib(bf_intern_audaspace "${SRC}" "${INC}" "${INC_SYS}")

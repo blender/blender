@@ -247,6 +247,7 @@ option(WITH_HEADLESS      "Build without graphical support (renderfarm, server m
 mark_as_advanced(WITH_HEADLESS)
 
 option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
+option(WITH_EXTERNAL_AUDASPACE "Build with external audaspace library installed on the system (only enable if you know what you're doing!)" OFF)
 mark_as_advanced(WITH_AUDASPACE)
 
 option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
@@ -883,6 +884,13 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	# Audio IO
+	if(WITH_EXTERNAL_AUDASPACE)
+		find_package_wrapper(Audaspace)
+		if(NOT AUDASPACE_FOUND OR NOT CAUDASPACE_FOUND)
+			message(FATAL_ERROR "Audaspace external library not found!")
+		endif()
+	endif()
+
 	if(WITH_OPENAL)
 		find_package_wrapper(OpenAL)
 		if(NOT OPENAL_FOUND)

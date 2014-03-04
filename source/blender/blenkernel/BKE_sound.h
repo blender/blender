@@ -35,6 +35,12 @@
 
 #define SOUND_WAVE_SAMPLES_PER_SECOND 250
 
+#ifdef WITH_AUDASPACE
+#  ifdef WITH_EXTERNAL_AUDASPACE
+#    include <audaspace/AUD_Device.h>
+#  endif
+#endif
+
 struct bSound;
 struct Main;
 struct Sequence;
@@ -75,7 +81,7 @@ void BKE_sound_load(struct Main *main, struct bSound *sound);
 
 void BKE_sound_free(struct bSound *sound);
 
-#ifdef __AUD_C_API_H__
+#if defined(__AUD_C_API_H__) || defined(WITH_EXTERNAL_AUDASPACE)
 AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 

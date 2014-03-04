@@ -37,7 +37,14 @@
 #include "KX_SoundActuator.h"
 
 #ifdef WITH_AUDASPACE
-#  include "AUD_C-API.h"
+#  ifdef WITH_EXTERNAL_AUDASPACE
+typedef float sample_t;
+#    include <audaspace/AUD_Sound.h>
+#    include <audaspace/AUD_Special.h>
+#    include <audaspace/AUD_Device.h>
+#    include <audaspace/AUD_Handle.h>
+#    include <audaspace/python/PyAPI.h>
+#  endif
 #endif
 
 #include "KX_GameObject.h"
@@ -554,7 +561,7 @@ int KX_SoundActuator::pyattr_set_sound(void *self, const struct KX_PYATTRIBUTE_D
 	if (!PyArg_Parse(value, "O", &sound))
 		return PY_SET_ATTR_FAIL;
 
-	AUD_Sound *snd = AUD_getSoundFromPython((void *)sound);
+	AUD_Sound *snd = AUD_getSoundFromPython(sound);
 
 	if (snd)
 	{

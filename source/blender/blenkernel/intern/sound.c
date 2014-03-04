@@ -48,7 +48,15 @@
 #include "DNA_speaker_types.h"
 
 #ifdef WITH_AUDASPACE
-#  include "AUD_C-API.h"
+#  ifdef WITH_EXTERNAL_AUDASPACE
+#    include <audaspace/AUD_Sound.h>
+#    include <audaspace/AUD_Sequence.h>
+#    include <audaspace/AUD_Handle.h>
+#    include <audaspace/AUD_Special.h>
+#    include "AUD_Set.h"
+#  else
+#    include "AUD_C-API.h"
+#  endif
 #endif
 
 #include "BKE_global.h"
@@ -150,13 +158,13 @@ static void sound_sync_callback(void *data, int mode, float time)
 int BKE_sound_define_from_str(const char *str)
 {
 	if (BLI_strcaseeq(str, "NULL"))
-		return AUD_NULL_DEVICE;
+		return 0;
 	if (BLI_strcaseeq(str, "SDL"))
-		return AUD_SDL_DEVICE;
+		return 1;
 	if (BLI_strcaseeq(str, "OPENAL"))
-		return AUD_OPENAL_DEVICE;
+		return 2;
 	if (BLI_strcaseeq(str, "JACK"))
-		return AUD_JACK_DEVICE;
+		return 3;
 
 	return -1;
 }
@@ -189,13 +197,13 @@ void BKE_sound_init(struct Main *bmain)
 
 	switch(device)
 	{
-	case AUD_SDL_DEVICE:
+	case 1:
 		device_name = "SDL";
 		break;
-	case AUD_OPENAL_DEVICE:
+	case 2:
 		device_name = "OpenAL";
 		break;
-	case AUD_JACK_DEVICE:
+	case 3:
 		device_name = "Jack";
 		break;
 	default:
@@ -204,7 +212,7 @@ void BKE_sound_init(struct Main *bmain)
 	}
 
 	if (buffersize < 128)
-		buffersize = AUD_DEFAULT_BUFFER_SIZE;
+		buffersize = 1024;
 
 	if (specs.rate < AUD_RATE_8000)
 		specs.rate = AUD_RATE_44100;
@@ -821,7 +829,11 @@ float BKE_sound_get_length(bSound *sound)
 
 bool BKE_sound_is_jack_supported(void)
 {
+#ifdef WITH_EXTERNAL_AUDASPACE
+	return 1;
+#else
 	return (bool)AUD_isJackSupported();
+#endif
 }
 
 #else  /* WITH_AUDASPACE */

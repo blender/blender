@@ -309,8 +309,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 	CTX_data_main_set(C, G.main);
 
-	BKE_sound_init_main(G.main);
-	
 	if (bfd->user) {
 		
 		/* only here free userdef themes... */

@@ -42,7 +42,11 @@
 #include "KX_ConvertActuators.h"
 
 #ifdef WITH_AUDASPACE
-#  include "AUD_C-API.h"
+#  ifdef WITH_EXTERNAL_AUDASPACE
+#    include <audaspace/AUD_Sound.h>
+#  else
+#    include "AUD_C-API.h"
+#  endif
 #endif
 
 // Actuators

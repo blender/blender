@@ -45,7 +45,12 @@
 #include "BLI_blenlib.h"
 
 #ifdef WITH_AUDASPACE
-#  include "AUD_C-API.h"
+#  ifdef WITH_EXTERNAL_AUDASPACE
+#    include <audaspace/AUD_Device.h>
+#    include <audaspace/AUD_Special.h>
+#  else
+#    include "AUD_C-API.h"
+#  endif
 #endif
 
 #include "BLI_utildefines.h"

@@ -100,7 +100,11 @@ extern "C"
 #include "GHOST_Rect.h"
 
 #ifdef WITH_AUDASPACE
-#  include "AUD_C-API.h"
+#  ifdef WITH_EXTERNAL_AUDASPACE
+#    include <audaspace/AUD_Device.h>
+#  else
+#    include "AUD_C-API.h"
+#  endif
 #endif
 
 static void frameTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);

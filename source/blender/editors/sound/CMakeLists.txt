@@ -39,10 +39,14 @@ set(SRC
 )
 
 if(WITH_AUDASPACE)
-	list(APPEND INC
-		../../../../intern/audaspace/intern
-	)
 	add_definitions(-DWITH_AUDASPACE)
+
+	if(WITH_EXTERNAL_AUDASPACE)
+		add_definitions(-DWITH_EXTERNAL_AUDASPACE)
+		list(APPEND INC_SYS ${CAUDASPACE_INCLUDE_DIRS})
+	else()
+		list(APPEND INC ../../../../intern/audaspace/intern)
+	endif()
 endif()
 
 if(WITH_CODEC_FFMPEG)
