@@ -868,6 +868,17 @@ def UnixPyBundle(target=None, source=None, env=None):
             run("find '%s' -type d -name '*.a' -prune -exec rm -rf {} ';'" % numpy_target)
         else:
             print 'Failed to find numpy at %s, skipping copying' % numpy_src
+        del numpy_src, numpy_target
+
+    if env['WITH_BF_PYTHON_INSTALL_REQUESTS']:
+        requests_src = py_src + "/site-packages/requests"
+        requests_target = py_target + "/site-packages/requests"
+        if os.path.exists(requests_src):
+            run("cp -R '%s' '%s'" % (requests_src, os.path.dirname(requests_target)))
+            run("find '%s' -type d -name '*.pem -prune -exec rm -rf {} ';'" % requests_target)
+        else:
+            print('Failed to find requests at %s, skipping copying' % requests_src)
+        del requests_src, requests_target
 
     run("find '%s' -type d -name 'test' -prune -exec rm -rf {} ';'" % py_target)
     run("find '%s' -type d -name '__pycache__' -exec rm -rf {} ';'" % py_target)
