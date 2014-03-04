@@ -3915,7 +3915,8 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	mul_m3_v3(mat, viewDir);
 	normalize_v3_v3(cache->true_view_normal, viewDir);
 
-	cache->supports_gravity = !ELEM(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH) && sd->gravity_factor > 0.0f;
+	cache->supports_gravity = !ELEM3(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SIMPLIFY)
+							  && sd->gravity_factor > 0.0f;
 	/* get gravity vector in world space */
 	if (cache->supports_gravity) {
 		if (sd->gravity_object) {
@@ -4483,8 +4484,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 		do_symmetrical_brush_actions(sd, ob, sculpt_topology_update);
 	}
 
-	if (BKE_paint_brush(&sd->paint)->sculpt_tool != SCULPT_TOOL_SIMPLIFY)
-		do_symmetrical_brush_actions(sd, ob, do_brush_action);
+	do_symmetrical_brush_actions(sd, ob, do_brush_action);
 
 	sculpt_combine_proxies(sd, ob);
 
