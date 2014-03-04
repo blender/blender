@@ -82,13 +82,6 @@ BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf
 
 WITH_BF_DDS = True
 
-#Color Management System
-WITH_BF_LCMS = False
-BF_LCMS = LIBDIR + '/lcms'
-BF_LCMS_INC = '${BF_LCMS}/include'
-BF_LCMS_LIB = 'lcms'
-BF_LCMS_LIBPATH = '${BF_LCMS}/lib'
-
 WITH_BF_JPEG = True
 BF_JPEG = LIBDIR + '/jpeg'
 BF_JPEG_INC = '${BF_JPEG}/include'
