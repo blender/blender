@@ -586,6 +586,17 @@ elseif(WIN32)
 				)
 			endif()
 
+			# release/site-packages
+			install(
+				CODE
+				"
+				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E copy_directory
+					${LIBDIR}/release/site-packages
+					\"${TARGETDIR_VER}/python/lib/site-packages\")
+				"
+			)
+
+
 			# doesnt work, todo
 			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 		endif()

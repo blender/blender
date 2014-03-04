@@ -643,6 +643,21 @@ def WinPyBundle(target=None, source=None, env=None):
     print("Unpacking '" + py_tar + "' to '" + py_target + "'")
     untar_pybundle(py_tar, py_target, exclude_re)
 
+    # --------------------
+    # Copy 'site-packages'
+    py_dir = env.subst(env['LCGDIR'])
+    if py_dir[0] == '#':
+        py_dir = py_dir[1:]
+    py_dir += '/release/site-packages'
+    # grr, we have to do one by one because the dir exists
+    for f in os.listdir(py_dir):
+        fn_src = os.path.join(py_dir, f)
+        fn_dst = os.path.join(py_target, f)
+
+        shutil.rmtree(fn_dst, False, printexception)
+        shutil.copytree(fn_src, fn_dst)
+
+
 
 def  my_appit_print(target, source, env):
     a = '%s' % (target[0])
