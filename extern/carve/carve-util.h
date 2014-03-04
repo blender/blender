@@ -37,7 +37,7 @@
 
 struct TriIdxCompare {
 	bool operator() (const carve::triangulate::tri_idx &left,
-	                 const carve::triangulate::tri_idx &right) {
+	                 const carve::triangulate::tri_idx &right) const {
 		if (left.a < right.a) {
 			return true;
 		}
