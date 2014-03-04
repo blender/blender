@@ -595,17 +595,13 @@ def my_winpybundle_print(target, source, env):
 
 def WinPyBundle(target=None, source=None, env=None):
     import re
-    py_tar= env.subst( env['LCGDIR'] )
-    if py_tar[0]=='#':
-        py_tar= py_tar[1:]
+    py_tar = env.subst(env['LCGDIR']).lstrip("#")
     if env['BF_DEBUG']:
         py_tar+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_d.tar.gz'
     else:
         py_tar+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.tar.gz'
 
-    py_target = env.subst( env['BF_INSTALLDIR'] )
-    if py_target[0]=='#':
-        py_target=py_target[1:]
+    py_target = env.subst(env['BF_INSTALLDIR']).lstrip("#")
     py_target = os.path.join(py_target, VERSION, 'python', 'lib')
     def printexception(func,path,ex):
         if os.path.exists(path): #do not report if path does not exist. eg on a fresh build.
@@ -628,14 +624,10 @@ def WinPyBundle(target=None, source=None, env=None):
 
     # -------------
     # Extract Numpy
-    py_tar = env.subst(env['LCGDIR'])
-    if py_tar[0] == '#':
-        py_tar = py_tar[1:]
+    py_tar = env.subst(env['LCGDIR']).lstrip("#")
     py_tar += '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_numpy_1.8.tar.gz'
 
-    py_target = env.subst(env['BF_INSTALLDIR'])
-    if py_target[0] == '#':
-        py_target = py_target[1:]
+    py_target = env.subst(env['BF_INSTALLDIR']).lstrip("#")
     py_target = os.path.join(py_target, VERSION, 'python', 'lib', 'site-packages')
     # rmtree handled above
     # files are cleaned up in their archive
@@ -645,9 +637,7 @@ def WinPyBundle(target=None, source=None, env=None):
 
     # --------------------
     # Copy 'site-packages'
-    py_dir = env.subst(env['LCGDIR'])
-    if py_dir[0] == '#':
-        py_dir = py_dir[1:]
+    py_dir = env.subst(env['LCGDIR']).lstrip("#")
     py_dir += '/release/site-packages'
     # grr, we have to do one by one because the dir exists
     for f in os.listdir(py_dir):
