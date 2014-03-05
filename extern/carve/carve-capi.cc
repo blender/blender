@@ -720,7 +720,7 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 		if (output_descr->poly) {
 			output_descr->poly->transform(rev_r);
 
-			//dissolveTriangulatedEdges(output_descr);
+			dissolveTriangulatedEdges(output_descr);
 		}
 	}
 	catch (carve::exception e) {

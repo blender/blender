@@ -1,0 +1,11 @@
+diff -r e82d852e4fb0 include/carve/csg_triangulator.hpp
+--- a/include/carve/csg_triangulator.hpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/include/carve/csg_triangulator.hpp	Wed Mar 05 14:43:56 2014 +0600
+@@ -426,6 +426,7 @@
+             findPerimeter(grp_tris, vloop, grp_perim);
+             out_faces.push_back(face->create(grp_perim.begin(), grp_perim.end(), false));
+           }
++          delete face;
+         }
+         std::swap(faces, out_faces);
+       }
