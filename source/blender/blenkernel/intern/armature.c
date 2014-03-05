@@ -888,7 +888,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 		if (ELEM(target->type, OB_MESH, OB_LATTICE)) {
 			/* if we have a DerivedMesh, only use dverts if it has them */
 			if (dm) {
-				use_dverts = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
+				use_dverts = (dm->getVertDataArray(dm, CD_MDEFORMVERT) != NULL);
 			}
 			else if (dverts) {
 				use_dverts = TRUE;

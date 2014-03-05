@@ -894,7 +894,7 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	if (target && target->type == OB_MESH) {
 		/* if there's derived data without deformverts, don't use vgroups */
 		if (dm) {
-			use_vgroups = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
+			use_vgroups = (dm->getVertDataArray(dm, CD_MDEFORMVERT) != NULL);
 		}
 		else {
 			Mesh *me = target->data;
