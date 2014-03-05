@@ -7445,6 +7445,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	blo_do_versions_pre250(fd, lib, main);
 	blo_do_versions_250(fd, lib, main);
 	blo_do_versions_260(fd, lib, main);
+	blo_do_versions_270(fd, lib, main);
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
