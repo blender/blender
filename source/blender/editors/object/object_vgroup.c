@@ -2173,12 +2173,12 @@ static void vgroup_invert_subset(Object *ob,
 		if (use_mirror && use_vert_sel) {
 			ED_vgroup_parray_mirror_sync(ob, dvert_array, dvert_tot,
 			                             vgroup_validmap, vgroup_tot);
+		}
 
-			if (auto_remove) {
-				ED_vgroup_parray_remove_zero(dvert_array, dvert_tot,
-				                             vgroup_validmap, vgroup_tot,
-				                             0.0f, false);
-			}
+		if (auto_remove) {
+			ED_vgroup_parray_remove_zero(dvert_array, dvert_tot,
+			                             vgroup_validmap, vgroup_tot,
+			                             0.0f, false);
 		}
 
 		MEM_freeN(dvert_array);
