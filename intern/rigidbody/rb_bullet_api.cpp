@@ -726,8 +726,8 @@ rbMeshData *RB_trimesh_data_new(int num_tris, int num_verts)
 static void RB_trimesh_data_delete(rbMeshData *mesh)
 {
 	delete mesh->index_array;
-	delete mesh->vertices;
-	delete mesh->triangles;
+	delete[] mesh->vertices;
+	delete[] mesh->triangles;
 	delete mesh;
 }
  
