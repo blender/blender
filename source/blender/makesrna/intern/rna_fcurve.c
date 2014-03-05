@@ -429,6 +429,21 @@ static void rna_FCurve_range(FCurve *fcu, float range[2])
 }
 
 
+/* allow scripts to update curve after editing manually */
+static void rna_FCurve_update_data_ex(FCurve *fcu)
+{
+	sort_time_fcurve(fcu);
+	testhandles_fcurve(fcu, TRUE);
+}
+
+/* RNA update callback for F-Curves after curve shape changes */
+static void rna_FCurve_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	BLI_assert(ptr->type == &RNA_FCurve);
+	rna_FCurve_update_data_ex((FCurve *)ptr->data);
+}
+
+
 static PointerRNA rna_FCurve_active_modifier_get(PointerRNA *ptr)
 {
 	FCurve *fcu = (FCurve *)ptr->data;
@@ -1768,7 +1783,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FCurve_update_data");
 
 	/* Pointers */
 	prop = RNA_def_property(srna, "driver", PROP_POINTER, PROP_NONE);
@@ -1863,8 +1878,12 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	                     "Evaluate F-Curve at given frame", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
-	parm = RNA_def_float(func, "position", 0, -FLT_MAX, FLT_MAX, "Position", "F-Curve position", -FLT_MAX, FLT_MAX);
+	parm = RNA_def_float(func, "value", 0, -FLT_MAX, FLT_MAX, "Value", "Value of F-Curve specific frame", -FLT_MAX, FLT_MAX);
 	RNA_def_function_return(func, parm);
+	
+	/* -- update / recalculate -- */
+	func = RNA_def_function(srna, "update", "rna_FCurve_update_data_ex");
+	RNA_def_function_ui_description(func, "Ensure keyframes are sorted in chronological order and handles are set correctly");
 	
 	/* -- time extents/range -- */
 	func = RNA_def_function(srna, "range", "rna_FCurve_range");
