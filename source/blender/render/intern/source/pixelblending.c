@@ -42,7 +42,6 @@
 #include "render_types.h"
 #include "renderpipeline.h"
 #include "pixelblending.h"
-#include "gammaCorrectionTables.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
