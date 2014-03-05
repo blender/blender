@@ -351,6 +351,11 @@ static void exporter_InitGeomArrays(ExportMeshData *export_data,
 	allocate_custom_layers(&dm->loopData, CD_MLOOPUV, num_loops,
 	                       CustomData_number_of_layers(&dm_left->loopData, CD_MLOOPUV));
 
+	allocate_custom_layers(&dm->loopData, CD_MLOOPCOL, num_loops,
+	                       CustomData_number_of_layers(&dm_right->loopData, CD_MLOOPCOL));
+	allocate_custom_layers(&dm->loopData, CD_MLOOPUV, num_loops,
+	                       CustomData_number_of_layers(&dm_right->loopData, CD_MLOOPUV));
+
 	/* Merge custom data layers from operands.
 	 *
 	 * Will only create custom data layers for all the layers which appears in
