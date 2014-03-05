@@ -35,7 +35,6 @@ extern "C" {
 static PyObject *BPy_Nature_and(PyObject *a, PyObject *b);
 static PyObject *BPy_Nature_xor(PyObject *a, PyObject *b);
 static PyObject *BPy_Nature_or(PyObject *a, PyObject *b);
-static int BPy_Nature_bool(PyObject *v);
 
 /*-----------------------BPy_Nature number method definitions --------------------*/
 
@@ -49,7 +48,7 @@ static PyNumberMethods nature_as_number = {
 	0,                              /* unaryfunc nb_negative */
 	0,                              /* unaryfunc nb_positive */
 	0,                              /* unaryfunc nb_absolute */
-	(inquiry)BPy_Nature_bool,       /* inquiry nb_bool */
+	0,                              /* inquiry nb_bool */
 	0,                              /* unaryfunc nb_invert */
 	0,                              /* binaryfunc nb_lshift */
 	0,                              /* binaryfunc nb_rshift */
@@ -151,7 +150,7 @@ PyTypeObject Nature_Type = {
 /*-----------------------BPy_Nature instance definitions ----------------------------------*/
 
 static PyLongObject _Nature_POINT = {
-	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	PyVarObject_HEAD_INIT(&Nature_Type, 0)
 	{ Nature::POINT }
 };
 static PyLongObject _Nature_S_VERTEX = {
@@ -175,7 +174,7 @@ static PyLongObject _Nature_CUSP = {
 	{ Nature::CUSP }
 };
 static PyLongObject _Nature_NO_FEATURE = {
-	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	PyVarObject_HEAD_INIT(&Nature_Type, 0)
 	{ Nature::NO_FEATURE }
 };
 static PyLongObject _Nature_SILHOUETTE = {
@@ -263,7 +262,7 @@ int Nature_Init(PyObject *module)
 static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 {
 	BPy_Nature *result;
-	long op1, op2;
+	long op1, op2, v;
 
 	if (!BPy_Nature_Check(a) || !BPy_Nature_Check(b)) {
 		PyErr_SetString(PyExc_TypeError, "operands must be a Nature object");
@@ -279,19 +278,23 @@ static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 		PyErr_SetString(PyExc_ValueError, "operand 2: unexpected Nature value");
 		return NULL;
 	}
-	result = PyObject_NewVar(BPy_Nature, &Nature_Type, 1);
-	if (!result)
-		return NULL;
 	switch (op) {
 	case '&':
-		result->i.ob_digit[0] = op1 & op2;
+		v = op1 & op2;
 		break;
 	case '^':
-		result->i.ob_digit[0] = op1 ^ op2;
+		v = op1 ^ op2;
 		break;
 	case '|':
-		result->i.ob_digit[0] = op1 | op2;
+		v = op1 | op2;
 		break;
+	}
+	if (v == 0)
+		result = PyObject_NewVar(BPy_Nature, &Nature_Type, 0);
+	else {
+		result = PyObject_NewVar(BPy_Nature, &Nature_Type, 1);
+		if (result)
+			result->i.ob_digit[0] = v;
 	}
 	return (PyObject *)result;
 }
@@ -309,11 +312,6 @@ static PyObject *BPy_Nature_xor(PyObject *a, PyObject *b)
 static PyObject *BPy_Nature_or(PyObject *a, PyObject *b)
 {
 	return BPy_Nature_bitwise(a, '|', b);
-}
-
-static int BPy_Nature_bool(PyObject *v)
-{
-	return ((PyLongObject *)v)->ob_digit[0] != 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
