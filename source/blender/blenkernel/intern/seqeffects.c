@@ -635,33 +635,35 @@ static void makeGammaTables(float gamma)
 static float gammaCorrect(float c)
 {
 	int i;
-	float res = 0.0;
+	float res;
 	
-	i = floor(c * inv_color_step);
+	i = floorf(c * inv_color_step);
 	/* Clip to range [0, 1]: outside, just do the complete calculation.
 	 * We may have some performance problems here. Stretching up the LUT
 	 * may help solve that, by exchanging LUT size for the interpolation.
 	 * Negative colors are explicitly handled.
 	 */
-	if (i < 0) res = -pow(abs(c), valid_gamma);
-	else if (i >= RE_GAMMA_TABLE_SIZE) res = pow(c, valid_gamma);
-	else res = gamma_range_table[i] + ( (c - color_domain_table[i]) * gamfactor_table[i]);
+	if      (UNLIKELY(i < 0))          res = -powf(-c, valid_gamma);
+	else if (i >= RE_GAMMA_TABLE_SIZE) res =  powf(c,  valid_gamma);
+	else                               res =  gamma_range_table[i] +
+	                                          ((c - color_domain_table[i]) * gamfactor_table[i]);
 	
 	return res;
 }
 
 /* ------------------------------------------------------------------------- */
 
-static float invGammaCorrect(float col)
+static float invGammaCorrect(float c)
 {
 	int i;
 	float res = 0.0;
 
-	i = floor(col * inv_color_step);
+	i = floorf(c * inv_color_step);
 	/* Negative colors are explicitly handled */
-	if (i < 0) res = -pow(abs(col), valid_inv_gamma);
-	else if (i >= RE_GAMMA_TABLE_SIZE) res = pow(col, valid_inv_gamma);
-	else res = inv_gamma_range_table[i] +  ( (col - color_domain_table[i]) * inv_gamfactor_table[i]);
+	if      (UNLIKELY(i < 0))          res = -powf(-c, valid_inv_gamma);
+	else if (i >= RE_GAMMA_TABLE_SIZE) res =  powf(c,  valid_inv_gamma);
+	else                               res = inv_gamma_range_table[i] +
+	                                         ((c - color_domain_table[i]) * inv_gamfactor_table[i]);
  
 	return res;
 }
