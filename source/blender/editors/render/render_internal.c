@@ -532,7 +532,10 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		*(rj->do_update) = TRUE;
 		return;
 	}
-
+	
+	if (rr == NULL)
+		return;
+	
 	/* update part of render */
 	render_image_update_pass_and_layer(rj, rr, &rj->iuser);
 	ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
@@ -550,7 +553,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		{
 			image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, renrect);
 		}
-
+		
 		/* make jobs timer to send notifier */
 		*(rj->do_update) = TRUE;
 	}
