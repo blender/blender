@@ -1819,11 +1819,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	if (1) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
-		int x = 254 - (2 * UI_DPI_WINDOW_FAC);
-		int y = 244 + (4 * UI_DPI_WINDOW_FAC);
+		int x = 260 - (2 * UI_DPI_WINDOW_FAC);
+		int y = 242 + (4 * UI_DPI_WINDOW_FAC);
 		int w = 240;
 
-		const char *version_suffix = "Testing";
+		const char *version_suffix = "Release Candidate";
+
 
 		/* hack to have text draw 'text_sel' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
