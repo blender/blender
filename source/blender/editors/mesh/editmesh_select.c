@@ -1101,7 +1101,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
-static void mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, bool ring)
+static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, bool ring)
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -1119,105 +1119,109 @@ static void mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	view3d_validate_backbuf(&vc);
 
 	eed = EDBM_edge_find_nearest(&vc, &dist);
-	if (eed) {
-		if (extend == false && deselect == false && toggle == false) {
-			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-		}
-	
-		if (extend) {
-			select = true;
-		}
-		else if (deselect) {
-			select = false;
-		}
-		else if (BM_elem_flag_test(eed, BM_ELEM_SELECT) == 0) {
-			select = true;
-		}
-		else if (toggle) {
-			select = false;
-		}
+	if (eed == NULL) {
+		return false;
+	}
 
-		if (em->selectmode & SCE_SELECT_FACE) {
-			walker_select(em, BMW_FACELOOP, eed, select);
+	if (extend == false && deselect == false && toggle == false) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	}
+
+	if (extend) {
+		select = true;
+	}
+	else if (deselect) {
+		select = false;
+	}
+	else if (BM_elem_flag_test(eed, BM_ELEM_SELECT) == 0) {
+		select = true;
+	}
+	else if (toggle) {
+		select = false;
+	}
+
+	if (em->selectmode & SCE_SELECT_FACE) {
+		walker_select(em, BMW_FACELOOP, eed, select);
+	}
+	else if (em->selectmode & SCE_SELECT_EDGE) {
+		if (ring)
+			walker_select(em, BMW_EDGERING, eed, select);
+		else
+			walker_select(em, BMW_LOOP, eed, select);
+	}
+	else if (em->selectmode & SCE_SELECT_VERTEX) {
+		if (ring)
+			walker_select(em, BMW_EDGERING, eed, select);
+
+		else
+			walker_select(em, BMW_LOOP, eed, select);
+	}
+
+	EDBM_selectmode_flush(em);
+
+	/* sets as active, useful for other tools */
+	if (select) {
+		if (em->selectmode & SCE_SELECT_VERTEX) {
+			/* Find nearest vert from mouse
+			 * (initialize to large values incase only one vertex can be projected) */
+			float v1_co[2], v2_co[2];
+			float length_1 = FLT_MAX;
+			float length_2 = FLT_MAX;
+
+			/* We can't be sure this has already been set... */
+			ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+
+			if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
+				length_1 = len_squared_v2v2(mvalf, v1_co);
+			}
+
+			if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
+				length_2 = len_squared_v2v2(mvalf, v2_co);
+			}
+#if 0
+			printf("mouse to v1: %f\nmouse to v2: %f\n", len_squared_v2v2(mvalf, v1_co),
+			       len_squared_v2v2(mvalf, v2_co));
+#endif
+			BM_select_history_store(em->bm, (length_1 < length_2) ? eed->v1 : eed->v2);
 		}
 		else if (em->selectmode & SCE_SELECT_EDGE) {
-			if (ring)
-				walker_select(em, BMW_EDGERING, eed, select);
-			else
-				walker_select(em, BMW_LOOP, eed, select);
+			BM_select_history_store(em->bm, eed);
 		}
-		else if (em->selectmode & SCE_SELECT_VERTEX) {
-			if (ring)
-				walker_select(em, BMW_EDGERING, eed, select);
+		else if (em->selectmode & SCE_SELECT_FACE) {
+			/* Select the face of eed which is the nearest of mouse. */
+			BMFace *f, *efa = NULL;
+			BMIter iterf;
+			float best_dist = FLT_MAX;
 
-			else
-				walker_select(em, BMW_LOOP, eed, select);
-		}
+			/* We can't be sure this has already been set... */
+			ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
-		EDBM_selectmode_flush(em);
+			BM_ITER_ELEM (f, &iterf, eed, BM_FACES_OF_EDGE) {
+				if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+					float cent[3];
+					float co[2], tdist;
 
-		/* sets as active, useful for other tools */
-		if (select) {
-			if (em->selectmode & SCE_SELECT_VERTEX) {
-				/* Find nearest vert from mouse
-				 * (initialize to large values incase only one vertex can be projected) */
-				float v1_co[2], v2_co[2];
-				float length_1 = FLT_MAX;
-				float length_2 = FLT_MAX;
-
-				/* We can't be sure this has already been set... */
-				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-
-				if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
-					length_1 = len_squared_v2v2(mvalf, v1_co);
-				}
-
-				if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
-					length_2 = len_squared_v2v2(mvalf, v2_co);
-				}
-#if 0
-				printf("mouse to v1: %f\nmouse to v2: %f\n", len_squared_v2v2(mvalf, v1_co),
-				       len_squared_v2v2(mvalf, v2_co));
-#endif
-				BM_select_history_store(em->bm, (length_1 < length_2) ? eed->v1 : eed->v2);
-			}
-			else if (em->selectmode & SCE_SELECT_EDGE) {
-				BM_select_history_store(em->bm, eed);
-			}
-			else if (em->selectmode & SCE_SELECT_FACE) {
-				/* Select the face of eed which is the nearest of mouse. */
-				BMFace *f, *efa = NULL;
-				BMIter iterf;
-				float best_dist = FLT_MAX;
-
-				/* We can't be sure this has already been set... */
-				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-
-				BM_ITER_ELEM (f, &iterf, eed, BM_FACES_OF_EDGE) {
-					if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-						float cent[3];
-						float co[2], tdist;
-
-						BM_face_calc_center_mean(f, cent);
-						if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
-							tdist = len_squared_v2v2(mvalf, co);
-							if (tdist < best_dist) {
-/*								printf("Best face: %p (%f)\n", f, tdist);*/
-								best_dist = tdist;
-								efa = f;
-							}
+					BM_face_calc_center_mean(f, cent);
+					if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
+						tdist = len_squared_v2v2(mvalf, co);
+						if (tdist < best_dist) {
+/*							printf("Best face: %p (%f)\n", f, tdist);*/
+							best_dist = tdist;
+							efa = f;
 						}
 					}
 				}
-				if (efa) {
-					BM_mesh_active_face_set(em->bm, efa);
-					BM_select_history_store(em->bm, efa);
-				}
+			}
+			if (efa) {
+				BM_mesh_active_face_set(em->bm, efa);
+				BM_select_history_store(em->bm, efa);
 			}
 		}
-
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit);
 	}
+
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit);
+
+	return true;
 }
 
 static int edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1225,14 +1229,17 @@ static int edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	
 	view3d_operator_needs_opengl(C);
 	
-	mouse_mesh_loop(C, event->mval,
-	                RNA_boolean_get(op->ptr, "extend"),
-	                RNA_boolean_get(op->ptr, "deselect"),
-	                RNA_boolean_get(op->ptr, "toggle"),
-	                RNA_boolean_get(op->ptr, "ring"));
-	
-	/* cannot do tweaks for as long this keymap is after transform map */
-	return OPERATOR_FINISHED;
+	if (mouse_mesh_loop(C, event->mval,
+	                    RNA_boolean_get(op->ptr, "extend"),
+	                    RNA_boolean_get(op->ptr, "deselect"),
+	                    RNA_boolean_get(op->ptr, "toggle"),
+	                    RNA_boolean_get(op->ptr, "ring")))
+	{
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void MESH_OT_loop_select(wmOperatorType *ot)
