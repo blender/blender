@@ -511,6 +511,19 @@ static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
 	}
 }
 
+static void sculpt_extend_redraw_rect_current(Object *ob, rcti *rect)
+{
+	/* redraw rectangles do not get flushed immediately. There may be many update steps
+	 * before a redraw is issued. All those need to be accumulated this happens in the current_r
+	 * which is finally united with the previous rectangle to get the final rectangle */
+	SculptSession *ss = ob->sculpt;
+
+	if (ss->cache) {
+		if (!BLI_rcti_is_empty(&ss->cache->current_r))
+			BLI_rcti_union(rect, &ss->cache->current_r);
+	}
+}
+
 /* Get a screen-space rectangle of the modified area */
 static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
                                   Object *ob, rcti *rect)
@@ -542,12 +555,19 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
                               RegionView3D *rv3d, Object *ob)
 {
 	PBVH *pbvh = ob->sculpt->pbvh;
-	rcti rect;
+	/* copy here, original will be used below */
+	rcti rect = ob->sculpt->cache->current_r;
 
-	sculpt_get_redraw_rect(ar, rv3d, ob, &rect);
 	sculpt_extend_redraw_rect_previous(ob, &rect);
 
 	paint_calc_redraw_planes(planes, ar, rv3d, ob, &rect);
+
+	/* we will draw this rect, so now we can set it as the previous partial rect.
+	 * Note that we don't update with the union of previous/current (rect), only with
+	 * the current. Thus we avoid the rectangle needlessly growing to include
+	 * all the stroke area */
+	ob->sculpt->cache->previous_r = ob->sculpt->cache->current_r;
+	BLI_rcti_init(&ob->sculpt->cache->current_r, 0, 0, 0, 0);
 
 	/* clear redraw flag from nodes */
 	if (pbvh)
@@ -4414,21 +4434,20 @@ static void sculpt_flush_update(bContext *C)
 		sculpt_update_object_bounding_box(ob);
 
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
-			r.xmin -= 1;
-			r.xmax += 1;
-			r.ymin -= 1;
-			r.ymax += 1;
+			sculpt_extend_redraw_rect_current(ob, &r);
 
 			if (ss->cache) {
 				ss->cache->current_r = r;
 			}
 
+			/* previous is not set in the current cache else
+			 * the partial rect will always grow */
 			sculpt_extend_redraw_rect_previous(ob, &r);
 
-			r.xmin += ar->winrct.xmin;
-			r.xmax += ar->winrct.xmin;
-			r.ymin += ar->winrct.ymin;
-			r.ymax += ar->winrct.ymin;
+			r.xmin += ar->winrct.xmin - 2;
+			r.xmax += ar->winrct.xmin + 2;
+			r.ymin += ar->winrct.ymin - 2;
+			r.ymax += ar->winrct.ymin + 2;
 
 			ss->partial_redraw = 1;
 			ED_region_tag_redraw_partial(ar, &r);
@@ -4478,10 +4497,6 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	SculptSession *ss = ob->sculpt;
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	
-	if (ss->cache) {
-		ss->cache->previous_r = ss->cache->current_r;
-	}
-
 	sculpt_stroke_modifiers_check(C, ob);
 	sculpt_update_cache_variants(C, sd, ob, itemptr);
 	sculpt_restore_mesh(sd, ob);
