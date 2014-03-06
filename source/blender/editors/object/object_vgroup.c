@@ -3818,7 +3818,8 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	vgroup_operator_subset_select_props(ot, true);
-	RNA_def_float(ot->srna, "limit", 0.0f, 0.0f, 1.0, "Limit", "Remove weights under this limit", 0.0f, 0.99f);
+	RNA_def_float(ot->srna, "limit", 0.0f, 0.0f, 1.0, "Limit",
+	              "Remove vertices which weight is below or equal to this limit", 0.0f, 0.99f);
 	RNA_def_boolean(ot->srna, "keep_single", false, "Keep Single",
 	                "Keep verts assigned to at least one group when cleaning");
 }
