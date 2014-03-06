@@ -77,7 +77,7 @@
 
 #define KNIFE_FLT_EPS          0.00001f
 #define KNIFE_FLT_EPS_SQUARED  (KNIFE_FLT_EPS * KNIFE_FLT_EPS)
-#define KNIFE_FLT_EPSBIG       0.001f
+#define KNIFE_FLT_EPSBIG       0.0005f
 
 typedef struct KnifeColors {
 	unsigned char line[3];
@@ -653,7 +653,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 	}
 
 	/* Check if edge actually lies within face (might not, if this face is concave) */
-	if (lh1->v && lh2->v) {
+	if ((lh1->v && !lh1->kfe) && (lh2->v && !lh2->kfe)) {
 		if (!knife_verts_edge_in_face(lh1->v, lh2->v, f)) {
 			return;
 		}
