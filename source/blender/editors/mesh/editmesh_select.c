@@ -1007,6 +1007,34 @@ void MESH_OT_select_mode(wmOperatorType *ot)
 
 /* ****************  LOOP SELECTS *************** */
 
+static void walker_select_count(BMEditMesh *em, int walkercode, void *start, const bool select, const bool select_mix,
+                                int *r_totsel, int *r_totunsel)
+{
+	BMesh *bm = em->bm;
+	BMElem *ele;
+	BMWalker walker;
+	int tot[2] = {0, 0};
+
+	BMW_init(&walker, bm, walkercode,
+	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_FLAG_TEST_HIDDEN,
+	         BMW_NIL_LAY);
+
+	for (ele = BMW_begin(&walker, start); ele; ele = BMW_step(&walker)) {
+		tot[(BM_elem_flag_test_bool(ele, BM_ELEM_SELECT) != select)] += 1;
+
+		if (!select_mix && tot[0] && tot[1]) {
+			tot[0] = tot[1] = -1;
+			break;
+		}
+	}
+
+	*r_totsel = tot[0];
+	*r_totunsel = tot[1];
+
+	BMW_end(&walker);
+}
+
 static void walker_select(BMEditMesh *em, int walkercode, void *start, const bool select)
 {
 	BMesh *bm = em->bm;
@@ -1101,12 +1129,68 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
+static void mouse_mesh_loop_face(BMEditMesh *em, BMEdge *eed, bool select, bool select_clear)
+{
+	if (select_clear) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	}
+
+	walker_select(em, BMW_FACELOOP, eed, select);
+}
+
+static void mouse_mesh_loop_edge_ring(BMEditMesh *em, BMEdge *eed, bool select, bool select_clear)
+{
+	if (select_clear) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	}
+
+	walker_select(em, BMW_EDGERING, eed, select);
+}
+
+static void mouse_mesh_loop_edge(BMEditMesh *em, BMEdge *eed, bool select, bool select_clear, bool select_cycle)
+{
+	bool edge_boundary = false;
+
+	/* cycle between BMW_LOOP / BMW_EDGEBOUNDARY  */
+	if (select_cycle && BM_edge_is_boundary(eed)) {
+		int tot[2];
+
+		/* if the loops selected toggle the boundaries */
+		walker_select_count(em, BMW_LOOP, eed, select, false,
+		                    &tot[0], &tot[1]);
+		if (tot[select] == 0) {
+			edge_boundary = true;
+
+			/* if the boundaries selected, toggle back to the loop */
+			walker_select_count(em, BMW_EDGEBOUNDARY, eed, select, false,
+			                    &tot[0], &tot[1]);
+			if (tot[select] == 0) {
+				edge_boundary = false;
+			}
+		}
+	}
+
+	if (select_clear) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	}
+
+	if (edge_boundary) {
+		walker_select(em, BMW_EDGEBOUNDARY, eed, select);
+	}
+	else {
+		walker_select(em, BMW_LOOP, eed, select);
+	}
+}
+
+
 static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, bool ring)
 {
 	ViewContext vc;
 	BMEditMesh *em;
 	BMEdge *eed;
 	bool select = true;
+	bool select_clear = false;
+	bool select_cycle = true;
 	float dist = 50.0f;
 	float mvalf[2];
 
@@ -1124,7 +1208,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	}
 
 	if (extend == false && deselect == false && toggle == false) {
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		select_clear = true;
 	}
 
 	if (extend) {
@@ -1133,28 +1217,24 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	else if (deselect) {
 		select = false;
 	}
-	else if (BM_elem_flag_test(eed, BM_ELEM_SELECT) == 0) {
+	else if (select_clear || (BM_elem_flag_test(eed, BM_ELEM_SELECT) == 0)) {
 		select = true;
 	}
 	else if (toggle) {
 		select = false;
+		select_cycle = false;
 	}
 
 	if (em->selectmode & SCE_SELECT_FACE) {
-		walker_select(em, BMW_FACELOOP, eed, select);
+		mouse_mesh_loop_face(em, eed, select, select_clear);
 	}
-	else if (em->selectmode & SCE_SELECT_EDGE) {
-		if (ring)
-			walker_select(em, BMW_EDGERING, eed, select);
-		else
-			walker_select(em, BMW_LOOP, eed, select);
-	}
-	else if (em->selectmode & SCE_SELECT_VERTEX) {
-		if (ring)
-			walker_select(em, BMW_EDGERING, eed, select);
-
-		else
-			walker_select(em, BMW_LOOP, eed, select);
+	else {
+		if (ring) {
+			mouse_mesh_loop_edge_ring(em, eed, select, select_clear);
+		}
+		else {
+			mouse_mesh_loop_edge(em, eed, select, select_clear, select_cycle);
+		}
 	}
 
 	EDBM_selectmode_flush(em);
