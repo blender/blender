@@ -214,8 +214,17 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 		int undistort = user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
 		get_proxy_fname(clip, user->render_size, undistort, framenr, name);
 
-		/* proxies were built using default color space settings */
-		colorspace = NULL;
+		/* Well, this is a bit weird, but proxies for movie sources
+		 * are built in the same exact color space as the input,
+		 *
+		 * But image sequences are built in the display space.
+		 */
+		if (clip->source == MCLIP_SRC_MOVIE) {
+			colorspace = clip->colorspace_settings.name;
+		}
+		else {
+			colorspace = NULL;
+		}
 	}
 	else {
 		get_sequence_fname(clip, framenr, name);
