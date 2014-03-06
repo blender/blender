@@ -1626,7 +1626,10 @@ typedef enum SculptFlags {
 	/* If set, dynamic-topology brushes will subdivide short edges */
 	SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12),
 	/* If set, dynamic-topology brushes will collapse short edges */
-	SCULPT_DYNTOPO_COLLAPSE = (1 << 11)
+	SCULPT_DYNTOPO_COLLAPSE = (1 << 11),
+
+	/* If set, dynamic-topology detail size will be constant in object space */
+	SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13)
 } SculptFlags;
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)

@@ -4485,10 +4485,15 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	sculpt_update_cache_variants(C, sd, ob, itemptr);
 	sculpt_restore_mesh(sd, ob);
 
-	BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-	                               (ss->cache->radius /
-	                                (float)ups->pixel_radius) *
-	                               (float)sd->detail_size);
+	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
+		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, (float)sd->detail_size/100.0f);
+	}
+	else {
+		BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
+									   (ss->cache->radius /
+										(float)ups->pixel_radius) *
+									   (float)sd->detail_size);
+	}
 
 	if (sculpt_stroke_dynamic_topology(ss, brush)) {
 		do_symmetrical_brush_actions(sd, ob, sculpt_topology_update);

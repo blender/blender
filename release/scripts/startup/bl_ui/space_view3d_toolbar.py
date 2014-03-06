@@ -1221,6 +1221,7 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
         sub.active = brush and brush.sculpt_tool not in ('MASK')
         sub.prop(sculpt, "detail_size")
         sub.prop(sculpt, "detail_refine_method", text="")
+        sub.prop(sculpt, "detail_type_method", text="")
         col.separator()
         col.prop(sculpt, "use_smooth_shading")
         col.operator("sculpt.optimize")
