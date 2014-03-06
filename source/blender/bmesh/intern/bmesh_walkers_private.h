@@ -78,6 +78,11 @@ typedef struct BMwEdgeringWalker {
 	BMEdge *wireedge;
 } BMwEdgeringWalker;
 
+typedef struct BMwEdgeboundaryWalker {
+	BMwGenericWalker header;
+	BMEdge *e;
+} BMwEdgeboundaryWalker;
+
 typedef struct BMwUVEdgeWalker {
 	BMwGenericWalker header;
 	BMLoop *l;

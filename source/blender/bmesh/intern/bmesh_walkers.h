@@ -118,6 +118,7 @@ enum {
 	BMW_LOOP,
 	BMW_FACELOOP,
 	BMW_EDGERING,
+	BMW_EDGEBOUNDARY,
 	/* #define BMW_RING	2 */
 	/* walk over uv islands; takes a loop as input.  restrict flag
 	 * restricts the walking to loops whose vert has restrict flag set as a

@@ -993,6 +993,77 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 /** \} */
 
 
+/** \name Boundary Edge Walker
+ * \{ */
+
+static void bmw_EdgeboundaryWalker_begin(BMWalker *walker, void *data)
+{
+	BMwEdgeboundaryWalker *lwalk;
+	BMEdge *e = data;
+
+	BLI_assert(BM_edge_is_boundary(e));
+
+	if (BLI_gset_haskey(walker->visit_set, e))
+		return;
+
+	lwalk = BMW_state_add(walker);
+	lwalk->e = e;
+	BLI_gset_insert(walker->visit_set, e);
+}
+
+static void *bmw_EdgeboundaryWalker_yield(BMWalker *walker)
+{
+	BMwEdgeboundaryWalker *lwalk = BMW_current_state(walker);
+
+	if (!lwalk) {
+		return NULL;
+	}
+
+	return lwalk->e;
+}
+
+static void *bmw_EdgeboundaryWalker_step(BMWalker *walker)
+{
+	BMwEdgeboundaryWalker *lwalk, owalk;
+	BMEdge *e, *e_other;
+	BMVert *v;
+	BMIter eiter;
+	BMIter viter;
+
+	BMW_state_remove_r(walker, &owalk);
+	lwalk = &owalk;
+
+	e = lwalk->e;
+
+	if (!bmw_mask_check_edge(walker, e)) {
+		return e;
+	}
+
+	BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
+		BM_ITER_ELEM (e_other, &eiter, v, BM_EDGES_OF_VERT) {
+			if (e != e_other && BM_edge_is_boundary(e_other)) {
+				if (BLI_gset_haskey(walker->visit_set, e_other)) {
+					continue;
+				}
+
+				if (!bmw_mask_check_edge(walker, e_other)) {
+					continue;
+				}
+
+				lwalk = BMW_state_add(walker);
+				BLI_gset_insert(walker->visit_set, e_other);
+
+				lwalk->e = e_other;
+			}
+		}
+	}
+
+	return e;
+}
+
+/** \} */
+
+
 /** \name UV Edge Walker
  * \{ */
 
@@ -1133,7 +1204,16 @@ static BMWalker bmw_EdgeringWalker_Type = {
 	bmw_EdgeringWalker_yield,
 	sizeof(BMwEdgeringWalker),
 	BMW_DEPTH_FIRST,
-	0, /* valid restrict masks */ /* could add flags here but so far none are used */
+	BM_EDGE, /* valid restrict masks */
+};
+
+static BMWalker bmw_EdgeboundaryWalker_Type = {
+	bmw_EdgeboundaryWalker_begin,
+	bmw_EdgeboundaryWalker_step,
+	bmw_EdgeboundaryWalker_yield,
+	sizeof(BMwEdgeboundaryWalker),
+	BMW_DEPTH_FIRST,
+	0,
 };
 
 static BMWalker bmw_UVEdgeWalker_Type = {
@@ -1159,6 +1239,7 @@ BMWalker *bm_walker_types[] = {
 	&bmw_LoopWalker_Type,               /* BMW_LOOP */
 	&bmw_FaceLoopWalker_Type,           /* BMW_FACELOOP */
 	&bmw_EdgeringWalker_Type,           /* BMW_EDGERING */
+	&bmw_EdgeboundaryWalker_Type,       /* BMW_EDGEBOUNDARY */
 	&bmw_UVEdgeWalker_Type,             /* BMW_LOOPDATA_ISLAND */
 	&bmw_IslandboundWalker_Type,        /* BMW_ISLANDBOUND */
 	&bmw_IslandWalker_Type,             /* BMW_ISLAND */
