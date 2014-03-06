@@ -513,16 +513,14 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 		}
 	}
 
-	/* create shader of the appropriate type. we pass "surface" to all shaders,
-	 * because "volume" and "displacement" don't work yet in OSL. the shaders
-	 * work fine, but presumably these values would be used for more strict
-	 * checking, so when that is fixed, we should update the code here too. */
+	/* create shader of the appropriate type. OSL only distinguishes between "surface"
+	 * and "displacement" atm */
 	if(current_type == SHADER_TYPE_SURFACE)
 		ss->Shader("surface", name, id(node).c_str());
 	else if(current_type == SHADER_TYPE_VOLUME)
 		ss->Shader("surface", name, id(node).c_str());
 	else if(current_type == SHADER_TYPE_DISPLACEMENT)
-		ss->Shader("surface", name, id(node).c_str());
+		ss->Shader("displacement", name, id(node).c_str());
 	else
 		assert(0);
 	
