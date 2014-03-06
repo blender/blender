@@ -449,9 +449,16 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 	/* scrollers? */
 }
 
-static void text_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
+static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
-	WM_cursor_set(win, BC_TEXTEDITCURSOR);
+	SpaceText *st = sa->spacedata.first;
+	int wmcursor = BC_TEXTEDITCURSOR;
+
+	if(st->text && BLI_rcti_isect_pt(&st->txtbar, win->eventstate->x - ar->winrct.xmin, st->txtbar.ymin)) {
+		wmcursor = CURSOR_STD;
+	}
+
+	WM_cursor_set(win, wmcursor);
 }
 
 
@@ -570,6 +577,7 @@ void ED_spacetype_text(void)
 	art->init = text_main_area_init;
 	art->draw = text_main_area_draw;
 	art->cursor = text_cursor;
+	art->event_cursor = TRUE;
 
 	BLI_addhead(&st->regiontypes, art);
 	
