@@ -1421,7 +1421,7 @@ static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
 	}
 }
 
-static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength, int smooth_mask, float (*proxy)[3])
+static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength, int smooth_mask)
 {
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	PBVHVertexIter vd;
@@ -1450,7 +1450,9 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, 
 				sub_v3_v3v3(val, avg, vd.co);
 				mul_v3_fl(val, fade);
 
-				sculpt_clip(sd, ss, proxy[vd.i], val);
+				add_v3_v3(val, vd.co);
+
+				sculpt_clip(sd, ss, vd.co, val);
 			}
 
 			if (vd.mvert)
@@ -1460,7 +1462,7 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, 
 	BKE_pbvh_vertex_iter_end;
 }
 
-static void do_bmesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength, int smooth_mask, float (*proxy)[3])
+static void do_bmesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength, int smooth_mask)
 {
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	PBVHVertexIter vd;
@@ -1489,7 +1491,9 @@ static void do_bmesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node,
 				sub_v3_v3v3(val, avg, vd.co);
 				mul_v3_fl(val, fade);
 
-				sculpt_clip(sd, ss, proxy[vd.i], val);
+				add_v3_v3(val, vd.co);
+
+				sculpt_clip(sd, ss, vd.co, val);
 			}
 
 			if (vd.mvert)
@@ -1500,7 +1504,7 @@ static void do_bmesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node,
 }
 
 static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node,
-									 float bstrength, int smooth_mask, float (*proxy)[3])
+                                     float bstrength, int smooth_mask)
 {
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptBrushTest test;
@@ -1513,7 +1517,6 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	int thread_num;
 	BLI_bitmap **grid_hidden;
 	int *grid_indices, totgrid, gridsize, i, x, y;
-	int proxyindex = 0;
 
 	sculpt_brush_test_init(ss, &test);
 
@@ -1599,10 +1602,6 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 				float *fno;
 				float *mask;
 				int index;
-				int proxyindex_local;
-
-				/* store locally here because we may not get a chance to increase later */
-				proxyindex_local = proxyindex++;
 
 				if (gh) {
 					if (BLI_BITMAP_GET(gh, y * gridsize + x))
@@ -1652,7 +1651,9 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 						sub_v3_v3v3(val, avg, co);
 						mul_v3_fl(val, fade);
 
-						sculpt_clip(sd, ss, proxy[proxyindex_local], val);
+						add_v3_v3(val, co);
+
+						sculpt_clip(sd, ss, co, val);
 					}
 				}
 			}
@@ -1664,34 +1665,44 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
                    float bstrength, int smooth_mask)
 {
 	SculptSession *ss = ob->sculpt;
+	const int max_iterations = 4;
+	const float fract = 1.0f / max_iterations;
 	PBVHType type = BKE_pbvh_type(ss->pbvh);
-	int n;
+	int iteration, n, count;
+	float last;
 
 	CLAMP(bstrength, 0, 1);
+
+	count = (int)(bstrength * max_iterations);
+	last  = max_iterations * (bstrength - count * fract);
 
 	if (type == PBVH_FACES && !ss->pmap) {
 		BLI_assert(!"sculpt smooth: pmap missing");
 		return;
 	}
 
-#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-	for (n = 0; n < totnode; n++) {
-		float (*proxy)[3];
-		proxy = BKE_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co;
+	for (iteration = 0; iteration <= count; ++iteration) {
+		float strength = (iteration != count) ? 1.0f : last;
 
-		switch (type) {
-			case PBVH_GRIDS:
-				do_multires_smooth_brush(sd, ss, nodes[n], bstrength,
-										 smooth_mask, proxy);
-				break;
-			case PBVH_FACES:
-				do_mesh_smooth_brush(sd, ss, nodes[n], bstrength,
-									 smooth_mask, proxy);
-				break;
-			case PBVH_BMESH:
-				do_bmesh_smooth_brush(sd, ss, nodes[n], bstrength, smooth_mask, proxy);
-				break;
+#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+		for (n = 0; n < totnode; n++) {
+			switch (type) {
+				case PBVH_GRIDS:
+					do_multires_smooth_brush(sd, ss, nodes[n], strength,
+					                         smooth_mask);
+					break;
+				case PBVH_FACES:
+					do_mesh_smooth_brush(sd, ss, nodes[n], strength,
+					                     smooth_mask);
+					break;
+				case PBVH_BMESH:
+					do_bmesh_smooth_brush(sd, ss, nodes[n], strength, smooth_mask);
+					break;
+			}
 		}
+
+		if (ss->multires)
+			multires_stitch_grids(ob);
 	}
 }
 
@@ -3268,7 +3279,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 	BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
 
 	/* first line is tools that don't support proxies */
-	if ((brush->sculpt_tool != SCULPT_TOOL_LAYER) ||
+	if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER) ||
 	    ss->cache->supports_gravity)
 	{
 		/* these brushes start from original coordinates */
@@ -3316,9 +3327,6 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 
 			BKE_pbvh_node_free_proxies(nodes[n]);
 		}
-
-		if (ss->multires && brush->sculpt_tool == SCULPT_TOOL_SMOOTH)
-			multires_stitch_grids(ob);
 	}
 
 	if (nodes)
@@ -3350,8 +3358,8 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
-	if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
-		/* this brushes doesn't use proxies, so sculpt_combine_proxies() wouldn't
+	if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
+		/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
 		 * propagate needed deformation to original base */
 
 		int n, totnode;
@@ -4406,6 +4414,7 @@ static void sculpt_flush_update(bContext *C)
 
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
 			rcti tmp = r;
+
 			sculpt_extend_redraw_rect_previous(ob, &r);
 
 			if (ss->cache)
