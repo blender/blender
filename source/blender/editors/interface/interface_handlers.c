@@ -728,15 +728,15 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
 {
 	uiBut *bt;
-	
+
 	ui_set_but_val(but, but->hardmax);
-	
+
+	ui_apply_but_func(C, but);
+
 	/* states of other row buttons */
 	for (bt = block->buttons.first; bt; bt = bt->next)
 		if (bt != but && bt->poin == but->poin && ELEM(bt->type, ROW, LISTROW))
 			ui_check_but(bt);
-	
-	ui_apply_but_func(C, but);
 
 	data->retval = but->retval;
 	data->applied = true;
