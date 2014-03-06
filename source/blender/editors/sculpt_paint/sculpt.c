@@ -511,19 +511,6 @@ static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
 	}
 }
 
-static void sculpt_extend_redraw_rect_current(Object *ob, rcti *rect)
-{
-	/* redraw rectangles do not get flushed immediately. There may be many update steps
-	 * before a redraw is issued. All those need to be accumulated this happens in the current_r
-	 * which is finally united with the previous rectangle to get the final rectangle */
-	SculptSession *ss = ob->sculpt;
-
-	if (ss->cache) {
-		if (!BLI_rcti_is_empty(&ss->cache->current_r))
-			BLI_rcti_union(rect, &ss->cache->current_r);
-	}
-}
-
 /* Get a screen-space rectangle of the modified area */
 static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
                                   Object *ob, rcti *rect)
@@ -567,7 +554,6 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	 * the current. Thus we avoid the rectangle needlessly growing to include
 	 * all the stroke area */
 	ob->sculpt->cache->previous_r = ob->sculpt->cache->current_r;
-	BLI_rcti_init(&ob->sculpt->cache->current_r, 0, 0, 0, 0);
 
 	/* clear redraw flag from nodes */
 	if (pbvh)
@@ -4434,8 +4420,6 @@ static void sculpt_flush_update(bContext *C)
 		sculpt_update_object_bounding_box(ob);
 
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
-			sculpt_extend_redraw_rect_current(ob, &r);
-
 			if (ss->cache) {
 				ss->cache->current_r = r;
 			}
