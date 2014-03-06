@@ -368,7 +368,7 @@ static int actkeys_viewall(bContext *C, const bool only_sel, const bool only_xax
 {
 	bAnimContext ac;
 	View2D *v2d;
-	float extra;
+	float extra, min, max;
 	bool found;
 	
 	/* get editor data */
@@ -377,11 +377,14 @@ static int actkeys_viewall(bContext *C, const bool only_sel, const bool only_xax
 	v2d = &ac.ar->v2d;
 	
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	found = get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, only_sel);
+	found = get_keyframe_extents(&ac, &min, &max, only_sel);
 
 	if (only_sel && (found == false))
 		return OPERATOR_CANCELLED;
-	
+
+	v2d->cur.xmin = min;
+	v2d->cur.xmax = max;
+
 	extra = 0.1f * BLI_rctf_size_x(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
