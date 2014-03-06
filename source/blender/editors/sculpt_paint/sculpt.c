@@ -305,6 +305,7 @@ typedef struct StrokeCache {
 	float gravity_direction[3];
 
 	rcti previous_r; /* previous redraw rectangle */
+	rcti current_r; /* current redraw rectangle */
 } StrokeCache;
 
 /************** Access to original unmodified vertex data *************/
@@ -4413,17 +4414,21 @@ static void sculpt_flush_update(bContext *C)
 		sculpt_update_object_bounding_box(ob);
 
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
-			rcti tmp = r;
+			r.xmin -= 1;
+			r.xmax += 1;
+			r.ymin -= 1;
+			r.ymax += 1;
+
+			if (ss->cache) {
+				ss->cache->current_r = r;
+			}
 
 			sculpt_extend_redraw_rect_previous(ob, &r);
 
-			if (ss->cache)
-				ss->cache->previous_r = tmp;
-
-			r.xmin += ar->winrct.xmin - 1;
-			r.xmax += ar->winrct.xmin + 1;
-			r.ymin += ar->winrct.ymin - 1;
-			r.ymax += ar->winrct.ymin + 1;
+			r.xmin += ar->winrct.xmin;
+			r.xmax += ar->winrct.xmin;
+			r.ymin += ar->winrct.ymin;
+			r.ymax += ar->winrct.ymin;
 
 			ss->partial_redraw = 1;
 			ED_region_tag_redraw_partial(ar, &r);
@@ -4473,6 +4478,10 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	SculptSession *ss = ob->sculpt;
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	
+	if (ss->cache) {
+		ss->cache->previous_r = ss->cache->current_r;
+	}
+
 	sculpt_stroke_modifiers_check(C, ob);
 	sculpt_update_cache_variants(C, sd, ob, itemptr);
 	sculpt_restore_mesh(sd, ob);
