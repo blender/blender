@@ -271,6 +271,9 @@ void BKE_tracking_dopesheet_update(struct MovieTracking *tracking);
                                               (((sc)->flag & SC_SHOW_MARKER_PATTERN) && TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) || \
                                               (((sc)->flag & SC_SHOW_MARKER_SEARCH) && TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))))
 
+#define PLANE_TRACK_VIEW_SELECTED(plane_track) ((((plane_track)->flag & PLANE_TRACK_HIDDEN) == 0) && \
+                                                 ((plane_track)->flag & SELECT))
+
 #define MARKER_VISIBLE(sc, track, marker)       (((marker)->flag & MARKER_DISABLED) == 0 || ((sc)->flag & SC_HIDE_DISABLED) == 0 || (sc->clip->tracking.act_track == track))
 
 #define TRACK_CLEAR_UPTO        0

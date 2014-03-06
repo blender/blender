@@ -252,7 +252,7 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		next_plane_track = plane_track->next;
 
-		if (plane_track->flag & SELECT) {
+		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			BKE_tracking_plane_track_free(plane_track);
 			BLI_freelinkN(plane_tracks_base, plane_track);
 			changed = true;
@@ -333,7 +333,7 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		plane_track_next = plane_track->next;
 
-		if (plane_track->flag & SELECT) {
+		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track, framenr);
 
 			if (plane_marker) {
@@ -2792,9 +2792,12 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+	MovieTrackingPlaneTrack *act_plane_track = BKE_tracking_plane_track_get_active(&clip->tracking);
 	int unselected;
 
 	unselected = RNA_boolean_get(op->ptr, "unselected");
@@ -2817,6 +2820,22 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 	if (unselected == 0) {
 		/* no selection on screen now, unlock view so it can be scrolled nice again */
 		sc->flag &= ~SC_LOCK_SELECTION;
+	}
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if (unselected == 0 && plane_track->flag & SELECT) {
+			plane_track->flag |= PLANE_TRACK_HIDDEN;
+		}
+		else if (unselected == 1 && (plane_track->flag & SELECT) == 0) {
+			plane_track->flag |= PLANE_TRACK_HIDDEN;
+		}
+	}
+
+	if (act_plane_track && act_plane_track->flag & TRACK_HIDDEN) {
+		clip->tracking.act_plane_track = NULL;
 	}
 
 	BKE_tracking_dopesheet_tag_update(tracking);
@@ -2852,13 +2871,22 @@ static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	MovieTrackingTrack *track;
+	MovieTrackingPlaneTrack *plane_track;
 
 	track = tracksbase->first;
 	while (track) {
 		track->flag &= ~TRACK_HIDDEN;
 
 		track = track->next;
+	}
+
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		plane_track->flag &= ~PLANE_TRACK_HIDDEN;
 	}
 
 	BKE_tracking_dopesheet_tag_update(tracking);
@@ -3912,7 +3940,7 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C, c
 	     plane_track;
 	     plane_track = plane_track->next)
 	{
-		if (plane_track->flag & SELECT) {
+		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
 			bool ok = false;
 			int i;
@@ -4191,7 +4219,7 @@ static void keyframe_set_flag(bContext *C, bool set)
 	}
 
 	for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
-		if (plane_track->flag & SELECT) {
+		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			if (set) {
 				MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_ensure(plane_track, framenr);
 				if (plane_marker->flag & PLANE_MARKER_TRACKED) {

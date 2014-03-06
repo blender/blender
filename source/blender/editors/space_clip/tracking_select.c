@@ -349,7 +349,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 			delect_all_tracks(tracksbase);
 		}
 
-		if (plane_track->flag & SELECT) {
+		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			if (extend) {
 				plane_track->flag &= ~SELECT;
 			}
@@ -846,7 +846,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		     plane_track;
 		     plane_track = plane_track->next)
 		{
-			if (plane_track->flag & SELECT) {
+			if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 				action = SEL_DESELECT;
 				break;
 			}
@@ -898,10 +898,9 @@ static int select_all_exec(bContext *C, wmOperator *op)
 					plane_track->flag ^= SELECT;
 					break;
 			}
-		}
-
-		if (plane_track->flag & SELECT) {
-			has_selection = true;
+			if (plane_track->flag & SELECT) {
+				has_selection = true;
+			}
 		}
 	}
 

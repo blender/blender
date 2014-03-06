@@ -5347,7 +5347,11 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 	{
 		bool do_update = false;
 
-		do_update |= (plane_track->flag & SELECT) != 0;
+		if (plane_track->flag & PLANE_TRACK_HIDDEN) {
+			continue;
+		}
+
+		do_update |= PLANE_TRACK_VIEW_SELECTED(plane_track) != 0;
 		if (do_update == false) {
 			if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
 				int i;
@@ -6301,7 +6305,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	     plane_track;
 	     plane_track = plane_track->next)
 	{
-		if (plane_track->flag & SELECT) {
+		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			t->total += 4;
 		}
 	}
@@ -6354,7 +6358,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	     plane_track;
 	     plane_track = plane_track->next)
 	{
-		if (plane_track->flag & SELECT) {
+		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			planeTrackToTransData(framenr, td, td2d, tdt, plane_track, aspx, aspy);
 			td += 4;
 			td2d += 4;

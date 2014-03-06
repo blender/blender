@@ -1311,7 +1311,9 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 	     plane_track;
 	     plane_track = plane_track->next)
 	{
-		draw_plane_track(sc, scene, plane_track, framenr, plane_track == active_plane_track, width, height);
+		if ((plane_track->flag & PLANE_TRACK_HIDDEN) == 0) {
+			draw_plane_track(sc, scene, plane_track, framenr, plane_track == active_plane_track, width, height);
+		}
 	}
 
 	if (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
