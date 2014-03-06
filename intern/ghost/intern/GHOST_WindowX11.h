@@ -373,6 +373,9 @@ private:
 	
 	/** XCursor structure of the custom cursor */
 	Cursor m_custom_cursor;
+
+	/** XCursor to show when cursor is visible */
+	Cursor m_visible_cursor;
 	
 	/** Cache of XC_* ID's to XCursor structures */
 	std::map<unsigned int, Cursor> m_standard_cursors;

@@ -183,7 +183,8 @@ GHOST_WindowX11(
 	m_valid_setup(false),
 	m_invalid_window(false),
 	m_empty_cursor(None),
-	m_custom_cursor(None)
+	m_custom_cursor(None),
+	m_visible_cursor(None)
 {
 	
 	/* Set up the minimum atrributes that we require and see if
@@ -1361,7 +1362,10 @@ setWindowCursorVisibility(
 	Cursor xcursor;
 	
 	if (visible) {
-		xcursor = getStandardCursor(getCursorShape() );
+		if (m_visible_cursor)
+			xcursor = m_visible_cursor;
+		else
+			xcursor = getStandardCursor(getCursorShape() );
 	}
 	else {
 		xcursor = getEmptyCursor();
@@ -1424,6 +1428,8 @@ setWindowCursorShape(
 		GHOST_TStandardCursor shape)
 {
 	Cursor xcursor = getStandardCursor(shape);
+
+	m_visible_cursor = xcursor;
 	
 	XDefineCursor(m_display, m_window, xcursor);
 	XFlush(m_display);
@@ -1473,6 +1479,8 @@ setWindowCustomCursorShape(
 	m_custom_cursor = XCreatePixmapCursor(m_display, bitmap_pix, mask_pix, &fg, &bg, hotX, hotY);
 	XDefineCursor(m_display, m_window, m_custom_cursor);
 	XFlush(m_display);
+
+	m_visible_cursor = m_custom_cursor;
 	
 	XFreePixmap(m_display, bitmap_pix);
 	XFreePixmap(m_display, mask_pix);
