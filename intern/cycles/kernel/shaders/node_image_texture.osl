@@ -17,9 +17,9 @@
 #include "stdosl.h"
 #include "node_color.h"
 
-color image_texture_lookup(string filename, string color_space, float u, float v, output float Alpha, int use_alpha, int is_float)
+color image_texture_lookup(string filename, string color_space, float u, float v, output float Alpha, int use_alpha, int is_float, string interpolation)
 {
-	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", "periodic", "alpha", Alpha);
+	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", "periodic", "interp", interpolation, "alpha", Alpha);
 
 	if (use_alpha) {
 		rgb = color_unpremultiply(rgb, Alpha);
@@ -42,6 +42,7 @@ shader node_image_texture(
 	string filename = "",
 	string color_space = "sRGB",
 	string projection = "Flat",
+	string interpolation = "smartcubic",
 	float projection_blend = 0.0,
 	int is_float = 1,
 	int use_alpha = 1,
@@ -54,7 +55,7 @@ shader node_image_texture(
 		p = transform(mapping, p);
 	
 	if (projection == "Flat") {
-		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha, use_alpha, is_float);
+		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha, use_alpha, is_float, interpolation);
 	}
 	else if (projection == "Box") {
 		/* object space normal */
@@ -119,15 +120,15 @@ shader node_image_texture(
 		float tmp_alpha;
 
 		if (weight[0] > 0.0) {
-			Color += weight[0] * image_texture_lookup(filename, color_space, p[1], p[2], tmp_alpha, use_alpha, is_float);
+			Color += weight[0] * image_texture_lookup(filename, color_space, p[1], p[2], tmp_alpha, use_alpha, is_float, interpolation);
 			Alpha += weight[0] * tmp_alpha;
 		}
 		if (weight[1] > 0.0) {
-			Color += weight[1] * image_texture_lookup(filename, color_space, p[0], p[2], tmp_alpha, use_alpha, is_float);
+			Color += weight[1] * image_texture_lookup(filename, color_space, p[0], p[2], tmp_alpha, use_alpha, is_float, interpolation);
 			Alpha += weight[1] * tmp_alpha;
 		}
 		if (weight[2] > 0.0) {
-			Color += weight[2] * image_texture_lookup(filename, color_space, p[1], p[0], tmp_alpha, use_alpha, is_float);
+			Color += weight[2] * image_texture_lookup(filename, color_space, p[1], p[0], tmp_alpha, use_alpha, is_float, interpolation);
 			Alpha += weight[2] * tmp_alpha;
 		}
 	}

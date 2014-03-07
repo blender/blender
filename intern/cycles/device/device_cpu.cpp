@@ -103,9 +103,9 @@ public:
 		kernel_const_copy(&kernel_globals, name, host, size);
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, bool interpolation, bool periodic)
+	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
-		kernel_tex_copy(&kernel_globals, name, mem.data_pointer, mem.data_width, mem.data_height);
+		kernel_tex_copy(&kernel_globals, name, mem.data_pointer, mem.data_width, mem.data_height, interpolation);
 		mem.device_pointer = mem.data_pointer;
 
 		stats.mem_alloc(mem.memory_size());

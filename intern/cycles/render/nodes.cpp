@@ -193,6 +193,7 @@ ImageTextureNode::ImageTextureNode()
 	builtin_data = NULL;
 	color_space = ustring("Color");
 	projection = ustring("Flat");
+	interpolation = INTERPOLATION_LINEAR;
 	projection_blend = 0.0f;
 	animated = false;
 
@@ -204,7 +205,7 @@ ImageTextureNode::ImageTextureNode()
 ImageTextureNode::~ImageTextureNode()
 {
 	if(image_manager)
-		image_manager->remove_image(filename, builtin_data);
+		image_manager->remove_image(filename, builtin_data, interpolation);
 }
 
 ShaderNode *ImageTextureNode::clone() const
@@ -241,7 +242,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear);
+		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, interpolation);
 		is_float = (int)is_float_bool;
 	}
 
@@ -315,6 +316,24 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 	compiler.parameter("projection_blend", projection_blend);
 	compiler.parameter("is_float", is_float);
 	compiler.parameter("use_alpha", !alpha_out->links.empty());
+
+	switch (interpolation){
+		case INTERPOLATION_LINEAR:
+			compiler.parameter("interpolation", "linear");
+			break;
+		case INTERPOLATION_CLOSEST:
+			compiler.parameter("interpolation", "closest");
+			break;
+		case INTERPOLATION_CUBIC:
+			compiler.parameter("interpolation", "cubic");
+			break;
+		case INTERPOLATION_SMART:
+			compiler.parameter("interpolation", "smart");
+			break;
+		default:
+			compiler.parameter("interpolation", "linear");
+			break;
+	}
 	compiler.add(this, "node_image_texture");
 }
 
@@ -354,7 +373,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 EnvironmentTextureNode::~EnvironmentTextureNode()
 {
 	if(image_manager)
-		image_manager->remove_image(filename, builtin_data);
+		image_manager->remove_image(filename, builtin_data, INTERPOLATION_LINEAR);
 }
 
 ShaderNode *EnvironmentTextureNode::clone() const
@@ -389,7 +408,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(slot == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear);
+		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, INTERPOLATION_LINEAR);
 		is_float = (int)is_float_bool;
 	}
 

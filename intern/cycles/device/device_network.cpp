@@ -162,7 +162,7 @@ public:
 		snd.write_buffer(host, size);
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, bool interpolation, bool periodic)
+	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
 		thread_scoped_lock lock(rpc_lock);
 
@@ -559,7 +559,7 @@ protected:
 		else if(rcv.name == "tex_alloc") {
 			network_device_memory mem;
 			string name;
-			bool interpolation;
+			InterpolationType interpolation;
 			bool periodic;
 			device_ptr client_pointer;
 

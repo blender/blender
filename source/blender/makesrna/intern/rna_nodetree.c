@@ -3428,6 +3428,17 @@ static void def_sh_tex_image(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem prop_interpolation_items[] = {
+		{SHD_INTER_LINEAR,  "Linear", 0, "Linear",
+						"Linear interpolation"},
+		{SHD_INTER_CLOSEST, "Closest", 0, "Closest",
+						"No interpolation (sample closest texel"},
+		{SHD_INTER_CUBIC, "Cubic", 0, "Cubic",
+						"Cubic interpolation (OSL only)"},
+		{SHD_INTER_SMART, "Smart", 0, "Smart",
+						"Bicubic when maxifying, else bilinear (OSL only)"},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	PropertyRNA *prop;
 
@@ -3449,6 +3460,11 @@ static void def_sh_tex_image(StructRNA *srna)
 	prop = RNA_def_property(srna, "projection", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_projection_items);
 	RNA_def_property_ui_text(prop, "Projection", "Method to project 2D image on object with a 3D texture vector");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_interpolation_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "Texture interpolation");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "projection_blend", PROP_FLOAT, PROP_FACTOR);

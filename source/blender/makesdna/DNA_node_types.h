@@ -724,7 +724,7 @@ typedef struct NodeTexImage {
 	int color_space;
 	int projection;
 	float projection_blend;
-	int pad;
+	int interpolation;
 } NodeTexImage;
 
 typedef struct NodeTexChecker {
@@ -950,6 +950,12 @@ typedef struct NodeShaderNormalMap {
 /* image texture */
 #define SHD_PROJ_FLAT				0
 #define SHD_PROJ_BOX				1
+
+/* image texture interpolation */
+#define SHD_INTER_LINEAR		0
+#define SHD_INTER_CLOSEST		1
+#define SHD_INTER_CUBIC			2
+#define SHD_INTER_SMART			3
 
 /* tangent */
 #define SHD_TANGENT_RADIAL			0

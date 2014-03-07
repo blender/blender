@@ -451,7 +451,7 @@ public:
 		cuda_pop_context();
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, bool interpolation, bool periodic)
+	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
 		/* determine format */
 		CUarray_format_enum format;
@@ -479,7 +479,7 @@ public:
 				return;
 			}
 
-			if(interpolation) {
+			if(interpolation != INTERPOLATION_NONE) {
 				CUarray handle = NULL;
 				CUDA_ARRAY_DESCRIPTOR desc;
 
@@ -513,7 +513,15 @@ public:
 
 				cuda_assert(cuTexRefSetArray(texref, handle, CU_TRSA_OVERRIDE_FORMAT))
 
-				cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_LINEAR))
+				if(interpolation == INTERPOLATION_CLOSEST) {
+					cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_POINT))
+				}
+				else if (interpolation == INTERPOLATION_LINEAR){
+					cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_LINEAR))
+				}
+				else {/* CUBIC and SMART are unsupported for CUDA */
+					cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_LINEAR))
+				}
 				cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES))
 
 				mem.device_pointer = (device_ptr)handle;
@@ -570,7 +578,7 @@ public:
 			cuda_pop_context();
 		}
 
-		tex_interp_map[mem.device_pointer] = interpolation;
+		tex_interp_map[mem.device_pointer] = (interpolation != INTERPOLATION_NONE);
 	}
 
 	void tex_free(device_memory& mem)

@@ -117,14 +117,19 @@ template<typename T> struct texture_image  {
 			niy = wrap_clamp(iy+1, height);
 		}
 
-		float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
-		r += (1.0f - ty)*tx*read(data[nix + iy*width]);
-		r += ty*(1.0f - tx)*read(data[ix + niy*width]);
-		r += ty*tx*read(data[nix + niy*width]);
-
-		return r;
+		if(interpolation == INTERPOLATION_CLOSEST) {
+			return read(data[ix + iy*width]);
+		}
+		else {
+			float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
+			r += (1.0f - ty)*tx*read(data[nix + iy*width]);
+			r += ty*(1.0f - tx)*read(data[ix + niy*width]);
+			r += ty*tx*read(data[nix + niy*width]);
+			return r;
+		}
 	}
 
+	int interpolation;
 	T *data;
 	int width, height;
 };
@@ -146,7 +151,6 @@ typedef texture_image<uchar4> texture_image_uchar4;
 #define kernel_tex_fetch_m128i(tex, index) (kg->tex.fetch_m128i(index))
 #define kernel_tex_lookup(tex, t, offset, size) (kg->tex.lookup(t, offset, size))
 #define kernel_tex_image_interp(tex, x, y) ((tex < MAX_FLOAT_IMAGES) ? kg->texture_float_images[tex].interp(x, y) : kg->texture_byte_images[tex - MAX_FLOAT_IMAGES].interp(x, y))
-
 #define kernel_data (kg->__data)
 
 CCL_NAMESPACE_END

@@ -60,7 +60,8 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	uint width = info.x;
 	uint height = info.y;
 	uint offset = info.z;
-	uint periodic = info.w;
+	uint periodic = (info.w & 0x1);
+	uint interpolation = info.w >> 1;
 
 	int ix, iy, nix, niy;
 	float tx = svm_image_texture_frac(x*width, &ix);
@@ -81,10 +82,16 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 		niy = svm_image_texture_wrap_clamp(iy+1, height);
 	}
 
-	float4 r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + iy*width);
-	r += (1.0f - ty)*tx*svm_image_texture_read(kg, offset + nix + iy*width);
-	r += ty*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + niy*width);
-	r += ty*tx*svm_image_texture_read(kg, offset + nix + niy*width);
+	float4 r;
+	if (interpolation == INTERPOLATION_CLOSEST){
+		r = svm_image_texture_read(kg, offset + ix + iy*width);
+	}
+	else { /* We default to linear interpolation if it is not closest */
+		r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + iy*width);
+		r += (1.0f - ty)*tx*svm_image_texture_read(kg, offset + nix + iy*width);
+		r += ty*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + niy*width);
+		r += ty*tx*svm_image_texture_read(kg, offset + nix + niy*width);
+	}
 
 	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
 		float invw = 1.0f/r.w;

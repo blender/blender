@@ -881,7 +881,7 @@ public:
 		mem_copy_to(*i->second);
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, bool interpolation, bool periodic)
+	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
 		mem_alloc(mem, MEM_READ_ONLY);
 		mem_copy_to(mem);

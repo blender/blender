@@ -100,7 +100,7 @@ public:
 
 	/* texture memory */
 	virtual void tex_alloc(const char *name, device_memory& mem,
-		bool interpolation = false, bool periodic = false) {};
+		InterpolationType interpolation = INTERPOLATION_NONE, bool periodic = false) {};
 	virtual void tex_free(device_memory& mem) {};
 
 	/* pixel memory */

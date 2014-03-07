@@ -145,7 +145,7 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data, bo
 	return is_float;
 }
 
-int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float, bool& is_linear)
+int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float, bool& is_linear, InterpolationType interpolation)
 {
 	Image *img;
 	size_t slot;
@@ -156,7 +156,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 	if(is_float) {
 		/* find existing image */
 		for(slot = 0; slot < float_images.size(); slot++) {
-			if(float_images[slot] && float_images[slot]->filename == filename) {
+			if(float_images[slot] && float_images[slot]->filename == filename && float_images[slot]->interpolation == interpolation) {
 				float_images[slot]->users++;
 				return slot;
 			}
@@ -185,13 +185,14 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 		img->builtin_data = builtin_data;
 		img->need_load = true;
 		img->animated = animated;
+		img->interpolation = interpolation;
 		img->users = 1;
 
 		float_images[slot] = img;
 	}
 	else {
 		for(slot = 0; slot < images.size(); slot++) {
-			if(images[slot] && images[slot]->filename == filename) {
+			if(images[slot] && images[slot]->filename == filename && images[slot]->interpolation == interpolation) {
 				images[slot]->users++;
 				return slot+tex_image_byte_start;
 			}
@@ -220,6 +221,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 		img->builtin_data = builtin_data;
 		img->need_load = true;
 		img->animated = animated;
+		img->interpolation = interpolation;
 		img->users = 1;
 
 		images[slot] = img;
@@ -231,12 +233,12 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 	return slot;
 }
 
-void ImageManager::remove_image(const string& filename, void *builtin_data)
+void ImageManager::remove_image(const string& filename, void *builtin_data, InterpolationType interpolation)
 {
 	size_t slot;
 
 	for(slot = 0; slot < images.size(); slot++) {
-		if(images[slot] && images[slot]->filename == filename && images[slot]->builtin_data == builtin_data) {
+		if(images[slot] && images[slot]->filename == filename && images[slot]->interpolation == interpolation && images[slot]->builtin_data == builtin_data) {
 			/* decrement user count */
 			images[slot]->users--;
 			assert(images[slot]->users >= 0);
@@ -254,7 +256,9 @@ void ImageManager::remove_image(const string& filename, void *builtin_data)
 	if(slot == images.size()) {
 		/* see if it's in a float texture slot */
 		for(slot = 0; slot < float_images.size(); slot++) {
-			if(float_images[slot] && float_images[slot]->filename == filename && float_images[slot]->builtin_data == builtin_data) {
+			if(float_images[slot] && float_images[slot]->filename == filename
+								  && float_images[slot]->interpolation == interpolation
+								  && float_images[slot]->builtin_data == builtin_data) {
 				/* decrement user count */
 				float_images[slot]->users--;
 				assert(float_images[slot]->users >= 0);
@@ -499,7 +503,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(), tex_img, true, true);
+			device->tex_alloc(name.c_str(), tex_img, img->interpolation, true);
 		}
 	}
 	else {
@@ -530,7 +534,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(), tex_img, true, true);
+			device->tex_alloc(name.c_str(), tex_img, img->interpolation, true);
 		}
 	}
 
@@ -653,16 +657,31 @@ void ImageManager::device_pack_images(Device *device, DeviceScene *dscene, Progr
 
 		device_vector<uchar4>& tex_img = dscene->tex_image[slot];
 
-		info[slot] = make_uint4(tex_img.data_width, tex_img.data_height, offset, 1);
+
+		/* The image options are packed
+		   bit 0 -> periodic
+		   bit 1 + 2 -> interpolation type */
+		u_int8_t interpolation = (images[slot]->interpolation << 1) + 1;
+		info[slot] = make_uint4(tex_img.data_width, tex_img.data_height, offset, interpolation);
 
 		memcpy(pixels+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();
 	}
 
-	if(dscene->tex_image_packed.size())
+	if(dscene->tex_image_packed.size()) {
+		if(dscene->tex_image_packed.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(dscene->tex_image_packed);
+		}
 		device->tex_alloc("__tex_image_packed", dscene->tex_image_packed);
-	if(dscene->tex_image_packed_info.size())
+	}
+	if(dscene->tex_image_packed_info.size()) {
+		if(dscene->tex_image_packed_info.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(dscene->tex_image_packed_info);
+		}
 		device->tex_alloc("__tex_image_packed_info", dscene->tex_image_packed_info);
+	}
 }
 
 void ImageManager::device_free(Device *device, DeviceScene *dscene)

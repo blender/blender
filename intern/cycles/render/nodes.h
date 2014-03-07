@@ -76,6 +76,7 @@ public:
 	void *builtin_data;
 	ustring color_space;
 	ustring projection;
+	InterpolationType interpolation;
 	float projection_blend;
 	bool animated;
 

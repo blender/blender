@@ -168,7 +168,7 @@ public:
 			sub.device->const_copy_to(name, host, size);
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, bool interpolation, bool periodic)
+	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = 0;

@@ -450,6 +450,16 @@ ccl_device_inline int4 make_int4(const float3& f)
 
 #endif
 
+/* Interpolation types for textures
+ * cuda also use texture space to store other objects */
+enum InterpolationType {
+	INTERPOLATION_NONE = -1,
+	INTERPOLATION_LINEAR = 0,
+	INTERPOLATION_CLOSEST = 1,
+	INTERPOLATION_CUBIC = 2,
+	INTERPOLATION_SMART = 3,
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_TYPES_H__ */
