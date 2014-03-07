@@ -71,6 +71,7 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, struct BMesh *bm, int smooth_shading,
                           struct BMLog *log);
 
 void BKE_pbvh_free(PBVH *bvh);
+void BKE_pbvh_free_layer_disp(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
  * - for each hit calling a callback

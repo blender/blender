@@ -3960,6 +3960,12 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 				}
 			}
 		}
+
+		if (ss->bm) {
+			/* Free any remaining layer displacements from nodes. If not and topology changes
+			 * from using another tool, then next layer toolstroke can access past disp array bounds */
+			BKE_pbvh_free_layer_disp(ss->pbvh);
+		}
 	}
 
 	/* Make copies of the mesh vertex locations and normals for some tools */
