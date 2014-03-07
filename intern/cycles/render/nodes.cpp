@@ -318,9 +318,6 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 	compiler.parameter("use_alpha", !alpha_out->links.empty());
 
 	switch (interpolation){
-		case INTERPOLATION_LINEAR:
-			compiler.parameter("interpolation", "linear");
-			break;
 		case INTERPOLATION_CLOSEST:
 			compiler.parameter("interpolation", "closest");
 			break;
@@ -330,6 +327,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 		case INTERPOLATION_SMART:
 			compiler.parameter("interpolation", "smart");
 			break;
+		case INTERPOLATION_LINEAR:
 		default:
 			compiler.parameter("interpolation", "linear");
 			break;

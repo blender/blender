@@ -661,7 +661,7 @@ void ImageManager::device_pack_images(Device *device, DeviceScene *dscene, Progr
 		/* The image options are packed
 		   bit 0 -> periodic
 		   bit 1 + 2 -> interpolation type */
-		u_int8_t interpolation = (images[slot]->interpolation << 1) + 1;
+		uint8_t interpolation = (images[slot]->interpolation << 1) + 1;
 		info[slot] = make_uint4(tex_img.data_width, tex_img.data_height, offset, interpolation);
 
 		memcpy(pixels+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
