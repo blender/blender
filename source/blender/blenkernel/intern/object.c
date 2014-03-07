@@ -1279,7 +1279,6 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pathcache = NULL;
 	psysn->childcache = NULL;
 	psysn->edit = NULL;
-	psysn->frand = NULL;
 	psysn->pdd = NULL;
 	psysn->effectors = NULL;
 	psysn->tree = NULL;

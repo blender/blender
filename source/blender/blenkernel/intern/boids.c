@@ -970,8 +970,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	bbd->wanted_speed = 0.0f;
 
 	/* create random seed for every particle & frame */
-	rand = (int)(PSYS_FRAND(psys->seed + p) * 1000);
-	rand = (int)(PSYS_FRAND((int)bbd->cfra + rand) * 1000);
+	rand = (int)(psys_frand(psys, psys->seed + p) * 1000);
+	rand = (int)(psys_frand(psys, (int)bbd->cfra + rand) * 1000);
 
 	set_boid_values(&val, bbd->part->boids, pa);
 

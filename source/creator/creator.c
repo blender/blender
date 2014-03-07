@@ -100,6 +100,7 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 #include "BKE_image.h"
+#include "BKE_particle.h"
 
 #include "IMB_imbuf.h"  /* for IMB_init */
 
@@ -1631,6 +1632,7 @@ int main(int argc, const char **argv)
 
 	RE_engines_init();
 	init_nodesystem();
+	psys_init_rng();
 	/* end second init */
 
 

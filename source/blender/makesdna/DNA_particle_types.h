@@ -309,8 +309,6 @@ typedef struct ParticleSystem {
 
 	struct ParticleDrawData *pdd;
 
-	float *frand;							/* array of 1024 random floats for fast lookups */
-
 	float dt_frac;							/* current time step, as a fraction of a frame */
 	float _pad;								/* spare capacity */
 } ParticleSystem;

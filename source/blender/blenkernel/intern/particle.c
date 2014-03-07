@@ -85,6 +85,17 @@
 
 #include "RE_render_ext.h"
 
+void psys_init_rng(void)
+{
+	int i;
+	BLI_srandom(5831); /* arbitrary */
+	for (i = 0; i < PSYS_FRAND_COUNT; ++i) {
+		PSYS_FRAND_BASE[i] = BLI_frand();
+		PSYS_FRAND_SEED_OFFSET[i] = (unsigned int)BLI_rand();
+		PSYS_FRAND_SEED_MULTIPLIER[i] = (unsigned int)BLI_rand();
+	}
+}
+
 static void get_child_modifier_parameters(ParticleSettings *part, ParticleThreadContext *ctx,
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
 static void do_child_modifiers(ParticleSimulationData *sim,
@@ -260,16 +271,6 @@ int psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
 {
 	return (scene->basact && (scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys == psys_get_current((scene->basact)->object) && (psys->edit || psys->pointcache->edit) && !psys->renderdata);
 }
-static void psys_create_frand(ParticleSystem *psys)
-{
-	int i;
-	float *rand = psys->frand = MEM_callocN(PSYS_FRAND_COUNT * sizeof(float), "particle randoms");
-
-	BLI_srandom(psys->seed);
-
-	for (i = 0; i < 1024; i++, rand++)
-		*rand = BLI_frand();
-}
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
@@ -285,14 +286,6 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 	else if (!(psmd->modifier.mode & eModifierMode_Realtime))
 		return 0;
 
-	/* perhaps not the perfect place, but we have to be sure the rands are there before usage */
-	if (!psys->frand)
-		psys_create_frand(psys);
-	else if (psys->recalc & PSYS_RECALC_RESET) {
-		MEM_freeN(psys->frand);
-		psys_create_frand(psys);
-	}
-	
 	return 1;
 }
 
@@ -579,9 +572,6 @@ void psys_free(Object *ob, ParticleSystem *psys)
 
 		pdEndEffectors(&psys->effectors);
 
-		if (psys->frand)
-			MEM_freeN(psys->frand);
-
 		if (psys->pdd) {
 			psys_free_pdd(psys);
 			MEM_freeN(psys->pdd);
@@ -787,7 +777,7 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 		PARTICLE_P;
 
 		LOOP_PARTICLES {
-			if (PSYS_FRAND(p) > disp)
+			if (psys_frand(psys, p) > disp)
 				pa->flag |= PARS_NO_DISP;
 			else
 				pa->flag &= ~PARS_NO_DISP;
@@ -2680,7 +2670,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 	/* get different child parameters from textures & vgroups */
 	get_child_modifier_parameters(part, ctx, cpa, cpa_from, cpa_num, cpa_fuv, orco, &ptex);
 
-	if (ptex.exist < PSYS_FRAND(i + 24)) {
+	if (ptex.exist < psys_frand(psys, i + 24)) {
 		child_keys->steps = -1;
 		return;
 	}
@@ -2996,7 +2986,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	LOOP_SHOWN_PARTICLES {
 		if (!psys->totchild) {
 			psys_get_texture(sim, pa, &ptex, PAMAP_LENGTH, 0.f);
-			pa_length = ptex.length * (1.0f - part->randlength * PSYS_FRAND(psys->seed + p));
+			pa_length = ptex.length * (1.0f - part->randlength * psys_frand(psys, psys->seed + p));
 			if (vg_length)
 				pa_length *= psys_particle_value_from_verts(psmd->dm, part->from, pa, vg_length);
 		}
@@ -3832,8 +3822,8 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 	ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink =
 	ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.0f;
 
-	ptex->length = 1.0f - part->randlength * PSYS_FRAND(child_index + 26);
-	ptex->length *= part->clength_thres < PSYS_FRAND(child_index + 27) ? part->clength : 1.0f;
+	ptex->length = 1.0f - part->randlength * psys_frand(psys, child_index + 26);
+	ptex->length *= part->clength_thres < psys_frand(psys, child_index + 27) ? part->clength : 1.0f;
 
 	for (m = 0; m < MAX_MTEX; m++, mtexp++) {
 		mtex = *mtexp;
@@ -3995,7 +3985,7 @@ float psys_get_child_time(ParticleSystem *psys, ChildParticle *cpa, float cfra, 
 			w++;
 		}
 
-		life = part->lifetime * (1.0f - part->randlife * PSYS_FRAND(cpa - psys->child + 25));
+		life = part->lifetime * (1.0f - part->randlife * psys_frand(psys, cpa - psys->child + 25));
 	}
 	else {
 		ParticleData *pa = psys->particles + cpa->parent;
@@ -4024,7 +4014,7 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float UNUSED
 	size *= part->childsize;
 
 	if (part->childrandsize != 0.0f)
-		size *= 1.0f - part->childrandsize * PSYS_FRAND(cpa - psys->child + 26);
+		size *= 1.0f - part->childrandsize * psys_frand(psys, cpa - psys->child + 26);
 
 	return size;
 }
@@ -4036,7 +4026,7 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
 	get_cpa_texture(ctx->dm, psys, part, psys->particles + cpa->pa[0], i, cpa_num, cpa_fuv, orco, ptex, PAMAP_DENS | PAMAP_CHILD, psys->cfra);
 
 
-	if (ptex->exist < PSYS_FRAND(i + 24))
+	if (ptex->exist < psys_frand(psys, i + 24))
 		return;
 
 	if (ctx->vg_length)
@@ -4091,11 +4081,17 @@ static void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *pte
 	if (rough1 > 0.f)
 		do_rough(orco, mat, t, rough1, part->rough1_size, 0.0, state);
 
-	if (rough2 > 0.f)
-		do_rough(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, rough2, part->rough2_size, part->rough2_thres, state);
+	if (rough2 > 0.f) {
+		float vec[3];
+		psys_frand_vec(sim->psys, i + 27, vec);
+		do_rough(vec, mat, t, rough2, part->rough2_size, part->rough2_thres, state);
+	}
 
-	if (rough_end > 0.f)
-		do_rough_end(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, rough_end, part->rough_end_shape, state);
+	if (rough_end > 0.f) {
+		float vec[3];
+		psys_frand_vec(sim->psys, i + 27, vec);
+		do_rough_end(vec, mat, t, rough_end, part->rough_end_shape, state);
+	}
 }
 /* get's hair (or keyed) particles state at the "path time" specified in state->time */
 void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *state, int vel)
@@ -4358,7 +4354,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 				}
 			}
 
-			state->time = (cfra - (part->sta + (part->end - part->sta) * PSYS_FRAND(p + 23))) / (part->lifetime * PSYS_FRAND(p + 24));
+			state->time = (cfra - (part->sta + (part->end - part->sta) * psys_frand(psys, p + 23))) / (part->lifetime * psys_frand(psys, p + 24));
 
 			psys_get_particle_on_path(sim, p, state, 1);
 			return 1;
@@ -4567,7 +4563,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 			float q_phase[4];
 			float phasefac = psys->part->phasefac;
 			if (psys->part->randphasefac != 0.0f)
-				phasefac += psys->part->randphasefac * PSYS_FRAND((pa - psys->particles) + 20);
+				phasefac += psys->part->randphasefac * psys_frand(psys, (pa - psys->particles) + 20);
 			axis_angle_to_quat(q_phase, vec, phasefac * (float)M_PI);
 
 			mul_qt_v3(q_phase, side);
