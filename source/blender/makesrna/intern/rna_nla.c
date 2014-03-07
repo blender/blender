@@ -236,8 +236,8 @@ static void rna_NlaStrip_use_auto_blend_set(PointerRNA *ptr, int value)
 	NlaStrip *data = (NlaStrip *)ptr->data;
 	
 	if (value) {
-		/* set the flag, then make sure a curve for this exists */
-		data->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+		/* set the flag */
+		data->flag |= NLASTRIP_FLAG_AUTO_BLENDS;
 		
 		/* validate state to ensure that auto-blend gets applied immediately */
 		if (ptr->id.data) {
@@ -249,7 +249,13 @@ static void rna_NlaStrip_use_auto_blend_set(PointerRNA *ptr, int value)
 		}
 	}
 	else {
-		data->flag &= ~NLASTRIP_FLAG_USR_INFLUENCE;
+		/* clear the flag */
+		data->flag &= ~NLASTRIP_FLAG_AUTO_BLENDS;
+		
+		/* clear the values too, so that it's clear that there has been an effect */
+		/* TODO: it's somewhat debatable whether it's better to leave these in instead... */
+		data->blendin  = 0.0f;
+		data->blendout = 0.0f;
 	}
 }
 
