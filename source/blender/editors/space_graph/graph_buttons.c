@@ -600,12 +600,16 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* general actions - management */
 	col = uiLayoutColumn(pa->layout, FALSE);
 	block = uiLayoutGetBlock(col);
-	but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Update Dependencies"), 0, 0, 10 * UI_UNIT_X, 22,
-	               NULL, 0.0, 0.0, 0, 0, TIP_("Force updates of dependencies"));
+	but = uiDefIconTextBut(block, BUT, B_IPO_DEPCHANGE, ICON_FILE_REFRESH, IFACE_("Update Dependencies"),
+	               0, 0, 10 * UI_UNIT_X, 22,
+	               NULL, 0.0, 0.0, 0, 0,
+	               TIP_("Force updates of dependencies"));
 	uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
 
-	but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Remove Driver"), 0, 0, 10 * UI_UNIT_X, 18,
-	               NULL, 0.0, 0.0, 0, 0, TIP_("Remove this driver"));
+	but = uiDefIconTextBut(block, BUT, B_IPO_DEPCHANGE, ICON_ZOOMOUT, IFACE_("Remove Driver"),
+	               0, 0, 10 * UI_UNIT_X, 18,
+	               NULL, 0.0, 0.0, 0, 0,
+	               TIP_("Remove this driver"));
 	uiButSetNFunc(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
 		
 	/* driver-level settings - type, expressions, and errors */
@@ -617,15 +621,31 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 
 	/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 	if (driver->type == DRIVER_TYPE_PYTHON) {
+		bool bpy_data_expr_error = (strstr(driver->expression, "bpy.data.") != NULL);
+		bool bpy_ctx_expr_error  = (strstr(driver->expression, "bpy.context.") != NULL);
+		
 		/* expression */
 		uiItemR(col, &driver_ptr, "expression", 0, IFACE_("Expr"), ICON_NONE);
 		
 		/* errors? */
 		if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
-			uiItemL(col, IFACE_("ERROR: Python auto-execution disabled"), ICON_ERROR);
+			uiItemL(col, IFACE_("ERROR: Python auto-execution disabled"), ICON_CANCEL);
 		}
 		else if (driver->flag & DRIVER_FLAG_INVALID) {
-			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_ERROR);
+			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_CANCEL);
+		}
+		
+		/* Explicit bpy-references are evil. Warn about these to prevent errors */
+		/* TODO: put these in a box? */
+		if (bpy_data_expr_error || bpy_ctx_expr_error) {
+			uiItemL(col, IFACE_("WARNING: Driver expression may not work correctly"), ICON_HELP);
+			
+			if (bpy_data_expr_error) {
+				uiItemL(col, IFACE_("TIP: Use variables instead of bpy.data paths (see below)"), ICON_ERROR);
+			}
+			if (bpy_ctx_expr_error) {
+				uiItemL(col, IFACE_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
+			}
 		}
 	}
 	else {
@@ -652,8 +672,10 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* add driver variables */
 	col = uiLayoutColumn(pa->layout, FALSE);
 	block = uiLayoutGetBlock(col);
-	but = uiDefBut(block, BUT, B_IPO_DEPCHANGE, IFACE_("Add Variable"), 0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
-	               NULL, 0.0, 0.0, 0, 0, TIP_("Add a new target variable for this Driver"));
+	but = uiDefIconTextBut(block, BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Variable"),
+	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
+	               NULL, 0.0, 0.0, 0, 0,
+	               TIP_("Driver variables ensure that all dependencies will be accounted for and that drivers will update correctly"));
 	uiButSetFunc(but, driver_add_var_cb, driver, NULL);
 	
 	/* loop over targets, drawing them */
