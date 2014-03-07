@@ -85,6 +85,10 @@
 
 #include "RE_render_ext.h"
 
+unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];
+unsigned int PSYS_FRAND_SEED_MULTIPLIER[PSYS_FRAND_COUNT];
+float PSYS_FRAND_BASE[PSYS_FRAND_COUNT];
+
 void psys_init_rng(void)
 {
 	int i;
