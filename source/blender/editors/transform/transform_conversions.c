@@ -3015,7 +3015,7 @@ static int gpf_cmp_frame(void *thunk, void *a, void *b)
 	return 0;
 }
 
-static int maskley_shape_cmp_frame(void *thunk, void *a, void *b)
+static int masklay_shape_cmp_frame(void *thunk, void *a, void *b)
 {
 	MaskLayerShape *frame_a = a;
 	MaskLayerShape *frame_b = b;
@@ -3069,7 +3069,7 @@ static void posttrans_mask_clean(Mask *mask)
 		MaskLayerShape *masklay_shape, *masklay_shape_next;
 		bool is_double = false;
 
-		BLI_sortlist_r(&masklay->splines_shapes, &is_double, maskley_shape_cmp_frame);
+		BLI_sortlist_r(&masklay->splines_shapes, &is_double, masklay_shape_cmp_frame);
 
 		if (is_double) {
 			for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape_next) {

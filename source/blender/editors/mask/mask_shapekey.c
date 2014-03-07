@@ -296,7 +296,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 						masklay_shape_b = masklay_shape;
 						masklay_shape_lastsel = NULL;
 
-						/* this will be freed below, sep over selection */
+						/* this will be freed below, step over selection */
 						masklay_shape_next = masklay_shape->next;
 					}
 				}
