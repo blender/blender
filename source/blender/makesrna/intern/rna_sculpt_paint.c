@@ -441,7 +441,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
 	RNA_def_property_enum_items(prop, detail_type_items);
 	RNA_def_property_ui_text(prop, "Detail Type Method",
-							 "In dynamic-topology mode, how mesh detail size is calculated");
+	                         "In dynamic-topology mode, how mesh detail size is calculated");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	prop = RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);

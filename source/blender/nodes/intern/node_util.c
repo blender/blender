@@ -196,8 +196,10 @@ static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
 		if (nodeSocketIsHidden(input) ||                /* ignore hidden sockets */
 		    input->flag & SOCK_NO_INTERNAL_LINK ||      /* ignore if input is not allowed for internal connections */
 		    priority < 0 ||                             /* ignore incompatible types */
-		    priority < sel_priority)                  /* ignore if we already found a higher priority input */
+		    priority < sel_priority)                    /* ignore if we already found a higher priority input */
+		{
 			continue;
+		}
 		
 		/* determine if this input is preferred over the currently selected */
 		preferred = (priority > sel_priority) ||    /* prefer higher datatype priority */

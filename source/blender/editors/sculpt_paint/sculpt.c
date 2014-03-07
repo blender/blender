@@ -3922,8 +3922,8 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	mul_m3_v3(mat, viewDir);
 	normalize_v3_v3(cache->true_view_normal, viewDir);
 
-	cache->supports_gravity = !ELEM3(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SIMPLIFY)
-							  && sd->gravity_factor > 0.0f;
+	cache->supports_gravity = (!ELEM3(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SIMPLIFY) &&
+	                           (sd->gravity_factor > 0.0f));
 	/* get gravity vector in world space */
 	if (cache->supports_gravity) {
 		if (sd->gravity_object) {
@@ -4486,13 +4486,13 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	sculpt_restore_mesh(sd, ob);
 
 	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
-		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, (float)sd->detail_size/100.0f);
+		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, (float)sd->detail_size / 100.0f);
 	}
 	else {
 		BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-									   (ss->cache->radius /
-										(float)ups->pixel_radius) *
-									   (float)sd->detail_size);
+		                               (ss->cache->radius /
+		                                (float)ups->pixel_radius) *
+		                               (float)sd->detail_size);
 	}
 
 	if (sculpt_stroke_dynamic_topology(ss, brush)) {

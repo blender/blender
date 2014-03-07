@@ -38,7 +38,7 @@ static bNodeSocketTemplate sh_node_tex_wave_in[] = {
 	{	-1, 0, ""	}
 };
 
-const bool internal_links[5] = {0,0,0,0,0};
+const bool internal_links[5] = {0, 0, 0, 0, 0};
 
 static bNodeSocketTemplate sh_node_tex_wave_out[] = {
 	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},

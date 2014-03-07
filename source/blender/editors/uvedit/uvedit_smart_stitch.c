@@ -685,7 +685,7 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 					edge2 = BLI_ghash_lookup(edge_hash, &edgetmp);
 
 					/* more iteration to make sure non-manifold case is handled nicely */
-					for (eiter = edge; eiter; eiter = eiter->next){
+					for (eiter = edge; eiter; eiter = eiter->next) {
 						if (edge2 == eiter) {
 							valid = false;
 							break;

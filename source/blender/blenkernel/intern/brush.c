@@ -993,7 +993,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
 				/* This is copied from displace modifier code */
 				/* TODO(sergey): brush are always cacheing with CM enabled for now. */
 				externtex(mtex, co, &intensity,
-						  rgba, rgba + 1, rgba + 2, rgba + 3, 0, NULL);
+				          rgba, rgba + 1, rgba + 2, rgba + 3, 0, NULL);
 
 				((char *)texcache)[(iy * side + ix) * 4] =
 				((char *)texcache)[(iy * side + ix) * 4 + 1] =
