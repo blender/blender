@@ -430,6 +430,11 @@ def buildinfo(lenv, build_type):
                 master_check = os.popen('git branch --list master --contains ' + build_hash).read().strip()
                 if master_check == 'master':
                     build_branch = 'master'
+                else:
+                    head_hash = os.popen('git rev-parse HEAD').read().strip()
+                    tag_hashes = os.popen('git show-ref --tags -d').read()
+                    if tag_hashes.find(head_hash) != -1:
+                        build_branch = 'master'
 
             if build_hash == '':
                 build_hash = os.popen('git rev-parse --short HEAD').read().strip()
