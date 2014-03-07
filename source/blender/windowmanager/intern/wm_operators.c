@@ -1816,7 +1816,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 *  avoids recreating splash for version updates */
-	if (1) {
+	if (0) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
 		int x = 260 - (2 * UI_DPI_WINDOW_FAC);
@@ -1824,7 +1824,6 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 		int w = 240;
 
 		const char *version_suffix = "Release Candidate";
-
 
 		/* hack to have text draw 'text_sel' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
