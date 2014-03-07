@@ -2202,7 +2202,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 				mul_v3_v3fl(val, offset, *disp);
 
-				if (ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
+				if (!ss->multires && !ss->bm && ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
 					int index = vd.vert_indices[vd.i];
 
 					/* persistent base */
