@@ -3001,6 +3001,34 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 
 /* ********************* ACTION EDITOR ****************** */
 
+static int gpf_cmp_frame(void *thunk, void *a, void *b)
+{
+	bGPDframe *frame_a = a;
+	bGPDframe *frame_b = b;
+
+	if (frame_a->framenum < frame_b->framenum) return -1;
+	if (frame_a->framenum > frame_b->framenum) return  1;
+	*((bool *)thunk) = true;
+	/* selected last */
+	if ((frame_a->flag & GP_FRAME_SELECT) &&
+	    ((frame_b->flag & GP_FRAME_SELECT) == 0)) return  1;
+	return 0;
+}
+
+static int maskley_shape_cmp_frame(void *thunk, void *a, void *b)
+{
+	MaskLayerShape *frame_a = a;
+	MaskLayerShape *frame_b = b;
+
+	if (frame_a->frame < frame_b->frame) return -1;
+	if (frame_a->frame > frame_b->frame) return  1;
+	*((bool *)thunk) = true;
+	/* selected last */
+	if ((frame_a->flag & MASK_SHAPE_SELECT) &&
+	    ((frame_b->flag & MASK_SHAPE_SELECT) == 0)) return  1;
+	return 0;
+}
+
 /* Called by special_aftertrans_update to make sure selected gp-frames replace
  * any other gp-frames which may reside on that frame (that are not selected).
  * It also makes sure gp-frames are still stored in chronological order after
@@ -3011,175 +3039,52 @@ static void posttrans_gpd_clean(bGPdata *gpd)
 	bGPDlayer *gpl;
 	
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		ListBase sel_buffer = {NULL, NULL};
 		bGPDframe *gpf, *gpfn;
-		bGPDframe *gfs, *gfsn;
-		
-		/* loop 1: loop through and isolate selected gp-frames to buffer
-		 * (these need to be sorted as they are isolated)
-		 */
-		for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
-			short added = 0;
-			gpfn = gpf->next;
-			
-			if (gpf->flag & GP_FRAME_SELECT) {
-				BLI_remlink(&gpl->frames, gpf);
-				
-				/* find place to add them in buffer
-				 * - go backwards as most frames will still be in order,
-				 *   so doing it this way will be faster
-				 */
-				for (gfs = sel_buffer.last; gfs; gfs = gfs->prev) {
-					/* if current (gpf) occurs after this one in buffer, add! */
-					if (gfs->framenum < gpf->framenum) {
-						BLI_insertlinkafter(&sel_buffer, gfs, gpf);
-						added = 1;
-						break;
-					}
-				}
-				if (added == 0)
-					BLI_addhead(&sel_buffer, gpf);
-			}
-		}
-		
-		/* error checking: it is unlikely, but may be possible to have none selected */
-		if (BLI_listbase_is_empty(&sel_buffer))
-			continue;
-		
-		/* if all were selected (i.e. gpl->frames is empty), then just transfer sel-buf over */
-		if (BLI_listbase_is_empty(&gpl->frames)) {
-			gpl->frames.first = sel_buffer.first;
-			gpl->frames.last = sel_buffer.last;
-			
-			continue;
-		}
-		
-		/* loop 2: remove duplicates of frames in buffers */
-		for (gpf = gpl->frames.first; gpf && sel_buffer.first; gpf = gpfn) {
-			gpfn = gpf->next;
-			
-			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
-			for (gfs = sel_buffer.first; gfs && gpf; gfs = gfsn) {
-				gfsn = gfs->next;
-				
-				/* if this buffer frame needs to go before current, add it! */
-				if (gfs->framenum < gpf->framenum) {
-					/* transfer buffer frame to frames list (before current) */
-					BLI_remlink(&sel_buffer, gfs);
-					BLI_insertlinkbefore(&gpl->frames, gpf, gfs);
-				}
-				/* if this buffer frame is on same frame, replace current with it and stop */
-				else if (gfs->framenum == gpf->framenum) {
-					/* transfer buffer frame to frames list (before current) */
-					BLI_remlink(&sel_buffer, gfs);
-					BLI_insertlinkbefore(&gpl->frames, gpf, gfs);
-					
-					/* get rid of current frame */
+		bool is_double = false;
+
+		BLI_sortlist_r(&gpl->frames, &is_double, gpf_cmp_frame);
+
+		if (is_double) {
+			for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
+				gpfn = gpf->next;
+				if (gpfn && gpf->framenum == gpfn->framenum) {
 					gpencil_layer_delframe(gpl, gpf);
 				}
 			}
 		}
-		
-		/* if anything is still in buffer, append to end */
-		for (gfs = sel_buffer.first; gfs; gfs = gfsn) {
-			gfsn = gfs->next;
-			
-			BLI_remlink(&sel_buffer, gfs);
-			BLI_addtail(&gpl->frames, gfs);
+
+#ifdef DEBUG
+		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+			BLI_assert(!gpf->next || gpf->framenum < gpf->next->framenum);
 		}
+#endif
 	}
 }
 
-
-/* Called by special_aftertrans_update to make sure selected gp-frames replace
- * any other gp-frames which may reside on that frame (that are not selected).
- * It also makes sure sorted are still stored in chronological order after
- * transform.
- */
 static void posttrans_mask_clean(Mask *mask)
 {
 	MaskLayer *masklay;
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		ListBase sel_buffer = {NULL, NULL};
-		MaskLayerShape *masklay_shape, *masklay_shape_new;
-		MaskLayerShape *masklay_shape_sort, *masklay_shape_sort_new;
+		MaskLayerShape *masklay_shape, *masklay_shape_next;
+		bool is_double = false;
 
-		/* loop 1: loop through and isolate selected gp-frames to buffer
-		 * (these need to be sorted as they are isolated)
-		 */
-		for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape_new) {
-			short added = 0;
-			masklay_shape_new = masklay_shape->next;
+		BLI_sortlist_r(&masklay->splines_shapes, &is_double, maskley_shape_cmp_frame);
 
-			if (masklay_shape->flag & MASK_SHAPE_SELECT) {
-				BLI_remlink(&masklay->splines_shapes, masklay_shape);
-
-				/* find place to add them in buffer
-				 * - go backwards as most frames will still be in order,
-				 *   so doing it this way will be faster
-				 */
-				for (masklay_shape_sort = sel_buffer.last; masklay_shape_sort; masklay_shape_sort = masklay_shape_sort->prev) {
-					/* if current (masklay_shape) occurs after this one in buffer, add! */
-					if (masklay_shape_sort->frame < masklay_shape->frame) {
-						BLI_insertlinkafter(&sel_buffer, masklay_shape_sort, masklay_shape);
-						added = 1;
-						break;
-					}
-				}
-				if (added == 0)
-					BLI_addhead(&sel_buffer, masklay_shape);
-			}
-		}
-
-		/* error checking: it is unlikely, but may be possible to have none selected */
-		if (BLI_listbase_is_empty(&sel_buffer))
-			continue;
-
-		/* if all were selected (i.e. masklay->splines_shapes is empty), then just transfer sel-buf over */
-		if (BLI_listbase_is_empty(&masklay->splines_shapes)) {
-			masklay->splines_shapes.first = sel_buffer.first;
-			masklay->splines_shapes.last = sel_buffer.last;
-
-			continue;
-		}
-
-		/* loop 2: remove duplicates of splines_shapes in buffers */
-		for (masklay_shape = masklay->splines_shapes.first; masklay_shape && sel_buffer.first; masklay_shape = masklay_shape_new) {
-			masklay_shape_new = masklay_shape->next;
-
-			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
-			for (masklay_shape_sort = sel_buffer.first; masklay_shape_sort && masklay_shape; masklay_shape_sort = masklay_shape_sort_new) {
-				masklay_shape_sort_new = masklay_shape_sort->next;
-
-				/* if this buffer frame needs to go before current, add it! */
-				if (masklay_shape_sort->frame < masklay_shape->frame) {
-					/* transfer buffer frame to splines_shapes list (before current) */
-					BLI_remlink(&sel_buffer, masklay_shape_sort);
-					BLI_insertlinkbefore(&masklay->splines_shapes, masklay_shape, masklay_shape_sort);
-				}
-				/* if this buffer frame is on same frame, replace current with it and stop */
-				else if (masklay_shape_sort->frame == masklay_shape->frame) {
-					/* transfer buffer frame to splines_shapes list (before current) */
-					BLI_remlink(&sel_buffer, masklay_shape_sort);
-					BLI_insertlinkbefore(&masklay->splines_shapes, masklay_shape, masklay_shape_sort);
-
-					/* get rid of current frame */
+		if (is_double) {
+			for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape_next) {
+				masklay_shape_next = masklay_shape->next;
+				if (masklay_shape_next && masklay_shape->frame == masklay_shape_next->frame) {
 					BKE_mask_layer_shape_unlink(masklay, masklay_shape);
 				}
 			}
 		}
 
-		/* if anything is still in buffer, append to end */
-		for (masklay_shape_sort = sel_buffer.first; masklay_shape_sort; masklay_shape_sort = masklay_shape_sort_new) {
-			masklay_shape_sort_new = masklay_shape_sort->next;
-
-			BLI_remlink(&sel_buffer, masklay_shape_sort);
-			BLI_addtail(&masklay->splines_shapes, masklay_shape_sort);
+#ifdef DEBUG
+		for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
+			BLI_assert(!masklay_shape->next || masklay_shape->frame < masklay_shape->next->frame);
 		}
-
-		/* NOTE: this is the only difference to grease pencil code above */
-		BKE_mask_layer_shape_sort(masklay);
+#endif
 	}
 }
 
