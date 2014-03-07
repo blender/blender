@@ -3802,7 +3802,7 @@ bool BKE_nurb_order_clamp_u(struct Nurb *nu)
 {
 	bool changed = false;
 	if (nu->pntsu < nu->orderu) {
-		nu->orderu = nu->pntsu;
+		nu->orderu = max_ii(2, nu->pntsu);
 		changed = true;
 	}
 	if (((nu->flagu & CU_NURB_CYCLIC) == 0) && (nu->flagu & CU_NURB_BEZIER)) {
@@ -3816,7 +3816,7 @@ bool BKE_nurb_order_clamp_v(struct Nurb *nu)
 {
 	bool changed = false;
 	if (nu->pntsv < nu->orderv) {
-		nu->orderv = nu->pntsv;
+		nu->orderv = max_ii(2, nu->pntsv);
 		changed = true;
 	}
 	if (((nu->flagv & CU_NURB_CYCLIC) == 0) && (nu->flagv & CU_NURB_BEZIER)) {
