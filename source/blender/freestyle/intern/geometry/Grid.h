@@ -30,7 +30,7 @@
 
 #include <cstring> // for memset
 #include <float.h>
-#ifndef _MSC_VER
+#ifdef _MSC_VER
 #include <stdint.h> // For SET_UINT_IN_POINTER, i.e. uintptr_t.
 #endif
 #include <vector>

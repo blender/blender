@@ -18,7 +18,7 @@
 #include <algorithm>
 
 #if defined(_MSC_VER) && _MSC_VER > 1600
-// sdt::greater
+// std::greater
 #include <functional>
 #endif
 

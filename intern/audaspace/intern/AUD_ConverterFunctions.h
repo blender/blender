@@ -38,8 +38,7 @@
    typedef short             int16_t;
    typedef int               int32_t;
 #else
-   typedef __int16           int16_t;
-   typedef __int32           int32_t;
+#	include <stdint.h>
 #endif
 #else
 #include <stdint.h>
