@@ -347,6 +347,16 @@ void BLI_rctf_do_minmax_v(rctf *rect, const float xy[2])
 	if (xy[1] > rect->ymax) rect->ymax = xy[1];
 }
 
+/* given 2 rectangles - transform a point from one to another */
+void BLI_rctf_transform_pt_v(const rctf *dst, const rctf *src, float xy_dst[2], const float xy_src[2])
+{
+	xy_dst[0] = ((xy_src[0] - src->xmin) / (src->xmax - src->xmin));
+	xy_dst[0] =               dst->xmin + ((dst->xmax - dst->xmin) * xy_dst[0]);
+
+	xy_dst[1] = ((xy_src[1] - src->ymin) / (src->ymax - src->ymin));
+	xy_dst[1] =               dst->ymin + ((dst->ymax - dst->ymin) * xy_dst[1]);
+}
+
 void BLI_rcti_translate(rcti *rect, int x, int y)
 {
 	rect->xmin += x;
