@@ -312,11 +312,6 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 		RNA_boolean_set(kmi->ptr, "selection", TRUE);
 	}
 
-	kmi = WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "split_lines", FALSE);
-	kmi = WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "split_lines", TRUE);
-
 	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_line", AKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_word", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
