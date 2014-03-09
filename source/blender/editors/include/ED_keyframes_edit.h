@@ -56,7 +56,8 @@ typedef enum eEditKeyframes_Validate {
 	BEZT_OK_SELECTED,
 	BEZT_OK_VALUE,
 	BEZT_OK_VALUERANGE,
-	BEZT_OK_REGION
+	BEZT_OK_REGION,
+	BEZT_OK_REGION_LASSO,
 } eEditKeyframes_Validate;
 
 /* ------------ */
@@ -97,6 +98,15 @@ typedef enum eEditKeyframes_Mirror {
 	MIRROR_KEYS_MARKER,
 	MIRROR_KEYS_VALUE
 } eEditKeyframes_Mirror;
+
+/* use with BEZT_OK_REGION_LASSO */
+struct KeyframeEdit_LassoData {
+	const rctf *rectf_scaled;
+	const rctf *rectf_view;
+	const int (*mcords)[2];
+	int mcords_tot;
+};
+
 
 /* ************************************************ */
 /* Non-Destuctive Editing API (keyframes_edit.c) */
