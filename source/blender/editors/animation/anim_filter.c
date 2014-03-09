@@ -1867,7 +1867,7 @@ static size_t animdata_filter_ds_modifiers(bAnimContext *ac, ListBase *anim_data
 	size_t items = 0;
 	
 	/* 1) create a temporary "context" containing all the info we have here to pass to the callback 
-	 *    use to walk thorugh the dependencies of the modifiers
+	 *    use to walk through the dependencies of the modifiers
 	 *
 	 * ! Assumes that all other unspecified values (i.e. accumulation buffers) are zero'd out properly
 	 */
