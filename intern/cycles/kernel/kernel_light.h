@@ -575,10 +575,8 @@ ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float 
 		int object = __float_as_int(l.w);
 #ifdef __HAIR__
 		int segment = __float_as_int(l.z) & SHADER_MASK;
-#endif
 
-#ifdef __HAIR__
-		if (segment != SHADER_MASK)
+		if(segment != SHADER_MASK)
 			curve_segment_light_sample(kg, prim, object, segment, randu, randv, time, ls);
 		else
 #endif
