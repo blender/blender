@@ -252,6 +252,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 items=enum_use_layer_samples,
                 default='USE',
                 )
+        cls.sample_all_lights_indirect = BoolProperty(
+                name="Sample All Lights",
+                description="Sample all lights (for indirect samples), rather than randomly picking one",
+                default=False,
+                )
 
         cls.no_caustics = BoolProperty(
                 name="No Caustics",

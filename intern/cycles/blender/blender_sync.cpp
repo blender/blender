@@ -197,6 +197,8 @@ void BlenderSync::sync_integrator()
 #endif
 
 	integrator->method = (Integrator::Method)get_enum(cscene, "progressive");
+	
+	integrator->sample_all_lights_indirect = get_boolean(cscene, "sample_all_lights_indirect");
 
 	int diffuse_samples = get_int(cscene, "diffuse_samples");
 	int glossy_samples = get_int(cscene, "glossy_samples");
