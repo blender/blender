@@ -34,7 +34,7 @@
 
 #include <cstring>
 #ifdef _MSC_VER
-#if (_MSC_VER < 1300)
+#if (_MSC_VER <= 1500)
    typedef short             int16_t;
    typedef int               int32_t;
 #else
