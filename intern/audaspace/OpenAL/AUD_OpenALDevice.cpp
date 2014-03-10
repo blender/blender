@@ -994,7 +994,7 @@ void AUD_OpenALDevice::updateStreams()
 				if(info != AL_PLAYING)
 				{
 					// if it really stopped
-					if(sound->m_eos)
+					if(sound->m_eos && info != AL_INITIAL)
 					{
 						if(sound->m_stop)
 							sound->m_stop(sound->m_stop_data);
