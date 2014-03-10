@@ -3902,6 +3902,145 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prop
 	return RNA_path_resolve_full(ptr, path, r_ptr, r_prop, NULL);
 }
 
+static bool path_resolve_collection_key(const char **path, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_nextptr)
+{
+	char fixedbuf[256], *token;
+	int intkey;
+	
+	/* end of path, ok */
+	if (!(**path))
+		return true;
+	
+	if (**path == '[') {
+		/* resolve the lookup with [] brackets */
+		token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 1);
+		
+		if (!token)
+			return false;
+		
+		/* check for "" to see if it is a string */
+		if (rna_token_strip_quotes(token)) {
+			if (RNA_property_collection_lookup_string(ptr, prop, token + 1, r_nextptr)) {
+				/* pass */
+			}
+			else {
+				r_nextptr->data = NULL;
+			}
+		}
+		else {
+			/* otherwise do int lookup */
+			intkey = atoi(token);
+			if (intkey == 0 && (token[0] != '0' || token[1] != '\0')) {
+				return false; /* we can be sure the fixedbuf was used in this case */
+			}
+			if (RNA_property_collection_lookup_int(ptr, prop, intkey, r_nextptr)) {
+				/* pass */
+			}
+			else {
+				r_nextptr->data = NULL;
+			}
+		}
+		
+		if (token != fixedbuf) {
+			MEM_freeN(token);
+		}
+	}
+	else {
+		if (RNA_property_collection_type_get(ptr, prop, r_nextptr)) {
+			/* pass */
+		}
+		else {
+			/* ensure we quit on invalid values */
+			r_nextptr->data = NULL;
+		}
+	}
+	
+	return r_nextptr->data != NULL;
+}
+
+static bool path_resolve_array_index(const char **path, PointerRNA *ptr, PropertyRNA *prop, int *r_index)
+{
+	char fixedbuf[256], *token;
+	int index_arr[RNA_MAX_ARRAY_DIMENSION] = {0};
+	int len[RNA_MAX_ARRAY_DIMENSION];
+	const int dim = RNA_property_array_dimension(ptr, prop, len);
+	int i;
+	
+	*r_index = -1;
+	
+	/* end of path, ok */
+	if (!(**path))
+		return true;
+	
+	for (i = 0; i < dim; i++) {
+		int temp_index = -1;
+		
+		/* multi index resolve */
+		if (**path == '[') {
+			token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 1);
+			
+			if (token == NULL) {
+				/* invalid syntax blah[] */
+				return false;
+			}
+			/* check for "" to see if it is a string */
+			else if (rna_token_strip_quotes(token)) {
+				temp_index = RNA_property_array_item_index(prop, *(token + 1));
+			}
+			else {
+				/* otherwise do int lookup */
+				temp_index = atoi(token);
+				
+				if (temp_index == 0 && (token[0] != '0' || token[1] != '\0')) {
+					if (token != fixedbuf) {
+						MEM_freeN(token);
+					}
+					
+					return false;
+				}
+			}
+		}
+		else if (dim == 1) {
+			/* location.x || scale.X, single dimension arrays only */
+			token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 0);
+			if (token == NULL) {
+				/* invalid syntax blah.. */
+				return false;
+			}
+			temp_index = RNA_property_array_item_index(prop, *token);
+		}
+		
+		if (token != fixedbuf) {
+			MEM_freeN(token);
+		}
+		
+		/* out of range */
+		if (temp_index < 0 || temp_index >= len[i])
+			return false;
+		
+		index_arr[i] = temp_index;
+		/* end multi index resolve */
+	}
+	
+	/* arrays always contain numbers so further values are not valid */
+	if (**path)
+		return false;
+	
+	/* flatten index over all dimensions */
+	{
+		int totdim = 1;
+		int flat_index = 0;
+		
+		for (i = dim - 1; i >= 0; i--) {
+			flat_index += index_arr[i] * totdim;
+			totdim *= len[i];
+		}
+		
+		*r_index = flat_index;
+	}
+	return true;
+}
+
 /* Resolve the given RNA Path to find the pointer and/or property + array index indicated by fully resolving the path 
  * ! Assumes all pointers provided are valid
  * > returns: True if path can be resolved to a valid "pointer + property" OR "pointer only"
@@ -3912,13 +4051,13 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 	PointerRNA curptr;
 	PointerRNA nextptr;  /* keep uninitialized, helps expose bugs in collection accessor functions */
 	char fixedbuf[256], *token;
-	int type, intkey;
+	int type;
 
 	prop = NULL;
 	curptr = *ptr;
 
 	if (path == NULL || *path == '\0')
-		return 0;
+		return false;
 
 	while (*path) {
 		int use_id_prop = (*path == '[') ? 1 : 0;
@@ -3930,7 +4069,7 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 		token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), use_id_prop);
 
 		if (!token)
-			return 0;
+			return false;
 
 		if (use_id_prop) { /* look up property name in current struct */
 			IDProperty *group = RNA_struct_idprops(&curptr, 0);
@@ -3945,7 +4084,7 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 			MEM_freeN(token);
 
 		if (!prop)
-			return 0;
+			return false;
 
 		type = RNA_property_type(prop);
 
@@ -3955,159 +4094,34 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 		switch (type) {
 			case PROP_POINTER:
 				nextptr = RNA_property_pointer_get(&curptr, prop);
-
-				if (nextptr.data) {
-					curptr = nextptr;
-					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-					if (index) *index = -1;
-				}
-				else
-					return 0;
-			
+				if (nextptr.data == NULL)
+					return false;
+				
+				curptr = nextptr;
+				prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
+				if (index) *index = -1;
 				break;
 			case PROP_COLLECTION:
-				if (*path) {
-					if (*path == '[') {
-						/* resolve the lookup with [] brackets */
-						token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
-	
-						if (!token)
-							return 0;
-
-						/* check for "" to see if it is a string */
-						if (rna_token_strip_quotes(token)) {
-							if (RNA_property_collection_lookup_string(&curptr, prop, token + 1, &nextptr)) {
-								/* pass */
-							}
-							else {
-								nextptr.data = NULL;
-							}
-						}
-						else {
-							/* otherwise do int lookup */
-							intkey = atoi(token);
-							if (intkey == 0 && (token[0] != '0' || token[1] != '\0')) {
-								return 0; /* we can be sure the fixedbuf was used in this case */
-							}
-							if (RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr)) {
-								/* pass */
-							}
-							else {
-								nextptr.data = NULL;
-							}
-						}
-
-						if (token != fixedbuf) {
-							MEM_freeN(token);
-						}
-					}
-					else {
-						PointerRNA c_ptr;
-	
-						if (RNA_property_collection_type_get(&curptr, prop, &c_ptr)) {
-							nextptr = c_ptr;
-						}
-						else {
-							/* ensure we quit on invalid values */
-							nextptr.data = NULL;
-						}
-					}
-					
-					if (nextptr.data) {
-						curptr = nextptr;
-						prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-						if (index) *index = -1;
-					}
-					else
-						return 0;
-				}
-
+				if (!path_resolve_collection_key(&path, &curptr, prop, &nextptr))
+					return false;
+				
+				curptr = nextptr;
+				prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
+				if (index) *index = -1;
 				break;
 			default:
-				if (index == NULL)
-					break;
-
-				*index = -1;
-
-				if (*path) {
-					int index_arr[RNA_MAX_ARRAY_DIMENSION] = {0};
-					int len[RNA_MAX_ARRAY_DIMENSION];
-					const int dim = RNA_property_array_dimension(&curptr, prop, len);
-					int i, temp_index;
-
-					for (i = 0; i < dim; i++) {
-						temp_index = -1;
-
-						/* multi index resolve */
-						if (*path == '[') {
-							token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
-
-							if (token == NULL) {
-								/* invalid syntax blah[] */
-								return 0;
-							}
-							/* check for "" to see if it is a string */
-							else if (rna_token_strip_quotes(token)) {
-								temp_index = RNA_property_array_item_index(prop, *(token + 1));
-							}
-							else {
-								/* otherwise do int lookup */
-								temp_index = atoi(token);
-
-								if (temp_index == 0 && (token[0] != '0' || token[1] != '\0')) {
-									if (token != fixedbuf) {
-										MEM_freeN(token);
-									}
-
-									return 0;
-								}
-							}
-						}
-						else if (dim == 1) {
-							/* location.x || scale.X, single dimension arrays only */
-							token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
-							if (token == NULL) {
-								/* invalid syntax blah.. */
-								return 0;
-							}
-							temp_index = RNA_property_array_item_index(prop, *token);
-						}
-
-						if (token != fixedbuf) {
-							MEM_freeN(token);
-						}
-
-						/* out of range */
-						if (temp_index < 0 || temp_index >= len[i])
-							return 0;
-
-						index_arr[i] = temp_index;
-						/* end multi index resolve */
-					}
-
-					/* arrays always contain numbers so further values are not valid */
-					if (*path) {
-						return 0;
-					}
-					else {
-						int totdim = 1;
-						int flat_index = 0;
-
-						for (i = dim - 1; i >= 0; i--) {
-							flat_index += index_arr[i] * totdim;
-							totdim *= len[i];
-						}
-
-						*index = flat_index;
-					}
+				if (index) {
+					if (!path_resolve_array_index(&path, &curptr, prop, index))
+						return false;
 				}
+				break;
 		}
 	}
 
 	*r_ptr = curptr;
 	*r_prop = prop;
 
-	return 1;
+	return true;
 }
 
 
