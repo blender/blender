@@ -542,6 +542,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->toolsettings->proportional_size = 1.0f;
 
+	sce->toolsettings->imapaint.paint.flags |= PAINT_SHOW_BRUSH;
+
 	sce->physics_settings.gravity[0] = 0.0f;
 	sce->physics_settings.gravity[1] = 0.0f;
 	sce->physics_settings.gravity[2] = -9.81f;

@@ -189,6 +189,7 @@ static VPaint *new_vpaint(int wpaint)
 	VPaint *vp = MEM_callocN(sizeof(VPaint), "VPaint");
 	
 	vp->flag = (wpaint) ? 0 : VP_SPRAY;
+	vp->paint.flags |= PAINT_SHOW_BRUSH;
 
 	return vp;
 }

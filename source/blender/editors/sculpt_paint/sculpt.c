@@ -5140,6 +5140,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
 			/* Turn on X plane mirror symmetry by default */
 			ts->sculpt->paint.symmetry_flags |= PAINT_SYMM_X;
+			ts->sculpt->paint.flags |= PAINT_SHOW_BRUSH;
 
 			/* Make sure at least dyntopo subdivision is enabled */
 			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;
