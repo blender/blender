@@ -3902,7 +3902,7 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prop
 	return RNA_path_resolve_full(ptr, path, r_ptr, r_prop, NULL);
 }
 
-static bool path_resolve_collection_key(const char **path, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_nextptr)
+static bool rna_path_resolve_collection_key(const char **path, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_nextptr)
 {
 	char fixedbuf[256], *token;
 	int intkey;
@@ -3958,7 +3958,7 @@ static bool path_resolve_collection_key(const char **path, PointerRNA *ptr, Prop
 	return r_nextptr->data != NULL;
 }
 
-static bool path_resolve_array_index(const char **path, PointerRNA *ptr, PropertyRNA *prop, int *r_index)
+static bool rna_path_resolve_array_index(const char **path, PointerRNA *ptr, PropertyRNA *prop, int *r_index)
 {
 	char fixedbuf[256], *token;
 	int index_arr[RNA_MAX_ARRAY_DIMENSION] = {0};
@@ -4102,7 +4102,7 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 				if (index) *index = -1;
 				break;
 			case PROP_COLLECTION:
-				if (!path_resolve_collection_key(&path, &curptr, prop, &nextptr))
+				if (!rna_path_resolve_collection_key(&path, &curptr, prop, &nextptr))
 					return false;
 				
 				curptr = nextptr;
@@ -4111,7 +4111,7 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 				break;
 			default:
 				if (index) {
-					if (!path_resolve_array_index(&path, &curptr, prop, index))
+					if (!rna_path_resolve_array_index(&path, &curptr, prop, index))
 						return false;
 				}
 				break;
