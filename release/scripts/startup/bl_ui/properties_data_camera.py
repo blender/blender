@@ -102,7 +102,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                 row = col.row()
                 if cam.lens_unit == 'MILLIMETERS':
                     row.prop(cam, "lens")
-                elif cam.lens_unit == 'DEGREES':
+                elif cam.lens_unit == 'FOV':
                     row.prop(cam, "angle")
                 row.prop(cam, "lens_unit", text="")
 
