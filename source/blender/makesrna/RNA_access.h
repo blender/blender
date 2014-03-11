@@ -914,14 +914,14 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path,
                      PointerRNA *r_ptr, PropertyRNA **r_prop);
 
 bool RNA_path_resolve_full(PointerRNA *ptr, const char *path,
-                          PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
+                           PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
 
 /* path_resolve_property() variants ensure that pointer + property both exist */
 bool RNA_path_resolve_property(PointerRNA *ptr, const char *path,
-                     PointerRNA *r_ptr, PropertyRNA **r_prop);
+                               PointerRNA *r_ptr, PropertyRNA **r_prop);
 
 bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path,
-                          PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
+                                    PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);

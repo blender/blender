@@ -3873,40 +3873,13 @@ static int rna_token_strip_quotes(char *token)
 	return 0;
 }
 
-/* Resolve the given RNA Path to find both the pointer AND property indicated by fully resolving the path
- * ! This is a convenience method to avoid logic errors and ugly syntax
- * ! Assumes all pointers provided are valid
- * > returns: True only if both a valid pointer and property are found after resolving the path 
- */
-bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
-{
-	return RNA_path_resolve_full(ptr, path, r_ptr, r_prop, NULL) && (*r_prop != NULL);
-}
-
-/* Resolve the given RNA Path to find the pointer AND property (as well as the array index) indicated by fully resolving the path
- * ! This is a convenience method to avoid logic errors and ugly syntax
- * ! Assumes all pointers provided are valid
- * > returns: True only if both a valid pointer and property are found after resolving the path
- */
-bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *index)
-{
-	return RNA_path_resolve_full(ptr, path, r_ptr, r_prop, index) && (*r_prop != NULL);
-}
-
-/* Resolve the given RNA Path to find the pointer and/or property indicated by fully resolving the path 
- * ! Assumes all pointers provided are valid
- * > returns: True if path can be resolved to a valid "pointer + property" OR "pointer only"
- */
-bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
-{
-	return RNA_path_resolve_full(ptr, path, r_ptr, r_prop, NULL);
-}
-
-static bool rna_path_resolve_collection_key(const char **path, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_nextptr)
+static bool rna_path_parse_collection_key(const char **path, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_nextptr)
 {
 	char fixedbuf[256], *token;
 	int intkey;
 	
+	*r_nextptr = *ptr;
+
 	/* end of path, ok */
 	if (!(**path))
 		return true;
@@ -3955,10 +3928,10 @@ static bool rna_path_resolve_collection_key(const char **path, PointerRNA *ptr, 
 		}
 	}
 	
-	return r_nextptr->data != NULL;
+	return true;
 }
 
-static bool rna_path_resolve_array_index(const char **path, PointerRNA *ptr, PropertyRNA *prop, int *r_index)
+static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, PropertyRNA *prop, int *r_index)
 {
 	char fixedbuf[256], *token;
 	int index_arr[RNA_MAX_ARRAY_DIMENSION] = {0};
@@ -4041,15 +4014,12 @@ static bool rna_path_resolve_array_index(const char **path, PointerRNA *ptr, Pro
 	return true;
 }
 
-/* Resolve the given RNA Path to find the pointer and/or property + array index indicated by fully resolving the path 
- * ! Assumes all pointers provided are valid
- * > returns: True if path can be resolved to a valid "pointer + property" OR "pointer only"
- */
-bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *index)
+static bool rna_path_parse(PointerRNA *ptr, const char *path,
+                           PointerRNA *r_ptr, PropertyRNA **r_prop, int *index,
+                           const bool eval_pointer)
 {
 	PropertyRNA *prop;
 	PointerRNA curptr;
-	PointerRNA nextptr;  /* keep uninitialized, helps expose bugs in collection accessor functions */
 	char fixedbuf[256], *token;
 	int type;
 
@@ -4065,12 +4035,16 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 		 * C.object["someprop"]
 		 */
 
+		if (!curptr.data)
+			return false;
+
 		/* look up property name in current struct */
 		token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), use_id_prop);
 
 		if (!token)
 			return false;
 
+		prop = NULL;
 		if (use_id_prop) { /* look up property name in current struct */
 			IDProperty *group = RNA_struct_idprops(&curptr, 0);
 			if (group && rna_token_strip_quotes(token))
@@ -4092,26 +4066,35 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 		 * collection, otherwise return the property rna so that the
 		 * caller can read the value of the property itself */
 		switch (type) {
-			case PROP_POINTER:
-				nextptr = RNA_property_pointer_get(&curptr, prop);
-				if (nextptr.data == NULL)
-					return false;
-				
-				curptr = nextptr;
-				prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-				if (index) *index = -1;
+			case PROP_POINTER: {
+				/* resolve pointer if further path elements follow
+				 * or explicitly requested
+				 */
+				if (eval_pointer || *path) {
+					PointerRNA nextptr = RNA_property_pointer_get(&curptr, prop);
+					
+					curptr = nextptr;
+					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
+					if (index) *index = -1;
+				}
 				break;
-			case PROP_COLLECTION:
-				if (!rna_path_resolve_collection_key(&path, &curptr, prop, &nextptr))
-					return false;
-				
-				curptr = nextptr;
-				prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-				if (index) *index = -1;
+			}
+			case PROP_COLLECTION: {
+				/* resolve pointer if further path elements follow or explicitly requested */
+				if (eval_pointer || *path) {
+					PointerRNA nextptr;
+					if (!rna_path_parse_collection_key(&path, &curptr, prop, &nextptr))
+						return false;
+					
+					curptr = nextptr;
+					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
+					if (index) *index = -1;
+				}
 				break;
+			}
 			default:
 				if (index) {
-					if (!rna_path_resolve_array_index(&path, &curptr, prop, index))
+					if (!rna_path_parse_array_index(&path, &curptr, prop, index))
 						return false;
 				}
 				break;
@@ -4122,6 +4105,65 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
 	*r_prop = prop;
 
 	return true;
+}
+
+/**
+ * Resolve the given RNA Path to find the pointer and/or property indicated by fully resolving the path.
+ *
+ * \note Assumes all pointers provided are valid
+ * \return True if path can be resolved to a valid "pointer + property" OR "pointer only"
+ */
+bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, true))
+		return false;
+
+	return r_ptr->data != NULL;
+}
+
+/**
+ * Resolve the given RNA Path to find the pointer and/or property + array index indicated by fully resolving the path.
+ *
+ * \note Assumes all pointers provided are valid.
+ * \return True if path can be resolved to a valid "pointer + property" OR "pointer only"
+ */
+bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, true))
+		return false;
+
+	return r_ptr->data != NULL;
+}
+
+/**
+ * Resolve the given RNA Path to find both the pointer AND property indicated by fully resolving the path.
+ *
+ * This is a convenience method to avoid logic errors and ugly syntax.
+ * \note Assumes all pointers provided are valid
+ * \return True only if both a valid pointer and property are found after resolving the path
+ */
+bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, false))
+		return false;
+
+	return r_ptr->data != NULL && *r_prop != NULL;
+}
+
+/**
+ * Resolve the given RNA Path to find the pointer AND property (as well as the array index)
+ * indicated by fully resolving the path.
+ *
+ * This is a convenience method to avoid logic errors and ugly syntax.
+ *  \note Assumes all pointers provided are valid
+ * \return True only if both a valid pointer and property are found after resolving the path
+ */
+bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
+{
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, false))
+		return false;
+
+	return r_ptr->data != NULL && *r_prop != NULL;
 }
 
 
