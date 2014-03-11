@@ -33,30 +33,43 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-class PlaneTrackCommonOperation : public NodeOperation {
+
+class PlaneDistortWarpImageOperation : public NodeOperation {
 protected:
-	MovieClip *m_movieClip;
-	int m_framenumber;
-	char m_trackingObjectName[64];
-	char m_planeTrackName[64];
-
-	float m_corners[4][2];            /* Corners coordinates in normalized space. */
+	SocketReader *m_pixelReader;
 	float m_frameSpaceCorners[4][2];  /* Corners coordinates in pixel space. */
-
-	/**
-	 * Determine the output resolution. The resolution is retrieved from the Renderer
-	 */
-	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+	float m_perspectiveMatrix[3][3];
 
 public:
-	PlaneTrackCommonOperation();
+	PlaneDistortWarpImageOperation();
 
-	void setMovieClip(MovieClip *clip) {this->m_movieClip = clip;}
-	void setTrackingObject(char *object) { BLI_strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName)); }
-	void setPlaneTrackName(char *plane_track) { BLI_strncpy(this->m_planeTrackName, plane_track, sizeof(this->m_planeTrackName)); }
-	void setFramenumber(int framenumber) {this->m_framenumber = framenumber;}
+	void calculateCorners(const float corners[4][2], bool normalized);
+	void calculatePerspectiveMatrix();
 
 	void initExecution();
+	void deinitExecution();
+
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+	void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2]);
+
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+};
+
+
+class PlaneDistortMaskOperation : public NodeOperation {
+protected:
+	int m_osa;
+	float m_jitter[32][2];
+	float m_frameSpaceCorners[4][2];  /* Corners coordinates in pixel space. */
+
+public:
+	PlaneDistortMaskOperation();
+	
+	void calculateCorners(const float corners[4][2], bool normalized);
+	
+	void initExecution();
+	
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

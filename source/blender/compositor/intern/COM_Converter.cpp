@@ -49,6 +49,7 @@
 #include "COM_ConvertAlphaNode.h"
 #include "COM_ConvertOperation.h"
 #include "COM_Converter.h"
+#include "COM_CornerPinNode.h"
 #include "COM_CropNode.h"
 #include "COM_DefocusNode.h"
 #include "COM_DespeckleNode.h"
@@ -400,6 +401,9 @@ Node *Converter::convert(bNode *b_node, bool fast)
 			break;
 		case CMP_NODE_PLANETRACKDEFORM:
 			node = new PlaneTrackDeformNode(b_node);
+			break;
+		case CMP_NODE_CORNERPIN:
+			node = new CornerPinNode(b_node);
 			break;
 		default:
 			node = new MuteNode(b_node);

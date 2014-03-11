@@ -24,8 +24,7 @@
 #include "COM_PlaneTrackDeformNode.h"
 #include "COM_ExecutionSystem.h"
 
-#include "COM_PlaneTrackMaskOperation.h"
-#include "COM_PlaneTrackWarpImageOperation.h"
+#include "COM_PlaneTrackOperation.h"
 
 extern "C" {
 #  include "BKE_node.h"

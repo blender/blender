@@ -349,6 +349,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeTransform"),
         NodeItem("CompositorNodeStabilize"),
         NodeItem("CompositorNodePlaneTrackDeform"),
+        NodeItem("CompositorNodeCornerPin"),
         ]),
     CompositorNodeCategory("CMP_GROUP", "Group", items=node_group_items),
     CompositorNodeCategory("CMP_LAYOUT", "Layout", items=[

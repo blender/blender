@@ -2280,6 +2280,10 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
 	}
 }
 
+static void node_composit_buts_cornerpin(uiLayout *UNUSED(layout), bContext *UNUSED(C), PointerRNA *UNUSED(ptr))
+{
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2500,6 +2504,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_PLANETRACKDEFORM:
 			ntype->draw_buttons = node_composit_buts_planetrackdeform;
+			break;
+		case CMP_NODE_CORNERPIN:
+			ntype->draw_buttons = node_composit_buts_cornerpin;
 			break;
 	}
 }

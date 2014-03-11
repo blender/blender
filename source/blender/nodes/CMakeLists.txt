@@ -56,6 +56,7 @@ set(SRC
 	composite/nodes/node_composite_colorbalance.c
 	composite/nodes/node_composite_common.c
 	composite/nodes/node_composite_composite.c
+	composite/nodes/node_composite_cornerpin.c
 	composite/nodes/node_composite_crop.c
 	composite/nodes/node_composite_curves.c
 	composite/nodes/node_composite_despeckle.c
