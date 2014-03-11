@@ -796,6 +796,14 @@ static void *do_part_thread(void *pa_v)
 		else
 			pa->result = render_result_new(&R, &pa->disprect, pa->crop, RR_USE_MEM, RR_ALL_LAYERS);
 
+		/* Copy EXR tile settings, so pipeline knows whether this is a result
+		 * for Save Buffers enabled rendering.
+		 *
+		 * TODO(sergey): This actually duplicates logic with external engine, so
+		 * worth looking into more generic solution.
+		 */
+		pa->result->do_exr_tile = R.result->do_exr_tile;
+
 		if (R.sss_points)
 			zbufshade_sss_tile(pa);
 		else if (R.osa)
