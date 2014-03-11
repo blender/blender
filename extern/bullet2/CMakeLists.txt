@@ -401,12 +401,17 @@ set(SRC
 if(CMAKE_COMPILER_IS_GNUCXX)
 	# needed for gcc 4.6+
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
 endif()
 
 # Tentative fix for bullet misbehavior (T38746), needs further clarification what flags conflict here
 if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
 	set(CMAKE_C_FLAGS_RELEASE "") # c-api uses plain basic flags
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -msse3 -mssse3 -ffast-math")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -msse3 -mssse3")
 endif()
 
 blender_add_lib(extern_bullet "${SRC}" "${INC}" "${INC_SYS}")
