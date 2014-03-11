@@ -2693,8 +2693,7 @@ class VIEW3D_PT_view3d_properties(Panel):
         view = context.space_data
 
         col = layout.column()
-        col.active = bool(view.region_3d.view_perspective != 'CAMERA' or
-                          view.region_quadview)
+        col.active = bool(view.region_3d.view_perspective != 'CAMERA' or view.region_quadviews)
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
@@ -2817,11 +2816,10 @@ class VIEW3D_PT_view3d_display(Panel):
 
         layout.separator()
 
-        region = view.region_quadview
-
         layout.operator("screen.region_quadview", text="Toggle Quad View")
 
-        if region:
+        if view.region_quadviews:
+            region = view.region_quadviews[2]
             col = layout.column()
             col.prop(region, "lock_rotation")
             row = col.row()

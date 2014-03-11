@@ -472,22 +472,33 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
 }
 
-static PointerRNA rna_SpaceView3D_region_quadview_get(PointerRNA *ptr)
+static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	ScrArea *sa = rna_area_from_space(ptr);
-	void *regiondata = NULL;
-	if (sa) {
-		ListBase *regionbase = (sa->spacedata.first == v3d) ? &sa->regionbase : &v3d->regionbase;
-		ARegion *ar = regionbase->last; /* always before last in list, weak .. */
+	int i = 3;
 
-		ar = (ar->alignment == RGN_ALIGN_QSPLIT) ? ar->prev : NULL;
-		if (ar) {
-			regiondata = ar->regiondata;
+	ARegion *ar = ((sa && sa->spacedata.first == v3d) ? &sa->regionbase : &v3d->regionbase)->last;
+	ListBase lb = {NULL, NULL};
+
+	if (ar && ar->alignment == RGN_ALIGN_QSPLIT) {
+		while (i-- && ar) {
+			ar = ar->prev;
+		}
+
+		if (i < 0) {
+			lb.first = ar;
 		}
 	}
 
-	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
+	rna_iterator_listbase_begin(iter, &lb, NULL);
+}
+
+static PointerRNA rna_SpaceView3D_region_quadviews_get(CollectionPropertyIterator *iter)
+{
+	void *regiondata = ((ARegion *)rna_iterator_listbase_get(iter))->regiondata;
+
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_RegionView3D, regiondata);
 }
 
 static void rna_RegionView3D_quadview_update(Main *UNUSED(main), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -2033,10 +2044,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_3d_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "3D Region", "3D region in this space, in case of quad view the camera region");
 
-	prop = RNA_def_property(srna, "region_quadview", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "region_quadviews", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RegionView3D");
-	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_quadview_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Quad View Region", "3D region that defines the quad view settings");
+	RNA_def_property_collection_funcs(prop, "rna_SpaceView3D_region_quadviews_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_SpaceView3D_region_quadviews_get",
+	                                  NULL, NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Quad View Regions", "3D regions (the third one defines quad view settings, "
+	                                                    "the forth one is same as 'region_3d')");
 
 	prop = RNA_def_property(srna, "show_reconstruction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_RECONSTRUCTION);
