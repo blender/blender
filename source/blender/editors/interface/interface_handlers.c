@@ -7984,16 +7984,17 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 								count++;
 							
 							/* exception for rna layer buts */
-							if (but->rnapoin.data && but->rnaprop) {
-								if (ELEM(RNA_property_subtype(but->rnaprop), PROP_LAYER, PROP_LAYER_MEMBER)) {
-									if (but->rnaindex == act - 1)
-										doit = true;
+							if (but->rnapoin.data && but->rnaprop &&
+							    ELEM(RNA_property_subtype(but->rnaprop), PROP_LAYER, PROP_LAYER_MEMBER))
+							{
+								if (but->rnaindex == act - 1) {
+									doit = true;
 								}
 							}
 							else if (count == act) {
 								doit = true;
 							}
-							
+
 							if (doit) {
 								/* activate buttons but open menu's */
 								uiButtonActivateType activate;
