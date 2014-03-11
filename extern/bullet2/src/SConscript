@@ -37,7 +37,7 @@ bullet2_src += env.Glob("BulletSoftBody/*.cpp")
 
 incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
 
-if sys.platform=='darwin' and (env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] <= '4.6.1' or env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4'): # workaround for compiler bugs
-	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags, cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++' )
+if sys.platform=='darwin':
+	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], cxx_compileflags=cflags )
 else:
 	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )
