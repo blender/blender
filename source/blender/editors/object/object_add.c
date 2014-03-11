@@ -1298,6 +1298,11 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		BKE_free_animdata(&ob->id);
 		ob->adt = NULL;
 
+		/* Proxies are not to be copied. */
+		ob->proxy_from = NULL;
+		ob->proxy_group = NULL;
+		ob->proxy = NULL;
+
 		ob->parent = NULL;
 		BLI_listbase_clear(&ob->constraints);
 		ob->curve_cache = NULL;
