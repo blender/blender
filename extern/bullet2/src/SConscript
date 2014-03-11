@@ -19,7 +19,7 @@ elif env['OURPLATFORM'] in ('linux', 'freebsd4', 'freebsd5'):
     cflags += ['-O2']
 elif sys.platform=='darwin':
     defs += ' NDEBUG'
-    cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
+    bt_cxx_flags = env['CXXFLAGS'] + ['-fPIC', '-msse3', '-mssse3', '-ffast-math']
 
 bullet2_src = env.Glob("LinearMath/*.cpp")
 bullet2_src += env.Glob("BulletCollision/BroadphaseCollision/*.cpp")
@@ -38,6 +38,6 @@ bullet2_src += env.Glob("BulletSoftBody/*.cpp")
 incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
 
 if sys.platform=='darwin':
-	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], cxx_compileflags=cflags )
+	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], cc_compileflags=env['CCFLAGS'], cxx_compileflags=bt_cxx_flags )
 else:
 	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )

@@ -406,7 +406,7 @@ endif()
 # Tentative fix for bullet misbehavior (T38746), needs further clarification what flags conflict here
 if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
 	set(CMAKE_C_FLAGS_RELEASE "") # c-api uses plain basic flags
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -msse3 -mssse3")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -fPIC -msse3 -mssse3 -ffast-math")
 endif()
 
 blender_add_lib(extern_bullet "${SRC}" "${INC}" "${INC_SYS}")
