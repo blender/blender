@@ -19,7 +19,7 @@ elif env['OURPLATFORM'] in ('linux', 'freebsd4', 'freebsd5'):
     cflags += ['-O2']
 elif sys.platform=='darwin':
     defs += ' NDEBUG'
-    bt_cxx_flags = env['CXXFLAGS'] + ['-fPIC', '-msse3', '-mssse3', '-ffast-math']
+    bt_cxx_flags = env['CXXFLAGS'] + ['-O2', '-fPIC', '-msse3', '-mssse3', '-ffast-math']
 
 bullet2_src = env.Glob("LinearMath/*.cpp")
 bullet2_src += env.Glob("BulletCollision/BroadphaseCollision/*.cpp")
