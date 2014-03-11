@@ -3263,7 +3263,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	}
 
 	/* needs to be done always, gridview is adjusted in drawgrid() now, but only for ortho views. */
-	rv3d->gridview = v3d->grid / scene->unit.scale_length;
+	rv3d->gridview = v3d->grid;
+	if (scene->unit.system) {
+		rv3d->gridview /= scene->unit.scale_length;
+	}
 
 	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
