@@ -512,18 +512,21 @@ static void image_listener(bScreen *sc, ScrArea *sa, wmNotifier *wmn)
 		}
 		case NC_OBJECT:
 		{
-			Object *ob = OBACT;
 			switch (wmn->data) {
 				case ND_TRANSFORM:
 				case ND_MODIFIER:
-					if (ob == (Object *)wmn->reference && (ob->mode & OB_MODE_EDIT)) {
+				{
+					Object *ob = OBACT;
+					if (ob && (ob == wmn->reference) && (ob->mode & OB_MODE_EDIT)) {
 						if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {
 							ED_area_tag_refresh(sa);
 							ED_area_tag_redraw(sa);
 						}
 					}
 					break;
+				}
 			}
+
 			break;
 		}
 	}
