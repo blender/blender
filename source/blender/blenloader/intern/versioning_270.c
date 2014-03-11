@@ -28,6 +28,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_compiler_attrs.h"
 
+/* for MinGW32 definition of NULL, could use BLI_blenlib.h instead too */
+#include <stddef.h>
+
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
