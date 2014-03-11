@@ -72,6 +72,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_view3d.h"
 
 #include "UI_interface.h"
 
@@ -1927,4 +1928,90 @@ static void *get_undoFont(bContext *C)
 void undo_push_font(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, get_undoFont, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
+}
+
+/**
+ * TextBox selection
+ */
+bool mouse_font(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Curve *cu = obedit->data;
+	ViewContext vc;
+	/* bias against the active, in pixels, allows cycling */
+	const float active_bias_px = 4.0f;
+	const float mval_fl[2] = {UNPACK2(mval)};
+	const int i_actbox = max_ii(0, cu->actbox - 1);
+	int i_iter, actbox_select = -1;
+	const float dist = ED_view3d_select_dist_px();
+	float dist_sq_best = dist * dist;
+
+	view3d_set_viewcontext(C, &vc);
+
+	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+
+	/* currently only select active */
+	(void)extend;
+	(void)deselect;
+	(void)toggle;
+
+	for (i_iter = 0; i_iter < cu->totbox; i_iter++) {
+		int i = (i_iter + i_actbox) % cu->totbox;
+		float dist_sq_min;
+		int j, j_prev;
+
+		float obedit_co[4][3];
+		float screen_co[4][2];
+		rctf rect;
+		int project_ok = 0;
+
+
+		BKE_curve_rect_from_textbox(cu, &cu->tb[i], &rect);
+
+		copy_v3_fl3(obedit_co[0], rect.xmin, rect.ymin, 0.0f);
+		copy_v3_fl3(obedit_co[1], rect.xmin, rect.ymax, 0.0f);
+		copy_v3_fl3(obedit_co[2], rect.xmax, rect.ymax, 0.0f);
+		copy_v3_fl3(obedit_co[3], rect.xmax, rect.ymin, 0.0f);
+
+		for (j = 0; j < 4; j++) {
+			if (ED_view3d_project_float_object(vc.ar, obedit_co[j], screen_co[j],
+			                                   V3D_PROJ_TEST_CLIP_BB) == V3D_PROJ_RET_OK)
+			{
+				project_ok |= (1 << j);
+			}
+		}
+
+		dist_sq_min = dist_sq_best;
+		for (j = 0, j_prev = 3; j < 4; j_prev = j++) {
+			if ((project_ok & (1 << j)) &&
+			    (project_ok & (1 << j_prev)))
+			{
+				const float dist_test_sq = dist_squared_to_line_segment_v2(mval_fl, screen_co[j_prev], screen_co[j]);
+				if (dist_sq_min > dist_test_sq) {
+					dist_sq_min = dist_test_sq;
+				}
+			}
+		}
+
+		/* bias in pixels to cycle seletion */
+		if (i_iter == 0) {
+			dist_sq_min += active_bias_px;
+		}
+
+		if (dist_sq_min < dist_sq_best) {
+			dist_sq_best = dist_sq_min;
+			actbox_select = i + 1;
+		}
+	}
+
+	if (actbox_select != -1) {
+		if (cu->actbox != actbox_select) {
+			cu->actbox = actbox_select;
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
 }

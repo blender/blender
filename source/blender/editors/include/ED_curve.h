@@ -89,6 +89,8 @@ int ED_curve_updateAnimPaths(struct Curve *cu);
 
 bool ED_curve_active_center(struct Curve *cu, float center[3]);
 
+bool    mouse_font(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+
 /* debug only */
 void printknots(struct Object *obedit);
 

@@ -43,6 +43,8 @@ struct Nurb;
 struct Object;
 struct Scene;
 struct Path;
+struct TextBox;
+struct rctf;
 
 typedef struct CurveCache {
 	ListBase disp;
@@ -112,6 +114,8 @@ void BKE_curve_bevelList_make(struct Object *ob, struct ListBase *nurbs, bool fo
 void BKE_curve_bevel_make(struct Scene *scene, struct Object *ob,  struct ListBase *disp, int forRender, int renderResolution);
 
 void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
+
+void BKE_curve_rect_from_textbox(const struct Curve *cu, const struct TextBox *tb, struct rctf *r_rect);
 
 /* ** Nurbs ** */
 
