@@ -2397,6 +2397,11 @@ void psys_find_parents(ParticleSimulationData *sim)
 	if ((sim->psys->renderdata || G.is_rendering) && part->child_nbr && part->ren_child_nbr)
 		totparent *= (float)part->child_nbr / (float)part->ren_child_nbr;
 
+	/* hard limit, workaround for it being ignored above */
+	if (sim->psys->totpart < totparent) {
+		totparent = sim->psys->totpart;
+	}
+
 	tree = BLI_kdtree_new(totparent);
 
 	for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
