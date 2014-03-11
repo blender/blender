@@ -649,7 +649,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
 	BMEditMesh *em = vc->em;
-	float dist = 75.0f;
+	float dist = ED_view3d_select_dist_px();
 	
 	*r_eve = NULL;
 	*r_eed = NULL;
@@ -1191,7 +1191,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	bool select = true;
 	bool select_clear = false;
 	bool select_cycle = true;
-	float dist = 50.0f;
+	float dist = ED_view3d_select_dist_px() * 0.6666f;
 	float mvalf[2];
 
 	em_setup_viewcontext(C, &vc);

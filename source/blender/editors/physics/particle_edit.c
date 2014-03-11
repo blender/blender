@@ -915,6 +915,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 	int index;
 	float *vec, *nor, dvec[3], dot, dist_1st=0.0f;
 	float hairimat[4][4], hairmat[4][4];
+	const float dist = ED_view3d_select_dist_px();
 
 	if (edit==NULL || edit->psys==NULL || (pset->flag & PE_DEFLECT_EMITTER)==0 || (edit->psys->flag & PSYS_GLOBAL_HAIR))
 		return;
@@ -935,7 +936,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 		LOOP_KEYS {
 			if (k==0) {
 				dist_1st = len_v3v3((key+1)->co, key->co);
-				dist_1st *= 0.75f * pset->emitterdist;
+				dist_1st *= dist * pset->emitterdist;
 			}
 			else {
 				index= BLI_kdtree_find_nearest(edit->emitter_field, key->co, NULL, NULL);
@@ -1446,7 +1447,7 @@ int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselec
 
 	PE_set_view3d_data(C, &data);
 	data.mval= mval;
-	data.rad= 75.0f;
+	data.rad = ED_view3d_select_dist_px();
 
 	/* 1 = nearest only */
 	if (extend)

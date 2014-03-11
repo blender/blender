@@ -98,6 +98,11 @@
 
 #include "view3d_intern.h"  /* own include */
 
+float ED_view3d_select_dist_px(void)
+{
+	return 75.0f * U.pixelsize;
+}
+
 /* TODO: should return whether there is valid context to continue */
 void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 {
@@ -1380,7 +1385,7 @@ static bool mouse_select(bContext *C, const int mval[2],
 	Scene *scene = CTX_data_scene(C);
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
 	bool is_obedit;
-	float dist = 100.0f;
+	float dist = ED_view3d_select_dist_px() * 1.3333f;
 	int retval = false;
 	short hits;
 	const float mval_fl[2] = {(float)mval[0], (float)mval[1]};

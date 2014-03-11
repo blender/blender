@@ -440,7 +440,7 @@ static void loopcut_update_edge(RingSelOpData *lcd, BMEdge *e, const int preview
 
 static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
 {
-	float dist = 75.0f;
+	float dist = ED_view3d_select_dist_px();
 	BMEdge *e = EDBM_edge_find_nearest(&lcd->vc, &dist);
 	loopcut_update_edge(lcd, e, previewlines);
 }

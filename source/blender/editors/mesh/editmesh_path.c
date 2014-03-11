@@ -88,7 +88,7 @@ static bool mouse_mesh_shortest_path_vert(ViewContext *vc)
 	BMEditMesh *em = vc->em;
 	BMesh *bm = em->bm;
 	BMVert *v_dst;
-	float dist = 75.0f;
+	float dist = ED_view3d_select_dist_px();
 	const bool use_length = true;
 
 	v_dst = EDBM_vert_find_nearest(vc, &dist, false, false);
@@ -253,7 +253,7 @@ static bool mouse_mesh_shortest_path_edge(ViewContext *vc)
 	BMEditMesh *em = vc->em;
 	BMesh *bm = em->bm;
 	BMEdge *e_dst;
-	float dist = 75.0f;
+	float dist = ED_view3d_select_dist_px();
 	const bool use_length = true;
 
 	e_dst = EDBM_edge_find_nearest(vc, &dist);
@@ -377,7 +377,7 @@ static bool mouse_mesh_shortest_path_face(ViewContext *vc)
 	BMEditMesh *em = vc->em;
 	BMesh *bm = em->bm;
 	BMFace *f_dst;
-	float dist = 75.0f;
+	float dist = ED_view3d_select_dist_px();
 	const bool use_length = true;
 
 	f_dst = EDBM_face_find_nearest(vc, &dist);

@@ -867,7 +867,7 @@ static BPoint *findnearestLattvert(ViewContext *vc, const int mval[2], int sel)
 	/* return 0 1 2: handlepunt */
 	struct { BPoint *bp; float dist; int select; float mval_fl[2]; } data = {NULL};
 
-	data.dist = 100;
+	data.dist = ED_view3d_select_dist_px();
 	data.select = sel;
 	data.mval_fl[0] = mval[0];
 	data.mval_fl[1] = mval[1];
