@@ -4273,6 +4273,22 @@ static void clamp_axis_max_v3(float v[3], const float max)
 	}
 }
 
+static void ui_rgb_to_color_picker_HSVCUBE_compat_v(uiBut *but, const float rgb[3], float hsv[3])
+{
+	if (but->a1 == UI_GRAD_L_ALT)
+		rgb_to_hsl_compat_v(rgb, hsv);
+	else
+		rgb_to_hsv_compat_v(rgb, hsv);
+}
+
+static void ui_color_picker_to_rgb_HSVCUBE_v(uiBut *but, const float hsv[3], float rgb[3])
+{
+	if (but->a1 == UI_GRAD_L_ALT)
+		hsl_to_rgb_v(hsv, rgb);
+	else
+		hsv_to_rgb_v(hsv, rgb);
+}
+
 static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
                                    int mx, int my,
                                    const enum eSnapType snap, const bool shift)
@@ -4300,10 +4316,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	if (use_display_colorspace)
 		ui_block_to_display_space_v3(but->block, rgb);
 
-	if (but->a1 == UI_GRAD_L_ALT)
-		rgb_to_hsl_compat_v(rgb, hsv);
-	else
-		rgb_to_hsv_compat_v(rgb, hsv);
+	ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsv);
 	
 	/* only apply the delta motion, not absolute */
 	if (shift) {
@@ -4318,10 +4331,8 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 			ui_block_to_display_space_v3(but->block, rgb);
 		
 		copy_v3_v3(hsvo, ui_block_hsv_get(but->block));
-		if (but->a1 == UI_GRAD_L_ALT)
-			rgb_to_hsl_compat_v(rgb, hsvo);
-		else
-			rgb_to_hsv_compat_v(rgb, hsvo);
+
+		ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsvo);
 		
 		/* and original position */
 		ui_hsvcube_pos_from_vals(but, &rect_i, hsvo, &xpos, &ypos);
@@ -4376,10 +4387,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 		}
 	}
 
-	if (but->a1 == UI_GRAD_L_ALT)
-		hsl_to_rgb_v(hsv, rgb);
-	else
-		hsv_to_rgb_v(hsv, rgb);
+	ui_color_picker_to_rgb_HSVCUBE_v(but, hsv, rgb);
 
 	if (use_display_colorspace)
 		ui_block_to_scene_linear_v3(but->block, rgb);
@@ -4412,10 +4420,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	if (use_display_colorspace)
 		ui_block_to_display_space_v3(but->block, rgb);
 
-	if (but->a1 == UI_GRAD_L_ALT)
-		rgb_to_hsl_compat_v(rgb, hsv);
-	else
-		rgb_to_hsv_compat_v(rgb, hsv);
+	ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsv);
 
 	switch ((int)but->a1) {
 		case UI_GRAD_SV:
@@ -4462,10 +4467,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	/* ndof specific: the changes above aren't clamping */
 	hsv_clamp_v(hsv, hsv_v_max);
 
-	if (but->a1 == UI_GRAD_L_ALT)
-		hsl_to_rgb_v(hsv, rgb);
-	else
-		hsv_to_rgb_v(hsv, rgb);
+	ui_color_picker_to_rgb_HSVCUBE_v(but, hsv, rgb);
 
 	if (use_display_colorspace)
 		ui_block_to_scene_linear_v3(but->block, rgb);

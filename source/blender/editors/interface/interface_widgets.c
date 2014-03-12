@@ -2351,7 +2351,8 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 
 	if (color_profile)
 		ui_block_to_display_space_v3(but->block, rgb);
-	if(but->a1 == UI_GRAD_L_ALT)
+
+	if (but->a1 == UI_GRAD_L_ALT)
 		rgb_to_hsl_v(rgb, hsv);
 	else
 		rgb_to_hsv_v(rgb, hsv);
