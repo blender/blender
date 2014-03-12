@@ -55,6 +55,7 @@
 #include "BKE_report.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_modifier.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -89,8 +90,8 @@ typedef struct {
 /* Definitions needed for shape keys */
 typedef struct {
 	void *orig_cv;
-	int key_index, nu_index, pt_index;
-	int switched;
+	int key_index, nu_index, pt_index, vertex_index;
+	bool switched;
 	Nurb *orig_nu;
 } CVKeyIndex;
 
@@ -254,7 +255,7 @@ void printknots(Object *obedit)
 
 /* ********************* Shape keys *************** */
 
-static CVKeyIndex *init_cvKeyIndex(void *cv, int key_index, int nu_index, int pt_index, Nurb *orig_nu)
+static CVKeyIndex *init_cvKeyIndex(void *cv, int key_index, int nu_index, int pt_index, int vertex_index, Nurb *orig_nu)
 {
 	CVKeyIndex *cvIndex = MEM_callocN(sizeof(CVKeyIndex), "init_cvKeyIndex");
 
@@ -262,7 +263,8 @@ static CVKeyIndex *init_cvKeyIndex(void *cv, int key_index, int nu_index, int pt
 	cvIndex->key_index = key_index;
 	cvIndex->nu_index = nu_index;
 	cvIndex->pt_index = pt_index;
-	cvIndex->switched = 0;
+	cvIndex->vertex_index = vertex_index;
+	cvIndex->switched = false;
 	cvIndex->orig_nu = orig_nu;
 
 	return cvIndex;
@@ -276,7 +278,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 	BezTriple *bezt, *origbezt;
 	BPoint *bp, *origbp;
 	CVKeyIndex *keyIndex;
-	int a, key_index = 0, nu_index = 0, pt_index = 0;
+	int a, key_index = 0, nu_index = 0, pt_index = 0, vertex_index = 0;
 
 	if (editnurb->keyindex) return;
 
@@ -289,9 +291,10 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 			origbezt = orignu->bezt;
 			pt_index = 0;
 			while (a--) {
-				keyIndex = init_cvKeyIndex(origbezt, key_index, nu_index, pt_index, orignu);
+				keyIndex = init_cvKeyIndex(origbezt, key_index, nu_index, pt_index, vertex_index, orignu);
 				BLI_ghash_insert(gh, bezt, keyIndex);
 				key_index += 12;
+				vertex_index += 3;
 				bezt++;
 				origbezt++;
 				pt_index++;
@@ -303,12 +306,13 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 			origbp = orignu->bp;
 			pt_index = 0;
 			while (a--) {
-				keyIndex = init_cvKeyIndex(origbp, key_index, nu_index, pt_index, orignu);
+				keyIndex = init_cvKeyIndex(origbp, key_index, nu_index, pt_index, vertex_index, orignu);
 				BLI_ghash_insert(gh, bp, keyIndex);
 				key_index += 4;
 				bp++;
 				origbp++;
 				pt_index++;
+				vertex_index++;
 			}
 		}
 
@@ -1161,6 +1165,144 @@ int ED_curve_updateAnimPaths(Curve *cu)
 
 /* ********************* LOAD and MAKE *************** */
 
+static int *initialize_index_map(Object *obedit, int *old_totvert_r)
+{
+	Curve *curve = (Curve *) obedit->data;
+	EditNurb *editnurb = curve->editnurb;
+	Nurb *nu;
+	CVKeyIndex *keyIndex;
+	int *old_to_new_map;
+	int old_totvert, i;
+	int vertex_index;
+
+	for (nu = curve->nurb.first, old_totvert = 0; nu != NULL; nu = nu->next) {
+		if (nu->bezt) {
+			old_totvert += nu->pntsu * 3;
+		}
+		else {
+			old_totvert += nu->pntsu * nu->pntsv;
+		}
+	}
+
+	old_to_new_map = MEM_mallocN(old_totvert * sizeof(int), "curve old to new index map");
+	for (i = 0; i < old_totvert; i++) {
+		old_to_new_map[i] = -1;
+	}
+
+	for (nu = editnurb->nurbs.first, vertex_index = 0;
+	     nu != NULL;
+	     nu = nu->next, vertex_index++)
+	{
+		if (nu->bezt) {
+			BezTriple *bezt = nu->bezt;
+			int a = nu->pntsu;
+
+			while (a--) {
+				keyIndex = getCVKeyIndex(editnurb, bezt);
+				if (keyIndex) {
+					if (keyIndex->switched) {
+						old_to_new_map[keyIndex->vertex_index] = vertex_index + 2;
+						old_to_new_map[keyIndex->vertex_index + 1] = vertex_index + 1;
+						old_to_new_map[keyIndex->vertex_index + 2] = vertex_index;
+					}
+					else {
+						old_to_new_map[keyIndex->vertex_index] = vertex_index;
+						old_to_new_map[keyIndex->vertex_index + 1] = vertex_index + 1;
+						old_to_new_map[keyIndex->vertex_index + 2] = vertex_index + 2;
+					}
+				}
+				vertex_index += 3;
+				bezt++;
+			}
+		}
+		else {
+			BPoint *bp = nu->bp;
+			int a = nu->pntsu * nu->pntsv;
+
+			while (a--) {
+				keyIndex = getCVKeyIndex(editnurb, bp);
+				if (keyIndex) {
+					old_to_new_map[keyIndex->vertex_index] = vertex_index;
+				}
+				vertex_index++;
+				bp++;
+			}
+		}
+	}
+
+	*old_totvert_r = old_totvert;
+	return old_to_new_map;
+}
+
+static void remap_hooks_and_vertex_parents(Object *obedit)
+{
+	Object *object;
+	Curve *curve = (Curve *) obedit->data;
+	int *old_to_new_map = NULL;
+	int old_totvert;
+
+	for (object = G.main->object.first; object; object = object->id.next) {
+		ModifierData *md;
+		int index;
+		if ((object->parent) &&
+		    (object->parent->data == curve) &&
+		    ELEM(object->partype, PARVERT1, PARVERT3))
+		{
+			if (old_to_new_map == NULL) {
+				old_to_new_map = initialize_index_map(obedit, &old_totvert);
+			}
+
+			if (object->par1 < old_totvert) {
+				index = old_to_new_map[object->par1];
+				if (index != -1) {
+					object->par1 = index;
+				}
+			}
+			if (object->par2 < old_totvert) {
+				index = old_to_new_map[object->par2];
+				if (index != -1) {
+					object->par2 = index;
+				}
+			}
+			if (object->par3 < old_totvert) {
+				index = old_to_new_map[object->par3];
+				if (index != -1) {
+					object->par3 = index;
+				}
+			}
+		}
+		if (object->data == curve) {
+			for (md = object->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Hook) {
+					HookModifierData *hmd = (HookModifierData *) md;
+					int i, j;
+
+					if (old_to_new_map == NULL) {
+						old_to_new_map = initialize_index_map(obedit, &old_totvert);
+					}
+
+					for (i = j = 0; i < hmd->totindex; i++) {
+						if (hmd->indexar[i] < old_totvert) {
+							index = old_to_new_map[hmd->indexar[i]];
+							if (index != -1) {
+								hmd->indexar[j++] = index;
+							}
+						}
+						else {
+							j++;
+						}
+					}
+
+					hmd->totindex = j;
+				}
+			}
+		}
+	}
+	if (old_to_new_map != NULL) {
+		MEM_freeN(old_to_new_map);
+	}
+}
+
 /* load editNurb in object */
 void load_editNurb(Object *obedit)
 {
@@ -1172,6 +1314,8 @@ void load_editNurb(Object *obedit)
 		Curve *cu = obedit->data;
 		Nurb *nu, *newnu;
 		ListBase newnurb = {NULL, NULL}, oldnurb = cu->nurb;
+
+		remap_hooks_and_vertex_parents(obedit);
 
 		for (nu = editnurb->first; nu; nu = nu->next) {
 			newnu = BKE_nurb_duplicate(nu);
@@ -1229,7 +1373,7 @@ void make_editNurb(Object *obedit)
 		if (actkey)
 			editnurb->shapenr = obedit->shapenr;
 
-		/* animation could be added in editmode even if there was no animdata i
+		/* animation could be added in editmode even if there was no animdata in
 		 * object mode hence we always need CVs index be created */
 		init_editNurb_keyIndex(editnurb, &cu->nurb);
 	}
