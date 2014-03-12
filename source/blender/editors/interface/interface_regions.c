@@ -1646,7 +1646,8 @@ void ui_set_but_hsv(uiBut *but)
 	float col[3];
 	float *hsv = ui_block_hsv_get(but->block);
 	
-	hsv_to_rgb_v(hsv, col);
+	ui_color_picker_to_rgb_v(hsv, col);
+
 	ui_set_but_vectorf(but, col);
 }
 
@@ -1660,7 +1661,7 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 	/* this is to keep the H and S value when V is equal to zero
 	 * and we are working in HSV mode, of course!
 	 */
-	rgb_to_hsv_compat_v(rgb, hsv);
+	ui_rgb_to_color_picker_compat_v(rgb, hsv);
 
 	if (block->color_profile)
 		display = ui_block_display_get(block);
@@ -1714,6 +1715,9 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 			else if (bt->str[0] == 'V') {
 				ui_set_but_val(bt, hsv[2]);
 			}
+			else if (bt->str[0] == 'L') {
+				ui_set_but_val(bt, hsv[2]);
+			}
 		}
 
 		ui_check_but(bt);
@@ -1737,15 +1741,15 @@ static void do_picker_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 		popup->menuretval = UI_RETURN_UPDATE;
 }
 
-static void do_hsv_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
+static void do_color_wheel_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 {
 	uiBut *but = (uiBut *)bt1;
 	uiPopupBlockHandle *popup = but->block->handle;
 	float rgb[3];
 	float *hsv = ui_block_hsv_get(but->block);
 	
-	hsv_to_rgb_v(hsv, rgb);
-	
+	ui_color_picker_to_rgb_v(hsv, rgb);
+
 	ui_update_block_buts_rgb(but->block, rgb);
 	
 	if (popup)
@@ -1788,12 +1792,12 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	
 	/* tag buttons */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		if (bt->func == do_picker_rna_cb && bt->type == NUMSLI && bt->rnaindex != 3) {
+		if ((bt->func == do_picker_rna_cb) && bt->type == NUMSLI && bt->rnaindex != 3) {
 			/* RGB sliders (color circle and alpha are always shown) */
 			if (colormode == 0) bt->flag &= ~UI_HIDDEN;
 			else bt->flag |= UI_HIDDEN;
 		}
-		else if (bt->func == do_hsv_rna_cb) {
+		else if (bt->func == do_color_wheel_rna_cb) {
 			/* HSV sliders */
 			if (colormode == 1) bt->flag &= ~UI_HIDDEN;
 			else bt->flag |= UI_HIDDEN;
@@ -1825,12 +1829,18 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop)
 	uiBut *bt;
 	
 	/* HS circle */
-	bt = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, PICKER_H, PICKER_W, ptr, prop, -1, 0.0, 0.0, 0, 0, "Color");
+	bt = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, PICKER_H, PICKER_W, ptr, prop, -1, 0.0, 0.0, 0.0, 0, "Color");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	
+
 	/* value */
-	bt = uiDefButR_prop(block, HSVCUBE, 0, "", PICKER_W + PICKER_SPACE, 0, PICKER_BAR, PICKER_H, ptr, prop, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "Value");
-	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
+		bt = uiDefButR_prop(block, HSVCUBE, 0, "", PICKER_W + PICKER_SPACE, 0, PICKER_BAR, PICKER_H, ptr, prop, -1, 0.0, 0.0, UI_GRAD_L_ALT, 0, "Lightness");
+		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	}
+	else {
+		bt = uiDefButR_prop(block, HSVCUBE, 0, "", PICKER_W + PICKER_SPACE, 0, PICKER_BAR, PICKER_H, ptr, prop, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "Value");
+		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	}
 }
 
 
@@ -1861,9 +1871,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	float softmin, softmax, hardmin, hardmax, step, precision;
 	float *hsv = ui_block_hsv_get(block);
 	int yco;
-	
-	ui_block_hsv_get(block);
-	
+		
 	width = PICKER_TOTAL_W;
 	butwidth = width - 1.5f * UI_UNIT_X;
 	
@@ -1889,7 +1897,8 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	RNA_property_float_get_array(ptr, prop, rgba);
 
 	switch (U.color_picker_type) {
-		case USER_CP_CIRCLE:
+		case USER_CP_CIRCLE_HSV:
+		case USER_CP_CIRCLE_HSL:
 			circle_picker(block, ptr, prop);
 			break;
 		case USER_CP_SQUARE_SV:
@@ -1908,7 +1917,10 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiBlockBeginAlign(block);
 	bt = uiDefButS(block, ROW, 0, IFACE_("RGB"), 0, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
-	bt = uiDefButS(block, ROW, 0, IFACE_("HSV"), width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
+	if (U.color_picker_type == USER_CP_CIRCLE_HSV)
+		bt = uiDefButS(block, ROW, 0, IFACE_("HSV"), width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
+	else if (U.color_picker_type == USER_CP_CIRCLE_HSL)
+		bt = uiDefButS(block, ROW, 0, IFACE_("HSL"), width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	bt = uiDefButS(block, ROW, 0, IFACE_("Hex"), 2 * width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
@@ -1936,12 +1948,17 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	yco = -3.0f * UI_UNIT_Y;
 	uiBlockBeginAlign(block);
 	bt = uiDefButF(block, NUMSLI, 0, IFACE_("H:"),   0, yco, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, TIP_("Hue"));
-	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
+	uiButSetFunc(bt, do_color_wheel_rna_cb, bt, hsv);
 	bt = uiDefButF(block, NUMSLI, 0, IFACE_("S:"),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, TIP_("Saturation"));
-	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt = uiDefButF(block, NUMSLI, 0, IFACE_("V:"),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 2, 0.0, softmax, 10, 3, TIP_("Value"));
+	uiButSetFunc(bt, do_color_wheel_rna_cb, bt, hsv);
+	if (U.color_picker_type == USER_CP_CIRCLE_HSV)
+		bt = uiDefButF(block, NUMSLI, 0, IFACE_("V:"),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 2, 0.0, softmax, 10, 3, TIP_("Value"));
+	else if (U.color_picker_type == USER_CP_CIRCLE_HSL)
+		bt = uiDefButF(block, NUMSLI, 0, IFACE_("L:"),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 2, 0.0, softmax, 10, 3, TIP_("Lightness"));
+
 	bt->hardmax = hardmax;  /* not common but rgb  may be over 1.0 */
-	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
+	uiButSetFunc(bt, do_color_wheel_rna_cb, bt, hsv);
+
 	uiBlockEndAlign(block);
 
 	if (rgba[3] != FLT_MAX) {
@@ -2499,4 +2516,40 @@ void uiPupBlockClose(bContext *C, uiBlock *block)
 float *ui_block_hsv_get(uiBlock *block)
 {
 	return block->_hsv;
+}
+
+void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3])
+{
+	switch (U.color_picker_type) {
+		case USER_CP_CIRCLE_HSL:
+			rgb_to_hsl_compat_v(rgb, r_cp);
+			break;
+		default:
+			rgb_to_hsv_compat_v(rgb, r_cp);
+			break;
+	}
+}
+
+void ui_color_picker_to_rgb_v(const float r_cp[3], float rgb[3])
+{
+	switch (U.color_picker_type) {
+		case USER_CP_CIRCLE_HSL:
+			hsl_to_rgb_v(r_cp, rgb);
+			break;
+		default:
+			hsv_to_rgb_v(r_cp, rgb);
+			break;
+	}
+}
+
+void ui_color_picker_to_rgb(float r_cp0, float r_cp1, float r_cp2, float *r, float *g, float *b)
+{
+	switch (U.color_picker_type) {
+		case USER_CP_CIRCLE_HSL:
+			hsl_to_rgb(r_cp0, r_cp1, r_cp2, r, g, b);
+			break;
+		default:
+			hsv_to_rgb(r_cp0, r_cp1, r_cp2, r, g, b);
+			break;
+	}
 }

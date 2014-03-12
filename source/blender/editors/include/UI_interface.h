@@ -283,6 +283,7 @@ typedef enum {
 #define UI_GRAD_V       5
 
 #define UI_GRAD_V_ALT   9
+#define UI_GRAD_L_ALT   10
 
 /* Drawing
  *

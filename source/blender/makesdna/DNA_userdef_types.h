@@ -733,10 +733,11 @@ typedef enum eGP_UserdefSettings {
 
 /* color picker types */
 typedef enum eColorPicker_Types {
-	USER_CP_CIRCLE		= 0,
+	USER_CP_CIRCLE_HSV	= 0,
 	USER_CP_SQUARE_SV	= 1,
 	USER_CP_SQUARE_HS	= 2,
 	USER_CP_SQUARE_HV	= 3,
+	USER_CP_CIRCLE_HSL	= 4,
 } eColorPicker_Types;
 
 /* timecode display styles */

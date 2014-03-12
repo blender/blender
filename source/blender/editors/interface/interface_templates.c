@@ -2240,7 +2240,8 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 	row = uiLayoutRow(col, true);
 
 	switch (U.color_picker_type) {
-		case USER_CP_CIRCLE:
+		case USER_CP_CIRCLE_HSV:
+		case USER_CP_CIRCLE_HSL:
 			but = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
 			                     -1, 0.0, 0.0, 0, 0, "");
 			break;
@@ -2275,10 +2276,15 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 	
 	if (value_slider) {
 		switch (U.color_picker_type) {
-			case USER_CP_CIRCLE:
+			case USER_CP_CIRCLE_HSV:
 				uiItemS(row);
 				uiDefButR_prop(block, HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
 				               -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
+				break;
+			case USER_CP_CIRCLE_HSL:
+				uiItemS(row);
+				uiDefButR_prop(block, HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
+							   -1, softmin, softmax, UI_GRAD_L_ALT, 0, "");
 				break;
 			case USER_CP_SQUARE_SV:
 				uiItemS(col);

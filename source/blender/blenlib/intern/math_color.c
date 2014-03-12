@@ -94,10 +94,69 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 	}
 }
 
+/* HSL to rgb conversion from https://en.wikipedia.org/wiki/HSL_and_HSV */
+void hsl_to_rgb(float h, float s, float l, float *r, float *g, float *b)
+{
+	float i, f, c;
+	h = (h - floorf(h)) * 6.0f;
+	c = (l > 0.5f) ? (2.0f * (1.0f - l) * s) : (2.0f * l * s);
+	i = floorf(h);
+	f = h - i;
+
+#define x2 (c * f)
+#define x1 (c * (1.0f - f))
+
+	/* faster to compare floats then int conversion */
+	if (i < 1.0f) {
+		*r = c;
+		*g = x2;
+		*b = 0;
+	}
+	else if (i < 2.0f) {
+		*r = x1;
+		*g = c;
+		*b = 0;
+	}
+	else if (i < 3.0f) {
+		*r = 0;
+		*g = c;
+		*b = x2;
+	}
+	else if (i < 4.0f) {
+		*r = 0;
+		*g = x1;
+		*b = c;
+	}
+	else if (i < 5.0f) {
+		*r = x2;
+		*g = 0;
+		*b = c;
+	}
+	else {
+		*r = c;
+		*g = 0;
+		*b = x1;
+	}
+
+#undef x1
+#undef x2
+
+	f = l - 0.5f * c;
+	*r += f;
+	*g += f;
+	*b += f;
+}
+
 /* convenience function for now */
 void hsv_to_rgb_v(const float hsv[3], float r_rgb[3])
 {
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
+}
+
+/* convenience function for now */
+void hsl_to_rgb_v(const float hcl[3], float r_rgb[3])
+{
+	hsl_to_rgb(hcl[0], hcl[1], hcl[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
 }
 
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
@@ -314,6 +373,33 @@ void rgb_to_hsl(float r, float g, float b, float *lh, float *ls, float *ll)
 	*ls = s;
 	*ll = l;
 }
+
+void rgb_to_hsl_compat(float r, float g, float b, float *lh, float *ls, float *ll)
+{
+	float orig_s = *ls;
+	float orig_h = *lh;
+
+	rgb_to_hsl(r, g, b, lh, ls, ll);
+
+	if (*ll <= 0.0f) {
+		*lh = orig_h;
+		*ls = orig_s;
+	}
+	else if (*ls <= 0.0f) {
+		*lh = orig_h;
+		*ls = orig_s;
+	}
+
+	if (*lh == 0.0f && orig_h >= 1.0f) {
+		*lh = 1.0f;
+	}
+}
+
+void rgb_to_hsl_compat_v(const float rgb[3], float r_hsl[3])
+{
+	rgb_to_hsl_compat(rgb[0], rgb[1], rgb[2], &r_hsl[0], &r_hsl[1], &r_hsl[2]);
+}
+
 
 /* convenience function for now */
 void rgb_to_hsl_v(const float rgb[3], float r_hsl[3])
