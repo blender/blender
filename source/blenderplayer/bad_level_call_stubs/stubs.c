@@ -458,7 +458,7 @@ void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup) RET_NONE
 void ED_vgroup_clear(struct Object *ob) RET_NONE
 bool ED_vgroup_object_is_edit_mode(struct Object *ob) RET_ZERO
 int mesh_mirrtopo_table(struct Object *ob, char mode) RET_ZERO
-intptr_t mesh_octree_table(struct Object *ob, struct BMEditMesh *em, const float co[3], char mode) RET_ZERO
+int mesh_octree_table(struct Object *ob, struct BMEditMesh *em, const float co[3], char mode) RET_ZERO
 
 float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const short axis_only) RET_ZERO
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) RET_NONE
