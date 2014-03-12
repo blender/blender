@@ -915,7 +915,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 	int index;
 	float *vec, *nor, dvec[3], dot, dist_1st=0.0f;
 	float hairimat[4][4], hairmat[4][4];
-	const float dist = ED_view3d_select_dist_px();
+	const float dist = ED_view3d_select_dist_px() * 0.01f;
 
 	if (edit==NULL || edit->psys==NULL || (pset->flag & PE_DEFLECT_EMITTER)==0 || (edit->psys->flag & PSYS_GLOBAL_HAIR))
 		return;
