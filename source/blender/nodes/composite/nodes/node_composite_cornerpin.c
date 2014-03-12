@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_planetrackdeform.c
+/** \file blender/nodes/composite/nodes/node_composite_cornerpin.c
  *  \ingroup cmpnodes
  */
 

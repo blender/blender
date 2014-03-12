@@ -47,7 +47,7 @@ void CornerPinNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	input_image->relinkConnections(warp_image_operation->getInputSocket(0), 0, graph);
 	for (int i = 0; i < 4; ++i) {
 		int node_index = node_corner_index[i];
-		getInputSocket(node_index)->relinkConnections(warp_image_operation->getInputSocket(i+1),
+		getInputSocket(node_index)->relinkConnections(warp_image_operation->getInputSocket(i + 1),
 		                                              node_index, graph);
 	}
 	output_warped_image->relinkConnections(warp_image_operation->getOutputSocket());
@@ -59,7 +59,7 @@ void CornerPinNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	/* connect mask op inputs to the same sockets as the warp image op */
 	for (int i = 0; i < 4; ++i)
 		addLink(graph,
-		        warp_image_operation->getInputSocket(i+1)->getConnection()->getFromSocket(),
+		        warp_image_operation->getInputSocket(i + 1)->getConnection()->getFromSocket(),
 		        plane_mask_operation->getInputSocket(i));
 	output_plane->relinkConnections(plane_mask_operation->getOutputSocket());
 	

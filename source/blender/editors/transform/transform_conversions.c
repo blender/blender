@@ -3012,7 +3012,10 @@ static int gpf_cmp_frame(void *thunk, void *a, void *b)
 	*((bool *)thunk) = true;
 	/* selected last */
 	if ((frame_a->flag & GP_FRAME_SELECT) &&
-	    ((frame_b->flag & GP_FRAME_SELECT) == 0)) return  1;
+	    ((frame_b->flag & GP_FRAME_SELECT) == 0))
+	{
+		return  1;
+	}
 	return 0;
 }
 
@@ -3026,7 +3029,10 @@ static int masklay_shape_cmp_frame(void *thunk, void *a, void *b)
 	*((bool *)thunk) = true;
 	/* selected last */
 	if ((frame_a->flag & MASK_SHAPE_SELECT) &&
-	    ((frame_b->flag & MASK_SHAPE_SELECT) == 0)) return  1;
+	    ((frame_b->flag & MASK_SHAPE_SELECT) == 0))
+	{
+		return 1;
+	}
 	return 0;
 }
 

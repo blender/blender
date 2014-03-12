@@ -1897,10 +1897,6 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	RNA_property_float_get_array(ptr, prop, rgba);
 
 	switch (U.color_picker_type) {
-		case USER_CP_CIRCLE_HSV:
-		case USER_CP_CIRCLE_HSL:
-			circle_picker(block, ptr, prop);
-			break;
 		case USER_CP_SQUARE_SV:
 			square_picker(block, ptr, prop, UI_GRAD_SV);
 			break;
@@ -1910,6 +1906,10 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 		case USER_CP_SQUARE_HV:
 			square_picker(block, ptr, prop, UI_GRAD_HV);
 			break;
+
+		/* user default */
+		case USER_CP_CIRCLE_HSV:
+		case USER_CP_CIRCLE_HSL:
 		default:
 			circle_picker(block, ptr, prop);
 			break;
