@@ -3929,12 +3929,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 static bool is_object_hidden(Render *re, Object *ob)
 {
 	if (re->r.scemode & R_VIEWPORT_PREVIEW)
-		/* note: in rendered viewport, for now we always use render visibility rather than
-		 * viewport visibility, because using viewport visibility can cause some problems.
-		 * for example, mesh deform cage is drawn as a solid/textured mesh (not a wireframe
-		 * mesh) and its unnecessary surfaces and shadows mess up the preview. we need more
-		 * discussion about the way to take viewport visibility into account. */
-		return (ob->restrictflag & OB_RESTRICT_RENDER) != 0;
+		return (ob->restrictflag & OB_RESTRICT_VIEW) != 0 || ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE);
 	else
 		return (ob->restrictflag & OB_RESTRICT_RENDER) != 0;
 }
