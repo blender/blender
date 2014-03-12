@@ -573,8 +573,10 @@ static void do_lasso_select_curve(ViewContext *vc, const int mcords[][2], short 
 
 	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
-	if (extend == false && select)
-		ED_curve_deselect_all(vc->obedit->data);
+	if (extend == false && select) {
+		Curve *curve = (Curve *) vc->obedit->data;
+		ED_curve_deselect_all(curve->editnurb);
+	}
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
@@ -1740,8 +1742,10 @@ static int do_nurbs_box_select(ViewContext *vc, rcti *rect, bool select, bool ex
 	
 	view3d_userdata_boxselect_init(&data, vc, rect, select);
 
-	if (extend == false && select)
-		ED_curve_deselect_all(vc->obedit->data);
+	if (extend == false && select) {
+		Curve *curve = (Curve *) vc->obedit->data;
+		ED_curve_deselect_all(curve->editnurb);
+	}
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_nurbs_box_select__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
