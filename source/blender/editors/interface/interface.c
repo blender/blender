@@ -3165,52 +3165,46 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 
 	/* use rna values if parameters are not specified */
 	if (!str) {
-		if (type == MENU && proptype == PROP_ENUM) {
+		if (ELEM3(type, MENU, ROW, LISTROW) && proptype == PROP_ENUM) {
+			/* MENU is handled a little differently here */
 			EnumPropertyItem *item;
-			int totitem, value;
+			int value;
 			bool free;
 			int i;
 
-			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
-			value = RNA_property_enum_get(ptr, prop);
+			RNA_property_enum_items(block->evil_C, ptr, prop, &item, NULL, &free);
+
+			if (type == MENU) {
+				value = RNA_property_enum_get(ptr, prop);
+			}
+			else {
+				value = (int)max;
+			}
+
 			i = RNA_enum_from_value(item, value);
 			if (i != -1) {
 				str = item[i].name;
 				icon = item[i].icon;
+
+#ifdef WITH_INTERNATIONAL
+				str = CTX_IFACE_(RNA_property_translation_context(prop), str);
+#endif
 			}
 			else {
-				str = "";
+				if (type == MENU) {
+					str = "";
+				}
+				else {
+					str = RNA_property_ui_name(prop);
+				}
+			}
+
+			if (type == MENU) {
+				func = ui_def_but_rna__menu;
 			}
 
 			if (free) {
 				MEM_freeN(item);
-			}
-
-#ifdef WITH_INTERNATIONAL
-			str = CTX_IFACE_(RNA_property_translation_context(prop), str);
-#endif
-
-			func = ui_def_but_rna__menu;
-		}
-		else if (ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
-			EnumPropertyItem *item, *item_array = NULL;
-			bool free;
-
-			/* get untranslated, then translate the single string we need */
-			RNA_property_enum_items(block->evil_C, ptr, prop, &item_array, NULL, &free);
-			for (item = item_array; item->identifier; item++) {
-				if (item->identifier[0] && item->value == (int)max) {
-					str = CTX_IFACE_(RNA_property_translation_context(prop), item->name);
-					icon = item->icon;
-					break;
-				}
-			}
-
-			if (!str) {
-				str = RNA_property_ui_name(prop);
-			}
-			if (free) {
-				MEM_freeN(item_array);
 			}
 		}
 		else {
@@ -3275,7 +3269,9 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	if (icon) {
 		but->icon = (BIFIconID)icon;
 		but->flag |= UI_HAS_ICON;
-		but->drawflag |= UI_BUT_ICON_LEFT;
+		if (str[0]) {
+			but->drawflag |= UI_BUT_ICON_LEFT;
+		}
 	}
 	
 	if ((type == MENU) && (but->dt == UI_EMBOSSP)) {
