@@ -1441,8 +1441,8 @@ BMEdge *BM_edge_find_double(BMEdge *e)
 bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 {
 	BMVert *v_search = varr[0];  /* we can search any of the verts in the array */
-	BMIter viter;
-	BMFace *f;
+	BMIter liter;
+	BMLoop *l_search;
 
 
 #if 0
@@ -1470,8 +1470,8 @@ bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 	int i;
 
 
-	BM_ITER_ELEM (f, &viter, v_search, BM_FACES_OF_VERT) {
-		if (f->len == len) {
+	BM_ITER_ELEM (l_search, &liter, v_search, BM_LOOPS_OF_VERT) {
+		if (l_search->f->len == len) {
 			if (is_init == false) {
 				is_init = true;
 				for (i = 0; i < len; i++) {
@@ -1484,21 +1484,21 @@ bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 
 			{
 				BMLoop *l_iter;
-				BMLoop *l_first;
 
-				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				/* skip ourselves */
+				l_iter  = l_search->next;
 
 				do {
 					if (!BM_ELEM_API_FLAG_TEST(l_iter->v, _FLAG_OVERLAP)) {
 						is_found = false;
 						break;
 					}
-				} while ((l_iter = l_iter->next) != l_first);
+				} while ((l_iter = l_iter->next) != l_search);
 			}
 
 			if (is_found) {
 				if (r_existface) {
-					*r_existface = f;
+					*r_existface = l_search->f;
 				}
 				break;
 			}
