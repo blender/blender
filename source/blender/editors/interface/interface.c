@@ -3164,33 +3164,36 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	}
 
 	/* use rna values if parameters are not specified */
-	if (!str) {
-		if (ELEM3(type, MENU, ROW, LISTROW) && proptype == PROP_ENUM) {
-			/* MENU is handled a little differently here */
-			EnumPropertyItem *item;
-			int value;
-			bool free;
-			int i;
+	if ((proptype == PROP_ENUM) && ELEM3(type, MENU, ROW, LISTROW)) {
+		/* MENU is handled a little differently here */
+		EnumPropertyItem *item;
+		int value;
+		bool free;
+		int i;
 
-			RNA_property_enum_items(block->evil_C, ptr, prop, &item, NULL, &free);
+		RNA_property_enum_items(block->evil_C, ptr, prop, &item, NULL, &free);
 
-			if (type == MENU) {
-				value = RNA_property_enum_get(ptr, prop);
-			}
-			else {
-				value = (int)max;
-			}
+		if (type == MENU) {
+			value = RNA_property_enum_get(ptr, prop);
+		}
+		else {
+			value = (int)max;
+		}
 
-			i = RNA_enum_from_value(item, value);
-			if (i != -1) {
+		i = RNA_enum_from_value(item, value);
+		if (i != -1) {
+
+			if (!str) {
 				str = item[i].name;
-				icon = item[i].icon;
-
 #ifdef WITH_INTERNATIONAL
 				str = CTX_IFACE_(RNA_property_translation_context(prop), str);
 #endif
 			}
-			else {
+
+			icon = item[i].icon;
+		}
+		else {
+			if (!str) {
 				if (type == MENU) {
 					str = "";
 				}
@@ -3198,19 +3201,21 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 					str = RNA_property_ui_name(prop);
 				}
 			}
-
-			if (type == MENU) {
-				func = ui_def_but_rna__menu;
-			}
-
-			if (free) {
-				MEM_freeN(item);
-			}
 		}
-		else {
+
+		if (type == MENU) {
+			func = ui_def_but_rna__menu;
+		}
+
+		if (free) {
+			MEM_freeN(item);
+		}
+	}
+	else {
+		if (!str) {
 			str = RNA_property_ui_name(prop);
-			icon = RNA_property_ui_icon(prop);
 		}
+		icon = RNA_property_ui_icon(prop);
 	}
 
 	if (!tip && proptype != PROP_ENUM)
