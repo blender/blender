@@ -670,11 +670,11 @@ static struct { void *tree; } MirrKdStore = {NULL};
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
-int mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char mode)
+int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, const float co[3], char mode)
 {
 	if (mode == 'u') {        /* use table */
 		if (MirrKdStore.tree == NULL)
-			mesh_octree_table(ob, em, NULL, 's');
+			ED_mesh_mirror_spatial_table(ob, em, NULL, 's');
 
 		if (MirrKdStore.tree) {
 			KDTreeNearest nearest;
@@ -696,7 +696,7 @@ int mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char mode)
 		int totvert;
 
 		if (MirrKdStore.tree) /* happens when entering this call without ending it */
-			mesh_octree_table(ob, em, co, 'e');
+			ED_mesh_mirror_spatial_table(ob, em, co, 'e');
 
 		if (em && me->edit_btmesh == em) {
 			totvert = em->bm->totvert;
@@ -758,11 +758,11 @@ static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
 /* note, is supposed return -1 on error, which callers are currently checking for, but is not used so far */
-int mesh_mirrtopo_table(Object *ob, char mode)
+int ED_mesh_mirror_topo_table(Object *ob, char mode)
 {
 	if (mode == 'u') {        /* use table */
 		if (ED_mesh_mirrtopo_recalc_check(ob->data, ob->mode, &mesh_topo_store)) {
-			mesh_mirrtopo_table(ob, 's');
+			ED_mesh_mirror_topo_table(ob, 's');
 		}
 	}
 	else if (mode == 's') { /* start table */
@@ -792,12 +792,12 @@ static int mesh_get_x_mirror_vert_spatial(Object *ob, int index)
 	vec[1] = mvert->co[1];
 	vec[2] = mvert->co[2];
 	
-	return mesh_octree_table(ob, NULL, vec, 'u');
+	return ED_mesh_mirror_spatial_table(ob, NULL, vec, 'u');
 }
 
 static int mesh_get_x_mirror_vert_topo(Object *ob, int index)
 {
-	if (mesh_mirrtopo_table(ob, 'u') == -1)
+	if (ED_mesh_mirror_topo_table(ob, 'u') == -1)
 		return -1;
 
 	return mesh_topo_store.index_lookup[index];
@@ -830,7 +830,7 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 	vec[1] = co[1];
 	vec[2] = co[2];
 	
-	i = mesh_octree_table(ob, em, vec, 'u');
+	i = ED_mesh_mirror_spatial_table(ob, em, vec, 'u');
 	if (i != -1) {
 		return BM_vert_at_index(em->bm, i);
 	}
@@ -840,7 +840,7 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *em, BMVert *eve, int index)
 {
 	intptr_t poinval;
-	if (mesh_mirrtopo_table(ob, 'u') == -1)
+	if (ED_mesh_mirror_topo_table(ob, 'u') == -1)
 		return NULL;
 
 	if (index == -1) {
@@ -1018,12 +1018,12 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 	mirrorverts = MEM_callocN(sizeof(int) * me->totvert, "MirrorVerts");
 	mirrorfaces = MEM_callocN(sizeof(int) * 2 * me->totface, "MirrorFaces");
 
-	mesh_octree_table(ob, em, NULL, 's');
+	ED_mesh_mirror_spatial_table(ob, em, NULL, 's');
 
 	for (a = 0, mv = mvert; a < me->totvert; a++, mv++)
 		mirrorverts[a] = mesh_get_x_mirror_vert(ob, a, use_topology);
 
-	mesh_octree_table(ob, em, NULL, 'e');
+	ED_mesh_mirror_spatial_table(ob, em, NULL, 'e');
 
 	fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
 	for (a = 0, mf = mface; a < me->totface; a++, mf++)

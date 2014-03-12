@@ -403,7 +403,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	}
 
 	/* only generated in some cases but can call anyway */
-	mesh_octree_table(ob, NULL, NULL, 'e');
+	ED_mesh_mirror_spatial_table(ob, NULL, NULL, 'e');
 
 	/* free the memory allocated */
 	MEM_freeN(bonelist);

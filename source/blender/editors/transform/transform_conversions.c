@@ -5687,7 +5687,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (t->obedit->type == OB_MESH) {
 			BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 			/* table needs to be created for each edit command, since vertices can move etc */
-			mesh_octree_table(t->obedit, em, NULL, 'e');
+			ED_mesh_mirror_spatial_table(t->obedit, em, NULL, 'e');
 		}
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {

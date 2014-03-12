@@ -2060,8 +2060,8 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		}
 
 		/* weight paint specific */
-		mesh_octree_table(NULL, NULL, NULL, 'e');
-		mesh_mirrtopo_table(NULL, 'e');
+		ED_mesh_mirror_spatial_table(NULL, NULL, NULL, 'e');
+		ED_mesh_mirror_topo_table(NULL, 'e');
 
 		paint_cursor_delete_textures();
 	}
@@ -2076,7 +2076,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		BKE_paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
 
 		/* weight paint specific */
-		mesh_octree_table(ob, NULL, NULL, 's');
+		ED_mesh_mirror_spatial_table(ob, NULL, NULL, 's');
 		ED_vgroup_sync_from_pose(ob);
 	}
 	

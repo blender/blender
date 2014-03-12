@@ -402,8 +402,8 @@ void EDBM_mesh_free(BMEditMesh *em)
 	/* These tables aren't used yet, so it's not strictly necessary
 	 * to 'end' them (with 'e' param) but if someone tries to start
 	 * using them, having these in place will save a lot of pain */
-	mesh_octree_table(NULL, NULL, NULL, 'e');
-	mesh_mirrtopo_table(NULL, 'e');
+	ED_mesh_mirror_spatial_table(NULL, NULL, NULL, 'e');
+	ED_mesh_mirror_topo_table(NULL, 'e');
 
 	BKE_editmesh_free(em);
 }
