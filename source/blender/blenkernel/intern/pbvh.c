@@ -626,6 +626,13 @@ void BKE_pbvh_free(PBVH *bvh)
 	MEM_freeN(bvh);
 }
 
+void BKE_pbvh_free_layer_disp(PBVH *bvh)
+{
+	int i;
+	for (i = 0; i < bvh->totnode; ++i)
+		BKE_pbvh_node_layer_disp_free(&bvh->nodes[i]);
+}
+
 static void pbvh_iter_begin(PBVHIter *iter, PBVH *bvh, BKE_pbvh_SearchCallback scb, void *search_data)
 {
 	iter->bvh = bvh;

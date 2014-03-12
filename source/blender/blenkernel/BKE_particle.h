@@ -34,6 +34,8 @@
  *  \ingroup bke
  */
 
+#include "BLI_utildefines.h"
+
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
 
@@ -69,9 +71,6 @@ struct EdgeHash;
 #define LOOP_SHOWN_PARTICLES for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) if (!(pa->flag & (PARS_UNEXIST | PARS_NO_DISP)))
 /* OpenMP: Can only advance one variable within loop definition. */
 #define LOOP_DYNAMIC_PARTICLES for (p = 0; p < psys->totpart; p++) if ((pa = psys->particles + p)->state.time > 0.0f)
-
-#define PSYS_FRAND_COUNT    1024
-#define PSYS_FRAND(seed)    psys->frand[(seed) % PSYS_FRAND_COUNT]
 
 /* fast but sure way to get the modifier*/
 #define PARTICLE_PSMD ParticleSystemModifierData * psmd = sim->psmd ? sim->psmd : psys_get_modifier(sim->ob, sim->psys)
@@ -246,6 +245,34 @@ typedef struct ParticleDrawData {
 } ParticleDrawData;
 
 #define PARTICLE_DRAW_DATA_UPDATED  1
+
+#define PSYS_FRAND_COUNT    1024
+extern unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];
+extern unsigned int PSYS_FRAND_SEED_MULTIPLIER[PSYS_FRAND_COUNT];
+extern float PSYS_FRAND_BASE[PSYS_FRAND_COUNT];
+
+void psys_init_rng(void);
+
+BLI_INLINE float psys_frand(ParticleSystem *psys, unsigned int seed)
+{
+	/* XXX far from ideal, this simply scrambles particle random numbers a bit
+	 * to avoid obvious correlations.
+	 * Can't use previous psys->frand arrays because these require initialization
+	 * inside psys_check_enabled, which wreaks havok in multithreaded depgraph updates.
+	 */
+	unsigned int offset = PSYS_FRAND_SEED_OFFSET[psys->seed % PSYS_FRAND_COUNT];
+	unsigned int multiplier = PSYS_FRAND_SEED_MULTIPLIER[psys->seed % PSYS_FRAND_COUNT];
+	return PSYS_FRAND_BASE[(offset + seed * multiplier) % PSYS_FRAND_COUNT];
+}
+
+BLI_INLINE void psys_frand_vec(ParticleSystem *psys, unsigned int seed, float vec[3])
+{
+	unsigned int offset = PSYS_FRAND_SEED_OFFSET[psys->seed % PSYS_FRAND_COUNT];
+	unsigned int multiplier = PSYS_FRAND_SEED_MULTIPLIER[psys->seed % PSYS_FRAND_COUNT];
+	vec[0] = PSYS_FRAND_BASE[(offset + (seed + 0) * multiplier) % PSYS_FRAND_COUNT];
+	vec[1] = PSYS_FRAND_BASE[(offset + (seed + 1) * multiplier) % PSYS_FRAND_COUNT];
+	vec[2] = PSYS_FRAND_BASE[(offset + (seed + 2) * multiplier) % PSYS_FRAND_COUNT];
+}
 
 /* ----------- functions needed outside particlesystem ---------------- */
 /* particle.c */

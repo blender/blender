@@ -3848,7 +3848,6 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->childcache = NULL;
 		BLI_listbase_clear(&psys->pathcachebufs);
 		BLI_listbase_clear(&psys->childcachebufs);
-		psys->frand = NULL;
 		psys->pdd = NULL;
 		psys->renderdata = NULL;
 		

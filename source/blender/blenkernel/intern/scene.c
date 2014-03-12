@@ -542,6 +542,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->toolsettings->proportional_size = 1.0f;
 
+	sce->toolsettings->imapaint.paint.flags |= PAINT_SHOW_BRUSH;
+
 	sce->physics_settings.gravity[0] = 0.0f;
 	sce->physics_settings.gravity[1] = 0.0f;
 	sce->physics_settings.gravity[2] = -9.81f;
@@ -1537,9 +1539,6 @@ static void scene_update_tagged_recursive(EvaluationContext *eval_ctx, Main *bma
 	/* scene drivers... */
 	scene_update_drivers(bmain, scene);
 
-	/* update sound system animation */
-	sound_update_scene(scene);
-
 	/* update masking curves */
 	BKE_mask_update_scene(bmain, scene);
 	
@@ -1573,6 +1572,8 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	 * in the future this should handle updates for all datablocks, not
 	 * only objects and scenes. - brecht */
 	scene_update_tagged_recursive(eval_ctx, bmain, scene, scene);
+	/* update sound system animation (TODO, move to depsgraph) */
+	sound_update_scene(bmain, scene);
 
 	/* extra call here to recalc scene animation (for sequencer) */
 	{
@@ -1678,6 +1679,8 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(eval_ctx, bmain, sce, sce);
+	/* update sound system animation (TODO, move to depsgraph) */
+	sound_update_scene(bmain, sce);
 
 	scene_depsgraph_hack(eval_ctx, sce, sce);
 

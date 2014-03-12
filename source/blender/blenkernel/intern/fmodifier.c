@@ -605,7 +605,8 @@ static float fcm_cycles_time(FModifierStackStorage *storage, FCurve *fcu, FModif
 	FMod_Cycles *data = (FMod_Cycles *)fcm->data;
 	float prevkey[2], lastkey[2], cycyofs = 0.0f;
 	short side = 0, mode = 0;
-	int cycles = 0, ofs = 0;
+	int cycles = 0;
+	float ofs = 0;
 	
 	/* check if modifier is first in stack, otherwise disable ourself... */
 	/* FIXME... */

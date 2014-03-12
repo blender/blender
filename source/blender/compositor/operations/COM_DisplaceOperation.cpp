@@ -72,8 +72,8 @@ bool DisplaceOperation::read_displacement(float x, float y, float xscale, float 
 	else {
 		float col[4];
 		m_inputVectorProgram->readSampled(col, x, y, COM_PS_BILINEAR);
-		r_u = origin[0] - col[0] * xscale + 0.5f;
-		r_v = origin[1] - col[1] * yscale + 0.5f;
+		r_u = origin[0] - col[0] * xscale;
+		r_v = origin[1] - col[1] * yscale;
 		return true;
 	}
 }

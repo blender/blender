@@ -8,3 +8,4 @@ strict_flags.patch
 interpolator_reorder.patch
 mesh_simplify_dissolve_edges.patch
 memory_leak_fix.patch
+mavc_fix.patch

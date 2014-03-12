@@ -598,7 +598,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	// Force software OpenGL, for debugging
 	if (getenv("BLENDER_SOFTWAREGL")) {
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFARendererID;
-		pixelFormatAttrsWindow[i++] = kCGLRendererGenericID;
+		pixelFormatAttrsWindow[i++] = kCGLRendererAppleSWID;
 	}
 	else
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
@@ -643,7 +643,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		// Force software OpenGL, for debugging
 		if (getenv("BLENDER_SOFTWAREGL")) {
 			pixelFormatAttrsWindow[i++] = NSOpenGLPFARendererID;
-			pixelFormatAttrsWindow[i++] = kCGLRendererGenericID;
+			pixelFormatAttrsWindow[i++] = kCGLRendererAppleSWID;
 		}
 		else
 			pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;

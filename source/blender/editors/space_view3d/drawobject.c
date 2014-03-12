@@ -4649,8 +4649,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					else
 						pa_health = -1.0;
 
-					r_tilt = 2.0f * (PSYS_FRAND(a + 21) - 0.5f);
-					r_length = PSYS_FRAND(a + 22);
+					r_tilt = 2.0f * (psys_frand(psys, a + 21) - 0.5f);
+					r_length = psys_frand(psys, a + 22);
 
 					if (part->draw_col > PART_DRAW_COL_MAT) {
 						switch (part->draw_col) {
@@ -4677,8 +4677,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 					pa_health = -1.0;
 
-					r_tilt = 2.0f * (PSYS_FRAND(a + 21) - 0.5f);
-					r_length = PSYS_FRAND(a + 22);
+					r_tilt = 2.0f * (psys_frand(psys, a + 21) - 0.5f);
+					r_length = psys_frand(psys, a + 22);
 				}
 
 				drawn = 0;

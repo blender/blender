@@ -35,7 +35,25 @@ if(EXISTS ${SOURCE_DIR}/.git)
 			STRING(REGEX REPLACE "^[ \t]+" "" _git_contains_check "${_git_contains_check}")
 			if(_git_contains_check STREQUAL "master")
 				set(MY_WC_BRANCH "master")
+			else()
+				execute_process(COMMAND git show-ref --tags -d
+				                WORKING_DIRECTORY ${SOURCE_DIR}
+				                OUTPUT_VARIABLE _git_tag_hashes
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+				execute_process(COMMAND git rev-parse HEAD
+				                WORKING_DIRECTORY ${SOURCE_DIR}
+				                OUTPUT_VARIABLE _git_head_hash
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+				if(_git_tag_hashes MATCHES "${_git_head_hash}")
+					set(MY_WC_BRANCH "master")
+				endif()
+
+				unset(_git_tag_hashes)
+				unset(_git_head_hashs)
 			endif()
+
 
 			unset(_git_contains_check)
 		else()

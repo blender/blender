@@ -765,12 +765,18 @@ static void *do_prefetch_thread(void *data_v)
 		MovieClipUser user = {0};
 		int flag = IB_rect | IB_alphamode_detect;
 		int result;
+		char *colorspace_name = NULL;
 
 		user.framenr = current_frame;
 		user.render_size = data->queue->render_size;
 		user.render_flag = data->queue->render_flag;
 
-		ibuf = IMB_ibImageFromMemory(mem, size, flag, clip->colorspace_settings.name, "prefetch frame");
+		/* Proxies are stored in the display space. */
+		if (data->queue->render_flag & MCLIP_USE_PROXY) {
+			colorspace_name = clip->colorspace_settings.name;
+		}
+
+		ibuf = IMB_ibImageFromMemory(mem, size, flag, colorspace_name, "prefetch frame");
 
 		result = BKE_movieclip_put_frame_if_possible(data->clip, &user, ibuf);
 

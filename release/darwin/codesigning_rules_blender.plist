@@ -5,7 +5,7 @@
 	<key>rules</key>
 	<dict>
 		<!-- Exclude datafiles, python and scripts -->
-		<key>^MacOS/2.69</key>
+		<key>^MacOS/2.70</key>
 		<false/>
 		<key>^Resources/</key>
 		<true/>

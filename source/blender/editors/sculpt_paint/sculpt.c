@@ -2195,7 +2195,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 				mul_v3_v3fl(val, offset, *disp);
 
-				if (ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
+				if (!ss->multires && !ss->bm && ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
 					int index = vd.vert_indices[vd.i];
 
 					/* persistent base */
@@ -3953,6 +3953,12 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 				}
 			}
 		}
+
+		if (ss->bm) {
+			/* Free any remaining layer displacements from nodes. If not and topology changes
+			 * from using another tool, then next layer toolstroke can access past disp array bounds */
+			BKE_pbvh_free_layer_disp(ss->pbvh);
+		}
 	}
 
 	/* Make copies of the mesh vertex locations and normals for some tools */
@@ -5119,6 +5125,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
 			/* Turn on X plane mirror symmetry by default */
 			ts->sculpt->paint.symmetry_flags |= PAINT_SYMM_X;
+			ts->sculpt->paint.flags |= PAINT_SHOW_BRUSH;
 
 			/* Make sure at least dyntopo subdivision is enabled */
 			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;

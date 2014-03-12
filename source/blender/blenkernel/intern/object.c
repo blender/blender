@@ -1279,7 +1279,6 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pathcache = NULL;
 	psysn->childcache = NULL;
 	psysn->edit = NULL;
-	psysn->frand = NULL;
 	psysn->pdd = NULL;
 	psysn->effectors = NULL;
 	psysn->tree = NULL;
@@ -1486,11 +1485,6 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 
 	obn->mode = 0;
 	obn->sculpt = NULL;
-
-	/* Proxies are not to be copied. */
-	obn->proxy_from = NULL;
-	obn->proxy_group = NULL;
-	obn->proxy = NULL;
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);

@@ -1579,8 +1579,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			pa_size = pa->size;
 
-			r_tilt = 2.0f*(PSYS_FRAND(a) - 0.5f);
-			r_length = PSYS_FRAND(a+1);
+			r_tilt = 2.0f*(psys_frand(psys, a) - 0.5f);
+			r_length = psys_frand(psys, a+1);
 
 			if (path_nbr) {
 				cache = psys->pathcache[a];
@@ -1604,8 +1604,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_time = psys_get_child_time(psys, cpa, cfra, &pa_birthtime, &pa_dietime);
 			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 
-			r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
-			r_length = PSYS_FRAND(a + 22);
+			r_tilt = 2.0f*(psys_frand(psys, a + 21) - 0.5f);
+			r_length = psys_frand(psys, a + 22);
 
 			num = cpa->num;
 

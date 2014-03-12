@@ -272,15 +272,17 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 		}
 
 		if (masklay->splines_shapes.first) {
-			MaskLayerShape *masklay_shape;
+			MaskLayerShape *masklay_shape, *masklay_shape_next;
 			MaskLayerShape *masklay_shape_lastsel = NULL;
 
 			for (masklay_shape = masklay->splines_shapes.first;
 			     masklay_shape;
-			     masklay_shape = masklay_shape->next)
+			     masklay_shape = masklay_shape_next)
 			{
 				MaskLayerShape *masklay_shape_a = NULL;
 				MaskLayerShape *masklay_shape_b = NULL;
+
+				masklay_shape_next = masklay_shape->next;
 
 				/* find contiguous selections */
 				if (masklay_shape->flag & MASK_SHAPE_SELECT) {
@@ -293,6 +295,9 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 						masklay_shape_a = masklay_shape_lastsel;
 						masklay_shape_b = masklay_shape;
 						masklay_shape_lastsel = NULL;
+
+						/* this will be freed below, step over selection */
+						masklay_shape_next = masklay_shape->next;
 					}
 				}
 

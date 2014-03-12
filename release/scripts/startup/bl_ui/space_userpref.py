@@ -953,8 +953,7 @@ class USERPREF_MT_ndof_settings(Menu):
         is_view3d = context.space_data.type == 'VIEW_3D'
 
         layout.prop(input_prefs, "ndof_sensitivity")
-        if is_view3d:
-            layout.prop(input_prefs, "ndof_orbit_sensitivity")
+        layout.prop(input_prefs, "ndof_orbit_sensitivity")
 
         if is_view3d:
             layout.separator()
