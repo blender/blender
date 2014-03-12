@@ -1,0 +1,14 @@
+diff -r e82d852e4fb0 lib/intersect_face_division.cpp
+--- a/lib/intersect_face_division.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/intersect_face_division.cpp	Wed Mar 12 23:09:19 2014 +0600
+@@ -1121,7 +1121,9 @@
+         }
+ 
+         // copy up to the end of the path.
+-        std::copy(base_loop.begin() + pos, base_loop.begin() + e1_1, std::back_inserter(out));
++        if (pos < e1_1) {
++            std::copy(base_loop.begin() + pos, base_loop.begin() + e1_1, std::back_inserter(out));
++        }
+ 
+         CARVE_ASSERT(base_loop[e1_1] == p1.back());
+         std::copy(p1.rbegin(), p1.rend() - 1, std::back_inserter(out));
