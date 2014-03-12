@@ -1440,7 +1440,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	}
 	else {
 		/* pick loop direction to dive into the tree (based on ray direction and split axis) */
-		if (data->ray_dot_axis[(int)node->main_axis] > 0.0f) {
+		if (data->ray_dot_axis[node->main_axis] > 0.0f) {
 			for (i = 0; i != node->totnode; i++) {
 				dfs_raycast(data, node->children[i]);
 			}
@@ -1541,16 +1541,12 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 	data.hit.dist = FLT_MAX;
 	
 	/* get light direction */
-	data.ray.direction[0] = light_end[0] - light_start[0];
-	data.ray.direction[1] = light_end[1] - light_start[1];
-	data.ray.direction[2] = light_end[2] - light_start[2];
+	sub_v3_v3v3(data.ray.direction, light_end, light_start);
 	
 	data.ray.radius = 0.0;
 	
-	data.ray.origin[0] = light_start[0];
-	data.ray.origin[1] = light_start[1];
-	data.ray.origin[2] = light_start[2];
-	
+	copy_v3_v3(data.ray.origin, light_start);
+
 	normalize_v3(data.ray.direction);
 	copy_v3_v3(data.ray_dot_axis, data.ray.direction);
 	
