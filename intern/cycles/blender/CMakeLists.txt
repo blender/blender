@@ -49,6 +49,10 @@ add_definitions(-DGLEW_STATIC)
 
 blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}")
 
+if(${CMAKE_GENERATOR} MATCHES "Xcode" AND ${XCODE_VERSION} VERSION_GREATER 5.0) # avoid link failure with clang 3.4 debug
+	SET_TARGET_PROPERTIES(bf_intern_cycles PROPERTIES XCODE_ATTRIBUTE_CLANG_DEBUG_INFORMATION_LEVEL "line-tables-only") # -gline-tables-only
+endif()
+
 add_dependencies(bf_intern_cycles bf_rna)
 
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${ADDON_FILES}" ${CYCLES_INSTALL_PATH})
