@@ -3875,7 +3875,7 @@ static int rna_token_strip_quotes(char *token)
 
 static bool rna_path_parse_collection_key(const char **path, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_nextptr)
 {
-	char fixedbuf[256], *token;
+	char fixedbuf[256];
 	int intkey;
 	
 	*r_nextptr = *ptr;
@@ -3885,6 +3885,8 @@ static bool rna_path_parse_collection_key(const char **path, PointerRNA *ptr, Pr
 		return true;
 	
 	if (**path == '[') {
+		char *token;
+
 		/* resolve the lookup with [] brackets */
 		token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 1);
 		
@@ -3933,7 +3935,7 @@ static bool rna_path_parse_collection_key(const char **path, PointerRNA *ptr, Pr
 
 static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, PropertyRNA *prop, int *r_index)
 {
-	char fixedbuf[256], *token;
+	char fixedbuf[256];
 	int index_arr[RNA_MAX_ARRAY_DIMENSION] = {0};
 	int len[RNA_MAX_ARRAY_DIMENSION];
 	const int dim = RNA_property_array_dimension(ptr, prop, len);
@@ -3947,6 +3949,7 @@ static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, Prope
 	
 	for (i = 0; i < dim; i++) {
 		int temp_index = -1;
+		char *token;
 		
 		/* multi index resolve */
 		if (**path == '[') {
@@ -3981,6 +3984,10 @@ static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, Prope
 				return false;
 			}
 			temp_index = RNA_property_array_item_index(prop, *token);
+		}
+		else {
+			/* just to avoid uninitialized pointer use */
+			token = fixedbuf;
 		}
 		
 		if (token != fixedbuf) {
@@ -4020,7 +4027,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 {
 	PropertyRNA *prop;
 	PointerRNA curptr;
-	char fixedbuf[256], *token;
+	char fixedbuf[256];
 	int type;
 
 	prop = NULL;
@@ -4031,6 +4038,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 
 	while (*path) {
 		int use_id_prop = (*path == '[') ? 1 : 0;
+		char *token;
 		/* custom property lookup ?
 		 * C.object["someprop"]
 		 */
@@ -4222,7 +4230,7 @@ char *RNA_path_back(const char *path)
 {
 	char fixedbuf[256];
 	const char *previous, *current;
-	char *result, *token;
+	char *result;
 	int i;
 
 	if (!path)
@@ -4234,6 +4242,8 @@ char *RNA_path_back(const char *path)
 	/* parse token by token until the end, then we back up to the previous
 	 * position and strip of the next token to get the path one step back */
 	while (*current) {
+		char *token;
+
 		token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf), 0);
 
 		if (!token)
