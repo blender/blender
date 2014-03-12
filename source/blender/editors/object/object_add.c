@@ -1458,10 +1458,24 @@ static EnumPropertyItem convert_target_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static void curvetomesh(Object *ob) 
+static void convert_ensure_curve_cache(Main *bmain, Scene *scene, Object *ob)
 {
-	BLI_assert(ob->curve_cache != NULL);
+	if (ob->curve_cache == NULL) {
+		/* Force creation. This is normally not needed but on operator
+		 * redo we might end up with an object which isn't evaluated yet.
+		 */
+		if (ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
+			BKE_displist_make_curveTypes(scene, ob, FALSE);
+		}
+		else if (ob->type == OB_MBALL) {
+			BKE_displist_make_mball(bmain->eval_ctx, scene, ob);
+		}
+	}
+}
 
+static void curvetomesh(Main *bmain, Scene *scene, Object *ob)
+{
+	convert_ensure_curve_cache(bmain, scene, ob);
 	BKE_mesh_from_nurbs(ob); /* also does users */
 
 	if (ob->type == OB_MESH)
@@ -1513,7 +1527,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	MetaBall *mb;
 	Mesh *me;
 	const short target = RNA_enum_get(op->ptr, "target");
-	const short keep_original = RNA_boolean_get(op->ptr, "keep_original");
+	const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
 	int a, mballConverted = 0;
 
 	/* don't forget multiple users! */
@@ -1672,7 +1686,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			BKE_curve_curve_dimension_update(cu);
 
 			if (target == OB_MESH) {
-				curvetomesh(newob);
+				curvetomesh(bmain, scene, newob);
 
 				/* meshes doesn't use displist */
 				BKE_object_free_curve_cache(newob);
@@ -1696,7 +1710,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					newob = ob;
 				}
 
-				curvetomesh(newob);
+				curvetomesh(bmain, scene, newob);
 
 				/* meshes doesn't use displist */
 				BKE_object_free_curve_cache(newob);
@@ -1734,6 +1748,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for (a = 0; a < newob->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
 
+				convert_ensure_curve_cache(bmain, scene, baseob);
 				BKE_mesh_from_metaball(&baseob->curve_cache->disp, newob->data);
 
 				if (obact->type == OB_MBALL) {
