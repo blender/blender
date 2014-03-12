@@ -1910,6 +1910,9 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 		case USER_CP_SQUARE_HV:
 			square_picker(block, ptr, prop, UI_GRAD_HV);
 			break;
+		default:
+			circle_picker(block, ptr, prop);
+			break;
 	}
 	
 	/* mode */

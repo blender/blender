@@ -2257,6 +2257,11 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 			but = uiDefButR_prop(block, HSVCUBE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
 			                     -1, 0.0, 0.0, UI_GRAD_HV, 0, "");
 			break;
+		default:
+			but = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
+								 -1, 0.0, 0.0, 0, 0, "");
+			break;
+
 	}
 
 	if (lock) {
@@ -2300,6 +2305,11 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 				uiItemS(col);
 				uiDefButR_prop(block, HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop,
 				               -1, softmin, softmax, UI_GRAD_HV + 3, 0, "");
+				break;
+			default:
+				uiItemS(row);
+				uiDefButR_prop(block, HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop,
+							   -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
 				break;
 		}
 	}
