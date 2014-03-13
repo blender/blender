@@ -288,8 +288,8 @@ static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 			v = op1 | op2;
 			break;
 		default:
-			BLI_assert(0);
-			v = 0;
+			PyErr_BadArgument();
+			return NULL;
 	}
 	if (v == 0)
 		result = PyObject_NewVar(BPy_Nature, &Nature_Type, 0);
