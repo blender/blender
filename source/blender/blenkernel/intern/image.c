@@ -3620,6 +3620,7 @@ ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *name)
 				IMB_refImBuf(ibuf);
 				break;
 			}
+			IMB_moviecacheIter_step(iter);
 		}
 		IMB_moviecacheIter_free(iter);
 	}
