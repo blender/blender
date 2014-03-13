@@ -39,7 +39,10 @@ void LookupTables::device_update(Device *device, DeviceScene *dscene)
 	if(!need_update)
 		return;
 
-	device->tex_alloc("__lookup_table", dscene->lookup_table);
+	device->tex_free(dscene->lookup_table);
+
+	if(lookup_tables.size() > 0)
+		device->tex_alloc("__lookup_table", dscene->lookup_table);
 
 	need_update = false;
 }
