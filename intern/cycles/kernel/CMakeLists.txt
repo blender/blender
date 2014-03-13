@@ -144,7 +144,9 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	# warn for other versions
 	if(CUDA_VERSION MATCHES "50")
 	else()
-		message(WARNING "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, build may succeed but only CUDA 5.0 is officially supported")
+		message(WARNING
+			"CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
+			"build may succeed but only CUDA 5.0 is officially supported")
 	endif()
 
 	# build for each arch
@@ -172,7 +174,21 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		else()
 			add_custom_command(
 				OUTPUT ${cuda_cubin}
-				COMMAND ${CUDA_NVCC_EXECUTABLE} -arch=${arch} -m${CUDA_BITS} --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" ${cuda_arch_flags} ${cuda_version_flags} ${cuda_math_flags} -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC
+				COMMAND ${CUDA_NVCC_EXECUTABLE}
+				        -arch=${arch}
+				        -m${CUDA_BITS}
+				        --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu
+				        -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin}
+				        --ptxas-options="-v"
+				        ${cuda_arch_flags}
+				        ${cuda_version_flags}
+				        ${cuda_math_flags}
+				        -I${CMAKE_CURRENT_SOURCE_DIR}/../util
+				        -I${CMAKE_CURRENT_SOURCE_DIR}/svm
+				        -DCCL_NAMESPACE_BEGIN=
+				        -DCCL_NAMESPACE_END=
+				        -DNVCC
+
 				DEPENDS ${cuda_sources})
 
 			delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)

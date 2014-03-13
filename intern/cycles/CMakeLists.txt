@@ -53,7 +53,12 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
 
-add_definitions(-DWITH_KERNEL_SSE2 -DWITH_KERNEL_SSE3 -DWITH_KERNEL_SSE41 -DWITH_KERNEL_AVX)
+add_definitions(
+	-DWITH_KERNEL_SSE2
+	-DWITH_KERNEL_SSE3
+	-DWITH_KERNEL_SSE41
+	-DWITH_KERNEL_AVX
+)
 
 # for OSL
 if(WIN32 AND MSVC)
@@ -64,10 +69,15 @@ endif()
 
 # Definitions and Includes
 
-add_definitions(${BOOST_DEFINITIONS} ${OPENIMAGEIO_DEFINITIONS})
+add_definitions(
+	${BOOST_DEFINITIONS}
+	${OPENIMAGEIO_DEFINITIONS}
+)
 
-add_definitions(-DCCL_NAMESPACE_BEGIN=namespace\ ccl\ {)
-add_definitions(-DCCL_NAMESPACE_END=})
+add_definitions(
+	-DCCL_NAMESPACE_BEGIN=namespace\ ccl\ {
+	-DCCL_NAMESPACE_END=}
+)
 
 if(WITH_CYCLES_NETWORK)
 	add_definitions(-DWITH_NETWORK)
@@ -91,9 +101,11 @@ if(WITH_CYCLES_OSL)
 	include_directories(${OSL_INCLUDES})
 endif()
 
-add_definitions(-DWITH_OPENCL)
-add_definitions(-DWITH_CUDA)
-add_definitions(-DWITH_MULTI)
+add_definitions(
+	-DWITH_OPENCL
+	-DWITH_CUDA
+	-DWITH_MULTI
+)
 
 include_directories(
 	SYSTEM
@@ -101,7 +113,8 @@ include_directories(
 	${OPENIMAGEIO_INCLUDE_DIRS}
 	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO
 	${OPENEXR_INCLUDE_DIR}
-	${OPENEXR_INCLUDE_DIRS})
+	${OPENEXR_INCLUDE_DIRS}
+)
 
 # Subdirectories
 
