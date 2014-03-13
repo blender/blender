@@ -271,6 +271,77 @@ int ED_undo_paint_step(bContext *C, int type, int step, const char *name)
 	return 0;
 }
 
+static void undo_step_num(bContext *C, UndoStack *stack, int step)
+{
+	UndoElem *uel;
+	int a = 0;
+	int curnum = BLI_findindex(&stack->elems, stack->current);
+
+	for (uel = stack->elems.first; uel; uel = uel->next, a++) {
+		if (a == step) break;
+	}
+
+	if (curnum > a) {
+		while (a++ != curnum)
+			undo_stack_step(C, stack, 1, NULL);
+	}
+	else if (curnum < a){
+		while (a-- != curnum)
+			undo_stack_step(C, stack, -1, NULL);
+	}
+}
+
+void ED_undo_paint_step_num(bContext *C, int type, int step)
+{
+	if (type == UNDO_PAINT_IMAGE)
+		return undo_step_num(C, &ImageUndoStack, step);
+	else if (type == UNDO_PAINT_MESH)
+		return undo_step_num(C, &MeshUndoStack, step);
+}
+
+static char *undo_stack_get_name(UndoStack *stack, int nr, int *active)
+{
+	UndoElem *uel;
+
+	if (active) *active = 0;
+
+	uel = BLI_findlink(&stack->elems, nr);
+	if (uel) {
+		if (active && uel == stack->current)
+			*active = 1;
+		return uel->name;
+	}
+
+	return NULL;
+}
+
+const char *ED_undo_paint_get_name(int type, int nr, int *active)
+{
+	if (type == UNDO_PAINT_IMAGE)
+		return undo_stack_get_name(&ImageUndoStack, nr, active);
+	else if (type == UNDO_PAINT_MESH)
+		return undo_stack_get_name(&MeshUndoStack, nr, active);
+	return NULL;
+}
+
+bool ED_undo_paint_empty(int type)
+{
+	UndoStack *stack;
+
+	if (type == UNDO_PAINT_IMAGE)
+		stack = &ImageUndoStack;
+	else if (type == UNDO_PAINT_MESH)
+		stack = &MeshUndoStack;
+	else
+		return true;
+
+	if (stack->current == NULL) {
+		return true;
+	}
+
+	return false;
+}
+
 int ED_undo_paint_valid(int type, const char *name)
 {
 	UndoStack *stack;
