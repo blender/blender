@@ -268,26 +268,28 @@ static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 		PyErr_SetString(PyExc_TypeError, "operands must be a Nature object");
 		return NULL;
 	}
-	op1 = PyLong_AsLong(a);
-	if (PyErr_Occurred()) {
+
+	if ((op1 = PyLong_AsLong(a)) == -1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_ValueError, "operand 1: unexpected Nature value");
 		return NULL;
 	}
-	op2 = PyLong_AsLong(b);
-	if (PyErr_Occurred()) {
+	if ((op2 = PyLong_AsLong(b)) == -1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_ValueError, "operand 2: unexpected Nature value");
 		return NULL;
 	}
 	switch (op) {
-	case '&':
-		v = op1 & op2;
-		break;
-	case '^':
-		v = op1 ^ op2;
-		break;
-	case '|':
-		v = op1 | op2;
-		break;
+		case '&':
+			v = op1 & op2;
+			break;
+		case '^':
+			v = op1 ^ op2;
+			break;
+		case '|':
+			v = op1 | op2;
+			break;
+		default:
+			BLI_assert(0);
+			v = 0;
 	}
 	if (v == 0)
 		result = PyObject_NewVar(BPy_Nature, &Nature_Type, 0);
