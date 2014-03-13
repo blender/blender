@@ -172,15 +172,13 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
 				if (!is_boolean)
 					uiItemL(col, name, ICON_NONE);
 			}
-			else if (label_align == 'H') {
+			else {  /* (label_align == 'H') */
+				BLI_assert(label_align == 'H');
 				split = uiLayoutSplit(layout, 0.5f, false);
 
 				col = uiLayoutColumn(split, false);
 				uiItemL(col, (is_boolean) ? "" : name, ICON_NONE);
 				col = uiLayoutColumn(split, false);
-			}
-			else {
-				col = NULL;
 			}
 
 			/* may meed to add more cases here.

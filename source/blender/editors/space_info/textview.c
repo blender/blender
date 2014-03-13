@@ -294,7 +294,9 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 	cdc.lofs = -BLF_descender(mono);
 	/* note, scroll bar must be already subtracted () */
 	cdc.console_width = (tvc->winx - (CONSOLE_DRAW_MARGIN * 2) ) / cdc.cwidth;
-	CLAMP(cdc.console_width, 1, INT_MAX); /* avoid divide by zero on small windows */
+	/* avoid divide by zero on small windows */
+	if (cdc.console_width < 1)
+		cdc.console_width = 1;
 	cdc.winx = tvc->winx - CONSOLE_DRAW_MARGIN;
 	cdc.ymin = tvc->ymin;
 	cdc.ymax = tvc->ymax;
