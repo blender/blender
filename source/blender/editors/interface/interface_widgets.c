@@ -2270,8 +2270,7 @@ bool ui_hsvcube_use_display_colorspace(uiBut *but)
 			color_profile = false;
 	}
 
-	/* SV+H gradient does not use display colorspace */
-	return color_profile && !ELEM((int)but->a1, UI_GRAD_SV, UI_GRAD_H);
+	return color_profile;
 }
 
 void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp)
