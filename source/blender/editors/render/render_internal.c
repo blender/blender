@@ -131,7 +131,12 @@ static void image_buffer_rect_update(RenderJob *rj, RenderResult *rr, ImBuf *ibu
 	ColorManagedViewSettings *view_settings;
 	ColorManagedDisplaySettings *display_settings;
 
-	if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
+	/* Exception for exr tiles -- display buffer conversion happens here,
+	 * NOT in the color management pipeline.
+	 */
+	if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID &&
+	    rr->do_exr_tile == false)
+	{
 		/* The whole image buffer it so be color managed again anyway. */
 		return;
 	}
