@@ -135,7 +135,6 @@ typedef struct SubDPattern {
  * edge subdivision */
 static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace **r_f_new)
 {
-	BMLoop *l_new;
 	BMLoop *l_a, *l_b;
 	BMFace *f;
 
@@ -146,6 +145,7 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace
 
 	if (f) {
 		BMFace *f_new;
+		BMLoop *l_new;
 
 		f_new = BM_face_split(bm, f, l_a, l_b, &l_new, NULL, false);
 		

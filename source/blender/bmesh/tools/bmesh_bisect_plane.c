@@ -136,16 +136,14 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 	if ((STACK_SIZE(vert_split_arr) > 1) &&
 	    (use_dirs[0] && use_dirs[2]))
 	{
-		BMLoop *l_new;
-
 		if (LIKELY(STACK_SIZE(vert_split_arr) == 2)) {
+			BMLoop *l_new;
 			BMLoop *l_a, *l_b;
 
 			l_a = BM_face_vert_share_loop(f, vert_split_arr[0]);
 			l_b = BM_face_vert_share_loop(f, vert_split_arr[1]);
 
 			/* common case, just cut the face once */
-			l_new = NULL;
 			BM_face_split(bm, f, l_a, l_b, &l_new, NULL, true);
 			if (l_new) {
 				if (oflag_center) {
