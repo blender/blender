@@ -204,7 +204,10 @@ class BPyOpsSubModOp(object):
         import bpy
         idname = self.idname()
         as_string = op_as_string(idname)
-        op_class = getattr(bpy.types, idname)
+        # XXX You never quite know what you get from bpy.types, with operators... Operator and OperatorProperties
+        #     are shadowing each other, and not in the same way for native ops and py ones! See T39158.
+        # op_class = getattr(bpy.types, idname)
+        op_class = op_get_rna(idname)
         descr = op_class.bl_rna.description
         # XXX, workaround for not registering
         # every __doc__ to save time on load.
