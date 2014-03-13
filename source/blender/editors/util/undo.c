@@ -450,8 +450,6 @@ static int get_undo_system(bContext *C)
 		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			if (!ED_undo_paint_empty(UNDO_PAINT_IMAGE))
 				return UNDOSYSTEM_IMAPAINT;
-			else
-				return UNDOSYSTEM_GLOBAL;
 		}
 	}
 	/* find out which undo system */
@@ -469,11 +467,9 @@ static int get_undo_system(bContext *C)
 			else if (obact->mode & OB_MODE_TEXTURE_PAINT) {
 				if (!ED_undo_paint_empty(UNDO_PAINT_IMAGE))
 					return UNDOSYSTEM_IMAPAINT;
-				else
-					return UNDOSYSTEM_GLOBAL;
 			}
 		}
-		else if (U.uiflag & USER_GLOBALUNDO)
+		if (U.uiflag & USER_GLOBALUNDO)
 			return UNDOSYSTEM_GLOBAL;
 	}
 	
