@@ -374,7 +374,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
 		
 #ifdef __APPLE__
-		/* set the state here, else OSX would nor recignize changed screen resolution */
+		/* set the state here, else OSX would not recognize changed screen resolution */
 		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
 #endif
 		/* store actual window size in blender window */
