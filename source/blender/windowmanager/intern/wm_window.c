@@ -372,15 +372,15 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		
 		if (win->eventstate == NULL)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
+
+		/* set the state */
+		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
 		
 		/* store actual window size in blender window */
 		bounds = GHOST_GetClientBounds(win->ghostwin);
 		win->sizex = GHOST_GetWidthRectangle(bounds);
 		win->sizey = GHOST_GetHeightRectangle(bounds);
 		GHOST_DisposeRectangle(bounds);
-
-		/* set the state */
-		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
 
 		/* until screens get drawn, make it nice gray */
 		glClearColor(0.55, 0.55, 0.55, 0.0);
