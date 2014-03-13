@@ -99,28 +99,38 @@ template<typename T> struct texture_image  {
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		int ix, iy, nix, niy;
-		float tx = frac(x*width - 0.5f, &ix);
-		float ty = frac(y*height - 0.5f, &iy);
-
-		if(periodic) {
-			ix = wrap_periodic(ix, width);
-			iy = wrap_periodic(iy, height);
-
-			nix = wrap_periodic(ix+1, width);
-			niy = wrap_periodic(iy+1, height);
-		}
-		else {
-			ix = wrap_clamp(ix, width);
-			iy = wrap_clamp(iy, height);
-
-			nix = wrap_clamp(ix+1, width);
-			niy = wrap_clamp(iy+1, height);
-		}
-
 		if(interpolation == INTERPOLATION_CLOSEST) {
+			frac(x*width, &ix);
+			frac(y*height, &iy);
+			if(periodic) {
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+
+			}
+			else {
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+			}
 			return read(data[ix + iy*width]);
 		}
 		else {
+			float tx = frac(x*width - 0.5f, &ix);
+			float ty = frac(y*height - 0.5f, &iy);
+
+			if(periodic) {
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+
+				nix = wrap_periodic(ix+1, width);
+				niy = wrap_periodic(iy+1, height);
+			}
+			else {
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+
+				nix = wrap_clamp(ix+1, width);
+				niy = wrap_clamp(iy+1, height);
+			}
 			float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
 			r += (1.0f - ty)*tx*read(data[nix + iy*width]);
 			r += ty*(1.0f - tx)*read(data[ix + niy*width]);

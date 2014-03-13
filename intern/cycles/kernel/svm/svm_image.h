@@ -63,30 +63,43 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	uint periodic = (info.w & 0x1);
 	uint interpolation = info.w >> 1;
 
-	int ix, iy, nix, niy;
-	float tx = svm_image_texture_frac(x*width, &ix);
-	float ty = svm_image_texture_frac(y*height, &iy);
-
-	if(periodic) {
-		ix = svm_image_texture_wrap_periodic(ix, width);
-		iy = svm_image_texture_wrap_periodic(iy, height);
-
-		nix = svm_image_texture_wrap_periodic(ix+1, width);
-		niy = svm_image_texture_wrap_periodic(iy+1, height);
-	}
-	else {
-		ix = svm_image_texture_wrap_clamp(ix, width);
-		iy = svm_image_texture_wrap_clamp(iy, height);
-
-		nix = svm_image_texture_wrap_clamp(ix+1, width);
-		niy = svm_image_texture_wrap_clamp(iy+1, height);
-	}
-
 	float4 r;
+	int ix, iy, nix, niy;
 	if (interpolation == INTERPOLATION_CLOSEST){
+		svm_image_texture_frac(x*width, &ix);
+		svm_image_texture_frac(y*height, &iy);
+
+		if(periodic) {
+			ix = svm_image_texture_wrap_periodic(ix, width);
+			iy = svm_image_texture_wrap_periodic(iy, height);
+		}
+		else {
+			ix = svm_image_texture_wrap_clamp(ix, width);
+			iy = svm_image_texture_wrap_clamp(iy, height);
+
+		}
 		r = svm_image_texture_read(kg, offset + ix + iy*width);
 	}
 	else { /* We default to linear interpolation if it is not closest */
+		float tx = svm_image_texture_frac(x*width, &ix);
+		float ty = svm_image_texture_frac(y*height, &iy);
+
+		if(periodic) {
+			ix = svm_image_texture_wrap_periodic(ix, width);
+			iy = svm_image_texture_wrap_periodic(iy, height);
+
+			nix = svm_image_texture_wrap_periodic(ix+1, width);
+			niy = svm_image_texture_wrap_periodic(iy+1, height);
+		}
+		else {
+			ix = svm_image_texture_wrap_clamp(ix, width);
+			iy = svm_image_texture_wrap_clamp(iy, height);
+
+			nix = svm_image_texture_wrap_clamp(ix+1, width);
+			niy = svm_image_texture_wrap_clamp(iy+1, height);
+		}
+
+
 		r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + iy*width);
 		r += (1.0f - ty)*tx*svm_image_texture_read(kg, offset + nix + iy*width);
 		r += ty*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + niy*width);
