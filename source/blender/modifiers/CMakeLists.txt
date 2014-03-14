@@ -133,15 +133,6 @@ if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
 endif()
 
-if(WITH_GAMEENGINE)
-	# for MOD_navmesh.c
-	add_definitions(-DWITH_GAMEENGINE)
-	list(APPEND INC
-		../gpu
-		../../../extern/recastnavigation
-	)
-endif()
-
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()

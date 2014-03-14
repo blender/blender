@@ -33,10 +33,10 @@ set(SRC
 
 data_to_c_simple(../../../../release/datafiles/bfont.pfb SRC)
 data_to_c_simple(../../../../release/datafiles/bfont.ttf SRC)
+data_to_c_simple(../../../../release/datafiles/bmonofont.ttf SRC)
 
 if(WITH_BLENDER)
 	# blender only (not player)
-	data_to_c_simple(../../../../release/datafiles/bmonofont.ttf SRC)
 
 	if(NOT WITH_HEADLESS)
 		# blender UI only
