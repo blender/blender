@@ -2050,11 +2050,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	float xpos, ypos, ang = 0.0f;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
 	int a;
-	bool color_profile = but->block->color_profile;
-	
-	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = false;
-	
+	bool color_profile = ui_color_picker_use_display_colorspace(but);
+		
 	/* color */
 	ui_get_but_vectorf(but, rgb);
 
@@ -2063,10 +2060,10 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	hsvo[1] = hsv[1] = hsv_ptr[1];
 	hsvo[2] = hsv[2] = hsv_ptr[2];
 
-	ui_rgb_to_color_picker_compat_v(rgb, hsvo);
-
 	if (color_profile)
 		ui_block_to_display_space_v3(but->block, rgb);
+
+	ui_rgb_to_color_picker_compat_v(rgb, hsvo);
 
 	ui_rgb_to_color_picker_compat_v(rgb, hsv);
 	
@@ -2261,7 +2258,7 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	
 }
 
-bool ui_hsvcube_use_display_colorspace(uiBut *but)
+bool ui_color_picker_use_display_colorspace(uiBut *but)
 {
 	bool color_profile = but->block->color_profile;
 
@@ -2310,7 +2307,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 	float x = 0.0f, y = 0.0f;
 	float *hsv = ui_block_hsv_get(but->block);
 	float hsv_n[3];
-	bool use_display_colorspace = ui_hsvcube_use_display_colorspace(but);
+	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 	
 	copy_v3_v3(hsv_n, hsv);
 	

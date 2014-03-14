@@ -4298,7 +4298,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	float x, y;
 	float mx_fl, my_fl;
 	bool changed = true;
-	bool use_display_colorspace = ui_hsvcube_use_display_colorspace(but);
+	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 
 	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
 
@@ -4413,7 +4413,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	const float hsv_v_max = max_ff(hsv[2], but->softmax);
 	float rgb[3];
 	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
-	bool use_display_colorspace = ui_hsvcube_use_display_colorspace(but);
+	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 
 	ui_get_but_vectorf(but, rgb);
 
@@ -4604,7 +4604,8 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	float mx_fl, my_fl;
 	float rgb[3];
 	float hsv[3];
-	
+	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
+
 	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
 	
 #ifdef USE_CONT_MOUSE_CORRECT
@@ -4626,6 +4627,9 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	BLI_rcti_rctf_copy(&rect, &but->rect);
 
 	ui_get_but_vectorf(but, rgb);
+	if (use_display_colorspace)
+		ui_block_to_display_space_v3(but->block, rgb);
+
 	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
 
 	ui_rgb_to_color_picker_compat_v(rgb, hsv);
@@ -4638,12 +4642,15 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 
 	/* only apply the delta motion, not absolute */
 	if (shift) {
-		float xpos, ypos, hsvo[3];
+		float xpos, ypos, hsvo[3], rgbo[3];
 		
 		/* calculate original hsv again */
 		copy_v3_v3(hsvo, ui_block_hsv_get(but->block));
+		copy_v3_v3(rgbo, data->origvec);
+		if (use_display_colorspace)
+			ui_block_to_display_space_v3(but->block, rgbo);
 
-		ui_rgb_to_color_picker_compat_v(data->origvec, hsvo);
+		ui_rgb_to_color_picker_compat_v(rgbo, hsvo);
 
 		/* and original position */
 		ui_hsvcircle_pos_from_vals(but, &rect, hsvo, &xpos, &ypos);
@@ -4668,6 +4675,9 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 		normalize_v3(rgb);
 		mul_v3_fl(rgb, but->a2);
 	}
+
+	if (use_display_colorspace)
+		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	ui_set_but_vectorf(but, rgb);
 	
