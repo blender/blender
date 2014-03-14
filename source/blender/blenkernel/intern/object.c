@@ -331,6 +331,10 @@ void BKE_object_free_derived_caches(Object *ob)
 			free_path(ob->curve_cache->path);
 			ob->curve_cache->path = NULL;
 		}
+
+		/* Signal for viewport to run DAG workarounds. */
+		MEM_freeN(ob->curve_cache);
+		ob->curve_cache = NULL;
 	}
 }
 
