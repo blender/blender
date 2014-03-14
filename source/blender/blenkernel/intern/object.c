@@ -1282,6 +1282,7 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->pdd = NULL;
 	psysn->effectors = NULL;
 	psysn->tree = NULL;
+	psysn->bvhtree = NULL;
 	
 	BLI_listbase_clear(&psysn->pathcachebufs);
 	BLI_listbase_clear(&psysn->childcachebufs);
