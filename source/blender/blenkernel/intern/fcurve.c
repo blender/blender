@@ -1924,6 +1924,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 	unsigned int a;
 	int b;
 	float cvalue = 0.0f;
+	bool exact = false;
 	
 	/* get pointers */
 	a = fcu->totvert - 1;
@@ -2038,54 +2039,66 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 	}
 	else {
 		/* evaltime occurs somewhere in the middle of the curve */
-		for (a = 0; prevbezt && bezt && (a < fcu->totvert - 1); a++, prevbezt = bezt, bezt++) {
-			/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
-			if (fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
-				cvalue = bezt->vec[1][1];
+		/* - use binary search to find appropriate keyframes */
+		a = binarysearch_bezt_index(bezts, evaltime, fcu->totvert, &exact);
+		BLI_assert(a > 0); /* a == 0, prevbezt = invalid access */
+		
+		bezt = bezts;
+		bezt += a;
+		prevbezt = bezt - 1;
+		
+		/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
+		/* NOTE: Although we could just check if exact == true here, the thresholds for equality are
+		 *       different (0.01 for exact, vs 1e-8 for SMALL_NUMBER). For backwards compatibility,
+		 *       and to avoid introducing regressions for a few rare cases, let's keep the old
+		 *       method/thresholds here for now.
+		 *       -- Aligorith (2014Mar14)
+		 */
+		if (fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
+			cvalue = bezt->vec[1][1];
+		}
+		/* evaltime occurs within the interval defined by these two keyframes */
+		else if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
+			/* value depends on interpolation mode */
+			if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES)) {
+				/* constant (evaltime not relevant, so no interpolation needed) */
+				cvalue = prevbezt->vec[1][1];
 			}
-			/* evaltime occurs within the interval defined by these two keyframes */
-			else if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
-				/* value depends on interpolation mode */
-				if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES)) {
-					/* constant (evaltime not relevant, so no interpolation needed) */
-					cvalue = prevbezt->vec[1][1];
-				}
-				else if (prevbezt->ipo == BEZT_IPO_LIN) {
-					/* linear - interpolate between values of the two keyframes */
-					fac = bezt->vec[1][0] - prevbezt->vec[1][0];
-					
-					/* prevent division by zero */
-					if (fac) {
-						fac = (evaltime - prevbezt->vec[1][0]) / fac;
-						cvalue = prevbezt->vec[1][1] + (fac * (bezt->vec[1][1] - prevbezt->vec[1][1]));
-					}
-					else {
-						cvalue = prevbezt->vec[1][1];
-					}
+			else if (prevbezt->ipo == BEZT_IPO_LIN) {
+				/* linear - interpolate between values of the two keyframes */
+				fac = bezt->vec[1][0] - prevbezt->vec[1][0];
+				
+				/* prevent division by zero */
+				if (fac) {
+					fac = (evaltime - prevbezt->vec[1][0]) / fac;
+					cvalue = prevbezt->vec[1][1] + (fac * (bezt->vec[1][1] - prevbezt->vec[1][1]));
 				}
 				else {
-					/* bezier interpolation */
-					/* (v1, v2) are the first keyframe and its 2nd handle */
-					v1[0] = prevbezt->vec[1][0];
-					v1[1] = prevbezt->vec[1][1];
-					v2[0] = prevbezt->vec[2][0];
-					v2[1] = prevbezt->vec[2][1];
-					/* (v3, v4) are the last keyframe's 1st handle + the last keyframe */
-					v3[0] = bezt->vec[0][0];
-					v3[1] = bezt->vec[0][1];
-					v4[0] = bezt->vec[1][0];
-					v4[1] = bezt->vec[1][1];
-					
-					/* adjust handles so that they don't overlap (forming a loop) */
-					correct_bezpart(v1, v2, v3, v4);
-					
-					/* try to get a value for this position - if failure, try another set of points */
-					b = findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl);
-					if (b) {
-						berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
-						cvalue = opl[0];
-						break;
-					}
+					cvalue = prevbezt->vec[1][1];
+				}
+			}
+			else {
+				/* bezier interpolation */
+				/* (v1, v2) are the first keyframe and its 2nd handle */
+				v1[0] = prevbezt->vec[1][0];
+				v1[1] = prevbezt->vec[1][1];
+				v2[0] = prevbezt->vec[2][0];
+				v2[1] = prevbezt->vec[2][1];
+				/* (v3, v4) are the last keyframe's 1st handle + the last keyframe */
+				v3[0] = bezt->vec[0][0];
+				v3[1] = bezt->vec[0][1];
+				v4[0] = bezt->vec[1][0];
+				v4[1] = bezt->vec[1][1];
+				
+				/* adjust handles so that they don't overlap (forming a loop) */
+				correct_bezpart(v1, v2, v3, v4);
+				
+				/* try to get a value for this position - if failure, try another set of points */
+				b = findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl);
+				if (b) {
+					berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
+					cvalue = opl[0];
+					/* break; */
 				}
 			}
 		}
