@@ -83,26 +83,26 @@ static void mesh_calc_normals_vert_fallback(MVert *mverts, int numVerts)
 	}
 }
 
-/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
+/* Calculate vertex and face normals, face normals are returned in *r_faceNors if non-NULL
  * and vertex normals are stored in actual mverts.
  */
 void BKE_mesh_calc_normals_mapping(MVert *mverts, int numVerts,
-                                   MLoop *mloop, MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
-                                   MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3])
+                                   MLoop *mloop, MPoly *mpolys, int numLoops, int numPolys, float (*r_polyNors)[3],
+                                   MFace *mfaces, int numFaces, const int *origIndexFace, float (*r_faceNors)[3])
 {
 	BKE_mesh_calc_normals_mapping_ex(mverts, numVerts, mloop, mpolys,
-	                                 numLoops, numPolys, polyNors_r, mfaces, numFaces,
-	                                 origIndexFace, faceNors_r, FALSE);
+	                                 numLoops, numPolys, r_polyNors, mfaces, numFaces,
+	                                 origIndexFace, r_faceNors, FALSE);
 }
 /* extended version of 'BKE_mesh_calc_normals_poly' with option not to calc vertex normals */
 void BKE_mesh_calc_normals_mapping_ex(
         MVert *mverts, int numVerts,
         MLoop *mloop, MPoly *mpolys,
-        int numLoops, int numPolys, float (*polyNors_r)[3],
-        MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3],
+        int numLoops, int numPolys, float (*r_polyNors)[3],
+        MFace *mfaces, int numFaces, const int *origIndexFace, float (*r_faceNors)[3],
         const bool only_face_normals)
 {
-	float (*pnors)[3] = polyNors_r, (*fnors)[3] = faceNors_r;
+	float (*pnors)[3] = r_polyNors, (*fnors)[3] = r_faceNors;
 	int i;
 	MFace *mf;
 	MPoly *mp;
@@ -115,7 +115,7 @@ void BKE_mesh_calc_normals_mapping_ex(
 	}
 
 	/* if we are not calculating verts and no verts were passes then we have nothing to do */
-	if ((only_face_normals == TRUE) && (polyNors_r == NULL) && (faceNors_r == NULL)) {
+	if ((only_face_normals == TRUE) && (r_polyNors == NULL) && (r_faceNors == NULL)) {
 		printf("%s: called with nothing to do\n", __func__);
 		return;
 	}
@@ -138,7 +138,7 @@ void BKE_mesh_calc_normals_mapping_ex(
 	}
 
 	if (origIndexFace &&
-	    /* fnors == faceNors_r */ /* NO NEED TO ALLOC YET */
+	    /* fnors == r_faceNors */ /* NO NEED TO ALLOC YET */
 	    fnors != NULL &&
 	    numFaces)
 	{
@@ -154,8 +154,8 @@ void BKE_mesh_calc_normals_mapping_ex(
 		}
 	}
 
-	if (pnors != polyNors_r) MEM_freeN(pnors);
-	/* if (fnors != faceNors_r) MEM_freeN(fnors); */ /* NO NEED TO ALLOC YET */
+	if (pnors != r_polyNors) MEM_freeN(pnors);
+	/* if (fnors != r_faceNors) MEM_freeN(fnors); */ /* NO NEED TO ALLOC YET */
 
 	fnors = pnors = NULL;
 	
@@ -277,10 +277,10 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #endif
 }
 
-void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*faceNors_r)[3])
+void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*r_faceNors)[3])
 {
 	float (*tnorms)[3] = MEM_callocN(sizeof(*tnorms) * (size_t)numVerts, "tnorms");
-	float (*fnors)[3] = (faceNors_r) ? faceNors_r : MEM_callocN(sizeof(*fnors) * (size_t)numFaces, "meshnormals");
+	float (*fnors)[3] = (r_faceNors) ? r_faceNors : MEM_callocN(sizeof(*fnors) * (size_t)numFaces, "meshnormals");
 	int i;
 
 	for (i = 0; i < numFaces; i++) {
@@ -312,7 +312,7 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
 	
 	MEM_freeN(tnorms);
 
-	if (fnors != faceNors_r)
+	if (fnors != r_faceNors)
 		MEM_freeN(fnors);
 }
 
@@ -1733,8 +1733,8 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
                                           int totedge_i, int totface_i, int totloop_i, int totpoly_i,
                                           MEdge *medge, MFace *mface,
-                                          int *totloop_r, int *totpoly_r,
-                                          MLoop **mloop_r, MPoly **mpoly_r)
+                                          int *r_totloop, int *r_totpoly,
+                                          MLoop **r_mloop, MPoly **r_mpoly)
 {
 	MFace *mf;
 	MLoop *ml, *mloop;
@@ -1828,10 +1828,10 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 
 	BLI_edgehash_free(eh, NULL);
 
-	*totpoly_r = totpoly;
-	*totloop_r = totloop;
-	*mpoly_r = mpoly;
-	*mloop_r = mloop;
+	*r_totpoly = totpoly;
+	*r_totloop = totloop;
+	*r_mpoly = mpoly;
+	*r_mloop = mloop;
 }
 /** \} */
 

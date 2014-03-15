@@ -195,7 +195,7 @@ static const size_t utf8_skip_data[256] = {
 
 char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
 {
-	char *dst_r = dst;
+	char *r_dst = dst;
 
 	BLI_assert(maxncpy != 0);
 
@@ -206,7 +206,7 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
 	/* note: currently we don't attempt to deal with invalid utf8 chars */
 	BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
-	return dst_r;
+	return r_dst;
 }
 
 char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)

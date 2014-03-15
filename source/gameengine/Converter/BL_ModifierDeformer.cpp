@@ -189,10 +189,10 @@ bool BL_ModifierDeformer::Update(void)
 			/* update the graphic controller */
 			PHY_IGraphicController *ctrl = m_gameobj->GetGraphicController();
 			if (ctrl) {
-				float min_r[3], max_r[3];
-				INIT_MINMAX(min_r, max_r);
-				m_dm->getMinMax(m_dm, min_r, max_r);
-				ctrl->SetLocalAabb(min_r, max_r);
+				float min[3], max[3];
+				INIT_MINMAX(min, max);
+				m_dm->getMinMax(m_dm, min, max);
+				ctrl->SetLocalAabb(min, max);
 			}
 		}
 		m_lastModifierUpdate=m_gameobj->GetLastFrame();

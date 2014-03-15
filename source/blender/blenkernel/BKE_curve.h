@@ -97,7 +97,7 @@ void         BKE_curve_nurb_vert_active_set(struct Curve *cu, struct Nurb *nu,  
 bool         BKE_curve_nurb_vert_active_get(struct Curve *cu, struct Nurb **r_nu, void **r_vert);
 void         BKE_curve_nurb_vert_active_validate(struct Curve *cu);
 
-float (*BKE_curve_nurbs_vertexCos_get(struct ListBase *lb, int *numVerts_r))[3];
+float (*BKE_curve_nurbs_vertexCos_get(struct ListBase *lb, int *r_numVerts))[3];
 void BK_curve_nurbs_vertexCos_apply(struct ListBase *lb, float (*vertexCos)[3]);
 
 float (*BKE_curve_nurbs_keyVertexCos_get(struct ListBase *lb, float *key))[3];

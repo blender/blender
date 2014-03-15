@@ -1750,7 +1750,7 @@ void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth)
 
 /**
  * Return a newly MEM_malloc'd array of all the mesh vertex locations
- * \note \a numVerts_r may be NULL
+ * \note \a r_numVerts may be NULL
  */
 float (*BKE_mesh_vertexCos_get(Mesh *me, int *r_numVerts))[3]
 {
@@ -1781,11 +1781,11 @@ int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
 }
 
 /**
- * Fill \a adj_r with the loop indices in \a poly adjacent to the
+ * Fill \a r_adj with the loop indices in \a poly adjacent to the
  * vertex. Returns the index of the loop matching vertex, or -1 if the
  * vertex is not in \a poly
  */
-int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
+int poly_get_adj_loops_from_vert(unsigned r_adj[3], const MPoly *poly,
                                  const MLoop *mloop, unsigned vert)
 {
 	int corner = poly_find_loop_from_vert(poly,
@@ -1796,9 +1796,9 @@ int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 		const MLoop *ml = &mloop[poly->loopstart + corner];
 
 		/* vertex was found */
-		adj_r[0] = ME_POLY_LOOP_PREV(mloop, poly, corner)->v;
-		adj_r[1] = ml->v;
-		adj_r[2] = ME_POLY_LOOP_NEXT(mloop, poly, corner)->v;
+		r_adj[0] = ME_POLY_LOOP_PREV(mloop, poly, corner)->v;
+		r_adj[1] = ml->v;
+		r_adj[2] = ME_POLY_LOOP_NEXT(mloop, poly, corner)->v;
 	}
 
 	return corner;

@@ -694,7 +694,7 @@ static void minmax_v3_v3v3(const float vec[3], float min[3], float max[3])
 	if (max[2] < vec[2]) max[2] = vec[2];
 }
 
-static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
+static void ccgDM_getMinMax(DerivedMesh *dm, float r_min[3], float r_max[3])
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -708,13 +708,13 @@ static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 	CCG_key_top_level(&key, ss);
 
 	if (!ccgSubSurf_getNumVerts(ss))
-		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
+		r_min[0] = r_min[1] = r_min[2] = r_max[0] = r_max[1] = r_max[2] = 0.0;
 
 	for (vi = ccgSubSurf_getVertIterator(ss); !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
 		float *co = ccgSubSurf_getVertData(ss, v);
 
-		minmax_v3_v3v3(co, min_r, max_r);
+		minmax_v3_v3v3(co, r_min, r_max);
 	}
 	ccgVertIterator_free(vi);
 
@@ -723,7 +723,7 @@ static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 		CCGElem *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
 
 		for (i = 0; i < edgeSize; i++)
-			minmax_v3_v3v3(CCG_elem_offset_co(&key, edgeData, i), min_r, max_r);
+			minmax_v3_v3v3(CCG_elem_offset_co(&key, edgeData, i), r_min, r_max);
 	}
 	ccgEdgeIterator_free(ei);
 
@@ -736,7 +736,7 @@ static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 
 			for (y = 0; y < gridSize; y++)
 				for (x = 0; x < gridSize; x++)
-					minmax_v3_v3v3(CCG_grid_elem_co(&key, faceGridData, x, y), min_r, max_r);
+					minmax_v3_v3v3(CCG_grid_elem_co(&key, faceGridData, x, y), r_min, r_max);
 		}
 	}
 	ccgFaceIterator_free(fi);
@@ -863,20 +863,20 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 	}
 }
 
-static void ccgDM_getFinalVertCo(DerivedMesh *dm, int vertNum, float co_r[3])
+static void ccgDM_getFinalVertCo(DerivedMesh *dm, int vertNum, float r_co[3])
 {
 	MVert mvert;
 
 	ccgDM_getFinalVert(dm, vertNum, &mvert);
-	copy_v3_v3(co_r, mvert.co);
+	copy_v3_v3(r_co, mvert.co);
 }
 
-static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float no_r[3])
+static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
 {
 	MVert mvert;
 
 	ccgDM_getFinalVert(dm, vertNum, &mvert);
-	normal_short_to_float_v3(no_r, mvert.no);
+	normal_short_to_float_v3(r_no, mvert.no);
 }
 
 static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
@@ -3682,7 +3682,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	return (DerivedMesh *)result;
 }
 
-void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 
+void subsurf_calculate_limit_positions(Mesh *me, float (*r_positions)[3])
 {
 	/* Finds the subsurf limit positions for the verts in a mesh 
 	 * and puts them in an array of floats. Please note that the 
@@ -3722,9 +3722,9 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 			mul_v3_fl(face_sum, (float)N / (float)numFaces);
 
 		co = ccgSubSurf_getVertData(ss, v);
-		positions_r[idx][0] = (co[0] * N * N + edge_sum[0] * 4 + face_sum[0]) / (N * (N + 5));
-		positions_r[idx][1] = (co[1] * N * N + edge_sum[1] * 4 + face_sum[1]) / (N * (N + 5));
-		positions_r[idx][2] = (co[2] * N * N + edge_sum[2] * 4 + face_sum[2]) / (N * (N + 5));
+		r_positions[idx][0] = (co[0] * N * N + edge_sum[0] * 4 + face_sum[0]) / (N * (N + 5));
+		r_positions[idx][1] = (co[1] * N * N + edge_sum[1] * 4 + face_sum[1]) / (N * (N + 5));
+		r_positions[idx][2] = (co[2] * N * N + edge_sum[2] * 4 + face_sum[2]) / (N * (N + 5));
 	}
 	ccgVertIterator_free(vi);
 

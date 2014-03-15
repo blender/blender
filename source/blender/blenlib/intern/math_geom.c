@@ -295,49 +295,49 @@ float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l
 }
 
 /* point closest to v1 on line v2-v3 in 2D */
-void closest_to_line_segment_v2(float close_r[2], const float p[2], const float l1[2], const float l2[2])
+void closest_to_line_segment_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2])
 {
 	float lambda, cp[2];
 
 	lambda = closest_to_line_v2(cp, p, l1, l2);
 
 	if (lambda <= 0.0f)
-		copy_v2_v2(close_r, l1);
+		copy_v2_v2(r_close, l1);
 	else if (lambda >= 1.0f)
-		copy_v2_v2(close_r, l2);
+		copy_v2_v2(r_close, l2);
 	else
-		copy_v2_v2(close_r, cp);
+		copy_v2_v2(r_close, cp);
 }
 
 /* point closest to v1 on line v2-v3 in 3D */
-void closest_to_line_segment_v3(float close_r[3], const float v1[3], const float v2[3], const float v3[3])
+void closest_to_line_segment_v3(float r_close[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	float lambda, cp[3];
 
 	lambda = closest_to_line_v3(cp, v1, v2, v3);
 
 	if (lambda <= 0.0f)
-		copy_v3_v3(close_r, v2);
+		copy_v3_v3(r_close, v2);
 	else if (lambda >= 1.0f)
-		copy_v3_v3(close_r, v3);
+		copy_v3_v3(r_close, v3);
 	else
-		copy_v3_v3(close_r, cp);
+		copy_v3_v3(r_close, cp);
 }
 
 /**
  * Find the closest point on a plane.
  *
- * \param close_r  Return coordinate
+ * \param r_close  Return coordinate
  * \param plane  The plane to test against.
  * \param pt  The point to find the nearest of
  *
  * \note non-unit-length planes are supported.
  */
-void closest_to_plane_v3(float close_r[3], const float plane[4], const float pt[3])
+void closest_to_plane_v3(float r_close[3], const float plane[4], const float pt[3])
 {
 	const float len_sq = len_squared_v3(plane);
 	const float side = plane_point_side_v3(plane, pt);
-	madd_v3_v3v3fl(close_r, pt, plane, -side / len_sq);
+	madd_v3_v3v3fl(r_close, pt, plane, -side / len_sq);
 }
 
 float dist_squared_to_plane_v3(const float pt[3], const float plane[4])

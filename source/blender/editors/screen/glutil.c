@@ -460,7 +460,7 @@ void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y
 	glBitmap(0, 0, 0, 0, x - known_good_x, y - known_good_y, &dummy);
 }
 
-static int get_cached_work_texture(int *w_r, int *h_r)
+static int get_cached_work_texture(int *r_w, int *r_h)
 {
 	static GLint texid = -1;
 	static int tex_w = 256;
@@ -484,8 +484,8 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 		glBindTexture(GL_TEXTURE_2D, ltexid);
 	}
 
-	*w_r = tex_w;
-	*h_r = tex_h;
+	*r_w = tex_w;
+	*r_h = tex_h;
 	return texid;
 }
 
@@ -825,10 +825,10 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 /**
  * Translate the (\a wo_x, \a wo_y) point from world coordinates into screen space.
  */
-void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *sc_x_r, int *sc_y_r)
+void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *r_sc_x, int *r_sc_y)
 {
-	*sc_x_r = (wo_x - di->world_rect.xmin) * di->wo_to_sc[0];
-	*sc_y_r = (wo_y - di->world_rect.ymin) * di->wo_to_sc[1];
+	*r_sc_x = (wo_x - di->world_rect.xmin) * di->wo_to_sc[0];
+	*r_sc_y = (wo_y - di->world_rect.ymin) * di->wo_to_sc[1];
 }
 
 /**

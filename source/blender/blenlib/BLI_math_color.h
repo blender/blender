@@ -132,10 +132,10 @@ void hsv_clamp_v(float hsv[3], float v_max);
 void rgb_float_set_hue_float_offset(float *rgb, float hue_offset);
 void rgb_byte_set_hue_float_offset(unsigned char *rgb, float hue_offset);
 
-void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3]);
-void rgba_uchar_to_float(float col_r[4], const unsigned char col_ub[4]);
-void rgb_float_to_uchar(unsigned char col_r[3], const float col_f[3]);
-void rgba_float_to_uchar(unsigned char col_r[4], const float col_f[4]);
+void rgb_uchar_to_float(float r_col[3], const unsigned char col_ub[3]);
+void rgba_uchar_to_float(float r_col[4], const unsigned char col_ub[4]);
+void rgb_float_to_uchar(unsigned char r_col[3], const float col_f[3]);
+void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4]);
 
 void xyz_to_lab(float x, float y, float z, float *l, float *a, float *b);
 

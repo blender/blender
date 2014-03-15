@@ -260,11 +260,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 	if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-		float min_r[3], max_r[3];
-		INIT_MINMAX(min_r, max_r);
-		dm->getMinMax(dm, min_r, max_r);
-		min_co = min_r[track];
-		max_co = max_r[track];
+		float min[3], max[3];
+		INIT_MINMAX(min, max);
+		dm->getMinMax(dm, min, max);
+		min_co = min[track];
+		max_co = max[track];
 	}
 
 	result = CDDM_from_template(dm, maxvert, 0, 0, maxloop, maxpoly);

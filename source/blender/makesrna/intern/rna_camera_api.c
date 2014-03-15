@@ -42,16 +42,16 @@
 #include "BKE_object.h"
 
 static void rna_camera_view_frame(struct Camera *camera, struct Scene *scene,
-                                  float vec1_r[3], float vec2_r[3], float vec3_r[3], float vec4_r[3])
+                                  float r_vec1[3], float r_vec2[3], float r_vec3[3], float r_vec4[3])
 {
 	float vec[4][3];
 
 	BKE_camera_view_frame(scene, camera, vec);
 
-	copy_v3_v3(vec1_r, vec[0]);
-	copy_v3_v3(vec2_r, vec[1]);
-	copy_v3_v3(vec3_r, vec[2]);
-	copy_v3_v3(vec4_r, vec[3]);
+	copy_v3_v3(r_vec1, vec[0]);
+	copy_v3_v3(r_vec2, vec[1]);
+	copy_v3_v3(r_vec3, vec[2]);
+	copy_v3_v3(r_vec4, vec[3]);
 }
 
 #else

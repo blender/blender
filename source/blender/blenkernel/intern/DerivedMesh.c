@@ -1919,14 +1919,14 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	BLI_linklist_free((LinkNode *)datamasks, NULL);
 }
 
-float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *numVerts_r))[3]
+float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *r_numVerts))[3]
 {
 	BMIter iter;
 	BMVert *eve;
 	float (*cos)[3];
 	int i;
 
-	*numVerts_r = em->bm->totvert;
+	*r_numVerts = em->bm->totvert;
 
 	cos = MEM_mallocN(sizeof(float) * 3 * em->bm->totvert, "vertexcos");
 
@@ -2415,7 +2415,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
 
 /***/
 
-DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, BMEditMesh *em, DerivedMesh **final_r,
+DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, BMEditMesh *em, DerivedMesh **r_final,
                                                   CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
@@ -2429,7 +2429,7 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, 
 		editbmesh_build_data(scene, obedit, em, dataMask);
 	}
 
-	*final_r = em->derivedFinal;
+	*r_final = em->derivedFinal;
 	if (em->derivedFinal) { BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS)); }
 	return em->derivedCage;
 }

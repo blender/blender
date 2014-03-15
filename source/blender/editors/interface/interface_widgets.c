@@ -610,15 +610,15 @@ static void shadecolors4(char coltop[4], char coldown[4], const char *color, sho
 	coldown[3] = color[3];
 }
 
-static void round_box_shade_col4_r(unsigned char col_r[4], const char col1[4], const char col2[4], const float fac)
+static void round_box_shade_col4_r(unsigned char r_col[4], const char col1[4], const char col2[4], const float fac)
 {
 	const int faci = FTOCHAR(fac);
 	const int facm = 255 - faci;
 
-	col_r[0] = (faci * col1[0] + facm * col2[0]) >> 8;
-	col_r[1] = (faci * col1[1] + facm * col2[1]) >> 8;
-	col_r[2] = (faci * col1[2] + facm * col2[2]) >> 8;
-	col_r[3] = (faci * col1[3] + facm * col2[3]) >> 8;
+	r_col[0] = (faci * col1[0] + facm * col2[0]) >> 8;
+	r_col[1] = (faci * col1[1] + facm * col2[1]) >> 8;
+	r_col[2] = (faci * col1[2] + facm * col2[2]) >> 8;
+	r_col[3] = (faci * col1[3] + facm * col2[3]) >> 8;
 }
 
 static void widget_verts_to_quad_strip(uiWidgetBase *wtb, const int totvert, float quad_strip[WIDGET_SIZE_MAX * 2 + 2][2])

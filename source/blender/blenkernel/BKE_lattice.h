@@ -73,7 +73,7 @@ void armature_deform_verts(struct Object *armOb, struct Object *target,
                            float (*defMats)[3][3], int numVerts, int deformflag,
                            float (*prevCos)[3], const char *defgrp_name);
 
-float (*BKE_lattice_vertexcos_get(struct Object *ob, int *numVerts_r))[3];
+float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3];
 void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
 void    BKE_lattice_modifiers_calc(struct Scene *scene, struct Object *ob);
 

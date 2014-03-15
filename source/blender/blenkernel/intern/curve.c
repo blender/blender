@@ -3637,9 +3637,9 @@ void BKE_nurb_direction_switch(Nurb *nu)
 }
 
 
-float (*BKE_curve_nurbs_vertexCos_get(ListBase *lb, int *numVerts_r))[3]
+float (*BKE_curve_nurbs_vertexCos_get(ListBase *lb, int *r_numVerts))[3]
 {
-	int i, numVerts = *numVerts_r = BKE_nurbList_verts_count(lb);
+	int i, numVerts = *r_numVerts = BKE_nurbList_verts_count(lb);
 	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "cu_vcos");
 	Nurb *nu;
 

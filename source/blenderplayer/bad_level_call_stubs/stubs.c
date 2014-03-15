@@ -317,7 +317,7 @@ void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, int *regi
 struct EditBone *ED_armature_bone_get_mirrored(const struct ListBase *edbo, EditBone *ebo) RET_NULL
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name) RET_NULL
 struct ListBase *get_active_constraints (struct Object *ob) RET_NULL
-struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r) RET_NULL
+struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **r_pchan) RET_NULL
 
 bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit) RET_ZERO
 bool ED_space_image_show_render(struct SpaceImage *sima) RET_ZERO

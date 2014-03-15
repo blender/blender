@@ -345,7 +345,7 @@ struct ModifierData  *modifiers_findByType(struct Object *ob, ModifierType type)
 struct ModifierData  *modifiers_findByName(struct Object *ob, const char *name);
 void          modifiers_clearErrors(struct Object *ob);
 int           modifiers_getCageIndex(struct Scene *scene, struct Object *ob,
-                                     int *lastPossibleCageIndex_r, int virtual_);
+                                     int *r_lastPossibleCageIndex, bool is_virtual);
 
 bool          modifiers_isModifierEnabled(struct Object *ob, int modifierType);
 bool          modifiers_isSoftbodyEnabled(struct Object *ob);

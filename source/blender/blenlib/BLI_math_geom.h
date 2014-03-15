@@ -84,7 +84,7 @@ float dist_squared_to_line_v2(const float p[2], const float l1[2], const float l
 float         dist_to_line_v2(const float p[2], const float l1[2], const float l2[2]);
 float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
 float         dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
-void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2]);
+void closest_to_line_segment_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2]);
 
 float dist_squared_to_plane_v3(const float p[3], const float plane[4]);
 float dist_to_plane_v3(const float p[3], const float plane[4]);
@@ -94,8 +94,8 @@ float dist_squared_to_line_v3(const float p[3], const float l1[3], const float l
 float         dist_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v2(float r[2], const float p[2], const float l1[2], const float l2[2]);
-void closest_to_line_segment_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
-void closest_to_plane_v3(float close_r[3], const float plane[4], const float pt[3]);
+void closest_to_line_segment_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3]);
+void closest_to_plane_v3(float r_close[3], const float plane[4], const float pt[3]);
 
 /* Set 'r' to the point in triangle (t1, t2, t3) closest to point 'p' */
 void closest_on_tri_to_point_v3(float r[3], const float p[3], const float t1[3], const float t2[3], const float t3[3]);

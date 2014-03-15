@@ -620,7 +620,7 @@ static bool where_on_path_deform(Object *ob, float ctime, float vec[4], float di
 /* returns quaternion for rotation, using cd->no_rot_axis */
 /* axis is using another define!!! */
 static bool calc_curve_deform(Scene *scene, Object *par, float co[3],
-                              const short axis, CurveDeform *cd, float quat_r[4])
+                              const short axis, CurveDeform *cd, float r_quat[4])
 {
 	Curve *cu = par->data;
 	float fac, loc[4], dir[3], new_quat[4], radius;
@@ -706,8 +706,8 @@ static bool calc_curve_deform(Scene *scene, Object *par, float co[3],
 		/* translation */
 		add_v3_v3v3(co, cent, loc);
 
-		if (quat_r)
-			copy_qt_qt(quat_r, quat);
+		if (r_quat)
+			copy_qt_qt(r_quat, quat);
 
 		return 1;
 	}
@@ -1024,14 +1024,14 @@ void outside_lattice(Lattice *lt)
 	}
 }
 
-float (*BKE_lattice_vertexcos_get(struct Object *ob, int *numVerts_r))[3]
+float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3]
 {
 	Lattice *lt = ob->data;
 	int i, numVerts;
 	float (*vertexCos)[3];
 
 	if (lt->editlatt) lt = lt->editlatt->latt;
-	numVerts = *numVerts_r = lt->pntsu * lt->pntsv * lt->pntsw;
+	numVerts = *r_numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
 	
 	vertexCos = MEM_mallocN(sizeof(*vertexCos) * numVerts, "lt_vcos");
 	

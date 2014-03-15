@@ -1165,7 +1165,7 @@ int ED_curve_updateAnimPaths(Curve *cu)
 
 /* ********************* LOAD and MAKE *************** */
 
-static int *initialize_index_map(Object *obedit, int *old_totvert_r)
+static int *initialize_index_map(Object *obedit, int *r_old_totvert)
 {
 	Curve *curve = (Curve *) obedit->data;
 	EditNurb *editnurb = curve->editnurb;
@@ -1230,7 +1230,7 @@ static int *initialize_index_map(Object *obedit, int *old_totvert_r)
 		}
 	}
 
-	*old_totvert_r = old_totvert;
+	*r_old_totvert = old_totvert;
 	return old_to_new_map;
 }
 

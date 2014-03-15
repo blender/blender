@@ -60,7 +60,7 @@ void            BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag);
 
 EdgeHashIterator   *BLI_edgehashIterator_new(EdgeHash *eh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void                BLI_edgehashIterator_free(EdgeHashIterator *ehi);
-void                BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *v0_r, unsigned int *v1_r);
+void                BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *r_v0, unsigned int *r_v1);
 void               *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi) ATTR_WARN_UNUSED_RESULT;
 void              **BLI_edgehashIterator_getValue_p(EdgeHashIterator *ehi) ATTR_WARN_UNUSED_RESULT;
 void                BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val);
@@ -89,7 +89,7 @@ void     BLI_edgeset_free(EdgeSet *es);
 /* rely on inline api for now */
 BLI_INLINE EdgeSetIterator *BLI_edgesetIterator_new(EdgeSet *gs) { return (EdgeSetIterator *)BLI_edgehashIterator_new((EdgeHash *)gs); }
 BLI_INLINE void BLI_edgesetIterator_free(EdgeSetIterator *esi) { BLI_edgehashIterator_free((EdgeHashIterator *)esi); }
-BLI_INLINE void BLI_edgesetIterator_getKey(EdgeSetIterator *esi, unsigned int *v0_r, unsigned int *v1_r) { BLI_edgehashIterator_getKey((EdgeHashIterator *)esi, v0_r, v1_r); }
+BLI_INLINE void BLI_edgesetIterator_getKey(EdgeSetIterator *esi, unsigned int *r_v0, unsigned int *r_v1) { BLI_edgehashIterator_getKey((EdgeHashIterator *)esi, r_v0, r_v1); }
 BLI_INLINE void BLI_edgesetIterator_step(EdgeSetIterator *esi) { BLI_edgehashIterator_step((EdgeHashIterator *)esi); }
 BLI_INLINE bool BLI_edgesetIterator_isDone(EdgeSetIterator *esi) { return BLI_edgehashIterator_isDone((EdgeHashIterator *)esi); }
 

@@ -465,11 +465,11 @@ void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
 /**
  * Retrieve the key from an iterator.
  */
-void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *v0_r, unsigned int *v1_r)
+void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *r_v0, unsigned int *r_v1)
 {
 	if (ehi->curEntry) {
-		*v0_r = ehi->curEntry->v0;
-		*v1_r = ehi->curEntry->v1;
+		*r_v0 = ehi->curEntry->v0;
+		*r_v1 = ehi->curEntry->v1;
 	}
 }
 

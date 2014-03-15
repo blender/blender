@@ -2916,7 +2916,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	return ibuf;
 }
 
-static void image_get_frame_and_index(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
+static void image_get_frame_and_index(Image *ima, ImageUser *iuser, int *r_frame, int *r_index)
 {
 	int frame = 0, index = 0;
 
@@ -2934,8 +2934,8 @@ static void image_get_frame_and_index(Image *ima, ImageUser *iuser, int *frame_r
 		}
 	}
 
-	*frame_r = frame;
-	*index_r = index;
+	*r_frame = frame;
+	*r_index = index;
 }
 
 /* Get the ibuf from an image cache for a given image user.
@@ -2944,7 +2944,7 @@ static void image_get_frame_and_index(Image *ima, ImageUser *iuser, int *frame_r
  * call IMB_freeImBuf to de-reference the image buffer after
  * it's done handling it.
  */
-static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
+static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *r_frame, int *r_index)
 {
 	ImBuf *ibuf = NULL;
 	int frame = 0, index = 0;
@@ -2990,11 +2990,11 @@ static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *frame_r, 
 		 * a big bottleneck */
 	}
 
-	if (frame_r)
-		*frame_r = frame;
+	if (r_frame)
+		*r_frame = frame;
 
-	if (index_r)
-		*index_r = index;
+	if (r_index)
+		*r_index = index;
 
 	return ibuf;
 }

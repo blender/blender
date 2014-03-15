@@ -520,7 +520,7 @@ static int preprocess_include(char *maindata, int len)
 	return newlen;
 }
 
-static void *read_file_data(char *filename, int *len_r)
+static void *read_file_data(char *filename, int *r_len)
 {
 #ifdef WIN32
 	FILE *fp = fopen(filename, "rb");
@@ -530,23 +530,23 @@ static void *read_file_data(char *filename, int *len_r)
 	void *data;
 
 	if (!fp) {
-		*len_r = -1;
+		*r_len = -1;
 		return NULL;
 	}
 
 	fseek(fp, 0L, SEEK_END);
-	*len_r = ftell(fp);
+	*r_len = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);
 
-	data = MEM_mallocN(*len_r, "read_file_data");
+	data = MEM_mallocN(*r_len, "read_file_data");
 	if (!data) {
-		*len_r = -1;
+		*r_len = -1;
 		fclose(fp);
 		return NULL;
 	}
 
-	if (fread(data, *len_r, 1, fp) != 1) {
-		*len_r = -1;
+	if (fread(data, *r_len, 1, fp) != 1) {
+		*r_len = -1;
 		MEM_freeN(data);
 		fclose(fp);
 		return NULL;
