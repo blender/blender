@@ -36,9 +36,7 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 #endif
 		ray.dP = differential3_zero();
 		ray.dD = dI;
-#ifdef __CAMERA_MOTION__
-		ray.time = time;
-#endif
+
 		shader_setup_from_background(kg, &sd, &ray, bounce+1);
 		eval = shader_eval_background(kg, &sd, 0, SHADER_CONTEXT_EMISSION);
 	}
