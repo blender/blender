@@ -169,13 +169,16 @@ class CyclesRender_PT_volume_sampling(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
 
-        layout.prop(cscene, "volume_homogeneous_sampling", text="Homogeneous")
+        split = layout.split(align=True)
 
-        layout.label("Heterogeneous:")
+        sub = split.column(align=True)
+        sub.label("Heterogeneous:")
+        sub.prop(cscene, "volume_step_size")
+        sub.prop(cscene, "volume_max_steps")
 
-        split = layout.split()
-        split.prop(cscene, "volume_step_size")
-        split.prop(cscene, "volume_max_steps")
+        sub = split.column(align=True)
+        sub.label("Homogeneous:")
+        sub.prop(cscene, "volume_homogeneous_sampling", text="")
 
 
 class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
