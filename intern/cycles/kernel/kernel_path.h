@@ -957,7 +957,8 @@ ccl_device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *
 	PathState *state, PathRadiance *L, ccl_global float *buffer)
 {
 #ifdef __EMISSION__
-	kernel_branched_path_integrate_direct_lighting(kg, rng, sd, state, throughput, num_samples_adjust, L, true);
+	bool all = kernel_data.integrator.sample_all_lights_direct;
+	kernel_branched_path_integrate_direct_lighting(kg, rng, sd, state, throughput, num_samples_adjust, L, all);
 #endif
 
 	for(int i = 0; i< sd->num_closure; i++) {

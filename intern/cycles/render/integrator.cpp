@@ -130,6 +130,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->mesh_light_samples = mesh_light_samples;
 	kintegrator->subsurface_samples = subsurface_samples;
 	kintegrator->volume_samples = volume_samples;
+	kintegrator->sample_all_lights_direct = sample_all_lights_direct;
 	kintegrator->sample_all_lights_indirect = sample_all_lights_indirect;
 
 	kintegrator->sampling_pattern = sampling_pattern;
@@ -199,6 +200,7 @@ bool Integrator::modified(const Integrator& integrator)
 		volume_samples == integrator.volume_samples &&
 		motion_blur == integrator.motion_blur &&
 		sampling_pattern == integrator.sampling_pattern &&
+		sample_all_lights_direct == integrator.sample_all_lights_direct &&
 		sample_all_lights_indirect == integrator.sample_all_lights_indirect);
 }
 

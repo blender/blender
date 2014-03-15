@@ -134,6 +134,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "aa_samples", text="Render")
             sub.prop(cscene, "preview_aa_samples", text="Preview")
             sub.separator()
+            sub.prop(cscene, "sample_all_lights_direct")
             sub.prop(cscene, "sample_all_lights_indirect")
 
             col = split.column()

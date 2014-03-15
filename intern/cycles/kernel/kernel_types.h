@@ -836,8 +836,9 @@ typedef struct KernelIntegrator {
 	int ao_samples;
 	int mesh_light_samples;
 	int subsurface_samples;
+	int sample_all_lights_direct;
 	int sample_all_lights_indirect;
-	
+
 	/* mis */
 	int use_lamp_mis;
 
@@ -850,7 +851,6 @@ typedef struct KernelIntegrator {
 	int volume_max_steps;
 	float volume_step_size;
 	int volume_samples;
-	int pad1;
 } KernelIntegrator;
 
 typedef struct KernelBVH {
