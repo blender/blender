@@ -323,7 +323,7 @@ struct uiButStoreElem {
 };
 
 /**
- * Create a new button sture, the caller must manage and run #UI_butstore_free
+ * Create a new button store, the caller must manage and run #UI_butstore_free
  */
 uiButStore *UI_butstore_create(uiBlock *block)
 {

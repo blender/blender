@@ -285,7 +285,7 @@ static void undo_step_num(bContext *C, UndoStack *stack, int step)
 		while (a++ != curnum)
 			undo_stack_step(C, stack, 1, NULL);
 	}
-	else if (curnum < a){
+	else if (curnum < a) {
 		while (a-- != curnum)
 			undo_stack_step(C, stack, -1, NULL);
 	}

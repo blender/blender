@@ -405,7 +405,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		if (mode_prev != t->mode) {
 			/* WARNING: this is not normal to switch operator types
 			 * normally it would not be supported but transform happens
-			 * to share callbacks between differernt operators. */
+			 * to share callbacks between different operators. */
 			wmOperatorType *ot_new = NULL;
 			TransformModeItem *item = transform_modes;
 			while (item->idname) {

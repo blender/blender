@@ -1901,7 +1901,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 }
 
 /**
- * \param float_precision  For number buttons the precission to use or -1 to fallback to the button default.
+ * \param float_precision  For number buttons the precision to use or -1 to fallback to the button default.
  */
 void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision)
 {

@@ -573,7 +573,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			shape->setFrsMaterial(tmpMat);
 		}
 		else {
-			// find if the material is aleady in the list
+			// find if the material is already in the list
 			unsigned int i = 0;
 			bool found = false;
 

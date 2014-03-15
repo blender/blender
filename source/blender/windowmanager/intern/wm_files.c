@@ -536,7 +536,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	char prefstr[FILE_MAX];
 	int success = 0;
 
-	/* Indicates whether user prefereneces were really load from memory.
+	/* Indicates whether user preferences were really load from memory.
 	 *
 	 * This is used for versioning code, and for this we can not rely on from_memory
 	 * passed via argument. This is because there might be configuration folder

@@ -1146,7 +1146,7 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 	but->ofs = 0;
 	
 
-	/* First shorten num-buttopns eg,
+	/* First shorten num-buttons eg,
 	 *   Translucency: 0.000
 	 * becomes
 	 *   Trans: 0.000
