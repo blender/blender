@@ -404,13 +404,29 @@ float normalize_qt_qt(float r[4], const float q[4])
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3])
 {
 	float axis[3];
-	float angle;
 
 	cross_v3_v3v3(axis, v1, v2);
 
-	angle = angle_normalized_v3v3(v1, v2);
+	if (normalize_v3(axis) > FLT_EPSILON) {
+		float angle;
 
-	axis_angle_to_quat(q, axis, angle);
+		angle = angle_normalized_v3v3(v1, v2);
+
+		axis_angle_normalized_to_quat(q, axis, angle);
+	}
+	else {
+		/* degenerate case */
+
+		if (dot_v3v3(v1, v2) > 0.0f) {
+			/* Same vectors, zero rotation... */
+			unit_qt(q);
+		}
+		else {
+			/* Colinear but opposed vectors, 180 rotation... */
+			ortho_v3_v3(axis, v1);
+			axis_angle_to_quat(q, axis, (float)M_PI);
+		}
+	}
 }
 
 void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q2[4])

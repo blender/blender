@@ -2131,31 +2131,6 @@ bool axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 	}
 }
 
-/* get the 2 dominant axis values, 0==X, 1==Y, 2==Z */
-void axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3])
-{
-	const float xn = fabsf(axis[0]);
-	const float yn = fabsf(axis[1]);
-	const float zn = fabsf(axis[2]);
-
-	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; }
-	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; }
-	else                           { *r_axis_a = 1; *r_axis_b = 2; }
-}
-
-/* same as axis_dominant_v3 but return the max value */
-float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
-{
-	const float xn = fabsf(axis[0]);
-	const float yn = fabsf(axis[1]);
-	const float zn = fabsf(axis[2]);
-
-	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; return zn; }
-	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; return yn; }
-	else                           { *r_axis_a = 1; *r_axis_b = 2; return xn; }
-}
-
-
 /****************************** Interpolation ********************************/
 
 static float tri_signed_area(const float v1[3], const float v2[3], const float v3[3], const int i, const int j)

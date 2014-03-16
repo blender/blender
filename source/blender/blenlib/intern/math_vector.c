@@ -514,6 +514,36 @@ void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
 	}
 }
 
+/**
+ * Calculates \a p - a perpendicular vector to \a v
+ *
+ * \note return vector won't maintain same length.
+ */
+void ortho_v3_v3(float p[3], const float v[3])
+{
+	const int axis = axis_dominant_v3_single(v);
+
+	BLI_assert(p != v);
+
+	switch (axis) {
+		case 0:
+			p[0] = -v[1] - v[2];
+			p[1] =  v[0];
+			p[2] =  v[0];
+			break;
+		case 1:
+			p[0] =  v[1];
+			p[1] = -v[0] - v[2];
+			p[2] =  v[1];
+			break;
+		case 2:
+			p[0] =  v[2];
+			p[1] =  v[2];
+			p[2] = -v[0] - v[1];
+			break;
+	}
+}
+
 /* Rotate a point p by angle theta around an arbitrary axis r
  * http://local.wasp.uwa.edu.au/~pbourke/geometry/
  */

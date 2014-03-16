@@ -155,6 +155,41 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[9], const float f)
 	add_sh_shsh(r, r, tmp);
 }
 
+/* get the 2 dominant axis values, 0==X, 1==Y, 2==Z */
+MINLINE void axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3])
+{
+	const float xn = fabsf(axis[0]);
+	const float yn = fabsf(axis[1]);
+	const float zn = fabsf(axis[2]);
+
+	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; }
+	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; }
+	else                           { *r_axis_a = 1; *r_axis_b = 2; }
+}
+
+/* same as axis_dominant_v3 but return the max value */
+MINLINE float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
+{
+	const float xn = fabsf(axis[0]);
+	const float yn = fabsf(axis[1]);
+	const float zn = fabsf(axis[2]);
+
+	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; return zn; }
+	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; return yn; }
+	else                           { *r_axis_a = 1; *r_axis_b = 2; return xn; }
+}
+
+/* get the single dominant axis value, 0==X, 1==Y, 2==Z */
+MINLINE int axis_dominant_v3_single(const float vec[3])
+{
+	const float x = fabsf(vec[0]);
+	const float y = fabsf(vec[1]);
+	const float z = fabsf(vec[2]);
+	return ((x > y) ?
+	       ((x > z) ? 0 : 2) :
+	       ((y > z) ? 1 : 2));
+}
+
 MINLINE int max_axis_v3(const float vec[3])
 {
 	const float x = vec[0];
