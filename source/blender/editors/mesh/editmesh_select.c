@@ -1647,12 +1647,24 @@ void EDBM_selectmode_set(BMEditMesh *em)
 }
 
 /**
+ * Expand & Contract the Selection
+ * (used when chaning modes and Ctrl key held)
+ *
  * Flush the selection up:
  * - vert -> edge
+ * - vert -> face
  * - edge -> face
+ *
+ * Flush the selection down:
+ * - face -> edge
+ * - face -> vert
+ * - edge -> vert
  */
 void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const short selectmode_new)
 {
+	BMesh *bm = em->bm;
+
+	BMVert *eve;
 	BMEdge *eed;
 	BMFace *efa;
 	BMIter iter;
@@ -1661,54 +1673,96 @@ void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const s
 
 	/* have to find out what the selectionmode was previously */
 	if (selectmode_old == SCE_SELECT_VERTEX) {
-		if (em->bm->totvertsel == 0) {
+		if (bm->totvertsel == 0) {
 			/* pass */
 		}
 		else if (selectmode_new == SCE_SELECT_EDGE) {
+			/* flush up (vert -> edge) */
+
 			/* select all edges associated with every selected vert */
-			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 				BM_elem_flag_set(eed, BM_ELEM_TAG, BM_edge_is_any_vert_flag_test(eed, BM_ELEM_SELECT));
 			}
 
-			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 				if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
-					BM_edge_select_set(em->bm, eed, true);
+					BM_edge_select_set(bm, eed, true);
 				}
 			}
 		}
 		else if (selectmode_new == SCE_SELECT_FACE) {
+			/* flush up (vert -> face) */
+
 			/* select all faces associated with every selected vert */
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				BM_elem_flag_set(efa, BM_ELEM_TAG, BM_face_is_any_vert_flag_test(efa, BM_ELEM_SELECT));
 			}
 
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-					BM_face_select_set(em->bm, efa, true);
+					BM_face_select_set(bm, efa, true);
 				}
 			}
 		}
 	}
 	else if (selectmode_old == SCE_SELECT_EDGE) {
-		if (em->bm->totedgesel == 0) {
+		if (bm->totedgesel == 0) {
 			/* pass */
 		}
 		else if (selectmode_new == SCE_SELECT_FACE) {
+			/* flush up (edge -> face) */
+
 			/* select all faces associated with every selected edge */
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				BM_elem_flag_set(efa, BM_ELEM_TAG, BM_face_is_any_edge_flag_test(efa, BM_ELEM_SELECT));
 			}
 
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-					BM_face_select_set(em->bm, efa, true);
+					BM_face_select_set(bm, efa, true);
 				}
 			}
+		}
+		else if (selectmode_new == SCE_SELECT_VERTEX) {
+			/* flush down (edge -> vert) */
+
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+				if (!BM_vert_is_all_edge_flag_test(eve, BM_ELEM_SELECT, true)) {
+					BM_vert_select_set(bm, eve, false);
+				}
+			}
+			/* deselect edges without both verts selected */
+			BM_mesh_deselect_flush(bm);
+		}
+	}
+	else if (selectmode_old == SCE_SELECT_FACE) {
+		if (bm->totfacesel == 0) {
+			/* pass */
+		}
+		else if (selectmode_new == SCE_SELECT_EDGE) {
+			/* flush down (face -> edge) */
+
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_edge_is_all_face_flag_test(eed, BM_ELEM_SELECT, true)) {
+					BM_edge_select_set(bm, eed, false);
+				}
+			}
+		}
+		else if (selectmode_new == SCE_SELECT_VERTEX) {
+			/* flush down (face -> vert) */
+
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+				if (!BM_vert_is_all_face_flag_test(eve, BM_ELEM_SELECT, true)) {
+					BM_vert_select_set(bm, eve, false);
+				}
+			}
+			/* deselect faces without verts selected */
+			BM_mesh_deselect_flush(bm);
 		}
 	}
 }
 
-/* user facing function, does notification and undo push */
+/* user facing function, does notification */
 bool EDBM_selectmode_toggle(bContext *C, const short selectmode_new,
                             const int action, const bool use_extend, const bool use_expand)
 {
@@ -1755,22 +1809,24 @@ bool EDBM_selectmode_toggle(bContext *C, const short selectmode_new,
 			break;
 	}
 
+	if (use_extend == 0 || em->selectmode == 0) {
+		if (use_expand) {
+			const short selmode_max = highest_order_bit_s(ts->selectmode);
+			EDBM_selectmode_convert(em, selmode_max, selectmode_new);
+		}
+	}
+
 	switch (selectmode_new) {
 		case SCE_SELECT_VERTEX:
-			if (use_extend == 0 || em->selectmode == 0)
+			if (use_extend == 0 || em->selectmode == 0) {
 				em->selectmode = SCE_SELECT_VERTEX;
+			}
 			ts->selectmode = em->selectmode;
 			EDBM_selectmode_set(em);
 			ret = true;
 			break;
 		case SCE_SELECT_EDGE:
 			if (use_extend == 0 || em->selectmode == 0) {
-				if (use_expand) {
-					const short selmode_max = highest_order_bit_s(ts->selectmode);
-					if (selmode_max == SCE_SELECT_VERTEX) {
-						EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_EDGE);
-					}
-				}
 				em->selectmode = SCE_SELECT_EDGE;
 			}
 			ts->selectmode = em->selectmode;
@@ -1779,13 +1835,6 @@ bool EDBM_selectmode_toggle(bContext *C, const short selectmode_new,
 			break;
 		case SCE_SELECT_FACE:
 			if (use_extend == 0 || em->selectmode == 0) {
-				if (use_expand) {
-					const short selmode_max = highest_order_bit_s(ts->selectmode);
-					if (ELEM(selmode_max, SCE_SELECT_VERTEX, SCE_SELECT_EDGE)) {
-						EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_FACE);
-					}
-				}
-
 				em->selectmode = SCE_SELECT_FACE;
 			}
 			ts->selectmode = em->selectmode;

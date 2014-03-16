@@ -119,6 +119,10 @@ void    BM_edge_ordered_verts(const BMEdge *edge, BMVert **r_v1, BMVert **r_v2);
 void    BM_edge_ordered_verts_ex(const BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
                                  const BMLoop *edge_loop);
 
+bool BM_vert_is_all_edge_flag_test(const BMVert *v, const char hflag, const bool respect_hide);
+bool BM_vert_is_all_face_flag_test(const BMVert *v, const char hflag, const bool respect_hide);
+bool BM_edge_is_all_face_flag_test(const BMEdge *e, const char hflag, const bool respect_hide);
+
 bool BM_edge_is_any_vert_flag_test(const BMEdge *e, const char hflag);
 bool BM_face_is_any_vert_flag_test(const BMFace *f, const char hflag);
 bool BM_face_is_any_edge_flag_test(const BMFace *f, const char hflag);
