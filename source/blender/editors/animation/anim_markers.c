@@ -1494,7 +1494,7 @@ void ED_operatortypes_marker(void)
 }
 
 /* called in screen_ops.c:ED_keymap_screen() */
-void ED_marker_keymap(wmKeyConfig *keyconf)
+void ED_keymap_marker(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Markers", 0, 0);
 	wmKeyMapItem *kmi;

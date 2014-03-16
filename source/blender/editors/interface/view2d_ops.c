@@ -1992,7 +1992,7 @@ static void VIEW2D_OT_reset(wmOperatorType *ot)
 /* ********************************************************* */
 /* Registration */
 
-void UI_view2d_operatortypes(void)
+void ED_operatortypes_view2d(void)
 {
 	WM_operatortype_append(VIEW2D_OT_pan);
 	
@@ -2016,7 +2016,7 @@ void UI_view2d_operatortypes(void)
 	WM_operatortype_append(VIEW2D_OT_reset);
 }
 
-void UI_view2d_keymap(wmKeyConfig *keyconf)
+void ED_keymap_view2d(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "View2D", 0, 0);
 	wmKeyMapItem *kmi;

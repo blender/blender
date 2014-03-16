@@ -215,8 +215,8 @@ void UI_view2d_text_cache_rectf(struct View2D *v2d, const struct rctf *rect, con
 void UI_view2d_text_cache_draw(struct ARegion *ar);
 
 /* operators */
-void UI_view2d_operatortypes(void);
-void UI_view2d_keymap(struct wmKeyConfig *keyconf);
+void ED_operatortypes_view2d(void);
+void ED_keymap_view2d(struct wmKeyConfig *keyconf);
 
 void UI_view2d_smooth_view(struct bContext *C, struct ARegion *ar,
                            const struct rctf *cur, const int smooth_viewtx);
