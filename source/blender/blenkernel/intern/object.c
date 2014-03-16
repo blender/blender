@@ -273,7 +273,7 @@ void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
 		
 		if (md->type == eModifierType_Skin) {
 			/* ensure skin-node customdata exists */
-			modifier_skin_customdata_ensure(ob_dst);
+			BKE_mesh_ensure_skin_customdata(ob_dst->data);
 		}
 
 		nmd = modifier_new(md->type);

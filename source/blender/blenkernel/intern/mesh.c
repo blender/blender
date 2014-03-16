@@ -337,6 +337,43 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 	}
 }
 
+void BKE_mesh_ensure_skin_customdata(Mesh *me)
+{
+	BMesh *bm = me->edit_btmesh ? me->edit_btmesh->bm : NULL;
+	MVertSkin *vs;
+
+	if (bm) {
+		if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+			BMVert *v;
+			BMIter iter;
+
+			BM_data_layer_add(bm, &bm->vdata, CD_MVERT_SKIN);
+
+			/* Mark an arbitrary vertex as root */
+			BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+				vs = CustomData_bmesh_get(&bm->vdata, v->head.data,
+				                          CD_MVERT_SKIN);
+				vs->flag |= MVERT_SKIN_ROOT;
+				break;
+			}
+		}
+	}
+	else {
+		if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
+			vs = CustomData_add_layer(&me->vdata,
+			                          CD_MVERT_SKIN,
+			                          CD_DEFAULT,
+			                          NULL,
+			                          me->totvert);
+
+			/* Mark an arbitrary vertex as root */
+			if (vs) {
+				vs->flag |= MVERT_SKIN_ROOT;
+			}
+		}
+	}
+}
+
 /* this ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
  * mloopcol and mcol) have the same relative active/render/clone/mask indices.
  *

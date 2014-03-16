@@ -90,6 +90,7 @@ struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 struct Mesh *BKE_mesh_copy_ex(struct Main *bmain, struct Mesh *me);
 struct Mesh *BKE_mesh_copy(struct Mesh *me);
 void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_tess_cd);
+void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 
 void BKE_mesh_make_local(struct Mesh *me);
 void BKE_mesh_boundbox_calc(struct Mesh *me, float r_loc[3], float r_size[3]);

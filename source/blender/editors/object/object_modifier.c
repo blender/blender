@@ -166,7 +166,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		}
 		else if (type == eModifierType_Skin) {
 			/* ensure skin-node customdata exists */
-			modifier_skin_customdata_ensure(ob);
+			BKE_mesh_ensure_skin_customdata(ob->data);
 		}
 	}
 
@@ -1431,39 +1431,6 @@ void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
 
 /************************** skin modifier ***********************/
 
-void modifier_skin_customdata_ensure(Object *ob)
-{
-	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh ? me->edit_btmesh->bm : NULL;
-	MVertSkin *vs;
-
-	if (bm && !CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
-		BMVert *v;
-		BMIter iter;
-
-		BM_data_layer_add(bm, &bm->vdata, CD_MVERT_SKIN);
-		
-		/* Mark an arbitrary vertex as root */
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			vs = CustomData_bmesh_get(&bm->vdata, v->head.data,
-			                          CD_MVERT_SKIN);
-			vs->flag |= MVERT_SKIN_ROOT;
-			break;
-		}
-	}
-	else if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
-		vs = CustomData_add_layer(&me->vdata,
-		                          CD_MVERT_SKIN,
-		                          CD_DEFAULT,
-		                          NULL,
-		                          me->totvert);
-
-		/* Mark an arbitrary vertex as root */
-		if (vs)
-			vs->flag |= MVERT_SKIN_ROOT;
-	}
-}
-
 static void modifier_skin_customdata_delete(Object *ob)
 {
 	Mesh *me = ob->data;
@@ -1520,7 +1487,7 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 
 	visited = BLI_ghash_ptr_new("skin_root_mark_exec visited");
 
-	modifier_skin_customdata_ensure(ob);
+	BKE_mesh_ensure_skin_customdata(ob->data);
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (!BLI_ghash_lookup(visited, bm_vert) &&
