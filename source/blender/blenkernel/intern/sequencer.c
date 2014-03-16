@@ -3837,7 +3837,17 @@ void BKE_sequencer_update_sound_bounds_all(Scene *scene)
 
 void BKE_sequencer_update_sound_bounds(Scene *scene, Sequence *seq)
 {
-	sound_move_scene_sound_defaults(scene, seq);
+	if (seq->type == SEQ_TYPE_SCENE) {
+		if (seq->scene_sound) {
+			/* We have to take into account start frame of the sequence's scene! */
+			int startofs = seq->startofs + seq->anim_startofs + seq->scene->r.sfra;
+
+			sound_move_scene_sound(scene, seq->scene_sound, seq->startdisp, seq->enddisp, startofs);
+		}
+	}
+	else {
+		sound_move_scene_sound_defaults(scene, seq);
+	}
 	/* mute is set in seq_update_muting_recursive */
 }
 
