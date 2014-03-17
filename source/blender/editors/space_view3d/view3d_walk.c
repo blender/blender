@@ -57,6 +57,8 @@
 
 #include "PIL_time.h" /* smoothview */
 
+#include "UI_resources.h"
+
 #include "view3d_intern.h"  /* own include */
 
 #define EARTH_GRAVITY 9.80668f /* m/s2 */
@@ -315,8 +317,7 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 		yoff = walk->ar->winy / 2;
 	}
 
-	cpack(0);
-
+	UI_ThemeColor(TH_VIEW_OVERLAY);
 	glBegin(GL_LINES);
 	/* North */
 	glVertex2i(xoff, yoff + inner_length);

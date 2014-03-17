@@ -268,6 +268,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				
 				case TH_GRID:
 					cp = ts->grid; break;
+				case TH_VIEW_OVERLAY:
+					cp = ts->view_overlay; break;
 				case TH_WIRE:
 					cp = ts->wire; break;
 				case TH_WIRE_EDIT:
@@ -819,6 +821,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
 
 	rgba_char_args_set_fl(btheme->tv3d.grid,     0.251, 0.251, 0.251, 1.0);
+	rgba_char_args_set(btheme->tv3d.view_overlay, 0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	rgba_char_args_set(btheme->tv3d.wire_edit,  0x0, 0x0, 0x0, 255);
 	rgba_char_args_set(btheme->tv3d.lamp,       0, 0, 0, 40);

@@ -51,6 +51,8 @@
 
 #include "PIL_time.h" /* smoothview */
 
+#include "UI_resources.h"
+
 #include "view3d_intern.h"  /* own include */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
@@ -248,8 +250,8 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 	y1 = yoff + 0.45f * fly->height;
 	x2 = xoff + 0.55f * fly->width;
 	y2 = yoff + 0.55f * fly->height;
-	cpack(0);
 
+	UI_ThemeColor(TH_VIEW_OVERLAY);
 	glBegin(GL_LINES);
 	/* bottom left */
 	glVertex2f(x1, y1);

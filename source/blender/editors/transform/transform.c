@@ -1690,7 +1690,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 		switch (t->helpline) {
 			case HLP_SPRING:
-				UI_ThemeColor(TH_WIRE);
+				UI_ThemeColor(TH_VIEW_OVERLAY);
 
 				setlinestyle(3);
 				glBegin(GL_LINE_STRIP);
@@ -1708,7 +1708,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				glLineWidth(1.0);
 				break;
 			case HLP_HARROW:
-				UI_ThemeColor(TH_WIRE);
+				UI_ThemeColor(TH_VIEW_OVERLAY);
 
 				glTranslatef(mval[0], mval[1], 0);
 
@@ -1718,7 +1718,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				glLineWidth(1.0);
 				break;
 			case HLP_VARROW:
-				UI_ThemeColor(TH_WIRE);
+				UI_ThemeColor(TH_VIEW_OVERLAY);
 
 				glTranslatef(mval[0], mval[1], 0);
 
@@ -1734,7 +1734,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				float dist = sqrtf(dx * dx + dy * dy);
 				float delta_angle = min_ff(15.0f / dist, (float)M_PI / 4.0f);
 				float spacing_angle = min_ff(5.0f / dist, (float)M_PI / 12.0f);
-				UI_ThemeColor(TH_WIRE);
+				UI_ThemeColor(TH_VIEW_OVERLAY);
 
 				setlinestyle(3);
 				glBegin(GL_LINE_STRIP);

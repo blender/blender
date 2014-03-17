@@ -290,7 +290,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 	const int mval_dst[2] = {win->eventstate->x - ar->winrct.xmin,
 	                         win->eventstate->y - ar->winrct.ymin};
 
-	UI_ThemeColor(TH_WIRE);
+	UI_ThemeColor(TH_VIEW_OVERLAY);
 	setlinestyle(3);
 	glBegin(GL_LINE_STRIP);
 	glVertex2iv(mval_dst);

@@ -147,7 +147,8 @@ const GLubyte stipple_checker_8px[128] = {
 	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
 	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255};
 
-
+/* UNUSED */
+#if 0
 void fdrawbezier(float vec[4][3])
 {
 	float dist;
@@ -177,6 +178,7 @@ void fdrawbezier(float vec[4][3])
 	}
 	glEnd();
 }
+#endif
 
 void fdrawline(float x1, float y1, float x2, float y2)
 {

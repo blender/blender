@@ -275,7 +275,8 @@ enum {
 	TH_INFO_INFO,
 	TH_INFO_INFO_TEXT,
 	TH_INFO_DEBUG,
-	TH_INFO_DEBUG_TEXT
+	TH_INFO_DEBUG_TEXT,
+	TH_VIEW_OVERLAY,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

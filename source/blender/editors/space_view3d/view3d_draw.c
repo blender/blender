@@ -565,8 +565,8 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		cpack(0xFFFFFF);
 		circ((float)co[0], (float)co[1], f10);
 		setlinestyle(0);
-		cpack(0x0);
-		
+
+		UI_ThemeColor(TH_VIEW_OVERLAY);
 		sdrawline(co[0] - f20, co[1], co[0] - f5, co[1]);
 		sdrawline(co[0] + f5, co[1], co[0] + f20, co[1]);
 		sdrawline(co[0], co[1] - f20, co[0], co[1] - f5);
@@ -1059,7 +1059,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	float hmargin, vmargin;
 	float x1, x2, y1, y2;
 	float x1i, x2i, y1i, y2i;
-	float x3, y3, x4, y4;
+
 	rctf viewborder;
 	Camera *ca = NULL;
 	RegionView3D *rv3d = (RegionView3D *)ar->regiondata;
@@ -1135,17 +1135,18 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		glRectf(x1i - 1, y1i - 1, x2i + 1, y2i + 1);
 	}
 
-	UI_ThemeColor(TH_WIRE);
+	UI_ThemeColor(TH_VIEW_OVERLAY);
 	glRectf(x1i, y1i, x2i, y2i);
 
 	/* border */
 	if (scene->r.mode & R_BORDER) {
-		cpack(0);
+		float x3, y3, x4, y4;
+
 		x3 = x1 + scene->r.border.xmin * (x2 - x1);
 		y3 = y1 + scene->r.border.ymin * (y2 - y1);
 		x4 = x1 + scene->r.border.xmax * (x2 - x1);
 		y4 = y1 + scene->r.border.ymax * (y2 - y1);
-		
+
 		cpack(0x4040FF);
 		glRecti(x3,  y3,  x4,  y4);
 	}
@@ -1153,7 +1154,9 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	/* safety border */
 	if (ca) {
 		if (ca->dtx & CAM_DTX_CENTER) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			float x3, y3;
+
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 
 			x3 = x1 + 0.5f * (x2 - x1);
 			y3 = y1 + 0.5f * (y2 - y1);
@@ -1168,7 +1171,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 
 		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 
 			glBegin(GL_LINES);
 			glVertex2f(x1, y1);
@@ -1180,37 +1183,37 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 
 		if (ca->dtx & CAM_DTX_THIRDS) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 			drawviewborder_grid3(x1, x2, y1, y2, 1.0f / 3.0f);
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 			drawviewborder_grid3(x1, x2, y1, y2, 1.0f - (1.0f / 1.61803399f));
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN_TRI_A) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 			drawviewborder_triangle(x1, x2, y1, y2, 0, 'A');
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN_TRI_B) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 			drawviewborder_triangle(x1, x2, y1, y2, 0, 'B');
 		}
 
 		if (ca->dtx & CAM_DTX_HARMONY_TRI_A) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 			drawviewborder_triangle(x1, x2, y1, y2, 1, 'A');
 		}
 
 		if (ca->dtx & CAM_DTX_HARMONY_TRI_B) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 			drawviewborder_triangle(x1, x2, y1, y2, 1, 'B');
 		}
 
 		if (ca->flag & CAM_SHOWTITLESAFE) {
-			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 
 			hmargin = 0.1f  * (x2 - x1);
 			vmargin = 0.05f * (y2 - y1);
@@ -1252,7 +1255,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			}
 
 			/* draw */
-			UI_ThemeColorShade(TH_WIRE, 100);
+			UI_ThemeColorShade(TH_VIEW_OVERLAY, 100);
 			uiDrawBox(GL_LINE_LOOP, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f);
 		}
 	}
