@@ -3667,7 +3667,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 					if (index[i] != ORIGINDEX_NONE) {
 						float co[3];
 						mul_v3_m4v3(co, ob->obmat, mvert[i].co);
-						BLI_kdtree_insert(tree, index[i], co, NULL);
+						BLI_kdtree_insert(tree, index[i], co);
 						tot++;
 					}
 				}
@@ -3681,7 +3681,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 				for (i = 0; i < tot; i++) {
 					float co[3];
 					mul_v3_m4v3(co, ob->obmat, mvert[i].co);
-					BLI_kdtree_insert(tree, i, co, NULL);
+					BLI_kdtree_insert(tree, i, co);
 				}
 			}
 
@@ -3711,7 +3711,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 					while (a--) {
 						float co[3];
 						mul_v3_m4v3(co, ob->obmat, bezt->vec[1]);
-						BLI_kdtree_insert(tree, i++, co, NULL);
+						BLI_kdtree_insert(tree, i++, co);
 						bezt++;
 					}
 				}
@@ -3723,7 +3723,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 					while (a--) {
 						float co[3];
 						mul_v3_m4v3(co, ob->obmat, bp->vec);
-						BLI_kdtree_insert(tree, i++, co, NULL);
+						BLI_kdtree_insert(tree, i++, co);
 						bp++;
 					}
 				}
@@ -3747,7 +3747,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 			for (bp = lt->def; i < tot; bp++) {
 				float co[3];
 				mul_v3_m4v3(co, ob->obmat, bp->vec);
-				BLI_kdtree_insert(tree, i++, co, NULL);
+				BLI_kdtree_insert(tree, i++, co);
 			}
 
 			BLI_kdtree_balance(tree);

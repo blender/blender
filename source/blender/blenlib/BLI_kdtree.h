@@ -44,17 +44,29 @@ typedef struct KDTreeNearest {
 
 KDTree *BLI_kdtree_new(unsigned int maxsize);
 void BLI_kdtree_free(KDTree *tree);
-
-void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float nor[3]) ATTR_NONNULL(1, 3);
 void BLI_kdtree_balance(KDTree *tree) ATTR_NONNULL(1);
 
-int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3],
-                            KDTreeNearest *r_nearest) ATTR_NONNULL(1, 2);
-int BLI_kdtree_find_nearest_n(KDTree *tree, const float co[3], const float nor[3],
-                              KDTreeNearest *r_nearest,
-                              unsigned int n) ATTR_NONNULL(1, 2, 4);
-int BLI_kdtree_range_search(KDTree *tree, const float co[3], const float nor[3],
-                            KDTreeNearest **r_nearest,
-                            float range) ATTR_NONNULL(1, 2, 4) ATTR_WARN_UNUSED_RESULT;
+void BLI_kdtree_insert(
+        KDTree *tree, int index,
+        const float co[3]) ATTR_NONNULL(1, 3);
+int BLI_kdtree_find_nearest(
+        KDTree *tree, const float co[3],
+        KDTreeNearest *r_nearest) ATTR_NONNULL(1, 2);
+
+#define BLI_kdtree_find_nearest_n(tree, co, r_nearest, n) \
+        BLI_kdtree_find_nearest_n__normal(tree, co, NULL, r_nearest, n)
+#define BLI_kdtree_range_search(tree, co, r_nearest, range) \
+        BLI_kdtree_range_search__normal(tree, co, NULL, r_nearest, range)
+
+/* Normal use is deprecated */
+/* remove __normal functions when last users drop */
+int BLI_kdtree_find_nearest_n__normal(
+        KDTree *tree, const float co[3], const float nor[3],
+        KDTreeNearest *r_nearest,
+        unsigned int n) ATTR_NONNULL(1, 2, 4);
+int BLI_kdtree_range_search__normal(
+        KDTree *tree, const float co[3], const float nor[3],
+        KDTreeNearest **r_nearest,
+        float range) ATTR_NONNULL(1, 2, 4) ATTR_WARN_UNUSED_RESULT;
 
 #endif  /* __BLI_KDTREE_H__ */

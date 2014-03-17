@@ -1297,7 +1297,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 			mul_mat3_m4_v3(sds->imat, &particle_vel[valid_particles * 3]);
 
 			if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
-				BLI_kdtree_insert(tree, valid_particles, pos, NULL);
+				BLI_kdtree_insert(tree, valid_particles, pos);
 			}
 
 			/* calculate emission map bounds */
@@ -1379,7 +1379,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 							/* find particle distance from the kdtree */
 							KDTreeNearest nearest;
 							float range = solid + smooth;
-							BLI_kdtree_find_nearest(tree, ray_start, NULL, &nearest);
+							BLI_kdtree_find_nearest(tree, ray_start, &nearest);
 
 							if (nearest.dist < range) {
 								em->influence[index] = (nearest.dist < solid) ? 1.0f : (1.0f - (nearest.dist-solid) / smooth);
@@ -1404,7 +1404,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 							/* find particle distance from the kdtree */
 							KDTreeNearest nearest;
 							float range = solid + hr_smooth;
-							BLI_kdtree_find_nearest(tree, ray_start, NULL, &nearest);
+							BLI_kdtree_find_nearest(tree, ray_start, &nearest);
 
 							if (nearest.dist < range) {
 								em->influence_high[index] = (nearest.dist < solid) ? 1.0f : (1.0f - (nearest.dist-solid) / smooth);

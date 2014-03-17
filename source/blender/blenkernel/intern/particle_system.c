@@ -815,7 +815,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 
 			psys_particle_on_dm(ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
 			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
-			maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,NULL,ptn,3);
+			maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,ptn,3);
 
 			for (w=0; w<maxw; w++) {
 				pa->verts[w]=ptn->num;
@@ -940,7 +940,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 
 			psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1,NULL);
 			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
-			maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,NULL,ptn,3);
+			maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,ptn,3);
 
 			maxd=ptn[maxw-1].dist;
 			/* mind=ptn[0].dist; */ /* UNUSED */
@@ -1077,7 +1077,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	int totelem=0, totpart, *particle_element=0, children=0, totseam=0;
 	int jitlevel= 1, distr;
 	float *element_weight=NULL,*element_sum=NULL,*jitter_offset=NULL, *vweight=NULL;
-	float cur, maxweight=0.0, tweight, totweight, inv_totweight, co[3], nor[3], orco[3], ornor[3];
+	float cur, maxweight=0.0, tweight, totweight, inv_totweight, co[3], nor[3], orco[3];
 	
 	if (ELEM3(NULL, ob, psys, psys->part))
 		return 0;
@@ -1128,9 +1128,9 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		tree=BLI_kdtree_new(totpart);
 
 		for (p=0,pa=psys->particles; p<totpart; p++,pa++) {
-			psys_particle_on_dm(dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,ornor);
+			psys_particle_on_dm(dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,NULL);
 			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco, 1, 1);
-			BLI_kdtree_insert(tree, p, orco, ornor);
+			BLI_kdtree_insert(tree, p, orco);
 		}
 
 		BLI_kdtree_balance(tree);
@@ -1170,7 +1170,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 				}
 				else
 					copy_v3_v3(co,mv[p].co);
-				BLI_kdtree_insert(tree,p,co,NULL);
+				BLI_kdtree_insert(tree, p, co);
 			}
 
 			BLI_kdtree_balance(tree);
@@ -2249,9 +2249,9 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
 			LOOP_SHOWN_PARTICLES {
 				if (pa->alive == PARS_ALIVE) {
 					if (pa->state.time == cfra)
-						BLI_kdtree_insert(psys->tree, p, pa->prev_state.co, NULL);
+						BLI_kdtree_insert(psys->tree, p, pa->prev_state.co);
 					else
-						BLI_kdtree_insert(psys->tree, p, pa->state.co, NULL);
+						BLI_kdtree_insert(psys->tree, p, pa->state.co);
 				}
 			}
 			BLI_kdtree_balance(psys->tree);

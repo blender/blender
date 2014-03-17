@@ -681,7 +681,7 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, const float co[3], 
 
 			int i;
 
-			i = BLI_kdtree_find_nearest(MirrKdStore.tree, co, NULL, &nearest);
+			i = BLI_kdtree_find_nearest(MirrKdStore.tree, co, &nearest);
 
 			if (i != -1) {
 				if (nearest.dist < KD_THRESH) {
@@ -717,7 +717,7 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, const float co[3], 
 			BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 
 			BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-				BLI_kdtree_insert(MirrKdStore.tree, i, eve->co, NULL);
+				BLI_kdtree_insert(MirrKdStore.tree, i, eve->co);
 			}
 		}
 		else {
@@ -725,7 +725,7 @@ int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, const float co[3], 
 			int i;
 			
 			for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-				BLI_kdtree_insert(MirrKdStore.tree, i, mvert->co, NULL);
+				BLI_kdtree_insert(MirrKdStore.tree, i, mvert->co);
 			}
 		}
 

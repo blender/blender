@@ -2406,14 +2406,14 @@ void psys_find_parents(ParticleSimulationData *sim)
 
 	for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
 		psys_particle_on_emitter(sim->psmd, from, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, co, 0, 0, 0, orco, 0);
-		BLI_kdtree_insert(tree, p, orco, NULL);
+		BLI_kdtree_insert(tree, p, orco);
 	}
 
 	BLI_kdtree_balance(tree);
 
 	for (; p < totchild; p++, cpa++) {
 		psys_particle_on_emitter(sim->psmd, from, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, co, 0, 0, 0, orco, 0);
-		cpa->parent = BLI_kdtree_find_nearest(tree, orco, NULL, NULL);
+		cpa->parent = BLI_kdtree_find_nearest(tree, orco, NULL);
 	}
 
 	BLI_kdtree_free(tree);
