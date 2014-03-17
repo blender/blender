@@ -2071,8 +2071,12 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
-	if (but->flag & UI_BUT_COLOR_LOCK)
-		hsv[2] = 1.f;
+	if (but->flag & UI_BUT_COLOR_LOCK) {
+		if(U.color_picker_type == USER_CP_CIRCLE_HSV)
+			hsv[2] = 1.f;
+		else
+			hsv[2] = 0.5f;
+	}
 	
 	ui_color_picker_to_rgb(0.f, 0.f, hsv[2], colcent, colcent + 1, colcent + 2);
 

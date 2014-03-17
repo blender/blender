@@ -4638,8 +4638,14 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
-	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
-		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
+	if (but->flag & UI_BUT_COLOR_LOCK) {
+		if (U.color_picker_type == USER_CP_CIRCLE_HSV) { // lock
+			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
+		}
+		else {
+			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
+			if (hsv[2] == 1.f) hsv[2] = 0.9999f;
+		}
 	}
 
 	/* only apply the delta motion, not absolute */
@@ -4727,8 +4733,14 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
-	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
-		if (hsv[2] == 0.0f) hsv[2] = 0.0001f;
+	if (but->flag & UI_BUT_COLOR_LOCK) {
+		if (U.color_picker_type == USER_CP_CIRCLE_HSV) { // lock
+			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
+		}
+		else {
+			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
+			if (hsv[2] == 1.f) hsv[2] = 0.9999f;
+		}
 	}
 
 	if (snap != SNAP_OFF) {
