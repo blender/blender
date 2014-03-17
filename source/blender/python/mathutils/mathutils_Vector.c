@@ -800,6 +800,36 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 	return Quaternion_CreatePyObject(quat, Py_NEW, NULL);
 }
 
+PyDoc_STRVAR(Vector_orthogonal_doc,
+".. method:: orthogonal()\n"
+"\n"
+"   Return a perpendicular vector.\n"
+"\n"
+"   :return: a new vector 90 degrees from this vector.\n"
+"   :rtype: :class:`Vector`\n"
+"\n"
+"   .. note:: the axis is undefined, only use when any orthogonal vector is acceptable.\n"
+);
+static PyObject *Vector_orthogonal(VectorObject *self)
+{
+	float vec[3];
+
+	if (self->size != 3) {
+		PyErr_SetString(PyExc_TypeError,
+		                "Vector.orthogonal(): "
+		                "Vector must be 3D");
+		return NULL;
+	}
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	ortho_v3_v3(vec, self->vec);
+
+	return Vector_CreatePyObject(vec, self->size, Py_NEW, Py_TYPE(self));
+}
+
+
 /*
  * Vector.reflect(mirror): return a reflected vector on the mirror normal
  *  vec - ((2 * DotVecs(vec, mirror)) * mirror)
@@ -2768,6 +2798,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"resize_4d", (PyCFunction) Vector_resize_4d, METH_NOARGS, Vector_resize_4d_doc},
 	{"to_tuple", (PyCFunction) Vector_to_tuple, METH_VARARGS, Vector_to_tuple_doc},
 	{"to_track_quat", (PyCFunction) Vector_to_track_quat, METH_VARARGS, Vector_to_track_quat_doc},
+	{"orthogonal", (PyCFunction) Vector_orthogonal, METH_NOARGS, Vector_orthogonal_doc},
 
 	/* operation between 2 or more types  */
 	{"reflect", (PyCFunction) Vector_reflect, METH_O, Vector_reflect_doc},

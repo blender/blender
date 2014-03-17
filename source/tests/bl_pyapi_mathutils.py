@@ -3,6 +3,32 @@ import unittest
 from test import support
 from mathutils import Matrix, Vector
 from mathutils import kdtree
+import math
+
+# keep globals immutable
+vector_data = (
+    (1.0, 0.0, 0.0),
+    (0.0, 1.0, 0.0),
+    (0.0, 0.0, 1.0),
+
+    (1.0, 1.0, 1.0),
+
+    (0.33783, 0.715698, -0.611206),
+    (-0.944031, -0.326599, -0.045624),
+    (-0.101074, -0.416443, -0.903503),
+    (0.799286, 0.49411, -0.341949),
+    (-0.854645, 0.518036, 0.033936),
+    (0.42514, -0.437866, -0.792114),
+    (-0.358948, 0.597046, 0.717377),
+    (-0.985413,0.144714, 0.089294),
+    )
+
+# get data at different scales
+vector_data = sum(
+    (tuple(tuple(a * scale for a in v) for v in vector_data)
+    for scale in (s * sign for s in (0.0001, 0.1, -1.0, 10.0, 1000.0, 100000.0)
+                           for sign in (1.0, -1.0))), ()) + ((0.0, 0.0, 0.0),)
+
 
 class MatrixTesting(unittest.TestCase):
     def test_matrix_column_access(self):
@@ -149,6 +175,17 @@ class MatrixTesting(unittest.TestCase):
         self.assertEqual(mat * mat, prod_mat)
 
 
+class VectorTesting(unittest.TestCase):
+
+    def test_orthogonal(self):
+
+        angle_90d = math.pi / 2.0
+        for v in vector_data:
+            v = Vector(v)
+            if v.length_squared != 0.0:
+                self.assertAlmostEqual(v.angle(v.orthogonal()), angle_90d)
+
+
 class KDTreeTesting(unittest.TestCase):
 
     @staticmethod
@@ -256,6 +293,7 @@ class KDTreeTesting(unittest.TestCase):
 def test_main():
     try:
         support.run_unittest(MatrixTesting)
+        support.run_unittest(VectorTesting)
         support.run_unittest(KDTreeTesting)
     except:
         import traceback
