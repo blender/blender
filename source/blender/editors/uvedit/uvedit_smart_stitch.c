@@ -882,7 +882,7 @@ static void stitch_propagate_uv_final_position(Scene *scene,
 			}
 
 			/* end of calculations, keep only the selection flag */
-			if ( (!state->snap_islands) || ((!state->midpoints) && (element_iter->island == state->static_island))) {
+			if ((!state->snap_islands) || ((!state->midpoints) && (element_iter->island == state->static_island))) {
 				element_iter->flag &= STITCH_SELECTED;
 			}
 

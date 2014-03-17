@@ -1149,13 +1149,14 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 		if ( spring ) {
 			spring_verts_ordered_set(spring, medge[i].v1, medge[i].v2);
-			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && medge[i].flag & ME_LOOSEEDGE) {
+			if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && medge[i].flag & ME_LOOSEEDGE) {
 				// handle sewing (loose edges will be pulled together)
 				spring->restlen = 0.0f;
 				spring->stiffness = 1.0f;
 				spring->type = CLOTH_SPRING_TYPE_SEWING;
-			} else {
-				if(clmd->sim_parms->vgroup_shrink > 0)
+			}
+			else {
+				if (clmd->sim_parms->vgroup_shrink > 0)
 					shrink_factor = 1.0f - ((cloth->verts[spring->ij].shrink_factor + cloth->verts[spring->kl].shrink_factor) / 2.0f);
 				else
 					shrink_factor = 1.0f - clmd->sim_parms->shrink_min;
@@ -1200,7 +1201,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 
 		spring_verts_ordered_set(spring, mface[i].v1, mface[i].v3);
-		if(clmd->sim_parms->vgroup_shrink > 0)
+		if (clmd->sim_parms->vgroup_shrink > 0)
 			shrink_factor = 1.0f - ((cloth->verts[spring->ij].shrink_factor + cloth->verts[spring->kl].shrink_factor) / 2.0f);
 		else
 			shrink_factor = 1.0f - clmd->sim_parms->shrink_min;
@@ -1224,7 +1225,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 
 		spring_verts_ordered_set(spring, mface[i].v2, mface[i].v4);
-		if(clmd->sim_parms->vgroup_shrink > 0)
+		if (clmd->sim_parms->vgroup_shrink > 0)
 			shrink_factor = 1.0f - ((cloth->verts[spring->ij].shrink_factor + cloth->verts[spring->kl].shrink_factor) / 2.0f);
 		else
 			shrink_factor = 1.0f - clmd->sim_parms->shrink_min;

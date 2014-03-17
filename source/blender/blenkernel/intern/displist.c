@@ -596,7 +596,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	while (dl) {
 		if (dl->type == DL_SURF) {
 			if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U) == 0) {
-				if ( (cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE)) {
+				if ((cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE)) {
 					dlnew = MEM_callocN(sizeof(DispList), "filldisp");
 					BLI_addtail(&front, dlnew);
 					dlnew->verts = fp1 = MEM_mallocN(sizeof(float) * 3 * dl->parts, "filldisp1");

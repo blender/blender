@@ -877,7 +877,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 		SubdParams sdparams(mesh, shader, smooth);
 		xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
 
-		DiagSplit dsplit(sdparams);;
+		DiagSplit dsplit(sdparams);
 		sdmesh.tessellate(&dsplit);
 	}
 	else {

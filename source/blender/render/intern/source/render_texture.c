@@ -2321,7 +2321,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 
 			/* texture output */
 
-			if ( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
+			if ((rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
 				texres.tin = rgb_to_grayscale(&texres.tr);
 				rgbnor -= TEX_RGB;
 			}
@@ -2759,7 +2759,7 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_
 			
 			/* texture output */
 
-			if ( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
+			if ((rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
 				texres.tin = rgb_to_grayscale(&texres.tr);
 				rgbnor -= TEX_RGB;
 			}

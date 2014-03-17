@@ -4369,7 +4369,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 			if (isNurbsel_count(cu, nu) == 1) {
 				/* only 1 selected, not first or last, a little complex, but intuitive */
 				if (nu->pntsv == 1) {
-					if ( (nu->bp->f1 & SELECT) || (nu->bp[nu->pntsu - 1].f1 & SELECT)) {
+					if ((nu->bp->f1 & SELECT) || (nu->bp[nu->pntsu - 1].f1 & SELECT)) {
 						/* pass */
 					}
 					else {

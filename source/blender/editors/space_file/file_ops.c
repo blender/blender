@@ -494,7 +494,7 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 	
 	if (RNA_struct_find_property(op->ptr, "index")) {
 		int index = RNA_int_get(op->ptr, "index");
-		if ( (index > -1) && (index < nentries)) {
+		if ((index > -1) && (index < nentries)) {
 			char name[FILE_MAX];
 			
 			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);

@@ -414,7 +414,7 @@ static void create_subd_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, PointerR
 	//sdparams.camera = scene->camera;
 
 	/* tesselate */
-	DiagSplit dsplit(sdparams);;
+	DiagSplit dsplit(sdparams);
 	sdmesh.tessellate(&dsplit);
 }
 
