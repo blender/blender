@@ -1389,8 +1389,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 			if (!(d1 <= vert_tol || d2 <= vert_tol || fabsf(d1 - d2) <= vert_tol)) {
 				lambda = d1 / d2;
 				/* Can't just interpolate between ends of kfe because
-				* that doesn't work with perspective transformation.
-				* Need to find 3d intersection of ray through sint */
+				 * that doesn't work with perspective transformation.
+				 * Need to find 3d intersection of ray through sint */
 				knife_input_ray_segment(kcd, sint, 1.0f, r1, r2);
 				isect_kind = isect_line_line_v3(kfe->v1->cageco, kfe->v2->cageco, r1, r2, p, p2);
 				if (isect_kind >= 1 && point_is_visible(kcd, p, sint, &mats)) {

@@ -3659,7 +3659,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	else { /* different kinds of copying */
 		newscene = BKE_scene_copy(scene, type);
 
-		/* these can't be handled in blenkernel curently, so do them here */
+		/* these can't be handled in blenkernel currently, so do them here */
 		if (type == SCE_COPY_LINK_DATA) {
 			ED_object_single_users(bmain, newscene, false, true);
 		}

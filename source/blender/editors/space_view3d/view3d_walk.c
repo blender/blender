@@ -1095,7 +1095,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 				}
 
 				/* the distance we would fall naturally smoothly enough that we
-				   can manually drop the object without activating gravity */
+				 * can manually drop the object without activating gravity */
 				fall_distance = time_redraw * walk->speed * WALK_BOOST_FACTOR;
 
 				if (fabsf(difference) < fall_distance) {

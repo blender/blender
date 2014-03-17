@@ -26,7 +26,7 @@ vector_data = (
 # get data at different scales
 vector_data = sum(
     (tuple(tuple(a * scale for a in v) for v in vector_data)
-    for scale in (s * sign for s in (0.0001, 0.1, -1.0, 10.0, 1000.0, 100000.0)
+    for scale in (s * sign for s in (0.0001, 0.1, 1.0, 10.0, 1000.0, 100000.0)
                            for sign in (1.0, -1.0))), ()) + ((0.0, 0.0, 0.0),)
 
 

@@ -20,8 +20,8 @@
 */
 
 /** \file blender/modifiers/intern/MOD_wireframe.c
-*  \ingroup modifiers
-*/
+ *  \ingroup modifiers
+ */
 
 #include "MEM_guardedalloc.h"
 

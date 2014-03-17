@@ -49,7 +49,7 @@
  * for output slots, for single-type geometry slots, use the type name plus "out",
  * (e.g. verts.out), for double-type slots, use the two type names plus "out",
  * (e.g. vertfaces.out), for three-type slots, use geom.  note that you can also
- * use more esohteric names (e.g. geom_skirt.out) so long as the comment next to the
+ * use more esoteric names (e.g. geom_skirt.out) so long as the comment next to the
  * slot definition tells you what types of elements are in it.
  *
  */
