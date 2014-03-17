@@ -171,7 +171,7 @@ void PlaneDistortMaskOperation::calculateCorners(const float corners[4][2], bool
 
 void PlaneDistortMaskOperation::initExecution()
 {
-	BLI_jitter_init(m_jitter[0], m_osa);
+	BLI_jitter_init(m_jitter, m_osa);
 }
 
 void PlaneDistortMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)

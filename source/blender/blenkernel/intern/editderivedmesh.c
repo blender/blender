@@ -1829,7 +1829,7 @@ static void statvis_calc_thickness(
 	if (use_jit) {
 		int j;
 		BLI_assert(samples < 32);
-		BLI_jitter_init(jit_ofs[0], samples);
+		BLI_jitter_init(jit_ofs, samples);
 
 		for (j = 0; j < samples; j++) {
 			uv_from_jitter_v2(jit_ofs[j]);

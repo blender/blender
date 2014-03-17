@@ -690,7 +690,7 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 	}
 }
 
-/* modified copy from effect.c */
+/* almost exact copy of BLI_jitter_init */
 static void init_mv_jit(float *jit, int num, int seed2, float amount)
 {
 	RNG *rng;
@@ -721,9 +721,9 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 	jit2= MEM_mallocN(12 + 2*sizeof(float)*num, "initjit");
 
 	for (i=0 ; i<4 ; i++) {
-		BLI_jitterate1(jit, jit2, num, rad1);
-		BLI_jitterate1(jit, jit2, num, rad1);
-		BLI_jitterate2(jit, jit2, num, rad2);
+		BLI_jitterate1((float (*)[2])jit, (float (*)[2])jit2, num, rad1);
+		BLI_jitterate1((float (*)[2])jit, (float (*)[2])jit2, num, rad1);
+		BLI_jitterate2((float (*)[2])jit, (float (*)[2])jit2, num, rad2);
 	}
 	MEM_freeN(jit2);
 	BLI_rng_free(rng);
