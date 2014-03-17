@@ -4369,8 +4369,10 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 		case UI_GRAD_V:
 			hsv[2] = x;
 			break;
-		case UI_GRAD_V_ALT:
 		case UI_GRAD_L_ALT:
+			hsv[2] = y;
+			break;
+		case UI_GRAD_V_ALT:
 			/* vertical 'value' strip */
 
 			/* exception only for value strip - use the range set in but->min/max */
@@ -4393,7 +4395,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	/* clamp because with color conversion we can exceed range [#34295] */
-	if (ELEM((int)but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
+	if (but->a1 == UI_GRAD_V_ALT) {
 		clamp_axis_max_v3(rgb, but->softmax);
 	}
 
@@ -4662,7 +4664,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	
 	ui_hsvcircle_vals_from_pos(hsv, hsv + 1, &rect, mx_fl, my_fl);
 
-	if (but->flag & UI_BUT_COLOR_CUBIC)
+	if ((but->flag & UI_BUT_COLOR_CUBIC) && (U.color_picker_type == USER_CP_CIRCLE_HSV))
 		hsv[1] = 1.0f - sqrt3f(1.0f - hsv[1]);
 
 	if (snap != SNAP_OFF) {

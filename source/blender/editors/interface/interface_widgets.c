@@ -2027,7 +2027,7 @@ void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float 
 	
 	ang = 2.0f * (float)M_PI * hsv[0] + 0.5f * (float)M_PI;
 	
-	if (but->flag & UI_BUT_COLOR_CUBIC)
+	if ((but->flag & UI_BUT_COLOR_CUBIC) && (U.color_picker_type == USER_CP_CIRCLE_HSV))
 		radius_t = (1.0f - powf(1.0f - hsv[1], 3.0f));
 	else
 		radius_t = hsv[1];
@@ -2063,10 +2063,11 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	if (color_profile)
 		ui_block_to_display_space_v3(but->block, rgb);
 
-	ui_rgb_to_color_picker_compat_v(rgb, hsvo);
-
 	ui_rgb_to_color_picker_compat_v(rgb, hsv);
-	
+	copy_v3_v3(hsvo, hsv);
+
+	CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
+
 	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
@@ -2086,7 +2087,6 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 		float co = cos(ang);
 		
 		ui_hsvcircle_vals_from_pos(hsv, hsv + 1, rect, centx + co * radius, centy + si * radius);
-		CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
 
 		ui_color_picker_to_rgb_v(hsv, col);
 
@@ -2287,8 +2287,12 @@ void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *x
 			x = hsv[1]; y = 0.5; break;
 		case UI_GRAD_V:
 			x = hsv[2]; y = 0.5; break;
-		case UI_GRAD_V_ALT:
 		case UI_GRAD_L_ALT:
+			x = 0.5f;
+			/* exception only for value strip - use the range set in but->min/max */
+			y = hsv[2];
+			break;
+		case UI_GRAD_V_ALT:
 			x = 0.5f;
 			/* exception only for value strip - use the range set in but->min/max */
 			y = (hsv[2] - but->softmin ) / (but->softmax - but->softmin);
@@ -2337,7 +2341,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	uiWidgetBase wtb;
 	const float rad = 0.5f * BLI_rcti_size_x(rect);
 	float x, y;
-	float rgb[3], hsv[3], v, range;
+	float rgb[3], hsv[3], v;
 	bool color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
@@ -2355,9 +2359,11 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	v = hsv[2];
 	
 	/* map v from property range to [0,1] */
-	range = but->softmax - but->softmin;
-	v = (v - but->softmin) / range;
-	
+	if (but->a1 == UI_GRAD_V_ALT) {
+		float range = but->softmax - but->softmin;
+		v = (v - but->softmin) / range;
+	}
+
 	widget_init(&wtb);
 	
 	/* fully rounded */
