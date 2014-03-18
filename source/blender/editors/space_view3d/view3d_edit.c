@@ -1049,6 +1049,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static void view3d_ensure_persp(struct View3D *v3d, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
+	const bool autopersp = (U.uiflag & USER_AUTOPERSP) != 0;
 
 	BLI_assert((rv3d->viewlock & RV3D_LOCKED) == 0);
 
@@ -1057,9 +1058,11 @@ static void view3d_ensure_persp(struct View3D *v3d, ARegion *ar)
 
 	if (rv3d->persp != RV3D_PERSP) {
 		if (rv3d->persp == RV3D_CAMOB) {
-			view3d_persp_switch_from_camera(v3d, rv3d, rv3d->lpersp);
+			/* If autopersp and previous view was an axis one, switch back to PERSP mode, else reuse previous mode. */
+			char persp = (autopersp && RV3D_VIEW_IS_AXIS(rv3d->lview)) ? RV3D_PERSP : rv3d->lpersp;
+			view3d_persp_switch_from_camera(v3d, rv3d, persp);
 		}
-		else if ((U.uiflag & USER_AUTOPERSP) && RV3D_VIEW_IS_AXIS(rv3d->view)) {
+		else if (autopersp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
 			rv3d->persp = RV3D_PERSP;
 		}
 	}
