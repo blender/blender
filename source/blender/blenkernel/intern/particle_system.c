@@ -109,7 +109,7 @@
 
 #endif // WITH_MOD_FLUID
 
-static ThreadMutex psys_bvhtree_rwlock = BLI_RWLOCK_INITIALIZER;
+static ThreadRWMutex psys_bvhtree_rwlock = BLI_RWLOCK_INITIALIZER;
 
 /************************************************/
 /*			Reacting to system events			*/
