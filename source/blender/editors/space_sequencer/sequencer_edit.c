@@ -1,5 +1,5 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
+ * ***** begin GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1901,6 +1901,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 
 	while (seq) {
 		if ((seq->flag & SELECT) && (seq->type == SEQ_TYPE_IMAGE) && (seq->len > 1)) {
+			Sequence *seq_next;
+
 			/* remove seq so overlap tests don't conflict,
 			 * see seq_free_sequence below for the real free'ing */
 			BLI_remlink(ed->seqbasep, seq);
@@ -1944,8 +1946,9 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				start_ofs += step;
 			}
 
+			seq_next = seq->next;
 			BKE_sequence_free(scene, seq);
-			seq = seq->next;
+			seq = seq_next;
 		}
 		else {
 			seq = seq->next;
