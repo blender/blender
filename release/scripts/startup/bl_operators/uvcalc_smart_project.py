@@ -23,7 +23,7 @@ import bpy
 from bpy.types import Operator
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
-SMALL_NUM = 0.000001  # see bug [#31598] why we dont have smaller values
+SMALL_NUM = 0.00000001  # see bug [#31598] why we dont have smaller values
 
 global USER_FILL_HOLES
 global USER_FILL_HOLES_QUALITY
@@ -594,10 +594,10 @@ def packIslands(islandList):
             # recalc width and height
             w, h = maxx-minx, maxy-miny
 
-        if w < 0.00001 or h < 0.00001:
-            del islandList[islandIdx]
-            islandIdx -=1
-            continue
+        if w < SMALL_NUM:
+            w = SMALL_NUM
+        if h < SMALL_NUM:
+            h = SMALL_NUM
 
         """Save the offset to be applied later,
         we could apply to the UVs now and allign them to the bottom left hand area

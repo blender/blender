@@ -9,3 +9,4 @@ interpolator_reorder.patch
 mesh_simplify_dissolve_edges.patch
 memory_leak_fix.patch
 mavc_fix.patch
+face_hole_merge_workaround.patch

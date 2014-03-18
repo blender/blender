@@ -1,0 +1,14 @@
+diff -r e82d852e4fb0 lib/intersect_face_division.cpp
+--- a/lib/intersect_face_division.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/intersect_face_division.cpp	Thu Mar 13 15:39:26 2014 +0600
+@@ -719,6 +719,10 @@
+           unassigned--;
+         }
+       }
++
++      if (!removed.size())
++        throw carve::exception("Failed to merge holes");
++
+       for (std::set<int>::iterator f = removed.begin(); f != removed.end(); ++f) {
+         for (unsigned i = 0; i < containing_faces.size(); ++i) {
+           containing_faces[i].erase(std::remove(containing_faces[i].begin(),

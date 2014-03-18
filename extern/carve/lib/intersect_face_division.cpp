@@ -719,6 +719,10 @@ namespace {
           unassigned--;
         }
       }
+
+      if (!removed.size())
+        throw carve::exception("Failed to merge holes");
+
       for (std::set<int>::iterator f = removed.begin(); f != removed.end(); ++f) {
         for (unsigned i = 0; i < containing_faces.size(); ++i) {
           containing_faces[i].erase(std::remove(containing_faces[i].begin(),

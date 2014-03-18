@@ -2911,7 +2911,7 @@ static uiBut *ui_but_list_row_text_activate(bContext *C, uiBut *but, uiHandleBut
 	ARegion *ar = CTX_wm_region(C);
 	uiBut *labelbut = ui_but_find_mouse_over_ex(ar, event->x, event->y, true);
 
-	if (labelbut && labelbut->type == TEX) {
+	if (labelbut && labelbut->type == TEX && !(labelbut->flag & UI_BUT_DISABLED)) {
 		/* exit listrow */
 		data->cancel = true;
 		button_activate_exit(C, but, data, false, false);

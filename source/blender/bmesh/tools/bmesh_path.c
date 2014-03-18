@@ -193,6 +193,14 @@ static void edgetag_add_adjacent(Heap *heap, BMEdge *e1, BMEdge **edges_prev, fl
 	const int e1_index = BM_elem_index_get(e1);
 
 	BM_ITER_ELEM (v, &viter, e1, BM_VERTS_OF_EDGE) {
+
+		/* don't walk over previous vertex */
+		if ((edges_prev[e1_index]) &&
+		    (BM_vert_in_edge(edges_prev[e1_index], v)))
+		{
+			continue;
+		}
+
 		BM_ITER_ELEM (e2, &eiter, v, BM_EDGES_OF_VERT) {
 			if (!BM_elem_flag_test(e2, BM_ELEM_TAG)) {
 				/* we know 'e2' is not visited, check it out! */

@@ -808,7 +808,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 
 	tlmd->vertexco = MEM_dupallocN(lmd->vertexco);
-	tlmd->cache_system = MEM_dupallocN(lmd->cache_system);
+	tlmd->cache_system = NULL;
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
