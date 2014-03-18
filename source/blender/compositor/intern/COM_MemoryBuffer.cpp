@@ -218,8 +218,8 @@ static void ellipse_bounds(float A, float B, float C, float F, float &xmax, floa
 {
 	float denom = 4.0f * A * C - B * B;
 	if (denom > 0.0f && A != 0.0f && C != 0.0f) {
-		xmax = sqrt(F) / (2.0f * A) * (sqrt(F * (4.0f * A - B * B / C)) + B * B * sqrt(F / (C * denom)));
-		ymax = sqrt(F) / (2.0f * C) * (sqrt(F * (4.0f * C - B * B / A)) + B * B * sqrt(F / (A * denom)));
+		xmax = sqrtf(F) / (2.0f * A) * (sqrtf(F * (4.0f * A - B * B / C)) + B * B * sqrtf(F / (C * denom)));
+		ymax = sqrtf(F) / (2.0f * C) * (sqrtf(F * (4.0f * C - B * B / A)) + B * B * sqrtf(F / (A * denom)));
 	}
 	else {
 		xmax = 0.0f;
@@ -272,7 +272,7 @@ void MemoryBuffer::readEWA(float result[4], const float uv[2], const float deriv
 	int U0 = (int)u;
 	int V0 = (int)v;
 	/* pixel offset for interpolation */
-	float ufac = u - floor(u), vfac = v - floor(v);
+	float ufac = u - floorf(u), vfac = v - floorf(v);
 	/* filter size */
 	int u1 = (int)(u - ue);
 	int u2 = (int)(u + ue);

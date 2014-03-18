@@ -106,6 +106,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f)
 		}
 		else {
 			f_new = NULL;
+			l_new = NULL;
 		}
 
 		f = f_new;
