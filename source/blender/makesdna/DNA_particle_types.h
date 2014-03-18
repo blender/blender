@@ -304,8 +304,8 @@ typedef struct ParticleSystem {
 	ParticleSpring *fluid_springs;
 	int tot_fluidsprings, alloc_fluidsprings;
 
-	struct KDTree *tree;								/* used for interactions with self and other systems */
-	struct BVHTree *bvhtree;								/* used for interactions with self and other systems */
+	struct KDTree *tree;					/* used for interactions with self and other systems */
+	struct BVHTree *bvhtree;				/* used for interactions with self and other systems */
 
 	struct ParticleDrawData *pdd;
 

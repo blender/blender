@@ -109,6 +109,8 @@
 
 #endif // WITH_MOD_FLUID
 
+static ThreadMutex psys_bvhtree_rwlock = BLI_RWLOCK_INITIALIZER;
+
 /************************************************/
 /*			Reacting to system events			*/
 /************************************************/
@@ -2209,15 +2211,22 @@ static void psys_update_particle_bvhtree(ParticleSystem *psys, float cfra)
 	if (psys) {
 		PARTICLE_P;
 		int totpart = 0;
+		bool need_rebuild;
 
-		if (!psys->bvhtree || psys->bvhtree_frame != cfra) {
+		BLI_rw_mutex_lock(&psys_bvhtree_rwlock, THREAD_LOCK_READ);
+		need_rebuild = !psys->bvhtree || psys->bvhtree_frame != cfra;
+		BLI_rw_mutex_unlock(&psys_bvhtree_rwlock);
+		
+		if (need_rebuild) {
 			LOOP_SHOWN_PARTICLES {
 				totpart++;
 			}
 			
+			BLI_rw_mutex_lock(&psys_bvhtree_rwlock, THREAD_LOCK_WRITE);
+			
 			BLI_bvhtree_free(psys->bvhtree);
 			psys->bvhtree = BLI_bvhtree_new(totpart, 0.0, 4, 6);
-
+			
 			LOOP_SHOWN_PARTICLES {
 				if (pa->alive == PARS_ALIVE) {
 					if (pa->state.time == cfra)
@@ -2227,8 +2236,10 @@ static void psys_update_particle_bvhtree(ParticleSystem *psys, float cfra)
 				}
 			}
 			BLI_bvhtree_balance(psys->bvhtree);
-
+			
 			psys->bvhtree_frame = cfra;
+			
+			BLI_rw_mutex_unlock(&psys_bvhtree_rwlock);
 		}
 	}
 }
@@ -2546,7 +2557,11 @@ static void sph_evaluate_func(BVHTree *tree, ParticleSystem **psys, float co[3],
 			break;
 		}
 		else {
+			BLI_rw_mutex_lock(&psys_bvhtree_rwlock, THREAD_LOCK_READ);
+			
 			BLI_bvhtree_range_query(psys[i]->bvhtree, co, interaction_radius, callback, pfr);
+			
+			BLI_rw_mutex_unlock(&psys_bvhtree_rwlock);
 		}
 	}
 }
