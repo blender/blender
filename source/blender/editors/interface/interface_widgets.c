@@ -978,6 +978,8 @@ static void ui_text_clip_right_ex(uiFontStyle *fstyle, char *str, const size_t m
 	float tmp;
 	int l_end;
 
+	BLI_assert(str[0]);
+
 	/* If the trailing ellipsis takes more than 20% of all available width, just cut the string
 	 * (as using the ellipsis would remove even more useful chars, and we cannot show much already!).
 	 */
@@ -999,6 +1001,8 @@ static float ui_text_clip_middle_ex(uiFontStyle *fstyle, char *str, const float 
                                     const size_t max_len)
 {
 	float strwidth;
+
+	BLI_assert(str[0]);
 
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
@@ -1416,6 +1420,11 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	/* clip but->drawstr to fit in available space */
 	if (but->editstr && but->pos >= 0) {
 		ui_text_clip_cursor(fstyle, but, rect);
+	}
+	else if (but->drawstr[0] == '\0') {
+		/* bypass text clipping on icon buttons */
+		but->ofs = 0;
+		but->strwidth = 0;
 	}
 	else if (ELEM(but->type, NUM, NUMSLI)) {
 		ui_text_clip_right_label(fstyle, but, rect);
