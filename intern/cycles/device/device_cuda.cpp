@@ -457,7 +457,7 @@ public:
 		CUarray_format_enum format;
 		size_t dsize = datatype_size(mem.data_type);
 		size_t size = mem.memory_size();
-		bool use_texture = interpolation || use_texture_storage;
+		bool use_texture = (interpolation != INTERPOLATION_NONE) || use_texture_storage;
 
 		if(use_texture) {
 
