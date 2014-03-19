@@ -4088,8 +4088,12 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 				break;
 			}
 			case PROP_COLLECTION: {
-				/* resolve pointer if further path elements follow or explicitly requested */
-				if (eval_pointer || *path) {
+				/* Resolve pointer if further path elements follow.
+				 * Note that if path is empty, rna_path_parse_collection_key will do nothing anyway,
+				 * so eval_pointer is of no use here (esp. as in this case, we want to keep found prop,
+				 * erasing it breaks operators - e.g. bpy.types.Operator.bl_rna.foobar errors...).
+				 */
+				if (*path) {
 					PointerRNA nextptr;
 					if (!rna_path_parse_collection_key(&path, &curptr, prop, &nextptr))
 						return false;
