@@ -67,16 +67,13 @@ static short selmodes_to_flagmodes(short sel)
 	switch (sel) {
 		case SELECT_SUBTRACT:
 			return ACHANNEL_SETFLAG_CLEAR;
-			break;
-			
+
 		case SELECT_INVERT:
 			return ACHANNEL_SETFLAG_INVERT;
-			break;
-			
+
 		case SELECT_ADD:
 		default:
 			return ACHANNEL_SETFLAG_ADD;
-			break;
 	}
 }
 

@@ -744,7 +744,6 @@ static int screen_render_modal(bContext *C, wmOperator *op, const wmEvent *event
 	switch (event->type) {
 		case ESCKEY:
 			return OPERATOR_RUNNING_MODAL;
-			break;
 	}
 	return OPERATOR_PASS_THROUGH;
 }

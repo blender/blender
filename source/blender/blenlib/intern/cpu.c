@@ -52,8 +52,8 @@ int BLI_cpu_support_sse2(void)
 		mov d, edx
 	}
 	return (d & 0x04000000) != 0;
-#endif
-
+#else
 	return 0;
+#endif
 }
 

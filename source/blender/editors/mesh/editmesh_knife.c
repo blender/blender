@@ -2861,7 +2861,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				ED_region_tag_redraw(kcd->ar);
 				return OPERATOR_PASS_THROUGH;
-				break;
 		}
 	}
 	else { /* non-modal-mapped events */

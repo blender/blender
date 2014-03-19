@@ -507,13 +507,10 @@ Material ***give_matarar_id(ID *id)
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->mat);
-			break;
 		case ID_CU:
 			return &(((Curve *)id)->mat);
-			break;
 		case ID_MB:
 			return &(((MetaBall *)id)->mat);
-			break;
 	}
 	return NULL;
 }
@@ -526,13 +523,10 @@ short *give_totcolp_id(ID *id)
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->totcol);
-			break;
 		case ID_CU:
 			return &(((Curve *)id)->totcol);
-			break;
 		case ID_MB:
 			return &(((MetaBall *)id)->totcol);
-			break;
 	}
 	return NULL;
 }

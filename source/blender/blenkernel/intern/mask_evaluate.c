@@ -718,11 +718,9 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution(
 	switch (spline->offset_mode) {
 		case MASK_SPLINE_OFFSET_EVEN:
 			return mask_spline_feather_differentiated_points_with_resolution__even(spline, tot_feather_point, resol, do_feather_isect);
-			break;
 		case MASK_SPLINE_OFFSET_SMOOTH:
 		default:
 			return mask_spline_feather_differentiated_points_with_resolution__double(spline, tot_feather_point, resol, do_feather_isect);
-			break;
 	}
 }
 

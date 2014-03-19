@@ -106,10 +106,8 @@ int avi_get_format_type(AviFormat format)
 		case AVI_FORMAT_AVI_RGB:
 		case AVI_FORMAT_MJPEG:
 			return FCC("vids");
-			break;
 		default:
 			return 0;
-			break;
 	}
 }
 
@@ -120,13 +118,10 @@ int avi_get_format_fcc(AviFormat format)
 		case AVI_FORMAT_RGB32:
 		case AVI_FORMAT_AVI_RGB:
 			return FCC("DIB ");
-			break;
 		case AVI_FORMAT_MJPEG:
 			return FCC("MJPG");
-			break;
 		default:
 			return 0;
-			break;
 	}
 }
 
@@ -137,12 +132,9 @@ int avi_get_format_compression(AviFormat format)
 		case AVI_FORMAT_RGB32:
 		case AVI_FORMAT_AVI_RGB:
 			return 0;
-			break;
 		case AVI_FORMAT_MJPEG:
 			return FCC("MJPG");
-			break;
 		default:
 			return 0;
-			break;
 	}
 }

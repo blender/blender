@@ -2026,8 +2026,6 @@ short id_frame_has_keyframe(ID *id, float frame, short filter)
 	switch (GS(id->name)) {
 		case ID_OB: /* object */
 			return object_frame_has_keyframe((Object *)id, frame, filter);
-			break;
-			
 #if 0
 		// XXX TODO... for now, just use 'normal' behavior
 		case ID_SCE: /* scene */

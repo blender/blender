@@ -3067,7 +3067,6 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 				wm_gesture_end(C, op);
 				return OPERATOR_CANCELLED;
-				break;
 
 			case GESTURE_MODAL_CANCEL:
 				wm_gesture_end(C, op);
@@ -3588,7 +3587,6 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 				}
 				wm_gesture_end(C, op);
 				return OPERATOR_CANCELLED;
-				break;
 				
 			case GESTURE_MODAL_CANCEL:
 				wm_gesture_end(C, op);

@@ -1920,7 +1920,6 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				             error_prefix, RNA_struct_identifier(ptr->type),
 				             RNA_property_identifier(prop));
 				return -1;
-				break;
 		}
 	}
 

@@ -176,11 +176,10 @@ static bool edgetag_test_cb(BMEdge *e, void *user_data_v)
 			return BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT) ? true : false;
 #ifdef WITH_FREESTYLE
 		case EDGE_MODE_TAG_FREESTYLE:
-			{
-				FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
-				return (!fed) ? FALSE : (fed->flag & FREESTYLE_EDGE_MARK) ? true : false;
-			}
-			break;
+		{
+			FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
+			return (!fed) ? FALSE : (fed->flag & FREESTYLE_EDGE_MARK) ? true : false;
+		}
 #endif
 	}
 	return 0;

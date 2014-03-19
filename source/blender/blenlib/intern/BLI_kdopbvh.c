@@ -127,10 +127,12 @@ MINLINE axis_t min_axis(axis_t a, axis_t b)
 {
 	return (a < b) ? a : b;
 }
+#if 0
 MINLINE axis_t max_axis(axis_t a, axis_t b)
 {
 	return (b < a) ? a : b;
 }
+#endif
 
 #if 0
 

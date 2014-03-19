@@ -105,22 +105,16 @@ static PyObject *Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
 	switch (opid) {
 		case Py_LT:
 			return PyBool_from_bool(o1->id->operator<(*(o2->id)));
-			break;
 		case Py_LE:
 			return PyBool_from_bool(o1->id->operator<(*(o2->id)) || o1->id->operator==(*(o2->id)));
-			break;
 		case Py_EQ:
 			return PyBool_from_bool(o1->id->operator==(*(o2->id)));
-			break;
 		case Py_NE:
 			return PyBool_from_bool(o1->id->operator!=(*(o2->id)));
-			break;
 		case Py_GT:
 			return PyBool_from_bool(!(o1->id->operator<(*(o2->id)) || o1->id->operator==(*(o2->id))));
-			break;
 		case Py_GE:
 			return PyBool_from_bool(!(o1->id->operator<(*(o2->id))));
-			break;
 	}
 	Py_RETURN_NONE;
 }

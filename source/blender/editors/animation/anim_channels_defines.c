@@ -3049,7 +3049,6 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 						return ((*val) & flag) == 0;
 					else
 						return ((*val) & flag) != 0;
-					break;
 				}
 				case sizeof(short): /* short pointer for setting */
 				{
@@ -3059,7 +3058,6 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 						return ((*val) & flag) == 0;
 					else
 						return ((*val) & flag) != 0;
-					break;
 				}
 				case sizeof(char):  /* char pointer for setting */
 				{
@@ -3069,7 +3067,6 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 						return ((*val) & flag) == 0;
 					else
 						return ((*val) & flag) != 0;
-					break;
 				}
 			}
 		}

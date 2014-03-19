@@ -229,7 +229,6 @@ static TransformOrientation *createMeshSpace(bContext *C, ReportList *reports,
 			break;
 		default:
 			return NULL;
-			break;
 	}
 
 	return addMatrixSpace(C, mat, name, overwrite);

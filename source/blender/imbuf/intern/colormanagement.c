@@ -1164,22 +1164,16 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
 	switch (role) {
 		case COLOR_ROLE_SCENE_LINEAR:
 			return global_role_scene_linear;
-			break;
 		case COLOR_ROLE_COLOR_PICKING:
 			return global_role_color_picking;
-			break;
 		case COLOR_ROLE_TEXTURE_PAINTING:
 			return global_role_texture_painting;
-			break;
 		case COLOR_ROLE_DEFAULT_SEQUENCER:
 			return global_role_default_sequencer;
-			break;
 		case COLOR_ROLE_DEFAULT_FLOAT:
 			return global_role_default_float;
-			break;
 		case COLOR_ROLE_DEFAULT_BYTE:
 			return global_role_default_byte;
-			break;
 		default:
 			printf("Unknown role was passed to %s\n", __func__);
 			BLI_assert(0);

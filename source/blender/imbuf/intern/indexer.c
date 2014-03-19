@@ -336,7 +336,6 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
 		default:
 			return 0;
 	}
-	return 0;
 }
 
 int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
@@ -356,7 +355,6 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
 		default:
 			return 0;
 	}
-	return 0;
 }
 
 

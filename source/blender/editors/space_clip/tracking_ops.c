@@ -191,7 +191,6 @@ static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const 
 	switch (event->type) {
 		case MOUSEMOVE:
 			return OPERATOR_RUNNING_MODAL;
-			break;
 
 		case LEFTMOUSE:
 			ED_area_headerprint(CTX_wm_area(C), NULL);
@@ -206,7 +205,6 @@ static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const 
 
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 			return OPERATOR_FINISHED;
-			break;
 
 		case ESCKEY:
 			ED_area_headerprint(CTX_wm_area(C), NULL);
@@ -1497,7 +1495,6 @@ static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
 	switch (event->type) {
 		case ESCKEY:
 			return OPERATOR_RUNNING_MODAL;
-			break;
 	}
 
 	return OPERATOR_PASS_THROUGH;
@@ -1765,7 +1762,6 @@ static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent
 	switch (event->type) {
 		case ESCKEY:
 			return OPERATOR_RUNNING_MODAL;
-			break;
 	}
 
 	return OPERATOR_PASS_THROUGH;

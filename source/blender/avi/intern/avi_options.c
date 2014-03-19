@@ -125,7 +125,6 @@ AviError AVI_set_compress_option(AviMovie *movie, int option_type, int stream, A
 			break;
 		default:
 			return AVI_ERROR_OPTION;
-			break;
 	}
 
 	return AVI_ERROR_NONE;
