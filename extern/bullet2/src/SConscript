@@ -50,5 +50,3 @@ if sys.platform=='darwin':
     env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], cc_compileflags=bt_opt_flags, cxx_compileflags=bt_opt_flags )
 else:
 	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )
-
-env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.3'
