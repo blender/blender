@@ -308,8 +308,8 @@ class MASK_PT_add():
         layout = self.layout
 
         col = layout.column(align=True)
-        col.operator("mask.primitive_circle_add", icon="MESH_CIRCLE")
-        col.operator("mask.primitive_square_add", icon="MESH_PLANE")
+        col.operator("mask.primitive_circle_add", icon='MESH_CIRCLE')
+        col.operator("mask.primitive_square_add", icon='MESH_PLANE')
 
 
 class MASK_MT_mask(Menu):

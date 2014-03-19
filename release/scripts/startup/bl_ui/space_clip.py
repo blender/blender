@@ -371,10 +371,10 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         row.label(text="Clear:")
         row.scale_x = 2.0
 
-        props = row.operator("clip.clear_track_path", icon="BACK", text="")
+        props = row.operator("clip.clear_track_path", text="", icon='BACK')
         props.action = 'UPTO'
 
-        props = row.operator("clip.clear_track_path", icon="FORWARD", text="")
+        props = row.operator("clip.clear_track_path", text="", icon='FORWARD')
         props.action = 'REMAINED'
 
         col = layout.column()
@@ -382,10 +382,10 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         row.label(text="Refine:")
         row.scale_x = 2.0
 
-        props = row.operator("clip.refine_markers", icon='LOOP_BACK', text="")
+        props = row.operator("clip.refine_markers", text="", icon='LOOP_BACK')
         props.backwards = True
 
-        props = row.operator("clip.refine_markers", icon='LOOP_FORWARDS', text="")
+        props = row.operator("clip.refine_markers", text="", icon='LOOP_FORWARDS')
         props.backwards = False
 
         col = layout.column(align=True)
@@ -794,7 +794,7 @@ class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
         row.separator()
         row.prop(sc, "use_grayscale_preview", text="B/W", toggle=True)
         row.separator()
-        row.prop(sc, "use_mute_footage", text="", icon="VISIBLE_IPO_ON", toggle=True)
+        row.prop(sc, "use_mute_footage", text="", icon='VISIBLE_IPO_ON', toggle=True)
 
         col = layout.column(align=True)
         col.prop(sc.clip_user, "use_render_undistorted", text="Render Undistorted")

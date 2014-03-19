@@ -880,20 +880,13 @@ class INFO_MT_mesh_add(Menu):
     bl_label = "Mesh"
 
     def draw(self, context):
+        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
+
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_plane_add", icon='MESH_PLANE', text="Plane")
-        layout.operator("mesh.primitive_cube_add", icon='MESH_CUBE', text="Cube")
-        layout.operator("mesh.primitive_circle_add", icon='MESH_CIRCLE', text="Circle")
-        layout.operator("mesh.primitive_uv_sphere_add", icon='MESH_UVSPHERE', text="UV Sphere")
-        layout.operator("mesh.primitive_ico_sphere_add", icon='MESH_ICOSPHERE', text="Icosphere")
-        layout.operator("mesh.primitive_cylinder_add", icon='MESH_CYLINDER', text="Cylinder")
-        layout.operator("mesh.primitive_cone_add", icon='MESH_CONE', text="Cone")
-        layout.separator()
-        layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
-        layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
-        layout.operator("mesh.primitive_torus_add", icon='MESH_TORUS', text="Torus")
+
+        VIEW3D_PT_tools_add_object.draw_add_mesh(layout)
 
 
 class INFO_MT_curve_add(Menu):
@@ -901,14 +894,13 @@ class INFO_MT_curve_add(Menu):
     bl_label = "Curve"
 
     def draw(self, context):
+        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("curve.primitive_bezier_curve_add", icon='CURVE_BEZCURVE', text="Bezier")
-        layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text="Circle")
-        layout.operator("curve.primitive_nurbs_curve_add", icon='CURVE_NCURVE', text="Nurbs Curve")
-        layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
-        layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
+
+        VIEW3D_PT_tools_add_object.draw_add_curve(layout)
+
 
 
 class INFO_MT_surface_add(Menu):
@@ -916,15 +908,12 @@ class INFO_MT_surface_add(Menu):
     bl_label = "Surface"
 
     def draw(self, context):
+        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
-        layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
-        layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text="NURBS Surface")
-        layout.operator("surface.primitive_nurbs_surface_cylinder_add", icon='SURFACE_NCYLINDER', text="NURBS Cylinder")
-        layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text="NURBS Sphere")
-        layout.operator("surface.primitive_nurbs_surface_torus_add", icon='SURFACE_NTORUS', text="NURBS Torus")
+
+        VIEW3D_PT_tools_add_object.draw_add_surface(layout)
 
 
 class INFO_MT_metaball_add(Menu):
@@ -3144,7 +3133,7 @@ class VIEW3D_PT_transform_orientations(Panel):
         if orientation:
             row = layout.row(align=True)
             row.prop(orientation, "name", text="")
-            row.operator("transform.delete_orientation", text="", icon="X")
+            row.operator("transform.delete_orientation", text="", icon='X')
 
 
 class VIEW3D_PT_etch_a_ton(Panel):
