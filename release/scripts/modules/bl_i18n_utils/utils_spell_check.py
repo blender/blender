@@ -39,6 +39,7 @@ class SpellChecker():
         "decrement",
         "derivate",
         "doesn",  # doesn't
+        "equi",  # equi-angular, etc.
         "fader",
         "globbing",
         "hasn",  # hasn't
@@ -321,6 +322,7 @@ class SpellChecker():
         "bezier", "beziers",
         "bicubic",
         "bilinear",
+        "binormal",
         "blackpoint", "whitepoint",
         "blinn",
         "bokeh",
@@ -362,6 +364,7 @@ class SpellChecker():
         "specular", "specularity",
         "spillmap",
         "sobel",
+        "texel",
         "tonemap",
         "toon",
         "timecode",
@@ -412,6 +415,7 @@ class SpellChecker():
         "poselib",
         "pushpull",
         "pyconstraint", "pyconstraints",
+        "qe",  # keys...
         "shapekey", "shapekeys",
         "shrinkfatten",
         "shrinkwrap",
@@ -427,6 +431,7 @@ class SpellChecker():
         "vcol", "vcols",
         "vgroup", "vgroups",
         "vinterlace",
+        "wasd", "wasdqe",  # keys...
         "wetmap", "wetmaps",
         "wpaint",
         "uvwarp",
@@ -489,7 +494,7 @@ class SpellChecker():
         "hdc",
         "hdr",
         "hh", "mm", "ss", "ff",  # hh:mm:ss:ff timecode
-        "hsv", "hsva",
+        "hsv", "hsva", "hsl",
         "id",
         "ior",
         "itu",

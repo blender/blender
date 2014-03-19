@@ -50,7 +50,7 @@
 EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
 	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator",
-	                           "Generate a curve using a factorised or expanded polynomial"},
+	                           "Generate a curve using a factorized or expanded polynomial"},
 	{FMODIFIER_TYPE_FN_GENERATOR, "FNGENERATOR", 0, "Built-In Function",
 	                              "Generate a curve using standard math functions such as sin and cos"},
 	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", 0, "Envelope",

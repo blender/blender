@@ -3432,11 +3432,11 @@ static void def_sh_tex_image(StructRNA *srna)
 		{SHD_INTERP_LINEAR,  "Linear", 0, "Linear",
 		                     "Linear interpolation"},
 		{SHD_INTERP_CLOSEST, "Closest", 0, "Closest",
-		                     "No interpolation (sample closest texel"},
+		                     "No interpolation (sample closest texel)"},
 		{SHD_INTERP_CUBIC,   "Cubic", 0, "Cubic",
 		                     "Cubic interpolation (OSL only)"},
 		{SHD_INTERP_SMART,   "Smart", 0, "Smart",
-		                     "Bicubic when maxifying, else bilinear (OSL only)"},
+		                     "Bicubic when magnifying, else bilinear (OSL only)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
