@@ -2041,20 +2041,21 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 		/* evaltime occurs somewhere in the middle of the curve */
 		/* - use binary search to find appropriate keyframes */
 		a = binarysearch_bezt_index(bezts, evaltime, fcu->totvert, &exact);
-		BLI_assert(a > 0); /* a == 0, prevbezt = invalid access */
+		if (G.f & G_DEBUG) printf("eval fcurve '%s' - %f => %d/%d, %d\n", fcu->rna_path, evaltime, a, fcu->totvert, exact);
 		
-		bezt = bezts;
-		bezt += a;
-		prevbezt = bezt - 1;
+		bezt = bezts + a;
+		prevbezt = (a > 0) ? bezt - 1 : bezt;
 		
 		/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
-		/* NOTE: Although we could just check if exact == true here, the thresholds for equality are
-		 *       different (0.01 for exact, vs 1e-8 for SMALL_NUMBER). For backwards compatibility,
-		 *       and to avoid introducing regressions for a few rare cases, let's keep the old
-		 *       method/thresholds here for now.
-		 *       -- Aligorith (2014Mar14)
+		/* XXX: the threshold for "exact" is BEZT_BINARYSEARCH_THRESH (currently 0.01), while older versions
+		 *      used a finer threshold (1e-8 or "SMALL_NUMBER"). In order to avoid problems introduced in
+		 *      2aff243 (such as those mentioned in T39207 - specifically, in the "Clive.blend" example),
+		 *      we need a coarser threshold to avoid this slipping right through. However, 0.01 may be
+		 *      too much when dealing with some driver curves, so we'll need to revisit this in due course
+		 *      when problematic files arise.       
+		 *      -- Aligorith (2014Mar19)
 		 */
-		if (fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
+		if ((fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) || (exact)) {
 			cvalue = bezt->vec[1][1];
 		}
 		/* evaltime occurs within the interval defined by these two keyframes */
@@ -2101,6 +2102,9 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					/* break; */
 				}
 			}
+		}
+		else {
+			if (G.f & G_DEBUG) printf("   ERROR: failed eval - p=%f b=%f, t=%f (%f)\n", prevbezt->vec[1][0], bezt->vec[1][0], evaltime, fabsf(bezt->vec[1][0] - evaltime));
 		}
 	}
 	
