@@ -113,6 +113,7 @@ void MESH_OT_screw(struct wmOperatorType *ot);
 void MESH_OT_inset(struct wmOperatorType *ot);
 
 /* *** editmesh_intersect.c *** */
+void MESH_OT_intersect(struct wmOperatorType *ot);
 void MESH_OT_face_split_by_edges(struct wmOperatorType *ot);
 
 

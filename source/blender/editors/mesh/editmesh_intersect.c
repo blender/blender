@@ -32,8 +32,11 @@
 
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_editmesh.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -45,6 +48,129 @@
 
 #include "mesh_intern.h"  /* own include */
 
+#include "tools/bmesh_intersect.h"
+
+
+/* -------------------------------------------------------------------- */
+/* Cut intersections into geometry */
+
+/**
+ * Compare selected with its self.
+ */
+static int bm_face_isect_self(BMFace *f, void *UNUSED(user_data))
+{
+	if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+		return 0;
+	}
+	else {
+		return -1;
+	}
+}
+
+/**
+ * Compare selected/unselected.
+ */
+static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
+{
+	if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+		return -1;
+	}
+	else if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
+
+enum {
+	ISECT_SEL           = 0,
+	ISECT_SEL_UNSEL     = 1,
+};
+
+static EnumPropertyItem isect_mode_items[] = {
+	{ISECT_SEL, "SELECT", 0, "Self Intersect",
+	 "Self intersect selected faces"},
+	{ISECT_SEL_UNSEL, "SELECT_UNSELECT", 0, "Select/Unselected",
+	 "Intersect selected with unselected faces"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int edbm_intersect_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMesh *bm = em->bm;
+	const int mode = RNA_enum_get(op->ptr, "mode");
+	int (*test_fn)(BMFace *, void *);
+	bool use_separate = RNA_boolean_get(op->ptr, "use_separate");
+	const float eps = RNA_float_get(op->ptr, "threshold");
+	bool use_self;
+	bool has_isect;
+
+	switch (mode) {
+		case ISECT_SEL:
+			test_fn = bm_face_isect_self;
+			use_self = true;
+			break;
+		default:  /* ISECT_SEL_UNSEL */
+			test_fn = bm_face_isect_pair;
+			use_self = false;
+			break;
+	}
+
+
+	has_isect = BM_mesh_intersect(
+	        bm,
+	        em->looptris, em->tottri,
+	        test_fn, NULL,
+	        use_self, use_separate,
+	        eps);
+
+
+	if (has_isect) {
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+
+		if (em->bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+			BMIter iter;
+			BMEdge *e;
+
+			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+					BM_edge_select_set(bm, e, true);
+				}
+			}
+		}
+
+		EDBM_mesh_normals_update(em);
+		EDBM_update_generic(em, true, true);
+	}
+	else {
+		BKE_report(op->reports, RPT_WARNING, "No intersections found");
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_intersect(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Intersect";
+	ot->description = "Cut an intersection into faces";
+	ot->idname = "MESH_OT_intersect";
+
+	/* api callbacks */
+	ot->exec = edbm_intersect_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* props */
+	RNA_def_enum(ot->srna, "mode", isect_mode_items, ISECT_SEL_UNSEL, "Source", "");
+	RNA_def_boolean(ot->srna, "use_separate", true, "Separate", "");
+	RNA_def_float(ot->srna, "threshold", 0.000001f, 0.0, 0.01, "Merge threshold", "", 0.0, 0.001);
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
 
 
 /* -------------------------------------------------------------------- */

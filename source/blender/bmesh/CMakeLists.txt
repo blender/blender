@@ -136,6 +136,8 @@ set(SRC
 	tools/bmesh_edgenet.h
 	tools/bmesh_edgesplit.c
 	tools/bmesh_edgesplit.h
+	tools/bmesh_intersect.c
+	tools/bmesh_intersect.h
 	tools/bmesh_path.c
 	tools/bmesh_path.h
 	tools/bmesh_triangulate.c
