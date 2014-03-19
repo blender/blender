@@ -1413,7 +1413,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
-			uiItemL(layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 			uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 		}
 	}
