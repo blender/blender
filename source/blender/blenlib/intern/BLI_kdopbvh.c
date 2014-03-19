@@ -109,7 +109,7 @@ typedef struct BVHRayCastData {
 } BVHRayCastData;
 
 
-/*
+/**
  * Bounding Volume Hierarchy Definition
  *
  * Notes: From OBB until 26-DOP --> all bounding volumes possible, just choose type below
@@ -202,7 +202,7 @@ static bool ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, i
 }
 #endif
 
-/*
+/**
  * Introsort
  * with permission deriven from the following Java code:
  * http://ralphunden.net/content/tutorials/a-guide-to-introsort/
@@ -211,17 +211,17 @@ static bool ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, i
 
 //static int size_threshold = 16;
 
-/*
+#if 0
+/**
  * Common methods for all algorithms
  */
-#if 0
 static int floor_lg(int a)
 {
 	return (int)(floor(log(a) / log(2)));
 }
 #endif
 
-/*
+/**
  * Insertion sort algorithm
  */
 static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
@@ -253,10 +253,10 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode *x, int axis)
 	}
 }
 
-/*
+#if 0
+/**
  * Heapsort algorithm
  */
-#if 0
 static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
 {
 	BVHNode *d = a[lo + i - 1];
@@ -345,7 +345,8 @@ static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 }
 #endif
 
-/* after a call to this function you can expect one of:
+/**
+ * \note after a call to this function you can expect one of:
  * - every node to left of a[n] are smaller or equal to it
  * - every node to the right of a[n] are greater or equal to it */
 static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
@@ -411,7 +412,9 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 	}
 }
 
-/* depends on the fact that the BVH's for each face is already build */
+/**
+ * \note depends on the fact that the BVH's for each face is already build
+ */
 static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 {
 	float newmin, newmax;
@@ -439,7 +442,8 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 
 }
 
-/* only supports x,y,z axis in the moment
+/**
+ * only supports x,y,z axis in the moment
  * but we should use a plain and simple function here for speed sake */
 static char get_largest_axis(const float *bv)
 {
@@ -462,7 +466,8 @@ static char get_largest_axis(const float *bv)
 	}
 }
 
-/* bottom-up update of bvh node BV
+/**
+ * bottom-up update of bvh node BV
  * join the children on the parent BV */
 static void node_join(BVHTree *tree, BVHNode *node)
 {
@@ -668,7 +673,7 @@ static int implicit_needed_branches(int tree_type, int leafs)
 	return max_ii(1, (leafs + tree_type - 3) / (tree_type - 1) );
 }
 
-/*
+/**
  * This function handles the problem of "sorting" the leafs (along the split_axis).
  *
  * It arranges the elements in the given partitions such that:
@@ -691,7 +696,7 @@ static void split_leafs(BVHNode **leafs_array, int *nth, int partitions, int spl
 	}
 }
 
-/*
+/**
  * This functions builds an optimal implicit tree from the given leafs.
  * Where optimal stands for:
  *  - The resulting tree will have the smallest number of branches;
@@ -806,20 +811,18 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 	}
 }
 
+/* -------------------------------------------------------------------- */
+/* BLI_bvhtree api */
 
-/*
- * BLI_bvhtree api
+/**
+ * \note many callers don't check for ``NULL`` return.
  */
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 {
 	BVHTree *tree;
 	int numnodes, i;
-	
-	/* theres not support for trees below binary-trees :P */
-	if (tree_type < 2)
-		return NULL;
 
-	BLI_assert(tree_type <= MAX_TREETYPE);
+	BLI_assert(tree_type >= 2 && tree_type <= MAX_TREETYPE);
 
 	tree = MEM_callocN(sizeof(BVHTree), "BVHTree");
 
@@ -830,9 +833,9 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 
 	if (tree) {
 		tree->epsilon = epsilon;
-		tree->tree_type = tree_type; 
+		tree->tree_type = tree_type;
 		tree->axis = axis;
-		
+
 		if (axis == 26) {
 			tree->start_axis = 0;
 			tree->stop_axis = 13;
@@ -854,8 +857,10 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 			tree->stop_axis = 3;
 		}
 		else {
-			MEM_freeN(tree);
-			return NULL;
+			/* should never happen! */
+			BLI_assert(0);
+
+			goto fail;
 		}
 
 
@@ -863,44 +868,37 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
 
 		tree->nodes = MEM_callocN(sizeof(BVHNode *) * (size_t)numnodes, "BVHNodes");
-		
-		if (!tree->nodes) {
-			MEM_freeN(tree);
-			return NULL;
-		}
-
 		tree->nodebv = MEM_callocN(sizeof(float) * (size_t)(axis * numnodes), "BVHNodeBV");
-		if (!tree->nodebv) {
-			MEM_freeN(tree->nodes);
-			MEM_freeN(tree);
-		}
-
 		tree->nodechild = MEM_callocN(sizeof(BVHNode *) * (size_t)(tree_type * numnodes), "BVHNodeBV");
-		if (!tree->nodechild) {
-			MEM_freeN(tree->nodebv);
-			MEM_freeN(tree->nodes);
-			MEM_freeN(tree);
-		}
-
 		tree->nodearray = MEM_callocN(sizeof(BVHNode) * (size_t)numnodes, "BVHNodeArray");
 		
-		if (!tree->nodearray) {
-			MEM_freeN(tree->nodechild);
-			MEM_freeN(tree->nodebv);
-			MEM_freeN(tree->nodes);
-			MEM_freeN(tree);
-			return NULL;
+		if (UNLIKELY((!tree->nodes) ||
+		             (!tree->nodebv) ||
+		             (!tree->nodechild) ||
+		             (!tree->nodearray)))
+		{
+			goto fail;
 		}
 
 		/* link the dynamic bv and child links */
 		for (i = 0; i < numnodes; i++) {
-			tree->nodearray[i].bv = tree->nodebv + i * axis;
-			tree->nodearray[i].children = tree->nodechild + i * tree_type;
+			tree->nodearray[i].bv = &tree->nodebv[i * axis];
+			tree->nodearray[i].children = &tree->nodechild[i * tree_type];
 		}
 		
 	}
-
 	return tree;
+
+
+fail:
+	MEM_SAFE_FREE(tree->nodes);
+	MEM_SAFE_FREE(tree->nodebv);
+	MEM_SAFE_FREE(tree->nodechild);
+	MEM_SAFE_FREE(tree->nodearray);
+
+	MEM_freeN(tree);
+
+	return NULL;
 }
 
 void BLI_bvhtree_free(BVHTree *tree)
@@ -1006,10 +1004,12 @@ float BLI_bvhtree_getepsilon(const BVHTree *tree)
 }
 
 
-/*
- * BLI_bvhtree_overlap
- *
- * overlap - is it possible for 2 bv's to collide ? */
+/* -------------------------------------------------------------------- */
+/* BLI_bvhtree_overlap */
+
+/**
+ * overlap - is it possible for 2 bv's to collide ?
+ */
 static int tree_overlap(BVHNode *node1, BVHNode *node2, axis_t start_axis, axis_t stop_axis)
 {
 	const float *bv1 = node1->bv;
@@ -1351,7 +1351,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 }
 
 
-/*
+/**
  * Raycast - BLI_bvhtree_ray_cast
  *
  * raycast is done by performing a DFS on the BVHTree and saving the closest hit
@@ -1393,7 +1393,8 @@ static float ray_nearest_hit(BVHRayCastData *data, const float bv[6])
 	return low;
 }
 
-/* Determines the distance that the ray must travel to hit the bounding volume of the given node
+/**
+ * Determines the distance that the ray must travel to hit the bounding volume of the given node
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  * [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  *
@@ -1553,15 +1554,14 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 	copy_v3_v3(data.ray_dot_axis, data.ray.direction);
 	
 	dist = ray_nearest_hit(&data, bv);
-	
-	if (dist > 0.0f) {
-		madd_v3_v3v3fl(pos, light_start, data.ray.direction, dist);
-	}
+
+	madd_v3_v3v3fl(pos, light_start, data.ray.direction, dist);
+
 	return dist;
 	
 }
 
-/*
+/**
  * Range Query - as request by broken :P
  *
  * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius) 
