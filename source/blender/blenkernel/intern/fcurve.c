@@ -2047,15 +2047,8 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 		prevbezt = (a > 0) ? bezt - 1 : bezt;
 		
 		/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
-		/* XXX: the threshold for "exact" is BEZT_BINARYSEARCH_THRESH (currently 0.01), while older versions
-		 *      used a finer threshold (1e-8 or "SMALL_NUMBER"). In order to avoid problems introduced in
-		 *      2aff243 (such as those mentioned in T39207 - specifically, in the "Clive.blend" example),
-		 *      we need a coarser threshold to avoid this slipping right through. However, 0.01 may be
-		 *      too much when dealing with some driver curves, so we'll need to revisit this in due course
-		 *      when problematic files arise.       
-		 *      -- Aligorith (2014Mar19)
-		 */
-		if ((fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) || (exact)) {
+		/* XXX: consult T39207 for examples of files where failure of this check can cause issues */
+		if ((fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) || (a == 0)) {
 			cvalue = bezt->vec[1][1];
 		}
 		/* evaltime occurs within the interval defined by these two keyframes */
