@@ -1020,30 +1020,64 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 }
 
 /* Vertex Paint and Weight Paint */
+static void draw_mesh_paint_light_begin(void)
+{
+	const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
+
+	GPU_enable_material(0, NULL);
+
+	/* but set default spec */
+	glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
+
+	/* diffuse */
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+}
+static void draw_mesh_paint_light_end(void)
+{
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHTING);
+
+	GPU_disable_material();
+}
+
 void draw_mesh_paint_weight_faces(DerivedMesh *dm, const bool use_light,
                                   void *facemask_cb, void *user_data)
 {
 	if (use_light) {
-		const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
-
-		/* but set default spec */
-		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
-
-		/* diffuse */
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_COLOR_MATERIAL);
+		draw_mesh_paint_light_begin();
 	}
 
 	dm->drawMappedFaces(dm, (DMSetDrawOptions)facemask_cb, GPU_enable_material, NULL, user_data,
 	                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
 
 	if (use_light) {
-		glDisable(GL_COLOR_MATERIAL);
-		glDisable(GL_LIGHTING);
+		draw_mesh_paint_light_end();
+	}
+}
 
-		GPU_disable_material();
+void draw_mesh_paint_vcolor_faces(DerivedMesh *dm, const bool use_light,
+                                  void *facemask_cb, void *user_data,
+                                  const Mesh *me)
+{
+	if (use_light) {
+		draw_mesh_paint_light_begin();
+	}
+
+	if (me->mloopcol) {
+		dm->drawMappedFaces(dm, facemask_cb, GPU_enable_material, NULL, user_data,
+		                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+	}
+	else {
+		glColor3f(1.0f, 1.0f, 1.0f);
+		dm->drawMappedFaces(dm, facemask_cb, GPU_enable_material, NULL, user_data,
+		                    DM_DRAW_ALWAYS_SMOOTH);
+	}
+
+	if (use_light) {
+		draw_mesh_paint_light_end();
 	}
 }
 
@@ -1092,22 +1126,10 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 		facemask = wpaint__setSolidDrawOptions_facemask;
 
 	if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-		if (use_light) {
-			GPU_enable_material(0, NULL);
-		}
-
 		draw_mesh_paint_weight_faces(dm, use_light, facemask, me);
 	}
 	else if (ob->mode & OB_MODE_VERTEX_PAINT) {
-		if (me->mloopcol) {
-			dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
-			                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
-		}
-		else {
-			glColor3f(1.0f, 1.0f, 1.0f);
-			dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
-			                    DM_DRAW_ALWAYS_SMOOTH);
-		}
+		draw_mesh_paint_vcolor_faces(dm, use_light, facemask, me, me);
 	}
 
 	/* draw face selection on top */
