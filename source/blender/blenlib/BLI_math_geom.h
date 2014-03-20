@@ -37,10 +37,6 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_inline.h"
 
-#if BLI_MATH_DO_INLINE
-#include "intern/math_geom_inline.c"
-#endif
-
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
@@ -313,6 +309,12 @@ MINLINE int max_axis_v3(const float vec[3]);
 MINLINE int min_axis_v3(const float vec[3]);
 
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count);
+
+/**************************** Inline Definitions ******************************/
+
+#if BLI_MATH_DO_INLINE
+#include "intern/math_geom_inline.c"
+#endif
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic pop
