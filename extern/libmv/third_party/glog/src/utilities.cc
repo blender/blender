@@ -136,6 +136,8 @@ static void DumpStackTrace(int skip_count, DebugWriter *writerfn, void *arg) {
 static void DumpStackTraceAndExit() {
   DumpStackTrace(1, DebugWriteToStderr, NULL);
 
+  // TOOD(hamaji): Use signal instead of sigaction?
+#ifdef HAVE_SIGACTION
   // Set the default signal handler for SIGABRT, to avoid invoking our
   // own signal handler installed by InstallFailedSignalHandler().
   struct sigaction sig_action;
@@ -143,6 +145,7 @@ static void DumpStackTraceAndExit() {
   sigemptyset(&sig_action.sa_mask);
   sig_action.sa_handler = SIG_DFL;
   sigaction(SIGABRT, &sig_action, NULL);
+#endif  // HAVE_SIGACTION
 
   abort();
 }
@@ -233,7 +236,7 @@ bool PidHasChanged() {
 }
 
 pid_t GetTID() {
-  // On Linux and MACOSX , we try to use gettid().
+  // On Linux and MacOSX, we try to use gettid().
 #if defined OS_LINUX || defined OS_MACOSX
 #ifndef __NR_gettid
 #ifdef OS_MACOSX
@@ -331,6 +334,7 @@ void InitGoogleLoggingUtilities(const char* argv0) {
 void ShutdownGoogleLoggingUtilities() {
   CHECK(IsGoogleLoggingInitialized())
       << "You called ShutdownGoogleLogging() without calling InitGoogleLogging() first!";
+  g_program_invocation_short_name = NULL;
 #ifdef HAVE_SYSLOG_H
   closelog();
 #endif

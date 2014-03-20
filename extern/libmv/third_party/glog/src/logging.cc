@@ -34,7 +34,6 @@
 #include <assert.h>
 #include <iomanip>
 #include <string>
-#include <algorithm>
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>  // For _exit.
 #endif
@@ -59,8 +58,8 @@
 #include <errno.h>                   // for errno
 #include <sstream>
 #include "base/commandlineflags.h"        // to get the program name
-#include <glog/logging.h>
-#include <glog/raw_logging.h>
+#include "glog/logging.h"
+#include "glog/raw_logging.h"
 #include "base/googleinit.h"
 
 #ifdef HAVE_STACKTRACE
@@ -69,7 +68,6 @@
 
 using std::string;
 using std::vector;
-using std::ostrstream;
 using std::setw;
 using std::setfill;
 using std::hex;
@@ -77,7 +75,17 @@ using std::dec;
 using std::min;
 using std::ostream;
 using std::ostringstream;
-using std::strstream;
+
+using std::FILE;
+using std::fwrite;
+using std::fclose;
+using std::fflush;
+using std::fprintf;
+using std::perror;
+
+#ifdef __QNX__
+using std::fdopen;
+#endif
 
 // There is no thread annotation support.
 #define EXCLUSIVE_LOCKS_REQUIRED(mu)
@@ -94,6 +102,8 @@ GLOG_DEFINE_bool(logtostderr, BoolFromEnv("GOOGLE_LOGTOSTDERR", false),
                  "log messages go to stderr instead of logfiles");
 GLOG_DEFINE_bool(alsologtostderr, BoolFromEnv("GOOGLE_ALSOLOGTOSTDERR", false),
                  "log messages go to stderr in addition to logfiles");
+GLOG_DEFINE_bool(colorlogtostderr, false,
+                 "color messages logged to stderr (if supported by terminal)");
 #ifdef OS_LINUX
 GLOG_DEFINE_bool(drop_log_memory, true, "Drop in-memory buffers of log contents. "
                  "Logs can grow very quickly and they are rarely read before they "
@@ -169,6 +179,38 @@ GLOG_DEFINE_string(log_backtrace_at, "",
 // TODO(hamaji): consider windows
 #define PATH_SEPARATOR '/'
 
+#ifndef HAVE_PREAD
+static ssize_t pread(int fd, void* buf, size_t count, off_t offset) {
+  off_t orig_offset = lseek(fd, 0, SEEK_CUR);
+  if (orig_offset == (off_t)-1)
+    return -1;
+  if (lseek(fd, offset, SEEK_CUR) == (off_t)-1)
+    return -1;
+  ssize_t len = read(fd, buf, count);
+  if (len < 0)
+    return len;
+  if (lseek(fd, orig_offset, SEEK_SET) == (off_t)-1)
+    return -1;
+  return len;
+}
+#endif  // !HAVE_PREAD
+
+#ifndef HAVE_PWRITE
+static ssize_t pwrite(int fd, void* buf, size_t count, off_t offset) {
+  off_t orig_offset = lseek(fd, 0, SEEK_CUR);
+  if (orig_offset == (off_t)-1)
+    return -1;
+  if (lseek(fd, offset, SEEK_CUR) == (off_t)-1)
+    return -1;
+  ssize_t len = write(fd, buf, count);
+  if (len < 0)
+    return len;
+  if (lseek(fd, orig_offset, SEEK_SET) == (off_t)-1)
+    return -1;
+  return len;
+}
+#endif  // !HAVE_PWRITE
+
 static void GetHostName(string* hostname) {
 #if defined(HAVE_SYS_UTSNAME_H)
   struct utsname buf;
@@ -191,12 +233,124 @@ static void GetHostName(string* hostname) {
 #endif
 }
 
+// Returns true iff terminal supports using colors in output.
+static bool TerminalSupportsColor() {
+  bool term_supports_color = false;
+#ifdef OS_WINDOWS
+  // on Windows TERM variable is usually not set, but the console does
+  // support colors.
+  term_supports_color = true;
+#else
+  // On non-Windows platforms, we rely on the TERM variable.
+  const char* const term = getenv("TERM");
+  if (term != NULL && term[0] != '\0') {
+    term_supports_color =
+      !strcmp(term, "xterm") ||
+      !strcmp(term, "xterm-color") ||
+      !strcmp(term, "xterm-256color") ||
+      !strcmp(term, "screen") ||
+      !strcmp(term, "linux") ||
+      !strcmp(term, "cygwin");
+  }
+#endif
+  return term_supports_color;
+}
+
 _START_GOOGLE_NAMESPACE_
+
+enum GLogColor {
+  COLOR_DEFAULT,
+  COLOR_RED,
+  COLOR_GREEN,
+  COLOR_YELLOW
+};
+
+static GLogColor SeverityToColor(LogSeverity severity) {
+  assert(severity >= 0 && severity < NUM_SEVERITIES);
+  GLogColor color = COLOR_DEFAULT;
+  switch (severity) {
+  case GLOG_INFO:
+    color = COLOR_DEFAULT;
+    break;
+  case GLOG_WARNING:
+    color = COLOR_YELLOW;
+    break;
+  case GLOG_ERROR:
+  case GLOG_FATAL:
+    color = COLOR_RED;
+    break;
+  default:
+    // should never get here.
+    assert(false);
+  }
+  return color;
+}
+
+#ifdef OS_WINDOWS
+
+// Returns the character attribute for the given color.
+WORD GetColorAttribute(GLogColor color) {
+  switch (color) {
+    case COLOR_RED:    return FOREGROUND_RED;
+    case COLOR_GREEN:  return FOREGROUND_GREEN;
+    case COLOR_YELLOW: return FOREGROUND_RED | FOREGROUND_GREEN;
+    default:           return 0;
+  }
+}
+
+#else
+
+// Returns the ANSI color code for the given color.
+static const char* GetAnsiColorCode(GLogColor color) {
+  switch (color) {
+  case COLOR_RED:     return "1";
+  case COLOR_GREEN:   return "2";
+  case COLOR_YELLOW:  return "3";
+  case COLOR_DEFAULT:  return "";
+  };
+  return NULL; // stop warning about return type.
+}
+
+#endif  // OS_WINDOWS
 
 // Safely get max_log_size, overriding to 1 if it somehow gets defined as 0
 static int32 MaxLogSize() {
   return (FLAGS_max_log_size > 0 ? FLAGS_max_log_size : 1);
 }
+
+// An arbitrary limit on the length of a single log message.  This
+// is so that streaming can be done more efficiently.
+const size_t LogMessage::kMaxLogMessageLen = 30000;
+
+struct LogMessage::LogMessageData  {
+  LogMessageData();
+
+  int preserved_errno_;      // preserved errno
+  // Buffer space; contains complete message text.
+  char message_text_[LogMessage::kMaxLogMessageLen+1];
+  LogStream stream_;
+  char severity_;      // What level is this LogMessage logged at?
+  int line_;                 // line number where logging call is.
+  void (LogMessage::*send_method_)();  // Call this in destructor to send
+  union {  // At most one of these is used: union to keep the size low.
+    LogSink* sink_;             // NULL or sink to send message to
+    std::vector<std::string>* outvec_; // NULL or vector to push message onto
+    std::string* message_;             // NULL or string to write message into
+  };
+  time_t timestamp_;            // Time of creation of LogMessage
+  struct ::tm tm_time_;         // Time of creation of LogMessage
+  size_t num_prefix_chars_;     // # of chars of prefix in this message
+  size_t num_chars_to_log_;     // # of chars of msg to send to log
+  size_t num_chars_to_syslog_;  // # of chars of msg to send to syslog
+  const char* basename_;        // basename of file that called LOG
+  const char* fullname_;        // fullname of file that called LOG
+  bool has_been_flushed_;       // false => data has not been flushed
+  bool first_fatal_;            // true => this was first fatal msg
+
+ private:
+  LogMessageData(const LogMessageData&);
+  void operator=(const LogMessageData&);
+};
 
 // A mutex that allows only one thread to log at a time, to keep things from
 // getting jumbled.  Some other very uncommon logging operations (like
@@ -279,7 +433,7 @@ class LogFileObject : public base::Logger {
   // Actually create a logfile using the value of base_filename_ and the
   // supplied argument time_pid_string
   // REQUIRES: lock_ is held
-  bool CreateLogfile(const char* time_pid_string);
+  bool CreateLogfile(const string& time_pid_string);
 };
 
 }  // namespace
@@ -312,6 +466,9 @@ class LogDestination {
   static const int kNetworkBytes = 1400;
 
   static const string& hostname();
+  static const bool& terminal_supports_color() {
+    return terminal_supports_color_;
+  }
 
   static void DeleteLogDestinations();
 
@@ -362,6 +519,7 @@ class LogDestination {
   static LogSeverity email_logging_severity_;
   static string addresses_;
   static string hostname_;
+  static bool terminal_supports_color_;
 
   // arbitrary global logging destinations.
   static vector<LogSink*>* sinks_;
@@ -383,6 +541,7 @@ string LogDestination::hostname_;
 
 vector<LogSink*>* LogDestination::sinks_ = NULL;
 Mutex LogDestination::sink_mutex_;
+bool LogDestination::terminal_supports_color_ = TerminalSupportsColor();
 
 /* static */
 const string& LogDestination::hostname() {
@@ -503,6 +662,43 @@ inline void LogDestination::SetEmailLogging(LogSeverity min_severity,
   LogDestination::addresses_ = addresses;
 }
 
+static void ColoredWriteToStderr(LogSeverity severity,
+                                 const char* message, size_t len) {
+  const GLogColor color =
+      (LogDestination::terminal_supports_color() && FLAGS_colorlogtostderr) ?
+      SeverityToColor(severity) : COLOR_DEFAULT;
+
+  // Avoid using cerr from this module since we may get called during
+  // exit code, and cerr may be partially or fully destroyed by then.
+  if (COLOR_DEFAULT == color) {
+    fwrite(message, len, 1, stderr);
+    return;
+  }
+#ifdef OS_WINDOWS
+  const HANDLE stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
+
+  // Gets the current text color.
+  CONSOLE_SCREEN_BUFFER_INFO buffer_info;
+  GetConsoleScreenBufferInfo(stderr_handle, &buffer_info);
+  const WORD old_color_attrs = buffer_info.wAttributes;
+
+  // We need to flush the stream buffers into the console before each
+  // SetConsoleTextAttribute call lest it affect the text that is already
+  // printed but has not yet reached the console.
+  fflush(stderr);
+  SetConsoleTextAttribute(stderr_handle,
+                          GetColorAttribute(color) | FOREGROUND_INTENSITY);
+  fwrite(message, len, 1, stderr);
+  fflush(stderr);
+  // Restores the text color.
+  SetConsoleTextAttribute(stderr_handle, old_color_attrs);
+#else
+  fprintf(stderr, "\033[0;3%sm", GetAnsiColorCode(color));
+  fwrite(message, len, 1, stderr);
+  fprintf(stderr, "\033[m");  // Resets the terminal to default.
+#endif  // OS_WINDOWS
+}
+
 static void WriteToStderr(const char* message, size_t len) {
   // Avoid using cerr from this module since we may get called during
   // exit code, and cerr may be partially or fully destroyed by then.
@@ -512,7 +708,7 @@ static void WriteToStderr(const char* message, size_t len) {
 inline void LogDestination::MaybeLogToStderr(LogSeverity severity,
 					     const char* message, size_t len) {
   if ((severity >= FLAGS_stderrthreshold) || FLAGS_alsologtostderr) {
-    WriteToStderr(message, len);
+    ColoredWriteToStderr(severity, message, len);
 #ifdef OS_WINDOWS
     // On Windows, also output to the debugger
     ::OutputDebugStringA(string(message,len).c_str());
@@ -561,12 +757,12 @@ inline void LogDestination::LogToAllLogfiles(LogSeverity severity,
                                              const char* message,
                                              size_t len) {
 
-  if ( FLAGS_logtostderr )            // global flag: never log to file
-    WriteToStderr(message, len);
-  else
+  if ( FLAGS_logtostderr ) {           // global flag: never log to file
+    ColoredWriteToStderr(severity, message, len);
+  } else {
     for (int i = severity; i >= 0; --i)
       LogDestination::MaybeLogToLogfile(i, timestamp, message, len);
-
+  }
 }
 
 inline void LogDestination::LogToSinks(LogSeverity severity,
@@ -691,7 +887,7 @@ void LogFileObject::FlushUnlocked(){
   next_flush_time_ = CycleClock_Now() + UsecToCycles(next);
 }
 
-bool LogFileObject::CreateLogfile(const char* time_pid_string) {
+bool LogFileObject::CreateLogfile(const string& time_pid_string) {
   string string_filename = base_filename_+filename_extension_+
                            time_pid_string;
   const char* filename = string_filename.c_str();
@@ -724,8 +920,10 @@ bool LogFileObject::CreateLogfile(const char* time_pid_string) {
     linkpath += linkname;
     unlink(linkpath.c_str());                    // delete old one if it exists
 
+#if defined(OS_WINDOWS)
+    // TODO(hamaji): Create lnk file on Windows?
+#elif defined(HAVE_UNISTD_H)
     // We must have unistd.h.
-#ifdef HAVE_UNISTD_H
     // Make the symlink be relative (in the same dir) so that if the
     // entire log directory gets relocated the link is still valid.
     const char *linkdest = slash ? (slash + 1) : filename;
@@ -779,24 +977,24 @@ void LogFileObject::Write(bool force_flush,
     localtime_r(&timestamp, &tm_time);
 
     // The logfile's filename will have the date/time & pid in it
-    char time_pid_string[256];  // More than enough chars for time, pid, \0
-    ostrstream time_pid_stream(time_pid_string, sizeof(time_pid_string));
+    ostringstream time_pid_stream;
     time_pid_stream.fill('0');
     time_pid_stream << 1900+tm_time.tm_year
-		    << setw(2) << 1+tm_time.tm_mon
-		    << setw(2) << tm_time.tm_mday
-		    << '-'
-		    << setw(2) << tm_time.tm_hour
-		    << setw(2) << tm_time.tm_min
-		    << setw(2) << tm_time.tm_sec
-		    << '.'
-		    << GetMainThreadPid()
-		    << '\0';
+                    << setw(2) << 1+tm_time.tm_mon
+                    << setw(2) << tm_time.tm_mday
+                    << '-'
+                    << setw(2) << tm_time.tm_hour
+                    << setw(2) << tm_time.tm_min
+                    << setw(2) << tm_time.tm_sec
+                    << '.'
+                    << GetMainThreadPid();
+    const string& time_pid_string = time_pid_stream.str();
 
     if (base_filename_selected_) {
       if (!CreateLogfile(time_pid_string)) {
         perror("Could not create log file");
-        fprintf(stderr, "COULD NOT CREATE LOGFILE '%s'!\n", time_pid_string);
+        fprintf(stderr, "COULD NOT CREATE LOGFILE '%s'!\n",
+                time_pid_string.c_str());
         return;
       }
     } else {
@@ -844,15 +1042,14 @@ void LogFileObject::Write(bool force_flush,
       // If we never succeeded, we have to give up
       if ( success == false ) {
         perror("Could not create logging file");
-        fprintf(stderr, "COULD NOT CREATE A LOGGINGFILE %s!", time_pid_string);
+        fprintf(stderr, "COULD NOT CREATE A LOGGINGFILE %s!",
+                time_pid_string.c_str());
         return;
       }
     }
 
     // Write a header message into the log file
-    char file_header_string[512];  // Enough chars for time and binary info
-    ostrstream file_header_stream(file_header_string,
-                                  sizeof(file_header_string));
+    ostringstream file_header_stream;
     file_header_stream.fill('0');
     file_header_stream << "Log file created at: "
                        << 1900+tm_time.tm_year << '/'
@@ -865,10 +1062,11 @@ void LogFileObject::Write(bool force_flush,
                        << "Running on machine: "
                        << LogDestination::hostname() << '\n'
                        << "Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu "
-                       << "threadid file:line] msg" << '\n'
-                       << '\0';
-    int header_len = strlen(file_header_string);
-    fwrite(file_header_string, 1, header_len, file_);
+                       << "threadid file:line] msg" << '\n';
+    const string& file_header_string = file_header_stream.str();
+
+    const int header_len = file_header_string.size();
+    fwrite(file_header_string.data(), 1, header_len, file_);
     file_length_ += header_len;
     bytes_since_flush_ += header_len;
   }
@@ -916,9 +1114,6 @@ void LogFileObject::Write(bool force_flush,
 
 }  // namespace
 
-// An arbitrary limit on the length of a single log message.  This
-// is so that streaming can be done more efficiently.
-const size_t LogMessage::kMaxLogMessageLen = 30000;
 
 // Static log data space to avoid alloc failures in a LOG(FATAL)
 //
@@ -929,55 +1124,55 @@ const size_t LogMessage::kMaxLogMessageLen = 30000;
 static Mutex fatal_msg_lock;
 static CrashReason crash_reason;
 static bool fatal_msg_exclusive = true;
-static char fatal_msg_buf_exclusive[LogMessage::kMaxLogMessageLen+1];
-static char fatal_msg_buf_shared[LogMessage::kMaxLogMessageLen+1];
-static LogMessage::LogStream fatal_msg_stream_exclusive(
-    fatal_msg_buf_exclusive, LogMessage::kMaxLogMessageLen, 0);
-static LogMessage::LogStream fatal_msg_stream_shared(
-    fatal_msg_buf_shared, LogMessage::kMaxLogMessageLen, 0);
-LogMessage::LogMessageData LogMessage::fatal_msg_data_exclusive_;
-LogMessage::LogMessageData LogMessage::fatal_msg_data_shared_;
+static LogMessage::LogMessageData fatal_msg_data_exclusive;
+static LogMessage::LogMessageData fatal_msg_data_shared;
 
-LogMessage::LogMessageData::~LogMessageData() {
-  delete[] buf_;
-  delete stream_alloc_;
+LogMessage::LogMessageData::LogMessageData()
+  : stream_(message_text_, LogMessage::kMaxLogMessageLen, 0) {
 }
 
 LogMessage::LogMessage(const char* file, int line, LogSeverity severity,
-		       int ctr, void (LogMessage::*send_method)()) {
+                       int ctr, void (LogMessage::*send_method)())
+    : allocated_(NULL) {
   Init(file, line, severity, send_method);
-  data_->stream_->set_ctr(ctr);
+  data_->stream_.set_ctr(ctr);
 }
 
 LogMessage::LogMessage(const char* file, int line,
-                       const CheckOpString& result) {
+                       const CheckOpString& result)
+    : allocated_(NULL) {
   Init(file, line, GLOG_FATAL, &LogMessage::SendToLog);
   stream() << "Check failed: " << (*result.str_) << " ";
 }
 
-LogMessage::LogMessage(const char* file, int line) {
+LogMessage::LogMessage(const char* file, int line)
+    : allocated_(NULL) {
   Init(file, line, GLOG_INFO, &LogMessage::SendToLog);
 }
 
-LogMessage::LogMessage(const char* file, int line, LogSeverity severity) {
+LogMessage::LogMessage(const char* file, int line, LogSeverity severity)
+    : allocated_(NULL) {
   Init(file, line, severity, &LogMessage::SendToLog);
 }
 
 LogMessage::LogMessage(const char* file, int line, LogSeverity severity,
-                       LogSink* sink, bool also_send_to_log) {
+                       LogSink* sink, bool also_send_to_log)
+    : allocated_(NULL) {
   Init(file, line, severity, also_send_to_log ? &LogMessage::SendToSinkAndLog :
                                                 &LogMessage::SendToSink);
   data_->sink_ = sink;  // override Init()'s setting to NULL
 }
 
 LogMessage::LogMessage(const char* file, int line, LogSeverity severity,
-                       vector<string> *outvec) {
+                       vector<string> *outvec)
+    : allocated_(NULL) {
   Init(file, line, severity, &LogMessage::SaveOrSendToLog);
   data_->outvec_ = outvec; // override Init()'s setting to NULL
 }
 
 LogMessage::LogMessage(const char* file, int line, LogSeverity severity,
-                       string *message) {
+                       string *message)
+    : allocated_(NULL) {
   Init(file, line, severity, &LogMessage::WriteToStringAndLog);
   data_->message_ = message;  // override Init()'s setting to NULL
 }
@@ -990,27 +1185,17 @@ void LogMessage::Init(const char* file,
   if (severity != GLOG_FATAL || !exit_on_dfatal) {
     allocated_ = new LogMessageData();
     data_ = allocated_;
-    data_->buf_ = new char[kMaxLogMessageLen+1];
-    data_->message_text_ = data_->buf_;
-    data_->stream_alloc_ =
-        new LogStream(data_->message_text_, kMaxLogMessageLen, 0);
-    data_->stream_ = data_->stream_alloc_;
     data_->first_fatal_ = false;
   } else {
     MutexLock l(&fatal_msg_lock);
     if (fatal_msg_exclusive) {
       fatal_msg_exclusive = false;
-      data_ = &fatal_msg_data_exclusive_;
-      data_->message_text_ = fatal_msg_buf_exclusive;
-      data_->stream_ = &fatal_msg_stream_exclusive;
+      data_ = &fatal_msg_data_exclusive;
       data_->first_fatal_ = true;
     } else {
-      data_ = &fatal_msg_data_shared_;
-      data_->message_text_ = fatal_msg_buf_shared;
-      data_->stream_ = &fatal_msg_stream_shared;
+      data_ = &fatal_msg_data_shared;
       data_->first_fatal_ = false;
     }
-    data_->stream_alloc_ = NULL;
   }
 
   stream().fill('0');
@@ -1051,7 +1236,7 @@ void LogMessage::Init(const char* file,
              << ' '
              << data_->basename_ << ':' << data_->line_ << "] ";
   }
-  data_->num_prefix_chars_ = data_->stream_->pcount();
+  data_->num_prefix_chars_ = data_->stream_.pcount();
 
   if (!FLAGS_log_backtrace_at.empty()) {
     char fileline[128];
@@ -1071,13 +1256,21 @@ LogMessage::~LogMessage() {
   delete allocated_;
 }
 
+int LogMessage::preserved_errno() const {
+  return data_->preserved_errno_;
+}
+
+ostream& LogMessage::stream() {
+  return data_->stream_;
+}
+
 // Flush buffered message, called by the destructor, or any other function
 // that needs to synchronize the log.
 void LogMessage::Flush() {
   if (data_->has_been_flushed_ || data_->severity_ < FLAGS_minloglevel)
     return;
 
-  data_->num_chars_to_log_ = data_->stream_->pcount();
+  data_->num_chars_to_log_ = data_->stream_.pcount();
   data_->num_chars_to_syslog_ =
     data_->num_chars_to_log_ - data_->num_prefix_chars_;
 
@@ -1127,7 +1320,7 @@ void LogMessage::Flush() {
 
 // Copy of first FATAL log message so that we can print it out again
 // after all the stack traces.  To preserve legacy behavior, we don't
-// use fatal_msg_buf_exclusive.
+// use fatal_msg_data_exclusive.
 static time_t fatal_time;
 static char fatal_message[256];
 
@@ -1135,7 +1328,7 @@ void ReprintFatalMessage() {
   if (fatal_message[0]) {
     const int n = strlen(fatal_message);
     if (!FLAGS_logtostderr) {
-      // Also write to stderr
+      // Also write to stderr (don't color to avoid terminal checks)
       WriteToStderr(fatal_message, n);
     }
     LogDestination::LogToAllLogfiles(GLOG_ERROR, fatal_time, fatal_message, n);
@@ -1164,7 +1357,8 @@ void LogMessage::SendToLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
   // file if we haven't parsed the command line flags to get the
   // program name.
   if (FLAGS_logtostderr || !IsGoogleLoggingInitialized()) {
-    WriteToStderr(data_->message_text_, data_->num_chars_to_log_);
+    ColoredWriteToStderr(data_->severity_,
+                         data_->message_text_, data_->num_chars_to_log_);
 
     // this could be protected by a flag if necessary.
     LogDestination::LogToSinks(data_->severity_,
@@ -1236,10 +1430,10 @@ void LogMessage::SendToLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
 
 void LogMessage::RecordCrashReason(
     glog_internal_namespace_::CrashReason* reason) {
-  reason->filename = fatal_msg_data_exclusive_.fullname_;
-  reason->line_number = fatal_msg_data_exclusive_.line_;
-  reason->message = fatal_msg_buf_exclusive +
-                    fatal_msg_data_exclusive_.num_prefix_chars_;
+  reason->filename = fatal_msg_data_exclusive.fullname_;
+  reason->line_number = fatal_msg_data_exclusive.line_;
+  reason->message = fatal_msg_data_exclusive.message_text_ +
+                    fatal_msg_data_exclusive.num_prefix_chars_;
 #ifdef HAVE_STACKTRACE
   // Retrieve the stack trace, omitting the logging frames that got us here.
   reason->depth = GetStackTrace(reason->stack, ARRAYSIZE(reason->stack), 4);
@@ -1366,8 +1560,13 @@ int64 LogMessage::num_messages(int severity) {
 // Output the COUNTER value. This is only valid if ostream is a
 // LogStream.
 ostream& operator<<(ostream &os, const PRIVATE_Counter&) {
+#ifdef DISABLE_RTTI
+  LogMessage::LogStream *log = static_cast<LogMessage::LogStream*>(&os);
+#else
   LogMessage::LogStream *log = dynamic_cast<LogMessage::LogStream*>(&os);
-  CHECK(log == log->self());
+#endif
+  CHECK(log && log == log->self())
+      << "You must not use COUNTER with non-glog ostream";
   os << log->ctr();
   return os;
 }
@@ -1381,9 +1580,8 @@ ErrnoLogMessage::ErrnoLogMessage(const char* file, int line,
 ErrnoLogMessage::~ErrnoLogMessage() {
   // Don't access errno directly because it may have been altered
   // while streaming the message.
-  char buf[100];
-  posix_strerror_r(preserved_errno(), buf, sizeof(buf));
-  stream() << ": " << buf << " [" << preserved_errno() << "]";
+  stream() << ": " << StrError(preserved_errno()) << " ["
+           << preserved_errno() << "]";
 }
 
 void FlushLogFiles(LogSeverity min_severity) {
@@ -1465,9 +1663,7 @@ void LogToStderr() {
 namespace base {
 namespace internal {
 
-/* Put prototypes here to suppress strict compiler warnings */
-bool GetExitOnDFatal();
-void SetExitOnDFatal(bool value);
+namespace {
 
 bool GetExitOnDFatal() {
   MutexLock l(&log_mutex);
@@ -1488,6 +1684,8 @@ void SetExitOnDFatal(bool value) {
   MutexLock l(&log_mutex);
   exit_on_dfatal = value;
 }
+
+}  // namespace
 
 }  // namespace internal
 }  // namespace base
@@ -1516,13 +1714,11 @@ static bool SendEmailInternal(const char*dest, const char *subject,
       bool ok = pclose(pipe) != -1;
       if ( !ok ) {
         if ( use_logging ) {
-          char buf[100];
-          posix_strerror_r(errno, buf, sizeof(buf));
-          LOG(ERROR) << "Problems sending mail to " << dest << ": " << buf;
+          LOG(ERROR) << "Problems sending mail to " << dest << ": "
+                     << StrError(errno);
         } else {
-          char buf[100];
-          posix_strerror_r(errno, buf, sizeof(buf));
-          fprintf(stderr, "Problems sending mail to %s: %s\n", dest, buf);
+          fprintf(stderr, "Problems sending mail to %s: %s\n",
+                  dest, StrError(errno).c_str());
         }
       }
       return ok;
@@ -1644,8 +1840,11 @@ void TruncateLogFile(const char *path, int64 limit, int64 keep) {
   int64 read_offset, write_offset;
   // Don't follow symlinks unless they're our own fd symlinks in /proc
   int flags = O_RDWR;
+  // TODO(hamaji): Support other environments.
+#ifdef OS_LINUX
   const char *procfd_prefix = "/proc/self/fd/";
   if (strncmp(procfd_prefix, path, strlen(procfd_prefix))) flags |= O_NOFOLLOW;
+#endif
 
   int fd = open(path, flags);
   if (fd == -1) {
@@ -1730,11 +1929,11 @@ void TruncateStdoutStderr() {
     bool equal = s1 == s2 || (s1 && s2 && !func(s1, s2));               \
     if (equal == expected) return NULL;                                 \
     else {                                                              \
-      strstream ss;                                                     \
+      ostringstream ss;                                                 \
       if (!s1) s1 = "";                                                 \
       if (!s2) s2 = "";                                                 \
       ss << #name " failed: " << names << " (" << s1 << " vs. " << s2 << ")"; \
-      return new string(ss.str(), ss.pcount());                         \
+      return new string(ss.str());                                      \
     }                                                                   \
   }
 DEFINE_CHECK_STROP_IMPL(CHECK_STREQ, strcmp, true)
@@ -1793,6 +1992,15 @@ int posix_strerror_r(int err, char *buf, size_t len) {
   }
 }
 
+string StrError(int err) {
+  char buf[100];
+  int rc = posix_strerror_r(err, buf, sizeof(buf));
+  if ((rc < 0) || (buf[0] == '\000')) {
+    snprintf(buf, sizeof(buf), "Error number %d", err);
+  }
+  return buf;
+}
+
 LogMessageFatal::LogMessageFatal(const char* file, int line) :
     LogMessage(file, line, GLOG_FATAL) {}
 
@@ -1803,6 +2011,56 @@ LogMessageFatal::LogMessageFatal(const char* file, int line,
 LogMessageFatal::~LogMessageFatal() {
     Flush();
     LogMessage::Fail();
+}
+
+namespace base {
+
+CheckOpMessageBuilder::CheckOpMessageBuilder(const char *exprtext)
+    : stream_(new ostringstream) {
+  *stream_ << exprtext << " (";
+}
+
+CheckOpMessageBuilder::~CheckOpMessageBuilder() {
+  delete stream_;
+}
+
+ostream* CheckOpMessageBuilder::ForVar2() {
+  *stream_ << " vs. ";
+  return stream_;
+}
+
+string* CheckOpMessageBuilder::NewString() {
+  *stream_ << ")";
+  return new string(stream_->str());
+}
+
+}  // namespace base
+
+template <>
+void MakeCheckOpValueString(std::ostream* os, const char& v) {
+  if (v >= 32 && v <= 126) {
+    (*os) << "'" << v << "'";
+  } else {
+    (*os) << "char value " << (short)v;
+  }
+}
+
+template <>
+void MakeCheckOpValueString(std::ostream* os, const signed char& v) {
+  if (v >= 32 && v <= 126) {
+    (*os) << "'" << v << "'";
+  } else {
+    (*os) << "signed char value " << (short)v;
+  }
+}
+
+template <>
+void MakeCheckOpValueString(std::ostream* os, const unsigned char& v) {
+  if (v >= 32 && v <= 126) {
+    (*os) << "'" << v << "'";
+  } else {
+    (*os) << "unsigned char value " << (unsigned short)v;
+  }
 }
 
 void InitGoogleLogging(const char* argv0) {

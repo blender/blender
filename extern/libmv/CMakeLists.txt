@@ -44,6 +44,8 @@ if(WITH_LIBMV)
 	)
 
 	list(APPEND INC
+		third_party/gflags
+		third_party/glog/src
 		third_party/ceres/include
 		../../intern/guardedalloc
 	)
@@ -217,10 +219,6 @@ if(WITH_LIBMV)
 			third_party/glog/src/stacktrace_x86-inl.h
 			third_party/glog/src/symbolize.h
 			third_party/glog/src/utilities.h
-		)
-
-		list(APPEND INC
-			third_party/glog/src
 		)
 	endif()
 else()

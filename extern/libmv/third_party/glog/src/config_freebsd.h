@@ -46,11 +46,17 @@
 /* define if the compiler implements namespaces */
 #define HAVE_NAMESPACES 1
 
+/* Define if you have the 'pread' function */
+#define HAVE_PREAD 1
+
 /* Define if you have POSIX threads libraries and header files. */
 #define HAVE_PTHREAD 1
 
 /* Define to 1 if you have the <pwd.h> header file. */
 #define HAVE_PWD_H 1
+
+/* Define if you have the 'pwrite' function */
+#define HAVE_PWRITE 1
 
 /* define if the compiler implements pthread_rwlock_* */
 #define HAVE_RWLOCK 1

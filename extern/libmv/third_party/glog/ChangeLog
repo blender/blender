@@ -1,3 +1,18 @@
+2013-02-01  Google Inc. <opensource@google.com>
+
+	* google-glog: version 0.3.3
+	* Add --disable-rtti option for configure.
+	* Visual Studio build and test fix.
+	* QNX build fix (thanks vanuan).
+	* Reduce warnings.
+	* Fixed LOG_SYSRESULT (thanks ukai).
+	* FreeBSD build fix (thanks yyanagisawa).
+	* Clang build fix.
+	* Now users can re-initialize glog after ShutdownGoogleLogging.
+	* Color output support by GLOG_colorlogtostderr (thanks alexs).
+	* Now glog's ABI around flags are compatible with gflags.
+	* Document mentions how to modify flags from user programs.
+
 2012-01-12  Google Inc. <opensource@google.com>
 
 	* google-glog: version 0.3.2

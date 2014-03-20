@@ -45,7 +45,10 @@
 
 #ifdef _WIN32
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN  /* We always want minimal includes */
+#endif
+
 #include <windows.h>
 #include <winsock.h>         /* for gethostname */
 #include <io.h>              /* because we so often use open/close/etc */
@@ -58,6 +61,8 @@
 /* Note: the C++ #includes are all together at the bottom.  This file is
  * used by both C and C++ code, so we put all the C++ together.
  */
+
+#ifdef _MSC_VER
 
 /* 4244: otherwise we get problems when substracting two size_t's to an int
  * 4251: it's complaining about a private struct I've chosen not to dllexport
@@ -111,9 +116,7 @@ extern int snprintf(char *str, size_t size,
 extern int safe_vsnprintf(char *str, size_t size,
                           const char *format, va_list ap);
 #define vsnprintf(str, size, format, ap)  safe_vsnprintf(str, size, format, ap)
-#if !defined(__MINGW32__)
 #define va_copy(dst, src)  (dst) = (src)
-#endif
 
 /* Windows doesn't support specifying the number of buckets as a
  * hash_map constructor arg, so we leave this blank.
@@ -123,10 +126,13 @@ extern int safe_vsnprintf(char *str, size_t size,
 #define DEFAULT_TEMPLATE_ROOTDIR  ".."
 
 // ----------------------------------- SYSTEM/PROCESS
-#ifndef __MINGW64__
 typedef int pid_t;
-#endif
 #define getpid  _getpid
+
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+
+#endif  // _MSC_VER
 
 // ----------------------------------- THREADS
 typedef DWORD pthread_t;

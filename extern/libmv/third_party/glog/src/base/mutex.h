@@ -102,12 +102,14 @@
 #ifndef GOOGLE_MUTEX_H_
 #define GOOGLE_MUTEX_H_
 
-#include "config.h"           // to figure out pthreads support
+#include "../config.h"           // to figure out pthreads support
 
 #if defined(NO_THREADS)
   typedef int MutexType;      // to keep a lock-count
 #elif defined(_WIN32) || defined(__CYGWIN32__) || defined(__CYGWIN64__)
-# define WIN32_LEAN_AND_MEAN  // We only need minimal includes
+# ifndef WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN  // We only need minimal includes
+# endif
 # ifdef GMUTEX_TRYLOCK
   // We need Windows NT or later for TryEnterCriticalSection().  If you
   // don't need that functionality, you can remove these _WIN32_WINNT
@@ -117,9 +119,13 @@
 #   endif
 # endif
 // To avoid macro definition of ERROR.
-# define NOGDI
+# ifndef NOGDI
+#  define NOGDI
+# endif
 // To avoid macro definition of min/max.
-# define NOMINMAX
+# ifndef NOMINMAX
+#  define NOMINMAX
+# endif
 # include <windows.h>
   typedef CRITICAL_SECTION MutexType;
 #elif defined(HAVE_PTHREAD) && defined(HAVE_RWLOCK)

@@ -111,7 +111,7 @@ _END_GOOGLE_NAMESPACE_
 
 #include "symbolize.h"
 #include "config.h"
-#include <glog/raw_logging.h>
+#include "glog/raw_logging.h"
 
 // Re-runs fn until it doesn't cause EINTR.
 #define NO_INTR(fn)   do {} while ((fn) < 0 && errno == EINTR)
@@ -232,7 +232,7 @@ bool GetSectionHeaderByName(int fd, const char *name, size_t name_len,
     }
     char header_name[kMaxSectionNameLen];
     if (sizeof(header_name) < name_len) {
-      RAW_LOG(WARNING, "Section name '%s' is too long (%"PRIuS"); "
+      RAW_LOG(WARNING, "Section name '%s' is too long (%" PRIuS "); "
               "section will not be found (even if present).", name, name_len);
       // No point in even trying.
       return false;

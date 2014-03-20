@@ -1,3 +1,135 @@
+commit a4f387680dbc1f8818fe3cd79174a9983127d89e
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Mar 20 23:07:34 2014 +0600
+
+    Compilation fixes for MinGW
+    
+    Many thanks to Antony Riakiotakis for the patch!
+
+commit f1aefcbf58fe04ea2967434f39f703bb486777c8
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Feb 27 16:21:19 2014 +0600
+
+    Implement separate BA step for tracks which have constant zero weight
+    
+    This is needed to minimize their reprojection error over the footage.
+    Without this extra step positions of such tracks were calculated by
+    algebraic intersection code only, which doesn't give best precision.
+
+commit bcf7f9470b2ea33cf89a31a72037ec03be631637
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Feb 27 14:16:42 2014 +0600
+
+    Avoid zero-sized problem when doing euclidean intersection
+    
+    Zero-sized problem might occur when intersecting track with
+    constant zero weight. For such tracks we'll just use result
+    of algebraic intersection.
+    
+    TODO: We probably need to have a separate BA step to adjust
+    positions of tracks with constant zero weight.
+
+commit f884bb20a93189b8210639f3de939c64177d66b3
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Feb 26 18:00:40 2014 +0600
+
+    Ignore zero weighted markers in keyframe selection
+    
+    It doesn't make sense to use zero-weighted tracks as a correspondences
+    in keyframe selection.
+    
+    Such tracks are not guaranteed to be tracked accurately because their
+    purpose is to add reference points in 3D space without affecting the
+    solution.
+
+commit 74db5175cdbcabe673b82eef59c88fb7f342c43f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Feb 26 13:23:02 2014 +0600
+
+    Tweaks to make bundling into Blender warning-less
+    
+    Mainly issue i caused by conflicts in include directories,
+    so glog used to include config.h from gflags. It might be
+    fixed by splitting gflags/glog from Libmv in Blender build
+    system but that's not something fun to work on. Fixed by
+    making include directories  bit more explicit.
+    
+    Also solved no-previous-prototype warnings.
+
+commit bc4bc66af0115069562b79e837ccf4fd95c8f97e
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Feb 21 14:55:13 2014 +0600
+
+    Raise epsilon used for model solver test
+    
+    It was too much small leading to false failure triggering
+    caused simply by precision issues.
+
+commit bf750590a6af4af3622c01fd1004c44da60484a7
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Feb 18 23:35:52 2014 +0600
+
+    Made it possible to link against Ceres installed on the system
+    
+    Main purpose of this is to get away from bundled Ceres library
+    which is not so trivial to re-bundle and takes some to do this
+    (not talking about CMake options conflicts and pollution).
+    
+    Enabled by setting WITH_SYSTEM_CERES=ON. Default paths to search
+    Ceres library:
+    
+    - /usr/local
+    - /sw
+    - /opt/local
+    - /opt/csw
+    - /opt/lib/ceres
+    
+    You might also specify Ceres root directory using CERES_ROOT_DIR
+    variable (both CMake and environment variables are supported).
+    
+    If your Ceres is build statically, you're to control all additional
+    libraries needed to link against using CMAKE_EXE_LINKER_FLAGS.
+
+commit c9156fbf80c86853806844b754b1e48f45c5ec11
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Feb 18 19:38:22 2014 +0600
+
+    Remove .orig file which was added by accident
+
+commit 62597e3cf0f266a2fefec415c89759e502793e06
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Jan 2 16:02:08 2014 +0600
+
+    Upgrade glog to latest svn r139
+    
+    The intention of this upgrade is to get rid of custom patches
+    we've been having to support compilation on different platforms
+    and compilers.
+
+commit 2452d5d42b390c7ab853e6fe60e58bdd7a01a004
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Feb 18 18:46:08 2014 +0600
+
+    Tweak Ceres CMake to detect uninstall target properly on Windows
+
+commit 98a281d58ce2301f3dd239a97a448e53f48d0258
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Feb 14 00:36:44 2014 +0600
+
+    Fix order of third party libs compilation and options used by them
+    
+    WITH_FAST_DETECTOR was defined too late and third_party folder
+    didn't see this option.
+
+commit 4962bccd643ec0f2aed3035170d5f20e8f6efc85
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Feb 13 23:55:03 2014 +0600
+
+    Disable Ceres unit tests and examples by default
+    
+    Actually we're to switch to external Ceres rather than
+    bundled one, would make life much easier actually.
+
 commit b1381540305d69c702eb2f051bd543fb5c1c3e2c
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Feb 6 18:01:58 2014 +0600
@@ -538,156 +670,3 @@ Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri May 10 13:27:21 2013 +0600
 
     Left extra debugging print in reconstruction scale by accident.
-
-commit 7971967d24e3d8d505bd6e54523161ab5dd5b728
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri May 10 12:23:03 2013 +0600
-
-    Add check for points behind camera in euclidan BA cost functor
-    
-    In cases keyframes are no so good, algebraic two frames construction
-    could produce result, for which more aggressive Ceres-based BA code
-    will fall to a solution for which points goes behind the camera,
-    which is not so nice.
-    
-    Seems in newer Ceres returning false from cost functor wouldn't
-    abort solution, but will restrict solver from moving points behind
-    the camera.
-    
-    Works fine in own tests, but requires more tests.
-
-commit f34e73f6bd0041a31f779a78e1c2324f9799a4a2
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Apr 24 22:06:38 2013 +0600
-
-    Forgot to add reconstruction scale to CMakeLists
-
-commit de08cbaebe1b95673c4bc8f639aa0228414cf4a2
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Apr 24 19:40:39 2013 +0600
-
-    Reconstructed scene scale ambiguity improvement
-    
-    Added a function EuclideanScaleToUnity() which is
-    aimed to solve scale ambiguity by scaling solution
-    in a way cameras centers variance in unity.
-    
-    Currently only available for euclidean pipeline,
-    projective one is not finished anyway.
-
-commit 30ecb7dd075527c0e49220744bae65ec208dbdf5
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Apr 23 01:41:29 2013 +0600
-
-    Use epsilon in modal solver test
-    
-    Default epsilon for isApprox was too small,
-    leading to some false test failures.
-
-commit d03b303c171b0b0a33ed0b31c9a744c9676492a9
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Apr 23 01:35:56 2013 +0600
-
-    Update Ceres to current HEAD
-    
-    Brings optimization for DENSE_NORMAL_CHOLESKY and
-    also fixes threading issues with BLAS.
-
-commit 0a352686de0e87d59a2e37dbd0fddb351cbea2b7
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 15 05:35:33 2013 +0600
-
-    Fix for bundle adjusting with motion restricted
-    
-    Was a bug introduced in previous commit, which
-    was trying to set parameterization for non-existing
-    camera->t parameter block.
-    
-    Replaced with subset parameterization.
-    
-    Also added basic synthetic unit test for modal solver.
-
-commit 1742515b89ad5da53be95bfc574cbeffc51dc0e2
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 8 23:33:20 2013 +0600
-
-     Bundle adjustment improvements
-    
-    - Get rid of rotation matrix parameterization,
-      use angle-axis instead.
-    
-      Also Joined rotation and translation into
-      a single parameter block.
-    
-      This made minimization go significantly faster,
-      like 1.3x times in average.
-    
-    - Fix first camera when bundling. This is to
-      address orientation ambiguity.
-    
-      Reconstruction result could still vary in
-      size, but that's another issue to be addressed
-      later.
-    
-    Additional change:
-    
-    Split EuclideanBundleCommonIntrinsics into
-    smaller functions, so it's now a bit easier
-    to follow.
-
-commit 74bbeabf1c4570bfe04f3034afcde95134b3e161
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 8 23:31:57 2013 +0600
-
-    Update Ceres to current HEAD
-    
-    Brings up some noticeable speed improvements. In particular
-    the automatic differentiation and bundle adjustment solvers.
-
-commit e47519b0442527533ee046dd9881212d169561da
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 8 02:21:26 2013 +0600
-
-    Corrected path to gflags
-    
-    Currently tools/track.cc is not used, but let's
-    keep things a bit more up-to-date :)
-
-commit f617741b1f2a0ac7981dd71144eba187521d9ac4
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 8 02:17:16 2013 +0600
-
-    Re-enable tests for multiview and image
-    
-    For as long code is in repo and used by some tools
-    better to have it covered by tests.
-    
-    Some of them are failing tho, but that's completely
-    different story to be addressed later.
-
-commit 7dbb5a37333fb6c5a729b8bafb317ea210735cbc
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 8 02:10:07 2013 +0600
-
-    Do not modify cache's CMAKE_CXX_FLAGS_RELEASE when configuring Ceres
-    
-    Otherwise you'll have infinite appending of Ceres-specific flags
-    on every saving of any CmakeLists.txt.
-
-commit b413d22280de2481a2e2acdcda8431f601d65448
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sun Apr 7 21:53:23 2013 +0600
-
-    Fixed compilation with BUILD_TOOLS enabled
-    
-    This commit mainly reverts parts of following commits:
-        0eebc21db831211738acc938566bbc29d68d45db
-        d8109b7a4fede1660e0dbd73735f1a9e3fd79eec
-        e59595806c045916ab4ef15ef7047c1a728b2da9
-        2d6cd58ee1cd7c5073980f358c71b2898ad16b4c
-    
-    They declared  lots of stuff deprecated, but in
-    fact it's not deprecated just a bit different
-    usage pipeline. Anyway, deprecation shall not
-    happen spontaneously as a part of other changes.
-    And for sure shall not break anything.

@@ -1,25 +1,9 @@
 Project: Google Logging
 URL: http://code.google.com/p/google-glog/
 License: New BSD
-Upstream version: 0.3.2
+Upstream version: 0.3.3, r139
 Local modifications:
-
-Upgrading Notes
-* Replace <gflags/gflags.h> with "third_party/gflags/gflags/gflags.h" which is easier
-  to setup things in libmv and also helps with setting up building libmv into
-  external applications.
-* Replace "glog/logging.h" and  "glog/logging.h" with <glog/logging.h> and  <glog/logging.h>
-  which is needed on Windows platform because otherwise files like logging.cc will be using
-  relative path which points to headers used by linux instead of headers need to be used
-  on Windows.
-* Replace _asm int 3 with __debugbreak(). Such assembler code is obsolete and doesn't work
-  with 64bit versions of MSVC compilers.
-* Do not use stacktrace for MinGW and FreeBSD because it leads into issues accessing
-  some specific data on this platforms.
-* Define HAVE_LIB_GFLAGS for Windows builds.
-* Do not define __declspec(dllimport) for MinGW platforms.
-* Setup proper includes and datatypes for int32, uint32, int64 and uint64 for MinGW
-* Do not define va_copy for MinGW platforms (it's already defined there).
-* Patch localtime_r to be working fine with MinGW, disable strerror_r for MinGW because
-  of lack of needed functions.
-* Added -fPIC flag, so shared libraries from Ceres could be linked against static glog
+* Added per-platform config.h files so no configuration-time
+  checks for functions and so are needed.
+* See glog_tweaks.patch to see other tweaks which are done
+  against glog upstream.

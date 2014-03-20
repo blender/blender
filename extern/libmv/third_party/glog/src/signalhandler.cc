@@ -34,7 +34,7 @@
 #include "utilities.h"
 #include "stacktrace.h"
 #include "symbolize.h"
-#include <glog/logging.h>
+#include "glog/logging.h"
 
 #include <signal.h>
 #include <time.h>
@@ -47,6 +47,9 @@
 #include <algorithm>
 
 _START_GOOGLE_NAMESPACE_
+
+// TOOD(hamaji): Use signal instead of sigaction?
+#ifdef HAVE_SIGACTION
 
 namespace {
 
@@ -330,7 +333,10 @@ void FailureSignalHandler(int signal_number,
 
 }  // namespace
 
+#endif  // HAVE_SIGACTION
+
 void InstallFailureSignalHandler() {
+#ifdef HAVE_SIGACTION
   // Build the sigaction struct.
   struct sigaction sig_action;
   memset(&sig_action, 0, sizeof(sig_action));
@@ -341,10 +347,13 @@ void InstallFailureSignalHandler() {
   for (size_t i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
     CHECK_ERR(sigaction(kFailureSignals[i].number, &sig_action, NULL));
   }
+#endif  // HAVE_SIGACTION
 }
 
 void InstallFailureWriter(void (*writer)(const char* data, int size)) {
+#ifdef HAVE_SIGACTION
   g_failure_writer = writer;
+#endif  // HAVE_SIGACTION
 }
 
 _END_GOOGLE_NAMESPACE_
