@@ -1467,8 +1467,8 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 
 	ibuf = seq_render_strip(context, seq, cfra);
 
-	rectx = (proxy_render_size * context->scene->r.xsch) / 100;
-	recty = (proxy_render_size * context->scene->r.ysch) / 100;
+	rectx = (proxy_render_size * ibuf->x) / 100;
+	recty = (proxy_render_size * ibuf->y) / 100;
 
 	if (ibuf->x != rectx || ibuf->y != recty) {
 		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
@@ -1562,6 +1562,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 	                                    (scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f,
 	                                    (scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f, 100);
 	render_context.skip_cache = true;
+	render_context.is_proxy_render = true;
 
 	for (cfra = seq->startdisp + seq->startstill;  cfra < seq->enddisp - seq->endstill; cfra++) {
 		if (context->size_flags & IMB_PROXY_25) {
@@ -1919,9 +1920,13 @@ void BKE_sequencer_color_balance_apply(StripColorBalance *cb, ImBuf *ibuf, float
  *  - Premultiply
  */
 
-int BKE_sequencer_input_have_to_preprocess(const SeqRenderData *UNUSED(context), Sequence *seq, float UNUSED(cfra))
+int BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context, Sequence *seq, float UNUSED(cfra))
 {
 	float mul;
+
+	if (context->is_proxy_render) {
+		return FALSE;
+	}
 
 	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) {
 		return TRUE;
@@ -2806,8 +2811,12 @@ static ImBuf *seq_render_strip(const SeqRenderData *context, Sequence *seq, floa
 				if (ibuf == NULL)
 					ibuf = do_render_strip_uncached(context, seq, cfra);
 
-				if (ibuf)
+				if (ibuf) {
+					if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP)) {
+						is_proxy_image = (context->preview_render_size != 100);
+					}
 					BKE_sequencer_preprocessed_cache_put(context, seq, cfra, SEQ_STRIPELEM_IBUF, ibuf);
+				}
 			}
 		}
 
@@ -2826,8 +2835,11 @@ static ImBuf *seq_render_strip(const SeqRenderData *context, Sequence *seq, floa
 		sequencer_imbuf_assign_spaces(context->scene, ibuf);
 	}
 
-	if (ibuf->x != context->rectx || ibuf->y != context->recty)
+	if (context->is_proxy_render == false &&
+	    (ibuf->x != context->rectx || ibuf->y != context->recty))
+	{
 		use_preprocess = TRUE;
+	}
 
 	if (use_preprocess)
 		ibuf = input_preprocess(context, seq, cfra, ibuf, is_proxy_image, is_preprocessed);
