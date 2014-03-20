@@ -3176,7 +3176,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		else {
 			glEnable(GL_DEPTH_TEST);
 			draw_mesh_paint_weight_faces(finalDM, false, draw_em_fancy__setFaceOpts, me->edit_btmesh);
-			draw_mesh_paint_weight_edges(rv3d, finalDM, true, draw_dm_edges__setDrawOptions, me->edit_btmesh->bm);
+			draw_mesh_paint_weight_edges(rv3d, finalDM, true, false, draw_dm_edges__setDrawOptions, me->edit_btmesh->bm);
 			glDisable(GL_DEPTH_TEST);
 		}
 	}

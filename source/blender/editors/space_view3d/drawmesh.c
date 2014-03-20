@@ -1081,7 +1081,8 @@ void draw_mesh_paint_vcolor_faces(DerivedMesh *dm, const bool use_light,
 	}
 }
 
-void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const bool use_depth,
+void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm,
+                                  const bool use_depth, const bool use_alpha,
                                   void *edgemask_cb, void *user_data)
 {
 	/* weight paint in solid mode, special case. focus on making the weights clear
@@ -1095,7 +1096,10 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const boo
 		glDisable(GL_DEPTH_TEST);
 	}
 
-	glEnable(GL_BLEND);
+	if (use_alpha) {
+		glEnable(GL_BLEND);
+	}
+
 	glColor4ub(255, 255, 255, 96);
 	glEnable(GL_LINE_STIPPLE);
 	glLineStipple(1, 0xAAAA);
@@ -1111,7 +1115,10 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm, const boo
 	}
 
 	glDisable(GL_LINE_STIPPLE);
-	glDisable(GL_BLEND);
+
+	if (use_alpha) {
+		glDisable(GL_BLEND);
+	}
 }
 
 void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
@@ -1138,7 +1145,17 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 	}
 	else if ((use_light == false) || (ob->dtx & OB_DRAWWIRE)) {
 		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) || !(ob->mode & OB_MODE_WEIGHT_PAINT);
-		draw_mesh_paint_weight_edges(rv3d, dm, use_depth, NULL, NULL);
+		const bool use_alpha = (ob->mode & OB_MODE_VERTEX_PAINT) == 0;
+
+		if (use_alpha == false) {
+			set_inverted_drawing(1);
+		}
+
+		draw_mesh_paint_weight_edges(rv3d, dm, use_depth, use_alpha, NULL, NULL);
+
+		if (use_alpha == false) {
+			set_inverted_drawing(0);
+		}
 	}
 }
 
