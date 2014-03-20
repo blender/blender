@@ -86,6 +86,11 @@ void  vec_to_quat(float q[4], const float vec[3], short axis, const short upflag
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3]);
 void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q2[4]);
 
+float angle_normalized_qt(const float q[4]);
+float angle_normalized_qtqt(const float q1[4], const float q2[4]);
+float angle_qt(const float q[4]);
+float angle_qtqt(const float q1[4], const float q2[4]);
+
 /* TODO: don't what this is, but it's not the same as mat3_to_quat */
 void mat3_to_quat_is_ok(float q[4], float mat[3][3]);
 

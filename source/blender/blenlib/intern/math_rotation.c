@@ -440,6 +440,44 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
 	mul_qt_qtqt(q, tquat, q2);
 }
 
+
+float angle_normalized_qt(const float q[4])
+{
+	BLI_ASSERT_UNIT_QUAT(q);
+	return 2.0f * saacos(q[0]);
+}
+
+float angle_qt(const float q[4])
+{
+	float tquat[4];
+
+	normalize_qt_qt(tquat, q);
+
+	return angle_normalized_qt(tquat);
+}
+
+float angle_normalized_qtqt(const float q1[4], const float q2[4])
+{
+	float qdelta[4];
+
+	BLI_ASSERT_UNIT_QUAT(q1);
+	BLI_ASSERT_UNIT_QUAT(q2);
+
+	rotation_between_quats_to_quat(qdelta, q1, q2);
+
+	return angle_normalized_qt(qdelta);
+}
+
+float angle_qtqt(const float q1[4], const float q2[4])
+{
+	float quat1[4], quat2[4];
+
+	normalize_qt_qt(quat1, q1);
+	normalize_qt_qt(quat2, q2);
+
+	return angle_normalized_qtqt(quat1, quat2);
+}
+
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 {
 	float nor[3], tvec[3];
