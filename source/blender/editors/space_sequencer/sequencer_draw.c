@@ -702,8 +702,8 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	/* draw the main strip body */
 	if (is_single_image) {  /* single image */
 		draw_shadedstrip(seq, background_col,
-		                 BKE_sequence_tx_get_final_left(seq, 0), y1,
-		                 BKE_sequence_tx_get_final_right(seq, 0), y2);
+		                 BKE_sequence_tx_get_final_left(seq, false), y1,
+		                 BKE_sequence_tx_get_final_right(seq, false), y2);
 	}
 	else {  /* normal operation */
 		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
@@ -843,7 +843,7 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	/* sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
 	 * by Esc pressed somewhere in the past
 	 */
-	G.is_break = FALSE;
+	G.is_break = false;
 
 	if (special_seq_update)
 		ibuf = BKE_sequencer_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
@@ -903,7 +903,7 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
 	return scope;
 }
 
-void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, int draw_overlay)
+void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, bool draw_overlay)
 {
 	struct Main *bmain = CTX_data_main(C);
 	struct ImBuf *ibuf = NULL;
@@ -922,7 +922,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	int format, type;
 	bool glsl_used = false;
 
-	if (G.is_rendering == FALSE && (scene->r.seq_flag & R_SEQ_GL_PREV) == 0) {
+	if (G.is_rendering == false && (scene->r.seq_flag & R_SEQ_GL_PREV) == 0) {
 		/* stop all running jobs, except screen one. currently previews frustrate Render
 		 * needed to make so sequencer's rendering doesn't conflict with compositor
 		 */
@@ -1262,7 +1262,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			                    0, 0, 0,  /* TODO */
 			                    width, height,
 			                    aspx, aspy,
-			                    FALSE, TRUE,
+			                    false, true,
 			                    NULL, C);
 		}
 	}
@@ -1405,7 +1405,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 void draw_timeline_seq(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;

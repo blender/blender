@@ -130,7 +130,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
 	Sequence *tgt = NULL;
 	Sequence *seq;
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	int cfra = (int) CFRA;
 	int proximity = INT_MAX;
 
@@ -240,7 +240,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	
 	Scene *sce_seq;
 
@@ -334,7 +334,7 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	
 	MovieClip *clip;
 
@@ -426,7 +426,7 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, true);
 
 	Mask *mask;
 
@@ -519,7 +519,7 @@ void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoadFunc seq_load_func)
 {
 	Scene *scene = CTX_data_scene(C); /* only for sound */
-	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	SeqLoadInfo seq_load;
 	Sequence *seq;
 	int tot_files;
@@ -688,7 +688,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	/* cant use the generic function for this */
 
 	Scene *scene = CTX_data_scene(C); /* only for sound */
-	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	SeqLoadInfo seq_load;
 	Sequence *seq;
 
@@ -788,7 +788,7 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, true);
 
 	Sequence *seq;  /* generic strip vars */
 	Strip *strip;

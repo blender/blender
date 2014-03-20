@@ -1630,7 +1630,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	}
 	else if (soops->outlinevis == SO_SEQUENCE) {
 		Sequence *seq;
-		Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+		Editing *ed = BKE_sequencer_editing_get(scene, false);
 		int op;
 
 		if (ed == NULL)

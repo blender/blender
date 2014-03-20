@@ -50,7 +50,7 @@
 #include "IMB_imbuf_types.h"
 
 static SequenceModifierTypeInfo *modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES];
-static int modifierTypesInit = FALSE;
+static bool modifierTypesInit = false;
 
 /*********************** Modifiers *************************/
 
@@ -77,7 +77,7 @@ typedef struct ModifierThread {
 } ModifierThread;
 
 
-static ImBuf *modifier_mask_get(SequenceModifierData *smd, const SeqRenderData *context, int cfra, int make_float)
+static ImBuf *modifier_mask_get(SequenceModifierData *smd, const SeqRenderData *context, int cfra, bool make_float)
 {
 	return BKE_sequencer_render_mask_input(context, smd->mask_input_type, smd->mask_sequence, smd->mask_id, cfra, make_float);
 }
@@ -160,7 +160,7 @@ static void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *ma
 {
 	ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *) smd;
 
-	BKE_sequencer_color_balance_apply(&cbmd->color_balance, ibuf, cbmd->color_multiply, FALSE, mask);
+	BKE_sequencer_color_balance_apply(&cbmd->color_balance, ibuf, cbmd->color_multiply, false, mask);
 }
 
 static SequenceModifierTypeInfo seqModifier_ColorBalance = {
@@ -571,7 +571,7 @@ SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
 {
 	if (!modifierTypesInit) {
 		sequence_modifier_type_info_init();
-		modifierTypesInit = TRUE;
+		modifierTypesInit = true;
 	}
 
 	return modifiersTypes[type];
@@ -602,15 +602,15 @@ SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name,
 	return smd;
 }
 
-int BKE_sequence_modifier_remove(Sequence *seq, SequenceModifierData *smd)
+bool BKE_sequence_modifier_remove(Sequence *seq, SequenceModifierData *smd)
 {
 	if (BLI_findindex(&seq->modifiers, smd) == -1)
-		return FALSE;
+		return false;
 
 	BLI_remlink(&seq->modifiers, smd);
 	BKE_sequence_modifier_free(smd);
 
-	return TRUE;
+	return true;
 }
 
 void BKE_sequence_modifier_clear(Sequence *seq)
@@ -684,7 +684,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context, Sequence 
 	}
 
 	if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
-		BKE_sequencer_imbuf_to_sequencer_space(context->scene, processed_ibuf, FALSE);
+		BKE_sequencer_imbuf_to_sequencer_space(context->scene, processed_ibuf, false);
 	}
 
 	return processed_ibuf;

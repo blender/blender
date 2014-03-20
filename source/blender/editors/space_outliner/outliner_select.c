@@ -724,7 +724,7 @@ static eOLDrawState tree_element_active_sequence(
         bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), const eOLSetState set)
 {
 	Sequence *seq = (Sequence *) te->directdata;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	if (set != OL_SETSEL_NONE) {
 		/* only check on setting */
@@ -757,7 +757,7 @@ static eOLDrawState tree_element_active_sequence_dup(
         Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), const eOLSetState set)
 {
 	Sequence *seq, *p;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	seq = (Sequence *)te->directdata;
 	if (set == OL_SETSEL_NONE) {

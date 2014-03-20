@@ -98,7 +98,7 @@ static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
 static void rna_SequenceElement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	if (ed) {
 		StripElem *se = (StripElem *)ptr->data;
@@ -115,7 +115,7 @@ static void rna_SequenceElement_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 static void rna_Sequence_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	if (ed) {
 		Sequence *seq = (Sequence *) ptr->data;
@@ -127,7 +127,7 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	meta_tmp_ref(NULL, ed->seqbase.first);
 
@@ -179,7 +179,7 @@ static void rna_SequenceEditor_elements_begin(CollectionPropertyIterator *iter, 
 
 static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	ListBase *seqbase = BKE_sequence_seqbase(&ed->seqbase, seq);
 	Sequence *tseq;
 	BKE_sequence_calc_disp(scene, seq);
@@ -247,7 +247,7 @@ static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
 
 	seq->anim_startofs = MIN2(value, seq->len + seq->anim_startofs);
 
-	BKE_sequence_reload_new_file(scene, seq, FALSE);
+	BKE_sequence_reload_new_file(scene, seq, false);
 	do_sequence_frame_change_update(scene, seq);
 }
 
@@ -258,7 +258,7 @@ static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
 
 	seq->anim_endofs = MIN2(value, seq->len + seq->anim_endofs);
 
-	BKE_sequence_reload_new_file(scene, seq, FALSE);
+	BKE_sequence_reload_new_file(scene, seq, false);
 	do_sequence_frame_change_update(scene, seq);
 }
 
@@ -274,7 +274,7 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 static int rna_Sequence_frame_length_get(PointerRNA *ptr)
 {
 	Sequence *seq = (Sequence *)ptr->data;
-	return BKE_sequence_tx_get_final_right(seq, 0) - BKE_sequence_tx_get_final_left(seq, 0);
+	return BKE_sequence_tx_get_final_right(seq, false) - BKE_sequence_tx_get_final_left(seq, false);
 }
 
 static int rna_Sequence_frame_editable(PointerRNA *ptr)
@@ -288,7 +288,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq = (Sequence *)ptr->data;
 	Scene *scene = (Scene *)ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	ListBase *seqbase = BKE_sequence_seqbase(&ed->seqbase, seq);
 
 	seq->machine = value;
@@ -371,7 +371,7 @@ static Sequence *sequence_get_by_transform(Editing *ed, StripTransform *transfor
 static char *rna_SequenceTransform_path(PointerRNA *ptr)
 {
 	Scene *scene = ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_transform(ed, ptr->data);
 
 	if (seq && seq->name + 2) {
@@ -388,7 +388,7 @@ static char *rna_SequenceTransform_path(PointerRNA *ptr)
 static void rna_SequenceTransform_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_transform(ed, ptr->data);
 
 	BKE_sequence_invalidate_cache(scene, seq);
@@ -421,7 +421,7 @@ static Sequence *sequence_get_by_crop(Editing *ed, StripCrop *crop)
 static char *rna_SequenceCrop_path(PointerRNA *ptr)
 {
 	Scene *scene = ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_crop(ed, ptr->data);
 
 	if (seq && seq->name + 2) {
@@ -438,7 +438,7 @@ static char *rna_SequenceCrop_path(PointerRNA *ptr)
 static void rna_SequenceCrop_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_crop(ed, ptr->data);
 
 	BKE_sequence_invalidate_cache(scene, seq);
@@ -678,9 +678,9 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
 
 	if (RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
 		BKE_sequencer_update_sound_bounds(scene, ptr->data);
@@ -689,7 +689,7 @@ static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *UNUSED(
 static void rna_Sequence_mute_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	BKE_sequencer_update_muting(ed);
 	rna_Sequence_update(bmain, scene, ptr);
@@ -699,7 +699,7 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
 {
 	Scene *scene = (Scene *) ptr->id.data;
 	Sequence *seq = (Sequence *)(ptr->data);
-	BKE_sequence_reload_new_file(scene, seq, TRUE);
+	BKE_sequence_reload_new_file(scene, seq, true);
 	BKE_sequence_calc(scene, seq);
 	rna_Sequence_update(bmain, scene, ptr);
 }
@@ -729,17 +729,17 @@ static Sequence *sequence_get_by_proxy(Editing *ed, StripProxy *proxy)
 static void rna_Sequence_tcindex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_proxy(ed, ptr->data);
 
-	BKE_sequence_reload_new_file(scene, seq, FALSE);
+	BKE_sequence_reload_new_file(scene, seq, false);
 	do_sequence_frame_change_update(scene, seq);
 }
 
 static void rna_SequenceProxy_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_proxy(ed, ptr->data);
 
 	BKE_sequence_invalidate_cache(scene, seq);
@@ -801,7 +801,7 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
 {
 	Scene *scene = ptr->id.data;
 	SequenceModifierData *smd;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data, &smd);
 
 	if (seq && seq->name + 2) {
@@ -831,7 +831,7 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
 static void rna_SequenceColorBalance_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	SequenceModifierData *smd;
 	Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data, &smd);
 
@@ -844,7 +844,7 @@ static void rna_SequenceColorBalance_update(Main *UNUSED(bmain), Scene *UNUSED(s
 static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, int value)
 {
 	Scene *scene = ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	if (ed == NULL)
 		return;
@@ -863,7 +863,7 @@ static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, int value)
 static int rna_SequenceEditor_overlay_frame_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	if (ed == NULL)
 		return scene->r.cfra;
@@ -878,7 +878,7 @@ static int rna_SequenceEditor_overlay_frame_get(PointerRNA *ptr)
 static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
 	if (ed == NULL)
 		return;
@@ -936,7 +936,7 @@ static StructRNA *rna_SequenceModifier_refine(struct PointerRNA *ptr)
 static char *rna_SequenceModifier_path(PointerRNA *ptr)
 {
 	Scene *scene = ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	SequenceModifierData *smd = ptr->data;
 	Sequence *seq = sequence_get_by_modifier(ed, smd);
 
@@ -958,7 +958,7 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
 {
 	SequenceModifierData *smd = ptr->data;
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_modifier(ed, smd);
 	AnimData *adt;
 	char oldname[sizeof(smd->name)];
@@ -986,7 +986,7 @@ static void rna_SequenceModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 {
 	/* strip from other scenes could be modified, so using active scene is not reliable */
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_modifier(ed, ptr->data);
 
 	BKE_sequence_invalidate_cache_for_modifier(scene, seq);
@@ -995,7 +995,7 @@ static void rna_SequenceModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 static int rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene *) ptr->id.data;
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = sequence_get_by_modifier(ed, ptr->data);
 	Sequence *cur = (Sequence *) value.data;
 
@@ -1031,7 +1031,7 @@ static void rna_Sequence_modifier_remove(Sequence *seq, bContext *C, ReportList 
 	SequenceModifierData *smd = smd_ptr->data;
 	Scene *scene = CTX_data_scene(C);
 
-	if (BKE_sequence_modifier_remove(seq, smd) == FALSE) {
+	if (BKE_sequence_modifier_remove(seq, smd) == false) {
 		BKE_report(reports, RPT_ERROR, "Modifier was not found in the stack");
 		return;
 	}

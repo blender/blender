@@ -914,7 +914,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 		
 		/* only consider if F-Curve involves sequence_editor.sequences */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
-			Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+			Editing *ed = BKE_sequencer_editing_get(scene, false);
 			Sequence *seq = NULL;
 			char *seq_name;
 			

@@ -164,7 +164,7 @@ void select_surround_from_last(Scene *scene)
 
 void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all)
 {
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	
 	if (deselect_all)
 		ED_sequencer_deselect_all(scene);
@@ -221,7 +221,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq;
 
 	if (action == SEL_TOGGLE) {
@@ -282,7 +282,7 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq;
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -319,7 +319,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 {
 	View2D *v2d = UI_view2d_fromcontext(C);
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	const bool linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
 	const bool linked_time = RNA_boolean_get(op->ptr, "linked_time");
@@ -338,7 +338,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 	// XXX - not nice, Ctrl+RMB needs to do left_right only when not over a strip
 	if (seq && linked_time && left_right)
-		left_right = FALSE;
+		left_right = false;
 
 
 	if (marker) {
@@ -555,7 +555,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 /* run recursively to select linked */
 static bool select_more_less_seq__internal(Scene *scene, bool sel, const bool linked)
 {
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq, *neighbor;
 	bool changed = false;
 	int isel;
@@ -757,7 +757,7 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, 0);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq;
 	int sel_side = RNA_enum_get(op->ptr, "side");
 
@@ -807,7 +807,7 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, 0);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq_act = BKE_sequencer_active_get(scene);
 
 	if (ed == NULL || seq_act == NULL)
@@ -845,7 +845,7 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	View2D *v2d = UI_view2d_fromcontext(C);
 	
 	Sequence *seq;
@@ -1044,16 +1044,16 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
 	bool changed = false;
-	short effects[SEQ_TYPE_EFFECT_MAX + 1];
+	bool effects[SEQ_TYPE_EFFECT_MAX + 1];
 	int i;
 
 	for (i = 0; i <= SEQ_TYPE_EFFECT_MAX; i++)
-		effects[i] = FALSE;
+		effects[i] = false;
 
 	SEQP_BEGIN (ed, seq)
 	{
 		if (ELEM3(actseq, seq->seq1, seq->seq2, seq->seq3)) {
-			effects[seq->type] = TRUE;
+			effects[seq->type] = true;
 		}
 	}
 	SEQ_END;
@@ -1107,7 +1107,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 	actseq->tmp = SET_INT_IN_POINTER(TRUE);
 
-	for (BKE_sequence_iterator_begin(ed, &iter, TRUE); iter.valid; BKE_sequence_iterator_next(&iter)) {
+	for (BKE_sequence_iterator_begin(ed, &iter, true); iter.valid; BKE_sequence_iterator_next(&iter)) {
 		seq = iter.seq;
 
 		/* Ignore all seqs already selected! */
@@ -1136,7 +1136,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 			/* Unfortunately, we must restart checks from the beginning. */
 			BKE_sequence_iterator_end(&iter);
-			BKE_sequence_iterator_begin(ed, &iter, TRUE);
+			BKE_sequence_iterator_begin(ed, &iter, true);
 		}
 
 		/* Video strips bellow active one, or any strip for audio (order do no matters here!). */
@@ -1157,7 +1157,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene  = CTX_data_scene(C);
-	Editing *ed   = BKE_sequencer_editing_get(scene, 0);
+	Editing *ed   = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq, *actseq = BKE_sequencer_active_get(scene);
 	int type = RNA_enum_get(op->ptr, "type");
 	bool changed = false, extend;
