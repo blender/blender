@@ -642,24 +642,15 @@ void ED_view3d_clipping_calc(BoundBox *bb, float planes[4][4], bglMats *mats, co
 	}
 }
 
-
-bool ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], const BoundBox *bb)
+static bool view3d_boundbox_clip_m4(const BoundBox *bb, float persmatob[4][4])
 {
-	/* return 1: draw */
-
-	float mat[4][4];
-	float vec[4], min, max;
 	int a, flag = -1, fl;
 
-	if (bb == NULL) return true;
-	if (bb->flag & BOUNDBOX_DISABLED) return true;
-
-	mul_m4_m4m4(mat, rv3d->persmat, obmat);
-
 	for (a = 0; a < 8; a++) {
+		float vec[4], min, max;
 		copy_v3_v3(vec, bb->vec[a]);
 		vec[3] = 1.0;
-		mul_m4_v4(mat, vec);
+		mul_m4_v4(persmatob, vec);
 		max = vec[3];
 		min = -vec[3];
 
@@ -676,6 +667,28 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], const BoundB
 	}
 
 	return false;
+}
+
+bool ED_view3d_boundbox_clip_ex(RegionView3D *rv3d, const BoundBox *bb, float obmat[4][4])
+{
+	/* return 1: draw */
+
+	float persmatob[4][4];
+
+	if (bb == NULL) return true;
+	if (bb->flag & BOUNDBOX_DISABLED) return true;
+
+	mul_m4_m4m4(persmatob, rv3d->persmat, obmat);
+
+	return view3d_boundbox_clip_m4(bb, persmatob);
+}
+
+bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
+{
+	if (bb == NULL) return true;
+	if (bb->flag & BOUNDBOX_DISABLED) return true;
+
+	return view3d_boundbox_clip_m4(bb, rv3d->persmatob);
 }
 
 float ED_view3d_depth_read_cached(ViewContext *vc, int x, int y)

@@ -3698,7 +3698,7 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 	}
 	else {
 		/* ob->bb was set by derived mesh system, do NULL check just to be sure */
-		if (me->totpoly <= 4 || (!ob->bb || ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb))) {
+		if (me->totpoly <= 4 || (!ob->bb || ED_view3d_boundbox_clip(rv3d, ob->bb))) {
 			const bool glsl = draw_glsl_material(scene, ob, v3d, dt);
 			const bool check_alpha = check_alpha_pass(base);
 
@@ -6421,7 +6421,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			has_faces = BKE_displist_has_faces(&ob->curve_cache->disp);
 		}
 
-		if (has_faces && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
+		if (has_faces && ED_view3d_boundbox_clip(rv3d, ob->bb)) {
 			draw_index_wire = false;
 			if (dm) {
 				draw_mesh_object_outline(v3d, ob, dm);
@@ -6462,7 +6462,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsign
 		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 
 		if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
-			if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
+			if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
 				if (ob->type == OB_CURVE)
 					draw_index_wire = false;
 
@@ -6981,7 +6981,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
-				else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
+				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
 					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 
@@ -7002,7 +7002,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						draw_bounding_volume(ob, ob->boundtype);
 					}
 				}
-				else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb)) {
+				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
 					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
 //XXX old animsys				if (cu->path)

@@ -2065,10 +2065,11 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			}
 		}
 		if (use_displist) {
-			glMultMatrixf(dob->mat);
-			if (ED_view3d_boundbox_clip(rv3d, dob->mat, &bb))
+			if (ED_view3d_boundbox_clip_ex(rv3d, &bb, dob->mat)) {
+				glMultMatrixf(dob->mat);
 				glCallList(displist);
-			glLoadMatrixf(rv3d->viewmat);
+				glLoadMatrixf(rv3d->viewmat);
+			}
 		}
 		else {
 			draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
