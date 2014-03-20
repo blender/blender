@@ -51,6 +51,6 @@ void  BLI_quadric_mul(Quadric *a, const float scalar);
 
 /* solve */
 float BLI_quadric_evaluate(const Quadric *q, const float v[3]);
-int   BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon);
+bool  BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon);
 
 #endif /* __BLI_QUADRIC_H__ */

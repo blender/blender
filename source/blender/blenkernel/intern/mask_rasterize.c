@@ -294,7 +294,7 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
 		/* normalize_v2(d_prev); */ /* precalc */
 		normalize_v2(d_next);
 
-		if ((do_test == FALSE) ||
+		if ((do_test == false) ||
 		    (len_squared_v2v2(diff_feather_points[k], diff_points[k]) < ofs_squared))
 		{
 
@@ -347,18 +347,18 @@ static bool layer_bucket_isect_test(
 		const float *v3 = cos[face[2]];
 
 		if (isect_point_tri_v2(cent, v1, v2, v3)) {
-			return TRUE;
+			return true;
 		}
 		else {
 			if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
 			    (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
 			    (dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared))
 			{
-				return TRUE;
+				return true;
 			}
 			else {
 				// printf("skip tri\n");
-				return FALSE;
+				return false;
 			}
 		}
 
@@ -370,10 +370,10 @@ static bool layer_bucket_isect_test(
 		const float *v4 = cos[face[3]];
 
 		if (isect_point_tri_v2(cent, v1, v2, v3)) {
-			return TRUE;
+			return true;
 		}
 		else if (isect_point_tri_v2(cent, v1, v3, v4)) {
-			return TRUE;
+			return true;
 		}
 		else {
 			if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
@@ -381,11 +381,11 @@ static bool layer_bucket_isect_test(
 			    (dist_squared_to_line_segment_v2(cent, v3, v4) < bucket_max_rad_squared) ||
 			    (dist_squared_to_line_segment_v2(cent, v4, v1) < bucket_max_rad_squared))
 			{
-				return TRUE;
+				return true;
 			}
 			else {
 				// printf("skip quad\n");
-				return FALSE;
+				return false;
 			}
 		}
 	}
@@ -632,7 +632,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			if (do_feather) {
 				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(
-				                          spline, &tot_diff_feather_points, resol, FALSE);
+				                          spline, &tot_diff_feather_points, resol, false);
 				BLI_assert(diff_feather_points);
 			}
 			else {
@@ -680,20 +680,20 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				}
 
 				/* fake aa, using small feather */
-				if (do_mask_aa == TRUE) {
-					if (do_feather == FALSE) {
+				if (do_mask_aa == true) {
+					if (do_feather == false) {
 						tot_diff_feather_points = tot_diff_point;
 						diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) *
 						                                  (size_t)tot_diff_feather_points,
 						                                  __func__);
 						/* add single pixel feather */
 						maskrasterize_spline_differentiate_point_outset(diff_feather_points, diff_points,
-						                                               tot_diff_point, pixel_size, FALSE);
+						                                               tot_diff_point, pixel_size, false);
 					}
 					else {
 						/* ensure single pixel feather, on any zero feather areas */
 						maskrasterize_spline_differentiate_point_outset(diff_feather_points, diff_points,
-						                                               tot_diff_point, pixel_size, TRUE);
+						                                               tot_diff_point, pixel_size, true);
 					}
 				}
 

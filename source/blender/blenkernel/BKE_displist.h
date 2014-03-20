@@ -88,9 +88,11 @@ void BKE_displist_count(struct ListBase *lb, int *totvert, int *totface, int *to
 void BKE_displist_free(struct ListBase *lb);
 bool BKE_displist_has_faces(struct ListBase *lb);
 
-void BKE_displist_make_surf(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **derivedFinal, int forRender, int forOrco, int renderResolution);
-void BKE_displist_make_curveTypes(struct Scene *scene, struct Object *ob, int forOrco);
-void BKE_displist_make_curveTypes_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **derivedFinal, int forOrco, int renderResolution);
+void BKE_displist_make_surf(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **r_dm_final,
+                            const bool for_render, const bool for_orco, const bool use_render_resolution);
+void BKE_displist_make_curveTypes(struct Scene *scene, struct Object *ob, const bool for_orco);
+void BKE_displist_make_curveTypes_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **r_dm_final,
+                                            const bool for_orco, const bool use_render_resolution);
 void BKE_displist_make_curveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 void BKE_displist_make_mball(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
 void BKE_displist_make_mball_forRender(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
@@ -101,7 +103,8 @@ void BKE_displist_fill(struct ListBase *dispbase, struct ListBase *to, const flo
 float BKE_displist_calc_taper(struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
-float *BKE_displist_make_orco(struct Scene *scene, struct Object *ob, struct DerivedMesh *derivedFinal, int forRender, int renderResolution);
+float *BKE_displist_make_orco(struct Scene *scene, struct Object *ob, struct DerivedMesh *dm_final,
+                              const bool for_render, const bool use_render_resolution);
 
 void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
 

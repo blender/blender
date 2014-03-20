@@ -295,7 +295,8 @@ Mesh *rna_Main_meshes_new_from_object(
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
 	Object *tmpobj = NULL;
-	int render = settings == eModifierMode_Render, i;
+	const bool use_render_resolution = (settings == eModifierMode_Render);
+	int i;
 	int cage = !apply_modifiers;
 
 	/* perform the mesh extraction based on type */
@@ -327,7 +328,7 @@ Mesh *rna_Main_meshes_new_from_object(
 			copycu->editnurb = tmpcu->editnurb;
 
 			/* get updated display list, and convert to a mesh */
-			BKE_displist_make_curveTypes_forRender(sce, tmpobj, &dispbase, &derivedFinal, FALSE, render);
+			BKE_displist_make_curveTypes_forRender(sce, tmpobj, &dispbase, &derivedFinal, false, use_render_resolution);
 
 			copycu->editfont = NULL;
 			copycu->editnurb = NULL;
@@ -370,14 +371,14 @@ Mesh *rna_Main_meshes_new_from_object(
 			/* BKE_mesh_add gives us a user count we don't need */
 			tmpmesh->id.us--;
 
-			if (render) {
+			if (use_render_resolution) {
 				ListBase disp = {NULL, NULL};
 				/* TODO(sergey): This is gonna to work for until EvaluationContext
 				 *               only contains for_render flag. As soon as CoW is
 				 *               implemented, this is to be rethinked.
 				 */
 				EvaluationContext eval_ctx = {0};
-				eval_ctx.for_render = render;
+				eval_ctx.for_render = use_render_resolution;
 				BKE_displist_make_mball_forRender(&eval_ctx, sce, ob, &disp);
 				BKE_mesh_from_metaball(&disp, tmpmesh);
 				BKE_displist_free(&disp);
@@ -413,7 +414,7 @@ Mesh *rna_Main_meshes_new_from_object(
 					mask |= CD_MASK_ORCO;
 
 				/* Write the display mesh into the dummy mesh */
-				if (render)
+				if (use_render_resolution)
 					dm = mesh_create_derived_render(sce, ob, mask);
 				else
 					dm = mesh_create_derived_view(sce, ob, mask);

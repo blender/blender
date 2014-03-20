@@ -720,7 +720,7 @@ static DerivedMesh *applyModifier(
 			CustomData_copy_data(&dm->loopData, &result->loopData, k1, (int)(numLoops * 2 + j + 2), 1);
 			CustomData_copy_data(&dm->loopData, &result->loopData, k2, (int)(numLoops * 2 + j + 3), 1);
 
-			if (flip == FALSE) {
+			if (flip == false) {
 				ml[j].v = ed->v1;
 				ml[j++].e = eidx;
 

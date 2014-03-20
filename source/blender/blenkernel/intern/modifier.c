@@ -173,12 +173,12 @@ bool modifier_isPreview(ModifierData *md)
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	if (!(mti->flags & eModifierTypeFlag_UsesPreview))
-		return FALSE;
+		return false;
 
 	if (md->mode & eModifierMode_Realtime)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 ModifierData *modifiers_findByType(Object *ob, ModifierType type)

@@ -80,11 +80,11 @@ static bool isDisabled(ModifierData *md, int useRenderParams)
 	ModifierData *ob_md;
 	
 	if (!pimd->ob)
-		return TRUE;
+		return true;
 	
 	psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
 	if (psys == NULL)
-		return TRUE;
+		return true;
 	
 	/* If the psys modifier is disabled we cannot use its data.
 	 * First look up the psys modifier from the object, then check if it is enabled.
@@ -99,14 +99,14 @@ static bool isDisabled(ModifierData *md, int useRenderParams)
 				else required_mode = eModifierMode_Realtime;
 				
 				if (!modifier_isEnabled(md->scene, ob_md, required_mode))
-					return TRUE;
+					return true;
 				
 				break;
 			}
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 

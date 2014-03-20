@@ -109,7 +109,7 @@ float BLI_quadric_evaluate(const Quadric *q, const float v[3])
 	         q->d2);
 }
 
-int BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon)
+bool BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon)
 {
 	float m[3][3];
 
@@ -120,9 +120,9 @@ int BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon)
 		mul_m3_v3(m, v);
 		negate_v3(v);
 
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }

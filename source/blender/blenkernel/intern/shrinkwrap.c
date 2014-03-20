@@ -203,10 +203,11 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
  *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
  *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  */
-int BKE_shrinkwrap_project_normal(char options, const float vert[3],
-                                  const float dir[3], const SpaceTransform *transf,
-                                  BVHTree *tree, BVHTreeRayHit *hit,
-                                  BVHTree_RayCastCallback callback, void *userdata)
+bool BKE_shrinkwrap_project_normal(
+        char options, const float vert[3],
+        const float dir[3], const SpaceTransform *transf,
+        BVHTree *tree, BVHTreeRayHit *hit,
+        BVHTree_RayCastCallback callback, void *userdata)
 {
 	/* don't use this because this dist value could be incompatible
 	 * this value used by the callback for comparing prev/new dist values.
@@ -255,7 +256,7 @@ int BKE_shrinkwrap_project_normal(char options, const float vert[3],
 			if (((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
 			    ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)  && dot >= 0.0f))
 			{
-				return FALSE; /* Ignore hit */
+				return false;  /* Ignore hit */
 			}
 		}
 
@@ -270,13 +271,13 @@ int BKE_shrinkwrap_project_normal(char options, const float vert[3],
 		BLI_assert(hit_tmp.dist <= hit->dist);
 
 		memcpy(hit, &hit_tmp, sizeof(hit_tmp));
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
-static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool forRender)
+static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for_render)
 {
 	int i;
 
@@ -323,7 +324,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	}
 
 	if (calc->smd->auxTarget) {
-		auxMesh = object_get_derived_final(calc->smd->auxTarget, forRender);
+		auxMesh = object_get_derived_final(calc->smd->auxTarget, for_render);
 		if (!auxMesh)
 			return;
 		SPACE_TRANSFORM_SETUP(&local2aux, calc->ob, calc->smd->auxTarget);
@@ -504,7 +505,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 /* Main shrinkwrap function */
 void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm,
-                               float (*vertexCos)[3], int numVerts, bool forRender)
+                               float (*vertexCos)[3], int numVerts, bool for_render)
 {
 
 	DerivedMesh *ss_mesh    = NULL;
@@ -532,7 +533,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 
 
 	if (smd->target) {
-		calc.target = object_get_derived_final(smd->target, forRender);
+		calc.target = object_get_derived_final(smd->target, for_render);
 
 		/* TODO there might be several "bugs" on non-uniform scales matrixs
 		 * because it will no longer be nearest surface, not sphere projection
@@ -583,7 +584,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 				break;
 
 			case MOD_SHRINKWRAP_PROJECT:
-				TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc, forRender), deform_project);
+				TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc, for_render), deform_project);
 				break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:

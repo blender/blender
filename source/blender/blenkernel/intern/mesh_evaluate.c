@@ -92,7 +92,7 @@ void BKE_mesh_calc_normals_mapping(MVert *mverts, int numVerts,
 {
 	BKE_mesh_calc_normals_mapping_ex(mverts, numVerts, mloop, mpolys,
 	                                 numLoops, numPolys, r_polyNors, mfaces, numFaces,
-	                                 origIndexFace, r_faceNors, FALSE);
+	                                 origIndexFace, r_faceNors, false);
 }
 /* extended version of 'BKE_mesh_calc_normals_poly' with option not to calc vertex normals */
 void BKE_mesh_calc_normals_mapping_ex(
@@ -108,14 +108,14 @@ void BKE_mesh_calc_normals_mapping_ex(
 	MPoly *mp;
 
 	if (numPolys == 0) {
-		if (only_face_normals == FALSE) {
+		if (only_face_normals == false) {
 			mesh_calc_normals_vert_fallback(mverts, numVerts);
 		}
 		return;
 	}
 
 	/* if we are not calculating verts and no verts were passes then we have nothing to do */
-	if ((only_face_normals == TRUE) && (r_polyNors == NULL) && (r_faceNors == NULL)) {
+	if ((only_face_normals == true) && (r_polyNors == NULL) && (r_faceNors == NULL)) {
 		printf("%s: called with nothing to do\n", __func__);
 		return;
 	}
@@ -124,7 +124,7 @@ void BKE_mesh_calc_normals_mapping_ex(
 	/* if (!fnors) fnors = MEM_callocN(sizeof(float[3]) * numFaces, "face nors mesh.c"); */ /* NO NEED TO ALLOC YET */
 
 
-	if (only_face_normals == FALSE) {
+	if (only_face_normals == false) {
 		/* vertex normals are optional, they require some extra calculations,
 		 * so make them optional */
 		BKE_mesh_calc_normals_poly(mverts, numVerts, mloop, mpolys, numLoops, numPolys, pnors, false);
@@ -1990,13 +1990,13 @@ void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert, const int UNUSED(to
 	i = totpoly;
 	for (mp = mpoly; i--; mp++) {
 		if ((mp->flag & ME_HIDE) == 0) {
-			int ok = TRUE;
+			bool ok = true;
 			const MLoop *ml;
 			int j;
 			j = mp->totloop;
 			for (ml = &mloop[mp->loopstart]; j--; ml++) {
 				if ((mvert[ml->v].flag & SELECT) == 0) {
-					ok = FALSE;
+					ok = false;
 					break;
 				}
 			}

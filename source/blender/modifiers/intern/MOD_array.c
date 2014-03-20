@@ -385,7 +385,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		if (cu) {
 #ifdef CYCLIC_DEPENDENCY_WORKAROUND
 			if (amd->curve_ob->curve_cache == NULL) {
-				BKE_displist_make_curveTypes(scene, amd->curve_ob, FALSE);
+				BKE_displist_make_curveTypes(scene, amd->curve_ob, false);
 			}
 #endif
 
@@ -528,7 +528,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* start capping */
 	if (start_cap || end_cap) {
-		BM_mesh_elem_hflag_enable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_enable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
 		if (start_cap) {
 			float startoffset[4][4];
