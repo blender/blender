@@ -311,6 +311,7 @@ struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip);
 void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4]);
 bool ED_view3d_quat_from_axis_view(const char view, float quat[4]);
+char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon);
 char ED_view3d_lock_view_from_index(int index);
 bool ED_view3d_lock(struct RegionView3D *rv3d);
 

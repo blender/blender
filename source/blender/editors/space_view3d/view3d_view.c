@@ -831,39 +831,40 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
 	mat3_to_quat(rv3d->viewquat, tmat);
 }
 
+static float view3d_quat_axis[6][4] = {
+	{M_SQRT1_2, -M_SQRT1_2, 0.0f, 0.0f},    /* RV3D_VIEW_FRONT */
+	{0.0f, 0.0f, -M_SQRT1_2, -M_SQRT1_2},   /* RV3D_VIEW_BACK */
+	{0.5f, -0.5f, 0.5f, 0.5f},              /* RV3D_VIEW_LEFT */
+	{0.5f, -0.5f, -0.5f, -0.5f},            /* RV3D_VIEW_RIGHT */
+	{1.0f, 0.0f, 0.0f, 0.0f},               /* RV3D_VIEW_TOP */
+	{0.0f, -1.0f, 0.0f, 0.0f},              /* RV3D_VIEW_BOTTOM */
+	};
+
+
 bool ED_view3d_quat_from_axis_view(const char view, float quat[4])
+{
+	if (RV3D_VIEW_IS_AXIS(view)) {
+		copy_qt_qt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT]);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon)
 {
 	/* quat values are all unit length */
 
-	switch (view) {
-		case RV3D_VIEW_BOTTOM:
-			copy_v4_fl4(quat, 0.0, -1.0, 0.0, 0.0);
-			break;
+	char view;
 
-		case RV3D_VIEW_BACK:
-			copy_v4_fl4(quat, 0.0, 0.0, -M_SQRT1_2, -M_SQRT1_2);
-			break;
-
-		case RV3D_VIEW_LEFT:
-			copy_v4_fl4(quat, 0.5, -0.5, 0.5, 0.5);
-			break;
-
-		case RV3D_VIEW_TOP:
-			copy_v4_fl4(quat, 1.0, 0.0, 0.0, 0.0);
-			break;
-
-		case RV3D_VIEW_FRONT:
-			copy_v4_fl4(quat, M_SQRT1_2, -M_SQRT1_2, 0.0, 0.0);
-			break;
-
-		case RV3D_VIEW_RIGHT:
-			copy_v4_fl4(quat, 0.5, -0.5, -0.5, -0.5);
-			break;
-		default:
-			return false;
+	for (view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
+		if (angle_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT]) < epsilon) {
+			return view;
+		}
 	}
 
-	return true;
+	return RV3D_VIEW_USER;
 }
 
 char ED_view3d_lock_view_from_index(int index)
