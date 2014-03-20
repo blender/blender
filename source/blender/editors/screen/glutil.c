@@ -238,6 +238,8 @@ void sdrawline(short x1, short y1, short x2, short y2)
 	glEnd();
 }
 
+/* UNUSED */
+#if 0
 /*
  *     x1,y2
  *     |  \
@@ -270,6 +272,7 @@ void sdrawtrifill(short x1, short y1, short x2, short y2)
 	sdrawtripoints(x1, y1, x2, y2);
 	glEnd();
 }
+#endif
 
 void sdrawbox(short x1, short y1, short x2, short y2)
 {
@@ -320,6 +323,8 @@ void set_inverted_drawing(int enable)
 	GL_TOGGLE(GL_DITHER, !enable);
 }
 
+/* UNUSED */
+#if 0
 void sdrawXORline(int x0, int y0, int x1, int y1)
 {
 	if (x0 == x1 && y0 == y1) return;
@@ -390,6 +395,9 @@ void fdrawXORellipse(float xofs, float yofs, float hw, float hh)
 
 	set_inverted_drawing(0);
 }
+
+#endif
+
 void fdrawXORcirc(float xofs, float yofs, float rad)
 {
 	set_inverted_drawing(1);
