@@ -1198,7 +1198,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 			                    sc->mask_info.overlay_mode,
 			                    mask_width, mask_height,
 			                    aspx, aspy,
-			                    TRUE, TRUE,
+			                    true, true,
 			                    sc->stabmat, C);
 		}
 	}

@@ -184,7 +184,7 @@ static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc)
 	glDisable(GL_BLEND);
 
 	/* selected knot handles on top of curves */
-	userdata.sel = TRUE;
+	userdata.sel = true;
 	clip_graph_tracking_values_iterate(sc,
 	                                   (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
 	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,

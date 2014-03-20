@@ -113,7 +113,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 
 			if (track->flag & TRACK_DOPE_SEL) {
 				tracking->act_track = track;
-				BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, TRUE);
+				BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, true);
 			}
 		}
 		else if (!extend)
