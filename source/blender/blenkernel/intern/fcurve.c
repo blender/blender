@@ -2041,7 +2041,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 		/* evaltime occurs somewhere in the middle of the curve */
 		/* - use binary search to find appropriate keyframes */
 		a = binarysearch_bezt_index(bezts, evaltime, fcu->totvert, &exact);
-		if (G.f & G_DEBUG) printf("eval fcurve '%s' - %f => %d/%d, %d\n", fcu->rna_path, evaltime, a, fcu->totvert, exact);
+		if (G.debug & G_DEBUG) printf("eval fcurve '%s' - %f => %d/%d, %d\n", fcu->rna_path, evaltime, a, fcu->totvert, exact);
 		
 		bezt = bezts + a;
 		prevbezt = (a > 0) ? bezt - 1 : bezt;
@@ -2097,7 +2097,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 			}
 		}
 		else {
-			if (G.f & G_DEBUG) printf("   ERROR: failed eval - p=%f b=%f, t=%f (%f)\n", prevbezt->vec[1][0], bezt->vec[1][0], evaltime, fabsf(bezt->vec[1][0] - evaltime));
+			if (G.debug & G_DEBUG) printf("   ERROR: failed eval - p=%f b=%f, t=%f (%f)\n", prevbezt->vec[1][0], bezt->vec[1][0], evaltime, fabsf(bezt->vec[1][0] - evaltime));
 		}
 	}
 	
