@@ -333,6 +333,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			}
 			return true;
 		case PADPERIOD:
+		case PERIODKEY:
 			/* Force numdot, some OSs/countries generate a comma char in this case, sic...  (T37992) */
 			ascii[0] = '.';
 			utf8_buf = ascii;
