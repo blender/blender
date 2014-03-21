@@ -104,6 +104,20 @@
 #include <omp.h>
 #endif
 
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+
+/* how many cores not counting HT aka pysical cores */
+int system_physical_thread_count(void); // declaration here for simplification
+int system_physical_thread_count(void)
+{
+	int pcount;
+	size_t pcount_len;
+	sysctlbyname("hw.physicalcpu", &pcount, &pcount_len, NULL, 0);
+	return pcount;
+	}
+#endif // __APPLE__
+
 void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
 {
 	if (ob->sculpt->last_stroke_valid && ob->sculpt->average_stroke_counter > 0) {
@@ -3773,16 +3787,21 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	 * Justification: Empirically I've found that two threads per
 	 * processor gives higher throughput. */
 	if (sd->flags & SCULPT_USE_OPENMP) {
-		cache->num_threads = 2 * omp_get_num_procs();
-		omp_set_num_threads(cache->num_threads);
-	}
-	else
+#if defined(__APPLE__)
+		cache->num_threads = system_physical_thread_count();
+#else
+		cache->num_threads = omp_get_num_procs();
 #endif
-	{
-		(void)sd;
+	}
+      else {
 		cache->num_threads = 1;
 	}
-
+	omp_set_num_threads(cache->num_threads);
+#else
+	(void)sd;
+	cache->num_threads = 1;
+#endif
+	printf(" threads used: %d\n", cache->num_threads);
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BKE_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
