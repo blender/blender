@@ -227,6 +227,7 @@ class GRAPH_MT_key(Menu):
         layout.separator()
         layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("graph.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("graph.easing_type", "type", text="Easing Type")
 
         layout.separator()
         layout.operator("graph.clean")

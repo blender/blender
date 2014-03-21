@@ -108,10 +108,19 @@ typedef struct BevPoint {
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
+	
 	short ipo;					/* ipo: interpolation mode for segment from this BezTriple to the next */
+	
 	char h1, h2; 				/* h1, h2: the handle type of the two handles */
 	char f1, f2, f3;			/* f1, f2, f3: used for selection status */
+	
 	char hide;					/* hide: used to indicate whether BezTriple is hidden (3D), type of keyframe (eBezTriple_KeyframeTypes) */
+	
+	float back;					/* BEZT_IPO_BACK */
+	float amplitude, period;	/* BEZT_IPO_ELASTIC */
+	char easing;				/* easing: easing type for interpolation mode (eBezTriple_Easing) */
+	
+	char pad[3];
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */
@@ -341,10 +350,30 @@ typedef enum eBezTriple_Handle {
 
 /* interpolation modes (used only for BezTriple->ipo) */
 typedef enum eBezTriple_Interpolation {
+	/* traditional interpolation */
 	BEZT_IPO_CONST = 0,	/* constant interpolation */
 	BEZT_IPO_LIN = 1,	/* linear interpolation */
-	BEZT_IPO_BEZ = 2	/* bezier interpolation */
+	BEZT_IPO_BEZ = 2,	/* bezier interpolation */
+	
+	/* easing equations */
+	BEZT_IPO_BACK = 3,
+	BEZT_IPO_BOUNCE = 4,
+	BEZT_IPO_CIRC = 5,
+	BEZT_IPO_CUBIC = 6,
+	BEZT_IPO_ELASTIC = 7,
+	BEZT_IPO_EXPO = 8,
+	BEZT_IPO_QUAD = 9,
+	BEZT_IPO_QUART = 10,
+	BEZT_IPO_QUINT = 11,
+	BEZT_IPO_SINE = 12
 } eBezTriple_Interpolation;
+
+/* easing modes (used only for Keyframes - BezTriple->easing) */
+typedef enum eBezTriple_Easing {
+	BEZT_IPO_EASE_IN = 0,
+	BEZT_IPO_EASE_OUT = 1,
+	BEZT_IPO_EASE_IN_OUT = 2
+} eBezTriple_Easing;
 
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
 typedef enum eBezTriple_KeyframeType {

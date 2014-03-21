@@ -922,15 +922,109 @@ static short set_bezt_bezier(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 	return 0;
 }
 
+static short set_bezt_back(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_BACK;
+	return 0;
+}
+
+static short set_bezt_bounce(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_BOUNCE;
+	return 0;
+}
+
+static short set_bezt_circle(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_CIRC;
+	return 0;
+}
+
+static short set_bezt_cubic(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_CUBIC;
+	return 0;
+}
+
+static short set_bezt_elastic(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_ELASTIC;
+	return 0;
+}
+
+static short set_bezt_expo(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_EXPO;
+	return 0;
+}
+
+static short set_bezt_quad(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_QUAD;
+	return 0;
+}
+
+static short set_bezt_quart(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_QUART;
+	return 0;
+}
+
+static short set_bezt_quint(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo = BEZT_IPO_QUINT;
+	return 0;
+}
+
+static short set_bezt_sine(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->ipo= BEZT_IPO_SINE;
+	return 0;
+}
+
 /* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 // ANIM_editkeyframes_ipocurve_ipotype() !
 KeyframeEditFunc ANIM_editkeyframes_ipo(short code)
 {
 	switch (code) {
+		/* interpolation */
 		case BEZT_IPO_CONST: /* constant */
 			return set_bezt_constant;
 		case BEZT_IPO_LIN: /* linear */
 			return set_bezt_linear;
+			
+		/* easing */
+		case BEZT_IPO_BACK:
+			return set_bezt_back;
+		case BEZT_IPO_BOUNCE:
+			return set_bezt_bounce;
+		case BEZT_IPO_CIRC:
+			return set_bezt_circle;
+		case BEZT_IPO_CUBIC:
+			return set_bezt_cubic;
+		case BEZT_IPO_ELASTIC:
+			return set_bezt_elastic;
+		case BEZT_IPO_EXPO:
+			return set_bezt_expo;
+		case BEZT_IPO_QUAD:
+			return set_bezt_quad;
+		case BEZT_IPO_QUART:
+			return set_bezt_quart;
+		case BEZT_IPO_QUINT:
+			return set_bezt_quint;
+		case BEZT_IPO_SINE:
+			return set_bezt_sine;
+			
 		default: /* bezier */
 			return set_bezt_bezier;
 	}
@@ -982,6 +1076,45 @@ KeyframeEditFunc ANIM_editkeyframes_keytype(short code)
 		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */
 		default:
 			return set_keytype_keyframe;
+	}
+}
+
+/* ------- */
+
+static short set_easingtype_easein(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->easing = BEZT_IPO_EASE_IN;
+	return 0;
+}
+
+static short set_easingtype_easeout(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->easing = BEZT_IPO_EASE_OUT;
+	return 0;
+}
+
+static short set_easingtype_easeinout(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->easing = BEZT_IPO_EASE_IN_OUT;
+	return 0;
+}
+
+/* Set the easing type of the selected BezTriples in each F-Curve to the specified one */
+KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
+{
+	switch (mode) {
+		case BEZT_IPO_EASE_IN: /* ease in */
+			return set_easingtype_easein;
+		
+		case BEZT_IPO_EASE_OUT: /* ease out */
+			return set_easingtype_easeout;
+		
+		case BEZT_IPO_EASE_IN_OUT: /* both */
+		default:
+			return set_easingtype_easeinout;
 	}
 }
 

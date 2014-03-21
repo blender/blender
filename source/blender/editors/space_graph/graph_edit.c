@@ -1502,6 +1502,72 @@ void GRAPH_OT_interpolation_type(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
+/* ******************** Set Easing Operator *********************** */
+
+static void seteasing_graph_keys(bAnimContext *ac, short mode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	KeyframeEditFunc set_cb = ANIM_editkeyframes_easing(mode);
+	
+	/* filter data */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through setting BezTriple easing
+	 * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
+	 */
+	for (ale = anim_data.first; ale; ale = ale->next)
+		ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+static int graphkeys_easing_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get handle setting mode */
+	mode = RNA_enum_get(op->ptr, "type");
+	
+	/* set handle type */
+	seteasing_graph_keys(&ac, mode);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier that keyframe properties have changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_easing_type(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Set Keyframe Easing Type";
+	ot->idname = "GRAPH_OT_easing_type";
+	ot->description = "Set easing type for the F-Curve segments starting from the selected keyframes";
+	
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = graphkeys_easing_exec;
+	ot->poll = graphop_editable_keyframes_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* id-props */
+	ot->prop = RNA_def_enum(ot->srna, "type", beztriple_interpolation_easing_items, 0, "Type", "");
+}
+
 /* ******************** Set Handle-Type Operator *********************** */
 
 /* this function is responsible for setting handle-type of selected keyframes */

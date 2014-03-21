@@ -623,6 +623,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	glPopMatrix();
 }
 
+#if 0
 /* helper func - draw one repeat of an F-Curve */
 static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d)
 {
@@ -778,7 +779,8 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	
 	glEnd();
 	glPopMatrix();
-} 
+}
+#endif
 
 /* Debugging -------------------------------- */
 
@@ -995,7 +997,8 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
 				/* just draw curve based on defined data (i.e. no modifiers) */
 				if (fcu->bezt)
-					draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d);
+					//draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d);
+					draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid);  // XXX: better to do an optimised integration here instead, but for now, this works
 				else if (fcu->fpt)
 					draw_fcurve_curve_samples(ac, ale->id, fcu, &ar->v2d);
 			}

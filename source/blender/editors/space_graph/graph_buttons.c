@@ -291,7 +291,26 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		/* interpolation */
 		col = uiLayoutColumn(layout, FALSE);
 		uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, ICON_NONE);
-			
+		
+		/* easing type */
+		if (bezt->ipo > BEZT_IPO_BEZ)
+			uiItemR(col, &bezt_ptr, "easing", 0, NULL, 0);
+
+		/* easing extra */
+		switch (bezt->ipo) {
+			case BEZT_IPO_BACK:
+				col = uiLayoutColumn(layout, 1);
+				uiItemR(col, &bezt_ptr, "back", 0, NULL, 0);
+				break;
+			case BEZT_IPO_ELASTIC:
+				col = uiLayoutColumn(layout, 1);
+				uiItemR(col, &bezt_ptr, "amplitude", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "period", 0, NULL, 0);
+				break;
+			default:
+				break;
+		}
+		
 		/* numerical coordinate editing 
 		 *  - we use the button-versions of the calls so that we can attach special update handlers
 		 *    and unit conversion magic that cannot be achieved using a purely RNA-approach

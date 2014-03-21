@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -73,6 +74,13 @@ EnumPropertyItem beztriple_keyframe_type_items[] = {
 	{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", "A breakdown pose - e.g. for transitions between key poses"},
 	{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", "An 'extreme' pose, or some other purpose as needed"},
 	{BEZT_KEYTYPE_JITTER, "JITTER", 0, "Jitter", "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem beztriple_interpolation_easing_items[] =  {
+	{BEZT_IPO_EASE_IN, "EASE_IN", 0, "Ease In", "Only on the end closest to the next keyframe"},
+	{BEZT_IPO_EASE_OUT, "EASE_OUT", 0, "Ease Out", "Only on the end closest to the first keyframe"},
+	{BEZT_IPO_EASE_IN_OUT, "EASE_IN_OUT", 0, "Ease In and Out", "Segment between both keyframes"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1651,6 +1659,30 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, beztriple_keyframe_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of keyframe (for visual purposes only)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
+	
+	
+	prop = RNA_def_property(srna, "easing", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "easing");
+	RNA_def_property_enum_items(prop, beztriple_interpolation_easing_items);
+	RNA_def_property_ui_text(prop, "Easing", 
+	                         "Which ends of the segment between this and the next keyframe easing "
+							 "interpolation is applied to");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+
+	prop = RNA_def_property(srna, "back", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "back");
+	RNA_def_property_ui_text(prop, "Back", "Amount of overshoot for 'back' easing");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+
+	prop = RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amplitude");
+	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of bounces for elastic easing");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+
+	prop = RNA_def_property(srna, "period", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "period");
+	RNA_def_property_ui_text(prop, "Period", "Time between bounces for elastic easing");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Vector values */
 	prop = RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */

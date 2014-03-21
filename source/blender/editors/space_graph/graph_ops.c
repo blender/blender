@@ -227,6 +227,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_handle_type);
 	WM_operatortype_append(GRAPH_OT_interpolation_type);
 	WM_operatortype_append(GRAPH_OT_extrapolation_type);
+	WM_operatortype_append(GRAPH_OT_easing_type);
 	WM_operatortype_append(GRAPH_OT_sample);
 	WM_operatortype_append(GRAPH_OT_bake);
 	WM_operatortype_append(GRAPH_OT_sound_bake);
@@ -376,6 +377,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", VKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "GRAPH_OT_interpolation_type", TKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_easing_type", EKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* destructive */
 	WM_keymap_add_item(keymap, "GRAPH_OT_clean", OKEY, KM_PRESS, 0, 0);

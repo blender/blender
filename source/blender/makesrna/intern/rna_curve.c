@@ -34,6 +34,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_font.h"
 
 #include "RNA_access.h"
@@ -67,9 +69,29 @@ EnumPropertyItem keyframe_handle_type_items[] = {
 };
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
+	/* interpolation */
+	{0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
 	{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", "No interpolation, value of A gets held until B is encountered"},
 	{BEZT_IPO_LIN, "LINEAR", 0, "Linear", "Straight-line interpolation between A and B (i.e. no ease in/out)"},
 	{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", "Smooth interpolation between A and B, with some control over curve shape"},
+	
+	/* easing */
+	{0, "", 0, N_("Easing (by strength)"), "Predefined inertial transitions, useful for motion graphics (from least to most ''dramatic'')"},
+	{BEZT_IPO_QUAD, "QUAD", 0, "Quadratic", "Quadratic easing (weakest)"},
+	{BEZT_IPO_CUBIC, "CUBIC", 0, "Cubic", "Cubic easing"},
+	{BEZT_IPO_QUART, "QUART", 0, "Quartic", "Quartic easing"},
+	{BEZT_IPO_QUINT, "QUINT", 0, "Quintic", "Quintic easing"},
+	{BEZT_IPO_EXPO, "EXPO", 0, "Exponential", "Exponential easing (strongest)"},
+	
+	{0, "", 0, N_("Dynamic Effects"), "Simple physics-inspired easing effects"},
+	{BEZT_IPO_BACK, "BACK", 0, "Back", "Cubic easing with overshoot and settle"},
+	{BEZT_IPO_BOUNCE, "BOUNCE", 0, "Bounce", "Exponentially decaying parabolic bounce, like when objects collide"},
+	{BEZT_IPO_ELASTIC, "ELASTIC", 0, "Elastic", "Exponentially decaying sine wave, like an elastic band"},
+	
+	{0, "", 0, N_("Other"), "Other easing equations"},
+	{BEZT_IPO_SINE, "SINE", 0, "Sinusoidal", "Sinusoidal easing"},
+	{BEZT_IPO_CIRC, "CIRC", 0, "Circular", "Circular easing"},
+	
 	{0, NULL, 0, NULL, NULL}
 };
 

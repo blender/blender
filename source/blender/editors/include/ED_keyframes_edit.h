@@ -217,6 +217,7 @@ KeyframeEditFunc ANIM_editkeyframes_select(short mode);
 KeyframeEditFunc ANIM_editkeyframes_handles(short mode);
 KeyframeEditFunc ANIM_editkeyframes_ipo(short mode);
 KeyframeEditFunc ANIM_editkeyframes_keytype(short mode);
+KeyframeEditFunc ANIM_editkeyframes_easing(short mode);
 
 /* -------- BezTriple Callbacks (Selection Map) ---------- */
 
