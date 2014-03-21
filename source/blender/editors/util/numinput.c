@@ -321,8 +321,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			n->val_org[idx] = n->val[idx];
 			n->val_flag[idx] &= ~(NUM_NEGATE | NUM_INVERSE);
 
-			idx += event->ctrl ? -1 : 1;
-			idx %= idx_max + 1;
+			idx = (idx + idx_max + (event->ctrl ? 0 : 2)) % (idx_max + 1);
 			n->idx = idx;
 			n->val[idx] = n->val_org[idx];
 			if (n->val_flag[idx] & NUM_EDITED) {
@@ -338,38 +337,43 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			ascii[0] = '.';
 			utf8_buf = ascii;
 			break;
+#if 0  /* Those keys are not directly accessible in all layouts, preventing to generate matching events.
+        * So we use a hack (ascii value) instead, see below.
+        */
 		case EQUALKEY:
-			/* XXX Advanced mode toggle, hack around keyboards without direct access to '=' nor '*'... */
-			ascii[0] = '=';
-			break;
 		case PADASTERKEY:
-			/* XXX Advanced mode toggle, hack around keyboards without direct access to '=' nor '*'... */
-			ascii[0] = '*';
+			if (!(n->flag & NUM_EDIT_FULL)) {
+				n->flag |= NUM_EDIT_FULL;
+				n->val_flag[idx] |= NUM_EDITED;
+				return true;
+			}
+			else if (event->ctrl) {
+				n->flag &= ~NUM_EDIT_FULL;
+				return true;
+			}
 			break;
+#endif
 		case PADMINUS:
 		case MINUSKEY:
 			if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
 				n->val_flag[idx] ^= NUM_NEGATE;
 				updated = true;
-				break;
 			}
-			/* fall-through */
+			break;
 		case PADSLASHKEY:
 		case SLASHKEY:
 			if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
 				n->val_flag[idx] ^= NUM_INVERSE;
 				updated = true;
-				break;
 			}
-			/* fall-through */
+			break;
 		case CKEY:
 			if (event->ctrl) {
 				/* Copy current str to the copypaste buffer. */
 				WM_clipboard_text_set(n->str, 0);
 				updated = true;
-				break;
 			}
-			/* fall-through */
+			break;
 		case VKEY:
 			if (event->ctrl) {
 				/* extract the first line from the clipboard */
@@ -377,9 +381,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 				char *pbuf = WM_clipboard_text_get_firstline(false, &pbuf_len);
 
 				if (pbuf) {
-					bool success;
-
-					success = editstr_insert_at_cursor(n, pbuf, pbuf_len);
+					const bool success = editstr_insert_at_cursor(n, pbuf, pbuf_len);
 
 					MEM_freeN(pbuf);
 					if (!success) {
@@ -389,13 +391,15 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 					n->val_flag[idx] |= NUM_EDITED;
 				}
 				updated = true;
-				break;
 			}
-			/* fall-through */
-		default:
-			utf8_buf = event->utf8_buf;
-			ascii[0] = event->ascii;
 			break;
+		default:
+			break;
+	}
+
+	if (!updated && !utf8_buf && (event->utf8_buf[0] || event->ascii)) {
+		utf8_buf = event->utf8_buf;
+		ascii[0] = event->ascii;
 	}
 
 	/* XXX Hack around keyboards without direct access to '=' nor '*'... */
@@ -411,7 +415,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		}
 	}
 
-	if (utf8_buf && !utf8_buf[0] && ascii[0]) {
+	if ((!utf8_buf || !utf8_buf[0]) && ascii[0]) {
 		/* Fallback to ascii. */
 		utf8_buf = ascii;
 	}
