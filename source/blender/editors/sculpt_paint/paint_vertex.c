@@ -910,37 +910,29 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 }
 
 /* whats _dl mean? */
-static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co[3],
-                                 const float mval[2], const float brush_size_pressure, float rgba[4])
+static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const VertProjData *data, const int index,
+								 const float brush_size_pressure, float rgba[4])
 {
-	float co_ss[2];  /* screenspace */
+	float dist_sq = data->dists_sq[index];
+	if (dist_sq <= brush_size_pressure * brush_size_pressure) {
+		Brush *brush = BKE_paint_brush(&vp->paint);
+		const float dist = sqrtf(dist_sq);
+		float factor;
 
-	if (ED_view3d_project_float_object(vc->ar,
-	                                   co, co_ss,
-	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
-	{
-		const float dist_sq = len_squared_v2v2(mval, co_ss);
-
-		if (dist_sq <= brush_size_pressure * brush_size_pressure) {
-			Brush *brush = BKE_paint_brush(&vp->paint);
-			const float dist = sqrtf(dist_sq);
-			float factor;
-
-			if (brush->mtex.tex && rgba) {
-				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
-					BKE_brush_sample_tex_3D(vc->scene, brush, co, rgba, 0, NULL);
-				}
-				else {
-					const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f};  /* we need a 3rd empty value */
-					BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, rgba, 0, NULL);
-				}
-				factor = rgba[3];
+		if (brush->mtex.tex && rgba) {
+			if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
+				BKE_brush_sample_tex_3D(vc->scene, brush, data->vcosnos[index].co, rgba, 0, NULL);
 			}
 			else {
-				factor = 1.0f;
+				const float co_ss_3d[3] = {data->ss_co[index][0], data->ss_co[index][1], 0.0f};  /* we need a 3rd empty value */
+				BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, rgba, 0, NULL);
 			}
-			return factor * BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
+			factor = rgba[3];
 		}
+		else {
+			factor = 1.0f;
+		}
+		return factor * BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 	}
 	if (rgba)
 		zero_v4(rgba);
@@ -948,11 +940,11 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 }
 
 static float calc_vp_alpha_col_dl(VPaint *vp, ViewContext *vc,
-                              float vpimat[3][3], const DMCoNo *v_co_no,
-                              const float mval[2],
+							  float vpimat[3][3], const VertProjData *data,
+							  const int index,
                               const float brush_size_pressure, const float brush_alpha_pressure, float rgba[4])
 {
-	float strength = calc_vp_strength_col_dl(vp, vc, v_co_no->co, mval, brush_size_pressure, rgba);
+	float strength = calc_vp_strength_col_dl(vp, vc, data, index, brush_size_pressure, rgba);
 
 	if (strength > 0.0f) {
 		float alpha = brush_alpha_pressure * strength;
@@ -961,10 +953,10 @@ static float calc_vp_alpha_col_dl(VPaint *vp, ViewContext *vc,
 			float dvec[3];
 
 			/* transpose ! */
-			dvec[2] = dot_v3v3(vpimat[2], v_co_no->no);
+			dvec[2] = dot_v3v3(vpimat[2], data->vcosnos[index].no);
 			if (dvec[2] > 0.0f) {
-				dvec[0] = dot_v3v3(vpimat[0], v_co_no->no);
-				dvec[1] = dot_v3v3(vpimat[1], v_co_no->no);
+				dvec[0] = dot_v3v3(vpimat[0], data->vcosnos[index].no);
+				dvec[1] = dot_v3v3(vpimat[1], data->vcosnos[index].no);
 
 				alpha *= dvec[2] / len_v3(dvec);
 			}
@@ -2131,7 +2123,7 @@ struct WPaintData {
 	int vgroup_mirror;
 
 	void *vp_handle;
-	DMCoNo *vertexcosnos;
+	VertProjData *data;
 
 	float wpimat[3][3];
 
@@ -2241,7 +2233,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 	}
 
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
-	wpd->vp_handle = ED_vpaint_proj_handle_create(scene, ob, &wpd->vertexcosnos);
+	wpd->vp_handle = ED_vpaint_proj_handle_create(scene, ob, &wpd->data);
 
 	wpd->indexar = get_indexarray(me);
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
@@ -2385,7 +2377,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 #define WP_BLUR_ACCUM(v_idx_var)  \
 	{ \
 		const unsigned int vidx = v_idx_var; \
-		const float fac = calc_vp_strength_col_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure, NULL); \
+		const float fac = calc_vp_strength_col_dl(wp, vc, wpd->data, vidx, brush_size_pressure, NULL); \
 		if (fac > 0.0f) { \
 			MDeformWeight *dw = dw_func(&me->dvert[vidx], wpi.vgroup_active); \
 			paintweight += dw ? (dw->weight * fac) : 0.0f; \
@@ -2455,8 +2447,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	{ \
 		unsigned int vidx = v_idx_var; \
 		if (me->dvert[vidx].flag) { \
-			alpha = calc_vp_alpha_col_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
-			                         mval, brush_size_pressure, brush_alpha_pressure, NULL); \
+			alpha = calc_vp_alpha_col_dl(wp, vc, wpd->wpimat, wpd->data, vidx, \
+									 brush_size_pressure, brush_alpha_pressure, NULL); \
 			if (alpha) { \
 				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
 			} \
@@ -2743,7 +2735,7 @@ typedef struct VPaintData {
 	int *indexar;
 
 	struct VertProjHandle *vp_handle;
-	DMCoNo *vertexcosnos;
+	VertProjData *data;
 
 	float vpimat[3][3];
 
@@ -2811,7 +2803,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	paint_stroke_set_mode_data(stroke, vpd);
 	view3d_set_viewcontext(C, &vpd->vc);
 	
-	vpd->vp_handle = ED_vpaint_proj_handle_create(vpd->vc.scene, ob, &vpd->vertexcosnos);
+	vpd->vp_handle = ED_vpaint_proj_handle_create(vpd->vc.scene, ob, &vpd->data);
 
 	vpd->indexar = get_indexarray(me);
 	vpd->paintcol = vpaint_get_current_col(vp);
@@ -2849,9 +2841,8 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	return 1;
 }
 
-static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
-                              const unsigned int index, const float mval[2],
-                              const float brush_size_pressure, const float brush_alpha_pressure)
+static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me, const unsigned int index,
+							  const float brush_size_pressure, const float brush_alpha_pressure)
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = BKE_paint_brush(&vp->paint);
@@ -2901,7 +2892,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 		float rgba[4];
 		unsigned int paintcol;
 		alpha = calc_vp_alpha_col_dl(vp, vc, vpd->vpimat,
-		                         &vpd->vertexcosnos[ml->v], mval,
+								 vpd->data, ml->v,
 		                         brush_size_pressure, brush_alpha_pressure, rgba);
 
 		if (vpd->is_texbrush) {
@@ -3005,7 +2996,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {
-			vpaint_paint_poly(vp, vpd, me, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure);
+			vpaint_paint_poly(vp, vpd, me, indexar[index] - 1, brush_size_pressure, brush_alpha_pressure);
 		}
 	}
 		

@@ -118,12 +118,16 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 unsigned int vpaint_get_current_col(struct VPaint *vp);
 
+typedef struct VertProjData {
+	struct DMCoNo *vcosnos;
+	float *dists_sq;
+	float (*ss_co)[2];
+} VertProjData;
 
 /* paint_vertex_proj.c */
 struct VertProjHandle;
-struct VertProjHandle *ED_vpaint_proj_handle_create(
-        struct Scene *scene, struct Object *ob,
-        struct DMCoNo **r_vcosnos);
+struct VertProjHandle *ED_vpaint_proj_handle_create(struct Scene *scene, struct Object *ob,
+		VertProjData **r_vcosnos);
 void  ED_vpaint_proj_handle_update(
         struct VertProjHandle *vp_handle,
         /* runtime vars */
