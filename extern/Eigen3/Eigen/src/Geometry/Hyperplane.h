@@ -50,7 +50,7 @@ public:
   typedef const Block<const Coefficients,AmbientDimAtCompileTime,1> ConstNormalReturnType;
 
   /** Default constructor without initialization */
-  inline explicit Hyperplane() {}
+  inline Hyperplane() {}
   
   template<int OtherOptions>
   Hyperplane(const Hyperplane<Scalar,AmbientDimAtCompileTime,OtherOptions>& other)
@@ -75,7 +75,7 @@ public:
     * such that the algebraic equation of the plane is \f$ n \cdot x + d = 0 \f$.
     * \warning the vector normal is assumed to be normalized.
     */
-  inline Hyperplane(const VectorType& n, Scalar d)
+  inline Hyperplane(const VectorType& n, const Scalar& d)
     : m_coeffs(n.size()+1)
   {
     normal() = n;
@@ -135,7 +135,7 @@ public:
   /** \returns the absolute distance between the plane \c *this and a point \a p.
     * \sa signedDistance()
     */
-  inline Scalar absDistance(const VectorType& p) const { return internal::abs(signedDistance(p)); }
+  inline Scalar absDistance(const VectorType& p) const { using std::abs; return abs(signedDistance(p)); }
 
   /** \returns the projection of a point \a p onto the plane \c *this.
     */
@@ -178,13 +178,14 @@ public:
     */
   VectorType intersection(const Hyperplane& other) const
   {
+    using std::abs;
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 2)
     Scalar det = coeffs().coeff(0) * other.coeffs().coeff(1) - coeffs().coeff(1) * other.coeffs().coeff(0);
     // since the line equations ax+by=c are normalized with a^2+b^2=1, the following tests
     // whether the two lines are approximately parallel.
     if(internal::isMuchSmallerThan(det, Scalar(1)))
     {   // special case where the two lines are approximately parallel. Pick any point on the first line.
-        if(internal::abs(coeffs().coeff(1))>internal::abs(coeffs().coeff(0)))
+        if(abs(coeffs().coeff(1))>abs(coeffs().coeff(0)))
             return VectorType(coeffs().coeff(1), -coeffs().coeff(2)/coeffs().coeff(1)-coeffs().coeff(0));
         else
             return VectorType(-coeffs().coeff(2)/coeffs().coeff(0)-coeffs().coeff(1), coeffs().coeff(0));
@@ -256,7 +257,7 @@ public:
     *
     * \sa MatrixBase::isApprox() */
   template<int OtherOptions>
-  bool isApprox(const Hyperplane<Scalar,AmbientDimAtCompileTime,OtherOptions>& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
+  bool isApprox(const Hyperplane<Scalar,AmbientDimAtCompileTime,OtherOptions>& other, const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
 protected:

@@ -87,9 +87,9 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       */
     inline const Scalar* data() const { return m_data; }
 
-    inline const Scalar& coeff(Index row, Index col) const
+    inline const Scalar& coeff(Index rowId, Index colId) const
     {
-      return m_data[col * colStride() + row * rowStride()];
+      return m_data[colId * colStride() + rowId * rowStride()];
     }
 
     inline const Scalar& coeff(Index index) const
@@ -98,9 +98,9 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       return m_data[index * innerStride()];
     }
 
-    inline const Scalar& coeffRef(Index row, Index col) const
+    inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
-      return this->m_data[col * colStride() + row * rowStride()];
+      return this->m_data[colId * colStride() + rowId * rowStride()];
     }
 
     inline const Scalar& coeffRef(Index index) const
@@ -110,10 +110,10 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(Index row, Index col) const
+    inline PacketScalar packet(Index rowId, Index colId) const
     {
       return internal::ploadt<PacketScalar, LoadMode>
-               (m_data + (col * colStride() + row * rowStride()));
+               (m_data + (colId * colStride() + rowId * rowStride()));
     }
 
     template<int LoadMode>
@@ -123,29 +123,29 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       return internal::ploadt<PacketScalar, LoadMode>(m_data + index * innerStride());
     }
 
-    inline MapBase(PointerType data) : m_data(data), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
+    inline MapBase(PointerType dataPtr) : m_data(dataPtr), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
     {
       EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
       checkSanity();
     }
 
-    inline MapBase(PointerType data, Index size)
-            : m_data(data),
-              m_rows(RowsAtCompileTime == Dynamic ? size : Index(RowsAtCompileTime)),
-              m_cols(ColsAtCompileTime == Dynamic ? size : Index(ColsAtCompileTime))
+    inline MapBase(PointerType dataPtr, Index vecSize)
+            : m_data(dataPtr),
+              m_rows(RowsAtCompileTime == Dynamic ? vecSize : Index(RowsAtCompileTime)),
+              m_cols(ColsAtCompileTime == Dynamic ? vecSize : Index(ColsAtCompileTime))
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-      eigen_assert(size >= 0);
-      eigen_assert(data == 0 || SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
+      eigen_assert(vecSize >= 0);
+      eigen_assert(dataPtr == 0 || SizeAtCompileTime == Dynamic || SizeAtCompileTime == vecSize);
       checkSanity();
     }
 
-    inline MapBase(PointerType data, Index rows, Index cols)
-            : m_data(data), m_rows(rows), m_cols(cols)
+    inline MapBase(PointerType dataPtr, Index nbRows, Index nbCols)
+            : m_data(dataPtr), m_rows(nbRows), m_cols(nbCols)
     {
-      eigen_assert( (data == 0)
-              || (   rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-                  && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
+      eigen_assert( (dataPtr == 0)
+              || (   nbRows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == nbRows)
+                  && nbCols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == nbCols)));
       checkSanity();
     }
 
@@ -210,23 +210,23 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
     }
 
     template<int StoreMode>
-    inline void writePacket(Index row, Index col, const PacketScalar& x)
+    inline void writePacket(Index row, Index col, const PacketScalar& val)
     {
       internal::pstoret<Scalar, PacketScalar, StoreMode>
-               (this->m_data + (col * colStride() + row * rowStride()), x);
+               (this->m_data + (col * colStride() + row * rowStride()), val);
     }
 
     template<int StoreMode>
-    inline void writePacket(Index index, const PacketScalar& x)
+    inline void writePacket(Index index, const PacketScalar& val)
     {
       EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS(Derived)
       internal::pstoret<Scalar, PacketScalar, StoreMode>
-                (this->m_data + index * innerStride(), x);
+                (this->m_data + index * innerStride(), val);
     }
 
-    explicit inline MapBase(PointerType data) : Base(data) {}
-    inline MapBase(PointerType data, Index size) : Base(data, size) {}
-    inline MapBase(PointerType data, Index rows, Index cols) : Base(data, rows, cols) {}
+    explicit inline MapBase(PointerType dataPtr) : Base(dataPtr) {}
+    inline MapBase(PointerType dataPtr, Index vecSize) : Base(dataPtr, vecSize) {}
+    inline MapBase(PointerType dataPtr, Index nbRows, Index nbCols) : Base(dataPtr, nbRows, nbCols) {}
 
     Derived& operator=(const MapBase& other)
     {

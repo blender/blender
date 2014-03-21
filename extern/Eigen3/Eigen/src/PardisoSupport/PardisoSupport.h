@@ -108,6 +108,7 @@ class PardisoImpl
     typedef Matrix<Scalar,Dynamic,1> VectorType;
     typedef Matrix<Index, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<Index, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
+    typedef Array<Index,64,1,DontAlign> ParameterType;
     enum {
       ScalarIsComplex = NumTraits<Scalar>::IsComplex
     };
@@ -142,7 +143,7 @@ class PardisoImpl
     /** \warning for advanced usage only.
       * \returns a reference to the parameter array controlling PARDISO.
       * See the PARDISO manual to know how to use it. */
-    Array<Index,64,1>& pardisoParameterArray()
+    ParameterType& pardisoParameterArray()
     {
       return m_iparm;
     }
@@ -204,29 +205,6 @@ class PardisoImpl
 
     template<typename BDerived, typename XDerived>
     bool _solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>& x) const;
-
-    /** \internal */
-    template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
-    void _solve_sparse(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
-    {
-      eigen_assert(m_size==b.rows());
-
-      // we process the sparse rhs per block of NbColsAtOnce columns temporarily stored into a dense matrix.
-      static const int NbColsAtOnce = 4;
-      int rhsCols = b.cols();
-      int size = b.rows();
-      // Pardiso cannot solve in-place,
-      // so we need two temporaries
-      Eigen::Matrix<DestScalar,Dynamic,Dynamic,ColMajor> tmp_rhs(size,rhsCols);
-      Eigen::Matrix<DestScalar,Dynamic,Dynamic,ColMajor> tmp_res(size,rhsCols);
-      for(int k=0; k<rhsCols; k+=NbColsAtOnce)
-      {
-        int actualCols = std::min<int>(rhsCols-k, NbColsAtOnce);
-        tmp_rhs.leftCols(actualCols) = b.middleCols(k,actualCols);
-        tmp_res.leftCols(actualCols) = derived().solve(tmp_rhs.leftCols(actualCols));
-        dest.middleCols(k,actualCols) = tmp_res.leftCols(actualCols).sparseView();
-      }
-    }
 
   protected:
     void pardisoRelease()
@@ -295,7 +273,7 @@ class PardisoImpl
     bool m_initialized, m_analysisIsOk, m_factorizationIsOk;
     Index m_type, m_msglvl;
     mutable void *m_pt[64];
-    mutable Array<Index,64,1> m_iparm;
+    mutable ParameterType m_iparm;
     mutable IntColVectorType m_perm;
     Index m_size;
     
@@ -603,7 +581,7 @@ struct sparse_solve_retval<PardisoImpl<Derived>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec().derived()._solve_sparse(rhs(),dst);
+    this->defaultEvalTo(dst);
   }
 };
 

@@ -65,12 +65,34 @@ template<typename T> class variable_if_dynamic<T, Dynamic>
     void setValue(T value) { m_value = value; }
 };
 
+/** \internal like variable_if_dynamic but for DynamicIndex
+  */
+template<typename T, int Value> class variable_if_dynamicindex
+{
+  public:
+    EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamicindex)
+    explicit variable_if_dynamicindex(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); assert(v == T(Value)); }
+    static T value() { return T(Value); }
+    void setValue(T) {}
+};
+
+template<typename T> class variable_if_dynamicindex<T, DynamicIndex>
+{
+    T m_value;
+    variable_if_dynamicindex() { assert(false); }
+  public:
+    explicit variable_if_dynamicindex(T value) : m_value(value) {}
+    T value() const { return m_value; }
+    void setValue(T value) { m_value = value; }
+};
+
 template<typename T> struct functor_traits
 {
   enum
   {
     Cost = 10,
-    PacketAccess = false
+    PacketAccess = false,
+    IsRepeatable = false
   };
 };
 
@@ -301,9 +323,9 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
     // it's important that this value can still be squared without integer overflowing.
     DynamicAsInteger = 10000,
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? DynamicAsInteger : ScalarReadCost,
+    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
     CoeffReadCost = traits<T>::CoeffReadCost,
-    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? DynamicAsInteger : CoeffReadCost,
+    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
     NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
     CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
     CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger

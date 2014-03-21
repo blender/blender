@@ -50,7 +50,7 @@ struct selfadjoint_matrix_vector_product_symv :
 #define EIGEN_MKL_SYMV_SPECIALIZE(Scalar) \
 template<typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs> \
 struct selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,Specialized> { \
-static EIGEN_DONT_INLINE void run( \
+static void run( \
   Index size, const Scalar*  lhs, Index lhsStride, \
   const Scalar* _rhs, Index rhsIncr, Scalar* res, Scalar alpha) { \
     enum {\
@@ -77,7 +77,7 @@ struct selfadjoint_matrix_vector_product_symv<EIGTYPE,Index,StorageOrder,UpLo,Co
 { \
 typedef Matrix<EIGTYPE,Dynamic,1,ColMajor> SYMVVector;\
 \
-static EIGEN_DONT_INLINE void run( \
+static void run( \
 Index size, const EIGTYPE*  lhs, Index lhsStride, \
 const EIGTYPE* _rhs, Index rhsIncr, EIGTYPE* res, EIGTYPE alpha) \
 { \

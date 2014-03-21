@@ -132,7 +132,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       * \sa rankUpdate(const MatrixBase<DerivedU>&, Scalar)
       */
     template<typename DerivedU, typename DerivedV>
-    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha = Scalar(1));
+    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, const Scalar& alpha = Scalar(1));
 
     /** Perform a symmetric rank K update of the selfadjoint matrix \c *this:
       * \f$ this = this + \alpha ( u u^* ) \f$ where \a u is a vector or matrix.
@@ -145,7 +145,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       * \sa rankUpdate(const MatrixBase<DerivedU>&, const MatrixBase<DerivedV>&, Scalar)
       */
     template<typename DerivedU>
-    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha = Scalar(1));
 
 /////////// Cholesky module ///////////
 
@@ -214,9 +214,9 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), U
     triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount-1, ClearOpposite>::run(dst, src);
 
     if(row == col)
-      dst.coeffRef(row, col) = real(src.coeff(row, col));
+      dst.coeffRef(row, col) = numext::real(src.coeff(row, col));
     else if(row < col)
-      dst.coeffRef(col, row) = conj(dst.coeffRef(row, col) = src.coeff(row, col));
+      dst.coeffRef(col, row) = numext::conj(dst.coeffRef(row, col) = src.coeff(row, col));
   }
 };
 
@@ -239,9 +239,9 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), U
     triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount-1, ClearOpposite>::run(dst, src);
 
     if(row == col)
-      dst.coeffRef(row, col) = real(src.coeff(row, col));
+      dst.coeffRef(row, col) = numext::real(src.coeff(row, col));
     else if(row > col)
-      dst.coeffRef(col, row) = conj(dst.coeffRef(row, col) = src.coeff(row, col));
+      dst.coeffRef(col, row) = numext::conj(dst.coeffRef(row, col) = src.coeff(row, col));
   }
 };
 
@@ -262,7 +262,7 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dyn
       for(Index i = 0; i < j; ++i)
       {
         dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = conj(dst.coeff(i,j));
+        dst.coeffRef(j,i) = numext::conj(dst.coeff(i,j));
       }
       dst.copyCoeff(j, j, src);
     }
@@ -280,7 +280,7 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dyn
       for(Index j = 0; j < i; ++j)
       {
         dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = conj(dst.coeff(i,j));
+        dst.coeffRef(j,i) = numext::conj(dst.coeff(i,j));
       }
       dst.copyCoeff(i, i, src);
     }

@@ -112,7 +112,7 @@ inline Derived& DenseBase<Derived>::setRandom()
   return *this = Random(rows(), cols());
 }
 
-/** Resizes to the given \a size, and sets all coefficients in this expression to random values.
+/** Resizes to the given \a newSize, and sets all coefficients in this expression to random values.
   *
   * \only_for_vectors
   *
@@ -123,16 +123,16 @@ inline Derived& DenseBase<Derived>::setRandom()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setRandom(Index size)
+PlainObjectBase<Derived>::setRandom(Index newSize)
 {
-  resize(size);
+  resize(newSize);
   return setRandom();
 }
 
 /** Resizes to the given size, and sets all coefficients in this expression to random values.
   *
-  * \param rows the new number of rows
-  * \param cols the new number of columns
+  * \param nbRows the new number of rows
+  * \param nbCols the new number of columns
   *
   * Example: \include Matrix_setRandom_int_int.cpp
   * Output: \verbinclude Matrix_setRandom_int_int.out
@@ -141,9 +141,9 @@ PlainObjectBase<Derived>::setRandom(Index size)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setRandom(Index rows, Index cols)
+PlainObjectBase<Derived>::setRandom(Index nbRows, Index nbCols)
 {
-  resize(rows, cols);
+  resize(nbRows, nbCols);
   return setRandom();
 }
 

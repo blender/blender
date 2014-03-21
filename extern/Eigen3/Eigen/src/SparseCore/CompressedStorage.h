@@ -139,7 +139,7 @@ class CompressedStorage
 
     /** \returns the stored value at index \a key
       * If the value does not exist, then the value \a defaultValue is returned without any insertion. */
-    inline Scalar at(Index key, Scalar defaultValue = Scalar(0)) const
+    inline Scalar at(Index key, const Scalar& defaultValue = Scalar(0)) const
     {
       if (m_size==0)
         return defaultValue;
@@ -152,7 +152,7 @@ class CompressedStorage
     }
 
     /** Like at(), but the search is performed in the range [start,end) */
-    inline Scalar atInRange(size_t start, size_t end, Index key, Scalar defaultValue = Scalar(0)) const
+    inline Scalar atInRange(size_t start, size_t end, Index key, const Scalar& defaultValue = Scalar(0)) const
     {
       if (start>=end)
         return Scalar(0);
@@ -167,7 +167,7 @@ class CompressedStorage
     /** \returns a reference to the value at index \a key
       * If the value does not exist, then the value \a defaultValue is inserted
       * such that the keys are sorted. */
-    inline Scalar& atWithInsertion(Index key, Scalar defaultValue = Scalar(0))
+    inline Scalar& atWithInsertion(Index key, const Scalar& defaultValue = Scalar(0))
     {
       size_t id = searchLowerIndex(0,m_size,key);
       if (id>=m_size || m_indices[id]!=key)
@@ -184,7 +184,7 @@ class CompressedStorage
       return m_values[id];
     }
 
-    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
+    void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       size_t k = 0;
       size_t n = size();

@@ -1,5 +1,5 @@
 // This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
@@ -34,7 +34,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
 
   /** Default constructor initializing a null box. */
-  inline explicit AlignedBox()
+  inline AlignedBox()
   { if (AmbientDimAtCompileTime!=Dynamic) setNull(); }
 
   /** Constructs a null box with \a _dim the dimension of the ambient space. */

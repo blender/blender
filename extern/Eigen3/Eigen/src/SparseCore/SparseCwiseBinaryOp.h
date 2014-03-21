@@ -73,7 +73,7 @@ class CwiseBinaryOpImpl<BinaryOp,Lhs,Rhs,Sparse>::InnerIterator
     typedef internal::sparse_cwise_binary_op_inner_iterator_selector<
       BinaryOp,Lhs,Rhs, InnerIterator> Base;
 
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseBinaryOpImpl& binOp, typename CwiseBinaryOpImpl::Index outer)
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseBinaryOpImpl& binOp, Index outer)
       : Base(binOp.derived(),outer)
     {}
 };
@@ -300,7 +300,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 SparseMatrixBase<Derived>::operator-=(const SparseMatrixBase<OtherDerived> &other)
 {
-  return *this = derived() - other.derived();
+  return derived() = derived() - other.derived();
 }
 
 template<typename Derived>
@@ -308,7 +308,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 SparseMatrixBase<Derived>::operator+=(const SparseMatrixBase<OtherDerived>& other)
 {
-  return *this = derived() + other.derived();
+  return derived() = derived() + other.derived();
 }
 
 template<typename Derived>

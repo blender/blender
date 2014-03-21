@@ -11,7 +11,7 @@
 #include <cstring>
 #include <algorithm>
 
-/** \ingroup Sparse_modules
+/** 
   * \defgroup SparseCore_Module SparseCore module
   *
   * This module provides a sparse matrix representation, and basic associatd matrix manipulations
@@ -40,14 +40,12 @@ struct Sparse {};
 #include "src/SparseCore/SparseMatrix.h"
 #include "src/SparseCore/MappedSparseMatrix.h"
 #include "src/SparseCore/SparseVector.h"
-#include "src/SparseCore/CoreIterators.h"
 #include "src/SparseCore/SparseBlock.h"
 #include "src/SparseCore/SparseTranspose.h"
 #include "src/SparseCore/SparseCwiseUnaryOp.h"
 #include "src/SparseCore/SparseCwiseBinaryOp.h"
 #include "src/SparseCore/SparseDot.h"
 #include "src/SparseCore/SparsePermutation.h"
-#include "src/SparseCore/SparseAssign.h"
 #include "src/SparseCore/SparseRedux.h"
 #include "src/SparseCore/SparseFuzzy.h"
 #include "src/SparseCore/ConservativeSparseSparseProduct.h"

@@ -190,6 +190,7 @@ template<typename Scalar, int UpLo> struct llt_inplace;
 template<typename MatrixType, typename VectorType>
 static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const VectorType& vec, const typename MatrixType::RealScalar& sigma)
 {
+  using std::sqrt;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename MatrixType::Index Index;
@@ -199,7 +200,7 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
   typedef Matrix<Scalar,Dynamic,1> TempVectorType;
   typedef typename TempVectorType::SegmentReturnType TempVecSegment;
 
-  int n = mat.cols();
+  Index n = mat.cols();
   eigen_assert(mat.rows()==n && vec.size()==n);
 
   TempVectorType temp;
@@ -211,12 +212,12 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
     // i.e., for sigma > 0
     temp = sqrt(sigma) * vec;
 
-    for(int i=0; i<n; ++i)
+    for(Index i=0; i<n; ++i)
     {
       JacobiRotation<Scalar> g;
       g.makeGivens(mat(i,i), -temp(i), &mat(i,i));
 
-      int rs = n-i-1;
+      Index rs = n-i-1;
       if(rs>0)
       {
         ColXprSegment x(mat.col(i).tail(rs));
@@ -229,12 +230,12 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
   {
     temp = vec;
     RealScalar beta = 1;
-    for(int j=0; j<n; ++j)
+    for(Index j=0; j<n; ++j)
     {
-      RealScalar Ljj = real(mat.coeff(j,j));
-      RealScalar dj = abs2(Ljj);
+      RealScalar Ljj = numext::real(mat.coeff(j,j));
+      RealScalar dj = numext::abs2(Ljj);
       Scalar wj = temp.coeff(j);
-      RealScalar swj2 = sigma*abs2(wj);
+      RealScalar swj2 = sigma*numext::abs2(wj);
       RealScalar gamma = dj*beta + swj2;
 
       RealScalar x = dj + swj2/beta;
@@ -250,7 +251,7 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
       {
         temp.tail(rs) -= (wj/Ljj) * mat.col(j).tail(rs);
         if(gamma != 0)
-          mat.col(j).tail(rs) = (nLjj/Ljj) * mat.col(j).tail(rs) + (nLjj * sigma*conj(wj)/gamma)*temp.tail(rs);
+          mat.col(j).tail(rs) = (nLjj/Ljj) * mat.col(j).tail(rs) + (nLjj * sigma*numext::conj(wj)/gamma)*temp.tail(rs);
       }
     }
   }
@@ -263,6 +264,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   template<typename MatrixType>
   static typename MatrixType::Index unblocked(MatrixType& mat)
   {
+    using std::sqrt;
     typedef typename MatrixType::Index Index;
     
     eigen_assert(mat.rows()==mat.cols());
@@ -275,7 +277,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
       Block<MatrixType,1,Dynamic> A10(mat,k,0,1,k);
       Block<MatrixType,Dynamic,Dynamic> A20(mat,k+1,0,rs,k);
 
-      RealScalar x = real(mat.coeff(k,k));
+      RealScalar x = numext::real(mat.coeff(k,k));
       if (k>0) x -= A10.squaredNorm();
       if (x<=RealScalar(0))
         return k;

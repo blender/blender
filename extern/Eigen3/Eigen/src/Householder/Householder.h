@@ -67,25 +67,28 @@ void MatrixBase<Derived>::makeHouseholder(
   Scalar& tau,
   RealScalar& beta) const
 {
+  using std::sqrt;
+  using numext::conj;
+  
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(EssentialPart)
   VectorBlock<const Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
   
   RealScalar tailSqNorm = size()==1 ? RealScalar(0) : tail.squaredNorm();
   Scalar c0 = coeff(0);
 
-  if(tailSqNorm == RealScalar(0) && internal::imag(c0)==RealScalar(0))
+  if(tailSqNorm == RealScalar(0) && numext::imag(c0)==RealScalar(0))
   {
     tau = RealScalar(0);
-    beta = internal::real(c0);
+    beta = numext::real(c0);
     essential.setZero();
   }
   else
   {
-    beta = internal::sqrt(internal::abs2(c0) + tailSqNorm);
-    if (internal::real(c0)>=RealScalar(0))
+    beta = sqrt(numext::abs2(c0) + tailSqNorm);
+    if (numext::real(c0)>=RealScalar(0))
       beta = -beta;
     essential = tail / (c0 - beta);
-    tau = internal::conj((beta - c0) / beta);
+    tau = conj((beta - c0) / beta);
   }
 }
 

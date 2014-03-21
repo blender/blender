@@ -48,7 +48,7 @@ RealSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Matrix<E
   typedef MatrixType::Scalar Scalar; \
   typedef MatrixType::RealScalar RealScalar; \
 \
-  assert(matrix.cols() == matrix.rows()); \
+  eigen_assert(matrix.cols() == matrix.rows()); \
 \
   lapack_int n = matrix.cols(), sdim, info; \
   lapack_int lda = matrix.outerStride(); \

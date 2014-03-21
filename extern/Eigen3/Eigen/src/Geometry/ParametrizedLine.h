@@ -41,7 +41,7 @@ public:
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1,Options> VectorType;
 
   /** Default constructor without initialization */
-  inline explicit ParametrizedLine() {}
+  inline ParametrizedLine() {}
   
   template<int OtherOptions>
   ParametrizedLine(const ParametrizedLine<Scalar,AmbientDimAtCompileTime,OtherOptions>& other)
@@ -87,13 +87,13 @@ public:
   /** \returns the distance of a point \a p to its projection onto the line \c *this.
     * \sa squaredDistance()
     */
-  RealScalar distance(const VectorType& p) const { return internal::sqrt(squaredDistance(p)); }
+  RealScalar distance(const VectorType& p) const { using std::sqrt; return sqrt(squaredDistance(p)); }
 
   /** \returns the projection of a point \a p onto the line \c *this. */
   VectorType projection(const VectorType& p) const
   { return origin() + direction().dot(p-origin()) * direction(); }
 
-  VectorType pointAt( Scalar t ) const;
+  VectorType pointAt(const Scalar& t) const;
   
   template <int OtherOptions>
   Scalar intersectionParameter(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const;
@@ -154,7 +154,7 @@ inline ParametrizedLine<_Scalar, _AmbientDim,_Options>::ParametrizedLine(const H
   */
 template <typename _Scalar, int _AmbientDim, int _Options>
 inline typename ParametrizedLine<_Scalar, _AmbientDim,_Options>::VectorType
-ParametrizedLine<_Scalar, _AmbientDim,_Options>::pointAt( _Scalar t ) const
+ParametrizedLine<_Scalar, _AmbientDim,_Options>::pointAt(const _Scalar& t) const
 {
   return origin() + (direction()*t); 
 }

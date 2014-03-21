@@ -112,6 +112,9 @@ template<typename OtherScalarType, typename MatrixType> struct matrix_type_times
 template<typename VectorsType, typename CoeffsType, int Side> class HouseholderSequence
   : public EigenBase<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
+    typedef typename internal::hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType EssentialVectorType;
+  
+  public:
     enum {
       RowsAtCompileTime = internal::traits<HouseholderSequence>::RowsAtCompileTime,
       ColsAtCompileTime = internal::traits<HouseholderSequence>::ColsAtCompileTime,
@@ -121,13 +124,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     typedef typename internal::traits<HouseholderSequence>::Scalar Scalar;
     typedef typename VectorsType::Index Index;
 
-    typedef typename internal::hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType
-            EssentialVectorType;
-
-  public:
-
     typedef HouseholderSequence<
-      VectorsType,
+      typename internal::conditional<NumTraits<Scalar>::IsComplex,
+        typename internal::remove_all<typename VectorsType::ConjugateReturnType>::type,
+        VectorsType>::type,
       typename internal::conditional<NumTraits<Scalar>::IsComplex,
         typename internal::remove_all<typename CoeffsType::ConjugateReturnType>::type,
         CoeffsType>::type,
@@ -208,7 +208,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     /** \brief Complex conjugate of the Householder sequence. */
     ConjugateReturnType conjugate() const
     {
-      return ConjugateReturnType(m_vectors, m_coeffs.conjugate())
+      return ConjugateReturnType(m_vectors.conjugate(), m_coeffs.conjugate())
              .setTrans(m_trans)
              .setLength(m_length)
              .setShift(m_shift);

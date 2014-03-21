@@ -47,6 +47,23 @@ template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval_b
   }
 
   protected:
+    template<typename DestScalar, int DestOptions, typename DestIndex>
+    inline void defaultEvalTo(SparseMatrix<DestScalar,DestOptions,DestIndex>& dst) const
+    {
+      // we process the sparse rhs per block of NbColsAtOnce columns temporarily stored into a dense matrix.
+      static const int NbColsAtOnce = 4;
+      int rhsCols = m_rhs.cols();
+      int size = m_rhs.rows();
+      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmp(size,rhsCols);
+      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmpX(size,rhsCols);
+      for(int k=0; k<rhsCols; k+=NbColsAtOnce)
+      {
+        int actualCols = std::min<int>(rhsCols-k, NbColsAtOnce);
+        tmp.leftCols(actualCols) = m_rhs.middleCols(k,actualCols);
+        tmpX.leftCols(actualCols) = m_dec.solve(tmp.leftCols(actualCols));
+        dst.middleCols(k,actualCols) = tmpX.leftCols(actualCols).sparseView();
+      }
+    }
     const DecompositionType& m_dec;
     typename Rhs::Nested m_rhs;
 };

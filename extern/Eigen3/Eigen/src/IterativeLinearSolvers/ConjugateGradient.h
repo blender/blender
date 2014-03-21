@@ -41,15 +41,29 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   int n = mat.cols();
 
   VectorType residual = rhs - mat * x; //initial residual
-  VectorType p(n);
 
+  RealScalar rhsNorm2 = rhs.squaredNorm();
+  if(rhsNorm2 == 0) 
+  {
+    x.setZero();
+    iters = 0;
+    tol_error = 0;
+    return;
+  }
+  RealScalar threshold = tol*tol*rhsNorm2;
+  RealScalar residualNorm2 = residual.squaredNorm();
+  if (residualNorm2 < threshold)
+  {
+    iters = 0;
+    tol_error = sqrt(residualNorm2 / rhsNorm2);
+    return;
+  }
+  
+  VectorType p(n);
   p = precond.solve(residual);      //initial search direction
 
   VectorType z(n), tmp(n);
-  RealScalar absNew = internal::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
-  RealScalar rhsNorm2 = rhs.squaredNorm();
-  RealScalar residualNorm2 = 0;
-  RealScalar threshold = tol*tol*rhsNorm2;
+  RealScalar absNew = numext::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
   int i = 0;
   while(i < maxIters)
   {
@@ -66,7 +80,7 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
     z = precond.solve(residual);          // approximately solve for "A z = residual"
 
     RealScalar absOld = absNew;
-    absNew = internal::real(residual.dot(z));     // update the absolute value of r
+    absNew = numext::real(residual.dot(z));     // update the absolute value of r
     RealScalar beta = absNew / absOld;            // calculate the Gram-Schmidt value used to create the new search direction
     p = z + beta * p;                             // update search direction
     i++;

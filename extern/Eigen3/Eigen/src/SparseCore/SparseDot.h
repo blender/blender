@@ -30,7 +30,7 @@ SparseMatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   Scalar res(0);
   while (i)
   {
-    res += internal::conj(i.value()) * other.coeff(i.index());
+    res += numext::conj(i.value()) * other.coeff(i.index());
     ++i;
   }
   return res;
@@ -54,8 +54,8 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
   typedef typename internal::remove_all<Nested>::type  NestedCleaned;
   typedef typename internal::remove_all<OtherNested>::type  OtherNestedCleaned;
 
-  const Nested nthis(derived());
-  const OtherNested nother(other.derived());
+  Nested nthis(derived());
+  OtherNested nother(other.derived());
 
   typename NestedCleaned::InnerIterator i(nthis,0);
   typename OtherNestedCleaned::InnerIterator j(nother,0);
@@ -64,7 +64,7 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
   {
     if (i.index()==j.index())
     {
-      res += internal::conj(i.value()) * j.value();
+      res += numext::conj(i.value()) * j.value();
       ++i; ++j;
     }
     else if (i.index()<j.index())
@@ -79,16 +79,23 @@ template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 SparseMatrixBase<Derived>::squaredNorm() const
 {
-  return internal::real((*this).cwiseAbs2().sum());
+  return numext::real((*this).cwiseAbs2().sum());
 }
 
 template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 SparseMatrixBase<Derived>::norm() const
 {
-  return internal::sqrt(squaredNorm());
+  using std::sqrt;
+  return sqrt(squaredNorm());
 }
 
+template<typename Derived>
+inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
+SparseMatrixBase<Derived>::blueNorm() const
+{
+  return internal::blueNorm_impl(*this);
+}
 } // end namespace Eigen
 
 #endif // EIGEN_SPARSE_DOT_H

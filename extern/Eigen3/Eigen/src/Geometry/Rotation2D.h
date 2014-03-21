@@ -59,7 +59,7 @@ protected:
 public:
 
   /** Construct a 2D counter clock wise rotation from the angle \a a in radian. */
-  inline Rotation2D(Scalar a) : m_angle(a) {}
+  inline Rotation2D(const Scalar& a) : m_angle(a) {}
 
   /** \returns the rotation angle */
   inline Scalar angle() const { return m_angle; }
@@ -89,7 +89,7 @@ public:
   /** \returns the spherical interpolation between \c *this and \a other using
     * parameter \a t. It is in fact equivalent to a linear interpolation.
     */
-  inline Rotation2D slerp(Scalar t, const Rotation2D& other) const
+  inline Rotation2D slerp(const Scalar& t, const Rotation2D& other) const
   { return m_angle * (1-t) + other.angle() * t; }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
@@ -114,7 +114,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Rotation2D& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
+  bool isApprox(const Rotation2D& other, const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::dummy_precision()) const
   { return internal::isApprox(m_angle,other.m_angle, prec); }
 };
 
@@ -133,8 +133,9 @@ template<typename Scalar>
 template<typename Derived>
 Rotation2D<Scalar>& Rotation2D<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
 {
+  using std::atan2;
   EIGEN_STATIC_ASSERT(Derived::RowsAtCompileTime==2 && Derived::ColsAtCompileTime==2,YOU_MADE_A_PROGRAMMING_MISTAKE)
-  m_angle = internal::atan2(mat.coeff(1,0), mat.coeff(0,0));
+  m_angle = atan2(mat.coeff(1,0), mat.coeff(0,0));
   return *this;
 }
 
@@ -144,8 +145,10 @@ template<typename Scalar>
 typename Rotation2D<Scalar>::Matrix2
 Rotation2D<Scalar>::toRotationMatrix(void) const
 {
-  Scalar sinA = internal::sin(m_angle);
-  Scalar cosA = internal::cos(m_angle);
+  using std::sin;
+  using std::cos;
+  Scalar sinA = sin(m_angle);
+  Scalar cosA = cos(m_angle);
   return (Matrix2() << cosA, -sinA, sinA, cosA).finished();
 }
 

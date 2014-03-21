@@ -12,7 +12,7 @@
 #define EIGEN_MACROS_H
 
 #define EIGEN_WORLD_VERSION 3
-#define EIGEN_MAJOR_VERSION 1
+#define EIGEN_MAJOR_VERSION 2
 #define EIGEN_MINOR_VERSION 1
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
@@ -115,12 +115,6 @@
 #define EIGEN_MAKESTRING2(a) #a
 #define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
 
-#if EIGEN_GNUC_AT_LEAST(4,1) && !defined(__clang__) && !defined(__INTEL_COMPILER)
-#define EIGEN_FLATTEN_ATTRIB __attribute__((flatten))
-#else
-#define EIGEN_FLATTEN_ATTRIB
-#endif
-
 // EIGEN_STRONG_INLINE is a stronger version of the inline, using __forceinline on MSVC,
 // but it still doesn't use GCC's always_inline. This is useful in (common) situations where MSVC needs forceinline
 // but GCC is still doing fine with just inline.
@@ -149,6 +143,12 @@
 #define EIGEN_DONT_INLINE __declspec(noinline)
 #else
 #define EIGEN_DONT_INLINE
+#endif
+
+#if (defined __GNUC__)
+#define EIGEN_PERMISSIVE_EXPR __extension__
+#else
+#define EIGEN_PERMISSIVE_EXPR
 #endif
 
 // this macro allows to get rid of linking errors about multiply defined functions.
@@ -238,12 +238,19 @@
 #endif
 
 // Suppresses 'unused variable' warnings.
-#define EIGEN_UNUSED_VARIABLE(var) (void)var;
+namespace Eigen {
+  namespace internal {
+    template<typename T> void ignore_unused_variable(const T&) {}
+  }
+}
+#define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
 
-#if !defined(EIGEN_ASM_COMMENT) && (defined __GNUC__)
-#define EIGEN_ASM_COMMENT(X)  asm("#" X)
-#else
-#define EIGEN_ASM_COMMENT(X)
+#if !defined(EIGEN_ASM_COMMENT)
+  #if (defined __GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
+    #define EIGEN_ASM_COMMENT(X)  asm("#" X)
+  #else
+    #define EIGEN_ASM_COMMENT(X)
+  #endif
 #endif
 
 /* EIGEN_ALIGN_TO_BOUNDARY(n) forces data to be n-byte aligned. This is used to satisfy SIMD requirements.
@@ -301,6 +308,12 @@
 #if defined(_MSC_VER) && (!defined(__INTEL_COMPILER))
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
   using Base::operator =;
+#elif defined(__clang__) // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)
+#define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
+  using Base::operator =; \
+  EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) { Base::operator=(other); return *this; } \
+  template <typename OtherDerived> \
+  EIGEN_STRONG_INLINE Derived& operator=(const DenseBase<OtherDerived>& other) { Base::operator=(other.derived()); return *this; }
 #else
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
   using Base::operator =; \

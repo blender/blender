@@ -200,16 +200,16 @@ class Matrix
       *
       * \sa resize(Index,Index)
       */
-    EIGEN_STRONG_INLINE explicit Matrix() : Base()
+    EIGEN_STRONG_INLINE Matrix() : Base()
     {
       Base::_check_template_params();
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
     // FIXME is it still needed
     Matrix(internal::constructor_without_unaligned_array_assert)
       : Base(internal::constructor_without_unaligned_array_assert())
-    { Base::_check_template_params(); EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED }
+    { Base::_check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED }
 
     /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
       *
@@ -224,7 +224,7 @@ class Matrix
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
       eigen_assert(dim >= 0);
       eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -304,7 +304,7 @@ class Matrix
       : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       Base::_check_template_params();
-      Base::resize(other.rows(), other.cols());
+      Base::_resize_to_match(other);
       // FIXME/CHECK: isn't *this = other.derived() more efficient. it allows to
       //              go for pure _set() implementations, right?
       *this = other;

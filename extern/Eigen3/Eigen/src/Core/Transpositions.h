@@ -99,9 +99,9 @@ class TranspositionsBase
     IndicesType& indices() { return derived().indices(); }
 
     /** Resizes to given size. */
-    inline void resize(int size)
+    inline void resize(int newSize)
     {
-      indices().resize(size);
+      indices().resize(newSize);
     }
 
     /** Sets \c *this to represents an identity transformation */
@@ -177,7 +177,7 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
 
     /** Generic constructor from expression of the transposition indices. */
     template<typename Other>
-    explicit inline Transpositions(const MatrixBase<Other>& indices) : m_indices(indices)
+    explicit inline Transpositions(const MatrixBase<Other>& a_indices) : m_indices(a_indices)
     {}
 
     /** Copies the \a other transpositions into \c *this */
@@ -234,12 +234,12 @@ class Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,IndexType>,Packe
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar Index;
 
-    inline Map(const Index* indices)
-      : m_indices(indices)
+    inline Map(const Index* indicesPtr)
+      : m_indices(indicesPtr)
     {}
 
-    inline Map(const Index* indices, Index size)
-      : m_indices(indices,size)
+    inline Map(const Index* indicesPtr, Index size)
+      : m_indices(indicesPtr,size)
     {}
 
     /** Copies the \a other transpositions into \c *this */
@@ -291,8 +291,8 @@ class TranspositionsWrapper
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar Index;
 
-    inline TranspositionsWrapper(IndicesType& indices)
-      : m_indices(indices)
+    inline TranspositionsWrapper(IndicesType& a_indices)
+      : m_indices(a_indices)
     {}
 
     /** Copies the \a other transpositions into \c *this */

@@ -185,7 +185,10 @@ inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
                                         internal::scalar_product_op<Scalar> >::type BinOp;
   typedef typename Derived::PlainObject PlainObject;
   SelfCwiseBinaryOp<BinOp, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
-  tmp = PlainObject::Constant(rows(),cols(), NumTraits<Scalar>::IsInteger ? other : Scalar(1)/other);
+  Scalar actual_other;
+  if(NumTraits<Scalar>::IsInteger)  actual_other = other;
+  else                              actual_other = Scalar(1)/other;
+  tmp = PlainObject::Constant(rows(),cols(), actual_other);
   return derived();
 }
 

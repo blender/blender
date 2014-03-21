@@ -115,6 +115,9 @@ template<> EIGEN_STRONG_INLINE Packet4i psub<Packet4i>(const Packet4i& a, const 
 template<> EIGEN_STRONG_INLINE Packet4f pnegate(const Packet4f& a) { return vnegq_f32(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pnegate(const Packet4i& a) { return vnegq_s32(a); }
 
+template<> EIGEN_STRONG_INLINE Packet4f pconj(const Packet4f& a) { return a; }
+template<> EIGEN_STRONG_INLINE Packet4i pconj(const Packet4i& a) { return a; }
+
 template<> EIGEN_STRONG_INLINE Packet4f pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vmulq_f32(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i pmul<Packet4i>(const Packet4i& a, const Packet4i& b) { return vmulq_s32(a,b); }
 
@@ -188,15 +191,15 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)   { EI
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
   float32x2_t lo, hi;
-  lo = vdup_n_f32(*from);
-  hi = vdup_n_f32(*(from+1));
+  lo = vld1_dup_f32(from);
+  hi = vld1_dup_f32(from+1);
   return vcombine_f32(lo, hi);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ploaddup<Packet4i>(const int*     from)
 {
   int32x2_t lo, hi;
-  lo = vdup_n_s32(*from);
-  hi = vdup_n_s32(*(from+1));
+  lo = vld1_dup_s32(from);
+  hi = vld1_dup_s32(from+1);
   return vcombine_s32(lo, hi);
 }
 
@@ -237,15 +240,12 @@ template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a) { return vabsq_s
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {
   float32x2_t a_lo, a_hi, sum;
-  float s[2];
 
   a_lo = vget_low_f32(a);
   a_hi = vget_high_f32(a);
   sum = vpadd_f32(a_lo, a_hi);
   sum = vpadd_f32(sum, sum);
-  vst1_f32(s, sum);
-
-  return s[0];
+  return vget_lane_f32(sum, 0);
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f preduxp<Packet4f>(const Packet4f* vecs)
@@ -271,15 +271,12 @@ template<> EIGEN_STRONG_INLINE Packet4f preduxp<Packet4f>(const Packet4f* vecs)
 template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
 {
   int32x2_t a_lo, a_hi, sum;
-  int32_t s[2];
 
   a_lo = vget_low_s32(a);
   a_hi = vget_high_s32(a);
   sum = vpadd_s32(a_lo, a_hi);
   sum = vpadd_s32(sum, sum);
-  vst1_s32(s, sum);
-
-  return s[0];
+  return vget_lane_s32(sum, 0);
 }
 
 template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
@@ -307,7 +304,6 @@ template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
 template<> EIGEN_STRONG_INLINE float predux_mul<Packet4f>(const Packet4f& a)
 {
   float32x2_t a_lo, a_hi, prod;
-  float s[2];
 
   // Get a_lo = |a1|a2| and a_hi = |a3|a4|
   a_lo = vget_low_f32(a);
@@ -316,14 +312,12 @@ template<> EIGEN_STRONG_INLINE float predux_mul<Packet4f>(const Packet4f& a)
   prod = vmul_f32(a_lo, a_hi);
   // Multiply prod with its swapped value |a2*a4|a1*a3|
   prod = vmul_f32(prod, vrev64_f32(prod));
-  vst1_f32(s, prod);
 
-  return s[0];
+  return vget_lane_f32(prod, 0);
 }
 template<> EIGEN_STRONG_INLINE int predux_mul<Packet4i>(const Packet4i& a)
 {
   int32x2_t a_lo, a_hi, prod;
-  int32_t s[2];
 
   // Get a_lo = |a1|a2| and a_hi = |a3|a4|
   a_lo = vget_low_s32(a);
@@ -332,65 +326,57 @@ template<> EIGEN_STRONG_INLINE int predux_mul<Packet4i>(const Packet4i& a)
   prod = vmul_s32(a_lo, a_hi);
   // Multiply prod with its swapped value |a2*a4|a1*a3|
   prod = vmul_s32(prod, vrev64_s32(prod));
-  vst1_s32(s, prod);
 
-  return s[0];
+  return vget_lane_s32(prod, 0);
 }
 
 // min
 template<> EIGEN_STRONG_INLINE float predux_min<Packet4f>(const Packet4f& a)
 {
   float32x2_t a_lo, a_hi, min;
-  float s[2];
 
   a_lo = vget_low_f32(a);
   a_hi = vget_high_f32(a);
   min = vpmin_f32(a_lo, a_hi);
   min = vpmin_f32(min, min);
-  vst1_f32(s, min);
 
-  return s[0];
+  return vget_lane_f32(min, 0);
 }
+
 template<> EIGEN_STRONG_INLINE int predux_min<Packet4i>(const Packet4i& a)
 {
   int32x2_t a_lo, a_hi, min;
-  int32_t s[2];
 
   a_lo = vget_low_s32(a);
   a_hi = vget_high_s32(a);
   min = vpmin_s32(a_lo, a_hi);
   min = vpmin_s32(min, min);
-  vst1_s32(s, min);
-
-  return s[0];
+  
+  return vget_lane_s32(min, 0);
 }
 
 // max
 template<> EIGEN_STRONG_INLINE float predux_max<Packet4f>(const Packet4f& a)
 {
   float32x2_t a_lo, a_hi, max;
-  float s[2];
 
   a_lo = vget_low_f32(a);
   a_hi = vget_high_f32(a);
   max = vpmax_f32(a_lo, a_hi);
   max = vpmax_f32(max, max);
-  vst1_f32(s, max);
 
-  return s[0];
+  return vget_lane_f32(max, 0);
 }
+
 template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
 {
   int32x2_t a_lo, a_hi, max;
-  int32_t s[2];
 
   a_lo = vget_low_s32(a);
   a_hi = vget_high_s32(a);
   max = vpmax_s32(a_lo, a_hi);
-  max = vpmax_s32(max, max);
-  vst1_s32(s, max);
 
-  return s[0];
+  return vget_lane_s32(max, 0);
 }
 
 // this PALIGN_NEON business is to work around a bug in LLVM Clang 3.0 causing incorrect compilation errors,

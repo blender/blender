@@ -12,18 +12,18 @@
 
 namespace Eigen { 
 
-template<typename T> inline typename NumTraits<T>::Real ei_real(const T& x) { return internal::real(x); }
-template<typename T> inline typename NumTraits<T>::Real ei_imag(const T& x) { return internal::imag(x); }
-template<typename T> inline T ei_conj(const T& x) { return internal::conj(x); }
-template<typename T> inline typename NumTraits<T>::Real ei_abs (const T& x) { return internal::abs(x); }
-template<typename T> inline typename NumTraits<T>::Real ei_abs2(const T& x) { return internal::abs2(x); }
-template<typename T> inline T ei_sqrt(const T& x) { return internal::sqrt(x); }
-template<typename T> inline T ei_exp (const T& x) { return internal::exp(x); }
-template<typename T> inline T ei_log (const T& x) { return internal::log(x); }
-template<typename T> inline T ei_sin (const T& x) { return internal::sin(x); }
-template<typename T> inline T ei_cos (const T& x) { return internal::cos(x); }
-template<typename T> inline T ei_atan2(const T& x,const T& y) { return internal::atan2(x,y); }
-template<typename T> inline T ei_pow (const T& x,const T& y) { return internal::pow(x,y); }
+template<typename T> inline typename NumTraits<T>::Real ei_real(const T& x) { return numext::real(x); }
+template<typename T> inline typename NumTraits<T>::Real ei_imag(const T& x) { return numext::imag(x); }
+template<typename T> inline T ei_conj(const T& x) { return numext::conj(x); }
+template<typename T> inline typename NumTraits<T>::Real ei_abs (const T& x) { using std::abs; return abs(x); }
+template<typename T> inline typename NumTraits<T>::Real ei_abs2(const T& x) { return numext::abs2(x); }
+template<typename T> inline T ei_sqrt(const T& x) { using std::sqrt; return sqrt(x); }
+template<typename T> inline T ei_exp (const T& x) { using std::exp;  return exp(x); }
+template<typename T> inline T ei_log (const T& x) { using std::log;  return log(x); }
+template<typename T> inline T ei_sin (const T& x) { using std::sin;  return sin(x); }
+template<typename T> inline T ei_cos (const T& x) { using std::cos;  return cos(x); }
+template<typename T> inline T ei_atan2(const T& x,const T& y) { using std::atan2; return atan2(x,y); }
+template<typename T> inline T ei_pow (const T& x,const T& y) { return numext::pow(x,y); }
 template<typename T> inline T ei_random () { return internal::random<T>(); }
 template<typename T> inline T ei_random (const T& x, const T& y) { return internal::random(x, y); }
 

@@ -16,6 +16,7 @@ template<typename Lhs, typename Rhs>
 struct SparseSparseProductReturnType
 {
   typedef typename internal::traits<Lhs>::Scalar Scalar;
+  typedef typename internal::traits<Lhs>::Index Index;
   enum {
     LhsRowMajor = internal::traits<Lhs>::Flags & RowMajorBit,
     RhsRowMajor = internal::traits<Rhs>::Flags & RowMajorBit,
@@ -24,11 +25,11 @@ struct SparseSparseProductReturnType
   };
 
   typedef typename internal::conditional<TransposeLhs,
-    SparseMatrix<Scalar,0>,
+    SparseMatrix<Scalar,0,Index>,
     typename internal::nested<Lhs,Rhs::RowsAtCompileTime>::type>::type LhsNested;
 
   typedef typename internal::conditional<TransposeRhs,
-    SparseMatrix<Scalar,0>,
+    SparseMatrix<Scalar,0,Index>,
     typename internal::nested<Rhs,Lhs::RowsAtCompileTime>::type>::type RhsNested;
 
   typedef SparseSparseProduct<LhsNested, RhsNested> Type;
@@ -99,15 +100,16 @@ class SparseSparseProduct : internal::no_assignment_operator,
     }
 
     template<typename Lhs, typename Rhs>
-    EIGEN_STRONG_INLINE SparseSparseProduct(const Lhs& lhs, const Rhs& rhs, RealScalar tolerance)
+    EIGEN_STRONG_INLINE SparseSparseProduct(const Lhs& lhs, const Rhs& rhs, const RealScalar& tolerance)
       : m_lhs(lhs), m_rhs(rhs), m_tolerance(tolerance), m_conservative(false)
     {
       init();
     }
 
-    SparseSparseProduct pruned(Scalar reference = 0, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision()) const
+    SparseSparseProduct pruned(const Scalar& reference = 0, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision()) const
     {
-      return SparseSparseProduct(m_lhs,m_rhs,internal::abs(reference)*epsilon);
+      using std::abs;
+      return SparseSparseProduct(m_lhs,m_rhs,abs(reference)*epsilon);
     }
 
     template<typename Dest>

@@ -330,7 +330,8 @@ DenseBase<Derived>::redux(const Func& func) const
             ::run(derived(), func);
 }
 
-/** \returns the minimum of all coefficients of *this
+/** \returns the minimum of all coefficients of \c *this.
+  * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
@@ -339,7 +340,8 @@ DenseBase<Derived>::minCoeff() const
   return this->redux(Eigen::internal::scalar_min_op<Scalar>());
 }
 
-/** \returns the maximum of all coefficients of *this
+/** \returns the maximum of all coefficients of \c *this.
+  * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar

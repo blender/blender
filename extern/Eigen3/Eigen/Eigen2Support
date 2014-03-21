@@ -14,12 +14,25 @@
 #error Eigen2 support must be enabled by defining EIGEN2_SUPPORT before including any Eigen header
 #endif
 
+#ifndef EIGEN_NO_EIGEN2_DEPRECATED_WARNING
+
+#if defined(__GNUC__) || defined(__INTEL_COMPILER) || defined(__clang__)
+#warning "Eigen2 support is deprecated in Eigen 3.2.x and it will be removed in Eigen 3.3. (Define EIGEN_NO_EIGEN2_DEPRECATED_WARNING to disable this warning)"
+#else
+#pragma message ("Eigen2 support is deprecated in Eigen 3.2.x and it will be removed in Eigen 3.3. (Define EIGEN_NO_EIGEN2_DEPRECATED_WARNING to disable this warning)")
+#endif
+
+#endif // EIGEN_NO_EIGEN2_DEPRECATED_WARNING
+
 #include "src/Core/util/DisableStupidWarnings.h"
 
 /** \ingroup Support_modules
   * \defgroup Eigen2Support_Module Eigen2 support module
-  * This module provides a couple of deprecated functions improving the compatibility with Eigen2.
   *
+  * \warning Eigen2 support is deprecated in Eigen 3.2.x and it will be removed in Eigen 3.3.
+  *
+  * This module provides a couple of deprecated functions improving the compatibility with Eigen2.
+  * 
   * To use it, define EIGEN2_SUPPORT before including any Eigen header
   * \code
   * #define EIGEN2_SUPPORT

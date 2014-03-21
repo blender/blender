@@ -293,11 +293,12 @@ template<typename _MatrixType> class FullPivLU
       */
     inline Index rank() const
     {
+      using std::abs;
       eigen_assert(m_isInitialized && "LU is not initialized.");
-      RealScalar premultiplied_threshold = internal::abs(m_maxpivot) * threshold();
+      RealScalar premultiplied_threshold = abs(m_maxpivot) * threshold();
       Index result = 0;
       for(Index i = 0; i < m_nonzero_pivots; ++i)
-        result += (internal::abs(m_lu.coeff(i,i)) > premultiplied_threshold);
+        result += (abs(m_lu.coeff(i,i)) > premultiplied_threshold);
       return result;
     }
 
@@ -416,6 +417,9 @@ FullPivLU<MatrixType>::FullPivLU(const MatrixType& matrix)
 template<typename MatrixType>
 FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
+  // the permutations are stored as int indices, so just to be sure:
+  eigen_assert(matrix.rows()<=NumTraits<int>::highest() && matrix.cols()<=NumTraits<int>::highest());
+  
   m_isInitialized = true;
   m_lu = matrix;
 
@@ -547,6 +551,7 @@ struct kernel_retval<FullPivLU<_MatrixType> >
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
+    using std::abs;
     const Index cols = dec().matrixLU().cols(), dimker = cols - rank();
     if(dimker == 0)
     {
@@ -632,6 +637,7 @@ struct image_retval<FullPivLU<_MatrixType> >
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
+    using std::abs;
     if(rank() == 0)
     {
       // The Image is just {0}, so it doesn't have a basis properly speaking, but let's

@@ -39,7 +39,7 @@ inline int umfpack_symbolic(int n_row,int n_col,
                             const int Ap[], const int Ai[], const std::complex<double> Ax[], void **Symbolic,
                             const double Control [UMFPACK_CONTROL], double Info [UMFPACK_INFO])
 {
-  return umfpack_zi_symbolic(n_row,n_col,Ap,Ai,&internal::real_ref(Ax[0]),0,Symbolic,Control,Info);
+  return umfpack_zi_symbolic(n_row,n_col,Ap,Ai,&numext::real_ref(Ax[0]),0,Symbolic,Control,Info);
 }
 
 inline int umfpack_numeric( const int Ap[], const int Ai[], const double Ax[],
@@ -53,7 +53,7 @@ inline int umfpack_numeric( const int Ap[], const int Ai[], const std::complex<d
                             void *Symbolic, void **Numeric,
                             const double Control[UMFPACK_CONTROL],double Info [UMFPACK_INFO])
 {
-  return umfpack_zi_numeric(Ap,Ai,&internal::real_ref(Ax[0]),0,Symbolic,Numeric,Control,Info);
+  return umfpack_zi_numeric(Ap,Ai,&numext::real_ref(Ax[0]),0,Symbolic,Numeric,Control,Info);
 }
 
 inline int umfpack_solve( int sys, const int Ap[], const int Ai[], const double Ax[],
@@ -67,7 +67,7 @@ inline int umfpack_solve( int sys, const int Ap[], const int Ai[], const std::co
                           std::complex<double> X[], const std::complex<double> B[], void *Numeric,
                           const double Control[UMFPACK_CONTROL], double Info[UMFPACK_INFO])
 {
-  return umfpack_zi_solve(sys,Ap,Ai,&internal::real_ref(Ax[0]),0,&internal::real_ref(X[0]),0,&internal::real_ref(B[0]),0,Numeric,Control,Info);
+  return umfpack_zi_solve(sys,Ap,Ai,&numext::real_ref(Ax[0]),0,&numext::real_ref(X[0]),0,&numext::real_ref(B[0]),0,Numeric,Control,Info);
 }
 
 inline int umfpack_get_lunz(int *lnz, int *unz, int *n_row, int *n_col, int *nz_udiag, void *Numeric, double)
@@ -89,9 +89,9 @@ inline int umfpack_get_numeric(int Lp[], int Lj[], double Lx[], int Up[], int Ui
 inline int umfpack_get_numeric(int Lp[], int Lj[], std::complex<double> Lx[], int Up[], int Ui[], std::complex<double> Ux[],
                                int P[], int Q[], std::complex<double> Dx[], int *do_recip, double Rs[], void *Numeric)
 {
-  double& lx0_real = internal::real_ref(Lx[0]);
-  double& ux0_real = internal::real_ref(Ux[0]);
-  double& dx0_real = internal::real_ref(Dx[0]);
+  double& lx0_real = numext::real_ref(Lx[0]);
+  double& ux0_real = numext::real_ref(Ux[0]);
+  double& dx0_real = numext::real_ref(Dx[0]);
   return umfpack_zi_get_numeric(Lp,Lj,Lx?&lx0_real:0,0,Up,Ui,Ux?&ux0_real:0,0,P,Q,
                                 Dx?&dx0_real:0,0,do_recip,Rs,Numeric);
 }
@@ -103,7 +103,7 @@ inline int umfpack_get_determinant(double *Mx, double *Ex, void *NumericHandle, 
 
 inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *NumericHandle, double User_Info [UMFPACK_INFO])
 {
-  double& mx_real = internal::real_ref(*Mx);
+  double& mx_real = numext::real_ref(*Mx);
   return umfpack_zi_get_determinant(&mx_real,0,Ex,NumericHandle,User_Info);
 }
 
@@ -114,7 +114,7 @@ inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *N
   * using the UmfPack library. The sparse matrix A must be squared and full rank.
   * The vectors or matrices X and B can be either dense or sparse.
   *
-  * \WARNING The input matrix A should be in a \b compressed and \b column-major form.
+  * \warning The input matrix A should be in a \b compressed and \b column-major form.
   * Otherwise an expensive copy will be made. You can call the inexpensive makeCompressed() to get a compressed matrix.
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *
@@ -215,14 +215,14 @@ class UmfPackLU : internal::noncopyable
       *
       * \sa compute()
       */
-//     template<typename Rhs>
-//     inline const internal::sparse_solve_retval<UmfPAckLU, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
-//     {
-//       eigen_assert(m_isInitialized && "UmfPAckLU is not initialized.");
-//       eigen_assert(rows()==b.rows()
-//                 && "UmfPAckLU::solve(): invalid number of rows of the right hand side matrix b");
-//       return internal::sparse_solve_retval<UmfPAckLU, Rhs>(*this, b.derived());
-//     }
+    template<typename Rhs>
+    inline const internal::sparse_solve_retval<UmfPackLU, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "UmfPackLU is not initialized.");
+      eigen_assert(rows()==b.rows()
+                && "UmfPackLU::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::sparse_solve_retval<UmfPackLU, Rhs>(*this, b.derived());
+    }
 
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
@@ -381,7 +381,8 @@ bool UmfPackLU<MatrixType>::_solve(const MatrixBase<BDerived> &b, MatrixBase<XDe
   const int rhsCols = b.cols();
   eigen_assert((BDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major rhs yet");
   eigen_assert((XDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major result yet");
-
+  eigen_assert(b.derived().data() != x.derived().data() && " Umfpack does not support inplace solve");
+  
   int errorCode;
   for (int j=0; j<rhsCols; ++j)
   {
@@ -420,7 +421,7 @@ struct sparse_solve_retval<UmfPackLU<_MatrixType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    this->defaultEvalTo(dst);
   }
 };
 

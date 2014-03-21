@@ -59,7 +59,7 @@ template<typename MatrixType,typename Rhs> struct homogeneous_right_product_impl
 } // end namespace internal
 
 template<typename MatrixType,int _Direction> class Homogeneous
-  : public MatrixBase<Homogeneous<MatrixType,_Direction> >
+  : internal::no_assignment_operator, public MatrixBase<Homogeneous<MatrixType,_Direction> >
 {
   public:
 

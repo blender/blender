@@ -52,12 +52,17 @@ EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
-  ResScalar* res, Index
-  #ifdef EIGEN_INTERNAL_DEBUGGING
-    resIncr
-  #endif
-  , RhsScalar alpha)
+  ResScalar* res, Index resIncr, RhsScalar alpha);
+};
+
+template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjugateLhs,RhsScalar,ConjugateRhs,Version>::run(
+  Index rows, Index cols,
+  const LhsScalar* lhs, Index lhsStride,
+  const RhsScalar* rhs, Index rhsIncr,
+  ResScalar* res, Index resIncr, RhsScalar alpha)
 {
+  EIGEN_UNUSED_VARIABLE(resIncr)
   eigen_internal_assert(resIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
@@ -74,21 +79,21 @@ EIGEN_DONT_INLINE static void run(
   conj_helper<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> cj;
   conj_helper<LhsPacket,RhsPacket,ConjugateLhs,ConjugateRhs> pcj;
   if(ConjugateRhs)
-    alpha = conj(alpha);
+    alpha = numext::conj(alpha);
 
   enum { AllAligned = 0, EvenAligned, FirstAligned, NoneAligned };
   const Index columnsAtOnce = 4;
   const Index peels = 2;
   const Index LhsPacketAlignedMask = LhsPacketSize-1;
   const Index ResPacketAlignedMask = ResPacketSize-1;
-  const Index PeelAlignedMask = ResPacketSize*peels-1;
+//  const Index PeelAlignedMask = ResPacketSize*peels-1;
   const Index size = rows;
   
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type.
   Index alignedStart = internal::first_aligned(res,size);
   Index alignedSize = ResPacketSize>1 ? alignedStart + ((size-alignedStart) & ~ResPacketAlignedMask) : 0;
-  const Index peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
+  const Index peeledSize = alignedSize - RhsPacketSize*peels - RhsPacketSize + 1;
 
   const Index alignmentStep = LhsPacketSize>1 ? (LhsPacketSize - lhsStride % LhsPacketSize) & LhsPacketAlignedMask : 0;
   Index alignmentPattern = alignmentStep==0 ? AllAligned
@@ -177,6 +182,8 @@ EIGEN_DONT_INLINE static void run(
               _EIGEN_ACCUMULATE_PACKETS(d,du,d);
             break;
           case FirstAligned:
+          {
+            Index j = alignedStart;
             if(peels>1)
             {
               LhsPacket A00, A01, A02, A03, A10, A11, A12, A13;
@@ -186,7 +193,7 @@ EIGEN_DONT_INLINE static void run(
               A02 = pload<LhsPacket>(&lhs2[alignedStart-2]);
               A03 = pload<LhsPacket>(&lhs3[alignedStart-3]);
 
-              for (Index j = alignedStart; j<peeledSize; j+=peels*ResPacketSize)
+              for (; j<peeledSize; j+=peels*ResPacketSize)
               {
                 A11 = pload<LhsPacket>(&lhs1[j-1+LhsPacketSize]);  palign<1>(A01,A11);
                 A12 = pload<LhsPacket>(&lhs2[j-2+LhsPacketSize]);  palign<2>(A02,A12);
@@ -210,9 +217,10 @@ EIGEN_DONT_INLINE static void run(
                 pstore(&res[j+ResPacketSize],T1);
               }
             }
-            for (Index j = peeledSize; j<alignedSize; j+=ResPacketSize)
+            for (; j<alignedSize; j+=ResPacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,du,du);
             break;
+          }
           default:
             for (Index j = alignedStart; j<alignedSize; j+=ResPacketSize)
               _EIGEN_ACCUMULATE_PACKETS(du,du,du);
@@ -250,7 +258,7 @@ EIGEN_DONT_INLINE static void run(
         // process aligned result's coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(LhsPacket))==0)
           for (Index i = alignedStart;i<alignedSize;i+=ResPacketSize)
-            pstore(&res[i], pcj.pmadd(ploadu<LhsPacket>(&lhs0[i]), ptmp0, pload<ResPacket>(&res[i])));
+            pstore(&res[i], pcj.pmadd(pload<LhsPacket>(&lhs0[i]), ptmp0, pload<ResPacket>(&res[i])));
         else
           for (Index i = alignedStart;i<alignedSize;i+=ResPacketSize)
             pstore(&res[i], pcj.pmadd(ploadu<LhsPacket>(&lhs0[i]), ptmp0, pload<ResPacket>(&res[i])));
@@ -271,7 +279,6 @@ EIGEN_DONT_INLINE static void run(
   } while(Vectorizable);
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
-};
 
 /* Optimized row-major matrix * vector product:
  * This algorithm processes 4 rows at onces that allows to both reduce
@@ -309,6 +316,15 @@ EIGEN_DONT_INLINE static void run(
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
   ResScalar* res, Index resIncr,
+  ResScalar alpha);
+};
+
+template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjugateLhs,RhsScalar,ConjugateRhs,Version>::run(
+  Index rows, Index cols,
+  const LhsScalar* lhs, Index lhsStride,
+  const RhsScalar* rhs, Index rhsIncr,
+  ResScalar* res, Index resIncr,
   ResScalar alpha)
 {
   EIGEN_UNUSED_VARIABLE(rhsIncr);
@@ -332,7 +348,7 @@ EIGEN_DONT_INLINE static void run(
   const Index peels = 2;
   const Index RhsPacketAlignedMask = RhsPacketSize-1;
   const Index LhsPacketAlignedMask = LhsPacketSize-1;
-  const Index PeelAlignedMask = RhsPacketSize*peels-1;
+//   const Index PeelAlignedMask = RhsPacketSize*peels-1;
   const Index depth = cols;
 
   // How many coeffs of the result do we have to skip to be aligned.
@@ -340,7 +356,7 @@ EIGEN_DONT_INLINE static void run(
   // if that's not the case then vectorization is discarded, see below.
   Index alignedStart = internal::first_aligned(rhs, depth);
   Index alignedSize = RhsPacketSize>1 ? alignedStart + ((depth-alignedStart) & ~RhsPacketAlignedMask) : 0;
-  const Index peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
+  const Index peeledSize = alignedSize - RhsPacketSize*peels - RhsPacketSize + 1;
 
   const Index alignmentStep = LhsPacketSize>1 ? (LhsPacketSize - lhsStride % LhsPacketSize) & LhsPacketAlignedMask : 0;
   Index alignmentPattern = alignmentStep==0 ? AllAligned
@@ -430,10 +446,12 @@ EIGEN_DONT_INLINE static void run(
               _EIGEN_ACCUMULATE_PACKETS(d,du,d);
             break;
           case FirstAligned:
+          {
+            Index j = alignedStart;
             if (peels>1)
             {
               /* Here we proccess 4 rows with with two peeled iterations to hide
-               * tghe overhead of unaligned loads. Moreover unaligned loads are handled
+               * the overhead of unaligned loads. Moreover unaligned loads are handled
                * using special shift/move operations between the two aligned packets
                * overlaping the desired unaligned packet. This is *much* more efficient
                * than basic unaligned loads.
@@ -443,7 +461,7 @@ EIGEN_DONT_INLINE static void run(
               A02 = pload<LhsPacket>(&lhs2[alignedStart-2]);
               A03 = pload<LhsPacket>(&lhs3[alignedStart-3]);
 
-              for (Index j = alignedStart; j<peeledSize; j+=peels*RhsPacketSize)
+              for (; j<peeledSize; j+=peels*RhsPacketSize)
               {
                 RhsPacket b = pload<RhsPacket>(&rhs[j]);
                 A11 = pload<LhsPacket>(&lhs1[j-1+LhsPacketSize]);  palign<1>(A01,A11);
@@ -465,9 +483,10 @@ EIGEN_DONT_INLINE static void run(
                 ptmp3 = pcj.pmadd(A13, b, ptmp3);
               }
             }
-            for (Index j = peeledSize; j<alignedSize; j+=RhsPacketSize)
+            for (; j<alignedSize; j+=RhsPacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,du,du);
             break;
+          }
           default:
             for (Index j = alignedStart; j<alignedSize; j+=RhsPacketSize)
               _EIGEN_ACCUMULATE_PACKETS(du,du,du);
@@ -539,7 +558,6 @@ EIGEN_DONT_INLINE static void run(
 
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
-};
 
 } // end namespace internal
 

@@ -40,7 +40,7 @@ namespace Eigen {
 /** \internal Specialization for the data types supported by MKL */
 
 #define EIGEN_MKL_SCHUR_COMPLEX(EIGTYPE, MKLTYPE, MKLPREFIX, MKLPREFIX_U, EIGCOLROW, MKLCOLROW) \
-template<> inline\
+template<> inline \
 ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >& \
 ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW>& matrix, bool computeU) \
 { \
@@ -49,7 +49,7 @@ ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Matri
   typedef MatrixType::RealScalar RealScalar; \
   typedef std::complex<RealScalar> ComplexScalar; \
 \
-  assert(matrix.cols() == matrix.rows()); \
+  eigen_assert(matrix.cols() == matrix.rows()); \
 \
   m_matUisUptodate = false; \
   if(matrix.cols() == 1) \

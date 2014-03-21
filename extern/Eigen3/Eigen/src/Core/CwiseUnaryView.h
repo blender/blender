@@ -44,9 +44,10 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
     // "error: no integral type can represent all of the enumerator values
     InnerStrideAtCompileTime = MatrixTypeInnerStride == Dynamic
                              ? int(Dynamic)
-                             : int(MatrixTypeInnerStride)
-                               * int(sizeof(typename traits<MatrixType>::Scalar) / sizeof(Scalar)),
-    OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret
+                             : int(MatrixTypeInnerStride) * int(sizeof(typename traits<MatrixType>::Scalar) / sizeof(Scalar)),
+    OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret == Dynamic
+                             ? int(Dynamic)
+                             : outer_stride_at_compile_time<MatrixType>::ret * int(sizeof(typename traits<MatrixType>::Scalar) / sizeof(Scalar))
   };
 };
 }
@@ -55,8 +56,7 @@ template<typename ViewOp, typename MatrixType, typename StorageKind>
 class CwiseUnaryViewImpl;
 
 template<typename ViewOp, typename MatrixType>
-class CwiseUnaryView : internal::no_assignment_operator,
-  public CwiseUnaryViewImpl<ViewOp, MatrixType, typename internal::traits<MatrixType>::StorageKind>
+class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename internal::traits<MatrixType>::StorageKind>
 {
   public:
 
@@ -98,6 +98,10 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     typedef typename internal::dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type Base;
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryViewImpl)
+    
+    inline Scalar* data() { return &coeffRef(0); }
+    inline const Scalar* data() const { return &coeff(0); }
 
     inline Index innerStride() const
     {
@@ -106,7 +110,7 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
 
     inline Index outerStride() const
     {
-      return derived().nestedExpression().outerStride();
+      return derived().nestedExpression().outerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
 
     EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const

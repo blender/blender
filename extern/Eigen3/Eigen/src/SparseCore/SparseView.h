@@ -18,7 +18,7 @@ namespace internal {
 template<typename MatrixType>
 struct traits<SparseView<MatrixType> > : traits<MatrixType>
 {
-  typedef int Index;
+  typedef typename MatrixType::Index Index;
   typedef Sparse StorageKind;
   enum {
     Flags = int(traits<MatrixType>::Flags) & (RowMajorBit)
@@ -56,6 +56,7 @@ protected:
 template<typename MatrixType>
 class SparseView<MatrixType>::InnerIterator : public _MatrixTypeNested::InnerIterator
 {
+  typedef typename SparseView::Index Index;
 public:
   typedef typename _MatrixTypeNested::InnerIterator IterBase;
   InnerIterator(const SparseView& view, Index outer) :
@@ -88,7 +89,7 @@ private:
 
 template<typename Derived>
 const SparseView<Derived> MatrixBase<Derived>::sparseView(const Scalar& m_reference,
-                                                          typename NumTraits<Scalar>::Real m_epsilon) const
+                                                          const typename NumTraits<Scalar>::Real& m_epsilon) const
 {
   return SparseView<Derived>(derived(), m_reference, m_epsilon);
 }

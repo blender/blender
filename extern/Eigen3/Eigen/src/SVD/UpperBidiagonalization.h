@@ -39,7 +39,7 @@ template<typename _MatrixType> class UpperBidiagonalization
               CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Diagonal<const MatrixType,0> >
             > HouseholderUSequenceType;
     typedef HouseholderSequence<
-              const MatrixType,
+              const typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type,
               Diagonal<const MatrixType,1>,
               OnTheRight
             > HouseholderVSequenceType;
@@ -74,7 +74,7 @@ template<typename _MatrixType> class UpperBidiagonalization
     const HouseholderVSequenceType householderV() // const here gives nasty errors and i'm lazy
     {
       eigen_assert(m_isInitialized && "UpperBidiagonalization is not initialized.");
-      return HouseholderVSequenceType(m_householder, m_householder.const_derived().template diagonal<1>())
+      return HouseholderVSequenceType(m_householder.conjugate(), m_householder.const_derived().template diagonal<1>())
              .setLength(m_householder.cols()-1)
              .setShift(1);
     }

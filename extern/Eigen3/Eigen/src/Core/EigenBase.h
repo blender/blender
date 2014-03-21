@@ -126,35 +126,6 @@ Derived& DenseBase<Derived>::operator-=(const EigenBase<OtherDerived> &other)
   return derived();
 }
 
-/** replaces \c *this by \c *this * \a other.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-inline Derived&
-MatrixBase<Derived>::operator*=(const EigenBase<OtherDerived> &other)
-{
-  other.derived().applyThisOnTheRight(derived());
-  return derived();
-}
-
-/** replaces \c *this by \c *this * \a other. It is equivalent to MatrixBase::operator*=() */
-template<typename Derived>
-template<typename OtherDerived>
-inline void MatrixBase<Derived>::applyOnTheRight(const EigenBase<OtherDerived> &other)
-{
-  other.derived().applyThisOnTheRight(derived());
-}
-
-/** replaces \c *this by \c *this * \a other. */
-template<typename Derived>
-template<typename OtherDerived>
-inline void MatrixBase<Derived>::applyOnTheLeft(const EigenBase<OtherDerived> &other)
-{
-  other.derived().applyThisOnTheLeft(derived());
-}
-
 } // end namespace Eigen
 
 #endif // EIGEN_EIGENBASE_H

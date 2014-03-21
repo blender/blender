@@ -78,7 +78,11 @@ class SparseDiagonalProduct
     EIGEN_SPARSE_PUBLIC_INTERFACE(SparseDiagonalProduct)
 
     typedef internal::sparse_diagonal_product_inner_iterator_selector
-                <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;
+                      <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;
+    
+    // We do not want ReverseInnerIterator for diagonal-sparse products,
+    // but this dummy declaration is needed to make diag * sparse * diag compile.
+    class ReverseInnerIterator;
 
     EIGEN_STRONG_INLINE SparseDiagonalProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -118,19 +122,23 @@ class sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsDiagonal,SDP_IsSparseColMajor>
   : public CwiseBinaryOp<
       scalar_product_op<typename Lhs::Scalar>,
-      SparseInnerVectorSet<Rhs,1>,
-      typename Lhs::DiagonalVectorType>::InnerIterator
+      const typename Rhs::ConstInnerVectorReturnType,
+      const typename Lhs::DiagonalVectorType>::InnerIterator
 {
     typedef typename CwiseBinaryOp<
       scalar_product_op<typename Lhs::Scalar>,
-      SparseInnerVectorSet<Rhs,1>,
-      typename Lhs::DiagonalVectorType>::InnerIterator Base;
+      const typename Rhs::ConstInnerVectorReturnType,
+      const typename Lhs::DiagonalVectorType>::InnerIterator Base;
     typedef typename Lhs::Index Index;
+    Index m_outer;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, Index outer)
-      : Base(expr.rhs().innerVector(outer) .cwiseProduct(expr.lhs().diagonal()), 0)
+      : Base(expr.rhs().innerVector(outer) .cwiseProduct(expr.lhs().diagonal()), 0), m_outer(outer)
     {}
+    
+    inline Index outer() const { return m_outer; }
+    inline Index col() const { return m_outer; }
 };
 
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
@@ -152,19 +160,23 @@ class sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsSparseRowMajor,SDP_IsDiagonal>
   : public CwiseBinaryOp<
       scalar_product_op<typename Rhs::Scalar>,
-      SparseInnerVectorSet<Lhs,1>,
-      Transpose<const typename Rhs::DiagonalVectorType> >::InnerIterator
+      const typename Lhs::ConstInnerVectorReturnType,
+      const Transpose<const typename Rhs::DiagonalVectorType> >::InnerIterator
 {
     typedef typename CwiseBinaryOp<
       scalar_product_op<typename Rhs::Scalar>,
-      SparseInnerVectorSet<Lhs,1>,
-      Transpose<const typename Rhs::DiagonalVectorType> >::InnerIterator Base;
+      const typename Lhs::ConstInnerVectorReturnType,
+      const Transpose<const typename Rhs::DiagonalVectorType> >::InnerIterator Base;
     typedef typename Lhs::Index Index;
+    Index m_outer;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, Index outer)
-      : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().diagonal().transpose()), 0)
+      : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().diagonal().transpose()), 0), m_outer(outer)
     {}
+    
+    inline Index outer() const { return m_outer; }
+    inline Index row() const { return m_outer; }
 };
 
 } // end namespace internal

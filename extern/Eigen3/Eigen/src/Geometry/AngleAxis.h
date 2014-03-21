@@ -76,7 +76,7 @@ public:
     * \warning If the \a axis vector is not normalized, then the angle-axis object
     *          represents an invalid rotation. */
   template<typename Derived>
-  inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
+  inline AngleAxis(const Scalar& angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
   /** Constructs and initialize the angle-axis rotation from a quaternion \a q. */
   template<typename QuatDerived> inline explicit AngleAxis(const QuaternionBase<QuatDerived>& q) { *this = q; }
   /** Constructs and initialize the angle-axis rotation from a 3x3 rotation matrix. */
@@ -137,7 +137,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const AngleAxis& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
+  bool isApprox(const AngleAxis& other, const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_axis.isApprox(other.m_axis, prec) && internal::isApprox(m_angle,other.m_angle, prec); }
 };
 
@@ -161,6 +161,7 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived
   using std::acos;
   using std::min;
   using std::max;
+  using std::sqrt;
   Scalar n2 = q.vec().squaredNorm();
   if (n2 < NumTraits<Scalar>::dummy_precision()*NumTraits<Scalar>::dummy_precision())
   {
@@ -170,7 +171,7 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived
   else
   {
     m_angle = Scalar(2)*acos((min)((max)(Scalar(-1),q.w()),Scalar(1)));
-    m_axis = q.vec() / internal::sqrt(n2);
+    m_axis = q.vec() / sqrt(n2);
   }
   return *this;
 }
@@ -202,9 +203,11 @@ template<typename Scalar>
 typename AngleAxis<Scalar>::Matrix3
 AngleAxis<Scalar>::toRotationMatrix(void) const
 {
+  using std::sin;
+  using std::cos;
   Matrix3 res;
-  Vector3 sin_axis  = internal::sin(m_angle) * m_axis;
-  Scalar c = internal::cos(m_angle);
+  Vector3 sin_axis  = sin(m_angle) * m_axis;
+  Scalar c = cos(m_angle);
   Vector3 cos1_axis = (Scalar(1)-c) * m_axis;
 
   Scalar tmp;

@@ -96,7 +96,7 @@ template<typename _MatrixType> class Tridiagonalization
             >::type SubDiagonalReturnType;
 
     /** \brief Return type of matrixQ() */
-    typedef typename HouseholderSequence<MatrixType,CoeffVectorType>::ConjugateReturnType HouseholderSequenceType;
+    typedef HouseholderSequence<MatrixType,typename internal::remove_all<typename CoeffVectorType::ConjugateReturnType>::type> HouseholderSequenceType;
 
     /** \brief Default constructor.
       *
@@ -345,6 +345,7 @@ namespace internal {
 template<typename MatrixType, typename CoeffVectorType>
 void tridiagonalization_inplace(MatrixType& matA, CoeffVectorType& hCoeffs)
 {
+  using numext::conj;
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
@@ -425,8 +426,6 @@ struct tridiagonalization_inplace_selector;
 template<typename MatrixType, typename DiagonalType, typename SubDiagonalType>
 void tridiagonalization_inplace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
 {
-  typedef typename MatrixType::Index Index;
-  //Index n = mat.rows();
   eigen_assert(mat.cols()==mat.rows() && diag.size()==mat.rows() && subdiag.size()==mat.rows()-1);
   tridiagonalization_inplace_selector<MatrixType>::run(mat, diag, subdiag, extractQ);
 }
@@ -467,8 +466,9 @@ struct tridiagonalization_inplace_selector<MatrixType,3,false>
   template<typename DiagonalType, typename SubDiagonalType>
   static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
   {
+    using std::sqrt;
     diag[0] = mat(0,0);
-    RealScalar v1norm2 = abs2(mat(2,0));
+    RealScalar v1norm2 = numext::abs2(mat(2,0));
     if(v1norm2 == RealScalar(0))
     {
       diag[1] = mat(1,1);
@@ -480,7 +480,7 @@ struct tridiagonalization_inplace_selector<MatrixType,3,false>
     }
     else
     {
-      RealScalar beta = sqrt(abs2(mat(1,0)) + v1norm2);
+      RealScalar beta = sqrt(numext::abs2(mat(1,0)) + v1norm2);
       RealScalar invBeta = RealScalar(1)/beta;
       Scalar m01 = mat(1,0) * invBeta;
       Scalar m02 = mat(2,0) * invBeta;
@@ -510,7 +510,7 @@ struct tridiagonalization_inplace_selector<MatrixType,1,IsComplex>
   template<typename DiagonalType, typename SubDiagonalType>
   static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType&, bool extractQ)
   {
-    diag(0,0) = real(mat(0,0));
+    diag(0,0) = numext::real(mat(0,0));
     if(extractQ)
       mat(0,0) = Scalar(1);
   }

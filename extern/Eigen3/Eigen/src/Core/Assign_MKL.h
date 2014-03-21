@@ -210,7 +210,7 @@ EIGEN_MKL_VML_DECLARE_UNARY_CALLS_LA(sqrt, Sqrt)
 EIGEN_MKL_VML_DECLARE_UNARY_CALLS_REAL(square, Sqr)
 
 // The vm*powx functions are not avaibale in the windows version of MKL.
-#ifdef _WIN32
+#ifndef _WIN32
 EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmspowx_, float, float)
 EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmdpowx_, double, double)
 EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmcpowx_, scomplex, MKL_Complex8)

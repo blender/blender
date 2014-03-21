@@ -107,10 +107,10 @@ class Array
       *
       * \sa resize(Index,Index)
       */
-    EIGEN_STRONG_INLINE explicit Array() : Base()
+    EIGEN_STRONG_INLINE Array() : Base()
     {
       Base::_check_template_params();
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -120,7 +120,7 @@ class Array
       : Base(internal::constructor_without_unaligned_array_assert())
     {
       Base::_check_template_params();
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 #endif
 
@@ -137,15 +137,15 @@ class Array
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Array)
       eigen_assert(dim >= 0);
       eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename T0, typename T1>
-    EIGEN_STRONG_INLINE Array(const T0& x, const T1& y)
+    EIGEN_STRONG_INLINE Array(const T0& val0, const T1& val1)
     {
       Base::_check_template_params();
-      this->template _init2<T0,T1>(x, y);
+      this->template _init2<T0,T1>(val0, val1);
     }
     #else
     /** constructs an uninitialized matrix with \a rows rows and \a cols columns.
@@ -155,27 +155,27 @@ class Array
       * Matrix() instead. */
     Array(Index rows, Index cols);
     /** constructs an initialized 2D vector with given coefficients */
-    Array(const Scalar& x, const Scalar& y);
+    Array(const Scalar& val0, const Scalar& val1);
     #endif
 
     /** constructs an initialized 3D vector with given coefficients */
-    EIGEN_STRONG_INLINE Array(const Scalar& x, const Scalar& y, const Scalar& z)
+    EIGEN_STRONG_INLINE Array(const Scalar& val0, const Scalar& val1, const Scalar& val2)
     {
       Base::_check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Array, 3)
-      m_storage.data()[0] = x;
-      m_storage.data()[1] = y;
-      m_storage.data()[2] = z;
+      m_storage.data()[0] = val0;
+      m_storage.data()[1] = val1;
+      m_storage.data()[2] = val2;
     }
     /** constructs an initialized 4D vector with given coefficients */
-    EIGEN_STRONG_INLINE Array(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
+    EIGEN_STRONG_INLINE Array(const Scalar& val0, const Scalar& val1, const Scalar& val2, const Scalar& val3)
     {
       Base::_check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Array, 4)
-      m_storage.data()[0] = x;
-      m_storage.data()[1] = y;
-      m_storage.data()[2] = z;
-      m_storage.data()[3] = w;
+      m_storage.data()[0] = val0;
+      m_storage.data()[1] = val1;
+      m_storage.data()[2] = val2;
+      m_storage.data()[3] = val3;
     }
 
     explicit Array(const Scalar *data);
@@ -210,7 +210,7 @@ class Array
       : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       Base::_check_template_params();
-      Base::resize(other.rows(), other.cols());
+      Base::_resize_to_match(other);
       *this = other;
     }
 

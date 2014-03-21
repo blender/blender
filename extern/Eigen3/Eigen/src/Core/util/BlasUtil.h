@@ -42,7 +42,7 @@ template<bool Conjugate> struct conj_if;
 
 template<> struct conj_if<true> {
   template<typename T>
-  inline T operator()(const T& x) { return conj(x); }
+  inline T operator()(const T& x) { return numext::conj(x); }
   template<typename T>
   inline T pconj(const T& x) { return internal::pconj(x); }
 };
@@ -67,7 +67,7 @@ template<typename RealScalar> struct conj_helper<std::complex<RealScalar>, std::
   { return c + pmul(x,y); }
 
   EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const Scalar& y) const
-  { return Scalar(real(x)*real(y) + imag(x)*imag(y), imag(x)*real(y) - real(x)*imag(y)); }
+  { return Scalar(numext::real(x)*numext::real(y) + numext::imag(x)*numext::imag(y), numext::imag(x)*numext::real(y) - numext::real(x)*numext::imag(y)); }
 };
 
 template<typename RealScalar> struct conj_helper<std::complex<RealScalar>, std::complex<RealScalar>, true,false>
@@ -77,7 +77,7 @@ template<typename RealScalar> struct conj_helper<std::complex<RealScalar>, std::
   { return c + pmul(x,y); }
 
   EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const Scalar& y) const
-  { return Scalar(real(x)*real(y) + imag(x)*imag(y), real(x)*imag(y) - imag(x)*real(y)); }
+  { return Scalar(numext::real(x)*numext::real(y) + numext::imag(x)*numext::imag(y), numext::real(x)*numext::imag(y) - numext::imag(x)*numext::real(y)); }
 };
 
 template<typename RealScalar> struct conj_helper<std::complex<RealScalar>, std::complex<RealScalar>, true,true>
@@ -87,7 +87,7 @@ template<typename RealScalar> struct conj_helper<std::complex<RealScalar>, std::
   { return c + pmul(x,y); }
 
   EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const Scalar& y) const
-  { return Scalar(real(x)*real(y) - imag(x)*imag(y), - real(x)*imag(y) - imag(x)*real(y)); }
+  { return Scalar(numext::real(x)*numext::real(y) - numext::imag(x)*numext::imag(y), - numext::real(x)*numext::imag(y) - numext::imag(x)*numext::real(y)); }
 };
 
 template<typename RealScalar,bool Conj> struct conj_helper<std::complex<RealScalar>, RealScalar, Conj,false>
@@ -113,7 +113,7 @@ template<typename From,typename To> struct get_factor {
 };
 
 template<typename Scalar> struct get_factor<Scalar,typename NumTraits<Scalar>::Real> {
-  static EIGEN_STRONG_INLINE typename NumTraits<Scalar>::Real run(const Scalar& x) { return real(x); }
+  static EIGEN_STRONG_INLINE typename NumTraits<Scalar>::Real run(const Scalar& x) { return numext::real(x); }
 };
 
 // Lightweight helper class to access matrix coefficients.

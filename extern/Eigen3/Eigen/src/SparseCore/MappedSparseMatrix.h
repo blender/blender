@@ -50,6 +50,8 @@ class MappedSparseMatrix
     inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
     inline Index innerSize() const { return m_innerSize; }
     inline Index outerSize() const { return m_outerSize; }
+    
+    bool isCompressed() const { return true; }
 
     //----------------------------------------
     // direct access interface

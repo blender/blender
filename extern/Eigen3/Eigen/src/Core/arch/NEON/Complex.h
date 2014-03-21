@@ -68,7 +68,6 @@ template<> EIGEN_STRONG_INLINE Packet2cf pconj(const Packet2cf& a)
 template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
   Packet4f v1, v2;
-  float32x2_t a_lo, a_hi;
 
   // Get the real values of a | a1_re | a1_re | a2_re | a2_re |
   v1 = vcombine_f32(vdup_lane_f32(vget_low_f32(a.v), 0), vdup_lane_f32(vget_high_f32(a.v), 0));
@@ -81,9 +80,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   // Conjugate v2 
   v2 = vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(v2), p4ui_CONJ_XOR));
   // Swap real/imag elements in v2.
-  a_lo = vrev64_f32(vget_low_f32(v2));
-  a_hi = vrev64_f32(vget_high_f32(v2));
-  v2 = vcombine_f32(a_lo, a_hi);
+  v2 = vrev64q_f32(v2);
   // Add and return the result
   return Packet2cf(vaddq_f32(v1, v2));
 }
@@ -241,13 +238,10 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
   // TODO optimize it for AltiVec
   Packet2cf res = conj_helper<Packet2cf,Packet2cf,false,true>().pmul(a,b);
   Packet4f s, rev_s;
-  float32x2_t a_lo, a_hi;
 
   // this computes the norm
   s = vmulq_f32(b.v, b.v);
-  a_lo = vrev64_f32(vget_low_f32(s));
-  a_hi = vrev64_f32(vget_high_f32(s));
-  rev_s = vcombine_f32(a_lo, a_hi);
+  rev_s = vrev64q_f32(s);
 
   return Packet2cf(pdiv(res.v, vaddq_f32(s,rev_s)));
 }

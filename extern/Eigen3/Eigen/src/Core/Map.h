@@ -133,36 +133,36 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
 
     /** Constructor in the fixed-size case.
       *
-      * \param data pointer to the array to map
-      * \param stride optional Stride object, passing the strides.
+      * \param dataPtr pointer to the array to map
+      * \param a_stride optional Stride object, passing the strides.
       */
-    inline Map(PointerArgType data, const StrideType& stride = StrideType())
-      : Base(cast_to_pointer_type(data)), m_stride(stride)
+    inline Map(PointerArgType dataPtr, const StrideType& a_stride = StrideType())
+      : Base(cast_to_pointer_type(dataPtr)), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
     }
 
     /** Constructor in the dynamic-size vector case.
       *
-      * \param data pointer to the array to map
-      * \param size the size of the vector expression
-      * \param stride optional Stride object, passing the strides.
+      * \param dataPtr pointer to the array to map
+      * \param a_size the size of the vector expression
+      * \param a_stride optional Stride object, passing the strides.
       */
-    inline Map(PointerArgType data, Index size, const StrideType& stride = StrideType())
-      : Base(cast_to_pointer_type(data), size), m_stride(stride)
+    inline Map(PointerArgType dataPtr, Index a_size, const StrideType& a_stride = StrideType())
+      : Base(cast_to_pointer_type(dataPtr), a_size), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
     }
 
     /** Constructor in the dynamic-size matrix case.
       *
-      * \param data pointer to the array to map
-      * \param rows the number of rows of the matrix expression
-      * \param cols the number of columns of the matrix expression
-      * \param stride optional Stride object, passing the strides.
+      * \param dataPtr pointer to the array to map
+      * \param nbRows the number of rows of the matrix expression
+      * \param nbCols the number of columns of the matrix expression
+      * \param a_stride optional Stride object, passing the strides.
       */
-    inline Map(PointerArgType data, Index rows, Index cols, const StrideType& stride = StrideType())
-      : Base(cast_to_pointer_type(data), rows, cols), m_stride(stride)
+    inline Map(PointerArgType dataPtr, Index nbRows, Index nbCols, const StrideType& a_stride = StrideType())
+      : Base(cast_to_pointer_type(dataPtr), nbRows, nbCols), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
     }

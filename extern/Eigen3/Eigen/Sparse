@@ -1,13 +1,15 @@
 #ifndef EIGEN_SPARSE_MODULE_H
 #define EIGEN_SPARSE_MODULE_H
 
-/** \defgroup Sparse_modules Sparse modules
+/** \defgroup Sparse_Module Sparse meta-module
   *
   * Meta-module including all related modules:
-  * - SparseCore
-  * - OrderingMethods
-  * - SparseCholesky
-  * - IterativeLinearSolvers
+  * - \ref SparseCore_Module
+  * - \ref OrderingMethods_Module
+  * - \ref SparseCholesky_Module
+  * - \ref SparseLU_Module
+  * - \ref SparseQR_Module
+  * - \ref IterativeLinearSolvers_Module
   *
   * \code
   * #include <Eigen/Sparse>
@@ -17,6 +19,8 @@
 #include "SparseCore"
 #include "OrderingMethods"
 #include "SparseCholesky"
+#include "SparseLU"
+#include "SparseQR"
 #include "IterativeLinearSolvers"
 
 #endif // EIGEN_SPARSE_MODULE_H

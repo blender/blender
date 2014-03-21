@@ -48,7 +48,7 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheLeft,Mode,Conjugate,TriStorage
     IsZeroDiag  = (Mode&ZeroDiag) ? 1 : 0, \
     conjA = ((TriStorageOrder==ColMajor) && Conjugate) ? 1 : 0 \
   }; \
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
       Index size, Index otherSize, \
       const EIGTYPE* _tri, Index triStride, \
       EIGTYPE* _other, Index otherStride, level3_blocking<EIGTYPE,EIGTYPE>& /*blocking*/) \
@@ -103,7 +103,7 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheRight,Mode,Conjugate,TriStorag
     IsZeroDiag  = (Mode&ZeroDiag) ? 1 : 0, \
     conjA = ((TriStorageOrder==ColMajor) && Conjugate) ? 1 : 0 \
   }; \
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
       Index size, Index otherSize, \
       const EIGTYPE* _tri, Index triStride, \
       EIGTYPE* _other, Index otherStride, level3_blocking<EIGTYPE,EIGTYPE>& /*blocking*/) \

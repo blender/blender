@@ -120,7 +120,7 @@ public:
   RealScalar tolerance() const { return m_tolerance; }
   
   /** Sets the tolerance threshold used by the stopping criteria */
-  Derived& setTolerance(RealScalar tolerance)
+  Derived& setTolerance(const RealScalar& tolerance)
   {
     m_tolerance = tolerance;
     return derived();

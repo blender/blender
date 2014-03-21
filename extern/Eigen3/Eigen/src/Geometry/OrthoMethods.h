@@ -33,9 +33,9 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
   typename internal::nested<Derived,2>::type lhs(derived());
   typename internal::nested<OtherDerived,2>::type rhs(other.derived());
   return typename cross_product_return_type<OtherDerived>::type(
-    internal::conj(lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1)),
-    internal::conj(lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2)),
-    internal::conj(lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0))
+    numext::conj(lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1)),
+    numext::conj(lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2)),
+    numext::conj(lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0))
   );
 }
 
@@ -49,9 +49,9 @@ struct cross3_impl {
   run(const VectorLhs& lhs, const VectorRhs& rhs)
   {
     return typename internal::plain_matrix_type<VectorLhs>::type(
-      internal::conj(lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1)),
-      internal::conj(lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2)),
-      internal::conj(lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0)),
+      numext::conj(lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1)),
+      numext::conj(lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2)),
+      numext::conj(lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0)),
       0
     );
   }
@@ -78,8 +78,8 @@ MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
 
   typedef typename internal::nested<Derived,2>::type DerivedNested;
   typedef typename internal::nested<OtherDerived,2>::type OtherDerivedNested;
-  const DerivedNested lhs(derived());
-  const OtherDerivedNested rhs(other.derived());
+  DerivedNested lhs(derived());
+  OtherDerivedNested rhs(other.derived());
 
   return internal::cross3_impl<Architecture::Target,
                         typename internal::remove_all<DerivedNested>::type,
@@ -141,8 +141,8 @@ struct unitOrthogonal_selector
     if (maxi==0)
       sndi = 1;
     RealScalar invnm = RealScalar(1)/(Vector2() << src.coeff(sndi),src.coeff(maxi)).finished().norm();
-    perp.coeffRef(maxi) = -conj(src.coeff(sndi)) * invnm;
-    perp.coeffRef(sndi) =  conj(src.coeff(maxi)) * invnm;
+    perp.coeffRef(maxi) = -numext::conj(src.coeff(sndi)) * invnm;
+    perp.coeffRef(sndi) =  numext::conj(src.coeff(maxi)) * invnm;
 
     return perp;
    }
@@ -168,8 +168,8 @@ struct unitOrthogonal_selector<Derived,3>
     || (!isMuchSmallerThan(src.y(), src.z())))
     {
       RealScalar invnm = RealScalar(1)/src.template head<2>().norm();
-      perp.coeffRef(0) = -conj(src.y())*invnm;
-      perp.coeffRef(1) = conj(src.x())*invnm;
+      perp.coeffRef(0) = -numext::conj(src.y())*invnm;
+      perp.coeffRef(1) = numext::conj(src.x())*invnm;
       perp.coeffRef(2) = 0;
     }
     /* if both x and y are close to zero, then the vector is close
@@ -180,8 +180,8 @@ struct unitOrthogonal_selector<Derived,3>
     {
       RealScalar invnm = RealScalar(1)/src.template tail<2>().norm();
       perp.coeffRef(0) = 0;
-      perp.coeffRef(1) = -conj(src.z())*invnm;
-      perp.coeffRef(2) = conj(src.y())*invnm;
+      perp.coeffRef(1) = -numext::conj(src.z())*invnm;
+      perp.coeffRef(2) = numext::conj(src.y())*invnm;
     }
 
     return perp;
@@ -193,7 +193,7 @@ struct unitOrthogonal_selector<Derived,2>
 {
   typedef typename plain_matrix_type<Derived>::type VectorType;
   static inline VectorType run(const Derived& src)
-  { return VectorType(-conj(src.y()), conj(src.x())).normalized(); }
+  { return VectorType(-numext::conj(src.y()), numext::conj(src.x())).normalized(); }
 };
 
 } // end namespace internal

@@ -384,6 +384,7 @@ template<typename MatrixType>
 SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 ::compute(const MatrixType& matrix, int options)
 {
+  using std::abs;
   eigen_assert(matrix.cols() == matrix.rows());
   eigen_assert((options&~(EigVecMask|GenEigMask))==0
           && (options&EigVecMask)!=EigVecMask
@@ -394,7 +395,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   if(n==1)
   {
-    m_eivalues.coeffRef(0,0) = internal::real(matrix.coeff(0,0));
+    m_eivalues.coeffRef(0,0) = numext::real(matrix.coeff(0,0));
     if(computeEigenvectors)
       m_eivec.setOnes(n,n);
     m_info = Success;
@@ -408,9 +409,10 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   MatrixType& mat = m_eivec;
 
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
-  RealScalar scale = matrix.cwiseAbs().maxCoeff();
+  mat = matrix.template triangularView<Lower>();
+  RealScalar scale = mat.cwiseAbs().maxCoeff();
   if(scale==RealScalar(0)) scale = RealScalar(1);
-  mat = matrix / scale;
+  mat.template triangularView<Lower>() /= scale;
   m_subdiag.resize(n-1);
   internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
   
@@ -421,7 +423,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   while (end>0)
   {
     for (Index i = start; i<end; ++i)
-      if (internal::isMuchSmallerThan(internal::abs(m_subdiag[i]),(internal::abs(diag[i])+internal::abs(diag[i+1]))))
+      if (internal::isMuchSmallerThan(abs(m_subdiag[i]),(abs(diag[i])+abs(diag[i+1]))))
         m_subdiag[i] = 0;
 
     // find the largest unreduced block
@@ -667,7 +669,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
   static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
     using std::sqrt;
-    const Scalar t0 = Scalar(0.5) * sqrt( abs2(m(0,0)-m(1,1)) + Scalar(4)*m(1,0)*m(1,0));
+    const Scalar t0 = Scalar(0.5) * sqrt( numext::abs2(m(0,0)-m(1,1)) + Scalar(4)*m(1,0)*m(1,0));
     const Scalar t1 = Scalar(0.5) * (m(0,0) + m(1,1));
     roots(0) = t1 - t0;
     roots(1) = t1 + t0;
@@ -675,6 +677,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
   
   static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
+    using std::sqrt;
     eigen_assert(mat.cols() == 2 && mat.cols() == mat.rows());
     eigen_assert((options&~(EigVecMask|GenEigMask))==0
             && (options&EigVecMask)!=EigVecMask
@@ -696,9 +699,9 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
     if(computeEigenvectors)
     {
       scaledMat.diagonal().array () -= eivals(1);
-      Scalar a2 = abs2(scaledMat(0,0));
-      Scalar c2 = abs2(scaledMat(1,1));
-      Scalar b2 = abs2(scaledMat(1,0));
+      Scalar a2 = numext::abs2(scaledMat(0,0));
+      Scalar c2 = numext::abs2(scaledMat(1,1));
+      Scalar b2 = numext::abs2(scaledMat(1,0));
       if(a2>c2)
       {
         eivecs.col(1) << -scaledMat(1,0), scaledMat(0,0);
@@ -736,14 +739,24 @@ namespace internal {
 template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
 {
+  using std::abs;
   RealScalar td = (diag[end-1] - diag[end])*RealScalar(0.5);
   RealScalar e = subdiag[end-1];
   // Note that thanks to scaling, e^2 or td^2 cannot overflow, however they can still
   // underflow thus leading to inf/NaN values when using the following commented code:
-//   RealScalar e2 = abs2(subdiag[end-1]);
+//   RealScalar e2 = numext::abs2(subdiag[end-1]);
 //   RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * sqrt(td*td + e2));
   // This explain the following, somewhat more complicated, version:
-  RealScalar mu = diag[end] - (e / (td + (td>0 ? 1 : -1))) * (e / hypot(td,e));
+  RealScalar mu = diag[end];
+  if(td==0)
+    mu -= abs(e);
+  else
+  {
+    RealScalar e2 = numext::abs2(subdiag[end-1]);
+    RealScalar h = numext::hypot(td,e);
+    if(e2==0)  mu -= (e / (td + (td>0 ? 1 : -1))) * (e / h);
+    else       mu -= e2 / (td + (td>0 ? h : -h));
+  }
   
   RealScalar x = diag[start] - mu;
   RealScalar z = subdiag[start];

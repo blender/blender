@@ -56,7 +56,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
 
 
   /** Default constructor initializing a null box. */
-  inline explicit AlignedBox()
+  inline AlignedBox()
   { if (AmbientDimAtCompileTime!=Dynamic) setEmpty(); }
 
   /** Constructs a null box with \a _dim the dimension of the ambient space. */
@@ -71,7 +71,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   template<typename Derived>
   inline explicit AlignedBox(const MatrixBase<Derived>& a_p)
   {
-    const typename internal::nested<Derived,2>::type p(a_p.derived());
+    typename internal::nested<Derived,2>::type p(a_p.derived());
     m_min = p;
     m_max = p;
   }
@@ -79,7 +79,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   ~AlignedBox() {}
 
   /** \returns the dimension in which the box holds */
-  inline Index dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : Index(AmbientDimAtCompileTime); }
+  inline Index dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size() : Index(AmbientDimAtCompileTime); }
 
   /** \deprecated use isEmpty */
   inline bool isNull() const { return isEmpty(); }
@@ -248,14 +248,14 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     */
   template<typename Derived>
   inline NonInteger exteriorDistance(const MatrixBase<Derived>& p) const
-  { return internal::sqrt(NonInteger(squaredExteriorDistance(p))); }
+  { using std::sqrt; return sqrt(NonInteger(squaredExteriorDistance(p))); }
 
   /** \returns the distance between the boxes \a b and \c *this,
     * and zero if the boxes intersect.
     * \sa squaredExteriorDistance()
     */
   inline NonInteger exteriorDistance(const AlignedBox& b) const
-  { return internal::sqrt(NonInteger(squaredExteriorDistance(b))); }
+  { using std::sqrt; return sqrt(NonInteger(squaredExteriorDistance(b))); }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
@@ -282,7 +282,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const AlignedBox& other, RealScalar prec = ScalarTraits::dummy_precision()) const
+  bool isApprox(const AlignedBox& other, const RealScalar& prec = ScalarTraits::dummy_precision()) const
   { return m_min.isApprox(other.m_min, prec) && m_max.isApprox(other.m_max, prec); }
 
 protected:
@@ -296,7 +296,7 @@ template<typename Scalar,int AmbientDim>
 template<typename Derived>
 inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const MatrixBase<Derived>& a_p) const
 {
-  const typename internal::nested<Derived,2*AmbientDim>::type p(a_p.derived());
+  typename internal::nested<Derived,2*AmbientDim>::type p(a_p.derived());
   Scalar dist2(0);
   Scalar aux;
   for (Index k=0; k<dim(); ++k)

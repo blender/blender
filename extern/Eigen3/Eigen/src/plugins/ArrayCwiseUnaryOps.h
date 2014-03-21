@@ -200,3 +200,4 @@ EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator<=,  std::less_equal)
 EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>,   std::greater)
 EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>=,  std::greater_equal)
 
+

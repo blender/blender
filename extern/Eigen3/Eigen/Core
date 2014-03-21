@@ -19,6 +19,12 @@
 // defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.
 #include "src/Core/util/Macros.h"
 
+// Disable the ipa-cp-clone optimization flag with MinGW 6.x or newer (enabled by default with -O3)
+// See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=556 for details.
+#if defined(__MINGW32__) && EIGEN_GNUC_AT_LEAST(4,6)
+  #pragma GCC optimize ("-fno-ipa-cp-clone")
+#endif
+
 #include <complex>
 
 // this include file manages BLAS and MKL related macros
@@ -44,7 +50,7 @@
   #endif
 #else
   // Remember that usage of defined() in a #define is undefined by the standard
-  #if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
+  #if (defined __SSE2__) && ( (!defined __GNUC__) || (defined __INTEL_COMPILER) || EIGEN_GNUC_AT_LEAST(4,2) )
     #define EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC
   #endif
 #endif
@@ -87,19 +93,25 @@
     // so, to avoid compile errors when windows.h is included after Eigen/Core, ensure intrinsics are extern "C" here too.
     // notice that since these are C headers, the extern "C" is theoretically needed anyways.
     extern "C" {
-      #include <emmintrin.h>
-      #include <xmmintrin.h>
-      #ifdef  EIGEN_VECTORIZE_SSE3
-      #include <pmmintrin.h>
-      #endif
-      #ifdef EIGEN_VECTORIZE_SSSE3
-      #include <tmmintrin.h>
-      #endif
-      #ifdef EIGEN_VECTORIZE_SSE4_1
-      #include <smmintrin.h>
-      #endif
-      #ifdef EIGEN_VECTORIZE_SSE4_2
-      #include <nmmintrin.h>
+      // In theory we should only include immintrin.h and not the other *mmintrin.h header files directly.
+      // Doing so triggers some issues with ICC. However old gcc versions seems to not have this file, thus:
+      #ifdef __INTEL_COMPILER
+        #include <immintrin.h>
+      #else
+        #include <emmintrin.h>
+        #include <xmmintrin.h>
+        #ifdef  EIGEN_VECTORIZE_SSE3
+        #include <pmmintrin.h>
+        #endif
+        #ifdef EIGEN_VECTORIZE_SSSE3
+        #include <tmmintrin.h>
+        #endif
+        #ifdef EIGEN_VECTORIZE_SSE4_1
+        #include <smmintrin.h>
+        #endif
+        #ifdef EIGEN_VECTORIZE_SSE4_2
+        #include <nmmintrin.h>
+        #endif
       #endif
     } // end extern "C"
   #elif defined __ALTIVEC__
@@ -236,15 +248,11 @@ using std::ptrdiff_t;
   * \endcode
   */
 
-/** \defgroup Support_modules Support modules [category]
-  * Category of modules which add support for external libraries.
-  */
-
 #include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
 #include "src/Core/util/Meta.h"
-#include "src/Core/util/XprHelper.h"
 #include "src/Core/util/StaticAssert.h"
+#include "src/Core/util/XprHelper.h"
 #include "src/Core/util/Memory.h"
 
 #include "src/Core/NumTraits.h"
@@ -297,6 +305,7 @@ using std::ptrdiff_t;
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"
 #include "src/Core/VectorBlock.h"
+#include "src/Core/Ref.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
 #include "src/Core/Diagonal.h"
@@ -330,6 +339,7 @@ using std::ptrdiff_t;
 #include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/products/TriangularSolverVector.h"
 #include "src/Core/BandMatrix.h"
+#include "src/Core/CoreIterators.h"
 
 #include "src/Core/BooleanRedux.h"
 #include "src/Core/Select.h"

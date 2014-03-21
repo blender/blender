@@ -48,7 +48,7 @@ struct nested<ReturnByValue<Derived>, n, PlainObject>
 } // end namespace internal
 
 template<typename Derived> class ReturnByValue
-  : public internal::dense_xpr_base< ReturnByValue<Derived> >::type
+  : internal::no_assignment_operator, public internal::dense_xpr_base< ReturnByValue<Derived> >::type
 {
   public:
     typedef typename internal::traits<Derived>::ReturnType ReturnType;

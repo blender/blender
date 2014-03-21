@@ -140,6 +140,9 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
     AddCost  = ArrayType::SizeAtCompileTime==Dynamic ? Dynamic : ArrayType::SizeAtCompileTime * NumTraits<Scalar>::AddCost,
     MulCost  = ArrayType::SizeAtCompileTime==Dynamic ? Dynamic : ArrayType::SizeAtCompileTime * NumTraits<Scalar>::MulCost
   };
+  
+  static inline RealScalar epsilon() { return NumTraits<RealScalar>::epsilon(); }
+  static inline RealScalar dummy_precision() { return NumTraits<RealScalar>::dummy_precision(); }
 };
 
 } // end namespace Eigen

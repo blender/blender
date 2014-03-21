@@ -162,6 +162,9 @@ template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
+
+    template<typename MatrixPower, typename Lhs, typename Rhs>
+    Derived& lazyAssign(const MatrixPowerProduct<MatrixPower, Lhs,Rhs>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>
@@ -212,8 +215,8 @@ template<typename Derived> class MatrixBase
 
     typedef Diagonal<Derived> DiagonalReturnType;
     DiagonalReturnType diagonal();
-    typedef const Diagonal<const Derived> ConstDiagonalReturnType;
-    const ConstDiagonalReturnType diagonal() const;
+	typedef typename internal::add_const<Diagonal<const Derived> >::type ConstDiagonalReturnType;
+    ConstDiagonalReturnType diagonal() const;
 
     template<int Index> struct DiagonalIndexReturnType { typedef Diagonal<Derived,Index> Type; };
     template<int Index> struct ConstDiagonalIndexReturnType { typedef const Diagonal<const Derived,Index> Type; };
@@ -224,11 +227,11 @@ template<typename Derived> class MatrixBase
     // Note: The "MatrixBase::" prefixes are added to help MSVC9 to match these declarations with the later implementations.
     // On the other hand they confuse MSVC8...
     #if (defined _MSC_VER) && (_MSC_VER >= 1500) // 2008 or later
-    typename MatrixBase::template DiagonalIndexReturnType<Dynamic>::Type diagonal(Index index);
-    typename MatrixBase::template ConstDiagonalIndexReturnType<Dynamic>::Type diagonal(Index index) const;
+    typename MatrixBase::template DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
+    typename MatrixBase::template ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
     #else
-    typename DiagonalIndexReturnType<Dynamic>::Type diagonal(Index index);
-    typename ConstDiagonalIndexReturnType<Dynamic>::Type diagonal(Index index) const;
+    typename DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
+    typename ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
     #endif
 
     #ifdef EIGEN2_SUPPORT
@@ -237,7 +240,7 @@ template<typename Derived> class MatrixBase
     
     // huuuge hack. make Eigen2's matrix.part<Diagonal>() work in eigen3. Problem: Diagonal is now a class template instead
     // of an integer constant. Solution: overload the part() method template wrt template parameters list.
-    template<template<typename T, int n> class U>
+    template<template<typename T, int N> class U>
     const DiagonalWrapper<ConstDiagonalReturnType> part() const
     { return diagonal().asDiagonal(); }
     #endif // EIGEN2_SUPPORT
@@ -255,7 +258,7 @@ template<typename Derived> class MatrixBase
     template<unsigned int UpLo> typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView() const;
 
     const SparseView<Derived> sparseView(const Scalar& m_reference = Scalar(0),
-                                         typename NumTraits<Scalar>::Real m_epsilon = NumTraits<Scalar>::dummy_precision()) const;
+                                         const typename NumTraits<Scalar>::Real& m_epsilon = NumTraits<Scalar>::dummy_precision()) const;
     static const IdentityReturnType Identity();
     static const IdentityReturnType Identity(Index rows, Index cols);
     static const BasisReturnType Unit(Index size, Index i);
@@ -271,16 +274,16 @@ template<typename Derived> class MatrixBase
     Derived& setIdentity();
     Derived& setIdentity(Index rows, Index cols);
 
-    bool isIdentity(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-    bool isDiagonal(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isIdentity(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isDiagonal(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
 
-    bool isUpperTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-    bool isLowerTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isUpperTriangular(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isLowerTriangular(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
 
     template<typename OtherDerived>
     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-                      RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-    bool isUnitary(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+                      const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isUnitary(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
 
     /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
       * \warning When using floating point scalar values you probably should rather use a
@@ -314,7 +317,7 @@ template<typename Derived> class MatrixBase
     MatrixBase<Derived>& matrix() { return *this; }
     const MatrixBase<Derived>& matrix() const { return *this; }
 
-    /** \returns an \link ArrayBase Array \endlink expression of this matrix
+    /** \returns an \link Eigen::ArrayBase Array \endlink expression of this matrix
       * \sa ArrayBase::matrix() */
     ArrayWrapper<Derived> array() { return derived(); }
     const ArrayWrapper<const Derived> array() const { return derived(); }
@@ -454,6 +457,7 @@ template<typename Derived> class MatrixBase
     const MatrixFunctionReturnValue<Derived> sin() const;
     const MatrixSquareRootReturnValue<Derived> sqrt() const;
     const MatrixLogarithmReturnValue<Derived> log() const;
+    const MatrixPowerReturnValue<Derived> pow(const RealScalar& p) const;
 
 #ifdef EIGEN2_SUPPORT
     template<typename ProductDerived, typename Lhs, typename Rhs>
@@ -505,6 +509,51 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived> Derived& operator-=(const ArrayBase<OtherDerived>& )
     {EIGEN_STATIC_ASSERT(std::ptrdiff_t(sizeof(typename OtherDerived::Scalar))==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES); return *this;}
 };
+
+
+/***************************************************************************
+* Implementation of matrix base methods
+***************************************************************************/
+
+/** replaces \c *this by \c *this * \a other.
+  *
+  * \returns a reference to \c *this
+  *
+  * Example: \include MatrixBase_applyOnTheRight.cpp
+  * Output: \verbinclude MatrixBase_applyOnTheRight.out
+  */
+template<typename Derived>
+template<typename OtherDerived>
+inline Derived&
+MatrixBase<Derived>::operator*=(const EigenBase<OtherDerived> &other)
+{
+  other.derived().applyThisOnTheRight(derived());
+  return derived();
+}
+
+/** replaces \c *this by \c *this * \a other. It is equivalent to MatrixBase::operator*=().
+  *
+  * Example: \include MatrixBase_applyOnTheRight.cpp
+  * Output: \verbinclude MatrixBase_applyOnTheRight.out
+  */
+template<typename Derived>
+template<typename OtherDerived>
+inline void MatrixBase<Derived>::applyOnTheRight(const EigenBase<OtherDerived> &other)
+{
+  other.derived().applyThisOnTheRight(derived());
+}
+
+/** replaces \c *this by \a other * \c *this.
+  *
+  * Example: \include MatrixBase_applyOnTheLeft.cpp
+  * Output: \verbinclude MatrixBase_applyOnTheLeft.out
+  */
+template<typename Derived>
+template<typename OtherDerived>
+inline void MatrixBase<Derived>::applyOnTheLeft(const EigenBase<OtherDerived> &other)
+{
+  other.derived().applyThisOnTheLeft(derived());
+}
 
 } // end namespace Eigen
 

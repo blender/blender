@@ -23,7 +23,7 @@
  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+//
  ********************************************************************************
  *   Content : Eigen bindings to Intel(R) MKL
  *   Self adjoint matrix * matrix product functionality based on ?SYMM/?HEMM.
@@ -47,7 +47,7 @@ template <typename Index, \
 struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLhs,RhsStorageOrder,false,ConjugateRhs,ColMajor> \
 {\
 \
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
@@ -98,7 +98,7 @@ template <typename Index, \
           int RhsStorageOrder, bool ConjugateRhs> \
 struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLhs,RhsStorageOrder,false,ConjugateRhs,ColMajor> \
 {\
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
@@ -174,7 +174,7 @@ template <typename Index, \
 struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateLhs,RhsStorageOrder,true,ConjugateRhs,ColMajor> \
 {\
 \
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
@@ -224,7 +224,7 @@ template <typename Index, \
           int RhsStorageOrder, bool ConjugateRhs> \
 struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateLhs,RhsStorageOrder,true,ConjugateRhs,ColMajor> \
 {\
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
     Index rows, Index cols, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \

@@ -53,7 +53,7 @@ struct general_matrix_vector_product_gemv :
 #define EIGEN_MKL_GEMV_SPECIALIZE(Scalar) \
 template<typename Index, bool ConjugateLhs, bool ConjugateRhs> \
 struct general_matrix_vector_product<Index,Scalar,ColMajor,ConjugateLhs,Scalar,ConjugateRhs,Specialized> { \
-static EIGEN_DONT_INLINE void run( \
+static void run( \
   Index rows, Index cols, \
   const Scalar* lhs, Index lhsStride, \
   const Scalar* rhs, Index rhsIncr, \
@@ -70,7 +70,7 @@ static EIGEN_DONT_INLINE void run( \
 }; \
 template<typename Index, bool ConjugateLhs, bool ConjugateRhs> \
 struct general_matrix_vector_product<Index,Scalar,RowMajor,ConjugateLhs,Scalar,ConjugateRhs,Specialized> { \
-static EIGEN_DONT_INLINE void run( \
+static void run( \
   Index rows, Index cols, \
   const Scalar* lhs, Index lhsStride, \
   const Scalar* rhs, Index rhsIncr, \
@@ -92,7 +92,7 @@ struct general_matrix_vector_product_gemv<Index,EIGTYPE,LhsStorageOrder,Conjugat
 { \
 typedef Matrix<EIGTYPE,Dynamic,1,ColMajor> GEMVVector;\
 \
-static EIGEN_DONT_INLINE void run( \
+static void run( \
   Index rows, Index cols, \
   const EIGTYPE* lhs, Index lhsStride, \
   const EIGTYPE* rhs, Index rhsIncr, \

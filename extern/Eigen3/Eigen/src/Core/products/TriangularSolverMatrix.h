@@ -18,7 +18,7 @@ namespace internal {
 template <typename Scalar, typename Index, int Side, int Mode, bool Conjugate, int TriStorageOrder>
 struct triangular_solve_matrix<Scalar,Index,Side,Mode,Conjugate,TriStorageOrder,RowMajor>
 {
-  static EIGEN_DONT_INLINE void run(
+  static void run(
     Index size, Index cols,
     const Scalar*  tri, Index triStride,
     Scalar* _other, Index otherStride,
@@ -39,6 +39,13 @@ template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStor
 struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageOrder,ColMajor>
 {
   static EIGEN_DONT_INLINE void run(
+    Index size, Index otherSize,
+    const Scalar* _tri, Index triStride,
+    Scalar* _other, Index otherStride,
+    level3_blocking<Scalar,Scalar>& blocking);
+};
+template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStorageOrder>
+EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageOrder,ColMajor>::run(
     Index size, Index otherSize,
     const Scalar* _tri, Index triStride,
     Scalar* _other, Index otherStride,
@@ -173,7 +180,6 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
       }
     }
   }
-};
 
 /* Optimized triangular solver with multiple left hand sides and the trinagular matrix on the right
  */
@@ -181,6 +187,13 @@ template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStor
 struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor>
 {
   static EIGEN_DONT_INLINE void run(
+    Index size, Index otherSize,
+    const Scalar* _tri, Index triStride,
+    Scalar* _other, Index otherStride,
+    level3_blocking<Scalar,Scalar>& blocking);
+};
+template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStorageOrder>
+EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor>::run(
     Index size, Index otherSize,
     const Scalar* _tri, Index triStride,
     Scalar* _other, Index otherStride,
@@ -308,7 +321,6 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
       }
     }
   }
-};
 
 } // end namespace internal
 

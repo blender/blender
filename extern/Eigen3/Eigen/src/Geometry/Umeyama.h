@@ -153,16 +153,21 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
     Rt.block(0,0,m,m).noalias() = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
   }
 
-  // Eq. (42)
-  const Scalar c = 1/src_var * svd.singularValues().dot(S);
+  if (with_scaling)
+  {
+    // Eq. (42)
+    const Scalar c = 1/src_var * svd.singularValues().dot(S);
 
-  // Eq. (41)
-  // Note that we first assign dst_mean to the destination so that there no need
-  // for a temporary.
-  Rt.col(m).head(m) = dst_mean;
-  Rt.col(m).head(m).noalias() -= c*Rt.topLeftCorner(m,m)*src_mean;
-
-  if (with_scaling) Rt.block(0,0,m,m) *= c;
+    // Eq. (41)
+    Rt.col(m).head(m) = dst_mean;
+    Rt.col(m).head(m).noalias() -= c*Rt.topLeftCorner(m,m)*src_mean;
+    Rt.block(0,0,m,m) *= c;
+  }
+  else
+  {
+    Rt.col(m).head(m) = dst_mean;
+    Rt.col(m).head(m).noalias() -= Rt.topLeftCorner(m,m)*src_mean;
+  }
 
   return Rt;
 }

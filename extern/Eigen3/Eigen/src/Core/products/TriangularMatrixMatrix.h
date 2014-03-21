@@ -61,7 +61,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,LhsIsTriangular,
     const Scalar* lhs, Index lhsStride,
     const Scalar* rhs, Index rhsStride,
     Scalar* res,       Index resStride,
-    Scalar alpha, level3_blocking<Scalar,Scalar>& blocking)
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     product_triangular_matrix_matrix<Scalar, Index,
       (Mode&(UnitDiag|ZeroDiag)) | ((Mode&Upper) ? Lower : Upper),
@@ -96,7 +96,20 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
     Scalar* res,        Index resStride,
-    Scalar alpha, level3_blocking<Scalar,Scalar>& blocking)
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking);
+};
+
+template <typename Scalar, typename Index, int Mode,
+          int LhsStorageOrder, bool ConjugateLhs,
+          int RhsStorageOrder, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,true,
+                                                        LhsStorageOrder,ConjugateLhs,
+                                                        RhsStorageOrder,ConjugateRhs,ColMajor,Version>::run(
+    Index _rows, Index _cols, Index _depth,
+    const Scalar* _lhs, Index lhsStride,
+    const Scalar* _rhs, Index rhsStride,
+    Scalar* res,        Index resStride,
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     // strip zeros
     Index diagSize  = (std::min)(_rows,_depth);
@@ -203,15 +216,14 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
       }
     }
   }
-};
 
 // implements col-major += alpha * op(general) * op(triangular)
 template <typename Scalar, typename Index, int Mode,
           int LhsStorageOrder, bool ConjugateLhs,
           int RhsStorageOrder, bool ConjugateRhs, int Version>
 struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
-                                           LhsStorageOrder,ConjugateLhs,
-                                           RhsStorageOrder,ConjugateRhs,ColMajor,Version>
+                                        LhsStorageOrder,ConjugateLhs,
+                                        RhsStorageOrder,ConjugateRhs,ColMajor,Version>
 {
   typedef gebp_traits<Scalar,Scalar> Traits;
   enum {
@@ -225,7 +237,20 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
     Scalar* res,        Index resStride,
-    Scalar alpha, level3_blocking<Scalar,Scalar>& blocking)
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking);
+};
+
+template <typename Scalar, typename Index, int Mode,
+          int LhsStorageOrder, bool ConjugateLhs,
+          int RhsStorageOrder, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
+                                                        LhsStorageOrder,ConjugateLhs,
+                                                        RhsStorageOrder,ConjugateRhs,ColMajor,Version>::run(
+    Index _rows, Index _cols, Index _depth,
+    const Scalar* _lhs, Index lhsStride,
+    const Scalar* _rhs, Index rhsStride,
+    Scalar* res,        Index resStride,
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     // strip zeros
     Index diagSize  = (std::min)(_cols,_depth);
@@ -343,7 +368,6 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       }
     }
   }
-};
 
 /***************************************************************************
 * Wrapper to product_triangular_matrix_matrix
@@ -364,7 +388,7 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
 
   TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-  template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
+  template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
   {
     typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(m_lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(m_rhs);

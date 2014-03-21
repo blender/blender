@@ -112,7 +112,7 @@ MatrixBase<Derived>::eigen2_dot(const MatrixBase<OtherDerived>& other) const
 template<typename Derived>
 EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
 {
-  return internal::real((*this).cwiseAbs2().sum());
+  return numext::real((*this).cwiseAbs2().sum());
 }
 
 /** \returns, for vectors, the \em l2 norm of \c *this, and for matrices the Frobenius norm.
@@ -124,7 +124,8 @@ EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scala
 template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
 {
-  return internal::sqrt(squaredNorm());
+  using std::sqrt;
+  return sqrt(squaredNorm());
 }
 
 /** \returns an expression of the quotient of *this by its own norm.
@@ -165,6 +166,7 @@ struct lpNorm_selector
   typedef typename NumTraits<typename traits<Derived>::Scalar>::Real RealScalar;
   static inline RealScalar run(const MatrixBase<Derived>& m)
   {
+    using std::pow;
     return pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
   }
 };
@@ -223,11 +225,11 @@ MatrixBase<Derived>::lpNorm() const
 template<typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Derived>::isOrthogonal
-(const MatrixBase<OtherDerived>& other, RealScalar prec) const
+(const MatrixBase<OtherDerived>& other, const RealScalar& prec) const
 {
   typename internal::nested<Derived,2>::type nested(derived());
   typename internal::nested<OtherDerived,2>::type otherNested(other.derived());
-  return internal::abs2(nested.dot(otherNested)) <= prec * prec * nested.squaredNorm() * otherNested.squaredNorm();
+  return numext::abs2(nested.dot(otherNested)) <= prec * prec * nested.squaredNorm() * otherNested.squaredNorm();
 }
 
 /** \returns true if *this is approximately an unitary matrix,
@@ -242,7 +244,7 @@ bool MatrixBase<Derived>::isOrthogonal
   * Output: \verbinclude MatrixBase_isUnitary.out
   */
 template<typename Derived>
-bool MatrixBase<Derived>::isUnitary(RealScalar prec) const
+bool MatrixBase<Derived>::isUnitary(const RealScalar& prec) const
 {
   typename Derived::Nested nested(derived());
   for(Index i = 0; i < cols(); ++i)

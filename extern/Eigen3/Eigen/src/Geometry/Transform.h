@@ -506,8 +506,8 @@ public:
   template<typename OtherDerived>
   inline Transform& prescale(const MatrixBase<OtherDerived> &other);
 
-  inline Transform& scale(Scalar s);
-  inline Transform& prescale(Scalar s);
+  inline Transform& scale(const Scalar& s);
+  inline Transform& prescale(const Scalar& s);
 
   template<typename OtherDerived>
   inline Transform& translate(const MatrixBase<OtherDerived> &other);
@@ -521,8 +521,8 @@ public:
   template<typename RotationType>
   inline Transform& prerotate(const RotationType& rotation);
 
-  Transform& shear(Scalar sx, Scalar sy);
-  Transform& preshear(Scalar sx, Scalar sy);
+  Transform& shear(const Scalar& sx, const Scalar& sy);
+  Transform& preshear(const Scalar& sx, const Scalar& sy);
 
   inline Transform& operator=(const TranslationType& t);
   inline Transform& operator*=(const TranslationType& t) { return translate(t.vector()); }
@@ -530,9 +530,9 @@ public:
 
   inline Transform& operator=(const UniformScaling<Scalar>& t);
   inline Transform& operator*=(const UniformScaling<Scalar>& s) { return scale(s.factor()); }
-  inline Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Isometry)> operator*(const UniformScaling<Scalar>& s) const
+  inline Transform<Scalar,Dim,(int(Mode)==int(Isometry)?int(Affine):int(Mode))> operator*(const UniformScaling<Scalar>& s) const
   {
-    Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Isometry),Options> res = *this;
+    Transform<Scalar,Dim,(int(Mode)==int(Isometry)?int(Affine):int(Mode)),Options> res = *this;
     res.scale(s.factor());
     return res;
   }
@@ -584,7 +584,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Transform& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
+  bool isApprox(const Transform& other, const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_matrix.isApprox(other.m_matrix, prec); }
 
   /** Sets the last row to [0 ... 0 1]
@@ -794,7 +794,7 @@ Transform<Scalar,Dim,Mode,Options>::scale(const MatrixBase<OtherDerived> &other)
   * \sa prescale(Scalar)
   */
 template<typename Scalar, int Dim, int Mode, int Options>
-inline Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::scale(Scalar s)
+inline Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::scale(const Scalar& s)
 {
   EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   linearExt() *= s;
@@ -821,7 +821,7 @@ Transform<Scalar,Dim,Mode,Options>::prescale(const MatrixBase<OtherDerived> &oth
   * \sa scale(Scalar)
   */
 template<typename Scalar, int Dim, int Mode, int Options>
-inline Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::prescale(Scalar s)
+inline Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::prescale(const Scalar& s)
 {
   EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   m_matrix.template topRows<Dim>() *= s;
@@ -909,7 +909,7 @@ Transform<Scalar,Dim,Mode,Options>::prerotate(const RotationType& rotation)
   */
 template<typename Scalar, int Dim, int Mode, int Options>
 Transform<Scalar,Dim,Mode,Options>&
-Transform<Scalar,Dim,Mode,Options>::shear(Scalar sx, Scalar sy)
+Transform<Scalar,Dim,Mode,Options>::shear(const Scalar& sx, const Scalar& sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
@@ -925,7 +925,7 @@ Transform<Scalar,Dim,Mode,Options>::shear(Scalar sx, Scalar sy)
   */
 template<typename Scalar, int Dim, int Mode, int Options>
 Transform<Scalar,Dim,Mode,Options>&
-Transform<Scalar,Dim,Mode,Options>::preshear(Scalar sx, Scalar sy)
+Transform<Scalar,Dim,Mode,Options>::preshear(const Scalar& sx, const Scalar& sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)

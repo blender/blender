@@ -99,7 +99,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const UniformScaling& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
+  bool isApprox(const UniformScaling& other, const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::dummy_precision()) const
   { return internal::isApprox(m_factor, other.factor(), prec); }
 
 };
@@ -122,11 +122,11 @@ static inline UniformScaling<std::complex<RealScalar> > Scaling(const std::compl
 
 /** Constructs a 2D axis aligned scaling */
 template<typename Scalar>
-static inline DiagonalMatrix<Scalar,2> Scaling(Scalar sx, Scalar sy)
+static inline DiagonalMatrix<Scalar,2> Scaling(const Scalar& sx, const Scalar& sy)
 { return DiagonalMatrix<Scalar,2>(sx, sy); }
 /** Constructs a 3D axis aligned scaling */
 template<typename Scalar>
-static inline DiagonalMatrix<Scalar,3> Scaling(Scalar sx, Scalar sy, Scalar sz)
+static inline DiagonalMatrix<Scalar,3> Scaling(const Scalar& sx, const Scalar& sy, const Scalar& sz)
 { return DiagonalMatrix<Scalar,3>(sx, sy, sz); }
 
 /** Constructs an axis aligned scaling expression from vector expression \a coeffs

@@ -57,11 +57,11 @@ template <typename Index, int Mode, \
 struct product_triangular_matrix_matrix<Scalar,Index, Mode, LhsIsTriangular, \
            LhsStorageOrder,ConjugateLhs, RhsStorageOrder,ConjugateRhs,ColMajor,Specialized> { \
   static inline void run(Index _rows, Index _cols, Index _depth, const Scalar* _lhs, Index lhsStride,\
-    const Scalar* _rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha) { \
+    const Scalar* _rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha, level3_blocking<Scalar,Scalar>& blocking) { \
       product_triangular_matrix_matrix_trmm<Scalar,Index,Mode, \
         LhsIsTriangular,LhsStorageOrder,ConjugateLhs, \
         RhsStorageOrder, ConjugateRhs, ColMajor>::run( \
-        _rows, _cols, _depth, _lhs, lhsStride, _rhs, rhsStride, res, resStride, alpha); \
+        _rows, _cols, _depth, _lhs, lhsStride, _rhs, rhsStride, res, resStride, alpha, blocking); \
   } \
 };
 
@@ -91,12 +91,12 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
     conjA = ((LhsStorageOrder==ColMajor) && ConjugateLhs) ? 1 : 0 \
   }; \
 \
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
     Index _rows, Index _cols, Index _depth, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
     EIGTYPE* res,        Index resStride, \
-    EIGTYPE alpha) \
+    EIGTYPE alpha, level3_blocking<EIGTYPE,EIGTYPE>& blocking) \
   { \
    Index diagSize  = (std::min)(_rows,_depth); \
    Index rows      = IsLower ? _rows : diagSize; \
@@ -115,16 +115,16 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
      /* Most likely no benefit to call TRMM or GEMM from MKL*/ \
        product_triangular_matrix_matrix<EIGTYPE,Index,Mode,true, \
        LhsStorageOrder,ConjugateLhs, RhsStorageOrder, ConjugateRhs, ColMajor, BuiltIn>::run( \
-           _rows, _cols, _depth, _lhs, lhsStride, _rhs, rhsStride, res, resStride, alpha); \
+           _rows, _cols, _depth, _lhs, lhsStride, _rhs, rhsStride, res, resStride, alpha, blocking); \
      /*std::cout << "TRMM_L: A is not square! Go to Eigen TRMM implementation!\n";*/ \
      } else { \
      /* Make sense to call GEMM */ \
        Map<const MatrixLhs, 0, OuterStride<> > lhsMap(_lhs,rows,depth,OuterStride<>(lhsStride)); \
        MatrixLhs aa_tmp=lhsMap.template triangularView<Mode>(); \
        MKL_INT aStride = aa_tmp.outerStride(); \
-       gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> blocking(_rows,_cols,_depth); \
+       gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> gemm_blocking(_rows,_cols,_depth); \
        general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor>::run( \
-       rows, cols, depth, aa_tmp.data(), aStride, _rhs, rhsStride, res, resStride, alpha, blocking, 0); \
+       rows, cols, depth, aa_tmp.data(), aStride, _rhs, rhsStride, res, resStride, alpha, gemm_blocking, 0); \
 \
      /*std::cout << "TRMM_L: A is not square! Go to MKL GEMM implementation! " << nthr<<" \n";*/ \
      } \
@@ -205,12 +205,12 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
     conjA = ((RhsStorageOrder==ColMajor) && ConjugateRhs) ? 1 : 0 \
   }; \
 \
-  static EIGEN_DONT_INLINE void run( \
+  static void run( \
     Index _rows, Index _cols, Index _depth, \
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
     EIGTYPE* res,        Index resStride, \
-    EIGTYPE alpha) \
+    EIGTYPE alpha, level3_blocking<EIGTYPE,EIGTYPE>& blocking) \
   { \
    Index diagSize  = (std::min)(_cols,_depth); \
    Index rows      = _rows; \
@@ -229,16 +229,16 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
      /* Most likely no benefit to call TRMM or GEMM from MKL*/ \
        product_triangular_matrix_matrix<EIGTYPE,Index,Mode,false, \
        LhsStorageOrder,ConjugateLhs, RhsStorageOrder, ConjugateRhs, ColMajor, BuiltIn>::run( \
-           _rows, _cols, _depth, _lhs, lhsStride, _rhs, rhsStride, res, resStride, alpha); \
+           _rows, _cols, _depth, _lhs, lhsStride, _rhs, rhsStride, res, resStride, alpha, blocking); \
        /*std::cout << "TRMM_R: A is not square! Go to Eigen TRMM implementation!\n";*/ \
      } else { \
      /* Make sense to call GEMM */ \
        Map<const MatrixRhs, 0, OuterStride<> > rhsMap(_rhs,depth,cols, OuterStride<>(rhsStride)); \
        MatrixRhs aa_tmp=rhsMap.template triangularView<Mode>(); \
        MKL_INT aStride = aa_tmp.outerStride(); \
-       gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> blocking(_rows,_cols,_depth); \
+       gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> gemm_blocking(_rows,_cols,_depth); \
        general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor>::run( \
-       rows, cols, depth, _lhs, lhsStride, aa_tmp.data(), aStride, res, resStride, alpha, blocking, 0); \
+       rows, cols, depth, _lhs, lhsStride, aa_tmp.data(), aStride, res, resStride, alpha, gemm_blocking, 0); \
 \
      /*std::cout << "TRMM_R: A is not square! Go to MKL GEMM implementation! " << nthr<<" \n";*/ \
      } \

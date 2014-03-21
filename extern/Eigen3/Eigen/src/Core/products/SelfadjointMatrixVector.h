@@ -32,10 +32,18 @@ static EIGEN_DONT_INLINE void run(
   const Scalar*  lhs, Index lhsStride,
   const Scalar* _rhs, Index rhsIncr,
   Scalar* res,
+  Scalar alpha);
+};
+
+template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,Version>::run(
+  Index size,
+  const Scalar*  lhs, Index lhsStride,
+  const Scalar* _rhs, Index rhsIncr,
+  Scalar* res,
   Scalar alpha)
 {
   typedef typename packet_traits<Scalar>::type Packet;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum {
@@ -51,7 +59,7 @@ static EIGEN_DONT_INLINE void run(
   conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> pcj0;
   conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> pcj1;
 
-  Scalar cjAlpha = ConjugateRhs ? conj(alpha) : alpha;
+  Scalar cjAlpha = ConjugateRhs ? numext::conj(alpha) : alpha;
 
   // FIXME this copy is now handled outside product_selfadjoint_vector, so it could probably be removed.
   // if the rhs is not sequentially stored in memory we copy it to a temporary buffer,
@@ -71,8 +79,8 @@ static EIGEN_DONT_INLINE void run(
   for (Index j=FirstTriangular ? bound : 0;
        j<(FirstTriangular ? size : bound);j+=2)
   {
-    register const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
-    register const Scalar* EIGEN_RESTRICT A1 = lhs + (j+1)*lhsStride;
+    const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
+    const Scalar* EIGEN_RESTRICT A1 = lhs + (j+1)*lhsStride;
 
     Scalar t0 = cjAlpha * rhs[j];
     Packet ptmp0 = pset1<Packet>(t0);
@@ -90,8 +98,8 @@ static EIGEN_DONT_INLINE void run(
     size_t alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
     // TODO make sure this product is a real * complex and that the rhs is properly conjugated if needed
-    res[j]   += cjd.pmul(internal::real(A0[j]), t0);
-    res[j+1] += cjd.pmul(internal::real(A1[j+1]), t1);
+    res[j]   += cjd.pmul(numext::real(A0[j]), t0);
+    res[j+1] += cjd.pmul(numext::real(A1[j+1]), t1);
     if(FirstTriangular)
     {
       res[j]   += cj0.pmul(A1[j],   t1);
@@ -106,8 +114,8 @@ static EIGEN_DONT_INLINE void run(
     for (size_t i=starti; i<alignedStart; ++i)
     {
       res[i] += t0 * A0[i] + t1 * A1[i];
-      t2 += conj(A0[i]) * rhs[i];
-      t3 += conj(A1[i]) * rhs[i];
+      t2 += numext::conj(A0[i]) * rhs[i];
+      t3 += numext::conj(A1[i]) * rhs[i];
     }
     // Yes this an optimization for gcc 4.3 and 4.4 (=> huge speed up)
     // gcc 4.2 does this optimization automatically.
@@ -139,12 +147,12 @@ static EIGEN_DONT_INLINE void run(
   }
   for (Index j=FirstTriangular ? 0 : bound;j<(FirstTriangular ? bound : size);j++)
   {
-    register const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
+    const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
 
     Scalar t1 = cjAlpha * rhs[j];
     Scalar t2(0);
     // TODO make sure this product is a real * complex and that the rhs is properly conjugated if needed
-    res[j] += cjd.pmul(internal::real(A0[j]), t1);
+    res[j] += cjd.pmul(numext::real(A0[j]), t1);
     for (Index i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++)
     {
       res[i] += cj0.pmul(A0[i], t1);
@@ -153,7 +161,6 @@ static EIGEN_DONT_INLINE void run(
     res[j] += alpha * t2;
   }
 }
-};
 
 } // end namespace internal 
 
@@ -180,7 +187,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
 
   SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-  template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
+  template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
   {
     typedef typename Dest::Scalar ResScalar;
     typedef typename Base::RhsScalar RhsScalar;
@@ -260,7 +267,7 @@ struct SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>
 
   SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-  template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
+  template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
   {
     // let's simply transpose the product
     Transpose<Dest> destT(dest);

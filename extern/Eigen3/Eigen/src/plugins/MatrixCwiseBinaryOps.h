@@ -83,7 +83,7 @@ cwiseMin(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_min_op<Scalar>, const Derived, const ConstantReturnType>
 cwiseMin(const Scalar &other) const
 {
-  return cwiseMin(Derived::PlainObject::Constant(rows(), cols(), other));
+  return cwiseMin(Derived::Constant(rows(), cols(), other));
 }
 
 /** \returns an expression of the coefficient-wise max of *this and \a other
@@ -107,7 +107,7 @@ cwiseMax(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_max_op<Scalar>, const Derived, const ConstantReturnType>
 cwiseMax(const Scalar &other) const
 {
-  return cwiseMax(Derived::PlainObject::Constant(rows(), cols(), other));
+  return cwiseMax(Derived::Constant(rows(), cols(), other));
 }
 
 
