@@ -41,6 +41,7 @@ string path_filename(const string& path);
 string path_dirname(const string& path);
 string path_join(const string& dir, const string& file);
 string path_escape(const string& path);
+bool path_is_relative(const string& path);
 
 /* file info */
 bool path_exists(const string& path);

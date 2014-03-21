@@ -406,7 +406,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 
 			/* Source */
 			xml_read_string(&osl->filepath, node, "src");
-			osl->filepath = path_join(state.base, osl->filepath);
+			if(path_is_relative(osl->filepath)) {
+				osl->filepath = path_join(state.base, osl->filepath);
+			}
 
 			/* Generate inputs/outputs from node sockets
 			 *
@@ -762,6 +764,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 							case SHADER_SOCKET_POINT:
 							case SHADER_SOCKET_NORMAL:
 								xml_read_float3(&in->value, node, attr.name());
+								break;
+							case SHADER_SOCKET_STRING:
+								xml_read_ustring( &in->value_string, node, attr.name() );
 								break;
 							default:
 								break;

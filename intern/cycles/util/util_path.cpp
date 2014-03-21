@@ -111,6 +111,11 @@ string path_escape(const string& path)
 	return result;
 }
 
+bool path_is_relative(const string& path)
+{
+	return to_boost(path).is_relative();
+}
+
 bool path_exists(const string& path)
 {
 	return boost::filesystem::exists(to_boost(path));
