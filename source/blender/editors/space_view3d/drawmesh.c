@@ -68,6 +68,8 @@
 #include "GPU_draw.h"
 #include "GPU_material.h"
 
+#include "RE_engine.h"
+
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 
@@ -214,11 +216,12 @@ static Material *give_current_material_or_def(Object *ob, int matnr)
 
 static struct TextureDrawState {
 	Object *ob;
+	bool use_game_mat;
 	int is_lit, is_tex;
 	int color_profile;
 	bool use_backface_culling;
 	unsigned char obcol[4];
-} Gtexdraw = {NULL, 0, 0, 0, false, {0, 0, 0, 0}};
+} Gtexdraw = {NULL, false, 0, 0, 0, false, {0, 0, 0, 0}};
 
 static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
 {
@@ -232,7 +235,7 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 
 	Object *litob = NULL;  /* to get mode to turn off mipmap in painting mode */
 	int backculled = 1;
-	int alphablend = 0;
+	int alphablend = GPU_BLEND_SOLID;
 	int textured = 0;
 	int lit = 0;
 	int has_texface = texface != NULL;
@@ -253,9 +256,12 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 	if (gtexdraw.is_lit) lit = 1;
 
 	if (ma) {
-		alphablend = ma->game.alpha_blend;
 		if (ma->mode & MA_SHLESS) lit = 0;
-		backculled = (ma->game.flag & GEMAT_BACKCULL) || gtexdraw.use_backface_culling;
+		backculled = gtexdraw.use_backface_culling;
+		if (gtexdraw.use_game_mat) {
+			backculled = backculled || (ma->game.flag & GEMAT_BACKCULL);
+			alphablend = ma->game.alpha_blend;
+		}
 	}
 
 	if (texface) {
@@ -359,6 +365,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.is_tex = is_tex;
 
 	Gtexdraw.color_profile = BKE_scene_check_color_management_enabled(scene);
+	Gtexdraw.use_game_mat = (RE_engines_find(scene->r.engine)->flag & RE_GAME) != 0;
 	Gtexdraw.use_backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING) != 0;
 
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
