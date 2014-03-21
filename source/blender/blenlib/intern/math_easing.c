@@ -35,6 +35,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "BLI_math.h"
 #include "BLI_math_easing.h"
 
 
