@@ -3801,7 +3801,6 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	(void)sd;
 	cache->num_threads = 1;
 #endif
-	printf(" threads used: %d\n", cache->num_threads);
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BKE_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
