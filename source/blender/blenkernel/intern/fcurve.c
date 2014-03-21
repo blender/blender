@@ -353,10 +353,11 @@ FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH   0.01f /* was 0.00001, but giving errors */
 
-/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
+
+/* Binary search algorithm for finding where to insert BezTriple, with optional argument for precision required.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *r_replace)
+static int binarysearch_bezt_index_ex(BezTriple array[], float frame, int arraylen, float threshold, bool *r_replace)
 {
 	int start = 0, end = arraylen;
 	int loopbreaker = 0, maxloop = arraylen * 2;
@@ -378,7 +379,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *
 		
 		/* 'First' Keyframe (when only one keyframe, this case is used) */
 		framenum = array[0].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_BINARYSEARCH_THRESH)) {
+		if (IS_EQT(frame, framenum, threshold)) {
 			*r_replace = true;
 			return 0;
 		}
@@ -387,7 +388,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *
 			
 		/* 'Last' Keyframe */
 		framenum = array[(arraylen - 1)].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_BINARYSEARCH_THRESH)) {
+		if (IS_EQT(frame, framenum, threshold)) {
 			*r_replace = true;
 			return (arraylen - 1);
 		}
@@ -405,7 +406,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *
 		float midfra = array[mid].vec[1][0];
 		
 		/* check if exactly equal to midpoint */
-		if (IS_EQT(frame, midfra, BEZT_BINARYSEARCH_THRESH)) {
+		if (IS_EQT(frame, midfra, threshold)) {
 			*r_replace = true;
 			return mid;
 		}
@@ -427,6 +428,16 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *
 	
 	/* not found, so return where to place it */
 	return start;
+}
+
+
+/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
+ * Returns the index to insert at (data already at that index will be offset if replace is 0)
+ */
+int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *r_replace)
+{
+	/* this is just a wrapper which uses the default threshold */
+	return binarysearch_bezt_index_ex(array, frame, arraylen, BEZT_BINARYSEARCH_THRESH, r_replace);
 }
 
 /* ...................................... */
@@ -1924,7 +1935,6 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 	unsigned int a;
 	int b;
 	float cvalue = 0.0f;
-	bool exact = false;
 	
 	/* get pointers */
 	a = fcu->totvert - 1;
@@ -2039,16 +2049,33 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 	}
 	else {
 		/* evaltime occurs somewhere in the middle of the curve */
+		bool exact = false;
+		
 		/* - use binary search to find appropriate keyframes */
-		a = binarysearch_bezt_index(bezts, evaltime, fcu->totvert, &exact);
+		a = binarysearch_bezt_index_ex(bezts, evaltime, fcu->totvert, 0.001, &exact);
 		if (G.debug & G_DEBUG) printf("eval fcurve '%s' - %f => %d/%d, %d\n", fcu->rna_path, evaltime, a, fcu->totvert, exact);
 		
-		bezt = bezts + a;
-		prevbezt = (a > 0) ? bezt - 1 : bezt;
+		if (exact) {
+			/* index returned must be interpreted differently when it sits on top of an existing keyframe 
+			 * - that keyframe is the start of the segment we need (see action_bug_2.blend in T39207)
+			 */
+			prevbezt = bezts + a;
+			bezt = (a < fcu->totvert - 1) ? (prevbezt + 1) : prevbezt;
+		}
+		else {
+			/* index returned refers to the keyframe that the eval-time occurs *before*
+			 * - hence, that keyframe marks the start of the segment we're dealing with
+			 */
+			bezt = bezts + a;
+			prevbezt = (a > 0) ? (bezt - 1) : bezt;
+		}
 		
 		/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
-		/* XXX: consult T39207 for examples of files where failure of this check can cause issues */
-		if ((fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) || (a == 0)) {
+		/* XXX: consult T39207 for examples of files where failure of these checks can cause issues */
+		if (exact) {
+			cvalue = prevbezt->vec[1][1];
+		}
+		else if (fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
 			cvalue = bezt->vec[1][1];
 		}
 		/* evaltime occurs within the interval defined by these two keyframes */
@@ -2093,6 +2120,9 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
 					cvalue = opl[0];
 					/* break; */
+				}
+				else {
+					if (G.debug & G_DEBUG) printf("    ERROR: findzero() failed at %f with %f %f %f %f\n", evaltime, v1[0], v2[0], v3[0], v4[0]);
 				}
 			}
 		}
