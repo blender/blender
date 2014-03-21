@@ -1,3 +1,9 @@
+commit d14a372dfe09c7339f267c4904a541fbe2efec43
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 21 16:02:41 2014 +0600
+
+    Attempt to fix compilation error with msvc2013
+
 commit 933531580b4dc4b65601d785cedc16506d615d7b
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Mar 20 23:07:34 2014 +0600
@@ -664,9 +670,3 @@ Date:   Thu Mar 14 14:53:42 2013 +0600
       it happened to be behind the camera.
     
     - Cleaned style a bit.
-
-commit 8bee982972a0b5bded3555b60e0987af685f85bd
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri May 10 13:27:21 2013 +0600
-
-    Left extra debugging print in reconstruction scale by accident.
