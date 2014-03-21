@@ -6806,14 +6806,13 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				if (dt < OB_SOLID) {
 					zbufoff = 1;
 					dt = OB_SOLID;
-					is_paint = true;
 				}
 
 				if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
 					dt = OB_PAINT;
-					is_paint = true;
 				}
 
+				is_paint = true;
 				glEnable(GL_DEPTH_TEST);
 			}
 		}
