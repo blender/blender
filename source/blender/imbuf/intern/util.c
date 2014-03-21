@@ -179,6 +179,7 @@ const char *imb_ext_audio[] = {
 	".aif",
 	".aiff",
 	".m4a",
+	".mka",
 	NULL
 };
 
