@@ -40,9 +40,9 @@ incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
 
 if sys.platform=='darwin':
     if env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4':
-        # Due some bugs in bullet, clang 3.4 produces wrong code when optimized below -O0
-        # to avoid too much speed penalty compiling whole bullet lib non-optimized,
-        # we build a seperate non-optimized/optimized parts and just link together finally
+        # Due some bugs in bullet, clang 3.4 produces wrong code when optimized > -O0
+        # to avoid too much speed penalty when compiling whole bullet lib non-optimized,
+        # we build seperate non-optimized/optimized parts and just link together finally
         bullet2_src.remove("BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp")
         bullet2_fix_src = env.Glob("BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp")
         env.BlenderLib ( libname = 'extern_fix_bullet2', sources=bullet2_fix_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], cc_compileflags=bt_flags, cxx_compileflags=bt_flags )

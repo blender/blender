@@ -51,7 +51,7 @@ blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}")
 
 # avoid link failure with clang 3.4 debug
 if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
-	add_definitions(-gline-tables-only)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gline-tables-only")
 endif()
 
 add_dependencies(bf_intern_cycles bf_rna)
