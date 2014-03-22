@@ -1035,6 +1035,50 @@ int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
 	return hit;
 }
 
+int BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node, const float ray_start[3],
+							const float ray_normal[3], float *detail, float *dist)
+{
+	GHashIterator gh_iter;
+	int hit = 0;
+	BMFace *f_hit = NULL;
+
+	if (node->flag & PBVH_FullyHidden)
+		return 0;
+
+	GHASH_ITER (gh_iter, node->bm_faces) {
+		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+
+		BLI_assert(f->len == 3);
+		if (f->len == 3 && !paint_is_bmesh_face_hidden(f)) {
+			BMVert *v_tri[3];
+			int hit_local;
+			BM_face_as_array_vert_tri(f, v_tri);
+			hit_local = ray_face_intersection(ray_start, ray_normal,
+										 v_tri[0]->co,
+										 v_tri[1]->co,
+										 v_tri[2]->co,
+										 NULL, dist);
+			if (hit_local) {
+				f_hit = f;
+			}
+			hit |= hit_local;
+		}
+	}
+
+	if (hit) {
+		float len1, len2, len3;
+		BMVert *v_tri[3];
+		BM_face_as_array_vert_tri(f_hit, v_tri);
+		len1 = len_v3v3(v_tri[0]->co, v_tri[1]->co);
+		len2 = len_v3v3(v_tri[1]->co, v_tri[2]->co);
+		len3 = len_v3v3(v_tri[2]->co, v_tri[0]->co);
+
+		*detail = (len1 + len2 + len3)/3.0f;
+	}
+
+	return hit;
+}
+
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 {

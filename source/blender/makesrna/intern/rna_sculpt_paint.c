@@ -414,15 +414,15 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	                         "Show diffuse color of object and overlay sculpt mask on top of it");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowDiffuseColor_update");
 
-	prop = RNA_def_property(srna, "detail_size", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "detail_size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_ui_range(prop, 2, 100, 0, -1);
-	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting");
+	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting (in pixels)");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-	prop = RNA_def_property(srna, "constant_detail_scale", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.001, 100.0);
+	prop = RNA_def_property(srna, "constant_detail", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_range(prop, 0.001, 10000.0);
 	RNA_def_property_ui_range(prop, 0.1, 100.0, 10, 2);
-	RNA_def_property_ui_text(prop, "Scale", "Multiplier for constant detail size");
+	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting (as percentage of blender unit)");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);

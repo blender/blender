@@ -1240,9 +1240,7 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
         sub = col.column(align=True)
         sub.active = brush and brush.sculpt_tool not in ('MASK')
         if (sculpt.detail_type_method == 'CONSTANT'):
-            row = sub.row(align=True)
-            row.prop(sculpt, "detail_size")
-            row.prop(sculpt, "constant_detail_scale")
+            sub.prop(sculpt, "constant_detail")
         else:
             sub.prop(sculpt, "detail_size")
         sub.prop(sculpt, "detail_refine_method", text="")
@@ -1251,6 +1249,7 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_smooth_shading")
         col.operator("sculpt.optimize")
         if (sculpt.detail_type_method == 'CONSTANT'):
+           col.operator("sculpt.sample_detail_size")
            col.operator("sculpt.detail_flood_fill")
         col.separator()
         col.prop(sculpt, "symmetrize_direction")
