@@ -571,7 +571,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 			v[1] = prevfpt->vec[1];
 		}
 		else {
-			/* extrapolate linear dosnt use the handle, use the next points center instead */
+			/* extrapolate linear doesn't use the handle, use the next points center instead */
 			fac = (prevfpt->vec[0] - fpt->vec[0]) / (prevfpt->vec[0] - v[0]);
 			if (fac) fac = 1.0f / fac;
 			v[1] = prevfpt->vec[1] - fac * (prevfpt->vec[1] - fpt->vec[1]);
@@ -609,7 +609,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 			v[1] = prevfpt->vec[1];
 		}
 		else {
-			/* extrapolate linear dosnt use the handle, use the previous points center instead */
+			/* extrapolate linear doesn't use the handle, use the previous points center instead */
 			fpt = prevfpt - 1;
 			fac = (prevfpt->vec[0] - fpt->vec[0]) / (prevfpt->vec[0] - v[0]);
 			if (fac) fac = 1.0f / fac;
