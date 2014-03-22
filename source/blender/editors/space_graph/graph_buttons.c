@@ -671,6 +671,21 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		/* errors? */
 		if (driver->flag & DRIVER_FLAG_INVALID)
 			uiItemL(col, IFACE_("ERROR: Invalid target channel(s)"), ICON_ERROR);
+			
+		/* Warnings about a lack of variables
+		 * NOTE: The lack of variables is generally a bad thing, since it indicates
+		 *       that the driver doesn't work at all. This particular scenario arises
+		 *       primarily when users mistakenly try to use drivers for procedural
+		 *       property animation
+		 */
+		if (BLI_listbase_is_empty(&driver->variables)) {
+			uiItemL(col, IFACE_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
+			
+			if (!BLI_listbase_is_empty(&fcu->modifiers)) {
+				uiItemL(col, IFACE_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
+				uiItemL(col, IFACE_("F-Modifiers can generate curves for those too"), ICON_INFO);
+			}
+		}
 	}
 		
 	col = uiLayoutColumn(pa->layout, TRUE);
