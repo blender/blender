@@ -66,10 +66,19 @@ enum {
 
 /*********************** NumInput ********************************/
 
+/* There are important things to note here for code using numinput:
+ * * Values passed to applyNumInput() should be valid and are stored as default ones (val_org), if it is not EDITED.
+ * * bool returned by applyNumInput should be used to decide whether to apply numinput-specific post-process to data.
+ * * *Once applyNumInput has been called*, hasNumInput returns a valid value to decide whether to use numinput
+ *   as drawstr source or not (i.e. to call outputNumInput).
+ *
+ * Those two steps have to be separated (so do not use a common call to hasNumInput() to do both in the same time!).
+ */
+
 void initNumInput(NumInput *n);
 void outputNumInput(NumInput *n, char *str);
 bool hasNumInput(const NumInput *n);
-void applyNumInput(NumInput *n, float *vec);
+bool applyNumInput(NumInput *n, float *vec);
 bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event);
 
 #define NUM_MODAL_INCREMENT_UP   18

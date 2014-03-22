@@ -2845,20 +2845,20 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 		values.scale /= snap_hack;
 	}
 #endif
-	
+
+	if (applyNumInput(&t->num, values.vector)) {
+		values.scale = values.scale / data->warp_init_dist;
+	}
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN * 2];
-		
-		applyNumInput(&t->num, values.vector);
 
 		outputNumInput(&(t->num), c);
 		
 		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Bend Angle: %s Radius: %s Alt, Clamp %s"),
 		             &c[0], &c[NUM_STR_REP_LEN],
 		             WM_bool_as_string(is_clamp));
-
-		values.scale = values.scale / data->warp_init_dist;
 	}
 	else {
 		/* default header print */
@@ -3312,8 +3312,7 @@ static void applyResize(TransInfo *t, const int mval[2])
 	
 	snapGridIncrement(t, size);
 	
-	if (hasNumInput(&t->num)) {
-		applyNumInput(&t->num, size);
+	if (applyNumInput(&t->num, size)) {
 		constraintNumInput(t, size);
 	}
 	
@@ -3422,8 +3421,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 	
 	snapGridIncrement(t, size);
 	
-	if (hasNumInput(&t->num)) {
-		applyNumInput(&t->num, size);
+	if (applyNumInput(&t->num, size)) {
 		constraintNumInput(t, size);
 	}
 	
@@ -3884,17 +3882,17 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	applySnapping(t, &final);
 
+	if (applyNumInput(&t->num, &final)) {
+		/* Clamp between -PI and PI */
+		final = angle_wrap_rad(final);
+	}
+
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-		
-		applyNumInput(&t->num, &final);
 		
 		outputNumInput(&(t->num), c);
 		
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Rot: %s %s %s"), &c[0], t->con.text, t->proptext);
-
-		/* Clamp between -PI and PI */
-		final = angle_wrap_rad(final);
 	}
 	else {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Rot: %.2f%s %s"),
@@ -3991,10 +3989,10 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
 	snapGridIncrement(t, phi);
 
+	applyNumInput(&t->num, phi);
+
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN * 2];
-
-		applyNumInput(&t->num, phi);
 
 		outputNumInput(&(t->num), c);
 
@@ -4250,7 +4248,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
 		float tvec[3];
-		if (hasNumInput(&t->num)) {
+		if (applyNumInput(&t->num, t->values)) {
 			removeAspectRatio(t, t->values);
 		}
 		applySnapping(t, t->values);
@@ -4260,8 +4258,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	else {
 		snapGridIncrement(t, t->values);
-		applyNumInput(&t->num, t->values);
-		if (hasNumInput(&t->num)) {
+		if (applyNumInput(&t->num, t->values)) {
 			removeAspectRatio(t, t->values);
 		}
 		applySnapping(t, t->values);
@@ -4431,10 +4428,10 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
 
 	snapGridIncrement(t, &final);
 
+	applyNumInput(&t->num, &final);
+
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-
-		applyNumInput(&t->num, &final);
 
 		outputNumInput(&(t->num), c);
 
@@ -4986,8 +4983,7 @@ static void applyBoneSize(TransInfo *t, const int mval[2])
 	
 	snapGridIncrement(t, size);
 	
-	if (hasNumInput(&t->num)) {
-		applyNumInput(&t->num, size);
+	if (applyNumInput(&t->num, size)) {
 		constraintNumInput(t, size);
 	}
 	
@@ -6191,10 +6187,10 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	/* only do this so out of range values are not displayed */
 	CLAMP(final, -1.0f, 1.0f);
 
+	applyNumInput(&t->num, &final);
+
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-
-		applyNumInput(&t->num, &final);
 
 		outputNumInput(&(t->num), c);
 
@@ -6713,11 +6709,12 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 		CLAMP(final, 0.0f, 1.0f);
 	}
 
+	applyNumInput(&t->num, &final);
+
 	/* header string */
 	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Vert Slide: "), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-		applyNumInput(&t->num, &final);
 		outputNumInput(&(t->num), c);
 		ofs += BLI_strncpy_rlen(str + ofs, &c[0], MAX_INFO_LEN - ofs);
 	}
@@ -6780,10 +6777,10 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
 	snapGridIncrement(t, &final);
 
+	applyNumInput(&t->num, &final);
+
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-
-		applyNumInput(&t->num, &final);
 
 		outputNumInput(&(t->num), c);
 
