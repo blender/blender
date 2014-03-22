@@ -5362,6 +5362,7 @@ static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
 static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e)) {
 	ScrArea *sa = CTX_wm_area(C);
 	ED_area_headerprint(sa, "Click on the mesh to set the detail");
+	WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
 	WM_event_add_modal_handler(C, op);
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -5377,6 +5378,7 @@ static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wm
 				sample_detail(C, ss_co);
 
 				RNA_int_set_array(op->ptr, "location", ss_co);
+				WM_cursor_modal_restore(CTX_wm_window(C));
 				ED_area_headerprint(sa, NULL);
 				WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
 
@@ -5387,6 +5389,7 @@ static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wm
 		case RIGHTMOUSE:
 		{
 			ScrArea *sa = CTX_wm_area(C);
+			WM_cursor_modal_restore(CTX_wm_window(C));
 			ED_area_headerprint(sa, NULL);
 			return OPERATOR_CANCELLED;
 			break;
