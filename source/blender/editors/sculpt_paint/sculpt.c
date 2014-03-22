@@ -4510,7 +4510,8 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	sculpt_restore_mesh(sd, ob);
 
 	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
-		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, (float)sd->detail_size / 100.0f);
+		BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
+			sd->constant_detail_scale * (float)sd->detail_size / 100.0f);
 	}
 	else {
 		BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
@@ -5164,8 +5165,12 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;
 		}
 
-		if (!ts->sculpt->detail_size)
+		if (!ts->sculpt->detail_size) {
 			ts->sculpt->detail_size = 30;
+		}
+
+		if (ts->sculpt->constant_detail_scale == 0.0)
+			ts->sculpt->constant_detail_scale = 1.0f;
 
 		/* Create sculpt mode session data */
 		if (ob->sculpt)
@@ -5204,6 +5209,76 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+
+static int sculpt_and_dynamic_topology_constant_detail_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+	return sculpt_mode_poll(C) && ob->sculpt->bm && (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT);
+}
+
+static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+	Object *ob = CTX_data_active_object(C);
+	SculptSession *ss = ob->sculpt;
+	float size;
+	float bb_min[3], bb_max[3];
+	int i, totnodes;
+	PBVHNode **nodes;
+
+	BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnodes);
+
+	if (!totnodes)
+		return OPERATOR_CANCELLED;
+
+	for (i = 0; i < totnodes; i++) {
+		BKE_pbvh_node_mark_topology_update(nodes[i]);
+	}
+	/* get the bounding box, store the size to bb_max and center (zero) to bb_min */
+	BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
+	sub_v3_v3(bb_max, bb_min);
+	zero_v3(bb_min);
+	size = max_fff(bb_max[0], bb_max[1], bb_max[2]);
+
+	/* update topology size */
+	BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
+			sd->constant_detail_scale * (float)sd->detail_size / 100.0f);
+
+	sculpt_undo_push_begin("Dynamic topology flood fill");
+	sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
+
+	while (BKE_pbvh_bmesh_update_topology(ss->pbvh, PBVH_Collapse | PBVH_Subdivide, bb_min, size)) {
+		for (i = 0; i < totnodes; i++)
+			BKE_pbvh_node_mark_topology_update(nodes[i]);
+	}
+
+	MEM_freeN(nodes);
+	sculpt_undo_push_end();
+
+	/* force rebuild of pbvh for better BB placement */
+	sculpt_pbvh_clear(ob);
+	/* Redraw */
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Flood Fill";
+	ot->idname = "SCULPT_OT_detail_flood_fill";
+	ot->description = "Flood fill the mesh with the selected detail setting";
+
+	/* api callbacks */
+	ot->exec = sculpt_detail_flood_fill_exec;
+	ot->poll = sculpt_and_dynamic_topology_constant_detail_poll;
+
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 void ED_operatortypes_sculpt(void)
 {
 	WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -5212,4 +5287,5 @@ void ED_operatortypes_sculpt(void)
 	WM_operatortype_append(SCULPT_OT_dynamic_topology_toggle);
 	WM_operatortype_append(SCULPT_OT_optimize);
 	WM_operatortype_append(SCULPT_OT_symmetrize);
+	WM_operatortype_append(SCULPT_OT_detail_flood_fill);
 }

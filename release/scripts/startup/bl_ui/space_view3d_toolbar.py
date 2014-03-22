@@ -1239,12 +1239,19 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
         sub = col.column(align=True)
         sub.active = brush and brush.sculpt_tool not in ('MASK')
-        sub.prop(sculpt, "detail_size")
+        if (sculpt.detail_type_method == 'CONSTANT'):
+            row = sub.row(align=True)
+            row.prop(sculpt, "detail_size")
+            row.prop(sculpt, "constant_detail_scale")
+        else:
+            sub.prop(sculpt, "detail_size")
         sub.prop(sculpt, "detail_refine_method", text="")
         sub.prop(sculpt, "detail_type_method", text="")
         col.separator()
         col.prop(sculpt, "use_smooth_shading")
         col.operator("sculpt.optimize")
+        if (sculpt.detail_type_method == 'CONSTANT'):
+           col.operator("sculpt.detail_flood_fill")
         col.separator()
         col.prop(sculpt, "symmetrize_direction")
         col.operator("sculpt.symmetrize")

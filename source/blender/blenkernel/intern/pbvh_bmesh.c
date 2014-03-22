@@ -1104,7 +1104,7 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
 }
 
 /* Collapse short edges, subdivide long edges */
-int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
+bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
                                    const float center[3], float radius)
 {
 	/* 2 is enough for edge faces - manifold edge */
@@ -1112,7 +1112,7 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 	BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
 	const int cd_vert_mask_offset = CustomData_get_offset(&bvh->bm->vdata, CD_PAINT_MASK);
 
-	int modified = FALSE;
+	bool modified = false;
 	int n;
 
 	if (mode & PBVH_Collapse) {
@@ -1122,6 +1122,7 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset};
 
 		short_edge_queue_create(&eq_ctx, bvh, center, radius);
+		modified |= !BLI_heap_is_empty(q.heap);
 		pbvh_bmesh_collapse_short_edges(&eq_ctx, bvh, &edge_loops,
 		                                &deleted_faces);
 		BLI_heap_free(q.heap, NULL);
@@ -1135,6 +1136,7 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset};
 
 		long_edge_queue_create(&eq_ctx, bvh, center, radius);
+		modified |= !BLI_heap_is_empty(q.heap);
 		pbvh_bmesh_subdivide_long_edges(&eq_ctx, bvh, &edge_loops);
 		BLI_heap_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
