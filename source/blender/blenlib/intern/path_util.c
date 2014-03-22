@@ -2068,7 +2068,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 	if (GetModuleFileNameW(0, fullname_16, maxlen)) {
 		conv_utf_16_to_8(fullname_16, fullname, maxlen);
 		if (!BLI_exists(fullname)) {
-			printf("path can't be found: \"%.*s\"\n", maxlen, fullname);
+			printf("path can't be found: \"%.*s\"\n", (int)maxlen, fullname);
 			MessageBox(NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
 		}
 		MEM_freeN(fullname_16);

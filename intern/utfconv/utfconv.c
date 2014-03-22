@@ -170,7 +170,7 @@ int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16)
 {
 	char u;
 	char type = 0;
-	wchar_t u32 = 0;
+	unsigned int u32 = 0;
 	wchar_t *out16end = out16 + size16;
 	int err = 0;
 	if (!size16 || !in8 || !out16) return UTF_ERROR_NULL_IN;
