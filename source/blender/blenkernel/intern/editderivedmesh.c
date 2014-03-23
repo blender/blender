@@ -1744,10 +1744,8 @@ static void statvis_calc_overhang(
 	bool is_max;
 
 	/* fallback */
-	const char col_fallback[2][4] = {
-	    {64, 64, 64, 255},  /* gray */
-	    {0,  0,  0,  255},  /* max color */
-	};
+	unsigned char col_fallback[4] = {64, 64, 64, 255}; /* gray */
+	unsigned char col_fallback_max[4] = {0,  0,  0,  255}; /* max color */
 
 	BLI_assert(min <= max);
 
@@ -1762,7 +1760,7 @@ static void statvis_calc_overhang(
 	{
 		float fcol[3];
 		weight_to_rgb(fcol, 1.0f);
-		rgb_float_to_uchar((unsigned char *)col_fallback[1], fcol);
+		rgb_float_to_uchar(col_fallback_max, fcol);
 	}
 
 	/* now convert into global space */
@@ -1779,7 +1777,8 @@ static void statvis_calc_overhang(
 			rgb_float_to_uchar(r_face_colors[index], fcol);
 		}
 		else {
-			copy_v4_v4_char((char *)r_face_colors[index], (const char *)(col_fallback[is_max]));
+			unsigned char *fallback = is_max ? col_fallback_max : col_fallback;
+			copy_v4_v4_char((char *)r_face_colors[index], (const char *)fallback);
 		}
 	}
 }
