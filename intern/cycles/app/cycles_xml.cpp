@@ -280,6 +280,8 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 		xml_read_int(&integrator->mesh_light_samples, node, "mesh_light_samples");
 		xml_read_int(&integrator->subsurface_samples, node, "subsurface_samples");
 		xml_read_int(&integrator->volume_samples, node, "volume_samples");
+		xml_read_bool(&integrator->sample_all_lights_direct, node, "sample_all_lights_direct");
+		xml_read_bool(&integrator->sample_all_lights_indirect, node, "sample_all_lights_indirect");
 	}
 	
 	/* Bounces */
