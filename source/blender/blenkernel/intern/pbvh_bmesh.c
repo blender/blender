@@ -1073,7 +1073,8 @@ int BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node, const float ray_start[3],
 		len2 = len_v3v3(v_tri[1]->co, v_tri[2]->co);
 		len3 = len_v3v3(v_tri[2]->co, v_tri[0]->co);
 
-		*detail = (len1 + len2 + len3)/3.0f;
+		/* detail returned will be set to the maximum allowed size, so take max here */
+		*detail = max_fff(len1, len2, len3);
 	}
 
 	return hit;
