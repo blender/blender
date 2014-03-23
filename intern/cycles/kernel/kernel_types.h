@@ -829,7 +829,6 @@ typedef struct KernelIntegrator {
 
 	/* branched path */
 	int branched;
-	int aa_samples;
 	int diffuse_samples;
 	int glossy_samples;
 	int transmission_samples;
@@ -844,6 +843,7 @@ typedef struct KernelIntegrator {
 
 	/* sampler */
 	int sampling_pattern;
+	int aa_samples;
 
 	/* volume render */
 	int volume_homogeneous_sampling;

@@ -122,7 +122,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->sample_clamp_indirect = (sample_clamp_indirect == 0.0f)? FLT_MAX: sample_clamp_indirect*3.0f;
 
 	kintegrator->branched = (method == BRANCHED_PATH);
-	kintegrator->aa_samples = aa_samples;
 	kintegrator->diffuse_samples = diffuse_samples;
 	kintegrator->glossy_samples = glossy_samples;
 	kintegrator->transmission_samples = transmission_samples;
@@ -134,6 +133,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->sample_all_lights_indirect = sample_all_lights_indirect;
 
 	kintegrator->sampling_pattern = sampling_pattern;
+	kintegrator->aa_samples = aa_samples;
 
 	/* sobol directions table */
 	int max_samples = 1;
