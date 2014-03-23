@@ -180,14 +180,14 @@ class _GenericBone:
 
     @property
     def y_axis(self):
-        """ Vector pointing down the x-axis of the bone.
+        """ Vector pointing down the y-axis of the bone.
         """
         from mathutils import Vector
         return self.matrix.to_3x3() * Vector((0.0, 1.0, 0.0))
 
     @property
     def z_axis(self):
-        """ Vector pointing down the x-axis of the bone.
+        """ Vector pointing down the z-axis of the bone.
         """
         from mathutils import Vector
         return self.matrix.to_3x3() * Vector((0.0, 0.0, 1.0))
