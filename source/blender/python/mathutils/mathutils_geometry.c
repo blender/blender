@@ -1515,7 +1515,7 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 
 	ret = PyTuple_New(2);
 	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(tot_width));
-	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(tot_width));
+	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(tot_height));
 	return ret;
 }
 
