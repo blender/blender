@@ -112,7 +112,7 @@ int system_physical_thread_count(void); // declaration here for simplification
 int system_physical_thread_count(void)
 {
 	int pcount;
-	size_t pcount_len;
+	size_t pcount_len = sizeof(pcount);
 	sysctlbyname("hw.physicalcpu", &pcount, &pcount_len, NULL, 0);
 	return pcount;
 }
