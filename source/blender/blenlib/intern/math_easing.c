@@ -154,7 +154,7 @@ float ElasticEaseIn(float time, float begin, float change, float duration, float
 	if (!period)
 		period = duration * 0.3f;
 
-	if (!amplitude || amplitude < abs(change)) {
+	if (!amplitude || amplitude < fabsf(change)) {
 		amplitude = change;
 		s = period / 4;
 	}
@@ -175,7 +175,7 @@ float ElasticEaseOut(float time, float begin, float change, float duration, floa
 		return begin + change;
 	if (!period)
 		period = duration * 0.3f;
-	if (!amplitude || amplitude < abs(change)) {
+	if (!amplitude || amplitude < fabsf(change)) {
 		amplitude = change;
 		s = period / 4;
 	}
@@ -195,7 +195,7 @@ float ElasticEaseInOut(float time, float begin, float change, float duration, fl
 		return begin + change;
 	if (!period)
 		period = duration * (0.3f * 1.5f);
-	if (!amplitude || amplitude < abs(change)) {
+	if (!amplitude || amplitude < fabsf(change)) {
 		amplitude = change;
 		s = period / 4;
 	}
