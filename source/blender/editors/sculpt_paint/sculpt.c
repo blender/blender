@@ -115,7 +115,7 @@ int system_physical_thread_count(void)
 	size_t pcount_len;
 	sysctlbyname("hw.physicalcpu", &pcount, &pcount_len, NULL, 0);
 	return pcount;
-	}
+}
 #endif // __APPLE__
 
 void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
@@ -3793,7 +3793,7 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 		cache->num_threads = omp_get_num_procs();
 #endif
 	}
-      else {
+	else {
 		cache->num_threads = 1;
 	}
 	omp_set_num_threads(cache->num_threads);
@@ -4301,7 +4301,8 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
 		SculptDetailRaycastData *srd = data_v;
 		if (BKE_pbvh_bmesh_node_raycast_detail(node, srd->ray_start, srd->ray_normal,
-											   &srd->detail, &srd->dist)) {
+		                                       &srd->detail, &srd->dist))
+		{
 			srd->hit = 1;
 			*tmin = srd->dist;
 		}
@@ -5262,8 +5263,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 	size = max_fff(bb_max[0], bb_max[1], bb_max[2]);
 
 	/* update topology size */
-	BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-			sd->constant_detail/ 100.0f);
+	BKE_pbvh_bmesh_detail_size_set(ss->pbvh, sd->constant_detail / 100.0f);
 
 	sculpt_undo_push_begin("Dynamic topology flood fill");
 	sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
@@ -5342,10 +5342,9 @@ static void sample_detail(bContext *C, int ss_co[2])
 	srd.detail = sd->constant_detail;
 
 	BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd,
-					 ray_start, ray_normal, false);
+	                 ray_start, ray_normal, false);
 
-	if (srd.hit)
-	{
+	if (srd.hit) {
 		sd->constant_detail = srd.detail * 100.0f;
 	}
 }
@@ -5359,7 +5358,8 @@ static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
 }
 
 
-static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e)) {
+static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e))
+{
 	ScrArea *sa = CTX_wm_area(C);
 	ED_area_headerprint(sa, "Click on the mesh to set the detail");
 	WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
@@ -5367,8 +5367,8 @@ static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const w
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wmEvent *e) {
-
+static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wmEvent *e)
+{
 	switch (e->type) {
 		case LEFTMOUSE:
 			if (e->val == KM_PRESS) {

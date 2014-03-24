@@ -227,7 +227,7 @@ float ExpoEaseInOut(float time, float begin, float change, float duration)
 	if (time == duration)
 		return begin + change;
 	if ((time /= duration / 2) < 1)
-		return change/2 * pow(2, 10 * (time - 1)) + begin;
+		return change / 2 * pow(2, 10 * (time - 1)) + begin;
 	--time;
 	return change / 2 * (-pow(2, -10 * time) + 2) + begin;
 }
@@ -275,7 +275,7 @@ float QuartEaseInOut(float time, float begin, float change, float duration)
 	if ((time /= duration / 2) < 1)
 		return change / 2 * time * time * time * time + begin;
 	time -= 2;
-	return -change/2 * ( time * time * time * time - 2) + begin;
+	return -change / 2 * ( time * time * time * time - 2) + begin;
 }
 
 float QuintEaseIn(float time, float begin, float change, float duration)
@@ -291,7 +291,7 @@ float QuintEaseOut(float time, float begin, float change, float duration)
 float QuintEaseInOut(float time, float begin, float change, float duration)
 {
 	if ((time /= duration / 2) < 1)
-		 return change/2 * time * time * time * time * time + begin;
+		 return change / 2 * time * time * time * time * time + begin;
 	time -= 2;
 	return change / 2 * (time * time * time * time * time + 2) + begin;
 }

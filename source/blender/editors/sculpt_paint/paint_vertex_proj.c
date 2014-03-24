@@ -124,8 +124,9 @@ static void vpaint_proj_dm_map_cosnos_init(Scene *scene, Object *ob,
 
 /* Same as init but take mouse location into account */
 
-static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, const float co[3],
-													 const float no_f[3], const short no_s[3])
+static void vpaint_proj_dm_map_cosnos_update__map_cb(
+        void *userData, int index, const float co[3],
+        const float no_f[3], const short no_s[3])
 {
 	struct VertProjUpdate *vp_update = userData;
 
@@ -136,8 +137,8 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, 
 	float co_ss[2];  /* screenspace */
 
 	if (ED_view3d_project_float_object(vp_update->ar,
-									   co, co_ss,
-									   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+	                                   co, co_ss,
+	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 	{
 		const float dist_sq = len_squared_v2v2(vp_update->mval_fl, co_ss);
 		if (dist_sq > data->dists_sq[index]) {
@@ -158,8 +159,9 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, 
 	}
 }
 
-static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
-											 ARegion *ar, const float mval_fl[2])
+static void vpaint_proj_dm_map_cosnos_update(
+        struct VertProjHandle *vp_handle,
+        ARegion *ar, const float mval_fl[2])
 {
 	struct VertProjUpdate vp_update = {vp_handle, ar, mval_fl};
 
@@ -187,8 +189,9 @@ static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
 /* -------------------------------------------------------------------- */
 /* Public Functions */
 
-struct VertProjHandle *ED_vpaint_proj_handle_create(Scene *scene, Object *ob,
-													VertProjData **r_vcosnos)
+struct VertProjHandle *ED_vpaint_proj_handle_create(
+        Scene *scene, Object *ob,
+        VertProjData **r_vcosnos)
 {
 	struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
 	Mesh *me = ob->data;

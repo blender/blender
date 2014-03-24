@@ -126,8 +126,9 @@ typedef struct VertProjData {
 
 /* paint_vertex_proj.c */
 struct VertProjHandle;
-struct VertProjHandle *ED_vpaint_proj_handle_create(struct Scene *scene, struct Object *ob,
-		VertProjData **r_vcosnos);
+struct VertProjHandle *ED_vpaint_proj_handle_create(
+        struct Scene *scene, struct Object *ob,
+        VertProjData **r_vcosnos);
 void  ED_vpaint_proj_handle_update(
         struct VertProjHandle *vp_handle,
         /* runtime vars */

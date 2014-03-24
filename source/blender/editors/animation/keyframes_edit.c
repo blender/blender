@@ -988,7 +988,7 @@ static short set_bezt_quint(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 static short set_bezt_sine(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
-		bezt->ipo= BEZT_IPO_SINE;
+		bezt->ipo = BEZT_IPO_SINE;
 	return 0;
 }
 

@@ -910,8 +910,9 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 }
 
 /* whats _dl mean? */
-static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const VertProjData *data, const int index,
-								 const float brush_size_pressure, float rgba[4])
+static float calc_vp_strength_col_dl(
+        VPaint *vp, ViewContext *vc, const VertProjData *data, const int index,
+        const float brush_size_pressure, float rgba[4])
 {
 	float dist_sq = data->dists_sq[index];
 	if (dist_sq <= brush_size_pressure * brush_size_pressure) {
@@ -939,10 +940,11 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const VertProj
 	return 0.0f;
 }
 
-static float calc_vp_alpha_col_dl(VPaint *vp, ViewContext *vc,
-							  float vpimat[3][3], const VertProjData *data,
-							  const int index,
-                              const float brush_size_pressure, const float brush_alpha_pressure, float rgba[4])
+static float calc_vp_alpha_col_dl(
+        VPaint *vp, ViewContext *vc,
+        float vpimat[3][3], const VertProjData *data,
+        const int index,
+        const float brush_size_pressure, const float brush_alpha_pressure, float rgba[4])
 {
 	float strength = calc_vp_strength_col_dl(vp, vc, data, index, brush_size_pressure, rgba);
 
@@ -2842,7 +2844,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 }
 
 static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me, const unsigned int index,
-							  const float brush_size_pressure, const float brush_alpha_pressure)
+                              const float brush_size_pressure, const float brush_alpha_pressure)
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = BKE_paint_brush(&vp->paint);
@@ -2892,8 +2894,8 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me, const unsig
 		float rgba[4];
 		unsigned int paintcol;
 		alpha = calc_vp_alpha_col_dl(vp, vc, vpd->vpimat,
-								 vpd->data, ml->v,
-		                         brush_size_pressure, brush_alpha_pressure, rgba);
+		                             vpd->data, ml->v,
+		                             brush_size_pressure, brush_alpha_pressure, rgba);
 
 		if (vpd->is_texbrush) {
 			float rgba_br[3];

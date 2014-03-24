@@ -181,12 +181,14 @@ bool ray_face_intersection(const float ray_start[3], const float ray_normal[3],
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
 /* pbvh_bmesh.c */
-int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
-							const float ray_normal[3], float *dist,
-							int use_original);
+int pbvh_bmesh_node_raycast(
+        PBVHNode *node, const float ray_start[3],
+        const float ray_normal[3], float *dist,
+        int use_original);
 
-int pbvh_bmesh_node_raycast_detail(PBVHNode *node, const float ray_start[3],
-							const float ray_normal[3], float *detail, float *dist);
+int pbvh_bmesh_node_raycast_detail(
+        PBVHNode *node, const float ray_start[3],
+        const float ray_normal[3], float *detail, float *dist);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
 
