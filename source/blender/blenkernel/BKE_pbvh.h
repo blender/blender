@@ -94,12 +94,14 @@ void BKE_pbvh_raycast(PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
                       const float ray_start[3], const float ray_normal[3],
                       int original);
 
-int BKE_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use_origco,
+bool BKE_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use_origco,
                           const float ray_start[3], const float ray_normal[3],
                           float *dist);
 
-int BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node, const float ray_start[3],
-							const float ray_normal[3], float *detail, float *dist);
+bool BKE_pbvh_bmesh_node_raycast_detail(
+        PBVHNode *node,
+        const float ray_start[3], const float ray_normal[3],
+        float *detail, float *dist);
 
 /* for orthographic cameras, project the far away ray segment points to the root node so
  * we can have better precision. */

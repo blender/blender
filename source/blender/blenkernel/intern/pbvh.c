@@ -1453,14 +1453,16 @@ static bool pbvh_faces_node_raycast(PBVH *bvh, const PBVHNode *node,
 	return hit;
 }
 
-static int pbvh_grids_node_raycast(PBVH *bvh, PBVHNode *node,
-                                   float (*origco)[3],
-                                   const float ray_start[3],
-                                   const float ray_normal[3], float *dist)
+static bool pbvh_grids_node_raycast(
+        PBVH *bvh, PBVHNode *node,
+        float (*origco)[3],
+        const float ray_start[3], const float ray_normal[3],
+        float *dist)
 {
 	int totgrid = node->totprim;
 	int gridsize = bvh->gridkey.grid_size;
-	int i, x, y, hit = 0;
+	int i, x, y;
+	bool hit = false;
 
 	for (i = 0; i < totgrid; ++i) {
 		CCGElem *grid = bvh->grids[node->prim_indices[i]];
@@ -1505,9 +1507,10 @@ static int pbvh_grids_node_raycast(PBVH *bvh, PBVHNode *node,
 	return hit;
 }
 
-int BKE_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use_origco,
-                          const float ray_start[3], const float ray_normal[3],
-                          float *dist)
+bool BKE_pbvh_node_raycast(
+        PBVH *bvh, PBVHNode *node, float (*origco)[3], int use_origco,
+        const float ray_start[3], const float ray_normal[3],
+        float *dist)
 {
 	bool hit = false;
 
