@@ -1446,34 +1446,6 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	 * BKE_object_handle_update() then we do nothing here.
 	 */
 	if (!scene_need_update_objects(bmain)) {
-		/* For debug builds we check whether early return didn't give
-		 * us any regressions in terms of missing updates.
-		 *
-		 * TODO(sergey): Remove once we're sure the check above is correct.
-		 */
-#ifndef NDEBUG
-		Base *base;
-
-		for (base = scene->base.first; base; base = base->next) {
-			Object *object = base->object;
-
-			BLI_assert((object->recalc & OB_RECALC_ALL) == 0);
-
-			if (object->proxy) {
-				BLI_assert((object->proxy->recalc & OB_RECALC_ALL) == 0);
-			}
-
-			if (object->dup_group && (object->transflag & OB_DUPLIGROUP)) {
-				GroupObject *go;
-				for (go = object->dup_group->gobject.first; go; go = go->next) {
-					if (go->ob) {
-						BLI_assert((go->ob->recalc & OB_RECALC_ALL) == 0);
-					}
-				}
-			}
-		}
-#endif
-
 		return;
 	}
 
