@@ -39,37 +39,37 @@
 extern "C" {
 #endif
 
-float BackEaseIn(float time, float begin, float change, float duration, float overshoot);
-float BackEaseOut(float time, float begin, float change, float duration, float overshoot);
-float BackEaseInOut(float time, float begin, float change, float duration, float overshoot);
-float BounceEaseOut(float time, float begin, float change, float duration);
-float BounceEaseIn(float time, float begin, float change, float duration);
-float BounceEaseInOut(float time, float begin, float change, float duration);
-float CircEaseIn(float time, float begin, float change, float duration);
-float CircEaseOut(float time, float begin, float change, float duration);
-float CircEaseInOut(float time, float begin, float change, float duration);
-float CubicEaseIn(float time, float begin, float change, float duration);
-float CubicEaseOut(float time, float begin, float change, float duration);
-float CubicEaseInOut(float time, float begin, float change, float duration);
-float ElasticEaseIn(float time, float begin, float change, float duration, float amplitude, float period);
-float ElasticEaseOut(float time, float begin, float change, float duration, float amplitude, float period);
-float ElasticEaseInOut(float time, float begin, float change, float duration, float amplitude, float period);
-float ExpoEaseIn(float time, float begin, float change, float duration);
-float ExpoEaseOut(float time, float begin, float change, float duration);
-float ExpoEaseInOut(float time, float begin, float change, float duration);
-float LinearEase(float time, float begin, float change, float duration);
-float QuadEaseIn(float time, float begin, float change, float duration);
-float QuadEaseOut(float time, float begin, float change, float duration);
-float QuadEaseInOut(float time, float begin, float change, float duration);
-float QuartEaseIn(float time, float begin, float change, float duration);
-float QuartEaseOut(float time, float begin, float change, float duration);
-float QuartEaseInOut(float time, float begin, float change, float duration);
-float QuintEaseIn(float time, float begin, float change, float duration);
-float QuintEaseOut(float time, float begin, float change, float duration);
-float QuintEaseInOut(float time, float begin, float change, float duration);
-float SineEaseIn(float time, float begin, float change, float duration);
-float SineEaseOut(float time, float begin, float change, float duration);
-float SineEaseInOut(float time, float begin, float change, float duration);
+float BLI_easing_back_ease_in(float time, float begin, float change, float duration, float overshoot);
+float BLI_easing_back_ease_out(float time, float begin, float change, float duration, float overshoot);
+float BLI_easing_back_ease_in_out(float time, float begin, float change, float duration, float overshoot);
+float BLI_easing_bounce_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_bounce_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_bounce_ease_in_out(float time, float begin, float change, float duration);
+float BLI_easing_circ_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_circ_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_circ_ease_in_out(float time, float begin, float change, float duration);
+float BLI_easing_cubic_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_cubic_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_cubic_ease_in_out(float time, float begin, float change, float duration);
+float BLI_easing_elastic_ease_in(float time, float begin, float change, float duration, float amplitude, float period);
+float BLI_easing_elastic_ease_out(float time, float begin, float change, float duration, float amplitude, float period);
+float BLI_easing_elastic_ease_in_out(float time, float begin, float change, float duration, float amplitude, float period);
+float BLI_easing_expo_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_expo_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_expo_ease_in_out(float time, float begin, float change, float duration);
+float BLI_easing_linear_ease(float time, float begin, float change, float duration);
+float BLI_easing_quad_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_quad_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_quad_ease_in_out(float time, float begin, float change, float duration);
+float BLI_easing_quart_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_quart_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_quart_ease_in_out(float time, float begin, float change, float duration);
+float BLI_easing_quint_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_quint_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_quint_ease_in_out(float time, float begin, float change, float duration);
+float BLI_easing_sine_ease_in(float time, float begin, float change, float duration);
+float BLI_easing_sine_ease_out(float time, float begin, float change, float duration);
+float BLI_easing_sine_ease_in_out(float time, float begin, float change, float duration);
 
 #ifdef __cplusplus
 }

@@ -31,8 +31,6 @@
 /** \file blender/blenlib/intern/easing.c
  *  \ingroup bli
  */
- 
-#include <math.h>
 
 #include "BLI_math_base.h"
 
@@ -41,7 +39,7 @@
 #include "BLI_strict_flags.h"
 
 
-float BackEaseIn(float time, float begin, float change, float duration, float overshoot)
+float BLI_easing_back_ease_in(float time, float begin, float change, float duration, float overshoot)
 {
 	if (overshoot == 0.0f)
 		overshoot = 1.70158f;
@@ -49,7 +47,7 @@ float BackEaseIn(float time, float begin, float change, float duration, float ov
 	return change * time * time * ((overshoot + 1) * time - overshoot) + begin;
 }
 
-float BackEaseOut(float time, float begin, float change, float duration, float overshoot)
+float BLI_easing_back_ease_out(float time, float begin, float change, float duration, float overshoot)
 {
 	if (overshoot == 0.0f)
 		overshoot = 1.70158f;
@@ -57,7 +55,7 @@ float BackEaseOut(float time, float begin, float change, float duration, float o
 	return change * (time * time * ((overshoot + 1) * time + overshoot) + 1) + begin;
 }
 
-float BackEaseInOut(float time, float begin, float change, float duration, float overshoot)
+float BLI_easing_back_ease_in_out(float time, float begin, float change, float duration, float overshoot)
 {
 	if (overshoot == 0.0f)
 		overshoot = 1.70158f; 
@@ -70,7 +68,7 @@ float BackEaseInOut(float time, float begin, float change, float duration, float
 
 }
 
-float BounceEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_bounce_ease_out(float time, float begin, float change, float duration)
 {
 	time /= duration;
 	if (time < (1 / 2.75f)) {
@@ -90,32 +88,32 @@ float BounceEaseOut(float time, float begin, float change, float duration)
 	}
 }
 
-float BounceEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_bounce_ease_in(float time, float begin, float change, float duration)
 {
-	return change - BounceEaseOut(duration - time, 0, change, duration) + begin;
+	return change - BLI_easing_bounce_ease_out(duration - time, 0, change, duration) + begin;
 }
 
-float BounceEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_bounce_ease_in_out(float time, float begin, float change, float duration)
 {
 	if (time < duration / 2)
-		return BounceEaseIn(time * 2, 0, change, duration) * 0.5f + begin;
+		return BLI_easing_bounce_ease_in(time * 2, 0, change, duration) * 0.5f + begin;
 	else
-		return BounceEaseOut(time * 2 - duration, 0, change, duration) * 0.5f + change * 0.5f + begin;
+		return BLI_easing_bounce_ease_out(time * 2 - duration, 0, change, duration) * 0.5f + change * 0.5f + begin;
 }
 
-float CircEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_circ_ease_in(float time, float begin, float change, float duration)
 {
 	time /= duration;
 	return -change * (sqrtf(1 - time * time) - 1) + begin;
 }
 
-float CircEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_circ_ease_out(float time, float begin, float change, float duration)
 {
 	time = time / duration - 1;
 	return change * sqrtf(1 - time * time) + begin;
 }
 
-float CircEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_circ_ease_in_out(float time, float begin, float change, float duration)
 {
 	if ((time /= duration / 2) < 1.0f)
 		return -change / 2 * (sqrtf(1 - time * time) - 1) + begin;
@@ -123,19 +121,19 @@ float CircEaseInOut(float time, float begin, float change, float duration)
 	return change / 2 * (sqrtf(1 - time * time) + 1) + begin;
 }
 
-float CubicEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_cubic_ease_in(float time, float begin, float change, float duration)
 {
 	time /= duration;
 	return change * time * time * time + begin;
 }
 
-float CubicEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_cubic_ease_out(float time, float begin, float change, float duration)
 {
 	time = time / duration - 1;
 	return change * (time * time * time + 1) + begin;
 }
 
-float CubicEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_cubic_ease_in_out(float time, float begin, float change, float duration)
 {
 	if ((time /= duration / 2) < 1.0f)
 		return change / 2 * time * time * time + begin;
@@ -143,7 +141,7 @@ float CubicEaseInOut(float time, float begin, float change, float duration)
 	return change / 2 * (time * time * time + 2) + begin;
 }
 
-float ElasticEaseIn(float time, float begin, float change, float duration, float amplitude, float period)
+float BLI_easing_elastic_ease_in(float time, float begin, float change, float duration, float amplitude, float period)
 {
 	float s;
 
@@ -167,7 +165,7 @@ float ElasticEaseIn(float time, float begin, float change, float duration, float
 	return -(amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period)) + begin;
 }
 
-float ElasticEaseOut(float time, float begin, float change, float duration, float amplitude, float period)
+float BLI_easing_elastic_ease_out(float time, float begin, float change, float duration, float amplitude, float period)
 {
 	float s;
 
@@ -187,7 +185,7 @@ float ElasticEaseOut(float time, float begin, float change, float duration, floa
 	return (amplitude * powf(2, -10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period) + change + begin);
 }
 
-float ElasticEaseInOut(float time, float begin, float change, float duration, float amplitude, float period)
+float BLI_easing_elastic_ease_in_out(float time, float begin, float change, float duration, float amplitude, float period)
 {
 	float s;
 
@@ -212,17 +210,17 @@ float ElasticEaseInOut(float time, float begin, float change, float duration, fl
 	return amplitude * powf(2, -10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period) * 0.5f + change + begin;
 }
 
-float ExpoEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_expo_ease_in(float time, float begin, float change, float duration)
 {
 	return (time == 0.0f) ? begin : change * powf(2, 10 * (time / duration - 1)) + begin;
 }
 
-float ExpoEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_expo_ease_out(float time, float begin, float change, float duration)
 {
 	return (time == duration) ? begin + change : change * (-powf(2, -10 * time / duration) + 1) + begin;
 }
 
-float ExpoEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_expo_ease_in_out(float time, float begin, float change, float duration)
 {
 	if (time == 0.0f)
 		return begin;
@@ -234,24 +232,24 @@ float ExpoEaseInOut(float time, float begin, float change, float duration)
 	return change / 2 * (-powf(2, -10 * time) + 2) + begin;
 }
 
-float LinearEase(float time, float begin, float change, float duration)
+float BLI_easing_linear_ease(float time, float begin, float change, float duration)
 {
 	return change * time / duration + begin;
 }
 
-float QuadEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_quad_ease_in(float time, float begin, float change, float duration)
 {
 	time /= duration;
 	return change * time * time + begin;
 }
 
-float QuadEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_quad_ease_out(float time, float begin, float change, float duration)
 {
 	time /= duration;
 	return -change * time * (time - 2) + begin;
 }
 
-float QuadEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_quad_ease_in_out(float time, float begin, float change, float duration)
 {
 	if ((time /= duration / 2) < 1.0f)
 		return change / 2 * time * time + begin;
@@ -260,19 +258,19 @@ float QuadEaseInOut(float time, float begin, float change, float duration)
 }
 
 
-float QuartEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_quart_ease_in(float time, float begin, float change, float duration)
 {
 	time /= duration;
 	return change * time * time * time * time + begin;
 }
 
-float QuartEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_quart_ease_out(float time, float begin, float change, float duration)
 {
 	time = time / duration - 1;
 	return -change * (time * time * time * time - 1) + begin;
 }
 
-float QuartEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_quart_ease_in_out(float time, float begin, float change, float duration)
 {
 	if ((time /= duration / 2) < 1.0f)
 		return change / 2 * time * time * time * time + begin;
@@ -280,17 +278,17 @@ float QuartEaseInOut(float time, float begin, float change, float duration)
 	return -change / 2 * ( time * time * time * time - 2) + begin;
 }
 
-float QuintEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_quint_ease_in(float time, float begin, float change, float duration)
 {
 	time /= duration;
 	return change * time * time * time * time * time + begin;
 }
-float QuintEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_quint_ease_out(float time, float begin, float change, float duration)
 {
 	time = time / duration - 1;
 	return change * (time * time * time * time * time + 1) + begin;
 }
-float QuintEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_quint_ease_in_out(float time, float begin, float change, float duration)
 {
 	if ((time /= duration / 2) < 1.0f)
 		 return change / 2 * time * time * time * time * time + begin;
@@ -298,17 +296,17 @@ float QuintEaseInOut(float time, float begin, float change, float duration)
 	return change / 2 * (time * time * time * time * time + 2) + begin;
 }
 
-float SineEaseIn(float time, float begin, float change, float duration)
+float BLI_easing_sine_ease_in(float time, float begin, float change, float duration)
 {
 	return -change * cosf(time / duration * (float)M_PI_2) + change + begin;
 }
 
-float SineEaseOut(float time, float begin, float change, float duration)
+float BLI_easing_sine_ease_out(float time, float begin, float change, float duration)
 {
 	return change * sinf(time / duration * (float)M_PI_2) + begin;
 }
 
-float SineEaseInOut(float time, float begin, float change, float duration)
+float BLI_easing_sine_ease_in_out(float time, float begin, float change, float duration)
 {
 	return -change / 2 * (cosf((float)M_PI * time / duration) - 1) + begin;
 }

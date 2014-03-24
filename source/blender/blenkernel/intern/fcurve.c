@@ -2126,20 +2126,20 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 						
 					case BEZT_IPO_LIN:
 						/* linear - simply linearly interpolate between values of the two keyframes */
-						cvalue = LinearEase(time, begin, change, duration);
+						cvalue = BLI_easing_linear_ease(time, begin, change, duration);
 						break;
 						
 					/* easing ............................................ */
 					case BEZT_IPO_BACK:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = BackEaseIn(time, begin, change, duration, prevbezt->back);
+								cvalue = BLI_easing_back_ease_in(time, begin, change, duration, prevbezt->back);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = BackEaseOut(time, begin, change, duration, prevbezt->back);
+								cvalue = BLI_easing_back_ease_out(time, begin, change, duration, prevbezt->back);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = BackEaseInOut(time, begin, change, duration, prevbezt->back);
+								cvalue = BLI_easing_back_ease_in_out(time, begin, change, duration, prevbezt->back);
 								break;
 						}
 						break;
@@ -2147,13 +2147,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_BOUNCE:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = BounceEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_bounce_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = BounceEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_bounce_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = BounceEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_bounce_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2161,13 +2161,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_CIRC:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = CircEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_circ_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = CircEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_circ_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = CircEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_circ_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2175,13 +2175,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_CUBIC:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = CubicEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_cubic_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = CubicEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_cubic_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = CubicEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_cubic_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2189,13 +2189,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_ELASTIC:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = ElasticEaseIn(time, begin, change, duration, amplitude, period);
+								cvalue = BLI_easing_elastic_ease_in(time, begin, change, duration, amplitude, period);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = ElasticEaseOut(time, begin, change, duration, amplitude, period);
+								cvalue = BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = ElasticEaseInOut(time, begin, change, duration, amplitude, period);
+								cvalue = BLI_easing_elastic_ease_in_out(time, begin, change, duration, amplitude, period);
 								break;
 						}
 						break;
@@ -2203,13 +2203,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_EXPO:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = ExpoEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_expo_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = ExpoEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_expo_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = ExpoEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_expo_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2217,13 +2217,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_QUAD:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = QuadEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_quad_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = QuadEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_quad_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = QuadEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_quad_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2231,13 +2231,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_QUART:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = QuartEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_quart_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = QuartEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_quart_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = QuartEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_quart_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2245,13 +2245,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_QUINT:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = QuintEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_quint_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = QuintEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_quint_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = QuintEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_quint_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2259,13 +2259,13 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 					case BEZT_IPO_SINE:
 						switch (prevbezt->easing) {
 							case BEZT_IPO_EASE_IN:
-								cvalue = SineEaseIn(time, begin, change, duration);
+								cvalue = BLI_easing_sine_ease_in(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_OUT:
-								cvalue = SineEaseOut(time, begin, change, duration);
+								cvalue = BLI_easing_sine_ease_out(time, begin, change, duration);
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
-								cvalue = SineEaseInOut(time, begin, change, duration);
+								cvalue = BLI_easing_sine_ease_in_out(time, begin, change, duration);
 								break;
 						}
 						break;
