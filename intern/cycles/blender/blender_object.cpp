@@ -436,7 +436,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 	 * 1 : eModifierMode_Realtime
 	 * 2 : eModifierMode_Render
 	 */
-	bool dupli_settings = preview ? 1 : 2;
+	int dupli_settings = preview ? 1 : 2;
 
 	bool cancel = false;
 
