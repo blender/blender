@@ -178,8 +178,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 			e = v->e;
 			do {
 				f = NULL;
-				len = bmesh_radial_length(e->l);
-				if (len == 2 && (e != baseedge) && (e != keepedge)) {
+				if (BM_edge_is_manifold(e) && (e != baseedge) && (e != keepedge)) {
 					f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, true);
 					/* return if couldn't join faces in manifold
 					 * conditions */

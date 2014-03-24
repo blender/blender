@@ -3823,7 +3823,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		fdrawline((float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		glPopMatrix();
 		rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-		BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3f", rc->current_value * 180.0f / M_PI);
+		BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3f", RAD2DEGF(rc->current_value));
 		strdrawlen = BLI_strlen_utf8(str);
 	}
 

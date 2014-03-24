@@ -1692,12 +1692,12 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 						BLI_mempool_free(bm->lpool, loops[i]);
 					}
 				}
-
+#ifndef NDEBUG
 				/* Validate radial cycle of e_old */
 				edok = bmesh_radial_validate(radlen, e_old->l);
 				BMESH_ASSERT(edok != false);
+#endif
 			}
-
 			/* deallocate edge */
 			bm_kill_only_edge(bm, e_kill);
 
