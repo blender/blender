@@ -41,7 +41,7 @@
 
 float BackEaseIn(float time, float begin, float change, float duration, float overshoot)
 {
-	if (overshoot == 0)
+	if (overshoot == 0.0f)
 		overshoot = 1.70158f;
 	time /= duration;
 	return change * time * time * ((overshoot + 1) * time - overshoot) + begin;
@@ -49,7 +49,7 @@ float BackEaseIn(float time, float begin, float change, float duration, float ov
 
 float BackEaseOut(float time, float begin, float change, float duration, float overshoot)
 {
-	if (overshoot == 0)
+	if (overshoot == 0.0f)
 		overshoot = 1.70158f;
 	time = time / duration - 1;
 	return change * (time * time * ((overshoot + 1) * time + overshoot) + 1) + begin;
@@ -57,13 +57,13 @@ float BackEaseOut(float time, float begin, float change, float duration, float o
 
 float BackEaseInOut(float time, float begin, float change, float duration, float overshoot)
 {
-	if (overshoot == 0)
+	if (overshoot == 0.0f)
 		overshoot = 1.70158f; 
 	overshoot *= 1.525f;
-	if ((time /= duration / 2) < 1) {
+	if ((time /= duration / 2) < 1.0f) {
 		return change / 2 * (time * time * ((overshoot + 1) * time - overshoot)) + begin;
 	}
-	time -= 2;
+	time -= 2.0f;
 	return change / 2 * (time * time * ((overshoot + 1) * time + overshoot) + 2) + begin;
 
 }
@@ -84,7 +84,7 @@ float BounceEaseOut(float time, float begin, float change, float duration)
 	}
 	else {
 		time -= (2.625f / 2.75f);
-		return change * ((7.5625f * time) * time + .984375f) + begin;
+		return change * ((7.5625f * time) * time + 0.984375f) + begin;
 	}
 }
 
@@ -104,21 +104,21 @@ float BounceEaseInOut(float time, float begin, float change, float duration)
 float CircEaseIn(float time, float begin, float change, float duration)
 {
 	time /= duration;
-	return -change * (sqrt(1 - time * time) - 1) + begin;
+	return -change * (sqrtf(1 - time * time) - 1) + begin;
 }
 
 float CircEaseOut(float time, float begin, float change, float duration)
 {
 	time = time / duration - 1;
-	return change * sqrt(1 - time * time) + begin;
+	return change * sqrtf(1 - time * time) + begin;
 }
 
 float CircEaseInOut(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1)
-		return -change / 2 * (sqrt(1 - time * time) - 1) + begin;
-	time -= 2;
-	return change / 2 * (sqrt(1 - time * time) + 1) + begin;
+	if ((time /= duration / 2) < 1.0f)
+		return -change / 2 * (sqrtf(1 - time * time) - 1) + begin;
+	time -= 2.0f;
+	return change / 2 * (sqrtf(1 - time * time) + 1) + begin;
 }
 
 float CubicEaseIn(float time, float begin, float change, float duration)
@@ -135,9 +135,9 @@ float CubicEaseOut(float time, float begin, float change, float duration)
 
 float CubicEaseInOut(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1)
+	if ((time /= duration / 2) < 1.0f)
 		return change / 2 * time * time * time + begin;
-	time -= 2;
+	time -= 2.0f;
 	return change / 2 * (time * time * time + 2) + begin;
 }
 
@@ -145,10 +145,10 @@ float ElasticEaseIn(float time, float begin, float change, float duration, float
 {
 	float s;
 
-	if (time == 0)
+	if (time == 0.0f)
 		return begin;
 
-	if ((time /= duration) == 1)
+	if ((time /= duration) == 1.0f)
 		return begin + change;
 
 	if (!period)
@@ -159,19 +159,19 @@ float ElasticEaseIn(float time, float begin, float change, float duration, float
 		s = period / 4;
 	}
 	else
-		s = period / (2 * M_PI) * asin(change / amplitude);
+		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
 
-	time -= 1;
-	return -(amplitude * pow(2, 10 * time) * sin((time * duration - s) * (2 * M_PI) / period)) + begin;
+	time -= 1.0f;
+	return -(amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period)) + begin;
 }
 
 float ElasticEaseOut(float time, float begin, float change, float duration, float amplitude, float period)
 {
 	float s;
 
-	if (time == 0)
+	if (time == 0.0f)
 		return begin;
-	if ((time /= duration) == 1)
+	if ((time /= duration) == 1.0f)
 		return begin + change;
 	if (!period)
 		period = duration * 0.3f;
@@ -180,18 +180,18 @@ float ElasticEaseOut(float time, float begin, float change, float duration, floa
 		s = period / 4;
 	}
 	else
-		s = period / (2 * M_PI) * asin(change / amplitude);
+		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
 
-	return (amplitude * pow(2, -10 * time) * sin((time * duration - s) * (2 * M_PI) / period ) + change + begin);
+	return (amplitude * powf(2, -10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period) + change + begin);
 }
 
 float ElasticEaseInOut(float time, float begin, float change, float duration, float amplitude, float period)
 {
 	float s;
 
-	if (time == 0)
+	if (time == 0.0f)
 		return begin;
-	if ((time /= duration / 2) == 2)
+	if ((time /= duration / 2) == 2.0f)
 		return begin + change;
 	if (!period)
 		period = duration * (0.3f * 1.5f);
@@ -200,36 +200,36 @@ float ElasticEaseInOut(float time, float begin, float change, float duration, fl
 		s = period / 4;
 	}
 	else
-		s = period / ( 2 * M_PI) * asin(change / amplitude);
-	if (time < 1) {
-		time -= 1;
-		return -0.5f * (amplitude * pow(2, 10 * time) * sin((time * duration - s) * (2 * M_PI) / period)) + begin;
+		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
+	if (time < 1.0f) {
+		time -= 1.0f;
+		return -0.5f * (amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period)) + begin;
 	}
 
-	time -= 1;
-	return amplitude * pow(2, -10 * time) * sin((time * duration - s) * (2 * M_PI) / period) * 0.5f + change + begin;
+	time -= 1.0f;
+	return amplitude * powf(2, -10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period) * 0.5f + change + begin;
 }
 
 float ExpoEaseIn(float time, float begin, float change, float duration)
 {
-	return (time == 0) ? begin : change * pow(2, 10 * (time / duration - 1)) + begin;
+	return (time == 0.0f) ? begin : change * powf(2, 10 * (time / duration - 1)) + begin;
 }
 
 float ExpoEaseOut(float time, float begin, float change, float duration)
 {
-	return (time == duration) ? begin + change : change * (-pow(2, -10 * time / duration) + 1) + begin;
+	return (time == duration) ? begin + change : change * (-powf(2, -10 * time / duration) + 1) + begin;
 }
 
 float ExpoEaseInOut(float time, float begin, float change, float duration)
 {
-	if (time == 0)
+	if (time == 0.0f)
 		return begin;
 	if (time == duration)
 		return begin + change;
 	if ((time /= duration / 2) < 1)
-		return change / 2 * pow(2, 10 * (time - 1)) + begin;
-	--time;
-	return change / 2 * (-pow(2, -10 * time) + 2) + begin;
+		return change / 2 * powf(2, 10 * (time - 1)) + begin;
+	time -= 1.0f;
+	return change / 2 * (-powf(2, -10 * time) + 2) + begin;
 }
 
 float LinearEase(float time, float begin, float change, float duration)
@@ -251,9 +251,9 @@ float QuadEaseOut(float time, float begin, float change, float duration)
 
 float QuadEaseInOut(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1)
+	if ((time /= duration / 2) < 1.0f)
 		return change / 2 * time * time + begin;
-	--time;
+	time -= 1.0f;
 	return -change / 2 * (time * (time - 2) - 1) + begin;
 }
 
@@ -272,9 +272,9 @@ float QuartEaseOut(float time, float begin, float change, float duration)
 
 float QuartEaseInOut(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1)
+	if ((time /= duration / 2) < 1.0f)
 		return change / 2 * time * time * time * time + begin;
-	time -= 2;
+	time -= 2.0f;
 	return -change / 2 * ( time * time * time * time - 2) + begin;
 }
 
@@ -290,24 +290,23 @@ float QuintEaseOut(float time, float begin, float change, float duration)
 }
 float QuintEaseInOut(float time, float begin, float change, float duration)
 {
-	if ((time /= duration / 2) < 1)
+	if ((time /= duration / 2) < 1.0f)
 		 return change / 2 * time * time * time * time * time + begin;
-	time -= 2;
+	time -= 2.0f;
 	return change / 2 * (time * time * time * time * time + 2) + begin;
 }
 
 float SineEaseIn(float time, float begin, float change, float duration)
 {
-	return -change * cos(time / duration * M_PI_2) + change + begin;
+	return -change * cosf(time / duration * (float)M_PI_2) + change + begin;
 }
 
 float SineEaseOut(float time, float begin, float change, float duration)
 {
-	return change * sin(time / duration * M_PI_2) + begin;
+	return change * sinf(time / duration * (float)M_PI_2) + begin;
 }
 
 float SineEaseInOut(float time, float begin, float change, float duration)
 {
-	return -change / 2 * (cos(M_PI * time / duration) - 1) + begin;
+	return -change / 2 * (cosf((float)M_PI * time / duration) - 1) + begin;
 }
-
