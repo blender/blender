@@ -45,7 +45,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_math_easing.h"
+#include "BLI_easing.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"

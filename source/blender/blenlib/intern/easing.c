@@ -28,15 +28,17 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file blender/blenlib/intern/math_easing.c
+/** \file blender/blenlib/intern/easing.c
  *  \ingroup bli
  */
  
 #include <math.h>
-#include <stdlib.h>
 
-#include "BLI_math.h"
-#include "BLI_math_easing.h"
+#include "BLI_math_base.h"
+
+#include "BLI_easing.h"  /* own include */
+
+#include "BLI_strict_flags.h"
 
 
 float BackEaseIn(float time, float begin, float change, float duration, float overshoot)

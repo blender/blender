@@ -28,10 +28,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BLI_MATH_EASING_H__
-#define __BLI_MATH_EASING_H__
+#ifndef __BLI_EASING_H__
+#define __BLI_EASING_H__
 
-/** \file BLI_math_easing.h
+/** \file BLI_easing.h
  *  \ingroup bli
  */
 
@@ -75,4 +75,4 @@ float SineEaseInOut(float time, float begin, float change, float duration);
 }
 #endif
 
-#endif // __BLI_MATH_EASING_H__
+#endif  /* __BLI_EASING_H__ */

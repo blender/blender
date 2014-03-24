@@ -57,6 +57,7 @@ set(SRC
 	intern/convexhull2d.c
 	intern/cpu.c
 	intern/dynlib.c
+	intern/easing.c
 	intern/edgehash.c
 	intern/endian_switch.c
 	intern/fileops.c
@@ -72,7 +73,6 @@ set(SRC
 	intern/math_color.c
 	intern/math_color_blend_inline.c
 	intern/math_color_inline.c
-	intern/math_easing.c
 	intern/math_geom.c
 	intern/math_geom_inline.c
 	intern/math_interp.c
@@ -121,6 +121,7 @@ set(SRC
 	BLI_dlrbTree.h
 	BLI_dynlib.h
 	BLI_dynstr.h
+	BLI_easing.h
 	BLI_edgehash.h
 	BLI_endian_switch.h
 	BLI_endian_switch_inline.h
@@ -142,7 +143,6 @@ set(SRC
 	BLI_math_base.h
 	BLI_math_color.h
 	BLI_math_color_blend.h
-	BLI_math_easing.h
 	BLI_math_geom.h
 	BLI_math_inline.h
 	BLI_math_interp.h
