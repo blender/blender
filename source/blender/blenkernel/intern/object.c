@@ -2843,7 +2843,8 @@ bool BKE_object_parent_loop_check(const Object *par, const Object *ob)
 /* Ideally we shouldn't have to pass the rigid body world, but need bigger restructuring to avoid id */
 void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
                                  Scene *scene, Object *ob,
-                                 RigidBodyWorld *rbw)
+                                 RigidBodyWorld *rbw,
+                                 const bool do_proxy_update)
 {
 	if (ob->recalc & OB_RECALC_ALL) {
 		/* speed optimization for animation lookups */
@@ -3036,8 +3037,10 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 
 		/* the no-group proxy case, we call update */
 		if (ob->proxy_group == NULL) {
-			// printf("call update, lib ob %s proxy %s\n", ob->proxy->id.name, ob->id.name);
-			BKE_object_handle_update(eval_ctx, scene, ob->proxy);
+			if (do_proxy_update) {
+				// printf("call update, lib ob %s proxy %s\n", ob->proxy->id.name, ob->id.name);
+				BKE_object_handle_update(eval_ctx, scene, ob->proxy);
+			}
 		}
 	}
 }
@@ -3048,7 +3051,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
  */
 void BKE_object_handle_update(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	BKE_object_handle_update_ex(eval_ctx, scene, ob, NULL);
+	BKE_object_handle_update_ex(eval_ctx, scene, ob, NULL, true);
 }
 
 void BKE_object_sculpt_modifiers_changed(Object *ob)

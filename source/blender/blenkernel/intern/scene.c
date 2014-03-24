@@ -1270,7 +1270,7 @@ static void scene_update_all_bases(EvaluationContext *eval_ctx, Scene *scene, Sc
 	for (base = scene->base.first; base; base = base->next) {
 		Object *object = base->object;
 
-		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world);
+		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world, true);
 
 		if (object->dup_group && (object->transflag & OB_DUPLIGROUP))
 			BKE_group_handle_recalc_and_update(eval_ctx, scene_parent, object, object->dup_group);
@@ -1304,9 +1304,11 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		double start_time = 0.0;
 		bool add_to_stats = false;
 
-		PRINT("Thread %d: update object %s\n", threadid, object->id.name);
-
 		if (G.debug & G_DEBUG_DEPSGRAPH) {
+			if (object->recalc & OB_RECALC_ALL) {
+				printf("Thread %d: update object %s\n", threadid, object->id.name);
+			}
+
 			start_time = PIL_check_seconds_timer();
 
 			if (object->recalc & OB_RECALC_ALL) {
@@ -1319,7 +1321,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		 * separately from main thread because of we've got no idea about
 		 * dependencies inside the group.
 		 */
-		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world);
+		BKE_object_handle_update_ex(eval_ctx, scene_parent, object, scene->rigidbody_world, false);
 
 		/* Calculate statistics. */
 		if (add_to_stats) {
