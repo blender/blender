@@ -3779,6 +3779,9 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		case PROP_ANGLE:
 			r1 = r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
 			alpha = 0.75;
+			rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
+			BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3f", RAD2DEGF(rc->current_value));
+			strdrawlen = BLI_strlen_utf8(str);
 			break;
 		default:
 			tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE; /* note, this is a dummy value */
@@ -3822,13 +3825,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		glRotatef(RAD2DEGF(rc->current_value - rc->initial_value), 0, 0, 1);
 		fdrawline((float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		glPopMatrix();
-		rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-		BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3f", RAD2DEGF(rc->current_value));
-		strdrawlen = BLI_strlen_utf8(str);
 	}
-
-	/* adjust dpi for rmin here to account for angle */
-	rmin *= U.pixelsize;
 
 	/* draw circles on top */
 	glutil_draw_lined_arc(0.0, (float)(M_PI * 2.0), r1, 40);
