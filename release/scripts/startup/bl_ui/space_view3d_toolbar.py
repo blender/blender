@@ -1213,9 +1213,9 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
-class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
+class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_label = "Topology"
+    bl_label = "Dyntopo"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1231,9 +1231,9 @@ class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
         brush = settings.brush
 
         if context.sculpt_object.use_dynamic_topology_sculpting:
-            layout.operator("sculpt.dynamic_topology_toggle", icon='X', text="Disable Dynamic")
+            layout.operator("sculpt.dynamic_topology_toggle", icon='X', text="Disable Dyntopo")
         else:
-            layout.operator("sculpt.dynamic_topology_toggle", icon='SCULPT_DYNTOPO', text="Enable Dynamic")
+            layout.operator("sculpt.dynamic_topology_toggle", icon='SCULPT_DYNTOPO', text="Enable Dyntopo")
 
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
