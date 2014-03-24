@@ -3624,7 +3624,10 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 
 /* *********************** radial control ****************** */
 
-static const int WM_RADIAL_CONTROL_DISPLAY_SIZE = 200;
+#define WM_RADIAL_CONTROL_DISPLAY_SIZE 200
+#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE 35
+#define WM_RADIAL_CONTROL_DISPLAY_WIDTH (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
+#define WM_RADIAL_MAX_STR 6
 
 typedef struct {
 	PropertyType type;
@@ -3655,7 +3658,7 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
 			d[0] = rc->initial_value;
 			break;
 		case PROP_FACTOR:
-			d[0] = WM_RADIAL_CONTROL_DISPLAY_SIZE * (1 - rc->initial_value);
+			d[0] = (1 - rc->initial_value) * WM_RADIAL_CONTROL_DISPLAY_WIDTH + WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
 			break;
 		case PROP_ANGLE:
 			d[0] = WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(rc->initial_value);
@@ -3746,8 +3749,15 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 {
 	RadialControl *rc = customdata;
 	ARegion *ar = CTX_wm_region(C);
-	float r1 = 0.0f, r2 = 0.0f, tex_radius, alpha;
-	float zoom[2], col[3] = {1, 1, 1};
+	uiStyle *style = UI_GetStyle();
+	const uiFontStyle *fstyle = &style->widget;
+	const int fontid = fstyle->uifont_id;
+	short fstyle_points = fstyle->points;
+	char str[WM_RADIAL_MAX_STR];
+	short strdrawlen = 0;
+	float strwidth, strheight;
+	float r1 = 0.0f, r2 = 0.0f, rmin = 0.0, tex_radius, alpha;
+	float zoom[2], col[3] = {1, 1, 1};	
 
 	switch (rc->subtype) {
 		case PROP_NONE:
@@ -3759,9 +3769,12 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 			alpha = 0.75;
 			break;
 		case PROP_FACTOR:
-			r1 = (1 - rc->current_value) * WM_RADIAL_CONTROL_DISPLAY_SIZE;
+			r1 = (1 - rc->current_value) * WM_RADIAL_CONTROL_DISPLAY_WIDTH + WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
 			r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
+			rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
 			alpha = rc->current_value / 2.0f + 0.5f;
+			BLI_snprintf(str, WM_RADIAL_MAX_STR, "%1.2f", rc->current_value);
+			strdrawlen = BLI_strlen_utf8(str);
 			break;
 		case PROP_ANGLE:
 			r1 = r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
@@ -3804,16 +3817,30 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		glPushMatrix();
 		/* draw original angle line */
 		glRotatef(RAD2DEGF(rc->initial_value), 0, 0, 1);
-		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
+		fdrawline((float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		/* draw new angle line */
 		glRotatef(RAD2DEGF(rc->current_value - rc->initial_value), 0, 0, 1);
-		fdrawline(0.0f, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
+		fdrawline((float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		glPopMatrix();
+		rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
+		BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3f", rc->current_value * 180.0f / M_PI);
+		strdrawlen = BLI_strlen_utf8(str);
 	}
+
+	/* adjust dpi for rmin here to account for angle */
+	rmin *= U.pixelsize;
 
 	/* draw circles on top */
 	glutil_draw_lined_arc(0.0, (float)(M_PI * 2.0), r1, 40);
 	glutil_draw_lined_arc(0.0, (float)(M_PI * 2.0), r2, 40);
+	if (rmin > 0.0f)
+		glutil_draw_lined_arc(0.0, (float)(M_PI * 2.0), rmin, 40);
+
+	BLF_size(fontid, 1.5 * fstyle_points, 1.0f / U.dpi);
+	BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
+	/* draw value */
+	BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
+	BLF_draw(fontid, str, strdrawlen);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
@@ -4087,7 +4114,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 					if (snap) new_value = ((int)new_value + 5) / 10 * 10;
 					break;
 				case PROP_FACTOR:
-					new_value = 1 - dist / WM_RADIAL_CONTROL_DISPLAY_SIZE;
+					new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
 					if (snap) new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
 					break;
 				case PROP_ANGLE:
