@@ -532,8 +532,62 @@ void BM_mesh_wireframe(
 	}
 
 	if (use_replace) {
-		for (i = 0; i < totvert_orig; i++) {
-			BM_vert_kill(bm, verts_src[i]);
+
+		if (use_tag) {
+			/* only remove faces which are original and used to make wire,
+			 * use 'verts_pos' and 'verts_neg' to avoid a feedback loop. */
+
+			/* vertex must be from 'verts_src' */
+#define VERT_DUPE_TEST_ORIG(v)  (verts_neg[BM_elem_index_get(v)] != NULL)
+#define VERT_DUPE_TEST(v)       (verts_pos[BM_elem_index_get(v)] != NULL)
+#define VERT_DUPE_CLEAR(v)     { verts_pos[BM_elem_index_get(v)]  = NULL; } (void)0
+
+			/* first ensure we keep all verts which are used in faces that weren't
+			 * entirely made into wire. */
+			BM_ITER_MESH (f_src, &iter, bm, BM_FACES_OF_MESH) {
+				int mix_flag = 0;
+				BMLoop *l_iter, *l_first;
+
+				/* skip new faces */
+				if (BM_elem_index_get(f_src) == -1) {
+					continue;
+				}
+
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
+				do {
+					mix_flag |= (VERT_DUPE_TEST_ORIG(l_iter->v) ? 1 : 2);
+					if (mix_flag == (1 | 2)) {
+						break;
+					}
+				} while ((l_iter = l_iter->next) != l_first);
+
+				if (mix_flag == (1 | 2)) {
+					l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
+					do {
+						VERT_DUPE_CLEAR(l_iter->v);
+					} while ((l_iter = l_iter->next) != l_first);
+				}
+			}
+
+			/* now remove any verts which were made into wire by all faces */
+			for (i = 0; i < totvert_orig; i++) {
+				v_src = verts_src[i];
+				BLI_assert(i == BM_elem_index_get(v_src));
+				if (VERT_DUPE_TEST(v_src)) {
+					BM_vert_kill(bm, v_src);
+				}
+			}
+
+#undef VERT_DUPE_TEST_ORIG
+#undef VERT_DUPE_TEST
+#undef VERT_DUPE_CLEAR
+
+		}
+		else {
+			/* simple case, no tags - replace all */
+			for (i = 0; i < totvert_orig; i++) {
+				BM_vert_kill(bm, verts_src[i]);
+			}
 		}
 	}
 
