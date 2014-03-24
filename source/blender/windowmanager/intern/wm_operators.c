@@ -3835,9 +3835,15 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 
 	BLF_size(fontid, 1.5 * fstyle_points, 1.0f / U.dpi);
 	BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
+	BLF_enable(fontid, BLF_SHADOW);
+	BLF_shadow(fontid, 3, 0.0f, 0.0f, 0.0f, 0.5f);
+	BLF_shadow_offset(fontid, 1, -1);
+
 	/* draw value */
 	BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
 	BLF_draw(fontid, str, strdrawlen);
+
+	BLF_disable(fontid, BLF_SHADOW);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
