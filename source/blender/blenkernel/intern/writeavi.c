@@ -236,7 +236,7 @@ static int append_avi(RenderData *UNUSED(rd), int start_frame, int frame, int *p
 	}
 	
 	AVI_write_frame(avi, (frame - start_frame), AVI_FORMAT_RGB32, rectot, rectx * recty * 4);
-//	printf ("added frame %3d (frame %3d in avi): ", frame, frame-start_frame);
+//	printf("added frame %3d (frame %3d in avi): ", frame, frame-start_frame);
 
 	return 1;
 }

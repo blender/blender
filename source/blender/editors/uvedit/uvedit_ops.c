@@ -3250,7 +3250,7 @@ static bool uv_snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, cons
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				copy_v2_v2 (luv->uv, cursor);
+				copy_v2_v2(luv->uv, cursor);
 				changed = true;
 			}
 		}

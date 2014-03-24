@@ -4309,7 +4309,7 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 	}
 }
 
-static float sculpt_raycast_init (ViewContext *vc, const float mouse[2], float ray_start[3], float ray_end[3], float ray_normal[3], bool original)
+static float sculpt_raycast_init(ViewContext *vc, const float mouse[2], float ray_start[3], float ray_end[3], float ray_normal[3], bool original)
 {
 	float obimat[4][4];
 	float dist;
@@ -4361,7 +4361,7 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	dist = sculpt_raycast_init (&vc, mouse, ray_start, ray_end, ray_normal, original);
+	dist = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
 
 	srd.original = original;
 	srd.ss = ob->sculpt;
@@ -5323,7 +5323,7 @@ static void sample_detail(bContext *C, int ss_co[2])
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	dist = sculpt_raycast_init (&vc, mouse, ray_start, ray_end, ray_normal, false);
+	dist = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
 
 	srd.hit = 0;
 	srd.ray_start = ray_start;

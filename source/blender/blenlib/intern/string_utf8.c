@@ -439,7 +439,7 @@ int BLI_str_utf8_size(const char *p)
 	int mask = 0, len;
 	const unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len, -1);
+	UTF8_COMPUTE(c, mask, len, -1);
 
 	(void)mask; /* quiet warning */
 
@@ -452,7 +452,7 @@ int BLI_str_utf8_size_safe(const char *p)
 	int mask = 0, len;
 	const unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len, 1);
+	UTF8_COMPUTE(c, mask, len, 1);
 
 	(void)mask; /* quiet warning */
 
@@ -479,10 +479,10 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
 	unsigned int result;
 	const unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len, -1);
+	UTF8_COMPUTE(c, mask, len, -1);
 	if (UNLIKELY(len == -1))
 		return BLI_UTF8_ERR;
-	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
 
 	return result;
 }
@@ -495,10 +495,10 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *
 	unsigned int result;
 	const unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len, -1);
+	UTF8_COMPUTE(c, mask, len, -1);
 	if (UNLIKELY(len == -1))
 		return BLI_UTF8_ERR;
-	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
 	*index += (size_t)len;
 	return result;
 }
@@ -510,12 +510,12 @@ unsigned int BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, siz
 	unsigned int result;
 	const unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len, -1);
+	UTF8_COMPUTE(c, mask, len, -1);
 	if (UNLIKELY(len == -1)) {
 		*index += 1;
 		return c;
 	}
-	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
 	*index += (size_t)len;
 	return result;
 }
@@ -532,7 +532,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__re
 	p += *index;
 	c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len, -1);
+	UTF8_COMPUTE(c, mask, len, -1);
 	if (UNLIKELY(len == -1)) {
 		/* when called with NULL end, result will never be NULL,
 		 * checks for a NULL character */
@@ -546,12 +546,12 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__re
 	/* this is tricky since there are a few ways we can bail out of bad unicode
 	 * values, 3 possible solutions. */
 #if 0
-	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
 #elif 1
 	/* WARNING: this is NOT part of glib, or supported by similar functions.
 	 * this is added for text drawing because some filepaths can have latin1
 	 * characters */
-	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
 	if (result == BLI_UTF8_ERR) {
 		len = 1;
 		result = *p;
@@ -559,7 +559,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__re
 	/* end warning! */
 #else
 	/* without a fallback like '?', text drawing will stop on this value */
-	UTF8_GET (result, p, i, mask, len, '?');
+	UTF8_GET(result, p, i, mask, len, '?');
 #endif
 
 	*index += (size_t)len;
