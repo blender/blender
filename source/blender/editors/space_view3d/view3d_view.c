@@ -417,11 +417,7 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_view3d_context_user_region(C, &v3d, &ar);
 	rv3d = ar->regiondata;
 
-	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
-	rv3d->lview = rv3d->view;
-	if (rv3d->persp != RV3D_CAMOB) {
-		rv3d->lpersp = rv3d->persp;
-	}
+	ED_view3d_lastview_store(rv3d);
 
 	BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
 

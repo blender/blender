@@ -3577,9 +3577,8 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				if (!rv3d->smooth_timer) {
 					/* store settings of current view before allowing overwriting with camera view
 					 * only if we're not currently in a view transition */
-					copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
-					rv3d->lview = rv3d->view;
-					rv3d->lpersp = rv3d->persp;
+
+					ED_view3d_lastview_store(rv3d);
 				}
 
 #if 0
@@ -4718,6 +4717,18 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 	float mat[4][4];
 	ED_view3d_to_m4(mat, ofs, quat, dist);
 	BKE_object_apply_mat4(ob, mat, true, true);
+}
+
+/**
+ * Use to store the last view, before entering camera view.
+ */
+void ED_view3d_lastview_store(RegionView3D *rv3d)
+{
+	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
+	rv3d->lview = rv3d->view;
+	if (rv3d->persp != RV3D_CAMOB) {
+		rv3d->lpersp = rv3d->persp;
+	}
 }
 
 BGpic *ED_view3D_background_image_new(View3D *v3d)

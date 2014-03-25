@@ -2848,6 +2848,10 @@ static void region_quadview_init_rv3d(ScrArea *sa, ARegion *ar,
 {
 	RegionView3D *rv3d = ar->regiondata;
 
+	if (persp == RV3D_CAMOB) {
+		ED_view3d_lastview_store(rv3d);
+	}
+
 	rv3d->viewlock = viewlock;
 	rv3d->view = view;
 	rv3d->persp = persp;
