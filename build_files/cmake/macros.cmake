@@ -483,6 +483,77 @@ macro(TEST_STDBOOL_SUPPORT)
 	HAVE_STDBOOL_H)
 endmacro()
 
+macro(TEST_UNORDERED_MAP_SUPPORT)
+	# - Detect unordered_map availability
+	# Test if a valid implementation of unordered_map exists
+	# and define the include path
+	# This module defines
+	#  HAVE_UNORDERED_MAP, whether unordered_map implementation was found
+	#  
+	#  HAVE_STD_UNORDERED_MAP_HEADER, <unordered_map.h> was found
+	#  HAVE_UNORDERED_MAP_IN_STD_NAMESPACE, unordered_map is in namespace std
+	#  HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE, unordered_map is in namespace std::tr1
+	#  
+	#  UNORDERED_MAP_INCLUDE_PREFIX, include path prefix for unordered_map, if found
+	#  UNORDERED_MAP_NAMESPACE, namespace for unordered_map, if found
+
+	include(CheckIncludeFileCXX)
+	CHECK_INCLUDE_FILE_CXX("unordered_map" HAVE_STD_UNORDERED_MAP_HEADER)
+	if(HAVE_STD_UNORDERED_MAP_HEADER)
+		# Even so we've found unordered_map header file it doesn't
+		# mean unordered_map and unordered_set will be declared in
+		# std namespace.
+		#
+		# Namely, MSVC 2008 have unordered_map header which declares
+		# unordered_map class in std::tr1 namespace. In order to support
+		# this, we do extra check to see which exactly namespace is
+		# to be used.
+
+		include(CheckCXXSourceCompiles)
+		CHECK_CXX_SOURCE_COMPILES("#include <unordered_map>
+		                          int main() {
+		                            std::unordered_map<int, int> map;
+		                            return 0;
+		                          }"
+		                          HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
+		if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
+			message(STATUS "Found unordered_map/set in std namespace.")
+
+			set(HAVE_UNORDERED_MAP "TRUE")
+			set(UNORDERED_MAP_INCLUDE_PREFIX "")
+			set(UNORDERED_MAP_NAMESPACE "std")
+		else()
+			CHECK_CXX_SOURCE_COMPILES("#include <unordered_map>
+			                          int main() {
+			                            std::tr1::unordered_map<int, int> map;
+			                            return 0;
+			                          }"
+			                          HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+			if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+				message(STATUS "Found unordered_map/set in std::tr1 namespace.")
+
+				set(HAVE_UNORDERED_MAP "TRUE")
+				set(UNORDERED_MAP_INCLUDE_PREFIX "")
+				set(UNORDERED_MAP_NAMESPACE "std::tr1")
+			else()
+				message(STATUS "Found <unordered_map> but cannot find either std::unordered_map "
+				        "or std::tr1::unordered_map.")
+			endif()
+		endif()
+	else()
+		CHECK_INCLUDE_FILE_CXX("tr1/unordered_map" HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+		if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+			message(STATUS "Found unordered_map/set in std::tr1 namespace.")
+
+			set(HAVE_UNORDERED_MAP "TRUE")
+			set(UNORDERED_MAP_INCLUDE_PREFIX "tr1")
+			set(UNORDERED_MAP_NAMESPACE "std::tr1")
+		else()
+			message(STATUS "Unable to find <unordered_map> or <tr1/unordered_map>. ")
+		endif()
+	endif()
+endmacro()
+
 # when we have warnings as errors applied globally this
 # needs to be removed for some external libs which we dont maintain.
 
