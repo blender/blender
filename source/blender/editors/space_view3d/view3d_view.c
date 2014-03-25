@@ -834,7 +834,7 @@ static float view3d_quat_axis[6][4] = {
 	{0.5f, -0.5f, -0.5f, -0.5f},            /* RV3D_VIEW_RIGHT */
 	{1.0f, 0.0f, 0.0f, 0.0f},               /* RV3D_VIEW_TOP */
 	{0.0f, -1.0f, 0.0f, 0.0f},              /* RV3D_VIEW_BOTTOM */
-	};
+};
 
 
 bool ED_view3d_quat_from_axis_view(const char view, float quat[4])

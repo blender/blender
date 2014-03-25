@@ -751,7 +751,8 @@ static octal_node *find_metaball_octal_node(octal_node *node, float x, float y, 
 		}
 	}
 	
-	return node;
+	/* all cases accounted for */
+	BLI_assert(0);
 }
 
 static float metaball(PROCESS *process, float x, float y, float z)

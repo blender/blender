@@ -114,6 +114,7 @@ static const EnumPropertyItem curve3d_fill_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+#ifdef RNA_RUNTIME
 static const EnumPropertyItem curve2d_fill_mode_items[] = {
 	{0, "NONE", 0, "None", ""},
 	{CU_BACK, "BACK", 0, "Back", ""},
@@ -121,6 +122,7 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 	{CU_FRONT | CU_BACK, "BOTH", 0, "Both", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 #ifdef RNA_RUNTIME
 
