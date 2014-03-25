@@ -303,7 +303,6 @@ enum {
 /* mvert->flag */
 enum {
 /*	SELECT              = (1 << 0), */
-	ME_SPHERETEST       = (1 << 1),
 	ME_VERT_TMP_TAG     = (1 << 2),
 	ME_HIDE             = (1 << 4),
 	ME_VERT_MERGED      = (1 << 6),
@@ -315,7 +314,6 @@ enum {
 /*	SELECT              = (1 << 0), */
 	ME_EDGEDRAW         = (1 << 1),
 	ME_SEAM             = (1 << 2),
-	ME_FGON             = (1 << 3),  /* no longer used (now we have ngons), only defined so we can clear it */
 /*	ME_HIDE             = (1 << 4), */
 	ME_EDGERENDER       = (1 << 5),
 	ME_LOOSEEDGE        = (1 << 7),

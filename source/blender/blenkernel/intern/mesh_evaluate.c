@@ -1744,6 +1744,9 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 	int numTex, numCol;
 	int i, j, totloop, totpoly, *polyindex;
 
+	/* old flag, clear to allow for reuse */
+#define ME_FGON (1 << 3)
+
 	/* just in case some of these layers are filled in (can happen with python created meshes) */
 	CustomData_free(ldata, totloop_i);
 	CustomData_free(pdata, totpoly_i);
@@ -1832,6 +1835,9 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 	*r_totloop = totloop;
 	*r_mpoly = mpoly;
 	*r_mloop = mloop;
+
+#undef ME_FGON
+
 }
 /** \} */
 
