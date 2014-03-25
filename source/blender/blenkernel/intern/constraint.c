@@ -312,7 +312,7 @@ void BKE_constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[
 			if (ob->parent) {
 				/* 'subtract' parent's effects from owner */
 				mul_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
-				invert_m4_m4(imat, diff_mat);
+				invert_m4_m4_safe(imat, diff_mat);
 				mul_m4_m4m4(mat, imat, mat);
 			}
 			else {
@@ -323,7 +323,7 @@ void BKE_constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[
 				normalize_m4(diff_mat);
 				zero_v3(diff_mat[3]);
 				
-				invert_m4_m4(imat, diff_mat);
+				invert_m4_m4_safe(imat, diff_mat);
 				mul_m4_m4m4(mat, imat, mat);
 			}
 		}

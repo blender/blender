@@ -2110,3 +2110,23 @@ bool has_zero_axis_m4(float matrix[4][4])
 	       len_squared_v3(matrix[1]) < FLT_EPSILON ||
 	       len_squared_v3(matrix[2]) < FLT_EPSILON;
 }
+
+void invert_m4_m4_safe(float Ainv[4][4], float A[4][4])
+{
+	if (!invert_m4_m4(Ainv, A)) {
+		float Atemp[4][4];
+
+		copy_m4_m4(Atemp, A);
+
+		/* Matrix is degenerate (e.g. 0 scale on some axis), ideally we should
+		 * never be in this situation, but try to invert it anyway with tweak.
+		 */
+		Atemp[0][0] += 1e-8f;
+		Atemp[1][1] += 1e-8f;
+		Atemp[2][2] += 1e-8f;
+
+		if (!invert_m4_m4(Ainv, Atemp)) {
+			return unit_m4(Ainv);
+		}
+	}
+}
