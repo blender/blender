@@ -475,7 +475,8 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Rep
 	if (particle_no < totpart) {
 
 		/* get uvco & mcol */
-		num = particle->num_dmcache;
+		num = (ELEM(particle->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ?
+		          particle->num : particle->num_dmcache;
 
 		if (num == DMCACHE_NOTFOUND)
 			if (particle->num < modifier->dm->getNumTessFaces(modifier->dm))
