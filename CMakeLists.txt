@@ -2287,9 +2287,12 @@ if(WITH_PYTHON)
 		# pass, we have this in lib/python/site-packages
 	elseif(WITH_PYTHON_INSTALL_REQUESTS)
 		if(NOT EXISTS ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests)
-			message(WARNING "'requests' path could not be found in:\n"
-			                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests'\n"
-			                "WITH_PYTHON_INSTALL_REQUESTS option will be ignored when installing python")
+			# gets annoying otherwise...
+			if(FIRST_RUN)
+				message(WARNING "'requests' path could not be found in:\n"
+				                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests'\n"
+				                "WITH_PYTHON_INSTALL_REQUESTS option will be ignored when installing python")
+			endif()
 			set(WITH_PYTHON_INSTALL_REQUESTS OFF)
 		endif()
 	endif()
