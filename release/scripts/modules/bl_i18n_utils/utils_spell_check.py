@@ -390,6 +390,7 @@ class SpellChecker():
         "dupliobject", "dupliob",
         "dupligroup",
         "duplivert",
+        "dyntopo",
         "editbone",
         "editmode",
         "fcurve", "fcurves",
