@@ -2126,7 +2126,7 @@ void invert_m4_m4_safe(float Ainv[4][4], float A[4][4])
 		Atemp[2][2] += 1e-8f;
 
 		if (!invert_m4_m4(Ainv, Atemp)) {
-			return unit_m4(Ainv);
+			unit_m4(Ainv);
 		}
 	}
 }
