@@ -3058,7 +3058,6 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 			if (ima->type == IMA_TYPE_MULTILAYER)
 				/* keeps render result, stores ibufs in listbase, allows saving */
 				ibuf = image_get_ibuf_multilayer(ima, iuser);
-
 		}
 		else if (ima->source == IMA_SRC_GENERATED) {
 			/* generated is: ibuf is allocated dynamically */
@@ -3076,9 +3075,6 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* always verify entirely, and potentially
 				 * returns pointer to release later */
 				ibuf = image_get_render_result(ima, iuser, lock_r);
-				if (ibuf) {
-					ibuf->userflags |= IB_PERSISTENT;
-				}
 			}
 			else if (ima->type == IMA_TYPE_COMPOSITE) {
 				/* requires lock/unlock, otherwise don't return image */
@@ -3097,9 +3093,13 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 						ibuf = IMB_allocImBuf(256, 256, 32, IB_rect);
 						image_assign_ibuf(ima, ibuf, 0, frame);
 					}
-					ibuf->userflags |= IB_PERSISTENT;
 				}
 			}
+		}
+
+		/* We only want movies and sequences to be memory limited. */
+		if (ibuf != NULL && !ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+			ibuf->userflags |= IB_PERSISTENT;
 		}
 	}
 

@@ -200,6 +200,18 @@ static size_t IMB_get_size_in_memory(ImBuf *ibuf)
 	int a;
 	size_t size = 0, channel_size = 0;
 
+	/* Persistent images should have no affect on how "normal"
+	 * images are cached.
+	 *
+	 * This is a bit arbitrary, but would make it so only movies
+	 * and sequences are memory limited, keeping textures in the
+	 * memory in order to avoid constant file reload on viewport
+	 * update.
+	 */
+	if (ibuf->userflags & IB_PERSISTENT) {
+		return 0;
+	}
+
 	size += sizeof(ImBuf);
 
 	if (ibuf->rect)
