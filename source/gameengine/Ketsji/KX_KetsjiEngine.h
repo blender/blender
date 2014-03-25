@@ -127,12 +127,7 @@ private:
 
 	int					m_exitcode;
 	STR_String			m_exitstring;
-		/**
-		 * Some drawing parameters, the drawing mode
-		 * (wire/flat/texture), and the camera zoom
-		 * factor.
-		 */
-	int				m_drawingmode;
+
 	float			m_cameraZoom;
 	
 	bool			m_overrideCam;
@@ -260,9 +255,6 @@ public:
 	void			ResumeScene(const STR_String& scenename);
 
 	void			GetSceneViewport(KX_Scene* scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport);
-
-	void SetDrawType(int drawingtype);
-	int  GetDrawType() { return m_drawingmode; }
 
 	void SetCameraZoom(float camzoom);
 	

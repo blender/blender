@@ -361,8 +361,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			camzoom = 2.0;
 		}
 
-
-		ketsjiengine->SetDrawType(v3d->drawtype);
+		rasterizer->SetDrawingMode(v3d->drawtype);
 		ketsjiengine->SetCameraZoom(camzoom);
 		
 		// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file

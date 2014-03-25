@@ -100,6 +100,7 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, int storage)
 	m_usingoverrideshader(false),
     m_clientobject(NULL),
     m_auxilaryClientInfo(NULL),
+    m_drawingmode(KX_TEXTURED),
 	m_texco_num(0),
 	m_attrib_num(0),
 	//m_last_alphablend(GPU_BLEND_SOLID),
@@ -330,10 +331,9 @@ void RAS_OpenGLRasterizer::Exit()
 	EndFrame();
 }
 
-bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
+bool RAS_OpenGLRasterizer::BeginFrame(double time)
 {
 	m_time = time;
-	SetDrawingMode(drawingmode);
 
 	// Blender camera routine destroys the settings
 	if (m_drawingmode < KX_SOLID)

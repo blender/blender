@@ -61,7 +61,7 @@ KX_Dome::KX_Dome (
         ):
     dlistSupported(false),
     canvaswidth(-1), canvasheight(-1),
-    m_drawingmode(engine->GetDrawType()),
+    m_drawingmode(rasterizer->GetDrawingMode()),
     m_resolution(res),
     m_mode(mode),
     m_angle(angle),

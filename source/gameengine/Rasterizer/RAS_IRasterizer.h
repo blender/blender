@@ -195,7 +195,7 @@ public:
 	/**
 	 * BeginFrame is called at the start of each frame.
 	 */
-	virtual bool BeginFrame(int drawingmode, double time) = 0;
+	virtual bool BeginFrame(double time) = 0;
 
 	/**
 	 * ClearColorBuffer clears the color buffer.

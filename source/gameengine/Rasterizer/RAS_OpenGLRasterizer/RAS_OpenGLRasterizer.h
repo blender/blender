@@ -166,7 +166,7 @@ public:
 	virtual bool SetMaterial(const RAS_IPolyMaterial &mat);
 	virtual bool Init();
 	virtual void Exit();
-	virtual bool BeginFrame(int drawingmode, double time);
+	virtual bool BeginFrame(double time);
 	virtual void ClearColorBuffer();
 	virtual void ClearDepthBuffer();
 	virtual void ClearCachingInfo(void);
