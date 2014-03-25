@@ -233,8 +233,7 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 	Scene *sce;
 
 	/**
-	 * Find the specified scene by name, or the first
-	 * scene if nothing matches (shouldn't happen).
+	 * Find the specified scene by name, or NULL if nothing matches.
 	 */
 	if ((sce= (Scene *)BLI_findstring(&m_maggie->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
 		return sce;
@@ -246,7 +245,7 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 			return sce;
 	}
 
-	return (Scene*)m_maggie->scene.first;
+	return NULL;
 
 }
 
