@@ -953,20 +953,27 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		int drawSmooth;
 
 		efa = ltri[0]->f;
-		drawSmooth = BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
 
 		if (setDrawOptions && (setDrawOptions(userData, BM_elem_index_get(efa)) == DM_DRAW_OPTION_SKIP))
 			continue;
 
 		new_matnr = efa->mat_nr + 1;
 		if (new_matnr != matnr) {
+			if (matnr != -1)
+				glEnd();
+
 			do_draw = setMaterial(matnr = new_matnr, &gattribs);
 			if (do_draw)
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+
+			glBegin(GL_TRIANGLES);
 		}
 
 		if (do_draw) {
-			glBegin(GL_TRIANGLES);
+
+			/* draw face */
+			drawSmooth = BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
+
 			if (!drawSmooth) {
 				if (vertexCos) {
 					glNormal3fv(polyNos[BM_elem_index_get(efa)]);
@@ -1000,8 +1007,11 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					}
 				}
 			}
-			glEnd();
 		}
+	}
+
+	if (matnr != -1) {
+		glEnd();
 	}
 }
 
@@ -1045,7 +1055,6 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 		int drawSmooth;
 
 		efa = ltri[0]->f;
-		drawSmooth = BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
 
 		/* face hiding */
 		if (setFace && !setFace(userData, BM_elem_index_get(efa)))
@@ -1054,12 +1063,18 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 		/* material */
 		new_matnr = efa->mat_nr + 1;
 		if (new_matnr != matnr) {
+			if (matnr != -1)
+				glEnd();
+
 			setMaterial(userData, matnr = new_matnr, &gattribs);
 			DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+
+			glBegin(GL_TRIANGLES);
 		}
 
-		/* face */
-		glBegin(GL_TRIANGLES);
+		/* draw face */
+		drawSmooth = BM_elem_flag_test(efa, BM_ELEM_SMOOTH);
+
 		if (!drawSmooth) {
 			if (vertexCos) {
 				glNormal3fv(polyNos[BM_elem_index_get(efa)]);
@@ -1093,6 +1108,9 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 				}
 			}
 		}
+	}
+
+	if (matnr != -1) {
 		glEnd();
 	}
 }
