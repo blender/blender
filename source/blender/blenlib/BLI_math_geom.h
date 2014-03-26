@@ -219,6 +219,7 @@ bool barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[
 int barycentric_inside_triangle_v2(const float w[3]);
 
 void resolve_tri_uv_v2(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2]);
+void resolve_tri_uv_v3(float r_uv[2], const float st[3], const float st0[3], const float st1[3], const float st2[3]);
 void resolve_quad_uv_v2(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2]);
 void resolve_quad_uv_v2_deriv(float r_uv[2], float r_deriv[2][2],
                               const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2]);

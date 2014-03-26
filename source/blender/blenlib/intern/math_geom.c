@@ -2686,7 +2686,7 @@ void interp_cubic_v3(float x[3], float v[3], const float x1[3], const float v1[3
 /**
  * Barycentric reverse
  *
- * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)"
+ * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)
  */
 void resolve_tri_uv_v2(float r_uv[2], const float st[2],
                        const float st0[2], const float st1[2], const float st2[2])
@@ -2698,11 +2698,47 @@ void resolve_tri_uv_v2(float r_uv[2], const float st[2],
 	const double c = st0[1] - st2[1], d = st1[1] - st2[1];
 	const double det = a * d - c * b;
 
-	if (IS_ZERO(det) == 0) { /* det should never be zero since the determinant is the signed ST area of the triangle. */
-		const double x[] = {st[0] - st2[0], st[1] - st2[1]};
+	/* det should never be zero since the determinant is the signed ST area of the triangle. */
+	if (IS_ZERO(det) == 0) {
+		const double x[2] = {st[0] - st2[0], st[1] - st2[1]};
 
 		r_uv[0] = (float)((d * x[0] - b * x[1]) / det);
 		r_uv[1] = (float)(((-c) * x[0] + a * x[1]) / det);
+	}
+	else {
+		zero_v2(r_uv);
+	}
+}
+
+/**
+ * Barycentric reverse 3d
+ *
+ * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)
+ */
+void resolve_tri_uv_v3(float r_uv[2], const float st[3], const float st0[3], const float st1[3], const float st2[3])
+{
+	float v0[3], v1[3], v2[3];
+	double d00, d01, d11, d20, d21, det;
+
+	sub_v3_v3v3(v0, st1, st0);
+	sub_v3_v3v3(v1, st2, st0);
+	sub_v3_v3v3(v2, st, st0);
+
+	d00 = dot_v3v3(v0, v0);
+	d01 = dot_v3v3(v0, v1);
+	d11 = dot_v3v3(v1, v1);
+	d20 = dot_v3v3(v2, v0);
+	d21 = dot_v3v3(v2, v1);
+
+	det = d00 * d11 - d01 * d01;
+
+	/* det should never be zero since the determinant is the signed ST area of the triangle. */
+	if (IS_ZERO(det) == 0) {
+		float w;
+
+		w =       (float)((d00 * d21 - d01 * d20) / det);
+		r_uv[1] = (float)((d11 * d20 - d01 * d21) / det);
+		r_uv[0] = 1.0f - r_uv[1] - w;
 	}
 	else {
 		zero_v2(r_uv);
