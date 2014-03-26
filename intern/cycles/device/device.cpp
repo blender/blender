@@ -53,7 +53,8 @@ void Device::pixels_free(device_memory& mem)
 	mem_free(mem);
 }
 
-void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int width, int height, bool transparent)
+void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int width, int height, bool transparent,
+	const DeviceDrawParams &draw_params)
 {
 	pixels_copy_from(rgba, y, w, h);
 
@@ -80,6 +81,10 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 
 		glEnable(GL_TEXTURE_2D);
 
+		if(draw_params.bind_display_space_shader_cb) {
+			draw_params.bind_display_space_shader_cb();
+		}
+
 		glPushMatrix();
 		glTranslatef(0.0f, (float)dy, 0.0f);
 
@@ -97,6 +102,10 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 		glEnd();
 
 		glPopMatrix();
+
+		if(draw_params.unbind_display_space_shader_cb) {
+			draw_params.unbind_display_space_shader_cb();
+		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDisable(GL_TEXTURE_2D);

@@ -908,7 +908,8 @@ public:
 		}
 	}
 
-	void draw_pixels(device_memory& mem, int y, int w, int h, int dy, int width, int height, bool transparent)
+	void draw_pixels(device_memory& mem, int y, int w, int h, int dy, int width, int height, bool transparent,
+		const DeviceDrawParams &draw_params)
 	{
 		if(!background) {
 			PixelMem pmem = pixel_mem_map[mem.device_pointer];
@@ -941,6 +942,10 @@ public:
 
 			glColor3f(1.0f, 1.0f, 1.0f);
 
+			if(draw_params.bind_display_space_shader_cb) {
+				draw_params.bind_display_space_shader_cb();
+			}
+
 			glPushMatrix();
 			glTranslatef(0.0f, (float)dy, 0.0f);
 				
@@ -959,6 +964,10 @@ public:
 
 			glPopMatrix();
 
+			if(draw_params.unbind_display_space_shader_cb) {
+				draw_params.unbind_display_space_shader_cb();
+			}
+
 			if(transparent)
 				glDisable(GL_BLEND);
 			
@@ -970,7 +979,7 @@ public:
 			return;
 		}
 
-		Device::draw_pixels(mem, y, w, h, dy, width, height, transparent);
+		Device::draw_pixels(mem, y, w, h, dy, width, height, transparent, draw_params);
 	}
 
 	void thread_run(DeviceTask *task)
