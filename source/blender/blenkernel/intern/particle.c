@@ -3779,7 +3779,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 		return 0;
 
 	if (pa) {
-		i = (pa->num_dmcache == DMCACHE_NOTFOUND) ? pa->num : pa->num_dmcache;
+		i = ELEM(pa->num_dmcache, DMCACHE_NOTFOUND, DMCACHE_ISCHILD) ? pa->num : pa->num_dmcache;
 		if (i >= dm->getNumTessFaces(dm))
 			i = -1;
 	}
