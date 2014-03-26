@@ -76,6 +76,7 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -2080,6 +2081,56 @@ enum {
 	MAKE_LOCAL_ALL
 };
 
+static bool tag_localizable_looper(void *UNUSED(user_data), ID **id_pointer, int UNUSED(cd_flag))
+{
+	if (*id_pointer) {
+		(*id_pointer)->flag &= ~LIB_DOIT;
+	}
+	return true;
+}
+
+static void tag_localizable_objects(bContext *C, int mode)
+{
+	Main *bmain = CTX_data_main(C);
+	Object *object;
+
+	BKE_main_id_tag_all(bmain, false);
+
+	/* Set LIB_DOIT flag for all selected objects, so next we can check whether
+	 * object is gonna to become local or not.
+	 */
+	CTX_DATA_BEGIN (C, Object *, object, selected_objects)
+	{
+		object->id.flag |= LIB_DOIT;
+
+		/* If data is also gonna to become local, mark data we're interested in
+		 * as gonna-to-be-local.
+		 */
+		if (mode == MAKE_LOCAL_SELECT_OBDATA) {
+			ID *data_id = (ID *) object->data;
+			data_id->flag |= LIB_DOIT;
+		}
+	}
+	CTX_DATA_END;
+
+	/* Also forbid making objects local if other library objects are using
+	 * them for modifiers or constraints.
+	 */
+	for (object = bmain->object.first; object; object = object->id.next) {
+		if ((object->id.flag & LIB_DOIT) == 0) {
+			BKE_library_foreach_ID_link(&object->id, tag_localizable_looper, NULL, IDWALK_READONLY);
+		}
+		if (object->data) {
+			ID *data_id = (ID *) object->data;
+			if ((data_id->flag & LIB_DOIT) == 0) {
+				BKE_library_foreach_ID_link(data_id, tag_localizable_looper, NULL, IDWALK_READONLY);
+			}
+		}
+	}
+
+	/* TODO(sergey): Drivers targets? */
+}
+
 static int make_local_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
@@ -2096,10 +2147,15 @@ static int make_local_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 
+	tag_localizable_objects(C, mode);
 	BKE_main_id_clear_newpoins(bmain);
 	
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
+		if ((ob->id.flag & LIB_DOIT) == 0) {
+			continue;
+		}
+
 		if (ob->id.lib)
 			id_make_local(&ob->id, false);
 	}
@@ -2116,6 +2172,10 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
+		if ((ob->id.flag & LIB_DOIT) == 0) {
+			continue;
+		}
+
 		id = ob->data;
 			
 		if (id && (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL))) {
@@ -2145,6 +2205,10 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
 		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 		{
+			if ((ob->id.flag & LIB_DOIT) == 0) {
+				continue;
+			}
+
 			if (ob->type == OB_LAMP) {
 				la = ob->data;
 
