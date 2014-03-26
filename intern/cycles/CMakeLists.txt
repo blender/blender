@@ -13,8 +13,11 @@ include(cmake/external_libs.cmake)
 
 # Build Flags
 # todo: refactor this code to match scons
+# note: CXX_HAS_SSE is needed in case passing SSE flags fails altogether (gcc-arm)
 
 if(WIN32 AND MSVC)
+	set(CXX_HAS_SSE TRUE)
+
 	# /arch:AVX for VC2012 and above
 	if(NOT MSVC_VERSION LESS 1700)
 		set(CYCLES_AVX_ARCH_FLAGS "/arch:AVX")
@@ -40,25 +43,33 @@ if(WIN32 AND MSVC)
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ox")
 	set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /Ox")
 elseif(CMAKE_COMPILER_IS_GNUCC)
-	set(CYCLES_SSE2_KERNEL_FLAGS "-ffast-math -msse -msse2 -mfpmath=sse")
-	set(CYCLES_SSE3_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse")
-	set(CYCLES_SSE41_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mfpmath=sse")
-	set(CYCLES_AVX_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx -mfpmath=sse")
+	check_cxx_compiler_flag(-msse CXX_HAS_SSE)
+	if(CXX_HAS_SSE)
+		set(CYCLES_SSE2_KERNEL_FLAGS "-ffast-math -msse -msse2 -mfpmath=sse")
+		set(CYCLES_SSE3_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse")
+		set(CYCLES_SSE41_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mfpmath=sse")
+		set(CYCLES_AVX_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx -mfpmath=sse")
+	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set(CYCLES_SSE2_KERNEL_FLAGS "-ffast-math -msse -msse2")
-	set(CYCLES_SSE3_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3")
-	set(CYCLES_SSE41_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1")
-	set(CYCLES_AVX_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx")
+	check_cxx_compiler_flag(-msse CXX_HAS_SSE)
+	if(CXX_HAS_SSE)
+		set(CYCLES_SSE2_KERNEL_FLAGS "-ffast-math -msse -msse2")
+		set(CYCLES_SSE3_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3")
+		set(CYCLES_SSE41_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1")
+		set(CYCLES_AVX_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx")
+	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
 
-add_definitions(
-	-DWITH_KERNEL_SSE2
-	-DWITH_KERNEL_SSE3
-	-DWITH_KERNEL_SSE41
-	-DWITH_KERNEL_AVX
-)
+if(CXX_HAS_SSE)
+	add_definitions(
+		-DWITH_KERNEL_SSE2
+		-DWITH_KERNEL_SSE3
+		-DWITH_KERNEL_SSE41
+		-DWITH_KERNEL_AVX
+	)
+endif()
 
 # for OSL
 if(WIN32 AND MSVC)
