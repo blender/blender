@@ -200,7 +200,7 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 	multiresbake_get_normal(data, no1, data->face_index, i1);
 	multiresbake_get_normal(data, no2, data->face_index, i2);
 
-	resolve_tri_uv(fUV, st, st0, st1, st2);
+	resolve_tri_uv_v2(fUV, st, st0, st1, st2);
 
 	u = fUV[0];
 	v = fUV[1];
@@ -772,10 +772,10 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 
 	if (mface.v4) {
 		st3 = mtface[face_index].uv[3];
-		resolve_quad_uv(uv, st, st0, st1, st2, st3);
+		resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
 	}
 	else
-		resolve_tri_uv(uv, st, st0, st1, st2);
+		resolve_tri_uv_v2(uv, st, st0, st1, st2);
 
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);
@@ -868,10 +868,10 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 
 	if (mface.v4) {
 		st3 = mtface[face_index].uv[3];
-		resolve_quad_uv(uv, st, st0, st1, st2, st3);
+		resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
 	}
 	else
-		resolve_tri_uv(uv, st, st0, st1, st2);
+		resolve_tri_uv_v2(uv, st, st0, st1, st2);
 
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);
@@ -1112,10 +1112,10 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 
 	if (mface.v4) {
 		st3 = mtface[face_index].uv[3];
-		resolve_quad_uv(uv, st, st0, st1, st2, st3);
+		resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
 	}
 	else
-		resolve_tri_uv(uv, st, st0, st1, st2);
+		resolve_tri_uv_v2(uv, st, st0, st1, st2);
 
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);

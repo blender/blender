@@ -2683,8 +2683,13 @@ void interp_cubic_v3(float x[3], float v[3], const float x1[3], const float v1[3
 
 #define IS_ZERO(x) ((x > (-DBL_EPSILON) && x < DBL_EPSILON) ? 1 : 0)
 
-/* Barycentric reverse  */
-void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2])
+/**
+ * Barycentric reverse
+ *
+ * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)"
+ */
+void resolve_tri_uv_v2(float r_uv[2], const float st[2],
+                       const float st0[2], const float st1[2], const float st2[2])
 {
 	/* find UV such that
 	 * t = u * t0 + v * t1 + (1 - u - v) * t2
@@ -2705,14 +2710,15 @@ void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const 
 }
 
 /* bilinear reverse */
-void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
+void resolve_quad_uv_v2(float r_uv[2], const float st[2],
+                        const float st0[2], const float st1[2], const float st2[2], const float st3[2])
 {
-	resolve_quad_uv_deriv(r_uv, NULL, st, st0, st1, st2, st3);
+	resolve_quad_uv_v2_deriv(r_uv, NULL, st, st0, st1, st2, st3);
 }
 
 /* bilinear reverse with derivatives */
-void resolve_quad_uv_deriv(float r_uv[2], float r_deriv[2][2],
-                           const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
+void resolve_quad_uv_v2_deriv(float r_uv[2], float r_deriv[2][2],
+                              const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
 {
 	const double signed_area = (st0[0] * st1[1] - st0[1] * st1[0]) + (st1[0] * st2[1] - st1[1] * st2[0]) +
 	                           (st2[0] * st3[1] - st2[1] * st3[0]) + (st3[0] * st0[1] - st3[1] * st0[0]);
