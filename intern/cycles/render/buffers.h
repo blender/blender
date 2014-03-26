@@ -31,7 +31,7 @@
 CCL_NAMESPACE_BEGIN
 
 class Device;
-class DeviceDrawParams;
+struct DeviceDrawParams;
 struct float4;
 
 /* Buffer Parameters
