@@ -1,3 +1,11 @@
+commit 901b146f28825d3e05f4157ca2a34ae00261b91a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 26 17:44:09 2014 +0600
+
+    Fix bad memory write in BA code when having zero-weighted tracks
+    
+    Issue was really stupid and caused by the wrong vector initialization.
+
 commit d14a372dfe09c7339f267c4904a541fbe2efec43
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri Mar 21 16:02:41 2014 +0600
@@ -625,48 +633,3 @@ Date:   Fri May 10 17:44:49 2013 +0600
     
     In own tests gives approx 2x boost, without
     visible affect on selected keyframe quality.
-
-commit b735649ead4d3d61f7896e46f35b1f7e0cecea3d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Mar 14 14:53:42 2013 +0600
-
-    Initial commit of reconstruction variance criteria
-    which is an addition for GRIC-based keyframe selection.
-    
-    Uses paper Keyframe Selection for Camera Motion and Structure
-    Estimation from Multiple Views,
-    ftp://ftp.tnt.uni-hannover.de/pub/papers/2004/ECCV2004-TTHBAW.pdf
-    as a basis.
-    
-    Currently implemented camera positions reconstructions,
-    bundle positions estimation and bundle adjustment step.
-    
-    Covariance matrix is estimating using generalized inverse
-    with 7 (by the number of gauge freedoms) zeroed eigen values
-    of J^T * J.
-    
-    Additional changes:
-    - Added utility function FundamentalToEssential to extract
-      E from F matrix, used by both final reconstruction pipeline
-      and reconstruction variance code.
-    
-    - Refactored bundler a bit, so now it's possible to return
-      different evaluation data, such as number of cameras and
-      points being minimized and also jacobian.
-    
-      Jacobian currently contains only camera and points columns,
-      no intrinsics there yet. It is also currently converting to
-      an Eigen dense matrix. A bit weak, but speed is nice for
-      tests.
-    
-      Columns in jacobian are ordered in the following way:
-      first columns are cameras (3 cols for rotation and 3 cols
-      for translation), then goes 3D point columns.
-    
-    - Switched F and H refining to normalized space. Apparently,
-      refining F in pixel space squeezes it a lot making it wrong.
-    
-    - EuclideanIntersect will not add point to reconstruction if
-      it happened to be behind the camera.
-    
-    - Cleaned style a bit.
