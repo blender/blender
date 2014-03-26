@@ -22,6 +22,9 @@
 
 # Use '--write-blend=/tmp/test.blend' to view output
 
+# Some tests are interesting but take too long to run
+# and don't give deterministic results
+set(USE_EXPERIMENTAL_TESTS FALSE)
 
 set(TEST_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests)
 set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
@@ -63,9 +66,11 @@ add_test(script_load_modules ${TEST_BLENDER_EXE}
 )
 
 # test running operators doesn't segfault under various conditions
-add_test(script_run_operators ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/bl_run_operators.py
-)
+if(USE_EXPERIMENTAL_TESTS)
+	add_test(script_run_operators ${TEST_BLENDER_EXE}
+		--python ${CMAKE_CURRENT_LIST_DIR}/bl_run_operators.py
+	)
+endif()
 
 # test running mathutils testing script
 add_test(script_pyapi_mathutils ${TEST_BLENDER_EXE}
