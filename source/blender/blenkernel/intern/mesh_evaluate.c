@@ -904,7 +904,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 		}
 
 		/* finally calculate the area */
-		area = area_poly_v3(mpoly->totloop, vertexcos, no);
+		area = area_poly_v3((const float (*)[3])vertexcos, (unsigned int)mpoly->totloop, no);
 
 		return area;
 	}

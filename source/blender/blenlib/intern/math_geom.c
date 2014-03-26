@@ -134,12 +134,13 @@ float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3]
 	return area;
 }
 
-float area_poly_v3(int nr, float verts[][3], const float normal[3])
+float area_poly_v3(const float verts[][3], unsigned int nr, const float normal[3])
 {
-	int a, px, py;
+	unsigned int a;
+	int px, py;
 	const float max = axis_dominant_v3_max(&px, &py, normal);
 	float area;
-	float *co_curr, *co_prev;
+	const float *co_curr, *co_prev;
 
 	/* The Trapezium Area Rule */
 	co_prev = verts[nr - 1];
@@ -154,9 +155,9 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 	return fabsf(0.5f * area / max);
 }
 
-float cross_poly_v2(int nr, float verts[][2])
+float cross_poly_v2(const float verts[][2], unsigned int nr)
 {
-	int a;
+	unsigned int a;
 	float cross;
 	const float *co_curr, *co_prev;
 
@@ -173,9 +174,9 @@ float cross_poly_v2(int nr, float verts[][2])
 	return cross;
 }
 
-float area_poly_v2(int nr, float verts[][2])
+float area_poly_v2(const float verts[][2], unsigned int nr)
 {
-	return fabsf(0.5f * cross_poly_v2(nr, verts));
+	return fabsf(0.5f * cross_poly_v2(verts, nr));
 }
 
 /********************************* Planes **********************************/

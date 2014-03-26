@@ -248,7 +248,7 @@ float BM_face_calc_area(BMFace *f)
 	else {
 		float normal[3];
 		calc_poly_normal(normal, verts, f->len);
-		area = area_poly_v3(f->len, verts, normal);
+		area = area_poly_v3((const float (*)[3])verts, f->len, normal);
 	}
 
 	return area;
@@ -1061,7 +1061,12 @@ void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		BM_elem_index_set(l, i); /* set_loop */
 		mul_v2_m3v3(projverts[i], axis_mat, l->v->co);
+	}
 
+	/* first test for completely convex face */
+
+
+	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		out[0] = max_ff(out[0], projverts[i][0]);
 		out[1] = max_ff(out[1], projverts[i][1]);
 	}

@@ -400,7 +400,7 @@ void BLI_polyfill_calc_ex(
 	pf.tris_tot = 0;
 
 	if ((coords_tot < 3) ||
-	    cross_poly_v2((int)coords_tot, (float(*)[2])coords) > 0.0f)
+	    cross_poly_v2(coords, coords_tot) > 0.0f)
 	{
 		for (i = 0; i < coords_tot; i++) {
 			indices[i] = i;
