@@ -942,11 +942,12 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 	// this way only one KX_BlenderMaterial object has to exist per bucket
 	bool bucketCreated; 
 	RAS_MaterialBucket* bucket = scene->FindBucket(polymat, bucketCreated);
-	if (bucketCreated) {
-		// this is needed to free up memory afterwards
-		converter->RegisterPolyMaterial(polymat);
-		converter->RegisterBlenderMaterial(bl_mat);
-	}
+
+	// this is needed to free up memory afterwards.
+	// the converter will also prevent duplicates from being registered,
+	// so just register everything.
+	converter->RegisterPolyMaterial(polymat);
+	converter->RegisterBlenderMaterial(bl_mat);
 
 	return bucket;
 }
