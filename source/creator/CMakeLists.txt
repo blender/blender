@@ -663,10 +663,10 @@ elseif(WIN32)
 		else()
 			install(
 				FILES
-					${LIBDIR}/ffmpeg/lib/avcodec-53.dll
-					${LIBDIR}/ffmpeg/lib/avformat-53.dll
-					${LIBDIR}/ffmpeg/lib/avdevice-53.dll
-					${LIBDIR}/ffmpeg/lib/avutil-51.dll
+					${LIBDIR}/ffmpeg/lib/avcodec-55.dll
+					${LIBDIR}/ffmpeg/lib/avformat-55.dll
+					${LIBDIR}/ffmpeg/lib/avdevice-55.dll
+					${LIBDIR}/ffmpeg/lib/avutil-52.dll
 					${LIBDIR}/ffmpeg/lib/swscale-2.dll
 				DESTINATION ${TARGETDIR}
 			)
