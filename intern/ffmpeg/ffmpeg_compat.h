@@ -103,6 +103,7 @@ FFMPEG_INLINE
 int av_sample_fmt_is_planar(enum AVSampleFormat sample_fmt)
 {
 	/* no planar formats in FFmpeg < 0.9 */
+	(void) sample_fmt;
 	return 0;
 }
 
@@ -172,6 +173,7 @@ FFMPEG_INLINE
 int av_opt_set(void *obj, const char *name, const char *val, int search_flags)
 {
 	const AVOption *rv = NULL;
+	(void) search_flags;
 	av_set_string3(obj, name, val, 1, &rv);
 	return rv != NULL;
 }
@@ -180,6 +182,7 @@ FFMPEG_INLINE
 int av_opt_set_int(void *obj, const char *name, int64_t val, int search_flags)
 {
 	const AVOption *rv = NULL;
+	(void) search_flags;
 	rv = av_set_int(obj, name, val);
 	return rv != NULL;
 }
@@ -188,6 +191,7 @@ FFMPEG_INLINE
 int av_opt_set_double(void *obj, const char *name, double val, int search_flags)
 {
 	const AVOption *rv = NULL;
+	(void) search_flags;
 	rv = av_set_double(obj, name, val);
 	return rv != NULL;
 }
@@ -210,15 +214,12 @@ enum AVSampleFormat av_get_packed_sample_fmt(enum AVSampleFormat sample_fmt)
 }
 #endif
 
-#if ((LIBAVFORMAT_VERSION_MAJOR < 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24) && (LIBAVFORMAT_VERSION_MICRO < 2)))
-#  define avformat_close_input(x) av_close_input_file(*(x))
-#endif
-
 #if ((LIBAVCODEC_VERSION_MAJOR < 53) || (LIBAVCODEC_VERSION_MAJOR == 53 && LIBAVCODEC_VERSION_MINOR < 35))
 FFMPEG_INLINE
 int avcodec_open2(AVCodecContext *avctx, AVCodec *codec, AVDictionary **options)
 {
 	/* TODO: no options are taking into account */
+	(void) options;
 	return avcodec_open(avctx, codec);
 }
 #endif
@@ -228,6 +229,7 @@ FFMPEG_INLINE
 AVStream *avformat_new_stream(AVFormatContext *s, AVCodec *c)
 {
 	/* TODO: no codec is taking into account */
+	(void) c;
 	return av_new_stream(s, 0);
 }
 
@@ -235,6 +237,7 @@ FFMPEG_INLINE
 int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options)
 {
 	/* TODO: no options are taking into account */
+	(void) options;
 	return av_find_stream_info(ic);
 }
 #endif
@@ -434,5 +437,9 @@ AVRational av_get_r_frame_rate_compat(const AVStream *stream)
 #  endif
 #endif
 }
+
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(51, 32, 0)
+#  define AV_OPT_SEARCH_FAKE_OBJ 0
+#endif
 
 #endif
