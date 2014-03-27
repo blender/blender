@@ -59,7 +59,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
         col.label(text="Object:")
         col.prop(softbody, "friction")
         col.prop(softbody, "mass")
-        col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Mass:")
+        col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Mass")
 
         col = split.column()
         col.label(text="Simulation:")
@@ -143,7 +143,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
         col.prop(softbody, "plastic")
         col.prop(softbody, "bend")
         col.prop(softbody, "spring_length", text="Length")
-        col.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs:")
+        col.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs")
 
         col = split.column()
         col.prop(softbody, "use_stiff_quads")
