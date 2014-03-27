@@ -2565,55 +2565,128 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
 
 /********************* smooth operator ********************/
 
+static void smooth_single_bezt(
+        BezTriple *bezt,
+        const BezTriple *bezt_orig_prev, const BezTriple *bezt_orig_next,
+        float factor)
+{
+	int i;
+
+	BLI_assert(IN_RANGE_INCL(factor, 0.0f, 1.0f));
+
+	for (i = 0; i < 3; i++) {
+		float val_old, val_new, offset;
+
+		/* get single dimension pos of the mid handle */
+		val_old = bezt->vec[1][i];
+
+		/* get the weights of the previous/next mid handles and calc offset */
+		val_new = (bezt_orig_prev->vec[1][i] * 0.5f) + (bezt_orig_next->vec[1][i] * 0.5f);
+		offset = (val_old * (1.0f - factor)) + (val_new * factor) - val_old;
+
+		/* offset midpoint and 2 handles */
+		bezt->vec[1][i] += offset;
+		bezt->vec[0][i] += offset;
+		bezt->vec[2][i] += offset;
+	}
+}
+
+/**
+ * Same as smooth_single_bezt(), keep in sync
+ */
+static void smooth_single_bp(
+        BPoint *bp,
+        const BPoint *bp_orig_prev, const BPoint *bp_orig_next,
+        float factor)
+{
+	int i;
+
+	BLI_assert(IN_RANGE_INCL(factor, 0.0f, 1.0f));
+
+	for (i = 0; i < 3; i++) {
+		float val_old, val_new, offset;
+
+		val_old = bp->vec[i];
+		val_new = (bp_orig_prev->vec[i] * 0.5f) + (bp_orig_next->vec[i] * 0.5f);
+		offset = (val_old * (1.0f - factor)) + (val_new * factor) - val_old;
+
+		bp->vec[i] += offset;
+	}
+}
+
 static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	const float factor = 1.0f / 6.0f;
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
-	BezTriple *bezt, *beztOrig;
-	BPoint *bp, *bpOrig;
-	float val, newval, offset;
-	int a, i;
+
+	int a, a_end;
 	bool changed = false;
-	
+
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->bezt) {
+			/* duplicate the curve to use in weight calculation */
+			const BezTriple *bezt_orig = MEM_dupallocN(nu->bezt);
+			BezTriple *bezt;
 			changed = false;
-			beztOrig = MEM_dupallocN(nu->bezt);
-			for (bezt = &nu->bezt[1], a = 1; a < nu->pntsu - 1; a++, bezt++) {
+
+			/* check whether its cyclic or not, and set initial & final conditions */
+			if (nu->flagu & CU_NURB_CYCLIC) {
+				a = 0;
+				a_end = nu->pntsu;
+			}
+			else {
+				a = 1;
+				a_end = nu->pntsu - 1;
+			}
+
+			/* for all the curve points */
+			for (; a < a_end; a++) {
+				/* respect selection */
+				bezt = &nu->bezt[a];
 				if (bezt->f2 & SELECT) {
-					for (i = 0; i < 3; i++) {
-						val = bezt->vec[1][i];
-						newval = ((beztOrig + (a - 1))->vec[1][i] * 0.5f) + ((beztOrig + (a + 1))->vec[1][i] * 0.5f);
-						offset = (val * ((1.0f / 6.0f) * 5.0f)) + (newval * (1.0f / 6.0f)) - val;
-						/* offset handles */
-						bezt->vec[1][i] += offset;
-						bezt->vec[0][i] += offset;
-						bezt->vec[2][i] += offset;
-					}
+					const BezTriple *bezt_orig_prev, *bezt_orig_next;
+
+					bezt_orig_prev = &bezt_orig[mod_i(a - 1, nu->pntsu)];
+					bezt_orig_next = &bezt_orig[mod_i(a + 1, nu->pntsu)];
+
+					smooth_single_bezt(bezt, bezt_orig_prev, bezt_orig_next, factor);
+
 					changed = true;
 				}
 			}
-			MEM_freeN(beztOrig);
+			MEM_freeN((void *)bezt_orig);
 			if (changed) {
 				BKE_nurb_handles_calc(nu);
 			}
 		}
 		else if (nu->bp) {
-			bpOrig = MEM_dupallocN(nu->bp);
 			/* Same as above, keep these the same! */
-			for (bp = &nu->bp[1], a = 1; a < nu->pntsu - 1; a++, bp++) {
+			const BPoint *bp_orig = MEM_dupallocN(nu->bp);
+			BPoint *bp;
+
+			if (nu->flagu & CU_NURB_CYCLIC) {
+				a = 0;
+				a_end = nu->pntsu;
+			}
+			else {
+				a = 1;
+				a_end = nu->pntsu - 1;
+			}
+
+			for (; a < a_end; a++) {
+				bp = &nu->bp[a];
 				if (bp->f1 & SELECT) {
-					for (i = 0; i < 3; i++) {
-						val = bp->vec[i];
-						newval = ((bpOrig + (a - 1))->vec[i] * 0.5f) + ((bpOrig + (a + 1))->vec[i] * 0.5f);
-						offset = (val * ((1.0f / 6.0f) * 5.0f)) + (newval * (1.0f / 6.0f)) - val;
-					
-						bp->vec[i] += offset;
-					}
+					const BPoint *bp_orig_prev, *bp_orig_next;
+
+					bp_orig_prev = &bp_orig[mod_i(a - 1, nu->pntsu)];
+					bp_orig_next = &bp_orig[mod_i(a + 1, nu->pntsu)];
+
+					smooth_single_bp(bp, bp_orig_prev, bp_orig_next, factor);
 				}
 			}
-			MEM_freeN(bpOrig);
+			MEM_freeN((void *)bp_orig);
 		}
 	}
 
