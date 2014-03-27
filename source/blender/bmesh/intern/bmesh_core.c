@@ -1609,7 +1609,10 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 	BMVert *v_old, *tv;
 	BMLoop *l_kill;
 	int len, radlen = 0, i;
-	bool edok, halt = false;
+	bool halt = false;
+#ifndef NDEBUG
+	bool edok;
+#endif
 
 	if (BM_vert_in_edge(e_kill, v_kill) == 0) {
 		return NULL;
