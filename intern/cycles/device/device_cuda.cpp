@@ -236,15 +236,23 @@ public:
 		cuda_assert(cuCtxDestroy(cuContext))
 	}
 
-	bool support_device(bool experimental)
+	bool support_device(bool experimental, bool branched)
 	{
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
-
+		
+		/* We only support sm_20 and above */
 		if(major < 2) {
 			cuda_error_message(string_printf("CUDA device supported only with compute capability 2.0 or up, found %d.%d.", major, minor));
 			return false;
 		}
+		
+		/* Currently no Branched Path on sm_30 */
+		if(branched && major == 3 && minor == 0) {
+			cuda_error_message(string_printf("CUDA device: Branched Path is currently disabled on sm_30 GPUs."));
+			return false;
+		}
+		
 
 		return true;
 	}
@@ -352,8 +360,8 @@ public:
 		if(cuContext == 0)
 			return false;
 		
-		/* check if GPU is supported with current feature set */
-		if(!support_device(experimental))
+		/* check if GPU is supported */
+		if(!support_device(experimental, false))
 			return false;
 
 		/* get kernel */
@@ -613,7 +621,7 @@ public:
 		CUdeviceptr d_rng_state = cuda_device_ptr(rtile.rng_state);
 
 		/* get kernel function */
-		if(branched)
+		if(branched && support_device(true, branched))
 			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"))
 		else
 			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace"))
