@@ -3846,3 +3846,42 @@ int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], c
 	/* linetests, the 2 diagonals have to instersect to be convex */
 	return (isect_line_line_v2(v1, v3, v2, v4) > 0);
 }
+
+int is_poly_convex_v2(const float verts[][2], unsigned int nr)
+{
+	unsigned int sign_flag = 0;
+	unsigned int a;
+	const float *co_curr, *co_prev;
+	float dir_curr[2], dir_prev[2];
+
+	co_prev = verts[nr - 1];
+	co_curr = verts[0];
+
+	sub_v2_v2v2(dir_prev, verts[nr - 2], co_prev);
+
+	for (a = 0; a < nr; a++) {
+		float cross;
+
+		sub_v2_v2v2(dir_curr, co_prev, co_curr);
+
+		cross = cross_v2v2(dir_prev, dir_curr);
+
+		if (cross < 0.0f) {
+			sign_flag |= 1;
+		}
+		else if (cross > 0.0f) {
+			sign_flag |= 2;
+		}
+
+		if (sign_flag == (1 | 2)) {
+			return false;
+		}
+
+		copy_v2_v2(dir_prev, dir_curr);
+
+		co_prev = co_curr;
+		co_curr += 2;
+	}
+
+	return true;
+}

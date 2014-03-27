@@ -1064,7 +1064,9 @@ void BM_face_legal_splits(BMFace *f, BMLoop *(*loops)[2], int len)
 	}
 
 	/* first test for completely convex face */
-
+	if (is_poly_convex_v2((const float (*)[2])projverts, f->len)) {
+		return;
+	}
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		out[0] = max_ff(out[0], projverts[i][0]);
