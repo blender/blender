@@ -45,6 +45,7 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_colortools.h"
 
@@ -197,6 +198,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 		pool = BKE_image_pool_new();
 
+		if (mtex->tex && mtex->tex->nodetree)
+			ntreeTexBeginExecTree(mtex->tex->nodetree);  /* has internal flag to detect it only does it once */
+
 #pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {
 			int i;
@@ -271,6 +275,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 				}
 			}
 		}
+
+		if (mtex->tex && mtex->tex->nodetree)
+			ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
 
 		if (pool)
 			BKE_image_pool_free(pool);
