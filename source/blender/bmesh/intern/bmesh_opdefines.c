@@ -875,6 +875,7 @@ static BMOpDefine bmo_connect_verts_def = {
 	"connect_verts",
 	/* slots_in */
 	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
+	 {"check_degenerate", BMO_OP_SLOT_BOOL},  /* prevent splits with overlaps & intersections */
 	 {{'\0'}},
 	},
 	/* slots_out */

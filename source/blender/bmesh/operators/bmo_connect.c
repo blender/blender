@@ -39,7 +39,7 @@
 #define EDGE_OUT	1
 #define FACE_TAG	2
 
-static int bm_face_connect_verts(BMesh *bm, BMFace *f)
+static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenerate)
 {
 	BMLoop *(*loops_split)[2] = BLI_array_alloca(loops_split, f->len);
 	STACK_DECLARE(loops_split);
@@ -82,7 +82,9 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f)
 		l_pair[1] = loops_split[0][0];
 	}
 
-	BM_face_legal_splits(f, loops_split, STACK_SIZE(loops_split));
+	if (check_degenerate) {
+		BM_face_legal_splits(f, loops_split, STACK_SIZE(loops_split));
+	}
 
 	for (i = 0; i < STACK_SIZE(loops_split); i++) {
 		BMVert **v_pair;
@@ -128,6 +130,7 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMVert *v;
 	BMFace *f;
+	const bool check_degenerate = BMO_slot_bool_get(op->slots_in,  "check_degenerate");
 	BLI_LINKSTACK_DECLARE(faces, BMFace *);
 
 	BLI_LINKSTACK_INIT(faces);
@@ -147,7 +150,7 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 
 	/* connect faces */
 	while ((f = BLI_LINKSTACK_POP(faces))) {
-		if (bm_face_connect_verts(bm, f) == -1) {
+		if (bm_face_connect_verts(bm, f, check_degenerate) == -1) {
 			BMO_error_raise(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
 		}
 	}

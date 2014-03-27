@@ -887,7 +887,7 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		if (!EDBM_op_init(em, &bmop, op, "connect_verts verts=%hv", BM_ELEM_SELECT)) {
+		if (!EDBM_op_init(em, &bmop, op, "connect_verts verts=%hv check_degenerate=%b", BM_ELEM_SELECT, true)) {
 			return OPERATOR_CANCELLED;
 		}
 	}

@@ -529,6 +529,8 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
 #if 1
 	if (found_all) {
+		/* leave 'check_degenerate' off, if a user tries to cut with 2 verts,
+		 * always connect even when resulting faces are degenerate [#39418] */
 		BMOperator op_sub;
 		BMO_op_initf(bm, &op_sub, 0,
 		             "connect_verts verts=%fv", VERT_OUT);
