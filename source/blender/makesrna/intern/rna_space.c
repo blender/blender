@@ -1227,7 +1227,7 @@ void rna_SpaceNodeEditor_path_start(SpaceNode *snode, bContext *C, PointerRNA *n
 	ED_node_tree_update(C);
 }
 
-void rna_SpaceNodeEditor_path_push(SpaceNode *snode, bContext *C, PointerRNA *node_tree, PointerRNA *node)
+void rna_SpaceNodeEditor_path_append(SpaceNode *snode, bContext *C, PointerRNA *node_tree, PointerRNA *node)
 {
 	ED_node_tree_push(snode, node_tree->data, node->data);
 	ED_node_tree_update(C);
@@ -3317,7 +3317,7 @@ static void rna_def_space_node_path_api(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "node_tree", "NodeTree", "Node Tree", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
 
-	func = RNA_def_function(srna, "push", "rna_SpaceNodeEditor_path_push");
+	func = RNA_def_function(srna, "append", "rna_SpaceNodeEditor_path_append");
 	RNA_def_function_ui_description(func, "Append a node group tree to the path");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "node_tree", "NodeTree", "Node Tree", "Node tree to append to the node editor path");

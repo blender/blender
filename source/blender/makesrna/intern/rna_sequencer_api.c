@@ -336,7 +336,7 @@ static void rna_Sequences_remove(ID *id, Editing *ed, ReportList *reports, Point
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
-static StripElem *rna_SequenceElements_push(ID *id, Sequence *seq, const char *filename)
+static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char *filename)
 {
 	Scene *scene = (Scene *)id;
 	StripElem *se;
@@ -430,7 +430,7 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Sequence");
 	RNA_def_struct_ui_text(srna, "SequenceElements", "Collection of SequenceElement");
 
-	func = RNA_def_function(srna, "push", "rna_SequenceElements_push");
+	func = RNA_def_function(srna, "append", "rna_SequenceElements_append");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Push an image from ImageSequence.directory");
 	parm = RNA_def_string(func, "filename", "File", 0, "", "Filepath to image");
