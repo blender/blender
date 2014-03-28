@@ -276,6 +276,13 @@
 	else if ((a) > (c)) (a) = (c);  \
 } (void)0
 
+#define CLAMP_MAX(a, c)  {          \
+	if ((a) > (c)) (a) = (c);       \
+} (void)0
+
+#define CLAMP_MIN(a, b)  {          \
+	if      ((a) < (b)) (a) = (b);  \
+} (void)0
 
 #define IS_EQ(a, b)  ( \
 	CHECK_TYPE_INLINE(a, double), CHECK_TYPE_INLINE(b, double), \

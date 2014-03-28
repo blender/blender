@@ -257,24 +257,24 @@ static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], 
 }
 
 /* funnily enough, I think this is identical to face_to_crn_interp, heh */
-static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int a1, int a2)
+static float quad_coord(const float aa[3], const float bb[3], const float cc[3], const float dd[3], int a1, int a2)
 {
 	float x, y, z, f1;
+	float div;
 	
 	x = aa[a1] * cc[a2] - cc[a1] * aa[a2];
 	y = aa[a1] * dd[a2] + bb[a1] * cc[a2] - cc[a1] * bb[a2] - dd[a1] * aa[a2];
 	z = bb[a1] * dd[a2] - dd[a1] * bb[a2];
-	
-	if (fabsf(2.0f * (x - y + z)) > FLT_EPSILON * 10.0f) {
-		float f2;
 
-		f1 = ( sqrtf(y * y - 4.0f * x * z) - y + 2.0f * z) / (2.0f * (x - y + z));
-		f2 = (-sqrtf(y * y - 4.0f * x * z) - y + 2.0f * z) / (2.0f * (x - y + z));
+	div = 2.0f * (x - y + z);
 
-		f1 = fabsf(f1);
-		f2 = fabsf(f2);
-		f1 = min_ff(f1, f2);
-		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
+	if (fabsf(div) > FLT_EPSILON * 10.0f) {
+		const float f_tmp = sqrtf(y * y - 4.0f * x * z);
+
+		f1 = min_ff(fabsf(( f_tmp - y + 2.0f * z) / div),
+		            fabsf((-f_tmp - y + 2.0f * z) / div));
+
+		CLAMP_MAX(f1, 1.0f + FLT_EPSILON);
 	}
 	else {
 		f1 = -z / (y - 2 * z);
