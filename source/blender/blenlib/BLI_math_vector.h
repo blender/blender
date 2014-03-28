@@ -163,6 +163,7 @@ MINLINE int   len_manhattan_v2_int(const int v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_manhattan_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE float len_v2v2_int(const int v1[2], const int v2[2]);
 MINLINE float len_squared_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_squared_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_manhattan_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;

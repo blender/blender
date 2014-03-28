@@ -676,6 +676,15 @@ MINLINE float len_v2v2(const float v1[2], const float v2[2])
 	return sqrtf(x * x + y * y);
 }
 
+MINLINE float len_v2v2_int(const int v1[2], const int v2[2])
+{
+	float x, y;
+
+	x = (float)(v1[0] - v2[0]);
+	y = (float)(v1[1] - v2[1]);
+	return sqrtf(x * x + y * y);
+}
+
 MINLINE float len_v3(const float a[3])
 {
 	return sqrtf(dot_v3v3(a, a));
