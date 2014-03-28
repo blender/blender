@@ -147,8 +147,8 @@ static int time_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 		
 	/* set extents of view to start/end frames (Preview Range too) */
-	v2d->cur.xmin = (float)PSFRA;
-	v2d->cur.xmax = (float)PEFRA;
+	v2d->cur.xmin = ((float)PSFRA) - 0.5f;
+	v2d->cur.xmax = ((float)PEFRA) + 0.5f;
 	
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
 	extra = 0.01f * BLI_rctf_size_x(&v2d->cur);

@@ -67,17 +67,20 @@
 /* ************************ main time area region *********************** */
 
 static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
-{	
-	/* draw darkened area outside of active timeline 
-	 * frame range used is preview range or scene range 
+{
+	/* Draw darkened area outside of active timeline frame range used is preview range or scene range.
+	 * Note we use STFRA - 0.5 and PEFRA + 0.5, else visible 'active' area is one frame less than what's expected!
 	 */
+	const float psfra = ((float)PSFRA) - 0.5f;
+	const float pefra = ((float)PEFRA) + 0.5f;
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-		
-	if (PSFRA < PEFRA) {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+
+	if (psfra < pefra) {
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, psfra, v2d->cur.ymax);
+		glRectf(pefra, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 	else {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -86,8 +89,8 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
+	fdrawline(psfra, v2d->cur.ymin, psfra, v2d->cur.ymax);
+	fdrawline(pefra, v2d->cur.ymin, pefra, v2d->cur.ymax);
 }
 
 #define CACHE_DRAW_HEIGHT   3.0f
