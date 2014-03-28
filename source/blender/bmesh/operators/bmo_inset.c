@@ -395,6 +395,9 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	const float thickness          = BMO_slot_float_get(op->slots_in, "thickness");
 	const float depth              = BMO_slot_float_get(op->slots_in, "depth");
 
+	/* store vert coords in normals, needed for 'use_edge_rail' */
+#define USE_VERTNORMAL_HACK
+
 	int edge_info_len = 0;
 
 	BMIter iter;
@@ -453,6 +456,11 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 			BM_elem_index_set(e, -1); /* set_dirty! */
 		}
+
+#ifdef USE_VERTNORMAL_HACK
+			copy_v3_v3(e->v1->no, e->v1->co);
+			copy_v3_v3(e->v2->no, e->v2->co);
+#endif
 	}
 	bm->elem_index_dirty |= BM_EDGE;
 
@@ -564,6 +572,9 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 				/* in some cases the edge doesn't split off */
 				if (r_vout_len == 1) {
+#ifdef USE_VERTNORMAL_HACK
+					copy_v3_v3(vout[0]->no, vout[0]->co);
+#endif
 					MEM_freeN(vout);
 					continue;
 				}
@@ -574,6 +585,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 					/* need to check if this vertex is from a */
 					int vert_edge_tag_tot = 0;
 					int vecpair[2];
+
+#ifdef USE_VERTNORMAL_HACK
+					copy_v3_v3(v_split->no, v_split->co);
+#endif
 
 					/* find adjacent */
 					BM_ITER_ELEM (e, &iter, v_split, BM_EDGES_OF_VERT) {
@@ -628,7 +643,17 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 								if (l_other_a->v == l_other_b->v) {
 									/* both edges faces are adjacent, but we don't need to know the shared edge
 									 * having both verts is enough. */
-									sub_v3_v3v3(tvec, l_other_a->v->co, v_split->co);
+									const float *co_other;
+
+									/* note that we can't use 'l_other_a->v' directly since it
+									 * may be inset and give a feedback loop. */
+#ifdef USE_VERTNORMAL_HACK
+									co_other = l_other_a->v->no;
+#else
+									co_other = l_other_a->v->co;
+#endif
+
+									sub_v3_v3v3(tvec, co_other, v_split->co);
 									is_mid = false;
 								}
 								else if (compare_v3v3(f_a->no, f_b->no, 0.001f) == false) {
