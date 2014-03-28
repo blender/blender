@@ -62,6 +62,7 @@
 #include "ED_node.h"
 
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
@@ -609,10 +610,24 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 			}
 
 			if (seq_found) {
+				if (seq->anim) {
+					IMB_free_anim(seq->anim);
+					seq->anim = NULL;
+				}
+
 				BKE_sequence_invalidate_cache(scene, seq);
 				BKE_sequencer_preprocessed_cache_cleanup_sequence(seq);
 			}
 			else {
+				SEQ_BEGIN(scene->ed, seq);
+				{
+					if (seq->anim) {
+						IMB_free_anim(seq->anim);
+						seq->anim = NULL;
+					}
+				}
+				SEQ_END;
+
 				BKE_sequencer_cache_cleanup();
 				BKE_sequencer_preprocessed_cache_cleanup();
 			}
