@@ -797,6 +797,11 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					{
 						SWAP(float, offco[0], offco[1]);
 						offco[1] *= -1;
+
+						/* flip last point */
+						if (data->point != &data->spline->points[0]) {
+							negate_v2(offco);
+						}
 					}
 				}
 
