@@ -257,8 +257,10 @@ typedef struct Curve {
 
 	float ctime;			/* current evaltime - for use by Objects parented to curves */
 	float bevfac1, bevfac2;
+	char bevfac1_mapping, bevfac2_mapping;
 
-	char pad2[4];
+	char pad2[2];
+
 } Curve;
 
 /* **************** CURVE ********************* */
@@ -294,6 +296,13 @@ typedef struct Curve {
 // #define CU_TWIST_X_UP			2
 #define CU_TWIST_MINIMUM		3
 #define CU_TWIST_TANGENT		4
+
+/* bevel factor mapping */
+enum {
+	CU_BEVFAC_MAP_RESOLU = 0,
+	CU_BEVFAC_MAP_SEGMENT = 1,
+	CU_BEVFAC_MAP_SPLINE = 2
+};
 
 /* spacemode */
 #define CU_LEFT			0

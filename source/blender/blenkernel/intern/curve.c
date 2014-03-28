@@ -182,6 +182,8 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 	cu->type = type;
 	cu->bevfac1 = 0.0f;
 	cu->bevfac2 = 1.0f;
+	cu->bevfac1_mapping = CU_BEVFAC_MAP_RESOLU;
+	cu->bevfac2_mapping = CU_BEVFAC_MAP_RESOLU;
 
 	cu->bb = BKE_boundbox_alloc_unit();
 

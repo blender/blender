@@ -1364,6 +1364,143 @@ static void fillBevelCap(Nurb *nu, DispList *dlb, float *prev_fp, ListBase *disp
 	BLI_addtail(dispbase, dl);
 }
 
+
+static void calc_bevfac_spline_mapping(BevList *bl, float bevfac, float spline_length, const float *bevp_array,
+                                       int *r_bev, float *r_blend)
+{
+	float len = 0.0f;
+	int i;
+	for (i = 0; i < bl->nr; i++) {
+		*r_bev = i;
+		*r_blend = (bevfac * spline_length - len) / bevp_array[i];
+		if (len + bevp_array[i] > bevfac * spline_length) {
+			break;
+		}
+		len += bevp_array[i];
+	}
+}
+
+static void calc_bevfac_mapping(Curve *cu, BevList *bl, int *r_start, float *r_firstblend, int *r_steps, float *r_lastblend)
+{
+	BevPoint *bevp, *bevl;
+	float l, startf, endf, tmpf = 0.0, sum = 0.0, total_length = 0.0f;
+	float *bevp_array = NULL;
+	float *segments = NULL;
+	int end = 0, i, j, segcount = (int)(bl->nr / cu->resolu);
+
+	if ((cu->bevfac1_mapping != CU_BEVFAC_MAP_RESOLU) ||
+	    (cu->bevfac2_mapping != CU_BEVFAC_MAP_RESOLU))
+	{
+		bevp_array = MEM_mallocN(sizeof(bevp_array) * (bl->nr - 1), "bevp_dists");
+		segments = MEM_callocN(sizeof(segments) * segcount, "bevp_segmentlengths");
+		bevp = (BevPoint *)(bl + 1);
+		bevp++;
+		for (i = 1, j = 0; i < bl->nr; bevp++, i++) {
+			sum = 0.0f;
+			bevl = bevp - 1;
+			bevp_array[i - 1] = len_v3v3(bevp->vec, bevl->vec);
+			total_length += bevp_array[i - 1];
+			tmpf += bevp_array[i - 1];
+			if ((i % cu->resolu) == 0 || (bl->nr - 1) == i) {
+				segments[j++] = tmpf;
+				tmpf = 0.0f;
+			}
+		}
+	}
+
+	switch (cu->bevfac1_mapping) {
+		case CU_BEVFAC_MAP_RESOLU:
+		{
+			const float start_fl = cu->bevfac1 * (bl->nr - 1);
+			*r_start = (int)start_fl;
+
+			*r_firstblend = 1.0f - (start_fl - (*r_start));
+			break;
+		}
+		case CU_BEVFAC_MAP_SEGMENT:
+		{
+			const float start_fl = cu->bevfac1 * (bl->nr - 1);
+			*r_start = (int)start_fl;
+
+			for (i = 0; i < segcount; i++) {
+				l = segments[i] / total_length;
+				if (sum + l > cu->bevfac1) {
+					startf = i * cu->resolu + (cu->bevfac1 - sum) / l * cu->resolu;
+					*r_start = (int) startf;
+					*r_firstblend = 1.0f - (startf - *r_start);
+					break;
+				}
+				sum += l;
+			}
+			break;
+		}
+		case CU_BEVFAC_MAP_SPLINE:
+		{
+			calc_bevfac_spline_mapping(bl, cu->bevfac1, total_length, bevp_array, r_start, r_firstblend);
+			*r_firstblend = 1.0f - *r_firstblend;
+			break;
+		}
+	}
+
+	sum = 0.0f;
+	switch (cu->bevfac2_mapping) {
+		case CU_BEVFAC_MAP_RESOLU:
+		{
+			const float end_fl = cu->bevfac2 * (bl->nr - 1);
+			end = (int)end_fl;
+
+			*r_steps = 2 + end - *r_start;
+			*r_lastblend = end_fl - end;
+			break;
+		}
+		case CU_BEVFAC_MAP_SEGMENT:
+		{
+			const float end_fl = cu->bevfac2 * (bl->nr - 1);
+			end = (int)end_fl;
+
+			*r_steps = end - *r_start + 2;
+			for (i = 0; i < segcount; i++) {
+				l = segments[i] / total_length;
+				if (sum + l > cu->bevfac2) {
+					endf = i * cu->resolu + (cu->bevfac2 - sum) / l * cu->resolu;
+					end = (int)endf;
+					*r_lastblend = (endf - end);
+					*r_steps = end - *r_start + 2;
+					break;
+				}
+				sum += l;
+			}
+			break;
+		}
+		case CU_BEVFAC_MAP_SPLINE:
+		{
+			calc_bevfac_spline_mapping(bl, cu->bevfac2, total_length, bevp_array, &end, r_lastblend);
+			*r_steps = end - *r_start + 2;
+			break;
+		}
+	}
+
+	if (end < *r_start) {
+		SWAP(int, *r_start, end);
+		tmpf = *r_lastblend;
+		*r_lastblend = 1.0f - *r_firstblend;
+		*r_firstblend = 1.0f - tmpf;
+		*r_steps = end - *r_start + 2;
+	}
+
+	if (*r_start + *r_steps > bl->nr) {
+		*r_steps = bl->nr - *r_start;
+		*r_lastblend = 1.0f;
+	}
+
+	if (bevp_array) {
+		MEM_freeN(bevp_array);
+	}
+	if (segments) {
+		MEM_freeN(segments);
+	}
+}
+
 static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispbase,
                                       DerivedMesh **r_dm_final,
                                       const bool for_render, const bool for_orco, const bool use_render_resolution)
@@ -1460,25 +1597,12 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						ListBase top_capbase = {NULL, NULL};
 						float bottom_no[3] = {0.0f};
 						float top_no[3] = {0.0f};
+						float firstblend = 0.0f, lastblend = 0.0f;
+						int i, start, steps;
+
+						calc_bevfac_mapping(cu, bl, &start, &firstblend, &steps, &lastblend);
 
 						for (dlb = dlbev.first; dlb; dlb = dlb->next) {
-							const float bevfac1 = min_ff(cu->bevfac1, cu->bevfac2);
-							const float bevfac2 = max_ff(cu->bevfac1, cu->bevfac2);
-							float firstblend = 0.0f, lastblend = 0.0f;
-							int i, start, steps;
-
-							if (bevfac2 - bevfac1 == 0.0f)
-								continue;
-
-							start = (int)(bevfac1 * (bl->nr - 1));
-							steps = 2 + (int)((bevfac2) * (bl->nr - 1)) - start;
-							firstblend = 1.0f - (bevfac1 * (bl->nr - 1) - (int)(bevfac1 * (bl->nr - 1)));
-							lastblend  =         bevfac2 * (bl->nr - 1) - (int)(bevfac2 * (bl->nr - 1));
-
-							if (start + steps > bl->nr) {
-								steps = bl->nr - start;
-								lastblend = 1.0f;
-							}
 
 							/* for each part of the bevel use a separate displblock */
 							dl = MEM_callocN(sizeof(DispList), "makeDispListbev1");
