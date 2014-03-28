@@ -33,7 +33,7 @@
 #include "KX_LightIpoSGController.h"
 #include "KX_ScalarInterpolator.h"
 #include "KX_Light.h"
-#include "RAS_LightObject.h"
+#include "RAS_ILightObject.h"
 
 #if defined(_WIN64)
 typedef unsigned __int64 uint_ptr;
@@ -50,7 +50,7 @@ bool KX_LightIpoSGController::Update(double currentTime)
 			(*i)->Execute(m_ipotime);//currentTime);
 		}
 		
-		RAS_LightObject *lightobj;
+		RAS_ILightObject *lightobj;
 
 		SG_Spatial* ob = (SG_Spatial*)m_pObject;
 		KX_LightObject* kxlight = (KX_LightObject*) ob->GetSGClientObject();
@@ -62,9 +62,9 @@ bool KX_LightIpoSGController::Update(double currentTime)
 		}
 
 		if (m_modify_color) {
-			lightobj->m_red   = m_col_rgb[0];
-			lightobj->m_green = m_col_rgb[1];
-			lightobj->m_blue  = m_col_rgb[2];
+			lightobj->m_color[0]   = m_col_rgb[0];
+			lightobj->m_color[1] = m_col_rgb[1];
+			lightobj->m_color[2]  = m_col_rgb[2];
 		}
 
 		if (m_modify_dist) {

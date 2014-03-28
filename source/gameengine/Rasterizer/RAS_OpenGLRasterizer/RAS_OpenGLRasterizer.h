@@ -46,6 +46,7 @@ using namespace std;
 
 class RAS_IStorage;
 class RAS_ICanvas;
+class RAS_OpenGLLight;
 
 #define RAS_MAX_TEXCO  8     /* match in BL_Material */
 #define RAS_MAX_ATTRIB 16    /* match in BL_BlenderShader */
@@ -117,7 +118,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	/* Render tools */
 	void *m_clientobject;
 	void *m_auxilaryClientInfo;
-	std::vector<struct RAS_LightObject *> m_lights;
+	std::vector<RAS_OpenGLLight *> m_lights;
 	int m_lastlightlayer;
 	bool m_lastlighting;
 	void *m_lastauxinfo;
@@ -315,9 +316,11 @@ public:
 	bool RayHit(struct KX_ClientObjectInfo *client, class KX_RayCast *result, void * const data);
 	bool NeedRayCast(struct KX_ClientObjectInfo *) { return true; }
 
-	void AddLight(struct RAS_LightObject *lightobject);
-	void RemoveLight(struct RAS_LightObject *lightobject);
-	int ApplyLights(int objectlayer, const MT_Transform &viewmat);
+	RAS_ILightObject* CreateLight();
+	void AddLight(RAS_ILightObject* lightobject);
+
+	void RemoveLight(RAS_ILightObject* lightobject);
+	int ApplyLights(int objectlayer, const MT_Transform& viewmat);
 
 	void MotionBlur();
 

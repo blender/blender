@@ -42,8 +42,10 @@
 #include "RAS_TexVert.h"
 #include "RAS_MeshObject.h"
 #include "RAS_Polygon.h"
-#include "RAS_LightObject.h"
+#include "RAS_ILightObject.h"
 #include "MT_CmMatrix4x4.h"
+
+#include "RAS_OpenGLLight.h"
 
 #include "RAS_StorageIM.h"
 #include "RAS_StorageVA.h"
@@ -59,7 +61,6 @@ extern "C"{
 
 // XXX Clean these up <<<
 #include "Value.h"
-#include "KX_Light.h"
 #include "KX_Scene.h"
 #include "KX_RayCast.h"
 #include "KX_GameObject.h"
@@ -1187,7 +1188,7 @@ void RAS_OpenGLRasterizer::ProcessLighting(bool uselights, const MT_Transform& v
 		KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
 		float glviewmat[16];
 		unsigned int count;
-		std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
+		std::vector<RAS_OpenGLLight*>::iterator lit = m_lights.begin();
 
 		for (count=0; count<m_numgllights; count++)
 			glDisable((GLenum)(GL_LIGHT0+count));
@@ -1198,10 +1199,9 @@ void RAS_OpenGLRasterizer::ProcessLighting(bool uselights, const MT_Transform& v
 		glLoadMatrixf(glviewmat);
 		for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 		{
-			RAS_LightObject* lightdata = (*lit);
-			KX_LightObject *kxlight = (KX_LightObject*)lightdata->m_light;
+			RAS_OpenGLLight* light = (*lit);
 
-			if (kxlight->ApplyLight(kxscene, layer, count))
+			if (light->ApplyFixedFunctionLighting(kxscene, layer, count))
 				count++;
 		}
 		glPopMatrix();
@@ -1243,15 +1243,25 @@ void RAS_OpenGLRasterizer::DisableOpenGLLights()
 	m_lastlighting = false;
 }
 
-void RAS_OpenGLRasterizer::AddLight(struct RAS_LightObject* lightobject)
+RAS_ILightObject *RAS_OpenGLRasterizer::CreateLight()
 {
-	m_lights.push_back(lightobject);
+	return new RAS_OpenGLLight(this);
 }
 
-void RAS_OpenGLRasterizer::RemoveLight(struct RAS_LightObject* lightobject)
+void RAS_OpenGLRasterizer::AddLight(RAS_ILightObject* lightobject)
 {
-	std::vector<struct	RAS_LightObject*>::iterator lit =
-		std::find(m_lights.begin(),m_lights.end(),lightobject);
+	RAS_OpenGLLight* gllight = dynamic_cast<RAS_OpenGLLight*>(lightobject);
+	assert(gllight);
+	m_lights.push_back(gllight);
+}
+
+void RAS_OpenGLRasterizer::RemoveLight(RAS_ILightObject* lightobject)
+{
+	RAS_OpenGLLight* gllight = dynamic_cast<RAS_OpenGLLight*>(lightobject);
+	assert(gllight);
+
+	std::vector<RAS_OpenGLLight*>::iterator lit =
+		std::find(m_lights.begin(),m_lights.end(),gllight);
 
 	if (!(lit==m_lights.end()))
 		m_lights.erase(lit);

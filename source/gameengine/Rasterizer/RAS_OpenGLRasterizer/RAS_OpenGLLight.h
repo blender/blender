@@ -20,48 +20,35 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Mitchell Stokes
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file RAS_LightObject.h
- *  \ingroup bgerast
- */
+#include "RAS_ILightObject.h"
 
-#ifndef __RAS_LIGHTOBJECT_H__
-#define __RAS_LIGHTOBJECT_H__
+class RAS_OpenGLRasterizer;
+struct GPULamp;
+struct Image;
 
-#include "MT_CmMatrix4x4.h"
-
-struct RAS_LightObject
+class RAS_OpenGLLight : public RAS_ILightObject
 {
-	enum LightType {
-		LIGHT_SPOT,
-		LIGHT_SUN,
-		LIGHT_NORMAL
-	};
-	bool	m_modified;
-	int		m_layer;
-	void	*m_scene;
-	void	*m_light;
-	
-	float	m_energy;
-	float	m_distance;
-	
-	float	m_red;
-	float	m_green;
-	float	m_blue;
 
-	float	m_att1;
-	float	m_att2;
-	float	m_spotsize;
-	float	m_spotblend;
+	RAS_OpenGLRasterizer *m_rasterizer;
 
-	LightType	m_type;
-	
-	bool	m_nodiffuse;
-	bool	m_nospecular;
+	GPULamp *GetGPULamp();
+public:
+	RAS_OpenGLLight(RAS_OpenGLRasterizer *ras);
+	~RAS_OpenGLLight();
+
+	bool ApplyFixedFunctionLighting(KX_Scene *kxscene, int oblayer, int slot);
+
+	RAS_OpenGLLight* Clone() { return new RAS_OpenGLLight(*this); }
+
+	bool HasShadowBuffer();
+	int GetShadowLayer();
+	void BindShadowBuffer(RAS_ICanvas *canvas, KX_Camera *cam, MT_Transform& camtrans);
+	void UnbindShadowBuffer();
+	Image *GetTextureImage(short texslot);
+	void Update();
 };
-
-#endif  /* __RAS_LIGHTOBJECT_H__ */

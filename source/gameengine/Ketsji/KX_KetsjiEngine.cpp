@@ -49,6 +49,7 @@
 #include "RAS_Rect.h"
 #include "RAS_IRasterizer.h"
 #include "RAS_ICanvas.h"
+#include "RAS_ILightObject.h"
 #include "MT_Vector3.h"
 #include "MT_Transform.h"
 #include "SCA_IInputDevice.h"
@@ -1156,10 +1157,11 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 		KX_GameObject *gameobj = (KX_GameObject*)lightlist->GetValue(i);
 
 		KX_LightObject *light = (KX_LightObject*)gameobj;
+		RAS_ILightObject *raslight = light->GetLightData();
 
-		light->Update();
+		raslight->Update();
 
-		if (m_rasterizer->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED && light->HasShadowBuffer()) {
+		if (m_rasterizer->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED && raslight->HasShadowBuffer()) {
 			/* make temporary camera */
 			RAS_CameraData camdata = RAS_CameraData();
 			KX_Camera *cam = new KX_Camera(scene, scene->m_callbacks, camdata, true, true);
@@ -1172,10 +1174,10 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 			m_rasterizer->SetDrawingMode(RAS_IRasterizer::KX_SHADOW);
 
 			/* binds framebuffer object, sets up camera .. */
-			light->BindShadowBuffer(m_rasterizer, m_canvas, cam, camtrans);
+			raslight->BindShadowBuffer(m_canvas, cam, camtrans);
 
 			/* update scene */
-			scene->CalculateVisibleMeshes(m_rasterizer, cam, light->GetShadowLayer());
+			scene->CalculateVisibleMeshes(m_rasterizer, cam, raslight->GetShadowLayer());
 
 			/* render */
 			m_rasterizer->ClearDepthBuffer();
@@ -1183,7 +1185,7 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 			scene->RenderBuckets(camtrans, m_rasterizer);
 
 			/* unbind framebuffer object, restore drawmode, free camera */
-			light->UnbindShadowBuffer(m_rasterizer);
+			raslight->UnbindShadowBuffer();
 			m_rasterizer->SetDrawingMode(drawmode);
 			cam->Release();
 		}

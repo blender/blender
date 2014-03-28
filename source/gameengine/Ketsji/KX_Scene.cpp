@@ -837,7 +837,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		{
 			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
-			lightobj->GetLightData()->m_layer = groupobj->GetLayer();
+			lightobj->SetLayer(groupobj->GetLayer());
 		}
 	}
 
@@ -947,7 +947,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		{
 			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
-			lightobj->GetLightData()->m_layer = parentobj->GetLayer();
+			lightobj->SetLayer(parentobj->GetLayer());
 		}
 	}
 

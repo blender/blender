@@ -68,6 +68,8 @@
 #include "KX_GameObject.h"
 #include "RAS_FramingManager.h"
 #include "RAS_MeshObject.h"
+#include "RAS_IRasterizer.h"
+#include "RAS_ILightObject.h"
 
 #include "KX_ConvertActuators.h"
 #include "KX_ConvertControllers.h"
@@ -1767,22 +1769,22 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int layerflag, KX_Scene *kxscene, RAS_IRasterizer *rasterizer, KX_BlenderSceneConverter *converter)
 {
-	RAS_LightObject lightobj;
+	RAS_ILightObject *lightobj = rasterizer->CreateLight();
 	KX_LightObject *gamelight;
 	
-	lightobj.m_att1 = la->att1;
-	lightobj.m_att2 = (la->mode & LA_QUAD) ? la->att2 : 0.0f;
-	lightobj.m_red = la->r;
-	lightobj.m_green = la->g;
-	lightobj.m_blue = la->b;
-	lightobj.m_distance = la->dist;
-	lightobj.m_energy = la->energy;
-	lightobj.m_layer = layerflag;
-	lightobj.m_spotblend = la->spotblend;
-	lightobj.m_spotsize = la->spotsize;
+	lightobj->m_att1 = la->att1;
+	lightobj->m_att2 = (la->mode & LA_QUAD) ? la->att2 : 0.0f;
+	lightobj->m_color[0] = la->r;
+	lightobj->m_color[1] = la->g;
+	lightobj->m_color[2] = la->b;
+	lightobj->m_distance = la->dist;
+	lightobj->m_energy = la->energy;
+	lightobj->m_layer = layerflag;
+	lightobj->m_spotblend = la->spotblend;
+	lightobj->m_spotsize = la->spotsize;
 	
-	lightobj.m_nodiffuse = (la->mode & LA_NO_DIFF) != 0;
-	lightobj.m_nospecular = (la->mode & LA_NO_SPEC) != 0;
+	lightobj->m_nodiffuse = (la->mode & LA_NO_DIFF) != 0;
+	lightobj->m_nospecular = (la->mode & LA_NO_SPEC) != 0;
 	
 	bool glslmat = converter->GetGLSLMaterials();
 
@@ -1790,18 +1792,18 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 	if (glslmat==0) {
 		if (la->mode & LA_NEG)
 		{
-			lightobj.m_red = -lightobj.m_red;
-			lightobj.m_green = -lightobj.m_green;
-			lightobj.m_blue = -lightobj.m_blue;
+			lightobj->m_color[0] = -lightobj->m_color[0];
+			lightobj->m_color[1] = -lightobj->m_color[1];
+			lightobj->m_color[2] = -lightobj->m_color[2];
 		}
 	}
 		
 	if (la->type==LA_SUN) {
-		lightobj.m_type = RAS_LightObject::LIGHT_SUN;
+		lightobj->m_type = RAS_ILightObject::LIGHT_SUN;
 	} else if (la->type==LA_SPOT) {
-		lightobj.m_type = RAS_LightObject::LIGHT_SPOT;
+		lightobj->m_type = RAS_ILightObject::LIGHT_SPOT;
 	} else {
-		lightobj.m_type = RAS_LightObject::LIGHT_NORMAL;
+		lightobj->m_type = RAS_ILightObject::LIGHT_NORMAL;
 	}
 
 	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rasterizer,

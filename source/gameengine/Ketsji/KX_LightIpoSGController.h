@@ -37,7 +37,7 @@
 
 #include "KX_IInterpolator.h"
 
-struct RAS_LightObject;
+struct RAS_ILightObject;
 
 class KX_LightIpoSGController : public SG_Controller
 {

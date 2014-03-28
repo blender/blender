@@ -61,7 +61,7 @@ set(SRC
 	RAS_ICanvas.h
 	RAS_IPolygonMaterial.h
 	RAS_IRasterizer.h
-	RAS_LightObject.h
+	RAS_ILightObject.h
 	RAS_MaterialBucket.h
 	RAS_MeshObject.h
 	RAS_ObjectColor.h
