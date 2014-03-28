@@ -945,6 +945,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 	MTex *mtex = &br->mtex;
 	float avg = 1;
 	float rgba[4];
+	int thread_num;
 
 	if (!mtex->tex) {
 		avg = 1;
@@ -987,7 +988,12 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			x += br->mtex.ofs[0];
 			y += br->mtex.ofs[1];
 
-			avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, omp_get_thread_num());
+			thread_num = 0;
+#ifdef _OPENMP
+			if (sd->flags & SCULPT_USE_OPENMP)
+				thread_num = omp_get_thread_num();
+#endif
+			avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, thread_num);
 
 			avg += br->texture_sample_bias;
 		}
