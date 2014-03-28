@@ -988,9 +988,10 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			x += br->mtex.ofs[0];
 			y += br->mtex.ofs[1];
 
-			thread_num = 0;
 #ifdef _OPENMP
 			thread_num = omp_get_thread_num();
+#else
+			thread_num = 0;
 #endif
 			avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, thread_num);
 
