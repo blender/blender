@@ -656,6 +656,9 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 									sub_v3_v3v3(tvec, co_other, v_split->co);
 									is_mid = false;
 								}
+
+								/* distable gives odd results at times, see [#39288] */
+#if 0
 								else if (compare_v3v3(f_a->no, f_b->no, 0.001f) == false) {
 									/* epsilon increased to fix [#32329] */
 
@@ -670,6 +673,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 									copy_v3_v3(tvec, tno);
 									is_mid = false;
 								}
+#endif
 							}
 							normalize_v3(tvec);
 
