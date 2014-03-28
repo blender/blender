@@ -494,7 +494,7 @@ void reflect_v3_v3v3(float out[3], const float v1[3], const float v2[3])
 
 void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
 {
-	const float f = (float)sqrt(v[0] * v[0] + v[1] * v[1]);
+	const float f = sqrtf(v[0] * v[0] + v[1] * v[1]);
 
 	if (f < 1e-35f) {
 		// degenerate case

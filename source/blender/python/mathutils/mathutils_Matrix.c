@@ -621,7 +621,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 		for (x = 0; x < vec_size; x++) {
 			norm += tvec[x] * tvec[x];
 		}
-		norm = (float) sqrt(norm);
+		norm = sqrtf(norm);
 		for (x = 0; x < vec_size; x++) {
 			tvec[x] /= norm;
 		}
@@ -742,7 +742,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		for (x = 0; x < vec_size; x++) {
 			norm += tvec[x] * tvec[x];
 		}
-		norm = (float) sqrt(norm);
+		norm = sqrtf(norm);
 		for (x = 0; x < vec_size; x++) {
 			tvec[x] /= norm;
 		}

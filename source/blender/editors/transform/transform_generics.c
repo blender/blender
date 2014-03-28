@@ -1818,7 +1818,7 @@ void calculatePropRatio(TransInfo *t)
 						td->factor = 3.0f * dist * dist - 2.0f * dist * dist * dist;
 						break;
 					case PROP_ROOT:
-						td->factor = (float)sqrt(dist);
+						td->factor = sqrtf(dist);
 						break;
 					case PROP_LIN:
 						td->factor = dist;
@@ -1827,7 +1827,7 @@ void calculatePropRatio(TransInfo *t)
 						td->factor = 1.0f;
 						break;
 					case PROP_SPHERE:
-						td->factor = (float)sqrt(2 * dist - dist * dist);
+						td->factor = sqrtf(2 * dist - dist * dist);
 						break;
 					case PROP_RANDOM:
 						td->factor = BLI_frand() * dist;

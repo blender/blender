@@ -4106,7 +4106,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 				delta[1] /= zoom[1];
 			}
 
-			dist = sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
+			dist = len_v2(delta);
 
 			/* calculate new value and apply snapping  */
 			switch (rc->subtype) {

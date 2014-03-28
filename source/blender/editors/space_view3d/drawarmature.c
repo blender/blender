@@ -1456,7 +1456,7 @@ static void bgl_sphere_project(float ax, float az)
 	float dir[3], sine, q3;
 
 	sine = 1.0f - ax * ax - az * az;
-	q3 = (sine < 0.0f) ? 0.0f : (float)(2.0 * sqrt(sine));
+	q3 = (sine < 0.0f) ? 0.0f : (2.0f * sqrtf(sine));
 
 	dir[0] = -az * q3;
 	dir[1] = 1.0f - 2.0f * sine;
@@ -2393,7 +2393,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	/* draw from first frame of range to last */
 	for (CFRA = (int)start; CFRA < end; CFRA += (int)stepsize) {
 		colfac = (end - (float)CFRA) / range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0 * sqrt(colfac)));
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0f * sqrtf(colfac)));
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		BKE_pose_where_is(scene, ob);
@@ -2473,7 +2473,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 	/* draw from first frame of range to last */
 	for (ak = keys.first, i = 0; ak; ak = ak->next, i++) {
 		colfac = i / range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0 * sqrt(colfac)));
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0f * sqrtf(colfac)));
 		
 		CFRA = (int)ak->cfra;
 		
@@ -2543,7 +2543,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	for (cur = stepsize; cur < range; cur += stepsize) {
 		ctime = cur - (float)fmod(cfrao, stepsize);  /* ensures consistent stepping */
 		colfac = ctime / range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0 * sqrt(colfac)));
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0f * sqrtf(colfac)));
 		
 		/* only within action range */
 		if (actframe + ctime >= start && actframe + ctime <= end) {
@@ -2558,7 +2558,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		
 		ctime = cur + (float)fmod((float)cfrao, stepsize) - stepsize + 1.0f;   /* ensures consistent stepping */
 		colfac = ctime / range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0 * sqrt(colfac)));
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0f * sqrtf(colfac)));
 		
 		/* only within action range */
 		if ((actframe - ctime >= start) && (actframe - ctime <= end)) {

@@ -492,9 +492,9 @@ static void calctrackballvec(const rcti *rect, int mx, int my, float vec[3])
 	y = BLI_rcti_cent_y(rect) - my;
 	y /= (float)(BLI_rcti_size_y(rect) / 2);
 
-	d = sqrt(x * x + y * y);
+	d = sqrtf(x * x + y * y);
 	if (d < radius * (float)M_SQRT1_2) { /* Inside sphere */
-		z = sqrt(radius * radius - d * d);
+		z = sqrtf(radius * radius - d * d);
 	}
 	else { /* On hyperbola */
 		t = radius / (float)M_SQRT2;

@@ -253,7 +253,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 					fac = 3.0f * fac * fac - 2.0f * fac * fac * fac;
 					break;
 				case eWarp_Falloff_Root:
-					fac = (float)sqrt(fac);
+					fac = sqrtf(fac);
 					break;
 				case eWarp_Falloff_Linear:
 					/* pass */
@@ -262,7 +262,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 					fac = 1.0f;
 					break;
 				case eWarp_Falloff_Sphere:
-					fac = (float)sqrt(2 * fac - fac * fac);
+					fac = sqrtf(2 * fac - fac * fac);
 					break;
 			}
 

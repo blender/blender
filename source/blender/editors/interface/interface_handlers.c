@@ -4142,7 +4142,7 @@ static bool ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data,
 	if (mrad < radsq) { /* inner circle */
 		fp[0] = dx;
 		fp[1] = dy;
-		fp[2] = sqrt(radsq - dx * dx - dy * dy);
+		fp[2] = sqrtf(radsq - dx * dx - dy * dy);
 	}
 	else {  /* outer circle */
 		
@@ -4155,7 +4155,7 @@ static bool ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data,
 		if (mrad < radsq) {
 			fp[0] = dx;
 			fp[1] = dy;
-			fp[2] = -sqrt(radsq - dx * dx - dy * dy);
+			fp[2] = -sqrtf(radsq - dx * dx - dy * dy);
 		}
 	}
 	normalize_v3(fp);

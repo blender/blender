@@ -1931,8 +1931,8 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 {
 	float t01, t02, x3, y3;
 
-	t01 = (float)sqrt(x1 * x1 + y1 * y1);
-	t02 = (float)sqrt(x2 * x2 + y2 * y2);
+	t01 = sqrtf(x1 * x1 + y1 * y1);
+	t02 = sqrtf(x2 * x2 + y2 * y2);
 	if (t01 == 0.0f)
 		t01 = 1.0f;
 	if (t02 == 0.0f)
@@ -1960,7 +1960,7 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 		y3 = -x1;
 	}
 	else {
-		t01 = (float)sqrt(x3 * x3 + y3 * y3);
+		t01 = sqrtf(x3 * x3 + y3 * y3);
 		x3 /= t01;
 		y3 /= t01;
 	}

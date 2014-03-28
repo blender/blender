@@ -1132,7 +1132,7 @@ static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, Point
 		if (ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER))
 			h += 2 * UI_UNIT_Y;
 		else if (subtype == PROP_MATRIX)
-			h += ceil(sqrt(len)) * UI_UNIT_Y;
+			h += ceilf(sqrtf(len)) * UI_UNIT_Y;
 		else
 			h += len * UI_UNIT_Y;
 	}

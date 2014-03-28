@@ -68,7 +68,7 @@ static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2],
 
 		dx = (float)(mi->center[0] - mval[0]);
 		dy = (float)(mi->center[1] - mval[1]);
-		precise_ratio = (float)sqrt(dx * dx + dy * dy);
+		precise_ratio = sqrtf(dx * dx + dy * dy);
 
 		ratio = (ratio + (precise_ratio - ratio) / 10.0f) / mi->factor;
 	}

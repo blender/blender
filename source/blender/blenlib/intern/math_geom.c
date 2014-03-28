@@ -1244,7 +1244,7 @@ static bool getLowestRoot(const float a, const float b, const float c, const flo
 	if (determinant >= 0.0f) {
 		/* calculate the two roots: (if determinant == 0 then
 		 * x1==x2 but lets disregard that slight optimization) */
-		float sqrtD = (float)sqrt(determinant);
+		float sqrtD = sqrtf(determinant);
 		float r1 = (-b - sqrtD) / (2.0f * a);
 		float r2 = (-b + sqrtD) / (2.0f * a);
 
@@ -2974,8 +2974,8 @@ void lookat_m4(float mat[4][4], float vx, float vy, float vz, float px, float py
 	dy = py - vy;
 	dz = pz - vz;
 	hyp = dx * dx + dz * dz; /* hyp squared	*/
-	hyp1 = (float)sqrt(dy * dy + hyp);
-	hyp = (float)sqrt(hyp); /* the real hyp	*/
+	hyp1 = sqrtf(dy * dy + hyp);
+	hyp = sqrtf(hyp); /* the real hyp	*/
 
 	if (hyp1 != 0.0f) { /* rotate X	*/
 		sine = -dy / hyp1;
@@ -3097,7 +3097,7 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 		if (x == 0.0f && y == 0.0f) *r_u = 0.0f;  /* othwise domain error */
 		else *r_u = (1.0f - atan2f(x, y) / (float)M_PI) / 2.0f;
 
-		*r_v = 1.0f - (float)saacos(z / len) / (float)M_PI;
+		*r_v = 1.0f - saacos(z / len) / (float)M_PI;
 	}
 	else {
 		*r_v = *r_u = 0.0f; /* to avoid un-initialized variables */

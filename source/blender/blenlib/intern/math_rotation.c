@@ -1011,7 +1011,7 @@ static void mat3_to_eul2(float tmat[3][3], float eul1[3], float eul2[3])
 	copy_m3_m3(mat, tmat);
 	normalize_m3(mat);
 
-	cy = (float)sqrt(mat[0][0] * mat[0][0] + mat[0][1] * mat[0][1]);
+	cy = sqrtf(mat[0][0] * mat[0][0] + mat[0][1] * mat[0][1]);
 
 	if (cy > 16.0f * FLT_EPSILON) {
 

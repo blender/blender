@@ -203,7 +203,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				
 				c = dot_v3v3(off, off) - (lengthLimit * lengthLimit);
 				
-				f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
+				f = (-b + sqrtf(b * b - 4 * a * c)) / (2 * a);
 				
 				//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
 				

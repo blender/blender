@@ -1944,7 +1944,7 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	for (step = 1; step <= (int)radout; step++) {
-		float expfac = sqrt(step / radout);
+		float expfac = sqrtf(step / radout);
 		
 		round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, (float)step);
 		

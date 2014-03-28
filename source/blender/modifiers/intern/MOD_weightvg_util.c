@@ -94,10 +94,10 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 				fac = 3.0f * fac * fac - 2.0f * fac * fac * fac;
 				break;
 			case MOD_WVG_MAPPING_ROOT:
-				fac = (float)sqrt(fac);
+				fac = sqrtf(fac);
 				break;
 			case MOD_WVG_MAPPING_SPHERE:
-				fac = (float)sqrt(2 * fac - fac * fac);
+				fac = sqrtf(2 * fac - fac * fac);
 				break;
 			case MOD_WVG_MAPPING_RANDOM:
 				fac = BLI_rng_get_float(rng) * fac;

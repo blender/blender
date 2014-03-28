@@ -2689,7 +2689,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		switch (data->volmode) {
 			/* volume preserving scaling */
 			case VOLUME_XZ:
-				scale[0] = 1.0f - (float)sqrt(data->bulge) + (float)sqrt(data->bulge * (data->orglength / dist));
+				scale[0] = 1.0f - sqrtf(data->bulge) + sqrtf(data->bulge * (data->orglength / dist));
 				scale[2] = scale[0];
 				break;
 			case VOLUME_X:

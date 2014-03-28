@@ -678,8 +678,10 @@ static void gamtabs(float gamma)
 		val = a;
 		val /= 65535.0f;
 		
-		if (gamma == 2.0f) val = sqrt(val);
-		else if (gamma != 1.0f) val = pow(val, igamma);
+		if (gamma == 2.0f)
+			val = sqrtf(val);
+		else if (gamma != 1.0f)
+			val = powf(val, igamma);
 		
 		gamtab[a] = (65535.99f * val);
 	}
@@ -1443,7 +1445,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 
 			temp1 = xo * (1 - facf0 / 2) - xo * facf0 / 2;
 			temp2 = yo * (1 - facf0 / 2) - yo * facf0 / 2;
-			pointdist = sqrt(temp1 * temp1 + temp2 * temp2);
+			pointdist = sqrtf(temp1 * temp1 + temp2 * temp2);
 
 			if (b2 < b1 && b2 < b3) {
 				if (hwidth < pointdist)
@@ -1500,9 +1502,9 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			hwidth = width * 0.5f;
 
 			temp1 = (halfx - (halfx) * facf0);
-			pointdist = sqrt(temp1 * temp1 + temp1 * temp1);
+			pointdist = sqrtf(temp1 * temp1 + temp1 * temp1);
 
-			temp2 = sqrt((halfx - x) * (halfx - x) + (halfy - y) * (halfy - y));
+			temp2 = sqrtf((halfx - x) * (halfx - x) + (halfy - y) * (halfy - y));
 			if (temp2 > pointdist) output = in_band(hwidth, fabsf(temp2 - pointdist), 0, 1);
 			else output = in_band(hwidth, fabsf(temp2 - pointdist), 1, 1);
 
