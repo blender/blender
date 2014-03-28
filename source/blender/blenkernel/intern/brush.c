@@ -649,7 +649,7 @@ float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
 }
 
 float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
-                               const float point[3],
+                               const float point[2],
                                const int thread,
                                struct ImagePool *pool)
 {
