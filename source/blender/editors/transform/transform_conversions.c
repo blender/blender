@@ -2384,15 +2384,25 @@ void flushTransNodes(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data, td2d = t->data2d; a < t->total; a++, td++, td2d++) {
 		bNode *node = td->extra;
+		float locx, locy;
 
 		/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
 #ifdef USE_NODE_CENTER
-		node->locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
-		node->locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
+		locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
+		locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
 #else
-		node->locx = td2d->loc[0] / dpi_fac;
-		node->locy = td2d->loc[1] / dpi_fac;
+		locx = td2d->loc[0] / dpi_fac;
+		locy = td2d->loc[1] / dpi_fac;
 #endif
+		
+		/* account for parents (nested nodes) */
+		if (node->parent) {
+			nodeFromView(node->parent, locx, locy, &node->locx, &node->locy);
+		}
+		else {
+			node->locx = locx;
+			node->locy = locy;
+		}
 	}
 	
 	/* handle intersection with noodles */
@@ -5907,14 +5917,25 @@ static void createTransObject(bContext *C, TransInfo *t)
 /* transcribe given node into TransData2D for Transforming */
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const float dpi_fac)
 {
+	float locx, locy;
+	
+	/* account for parents (nested nodes) */
+	if (node->parent) {
+		nodeToView(node->parent, node->locx, node->locy, &locx, &locy);
+	}
+	else {
+		locx = node->locx;
+		locy = node->locy;
+	}
+	
 	/* use top-left corner as the transform origin for nodes */
 	/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
 #ifdef USE_NODE_CENTER
-	td2d->loc[0] = (node->locx * dpi_fac) + (BLI_rctf_size_x(&node->totr) * +0.5f);
-	td2d->loc[1] = (node->locy * dpi_fac) + (BLI_rctf_size_y(&node->totr) * -0.5f);
+	td2d->loc[0] = (locx * dpi_fac) + (BLI_rctf_size_x(&node->totr) * +0.5f);
+	td2d->loc[1] = (locy * dpi_fac) + (BLI_rctf_size_y(&node->totr) * -0.5f);
 #else
-	td2d->loc[0] = node->locx * dpi_fac;
-	td2d->loc[1] = node->locy * dpi_fac;
+	td2d->loc[0] = locx * dpi_fac;
+	td2d->loc[1] = locy * dpi_fac;
 #endif
 	td2d->loc[2] = 0.0f;
 	td2d->loc2d = td2d->loc; /* current location */
