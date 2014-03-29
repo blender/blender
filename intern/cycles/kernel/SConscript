@@ -77,7 +77,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     nvcc_flags += " --cubin --ptxas-options=\"-v\""
     nvcc_flags += " -D__KERNEL_CUDA_VERSION__=%d" % (cuda_version)
     nvcc_flags += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC"
-    nvcc_flags += " -I \"%s\" -I \"%s\" -I \"%s\"" % (util_dir, svm_dir, geom_dir, closure_dir)
+    nvcc_flags += " -I \"%s\" -I \"%s\" -I \"%s\" -I \"%s\"" % (util_dir, svm_dir, geom_dir, closure_dir)
 
     # dependencies
     dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h') + kernel.Glob('geom/*.h') + kernel.Glob('closure/*.h')

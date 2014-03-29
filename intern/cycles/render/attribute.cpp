@@ -223,9 +223,9 @@ const char *Attribute::standard_name(AttributeStandard std)
 
 AttributeStandard Attribute::name_standard(const char *name)
 {
-	for(AttributeStandard std = ATTR_STD_NONE; std < ATTR_STD_NUM; std++)
-		if(strcmp(name, Attribute::standard_name(std)) == 0)
-			return std;
+	for(int std = ATTR_STD_NONE; std < ATTR_STD_NUM; std++)
+		if(strcmp(name, Attribute::standard_name((AttributeStandard)std)) == 0)
+			return (AttributeStandard)std;
 
 	return ATTR_STD_NONE;
 }
