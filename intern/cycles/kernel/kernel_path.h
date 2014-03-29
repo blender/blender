@@ -19,16 +19,14 @@
 #endif
 
 #include "kernel_random.h"
-
-#include "geom/geom_bvh.h"
-
-#include "kernel_differential.h"
+#include "kernel_projection.h"
 #include "kernel_montecarlo.h"
-#include "kernel_projection.h"
-#include "kernel_primitive.h"
-#include "kernel_projection.h"
-#include "kernel_accumulate.h"
+#include "kernel_differential.h"
 #include "kernel_camera.h"
+
+#include "geom/geom.h"
+
+#include "kernel_accumulate.h"
 #include "kernel_shader.h"
 #include "kernel_light.h"
 #include "kernel_emission.h"

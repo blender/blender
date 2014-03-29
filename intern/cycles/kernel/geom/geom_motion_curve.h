@@ -14,11 +14,20 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Motion Curve Primitive
+ *
+ * These are stored as regular curves, plus extra positions and radii at times
+ * other than the frame center. Computing the curve keys at a given ray time is
+ * a matter of interpolation of the two steps between which the ray time lies.
+ *
+ * The extra curve keys are stored as ATTR_STD_MOTION_VERTEX_POSITION.
+ */
+
 #ifdef __HAIR__
 
-/* todo: find a better (faster) solution for this, maybe store offset per object */
 ccl_device_inline int find_attribute_curve_motion(KernelGlobals *kg, int object, uint id, AttributeElement *elem)
 {
+	/* todo: find a better (faster) solution for this, maybe store offset per object */
 	uint attr_offset = object*kernel_data.bvh.attributes_map_stride + ATTR_PRIM_CURVE;
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	
@@ -41,7 +50,7 @@ ccl_device_inline void motion_curve_keys_for_step(KernelGlobals *kg, int offset,
 		keys[1] = kernel_tex_fetch(__curve_keys, k1);
 	}
 	else {
-		/* center step not store in this array */
+		/* center step not stored in this array */
 		if(step > numsteps)
 			step--;
 

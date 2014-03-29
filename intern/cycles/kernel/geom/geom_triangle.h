@@ -15,6 +15,12 @@
  * limitations under the License.
  */
 
+/* Triangle Primitive
+ *
+ * Basic triangle with 3 vertices is used to represent mesh surfaces. For BVH
+ * ray intersection we use a precomputed triangle storage to accelarate
+ * intersection at the cost of more memory usage */
+
 CCL_NAMESPACE_BEGIN
 
 /* Refine triangle intersection to more precise hit point. For rays that travel
@@ -129,16 +135,18 @@ ccl_device_inline void triangle_point_normal(KernelGlobals *kg, int prim, float 
 	*shader = __float_as_int(Nm.w);
 }
 
-/* Return 3 triangle vertex locations */
+/* Triangle vertex locations */
+
 ccl_device_inline void triangle_vertices(KernelGlobals *kg, int prim, float3 P[3])
 {
-	/* load triangle vertices */
 	float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, prim));
 
 	P[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.x)));
 	P[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.y)));
 	P[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
 }
+
+/* Interpolate smooth vertex normal from vertices */
 
 ccl_device_inline float3 triangle_smooth_normal(KernelGlobals *kg, int prim, float u, float v)
 {
@@ -151,6 +159,8 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals *kg, int prim, flo
 
 	return normalize((1.0f - u - v)*n2 + u*n0 + v*n1);
 }
+
+/* Ray differentials on triangle */
 
 ccl_device_inline void triangle_dPdudv(KernelGlobals *kg, int prim, float3 *dPdu, float3 *dPdv)
 {
@@ -166,7 +176,7 @@ ccl_device_inline void triangle_dPdudv(KernelGlobals *kg, int prim, float3 *dPdu
 	*dPdv = (p1 - p2);
 }
 
-/* attributes */
+/* Reading attributes on various triangle elements */
 
 ccl_device float triangle_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
@@ -254,7 +264,10 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData 
 	}
 }
 
-/* Sven Woop's algorithm */
+/* Ray-Triangle intersection for BVH traversal
+ *
+ * Based on Sven Woop's algorithm with precomputed triangle storage */
+
 ccl_device_inline bool triangle_intersect(KernelGlobals *kg, Intersection *isect,
 	float3 P, float3 idir, uint visibility, int object, int triAddr)
 {
@@ -303,11 +316,11 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg, Intersection *isect
 	return false;
 }
 
-#ifdef __SUBSURFACE__
 /* Special ray intersection routines for subsurface scattering. In that case we
  * only want to intersect with primitives in the same object, and if case of
  * multiple hits we pick a single random primitive as the intersection point. */
 
+#ifdef __SUBSURFACE__
 ccl_device_inline void triangle_intersect_subsurface(KernelGlobals *kg, Intersection *isect_array,
 	float3 P, float3 idir, int object, int triAddr, float tmax, uint *num_hits, uint *lcg_state, int max_hits)
 {

@@ -35,7 +35,6 @@ set(SRC_HEADERS
 	kernel_passes.h
 	kernel_path.h
 	kernel_path_state.h
-	kernel_primitive.h
 	kernel_projection.h
 	kernel_random.h
 	kernel_shader.h
@@ -109,6 +108,8 @@ set(SRC_SVM_HEADERS
 )
 
 set(SRC_GEOM_HEADERS
+	geom/geom.h
+	geom/geom_attribute.h
 	geom/geom_bvh.h
 	geom/geom_bvh_subsurface.h
 	geom/geom_bvh_traversal.h
@@ -116,6 +117,7 @@ set(SRC_GEOM_HEADERS
 	geom/geom_motion_curve.h
 	geom/geom_motion_triangle.h
 	geom/geom_object.h
+	geom/geom_primitive.h
 	geom/geom_triangle.h
 )
 

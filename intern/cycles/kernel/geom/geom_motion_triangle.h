@@ -15,11 +15,24 @@
  * limitations under the License.
  */
 
+/* Motion Triangle Primitive
+ *
+ * These are stored as regular triangles, plus extra positions and normals at
+ * times other than the frame center. Computing the triangle vertex positions
+ * or normals at a given ray time is a matter of interpolation of the two steps
+ * between which the ray time lies.
+ *
+ * The extra positions and normals are stored as ATTR_STD_MOTION_VERTEX_POSITION
+ * and ATTR_STD_MOTION_VERTEX_NORMAL mesh attributes.
+ */
+
 CCL_NAMESPACE_BEGIN
 
-/* todo: find a better (faster) solution for this, maybe store offset per object */
+/* Time interpolation of vertex positions and normals */
+
 ccl_device_inline int find_attribute_motion(KernelGlobals *kg, int object, uint id, AttributeElement *elem)
 {
+	/* todo: find a better (faster) solution for this, maybe store offset per object */
 	uint attr_offset = object*kernel_data.bvh.attributes_map_stride;
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	
@@ -64,7 +77,7 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals *kg, float
 		normals[2] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, __float_as_int(tri_vindex.z)));
 	}
 	else {
-		/* center step not store in this array */
+		/* center step not stored in this array */
 		if(step > numsteps)
 			step--;
 
@@ -76,7 +89,6 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals *kg, float
 	}
 }
 
-/* return 3 triangle vertex locations */
 ccl_device_inline void motion_triangle_vertices(KernelGlobals *kg, int object, int prim, float time, float3 verts[3])
 {
 	/* get motion info */
@@ -160,7 +172,9 @@ ccl_device_inline float3 motion_triangle_refine(KernelGlobals *kg, ShaderData *s
 #endif
 }
 
-/* same as above, except that isect->t is assumed to be in object space for instancing */
+/* Same as above, except that isect->t is assumed to be in object space for instancing */
+
+#ifdef __SUBSURFACE__
 ccl_device_inline float3 motion_triangle_refine_subsurface(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float3 verts[3])
 {
 	float3 P = ray->P;
@@ -209,6 +223,11 @@ ccl_device_inline float3 motion_triangle_refine_subsurface(KernelGlobals *kg, Sh
 	return P + D*t;
 #endif
 }
+#endif
+
+/* Setup of motion triangle specific parts of ShaderData, moved into this one
+ * function to more easily share computation of interpolated positions and
+ * normals */
 
 /* return 3 triangle vertex normals */
 ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, bool subsurface)
@@ -244,10 +263,14 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderD
 	verts[2] = (1.0f - t)*verts[2] + t*next_verts[2];
 
 	/* compute refined position */
+#ifdef __SUBSURFACE__
 	if(!subsurface)
+#endif
 		sd->P = motion_triangle_refine(kg, sd, isect, ray, verts);
+#ifdef __SUBSURFACE__
 	else
 		sd->P = motion_triangle_refine_subsurface(kg, sd, isect, ray, verts);
+#endif
 
 	/* compute face normal */
 	float3 Ng = normalize(cross(verts[1] - verts[0], verts[2] - verts[0]));
@@ -286,7 +309,8 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderD
 	}
 }
 
-
+/* Ray intersection. We simply compute the vertex positions at the given ray
+ * time and do a ray intersection with the resulting triangle */
 
 ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection *isect,
 	float3 P, float3 idir, float time, uint visibility, int object, int triAddr)
@@ -317,11 +341,11 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection
 	return false;
 }
 
-#ifdef __SUBSURFACE__
 /* Special ray intersection routines for subsurface scattering. In that case we
  * only want to intersect with primitives in the same object, and if case of
  * multiple hits we pick a single random primitive as the intersection point. */
 
+#ifdef __SUBSURFACE__
 ccl_device_inline void motion_triangle_intersect_subsurface(KernelGlobals *kg, Intersection *isect_array,
 	float3 P, float3 idir, float time, int object, int triAddr, float tmax, uint *num_hits, uint *lcg_state, int max_hits)
 {

@@ -14,46 +14,14 @@
  * limitations under the License
  */
 
-#ifndef __KERNEL_ATTRIBUTE_CL__
-#define __KERNEL_ATTRIBUTE_CL__
+/* Primitive Utilities
+ *
+ * Generic functions to look up mesh, curve and volume primitive attributes for
+ * shading and render passes. */
 
 CCL_NAMESPACE_BEGIN
 
-/* attribute lookup */
-
-ccl_device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, AttributeElement *elem)
-{
-	if(sd->object == PRIM_NONE)
-		return (int)ATTR_STD_NOT_FOUND;
-
-#ifdef __OSL__
-	if (kg->osl) {
-		return OSLShader::find_attribute(kg, sd, id, elem);
-	}
-	else
-#endif
-	{
-		/* for SVM, find attribute by unique id */
-		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
-#ifdef __HAIR__
-		attr_offset = (sd->type & PRIMITIVE_ALL_CURVE)? attr_offset + ATTR_PRIM_CURVE: attr_offset;
-#endif
-		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-		
-		while(attr_map.x != id) {
-			attr_offset += ATTR_PRIM_TYPES;
-			attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-		}
-
-		*elem = (AttributeElement)attr_map.y;
-		
-		if(sd->prim == PRIM_NONE && (AttributeElement)attr_map.y != ATTR_ELEMENT_MESH)
-			return ATTR_STD_NOT_FOUND;
-
-		/* return result */
-		return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
-	}
-}
+/* Generic primitive attribute reading functions */
 
 ccl_device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
@@ -79,17 +47,7 @@ ccl_device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData
 #endif
 }
 
-ccl_device Transform primitive_attribute_matrix(KernelGlobals *kg, const ShaderData *sd, int offset)
-{
-	Transform tfm;
-
-	tfm.x = kernel_tex_fetch(__attributes_float3, offset + 0);
-	tfm.y = kernel_tex_fetch(__attributes_float3, offset + 1);
-	tfm.z = kernel_tex_fetch(__attributes_float3, offset + 2);
-	tfm.w = kernel_tex_fetch(__attributes_float3, offset + 3);
-
-	return tfm;
-}
+/* Default UV coordinate */
 
 ccl_device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 {
@@ -103,6 +61,8 @@ ccl_device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 	uv.z = 1.0f;
 	return uv;
 }
+
+/* Ptex coordinates */
 
 ccl_device bool primitive_ptex(KernelGlobals *kg, ShaderData *sd, float2 *uv, int *face_id)
 {
@@ -122,6 +82,8 @@ ccl_device bool primitive_ptex(KernelGlobals *kg, ShaderData *sd, float2 *uv, in
 
 	return true;
 }
+
+/* Surface tangent */
 
 ccl_device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 {
@@ -154,7 +116,7 @@ ccl_device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 	}
 }
 
-/* motion */
+/* Motion vector for motion pass */
 
 ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 {
@@ -228,4 +190,3 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 
 CCL_NAMESPACE_END
 
-#endif /* __KERNEL_ATTRIBUTE_CL__ */

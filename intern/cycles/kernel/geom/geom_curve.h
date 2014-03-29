@@ -14,9 +14,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Curve Primitive
+ *
+ * Curve primitive for rendering hair and fur. These can be render as flat ribbons
+ * or curves with actual thickness. The curve can also be rendered as line segments
+ * rather than curves for better performance */
+
 #ifdef __HAIR__
 
-/* curve attributes */
+/* Reading attributes on various curve elements */
 
 ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
@@ -92,7 +98,7 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd
 	}
 }
 
-/* hair info node functions */
+/* Curve thickness */
 
 ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 {
@@ -119,6 +125,8 @@ ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 	return r*2.0f;
 }
 
+/* Curve tangent normal */
+
 ccl_device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
 {	
 	float3 tgN = make_float3(0.0f,0.0f,0.0f);
@@ -137,9 +145,8 @@ ccl_device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
 	return tgN;
 }
 
-#endif
+/* Curve bounds utility function */
 
-#ifdef __HAIR__
 ccl_device_inline void curvebounds(float *lower, float *upper, float *extremta, float *extrema, float *extremtb, float *extremb, float p0, float p1, float p2, float p3)
 {
 	float halfdiscroot = (p2 * p2 - 3 * p3 * p1);
@@ -827,9 +834,6 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 #undef dot3
 #endif
 }
-#endif
-
-#ifdef __HAIR__
 
 ccl_device_inline float3 curvetangent(float t, float3 p0, float3 p1, float3 p2, float3 p3)
 {
@@ -993,6 +997,7 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 
 	return P;
 }
+
 #endif
 
 CCL_NAMESPACE_END

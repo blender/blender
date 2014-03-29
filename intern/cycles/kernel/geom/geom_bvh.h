@@ -15,36 +15,16 @@
  * limitations under the License.
  */
 
-/*
- * "Persistent while-while kernel" used in:
+/* BVH
  *
- * "Understanding the Efficiency of Ray Traversal on GPUs",
- * Timo Aila and Samuli Laine,
- * Proc. High-Performance Graphics 2009
- */
-
-/* bottom-most stack entry, indicating the end of traversal */
-#define ENTRYPOINT_SENTINEL 0x76543210
-
-/* 64 object BVH + 64 mesh BVH + 64 object node splitting */
-#define BVH_STACK_SIZE 192
-#define BVH_NODE_SIZE 4
-#define TRI_NODE_SIZE 3
-
-/* silly workaround for float extended precision that happens when compiling
- * without sse support on x86, it results in different results for float ops
- * that you would otherwise expect to compare correctly */
-#if !defined(__i386__) || defined(__SSE__)
-#define NO_EXTENDED_PRECISION
-#else
-#define NO_EXTENDED_PRECISION volatile
-#endif
-
-#include "geom_object.h"
-#include "geom_triangle.h"
-#include "geom_motion_triangle.h"
-#include "geom_motion_curve.h"
-#include "geom_curve.h"
+ * Bounding volume hierarchy for ray tracing. We compile different variations
+ * of the same BVH traversal function for faster rendering when some types of
+ * primitives are not needed, using #includes to work around the lack of
+ * C++ templates in OpenCL.
+ *
+ * Originally based on "Understanding the Efficiency of Ray Traversal on GPUs",
+ * the code has been extended and modified to support more primitives and work
+ * with CPU/CUDA/OpenCL. */
 
 CCL_NAMESPACE_BEGIN
 
@@ -205,7 +185,10 @@ uint scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection 
 }
 #endif
 
-/* Ray offset to avoid self intersection */
+/* Ray offset to avoid self intersection.
+ *
+ * This function should be used to compute a modified ray start position for
+ * rays leaving from a surface. */
 
 ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 {
