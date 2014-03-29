@@ -660,6 +660,18 @@ elseif(WIN32)
 					${LIBDIR}/ffmpeg/lib/swscale-2.dll
 				DESTINATION ${TARGETDIR}
 			)
+		elseif(WITH_MINGW64)			
+			install(
+				FILES
+					${LIBDIR}/ffmpeg/lib/avcodec-53.dll
+					${LIBDIR}/ffmpeg/lib/avformat-53.dll
+					${LIBDIR}/ffmpeg/lib/avdevice-53.dll
+					${LIBDIR}/ffmpeg/lib/avutil-51.dll
+					${LIBDIR}/ffmpeg/lib/swscale-2.dll
+					${LIBDIR}/ffmpeg/lib/swresample-0.dll
+					${LIBDIR}/ffmpeg/lib/xvidcore.dll
+				DESTINATION ${TARGETDIR}
+			)
 		else()
 			install(
 				FILES
@@ -670,14 +682,6 @@ elseif(WIN32)
 					${LIBDIR}/ffmpeg/lib/swscale-2.dll
 				DESTINATION ${TARGETDIR}
 			)
-		endif()
-		if(WITH_MINGW64)
-		install(
-			FILES
-				${LIBDIR}/ffmpeg/lib/swresample-0.dll
-				${LIBDIR}/ffmpeg/lib/xvidcore.dll
-			DESTINATION ${TARGETDIR}
-		)
 		endif()
 	endif()
 
