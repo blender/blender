@@ -92,7 +92,7 @@ ccl_device bool volume_shader_sample(KernelGlobals *kg, ShaderData *sd, PathStat
 	return true;
 }
 
-ccl_device float3 volume_color_attenuation(float3 sigma, float t)
+ccl_device float3 volume_color_transmittance(float3 sigma, float t)
 {
 	return make_float3(expf(-sigma.x * t), expf(-sigma.y * t), expf(-sigma.z * t));
 }
@@ -126,7 +126,7 @@ ccl_device void kernel_volume_shadow_homogeneous(KernelGlobals *kg, PathState *s
 	float3 sigma_t;
 
 	if(volume_shader_extinction_sample(kg, sd, state, ray->P, &sigma_t))
-		*throughput *= volume_color_attenuation(sigma_t, ray->t);
+		*throughput *= volume_color_transmittance(sigma_t, ray->t);
 }
 
 /* heterogeneous volume: integrate stepping through the volume until we
@@ -161,7 +161,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 			/* todo: we could avoid computing expf() for each step by summing,
 			 * because exp(a)*exp(b) = exp(a+b), but we still want a quick
 			 * tp_eps check too */
-			tp *= volume_color_attenuation(sigma_t, new_t - t);
+			tp *= volume_color_transmittance(sigma_t, new_t - t);
 
 			/* stop if nearly all light blocked */
 			if(tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps)
@@ -206,7 +206,7 @@ ccl_device float kernel_volume_equiangular_sample(Ray *ray, float3 sigma_t, floa
 	*pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
 
 	float sample_t = min(t, delta + t_); /* min is only for float precision errors */
-	*transmittance = volume_color_attenuation(sigma_t, sample_t);
+	*transmittance = volume_color_transmittance(sigma_t, sample_t);
 
 	return sample_t;
 }
@@ -246,25 +246,24 @@ ccl_device bool kernel_volume_equiangular_light_position(KernelGlobals *kg, Path
 
 /* Distance sampling */
 
-ccl_device bool kernel_volume_distance_sample(Ray *ray, float3 sigma_t, int channel, float xi, float *sample_t, float3 *transmittance, float *pdf)
+ccl_device float kernel_volume_distance_sample(Ray *ray, float3 sigma_t, int channel, float xi, float3 *transmittance, float3 *pdf)
 {
 	/* xi is [0, 1[ so log(0) should never happen, division by zero is
 	 * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
 	float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
+	float3 full_transmittance = volume_color_transmittance(sigma_t, ray->t);
+	float sample_transmittance = kernel_volume_channel_get(full_transmittance, channel);
 
-	*sample_t = min(ray->t, -logf(1.0f - xi)/sample_sigma_t);
-	*transmittance = volume_color_attenuation(sigma_t, *sample_t);
+	float sample_t = min(ray->t, -logf(1.0f - xi*(1.0f - sample_transmittance))/sample_sigma_t);
 
-	if(*sample_t < ray->t) {
-		/* hit */
-		*pdf = dot(sigma_t, *transmittance) * (1.0f/3.0f);
-		return true;
-	}
-	else {
-		/* miss */
-		*pdf = (transmittance->x + transmittance->y + transmittance->z) * (1.0f/3.0f);
-		return false;
-	}
+	*transmittance = volume_color_transmittance(sigma_t, sample_t);
+	*pdf = (sigma_t * *transmittance)/(make_float3(1.0f, 1.0f, 1.0f) - full_transmittance);
+
+	/* todo: optimization: when taken together with hit/miss decision,
+	 * the full_transmittance cancels out drops out and xi does not
+	 * need to be remapped */
+
+	return sample_t;
 }
 
 /* Emission */
@@ -310,67 +309,59 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 
 	/* randomly scatter, and if we do t is shortened */
 	if(closure_flag & SD_SCATTER) {
+		/* extinction coefficient */
 		float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
 
-		/* set up variables for sampling */
+		/* pick random color channel, we use the Veach one-sample
+		 * model with balance heuristic for the channels */
 		float rphase = path_state_rng_1D(kg, rng, state, PRNG_PHASE);
 		int channel = (int)(rphase*3.0f);
 		sd->randb_closure = rphase*3.0f - channel;
 
-		/* pick random color channel, we use the Veach one-sample
-		 * model with balance heuristic for the channels */
+		/* decide if we will hit or miss */
+		float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
 		float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
+		float sample_transmittance = expf(-sample_sigma_t * t);
 
-		/* distance sampling */
-		if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
-			float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
-			float pdf, sample_t;
+		if(xi >= sample_transmittance) {
+			/* scattering */
+			float3 pdf;
+			float sample_t;
 
-			if(kernel_volume_distance_sample(ray, sigma_t, channel, xi, &sample_t, &transmittance, &pdf)) {
-				/* hit */
-				new_tp = *throughput * coeff.sigma_s * transmittance / pdf;
-				t = sample_t;
+			/* rescale random number so we can reuse it */
+			xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
+
+			if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
+				/* distance sampling */
+				sample_t = kernel_volume_distance_sample(ray, sigma_t, channel, xi, &transmittance, &pdf);
 			}
 			else {
-				/* miss */
-				new_tp = *throughput * transmittance / pdf;
-			}
-		}
-		/* equi-angular sampling */
-		else {
-			/* decide if we are going to scatter or not, based on sigma_t. this
-			 * is not ideal, instead we should perhaps split the path here and
-			 * do both, and at least add multiple importance sampling */
-			float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
-			float sample_transmittance = expf(-sample_sigma_t * t);
-
-			if(xi < sample_transmittance) {
-				/* no scattering */
-				transmittance = volume_color_attenuation(sigma_t, t);
-				float pdf = (transmittance.x + transmittance.y + transmittance.z);
-				new_tp = *throughput * transmittance * (3.0f / pdf);
-			}
-			else {
-				/* rescale random number so we can reuse it */
-				xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
-
-				/* sample position on light */
+				/* equiangular sampling */
 				float3 light_P;
+				float equi_pdf;
 				if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P))
 					return VOLUME_PATH_MISSED;
 
-				/* sampling */
-				float pdf;
-				float sample_t = kernel_volume_equiangular_sample(ray, sigma_t, light_P, xi, &transmittance, &pdf);
-
-				new_tp = *throughput * coeff.sigma_s * transmittance / ((1.0f - sample_transmittance) * pdf);
-				t = sample_t;
+				sample_t = kernel_volume_equiangular_sample(ray, sigma_t, light_P, xi, &transmittance, &equi_pdf);
+				pdf = make_float3(equi_pdf, equi_pdf, equi_pdf);
 			}
+
+			/* modifiy pdf for hit/miss decision */
+			pdf *= make_float3(1.0f, 1.0f, 1.0f) - volume_color_transmittance(sigma_t, t);
+
+			new_tp = *throughput * coeff.sigma_s * transmittance / ((pdf.x + pdf.y + pdf.z) * (1.0f/3.0f));
+			t = sample_t;
+		}
+		else {
+			/* no scattering */
+			transmittance = volume_color_transmittance(sigma_t, t);
+			float pdf = (transmittance.x + transmittance.y + transmittance.z) * (1.0f/3.0f);
+			new_tp = *throughput * transmittance / pdf;
 		}
 	}
 	else if(closure_flag & SD_ABSORPTION) {
 		/* absorption only, no sampling needed */
-		transmittance = volume_color_attenuation(coeff.sigma_a, t);
+		transmittance = volume_color_transmittance(coeff.sigma_a, t);
 		new_tp = *throughput * transmittance;
 	}
 
@@ -469,7 +460,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 					new_t = nlogxi/sample_sigma_t;
 					dt = new_t - t;
 
-					transmittance = volume_color_attenuation(sigma_t, dt);
+					transmittance = volume_color_transmittance(sigma_t, dt);
 
 					accum_transmittance *= transmittance;
 					accum_sigma_t = (accum_sigma_t + dt*sigma_t)/new_t;
@@ -483,7 +474,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 					scatter = true;
 				}
 				else {
-					transmittance = volume_color_attenuation(sigma_t, dt);
+					transmittance = volume_color_transmittance(sigma_t, dt);
 
 					accum_transmittance *= transmittance;
 					accum_sigma_t += dt*sigma_t;
@@ -495,7 +486,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 			else if(closure_flag & SD_ABSORPTION) {
 				/* absorption only, no sampling needed */
 				float3 sigma_a = coeff.sigma_a;
-				transmittance = volume_color_attenuation(sigma_a, dt);
+				transmittance = volume_color_transmittance(sigma_a, dt);
 
 				accum_transmittance *= transmittance;
 				accum_sigma_t += dt*sigma_a;
