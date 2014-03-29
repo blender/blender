@@ -151,7 +151,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 
 	for(int i = 0; i < max_steps; i++) {
 		/* advance to new position */
-		float new_t = min(ray->t, t + random_jitter_offset + i * step);
+		float new_t = min(ray->t, random_jitter_offset + i * step);
 		float3 new_P = ray->P + ray->D * new_t;
 		float3 new_sigma_t;
 
@@ -398,7 +398,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 
 	for(int i = 0; i < max_steps; i++) {
 		/* advance to new position */
-		float new_t = min(ray->t, t + random_jitter_offset + i * step);
+		float new_t = min(ray->t, random_jitter_offset + i * step);
 		float3 new_P = ray->P + ray->D * new_t;
 		VolumeShaderCoefficients new_coeff;
 
