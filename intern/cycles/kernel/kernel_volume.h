@@ -143,34 +143,29 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 
 	/* compute extinction at the start */
 	float t = 0.0f;
-	float3 P = ray->P;
-	float3 sigma_t;
-
-	if(!volume_shader_extinction_sample(kg, sd, state, P, &sigma_t))
-		sigma_t = make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int i = 0; i < max_steps; i++) {
 		/* advance to new position */
-		float new_t = min(ray->t, random_jitter_offset + i * step);
-		float3 new_P = ray->P + ray->D * new_t;
-		float3 new_sigma_t;
+		float new_t = min(ray->t, (i+1) * step);
+		float dt = new_t - t;
+
+		/* use random position inside this segment to sample shader */
+		if(new_t == ray->t)
+			random_jitter_offset = lcg_step_float(&state->rng_congruential) * dt;
+
+		float3 new_P = ray->P + ray->D * (t + random_jitter_offset);
+		float3 sigma_t;
 
 		/* compute attenuation over segment */
-		if(volume_shader_extinction_sample(kg, sd, state, new_P, &new_sigma_t)) {
+		if(volume_shader_extinction_sample(kg, sd, state, new_P, &sigma_t)) {
 			/* todo: we could avoid computing expf() for each step by summing,
 			 * because exp(a)*exp(b) = exp(a+b), but we still want a quick
 			 * tp_eps check too */
-			tp *= volume_color_attenuation(0.5f*(sigma_t + new_sigma_t), new_t - t);
+			tp *= volume_color_attenuation(sigma_t, new_t - t);
 
 			/* stop if nearly all light blocked */
 			if(tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps)
 				break;
-
-			sigma_t = new_sigma_t;
-		}
-		else {
-			/* skip empty space */
-			sigma_t = make_float3(0.0f, 0.0f, 0.0f);
 		}
 
 		/* stop if at the end of the volume */
@@ -367,24 +362,16 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlobals *kg,
 	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput, RNG *rng)
 {
-	VolumeShaderCoefficients coeff;
 	float3 tp = *throughput;
 	const float tp_eps = 1e-10f; /* todo: this is likely not the right value */
 
 	/* prepare for stepping */
 	int max_steps = kernel_data.integrator.volume_max_steps;
-	float step = kernel_data.integrator.volume_step_size;
-	float random_jitter_offset = lcg_step_float(&state->rng_congruential) * step;
+	float step_size = kernel_data.integrator.volume_step_size;
+	float random_jitter_offset = lcg_step_float(&state->rng_congruential) * step_size;
 
 	/* compute coefficients at the start */
 	float t = 0.0f;
-	float3 P = ray->P;
-
-	if(!volume_shader_sample(kg, sd, state, P, &coeff)) {
-		coeff.sigma_a = make_float3(0.0f, 0.0f, 0.0f);
-		coeff.sigma_s = make_float3(0.0f, 0.0f, 0.0f);
-		coeff.emission = make_float3(0.0f, 0.0f, 0.0f);
-	}
 
 	/* accumulate these values so we can use a single stratified number to sample */
 	float3 accum_transmittance = make_float3(1.0f, 1.0f, 1.0f);
@@ -398,14 +385,19 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 
 	for(int i = 0; i < max_steps; i++) {
 		/* advance to new position */
-		float new_t = min(ray->t, random_jitter_offset + i * step);
-		float3 new_P = ray->P + ray->D * new_t;
-		VolumeShaderCoefficients new_coeff;
+		float new_t = min(ray->t, (i+1) * step_size);
+		float dt = new_t - t;
+
+		/* use random position inside this segment to sample shader */
+		if(new_t == ray->t)
+			random_jitter_offset = lcg_step_float(&state->rng_congruential) * dt;
+
+		float3 new_P = ray->P + ray->D * (t + random_jitter_offset);
+		VolumeShaderCoefficients coeff;
 
 		/* compute segment */
-		if(volume_shader_sample(kg, sd, state, new_P, &new_coeff)) {
+		if(volume_shader_sample(kg, sd, state, new_P, &coeff)) {
 			int closure_flag = sd->flag;
-			float dt = new_t - t;
 			float3 new_tp;
 			float3 transmittance;
 			bool scatter = false;
@@ -415,10 +407,8 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 				has_scatter = true;
 
 				/* average sigma_t and sigma_s over segment */
-				float3 last_sigma_t = coeff.sigma_a + coeff.sigma_s;
-				float3 new_sigma_t = new_coeff.sigma_a + new_coeff.sigma_s;
-				float3 sigma_t = 0.5f*(last_sigma_t + new_sigma_t);
-				float3 sigma_s = 0.5f*(coeff.sigma_s + new_coeff.sigma_s);
+				float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
+				float3 sigma_s = coeff.sigma_s;
 
 				/* lazily set up variables for sampling */
 				if(channel == -1) {
@@ -465,7 +455,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 			}
 			else if(closure_flag & SD_ABSORPTION) {
 				/* absorption only, no sampling needed */
-				float3 sigma_a = 0.5f*(coeff.sigma_a + new_coeff.sigma_a);
+				float3 sigma_a = coeff.sigma_a;
 				transmittance = volume_color_attenuation(sigma_a, dt);
 
 				accum_transmittance *= transmittance;
@@ -484,10 +474,10 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 			 *
 			 * todo: we should use an epsilon to avoid precision issues near zero sigma_t */
 			if(closure_flag & SD_EMISSION) {
-				float3 emission = 0.5f*(coeff.emission + new_coeff.emission);
+				float3 emission = coeff.emission;
 
 				if(closure_flag & SD_ABSORPTION) {
-					float3 sigma_t = 0.5f*(coeff.sigma_a + coeff.sigma_s + new_coeff.sigma_a + new_coeff.sigma_s);
+					float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
 
 					emission.x *= (sigma_t.x > 0.0f)? (1.0f - transmittance.x)/sigma_t.x: dt;
 					emission.y *= (sigma_t.y > 0.0f)? (1.0f - transmittance.y)/sigma_t.y: dt;
@@ -518,14 +508,6 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 					return VOLUME_PATH_SCATTERED;
 				}
 			}
-
-			coeff = new_coeff;
-		}
-		else {
-			/* skip empty space */
-			coeff.sigma_a = make_float3(0.0f, 0.0f, 0.0f);
-			coeff.sigma_s = make_float3(0.0f, 0.0f, 0.0f);
-			coeff.emission = make_float3(0.0f, 0.0f, 0.0f);
 		}
 
 		/* stop if at the end of the volume */
