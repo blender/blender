@@ -18,16 +18,15 @@
 #include "osl_shader.h"
 #endif
 
+#include "kernel_random.h"
+
+#include "geom/geom_bvh.h"
+
 #include "kernel_differential.h"
 #include "kernel_montecarlo.h"
 #include "kernel_projection.h"
-#include "kernel_object.h"
-#include "kernel_triangle.h"
-#include "kernel_curve.h"
 #include "kernel_primitive.h"
 #include "kernel_projection.h"
-#include "kernel_random.h"
-#include "kernel_bvh.h"
 #include "kernel_accumulate.h"
 #include "kernel_camera.h"
 #include "kernel_shader.h"

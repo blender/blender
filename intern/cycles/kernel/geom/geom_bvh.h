@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-CCL_NAMESPACE_BEGIN
-
 /*
  * "Persistent while-while kernel" used in:
  *
@@ -41,6 +39,12 @@ CCL_NAMESPACE_BEGIN
 #else
 #define NO_EXTENDED_PRECISION volatile
 #endif
+
+#include "geom_object.h"
+#include "geom_curve.h"
+#include "geom_triangle.h"
+
+CCL_NAMESPACE_BEGIN
 
 ccl_device_inline float3 bvh_inverse_direction(float3 dir)
 {
@@ -884,60 +888,60 @@ ccl_device_inline void bvh_triangle_intersect_subsurface(KernelGlobals *kg, Inte
 
 #define BVH_FUNCTION_NAME bvh_intersect
 #define BVH_FUNCTION_FEATURES 0
-#include "kernel_bvh_traversal.h"
+#include "geom_bvh_traversal.h"
 
 #if defined(__INSTANCING__)
 #define BVH_FUNCTION_NAME bvh_intersect_instancing
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "kernel_bvh_traversal.h"
+#include "geom_bvh_traversal.h"
 #endif
 
 #if defined(__HAIR__)
 #define BVH_FUNCTION_NAME bvh_intersect_hair
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
-#include "kernel_bvh_traversal.h"
+#include "geom_bvh_traversal.h"
 #endif
 
 #if defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_motion
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "kernel_bvh_traversal.h"
+#include "geom_bvh_traversal.h"
 #endif
 
 #if defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_hair_motion
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
-#include "kernel_bvh_traversal.h"
+#include "geom_bvh_traversal.h"
 #endif
 
 #if defined(__SUBSURFACE__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface
 #define BVH_FUNCTION_FEATURES 0
-#include "kernel_bvh_subsurface.h"
+#include "geom_bvh_subsurface.h"
 #endif
 
 #if defined(__SUBSURFACE__) && defined(__INSTANCING__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface_instancing
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "kernel_bvh_subsurface.h"
+#include "geom_bvh_subsurface.h"
 #endif
 
 #if defined(__SUBSURFACE__) && defined(__HAIR__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface_hair
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
-#include "kernel_bvh_subsurface.h"
+#include "geom_bvh_subsurface.h"
 #endif
 
 #if defined(__SUBSURFACE__) && defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface_motion
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "kernel_bvh_subsurface.h"
+#include "geom_bvh_subsurface.h"
 #endif
 
 #if defined(__SUBSURFACE__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface_hair_motion
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
-#include "kernel_bvh_subsurface.h"
+#include "geom_bvh_subsurface.h"
 #endif
 
 /* to work around titan bug when using arrays instead of textures */

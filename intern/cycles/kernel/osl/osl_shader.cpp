@@ -18,7 +18,8 @@
 #include "kernel_montecarlo.h"
 #include "kernel_types.h"
 #include "kernel_globals.h"
-#include "kernel_object.h"
+
+#include "geom/geom_object.h"
 
 #include "closure/bsdf_diffuse.h"
 #include "closure/bssrdf.h"

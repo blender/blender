@@ -19,14 +19,10 @@ set(SRC
 set(SRC_HEADERS
 	kernel.h
 	kernel_accumulate.h
-	kernel_bvh.h
-	kernel_bvh_subsurface.h
-	kernel_bvh_traversal.h
 	kernel_camera.h
 	kernel_compat_cpu.h
 	kernel_compat_cuda.h
 	kernel_compat_opencl.h
-	kernel_curve.h
 	kernel_differential.h
 	kernel_displace.h
 	kernel_emission.h
@@ -36,7 +32,6 @@ set(SRC_HEADERS
 	kernel_light.h
 	kernel_math.h
 	kernel_montecarlo.h
-	kernel_object.h
 	kernel_passes.h
 	kernel_path.h
 	kernel_path_state.h
@@ -47,7 +42,6 @@ set(SRC_HEADERS
 	kernel_shadow.h
 	kernel_subsurface.h
 	kernel_textures.h
-	kernel_triangle.h
 	kernel_types.h
 	kernel_volume.h
 )
@@ -114,6 +108,15 @@ set(SRC_SVM_HEADERS
 	svm/svm_wave.h
 )
 
+set(SRC_GEOM_HEADERS
+	geom/geom_bvh.h
+	geom/geom_bvh_subsurface.h
+	geom/geom_bvh_traversal.h
+	geom/geom_curve.h
+	geom/geom_object.h
+	geom/geom_triangle.h
+)
+
 set(SRC_UTIL_HEADERS
 	../util/util_color.h
 	../util/util_half.h
@@ -146,7 +149,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	endif()
 
 	# build for each arch
-	set(cuda_sources kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_UTIL_HEADERS})
+	set(cuda_sources kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_GEOM_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_UTIL_HEADERS})
 	set(cuda_cubins)
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
@@ -222,7 +225,7 @@ if(CXX_HAS_SSE)
 endif()
 
 
-add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_SVM_HEADERS})
+add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_SVM_HEADERS} ${SRC_GEOM_HEADERS})
 
 if(WITH_CYCLES_CUDA)
 	add_dependencies(cycles_kernel cycles_kernel_cuda)
@@ -243,5 +246,6 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cu" ${CYCLES_INSTALL_PATH}/k
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/closure)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/svm)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/geom)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
 
