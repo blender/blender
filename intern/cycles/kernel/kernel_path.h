@@ -261,7 +261,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_g
 
 			ShaderData volume_sd;
 			VolumeIntegrateResult result = kernel_volume_integrate(kg, &state,
-				&volume_sd, &volume_ray, L, &throughput, rng);
+				&volume_sd, &volume_ray, L, &throughput, rng, false);
 
 			if(result == VOLUME_PATH_SCATTERED) {
 				if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f))
@@ -650,7 +650,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 			ShaderData volume_sd;
 			VolumeIntegrateResult result = kernel_volume_integrate(kg, &state,
-				&volume_sd, &volume_ray, &L, &throughput, rng);
+				&volume_sd, &volume_ray, &L, &throughput, rng, false);
 
 			if(result == VOLUME_PATH_SCATTERED) {
 				if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f))
@@ -1092,7 +1092,6 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 			int num_samples = kernel_data.integrator.volume_samples;
 			float num_samples_inv = 1.0f/num_samples;
-			float3 avg_tp = make_float3(0.0f, 0.0f, 0.0f);
 
 			/* todo: we should cache the shader evaluations from stepping
 			 * through the volume, for now we redo them multiple times */
@@ -1107,7 +1106,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				path_state_branch(&ps, j, num_samples);
 
 				VolumeIntegrateResult result = kernel_volume_integrate(kg, &ps,
-					&volume_sd, &volume_ray, &L, &tp, rng);
+					&volume_sd, &volume_ray, &L, &tp, rng, true);
 				
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* todo: use all-light sampling */
@@ -1120,11 +1119,10 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 						path_radiance_reset_indirect(&L);
 					}
 				}
-				else
-					avg_tp += tp;
 			}
 
-			throughput = avg_tp * num_samples_inv;
+			/* todo: avoid this calculation using decoupled ray marching */
+			kernel_volume_shadow(kg, &state, &volume_ray, &throughput);
 		}
 #endif
 
