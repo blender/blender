@@ -216,7 +216,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 						if(tri_object == subsurface_object) {
 
 							/* intersect ray against primitive */
-							bvh_triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+							triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 						}
 					}
 				}

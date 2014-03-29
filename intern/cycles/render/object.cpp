@@ -203,20 +203,6 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 					surface_area += triangle_area(p1, p2, p3);
 				}
 
-				foreach(Mesh::Curve& curve, mesh->curves) {
-					int first_key = curve.first_key;
-
-					for(int i = 0; i < curve.num_segments(); i++) {
-						float3 p1 = mesh->curve_keys[first_key + i].co;
-						float r1 = mesh->curve_keys[first_key + i].radius;
-						float3 p2 = mesh->curve_keys[first_key + i + 1].co;
-						float r2 = mesh->curve_keys[first_key + i + 1].radius;
-
-						/* currently ignores segment overlaps*/
-						surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
-					}
-				}
-
 				surface_area_map[mesh] = surface_area;
 			}
 			else
@@ -231,23 +217,6 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 				float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
 
 				surface_area += triangle_area(p1, p2, p3);
-			}
-
-			foreach(Mesh::Curve& curve, mesh->curves) {
-				int first_key = curve.first_key;
-
-				for(int i = 0; i < curve.num_segments(); i++) {
-					float3 p1 = mesh->curve_keys[first_key + i].co;
-					float r1 = mesh->curve_keys[first_key + i].radius;
-					float3 p2 = mesh->curve_keys[first_key + i + 1].co;
-					float r2 = mesh->curve_keys[first_key + i + 1].radius;
-
-					p1 = transform_point(&tfm, p1);
-					p2 = transform_point(&tfm, p2);
-
-					/* currently ignores segment overlaps*/
-					surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
-				}
 			}
 		}
 

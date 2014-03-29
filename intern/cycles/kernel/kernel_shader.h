@@ -96,7 +96,7 @@ ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 #endif
 
 		/* vectors */
-		sd->P = bvh_triangle_refine(kg, sd, isect, ray);
+		sd->P = triangle_refine(kg, sd, isect, ray);
 		sd->Ng = Ng;
 		sd->N = Ng;
 		
@@ -106,7 +106,7 @@ ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 #ifdef __DPDU__
 		/* dPdu/dPdv */
-		triangle_dPdudv(kg, &sd->dPdu, &sd->dPdv, sd->prim);
+		triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
 #endif
 
 #ifdef __HAIR__
@@ -177,7 +177,7 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 #endif
 
 	/* vectors */
-	sd->P = bvh_triangle_refine_subsurface(kg, sd, isect, ray);
+	sd->P = triangle_refine_subsurface(kg, sd, isect, ray);
 	sd->Ng = Ng;
 	sd->N = Ng;
 	
@@ -187,7 +187,7 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
-	triangle_dPdudv(kg, &sd->dPdu, &sd->dPdv, sd->prim);
+	triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
 #endif
 
 	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
@@ -312,7 +312,7 @@ ccl_device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	}
 #endif
 	else {
-		triangle_dPdudv(kg, &sd->dPdu, &sd->dPdv, sd->prim);
+		triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
 
 #ifdef __INSTANCING__
 		if(instanced) {
@@ -355,8 +355,7 @@ ccl_device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	float3 P, Ng, I = make_float3(0.0f, 0.0f, 0.0f);
 	int shader;
 
-	P = triangle_point_MT(kg, prim, u, v);
-	Ng = triangle_normal_MT(kg, prim, &shader);
+	triangle_point_normal(kg, prim, u, v, &P, &Ng, &shader);
 
 	/* force smooth shading for displacement */
 	shader |= SHADER_SMOOTH_NORMAL;

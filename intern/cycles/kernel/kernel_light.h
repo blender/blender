@@ -458,8 +458,7 @@ ccl_device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	v = randv*randu;
 
 	/* triangle, so get position, normal, shader */
-	ls->P = triangle_point_MT(kg, prim, u, v);
-	ls->Ng = triangle_normal_MT(kg, prim, &ls->shader);
+	triangle_point_normal(kg, prim, u, v, &ls->P, &ls->Ng, &ls->shader);
 	ls->object = object;
 	ls->prim = prim;
 	ls->lamp = ~0;
@@ -484,52 +483,6 @@ ccl_device float triangle_light_pdf(KernelGlobals *kg,
 	
 	return t*t*pdf/cos_pi;
 }
-
-/* Curve Light */
-
-#ifdef __HAIR__
-
-ccl_device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object,
-	int segment, float randu, float randv, float time, LightSample *ls)
-{
-	/* this strand code needs completion */
-	float4 v00 = kernel_tex_fetch(__curves, prim);
-
-	int k0 = __float_as_int(v00.x) + segment;
-	int k1 = k0 + 1;
-
-	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
-	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
-
-	float l = len(float4_to_float3(P2) - float4_to_float3(P1));
-
-	float r1 = P1.w;
-	float r2 = P2.w;
-	float3 tg = (float4_to_float3(P2) - float4_to_float3(P1)) / l;
-	float3 xc = make_float3(tg.x * tg.z, tg.y * tg.z, -(tg.x * tg.x + tg.y * tg.y));
-	if (is_zero(xc))
-		xc = make_float3(tg.x * tg.y, -(tg.x * tg.x + tg.z * tg.z), tg.z * tg.y);
-	xc = normalize(xc);
-	float3 yc = cross(tg, xc);
-	float gd = ((r2 - r1)/l);
-
-	/* normal currently ignores gradient */
-	ls->Ng = sinf(M_2PI_F * randv) * xc + cosf(M_2PI_F * randv) * yc;
-	ls->P = randu * l * tg + (gd * l + r1) * ls->Ng;
-	ls->object = object;
-	ls->prim = prim;
-	ls->lamp = ~0;
-	ls->t = 0.0f;
-	ls->u = randu;
-	ls->v = randv;
-	ls->type = LIGHT_STRAND;
-	ls->eval_fac = 1.0f;
-	ls->shader = __float_as_int(v00.z) | SHADER_USE_MIS;
-
-	object_transform_light_sample(kg, ls, object, time);
-}
-
-#endif
 
 /* Light Distribution */
 
@@ -573,19 +526,14 @@ ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float 
 
 	if(prim >= 0) {
 		int object = __float_as_int(l.w);
-#ifdef __HAIR__
-		int segment = __float_as_int(l.z) & SHADER_MASK;
+		int shader_flag = __float_as_int(l.z);
 
-		if(segment != SHADER_MASK)
-			curve_segment_light_sample(kg, prim, object, segment, randu, randv, time, ls);
-		else
-#endif
-			triangle_light_sample(kg, prim, object, randu, randv, time, ls);
+		triangle_light_sample(kg, prim, object, randu, randv, time, ls);
 
 		/* compute incoming direction, distance and pdf */
 		ls->D = normalize_len(ls->P - P, &ls->t);
 		ls->pdf = triangle_light_pdf(kg, ls->Ng, -ls->D, ls->t);
-		ls->shader |= __float_as_int(l.z) & (~SHADER_MASK);
+		ls->shader |= shader_flag;
 	}
 	else {
 		int lamp = -prim-1;

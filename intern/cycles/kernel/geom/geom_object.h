@@ -1,6 +1,4 @@
 /*
- * Copyright 2011-2013 Blender Foundation
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +9,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License
+ * limitations under the License.
  */
 
 CCL_NAMESPACE_BEGIN
@@ -295,6 +293,78 @@ ccl_device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
 	float4 f4 = kernel_tex_fetch(__particles, offset + 4);
 	return make_float3(f3.z, f3.w, f4.x);
 }
+
+/* BVH */
+
+ccl_device_inline float3 bvh_inverse_direction(float3 dir)
+{
+	/* avoid divide by zero (ooeps = exp2f(-80.0f)) */
+	float ooeps = 0.00000000000000000000000082718061255302767487140869206996285356581211090087890625f;
+	float3 idir;
+
+	idir.x = 1.0f/((fabsf(dir.x) > ooeps)? dir.x: copysignf(ooeps, dir.x));
+	idir.y = 1.0f/((fabsf(dir.y) > ooeps)? dir.y: copysignf(ooeps, dir.y));
+	idir.z = 1.0f/((fabsf(dir.z) > ooeps)? dir.z: copysignf(ooeps, dir.z));
+
+	return idir;
+}
+
+ccl_device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, const float tmax)
+{
+	Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+
+	*P = transform_point(&tfm, ray->P);
+
+	float3 dir = transform_direction(&tfm, ray->D);
+
+	float len;
+	dir = normalize_len(dir, &len);
+
+	*idir = bvh_inverse_direction(dir);
+
+	if(*t != FLT_MAX)
+		*t *= len;
+}
+
+ccl_device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, const float tmax)
+{
+	if(*t != FLT_MAX) {
+		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+		*t *= len(transform_direction(&tfm, 1.0f/(*idir)));
+	}
+
+	*P = ray->P;
+	*idir = bvh_inverse_direction(ray->D);
+}
+
+#ifdef __OBJECT_MOTION__
+ccl_device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, Transform *tfm, const float tmax)
+{
+	Transform itfm;
+	*tfm = object_fetch_transform_motion_test(kg, object, ray->time, &itfm);
+
+	*P = transform_point(&itfm, ray->P);
+
+	float3 dir = transform_direction(&itfm, ray->D);
+
+	float len;
+	dir = normalize_len(dir, &len);
+
+	*idir = bvh_inverse_direction(dir);
+
+	if(*t != FLT_MAX)
+		*t *= len;
+}
+
+ccl_device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, Transform *tfm, const float tmax)
+{
+	if(*t != FLT_MAX)
+		*t *= len(transform_direction(tfm, 1.0f/(*idir)));
+
+	*P = ray->P;
+	*idir = bvh_inverse_direction(ray->D);
+}
+#endif
 
 CCL_NAMESPACE_END
 

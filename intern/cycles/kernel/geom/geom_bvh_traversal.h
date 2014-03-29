@@ -41,7 +41,6 @@ ccl_device bool BVH_FUNCTION_NAME
 	 * - test if pushing distance on the stack helps (for non shadow rays)
 	 * - separate version for shadow rays
 	 * - likely and unlikely for if() statements
-	 * - SSE for hair
 	 * - test restrict attribute for pointers
 	 */
 	
@@ -258,18 +257,18 @@ ccl_device bool BVH_FUNCTION_NAME
 
 							if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
+								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment, lcg_state, difl, extmax);
 							else
-								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment, lcg_state, difl, extmax);
+								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment, lcg_state, difl, extmax);
 #else
-								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment);
 							else
-								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment);
 #endif
 						}
 						else
 #endif
-							hit = bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
+							hit = triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)
