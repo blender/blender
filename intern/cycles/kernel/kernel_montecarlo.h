@@ -131,6 +131,11 @@ ccl_device float power_heuristic_3(float a, float b, float c)
 	return (a*a)/(a*a + b*b + c*c);
 }
 
+ccl_device float max_heuristic(float a, float b)
+{
+	return (a > b)? 1.0f: 0.0f;
+}
+
 /* distribute uniform xy on [0,1] over unit disk [-1,1], with concentric mapping
  * to better preserve stratification for some RNG sequences */
 ccl_device float2 concentric_sample_disk(float u1, float u2)
