@@ -283,8 +283,8 @@ void BVH::pack_curve_segment(int idx, float4 woop[3])
 	int segment = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[idx]);
 	int k0 = mesh->curves[tidx].first_key + segment;
 	int k1 = mesh->curves[tidx].first_key + segment + 1;
-	float3 v0 = mesh->curve_keys[k0].co;
-	float3 v1 = mesh->curve_keys[k1].co;
+	float3 v0 = float4_to_float3(mesh->curve_keys[k0]);
+	float3 v1 = float4_to_float3(mesh->curve_keys[k1]);
 
 	float3 d0 = v1 - v0;
 	float l =  len(d0);
@@ -632,34 +632,20 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 				if(pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
 					/* curves */
 					int str_offset = (params.top_level)? mesh->curve_offset: 0;
-					int k0 = mesh->curves[pidx - str_offset].first_key + PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
-					int k1 = k0 + 1;
+					const Mesh::Curve& curve = mesh->curves[pidx - str_offset];
+					int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-					float3 p[4];
-					p[0] = mesh->curve_keys[max(k0 - 1,mesh->curves[pidx - str_offset].first_key)].co;
-					p[1] = mesh->curve_keys[k0].co;
-					p[2] = mesh->curve_keys[k1].co;
-					p[3] = mesh->curve_keys[min(k1 + 1,mesh->curves[pidx - str_offset].first_key + mesh->curves[pidx - str_offset].num_keys - 1)].co;
-					float3 lower;
-					float3 upper;
-					curvebounds(&lower.x, &upper.x, p, 0);
-					curvebounds(&lower.y, &upper.y, p, 1);
-					curvebounds(&lower.z, &upper.z, p, 2);
-					float mr = max(mesh->curve_keys[k0].radius,mesh->curve_keys[k1].radius);
-					bbox.grow(lower, mr);
-					bbox.grow(upper, mr);
+					curve.bounds_grow(k, &mesh->curve_keys[0], bbox);
 
 					visibility |= PATH_RAY_CURVE;
 				}
 				else {
 					/* triangles */
 					int tri_offset = (params.top_level)? mesh->tri_offset: 0;
-					const int *vidx = mesh->triangles[pidx - tri_offset].v;
+					const Mesh::Triangle& triangle = mesh->triangles[pidx - tri_offset];
 					const float3 *vpos = &mesh->verts[0];
 
-					bbox.grow(vpos[vidx[0]]);
-					bbox.grow(vpos[vidx[1]]);
-					bbox.grow(vpos[vidx[2]]);
+					triangle.bounds_grow(vpos, bbox);
 				}
 			}
 

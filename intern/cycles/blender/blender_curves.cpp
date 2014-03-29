@@ -588,7 +588,7 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 				float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
 
 				if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
-					radius =0.0f;
+					radius = 0.0f;
 
 				mesh->add_curve_key(ickey_loc, radius);
 				if(attr_intercept)
@@ -617,8 +617,8 @@ static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveDat
 	/* export motion vectors for curve keys */
 	AttributeStandard std = (motion == -1)? ATTR_STD_MOTION_PRE: ATTR_STD_MOTION_POST;
 	Attribute *attr_motion = mesh->curve_attributes.add(std);
-	float3 *data_motion = attr_motion->data_float3();
-	float3 *current_motion = data_motion;
+	float4 *data_motion = attr_motion->data_float4();
+	float4 *current_motion = data_motion;
 	size_t size = mesh->curve_keys.size();
 	size_t i = 0;
 	bool have_motion = false;
@@ -633,12 +633,20 @@ static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveDat
 
 			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve]; curvekey++) {
 				if(i < mesh->curve_keys.size()) {
-					*current_motion = CData->curvekey_co[curvekey];
+					float3 ickey_loc = CData->curvekey_co[curvekey];
+					float time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
+					float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
+
+					if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
+						radius = 0.0f;
+
+					*current_motion = float3_to_float4(ickey_loc);
+					current_motion->w = radius;
 
 					/* unlike mesh coordinates, these tend to be slightly different
 					 * between frames due to particle transforms into/out of object
 					 * space, so we use an epsilon to detect actual changes */
-					if(len_squared(*current_motion - mesh->curve_keys[i].co) > 1e-5f*1e-5f)
+					if(len_squared(*current_motion - mesh->curve_keys[i]) > 1e-5f*1e-5f)
 						have_motion = true;
 
 					current_motion++;
@@ -876,7 +884,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, int 
 				size_t i = 0;
 
 				foreach(Mesh::Curve& curve, mesh->curves) {
-					float3 co = mesh->curve_keys[curve.first_key].co;
+					float3 co = float4_to_float3(mesh->curve_keys[curve.first_key]);
 					generated[i++] = co*size - loc;
 				}
 			}

@@ -469,6 +469,15 @@ ccl_device_inline float dot(const float3 a, const float3 b)
 #endif
 }
 
+ccl_device_inline float dot(const float4 a, const float4 b)
+{
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+	return _mm_cvtss_f32(_mm_dp_ps(a, b, 0xFF));
+#else	
+	return (a.x*b.x + a.y*b.y) + (a.z*b.z + a.w*b.w);
+#endif
+}
+
 ccl_device_inline float3 cross(const float3 a, const float3 b)
 {
 	float3 r = make_float3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
@@ -492,6 +501,11 @@ ccl_device_inline float len_squared(const float3 a)
 }
 
 #ifndef __KERNEL_OPENCL__
+
+ccl_device_inline float len_squared(const float4 a)
+{
+	return dot(a, a);
+}
 
 ccl_device_inline float3 normalize(const float3 a)
 {
@@ -810,11 +824,6 @@ ccl_device_inline float reduce_add(const float4& a)
 ccl_device_inline float average(const float4& a)
 {
 	return reduce_add(a) * 0.25f;
-}
-
-ccl_device_inline float dot(const float4& a, const float4& b)
-{
-	return reduce_add(a * b);
 }
 
 ccl_device_inline float len(const float4 a)

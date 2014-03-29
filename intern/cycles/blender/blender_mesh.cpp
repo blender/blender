@@ -481,7 +481,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	
 	/* compares curve_keys rather than strands in order to handle quick hair
 	 * adjustsments in dynamic BVH - other methods could probably do this better*/
-	vector<Mesh::CurveKey> oldcurve_keys = mesh->curve_keys;
+	vector<float4> oldcurve_keys = mesh->curve_keys;
 
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
@@ -535,7 +535,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	if(oldcurve_keys.size() != mesh->curve_keys.size())
 		rebuild = true;
 	else if(oldcurve_keys.size()) {
-		if(memcmp(&oldcurve_keys[0], &mesh->curve_keys[0], sizeof(Mesh::CurveKey)*oldcurve_keys.size()) != 0)
+		if(memcmp(&oldcurve_keys[0], &mesh->curve_keys[0], sizeof(float4)*oldcurve_keys.size()) != 0)
 			rebuild = true;
 	}
 	

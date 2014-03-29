@@ -18,6 +18,7 @@
 #include "bvh_build.h"
 
 #include "camera.h"
+#include "curves.h"
 #include "device.h"
 #include "shader.h"
 #include "light.h"
@@ -33,6 +34,39 @@
 #include "util_set.h"
 
 CCL_NAMESPACE_BEGIN
+
+/* Triangle */
+
+void Mesh::Triangle::bounds_grow(const float3 *verts, BoundBox& bounds) const
+{
+	bounds.grow(verts[v[0]]);
+	bounds.grow(verts[v[1]]);
+	bounds.grow(verts[v[2]]);
+}
+
+/* Curve */
+
+void Mesh::Curve::bounds_grow(const int k, const float4 *curve_keys, BoundBox& bounds) const
+{
+	float3 P[4];
+
+	P[0] = float4_to_float3(curve_keys[max(first_key + k - 1,first_key)]);
+	P[1] = float4_to_float3(curve_keys[first_key + k]);
+	P[2] = float4_to_float3(curve_keys[first_key + k + 1]);
+	P[3] = float4_to_float3(curve_keys[min(first_key + k + 2, first_key + num_keys - 1)]);
+
+	float3 lower;
+	float3 upper;
+
+	curvebounds(&lower.x, &upper.x, P, 0);
+	curvebounds(&lower.y, &upper.y, P, 1);
+	curvebounds(&lower.z, &upper.z, P, 2);
+
+	float mr = max(curve_keys[first_key + k].w, curve_keys[first_key + k + 1].w);
+
+	bounds.grow(lower, mr);
+	bounds.grow(upper, mr);
+}
 
 /* Mesh */
 
@@ -125,9 +159,8 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 
 void Mesh::add_curve_key(float3 co, float radius)
 {
-	CurveKey key;
-	key.co = co;
-	key.radius = radius;
+	float4 key = float3_to_float4(co);
+	key.w = radius;
 
 	curve_keys.push_back(key);
 }
@@ -153,7 +186,7 @@ void Mesh::compute_bounds()
 			bnds.grow(verts[i]);
 
 		for(size_t i = 0; i < curve_keys_size; i++)
-			bnds.grow(curve_keys[i].co, curve_keys[i].radius);
+			bnds.grow(float4_to_float3(curve_keys[i]), curve_keys[i].w);
 
 		if(!bnds.valid()) {
 			bnds = BoundBox::empty;
@@ -163,7 +196,7 @@ void Mesh::compute_bounds()
 				bnds.grow_safe(verts[i]);
 
 			for(size_t i = 0; i < curve_keys_size; i++)
-				bnds.grow_safe(curve_keys[i].co, curve_keys[i].radius);
+				bnds.grow_safe(float4_to_float3(curve_keys[i]), curve_keys[i].w);
 		}
 	}
 
@@ -337,18 +370,14 @@ void Mesh::pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset)
 void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset)
 {
 	size_t curve_keys_size = curve_keys.size();
-	CurveKey *keys_ptr = NULL;
+	float4 *keys_ptr = NULL;
 
 	/* pack curve keys */
 	if(curve_keys_size) {
 		keys_ptr = &curve_keys[0];
 
-		for(size_t i = 0; i < curve_keys_size; i++) {
-			float3 p = keys_ptr[i].co;
-			float radius = keys_ptr[i].radius;
-
-			curve_key_co[i] = make_float4(p.x, p.y, p.z, radius);
-		}
+		for(size_t i = 0; i < curve_keys_size; i++)
+			curve_key_co[i] = keys_ptr[i];
 	}
 
 	/* pack curve segments */
