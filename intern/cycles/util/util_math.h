@@ -1122,6 +1122,17 @@ ccl_device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
 
 /* Color division */
 
+ccl_device_inline float3 safe_invert_color(float3 a)
+{
+	float x, y, z;
+
+	x = (a.x != 0.0f)? 1.0f/a.x: 0.0f;
+	y = (a.y != 0.0f)? 1.0f/a.y: 0.0f;
+	z = (a.z != 0.0f)? 1.0f/a.z: 0.0f;
+
+	return make_float3(x, y, z);
+}
+
 ccl_device_inline float3 safe_divide_color(float3 a, float3 b)
 {
 	float x, y, z;
