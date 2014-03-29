@@ -202,6 +202,16 @@ const char *Attribute::standard_name(AttributeStandard std)
 			return "ptex_face_id";
 		case ATTR_STD_PTEX_UV:
 			return "ptex_uv";
+		case ATTR_STD_VOLUME_DENSITY:
+			return "density";
+		case ATTR_STD_VOLUME_COLOR:
+			return "color";
+		case ATTR_STD_VOLUME_FLAME:
+			return "flame";
+		case ATTR_STD_VOLUME_HEAT:
+			return "heat";
+		case ATTR_STD_VOLUME_VELOCITY:
+			return "velocity";
 		case ATTR_STD_NOT_FOUND:
 		case ATTR_STD_NONE:
 		case ATTR_STD_NUM:
@@ -327,6 +337,17 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 				break;
 			case ATTR_STD_GENERATED_TRANSFORM:
 				attr = add(name, TypeDesc::TypeMatrix, ATTR_ELEMENT_MESH);
+				break;
+			case ATTR_STD_VOLUME_DENSITY:
+			case ATTR_STD_VOLUME_FLAME:
+			case ATTR_STD_VOLUME_HEAT:
+				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
+				break;
+			case ATTR_STD_VOLUME_COLOR:
+				attr = add(name, TypeDesc::TypeColor, ATTR_ELEMENT_VOXEL);
+				break;
+			case ATTR_STD_VOLUME_VELOCITY:
+				attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_VOXEL);
 				break;
 			default:
 				assert(0);

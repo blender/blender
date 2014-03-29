@@ -206,6 +206,40 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 	}
 }
 
+/* Create Volume Attribute */
+
+static void create_mesh_volume_attribute(BL::Object b_ob, Mesh *mesh, ImageManager *image_manager, AttributeStandard std)
+{
+	BL::SmokeDomainSettings b_domain = object_smoke_domain_find(b_ob);
+
+	if(!b_domain)
+		return;
+	
+	Attribute *attr = mesh->attributes.add(std);
+	VoxelAttribute *volume_data = attr->data_voxel();
+	bool is_float, is_linear;
+	bool animated = false;
+
+	volume_data->manager = image_manager;
+	volume_data->slot = image_manager->add_image(Attribute::standard_name(std),
+		b_ob.ptr.data, animated, is_float, is_linear, INTERPOLATION_LINEAR);
+}
+
+static void create_mesh_volume_attributes(Scene *scene, BL::Object b_ob, Mesh *mesh)
+{
+	/* for smoke volume rendering */
+	if(mesh->need_attribute(scene, ATTR_STD_VOLUME_DENSITY))
+		create_mesh_volume_attribute(b_ob, mesh, scene->image_manager, ATTR_STD_VOLUME_DENSITY);
+	if(mesh->need_attribute(scene, ATTR_STD_VOLUME_COLOR))
+		create_mesh_volume_attribute(b_ob, mesh, scene->image_manager, ATTR_STD_VOLUME_COLOR);
+	if(mesh->need_attribute(scene, ATTR_STD_VOLUME_FLAME))
+		create_mesh_volume_attribute(b_ob, mesh, scene->image_manager, ATTR_STD_VOLUME_FLAME);
+	if(mesh->need_attribute(scene, ATTR_STD_VOLUME_HEAT))
+		create_mesh_volume_attribute(b_ob, mesh, scene->image_manager, ATTR_STD_VOLUME_HEAT);
+	if(mesh->need_attribute(scene, ATTR_STD_VOLUME_VELOCITY))
+		create_mesh_volume_attribute(b_ob, mesh, scene->image_manager, ATTR_STD_VOLUME_VELOCITY);
+}
+
 /* Create Mesh */
 
 static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<uint>& used_shaders)
@@ -501,6 +535,8 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 					create_subd_mesh(scene, mesh, b_mesh, &cmesh, used_shaders);
 				else
 					create_mesh(scene, mesh, b_mesh, used_shaders);
+
+				create_mesh_volume_attributes(scene, b_ob, mesh);
 			}
 
 			if(render_layer.use_hair)

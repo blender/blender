@@ -168,6 +168,11 @@ static inline float4 get_float4(BL::Array<float, 4> array)
 	return make_float4(array[0], array[1], array[2], array[3]);
 }
 
+static inline int3 get_int3(BL::Array<int, 3> array)
+{
+	return make_int3(array[0], array[1], array[2]);
+}
+
 static inline int4 get_int4(BL::Array<int, 4> array)
 {
 	return make_int4(array[0], array[1], array[2], array[3]);
@@ -369,6 +374,22 @@ static inline bool object_use_deform_motion(BL::Object b_ob)
 	bool use_deform_motion = get_boolean(cobject, "use_deform_motion");
 	
 	return use_deform_motion;
+}
+
+static inline BL::SmokeDomainSettings object_smoke_domain_find(BL::Object b_ob)
+{
+	BL::Object::modifiers_iterator b_mod;
+
+	for(b_ob.modifiers.begin(b_mod); b_mod != b_ob.modifiers.end(); ++b_mod) {
+		if (b_mod->is_a(&RNA_SmokeModifier)) {
+			BL::SmokeModifier b_smd(*b_mod);
+
+			if(b_smd.smoke_type() == BL::SmokeModifier::smoke_type_DOMAIN)
+				return b_smd.domain_settings();
+		}
+	}
+	
+	return BL::SmokeDomainSettings(PointerRNA_NULL);
 }
 
 /* ID Map
