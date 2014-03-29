@@ -129,6 +129,7 @@ static char *rna_SmokeCollSettings_path(PointerRNA *ptr)
 
 static int rna_SmokeModifier_grid_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
+#ifdef WITH_SMOKE
 	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
 	float *density = NULL;
 	int size = 0;
@@ -149,6 +150,10 @@ static int rna_SmokeModifier_grid_get_length(PointerRNA *ptr, int length[RNA_MAX
 	}
 
 	length[0] = (density) ? size : 0;
+#else
+	(void)ptr;
+	length[0] = 0;
+#endif
 	return length[0];
 }
 
@@ -162,6 +167,7 @@ static int rna_SmokeModifier_color_grid_get_length(PointerRNA *ptr, int length[R
 
 static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
 {
+#ifdef WITH_SMOKE
 	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
 	int length[RNA_MAX_ARRAY_DIMENSION];
 	int size = rna_SmokeModifier_grid_get_length(ptr, length);
@@ -177,10 +183,15 @@ static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
 	memcpy(values, density, size * sizeof(float));
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
+#else
+	(void)ptr;
+	(void)values;
+#endif
 }
 
 static void rna_SmokeModifier_color_grid_get(PointerRNA *ptr, float *values)
 {
+#ifdef WITH_SMOKE
 	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
 
 	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
@@ -199,10 +210,15 @@ static void rna_SmokeModifier_color_grid_get(PointerRNA *ptr, float *values)
 	}
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
+#else
+	(void)ptr;
+	memset(values, 0, 4 * sizeof(float));
+#endif
 }
 
 static void rna_SmokeModifier_flame_grid_get(PointerRNA *ptr, float *values)
 {
+#ifdef WITH_SMOKE
 	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
 	int length[RNA_MAX_ARRAY_DIMENSION];
 	int size = rna_SmokeModifier_grid_get_length(ptr, length);
@@ -221,6 +237,10 @@ static void rna_SmokeModifier_flame_grid_get(PointerRNA *ptr, float *values)
 		memset(values, 0, size * sizeof(float));
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
+#else
+	(void)ptr;
+	(void)values;
+#endif
 }
 
 static void rna_SmokeFlow_density_vgroup_get(PointerRNA *ptr, char *value)
