@@ -742,6 +742,41 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
         del bpy.types.MetaBall.cycles
 
 
+class CyclesObjectBlurSettings(bpy.types.PropertyGroup):
+
+    @classmethod
+    def register(cls):
+        
+        bpy.types.Object.cycles = PointerProperty(
+                name="Cycles Object Settings",
+                description="Cycles object settings",
+                type=cls,
+                )
+
+        cls.use_motion_blur = BoolProperty(
+                name="Use Motion Blur",
+                description="Use motion blur for this object",
+                default=True,
+                )
+
+        cls.use_deform_motion = BoolProperty(
+                name="Use Deformation Motion",
+                description="Use deformation motion blur for this object",
+                default=True,
+                )
+
+        cls.motion_steps = IntProperty(
+                name="Motion Steps",
+                description="Control accuracy of deformation motion blur, more steps gives more memory usage (actual number of steps is 2^(steps - 1))",
+                min=1, soft_max=8,
+                default=1,
+                )
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Object.cycles
+
+
 class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):

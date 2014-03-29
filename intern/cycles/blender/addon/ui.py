@@ -572,6 +572,50 @@ class Cycles_PT_mesh_normals(CyclesButtonsPanel, Panel):
         col.label()
 
 
+class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
+    bl_label = "Motion Blur"
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return CyclesButtonsPanel.poll(context) and ob and ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META'}
+        
+    def draw_header(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        scene = context.scene
+        cscene = scene.cycles
+
+        layout.active = (rd.use_motion_blur and cscene.device == 'CPU')
+
+        ob = context.object
+        cob = ob.cycles
+
+        layout.prop(cob, "use_motion_blur", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        scene = context.scene
+        cscene = scene.cycles
+
+        ob = context.object
+        cob = ob.cycles
+
+        layout.active = (rd.use_motion_blur and cscene.device == 'CPU' and cob.use_motion_blur)
+
+        row = layout.row()
+        row.prop(cob, "use_deform_motion", text="Deformation")
+
+        sub = row.row()
+        sub.active = cob.use_deform_motion
+        sub.prop(cob, "motion_steps", text="Steps")
+
+
 class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     bl_label = "Ray Visibility"
     bl_context = "object"

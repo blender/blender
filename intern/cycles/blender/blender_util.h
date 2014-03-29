@@ -341,6 +341,36 @@ static inline void mesh_texture_space(BL::Mesh b_mesh, float3& loc, float3& size
 	loc = loc*size - make_float3(0.5f, 0.5f, 0.5f);
 }
 
+/* object used for motion blur */
+static inline bool object_use_motion(BL::Object b_ob)
+{
+	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+	bool use_motion = get_boolean(cobject, "use_motion_blur");
+	
+	return use_motion;
+}
+
+/* object motion steps */
+static inline uint object_motion_steps(BL::Object b_ob)
+{
+	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+	uint steps = get_int(cobject, "motion_steps");
+
+	/* use uneven number of steps so we get one keyframe at the current frame,
+	 * and ue 2^(steps - 1) so objects with more/fewer steps still have samples
+	 * at the same times, to avoid sampling at many different times */
+	return (2 << (steps - 1)) + 1;
+}
+
+/* object uses deformation motion blur */
+static inline bool object_use_deform_motion(BL::Object b_ob)
+{
+	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+	bool use_deform_motion = get_boolean(cobject, "use_deform_motion");
+	
+	return use_deform_motion;
+}
+
 /* ID Map
  *
  * Utility class to keep in sync with blender data.

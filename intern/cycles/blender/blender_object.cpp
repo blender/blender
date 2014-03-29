@@ -244,7 +244,7 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	if(motion) {
 		object = object_map.find(key);
 
-		if(object) {
+		if(object && (scene->need_motion() == Scene::MOTION_PASS || object_use_motion(b_ob))) {
 			/* object transformation */
 			if(tfm != object->tfm) {
 				if(motion_time == -1.0f) {
@@ -323,9 +323,11 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 		if(scene->need_motion() == Scene::MOTION_BLUR && object->mesh) {
 			Mesh *mesh = object->mesh;
 
-			if(true) {
-				if(true) {
-					mesh->motion_steps = 3;
+			mesh->use_motion_blur = false;
+
+			if(object_use_motion(b_ob)) {
+				if(object_use_deform_motion(b_ob)) {
+					mesh->motion_steps = object_motion_steps(b_ob);
 					mesh->use_motion_blur = true;
 				}
 
