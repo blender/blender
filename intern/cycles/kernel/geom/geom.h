@@ -38,6 +38,7 @@
 #include "geom_motion_triangle.h"
 #include "geom_motion_curve.h"
 #include "geom_curve.h"
+#include "geom_volume.h"
 #include "geom_primitive.h"
 #include "geom_bvh.h"
 

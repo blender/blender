@@ -119,6 +119,7 @@ set(SRC_GEOM_HEADERS
 	geom/geom_object.h
 	geom/geom_primitive.h
 	geom/geom_triangle.h
+	geom/geom_volume.h
 )
 
 set(SRC_UTIL_HEADERS

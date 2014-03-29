@@ -459,7 +459,8 @@ typedef enum AttributeElement {
 	ATTR_ELEMENT_CORNER,
 	ATTR_ELEMENT_CURVE,
 	ATTR_ELEMENT_CURVE_KEY,
-	ATTR_ELEMENT_CURVE_KEY_MOTION
+	ATTR_ELEMENT_CURVE_KEY_MOTION,
+	ATTR_ELEMENT_VOXEL
 } AttributeElement;
 
 typedef enum AttributeStandard {

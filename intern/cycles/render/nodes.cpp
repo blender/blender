@@ -2209,8 +2209,9 @@ void TextureCoordinateNode::attributes(Shader *shader, AttributeRequestSet *attr
 
 	if(shader->has_volume) {
 		if(!from_dupli) {
-			if(!output("Generated")->links.empty())
+			if(!output("Generated")->links.empty()) {
 				attributes->add(ATTR_STD_GENERATED_TRANSFORM);
+			}
 		}
 	}
 
@@ -2629,7 +2630,7 @@ void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 		if(!intercept_out->links.empty())
 			attributes->add(ATTR_STD_CURVE_INTERCEPT);
 	}
-	
+
 	ShaderNode::attributes(shader, attributes);
 }
 
@@ -3143,15 +3144,22 @@ AttributeNode::AttributeNode()
 
 void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	if(shader->has_surface) {
-		ShaderOutput *color_out = output("Color");
-		ShaderOutput *vector_out = output("Vector");
-		ShaderOutput *fac_out = output("Fac");
+	ShaderOutput *color_out = output("Color");
+	ShaderOutput *vector_out = output("Vector");
+	ShaderOutput *fac_out = output("Fac");
 
-		if(!color_out->links.empty() || !vector_out->links.empty() || !fac_out->links.empty())
+	if(!color_out->links.empty() || !vector_out->links.empty() || !fac_out->links.empty()) {
+		AttributeStandard std = Attribute::name_standard(attribute.c_str());
+
+		if(std != ATTR_STD_NONE)
+			attributes->add(std);
+		else
 			attributes->add(attribute);
 	}
-	
+
+	if(shader->has_volume)
+		attributes->add(ATTR_STD_GENERATED_TRANSFORM);
+
 	ShaderNode::attributes(shader, attributes);
 }
 
@@ -3161,6 +3169,13 @@ void AttributeNode::compile(SVMCompiler& compiler)
 	ShaderOutput *vector_out = output("Vector");
 	ShaderOutput *fac_out = output("Fac");
 	NodeType attr_node = NODE_ATTR;
+	AttributeStandard std = Attribute::name_standard(attribute.c_str());
+	int attr;
+
+	if(std != ATTR_STD_NONE)
+		attr = compiler.attribute(std);
+	else
+		attr = compiler.attribute(attribute);
 
 	if(bump == SHADER_BUMP_DX)
 		attr_node = NODE_ATTR_BUMP_DX;
@@ -3168,8 +3183,6 @@ void AttributeNode::compile(SVMCompiler& compiler)
 		attr_node = NODE_ATTR_BUMP_DY;
 
 	if(!color_out->links.empty() || !vector_out->links.empty()) {
-		int attr = compiler.attribute(attribute);
-
 		if(!color_out->links.empty()) {
 			compiler.stack_assign(color_out);
 			compiler.add_node(attr_node, attr, color_out->stack_offset, NODE_ATTR_FLOAT3);
@@ -3181,8 +3194,6 @@ void AttributeNode::compile(SVMCompiler& compiler)
 	}
 
 	if(!fac_out->links.empty()) {
-		int attr = compiler.attribute(attribute);
-
 		compiler.stack_assign(fac_out);
 		compiler.add_node(attr_node, attr, fac_out->stack_offset, NODE_ATTR_FLOAT);
 	}
@@ -3196,8 +3207,12 @@ void AttributeNode::compile(OSLCompiler& compiler)
 		compiler.parameter("bump_offset", "dy");
 	else
 		compiler.parameter("bump_offset", "center");
+	
+	if(Attribute::name_standard(attribute.c_str()) != ATTR_STD_NONE)
+		compiler.parameter("name", (string("geom:") + attribute.c_str()).c_str());
+	else
+		compiler.parameter("name", attribute.c_str());
 
-	compiler.parameter("name", attribute.c_str());
 	compiler.add(this, "node_attribute");
 }
 

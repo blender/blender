@@ -25,26 +25,46 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
-#ifdef __HAIR__
-	if(sd->type & PRIMITIVE_ALL_TRIANGLE)
-#endif
+	if(sd->type & PRIMITIVE_ALL_TRIANGLE) {
 		return triangle_attribute_float(kg, sd, elem, offset, dx, dy);
+	}
 #ifdef __HAIR__
-	else
+	else if(sd->type & PRIMITIVE_ALL_CURVE) {
 		return curve_attribute_float(kg, sd, elem, offset, dx, dy);
+	}
 #endif
+#ifdef __VOLUME__
+	else if(sd->object != OBJECT_NONE && elem == ATTR_ELEMENT_VOXEL) {
+		return volume_attribute_float(kg, sd, elem, offset, dx, dy);
+	}
+#endif
+	else {
+		if(dx) *dx = 0.0f;
+		if(dy) *dy = 0.0f;
+		return 0.0f;
+	}
 }
 
 ccl_device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
 {
-#ifdef __HAIR__
-	if(sd->type & PRIMITIVE_ALL_TRIANGLE)
-#endif
+	if(sd->type & PRIMITIVE_ALL_TRIANGLE) {
 		return triangle_attribute_float3(kg, sd, elem, offset, dx, dy);
+	}
 #ifdef __HAIR__
-	else
+	else if(sd->type & PRIMITIVE_ALL_CURVE) {
 		return curve_attribute_float3(kg, sd, elem, offset, dx, dy);
+	}
 #endif
+#ifdef __VOLUME__
+	else if(sd->object != OBJECT_NONE && elem == ATTR_ELEMENT_VOXEL) {
+		return volume_attribute_float3(kg, sd, elem, offset, dx, dy);
+	}
+#endif
+	else {
+		if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
+		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
 }
 
 /* Default UV coordinate */

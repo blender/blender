@@ -768,9 +768,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 
 		if (attr.elem != ATTR_ELEMENT_OBJECT) {
 			/* triangle and vertex attributes */
-			if (prim != PRIM_NONE)
-				return get_mesh_element_attribute(kg, sd, attr, type, derivatives, val);
-			else
+			if(!get_mesh_element_attribute(kg, sd, attr, type, derivatives, val))
 				return get_mesh_attribute(kg, sd, attr, type, derivatives, val);
 		}
 		else {

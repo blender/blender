@@ -70,17 +70,10 @@ ccl_device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, int path_f
 		case NODE_TEXCO_VOLUME_GENERATED: {
 			data = sd->P;
 
-			if(sd->object != OBJECT_NONE) {
-				AttributeElement attr_elem;
-				int attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED_TRANSFORM, &attr_elem);
-
-				object_inverse_position_transform(kg, sd, &data);
-
-				if(attr_offset != ATTR_STD_NOT_FOUND) {
-					Transform tfm = primitive_attribute_matrix(kg, sd, attr_offset);
-					data = transform_point(&tfm, data);
-				}
-			}
+#ifdef __VOLUME__
+			if(sd->object != OBJECT_NONE)
+				data = volume_normalized_position(kg, sd, data);
+#endif
 			break;
 		}
 	}
@@ -141,17 +134,10 @@ ccl_device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, in
 		case NODE_TEXCO_VOLUME_GENERATED: {
 			data = sd->P + sd->dP.dx;
 
-			if(sd->object != OBJECT_NONE) {
-				AttributeElement attr_elem;
-				int attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED_TRANSFORM, &attr_elem);
-
-				object_inverse_position_transform(kg, sd, &data);
-
-				if(attr_offset != ATTR_STD_NOT_FOUND) {
-					Transform tfm = primitive_attribute_matrix(kg, sd, attr_offset);
-					data = transform_point(&tfm, data);
-				}
-			}
+#ifdef __VOLUME__
+			if(sd->object != OBJECT_NONE)
+				data = volume_normalized_position(kg, sd, data);
+#endif
 			break;
 		}
 	}
@@ -215,17 +201,10 @@ ccl_device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, in
 		case NODE_TEXCO_VOLUME_GENERATED: {
 			data = sd->P + sd->dP.dy;
 
-			if(sd->object != OBJECT_NONE) {
-				AttributeElement attr_elem;
-				int attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED_TRANSFORM, &attr_elem);
-
-				object_inverse_position_transform(kg, sd, &data);
-
-				if(attr_offset != ATTR_STD_NOT_FOUND) {
-					Transform tfm = primitive_attribute_matrix(kg, sd, attr_offset);
-					data = transform_point(&tfm, data);
-				}
-			}
+#ifdef __VOLUME__
+			if(sd->object != OBJECT_NONE)
+				data = volume_normalized_position(kg, sd, data);
+#endif
 			break;
 		}
 	}

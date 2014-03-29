@@ -756,7 +756,12 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 			mesh->curves.size(),
 			mesh->curve_keys.size());
 
-		if(mattr->type == TypeDesc::TypeFloat) {
+		if(mattr->element == ATTR_ELEMENT_VOXEL) {
+			/* store slot in offset value */
+			VoxelAttribute *voxel_data = mattr->data_voxel();
+			offset = voxel_data->slot;
+		}
+		else if(mattr->type == TypeDesc::TypeFloat) {
 			float *data = mattr->data_float();
 			offset = attr_float.size();
 

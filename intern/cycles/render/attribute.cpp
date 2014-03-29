@@ -14,6 +14,7 @@
  * limitations under the License
  */
 
+#include "image.h"
 #include "mesh.h"
 #include "attribute.h"
 
@@ -24,6 +25,17 @@
 CCL_NAMESPACE_BEGIN
 
 /* Attribute */
+
+Attribute::~Attribute()
+{
+	/* for voxel data, we need to remove the image from the image manager */
+	if(element == ATTR_ELEMENT_VOXEL) {
+		VoxelAttribute *voxel_data = data_voxel();
+
+		if(voxel_data)
+			voxel_data->manager->remove_image(voxel_data->slot);
+	}
+}
 
 void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 {
@@ -75,9 +87,20 @@ void Attribute::add(const Transform& f)
 		buffer.push_back(data[i]);
 }
 
+void Attribute::add(const VoxelAttribute& f)
+{
+	char *data = (char*)&f;
+	size_t size = sizeof(f);
+
+	for(size_t i = 0; i < size; i++)
+		buffer.push_back(data[i]);
+}
+
 size_t Attribute::data_sizeof() const
 {
-	if(type == TypeDesc::TypeFloat)
+	if(element == ATTR_ELEMENT_VOXEL)
+		return sizeof(VoxelAttribute);
+	else if(type == TypeDesc::TypeFloat)
 		return sizeof(float);
 	else if(type == TypeDesc::TypeMatrix)
 		return sizeof(Transform);
@@ -92,6 +115,7 @@ size_t Attribute::element_size(int numverts, int numtris, int numsteps, int numc
 	switch(element) {
 		case ATTR_ELEMENT_OBJECT:
 		case ATTR_ELEMENT_MESH:
+		case ATTR_ELEMENT_VOXEL:
 			size = 1;
 			break;
 		case ATTR_ELEMENT_VERTEX:
@@ -147,38 +171,53 @@ bool Attribute::same_storage(TypeDesc a, TypeDesc b)
 
 const char *Attribute::standard_name(AttributeStandard std)
 {
-	if(std == ATTR_STD_VERTEX_NORMAL)
-		return "N";
-	else if(std == ATTR_STD_FACE_NORMAL)
-		return "Ng";
-	else if(std == ATTR_STD_UV)
-		return "uv";
-	else if(std == ATTR_STD_GENERATED)
-		return "generated";
-	else if(std == ATTR_STD_UV_TANGENT)
-		return "tangent";
-	else if(std == ATTR_STD_UV_TANGENT_SIGN)
-		return "tangent_sign";
-	else if(std == ATTR_STD_POSITION_UNDEFORMED)
-		return "undeformed";
-	else if(std == ATTR_STD_POSITION_UNDISPLACED)
-		return "undisplaced";
-	else if(std == ATTR_STD_MOTION_VERTEX_POSITION)
-		return "motion_P";
-	else if(std == ATTR_STD_MOTION_VERTEX_NORMAL)
-		return "motion_N";
-	else if(std == ATTR_STD_PARTICLE)
-		return "particle";
-	else if(std == ATTR_STD_CURVE_INTERCEPT)
-		return "curve_intercept";
-	else if(std == ATTR_STD_PTEX_FACE_ID)
-		return "ptex_face_id";
-	else if(std == ATTR_STD_PTEX_UV)
-		return "ptex_uv";
-	else if(std == ATTR_STD_GENERATED_TRANSFORM)
-		return "generated_transform";
+	switch(std) {
+		case ATTR_STD_VERTEX_NORMAL:
+			return "N";
+		case ATTR_STD_FACE_NORMAL:
+			return "Ng";
+		case ATTR_STD_UV:
+			return "uv";
+		case ATTR_STD_GENERATED:
+			return "generated";
+		case ATTR_STD_GENERATED_TRANSFORM:
+			return "generated_transform";
+		case ATTR_STD_UV_TANGENT:
+			return "tangent";
+		case ATTR_STD_UV_TANGENT_SIGN:
+			return "tangent_sign";
+		case ATTR_STD_POSITION_UNDEFORMED:
+			return "undeformed";
+		case ATTR_STD_POSITION_UNDISPLACED:
+			return "undisplaced";
+		case ATTR_STD_MOTION_VERTEX_POSITION:
+			return "motion_P";
+		case ATTR_STD_MOTION_VERTEX_NORMAL:
+			return "motion_N";
+		case ATTR_STD_PARTICLE:
+			return "particle";
+		case ATTR_STD_CURVE_INTERCEPT:
+			return "curve_intercept";
+		case ATTR_STD_PTEX_FACE_ID:
+			return "ptex_face_id";
+		case ATTR_STD_PTEX_UV:
+			return "ptex_uv";
+		case ATTR_STD_NOT_FOUND:
+		case ATTR_STD_NONE:
+		case ATTR_STD_NUM:
+			return "";
+	}
 	
 	return "";
+}
+
+AttributeStandard Attribute::name_standard(const char *name)
+{
+	for(AttributeStandard std = ATTR_STD_NONE; std < ATTR_STD_NUM; std++)
+		if(strcmp(name, Attribute::standard_name(std)) == 0)
+			return std;
+
+	return ATTR_STD_NONE;
 }
 
 /* Attribute Set */
