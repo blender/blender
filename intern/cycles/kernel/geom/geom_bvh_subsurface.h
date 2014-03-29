@@ -218,6 +218,10 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 								triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 								break;
 							}
+							case PRIMITIVE_MOTION_TRIANGLE: {
+								motion_triangle_intersect_subsurface(kg, isect_array, P, idir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								break;
+							}
 							default: {
 								break;
 							}

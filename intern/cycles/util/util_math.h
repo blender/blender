@@ -1360,6 +1360,50 @@ ccl_device bool ray_triangle_intersect(
 	return true;
 }
 
+ccl_device bool ray_triangle_intersect_uv(
+	float3 ray_P, float3 ray_D, float ray_t,
+	float3 v0, float3 v1, float3 v2,
+	float *isect_u, float *isect_v, float *isect_t)
+{
+	/* Calculate intersection */
+	float3 e1 = v1 - v0;
+	float3 e2 = v2 - v0;
+	float3 s1 = cross(ray_D, e2);
+
+	const float divisor = dot(s1, e1);
+	if(divisor == 0.0f)
+		return false;
+
+	const float invdivisor = 1.0f/divisor;
+
+	/* compute first barycentric coordinate */
+	const float3 d = ray_P - v0;
+	const float u = dot(d, s1)*invdivisor;
+	if(u < 0.0f)
+		return false;
+
+	/* Compute second barycentric coordinate */
+	const float3 s2 = cross(d, e1);
+	const float v = dot(ray_D, s2)*invdivisor;
+	if(v < 0.0f)
+		return false;
+
+	const float b0 = 1.0f - u - v;
+	if(b0 < 0.0f)
+		return false;
+
+	/* compute t to intersection point */
+	const float t = dot(e2, s2)*invdivisor;
+	if(t < 0.0f || t > ray_t)
+		return false;
+
+	*isect_u = u;
+	*isect_v = v;
+	*isect_t = t;
+
+	return true;
+}
+
 ccl_device bool ray_quad_intersect(
 	float3 ray_P, float3 ray_D, float ray_t,
 	float3 quad_P, float3 quad_u, float3 quad_v,

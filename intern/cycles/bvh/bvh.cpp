@@ -241,6 +241,10 @@ void BVH::pack_triangle(int idx, float4 woop[3])
 	/* create Woop triangle */
 	int tob = pack.prim_object[idx];
 	const Mesh *mesh = objects[tob]->mesh;
+
+	if(mesh->has_motion_blur())
+		return;
+
 	int tidx = pack.prim_index[idx];
 	const int *vidx = mesh->triangles[tidx].v;
 	const float3* vpos = &mesh->verts[0];
@@ -646,6 +650,20 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 					const float3 *vpos = &mesh->verts[0];
 
 					triangle.bounds_grow(vpos, bbox);
+
+					/* motion triangles */
+					if(mesh->use_motion_blur) {
+						Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+						if(attr) {
+							size_t mesh_size = mesh->verts.size();
+							size_t steps = mesh->motion_steps - 1;
+							float3 *vert_steps = attr->data_float3();
+
+							for (size_t i = 0; i < steps; i++)
+								triangle.bounds_grow(vert_steps + i*mesh_size, bbox);
+						}
+					}
 				}
 			}
 

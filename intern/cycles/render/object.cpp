@@ -89,17 +89,36 @@ void Object::apply_transform()
 	float3 c2 = transform_get_column(&tfm, 2);
 	float scalar = pow(fabsf(dot(cross(c0, c1), c2)), 1.0f/3.0f);
 
-	/* apply to mesh vertices */
-	for(size_t i = 0; i < mesh->verts.size(); i++)
-		mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
+	/* triangles */
+	if(mesh->verts.size()) {
+		/* store matrix to transform later. when accessing these as attributes we
+		 * do not want the transform to be applied for consistency between static
+		 * and dynamic BVH, so we do it on packing. */
+		mesh->transform_normal = transform_transpose(transform_inverse(tfm));
 
-	Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-	if (attr) {
-		size_t steps_size = mesh->verts.size() * (mesh->motion_steps - 1);
-		float3 *vert_steps = attr->data_float3();
+		/* apply to mesh vertices */
+		for(size_t i = 0; i < mesh->verts.size(); i++)
+			mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
 
-		for (size_t i = 0; i < steps_size; i++)
-			vert_steps[i] = transform_point(&tfm, vert_steps[i]);
+		Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+		if (attr) {
+			size_t steps_size = mesh->verts.size() * (mesh->motion_steps - 1);
+			float3 *vert_steps = attr->data_float3();
+
+			for (size_t i = 0; i < steps_size; i++)
+				vert_steps[i] = transform_point(&tfm, vert_steps[i]);
+		}
+
+		Attribute *attr_N = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+
+		if(attr_N) {
+			Transform ntfm = mesh->transform_normal;
+			size_t steps_size = mesh->verts.size() * (mesh->motion_steps - 1);
+			float3 *normal_steps = attr_N->data_float3();
+
+			for (size_t i = 0; i < steps_size; i++)
+				normal_steps[i] = normalize(transform_direction(&ntfm, normal_steps[i]));
+		}
 	}
 
 	/* apply to curve keys */
@@ -120,11 +139,6 @@ void Object::apply_transform()
 		for (size_t i = 0; i < steps_size; i++)
 			vert_steps[i] = transform_point(&tfm, vert_steps[i]);
 	}
-
-	/* store matrix to transform later. when accessing these as attributes we
-	 * do not want the transform to be applied for consistency between static
-	 * and dynamic BVH, so we do it on packing. */
-	mesh->transform_normal = transform_transpose(transform_inverse(tfm));
 
 	/* we keep normals pointing in same direction on negative scale, notify
 	 * mesh about this in it (re)calculates normals */

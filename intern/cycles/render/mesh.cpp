@@ -81,6 +81,7 @@ Mesh::Mesh()
 	bounds = BoundBox::empty;
 
 	motion_steps = 3;
+	use_motion_blur = false;
 
 	bvh = NULL;
 
@@ -187,9 +188,9 @@ void Mesh::compute_bounds()
 
 		for(size_t i = 0; i < curve_keys_size; i++)
 			bnds.grow(float4_to_float3(curve_keys[i]), curve_keys[i].w);
-		
+
 		Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-		if (attr) {
+		if (use_motion_blur && attr) {
 			size_t steps_size = verts.size() * (motion_steps - 1);
 			float3 *vert_steps = attr->data_float3();
 	
@@ -216,7 +217,7 @@ void Mesh::compute_bounds()
 			for(size_t i = 0; i < curve_keys_size; i++)
 				bnds.grow_safe(float4_to_float3(curve_keys[i]), curve_keys[i].w);
 			
-			if (attr) {
+			if (use_motion_blur && attr) {
 				size_t steps_size = verts.size() * (motion_steps - 1);
 				float3 *vert_steps = attr->data_float3();
 		
@@ -329,7 +330,7 @@ void Mesh::add_vertex_normals()
 	Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
 
-	if(false && !attr_mN) {
+	if(has_motion_blur() && !attr_mN) {
 		/* create attribute */
 		attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
 
@@ -531,6 +532,11 @@ void Mesh::tag_update(Scene *scene, bool rebuild)
 
 	scene->mesh_manager->need_update = true;
 	scene->object_manager->need_update = true;
+}
+
+bool Mesh::has_motion_blur() const
+{
+	return (use_motion_blur && attributes.find(ATTR_STD_MOTION_VERTEX_POSITION));
 }
 
 /* Mesh Manager */

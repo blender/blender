@@ -90,6 +90,7 @@ public:
 	DisplacementMethod displacement_method;
 
 	uint motion_steps;
+	bool use_motion_blur;
 
 	/* Update Flags */
 	bool need_update;
@@ -127,6 +128,8 @@ public:
 	bool need_attribute(Scene *scene, ustring name);
 
 	void tag_update(Scene *scene, bool rebuild);
+
+	bool has_motion_blur() const;
 };
 
 /* Mesh Manager */

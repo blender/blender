@@ -648,7 +648,11 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 		) {
 #endif
 		float3 P[3];
-		triangle_vertices(kg, sd->prim, P);
+
+		if(sd->type & PRIMITIVE_TRIANGLE)
+			triangle_vertices(kg, sd->prim, P);
+		else
+			motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, P);
 
 		if(!(sd->flag & SD_TRANSFORM_APPLIED)) {
 			object_position_transform(kg, sd, &P[0]);

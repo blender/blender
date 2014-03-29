@@ -83,8 +83,8 @@ ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	}
 	else
 #endif
-	{
-		/* fetch triangle data */
+	if(sd->type & PRIMITIVE_TRIANGLE) {
+		/* static triangle */
 		float4 Ns = kernel_tex_fetch(__tri_normal, sd->prim);
 		float3 Ng = make_float3(Ns.x, Ns.y, Ns.z);
 		sd->shader = __float_as_int(Ns.w);
@@ -102,6 +102,10 @@ ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 		/* dPdu/dPdv */
 		triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
 #endif
+	}
+	else {
+		/* motion triangle */
+		motion_triangle_shader_setup(kg, sd, isect, ray, false);
 	}
 
 	sd->I = -ray->D;
@@ -160,7 +164,7 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 #endif
 
 	/* fetch triangle data */
-	{
+	if(sd->type == PRIMITIVE_TRIANGLE) {
 		float4 Ns = kernel_tex_fetch(__tri_normal, sd->prim);
 		float3 Ng = make_float3(Ns.x, Ns.y, Ns.z);
 		sd->shader = __float_as_int(Ns.w);
@@ -177,6 +181,10 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 		/* dPdu/dPdv */
 		triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
 #endif
+	}
+	else {
+		/* motion triangle */
+		motion_triangle_shader_setup(kg, sd, isect, ray, true);
 	}
 
 	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);

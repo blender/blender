@@ -324,8 +324,10 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 			Mesh *mesh = object->mesh;
 
 			if(true) {
-				if(true)
+				if(true) {
 					mesh->motion_steps = 3;
+					mesh->use_motion_blur = true;
+				}
 
 				vector<float> times = object->motion_times();
 				foreach(float time, times)

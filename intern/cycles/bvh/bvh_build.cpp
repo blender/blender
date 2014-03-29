@@ -70,12 +70,29 @@ BVHBuild::~BVHBuild()
 
 void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
 {
+	Attribute *attr_mP = NULL;
+	
+	if(mesh->has_motion_blur())
+		attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
 	for(uint j = 0; j < mesh->triangles.size(); j++) {
 		Mesh::Triangle t = mesh->triangles[j];
 		BoundBox bounds = BoundBox::empty;
 		PrimitiveType type = PRIMITIVE_TRIANGLE;
 
 		t.bounds_grow(&mesh->verts[0], bounds);
+
+		/* motion triangles */
+		if(attr_mP) {
+			size_t mesh_size = mesh->verts.size();
+			size_t steps = mesh->motion_steps - 1;
+			float3 *vert_steps = attr_mP->data_float3();
+
+			for(size_t i = 0; i < steps; i++)
+				t.bounds_grow(vert_steps + i*mesh_size, bounds);
+
+			type = PRIMITIVE_MOTION_TRIANGLE;
+		}
 
 		if(bounds.valid()) {
 			references.push_back(BVHReference(bounds, j, i, type));

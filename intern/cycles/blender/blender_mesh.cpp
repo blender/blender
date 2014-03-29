@@ -559,6 +559,9 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Object *object, float motion
 	int time_index = 0;
 
 	if(scene->need_motion() == Scene::MOTION_BLUR) {
+		if(!mesh->use_motion_blur)
+			return;
+		
 		/* see if this mesh needs motion data at this time */
 		vector<float> object_times = object->motion_times();
 		bool found = false;
