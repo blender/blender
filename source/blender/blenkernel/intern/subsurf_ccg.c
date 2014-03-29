@@ -1763,12 +1763,15 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 			new_shademodel = GL_SMOOTH;
 			new_matnr = 0;
 		}
-		
+
 		if (shademodel != new_shademodel || matnr != new_matnr) {
 			matnr = new_matnr;
 			shademodel = new_shademodel;
 
-			drawcurrent = setMaterial(matnr + 1, NULL);
+			if (setMaterial)
+				drawcurrent = setMaterial(matnr + 1, NULL);
+			else
+				drawcurrent = 1;
 
 			glShadeModel(shademodel);
 		}

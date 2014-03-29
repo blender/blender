@@ -1446,7 +1446,7 @@ void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
 
 	if (buffers->vert_buf) {
 		int totelem = (buffers->smooth ? totvert : (buffers->tot_tri * 3));
-		float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+		float diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		if (buffers->show_diffuse_color) {
 			MFace *f = buffers->mface + buffers->face_indices[0];
@@ -1664,7 +1664,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 		int totvert = key->grid_area * totgrid;
 		int smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 		const int has_mask = key->has_mask;
-		float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+		float diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		if (buffers->show_diffuse_color) {
 			const DMFlagMat *flags = &grid_flag_mats[grid_indices[0]];
@@ -1960,7 +1960,7 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
 		VertexBufferFormat *vd = &vert_data[*v_index];
 
 		/* TODO: should use material color */
-		float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+		float diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		/* Set coord, normal, and mask */
 		copy_v3_v3(vd->co, v->co);
@@ -2200,7 +2200,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_PBVH_Buffers *buffers)
 	int i, j;
 	const int has_mask = (buffers->vmask != NULL);
 	const MFace *face = &buffers->mface[buffers->face_indices[0]];
-	float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+	float diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	if (buffers->show_diffuse_color)
 		GPU_material_diffuse_get(face->mat_nr + 1, diffuse_color);
@@ -2272,7 +2272,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_PBVH_Buffers *buffers)
 	int i, j, x, y, gridsize = buffers->gridkey.grid_size;
 	const int has_mask = key->has_mask;
 	const DMFlagMat *flags = &buffers->grid_flag_mats[buffers->grid_indices[0]];
-	float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+	float diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	if (buffers->show_diffuse_color)
 		GPU_material_diffuse_get(flags->mat_nr + 1, diffuse_color);

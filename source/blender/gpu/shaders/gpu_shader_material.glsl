@@ -2409,16 +2409,20 @@ void node_output_material(vec4 surface, vec4 volume, float displacement, out vec
 
 /* ********************** matcap style render ******************** */
 
-void material_preview_matcap(vec4 color, sampler2D ima, vec3 N, out vec4 result)
+void material_preview_matcap(vec4 color, sampler2D ima, vec4 N, vec4 mask, out vec4 result)
 {
+	vec3 normal;
 	vec2 tex;
-
-	if (N.z < 0.0) {
-		N.z = 0.0;
-		N = normalize(N);
+	
+	/* remap to 0.0 - 1.0 range. This is done because OpenGL 2.0 clamps colors 
+	 * between shader stages and we want the full range of the normal */
+	normal = vec3(2.0, 2.0, 2.0) * vec3(N.x, N.y, N.z) - vec3(1.0, 1.0, 1.0);
+	if (normal.z < 0.0) {
+		normal.z = 0.0;
 	}
+	normal = normalize(normal);
 
-	tex.x = 0.5 + 0.49 * N.x;
-	tex.y = 0.5 + 0.49 * N.y;
-	result = texture2D(ima, tex);
+	tex.x = 0.5 + 0.49 * normal.x;
+	tex.y = 0.5 + 0.49 * normal.y;
+	result = texture2D(ima, tex) * mask;
 }

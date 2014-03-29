@@ -365,6 +365,10 @@ const char *GPU_builtin_name(GPUBuiltin builtin)
 		return "unfobcolor";
 	else if (builtin == GPU_AUTO_BUMPSCALE)
 		return "unfobautobumpscale";
+	else if (builtin == GPU_MATCAP_NORMAL)
+		return "gl_SecondaryColor";
+	else if (builtin == GPU_COLOR)
+		return "gl_Color";
 	else
 		return "";
 }
@@ -664,6 +668,18 @@ static char *code_generate_vertex(ListBase *nodes)
 				}
 				else
 					BLI_dynstr_appendf(ds, "\tvar%d = att%d;\n", input->attribid, input->attribid);
+			}
+			/* unfortunately special handling is needed here because we abuse gl_Color/gl_SecondaryColor flat shading */
+			else if (input->source == GPU_SOURCE_BUILTIN) {
+				if (input->builtin == GPU_MATCAP_NORMAL) {
+					/* remap to 0.0 - 1.0 range. This is done because OpenGL 2.0 clamps colors
+					 * between shader stages and we want the full range of the normal */
+					BLI_dynstr_appendf(ds, "\tvec3 matcapcol = vec3(0.5, 0.5, 0.5) * varnormal + vec3(0.5, 0.5, 0.5);\n");
+					BLI_dynstr_appendf(ds, "\tgl_FrontSecondaryColor = vec4(matcapcol, 1.0);\n");
+				}
+				else if (input->builtin == GPU_COLOR) {
+					BLI_dynstr_appendf(ds, "\tgl_FrontColor = gl_Color;\n");
+				}
 			}
 
 	BLI_dynstr_append(ds, "}\n\n");

@@ -84,7 +84,9 @@ typedef enum GPUBuiltin {
 	GPU_VIEW_POSITION = 16,
 	GPU_VIEW_NORMAL = 32,
 	GPU_OBCOLOR = 64,
-	GPU_AUTO_BUMPSCALE = 128
+	GPU_AUTO_BUMPSCALE = 128,
+	GPU_MATCAP_NORMAL = 256,
+	GPU_COLOR = 512,
 } GPUBuiltin;
 
 typedef enum GPUBlendMode {
