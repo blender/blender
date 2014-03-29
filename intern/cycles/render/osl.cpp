@@ -543,7 +543,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 	/* test if we shader contains specific closures */
 	OSLShaderInfo *info = ((OSLShaderManager*)manager)->shader_loaded_info(name);
 
-	if(info) {
+	if(info && current_type == SHADER_TYPE_SURFACE) {
 		if(info->has_surface_emission)
 			current_shader->has_surface_emission = true;
 		if(info->has_surface_transparent)
@@ -708,14 +708,16 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 					node->compile(*this);
 					done.insert(node);
 
-					if(node->has_surface_emission())
-						current_shader->has_surface_emission = true;
-					if(node->has_surface_transparent())
-						current_shader->has_surface_transparent = true;
-					if(node->has_surface_bssrdf()) {
-						current_shader->has_surface_bssrdf = true;
-						if(node->has_bssrdf_bump())
-							current_shader->has_bssrdf_bump = true;
+					if(current_type == SHADER_TYPE_SURFACE) {
+						if(node->has_surface_emission())
+							current_shader->has_surface_emission = true;
+						if(node->has_surface_transparent())
+							current_shader->has_surface_transparent = true;
+						if(node->has_surface_bssrdf()) {
+							current_shader->has_surface_bssrdf = true;
+							if(node->has_bssrdf_bump())
+								current_shader->has_bssrdf_bump = true;
+						}
 					}
 				}
 				else

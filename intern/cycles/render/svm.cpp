@@ -489,14 +489,16 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 		stack_clear_users(node, done);
 		stack_clear_temporary(node);
 
-		if(node->has_surface_emission())
-			current_shader->has_surface_emission = true;
-		if(node->has_surface_transparent())
-			current_shader->has_surface_transparent = true;
-		if(node->has_surface_bssrdf()) {
-			current_shader->has_surface_bssrdf = true;
-			if(node->has_bssrdf_bump())
-				current_shader->has_bssrdf_bump = true;
+		if(current_type == SHADER_TYPE_SURFACE) {
+			if(node->has_surface_emission())
+				current_shader->has_surface_emission = true;
+			if(node->has_surface_transparent())
+				current_shader->has_surface_transparent = true;
+			if(node->has_surface_bssrdf()) {
+				current_shader->has_surface_bssrdf = true;
+				if(node->has_bssrdf_bump())
+					current_shader->has_bssrdf_bump = true;
+			}
 		}
 
 		/* end node is added outside of this */
@@ -554,14 +556,16 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 
 		mix_weight_offset = SVM_STACK_INVALID;
 
-		if(node->has_surface_emission())
-			current_shader->has_surface_emission = true;
-		if(node->has_surface_transparent())
-			current_shader->has_surface_transparent = true;
-		if(node->has_surface_bssrdf()) {
-			current_shader->has_surface_bssrdf = true;
-			if(node->has_bssrdf_bump())
-				current_shader->has_bssrdf_bump = true;
+		if(current_type == SHADER_TYPE_SURFACE) {
+			if(node->has_surface_emission())
+				current_shader->has_surface_emission = true;
+			if(node->has_surface_transparent())
+				current_shader->has_surface_transparent = true;
+			if(node->has_surface_bssrdf()) {
+				current_shader->has_surface_bssrdf = true;
+				if(node->has_bssrdf_bump())
+					current_shader->has_bssrdf_bump = true;
+			}
 		}
 	}
 
