@@ -242,6 +242,21 @@ void Mesh::compute_bounds()
 	bounds = bnds;
 }
 
+static float3 compute_face_normal(const Mesh::Triangle& t, float3 *verts)
+{
+	float3 v0 = verts[t.v[0]];
+	float3 v1 = verts[t.v[1]];
+	float3 v2 = verts[t.v[2]];
+
+	float3 norm = cross(v1 - v0, v2 - v0);
+	float normlen = len(norm);
+
+	if(normlen == 0.0f)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
+	return norm / normlen;
+}
+
 void Mesh::add_face_normals()
 {
 	/* don't compute if already there */
@@ -261,17 +276,7 @@ void Mesh::add_face_normals()
 		Triangle *triangles_ptr = &triangles[0];
 
 		for(size_t i = 0; i < triangles_size; i++) {
-			Triangle t = triangles_ptr[i];
-			float3 v0 = verts_ptr[t.v[0]];
-			float3 v1 = verts_ptr[t.v[1]];
-			float3 v2 = verts_ptr[t.v[2]];
-
-			float3 norm = cross(v1 - v0, v2 - v0);
-			float normlen = len(norm);
-			if(normlen == 0.0f)
-				fN[i] = make_float3(0.0f, 0.0f, 0.0f);
-			else
-				fN[i] = norm / normlen;
+			fN[i] = compute_face_normal(triangles_ptr[i], verts_ptr);
 
 			if(flip)
 				fN[i] = -fN[i];
@@ -289,36 +294,69 @@ void Mesh::add_face_normals()
 
 void Mesh::add_vertex_normals()
 {
-	/* don't compute if already there */
-	if(attributes.find(ATTR_STD_VERTEX_NORMAL))
-		return;
-	
-	/* get attributes */
-	Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
-	Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
-
-	float3 *fN = attr_fN->data_float3();
-	float3 *vN = attr_vN->data_float3();
-
-	/* compute vertex normals */
-	memset(vN, 0, verts.size()*sizeof(float3));
-
+	bool flip = transform_negative_scaled;
 	size_t verts_size = verts.size();
 	size_t triangles_size = triangles.size();
-	bool flip = transform_negative_scaled;
 
-	if(triangles_size) {
-		Triangle *triangles_ptr = &triangles[0];
+	/* static vertex normals */
+	if(!attributes.find(ATTR_STD_VERTEX_NORMAL)) {
+		/* get attributes */
+		Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
+		Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
 
-		for(size_t i = 0; i < triangles_size; i++)
-			for(size_t j = 0; j < 3; j++)
-				vN[triangles_ptr[i].v[j]] += fN[i];
+		float3 *fN = attr_fN->data_float3();
+		float3 *vN = attr_vN->data_float3();
+
+		/* compute vertex normals */
+		memset(vN, 0, verts.size()*sizeof(float3));
+
+		if(triangles_size) {
+			Triangle *triangles_ptr = &triangles[0];
+
+			for(size_t i = 0; i < triangles_size; i++)
+				for(size_t j = 0; j < 3; j++)
+					vN[triangles_ptr[i].v[j]] += fN[i];
+		}
+
+		for(size_t i = 0; i < verts_size; i++) {
+			vN[i] = normalize(vN[i]);
+			if(flip)
+				vN[i] = -vN[i];
+		}
 	}
 
-	for(size_t i = 0; i < verts_size; i++) {
-		vN[i] = normalize(vN[i]);
-		if(flip)
-			vN[i] = -vN[i];
+	/* motion vertex normals */
+	Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+	Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+
+	if(false && !attr_mN) {
+		/* create attribute */
+		attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
+
+		for(int step = 0; step < motion_steps - 1; step++) {
+			float3 *mP = attr_mP->data_float3() + step*verts.size();
+			float3 *mN = attr_mN->data_float3() + step*verts.size();
+
+			/* compute */
+			memset(mN, 0, verts.size()*sizeof(float3));
+
+			if(triangles_size) {
+				Triangle *triangles_ptr = &triangles[0];
+
+				for(size_t i = 0; i < triangles_size; i++) {
+					for(size_t j = 0; j < 3; j++) {
+						float3 fN = compute_face_normal(triangles_ptr[i], mP);
+						mN[triangles_ptr[i].v[j]] += fN;
+					}
+				}
+			}
+
+			for(size_t i = 0; i < verts_size; i++) {
+				mN[i] = normalize(mN[i]);
+				if(flip)
+					mN[i] = -mN[i];
+			}
+		}
 	}
 }
 

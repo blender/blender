@@ -165,6 +165,8 @@ const char *Attribute::standard_name(AttributeStandard std)
 		return "undisplaced";
 	else if(std == ATTR_STD_MOTION_VERTEX_POSITION)
 		return "motion_P";
+	else if(std == ATTR_STD_MOTION_VERTEX_NORMAL)
+		return "motion_N";
 	else if(std == ATTR_STD_PARTICLE)
 		return "particle";
 	else if(std == ATTR_STD_CURVE_INTERCEPT)
@@ -274,6 +276,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 				break;
 			case ATTR_STD_MOTION_VERTEX_POSITION:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX_MOTION);
+				break;
+			case ATTR_STD_MOTION_VERTEX_NORMAL:
+				attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX_MOTION);
 				break;
 			case ATTR_STD_PTEX_FACE_ID:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
