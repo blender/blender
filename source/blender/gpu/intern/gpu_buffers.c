@@ -1702,7 +1702,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 				}
 				
 				if (!smooth) {
-					/* for flat shading, recalc normals and set the last vertex of
+					/* for flat shading, recalc normals and set the first vertex of
 					 * each quad in the index buffer to have the flat normal as
 					 * that is what opengl will use */
 					for (j = 0; j < key->grid_size - 1; j++) {
@@ -1721,7 +1721,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 							               CCG_elem_co(key, elems[2]),
 							               CCG_elem_co(key, elems[3]));
 
-							vd = vert_data + (j + 1) * key->grid_size + (k + 1);
+							vd = vert_data + (j + 1) * key->grid_size + k;
 							normal_float_to_short_v3(vd->no, fno);
 
 							if (has_mask) {
@@ -1798,7 +1798,7 @@ static int gpu_count_grid_quads(BLI_bitmap **grid_hidden,
 		int i, j, k;                                                    \
 		                                                                \
 		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,                    \
-		                sizeof(type_) * (tot_quad_) * 4, NULL,          \
+						sizeof(type_) * (tot_quad_) * 6, NULL,          \
 		                GL_STATIC_DRAW_ARB);                            \
 		                                                                \
 		/* Fill the quad buffer */                                      \
@@ -1822,6 +1822,8 @@ static int gpu_count_grid_quads(BLI_bitmap **grid_hidden,
 						*(quad_data++) = offset + j * gridsize + k;     \
 						*(quad_data++) = offset + (j + 1) * gridsize + k; \
 						*(quad_data++) = offset + (j + 1) * gridsize + k + 1; \
+						*(quad_data++) = offset + j * gridsize + k + 1; \
+						*(quad_data++) = offset + (j + 1) * gridsize + k; \
 					}                                                   \
 				}                                                       \
 																		\
@@ -2439,7 +2441,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 				glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
 				               offset + offsetof(VertexBufferFormat, color));
 				
-				glDrawElements(GL_QUADS, buffers->tot_quad * 4, buffers->index_type, 0);
+				glDrawElements(GL_TRIANGLES, buffers->tot_quad * 6, buffers->index_type, 0);
 
 				offset += buffers->gridkey.grid_area * sizeof(VertexBufferFormat);
 			}
