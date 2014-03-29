@@ -261,7 +261,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_g
 
 			ShaderData volume_sd;
 			VolumeIntegrateResult result = kernel_volume_integrate(kg, &state,
-				&volume_sd, &volume_ray, L, &throughput, rng, false);
+				&volume_sd, &volume_ray, L, &throughput, rng);
 
 			if(result == VOLUME_PATH_SCATTERED) {
 				if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f))
@@ -650,7 +650,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 			ShaderData volume_sd;
 			VolumeIntegrateResult result = kernel_volume_integrate(kg, &state,
-				&volume_sd, &volume_ray, &L, &throughput, rng, false);
+				&volume_sd, &volume_ray, &L, &throughput, rng);
 
 			if(result == VOLUME_PATH_SCATTERED) {
 				if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f))
@@ -1090,6 +1090,60 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
+#ifdef __KERNEL_CPU__
+			/* decoupled ray marching only supported on CPU */
+			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
+
+			/* cache steps along volume for repeated sampling */
+			VolumeSegment volume_segment;
+			ShaderData volume_sd;
+
+			shader_setup_from_volume(kg, &volume_sd, &volume_ray, state.bounce);
+			kernel_volume_decoupled_record(kg, &state,
+				&volume_ray, &volume_sd, &volume_segment, heterogeneous);
+
+			/* sample scattering */
+			int num_samples = kernel_data.integrator.volume_samples;
+			float num_samples_inv = 1.0f/num_samples;
+
+			for(int j = 0; j < num_samples; j++) {
+				/* workaround to fix correlation bug in T38710, can find better solution
+				 * in random number generator later, for now this is done here to not impact
+				 * performance of rendering without volumes */
+				RNG tmp_rng = cmj_hash(*rng, state.rng_offset);
+
+				PathState ps = state;
+				Ray pray = ray;
+				float3 tp = throughput;
+
+				/* branch RNG state */
+				path_state_branch(&ps, j, num_samples);
+
+				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
+					&ps, &volume_ray, &volume_sd, &tp, &tmp_rng, &volume_segment);
+				
+				if(result == VOLUME_PATH_SCATTERED) {
+					/* todo: use all-light sampling */
+					if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
+						kernel_path_indirect(kg, rng, pray, buffer, tp*num_samples_inv, num_samples, ps, &L);
+
+						/* for render passes, sum and reset indirect light pass variables
+						 * for the next samples */
+						path_radiance_sum_indirect(&L);
+						path_radiance_reset_indirect(&L);
+					}
+				}
+			}
+
+			/* emission and transmittance */
+			if(volume_segment.closure_flag & SD_EMISSION)
+				path_radiance_accum_emission(&L, throughput, volume_segment.accum_emission, state.bounce);
+			throughput *= volume_segment.accum_transmittance;
+
+			/* free cached steps */
+			kernel_volume_decoupled_free(kg, &volume_segment);
+#else
+			/* GPU: no decoupled ray marching, scatter probalistically */
 			int num_samples = kernel_data.integrator.volume_samples;
 			float num_samples_inv = 1.0f/num_samples;
 
@@ -1106,7 +1160,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				path_state_branch(&ps, j, num_samples);
 
 				VolumeIntegrateResult result = kernel_volume_integrate(kg, &ps,
-					&volume_sd, &volume_ray, &L, &tp, rng, true);
+					&volume_sd, &volume_ray, &L, &tp, rng);
 				
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* todo: use all-light sampling */
@@ -1123,6 +1177,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 			/* todo: avoid this calculation using decoupled ray marching */
 			kernel_volume_shadow(kg, &state, &volume_ray, &throughput);
+#endif
 		}
 #endif
 

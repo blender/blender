@@ -312,7 +312,7 @@ ccl_device float3 kernel_volume_emission_integrate(VolumeShaderCoefficients *coe
  * the volume shading coefficient for the entire line segment */
 ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGlobals *kg,
 	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput,
-	RNG *rng, bool branched)
+	RNG *rng)
 {
 	VolumeShaderCoefficients coeff;
 
@@ -337,12 +337,18 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 
 		float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
 
-		if(branched) {
-			/* branched path tracing: we always scatter in the segment */
+		/* decide if we will hit or miss */
+		float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
+		float sample_transmittance = expf(-sample_sigma_t * t);
+
+		if(xi >= sample_transmittance) {
+			/* scattering */
 			float3 pdf;
 			float sample_t;
 
-			/* scattering */
+			/* rescale random number so we can reuse it */
+			xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
+
 			if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
 				/* distance sampling */
 				sample_t = kernel_volume_distance_sample(ray->t, sigma_t, channel, xi, &transmittance, &pdf);
@@ -359,53 +365,17 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 				pdf = make_float3(equi_pdf, equi_pdf, equi_pdf);
 			}
 
+			/* modifiy pdf for hit/miss decision */
+			pdf *= make_float3(1.0f, 1.0f, 1.0f) - volume_color_transmittance(sigma_t, t);
+
 			new_tp = *throughput * coeff.sigma_s * transmittance / average(pdf);
 			t = sample_t;
 		}
 		else {
-			/* regular path tracing: we probalistically scatter in the segment
-			 * with probability the transmittance over the segment */
-
-			/* decide if we will hit or miss */
-			float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
-			float sample_transmittance = expf(-sample_sigma_t * t);
-
-			if(xi >= sample_transmittance) {
-				/* scattering */
-				float3 pdf;
-				float sample_t;
-
-				/* rescale random number so we can reuse it */
-				xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
-
-				if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
-					/* distance sampling */
-					sample_t = kernel_volume_distance_sample(ray->t, sigma_t, channel, xi, &transmittance, &pdf);
-				}
-				else {
-					/* equiangular sampling */
-					float3 light_P;
-					float equi_pdf;
-					if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P))
-						return VOLUME_PATH_MISSED;
-
-					sample_t = kernel_volume_equiangular_sample(ray, light_P, xi, &equi_pdf);
-					transmittance = volume_color_transmittance(sigma_t, sample_t);
-					pdf = make_float3(equi_pdf, equi_pdf, equi_pdf);
-				}
-
-				/* modifiy pdf for hit/miss decision */
-				pdf *= make_float3(1.0f, 1.0f, 1.0f) - volume_color_transmittance(sigma_t, t);
-
-				new_tp = *throughput * coeff.sigma_s * transmittance / average(pdf);
-				t = sample_t;
-			}
-			else {
-				/* no scattering */
-				transmittance = volume_color_transmittance(sigma_t, t);
-				float pdf = (transmittance.x + transmittance.y + transmittance.z) * (1.0f/3.0f);
-				new_tp = *throughput * transmittance / pdf;
-			}
+			/* no scattering */
+			transmittance = volume_color_transmittance(sigma_t, t);
+			float pdf = (transmittance.x + transmittance.y + transmittance.z) * (1.0f/3.0f);
+			new_tp = *throughput * transmittance / pdf;
 		}
 	}
 	else if(closure_flag & SD_ABSORPTION) {
@@ -876,8 +846,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
  * ray, with the assumption that there are no surfaces blocking light
  * between the endpoints */
 ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
-	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng,
-	bool branched)
+	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng)
 {
 	/* workaround to fix correlation bug in T38710, can find better solution
 	 * in random number generator later, for now this is done here to not impact
@@ -903,7 +872,7 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals 
 	if(heterogeneous)
 		return kernel_volume_integrate_heterogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
 	else
-		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng, branched);
+		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
 #endif
 }
 
