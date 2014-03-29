@@ -97,6 +97,11 @@ ccl_device float3 volume_color_attenuation(float3 sigma, float t)
 	return make_float3(expf(-sigma.x * t), expf(-sigma.y * t), expf(-sigma.z * t));
 }
 
+ccl_device float kernel_volume_channel_get(float3 value, int channel)
+{
+	return (channel == 0)? value.x: ((channel == 1)? value.y: value.z);
+}
+
 ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, VolumeStack *stack)
 {
 	for(int i = 0; stack[i].shader != SHADER_NONE; i++) {
@@ -190,6 +195,40 @@ ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, PathState *stat
 		kernel_volume_shadow_homogeneous(kg, state, ray, &sd, throughput);
 }
 
+/* Equi-angular sampling as in:
+ * "Importance Sampling Techniques for Path Tracing in Participating Media" */
+
+ccl_device float kernel_volume_equiangular_sample(Ray *ray, float3 light_P, float xi, float *pdf)
+{
+	float t = ray->t;
+
+	float delta = dot((light_P - ray->P) , ray->D);
+	float D = sqrtf(len_squared(light_P - ray->P) - delta * delta);
+	float theta_a = -atan2f(delta, D);
+	float theta_b = atan2f(t - delta, D);
+	float t_ = D * tan((xi * theta_b) + (1 - xi) * theta_a);
+
+	*pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
+
+	return min(t, delta + t_); /* min is only for float precision errors */
+}
+
+ccl_device float kernel_volume_equiangular_pdf(Ray *ray, float3 light_P, float sample_t)
+{
+	float delta = dot((light_P - ray->P) , ray->D);
+	float D = sqrtf(len_squared(light_P - ray->P) - delta * delta);
+
+	float t = ray->t;
+	float t_ = sample_t - delta;
+
+	float theta_a = -atan2f(delta, D);
+	float theta_b = atan2f(t - delta, D);
+
+	float pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
+
+	return pdf;
+}
+
 /* Volume Path */
 
 /* homogeneous volume: assume shader evaluation at the start gives
@@ -219,14 +258,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 
 		/* pick random color channel, we use the Veach one-sample
 		 * model with balance heuristic for the channels */
-		float sample_sigma_t;
-
-		if(channel == 0)
-			sample_sigma_t = sigma_t.x;
-		else if(channel == 1)
-			sample_sigma_t = sigma_t.y;
-		else
-			sample_sigma_t = sigma_t.z;
+		float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
 
 		/* distance sampling */
 		if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
@@ -265,9 +297,6 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 				/* rescale random number so we can reuse it */
 				xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
 
-				/* equi-angular scattering somewhere on segment 0..t */
-				/* see "Importance Sampling Techniques for Path Tracing in Participating Media" */
-
 				/* light RNGs */
 				float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
 				float light_u, light_v;
@@ -280,14 +309,8 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 					return VOLUME_PATH_MISSED;
 
 				/* sampling */
-				float delta = dot((ls.P - ray->P) , ray->D);
-				float D = sqrtf(len_squared(ls.P - ray->P) - delta * delta);
-				float theta_a = -atan2f(delta, D);
-				float theta_b = atan2f(t - delta, D);
-				float t_ = D * tan((xi * theta_b) + (1 - xi) * theta_a);
-
-				float pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
-				float sample_t = min(t, delta + t_);
+				float sample_t, pdf;
+				sample_t = kernel_volume_equiangular_sample(ray, ls.P, xi, &pdf);
 
 				transmittance = volume_color_attenuation(sigma_t, sample_t);
 
@@ -409,14 +432,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 
 				/* pick random color channel, we use the Veach one-sample
 				 * model with balance heuristic for the channels */
-				float sample_sigma_t;
-
-				if(channel == 0)
-					sample_sigma_t = accum_sigma_t.x + dt*sigma_t.x;
-				else if(channel == 1)
-					sample_sigma_t = accum_sigma_t.y + dt*sigma_t.y;
-				else
-					sample_sigma_t = accum_sigma_t.z + dt*sigma_t.z;
+				float sample_sigma_t = kernel_volume_channel_get(accum_sigma_t + dt*sigma_t, channel);
 
 				if(nlogxi < sample_sigma_t) {
 					/* compute sampling distance */
@@ -540,10 +556,11 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals 
 	 * in random number generator later, for now this is done here to not impact
 	 * performance of rendering without volumes */
 	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
+	bool heterogeneous = volume_stack_is_heterogeneous(kg, state->volume_stack);
 
 	shader_setup_from_volume(kg, sd, ray, state->bounce);
 
-	if(volume_stack_is_heterogeneous(kg, state->volume_stack))
+	if(heterogeneous)
 		return kernel_volume_integrate_heterogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
 	else
 		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
