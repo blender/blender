@@ -1702,8 +1702,8 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 				}
 				
 				if (!smooth) {
-					/* for flat shading, recalc normals and set the first vertex of
-					 * each quad in the index buffer to have the flat normal as
+					/* for flat shading, recalc normals and set the last vertex of
+					 * each triangle in the index buffer to have the flat normal as
 					 * that is what opengl will use */
 					for (j = 0; j < key->grid_size - 1; j++) {
 						for (k = 0; k < key->grid_size - 1; k++) {
@@ -1793,7 +1793,7 @@ static int gpu_count_grid_quads(BLI_bitmap **grid_hidden,
  * unsigned shorts or unsigned ints. */
 #define FILL_QUAD_BUFFER(type_, tot_quad_, buffer_)                     \
 	{                                                                   \
-		type_ *quad_data;                                               \
+		type_ *tri_data;                                               \
 		int offset = 0;                                                 \
 		int i, j, k;                                                    \
 		                                                                \
@@ -1801,10 +1801,10 @@ static int gpu_count_grid_quads(BLI_bitmap **grid_hidden,
 						sizeof(type_) * (tot_quad_) * 6, NULL,          \
 		                GL_STATIC_DRAW_ARB);                            \
 		                                                                \
-		/* Fill the quad buffer */                                      \
-		quad_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,         \
+		/* Fill the buffer */                                      \
+		tri_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,         \
 		                           GL_WRITE_ONLY_ARB);                  \
-		if (quad_data) {                                                \
+		if (tri_data) {                                                \
 			for (i = 0; i < totgrid; ++i) {                             \
 				BLI_bitmap *gh = NULL;                                  \
 				if (grid_hidden)                                        \
@@ -1818,12 +1818,13 @@ static int gpu_count_grid_quads(BLI_bitmap **grid_hidden,
 						                              gridsize, k, j))  \
 							continue;                                   \
 																		\
-						*(quad_data++) = offset + j * gridsize + k + 1; \
-						*(quad_data++) = offset + j * gridsize + k;     \
-						*(quad_data++) = offset + (j + 1) * gridsize + k; \
-						*(quad_data++) = offset + (j + 1) * gridsize + k + 1; \
-						*(quad_data++) = offset + j * gridsize + k + 1; \
-						*(quad_data++) = offset + (j + 1) * gridsize + k; \
+						*(tri_data++) = offset + j * gridsize + k + 1; \
+						*(tri_data++) = offset + j * gridsize + k;     \
+						*(tri_data++) = offset + (j + 1) * gridsize + k; \
+																		\
+						*(tri_data++) = offset + (j + 1) * gridsize + k + 1; \
+						*(tri_data++) = offset + j * gridsize + k + 1; \
+						*(tri_data++) = offset + (j + 1) * gridsize + k; \
 					}                                                   \
 				}                                                       \
 																		\
