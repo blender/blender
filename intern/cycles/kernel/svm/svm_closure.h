@@ -364,7 +364,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID: {
 			
-			if(sd->flag & SD_BACKFACING && sd->segment != ~0) {
+			if(sd->flag & SD_BACKFACING && sd->type & PRIMITIVE_ALL_CURVE) {
 				ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
 				if(sc) {
 					sc->weight = make_float3(1.0f,1.0f,1.0f);
@@ -381,7 +381,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->data0 = param1;
 					sc->data1 = param2;
 					sc->offset = -stack_load_float(stack, data_node.z);
-					if(sd->segment == ~0) {
+					if(sd->type & PRIMITIVE_ALL_CURVE) {
 						sc->T = normalize(sd->dPdv);
 						sc->offset = 0.0f;
 					}

@@ -30,7 +30,7 @@ ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, 
 	}
 	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
 		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-		int k0 = __float_as_int(curvedata.x) + sd->segment;
+		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
 		int k1 = k0 + 1;
 
 		float f0 = kernel_tex_fetch(__attributes_float, offset + k0);
@@ -69,7 +69,7 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd
 	}
 	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
 		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-		int k0 = __float_as_int(curvedata.x) + sd->segment;
+		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
 		int k1 = k0 + 1;
 
 		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + k0));
@@ -98,9 +98,9 @@ ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 {
 	float r = 0.0f;
 
-	if(sd->segment != ~0) {
+	if(sd->type & PRIMITIVE_ALL_CURVE) {
 		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-		int k0 = __float_as_int(curvedata.x) + sd->segment;
+		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
 		int k1 = k0 + 1;
 
 		float4 P1 = kernel_tex_fetch(__curve_keys, k0);
@@ -115,7 +115,7 @@ ccl_device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
 {	
 	float3 tgN = make_float3(0.0f,0.0f,0.0f);
 
-	if(sd->segment != ~0) {
+	if(sd->type & PRIMITIVE_ALL_CURVE) {
 
 		tgN = -(-sd->I - sd->dPdu * (dot(sd->dPdu,-sd->I) / len_squared(sd->dPdu)));
 		tgN = normalize(tgN);
@@ -192,12 +192,13 @@ ccl_device_inline __m128 transform_point_T3(const __m128 t[3], const __m128 &a)
 #ifdef __KERNEL_SSE2__
 /* Pass P and idir by reference to aligned vector */
 ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	const float3 &P, const float3 &idir, uint visibility, int object, int curveAddr, float time, int segment, uint *lcg_state, float difl, float extmax)
+	const float3 &P, const float3 &idir, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
 #else
 ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, float time, int segment, uint *lcg_state, float difl, float extmax)
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, float time,int type, uint *lcg_state, float difl, float extmax)
 #endif
 {
+	int segment = PRIMITIVE_UNPACK_SEGMENT(type);
 	float epsilon = 0.0f;
 	float r_st, r_en;
 
@@ -548,7 +549,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 				/* record intersection */
 				isect->prim = curveAddr;
 				isect->object = object;
-				isect->segment = segment;
+				isect->type = type;
 				isect->u = u;
 				isect->v = 0.0f;
 				/*isect->v = 1.0f - coverage; */
@@ -569,7 +570,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 }
 
 ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, float time, int segment, uint *lcg_state, float difl, float extmax)
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
 {
 	/* define few macros to minimize code duplication for SSE */
 #ifndef __KERNEL_SSE2__
@@ -578,6 +579,7 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 #define dot3(x, y) dot(x, y)
 #endif
 
+	int segment = PRIMITIVE_UNPACK_SEGMENT(type);
 	/* curve Intersection check */
 	int flags = kernel_data.curve.curveflags;
 
@@ -768,7 +770,7 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 				/* record intersection */
 				isect->prim = curveAddr;
 				isect->object = object;
-				isect->segment = segment;
+				isect->type = type;
 				isect->u = z*invl;
 				isect->v = td/(4*a*a);
 				/*isect->v = 1.0f - adjradius;*/
@@ -841,7 +843,7 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
 	float4 v00 = kernel_tex_fetch(__curves, prim);
 
-	int k0 = __float_as_int(v00.x) + sd->segment;
+	int k0 = __float_as_int(v00.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
 	int k1 = k0 + 1;
 
 	float3 tg;

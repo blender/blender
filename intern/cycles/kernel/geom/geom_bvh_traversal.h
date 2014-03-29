@@ -249,26 +249,35 @@ ccl_device bool BVH_FUNCTION_NAME
 					/* primitive intersection */
 					while(primAddr < primAddr2) {
 						bool hit;
+						uint type = kernel_tex_fetch(__prim_type, primAddr);
 
-						/* intersect ray against primitive */
+						switch(type & PRIMITIVE_ALL) {
+							case PRIMITIVE_TRIANGLE: {
+								hit = triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
+								break;
+							}
 #if FEATURE(BVH_HAIR)
-						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
-						if(segment != ~0) {
-
-							if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+							case PRIMITIVE_CURVE: {
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment, lcg_state, difl, extmax);
-							else
-								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment, lcg_state, difl, extmax);
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+									hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
+								else
+									hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
 #else
-								hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment);
-							else
-								hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, segment);
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+									hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, type);
+								else
+									hit = bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, type);
 #endif
+
+								break;
+							}
+#endif
+							default: {
+								hit = false;
+								break;
+							}
 						}
-						else
-#endif
-							hit = triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)

@@ -204,19 +204,23 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 
 					/* primitive intersection */
 					for(; primAddr < primAddr2; primAddr++) {
-#if FEATURE(BVH_HAIR)
-						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
-						if(segment != ~0)
-							continue;
-#endif
-
 						/* only primitives from the same object */
 						uint tri_object = (object == ~0)? kernel_tex_fetch(__prim_object, primAddr): object;
 
-						if(tri_object == subsurface_object) {
+						if(tri_object != subsurface_object)
+							continue;
 
-							/* intersect ray against primitive */
-							triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+						/* intersect ray against primitive */
+						uint type = kernel_tex_fetch(__prim_type, primAddr);
+
+						switch(type & PRIMITIVE_ALL) {
+							case PRIMITIVE_TRIANGLE: {
+								triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								break;
+							}
+							default: {
+								break;
+							}
 						}
 					}
 				}

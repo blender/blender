@@ -420,8 +420,26 @@ typedef struct Intersection {
 	float t, u, v;
 	int prim;
 	int object;
-	int segment;
+	int type;
 } Intersection;
+
+/* Primitives */
+
+typedef enum PrimitiveType {
+	PRIMITIVE_NONE = 0,
+	PRIMITIVE_TRIANGLE = 1,
+	PRIMITIVE_MOTION_TRIANGLE = 2,
+	PRIMITIVE_CURVE = 4,
+	PRIMITIVE_MOTION_CURVE = 8,
+
+	PRIMITIVE_ALL_TRIANGLE = (PRIMITIVE_TRIANGLE|PRIMITIVE_MOTION_TRIANGLE),
+	PRIMITIVE_ALL_CURVE = (PRIMITIVE_CURVE|PRIMITIVE_MOTION_CURVE),
+	PRIMITIVE_ALL_MOTION = (PRIMITIVE_MOTION_TRIANGLE|PRIMITIVE_MOTION_CURVE),
+	PRIMITIVE_ALL = (PRIMITIVE_ALL_TRIANGLE|PRIMITIVE_ALL_CURVE)
+} PrimitiveType;
+
+#define PRIMITIVE_PACK_SEGMENT(type, segment) ((segment << 16) | type)
+#define PRIMITIVE_UNPACK_SEGMENT(type) (type >> 16)
 
 /* Attributes */
 
@@ -565,13 +583,9 @@ typedef struct ShaderData {
 	/* primitive id if there is one, ~0 otherwise */
 	int prim;
 
-#ifdef __HAIR__
-	/* for curves, segment number in curve, ~0 for triangles */
-	int segment;
-	/* variables for minimum hair width using transparency bsdf */
-	/*float curve_transparency; */
-	/*float curve_radius; */
-#endif
+	/* combined type and curve segment for hair */
+	int type;
+
 	/* parametric coordinates
 	 * - barycentric weights for triangles */
 	float u, v;

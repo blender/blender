@@ -290,6 +290,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg, Intersection *isect
 					/* record intersection */
 					isect->prim = triAddr;
 					isect->object = object;
+					isect->type = PRIMITIVE_TRIANGLE;
 					isect->u = u;
 					isect->v = v;
 					isect->t = t;
@@ -353,6 +354,7 @@ ccl_device_inline void triangle_intersect_subsurface(KernelGlobals *kg, Intersec
 				Intersection *isect = &isect_array[hit];
 				isect->prim = triAddr;
 				isect->object = object;
+				isect->type = PRIMITIVE_TRIANGLE;
 				isect->u = u;
 				isect->v = v;
 				isect->t = t;

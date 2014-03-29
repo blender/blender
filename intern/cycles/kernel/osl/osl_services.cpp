@@ -643,7 +643,7 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 	}
 	else if ((name == u_geom_trianglevertices || name == u_geom_polyvertices)
 #ifdef __HAIR__
-		     && sd->segment == ~0) {
+		     && sd->type & PRIMITIVE_ALL_TRIANGLE) {
 #else
 		) {
 #endif
@@ -669,7 +669,7 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 #ifdef __HAIR__
 	/* Hair Attributes */
 	else if (name == u_is_curve) {
-		float f = (sd->segment != ~0);
+		float f = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_curve_thickness) {
@@ -732,7 +732,8 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 {
 	ShaderData *sd = (ShaderData *)renderstate;
 	KernelGlobals *kg = sd->osl_globals;
-	int object, prim, segment;
+	bool is_curve;
+	int object, prim;
 
 	/* lookup of attribute on another object */
 	if (object_name != u_empty) {
@@ -743,23 +744,19 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 
 		object = it->second;
 		prim = ~0;
-		segment = ~0;
+		is_curve = false;
 	}
 	else {
 		object = sd->object;
 		prim = sd->prim;
-#ifdef __HAIR__
-		segment = sd->segment;
-#else
-		segment = ~0;
-#endif
+		is_curve = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
 
 		if (object == ~0)
 			return get_background_attribute(kg, sd, name, type, derivatives, val);
 	}
 
 	/* find attribute on object */
-	object = object*ATTR_PRIM_TYPES + (segment != ~0);
+	object = object*ATTR_PRIM_TYPES + (is_curve == true);
 	OSLGlobals::AttributeMap& attribute_map = kg->osl->attribute_map[object];
 	OSLGlobals::AttributeMap::iterator it = attribute_map.find(name);
 

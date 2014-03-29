@@ -45,7 +45,7 @@ ccl_device void svm_node_wireframe(KernelGlobals *kg, ShaderData *sd, float *sta
 
 	/* Calculate wireframe */
 #ifdef __HAIR__
-	if (sd->prim != ~0 && sd->segment == ~0) {
+	if (sd->prim != ~0 && sd->type & PRIMITIVE_ALL_TRIANGLE) {
 #else
 	if (sd->prim != ~0) {
 #endif

@@ -52,8 +52,8 @@ struct PackedBVH {
 	array<int> object_node; 
 	/* precomputed triangle intersection data, one triangle is 4x float4 */
 	array<float4> tri_woop;
-	/* primitive type - triangle or strand (should be moved to flag?) */
-	array<int> prim_segment;
+	/* primitive type - triangle or strand */
+	array<int> prim_type;
 	/* visibility visibilitys for primitives */
 	array<uint> prim_visibility;
 	/* mapping from BVH primitive index to true primitive index, as primitives
