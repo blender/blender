@@ -93,6 +93,11 @@ void BlenderSession::create_session()
 	/* create scene */
 	scene = new Scene(scene_params, session_params.device);
 
+	/* setup callbacks for builtin image support */
+	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3, _4, _5, _6, _7);
+	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2, _3);
+	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2, _3);
+
 	/* create session */
 	session = new Session(session_params);
 	session->scene = scene;
@@ -121,11 +126,6 @@ void BlenderSession::create_session()
 	session->reset(buffer_params, session_params.samples);
 
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
-
-	/* setup callbacks for builtin image support */
-	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3, _4, _5, _6);
-	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2, _3);
-	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2, _3);
 }
 
 void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
@@ -724,7 +724,7 @@ int BlenderSession::builtin_image_frame(const string &builtin_name)
 	return atoi(builtin_name.substr(last + 1, builtin_name.size() - last - 1).c_str());
 }
 
-void BlenderSession::builtin_image_info(const string &builtin_name, void *builtin_data, bool &is_float, int &width, int &height, int &channels)
+void BlenderSession::builtin_image_info(const string &builtin_name, void *builtin_data, bool &is_float, int &width, int &height, int &depth, int &channels)
 {
 	PointerRNA ptr;
 	RNA_id_pointer_create((ID*)builtin_data, &ptr);
@@ -734,12 +734,14 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 		is_float = b_image.is_float();
 		width = b_image.size()[0];
 		height = b_image.size()[1];
+		depth = 1;
 		channels = b_image.channels();
 	}
 	else {
 		is_float = false;
 		width = 0;
 		height = 0;
+		depth = 0;
 		channels = 0;
 	}
 }

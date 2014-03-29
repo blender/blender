@@ -461,6 +461,8 @@ public:
 
 	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
+		/* todo: support 3D textures, only CPU for now */
+
 		/* determine format */
 		CUarray_format_enum format;
 		size_t dsize = datatype_size(mem.data_type);

@@ -105,7 +105,7 @@ public:
 
 	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
-		kernel_tex_copy(&kernel_globals, name, mem.data_pointer, mem.data_width, mem.data_height, interpolation);
+		kernel_tex_copy(&kernel_globals, name, mem.data_pointer, mem.data_width, mem.data_height, mem.data_depth, interpolation);
 		mem.device_pointer = mem.data_pointer;
 
 		stats.mem_alloc(mem.memory_size());

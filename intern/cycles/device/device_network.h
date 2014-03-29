@@ -118,7 +118,7 @@ public:
 	void add(const device_memory& mem)
 	{
 		archive & mem.data_type & mem.data_elements & mem.data_size;
-		archive & mem.data_width & mem.data_height & mem.device_pointer;
+		archive & mem.data_width & mem.data_height & mem.data_depth & mem.device_pointer;
 	}
 
 	template<typename T> void add(const T& data)
@@ -261,7 +261,7 @@ public:
 	void read(network_device_memory& mem)
 	{
 		*archive & mem.data_type & mem.data_elements & mem.data_size;
-		*archive & mem.data_width & mem.data_height & mem.device_pointer;
+		*archive & mem.data_width & mem.data_height & mem.data_depth & mem.device_pointer;
 
 		mem.data_pointer = 0;
 	}
