@@ -46,7 +46,10 @@ CCL_NAMESPACE_BEGIN
 
 #define TEX_NUM_FLOAT_IMAGES	5
 
-#define SHADER_NO_ID			-1
+#define SHADER_NONE				(~0)
+#define OBJECT_NONE				(~0)
+#define PRIM_NONE				(~0)
+#define LAMP_NONE				(~0)
 
 #define VOLUME_STACK_SIZE		16
 

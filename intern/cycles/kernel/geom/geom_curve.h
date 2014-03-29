@@ -241,7 +241,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 			P_curve[3] = _mm_load_ps(&kg->__curve_keys.data[kb].x);
 		}
 		else {
-			int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+			int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, curveAddr): object;
 			motion_cardinal_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, (float4*)&P_curve);
 		}
 
@@ -308,7 +308,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 			P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
 		}
 		else {
-			int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+			int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, curveAddr): object;
 			motion_cardinal_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, P_curve);
 		}
 
@@ -618,7 +618,7 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 		P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
 	}
 	else {
-		int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+		int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, curveAddr): object;
 		motion_curve_keys(kg, fobject, prim, time, k0, k1, P_curve);
 	}
 
@@ -653,7 +653,7 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 		P_curve[1] = _mm_load_ps(&kg->__curve_keys.data[k1].x);
 	}
 	else {
-		int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+		int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, curveAddr): object;
 		motion_curve_keys(kg, fobject, prim, time, k0, k1, (float4*)&P_curve);
 	}
 
@@ -863,7 +863,7 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 	float3 P = ray->P;
 	float3 D = ray->D;
 
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
@@ -981,7 +981,7 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 	/*sd->curve_transparency = isect->v;*/
 	/*sd->curve_radius = sd->u * gd * l + r1;*/
 
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_tfm;
 #else

@@ -56,15 +56,15 @@ ccl_device bool BVH_FUNCTION_NAME
 	const float tmax = ray->t;
 	float3 P = ray->P;
 	float3 idir = bvh_inverse_direction(ray->D);
-	int object = ~0;
+	int object = OBJECT_NONE;
 
 #if FEATURE(BVH_MOTION)
 	Transform ob_tfm;
 #endif
 
 	isect->t = tmax;
-	isect->object = ~0;
-	isect->prim = ~0;
+	isect->object = OBJECT_NONE;
+	isect->prim = PRIM_NONE;
 	isect->u = 0.0f;
 	isect->v = 0.0f;
 
@@ -332,7 +332,7 @@ ccl_device bool BVH_FUNCTION_NAME
 
 #if FEATURE(BVH_INSTANCING)
 		if(stackPtr >= 0) {
-			kernel_assert(object != ~0);
+			kernel_assert(object != OBJECT_NONE);
 
 			/* instance pop */
 #if FEATURE(BVH_MOTION)
@@ -351,14 +351,14 @@ ccl_device bool BVH_FUNCTION_NAME
 			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
-			object = ~0;
+			object = OBJECT_NONE;
 			nodeAddr = traversalStack[stackPtr];
 			--stackPtr;
 		}
 #endif
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
-	return (isect->prim != ~0);
+	return (isect->prim != PRIM_NONE);
 }
 
 #undef FEATURE

@@ -74,7 +74,7 @@ ccl_device_inline bool kernel_path_integrate_scatter_lighting(KernelGlobals *kg,
 			light_ray.time = sd->time;
 #endif
 
-			if(direct_emission(kg, sd, -1, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
+			if(direct_emission(kg, sd, LAMP_NONE, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
 				/* trace shadow ray */
 				float3 shadow;
 
@@ -188,7 +188,7 @@ ccl_device void kernel_branched_path_integrate_direct_lighting(KernelGlobals *kg
 					if(kernel_data.integrator.num_all_lights)
 						light_t = 0.5f*light_t;
 
-					if(direct_emission(kg, sd, -1, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
+					if(direct_emission(kg, sd, LAMP_NONE, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
 						/* trace shadow ray */
 						float3 shadow;
 
@@ -206,7 +206,7 @@ ccl_device void kernel_branched_path_integrate_direct_lighting(KernelGlobals *kg
 			path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 			/* sample random light */
-			if(direct_emission(kg, sd, -1, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
+			if(direct_emission(kg, sd, LAMP_NONE, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
 				/* trace shadow ray */
 				float3 shadow;
 
@@ -257,7 +257,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_g
 
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
-		if(state.volume_stack[0].shader != SHADER_NO_ID) {
+		if(state.volume_stack[0].shader != SHADER_NONE) {
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
@@ -492,7 +492,7 @@ ccl_device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rn
 			light_ray.time = sd->time;
 #endif
 
-			if(direct_emission(kg, sd, -1, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
+			if(direct_emission(kg, sd, LAMP_NONE, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce)) {
 				/* trace shadow ray */
 				float3 shadow;
 
@@ -646,7 +646,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
-		if(state.volume_stack[0].shader != SHADER_NO_ID) {
+		if(state.volume_stack[0].shader != SHADER_NONE) {
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
@@ -853,7 +853,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 				light_ray.time = sd.time;
 #endif
 
-				if(direct_emission(kg, &sd, -1, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp, state.bounce)) {
+				if(direct_emission(kg, &sd, LAMP_NONE, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp, state.bounce)) {
 					/* trace shadow ray */
 					float3 shadow;
 
@@ -1088,7 +1088,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
-		if(state.volume_stack[0].shader != SHADER_NO_ID) {
+		if(state.volume_stack[0].shader != SHADER_NONE) {
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 

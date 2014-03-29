@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, AttributeElement *elem)
 {
-	if(sd->object == ~0)
+	if(sd->object == PRIM_NONE)
 		return (int)ATTR_STD_NOT_FOUND;
 
 #ifdef __OSL__
@@ -47,7 +47,7 @@ ccl_device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id,
 
 		*elem = (AttributeElement)attr_map.y;
 		
-		if(sd->prim == ~0 && (AttributeElement)attr_map.y != ATTR_ELEMENT_MESH)
+		if(sd->prim == PRIM_NONE && (AttributeElement)attr_map.y != ATTR_ELEMENT_MESH)
 			return ATTR_STD_NOT_FOUND;
 
 		/* return result */

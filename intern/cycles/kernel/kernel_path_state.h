@@ -50,7 +50,7 @@ ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state, RNG 
 		state->rng_congruential = lcg_init(*rng + sample*0x51633e2d);
 	}
 	else {
-		state->volume_stack[0].shader = SHADER_NO_ID;
+		state->volume_stack[0].shader = SHADER_NONE;
 	}
 #endif
 }

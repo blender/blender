@@ -35,7 +35,7 @@ Background::Background()
 
 	use = true;
 
-	visibility = ~0;
+	visibility = PATH_RAY_ALL_VISIBILITY;
 	shader = 0;
 
 	transparent = false;
@@ -70,7 +70,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	if(scene->shaders[shader]->has_volume)
 		kbackground->volume_shader = kbackground->surface_shader;
 	else
-		kbackground->volume_shader = SHADER_NO_ID;
+		kbackground->volume_shader = SHADER_NONE;
 
 	if(!(visibility & PATH_RAY_DIFFUSE))
 		kbackground->surface_shader |= SHADER_EXCLUDE_DIFFUSE;

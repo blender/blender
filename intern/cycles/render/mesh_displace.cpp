@@ -44,7 +44,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	progress.set_status("Updating Mesh", msg);
 
 	/* find object index. todo: is arbitrary */
-	size_t object_index = ~0;
+	size_t object_index = OBJECT_NONE;
 
 	for(size_t i = 0; i < scene->objects.size(); i++) {
 		if(scene->objects[i]->mesh == mesh) {

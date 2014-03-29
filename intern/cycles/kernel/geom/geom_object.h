@@ -162,7 +162,7 @@ ccl_device_inline void object_inverse_dir_transform(KernelGlobals *kg, ShaderDat
 
 ccl_device_inline float3 object_location(KernelGlobals *kg, ShaderData *sd)
 {
-	if(sd->object == ~0)
+	if(sd->object == OBJECT_NONE)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 #ifdef __OBJECT_MOTION__
@@ -182,7 +182,7 @@ ccl_device_inline float object_surface_area(KernelGlobals *kg, int object)
 
 ccl_device_inline float object_pass_id(KernelGlobals *kg, int object)
 {
-	if(object == ~0)
+	if(object == OBJECT_NONE)
 		return 0.0f;
 
 	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
@@ -192,7 +192,7 @@ ccl_device_inline float object_pass_id(KernelGlobals *kg, int object)
 
 ccl_device_inline float object_random_number(KernelGlobals *kg, int object)
 {
-	if(object == ~0)
+	if(object == OBJECT_NONE)
 		return 0.0f;
 
 	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
@@ -202,7 +202,7 @@ ccl_device_inline float object_random_number(KernelGlobals *kg, int object)
 
 ccl_device_inline uint object_particle_id(KernelGlobals *kg, int object)
 {
-	if(object == ~0)
+	if(object == OBJECT_NONE)
 		return 0.0f;
 
 	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
@@ -212,7 +212,7 @@ ccl_device_inline uint object_particle_id(KernelGlobals *kg, int object)
 
 ccl_device_inline float3 object_dupli_generated(KernelGlobals *kg, int object)
 {
-	if(object == ~0)
+	if(object == OBJECT_NONE)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;
@@ -222,7 +222,7 @@ ccl_device_inline float3 object_dupli_generated(KernelGlobals *kg, int object)
 
 ccl_device_inline float3 object_dupli_uv(KernelGlobals *kg, int object)
 {
-	if(object == ~0)
+	if(object == OBJECT_NONE)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;

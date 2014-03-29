@@ -28,7 +28,7 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg, ShaderData *sd, cons
 	float t = isect->t;
 
 #ifdef __INTERSECTION_REFINE__
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
@@ -49,7 +49,7 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg, ShaderData *sd, cons
 
 	P = P + D*rt;
 
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_tfm;
 #else
@@ -73,7 +73,7 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg, ShaderDat
 	float t = isect->t;
 
 #ifdef __INTERSECTION_REFINE__
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
@@ -94,7 +94,7 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg, ShaderDat
 
 	P = P + D*rt;
 
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_tfm;
 #else

@@ -266,7 +266,7 @@ ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, 
 {
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {
 		/* perspective / ortho */
-		if(sd->object == ~0 && kernel_data.cam.type == CAMERA_PERSPECTIVE)
+		if(sd->object == PRIM_NONE && kernel_data.cam.type == CAMERA_PERSPECTIVE)
 			P += camera_position(kg);
 
 		Transform tfm = kernel_data.cam.worldtondc;
@@ -276,7 +276,7 @@ ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, 
 		/* panorama */
 		Transform tfm = kernel_data.cam.worldtocamera;
 
-		if(sd->object != ~0)
+		if(sd->object != OBJECT_NONE)
 			P = normalize(transform_point(&tfm, P));
 		else
 			P = normalize(transform_direction(&tfm, P));

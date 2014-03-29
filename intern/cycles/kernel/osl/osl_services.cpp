@@ -130,7 +130,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 		KernelGlobals *kg = sd->osl_globals;
 		int object = sd->object;
 
-		if (object != ~0) {
+		if (object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 			Transform tfm;
 
@@ -160,7 +160,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 		KernelGlobals *kg = sd->osl_globals;
 		int object = sd->object;
 
-		if (object != ~0) {
+		if (object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 			Transform itfm;
 
@@ -245,7 +245,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 		const ShaderData *sd = (const ShaderData *)xform;
 		int object = sd->object;
 
-		if (object != ~0) {
+		if (object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 			Transform tfm = sd->ob_tfm;
 #else
@@ -270,7 +270,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 		const ShaderData *sd = (const ShaderData *)xform;
 		int object = sd->object;
 
-		if (object != ~0) {
+		if (object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 			Transform tfm = sd->ob_itfm;
 #else
@@ -708,7 +708,7 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 		OSL::ShaderGlobals *globals = &tdata->globals;
 		float3 ndc[3];
 
-		if((globals->raytype & PATH_RAY_CAMERA) && sd->object == ~0 && kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+		if((globals->raytype & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE && kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
 			ndc[0] = camera_world_to_ndc(kg, sd, sd->ray_P);
 
 			if(derivatives) {
@@ -747,7 +747,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 			return false;
 
 		object = it->second;
-		prim = ~0;
+		prim = PRIM_NONE;
 		is_curve = false;
 	}
 	else {
@@ -755,7 +755,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 		prim = sd->prim;
 		is_curve = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
 
-		if (object == ~0)
+		if (object == OBJECT_NONE)
 			return get_background_attribute(kg, sd, name, type, derivatives, val);
 	}
 
@@ -769,7 +769,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 
 		if (attr.elem != ATTR_ELEMENT_OBJECT) {
 			/* triangle and vertex attributes */
-			if (prim != ~0)
+			if (prim != PRIM_NONE)
 				return get_mesh_element_attribute(kg, sd, attr, type, derivatives, val);
 			else
 				return get_mesh_attribute(kg, sd, attr, type, derivatives, val);
@@ -1005,9 +1005,9 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 
 	/* raytrace */
 #ifdef __HAIR__
-	return scene_intersect(sd->osl_globals, &ray, ~0, &tracedata->isect, NULL, 0.0f, 0.0f);
+	return scene_intersect(sd->osl_globals, &ray, PATH_RAY_ALL_VISIBILITY, &tracedata->isect, NULL, 0.0f, 0.0f);
 #else
-	return scene_intersect(sd->osl_globals, &ray, ~0, &tracedata->isect);
+	return scene_intersect(sd->osl_globals, &ray, PATH_RAY_ALL_VISIBILITY, &tracedata->isect);
 #endif
 }
 
@@ -1019,9 +1019,9 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg, ustring source, ustri
 
 	if(source == u_trace && tracedata->init) {
 		if(name == u_hit) {
-			return set_attribute_int((tracedata->isect.prim != ~0), type, derivatives, val);
+			return set_attribute_int((tracedata->isect.prim != PRIM_NONE), type, derivatives, val);
 		}
-		else if(tracedata->isect.prim != ~0) {
+		else if(tracedata->isect.prim != PRIM_NONE) {
 			if(name == u_hitdist) {
 				float f[3] = {tracedata->isect.t, 0.0f, 0.0f};
 				return set_attribute_float(f, type, derivatives, val);

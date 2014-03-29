@@ -113,7 +113,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 	globals->dvdy = sd->dv.dy;
 	globals->dPdu = TO_VEC3(sd->dPdu);
 	globals->dPdv = TO_VEC3(sd->dPdv);
-	globals->surfacearea = (sd->object == ~0) ? 1.0f : object_surface_area(kg, sd->object);
+	globals->surfacearea = (sd->object == OBJECT_NONE) ? 1.0f : object_surface_area(kg, sd->object);
 	globals->time = sd->time;
 
 	/* booleans */
@@ -547,7 +547,7 @@ int OSLShader::find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, 
 		const OSLGlobals::Attribute &osl_attr = it->second;
 		*elem = osl_attr.elem;
 
-		if(sd->prim == ~0 && (AttributeElement)osl_attr.elem != ATTR_ELEMENT_MESH)
+		if(sd->prim == PRIM_NONE && (AttributeElement)osl_attr.elem != ATTR_ELEMENT_MESH)
 			return ATTR_STD_NOT_FOUND;
 
 		/* return result */

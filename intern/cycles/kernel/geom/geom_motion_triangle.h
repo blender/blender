@@ -117,7 +117,7 @@ ccl_device_inline float3 motion_triangle_refine(KernelGlobals *kg, ShaderData *s
 	float t = isect->t;
 
 #ifdef __INTERSECTION_REFINE__
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
@@ -144,7 +144,7 @@ ccl_device_inline float3 motion_triangle_refine(KernelGlobals *kg, ShaderData *s
 	/* compute refined position */
 	P = P + D*rt;
 
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_tfm;
 #else
@@ -168,7 +168,7 @@ ccl_device_inline float3 motion_triangle_refine_subsurface(KernelGlobals *kg, Sh
 	float t = isect->t;
 
 #ifdef __INTERSECTION_REFINE__
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
@@ -194,7 +194,7 @@ ccl_device_inline float3 motion_triangle_refine_subsurface(KernelGlobals *kg, Sh
 
 	P = P + D*rt;
 
-	if(isect->object != ~0) {
+	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_tfm;
 #else
@@ -293,7 +293,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection
 {
 	/* primitive index for vertex location lookup */
 	int prim = kernel_tex_fetch(__prim_index, triAddr);
-	int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, triAddr): object;
+	int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, triAddr): object;
 
 	/* get vertex locations for intersection */
 	float3 verts[3];
@@ -327,7 +327,7 @@ ccl_device_inline void motion_triangle_intersect_subsurface(KernelGlobals *kg, I
 {
 	/* primitive index for vertex location lookup */
 	int prim = kernel_tex_fetch(__prim_index, triAddr);
-	int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, triAddr): object;
+	int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, triAddr): object;
 
 	/* get vertex locations for intersection */
 	float3 verts[3];

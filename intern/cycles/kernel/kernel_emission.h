@@ -70,7 +70,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	LightSample ls;
 
 #ifdef __BRANCHED_PATH__
-	if(lindex != -1) {
+	if(lindex != LAMP_NONE) {
 		/* sample position on a specified light */
 		light_select(kg, lindex, randu, randv, sd->P, &ls);
 	}
@@ -97,7 +97,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	float bsdf_pdf;
 
 #ifdef __VOLUME__
-	if(sd->prim != ~0)
+	if(sd->prim != PRIM_NONE)
 		shader_bsdf_eval(kg, sd, ls.D, eval, &bsdf_pdf);
 	else
 		shader_volume_phase_eval(kg, sd, ls.D, eval, &bsdf_pdf);
@@ -153,7 +153,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	}
 
 	/* return if it's a lamp for shadow pass */
-	*is_lamp = (ls.prim == ~0 && ls.type != LIGHT_BACKGROUND);
+	*is_lamp = (ls.prim == PRIM_NONE && ls.type != LIGHT_BACKGROUND);
 
 	return true;
 }
@@ -188,7 +188,7 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int
 	LightSample ls;
 	int lamp = lamp_light_eval_sample(kg, randt);
 
-	if(lamp == ~0)
+	if(lamp == LAMP_NONE)
 		return false;
 
 	if(!lamp_light_eval(kg, lamp, ray->P, ray->D, ray->t, &ls))

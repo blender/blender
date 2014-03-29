@@ -217,8 +217,8 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 	LightType type = (LightType)__float_as_int(data0.x);
 	ls->type = type;
 	ls->shader = __float_as_int(data1.x);
-	ls->object = ~0;
-	ls->prim = ~0;
+	ls->object = PRIM_NONE;
+	ls->prim = PRIM_NONE;
 	ls->lamp = lamp;
 	ls->u = randu;
 	ls->v = randv;
@@ -309,8 +309,8 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 	LightType type = (LightType)__float_as_int(data0.x);
 	ls->type = type;
 	ls->shader = __float_as_int(data1.x);
-	ls->object = ~0;
-	ls->prim = ~0;
+	ls->object = PRIM_NONE;
+	ls->prim = PRIM_NONE;
 	ls->lamp = lamp;
 	/* todo: missing texture coordinates */
 	ls->u = 0.0f;
@@ -461,7 +461,7 @@ ccl_device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	triangle_point_normal(kg, prim, u, v, &ls->P, &ls->Ng, &ls->shader);
 	ls->object = object;
 	ls->prim = prim;
-	ls->lamp = ~0;
+	ls->lamp = LAMP_NONE;
 	ls->shader |= SHADER_USE_MIS;
 	ls->t = 0.0f;
 	ls->u = u;
@@ -566,7 +566,7 @@ ccl_device int lamp_light_eval_sample(KernelGlobals *kg, float randt)
 		return lamp;
 	}
 	else
-		return ~0;
+		return LAMP_NONE;
 }
 
 CCL_NAMESPACE_END

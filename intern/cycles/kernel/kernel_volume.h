@@ -99,7 +99,7 @@ ccl_device float3 volume_color_attenuation(float3 sigma, float t)
 
 ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, VolumeStack *stack)
 {
-	for(int i = 0; stack[i].shader != SHADER_NO_ID; i++) {
+	for(int i = 0; stack[i].shader != SHADER_NONE; i++) {
 		int shader_flag = kernel_tex_fetch(__shader_flag, (stack[i].shader & SHADER_MASK)*2);
 
 		if(shader_flag & SD_HETEROGENEOUS_VOLUME)
@@ -557,13 +557,13 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals 
 ccl_device void kernel_volume_stack_init(KernelGlobals *kg, VolumeStack *stack)
 {
 	/* todo: this assumes camera is always in air, need to detect when it isn't */
-	if(kernel_data.background.volume_shader == SHADER_NO_ID) {
-		stack[0].shader = SHADER_NO_ID;
+	if(kernel_data.background.volume_shader == SHADER_NONE) {
+		stack[0].shader = SHADER_NONE;
 	}
 	else {
 		stack[0].shader = kernel_data.background.volume_shader;
-		stack[0].object = ~0;
-		stack[1].shader = SHADER_NO_ID;
+		stack[0].object = PRIM_NONE;
+		stack[1].shader = SHADER_NONE;
 	}
 }
 
@@ -578,14 +578,14 @@ ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd
 	
 	if(sd->flag & SD_BACKFACING) {
 		/* exit volume object: remove from stack */
-		for(int i = 0; stack[i].shader != SHADER_NO_ID; i++) {
+		for(int i = 0; stack[i].shader != SHADER_NONE; i++) {
 			if(stack[i].object == sd->object) {
 				/* shift back next stack entries */
 				do {
 					stack[i] = stack[i+1];
 					i++;
 				}
-				while(stack[i].shader != SHADER_NO_ID);
+				while(stack[i].shader != SHADER_NONE);
 
 				return;
 			}
@@ -595,7 +595,7 @@ ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd
 		/* enter volume object: add to stack */
 		int i;
 
-		for(i = 0; stack[i].shader != SHADER_NO_ID; i++) {
+		for(i = 0; stack[i].shader != SHADER_NONE; i++) {
 			/* already in the stack? then we have nothing to do */
 			if(stack[i].object == sd->object)
 				return;
@@ -608,7 +608,7 @@ ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd
 		/* add to the end of the stack */
 		stack[i].shader = sd->shader;
 		stack[i].object = sd->object;
-		stack[i+1].shader = SHADER_NO_ID;
+		stack[i+1].shader = SHADER_NONE;
 	}
 }
 
