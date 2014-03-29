@@ -163,10 +163,8 @@ const char *Attribute::standard_name(AttributeStandard std)
 		return "undeformed";
 	else if(std == ATTR_STD_POSITION_UNDISPLACED)
 		return "undisplaced";
-	else if(std == ATTR_STD_MOTION_PRE)
-		return "motion_pre";
-	else if(std == ATTR_STD_MOTION_POST)
-		return "motion_post";
+	else if(std == ATTR_STD_MOTION_VERTEX_POSITION)
+		return "motion_P";
 	else if(std == ATTR_STD_PARTICLE)
 		return "particle";
 	else if(std == ATTR_STD_CURVE_INTERCEPT)
@@ -272,9 +270,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 			case ATTR_STD_GENERATED:
 			case ATTR_STD_POSITION_UNDEFORMED:
 			case ATTR_STD_POSITION_UNDISPLACED:
-			case ATTR_STD_MOTION_PRE:
-			case ATTR_STD_MOTION_POST:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+				break;
+			case ATTR_STD_MOTION_VERTEX_POSITION:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX_MOTION);
 				break;
 			case ATTR_STD_PTEX_FACE_ID:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
@@ -296,9 +295,8 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 			case ATTR_STD_GENERATED:
 				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
 				break;
-			case ATTR_STD_MOTION_PRE:
-			case ATTR_STD_MOTION_POST:
-				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
+			case ATTR_STD_MOTION_VERTEX_POSITION:
+				attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY_MOTION);
 				break;
 			case ATTR_STD_CURVE_INTERCEPT:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);

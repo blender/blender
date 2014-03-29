@@ -187,6 +187,24 @@ void Mesh::compute_bounds()
 
 		for(size_t i = 0; i < curve_keys_size; i++)
 			bnds.grow(float4_to_float3(curve_keys[i]), curve_keys[i].w);
+		
+		Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+		if (attr) {
+			size_t steps_size = verts.size() * (motion_steps - 1);
+			float3 *vert_steps = attr->data_float3();
+	
+			for (size_t i = 0; i < steps_size; i++)
+				bnds.grow(vert_steps[i]);
+		}
+
+		Attribute *curve_attr = curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+		if (curve_attr) {
+			size_t steps_size = curve_keys.size() * (motion_steps - 1);
+			float3 *key_steps = curve_attr->data_float3();
+	
+			for (size_t i = 0; i < steps_size; i++)
+				bnds.grow(key_steps[i]);
+		}
 
 		if(!bnds.valid()) {
 			bnds = BoundBox::empty;
@@ -197,6 +215,22 @@ void Mesh::compute_bounds()
 
 			for(size_t i = 0; i < curve_keys_size; i++)
 				bnds.grow_safe(float4_to_float3(curve_keys[i]), curve_keys[i].w);
+			
+			if (attr) {
+				size_t steps_size = verts.size() * (motion_steps - 1);
+				float3 *vert_steps = attr->data_float3();
+		
+				for (size_t i = 0; i < steps_size; i++)
+					bnds.grow_safe(vert_steps[i]);
+			}
+
+			if (curve_attr) {
+				size_t steps_size = curve_keys.size() * (motion_steps - 1);
+				float3 *key_steps = curve_attr->data_float3();
+		
+				for (size_t i = 0; i < steps_size; i++)
+					bnds.grow_safe(key_steps[i]);
+			}
 		}
 	}
 
@@ -992,7 +1026,6 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update_attributes = false;
 
-	float shuttertime = scene->camera->shuttertime;
 #ifdef __OBJECT_MOTION__
 	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
 	bool motion_blur = need_motion == Scene::MOTION_BLUR;
@@ -1001,7 +1034,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 #endif
 
 	foreach(Object *object, scene->objects)
-		object->compute_bounds(motion_blur, shuttertime);
+		object->compute_bounds(motion_blur);
 
 	if(progress.get_cancel()) return;
 

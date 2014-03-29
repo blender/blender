@@ -229,7 +229,7 @@ ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, f
 	if(kernel_data.cam.shuttertime == -1.0f)
 		ray->time = TIME_INVALID;
 	else
-		ray->time = 0.5f + 0.5f*(time - 0.5f)*kernel_data.cam.shuttertime;
+		ray->time = time;
 #endif
 
 	/* sample */

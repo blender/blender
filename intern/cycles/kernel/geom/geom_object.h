@@ -230,6 +230,21 @@ ccl_device_inline float3 object_dupli_uv(KernelGlobals *kg, int object)
 	return make_float3(f.x, f.y, 0.0f);
 }
 
+ccl_device_inline void object_motion_info(KernelGlobals *kg, int object, int *numsteps, int *numverts, int *numkeys)
+{
+	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;
+
+	if(numkeys) {
+		float4 f = kernel_tex_fetch(__objects, offset);
+		*numkeys = __float_as_int(f.w);
+	}
+
+	float4 f = kernel_tex_fetch(__objects, offset + 1);
+	if(numsteps)
+		*numsteps = __float_as_int(f.z);
+	if(numverts)
+		*numverts = __float_as_int(f.w);
+}
 
 ccl_device int shader_pass_id(KernelGlobals *kg, ShaderData *sd)
 {

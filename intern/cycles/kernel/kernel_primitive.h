@@ -161,14 +161,20 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	float3 motion_pre = sd->P, motion_post = sd->P;
 
 	/* deformation motion */
-	AttributeElement elem_pre, elem_post;
-	int offset_pre = find_attribute(kg, sd, ATTR_STD_MOTION_PRE, &elem_pre);
-	int offset_post = find_attribute(kg, sd, ATTR_STD_MOTION_POST, &elem_post);
+	AttributeElement elem;
+	int offset = find_attribute(kg, sd, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
 
-	if(offset_pre != ATTR_STD_NOT_FOUND)
-		motion_pre = primitive_attribute_float3(kg, sd, elem_pre, offset_pre, NULL, NULL);
-	if(offset_post != ATTR_STD_NOT_FOUND)
-		motion_post = primitive_attribute_float3(kg, sd, elem_post, offset_post, NULL, NULL);
+	if(offset != ATTR_STD_NOT_FOUND) {
+		/* get motion info */
+		int numverts, numkeys;
+		object_motion_info(kg, sd->object, NULL, &numverts, &numkeys);
+
+		/* lookup attributes */
+		int offset_next = (sd->type & PRIMITIVE_ALL_TRIANGLE)? offset + numverts: offset + numkeys;
+
+		motion_pre = primitive_attribute_float3(kg, sd, elem, offset, NULL, NULL);
+		motion_post = primitive_attribute_float3(kg, sd, elem, offset_next, NULL, NULL);
+	}
 
 	/* object motion. note that depending on the mesh having motion vectors, this
 	 * transformation was set match the world/object space of motion_pre/post */

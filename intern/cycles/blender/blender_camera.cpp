@@ -386,7 +386,7 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 	blender_camera_sync(cam, &bcam, width, height);
 }
 
-void BlenderSync::sync_camera_motion(BL::Object b_ob, int motion)
+void BlenderSync::sync_camera_motion(BL::Object b_ob, float motion_time)
 {
 	Camera *cam = scene->camera;
 
@@ -394,12 +394,14 @@ void BlenderSync::sync_camera_motion(BL::Object b_ob, int motion)
 	tfm = blender_camera_matrix(tfm, cam->type);
 
 	if(tfm != cam->matrix) {
-		if(motion == -1)
+		if(motion_time == -1.0f) {
 			cam->motion.pre = tfm;
-		else
+			cam->use_motion = true;
+		}
+		else if(motion_time == 1.0f) {
 			cam->motion.post = tfm;
-
-		cam->use_motion = true;
+			cam->use_motion = true;
+		}
 	}
 }
 

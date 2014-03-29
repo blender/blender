@@ -55,7 +55,7 @@ Object::~Object()
 {
 }
 
-void Object::compute_bounds(bool motion_blur, float shuttertime)
+void Object::compute_bounds(bool motion_blur)
 {
 	BoundBox mbounds = mesh->bounds;
 
@@ -68,10 +68,7 @@ void Object::compute_bounds(bool motion_blur, float shuttertime)
 		/* todo: this is really terrible. according to pbrt there is a better
 		 * way to find this iteratively, but did not find implementation yet
 		 * or try to implement myself */
-		float start_t = 0.5f - shuttertime*0.25f;
-		float end_t = 0.5f + shuttertime*0.25f;
-
-		for(float t = start_t; t < end_t; t += (1.0f/128.0f)*shuttertime) {
+		for(float t = 0.0f; t < 1.0f; t += (1.0f/128.0f)) {
 			Transform ttfm;
 
 			transform_motion_interpolate(&ttfm, &decomp, t);
@@ -96,6 +93,15 @@ void Object::apply_transform()
 	for(size_t i = 0; i < mesh->verts.size(); i++)
 		mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
 
+	Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+	if (attr) {
+		size_t steps_size = mesh->verts.size() * (mesh->motion_steps - 1);
+		float3 *vert_steps = attr->data_float3();
+
+		for (size_t i = 0; i < steps_size; i++)
+			vert_steps[i] = transform_point(&tfm, vert_steps[i]);
+	}
+
 	/* apply to curve keys */
 	for(size_t i = 0; i < mesh->curve_keys.size(); i++) {
 		float3 co = transform_point(&tfm, float4_to_float3(mesh->curve_keys[i]));
@@ -104,6 +110,15 @@ void Object::apply_transform()
 		mesh->curve_keys[i] = float3_to_float4(co);
 		/* scale for strand radius - only correct for uniform transforms*/
 		mesh->curve_keys[i].w *= radius;
+	}
+
+	Attribute *curve_attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+	if (curve_attr) {
+		size_t steps_size = mesh->curve_keys.size() * (mesh->motion_steps - 1);
+		float3 *vert_steps = curve_attr->data_float3();
+
+		for (size_t i = 0; i < steps_size; i++)
+			vert_steps[i] = transform_point(&tfm, vert_steps[i]);
 	}
 
 	/* store matrix to transform later. when accessing these as attributes we
@@ -118,7 +133,7 @@ void Object::apply_transform()
 
 	if(bounds.valid()) {
 		mesh->compute_bounds();
-		compute_bounds(false, 0.0f);
+		compute_bounds(false);
 	}
 
 	/* tfm is not reset to identity, all code that uses it needs to check the
@@ -142,6 +157,25 @@ void Object::tag_update(Scene *scene)
 	scene->curve_system_manager->need_update = true;
 	scene->mesh_manager->need_update = true;
 	scene->object_manager->need_update = true;
+}
+
+vector<float> Object::motion_times()
+{
+	/* compute times at which we sample motion for this object */
+	vector<float> times;
+	int motion_steps = mesh->motion_steps;
+
+	if(!mesh || motion_steps == 1)
+		return times;
+
+	for(int step = 0; step < motion_steps; step++) {
+		if(step != motion_steps / 2) {
+			float time = 2.0f * step / (motion_steps - 1) - 1.0f;
+			times.push_back(time);
+		}
+	}
+
+	return times;
 }
 
 /* Object Manager */
@@ -239,10 +273,10 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 			Transform mtfm_pre = ob->motion.pre;
 			Transform mtfm_post = ob->motion.post;
 
-			if(!(mesh->attributes.find(ATTR_STD_MOTION_PRE) || mesh->curve_attributes.find(ATTR_STD_MOTION_PRE)))
+			if(!mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
 				mtfm_pre = mtfm_pre * itfm;
-			if(!(mesh->attributes.find(ATTR_STD_MOTION_POST) || mesh->curve_attributes.find(ATTR_STD_MOTION_POST)))
 				mtfm_post = mtfm_post * itfm;
+			}
 
 			memcpy(&objects_vector[i*OBJECT_VECTOR_SIZE+0], &mtfm_pre, sizeof(float4)*3);
 			memcpy(&objects_vector[i*OBJECT_VECTOR_SIZE+3], &mtfm_post, sizeof(float4)*3);
@@ -261,9 +295,14 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		}
 #endif
 
-		/* dupli object coords */
-		objects[offset+9] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], 0.0f);
-		objects[offset+10] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], 0.0f, 0.0f);
+		/* dupli object coords and motion info */
+		int totalsteps = mesh->motion_steps;
+		int numsteps = (totalsteps - 1)/2;
+		int numverts = mesh->verts.size();
+		int numkeys = mesh->curve_keys.size();
+
+		objects[offset+9] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], __int_as_float(numkeys));
+		objects[offset+10] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], __int_as_float(numsteps), __int_as_float(numverts));
 
 		/* object flag */
 		if(ob->use_holdout)
