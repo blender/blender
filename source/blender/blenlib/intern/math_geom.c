@@ -1113,7 +1113,7 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
-	float du = 0, dv = 0;
+	float du, dv;
 
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
@@ -1132,14 +1132,19 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 	u = f * dot_v3v3(s, p);
 	v = f * dot_v3v3(d, q);
 
-	if (u < 0) du = u;
-	if (u > 1) du = u - 1;
-	if (v < 0) dv = v;
-	if (v > 1) dv = v - 1;
 	if (u > 0 && v > 0 && u + v > 1) {
-		float t = u + v - 1;
-		du = u - t / 2;
-		dv = v - t / 2;
+		float t = (u + v - 1) / 2;
+		du = u - t;
+		dv = v - t;
+	}
+	else {
+		if      (u < 0) du = u;
+		else if (u > 1) du = u - 1;
+		else            du = 0.0f;
+
+		if      (v < 0) dv = v;
+		else if (v > 1) dv = v - 1;
+		else            dv = 0.0f;
 	}
 
 	mul_v3_fl(e1, du);
