@@ -36,6 +36,8 @@
 #include "BKE_modifier.h"
 #include "BKE_smoke.h"
 
+#include "BLI_threads.h"
+
 #include "DNA_modifier_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
@@ -125,33 +127,100 @@ static char *rna_SmokeCollSettings_path(PointerRNA *ptr)
 	return BLI_sprintfN("modifiers[\"%s\"].coll_settings", name_esc);
 }
 
-static int rna_SmokeModifier_density_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static int rna_SmokeModifier_grid_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
-	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
+	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
+	float *density = NULL;
+	int size = 0;
 
-	if (settings->fluid) {
-		float *density = smoke_get_density(settings->fluid);
-		unsigned int size = settings->res[0] * settings->res[1] * settings->res[2];
+	if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt) {
+		/* high resolution smoke */
+		int res[3];
 
-		if (density)
-			length[0] = size;
-		else
-			length[0] = 0;
+		smoke_turbulence_get_res(sds->wt, res);
+		size = res[0] * res[1] * res[2];
+
+		density = smoke_turbulence_get_density(sds->wt);
 	}
-	else {
-		length[0] = 0; /* No smoke domain created yet */
+	else if (sds->fluid) {
+		/* regular resolution */
+		size = sds->res[0] * sds->res[1] * sds->res[2];
+		density = smoke_get_density(sds->fluid);
 	}
 
+	length[0] = (density) ? size : 0;
 	return length[0];
 }
 
-static void rna_SmokeModifier_density_get(PointerRNA *ptr, float *values)
+static int rna_SmokeModifier_color_grid_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
-	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
-	float *density = smoke_get_density(settings->fluid);
-	unsigned int size = settings->res[0] * settings->res[1] * settings->res[2];
+	rna_SmokeModifier_grid_get_length(ptr, length);
+
+	length[0] *= 4;
+	return length[0];
+}
+
+static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
+{
+	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
+	int length[RNA_MAX_ARRAY_DIMENSION];
+	int size = rna_SmokeModifier_grid_get_length(ptr, length);
+	float *density;
+
+	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
+	
+	if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt)
+		density = smoke_turbulence_get_density(sds->wt);
+	else
+		density = smoke_get_density(sds->fluid);
 
 	memcpy(values, density, size * sizeof(float));
+
+	BLI_rw_mutex_unlock(sds->fluid_mutex);
+}
+
+static void rna_SmokeModifier_color_grid_get(PointerRNA *ptr, float *values)
+{
+	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
+
+	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
+
+	if (sds->flags & MOD_SMOKE_HIGHRES) {
+		if (smoke_turbulence_has_colors(sds->wt))
+			smoke_turbulence_get_rgba(sds->wt, values, 0);
+		else
+			smoke_turbulence_get_rgba_from_density(sds->wt, sds->active_color, values, 0);
+	}
+	else {
+		if (smoke_has_colors(sds->fluid))
+			smoke_get_rgba(sds->fluid, values, 0);
+		else
+			smoke_get_rgba_from_density(sds->fluid, sds->active_color, values, 0);
+	}
+
+	BLI_rw_mutex_unlock(sds->fluid_mutex);
+}
+
+static void rna_SmokeModifier_flame_grid_get(PointerRNA *ptr, float *values)
+{
+	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
+	int length[RNA_MAX_ARRAY_DIMENSION];
+	int size = rna_SmokeModifier_grid_get_length(ptr, length);
+	float *flame;
+
+	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
+	
+	if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt)
+		flame = smoke_turbulence_get_flame(sds->wt);
+	else
+		flame = smoke_get_flame(sds->fluid);
+	
+	if(flame)
+		memcpy(values, flame, size * sizeof(float));
+	else
+		memset(values, 0, size * sizeof(float));
+
+	BLI_rw_mutex_unlock(sds->fluid_mutex);
 }
 
 static void rna_SmokeFlow_density_vgroup_get(PointerRNA *ptr, char *value)
@@ -356,13 +425,29 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vorticity", "Amount of turbulence/rotation in fluid");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
-	prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "density_grid", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_dynamic_array_funcs(prop, "rna_SmokeModifier_density_get_length");
-	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_density_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Density", "Smoke density");
+	RNA_def_property_dynamic_array_funcs(prop, "rna_SmokeModifier_grid_get_length");
+	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_density_grid_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Density Grid", "Smoke density grid");
+
+	prop = RNA_def_property(srna, "flame_grid", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 32);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_SmokeModifier_grid_get_length");
+	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_flame_grid_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Flame Grid", "Smoke flame grid");
+
+	prop = RNA_def_property(srna, "color_grid", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 32);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_SmokeModifier_color_grid_get_length");
+	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_color_grid_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Color Grid", "Smoke color grid");
 
 	prop = RNA_def_property(srna, "cell_size", PROP_FLOAT, PROP_XYZ); /* can change each frame when using adaptive domain */
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
