@@ -46,6 +46,8 @@ Mesh::Mesh()
 	displacement_method = DISPLACE_BUMP;
 	bounds = BoundBox::empty;
 
+	motion_steps = 3;
+
 	bvh = NULL;
 
 	tri_offset = 0;
@@ -641,6 +643,7 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 		size_t size = mattr->element_size(
 			mesh->verts.size(),
 			mesh->triangles.size(),
+			mesh->motion_steps,
 			mesh->curves.size(),
 			mesh->curve_keys.size());
 
@@ -663,18 +666,20 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 				attr_float3[offset+k] = (&tfm->x)[k];
 		}
 		else {
-			float3 *data = mattr->data_float3();
+			float4 *data = mattr->data_float4();
 			offset = attr_float3.size();
 
 			attr_float3.resize(attr_float3.size() + size);
 
 			for(size_t k = 0; k < size; k++)
-				attr_float3[offset+k] = float3_to_float4(data[k]);
+				attr_float3[offset+k] = data[k];
 		}
 
 		/* mesh vertex/curve index is global, not per object, so we sneak
 		 * a correction for that in here */
 		if(element == ATTR_ELEMENT_VERTEX)
+			offset -= mesh->vert_offset;
+		else if(element == ATTR_ELEMENT_VERTEX_MOTION)
 			offset -= mesh->vert_offset;
 		else if(element == ATTR_ELEMENT_FACE)
 			offset -= mesh->tri_offset;
@@ -683,6 +688,8 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 		else if(element == ATTR_ELEMENT_CURVE)
 			offset -= mesh->curve_offset;
 		else if(element == ATTR_ELEMENT_CURVE_KEY)
+			offset -= mesh->curvekey_offset;
+		else if(element == ATTR_ELEMENT_CURVE_KEY_MOTION)
 			offset -= mesh->curvekey_offset;
 	}
 	else {
@@ -750,8 +757,8 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	/* create attribute lookup maps */
 	if(scene->shader_manager->use_osl())
 		update_osl_attributes(device, scene, mesh_attributes);
-	else
-		update_svm_attributes(device, dscene, scene, mesh_attributes);
+
+	update_svm_attributes(device, dscene, scene, mesh_attributes);
 
 	if(progress.get_cancel()) return;
 

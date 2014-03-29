@@ -176,7 +176,7 @@ ccl_device float triangle_attribute_float(KernelGlobals *kg, const ShaderData *s
 
 		return kernel_tex_fetch(__attributes_float, offset + sd->prim);
 	}
-	else if(elem == ATTR_ELEMENT_VERTEX) {
+	else if(elem == ATTR_ELEMENT_VERTEX || elem == ATTR_ELEMENT_VERTEX_MOTION) {
 		float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
 
 		float f0 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.x));
@@ -219,7 +219,7 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData 
 
 		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + sd->prim));
 	}
-	else if(elem == ATTR_ELEMENT_VERTEX) {
+	else if(elem == ATTR_ELEMENT_VERTEX || elem == ATTR_ELEMENT_VERTEX_MOTION) {
 		float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
 
 		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));

@@ -38,9 +38,14 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 		type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix);
 }
 
-void Attribute::reserve(int numverts, int numtris, int numcurves, int numkeys)
+void Attribute::reserve(int numverts, int numtris, int numsteps, int numcurves, int numkeys, bool resize)
 {
-	buffer.resize(buffer_size(numverts, numtris, numcurves, numkeys), 0);
+	if (resize) {
+		buffer.resize(buffer_size(numverts, numtris, numsteps, numcurves, numkeys), 0);
+	}
+	else {
+		buffer.reserve(buffer_size(numverts, numtris, numsteps, numcurves, numkeys));
+	}
 }
 
 void Attribute::add(const float& f)
@@ -80,7 +85,7 @@ size_t Attribute::data_sizeof() const
 		return sizeof(float3);
 }
 
-size_t Attribute::element_size(int numverts, int numtris, int numcurves, int numkeys) const
+size_t Attribute::element_size(int numverts, int numtris, int numsteps, int numcurves, int numkeys) const
 {
 	size_t size;
 	
@@ -91,6 +96,9 @@ size_t Attribute::element_size(int numverts, int numtris, int numcurves, int num
 			break;
 		case ATTR_ELEMENT_VERTEX:
 			size = numverts;
+			break;
+		case ATTR_ELEMENT_VERTEX_MOTION:
+			size = numverts * (numsteps - 1);
 			break;
 		case ATTR_ELEMENT_FACE:
 			size = numtris;
@@ -104,6 +112,9 @@ size_t Attribute::element_size(int numverts, int numtris, int numcurves, int num
 		case ATTR_ELEMENT_CURVE_KEY:
 			size = numkeys;
 			break;
+		case ATTR_ELEMENT_CURVE_KEY_MOTION:
+			size = numkeys * (numsteps - 1);
+			break;
 		default:
 			size = 0;
 			break;
@@ -112,9 +123,9 @@ size_t Attribute::element_size(int numverts, int numtris, int numcurves, int num
 	return size;
 }
 
-size_t Attribute::buffer_size(int numverts, int numtris, int numcurves, int numkeys) const
+size_t Attribute::buffer_size(int numverts, int numtris, int numsteps, int numcurves, int numkeys) const
 {
-	return element_size(numverts, numtris, numcurves, numkeys)*data_sizeof();
+	return element_size(numverts, numtris, numsteps, numcurves, numkeys)*data_sizeof();
 }
 
 bool Attribute::same_storage(TypeDesc a, TypeDesc b)
@@ -182,7 +193,7 @@ AttributeSet::~AttributeSet()
 {
 }
 
-Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement element)
+Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement element, bool resize)
 {
 	Attribute *attr = find(name);
 
@@ -202,9 +213,9 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 	
 	/* this is weak .. */
 	if(triangle_mesh)
-		attr->reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), 0, 0);
+		attr->reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), triangle_mesh->motion_steps, 0, 0, resize);
 	if(curve_mesh)
-		attr->reserve(0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size());
+		attr->reserve(0, 0, curve_mesh->motion_steps, curve_mesh->curves.size(), curve_mesh->curve_keys.size(), resize);
 	
 	return attr;
 }
@@ -343,9 +354,9 @@ void AttributeSet::reserve()
 {
 	foreach(Attribute& attr, attributes) {
 		if(triangle_mesh)
-			attr.reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), 0, 0);
+			attr.reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), triangle_mesh->motion_steps, 0, 0, true);
 		if(curve_mesh)
-			attr.reserve(0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size());
+			attr.reserve(0, 0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size(), true);
 	}
 }
 

@@ -28,7 +28,7 @@ ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, 
 
 		return kernel_tex_fetch(__attributes_float, offset + sd->prim);
 	}
-	else if(elem == ATTR_ELEMENT_CURVE_KEY) {
+	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
 		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
 		int k0 = __float_as_int(curvedata.x) + sd->segment;
 		int k1 = k0 + 1;
@@ -67,7 +67,7 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd
 
 		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + sd->prim));
 	}
-	else if(elem == ATTR_ELEMENT_CURVE_KEY) {
+	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
 		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
 		int k0 = __float_as_int(curvedata.x) + sd->segment;
 		int k1 = k0 + 1;

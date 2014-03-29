@@ -90,6 +90,8 @@ public:
 	Transform transform_normal;
 	DisplacementMethod displacement_method;
 
+	uint motion_steps;
+
 	/* Update Flags */
 	bool need_update;
 	bool need_update_rebuild;

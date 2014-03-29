@@ -49,19 +49,21 @@ public:
 
 	Attribute() {}
 	void set(ustring name, TypeDesc type, AttributeElement element);
-	void reserve(int numverts, int numfaces, int numcurves, int numkeys);
+	void reserve(int numverts, int numfaces, int numsteps, int numcurves, int numkeys, bool resize);
 
 	size_t data_sizeof() const;
-	size_t element_size(int numverts, int numfaces, int numcurves, int numkeys) const;
-	size_t buffer_size(int numverts, int numfaces, int numcurves, int numkeys) const;
+	size_t element_size(int numverts, int numfaces, int numsteps, int numcurves, int numkeys) const;
+	size_t buffer_size(int numverts, int numfaces, int numsteps, int numcurves, int numkeys) const;
 
 	char *data() { return (buffer.size())? &buffer[0]: NULL; };
 	float3 *data_float3() { return (float3*)data(); }
+	float4 *data_float4() { return (float4*)data(); }
 	float *data_float() { return (float*)data(); }
 	Transform *data_transform() { return (Transform*)data(); }
 
 	const char *data() const { return (buffer.size())? &buffer[0]: NULL; }
 	const float3 *data_float3() const { return (const float3*)data(); }
+	const float4 *data_float4() const { return (const float4*)data(); }
 	const float *data_float() const { return (const float*)data(); }
 	const Transform *data_transform() const { return (const Transform*)data(); }
 
@@ -86,7 +88,7 @@ public:
 	AttributeSet();
 	~AttributeSet();
 
-	Attribute *add(ustring name, TypeDesc type, AttributeElement element);
+	Attribute *add(ustring name, TypeDesc type, AttributeElement element, bool resize = true);
 	Attribute *find(ustring name) const;
 	void remove(ustring name);
 
