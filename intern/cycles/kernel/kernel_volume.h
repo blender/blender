@@ -193,7 +193,7 @@ ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, PathState *stat
 /* Equi-angular sampling as in:
  * "Importance Sampling Techniques for Path Tracing in Participating Media" */
 
-ccl_device float kernel_volume_equiangular_sample(Ray *ray, float3 light_P, float xi, float *pdf)
+ccl_device float kernel_volume_equiangular_sample(Ray *ray, float3 sigma_t, float3 light_P, float xi, float3 *transmittance, float *pdf)
 {
 	float t = ray->t;
 
@@ -205,7 +205,10 @@ ccl_device float kernel_volume_equiangular_sample(Ray *ray, float3 light_P, floa
 
 	*pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
 
-	return min(t, delta + t_); /* min is only for float precision errors */
+	float sample_t = min(t, delta + t_); /* min is only for float precision errors */
+	*transmittance = volume_color_attenuation(sigma_t, sample_t);
+
+	return sample_t;
 }
 
 ccl_device float kernel_volume_equiangular_pdf(Ray *ray, float3 light_P, float sample_t)
@@ -222,6 +225,69 @@ ccl_device float kernel_volume_equiangular_pdf(Ray *ray, float3 light_P, float s
 	float pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
 
 	return pdf;
+}
+
+ccl_device bool kernel_volume_equiangular_light_position(KernelGlobals *kg, PathState *state, Ray *ray, RNG *rng, float3 *light_P)
+{
+	/* light RNGs */
+	float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
+	float light_u, light_v;
+	path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
+
+	/* light sample */
+	LightSample ls;
+	light_sample(kg, light_t, light_u, light_v, ray->time, ray->P, &ls);
+	if(ls.pdf == 0.0f)
+		return false;
+	
+	*light_P = ls.P;
+	return true;
+}
+
+/* Distance sampling */
+
+ccl_device bool kernel_volume_distance_sample(Ray *ray, float3 sigma_t, int channel, float xi, float *sample_t, float3 *transmittance, float *pdf)
+{
+	/* xi is [0, 1[ so log(0) should never happen, division by zero is
+	 * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
+	float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
+
+	*sample_t = min(ray->t, -logf(1.0f - xi)/sample_sigma_t);
+	*transmittance = volume_color_attenuation(sigma_t, *sample_t);
+
+	if(*sample_t < ray->t) {
+		/* hit */
+		*pdf = dot(sigma_t, *transmittance) * (1.0f/3.0f);
+		return true;
+	}
+	else {
+		/* miss */
+		*pdf = (transmittance->x + transmittance->y + transmittance->z) * (1.0f/3.0f);
+		return false;
+	}
+}
+
+/* Emission */
+
+ccl_device float3 kernel_volume_emission_integrate(VolumeShaderCoefficients *coeff, int closure_flag, float3 transmittance, float t)
+{
+	/* integral E * exp(-sigma_t * t) from 0 to t = E * (1 - exp(-sigma_t * t))/sigma_t
+	 * this goes to E * t as sigma_t goes to zero
+	 *
+	 * todo: we should use an epsilon to avoid precision issues near zero sigma_t */
+	float3 emission = coeff->emission;
+
+	if(closure_flag & SD_ABSORPTION) {
+		float3 sigma_t = coeff->sigma_a + coeff->sigma_s;
+
+		emission.x *= (sigma_t.x > 0.0f)? (1.0f - transmittance.x)/sigma_t.x: t;
+		emission.y *= (sigma_t.y > 0.0f)? (1.0f - transmittance.y)/sigma_t.y: t;
+		emission.z *= (sigma_t.z > 0.0f)? (1.0f - transmittance.z)/sigma_t.z: t;
+	}
+	else
+		emission *= t;
+	
+	return emission;
 }
 
 /* Volume Path */
@@ -257,21 +323,17 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 
 		/* distance sampling */
 		if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
-			/* xi is [0, 1[ so log(0) should never happen, division by zero is
-			 * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
 			float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
-			float sample_t = min(t, -logf(1.0f - xi)/sample_sigma_t);
+			float pdf, sample_t;
 
-			transmittance = volume_color_attenuation(sigma_t, sample_t);
-
-			if(sample_t < t) {
-				float pdf = dot(sigma_t, transmittance);
-				new_tp = *throughput * coeff.sigma_s * transmittance * (3.0f / pdf);
+			if(kernel_volume_distance_sample(ray, sigma_t, channel, xi, &sample_t, &transmittance, &pdf)) {
+				/* hit */
+				new_tp = *throughput * coeff.sigma_s * transmittance / pdf;
 				t = sample_t;
 			}
 			else {
-				float pdf = (transmittance.x + transmittance.y + transmittance.z);
-				new_tp = *throughput * transmittance * (3.0f / pdf);
+				/* miss */
+				new_tp = *throughput * transmittance / pdf;
 			}
 		}
 		/* equi-angular sampling */
@@ -292,22 +354,14 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 				/* rescale random number so we can reuse it */
 				xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
 
-				/* light RNGs */
-				float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
-				float light_u, light_v;
-				path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
-
-				/* light sample */
-				LightSample ls;
-				light_sample(kg, light_t, light_u, light_v, ray->time, ray->P, &ls);
-				if(ls.pdf == 0.0f)
+				/* sample position on light */
+				float3 light_P;
+				if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P))
 					return VOLUME_PATH_MISSED;
 
 				/* sampling */
-				float sample_t, pdf;
-				sample_t = kernel_volume_equiangular_sample(ray, ls.P, xi, &pdf);
-
-				transmittance = volume_color_attenuation(sigma_t, sample_t);
+				float pdf;
+				float sample_t = kernel_volume_equiangular_sample(ray, sigma_t, light_P, xi, &transmittance, &pdf);
 
 				new_tp = *throughput * coeff.sigma_s * transmittance / ((1.0f - sample_transmittance) * pdf);
 				t = sample_t;
@@ -320,24 +374,9 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 		new_tp = *throughput * transmittance;
 	}
 
-	/* integrate emission attenuated by extinction
-	 * integral E * exp(-sigma_t * t) from 0 to t = E * (1 - exp(-sigma_t * t))/sigma_t
-	 * this goes to E * t as sigma_t goes to zero
-	 *
-	 * todo: we should use an epsilon to avoid precision issues near zero sigma_t */
+	/* integrate emission attenuated by extinction */
 	if(closure_flag & SD_EMISSION) {
-		float3 emission = coeff.emission;
-
-		if(closure_flag & SD_ABSORPTION) {
-			float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
-
-			emission.x *= (sigma_t.x > 0.0f)? (1.0f - transmittance.x)/sigma_t.x: t;
-			emission.y *= (sigma_t.y > 0.0f)? (1.0f - transmittance.y)/sigma_t.y: t;
-			emission.z *= (sigma_t.z > 0.0f)? (1.0f - transmittance.z)/sigma_t.z: t;
-		}
-		else
-			emission *= t;
-
+		float3 emission = kernel_volume_emission_integrate(&coeff, closure_flag, transmittance, t);
 		path_radiance_accum_emission(L, *throughput, emission, state->bounce);
 	}
 
@@ -468,24 +507,9 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 				 * tp_eps check too */
 			}
 
-			/* integrate emission attenuated by absorption 
-			 * integral E * exp(-sigma_t * t) from 0 to t = E * (1 - exp(-sigma_t * t))/sigma_t
-			 * this goes to E * t as sigma_t goes to zero
-			 *
-			 * todo: we should use an epsilon to avoid precision issues near zero sigma_t */
+			/* integrate emission attenuated by absorption */
 			if(closure_flag & SD_EMISSION) {
-				float3 emission = coeff.emission;
-
-				if(closure_flag & SD_ABSORPTION) {
-					float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
-
-					emission.x *= (sigma_t.x > 0.0f)? (1.0f - transmittance.x)/sigma_t.x: dt;
-					emission.y *= (sigma_t.y > 0.0f)? (1.0f - transmittance.y)/sigma_t.y: dt;
-					emission.z *= (sigma_t.z > 0.0f)? (1.0f - transmittance.z)/sigma_t.z: dt;
-				}
-				else
-					emission *= dt;
-
+				float3 emission = kernel_volume_emission_integrate(&coeff, closure_flag, transmittance, dt);
 				path_radiance_accum_emission(L, tp, emission, state->bounce);
 			}
 
