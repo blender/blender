@@ -70,7 +70,7 @@ def main():
 
     def my_process(i, c, cmd):
         if not USE_QUIET:
-            percent = 100.0 * (i / (len(check_commands) - 1))
+            percent = 100.0 * (i / len(check_commands))
             percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
             sys.stdout.flush()

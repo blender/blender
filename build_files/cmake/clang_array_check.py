@@ -41,7 +41,7 @@ defs_precalc = {
 
     "glColor3dv": {0: 3},
     "glColor4dv": {0: 4},
-    
+
     "glVertex2fv": {0: 2},
     "glVertex3fv": {0: 3},
     "glVertex4fv": {0: 4},
@@ -50,27 +50,27 @@ defs_precalc = {
     "glEvalCoord1dv": {0: 1},
     "glEvalCoord2fv": {0: 2},
     "glEvalCoord2dv": {0: 2},
-    
+
     "glRasterPos2dv": {0: 2},
     "glRasterPos3dv": {0: 3},
     "glRasterPos4dv": {0: 4},
-    
+
     "glRasterPos2fv": {0: 2},
     "glRasterPos3fv": {0: 3},
     "glRasterPos4fv": {0: 4},
-    
+
     "glRasterPos2sv": {0: 2},
     "glRasterPos3sv": {0: 3},
     "glRasterPos4sv": {0: 4},
-    
+
     "glTexCoord2fv": {0: 2},
     "glTexCoord3fv": {0: 3},
     "glTexCoord4fv": {0: 4},
-    
+
     "glTexCoord2dv": {0: 2},
     "glTexCoord3dv": {0: 3},
     "glTexCoord4dv": {0: 4},
-    
+
     "glNormal3fv": {0: 3},
     "glNormal3dv": {0: 3},
     "glNormal3bv": {0: 3},
@@ -84,17 +84,17 @@ import sys
 
 if 0:
     # Examples with LLVM as the root dir: '/dsk/src/llvm'
-    
+
     # path containing 'clang/__init__.py'
     CLANG_BIND_DIR = "/dsk/src/llvm/tools/clang/bindings/python"
-    
+
     # path containing libclang.so
     CLANG_LIB_DIR = "/opt/llvm/lib"
 else:
     import os
     CLANG_BIND_DIR = os.environ.get("CLANG_BIND_DIR")
     CLANG_LIB_DIR = os.environ.get("CLANG_LIB_DIR")
-    
+
     if CLANG_BIND_DIR is None:
         print("$CLANG_BIND_DIR python binding dir not set")
     if CLANG_LIB_DIR is None:
@@ -128,7 +128,7 @@ def function_parm_wash_tokens(parm):
                          CursorKind.VAR_DECL,  # XXX, double check this
                          CursorKind.FIELD_DECL,
                          )
-    
+
     """
     Return tolens without trailing commads and 'const'
     """
@@ -136,14 +136,14 @@ def function_parm_wash_tokens(parm):
     tokens = [t for t in parm.get_tokens()]
     if not tokens:
         return tokens
-    
-    #if tokens[-1].kind == To
+
+    # if tokens[-1].kind == To
     # remove trailing char
     if tokens[-1].kind == TokenKind.PUNCTUATION:
         if tokens[-1].spelling in (",", ")", ";"):
             tokens.pop()
-        #else:
-        #    print(tokens[-1].spelling)
+        # else:
+        #     print(tokens[-1].spelling)
 
     t_new = []
     for t in tokens:
@@ -157,17 +157,17 @@ def function_parm_wash_tokens(parm):
                 ok = False  # __restrict
         elif t_kind in (TokenKind.COMMENT, ):
             ok = False
-            
+
             # Use these
         elif t_kind in (TokenKind.LITERAL,
                         TokenKind.PUNCTUATION,
                         TokenKind.IDENTIFIER):
             # use but ignore
             pass
-        
+
         else:
             print("Unknown!", t_kind, t_spelling)
-        
+
         # if its OK we will add
         if ok:
             t_new.append(t)
@@ -176,9 +176,9 @@ def function_parm_wash_tokens(parm):
 
 def parm_size(node_child):
     tokens = function_parm_wash_tokens(node_child)
-    
+
     # print(" ".join([t.spelling for t in tokens]))
-    
+
     # NOT PERFECT CODE, EXTRACT SIZE FROM TOKENS
     if len(tokens) >= 3:  # foo [ 1 ]
         if      ((tokens[-3].kind == TokenKind.PUNCTUATION and tokens[-3].spelling == "[") and
@@ -201,7 +201,7 @@ def function_get_arg_sizes(node):
         for i, node_child in enumerate(node_parms):
 
             # print(node_child.kind, node_child.spelling)
-            #print(node_child.type.kind, node_child.spelling)
+            # print(node_child.type.kind, node_child.spelling)
             if node_child.type.kind == TypeKind.CONSTANTARRAY:
                 pointee = node_child.type.get_pointee()
                 size = parm_size(node_child)
@@ -228,14 +228,14 @@ def lookup_function_size_def(func_id):
 
 
 def file_check_arg_sizes(tu):
-    
+
     # main checking function
     def validate_arg_size(node):
         """
         Loop over args and validate sizes for args we KNOW the size of.
         """
         assert node.kind == CursorKind.CALL_EXPR
-        
+
         if 0:
             print("---",
                   " <~> ".join(
@@ -243,15 +243,15 @@ def file_check_arg_sizes(tu):
                   for C in node.get_children()]
                   ))
         # print(node.location)
-        
+
         # first child is the function call, skip that.
         children = list(node.get_children())
 
         if not children:
             return  # XXX, look into this, happens on C++
-        
+
         func = children[0]
-        
+
         # get the func declaration!
         # works but we can better scan for functions ahead of time.
         if 0:
@@ -263,29 +263,29 @@ def file_check_arg_sizes(tu):
                 print("AA", " ".join([t.spelling for t in node.get_tokens()]))
         else:
             args_size_definition = ()  # dummy
-            
+
             # get the key
             tok = list(func.get_tokens())
             if tok:
                 func_id = tok[0].spelling
                 args_size_definition = lookup_function_size_def(func_id)
-        
+
         if not args_size_definition:
             return
 
         children = children[1:]
         for i, node_child in enumerate(children):
             children = list(node_child.get_children())
-            
+
             # skip if we dont have an index...
             size_def = args_size_definition.get(i, -1)
 
             if size_def == -1:
                 continue
-            
-            #print([c.kind for c in children])
+
+            # print([c.kind for c in children])
             # print(" ".join([t.spelling for t in node_child.get_tokens()]))
-            
+
             if len(children) == 1:
                 arg = children[0]
                 if arg.kind in (CursorKind.DECL_REF_EXPR,
@@ -295,10 +295,10 @@ def file_check_arg_sizes(tu):
                         dec = arg.get_definition()
                         if dec:
                             size = parm_size(dec)
-                            
+
                             # size == 0 is for 'float *a'
                             if size != -1 and size != 0:
-                                
+
                                 # nice print!
                                 if 0:
                                     print("".join([t.spelling for t in func.get_tokens()]),
@@ -349,8 +349,8 @@ def recursive_arg_sizes(node, ):
             args_sizes = node
         else:
             args_sizes = function_get_arg_sizes(node)
-        #if args_sizes:
-        #    print(node.spelling, args_sizes)
+        # if args_sizes:
+        #     print(node.spelling, args_sizes)
         _defs[node.spelling] = args_sizes
         # print("adding", node.spelling)
     for c in node.get_children():
