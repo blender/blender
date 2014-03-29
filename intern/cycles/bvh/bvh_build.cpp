@@ -101,6 +101,11 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 		}
 	}
 
+	Attribute *curve_attr_mP = NULL;
+
+	if(mesh->has_motion_blur())
+		curve_attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
 	for(uint j = 0; j < mesh->curves.size(); j++) {
 		Mesh::Curve curve = mesh->curves[j];
 		PrimitiveType type = PRIMITIVE_CURVE;
@@ -108,6 +113,18 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 		for(int k = 0; k < curve.num_keys - 1; k++) {
 			BoundBox bounds = BoundBox::empty;
 			curve.bounds_grow(k, &mesh->curve_keys[0], bounds);
+
+			/* motion curve */
+			if(curve_attr_mP) {
+				size_t mesh_size = mesh->curve_keys.size();
+				size_t steps = mesh->motion_steps - 1;
+				float4 *key_steps = curve_attr_mP->data_float4();
+
+				for (size_t i = 0; i < steps; i++)
+					curve.bounds_grow(k, key_steps + i*mesh_size, bounds);
+
+				type = PRIMITIVE_MOTION_CURVE;
+			}
 
 			if(bounds.valid()) {
 				int packed_type = PRIMITIVE_PACK_SEGMENT(type, k);

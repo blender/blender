@@ -238,7 +238,6 @@ void BVH::refit(Progress& progress)
 
 void BVH::pack_triangle(int idx, float4 woop[3])
 {
-	/* create Woop triangle */
 	int tob = pack.prim_object[idx];
 	const Mesh *mesh = objects[tob]->mesh;
 
@@ -642,6 +641,20 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 					curve.bounds_grow(k, &mesh->curve_keys[0], bbox);
 
 					visibility |= PATH_RAY_CURVE;
+
+					/* motion curves */
+					if(mesh->use_motion_blur) {
+						Attribute *attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+						if(attr) {
+							size_t mesh_size = mesh->curve_keys.size();
+							size_t steps = mesh->motion_steps - 1;
+							float4 *key_steps = attr->data_float4();
+
+							for (size_t i = 0; i < steps; i++)
+								curve.bounds_grow(k, key_steps + i*mesh_size, bbox);
+						}
+					}
 				}
 				else {
 					/* triangles */

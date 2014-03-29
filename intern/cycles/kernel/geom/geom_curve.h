@@ -103,9 +103,17 @@ ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
 		int k1 = k0 + 1;
 
-		float4 P1 = kernel_tex_fetch(__curve_keys, k0);
-		float4 P2 = kernel_tex_fetch(__curve_keys, k1);
-		r = (P2.w - P1.w) * sd->u + P1.w;
+		float4 P_curve[2];
+
+		if(sd->type & PRIMITIVE_CURVE) {
+			P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
+			P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
+		}
+		else {
+			motion_curve_keys(kg, sd->object, sd->prim, sd->time, k0, k1, P_curve);
+		}
+
+		r = (P_curve[1].w - P_curve[0].w) * sd->u + P_curve[0].w;
 	}
 
 	return r*2.0f;
@@ -226,10 +234,16 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 
 		__m128 P_curve[4];
 
-		P_curve[0] = _mm_load_ps(&kg->__curve_keys.data[ka].x);
-		P_curve[1] = _mm_load_ps(&kg->__curve_keys.data[k0].x);
-		P_curve[2] = _mm_load_ps(&kg->__curve_keys.data[k1].x);
-		P_curve[3] = _mm_load_ps(&kg->__curve_keys.data[kb].x);
+		if(type & PRIMITIVE_CURVE) {
+			P_curve[0] = _mm_load_ps(&kg->__curve_keys.data[ka].x);
+			P_curve[1] = _mm_load_ps(&kg->__curve_keys.data[k0].x);
+			P_curve[2] = _mm_load_ps(&kg->__curve_keys.data[k1].x);
+			P_curve[3] = _mm_load_ps(&kg->__curve_keys.data[kb].x);
+		}
+		else {
+			int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+			motion_cardinal_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, (float4*)&P_curve);
+		}
 
 		__m128 rd_sgn = set_sign_bit<0, 1, 1, 1>(broadcast<0>(rd_ss));
 		__m128 mul_zxxy = _mm_mul_ps(shuffle<2, 0, 0, 1>(vdir), rd_sgn);
@@ -287,10 +301,16 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 
 		float4 P_curve[4];
 
-		P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
-		P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
-		P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
-		P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+		if(type & PRIMITIVE_CURVE) {
+			P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
+			P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
+			P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
+			P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+		}
+		else {
+			int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+			motion_cardinal_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, P_curve);
+		}
 
 		float3 p0 = transform_point(&htfm, float4_to_float3(P_curve[0]) - P);
 		float3 p1 = transform_point(&htfm, float4_to_float3(P_curve[1]) - P);
@@ -593,8 +613,14 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 #ifndef __KERNEL_SSE2__
 	float4 P_curve[2];
 
-	P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
-	P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
+	if(type & PRIMITIVE_CURVE) {
+		P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
+		P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
+	}
+	else {
+		int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+		motion_curve_keys(kg, fobject, prim, time, k0, k1, P_curve);
+	}
 
 	float or1 = P_curve[0].w;
 	float or2 = P_curve[1].w;
@@ -620,14 +646,23 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 	float sphere_b_tmp = dot3(dir, sphere_dif1);
 	float3 sphere_dif2 = sphere_dif1 - sphere_b_tmp * dir;
 #else
-	const __m128 p1 = _mm_load_ps(&kg->__curve_keys.data[k0].x);
-	const __m128 p2 = _mm_load_ps(&kg->__curve_keys.data[k1].x);
-	const __m128 or12 = shuffle<3, 3, 3, 3>(p1, p2);
+	__m128 P_curve[2];
+	
+	if(type & PRIMITIVE_CURVE) {
+		P_curve[0] = _mm_load_ps(&kg->__curve_keys.data[k0].x);
+		P_curve[1] = _mm_load_ps(&kg->__curve_keys.data[k1].x);
+	}
+	else {
+		int fobject = (object == ~0)? kernel_tex_fetch(__prim_object, curveAddr): object;
+		motion_curve_keys(kg, fobject, prim, time, k0, k1, (float4*)&P_curve);
+	}
+
+	const __m128 or12 = shuffle<3, 3, 3, 3>(P_curve[0], P_curve[1]);
 
 	__m128 r12 = or12;
 	const __m128 vP = load_m128(P);
-	const __m128 dif = _mm_sub_ps(vP, p1);
-	const __m128 dif_second = _mm_sub_ps(vP, p2);
+	const __m128 dif = _mm_sub_ps(vP, P_curve[0]);
+	const __m128 dif_second = _mm_sub_ps(vP, P_curve[1]);
 	if(difl != 0.0f) {
 		const __m128 len1_sq = len3_squared_splat(dif);
 		const __m128 len2_sq = len3_squared_splat(dif_second);
@@ -639,7 +674,7 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 	float r1 = _mm_cvtss_f32(r12), r2 = _mm_cvtss_f32(broadcast<2>(r12));
 
 	const __m128 dir = _mm_div_ps(_mm_set1_ps(1.0f), load_m128(idir));
-	const __m128 p21_diff = _mm_sub_ps(p2, p1);
+	const __m128 p21_diff = _mm_sub_ps(P_curve[1], P_curve[0]);
 	const __m128 sphere_dif1 = _mm_mul_ps(_mm_add_ps(dif, dif_second), _mm_set1_ps(0.5f));
 	const __m128 sphere_b_tmp = dot3_splat(dir, sphere_dif1);
 	const __m128 sphere_dif2 = fnma(sphere_b_tmp, dir, sphere_dif1);
@@ -854,10 +889,15 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 
 		float4 P_curve[4];
 
-		P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
-		P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
-		P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
-		P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+		if(sd->type & PRIMITIVE_CURVE) {
+			P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
+			P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
+			P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
+			P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+		}
+		else {
+			motion_cardinal_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
+		}
 
 		float l = 1.0f;
 		tg = normalize_len(float4_to_float3(P_curve[2] - P_curve[1]), &l);
@@ -893,8 +933,13 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 	else {
 		float4 P_curve[2];
 
-		P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
-		P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
+		if(sd->type & PRIMITIVE_CURVE) {
+			P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
+			P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
+		}
+		else {
+			motion_curve_keys(kg, sd->object, sd->prim, sd->time, k0, k1, P_curve);
+		}
 
 		float l = 1.0f;
 		tg = normalize_len(float4_to_float3(P_curve[1] - P_curve[0]), &l);

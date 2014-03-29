@@ -199,7 +199,7 @@ void Mesh::compute_bounds()
 		}
 
 		Attribute *curve_attr = curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-		if (curve_attr) {
+		if(use_motion_blur && curve_attr) {
 			size_t steps_size = curve_keys.size() * (motion_steps - 1);
 			float3 *key_steps = curve_attr->data_float3();
 	
@@ -225,7 +225,7 @@ void Mesh::compute_bounds()
 					bnds.grow_safe(vert_steps[i]);
 			}
 
-			if (curve_attr) {
+			if (use_motion_blur && curve_attr) {
 				size_t steps_size = curve_keys.size() * (motion_steps - 1);
 				float3 *key_steps = curve_attr->data_float3();
 		
@@ -536,7 +536,9 @@ void Mesh::tag_update(Scene *scene, bool rebuild)
 
 bool Mesh::has_motion_blur() const
 {
-	return (use_motion_blur && attributes.find(ATTR_STD_MOTION_VERTEX_POSITION));
+	return (use_motion_blur &&
+	        (attributes.find(ATTR_STD_MOTION_VERTEX_POSITION) ||
+			 curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)));
 }
 
 /* Mesh Manager */

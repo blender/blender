@@ -261,7 +261,8 @@ ccl_device bool BVH_FUNCTION_NAME
 								break;
 							}
 #if FEATURE(BVH_HAIR)
-							case PRIMITIVE_CURVE: {
+							case PRIMITIVE_CURVE:
+							case PRIMITIVE_MOTION_CURVE: {
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
 									hit = bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);

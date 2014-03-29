@@ -41,9 +41,10 @@
 #endif
 
 #include "geom_object.h"
-#include "geom_curve.h"
 #include "geom_triangle.h"
 #include "geom_motion_triangle.h"
+#include "geom_motion_curve.h"
+#include "geom_curve.h"
 
 CCL_NAMESPACE_BEGIN
 

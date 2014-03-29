@@ -84,11 +84,6 @@ void Object::apply_transform()
 	if(!mesh || tfm == transform_identity())
 		return;
 	
-	float3 c0 = transform_get_column(&tfm, 0);
-	float3 c1 = transform_get_column(&tfm, 1);
-	float3 c2 = transform_get_column(&tfm, 2);
-	float scalar = pow(fabsf(dot(cross(c0, c1), c2)), 1.0f/3.0f);
-
 	/* triangles */
 	if(mesh->verts.size()) {
 		/* store matrix to transform later. when accessing these as attributes we
@@ -121,23 +116,40 @@ void Object::apply_transform()
 		}
 	}
 
-	/* apply to curve keys */
-	for(size_t i = 0; i < mesh->curve_keys.size(); i++) {
-		float3 co = transform_point(&tfm, float4_to_float3(mesh->curve_keys[i]));
-		float radius = mesh->curve_keys[i].w * scalar;
+	/* curves */
+	if(mesh->curve_keys.size()) {
+		/* compute uniform scale */
+		float3 c0 = transform_get_column(&tfm, 0);
+		float3 c1 = transform_get_column(&tfm, 1);
+		float3 c2 = transform_get_column(&tfm, 2);
+		float scalar = pow(fabsf(dot(cross(c0, c1), c2)), 1.0f/3.0f);
 
-		mesh->curve_keys[i] = float3_to_float4(co);
-		/* scale for strand radius - only correct for uniform transforms*/
-		mesh->curve_keys[i].w *= radius;
-	}
+		/* apply transform to curve keys */
+		for(size_t i = 0; i < mesh->curve_keys.size(); i++) {
+			float3 co = transform_point(&tfm, float4_to_float3(mesh->curve_keys[i]));
+			float radius = mesh->curve_keys[i].w * scalar;
 
-	Attribute *curve_attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-	if (curve_attr) {
-		size_t steps_size = mesh->curve_keys.size() * (mesh->motion_steps - 1);
-		float3 *vert_steps = curve_attr->data_float3();
+			/* scale for curve radius is only correct for uniform scale */
+			mesh->curve_keys[i] = float3_to_float4(co);
+			mesh->curve_keys[i].w = radius;
+		}
 
-		for (size_t i = 0; i < steps_size; i++)
-			vert_steps[i] = transform_point(&tfm, vert_steps[i]);
+		Attribute *curve_attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+		if (curve_attr) {
+			/* apply transform to motion curve keys */
+			size_t steps_size = mesh->curve_keys.size() * (mesh->motion_steps - 1);
+			float4 *key_steps = curve_attr->data_float4();
+
+			for (size_t i = 0; i < steps_size; i++) {
+				float3 co = transform_point(&tfm, float4_to_float3(key_steps[i]));
+				float radius = key_steps[i].w * scalar;
+
+				/* scale for curve radius is only correct for uniform scale */
+				key_steps[i] = float3_to_float4(co);
+				key_steps[i].w = radius;
+			}
+		}
 	}
 
 	/* we keep normals pointing in same direction on negative scale, notify
