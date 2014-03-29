@@ -221,6 +221,17 @@ static int floor_lg(int a)
 }
 #endif
 
+static void node_minmax_init(const BVHTree *tree, BVHNode *node)
+{
+	axis_t axis_iter;
+	float (*bv)[2] = (float (*)[2])node->bv;
+
+	for (axis_iter = tree->start_axis; axis_iter != tree->stop_axis; axis_iter++) {
+		bv[axis_iter][0] =  FLT_MAX;
+		bv[axis_iter][1] = -FLT_MAX;
+	}
+}
+
 /**
  * Insertion sort algorithm
  */
@@ -394,12 +405,9 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 	
 	/* don't init boudings for the moving case */
 	if (!moving) {
-		for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-			bv[2 * axis_iter] = FLT_MAX;
-			bv[2 * axis_iter + 1] = -FLT_MAX;
-		}
+		node_minmax_init(tree, node);
 	}
-	
+
 	for (k = 0; k < numpoints; k++) {
 		/* for all Axes. */
 		for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
@@ -422,10 +430,7 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 	int j;
 	axis_t axis_iter;
 
-	for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-		bv[(2 * axis_iter)] = FLT_MAX;
-		bv[(2 * axis_iter) + 1] = -FLT_MAX;
-	}
+	node_minmax_init(tree, node);
 
 	for (j = start; j < end; j++) {
 		/* for all Axes. */
@@ -474,10 +479,7 @@ static void node_join(BVHTree *tree, BVHNode *node)
 	int i;
 	axis_t axis_iter;
 
-	for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-		node->bv[(2 * axis_iter)] = FLT_MAX;
-		node->bv[(2 * axis_iter) + 1] = -FLT_MAX;
-	}
+	node_minmax_init(tree, node);
 	
 	for (i = 0; i < tree->tree_type; i++) {
 		if (node->children[i]) {
@@ -1137,7 +1139,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 }
 
 /* Determines the nearest point of the given node BV. Returns the squared distance to that point. */
-static float calc_nearest_point_squared(const float proj[3], BVHNode *node, float *nearest)
+static float calc_nearest_point_squared(const float proj[3], BVHNode *node, float nearest[3])
 {
 	int i;
 	const float *bv = node->bv;
@@ -1428,7 +1430,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	/* ray-bv is really fast.. and simple tests revealed its worth to test it
 	 * before calling the ray-primitive functions */
 	/* XXX: temporary solution for particles until fast_ray_nearest_hit supports ray.radius */
-	float dist = (data->ray.radius > 0.0f) ? ray_nearest_hit(data, node->bv) : fast_ray_nearest_hit(data, node);
+	float dist = (data->ray.radius == 0.0f) ? fast_ray_nearest_hit(data, node) : ray_nearest_hit(data, node->bv);
 	if (dist >= data->hit.dist) return;
 
 	if (node->totnode == 0) {
