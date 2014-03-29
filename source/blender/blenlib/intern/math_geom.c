@@ -601,7 +601,7 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 	return -1;
 }
 
-int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+bool isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 #define CCW(A, B, C) ((C[1] - A[1]) * (B[0] - A[0]) > (B[1]-A[1]) * (C[0]-A[0]))
 
@@ -638,7 +638,7 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 		l2[2] - l1[2]
 	};
 
-	const float a = dot_v3v3(ldir, ldir);
+	const float a = len_squared_v3(ldir);
 
 	const float b = 2.0f *
 	                (ldir[0] * (l1[0] - sp[0]) +
@@ -646,8 +646,8 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 	                 ldir[2] * (l1[2] - sp[2]));
 
 	const float c =
-	    dot_v3v3(sp, sp) +
-	    dot_v3v3(l1, l1) -
+	    len_squared_v3(sp) +
+	    len_squared_v3(l1) -
 	    (2.0f * dot_v3v3(sp, l1)) -
 	    (r * r);
 
@@ -854,7 +854,7 @@ bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsign
 /* point in tri */
 
 /* only single direction */
-int isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2])
+bool isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2])
 {
 	if (line_point_side_v2(v1, v2, pt) >= 0.0f) {
 		if (line_point_side_v2(v2, v3, pt) >= 0.0f) {
@@ -1145,7 +1145,7 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 	mul_v3_fl(e1, du);
 	mul_v3_fl(e2, dv);
 
-	if (dot_v3v3(e1, e1) + dot_v3v3(e2, e2) > threshold * threshold) {
+	if (len_squared_v3(e1) + len_squared_v3(e2) > threshold * threshold) {
 		return 0;
 	}
 
@@ -2140,7 +2140,7 @@ static float tri_signed_area(const float v1[3], const float v2[3], const float v
 }
 
 /* return 1 when degenerate */
-static int barycentric_weights(const float v1[3], const float v2[3], const float v3[3], const float co[3], const float n[3], float w[3])
+static bool barycentric_weights(const float v1[3], const float v2[3], const float v3[3], const float co[3], const float n[3], float w[3])
 {
 	float wtot;
 	int i, j;
@@ -2182,7 +2182,7 @@ void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], co
 	else {
 		/* otherwise compute barycentric interpolation weights */
 		float n1[3], n2[3], n[3];
-		int degenerate;
+		bool degenerate;
 
 		sub_v3_v3v3(n1, v1, v3);
 		if (v4) {
@@ -3791,7 +3791,7 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 }
 
 /* evaluate if entire quad is a proper convex quad */
-int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
 	float nor[3], nor_a[3], nor_b[3], vec[4][2];
 	float mat[3][3];
@@ -3841,13 +3841,13 @@ int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], c
 	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0);
 }
 
-int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 	/* linetests, the 2 diagonals have to instersect to be convex */
 	return (isect_line_line_v2(v1, v3, v2, v4) > 0);
 }
 
-int is_poly_convex_v2(const float verts[][2], unsigned int nr)
+bool is_poly_convex_v2(const float verts[][2], unsigned int nr)
 {
 	unsigned int sign_flag = 0;
 	unsigned int a;

@@ -674,7 +674,7 @@ float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3
 	sub_v3_v3v3(pdelta, vec, b1);
 
 	a = dot_v3v3(bdelta, pdelta);
-	hsqr = dot_v3v3(pdelta, pdelta);
+	hsqr = len_squared_v3(pdelta);
 
 	if (a < 0.0f) {
 		/* If we're past the end of the bone, do a spherical field attenuation thing */
@@ -1459,7 +1459,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 	 * roll when toggling editmode again...
 	 * No good value here, trying 0.000000001 as best compromise. :/
 	 */
-	if (dot_v3v3(axis, axis) > 1.0e-9f) {
+	if (len_squared_v3(axis) > 1.0e-9f) {
 		/* if nor is *not* a multiple of target ... */
 		normalize_v3(axis);
 

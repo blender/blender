@@ -466,7 +466,7 @@ bool usingSnappingNormal(TransInfo *t)
 bool validSnappingNormal(TransInfo *t)
 {
 	if (validSnap(t)) {
-		if (dot_v3v3(t->tsnap.snapNormal, t->tsnap.snapNormal) > 0) {
+		if (!is_zero_v3(t->tsnap.snapNormal)) {
 			return true;
 		}
 	}
@@ -990,10 +990,10 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		if (found == true) {
 			float tangent[3];
 			
-			sub_v3_v3v3(tangent, loc, t->tsnap.snapPoint);
-			tangent[2] = 0; 
+			sub_v2_v2v2(tangent, loc, t->tsnap.snapPoint);
+			tangent[2] = 0.0f;
 			
-			if (dot_v3v3(tangent, tangent) > 0) {
+			if (!is_zero_v3(tangent)) {
 				copy_v3_v3(t->tsnap.snapTangent, tangent);
 			}
 			

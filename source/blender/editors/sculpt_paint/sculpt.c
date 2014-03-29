@@ -1045,7 +1045,7 @@ static bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 	
 	sub_v3_v3v3(t, center, nearest);
 
-	return dot_v3v3(t, t) < data->radius_squared;
+	return len_squared_v3(t) < data->radius_squared;
 }
 
 /* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags */

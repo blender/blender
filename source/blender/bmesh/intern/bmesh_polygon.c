@@ -311,7 +311,7 @@ void BM_face_calc_plane(BMFace *f, float r_plane[3])
 		sub_v3_v3v3(vec_b, verts[1]->co, verts[2]->co);
 		add_v3_v3v3(vec, vec_a, vec_b);
 		/* use the biggest edge length */
-		if (dot_v3v3(r_plane, r_plane) < dot_v3v3(vec, vec)) {
+		if (len_squared_v3(r_plane) < len_squared_v3(vec)) {
 			copy_v3_v3(r_plane, vec);
 		}
 	}
@@ -723,7 +723,7 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 	int crosses = 0;
 	float onepluseps = 1.0f + (float)FLT_EPSILON * 150.0f;
 	
-	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON * 10)
+	if (is_zero_v3(f->no))
 		BM_face_normal_update(f);
 	
 	/* find best projection of face XY, XZ or YZ: barycentric weights of

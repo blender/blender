@@ -170,7 +170,7 @@ static float squared_distance(const float v2[3], const float v1[3], const float 
 	d[1] = v2[1] - v1[1];
 	d[2] = v2[2] - v1[2];
 
-	dist = dot_v3v3(d, d);
+	dist = len_squared_v3(d);
 
 	/* can someone explain why this is done?*/
 	if (n2 && (dot_v3v3(d, n2) < 0.0f)) {
