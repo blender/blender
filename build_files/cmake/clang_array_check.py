@@ -117,6 +117,7 @@ args = sys.argv[2:]
 
 tu = index.parse(sys.argv[1], args)
 # print('Translation unit: %s' % tu.spelling)
+filepath = tu.spelling
 
 # -----------------------------------------------------------------------------
 
@@ -200,14 +201,12 @@ def function_get_arg_sizes(node):
         for i, node_child in enumerate(node_parms):
 
             # print(node_child.kind, node_child.spelling)
-            #print(node_child.type.kind, node_child.spelling)  # TypeKind.POINTER
-            
-            if node_child.type.kind == TypeKind.POINTER:
+            #print(node_child.type.kind, node_child.spelling)
+            if node_child.type.kind == TypeKind.CONSTANTARRAY:
                 pointee = node_child.type.get_pointee()
-                if pointee.is_pod():
-                    size = parm_size(node_child)
-                    if size != -1:
-                        arg_sizes[i] = size
+                size = parm_size(node_child)
+                if size != -1:
+                    arg_sizes[i] = size
 
     return arg_sizes
 
@@ -292,7 +291,7 @@ def file_check_arg_sizes(tu):
                 if arg.kind in (CursorKind.DECL_REF_EXPR,
                                 CursorKind.UNEXPOSED_EXPR):
 
-                    if arg.type.kind == TypeKind.POINTER:
+                    if arg.type.kind == TypeKind.CONSTANTARRAY:
                         dec = arg.get_definition()
                         if dec:
                             size = parm_size(dec)
@@ -324,7 +323,7 @@ def file_check_arg_sizes(tu):
                                                    location.line,
                                                    location.column,
                                                    i + 1, size, size_def,
-                                                   args[0]  # always the same but useful when running threaded
+                                                   filepath  # always the same but useful when running threaded
                                                    ))
 
     # we dont really care what we are looking at, just scan entire file for

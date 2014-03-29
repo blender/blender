@@ -41,6 +41,8 @@ CHECKER_ARGS = [
     os.path.join(os.path.dirname(__file__), "clang_array_check.py"),
     # not sure why this is needed, but it is.
     "-I" + os.path.join(project_source_info.SOURCE_DIR, "extern", "glew", "include"),
+    # stupid but needed
+    "-Dbool=char"
     ]
 
 
