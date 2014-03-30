@@ -49,6 +49,7 @@ void        BLI_rng_srandom(struct RNG *rng, unsigned int seed);
 int         BLI_rng_get_int(struct RNG *rng);
 double      BLI_rng_get_double(struct RNG *rng);
 float       BLI_rng_get_float(struct RNG *rng);
+void        BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]);
 void        BLI_rng_shuffle_array(struct RNG *rng, void *data, int elemSize, int numElems);
 
 /** Note that skipping is as slow as generating n numbers! */
@@ -62,6 +63,7 @@ int     BLI_rand(void);
 
 /** Return a pseudo-random number N where 0.0f<=N<1.0f */
 float   BLI_frand(void);
+void    BLI_frand_unit_v3(float v[3]);
 
 /** Return a pseudo-random (hash) float from an integer value */
 float	BLI_hash_frand(unsigned int seed);

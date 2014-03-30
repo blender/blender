@@ -1672,18 +1672,6 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 
 
 /* aolight: function to create random unit sphere vectors for total random sampling */
-static void RandomSpherical(RNG *rng, float v[3])
-{
-	float r;
-	v[2] = 2.f*BLI_rng_get_float(rng)-1.f;
-	if ((r = 1.f - v[2]*v[2])>0.f) {
-		float a = 6.283185307f*BLI_rng_get_float(rng);
-		r = sqrt(r);
-		v[0] = r * cosf(a);
-		v[1] = r * sinf(a);
-	}
-	else v[2] = 1.f;
-}
 
 /* calc distributed spherical energy */
 static void DS_energy(float *sphere, int tot, float vec[3])
@@ -1729,7 +1717,7 @@ void init_ao_sphere(World *wrld)
 	/* init */
 	fp= wrld->aosphere;
 	for (a=0; a<tot; a++, fp+= 3) {
-		RandomSpherical(rng, fp);
+		BLI_rng_get_float_unit_v3(rng, fp);
 	}
 	
 	while (iter--) {
@@ -1780,7 +1768,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, in
 
 		vec= sphere;
 		for (a=0; a<tot; a++, vec+=3) {
-			RandomSpherical(rng, vec);
+			BLI_rng_get_float_unit_v3(rng, vec);
 		}
 
 		BLI_rng_free(rng);

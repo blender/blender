@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -117,6 +118,21 @@ float BLI_rng_get_float(RNG *rng)
 	return (float) BLI_rng_get_int(rng) / 0x80000000;
 }
 
+void BLI_rng_get_float_unit_v3(RNG *rng, float v[3])
+{
+	float r;
+	v[2] = (2.0f * BLI_rng_get_float(rng)) - 1.0f;
+	if ((r = 1.0f - (v[2] * v[2])) > 0.0f) {
+		float a = (float)(M_PI * 2.0) * BLI_rng_get_float(rng);
+		r = sqrtf(r);
+		v[0] = r * cosf(a);
+		v[1] = r * sinf(a);
+	}
+	else {
+		v[2] = 1.0f;
+	}
+}
+
 void BLI_rng_shuffle_array(RNG *rng, void *data, int elemSize, int numElems)
 {
 	int i = numElems;
@@ -171,6 +187,11 @@ int BLI_rand(void)
 float BLI_frand(void)
 {
 	return BLI_rng_get_float(&theBLI_rng);
+}
+
+void BLI_frand_unit_v3(float v[3])
+{
+	return BLI_rng_get_float_unit_v3(&theBLI_rng, v);
 }
 
 float BLI_hash_frand(unsigned int seed)
