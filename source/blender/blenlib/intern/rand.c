@@ -40,6 +40,7 @@
 
 #include "BLI_threads.h"
 #include "BLI_rand.h"
+#include "BLI_math.h"
 
 #include "BLI_strict_flags.h"
 
