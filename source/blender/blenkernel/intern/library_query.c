@@ -435,8 +435,6 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			{
 				MaskSpline *mask_spline;
 
-				CALLBACK_INVOKE_ID(mask_spline->parent.id, IDWALK_NOP);
-
 				for (mask_spline = mask_layer->splines.first;
 				     mask_spline;
 				     mask_spline = mask_spline->next)
