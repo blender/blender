@@ -97,6 +97,8 @@ void mat3_to_quat_is_ok(float q[4], float mat[3][3]);
 /* other */
 void print_qt(const char *str, const float q[4]);
 
+#define print_qt_id(q) print_qt(STRINGIFY(q), q)
+
 /******************************** Axis Angle *********************************/
 
 /* conversion */

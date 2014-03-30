@@ -215,6 +215,9 @@ bool is_zero_m4(float mat[4][4]);
 void print_m3(const char *str, float M[3][3]);
 void print_m4(const char *str, float M[3][4]);
 
+#define print_m3_id(M) print_m3(STRINGIFY(M), M)
+#define print_m4_id(M) print_m4(STRINGIFY(M), M)
+
 #ifdef __cplusplus
 }
 #endif

@@ -92,6 +92,9 @@ void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);
 
+#define print_rctf_id(rect) print_rctf(STRINGIFY(rect), rect)
+#define print_rcti_id(rect) print_rcti(STRINGIFY(rect), rect)
+
 BLI_INLINE float BLI_rcti_cent_x_fl(const struct rcti *rct) { return (float)(rct->xmin + rct->xmax) / 2.0f; }
 BLI_INLINE float BLI_rcti_cent_y_fl(const struct rcti *rct) { return (float)(rct->ymin + rct->ymax) / 2.0f; }
 BLI_INLINE int   BLI_rcti_cent_x(const struct rcti *rct) { return (rct->xmin + rct->xmax) / 2; }
