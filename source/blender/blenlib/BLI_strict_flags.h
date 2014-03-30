@@ -37,6 +37,9 @@
 #  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408  /* gcc4.8+ only (behavior changed to ignore globals)*/
 #    pragma GCC diagnostic error "-Wshadow"
 #  endif
+#  ifdef __clang__  /* pedantic causes clang error */
+#    pragma GCC diagnostic ignored "-Wlanguage-extension-token"
+#  endif
 #endif
 
 #ifdef _MSC_VER
