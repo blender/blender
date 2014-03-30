@@ -43,6 +43,7 @@
 #include "BKE_lattice.h"
 #include "BKE_editmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_context.h"
 
 #include "ED_armature.h"
 
@@ -459,4 +460,15 @@ void ED_transverts_free(TransVertStore *tvs)
 {
 	MEM_SAFE_FREE(tvs->transverts);
 	tvs->transverts_tot = 0;
+}
+
+int ED_transverts_poll(bContext *C)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	if (obedit) {
+		if (ED_transverts_check_obedit(obedit)) {
+			return true;
+		}
+	}
+	return false;
 }

@@ -276,18 +276,6 @@ static int object_warp_verts_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int object_warp_verts_poll(bContext *C)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	if (obedit) {
-		if (ED_transverts_check_obedit(obedit)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-
 void OBJECT_OT_vertex_warp(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -299,7 +287,7 @@ void OBJECT_OT_vertex_warp(struct wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = object_warp_verts_exec;
-	ot->poll = object_warp_verts_poll;
+	ot->poll = ED_transverts_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
