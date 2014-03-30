@@ -735,7 +735,7 @@ static void MEM_guarded_printmemlist_internal(int pydict)
 			            membl->_count);
 #else
 			print_error("%s len: " SIZET_FORMAT " %p\n",
-			            membl->name, SIZET_ARG(membl->len), membl + 1);
+			            membl->name, SIZET_ARG(membl->len), (void *)(membl + 1));
 #endif
 #ifdef DEBUG_BACKTRACE
 			print_memhead_backtrace(membl);

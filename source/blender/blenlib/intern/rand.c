@@ -200,7 +200,7 @@ float BLI_frand(void)
 
 void BLI_frand_unit_v3(float v[3])
 {
-	return BLI_rng_get_float_unit_v3(&theBLI_rng, v);
+	BLI_rng_get_float_unit_v3(&theBLI_rng, v);
 }
 
 float BLI_hash_frand(unsigned int seed)

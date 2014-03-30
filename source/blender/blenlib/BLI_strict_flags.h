@@ -28,6 +28,7 @@
  */
 
 #ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wpedantic"
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
 #    pragma GCC diagnostic error "-Wsign-compare"

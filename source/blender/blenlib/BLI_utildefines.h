@@ -50,26 +50,42 @@
 /* min/max */
 #if defined(__GNUC__) || defined(__clang__)
 
-#define MIN2(x, y)  ({  \
-	typeof(x) x_ = (x); \
-	typeof(y) y_ = (y); \
-	((x_) < (y_) ? (x_) : (y_)); })
+#define MIN2(a, b) __extension__ ({  \
+	typeof(a) a_ = (a); typeof(b) b_ = (b); \
+	((a_) < (b_) ? (a_) : (b_)); })
 
-#define MAX2(x, y)  ({  \
-	typeof(x) x_ = (x); \
-	typeof(y) y_ = (y); \
-	((x_) > (y_) ? (x_) : (y_)); })
+#define MAX2(a, b) __extension__ ({  \
+	typeof(a) a_ = (a); typeof(b) b_ = (b); \
+	((a_) > (b_) ? (a_) : (b_)); })
+
+#define MIN3(a, b, c) __extension__ ({  \
+	typeof(a) a_ = (a); typeof(b) b_ = (b); typeof(c) c_ = (c); \
+	((a_ < b_) ? ((a_ < c_) ? a_ : c_) : ((b_ < c_) ? b_ : c_)); })
+
+#define MAX3(a, b, c) __extension__ ({  \
+	typeof(a) a_ = (a); typeof(b) b_ = (b);  typeof(c) c_ = (c); \
+	((a_ > b_) ? ((a_ > c_) ? a_ : c_) : ((b_ > c_) ? b_ : c_)); })
+
+#define MIN4(a, b, c, d) __extension__ ({  \
+	typeof(a) a_ = (a); typeof(b) b_ = (b); typeof(c) c_ = (c); typeof(d) d_ = (d); \
+	((a_ < b_) ? ((a_ < c_) ? ((a_ < d_) ? a_ : d_) : ((c_ < d_) ? c_ : d_)) : \
+	             ((b_ < c_) ? ((b_ < d_) ? b_ : d_) : ((c_ < d_) ? c_ : d_))); })
+
+#define MAX4(a, b, c, d) __extension__ ({  \
+	typeof(a) a_ = (a); typeof(b) b_ = (b); typeof(c) c_ = (c); typeof(d) d_ = (d); \
+	((a_ > b_) ? ((a_ > c_) ? ((a_ > d_) ? a_ : d_) : ((c_ > d_) ? c_ : d_)) : \
+	             ((b_ > c_) ? ((b_ > d_) ? b_ : d_) : ((c_ > d_) ? c_ : d_))); })
 
 #else
-#define MIN2(x, y)          ((x) < (y) ? (x) : (y))
-#define MAX2(x, y)          ((x) > (y) ? (x) : (y))
+#define MIN2(a, b)  ((a) < (b) ? (a) : (b))
+#define MAX2(a, b)  ((a) > (b) ? (a) : (b))
+
+#define MIN3(a, b, c)       (MIN2(MIN2((a), (b)), (c)))
+#define MIN4(a, b, c, d)    (MIN2(MIN2((a), (b)), MIN2((c), (d))))
+
+#define MAX3(a, b, c)       (MAX2(MAX2((a), (b)), (c)))
+#define MAX4(a, b, c, d)    (MAX2(MAX2((a), (b)), MAX2((c), (d))))
 #endif
-
-#define MIN3(x, y, z)       (MIN2(MIN2((x), (y)), (z)))
-#define MIN4(x, y, z, a)    (MIN2(MIN2((x), (y)), MIN2((z), (a))))
-
-#define MAX3(x, y, z)       (MAX2(MAX2((x), (y)), (z)))
-#define MAX4(x, y, z, a)    (MAX2(MAX2((x), (y)), MAX2((z), (a))))
 
 /* min/max that return a value of our choice */
 #define MAX3_PAIR(cmp_a, cmp_b, cmp_c, ret_a, ret_b, ret_c) \
