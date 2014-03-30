@@ -498,8 +498,8 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2]);
 void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV3DProjTest flag);
 void projectFloatView(TransInfo *t, const float vec[3], float adr[2]);
 
-void applyAspectRatio(TransInfo *t, float *vec);
-void removeAspectRatio(TransInfo *t, float *vec);
+void applyAspectRatio(TransInfo *t, float vec[2]);
+void removeAspectRatio(TransInfo *t, float vec[2]);
 
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 

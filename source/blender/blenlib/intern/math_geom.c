@@ -179,6 +179,24 @@ float area_poly_v2(const float verts[][2], unsigned int nr)
 	return fabsf(0.5f * cross_poly_v2(verts, nr));
 }
 
+float cotangent_tri_weight_v3(const float v1[3], const float v2[3], const float v3[3])
+{
+	float a[3], b[3], c[3], c_len;
+
+	sub_v3_v3v3(a, v2, v1);
+	sub_v3_v3v3(b, v3, v1);
+	cross_v3_v3v3(c, a, b);
+
+	c_len = len_v3(c);
+
+	if (c_len > FLT_EPSILON) {
+		return dot_v3v3(a, b) / c_len;
+	}
+	else {
+		return 0.0f;
+	}
+}
+
 /********************************* Planes **********************************/
 
 /**

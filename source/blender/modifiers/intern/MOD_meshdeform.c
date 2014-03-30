@@ -130,7 +130,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3], float *vec)
+static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3], float vec[3])
 {
 	MDefCell *cell;
 	MDefInfluence *inf;

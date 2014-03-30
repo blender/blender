@@ -2497,32 +2497,16 @@ int weightFromLoc(EditMesh *em, int axis)
 	return 1;
 }
 
-static float cotan_weight(float *v1, float *v2, float *v3)
-{
-	float a[3], b[3], c[3], clen;
-
-	sub_v3_v3v3(a, v2, v1);
-	sub_v3_v3v3(b, v3, v1);
-	cross_v3_v3v3(c, a, b);
-
-	clen = len_v3(c);
-
-	if (clen == 0.0f)
-		return 0.0f;
-	
-	return dot_v3v3(a, b) / clen;
-}
-
 static void addTriangle(EditVert *v1, EditVert *v2, EditVert *v3, int e1, int e2, int e3)
 {
 	/* Angle opposite e1 */
-	float t1 = cotan_weight(v1->co, v2->co, v3->co) / e2;
+	float t1 = cotangent_tri_weight_v3(v1->co, v2->co, v3->co) / e2;
 	
 	/* Angle opposite e2 */
-	float t2 = cotan_weight(v2->co, v3->co, v1->co) / e3;
+	float t2 = cotangent_tri_weight_v3(v2->co, v3->co, v1->co) / e3;
 
 	/* Angle opposite e3 */
-	float t3 = cotan_weight(v3->co, v1->co, v2->co) / e1;
+	float t3 = cotangent_tri_weight_v3(v3->co, v1->co, v2->co) / e1;
 	
 	int i1 = indexData(v1);
 	int i2 = indexData(v2);

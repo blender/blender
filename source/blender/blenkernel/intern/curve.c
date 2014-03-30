@@ -1929,7 +1929,8 @@ static int vergxcobev(const void *a1, const void *a2)
 
 /* this function cannot be replaced with atan2, but why? */
 
-static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *sina, float *cosa)
+static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2,
+                               float *r_sina, float *r_cosa)
 {
 	float t01, t02, x3, y3;
 
@@ -1967,8 +1968,8 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 		y3 /= t01;
 	}
 
-	*sina = -y3 / t02;
-	*cosa = x3 / t02;
+	*r_sina = -y3 / t02;
+	*r_cosa =  x3 / t02;
 
 }
 

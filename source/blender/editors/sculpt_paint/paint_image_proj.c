@@ -1671,7 +1671,7 @@ static void scale_tri(float insetCos[4][3], float *origCos[4], const float inset
 }
 #endif //PROJ_DEBUG_NOSEAMBLEED
 
-static float len_squared_v2v2_alt(const float *v1, const float v2_1, const float v2_2)
+static float len_squared_v2v2_alt(const float v1[2], const float v2_1, const float v2_2)
 {
 	float x, y;
 

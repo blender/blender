@@ -166,7 +166,7 @@ static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *tr
 
 }
 
-static void mouse_select_init_data(MouseSelectUserData *userdata, float *co)
+static void mouse_select_init_data(MouseSelectUserData *userdata, const float co[2])
 {
 	memset(userdata, 0, sizeof(MouseSelectUserData));
 	userdata->min_dist = FLT_MAX;

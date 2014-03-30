@@ -140,22 +140,6 @@ static int laplacian_edge_count(EdgeHash *edgehash, int v1, int v2)
 	return (int)(intptr_t)BLI_edgehash_lookup(edgehash, v1, v2);
 }
 
-static float cotan_weight(float *v1, float *v2, float *v3)
-{
-	float a[3], b[3], c[3], clen;
-
-	sub_v3_v3v3(a, v2, v1);
-	sub_v3_v3v3(b, v3, v1);
-	cross_v3_v3v3(c, a, b);
-
-	clen = len_v3(c);
-
-	if (clen == 0.0f)
-		return 0.0f;
-	
-	return dot_v3v3(a, b) / clen;
-}
-
 static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3)
 {
 	float t1, t2, t3, len1, len2, len3, area;
@@ -166,9 +150,9 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 	v2 = sys->verts[i2];
 	v3 = sys->verts[i3];
 
-	t1 = cotan_weight(v1, v2, v3);
-	t2 = cotan_weight(v2, v3, v1);
-	t3 = cotan_weight(v3, v1, v2);
+	t1 = cotangent_tri_weight_v3(v1, v2, v3);
+	t2 = cotangent_tri_weight_v3(v2, v3, v1);
+	t3 = cotangent_tri_weight_v3(v3, v1, v2);
 
 	if      (angle_v3v3v3(v2, v1, v3) > DEG2RADF(90.0f)) obtuse = 1;
 	else if (angle_v3v3v3(v1, v2, v3) > DEG2RADF(90.0f)) obtuse = 2;
@@ -207,9 +191,9 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 
 	/* instead of *0.5 we divided by the number of faces of the edge, it still
 	 * needs to be verified that this is indeed the correct thing to do! */
-	t1 = cotan_weight(v1, v2, v3) / laplacian_edge_count(sys->edgehash, i2, i3);
-	t2 = cotan_weight(v2, v3, v1) / laplacian_edge_count(sys->edgehash, i3, i1);
-	t3 = cotan_weight(v3, v1, v2) / laplacian_edge_count(sys->edgehash, i1, i2);
+	t1 = cotangent_tri_weight_v3(v1, v2, v3) / laplacian_edge_count(sys->edgehash, i2, i3);
+	t2 = cotangent_tri_weight_v3(v2, v3, v1) / laplacian_edge_count(sys->edgehash, i3, i1);
+	t3 = cotangent_tri_weight_v3(v3, v1, v2) / laplacian_edge_count(sys->edgehash, i1, i2);
 
 	nlMatrixAdd(i1, i1, (t2 + t3) * varea[i1]);
 	nlMatrixAdd(i2, i2, (t1 + t3) * varea[i2]);

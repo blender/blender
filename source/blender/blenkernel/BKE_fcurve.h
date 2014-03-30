@@ -250,7 +250,7 @@ void testhandles_fcurve(struct FCurve *fcu, const bool use_handle);
 void sort_time_fcurve(struct FCurve *fcu);
 short test_time_fcurve(struct FCurve *fcu);
 
-void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
+void correct_bezpart(float v1[2], float v2[2], float v3[2], float v4[2]);
 
 /* -------- Evaluation --------  */
 

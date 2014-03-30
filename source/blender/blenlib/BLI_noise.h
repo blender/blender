@@ -57,7 +57,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtype);
 /* newnoise: cellNoise & cellNoiseV (for vector/point/color) */
 float cellNoise(float x, float y, float z);
-void cellNoiseV(float x, float y, float z, float *ca);
+void cellNoiseV(float x, float y, float z, float r_ca[3]);
 
 #ifdef __cplusplus
 }

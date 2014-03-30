@@ -2519,7 +2519,7 @@ void BKE_object_dimensions_get(Object *ob, float vec[3])
 	}
 }
 
-void BKE_object_dimensions_set(Object *ob, const float *value)
+void BKE_object_dimensions_set(Object *ob, const float value[3])
 {
 	BoundBox *bb = NULL;
 	

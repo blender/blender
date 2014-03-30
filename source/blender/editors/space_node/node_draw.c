@@ -584,7 +584,7 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 }
 
 /* this might have some more generic use */
-static void node_circle_draw(float x, float y, float size, float *col, int highlight)
+static void node_circle_draw(float x, float y, float size, const float col[4], int highlight)
 {
 	/* 16 values of sin function */
 	static float si[16] = {

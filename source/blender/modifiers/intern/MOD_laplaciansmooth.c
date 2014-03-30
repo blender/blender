@@ -88,7 +88,6 @@ static CustomDataMask required_data_mask(Object *ob, ModifierData *md);
 static bool is_disabled(ModifierData *md, int useRenderParams);
 static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4);
 static float compute_volume(float (*vertexCos)[3], MFace *mfaces, int numFaces);
-static float cotan_weight(float *v1, float *v2, float *v3);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts);
 static void copy_data(ModifierData *md, ModifierData *target);
 static void delete_laplacian_system(LaplacianSystem *sys);
@@ -202,22 +201,6 @@ static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4)
 	float areaq;
 	areaq = area_tri_v3(v1, v2, v3) + area_tri_v3(v1, v2, v4) + area_tri_v3(v1, v3, v4);
 	return areaq / 2.0f;
-}
-
-static float cotan_weight(float *v1, float *v2, float *v3)
-{
-	float a[3], b[3], c[3], clen;
-
-	sub_v3_v3v3(a, v2, v1);
-	sub_v3_v3v3(b, v3, v1);
-	cross_v3_v3v3(c, a, b);
-
-	clen = len_v3(c);
-
-	if (clen == 0.0f)
-		return 0.0f;
-
-	return dot_v3v3(a, b) / clen;
 }
 
 static float compute_volume(float (*vertexCos)[3], MFace *mfaces, int numFaces)
@@ -367,17 +350,17 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 				v3 = sys->vertexCos[idv3];
 				v4 = sys->vertexCos[idv4];
 
-				w2 = cotan_weight(v4, v1, v2) + cotan_weight(v3, v1, v2);
-				w3 = cotan_weight(v2, v3, v1) + cotan_weight(v4, v1, v3);
-				w4 = cotan_weight(v2, v4, v1) + cotan_weight(v3, v4, v1);
+				w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
+				w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
+				w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
 
 				sys->vweights[idv1] += (w2 + w3 + w4) / 4.0f;
 			}
 		}
 		else {
-			w1 = cotan_weight(v1, v2, v3) / 2.0f;
-			w2 = cotan_weight(v2, v3, v1) / 2.0f;
-			w3 = cotan_weight(v3, v1, v2) / 2.0f;
+			w1 = cotangent_tri_weight_v3(v1, v2, v3) / 2.0f;
+			w2 = cotangent_tri_weight_v3(v2, v3, v1) / 2.0f;
+			w3 = cotangent_tri_weight_v3(v3, v1, v2) / 2.0f;
 
 			sys->fweights[i][0] = sys->fweights[i][0] + w1;
 			sys->fweights[i][1] = sys->fweights[i][1] + w2;
@@ -430,9 +413,9 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 				v3 = sys->vertexCos[idv3];
 				v4 = sys->vertexCos[idv4];
 
-				w2 = cotan_weight(v4, v1, v2) + cotan_weight(v3, v1, v2);
-				w3 = cotan_weight(v2, v3, v1) + cotan_weight(v4, v1, v3);
-				w4 = cotan_weight(v2, v4, v1) + cotan_weight(v3, v4, v1);
+				w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
+				w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
+				w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
 
 				w2 = w2 / 4.0f;
 				w3 = w3 / 4.0f;

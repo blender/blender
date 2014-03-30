@@ -74,7 +74,7 @@ void multitestapp_exit(MultiTestApp *app);
 
 /**/
 
-void rect_bevel_side(int rect[2][2], int side, float *lt, float *dk, float *col, int width)
+void rect_bevel_side(int rect[2][2], int side, float *lt, float *dk, const float col[3], int width)
 {
 	int ltidx = (side / 2) % 4;
 	int dkidx = (ltidx + 1 + (side & 1)) % 4;
