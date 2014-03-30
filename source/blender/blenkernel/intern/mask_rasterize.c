@@ -82,9 +82,10 @@
 #include "BLI_rect.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
-#include "BLI_strict_flags.h"
 
 #include "BKE_mask.h"
+
+#include "BLI_strict_flags.h"
 
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */

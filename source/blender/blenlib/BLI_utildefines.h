@@ -458,7 +458,7 @@
 #if (!defined(__cplusplus)) && \
     (!defined(__COVERITY__)) && \
     (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406))  /* gcc4.6+ only */
-#  define BLI_STATIC_ASSERT(a, msg) _Static_assert(a, msg);
+#  define BLI_STATIC_ASSERT(a, msg) __extension__ _Static_assert(a, msg);
 #else
    /* TODO msvc, clang */
 #  define BLI_STATIC_ASSERT(a, msg)

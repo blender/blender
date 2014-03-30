@@ -51,7 +51,7 @@ unsigned int BLI_rng_get_uint(struct RNG *rng);
 double      BLI_rng_get_double(struct RNG *rng);
 float       BLI_rng_get_float(struct RNG *rng);
 void        BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]);
-void        BLI_rng_shuffle_array(struct RNG *rng, void *data, size_t elem_size, unsigned int elem_tot);
+void        BLI_rng_shuffle_array(struct RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot);
 
 /** Note that skipping is as slow as generating n numbers! */
 void        BLI_rng_skip(struct RNG *rng, int n);
@@ -73,7 +73,7 @@ float	BLI_hash_frand(unsigned int seed);
  * contents. This routine does not use nor modify
  * the state of the BLI random number generator.
  */
-void    BLI_array_randomize(void *data, size_t elem_size, unsigned int elem_tot, unsigned int seed);
+void    BLI_array_randomize(void *data, unsigned int elem_size, unsigned int elem_tot, unsigned int seed);
 
 
 /** Better seed for the random number generator, using noise.c hash[] */

@@ -55,7 +55,6 @@
 #include "BLI_threads.h"
 #include "BLI_alloca.h"
 #include "BLI_linklist.h"  /* linknode */
-#include "BLI_strict_flags.h"
 
 #include "BIF_gl.h"
 #include "BLF_api.h"
@@ -64,6 +63,8 @@
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
+
+#include "BLI_strict_flags.h"
 
 /* freetype2 handle ONLY for this file!. */
 static FT_Library ft_lib;

@@ -38,10 +38,9 @@
 
 #include "BLI_timecode.h"  /* own include */
 
-#include "BLI_strict_flags.h"
-
 #include "DNA_userdef_types.h"  /* for eTimecodeStyles only */
 
+#include "BLI_strict_flags.h"
 
 /**
  * Generate timecode/frame number string and store in \a str
