@@ -71,6 +71,7 @@
 		bool keep_working = callback(user_data, id_pp, cb_flag); \
 		if (flag & IDWALK_READONLY) { \
 			BLI_assert(*id_pp == old_id); \
+			(void)old_id; /* quiet warning */ \
 		} \
 		if (keep_working == false) { \
 			/* REAL DANGER! Beware of this return! */ \
@@ -194,6 +195,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			for (base = scene->base.first; base; base = base->next) {
 				CALLBACK_INVOKE(base->object, IDWALK_NOP);
 			}
+			break;
 		}
 
 		case ID_OB:
@@ -338,6 +340,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		{
 			bScreen *screen = (bScreen *) id;
 			CALLBACK_INVOKE(screen->scene, IDWALK_NOP);
+			break;
 		}
 
 		case ID_WO:
@@ -450,8 +453,8 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		}
 	}
 
-	#undef CALLBACK_INVOKE_ID
-	#undef CALLBACK_INVOKE
+#undef CALLBACK_INVOKE_ID
+#undef CALLBACK_INVOKE
 }
 
 #undef FOREACH_CALLBACK_INVOKE_ID
