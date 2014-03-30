@@ -1478,8 +1478,13 @@ static void curvetomesh(Main *bmain, Scene *scene, Object *ob)
 	convert_ensure_curve_cache(bmain, scene, ob);
 	BKE_mesh_from_nurbs(ob); /* also does users */
 
-	if (ob->type == OB_MESH)
+	if (ob->type == OB_MESH) {
 		BKE_object_free_modifiers(ob);
+
+		/* Game engine defaults for mesh objects */
+		ob->body_type = OB_BODY_TYPE_STATIC;
+		ob->gameflag = OB_PROP | OB_COLLISION;
+	}
 }
 
 static int convert_poll(bContext *C)
