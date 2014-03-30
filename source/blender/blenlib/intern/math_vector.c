@@ -471,25 +471,19 @@ void bisect_v3_v3v3v3(float out[3], const float v1[3], const float v2[3], const 
 	normalize_v3(out);
 }
 
-/* Returns a reflection vector from a vector and a normal vector
+/**
+ * Returns a reflection vector from a vector and a normal vector
  * reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
  */
-void reflect_v3_v3v3(float out[3], const float v1[3], const float v2[3])
+void reflect_v3_v3v3(float out[3], const float vec[3], const float normal[3])
 {
-	float vec[3], normal[3];
-	float reflect[3] = {0.0f, 0.0f, 0.0f};
-	float dot2;
+	const float dot2 = 2.0f * dot_v3v3(vec, normal);
 
-	copy_v3_v3(vec, v1);
-	copy_v3_v3(normal, v2);
+	BLI_ASSERT_UNIT_V3(normal);
 
-	dot2 = 2 * dot_v3v3(vec, normal);
-
-	reflect[0] = vec[0] - (dot2 * normal[0]);
-	reflect[1] = vec[1] - (dot2 * normal[1]);
-	reflect[2] = vec[2] - (dot2 * normal[2]);
-
-	copy_v3_v3(out, reflect);
+	out[0] = vec[0] - (dot2 * normal[0]);
+	out[1] = vec[1] - (dot2 * normal[1]);
+	out[2] = vec[2] - (dot2 * normal[2]);
 }
 
 void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
