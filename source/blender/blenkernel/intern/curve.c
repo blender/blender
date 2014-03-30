@@ -3342,7 +3342,7 @@ void BKE_nurbList_handles_autocalc(ListBase *editnurb, int flag)
 	}
 }
 
-void BKE_nurbList_handles_set(ListBase *editnurb, short code)
+void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
 {
 	/* code==1: set autohandle */
 	/* code==2: set vectorhandle */
@@ -3353,9 +3353,8 @@ void BKE_nurbList_handles_set(ListBase *editnurb, short code)
 	Nurb *nu;
 	BezTriple *bezt;
 	int a;
-	short ok = 0;
 
-	if (code == 1 || code == 2) {
+	if (ELEM(code, HD_AUTO, HD_VECT)) {
 		nu = editnurb->first;
 		while (nu) {
 			if (nu->type == CU_BEZIER) {
@@ -3382,46 +3381,46 @@ void BKE_nurbList_handles_set(ListBase *editnurb, short code)
 		}
 	}
 	else {
+		char h_new = HD_FREE;
+
 		/* there is 1 handle not FREE: FREE it all, else make ALIGNED  */
-		nu = editnurb->first;
 		if (code == 5) {
-			ok = HD_ALIGN;
+			h_new = HD_ALIGN;
 		}
 		else if (code == 6) {
-			ok = HD_FREE;
+			h_new = HD_FREE;
 		}
 		else {
 			/* Toggle */
-			while (nu) {
+			for (nu = editnurb->first; nu; nu = nu->next) {
 				if (nu->type == CU_BEZIER) {
 					bezt = nu->bezt;
 					a = nu->pntsu;
 					while (a--) {
-						if ((bezt->f1 & SELECT) && bezt->h1) ok = 1;
-						if ((bezt->f3 & SELECT) && bezt->h2) ok = 1;
-						if (ok) break;
+						if (((bezt->f1 & SELECT) && bezt->h1 != HD_FREE) ||
+						    ((bezt->f3 & SELECT) && bezt->h2 != HD_FREE))
+						{
+							h_new = HD_AUTO;
+							break;
+						}
 						bezt++;
 					}
 				}
-				nu = nu->next;
 			}
-			if (ok) ok = HD_FREE;
-			else ok = HD_ALIGN;
+			h_new = (h_new == HD_FREE) ? HD_ALIGN : HD_FREE;
 		}
-		nu = editnurb->first;
-		while (nu) {
+		for (nu = editnurb->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER) {
 				bezt = nu->bezt;
 				a = nu->pntsu;
 				while (a--) {
-					if (bezt->f1 & SELECT) bezt->h1 = ok;
-					if (bezt->f3 & SELECT) bezt->h2 = ok;
+					if (bezt->f1 & SELECT) bezt->h1 = h_new;
+					if (bezt->f3 & SELECT) bezt->h2 = h_new;
 
 					bezt++;
 				}
 				BKE_nurb_handles_calc(nu);
 			}
-			nu = nu->next;
 		}
 	}
 }
