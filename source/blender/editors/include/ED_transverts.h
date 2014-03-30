@@ -36,7 +36,6 @@ struct Object;
 typedef struct TransVert {
 	float *loc;
 	float oldloc[3], maploc[3];
-	float *val, oldval;
 	int flag;
 } TransVert;
 

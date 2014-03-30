@@ -367,8 +367,6 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 						if (bezt->f2 & SELECT) {
 							copy_v3_v3(tv->oldloc, bezt->vec[1]);
 							tv->loc = bezt->vec[1];
-							tv->val = &(bezt->alfa);
-							tv->oldval = bezt->alfa;
 							tv->flag = bezt->f2 & SELECT;
 							tv++;
 							tvs->transverts_tot++;
@@ -392,8 +390,6 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 						if (bp->f1 & SELECT) {
 							copy_v3_v3(tv->oldloc, bp->vec);
 							tv->loc = bp->vec;
-							tv->val = &(bp->alfa);
-							tv->oldval = bp->alfa;
 							tv->flag = bp->f1 & SELECT;
 							tv++;
 							tvs->transverts_tot++;
@@ -416,8 +412,6 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 			if (ml->flag & SELECT) {
 				tv->loc = &ml->x;
 				copy_v3_v3(tv->oldloc, tv->loc);
-				tv->val = &(ml->rad);
-				tv->oldval = ml->rad;
 				tv->flag = SELECT;
 				tv++;
 				tvs->transverts_tot++;
