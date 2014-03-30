@@ -1478,12 +1478,21 @@ char **environ = NULL;
 #  endif
 #endif
 
-
+/**
+ * Blender's main function responsabilities are:
+ * - setup subsystems.
+ * - handle arguments.
+ * - run WM_main() event loop,
+ *   or exit when running in background mode.
+ */
+int main(
+       int argc,
 #ifdef WIN32
-int main(int argc, const char **UNUSED(argv_c)) /* Do not mess with const */
+        const char **UNUSED(argv_c)
 #else
-int main(int argc, const char **argv)
+        const char **argv
 #endif
+         )
 {
 	bContext *C;
 	SYS_SystemHandle syshandle;
