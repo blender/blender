@@ -35,7 +35,7 @@
 
 #define BRICONT                                                           \
 	texres->tin= (texres->tin-0.5f) * tex->contrast+tex->bright-0.5f;     \
-	if(!(tex->flag & TEX_NO_CLAMP)) {                                     \
+	if (!(tex->flag & TEX_NO_CLAMP)) {                                    \
 		if (texres->tin < 0.0f)      texres->tin= 0.0f;                   \
 		else if (texres->tin > 1.0f) texres->tin= 1.0f;                   \
 	}                                                                     \
@@ -44,7 +44,7 @@
 	texres->tr= tex->rfac*((texres->tr-0.5f)*tex->contrast+tex->bright-0.5f); \
 	texres->tg= tex->gfac*((texres->tg-0.5f)*tex->contrast+tex->bright-0.5f); \
 	texres->tb= tex->bfac*((texres->tb-0.5f)*tex->contrast+tex->bright-0.5f); \
-	if(!(tex->flag & TEX_NO_CLAMP)) {                                         \
+	if (!(tex->flag & TEX_NO_CLAMP)) {                                        \
 		if (texres->tr < 0.0f) texres->tr= 0.0f;                              \
 		if (texres->tg < 0.0f) texres->tg= 0.0f;                              \
 		if (texres->tb < 0.0f) texres->tb= 0.0f;                              \

@@ -231,7 +231,7 @@ static void rna_SmokeModifier_flame_grid_get(PointerRNA *ptr, float *values)
 	else
 		flame = smoke_get_flame(sds->fluid);
 	
-	if(flame)
+	if (flame)
 		memcpy(values, flame, size * sizeof(float));
 	else
 		memset(values, 0, size * sizeof(float));

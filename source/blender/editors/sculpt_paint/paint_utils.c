@@ -170,7 +170,7 @@ float paint_get_tex_pixel(MTex *mtex, float u, float v, struct ImagePool *pool, 
 	float co[3] = {u, v, 0.0f};
 
 	externtex(mtex, co, &intensity,
-						   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
+	          rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 
 	return intensity;
 }
@@ -182,7 +182,7 @@ void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct
 	float intensity;
 
 	hasrgb = externtex(mtex, co, &intensity,
-						   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
+	                   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	if (!hasrgb) {
 		rgba[0] = intensity;
 		rgba[1] = intensity;

@@ -346,7 +346,7 @@ void ArmatureImporter::create_armature_bones( )
 
 		char * bone_name = (char *)bc_get_joint_name(*ri);
 		Bone *bone = BKE_armature_find_bone_name(armature, bone_name);
-		if(bone) {
+		if (bone) {
 			fprintf(stderr, "Reuse of child bone [%s] as root bone in same Armature is not supported.\n", bone_name);
 			continue;
 		}

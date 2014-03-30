@@ -57,7 +57,7 @@ VBO::VBO(RAS_DisplayArray *data, unsigned int indices)
 	this->vertex_offset = (void*)(((RAS_TexVert*)0)->getXYZ());
 	this->normal_offset = (void*)(((RAS_TexVert*)0)->getNormal());
 	this->tangent_offset = (void*)(((RAS_TexVert*)0)->getTangent());
-	this->color_offset = (void*)(((RAS_TexVert*)0)->getRGBA());;
+	this->color_offset = (void*)(((RAS_TexVert*)0)->getRGBA());
 	this->uv_offset = (void*)(((RAS_TexVert*)0)->getUV(0));
 }
 

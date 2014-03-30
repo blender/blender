@@ -80,7 +80,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 	MaskSplinePoint *point = NULL;
 	float co[2];
 	const float threshold_sq = threshold * threshold;
-	float len_sq= FLT_MAX, scalex, scaley;
+	float len_sq = FLT_MAX, scalex, scaley;
 	eMaskWhichHandle which_handle = MASK_WHICH_HANDLE_NONE;
 	int width, height;
 

@@ -473,7 +473,7 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerR
 }
 
 static EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-												   PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+                                                PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	static EnumPropertyItem sculpt_stroke_method_items[] = {
 		{0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
@@ -486,7 +486,7 @@ static EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *UNUSED(
 
 	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
-	switch(mode) {
+	switch (mode) {
 		case PAINT_SCULPT:
 			return sculpt_stroke_method_items;
 
