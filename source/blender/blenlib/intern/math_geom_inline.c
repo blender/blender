@@ -218,7 +218,7 @@ MINLINE int min_axis_v3(const float vec[3])
  */
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count)
 {
-	BLI_assert(corner_count > poly_count * 2);
+	BLI_assert(!poly_count || corner_count > poly_count * 2);
 	return corner_count - (poly_count * 2);
 }
 
