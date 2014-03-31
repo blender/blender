@@ -503,10 +503,27 @@ static bool slide_point_check_initial_feather(MaskSpline *spline)
 }
 
 static void select_sliding_point(Mask *mask, MaskLayer *mask_layer, MaskSpline *spline,
-                                 MaskSplinePoint *point)
+                                 MaskSplinePoint *point, eMaskWhichHandle which_handle)
 {
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
-	BKE_mask_point_select_set(point, TRUE);
+
+	switch (which_handle) {
+		case MASK_WHICH_HANDLE_NONE:
+			BKE_mask_point_select_set(point, TRUE);
+			break;
+		case MASK_WHICH_HANDLE_LEFT:
+			point->bezt.f1 |= SELECT;
+			break;
+		case MASK_WHICH_HANDLE_RIGHT:
+			point->bezt.f3 |= SELECT;
+			break;
+		case MASK_WHICH_HANDLE_STICK:
+			point->bezt.f1 |= SELECT;
+			point->bezt.f3 |= SELECT;
+			break;
+		default:
+			BLI_assert(!"Unexpected situation in select_sliding_point()");
+	}
 
 	mask_layer->act_spline = spline;
 	mask_layer->act_point = point;
@@ -581,7 +598,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 	}
 
 	if (action != SLIDE_ACTION_NONE) {
-		select_sliding_point(mask, masklay, spline, point);
+		select_sliding_point(mask, masklay, spline, point, which_handle);
 
 		customdata = MEM_callocN(sizeof(SlidePointData), "mask slide point data");
 
