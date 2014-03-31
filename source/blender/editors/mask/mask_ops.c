@@ -929,6 +929,10 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 							data->orig_spline = BKE_mask_spline_copy(data->spline);
 						}
 
+						if (data->initial_feather) {
+							*weight = w * weight_scalar;
+						}
+
 						slide_point_delta_all_feather(data, delta);
 					}
 					else {
