@@ -255,9 +255,9 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 	/* convert number of lights into boolean */
 	if (gtexdraw.is_lit) lit = 1;
 
+	backculled = gtexdraw.use_backface_culling;
 	if (ma) {
 		if (ma->mode & MA_SHLESS) lit = 0;
-		backculled = gtexdraw.use_backface_culling;
 		if (gtexdraw.use_game_mat) {
 			backculled = backculled || (ma->game.flag & GEMAT_BACKCULL);
 			alphablend = ma->game.alpha_blend;
