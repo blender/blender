@@ -2384,7 +2384,7 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 		cvalue = fcurve_eval_samples(fcu, fcu->fpt, devaltime);
 	
 	/* evaluate modifiers */
-	evaluate_value_fmodifiers(storage, &fcu->modifiers, fcu, &cvalue, evaltime);
+	evaluate_value_fmodifiers(storage, &fcu->modifiers, fcu, &cvalue, devaltime);
 
 	evaluate_fmodifiers_storage_free(storage);
 
