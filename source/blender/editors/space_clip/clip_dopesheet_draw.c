@@ -79,7 +79,7 @@ static void track_channel_color(MovieTrackingTrack *track, float default_color[3
 	}
 }
 
-static void draw_keyframe_shape(float x, float y, float xscale, float yscale, short sel, float alpha)
+static void draw_keyframe_shape(float x, float y, float xscale, float yscale, bool sel, float alpha)
 {
 	/* coordinates for diamond shape */
 	static const float _unit_diamond_shape[4][2] = {
@@ -216,7 +216,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 			{
 				MovieTrackingTrack *track = channel->track;
 				float alpha;
-				int i, sel = track->flag & TRACK_DOPE_SEL;
+				int i;
+				bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
 				/* selection background */
 				if (sel) {
@@ -329,7 +330,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 		{
 			MovieTrackingTrack *track = channel->track;
 			float font_height, color[3];
-			int sel = track->flag & TRACK_DOPE_SEL;
+			bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
 			track_channel_color(track, NULL, color);
 			glColor3fv(color);

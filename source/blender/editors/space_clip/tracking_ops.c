@@ -392,7 +392,7 @@ typedef struct {
 	float *min, *max, *pos, *offset, (*corners)[2];
 	float spos[2];
 
-	short lock, accurate;
+	bool lock, accurate;
 
 	/* data to restore on cancel */
 	float old_search_min[2], old_search_max[2], old_pos[2], old_offset[2];
@@ -460,7 +460,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 	data->height = height;
 
 	if (action == SLIDE_ACTION_SIZE)
-		data->lock = 1;
+		data->lock = true;
 
 	/* backup marker's settings */
 	memcpy(data->old_corners, marker->pattern_corners, sizeof(data->old_corners));
