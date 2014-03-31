@@ -3785,12 +3785,11 @@ static void sculpt_omp_start(Scene *scene, Sculpt *sd, SculptSession *ss)
 	else {
 		cache->num_threads = 1;
 	}
-	omp_set_num_threads(cache->num_threads);
+	omp_set_num_threads(cache->num_threads);  /* set user-defined corecount wich is physical cores when "AUTO" ( atm. OSX-only )*/
 #else
 	(void)sd;
 	cache->num_threads = 1;
 #endif
-//	printf("Sculpt omp threadcount: %d\n", cache->num_threads);
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BKE_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
@@ -4631,8 +4630,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 #ifdef _OPENMP
 	if (!(sd->flags & SCULPT_USE_OPENMP))
-		omp_set_num_threads(BLI_system_thread_count());
-//		printf("Reseted to omp threadcount: %d\n", BLI_system_thread_count());
+		omp_set_num_threads(BLI_system_thread_count()); /* set back to original logical corecount */
 #endif
 
 	sculpt_brush_exit_tex(sd);
