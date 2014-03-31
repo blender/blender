@@ -1259,7 +1259,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
             row.prop(sculpt, "constant_detail")
         else:
-            sub.prop(sculpt, "detail_size")
+            sub.prop(sculpt, "detail_size", slider=True)
         sub.prop(sculpt, "detail_refine_method", text="")
         sub.prop(sculpt, "detail_type_method", text="")
         col.separator()

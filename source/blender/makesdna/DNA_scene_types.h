@@ -848,7 +848,7 @@ typedef struct Sculpt {
 	int radial_symm[3];
 
 	/* Maximum edge length for dynamic topology sculpting (in pixels) */
-	int detail_size;
+	float detail_size;
 
 	/* Direction used for SCULPT_OT_symmetrize operator */
 	int symmetrize_direction;

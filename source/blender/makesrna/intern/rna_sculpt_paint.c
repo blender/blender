@@ -414,8 +414,8 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	                         "Show diffuse color of object and overlay sculpt mask on top of it");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowDiffuseColor_update");
 
-	prop = RNA_def_property(srna, "detail_size", PROP_INT, PROP_PIXEL);
-	RNA_def_property_ui_range(prop, 2, 100, 0, -1);
+	prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
+	RNA_def_property_ui_range(prop, 0.5, 40.0, 10, 2);
 	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting (in pixels)");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
