@@ -105,11 +105,12 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *cur_point = &spline->points[i];
 				MaskSplinePoint *cur_point_deform = &points_array[i];
-				eMaskWhichHandle cur_which_handle;
-				float cur_len_sq, vec[2];
+				eMaskWhichHandle cur_which_handle = MASK_WHICH_HANDLE_NONE;
+				BezTriple *bezt = &cur_point_deform->bezt;
+				float cur_len_sq , vec[2];
 
-				vec[0] = cur_point_deform->bezt.vec[1][0] * scalex;
-				vec[1] = cur_point_deform->bezt.vec[1][1] * scaley;
+				vec[0] = bezt->vec[1][0] * scalex;
+				vec[1] = bezt->vec[1][1] * scaley;
 
 				cur_len_sq = len_squared_v2v2(co, vec);
 
@@ -137,27 +138,31 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 					len_right_sq = len_squared_v2v2(co, handle_right);
 					if (i == 0) {
 						if (len_left_sq <= len_right_sq) {
-							cur_which_handle = MASK_WHICH_HANDLE_LEFT;
-							cur_len_sq = len_left_sq;
+							if (bezt->h1 != HD_VECT) {
+								cur_which_handle = MASK_WHICH_HANDLE_LEFT;
+								cur_len_sq = len_left_sq;
+							}
 						}
-						else {
+						else if (bezt->h2 != HD_VECT) {
 							cur_which_handle = MASK_WHICH_HANDLE_RIGHT;
 							cur_len_sq = len_right_sq;
 						}
 					}
 					else {
 						if (len_right_sq <= len_left_sq) {
-							cur_which_handle = MASK_WHICH_HANDLE_RIGHT;
-							cur_len_sq = len_right_sq;
+							if (bezt->h2 != HD_VECT) {
+								cur_which_handle = MASK_WHICH_HANDLE_RIGHT;
+								cur_len_sq = len_right_sq;
+							}
 						}
-						else {
+						else if (bezt->h1 != HD_VECT) {
 							cur_which_handle = MASK_WHICH_HANDLE_LEFT;
 							cur_len_sq = len_left_sq;
 						}
 					}
 				}
 
-				if (cur_len_sq <= len_sq) {
+				if (cur_len_sq <= len_sq && cur_which_handle != MASK_WHICH_HANDLE_NONE) {
 					point_masklay = masklay;
 					point_spline = spline;
 					point = cur_point;
