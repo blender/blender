@@ -3651,7 +3651,7 @@ void BKE_sequence_sound_init(Scene *scene, Sequence *seq)
 			seq->scene_sound = sound_add_scene_sound_defaults(scene, seq);
 		}
 		if (seq->scene) {
-			sound_scene_add_scene_sound_defaults(scene, seq);
+			seq->scene_sound = sound_scene_add_scene_sound_defaults(scene, seq);
 		}
 	}
 }
