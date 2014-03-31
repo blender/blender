@@ -562,10 +562,6 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void
 
 	/* note iteration over motion_times set happens in sorted order */
 	foreach(float relative_time, motion_times) {
-		/* sync camera, only supports two times at the moment */
-		if(relative_time == -1.0f || relative_time == 1.0f)
-			sync_camera_motion(b_cam, relative_time);
-
 		/* fixed shutter time to get previous and next frame for motion pass */
 		float shuttertime;
 
@@ -583,6 +579,10 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void
 		python_thread_state_restore(python_thread_state);
 		b_scene.frame_set(frame, subframe);
 		python_thread_state_save(python_thread_state);
+
+		/* sync camera, only supports two times at the moment */
+		if(relative_time == -1.0f || relative_time == 1.0f)
+			sync_camera_motion(b_cam, relative_time);
 
 		/* sync object */
 		sync_objects(b_v3d, relative_time);
