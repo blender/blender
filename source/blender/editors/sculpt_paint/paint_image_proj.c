@@ -68,6 +68,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -897,20 +898,15 @@ static bool check_seam(const ProjPaintState *ps,
 
 			/* We need to know the order of the verts in the adjacent face
 			 * set the i1_fidx and i2_fidx to (0,1,2,3) */
-			if      (mf->v1 == i1) i1_fidx = 0;
-			else if (mf->v2 == i1) i1_fidx = 1;
-			else if (mf->v3 == i1) i1_fidx = 2;
-			else if (mf->v4 && mf->v4 == i1) i1_fidx = 3;
-
-			if      (mf->v1 == i2) i2_fidx = 0;
-			else if (mf->v2 == i2) i2_fidx = 1;
-			else if (mf->v3 == i2) i2_fidx = 2;
-			else if (mf->v4 && mf->v4 == i2) i2_fidx = 3;
+			i1_fidx = BKE_MESH_TESSFACE_VINDEX_ORDER(mf, i1);
+			i2_fidx = BKE_MESH_TESSFACE_VINDEX_ORDER(mf, i2);
 
 			/* Only need to check if 'i2_fidx' is valid because we know i1_fidx is the same vert on both faces */
 			if (i2_fidx != -1) {
 				Image *tpage = project_paint_face_image(ps, ps->dm_mtface, face_index);
 				Image *orig_tpage = project_paint_face_image(ps, ps->dm_mtface, orig_face);
+
+				BLI_assert(i1_fidx != -1);
 
 				/* This IS an adjacent face!, now lets check if the UVs are ok */
 				tf = ps->dm_mtface + face_index;
