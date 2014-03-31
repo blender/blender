@@ -38,7 +38,6 @@
 #include "BKE_image.h"
 #include "BLI_blenlib.h"
 
-#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
 

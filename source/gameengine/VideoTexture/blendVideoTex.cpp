@@ -32,8 +32,6 @@
 
 #include "KX_PythonInit.h"
 
-#include <RAS_GLExtensionManager.h>
-
 #include <RAS_IPolygonMaterial.h>
 
 //Old API

@@ -54,7 +54,6 @@
 #include "KX_PyConstraintBinding.h"
 #include "KX_PythonMain.h"
 
-#include "RAS_GLExtensionManager.h"
 #include "RAS_OpenGLRasterizer.h"
 #include "RAS_ListRasterizer.h"
 
@@ -250,8 +249,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	
 	PyObject *pyGlobalDict = PyDict_New(); /* python utility storage, spans blend file loading */
 #endif
-	
-	bgl::InitExtensions(true);
 
 	// Globals to be carried on over blender files
 	GlobalSettings gs;

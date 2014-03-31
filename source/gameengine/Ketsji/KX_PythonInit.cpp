@@ -647,71 +647,10 @@ static PyObject *pyPrintStats(PyObject *,PyObject *,PyObject *)
 
 static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 {
-#define pprint(x) std::cout << x << std::endl;
-	bool count=0;
-	bool support=0;
-	pprint("Supported Extensions...");
-	pprint(" GL_ARB_shader_objects supported?       "<< (GLEW_ARB_shader_objects?"yes.":"no."));
-	count = 1;
-
-	support= GLEW_ARB_vertex_shader;
-	pprint(" GL_ARB_vertex_shader supported?        "<< (support?"yes.":"no."));
-	count = 1;
-	if (support) {
-		pprint(" ----------Details----------");
-		int max=0;
-		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
-		pprint("  Max uniform components." << max);
-
-		glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, (GLint*)&max);
-		pprint("  Max varying floats." << max);
-
-		glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS_ARB, (GLint*)&max);
-		pprint("  Max vertex texture units." << max);
-	
-		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS_ARB, (GLint*)&max);
-		pprint("  Max combined texture units." << max);
-		pprint("");
-	}
-
-	support=GLEW_ARB_fragment_shader;
-	pprint(" GL_ARB_fragment_shader supported?      "<< (support?"yes.":"no."));
-	count = 1;
-	if (support) {
-		pprint(" ----------Details----------");
-		int max=0;
-		glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
-		pprint("  Max uniform components." << max);
-		pprint("");
-	}
-
-	support = GLEW_ARB_texture_cube_map;
-	pprint(" GL_ARB_texture_cube_map supported?     "<< (support?"yes.":"no."));
-	count = 1;
-	if (support) {
-		pprint(" ----------Details----------");
-		int size=0;
-		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, (GLint*)&size);
-		pprint("  Max cubemap size." << size);
-		pprint("");
-	}
-
-	support = GLEW_ARB_multitexture;
-	count = 1;
-	pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
-	if (support) {
-		pprint(" ----------Details----------");
-		int units=0;
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
-		pprint("  Max texture units available.  " << units);
-		pprint("");
-	}
-
-	pprint(" GL_ARB_texture_env_combine supported?  "<< (GLEW_ARB_texture_env_combine?"yes.":"no."));
-	count = 1;
-
-	if (!count)
-		pprint("No extenstions are used in this build");
+	if (gp_Rasterizer)
+		gp_Rasterizer->PrintHardwareInfo();
+	else
+		printf("Warning: no rasterizer detected for PrintGLInfo!\n");
 
 	Py_RETURN_NONE;
 }

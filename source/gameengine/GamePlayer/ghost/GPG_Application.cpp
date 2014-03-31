@@ -78,7 +78,6 @@ extern "C"
 #include "RAS_MeshObject.h"
 #include "RAS_OpenGLRasterizer.h"
 #include "RAS_ListRasterizer.h"
-#include "RAS_GLExtensionManager.h"
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
 #include "BL_Material.h" // MAXTEX
@@ -563,7 +562,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 	if (!m_engineInitialized)
 	{
 		GPU_init();
-		bgl::InitExtensions(true);
 
 		// get and set the preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();

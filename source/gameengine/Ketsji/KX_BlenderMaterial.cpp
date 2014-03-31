@@ -39,7 +39,6 @@
 #include "RAS_BucketManager.h"
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
-#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
 
 #include "GPU_draw.h"
 

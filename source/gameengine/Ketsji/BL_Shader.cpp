@@ -34,7 +34,6 @@
 #include "KX_PyMath.h"
 #include "MEM_guardedalloc.h"
 
-#include "RAS_GLExtensionManager.h"
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
 

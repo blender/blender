@@ -137,6 +137,8 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, RAS_STORAGE_TYPE
 	glGetIntegerv(GL_MAX_LIGHTS, (GLint *) &m_numgllights);
 	if (m_numgllights < 8)
 		m_numgllights = 8;
+
+	PrintHardwareInfo();
 }
 
 
@@ -1614,5 +1616,70 @@ void RAS_OpenGLRasterizer::SetClientObject(void* obj)
 void RAS_OpenGLRasterizer::SetAuxilaryClientInfo(void* inf)
 {
 	m_auxilaryClientInfo = inf;
+}
+
+void RAS_OpenGLRasterizer::PrintHardwareInfo()
+{
+	#define pprint(x) std::cout << x << std::endl;
+
+	pprint("GL_VENDOR: " << glGetString(GL_VENDOR));
+	pprint("GL_RENDERER: " << glGetString(GL_RENDERER));
+	pprint("GL_VERSION:  " << glGetString(GL_VERSION));
+	bool support=0;
+	pprint("Supported Extensions...");
+	pprint(" GL_ARB_shader_objects supported?       "<< (GLEW_ARB_shader_objects?"yes.":"no."));
+
+	support= GLEW_ARB_vertex_shader;
+	pprint(" GL_ARB_vertex_shader supported?        "<< (support?"yes.":"no."));
+	if (support) {
+		pprint(" ----------Details----------");
+		int max=0;
+		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
+		pprint("  Max uniform components." << max);
+
+		glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, (GLint*)&max);
+		pprint("  Max varying floats." << max);
+
+		glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS_ARB, (GLint*)&max);
+		pprint("  Max vertex texture units." << max);
+
+		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS_ARB, (GLint*)&max);
+		pprint("  Max combined texture units." << max);
+		pprint("");
+	}
+
+	support=GLEW_ARB_fragment_shader;
+	pprint(" GL_ARB_fragment_shader supported?      "<< (support?"yes.":"no."));
+	if (support) {
+		pprint(" ----------Details----------");
+		int max=0;
+		glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
+		pprint("  Max uniform components." << max);
+		pprint("");
+	}
+
+	support = GLEW_ARB_texture_cube_map;
+	pprint(" GL_ARB_texture_cube_map supported?     "<< (support?"yes.":"no."));
+	if (support) {
+		pprint(" ----------Details----------");
+		int size=0;
+		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, (GLint*)&size);
+		pprint("  Max cubemap size." << size);
+		pprint("");
+	}
+
+	support = GLEW_ARB_multitexture;
+	pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
+	if (support) {
+		pprint(" ----------Details----------");
+		int units=0;
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
+		pprint("  Max texture units available.  " << units);
+		pprint("");
+	}
+
+	pprint(" GL_ARB_texture_env_combine supported?  "<< (GLEW_ARB_texture_env_combine?"yes.":"no."));
+
+	pprint(" GL_ARB_texture_non_power_of_two supported  " << (GPU_non_power_of_two_support()?"yes.":"no."));
 }
 

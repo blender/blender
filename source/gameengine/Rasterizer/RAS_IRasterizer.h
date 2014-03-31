@@ -479,6 +479,11 @@ public:
 
 	virtual void SetAuxilaryClientInfo(void *inf) = 0;
 
+	/**
+	 * Prints information about what the hardware supports.
+	 */
+	virtual void PrintHardwareInfo() = 0;
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_IRasterizer")
 #endif
