@@ -235,7 +235,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	}
 }
 
-static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object *par, int heat, int mirror)
+static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object *par, int heat, bool mirror)
 {
 	/* This functions implements the automatic computation of vertex group
 	 * weights, either through envelopes or using a heat equilibrium.
@@ -415,7 +415,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob, Object *par, int mode, int mirror)
+void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob, Object *par, int mode, bool mirror)
 {
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.

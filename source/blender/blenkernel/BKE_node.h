@@ -469,7 +469,7 @@ int             nodeFindNode(struct bNodeTree *ntree, struct bNodeSocket *sock, 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
 int             nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 
-void			nodeSetSelected(struct bNode *node, int select);
+void            nodeSetSelected(struct bNode *node, bool select);
 void            nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode   *nodeGetActive(struct bNodeTree *ntree);
 struct bNode   *nodeGetActiveID(struct bNodeTree *ntree, short idtype);
@@ -520,7 +520,7 @@ int                    BKE_node_instance_hash_size(bNodeInstanceHash *hash);
 
 void                   BKE_node_instance_hash_clear_tags(bNodeInstanceHash *hash);
 void                   BKE_node_instance_hash_tag(bNodeInstanceHash *hash, void *value);
-int                    BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey key);
+bool                   BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey key);
 void                   BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
 
 typedef GHashIterator bNodeInstanceHashIterator;

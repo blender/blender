@@ -75,7 +75,7 @@ bool ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *
 int ED_space_image_maskedit_poll(struct bContext *C);
 int ED_space_image_maskedit_mask_poll(struct bContext *C);
 
-void ED_image_draw_info(struct Scene *scene, struct ARegion *ar, int color_manage, int use_default_view, int channels, int x, int y,
+void ED_image_draw_info(struct Scene *scene, struct ARegion *ar, bool color_manage, bool use_default_view, int channels, int x, int y,
                         const unsigned char cp[4], const float fp[4], const float linearcol[4], int *zp, float *zpf);
 
 #endif /* __ED_IMAGE_H__ */

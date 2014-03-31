@@ -78,7 +78,7 @@ void ED_operatortypes_gpencil(void);
 /* drawgpencil.c */
 
 void draw_gpencil_2dimage(const struct bContext *C);
-void draw_gpencil_view2d(const struct bContext *C, short onlyv2d);
+void draw_gpencil_view2d(const struct bContext *C, bool onlyv2d);
 void draw_gpencil_view3d(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, bool only3d);
 
 void gpencil_panel_standard_header(const struct bContext *C, struct Panel *pa);

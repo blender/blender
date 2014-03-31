@@ -116,7 +116,7 @@ static strCursorDelimType cursor_delim_type_utf8(const char *ch_utf8)
 	return cursor_delim_type_unicode(uch);
 }
 
-int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
+bool BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
 {
 	const char *str_end = str + (maxlen + 1);
 	const char *str_pos = str + (*pos);
@@ -132,7 +132,7 @@ int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
 	return FALSE;
 }
 
-int BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *pos)
+bool BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *pos)
 {
 	if ((*pos) > 0) {
 		const char *str_pos = str + (*pos);

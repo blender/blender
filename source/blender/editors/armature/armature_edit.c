@@ -200,7 +200,7 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 /* adjust bone roll to align Z axis with vector
  * vec is in local space and is normalized
  */
-float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short axis_only)
+float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const bool axis_only)
 {
 	float mat[3][3], nor[3];
 

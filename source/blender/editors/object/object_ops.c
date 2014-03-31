@@ -473,7 +473,7 @@ void ED_keymap_proportional_maskmode(struct wmKeyConfig *UNUSED(keyconf), struct
 }
 
 void ED_keymap_proportional_editmode(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap,
-                                     const short do_connected)
+                                     const bool do_connected)
 {
 	wmKeyMapItem *kmi;
 

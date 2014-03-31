@@ -4109,7 +4109,7 @@ static void seq_free_animdata(Scene *scene, Sequence *seq)
 	}
 }
 
-Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, int recursive)
+Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, bool recursive)
 {
 	Sequence *iseq = NULL;
 	Sequence *rseq = NULL;

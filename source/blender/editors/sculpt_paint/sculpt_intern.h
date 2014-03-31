@@ -60,7 +60,7 @@ int sculpt_mode_poll_view3d(struct bContext *C);
 int sculpt_poll(struct bContext *C);
 int sculpt_poll_view3d(struct bContext *C);
 void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob,
-                                 int need_pmap, int need_mask);
+                                 bool need_pmap, bool need_mask);
 
 /* Stroke */
 bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2]);
@@ -111,7 +111,7 @@ typedef struct SculptUndoNode {
 
 	/* bmesh */
 	struct BMLogEntry *bm_entry;
-	int applied;
+	bool applied;
 	CustomData bm_enter_vdata;
 	CustomData bm_enter_edata;
 	CustomData bm_enter_ldata;

@@ -1181,7 +1181,7 @@ struct Object *BKE_object_lod_matob_get(Object *ob, Scene *scene)
 	return lod_ob_get(ob, scene, OB_LOD_USE_MAT);
 }
 
-SoftBody *copy_softbody(SoftBody *sb, int copy_caches)
+SoftBody *copy_softbody(SoftBody *sb, bool copy_caches)
 {
 	SoftBody *sbn;
 	

@@ -843,7 +843,7 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, short flag)
+bool insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, short flag)
 {
 	float curval = 0.0f;
 	
@@ -2049,7 +2049,7 @@ short id_frame_has_keyframe(ID *id, float frame, short filter)
 
 /* ************************************************** */
 
-int ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
+bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
 {
 	/* auto keyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
@@ -2071,7 +2071,7 @@ int ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
 	}
 }
 
-int ED_autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks)
+bool ED_autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks)
 {
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 		ListBase dsources = {NULL, NULL};

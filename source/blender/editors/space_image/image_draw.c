@@ -162,7 +162,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 }
 
 /* used by node view too */
-void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_default_view, int channels, int x, int y,
+void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_default_view, int channels, int x, int y,
                         const unsigned char cp[4], const float fp[4], const float linearcol[4], int *zp, float *zpf)
 {
 	rcti color_rect;
@@ -639,7 +639,7 @@ static void draw_image_buffer_repeated(const bContext *C, SpaceImage *sima, AReg
 /* draw uv edit */
 
 /* draw grease pencil */
-void draw_image_grease_pencil(bContext *C, short onlyv2d)
+void draw_image_grease_pencil(bContext *C, bool onlyv2d)
 {
 	/* draw in View2D space? */
 	if (onlyv2d) {

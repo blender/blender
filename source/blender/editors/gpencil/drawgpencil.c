@@ -741,7 +741,7 @@ void draw_gpencil_2dimage(const bContext *C)
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes,
  * second time with onlyv2d=0 for screen-aligned strokes */
-void draw_gpencil_view2d(const bContext *C, short onlyv2d)
+void draw_gpencil_view2d(const bContext *C, bool onlyv2d)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);

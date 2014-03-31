@@ -108,7 +108,7 @@ int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
  *	Use this to insert a keyframe using the current value being keyframed, in the 
  *	nominated F-Curve (no creation of animation data performed). Returns success.
  */
-short insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, short flag);
+bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, short flag);
 
 /* -------- */
 
@@ -324,8 +324,8 @@ typedef enum eAnimFilterFlags {
 } eAnimFilterFlags;
 
 /* utility funcs for auto keyframe */
-int ED_autokeyframe_object(struct bContext *C, struct Scene *scene, struct Object *ob, struct KeyingSet *ks);
-int ED_autokeyframe_pchan(struct bContext *C, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, struct KeyingSet *ks);
+bool ED_autokeyframe_object(struct bContext *C, struct Scene *scene, struct Object *ob, struct KeyingSet *ks);
+bool ED_autokeyframe_pchan(struct bContext *C, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, struct KeyingSet *ks);
 
 /* Names for builtin keying sets so we don't confuse these with labels/text,
  * defined in python script: keyingsets_builtins.py */

@@ -3558,7 +3558,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
  * \param need_mask So the DerivedMesh thats returned has mask data
  */
 void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
-                                 int need_pmap, int need_mask)
+                                 bool need_pmap, bool need_mask)
 {
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;

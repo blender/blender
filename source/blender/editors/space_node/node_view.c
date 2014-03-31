@@ -419,7 +419,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 
 /* returns color in SRGB */
 /* matching ED_space_image_color_sample() */
-int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float r_col[3])
+bool ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float r_col[3])
 {
 	void *lock;
 	Image *ima;

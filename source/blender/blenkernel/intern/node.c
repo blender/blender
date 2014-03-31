@@ -2425,7 +2425,7 @@ void nodeClearActiveID(bNodeTree *ntree, short idtype)
 			node->flag &= ~NODE_ACTIVE_ID;
 }
 
-void nodeSetSelected(bNode *node, int select)
+void nodeSetSelected(bNode *node, bool select)
 {
 	if (select) {
 		node->flag |= NODE_SELECT;
@@ -2757,7 +2757,7 @@ void BKE_node_instance_hash_tag(bNodeInstanceHash *UNUSED(hash), void *value)
 	entry->tag = 1;
 }
 
-int BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey key)
+bool BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey key)
 {
 	bNodeInstanceHashEntry *entry = BKE_node_instance_hash_lookup(hash, key);
 	
