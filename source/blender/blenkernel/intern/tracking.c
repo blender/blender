@@ -2340,8 +2340,8 @@ static void tracking_dopesheet_channels_calc(MovieTracking *tracking)
 		BKE_tracking_object_get_reconstruction(tracking, object);
 	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 
-	short sel_only = dopesheet->flag & TRACKING_DOPE_SELECTED_ONLY;
-	short show_hidden = dopesheet->flag & TRACKING_DOPE_SHOW_HIDDEN;
+	bool sel_only = (dopesheet->flag & TRACKING_DOPE_SELECTED_ONLY) != 0;
+	bool show_hidden = (dopesheet->flag & TRACKING_DOPE_SHOW_HIDDEN) != 0;
 
 	for (track = tracksbase->first; track; track = track->next) {
 		MovieTrackingDopesheetChannel *channel;
