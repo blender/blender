@@ -1479,13 +1479,13 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bevel_factor_mapping_start", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bevfac1_mapping");
 	RNA_def_property_enum_items(prop, bevfac_mapping_items);
-	RNA_def_property_ui_text(prop, "Start Mapping Type", "Determines how the start bevel factor is mappend to a spline");
+	RNA_def_property_ui_text(prop, "Start Mapping Type", "Determines how the start bevel factor is mapped to a spline");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop = RNA_def_property(srna, "bevel_factor_mapping_end", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bevfac2_mapping");
 	RNA_def_property_enum_items(prop, bevfac_mapping_items);
-	RNA_def_property_ui_text(prop, "End Mapping Type", "Determines how the end bevel factor is mappend to a spline");
+	RNA_def_property_ui_text(prop, "End Mapping Type", "Determines how the end bevel factor is mapped to a spline");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* XXX - would be nice to have a better way to do this, only add for testing. */

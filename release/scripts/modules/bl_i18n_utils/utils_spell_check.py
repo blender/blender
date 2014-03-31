@@ -300,6 +300,7 @@ class SpellChecker():
         "numpad",
         "octree",
         "opengl",
+        "openmp",
         "polyline", "polylines",
         "pulldown", "pulldowns",
         "quantized",

@@ -1027,7 +1027,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "slide_feather", 0, "Slide Feather", "First try to slide feather instead of vertex");
 
-	prop = RNA_def_boolean(ot->srna, "is_new_point", 0, "Slide New Point", "Newly created vertex is being slided");
+	prop = RNA_def_boolean(ot->srna, "is_new_point", 0, "Slide New Point", "Newly created vertex is being slid");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
