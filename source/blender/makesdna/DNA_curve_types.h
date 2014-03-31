@@ -109,18 +109,18 @@ typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
 	
-	short ipo;					/* ipo: interpolation mode for segment from this BezTriple to the next */
+	char ipo;					/* ipo: interpolation mode for segment from this BezTriple to the next */
 	
 	char h1, h2; 				/* h1, h2: the handle type of the two handles */
 	char f1, f2, f3;			/* f1, f2, f3: used for selection status */
 	
 	char hide;					/* hide: used to indicate whether BezTriple is hidden (3D), type of keyframe (eBezTriple_KeyframeTypes) */
 	
+	char easing;				/* easing: easing type for interpolation mode (eBezTriple_Easing) */
 	float back;					/* BEZT_IPO_BACK */
 	float amplitude, period;	/* BEZT_IPO_ELASTIC */
-	char easing;				/* easing: easing type for interpolation mode (eBezTriple_Easing) */
-	
-	char pad[3];
+
+	char  pad[4];
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */

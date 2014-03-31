@@ -485,8 +485,9 @@ typedef struct UserDef {
 	short glreslimit;
 	short curssize;
 	short color_picker_type;
-	short ipo_new;			/* interpolation mode for newly added F-Curves */
-	short keyhandles_new;	/* handle types for newly added keyframes */
+	char  ipo_new;			/* interpolation mode for newly added F-Curves */
+	char  keyhandles_new;	/* handle types for newly added keyframes */
+	char  pad1[2];
 
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
