@@ -5096,8 +5096,8 @@ void RNA_def_scene(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem omp_threads_mode_items[] = {
-		{SCE_OMP_AUTO, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
-		{SCE_OMP_MANUAL, "MANUAL", 0, "Manual", "Manually determine the number of threads"},
+		{SCE_OMP_AUTO, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads"},
+		{SCE_OMP_FIXED, "FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -5463,14 +5463,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ColorManagedSequencerColorspaceSettings");
 	RNA_def_property_ui_text(prop, "Sequencer Color Space Settings", "Settings of color space sequencer is working in");
 
-	prop = RNA_def_property(srna, "omp_num_threads", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "omp_threads", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, BLENDER_MAX_THREADS);
 	RNA_def_property_int_funcs(prop, "rna_omp_threads_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "OpenMP Threads",
-							 "Number of CPU threads to use simultaneously for openmp"
-							 "(for multi-core/CPU systems)");
+	                         "Number of CPU threads to use for openmp");
 
-	prop = RNA_def_property(srna, "omp_mode", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "omp_threads_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, omp_threads_mode_items);
 	RNA_def_property_ui_text(prop, "OpenMP Mode", "Determine the amount of openmp threads used");
 

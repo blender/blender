@@ -1165,8 +1165,13 @@ typedef struct Scene {
 	
 	short flag;								/* various settings */
 	
-	short use_nodes;
-	
+	char use_nodes;
+
+	/* Openmp Global Settings */
+	char  omp_threads_mode;
+	short omp_threads;
+	char pad[6];
+
 	struct bNodeTree *nodetree;
 	
 	struct Editing *ed;								/* sequence editor data is allocated here */
@@ -1224,12 +1229,7 @@ typedef struct Scene {
 	
 	/* RigidBody simulation world+settings */
 	struct RigidBodyWorld *rigidbody_world;
-
-	/* Openmp Global Settings */
-	int omp_num_threads;
-	int omp_mode;
 } Scene;
-
 
 /* **************** RENDERDATA ********************* */
 
@@ -1775,7 +1775,7 @@ typedef enum SculptFlags {
 
 /* OpenMP settings */
 #define SCE_OMP_AUTO 0
-#define SCE_OMP_MANUAL 1
+#define SCE_OMP_FIXED 1
 
 #ifdef __cplusplus
 }

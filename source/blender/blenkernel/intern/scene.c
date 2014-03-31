@@ -638,8 +638,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->gm.exitkey = 218; // Blender key code for ESC
 
-	sce->omp_mode = SCE_OMP_AUTO;
-	sce->omp_num_threads = 1;
+	sce->omp_threads_mode = SCE_OMP_AUTO;
+	sce->omp_threads = 1;
 
 	sound_create_scene(sce);
 
@@ -1873,8 +1873,8 @@ int BKE_scene_num_threads(const Scene *scene)
 
 int BKE_scene_num_omp_threads(const struct Scene *scene)
 {
-	if (scene->omp_mode == SCE_OMP_AUTO)
+	if (scene->omp_threads_mode == SCE_OMP_AUTO)
 		return BLI_omp_thread_count();
 	else
-		return scene->omp_num_threads;
+		return scene->omp_threads;
 }

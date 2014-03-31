@@ -3787,6 +3787,7 @@ static void sculpt_omp_start(Scene *scene, Sculpt *sd, SculptSession *ss)
 	}
 	omp_set_num_threads(cache->num_threads);  /* set user-defined corecount wich is physical cores when "AUTO" ( atm. OSX-only )*/
 #else
+	(void)scene;
 	(void)sd;
 	cache->num_threads = 1;
 #endif
