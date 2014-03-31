@@ -588,9 +588,8 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
         rd = context.scene.render
         scene = context.scene
         cscene = scene.cycles
-        device_type = context.user_preferences.system.compute_device_type
 
-        layout.active = (rd.use_motion_blur and (device_type == 'NONE' or cscene.device == 'CPU'))
+        layout.active = rd.use_motion_blur
 
         ob = context.object
         cob = ob.cycles
@@ -603,12 +602,11 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
         rd = context.scene.render
         scene = context.scene
         cscene = scene.cycles
-        device_type = context.user_preferences.system.compute_device_type
 
         ob = context.object
         cob = ob.cycles
 
-        layout.active = (rd.use_motion_blur and (device_type == 'NONE' or cscene.device == 'CPU') and cob.use_motion_blur)
+        layout.active = (rd.use_motion_blur and cob.use_motion_blur)
 
         row = layout.row()
         row.prop(cob, "use_deform_motion", text="Deformation")
