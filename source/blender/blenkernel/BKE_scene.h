@@ -137,6 +137,8 @@ bool BKE_scene_check_rigidbody_active(const struct Scene *scene);
 int BKE_scene_num_threads(const struct Scene *scene);
 int BKE_render_num_threads(const struct RenderData *r);
 
+int BKE_scene_num_omp_threads(const struct Scene *scene);
+void BKE_scene_omp_threads_update(const struct Scene *scene);
 #ifdef __cplusplus
 }
 #endif

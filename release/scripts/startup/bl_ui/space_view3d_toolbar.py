@@ -1283,7 +1283,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        scene = context.scene
+		
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
         capabilities = sculpt.brush.sculpt_capabilities
@@ -1293,6 +1294,14 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.label(text="Gravity:")
         col.prop(sculpt, "gravity", slider=True, text="Factor")
         col.prop(sculpt, "gravity_object")
+		
+        col.separator()
+        col.label(text="OpenMP Threads:")
+        col.row(align=True).prop(scene, "omp_mode", expand=True)
+        sub = col.column(align=True)
+        sub.enabled = scene.omp_mode == 'MANUAL'
+        sub.prop(scene, "omp_num_threads")
+        col.separator()
 
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
         layout.prop(sculpt, "show_low_resolution")

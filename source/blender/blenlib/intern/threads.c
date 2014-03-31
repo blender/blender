@@ -54,9 +54,24 @@
 #  include <sys/time.h>
 #endif
 
-#if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#if defined(__APPLE__)
+#if defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
 #  define USE_APPLE_OMP_FIX
 #endif
+
+/* how many cores not counting HT aka pysical cores */
+static int system_physical_thread_count(void)
+{
+	int ptcount;
+	size_t ptcount_len = sizeof(ptcount);
+	sysctlbyname("hw.physicalcpu", &ptcount, &ptcount_len, NULL, 0);
+	return ptcount;
+}
+#endif // __APPLE__
 
 #ifdef USE_APPLE_OMP_FIX
 /* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
@@ -334,6 +349,22 @@ void BLI_end_threads(ListBase *threadbase)
 }
 
 /* System Information */
+
+/* gets the number of openmp threads the system can make use of */
+int BLI_omp_thread_count(void)
+{
+	int t;
+#ifdef _OPENMP
+#ifdef __APPLE__
+	t = system_physical_thread_count();
+#else
+	t = omp_get_num_procs();
+#endif
+#else
+	t = 1;
+#endif
+	return t;
+}
 
 /* how many threads are native on this system? */
 int BLI_system_thread_count(void)

@@ -1224,6 +1224,10 @@ typedef struct Scene {
 	
 	/* RigidBody simulation world+settings */
 	struct RigidBodyWorld *rigidbody_world;
+
+	/* Openmp Global Settings */
+	int omp_num_threads;
+	int omp_mode;
 } Scene;
 
 
@@ -1768,6 +1772,10 @@ typedef enum SculptFlags {
 /* UnitSettings->flag */
 #define	USER_UNIT_OPT_SPLIT		1
 #define USER_UNIT_ROT_RADIANS	2
+
+/* OpenMP settings */
+#define SCE_OMP_AUTO 0
+#define SCE_OMP_MANUAL 1
 
 #ifdef __cplusplus
 }

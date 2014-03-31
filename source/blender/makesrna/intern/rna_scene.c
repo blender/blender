@@ -43,6 +43,7 @@
 #include "BKE_freestyle.h"
 #include "BKE_editmesh.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -678,6 +679,17 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
+}
+
+static void rna_omp_threads_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	BKE_scene_omp_threads_update(scene);
+}
+
+static int rna_omp_threads_get(PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->data;
+	return BKE_scene_num_omp_threads(scene);
 }
 
 static int rna_RenderSettings_threads_get(PointerRNA *ptr)
@@ -5088,6 +5100,12 @@ void RNA_def_scene(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem omp_threads_mode_items[] = {
+		{SCE_OMP_AUTO, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
+		{SCE_OMP_MANUAL, "MANUAL", 0, "Manual", "Manually determine the number of threads"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	/* Struct definition */
 	srna = RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene",
@@ -5449,6 +5467,17 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "sequencer_colorspace_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedSequencerColorspaceSettings");
 	RNA_def_property_ui_text(prop, "Sequencer Color Space Settings", "Settings of color space sequencer is working in");
+
+	prop = RNA_def_property(srna, "omp_num_threads", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, BLENDER_MAX_THREADS);
+	RNA_def_property_int_funcs(prop, "rna_omp_threads_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "OpenMP Threads",
+							 "Number of CPU threads to use simultaneously for openmp"
+							 "(for multi-core/CPU systems)");
+
+	prop = RNA_def_property(srna, "omp_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, omp_threads_mode_items);
+	RNA_def_property_ui_text(prop, "OpenMP Mode", "Determine the amount of openmp threads used");
 
 	/* Nestled Data  */
 	/* *** Non-Animated *** */

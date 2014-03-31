@@ -67,6 +67,7 @@
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_lattice.h" /* for armature_deform_verts */
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -1541,10 +1542,10 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 
 	grid_hidden = BKE_pbvh_grid_hidden(ss->pbvh);
 
-	thread_num = 0;
 #ifdef _OPENMP
-	if (sd->flags & SCULPT_USE_OPENMP)
-		thread_num = omp_get_thread_num();
+	thread_num = omp_get_thread_num();
+#else
+	thread_num = 0;
 #endif
 	tmpgrid_co = ss->cache->tmpgrid_co[thread_num];
 	tmprow_co = ss->cache->tmprow_co[thread_num];
@@ -3769,7 +3770,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 	}
 }
 
-static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
+static void sculpt_omp_start(Scene *scene, Sculpt *sd, SculptSession *ss)
 {
 	StrokeCache *cache = ss->cache;
 
@@ -3779,15 +3780,17 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	 * Justification: Empirically I've found that two threads per
 	 * processor gives higher throughput. */
 	if (sd->flags & SCULPT_USE_OPENMP) {
-		cache->num_threads = omp_get_num_procs();
+		cache->num_threads = BKE_scene_num_omp_threads(scene);
 	}
 	else {
 		cache->num_threads = 1;
 	}
+	omp_set_num_threads(cache->num_threads);
 #else
 	(void)sd;
 	cache->num_threads = 1;
 #endif
+//	printf("Sculpt omp threadcount: %d\n", cache->num_threads);
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BKE_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
@@ -4002,7 +4005,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->previous_vertex_rotation = 0;
 	cache->init_dir_set = false;
 
-	sculpt_omp_start(sd, ss);
+	sculpt_omp_start(scene, sd, ss);
 }
 
 static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Brush *brush)
@@ -4625,6 +4628,12 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
+
+#ifdef _OPENMP
+	if (!(sd->flags & SCULPT_USE_OPENMP))
+		omp_set_num_threads(BLI_system_thread_count());
+//		printf("Reseted to omp threadcount: %d\n", BLI_system_thread_count());
+#endif
 
 	sculpt_brush_exit_tex(sd);
 }
