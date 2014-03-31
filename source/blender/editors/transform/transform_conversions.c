@@ -6708,7 +6708,7 @@ static void MaskPointToTransData(Scene *scene, MaskSplinePoint *point,
 			if (i == 0) {
 				tdm->orig_handle_type = bezt->h1;
 			}
-			else if (i == 3) {
+			else if (i == 2) {
 				tdm->orig_handle_type = bezt->h2;
 			}
 

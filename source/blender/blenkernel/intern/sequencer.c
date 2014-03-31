@@ -515,6 +515,7 @@ SeqRenderData BKE_sequencer_new_render_data(EvaluationContext *eval_ctx,
 	rval.motion_blur_shutter = 0;
 	rval.eval_ctx = eval_ctx;
 	rval.skip_cache = false;
+	rval.is_proxy_render = false;
 
 	return rval;
 }

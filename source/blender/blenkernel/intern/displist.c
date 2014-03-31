@@ -1391,8 +1391,8 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, int *r_start, float *r_f
 	if ((cu->bevfac1_mapping != CU_BEVFAC_MAP_RESOLU) ||
 	    (cu->bevfac2_mapping != CU_BEVFAC_MAP_RESOLU))
 	{
-		bevp_array = MEM_mallocN(sizeof(bevp_array) * (bl->nr - 1), "bevp_dists");
-		segments = MEM_callocN(sizeof(segments) * segcount, "bevp_segmentlengths");
+		bevp_array = MEM_mallocN(sizeof(*bevp_array) * (bl->nr - 1), "bevp_dists");
+		segments = MEM_callocN(sizeof(*segments) * segcount, "bevp_segmentlengths");
 		bevp = (BevPoint *)(bl + 1);
 		bevp++;
 		for (i = 1, j = 0; i < bl->nr; bevp++, i++) {
