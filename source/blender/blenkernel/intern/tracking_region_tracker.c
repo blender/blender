@@ -585,7 +585,6 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf, MovieTrackingTrac
 		return false;
 
 	/* run the tracker! */
-#if 0
 	tracked = libmv_trackRegion(&options,
 	                            reference_search_area,
 	                            reference_search_area_width,
@@ -596,9 +595,6 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf, MovieTrackingTrac
 	                            src_pixel_x, src_pixel_y,
 	                            &result,
 	                            dst_pixel_x, dst_pixel_y);
-#else
-	tracked = true;
-#endif
 
 	MEM_freeN(patch_new);
 
