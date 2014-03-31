@@ -1676,7 +1676,8 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "amplitude");
-	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of bounces for elastic easing");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX); /* only positive values... */
+	RNA_def_property_ui_text(prop, "Amplitude", "Amount to boost elastic bounces for 'elastic' easing");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
 
 	prop = RNA_def_property(srna, "period", PROP_FLOAT, PROP_NONE);
