@@ -50,6 +50,7 @@ set(SRC
 	object_lod.c
 	object_modifier.c
 	object_ops.c
+	object_random.c
 	object_relations.c
 	object_select.c
 	object_shapekey.c
