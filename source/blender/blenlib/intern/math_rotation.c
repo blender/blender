@@ -623,9 +623,42 @@ void QuatInterpolW(float *result, float quat1[4], float quat2[4], float t)
 }
 #endif
 
+/**
+ * Generic function for implementing slerp
+ * (quaternions and spherical vector coords).
+ *
+ * \param t: factor in [0..1]
+ * \param cosom: dot product from normalized vectors/quats.
+ * \param r_w: calculated weights.
+ */
+void interp_dot_slerp(const float t, const float cosom, float r_w[2])
+{
+	const float eps = 0.0001f;
+
+	BLI_assert(IN_RANGE_INCL(cosom, -1.0f, 1.0f));
+
+	/* within [-1..1] range, avoid aligned axis */
+	if (LIKELY(fabsf(cosom) < (1.0f - eps))) {
+		float omega, sinom;
+
+		omega = acosf(cosom);
+		sinom = sinf(omega);
+		r_w[0] = sinf((1.0f - t) * omega) / sinom;
+		r_w[1] = sinf(t * omega) / sinom;
+	}
+	else {
+		/* fallback to lerp */
+		r_w[0] = 1.0f - t;
+		r_w[1] = t;
+	}
+}
+
 void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4], const float t)
 {
-	float quat[4], omega, cosom, sinom, sc1, sc2;
+	float quat[4], cosom, w[2];
+
+	BLI_ASSERT_UNIT_QUAT(quat1);
+	BLI_ASSERT_UNIT_QUAT(quat2);
 
 	cosom = dot_qtqt(quat1, quat2);
 
@@ -638,21 +671,12 @@ void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4],
 		copy_qt_qt(quat, quat1);
 	}
 
-	if ((1.0f - cosom) > 0.0001f) {
-		omega = acosf(cosom);
-		sinom = sinf(omega);
-		sc1 = sinf((1.0f - t) * omega) / sinom;
-		sc2 = sinf(t * omega) / sinom;
-	}
-	else {
-		sc1 = 1.0f - t;
-		sc2 = t;
-	}
+	interp_dot_slerp(t, cosom, w);
 
-	result[0] = sc1 * quat[0] + sc2 * quat2[0];
-	result[1] = sc1 * quat[1] + sc2 * quat2[1];
-	result[2] = sc1 * quat[2] + sc2 * quat2[2];
-	result[3] = sc1 * quat[3] + sc2 * quat2[3];
+	result[0] = w[0] * quat[0] + w[1] * quat2[0];
+	result[1] = w[0] * quat[1] + w[1] * quat2[1];
+	result[2] = w[0] * quat[2] + w[1] * quat2[2];
+	result[3] = w[0] * quat[3] + w[1] * quat2[3];
 }
 
 void add_qt_qtqt(float result[4], const float quat1[4], const float quat2[4], const float t)

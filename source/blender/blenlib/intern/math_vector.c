@@ -68,6 +68,103 @@ void interp_v4_v4v4(float target[4], const float a[4], const float b[4], const f
 	target[3] = s * a[3] + t * b[3];
 }
 
+/**
+ * slerp, treat vectors as spherical coordinates
+ * \see #interp_qt_qtqt
+ *
+ * \return success
+ */
+bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], const float t)
+{
+	float cosom, w[2];
+
+	BLI_ASSERT_UNIT_V3(a);
+	BLI_ASSERT_UNIT_V3(b);
+
+	cosom = dot_v3v3(a, b);
+
+	/* direct opposites */
+	if (UNLIKELY(cosom < (-1.0f + FLT_EPSILON))) {
+		return false;
+	}
+
+	interp_dot_slerp(t, cosom, w);
+
+	target[0] = w[0] * a[0] + w[1] * b[0];
+	target[1] = w[0] * a[1] + w[1] * b[1];
+	target[2] = w[0] * a[2] + w[1] * b[2];
+
+	return true;
+}
+bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], const float t)
+{
+	float cosom, w[2];
+
+	BLI_ASSERT_UNIT_V2(a);
+	BLI_ASSERT_UNIT_V2(b);
+
+	cosom = dot_v2v2(a, b);
+
+	/* direct opposites */
+	if (UNLIKELY(cosom < (1.0f + FLT_EPSILON))) {
+		return false;
+	}
+
+	interp_dot_slerp(t, cosom, w);
+
+	target[0] = w[0] * a[0] + w[1] * b[0];
+	target[1] = w[0] * a[1] + w[1] * b[1];
+
+	return true;
+}
+
+/**
+ * Same as #interp_v3_v3v3_slerp buy uses fallback values
+ * for opposite vectors.
+ */
+void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t)
+{
+	if (UNLIKELY(!interp_v3_v3v3_slerp(target, a, b, t))) {
+		/* axis are aligned so any otho vector is acceptable */
+		float ab_ortho[3];
+		ortho_v3_v3(ab_ortho, a);
+		normalize_v3(ab_ortho);
+		if (t < 0.5f) {
+			if (UNLIKELY(!interp_v3_v3v3_slerp(target, a, ab_ortho, t * 2.0f))) {
+				BLI_assert(0);
+				copy_v3_v3(target, a);
+			}
+		}
+		else {
+			if (UNLIKELY(!interp_v3_v3v3_slerp(target, ab_ortho, b, (t - 0.5f) * 2.0f))) {
+				BLI_assert(0);
+				copy_v3_v3(target, b);
+			}
+		}
+	}
+}
+void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], const float t)
+{
+	if (UNLIKELY(!interp_v2_v2v2_slerp(target, a, b, t))) {
+		/* axis are aligned so any otho vector is acceptable */
+		float ab_ortho[2];
+		ortho_v2_v2(ab_ortho, a);
+		// normalize_v2(ab_ortho);
+		if (t < 0.5f) {
+			if (UNLIKELY(!interp_v2_v2v2_slerp(target, a, ab_ortho, t * 2.0f))) {
+				BLI_assert(0);
+				copy_v2_v2(target, a);
+			}
+		}
+		else {
+			if (UNLIKELY(!interp_v2_v2v2_slerp(target, ab_ortho, b, (t - 0.5f) * 2.0f))) {
+				BLI_assert(0);
+				copy_v2_v2(target, b);
+			}
+		}
+	}
+}
+
 /* weight 3 vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
 void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
@@ -536,6 +633,17 @@ void ortho_v3_v3(float p[3], const float v[3])
 			p[2] = -v[0] - v[1];
 			break;
 	}
+}
+
+/**
+ * no brainer compared to v3, just have for consistency.
+ */
+void ortho_v2_v2(float p[3], const float v[3])
+{
+	BLI_assert(p != v);
+
+	p[0] = -v[1];
+	p[1] =  v[0];
 }
 
 /* Rotate a point p by angle theta around an arbitrary axis r

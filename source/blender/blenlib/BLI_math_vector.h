@@ -190,6 +190,12 @@ void interp_v4_v4v4v4(float p[4], const float v1[4], const float v2[4], const fl
 void interp_v4_v4v4v4v4(float p[4], const float v1[4], const float v2[4], const float v3[4], const float v4[4], const float w[4]);
 void interp_v3_v3v3v3_uv(float p[3], const float v1[3], const float v2[3], const float v3[3], const float uv[2]);
 
+bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], const float t)  ATTR_WARN_UNUSED_RESULT;
+bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], const float t)  ATTR_WARN_UNUSED_RESULT;
+
+void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t);
+void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], const float t);
+
 void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], const float t);
 void interp_v3_v3v3_uchar(unsigned char target[3], const unsigned char a[3], const unsigned char b[3], const float t);
 void interp_v4_v4v4_char(char target[4], const char a[4], const char b[4], const float t);
@@ -255,6 +261,7 @@ void project_v3_plane(float v[3], const float n[3], const float p[3]);
 void reflect_v3_v3v3(float r[3], const float v[3], const float n[3]);
 void ortho_basis_v3v3_v3(float r1[3], float r2[3], const float a[3]);
 void ortho_v3_v3(float p[3], const float v[3]);
+void ortho_v2_v2(float p[3], const float v[3]);
 void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);
 void rotate_v3_v3v3fl(float v[3], const float p[3], const float axis[3], const float angle);
 void rotate_normalized_v3_v3v3fl(float v[3], const float p[3], const float axis[3], const float angle);

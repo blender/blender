@@ -945,13 +945,13 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 }
 
 PyDoc_STRVAR(Vector_angle_doc,
-".. function:: angle(other, fallback)\n"
+".. function:: angle(other, fallback=None)\n"
 "\n"
 "   Return the angle between two vectors.\n"
 "\n"
 "   :arg other: another vector to compare the angle with\n"
 "   :type other: :class:`Vector`\n"
-"   :arg fallback: return this value when the angle cant be calculated\n"
+"   :arg fallback: return this value when the angle can't be calculated\n"
 "      (zero length vector)\n"
 "   :type fallback: any\n"
 "   :return: angle in radians or fallback when given\n"
@@ -1015,7 +1015,7 @@ PyDoc_STRVAR(Vector_angle_signed_doc,
 "\n"
 "   :arg other: another vector to compare the angle with\n"
 "   :type other: :class:`Vector`\n"
-"   :arg fallback: return this value when the angle cant be calculated\n"
+"   :arg fallback: return this value when the angle can't be calculated\n"
 "      (zero length vector)\n"
 "   :type fallback: any\n"
 "   :return: angle in radians or fallback when given\n"
@@ -1196,6 +1196,107 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 	PyMem_Free(tvec);
 
 	return Vector_CreatePyObject_alloc(vec, size, Py_TYPE(self));
+}
+
+PyDoc_STRVAR(Vector_slerp_doc,
+".. function:: slerp(other, factor, fallback=None)\n"
+"\n"
+"   Returns the interpolation of two unit vectors (spherical coordinates).\n"
+"\n"
+"   :arg other: value to interpolate with.\n"
+"   :type other: :class:`Vector`\n"
+"   :arg factor: The interpolation value in [0.0, 1.0].\n"
+"   :type factor: float\n"
+"   :arg fallback: return this value when the vector can't be calculated\n"
+"      (zero length vector or direct opposites)\n"
+"   :type fallback: any\n"
+"   :return: The interpolated vector.\n"
+"   :rtype: :class:`Vector`\n"
+);
+static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
+{
+	const int size = self->size;
+	PyObject *value = NULL;
+	float fac, cosom, w[2];
+	float tvec[3], vec[3];
+	double self_len_sq, other_len_sq;
+	int x;
+	PyObject *fallback = NULL;
+
+	if (!PyArg_ParseTuple(args, "Of|O:slerp", &value, &fac, &fallback))
+		return NULL;
+
+	if (BaseMath_ReadCallback(self) == -1) {
+		return NULL;
+	}
+
+	if (self->size > 3) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Vector must be 2D or 3D");
+		return NULL;
+	}
+
+	if (mathutils_array_parse(tvec, size, size, value, "Vector.slerp(other), invalid 'other' arg") == -1) {
+		return NULL;
+	}
+
+	self_len_sq  = len_squared_vn(self->vec, size);
+	other_len_sq = len_squared_vn(tvec,      size);
+
+	/* use fallbacks for zero length vectors */
+	if (UNLIKELY((self_len_sq  < (double)FLT_EPSILON) ||
+	             (other_len_sq < (double)FLT_EPSILON)))
+	{
+		/* avoid exception */
+		if (fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError,
+			                "Vector.slerp(): "
+			                "zero length vectors unsupported");
+			return NULL;
+		}
+	}
+
+	/* no attempt made to normalize, no fallback */
+	if (UNLIKELY((fabs(self_len_sq  - 1.0) > (double)FLT_EPSILON) ||
+	             (fabs(other_len_sq - 1.0) > (double)FLT_EPSILON)))
+	{
+		PyErr_SetString(PyExc_ValueError,
+		                "Vector.slerp(): "
+		                "both vectors must be unit length");
+		return NULL;
+	}
+
+	/* We have sane state, execute slerp */
+	cosom = (float)dot_vn_vn(self->vec, tvec, size);
+
+	/* direct opposite, can't slerp */
+	if (UNLIKELY(cosom < (-1.0f + FLT_EPSILON))) {
+		/* avoid exception */
+		if (fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError,
+			                "Vector.slerp(): "
+			                "opposite vectors unsupported");
+			return NULL;
+		}
+	}
+
+	interp_dot_slerp(fac, cosom, w);
+
+	for (x = 0; x < size; x++) {
+		vec[x] = (w[0] * self->vec[x]) + (w[1] * tvec[x]);
+	}
+
+	interp_v3_v3v3_slerp_safe(vec, self->vec, tvec, fac);
+
+	return Vector_CreatePyObject(vec, size, Py_NEW, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Vector_rotate_doc,
@@ -2798,6 +2899,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"rotation_difference", (PyCFunction) Vector_rotation_difference, METH_O, Vector_rotation_difference_doc},
 	{"project", (PyCFunction) Vector_project, METH_O, Vector_project_doc},
 	{"lerp", (PyCFunction) Vector_lerp, METH_VARARGS, Vector_lerp_doc},
+	{"slerp", (PyCFunction) Vector_slerp, METH_VARARGS, Vector_slerp_doc},
 	{"rotate", (PyCFunction) Vector_rotate, METH_O, Vector_rotate_doc},
 
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
