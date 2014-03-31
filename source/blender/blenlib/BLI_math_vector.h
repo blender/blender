@@ -285,6 +285,7 @@ void axis_sort_v3(const float axis_values[3], int r_axis_order[3]);
 /***************************** Array Functions *******************************/
 /* attempted to follow fixed length vertex functions. names could be improved*/
 double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size) ATTR_WARN_UNUSED_RESULT;
+double len_squared_vn(const float *array, const int size) ATTR_WARN_UNUSED_RESULT;
 float normalize_vn_vn(float *array_tar, const float *array_src, const int size);
 float normalize_vn(float *array_tar, const int size);
 void range_vn_i(int *array_tar, const int size, const int start);

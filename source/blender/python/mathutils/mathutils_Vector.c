@@ -1888,17 +1888,6 @@ static PyObject *Vector_neg(VectorObject *self)
 	return Vector_CreatePyObject_alloc(tvec, self->size, Py_TYPE(self));
 }
 
-/*------------------------vec_magnitude_nosqrt (internal) - for comparing only */
-static double vec_magnitude_nosqrt(const float *data, int size)
-{
-	/* return (double)sqrt(dot);*/
-	/* warning, line above removed because we are not using the length,
-	 * rather the comparing the sizes and for this we do not need the sqrt
-	 * for the actual length, the dot must be sqrt'd */
-	return dot_vn_vn(data, data, size);
-}
-
-
 /*------------------------tp_richcmpr
  * returns -1 exception, 0 false, 1 true */
 static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
@@ -1933,15 +1922,15 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
 	switch (comparison_type) {
 		case Py_LT:
-			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
-			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
+			lenA = len_squared_vn(vecA->vec, vecA->size);
+			lenB = len_squared_vn(vecB->vec, vecB->size);
 			if (lenA < lenB) {
 				result = 1;
 			}
 			break;
 		case Py_LE:
-			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
-			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
+			lenA = len_squared_vn(vecA->vec, vecA->size);
+			lenB = len_squared_vn(vecB->vec, vecB->size);
 			if (lenA < lenB) {
 				result = 1;
 			}
@@ -1956,15 +1945,15 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 			result = !EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
 			break;
 		case Py_GT:
-			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
-			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
+			lenA = len_squared_vn(vecA->vec, vecA->size);
+			lenB = len_squared_vn(vecB->vec, vecB->size);
 			if (lenA > lenB) {
 				result = 1;
 			}
 			break;
 		case Py_GE:
-			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
-			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
+			lenA = len_squared_vn(vecA->vec, vecA->size);
+			lenB = len_squared_vn(vecB->vec, vecB->size);
 			if (lenA > lenB) {
 				result = 1;
 			}

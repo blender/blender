@@ -665,6 +665,11 @@ void axis_sort_v3(const float axis_values[3], int r_axis_order[3])
 
 /***************************** Array Functions *******************************/
 
+MINLINE double sqr_db(double f)
+{
+	return f * f;
+}
+
 double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size)
 {
 	double d = 0.0f;
@@ -677,9 +682,20 @@ double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int s
 	return d;
 }
 
+double len_squared_vn(const float *array, const int size)
+{
+	double d = 0.0f;
+	const float *array_pt = array + (size - 1);
+	int i = size;
+	while (i--) {
+		d += sqr_db((double)(*(array_pt--)));
+	}
+	return d;
+}
+
 float normalize_vn_vn(float *array_tar, const float *array_src, const int size)
 {
-	double d = dot_vn_vn(array_tar, array_src, size);
+	double d = len_squared_vn(array_src, size);
 	float d_sqrt;
 	if (d > 1.0e-35) {
 		d_sqrt = (float)sqrt(d);
