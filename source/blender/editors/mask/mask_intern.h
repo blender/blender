@@ -102,8 +102,8 @@ bool ED_mask_spline_select_check(struct MaskSpline *spline);
 bool ED_mask_layer_select_check(struct MaskLayer *masklay);
 bool ED_mask_select_check(struct Mask *mask);
 
-void ED_mask_spline_select_set(struct MaskSpline *spline, const short do_select);
-void ED_mask_layer_select_set(struct MaskLayer *masklay, const short do_select);
+void ED_mask_spline_select_set(struct MaskSpline *spline, const bool do_select);
+void ED_mask_layer_select_set(struct MaskLayer *masklay, const bool do_select);
 void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 

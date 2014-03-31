@@ -188,15 +188,15 @@ void BKE_mask_clipboard_copy_from_layer(struct MaskLayer *mask_layer);
 bool BKE_mask_clipboard_is_empty(void);
 void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mask_layer);
 
-#define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f3) & SELECT)
-#define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)
+#define MASKPOINT_ISSEL_ANY(p)          (( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f3) & SELECT) != 0)
+#define MASKPOINT_ISSEL_KNOT(p)         (( (p)->bezt.f2 & SELECT) != 0)
 
 #define MASKPOINT_ISSEL_HANDLE(point, which_handle) \
-	((which_handle == MASK_WHICH_HANDLE_STICK) ? \
-	((((point)->bezt.f1 | (point)->bezt.f3) & SELECT)) : \
-	((which_handle == MASK_WHICH_HANDLE_LEFT) ? \
-	((point)->bezt.f1 & SELECT) : \
-	((point)->bezt.f3 & SELECT)))
+	(((which_handle == MASK_WHICH_HANDLE_STICK) ? \
+	 ((((point)->bezt.f1 | (point)->bezt.f3) & SELECT)) : \
+	 ((which_handle == MASK_WHICH_HANDLE_LEFT) ? \
+	 ((point)->bezt.f1 & SELECT) : \
+	 ((point)->bezt.f3 & SELECT))) != 0)
 
 #define MASKPOINT_SEL_ALL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 #define MASKPOINT_DESEL_ALL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0

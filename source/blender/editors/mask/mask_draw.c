@@ -262,7 +262,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 
 		for (j = 0; j <= point->tot_uw; j++) {
 			float feather_point[2];
-			int sel = FALSE;
+			bool sel = false;
 
 			copy_v2_v2(feather_point, *fp);
 
@@ -273,7 +273,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 				sel = MASKPOINT_ISSEL_ANY(point);
 			}
 			else {
-				sel = point->uw[j - 1].flag & SELECT;
+				sel = (point->uw[j - 1].flag & SELECT) != 0;
 			}
 
 			if (sel) {
@@ -366,7 +366,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 
 /* #define USE_XOR */
 
-static void mask_color_active_tint(unsigned char r_rgb[4], const unsigned char rgb[4], const short is_active)
+static void mask_color_active_tint(unsigned char r_rgb[4], const unsigned char rgb[4], const bool is_active)
 {
 	if (!is_active) {
 		r_rgb[0] = (unsigned char)((((int)(rgb[0])) + 128) / 2);
@@ -465,7 +465,7 @@ static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*
 				rgb_tmp[2] = (unsigned char)(((short)rgb_tmp[2] + (short)rgb_spline[2]) / 2);
 			}
 
-			if (is_smooth == FALSE && is_feather) {
+			if (is_smooth == false && is_feather) {
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			}
@@ -477,7 +477,7 @@ static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*
 			glVertexPointer(2, GL_FLOAT, 0, points);
 			glDrawArrays(draw_method, 0, tot_point);
 
-			if (is_smooth == FALSE && is_feather) {
+			if (is_smooth == false && is_feather) {
 				glDisable(GL_BLEND);
 			}
 
@@ -521,12 +521,12 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(spline, &tot_feather_point, resol, (is_fill != FALSE));
+	feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(spline, &tot_feather_point, resol, (is_fill != false));
 
 	/* draw feather */
 	mask_spline_feather_color_get(masklay, spline, is_spline_sel, rgb_tmp);
 	mask_draw_curve_type(C, spline, feather_points, tot_feather_point,
-	                     TRUE, is_smooth, is_active,
+	                     true, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
 
 	if (!is_fill) {
@@ -545,7 +545,7 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
 
 		/* same as above */
 		mask_draw_curve_type(C, spline, feather_points, tot_feather_point,
-		                     TRUE, is_smooth, is_active,
+		                     true, is_smooth, is_active,
 		                     rgb_tmp, draw_type);
 	}
 
@@ -554,7 +554,7 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
 	/* draw main curve */
 	mask_spline_color_get(masklay, spline, is_spline_sel, rgb_tmp);
 	mask_draw_curve_type(C, spline, diff_points, tot_diff_point,
-	                     FALSE, is_smooth, is_active,
+	                     false, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
 	MEM_freeN(diff_points);
 
@@ -671,7 +671,7 @@ static float *threaded_mask_rasterize(Mask *mask, const int width, const int hei
 
 	/* Initialize rasterization handle. */
 	handle = BKE_maskrasterize_handle_new();
-	BKE_maskrasterize_handle_init(handle, mask, width, height, TRUE, TRUE, TRUE);
+	BKE_maskrasterize_handle_init(handle, mask, width, height, true, true, true);
 
 	state.handle = handle;
 	state.buffer = buffer;

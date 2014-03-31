@@ -63,10 +63,10 @@ bool ED_mask_spline_select_check(MaskSpline *spline)
 		MaskSplinePoint *point = &spline->points[i];
 
 		if (MASKPOINT_ISSEL_ANY(point))
-			return TRUE;
+			return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 bool ED_mask_layer_select_check(MaskLayer *masklay)
@@ -74,16 +74,16 @@ bool ED_mask_layer_select_check(MaskLayer *masklay)
 	MaskSpline *spline;
 
 	if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
-		return FALSE;
+		return false;
 	}
 
 	for (spline = masklay->splines.first; spline; spline = spline->next) {
 		if (ED_mask_spline_select_check(spline)) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 bool ED_mask_select_check(Mask *mask)
@@ -92,15 +92,15 @@ bool ED_mask_select_check(Mask *mask)
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		if (ED_mask_layer_select_check(masklay)) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* 'sel' select  */
-void ED_mask_spline_select_set(MaskSpline *spline, const short do_select)
+void ED_mask_spline_select_set(MaskSpline *spline, const bool do_select)
 {
 	int i;
 
@@ -116,12 +116,12 @@ void ED_mask_spline_select_set(MaskSpline *spline, const short do_select)
 	}
 }
 
-void ED_mask_layer_select_set(MaskLayer *masklay, const short do_select)
+void ED_mask_layer_select_set(MaskLayer *masklay, const bool do_select)
 {
 	MaskSpline *spline;
 
 	if (masklay->restrictflag & MASK_RESTRICT_SELECT) {
-		if (do_select == TRUE) {
+		if (do_select == true) {
 			return;
 		}
 	}
@@ -166,7 +166,7 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
 
 		}
 		else {
-			ED_mask_layer_select_set(masklay, (action == SEL_SELECT) ? TRUE : FALSE);
+			ED_mask_layer_select_set(masklay, (action == SEL_SELECT) ? true : false);
 		}
 	}
 }
@@ -271,20 +271,20 @@ static int select_exec(bContext *C, wmOperator *op)
 				masklay->act_spline = spline;
 				masklay->act_point = point;
 
-				BKE_mask_point_select_set_handle(point, which_handle, TRUE);
+				BKE_mask_point_select_set_handle(point, which_handle, true);
 			}
 			else if (deselect) {
-				BKE_mask_point_select_set_handle(point, which_handle, FALSE);
+				BKE_mask_point_select_set_handle(point, which_handle, false);
 			}
 			else {
 				masklay->act_spline = spline;
 				masklay->act_point = point;
 
 				if (!MASKPOINT_ISSEL_HANDLE(point, which_handle)) {
-					BKE_mask_point_select_set_handle(point, which_handle, TRUE);
+					BKE_mask_point_select_set_handle(point, which_handle, true);
 				}
 				else if (toggle) {
-					BKE_mask_point_select_set_handle(point, which_handle, FALSE);
+					BKE_mask_point_select_set_handle(point, which_handle, false);
 				}
 			}
 		}
@@ -293,20 +293,20 @@ static int select_exec(bContext *C, wmOperator *op)
 				masklay->act_spline = spline;
 				masklay->act_point = point;
 
-				BKE_mask_point_select_set(point, TRUE);
+				BKE_mask_point_select_set(point, true);
 			}
 			else if (deselect) {
-				BKE_mask_point_select_set(point, FALSE);
+				BKE_mask_point_select_set(point, false);
 			}
 			else {
 				masklay->act_spline = spline;
 				masklay->act_point = point;
 
 				if (!MASKPOINT_ISSEL_ANY(point)) {
-					BKE_mask_point_select_set(point, TRUE);
+					BKE_mask_point_select_set(point, true);
 				}
 				else if (toggle) {
-					BKE_mask_point_select_set(point, FALSE);
+					BKE_mask_point_select_set(point, false);
 				}
 			}
 		}
@@ -445,8 +445,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, mode == GESTURE_MODAL_SELECT);
 				}
 				else if (!extend) {
-					BKE_mask_point_select_set(point, FALSE);
-					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, FALSE);
+					BKE_mask_point_select_set(point, false);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, false);
 				}
 
 				changed = true;
@@ -760,7 +760,7 @@ static int mask_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			if (ED_mask_spline_select_check(spline)) {
-				ED_mask_spline_select_set(spline, TRUE);
+				ED_mask_spline_select_set(spline, true);
 				changed = true;
 			}
 		}

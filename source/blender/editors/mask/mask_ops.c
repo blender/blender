@@ -281,7 +281,7 @@ bool ED_mask_feather_find_nearest(const bContext *C, Mask *mask, const float nor
 		if (score)
 			*score = sqrtf(len);
 
-		return TRUE;
+		return true;
 	}
 
 	if (masklay_r)
@@ -293,7 +293,7 @@ bool ED_mask_feather_find_nearest(const bContext *C, Mask *mask, const float nor
 	if (point_r)
 		*point_r = NULL;
 
-	return FALSE;
+	return false;
 }
 
 
@@ -473,8 +473,8 @@ typedef struct SlidePointData {
 	int width, height;
 	float weight, weight_scalar;
 
-	short curvature_only, accurate;
-	short initial_feather, overall_feather;
+	bool curvature_only, accurate;
+	bool initial_feather, overall_feather;
 
 	bool is_sliding_new_point;
 } SlidePointData;
@@ -487,19 +487,19 @@ static bool slide_point_check_initial_feather(MaskSpline *spline)
 		MaskSplinePoint *point = &spline->points[i];
 
 		if (point->bezt.weight != 0.0f)
-			return FALSE;
+			return false;
 
 		/* comment for now. if all bezt weights are zero - this is as good-as initial */
 #if 0
 		int j;
 		for (j = 0; j < point->tot_uw; j++) {
 			if (point->uw[j].w != 0.0f)
-				return FALSE;
+				return false;
 		}
 #endif
 	}
 
-	return TRUE;
+	return true;
 }
 
 static void select_sliding_point(Mask *mask, MaskLayer *mask_layer, MaskSpline *spline,
@@ -509,7 +509,7 @@ static void select_sliding_point(Mask *mask, MaskLayer *mask_layer, MaskSpline *
 
 	switch (which_handle) {
 		case MASK_WHICH_HANDLE_NONE:
-			BKE_mask_point_select_set(point, TRUE);
+			BKE_mask_point_select_set(point, true);
 			break;
 		case MASK_WHICH_HANDLE_LEFT:
 			point->bezt.f1 |= SELECT;
@@ -682,7 +682,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		else if (!MASKPOINT_ISSEL_ANY(slidedata->point)) {
 			ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-			BKE_mask_point_select_set(slidedata->point, TRUE);
+			BKE_mask_point_select_set(slidedata->point, true);
 
 			ED_mask_select_flush_all(mask);
 		}
@@ -856,7 +856,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				float vec[2], no[2], p[2], c[2], w, offco[2];
 				float *weight = NULL;
 				float weight_scalar = 1.0f;
-				int overall_feather = data->overall_feather || data->initial_feather;
+				bool overall_feather = data->overall_feather || data->initial_feather;
 
 				add_v2_v2v2(offco, data->feather, dco);
 
@@ -965,7 +965,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				Scene *scene = CTX_data_scene(C);
 
 				/* dont key sliding feather uw's */
-				if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == FALSE) {
+				if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == false) {
 					if (IS_AUTOKEY_ON(scene)) {
 						ED_mask_layer_shape_auto_key(data->masklay, CFRA);
 					}
@@ -1310,7 +1310,7 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op)
 				MaskSplinePoint *point = &spline->points[i];
 
 				if (MASKPOINT_ISSEL_ANY(point)) {
-					BKE_mask_calc_handle_point_auto(spline, point, FALSE);
+					BKE_mask_calc_handle_point_auto(spline, point, false);
 					changed = true;
 					changed_layer = true;
 				}
@@ -1452,7 +1452,7 @@ static int mask_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 
 		if (masklay->restrictflag & OB_RESTRICT_VIEW) {
-			ED_mask_layer_select_set(masklay, TRUE);
+			ED_mask_layer_select_set(masklay, true);
 			masklay->restrictflag &= ~OB_RESTRICT_VIEW;
 			changed = true;
 		}
@@ -1500,7 +1500,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
 
 		if (!unselected) {
 			if (ED_mask_layer_select_check(masklay)) {
-				ED_mask_layer_select_set(masklay, FALSE);
+				ED_mask_layer_select_set(masklay, false);
 
 				masklay->restrictflag |= OB_RESTRICT_VIEW;
 				changed = true;

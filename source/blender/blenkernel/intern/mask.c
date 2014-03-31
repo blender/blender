@@ -263,7 +263,7 @@ MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
 
 bool BKE_mask_spline_remove(MaskLayer *mask_layer, MaskSpline *spline)
 {
-	if (BLI_remlink_safe(&mask_layer->splines, spline) == FALSE) {
+	if (BLI_remlink_safe(&mask_layer->splines, spline) == false) {
 		return false;
 	}
 
@@ -1402,7 +1402,7 @@ void BKE_mask_calc_handle_point_auto(MaskSpline *spline, MaskSplinePoint *point,
 	point->bezt.h2 = h_back[1];
 
 	/* preserve length by applying it back */
-	if (do_recalc_length == FALSE) {
+	if (do_recalc_length == false) {
 		dist_ensure_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
 		dist_ensure_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
 	}
@@ -1489,7 +1489,7 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const bool d
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
-			int need_handle_recalc = FALSE;
+			bool need_handle_recalc = false;
 
 			BKE_mask_spline_ensure_deform(spline);
 
@@ -1505,7 +1505,7 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const bool d
 				mask_evaluate_apply_point_parent(point_deform, ctime);
 
 				if (ELEM(point->bezt.h1, HD_AUTO, HD_VECT)) {
-					need_handle_recalc = TRUE;
+					need_handle_recalc = true;
 				}
 			}
 

@@ -257,8 +257,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 	MaskLayer *masklay;
 	bool changed = false;
 
-	const short do_feather  = RNA_boolean_get(op->ptr, "feather");
-	const short do_location = RNA_boolean_get(op->ptr, "location");
+	const bool do_feather  = RNA_boolean_get(op->ptr, "feather");
+	const bool do_location = RNA_boolean_get(op->ptr, "location");
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 

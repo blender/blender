@@ -513,7 +513,7 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
 		int point_index = spline->tot_point - count + i;
 		MaskSplinePoint *new_point = spline->points + point_index;
 		new_point->bezt.h1 = new_point->bezt.h2 = HD_ALIGN;
-		BKE_mask_calc_handle_point_auto(spline, new_point, TRUE);
+		BKE_mask_calc_handle_point_auto(spline, new_point, true);
 		BKE_mask_parent_init(&new_point->parent);
 
 		/* Not efficient, but there's no other way for now */
