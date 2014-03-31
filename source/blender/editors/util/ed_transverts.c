@@ -53,6 +53,7 @@
 /* copied from editobject.c, now uses (almost) proper depgraph */
 void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 {
+	const int mode = tvs->mode;
 	BLI_assert(ED_transverts_check_obedit(obedit) == true);
 
 	DAG_id_tag_update(obedit->data, 0);
@@ -68,31 +69,44 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 
 		while (nu) {
 			/* keep handles' vectors unchanged */
-			if (nu->bezt) {
+			if (nu->bezt && (mode & TM_SKIP_HANDLES)) {
 				int a = nu->pntsu;
 				TransVert *tv = tvs->transverts;
 				BezTriple *bezt = nu->bezt;
 
 				while (a--) {
-					if (bezt->f1 & SELECT) tv++;
+					if (bezt->hide == 0) {
+						bool skip_handle = false;
+						if (bezt->f2 & SELECT)
+							skip_handle = (mode & TM_SKIP_HANDLES) != 0;
 
-					if (bezt->f2 & SELECT) {
-						float v[3];
-
-						if (bezt->f1 & SELECT) {
-							sub_v3_v3v3(v, (tv - 1)->oldloc, tv->oldloc);
-							add_v3_v3v3(bezt->vec[0], bezt->vec[1], v);
+						if ((bezt->f1 & SELECT) && !skip_handle) {
+							BLI_assert(tv->loc == bezt->vec[0]);
+							tv++;
 						}
 
-						if (bezt->f3 & SELECT) {
-							sub_v3_v3v3(v, (tv + 1)->oldloc, tv->oldloc);
-							add_v3_v3v3(bezt->vec[2], bezt->vec[1], v);
+						if (bezt->f2 & SELECT) {
+							float v[3];
+
+							if (((bezt->f1 & SELECT) && !skip_handle) == 0) {
+								sub_v3_v3v3(v, tv->loc, tv->oldloc);
+								add_v3_v3(bezt->vec[0], v);
+							}
+
+							if (((bezt->f3 & SELECT) && !skip_handle) == 0) {
+								sub_v3_v3v3(v, tv->loc, tv->oldloc);
+								add_v3_v3(bezt->vec[2], v);
+							}
+
+							BLI_assert(tv->loc == bezt->vec[1]);
+							tv++;
 						}
 
-						tv++;
+						if ((bezt->f3 & SELECT) && !skip_handle) {
+							BLI_assert(tv->loc == bezt->vec[2]);
+							tv++;
+						}
 					}
-
-					if (bezt->f3 & SELECT) tv++;
 
 					bezt++;
 				}
@@ -271,6 +285,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc = eve->co;
 					tv->flag = (BM_elem_index_get(eve) == TM_INDEX_ON) ? SELECT : 0;
+
+					if (mode & TM_CALC_NORMALS) {
+						tv->flag |= TX_VERT_USE_NORMAL;
+						copy_v3_v3(tv->normal, eve->no);
+					}
+
 					tv++;
 					a++;
 				}
@@ -353,14 +373,20 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 				bezt = nu->bezt;
 				while (a--) {
 					if (bezt->hide == 0) {
-						int skip_handle = 0;
+						bool skip_handle = false;
 						if (bezt->f2 & SELECT)
-							skip_handle = mode & TM_SKIP_HANDLES;
+							skip_handle = (mode & TM_SKIP_HANDLES) != 0;
 
 						if ((bezt->f1 & SELECT) && !skip_handle) {
 							copy_v3_v3(tv->oldloc, bezt->vec[0]);
 							tv->loc = bezt->vec[0];
 							tv->flag = bezt->f1 & SELECT;
+
+							if (mode & TM_CALC_NORMALS) {
+								tv->flag |= TX_VERT_USE_NORMAL;
+								BKE_nurb_bezt_calc_plane(nu, bezt, tv->normal);
+							}
+
 							tv++;
 							tvs->transverts_tot++;
 						}
@@ -368,6 +394,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 							copy_v3_v3(tv->oldloc, bezt->vec[1]);
 							tv->loc = bezt->vec[1];
 							tv->flag = bezt->f2 & SELECT;
+
+							if (mode & TM_CALC_NORMALS) {
+								tv->flag |= TX_VERT_USE_NORMAL;
+								BKE_nurb_bezt_calc_plane(nu, bezt, tv->normal);
+							}
+
 							tv++;
 							tvs->transverts_tot++;
 						}
@@ -375,6 +407,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 							copy_v3_v3(tv->oldloc, bezt->vec[2]);
 							tv->loc = bezt->vec[2];
 							tv->flag = bezt->f3 & SELECT;
+
+							if (mode & TM_CALC_NORMALS) {
+								tv->flag |= TX_VERT_USE_NORMAL;
+								BKE_nurb_bezt_calc_plane(nu, bezt, tv->normal);
+							}
+
 							tv++;
 							tvs->transverts_tot++;
 						}
@@ -448,6 +486,8 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 		MEM_freeN(tvs->transverts);
 		tvs->transverts = NULL;
 	}
+
+	tvs->mode = mode;
 }
 
 void ED_transverts_free(TransVertStore *tvs)

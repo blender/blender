@@ -36,12 +36,14 @@ struct Object;
 typedef struct TransVert {
 	float *loc;
 	float oldloc[3], maploc[3];
+	float normal[3];
 	int flag;
 } TransVert;
 
 typedef struct TransVertStore {
 	struct TransVert *transverts;
 	int transverts_tot;
+	int mode;
 } TransVertStore;
 
 void ED_transverts_create_from_obedit(TransVertStore *tvs, struct Object *obedit, const int mode);
@@ -59,12 +61,15 @@ enum {
 
 /* mode flags: */
 enum {
-	TM_ALL_JOINTS      = 1, /* all joints (for bones only) */
-	TM_SKIP_HANDLES    = 2  /* skip handles when control point is selected (for curves only) */
+	TM_ALL_JOINTS      = (1 << 0),  /* all joints (for bones only) */
+	TM_SKIP_HANDLES    = (1 << 1),  /* skip handles when control point is selected (for curves only) */
+	TM_CALC_NORMALS    = (1 << 2),  /* fill in normals when available */
 };
 
-
-              /* SELECT == (1 << 0) */
-#define TX_VERT_USE_MAPLOC (1 << 1)
+enum {
+	/* SELECT == (1 << 0) */
+	TX_VERT_USE_MAPLOC = (1 << 1),
+	TX_VERT_USE_NORMAL = (1 << 2),  /* avoid nonzero check */
+};
 
 #endif  /* __ED_TRANSVERTS_H__ */
