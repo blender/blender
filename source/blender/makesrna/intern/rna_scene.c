@@ -681,11 +681,6 @@ static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 	return BLI_sprintfN("render");
 }
 
-static void rna_omp_threads_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
-{
-	BKE_scene_omp_threads_update(scene);
-}
-
 static int rna_omp_threads_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->data;
