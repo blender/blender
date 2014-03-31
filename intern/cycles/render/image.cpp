@@ -145,7 +145,7 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data, bo
 	return is_float;
 }
 
-static bool image_equals(ImageManager::Image *image, const string& filename, void *builtin_data, bool interpolation)
+static bool image_equals(ImageManager::Image *image, const string& filename, void *builtin_data, InterpolationType interpolation)
 {
 	return image->filename == filename &&
 	       image->builtin_data == builtin_data &&

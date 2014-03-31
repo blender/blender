@@ -294,9 +294,9 @@ static void undo_step_num(bContext *C, UndoStack *stack, int step)
 void ED_undo_paint_step_num(bContext *C, int type, int step)
 {
 	if (type == UNDO_PAINT_IMAGE)
-		return undo_step_num(C, &ImageUndoStack, step);
+		undo_step_num(C, &ImageUndoStack, step);
 	else if (type == UNDO_PAINT_MESH)
-		return undo_step_num(C, &MeshUndoStack, step);
+		undo_step_num(C, &MeshUndoStack, step);
 }
 
 static char *undo_stack_get_name(UndoStack *stack, int nr, int *active)

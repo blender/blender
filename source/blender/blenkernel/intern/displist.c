@@ -1726,7 +1726,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 	}
 }
 
-void BKE_displist_make_curveTypes(Scene *scene, Object *ob, bool for_orco)
+void BKE_displist_make_curveTypes(Scene *scene, Object *ob, const bool for_orco)
 {
 	ListBase *dispbase;
 
