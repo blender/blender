@@ -73,7 +73,7 @@ int     BKE_imtype_supports_zbuf(const char imtype);
 int     BKE_imtype_supports_compress(const char imtype);
 int     BKE_imtype_supports_quality(const char imtype);
 int     BKE_imtype_requires_linear_float(const char imtype);
-char    BKE_imtype_valid_channels(const char imtype);
+char    BKE_imtype_valid_channels(const char imtype, bool write_file);
 char    BKE_imtype_valid_depths(const char imtype);
 
 char    BKE_imtype_from_arg(const char *arg);

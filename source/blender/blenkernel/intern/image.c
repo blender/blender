@@ -1161,16 +1161,18 @@ int BKE_imtype_requires_linear_float(const char imtype)
 	return 0;
 }
 
-char BKE_imtype_valid_channels(const char imtype)
+char BKE_imtype_valid_channels(const char imtype, bool write_file)
 {
 	char chan_flag = IMA_CHAN_FLAG_RGB; /* assume all support rgb */
 
 	/* alpha */
 	switch (imtype) {
+		case R_IMF_IMTYPE_BMP:
+			if (write_file) break;
+			/* fall-through */
 		case R_IMF_IMTYPE_TARGA:
 		case R_IMF_IMTYPE_IRIS:
 		case R_IMF_IMTYPE_PNG:
-		/* case R_IMF_IMTYPE_BMP: */ /* read but not write */
 		case R_IMF_IMTYPE_RADHDR:
 		case R_IMF_IMTYPE_TIFF:
 		case R_IMF_IMTYPE_OPENEXR:
