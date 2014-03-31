@@ -81,12 +81,12 @@ kernel_flags = {}
 
 if env['OURPLATFORM'] == 'win32-vc':
     # there is no /arch:SSE3, but intrinsics are available anyway
-    kernel_flags['sse2'] = '/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'
+    kernel_flags['sse2'] = '/arch:SSE /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /GS-'
     kernel_flags['sse3'] = kernel_flags['sse2']
 
 elif env['OURPLATFORM'] == 'win64-vc':
     # /arch:AVX only available from visual studio 2012
-    kernel_flags['sse2'] = '-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /Gs-'
+    kernel_flags['sse2'] = '-D_CRT_SECURE_NO_WARNINGS /fp:fast /Ox /GS-'
     kernel_flags['sse3'] = kernel_flags['sse2']
 
     if env['MSVC_VERSION'] in ('11.0', '12.0'):
