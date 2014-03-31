@@ -557,17 +557,20 @@ void FitCurveWrapper::FitCubic(Vector2 *d, int first, int last, Vector2 tHat1, V
 	if (maxError < iterationError) {
 		for (i = 0; i < maxIterations; i++) {
 			uPrime = Reparameterize(d, first, last, u, bezCurve);
-			bezCurve = GenerateBezier(d, first, last, uPrime, tHat1, tHat2);
-			maxError = ComputeMaxError(d, first, last,
-			bezCurve, uPrime, &splitPoint);
+
+			free((void *)u);
+			free((void *)bezCurve);
+			u = uPrime;
+
+			bezCurve = GenerateBezier(d, first, last, u, tHat1, tHat2);
+			maxError = ComputeMaxError(d, first, last, bezCurve, u, &splitPoint);
+
 			if (maxError < error) {
 				DrawBezierCurve(3, bezCurve);
 				free((void *)u);
 				free((void *)bezCurve);
 				return;
 			}
-			free((void *)u);
-			u = uPrime;
 		}
 	}
 
