@@ -635,7 +635,7 @@ void interp_dot_slerp(const float t, const float cosom, float r_w[2])
 {
 	const float eps = 0.0001f;
 
-	BLI_assert(IN_RANGE_INCL(cosom, -1.0f, 1.0f));
+	BLI_assert(IN_RANGE_INCL(cosom, -1.0001f, 1.0001f));
 
 	/* within [-1..1] range, avoid aligned axis */
 	if (LIKELY(fabsf(cosom) < (1.0f - eps))) {
