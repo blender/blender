@@ -2046,6 +2046,19 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 	else
 		totvert = tottri * 3;
 
+	/* some nodes may lose all their vertices/faces. Normally we should delete those but since we don't
+	 * support dynamic nodes yet, just return immediately to avoid opengl errors */
+	if (!tottri) {
+		if (buffers->index_buf)
+			glDeleteBuffersARB(1, &buffers->index_buf);
+		if (buffers->vert_buf)
+			glDeleteBuffersARB(1, &buffers->vert_buf);
+		buffers->vert_buf = 0;
+		buffers->index_buf = 0;
+		buffers->tot_tri = 0;
+		return;
+	}
+
 	/* Initialize vertex buffer */
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
