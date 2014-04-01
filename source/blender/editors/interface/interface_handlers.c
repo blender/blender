@@ -3477,10 +3477,21 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
-			if (data->dragchange)
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			else
+			if (data->dragchange) {
+#ifdef USE_DRAG_MULTINUM
+				/* if we started multibutton but didnt drag, then edit */
+				if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
+					click = 1;
+				}
+				else
+#endif
+				{
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
+			}
+			else {
 				click = 1;
+			}
 		}
 		else if (event->type == MOUSEMOVE) {
 			const enum eSnapType snap = ui_event_to_snap(event);
@@ -3763,10 +3774,21 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
-			if (data->dragchange)
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			else
+			if (data->dragchange) {
+#ifdef USE_DRAG_MULTINUM
+				/* if we started multibutton but didnt drag, then edit */
+				if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
+					click = 1;
+				}
+				else
+#endif
+				{
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
+			}
+			else {
 				click = 1;
+			}
 		}
 		else if (event->type == MOUSEMOVE) {
 #ifdef USE_DRAG_MULTINUM
