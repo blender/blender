@@ -42,30 +42,22 @@
 #include "BLI_rand.h"
 #include "BLI_math.h"
 
+#include "BLI_sys_types.h"
 #include "BLI_strict_flags.h"
-
-#ifdef _MSC_VER
-typedef unsigned __int64 r_uint64;
-
-#define MULTIPLIER  0x5DEECE66Di64
-#define MASK        0x0000FFFFFFFFFFFFi64
-#else
-typedef unsigned long long r_uint64;
 
 #define MULTIPLIER  0x5DEECE66Dll
 #define MASK        0x0000FFFFFFFFFFFFll
-#endif
 
 #define ADDEND      0xB
-
 #define LOWSEED     0x330E
 
 extern unsigned char hash[];    // noise.c
 
-/***/
-
+/**
+ * Random Number Generator.
+ */
 struct RNG {
-	r_uint64 X;
+	uint64_t X;
 };
 
 RNG *BLI_rng_new(unsigned int seed)
@@ -93,7 +85,7 @@ void BLI_rng_free(RNG *rng)
 
 void BLI_rng_seed(RNG *rng, unsigned int seed)
 {
-	rng->X = (((r_uint64) seed) << 16) | LOWSEED;
+	rng->X = (((uint64_t) seed) << 16) | LOWSEED;
 }
 
 void BLI_rng_srandom(RNG *rng, unsigned int seed)
