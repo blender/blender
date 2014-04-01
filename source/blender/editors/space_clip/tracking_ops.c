@@ -1307,10 +1307,13 @@ static void track_markers_updatejob(void *tmv)
 static void track_markers_endjob(void *tmv)
 {
 	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+	wmWindowManager *wm = tmj->main->wm.first;
 
 	tmj->clip->tracking_context = NULL;
 	tmj->scene->r.cfra = BKE_movieclip_remap_clip_to_scene_frame(tmj->clip, tmj->lastfra);
-	ED_update_for_newframe(tmj->main, tmj->scene, 0);
+	if (wm != NULL) {
+		ED_update_for_newframe(tmj->main, tmj->scene, 0);
+	}
 
 	BKE_tracking_context_sync(tmj->context);
 	BKE_tracking_context_finish(tmj->context);
