@@ -318,6 +318,9 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 		BLI_ghash_insert(bvh->nodes[node_index].bm_faces, f, NULL);
 		BLI_ghash_insert(bvh->bm_face_to_node, f, val);
 
+		/* mark node for update */
+		bvh->nodes[node_index].flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+
 		/* Log the new face */
 		BM_log_face_added(bvh->bm_log, f);
 	}
@@ -371,6 +374,10 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
 	PBVHNode *current_owner;
 
 	current_owner = pbvh_bmesh_node_lookup(bvh, bvh->bm_vert_to_node, v);
+	/* mark node for update */
+	current_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+
+
 	BLI_assert(current_owner != new_owner);
 
 	/* Remove current ownership */
@@ -382,6 +389,9 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
 	BLI_gset_insert(new_owner->bm_unique_verts, v);
 	BLI_gset_remove(new_owner->bm_other_verts, v, NULL);
 	BLI_assert(!BLI_gset_haskey(new_owner->bm_other_verts, v));
+
+	/* mark node for update */
+	new_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
 }
 
 static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
@@ -449,6 +459,9 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 
 	/* Log removed face */
 	BM_log_face_removed(bvh->bm_log, f);
+
+	/* mark node for update */
+	f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
 }
 
 static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
@@ -708,9 +721,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		BLI_assert(f_adj->len == 3);
 		nip = BLI_ghash_lookup(bvh->bm_face_to_node, f_adj);
 		ni = GET_INT_FROM_POINTER(nip);
-
-		/* Ensure node gets redrawn */
-		bvh->nodes[ni].flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
 
 		/* Find the vertex not in the edge */
 		v_opp = l_adj->prev->v;
