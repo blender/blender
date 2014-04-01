@@ -35,6 +35,9 @@
 
 struct ImBuf;
 
+void imb_refcounter_lock_init(void);
+void imb_refcounter_lock_exit(void);
+
 bool imb_addencodedbufferImBuf(struct ImBuf *ibuf);
 bool imb_enlargeencodedbufferImBuf(struct ImBuf *ibuf);
 
