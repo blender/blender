@@ -229,7 +229,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-static int material_slot_de_select(bContext *C, int select)
+static int material_slot_de_select(bContext *C, bool select)
 {
 	Object *ob = ED_object_context(C);
 
@@ -295,7 +295,7 @@ static int material_slot_de_select(bContext *C, int select)
 
 static int material_slot_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	return material_slot_de_select(C, 1);
+	return material_slot_de_select(C, true);
 }
 
 void OBJECT_OT_material_slot_select(wmOperatorType *ot)
@@ -314,7 +314,7 @@ void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 
 static int material_slot_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	return material_slot_de_select(C, 0);
+	return material_slot_de_select(C, false);
 }
 
 void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
@@ -392,7 +392,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(C, &ma->id);
-			ma->use_nodes = TRUE;
+			ma->use_nodes = true;
 		}
 	}
 
@@ -496,7 +496,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(C, &wo->id);
-			wo->use_nodes = TRUE;
+			wo->use_nodes = true;
 		}
 	}
 
@@ -743,7 +743,7 @@ static int freestyle_active_lineset_poll(bContext *C)
 	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
 	if (!srl) {
-		return FALSE;
+		return false;
 	}
 
 	return BKE_freestyle_lineset_get_active(&srl->freestyleConfig) != NULL;

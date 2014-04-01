@@ -245,7 +245,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 		stab->scale = 1.0f;
 	}
 
-	stab->ok = TRUE;
+	stab->ok = true;
 
 	return stab->scale;
 }
@@ -289,7 +289,7 @@ void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, i
 			stabilization_calculate_data(tracking, framenr, width, height, firstmedian, median,
 			                             translation, scale, angle);
 
-			stab->ok = TRUE;
+			stab->ok = true;
 		}
 		else {
 			stabilization_calculate_data(tracking, framenr, width, height, firstmedian, median,

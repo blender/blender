@@ -149,13 +149,13 @@ static BOOL scr_saver_init(int argc, char **argv)
 {
 	scr_saver_mode = SCREEN_SAVER_MODE_NONE;
 	scr_saver_hwnd = NULL;
-	BOOL ret = FALSE;
+	BOOL ret = false;
 
 	int len = ::strlen(argv[0]);
 	if (len > 4 && !::stricmp(".scr", argv[0] + len - 4))
 	{
 		scr_saver_mode = SCREEN_SAVER_MODE_CONFIGURATION;
-		ret = TRUE;
+		ret = true;
 		if (argc >= 2)
 		{
 			if (argc >= 3)

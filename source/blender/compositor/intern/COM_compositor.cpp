@@ -36,7 +36,7 @@ extern "C" {
 #include "COM_MovieDistortionOperation.h"
 
 static ThreadMutex s_compositorMutex;
-static bool is_compositorMutex_init = FALSE;
+static bool is_compositorMutex_init = false;
 
 static void intern_freeCompositorCaches()
 {
@@ -50,9 +50,9 @@ void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rende
 	/* initialize mutex, TODO this mutex init is actually not thread safe and
 	 * should be done somewhere as part of blender startup, all the other
 	 * initializations can be done lazily */
-	if (is_compositorMutex_init == FALSE) {
+	if (is_compositorMutex_init == false) {
 		BLI_mutex_init(&s_compositorMutex);
-		is_compositorMutex_init = TRUE;
+		is_compositorMutex_init = true;
 	}
 
 	BLI_mutex_lock(&s_compositorMutex);
@@ -69,7 +69,7 @@ void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rende
 	 * Reserved preview size is determined by render output for now.
 	 */
 	float aspect = rd->xsch > 0 ? (float)rd->ysch / (float)rd->xsch : 1.0f;
-	BKE_node_preview_init_tree(editingtree, COM_PREVIEW_SIZE, (int)(COM_PREVIEW_SIZE * aspect), FALSE);
+	BKE_node_preview_init_tree(editingtree, COM_PREVIEW_SIZE, (int)(COM_PREVIEW_SIZE * aspect), false);
 
 	/* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
 	bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
@@ -116,7 +116,7 @@ void COM_deinitialize()
 		BLI_mutex_lock(&s_compositorMutex);
 		intern_freeCompositorCaches();
 		WorkScheduler::deinitialize();
-		is_compositorMutex_init = FALSE;
+		is_compositorMutex_init = false;
 		BLI_mutex_unlock(&s_compositorMutex);
 		BLI_mutex_end(&s_compositorMutex);
 	}

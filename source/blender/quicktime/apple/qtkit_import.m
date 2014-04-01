@@ -66,7 +66,7 @@ typedef struct _QuicktimeMovie {
 
 void quicktime_init(void)
 {
-	G.have_quicktime = TRUE;
+	G.have_quicktime = true;
 }
 
 void quicktime_exit(void)

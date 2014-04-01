@@ -251,7 +251,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	fRGB wt, *colp;
 	int x, y, ch;
 	int xbl, ybl, nxb, nyb, xbsz, ybsz;
-	int in2done = FALSE;
+	bool in2done = false;
 	const unsigned int kernelWidth = in2->getWidth();
 	const unsigned int kernelHeight = in2->getHeight();
 	const unsigned int imageWidth = in1->getWidth();
@@ -358,7 +358,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 				}
 
 			}
-			in2done = TRUE;
+			in2done = true;
 		}
 	}
 

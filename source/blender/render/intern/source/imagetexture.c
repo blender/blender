@@ -227,7 +227,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	if (ima) {
 		if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
 			if ((tex->imaflag & TEX_CALCALPHA) == 0) {
-				texres->talpha = TRUE;
+				texres->talpha = true;
 			}
 		}
 	}
@@ -1536,7 +1536,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	if (ima) {
 		if ((tex->imaflag & TEX_USEALPHA) && (ima->flag & IMA_IGNORE_ALPHA) == 0) {
 			if ((tex->imaflag & TEX_CALCALPHA) == 0) {
-				texres->talpha = TRUE;
+				texres->talpha = true;
 			}
 		}
 	}
@@ -1909,7 +1909,7 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float resu
 	if ( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
 		ibuf->rect+= (ibuf->x*ibuf->y);
 
-	texres.talpha = TRUE; /* boxsample expects to be initialized */
+	texres.talpha = true; /* boxsample expects to be initialized */
 	boxsample(ibuf, fx, fy, fx + dx, fy + dy, &texres, 0, 1);
 	copy_v4_v4(result, &texres.tr);
 	

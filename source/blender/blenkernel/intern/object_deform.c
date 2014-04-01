@@ -144,16 +144,16 @@ bool *BKE_objdef_selected_get(Object *ob, int defbase_tot, int *r_dg_flags_sel_t
 		for (i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
 			bPoseChannel *pchan = BKE_pose_channel_find_name(pose, defgroup->name);
 			if (pchan && (pchan->bone->flag & BONE_SELECTED)) {
-				dg_selection[i] = TRUE;
+				dg_selection[i] = true;
 				(*r_dg_flags_sel_tot) += 1;
 			}
 			else {
-				dg_selection[i] = FALSE;
+				dg_selection[i] = false;
 			}
 		}
 	}
 	else {
-		memset(dg_selection, FALSE, sizeof(*dg_selection) * defbase_tot);
+		memset(dg_selection, false, sizeof(*dg_selection) * defbase_tot);
 	}
 
 	return dg_selection;

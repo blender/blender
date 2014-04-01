@@ -380,7 +380,7 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 	x = ocx1; y = ocy1;
 	lambda = MIN2(lambda_x, lambda_y);
 	
-	while (TRUE) {
+	while (true) {
 		
 		if (x < 0 || y < 0 || x >= oc->ocres || y >= oc->ocres) {
 			/* pass*/
@@ -1004,7 +1004,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 		/* this loop has been constructed to make sure the first and last node of ray
 		 * are always included, even when dda_lambda==1.0f or larger */
 
-		while (TRUE) {
+		while (true) {
 
 			no = ocread(oc, xo, yo, zo);
 			if (no) {

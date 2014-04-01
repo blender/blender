@@ -359,7 +359,7 @@ void defvert_normalize_lock_map(
 
 		for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
 			if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
-				if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == FALSE)) {
+				if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == false)) {
 					tot_weight += dw->weight;
 				}
 				else {
@@ -377,7 +377,7 @@ void defvert_normalize_lock_map(
 			float scalar = (1.0f / tot_weight) * lock_iweight;
 			for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
 				if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
-					if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == FALSE)) {
+					if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == false)) {
 						dw->weight *= scalar;
 
 						/* in case of division errors with very low weights */

@@ -4414,7 +4414,7 @@ static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
 	 *       of an armature or object */
 	RNA_id_pointer_create(ptr->id.data, &id_ptr);
 
-	haystack = RNA_struct_idprops(&id_ptr, FALSE);
+	haystack = RNA_struct_idprops(&id_ptr, false);
 	if (haystack) { /* can fail when called on bones */
 		needle = ptr->data;
 		return rna_idp_path(&id_ptr, haystack, needle, NULL);
@@ -4568,7 +4568,7 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 	data_path = RNA_path_from_ID_to_property(ptr, prop);
 
-	if ((index == -1) || (RNA_property_array_check(prop) == FALSE)) {
+	if ((index == -1) || (RNA_property_array_check(prop) == false)) {
 		ret = BLI_sprintfN("%s.%s",
 		                   id_path, data_path);
 	}
@@ -4610,7 +4610,7 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 		}
 	}
 
-	if ((index == -1) || (RNA_property_array_check(prop) == FALSE)) {
+	if ((index == -1) || (RNA_property_array_check(prop) == false)) {
 		ret = BLI_sprintfN("%s",
 		                   data_path);
 	}
@@ -4634,7 +4634,7 @@ char *RNA_path_property_py(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index
 {
 	char *ret;
 
-	if ((index == -1) || (RNA_property_array_check(prop) == FALSE)) {
+	if ((index == -1) || (RNA_property_array_check(prop) == false)) {
 		ret = BLI_sprintfN("%s",
 		                   RNA_property_identifier(prop));
 	}

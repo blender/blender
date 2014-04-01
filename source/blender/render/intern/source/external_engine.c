@@ -131,7 +131,7 @@ bool RE_engine_is_external(Render *re)
 
 RenderEngine *RE_engine_create(RenderEngineType *type)
 {
-	return RE_engine_create_ex(type, FALSE);
+	return RE_engine_create_ex(type, false);
 }
 
 RenderEngine *RE_engine_create_ex(RenderEngineType *type, bool use_for_viewport)
@@ -524,7 +524,7 @@ int RE_engine_render(Render *re, int do_all)
 	engine->resolution_x = re->winx;
 	engine->resolution_y = re->winy;
 
-	RE_parts_init(re, FALSE);
+	RE_parts_init(re, false);
 	engine->tile_x = re->partx;
 	engine->tile_y = re->party;
 
@@ -563,7 +563,7 @@ int RE_engine_render(Render *re, int do_all)
 	RE_parts_free(re);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
-		G.is_break = TRUE;
+		G.is_break = true;
 	
 	return 1;
 }

@@ -141,7 +141,7 @@ void node_deselect_all(SpaceNode *snode)
 	bNode *node;
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next)
-		nodeSetSelected(node, FALSE);
+		nodeSetSelected(node, false);
 }
 
 void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes)
@@ -227,12 +227,12 @@ int node_select_same_type(SpaceNode *snode)
 		if (p->type != nac->type && p->flag & SELECT) {
 			/* if it's selected but different type, unselect */
 			redraw = 1;
-			nodeSetSelected(p, FALSE);
+			nodeSetSelected(p, false);
 		}
 		else if (p->type == nac->type && (!(p->flag & SELECT))) {
 			/* if it's the same type and is not selected, select! */
 			redraw = 1;
-			nodeSetSelected(p, TRUE);
+			nodeSetSelected(p, true);
 		}
 	}
 	return(redraw);
@@ -274,8 +274,8 @@ int node_select_same_type_np(SpaceNode *snode, int dir)
 	if (p) {
 		for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
 			if (tnode != p)
-				nodeSetSelected(tnode, FALSE);
-		nodeSetSelected(p, TRUE);
+				nodeSetSelected(tnode, false);
+		nodeSetSelected(p, true);
 		return(1);
 	}
 	return(0);
@@ -289,8 +289,8 @@ void node_select_single(bContext *C, bNode *node)
 	
 	for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
 		if (tnode != node)
-			nodeSetSelected(tnode, FALSE);
-	nodeSetSelected(node, TRUE);
+			nodeSetSelected(tnode, false);
+	nodeSetSelected(node, true);
 	
 	ED_node_set_active(bmain, snode->edittree, node);
 	ED_node_set_active_viewer_key(snode);
@@ -365,7 +365,7 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 			for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
 				nodeSetSelected(tnode, false);
 			}
-			nodeSetSelected(node, TRUE);
+			nodeSetSelected(node, true);
 			ED_node_set_active(bmain, snode->edittree, node);
 			selected = 1;
 		}
@@ -460,7 +460,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 			nodeSetSelected(node, (gesture_mode == GESTURE_MODAL_SELECT));
 		}
 		else if (!extend) {
-			nodeSetSelected(node, FALSE);
+			nodeSetSelected(node, false);
 		}
 	}
 	
@@ -510,7 +510,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
 }
 
@@ -672,10 +672,10 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
 	for (node = node_lb->first; node; node = node->next) {
 		switch (action) {
 			case SEL_SELECT:
-				nodeSetSelected(node, TRUE);
+				nodeSetSelected(node, true);
 				break;
 			case SEL_DESELECT:
-				nodeSetSelected(node, FALSE);
+				nodeSetSelected(node, false);
 				break;
 			case SEL_INVERT:
 				nodeSetSelected(node, !(node->flag & SELECT));
@@ -726,7 +726,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TEST)
-			nodeSetSelected(node, TRUE);
+			nodeSetSelected(node, true);
 	}
 	
 	ED_node_sort(snode->edittree);
@@ -770,7 +770,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TEST)
-			nodeSetSelected(node, TRUE);
+			nodeSetSelected(node, true);
 	}
 	
 	ED_node_sort(snode->edittree);
@@ -985,7 +985,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;
-	event.customdatafree = FALSE;
+	event.customdatafree = false;
 	wm_event_add(win, &event);
 	
 	return block;

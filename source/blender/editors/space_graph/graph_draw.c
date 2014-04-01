@@ -1033,7 +1033,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				glScalef(1.0f, unit_scale, 1.0f);
 
 				if (fcu->bezt) {
-					int do_handles = draw_fcurve_handles_check(sipo, fcu);
+					bool do_handles = draw_fcurve_handles_check(sipo, fcu);
 					
 					if (do_handles) {
 						/* only draw handles/vertices on keyframes */

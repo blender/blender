@@ -90,14 +90,15 @@ typedef struct PlayState {
 	/* playback state */
 	short direction;
 	short next_frame;
-	short once;
-	short turbo;
-	short pingpong;
-	short noskip;
-	short sstep;
-	short wait2;
-	short stopped;
-	short go;
+
+	bool  once;
+	bool  turbo;
+	bool  pingpong;
+	bool  noskip;
+	bool  sstep;
+	bool  wait2;
+	bool  stopped;
+	bool  go;
 	
 	int fstep;
 
@@ -213,7 +214,7 @@ typedef struct PlayAnimPict {
 } PlayAnimPict;
 
 static struct ListBase picsbase = {NULL, NULL};
-static int fromdisk = FALSE;
+static bool fromdisk = false;
 static double ptottime = 0.0, swaptime = 0.04;
 
 static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
@@ -385,7 +386,7 @@ static void build_pict_list(PlayState *ps, char *first, int totframes, int fstep
 			picture->size = size;
 			picture->IB_flags = IB_rect;
 
-			if (fromdisk == FALSE) {
+			if (fromdisk == false) {
 				mem = (char *)MEM_mallocN(size, "build pic list");
 				if (mem == NULL) {
 					printf("Couldn't get memory\n");
@@ -462,7 +463,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 	val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
 
 	if (ps->wait2 && ps->stopped) {
-		ps->stopped = FALSE;
+		ps->stopped = false;
 	}
 
 	if (ps->wait2) {
@@ -525,8 +526,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				case GHOST_kKeyLeftArrow:
 					if (val) {
-						ps->sstep = TRUE;
-						ps->wait2 = FALSE;
+						ps->sstep = true;
+						ps->wait2 = false;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->picture = picsbase.first;
 							ps->next_frame = 0;
@@ -538,20 +539,20 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				case GHOST_kKeyDownArrow:
 					if (val) {
-						ps->wait2 = FALSE;
+						ps->wait2 = false;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->next_frame = ps->direction = -1;
 						}
 						else {
 							ps->next_frame = -10;
-							ps->sstep = TRUE;
+							ps->sstep = true;
 						}
 					}
 					break;
 				case GHOST_kKeyRightArrow:
 					if (val) {
-						ps->sstep = TRUE;
-						ps->wait2 = FALSE;
+						ps->sstep = true;
+						ps->wait2 = false;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->picture = picsbase.last;
 							ps->next_frame = 0;
@@ -563,13 +564,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				case GHOST_kKeyUpArrow:
 					if (val) {
-						ps->wait2 = FALSE;
+						ps->wait2 = false;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->next_frame = ps->direction = 1;
 						}
 						else {
 							ps->next_frame = 10;
-							ps->sstep = TRUE;
+							ps->sstep = true;
 						}
 					}
 					break;
@@ -591,29 +592,29 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyNumpad0:
 					if (val) {
 						if (ps->once) {
-							ps->once = ps->wait2 = FALSE;
+							ps->once = ps->wait2 = false;
 						}
 						else {
 							ps->picture = NULL;
-							ps->once = TRUE;
-							ps->wait2 = FALSE;
+							ps->once = true;
+							ps->wait2 = false;
 						}
 					}
 					break;
 				case GHOST_kKeyEnter:
 				case GHOST_kKeyNumpadEnter:
 					if (val) {
-						ps->wait2 = ps->sstep = FALSE;
+						ps->wait2 = ps->sstep = false;
 					}
 					break;
 				case GHOST_kKeyPeriod:
 				case GHOST_kKeyNumpadPeriod:
 					if (val) {
 						if (ps->sstep) {
-							ps->wait2 = FALSE;
+							ps->wait2 = false;
 						}
 						else {
-							ps->sstep = TRUE;
+							ps->sstep = true;
 							ps->wait2 = !ps->wait2;
 						}
 					}
@@ -643,7 +644,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				}
 				case GHOST_kKeyEsc:
-					ps->go = FALSE;
+					ps->go = false;
 					break;
 				default:
 					break;
@@ -713,8 +714,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					if (ps->picture->next == NULL) break;
 					ps->picture = ps->picture->next;
 				}
-				ps->sstep = TRUE;
-				ps->wait2 = FALSE;
+				ps->sstep = true;
+				ps->wait2 = false;
 				ps->next_frame = 0;
 			}
 			break;
@@ -761,7 +762,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 		case GHOST_kEventQuit:
 		case GHOST_kEventWindowClose:
 		{
-			ps->go = FALSE;
+			ps->go = false;
 			break;
 		}
 		case GHOST_kEventDraggingDropDone:
@@ -774,7 +775,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				
 				for (a = 0; a < stra->count; a++) {
 					BLI_strncpy(ps->dropped_file, (char *)stra->strings[a], sizeof(ps->dropped_file));
-					ps->go = FALSE;
+					ps->go = false;
 					printf("drop file %s\n", stra->strings[a]);
 					break; /* only one drop element supported now */
 				}
@@ -803,7 +804,7 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
 	                                       /* could optionally start fullscreen */
 	                                       GHOST_kWindowStateNormal,
 	                                       GHOST_kDrawingContextTypeOpenGL,
-	                                       FALSE /* no stereo */, FALSE);
+	                                       false /* no stereo */, false);
 }
 
 static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
@@ -841,21 +842,21 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	
 	PlayState ps = {0};
 
-	/* ps.doubleb   = TRUE;*/ /* UNUSED */
-	ps.go        = TRUE;
-	ps.direction = TRUE;
+	/* ps.doubleb   = true;*/ /* UNUSED */
+	ps.go        = true;
+	ps.direction = true;
 	ps.next_frame = 1;
-	ps.once      = FALSE;
-	ps.turbo     = FALSE;
-	ps.pingpong  = FALSE;
-	ps.noskip    = FALSE;
-	ps.sstep     = FALSE;
-	ps.wait2     = FALSE;
-	ps.stopped   = FALSE;
+	ps.once      = false;
+	ps.turbo     = false;
+	ps.pingpong  = false;
+	ps.noskip    = false;
+	ps.sstep     = false;
+	ps.wait2     = false;
+	ps.stopped   = false;
 	ps.picture   = NULL;
 	ps.dropped_file[0] = 0;
 	ps.zoom      = 1.0f;
-	/* resetmap = FALSE */
+	/* resetmap = false */
 
 	ps.fstep     = 1;
 
@@ -865,7 +866,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 		if (argv[1][0] == '-') {
 			switch (argv[1][1]) {
 				case 'm':
-					fromdisk = TRUE;
+					fromdisk = true;
 					break;
 				case 'p':
 					if (argc > 3) {
@@ -1039,7 +1040,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 		if (ps.picture == NULL) {
 			printf("couldn't find pictures\n");
-			ps.go = FALSE;
+			ps.go = false;
 		}
 		if (ps.pingpong) {
 			if (ps.direction == 1) {
@@ -1096,17 +1097,17 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 			if (ps.once) {
 				if (ps.picture->next == NULL) {
-					ps.wait2 = TRUE;
+					ps.wait2 = true;
 				}
 				else if (ps.picture->prev == NULL) {
-					ps.wait2 = TRUE;
+					ps.wait2 = true;
 				}
 			}
 
 			ps.next_frame = ps.direction;
 
 
-			while ( (hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0)) || ps.wait2 != 0) {
+			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0)) || ps.wait2) {
 				if (hasevent) {
 					GHOST_DispatchEvents(g_WS.ghost_system);
 				}
@@ -1120,15 +1121,15 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 						}
 					}
 				}
-				if (!ps.go) {
+				if (ps.go == false) {
 					break;
 				}
 			}
 
 			ps.wait2 = ps.sstep;
 
-			if (ps.wait2 == 0 && ps.stopped == 0) {
-				ps.stopped = TRUE;
+			if (ps.wait2 == false && ps.stopped == false) {
+				ps.stopped = true;
 			}
 
 			pupdate_time();
@@ -1140,10 +1141,10 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 					if (ps.once && ps.picture != NULL) {
 						if (ps.picture->next == NULL) {
-							ps.wait2 = TRUE;
+							ps.wait2 = true;
 						}
 						else if (ps.picture->prev == NULL) {
-							ps.wait2 = TRUE;
+							ps.wait2 = true;
 						}
 					}
 
@@ -1154,7 +1155,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 					ps.picture = playanim_step(ps.picture, ps.next_frame);
 				}
 			}
-			if (ps.go == FALSE) {
+			if (ps.go == false) {
 				break;
 			}
 		}

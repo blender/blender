@@ -122,8 +122,8 @@ static void info_callback(const char *msg, void *client_data)
 struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
-	int use_float = FALSE; /* for precision higher then 8 use float */
-	int use_alpha = FALSE;
+	bool use_float = false; /* for precision higher then 8 use float */
+	bool use_alpha = false;
 	
 	long signed_offsets[4] = {0, 0, 0, 0};
 	int float_divs[4] = {1, 1, 1, 1};
@@ -201,11 +201,11 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags, char co
 		case 1: /* Grayscale */
 		case 3: /* Color */
 			planes = 24;
-			use_alpha = FALSE;
+			use_alpha = false;
 			break;
 		default: /* 2 or 4 - Grayscale or Color + alpha */
 			planes = 32; /* grayscale + alpha */
-			use_alpha = TRUE;
+			use_alpha = true;
 			break;
 	}
 	
@@ -217,7 +217,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags, char co
 		i--;
 		
 		if (image->comps[i].prec > 8)
-			use_float = TRUE;
+			use_float = true;
 		
 		if (image->comps[i].sgnd)
 			signed_offsets[i] =  1 << (image->comps[i].prec - 1);
@@ -432,7 +432,7 @@ static int initialise_4K_poc(opj_poc_t *POC, int numres)
 
 static void cinema_parameters(opj_cparameters_t *parameters)
 {
-	parameters->tile_size_on = 0; /* FALSE */
+	parameters->tile_size_on = 0; /* false */
 	parameters->cp_tdx = 1;
 	parameters->cp_tdy = 1;
 	

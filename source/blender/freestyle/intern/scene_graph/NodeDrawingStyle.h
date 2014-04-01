@@ -69,7 +69,7 @@ public:
 		_DrawingStyle.setPointSize(iPointSize);
 	}
 
-	/*! Enables or disables the lighting. TRUE = enable */
+	/*! Enables or disables the lighting. true = enable */
 	inline void setLightingEnabled(const bool iEnableLighting)
 	{
 		_DrawingStyle.setLightingEnabled(iEnableLighting);

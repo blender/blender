@@ -1582,7 +1582,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
-	DAG_ids_check_recalc(bmain, scene, FALSE);
+	DAG_ids_check_recalc(bmain, scene, false);
 
 	/* clear recalc flags */
 	DAG_ids_clear_recalc(bmain);
@@ -1665,7 +1665,7 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
-	DAG_ids_check_recalc(bmain, sce, TRUE);
+	DAG_ids_check_recalc(bmain, sce, true);
 
 	/* clear recalc flags */
 	DAG_ids_clear_recalc(bmain);

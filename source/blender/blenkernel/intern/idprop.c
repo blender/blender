@@ -806,7 +806,7 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
 }
 
 /**
- * \param is_strict When FALSE treat missing items as a match */
+ * \param is_strict When false treat missing items as a match */
 bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is_strict)
 {
 	if (prop1 == NULL && prop2 == NULL)
@@ -871,7 +871,7 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
 
 bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 {
-	return IDP_EqualsProperties_ex(prop1, prop2, TRUE);
+	return IDP_EqualsProperties_ex(prop1, prop2, true);
 }
 
 /**

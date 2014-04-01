@@ -239,7 +239,7 @@ static void clip_panel_operator_redo(const bContext *C, Panel *pa)
 		uiBlock *block = uiLayoutGetBlock(pa->layout);
 
 		if (!WM_operator_check_ui_enabled(C, op->type->name))
-			uiLayoutSetEnabled(pa->layout, FALSE);
+			uiLayoutSetEnabled(pa->layout, false);
 
 		/* note, blockfunc is a default but->func, use Handle func to allow button callbacks too */
 		uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, op);

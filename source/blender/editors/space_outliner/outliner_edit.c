@@ -1657,7 +1657,7 @@ static int outliner_parenting_poll(bContext *C)
 		return ELEM4(soops->outlinevis, SO_ALL_SCENES, SO_CUR_SCENE, SO_VISIBLE, SO_GROUPS);
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int parent_clear_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

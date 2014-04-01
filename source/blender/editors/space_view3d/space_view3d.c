@@ -318,7 +318,7 @@ static SpaceLink *view3d_new(const bContext *C)
 		v3d->lay = v3d->layact = scene->lay;
 		v3d->camera = scene->camera;
 	}
-	v3d->scenelock = TRUE;
+	v3d->scenelock = true;
 	v3d->grid = 1.0f;
 	v3d->gridlines = 16;
 	v3d->gridsubdiv = 10;

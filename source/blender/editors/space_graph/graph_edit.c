@@ -85,7 +85,7 @@
 /* Get the min/max keyframes*/
 /* note: it should return total boundbox, filter for selection only can be argument... */
 void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, 
-                                const short do_sel_only, const short include_handles)
+                                const bool do_sel_only, const bool include_handles)
 {
 	Scene *scene = ac->scene;
 	
@@ -105,7 +105,7 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 	
 	/* check if any channels to set range with */
 	if (anim_data.first) {
-		short foundBounds = FALSE;
+		bool foundBounds = false;
 		
 		/* go through channels, finding max extents */
 		for (ale = anim_data.first; ale; ale = ale->next) {
@@ -135,7 +135,7 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 				if ((ymin) && (tymin < *ymin)) *ymin = tymin;
 				if ((ymax) && (tymax > *ymax)) *ymax = tymax;
 				
-				foundBounds = TRUE;
+				foundBounds = true;
 			}
 		}
 		
@@ -187,7 +187,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 		scene = ac.scene;
 	
 	/* set the range directly */
-	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, FALSE, FALSE);
+	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, false, false);
 	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra = iroundf(min);
 	scene->r.pefra = iroundf(max);
@@ -216,7 +216,7 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int graphkeys_viewall(bContext *C, const short do_sel_only, const short include_handles,
+static int graphkeys_viewall(bContext *C, const bool do_sel_only, const bool include_handles,
                              const int smooth_viewtx)
 {
 	bAnimContext ac;
@@ -243,7 +243,7 @@ static int graphkeys_viewall(bContext *C, const short do_sel_only, const short i
 
 static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
 {
-	const short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 	
 	/* whole range */
@@ -252,7 +252,7 @@ static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
  
 static int graphkeys_view_selected_exec(bContext *C, wmOperator *op)
 {
-	const short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 	
 	/* only selected */
@@ -274,7 +274,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "include_handles", TRUE, "Include Handles", 
+	ot->prop = RNA_def_boolean(ot->srna, "include_handles", true, "Include Handles", 
 	                           "Include handles of keyframes when calculating extents");
 }
 
@@ -293,7 +293,7 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "include_handles", TRUE, "Include Handles", 
+	ot->prop = RNA_def_boolean(ot->srna, "include_handles", true, "Include Handles", 
 	                           "Include handles of keyframes when calculating extents");
 }
 

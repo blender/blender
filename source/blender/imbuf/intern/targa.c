@@ -163,7 +163,7 @@ static short makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE
 				rect = temp;
 				last = this;
 
-				copy = FALSE;
+				copy = 0;
 			}
 			else {
 				while (*rect++ == this) {       /* seek for first different byte */
@@ -189,7 +189,7 @@ static short makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE
 					}
 					if (out(last, file) == EOF) return 0;
 				}
-				copy = TRUE;
+				copy = 1;
 			}
 		}
 	}

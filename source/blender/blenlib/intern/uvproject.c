@@ -58,7 +58,7 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
 
 	if (uci->do_pano) {
 		float angle = atan2f(pv4[0], -pv4[2]) / ((float)M_PI * 2.0f); /* angle around the camera */
-		if (uci->do_persp == FALSE) {
+		if (uci->do_persp == false) {
 			target[0] = angle; /* no correct method here, just map to  0-1 */
 			target[1] = pv4[1] / uci->camsize;
 		}
@@ -74,7 +74,7 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
 		if (pv4[2] == 0.0f)
 			pv4[2] = 0.00001f;  /* don't allow div by 0 */
 
-		if (uci->do_persp == FALSE) {
+		if (uci->do_persp == false) {
 			target[0] = (pv4[0] / uci->camsize);
 			target[1] = (pv4[1] / uci->camsize);
 		}
@@ -152,10 +152,10 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float(*rotmat)[4], float w
 		/* normal projection */
 		if (rotmat) {
 			copy_m4_m4(uci.rotmat, rotmat);
-			uci.do_rotmat = TRUE;
+			uci.do_rotmat = true;
 		}
 		else {
-			uci.do_rotmat = FALSE;
+			uci.do_rotmat = false;
 		}
 
 		/* also make aspect ratio adjustment factors */

@@ -257,7 +257,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 			paint_calculate_rake_rotation(ups, mouse);
 	}
 
-	stroke->brush_init = TRUE;
+	stroke->brush_init = true;
 }
 
 

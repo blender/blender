@@ -212,7 +212,7 @@ void BKE_brush_make_local(Brush *brush)
 
 	Main *bmain = G.main;
 	Scene *scene;
-	int is_local = FALSE, is_lib = FALSE;
+	bool is_local = false, is_lib = false;
 
 	if (brush->id.lib == NULL) return;
 
@@ -225,12 +225,12 @@ void BKE_brush_make_local(Brush *brush)
 
 	for (scene = bmain->scene.first; scene && ELEM(0, is_lib, is_local); scene = scene->id.next) {
 		if (BKE_paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
-			if (scene->id.lib) is_lib = TRUE;
-			else is_local = TRUE;
+			if (scene->id.lib) is_lib = true;
+			else is_local = true;
 		}
 	}
 
-	if (is_local && is_lib == FALSE) {
+	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &brush->id);
 		extern_local_brush(brush);
 
@@ -450,7 +450,7 @@ void BKE_brush_curve_preset(Brush *b, int preset)
 
 	b->curve->preset = preset;
 	curvemap_reset(cm, &b->curve->clipr, b->curve->preset, CURVEMAP_SLOPE_NEGATIVE);
-	curvemapping_changed(b->curve, FALSE);
+	curvemapping_changed(b->curve, false);
 }
 
 int BKE_brush_texture_set_nr(Brush *brush, int nr)

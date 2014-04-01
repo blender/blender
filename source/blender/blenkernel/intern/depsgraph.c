@@ -2535,7 +2535,8 @@ void DAG_ids_flush_tagged(Main *bmain)
 	ListBase listbase;
 	DagSceneLayer *dsl;
 	ListBase *lbarray[MAX_LIBARRAY];
-	int a, do_flush = FALSE;
+	int a;
+	bool do_flush = false;
 	
 	/* get list of visible scenes and layers */
 	dag_current_scene_layers(bmain, &listbase);
@@ -2559,7 +2560,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 					for (dsl = listbase.first; dsl; dsl = dsl->next)
 						dag_id_flush_update(bmain, dsl->scene, id);
 					
-					do_flush = TRUE;
+					do_flush = true;
 				}
 			}
 		}
@@ -2574,10 +2575,11 @@ void DAG_ids_flush_tagged(Main *bmain)
 	BLI_freelistN(&listbase);
 }
 
-void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
+void DAG_ids_check_recalc(Main *bmain, Scene *scene, bool time)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
-	int a, updated = 0;
+	int a;
+	bool updated = false;
 
 	/* loop over all ID types */
 	a  = set_listbasepointers(bmain, lbarray);
@@ -2595,7 +2597,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 #endif
 		    bmain->id_tag_update[id->name[0]])
 		{
-			updated = 1;
+			updated = true;
 			break;
 		}
 	}

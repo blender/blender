@@ -1519,7 +1519,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2])
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
-	int success;
+	bool success;
 
 	t->state = TRANS_RUNNING;
 
@@ -1538,10 +1538,10 @@ int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float
 	t->around = centerMode;             // override userdefined mode
 
 	if (t->total == 0) {
-		success = FALSE;
+		success = false;
 	}
 	else {
-		success = TRUE;
+		success = true;
 
 		calculateCenter(t);
 
@@ -2584,7 +2584,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 		bConstraintTypeInfo *cti = BKE_get_constraint_typeinfo(CONSTRAINT_TYPE_ROTLIMIT);
 		bConstraintOb cob;
 		bConstraint *con;
-		int do_limit = FALSE;
+		int do_limit = false;
 
 		/* Evaluate valid constraints */
 		for (con = td->con; con; con = con->next) {
@@ -2605,9 +2605,9 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 					continue;
 
 				/* only do conversion if necessary, to preserve quats and eulers */
-				if (do_limit == FALSE) {
+				if (do_limit == false) {
 					constraintob_from_transdata(&cob, td);
-					do_limit = TRUE;
+					do_limit = true;
 				}
 
 				/* do space conversions */
@@ -4571,7 +4571,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td;
 	float ratio;
-	int i, initial_feather = FALSE;
+	int i, initial_feather = false;
 	char str[MAX_INFO_LEN];
 
 	ratio = t->values[0];
@@ -4593,7 +4593,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	/* detect if no points have feather yet */
 	if (ratio > 1.0f) {
-		initial_feather = TRUE;
+		initial_feather = true;
 
 		for (td = t->data, i = 0; i < t->total; i++, td++) {
 			if (td->flag & TD_NOACTION)
@@ -4603,7 +4603,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 				continue;
 
 			if (td->ival >= 0.001f)
-				initial_feather = FALSE;
+				initial_feather = false;
 		}
 	}
 
@@ -5357,7 +5357,7 @@ static bool createEdgeSlideVerts(TransInfo *t)
 
 	sld->is_proportional = true;
 	sld->curr_sv_index = 0;
-	sld->flipped_vtx = FALSE;
+	sld->flipped_vtx = false;
 
 	if (!rv3d) {
 		/* ok, let's try to survive this */
@@ -6003,7 +6003,7 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 				case FKEY:
 				{
 					if (event->val == KM_PRESS) {
-						if (sld->is_proportional == FALSE) {
+						if (sld->is_proportional == false) {
 							sld->flipped_vtx = !sld->flipped_vtx;
 						}
 						return TREDRAW_HARD;
@@ -6039,7 +6039,7 @@ static void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 	if (t->mode == TFM_EDGE_SLIDE) {
 		EdgeSlideData *sld = (EdgeSlideData *)t->customData;
 		/* Non-Prop mode */
-		if (sld && sld->is_proportional == FALSE) {
+		if (sld && sld->is_proportional == false) {
 			View3D *v3d = CTX_wm_view3d(C);
 			float co_a[3], co_b[3], co_mark[3];
 			TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
@@ -6120,7 +6120,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 	sld->perc = perc;
 	sv = svlist;
 
-	if (sld->is_proportional == TRUE) {
+	if (sld->is_proportional == true) {
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			float vec[3];
 			if (perc > 0.0f) {
@@ -6630,7 +6630,7 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			glPointSize(ctrl_size);
 
 			bglBegin(GL_POINTS);
-			bglVertex3fv((sld->flipped_vtx && sld->is_proportional == FALSE) ?
+			bglVertex3fv((sld->flipped_vtx && sld->is_proportional == false) ?
 			             curr_sv->co_link_orig_3d[curr_sv->co_link_curr] :
 			             curr_sv->co_orig_3d);
 			bglEnd();
@@ -6655,7 +6655,7 @@ static int doVertSlide(TransInfo *t, float perc)
 	sld->perc = perc;
 	sv = svlist;
 
-	if (sld->is_proportional == TRUE) {
+	if (sld->is_proportional == true) {
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			interp_v3_v3v3(sv->v->co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
 		}

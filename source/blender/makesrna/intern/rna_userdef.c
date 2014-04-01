@@ -540,7 +540,7 @@ static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, bool create)
 static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
 {
 	bAddon *addon = (bAddon *)ptr->data;
-	bAddonPrefType *apt = BKE_addon_pref_type_find(addon->module, TRUE);
+	bAddonPrefType *apt = BKE_addon_pref_type_find(addon->module, true);
 	if (apt) {
 		if (addon->prop == NULL) {
 			IDPropertyTemplate val = {0};
@@ -592,7 +592,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain, ReportList *reports, void 
 	}
 
 	/* check if we have registered this header type before, and remove it */
-	apt = BKE_addon_pref_type_find(dummyaddon.module, TRUE);
+	apt = BKE_addon_pref_type_find(dummyaddon.module, true);
 	if (apt) {
 		if (apt->ext.srna) {
 			rna_AddonPref_unregister(bmain, apt->ext.srna);

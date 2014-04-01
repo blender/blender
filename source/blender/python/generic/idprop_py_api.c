@@ -847,7 +847,7 @@ static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
 		}
 
 		/* XXX, possible one is inside the other */
-		IDP_MergeGroup(self->prop, other->prop, TRUE);
+		IDP_MergeGroup(self->prop, other->prop, true);
 	}
 	else if (PyDict_Check(value)) {
 		while (PyDict_Next(value, &i, &pkey, &pval)) {
@@ -1550,7 +1550,7 @@ void IDP_spit(IDProperty *prop)
 {
 	if (prop) {
 		PyGILState_STATE gilstate;
-		int use_gil = TRUE; /* !PyC_IsInterpreterActive(); */
+		bool use_gil = true; /* !PyC_IsInterpreterActive(); */
 		PyObject *ret_dict;
 		PyObject *ret_str;
 

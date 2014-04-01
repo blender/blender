@@ -90,7 +90,7 @@ static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
 	if (value) cumap->flag |= CUMA_DO_CLIP;
 	else cumap->flag &= ~CUMA_DO_CLIP;
 
-	curvemapping_changed(cumap, FALSE);
+	curvemapping_changed(cumap, false);
 }
 
 static void rna_CurveMapping_black_level_set(PointerRNA *ptr, const float *values)
@@ -370,7 +370,7 @@ static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *repo
 {
 	CBData *element = element_ptr->data;
 	int index = (int)(element - coba->data);
-	if (colorband_element_remove(coba, index) == FALSE) {
+	if (colorband_element_remove(coba, index) == false) {
 		BKE_report(reports, RPT_ERROR, "Element not found in element collection or last element");
 		return;
 	}
@@ -381,7 +381,7 @@ static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *repo
 void rna_CurveMap_remove_point(CurveMap *cuma, ReportList *reports, PointerRNA *point_ptr)
 {
 	CurveMapPoint *point = point_ptr->data;
-	if (curvemap_remove_point(cuma, point) == FALSE) {
+	if (curvemap_remove_point(cuma, point) == false) {
 		BKE_report(reports, RPT_ERROR, "Unable to remove curve point");
 		return;
 	}
@@ -596,13 +596,13 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 		if (scene->ed) {
 			ColorManagedColorspaceSettings *colorspace_settings = (ColorManagedColorspaceSettings *) ptr->data;
 			Sequence *seq;
-			int seq_found = FALSE;
+			bool seq_found = false;
 
 			if (&scene->sequencer_colorspace_settings != colorspace_settings) {
 				SEQ_BEGIN(scene->ed, seq);
 				{
 					if (seq->strip && &seq->strip->colorspace_settings == colorspace_settings) {
-						seq_found = TRUE;
+						seq_found = true;
 						break;
 					}
 				}

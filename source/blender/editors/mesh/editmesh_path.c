@@ -178,7 +178,7 @@ static bool edgetag_test_cb(BMEdge *e, void *user_data_v)
 		case EDGE_MODE_TAG_FREESTYLE:
 		{
 			FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
-			return (!fed) ? FALSE : (fed->flag & FREESTYLE_EDGE_MARK) ? true : false;
+			return (!fed) ? false : (fed->flag & FREESTYLE_EDGE_MARK) ? true : false;
 		}
 #endif
 	}

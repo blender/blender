@@ -440,7 +440,7 @@ static void rna_MaskLayer_spline_remove(ID *id, MaskLayer *mask_layer, ReportLis
 	Mask *mask = (Mask *) id;
 	MaskSpline *spline = spline_ptr->data;
 
-	if (BKE_mask_spline_remove(mask_layer, spline) == FALSE) {
+	if (BKE_mask_spline_remove(mask_layer, spline) == false) {
 		BKE_reportf(reports, RPT_ERROR, "Mask layer '%s' does not contain spline given", mask_layer->name);
 		return;
 	}

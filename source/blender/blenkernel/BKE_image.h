@@ -60,9 +60,11 @@ void    BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char 
 bool    BKE_imbuf_alpha_test(struct ImBuf *ibuf);
 int     BKE_imbuf_write_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int     BKE_imbuf_write(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
-int     BKE_imbuf_write_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const short is_copy);
-void    BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const struct ImageFormatData *im_format, const short use_ext, const short use_frames);
-void    BKE_makepicstring_from_type(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames);
+int     BKE_imbuf_write_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const bool is_copy);
+void    BKE_makepicstring(char *string, const char *base, const char *relbase, int frame,
+                          const struct ImageFormatData *im_format, const bool use_ext, const bool use_frames);
+void    BKE_makepicstring_from_type(char *string, const char *base, const char *relbase, int frame,
+                                    const char imtype, const bool use_ext, const bool use_frames);
 int     BKE_add_image_extension(char *string, const struct ImageFormatData *im_format);
 int     BKE_add_image_extension_from_type(char *string, const char imtype);
 char    BKE_ftype_to_imtype(const int ftype);
@@ -162,7 +164,8 @@ struct Image *BKE_image_load(struct Main *bmain, const char *filepath);
 struct Image *BKE_image_load_exists(const char *filepath);
 
 /* adds image, adds ibuf, generates color or pattern */
-struct Image *BKE_image_add_generated(struct Main *bmain, unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, const float color[4]);
+struct Image *BKE_image_add_generated(
+        struct Main *bmain, unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, const float color[4]);
 /* adds image from imbuf, owns imbuf */
 struct Image *BKE_image_add_from_imbuf(struct ImBuf *ibuf);
 

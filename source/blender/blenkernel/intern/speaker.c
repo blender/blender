@@ -74,7 +74,7 @@ void BKE_speaker_make_local(Speaker *spk)
 {
 	Main *bmain = G.main;
 	Object *ob;
-	int is_local = FALSE, is_lib = FALSE;
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -90,13 +90,13 @@ void BKE_speaker_make_local(Speaker *spk)
 	ob = bmain->object.first;
 	while (ob) {
 		if (ob->data == spk) {
-			if (ob->id.lib) is_lib = TRUE;
-			else is_local = TRUE;
+			if (ob->id.lib) is_lib = true;
+			else is_local = true;
 		}
 		ob = ob->id.next;
 	}
 
-	if (is_local && is_lib == FALSE) {
+	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &spk->id);
 	}
 	else if (is_local && is_lib) {

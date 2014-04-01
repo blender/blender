@@ -4148,7 +4148,7 @@ ParamHandle *param_construct_begin(void)
 	handle->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
 	handle->aspx = 1.0f;
 	handle->aspy = 1.0f;
-	handle->do_aspect = FALSE;
+	handle->do_aspect = false;
 
 	handle->hash_verts = phash_new((PHashLink **)&handle->construction_chart->verts, 1);
 	handle->hash_edges = phash_new((PHashLink **)&handle->construction_chart->edges, 1);
@@ -4163,7 +4163,7 @@ void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy)
 
 	phandle->aspx = aspx;
 	phandle->aspy = aspy;
-	phandle->do_aspect = TRUE;
+	phandle->do_aspect = true;
 }
 
 void param_delete(ParamHandle *handle)

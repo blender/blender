@@ -765,7 +765,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		nodeSynchronizeID(node, false);
 	
 	/* skip if out of view */
-	if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == FALSE) {
+	if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == false) {
 		uiEndBlock(C, node->block);
 		node->block = NULL;
 		return;
@@ -1340,7 +1340,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		
 		if (snode->flag & SNODE_SHOW_GPENCIL) {
 			/* draw grease-pencil ('canvas' strokes) */
-			draw_gpencil_view2d(C, TRUE);
+			draw_gpencil_view2d(C, true);
 		}
 	}
 	else {
@@ -1359,7 +1359,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 	if (snode->treepath.last) {
 		if (snode->flag & SNODE_SHOW_GPENCIL) {
 			/* draw grease-pencil (screen strokes, and also paintbuffer) */
-			draw_gpencil_view2d(C, FALSE);
+			draw_gpencil_view2d(C, false);
 		}
 	}
 

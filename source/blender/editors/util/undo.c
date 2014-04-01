@@ -482,7 +482,7 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 	EnumPropertyItem item_tmp = {0}, *item = NULL;
 	int active, i = 0;
 	
-	while (TRUE) {
+	while (true) {
 		const char *name = NULL;
 		
 		if (undosys == UNDOSYSTEM_PARTICLE) {
@@ -531,13 +531,13 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 		if (totitem > 0) {
 			uiPopupMenu *pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 			uiLayout *layout = uiPupMenuLayout(pup);
-			uiLayout *split = uiLayoutSplit(layout, 0.0f, FALSE);
+			uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
 			uiLayout *column = NULL;
 			int i, c;
 			
 			for (c = 0, i = totitem - 1; i >= 0; i--, c++) {
 				if ( (c % 20) == 0)
-					column = uiLayoutColumn(split, FALSE);
+					column = uiLayoutColumn(split, false);
 				if (item[i].identifier)
 					uiItemIntO(column, item[i].name, item[i].icon, op->type->idname, "item", item[i].value);
 				

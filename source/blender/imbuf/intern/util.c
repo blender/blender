@@ -183,7 +183,7 @@ const char *imb_ext_audio[] = {
 	NULL
 };
 
-int IMB_ispic(const char *name)
+bool IMB_ispic(const char *name)
 {
 	/* increased from 32 to 64 because of the bitmaps header size */
 #define HEADER_SIZE 64
@@ -196,17 +196,17 @@ int IMB_ispic(const char *name)
 	if (UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
 	
 	if (BLI_stat(name, &st) == -1)
-		return FALSE;
+		return false;
 	if (((st.st_mode) & S_IFMT) != S_IFREG)
-		return FALSE;
+		return false;
 
 	if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) < 0)
-		return FALSE;
+		return false;
 
 	memset(buf, 0, sizeof(buf));
 	if (read(fp, buf, HEADER_SIZE) <= 0) {
 		close(fp);
-		return FALSE;
+		return false;
 	}
 
 	close(fp);
@@ -228,7 +228,7 @@ int IMB_ispic(const char *name)
 		}
 	}
 
-	return FALSE;
+	return false;
 
 #undef HEADER_SIZE
 }
@@ -240,7 +240,7 @@ static int isavi(const char *name)
 	return AVI_is_avi(name);
 #else
 	(void)name;
-	return FALSE;
+	return false;
 #endif
 }
 

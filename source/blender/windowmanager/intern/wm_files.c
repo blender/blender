@@ -352,7 +352,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 			}
 			else {
 #if 0           /* historic stuff - no longer used */
-				WM_cursor_wait(TRUE);
+				WM_cursor_wait(true);
 
 				if (is_foo_format(name)) {
 					read_foo(name);
@@ -364,7 +364,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 					retval = BKE_READ_EXOTIC_FAIL_FORMAT;
 				}
 #if 0
-				WM_cursor_wait(FALSE);
+				WM_cursor_wait(false);
 #endif
 			}
 		}
@@ -413,7 +413,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		ListBase wmbase;
 
 		/* assume automated tasks with background, don't write recent file list */
-		const bool do_history = (G.background == FALSE) && (CTX_wm_manager(C)->op_undo_depth == 0);
+		const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
 
 		/* put aside screens to match with persistent windows later */
 		/* also exit screens and editors */
@@ -460,7 +460,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 		ED_editors_init(C);
-		DAG_on_visible_update(CTX_data_main(C), TRUE);
+		DAG_on_visible_update(CTX_data_main(C), true);
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -650,7 +650,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	BKE_write_undo(C, "original");  /* save current state */
 
 	ED_editors_init(C);
-	DAG_on_visible_update(CTX_data_main(C), TRUE);
+	DAG_on_visible_update(CTX_data_main(C), true);
 
 #ifdef WITH_PYTHON
 	if (CTX_py_init_get(C)) {
@@ -671,7 +671,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 		CTX_wm_window_set(C, NULL); /* exits queues */
 	}
 
-	return TRUE;
+	return true;
 }
 
 int wm_history_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
@@ -823,11 +823,11 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
 	if (scene->camera) {
 		ibuf = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera,
 		                                             BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
-		                                             IB_rect, OB_SOLID, FALSE, FALSE, R_ADDSKY, err_out);
+		                                             IB_rect, OB_SOLID, false, false, R_ADDSKY, err_out);
 	}
 	else {
 		ibuf = ED_view3d_draw_offscreen_imbuf(scene, v3d, ar, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
-		                                      IB_rect, FALSE, R_ADDSKY, err_out);
+		                                      IB_rect, false, R_ADDSKY, err_out);
 	}
 
 	if (ibuf) {

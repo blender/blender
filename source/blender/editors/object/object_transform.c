@@ -368,7 +368,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob)
 	/* a change was made, adjust the children to compensate */
 	for (ob_child = bmain->object.first; ob_child; ob_child = ob_child->id.next) {
 		if (ob_child->parent == ob) {
-			BKE_object_apply_mat4(ob_child, ob_child->obmat, TRUE, FALSE);
+			BKE_object_apply_mat4(ob_child, ob_child->obmat, true, false);
 			BKE_object_workob_calc_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}
@@ -442,7 +442,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			float tmat[3][3], timat[3][3];
 
 			/* simple rotation matrix */
-			BKE_object_rot_to_mat3(ob, rsmat, TRUE);
+			BKE_object_rot_to_mat3(ob, rsmat, true);
 
 			/* correct for scale, note mul_m3_m3m3 has swapped args! */
 			BKE_object_scale_to_mat3(ob, tmat);
@@ -613,7 +613,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		BKE_object_where_is_calc(scene, ob);
-		BKE_object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
+		BKE_object_apply_mat4(ob, ob->obmat, true, true);
 		BKE_object_where_is_calc(scene, ob);
 
 		/* update for any children that may get moved */
@@ -818,7 +818,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							float min[3], max[3];
 							/* only bounds support */
 							INIT_MINMAX(min, max);
-							BKE_object_minmax_dupli(scene, ob, min, max, TRUE);
+							BKE_object_minmax_dupli(scene, ob, min, max, true);
 							mid_v3_v3v3(cent, min, max);
 							invert_m4_m4(ob->imat, ob->obmat);
 							mul_m4_v3(ob->imat, cent);
@@ -828,7 +828,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 						tot_change++;
 						ob->dup_group->id.flag |= LIB_DOIT;
-						do_inverse_offset = TRUE;
+						do_inverse_offset = true;
 					}
 				}
 			}
@@ -849,7 +849,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				tot_change++;
 				me->id.flag |= LIB_DOIT;
-				do_inverse_offset = TRUE;
+				do_inverse_offset = true;
 			}
 			else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 				Curve *cu = ob->data;
@@ -867,7 +867,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				tot_change++;
 				cu->id.flag |= LIB_DOIT;
-				do_inverse_offset = TRUE;
+				do_inverse_offset = true;
 
 				if (obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
@@ -900,7 +900,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					tot_change++;
 					cu->id.flag |= LIB_DOIT;
-					do_inverse_offset = TRUE;
+					do_inverse_offset = true;
 				}
 			}
 			else if (ob->type == OB_ARMATURE) {
@@ -921,7 +921,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					tot_change++;
 					arm->id.flag |= LIB_DOIT;
-					/* do_inverse_offset = TRUE; */ /* docenter_armature() handles this */
+					/* do_inverse_offset = true; */ /* docenter_armature() handles this */
 
 					BKE_object_where_is_calc(scene, ob);
 					BKE_pose_where_is(scene, ob); /* needed for bone parents */
@@ -944,7 +944,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				tot_change++;
 				mb->id.flag |= LIB_DOIT;
-				do_inverse_offset = TRUE;
+				do_inverse_offset = true;
 
 				if (obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
@@ -965,7 +965,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				tot_change++;
 				lt->id.flag |= LIB_DOIT;
-				do_inverse_offset = TRUE;
+				do_inverse_offset = true;
 			}
 
 			/* offset other selected objects */

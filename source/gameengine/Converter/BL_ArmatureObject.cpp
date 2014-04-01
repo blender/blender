@@ -114,7 +114,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 			ListBase listb;
 			// copy all constraint for backward compatibility
 			// BKE_copy_constraints NULLs listb, no need to make extern for this operation.
-			BKE_copy_constraints(&listb, &pchan->constraints, FALSE);
+			BKE_copy_constraints(&listb, &pchan->constraints, false);
 			pchan->constraints= listb;
 		}
 		else {

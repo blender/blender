@@ -64,13 +64,13 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 {
 	ImFileType *type;
 
-	if (ibuf == NULL) return (FALSE);
+	if (ibuf == NULL) return (false);
 	ibuf->flags = flags;
 
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 		if (type->save && type->ftype(type, ibuf)) {
 			ImBuf *write_ibuf;
-			short result = FALSE;
+			short result = false;
 
 			write_ibuf = prepare_write_imbuf(type, ibuf);
 
@@ -85,6 +85,6 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 
 	fprintf(stderr, "Couldn't save picture.\n");
 
-	return FALSE;
+	return false;
 }
 

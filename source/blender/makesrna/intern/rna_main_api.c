@@ -310,7 +310,7 @@ Mesh *rna_Main_meshes_new_from_object(
 			int uv_from_orco;
 
 			/* copies object and modifiers (but not the data) */
-			tmpobj = BKE_object_copy_ex(bmain, ob, TRUE);
+			tmpobj = BKE_object_copy_ex(bmain, ob, true);
 			tmpcu = (Curve *)tmpobj->data;
 			tmpcu->id.us--;
 

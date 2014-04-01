@@ -1275,7 +1275,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 			else {
 				/* adjust heap size */
 				if ((heap_size >= max_heap_size) &&
-				    ADJUST_MEMORY(default_heap, (void **)&heap, heap_size + 1, &max_heap_size, sizeof(heap[0])) == FALSE)
+				    ADJUST_MEMORY(default_heap, (void **)&heap, heap_size + 1, &max_heap_size, sizeof(heap[0])) == false)
 				{
 					printf("WARNING: bvh_find_nearest got out of memory\n");
 

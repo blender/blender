@@ -164,9 +164,9 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	
 	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
-		deselect_graph_keys(&ac, 0, SELECT_INVERT, TRUE);
+		deselect_graph_keys(&ac, 0, SELECT_INVERT, true);
 	else
-		deselect_graph_keys(&ac, 1, SELECT_ADD, TRUE);
+		deselect_graph_keys(&ac, 1, SELECT_ADD, true);
 	
 	/* restore active F-Curve... */
 	if (ale_active) {
@@ -334,7 +334,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	/* clear all selection if not extending selection */
 	extend = RNA_boolean_get(op->ptr, "extend");
 	if (!extend)
-		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, TRUE);
+		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, true);
 
 	/* get select mode 
 	 *	- 'gesture_mode' from the operator specifies how to select
@@ -395,7 +395,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 	
 	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");
@@ -424,7 +424,7 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 	/* clear all selection if not extending selection */
 	extend = RNA_boolean_get(op->ptr, "extend");
 	if (!extend)
-		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, TRUE);
+		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, true);
 
 	if (!RNA_boolean_get(op->ptr, "deselect"))
 		selectmode = SELECT_ADD;
@@ -867,7 +867,7 @@ static void graphkeys_select_leftright(bAnimContext *ac, short leftright, short 
 		/* - deselect all other keyframes, so that just the newly selected remain
 		 * - channels aren't deselected, since we don't re-select any as a consequence
 		 */
-		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, FALSE);
+		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, false);
 	}
 	
 	/* set callbacks and editing data */
@@ -1234,7 +1234,7 @@ static void mouse_graph_keys(bAnimContext *ac, const int mval[2], short select_m
 		select_mode = SELECT_ADD;
 		
 		/* deselect all other keyframes (+ F-Curves too) */
-		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, TRUE);
+		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, true);
 		
 		/* deselect other channels too, but only only do this if 
 		 * selection of channel when the visibility of keyframes 
@@ -1371,7 +1371,7 @@ static void graphkeys_mselect_column(bAnimContext *ac, const int mval[2], short 
 		/* - deselect all other keyframes, so that just the newly selected remain
 		 * - channels aren't deselected, since we don't re-select any as a consequence
 		 */
-		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, FALSE);
+		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, false);
 	}
 	
 	/* initialize keyframe editing data */

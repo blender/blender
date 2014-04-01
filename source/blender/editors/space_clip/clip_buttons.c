@@ -130,18 +130,18 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 	if (clip) {
 		uiLayout *col;
 
-		row = uiLayoutRow(layout, FALSE);
+		row = uiLayoutRow(layout, false);
 		block = uiLayoutGetBlock(row);
 		uiDefBut(block, LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, NULL, 0, 0, 0, 0, "");
 
-		row = uiLayoutRow(layout, FALSE);
-		split = uiLayoutSplit(row, 0.0f, FALSE);
-		row = uiLayoutRow(split, TRUE);
+		row = uiLayoutRow(layout, false);
+		split = uiLayoutSplit(row, 0.0f, false);
+		row = uiLayoutRow(split, true);
 
 		uiItemR(row, &clipptr, "filepath", 0, "", ICON_NONE);
 		uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
 
-		col = uiLayoutColumn(layout, FALSE);
+		col = uiLayoutColumn(layout, false);
 		uiTemplateColorspaceSettings(col, &clipptr, "colorspace_settings");
 	}
 }
@@ -412,7 +412,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		BKE_movieclip_get_size(clip, user, &width, &height);
 
 		if (track->flag & TRACK_LOCKED) {
-			uiLayoutSetActive(layout, FALSE);
+			uiLayoutSetActive(layout, false);
 			block = uiLayoutAbsoluteBlock(layout);
 			uiDefBut(block, LABEL, 0, IFACE_("Track is locked"), 0, 0, UI_UNIT_X * 15.0f, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 
@@ -450,7 +450,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		uiDefButBitI(block, OPTIONN, MARKER_DISABLED, B_MARKER_FLAG, IFACE_("Enabled"), 0.5 * UI_UNIT_X, 9.5 * UI_UNIT_Y, 7.25 * UI_UNIT_X, UI_UNIT_Y,
 		             &cb->marker_flag, 0, 0, 0, 0, tip);
 
-		col = uiLayoutColumn(layout, TRUE);
+		col = uiLayoutColumn(layout, true);
 		uiLayoutSetActive(col, (cb->marker_flag & MARKER_DISABLED) == 0);
 
 		block = uiLayoutAbsoluteBlock(col);
@@ -523,7 +523,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const cha
 	clip = (MovieClip *)clipptr.data;
 	user = userptr->data;
 
-	col = uiLayoutColumn(layout, FALSE);
+	col = uiLayoutColumn(layout, false);
 
 	ibuf = BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, MOVIECLIP_CACHE_SKIP);
 

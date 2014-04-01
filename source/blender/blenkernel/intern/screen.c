@@ -261,7 +261,7 @@ void BKE_spacedata_draw_locks(int set)
 			if (set) 
 				art->do_lock = art->lock;
 			else 
-				art->do_lock = FALSE;
+				art->do_lock = false;
 		}
 	}
 }

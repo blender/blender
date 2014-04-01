@@ -1538,7 +1538,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if (!for_orco)
 			curve_calc_modifiers_pre(scene, ob, &nubase, for_render, use_render_resolution);
 
-		BKE_curve_bevelList_make(ob, &nubase, for_render != FALSE);
+		BKE_curve_bevelList_make(ob, &nubase, for_render != false);
 
 		/* If curve has no bevel will return nothing */
 		BKE_curve_bevel_make(scene, ob, &dlbev, for_render, use_render_resolution);

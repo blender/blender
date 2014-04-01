@@ -1027,16 +1027,16 @@ void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
 	}
 }
 
-int nodeAttachNodeCheck(bNode *node, bNode *parent)
+bool nodeAttachNodeCheck(bNode *node, bNode *parent)
 {
 	bNode *parent_recurse;
 	for (parent_recurse = node; parent_recurse; parent_recurse = parent_recurse->parent) {
 		if (parent_recurse == parent) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 void nodeAttachNode(bNode *node, bNode *parent)
@@ -1044,7 +1044,7 @@ void nodeAttachNode(bNode *node, bNode *parent)
 	float locx, locy;
 
 	BLI_assert(parent->type == NODE_FRAME);
-	BLI_assert(nodeAttachNodeCheck(parent, node) == FALSE);
+	BLI_assert(nodeAttachNodeCheck(parent, node) == false);
 
 	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 	
@@ -1203,11 +1203,11 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_
 
 bNodeTree *ntreeCopyTree_ex(bNodeTree *ntree, const bool do_id_user)
 {
-	return ntreeCopyTree_internal(ntree, G.main, do_id_user, TRUE, TRUE);
+	return ntreeCopyTree_internal(ntree, G.main, do_id_user, true, true);
 }
 bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
-	return ntreeCopyTree_ex(ntree, TRUE);
+	return ntreeCopyTree_ex(ntree, true);
 }
 
 /* use when duplicating scenes */
@@ -1234,7 +1234,7 @@ void ntreeSwitchID_ex(bNodeTree *ntree, ID *id_from, ID *id_to, const bool do_id
 }
 void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
 {
-	ntreeSwitchID_ex(ntree, id_from, id_to, TRUE);
+	ntreeSwitchID_ex(ntree, id_from, id_to, true);
 }
 
 void ntreeUserIncrefID(bNodeTree *ntree)
@@ -1265,7 +1265,7 @@ int BKE_node_preview_used(bNode *node)
 	return (node->typeinfo->flag & NODE_PREVIEW) != 0;
 }
 
-bNodePreview *BKE_node_preview_verify(bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, int create)
+bNodePreview *BKE_node_preview_verify(bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create)
 {
 	bNodePreview *preview;
 	
@@ -1779,7 +1779,7 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const bool do_id_user)
 /* same as ntreeFreeTree_ex but always manage users */
 void ntreeFreeTree(bNodeTree *ntree)
 {
-	ntreeFreeTree_ex(ntree, TRUE);
+	ntreeFreeTree_ex(ntree, true);
 }
 
 void ntreeFreeCache(bNodeTree *ntree)
@@ -1876,7 +1876,7 @@ bNodeTree *ntreeFromID(ID *id)
 void ntreeMakeLocal(bNodeTree *ntree)
 {
 	Main *bmain = G.main;
-	int lib = FALSE, local = FALSE;
+	bool lib = false, local = false;
 	
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -1896,9 +1896,9 @@ void ntreeMakeLocal(bNodeTree *ntree)
 		for (node = tntree->nodes.first; node; node = node->next) {
 			if (node->id == (ID *)ntree) {
 				if (owner_id->lib)
-					lib = TRUE;
+					lib = true;
 				else
-					local = TRUE;
+					local = true;
 			}
 		}
 	} FOREACH_NODETREE_END
@@ -1971,7 +1971,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		/* Make full copy.
 		 * Note: previews are not copied here.
 		 */
-		ltree = ntreeCopyTree_internal(ntree, NULL, FALSE, FALSE, FALSE);
+		ltree = ntreeCopyTree_internal(ntree, NULL, false, false, false);
 		ltree->flag |= NTREE_IS_LOCALIZED;
 		
 		for (node = ltree->nodes.first; node; node = node->next) {
@@ -2028,7 +2028,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 		if (ntree->typeinfo->local_merge)
 			ntree->typeinfo->local_merge(localtree, ntree);
 		
-		ntreeFreeTree_ex(localtree, FALSE);
+		ntreeFreeTree_ex(localtree, false);
 		MEM_freeN(localtree);
 	}
 }
@@ -2170,7 +2170,7 @@ static void ntree_interface_identifier_base(bNodeTree *ntree, char *base)
 {
 	/* generate a valid RNA identifier */
 	sprintf(base, "NodeTreeInterface_%s", ntree->id.name + 2);
-	RNA_identifier_sanitize(base, FALSE);
+	RNA_identifier_sanitize(base, false);
 }
 
 /* check if the identifier is already in use */
@@ -2390,9 +2390,9 @@ bool nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
 
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id && GS(node->id->name) == idtype) {
-			if (id && ok == FALSE && node->id == id) {
+			if (id && ok == false && node->id == id) {
 				node->flag |= NODE_ACTIVE_ID;
-				ok = TRUE;
+				ok = true;
 			}
 			else {
 				node->flag &= ~NODE_ACTIVE_ID;
@@ -2543,7 +2543,7 @@ void BKE_node_clipboard_clear(void)
 #endif
 }
 
-/* return FALSE when one or more ID's are lost */
+/* return false when one or more ID's are lost */
 bool BKE_node_clipboard_validate(void)
 {
 	bool ok = true;
@@ -2763,10 +2763,10 @@ bool BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey ke
 	
 	if (entry) {
 		entry->tag = 1;
-		return TRUE;
+		return true;
 	}
 	else
-		return FALSE;
+		return false;
 }
 
 void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp)
@@ -2803,7 +2803,7 @@ static int node_get_deplist_recurs(bNodeTree *ntree, bNode *node, bNode ***nsort
 	bNodeLink *link;
 	int level = 0xFFF;
 	
-	node->done = TRUE;
+	node->done = true;
 	
 	/* check linked nodes */
 	for (link = ntree->links.first; link; link = link->next) {
@@ -2840,7 +2840,7 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, in
 	
 	/* first clear data */
 	for (node = ntree->nodes.first; node; node = node->next) {
-		node->done = FALSE;
+		node->done = false;
 		(*totnodes)++;
 	}
 	if (*totnodes == 0) {
@@ -2865,7 +2865,7 @@ static void ntree_update_node_level(bNodeTree *ntree)
 	
 	/* first clear tag */
 	for (node = ntree->nodes.first; node; node = node->next) {
-		node->done = FALSE;
+		node->done = false;
 	}
 	
 	/* recursive check */
@@ -2937,7 +2937,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
 	/* avoid reentrant updates, can be caused by RNA update callbacks */
 	if (ntree->is_updating)
 		return;
-	ntree->is_updating = TRUE;
+	ntree->is_updating = true;
 	
 	if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES)) {
 		/* set the bNodeSocket->link pointers */
@@ -2985,7 +2985,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
 	}
 	ntree->update = 0;
 	
-	ntree->is_updating = FALSE;
+	ntree->is_updating = false;
 }
 
 void nodeUpdate(bNodeTree *ntree, bNode *node)
@@ -2993,7 +2993,7 @@ void nodeUpdate(bNodeTree *ntree, bNode *node)
 	/* avoid reentrant updates, can be caused by RNA update callbacks */
 	if (ntree->is_updating)
 		return;
-	ntree->is_updating = TRUE;
+	ntree->is_updating = true;
 	
 	if (node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
@@ -3003,7 +3003,7 @@ void nodeUpdate(bNodeTree *ntree, bNode *node)
 	/* clear update flag */
 	node->update = 0;
 	
-	ntree->is_updating = FALSE;
+	ntree->is_updating = false;
 }
 
 bool nodeUpdateID(bNodeTree *ntree, ID *id)
@@ -3034,7 +3034,7 @@ bool nodeUpdateID(bNodeTree *ntree, ID *id)
 		nodeUpdateInternalLinks(ntree, node);
 	}
 	
-	ntree->is_updating = FALSE;
+	ntree->is_updating = false;
 	return changed;
 }
 
@@ -3138,7 +3138,7 @@ static void node_type_base_defaults(bNodeType *ntype)
 /* allow this node for any tree type */
 static int node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(ntree))
 {
-	return TRUE;
+	return true;
 }
 
 /* use the basic poll function */

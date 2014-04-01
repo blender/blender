@@ -69,9 +69,6 @@
 
 typedef unsigned char uchar;
 
-#define TRUE 1
-#define FALSE 0
-
 #define IMB_DPI_DEFAULT 72.0f
 
 #endif	/* __IMBUF_H__ */

@@ -1723,7 +1723,7 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
 static void do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
 	SculptSession *ss = ob->sculpt;
-	smooth(sd, ob, nodes, totnode, ss->cache->bstrength, FALSE);
+	smooth(sd, ob, nodes, totnode, ss->cache->bstrength, false);
 }
 
 static void do_mask_brush_draw(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -1768,7 +1768,7 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 			do_mask_brush_draw(sd, ob, nodes, totnode);
 			break;
 		case BRUSH_MASK_SMOOTH:
-			smooth(sd, ob, nodes, totnode, ss->cache->bstrength, TRUE);
+			smooth(sd, ob, nodes, totnode, ss->cache->bstrength, true);
 			break;
 	}
 }
@@ -3243,10 +3243,10 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 		    brush->autosmooth_factor > 0)
 		{
 			if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor * (1 - ss->cache->pressure), FALSE);
+				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor * (1 - ss->cache->pressure), false);
 			}
 			else {
-				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, FALSE);
+				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false);
 			}
 		}
 
@@ -4239,7 +4239,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 		Brush *brush = BKE_paint_brush(&sd->paint);
 
 		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
-		                            sculpt_any_smooth_mode(brush, ss->cache, 0), FALSE);
+		                            sculpt_any_smooth_mode(brush, ss->cache, 0), false);
 	}
 }
 
@@ -4263,17 +4263,17 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
 		SculptRaycastData *srd = data_v;
 		float (*origco)[3] = NULL;
-		int use_origco = FALSE;
+		bool use_origco = false;
 
 		if (srd->original && srd->ss->cache) {
 			if (BKE_pbvh_type(srd->ss->pbvh) == PBVH_BMESH) {
-				use_origco = TRUE;
+				use_origco = true;
 			}
 			else {
 				/* intersect with coordinates from before we started stroke */
 				SculptUndoNode *unode = sculpt_undo_get_node(node);
 				origco = (unode) ? unode->co : NULL;
-				use_origco = origco ? TRUE : FALSE;
+				use_origco = origco ? true : false;
 			}
 		}
 
@@ -4394,10 +4394,10 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	int mode = RNA_enum_get(op->ptr, "mode");
 	int is_smooth = 0;
-	int need_mask = FALSE;
+	int need_mask = false;
 
 	if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-		need_mask = TRUE;
+		need_mask = true;
 	}
 
 	view3d_operator_needs_opengl(C);
@@ -4554,7 +4554,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	if (ss->modifiers_active)
 		sculpt_flush_stroke_deform(sd, ob);
 
-	ss->cache->first_time = FALSE;
+	ss->cache->first_time = false;
 
 	/* Cleanup */
 	sculpt_flush_update(C);
@@ -4801,7 +4801,7 @@ void sculpt_update_after_dynamic_topology_toggle(bContext *C)
 	Sculpt *sd = scene->toolsettings->sculpt;
 
 	/* Create the PBVH */
-	sculpt_update_mesh_elements(scene, sd, ob, FALSE, FALSE);
+	sculpt_update_mesh_elements(scene, sd, ob, false, false);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 }
 
@@ -4878,7 +4878,7 @@ void sculpt_dynamic_topology_disable(bContext *C,
 		BKE_mesh_update_customdata_pointers(me, false);
 	}
 	else {
-		sculptsession_bm_to_me(ob, TRUE);
+		sculptsession_bm_to_me(ob, true);
 	}
 
 	/* Clear data */
@@ -5046,7 +5046,7 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 {
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, FALSE);
+	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
 int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)

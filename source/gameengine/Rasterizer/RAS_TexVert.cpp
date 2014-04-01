@@ -120,7 +120,7 @@ void RAS_TexVert::SetTangent(const MT_Vector3& tangent)
 }
 
 
-// compare two vertices, and return TRUE if both are almost identical (they can be shared)
+// compare two vertices, and return true if both are almost identical (they can be shared)
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 {
 	const float eps = FLT_EPSILON;

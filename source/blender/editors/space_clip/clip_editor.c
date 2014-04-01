@@ -83,9 +83,9 @@ int ED_space_clip_poll(bContext *C)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc && sc->clip)
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }
 
 int ED_space_clip_view_clip_poll(bContext *C)
@@ -96,7 +96,7 @@ int ED_space_clip_view_clip_poll(bContext *C)
 		return sc->view == SC_VIEW_CLIP;
 	}
 
-	return FALSE;
+	return false;
 }
 
 int ED_space_clip_tracking_poll(bContext *C)
@@ -106,7 +106,7 @@ int ED_space_clip_tracking_poll(bContext *C)
 	if (sc && sc->clip)
 		return ED_space_clip_check_show_trackedit(sc);
 
-	return FALSE;
+	return false;
 }
 
 int ED_space_clip_maskedit_poll(bContext *C)
@@ -117,7 +117,7 @@ int ED_space_clip_maskedit_poll(bContext *C)
 		return ED_space_clip_check_show_maskedit(sc);
 	}
 
-	return FALSE;
+	return false;
 }
 
 int ED_space_clip_maskedit_mask_poll(bContext *C)
@@ -132,7 +132,7 @@ int ED_space_clip_maskedit_mask_poll(bContext *C)
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* ******** common editing functions ******** */
@@ -316,7 +316,7 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 				if (sa->spacetype == SPACE_CLIP) {
 					SpaceClip *sc = sa->spacedata.first;
 
-					sc->scopes.ok = FALSE;
+					sc->scopes.ok = false;
 
 					BKE_movieclip_user_set_frame(&sc->user, cfra);
 				}

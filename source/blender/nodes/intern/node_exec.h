@@ -72,7 +72,7 @@ typedef struct bNodeTreeExec {
 typedef struct bNodeThreadStack {
 	struct bNodeThreadStack *next, *prev;
 	struct bNodeStack *stack;
-	int used;
+	bool used;
 } bNodeThreadStack;
 
 int node_exec_socket_use_stack(struct bNodeSocket *sock);

@@ -43,7 +43,7 @@
 static GHash *global_addonpreftype_hash = NULL;
 
 
-bAddonPrefType *BKE_addon_pref_type_find(const char *idname, int quiet)
+bAddonPrefType *BKE_addon_pref_type_find(const char *idname, bool quiet)
 {
 	if (idname[0]) {
 		bAddonPrefType *apt;

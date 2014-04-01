@@ -88,7 +88,7 @@ enum eGraphKeys_ColumnSelect_Mode {
 /* graph_edit.c */
 
 void get_graph_keyframe_extents(struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, 
-                                const short do_selected, const short include_handles);
+                                const bool do_selected, const bool include_handles);
 
 void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPH_OT_view_all(struct wmOperatorType *ot);

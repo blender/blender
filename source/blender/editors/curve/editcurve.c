@@ -4133,11 +4133,11 @@ static bool is_u_selected(Nurb *nu, int u)
 	bp = &nu->bp[u];
 	for (v = 0; v < nu->pntsv - 1; v++, bp += nu->pntsu) {
 		if ((v != 0) && (bp->f1 & SELECT)) {
-			return TRUE;
+			return true;
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 typedef struct NurbSort {
@@ -7014,7 +7014,7 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
 	int a;
 
 	if (object->curve_cache == NULL) {
-		BKE_displist_make_curveTypes(scene, object, FALSE);
+		BKE_displist_make_curveTypes(scene, object, false);
 	}
 
 	INIT_MINMAX(min, max);

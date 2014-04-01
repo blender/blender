@@ -473,7 +473,7 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 static int face_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
-	paintface_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), TRUE);
+	paintface_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), true);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
@@ -497,7 +497,7 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
 static int vert_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
-	paintvert_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), TRUE);
+	paintvert_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), true);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
@@ -528,7 +528,7 @@ static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	paintvert_select_ungrouped(ob, RNA_boolean_get(op->ptr, "extend"), TRUE);
+	paintvert_select_ungrouped(ob, RNA_boolean_get(op->ptr, "extend"), true);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }

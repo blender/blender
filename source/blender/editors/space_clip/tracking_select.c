@@ -382,7 +382,7 @@ static int select_poll(bContext *C)
 		return sc->clip && sc->view == SC_VIEW_CLIP;
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int select_exec(bContext *C, wmOperator *op)
@@ -553,7 +553,7 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 }
 
 /********************** lasso select operator *********************/

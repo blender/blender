@@ -1404,12 +1404,12 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	if (cm_processor == NULL) {
 		if (display_buffer_byte) {
 			IMB_buffer_byte_from_byte(display_buffer_byte, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-			                          FALSE, width, height, width, width);
+			                          false, width, height, width, width);
 		}
 
 		if (display_buffer) {
 			IMB_buffer_float_from_byte(display_buffer, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-			                           FALSE, width, height, width, width);
+			                           false, width, height, width, width);
 		}
 	}
 	else {
@@ -1976,7 +1976,7 @@ void IMB_colormanagement_buffer_make_display_space(float *buffer, unsigned char 
 
 	IMB_buffer_byte_from_float(display_buffer, display_buffer_float,
 	                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-	                           TRUE, width, height, width, width);
+	                           true, width, height, width, width);
 
 	MEM_freeN(display_buffer_float);
 	IMB_colormanagement_processor_free(cm_processor);
@@ -2095,7 +2095,7 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *li
 	IMB_colormanagement_processor_free(cm_processor);
 
 	IMB_buffer_byte_from_float(display_buffer, buffer, channels, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-	                           FALSE, width, height, width, width);
+	                           false, width, height, width, width);
 
 	MEM_freeN(buffer);
 }
@@ -2704,7 +2704,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 		if (display_buffer_float) {
 			/* huh, for dither we need float buffer first, no cheaper way. currently */
 			IMB_buffer_float_from_byte(display_buffer_float, byte_buffer,
-			                           IB_PROFILE_SRGB, IB_PROFILE_SRGB, TRUE,
+			                           IB_PROFILE_SRGB, IB_PROFILE_SRGB, true,
 			                           width, height, width, display_stride);
 		}
 		else {
@@ -2723,7 +2723,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 		int display_index = (ymin * display_stride + xmin) * channels;
 
 		IMB_buffer_byte_from_float(display_buffer + display_index, display_buffer_float, channels, dither,
-		                           IB_PROFILE_SRGB, IB_PROFILE_SRGB, TRUE, width, height, display_stride, width);
+		                           IB_PROFILE_SRGB, IB_PROFILE_SRGB, true, width, height, display_stride, width);
 
 		MEM_freeN(display_buffer_float);
 	}

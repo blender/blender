@@ -546,10 +546,10 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 
 
 /* currently only the first value of 'ofs' may be set. */
-static short key_pointer_size(const Key *key, const int mode, int *poinsize, int *ofs)
+static bool key_pointer_size(const Key *key, const int mode, int *poinsize, int *ofs)
 {
 	if (key->from == NULL) {
-		return FALSE;
+		return false;
 	}
 
 	switch (GS(key->from->name)) {
@@ -574,10 +574,10 @@ static short key_pointer_size(const Key *key, const int mode, int *poinsize, int
 			break;
 		default:
 			BLI_assert(!"invalid 'key->from' ID type");
-			return FALSE;
+			return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static void cp_key(const int start, int end, const int tot, char *poin, Key *key, KeyBlock *actkb, KeyBlock *kb, float *weights, const int mode)

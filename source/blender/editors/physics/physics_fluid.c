@@ -753,7 +753,7 @@ static void fluidbake_updatejob(void *customdata, float progress)
 {
 	FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	
-	*(fb->do_update) = TRUE;
+	*(fb->do_update) = true;
 	*(fb->progress) = progress;
 }
 
@@ -765,10 +765,10 @@ static void fluidbake_startjob(void *customdata, short *stop, short *do_update, 
 	fb->do_update = do_update;
 	fb->progress = progress;
 	
-	G.is_break = FALSE;  /* XXX shared with render - replace with job 'stop' switch */
+	G.is_break = false;  /* XXX shared with render - replace with job 'stop' switch */
 	
 	elbeemSimulate();
-	*do_update = TRUE;
+	*do_update = true;
 	*stop = 0;
 }
 
@@ -1133,7 +1133,7 @@ static int fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID))
 		return OPERATOR_CANCELLED;
 
-	if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), TRUE))
+	if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), true))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -1141,7 +1141,7 @@ static int fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 static int fluid_bake_exec(bContext *C, wmOperator *op)
 {
-	if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), FALSE))
+	if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), false))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;

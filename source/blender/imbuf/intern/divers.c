@@ -175,7 +175,7 @@ MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext
 
 /* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
-                                int channels_from, float dither, int profile_to, int profile_from, int predivide,
+                                int channels_from, float dither, int profile_to, int profile_from, bool predivide,
                                 int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
@@ -329,7 +329,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 
 /* byte to float pixels, input and output 4-channel RGBA  */
 void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
-                                int profile_to, int profile_from, int predivide,
+                                int profile_to, int profile_from, bool predivide,
                                 int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
@@ -382,7 +382,7 @@ void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
 
 /* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
-                                 int channels_from, int profile_to, int profile_from, int predivide,
+                                 int channels_from, int profile_to, int profile_from, bool predivide,
                                  int width, int height, int stride_to, int stride_from)
 {
 	int x, y;
@@ -468,7 +468,7 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 
 /* byte to byte pixels, input and output 4-channel RGBA */
 void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
-                               int profile_to, int profile_from, int predivide,
+                               int profile_to, int profile_from, bool predivide,
                                int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
@@ -556,7 +556,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 
 	/* convert float to byte */
 	IMB_buffer_byte_from_float((unsigned char *) ibuf->rect, buffer, ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-	                           FALSE, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	                           false, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 	MEM_freeN(buffer);
 
@@ -591,12 +591,12 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 
 		/* and do color space conversion to byte */
 		IMB_buffer_byte_from_float(rect_byte, rect_float,
-		                           4, ibuf->dither, IB_PROFILE_SRGB, profile_from, TRUE,
+		                           4, ibuf->dither, IB_PROFILE_SRGB, profile_from, true,
 		                           w, h, ibuf->x, w);
 	}
 	else {
 		IMB_buffer_float_from_float(buffer, rect_float,
-		                            ibuf->channels, IB_PROFILE_SRGB, profile_from, TRUE,
+		                            ibuf->channels, IB_PROFILE_SRGB, profile_from, true,
 		                            w, h, w, ibuf->x);
 
 		/* XXX: need to convert to image buffer's rect space */
@@ -637,7 +637,7 @@ void IMB_float_from_rect(ImBuf *ibuf)
 
 	/* first, create float buffer in non-linear space */
 	IMB_buffer_float_from_byte(rect_float, (unsigned char *) ibuf->rect, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-	                           FALSE, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	                           false, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 	/* then make float be in linear space */
 	IMB_colormanagement_colorspace_to_scene_linear(rect_float, ibuf->x, ibuf->y, ibuf->channels,

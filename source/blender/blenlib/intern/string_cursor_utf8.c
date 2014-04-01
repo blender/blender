@@ -126,10 +126,10 @@ bool BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
 		if ((*pos) > (int)maxlen) {
 			(*pos) = (int)maxlen;
 		}
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 bool BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *pos)
@@ -139,11 +139,11 @@ bool BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *
 		const char *str_prev = BLI_str_find_prev_char_utf8(str, str_pos);
 		if (str_prev) {
 			(*pos) -= (str_pos - str_prev);
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,

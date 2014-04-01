@@ -130,7 +130,7 @@ static real angle_from_cotan(WVertex *vo, WVertex *v1, WVertex *v2)
  *      VisMath '02, Berlin (Germany)
  *      http://www-grail.usc.edu/pubs.html
  *
- *  Returns: %TRUE if the operator could be evaluated, %FALSE if the evaluation failed for some reason (@v is
+ *  Returns: %true if the operator could be evaluated, %false if the evaluation failed for some reason (@v is
  *  boundary or is the endpoint of a non-manifold edge.)
  */
 bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)
@@ -192,7 +192,7 @@ bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)
  *      VisMath '02, Berlin (Germany)
  *      http://www-grail.usc.edu/pubs.html
  *
- *  Returns: %TRUE if the operator could be evaluated, %FALSE if the evaluation failed for some reason (@v is
+ *  Returns: %true if the operator could be evaluated, %false if the evaluation failed for some reason (@v is
  * boundary or is the endpoint of a non-manifold edge.)
  */
 bool gts_vertex_gaussian_curvature(WVertex *v, real *Kg)

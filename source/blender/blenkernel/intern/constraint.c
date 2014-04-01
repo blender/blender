@@ -717,7 +717,7 @@ static void childof_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
 	bChildOfConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int childof_get_tars(bConstraint *con, ListBase *list)
@@ -852,7 +852,7 @@ static void trackto_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
 	bTrackToConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int trackto_get_tars(bConstraint *con, ListBase *list)
@@ -1030,10 +1030,10 @@ static void kinematic_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
 	bKinematicConstraint *data = con->data;
 	
 	/* chain target */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 	
 	/* poletarget */
-	func(con, (ID **)&data->poletar, FALSE, userdata);
+	func(con, (ID **)&data->poletar, false, userdata);
 }
 
 static int kinematic_get_tars(bConstraint *con, ListBase *list)
@@ -1122,7 +1122,7 @@ static void followpath_id_looper(bConstraint *con, ConstraintIDFunc func, void *
 	bFollowPathConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int followpath_get_tars(bConstraint *con, ListBase *list)
@@ -1169,7 +1169,7 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 
 #ifdef CYCLIC_DEPENDENCY_WORKAROUND
 		if (ct->tar->curve_cache == NULL) {
-			BKE_displist_make_curveTypes(cob->scene, ct->tar, FALSE);
+			BKE_displist_make_curveTypes(cob->scene, ct->tar, false);
 		}
 #endif
 
@@ -1470,7 +1470,7 @@ static void loclike_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
 	bLocateLikeConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int loclike_get_tars(bConstraint *con, ListBase *list)
@@ -1560,7 +1560,7 @@ static void rotlike_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
 	bRotateLikeConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int rotlike_get_tars(bConstraint *con, ListBase *list)
@@ -1672,7 +1672,7 @@ static void sizelike_id_looper(bConstraint *con, ConstraintIDFunc func, void *us
 	bSizeLikeConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int sizelike_get_tars(bConstraint *con, ListBase *list)
@@ -1761,7 +1761,7 @@ static void translike_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
 	bTransLikeConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int translike_get_tars(bConstraint *con, ListBase *list)
@@ -1924,10 +1924,10 @@ static void pycon_id_looper(bConstraint *con, ConstraintIDFunc func, void *userd
 	
 	/* targets */
 	for (ct = data->targets.first; ct; ct = ct->next)
-		func(con, (ID **)&ct->tar, FALSE, userdata);
+		func(con, (ID **)&ct->tar, false, userdata);
 		
 	/* script */
-	func(con, (ID **)&data->text, TRUE, userdata);
+	func(con, (ID **)&data->text, true, userdata);
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
@@ -1942,7 +1942,7 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 		/* special exception for curves - depsgraph issues */
 		if (ct->tar->type == OB_CURVE) {
 			if (ct->tar->curve_cache == NULL) {
-				BKE_displist_make_curveTypes(cob->scene, ct->tar, FALSE);
+				BKE_displist_make_curveTypes(cob->scene, ct->tar, false);
 			}
 		}
 #endif
@@ -2017,10 +2017,10 @@ static void actcon_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
 	bActionConstraint *data = con->data;
 	
 	/* target */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 	
 	/* action */
-	func(con, (ID **)&data->act, TRUE, userdata);
+	func(con, (ID **)&data->act, true, userdata);
 }
 
 static int actcon_get_tars(bConstraint *con, ListBase *list)
@@ -2184,7 +2184,7 @@ static void locktrack_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
 	bLockTrackConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int locktrack_get_tars(bConstraint *con, ListBase *list)
@@ -2491,7 +2491,7 @@ static void distlimit_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
 	bDistLimitConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int distlimit_get_tars(bConstraint *con, ListBase *list)
@@ -2618,7 +2618,7 @@ static void stretchto_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
 	bStretchToConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int stretchto_get_tars(bConstraint *con, ListBase *list)
@@ -2790,7 +2790,7 @@ static void minmax_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
 	bMinMaxConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int minmax_get_tars(bConstraint *con, ListBase *list)
@@ -2932,8 +2932,8 @@ static void rbj_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdat
 	bRigidBodyJointConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
-	func(con, (ID **)&data->child, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
+	func(con, (ID **)&data->child, false, userdata);
 }
 
 static int rbj_get_tars(bConstraint *con, ListBase *list)
@@ -2984,7 +2984,7 @@ static void clampto_id_looper(bConstraint *con, ConstraintIDFunc func, void *use
 	bClampToConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int clampto_get_tars(bConstraint *con, ListBase *list)
@@ -3018,7 +3018,7 @@ static void clampto_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bCo
 #ifdef CYCLIC_DEPENDENCY_WORKAROUND
 	if (VALID_CONS_TARGET(ct)) {
 		if (ct->tar->curve_cache == NULL) {
-			BKE_displist_make_curveTypes(cob->scene, ct->tar, FALSE);
+			BKE_displist_make_curveTypes(cob->scene, ct->tar, false);
 		}
 	}
 #endif
@@ -3046,7 +3046,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		
 		INIT_MINMAX(curveMin, curveMax);
 		/* XXX - don't think this is good calling this here - campbell */
-		BKE_object_minmax(ct->tar, curveMin, curveMax, TRUE);
+		BKE_object_minmax(ct->tar, curveMin, curveMax, true);
 		
 		/* get targetmatrix */
 		if (data->tar->curve_cache &&  data->tar->curve_cache->path && data->tar->curve_cache->path->data) {
@@ -3164,7 +3164,7 @@ static void transform_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
 	bTransformConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int transform_get_tars(bConstraint *con, ListBase *list)
@@ -3311,7 +3311,7 @@ static void shrinkwrap_id_looper(bConstraint *con, ConstraintIDFunc func, void *
 	bShrinkwrapConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->target, FALSE, userdata);
+	func(con, (ID **)&data->target, false, userdata);
 }
 
 static void shrinkwrap_new_data(void *cdata)
@@ -3383,7 +3383,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 						bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6);
 					
 					if (treeData.tree == NULL) {
-						fail = TRUE;
+						fail = true;
 						break;
 					}
 					
@@ -3425,13 +3425,13 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 					mul_mat3_m4_v3(mat, no);
 
 					if (normalize_v3(no) < FLT_EPSILON) {
-						fail = TRUE;
+						fail = true;
 						break;
 					}
 
 					bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6);
 					if (treeData.tree == NULL) {
-						fail = TRUE;
+						fail = true;
 						break;
 					}
 
@@ -3439,7 +3439,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 					if (BKE_shrinkwrap_project_normal(0, co, no, &transform, treeData.tree, &hit,
 					                                  treeData.raycast_callback, &treeData) == false)
 					{
-						fail = TRUE;
+						fail = true;
 						break;
 					}
 					copy_v3_v3(co, hit.co);
@@ -3451,7 +3451,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 			
 			target->release(target);
 			
-			if (fail == TRUE) {
+			if (fail == true) {
 				/* Don't move the point */
 				zero_v3(co);
 			}
@@ -3502,7 +3502,7 @@ static void damptrack_id_looper(bConstraint *con, ConstraintIDFunc func, void *u
 	bDampTrackConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int damptrack_get_tars(bConstraint *con, ListBase *list)
@@ -3647,7 +3647,7 @@ static void splineik_id_looper(bConstraint *con, ConstraintIDFunc func, void *us
 	bSplineIKConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int splineik_get_tars(bConstraint *con, ListBase *list)
@@ -3681,7 +3681,7 @@ static void splineik_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bC
 #ifdef CYCLIC_DEPENDENCY_WORKAROUND
 	if (VALID_CONS_TARGET(ct)) {
 		if (ct->tar->curve_cache == NULL) {
-			BKE_displist_make_curveTypes(cob->scene, ct->tar, FALSE);
+			BKE_displist_make_curveTypes(cob->scene, ct->tar, false);
 		}
 	}
 #endif
@@ -3715,7 +3715,7 @@ static void pivotcon_id_looper(bConstraint *con, ConstraintIDFunc func, void *us
 	bPivotConstraint *data = con->data;
 	
 	/* target only */
-	func(con, (ID **)&data->tar, FALSE, userdata);
+	func(con, (ID **)&data->tar, false, userdata);
 }
 
 static int pivotcon_get_tars(bConstraint *con, ListBase *list)
@@ -3846,9 +3846,9 @@ static void followtrack_id_looper(bConstraint *con, ConstraintIDFunc func, void 
 {
 	bFollowTrackConstraint *data = con->data;
 
-	func(con, (ID **)&data->clip, TRUE, userdata);
-	func(con, (ID **)&data->camera, FALSE, userdata);
-	func(con, (ID **)&data->depth_ob, FALSE, userdata);
+	func(con, (ID **)&data->clip, true, userdata);
+	func(con, (ID **)&data->camera, false, userdata);
+	func(con, (ID **)&data->depth_ob, false, userdata);
 }
 
 static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -4082,7 +4082,7 @@ static void camerasolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 {
 	bCameraSolverConstraint *data = con->data;
 
-	func(con, (ID **)&data->clip, TRUE, userdata);
+	func(con, (ID **)&data->clip, true, userdata);
 }
 
 static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -4138,8 +4138,8 @@ static void objectsolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 {
 	bObjectSolverConstraint *data = con->data;
 
-	func(con, (ID **)&data->clip, FALSE, userdata);
-	func(con, (ID **)&data->camera, FALSE, userdata);
+	func(con, (ID **)&data->clip, false, userdata);
+	func(con, (ID **)&data->camera, false, userdata);
 }
 
 static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -4521,7 +4521,7 @@ static void con_fix_copied_refs_cb(bConstraint *UNUSED(con), ID **idpoin, short 
 }
 
 /* duplicate all of the constraints in a constraint stack */
-void BKE_copy_constraints(ListBase *dst, const ListBase *src, int do_extern)
+void BKE_copy_constraints(ListBase *dst, const ListBase *src, bool do_extern)
 {
 	bConstraint *con, *srccon;
 	

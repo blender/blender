@@ -179,7 +179,7 @@ void image_preview_event(int event)
 		
 		ntreeCompositTagGenerators(G.scene->nodetree);
 
-		G.is_break = FALSE;
+		G.is_break = false;
 		G.scene->nodetree->timecursor = set_timecursor;
 		G.scene->nodetree->test_break = blender_test_break;
 		
@@ -509,7 +509,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 	const char *fake_name;
 	const char *display_name;
 
-	uiLayoutRow(layout, TRUE);
+	uiLayoutRow(layout, true);
 
 	/* layer menu is 1/3 larger than pass */
 	wmenu1 = (2 * w) / 5;
@@ -561,7 +561,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	uiBut *but;
 	const float dpi_fac = UI_DPI_FAC;
 	
-	row = uiLayoutRow(layout, TRUE);
+	row = uiLayoutRow(layout, true);
 
 	if (rr == NULL || iuser == NULL)
 		return;
@@ -706,13 +706,13 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			uiItemR(layout, &imaptr, "source", 0, NULL, ICON_NONE);
 
 			if (ima->source != IMA_SRC_GENERATED) {
-				row = uiLayoutRow(layout, TRUE);
+				row = uiLayoutRow(layout, true);
 				if (ima->packedfile)
 					uiItemO(row, "", ICON_PACKAGE, "image.unpack");
 				else
 					uiItemO(row, "", ICON_UGLYPACKAGE, "image.pack");
 				
-				row = uiLayoutRow(row, TRUE);
+				row = uiLayoutRow(row, true);
 				uiLayoutSetEnabled(row, ima->packedfile == NULL);
 				uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
@@ -742,7 +742,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				}
 			}
 
-			col = uiLayoutColumn(layout, FALSE);
+			col = uiLayoutColumn(layout, false);
 			uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
 			uiItemR(col, &imaptr, "use_view_as_render", 0, NULL, ICON_NONE);
 
@@ -761,29 +761,29 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					}
 
 					if (has_alpha) {
-						col = uiLayoutColumn(layout, FALSE);
+						col = uiLayoutColumn(layout, false);
 						uiItemR(col, &imaptr, "use_alpha", 0, NULL, ICON_NONE);
 						uiItemR(col, &imaptr, "alpha_mode", 0, "Alpha", ICON_NONE);
 					}
 
 					uiItemS(layout);
 
-					split = uiLayoutSplit(layout, 0.0f, FALSE);
+					split = uiLayoutSplit(layout, 0.0f, false);
 
-					col = uiLayoutColumn(split, FALSE);
+					col = uiLayoutColumn(split, false);
 					/* XXX Why only display fields_per_frame only for video image types?
 					 *     And why allow fields for non-video image types at all??? */
 					if (BKE_image_is_animated(ima)) {
-						uiLayout *subsplit = uiLayoutSplit(col, 0.0f, FALSE);
-						uiLayout *subcol = uiLayoutColumn(subsplit, FALSE);
+						uiLayout *subsplit = uiLayoutSplit(col, 0.0f, false);
+						uiLayout *subcol = uiLayoutColumn(subsplit, false);
 						uiItemR(subcol, &imaptr, "use_fields", 0, NULL, ICON_NONE);
-						subcol = uiLayoutColumn(subsplit, FALSE);
+						subcol = uiLayoutColumn(subsplit, false);
 						uiLayoutSetActive(subcol, RNA_boolean_get(&imaptr, "use_fields"));
 						uiItemR(subcol, userptr, "fields_per_frame", 0, IFACE_("Fields"), ICON_NONE);
 					}
 					else
 						uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NONE);
-					row = uiLayoutRow(col, FALSE);
+					row = uiLayoutRow(col, false);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 				}
@@ -792,24 +792,24 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			if (BKE_image_is_animated(ima)) {
 				uiItemS(layout);
 
-				split = uiLayoutSplit(layout, 0.0f, FALSE);
+				split = uiLayoutSplit(layout, 0.0f, false);
 
-				col = uiLayoutColumn(split, FALSE);
+				col = uiLayoutColumn(split, false);
 
 				BLI_snprintf(str, sizeof(str), IFACE_("(%d) Frames"), iuser->framenr);
 				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NONE);
 				uiItemR(col, userptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
 				uiItemR(col, userptr, "frame_offset", 0, NULL, ICON_NONE);
 
-				col = uiLayoutColumn(split, FALSE);
+				col = uiLayoutColumn(split, false);
 				uiItemO(col, NULL, ICON_NONE, "IMAGE_OT_match_movie_length");
 				uiItemR(col, userptr, "use_auto_refresh", 0, NULL, ICON_NONE);
 				uiItemR(col, userptr, "use_cyclic", 0, NULL, ICON_NONE);
 			}
 			else if (ima->source == IMA_SRC_GENERATED) {
-				split = uiLayoutSplit(layout, 0.0f, FALSE);
+				split = uiLayoutSplit(layout, 0.0f, false);
 
-				col = uiLayoutColumn(split, TRUE);
+				col = uiLayoutColumn(split, true);
 				uiItemR(col, &imaptr, "generated_width", 0, "X", ICON_NONE);
 				uiItemR(col, &imaptr, "generated_height", 0, "Y", ICON_NONE);
 				
@@ -839,14 +839,14 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	const bool is_render_out = (id && GS(id->name) == ID_SCE);
 
 	uiLayout *col, *row, *split, *sub;
-	int show_preview = FALSE;
+	int show_preview = false;
 
-	col = uiLayoutColumn(layout, FALSE);
+	col = uiLayoutColumn(layout, false);
 
-	split = uiLayoutSplit(col, 0.5f, FALSE);
+	split = uiLayoutSplit(col, 0.5f, false);
 	
 	uiItemR(split, imfptr, "file_format", 0, "", ICON_NONE);
-	sub = uiLayoutRow(split, FALSE);
+	sub = uiLayoutRow(split, false);
 	uiItemR(sub, imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
 
 	/* only display depth setting if multiple depths can be used */
@@ -859,7 +859,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	           R_IMF_CHAN_DEPTH_24,
 	           R_IMF_CHAN_DEPTH_32)) == 0)
 	{
-		row = uiLayoutRow(col, FALSE);
+		row = uiLayoutRow(col, false);
 
 		uiItemL(row, IFACE_("Color Depth:"), ICON_NONE);
 		uiItemR(row, imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
@@ -877,20 +877,20 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 		uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
 	}
 	
-	row = uiLayoutRow(col, FALSE);
+	row = uiLayoutRow(col, false);
 	if (BKE_imtype_supports_zbuf(imf->imtype)) {
 		uiItemR(row, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	}
 
 	if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
-		show_preview = TRUE;
+		show_preview = true;
 		uiItemR(row, imfptr, "use_preview", 0, NULL, ICON_NONE);
 	}
 
 	if (imf->imtype == R_IMF_IMTYPE_JP2) {
 		uiItemR(col, imfptr, "jpeg2k_codec", 0, NULL, ICON_NONE);
 
-		row = uiLayoutRow(col, FALSE);
+		row = uiLayoutRow(col, false);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_preset", 0, NULL, ICON_NONE);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_48", 0, NULL, ICON_NONE);
 		
@@ -920,7 +920,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 		prop = RNA_struct_find_property(imfptr, "display_settings");
 		display_settings_ptr = RNA_property_pointer_get(imfptr, prop);
 
-		col = uiLayoutColumn(layout, FALSE);
+		col = uiLayoutColumn(layout, false);
 		uiItemL(col, IFACE_("Color Management"), ICON_NONE);
 
 		uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);

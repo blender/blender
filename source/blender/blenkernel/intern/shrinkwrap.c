@@ -197,7 +197,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 /*
  * This function raycast a single vertex and updates the hit if the "hit" is considered valid.
- * Returns TRUE if "hit" was updated.
+ * Returns true if "hit" was updated.
  * Opts control whether an hit is valid or not
  * Supported options are:
  *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)

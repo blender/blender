@@ -183,7 +183,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop = RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
 }
 
@@ -398,7 +398,7 @@ void ED_object_select_linked_by_id(bContext *C, ID *id)
 		changed = object_select_all_by_obdata(C, id);
 	}
 	else if (idtype == ID_MA) {
-		changed = object_select_all_by_material_texture(C, FALSE, (Material *)id, NULL);
+		changed = object_select_all_by_material_texture(C, false, (Material *)id, NULL);
 	}
 	else if (idtype == ID_LI) {
 		changed = object_select_all_by_library(C, (Library *) id);
@@ -447,12 +447,12 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	else if (nr == OBJECT_SELECT_LINKED_MATERIAL || nr == OBJECT_SELECT_LINKED_TEXTURE) {
 		Material *mat = NULL;
 		Tex *tex = NULL;
-		int use_texture = FALSE;
+		bool use_texture = false;
 
 		mat = give_current_material(ob, ob->actcol);
 		if (mat == NULL) return OPERATOR_CANCELLED;
 		if (nr == OBJECT_SELECT_LINKED_TEXTURE) {
-			use_texture = TRUE;
+			use_texture = true;
 
 			if (mat->mtex[(int)mat->texact]) tex = mat->mtex[(int)mat->texact]->tex;
 			if (tex == NULL) return OPERATOR_CANCELLED;
@@ -509,7 +509,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 }
 
@@ -885,7 +885,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
@@ -951,7 +951,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "match", match_items, 0, "Match", "");
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
 }
 

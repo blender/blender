@@ -58,9 +58,9 @@ typedef struct VoronoiEvent {
 typedef struct VoronoiParabola {
 	struct VoronoiParabola *left, *right, *parent;
 	VoronoiEvent *event;
-	int is_leaf;
-	float site[2];
 	VoronoiEdge *edge;
+	float site[2];
+	bool is_leaf;
 } VoronoiParabola;
 
 typedef struct VoronoiProcess {
@@ -118,7 +118,7 @@ static VoronoiParabola *voronoiParabola_new(void)
 {
 	VoronoiParabola *parabola = MEM_callocN(sizeof(VoronoiParabola), "voronoi parabola");
 
-	parabola->is_leaf = FALSE;
+	parabola->is_leaf = false;
 	parabola->event = NULL;
 	parabola->edge = NULL;
 	parabola->parent = NULL;
@@ -131,7 +131,7 @@ static VoronoiParabola *voronoiParabola_newSite(float site[2])
 	VoronoiParabola *parabola = MEM_callocN(sizeof(VoronoiParabola), "voronoi parabola site");
 
 	copy_v2_v2(parabola->site, site);
-	parabola->is_leaf = TRUE;
+	parabola->is_leaf = true;
 	parabola->event = NULL;
 	parabola->edge = NULL;
 	parabola->parent = NULL;
@@ -364,7 +364,7 @@ static void voronoi_addParabola(VoronoiProcess *process, float site[2])
 		float *fp = root->site;
 		float s[2];
 
-		root->is_leaf = FALSE;
+		root->is_leaf = false;
 		voronoiParabola_setLeft(root, voronoiParabola_newSite(fp));
 		voronoiParabola_setRight(root, voronoiParabola_newSite(site));
 
@@ -399,7 +399,7 @@ static void voronoi_addParabola(VoronoiProcess *process, float site[2])
 	BLI_addtail(&process->edges, el);
 
 	par->edge = er;
-	par->is_leaf = FALSE;
+	par->is_leaf = false;
 
 	p0 = voronoiParabola_newSite(par->site);
 	p1 = voronoiParabola_newSite(site);
@@ -566,29 +566,29 @@ static int voronoi_getNextSideCoord(ListBase *edges, float coord[2], int dim, in
 	int other_dim = dim ? 0 : 1;
 
 	while (edge) {
-		int ok = FALSE;
+		bool ok = false;
 		float co[2], cur_distance;
 
 		if (fabsf(edge->start[other_dim] - coord[other_dim]) < VORONOI_EPS &&
 		    len_squared_v2v2(coord, edge->start) > VORONOI_EPS)
 		{
 			copy_v2_v2(co, edge->start);
-			ok = TRUE;
+			ok = true;
 		}
 
 		if (fabsf(edge->end[other_dim] - coord[other_dim]) < VORONOI_EPS &&
 		    len_squared_v2v2(coord, edge->end) > VORONOI_EPS)
 		{
 			copy_v2_v2(co, edge->end);
-			ok = TRUE;
+			ok = true;
 		}
 
 		if (ok) {
 			if (dir > 0 && coord[dim] > co[dim]) {
-				ok = FALSE;
+				ok = false;
 			}
 			else if (dir < 0 && coord[dim] < co[dim]) {
-				ok = FALSE;
+				ok = false;
 			}
 		}
 
@@ -693,7 +693,7 @@ void BLI_voronoi_compute(const VoronoiSite *sites, int sites_total, int width, i
 	BLI_movelisttolist(edges, &process.edges);
 }
 
-static int testVoronoiEdge(const float site[2], const float point[2], const VoronoiEdge *edge)
+static bool testVoronoiEdge(const float site[2], const float point[2], const VoronoiEdge *edge)
 {
 	float p[2];
 
@@ -701,11 +701,11 @@ static int testVoronoiEdge(const float site[2], const float point[2], const Voro
 		if (len_squared_v2v2(p, edge->start) > VORONOI_EPS &&
 		    len_squared_v2v2(p, edge->end) > VORONOI_EPS)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 static int voronoi_addTriangulationPoint(const float coord[2], const float color[3],
@@ -787,16 +787,16 @@ void BLI_voronoi_triangulate(const VoronoiSite *sites, int sites_total, ListBase
 		edge = boundary_edges.first;
 		while (edge) {
 			VoronoiEdge *test_edge = boundary_edges.first;
-			int ok_start = TRUE, ok_end = TRUE;
+			bool ok_start = true, ok_end = true;
 
 			while (test_edge) {
 				if (ok_start && !testVoronoiEdge(sites[i].co, edge->start, test_edge)) {
-					ok_start = FALSE;
+					ok_start = false;
 					break;
 				}
 
 				if (ok_end && !testVoronoiEdge(sites[i].co, edge->end, test_edge)) {
-					ok_end = FALSE;
+					ok_end = false;
 					break;
 				}
 

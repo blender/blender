@@ -382,7 +382,7 @@ static int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
 void rna_Object_dm_info(struct Object *ob, int type, char *result)
 {
 	DerivedMesh *dm = NULL;
-	int dm_release = FALSE;
+	bool dm_release = false;
 	char *ret = NULL;
 
 	result[0] = '\0';
@@ -392,7 +392,7 @@ void rna_Object_dm_info(struct Object *ob, int type, char *result)
 			if (ob->type == OB_MESH) {
 				dm = CDDM_from_mesh(ob->data);
 				ret = DM_debug_info(dm);
-				dm_release = TRUE;
+				dm_release = true;
 			}
 			break;
 		case 1:

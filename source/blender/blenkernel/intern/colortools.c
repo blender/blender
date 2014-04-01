@@ -183,14 +183,14 @@ void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], con
 /* ********** NOTE: requires curvemapping_changed() call after ******** */
 
 /* remove specified point */
-int curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
+bool curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
 {
 	CurveMapPoint *cmp;
 	int a, b, removed = 0;
 	
 	/* must have 2 points minimum */
 	if (cuma->totpoint <= 2)
-		return FALSE;
+		return false;
 
 	cmp = MEM_mallocN((cuma->totpoint) * sizeof(CurveMapPoint), "curve points");
 
@@ -759,7 +759,7 @@ void curvemapping_changed_all(CurveMapping *cumap)
 	for (a = 0; a < CM_TOT; a++) {
 		if (cumap->cm[a].curve) {
 			cumap->cur = a;
-			curvemapping_changed(cumap, FALSE);
+			curvemapping_changed(cumap, false);
 		}
 	}
 

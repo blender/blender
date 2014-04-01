@@ -319,7 +319,7 @@ void INFO_OT_select_border(wmOperatorType *ot)
 	/* ot->flag = OPTYPE_REGISTER; */
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 }
 
 

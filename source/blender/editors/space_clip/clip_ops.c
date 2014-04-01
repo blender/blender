@@ -1030,7 +1030,7 @@ static void do_movie_proxy(void *pjv, int *UNUSED(build_sizes), int UNUSED(build
 		if (*stop || G.is_break)
 			break;
 
-		*do_update = TRUE;
+		*do_update = true;
 		*progress = ((float) cfra - sfra) / (efra - sfra);
 	}
 
@@ -1523,5 +1523,5 @@ void ED_operatormacros_clip(void)
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "CLIP_OT_add_marker");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_boolean_set(otmacro->ptr, "release_confirm", TRUE);
+	RNA_boolean_set(otmacro->ptr, "release_confirm", true);
 }

@@ -272,7 +272,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		MDeformVert *dvert = (MDeformVert *) CustomData_get_layer(&result->vertData, CD_MDEFORMVERT) + maxVerts;
 		int *flip_map = NULL, flip_map_len = 0;
 
-		flip_map = defgroup_flip_map(ob, &flip_map_len, FALSE);
+		flip_map = defgroup_flip_map(ob, &flip_map_len, false);
 		
 		if (flip_map) {
 			for (i = 0; i < maxVerts; dvert++, i++) {

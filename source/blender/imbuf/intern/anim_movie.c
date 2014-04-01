@@ -147,7 +147,8 @@ static void free_anim_movie(struct anim *UNUSED(anim))
 static int an_stringdec(const char *string, char *head, char *tail, unsigned short *numlen)
 {
 	unsigned short len, nume, nums = 0;
-	short i, found = FALSE;
+	short i;
+	bool found = false;
 
 	len = strlen(string);
 	nume = len;
@@ -161,7 +162,7 @@ static int an_stringdec(const char *string, char *head, char *tail, unsigned sho
 			else {
 				nume = i;
 				nums = i;
-				found = TRUE;
+				found = true;
 			}
 		}
 		else {
@@ -178,7 +179,7 @@ static int an_stringdec(const char *string, char *head, char *tail, unsigned sho
 	tail[0] = '\0';
 	strcpy(head, string);
 	*numlen = 0;
-	return TRUE;
+	return true;
 }
 
 
@@ -567,7 +568,7 @@ static int startffmpeg(struct anim *anim)
 	anim->next_packet.stream_index = -1;
 
 	anim->pFrame = avcodec_alloc_frame();
-	anim->pFrameComplete = FALSE;
+	anim->pFrameComplete = false;
 	anim->pFrameDeinterlaced = avcodec_alloc_frame();
 	anim->pFrameRGB = avcodec_alloc_frame();
 
@@ -690,7 +691,7 @@ static void ffmpeg_postprocess(struct anim *anim)
 		        anim->pCodecCtx->width,
 		        anim->pCodecCtx->height) < 0)
 		{
-			filter_y = TRUE;
+			filter_y = true;
 		}
 		else {
 			input = anim->pFrameDeinterlaced;
@@ -936,18 +937,18 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 	const char **p;
 
 	if (pFormatCtx->iformat->flags & AVFMT_TS_DISCONT) {
-		return TRUE;
+		return true;
 	}
 
 	p = byte_seek_list;
 
 	while (*p) {
 		if (match_format(*p++, pFormatCtx)) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
@@ -1425,15 +1426,15 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc)
 	return IMB_indexer_get_duration(idx);
 }
 
-int IMB_anim_get_fps(struct anim *anim,
+bool IMB_anim_get_fps(struct anim *anim,
                      short *frs_sec, float *frs_sec_base)
 {
 	if (anim->frs_sec) {
 		*frs_sec = anim->frs_sec;
 		*frs_sec_base = anim->frs_sec_base;
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 void IMB_anim_set_preseek(struct anim *anim, int preseek)

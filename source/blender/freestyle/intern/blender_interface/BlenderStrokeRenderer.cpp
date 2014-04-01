@@ -444,7 +444,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 			}
 		} // loop over strip vertices
 #if 0
-		BKE_mesh_validate(mesh, TRUE);
+		BKE_mesh_validate(mesh, true);
 #endif
 	} // loop over strips
 }

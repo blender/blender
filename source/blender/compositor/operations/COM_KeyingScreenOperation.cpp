@@ -148,7 +148,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 			continue;
 		}
 
-		pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
+		pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, true, false);
 
 		zero_v3(site->color);
 

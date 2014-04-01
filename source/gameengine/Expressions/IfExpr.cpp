@@ -64,8 +64,8 @@ CIfExpr::~CIfExpr()
 
 /**
  * pre:
- * ret: a new object containing the value of m_e1 if m_guard is a boolean TRUE
- *      a new object containing the value of m_e2 if m_guard is a boolean FALSE
+ * ret: a new object containing the value of m_e1 if m_guard is a boolean true
+ *      a new object containing the value of m_e2 if m_guard is a boolean false
  *      an new errorvalue if m_guard is not a boolean
  */
 CValue* CIfExpr::Calculate()

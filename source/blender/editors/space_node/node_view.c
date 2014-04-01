@@ -88,7 +88,7 @@ int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar,
 				tot++;
 
 				if (node->type == NODE_FRAME) {
-					has_frame = TRUE;
+					has_frame = true;
 				}
 			}
 		}
@@ -102,7 +102,7 @@ int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar,
 		/* for single non-frame nodes, don't zoom in, just pan view,
 		 * but do allow zooming out, this allows for big nodes to be zoomed out */
 		if ((tot == 1) &&
-		    (has_frame == FALSE) &&
+		    (has_frame == false) &&
 		    ((oldwidth * oldheight) > (width * height)))
 		{
 			/* center, don't zoom */
@@ -411,7 +411,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	ImageSampleInfo *info = arg_info;
 
 	if (info->draw) {
-		ED_image_draw_info(scene, ar, info->color_manage, FALSE, info->channels,
+		ED_image_draw_info(scene, ar, info->color_manage, false, info->channels,
 		                   info->x, info->y, info->col, info->colf, info->linearcol,
 		                   info->zp, info->zfp);
 	}
@@ -425,19 +425,19 @@ bool ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], floa
 	Image *ima;
 	ImBuf *ibuf;
 	float fx, fy, bufx, bufy;
-	int ret = FALSE;
+	int ret = false;
 
 	if (STREQ(snode->tree_idname, ntreeType_Composite->idname) || (snode->flag & SNODE_BACKDRAW) == 0) {
 		/* use viewer image for color sampling only if we're in compositor tree
 		 * with backdrop enabled
 		 */
-		return FALSE;
+		return false;
 	}
 
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 	if (!ibuf) {
-		return FALSE;
+		return false;
 	}
 
 	/* map the mouse coords to the backdrop image space */
@@ -458,12 +458,12 @@ bool ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], floa
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 			/* IB_PROFILE_NONE is default but infact its linear */
 			linearrgb_to_srgb_v3_v3(r_col, fp);
-			ret = TRUE;
+			ret = true;
 		}
 		else if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 			rgb_uchar_to_float(r_col, cp);
-			ret = TRUE;
+			ret = true;
 		}
 	}
 
@@ -531,7 +531,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 			copy_v4_v4(info->linearcol, info->colf);
 			IMB_colormanagement_colorspace_to_scene_linear_v4(info->linearcol, false, ibuf->rect_colorspace);
 
-			info->color_manage = TRUE;
+			info->color_manage = true;
 		}
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
@@ -541,7 +541,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 			info->colf[2] = fp[2];
 			info->colf[3] = fp[3];
 
-			info->color_manage = TRUE;
+			info->color_manage = true;
 		}
 		
 		if (ibuf->zbuf) {

@@ -151,7 +151,7 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 	if (sa->type && sa->type->refresh) {
 		sa->type->refresh(C, sa);
 	}
-	sa->do_refresh = FALSE;
+	sa->do_refresh = false;
 }
 
 /**
@@ -526,7 +526,7 @@ void ED_area_tag_redraw_regiontype(ScrArea *sa, int regiontype)
 void ED_area_tag_refresh(ScrArea *sa)
 {
 	if (sa)
-		sa->do_refresh = TRUE;
+		sa->do_refresh = true;
 }
 
 /* *************************************************************** */
@@ -1332,7 +1332,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 }
 
 /* for quick toggle, can skip fades */
-void region_toggle_hidden(bContext *C, ARegion *ar, int do_fade)
+void region_toggle_hidden(bContext *C, ARegion *ar, bool do_fade)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	
@@ -1359,7 +1359,7 @@ void ED_region_toggle_hidden(bContext *C, ARegion *ar)
 
 /* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
 /* area vertices were set */
-void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
+void area_copy_data(ScrArea *sa1, ScrArea *sa2, const bool swap_space)
 {
 	SpaceType *st;
 	ARegion *ar;

@@ -599,7 +599,7 @@ static MovieTrackingObject *rna_trackingObject_new(MovieTracking *tracking, cons
 static void rna_trackingObject_remove(MovieTracking *tracking, ReportList *reports, PointerRNA *object_ptr)
 {
 	MovieTrackingObject *object = object_ptr->data;
-	if (BKE_tracking_object_delete(tracking, object) == FALSE) {
+	if (BKE_tracking_object_delete(tracking, object) == false) {
 		BKE_reportf(reports, RPT_ERROR, "MovieTracking '%s' cannot be removed", object->name);
 		return;
 	}
@@ -1168,7 +1168,7 @@ static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
 	                   "Frame number to find marker for", MINFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "exact", TRUE, "Exact",
+	RNA_def_boolean(func, "exact", true, "Exact",
 	                "Get marker at exact frame number rather than get estimated marker");
 	parm = RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame");
 	RNA_def_function_return(func, parm);
@@ -1466,7 +1466,7 @@ static void rna_def_trackingPlaneMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
 	                   "Frame number to find marker for", MINFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "exact", TRUE, "Exact",
+	RNA_def_boolean(func, "exact", true, "Exact",
 	                "Get plane marker at exact frame number rather than get estimated marker");
 	parm = RNA_def_pointer(func, "plane_marker", "MovieTrackingPlaneMarker", "", "Plane marker for specified frame");
 	RNA_def_function_return(func, parm);

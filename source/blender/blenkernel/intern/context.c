@@ -258,7 +258,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	bScreen *sc;
 	ScrArea *sa;
 	ARegion *ar;
-	int done = FALSE, recursion = C->data.recursion;
+	int done = 0, recursion = C->data.recursion;
 	int ret = 0;
 
 	memset(result, 0, sizeof(bContextDataResult));
@@ -291,7 +291,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 		entry = BLI_rfindstring(&C->wm.store->entries, member, offsetof(bContextStoreEntry, name));
 		if (entry) {
 			result->ptr = entry->ptr;
-			done = TRUE;
+			done = 1;
 		}
 	}
 	if (done != 1 && recursion < 2 && (ar = CTX_wm_region(C))) {
@@ -435,11 +435,11 @@ int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListB
 	return ret;
 }
 
-static void data_dir_add(ListBase *lb, const char *member, const short use_all)
+static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
 {
 	LinkData *link;
 	
-	if ((use_all == FALSE) && strcmp(member, "scene") == 0) /* exception */
+	if ((use_all == false) && strcmp(member, "scene") == 0) /* exception */
 		return;
 
 	if (BLI_findstring(lb, member, offsetof(LinkData, data)))
@@ -456,7 +456,7 @@ static void data_dir_add(ListBase *lb, const char *member, const short use_all)
  * \param use_rna Use Include the properties from 'RNA_Context'
  * \param use_all Don't skip values (currently only "scene")
  */
-ListBase CTX_data_dir_get_ex(const bContext *C, const short use_store, const short use_rna, const short use_all)
+ListBase CTX_data_dir_get_ex(const bContext *C, const bool use_store, const bool use_rna, const bool use_all)
 {
 	bContextDataResult result;
 	ListBase lb;
@@ -526,7 +526,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C, const short use_store, const sho
 
 ListBase CTX_data_dir_get(const bContext *C)
 {
-	return CTX_data_dir_get_ex(C, TRUE, FALSE, FALSE);
+	return CTX_data_dir_get_ex(C, true, false, false);
 }
 
 bool CTX_data_equals(const char *member, const char *str)

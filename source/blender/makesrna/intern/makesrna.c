@@ -1768,12 +1768,12 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 
 			if (cprop->item_type)
 				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s, %s)", collection_funcs, (const char *)cprop->item_type, srna->identifier,
-				        rna_safe_id(prop->identifier), (cprop->length ? "TRUE" : "FALSE"),
-				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
+				        rna_safe_id(prop->identifier), (cprop->length ? "true" : "false"),
+				        (cprop->lookupint ? "true" : "false"), (cprop->lookupstring ? "true" : "false"));
 			else
 				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s, %s)", collection_funcs, "UnknownType", srna->identifier,
-				        rna_safe_id(prop->identifier), (cprop->length ? "TRUE" : "FALSE"),
-				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
+				        rna_safe_id(prop->identifier), (cprop->length ? "true" : "false"),
+				        (cprop->lookupint ? "true" : "false"), (cprop->lookupstring ? "true" : "false"));
 			break;
 		}
 	}
@@ -1949,12 +1949,12 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, StructRNA *srna, PropertyDe
 
 			if (cprop->type)
 				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", (const char *)cprop->type, srna->identifier,
-				        prop->identifier, (cprop->length ? "TRUE" : "FALSE"),
-				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
+				        prop->identifier, (cprop->length ? "true" : "false"),
+				        (cprop->lookupint ? "true" : "false"), (cprop->lookupstring ? "true" : "false"));
 			else
 				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", "UnknownType", srna->identifier,
-				        prop->identifier, (cprop->length ? "TRUE" : "FALSE"),
-				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
+				        prop->identifier, (cprop->length ? "true" : "false"),
+				        (cprop->lookupint ? "true" : "false"), (cprop->lookupstring ? "true" : "false"));
 #endif
 			break;
 		}

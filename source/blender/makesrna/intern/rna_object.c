@@ -213,7 +213,7 @@ static void rna_Object_internal_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	/* don't use compat so we get predictable rotation */
-	BKE_object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE, TRUE);
+	BKE_object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, false, true);
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -245,7 +245,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 	}
 
 	/* don't use compat so we get predictable rotation */
-	BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+	BKE_object_apply_mat4(ob, ob->obmat, false, false);
 }
 
 static void rna_Object_matrix_basis_get(PointerRNA *ptr, float values[16])
@@ -257,7 +257,7 @@ static void rna_Object_matrix_basis_get(PointerRNA *ptr, float values[16])
 static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
 {
 	Object *ob = ptr->id.data;
-	BKE_object_apply_mat4(ob, (float(*)[4])values, FALSE, FALSE);
+	BKE_object_apply_mat4(ob, (float(*)[4])values, false, false);
 }
 
 void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1335,7 +1335,7 @@ static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, Report
 static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *reports, PointerRNA *md_ptr)
 {
 	ModifierData *md = md_ptr->data;
-	if (ED_object_modifier_remove(reports, CTX_data_main(C), object, md) == FALSE) {
+	if (ED_object_modifier_remove(reports, CTX_data_main(C), object, md) == false) {
 		/* error is already set */
 		return;
 	}

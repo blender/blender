@@ -123,7 +123,7 @@ bConstraintTypeInfo *BKE_get_constraint_typeinfo(int type);
 void BKE_unique_constraint_name(struct bConstraint *con, struct ListBase *list);
 
 void BKE_free_constraints(struct ListBase *list);
-void BKE_copy_constraints(struct ListBase *dst, const struct ListBase *src, int do_extern);
+void BKE_copy_constraints(struct ListBase *dst, const struct ListBase *src, bool do_extern);
 void BKE_relink_constraints(struct ListBase *list);
 void BKE_id_loop_constraints(struct ListBase *list, ConstraintIDFunc func, void *userdata);
 void BKE_free_constraint_data(struct bConstraint *con);

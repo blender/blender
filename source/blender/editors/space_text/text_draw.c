@@ -1340,7 +1340,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	lineno = 0;
 	for (i = 0; i < st->top && tmp; i++) {
 		if (st->showsyntax && !tmp->format)
-			tft->format_line(st, tmp, 0);
+			tft->format_line(st, tmp, false);
 
 		if (st->wordwrap) {
 			int lines = text_get_visible_lines_no(st, lineno);
@@ -1389,7 +1389,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 	for (i = 0; y > 0 && i < st->viewlines && tmp; i++, tmp = tmp->next) {
 		if (st->showsyntax && !tmp->format)
-			tft->format_line(st, tmp, 0);
+			tft->format_line(st, tmp, false);
 
 		if (st->showlinenrs && !wrap_skip) {
 			/* draw line number */

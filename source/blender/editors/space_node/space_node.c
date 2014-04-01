@@ -828,7 +828,7 @@ void ED_spacetype_node(void)
 	art->draw = node_main_area_draw;
 	art->listener = node_region_listener;
 	art->cursor = node_cursor;
-	art->event_cursor = TRUE;
+	art->event_cursor = true;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
 
 	BLI_addhead(&st->regiontypes, art);

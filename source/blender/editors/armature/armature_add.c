@@ -548,9 +548,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	for (ebone = arm->edbo->first; ((ebone) && (ebone != first)); ebone = ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone)) {
 			/* we extrude per definition the tip */
-			do_extrude = FALSE;
+			do_extrude = false;
 			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED)) {
-				do_extrude = TRUE;
+				do_extrude = true;
 			}
 			else if (ebone->flag & BONE_ROOTSEL) {
 				/* but, a bone with parent deselected we do the root... */
@@ -589,7 +589,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					totbone++;
 					newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
 					
-					if (do_extrude == TRUE) {
+					if (do_extrude == true) {
 						copy_v3_v3(newbone->head, ebone->tail);
 						copy_v3_v3(newbone->tail, newbone->head);
 						newbone->parent = ebone;

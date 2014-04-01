@@ -213,7 +213,7 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
 			return;
 	}
 
-	sc->scopes.ok = FALSE;
+	sc->scopes.ok = false;
 }
 
 static void clip_scopes_check_gpencil_change(ScrArea *sa)
@@ -233,7 +233,7 @@ static void clip_stabilization_tag_refresh(ScrArea *sa)
 	if (clip) {
 		MovieTrackingStabilization *stab = &clip->tracking.stabilization;
 
-		stab->ok = FALSE;
+		stab->ok = false;
 	}
 }
 
@@ -336,7 +336,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	scn->scopes.track_search = NULL;
 	scn->scopes.track_preview = NULL;
-	scn->scopes.ok = FALSE;
+	scn->scopes.ok = false;
 
 	return (SpaceLink *)scn;
 }
@@ -564,17 +564,17 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* 2d tracking */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "backwards", TRUE);
-	RNA_boolean_set(kmi->ptr, "sequence", FALSE);
+	RNA_boolean_set(kmi->ptr, "backwards", true);
+	RNA_boolean_set(kmi->ptr, "sequence", false);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "backwards", FALSE);
-	RNA_boolean_set(kmi->ptr, "sequence", FALSE);
+	RNA_boolean_set(kmi->ptr, "backwards", false);
+	RNA_boolean_set(kmi->ptr, "sequence", false);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "backwards", FALSE);
-	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
+	RNA_boolean_set(kmi->ptr, "backwards", false);
+	RNA_boolean_set(kmi->ptr, "sequence", true);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "backwards", TRUE);
-	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
+	RNA_boolean_set(kmi->ptr, "backwards", true);
+	RNA_boolean_set(kmi->ptr, "sequence", true);
 
 	/* mode */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", TABKEY, KM_PRESS, 0, 0);
@@ -627,7 +627,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_view_all", FKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "fit_view", TRUE);
+	RNA_boolean_set(kmi->ptr, "fit_view", true);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
@@ -652,9 +652,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* selection */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", true);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -664,9 +664,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "CLIP_MT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
 
 	/* marker */
 	WM_keymap_add_item(keymap, "CLIP_OT_add_marker_slide", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
@@ -690,10 +690,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", 1);    /* unlock */
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
+	RNA_boolean_set(kmi->ptr, "unselected", false);
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
+	RNA_boolean_set(kmi->ptr, "unselected", true);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks_clear", HKEY, KM_PRESS, KM_ALT, 0);
 
@@ -727,13 +727,13 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	/* clean-up */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
-	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
+	RNA_boolean_set(kmi->ptr, "clear_active", false);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
-	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
+	RNA_boolean_set(kmi->ptr, "clear_active", false);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
-	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
+	RNA_boolean_set(kmi->ptr, "clear_active", false);
 
 	/* Cursor */
 	WM_keymap_add_item(keymap, "CLIP_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
@@ -764,9 +764,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* selection */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", true);
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_select_all_markers", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
@@ -793,13 +793,13 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	/* clean-up */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
-	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "clear_active", true);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
-	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "clear_active", true);
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
-	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "clear_active", true);
 
 	/* tracks */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_graph_disable_markers", DKEY, KM_PRESS, KM_SHIFT, 0);
@@ -812,7 +812,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_select_channel", ACTIONMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);  /* toggle */
+	RNA_boolean_set(kmi->ptr, "extend", true);  /* toggle */
 
 	WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
@@ -827,20 +827,20 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, clip_context_dir);
 
-		return TRUE;
+		return true;
 	}
 	else if (CTX_data_equals(member, "edit_movieclip")) {
 		if (sc->clip)
 			CTX_data_id_pointer_set(result, &sc->clip->id);
-		return TRUE;
+		return true;
 	}
 	else if (CTX_data_equals(member, "edit_mask")) {
 		if (sc->mask_info.mask)
 			CTX_data_id_pointer_set(result, &sc->mask_info.mask->id);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* dropboxes */
@@ -848,9 +848,9 @@ static int clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUS
 {
 	if (drag->type == WM_DRAG_PATH)
 		if (ELEM4(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) /* rule might not work? */
-			return TRUE;
+			return true;
 
-	return FALSE;
+	return false;
 }
 
 static void clip_drop_copy(wmDrag *drag, wmDropBox *drop)

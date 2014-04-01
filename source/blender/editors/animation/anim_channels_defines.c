@@ -3408,7 +3408,8 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
-	short flag = 0, done = FALSE;
+	short flag = 0;
+	bool done = false;
 	float cfra;
 	
 	/* get current frame */
@@ -3446,7 +3447,8 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
-	short flag = 0, done = FALSE;
+	short flag = 0;
+	bool done = false;
 	float cfra;
 	
 	/* get current frame */

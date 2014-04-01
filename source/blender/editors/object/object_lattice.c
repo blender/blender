@@ -886,7 +886,7 @@ bool mouse_lattice(bContext *C, const int mval[2], bool extend, bool deselect, b
 
 	view3d_set_viewcontext(C, &vc);
 	lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
-	bp = findnearestLattvert(&vc, mval, TRUE);
+	bp = findnearestLattvert(&vc, mval, true);
 
 	if (bp) {
 		if (extend) {

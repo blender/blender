@@ -1400,7 +1400,7 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (pchan != chan) {
-			BKE_copy_constraints(&chan->constraints, &pchan->constraints, TRUE);
+			BKE_copy_constraints(&chan->constraints, &pchan->constraints, true);
 			/* update flags (need to add here, not just copy) */
 			chan->constflag |= pchan->constflag;
 		}
@@ -1440,7 +1440,7 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (obact != ob) {
-			BKE_copy_constraints(&ob->constraints, &obact->constraints, TRUE);
+			BKE_copy_constraints(&ob->constraints, &obact->constraints, true);
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}

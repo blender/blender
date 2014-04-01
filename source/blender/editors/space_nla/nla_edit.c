@@ -342,13 +342,13 @@ static int nlaedit_viewall(bContext *C, const short onlySel)
 static int nlaedit_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 {	
 	/* whole range */
-	return nlaedit_viewall(C, FALSE);
+	return nlaedit_viewall(C, false);
 }
 
 static int nlaedit_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* only selected */
-	return nlaedit_viewall(C, TRUE);
+	return nlaedit_viewall(C, true);
 }
  
 void NLA_OT_view_all(wmOperatorType *ot)
@@ -527,7 +527,7 @@ static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	int done = FALSE;
+	int done = false;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -846,7 +846,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	bAnimListElem *ale;
 	int filter;
 	
-	short done = FALSE;
+	bool done = false;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -889,7 +889,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 				/* auto-name newly created strip */
 				BKE_nlastrip_validate_name(adt, nstrip);
 				
-				done++;
+				done = true;
 			}
 		}
 	}

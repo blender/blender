@@ -94,10 +94,10 @@ int node_group_poll_instance(bNode *node, bNodeTree *nodetree)
 		if (grouptree)
 			return nodeGroupPoll(nodetree, grouptree);
 		else
-			return TRUE;    /* without a linked node tree, group node is always ok */
+			return true;    /* without a linked node tree, group node is always ok */
 	}
 	else
-		return FALSE;
+		return false;
 }
 
 int nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree)

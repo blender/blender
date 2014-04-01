@@ -272,7 +272,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	if (numbones == 0)
 		return;
 	
-	if (ED_vgroup_data_create(ob->data) == FALSE)
+	if (ED_vgroup_data_create(ob->data) == false)
 		return;
 
 	/* create an array of pointer to bones that are skinnable

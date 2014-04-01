@@ -1688,7 +1688,7 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 		else
 			sb_threads[i].ifirst  = 0;
 		sb_threads[i].do_effector = do_effector;
-		sb_threads[i].do_deflector = FALSE;// not used here
+		sb_threads[i].do_deflector = false;// not used here
 		sb_threads[i].fieldfactor = 0.0f;// not used here
 		sb_threads[i].windfactor  = 0.0f;// not used here
 		sb_threads[i].nr= i;

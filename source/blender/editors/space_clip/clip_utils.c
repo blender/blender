@@ -256,7 +256,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
 	if (update_stab) {
-		tracking->stabilization.ok = FALSE;
+		tracking->stabilization.ok = false;
 		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
 

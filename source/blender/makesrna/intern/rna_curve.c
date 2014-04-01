@@ -628,7 +628,7 @@ static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, PointerRNA *
 	Nurb *nu = nu_ptr->data;
 	ListBase *nurbs = BKE_curve_nurbs_get(cu);
 
-	if (BLI_remlink_safe(nurbs, nu) == FALSE) {
+	if (BLI_remlink_safe(nurbs, nu) == false) {
 		BKE_reportf(reports, RPT_ERROR, "Curve '%s' does not contain spline given", cu->id.name + 2);
 		return;
 	}

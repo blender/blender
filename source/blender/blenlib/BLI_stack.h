@@ -48,7 +48,7 @@ void BLI_stack_push(BLI_Stack *stack, void *src);
  * If stack is empty, 'dst' will not be modified. */
 void BLI_stack_pop(BLI_Stack *stack, void *dst);
 
-/* Returns TRUE if the stack is empty, FALSE otherwise */
+/* Returns true if the stack is empty, false otherwise */
 int BLI_stack_empty(const BLI_Stack *stack);
 
 #endif

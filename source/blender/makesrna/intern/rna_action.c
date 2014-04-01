@@ -80,7 +80,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
 	FCurve *fcu, *fcn;
 	
 	/* try to remove the F-Curve from the action */
-	if (BLI_remlink_safe(&act->groups, agrp) == FALSE) {
+	if (BLI_remlink_safe(&act->groups, agrp) == false) {
 		BKE_reportf(reports, RPT_ERROR, "Action group '%s' not found in action '%s'", agrp->name, act->id.name + 2);
 		return;
 	}
@@ -205,7 +205,7 @@ static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min,
 static void rna_Action_frame_range_get(PointerRNA *ptr, float *values)
 {   /* don't include modifiers because they too easily can have very large
 	 * ranges: MINAFRAMEF to MAXFRAMEF. */
-	calc_action_range(ptr->id.data, values, values + 1, FALSE);
+	calc_action_range(ptr->id.data, values, values + 1, false);
 }
 
 

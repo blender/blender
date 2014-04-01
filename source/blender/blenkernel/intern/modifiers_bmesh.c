@@ -79,7 +79,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 	int cd_edge_bweight_offset;
 	int cd_edge_crease_offset;
 
-	if (is_init == FALSE) {
+	if (is_init == false) {
 		/* check if we have an origflag */
 		has_orig_hflag |= CustomData_has_layer(&bm->vdata, CD_ORIGINDEX) ? BM_VERT : 0;
 		has_orig_hflag |= CustomData_has_layer(&bm->edata, CD_ORIGINDEX) ? BM_EDGE : 0;

@@ -115,10 +115,10 @@ static int rna_ID_name_editable(PointerRNA *ptr)
 	if (GS(id->name) == ID_VF) {
 		VFont *vfont = (VFont *)id;
 		if (BKE_vfont_is_builtin(vfont))
-			return FALSE;
+			return false;
 	}
 	
-	return TRUE;
+	return true;
 }
 
 short RNA_type_to_ID_code(StructRNA *type)

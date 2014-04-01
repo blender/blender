@@ -81,7 +81,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	bContext *C;
 	wmWindowManager *wm;
 	wmWindow *win;
-	static int recursive_check = FALSE;
+	static bool recursive_check = false;
 
 	/* don't do this render engine update if we're updating the scene from
 	 * other threads doing e.g. rendering or baking jobs */
@@ -92,7 +92,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	if (recursive_check)
 		return;
 	
-	recursive_check = TRUE;
+	recursive_check = true;
 
 	C = CTX_create();
 	CTX_data_main_set(C, bmain);
@@ -140,7 +140,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 
 	CTX_free(C);
 
-	recursive_check = FALSE;
+	recursive_check = false;
 }
 
 void ED_render_engine_area_exit(ScrArea *sa)
@@ -275,7 +275,7 @@ static void material_changed(Main *bmain, Material *ma)
 	Material *parent;
 	Object *ob;
 	Scene *scene;
-	int texture_draw = FALSE;
+	int texture_draw = false;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&ma->id));
@@ -302,7 +302,7 @@ static void material_changed(Main *bmain, Material *ma)
 	/* find if we have a scene with textured display */
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		if (scene->customdata_mask & CD_MASK_MTFACE) {
-			texture_draw = TRUE;
+			texture_draw = true;
 			break;
 		}
 	}
@@ -351,11 +351,11 @@ static void lamp_changed(Main *bmain, Lamp *la)
 static int material_uses_texture(Material *ma, Tex *tex)
 {
 	if (mtex_use_tex(ma->mtex, MAX_MTEX, tex))
-		return TRUE;
+		return true;
 	else if (ma->use_nodes && ma->nodetree && nodes_use_tex(ma->nodetree, tex))
-		return TRUE;
+		return true;
 	
-	return FALSE;
+	return false;
 }
 
 static void texture_changed(Main *bmain, Tex *tex)
@@ -366,7 +366,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	Scene *scene;
 	Object *ob;
 	bNode *node;
-	int texture_draw = FALSE;
+	int texture_draw = false;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&tex->id));
@@ -424,7 +424,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 		}
 
 		if (scene->customdata_mask & CD_MASK_MTFACE)
-			texture_draw = TRUE;
+			texture_draw = true;
 	}
 
 	/* find textured objects */

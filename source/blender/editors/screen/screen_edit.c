@@ -468,7 +468,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	
 	sc = BKE_libblock_alloc(G.main, ID_SCR, name);
 	sc->scene = scene;
-	sc->do_refresh = TRUE;
+	sc->do_refresh = true;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
 	sc->winid = win->winid;
 
@@ -1099,18 +1099,18 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 	switch (note->category) {
 		case NC_WM:
 			if (note->data == ND_FILEREAD)
-				win->screen->do_draw = TRUE;
+				win->screen->do_draw = true;
 			break;
 		case NC_WINDOW:
-			win->screen->do_draw = TRUE;
+			win->screen->do_draw = true;
 			break;
 		case NC_SCREEN:
 			if (note->action == NA_EDITED)
-				win->screen->do_draw = win->screen->do_refresh = TRUE;
+				win->screen->do_draw = win->screen->do_refresh = true;
 			break;
 		case NC_SCENE:
 			if (note->data == ND_MODE)
-				region_cursor_set(win, note->swinid, TRUE);
+				region_cursor_set(win, note->swinid, true);
 			break;
 	}
 }
@@ -1185,7 +1185,7 @@ void ED_screen_draw(wmWindow *win)
 		glDisable(GL_BLEND);
 	}
 	
-	win->screen->do_draw = FALSE;
+	win->screen->do_draw = false;
 }
 
 /* helper call for below, dpi changes headers */
@@ -1240,7 +1240,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 	if (G.debug & G_DEBUG_EVENTS) {
 		printf("%s: set screen\n", __func__);
 	}
-	win->screen->do_refresh = FALSE;
+	win->screen->do_refresh = false;
 
 	win->screen->context = ed_screen_context;
 }
@@ -1415,11 +1415,11 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 		if (oldswin != scr->subwinactive) {
 
 			for (sa = scr->areabase.first; sa; sa = sa->next) {
-				int do_draw = FALSE;
+				bool do_draw = false;
 				
 				for (ar = sa->regionbase.first; ar; ar = ar->next)
 					if (ar->swinid == oldswin || ar->swinid == scr->subwinactive)
-						do_draw = TRUE;
+						do_draw = true;
 				
 				if (do_draw) {
 					for (ar = sa->regionbase.first; ar; ar = ar->next)
@@ -1436,7 +1436,7 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 		else {
 			/* notifier invokes freeing the buttons... causing a bit too much redraws */
 			if (oldswin != scr->subwinactive) {
-				region_cursor_set(win, scr->subwinactive, TRUE);
+				region_cursor_set(win, scr->subwinactive, true);
 
 				/* this used to be a notifier, but needs to be done immediate
 				 * because it can undo setting the right button as active due
@@ -1444,7 +1444,7 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 				uiFreeActiveButtons(C, win->screen);
 			}
 			else
-				region_cursor_set(win, scr->subwinactive, FALSE);
+				region_cursor_set(win, scr->subwinactive, false);
 		}
 	}
 }
@@ -1563,7 +1563,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		 * have different layers visible in 3D viewpots. This is possible
 		 * because of view3d.lock_camera_and_layers option.
 		 */
-		DAG_on_visible_update(bmain, FALSE);
+		DAG_on_visible_update(bmain, false);
 	}
 }
 
@@ -1697,7 +1697,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	
 	CTX_data_scene_set(C, scene);
 	BKE_scene_set_background(bmain, scene);
-	DAG_on_visible_update(bmain, FALSE);
+	DAG_on_visible_update(bmain, false);
 	
 	ED_render_engine_changed(bmain);
 	ED_update_for_newframe(bmain, scene, 1);

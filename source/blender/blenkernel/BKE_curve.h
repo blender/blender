@@ -120,7 +120,7 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu, const struct TextBox *t
 
 /* ** Nurbs ** */
 
-int BKE_nurbList_index_get_co(struct ListBase *editnurb, const int index, float r_co[3]);
+bool BKE_nurbList_index_get_co(struct ListBase *editnurb, const int index, float r_co[3]);
 
 int BKE_nurbList_verts_count(struct ListBase *nurb);
 int BKE_nurbList_verts_count_without_handles(struct ListBase *nurb);

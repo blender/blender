@@ -1353,7 +1353,7 @@ struct GPU_PBVH_Buffers {
 	 * smooth-shaded or all faces are flat-shaded */
 	int smooth;
 
-	int show_diffuse_color;
+	bool show_diffuse_color;
 	float diffuse_color[4];
 };
 typedef enum {
@@ -1582,7 +1582,7 @@ GPU_PBVH_Buffers *GPU_build_pbvh_mesh_buffers(int (*face_vert_indices)[4],
 	buffers->index_type = GL_UNSIGNED_SHORT;
 	buffers->smooth = mface[face_indices[0]].flag & ME_SMOOTH;
 
-	buffers->show_diffuse_color = FALSE;
+	buffers->show_diffuse_color = false;
 
 	/* Count the number of visible triangles */
 	for (i = 0, tottri = 0; i < totface; ++i) {
@@ -1652,7 +1652,7 @@ GPU_PBVH_Buffers *GPU_build_pbvh_mesh_buffers(int (*face_vert_indices)[4],
 
 void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
                              const DMFlagMat *grid_flag_mats, int *grid_indices,
-                             int totgrid, const CCGKey *key, int show_diffuse_color)
+                             int totgrid, const CCGKey *key, bool show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
 	int i, j, k, x, y;
@@ -1902,7 +1902,7 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 	buffers->grid_hidden = grid_hidden;
 	buffers->totgrid = totgrid;
 
-	buffers->show_diffuse_color = FALSE;
+	buffers->show_diffuse_color = false;
 
 	/* Count the number of quads */
 	totquad = gpu_count_grid_quads(grid_hidden, grid_indices, totgrid, gridsize);
@@ -2188,7 +2188,7 @@ GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(int smooth_shading)
 	if (smooth_shading)
 		glGenBuffersARB(1, &buffers->index_buf);
 	glGenBuffersARB(1, &buffers->vert_buf);
-	buffers->use_bmesh = TRUE;
+	buffers->use_bmesh = true;
 	buffers->smooth = smooth_shading;
 
 	return buffers;
@@ -2393,7 +2393,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_PBVH_Buffers *buffers)
 }
 
 void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
-					  int wireframe)
+                           bool wireframe)
 {
 	/* sets material from the first face, to solve properly face would need to
 	 * be sorted in buckets by materials */
@@ -2485,15 +2485,15 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 	}
 }
 
-int GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, int show_diffuse_color)
+bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, bool show_diffuse_color)
 {
 	float diffuse_color[4];
 
 	if (buffers->show_diffuse_color != show_diffuse_color)
-		return TRUE;
+		return true;
 
-	if (buffers->show_diffuse_color == FALSE)
-		return FALSE;
+	if (buffers->show_diffuse_color == false)
+		return false;
 
 	if (buffers->mface) {
 		MFace *f = buffers->mface + buffers->face_indices[0];

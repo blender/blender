@@ -411,8 +411,8 @@ void MASK_OT_shape_key_rekey(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "location", TRUE, "Location", "");
-	RNA_def_boolean(ot->srna, "feather", TRUE, "Feather", "");
+	RNA_def_boolean(ot->srna, "location", true, "Location", "");
+	RNA_def_boolean(ot->srna, "feather", true, "Feather", "");
 }
 
 

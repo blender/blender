@@ -348,11 +348,11 @@ static int rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key
 	for (base = scene->base.first; base; base = base->next) {
 		if (strncmp(base->object->id.name + 2, key, sizeof(base->object->id.name) - 2) == 0) {
 			*r_ptr = rna_pointer_inherit_refine(ptr, &RNA_ObjectBase, base);
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
@@ -1408,7 +1408,7 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[], int frame)
 static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *marker_ptr)
 {
 	TimeMarker *marker = marker_ptr->data;
-	if (BLI_remlink_safe(&scene->markers, marker) == FALSE) {
+	if (BLI_remlink_safe(&scene->markers, marker) == false) {
 		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in scene '%s'",
 		            marker->name, scene->id.name + 2);
 		return;

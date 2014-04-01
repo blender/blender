@@ -762,7 +762,7 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw)
 	if (rbwn->constraints)
 		id_us_plus(&rbwn->constraints->id);
 
-	rbwn->pointcache = BKE_ptcache_copy_list(&rbwn->ptcaches, &rbw->ptcaches, FALSE);
+	rbwn->pointcache = BKE_ptcache_copy_list(&rbwn->ptcaches, &rbw->ptcaches, false);
 
 	rbwn->objects = NULL;
 	rbwn->physics_world = NULL;
@@ -1049,7 +1049,7 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 
 	/* make transformed objects temporarily kinmatic so that they can be moved by the user during simulation */
 	if (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) {
-		RB_body_set_kinematic_state(rbo->physics_object, TRUE);
+		RB_body_set_kinematic_state(rbo->physics_object, true);
 		RB_body_set_mass(rbo->physics_object, 0.0f);
 	}
 
@@ -1275,7 +1275,7 @@ void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], flo
 	if (rbo->physics_object) {
 		/* allow passive objects to return to original transform */
 		if (rbo->type == RBO_TYPE_PASSIVE)
-			RB_body_set_kinematic_state(rbo->physics_object, TRUE);
+			RB_body_set_kinematic_state(rbo->physics_object, true);
 		RB_body_set_loc_rot(rbo->physics_object, rbo->pos, rbo->orn);
 	}
 	// RB_TODO update rigid body physics object's loc/rot for dynamic objects here as well (needs to be done outside bullet's update loop)

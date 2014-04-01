@@ -71,7 +71,7 @@ static int space_clip_dopesheet_poll(bContext *C)
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 /********************** select channel operator *********************/
@@ -83,7 +83,7 @@ static int dopesheet_select_channel_poll(bContext *C)
 	if (sc && sc->clip)
 		return sc->view == SC_VIEW_DOPESHEET;
 
-	return FALSE;
+	return false;
 }
 
 static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)

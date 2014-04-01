@@ -1621,7 +1621,7 @@ static int mask_layer_move_poll(bContext *C)
 		return mask->masklay_tot > 0;
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int mask_layer_move_exec(bContext *C, wmOperator *op)

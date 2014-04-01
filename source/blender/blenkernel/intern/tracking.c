@@ -2500,7 +2500,7 @@ void BKE_tracking_dopesheet_tag_update(MovieTracking *tracking)
 {
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 
-	dopesheet->ok = FALSE;
+	dopesheet->ok = false;
 }
 
 /* Do dopesheet update, if update is not needed nothing will happen. */
@@ -2523,5 +2523,5 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 	/* frame coverage */
 	tracking_dopesheet_calc_coverage(tracking);
 
-	dopesheet->ok = TRUE;
+	dopesheet->ok = true;
 }

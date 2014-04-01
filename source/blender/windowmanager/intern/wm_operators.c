@@ -364,7 +364,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 {
 	wmOperatorType *ot;
 	
-	if (WM_operatortype_find(idname, TRUE)) {
+	if (WM_operatortype_find(idname, true)) {
 		printf("%s: macro error: operator %s exists\n", __func__, idname);
 		return NULL;
 	}
@@ -676,7 +676,7 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 	 */
 
 	/* don't get from the context store since this is normally set only for the UI and not usable elsewhere */
-	ListBase lb = CTX_data_dir_get_ex(C, FALSE, TRUE, TRUE);
+	ListBase lb = CTX_data_dir_get_ex(C, false, true, true);
 	LinkData *link;
 
 	const char *member_found = NULL;
@@ -943,7 +943,7 @@ bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 				break;
 			}
 			default:
-				if ((do_update == false) || (RNA_property_is_set(ptr, prop) == FALSE)) {
+				if ((do_update == false) || (RNA_property_is_set(ptr, prop) == false)) {
 					if (RNA_property_reset(ptr, prop, -1)) {
 						changed = true;
 					}
@@ -1014,9 +1014,9 @@ void WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op)
 				PropertySubType pstype = RNA_property_subtype(prop);
 				if (pstype == PROP_DISTANCE) {
 					/* we don't support arrays yet */
-					BLI_assert(RNA_property_array_check(prop) == FALSE);
+					BLI_assert(RNA_property_array_check(prop) == false);
 					/* initialize */
-					if (!RNA_property_is_set_ex(op->ptr, prop, FALSE)) {
+					if (!RNA_property_is_set_ex(op->ptr, prop, false)) {
 						const float value = RNA_property_float_get_default(op->ptr, prop) * dia;
 						RNA_property_float_set(op->ptr, prop, value);
 					}
@@ -1093,7 +1093,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;
-	event.customdatafree = FALSE;
+	event.customdatafree = false;
 	wm_event_add(win, &event);
 
 	return block;
@@ -1161,9 +1161,9 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFor
 		RNA_property_string_set(op->ptr, prop, filepath);
 		/* note, we could check for and update 'filename' here,
 		 * but so far nothing needs this. */
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 /* default properties for fileselect */
@@ -1228,7 +1228,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	if (flag & WM_FILESEL_RELPATH)
-		RNA_def_boolean(ot->srna, "relative_path", TRUE, "Relative Path", "Select the file relative to the blend file");
+		RNA_def_boolean(ot->srna, "relative_path", true, "Relative Path", "Select the file relative to the blend file");
 
 	prop = RNA_def_enum(ot->srna, "display_type", file_display_items, display, "Display Type", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
@@ -1340,7 +1340,7 @@ int WM_operator_winactive(bContext *C)
 	return 1;
 }
 
-/* return FALSE, if the UI should be disabled */
+/* return false, if the UI should be disabled */
 bool WM_operator_check_ui_enabled(const bContext *C, const char *idname)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -1409,7 +1409,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	if (op == WM_operator_last_redo(C))
 		if (!WM_operator_check_ui_enabled(C, op->type->name))
-			uiLayoutSetEnabled(layout, FALSE);
+			uiLayoutSetEnabled(layout, false);
 
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
@@ -1442,7 +1442,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	WM_operator_call_ex(C, data->op, true);
 
 	/* let execute handle freeing it */
-	//data->free_op = FALSE;
+	//data->free_op = false;
 	//data->op = NULL;
 
 	/* in this case, wm_operator_ui_popup_cancel wont run */
@@ -1492,7 +1492,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 		uiLayout *col;
 		uiBut *btn;
 
-		col = uiLayoutColumn(layout, FALSE);
+		col = uiLayoutColumn(layout, false);
 		col_block = uiLayoutGetBlock(col);
 		/* Create OK button, the callback of which will execute op */
 		btn = uiDefBut(col_block, BUT, 0, IFACE_("OK"), 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
@@ -1564,7 +1564,7 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 	data->op = op;
 	data->width = width;
 	data->height = height;
-	data->free_op = TRUE; /* if this runs and gets registered we may want not to free it */
+	data->free_op = true; /* if this runs and gets registered we may want not to free it */
 	uiPupBlockEx(C, wm_operator_ui_create, NULL, wm_operator_ui_popup_cancel, data);
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1624,7 +1624,7 @@ int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int h
 	data->op = op;
 	data->width = width;
 	data->height = height;
-	data->free_op = TRUE; /* if this runs and gets registered we may want not to free it */
+	data->free_op = true; /* if this runs and gets registered we may want not to free it */
 
 	/* op is not executed until popup OK but is clicked */
 	uiPupBlockEx(C, wm_block_dialog_create, wm_operator_ui_popup_ok, wm_operator_ui_popup_cancel, data);
@@ -1743,7 +1743,7 @@ static int wm_resource_check_prev(void)
 
 	// if (res) printf("LOCAL: %s\n", res);
 	if (res) {
-		return FALSE;
+		return false;
 	}
 	else {
 		return (BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION - 1, true) != NULL);
@@ -1758,7 +1758,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiStyle *style = UI_GetStyle();
 	struct RecentFile *recent;
 	int i;
-	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", TRUE);
+	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", true);
 	char url[96];
 	char file[FILE_MAX];
 
@@ -1865,8 +1865,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
-	split = uiLayoutSplit(layout, 0.0f, FALSE);
-	col = uiLayoutColumn(split, FALSE);
+	split = uiLayoutSplit(layout, 0.0f, false);
+	col = uiLayoutColumn(split, false);
 	uiItemL(col, IFACE_("Links"), ICON_NONE);
 	uiItemStringO(col, IFACE_("Support an Open Animation Movie"), ICON_URL, "WM_OT_url_open", "url",
 	              "http://cloud.blender.org/gooseberry");
@@ -1891,7 +1891,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemStringO(col, IFACE_("Python API Reference"), ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", ICON_NONE);
 
-	col = uiLayoutColumn(split, FALSE);
+	col = uiLayoutColumn(split, false);
 
 	if (wm_resource_check_prev()) {
 		uiItemO(col, NULL, ICON_NEW, "WM_OT_copy_prev_settings");
@@ -1960,7 +1960,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;
-	event.customdatafree = FALSE;
+	event.customdatafree = false;
 	wm_event_add(win, &event);
 	
 	return block;
@@ -2762,9 +2762,9 @@ static bool blend_save_check(bContext *UNUSED(C), wmOperator *op)
 		 * we keep getting nitpicking bug reports about this - campbell */
 		BLI_ensure_extension(filepath, FILE_MAX, ".blend");
 		RNA_string_set(op->ptr, "filepath", filepath);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 static void WM_OT_save_as_mainfile(wmOperatorType *ot)
@@ -4648,15 +4648,15 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	kmi = WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "link", FALSE);
-	RNA_boolean_set(kmi->ptr, "instance_groups", FALSE);
+	RNA_boolean_set(kmi->ptr, "link", false);
+	RNA_boolean_set(kmi->ptr, "instance_groups", false);
 
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "copy", TRUE);
+	RNA_boolean_set(kmi->ptr, "copy", true);
 
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
@@ -4765,57 +4765,57 @@ static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(pt
 /* can add more as needed */
 EnumPropertyItem *RNA_action_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, FALSE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, false);
 }
 #if 0 /* UNUSED */
 EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, TRUE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, true);
 }
 #endif
 
 EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, FALSE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, false);
 }
 EnumPropertyItem *RNA_group_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, TRUE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, true);
 }
 
 EnumPropertyItem *RNA_image_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, FALSE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, false);
 }
 EnumPropertyItem *RNA_image_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, TRUE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, true);
 }
 
 EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, FALSE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, false);
 }
 EnumPropertyItem *RNA_scene_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, TRUE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, true);
 }
 
 EnumPropertyItem *RNA_movieclip_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, FALSE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, false);
 }
 EnumPropertyItem *RNA_movieclip_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, TRUE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, true);
 }
 
 EnumPropertyItem *RNA_mask_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, FALSE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, false);
 }
 EnumPropertyItem *RNA_mask_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, TRUE);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, true);
 }
 

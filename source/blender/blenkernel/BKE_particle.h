@@ -303,7 +303,7 @@ void psys_free(struct Object *ob, struct ParticleSystem *psys);
 void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[4][4], float winmat[4][4], int winx, int winy, int timeoffset);
 void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
 int psys_render_simplify_distribution(struct ParticleThreadContext *ctx, int tot);
-int psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
+bool psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
 
 void psys_interpolate_uvs(const struct MTFace *tface, int quad, const float w[4], float uvco[2]);
 void psys_interpolate_mcol(const struct MCol *mcol, int quad, const float w[4], struct MCol *mc);
@@ -333,7 +333,7 @@ void precalc_guides(struct ParticleSimulationData *sim, struct ListBase *effecto
 float psys_get_timestep(struct ParticleSimulationData *sim);
 float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *birthtime, float *dietime);
 float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *pa_time);
-void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, struct ParticleKey *state, int vel);
+void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, struct ParticleKey *state, const bool vel);
 int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct ParticleKey *state, int always);
 
 void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);

@@ -69,7 +69,7 @@ float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
 
 typedef struct CameraParams {
 	/* lens */
-	int is_ortho;
+	bool is_ortho;
 	float lens;
 	float ortho_scale;
 	float zoom;

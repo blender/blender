@@ -187,7 +187,7 @@ static POINT scr_save_mouse_pos;
 
 static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	BOOL close = FALSE;
+	BOOL close = false;
 	switch (uMsg)
 	{
 		case WM_MOUSEMOVE:
@@ -199,7 +199,7 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 			if (abs(dx) > SCR_SAVE_MOUSE_MOVE_THRESHOLD
 			        || abs(dy) > SCR_SAVE_MOUSE_MOVE_THRESHOLD)
 			{
-				close = TRUE;
+				close = true;
 			}
 			scr_save_mouse_pos = pt;
 			break;
@@ -208,7 +208,7 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 		case WM_MBUTTONDOWN: 
 		case WM_RBUTTONDOWN: 
 		case WM_KEYDOWN:
-			close = TRUE;
+			close = true;
 	}
 	if (close)
 		PostMessage(hwnd,WM_CLOSE,0,0);
@@ -218,11 +218,11 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 BOOL CALLBACK findGhostWindowHWNDProc(HWND hwnd, LPARAM lParam)
 {
 	GHOST_IWindow *p = (GHOST_IWindow*) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-	BOOL ret = TRUE;
+	BOOL ret = true;
 	if (p == ghost_window_to_find)
 	{
 		found_ghost_window_hwnd = hwnd;
-		ret = FALSE;
+		ret = false;
 	}
 	return ret;
 }
@@ -268,7 +268,7 @@ bool GPG_Application::startScreenSaverPreview(
 		LONG_PTR exstyle = GetWindowLongPtr(ghost_hwnd, GWL_EXSTYLE);
 
 		RECT adjrc = { 0, 0, windowWidth, windowHeight };
-		AdjustWindowRectEx(&adjrc, style, FALSE, exstyle);
+		AdjustWindowRectEx(&adjrc, style, false, exstyle);
 
 		style = (style & (~(WS_POPUP|WS_OVERLAPPEDWINDOW|WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MINIMIZEBOX|WS_MAXIMIZEBOX|WS_TILEDWINDOW ))) | WS_CHILD;
 		SetWindowLongPtr(ghost_hwnd, GWL_STYLE, style);

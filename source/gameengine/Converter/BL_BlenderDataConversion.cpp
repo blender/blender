@@ -2010,7 +2010,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	case OB_CURVE:
 	{
 		if (ob->curve_cache == NULL) {
-			BKE_displist_make_curveTypes(blenderscene, ob, FALSE);
+			BKE_displist_make_curveTypes(blenderscene, ob, false);
 		}
 	}
 #endif
@@ -2128,7 +2128,7 @@ static void bl_ConvertBlenderObject_Single(
 
 	MT_Matrix3x3 rotation;
 	float rotmat[3][3];
-	BKE_object_rot_to_mat3(blenderobject, rotmat, FALSE);
+	BKE_object_rot_to_mat3(blenderobject, rotmat, false);
 	rotation.setValue3x3((float*)rotmat);
 
 	MT_Vector3 scale(blenderobject->size);
@@ -2142,7 +2142,7 @@ static void bl_ConvertBlenderObject_Single(
 		                             );
 
 		float rotmatPrev[3][3];
-		BKE_object_rot_to_mat3(blenderobject, rotmatPrev, FALSE);
+		BKE_object_rot_to_mat3(blenderobject, rotmatPrev, false);
 
 		float eulxyz[3], eulxyzPrev[3];
 		mat3_to_eul(eulxyz, rotmat);

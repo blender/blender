@@ -1885,7 +1885,7 @@ bool EDBM_selectmode_disable(Scene *scene, BMEditMesh *em,
 	}
 }
 
-void EDBM_deselect_by_material(BMEditMesh *em, const short index, const short select)
+void EDBM_deselect_by_material(BMEditMesh *em, const short index, const bool select)
 {
 	BMIter iter;
 	BMFace *efa;
@@ -2211,7 +2211,7 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 
-		int select;
+		bool select;
 
 		switch (type) {
 			case 0:

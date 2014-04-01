@@ -351,8 +351,8 @@ static void indexer_dv_proc_frame(anim_index_builder *idx,
 
 	isPAL = (buffer[3] & 0x80);
 
-	This->got_record_date = FALSE;
-	This->got_record_time = FALSE;
+	This->got_record_date = false;
+	This->got_record_time = false;
 
 	parse_frame(This, buffer, isPAL);
 	proc_frame(This, buffer, isPAL);

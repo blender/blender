@@ -843,7 +843,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	if (data->elems)
 		MEM_freeN(data->elems);
 
-	data->do_simplify = TRUE;
+	data->do_simplify = true;
 	data->elems = elems;
 	data->index_mf_to_mpoly = index_mf_to_mpoly;
 	data->index_mp_to_orig  = index_mp_to_orig;
@@ -974,7 +974,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	return newtot;
 }
 
-int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float *params)
+bool psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float *params)
 {
 	ParticleRenderData *data;
 	ParticleRenderElem *elem;
@@ -3710,7 +3710,7 @@ void BKE_particlesettings_make_local(ParticleSettings *part)
 {
 	Main *bmain = G.main;
 	Object *ob;
-	int is_local = FALSE, is_lib = FALSE;
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -3725,17 +3725,17 @@ void BKE_particlesettings_make_local(ParticleSettings *part)
 	}
 
 	/* test objects */
-	for (ob = bmain->object.first; ob && ELEM(FALSE, is_lib, is_local); ob = ob->id.next) {
+	for (ob = bmain->object.first; ob && ELEM(false, is_lib, is_local); ob = ob->id.next) {
 		ParticleSystem *psys = ob->particlesystem.first;
 		for (; psys; psys = psys->next) {
 			if (psys->part == part) {
-				if (ob->id.lib) is_lib = TRUE;
-				else is_local = TRUE;
+				if (ob->id.lib) is_lib = true;
+				else is_local = true;
 			}
 		}
 	}
 	
-	if (is_local && is_lib == FALSE) {
+	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &part->id);
 		expand_local_particlesettings(part);
 	}
@@ -4103,7 +4103,7 @@ static void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *pte
 	}
 }
 /* get's hair (or keyed) particles state at the "path time" specified in state->time */
-void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *state, int vel)
+void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *state, const bool vel)
 {
 	PARTICLE_PSMD;
 	ParticleSystem *psys = sim->psys;

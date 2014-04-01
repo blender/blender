@@ -1000,9 +1000,9 @@ static int rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA v
 	Sequence *cur = (Sequence *) value.data;
 
 	if (seq == cur)
-		return FALSE;
+		return false;
 
-	return TRUE;
+	return true;
 }
 
 static SequenceModifierData *rna_Sequence_modifier_new(Sequence *seq, bContext *C, ReportList *reports, const char *name, int type)

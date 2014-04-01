@@ -891,7 +891,7 @@ static bool rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp re
 {
 	ListBase islands = {NULL, NULL};
 	Link *channel, *chanNext = NULL;
-	short done = FALSE;
+	bool done = false;
 	
 	/* don't waste effort on an empty list */
 	if (BLI_listbase_is_empty(list))
@@ -919,7 +919,7 @@ static bool rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp re
 			/* perform rearranging */
 			if (rearrange_func(&islands, island)) {
 				island->flag |= REORDER_ISLAND_MOVED;
-				done = TRUE;
+				done = true;
 			}
 		}
 	}
@@ -2287,7 +2287,7 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 }
 
 /* ******************* Rename Operator ***************************** */
@@ -2828,15 +2828,15 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	/* click-select */
 	/* XXX for now, only leftmouse.... */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "children_only", TRUE);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", true);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "children_only", true);
 
 	/* rename */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
 	/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", TRUE);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", true);
 	
 	/* borderselect */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
@@ -2859,9 +2859,9 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, 0, 0);
 	
 	kmi = WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "all", FALSE);
+	RNA_boolean_set(kmi->ptr, "all", false);
 	kmi = WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "all", FALSE);
+	RNA_boolean_set(kmi->ptr, "all", false);
 
 	/* rearranging */
 	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEUPKEY, KM_PRESS, 0, 0)->ptr, "direction", REARRANGE_ANIMCHAN_UP);

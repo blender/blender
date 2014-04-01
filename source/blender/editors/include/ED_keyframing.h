@@ -224,7 +224,7 @@ struct KeyingSet *ANIM_get_keyingset_for_autokeying(struct Scene *scene, const c
 struct EnumPropertyItem *ANIM_keying_sets_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 
 /* Check if KeyingSet can be used in the current context */
-short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);
+bool ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);
 
 /* ************ Drivers ********************** */
 
@@ -244,28 +244,28 @@ struct FCurve *verify_driver_fcurve(struct ID *id, const char rna_path[], const 
 /* -------- */
 
 /* Returns whether there is a driver in the copy/paste buffer to paste */
-short ANIM_driver_can_paste(void);
+bool ANIM_driver_can_paste(void);
 
 /* Main Driver Management API calls:
  *  Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag, int type);
+int ANIM_add_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag, int type);
 
 /* Main Driver Management API calls:
  *  Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
+bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* Main Driver Management API calls:
  *  Make a copy of the driver for the specified property on the given ID block
  */
-short ANIM_copy_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
+bool ANIM_copy_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* Main Driver Management API calls:
  *  Add a new driver for the specified property on the given ID block or replace an existing one
  *	with the driver + driver-curve data from the buffer 
  */
-short ANIM_paste_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
+bool ANIM_paste_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:
@@ -305,7 +305,7 @@ bool fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
  *    in case some detail of the implementation changes...
  *	- frame: the value of this is quite often result of BKE_scene_frame_get()
  */
-short id_frame_has_keyframe(struct ID *id, float frame, short filter);
+bool id_frame_has_keyframe(struct ID *id, float frame, short filter);
 
 /* filter flags for id_cfra_has_keyframe 
  *

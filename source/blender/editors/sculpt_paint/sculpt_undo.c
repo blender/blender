@@ -114,7 +114,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			if (kb) {
 				ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-				sculpt_update_mesh_elements(scene, sd, ob, 0, FALSE);
+				sculpt_update_mesh_elements(scene, sd, ob, 0, false);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
 			}
 			else {
@@ -273,11 +273,11 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 {
 	if (unode->applied) {
 		BM_log_undo(ss->bm, ss->bm_log);
-		unode->applied = FALSE;
+		unode->applied = false;
 	}
 	else {
 		BM_log_redo(ss->bm, ss->bm_log);
-		unode->applied = TRUE;
+		unode->applied = true;
 	}
 
 	if (unode->type == SCULPT_UNDO_MASK) {
@@ -330,7 +330,7 @@ static void sculpt_undo_bmesh_restore_begin(bContext *C,
 {
 	if (unode->applied) {
 		sculpt_dynamic_topology_disable(C, unode);
-		unode->applied = FALSE;
+		unode->applied = false;
 	}
 	else {
 		sculpt_undo_bmesh_enable(ob, unode);
@@ -338,7 +338,7 @@ static void sculpt_undo_bmesh_restore_begin(bContext *C,
 		/* Restore the mesh from the first log entry */
 		BM_log_redo(ss->bm, ss->bm_log);
 
-		unode->applied = TRUE;
+		unode->applied = true;
 	}
 }
 
@@ -353,19 +353,19 @@ static void sculpt_undo_bmesh_restore_end(bContext *C,
 		/* Restore the mesh from the last log entry */
 		BM_log_undo(ss->bm, ss->bm_log);
 
-		unode->applied = FALSE;
+		unode->applied = false;
 	}
 	else {
 		/* Disable dynamic topology sculpting */
 		sculpt_dynamic_topology_disable(C, NULL);
-		unode->applied = TRUE;
+		unode->applied = true;
 	}
 }
 
 /* Handle all dynamic-topology updates
  *
- * Returns TRUE if this was a dynamic-topology undo step, otherwise
- * returns FALSE to indicate the non-dyntopo code should run. */
+ * Returns true if this was a dynamic-topology undo step, otherwise
+ * returns false to indicate the non-dyntopo code should run. */
 static int sculpt_undo_bmesh_restore(bContext *C,
                                      SculptUndoNode *unode,
                                      Object *ob,
@@ -374,21 +374,21 @@ static int sculpt_undo_bmesh_restore(bContext *C,
 	switch (unode->type) {
 		case SCULPT_UNDO_DYNTOPO_BEGIN:
 			sculpt_undo_bmesh_restore_begin(C, unode, ob, ss);
-			return TRUE;
+			return true;
 
 		case SCULPT_UNDO_DYNTOPO_END:
 			sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
-			return TRUE;
+			return true;
 
 		default:
 			if (ss->bm_log) {
 				sculpt_undo_bmesh_restore_generic(C, unode, ob, ss);
-				return TRUE;
+				return true;
 			}
 			break;
 	}
 
-	return FALSE;
+	return false;
 }
 
 static void sculpt_undo_restore(bContext *C, ListBase *lb)
@@ -399,15 +399,15 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
-	int update = FALSE, rebuild = FALSE;
-	int need_mask = FALSE;
+	int update = false, rebuild = false;
+	int need_mask = false;
 
 	for (unode = lb->first; unode; unode = unode->next) {
 		if (strcmp(unode->idname, ob->id.name) == 0) {
 			if (unode->type == SCULPT_UNDO_MASK) {
 				/* is possible that we can't do the mask undo (below)
 				 * because of the vertex count */
-				need_mask = TRUE;
+				need_mask = true;
 				break;
 			}
 		}
@@ -442,15 +442,15 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		switch (unode->type) {
 			case SCULPT_UNDO_COORDS:
 				if (sculpt_undo_restore_coords(C, dm, unode))
-					update = TRUE;
+					update = true;
 				break;
 			case SCULPT_UNDO_HIDDEN:
 				if (sculpt_undo_restore_hidden(C, dm, unode))
-					rebuild = TRUE;
+					rebuild = true;
 				break;
 			case SCULPT_UNDO_MASK:
 				if (sculpt_undo_restore_mask(C, dm, unode))
-					update = TRUE;
+					update = true;
 				break;
 
 			case SCULPT_UNDO_DYNTOPO_BEGIN:
@@ -713,7 +713,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
 
 		BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
 		unode->type = type;
-		unode->applied = TRUE;
+		unode->applied = true;
 
 		if (type == SCULPT_UNDO_DYNTOPO_END) {
 			unode->bm_entry = BM_log_entry_add(ss->bm_log);

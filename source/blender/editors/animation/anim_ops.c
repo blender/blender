@@ -66,25 +66,25 @@ static int change_frame_poll(bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	
 	/* XXX temp? prevent changes during render */
-	if (G.is_rendering) return FALSE;
+	if (G.is_rendering) return false;
 	
 	/* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
 	 * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
 	 */
 	if (sa) {
 		if (ELEM5(sa->spacetype, SPACE_TIME, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
-			return TRUE;
+			return true;
 		}
 		else if (sa->spacetype == SPACE_IPO) {
 			/* NOTE: Graph Editor has special version which does some extra stuff.
 			 * No need to show the generic error message for that case though!
 			 */
-			return FALSE;
+			return false;
 		}
 	}
 	
 	CTX_wm_operator_poll_msg_set(C, "Expected an timeline/animation area to be active");
-	return FALSE;
+	return false;
 }
 
 /* Set the new frame number */

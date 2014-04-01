@@ -117,7 +117,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 		uiBlock *block = uiLayoutGetBlock(pa->layout);
 
 		if (!WM_operator_check_ui_enabled(C, op->type->name))
-			uiLayoutSetEnabled(pa->layout, FALSE);
+			uiLayoutSetEnabled(pa->layout, false);
 
 		/* note, blockfunc is a default but->func, use Handle func to allow button callbacks too */
 		uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, op);
@@ -199,7 +199,7 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	event.type = EVT_BUT_OPEN;
 	event.val = KM_PRESS;
 	event.customdata = but;
-	event.customdatafree = FALSE;
+	event.customdatafree = false;
 	wm_event_add(win, &event);
 	
 	return block;
@@ -221,12 +221,12 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 		
 		for (ct = st->toolshelf.first; ct; ct = ct->next) {
 			if (0 == strncmp(context, ct->context, OP_MAX_TYPENAME)) {
-				col = uiLayoutColumn(pa->layout, TRUE);
+				col = uiLayoutColumn(pa->layout, true);
 				uiItemFullO(col, ct->opname, NULL, ICON_NONE, NULL, WM_OP_INVOKE_REGION_WIN, 0);
 			}
 		}
 	}
-	col = uiLayoutColumn(pa->layout, TRUE);
+	col = uiLayoutColumn(pa->layout, true);
 	uiDefBlockBut(uiLayoutGetBlock(pa->layout), tool_search_menu, &st->toolshelf, "Add Tool", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Add Tool in shelf, gets saved in files");
 }
 

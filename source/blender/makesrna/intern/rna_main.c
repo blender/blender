@@ -72,7 +72,7 @@ static int rna_Main_is_dirty_get(PointerRNA *ptr)
 		return !wm->file_saved;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static void rna_Main_filepath_get(PointerRNA *ptr, char *value)

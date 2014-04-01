@@ -458,17 +458,17 @@ static int sequencer_context(const bContext *C, const char *member, bContextData
 	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, sequencer_context_dir);
 
-		return TRUE;
+		return true;
 	}
 	else if (CTX_data_equals(member, "edit_mask")) {
 		Mask *mask = BKE_sequencer_mask_get(scene);
 		if (mask) {
 			CTX_data_id_pointer_set(result, &mask->id);
 		}
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 

@@ -197,7 +197,7 @@ static int view3d_layers_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		return OPERATOR_PASS_THROUGH;
 	
 	if (event->shift)
-		RNA_boolean_set(op->ptr, "extend", TRUE);
+		RNA_boolean_set(op->ptr, "extend", true);
 	else
 		RNA_boolean_set(op->ptr, "extend", false);
 	
@@ -274,7 +274,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		uiLayout *row;
 
-		row = uiLayoutRow(layout, TRUE);
+		row = uiLayoutRow(layout, true);
 		block = uiLayoutGetBlock(row);
 		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL,
 		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
@@ -322,7 +322,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		modeselect = OB_MODE_OBJECT;
 	}
 
-	row = uiLayoutRow(layout, FALSE);
+	row = uiLayoutRow(layout, false);
 	{
 		EnumPropertyItem *item = object_mode_items;
 		const char *name = "";
@@ -347,7 +347,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			/* Only for Weight Paint. makes no sense in other paint modes. */
-			row = uiLayoutRow(layout, TRUE);
+			row = uiLayoutRow(layout, true);
 			uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		}
 
@@ -361,14 +361,14 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			}
 			else {
-				row = uiLayoutRow(layout, TRUE);
+				row = uiLayoutRow(layout, true);
 				uiItemR(row, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 				uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			}
 		}
 	}
 	else {
-		row = uiLayoutRow(layout, TRUE);
+		row = uiLayoutRow(layout, true);
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 		/* pose/object only however we want to allow in weight paint mode too
@@ -380,7 +380,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 
 		/* Transform widget / manipulators */
-		row = uiLayoutRow(layout, TRUE);
+		row = uiLayoutRow(layout, true);
 		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		if (v3d->twflag & V3D_USE_MANIPULATOR) {
 			uiItemR(row, &v3dptr, "transform_manipulators", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

@@ -921,7 +921,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 			if (ed) {
 				/* get strip name, and check if this strip is selected */
 				seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-				seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, FALSE);
+				seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
 				if (seq_name) MEM_freeN(seq_name);
 			}
 			

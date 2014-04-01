@@ -87,7 +87,7 @@ static void node_sockets_panel(const bContext *C, Panel *pa)
 	for (sock = node->inputs.first; sock; sock = sock->next) {
 		BLI_snprintf(name, sizeof(name), "%s:", sock->name);
 
-		split = uiLayoutSplit(layout, 0.35f, FALSE);
+		split = uiLayoutSplit(layout, 0.35f, false);
 		uiItemL(split, name, ICON_NONE);
 		uiTemplateNodeLink(split, ntree, node, sock);
 	}
@@ -107,20 +107,20 @@ static bool node_tree_find_active_socket(bNodeTree *ntree, bNodeSocket **r_sock,
 		if (sock->flag & SELECT) {
 			*r_sock = sock;
 			*r_in_out = SOCK_IN;
-			return TRUE;
+			return true;
 		}
 	}
 	for (sock = ntree->outputs.first; sock; sock = sock->next) {
 		if (sock->flag & SELECT) {
 			*r_sock = sock;
 			*r_in_out = SOCK_OUT;
-			return TRUE;
+			return true;
 		}
 	}
 	
 	*r_sock = NULL;
 	*r_in_out = 0;
-	return FALSE;
+	return false;
 }
 
 static void node_tree_interface_panel(const bContext *C, Panel *pa)
@@ -140,31 +140,31 @@ static void node_tree_interface_panel(const bContext *C, Panel *pa)
 	node_tree_find_active_socket(ntree, &sock, &in_out);
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, sock, &sockptr);
 	
-	row = uiLayoutRow(layout, FALSE);
+	row = uiLayoutRow(layout, false);
 	
-	split = uiLayoutRow(row, TRUE);
-	col = uiLayoutColumn(split, TRUE);
+	split = uiLayoutRow(row, true);
+	col = uiLayoutColumn(split, true);
 	uiItemL(col, IFACE_("Inputs:"), ICON_NONE);
 	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "inputs", &ptr, "inputs", &ptr, "active_input",
 	               0, 0, 0, 0);
 	opptr = uiItemFullO(col, "NODE_OT_tree_socket_add", "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "in_out", SOCK_IN);
 	
-	col = uiLayoutColumn(split, TRUE);
+	col = uiLayoutColumn(split, true);
 	uiItemL(col, IFACE_("Outputs:"), ICON_NONE);
 	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "outputs", &ptr, "outputs", &ptr, "active_output",
 	               0, 0, 0, 0);
 	opptr = uiItemFullO(col, "NODE_OT_tree_socket_add", "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "in_out", SOCK_OUT);
 	
-	col = uiLayoutColumn(row, TRUE);
+	col = uiLayoutColumn(row, true);
 	opptr = uiItemFullO(col, "NODE_OT_tree_socket_move", "", ICON_TRIA_UP, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "direction", 1);
 	opptr = uiItemFullO(col, "NODE_OT_tree_socket_move", "", ICON_TRIA_DOWN, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "direction", 2);
 	
 	if (sock) {
-		row = uiLayoutRow(layout, TRUE);
+		row = uiLayoutRow(layout, true);
 		uiItemR(row, &sockptr, "name", 0, NULL, ICON_NONE);
 		uiItemO(row, "", ICON_X, "NODE_OT_tree_socket_remove");
 		

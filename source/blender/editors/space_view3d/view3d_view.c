@@ -981,7 +981,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->winmat, vc->rv3d->viewmat);
 	
 	if (v3d->drawtype > OB_WIRE) {
-		v3d->zbuf = TRUE;
+		v3d->zbuf = true;
 		glEnable(GL_DEPTH_TEST);
 	}
 	
@@ -1006,7 +1006,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	else {
 		Base *base;
 		
-		v3d->xray = TRUE;  /* otherwise it postpones drawing */
+		v3d->xray = true;  /* otherwise it postpones drawing */
 		for (base = scene->base.first; base; base = base->next) {
 			if (base->lay & v3d->lay) {
 				

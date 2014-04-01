@@ -174,7 +174,7 @@ static char txtfmt_osl_format_identifier(const char *str)
 	return fmt;
 }
 
-static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_next)
+static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_next)
 {
 	FlattenString fs;
 	const char *str;

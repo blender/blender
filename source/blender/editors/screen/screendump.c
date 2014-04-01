@@ -138,11 +138,11 @@ static int screenshot_data_create(bContext *C, wmOperator *op)
 
 		op->customdata = scd;
 
-		return TRUE;
+		return true;
 	}
 	else {
 		op->customdata = NULL;
-		return FALSE;
+		return false;
 	}
 }
 
@@ -257,7 +257,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* image template */
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
-	uiTemplateImageSettings(layout, &ptr, FALSE);
+	uiTemplateImageSettings(layout, &ptr, false);
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
@@ -356,7 +356,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	sj->stop = stop;
 	sj->do_update = do_update;
 	
-	*do_update = TRUE; /* wait for opengl rect */
+	*do_update = true; /* wait for opengl rect */
 	
 	while (*stop == 0) {
 		
@@ -378,7 +378,8 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				char name[FILE_MAX];
 				int ok;
 				
-				BKE_makepicstring(name, rd.pic, sj->bmain->name, rd.cfra, &rd.im_format, rd.scemode & R_EXTENSION, TRUE);
+				BKE_makepicstring(name, rd.pic, sj->bmain->name, rd.cfra,
+				                  &rd.im_format, (rd.scemode & R_EXTENSION) != 0, true);
 				
 				ibuf->rect = sj->dumprect;
 				ok = BKE_imbuf_write(ibuf, name, &rd.im_format);
@@ -400,7 +401,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 			MEM_freeN(sj->dumprect);
 			sj->dumprect = NULL;
 			
-			*do_update = TRUE;
+			*do_update = true;
 			
 			rd.cfra++;
 

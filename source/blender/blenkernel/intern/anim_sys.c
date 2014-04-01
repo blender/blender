@@ -1291,7 +1291,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) {
 			int array_len = RNA_property_array_length(&new_ptr, prop);
-			int written = FALSE;
+			bool written = false;
 			
 			if (array_len && array_index >= array_len) {
 				if (G.debug & G_DEBUG) {
@@ -1308,13 +1308,13 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 					if (array_len) {
 						if (RNA_property_boolean_get_index(&new_ptr, prop, array_index) != ANIMSYS_FLOAT_AS_BOOL(value)) {
 							RNA_property_boolean_set_index(&new_ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
-							written = TRUE;
+							written = true;
 						}
 					}
 					else {
 						if (RNA_property_boolean_get(&new_ptr, prop) != ANIMSYS_FLOAT_AS_BOOL(value)) {
 							RNA_property_boolean_set(&new_ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
-							written = TRUE;
+							written = true;
 						}
 					}
 					break;
@@ -1322,13 +1322,13 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 					if (array_len) {
 						if (RNA_property_int_get_index(&new_ptr, prop, array_index) != (int)value) {
 							RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
-							written = TRUE;
+							written = true;
 						}
 					}
 					else {
 						if (RNA_property_int_get(&new_ptr, prop) != (int)value) {
 							RNA_property_int_set(&new_ptr, prop, (int)value);
-							written = TRUE;
+							written = true;
 						}
 					}
 					break;
@@ -1336,20 +1336,20 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 					if (array_len) {
 						if (RNA_property_float_get_index(&new_ptr, prop, array_index) != value) {
 							RNA_property_float_set_index(&new_ptr, prop, array_index, value);
-							written = TRUE;
+							written = true;
 						}
 					}
 					else {
 						if (RNA_property_float_get(&new_ptr, prop) != value) {
 							RNA_property_float_set(&new_ptr, prop, value);
-							written = TRUE;
+							written = true;
 						}
 					}
 					break;
 				case PROP_ENUM:
 					if (RNA_property_enum_get(&new_ptr, prop) != (int)value) {
 						RNA_property_enum_set(&new_ptr, prop, (int)value);
-						written = TRUE;
+						written = true;
 					}
 					break;
 				default:

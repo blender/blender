@@ -450,7 +450,7 @@ static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
 		
 		/* assume that we only need to remove the first instance of matching deform modifier here */
 		for (md = ob->modifiers.first; md; md = mdn) {
-			short free = FALSE;
+			bool free = false;
 			
 			mdn = md->next;
 			
@@ -458,19 +458,19 @@ static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
 			if ((md->type == eModifierType_Armature) && (par->type == OB_ARMATURE)) {
 				ArmatureModifierData *amd = (ArmatureModifierData *)md;
 				if (amd->object == par) {
-					free = TRUE;
+					free = true;
 				}
 			}
 			else if ((md->type == eModifierType_Lattice) && (par->type == OB_LATTICE)) {
 				LatticeModifierData *lmd = (LatticeModifierData *)md;
 				if (lmd->object == par) {
-					free = TRUE;
+					free = true;
 				}
 			}
 			else if ((md->type == eModifierType_Curve) && (par->type == OB_CURVE)) {
 				CurveModifierData *cmd = (CurveModifierData *)md;
 				if (cmd->object == par) {
-					free = TRUE;
+					free = true;
 				}
 			}
 			
@@ -502,7 +502,7 @@ void ED_object_parent_clear(Object *ob, int type)
 		{
 			/* remove parent, and apply the parented transform result as object's local transforms */
 			ob->parent = NULL;
-			BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
+			BKE_object_apply_mat4(ob, ob->obmat, true, false);
 			break;
 		}
 		case CLEAR_PARENT_INVERSE:
@@ -650,7 +650,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			if (keep_transform) {
 				/* was removed because of bug [#23577],
 				 * but this can be handy in some cases too [#32616], so make optional */
-				BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+				BKE_object_apply_mat4(ob, ob->obmat, false, false);
 			}
 
 			/* set the parent (except for follow-path constraint option) */
@@ -750,7 +750,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			}
 			else if (pararm && (ob->type == OB_MESH) && (par->type == OB_ARMATURE)) {
 				if (partype == PAR_ARMATURE_NAME)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, FALSE);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, false);
 				else if (partype == PAR_ARMATURE_ENVELOPE)
 					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
 				else if (partype == PAR_ARMATURE_AUTO) {
@@ -871,7 +871,7 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Set Parent To"), ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
 
-	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", TRUE);
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", true);
 	PointerRNA opptr;
 
 #if 0
@@ -879,12 +879,12 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 #else
 	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
-	RNA_boolean_set(&opptr, "keep_transform", FALSE);
+	RNA_boolean_set(&opptr, "keep_transform", false);
 
 	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object (Keep Transform)"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT,
 	                        UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
-	RNA_boolean_set(&opptr, "keep_transform", TRUE);
+	RNA_boolean_set(&opptr, "keep_transform", true);
 #endif
 	/* ob becomes parent, make the associated menus */
 	if (ob->type == OB_ARMATURE) {
@@ -960,9 +960,9 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "xmirror", FALSE, "X Mirror",
+	RNA_def_boolean(ot->srna, "xmirror", false, "X Mirror",
 	                "Apply weights symmetrically along X axis, for Envelope/Automatic vertex groups creation");
-	RNA_def_boolean(ot->srna, "keep_transform", FALSE, "Keep Transform",
+	RNA_def_boolean(ot->srna, "keep_transform", false, "Keep Transform",
 	                "Apply transformation before parenting");
 
 }
@@ -1134,7 +1134,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		}
 		
 		if (type == 1)
-			BKE_object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
+			BKE_object_apply_mat4(ob, ob->obmat, true, true);
 	}
 	CTX_DATA_END;
 
@@ -1320,7 +1320,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	unsigned int lay, local;
-	/* bool is_lamp = FALSE; */ /* UNUSED */
+	/* bool is_lamp = false; */ /* UNUSED */
 	
 	lay = move_to_layer_init(C, op);
 	lay &= 0xFFFFFF;
@@ -1337,7 +1337,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			base->object->lay = lay;
 			base->object->flag &= ~SELECT;
 			base->flag &= ~SELECT;
-			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = true; */
 		}
 		CTX_DATA_END;
 	}
@@ -1350,7 +1350,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			local = base->lay & 0xFF000000;
 			base->lay = lay + local;
 			base->object->lay = lay;
-			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = true; */
 		}
 		CTX_DATA_END;
 	}
@@ -1549,13 +1549,13 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						DAG_id_tag_update(&ob_dst->id, 0);
 						break;
 					case MAKE_LINKS_ANIMDATA:
-						BKE_copy_animdata_id((ID *)ob_dst, (ID *)ob_src, FALSE);
+						BKE_copy_animdata_id((ID *)ob_dst, (ID *)ob_src, false);
 						if (ob_dst->data && ob_src->data) {
 							if (obdata_id->lib) {
 								is_lib = true;
 								break;
 							}
-							BKE_copy_animdata_id((ID *)ob_dst->data, (ID *)ob_src->data, FALSE);
+							BKE_copy_animdata_id((ID *)ob_dst->data, (ID *)ob_src->data, false);
 						}
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						break;
@@ -1572,7 +1572,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 								BKE_group_object_add(group_node->link, ob_dst, scene, base_dst);
 							}
 							else {
-								is_cycle = TRUE;
+								is_cycle = true;
 							}
 						}
 						break;
@@ -2289,7 +2289,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 
 #if 0 /* can't do this separate from materials */
 	if (RNA_boolean_get(op->ptr, "texture"))
-		single_mat_users(scene, flag, TRUE);
+		single_mat_users(scene, flag, true);
 #endif
 	if (RNA_boolean_get(op->ptr, "animation"))
 		single_object_action_users(scene, flag);

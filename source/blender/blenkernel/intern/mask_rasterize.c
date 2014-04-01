@@ -318,7 +318,7 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
 
 /* this function is not exact, sometimes it returns false positives,
  * the main point of it is to clear out _almost_ all bucket/face non-intersections,
- * returning TRUE in corner cases is ok but missing an intersection is NOT.
+ * returning true in corner cases is ok but missing an intersection is NOT.
  *
  * method used
  * - check if the center of the buckets bounding box is intersecting the face

@@ -228,22 +228,23 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs, sh
 	bNodeStack *nsin[MAX_SOCKET];   /* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];  /* arbitrary... watch this */
 	GPUNodeStack gpuin[MAX_SOCKET + 1], gpuout[MAX_SOCKET + 1];
-	int do_it;
+	bool do_it;
 
 	stack = exec->stack;
 
 	for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		node = nodeexec->node;
 		
-		do_it = FALSE;
+		do_it = false;
 		/* for groups, only execute outputs for edited group */
 		if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
 			if (node->typeinfo->compatibility & compatibility)
 				if (do_outputs && (node->flag & NODE_DO_OUTPUT))
-					do_it = TRUE;
+					do_it = true;
 		}
-		else
-			do_it = TRUE;
+		else {
+			do_it = true;
+		}
 
 		if (do_it) {
 			if (node->typeinfo->gpufunc) {

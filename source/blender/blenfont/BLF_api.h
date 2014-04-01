@@ -154,11 +154,11 @@ void BLF_shadow_offset(int fontid, int x, int y);
 /* Set the buffer, size and number of channels to draw, one thing to take care is call
  * this function with NULL pointer when we finish, for example:
  *
- *     BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4, TRUE, NULL);
+ *     BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4, true, NULL);
  *
  *     ... set color, position and draw ...
  *
- *     BLF_buffer(NULL, NULL, NULL, 0, 0, FALSE, NULL);
+ *     BLF_buffer(NULL, NULL, NULL, 0, 0, false, NULL);
  */
 void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, struct ColorManagedDisplay *display);
 

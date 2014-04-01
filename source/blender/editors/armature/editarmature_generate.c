@@ -39,7 +39,7 @@ void setBoneRollFromNormal(EditBone *bone, const float no[3], float UNUSED(invma
 		copy_v3_v3(normal, no);
 		mul_m3_v3(tmat, normal);
 		
-		bone->roll = ED_rollBoneToVector(bone, normal, FALSE);
+		bone->roll = ED_rollBoneToVector(bone, normal, false);
 	}
 }
 

@@ -291,15 +291,15 @@ Report *BKE_reports_last_displayable(ReportList *reports)
 	return NULL;
 }
 
-int BKE_reports_contain(ReportList *reports, ReportType level)
+bool BKE_reports_contain(ReportList *reports, ReportType level)
 {
 	Report *report;
 	if (reports != NULL) {
 		for (report = reports->list.first; report; report = report->next)
 			if (report->type >= level)
-				return TRUE;
+				return true;
 	}
-	return FALSE;
+	return false;
 }
 
 bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)

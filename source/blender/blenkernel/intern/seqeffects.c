@@ -2068,7 +2068,7 @@ static void do_glow_effect_byte(Sequence *seq, int render_size, float facf0, flo
 	inbuf = MEM_mallocN(4 * sizeof(float) * x * y, "glow effect input");
 	outbuf = MEM_mallocN(4 * sizeof(float) * x * y, "glow effect output");
 
-	IMB_buffer_float_from_byte(inbuf, rect1, IB_PROFILE_SRGB, IB_PROFILE_SRGB, FALSE, x, y, x, x);
+	IMB_buffer_float_from_byte(inbuf, rect1, IB_PROFILE_SRGB, IB_PROFILE_SRGB, false, x, y, x, x);
 	IMB_buffer_float_premultiply(inbuf, x, y);
 
 	RVIsolateHighlights_float(inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * facf0, glow->fClamp);
@@ -2077,7 +2077,7 @@ static void do_glow_effect_byte(Sequence *seq, int render_size, float facf0, flo
 		RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
 
 	IMB_buffer_float_unpremultiply(outbuf, x, y);
-	IMB_buffer_byte_from_float(out, outbuf, 4, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_SRGB, FALSE, x, y, x, x);
+	IMB_buffer_byte_from_float(out, outbuf, 4, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_SRGB, false, x, y, x, x);
 
 	MEM_freeN(inbuf);
 	MEM_freeN(outbuf);

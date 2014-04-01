@@ -228,9 +228,9 @@ static int logicbricks_move_property_get(wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "direction");
 
 	if (type == 1)
-		return TRUE;
+		return true;
 	else
-		return FALSE;
+		return false;
 }
 
 /* ************* Add/Remove Sensor Operator ************* */

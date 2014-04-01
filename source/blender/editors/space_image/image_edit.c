@@ -345,7 +345,7 @@ bool ED_space_image_check_show_maskedit(Scene *scene, SpaceImage *sima)
 	/* check editmode - this is reserved for UV editing */
 	Object *ob = OBACT;
 	if (ob && ob->mode & OB_MODE_EDIT && ED_space_image_show_uvedit(sima, ob)) {
-		return FALSE;
+		return false;
 	}
 
 	return (sima->mode == SI_MODE_MASK);
@@ -360,7 +360,7 @@ int ED_space_image_maskedit_poll(bContext *C)
 		return ED_space_image_check_show_maskedit(scene, sima);
 	}
 
-	return FALSE;
+	return false;
 }
 
 int ED_space_image_maskedit_mask_poll(bContext *C)
@@ -370,6 +370,6 @@ int ED_space_image_maskedit_mask_poll(bContext *C)
 		return sima->mask_info.mask != NULL;
 	}
 
-	return FALSE;
+	return false;
 }
 

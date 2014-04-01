@@ -382,7 +382,7 @@ void wm_gesture_tag_redraw(bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	
 	if (screen)
-		screen->do_draw_gesture = TRUE;
+		screen->do_draw_gesture = true;
 
 	wm_tag_redraw_overlay(win, ar);
 }

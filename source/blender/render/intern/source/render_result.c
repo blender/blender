@@ -471,7 +471,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	rr->tilerect.ymax = partrct->ymax - re->disprect.ymin;
 	
 	if (savebuffers) {
-		rr->do_exr_tile = TRUE;
+		rr->do_exr_tile = true;
 	}
 
 	/* check renderdata for amount of layers */
@@ -664,7 +664,7 @@ static void ml_addpass_cb(void *UNUSED(base), void *lay, const char *str, float 
 }
 
 /* from imbuf, if a handle was returned we convert this to render result */
-RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty)
+RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
 	RenderResult *rr = MEM_callocN(sizeof(RenderResult), __func__);
 	RenderLayer *rl;
@@ -771,12 +771,12 @@ static char *make_pass_name(RenderPass *rpass, int chan)
 
 /* filename already made absolute */
 /* called from within UI, saves both rendered result as a file-read result */
-int RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *filename, int compress)
+bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *filename, int compress)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
 	void *exrhandle = IMB_exr_get_handle();
-	int success;
+	bool success;
 
 	BLI_make_existing_file(filename);
 	
@@ -819,12 +819,12 @@ int RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *file
 	/* when the filename has no permissions, this can fail */
 	if (IMB_exr_begin_write(exrhandle, filename, rr->rectx, rr->recty, compress)) {
 		IMB_exr_write_channels(exrhandle);
-		success = TRUE;
+		success = true;
 	}
 	else {
 		/* TODO, get the error from openexr's exception */
 		BKE_report(reports, RPT_ERROR, "Error writing render result (see console)");
-		success = FALSE;
+		success = false;
 	}
 	IMB_exr_close(exrhandle);
 
@@ -1001,7 +1001,7 @@ void render_result_exr_file_end(Render *re)
 			rl->exrhandle = NULL;
 		}
 
-		rr->do_exr_tile = FALSE;
+		rr->do_exr_tile = false;
 	}
 	
 	render_result_free_list(&re->fullresult, re->result);
@@ -1036,7 +1036,7 @@ int render_result_exr_file_read(Render *re, int sample)
 {
 	RenderLayer *rl;
 	char str[FILE_MAX];
-	int success = TRUE;
+	bool success = true;
 
 	RE_FreeRenderResult(re->result);
 	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
@@ -1048,7 +1048,7 @@ int render_result_exr_file_read(Render *re, int sample)
 
 		if (!render_result_exr_file_read_path(re->result, rl, str)) {
 			printf("cannot read: %s\n", str);
-			success = FALSE;
+			success = false;
 
 		}
 	}

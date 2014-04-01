@@ -393,7 +393,7 @@ void filelist_init_icons(void)
 	ImBuf *bbuf;
 	ImBuf *ibuf;
 
-	BLI_assert(G.background == FALSE);
+	BLI_assert(G.background == false);
 
 #ifdef WITH_HEADLESS
 	bbuf = NULL;
@@ -421,7 +421,7 @@ void filelist_free_icons(void)
 {
 	int i;
 
-	BLI_assert(G.background == FALSE);
+	BLI_assert(G.background == false);
 
 	for (i = 0; i < SPECIAL_IMG_MAX; ++i) {
 		IMB_freeImBuf(gSpecialFileImages[i]);
@@ -624,7 +624,7 @@ ImBuf *filelist_getimage(struct FileList *filelist, int index)
 	ImBuf *ibuf = NULL;
 	int fidx = 0;
 
-	BLI_assert(G.background == FALSE);
+	BLI_assert(G.background == false);
 
 	if ((index < 0) || (index >= filelist->numfiltered)) {
 		return NULL;
@@ -641,7 +641,7 @@ ImBuf *filelist_geticon(struct FileList *filelist, int index)
 	struct direntry *file = NULL;
 	int fidx = 0;
 
-	BLI_assert(G.background == FALSE);
+	BLI_assert(G.background == false);
 
 	if ((index < 0) || (index >= filelist->numfiltered)) {
 		return NULL;
@@ -1333,7 +1333,7 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float 
 				limg->flags |= MOVIEFILE_ICON;
 			}
 		}
-		*do_update = TRUE;
+		*do_update = true;
 		PIL_sleep_ms(10);
 		limg = limg->next;
 	}
@@ -1353,7 +1353,7 @@ static void thumbnails_update(void *tjv)
 					tj->filelist->filelist[limg->index].flags &= ~MOVIEFILE;
 					tj->filelist->filelist[limg->index].flags |= MOVIEFILE_ICON;
 				}
-				limg->done = TRUE;
+				limg->done = true;
 			}
 			limg = limg->next;
 		}

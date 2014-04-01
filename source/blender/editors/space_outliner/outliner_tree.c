@@ -1402,7 +1402,7 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 	TreeElement *te, *ten;
 	TreeStoreElem *tselem;
 	
-	/* although we don't have any search string, we return TRUE 
+	/* although we don't have any search string, we return true 
 	 * since the entire tree is ok then...
 	 */
 	if (soops->search_string[0] == 0)

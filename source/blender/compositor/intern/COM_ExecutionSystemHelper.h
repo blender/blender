@@ -92,7 +92,7 @@ public:
 	 * Find all Node Operations that needs to be executed.
 	 * @param rendering
 	 * the rendering parameter will tell what type of execution we are doing
-	 * FALSE is editing, TRUE is rendering
+	 * false is editing, true is rendering
 	 */
 	static void findOutputNodeOperations(vector<NodeOperation *> *result, vector<NodeOperation *>& operations, bool rendering);
 

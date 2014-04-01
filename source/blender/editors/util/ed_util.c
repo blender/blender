@@ -163,7 +163,7 @@ void ED_editors_flush_edits(const bContext *C, bool for_render)
 		else {
 			/* Set reorder=false so that saving the file doesn't reorder
 			 * the BMesh's elements */
-			sculptsession_bm_to_me(obact, FALSE);
+			sculptsession_bm_to_me(obact, false);
 		}
 	}
 }

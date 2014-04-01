@@ -247,7 +247,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		/* shouldnt suddenly give errors mid-render but possible */
 		char err_out[256] = "unknown";
 		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey,
-		                                                         IB_rect, OB_SOLID, FALSE, TRUE,
+		                                                         IB_rect, OB_SOLID, false, true,
 		                                                         (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL, err_out);
 		camera = scene->camera;
 
@@ -308,8 +308,9 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 				IMB_color_to_bw(ibuf);
 			}
 
-			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, FALSE);
-			ok = BKE_imbuf_write_as(ibuf, name, &scene->r.im_format, TRUE); /* no need to stamp here */
+			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra,
+			                  &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, false);
+			ok = BKE_imbuf_write_as(ibuf, name, &scene->r.im_format, true); /* no need to stamp here */
 			if (ok) printf("OpenGL Render written to '%s'\n", name);
 			else printf("OpenGL Render failed to write '%s'\n", name);
 		}
@@ -348,7 +349,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	/* ensure we have a 3d view */
 
 	if (!ED_view3d_context_activate(C)) {
-		RNA_boolean_set(op->ptr, "view_context", FALSE);
+		RNA_boolean_set(op->ptr, "view_context", false);
 		is_view_context = false;
 	}
 
@@ -532,7 +533,8 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
 
 	if (!is_movie) {
-		BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, TRUE);
+		BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra,
+		                  &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, true);
 
 		if ((scene->r.mode & R_NO_OVERWRITE) && BLI_exists(name)) {
 			BKE_reportf(op->reports, RPT_INFO, "Skipping existing frame \"%s\"", name);
@@ -569,7 +571,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	ibuf = BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
 
 	if (ibuf) {
-		int needs_free = FALSE;
+		bool needs_free = false;
 
 		ibuf_save = ibuf;
 
@@ -577,7 +579,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			ibuf_save = IMB_colormanagement_imbuf_for_write(ibuf, true, true, &scene->view_settings,
 			                                                &scene->display_settings, &scene->r.im_format);
 
-			needs_free = TRUE;
+			needs_free = true;
 		}
 
 		/* color -> grayscale */

@@ -447,7 +447,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, bool *
 static short get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple **last,
                                       const bool do_sel_only)
 {
-	short found = FALSE;
+	bool found = false;
 	
 	/* init outputs */
 	*first = NULL;
@@ -467,7 +467,7 @@ static short get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple 
 		for (i = 0; i < fcu->totvert; bezt++, i++) {
 			if (BEZSELECTED(bezt)) {
 				*first = bezt;
-				found = TRUE;
+				found = true;
 				break;
 			}
 		}
@@ -477,7 +477,7 @@ static short get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple 
 		for (i = 0; i < fcu->totvert; bezt--, i++) {
 			if (BEZSELECTED(bezt)) {
 				*last = bezt;
-				found = TRUE;
+				found = true;
 				break;
 			}
 		}
@@ -486,7 +486,7 @@ static short get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple 
 		/* just full array */
 		*first = fcu->bezt;
 		*last = ARRAY_LAST_ITEM(fcu->bezt, BezTriple, sizeof(BezTriple), fcu->totvert);
-		found = TRUE;
+		found = true;
 	}
 	
 	return found;
@@ -529,7 +529,7 @@ bool calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 				BezTriple *bezt;
 				
 				for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
-					if ((do_sel_only == FALSE) || BEZSELECTED(bezt)) {
+					if ((do_sel_only == false) || BEZSELECTED(bezt)) {
 						if (include_handles) {
 							yminv = min_ffff(yminv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
 							ymaxv = max_ffff(ymaxv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
@@ -539,7 +539,7 @@ bool calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 							ymaxv = max_ff(ymaxv, bezt->vec[1][1]);
 						}
 						
-						foundvert = TRUE;
+						foundvert = true;
 					}
 				}
 			}
@@ -561,7 +561,7 @@ bool calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 					if (fpt->vec[1] > ymaxv)
 						ymaxv = fpt->vec[1];
 					
-					foundvert = TRUE;
+					foundvert = true;
 				}
 			}
 		}
@@ -593,7 +593,7 @@ bool calc_fcurve_range(FCurve *fcu, float *start, float *end,
                        const bool do_sel_only, const bool do_min_length)
 {
 	float min = 999999999.0f, max = -999999999.0f;
-	short foundvert = FALSE;
+	bool foundvert = false;
 
 	if (fcu->totvert) {
 		if (fcu->bezt) {
@@ -608,19 +608,19 @@ bool calc_fcurve_range(FCurve *fcu, float *start, float *end,
 				min = min_ff(min, bezt_first->vec[1][0]);
 				max = max_ff(max, bezt_last->vec[1][0]);
 				
-				foundvert = TRUE;
+				foundvert = true;
 			}
 		}
 		else if (fcu->fpt) {
 			min = min_ff(min, fcu->fpt[0].vec[0]);
 			max = max_ff(max, fcu->fpt[fcu->totvert - 1].vec[0]);
 			
-			foundvert = TRUE;
+			foundvert = true;
 		}
 		
 	}
 	
-	if (foundvert == FALSE) {
+	if (foundvert == false) {
 		min = max = 0.0f;
 	}
 
@@ -1309,7 +1309,8 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 	bPoseChannel *pchan;
 	float mat[4][4];
 	float oldEul[3] = {0.0f, 0.0f, 0.0f};
-	short use_eulers = FALSE, rot_order = ROT_MODE_EUL;
+	bool use_eulers = false;
+	short rot_order = ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
 	if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
@@ -1337,7 +1338,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 		if (pchan->rotmode > 0) {
 			copy_v3_v3(oldEul, pchan->eul);
 			rot_order = pchan->rotmode;
-			use_eulers = TRUE;
+			use_eulers = true;
 		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
@@ -1364,7 +1365,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 		if (ob->rotmode > 0) {
 			copy_v3_v3(oldEul, ob->rot);
 			rot_order = ob->rotmode;
-			use_eulers = TRUE;
+			use_eulers = true;
 		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {

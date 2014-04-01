@@ -117,7 +117,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 	
 	/* basic settings (backdrop + mode selector + some padding) */
-	/* col = uiLayoutColumn(layout, TRUE); */ /* UNUSED */
+	/* col = uiLayoutColumn(layout, true); */ /* UNUSED */
 	block = uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
 	but = uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, bwidth, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
@@ -136,7 +136,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			int maxXWidth;
 			
 			/* draw polynomial order selector */
-			row = uiLayoutRow(layout, FALSE);
+			row = uiLayoutRow(layout, false);
 			block = uiLayoutGetBlock(row);
 			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0.5f * UI_UNIT_X, 0, bwidth, UI_UNIT_Y,
 			                &data->poly_order, 1, 100, 0, 0,
@@ -155,7 +155,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			}
 			
 			/* draw controls for each coefficient and a + sign at end of row */
-			row = uiLayoutRow(layout, TRUE);
+			row = uiLayoutRow(layout, true);
 			block = uiLayoutGetBlock(row);
 			
 			cp = data->coefficients;
@@ -183,7 +183,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 					uiDefBut(block, LABEL, 1, "+", 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* next coefficient on a new row */
-					row = uiLayoutRow(layout, TRUE);
+					row = uiLayoutRow(layout, true);
 					block = uiLayoutGetBlock(row);
 				}
 				else {
@@ -200,7 +200,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			unsigned int i;
 			
 			/* draw polynomial order selector */
-			row = uiLayoutRow(layout, FALSE);
+			row = uiLayoutRow(layout, false);
 			block = uiLayoutGetBlock(row);
 			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 0, 0, width - 1.5 * UI_UNIT_X, UI_UNIT_Y,
 			                &data->poly_order, 1, 100, 0, 0,
@@ -209,7 +209,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			
 			
 			/* draw controls for each pair of coefficients */
-			row = uiLayoutRow(layout, TRUE);
+			row = uiLayoutRow(layout, true);
 			block = uiLayoutGetBlock(row);
 			
 			cp = data->coefficients;
@@ -236,7 +236,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 					uiDefBut(block, LABEL, 1, ") \xc3\x97", 0, 0, 2 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* set up new row for the next pair of coefficients */
-					row = uiLayoutRow(layout, TRUE);
+					row = uiLayoutRow(layout, true);
 					block = uiLayoutGetBlock(row);
 				}
 				else 
@@ -259,11 +259,11 @@ static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm
 	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 	
 	/* add the settings */
-	col = uiLayoutColumn(layout, TRUE);
+	col = uiLayoutColumn(layout, true);
 	uiItemR(col, &ptr, "function_type", 0, "", ICON_NONE);
 	uiItemR(col, &ptr, "use_additive", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, FALSE); // no grouping for now
+	col = uiLayoutColumn(layout, false); // no grouping for now
 	uiItemR(col, &ptr, "amplitude", 0, NULL, ICON_NONE);
 	uiItemR(col, &ptr, "phase_multiplier", 0, NULL, ICON_NONE);
 	uiItemR(col, &ptr, "phase_offset", 0, NULL, ICON_NONE);
@@ -284,16 +284,16 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	/* split into 2 columns 
 	 * NOTE: the mode comboboxes shouldn't get labels, otherwise there isn't enough room
 	 */
-	split = uiLayoutSplit(layout, 0.5f, FALSE);
+	split = uiLayoutSplit(layout, 0.5f, false);
 	
 	/* before range */
-	col = uiLayoutColumn(split, TRUE);
+	col = uiLayoutColumn(split, true);
 	uiItemL(col, IFACE_("Before:"), ICON_NONE);
 	uiItemR(col, &ptr, "mode_before", 0, "", ICON_NONE);
 	uiItemR(col, &ptr, "cycles_before", 0, NULL, ICON_NONE);
 		
 	/* after range */
-	col = uiLayoutColumn(split, TRUE);
+	col = uiLayoutColumn(split, true);
 	uiItemL(col, IFACE_("After:"), ICON_NONE);
 	uiItemR(col, &ptr, "mode_after", 0, "", ICON_NONE);
 	uiItemR(col, &ptr, "cycles_after", 0, NULL, ICON_NONE);
@@ -314,16 +314,16 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	uiItemR(layout, &ptr, "blend_type", 0, NULL, ICON_NONE);
 	
 	/* split into 2 columns */
-	split = uiLayoutSplit(layout, 0.5f, FALSE);
+	split = uiLayoutSplit(layout, 0.5f, false);
 	
 	/* col 1 */
-	col = uiLayoutColumn(split, FALSE);
+	col = uiLayoutColumn(split, false);
 	uiItemR(col, &ptr, "scale", 0, NULL, ICON_NONE);
 	uiItemR(col, &ptr, "strength", 0, NULL, ICON_NONE);
 	uiItemR(col, &ptr, "offset", 0, NULL, ICON_NONE);
 	
 	/* col 2 */
-	col = uiLayoutColumn(split, FALSE);
+	col = uiLayoutColumn(split, false);
 	uiItemR(col, &ptr, "phase", 0, NULL, ICON_NONE);
 	uiItemR(col, &ptr, "depth", 0, NULL, ICON_NONE);
 }
@@ -425,18 +425,18 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	RNA_pointer_create(id, &RNA_FModifierEnvelope, fcm, &ptr);
 	
 	/* general settings */
-	col = uiLayoutColumn(layout, TRUE);
+	col = uiLayoutColumn(layout, true);
 	uiItemL(col, IFACE_("Envelope:"), ICON_NONE);
 	uiItemR(col, &ptr, "reference_value", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(col, TRUE);
+	row = uiLayoutRow(col, true);
 	uiItemR(row, &ptr, "default_min", 0, IFACE_("Min"), ICON_NONE);
 	uiItemR(row, &ptr, "default_max", 0, IFACE_("Max"), ICON_NONE);
 
 	/* control points header */
 	/* TODO: move this control-point control stuff to using the new special widgets for lists
 	 * the current way is far too cramped */
-	row = uiLayoutRow(layout, FALSE);
+	row = uiLayoutRow(layout, false);
 	block = uiLayoutGetBlock(row);
 		
 	uiDefBut(block, LABEL, 1, IFACE_("Control Points:"), 0, 0, 7.5 * UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
@@ -448,7 +448,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	/* control points list */
 	for (i = 0, fed = env->data; i < env->totvert; i++, fed++) {
 		/* get a new row to operate on */
-		row = uiLayoutRow(layout, TRUE);
+		row = uiLayoutRow(layout, true);
 		block = uiLayoutGetBlock(row);
 		
 		uiBlockBeginAlign(block);
@@ -481,36 +481,36 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 	
 	/* row 1: minimum */
 	{
-		/* row = uiLayoutRow(layout, FALSE); */ /* UNUSED */
+		/* row = uiLayoutRow(layout, false); */ /* UNUSED */
 		
 		/* split into 2 columns */
-		split = uiLayoutSplit(layout, 0.5f, FALSE);
+		split = uiLayoutSplit(layout, 0.5f, false);
 		
 		/* x-minimum */
-		col = uiLayoutColumn(split, TRUE);
+		col = uiLayoutColumn(split, true);
 		uiItemR(col, &ptr, "use_min_x", 0, NULL, ICON_NONE);
 		uiItemR(col, &ptr, "min_x", 0, NULL, ICON_NONE);
 			
 		/* y-minimum*/
-		col = uiLayoutColumn(split, TRUE);
+		col = uiLayoutColumn(split, true);
 		uiItemR(col, &ptr, "use_min_y", 0, NULL, ICON_NONE);
 		uiItemR(col, &ptr, "min_y", 0, NULL, ICON_NONE);
 	}
 	
 	/* row 2: maximum */
 	{
-		/* row = uiLayoutRow(layout, FALSE); */ /* UNUSED */
+		/* row = uiLayoutRow(layout, false); */ /* UNUSED */
 		
 		/* split into 2 columns */
-		split = uiLayoutSplit(layout, 0.5f, FALSE);
+		split = uiLayoutSplit(layout, 0.5f, false);
 		
 		/* x-minimum */
-		col = uiLayoutColumn(split, TRUE);
+		col = uiLayoutColumn(split, true);
 		uiItemR(col, &ptr, "use_max_x", 0, NULL, ICON_NONE);
 		uiItemR(col, &ptr, "max_x", 0, NULL, ICON_NONE);
 			
 		/* y-minimum*/
-		col = uiLayoutColumn(split, TRUE);
+		col = uiLayoutColumn(split, true);
 		uiItemR(col, &ptr, "use_max_y", 0, NULL, ICON_NONE);
 		uiItemR(col, &ptr, "max_y", 0, NULL, ICON_NONE);
 	}
@@ -528,23 +528,23 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 	RNA_pointer_create(id, &RNA_FModifierStepped, fcm, &ptr);
 	
 	/* block 1: "stepping" settings */
-	col = uiLayoutColumn(layout, FALSE);
+	col = uiLayoutColumn(layout, false);
 	uiItemR(col, &ptr, "frame_step", 0, NULL, ICON_NONE);
 	uiItemR(col, &ptr, "frame_offset", 0, NULL, ICON_NONE);
 		
 	/* block 2: start range settings */
-	col = uiLayoutColumn(layout, TRUE);
+	col = uiLayoutColumn(layout, true);
 	uiItemR(col, &ptr, "use_frame_start", 0, NULL, ICON_NONE);
 		
-	sub = uiLayoutColumn(col, TRUE);
+	sub = uiLayoutColumn(col, true);
 	uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_frame_start"));
 	uiItemR(sub, &ptr, "frame_start", 0, NULL, ICON_NONE);
 			
 	/* block 3: end range settings */
-	col = uiLayoutColumn(layout, TRUE);
+	col = uiLayoutColumn(layout, true);
 	uiItemR(col, &ptr, "use_frame_end", 0, NULL, ICON_NONE);
 		
-	sub = uiLayoutColumn(col, TRUE);
+	sub = uiLayoutColumn(col, true);
 	uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_frame_end"));
 	uiItemR(sub, &ptr, "frame_end", 0, NULL, ICON_NONE);
 }
@@ -568,11 +568,11 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifier
 		/* get layout-row + UI-block for this */
 		box = uiLayoutBox(layout);
 		
-		row = uiLayoutRow(box, FALSE);
+		row = uiLayoutRow(box, false);
 		block = uiLayoutGetBlock(row); // err...
 		
 		/* left-align -------------------------------------------- */
-		sub = uiLayoutRow(row, TRUE);
+		sub = uiLayoutRow(row, true);
 		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -590,7 +590,7 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifier
 			uiItemL(sub, IFACE_("<Unknown Modifier>"), ICON_NONE);
 		
 		/* right-align ------------------------------------------- */
-		sub = uiLayoutRow(row, TRUE);
+		sub = uiLayoutRow(row, true);
 		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 		
 		
@@ -652,28 +652,28 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifier
 			box = uiLayoutBox(layout);
 			
 			/* restricted range ----------------------------------------------------- */
-			col = uiLayoutColumn(box, TRUE);
+			col = uiLayoutColumn(box, true);
 			
 			/* top row: use restricted range */
-			row = uiLayoutRow(col, TRUE);
+			row = uiLayoutRow(col, true);
 			uiItemR(row, &ptr, "use_restricted_range", 0, NULL, ICON_NONE);
 			
 			if (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) {
 				/* second row: settings */
-				row = uiLayoutRow(col, TRUE);
+				row = uiLayoutRow(col, true);
 				
 				uiItemR(row, &ptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
 				uiItemR(row, &ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
 				
 				/* third row: blending influence */
-				row = uiLayoutRow(col, TRUE);
+				row = uiLayoutRow(col, true);
 				
 				uiItemR(row, &ptr, "blend_in", 0, IFACE_("In"), ICON_NONE);
 				uiItemR(row, &ptr, "blend_out", 0, IFACE_("Out"), ICON_NONE);
 			}
 			
 			/* influence -------------------------------------------------------------- */
-			col = uiLayoutColumn(box, TRUE);
+			col = uiLayoutColumn(box, true);
 			
 			/* top row: use influence */
 			uiItemR(col, &ptr, "use_influence", 0, NULL, ICON_NONE);

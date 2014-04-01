@@ -1280,7 +1280,7 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 		else if (!BKE_tracking_context_step(tmj->context))
 			break;
 
-		*do_update = TRUE;
+		*do_update = true;
 		*progress = (float)(framenr - tmj->sfra) / (tmj->efra - tmj->sfra);
 
 		if (tmj->backwards)
@@ -2011,7 +2011,7 @@ static int set_orientation_poll(bContext *C)
 			MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
 			if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-				return TRUE;
+				return true;
 			}
 			else {
 				return OBACT != NULL;
@@ -2019,7 +2019,7 @@ static int set_orientation_poll(bContext *C)
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int count_selected_bundles(bContext *C)
@@ -2650,7 +2650,7 @@ static int set_solution_scale_poll(bContext *C)
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int set_solution_scale_exec(bContext *C, wmOperator *op)
@@ -2706,7 +2706,7 @@ static int apply_solution_scale_poll(bContext *C)
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int apply_solution_scale_exec(bContext *C, wmOperator *op)
@@ -3306,7 +3306,7 @@ static int stabilize_2d_poll(bContext *C)
 		return tracking_object->flag & TRACKING_OBJECT_CAMERA;
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))

@@ -96,8 +96,8 @@ typedef struct tMakeLocalActionContext {
 	bAction *act;       /* original action */
 	bAction *act_new;   /* new action */
 	
-	int is_lib;         /* some action users were libraries */
-	int is_local;       /* some action users were not libraries */
+	bool is_lib;        /* some action users were libraries */
+	bool is_local;      /* some action users were not libraries */
 } tMakeLocalActionContext;
 
 /* helper function for BKE_action_make_local() - local/lib init step */
@@ -106,8 +106,8 @@ static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
 	
 	if (adt->action == mlac->act) {
-		if (id->lib) mlac->is_lib = TRUE;
-		else mlac->is_local = TRUE;
+		if (id->lib) mlac->is_lib = true;
+		else mlac->is_local = true;
 	}
 }
 
@@ -129,7 +129,7 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 // does copy_fcurve...
 void BKE_action_make_local(bAction *act)
 {
-	tMakeLocalActionContext mlac = {act, NULL, FALSE, FALSE};
+	tMakeLocalActionContext mlac = {act, NULL, false, false};
 	Main *bmain = G.main;
 	
 	if (act->id.lib == NULL)
@@ -143,7 +143,7 @@ void BKE_action_make_local(bAction *act)
 	
 	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
 	
-	if (mlac.is_local && mlac.is_lib == FALSE) {
+	if (mlac.is_local && mlac.is_lib == false) {
 		id_clear_lib_data(bmain, &act->id);
 	}
 	else if (mlac.is_local && mlac.is_lib) {
@@ -604,7 +604,7 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 	
 	for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
 		if (copy_constraints) {
-			BKE_copy_constraints(&listb, &pchan->constraints, TRUE);  // BKE_copy_constraints NULLs listb
+			BKE_copy_constraints(&listb, &pchan->constraints, true);  // BKE_copy_constraints NULLs listb
 			pchan->constraints = listb;
 			pchan->mpath = NULL; /* motion paths should not get copied yet... */
 		}
@@ -843,7 +843,7 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 	pchan->iklinweight = pchan_from->iklinweight;
 
 	/* constraints */
-	BKE_copy_constraints(&pchan->constraints, &pchan_from->constraints, TRUE);
+	BKE_copy_constraints(&pchan->constraints, &pchan_from->constraints, true);
 
 	/* id-properties */
 	if (pchan->prop) {
@@ -1037,7 +1037,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				
 				/* get extents for this curve */
 				/* TODO: allow enabling/disabling this? */
-				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
+				calc_fcurve_range(fcu, &nmin, &nmax, false, true);
 				
 				/* compare to the running tally */
 				min = min_ff(min, nmin);

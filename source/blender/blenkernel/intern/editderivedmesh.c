@@ -932,9 +932,10 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	DMVertexAttribs attribs;
 	GPUVertexAttribs gattribs;
 
-	int i, matnr, new_matnr, do_draw, fi;
+	int i, matnr, new_matnr, fi;
+	bool do_draw;
 
-	do_draw = FALSE;
+	do_draw = false;
 	matnr = -1;
 
 	memset(&attribs, 0, sizeof(attribs));

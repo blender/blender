@@ -821,13 +821,13 @@ static void q_scale_float(float *in, float *out, int in_width,
  *
  * NOTE: disabled, due to unacceptable inaccuracy and quality loss, see bug #18609 (ton)
  */
-static int q_scale_linear_interpolation(
+static bool q_scale_linear_interpolation(
         struct ImBuf *ibuf, int newx, int newy)
 {
 	if ((newx >= ibuf->x && newy <= ibuf->y) ||
 	    (newx <= ibuf->x && newy >= ibuf->y))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (ibuf->rect) {
@@ -853,7 +853,7 @@ static int q_scale_linear_interpolation(
 	ibuf->x = newx;
 	ibuf->y = newy;
 
-	return TRUE;
+	return true;
 }
 
 static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
@@ -1141,12 +1141,12 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return (ibuf);
 
 	if (ibuf->rect) {
-		do_rect = TRUE;
+		do_rect = true;
 		_newrect = MEM_mallocN(newx * ibuf->y * sizeof(int), "scaleupx");
 		if (_newrect == NULL) return(ibuf);
 	}
 	if (ibuf->rect_float) {
-		do_float = TRUE;
+		do_float = true;
 		_newrectf = MEM_mallocN(newx * ibuf->y * sizeof(float) * 4, "scaleupxf");
 		if (_newrectf == NULL) {
 			if (_newrect) MEM_freeN(_newrect);
@@ -1298,7 +1298,8 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 	float val_bf, nval_bf, diff_bf;
 	float val_gf, nval_gf, diff_gf;
 	float val_rf, nval_rf, diff_rf;
-	int x, y, do_rect = FALSE, do_float = FALSE, skipx;
+	int x, y, skipx;
+	bool do_rect = false, do_float = false;
 
 	val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
 	val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;
@@ -1308,12 +1309,12 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return (ibuf);
 
 	if (ibuf->rect) {
-		do_rect = TRUE;
+		do_rect = true;
 		_newrect = MEM_mallocN(ibuf->x * newy * sizeof(int), "scaleupy");
 		if (_newrect == NULL) return(ibuf);
 	}
 	if (ibuf->rect_float) {
-		do_float = TRUE;
+		do_float = true;
 		_newrectf = MEM_mallocN(ibuf->x * newy * sizeof(float) * 4, "scaleupyf");
 		if (_newrectf == NULL) {
 			if (_newrect) MEM_freeN(_newrect);
@@ -1527,16 +1528,17 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 {
 	unsigned int *rect, *_newrect, *newrect;
 	struct imbufRGBA *rectf, *_newrectf, *newrectf;
-	int x, y, do_float = FALSE, do_rect = FALSE;
+	int x, y;
+	bool do_float = false, do_rect = false;
 	int ofsx, ofsy, stepx, stepy;
 
 	rect = NULL; _newrect = NULL; newrect = NULL;
 	rectf = NULL; _newrectf = NULL; newrectf = NULL;
 
 	if (ibuf == NULL) return(NULL);
-	if (ibuf->rect) do_rect = TRUE;
-	if (ibuf->rect_float) do_float = TRUE;
-	if (do_rect == FALSE && do_float == FALSE) return(ibuf);
+	if (ibuf->rect) do_rect = true;
+	if (ibuf->rect_float) do_float = true;
+	if (do_rect == false && do_float == false) return(ibuf);
 	
 	if (newx == ibuf->x && newy == ibuf->y) return(ibuf);
 	

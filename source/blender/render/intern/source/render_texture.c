@@ -1103,7 +1103,7 @@ static int multitex(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int o
 	float tmpvec[3];
 	int retval = 0; /* return value, int:0, col:1, nor:2, everything:3 */
 
-	texres->talpha = FALSE;  /* is set when image texture returns alpha (considered premul) */
+	texres->talpha = false;  /* is set when image texture returns alpha (considered premul) */
 	
 	if (tex->use_nodes && tex->nodetree) {
 		retval = ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, osatex, thread,
@@ -1200,7 +1200,7 @@ static int multitex(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int o
 	if (tex->flag & TEX_COLORBAND) {
 		float col[4];
 		if (do_colorband(tex->coba, texres->tin, col)) {
-			texres->talpha = TRUE;
+			texres->talpha = true;
 			texres->tr= col[0];
 			texres->tg= col[1];
 			texres->tb= col[2];
@@ -1326,7 +1326,7 @@ int multitex_ext_safe(Tex *tex, float texvec[3], TexResult *texres, struct Image
 {
 	int use_nodes= tex->use_nodes, retval;
 	
-	tex->use_nodes = FALSE;
+	tex->use_nodes = false;
 	retval= multitex_nodes_intern(tex, texvec, NULL, NULL, 0, texres, 0, 0, NULL, NULL, pool, scene_color_manage);
 	tex->use_nodes= use_nodes;
 	
@@ -1642,7 +1642,7 @@ static void texco_mapping(ShadeInput *shi, Tex *tex, MTex *mtex,
 typedef struct CompatibleBump {
 	float nu[3], nv[3], nn[3];
 	float dudnu, dudnv, dvdnu, dvdnv;
-	int nunvdone;
+	bool nunvdone;
 } CompatibleBump;
 
 static void compatible_bump_init(CompatibleBump *compat_bump)
@@ -1679,7 +1679,7 @@ static void compatible_bump_uv_derivs(CompatibleBump *compat_bump, ShadeInput *s
 				compat_bump->nn[1] = -shi->vn[1];
 				compat_bump->nn[2] = -shi->vn[2];
 				ortho_basis_v3v3_v3(compat_bump->nu, compat_bump->nv, compat_bump->nn);
-				compat_bump->nunvdone = TRUE;
+				compat_bump->nunvdone = true;
 			}
 
 			if (tf) {
@@ -1733,7 +1733,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		/* render normal is negated */
 		negate_v3_v3(compat_bump->nn, shi->vn);
 		ortho_basis_v3v3_v3(compat_bump->nu, compat_bump->nv, compat_bump->nn);
-		compat_bump->nunvdone = TRUE;
+		compat_bump->nunvdone = true;
 	}
 
 	/* two methods, either constant based on main image resolution,
@@ -1916,7 +1916,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		ntap_bump->fPrevMagnitude = 1.0f;
 		ntap_bump->iPrevBumpSpace = 0;
 		
-		ntap_bump->init_done = TRUE;
+		ntap_bump->init_done = true;
 	}
 
 	/* resolve image dimensions */
@@ -2142,10 +2142,10 @@ void do_material_tex(ShadeInput *shi, Render *re)
 	float *co = NULL, *dx = NULL, *dy = NULL;
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
-	int tex_nr, rgbnor= 0, warp_done = FALSE;
-	int use_compat_bump = FALSE, use_ntap_bump = FALSE;
-	int found_nmapping = 0, found_deriv_map = 0;
-	int iFirstTimeNMap=1;
+	int tex_nr, rgbnor= 0;
+	bool warp_done = false, use_compat_bump = false, use_ntap_bump = false;
+	bool found_nmapping = false, found_deriv_map = false;
+	bool iFirstTimeNMap = true;
 
 	compatible_bump_init(&compat_bump);
 	ntap_bump_init(&ntap_bump);
@@ -2165,25 +2165,25 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			if (tex == NULL) continue;
 
 			found_deriv_map = (tex->type==TEX_IMAGE) && (tex->imaflag & TEX_DERIVATIVEMAP);
-			use_compat_bump= (mtex->texflag & MTEX_COMPAT_BUMP);
-			use_ntap_bump = ((mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP))!=0 || found_deriv_map!=0) ? TRUE : FALSE;
+			use_compat_bump= (mtex->texflag & MTEX_COMPAT_BUMP) != 0;
+			use_ntap_bump = ((mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP))!=0 || found_deriv_map!=0) ? true : false;
 
 			/* XXX texture node trees don't work for this yet */
 			if (tex->nodetree && tex->use_nodes) {
-				use_compat_bump = FALSE;
-				use_ntap_bump = FALSE;
+				use_compat_bump = false;
+				use_ntap_bump = false;
 			}
 			
 			/* case displacement mapping */
 			if (shi->osatex == 0 && use_ntap_bump) {
-				use_ntap_bump = FALSE;
-				use_compat_bump = TRUE;
+				use_ntap_bump = false;
+				use_compat_bump = true;
 			}
 			
 			/* case ocean */
 			if (tex->type == TEX_OCEAN) {
-				use_ntap_bump = FALSE;
-				use_compat_bump = FALSE;
+				use_ntap_bump = false;
+				use_compat_bump = false;
 			}
 
 			/* which coords */
@@ -2381,7 +2381,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 					warpvec[0]= mtex->warpfac*warpnor[0];
 					warpvec[1]= mtex->warpfac*warpnor[1];
 					warpvec[2]= mtex->warpfac*warpnor[2];
-					warp_done = TRUE;
+					warp_done = true;
 				}
 #if 0				
 				if (mtex->texflag & MTEX_VIEWSPACE) {
@@ -2476,8 +2476,8 @@ void do_material_tex(ShadeInput *shi, Render *re)
 						if (mtex->normapspace == MTEX_NSPACE_TANGENT) {
 							/* qdn: tangent space */
 							float B[3], tv[3];
-							const float * no = iFirstTimeNMap!=0 ? shi->nmapnorm : shi->vn;
-							iFirstTimeNMap=0;
+							const float *no = iFirstTimeNMap ? shi->nmapnorm : shi->vn;
+							iFirstTimeNMap = false;
 							cross_v3_v3v3(B, no, shi->nmaptang);	/* bitangent */
 							mul_v3_fl(B, shi->nmaptang[3]);
 							/* transform norvec from tangent space to object surface in camera space */

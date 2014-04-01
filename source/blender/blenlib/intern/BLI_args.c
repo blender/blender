@@ -49,7 +49,7 @@ typedef struct bArgDoc {
 	const char *short_arg;
 	const char *long_arg;
 	const char *documentation;
-	int done;
+	bool done;
 } bArgDoc;
 
 typedef struct bAKey {
@@ -243,7 +243,7 @@ void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg)
 
 		internalDocPrint(d);
 
-		d->done = TRUE;
+		d->done = true;
 	}
 }
 

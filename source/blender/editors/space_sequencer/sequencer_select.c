@@ -723,11 +723,11 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	int selected;
+	bool selected;
 
-	selected = 1;
+	selected = true;
 	while (selected) {
-		selected = select_more_less_seq__internal(scene, 1, 1);
+		selected = select_more_less_seq__internal(scene, true, true);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
@@ -907,7 +907,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 }
 
 /* ****** Selected Grouped ****** */
@@ -1105,7 +1105,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 	}
 	SEQ_END;
 
-	actseq->tmp = SET_INT_IN_POINTER(TRUE);
+	actseq->tmp = SET_INT_IN_POINTER(true);
 
 	for (BKE_sequence_iterator_begin(ed, &iter, true); iter.valid; BKE_sequence_iterator_next(&iter)) {
 		seq = iter.seq;
@@ -1129,7 +1129,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 			if (enddisp < seq->enddisp) enddisp = seq->enddisp;
 			if (machine < seq->machine) machine = seq->machine;
 
-			seq->tmp = SET_INT_IN_POINTER(TRUE);
+			seq->tmp = SET_INT_IN_POINTER(true);
 
 			seq->flag |= SELECT;
 			changed = true;
@@ -1210,7 +1210,7 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop = RNA_def_enum(ot->srna, "type", sequencer_prop_select_grouped_types, 0, "Type", "");
 }
 

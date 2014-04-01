@@ -84,7 +84,7 @@ void BKE_camera_make_local(Camera *cam)
 {
 	Main *bmain = G.main;
 	Object *ob;
-	int is_local = FALSE, is_lib = FALSE;
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -99,12 +99,12 @@ void BKE_camera_make_local(Camera *cam)
 	
 	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
 		if (ob->data == cam) {
-			if (ob->id.lib) is_lib = TRUE;
-			else is_local = TRUE;
+			if (ob->id.lib) is_lib = true;
+			else is_local = true;
 		}
 	}
 	
-	if (is_local && is_lib == FALSE) {
+	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &cam->id);
 	}
 	else if (is_local && is_lib) {
@@ -214,7 +214,7 @@ void BKE_camera_params_from_object(CameraParams *params, Object *ob)
 		Camera *cam = ob->data;
 
 		if (cam->type == CAM_ORTHO)
-			params->is_ortho = TRUE;
+			params->is_ortho = true;
 		params->lens = cam->lens;
 		params->ortho_scale = cam->ortho_scale;
 
@@ -273,7 +273,7 @@ void BKE_camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView
 		params->clipend *= 0.5f;    // otherwise too extreme low zbuffer quality
 		params->clipsta = -params->clipend;
 
-		params->is_ortho = TRUE;
+		params->is_ortho = true;
 		/* make sure any changes to this match ED_view3d_radius_to_ortho_dist() */
 		params->ortho_scale = rv3d->dist * sensor_size / v3d->lens;
 		params->zoom = 2.0f;
@@ -454,7 +454,7 @@ void BKE_camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
 	float dummy_drawsize;
 	const float dummy_scale[3] = {1.0f, 1.0f, 1.0f};
 
-	BKE_camera_view_frame_ex(scene, camera, FALSE, 1.0, dummy_scale,
+	BKE_camera_view_frame_ex(scene, camera, false, 1.0, dummy_scale,
 	                         dummy_asp, dummy_shift, &dummy_drawsize, r_vec);
 }
 

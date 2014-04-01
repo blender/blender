@@ -1141,7 +1141,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		World *wo;
 		Tex *tex;
 		ParticleSettings *part;
-		int do_gravity = FALSE;
+		bool do_gravity = false;
 
 		for (sce = main->scene.first; sce; sce = sce->id.next)
 			if (sce->unit.scale_length == 0.0f)
@@ -1197,7 +1197,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
 				sce->physics_settings.gravity[2] = -9.81f;
 				sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
-				do_gravity = TRUE;
+				do_gravity = true;
 			}
 		}
 
@@ -2561,7 +2561,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						tex->pd->falloff_curve->preset = CURVE_PRESET_LINE;
 						tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 						curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
-						curvemapping_changed(tex->pd->falloff_curve, FALSE);
+						curvemapping_changed(tex->pd->falloff_curve, false);
 					}
 				}
 			}

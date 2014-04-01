@@ -503,7 +503,7 @@ int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 		case TEX_PD_COLOR_PARTAGE:
 			if (pd->coba) {
 				if (do_colorband(pd->coba, age, col)) {
-					texres->talpha = TRUE;
+					texres->talpha = true;
 					copy_v3_v3(&texres->tr, col);
 					texres->tin *= col[3];
 					texres->ta = texres->tin;
@@ -516,7 +516,7 @@ int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 			
 			if (pd->coba) {
 				if (do_colorband(pd->coba, speed, col)) {
-					texres->talpha = TRUE;
+					texres->talpha = true;
 					copy_v3_v3(&texres->tr, col);
 					texres->tin *= col[3];
 					texres->ta = texres->tin;
@@ -525,7 +525,7 @@ int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 			break;
 		}
 		case TEX_PD_COLOR_PARTVEL:
-			texres->talpha = TRUE;
+			texres->talpha = true;
 			mul_v3_fl(vec, pd->speed_scale);
 			copy_v3_v3(&texres->tr, vec);
 			texres->ta = texres->tin;

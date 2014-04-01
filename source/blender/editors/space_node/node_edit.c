@@ -176,8 +176,8 @@ static void compo_statsdrawjob(void *cjv, char *UNUSED(str))
 {
 	CompoJob *cj = cjv;
 	
-	*(cj->do_update) = TRUE;
-	cj->need_sync = TRUE;
+	*(cj->do_update) = true;
+	cj->need_sync = true;
 }
 
 /* called by compo, wmJob sends notifier */
@@ -185,7 +185,7 @@ static void compo_redrawjob(void *cjv)
 {
 	CompoJob *cj = cjv;
 	
-	*(cj->do_update) = TRUE;
+	*(cj->do_update) = true;
 }
 
 static void compo_freejob(void *cjv)
@@ -219,7 +219,7 @@ static void compo_updatejob(void *cjv)
 		/* was used by old compositor system only */
 		ntreeLocalSync(cj->localtree, cj->ntree);
 
-		cj->need_sync = FALSE;
+		cj->need_sync = false;
 	}
 
 	WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, NULL);
@@ -240,7 +240,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	bNodeTree *ntree = cj->localtree;
 	Scene *scene = cj->scene;
 
-	if (scene->use_nodes == FALSE)
+	if (scene->use_nodes == false)
 		return;
 	
 	cj->stop = stop;
@@ -259,7 +259,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	// XXX BIF_store_spare();
 	
 	/* 1 is do_previews */
-	ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, FALSE, TRUE, &scene->view_settings, &scene->display_settings);
+	ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, &scene->view_settings, &scene->display_settings);
 
 	ntree->test_break = NULL;
 	ntree->stats_draw = NULL;
@@ -285,7 +285,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	}
 
 #ifdef USE_ESC_COMPO
-	G.is_break = FALSE;
+	G.is_break = false;
 #endif
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing",
@@ -619,7 +619,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 	
 	if (node->type != NODE_GROUP) {
 		const bool was_output = (node->flag & NODE_DO_OUTPUT) != 0;
-		int do_update = 0;
+		bool do_update = false;
 		
 		/* generic node group output: set node as active output */
 		if (node->type == NODE_GROUP_OUTPUT) {
@@ -1205,9 +1205,9 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 			/* has been set during copy above */
 			newnode = node->new_node;
 			
-			nodeSetSelected(node, FALSE);
+			nodeSetSelected(node, false);
 			node->flag &= ~NODE_ACTIVE;
-			nodeSetSelected(newnode, TRUE);
+			nodeSetSelected(newnode, true);
 		}
 		
 		/* make sure we don't copy new nodes again! */
@@ -1248,11 +1248,11 @@ bool ED_node_select_check(ListBase *lb)
 
 	for (node = lb->first; node; node = node->next) {
 		if (node->flag & NODE_SELECT) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* ******************************** */
@@ -2012,15 +2012,15 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	}
 
 	/* only warn */
-	if (is_clipboard_valid == FALSE) {
+	if (is_clipboard_valid == false) {
 		BKE_report(op->reports, RPT_WARNING, "Some nodes references could not be restored, will be left empty");
 	}
 
 	/* make sure all clipboard nodes would be valid in the target tree */
-	all_nodes_valid = TRUE;
+	all_nodes_valid = true;
 	for (node = clipboard_nodes_lb->first; node; node = node->next) {
 		if (!node->typeinfo->poll_instance(node, ntree)) {
-			all_nodes_valid = FALSE;
+			all_nodes_valid = false;
 			BKE_reportf(op->reports, RPT_ERROR, "Cannot add node %s into node tree %s", node->name, ntree->id.name + 2);
 		}
 	}
@@ -2048,7 +2048,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 		id_us_plus(node->id);
 
 		/* pasted nodes are selected */
-		nodeSetSelected(new_node, TRUE);
+		nodeSetSelected(new_node, true);
 	}
 	
 	/* reparent copied nodes */
@@ -2317,10 +2317,10 @@ static int node_shader_script_update_poll(bContext *C)
 /* recursively check for script nodes in groups using this text and update */
 static int node_shader_script_update_text_recursive(RenderEngine *engine, RenderEngineType *type, bNodeTree *ntree, Text *text)
 {
-	int found = FALSE;
+	int found = false;
 	bNode *node;
 	
-	ntree->done = TRUE;
+	ntree->done = true;
 	
 	/* update each script that is using this text datablock */
 	for (node = ntree->nodes.first; node; node = node->next) {
@@ -2331,7 +2331,7 @@ static int node_shader_script_update_text_recursive(RenderEngine *engine, Render
 		}
 		else if (node->type == SH_NODE_SCRIPT && node->id == &text->id) {
 			type->update_script_node(engine, ntree, node);
-			found = TRUE;
+			found = true;
 		}
 	}
 	
@@ -2348,7 +2348,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 	bNode *node = NULL;
 	RenderEngine *engine;
 	RenderEngineType *type;
-	int found = FALSE;
+	int found = false;
 
 	/* setup render engine */
 	type = RE_engines_find(scene->r.engine);
@@ -2369,7 +2369,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 		/* update single node */
 		type->update_script_node(engine, ntree, node);
 
-		found = TRUE;
+		found = true;
 	}
 	else {
 		/* update all nodes using text datablock */
@@ -2379,7 +2379,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 			/* clear flags for recursion check */
 			FOREACH_NODETREE(bmain, ntree, id) {
 				if (ntree->type == NTREE_SHADER)
-					ntree->done = FALSE;
+					ntree->done = false;
 			} FOREACH_NODETREE_END
 			
 			FOREACH_NODETREE(bmain, ntree, id) {
@@ -2514,5 +2514,5 @@ void NODE_OT_viewer_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 }

@@ -268,7 +268,7 @@ void ED_operatormacros_object(void)
 	                                  "Duplicate selected objects and move them", OPTYPE_UNDO | OPTYPE_REGISTER);
 	if (ot) {
 		otmacro = WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
-		RNA_boolean_set(otmacro->ptr, "linked", TRUE);
+		RNA_boolean_set(otmacro->ptr, "linked", true);
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
@@ -293,19 +293,19 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* Note: this keymap works disregarding mode */
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_POSE);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
 	
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_WEIGHT_PAINT);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_origin_set", CKEY, KM_PRESS, KM_ALT | KM_SHIFT | KM_CTRL, 0);
 
@@ -331,19 +331,19 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set_identifier(kmi->ptr, "direction", "PARENT");
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set_identifier(kmi->ptr, "direction", "PARENT");
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", true);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set_identifier(kmi->ptr, "direction", "CHILD");
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set_identifier(kmi->ptr, "direction", "CHILD");
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", true);
 
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_no_inverse_set", PKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
@@ -361,10 +361,10 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
+	RNA_boolean_set(kmi->ptr, "unselected", false);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
+	RNA_boolean_set(kmi->ptr, "unselected", true);
 
 	/* same as above but for rendering */
 	WM_keymap_add_item(keymap, "OBJECT_OT_hide_render_clear", HKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
@@ -373,21 +373,21 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* conflicts, removing */
 #if 0
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_render_set", HKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)
-	      RNA_boolean_set(kmi->ptr, "unselected", TRUE);
+	      RNA_boolean_set(kmi->ptr, "unselected", true);
 #endif
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
 	
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "use_global", FALSE);
+	RNA_boolean_set(kmi->ptr, "use_global", false);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "use_global", TRUE);
+	RNA_boolean_set(kmi->ptr, "use_global", true);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "use_global", FALSE);
+	RNA_boolean_set(kmi->ptr, "use_global", false);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "use_global", TRUE);
+	RNA_boolean_set(kmi->ptr, "use_global", true);
 
 	WM_keymap_add_menu(keymap, "INFO_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -445,7 +445,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	ED_keymap_proportional_cycle(keyconf, keymap);
-	ED_keymap_proportional_editmode(keyconf, keymap, FALSE);
+	ED_keymap_proportional_editmode(keyconf, keymap, false);
 }
 
 void ED_keymap_proportional_cycle(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)

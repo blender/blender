@@ -493,7 +493,7 @@ int ED_space_sequencer_maskedit_poll(bContext *C)
 		return ED_space_sequencer_check_show_maskedit(sseq, scene);
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* are we displaying the seq output (not channels or histogram)*/
@@ -1246,7 +1246,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq;
-	int selected;
+	bool selected;
 
 	selected = !RNA_boolean_get(op->ptr, "unselected");
 	
@@ -1297,7 +1297,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq;
-	int selected;
+	bool selected;
 
 	selected = !RNA_boolean_get(op->ptr, "unselected");
 	
@@ -2572,8 +2572,8 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "next", TRUE, "Next Strip", "");
-	RNA_def_boolean(ot->srna, "center", TRUE, "Use strip center", "");
+	RNA_def_boolean(ot->srna, "next", true, "Next Strip", "");
+	RNA_def_boolean(ot->srna, "center", true, "Use strip center", "");
 }
 
 static void swap_sequence(Scene *scene, Sequence *seqa, Sequence *seqb)
@@ -3009,7 +3009,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	ot->flag = 0;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, false);
 }
 
 /* rebuild_proxy operator */
@@ -3245,10 +3245,10 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
 
 	/* set default display depending on seq type */
 	if (seq->type == SEQ_TYPE_IMAGE) {
-		RNA_boolean_set(op->ptr, "filter_movie", FALSE);
+		RNA_boolean_set(op->ptr, "filter_movie", false);
 	}
 	else {
-		RNA_boolean_set(op->ptr, "filter_image", FALSE);
+		RNA_boolean_set(op->ptr, "filter_image", false);
 	}
 
 	WM_event_add_fileselect(C, op);

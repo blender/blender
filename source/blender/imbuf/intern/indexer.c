@@ -376,7 +376,7 @@ static void get_index_dir(struct anim *anim, char *index_dir, size_t index_dir_l
 }
 
 static void get_proxy_filename(struct anim *anim, IMB_Proxy_Size preview_size,
-                               char *fname, int temp)
+                               char *fname, bool temp)
 {
 	char index_dir[FILE_MAXDIR];
 	int i = IMB_proxy_size_to_array_index(preview_size);
@@ -484,7 +484,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 	rv->proxy_size = proxy_size;
 	rv->anim = anim;
 
-	get_proxy_filename(rv->anim, rv->proxy_size, fname, TRUE);
+	get_proxy_filename(rv->anim, rv->proxy_size, fname, true);
 	BLI_make_existing_file(fname);
 
 	rv->of = avformat_alloc_context();
@@ -677,14 +677,14 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx *ctx,
 	}
 
 	get_proxy_filename(ctx->anim, ctx->proxy_size, 
-	                   fname_tmp, TRUE);
+	                   fname_tmp, true);
 
 	if (rollback) {
 		unlink(fname_tmp);
 	}
 	else {
 		get_proxy_filename(ctx->anim, ctx->proxy_size, 
-		                   fname, FALSE);
+		                   fname, false);
 		unlink(fname);
 		BLI_rename(fname_tmp, fname);
 	}
@@ -856,7 +856,7 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(
 
 	if (!context->start_pts_set) {
 		context->start_pts = pts;
-		context->start_pts_set = TRUE;
+		context->start_pts_set = true;
 	}
 
 	context->frameno = floor((pts - context->start_pts) *
@@ -917,7 +917,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 
 		if (*progress != next_progress) {
 			*progress = next_progress;
-			*do_update = TRUE;
+			*do_update = true;
 		}
 
 		if (*stop) {
@@ -1056,7 +1056,7 @@ static IndexBuildContext *index_fallback_create_context(struct anim *anim, IMB_T
 		if (context->proxy_sizes_in_use & proxy_sizes[i]) {
 			char fname[FILE_MAX];
 
-			get_proxy_filename(anim, proxy_sizes[i], fname, TRUE);
+			get_proxy_filename(anim, proxy_sizes[i], fname, true);
 			BLI_make_existing_file(fname);
 
 			context->proxy_ctx[i] = alloc_proxy_output_avi(anim, fname,
@@ -1079,8 +1079,8 @@ static void index_rebuild_fallback_finish(FallbackIndexBuilderContext *context, 
 			AVI_close_compress(context->proxy_ctx[i]);
 			MEM_freeN(context->proxy_ctx[i]);
 
-			get_proxy_filename(anim, proxy_sizes[i], fname_tmp, TRUE);
-			get_proxy_filename(anim, proxy_sizes[i], fname, FALSE);
+			get_proxy_filename(anim, proxy_sizes[i], fname_tmp, true);
+			get_proxy_filename(anim, proxy_sizes[i], fname, false);
 
 			if (stop) {
 				unlink(fname_tmp);
@@ -1107,7 +1107,7 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
 
 		if (*progress != next_progress) {
 			*progress = next_progress;
-			*do_update = TRUE;
+			*do_update = true;
 		}
 		
 		if (*stop) {
@@ -1261,7 +1261,7 @@ struct anim *IMB_anim_open_proxy(
 		return NULL;
 	}
 
-	get_proxy_filename(anim, preview_size, fname, FALSE);
+	get_proxy_filename(anim, preview_size, fname, false);
 
 	/* proxies are generated in the same color space as animation itself */
 	anim->proxy_anim[i] = IMB_open_anim(fname, 0, 0, anim->colorspace);

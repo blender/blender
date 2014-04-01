@@ -542,7 +542,7 @@ void fsmenu_refresh_system_category(struct FSMenu *fsmenu)
 	fsmenu_set_category(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, NULL);
 
 	/* Add all entries to system category */
-	fsmenu_read_system(fsmenu, TRUE);
+	fsmenu_read_system(fsmenu, true);
 }
 
 void fsmenu_free(void)

@@ -146,7 +146,7 @@ static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr)) {}
 static void result_rcti_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect)) {}
 static void stats_nothing(void *UNUSED(arg), RenderStats *UNUSED(rs)) {}
 static void float_nothing(void *UNUSED(arg), float UNUSED(val)) {}
-static int default_break(void *UNUSED(arg)) { return G.is_break == TRUE; }
+static int default_break(void *UNUSED(arg)) { return G.is_break == true; }
 
 static void stats_background(void *UNUSED(arg), RenderStats *rs)
 {
@@ -211,7 +211,7 @@ RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 	}
 }
 
-RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty)
+RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
 	return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }
@@ -506,7 +506,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 {
 	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
 
-	re->ok = TRUE;   /* maybe flag */
+	re->ok = true;   /* maybe flag */
 	
 	re->i.starttime = PIL_check_seconds_timer();
 
@@ -1029,7 +1029,7 @@ static void threaded_tile_processor(Render *re)
 
 	/* warning; no return here without closing exr file */
 	
-	RE_parts_init(re, TRUE);
+	RE_parts_init(re, true);
 
 	if (re->result->do_exr_tile)
 		render_result_exr_file_begin(re);
@@ -1297,7 +1297,7 @@ static void addblur_rect(RenderResult *rr, float *rectf, float *rectf1, float bl
 
 
 /* called by blur loop, accumulate renderlayers */
-static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float blurfac, int key_alpha)
+static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float blurfac, bool key_alpha)
 {
 	RenderLayer *rl, *rl1;
 	RenderPass *rpass, *rpass1;
@@ -1341,7 +1341,7 @@ static void do_render_blur_3d(Render *re)
 		
 		blurfac = 1.0f / (float)(re->r.mblur_samples - blur);
 		
-		merge_renderresult_blur(rres, re->result, blurfac, FALSE);
+		merge_renderresult_blur(rres, re->result, blurfac, false);
 		if (re->test_break(re->tbh)) break;
 	}
 	
@@ -1502,7 +1502,7 @@ static void do_render_fields_blur_3d(Render *re)
 	/* also check for camera here */
 	if (camera == NULL) {
 		BKE_report(re->reports, RPT_ERROR, "Cannot render, no camera");
-		G.is_break = TRUE;
+		G.is_break = true;
 		return;
 	}
 
@@ -1602,7 +1602,7 @@ static int composite_needs_render(Scene *sce, int this_scene)
 	bNode *node;
 	
 	if (ntree == NULL) return 1;
-	if (sce->use_nodes == FALSE) return 1;
+	if (sce->use_nodes == false) return 1;
 	if ((sce->r.scemode & R_DOCOMP) == 0) return 1;
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
@@ -1964,7 +1964,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			ntreeCompositTagRender(re->scene);
 			ntreeCompositTagAnimated(ntree);
 			
-			ntreeCompositExecTree(re->scene, ntree, &re->r, TRUE, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
+			ntreeCompositExecTree(re->scene, ntree, &re->r, true, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 		}
 		
 		/* ensure we get either composited result or the active layer */
@@ -2038,7 +2038,7 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	bNode *node;
 
 	/* default start situation */
-	G.is_break = FALSE;
+	G.is_break = false;
 	
 	re->main = bmain;
 	re->scene = sce;
@@ -2160,7 +2160,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
 				else {
-					ntreeCompositExecTree(re->scene, ntree, &re->r, TRUE, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
+					ntreeCompositExecTree(re->scene, ntree, &re->r, true, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 				}
 				
 				ntree->stats_draw = NULL;
@@ -2404,24 +2404,24 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 	return true;
 }
 
-static int node_tree_has_composite_output(bNodeTree *ntree)
+static bool node_tree_has_composite_output(bNodeTree *ntree)
 {
 	bNode *node;
 
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
-			return TRUE;
+			return true;
 		}
 		else if (node->type == NODE_GROUP) {
 			if (node->id) {
 				if (node_tree_has_composite_output((bNodeTree *)node->id)) {
-					return TRUE;
+					return true;
 				}
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int check_composite_output(Scene *scene)
@@ -2630,10 +2630,11 @@ void RE_SetReports(Render *re, ReportList *reports)
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay_override, int frame, const short write_still)
+void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override,
+                     unsigned int lay_override, int frame, const bool write_still)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
-	G.is_rendering = TRUE;
+	G.is_rendering = true;
 	
 	scene->r.cfra = frame;
 	
@@ -2651,7 +2652,8 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 			}
 			else {
 				char name[FILE_MAX];
-				BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, FALSE);
+				BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra,
+				                  &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, false);
 
 				/* reports only used for Movie */
 				do_write_image_or_movie(re, bmain, scene, NULL, name);
@@ -2664,7 +2666,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	BLI_callback_exec(re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
 	/* UGLY WARNING */
-	G.is_rendering = FALSE;
+	G.is_rendering = false;
 }
 
 #ifdef WITH_FREESTYLE
@@ -2699,7 +2701,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 			ibuf->rect = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
 			ibuf->mall |= IB_rect;
 			RE_AcquiredResultGet32(re, &rres, ibuf->rect);
-			do_free = TRUE;
+			do_free = true;
 		}
 
 
@@ -2723,7 +2725,8 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		if (name_override)
 			BLI_strncpy(name, name_override, sizeof(name));
 		else
-			BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, TRUE);
+			BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra,
+			                  &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, true);
 		
 		if (re->r.im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 			if (re->result) {
@@ -2786,7 +2789,8 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay_override, int sfra, int efra, int tfra)
+void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override,
+                    unsigned int lay_override, int sfra, int efra, int tfra)
 {
 	bMovieHandle *mh = BKE_movie_handle_get(scene->r.im_format.imtype);
 	int cfrao = scene->r.cfra;
@@ -2798,7 +2802,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
-	G.is_rendering = TRUE;
+	G.is_rendering = true;
 
 	re->flag |= R_ANIMATION;
 
@@ -2820,7 +2824,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 		}
 
 		if (!mh->start_movie(scene, &re->r, width, height, re->reports))
-			G.is_break = TRUE;
+			G.is_break = true;
 	}
 
 	if (mh->get_next_frame) {
@@ -2836,16 +2840,16 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 				if (re->test_break(re->tbh) == 0) {
 					if (!do_write_image_or_movie(re, bmain, scene, mh, NULL))
-						G.is_break = TRUE;
+						G.is_break = true;
 				}
 
-				if (G.is_break == FALSE) {
+				if (G.is_break == false) {
 					BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 				}
 			}
 			else {
 				if (re->test_break(re->tbh)) {
-					G.is_break = TRUE;
+					G.is_break = true;
 				}
 			}
 		}
@@ -2879,7 +2883,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			/* Touch/NoOverwrite options are only valid for image's */
 			if (BKE_imtype_is_movie(scene->r.im_format.imtype) == 0) {
 				if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
-					BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, TRUE);
+					BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra,
+					                  &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, true);
 
 				if (scene->r.mode & R_NO_OVERWRITE && BLI_exists(name)) {
 					printf("skipping existing frame \"%s\"\n", name);
@@ -2904,12 +2909,12 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			if (re->test_break(re->tbh) == 0) {
 				if (!G.is_break)
 					if (!do_write_image_or_movie(re, bmain, scene, mh, NULL))
-						G.is_break = TRUE;
+						G.is_break = true;
 			}
 			else
-				G.is_break = TRUE;
+				G.is_break = true;
 		
-			if (G.is_break == TRUE) {
+			if (G.is_break == true) {
 				/* remove touched file */
 				if (BKE_imtype_is_movie(scene->r.im_format.imtype) == 0) {
 					if (scene->r.mode & R_TOUCH && BLI_exists(name) && BLI_file_size(name) == 0) {
@@ -2920,7 +2925,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				break;
 			}
 
-			if (G.is_break == FALSE) {
+			if (G.is_break == false) {
 				BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 			}
 		}
@@ -2940,7 +2945,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	BLI_callback_exec(re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
 	/* UGLY WARNING */
-	G.is_rendering = FALSE;
+	G.is_rendering = false;
 }
 
 void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
@@ -2972,10 +2977,11 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
 
 /* only the temp file! */
-int RE_ReadRenderResult(Scene *scene, Scene *scenode)
+bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 {
 	Render *re;
-	int winx, winy, success;
+	int winx, winy;
+	bool success;
 	rcti disprect;
 	
 	/* calculate actual render result and display size */
@@ -3073,7 +3079,7 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 
 const float default_envmap_layout[] = { 0, 0, 1, 0, 2, 0, 0, 1, 1, 1, 2, 1 };
 
-int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, const char imtype, float layout[12])
+bool RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, const char imtype, float layout[12])
 {
 	ImageFormatData imf;
 	ImBuf *ibuf = NULL;
@@ -3124,11 +3130,11 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 	IMB_freeImBuf(ibuf);
 
 	if (ok) {
-		return TRUE;
+		return true;
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, "Error writing environment map");
-		return FALSE;
+		return false;
 	}
 }
 

@@ -1580,7 +1580,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 		}
 
 		*progress = (float) (cfra - seq->startdisp - seq->startstill) / (seq->enddisp - seq->endstill - seq->startdisp - seq->startstill);
-		*do_update = TRUE;
+		*do_update = true;
 
 		if (*stop || G.is_break)
 			break;
@@ -2571,7 +2571,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 				re = RE_NewRender(scene->id.name);
 
 			BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene, scene->lay);
-			RE_BlenderFrame(re, context->bmain, scene, NULL, camera, scene->lay, frame, FALSE);
+			RE_BlenderFrame(re, context->bmain, scene, NULL, camera, scene->lay, frame, false);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
 			G.is_rendering = is_rendering;

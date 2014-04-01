@@ -69,7 +69,7 @@ static int ED_space_clip_graph_poll(bContext *C)
 		return sc->view == SC_VIEW_GRAPH;
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int clip_graph_knots_poll(bContext *C)
@@ -79,7 +79,7 @@ static int clip_graph_knots_poll(bContext *C)
 
 		return (sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) != 0;
 	}
-	return FALSE;
+	return false;
 }
 
 typedef struct {
@@ -410,7 +410,7 @@ void CLIP_OT_graph_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 }
 
 /********************** select all operator *********************/

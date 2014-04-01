@@ -545,7 +545,7 @@ void RE_parts_clamp(Render *re)
 	re->party = max_ii(1, min_ii(re->r.tiley, re->recty));
 }
 
-void RE_parts_init(Render *re, int do_crop)
+void RE_parts_init(Render *re, bool do_crop)
 {
 	int nr, xd, yd, partx, party, xparts, yparts;
 	int xminb, xmaxb, yminb, ymaxb;

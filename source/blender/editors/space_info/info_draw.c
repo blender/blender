@@ -149,10 +149,10 @@ static int report_textview_begin(TextViewContext *tvc)
 		tvc->iter_char = 0;
 		report_textview_init__internal(tvc);
 
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 #else
 	return (tvc->iter != NULL);
@@ -178,10 +178,10 @@ static int report_textview_step(TextViewContext *tvc)
 			tvc->iter_char = 0; /* reset start */
 			report_textview_init__internal(tvc);
 
-			return TRUE;
+			return true;
 		}
 		else {
-			return FALSE;
+			return false;
 		}
 	}
 	else {
@@ -189,7 +189,7 @@ static int report_textview_step(TextViewContext *tvc)
 		tvc->iter_char = tvc->iter_char_next + 1;
 		report_textview_init__internal(tvc);
 
-		return TRUE;
+		return true;
 	}
 }
 

@@ -83,7 +83,7 @@ int ocean_texture(Tex *tex, const float texvec[2], TexResult *texres)
 		const float u = 0.5f + 0.5f * texvec[0];
 		const float v = 0.5f + 0.5f * texvec[1];
 
-		if (omd->oceancache && omd->cached == TRUE) {
+		if (omd->oceancache && omd->cached == true) {
 
 			CLAMP(cfra, omd->bakestart, omd->bakeend);
 			cfra -= omd->bakestart;	/* shift to 0 based */

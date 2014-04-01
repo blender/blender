@@ -368,7 +368,7 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 		time_draw_idblock_keyframes(v2d, (ID *)ob, onlysel);
 	}
 	else {
-		short active_done = FALSE;
+		bool active_done = false;
 		
 		/* draw keyframes from all selected objects */
 		CTX_DATA_BEGIN (C, Object *, obsel, selected_objects)
@@ -378,7 +378,7 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 			
 			/* if this object is the active one, set flag so that we don't draw again */
 			if (obsel == ob)
-				active_done = TRUE;
+				active_done = true;
 		}
 		CTX_DATA_END;
 		

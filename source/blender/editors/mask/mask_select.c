@@ -482,7 +482,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, TRUE);
+	WM_operator_properties_gesture_border(ot, true);
 }
 
 static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)

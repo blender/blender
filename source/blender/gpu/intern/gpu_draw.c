@@ -460,7 +460,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, bool is_data)
+int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, bool mipmap, bool is_data)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -470,7 +470,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	float *srgb_frect = NULL;
 	short texwindx, texwindy, texwinsx, texwinsy;
 	/* flag to determine whether high resolution format is used */
-	int use_high_bit_depth = FALSE, do_color_management = FALSE;
+	bool use_high_bit_depth = false, do_color_management = false;
 
 	/* initialize tile mode and number of repeats */
 	GTS.ima = ima;
@@ -526,12 +526,12 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		if (U.use_16bit_textures) {
 			/* use high precision textures. This is relatively harmless because OpenGL gives us
 			 * a high precision format only if it is available */
-			use_high_bit_depth = TRUE;
+			use_high_bit_depth = true;
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
 		if (!is_data)
-			do_color_management = TRUE;
+			do_color_management = true;
 
 		if (ibuf->rect==NULL)
 			IMB_rect_from_float(ibuf);
@@ -573,7 +573,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 				if (do_color_management) {
 					srgb_frect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(float)*4, "floar_buf_col_cor");
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-						ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, TRUE,
+						ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, true,
 						ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 					IMB_buffer_float_unpremultiply(srgb_frect, ibuf->x, ibuf->y);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
@@ -599,7 +599,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 				if (do_color_management) {
 					frect = srgb_frect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(*srgb_frect)*4, "floar_buf_col_cor");
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-							ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, TRUE,
+							ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, true,
 							ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 					IMB_buffer_float_unpremultiply(srgb_frect, ibuf->x, ibuf->y);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
@@ -682,7 +682,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 }
 
 /* Image *ima can be NULL */
-void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int rectw, int recth, int mipmap, int use_high_bit_depth, Image *ima)
+void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int rectw, int recth,
+                       bool mipmap, bool use_high_bit_depth, Image *ima)
 {
 	unsigned int *scalerect = NULL;
 	float *fscalerect = NULL;
@@ -760,9 +761,9 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 /**
  * GPU_upload_dxt_texture() assumes that the texture is already bound and ready to go.
  * This is so the viewport and the BGE can share some code.
- * Returns FALSE if the provided ImBuf doesn't have a supported DXT compression format
+ * Returns false if the provided ImBuf doesn't have a supported DXT compression format
  */
-int GPU_upload_dxt_texture(ImBuf *ibuf)
+bool GPU_upload_dxt_texture(ImBuf *ibuf)
 {
 #ifdef WITH_DDS
 	GLint format = 0;
@@ -782,12 +783,12 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 
 	if (format == 0) {
 		printf("Unable to find a suitable DXT compression, falling back to uncompressed\n");
-		return FALSE;
+		return false;
 	}
 
 	if (!is_power_of_2_resolution(width, height)) {
 		printf("Unable to load non-power-of-two DXT image resolution, falling back to uncompressed\n");
-		return FALSE;
+		return false;
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
@@ -818,10 +819,10 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 	/* set number of mipmap levels we have, needed in case they don't go down to 1x1 */
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i-1);
 
-	return TRUE;
+	return true;
 #else
 	(void)ibuf;
-	return FALSE;
+	return false;
 #endif
 }
 
@@ -873,7 +874,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 	gpu_verify_alpha_blend(alphablend);
 	gpu_verify_reflection(ima);
 
-	if (GPU_verify_image(ima, NULL, tface->tile, 1, mipmap, FALSE)) {
+	if (GPU_verify_image(ima, NULL, tface->tile, 1, mipmap, false)) {
 		GTS.curtile= GTS.tile;
 		GTS.curima= GTS.ima;
 		GTS.curtilemode= GTS.tilemode;
@@ -1424,7 +1425,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	 * - object transparency off: for glsl we draw both in a single pass, and
 	 * for solid we don't use transparency at all. */
 	GMS.use_alpha_pass = (do_alpha_after != NULL);
-	GMS.is_alpha_pass = (v3d->transp != FALSE);
+	GMS.is_alpha_pass = (v3d->transp != false);
 	if (GMS.use_alpha_pass)
 		*do_alpha_after = false;
 	
@@ -1495,7 +1496,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 				}
 			}
 
-			/* setting 'do_alpha_after = TRUE' indicates this object needs to be
+			/* setting 'do_alpha_after = true' indicates this object needs to be
 			 * drawn in a second alpha pass for improved blending */
 			if (do_alpha_after && !GMS.is_alpha_pass)
 				if (ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT))

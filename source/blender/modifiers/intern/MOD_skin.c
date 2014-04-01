@@ -217,7 +217,7 @@ static bool skin_frame_find_contained_faces(const Frame *frame,
 		return false;
 }
 
-/* Returns true if hull is successfully built, FALSE otherwise */
+/* Returns true if hull is successfully built, false otherwise */
 static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 {
 	BMesh *bm = so->bm;
@@ -1664,7 +1664,7 @@ static void skin_smooth_hulls(BMesh *bm, SkinNode *skin_nodes,
 	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
 }
 
-/* Returns TRUE if all hulls are successfully built, false otherwise */
+/* Returns true if all hulls are successfully built, false otherwise */
 static bool skin_output_branch_hulls(SkinOutput *so, SkinNode *skin_nodes,
                                      int totvert, const MeshElemMap *emap,
                                      const MEdge *medge)

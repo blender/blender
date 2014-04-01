@@ -69,7 +69,7 @@ int ED_maskedit_poll(bContext *C)
 				return ED_space_image_maskedit_poll(C);
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 int ED_maskedit_mask_poll(bContext *C)
@@ -85,7 +85,7 @@ int ED_maskedit_mask_poll(bContext *C)
 				return ED_space_image_maskedit_mask_poll(C);
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 /********************** registration *********************/
@@ -487,13 +487,13 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 
 	/* selection */
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", false);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
 
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
@@ -502,17 +502,17 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "MASK_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
 
 	WM_keymap_add_item(keymap, "MASK_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
 
 	WM_keymap_add_item(keymap, "MASK_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
@@ -520,16 +520,16 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	/* hide/reveal */
 	WM_keymap_add_item(keymap, "MASK_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
+	RNA_boolean_set(kmi->ptr, "unselected", false);
 
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
+	RNA_boolean_set(kmi->ptr, "unselected", true);
 
 	/* select clip while in maker view,
 	 * this matches View3D functionality where you can select an
 	 * object while in editmode to allow vertex parenting */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
 
 	/* shape */
 	WM_keymap_add_item(keymap, "MASK_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
@@ -571,19 +571,19 @@ void ED_operatormacros_mask(void)
 	ot->description = "Add new vertex and slide it";
 	WM_operatortype_macro_define(ot, "MASK_OT_add_vertex");
 	otmacro = WM_operatortype_macro_define(ot, "MASK_OT_slide_point");
-	RNA_boolean_set(otmacro->ptr, "is_new_point", TRUE);
+	RNA_boolean_set(otmacro->ptr, "is_new_point", true);
 
 	ot = WM_operatortype_append_macro("MASK_OT_add_feather_vertex_slide", "Add Feather Vertex and Slide",
 	                                  "Add new vertex to feather and slide it", OPTYPE_UNDO | OPTYPE_REGISTER);
 	ot->description = "Add new feather vertex and slide it";
 	WM_operatortype_macro_define(ot, "MASK_OT_add_feather_vertex");
 	otmacro = WM_operatortype_macro_define(ot, "MASK_OT_slide_point");
-	RNA_boolean_set(otmacro->ptr, "slide_feather", TRUE);
+	RNA_boolean_set(otmacro->ptr, "slide_feather", true);
 
 	ot = WM_operatortype_append_macro("MASK_OT_duplicate_move", "Add Duplicate", "Duplicate mask and move",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MASK_OT_duplicate");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
-	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
+	RNA_boolean_set(otmacro->ptr, "mirror", false);
 }

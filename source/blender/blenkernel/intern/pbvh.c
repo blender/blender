@@ -1581,7 +1581,7 @@ void BKE_pbvh_raycast_project_ray_root (PBVH *bvh, bool original, float ray_star
 
 typedef struct {
 	DMSetMaterial setMaterial;
-	int wireframe;
+	bool wireframe;
 } PBVHNodeDrawData;
 
 void BKE_pbvh_node_draw(PBVHNode *node, void *data_v)
@@ -1678,7 +1678,7 @@ static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
 }
 
 void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
-                   DMSetMaterial setMaterial, int wireframe)
+                   DMSetMaterial setMaterial, bool wireframe)
 {
 	PBVHNodeDrawData draw_data = {setMaterial, wireframe};
 	PBVHNode **nodes;

@@ -459,7 +459,7 @@ void            nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void            nodeToView(struct bNode *node, float x, float y, float *rx, float *ry);
 void            nodeFromView(struct bNode *node, float x, float y, float *rx, float *ry);
-int             nodeAttachNodeCheck(struct bNode *node, struct bNode *parent);
+bool            nodeAttachNodeCheck(struct bNode *node, struct bNode *parent);
 void            nodeAttachNode(struct bNode *node, struct bNode *parent);
 void            nodeDetachNode(struct bNode *node);
 
@@ -542,7 +542,7 @@ BLI_INLINE bool                       BKE_node_instance_hash_iterator_done(bNode
 /* Node Previews */
 
 int             BKE_node_preview_used(struct bNode *node);
-bNodePreview   *BKE_node_preview_verify(struct bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, int create);
+bNodePreview   *BKE_node_preview_verify(struct bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create);
 bNodePreview   *BKE_node_preview_copy(struct bNodePreview *preview);
 void            BKE_node_preview_free(struct bNodePreview *preview);
 void            BKE_node_preview_init_tree(struct bNodeTree *ntree, int xsize, int ysize, int create_previews);

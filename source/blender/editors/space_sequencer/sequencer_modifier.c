@@ -74,7 +74,7 @@ static int strip_modifier_active_poll(bContext *C)
 			return BKE_sequence_supports_modifiers(seq);
 	}
 
-	return FALSE;
+	return false;
 }
 
 static int strip_modifier_add_exec(bContext *C, wmOperator *op)

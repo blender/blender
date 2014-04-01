@@ -77,7 +77,7 @@ typedef struct TextFormatType {
 	 *
 	 * See: FMT_TYPE_ enums below
 	 */
-	void (*format_line)(SpaceText *st, TextLine *line, int do_next);
+	void (*format_line)(SpaceText *st, TextLine *line, const bool do_next);
 
 	const char **ext;  /* NULL terminated extensions */
 } TextFormatType;

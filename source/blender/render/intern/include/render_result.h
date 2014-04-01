@@ -57,7 +57,7 @@ struct RenderResult *render_result_new(struct Render *re,
 struct RenderResult *render_result_new_full_sample(struct Render *re,
 	struct ListBase *lb, struct rcti *partrct, int crop, int savebuffers);
 
-struct RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty);
+struct RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
 /* Merge */
 

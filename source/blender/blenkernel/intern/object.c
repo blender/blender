@@ -1189,7 +1189,7 @@ SoftBody *copy_softbody(SoftBody *sb, bool copy_caches)
 	
 	sbn = MEM_dupallocN(sb);
 
-	if (copy_caches == FALSE) {
+	if (copy_caches == false) {
 		sbn->totspring = sbn->totpoint = 0;
 		sbn->bpoint = NULL;
 		sbn->bspring = NULL;
@@ -1292,7 +1292,7 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	BLI_listbase_clear(&psysn->childcachebufs);
 	psysn->renderdata = NULL;
 	
-	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, FALSE);
+	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, false);
 
 	/* XXX - from reading existing code this seems correct but intended usage of
 	 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
@@ -1353,7 +1353,7 @@ void BKE_object_copy_particlesystems(Object *obn, Object *ob)
 void BKE_object_copy_softbody(Object *obn, Object *ob)
 {
 	if (ob->soft)
-		obn->soft = copy_softbody(ob->soft, FALSE);
+		obn->soft = copy_softbody(ob->soft, false);
 }
 
 static void copy_object_pose(Object *obn, Object *ob)
@@ -1444,7 +1444,7 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 	copy_v3_v3(ob_tar->size, ob_src->size);
 }
 
-Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
+Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 {
 	Object *obn;
 	ModifierData *md;
@@ -1486,7 +1486,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 			BKE_pose_rebuild(obn, obn->data);
 	}
 	defgroup_copy_list(&obn->defbase, &ob->defbase);
-	BKE_copy_constraints(&obn->constraints, &ob->constraints, TRUE);
+	BKE_copy_constraints(&obn->constraints, &ob->constraints, true);
 
 	obn->mode = 0;
 	obn->sculpt = NULL;
@@ -1532,7 +1532,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 /* copy objects, will re-initialize cached simulation data */
 Object *BKE_object_copy(Object *ob)
 {
-	return BKE_object_copy_ex(G.main, ob, FALSE);
+	return BKE_object_copy_ex(G.main, ob, false);
 }
 
 static void extern_local_object(Object *ob)
@@ -1555,7 +1555,7 @@ void BKE_object_make_local(Object *ob)
 	Main *bmain = G.main;
 	Scene *sce;
 	Base *base;
-	int is_local = FALSE, is_lib = FALSE;
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -1573,12 +1573,12 @@ void BKE_object_make_local(Object *ob)
 	else {
 		for (sce = bmain->scene.first; sce && ELEM(0, is_lib, is_local); sce = sce->id.next) {
 			if (BKE_scene_base_find(sce, ob)) {
-				if (sce->id.lib) is_lib = TRUE;
-				else is_local = TRUE;
+				if (sce->id.lib) is_lib = true;
+				else is_local = true;
 			}
 		}
 
-		if (is_local && is_lib == FALSE) {
+		if (is_local && is_lib == false) {
 			id_clear_lib_data(bmain, &ob->id);
 			extern_local_object(ob);
 		}
@@ -1721,7 +1721,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 			mul_mat3_m4_v3(ob->obmat, tvec);
 			sub_v3_v3(ob->obmat[3], tvec);
 		}
-		BKE_object_apply_mat4(ob, ob->obmat, FALSE, TRUE);
+		BKE_object_apply_mat4(ob, ob->obmat, false, true);
 	}
 	else {
 		BKE_object_transform_copy(ob, target);
@@ -1949,7 +1949,7 @@ void BKE_object_to_mat3(Object *ob, float mat[3][3]) /* no parent */
 	BKE_object_scale_to_mat3(ob, smat);
 
 	/* rot */
-	BKE_object_rot_to_mat3(ob, rmat, TRUE);
+	BKE_object_rot_to_mat3(ob, rmat, true);
 	mul_m3_m3m3(mat, rmat, smat);
 }
 
@@ -2431,7 +2431,7 @@ void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, c
 		mul_m4_m4m4(diff_mat, parent_mat, ob->parentinv);
 		invert_m4_m4(imat, diff_mat);
 		mul_m4_m4m4(rmat, imat, mat); /* get the parent relative matrix */
-		BKE_object_apply_mat4(ob, rmat, use_compat, FALSE);
+		BKE_object_apply_mat4(ob, rmat, use_compat, false);
 
 		/* same as below, use rmat rather than mat */
 		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
@@ -2586,7 +2586,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					/* XXX pchan->bone may be NULL for duplicated bones, see duplicateEditBoneObjects() comment
 					 *     (editarmature.c:2592)... Skip in this case too! */
-					if (pchan->bone && !((use_hidden == FALSE) && (PBONE_VISIBLE(arm, pchan->bone) == FALSE))) {
+					if (pchan->bone && !((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false))) {
 						mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
 						minmax_v3v3_v3(min_r, max_r, vec);
 						mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
@@ -3232,9 +3232,9 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, cons
 		newkey = 1;
 	}
 
-	if (newkey || from_mix == FALSE) {
+	if (newkey || from_mix == false) {
 		/* create from mesh */
-		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, false);
 		BKE_key_convert_from_mesh(me, kb);
 	}
 	else {
@@ -3243,7 +3243,7 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, cons
 		float *data = BKE_key_evaluate_object(scene, ob, &totelem);
 
 		/* create new block with prepared data */
-		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, false);
 		kb->data = data;
 		kb->totelem = totelem;
 	}
@@ -3264,8 +3264,8 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, cons
 		newkey = 1;
 	}
 
-	if (newkey || from_mix == FALSE) {
-		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+	if (newkey || from_mix == false) {
+		kb = BKE_keyblock_add_ctime(key, name, false);
 		if (!newkey) {
 			KeyBlock *basekb = (KeyBlock *)key->block.first;
 			kb->data = MEM_dupallocN(basekb->data);
@@ -3281,7 +3281,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, cons
 		float *data = BKE_key_evaluate_object(scene, ob, &totelem);
 
 		/* create new block with prepared data */
-		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, false);
 		kb->totelem = totelem;
 		kb->data = data;
 	}
@@ -3303,9 +3303,9 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, con
 		newkey = 1;
 	}
 
-	if (newkey || from_mix == FALSE) {
+	if (newkey || from_mix == false) {
 		/* create from curve */
-		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, false);
 		if (!newkey) {
 			KeyBlock *basekb = (KeyBlock *)key->block.first;
 			kb->data = MEM_dupallocN(basekb->data);
@@ -3321,7 +3321,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, con
 		float *data = BKE_key_evaluate_object(scene, ob, &totelem);
 
 		/* create new block with prepared data */
-		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, false);
 		kb->totelem = totelem;
 		kb->data = data;
 	}

@@ -132,7 +132,7 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Poin
 {
 	MetaElem *ml = ml_ptr->data;
 
-	if (BLI_remlink_safe(&mb->elems, ml) == FALSE) {
+	if (BLI_remlink_safe(&mb->elems, ml) == false) {
 		BKE_reportf(reports, RPT_ERROR, "Metaball '%s' does not contain spline given", mb->id.name + 2);
 		return;
 	}

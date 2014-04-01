@@ -701,7 +701,7 @@ void ArmatureImporter::make_shape_keys()
 			KeyBlock *kb;
 			
 			//insert basis key
-			kb = BKE_keyblock_add_ctime(key, "Basis", FALSE);
+			kb = BKE_keyblock_add_ctime(key, "Basis", false);
 			BKE_key_convert_from_mesh(source_me, kb);
 
 			//insert other shape keys
@@ -715,7 +715,7 @@ void ArmatureImporter::make_shape_keys()
 					me->key = key;
 					std::string morph_name = *this->mesh_importer->get_geometry_name(me->id.name);
 
-					kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), FALSE);
+					kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), false);
 					BKE_key_convert_from_mesh(me, kb);
 					
 					//apply weights

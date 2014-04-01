@@ -757,8 +757,8 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 	prop = RNA_struct_find_property(&ptr, "eval_time");
 
 	/* Ensure we have an F-Curve to add keyframes to */
-	act = verify_adt_action((ID *)cu, TRUE);
-	fcu = verify_fcurve(act, NULL, &ptr, "eval_time", 0, TRUE);
+	act = verify_adt_action((ID *)cu, true);
+	fcu = verify_fcurve(act, NULL, &ptr, "eval_time", 0, true);
 
 	if (G.debug & G_DEBUG) {
 		printf("%s: tot len: %f\t\ttot time: %f\n", __func__, gtd->tot_dist, gtd->tot_time);
@@ -1392,7 +1392,7 @@ static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {
 			Scene *scene = CTX_data_scene(C);
-			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, TRUE); /* no shift */
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, true); /* no shift */
 			return 1;
 		}
 	}
@@ -1673,7 +1673,7 @@ static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 
 	/* Never show this prop */
 	if (strcmp(prop_id, "use_timing_data") == 0)
-		return FALSE;
+		return false;
 
 	if (link_strokes) {
 		/* Only show when link_stroke is true */
@@ -1749,11 +1749,11 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_gpencil_convertmodes, 0, "Type", "Which type of curve to convert to");
 
-	RNA_def_boolean(ot->srna, "use_normalize_weights", TRUE, "Normalize Weight",
+	RNA_def_boolean(ot->srna, "use_normalize_weights", true, "Normalize Weight",
 	                "Normalize weight (set from stroke width)");
 	RNA_def_float(ot->srna, "radius_multiplier", 1.0f, 0.0f, 1000.0f, "Radius Fac",
 	              "Multiplier for the points' radii (set from stroke width)", 0.0f, 10.0f);
-	RNA_def_boolean(ot->srna, "use_link_strokes", TRUE, "Link Strokes",
+	RNA_def_boolean(ot->srna, "use_link_strokes", true, "Link Strokes",
 	                "Whether to link strokes with zero-radius sections of curves");
 
 	prop = RNA_def_enum(ot->srna, "timing_mode", prop_gpencil_convert_timingmodes, GP_STROKECONVERT_TIMING_FULL,
@@ -1764,7 +1764,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 	            "The duration of evaluation of the path control curve", 1, 1000);
 	RNA_def_int(ot->srna, "start_frame", 1, 1, 100000, "Start Frame",
 	            "The start frame of the path control curve", 1, 100000);
-	RNA_def_boolean(ot->srna, "use_realtime", FALSE, "Realtime",
+	RNA_def_boolean(ot->srna, "use_realtime", false, "Realtime",
 	                "Whether the path control curve reproduces the drawing in realtime, starting from Start Frame");
 	prop = RNA_def_int(ot->srna, "end_frame", 250, 1, 100000, "End Frame",
 	                   "The end frame of the path control curve (if Realtime is not set)", 1, 100000);
@@ -1779,7 +1779,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 	            "Custom Gap mode: Random generator seed", 0, 100);
 
 	/* Note: Internal use, this one will always be hidden by UI code... */
-	prop = RNA_def_boolean(ot->srna, "use_timing_data", FALSE, "Has Valid Timing",
+	prop = RNA_def_boolean(ot->srna, "use_timing_data", false, "Has Valid Timing",
 	                       "Whether the converted Grease Pencil layer has valid timing data (internal use)");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }

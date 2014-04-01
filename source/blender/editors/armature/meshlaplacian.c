@@ -635,8 +635,8 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
 	MVert *mvert = me->mvert;
-	int use_vert_sel = FALSE;
-	int use_face_sel = FALSE;
+	bool use_vert_sel = false;
+	bool use_face_sel = false;
 
 	*err_str = NULL;
 
@@ -662,9 +662,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 		if (use_vert_sel) {
 			for (a = 0, mp = me->mpoly; a < me->totpoly; mp++, a++) {
 				for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
-					if (use_vert_sel) {
-						mask[ml->v] = (mvert[ml->v].flag & SELECT) != 0;
-					}
+					mask[ml->v] = (mvert[ml->v].flag & SELECT) != 0;
 				}
 			}
 		}

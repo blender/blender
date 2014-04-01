@@ -184,76 +184,76 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	/* Export Options: */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
-	col   = uiLayoutColumn(split, FALSE);
+	col   = uiLayoutColumn(split, false);
 	uiItemR(col, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
-	col   = uiLayoutColumn(split, FALSE);
+	col   = uiLayoutColumn(split, false);
 	uiItemR(col, imfptr, "export_mesh_type_selection", 0, "", ICON_NONE);
 	uiLayoutSetEnabled(col, RNA_boolean_get(imfptr, "apply_modifiers"));
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "include_shapekeys", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
 	/* Texture options */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemL(row, IFACE_("Texture Options:"), ICON_TEXTURE_DATA);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "active_uv_only", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "include_uv_textures", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "include_material_textures", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "use_texture_copies", 1, NULL, ICON_NONE);
 
 
 	/* Armature options */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemL(row, IFACE_("Armature Options:"), ICON_ARMATURE_DATA);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "open_sim", 0, NULL, ICON_NONE);
 
 	/* Collada options: */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "triangulate", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
     uiItemL(split, IFACE_("Transformation Type"), ICON_NONE);
 	uiItemR(split, imfptr, "export_transformation_type_selection", 0, "", ICON_NONE);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
 
 }
@@ -385,10 +385,10 @@ static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	/* Import Options: */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemL(row, IFACE_("Import Data Options:"), ICON_MESH_DATA);
 
-	row = uiLayoutRow(box, FALSE);
+	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "import_units", 0, NULL, ICON_NONE);
 }
 

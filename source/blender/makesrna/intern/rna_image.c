@@ -388,7 +388,7 @@ static int rna_Image_is_float_get(PointerRNA *ptr)
 	Image *im = (Image *)ptr->data;
 	ImBuf *ibuf;
 	void *lock;
-	int is_float = FALSE;
+	bool is_float = false;
 
 	ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
 	if (ibuf)

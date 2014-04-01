@@ -656,7 +656,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					BLI_strncpy(name, act ? act->id.name + 2 : "<No Action>", sizeof(name));
 
 					/* draw manually still */
-					do_draw = TRUE;
+					do_draw = true;
 					break;
 				}
 				default: /* handled by standard channel-drawing API */

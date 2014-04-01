@@ -519,7 +519,7 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
 {
 	wmOperatorTypeMacro *otmacro = (wmOperatorTypeMacro *)ptr->data;
-	wmOperatorType *ot = WM_operatortype_find(otmacro->idname, TRUE);
+	wmOperatorType *ot = WM_operatortype_find(otmacro->idname, true);
 	return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
 }
 
@@ -862,7 +862,7 @@ static int rna_wmClipboard_length(PointerRNA *UNUSED(ptr))
 
 static void rna_wmClipboard_set(PointerRNA *UNUSED(ptr), const char *value)
 {
-	WM_clipboard_text_set((void *) value, FALSE);
+	WM_clipboard_text_set((void *) value, false);
 }
 
 #ifdef WITH_PYTHON
@@ -1157,7 +1157,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, TRUE);
+		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
 		if (ot && ot->ext.srna)
 			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
@@ -1249,7 +1249,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, TRUE);
+		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
 		if (ot && ot->ext.srna)
 			rna_Operator_unregister(bmain, ot->ext.srna);
 	}

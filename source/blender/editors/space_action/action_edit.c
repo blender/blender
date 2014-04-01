@@ -285,7 +285,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 				float tmin, tmax;
 
 				/* get range and apply necessary scaling before processing */
-				if (calc_fcurve_range(fcu, &tmin, &tmax, onlySel, TRUE)) {
+				if (calc_fcurve_range(fcu, &tmin, &tmax, onlySel, true)) {
 
 					if (adt) {
 						tmin = BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
@@ -335,7 +335,7 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 		scene = ac.scene;
 	
 	/* set the range directly */
-	get_keyframe_extents(&ac, &min, &max, FALSE);
+	get_keyframe_extents(&ac, &min, &max, false);
 	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra = iroundf(min);
 	scene->r.pefra = iroundf(max);

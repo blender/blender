@@ -284,7 +284,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+	if (RNA_boolean_get(op->ptr, "overlap") == false) {
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
@@ -378,7 +378,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+	if (RNA_boolean_get(op->ptr, "overlap") == false) {
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
@@ -470,7 +470,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+	if (RNA_boolean_get(op->ptr, "overlap") == false) {
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
@@ -523,7 +523,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	SeqLoadInfo seq_load;
 	Sequence *seq;
 	int tot_files;
-	const short overlap = RNA_boolean_get(op->ptr, "overlap");
+	const bool overlap = RNA_boolean_get(op->ptr, "overlap");
 
 	seq_load_operator_info(&seq_load, op);
 
@@ -552,7 +552,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 
 			seq = seq_load_func(C, ed->seqbasep, &seq_load);
 			if (seq) {
-				if (overlap == FALSE) {
+				if (overlap == false) {
 					if (BKE_sequence_test_overlap(ed->seqbasep, seq))
 						BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 				}
@@ -564,7 +564,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 		/* single file */
 		seq = seq_load_func(C, ed->seqbasep, &seq_load);
 		if (seq) {
-			if (overlap == FALSE) {
+			if (overlap == false) {
 				if (BKE_sequence_test_overlap(ed->seqbasep, seq))
 					BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 			}
@@ -630,7 +630,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
+	RNA_def_boolean(ot->srna, "sound", true, "Sound", "Load sound with the movie");
 }
 
 /* add sound operator */
@@ -679,7 +679,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory");
+	RNA_def_boolean(ot->srna, "cache", false, "Cache", "Cache the sound in memory");
 }
 
 /* add image operator */
@@ -736,7 +736,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	/* last active name */
 	BLI_strncpy(ed->act_imagedir, strip->dir, sizeof(ed->act_imagedir));
 
-	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+	if (RNA_boolean_get(op->ptr, "overlap") == false) {
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq))
 			BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
@@ -867,7 +867,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+	if (RNA_boolean_get(op->ptr, "overlap") == false) {
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 

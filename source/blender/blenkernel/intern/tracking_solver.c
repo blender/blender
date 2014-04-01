@@ -456,7 +456,7 @@ static void reconstruct_update_solve_cb(void *customdata, double progress, const
 
 	if (progressdata->progress) {
 		*progressdata->progress = progress;
-		*progressdata->do_update = TRUE;
+		*progressdata->do_update = true;
 	}
 
 	BLI_snprintf(progressdata->stats_message, progressdata->message_size, "Solving camera | %s", message);

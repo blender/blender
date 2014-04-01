@@ -990,7 +990,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				}
 				else if (event == 22) {
 					/* Copy the constraint channels over */
-					BKE_copy_constraints(&base->object->constraints, &ob->constraints, TRUE);
+					BKE_copy_constraints(&base->object->constraints, &ob->constraints, true);
 					
 					do_depgraph_update = true;
 				}
@@ -998,7 +998,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->softflag = ob->softflag;
 					if (base->object->soft) sbFree(base->object->soft);
 					
-					base->object->soft = copy_softbody(ob->soft, FALSE);
+					base->object->soft = copy_softbody(ob->soft, false);
 
 					if (!modifiers_findByType(base->object, eModifierType_Softbody)) {
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
@@ -1439,7 +1439,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, View3D *v3d)
 	for (base = FIRSTBASE; base; base = base->next) {
 		if (TESTBASELIB(v3d, base)) {
 			ob = base->object;
-			done = FALSE;
+			done = false;
 			
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
@@ -1469,7 +1469,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, View3D *v3d)
 								if (x > y) ob->size[0] = ob->size[1] * x / y;
 								else ob->size[1] = ob->size[0] * y / x;
 								
-								done = TRUE;
+								done = true;
 								DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 								BKE_image_release_ibuf(tex->ima, ibuf, NULL);

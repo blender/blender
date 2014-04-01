@@ -86,12 +86,12 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	uiLayoutSetAlignment(pa->layout, UI_LAYOUT_ALIGN_LEFT);
 	block = uiLayoutGetBlock(pa->layout);
 	box = uiLayoutBox(pa->layout);
-	col = uiLayoutColumn(box, TRUE);
+	col = uiLayoutColumn(box, true);
 
 	for (i = 0; i < nentries; ++i) {
 		char dir[FILE_MAX];
 		char temp[FILE_MAX];
-		uiLayout *layout = uiLayoutRow(col, FALSE);
+		uiLayout *layout = uiLayoutRow(col, false);
 		char *entry;
 		
 		entry = fsmenu_get_entry(fsmenu, category, i);
@@ -157,7 +157,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 	uiLayout *row;
 
 	if (sfile) {
-		row = uiLayoutRow(pa->layout, FALSE);
+		row = uiLayoutRow(pa->layout, false);
 		uiItemO(row, IFACE_("Add"), ICON_ZOOMIN, "file.bookmark_add");
 		uiItemL(row, NULL, ICON_NONE);
 
@@ -178,7 +178,7 @@ static void file_panel_recent(const bContext *C, Panel *pa)
 
 	if (sfile) {
 		if (!(U.uiflag & USER_HIDE_RECENT)) {
-			row = uiLayoutRow(pa->layout, FALSE);
+			row = uiLayoutRow(pa->layout, false);
 			uiItemO(row, IFACE_("Reset"), ICON_X, "file.reset_recent");
 			uiItemL(row, NULL, ICON_NONE);
 

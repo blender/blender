@@ -56,7 +56,7 @@ void PreviewOperation::verifyPreview(bNodeInstanceHash *previews, bNodeInstanceK
 	/* Size (0, 0) ensures the preview rect is not allocated in advance,
 	 * this is set later in initExecution once the resolution is determined.
 	 */
-	this->m_preview = BKE_node_preview_verify(previews, key, 0, 0, TRUE);
+	this->m_preview = BKE_node_preview_verify(previews, key, 0, 0, true);
 }
 
 void PreviewOperation::initExecution()

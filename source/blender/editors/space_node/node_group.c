@@ -179,7 +179,7 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "exit", FALSE, "Exit", "");
+	RNA_def_boolean(ot->srna, "exit", false, "Exit", "");
 }
 
 /* ******************** Ungroup operator ********************** */
@@ -203,7 +203,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	 * - ngroup (i.e. the source NodeTree) is left unscathed
 	 * - temp copy. don't change ID usercount
 	 */
-	wgroup = ntreeCopyTree_ex(ngroup, FALSE);
+	wgroup = ntreeCopyTree_ex(ngroup, false);
 	
 	/* Add the nodes into the ntree */
 	for (node = wgroup->nodes.first; node; node = nextnode) {
@@ -401,7 +401,7 @@ static int node_group_separate_selected(bNodeTree *ntree, bNodeTree *ngroup, flo
 	
 	/* deselect all nodes in the target tree */
 	for (node = ntree->nodes.first; node; node = node->next)
-		nodeSetSelected(node, FALSE);
+		nodeSetSelected(node, false);
 	
 	/* clear new pointers, set in nodeCopyNode */
 	for (node = ngroup->nodes.first; node; node = node->next)
@@ -415,7 +415,7 @@ static int node_group_separate_selected(bNodeTree *ntree, bNodeTree *ngroup, flo
 		
 		/* ignore interface nodes */
 		if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
-			nodeSetSelected(node, FALSE);
+			nodeSetSelected(node, false);
 			continue;
 		}
 		
@@ -684,7 +684,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 	ListBase anim_basepaths = {NULL, NULL};
 	float min[2], max[2], center[2];
 	int totselect;
-	int expose_all = FALSE;
+	int expose_all = false;
 	bNode *input_node, *output_node;
 	
 	/* XXX rough guess, not nice but we don't have access to UI constants here ... */
@@ -693,7 +693,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 	
 	/* deselect all nodes in the target tree */
 	for (node = ngroup->nodes.first; node; node = node->next)
-		nodeSetSelected(node, FALSE);
+		nodeSetSelected(node, false);
 	
 	totselect = node_get_selected_minmax(ntree, gnode, min, max);
 	add_v2_v2v2(center, min, max);
@@ -701,7 +701,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 	
 	/* auto-add interface for "solo" nodes */
 	if (totselect == 1)
-		expose_all = TRUE;
+		expose_all = true;
 	
 	/* move nodes over */
 	for (node = ntree->nodes.first; node; node = nextn) {
@@ -831,10 +831,10 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 			if (node_group_make_use_node(node, gnode)) {
 				for (sock = node->inputs.first; sock; sock = sock->next) {
 					bNodeSocket *iosock, *input_sock;
-					int skip = FALSE;
+					int skip = false;
 					for (link = ngroup->links.first; link; link = link->next) {
 						if (link->tosock == sock) {
-							skip = TRUE;
+							skip = true;
 							break;
 						}
 					}
@@ -852,10 +852,10 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 				
 				for (sock = node->outputs.first; sock; sock = sock->next) {
 					bNodeSocket *iosock, *output_sock;
-					int skip = FALSE;
+					int skip = false;
 					for (link = ngroup->links.first; link; link = link->next)
 						if (link->fromsock == sock)
-							skip = TRUE;
+							skip = true;
 					if (skip)
 						continue;
 					

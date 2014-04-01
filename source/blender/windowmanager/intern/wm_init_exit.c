@@ -538,5 +538,5 @@ void WM_exit(bContext *C)
 	}
 #endif
 
-	exit(G.is_break == TRUE);
+	exit(G.is_break == true);
 }

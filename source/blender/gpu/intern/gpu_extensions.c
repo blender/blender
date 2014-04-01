@@ -555,7 +555,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, float *
 	return tex;
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int isdata, double time, int mipmap)
+GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, bool is_data, double time, int mipmap)
 {
 	GPUTexture *tex;
 	GLint w, h, border, lastbindcode, bindcode;
@@ -564,7 +564,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int isdata, d
 
 	GPU_update_image_time(ima, time);
 	/* this binds a texture, so that's why to restore it with lastbindcode */
-	bindcode = GPU_verify_image(ima, iuser, 0, 0, mipmap, isdata);
+	bindcode = GPU_verify_image(ima, iuser, 0, 0, mipmap, is_data);
 
 	if (ima->gputexture) {
 		ima->gputexture->bindcode = bindcode;

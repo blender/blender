@@ -460,7 +460,7 @@ static void rna_KeyingSet_paths_remove(KeyingSet *keyingset, ReportList *reports
 	KS_Path *ksp = ksp_ptr->data;
 
 	/* if data is valid, call the API function for this */
-	if ((keyingset && ksp) == FALSE) {
+	if ((keyingset && ksp) == false) {
 		BKE_report(reports, RPT_ERROR, "Keying set path could not be removed");
 		return;
 	}

@@ -240,11 +240,11 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc);
 
 
 /**
- * Return the fps contained in movie files (function rval is FALSE,
+ * Return the fps contained in movie files (function rval is false,
  * and frs_sec and frs_sec_base untouched if none available!)
  */
-int IMB_anim_get_fps(struct anim *anim,
-                     short *frs_sec, float *frs_sec_base);
+bool IMB_anim_get_fps(struct anim *anim,
+                      short *frs_sec, float *frs_sec_base);
 
 /**
  *
@@ -354,7 +354,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
  *
  * \attention Defined in util.c
  */
-int IMB_ispic(const char *name);
+bool IMB_ispic(const char *name);
 
 /**
  *
@@ -386,16 +386,16 @@ void IMB_saturation(struct ImBuf *ibuf, float sat);
 
 /* converting pixel buffers */
 void IMB_buffer_byte_from_float(unsigned char *rect_to, const float *rect_from,
-	int channels_from, float dither, int profile_to, int profile_from, int predivide,
+	int channels_from, float dither, int profile_to, int profile_from, bool predivide,
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_from_byte(float *rect_to, const unsigned char *rect_from,
-	int profile_to, int profile_from, int predivide,
+	int profile_to, int profile_from, bool predivide,
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
-	int channels_from, int profile_to, int profile_from, int predivide,
+	int channels_from, int profile_to, int profile_from, bool predivide,
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect_from,
-	int profile_to, int profile_from, int predivide,
+	int profile_to, int profile_from, bool predivide,
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_clamp(float *buf, int width, int height);
 void IMB_buffer_float_unpremultiply(float *buf, int width, int height);

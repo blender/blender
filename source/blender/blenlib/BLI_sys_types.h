@@ -219,21 +219,6 @@ typedef bool _BLI_Bool;
 # define __bool_true_false_are_defined 1
 #endif
 
-/* remove this when we're ready to remove TRUE/FALSE completely */
-#ifdef WITH_BOOL_COMPAT
-/* interim until all occurrences of these can be updated to stdbool */
-/* XXX Why not use the true/false velues here? */
-# ifndef FALSE
-#   define FALSE 0
-# endif
-
-# ifndef TRUE
-#   define TRUE 1
-# endif
-#endif
-
-
-
 #ifdef __cplusplus 
 }
 #endif

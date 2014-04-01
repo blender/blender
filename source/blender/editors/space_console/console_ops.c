@@ -554,7 +554,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 	int stride;
 
 	const short type = RNA_enum_get(op->ptr, "type");
-	int done = FALSE;
+	int done = false;
 	
 	if (ci->len == 0) {
 		return OPERATOR_CANCELLED;
@@ -573,7 +573,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - (ci->cursor + stride)) + 1);
 					ci->len -= stride;
 					BLI_assert(ci->len >= 0);
-					done = TRUE;
+					done = true;
 				}
 			}
 			break;
@@ -590,7 +590,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - (ci->cursor + stride)) + 1);
 					ci->len -= stride;
 					BLI_assert(ci->len >= 0);
-					done = TRUE;
+					done = true;
 				}
 			}
 			break;
@@ -1063,7 +1063,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEven
 	sel_prev[0] = sc->sel_start;
 	sel_prev[1] = sc->sel_end;
 	
-	console_cursor_set_to_pos(sc, ar, scu, mval, TRUE);
+	console_cursor_set_to_pos(sc, ar, scu, mval, true);
 
 	/* only redraw if the selection changed */
 	if (sel_prev[0] != sc->sel_start || sel_prev[1] != sc->sel_end) {

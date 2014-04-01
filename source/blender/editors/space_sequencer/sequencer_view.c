@@ -82,7 +82,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	ImageSampleInfo *info = arg_info;
 
 	if (info->draw) {
-		ED_image_draw_info(scene, ar, info->color_manage, FALSE, info->channels,
+		ED_image_draw_info(scene, ar, info->color_manage, false, info->channels,
 		                   info->x, info->y, info->colp, info->colfp,
 		                   info->linearcol, NULL, NULL);
 	}
@@ -140,7 +140,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 			copy_v4_v4(info->linearcol, info->colf);
 			IMB_colormanagement_colorspace_to_scene_linear_v4(info->linearcol, false, ibuf->rect_colorspace);
 
-			info->color_manage = TRUE;
+			info->color_manage = true;
 		}
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
@@ -155,7 +155,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 			copy_v4_v4(info->linearcol, info->colf);
 			BKE_sequencer_pixel_from_sequencer_space_v4(scene, info->linearcol);
 
-			info->color_manage = TRUE;
+			info->color_manage = true;
 		}
 	}
 	else {

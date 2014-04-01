@@ -210,7 +210,7 @@ static void blender_esc(int sig)
 {
 	static int count = 0;
 	
-	G.is_break = TRUE;  /* forces render loop to read queue, not sure if its needed */
+	G.is_break = true;  /* forces render loop to read queue, not sure if its needed */
 	
 	if (sig == 2) {
 		if (count) {
@@ -538,7 +538,7 @@ static void blender_crash_handler_backtrace(FILE *fp)
 
 	process = GetCurrentProcess();
 
-	SymInitialize(process, NULL, TRUE);
+	SymInitialize(process, NULL, true);
 
 	nframes = CaptureStackBackTrace(0, SIZE, stack, NULL);
 	symbolinfo = MEM_callocN(sizeof(SYMBOL_INFO) + MAXSYMBOL * sizeof( char ), "crash Symbol table");
@@ -1283,7 +1283,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 
 			/* WM_file_read would call normally */
 			ED_editors_init(C);
-			DAG_on_visible_update(bmain, TRUE);
+			DAG_on_visible_update(bmain, true);
 			BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
 		}
 		else {

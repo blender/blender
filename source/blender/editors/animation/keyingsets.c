@@ -783,7 +783,7 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C, PointerRNA *UNUSED(pt
 /* Polling API ----------------------------------------------- */
 
 /* Check if KeyingSet can be used in the current context */
-short ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
+bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 {
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
 		KeyingSetInfo *ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
@@ -797,7 +797,7 @@ short ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 		return (ksi->poll(ksi, C));
 	}
 	
-	return 1;
+	return true;
 }
 
 /* Special 'Overrides' Iterator for Relative KeyingSets ------ */

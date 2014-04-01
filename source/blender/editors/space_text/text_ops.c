@@ -1571,7 +1571,7 @@ static int cursor_skip_find_line(SpaceText *st, ARegion *ar,
 	return 1;
 }
 
-static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
+static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, const bool sel)
 {
 	Text *text = st->text;
 	TextLine **linep;
@@ -1643,7 +1643,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
+static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, const bool sel)
 {
 	Text *text = st->text;
 	TextLine **linep;
@@ -1713,7 +1713,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
+static void txt_wrap_move_up(SpaceText *st, ARegion *ar, const bool sel)
 {
 	Text *text = st->text;
 	TextLine **linep;
@@ -1746,7 +1746,7 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 	if (!sel) txt_pop_sel(text);
 }
 
-static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
+static void txt_wrap_move_down(SpaceText *st, ARegion *ar, const bool sel)
 {
 	Text *text = st->text;
 	TextLine **linep;
@@ -1783,7 +1783,7 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
  *
  * This is to replace screen_skip for PageUp/Down operations.
  */
-static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, int sel)
+static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
@@ -1814,7 +1814,7 @@ static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, int s
 	if (!sel) txt_pop_sel(text);
 }
 
-static int text_move_cursor(bContext *C, int type, int select)
+static int text_move_cursor(bContext *C, int type, bool select)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
@@ -2465,7 +2465,7 @@ static TextLine *get_first_visible_line(SpaceText *st, ARegion *ar, int *y)
 	return linep;
 }
 
-static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, int y, int sel)
+static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, int y, const bool sel)
 {
 	Text *text = st->text;
 	int max = wrap_width(st, ar); /* column */
@@ -2582,7 +2582,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 	}
 }
 
-static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
+static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, const bool sel)
 {
 	Text *text = st->text;
 	text_update_character_width(st);
@@ -2845,7 +2845,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
 	char *str;
-	int done = FALSE;
+	int done = false;
 	size_t i = 0;
 	unsigned int code;
 

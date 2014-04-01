@@ -1517,7 +1517,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	}
 
 	for (track = tracksbase->first; track; track = track->next) {
-		int selected = TRACK_SELECTED(track);
+		bool selected = TRACK_SELECTED(track);
 
 		if (draw_selected && !selected)
 			continue;
@@ -1915,7 +1915,7 @@ static void ensure_curve_cache(Scene *scene, Object *object)
 			case OB_CURVE:
 			case OB_SURF:
 			case OB_FONT:
-				BKE_displist_make_curveTypes(scene, object, FALSE);
+				BKE_displist_make_curveTypes(scene, object, false);
 				break;
 			case OB_MBALL:
 				BKE_displist_make_mball(G.main->eval_ctx, scene, object);
@@ -4129,7 +4129,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 			break;
 	}
 
-	return FALSE;
+	return false;
 }
 static bool drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                          const char dt, const short dflag, const unsigned char ob_wire_col[4])
@@ -4396,7 +4396,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	float cfra;
 	float ma_col[3] = {0.0f, 0.0f, 0.0f};
 	int a, totpart, totpoint = 0, totve = 0, drawn, draw_as, totchild = 0;
-	int select = ob->flag & SELECT, create_cdata = 0, need_v = 0;
+	bool select = (ob->flag & SELECT) != 0, create_cdata = false, need_v = false;
 	GLint polygonmode[2];
 	char numstr[32];
 	unsigned char tcol[4] = {0, 0, 0, 255};

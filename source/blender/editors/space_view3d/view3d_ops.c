@@ -207,7 +207,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
 
 	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
-	RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
+	RNA_boolean_set(kmi->ptr, "release_confirm", true);
 	/*
 	 * Doesn't work with KM_SHIFT, have to use KM_ANY and filter in invoke
 	 * */
@@ -220,9 +220,9 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_dolly", MIDDLEMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "use_all_regions", TRUE);
+	RNA_boolean_set(kmi->ptr, "use_all_regions", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "use_all_regions", FALSE);
+	RNA_boolean_set(kmi->ptr, "use_all_regions", false);
 
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_lock_to_active", PADPERIOD, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_lock_clear", PADPERIOD, KM_PRESS, KM_ALT, 0);
@@ -265,12 +265,12 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_pick", FKEY, KM_PRESS, KM_ALT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "center", FALSE); /* only without camera view */
+	RNA_boolean_set(kmi->ptr, "center", false); /* only without camera view */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "use_all_regions", TRUE);
-	RNA_boolean_set(kmi->ptr, "center", FALSE); /* only without camera view */
+	RNA_boolean_set(kmi->ptr, "use_all_regions", true);
+	RNA_boolean_set(kmi->ptr, "center", false); /* only without camera view */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", CKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "center", TRUE);
+	RNA_boolean_set(kmi->ptr, "center", true);
 
 	/* numpad view hotkeys*/
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD0, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_CAMERA);
@@ -309,22 +309,22 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* active aligned, replaces '*' key in 2.4x */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BACK);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_LEFT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_localview", PADSLASHKEY, KM_PRESS, 0, 0);
 	
@@ -336,7 +336,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_pan", NDOF_MOTION, 0, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_all", NDOF_MOTION, 0, KM_CTRL | KM_SHIFT, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "use_all_regions", FALSE);
+	RNA_boolean_set(kmi->ptr, "use_all_regions", false);
 	RNA_float_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_roll", NDOF_BUTTON_ROLL_CCW, KM_PRESS, 0, 0)->ptr, "angle", M_PI / -2);
 	RNA_float_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_roll", NDOF_BUTTON_ROLL_CW, KM_PRESS, 0, 0)->ptr, "angle", M_PI / 2);
 
@@ -351,13 +351,13 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* 3D mouse align */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	RNA_boolean_set(kmi->ptr, "align_active", true);
 	/* NDOF: end */
 	
 
@@ -393,78 +393,78 @@ void view3d_keymap(wmKeyConfig *keyconf)
 
 	/* selection*/
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
-	RNA_boolean_set(kmi->ptr, "center", FALSE);
-	RNA_boolean_set(kmi->ptr, "object", FALSE);
-	RNA_boolean_set(kmi->ptr, "enumerate", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", false);
+	RNA_boolean_set(kmi->ptr, "center", false);
+	RNA_boolean_set(kmi->ptr, "object", false);
+	RNA_boolean_set(kmi->ptr, "enumerate", false);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
-	RNA_boolean_set(kmi->ptr, "center", FALSE);
-	RNA_boolean_set(kmi->ptr, "object", FALSE);
-	RNA_boolean_set(kmi->ptr, "enumerate", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
+	RNA_boolean_set(kmi->ptr, "center", false);
+	RNA_boolean_set(kmi->ptr, "object", false);
+	RNA_boolean_set(kmi->ptr, "enumerate", false);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
-	RNA_boolean_set(kmi->ptr, "center", TRUE);
-	RNA_boolean_set(kmi->ptr, "object", TRUE); /* use Ctrl+Select for 2 purposes */
-	RNA_boolean_set(kmi->ptr, "enumerate", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", false);
+	RNA_boolean_set(kmi->ptr, "center", true);
+	RNA_boolean_set(kmi->ptr, "object", true); /* use Ctrl+Select for 2 purposes */
+	RNA_boolean_set(kmi->ptr, "enumerate", false);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
-	RNA_boolean_set(kmi->ptr, "center", FALSE);
-	RNA_boolean_set(kmi->ptr, "object", FALSE);
-	RNA_boolean_set(kmi->ptr, "enumerate", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", false);
+	RNA_boolean_set(kmi->ptr, "center", false);
+	RNA_boolean_set(kmi->ptr, "object", false);
+	RNA_boolean_set(kmi->ptr, "enumerate", true);
 
 	/* selection key-combinations */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
-	RNA_boolean_set(kmi->ptr, "center", TRUE);
-	RNA_boolean_set(kmi->ptr, "object", FALSE);
-	RNA_boolean_set(kmi->ptr, "enumerate", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
+	RNA_boolean_set(kmi->ptr, "center", true);
+	RNA_boolean_set(kmi->ptr, "object", false);
+	RNA_boolean_set(kmi->ptr, "enumerate", false);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
-	RNA_boolean_set(kmi->ptr, "center", TRUE);
-	RNA_boolean_set(kmi->ptr, "object", FALSE);
-	RNA_boolean_set(kmi->ptr, "enumerate", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", false);
+	RNA_boolean_set(kmi->ptr, "center", true);
+	RNA_boolean_set(kmi->ptr, "object", false);
+	RNA_boolean_set(kmi->ptr, "enumerate", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
-	RNA_boolean_set(kmi->ptr, "center", FALSE);
-	RNA_boolean_set(kmi->ptr, "object", FALSE);
-	RNA_boolean_set(kmi->ptr, "enumerate", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
+	RNA_boolean_set(kmi->ptr, "center", false);
+	RNA_boolean_set(kmi->ptr, "object", false);
+	RNA_boolean_set(kmi->ptr, "enumerate", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
-	RNA_boolean_set(kmi->ptr, "center", TRUE);
-	RNA_boolean_set(kmi->ptr, "object", FALSE);
-	RNA_boolean_set(kmi->ptr, "enumerate", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
+	RNA_boolean_set(kmi->ptr, "center", true);
+	RNA_boolean_set(kmi->ptr, "object", false);
+	RNA_boolean_set(kmi->ptr, "enumerate", true);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clip_border", BKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "camera_only", TRUE);
+	RNA_boolean_set(kmi->ptr, "camera_only", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "camera_only", FALSE);
+	RNA_boolean_set(kmi->ptr, "camera_only", false);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clear_render_border", BKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	

@@ -381,7 +381,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 				propptr.data = prop;
 
 				*r_ptr = propptr;
-				return TRUE;
+				return true;
 			}
 		}
 		else {
@@ -391,7 +391,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 					propptr.data = prop;
 
 					*r_ptr = propptr;
-					return TRUE;
+					return true;
 				}
 			}
 		}
@@ -413,13 +413,13 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 					propptr.data = idp;
 
 					*r_ptr = propptr;
-					return TRUE;
+					return true;
 				}
 			}
 		}
 	}
 #endif
-	return FALSE;
+	return false;
 }
 
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)
@@ -992,10 +992,10 @@ static int rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, Pointer
 
 	if (srna) {
 		RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }
 static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
@@ -1004,11 +1004,11 @@ static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key
 	for (; srna; srna = srna->cont.next) {
 		if (key[0] == srna->identifier[0] && strcmp(key, srna->identifier) == 0) {
 			RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 

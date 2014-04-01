@@ -360,7 +360,7 @@ int BLI_copy(const char *file, const char *to)
 
 	UTF16_ENCODE(file);
 	UTF16_ENCODE(str);
-	err = !CopyFileW(file_16, str_16, FALSE);
+	err = !CopyFileW(file_16, str_16, false);
 	UTF16_UN_ENCODE(str);
 	UTF16_UN_ENCODE(file);
 

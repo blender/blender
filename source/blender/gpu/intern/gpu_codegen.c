@@ -1136,14 +1136,14 @@ GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data)
 	return link;
 }
 
-GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, int isdata)
+GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
 {
 	GPUNodeLink *link = GPU_node_link_create(0);
 
-	link->image= LINK_IMAGE_BLENDER;
-	link->ptr1= ima;
-	link->ptr2= iuser;
-	link->image_isdata= isdata;
+	link->image = LINK_IMAGE_BLENDER;
+	link->ptr1 = ima;
+	link->ptr2 = iuser;
+	link->image_isdata = is_data;
 
 	return link;
 }

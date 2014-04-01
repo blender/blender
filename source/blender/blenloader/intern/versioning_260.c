@@ -1198,7 +1198,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 					if (sl->spacetype == SPACE_CLIP) {
 						SpaceClip *sclip = (SpaceClip *)sl;
 						ARegion *ar;
-						int hide = FALSE;
+						bool hide = false;
 
 						for (ar = sa->regionbase.first; ar; ar = ar->next) {
 							if (ar->regiontype == RGN_TYPE_PREVIEW) {
@@ -1207,7 +1207,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 									ar->v2d.flag &= ~V2D_IS_INITIALISED;
 									ar->alignment = RGN_ALIGN_NONE;
 
-									hide = TRUE;
+									hide = true;
 								}
 							}
 						}
@@ -1530,7 +1530,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 19)) {
 		Scene *scene;
 		Image *ima;
-		int colormanagement_disabled = FALSE;
+		bool colormanagement_disabled = false;
 
 		/* make scenes which are not using color management have got None as display device,
 		 * so they wouldn't perform linear-to-sRGB conversion on display
@@ -1544,7 +1544,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 
 				}
 
-				colormanagement_disabled = TRUE;
+				colormanagement_disabled = true;
 			}
 		}
 

@@ -57,8 +57,8 @@ static void add_huff_table(j_decompress_ptr dinfo, JHUFF_TBL **htblptr, const UI
 	memcpy((*htblptr)->bits, bits, sizeof((*htblptr)->bits));
 	memcpy((*htblptr)->huffval, val, sizeof((*htblptr)->huffval));
 
-	/* Initialize sent_table FALSE so table will be written to JPEG file. */
-	(*htblptr)->sent_table = FALSE;
+	/* Initialize sent_table false so table will be written to JPEG file. */
+	(*htblptr)->sent_table = false;
 }
 
 /* Set up the standard Huffman tables (cf. JPEG standard section K.3) */
@@ -165,7 +165,7 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 	dinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_decompress(&dinfo);
 	jpegmemsrcmgr_build(&dinfo, inBuffer, bufsize);
-	jpeg_read_header(&dinfo, TRUE);
+	jpeg_read_header(&dinfo, true);
 	if (dinfo.dc_huff_tbl_ptrs[0] == NULL) {
 		std_huff_tables(&dinfo);
 	}
@@ -187,7 +187,7 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 	jpegmemsrcmgr_build(&dinfo, inBuffer, bufsize - numbytes);
 
 	numbytes = 0;
-	jpeg_read_header(&dinfo, TRUE);
+	jpeg_read_header(&dinfo, true);
 	if (dinfo.dc_huff_tbl_ptrs[0] == NULL) {
 		std_huff_tables(&dinfo);
 	}
@@ -224,21 +224,21 @@ static void Compress_JPEG(int quality, unsigned char *outbuffer, const unsigned 
 	jpeg_set_defaults(&cinfo);
 	jpeg_set_colorspace(&cinfo, JCS_YCbCr);
 		
-	jpeg_set_quality(&cinfo, quality, TRUE);
+	jpeg_set_quality(&cinfo, quality, true);
 
-	cinfo.dc_huff_tbl_ptrs[0]->sent_table = TRUE;
-	cinfo.dc_huff_tbl_ptrs[1]->sent_table = TRUE;
-	cinfo.ac_huff_tbl_ptrs[0]->sent_table = TRUE;
-	cinfo.ac_huff_tbl_ptrs[1]->sent_table = TRUE;
+	cinfo.dc_huff_tbl_ptrs[0]->sent_table = true;
+	cinfo.dc_huff_tbl_ptrs[1]->sent_table = true;
+	cinfo.ac_huff_tbl_ptrs[0]->sent_table = true;
+	cinfo.ac_huff_tbl_ptrs[1]->sent_table = true;
 
 	cinfo.comp_info[0].component_id = 0;
 	cinfo.comp_info[0].v_samp_factor = 1;
 	cinfo.comp_info[1].component_id = 1;
 	cinfo.comp_info[2].component_id = 2;
 
-	cinfo.write_JFIF_header = FALSE;
+	cinfo.write_JFIF_header = false;
 
-	jpeg_start_compress(&cinfo, FALSE);
+	jpeg_start_compress(&cinfo, false);
 
 	i = 0;
 	marker[i++] = 'A';
@@ -378,7 +378,7 @@ static void jpegmemdestmgr_init_destination(j_compress_ptr cinfo)
 static boolean jpegmemdestmgr_empty_output_buffer(j_compress_ptr cinfo)
 {
 	(void)cinfo; /* unused */
-	return TRUE;
+	return true;
 }
 
 static void jpegmemdestmgr_term_destination(j_compress_ptr cinfo)
@@ -422,7 +422,7 @@ static boolean jpegmemsrcmgr_fill_input_buffer(j_decompress_ptr dinfo)
 	dinfo->src->next_input_byte = buf;
 	dinfo->src->bytes_in_buffer = 2;
 	
-	return TRUE;
+	return true;
 }
 
 static void jpegmemsrcmgr_skip_input_data(j_decompress_ptr dinfo, long skipcnt)

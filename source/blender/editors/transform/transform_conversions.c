@@ -3188,11 +3188,11 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
-			posttrans_fcurve_clean(ale->key_data, FALSE); /* only use handles in graph editor */
+			posttrans_fcurve_clean(ale->key_data, false); /* only use handles in graph editor */
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
-			posttrans_fcurve_clean(ale->key_data, FALSE);  /* only use handles in graph editor */
+			posttrans_fcurve_clean(ale->key_data, false);  /* only use handles in graph editor */
 	}
 
 	/* free temp data */
@@ -4170,7 +4170,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 		int right = BKE_sequence_tx_get_final_right(seq, true);
 
 		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
-			*recursive = FALSE;
+			*recursive = false;
 			*count = 0;
 			*flag = 0;
 		}
@@ -4178,16 +4178,16 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 			/* for meta's we only ever need to extend their children, no matter what depth
 			 * just check the meta's are in the bounds */
-			if      (t->frame_side == 'R' && right <= cfra) *recursive = FALSE;
-			else if (t->frame_side == 'L' && left  >= cfra) *recursive = FALSE;
-			else *recursive = TRUE;
+			if      (t->frame_side == 'R' && right <= cfra) *recursive = false;
+			else if (t->frame_side == 'L' && left  >= cfra) *recursive = false;
+			else *recursive = true;
 
 			*count = 1;
 			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 		}
 		else {
 
-			*recursive = FALSE;  /* not a meta, so no thinking here */
+			*recursive = false;  /* not a meta, so no thinking here */
 			*count = 1;          /* unless its set to 0, extend will never set 2 handles at once */
 			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 
@@ -4215,7 +4215,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 			/* Non nested strips (resect selection and handles) */
 			if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK)) {
-				*recursive = FALSE;
+				*recursive = false;
 				*count = 0;
 				*flag = 0;
 			}
@@ -4233,10 +4233,10 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 				if ((seq->type == SEQ_TYPE_META) && ((seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0)) {
 					/* if any handles are selected, don't recurse */
-					*recursive = TRUE;
+					*recursive = true;
 				}
 				else {
-					*recursive = FALSE;
+					*recursive = false;
 				}
 			}
 		}
@@ -4255,12 +4255,12 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 				 * BKE_sequence_calc() will update its settings when run on the toplevel meta */
 				*flag = 0;
 				*count = 0;
-				*recursive = TRUE;
+				*recursive = true;
 			}
 			else {
 				*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 				*count = 1; /* ignore the selection for nested */
-				*recursive = FALSE;
+				*recursive = false;
 			}
 #endif
 		}
@@ -4732,7 +4732,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob,
 			}
 			/* update object's loc/rot to get current rigid body transform */
 			mat4_to_loc_rot_size(ob->loc, rot, scale, ob->obmat);
-			BKE_object_mat3_to_rot(ob, rot, FALSE);
+			BKE_object_mat3_to_rot(ob, rot, false);
 		}
 	}
 
@@ -5053,29 +5053,29 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 			if (tmode == TFM_TRANSLATION) {
-				do_loc = TRUE;
+				do_loc = true;
 			}
 			else if (tmode == TFM_ROTATION) {
 				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
-						do_loc = TRUE;
+						do_loc = true;
 				}
 				else if (v3d->around == V3D_CURSOR)
-					do_loc = TRUE;
+					do_loc = true;
 				
 				if ((v3d->flag & V3D_ALIGN) == 0)
-					do_rot = TRUE;
+					do_rot = true;
 			}
 			else if (tmode == TFM_RESIZE) {
 				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
-						do_loc = TRUE;
+						do_loc = true;
 				}
 				else if (v3d->around == V3D_CURSOR)
-					do_loc = TRUE;
+					do_loc = true;
 				
 				if ((v3d->flag & V3D_ALIGN) == 0)
-					do_scale = TRUE;
+					do_scale = true;
 			}
 			
 			/* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
@@ -5186,28 +5186,28 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 				}
 				/* only insert keyframe if needed? */
 				else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
-					short do_loc = FALSE, do_rot = FALSE, do_scale = FALSE;
+					bool do_loc = false, do_rot = false, do_scale = false;
 					
 					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 					if (tmode == TFM_TRANSLATION) {
 						if (targetless_ik)
-							do_rot = TRUE;
+							do_rot = true;
 						else
-							do_loc = TRUE;
+							do_loc = true;
 					}
 					else if (tmode == TFM_ROTATION) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
-							do_loc = TRUE;
+							do_loc = true;
 							
 						if ((v3d->flag & V3D_ALIGN) == 0)
-							do_rot = TRUE;
+							do_rot = true;
 					}
 					else if (tmode == TFM_RESIZE) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
-							do_loc = TRUE;
+							do_loc = true;
 							
 						if ((v3d->flag & V3D_ALIGN) == 0)
-							do_scale = TRUE;
+							do_scale = true;
 					}
 					
 					if (do_loc) {
@@ -5336,7 +5336,7 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 
 static void special_aftertrans_update__node(bContext *UNUSED(C), TransInfo *t)
 {
-	int canceled = (t->state == TRANS_CANCEL);
+	const bool canceled = (t->state == TRANS_CANCEL);
 	
 	if (canceled && t->remove_on_cancel) {
 		/* remove selected nodes on cancel */
@@ -5396,8 +5396,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 {
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
-	int canceled = (t->state == TRANS_CANCEL);
-	short duplicate = (t->mode == TFM_TIME_DUPLICATE);
+	const bool canceled = (t->state == TRANS_CANCEL);
+	const bool duplicate = (t->mode == TFM_TIME_DUPLICATE);
 	
 	/* early out when nothing happened */
 	if (t->total == 0 || t->mode == TFM_DUMMY)
@@ -5413,7 +5413,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					/* handle multires re-projection, done
 					 * on transform completion since it's
 					 * really slow -joeedh */
-					projectEdgeSlideData(t, TRUE);
+					projectEdgeSlideData(t, true);
 
 					/* free temporary faces to avoid automerging and deleting
 					 * during cleanup - psy-fi */
@@ -5429,7 +5429,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					EdgeSlideData *sld = t->customData;
 
 					sld->perc = 0.0;
-					projectEdgeSlideData(t, FALSE);
+					projectEdgeSlideData(t, false);
 				}
 			}
 		}
@@ -5515,11 +5515,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
-						posttrans_fcurve_clean(fcu, FALSE); /* only use handles in graph editor */
+						posttrans_fcurve_clean(fcu, false); /* only use handles in graph editor */
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 					}
 					else
-						posttrans_fcurve_clean(fcu, FALSE);  /* only use handles in graph editor */
+						posttrans_fcurve_clean(fcu, false);  /* only use handles in graph editor */
 				}
 			}
 			
@@ -5967,10 +5967,10 @@ static bool is_node_parent_select(bNode *node)
 {
 	while ((node = node->parent)) {
 		if (node->flag & NODE_TRANSFORM) {
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
@@ -5992,7 +5992,7 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 
 	/* set transform flags on nodes */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		if (node->flag & NODE_SELECT && is_node_parent_select(node) == FALSE) {
+		if (node->flag & NODE_SELECT && is_node_parent_select(node) == false) {
 			node->flag |= NODE_TRANSFORM;
 			t->total++;
 		}
@@ -6601,7 +6601,7 @@ static void MaskHandleToTransData(MaskSplinePoint *point, eMaskWhichHandle which
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);
 
-	tdm->is_handle = TRUE;
+	tdm->is_handle = true;
 	copy_m3_m3(tdm->parent_matrix, parent_matrix);
 	copy_m3_m3(tdm->parent_inverse_matrix, parent_inverse_matrix);
 
@@ -6958,7 +6958,7 @@ void createTransData(bContext *C, TransInfo *t)
 
 			if (t->data && (t->flag & T_PROP_EDIT)) {
 				sort_trans_data(t); // makes selected become first in array
-				set_prop_dist(t, TRUE);
+				set_prop_dist(t, true);
 				sort_trans_data_dist(t);
 			}
 		}
@@ -7014,7 +7014,7 @@ void createTransData(bContext *C, TransInfo *t)
 
 			if (t->data && (t->flag & T_PROP_EDIT)) {
 				sort_trans_data(t); // makes selected become first in array
-				set_prop_dist(t, TRUE);
+				set_prop_dist(t, true);
 				sort_trans_data_dist(t);
 			}
 		}

@@ -310,25 +310,25 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 static void rna_def_color_modifier(StructRNA *srna)
 {
 	rna_def_modifier_type_common(srna, linestyle_color_modifier_type_items,
-	                             "rna_LineStyleColorModifier_name_set", TRUE, TRUE);
+	                             "rna_LineStyleColorModifier_name_set", true, true);
 }
 
 static void rna_def_alpha_modifier(StructRNA *srna)
 {
 	rna_def_modifier_type_common(srna, linestyle_alpha_modifier_type_items,
-	                             "rna_LineStyleAlphaModifier_name_set", TRUE, FALSE);
+	                             "rna_LineStyleAlphaModifier_name_set", true, false);
 }
 
 static void rna_def_thickness_modifier(StructRNA *srna)
 {
 	rna_def_modifier_type_common(srna, linestyle_thickness_modifier_type_items,
-	                             "rna_LineStyleThicknessModifier_name_set", TRUE, FALSE);
+	                             "rna_LineStyleThicknessModifier_name_set", true, false);
 }
 
 static void rna_def_geometry_modifier(StructRNA *srna)
 {
 	rna_def_modifier_type_common(srna, linestyle_geometry_modifier_type_items,
-	                             "rna_LineStyleGeometryModifier_name_set", FALSE, FALSE);
+	                             "rna_LineStyleGeometryModifier_name_set", false, false);
 }
 
 static void rna_def_modifier_color_ramp_common(StructRNA *srna, int range)
@@ -354,7 +354,7 @@ static void rna_def_modifier_color_ramp_common(StructRNA *srna, int range)
 	}
 }
 
-static void rna_def_modifier_curve_common(StructRNA *srna, int range, int value)
+static void rna_def_modifier_curve_common(StructRNA *srna, bool range, bool value)
 {
 	PropertyRNA *prop;
 
@@ -467,17 +467,17 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "LineStyleColorModifier_AlongStroke", "LineStyleColorModifier");
 	RNA_def_struct_ui_text(srna, "Along Stroke", "Change line color along stroke");
 	rna_def_color_modifier(srna);
-	rna_def_modifier_color_ramp_common(srna, FALSE);
+	rna_def_modifier_color_ramp_common(srna, false);
 
 	srna = RNA_def_struct(brna, "LineStyleColorModifier_DistanceFromCamera", "LineStyleColorModifier");
 	RNA_def_struct_ui_text(srna, "Distance from Camera", "Change line color based on the distance from the camera");
 	rna_def_color_modifier(srna);
-	rna_def_modifier_color_ramp_common(srna, TRUE);
+	rna_def_modifier_color_ramp_common(srna, true);
 
 	srna = RNA_def_struct(brna, "LineStyleColorModifier_DistanceFromObject", "LineStyleColorModifier");
 	RNA_def_struct_ui_text(srna, "Distance from Object", "Change line color based on the distance from an object");
 	rna_def_color_modifier(srna);
-	rna_def_modifier_color_ramp_common(srna, TRUE);
+	rna_def_modifier_color_ramp_common(srna, true);
 
 	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target");
@@ -490,7 +490,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Material", "Change line color based on a material attribute");
 	rna_def_color_modifier(srna);
 	rna_def_modifier_material_common(srna);
-	rna_def_modifier_color_ramp_common(srna, FALSE);
+	rna_def_modifier_color_ramp_common(srna, false);
 
 	prop = RNA_def_property(srna, "use_ramp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_USE_RAMP);
@@ -508,19 +508,19 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "LineStyleAlphaModifier_AlongStroke", "LineStyleAlphaModifier");
 	RNA_def_struct_ui_text(srna, "Along Stroke", "Change alpha transparency along stroke");
 	rna_def_alpha_modifier(srna);
-	rna_def_modifier_curve_common(srna, FALSE, FALSE);
+	rna_def_modifier_curve_common(srna, false, false);
 
 	srna = RNA_def_struct(brna, "LineStyleAlphaModifier_DistanceFromCamera", "LineStyleAlphaModifier");
 	RNA_def_struct_ui_text(srna, "Distance from Camera",
 	                       "Change alpha transparency based on the distance from the camera");
 	rna_def_alpha_modifier(srna);
-	rna_def_modifier_curve_common(srna, TRUE, FALSE);
+	rna_def_modifier_curve_common(srna, true, false);
 
 	srna = RNA_def_struct(brna, "LineStyleAlphaModifier_DistanceFromObject", "LineStyleAlphaModifier");
 	RNA_def_struct_ui_text(srna, "Distance from Object",
 	                       "Change alpha transparency based on the distance from an object");
 	rna_def_alpha_modifier(srna);
-	rna_def_modifier_curve_common(srna, TRUE, FALSE);
+	rna_def_modifier_curve_common(srna, true, false);
 
 	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target");
@@ -533,7 +533,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Material", "Change alpha transparency based on a material attribute");
 	rna_def_alpha_modifier(srna);
 	rna_def_modifier_material_common(srna);
-	rna_def_modifier_curve_common(srna, FALSE, FALSE);
+	rna_def_modifier_curve_common(srna, false, false);
 
 	/* line thickness modifiers */
 
@@ -546,17 +546,17 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "LineStyleThicknessModifier_AlongStroke", "LineStyleThicknessModifier");
 	RNA_def_struct_ui_text(srna, "Along Stroke", "Change line thickness along stroke");
 	rna_def_thickness_modifier(srna);
-	rna_def_modifier_curve_common(srna, FALSE, TRUE);
+	rna_def_modifier_curve_common(srna, false, true);
 
 	srna = RNA_def_struct(brna, "LineStyleThicknessModifier_DistanceFromCamera", "LineStyleThicknessModifier");
 	RNA_def_struct_ui_text(srna, "Distance from Camera", "Change line thickness based on the distance from the camera");
 	rna_def_thickness_modifier(srna);
-	rna_def_modifier_curve_common(srna, TRUE, TRUE);
+	rna_def_modifier_curve_common(srna, true, true);
 
 	srna = RNA_def_struct(brna, "LineStyleThicknessModifier_DistanceFromObject", "LineStyleThicknessModifier");
 	RNA_def_struct_ui_text(srna, "Distance from Object", "Change line thickness based on the distance from an object");
 	rna_def_thickness_modifier(srna);
-	rna_def_modifier_curve_common(srna, TRUE, TRUE);
+	rna_def_modifier_curve_common(srna, true, true);
 
 	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target");
@@ -569,7 +569,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Material", "Change line thickness based on a material attribute");
 	rna_def_thickness_modifier(srna);
 	rna_def_modifier_material_common(srna);
-	rna_def_modifier_curve_common(srna, FALSE, TRUE);
+	rna_def_modifier_curve_common(srna, false, true);
 
 	srna = RNA_def_struct(brna, "LineStyleThicknessModifier_Calligraphy", "LineStyleThicknessModifier");
 	RNA_def_struct_ui_text(srna, "Calligraphy",

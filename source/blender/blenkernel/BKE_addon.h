@@ -36,7 +36,7 @@ typedef struct bAddonPrefType {
 	ExtensionRNA ext;
 } bAddonPrefType;
 
-bAddonPrefType *BKE_addon_pref_type_find(const char *idname, int quiet);
+bAddonPrefType *BKE_addon_pref_type_find(const char *idname, bool quiet);
 void            BKE_addon_pref_type_add(bAddonPrefType *apt);
 void            BKE_addon_pref_type_remove(bAddonPrefType *apt);
 

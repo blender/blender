@@ -661,7 +661,7 @@ static int project_paint_occlude_ptv_clip(const ProjPaintState *ps, const MFace 
 	if (side) interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 	else interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 
-	if (!ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
+	if (!ED_view3d_clipping_test(ps->rv3d, wco, true)) {
 		return 1;
 	}
 
@@ -2017,9 +2017,9 @@ static void project_bucket_clip_face(
 			return;
 		}
 
-		doubles = TRUE;
-		while (doubles == TRUE) {
-			doubles = FALSE;
+		doubles = true;
+		while (doubles == true) {
+			doubles = false;
 			for (i = 1; i < (*tot); i++) {
 				if (fabsf(isectVCosSS[i - 1][0] - isectVCosSS[i][0]) < PROJ_PIXEL_TOLERANCE &&
 				    fabsf(isectVCosSS[i - 1][1] - isectVCosSS[i][1]) < PROJ_PIXEL_TOLERANCE)
@@ -2029,7 +2029,7 @@ static void project_bucket_clip_face(
 						isectVCosSS[j - 1][0] = isectVCosSS[j][0];
 						isectVCosSS[j - 1][1] = isectVCosSS[j][1];
 					}
-					doubles = TRUE; /* keep looking for more doubles */
+					doubles = true; /* keep looking for more doubles */
 					(*tot)--;
 				}
 			}
@@ -2308,8 +2308,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 
 					/* Note about IsectPoly2Df_twoside, checking the face or uv flipping doesnt work,
 					 * could check the poly direction but better to do this */
-					if ((do_backfacecull == TRUE  && IsectPoly2Df(uv, uv_clip, uv_clip_tot)) ||
-					    (do_backfacecull == FALSE && IsectPoly2Df_twoside(uv, uv_clip, uv_clip_tot)))
+					if ((do_backfacecull == true  && IsectPoly2Df(uv, uv_clip, uv_clip_tot)) ||
+					    (do_backfacecull == false && IsectPoly2Df_twoside(uv, uv_clip, uv_clip_tot)))
 					{
 
 						has_x_isect = has_isect = 1;
@@ -2321,7 +2321,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						/* a pity we need to get the worldspace pixel location here */
 						if (do_clip || do_3d_mapping) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[(*(&mf->v1 + i1))].co, ps->dm_mvert[(*(&mf->v1 + i2))].co, ps->dm_mvert[(*(&mf->v1 + i3))].co, w);
-							if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
+							if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, true)) {
 								continue; /* Watch out that no code below this needs to run */
 							}
 						}
@@ -2329,7 +2329,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						/* Is this UV visible from the view? - raytrace */
 						/* project_paint_PickFace is less complex, use for testing */
 						//if (project_paint_PickFace(ps, pixelScreenCo, w, &side) == face_index) {
-						if ((ps->do_occlude == FALSE) ||
+						if ((ps->do_occlude == false) ||
 						    !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo))
 						{
 							mask = project_paint_uvpixel_mask(ps, face_index, side, w);
@@ -2507,7 +2507,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											pixelScreenCo[2] = pixelScreenCo[2] / pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 										}
 
-										if ((ps->do_occlude == FALSE) ||
+										if ((ps->do_occlude == false) ||
 										    !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo))
 										{
 											/* Only bother calculating the weights if we intersect */
@@ -2547,7 +2547,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 												if (side) interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else      interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 
-												if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
+												if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, true)) {
 													continue; /* Watch out that no code below this needs to run */
 												}
 											}
@@ -2842,20 +2842,20 @@ static void project_paint_begin(ProjPaintState *ps)
 	if (ps->source == PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
 		ps->dm = mesh_create_derived_render(ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
-		ps->dm_release = TRUE;
+		ps->dm_release = true;
 	}
 	else if (ps->ob->derivedFinal &&
 	         CustomData_has_layer(&ps->ob->derivedFinal->faceData, CD_MTFACE) &&
 	         (ps->do_face_sel == false || CustomData_has_layer(&ps->ob->derivedFinal->polyData, CD_ORIGINDEX)))
 	{
 		ps->dm = ps->ob->derivedFinal;
-		ps->dm_release = FALSE;
+		ps->dm_release = false;
 	}
 	else {
 		ps->dm = mesh_get_derived_final(
 		             ps->scene, ps->ob,
 		             ps->scene->customdata_mask | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
-		ps->dm_release = TRUE;
+		ps->dm_release = true;
 	}
 
 	if (!CustomData_has_layer(&ps->dm->faceData, CD_MTFACE) ) {
@@ -2900,7 +2900,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			ps->dm_mtface_clone = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
 
 		if (ps->dm_mtface_clone == NULL || ps->dm_mtface_clone == ps->dm_mtface) {
-			ps->do_layer_clone = FALSE;
+			ps->do_layer_clone = false;
 			ps->dm_mtface_clone = NULL;
 		}
 	}
@@ -2912,7 +2912,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			ps->dm_mtface_stencil = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
 
 		if (ps->dm_mtface_stencil == NULL || ps->dm_mtface_stencil == ps->dm_mtface) {
-			ps->do_layer_stencil = FALSE;
+			ps->do_layer_stencil = false;
 			ps->dm_mtface_stencil = NULL;
 		}
 	}
@@ -3698,7 +3698,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 		float co_ofs[2];
 		float rgba_tmp[4];
 		sub_v2_v2v2(co_ofs, projPixel->projCoSS, proj_pixel_soften_v2[i]);
-		if (project_paint_PickColor(ps, co_ofs, rgba_tmp, NULL, TRUE)) {
+		if (project_paint_PickColor(ps, co_ofs, rgba_tmp, NULL, true)) {
 			add_v4_v4(rgba, rgba_tmp);
 			accum_tot++;
 		}
@@ -3729,7 +3729,7 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 		float co_ofs[2];
 		float rgba_tmp[4];
 		sub_v2_v2v2(co_ofs, projPixel->projCoSS, proj_pixel_soften_v2[i]);
-		if (project_paint_PickColor(ps, co_ofs, rgba_tmp, NULL, TRUE)) {
+		if (project_paint_PickColor(ps, co_ofs, rgba_tmp, NULL, true)) {
 			add_v4_v4(rgba, rgba_tmp);
 			accum_tot++;
 		}
@@ -4263,7 +4263,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 	ps->normal_angle_range = ps->normal_angle - ps->normal_angle_inner;
 
 	if (ps->normal_angle_range <= 0.0f)
-		ps->do_mask_normal = FALSE;  /* no need to do blending */
+		ps->do_mask_normal = false;  /* no need to do blending */
 
 	return;
 }
@@ -4486,7 +4486,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (w > maxsize) w = maxsize;
 	if (h > maxsize) h = maxsize;
 
-	ibuf = ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, FALSE, R_ALPHAPREMUL, err_out);
+	ibuf = ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, false, R_ALPHAPREMUL, err_out);
 	if (!ibuf) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */

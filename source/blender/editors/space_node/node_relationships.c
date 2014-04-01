@@ -691,7 +691,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-	RNA_def_boolean(ot->srna, "detach", FALSE, "Detach", "Detach and redirect existing links");
+	RNA_def_boolean(ot->srna, "detach", false, "Detach", "Detach and redirect existing links");
 }
 
 /* ********************** Make Link operator ***************** */
@@ -770,7 +770,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	RNA_END;
 
 	if (i > 1) {
-		int found = FALSE;
+		int found = false;
 		bNodeLink *link, *next;
 		
 		ED_preview_kill_jobs(C);
@@ -782,9 +782,9 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 
 			if (cut_links_intersect(link, mcoords, i)) {
 
-				if (found == FALSE) {
+				if (found == false) {
 					ED_preview_kill_jobs(C);
-					found = TRUE;
+					found = true;
 				}
 
 				snode_update(snode, link->tonode);
@@ -1057,7 +1057,7 @@ static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent
 			if (node->flag & NODE_SELECT) {
 				if (node->parent == NULL) {
 					/* disallow moving a parent into its child */
-					if (nodeAttachNodeCheck(frame, node) == FALSE) {
+					if (nodeAttachNodeCheck(frame, node) == false) {
 						/* attach all unparented nodes */
 						nodeAttachNode(node, frame);
 					}
@@ -1072,7 +1072,7 @@ static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent
 
 					if (parent) {
 						/* disallow moving a parent into its child */
-						if (nodeAttachNodeCheck(frame, node) == FALSE) {
+						if (nodeAttachNodeCheck(frame, node) == false) {
 							nodeDetachNode(node);
 							nodeAttachNode(node, frame);
 						}

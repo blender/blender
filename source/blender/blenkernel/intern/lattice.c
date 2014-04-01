@@ -314,7 +314,7 @@ void BKE_lattice_make_local(Lattice *lt)
 {
 	Main *bmain = G.main;
 	Object *ob;
-	int is_local = FALSE, is_lib = FALSE;
+	int is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -327,14 +327,14 @@ void BKE_lattice_make_local(Lattice *lt)
 		return;
 	}
 	
-	for (ob = bmain->object.first; ob && ELEM(FALSE, is_lib, is_local); ob = ob->id.next) {
+	for (ob = bmain->object.first; ob && ELEM(false, is_lib, is_local); ob = ob->id.next) {
 		if (ob->data == lt) {
-			if (ob->id.lib) is_lib = TRUE;
-			else is_local = TRUE;
+			if (ob->id.lib) is_lib = true;
+			else is_local = true;
 		}
 	}
 	
-	if (is_local && is_lib == FALSE) {
+	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &lt->id);
 	}
 	else if (is_local && is_lib) {
@@ -630,7 +630,7 @@ static bool calc_curve_deform(Scene *scene, Object *par, float co[3],
 	/* to be sure, mostly after file load */
 	if (ELEM(NULL, par->curve_cache, par->curve_cache->path)) {
 #ifdef CYCLIC_DEPENDENCY_WORKAROUND
-		BKE_displist_make_curveTypes(scene, par, FALSE);
+		BKE_displist_make_curveTypes(scene, par, false);
 #endif
 		if (par->curve_cache->path == NULL) {
 			return 0;  // happens on append and cyclic dependencies...
@@ -731,7 +731,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 	init_curve_deform(cuOb, target, &cd);
 
 	/* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
-	if (is_neg_axis == FALSE) {
+	if (is_neg_axis == false) {
 		cd.dmin[0] = cd.dmin[1] = cd.dmin[2] = 0.0f;
 		cd.dmax[0] = cd.dmax[1] = cd.dmax[2] = 1.0f;
 	}
@@ -756,7 +756,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 		}
 	}
 	else {
-		use_vgroups = FALSE;
+		use_vgroups = false;
 	}
 	
 	if (vgroup && vgroup[0] && use_vgroups) {
@@ -880,7 +880,7 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 {
 	LatticeDeformData *lattice_deform_data;
 	int a;
-	int use_vgroups;
+	bool use_vgroups;
 
 	if (laOb->type != OB_LATTICE)
 		return;
@@ -902,7 +902,7 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 		}
 	}
 	else {
-		use_vgroups = FALSE;
+		use_vgroups = false;
 	}
 	
 	if (vgroup && vgroup[0] && use_vgroups) {

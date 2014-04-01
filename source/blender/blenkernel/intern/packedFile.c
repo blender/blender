@@ -253,7 +253,7 @@ void packAll(Main *bmain, ReportList *reports)
 	}
 
 	for (vfont = bmain->vfont.first; vfont; vfont = vfont->id.next) {
-		if (vfont->packedfile == NULL && vfont->id.lib == NULL && BKE_vfont_is_builtin(vfont) == FALSE) {
+		if (vfont->packedfile == NULL && vfont->id.lib == NULL && BKE_vfont_is_builtin(vfont) == false) {
 			vfont->packedfile = newPackedFile(reports, vfont->name, bmain->name);
 			tot ++;
 		}
@@ -303,8 +303,9 @@ static char *find_new_name(char *name)
 
 int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, int guimode)
 {
-	int file, number, remove_tmp = FALSE;
+	int file, number;
 	int ret_value = RET_OK;
+	bool remove_tmp = false;
 	char name[FILE_MAX];
 	char tempname[FILE_MAX];
 /*      void *data; */
@@ -319,7 +320,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 			BLI_snprintf(tempname, sizeof(tempname), "%s.%03d_", name, number);
 			if (!BLI_exists(tempname)) {
 				if (BLI_copy(name, tempname) == RET_OK) {
-					remove_tmp = TRUE;
+					remove_tmp = true;
 				}
 				break;
 			}

@@ -335,7 +335,7 @@ void IMB_moviecache_set_priority_callback(struct MovieCache *cache, MovieCacheGe
 	cache->prioritydeleterfp = prioritydeleterfp;
 }
 
-static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, int need_lock)
+static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, bool need_lock)
 {
 	MovieCacheKey *key;
 	MovieCacheItem *item;
@@ -393,7 +393,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, int
 
 void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 {
-	do_moviecache_put(cache, userkey, ibuf, TRUE);
+	do_moviecache_put(cache, userkey, ibuf, true);
 }
 
 bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibuf)
@@ -408,8 +408,8 @@ bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibu
 	mem_in_use = MEM_CacheLimiter_get_memory_in_use(limitor);
 
 	if (mem_in_use + elem_size <= mem_limit) {
-		do_moviecache_put(cache, userkey, ibuf, FALSE);
-		result = TRUE;
+		do_moviecache_put(cache, userkey, ibuf, false);
+		result = true;
 	}
 
 	BLI_mutex_unlock(&limitor_lock);

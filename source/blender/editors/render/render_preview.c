@@ -392,8 +392,8 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					sce->lay = 1 << mat->pr_type;
 					if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
 						/* two previews, they get copied by wmJob */
-						BKE_node_preview_init_tree(mat->nodetree, sp->sizex, sp->sizey, TRUE);
-						BKE_node_preview_init_tree(origmat->nodetree, sp->sizex, sp->sizey, TRUE);
+						BKE_node_preview_init_tree(mat->nodetree, sp->sizex, sp->sizey, true);
+						BKE_node_preview_init_tree(origmat->nodetree, sp->sizex, sp->sizey, true);
 					}
 				}
 			}
@@ -456,8 +456,8 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 
 			if (tex && tex->nodetree && sp->pr_method == PR_NODE_RENDER) {
 				/* two previews, they get copied by wmJob */
-				BKE_node_preview_init_tree(origtex->nodetree, sp->sizex, sp->sizey, TRUE);
-				BKE_node_preview_init_tree(tex->nodetree, sp->sizex, sp->sizey, TRUE);
+				BKE_node_preview_init_tree(origtex->nodetree, sp->sizex, sp->sizey, true);
+				BKE_node_preview_init_tree(tex->nodetree, sp->sizex, sp->sizey, true);
 			}
 		}
 		else if (id_type == ID_LA) {
@@ -493,8 +493,8 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 
 			if (la && la->nodetree && sp->pr_method == PR_NODE_RENDER) {
 				/* two previews, they get copied by wmJob */
-				BKE_node_preview_init_tree(origla->nodetree, sp->sizex, sp->sizey, TRUE);
-				BKE_node_preview_init_tree(la->nodetree, sp->sizex, sp->sizey, TRUE);
+				BKE_node_preview_init_tree(origla->nodetree, sp->sizex, sp->sizey, true);
+				BKE_node_preview_init_tree(la->nodetree, sp->sizex, sp->sizey, true);
 			}
 		}
 		else if (id_type == ID_WO) {
@@ -511,8 +511,8 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 
 			if (wrld && wrld->nodetree && sp->pr_method == PR_NODE_RENDER) {
 				/* two previews, they get copied by wmJob */
-				BKE_node_preview_init_tree(wrld->nodetree, sp->sizex, sp->sizey, TRUE);
-				BKE_node_preview_init_tree(origwrld->nodetree, sp->sizex, sp->sizey, TRUE);
+				BKE_node_preview_init_tree(wrld->nodetree, sp->sizex, sp->sizey, true);
+				BKE_node_preview_init_tree(origwrld->nodetree, sp->sizex, sp->sizey, true);
 			}
 		}
 		
@@ -629,7 +629,7 @@ static void shader_preview_update(void *spv, RenderResult *UNUSED(rr), volatile 
 {
 	ShaderPreview *sp = spv;
 	
-	*(sp->do_update) = TRUE;
+	*(sp->do_update) = true;
 }
 
 /* called by renderer, checks job value */
@@ -790,7 +790,7 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	else
 		shader_preview_render(sp, sp->id, 0, 0);
 
-	*do_update = TRUE;
+	*do_update = true;
 }
 
 static void shader_preview_free(void *customdata)
@@ -807,9 +807,9 @@ static void shader_preview_free(void *customdata)
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
 		
-		BKE_material_free_ex(sp->matcopy, FALSE);
+		BKE_material_free_ex(sp->matcopy, false);
 
-		properties = IDP_GetProperties((ID *)sp->matcopy, FALSE);
+		properties = IDP_GetProperties((ID *)sp->matcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
@@ -825,7 +825,7 @@ static void shader_preview_free(void *customdata)
 		BLI_remlink(&pr_main->tex, sp->texcopy);
 		BKE_texture_free(sp->texcopy);
 		
-		properties = IDP_GetProperties((ID *)sp->texcopy, FALSE);
+		properties = IDP_GetProperties((ID *)sp->texcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
@@ -839,9 +839,9 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
-		BKE_world_free_ex(sp->worldcopy, TRUE); /* [#32865] - we need to unlink the texture copies, unlike for materials */
+		BKE_world_free_ex(sp->worldcopy, true); /* [#32865] - we need to unlink the texture copies, unlike for materials */
 		
-		properties = IDP_GetProperties((ID *)sp->worldcopy, FALSE);
+		properties = IDP_GetProperties((ID *)sp->worldcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
@@ -857,7 +857,7 @@ static void shader_preview_free(void *customdata)
 		BLI_remlink(&pr_main->lamp, sp->lampcopy);
 		BKE_lamp_free(sp->lampcopy);
 		
-		properties = IDP_GetProperties((ID *)sp->lampcopy, FALSE);
+		properties = IDP_GetProperties((ID *)sp->lampcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
@@ -959,7 +959,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 		
 		icon_copy_rect(ibuf, sp->sizex, sp->sizey, sp->pr_rect);
 
-		*do_update = TRUE;
+		*do_update = true;
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
@@ -975,7 +975,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 
 		icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
-		*do_update = TRUE;
+		*do_update = true;
 	}
 	else {
 		/* re-use shader job */

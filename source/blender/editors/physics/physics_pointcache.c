@@ -61,7 +61,7 @@
 
 static int cache_break_test(void *UNUSED(cbd))
 {
-	return (G.is_break == TRUE);
+	return (G.is_break == true);
 }
 static int ptcache_bake_all_poll(bContext *C)
 {

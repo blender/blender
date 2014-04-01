@@ -64,7 +64,7 @@ static void clear_cache_data(struct OceanModifierData *omd)
 {
 	BKE_free_ocean_cache(omd->oceancache);
 	omd->oceancache = NULL;
-	omd->cached = FALSE;
+	omd->cached = false;
 }
 
 /* keep in sync with init_ocean_modifier_bake(), object_modifier.c */
@@ -74,7 +74,7 @@ static void init_ocean_modifier(struct OceanModifierData *omd)
 
 	if (!omd || !omd->ocean) return;
 
-	do_heightfield = TRUE;
+	do_heightfield = true;
 	do_chop = (omd->chop_amount > 0);
 	do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
 	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
@@ -442,7 +442,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	omd->refresh = 0;
 
 	/* do ocean simulation */
-	if (omd->cached == TRUE) {
+	if (omd->cached == true) {
 		if (!omd->oceancache) init_cache_data(ob, omd);
 		BKE_simulate_ocean_cache(omd->oceancache, md->scene->r.cfra);
 	}
@@ -495,7 +495,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 						const float u = OCEAN_CO(size_co_inv, co[0]);
 						const float v = OCEAN_CO(size_co_inv, co[1]);
 
-						if (omd->oceancache && omd->cached == TRUE) {
+						if (omd->oceancache && omd->cached == true) {
 							BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
 							foam = ocr.foam;
 							CLAMP(foam, 0.0f, 1.0f);
@@ -523,7 +523,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 		const float u = OCEAN_CO(size_co_inv, mv->co[0]);
 		const float v = OCEAN_CO(size_co_inv, mv->co[1]);
 
-		if (omd->oceancache && omd->cached == TRUE)
+		if (omd->oceancache && omd->cached == true)
 			BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
 		else
 			BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);

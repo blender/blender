@@ -789,7 +789,8 @@ void BKE_texture_make_local(Tex *tex)
 	Lamp *la;
 	Brush *br;
 	ParticleSettings *pa;
-	int a, is_local = FALSE, is_lib = FALSE;
+	int a;
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -808,8 +809,8 @@ void BKE_texture_make_local(Tex *tex)
 	while (ma) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (ma->mtex[a] && ma->mtex[a]->tex == tex) {
-				if (ma->id.lib) is_lib = TRUE;
-				else is_local = TRUE;
+				if (ma->id.lib) is_lib = true;
+				else is_local = true;
 			}
 		}
 		ma = ma->id.next;
@@ -818,8 +819,8 @@ void BKE_texture_make_local(Tex *tex)
 	while (la) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (la->mtex[a] && la->mtex[a]->tex == tex) {
-				if (la->id.lib) is_lib = TRUE;
-				else is_local = TRUE;
+				if (la->id.lib) is_lib = true;
+				else is_local = true;
 			}
 		}
 		la = la->id.next;
@@ -828,8 +829,8 @@ void BKE_texture_make_local(Tex *tex)
 	while (wrld) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (wrld->mtex[a] && wrld->mtex[a]->tex == tex) {
-				if (wrld->id.lib) is_lib = TRUE;
-				else is_local = TRUE;
+				if (wrld->id.lib) is_lib = true;
+				else is_local = true;
 			}
 		}
 		wrld = wrld->id.next;
@@ -837,12 +838,12 @@ void BKE_texture_make_local(Tex *tex)
 	br = bmain->brush.first;
 	while (br) {
 		if (br->mtex.tex == tex) {
-			if (br->id.lib) is_lib = TRUE;
-			else is_local = TRUE;
+			if (br->id.lib) is_lib = true;
+			else is_local = true;
 		}
 		if (br->mask_mtex.tex == tex) {
-			if (br->id.lib) is_lib = TRUE;
-			else is_local = TRUE;
+			if (br->id.lib) is_lib = true;
+			else is_local = true;
 		}
 		br = br->id.next;
 	}
@@ -850,14 +851,14 @@ void BKE_texture_make_local(Tex *tex)
 	while (pa) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (pa->mtex[a] && pa->mtex[a]->tex == tex) {
-				if (pa->id.lib) is_lib = TRUE;
-				else is_local = TRUE;
+				if (pa->id.lib) is_lib = true;
+				else is_local = true;
 			}
 		}
 		pa = pa->id.next;
 	}
 	
-	if (is_local && is_lib == FALSE) {
+	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &tex->id);
 		extern_local_texture(tex);
 	}
@@ -1034,7 +1035,7 @@ Tex *give_current_material_texture(Material *ma)
 	return tex;
 }
 
-int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
+bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 {
 	switch (GS(id->name)) {
 		case ID_MA:
@@ -1056,10 +1057,10 @@ int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 		default:
 			*mtex_ar = NULL;
 			if (act) *act =  0;
-			return FALSE;
+			return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 void set_active_mtex(ID *id, short act)
@@ -1307,7 +1308,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->falloff_curve->preset = CURVE_PRESET_LINE;
 	pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 	curvemap_reset(pd->falloff_curve->cm, &pd->falloff_curve->clipr, pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
-	curvemapping_changed(pd->falloff_curve, FALSE);
+	curvemapping_changed(pd->falloff_curve, false);
 
 	return pd;
 } 

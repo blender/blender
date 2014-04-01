@@ -82,7 +82,7 @@ typedef struct {
 
 	/* Cached */
 	struct PBVH *pbvh;
-	int pbvh_draw;
+	bool pbvh_draw;
 
 	/* Mesh connectivity */
 	MeshElemMap *pmap;
@@ -223,7 +223,7 @@ static const MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 	return cddm->pmap;
 }
 
-static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
+static bool can_pbvh_draw(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	Mesh *me = ob->data;
@@ -265,7 +265,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	/* Sculpting on a BMesh (dynamic-topology) gets a special PBVH */
 	if (!cddm->pbvh && ob->sculpt->bm) {
 		cddm->pbvh = BKE_pbvh_new();
-		cddm->pbvh_draw = TRUE;
+		cddm->pbvh_draw = true;
 
 		BKE_pbvh_build_bmesh(cddm->pbvh, ob->sculpt->bm,
 		                     ob->sculpt->bm_smooth_shading,
@@ -429,7 +429,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	if (cddm->pbvh && cddm->pbvh_draw &&
 	    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH)
 	{
-		BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, TRUE);
+		BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, true);
 
 		return;
 	}
@@ -450,7 +450,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	else {  /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		int prevstart = 0;
 		int prevdraw = 1;
-		int draw = TRUE;
+		bool draw = true;
 
 		GPU_edge_setup(dm);
 		if (!GPU_buffer_legacy(dm)) {
@@ -458,10 +458,10 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 				if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
 				    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
 				{
-					draw = TRUE;
+					draw = true;
 				}
 				else {
-					draw = FALSE;
+					draw = false;
 				}
 				if (prevdraw != draw) {
 					if (prevdraw > 0 && (i - prevstart) > 0) {
@@ -550,7 +550,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
 			BKE_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
-			              setMaterial, FALSE);
+			              setMaterial, false);
 			glShadeModel(GL_FLAT);
 		}
 
@@ -657,7 +657,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (dm->numTessFaceData) {
 			GPU_set_tpage(NULL, false, false);
-			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false);
 		}
 
 		return;
@@ -1136,7 +1136,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	MFace *mface = cddm->mface;
 	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
-	int a, b, do_draw, matnr, new_matnr;
+	int a, b, matnr, new_matnr;
+	bool do_draw;
 	int orig;
 
 	/* double lookup */
@@ -1153,7 +1154,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (dm->numTessFaceData) {
 			setMaterial(1, &gattribs);
-			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false);
 		}
 
 		return;
@@ -1162,7 +1163,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
-	do_draw = FALSE;
+	do_draw = false;
 
 	glShadeModel(GL_SMOOTH);
 
@@ -1479,7 +1480,7 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (dm->numTessFaceData) {
 			setMaterial(userData, 1, &gattribs);
-			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false);
 		}
 
 		return;
@@ -2506,11 +2507,11 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 
 		/* skip faces with all vertices merged */
 		{
-			int all_vertices_merged = TRUE;
+			bool all_vertices_merged = true;
 
 			for (j = 0; j < mp->totloop; j++, ml++) {
 				if (vtargetmap[ml->v] == -1) {
-					all_vertices_merged = FALSE;
+					all_vertices_merged = false;
 					break;
 				}
 			}
@@ -2667,7 +2668,7 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 
 	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
-	     BLI_edgehashIterator_isDone(ehi) == FALSE;
+	     BLI_edgehashIterator_isDone(ehi) == false;
 	     BLI_edgehashIterator_step(ehi), i++, med++, index++)
 	{
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
@@ -2739,7 +2740,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 
 	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
-	     BLI_edgehashIterator_isDone(ehi) == FALSE;
+	     BLI_edgehashIterator_isDone(ehi) == false;
 	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index)
 	{
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);

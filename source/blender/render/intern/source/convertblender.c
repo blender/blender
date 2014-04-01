@@ -398,7 +398,7 @@ static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[
 	}
 }
 
-static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangent, int do_nmap_tangent)
+static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_tangent, bool do_nmap_tangent)
 {
 	int a;
 
@@ -456,7 +456,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 	}
 
 	/* normal mapping tangent with mikktspace */
-	if (do_nmap_tangent != FALSE) {
+	if (do_nmap_tangent != false) {
 		SRenderMeshToTangent mesh2tangent;
 		SMikkTSpaceContext sContext;
 		SMikkTSpaceInterface sInterface;
@@ -1328,7 +1328,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float pa_time, pa_birthtime, pa_dietime;
 	float random, simplify[2], pa_co[3];
 	const float cfra= BKE_scene_frame_get(re->scene);
-	int i, a, k, max_k=0, totpart, do_simplify = FALSE, do_surfacecache = FALSE, use_duplimat = FALSE;
+	int i, a, k, max_k=0, totpart;
+	bool do_simplify = false, do_surfacecache = false, use_duplimat = false;
 	int totchild=0, step_nbr;
 	int seed, path_nbr=0, orco1=0, num;
 	int totface;
@@ -1460,7 +1461,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if (psys->flag & PSYS_USE_IMAT) {
 		/* psys->imat is the original emitter's inverse matrix, ob->obmat is the duplicated object's matrix */
 		mul_m4_m4m4(duplimat, ob->obmat, psys->imat);
-		use_duplimat = TRUE;
+		use_duplimat = true;
 	}
 
 /* 2.6 setup strand rendering */
@@ -1510,10 +1511,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			svert= strandbuf->vert;
 
 			if (re->r.mode & R_SPEED)
-				do_surfacecache = TRUE;
+				do_surfacecache = true;
 			else if ((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
 				if (ma->amb != 0.0f)
-					do_surfacecache = TRUE;
+					do_surfacecache = true;
 
 			totface= psmd->dm->getNumTessFaces(psmd->dm);
 			index_mf_to_mpoly = psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
@@ -2600,7 +2601,8 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 	DispList *dl;
 	Material **matar;
 	float *orco=NULL, mat[4][4];
-	int a, totmat, need_orco=0;
+	int a, totmat;
+	bool need_orco = false;
 	DerivedMesh *dm= NULL;
 
 	cu= ob->data;
@@ -2674,7 +2676,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	float *data, *fp, *orco=NULL;
 	float n[3], mat[4][4], nmat[4][4];
 	int nr, startvert, a, b;
-	int need_orco=0, totmat;
+	bool need_orco = false;
+	int totmat;
 
 	cu= ob->data;
 	if (ob->type==OB_FONT && cu->str==NULL) return;
@@ -3151,10 +3154,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco = NULL;
-	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0, need_origindex=0;
+	bool need_orco = false, need_stress = false, need_nmap_tangent = false, need_tangent = false, need_origindex = false;
 	int a, a1, ok, vertofs;
-	int end, do_autosmooth = FALSE, totvert = 0;
-	int use_original_normals = FALSE;
+	int end, totvert = 0;
+	bool do_autosmooth = false;
+	bool use_original_normals = false;
 	int recalc_normals = 0;	/* false by default */
 	int negative_scale;
 #ifdef WITH_FREESTYLE
@@ -3209,7 +3213,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		need_origindex= 1;
 
 	/* check autosmooth and displacement, we then have to skip only-verts optimize */
-	do_autosmooth |= (me->flag & ME_AUTOSMOOTH);
+	do_autosmooth |= (me->flag & ME_AUTOSMOOTH) != 0;
 	if (do_autosmooth)
 		timeoffset= 0;
 	if (test_for_displace(re, ob ) )
@@ -3246,7 +3250,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 	/* attempt to autsmooth on original mesh, only without subsurf */
 	if (do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
-		use_original_normals= TRUE;
+		use_original_normals= true;
 	
 	ma= give_render_material(re, ob, 1);
 
@@ -3270,7 +3274,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		for (a=0; a<totvert; a++, mvert++) {
 			ver= RE_findOrAddVert(obr, obr->totvert++);
 			copy_v3_v3(ver->co, mvert->co);
-			if (do_autosmooth == FALSE) {	/* autosmooth on original unrotated data to prevent differences between frames */
+			if (do_autosmooth == false) {	/* autosmooth on original unrotated data to prevent differences between frames */
 				normal_short_to_float_v3(ver->n, mvert->no);
 				mul_m4_v3(mat, ver->co);
 				mul_transposed_m3_v3(imat, ver->n);
@@ -3356,7 +3360,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						
 						if ( mface->mat_nr==a1 ) {
 							float len;
-							int reverse_verts = (negative_scale != 0 && do_autosmooth == FALSE);
+							int reverse_verts = (negative_scale != 0 && do_autosmooth == false);
 							int rev_tab[] = {reverse_verts==0 ? 0 : 2, 1, reverse_verts==0 ? 2 : 0, 3};
 							v1= reverse_verts==0 ? mface->v1 : mface->v3;
 							v2= mface->v2;
@@ -4782,7 +4786,7 @@ void RE_Database_Free(Render *re)
 	free_strand_surface(re);
 	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
-	re->i.convertdone = FALSE;
+	re->i.convertdone = false;
 
 	re->bakebuf= NULL;
 
@@ -5167,7 +5171,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	re->lampren.first= re->lampren.last= NULL;
 	
 	slurph_opt= 0;
-	re->i.partsdone = FALSE;	/* signal now in use for previewrender */
+	re->i.partsdone = false;	/* signal now in use for previewrender */
 	
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if (re->lay & 0xFF000000)
@@ -5284,7 +5288,7 @@ void RE_Database_Preprocess(Render *re)
 				volume_precache(re);
 	}
 	
-	re->i.convertdone = TRUE;
+	re->i.convertdone = true;
 
 	if (re->test_break(re->tbh))
 		RE_Database_Free(re);
@@ -5739,7 +5743,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	/* free dbase and make the future one */
 	strandsurface= re->strandsurface;
 	memset(&re->strandsurface, 0, sizeof(ListBase));
-	re->i.convertdone = TRUE;
+	re->i.convertdone = true;
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
 	
@@ -5755,7 +5759,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	/* free dbase and make the real one */
 	strandsurface= re->strandsurface;
 	memset(&re->strandsurface, 0, sizeof(ListBase));
-	re->i.convertdone = TRUE;
+	re->i.convertdone = true;
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
 	

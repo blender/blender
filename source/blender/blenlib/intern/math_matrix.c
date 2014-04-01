@@ -601,10 +601,10 @@ float determinant_m3_array(float m[3][3])
 	        m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]));
 }
 
-int invert_m3_ex(float m[3][3], const float epsilon)
+bool invert_m3_ex(float m[3][3], const float epsilon)
 {
 	float tmp[3][3];
-	int success;
+	bool success;
 
 	success = invert_m3_m3_ex(tmp, m, epsilon);
 	copy_m3_m3(m, tmp);
@@ -612,10 +612,11 @@ int invert_m3_ex(float m[3][3], const float epsilon)
 	return success;
 }
 
-int invert_m3_m3_ex(float m1[3][3], float m2[3][3], const float epsilon)
+bool invert_m3_m3_ex(float m1[3][3], float m2[3][3], const float epsilon)
 {
 	float det;
-	int a, b, success;
+	int a, b;
+	bool success;
 
 	BLI_assert(epsilon >= 0.0f);
 
@@ -638,10 +639,10 @@ int invert_m3_m3_ex(float m1[3][3], float m2[3][3], const float epsilon)
 	return success;
 }
 
-int invert_m3(float m[3][3])
+bool invert_m3(float m[3][3])
 {
 	float tmp[3][3];
-	int success;
+	bool success;
 
 	success = invert_m3_m3(tmp, m);
 	copy_m3_m3(m, tmp);
@@ -649,10 +650,11 @@ int invert_m3(float m[3][3])
 	return success;
 }
 
-int invert_m3_m3(float m1[3][3], float m2[3][3])
+bool invert_m3_m3(float m1[3][3], float m2[3][3])
 {
 	float det;
-	int a, b, success;
+	int a, b;
+	bool success;
 
 	/* calc adjoint */
 	adjoint_m3_m3(m1, m2);
@@ -674,10 +676,10 @@ int invert_m3_m3(float m1[3][3], float m2[3][3])
 	return success;
 }
 
-int invert_m4(float m[4][4])
+bool invert_m4(float m[4][4])
 {
 	float tmp[4][4];
-	int success;
+	bool success;
 
 	success = invert_m4_m4(tmp, m);
 	copy_m4_m4(m, tmp);
@@ -688,13 +690,13 @@ int invert_m4(float m[4][4])
 /*
  * invertmat -
  *      computes the inverse of mat and puts it in inverse.  Returns
- *  TRUE on success (i.e. can always find a pivot) and FALSE on failure.
+ *  true on success (i.e. can always find a pivot) and false on failure.
  *  Uses Gaussian Elimination with partial (maximal column) pivoting.
  *
  *					Mark Segal - 1992
  */
 
-int invert_m4_m4(float inverse[4][4], float mat[4][4])
+bool invert_m4_m4(float inverse[4][4], float mat[4][4])
 {
 	int i, j, k;
 	double temp;

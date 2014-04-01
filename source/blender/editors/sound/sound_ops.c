@@ -187,8 +187,8 @@ static void SOUND_OT_open(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE | SOUNDFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory");
-	RNA_def_boolean(ot->srna, "mono", FALSE, "Mono", "Mixdown the sound to mono");
+	RNA_def_boolean(ot->srna, "cache", false, "Cache", "Cache the sound in memory");
+	RNA_def_boolean(ot->srna, "mono", false, "Mono", "Mixdown the sound to mono");
 }
 
 static void SOUND_OT_open_mono(wmOperatorType *ot)
@@ -209,8 +209,8 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE | SOUNDFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory");
-	RNA_def_boolean(ot->srna, "mono", TRUE, "Mono", "Mixdown the sound to mono");
+	RNA_def_boolean(ot->srna, "cache", false, "Cache", "Cache the sound in memory");
+	RNA_def_boolean(ot->srna, "mono", true, "Mono", "Mixdown the sound to mono");
 }
 
 /* ******************************************************* */
@@ -430,10 +430,10 @@ static bool sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
 			return check;
 
 		RNA_property_string_set(op->ptr, prop, filepath);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 #endif // WITH_AUDASPACE

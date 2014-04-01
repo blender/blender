@@ -618,19 +618,19 @@ static eOLDrawState tree_element_active_ebone(
 		if (set == OL_SETSEL_NORMAL) {
 			if (!(ebone->flag & BONE_HIDDEN_A)) {
 				ED_armature_deselect_all(scene->obedit, 0); // deselect
-				tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
+				tree_element_active_ebone__sel(C, scene, arm, ebone, true);
 				status = OL_DRAWSEL_NORMAL;
 			}
 		}
 		else if (set == OL_SETSEL_EXTEND) {
 			if (!(ebone->flag & BONE_HIDDEN_A)) {
 				if (!(ebone->flag & BONE_SELECTED)) {
-					tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
+					tree_element_active_ebone__sel(C, scene, arm, ebone, true);
 					status = OL_DRAWSEL_NORMAL;
 				}
 				else {
 					/* entirely selected, so de-select */
-					tree_element_active_ebone__sel(C, scene, arm, ebone, FALSE);
+					tree_element_active_ebone__sel(C, scene, arm, ebone, false);
 					status = OL_DRAWSEL_NONE;
 				}
 			}
@@ -1117,7 +1117,7 @@ void OUTLINER_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, false);
 }
 
 /* ****************************************************** */

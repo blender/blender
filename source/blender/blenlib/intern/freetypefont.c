@@ -301,7 +301,7 @@ static VChar *objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 		}
 	}
 	else {
-		err = TRUE;
+		err = true;
 		return NULL;
 	}
 

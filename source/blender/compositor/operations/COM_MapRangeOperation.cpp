@@ -31,7 +31,7 @@ MapRangeOperation::MapRangeOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->m_inputOperation = NULL;
-	this->m_useClamp = FALSE;
+	this->m_useClamp = false;
 }
 
 void MapRangeOperation::initExecution()

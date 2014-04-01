@@ -526,7 +526,7 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 		CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
 	}
 	else {
-		mesh_tessface_clear_intern(men, FALSE);
+		mesh_tessface_clear_intern(men, false);
 	}
 
 	BKE_mesh_update_customdata_pointers(men, do_tessface);
@@ -623,7 +623,7 @@ void BKE_mesh_make_local(Mesh *me)
 {
 	Main *bmain = G.main;
 	Object *ob;
-	int is_local = FALSE, is_lib = FALSE;
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -639,12 +639,12 @@ void BKE_mesh_make_local(Mesh *me)
 
 	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
 		if (me == ob->data) {
-			if (ob->id.lib) is_lib = TRUE;
-			else is_local = TRUE;
+			if (ob->id.lib) is_lib = true;
+			else is_local = true;
 		}
 	}
 
-	if (is_local && is_lib == FALSE) {
+	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &me->id);
 		expand_local_mesh(me);
 	}
@@ -1126,7 +1126,7 @@ static void make_edges_mdata_extend(MEdge **r_alledge, int *r_totedge,
 
 		/* --- */
 		for (ehi = BLI_edgehashIterator_new(eh);
-		     BLI_edgehashIterator_isDone(ehi) == FALSE;
+		     BLI_edgehashIterator_isDone(ehi) == false;
 		     BLI_edgehashIterator_step(ehi), ++medge, e_index++)
 		{
 			BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
@@ -1596,19 +1596,19 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 			/* each iteration find a polyline and add this as a nurbs poly spline */
 
 			ListBase polyline = {NULL, NULL}; /* store a list of VertLink's */
-			int closed = FALSE;
+			bool closed = false;
 			int totpoly = 0;
 			MEdge *med_current = ((EdgeLink *)edges.last)->edge;
 			unsigned int startVert = med_current->v1;
 			unsigned int endVert = med_current->v2;
-			int ok = TRUE;
+			bool ok = true;
 
 			appendPolyLineVert(&polyline, startVert);   totpoly++;
 			appendPolyLineVert(&polyline, endVert);     totpoly++;
 			BLI_freelinkN(&edges, edges.last);          totedges--;
 
 			while (ok) { /* while connected edges are found... */
-				ok = FALSE;
+				ok = false;
 				i = totedges;
 				while (i) {
 					EdgeLink *edl;
@@ -1621,25 +1621,25 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 						endVert = med->v2;
 						appendPolyLineVert(&polyline, med->v2); totpoly++;
 						BLI_freelinkN(&edges, edl);             totedges--;
-						ok = TRUE;
+						ok = true;
 					}
 					else if (med->v2 == endVert) {
 						endVert = med->v1;
 						appendPolyLineVert(&polyline, endVert); totpoly++;
 						BLI_freelinkN(&edges, edl);             totedges--;
-						ok = TRUE;
+						ok = true;
 					}
 					else if (med->v1 == startVert) {
 						startVert = med->v2;
 						prependPolyLineVert(&polyline, startVert);  totpoly++;
 						BLI_freelinkN(&edges, edl);                 totedges--;
-						ok = TRUE;
+						ok = true;
 					}
 					else if (med->v2 == startVert) {
 						startVert = med->v1;
 						prependPolyLineVert(&polyline, startVert);  totpoly++;
 						BLI_freelinkN(&edges, edl);                 totedges--;
-						ok = TRUE;
+						ok = true;
 					}
 				}
 			}
@@ -1648,7 +1648,7 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 			if (startVert == endVert) {
 				BLI_freelinkN(&polyline, polyline.last);
 				totpoly--;
-				closed = TRUE;
+				closed = true;
 			}
 
 			/* --- nurbs --- */
@@ -1920,7 +1920,7 @@ void BKE_mesh_tessface_ensure(Mesh *mesh)
 
 void BKE_mesh_tessface_clear(Mesh *mesh)
 {
-	mesh_tessface_clear_intern(mesh, TRUE);
+	mesh_tessface_clear_intern(mesh, true);
 }
 
 void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)

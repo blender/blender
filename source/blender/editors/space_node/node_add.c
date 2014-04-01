@@ -82,7 +82,7 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
 	/* generics */
 	node->locx = locx;
 	node->locy = locy + 60.0f;     /* arbitrary... so its visible, (0,0) is top of node */
-	nodeSetSelected(node, TRUE);
+	nodeSetSelected(node, true);
 	
 	node->locx = locx;
 	node->locy = locy + 60.0f;

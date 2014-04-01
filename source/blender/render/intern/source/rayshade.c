@@ -749,7 +749,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 		shi.lay= origshi->lay;
 		shi.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
 		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
-		//shi.do_preview = FALSE; // memset above, so don't need this
+		//shi.do_preview = false; // memset above, so don't need this
 		shi.light_override= origshi->light_override;
 		shi.mat_override= origshi->mat_override;
 		
@@ -1205,13 +1205,13 @@ static QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int t
 
 	for (qsa=re->qmcsamplers[thread].first; qsa; qsa=qsa->next) {
 		if (qsa->type == type && qsa->tot == tot && !qsa->used) {
-			qsa->used = TRUE;
+			qsa->used = true;
 			return qsa;
 		}
 	}
 
 	qsa= QMC_initSampler(type, tot);
-	qsa->used = TRUE;
+	qsa->used = true;
 	BLI_addtail(&re->qmcsamplers[thread], qsa);
 
 	return qsa;
@@ -2156,7 +2156,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 	float adapt_thresh = lar->adapt_thresh;
 	int min_adapt_samples=4, max_samples = lar->ray_totsamp;
 	float start[3];
-	int do_soft = TRUE, full_osa = FALSE, i;
+	bool do_soft = true, full_osa = false;
+	int i;
 
 	float min[3], max[3];
 	RayHint bb_hint;
@@ -2171,8 +2172,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 	else
 		shadfac[3]= 1.0f;
 	
-	if (lar->ray_totsamp < 2) do_soft = FALSE;
-	if ((R.r.mode & R_OSA) && (R.osa > 0) && (shi->vlr->flag & R_FULL_OSA)) full_osa = TRUE;
+	if (lar->ray_totsamp < 2) do_soft = false;
+	if ((R.r.mode & R_OSA) && (R.osa > 0) && (shi->vlr->flag & R_FULL_OSA)) full_osa = true;
 	
 	if (full_osa) {
 		if (do_soft) max_samples  = max_samples/R.osa + 1;

@@ -153,10 +153,10 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage = MEM_callocN(sizeof(SpaceImage), "initimage");
 	simage->spacetype = SPACE_IMAGE;
 	simage->zoom = 1.0f;
-	simage->lock = TRUE;
+	simage->lock = true;
 	simage->flag = SI_SHOW_GPENCIL | SI_USE_ALPHA;
 
-	simage->iuser.ok = TRUE;
+	simage->iuser.ok = true;
 	simage->iuser.fie_ima = 2;
 	simage->iuser.frames = 100;
 	
@@ -274,14 +274,14 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolshelf", TKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, KM_ALT, 0)->ptr, "reverse", TRUE);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, KM_ALT, 0)->ptr, "reverse", true);
 	
 	keymap = WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "IMAGE_OT_view_all", FKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "fit_view", TRUE);
+	RNA_boolean_set(kmi->ptr, "fit_view", true);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
@@ -319,7 +319,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	/* toggle editmode is handy to have while UV unwrapping */
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	RNA_boolean_set(kmi->ptr, "toggle", true);
 
 	/* fast switch to render slots */
 	for (i = 0; i < MAX2(IMA_MAX_RENDER_SLOT, 9); i++) {
@@ -395,8 +395,8 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	else if (obedit && obedit->type == OB_MESH) {
 		Mesh *me = (Mesh *)obedit->data;
 		struct BMEditMesh *em = me->edit_btmesh;
-		int sloppy = TRUE; /* partially selected face is ok */
-		int selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION); /* only selected active face? */
+		bool sloppy = true; /* partially selected face is ok */
+		bool selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION); /* only selected active face? */
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			/* new shading system does not alter image */
@@ -550,7 +550,7 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 		if (mask) {
 			CTX_data_id_pointer_set(result, &mask->id);
 		}
-		return TRUE;
+		return true;
 	}
 	return 0;
 }
@@ -697,7 +697,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	if (sima->flag & SI_SHOW_GPENCIL) {
 		/* Grease Pencil too (in addition to UV's) */
-		draw_image_grease_pencil((bContext *)C, TRUE);
+		draw_image_grease_pencil((bContext *)C, true);
 	}
 
 	/* sample line */
@@ -707,7 +707,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	if (sima->flag & SI_SHOW_GPENCIL) {
 		/* draw Grease Pencil - screen space only */
-		draw_image_grease_pencil((bContext *)C, FALSE);
+		draw_image_grease_pencil((bContext *)C, false);
 	}
 
 	if (mask) {
@@ -736,7 +736,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 		                    sima->mask_info.overlay_mode,
 		                    width, height,
 		                    aspx, aspy,
-		                    TRUE, FALSE,
+		                    true, false,
 		                    NULL, C);
 
 		ED_mask_draw_frames(mask, ar, CFRA, mask->sfra, mask->efra);

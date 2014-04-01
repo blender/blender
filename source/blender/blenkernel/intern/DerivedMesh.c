@@ -1115,7 +1115,7 @@ static void calc_weightpaint_vert_color(
 		if (was_a_nonzero == false) {
 			show_alert_color = true;
 		}
-		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
+		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == false) {
 			input /= defbase_sel_tot; /* get the average */
 		}
 	}
@@ -1402,7 +1402,7 @@ static void dm_ensure_display_normals(DerivedMesh *dm)
 	BLI_assert(CustomData_has_layer(&dm->polyData, CD_NORMAL) == false);
 
 	if ((dm->type == DM_TYPE_CDDM) &&
-	    ((dm->dirty & DM_DIRTY_NORMALS) || CustomData_has_layer(&dm->faceData, CD_NORMAL) == FALSE))
+	    ((dm->dirty & DM_DIRTY_NORMALS) || CustomData_has_layer(&dm->faceData, CD_NORMAL) == false))
 	{
 		/* if normals are dirty we want to calculate vertex normals too */
 		CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
@@ -1442,7 +1442,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 #if 0 /* XXX Will re-enable this when we have global mod stack options. */
 	const bool do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
 #endif
-	const bool do_final_wmcol = FALSE;
+	const bool do_final_wmcol = false;
 	const bool do_init_wmcol = ((dataMask & CD_MASK_PREVIEW_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
 	/* XXX Same as above... For now, only weights preview in WPaint mode. */
 	const bool do_mod_wmcol = do_init_wmcol;
@@ -1968,7 +1968,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 #if 0 /* XXX Will re-enable this when we have global mod stack options. */
 	const bool do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
 #endif
-	const bool do_final_wmcol = FALSE;
+	const bool do_final_wmcol = false;
 	const bool do_init_wmcol = ((((Mesh *)ob->data)->drawflag & ME_DRAWEIGHT) && !do_final_wmcol);
 	const bool do_init_statvis = ((((Mesh *)ob->data)->drawflag & ME_DRAW_STATVIS) && !do_init_wmcol);
 	const bool do_mod_wmcol = do_init_wmcol;

@@ -224,8 +224,11 @@ void RE_init_threadcount(Render *re);
 void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
-void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, struct Object *camera_override, unsigned int lay_override, int frame, const short write_still);
-void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override, unsigned int lay_override, int sfra, int efra, int tfra);
+void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene,
+                     struct SceneRenderLayer *srl, struct Object *camera_override,
+                     unsigned int lay_override, int frame, const bool write_still);
+void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override,
+                    unsigned int lay_override, int sfra, int efra, int tfra);
 #ifdef WITH_FREESTYLE
 void RE_RenderFreestyleStrokes(struct Render *re, struct Main *bmain, struct Scene *scene, int render);
 #endif
@@ -236,12 +239,12 @@ void RE_SetReports(struct Render *re, struct ReportList *reports);
 /* main preview render call */
 void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
 
-int RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
-int RE_WriteRenderResult(struct ReportList *reports, RenderResult *rr, const char *filename, int compress);
-struct RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty);
+bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
+bool RE_WriteRenderResult(struct ReportList *reports, RenderResult *rr, const char *filename, int compress);
+struct RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
 extern const float default_envmap_layout[];
-int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]);
+bool RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]);
 
 /* do a full sample buffer compo */
 void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);
