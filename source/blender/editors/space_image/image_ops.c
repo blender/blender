@@ -776,10 +776,10 @@ static int image_view_zoom_in_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ARegion *ar = CTX_wm_region(C);
 	float location[2];
-
+	
 	RNA_float_get_array(op->ptr, "location", location);
 
-	sima_zoom_set_factor(sima, ar, 1.25f, location);
+	sima_zoom_set_factor(sima, ar, powf(2.0f, 1.0f/3.0f), location);				
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
@@ -821,11 +821,11 @@ static int image_view_zoom_out_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ARegion *ar = CTX_wm_region(C);
 	float location[2];
-
+	
 	RNA_float_get_array(op->ptr, "location", location);
 
-	sima_zoom_set_factor(sima, ar, 0.8f, location);
-
+	sima_zoom_set_factor(sima, ar, powf(0.5f, 1.0f/3.0f), location);
+	
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
