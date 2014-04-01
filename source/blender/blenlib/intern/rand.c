@@ -140,15 +140,13 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsig
 	unsigned int i = elem_tot;
 	void *temp;
 
-	if (elem_tot == 0) {
+	if (elem_tot <= 1) {
 		return;
 	}
 
 	temp = malloc(elem_size);
 
-	/* XXX Shouldn't it rather be "while (i--) {" ?
-	 *     Else we have no guaranty first (0) element has a chance to be shuffled... --mont29 */
-	while (--i) {
+	while (i--) {
 		unsigned int j = BLI_rng_get_uint(rng) % elem_tot;
 		if (i != j) {
 			void *iElem = (unsigned char *)data + i * elem_size_i;
