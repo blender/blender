@@ -2371,6 +2371,7 @@ static void WM_OT_revert_mainfile(wmOperatorType *ot)
 	ot->name = "Revert";
 	ot->idname = "WM_OT_revert_mainfile";
 	ot->description = "Reload the saved file";
+	ot->invoke = WM_operator_confirm;
 
 	ot->exec = wm_revert_mainfile_exec;
 	ot->poll = wm_revert_mainfile_poll;
@@ -2617,6 +2618,7 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 	ot->name = "Recover Last Session";
 	ot->idname = "WM_OT_recover_last_session";
 	ot->description = "Open the last closed file (\"" BLENDER_QUIT_FILE "\")";
+	ot->invoke = WM_operator_confirm;
 	
 	ot->exec = wm_recover_last_session_exec;
 }
