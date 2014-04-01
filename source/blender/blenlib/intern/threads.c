@@ -58,12 +58,12 @@
 #include <omp.h>
 #endif
 
-#if defined(__APPLE__)
-#if defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
+#if defined(__APPLE__) && defined(_OPENMP)
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
 #  define USE_APPLE_OMP_FIX
 #endif
 
-/* how many cores not counting HT aka pysical cores */
+/* how many cores not counting HT aka physical cores */
 static int system_physical_thread_count(void)
 {
 	int ptcount;
