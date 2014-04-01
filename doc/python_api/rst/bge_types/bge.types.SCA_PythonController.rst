@@ -10,6 +10,12 @@ base class --- :class:`SCA_IController`
    A Python controller uses a Python script to activate it's actuators, 
    based on it's sensors.
 
+   .. attribute:: owner
+
+      The object the controller is attached to.
+
+      :type: :class:`KX_GameObject`
+
    .. attribute:: script
 
       The value of this variable depends on the execution methid.

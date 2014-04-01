@@ -22,13 +22,13 @@ base class --- :class:`PyObjectPlus`
       :type: dictionary {:ref:`keycode<keyboard-keys>`::ref:`status<input-status>`, ...}
 
 
-   .. function:: getClipboard()
+   .. method:: getClipboard()
 
       Gets the clipboard text.
 
       :rtype: string
 
-   .. function:: setClipboard(text)
+   .. method:: setClipboard(text)
 
       Sets the clipboard text.
 

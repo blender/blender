@@ -34,7 +34,7 @@ base class --- :class:`PyObjectPlus`
       :type: int
 
    .. attribute:: walkDirection
-   
+
       The speed and direction the character is traveling in using world coordinates. This should be used instead of applyMovement() to properly move the character.
 
       :type: list [x, y, z]

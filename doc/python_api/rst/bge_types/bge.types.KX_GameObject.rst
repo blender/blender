@@ -12,7 +12,7 @@ base class --- :class:`SCA_IObject`
    Properties assigned to game objects are accessible as attributes of this class.
 
    .. note::
-      
+
       Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError,
       if an object may have been removed since last accessing it use the :data:`invalid` attribute to check.
 
@@ -75,25 +75,25 @@ base class --- :class:`SCA_IObject`
       :type: float
 
       .. note::
-         
+
          The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0.
-      
+
    .. attribute:: linVelocityMin
 
       Enforces the object keeps moving at a minimum velocity.
 
       :type: float
-      
+
       .. note::
-      
+
          Applies to dynamic and rigid body objects only.
 
       .. note::
-         
+
          A value of 0.0 disables this option.
 
       .. note::
-      
+
          While objects are stationary the minimum velocity will not be applied.
 
    .. attribute:: linVelocityMax
@@ -101,9 +101,9 @@ base class --- :class:`SCA_IObject`
       Clamp the maximum linear velocity to prevent objects moving beyond a set speed.
 
       :type: float
-      
+
       .. note::
-         
+
          Applies to dynamic and rigid body objects only.
 
       .. note::
@@ -247,25 +247,25 @@ base class --- :class:`SCA_IObject`
       :type: :class:`mathutils.Matrix`
 
    .. attribute:: localLinearVelocity
-      
+
       The object's local linear velocity. [x, y, z]
 
       :type: :class:`mathutils.Vector`
 
    .. attribute:: worldLinearVelocity
-   
+
       The object's world linear velocity. [x, y, z]
 
       :type: :class:`mathutils.Vector`
 
    .. attribute:: localAngularVelocity
-   
+
       The object's local angular velocity. [x, y, z]
 
       :type: :class:`mathutils.Vector`
 
    .. attribute:: worldAngularVelocity
-   
+
       The object's world angular velocity. [x, y, z]
 
       :type: :class:`mathutils.Vector`
@@ -287,13 +287,13 @@ base class --- :class:`SCA_IObject`
       a list meshes for this object.
 
       :type: list of :class:`KX_MeshProxy`
-      
+
       .. note::
-         
+
          Most objects use only 1 mesh.
 
       .. note::
-         
+
          Changes to this list will not update the KX_GameObject.
 
    .. attribute:: sensors
@@ -301,13 +301,13 @@ base class --- :class:`SCA_IObject`
       a sequence of :class:`SCA_ISensor` objects with string/index lookups and iterator support.
 
       :type: list
-      
+
       .. note::
-         
+
          This attribute is experemental and may be removed (but probably wont be).
 
       .. note::
-      
+
          Changes to this list will not update the KX_GameObject.
 
    .. attribute:: controllers
@@ -315,13 +315,13 @@ base class --- :class:`SCA_IObject`
       a sequence of :class:`SCA_IController` objects with string/index lookups and iterator support.
 
       :type: list of :class:`SCA_ISensor`
-      
+
       .. note::
-         
+
          This attribute is experemental and may be removed (but probably wont be).
 
       .. note::
-         
+
          Changes to this list will not update the KX_GameObject.
 
    .. attribute:: actuators
@@ -329,7 +329,7 @@ base class --- :class:`SCA_IObject`
       a list of :class:`SCA_IActuator` with string/index lookups and iterator support.
 
       :type: list
-      
+
       .. note::
 
          This attribute is experemental and may be removed (but probably wont be).
@@ -490,7 +490,7 @@ base class --- :class:`SCA_IObject`
 
       Sets the game object's linear velocity.
 
-      This method sets game object's velocity through it's centre of mass, 
+      This method sets game object's velocity through it's centre of mass,
       ie no angular velocity component.
 
       This requires a dynamic object.
@@ -571,7 +571,7 @@ base class --- :class:`SCA_IObject`
       Resumes physics for this object.
 
       .. note::
-         
+
          The objects linear velocity will be applied from when the dynamics were suspended.
 
    .. method:: enableRigidBody()
@@ -607,7 +607,7 @@ base class --- :class:`SCA_IObject`
       :type ghost: boolean
 
       .. note::
-      
+
          If the object type is sensor, it stays ghost regardless of ghost parameter
 
    .. method:: removeParent()
@@ -724,7 +724,7 @@ base class --- :class:`SCA_IObject`
          * or 5-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz), :class:`KX_PolyProxy`, 2-tuple (u, v))
 
       .. note::
-      
+
          The ray ignores the object on which the method is called. It is casted from/to object center or explicit [x, y, z] points.
 
    .. method:: setCollisionMargin(margin)
@@ -735,7 +735,7 @@ base class --- :class:`SCA_IObject`
       :type margin: float
 
       .. note::
-      
+
          If this object has no physics controller (a physics ID of zero), this function will raise RuntimeError.
 
    .. method:: sendMessage(subject, body="", to="")
@@ -766,11 +766,11 @@ base class --- :class:`SCA_IObject`
       .. note::
 
          If this object has instances the other instances will be updated too.
-      
+
       .. note::
 
          The gameObject argument has an advantage that it can convert from a mesh with modifiers applied (such as subsurf).
-      
+
       .. warning::
 
          Only triangle mesh type objects are supported currently (not convex hull)
@@ -791,7 +791,7 @@ base class --- :class:`SCA_IObject`
    .. method:: playAction(name, start_frame, end_frame, layer=0, priority=0, blendin=0, play_mode=KX_ACTION_MODE_PLAY, layer_weight=0.0, ipo_flags=0, speed=1.0, blend_mode=KX_ACTION_BLEND_BLEND)
 
       Plays an action.
-      
+
       :arg name: the name of the action
       :type name: string
       :arg start: the start frame of the action
@@ -812,42 +812,42 @@ base class --- :class:`SCA_IObject`
       :type ipo_flags: int bitfield
       :arg speed: the playback speed of the action as a factor (1.0 = normal speed, 2.0 = 2x speed, etc)
       :type speed: float
-	  :arg blend_mode: how to blend this layer with previous layers
-	  :type blend_mode: one of :ref:`these constants <gameobject-playaction-blend>`
+      :arg blend_mode: how to blend this layer with previous layers
+      :type blend_mode: one of :ref:`these constants <gameobject-playaction-blend>`
 
    .. method:: stopAction(layer=0)
-      
+
       Stop playing the action on the given layer.
-      
+
       :arg layer: The layer to stop playing.
       :type layer: integer
-      
+
    .. method:: getActionFrame(layer=0)
-   
+
       Gets the current frame of the action playing in the supplied layer.
-      
+
       :arg layer: The layer that you want to get the frame from.
       :type layer: integer
-      
+
       :return: The current frame of the action
       :rtype: float
-      
+
    .. method:: setActionFrame(frame, layer=0)
-   
+
       Set the current frame of the action playing in the supplied layer.
-      
+
       :arg layer: The layer where you want to set the frame
       :type layer: integer
       :arg frame: The frame to set the action to
       :type frame: float
 
    .. method:: isPlayingAction(layer=0)
-   
-       Checks to see if there is an action playing in the given layer.
-       
-       :arg layer: The layer to check for a playing action.
-       :type layer: integer
-       
-       :return: Whether or not the action is playing
-       :rtype: boolean
+
+      Checks to see if there is an action playing in the given layer.
+
+      :arg layer: The layer to check for a playing action.
+      :type layer: integer
+
+      :return: Whether or not the action is playing
+      :rtype: boolean
 

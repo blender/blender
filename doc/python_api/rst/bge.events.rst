@@ -14,7 +14,7 @@ This module holds key constants for the SCA_KeyboardSensor.
 
 	# Set a connected keyboard sensor to accept F1
 	import bge
-	
+
 	co = bge.logic.getCurrentController()
 	# 'Keyboard' is a keyboard sensor
 	sensor = co.sensors["Keyboard"]
@@ -24,7 +24,7 @@ This module holds key constants for the SCA_KeyboardSensor.
 
 	# Do the all keys thing
 	import bge
-	
+
 	co = bge.logic.getCurrentController()
 	# 'Keyboard' is a keyboard sensor
 	sensor = co.sensors["Keyboard"]
@@ -46,20 +46,20 @@ This module holds key constants for the SCA_KeyboardSensor.
 	# The all keys thing without a keyboard sensor (but you will
 	# need an always sensor with pulse mode on)
 	import bge
-	
+
 	# Just shortening names here
 	keyboard = bge.logic.keyboard
 	JUST_ACTIVATED = bge.logic.KX_INPUT_JUST_ACTIVATED
-	
+
 	if keyboard.events[bge.events.WKEY] == JUST_ACTIVATED:
 		print("Activate Forward!")
 	if keyboard.events[bge.events.SKEY] == JUST_ACTIVATED:
-		print("Activate Backward!")	
+		print("Activate Backward!")
 	if keyboard.events[bge.events.AKEY] == JUST_ACTIVATED:
-		print("Activate Left!")	
+		print("Activate Left!")
 	if keyboard.events[bge.events.DKEY] == JUST_ACTIVATED:
 		print("Activate Right!")
-		
+
 
 *********
 Functions
@@ -72,11 +72,11 @@ Functions
    :arg event: key event constant from :mod:`bge.events` or the keyboard sensor.
    :type event: int
    :rtype: string
-   
+
 .. function:: EventToCharacter(event, shift)
 
    Return the string name of a key event. Returns an empty string if the event cant be represented as a character.
-   
+
    :type event: int
    :arg event: key event constant from :mod:`bge.events` or the keyboard sensor.
    :type shift: bool
