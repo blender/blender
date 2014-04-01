@@ -1294,8 +1294,9 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.label(text="Gravity:")
         col.prop(sculpt, "gravity", slider=True, text="Factor")
         col.prop(sculpt, "gravity_object")
-
         col.separator()
+		
+        col = layout.column(align=True)
         col.label(text="Threads:")
         col.row(align=True).prop(scene, "omp_threads_mode", expand=True)
         sub = col.column(align=True)
