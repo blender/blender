@@ -169,7 +169,7 @@ int ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int arra
 	PropertyRNA *prop;
 	FCurve *fcu;
 	int array_index_max;
-	int done_tot;
+	int done_tot = 0;
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);

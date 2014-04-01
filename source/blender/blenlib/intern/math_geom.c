@@ -2379,7 +2379,7 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
                            const float tri_src_p1[3], const float tri_src_p2[3], const float tri_src_p3[3])
 {
 	/* this works by moving the source triangle so its normal is pointing on the Z
-	 * axis where its barycentric wights can be calculated in 2D and its Z offset can
+	 * axis where its barycentric weights can be calculated in 2D and its Z offset can
 	 *  be re-applied. The weights are applied directly to the targets 3D points and the
 	 *  z-depth is used to scale the targets normal as an offset.
 	 * This saves transforming the target into its Z-Up orientation and back (which could also work) */
