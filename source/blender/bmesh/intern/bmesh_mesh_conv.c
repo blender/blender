@@ -634,6 +634,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, bool do_tessface)
 	 * end up with 'me->totface' and me->mface == NULL which can crash [#28625]
 	 */
 	me->totface = 0;
+	me->act_face = -1;
 
 	CustomData_copy(&bm->vdata, &me->vdata, CD_MASK_MESH, CD_CALLOC, me->totvert);
 	CustomData_copy(&bm->edata, &me->edata, CD_MASK_MESH, CD_CALLOC, me->totedge);
