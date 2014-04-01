@@ -36,6 +36,14 @@ set(SRC
 	boost_locale_wrapper.h
 )
 
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
+endif()
+
+if(WITH_GHOST_SDL)
+	add_definitions(-DWITH_GHOST_SDL)
+endif()
+
 if(WITH_INTERNATIONAL)
 	list(APPEND INC_SYS
 		${BOOST_INCLUDE_DIR}

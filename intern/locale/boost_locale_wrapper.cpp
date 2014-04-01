@@ -64,7 +64,7 @@ void bl_locale_set(const char *locale)
 			_locale = gen(locale);
 		}
 		else {
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(WITH_HEADLESS) && !defined(WITH_GHOST_SDL)
 			extern char GHOST_user_locale[128]; // pulled from Ghost_SystemCocoa
 			std::string locale_osx = GHOST_user_locale + std::string(".UTF-8");
 			_locale = gen(locale_osx.c_str());
