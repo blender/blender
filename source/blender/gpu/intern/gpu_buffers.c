@@ -1436,7 +1436,7 @@ static void gpu_color_from_mask_quad_set(const CCGKey *key,
 
 void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
                              int *vert_indices, int totvert, const float *vmask,
-                             int (*face_vert_indices)[4], int show_diffuse_color)
+                             int (*face_vert_indices)[4], bool show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
 	int i, j, k;
