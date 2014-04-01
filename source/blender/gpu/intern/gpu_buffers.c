@@ -1442,7 +1442,7 @@ void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
 	int i, j, k;
 
 	buffers->vmask = vmask;
-	buffers->show_diffuse_color = show_diffuse_color;
+	buffers->show_diffuse_color = (vmask == NULL) || show_diffuse_color;
 
 	if (buffers->vert_buf) {
 		int totelem = (buffers->smooth ? totvert : (buffers->tot_tri * 3));
@@ -1657,7 +1657,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 	VertexBufferFormat *vert_data;
 	int i, j, k, x, y;
 
-	buffers->show_diffuse_color = show_diffuse_color;
+	buffers->show_diffuse_color = (key->has_mask == false) || show_diffuse_color;
 
 	/* Build VBO */
 	if (buffers->vert_buf) {
@@ -1892,7 +1892,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 }
 
 GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
-                                    BLI_bitmap **grid_hidden, int gridsize)
+                                              BLI_bitmap **grid_hidden, int gridsize)
 {
 	GPU_PBVH_Buffers *buffers;
 	int totquad;
