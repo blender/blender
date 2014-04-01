@@ -51,7 +51,7 @@ namespace Freestyle {
 // XXX Grmll... G is used as template's typename parameter :/
 static const Global &_global = G;
 
-#define LOGGING false
+#define LOGGING 0
 
 using namespace std;
 

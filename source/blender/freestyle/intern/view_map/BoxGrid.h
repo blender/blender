@@ -28,7 +28,7 @@
  *  \date 2011-1-29
  */
 
-#define BOX_GRID_LOGGING false
+#define BOX_GRID_LOGGING 0
 
 // I would like to avoid using deque because including ViewMap.h and <deque> or <vector>
 // separately results in redefinitions of identifiers. ViewMap.h already includes <vector>
