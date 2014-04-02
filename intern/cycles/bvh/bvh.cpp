@@ -77,13 +77,25 @@ bool BVH::cache_read(CacheData& key)
 	key.add(&params, sizeof(params));
 
 	foreach(Object *ob, objects) {
-		key.add(ob->mesh->verts);
-		key.add(ob->mesh->triangles);
-		key.add(ob->mesh->curve_keys);
-		key.add(ob->mesh->curves);
+		Mesh *mesh = ob->mesh;
+
+		key.add(mesh->verts);
+		key.add(mesh->triangles);
+		key.add(mesh->curve_keys);
+		key.add(mesh->curves);
 		key.add(&ob->bounds, sizeof(ob->bounds));
 		key.add(&ob->visibility, sizeof(ob->visibility));
-		key.add(&ob->mesh->transform_applied, sizeof(bool));
+		key.add(&mesh->transform_applied, sizeof(bool));
+
+		if(mesh->use_motion_blur) {
+			Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+			if(attr)
+				key.add(attr->buffer);
+
+			attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+			if(attr)
+				key.add(attr->buffer);
+		}
 	}
 
 	CacheData value;
