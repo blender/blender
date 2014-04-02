@@ -586,6 +586,14 @@ void snode_set_context(const bContext *C)
 	if (snode->nodetree != ntree || snode->id != id || snode->from != from) {
 		ED_node_tree_start(snode, ntree, id, from);
 	}
+	
+	/* XXX Legacy hack to update render layer node outputs.
+	 * This should be handled by the depsgraph eventually ...
+	 */
+	if (ED_node_is_compositor(snode) && snode->nodetree) {
+		/* update output sockets based on available layers */
+		ntreeCompositForceHidden(snode->nodetree);
+	}
 }
 
 void snode_update(SpaceNode *snode, bNode *node)

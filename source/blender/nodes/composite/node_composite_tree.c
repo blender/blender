@@ -72,10 +72,6 @@ static void composite_get_from_context(const bContext *C, bNodeTreeType *UNUSED(
 	*r_from = NULL;
 	*r_id = &scene->id;
 	*r_ntree = scene->nodetree;
-	
-	/* update output sockets based on available layers */
-	ntreeCompositForceHidden(scene->nodetree);
-	
 }
 
 static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
