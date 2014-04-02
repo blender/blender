@@ -3036,7 +3036,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	int sx, sy;
 	
 	if (event->type == MOUSEMOVE) {
-		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
 		if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->mode == 0) {
 			rect->xmin = rect->xmax = event->x - sx;
@@ -3137,7 +3137,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	int sx, sy;
 
 	if (event->type == MOUSEMOVE) {
-		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
 		rect->xmin = event->x - sx;
 		rect->ymin = event->y - sy;
@@ -3236,7 +3236,7 @@ static void tweak_gesture_modal(bContext *C, const wmEvent *event)
 		case MOUSEMOVE:
 		case INBETWEEN_MOUSEMOVE:
 			
-			wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
+			wm_subwindow_origin_get(window, gesture->swinid, &sx, &sy);
 			
 			rect->xmax = event->x - sx;
 			rect->ymax = event->y - sy;
@@ -3376,7 +3376,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 			wm_gesture_tag_redraw(C);
 			
-			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+			wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
 			if (gesture->points == gesture->size) {
 				short *old_lasso = gesture->customdata;
@@ -3559,7 +3559,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 	int sx, sy;
 	
 	if (event->type == MOUSEMOVE) {
-		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 		
 		if (gesture->mode == 0) {
 			rect->xmin = rect->xmax = event->x - sx;

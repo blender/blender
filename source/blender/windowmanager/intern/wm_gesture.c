@@ -72,7 +72,7 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 	gesture->event_type = event->type;
 	gesture->swinid = ar->swinid;    /* means only in area-region context! */
 	
-	wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
+	wm_subwindow_origin_get(window, gesture->swinid, &sx, &sy);
 	
 	if (ELEM5(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK,
 	          WM_GESTURE_CIRCLE, WM_GESTURE_STRAIGHTLINE))
@@ -261,7 +261,7 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 
 	BLI_lasso_boundbox(&rect, (const int (*)[2])moves, tot);
 
-	wm_subwindow_getrect(win, gt->swinid, &rect_win);
+	wm_subwindow_rect_get(win, gt->swinid, &rect_win);
 	BLI_rcti_translate(&rect, rect_win.xmin, rect_win.ymin);
 	BLI_rcti_isect(&rect_win, &rect, &rect);
 	BLI_rcti_translate(&rect, -rect_win.xmin, -rect_win.ymin);

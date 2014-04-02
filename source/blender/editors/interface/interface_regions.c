@@ -1606,7 +1606,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* get winmat now that we actually have the subwindow */
 	wmSubWindowSet(window, ar->swinid);
 	
-	wm_subwindow_getmatrix(window, ar->swinid, block->winmat);
+	wm_subwindow_matrix_get(window, ar->swinid, block->winmat);
 	
 	/* notify change and redraw */
 	ED_region_tag_redraw(ar);

@@ -95,7 +95,7 @@ void wm_subwindows_free(wmWindow *win)
 }
 
 
-int wm_subwindow_get(wmWindow *win)	
+int wm_subwindow_get_id(wmWindow *win)
 {
 	if (win->curswin)
 		return win->curswin->swinid;
@@ -112,55 +112,77 @@ static wmSubWindow *swin_from_swinid(wmWindow *win, int swinid)
 	return swin;
 }
 
-void wm_subwindow_getsize(wmWindow *win, int swinid, int *x, int *y) 
+
+static void wm_swin_size_get(wmSubWindow *swin, int *x, int *y)
+{
+	*x = BLI_rcti_size_x(&swin->winrct) + 1;
+	*y = BLI_rcti_size_y(&swin->winrct) + 1;
+}
+void wm_subwindow_size_get(wmWindow *win, int swinid, int *x, int *y)
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		*x = BLI_rcti_size_x(&swin->winrct) + 1;
-		*y = BLI_rcti_size_y(&swin->winrct) + 1;
+		wm_swin_size_get(swin, x, y);
 	}
 }
 
-void wm_subwindow_getorigin(wmWindow *win, int swinid, int *x, int *y)
+
+static void wm_swin_origin_get(wmSubWindow *swin, int *x, int *y)
+{
+	*x = swin->winrct.xmin;
+	*y = swin->winrct.ymin;
+}
+void wm_subwindow_origin_get(wmWindow *win, int swinid, int *x, int *y)
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		*x = swin->winrct.xmin;
-		*y = swin->winrct.ymin;
+		wm_swin_origin_get(swin, x, y);
 	}
 }
 
-void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[4][4])
+
+static void wm_swin_matrix_get(wmWindow *win, wmSubWindow *swin, float mat[4][4])
+{
+	/* used by UI, should find a better way to get the matrix there */
+	if (swin->swinid == win->screen->mainwin) {
+		int width, height;
+
+		wm_swin_size_get(swin, &width, &height);
+		orthographic_m4(mat, -GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS, -100, 100);
+	}
+	else {
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)mat);
+	}
+}
+void wm_subwindow_matrix_get(wmWindow *win, int swinid, float mat[4][4])
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		/* used by UI, should find a better way to get the matrix there */
-		if (swinid == win->screen->mainwin) {
-			int width, height;
-
-			wm_subwindow_getsize(win, swin->swinid, &width, &height);
-			orthographic_m4(mat, -GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS, -100, 100);
-		}
-		else
-			glGetFloatv(GL_PROJECTION_MATRIX, (float *)mat);
+		wm_swin_matrix_get(win, swin, mat);
 	}
 }
 
-void wm_subwindow_getrect(wmWindow *win, int swinid, rcti *r_rect)
+
+static void wm_swin_rect_get(wmSubWindow *swin, rcti *r_rect)
+{
+	*r_rect = swin->winrct;
+}
+void wm_subwindow_rect_get(wmWindow *win, int swinid, rcti *r_rect)
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		*r_rect = swin->winrct;
+		wm_swin_rect_get(swin, r_rect);
 	}
 }
+
 
 /* always sets pixel-precise 2D window/view matrices */
 /* coords is in whole pixels. xmin = 15, xmax = 16: means window is 2 pix big */
-int wm_subwindow_open(wmWindow *win, rcti *winrct)
+int wm_subwindow_open(wmWindow *win, const rcti *winrct)
 {
 	wmSubWindow *swin;
 	int width, height;
@@ -180,7 +202,7 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	wmSubWindowSet(win, swin->swinid);
 	
 	/* extra service */
-	wm_subwindow_getsize(win, swin->swinid, &width, &height);
+	wm_swin_size_get(swin, &width, &height);
 	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	glLoadIdentity();
 
@@ -205,7 +227,7 @@ void wm_subwindow_close(wmWindow *win, int swinid)
 }
 
 /* pixels go from 0-99 for a 100 pixel window */
-void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
+void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct)
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 	
@@ -237,7 +259,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		
 		/* extra service */
 		wmSubWindowSet(win, swinid);
-		wm_subwindow_getsize(win, swinid, &width, &height);
+		wm_swin_size_get(swin, &width, &height);
 		wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	}
 	else {
