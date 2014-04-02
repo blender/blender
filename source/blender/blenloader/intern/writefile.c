@@ -2487,6 +2487,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 			SpaceLink *sl;
 			Panel *pa;
 			uiList *ui_list;
+			uiPreview *ui_preview;
 			PanelCategoryStack *pc_act;
 			ARegion *ar;
 			
@@ -2503,6 +2504,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 				for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next)
 					write_uilist(wd, ui_list);
+
+				for (ui_preview = ar->ui_previews.first; ui_preview; ui_preview = ui_preview->next)
+					writestruct(wd, DATA, "uiPreview", 1, ui_preview);
 			}
 			
 			sl= sa->spacedata.first;

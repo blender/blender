@@ -6168,6 +6168,8 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		IDP_DirectLinkGroup_OrFree(&ui_list->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}
 
+	link_list(fd, &ar->ui_previews);
+
 	if (spacetype == SPACE_EMPTY) {
 		/* unkown space type, don't leak regiondata */
 		ar->regiondata = NULL;

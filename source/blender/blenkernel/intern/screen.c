@@ -308,6 +308,7 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		}
 	}
 	BLI_freelistN(&ar->ui_lists);
+	BLI_freelistN(&ar->ui_previews);
 	BLI_freelistN(&ar->panels_category);
 	BLI_freelistN(&ar->panels_category_active);
 }

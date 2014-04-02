@@ -55,6 +55,7 @@
 #include "BKE_displist.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
+#include "BKE_idcode.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1290,16 +1291,22 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, MTex *slot)
+void uiTemplatePreview(uiLayout *layout, bContext *C, ID *id, int show_buttons, ID *parent, MTex *slot,
+                       const char *preview_id)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
+	uiPreview *ui_preview = NULL;
+	ARegion *ar;
+
 	Material *ma = NULL;
 	Tex *tex = (Tex *)id;
 	ID *pid, *pparent;
 	short *pr_texture = NULL;
 	PointerRNA material_ptr;
 	PointerRNA texture_ptr;
+
+	char _preview_id[UI_MAX_NAME_STR];
 
 	if (id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
 		RNA_warning("Expected ID of type material, texture, lamp or world");
@@ -1326,17 +1333,44 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 		}
 	}
 
+	if (!preview_id || (preview_id[0] == '\0')) {
+		/* If no identifier given, generate one from ID type. */
+		BLI_snprintf(_preview_id, UI_MAX_NAME_STR, "uiPreview_%s", BKE_idcode_to_name(GS(id->name)));
+		preview_id = _preview_id;
+	}
+
+	/* Find or add the uiPreview to the current Region. */
+	ar = CTX_wm_region(C);
+	ui_preview = BLI_findstring(&ar->ui_previews, preview_id, offsetof(uiPreview, preview_id));
+
+	if (!ui_preview) {
+		ui_preview = MEM_callocN(sizeof(uiPreview), "uiPreview");
+		BLI_strncpy(ui_preview->preview_id, preview_id, sizeof(ui_preview->preview_id));
+		ui_preview->height = (short)(UI_UNIT_Y * 5.6f);
+		BLI_addtail(&ar->ui_previews, ui_preview);
+	}
+
+	if (ui_preview->height < UI_UNIT_Y) {
+		ui_preview->height = UI_UNIT_Y;
+	}
+	else if (ui_preview->height > UI_UNIT_Y * 50) {  /* Rather high upper limit, yet not insane! */
+		ui_preview->height = UI_UNIT_Y * 50;
+	}
+
 	/* layout */
 	block = uiLayoutGetBlock(layout);
 	row = uiLayoutRow(layout, false);
 	col = uiLayoutColumn(row, false);
 	uiLayoutSetKeepAspect(col, true);
-	
+
 	/* add preview */
-	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, pid, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, 0, 0, "");
 	uiBlockSetDrawExtraFunc(block, ED_preview_draw, pparent, slot);
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
-	
+
+	uiDefIconButS(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.3f), &ui_preview->height,
+	              UI_UNIT_Y, UI_UNIT_Y * 50.0f, 0.0f, 0.0f, "");
+
 	/* add buttons */
 	if (pid && show_buttons) {
 		if (GS(pid->name) == ID_MA || (pparent && GS(pparent->name) == ID_MA)) {

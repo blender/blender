@@ -1567,6 +1567,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_ROW(C, block, but, data);
 			break;
 		case SCROLL:
+		case GRIP:
 		case NUM:
 		case NUMSLI:
 			ui_apply_but_NUM(C, but, data);
@@ -3935,6 +3936,51 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	return retval;
 }
 
+static int ui_do_but_GRIP(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
+{
+	int mx, my;
+	int retval = WM_UI_HANDLER_CONTINUE;
+	const bool horizontal = (BLI_rctf_size_x(&but->rect) < BLI_rctf_size_y(&but->rect));
+
+	mx = event->x;
+	my = event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (event->val == KM_PRESS) {
+			if (event->type == LEFTMOUSE) {
+				data->dragstartx = event->x;
+				data->dragstarty = event->y;
+				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+				retval = WM_UI_HANDLER_BREAK;
+			}
+		}
+	}
+	else if (data->state == BUTTON_STATE_NUM_EDITING) {
+		if (event->type == ESCKEY) {
+			if (event->val == KM_PRESS) {
+				data->cancel = true;
+				data->escapecancel = true;
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+			}
+		}
+		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if (event->type == MOUSEMOVE) {
+			int dragstartx = data->dragstartx;
+			int dragstarty = data->dragstarty;
+			ui_window_to_block(data->region, block, &dragstartx, &dragstarty);
+			data->value = data->origvalue + (horizontal ? mx - dragstartx : dragstarty - my);
+			ui_numedit_apply(C, block, but, data);
+		}
+
+		retval = WM_UI_HANDLER_BREAK;
+	}
+
+	return retval;
+}
+
 static int ui_do_but_LISTROW(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -6192,6 +6238,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		case SCROLL:
 			retval = ui_do_but_SCROLL(C, block, but, data, event);
 			break;
+		case GRIP:
+			retval = ui_do_but_GRIP(C, block, but, data, event);
+			break;
 		case NUM:
 			retval = ui_do_but_NUM(C, block, but, data, event);
 			break;
@@ -6819,6 +6868,11 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 		button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 	else if (type == BUTTON_ACTIVATE_APPLY)
 		button_activate_state(C, but, BUTTON_STATE_WAIT_FLASH);
+
+	if (but->type == GRIP) {
+		const bool horizontal = (BLI_rctf_size_x(&but->rect) < BLI_rctf_size_y(&but->rect));
+		WM_cursor_modal_set(data->window, horizontal ? BC_EW_ARROWCURSOR : BC_NS_ARROWCURSOR);
+	}
 }
 
 static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *data,
@@ -6826,6 +6880,10 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 {
 	uiBlock *block = but->block;
 	uiBut *bt;
+
+	if (but->type == GRIP) {
+		WM_cursor_modal_restore(data->window);
+	}
 
 	/* ensure we are in the exit state */
 	if (data->state != BUTTON_STATE_EXIT)

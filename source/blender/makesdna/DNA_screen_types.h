@@ -186,6 +186,14 @@ typedef struct uiList {           /* some list UI data need to be saved in file 
 	uiListDyn *dyn_data;
 } uiList;
 
+typedef struct uiPreview {           /* some preview UI data need to be saved in file */
+	struct uiPreview *next, *prev;
+
+	char preview_id[64];             /* defined as UI_MAX_NAME_STR */
+	short height;
+	short pad1[3];
+} uiPreview;
+
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	
@@ -241,6 +249,7 @@ typedef struct ARegion {
 	ListBase panels;			/* Panel */
 	ListBase panels_category_active;	/* Stack of panel categories */
 	ListBase ui_lists;			/* uiList */
+	ListBase ui_previews;		/* uiPreview */
 	ListBase handlers;			/* wmEventHandler */
 	ListBase panels_category;	/* Panel categories runtime */
 	
