@@ -94,9 +94,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i;
-#ifdef _OPENMP
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-#endif
 
 	mode = RNA_enum_get(op->ptr, "mode");
 	value = RNA_float_get(op->ptr, "value");
@@ -106,6 +104,9 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	pbvh = dm->getPBVH(ob, dm);
 	ob->sculpt->pbvh = pbvh;
+
+	ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
+	pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
 
 	BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
@@ -217,6 +218,9 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	pbvh = dm->getPBVH(ob, dm);
 	ob->sculpt->pbvh = pbvh;
+
+	ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
+	pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
 
 	sculpt_undo_push_begin("Mask box fill");
 
@@ -361,6 +365,9 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		dm = mesh_get_derived_final(vc.scene, ob, CD_MASK_BAREMESH);
 		pbvh = dm->getPBVH(ob, dm);
 		ob->sculpt->pbvh = pbvh;
+
+		ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
+		pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
 
 		sculpt_undo_push_begin("Mask lasso fill");
 

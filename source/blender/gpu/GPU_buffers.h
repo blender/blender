@@ -180,7 +180,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               struct GHash *bm_faces,
                               struct GSet *bm_unique_verts,
                               struct GSet *bm_other_verts,
-                              int show_diffuse_color);
+                              bool show_diffuse_color);
 
 void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, struct CCGElem **grids,
                              const struct DMFlagMat *grid_flag_mats,

@@ -218,7 +218,7 @@ typedef struct View3D {
 
 	void *properties_storage;		/* Nkey panel stores stuff here (runtime only!) */
 	struct Material *defmaterial;	/* used by matcap now */
-	
+
 	/* XXX deprecated? */
 	struct bGPdata *gpd  DNA_DEPRECATED;		/* Grease-Pencil Data (annotation layers) */
 

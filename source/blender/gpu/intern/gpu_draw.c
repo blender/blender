@@ -1342,6 +1342,7 @@ static struct GPUMaterialState {
 	GPUBlendMode *alphablend;
 	GPUBlendMode alphablend_fixed[FIXEDMAT];
 	bool use_alpha_pass, is_alpha_pass;
+	bool use_matcaps;
 
 	int lastmatnr, lastretval;
 	GPUBlendMode lastalphablend;
@@ -1409,6 +1410,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.lastmatnr = -1;
 	GMS.lastretval = -1;
 	GMS.lastalphablend = GPU_BLEND_SOLID;
+	GMS.use_matcaps = use_matcap;
 
 	GMS.backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING) != 0;
 
@@ -1444,7 +1446,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	if (use_matcap) {
 		GMS.gmatbuf[0] = v3d->defmaterial;
 		GPU_material_matcap(scene, v3d->defmaterial);
-		
+
 		/* do material 1 too, for displists! */
 		memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
 	
@@ -1655,6 +1657,12 @@ void GPU_material_diffuse_get(int nr, float diff[4])
 		copy_v4_v4(diff, GMS.matbuf[nr].diff);
 	}
 }
+
+bool GPU_material_use_matcaps_get(void)
+{
+	return GMS.use_matcaps;
+}
+
 
 void GPU_end_object_materials(void)
 {

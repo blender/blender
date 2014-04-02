@@ -1925,5 +1925,20 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 
 void pbvh_show_diffuse_color_set(PBVH *bvh, bool show_diffuse_color)
 {
-	bvh->show_diffuse_color = show_diffuse_color;
+	bool has_mask = false;
+
+	switch (bvh->type) {
+		case PBVH_GRIDS:
+			has_mask = (bvh->gridkey.has_mask != 0);
+			break;
+		case PBVH_FACES:
+			has_mask = (bvh->vdata && CustomData_get_layer(bvh->vdata,
+			                                CD_PAINT_MASK));
+			break;
+		case PBVH_BMESH:
+			has_mask = (bvh->bm && (CustomData_get_offset(&bvh->bm->vdata, CD_PAINT_MASK) != -1));
+			break;
+	}
+
+	bvh->show_diffuse_color = !has_mask || show_diffuse_color;
 }
