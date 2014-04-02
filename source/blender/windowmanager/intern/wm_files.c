@@ -70,6 +70,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -293,14 +294,12 @@ static void wm_init_userdef(bContext *C, const bool from_memory)
 	sound_init(CTX_data_main(C));
 
 	/* needed so loading a file from the command line respects user-pref [#26156] */
-	if (U.flag & USER_FILENOUI) G.fileflags |= G_FILE_NO_UI;
-	else G.fileflags &= ~G_FILE_NO_UI;
+	BKE_BIT_TEST_SET(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
 
 	/* set the python auto-execute setting from user prefs */
 	/* enabled by default, unless explicitly enabled in the command line which overrides */
 	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
-		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
-		else G.f &= ~G_SCRIPT_AUTOEXEC;
+		BKE_BIT_TEST_SET(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
 	}
 
 	/* avoid re-saving for every small change to our prefs, allow overrides */
@@ -954,11 +953,8 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 			G.save_over = 1; /* disable untitled.blend convention */
 		}
 
-		if (fileflags & G_FILE_COMPRESS) G.fileflags |= G_FILE_COMPRESS;
-		else G.fileflags &= ~G_FILE_COMPRESS;
-		
-		if (fileflags & G_FILE_AUTOPLAY) G.fileflags |= G_FILE_AUTOPLAY;
-		else G.fileflags &= ~G_FILE_AUTOPLAY;
+		BKE_BIT_TEST_SET(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
+		BKE_BIT_TEST_SET(G.fileflags, fileflags & G_FILE_AUTOPLAY, G_FILE_AUTOPLAY);
 
 		/* prevent background mode scripts from clobbering history */
 		if (!G.background) {
