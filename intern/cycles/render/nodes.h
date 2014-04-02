@@ -350,6 +350,15 @@ public:
 	bool from_dupli;
 };
 
+class UVMapNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(UVMapNode)
+	void attributes(Shader *shader, AttributeRequestSet *attributes);
+
+	ustring attribute;
+	bool from_dupli;
+};
+
 class LightPathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(LightPathNode)

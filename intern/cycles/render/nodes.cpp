@@ -2328,6 +2328,62 @@ void TextureCoordinateNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_texture_coordinate");
 }
 
+UVMapNode::UVMapNode()
+: ShaderNode("uvmap")
+{
+	attribute = "";
+	from_dupli = false;
+
+	add_output("UV", SHADER_SOCKET_POINT);
+}
+
+void UVMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+	if(shader->has_surface) {
+		if(!from_dupli) {
+			if(!output("UV")->links.empty()) {
+				if (attribute != "")
+					attributes->add(attribute);
+				else
+					attributes->add(ATTR_STD_UV);
+			}
+		}
+	}
+
+	ShaderNode::attributes(shader, attributes);
+}
+
+void UVMapNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *out = output("UV");
+	NodeType texco_node = NODE_TEX_COORD;
+	NodeType attr_node = NODE_ATTR;
+	int attr;
+
+	if(!out->links.empty()) {
+		if(from_dupli) {
+			compiler.stack_assign(out);
+			compiler.add_node(texco_node, NODE_TEXCO_DUPLI_UV, out->stack_offset);
+		}
+		else {
+			if (attribute != "")
+				attr = compiler.attribute(attribute);
+			else
+				attr = compiler.attribute(ATTR_STD_UV);
+
+			compiler.stack_assign(out);
+			compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
+		}
+	}
+}
+
+void UVMapNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter("from_dupli", from_dupli);
+	compiler.parameter("name", attribute.c_str());
+	compiler.add(this, "node_uv_map");
+}
+
 /* Light Path */
 
 LightPathNode::LightPathNode()

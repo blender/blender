@@ -668,6 +668,13 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		tangent->attribute = b_tangent_node.uv_map();
 		node = tangent;
 	}
+	else if (b_node.is_a(&RNA_ShaderNodeUVMap)) {
+		BL::ShaderNodeUVMap b_uvmap_node(b_node);
+		UVMapNode *uvm = new UVMapNode();
+		uvm->attribute = b_uvmap_node.uv_map();
+		uvm->from_dupli = b_uvmap_node.from_dupli();
+		node = uvm;
+	}
 
 	if(node)
 		graph->add(node);

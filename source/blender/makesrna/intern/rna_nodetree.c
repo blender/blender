@@ -3730,6 +3730,24 @@ static void def_hair(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_uvmap(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "from_dupli", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
+	RNA_def_property_ui_text(prop, "From Dupli", "Use the parent of the dupli object if possible");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeShaderUVMap", "storage");
+
+	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "UV Map", "UV coordinates to be used for mapping");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "bNode", NULL);
+}
+
 static void def_sh_normal_map(StructRNA *srna)
 {
 	static EnumPropertyItem prop_space_items[] = {

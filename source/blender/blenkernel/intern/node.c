@@ -3520,6 +3520,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_subsurface_scattering();
 	register_node_type_sh_mix_shader();
 	register_node_type_sh_add_shader();
+	register_node_type_sh_uvmap();
 
 	register_node_type_sh_output_lamp();
 	register_node_type_sh_output_material();

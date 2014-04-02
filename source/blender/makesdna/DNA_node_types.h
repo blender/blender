@@ -847,6 +847,10 @@ typedef struct NodeShaderNormalMap {
 	char uv_map[64];
 } NodeShaderNormalMap;
 
+typedef struct NodeShaderUVMap {
+	char uv_map[64];
+} NodeShaderUVMap;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL		0
 #define NODE_SCRIPT_EXTERNAL		1

@@ -649,6 +649,11 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_ustring(&attr->attribute, node, "attribute");
 			snode = attr;
 		}
+		else if(string_iequals(node.name(), "uv_map")) {
+			UVMapNode *uvm = new UVMapNode();
+			xml_read_ustring(&uvm->attribute, node, "uv_map");
+			snode = uvm;
+		}
 		else if(string_iequals(node.name(), "camera")) {
 			snode = new CameraNode();
 		}

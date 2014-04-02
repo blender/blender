@@ -102,7 +102,8 @@ typedef enum NodeType {
 	NODE_CLOSURE_AMBIENT_OCCLUSION,
 	NODE_TANGENT,
 	NODE_NORMAL_MAP,
-	NODE_HAIR_INFO
+	NODE_HAIR_INFO,
+	NODE_UVMAP
 } NodeType;
 
 typedef enum NodeAttributeType {

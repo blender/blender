@@ -873,6 +873,20 @@ static void node_shader_buts_bump(uiLayout *layout, bContext *UNUSED(C), Pointer
 	uiItemR(layout, ptr, "invert", 0, NULL, 0);
 }
 
+static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
+
+	if(!RNA_boolean_get(ptr, "from_dupli")) {
+		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+
+		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+			uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
+		}
+	}
+}
+
 static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "space", 0, "", 0);
@@ -1102,6 +1116,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_SCRIPT:
 			ntype->draw_buttons = node_shader_buts_script;
 			ntype->draw_buttons_ex = node_shader_buts_script_ex;
+			break;
+		case SH_NODE_UVMAP:
+			ntype->draw_buttons = node_shader_buts_uvmap;
 			break;
 	}
 }

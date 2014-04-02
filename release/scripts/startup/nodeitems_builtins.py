@@ -167,6 +167,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeHairInfo"),
         NodeItem("ShaderNodeParticleInfo"),
         NodeItem("ShaderNodeCameraData"),
+        NodeItem("ShaderNodeUVMap"),
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_OUTPUT", "Output", items=[
