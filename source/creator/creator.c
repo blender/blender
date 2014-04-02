@@ -40,13 +40,6 @@
 #  include <xmmintrin.h>
 #endif
 
-/* crash handler */
-#ifdef WIN32
-#  include <process.h> /* getpid */
-#else
-#  include <unistd.h> /* getpid */
-#endif
-
 #ifdef WIN32
 #  include <windows.h>
 #  include "utfconv.h"
@@ -79,6 +72,8 @@
 #include "BLI_callbacks.h"
 #include "BLI_blenlib.h"
 #include "BLI_mempool.h"
+#include "BLI_system.h"
+#include BLI_SYSTEM_PID_H
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"

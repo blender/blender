@@ -51,6 +51,8 @@
 #include "BLI_threads.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_system.h"
+#include BLI_SYSTEM_PID_H
 
 #include "BLF_translation.h"
 
@@ -100,9 +102,7 @@
 /* untitled blend's need getpid for a unique name */
 #ifndef WIN32
 #  include <dirent.h>
-#  include <unistd.h>
 #else
-#  include <process.h>
 #  include "BLI_winstuff.h"
 #endif
 

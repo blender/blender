@@ -81,12 +81,9 @@
 
 #include "zlib.h"
 
-#ifndef WIN32
-#  include <unistd.h>
-#else
+#ifdef WIN32
 #  include "winsock2.h"
 #  include <io.h>
-#  include <process.h> // for getpid
 #  include "BLI_winstuff.h"
 #endif
 

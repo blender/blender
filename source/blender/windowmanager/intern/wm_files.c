@@ -46,10 +46,7 @@
 #  endif
 #  include <shlobj.h>  /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff
                         * because 'near' is disabled through BLI_windstuff */
-#  include <process.h> /* getpid */
 #  include "BLI_winstuff.h"
-#else
-#  include <unistd.h> /* getpid */
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -60,6 +57,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
 #include "BLI_callbacks.h"
+#include "BLI_system.h"
+#include BLI_SYSTEM_PID_H
 
 #include "BLF_translation.h"
 

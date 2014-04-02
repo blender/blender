@@ -39,6 +39,8 @@
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "BLI_md5.h"
+#include "BLI_system.h"
+#include BLI_SYSTEM_PID_H
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -59,12 +61,9 @@
 #  endif
 #  include <shlobj.h>  /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff
                         * because 'near' is disabled through BLI_windstuff */
-#  include <process.h> /* getpid */
 #  include <direct.h> /* chdir */
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
-#else
-#  include <unistd.h>
 #endif
 
 #define URI_MAX (FILE_MAX * 3 + 8)
