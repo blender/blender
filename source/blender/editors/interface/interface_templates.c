@@ -1705,39 +1705,33 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
-	RNAUpdateCb *cb;
 	uiBlock *block;
-	uiBut *bt;
+	uiLayout *col;
 	Histogram *hist;
-	rctf rect;
-	
+
 	if (!prop || RNA_property_type(prop) != PROP_POINTER)
 		return;
-	
+
 	cptr = RNA_property_pointer_get(ptr, prop);
 	if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Histogram))
 		return;
-	
-	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
-	cb->ptr = *ptr;
-	cb->prop = prop;
-	
-	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
-	rect.ymin = 0; rect.ymax = 9.5f * UI_UNIT_Y;
-	
-	block = uiLayoutAbsoluteBlock(layout);
-	//colorband_buttons_layout(layout, block, cptr.data, &rect, !expand, cb);
-
 	hist = (Histogram *)cptr.data;
 
-	hist->height = (hist->height <= 20) ? 20 : hist->height;
+	if (hist->height < UI_UNIT_Y) {
+		hist->height = UI_UNIT_Y;
+	}
+	else if (hist->height > UI_UNIT_Y * 20) {
+		hist->height = UI_UNIT_Y * 20;
+	}
 
-	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * hist->height,
-	              hist, 0, 0, 0, 0, "");
+	col = uiLayoutColumn(layout, true);
+	block = uiLayoutGetBlock(col);
 
-	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+	uiDefBut(block, HISTOGRAM, 0, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, 0, 0, "");
 
-	MEM_freeN(cb);
+	/* Resize grip. */
+	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.8f), &hist->height,
+	              UI_UNIT_Y, UI_UNIT_Y * 20.0f, 0.0f, 0.0f, "");
 }
 
 /********************* Waveform Template ************************/
@@ -1746,36 +1740,33 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
-	RNAUpdateCb *cb;
 	uiBlock *block;
-	uiBut *bt;
+	uiLayout *col;
 	Scopes *scopes;
-	rctf rect;
-	
+
 	if (!prop || RNA_property_type(prop) != PROP_POINTER)
 		return;
-	
+
 	cptr = RNA_property_pointer_get(ptr, prop);
 	if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Scopes))
 		return;
 	scopes = (Scopes *)cptr.data;
-	
-	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
-	cb->ptr = *ptr;
-	cb->prop = prop;
-	
-	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
-	rect.ymin = 0; rect.ymax = 9.5f * UI_UNIT_Y;
-	
-	block = uiLayoutAbsoluteBlock(layout);
-	
-	scopes->wavefrm_height = (scopes->wavefrm_height <= 20) ? 20 : scopes->wavefrm_height;
 
-	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * scopes->wavefrm_height,
-	              scopes, 0, 0, 0, 0, "");
-	(void)bt;  /* UNUSED */
-	
-	MEM_freeN(cb);
+	col = uiLayoutColumn(layout, true);
+	block = uiLayoutGetBlock(col);
+
+	if (scopes->wavefrm_height < UI_UNIT_Y) {
+		scopes->wavefrm_height = UI_UNIT_Y;
+	}
+	else if (scopes->wavefrm_height > UI_UNIT_Y * 20) {
+		scopes->wavefrm_height = UI_UNIT_Y * 20;
+	}
+
+	uiDefBut(block, WAVEFORM, 0, "", 0, 0, UI_UNIT_X * 10, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
+
+	/* Resize grip. */
+	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.8f), &scopes->wavefrm_height,
+	              UI_UNIT_Y, UI_UNIT_Y * 20.0f, 0.0f, 0.0f, "");
 }
 
 /********************* Vectorscope Template ************************/
@@ -1784,36 +1775,33 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
-	RNAUpdateCb *cb;
 	uiBlock *block;
-	uiBut *bt;
+	uiLayout *col;
 	Scopes *scopes;
-	rctf rect;
-	
+
 	if (!prop || RNA_property_type(prop) != PROP_POINTER)
 		return;
-	
+
 	cptr = RNA_property_pointer_get(ptr, prop);
 	if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Scopes))
 		return;
 	scopes = (Scopes *)cptr.data;
 
-	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
-	cb->ptr = *ptr;
-	cb->prop = prop;
-	
-	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
-	rect.ymin = 0; rect.ymax = 9.5f * UI_UNIT_Y;
-	
-	block = uiLayoutAbsoluteBlock(layout);
+	if (scopes->vecscope_height < UI_UNIT_Y) {
+		scopes->vecscope_height = UI_UNIT_Y;
+	}
+	else if (scopes->vecscope_height > UI_UNIT_Y * 20) {
+		scopes->vecscope_height = UI_UNIT_Y * 20;
+	}
 
-	scopes->vecscope_height = (scopes->vecscope_height <= 20) ? 20 : scopes->vecscope_height;
-	
-	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
-	              UI_DPI_FAC * scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
-	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-	
-	MEM_freeN(cb);
+	col = uiLayoutColumn(layout, true);
+	block = uiLayoutGetBlock(col);
+
+	uiDefBut(block, VECTORSCOPE, 0, "", 0, 0, UI_UNIT_X * 10, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
+
+	/* Resize grip. */
+	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.8f), &scopes->vecscope_height,
+	              UI_UNIT_Y, UI_UNIT_Y * 20.0f, 0.0f, 0.0f, "");
 }
 
 /********************* CurveMapping Template ************************/
@@ -2695,29 +2683,16 @@ static void prepare_list(uiList *ui_list, int len, int activei, int rows, int ma
 {
 	uiListDyn *dyn_data = ui_list->dyn_data;
 	int activei_row, max_scroll;
+	const bool use_auto_size = (ui_list->list_grip < (rows - UI_LIST_AUTO_SIZE_THRESHOLD));
 
 	/* default rows */
-	if (rows == 0)
+	if (rows <= 0)
 		rows = 5;
 	dyn_data->visual_height_min = rows;
-	if (maxrows == 0)
-		maxrows = 5;
-	if (columns == 0)
+	if (maxrows < rows)
+		maxrows = max_ii(rows, 5);
+	if (columns <= 0)
 		columns = 9;
-
-	if (ui_list->list_grip >= (rows - 1) && ui_list->list_grip != 0) {
-		/* Only enable auto-size mode when we have dragged one row away from minimum size.
-		 * Avoids to switch too easily to auto-size mode when resizing to minimum size...
-		 */
-		maxrows = rows = max_ii(ui_list->list_grip, rows);
-	}
-	else {
-		ui_list->list_grip = 0;  /* Reset to auto-size mode. */
-		/* Prevent auto-size mode to take effect while grab-resizing! */
-		if (ui_list->flag & UILST_RESIZING) {
-			maxrows = rows;
-		}
-	}
 
 	if (columns > 1) {
 		dyn_data->height = (int)ceil((double)len / (double)columns);
@@ -2728,8 +2703,12 @@ static void prepare_list(uiList *ui_list, int len, int activei, int rows, int ma
 		activei_row = activei;
 	}
 
-	/* Expand size if needed and possible. */
-	if ((ui_list->list_grip == 0) && (rows != maxrows) && (dyn_data->height > rows)) {
+	if (!use_auto_size) {
+		/* No auto-size, yet we clamp at min size! */
+		maxrows = rows = max_ii(ui_list->list_grip, rows);
+	}
+	else if ((rows != maxrows) && (dyn_data->height > rows)) {
+		/* Expand size if needed and possible. */
 		rows = min_ii(dyn_data->height, maxrows);
 	}
 
@@ -2751,6 +2730,21 @@ static void prepare_list(uiList *ui_list, int len, int activei, int rows, int ma
 	layoutdata->visual_items = rows * columns;
 	layoutdata->start_idx = ui_list->list_scroll * columns;
 	layoutdata->end_idx = min_ii(layoutdata->start_idx + rows * columns, len);
+}
+
+static void ui_list_resize_update_cb(bContext *UNUSED(C), void *arg1, void *UNUSED(arg2))
+{
+	uiList *ui_list = arg1;
+	uiListDyn *dyn_data = ui_list->dyn_data;
+
+	/* This way we get diff in number of additional items to show (positive) or hide (negative). */
+	const int diff = iroundf((float)(dyn_data->resize - dyn_data->resize_prev) / (float)UI_UNIT_Y);
+
+	if (diff != 0) {
+		ui_list->list_grip += diff;
+		dyn_data->resize_prev += diff * UI_UNIT_Y;
+		ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+	}
 }
 
 void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
@@ -2859,6 +2853,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 	if (!ui_list->dyn_data) {
 		ui_list->dyn_data = MEM_callocN(sizeof(uiListDyn), "uiList.dyn_data");
+		ui_list->list_grip = -UI_LIST_AUTO_SIZE_THRESHOLD;  /* Force auto size by default. */
 	}
 	dyn_data = ui_list->dyn_data;
 
@@ -3104,6 +3099,18 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	}
 
 	if (glob) {
+		/* About GRIP drag-resize:
+		 * We can't directly use results from GRIP button, since we have a rather complex behavior here
+		 * (sizing by discrete steps and, overall, autosize feature).
+		 * Since we *never* know whether we are grip-resizing or not (because there is no callback for when a
+		 * button enters/leaves its "edit mode"), we use the fact that grip-controlled value (dyn_data->resize)
+		 * is completely handled by the grip during the grab resize, so settings its value here has no effect
+		 * at all.
+		 * It is only meaningful when we are not resizing, in which case this gives us the correct "init drag" value.
+		 * Note we cannot affect dyn_data->resize_prev here, since this value is not controlled by the grip!
+		 */
+		dyn_data->resize = dyn_data->resize_prev + (dyn_data->visual_height - ui_list->list_grip) * UI_UNIT_Y;
+
 		row = uiLayoutRow(glob, true);
 		subblock = uiLayoutGetBlock(row);
 		uiBlockSetEmboss(subblock, UI_EMBOSSN);
@@ -3114,9 +3121,9 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			                       TIP_("Hide filtering options"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
-			but = uiDefIconBut(subblock, BUT, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.8f, ui_list,
-			                   0.0, 0.0, 0, -1, "");
-			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+			but = uiDefIconButI(subblock, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.8f,
+			                    &dyn_data->resize, 0.0, 0.0, 0, 0, "");
+			uiButSetFunc(but, ui_list_resize_update_cb, ui_list, NULL);
 
 			uiBlockSetEmboss(subblock, UI_EMBOSS);
 
@@ -3132,9 +3139,9 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			                       TIP_("Show filtering options"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
-			but = uiDefIconBut(subblock, BUT, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.8f, ui_list,
-			                   0.0, 0.0, 0, -1, "");
-			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+			but = uiDefIconButI(subblock, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.8f,
+			                    &dyn_data->resize, 0.0, 0.0, 0, 0, "");
+			uiButSetFunc(but, ui_list_resize_update_cb, ui_list, NULL);
 
 			uiBlockSetEmboss(subblock, UI_EMBOSS);
 		}

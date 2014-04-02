@@ -3942,6 +3942,12 @@ static int ui_do_but_GRIP(bContext *C, uiBlock *block, uiBut *but, uiHandleButto
 	int retval = WM_UI_HANDLER_CONTINUE;
 	const bool horizontal = (BLI_rctf_size_x(&but->rect) < BLI_rctf_size_y(&but->rect));
 
+	/* Note: Having to store org point in window space and recompute it to block "space" each time
+	 *       is not ideal, but this is a way to hack around behavior of ui_window_to_block(), which
+	 *       returns different results when the block is inside a panel or not...
+	 *       See T37739.
+	 */
+
 	mx = event->x;
 	my = event->y;
 	ui_window_to_block(data->region, block, &mx, &my);
@@ -3999,94 +4005,6 @@ static int ui_do_but_LISTROW(bContext *C, uiBut *but, uiHandleButtonData *data, 
 	}
 
 	return ui_do_but_EXIT(C, but, data, event);
-}
-
-
-static int ui_do_but_LISTBOX(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
-{
-	uiList *ui_list = but->custom_data;
-	int *size = (int *)but->poin;
-	int mx, my, dragx, dragy;
-	int retval = WM_UI_HANDLER_CONTINUE;
-
-	/* Note: Having to store org point in window space and recompute it to block "space" each time
-	 *       is not ideal, but this is a way to hack around behavior of ui_window_to_block(), which
-	 *       returns different results when the block is inside a panel or not...
-	 *       See T37739.
-	 */
-	dragx = data->dragstartx;
-	dragy = data->dragstarty;
-	ui_window_to_block(data->region, block, &dragx, &dragy);
-
-	mx = event->x;
-	my = event->y;
-	ui_window_to_block(data->region, block, &mx, &my);
-
-	if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
-			if (event->val == KM_PRESS) {
-				data->cancel = true;
-				data->escapecancel = true;
-				*size = (int)data->origvalue;
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				ui_list->flag &= ~UILST_RESIZING;
-				ED_region_tag_redraw(data->region);
-			}
-		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			ui_list->flag &= ~UILST_RESIZING;
-			ED_region_tag_redraw(data->region);
-		}
-		else if (event->type == MOUSEMOVE) {
-			/* If we switched from dragged to auto size, suspend shrinking dragging and set dragstarty to a temp
-			 * refpoint.
-			 */
-			if (data->draglastvalue > 0 && *size == 0) {
-				data->draglastvalue = *size;
-				data->dragstartx = data->dragstarty;  /* draglasty already used... */
-				data->dragstarty = event->y;
-			}
-			else {
-				int newsize = *size;
-				int diff = dragy - my;
-
-				diff = iroundf((float)diff / (float)UI_UNIT_Y);
-
-				/* If we are not in autosize mode, default behavior... */
-				if (*size > 0) {
-					/* list template will clamp, but we do not want to reach 0 aka autosize mode! */
-					newsize = data->dragstartvalue + diff;
-				}
-				/* If we are leaving autosize mode (growing dragging), restore to minimal size. */
-				else if (diff > 0) {
-					/* We can't use ui_numedit_apply()... */
-					newsize = ui_list->dyn_data->visual_height_min;
-
-					/* Restore real dragstarty value! */
-					data->dragstarty = data->dragstartx;
-				}
-
-				/* Used to detect switch to/from autosize mode. */
-				data->draglastvalue = newsize;
-
-				if (newsize != *size) {
-					*size = newsize;
-
-					/* We can't use ui_numedit_apply()... */
-					data->dragchange = true;
-					data->applied = data->applied_interactive = true;
-
-					ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
-					ED_region_tag_redraw(data->region);
-				}
-			}
-		}
-
-		retval = WM_UI_HANDLER_BREAK;
-	}
-
-	return retval;
 }
 
 static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
@@ -5279,40 +5197,22 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool in_scope_resize_zone(uiBut *but, int UNUSED(x), int y)
-{
-	/* bottom corner return (x > but->rect.xmax - SCOPE_RESIZE_PAD) && (y < but->rect.ymin + SCOPE_RESIZE_PAD); */
-	return (y < but->rect.ymin + SCOPE_RESIZE_PAD);
-}
-
 static bool ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	Histogram *hist = (Histogram *)but->poin;
-	/* rcti rect; */
 	bool changed = true;
-	float /* dx, */ dy; /* UNUSED */
-	
-	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
-	
-	/* dx = mx - data->draglastx; */ /* UNUSED */
-	dy = my - data->draglasty;
+	float dy = my - data->draglasty;
 
-	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
-		/* resize histogram widget itself */
-		hist->height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
-	}
-	else {
-		/* scale histogram values (dy / 10 for better control) */
-		const float yfac = min_ff(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
-		hist->ymax += (dy * 0.1f) * yfac;
-	
-		/* 0.1 allows us to see HDR colors up to 10 */
-		CLAMP(hist->ymax, 0.1f, 100.f);
-	}
-	
+	/* scale histogram values (dy / 10 for better control) */
+	const float yfac = min_ff(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
+	hist->ymax += (dy * 0.1f) * yfac;
+
+	/* 0.1 allows us to see HDR colors up to 10 */
+	CLAMP(hist->ymax, 0.1f, 100.f);
+
 	data->draglastx = mx;
 	data->draglasty = my;
-	
+
 	return changed;
 }
 
@@ -5373,27 +5273,15 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 static bool ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	Scopes *scopes = (Scopes *)but->poin;
-	/* rcti rect; */
 	bool changed = true;
-	float /* dx, */ dy /* , yfac =1.0f */; /* UNUSED */
+	float dy;
 
-	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
-
-	/* dx = mx - data->draglastx; */ /* UNUSED */
 	dy = my - data->draglasty;
 
+	/* scale waveform values */
+	scopes->wavefrm_yfac += dy / 200.0f;
 
-	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
-		/* resize waveform widget itself */
-		scopes->wavefrm_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
-	}
-	else {
-		/* scale waveform values */
-		/* yfac = scopes->wavefrm_yfac; */ /* UNUSED */
-		scopes->wavefrm_yfac += dy / 200.0f;
-
-		CLAMP(scopes->wavefrm_yfac, 0.5f, 2.f);
-	}
+	CLAMP(scopes->wavefrm_yfac, 0.5f, 2.0f);
 
 	data->draglastx = mx;
 	data->draglasty = my;
@@ -5455,75 +5343,6 @@ static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleB
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int mx, int my)
-{
-	Scopes *scopes = (Scopes *)but->poin;
-	/* rcti rect; */
-	bool changed = true;
-	/* float dx, dy; */
-
-	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
-
-	/* dx = mx - data->draglastx; */
-	/* dy = my - data->draglasty; */
-
-	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
-		/* resize vectorscope widget itself */
-		scopes->vecscope_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
-	}
-
-	data->draglastx = mx;
-	data->draglasty = my;
-
-	return changed;
-}
-
-static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
-{
-	int mx, my;
-
-	mx = event->x;
-	my = event->y;
-	ui_window_to_block(data->region, block, &mx, &my);
-
-	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
-			data->dragstartx = mx;
-			data->dragstarty = my;
-			data->draglastx = mx;
-			data->draglasty = my;
-			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-			/* also do drag the first time */
-			if (ui_numedit_but_VECTORSCOPE(but, data, mx, my))
-				ui_numedit_apply(C, block, but, data);
-
-			return WM_UI_HANDLER_BREAK;
-		}
-	}
-	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == ESCKEY) {
-			if (event->val == KM_PRESS) {
-				data->cancel = true;
-				data->escapecancel = true;
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			}
-		}
-		else if (event->type == MOUSEMOVE) {
-			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_VECTORSCOPE(but, data, mx, my))
-					ui_numedit_apply(C, block, but, data);
-			}
-		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-		}
-		return WM_UI_HANDLER_BREAK;
-	}
-
-	return WM_UI_HANDLER_CONTINUE;
-}
-
 static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {	
 	VECCOPY2D(but->linkto, event->mval);
@@ -5567,24 +5386,18 @@ static bool ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonD
 		dy /= 5.0f;
 	}
 
-	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
-		/* resize preview widget itself */
-		scopes->track_preview_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
+	if (!scopes->track_locked) {
+		if (scopes->marker->framenr != scopes->framenr)
+			scopes->marker = BKE_tracking_marker_ensure(scopes->track, scopes->framenr);
+
+		scopes->marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
+		scopes->marker->pos[0] += -dx * scopes->slide_scale[0] / BLI_rctf_size_x(&but->block->rect);
+		scopes->marker->pos[1] += -dy * scopes->slide_scale[1] / BLI_rctf_size_y(&but->block->rect);
+
+		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
 	}
-	else {
-		if (!scopes->track_locked) {
-			if (scopes->marker->framenr != scopes->framenr)
-				scopes->marker = BKE_tracking_marker_ensure(scopes->track, scopes->framenr);
 
-			scopes->marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
-			scopes->marker->pos[0] += -dx * scopes->slide_scale[0] / BLI_rctf_size_x(&but->block->rect);
-			scopes->marker->pos[1] += -dy * scopes->slide_scale[1] / BLI_rctf_size_y(&but->block->rect);
-
-			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
-		}
-
-		scopes->ok = 0;
-	}
+	scopes->ok = 0;
 
 	data->draglastx = mx;
 	data->draglasty = my;
@@ -6248,7 +6061,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			retval = ui_do_but_SLI(C, block, but, data, event);
 			break;
 		case LISTBOX:
-			retval = ui_do_but_LISTBOX(C, block, but, data, event);
+			/* Nothing to do! */
 			break;
 		case LISTROW:
 			retval = ui_do_but_LISTROW(C, but, data, event);
@@ -6268,7 +6081,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			retval = ui_do_but_WAVEFORM(C, block, but, data, event);
 			break;
 		case VECTORSCOPE:
-			retval = ui_do_but_VECTORSCOPE(C, block, but, data, event);
+			/* Nothing to do! */
 			break;
 		case TEX:
 		case SEARCH_MENU:
@@ -7437,13 +7250,12 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 
 static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 {
-	uiBut *but, *dragbut;
+	uiBut *but;
 	uiList *ui_list;
 	uiListDyn *dyn_data;
 	int retval = WM_UI_HANDLER_CONTINUE;
 	int type = event->type, val = event->val;
 	int mx, my;
-	bool is_over_dragbut = false;
 
 	but = ui_list_find_mouse_over(ar, event->x, event->y);
 	if (!but) {
@@ -7460,144 +7272,107 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 	my = event->y;
 	ui_window_to_block(ar, but->block, &mx, &my);
 
-	/* Find our "dragging" button. */
-	for (dragbut = but->block->buttons.first; dragbut; dragbut = dragbut->next) {
-		if (dragbut->poin == (void *)ui_list) {
-			break;
-		}
+	/* convert pan to scrollwheel */
+	if (type == MOUSEPAN) {
+		ui_pan_to_scroll(event, &type, &val);
+
+		/* if type still is mousepan, we call it handled, since delta-y accumulate */
+		/* also see wm_event_system.c do_wheel_ui hack */
+		if (type == MOUSEPAN)
+			retval = WM_UI_HANDLER_BREAK;
 	}
-	if (dragbut && dragbut == ui_but_find_mouse_over(ar, event)) {
-		is_over_dragbut = true;
-	}
 
-	if (is_over_dragbut && type == LEFTMOUSE && val == KM_PRESS && !(but->flag & UI_BUT_DISABLED)) {
-		uiHandleButtonData *data;
-		int *size = (int *)but->poin;
+	if (val == KM_PRESS) {
+		if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
+			((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
+		{
+			const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
+			int value, min, max, inc;
 
-		ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
-		button_activate_state(C, but, BUTTON_STATE_INIT);
-
-		data = but->active;
-		data->dragstarty = event->y;
-
-		button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-		/* Again, have to override values set by ui_numedit_begin, because our listbox button also has a rnapoin... */
-		*size = data->origvalue = (double)dyn_data->visual_height;
-		data->dragstartvalue = *size;
-		ui_list->flag |= UILST_RESIZING;
-
-		retval = WM_UI_HANDLER_BREAK;
-	}
-	else {
-		/* convert pan to scrollwheel */
-		if (type == MOUSEPAN) {
-			ui_pan_to_scroll(event, &type, &val);
-
-			/* if type still is mousepan, we call it handled, since delta-y accumulate */
-			/* also see wm_event_system.c do_wheel_ui hack */
-			if (type == MOUSEPAN)
-				retval = WM_UI_HANDLER_BREAK;
-		}
-
-		if (val == KM_PRESS) {
-			if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
-			    ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
-			{
-				const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
-				int value, min, max, inc;
-
-				/* activate up/down the list */
-				value = value_orig;
-				if ((ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0) {
-					inc = ELEM(type, UPARROWKEY, WHEELUPMOUSE) ? 1 : -1;
-				}
-				else {
-					inc = ELEM(type, UPARROWKEY, WHEELUPMOUSE) ? -1 : 1;
-				}
-
-				if (dyn_data->items_filter_neworder || dyn_data->items_filter_flags) {
-					/* If we have a display order different from collection order, we have some work! */
-					int *org_order = MEM_mallocN(dyn_data->items_shown * sizeof(int), __func__);
-					int *new_order = dyn_data->items_filter_neworder;
-					int i, org_idx = -1, len = dyn_data->items_len;
-					int current_idx = -1;
-					int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
-
-					for (i = 0; i < len; i++) {
-						if (!dyn_data->items_filter_flags ||
-						    ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
-						{
-							org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
-							if (i == value) {
-								current_idx = new_order ? new_order[org_idx] : org_idx;
-							}
-						}
-						else if (i == value && org_idx >= 0) {
-							current_idx = -(new_order ? new_order[org_idx] : org_idx) - 1;
-						}
-					}
-					/* Now, org_order maps displayed indices to real indices,
-					 * and current_idx either contains the displayed index of active value (positive),
-					 *                 or its more-nearest one (negated).
-					 */
-					if (current_idx < 0) {
-						current_idx = (current_idx * -1) + (inc < 0 ? inc : inc - 1);
-					}
-					else {
-						current_idx += inc;
-					}
-					CLAMP(current_idx, 0, dyn_data->items_shown - 1);
-					value = org_order[current_idx];
-					MEM_freeN(org_order);
-				}
-				else {
-					value += inc;
-				}
-
-				CLAMP(value, 0, dyn_data->items_len - 1);
-
-				RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
-				CLAMP(value, min, max);
-
-				if (value != value_orig) {
-					RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
-					RNA_property_update(C, &but->rnapoin, but->rnaprop);
-
-					ui_apply_undo(but);
-
-					ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
-					ED_region_tag_redraw(ar);
-				}
-				retval = WM_UI_HANDLER_BREAK;
+			/* activate up/down the list */
+			value = value_orig;
+			if ((ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0) {
+				inc = ELEM(type, UPARROWKEY, WHEELUPMOUSE) ? 1 : -1;
 			}
-			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
-				/* We now have proper grip, but keep this anyway! */
-				if (ui_list->list_grip == 0)
-					ui_list->list_grip = dyn_data->visual_height;
-				/* list template will clamp */
-				if (type == WHEELUPMOUSE)
-					ui_list->list_grip--;
-				else
-					ui_list->list_grip++;
+			else {
+				inc = ELEM(type, UPARROWKEY, WHEELUPMOUSE) ? -1 : 1;
+			}
+
+			if (dyn_data->items_filter_neworder || dyn_data->items_filter_flags) {
+				/* If we have a display order different from collection order, we have some work! */
+				int *org_order = MEM_mallocN(dyn_data->items_shown * sizeof(int), __func__);
+				int *new_order = dyn_data->items_filter_neworder;
+				int i, org_idx = -1, len = dyn_data->items_len;
+				int current_idx = -1;
+				int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
+
+				for (i = 0; i < len; i++) {
+					if (!dyn_data->items_filter_flags ||
+						((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
+					{
+						org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
+						if (i == value) {
+							current_idx = new_order ? new_order[org_idx] : org_idx;
+						}
+					}
+					else if (i == value && org_idx >= 0) {
+						current_idx = -(new_order ? new_order[org_idx] : org_idx) - 1;
+					}
+				}
+				/* Now, org_order maps displayed indices to real indices,
+				 * and current_idx either contains the displayed index of active value (positive),
+				 *                 or its more-nearest one (negated).
+				 */
+				if (current_idx < 0) {
+					current_idx = (current_idx * -1) + (inc < 0 ? inc : inc - 1);
+				}
+				else {
+					current_idx += inc;
+				}
+				CLAMP(current_idx, 0, dyn_data->items_shown - 1);
+				value = org_order[current_idx];
+				MEM_freeN(org_order);
+			}
+			else {
+				value += inc;
+			}
+
+			CLAMP(value, 0, dyn_data->items_len - 1);
+
+			RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
+			CLAMP(value, min, max);
+
+			if (value != value_orig) {
+				RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
+				RNA_property_update(C, &but->rnapoin, but->rnaprop);
+
+				ui_apply_undo(but);
 
 				ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
 				ED_region_tag_redraw(ar);
+			}
+			retval = WM_UI_HANDLER_BREAK;
+		}
+		else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
+			/* We now have proper grip, but keep this anyway! */
+			if (ui_list->list_grip < (dyn_data->visual_height_min - UI_LIST_AUTO_SIZE_THRESHOLD)) {
+				ui_list->list_grip = dyn_data->visual_height;
+			}
+			ui_list->list_grip += (type == WHEELUPMOUSE) ? -1 : 1;
+
+			ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+			ED_region_tag_redraw(ar);
+
+			retval = WM_UI_HANDLER_BREAK;
+		}
+		else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+			if (dyn_data->height > dyn_data->visual_height) {
+				/* list template will clamp */
+				ui_list->list_scroll += (type == WHEELUPMOUSE) ? -1 : 1;
+
+				ED_region_tag_redraw(ar);
 
 				retval = WM_UI_HANDLER_BREAK;
-			}
-			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
-				if (dyn_data->height > dyn_data->visual_height) {
-					/* list template will clamp */
-					if (type == WHEELUPMOUSE)
-						ui_list->list_scroll--;
-					else
-						ui_list->list_scroll++;
-
-					ED_region_tag_redraw(ar);
-
-					retval = WM_UI_HANDLER_BREAK;
-				}
 			}
 		}
 	}

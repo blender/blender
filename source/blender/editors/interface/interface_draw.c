@@ -444,24 +444,11 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 
 static void draw_scope_end(const rctf *rect, GLint *scissor)
 {
-	float scaler_x1, scaler_x2;
-	
 	/* restore scissortest */
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-	
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	/* scale widget */
-	scaler_x1 = rect->xmin + BLI_rctf_size_x(rect) / 2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect->xmin + BLI_rctf_size_x(rect) / 2 + SCOPE_RESIZE_PAD;
-	
-	glColor4f(0.f, 0.f, 0.f, 0.25f);
-	fdrawline(scaler_x1, rect->ymin - 4, scaler_x2, rect->ymin - 4);
-	fdrawline(scaler_x1, rect->ymin - 7, scaler_x2, rect->ymin - 7);
-	glColor4f(1.f, 1.f, 1.f, 0.25f);
-	fdrawline(scaler_x1, rect->ymin - 5, scaler_x2, rect->ymin - 5);
-	fdrawline(scaler_x1, rect->ymin - 8, scaler_x2, rect->ymin - 8);
-	
+
 	/* outline */
 	glColor4f(0.f, 0.f, 0.f, 0.5f);
 	uiSetRoundBox(UI_CNR_ALL);
@@ -539,7 +526,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	
 	rect.xmin = (float)recti->xmin + 1;
 	rect.xmax = (float)recti->xmax - 1;
-	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
+	rect.ymin = (float)recti->ymin + 1;
 	rect.ymax = (float)recti->ymax - 1;
 	
 	w = BLI_rctf_size_x(&rect);
@@ -588,7 +575,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res, is_line);
 	}
 	
-	/* outline, scale gripper */
+	/* outline */
 	draw_scope_end(&rect, scissor);
 }
 
@@ -610,7 +597,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	
 	rect.xmin = (float)recti->xmin + 1;
 	rect.xmax = (float)recti->xmax - 1;
-	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
+	rect.ymin = (float)recti->ymin + 1;
 	rect.ymax = (float)recti->ymax - 1;
 
 	if (scopes->wavefrm_yfac < 0.5f)
@@ -629,14 +616,13 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 			colorsycc_alpha[c][i] = colorsycc[c][i] * alpha;
 		}
 	}
-			
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	glColor4f(0.f, 0.f, 0.f, 0.3f);
 	uiSetRoundBox(UI_CNR_ALL);
 	uiDrawBox(GL_POLYGON, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f);
-	
 
 	/* need scissor test, waveform can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
@@ -694,7 +680,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 			glScalef(w, h, 0.f);
 			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
 			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-					
+
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glPopMatrix();
 
@@ -755,10 +741,9 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 				fdrawline(rect.xmin + w + 2 + c * 2, min, rect.xmin + w + 2 + c * 2, max);
 			}
 		}
-		
 	}
 	
-	/* outline, scale gripper */
+	/* outline */
 	draw_scope_end(&rect, scissor);
 }
 
@@ -840,7 +825,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	
 	rect.xmin = (float)recti->xmin + 1;
 	rect.xmax = (float)recti->xmax - 1;
-	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
+	rect.ymin = (float)recti->ymin + 1;
 	rect.ymax = (float)recti->ymax - 1;
 	
 	w = BLI_rctf_size_x(&rect);
@@ -850,7 +835,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	diam = (w < h) ? w : h;
 	
 	alpha = scopes->vecscope_alpha * scopes->vecscope_alpha * scopes->vecscope_alpha;
-			
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
@@ -906,9 +891,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 		glPopMatrix();
 	}
 
-	/* outline, scale gripper */
+	/* outline */
 	draw_scope_end(&rect, scissor);
-		
+
 	glDisable(GL_BLEND);
 }
 
@@ -1505,7 +1490,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 	rect.xmin = (float)recti->xmin + 1;
 	rect.xmax = (float)recti->xmax - 1;
-	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
+	rect.ymin = (float)recti->ymin + 1;
 	rect.ymax = (float)recti->ymax - 1;
 
 	width  = BLI_rctf_size_x(&rect) + 1;
@@ -1616,7 +1601,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		uiDrawBox(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f);
 	}
 
-	/* outline, scale gripper */
+	/* outline */
 	draw_scope_end(&rect, scissor);
 
 	glDisable(GL_BLEND);

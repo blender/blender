@@ -2528,15 +2528,6 @@ uiLayout *uiLayoutListBox(uiLayout *layout, uiList *ui_list, PointerRNA *ptr, Pr
 	but->rnapoin = *actptr;
 	but->rnaprop = actprop;
 
-	/* Resizing data. */
-	/* Note: we can't use usual "num button" value handling, as it only tries rnapoin when it is non-NULL... :/
-	 *       So just setting but->poin, not but->pointype.
-	 */
-	but->poin = (void *)&ui_list->list_grip;
-	but->hardmin = but->softmin = 0.0f;
-	but->hardmax = but->softmax = 1000.0f; /* Should be more than enough! */
-	but->a1 = 0.0f;
-
 	/* only for the undo string */
 	if (but->flag & UI_BUT_UNDO) {
 		but->tip = RNA_property_description(actprop);

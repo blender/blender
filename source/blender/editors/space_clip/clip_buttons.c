@@ -153,7 +153,7 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	PropertyRNA *prop;
 	PointerRNA scopesptr;
 	uiBlock *block;
-	rctf rect;
+	uiLayout *col;
 	MovieClipScopes *scopes;
 
 	if (!ptr->data)
@@ -175,16 +175,21 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopesptr = RNA_property_pointer_get(ptr, prop);
 	scopes = (MovieClipScopes *)scopesptr.data;
 
-	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
-	rect.ymin = 0; rect.ymax = 6.0f * UI_UNIT_Y;
+	if (scopes->track_preview_height < UI_UNIT_Y) {
+		scopes->track_preview_height = UI_UNIT_Y;
+	}
+	else if (scopes->track_preview_height > UI_UNIT_Y * 20) {
+		scopes->track_preview_height = UI_UNIT_Y * 20;
+	}
 
-	block = uiLayoutAbsoluteBlock(layout);
+	col = uiLayoutColumn(layout, true);
+	block = uiLayoutGetBlock(col);
 
-	scopes->track_preview_height =
-		(scopes->track_preview_height <= 20) ? 20 : scopes->track_preview_height;
+	uiDefBut(block, TRACKPREVIEW, 0, "", 0, 0, UI_UNIT_X * 10, scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
 
-	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
-	         scopes->track_preview_height * UI_DPI_FAC, scopes, 0, 0, 0, 0, "");
+	/* Resize grip. */
+	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.8f),
+	              &scopes->track_preview_height, UI_UNIT_Y, UI_UNIT_Y * 20.0f, 0.0f, 0.0f, "");
 }
 
 /********************* Marker Template ************************/
