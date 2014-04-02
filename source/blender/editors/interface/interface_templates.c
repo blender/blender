@@ -1730,7 +1730,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 	uiDefBut(block, HISTOGRAM, 0, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, 0, 0, "");
 
 	/* Resize grip. */
-	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.8f), &hist->height,
+	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.3f), &hist->height,
 	              UI_UNIT_Y, UI_UNIT_Y * 20.0f, 0.0f, 0.0f, "");
 }
 
@@ -1765,7 +1765,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	uiDefBut(block, WAVEFORM, 0, "", 0, 0, UI_UNIT_X * 10, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
 
 	/* Resize grip. */
-	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.8f), &scopes->wavefrm_height,
+	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.3f), &scopes->wavefrm_height,
 	              UI_UNIT_Y, UI_UNIT_Y * 20.0f, 0.0f, 0.0f, "");
 }
 
@@ -1800,7 +1800,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	uiDefBut(block, VECTORSCOPE, 0, "", 0, 0, UI_UNIT_X * 10, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 
 	/* Resize grip. */
-	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.8f), &scopes->vecscope_height,
+	uiDefIconButI(block, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10, (short)(UI_UNIT_Y * 0.3f), &scopes->vecscope_height,
 	              UI_UNIT_Y, UI_UNIT_Y * 20.0f, 0.0f, 0.0f, "");
 }
 
@@ -3117,11 +3117,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 		if (ui_list->filter_flag & UILST_FLT_SHOW) {
 			but = uiDefIconButBitI(subblock, TOG, UILST_FLT_SHOW, 0, ICON_DISCLOSURE_TRI_DOWN, 0, 0,
-			                       UI_UNIT_X, UI_UNIT_Y * 0.8f, &(ui_list->filter_flag), 0, 0, 0, 0,
+			                       UI_UNIT_X, UI_UNIT_Y * 0.5f, &(ui_list->filter_flag), 0, 0, 0, 0,
 			                       TIP_("Hide filtering options"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
-			but = uiDefIconButI(subblock, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.8f,
+			but = uiDefIconButI(subblock, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.5f,
 			                    &dyn_data->resize, 0.0, 0.0, 0, 0, "");
 			uiButSetFunc(but, ui_list_resize_update_cb, ui_list, NULL);
 
@@ -3135,11 +3135,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		}
 		else {
 			but = uiDefIconButBitI(subblock, TOG, UILST_FLT_SHOW, 0, ICON_DISCLOSURE_TRI_RIGHT, 0, 0,
-			                       UI_UNIT_X, UI_UNIT_Y * 0.8f, &(ui_list->filter_flag), 0, 0, 0, 0,
+			                       UI_UNIT_X, UI_UNIT_Y * 0.5f, &(ui_list->filter_flag), 0, 0, 0, 0,
 			                       TIP_("Show filtering options"));
 			uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
-			but = uiDefIconButI(subblock, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.8f,
+			but = uiDefIconButI(subblock, GRIP, 0, ICON_GRIP, 0, 0, UI_UNIT_X * 10.0f, UI_UNIT_Y * 0.5f,
 			                    &dyn_data->resize, 0.0, 0.0, 0, 0, "");
 			uiButSetFunc(but, ui_list_resize_update_cb, ui_list, NULL);
 
