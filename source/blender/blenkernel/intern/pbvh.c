@@ -1085,7 +1085,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					                         bvh->bm,
 					                         node->bm_faces,
 					                         node->bm_unique_verts,
-					                         node->bm_other_verts);
+					                         node->bm_other_verts,
+					                         bvh->show_diffuse_color);
 					break;
 			}
 
@@ -1673,7 +1674,7 @@ static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
 	if (!node->draw_buffers)
 		return;
 
-	if (GPU_pbvh_buffers_diffuse_changed(node->draw_buffers, bvh->show_diffuse_color))
+	if (GPU_pbvh_buffers_diffuse_changed(node->draw_buffers, node->bm_faces, bvh->show_diffuse_color))
 		node->flag |= PBVH_UpdateDrawBuffers;
 }
 

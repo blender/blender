@@ -179,7 +179,8 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               struct BMesh *bm,
                               struct GHash *bm_faces,
                               struct GSet *bm_unique_verts,
-                              struct GSet *bm_other_verts);
+                              struct GSet *bm_other_verts,
+                              int show_diffuse_color);
 
 void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, struct CCGElem **grids,
                              const struct DMFlagMat *grid_flag_mats,
@@ -189,7 +190,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, struct CCGElem **gr
 void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
                            bool wireframe);
 
-bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, bool show_diffuse_color);
+bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, struct GHash *bm_faces, bool show_diffuse_color);
 
 void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers);
 

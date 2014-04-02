@@ -1954,13 +1954,11 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
                                           int *v_index,
                                           const float fno[3],
                                           const float *fmask,
-                                          const int cd_vert_mask_offset)
+                                          const int cd_vert_mask_offset,
+                                          const float diffuse_color[4])
 {
 	if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 		VertexBufferFormat *vd = &vert_data[*v_index];
-
-		/* TODO: should use material color */
-		float diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		/* Set coord, normal, and mask */
 		copy_v3_v3(vd->co, v->co);
@@ -2024,14 +2022,18 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               BMesh *bm,
                               GHash *bm_faces,
                               GSet *bm_unique_verts,
-                              GSet *bm_other_verts)
+                              GSet *bm_other_verts,
+                              int show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
 	void *tri_data;
 	int tottri, totvert, maxvert = 0;
+	float diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	/* TODO, make mask layer optional for bmesh buffer */
 	const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+
+	buffers->show_diffuse_color = show_diffuse_color;
 
 	if (!buffers->vert_buf || (buffers->smooth && !buffers->index_buf))
 		return;
@@ -2059,6 +2061,15 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 		return;
 	}
 
+	if (show_diffuse_color) {
+		/* due to dynamc nature of dyntopo, only get first material */
+		GHashIterator gh_iter;
+		BMFace *f;
+		BLI_ghashIterator_init(&gh_iter, bm_faces);
+		f = BLI_ghashIterator_getKey(&gh_iter);
+		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
+	}
+
 	/* Initialize vertex buffer */
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
@@ -2080,13 +2091,13 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 			GSET_ITER (gs_iter, bm_unique_verts) {
 				gpu_bmesh_vert_to_buffer_copy(BLI_gsetIterator_getKey(&gs_iter),
 				                              vert_data, &v_index, NULL, NULL,
-				                              cd_vert_mask_offset);
+				                              cd_vert_mask_offset, diffuse_color);
 			}
 
 			GSET_ITER (gs_iter, bm_other_verts) {
 				gpu_bmesh_vert_to_buffer_copy(BLI_gsetIterator_getKey(&gs_iter),
 				                              vert_data, &v_index, NULL, NULL,
-				                              cd_vert_mask_offset);
+				                              cd_vert_mask_offset, diffuse_color);
 			}
 
 			maxvert = v_index;
@@ -2116,7 +2127,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 					for (i = 0; i < 3; i++) {
 						gpu_bmesh_vert_to_buffer_copy(v[i], vert_data,
 						                              &v_index, f->no, &fmask,
-						                              cd_vert_mask_offset);
+						                              cd_vert_mask_offset, diffuse_color);
 					}
 				}
 			}
@@ -2203,6 +2214,7 @@ GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(int smooth_shading)
 	glGenBuffersARB(1, &buffers->vert_buf);
 	buffers->use_bmesh = true;
 	buffers->smooth = smooth_shading;
+	buffers->show_diffuse_color = false;
 
 	return buffers;
 }
@@ -2498,7 +2510,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 	}
 }
 
-bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, bool show_diffuse_color)
+bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GHash *bm_faces, bool show_diffuse_color)
 {
 	float diffuse_color[4];
 
@@ -2511,6 +2523,14 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, bool show_diffu
 	if (buffers->mface) {
 		MFace *f = buffers->mface + buffers->face_indices[0];
 
+		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
+	}
+	else if (buffers->use_bmesh) {
+		/* due to dynamc nature of dyntopo, only get first material */
+		GHashIterator gh_iter;
+		BMFace *f;
+		BLI_ghashIterator_init(&gh_iter, bm_faces);
+		f = BLI_ghashIterator_getKey(&gh_iter);
 		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
 	}
 	else {
