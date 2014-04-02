@@ -408,7 +408,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	/* see BKE_spacedata_draw_locks() */
 	if (at->do_lock)
 		return;
-	
+
 	/* if no partial draw rect set, full rect */
 	if (ar->drawrct.xmin == ar->drawrct.xmax) {
 		ar->drawrct = ar->winrct;
@@ -1312,6 +1312,27 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	}
 }
 
+static void region_update_rect(ARegion *ar)
+{
+	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
+	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
+
+	/* v2d mask is used to subtract scrollbars from a 2d view. Needs initialize here. */
+	BLI_rcti_init(&ar->v2d.mask, 0, ar->winx - 1, 0, ar->winy -1);
+}
+
+/**
+ * Call to move a popup window (keep OpenGL context free!)
+ */
+void ED_region_update_rect(bContext *C, ARegion *ar)
+{
+	wmWindow *win = CTX_wm_window(C);
+
+	wm_subwindow_rect_set(win, ar->swinid, &ar->winrct);
+
+	region_update_rect(ar);
+}
+
 /* externally called for floating regions like menus */
 void ED_region_init(bContext *C, ARegion *ar)
 {
@@ -1320,11 +1341,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 	/* refresh can be called before window opened */
 	region_subwindow(CTX_wm_window(C), ar);
 	
-	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
-	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
-	
-	/* v2d mask is used to subtract scrollbars from a 2d view. Needs initialize here. */
-	BLI_rcti_init(&ar->v2d.mask, 0, ar->winx - 1, 0, ar->winy -1);
+	region_update_rect(ar);
 
 	/* UI convention */
 	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);

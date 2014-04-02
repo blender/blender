@@ -460,6 +460,11 @@ struct uiPopupBlockHandle {
 
 	/* menu direction */
 	int direction;
+
+/* #ifdef USE_DRAG_POPUP */
+	bool is_grab;
+	int     grab_xy_prev[2];
+/* #endif */
 };
 
 uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);

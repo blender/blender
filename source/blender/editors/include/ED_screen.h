@@ -55,6 +55,7 @@ void    ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void    ED_region_exit(struct bContext *C, struct ARegion *ar);
 void    ED_region_pixelspace(struct ARegion *ar);
 void    ED_region_set(const struct bContext *C, struct ARegion *ar);
+void    ED_region_update_rect(struct bContext *C, struct ARegion *ar);
 void    ED_region_init(struct bContext *C, struct ARegion *ar);
 void    ED_region_tag_redraw(struct ARegion *ar);
 void    ED_region_tag_redraw_partial(struct ARegion *ar, struct rcti *rct);

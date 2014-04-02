@@ -46,6 +46,7 @@ void	wm_subwindow_size_get(wmWindow *win, int swinid, int *x, int *y);
 void	wm_subwindow_origin_get(wmWindow *win, int swinid, int *x, int *y);
 void	wm_subwindow_matrix_get(wmWindow *win, int swinid, float mat[4][4]);
 void	wm_subwindow_rect_get(wmWindow *win, int swinid, struct rcti *r_rect);
+void    wm_subwindow_rect_set(wmWindow *win, int swinid, const rcti *rect);
 
 unsigned int index_to_framebuffer(int index);
 
