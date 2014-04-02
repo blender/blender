@@ -877,7 +877,7 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
 {
 	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
 
-	if(!RNA_boolean_get(ptr, "from_dupli")) {
+	if (!RNA_boolean_get(ptr, "from_dupli")) {
 		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
 
 		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {

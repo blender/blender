@@ -280,7 +280,6 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 	movieclip_open_anim_file(clip);
 
 	if (clip->anim) {
-		int dur = IMB_anim_get_duration(clip->anim, tc);
 		int fra = framenr - clip->start_frame + clip->frame_offset;
 
 		ibuf = IMB_anim_absolute(clip->anim, fra, tc, proxy);

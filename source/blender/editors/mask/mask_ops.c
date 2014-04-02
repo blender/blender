@@ -107,7 +107,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, const
 				MaskSplinePoint *cur_point_deform = &points_array[i];
 				eMaskWhichHandle cur_which_handle = MASK_WHICH_HANDLE_NONE;
 				BezTriple *bezt = &cur_point_deform->bezt;
-				float cur_len_sq , vec[2];
+				float cur_len_sq, vec[2];
 
 				vec[0] = bezt->vec[1][0] * scalex;
 				vec[1] = bezt->vec[1][1] * scaley;

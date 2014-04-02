@@ -581,7 +581,7 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         ob = context.object
         return CyclesButtonsPanel.poll(context) and ob and ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META'}
-        
+
     def draw_header(self, context):
         layout = self.layout
 

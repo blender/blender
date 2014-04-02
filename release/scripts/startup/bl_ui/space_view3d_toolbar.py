@@ -1266,7 +1266,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_smooth_shading")
         col.operator("sculpt.optimize")
         if (sculpt.detail_type_method == 'CONSTANT'):
-           col.operator("sculpt.detail_flood_fill")
+            col.operator("sculpt.detail_flood_fill")
         col.separator()
         col.prop(sculpt, "symmetrize_direction")
         col.operator("sculpt.symmetrize")
@@ -1295,7 +1295,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "gravity", slider=True, text="Factor")
         col.prop(sculpt, "gravity_object")
         col.separator()
-		
+
         col = layout.column(align=True)
         col.label(text="Threads:")
         col.row(align=True).prop(scene, "omp_threads_mode", expand=True)

@@ -1349,7 +1349,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 }
 
 /* for quick toggle, can skip fades */
-void region_toggle_hidden(bContext *C, ARegion *ar, bool do_fade)
+void region_toggle_hidden(bContext *C, ARegion *ar, const bool do_fade)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	

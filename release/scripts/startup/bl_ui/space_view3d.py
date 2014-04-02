@@ -903,7 +903,6 @@ class INFO_MT_curve_add(Menu):
         VIEW3D_PT_tools_add_object.draw_add_curve(layout)
 
 
-
 class INFO_MT_surface_add(Menu):
     bl_idname = "INFO_MT_surface_add"
     bl_label = "Surface"

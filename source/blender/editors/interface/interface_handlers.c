@@ -7284,7 +7284,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 
 	if (val == KM_PRESS) {
 		if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
-			((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
+		    ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
 		{
 			const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
 			int value, min, max, inc;
@@ -7308,7 +7308,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 
 				for (i = 0; i < len; i++) {
 					if (!dyn_data->items_filter_flags ||
-						((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
+					    ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
 					{
 						org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
 						if (i == value) {

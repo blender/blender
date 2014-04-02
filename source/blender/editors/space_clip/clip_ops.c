@@ -620,7 +620,7 @@ static int view_zoom_in_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(op->ptr, "location", location);
 
-	sclip_zoom_set_factor(C, powf(2.0f, 1.0f/3.0f), location);
+	sclip_zoom_set_factor(C, powf(2.0f, 1.0f / 3.0f), location);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -663,7 +663,7 @@ static int view_zoom_out_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(op->ptr, "location", location);
 
-	sclip_zoom_set_factor(C, powf(0.5f, 1.0f/3.0f), location);
+	sclip_zoom_set_factor(C, powf(0.5f, 1.0f / 3.0f), location);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 

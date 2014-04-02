@@ -746,7 +746,7 @@ class CyclesObjectBlurSettings(bpy.types.PropertyGroup):
 
     @classmethod
     def register(cls):
-        
+
         bpy.types.Object.cycles = PointerProperty(
                 name="Cycles Object Settings",
                 description="Cycles object settings",

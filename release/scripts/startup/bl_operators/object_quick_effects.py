@@ -436,7 +436,7 @@ class QuickFluid(Operator):
     def execute(self, context):
         fake_context = context.copy()
         mesh_objects = [obj for obj in context.selected_objects
-                        if (obj.type == 'MESH' and not 0.0 in obj.dimensions)]
+                        if (obj.type == 'MESH' and 0.0 not in obj.dimensions)]
         min_co = Vector((100000.0, 100000.0, 100000.0))
         max_co = -min_co
 

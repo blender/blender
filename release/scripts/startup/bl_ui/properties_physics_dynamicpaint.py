@@ -236,7 +236,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
         # vertex format outputs
         if surface.surface_format == 'VERTEX':
             if surface_type == 'PAINT':
-                 # toggle active preview
+                # toggle active preview
                 layout.prop(surface, "preview_id")
 
                 # paint-map output

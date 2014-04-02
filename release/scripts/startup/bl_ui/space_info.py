@@ -245,7 +245,7 @@ class INFO_MT_opengl_render(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         rd = context.scene.render
 
         layout.prop(rd, "use_antialiasing")
