@@ -85,9 +85,12 @@ typedef enum GPUBuiltin {
 	GPU_VIEW_NORMAL = 32,
 	GPU_OBCOLOR = 64,
 	GPU_AUTO_BUMPSCALE = 128,
-	GPU_MATCAP_NORMAL = 256,
-	GPU_COLOR = 512,
 } GPUBuiltin;
+
+typedef enum GPUOpenGLBuiltin {
+	GPU_MATCAP_NORMAL = 1,
+	GPU_COLOR = 2,
+} GPUOpenGLBuiltin;
 
 typedef enum GPUBlendMode {
 	GPU_BLEND_SOLID = 0,
@@ -115,6 +118,7 @@ GPUNodeLink *GPU_image_preview(struct PreviewImage *prv);
 GPUNodeLink *GPU_texture(int size, float *pixels);
 GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, int dynamictype, void *data);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
+GPUNodeLink *GPU_opengl_builtin(GPUOpenGLBuiltin builtin);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
 bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);

@@ -1535,7 +1535,7 @@ static GPUNodeLink *gpu_material_preview_matcap(GPUMaterial *mat, Material *ma)
 	 * matcap normal holds the normal remapped to the 0.0 - 1.0 range. To take advantage of flat shading, we abuse
 	 * the built in secondary color of opengl. Color is just the regular color, which should include mask value too.
 	 * This also needs flat shading so we use the primary opengl color built-in */
-	GPU_link(mat, "material_preview_matcap", GPU_uniform(&ma->r), GPU_image_preview(ma->preview), GPU_builtin(GPU_MATCAP_NORMAL), GPU_builtin(GPU_COLOR), &outlink);
+	GPU_link(mat, "material_preview_matcap", GPU_uniform(&ma->r), GPU_image_preview(ma->preview), GPU_opengl_builtin(GPU_MATCAP_NORMAL), GPU_opengl_builtin(GPU_COLOR), &outlink);
 	
 	return outlink;
 }

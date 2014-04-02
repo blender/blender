@@ -70,6 +70,7 @@ GPUFunction *GPU_lookup_function(const char *name);
 typedef enum GPUDataSource {
 	GPU_SOURCE_VEC_UNIFORM,
 	GPU_SOURCE_BUILTIN,
+	GPU_SOURCE_OPENGL_BUILTIN,
 	GPU_SOURCE_TEX_PIXEL,
 	GPU_SOURCE_TEX,
 	GPU_SOURCE_ATTRIB
@@ -108,6 +109,7 @@ struct GPUNodeLink {
 	GPUTexture *dynamictex;
 
 	GPUBuiltin builtin;
+	GPUOpenGLBuiltin oglbuiltin;
 
 	struct GPUOutput *output;
 };
@@ -155,6 +157,7 @@ typedef struct GPUInput {
 	char attribname[32];	/* attribute name */
 	int attribfirst;		/* this is the first one that is bound */
 	GPUBuiltin builtin;		/* builtin uniform */
+	GPUOpenGLBuiltin oglbuiltin; /* opengl built in varying */
 } GPUInput;
 
 struct GPUPass {
