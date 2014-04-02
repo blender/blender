@@ -739,12 +739,12 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 		                    true, false,
 		                    NULL, C);
 
-		ED_mask_draw_frames(mask, ar, CFRA, mask->sfra, mask->efra);
-
 		UI_view2d_view_ortho(v2d);
 		draw_image_cursor(ar, sima->cursor);
 		UI_view2d_view_restore(C);
 	}
+
+	draw_image_cache(C, ar);
 
 	/* scrollers? */
 #if 0

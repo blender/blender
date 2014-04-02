@@ -72,7 +72,6 @@ void CLIP_OT_dopesheet_view_all(struct wmOperatorType *ot);
 /* clip_draw.c */
 void clip_draw_main(const struct bContext *C, struct SpaceClip *sc, struct ARegion *ar);
 void clip_draw_grease_pencil(struct bContext *C, int onlyv2d);
-void clip_draw_curfra_label(const int framenr, const float x, const float y);
 void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *ar);
 
 /* clip_editor.c */

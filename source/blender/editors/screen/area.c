@@ -2007,3 +2007,49 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
 	BLI_rcti_translate(rect, -ar->winrct.xmin, -ar->winrct.ymin);
 }
 
+/* Cache display helpers */
+
+void ED_region_cache_draw_background(const ARegion *ar)
+{
+	glColor4ub(128, 128, 255, 64);
+	glRecti(0, 0, ar->winx, 8 * UI_DPI_FAC);
+}
+
+void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y)
+{
+	uiStyle *style = UI_GetStyle();
+	int fontid = style->widget.uifont_id;
+	char numstr[32];
+	float font_dims[2] = {0.0f, 0.0f};
+
+	/* frame number */
+	BLF_size(fontid, 11.0f * U.pixelsize, U.dpi);
+	BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
+
+	BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);
+
+	glRecti(x, y, x + font_dims[0] + 6.0f, y + font_dims[1] + 4.0f);
+
+	UI_ThemeColor(TH_TEXT);
+	BLF_position(fontid, x + 2.0f, y + 2.0f, 0.0f);
+	BLF_draw(fontid, numstr, sizeof(numstr));
+}
+
+void ED_region_cache_draw_cached_segments(const ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra)
+{
+	if (num_segments) {
+		int a;
+
+		glColor4ub(128, 128, 255, 128);
+
+		for (a = 0; a < num_segments; a++) {
+			float x1, x2;
+
+			x1 = (float)(points[a * 2] - sfra) / (efra - sfra + 1) * ar->winx;
+			x2 = (float)(points[a * 2 + 1] - sfra + 1) / (efra - sfra + 1) * ar->winx;
+
+			glRecti(x1, 0, x2, 8 * UI_DPI_FAC);
+		}
+	}
+}
+

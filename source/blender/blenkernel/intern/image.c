@@ -133,6 +133,15 @@ static int imagecache_hashcmp(const void *a_v, const void *b_v)
 	return a->index - b->index;
 }
 
+static void imagecache_keydata(void *userkey, int *framenr, int *proxy, int *render_flags)
+{
+	ImageCacheKey *key = (ImageCacheKey *)userkey;
+
+	*framenr = IMA_INDEX_FRAME(key->index);
+	*proxy = IMB_PROXY_NONE;
+	*render_flags = 0;
+}
+
 static void imagecache_put(Image *image, int index, ImBuf *ibuf)
 {
 	ImageCacheKey key;
@@ -143,6 +152,7 @@ static void imagecache_put(Image *image, int index, ImBuf *ibuf)
 
 		image->cache = IMB_moviecache_create("Image Datablock Cache", sizeof(ImageCacheKey),
 		                                     imagecache_hashhash, imagecache_hashcmp);
+		IMB_moviecache_set_getdata_callback(image->cache, imagecache_keydata);
 	}
 
 	key.index = index;

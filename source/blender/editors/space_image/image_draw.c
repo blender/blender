@@ -40,6 +40,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_mask_types.h"
 
 #include "PIL_time.h"
 
@@ -52,6 +53,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_colormanagement.h"
+#include "IMB_moviecache.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -65,6 +67,7 @@
 
 #include "ED_gpencil.h"
 #include "ED_image.h"
+#include "ED_mask.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -883,4 +886,49 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	/* render info */
 	if (ima && show_render)
 		draw_render_info(scene, ima, ar, zoomx, zoomy);
+}
+
+void draw_image_cache(const bContext *C, ARegion *ar)
+{
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	Image *image = ED_space_image(sima);
+	float x, cfra = CFRA, sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
+	Mask *mask = NULL;
+
+	if (sima->mode == SI_MODE_MASK) {
+		mask = ED_space_image_get_mask(sima);
+	}
+
+	if (image == NULL && mask == NULL) {
+		return;
+	}
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	/* Draw cache background. */
+	ED_region_cache_draw_background(ar);
+
+	/* Draw cached segments. */
+	if (image != NULL && image->cache != NULL && ELEM(image->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+		int num_segments = 0;
+		int *points = NULL;
+
+		IMB_moviecache_get_cache_segments(image->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
+		ED_region_cache_draw_cached_segments(ar, num_segments, points, sfra + sima->iuser.offset, efra + sima->iuser.offset);
+	}
+
+	glDisable(GL_BLEND);
+
+	/* Draw current frame. */
+	x = (cfra - sfra) / (efra - sfra + 1) * ar->winx;
+
+	UI_ThemeColor(TH_CFRAME);
+	glRecti(x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);
+	ED_region_cache_draw_curfra_label(cfra, x, 8.0f * UI_DPI_FAC);
+
+	if (mask != NULL) {
+		ED_mask_draw_frames(mask, ar, cfra, sfra, efra);
+	}
 }

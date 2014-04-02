@@ -178,6 +178,12 @@ int     ED_operator_posemode(struct bContext *C);
 int     ED_operator_mask(struct bContext *C);
 
 
+/* Cache display helpers */
+
+void ED_region_cache_draw_background(const struct ARegion *ar);
+void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y);
+void ED_region_cache_draw_cached_segments(const struct ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra);
+
 /* default keymaps, bitflags */
 #define ED_KEYMAP_UI        1
 #define ED_KEYMAP_VIEW2D    2
