@@ -57,6 +57,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_sound.h"
 
 #include "GPU_draw.h"
 
@@ -2496,6 +2497,11 @@ static int image_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	ARegion *ar = CTX_wm_region(C);
 	ImageSampleInfo *info;
 
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
+		if (event->mval[1] <= 16)
+			return OPERATOR_PASS_THROUGH;
+	}
+
 	if (!ED_space_image_has_buffer(sima))
 		return OPERATOR_CANCELLED;
 	
@@ -2866,4 +2872,118 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
+}
+
+/********************** change frame operator *********************/
+
+static int change_frame_poll(bContext *C)
+{
+	/* prevent changes during render */
+	if (G.is_rendering)
+		return 0;
+
+	return space_image_main_area_poll(C);
+}
+
+static void change_frame_apply(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	/* set the new frame number */
+	CFRA = RNA_int_get(op->ptr, "frame");
+	FRAMENUMBER_MIN_CLAMP(CFRA);
+	SUBFRA = 0.0f;
+
+	/* do updates */
+	sound_seek_scene(CTX_data_main(C), CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+}
+
+static int change_frame_exec(bContext *C, wmOperator *op)
+{
+	change_frame_apply(C, op);
+
+	return OPERATOR_FINISHED;
+}
+
+static int frame_from_event(bContext *C, const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	Scene *scene = CTX_data_scene(C);
+	int framenr = 0;
+
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
+		float sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
+
+		framenr = sfra + event->mval[0] / framelen;
+	}
+	else {
+		float viewx, viewy;
+
+		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+
+		framenr = iroundf(viewx);
+	}
+
+	return framenr;
+}
+
+static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
+		if (event->mval[1] > 16)
+			return OPERATOR_PASS_THROUGH;
+	}
+
+	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
+
+	change_frame_apply(C, op);
+
+	/* add temp handler */
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_FINISHED;
+
+		case MOUSEMOVE:
+			RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
+			change_frame_apply(C, op);
+			break;
+
+		case LEFTMOUSE:
+		case RIGHTMOUSE:
+			if (event->val == KM_RELEASE)
+				return OPERATOR_FINISHED;
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void IMAGE_OT_change_frame(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Change Frame";
+	ot->idname = "IMAGE_OT_change_frame";
+	ot->description = "Interactively change the current frame number";
+
+	/* api callbacks */
+	ot->exec = change_frame_exec;
+	ot->invoke = change_frame_invoke;
+	ot->modal = change_frame_modal;
+	ot->poll = change_frame_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_UNDO;
+
+	/* rna */
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
 }

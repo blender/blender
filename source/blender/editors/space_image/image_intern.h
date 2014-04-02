@@ -88,6 +88,8 @@ void IMAGE_OT_sample(struct wmOperatorType *ot);
 void IMAGE_OT_sample_line(struct wmOperatorType *ot);
 void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 
+void IMAGE_OT_change_frame(struct wmOperatorType *ot);
+
 /* image_panels.c */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
