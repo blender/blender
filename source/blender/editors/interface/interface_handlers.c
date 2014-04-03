@@ -2378,6 +2378,11 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	data->selextend = 0;
 	data->selstartx = 0.0f;
 
+#ifdef USE_DRAG_MULTINUM
+	/* this can happen from multi-drag */
+	data->applied_interactive = false;
+#endif
+
 	/* set cursor pos to the end of the text */
 	but->editstr = data->str;
 	but->pos = len;
