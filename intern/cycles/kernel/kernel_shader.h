@@ -453,23 +453,32 @@ ccl_device void shader_merge_closures(ShaderData *sd)
 			ShaderClosure *scj = &sd->closure[j];
 
 #ifdef __OSL__
-			if(!sci->prim && !scj->prim && sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
-#else
-			if(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+			if(sci->prim || scj->prim)
+				continue;
 #endif
-				sci->weight += scj->weight;
-				sci->sample_weight += scj->sample_weight;
 
-				int size = sd->num_closure - (j+1);
-				if(size > 0) {
-					for(int k = 0; k < size; k++) {
-						scj[k] = scj[k+1];
-					}
-				}
+			if(!(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1))
+				continue;
 
-				sd->num_closure--;
-				j--;
+			if(CLOSURE_IS_BSDF_OR_BSSRDF(sci->type)) {
+				if(sci->N != scj->N)
+					continue;
+				else if(CLOSURE_IS_BSDF_ANISOTROPIC(sci->type) && sci->T != scj->T)
+					continue;
 			}
+
+			sci->weight += scj->weight;
+			sci->sample_weight += scj->sample_weight;
+
+			int size = sd->num_closure - (j+1);
+			if(size > 0) {
+				for(int k = 0; k < size; k++) {
+					scj[k] = scj[k+1];
+				}
+			}
+
+			sd->num_closure--;
+			j--;
 		}
 	}
 }
