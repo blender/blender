@@ -232,17 +232,28 @@ def islandIntersectUvIsland(source, target, SourceOffset):
     return 0 # NO INTERSECTION
 
 
+def rotate_uvs(uv_points, angle):
+
+    if angle != 0.0:
+        mat = Matrix.Rotation(angle, 2)
+        for uv in uv_points:
+            uv[:] = mat * uv
+
+
 def optiRotateUvIsland(faces):
     uv_points = [uv for f in faces  for uv in f.uv]
     angle = geometry.box_fit_2d(uv_points)
 
     if angle != 0.0:
-        mat = Matrix.Rotation(angle, 2)
-        i = 0 # count the serialized uv/vectors
-        for f in faces:
-            for j, k in enumerate(range(i, len(f.v) + i)):
-                f.uv[j][:] = mat * uv_points[k]
-            i += len(f.v)
+        rotate_uvs(uv_points, angle)
+
+    # orient them vertically (could be an option)
+    minx, miny, maxx, maxy = boundsIsland(faces)
+    w, h = maxx - minx, maxy - miny
+    if h < w:
+        from math import pi
+        angle = pi / 2.0
+        rotate_uvs(uv_points, angle)
 
 
 # Takes an island list and tries to find concave, hollow areas to pack smaller islands into.
