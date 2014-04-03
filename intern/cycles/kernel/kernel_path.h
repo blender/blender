@@ -52,29 +52,30 @@ ccl_device_inline bool kernel_path_integrate_scatter_lighting(KernelGlobals *kg,
 	float num_samples_adjust)
 {
 #ifdef __EMISSION__
-	if(kernel_data.integrator.use_direct_light) {
+	if(kernel_data.integrator.use_direct_light && (sd->flag & SD_BSDF_HAS_EVAL)) {
 		/* sample illumination from lights to find path contribution */
-		if(sd->flag & SD_BSDF_HAS_EVAL) {
-			float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
-			float light_u, light_v;
-			path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
+		float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
+		float light_u, light_v;
+		path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
-			Ray light_ray;
-			BsdfEval L_light;
-			bool is_lamp;
+		Ray light_ray;
+		BsdfEval L_light;
+		bool is_lamp;
 
 #ifdef __OBJECT_MOTION__
-			light_ray.time = sd->time;
+		light_ray.time = sd->time;
 #endif
 
-			if(direct_emission(kg, sd, LAMP_NONE, light_t, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
-				/* trace shadow ray */
-				float3 shadow;
+		LightSample ls;
+		light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls);
 
-				if(!shadow_blocked(kg, state, &light_ray, &shadow)) {
-					/* accumulate */
-					path_radiance_accum_light(L, *throughput * num_samples_adjust, &L_light, shadow, 1.0f, state->bounce, is_lamp);
-				}
+		if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+			/* trace shadow ray */
+			float3 shadow;
+
+			if(!shadow_blocked(kg, state, &light_ray, &shadow)) {
+				/* accumulate */
+				path_radiance_accum_light(L, *throughput * num_samples_adjust, &L_light, shadow, 1.0f, state->bounce, is_lamp);
 			}
 		}
 	}
@@ -152,7 +153,10 @@ ccl_device void kernel_branched_path_integrate_direct_lighting(KernelGlobals *kg
 					float light_u, light_v;
 					path_branched_rng_2D(kg, &lamp_rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
-					if(direct_emission(kg, sd, i, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+					LightSample ls;
+					light_select(kg, i, light_u, light_v, sd->P, &ls);
+
+					if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
 						/* trace shadow ray */
 						float3 shadow;
 
@@ -181,7 +185,10 @@ ccl_device void kernel_branched_path_integrate_direct_lighting(KernelGlobals *kg
 					if(kernel_data.integrator.num_all_lights)
 						light_t = 0.5f*light_t;
 
-					if(direct_emission(kg, sd, LAMP_NONE, light_t, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+					LightSample ls;
+					light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls);
+
+					if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
 						/* trace shadow ray */
 						float3 shadow;
 
@@ -198,8 +205,11 @@ ccl_device void kernel_branched_path_integrate_direct_lighting(KernelGlobals *kg
 			float light_u, light_v;
 			path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
+			LightSample ls;
+			light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls);
+
 			/* sample random light */
-			if(direct_emission(kg, sd, LAMP_NONE, light_t, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+			if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
 				/* trace shadow ray */
 				float3 shadow;
 
@@ -477,7 +487,10 @@ ccl_device_inline bool kernel_path_integrate_lighting(KernelGlobals *kg, RNG *rn
 			light_ray.time = sd->time;
 #endif
 
-			if(direct_emission(kg, sd, LAMP_NONE, light_t, light_u, light_v, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+			LightSample ls;
+			light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls);
+
+			if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
 				/* trace shadow ray */
 				float3 shadow;
 
@@ -882,7 +895,10 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 				light_ray.time = sd.time;
 #endif
 
-				if(direct_emission(kg, &sd, LAMP_NONE, light_t, light_u, light_v, &light_ray, &L_light, &is_lamp, state.bounce, state.transparent_bounce)) {
+				LightSample ls;
+				light_sample(kg, light_t, light_u, light_v, sd.time, sd.P, &ls);
+
+				if(direct_emission(kg, &sd, &ls, &light_ray, &L_light, &is_lamp, state.bounce, state.transparent_bounce)) {
 					/* trace shadow ray */
 					float3 shadow;
 

@@ -63,32 +63,18 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	return eval;
 }
 
-ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
-	float randt, float randu, float randv, Ray *ray, BsdfEval *eval,
-	bool *is_lamp, int bounce, int transparent_bounce)
+ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd,
+	LightSample *ls, Ray *ray, BsdfEval *eval, bool *is_lamp,
+	int bounce, int transparent_bounce)
 {
-	LightSample ls;
-
-#ifdef __BRANCHED_PATH__
-	if(lindex != LAMP_NONE) {
-		/* sample position on a specified light */
-		light_select(kg, lindex, randu, randv, sd->P, &ls);
-	}
-	else
-#endif
-	{
-		/* sample a light and position on int */
-		light_sample(kg, randt, randu, randv, sd->time, sd->P, &ls);
-	}
-
-	if(ls.pdf == 0.0f)
+	if(ls->pdf == 0.0f)
 		return false;
 
 	/* todo: implement */
 	differential3 dD = differential3_zero();
 
 	/* evaluate closure */
-	float3 light_eval = direct_emissive_eval(kg, &ls, -ls.D, dD, ls.t, sd->time, bounce, transparent_bounce);
+	float3 light_eval = direct_emissive_eval(kg, ls, -ls->D, dD, ls->t, sd->time, bounce, transparent_bounce);
 
 	if(is_zero(light_eval))
 		return false;
@@ -98,29 +84,29 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 
 #ifdef __VOLUME__
 	if(sd->prim != PRIM_NONE)
-		shader_bsdf_eval(kg, sd, ls.D, eval, &bsdf_pdf);
+		shader_bsdf_eval(kg, sd, ls->D, eval, &bsdf_pdf);
 	else
-		shader_volume_phase_eval(kg, sd, ls.D, eval, &bsdf_pdf);
+		shader_volume_phase_eval(kg, sd, ls->D, eval, &bsdf_pdf);
 #else
-	shader_bsdf_eval(kg, sd, ls.D, eval, &bsdf_pdf);
+	shader_bsdf_eval(kg, sd, ls->D, eval, &bsdf_pdf);
 #endif
 
-	if(ls.shader & SHADER_USE_MIS) {
+	if(ls->shader & SHADER_USE_MIS) {
 		/* multiple importance sampling */
-		float mis_weight = power_heuristic(ls.pdf, bsdf_pdf);
+		float mis_weight = power_heuristic(ls->pdf, bsdf_pdf);
 		light_eval *= mis_weight;
 	}
 	
-	bsdf_eval_mul(eval, light_eval/ls.pdf);
+	bsdf_eval_mul(eval, light_eval/ls->pdf);
 
 #ifdef __PASSES__
 	/* use visibility flag to skip lights */
-	if(ls.shader & SHADER_EXCLUDE_ANY) {
-		if(ls.shader & SHADER_EXCLUDE_DIFFUSE)
+	if(ls->shader & SHADER_EXCLUDE_ANY) {
+		if(ls->shader & SHADER_EXCLUDE_DIFFUSE)
 			eval->diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		if(ls.shader & SHADER_EXCLUDE_GLOSSY)
+		if(ls->shader & SHADER_EXCLUDE_GLOSSY)
 			eval->glossy = make_float3(0.0f, 0.0f, 0.0f);
-		if(ls.shader & SHADER_EXCLUDE_TRANSMIT)
+		if(ls->shader & SHADER_EXCLUDE_TRANSMIT)
 			eval->transmission = make_float3(0.0f, 0.0f, 0.0f);
 	}
 #endif
@@ -128,19 +114,19 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	if(bsdf_eval_is_zero(eval))
 		return false;
 
-	if(ls.shader & SHADER_CAST_SHADOW) {
+	if(ls->shader & SHADER_CAST_SHADOW) {
 		/* setup ray */
-		bool transmit = (dot(sd->Ng, ls.D) < 0.0f);
+		bool transmit = (dot(sd->Ng, ls->D) < 0.0f);
 		ray->P = ray_offset(sd->P, (transmit)? -sd->Ng: sd->Ng);
 
-		if(ls.t == FLT_MAX) {
+		if(ls->t == FLT_MAX) {
 			/* distant light */
-			ray->D = ls.D;
-			ray->t = ls.t;
+			ray->D = ls->D;
+			ray->t = ls->t;
 		}
 		else {
 			/* other lights, avoid self-intersection */
-			ray->D = ray_offset(ls.P, ls.Ng) - ray->P;
+			ray->D = ray_offset(ls->P, ls->Ng) - ray->P;
 			ray->D = normalize_len(ray->D, &ray->t);
 		}
 
@@ -153,7 +139,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	}
 
 	/* return if it's a lamp for shadow pass */
-	*is_lamp = (ls.prim == PRIM_NONE && ls.type != LIGHT_BACKGROUND);
+	*is_lamp = (ls->prim == PRIM_NONE && ls->type != LIGHT_BACKGROUND);
 
 	return true;
 }
