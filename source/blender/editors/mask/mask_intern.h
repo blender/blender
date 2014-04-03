@@ -40,6 +40,17 @@ struct wmOperatorType;
 /* internal exports only */
 
 /* mask_add.c */
+bool ED_mask_find_nearest_diff_point(const struct bContext *C,
+                                     struct Mask *mask,
+                                     const float normal_co[2],
+                                     int threshold, bool feather,
+                                     struct MaskLayer **masklay_r,
+                                     struct MaskSpline **spline_r,
+                                     struct MaskSplinePoint **point_r,
+                                     float *u_r, float tangent[2],
+                                     const bool use_deform,
+                                     const bool use_project);
+
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
 void MASK_OT_primitive_circle_add(struct wmOperatorType *ot);
@@ -55,6 +66,7 @@ void MASK_OT_layer_remove(struct wmOperatorType *ot);
 void MASK_OT_cyclic_toggle(struct wmOperatorType *ot);
 
 void MASK_OT_slide_point(struct wmOperatorType *ot);
+void MASK_OT_slide_spline_curvature(struct wmOperatorType *ot);
 
 void MASK_OT_delete(struct wmOperatorType *ot);
 

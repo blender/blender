@@ -54,10 +54,16 @@
 #include "mask_intern.h"  /* own include */
 
 
-static bool find_nearest_diff_point(const bContext *C, Mask *mask, const float normal_co[2], int threshold, bool feather,
-                                    MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
-                                    float *u_r, float tangent[2],
-                                    const bool use_deform)
+bool ED_mask_find_nearest_diff_point(const bContext *C,
+                                     struct Mask *mask,
+                                     const float normal_co[2],
+                                     int threshold, bool feather,
+                                     MaskLayer **masklay_r,
+                                     MaskSpline **spline_r,
+                                     MaskSplinePoint **point_r,
+                                     float *u_r, float tangent[2],
+                                     const bool use_deform,
+                                     const bool use_project)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -135,7 +141,6 @@ static bool find_nearest_diff_point(const bContext *C, Mask *mask, const float n
 							point = use_deform ? &spline->points[(cur_point - spline->points_deform)] : cur_point;
 							dist = cur_dist;
 							u = (float)j / tot_point;
-
 						}
 					}
 
@@ -159,7 +164,10 @@ static bool find_nearest_diff_point(const bContext *C, Mask *mask, const float n
 			*point_r = point;
 
 		if (u_r) {
-			u = BKE_mask_spline_project_co(point_spline, point, u, normal_co, MASK_PROJ_ANY);
+			/* TODO(sergey): Projection fails in some weirdo cases.. */
+			if (use_project) {
+				u = BKE_mask_spline_project_co(point_spline, point, u, normal_co, MASK_PROJ_ANY);
+			}
 
 			*u_r = u;
 		}
@@ -332,7 +340,7 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
 	float tangent[2];
 	float u;
 
-	if (find_nearest_diff_point(C, mask, co, threshold, false, &masklay, &spline, &point, &u, tangent, true)) {
+	if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, false, &masklay, &spline, &point, &u, tangent, true, true)) {
 		MaskSplinePoint *new_point;
 		int point_index = point - spline->points;
 
@@ -617,7 +625,7 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 	if (point)
 		return OPERATOR_FINISHED;
 
-	if (find_nearest_diff_point(C, mask, co, threshold, true, &masklay, &spline, &point, &u, NULL, true)) {
+	if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, true, &masklay, &spline, &point, &u, NULL, true, true)) {
 		Scene *scene = CTX_data_scene(C);
 		float w = BKE_mask_point_weight(spline, point, u);
 		float weight_scalar = BKE_mask_point_weight_scalar(spline, point, u);

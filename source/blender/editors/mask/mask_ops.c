@@ -1031,6 +1031,254 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/******************** slide spline curvature *********************/
+
+typedef struct SlideSplineCurvatureData {
+	Mask *mask;
+	MaskSpline *spline;
+	MaskSplinePoint *point;
+	float u;
+	bool accurate;
+
+	BezTriple *adjust_bezt;
+	BezTriple bezt_backup;
+	float initial_coord[2];
+
+	float P0[2], P1[2], P2[2], P3[3];
+} SlideSplineCurvatureData;
+
+static void cancel_slide_spline_curvature(SlideSplineCurvatureData *slide_data)
+{
+	*slide_data->adjust_bezt = slide_data->bezt_backup;
+}
+
+
+static void free_slide_spline_curvature_data(SlideSplineCurvatureData *slide_data)
+{
+	MEM_freeN(slide_data);
+}
+
+static bool slide_spline_curvature_check(bContext *C, const wmEvent *event)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	float co[2];
+	const float threshold = 19;
+
+	ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, co);
+
+	if (ED_mask_point_find_nearest(C, mask, co, threshold, NULL, NULL, NULL, NULL)) {
+		return false;
+	}
+
+	if (ED_mask_feather_find_nearest(C, mask, co, threshold, NULL, NULL, NULL, NULL, NULL)) {
+		return false;
+	}
+
+	return true;
+}
+
+static SlideSplineCurvatureData *slide_spline_curvature_customdata(
+	bContext *C, wmOperator *op, const wmEvent *event)
+{
+	const float threshold = 19;
+
+	Mask *mask = CTX_data_edit_mask(C);
+	SlideSplineCurvatureData *slide_data;
+	MaskLayer *mask_layer;
+	MaskSpline *spline;
+	MaskSplinePoint *point;
+	float u, co[2];
+	BezTriple *next_bezt;
+
+	(void) op;
+
+	ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, co);
+
+	if (!ED_mask_find_nearest_diff_point(C, mask, co, threshold, false,
+	                                     &mask_layer, &spline, &point, &u,
+	                                     NULL, true, false))
+	{
+		return NULL;
+	}
+
+	next_bezt = BKE_mask_spline_point_next_bezt(spline, spline->points, point);
+	if (next_bezt == NULL) {
+		return NULL;
+	}
+
+	slide_data = MEM_callocN(sizeof(SlideSplineCurvatureData), "slide curvature slide");
+	slide_data->mask = mask;
+	slide_data->spline = spline;
+	slide_data->point = point;
+	slide_data->u = u;
+	copy_v2_v2(slide_data->initial_coord, co);
+
+	copy_v2_v2(slide_data->P0, point->bezt.vec[1]);
+	copy_v2_v2(slide_data->P1, point->bezt.vec[2]);
+	copy_v2_v2(slide_data->P2, next_bezt->vec[0]);
+	copy_v2_v2(slide_data->P3, next_bezt->vec[1]);
+
+	/* Depending to which end we're closer to adjust either left or right side of the spline. */
+	if (u <= 0.5f) {
+		slide_data->adjust_bezt = &point->bezt;
+	}
+	else {
+		slide_data->adjust_bezt = next_bezt;
+	}
+
+	/* Data needed for restoring state. */
+	slide_data->bezt_backup = *slide_data->adjust_bezt;
+
+	/* Let's dont touch other side of the point for now, so set handle to FREE. */
+	if (u < 0.5f) {
+		if (slide_data->adjust_bezt->h2 <= HD_VECT) {
+			slide_data->adjust_bezt->h2 = HD_FREE;
+		}
+	}
+	else {
+		if (slide_data->adjust_bezt->h1 < HD_VECT) {
+			slide_data->adjust_bezt->h1 = HD_FREE;
+		}
+	}
+
+	/* Change selection */
+	ED_mask_select_toggle_all(mask, SEL_DESELECT);
+	slide_data->adjust_bezt->f2 |= SELECT;
+	if (u < 0.5f) {
+		slide_data->adjust_bezt->f3 |= SELECT;
+	}
+	else {
+		slide_data->adjust_bezt->f1 |= SELECT;
+	}
+	mask_layer->act_spline = spline;
+	mask_layer->act_point = point;
+	ED_mask_select_flush_all(mask);
+
+	return slide_data;
+}
+
+static int slide_spline_curvature_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	SlideSplineCurvatureData *slide_data;
+
+	if (mask == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* Be sure we don't conflict with point slide here. */
+	if (!slide_spline_curvature_check(C, event)) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	slide_data = slide_spline_curvature_customdata(C, op, event);
+	if (slide_data != NULL) {
+		op->customdata = slide_data;
+		WM_event_add_modal_handler(C, op);
+		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+		return OPERATOR_RUNNING_MODAL;
+	}
+
+	return OPERATOR_PASS_THROUGH;
+}
+
+static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	SlideSplineCurvatureData *slide_data = (SlideSplineCurvatureData *) op->customdata;
+
+	switch (event->type) {
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
+				slide_data->accurate = (event->val == KM_PRESS);
+
+			/* fall-through */  /* update CV position */
+		case MOUSEMOVE:
+		{
+			float B[2];
+			float u = slide_data->u;
+			float u2 = slide_data->u * slide_data->u;
+			float u3 = slide_data->u * slide_data->u * slide_data->u;
+			float v = 1.0f - slide_data->u;
+			float v2 = v * v, v3 = v * v * v;;
+
+			/* Get coordinate spline is expected to go through. */
+			ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, B);
+
+			/* Apply accurate flag if needed. */
+			if (slide_data->accurate) {
+				float delta[2];
+				sub_v2_v2v2(delta, B, slide_data->initial_coord);
+				mul_v2_fl(delta, 0.2f);
+				add_v2_v2v2(B, slide_data->initial_coord, delta);
+			}
+
+			if (u < 0.5f) {
+				slide_data->adjust_bezt->vec[2][0] =
+					-(v3 * slide_data->P0[0] + 3.0f * v * u2 * slide_data->P2[0] + u3 * slide_data->P3[0] - B[0]) /
+					(3.0f * v2 * u);
+
+				slide_data->adjust_bezt->vec[2][1] =
+					-(v3 * slide_data->P0[1] + 3.0f * v * u2 * slide_data->P2[1] + u3 * slide_data->P3[1] - B[1]) /
+					(3.0f * v2 * u);
+			}
+			else {
+				slide_data->adjust_bezt->vec[0][0] =
+					-(v3 * slide_data->P0[0] + 3.0f * v2 * u * slide_data->P1[0] + u3 * slide_data->P3[0] - B[0]) /
+					(3.0f * v * u2);
+
+				slide_data->adjust_bezt->vec[0][1] =
+					-(v3 * slide_data->P0[1] + 3.0f * v2 * u * slide_data->P1[1] + u3 * slide_data->P3[1] - B[1]) /
+					(3.0f * v * u2);
+			}
+
+			WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
+			DAG_id_tag_update(&slide_data->mask->id, 0);
+
+			break;
+		}
+
+		case LEFTMOUSE:
+			if (event->val == KM_RELEASE) {
+
+				WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
+				DAG_id_tag_update(&slide_data->mask->id, 0);
+
+				free_slide_spline_curvature_data(slide_data); /* keep this last! */
+				return OPERATOR_FINISHED;
+			}
+
+			break;
+
+		case ESCKEY:
+			cancel_slide_spline_curvature(slide_data);
+
+			WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
+			DAG_id_tag_update(&slide_data->mask->id, 0);
+
+			free_slide_spline_curvature_data(op->customdata); /* keep this last! */
+			return OPERATOR_CANCELLED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void MASK_OT_slide_spline_curvature(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Slide Spline Curvature";
+	ot->description = "Slide a point on the spline to define it's curvature";
+	ot->idname = "MASK_OT_slide_spline_curvature";
+
+	/* api callbacks */
+	ot->invoke = slide_spline_curvature_invoke;
+	ot->modal = slide_spline_curvature_modal;
+	ot->poll = ED_operator_mask;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /******************** toggle cyclic *********************/
 
 static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
