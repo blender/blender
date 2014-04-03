@@ -85,6 +85,8 @@
 #  include "winsock2.h"
 #  include <io.h>
 #  include "BLI_winstuff.h"
+#else
+#  include <unistd.h>  /* FreeBSD, for write() and close(). */
 #endif
 
 #include "BLI_utildefines.h"
