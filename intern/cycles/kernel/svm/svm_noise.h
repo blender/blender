@@ -357,15 +357,13 @@ ccl_device float3 cellnoise_color(float3 p)
 	return make_float3(r, g, b);
 }
 #else
-ccl_device float3 cellnoise_color(const float3& p)
+ccl_device __m128 cellnoise_color(const __m128& p)
 {
-	__m128i v_yxz = quick_floor_sse(_mm_setr_ps(p.y, p.x, p.z, 0.0f));
-	__m128i v_xyy = shuffle<1, 0, 0, 3>(v_yxz);
-	__m128i v_zzx = shuffle<2, 2, 1, 3>(v_yxz);
-	__m128 rgb = bits_to_01_sse(hash_sse(v_xyy, v_yxz, v_zzx));
-
-	float3 result = *(float3*)&rgb;
-	return result;
+	__m128i ip = quick_floor_sse(p);
+	__m128i ip_yxz = shuffle<1, 0, 2, 3>(ip);
+	__m128i ip_xyy = shuffle<0, 1, 1, 3>(ip);
+	__m128i ip_zzx = shuffle<2, 2, 0, 3>(ip);
+	return bits_to_01_sse(hash_sse(ip_xyy, ip_yxz, ip_zzx));
 }
 #endif
 

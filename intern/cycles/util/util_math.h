@@ -163,11 +163,7 @@ ccl_device_inline float clamp(float a, float mn, float mx)
 
 ccl_device_inline int float_to_int(float f)
 {
-#if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
-	return _mm_cvtt_ss2si(_mm_load_ss(&f));
-#else
 	return (int)f;
-#endif
 }
 
 ccl_device_inline int floor_to_int(float f)

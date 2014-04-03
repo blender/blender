@@ -20,23 +20,16 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline float4 svm_voronoi(NodeVoronoiColoring coloring, float3 p)
 {
-	/* compute distance and point coordinate of 4 nearest neighbours */
-	float4 dpa0 = voronoi_Fn(p, 1.0f, 0, -1);
-
-	/* output */
-	float fac;
-	float3 color;
-
 	if(coloring == NODE_VORONOI_INTENSITY) {
-		fac = fabsf(dpa0.w);
-		color = make_float3(fac, fac, fac);
+		/* compute squared distance to the nearest neighbour */
+		float fac = voronoi_F1_distance(p);
+		return make_float4(fac, fac, fac, fac);
 	}
 	else {
-		color = cellnoise_color(float4_to_float3(dpa0));
-		fac = average(color);
+		/* compute color of the nearest neighbour */
+		float3 color = voronoi_F1_color(p);
+		return make_float4(color.x, color.y, color.z, average(color));
 	}
-
-	return make_float4(color.x, color.y, color.z, fac);
 }
 
 ccl_device void svm_node_tex_voronoi(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
