@@ -269,12 +269,11 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData 
  * Based on Sven Woop's algorithm with precomputed triangle storage */
 
 ccl_device_inline bool triangle_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int triAddr)
+	float3 P, float3 dir, uint visibility, int object, int triAddr)
 {
 	/* compute and check intersection t-value */
 	float4 v00 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0);
 	float4 v11 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+1);
-	float3 dir = 1.0f/idir;
 
 	float Oz = v00.w - P.x*v00.x - P.y*v00.y - P.z*v00.z;
 	float invDz = 1.0f/(dir.x*v00.x + dir.y*v00.y + dir.z*v00.z);
@@ -322,12 +321,11 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg, Intersection *isect
 
 #ifdef __SUBSURFACE__
 ccl_device_inline void triangle_intersect_subsurface(KernelGlobals *kg, Intersection *isect_array,
-	float3 P, float3 idir, int object, int triAddr, float tmax, uint *num_hits, uint *lcg_state, int max_hits)
+	float3 P, float3 dir, int object, int triAddr, float tmax, uint *num_hits, uint *lcg_state, int max_hits)
 {
 	/* compute and check intersection t-value */
 	float4 v00 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0);
 	float4 v11 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+1);
-	float3 dir = 1.0f/idir;
 
 	float Oz = v00.w - P.x*v00.x - P.y*v00.y - P.z*v00.z;
 	float invDz = 1.0f/(dir.x*v00.x + dir.y*v00.y + dir.z*v00.z);

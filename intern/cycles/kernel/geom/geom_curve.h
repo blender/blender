@@ -205,12 +205,12 @@ ccl_device_inline __m128 transform_point_T3(const __m128 t[3], const __m128 &a)
 #endif
 
 #ifdef __KERNEL_SSE2__
-/* Pass P and idir by reference to aligned vector */
+/* Pass P and dir by reference to aligned vector */
 ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	const float3 &P, const float3 &idir, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
+	const float3 &P, const float3 &dir, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
 #else
 ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, float time,int type, uint *lcg_state, float difl, float extmax)
+	float3 P, float3 dir, uint visibility, int object, int curveAddr, float time,int type, uint *lcg_state, float difl, float extmax)
 #endif
 {
 	int segment = PRIMITIVE_UNPACK_SEGMENT(type);
@@ -222,7 +222,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 	int prim = kernel_tex_fetch(__prim_index, curveAddr);
 
 #ifdef __KERNEL_SSE2__
-	__m128 vdir = _mm_div_ps(_mm_set1_ps(1.0f), load_m128(idir));
+	__m128 vdir = load_m128(dir);
 	__m128 vcurve_coef[4];
 	const float3 *curve_coef = (float3 *)vcurve_coef;
 	
@@ -285,8 +285,6 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 	float3 curve_coef[4];
 
 	/* curve Intersection check */
-	float3 dir = 1.0f/idir;
-
 	/* obtain curve parameters */
 	{
 		/* ray transform created - this should be created at beginning of intersection loop */
@@ -597,7 +595,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 }
 
 ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
+	float3 P, float3 direction, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
 {
 	/* define few macros to minimize code duplication for SSE */
 #ifndef __KERNEL_SSE2__
@@ -647,9 +645,9 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 	}
 	/* --- */
 
-	float3 dir = 1.0f / idir;
 	float3 p21_diff = p2 - p1;
 	float3 sphere_dif1 = (dif + dif_second) * 0.5f;
+	float3 dir = direction;
 	float sphere_b_tmp = dot3(dir, sphere_dif1);
 	float3 sphere_dif2 = sphere_dif1 - sphere_b_tmp * dir;
 #else
@@ -680,9 +678,9 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 	float or1 = _mm_cvtss_f32(or12), or2 = _mm_cvtss_f32(broadcast<2>(or12));
 	float r1 = _mm_cvtss_f32(r12), r2 = _mm_cvtss_f32(broadcast<2>(r12));
 
-	const __m128 dir = _mm_div_ps(_mm_set1_ps(1.0f), load_m128(idir));
 	const __m128 p21_diff = _mm_sub_ps(P_curve[1], P_curve[0]);
 	const __m128 sphere_dif1 = _mm_mul_ps(_mm_add_ps(dif, dif_second), _mm_set1_ps(0.5f));
+	const __m128 dir = load_m128(direction);
 	const __m128 sphere_b_tmp = dot3_splat(dir, sphere_dif1);
 	const __m128 sphere_dif2 = fnma(sphere_b_tmp, dir, sphere_dif1);
 #endif

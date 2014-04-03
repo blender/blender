@@ -313,7 +313,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderD
  * time and do a ray intersection with the resulting triangle */
 
 ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, float time, uint visibility, int object, int triAddr)
+	float3 P, float3 dir, float time, uint visibility, int object, int triAddr)
 {
 	/* primitive index for vertex location lookup */
 	int prim = kernel_tex_fetch(__prim_index, triAddr);
@@ -324,10 +324,9 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection
 	motion_triangle_vertices(kg, fobject, prim, time, verts);
 
 	/* ray-triangle intersection, unoptimized */
-	float3 D = 1.0f/idir;
 	float t, u, v;
 
-	if(ray_triangle_intersect_uv(P, D, isect->t, verts[2], verts[0], verts[1], &u, &v, &t)) {
+	if(ray_triangle_intersect_uv(P, dir, isect->t, verts[2], verts[0], verts[1], &u, &v, &t)) {
 		isect->prim = triAddr;
 		isect->object = object;
 		isect->type = PRIMITIVE_MOTION_TRIANGLE;
@@ -347,7 +346,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection
 
 #ifdef __SUBSURFACE__
 ccl_device_inline void motion_triangle_intersect_subsurface(KernelGlobals *kg, Intersection *isect_array,
-	float3 P, float3 idir, float time, int object, int triAddr, float tmax, uint *num_hits, uint *lcg_state, int max_hits)
+	float3 P, float3 dir, float time, int object, int triAddr, float tmax, uint *num_hits, uint *lcg_state, int max_hits)
 {
 	/* primitive index for vertex location lookup */
 	int prim = kernel_tex_fetch(__prim_index, triAddr);
@@ -358,10 +357,9 @@ ccl_device_inline void motion_triangle_intersect_subsurface(KernelGlobals *kg, I
 	motion_triangle_vertices(kg, fobject, prim, time, verts);
 
 	/* ray-triangle intersection, unoptimized */
-	float3 D = 1.0f/idir;
 	float t, u, v;
 
-	if(ray_triangle_intersect_uv(P, D, tmax, verts[2], verts[0], verts[1], &u, &v, &t)) {
+	if(ray_triangle_intersect_uv(P, dir, tmax, verts[2], verts[0], verts[1], &u, &v, &t)) {
 		(*num_hits)++;
 
 		int hit;

@@ -50,7 +50,8 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 	/* ray parameters in registers */
 	const float tmax = ray->t;
 	float3 P = ray->P;
-	float3 idir = bvh_inverse_direction(ray->D);
+	float3 dir = bvh_clamp_direction(ray->D);
+	float3 idir = bvh_inverse_direction(dir);
 	int object = OBJECT_NONE;
 	float isect_t = tmax;
 
@@ -215,11 +216,11 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 
 						switch(type & PRIMITIVE_ALL) {
 							case PRIMITIVE_TRIANGLE: {
-								triangle_intersect_subsurface(kg, isect_array, P, idir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								triangle_intersect_subsurface(kg, isect_array, P, dir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 								break;
 							}
 							case PRIMITIVE_MOTION_TRIANGLE: {
-								motion_triangle_intersect_subsurface(kg, isect_array, P, idir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								motion_triangle_intersect_subsurface(kg, isect_array, P, dir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 								break;
 							}
 							default: {
@@ -235,9 +236,9 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 						object = subsurface_object;
 
 #if FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &idir, &isect_t, &ob_tfm, tmax);
+						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm, tmax);
 #else
-						bvh_instance_push(kg, object, ray, &P, &idir, &isect_t, tmax);
+						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t, tmax);
 #endif
 
 #if defined(__KERNEL_SSE2__)
@@ -271,9 +272,9 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 
 			/* instance pop */
 #if FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &idir, &isect_t, &ob_tfm, tmax);
+			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm, tmax);
 #else
-			bvh_instance_pop(kg, object, ray, &P, &idir, &isect_t, tmax);
+			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect_t, tmax);
 #endif
 
 #if defined(__KERNEL_SSE2__)
