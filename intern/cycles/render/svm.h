@@ -124,6 +124,7 @@ protected:
 
 	/* single closure */
 	void find_dependencies(set<ShaderNode*>& dependencies, const set<ShaderNode*>& done, ShaderInput *input);
+	void generate_node(ShaderNode *node, set<ShaderNode*>& done);
 	void generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done);
 	void generate_closure(ShaderNode *node, set<ShaderNode*>& done);
 

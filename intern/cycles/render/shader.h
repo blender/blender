@@ -77,6 +77,7 @@ public:
 	bool has_surface_bssrdf;
 	bool has_converter_blackbody;
 	bool has_bssrdf_bump;
+	bool has_heterogeneous_volume;
 
 	/* requested mesh attributes */
 	AttributeRequestSet attributes;

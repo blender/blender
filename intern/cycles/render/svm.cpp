@@ -379,6 +379,18 @@ void SVMCompiler::find_dependencies(set<ShaderNode*>& dependencies, const set<Sh
 	}
 }
 
+void SVMCompiler::generate_node(ShaderNode *node, set<ShaderNode*>& done)
+{
+	node->compile(*this);
+	stack_clear_users(node, done);
+	stack_clear_temporary(node);
+
+	if(current_type == SHADER_TYPE_VOLUME) {
+		if(node->has_spatial_varying())
+			current_shader->has_heterogeneous_volume = true;
+	}
+}
+
 void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done)
 {
 	bool nodes_done;
@@ -400,9 +412,7 @@ void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNo
 					if(node->has_converter_blackbody())
 					current_shader->has_converter_blackbody = true;
 
-					node->compile(*this);
-					stack_clear_users(node, done);
-					stack_clear_temporary(node);
+					generate_node(node, done);
 					done.insert(node);
 				}
 				else
@@ -485,9 +495,7 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 		}
 
 		/* compile closure itself */
-		node->compile(*this);
-		stack_clear_users(node, done);
-		stack_clear_temporary(node);
+		generate_node(node, done);
 
 		if(current_type == SHADER_TYPE_SURFACE) {
 			if(node->has_surface_emission())
@@ -550,9 +558,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			mix_weight_offset = SVM_STACK_INVALID;
 
 		/* compile closure itself */
-		node->compile(*this);
-		stack_clear_users(node, done);
-		stack_clear_temporary(node);
+		generate_node(node, done);
 
 		mix_weight_offset = SVM_STACK_INVALID;
 
@@ -694,6 +700,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	shader->has_converter_blackbody = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;
+	shader->has_heterogeneous_volume = false;
 
 	/* generate surface shader */
 	compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
