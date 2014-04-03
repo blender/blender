@@ -1829,7 +1829,7 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop)
 	uiBut *bt;
 	
 	/* HS circle */
-	bt = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, PICKER_H, PICKER_W, ptr, prop, -1, 0.0, 0.0, 0.0, 0, "Color");
+	bt = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, PICKER_H, PICKER_W, ptr, prop, -1, 0.0, 0.0, 0.0, 0, TIP_("Color"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
 	/* value */
@@ -1838,7 +1838,7 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop)
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
 	else {
-		bt = uiDefButR_prop(block, HSVCUBE, 0, "", PICKER_W + PICKER_SPACE, 0, PICKER_BAR, PICKER_H, ptr, prop, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "Value");
+		bt = uiDefButR_prop(block, HSVCUBE, 0, "", PICKER_W + PICKER_SPACE, 0, PICKER_BAR, PICKER_H, ptr, prop, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, TIP_("Value"));
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
 }
@@ -1850,11 +1850,11 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, in
 	int bartype = type + 3;
 	
 	/* HS square */
-	bt = uiDefButR_prop(block, HSVCUBE, 0, "",   0, PICKER_BAR + PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, prop, -1, 0.0, 0.0, type, 0, "Color");
+	bt = uiDefButR_prop(block, HSVCUBE, 0, "",   0, PICKER_BAR + PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, prop, -1, 0.0, 0.0, type, 0, TIP_("Color"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt = uiDefButR_prop(block, HSVCUBE, 0, "",       0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, prop, -1, 0.0, 0.0, bartype, 0, "Value");
+	bt = uiDefButR_prop(block, HSVCUBE, 0, "",       0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, prop, -1, 0.0, 0.0, bartype, 0, TIP_("Value"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 

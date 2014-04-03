@@ -2725,7 +2725,7 @@ static void node_template_properties_update(bNodeType *ntype)
 static void node_socket_undefined_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr),
                                        const char *UNUSED(text))
 {
-	uiItemL(layout, "Undefined Socket Type", ICON_ERROR);
+	uiItemL(layout, IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
 
 static void node_socket_undefined_draw_color(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PointerRNA *UNUSED(node_ptr), float *r_color)
@@ -2738,7 +2738,7 @@ static void node_socket_undefined_draw_color(bContext *UNUSED(C), PointerRNA *UN
 
 static void node_socket_undefined_interface_draw(bContext *UNUSED(C), uiLayout *layout, PointerRNA *UNUSED(ptr))
 {
-	uiItemL(layout, "Undefined Socket Type", ICON_ERROR);
+	uiItemL(layout, IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
 
 static void node_socket_undefined_interface_draw_color(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), float *r_color)
@@ -2944,8 +2944,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			row = uiLayoutRow(layout, true);
-			uiItemR(row, ptr, "min_value", 0, "Min", 0);
-			uiItemR(row, ptr, "max_value", 0, "Max", 0);
+			uiItemR(row, ptr, "min_value", 0, IFACE_("Min"), 0);
+			uiItemR(row, ptr, "max_value", 0, IFACE_("Max"), 0);
 			break;
 		}
 		case SOCK_INT:
@@ -2953,8 +2953,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
 			row = uiLayoutRow(layout, true);
-			uiItemR(row, ptr, "min_value", 0, "Min", 0);
-			uiItemR(row, ptr, "max_value", 0, "Max", 0);
+			uiItemR(row, ptr, "min_value", 0, IFACE_("Min"), 0);
+			uiItemR(row, ptr, "max_value", 0, IFACE_("Max"), 0);
 			break;
 		}
 		case SOCK_BOOLEAN:
@@ -2967,8 +2967,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiLayout *row;
 			uiItemR(layout, ptr, "default_value", UI_ITEM_R_EXPAND, NULL, 0);
 			row = uiLayoutRow(layout, true);
-			uiItemR(row, ptr, "min_value", 0, "Min", 0);
-			uiItemR(row, ptr, "max_value", 0, "Max", 0);
+			uiItemR(row, ptr, "min_value", 0, IFACE_("Min"), 0);
+			uiItemR(row, ptr, "max_value", 0, IFACE_("Max"), 0);
 			break;
 		}
 		case SOCK_RGBA:

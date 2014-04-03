@@ -1008,7 +1008,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	block = uiLayoutGetBlock(row);
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	but = uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag,
-	                       0, 0, 0, 0, IFACE_("Follow context or keep fixed datablock displayed"));
+	                       0, 0, 0, 0, TIP_("Follow context or keep fixed datablock displayed"));
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	uiButSetFunc(but, pin_cb, NULL, NULL);
 

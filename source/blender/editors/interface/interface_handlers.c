@@ -5598,7 +5598,9 @@ void ui_panel_menu(bContext *C, ARegion *ar, Panel *pa)
 	pup = uiPupMenuBegin(C, IFACE_("Panel"), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	if (UI_panel_category_is_visible(ar)) {
-		uiItemR(layout, &ptr, "use_pin", 0, "Pin" UI_SEP_CHAR_S "Shift+Left Mouse", ICON_NONE);
+		char tmpstr[80];
+		BLI_snprintf(tmpstr, sizeof(tmpstr), "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift+Left Mouse"));
+		uiItemR(layout, &ptr, "use_pin", 0, tmpstr, ICON_NONE);
 	}
 	uiPupMenuEnd(C, pup);
 }

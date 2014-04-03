@@ -426,109 +426,109 @@ static const char *sensor_name(int type)
 {
 	switch (type) {
 	case SENS_ALWAYS:
-		return "Always";
+		return N_("Always");
 	case SENS_NEAR:
-		return "Near";
+		return N_("Near");
 	case SENS_KEYBOARD:
-		return "Keyboard";
+		return N_("Keyboard");
 	case SENS_PROPERTY:
-		return "Property";
+		return N_("Property");
 	case SENS_ARMATURE:
-		return "Armature";
+		return N_("Armature");
 	case SENS_ACTUATOR:
-		return "Actuator";
+		return N_("Actuator");
 	case SENS_DELAY:
-		return "Delay";
+		return N_("Delay");
 	case SENS_MOUSE:
-		return "Mouse";
+		return N_("Mouse");
 	case SENS_COLLISION:
-		return "Collision";
+		return N_("Collision");
 	case SENS_RADAR:
-		return "Radar";
+		return N_("Radar");
 	case SENS_RANDOM:
-		return "Random";
+		return N_("Random");
 	case SENS_RAY:
-		return "Ray";
+		return N_("Ray");
 	case SENS_MESSAGE:
-		return "Message";
+		return N_("Message");
 	case SENS_JOYSTICK:
-		return "Joystick";
+		return N_("Joystick");
 	}
-	return "unknown";
+	return N_("unknown");
 }
 
 static const char *controller_name(int type)
 {
 	switch (type) {
 	case CONT_LOGIC_AND:
-		return "And";
+		return N_("And");
 	case CONT_LOGIC_OR:
-		return "Or";
+		return N_("Or");
 	case CONT_LOGIC_NAND:
-		return "Nand";
+		return N_("Nand");
 	case CONT_LOGIC_NOR:
-		return "Nor";
+		return N_("Nor");
 	case CONT_LOGIC_XOR:
-		return "Xor";
+		return N_("Xor");
 	case CONT_LOGIC_XNOR:
-		return "Xnor";
+		return N_("Xnor");
 	case CONT_EXPRESSION:
-		return "Expression";
+		return N_("Expression");
 	case CONT_PYTHON:
-		return "Python";
+		return N_("Python");
 	}
-	return "unknown";
+	return N_("unknown");
 }
 
 static const char *actuator_name(int type)
 {
 	switch (type) {
 	case ACT_SHAPEACTION:
-		return "Shape Action";
+		return N_("Shape Action");
 	case ACT_ACTION:
-		return "Action";
+		return N_("Action");
 	case ACT_OBJECT:
-		return "Motion";
+		return N_("Motion");
 	case ACT_IPO:
-		return "F-Curve";
+		return N_("F-Curve");
 	case ACT_LAMP:
-		return "Lamp";
+		return N_("Lamp");
 	case ACT_CAMERA:
-		return "Camera";
+		return N_("Camera");
 	case ACT_MATERIAL:
-		return "Material";
+		return N_("Material");
 	case ACT_SOUND:
-		return "Sound";
+		return N_("Sound");
 	case ACT_PROPERTY:
-		return "Property";
+		return N_("Property");
 	case ACT_EDIT_OBJECT:
-		return "Edit Object";
+		return N_("Edit Object");
 	case ACT_CONSTRAINT:
-		return "Constraint";
+		return N_("Constraint");
 	case ACT_SCENE:
-		return "Scene";
+		return N_("Scene");
 	case ACT_GROUP:
-		return "Group";
+		return N_("Group");
 	case ACT_RANDOM:
-		return "Random";
+		return N_("Random");
 	case ACT_MESSAGE:
-		return "Message";
+		return N_("Message");
 	case ACT_GAME:
-		return "Game";
+		return N_("Game");
 	case ACT_VISIBILITY:
-		return "Visibility";
+		return N_("Visibility");
 	case ACT_2DFILTER:
-		return "Filter 2D";
+		return N_("Filter 2D");
 	case ACT_PARENT:
-		return "Parent";
+		return N_("Parent");
 	case ACT_STATE:
-		return "State";
+		return N_("State");
 	case ACT_ARMATURE:
-		return "Armature";
+		return N_("Armature");
 	case ACT_STEERING:
-		return "Steering";
+		return N_("Steering");
 	}
-	return "unknown";
+	return N_("unknown");
 }
 
 static void set_sca_ob(Object *ob)
@@ -951,7 +951,7 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
 	}
 	else {
-		uiItemL(row, sensor_name(sens->type), ICON_NONE);
+		uiItemL(row, IFACE_(sensor_name(sens->type)), ICON_NONE);
 		uiItemL(row, sens->name, ICON_NONE);
 	}
 
@@ -1308,7 +1308,7 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 		uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, state, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, IFACE_("Set controller state index (from 1 to 30)"));
 	}
 	else {
-		uiItemL(row, controller_name(cont->type), ICON_NONE);
+		uiItemL(row, IFACE_(controller_name(cont->type)), ICON_NONE);
 		uiItemL(row, cont->name, ICON_NONE);
 		uiItemL(row, state, ICON_NONE);
 	}
@@ -1397,7 +1397,7 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
 	}
 	else {
-		uiItemL(row, actuator_name(act->type), ICON_NONE);
+		uiItemL(row, IFACE_(actuator_name(act->type)), ICON_NONE);
 		uiItemL(row, act->name, ICON_NONE);
 	}
 
