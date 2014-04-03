@@ -76,6 +76,10 @@ void wm_autosave_delete(void);
 void wm_autosave_read(bContext *C, struct ReportList *reports);
 void wm_autosave_location(char *filepath);
 
+/* init operator properties */
+void wm_open_init_load_ui(wmOperator *op, bool use_prefs);
+void wm_open_init_use_scripts(wmOperator *op, bool use_prefs);
+
 /* hack to store circle select size - campbell, must replace with nice operator memory */
 #define GESTURE_MEMORY
 

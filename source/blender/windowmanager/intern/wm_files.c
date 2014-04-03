@@ -1151,3 +1151,39 @@ void wm_autosave_read(bContext *C, ReportList *reports)
 	WM_file_read(C, filename, reports);
 }
 
+
+/** \name Initialize WM_OT_open_xxx properties
+ *
+ * Check if load_ui was set by the caller.
+ * Fall back to user preference when file flags not specified.
+ *
+ * \{ */
+
+void wm_open_init_load_ui(wmOperator *op, bool use_prefs)
+{
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "load_ui");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		bool value = use_prefs ?
+		             ((U.flag & USER_FILENOUI) == 0) :
+		             ((G.fileflags & G_FILE_NO_UI) == 0);
+
+		RNA_property_boolean_set(op->ptr, prop, value);
+	}
+}
+
+void wm_open_init_use_scripts(wmOperator *op, bool use_prefs)
+{
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		/* use G_SCRIPT_AUTOEXEC rather than the userpref because this means if
+		 * the flag has been disabled from the command line, then opening
+		 * from the menu wont enable this setting. */
+		bool value = use_prefs ?
+		             ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) :
+		             ((G.f & G_SCRIPT_AUTOEXEC) != 0);
+
+		RNA_property_boolean_set(op->ptr, prop, value);
+	}
+}
+
+/** \} */

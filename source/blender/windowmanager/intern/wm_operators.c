@@ -2188,30 +2188,6 @@ struct FileRuntime {
 	bool is_untrusted;
 };
 
-
-static void open_set_load_ui(wmOperator *op, bool use_prefs)
-{
-	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "load_ui");
-	if (!RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_boolean_set(op->ptr, prop, use_prefs ?
-		                         (U.flag & USER_FILENOUI) == 0 :
-		                         (G.fileflags & G_FILE_NO_UI) == 0);
-	}
-}
-
-static void open_set_use_scripts(wmOperator *op, bool use_prefs)
-{
-	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
-	if (!RNA_property_is_set(op->ptr, prop)) {
-		/* use G_SCRIPT_AUTOEXEC rather than the userpref because this means if
-		 * the flag has been disabled from the command line, then opening
-		 * from the menu wont enable this setting. */
-		RNA_property_boolean_set(op->ptr, prop, use_prefs ?
-		                         (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0 :
-		                         (G.f & G_SCRIPT_AUTOEXEC) != 0);
-	}
-}
-
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	const char *openname = G.main->name;
@@ -2231,8 +2207,8 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	}
 
 	RNA_string_set(op->ptr, "filepath", openname);
-	open_set_load_ui(op, true);
-	open_set_use_scripts(op, true);
+	wm_open_init_load_ui(op, true);
+	wm_open_init_use_scripts(op, true);
 	op->customdata = NULL;
 
 	WM_event_add_fileselect(C, op);
@@ -2248,8 +2224,8 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filepath);
 
 	/* re-use last loaded setting so we can reload a file without changing */
-	open_set_load_ui(op, false);
-	open_set_use_scripts(op, false);
+	wm_open_init_load_ui(op, false);
+	wm_open_init_use_scripts(op, false);
 
 	if (RNA_boolean_get(op->ptr, "load_ui"))
 		G.fileflags &= ~G_FILE_NO_UI;
