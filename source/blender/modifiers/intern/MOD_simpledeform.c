@@ -51,6 +51,8 @@
 
 #include "MOD_util.h"
 
+#define BEND_EPS 0.000001f
+
 /* Clamps/Limits the given coordinate to:  limits[0] <= co[axis] <= limits[1]
  * The amount of clamp is saved on dcut */
 static void axis_limit(int axis, const float limits[2], float co[3], float dcut[3])
@@ -122,15 +124,15 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float r_c
 	float x = r_co[0], y = r_co[1], z = r_co[2];
 	float theta, sint, cost;
 
+	BLI_assert(!(fabsf(factor) < BEND_EPS));
+
 	theta = x * factor;
 	sint = sinf(theta);
 	cost = cosf(theta);
 
-	if (fabsf(factor) > 1e-7f) {
-		r_co[0] = -(y - 1.0f / factor) * sint;
-		r_co[1] =  (y - 1.0f / factor) * cost + 1.0f / factor;
-		r_co[2] = z;
-	}
+	r_co[0] = -(y - 1.0f / factor) * sint;
+	r_co[1] =  (y - 1.0f / factor) * cost + 1.0f / factor;
+	r_co[2] = z;
 
 	{
 		r_co[0] += cost * dcut[0];
@@ -196,8 +198,6 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		smd_factor   = smd->factor / max_ff(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
 	}
 
-	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
-
 	switch (smd->mode) {
 		case MOD_SIMPLEDEFORM_MODE_TWIST:   simpleDeform_callback = simpleDeform_twist;     break;
 		case MOD_SIMPLEDEFORM_MODE_BEND:    simpleDeform_callback = simpleDeform_bend;      break;
@@ -206,6 +206,14 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		default:
 			return; /* No simpledeform mode? */
 	}
+
+	if (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) {
+		if (fabsf(smd_factor) < BEND_EPS) {
+			return;
+		}
+	}
+
+	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
 
 	for (i = 0; i < numVerts; i++) {
 		float weight = defvert_array_find_weight_safe(dvert, i, vgroup);
