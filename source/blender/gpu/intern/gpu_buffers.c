@@ -2082,6 +2082,8 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
 	}
 
+	copy_v4_v4(buffers->diffuse_color, diffuse_color);
+
 	/* Initialize vertex buffer */
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
