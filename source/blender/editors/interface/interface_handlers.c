@@ -7704,8 +7704,9 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
 	return retval;
 }
 
-static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockHandle *menu,
-                                int level, const bool is_parent_inside, const bool is_floating)
+static int ui_handle_menu_event(
+        bContext *C, const wmEvent *event, uiPopupBlockHandle *menu,
+        int level, const bool is_parent_inside, const bool is_parent_menu, const bool is_floating)
 {
 	ARegion *ar;
 	uiBlock *block;
@@ -8054,7 +8055,7 @@ static int ui_handle_menu_event(bContext *C, const wmEvent *event, uiPopupBlockH
 				if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) &&
 				    ELEM(event->val, KM_PRESS, KM_DBL_CLICK))
 				{
-					if ((level == 0) && (U.uiflag & USER_MENUOPENAUTO) == 0) {
+					if ((is_parent_menu == false) && (U.uiflag & USER_MENUOPENAUTO) == 0) {
 						/* for root menus, allow clicking to close */
 						if (block->flag & (UI_BLOCK_OUT_1))
 							menu->menuretval = UI_RETURN_OK;
@@ -8206,8 +8207,9 @@ static int ui_handle_menu_return_submenu(bContext *C, const wmEvent *event, uiPo
 		return WM_UI_HANDLER_BREAK;
 }
 
-static int ui_handle_menus_recursive(bContext *C, const wmEvent *event, uiPopupBlockHandle *menu,
-                                     int level, const bool is_parent_inside, const bool is_floating)
+static int ui_handle_menus_recursive(
+        bContext *C, const wmEvent *event, uiPopupBlockHandle *menu,
+        int level, const bool is_parent_inside, const bool is_parent_menu, const bool is_floating)
 {
 	uiBut *but;
 	uiHandleButtonData *data;
@@ -8221,11 +8223,12 @@ static int ui_handle_menus_recursive(bContext *C, const wmEvent *event, uiPopupB
 	submenu = (data) ? data->menu : NULL;
 
 	if (submenu) {
+		uiBlock *block = menu->region->uiblocks.first;
+		const bool is_menu = ui_block_is_menu(block);
 		bool inside = false;
 
 		if (is_parent_inside == false) {
 			int mx, my;
-			uiBlock *block = menu->region->uiblocks.first;
 
 			mx = event->x;
 			my = event->y;
@@ -8233,7 +8236,7 @@ static int ui_handle_menus_recursive(bContext *C, const wmEvent *event, uiPopupB
 			inside = BLI_rctf_isect_pt(&block->rect, mx, my);
 		}
 
-		retval = ui_handle_menus_recursive(C, event, submenu, level + 1, is_parent_inside || inside, false);
+		retval = ui_handle_menus_recursive(C, event, submenu, level + 1, is_parent_inside || inside, is_menu, false);
 	}
 
 	/* now handle events for our own menu */
@@ -8266,7 +8269,7 @@ static int ui_handle_menus_recursive(bContext *C, const wmEvent *event, uiPopupB
 			}
 		}
 		else {
-			retval = ui_handle_menu_event(C, event, menu, level, is_parent_inside, is_floating);
+			retval = ui_handle_menu_event(C, event, menu, level, is_parent_inside, is_parent_menu, is_floating);
 		}
 	}
 
@@ -8363,7 +8366,7 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
 			/* handle events for menus and their buttons recursively,
 			 * this will handle events from the top to the bottom menu */
 			if (data->menu)
-				retval = ui_handle_menus_recursive(C, event, data->menu, 0, false, false);
+				retval = ui_handle_menus_recursive(C, event, data->menu, 0, false, false, false);
 
 			/* handle events for the activated button */
 			if ((data->menu && (retval == WM_UI_HANDLER_CONTINUE)) ||
@@ -8409,7 +8412,7 @@ static int ui_handler_popup(bContext *C, const wmEvent *event, void *userdata)
 		retval = WM_UI_HANDLER_CONTINUE;
 	}
 
-	ui_handle_menus_recursive(C, event, menu, 0, false, true);
+	ui_handle_menus_recursive(C, event, menu, 0, false, false, true);
 
 	/* free if done, does not free handle itself */
 	if (menu->menuretval) {
