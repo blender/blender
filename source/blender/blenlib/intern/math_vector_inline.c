@@ -432,6 +432,31 @@ MINLINE void mul_v4_v4fl(float r[4], const float a[4], float f)
 	r[3] = a[3] * f;
 }
 
+/**
+ * Avoid doing:
+ *
+ * angle = atan2f(dvec[0], dvec[1]);
+ * angle_to_mat2(mat, angle);
+ *
+ * instead use a vector as a matrix.
+ */
+
+MINLINE void mul_v2_v2_cw(float r[2], const float mat[2], const float vec[2])
+{
+	BLI_assert(r != vec);
+
+	r[0] = mat[0] * vec[0] + (+mat[1]) * vec[1];
+	r[1] = mat[1] * vec[0] + (-mat[0]) * vec[1];
+}
+
+MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2])
+{
+	BLI_assert(r != vec);
+
+	r[0] = mat[0] * vec[0] + (-mat[1]) * vec[1];
+	r[1] = mat[1] * vec[0] + (+mat[0]) * vec[1];
+}
+
 /* note: could add a matrix inline */
 MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3])
 {
