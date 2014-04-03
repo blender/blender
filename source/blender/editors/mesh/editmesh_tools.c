@@ -3883,7 +3883,7 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 	/* Just to mark protected elements. */
 	char *pblock[3] = {NULL, NULL, NULL}, *pb;
 	BMElemSort *sblock[3] = {NULL, NULL, NULL}, *sb;
-	int *map[3] = {NULL, NULL, NULL}, *mp;
+	unsigned int *map[3] = {NULL, NULL, NULL}, *mp;
 	int totelem[3] = {0, 0, 0};
 	int affected[3] = {0, 0, 0};
 	int i, j;
@@ -4055,7 +4055,7 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 	}
 
 	else if (action == SRT_SELECTED) {
-		int *tbuf[3] = {NULL, NULL, NULL}, *tb;
+		unsigned int *tbuf[3] = {NULL, NULL, NULL}, *tb;
 
 		if (totelem[0]) {
 			tb = tbuf[0] = MEM_callocN(sizeof(int) * totelem[0], "sort_bmelem vert tbuf");

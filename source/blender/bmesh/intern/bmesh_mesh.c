@@ -899,7 +899,7 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
  *
  * WARNING: Be careful if you keep pointers to affected BM elements, or arrays, when using this func!
  */
-void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
+void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, unsigned int *face_idx)
 {
 	/* Mapping old to new pointers. */
 	GHash *vptr_map = NULL, *eptr_map = NULL, *fptr_map = NULL;
@@ -916,7 +916,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	if (vert_idx) {
 		BMVert **verts_pool, *verts_copy, **vep;
 		int i, totvert = bm->totvert;
-		int *new_idx = NULL;
+		unsigned int *new_idx = NULL;
 
 		/* Init the old-to-new vert pointers mapping */
 		vptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap vert pointers mapping", bm->totvert);
@@ -950,7 +950,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	if (edge_idx) {
 		BMEdge **edges_pool, *edges_copy, **edp;
 		int i, totedge = bm->totedge;
-		int *new_idx = NULL;
+		unsigned int *new_idx = NULL;
 
 		/* Init the old-to-new vert pointers mapping */
 		eptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap edge pointers mapping", bm->totedge);
@@ -983,7 +983,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	if (face_idx) {
 		BMFace **faces_pool, *faces_copy, **fap;
 		int i, totface = bm->totface;
-		int *new_idx = NULL;
+		unsigned int *new_idx = NULL;
 
 		/* Init the old-to-new vert pointers mapping */
 		fptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap face pointers mapping", bm->totface);

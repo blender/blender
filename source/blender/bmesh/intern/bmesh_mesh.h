@@ -67,7 +67,7 @@ BMFace *BM_face_at_index_find(BMesh *bm, const int index);
 
 int  BM_mesh_elem_count(BMesh *bm, const char htype);
 
-void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx);
+void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, unsigned int *face_idx);
 
 typedef struct BMAllocTemplate {
 	int totvert, totedge, totloop, totface;

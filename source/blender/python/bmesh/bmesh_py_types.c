@@ -2336,12 +2336,12 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 	BMElem *ele;
 
 	int *elem_idx;
-	int *elem_map_idx;
+	unsigned int *elem_map_idx;
 	int (*elem_idx_compare_by_keys)(const void *, const void *);
 
-	int *vert_idx = NULL;
-	int *edge_idx = NULL;
-	int *face_idx = NULL;
+	unsigned int *vert_idx = NULL;
+	unsigned int *edge_idx = NULL;
+	unsigned int *face_idx = NULL;
 	int i;
 
 	BMesh *bm = self->bm;
