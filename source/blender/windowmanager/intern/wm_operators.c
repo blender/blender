@@ -2146,6 +2146,11 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	                                "Path to an alternative start-up file");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
+	/* So scripts can use an alternative start-up file without the UI */
+	prop = RNA_def_boolean(ot->srna, "load_ui", true, "Load UI",
+	                       "Load user interface setup from the .blend file");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
 	/* ommit poll to run in background mode */
 }
 

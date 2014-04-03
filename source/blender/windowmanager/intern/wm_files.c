@@ -576,9 +576,6 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 		}
 	}
 	
-	/* prevent loading no UI */
-	G.fileflags &= ~G_FILE_NO_UI;
-	
 	/* put aside screens to match with persistent windows later */
 	wm_window_match_init(C, &wmbase);
 	
@@ -687,6 +684,12 @@ int wm_homefile_read_exec(bContext *C, wmOperator *op)
 
 	if (!from_memory) {
 		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
+
+		/* This can be used when loading of a start-up file should only change
+		 * the scene content but keep the blender UI as it is. */
+		wm_open_init_load_ui(op, true);
+		BKE_BIT_TEST_SET(G.fileflags, !RNA_boolean_get(op->ptr, "load_ui"), G_FILE_NO_UI);
+
 		if (RNA_property_is_set(op->ptr, prop)) {
 			RNA_property_string_get(op->ptr, prop, filepath_buf);
 			filepath = filepath_buf;
