@@ -817,17 +817,30 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
                                      BMVert *v2, GHash *deleted_verts,
                                      BLI_Buffer *edge_loops,
-                                     BLI_Buffer *deleted_faces)
+                                     BLI_Buffer *deleted_faces,
+                                     int cd_vert_mask_offset)
 {
 	BMIter bm_iter;
 	BMFace *f;
+	BMVert *v_del, *v_conn;
 	int i;
+	float mask_v1 = BM_ELEM_CD_GET_FLOAT(v1, cd_vert_mask_offset);
+
+	/* one of the two vertices may be masked, select the correct one for deletion */
+	if (mask_v1 < 1.0) {
+		v_del = v1;
+		v_conn = v2;
+	}
+	else {
+		v_del = v2;
+		v_conn = v1;
+	}
 
 	/* Get all faces adjacent to the edge */
 	pbvh_bmesh_edge_loops(edge_loops, e);
 
 	/* Remove the merge vertex from the PBVH */
-	pbvh_bmesh_vert_remove(bvh, v2);
+	pbvh_bmesh_vert_remove(bvh, v_del);
 
 	/* Remove all faces adjacent to the edge */
 	for (i = 0; i < edge_loops->count; i++) {
@@ -842,24 +855,24 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	BLI_assert(BM_edge_face_count(e) == 0);
 	BM_edge_kill(bvh->bm, e);
 
-	/* For all remaining faces of v2, create a new face that is the
-	 * same except it uses v1 instead of v2 */
+	/* For all remaining faces of v_del, create a new face that is the
+	 * same except it uses v_conn instead of v_del */
 	/* Note: this could be done with BM_vert_splice(), but that
 	 * requires handling other issues like duplicate edges, so doesn't
 	 * really buy anything. */
 	deleted_faces->count = 0;
-	BM_ITER_ELEM (f, &bm_iter, v2, BM_FACES_OF_VERT) {
+	BM_ITER_ELEM (f, &bm_iter, v_del, BM_FACES_OF_VERT) {
 		BMVert *v_tri[3];
 		BMFace *existing_face;
 		PBVHNode *n;
 		int ni;
 
-		/* Get vertices, replace use of v2 with v1 */
+		/* Get vertices, replace use of v_del with v_conn */
 		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
 		BM_face_as_array_vert_tri(f, v_tri);
 		for (i = 0; i < 3; i++) {
-			if (v_tri[i] == v2) {
-				v_tri[i] = v1;
+			if (v_tri[i] == v_del) {
+				v_tri[i] = v_conn;
 			}
 		}
 
@@ -878,11 +891,11 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 			bm_edges_from_tri(bvh->bm, v_tri, e_tri);
 			pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f);
 
-			/* Ensure that v1 is in the new face's node */
-			if (!BLI_gset_haskey(n->bm_unique_verts, v1) &&
-			    !BLI_gset_haskey(n->bm_other_verts,  v1))
+			/* Ensure that v_conn is in the new face's node */
+			if (!BLI_gset_haskey(n->bm_unique_verts, v_conn) &&
+			    !BLI_gset_haskey(n->bm_other_verts,  v_conn))
 			{
-				BLI_gset_insert(n->bm_other_verts, v1);
+				BLI_gset_insert(n->bm_other_verts, v_conn);
 			}
 		}
 
@@ -907,7 +920,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		/* Check if any of the face's vertices are now unused, if so
 		 * remove them from the PBVH */
 		for (j = 0; j < 3; j++) {
-			if (v_tri[j] != v2 && BM_vert_face_count(v_tri[j]) == 1) {
+			if (v_tri[j] != v_del && BM_vert_face_count(v_tri[j]) == 1) {
 				BLI_ghash_insert(deleted_verts, v_tri[j], NULL);
 				pbvh_bmesh_vert_remove(bvh, v_tri[j]);
 			}
@@ -936,18 +949,18 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		}
 	}
 
-	/* Move v1 to the midpoint of v1 and v2 (if v1 still exists, it
+	/* Move v_conn to the midpoint of v_conn and v_del (if v_conn still exists, it
 	 * may have been deleted above) */
-	if (!BLI_ghash_haskey(deleted_verts, v1)) {
-		BM_log_vert_before_modified(bvh->bm, bvh->bm_log, v1);
-		mid_v3_v3v3(v1->co, v1->co, v2->co);
+	if (!BLI_ghash_haskey(deleted_verts, v_conn)) {
+		BM_log_vert_before_modified(bvh->bm, bvh->bm_log, v_conn);
+		mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
 	}
 
-	/* Delete v2 */
-	BLI_assert(BM_vert_face_count(v2) == 0);
-	BLI_ghash_insert(deleted_verts, v2, NULL);
-	BM_log_vert_removed(bvh->bm, bvh->bm_log, v2);
-	BM_vert_kill(bvh->bm, v2);
+	/* Delete v_del */
+	BLI_assert(BM_vert_face_count(v_del) == 0);
+	BLI_ghash_insert(deleted_verts, v_del, NULL);
+	BM_log_vert_removed(bvh->bm, bvh->bm_log, v_del);
+	BM_vert_kill(bvh->bm, v_del);
 }
 
 static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
@@ -996,7 +1009,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
 		pbvh_bmesh_collapse_edge(bvh, e, v1, v2,
 		                         deleted_verts, edge_loops,
-		                         deleted_faces);
+		                         deleted_faces, eq_ctx->cd_vert_mask_offset);
 	}
 
 	BLI_ghash_free(deleted_verts, NULL, NULL);
