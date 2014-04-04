@@ -4086,7 +4086,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->clmd->point_cache = psys->pointcache;
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
-	deformedVerts = MEM_callocN(sizeof(*deformedVerts)*dm->getNumVerts(dm), "do_hair_dynamics vertexCos");
+	deformedVerts = MEM_mallocN(sizeof(*deformedVerts) * dm->getNumVerts(dm), "do_hair_dynamics vertexCos");
 	psys->hair_out_dm = CDDM_copy(dm);
 	psys->hair_out_dm->getVertCos(psys->hair_out_dm, deformedVerts);
 

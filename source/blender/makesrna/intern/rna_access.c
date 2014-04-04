@@ -5733,7 +5733,7 @@ void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, const void *valu
 			size *= data_alloc->array_tot;
 			if (data_alloc->array)
 				MEM_freeN(data_alloc->array);
-			data_alloc->array = MEM_mallocN(size, AT);
+			data_alloc->array = MEM_mallocN(size, __func__);
 			memcpy(data_alloc->array, value, size);
 		}
 		else {

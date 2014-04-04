@@ -970,7 +970,7 @@ static void add_orco_dm(Object *ob, BMEditMesh *em, DerivedMesh *dm,
 	totvert = dm->getNumVerts(dm);
 
 	if (orcodm) {
-		orco = MEM_callocN(sizeof(float) * 3 * totvert, "dm orco");
+		orco = MEM_callocN(sizeof(float[3]) * totvert, "dm orco");
 		free = 1;
 
 		if (orcodm->getNumVerts(orcodm) == totvert)

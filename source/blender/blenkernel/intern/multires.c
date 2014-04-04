@@ -439,7 +439,7 @@ int multiresModifier_reshapeFromDeformMod(Scene *scene, MultiresModifierData *mm
 	/* Create DerivedMesh for deformation modifier */
 	dm = get_multires_dm(scene, mmd, ob);
 	numVerts = dm->getNumVerts(dm);
-	deformedVerts = MEM_callocN(sizeof(float) * numVerts * 3, "multiresReshape_deformVerts");
+	deformedVerts = MEM_mallocN(sizeof(float[3]) * numVerts, "multiresReshape_deformVerts");
 
 	dm->getVertCos(dm, deformedVerts);
 	mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0);

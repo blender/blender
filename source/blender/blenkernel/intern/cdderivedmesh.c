@@ -301,7 +301,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 			int totvert;
 
 			totvert = deformdm->getNumVerts(deformdm);
-			vertCos = MEM_callocN(3 * totvert * sizeof(float), "cdDM_getPBVH vertCos");
+			vertCos = MEM_mallocN(totvert * sizeof(float[3]), "cdDM_getPBVH vertCos");
 			deformdm->getVertCos(deformdm, vertCos);
 			BKE_pbvh_apply_vertCos(cddm->pbvh, vertCos);
 			MEM_freeN(vertCos);

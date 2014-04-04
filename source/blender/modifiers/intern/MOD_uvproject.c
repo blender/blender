@@ -232,7 +232,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 	numVerts = dm->getNumVerts(dm);
 
-	coords = MEM_callocN(sizeof(*coords) * numVerts,
+	coords = MEM_mallocN(sizeof(*coords) * numVerts,
 	                     "uvprojectModifier_do coords");
 	dm->getVertCos(dm, coords);
 

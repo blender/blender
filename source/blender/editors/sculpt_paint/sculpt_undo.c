@@ -712,7 +712,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
 	PBVHVertexIter vd;
 
 	if (!lb->first) {
-		unode = MEM_callocN(sizeof(*unode), AT);
+		unode = MEM_callocN(sizeof(*unode), __func__);
 
 		BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
 		unode->type = type;

@@ -123,7 +123,7 @@ int buildRawVertIndicesData(DerivedMesh *dm, int *nverts_r, float **verts_r,
 		printf("Converting navmesh: Error! Too many vertices. Max number of vertices %d\n", 0xffff);
 		return 0;
 	}
-	verts = MEM_callocN(sizeof(float) * 3 * nverts, "buildRawVertIndicesData verts");
+	verts = MEM_mallocN(sizeof(float[3]) * nverts, "buildRawVertIndicesData verts");
 	dm->getVertCos(dm, (float(*)[3])verts);
 
 	/* flip coordinates */

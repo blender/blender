@@ -1247,8 +1247,8 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 
 	tottri = BLI_ghash_size(node->bm_faces);
 
-	node->bm_orco = MEM_mallocN(sizeof(*node->bm_orco) * totvert, AT);
-	node->bm_ortri = MEM_mallocN(sizeof(*node->bm_ortri) * tottri, AT);
+	node->bm_orco = MEM_mallocN(sizeof(*node->bm_orco) * totvert, __func__);
+	node->bm_ortri = MEM_mallocN(sizeof(*node->bm_ortri) * tottri, __func__);
 
 	/* Copy out the vertices and assign a temporary index */
 	i = 0;

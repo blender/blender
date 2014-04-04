@@ -262,7 +262,7 @@ static void meshdeformModifier_do(
 		return;
 	}
 
-	cagecos = MEM_callocN(sizeof(*cagecos) * totcagevert, "meshdeformModifier vertCos");
+	cagecos = MEM_mallocN(sizeof(*cagecos) * totcagevert, "meshdeformModifier vertCos");
 
 	/* setup deformation data */
 	cagedm->getVertCos(cagedm, cagecos);

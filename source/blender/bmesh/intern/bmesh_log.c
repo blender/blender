@@ -365,13 +365,13 @@ static void bm_log_assign_ids(BMesh *bm, BMLog *log)
 /* Allocate an empty log entry */
 static BMLogEntry *bm_log_entry_create(void)
 {
-	BMLogEntry *entry = MEM_callocN(sizeof(BMLogEntry), AT);
+	BMLogEntry *entry = MEM_callocN(sizeof(BMLogEntry), __func__);
 
-	entry->deleted_verts = BLI_ghash_ptr_new(AT);
-	entry->deleted_faces = BLI_ghash_ptr_new(AT);
-	entry->added_verts = BLI_ghash_ptr_new(AT);
-	entry->added_faces = BLI_ghash_ptr_new(AT);
-	entry->modified_verts = BLI_ghash_ptr_new(AT);
+	entry->deleted_verts = BLI_ghash_ptr_new(__func__);
+	entry->deleted_faces = BLI_ghash_ptr_new(__func__);
+	entry->added_verts = BLI_ghash_ptr_new(__func__);
+	entry->added_faces = BLI_ghash_ptr_new(__func__);
+	entry->modified_verts = BLI_ghash_ptr_new(__func__);
 
 	entry->pool_verts = BLI_mempool_create(sizeof(BMLogVert), 1, 64, 0);
 	entry->pool_faces = BLI_mempool_create(sizeof(BMLogFace), 1, 64, 0);
@@ -425,7 +425,7 @@ static int uint_compare(const void *a_v, const void *b_v)
  */
 static GHash *bm_log_compress_ids_to_indices(unsigned int *ids, unsigned int totid)
 {
-	GHash *map = BLI_ghash_int_new_ex(AT, totid);
+	GHash *map = BLI_ghash_int_new_ex(__func__, totid);
 	unsigned int i;
 
 	qsort(ids, totid, sizeof(*ids), uint_compare);
@@ -456,11 +456,11 @@ static void bm_log_id_ghash_release(BMLog *log, GHash *id_ghash)
 /* Allocate, initialize, and assign a new BMLog */
 BMLog *BM_log_create(BMesh *bm)
 {
-	BMLog *log = MEM_callocN(sizeof(*log), AT);
+	BMLog *log = MEM_callocN(sizeof(*log), __func__);
 
 	log->unused_ids = range_tree_uint_alloc(0, (unsigned)-1);
-	log->id_to_elem = BLI_ghash_ptr_new_ex(AT, (unsigned int)(bm->totvert + bm->totface));
-	log->elem_to_id = BLI_ghash_ptr_new_ex(AT, (unsigned int)(bm->totvert + bm->totface));
+	log->id_to_elem = BLI_ghash_ptr_new_ex(__func__, (unsigned int)(bm->totvert + bm->totface));
+	log->elem_to_id = BLI_ghash_ptr_new_ex(__func__, (unsigned int)(bm->totvert + bm->totface));
 
 	/* Assign IDs to all existing vertices and faces */
 	bm_log_assign_ids(bm, log);
@@ -558,14 +558,14 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 
 	/* Put all vertex IDs into an array */
 	i = 0;
-	varr = MEM_mallocN(sizeof(int) * (size_t)bm->totvert, AT);
+	varr = MEM_mallocN(sizeof(int) * (size_t)bm->totvert, __func__);
 	BM_ITER_MESH (v, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		((unsigned int *)varr)[i++] = bm_log_vert_id_get(log, v);
 	}
 
 	/* Put all face IDs into an array */
 	i = 0;
-	farr = MEM_mallocN(sizeof(int) * (size_t)bm->totface, AT);
+	farr = MEM_mallocN(sizeof(int) * (size_t)bm->totface, __func__);
 	BM_ITER_MESH (f, &bm_iter, bm, BM_FACES_OF_MESH) {
 		((unsigned int *)farr)[i++] = bm_log_face_id_get(log, f);
 	}
