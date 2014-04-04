@@ -462,30 +462,38 @@ enum {
 };
 
 typedef struct SlidePointData {
+	/* Generic fields. */
 	int action;
-
-	float prev_mouse_coord[2];
-	float prev_handle_coord[2];
-	float prev_feather_coord[2];
-
-	float co[2];
-	float vec[3][3];
-	char old_h1, old_h2;
-
 	Mask *mask;
 	MaskLayer *masklay;
 	MaskSpline *spline, *orig_spline;
 	MaskSplinePoint *point;
 	MaskSplinePointUW *uw;
 	eMaskWhichHandle which_handle;
-	float handle[2], no[2], feather[2];
 	int width, height;
-	float weight, weight_scalar;
 
-	bool curvature_only, accurate;
-	bool initial_feather, overall_feather;
+	float prev_mouse_coord[2];
+	float no[2];
+
+	bool is_curvature_only,
+	     is_accurate,
+	     is_initial_feather,
+	     is_overall_feather;
 
 	bool is_sliding_new_point;
+
+	/* Data needed to restre the state. */
+	float vec[3][3];
+	char old_h1, old_h2;
+
+	/* Point sliding. */
+
+	/* Handle sliding. */
+	float orig_handle_coord[2], prev_handle_coord[2];
+
+	/* Feather sliding. */
+	float prev_feather_coord[2];
+	float weight, weight_scalar;
 } SlidePointData;
 
 static bool slide_point_check_initial_feather(MaskSpline *spline)
@@ -628,7 +636,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 			BKE_mask_point_segment_co(spline, point, uw->u, co_uw);
 			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
-			madd_v2_v2v2fl(customdata->feather, co_uw, customdata->no, uw->w * weight_scalar);
+			madd_v2_v2v2fl(customdata->prev_feather_coord, co_uw, customdata->no, uw->w * weight_scalar);
 		}
 		else {
 			BezTriple *bezt = &point->bezt;
@@ -637,22 +645,21 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 			customdata->weight_scalar = 1.0f;
 			BKE_mask_point_normal(spline, point, 0.0f, customdata->no);
 
-			madd_v2_v2v2fl(customdata->feather, bezt->vec[1], customdata->no, bezt->weight);
+			madd_v2_v2v2fl(customdata->prev_feather_coord, bezt->vec[1], customdata->no, bezt->weight);
 		}
 
-		if (customdata->action == SLIDE_ACTION_FEATHER)
-			customdata->initial_feather = slide_point_check_initial_feather(spline);
+		if (customdata->action == SLIDE_ACTION_FEATHER) {
+			customdata->is_initial_feather = slide_point_check_initial_feather(spline);
+		}
 
 		copy_m3_m3(customdata->vec, point->bezt.vec);
 		if (which_handle != MASK_WHICH_HANDLE_NONE) {
-			BKE_mask_point_handle(point, which_handle, customdata->handle);
-			copy_v2_v2(customdata->prev_handle_coord, customdata->handle);
+			BKE_mask_point_handle(point, which_handle, customdata->orig_handle_coord);
+			copy_v2_v2(customdata->prev_handle_coord, customdata->orig_handle_coord);
 		}
 		customdata->which_handle = which_handle;
-		ED_mask_mouse_pos(sa, ar, event->mval, customdata->co);
 
-		copy_v2_v2(customdata->prev_mouse_coord, customdata->co);
-		copy_v2_v2(customdata->prev_feather_coord, customdata->feather);
+		ED_mask_mouse_pos(sa, ar, event->mval, customdata->prev_mouse_coord);
 	}
 
 	return customdata;
@@ -758,14 +765,16 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			if (ELEM(event->type, LEFTALTKEY, RIGHTALTKEY)) {
-				if (data->action == SLIDE_ACTION_FEATHER)
-					data->overall_feather = (event->val == KM_PRESS);
-				else
-					data->curvature_only = (event->val == KM_PRESS);
+				if (data->action == SLIDE_ACTION_FEATHER) {
+					data->is_overall_feather = (event->val == KM_PRESS);
+				}
+				else {
+					data->is_curvature_only = (event->val == KM_PRESS);
+				}
 			}
 
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
-				data->accurate = (event->val == KM_PRESS);
+				data->is_accurate = (event->val == KM_PRESS);
 
 			/* fall-through */  /* update CV position */
 		case MOUSEMOVE:
@@ -776,7 +785,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 			ED_mask_mouse_pos(sa, ar, event->mval, co);
 			sub_v2_v2v2(delta, co, data->prev_mouse_coord);
-			if (data->accurate) {
+			if (data->is_accurate) {
 				mul_v2_fl(delta, 0.2f);
 			}
 			copy_v2_v2(data->prev_mouse_coord, co);
@@ -801,8 +810,8 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				add_v2_v2v2(new_handle, data->prev_handle_coord, delta);
 
 				BKE_mask_point_set_handle(data->point, data->which_handle,
-				                          new_handle, data->curvature_only,
-				                          data->handle, data->vec);
+				                          new_handle, data->is_curvature_only,
+				                          data->orig_handle_coord, data->vec);
 				BKE_mask_point_handle(data->point, data->which_handle, data->prev_handle_coord);
 
 				if (data->is_sliding_new_point) {
@@ -826,7 +835,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				float vec[2], no[2], p[2], c[2], w, offco[2];
 				float *weight = NULL;
 				float weight_scalar = 1.0f;
-				bool overall_feather = data->overall_feather || data->initial_feather;
+				bool is_overall_feather = data->is_overall_feather || data->is_initial_feather;
 
 				add_v2_v2v2(offco, data->prev_feather_coord, delta);
 
@@ -882,7 +891,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 					w = len_v2(vec);
 
-					if (overall_feather) {
+					if (is_overall_feather) {
 						float delta;
 
 						if (dot_v2v2(no, vec) <= 0.0f)
@@ -899,7 +908,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 							data->orig_spline = BKE_mask_spline_copy(data->spline);
 						}
 
-						if (data->initial_feather) {
+						if (data->is_initial_feather) {
 							*weight = w * weight_scalar;
 						}
 
