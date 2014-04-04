@@ -305,6 +305,7 @@ DagForest *dag_init(void)
 	DagForest *forest;
 	/* use callocN to init all zero */
 	forest = MEM_callocN(sizeof(DagForest), "DAG root");
+	forest->ugly_hack_sorry = true;
 	return forest;
 }
 
@@ -995,7 +996,6 @@ DagNode *dag_find_node(DagForest *forest, void *fob)
 	return NULL;
 }
 
-static int ugly_hack_sorry = 1;         /* prevent type check */
 static int dag_print_dependencies = 0;  /* debugging */
 
 /* no checking of existence, use dag_find_node first or dag_get_node */
@@ -1008,7 +1008,7 @@ DagNode *dag_add_node(DagForest *forest, void *fob)
 		node->ob = fob;
 		node->color = DAG_WHITE;
 
-		if (ugly_hack_sorry) node->type = GS(((ID *) fob)->name);  /* sorry, done for pose sorting */
+		if (forest->ugly_hack_sorry) node->type = GS(((ID *) fob)->name);  /* sorry, done for pose sorting */
 		if (forest->numNodes) {
 			((DagNode *) forest->DagNode.last)->next = node;
 			forest->DagNode.last = node;
@@ -1116,28 +1116,28 @@ void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel
 	fob1->child = itA;
 }
 
-static const char *dag_node_name(DagNode *node)
+static const char *dag_node_name(DagForest *dag, DagNode *node)
 {
 	if (node->ob == NULL)
 		return "null";
-	else if (ugly_hack_sorry)
+	else if (dag->ugly_hack_sorry)
 		return ((ID *)(node->ob))->name + 2;
 	else
 		return ((bPoseChannel *)(node->ob))->name;
 }
 
-static void dag_node_print_dependencies(DagNode *node)
+static void dag_node_print_dependencies(DagForest *dag, DagNode *node)
 {
 	DagAdjList *itA;
 
-	printf("%s depends on:\n", dag_node_name(node));
+	printf("%s depends on:\n", dag_node_name(dag, node));
 
 	for (itA = node->parent; itA; itA = itA->next)
-		printf("  %s through %s\n", dag_node_name(itA->node), itA->name);
+		printf("  %s through %s\n", dag_node_name(dag, itA->node), itA->name);
 	printf("\n");
 }
 
-static int dag_node_print_dependency_recurs(DagNode *node, DagNode *endnode)
+static int dag_node_print_dependency_recurs(DagForest *dag, DagNode *node, DagNode *endnode)
 {
 	DagAdjList *itA;
 
@@ -1150,8 +1150,8 @@ static int dag_node_print_dependency_recurs(DagNode *node, DagNode *endnode)
 		return 1;
 
 	for (itA = node->parent; itA; itA = itA->next) {
-		if (dag_node_print_dependency_recurs(itA->node, endnode)) {
-			printf("  %s depends on %s through %s.\n", dag_node_name(node), dag_node_name(itA->node), itA->name);
+		if (dag_node_print_dependency_recurs(dag, itA->node, endnode)) {
+			printf("  %s depends on %s through %s.\n", dag_node_name(dag, node), dag_node_name(dag, itA->node), itA->name);
 			return 1;
 		}
 	}
@@ -1166,8 +1166,8 @@ static void dag_node_print_dependency_cycle(DagForest *dag, DagNode *startnode, 
 	for (node = dag->DagNode.first; node; node = node->next)
 		node->color = DAG_WHITE;
 
-	printf("  %s depends on %s through %s.\n", dag_node_name(endnode), dag_node_name(startnode), name);
-	dag_node_print_dependency_recurs(startnode, endnode);
+	printf("  %s depends on %s through %s.\n", dag_node_name(dag, endnode), dag_node_name(dag, startnode), name);
+	dag_node_print_dependency_recurs(dag, startnode, endnode);
 	printf("\n");
 }
 
@@ -1201,7 +1201,7 @@ static void dag_check_cycle(DagForest *dag)
 	/* debugging print */
 	if (dag_print_dependencies)
 		for (node = dag->DagNode.first; node; node = node->next)
-			dag_node_print_dependencies(node);
+			dag_node_print_dependencies(dag, node);
 
 	/* tag nodes unchecked */
 	for (node = dag->DagNode.first; node; node = node->next)
@@ -2838,7 +2838,7 @@ void DAG_pose_sort(Object *ob)
 	int skip = 0;
 	
 	dag = dag_init();
-	ugly_hack_sorry = 0;  /* no ID structs */
+	dag->ugly_hack_sorry = false;  /* no ID structs */
 
 	rootnode = dag_add_node(dag, NULL);  /* node->ob becomes NULL */
 	
@@ -2965,8 +2965,6 @@ void DAG_pose_sort(Object *ob)
 	
 	free_forest(dag);
 	MEM_freeN(dag);
-	
-	ugly_hack_sorry = 1;
 }
 
 /* ************************  DAG FOR THREADED UPDATE  ********************* */
@@ -3085,14 +3083,14 @@ Object *DAG_get_node_object(void *node_v)
 }
 
 /* Returns node name, used for debug output only, atm. */
-const char *DAG_get_node_name(void *node_v)
+const char *DAG_get_node_name(Scene *scene, void *node_v)
 {
 	DagNode *node = node_v;
 
-	return dag_node_name(node);
+	return dag_node_name(scene->theDag, node);
 }
 
-short DAG_get_eval_flags_for_object(struct Scene *scene, void *object)
+short DAG_get_eval_flags_for_object(Scene *scene, void *object)
 {
 	DagNode *node;
 

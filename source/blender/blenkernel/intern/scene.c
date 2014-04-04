@@ -1340,7 +1340,7 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 	}
 	else {
 		PRINT("Threda %d: update node %s\n", threadid,
-		      DAG_get_node_name(node));
+		      DAG_get_node_name(scene, node));
 	}
 
 	/* Update will decrease child's valency and schedule child with zero valency. */
