@@ -143,7 +143,7 @@ namespace Functions0D {
 
 // GetXF0D
 /*! Returns the X 3D coordinate of an Interface0D. */
-class LIB_VIEW_MAP_EXPORT GetXF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT GetXF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "GetXF0D" */
@@ -162,7 +162,7 @@ public:
 
 // GetYF0D
 /*! Returns the Y 3D coordinate of an Interface0D. */
-class LIB_VIEW_MAP_EXPORT GetYF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT GetYF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "GetYF0D" */
@@ -181,7 +181,7 @@ public:
 
 // GetZF0D
 /*! Returns the Z 3D coordinate of an Interface0D. */
-class LIB_VIEW_MAP_EXPORT GetZF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT GetZF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "GetZF0D" */
@@ -200,7 +200,7 @@ public:
 
 // GetProjectedXF0D
 /*! Returns the X 3D projected coordinate of an Interface0D. */
-class LIB_VIEW_MAP_EXPORT GetProjectedXF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT GetProjectedXF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "GetProjectedXF0D" */
@@ -219,7 +219,7 @@ public:
 
 // GetProjectedYF0D
 /*! Returns the Y projected 3D coordinate of an Interface0D. */
-class LIB_VIEW_MAP_EXPORT GetProjectedYF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT GetProjectedYF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "GetProjectedYF0D" */
@@ -238,7 +238,7 @@ public:
 
 // GetProjectedZF0D
 /*! Returns the Z projected 3D coordinate of an Interface0D. */
-class LIB_VIEW_MAP_EXPORT GetProjectedZF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT GetProjectedZF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "GetProjectedZF0D" */
@@ -331,7 +331,7 @@ public:
 /*! Returns a real giving the 2D curvature (as an angle) of the 1D element to which the Interface0DIterator&
  *  belongs to and evaluated at the Interface0D pointed by this Interface0DIterator&.
  */
-class LIB_VIEW_MAP_EXPORT Curvature2DAngleF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT Curvature2DAngleF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "Curvature2DAngleF0D" */
@@ -349,7 +349,7 @@ public:
  *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no object is occluded
  *  by the shape to which the Interface0D belongs to, 1 is returned.
  */
-class LIB_VIEW_MAP_EXPORT ZDiscontinuityF0D : public UnaryFunction0D<real>
+class LIB_VIEW_MAP_EXPORT ZDiscontinuityF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Returns the string "ZDiscontinuityF0D" */
