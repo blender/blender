@@ -121,10 +121,14 @@ struct BLI_mempool {
 
 /**
  * \return the number of chunks to allocate based on how many elements are needed.
+ *
+ * \note for small pools 1 is a good default, the elements need to be initialized,
+ * adding overhead on creation which is redundant if they aren't used.
+ *
  */
 BLI_INLINE unsigned int mempool_maxchunks(const unsigned int totelem, const unsigned int pchunk)
 {
-	return totelem / pchunk + 1;
+	return (totelem <= pchunk) ? 1 : ((totelem / pchunk) + 1);
 }
 
 static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
