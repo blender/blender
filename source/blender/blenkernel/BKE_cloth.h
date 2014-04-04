@@ -80,7 +80,7 @@ typedef struct Cloth {
 	struct MFace 		*mfaces;
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
-	struct EdgeHash 	*edgehash; 		/* used for selfcollisions (currently used as a 'set', value is ignored) */
+	struct EdgeSet	 	*edgeset; 		/* used for selfcollisions */
 	int last_frame, pad4;
 } Cloth;
 

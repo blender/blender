@@ -621,8 +621,8 @@ void cloth_free_modifier(ClothModifierData *clmd )
 		if ( cloth->mfaces )
 			MEM_freeN ( cloth->mfaces );
 		
-		if (cloth->edgehash)
-			BLI_edgehash_free ( cloth->edgehash, NULL );
+		if (cloth->edgeset)
+			BLI_edgeset_free(cloth->edgeset);
 		
 		
 		/*
@@ -690,8 +690,8 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 		if ( cloth->mfaces )
 			MEM_freeN ( cloth->mfaces );
 
-		if (cloth->edgehash)
-			BLI_edgehash_free ( cloth->edgehash, NULL );
+		if (cloth->edgeset)
+			BLI_edgeset_free(cloth->edgeset);
 
 
 		/*
@@ -854,7 +854,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		clmd->clothObject->old_solver_type = 255;
 		// clmd->clothObject->old_collision_type = 255;
 		cloth = clmd->clothObject;
-		clmd->clothObject->edgehash = NULL;
+		clmd->clothObject->edgeset = NULL;
 	}
 	else if (!clmd->clothObject) {
 		modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject");
@@ -1062,9 +1062,9 @@ static void cloth_free_errorsprings(Cloth *cloth,  LinkNode **edgelist)
 
 	cloth_free_edgelist(edgelist, cloth->numverts);
 	
-	if (cloth->edgehash) {
-		BLI_edgehash_free(cloth->edgehash, NULL);
-		cloth->edgehash = NULL;
+	if (cloth->edgeset) {
+		BLI_edgeset_free(cloth->edgeset);
+		cloth->edgeset = NULL;
 	}
 }
 
@@ -1123,20 +1123,20 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	MFace *mface = dm->getTessFaceArray (dm);
 	int index2 = 0; // our second vertex index
 	LinkNode **edgelist = NULL;
-	EdgeHash *edgehash = NULL;
+	EdgeSet *edgeset = NULL;
 	LinkNode *search = NULL, *search2 = NULL;
 	
 	// error handling
 	if ( numedges==0 )
 		return 0;
 
-	/* NOTE: handling ownership of springs and edgehash is quite sloppy
+	/* NOTE: handling ownership of springs and edgeset is quite sloppy
 	 * currently they are never initialized but assert just to be sure */
 	BLI_assert(cloth->springs == NULL);
-	BLI_assert(cloth->edgehash == NULL);
+	BLI_assert(cloth->edgeset == NULL);
 
 	cloth->springs = NULL;
-	cloth->edgehash = NULL;
+	cloth->edgeset = NULL;
 
 	edgelist = MEM_callocN ( sizeof (LinkNode *) * numverts, "cloth_edgelist_alloc" );
 	
@@ -1240,8 +1240,8 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		BLI_linklist_prepend ( &cloth->springs, spring );
 	}
 
-	edgehash = BLI_edgehash_new_ex(__func__, numedges);
-	cloth->edgehash = edgehash;
+	edgeset = BLI_edgeset_new_ex(__func__, numedges);
+	cloth->edgeset = edgeset;
 
 	if (numfaces) {
 		// bending springs
@@ -1259,7 +1259,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				// check for existing spring
 				// check also if startpoint is equal to endpoint
 				if ((index2 != tspring2->ij) &&
-				    !BLI_edgehash_haskey(edgehash, tspring2->ij, index2))
+				    !BLI_edgeset_haskey(edgeset, tspring2->ij, index2))
 				{
 					spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
@@ -1272,7 +1272,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 					spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 					spring->type = CLOTH_SPRING_TYPE_BENDING;
 					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
-					BLI_edgehash_insert(edgehash, spring->ij, spring->kl, NULL);
+					BLI_edgeset_insert(edgeset, spring->ij, spring->kl);
 					bend_springs++;
 
 					BLI_linklist_prepend ( &cloth->springs, spring );
@@ -1321,16 +1321,16 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	/* note: the edges may already exist so run reinsert */
 
-	/* insert other near springs in edgehash AFTER bending springs are calculated (for selfcolls) */
+	/* insert other near springs in edgeset AFTER bending springs are calculated (for selfcolls) */
 	for (i = 0; i < numedges; i++) { /* struct springs */
-		BLI_edgehash_reinsert(edgehash, medge[i].v1, medge[i].v2, NULL);
+		BLI_edgeset_reinsert(edgeset, medge[i].v1, medge[i].v2);
 	}
 
 	for (i = 0; i < numfaces; i++) { /* edge springs */
 		if (mface[i].v4) {
-			BLI_edgehash_reinsert(edgehash, mface[i].v1, mface[i].v3, NULL);
+			BLI_edgeset_reinsert(edgeset, mface[i].v1, mface[i].v3);
 			
-			BLI_edgehash_reinsert(edgehash, mface[i].v2, mface[i].v4, NULL);
+			BLI_edgeset_reinsert(edgeset, mface[i].v2, mface[i].v4);
 		}
 	}
 	
