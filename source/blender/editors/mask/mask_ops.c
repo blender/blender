@@ -464,6 +464,10 @@ enum {
 typedef struct SlidePointData {
 	int action;
 
+	float prev_mouse_coord[2];
+	float prev_handle_coord[2];
+	float prev_feather_coord[2];
+
 	float co[2];
 	float vec[3][3];
 	char old_h1, old_h2;
@@ -642,9 +646,13 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 		copy_m3_m3(customdata->vec, point->bezt.vec);
 		if (which_handle != MASK_WHICH_HANDLE_NONE) {
 			BKE_mask_point_handle(point, which_handle, customdata->handle);
+			copy_v2_v2(customdata->prev_handle_coord, customdata->handle);
 		}
 		customdata->which_handle = which_handle;
 		ED_mask_mouse_pos(sa, ar, event->mval, customdata->co);
+
+		copy_v2_v2(customdata->prev_mouse_coord, customdata->co);
+		copy_v2_v2(customdata->prev_feather_coord, customdata->feather);
 	}
 
 	return customdata;
@@ -742,7 +750,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SlidePointData *data = (SlidePointData *)op->customdata;
 	BezTriple *bezt = &data->point->bezt;
-	float co[2], dco[2];
+	float co[2];
 
 	switch (event->type) {
 		case LEFTALTKEY:
@@ -764,39 +772,38 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		{
 			ScrArea *sa = CTX_wm_area(C);
 			ARegion *ar = CTX_wm_region(C);
+			float delta[2];
 
 			ED_mask_mouse_pos(sa, ar, event->mval, co);
-			sub_v2_v2v2(dco, co, data->co);
+			sub_v2_v2v2(delta, co, data->prev_mouse_coord);
+			if (data->accurate) {
+				mul_v2_fl(delta, 0.2f);
+			}
+			copy_v2_v2(data->prev_mouse_coord, co);
 
 			if (data->action == SLIDE_ACTION_HANDLE) {
-				float delta[2], offco[2];
-
-				sub_v2_v2v2(delta, data->handle, data->co);
-
-				sub_v2_v2v2(offco, co, data->co);
-				if (data->accurate)
-					mul_v2_fl(offco, 0.2f);
+				float new_handle[2];
 
 				if (data->is_sliding_new_point && data->which_handle == MASK_WHICH_HANDLE_STICK) {
 					if (ELEM(data->point, &data->spline->points[0],
 					                      &data->spline->points[data->spline->tot_point - 1]))
 					{
-						SWAP(float, offco[0], offco[1]);
-						offco[1] *= -1;
+						SWAP(float, delta[0], delta[1]);
+						delta[1] *= -1;
 
 						/* flip last point */
 						if (data->point != &data->spline->points[0]) {
-							negate_v2(offco);
+							negate_v2(delta);
 						}
 					}
 				}
 
-				add_v2_v2(offco, data->co);
-				add_v2_v2(offco, delta);
+				add_v2_v2v2(new_handle, data->prev_handle_coord, delta);
 
 				BKE_mask_point_set_handle(data->point, data->which_handle,
-				                          offco, data->curvature_only,
+				                          new_handle, data->curvature_only,
 				                          data->handle, data->vec);
+				BKE_mask_point_handle(data->point, data->which_handle, data->prev_handle_coord);
 
 				if (data->is_sliding_new_point) {
 					if (ELEM(data->which_handle, MASK_WHICH_HANDLE_LEFT, MASK_WHICH_HANDLE_RIGHT)) {
@@ -811,15 +818,9 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 			}
 			else if (data->action == SLIDE_ACTION_POINT) {
-				float delta[2];
-
-				copy_v2_v2(delta, dco);
-				if (data->accurate)
-					mul_v2_fl(delta, 0.2f);
-
-				add_v2_v2v2(bezt->vec[0], data->vec[0], delta);
-				add_v2_v2v2(bezt->vec[1], data->vec[1], delta);
-				add_v2_v2v2(bezt->vec[2], data->vec[2], delta);
+				add_v2_v2(bezt->vec[0], delta);
+				add_v2_v2(bezt->vec[1], delta);
+				add_v2_v2(bezt->vec[2], delta);
 			}
 			else if (data->action == SLIDE_ACTION_FEATHER) {
 				float vec[2], no[2], p[2], c[2], w, offco[2];
@@ -827,7 +828,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				float weight_scalar = 1.0f;
 				bool overall_feather = data->overall_feather || data->initial_feather;
 
-				add_v2_v2v2(offco, data->feather, dco);
+				add_v2_v2v2(offco, data->prev_feather_coord, delta);
 
 				if (data->uw) {
 					/* project on both sides and find the closest one,
@@ -920,6 +921,8 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 							*weight = w * weight_scalar;
 						}
 					}
+
+					copy_v2_v2(data->prev_feather_coord, offco);
 				}
 			}
 
