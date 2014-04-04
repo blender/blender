@@ -1201,20 +1201,48 @@ static void slide_spline_solve_P2(const float u,
 
 static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	const float margin = 0.2f;
 	SlideSplineCurvatureData *slide_data = (SlideSplineCurvatureData *) op->customdata;
+	float u = slide_data->u;
 
 	switch (event->type) {
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
-			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
+		case LEFTCTRLKEY:
+		case RIGHTCTRLKEY:
+			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
 				slide_data->accurate = (event->val == KM_PRESS);
+			}
+
+			if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY)) {
+				if (event->val == KM_PRESS) {
+					slide_data->adjust_bezt->h1 = slide_data->adjust_bezt->h2 = HD_FREE;
+					if ((u > margin && u < 0.5f) || (u >= 0.5f && u < 1.0f - margin)) {
+						slide_data->other_bezt->h1 = slide_data->other_bezt->h2 = HD_FREE;
+					}
+				}
+				else if (event->val == KM_RELEASE) {
+					slide_data->adjust_bezt->h1 = slide_data->bezt_backup.h1;
+					slide_data->adjust_bezt->h2 = slide_data->bezt_backup.h2;
+					slide_data->other_bezt->h1 = slide_data->other_bezt_backup.h1;
+					slide_data->other_bezt->h2 = slide_data->other_bezt_backup.h2;
+				}
+
+				if (u < 0.5f) {
+					copy_v2_v2(slide_data->adjust_bezt->vec[0], slide_data->bezt_backup.vec[0]);
+					copy_v2_v2(slide_data->other_bezt->vec[2], slide_data->other_bezt_backup.vec[2]);
+				}
+				else {
+					copy_v2_v2(slide_data->adjust_bezt->vec[2], slide_data->bezt_backup.vec[2]);
+					copy_v2_v2(slide_data->other_bezt->vec[0], slide_data->other_bezt_backup.vec[0]);
+				}
+
+			}
 
 			/* fall-through */  /* update CV position */
 		case MOUSEMOVE:
 		{
-			const float margin = 0.2f;
 			float B[2], mouse_coord[2], delta[2];
-			float u = slide_data->u;
 
 			/* Get coordinate spline is expected to go through. */
 			ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, mouse_coord);
