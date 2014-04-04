@@ -553,6 +553,10 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 			current_shader->has_bssrdf_bump = true; /* can't detect yet */
 		}
 	}
+	else if(current_type == SHADER_TYPE_VOLUME) {
+		if(node->has_spatial_varying())
+			current_shader->has_heterogeneous_volume = true;
+	}
 }
 
 void OSLCompiler::parameter(const char *name, float f)
@@ -719,6 +723,10 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 								current_shader->has_bssrdf_bump = true;
 						}
 					}
+					else if(current_type == SHADER_TYPE_VOLUME) {
+						if(node->has_spatial_varying())
+							current_shader->has_heterogeneous_volume = true;
+					}
 				}
 				else
 					nodes_done = false;
@@ -799,6 +807,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 		shader->has_bssrdf_bump = false;
 		shader->has_volume = false;
 		shader->has_displacement = false;
+		shader->has_heterogeneous_volume = false;
 
 		/* generate surface shader */
 		if(shader->used && graph && output->input("Surface")->link) {
