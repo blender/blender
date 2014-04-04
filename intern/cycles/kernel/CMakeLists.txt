@@ -35,6 +35,8 @@ set(SRC_HEADERS
 	kernel_passes.h
 	kernel_path.h
 	kernel_path_state.h
+	kernel_path_surface.h
+	kernel_path_volume.h
 	kernel_projection.h
 	kernel_random.h
 	kernel_shader.h
