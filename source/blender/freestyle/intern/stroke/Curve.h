@@ -337,10 +337,10 @@ public:
 	Vec3r curvature2d_as_vector() const;
 	/*! angle in radians */
 	real curvature2d_as_angle() const;
-#endif
 
 	real curvatureFredo() const;
 	Vec2d directionFredo() const;
+#endif
 };
 
 
@@ -422,8 +422,10 @@ public:
 		return "Curve";
 	}
 
+#if 0
 	/* fredo's curvature storage */
 	void computeCurvatureAndOrientation();
+#endif
 
 	/*! Adds a single vertex (CurvePoint) at the end of the Curve */
 	inline void push_vertex_back(Vertex *iVertex)

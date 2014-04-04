@@ -475,7 +475,6 @@ real CurvePoint::curvature2d_as_angle() const
 		return __A->curvature2d_as_angle();
 	return ((1 - _t2d) * __A->curvature2d_as_angle() + _t2d * __B->curvature2d_as_angle());
 }
-#endif
 
 real CurvePoint::curvatureFredo() const
 {
@@ -494,6 +493,7 @@ Vec2d CurvePoint::directionFredo () const
 		return __A->directionFredo();
 	return ((1 - _t2d) * __A->directionFredo() + _t2d * __B->directionFredo());
 }
+#endif
 
 /**********************************/
 /*                                */
@@ -813,14 +813,12 @@ real Curve::local_average_density(float sigma, int iCombination ) const
 	return result;
 #endif
 }
-#endif
 
 /* UNUSED */
 // #define EPS_CURVA_DIR 0.01
 
 void Curve::computeCurvatureAndOrientation ()
 {
-#if 0
 	const_vertex_iterator v = vertices_begin(), vend = vertices_end(), v2, prevV, v0;
 	Vec2d p0, p1, p2;
 	Vec3r p;
@@ -924,7 +922,7 @@ void Curve::computeCurvatureAndOrientation ()
 		p0 = p1;
 		p1 = p2;
 	}
-#endif
 }
+#endif
 
 } /* namespace Freestyle */

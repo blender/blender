@@ -167,8 +167,10 @@ private:
 	vector<FEdge*> _FEdges; // the edges containing this vertex
 	SShape *_Shape;  // the shape to which belongs the vertex
 	ViewVertex *_pViewVertex; // The associated viewvertex, in case there is one.
+#if 0
 	real _curvatureFredo;
 	Vec2r _directionFredo;
+#endif
 	CurvatureInfo *_curvature_info;
 
 public:
@@ -326,6 +328,7 @@ public:
 		return _curvature_info;
 	}
 
+#if 0
 	/* Fredo's normal and curvature*/
 	void setCurvatureFredo(real c)
 	{
@@ -346,6 +349,7 @@ public:
 	{
 		return _directionFredo;
 	}
+#endif
 
 	/*! Sets the Id */
 	inline void setId(const Id& id)
