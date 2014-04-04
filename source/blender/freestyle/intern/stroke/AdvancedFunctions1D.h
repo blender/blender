@@ -212,7 +212,7 @@ private:
 /*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is evaluated
  *  in the proper steerable ViewMap depending on its oorientation.
  */
-class LIB_STROKE_EXPORT GetSteerableViewMapDensityF1D : public UnaryFunction1D<real>
+class LIB_STROKE_EXPORT GetSteerableViewMapDensityF1D : public UnaryFunction1D<double>
 {
 private:
 	int _level;
@@ -230,7 +230,7 @@ public:
 	 *    by iType.
 	 */
 	GetSteerableViewMapDensityF1D(int level, IntegrationType iType = MEAN, float sampling = 2.0f)
-	: UnaryFunction1D<real>(iType)
+	: UnaryFunction1D<double>(iType)
 	{
 		_level = level;
 		_sampling = sampling;
@@ -253,7 +253,7 @@ public:
 /*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is evaluated in
  *  the proper steerable ViewMap depending on its oorientation.
  */
-class LIB_STROKE_EXPORT GetViewMapGradientNormF1D : public UnaryFunction1D<real>
+class LIB_STROKE_EXPORT GetViewMapGradientNormF1D : public UnaryFunction1D<double>
 {
 private:
 	int _level;
@@ -272,7 +272,7 @@ public:
 	 *    by iType.
 	 */
 	GetViewMapGradientNormF1D(int level, IntegrationType iType = MEAN, float sampling = 2.0f)
-	: UnaryFunction1D<real>(iType), _func(level)
+	: UnaryFunction1D<double>(iType), _func(level)
 	{
 		_level = level;
 		_sampling = sampling;
