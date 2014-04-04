@@ -298,7 +298,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm, ListBase *r_eloops,
 		BMVert *v_match[2] = {NULL, NULL};
 		ListBase lb_src = {NULL, NULL};
 		ListBase lb_dst = {NULL, NULL};
-		BLI_mempool *vs_pool = BLI_mempool_create(sizeof(struct VertStep), 1, 512, 0);
+		BLI_mempool *vs_pool = BLI_mempool_create(sizeof(struct VertStep), 1, 512, BLI_MEMPOOL_NOP);
 
 		/* edge args are dummy */
 		vs_add(vs_pool, &lb_src, v_src, v_src->e,  1);

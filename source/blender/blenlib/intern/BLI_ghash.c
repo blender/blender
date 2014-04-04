@@ -191,7 +191,7 @@ static GHash *ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
 	}
 
 	gh->buckets = MEM_callocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
-	gh->entrypool = BLI_mempool_create(entry_size, 64, 64, 0);
+	gh->entrypool = BLI_mempool_create(entry_size, 64, 64, BLI_MEMPOOL_NOP);
 
 	return gh;
 }

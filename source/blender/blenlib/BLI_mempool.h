@@ -81,8 +81,8 @@ typedef struct BLI_mempool_iter {
 
 /* flag */
 enum {
-	BLI_MEMPOOL_SYSMALLOC  = (1 << 0),
-	BLI_MEMPOOL_ALLOW_ITER = (1 << 1)
+	BLI_MEMPOOL_NOP = 0,
+	BLI_MEMPOOL_ALLOW_ITER = (1 << 0),
 };
 
 void  BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter) ATTR_NONNULL();

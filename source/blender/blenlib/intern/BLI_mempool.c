@@ -140,21 +140,10 @@ static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
 {
 	BLI_mempool_chunk *mpchunk;
 #ifdef USE_DATA_PTR
-	if (pool->flag & BLI_MEMPOOL_SYSMALLOC) {
-		mpchunk = malloc(sizeof(BLI_mempool_chunk));
-		CHUNK_DATA(mpchunk) = malloc((size_t)pool->csize);
-	}
-	else {
-		mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
-		CHUNK_DATA(mpchunk) = MEM_mallocN((size_t)pool->csize, "BLI Mempool Chunk Data");
-	}
+	mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
+	CHUNK_DATA(mpchunk) = MEM_mallocN((size_t)pool->csize, "BLI Mempool Chunk Data");
 #else
-	if (pool->flag & BLI_MEMPOOL_SYSMALLOC) {
-		mpchunk = malloc(sizeof(BLI_mempool_chunk) + (size_t)pool->csize);
-	}
-	else {
-		mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, "BLI_Mempool Chunk");
-	}
+	mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, "BLI_Mempool Chunk");
 #endif
 
 	return mpchunk;
@@ -219,29 +208,22 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpc
 	return curnode;
 }
 
-static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, const unsigned int flag)
+static void mempool_chunk_free(BLI_mempool_chunk *mpchunk)
 {
-	if (flag & BLI_MEMPOOL_SYSMALLOC) {
+
 #ifdef USE_DATA_PTR
-		free(CHUNK_DATA(mpchunk));
+	MEM_freeN(CHUNK_DATA(mpchunk));
 #endif
-		free(mpchunk);
-	}
-	else {
-#ifdef USE_DATA_PTR
-		MEM_freeN(CHUNK_DATA(mpchunk));
-#endif
-		MEM_freeN(mpchunk);
-	}
+	MEM_freeN(mpchunk);
 }
 
-static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, const unsigned int flag)
+static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk)
 {
 	BLI_mempool_chunk *mpchunk_next;
 
 	for (; mpchunk; mpchunk = mpchunk_next) {
 		mpchunk_next = mpchunk->next;
-		mempool_chunk_free(mpchunk, flag);
+		mempool_chunk_free(mpchunk);
 	}
 }
 
@@ -253,12 +235,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 	unsigned int i, maxchunks;
 
 	/* allocate the pool structure */
-	if (flag & BLI_MEMPOOL_SYSMALLOC) {
-		pool = malloc(sizeof(BLI_mempool));
-	}
-	else {
-		pool = MEM_mallocN(sizeof(BLI_mempool), "memory pool");
-	}
+	pool = MEM_mallocN(sizeof(BLI_mempool), "memory pool");
 
 	/* set the elem size */
 	if (esize < (int)MEMPOOL_ELEM_SIZE_MIN) {
@@ -387,7 +364,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		BLI_mempool_chunk *first;
 
 		first = pool->chunks;
-		mempool_chunk_free_all(first->next, pool->flag);
+		mempool_chunk_free_all(first->next);
 		first->next = NULL;
 
 #ifdef USE_TOTALLOC
@@ -602,7 +579,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 
 		do {
 			mpchunk_next = mpchunk->next;
-			mempool_chunk_free(mpchunk, pool->flag);
+			mempool_chunk_free(mpchunk);
 		} while ((mpchunk = mpchunk_next));
 	}
 
@@ -635,18 +612,13 @@ void BLI_mempool_clear(BLI_mempool *pool)
  */
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
-	mempool_chunk_free_all(pool->chunks, pool->flag);
+	mempool_chunk_free_all(pool->chunks);
 
 #ifdef WITH_MEM_VALGRIND
 	VALGRIND_DESTROY_MEMPOOL(pool);
 #endif
 
-	if (pool->flag & BLI_MEMPOOL_SYSMALLOC) {
-		free(pool);
-	}
-	else {
-		MEM_freeN(pool);
-	}
+	MEM_freeN(pool);
 }
 
 #ifndef NDEBUG

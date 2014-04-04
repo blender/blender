@@ -306,8 +306,8 @@ MovieCache *IMB_moviecache_create(const char *name, int keysize, GHashHashFP has
 
 	BLI_strncpy(cache->name, name, sizeof(cache->name));
 
-	cache->keys_pool = BLI_mempool_create(sizeof(MovieCacheKey), 64, 64, 0);
-	cache->items_pool = BLI_mempool_create(sizeof(MovieCacheItem), 64, 64, 0);
+	cache->keys_pool = BLI_mempool_create(sizeof(MovieCacheKey), 64, 64, BLI_MEMPOOL_NOP);
+	cache->items_pool = BLI_mempool_create(sizeof(MovieCacheItem), 64, 64, BLI_MEMPOOL_NOP);
 	cache->userkeys_pool = BLI_mempool_create(keysize, 64, 64, 0);
 	cache->hash = BLI_ghash_new(moviecache_hashhash, moviecache_hashcmp, "MovieClip ImBuf cache hash");
 

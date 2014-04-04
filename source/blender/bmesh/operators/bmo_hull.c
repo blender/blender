@@ -213,8 +213,8 @@ static HullFinalEdges *hull_final_edges(GSet *hull_triangles)
 	
 	final_edges = MEM_callocN(sizeof(HullFinalEdges), "HullFinalEdges");
 	final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
-	final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 128, 128, 0);
-	final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 128, 128, 0);
+	final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 128, 128, BLI_MEMPOOL_NOP);
+	final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 128, 128, BLI_MEMPOOL_NOP);
 
 	GSET_ITER (iter, hull_triangles) {
 		LinkData *link;
@@ -574,7 +574,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_enable(bm, ele, HULL_FLAG_INTERIOR_ELE);
 	}
 
-	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 128, 128, 0);
+	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 128, 128, BLI_MEMPOOL_NOP);
 	hull_triangles = BLI_gset_ptr_new("hull_triangles");
 
 	hull_from_bullet(bm, op, hull_triangles, hull_pool);
