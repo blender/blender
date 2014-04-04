@@ -194,6 +194,17 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *st
 
 		float3 L = direct_emissive_eval(kg, &ls, -ray->D, ray->dD, ls.t, ray->time, state->bounce, state->transparent_bounce);
 
+#ifdef __VOLUME__
+		if(state->volume_stack[0].shader != SHADER_NONE) {
+			/* shadow attenuation */
+			Ray volume_ray = *ray;
+			volume_ray.t = ls.t;
+			float3 volume_tp = make_float3(1.0f, 1.0f, 1.0f);
+			kernel_volume_shadow(kg, state, &volume_ray, &volume_tp);
+			L *= volume_tp;
+		}
+#endif
+
 		if(!(state->flag & PATH_RAY_MIS_SKIP)) {
 			/* multiple importance sampling, get regular light pdf,
 			 * and compute weight with respect to BSDF pdf */

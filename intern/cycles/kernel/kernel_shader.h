@@ -858,7 +858,7 @@ ccl_device_inline void _shader_volume_phase_multi_eval(const ShaderData *sd, con
 
 			if(phase_pdf != 0.0f) {
 				bsdf_eval_accum(result_eval, sc->type, eval);
-				sum_pdf += phase_pdf;
+				sum_pdf += phase_pdf*sc->sample_weight;
 			}
 
 			sum_sample_weight += sc->sample_weight;

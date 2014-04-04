@@ -29,7 +29,6 @@
 #include "kernel_accumulate.h"
 #include "kernel_shader.h"
 #include "kernel_light.h"
-#include "kernel_emission.h"
 #include "kernel_passes.h"
 
 #ifdef __SUBSURFACE__
@@ -42,6 +41,7 @@
 
 #include "kernel_path_state.h"
 #include "kernel_shadow.h"
+#include "kernel_emission.h"
 #include "kernel_path_surface.h"
 #include "kernel_path_volume.h"
 
@@ -88,17 +88,73 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
-			ShaderData volume_sd;
-			VolumeIntegrateResult result = kernel_volume_integrate(kg, &state,
-				&volume_sd, &volume_ray, L, &throughput, rng);
+			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
+			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, false);
 
-			if(result == VOLUME_PATH_SCATTERED) {
-				kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, L, 1.0f);
+			if(decoupled) {
+				/* cache steps along volume for repeated sampling */
+				VolumeSegment volume_segment;
+				ShaderData volume_sd;
 
-				if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f))
-					continue;
-				else
-					break;
+				shader_setup_from_volume(kg, &volume_sd, &volume_ray, state.bounce, state.transparent_bounce);
+				kernel_volume_decoupled_record(kg, &state,
+					&volume_ray, &volume_sd, &volume_segment, heterogeneous);
+
+				/* emission */
+				if(volume_segment.closure_flag & SD_EMISSION)
+					path_radiance_accum_emission(L, throughput, volume_segment.accum_emission, state.bounce);
+
+				/* scattering */
+				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
+				bool scatter = false;
+
+				if(volume_segment.closure_flag & SD_SCATTER) {
+					bool all = kernel_data.integrator.sample_all_lights_indirect;
+
+					/* direct light sampling */
+					kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
+						throughput, &state, L, 1.0f, all, &volume_ray, &volume_segment);
+
+					/* indirect sample. if we use distance sampling and take just
+					 * one sample for direct and indirect light, we could share
+					 * this computation, but makes code a bit complex */
+					float rphase = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_PHASE);
+					float rscatter = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_SCATTER_DISTANCE);
+
+					result = kernel_volume_decoupled_scatter(kg,
+						&state, &volume_ray, &volume_sd, &throughput,
+						rphase, rscatter, &volume_segment, NULL, true);
+
+					if(result == VOLUME_PATH_SCATTERED)
+						scatter = kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f);
+				}
+
+				/* free cached steps */
+				kernel_volume_decoupled_free(kg, &volume_segment);
+
+				if(result == VOLUME_PATH_SCATTERED) {
+					if(scatter)
+						continue;
+					else
+						break;
+				}
+			}
+			else {
+				/* integrate along volume segment with distance sampling */
+				ShaderData volume_sd;
+				VolumeIntegrateResult result = kernel_volume_integrate(
+					kg, &state, &volume_sd, &volume_ray, L, &throughput, rng);
+
+				if(result == VOLUME_PATH_SCATTERED) {
+					/* direct lighting */
+					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, L, 1.0f);
+
+					/* indirect light bounce */
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f))
+						continue;
+					else
+						break;
+				}
 			}
 		}
 #endif
@@ -411,17 +467,73 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
-			ShaderData volume_sd;
-			VolumeIntegrateResult result = kernel_volume_integrate(kg, &state,
-				&volume_sd, &volume_ray, &L, &throughput, rng);
+			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
+			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, true);
 
-			if(result == VOLUME_PATH_SCATTERED) {
-				kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, 1.0f);
+			if(decoupled) {
+				/* cache steps along volume for repeated sampling */
+				VolumeSegment volume_segment;
+				ShaderData volume_sd;
 
-				if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f))
-					continue;
-				else
-					break;
+				shader_setup_from_volume(kg, &volume_sd, &volume_ray, state.bounce, state.transparent_bounce);
+				kernel_volume_decoupled_record(kg, &state,
+					&volume_ray, &volume_sd, &volume_segment, heterogeneous);
+
+				/* emission */
+				if(volume_segment.closure_flag & SD_EMISSION)
+					path_radiance_accum_emission(&L, throughput, volume_segment.accum_emission, state.bounce);
+
+				/* scattering */
+				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
+				bool scatter = false;
+
+				if(volume_segment.closure_flag & SD_SCATTER) {
+					bool all = false;
+
+					/* direct light sampling */
+					kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
+						throughput, &state, &L, 1.0f, all, &volume_ray, &volume_segment);
+
+					/* indirect sample. if we use distance sampling and take just
+					 * one sample for direct and indirect light, we could share
+					 * this computation, but makes code a bit complex */
+					float rphase = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_PHASE);
+					float rscatter = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_SCATTER_DISTANCE);
+
+					result = kernel_volume_decoupled_scatter(kg,
+						&state, &volume_ray, &volume_sd, &throughput,
+						rphase, rscatter, &volume_segment, NULL, true);
+
+					if(result == VOLUME_PATH_SCATTERED)
+						scatter = kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f);
+				}
+
+				/* free cached steps */
+				kernel_volume_decoupled_free(kg, &volume_segment);
+
+				if(result == VOLUME_PATH_SCATTERED) {
+					if(scatter)
+						continue;
+					else
+						break;
+				}
+			}
+			else {
+				/* integrate along volume segment with distance sampling */
+				ShaderData volume_sd;
+				VolumeIntegrateResult result = kernel_volume_integrate(
+					kg, &state, &volume_sd, &volume_ray, &L, &throughput, rng);
+
+				if(result == VOLUME_PATH_SCATTERED) {
+					/* direct lighting */
+					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, 1.0f);
+
+					/* indirect light bounce */
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f))
+						continue;
+					else
+						break;
+				}
 			}
 		}
 #endif
@@ -700,37 +812,47 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			kernel_volume_decoupled_record(kg, &state,
 				&volume_ray, &volume_sd, &volume_segment, heterogeneous);
 
-			/* sample scattering */
-			int num_samples = kernel_data.integrator.volume_samples;
-			float num_samples_inv = 1.0f/num_samples;
+			/* direct light sampling */
+			if(volume_segment.closure_flag & SD_SCATTER) {
+				bool all = kernel_data.integrator.sample_all_lights_direct;
+				kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
+					throughput, &state, &L, 1.0f, all, &volume_ray, &volume_segment);
 
-			for(int j = 0; j < num_samples; j++) {
-				/* workaround to fix correlation bug in T38710, can find better solution
-				 * in random number generator later, for now this is done here to not impact
-				 * performance of rendering without volumes */
-				RNG tmp_rng = cmj_hash(*rng, state.rng_offset);
+				/* indirect light sampling */
+				int num_samples = kernel_data.integrator.volume_samples;
+				float num_samples_inv = 1.0f/num_samples;
 
-				PathState ps = state;
-				Ray pray = ray;
-				float3 tp = throughput;
+				for(int j = 0; j < num_samples; j++) {
+					/* workaround to fix correlation bug in T38710, can find better solution
+					 * in random number generator later, for now this is done here to not impact
+					 * performance of rendering without volumes */
+					RNG tmp_rng = cmj_hash(*rng, state.rng_offset);
 
-				/* branch RNG state */
-				path_state_branch(&ps, j, num_samples);
+					PathState ps = state;
+					Ray pray = ray;
+					float3 tp = throughput;
 
-				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
-					&ps, &volume_ray, &volume_sd, &tp, &tmp_rng, &volume_segment);
-				
-				if(result == VOLUME_PATH_SCATTERED) {
-					/* todo: use all-light sampling */
-					kernel_path_volume_connect_light(kg, rng, &volume_sd, tp, &state, &L, 1.0f);
+					/* branch RNG state */
+					path_state_branch(&ps, j, num_samples);
 
-					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
-						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
+					/* scatter sample. if we use distance sampling and take just one
+					 * sample for direct and indirect light, we could share this
+					 * computation, but makes code a bit complex */
+					float rphase = path_state_rng_1D_for_decision(kg, &tmp_rng, &ps, PRNG_PHASE);
+					float rscatter = path_state_rng_1D_for_decision(kg, &tmp_rng, &ps, PRNG_SCATTER_DISTANCE);
 
-						/* for render passes, sum and reset indirect light pass variables
-						 * for the next samples */
-						path_radiance_sum_indirect(&L);
-						path_radiance_reset_indirect(&L);
+					VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
+						&ps, &pray, &volume_sd, &tp, rphase, rscatter, &volume_segment, NULL, false);
+
+					if(result == VOLUME_PATH_SCATTERED) {
+						if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
+							kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
+
+							/* for render passes, sum and reset indirect light pass variables
+							 * for the next samples */
+							path_radiance_sum_indirect(&L);
+							path_radiance_reset_indirect(&L);
+						}
 					}
 				}
 			}
@@ -759,12 +881,15 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				/* branch RNG state */
 				path_state_branch(&ps, j, num_samples);
 
-				VolumeIntegrateResult result = kernel_volume_integrate(kg, &ps,
-					&volume_sd, &volume_ray, &L, &tp, rng);
+				VolumeIntegrateResult result = kernel_volume_integrate(
+					kg, &ps, &volume_sd, &volume_ray, &L, &tp, rng);
 				
 				if(result == VOLUME_PATH_SCATTERED) {
-					/* todo: use all-light sampling */
-					if(kernel_path_integrate_scatter_lighting(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
+					/* todo: support equiangular, MIS and all light sampling.
+					 * alternatively get decoupled ray marching working on the GPU */
+					kernel_path_volume_connect_light(kg, rng, &volume_sd, &volume_ray, throughput, &state, &L, num_samples_inv);
+
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
 						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
 
 						/* for render passes, sum and reset indirect light pass variables

@@ -101,7 +101,11 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	if(!transparent_shadows)
 		kintegrator->transparent_shadows = false;
 
-	kintegrator->volume_homogeneous_sampling = volume_homogeneous_sampling;
+	if(kintegrator->num_all_lights > 0)
+		kintegrator->volume_homogeneous_sampling = volume_homogeneous_sampling;
+	else
+		kintegrator->volume_homogeneous_sampling = 0;
+
 	kintegrator->volume_max_steps = volume_max_steps;
 	kintegrator->volume_step_size = volume_step_size;
 
@@ -125,8 +129,15 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->mesh_light_samples = mesh_light_samples;
 	kintegrator->subsurface_samples = subsurface_samples;
 	kintegrator->volume_samples = volume_samples;
-	kintegrator->sample_all_lights_direct = sample_all_lights_direct;
-	kintegrator->sample_all_lights_indirect = sample_all_lights_indirect;
+
+	if(method == BRANCHED_PATH) {
+		kintegrator->sample_all_lights_direct = sample_all_lights_direct;
+		kintegrator->sample_all_lights_indirect = sample_all_lights_indirect;
+	}
+	else {
+		kintegrator->sample_all_lights_direct = false;
+		kintegrator->sample_all_lights_indirect = false;
+	}
 
 	kintegrator->sampling_pattern = sampling_pattern;
 	kintegrator->aa_samples = aa_samples;

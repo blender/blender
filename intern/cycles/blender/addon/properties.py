@@ -111,6 +111,7 @@ enum_integrator = (
 enum_volume_homogeneous_sampling = (
     ('DISTANCE', "Distance", "Use Distance Sampling"),
     ('EQUI_ANGULAR', "Equi-angular", "Use Equi-angular Sampling"),
+    ('MULTIPLE_IMPORTANCE', "Multiple Importance", "Combine distance and equi-angular sampling"),
     )
 
 

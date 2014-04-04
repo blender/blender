@@ -136,7 +136,7 @@ ccl_device void kernel_volume_shadow_homogeneous(KernelGlobals *kg, PathState *s
 ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd, float3 *throughput)
 {
 	float3 tp = *throughput;
-	const float tp_eps = 1e-10f; /* todo: this is likely not the right value */
+	const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
 
 	/* prepare for stepping */
 	int max_steps = kernel_data.integrator.volume_max_steps;
@@ -226,25 +226,6 @@ ccl_device float kernel_volume_equiangular_pdf(Ray *ray, float3 light_P, float s
 	return pdf;
 }
 
-ccl_device bool kernel_volume_equiangular_light_position(KernelGlobals *kg, PathState *state, Ray *ray, RNG *rng, float3 *light_P, bool *distant)
-{
-	/* light RNGs */
-	float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
-	float light_u, light_v;
-	path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
-
-	/* light sample */
-	LightSample ls;
-	light_sample(kg, light_t, light_u, light_v, ray->time, ray->P, &ls);
-	if(ls.pdf == 0.0f)
-		return false;
-	
-	*light_P = ls.P;
-	*distant = ls.t == FLT_MAX;
-
-	return true;
-}
-
 /* Distance sampling */
 
 ccl_device float kernel_volume_distance_sample(float max_t, float3 sigma_t, int channel, float xi, float3 *transmittance, float3 *pdf)
@@ -304,7 +285,7 @@ ccl_device float3 kernel_volume_emission_integrate(VolumeShaderCoefficients *coe
  * the volume shading coefficient for the entire line segment */
 ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGlobals *kg,
 	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput,
-	RNG *rng)
+	RNG *rng, bool probalistic_scatter)
 {
 	VolumeShaderCoefficients coeff;
 
@@ -326,47 +307,37 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 		int channel = (int)(rphase*3.0f);
 		sd->randb_closure = rphase*3.0f - channel;
 
+		/* decide if we will hit or miss */
+		bool scatter = true;
 		float xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
 
-		/* decide if we will hit or miss */
-		float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
-		float sample_transmittance = expf(-sample_sigma_t * t);
+		if(probalistic_scatter) {
+			float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
+			float sample_transmittance = expf(-sample_sigma_t * t);
 
-		if(xi >= sample_transmittance) {
+			if(1.0f - xi >= sample_transmittance) {
+				scatter = true;
+
+				/* rescale random number so we can reuse it */
+				xi = 1.0f - (1.0f - xi - sample_transmittance)/(1.0f - sample_transmittance);
+
+			}
+			else
+				scatter = false;
+		}
+
+		if(scatter) {
 			/* scattering */
 			float3 pdf;
 			float3 transmittance;
 			float sample_t;
 
-			/* rescale random number so we can reuse it */
-			xi = (xi - sample_transmittance)/(1.0f - sample_transmittance);
-
-			if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
-				/* distance sampling */
-				sample_t = kernel_volume_distance_sample(ray->t, sigma_t, channel, xi, &transmittance, &pdf);
-			}
-			else {
-				/* equiangular sampling */
-				float3 light_P;
-				float equi_pdf;
-				bool light_distant;
-
-				if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P, &light_distant))
-					return VOLUME_PATH_MISSED;
-
-				if(light_distant) {
-					/* distant light, revert to distance sampling because position is infinitely far away */
-					sample_t = kernel_volume_distance_sample(ray->t, sigma_t, channel, xi, &transmittance, &pdf);
-				}
-				else {
-					sample_t = kernel_volume_equiangular_sample(ray, light_P, xi, &equi_pdf);
-					transmittance = volume_color_transmittance(sigma_t, sample_t);
-					pdf = make_float3(equi_pdf, equi_pdf, equi_pdf);
-				}
-			}
+			/* distance sampling */
+			sample_t = kernel_volume_distance_sample(ray->t, sigma_t, channel, xi, &transmittance, &pdf);
 
 			/* modifiy pdf for hit/miss decision */
-			pdf *= make_float3(1.0f, 1.0f, 1.0f) - volume_color_transmittance(sigma_t, t);
+			if(probalistic_scatter)
+				pdf *= make_float3(1.0f, 1.0f, 1.0f) - volume_color_transmittance(sigma_t, t);
 
 			new_tp = *throughput * coeff.sigma_s * transmittance / average(pdf);
 			t = sample_t;
@@ -385,7 +356,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 	}
 
 	/* integrate emission attenuated by extinction */
-	if(closure_flag & SD_EMISSION) {
+	if(L && (closure_flag & SD_EMISSION)) {
 		float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
 		float3 transmittance = volume_color_transmittance(sigma_t, ray->t);
 		float3 emission = kernel_volume_emission_integrate(&coeff, closure_flag, transmittance, ray->t);
@@ -408,13 +379,15 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 	return VOLUME_PATH_ATTENUATED;
 }
 
-/* heterogeneous volume: integrate stepping through the volume until we
- * reach the end, get absorbed entirely, or run out of iterations */
-ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlobals *kg,
+/* heterogeneous volume distance sampling: integrate stepping through the
+ * volume until we reach the end, get absorbed entirely, or run out of
+ * iterations. this does probalistically scatter or get transmitted through
+ * for path tracing where we don't want to branch. */
+ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
 	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput, RNG *rng)
 {
 	float3 tp = *throughput;
-	const float tp_eps = 1e-10f; /* todo: this is likely not the right value */
+	const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
 
 	/* prepare for stepping */
 	int max_steps = kernel_data.integrator.volume_max_steps;
@@ -425,9 +398,12 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 	float t = 0.0f;
 	float3 accum_transmittance = make_float3(1.0f, 1.0f, 1.0f);
 
-	/* cache some constant variables */
-	float xi;
-	int channel = -1;
+	/* pick random color channel, we use the Veach one-sample
+	 * model with balance heuristic for the channels */
+	float xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
+	float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
+	int channel = (int)(rphase*3.0f);
+	sd->randb_closure = rphase*3.0f - channel;
 	bool has_scatter = false;
 
 	for(int i = 0; i < max_steps; i++) {
@@ -449,24 +425,12 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 			float3 transmittance;
 			bool scatter = false;
 
-			/* randomly scatter, and if we do dt and new_t are shortened */
+			/* distance sampling */
 			if((closure_flag & SD_SCATTER) || (has_scatter && (closure_flag & SD_ABSORPTION))) {
 				has_scatter = true;
 
-				/* average sigma_t and sigma_s over segment */
 				float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
 				float3 sigma_s = coeff.sigma_s;
-
-				/* lazily set up variables for sampling */
-				if(channel == -1) {
-					/* pick random color channel, we use the Veach one-sample
-					 * model with balance heuristic for the channels */
-					xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
-
-					float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
-					channel = (int)(rphase*3.0f);
-					sd->randb_closure = rphase*3.0f - channel;
-				}
 
 				/* compute transmittance over full step */
 				transmittance = volume_color_transmittance(sigma_t, dt);
@@ -480,10 +444,12 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 					float new_dt = -logf(1.0f - xi)/sample_sigma_t;
 					new_t = t + new_dt;
 
-					/* transmittance, throughput */
+					/* transmittance and pdf */
 					float3 new_transmittance = volume_color_transmittance(sigma_t, new_dt);
-					float pdf = average(sigma_t * new_transmittance);
-					new_tp = tp * sigma_s * new_transmittance / pdf;
+					float3 pdf = sigma_t * new_transmittance;
+
+					/* throughput */
+					new_tp = tp * sigma_s * new_transmittance / average(pdf);
 					scatter = true;
 				}
 				else {
@@ -504,7 +470,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 			}
 
 			/* integrate emission attenuated by absorption */
-			if(closure_flag & SD_EMISSION) {
+			if(L && (closure_flag & SD_EMISSION)) {
 				float3 emission = kernel_volume_emission_integrate(&coeff, closure_flag, transmittance, dt);
 				path_radiance_accum_emission(L, tp, emission, state->bounce);
 			}
@@ -518,19 +484,19 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 					tp = make_float3(0.0f, 0.0f, 0.0f);
 					break;
 				}
+			}
 
-				/* prepare to scatter to new direction */
-				if(scatter) {
-					/* adjust throughput and move to new location */
-					sd->P = ray->P + new_t*ray->D;
-					*throughput = tp;
+			/* prepare to scatter to new direction */
+			if(scatter) {
+				/* adjust throughput and move to new location */
+				sd->P = ray->P + new_t*ray->D;
+				*throughput = tp;
 
-					return VOLUME_PATH_SCATTERED;
-				}
-				else {
-					/* accumulate transmittance */
-					accum_transmittance *= transmittance;
-				}
+				return VOLUME_PATH_SCATTERED;
+			}
+			else {
+				/* accumulate transmittance */
+				accum_transmittance *= transmittance;
 			}
 		}
 
@@ -545,14 +511,35 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 	return VOLUME_PATH_ATTENUATED;
 }
 
+/* get the volume attenuation and emission over line segment defined by
+ * ray, with the assumption that there are no surfaces blocking light
+ * between the endpoints. distance sampling is used to decide if we will
+ * scatter or not. */
+ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
+	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng)
+{
+	/* workaround to fix correlation bug in T38710, can find better solution
+	 * in random number generator later, for now this is done here to not impact
+	 * performance of rendering without volumes */
+	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
+	bool heterogeneous = volume_stack_is_heterogeneous(kg, state->volume_stack);
+
+	shader_setup_from_volume(kg, sd, ray, state->bounce, state->transparent_bounce);
+
+	if(heterogeneous)
+		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput, &tmp_rng);
+	else
+		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng, true);
+}
+
 /* Decoupled Volume Sampling
  *
  * VolumeSegment is list of coefficients and transmittance stored at all steps
  * through a volume. This can then latter be used for decoupled sampling as in:
- * "Importance Sampling Techniques for Path Tracing in Participating Media" */
-
-/* CPU only because of malloc/free */
-#ifdef __KERNEL_CPU__
+ * "Importance Sampling Techniques for Path Tracing in Participating Media"
+ *
+ * On the GPU this is only supported for homogeneous volumes (1 step), due to
+ * no support for malloc/free and too much stack usage with a fix size array. */
 
 typedef struct VolumeStep {
 	float3 sigma_s;				/* scatter coefficient */
@@ -565,7 +552,11 @@ typedef struct VolumeStep {
 } VolumeStep;
 
 typedef struct VolumeSegment {
+#ifdef __KERNEL_CPU__
 	VolumeStep *steps;			/* recorded steps */
+#else
+	VolumeStep steps[1];		/* recorded steps */
+#endif
 	int numsteps;				/* number of steps */
 	int closure_flag;			/* accumulated closure flags from all steps */
 
@@ -582,6 +573,8 @@ typedef struct VolumeSegment {
 ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *state,
 	Ray *ray, ShaderData *sd, VolumeSegment *segment, bool heterogeneous)
 {
+	const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
+
 	/* prepare for volume stepping */
 	int max_steps;
 	float step_size, random_jitter_offset;
@@ -608,7 +601,11 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 
 	segment->closure_flag = 0;
 	segment->numsteps = 0;
+#ifdef __KERNEL_CPU__
 	segment->steps = (VolumeStep*)malloc(sizeof(VolumeStep)*max_steps);
+#else
+	kernel_assert(max_steps == 1);
+#endif
 
 	VolumeStep *step = segment->steps;
 
@@ -669,6 +666,10 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 		t = new_t;
 		if(t == ray->t)
 			break;
+
+		/* stop if nearly all light blocked */
+		if(accum_transmittance.x < tp_eps && accum_transmittance.y < tp_eps && accum_transmittance.z < tp_eps)
+			break;
 	}
 
 	/* store total emission and transmittance */
@@ -690,7 +691,9 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 
 ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *segment)
 {
+#ifdef __KERNEL_CPU__
 	free(segment->steps);
+#endif
 }
 
 /* scattering for homogeneous and heterogeneous volumes, using decoupled ray
@@ -701,7 +704,8 @@ ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *s
  * these also do not do emission or modify throughput. */
 ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 	KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd,
-	float3 *throughput, RNG *rng, VolumeSegment *segment)
+	float3 *throughput, float rphase, float rscatter,
+	const VolumeSegment *segment, const float3 *light_P, bool probalistic_scatter)
 {
 	int closure_flag = segment->closure_flag;
 
@@ -710,38 +714,56 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 
 	/* pick random color channel, we use the Veach one-sample
 	 * model with balance heuristic for the channels */
-	float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
 	int channel = (int)(rphase*3.0f);
 	sd->randb_closure = rphase*3.0f - channel;
+	float xi = rscatter;
 
-	float xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
+	/* probalistic scattering decision based on transmittance */
+	if(probalistic_scatter) {
+		float sample_transmittance = kernel_volume_channel_get(segment->accum_transmittance, channel);
+
+		if(1.0f - xi >= sample_transmittance) {
+			/* rescale random number so we can reuse it */
+			xi = 1.0f - (1.0f - xi - sample_transmittance)/(1.0f - sample_transmittance);
+		}
+		else
+			return VOLUME_PATH_MISSED;
+	}
 
 	VolumeStep *step;
 	float3 transmittance;
 	float pdf, sample_t;
+	float mis_weight = 1.0f;
+	bool distance_sample = true;
+	bool use_mis = false;
 
-	/* pick position on light for equiangular */
-	bool equiangular = (kernel_data.integrator.volume_homogeneous_sampling != 0 && kernel_data.integrator.num_all_lights);
-	float3 light_P;
+	if(kernel_data.integrator.volume_homogeneous_sampling && light_P) {
+		if(kernel_data.integrator.volume_homogeneous_sampling == 2) {
+			/* multiple importance sample: randomly pick between
+			 * equiangular and distance sampling strategy */
+			if(xi < 0.5f) {
+				xi *= 2.0f;
+			}
+			else {
+				xi = (xi - 0.5f)*2.0f;
+				distance_sample = false;
+			}
 
-	if(equiangular) {
-		bool light_distant;
-
-		if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P, &light_distant))
-			return VOLUME_PATH_MISSED;
-
-		/* distant light, revert to distance sampling because position is infinitely far away */
-		if(light_distant)
-			equiangular = false;
+			use_mis = true;
+		}
+		else {
+			/* only equiangular sampling */
+			distance_sample = false;
+		}
 	}
 
 	/* distance sampling */
-	if(!equiangular) {
+	if(distance_sample) {
 		/* find step in cdf */
 		step = segment->steps;
 
 		float prev_t = 0.0f;
-		float3 step_pdf = make_float3(1.0f, 1.0f, 1.0f);
+		float3 step_pdf_distance = make_float3(1.0f, 1.0f, 1.0f);
 
 		if(segment->numsteps > 1) {
 			float prev_cdf = 0.0f;
@@ -764,7 +786,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 			xi = (xi - prev_cdf)/(step_cdf - prev_cdf);
 
 			/* pdf for picking step */
-			step_pdf = step->cdf_distance - prev_cdf_distance;
+			step_pdf_distance = step->cdf_distance - prev_cdf_distance;
 		}
 
 		/* determine range in which we will sample */
@@ -773,30 +795,59 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 		/* sample distance and compute transmittance */
 		float3 distance_pdf;
 		sample_t = prev_t + kernel_volume_distance_sample(step_t, step->sigma_t, channel, xi, &transmittance, &distance_pdf);
-		pdf = average(distance_pdf * step_pdf);
+
+		/* modifiy pdf for hit/miss decision */
+		if(probalistic_scatter)
+			distance_pdf *= make_float3(1.0f, 1.0f, 1.0f) - segment->accum_transmittance;
+
+		pdf = average(distance_pdf * step_pdf_distance);
+
+		/* multiple importance sampling */
+		if(use_mis) {
+			float equi_pdf = kernel_volume_equiangular_pdf(ray, *light_P, sample_t);
+			mis_weight = 2.0f*power_heuristic(pdf, equi_pdf);
+		}
 	}
 	/* equi-angular sampling */
 	else {
 		/* sample distance */
-		sample_t = kernel_volume_equiangular_sample(ray, light_P, xi, &pdf);
+		sample_t = kernel_volume_equiangular_sample(ray, *light_P, xi, &pdf);
 
 		/* find step in which sampled distance is located */
 		step = segment->steps;
 
 		float prev_t = 0.0f;
+		float3 step_pdf_distance = make_float3(1.0f, 1.0f, 1.0f);
 
 		if(segment->numsteps > 1) {
 			/* todo: optimize using binary search */
+			float3 prev_cdf_distance = make_float3(0.0f, 0.0f, 0.0f);
+
 			for(int i = 0; i < segment->numsteps-1; i++, step++) {
 				if(sample_t < step->t)
 					break;
 
 				prev_t = step->t;
+				prev_cdf_distance = step->cdf_distance;
 			}
+
+			/* pdf for picking step with distance sampling */
+			step_pdf_distance = step->cdf_distance - prev_cdf_distance;
 		}
-		
+
+		/* determine range in which we will sample */
+		float step_t = step->t - prev_t;
+		float step_sample_t = sample_t - prev_t;
+
 		/* compute transmittance */
-		transmittance = volume_color_transmittance(step->sigma_t, sample_t - prev_t);
+		transmittance = volume_color_transmittance(step->sigma_t, step_sample_t);
+
+		/* multiple importance sampling */
+		if(use_mis) {
+			float3 distance_pdf3 = kernel_volume_distance_pdf(step_t, step->sigma_t, step_sample_t);
+			float distance_pdf = average(distance_pdf3 * step_pdf_distance);
+			mis_weight = 2.0f*power_heuristic(pdf, distance_pdf);
+		}
 	}
 
 	/* compute transmittance up to this step */
@@ -804,7 +855,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 		transmittance *= (step-1)->accum_transmittance;
 
 	/* modify throughput */
-	*throughput *= step->sigma_s * transmittance / pdf;
+	*throughput *= step->sigma_s * transmittance * (mis_weight / pdf);
 
 	/* evaluate shader to create closures at shading point */
 	if(segment->numsteps > 1) {
@@ -820,40 +871,28 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 	return VOLUME_PATH_SCATTERED;
 }
 
-#endif
-
-/* get the volume attenuation and emission over line segment defined by
- * ray, with the assumption that there are no surfaces blocking light
- * between the endpoints */
-ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
-	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng)
+/* decide if we need to use decoupled or not */
+ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneous, bool direct)
 {
-	/* workaround to fix correlation bug in T38710, can find better solution
-	 * in random number generator later, for now this is done here to not impact
-	 * performance of rendering without volumes */
-	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
-	bool heterogeneous = volume_stack_is_heterogeneous(kg, state->volume_stack);
-
-#if 0
-	/* debugging code to compare decoupled ray marching */
-	VolumeSegment segment;
-
-	shader_setup_from_volume(kg, sd, ray, state->bounce, state->transparent_bounce);
-	kernel_volume_decoupled_record(kg, state, ray, sd, &segment, heterogeneous);
-
-	VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg, state, ray, sd, throughput, &tmp_rng, &segment);
-
-	kernel_volume_decoupled_free(kg, &segment);
-
-	return result;
-#else
-	shader_setup_from_volume(kg, sd, ray, state->bounce, state->transparent_bounce);
-
+	/* decoupled ray marching for heterogenous volumes not supported on the GPU,
+	 * which also means equiangular and multiple importance sampling is not
+	 * support for that case */
+#ifdef __KERNEL_GPU__
 	if(heterogeneous)
-		return kernel_volume_integrate_heterogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
-	else
-		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);
+		return false;
 #endif
+
+	/* equiangular sampling only implemented for decoupled */
+	bool equiangular = kernel_data.integrator.volume_homogeneous_sampling != 0;
+	if(equiangular)
+		return true;
+
+	/* for all light sampling use decoupled, reusing shader evaluations is
+	 * typically faster in that case */
+	if(direct)
+		return kernel_data.integrator.sample_all_lights_direct;
+	else
+		return kernel_data.integrator.sample_all_lights_indirect;
 }
 
 /* Volume Stack
