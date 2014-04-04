@@ -1245,6 +1245,13 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 					interp_v2_v2v2(slide_data->P2, slide_data->P2, solution, weight);
 					copy_v2_v2(slide_data->other_bezt->vec[0], slide_data->P2);
 					need_restore_P2 = true;
+
+					/* Tweak handle type in order to be able to apply the delta. */
+					if (weight > 0.0f) {
+						if (slide_data->other_bezt->h1 <= HD_VECT) {
+							slide_data->other_bezt->h1 = HD_FREE;
+						}
+					}
 				}
 
 				slide_spline_solve_P1(u, B,
@@ -1276,6 +1283,13 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 					interp_v2_v2v2(slide_data->P1, slide_data->P1, solution, weight);
 					copy_v2_v2(slide_data->other_bezt->vec[2], slide_data->P1);
 					need_restore_P1 = true;
+
+					/* Tweak handle type in order to be able to apply the delta. */
+					if (weight > 0.0f) {
+						if (slide_data->other_bezt->h2 <= HD_VECT) {
+							slide_data->other_bezt->h2 = HD_FREE;
+						}
+					}
 				}
 
 				slide_spline_solve_P2(u, B,
