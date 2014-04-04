@@ -1016,8 +1016,8 @@ typedef struct SlideSplineCurvatureData {
 	float u;
 	bool accurate;
 
-	BezTriple *adjust_bezt;
-	BezTriple bezt_backup;
+	BezTriple *adjust_bezt, *other_bezt;
+	BezTriple bezt_backup, other_bezt_backup;
 
 	float prev_mouse_coord[2];
 	float prev_spline_coord[2];
@@ -1028,6 +1028,7 @@ typedef struct SlideSplineCurvatureData {
 static void cancel_slide_spline_curvature(SlideSplineCurvatureData *slide_data)
 {
 	*slide_data->adjust_bezt = slide_data->bezt_backup;
+	*slide_data->other_bezt = slide_data->other_bezt_backup;
 }
 
 
@@ -1056,7 +1057,7 @@ static bool slide_spline_curvature_check(bContext *C, const wmEvent *event)
 }
 
 static SlideSplineCurvatureData *slide_spline_curvature_customdata(
-	bContext *C, wmOperator *op, const wmEvent *event)
+	bContext *C, const wmEvent *event)
 {
 	const float threshold = 19;
 
@@ -1067,8 +1068,6 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 	MaskSplinePoint *point;
 	float u, co[2];
 	BezTriple *next_bezt;
-
-	(void) op;
 
 	ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, co);
 
@@ -1101,13 +1100,16 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 	/* Depending to which end we're closer to adjust either left or right side of the spline. */
 	if (u <= 0.5f) {
 		slide_data->adjust_bezt = &point->bezt;
+		slide_data->other_bezt = next_bezt;
 	}
 	else {
 		slide_data->adjust_bezt = next_bezt;
+		slide_data->other_bezt = &point->bezt;
 	}
 
 	/* Data needed for restoring state. */
 	slide_data->bezt_backup = *slide_data->adjust_bezt;
+	slide_data->other_bezt_backup = *slide_data->other_bezt;
 
 	/* Let's dont touch other side of the point for now, so set handle to FREE. */
 	if (u < 0.5f) {
@@ -1124,11 +1126,14 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 	/* Change selection */
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
 	slide_data->adjust_bezt->f2 |= SELECT;
+	slide_data->other_bezt->f2 |= SELECT;
 	if (u < 0.5f) {
 		slide_data->adjust_bezt->f3 |= SELECT;
+		slide_data->other_bezt->f1 |= SELECT;
 	}
 	else {
 		slide_data->adjust_bezt->f1 |= SELECT;
+		slide_data->other_bezt->f3 |= SELECT;
 	}
 	mask_layer->act_spline = spline;
 	mask_layer->act_point = point;
@@ -1151,7 +1156,7 @@ static int slide_spline_curvature_invoke(bContext *C, wmOperator *op, const wmEv
 		return OPERATOR_PASS_THROUGH;
 	}
 
-	slide_data = slide_spline_curvature_customdata(C, op, event);
+	slide_data = slide_spline_curvature_customdata(C, event);
 	if (slide_data != NULL) {
 		op->customdata = slide_data;
 		WM_event_add_modal_handler(C, op);
@@ -1160,6 +1165,38 @@ static int slide_spline_curvature_invoke(bContext *C, wmOperator *op, const wmEv
 	}
 
 	return OPERATOR_PASS_THROUGH;
+}
+
+static void slide_spline_solve_P1(const float u,
+                                  const float B[2],
+                                  const float P0[0],
+                                  const float P2[0],
+                                  const float P3[0],
+                                  float solution[2])
+{
+	const float u2 = u * u, u3 = u * u * u;
+	const float v = 1.0f - u;
+	const float v2 = v * v, v3 = v * v * v;
+	const float inv_divider = 1.0f / (3.0f * v2 * u);
+	const float t = 3.0f * v * u2;
+	solution[0] = -(v3 * P0[0] + t * P2[0] + u3 * P3[0] - B[0]) * inv_divider;
+	solution[1] = -(v3 * P0[1] + t * P2[1] + u3 * P3[1] - B[1]) * inv_divider;
+}
+
+static void slide_spline_solve_P2(const float u,
+                                  const float B[2],
+                                  const float P0[0],
+                                  const float P1[0],
+                                  const float P3[0],
+                                  float solution[2])
+{
+	const float u2 = u * u, u3 = u * u * u;
+	const float v = 1.0f - u;
+	const float v2 = v * v, v3 = v * v * v;
+	const float inv_divider = 1.0f / (3.0f * v * u2);
+	const float t = 3.0f * v2 * u;
+	solution[0] = -(v3 * P0[0] + t * P1[0] + u3 * P3[0] - B[0]) * inv_divider;
+	solution[1] = -(v3 * P0[1] + t * P1[1] + u3 * P3[1] - B[1]) * inv_divider;
 }
 
 static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1175,12 +1212,9 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 			/* fall-through */  /* update CV position */
 		case MOUSEMOVE:
 		{
+			const float margin = 0.2f;
 			float B[2], mouse_coord[2], delta[2];
 			float u = slide_data->u;
-			float u2 = slide_data->u * slide_data->u;
-			float u3 = slide_data->u * slide_data->u * slide_data->u;
-			float v = 1.0f - slide_data->u;
-			float v2 = v * v, v3 = v * v * v;;
 
 			/* Get coordinate spline is expected to go through. */
 			ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, mouse_coord);
@@ -1193,22 +1227,66 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 			copy_v2_v2(slide_data->prev_mouse_coord, mouse_coord);
 
 			if (u < 0.5f) {
-				slide_data->adjust_bezt->vec[2][0] =
-					-(v3 * slide_data->P0[0] + 3.0f * v * u2 * slide_data->P2[0] + u3 * slide_data->P3[0] - B[0]) /
-					(3.0f * v2 * u);
+				float oldP2[2];
+				bool need_restore_P2 = false;
 
-				slide_data->adjust_bezt->vec[2][1] =
-					-(v3 * slide_data->P0[1] + 3.0f * v * u2 * slide_data->P2[1] + u3 * slide_data->P3[1] - B[1]) /
-					(3.0f * v2 * u);
+				if (u > margin) {
+					float solution[2];
+					float x = (u - margin) * 0.5f / (0.5f - margin);
+					float weight =  (3 * x * x - 2 * x * x * x);
+
+					slide_spline_solve_P2(u, B,
+					                      slide_data->P0,
+					                      slide_data->P1,
+					                      slide_data->P3,
+					                      solution);
+
+					copy_v2_v2(oldP2, slide_data->P2);
+					interp_v2_v2v2(slide_data->P2, slide_data->P2, solution, weight);
+					copy_v2_v2(slide_data->other_bezt->vec[0], slide_data->P2);
+					need_restore_P2 = true;
+				}
+
+				slide_spline_solve_P1(u, B,
+				                      slide_data->P0,
+				                      slide_data->P2,
+				                      slide_data->P3,
+				                      slide_data->adjust_bezt->vec[2]);
+
+				if (need_restore_P2) {
+					copy_v2_v2(slide_data->P2, oldP2);
+				}
 			}
 			else {
-				slide_data->adjust_bezt->vec[0][0] =
-					-(v3 * slide_data->P0[0] + 3.0f * v2 * u * slide_data->P1[0] + u3 * slide_data->P3[0] - B[0]) /
-					(3.0f * v * u2);
+				float oldP1[2];
+				bool need_restore_P1 = false;
 
-				slide_data->adjust_bezt->vec[0][1] =
-					-(v3 * slide_data->P0[1] + 3.0f * v2 * u * slide_data->P1[1] + u3 * slide_data->P3[1] - B[1]) /
-					(3.0f * v * u2);
+				if (u < 1.0f - margin) {
+					float solution[2];
+					float x = ((1.0f - u) - margin) * 0.5f / (0.5f - margin);
+					float weight = 3 * x * x - 2 * x * x * x;
+
+					slide_spline_solve_P1(u, B,
+					                      slide_data->P0,
+					                      slide_data->P2,
+					                      slide_data->P3,
+					                      solution);
+
+					copy_v2_v2(oldP1, slide_data->P1);
+					interp_v2_v2v2(slide_data->P1, slide_data->P1, solution, weight);
+					copy_v2_v2(slide_data->other_bezt->vec[2], slide_data->P1);
+					need_restore_P1 = true;
+				}
+
+				slide_spline_solve_P2(u, B,
+				                      slide_data->P0,
+				                      slide_data->P1,
+				                      slide_data->P3,
+				                      slide_data->adjust_bezt->vec[0]);
+
+				if (need_restore_P1) {
+					copy_v2_v2(slide_data->P1, oldP1);
+				}
 			}
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
