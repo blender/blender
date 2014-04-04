@@ -1042,7 +1042,9 @@ typedef struct SlideSplineCurvatureData {
 
 	BezTriple *adjust_bezt;
 	BezTriple bezt_backup;
-	float initial_coord[2];
+
+	float prev_mouse_coord[2];
+	float prev_spline_coord[2];
 
 	float P0[2], P1[2], P2[2], P3[3];
 } SlideSplineCurvatureData;
@@ -1111,7 +1113,9 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 	slide_data->spline = spline;
 	slide_data->point = point;
 	slide_data->u = u;
-	copy_v2_v2(slide_data->initial_coord, co);
+
+	copy_v2_v2(slide_data->prev_mouse_coord, co);
+	BKE_mask_point_segment_co(spline, point, u, slide_data->prev_spline_coord);
 
 	copy_v2_v2(slide_data->P0, point->bezt.vec[1]);
 	copy_v2_v2(slide_data->P1, point->bezt.vec[2]);
@@ -1136,7 +1140,7 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 		}
 	}
 	else {
-		if (slide_data->adjust_bezt->h1 < HD_VECT) {
+		if (slide_data->adjust_bezt->h1 <= HD_VECT) {
 			slide_data->adjust_bezt->h1 = HD_FREE;
 		}
 	}
@@ -1195,7 +1199,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 			/* fall-through */  /* update CV position */
 		case MOUSEMOVE:
 		{
-			float B[2];
+			float B[2], mouse_coord[2], delta[2];
 			float u = slide_data->u;
 			float u2 = slide_data->u * slide_data->u;
 			float u3 = slide_data->u * slide_data->u * slide_data->u;
@@ -1203,15 +1207,14 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 			float v2 = v * v, v3 = v * v * v;;
 
 			/* Get coordinate spline is expected to go through. */
-			ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, B);
-
-			/* Apply accurate flag if needed. */
+			ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, mouse_coord);
+			sub_v2_v2v2(delta, mouse_coord, slide_data->prev_mouse_coord);
 			if (slide_data->accurate) {
-				float delta[2];
-				sub_v2_v2v2(delta, B, slide_data->initial_coord);
 				mul_v2_fl(delta, 0.2f);
-				add_v2_v2v2(B, slide_data->initial_coord, delta);
 			}
+			add_v2_v2v2(B, slide_data->prev_spline_coord, delta);
+			copy_v2_v2(slide_data->prev_spline_coord, B);
+			copy_v2_v2(slide_data->prev_mouse_coord, mouse_coord);
 
 			if (u < 0.5f) {
 				slide_data->adjust_bezt->vec[2][0] =
