@@ -1176,9 +1176,9 @@ static int slide_spline_curvature_invoke(bContext *C, wmOperator *op, const wmEv
 
 static void slide_spline_solve_P1(const float u,
                                   const float B[2],
-                                  const float P0[0],
-                                  const float P2[0],
-                                  const float P3[0],
+                                  const float P0[2],
+                                  const float P2[2],
+                                  const float P3[2],
                                   float solution[2])
 {
 	const float u2 = u * u, u3 = u * u * u;
@@ -1192,9 +1192,9 @@ static void slide_spline_solve_P1(const float u,
 
 static void slide_spline_solve_P2(const float u,
                                   const float B[2],
-                                  const float P0[0],
-                                  const float P1[0],
-                                  const float P3[0],
+                                  const float P0[2],
+                                  const float P1[2],
+                                  const float P3[2],
                                   float solution[2])
 {
 	const float u2 = u * u, u3 = u * u * u;
