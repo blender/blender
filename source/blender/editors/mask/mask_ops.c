@@ -463,6 +463,7 @@ enum {
 
 typedef struct SlidePointData {
 	/* Generic fields. */
+	short event_invoke_type;
 	int action;
 	Mask *mask;
 	MaskLayer *masklay;
@@ -610,7 +611,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 		select_sliding_point(mask, masklay, spline, point, which_handle);
 
 		customdata = MEM_callocN(sizeof(SlidePointData), "mask slide point data");
-
+		customdata->event_invoke_type = event->type;
 		customdata->mask = mask;
 		customdata->masklay = masklay;
 		customdata->spline = spline;
@@ -942,7 +943,8 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 
 		case LEFTMOUSE:
-			if (event->val == KM_RELEASE) {
+		case RIGHTMOUSE:
+			if (event->type == data->event_invoke_type && event->val == KM_RELEASE) {
 				Scene *scene = CTX_data_scene(C);
 
 				/* dont key sliding feather uw's */
@@ -1010,6 +1012,8 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 /******************** slide spline curvature *********************/
 
 typedef struct SlideSplineCurvatureData {
+	short event_invoke_type;
+
 	Mask *mask;
 	MaskLayer *mask_layer;
 	MaskSpline *spline;
@@ -1085,6 +1089,7 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 	}
 
 	slide_data = MEM_callocN(sizeof(SlideSplineCurvatureData), "slide curvature slide");
+	slide_data->event_invoke_type = event->type;
 	slide_data->mask = mask;
 	slide_data->mask_layer = mask_layer;
 	slide_data->spline = spline;
@@ -1341,7 +1346,8 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 		}
 
 		case LEFTMOUSE:
-			if (event->val == KM_RELEASE) {
+		case RIGHTMOUSE:
+			if (event->type == slide_data->event_invoke_type && event->val == KM_RELEASE) {
 				/* dont key sliding feather uw's */
 				if (IS_AUTOKEY_ON(scene)) {
 					ED_mask_layer_shape_auto_key(slide_data->mask_layer, CFRA);
