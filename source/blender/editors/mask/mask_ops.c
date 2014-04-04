@@ -1011,6 +1011,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 
 typedef struct SlideSplineCurvatureData {
 	Mask *mask;
+	MaskLayer *mask_layer;
 	MaskSpline *spline;
 	MaskSplinePoint *point;
 	float u;
@@ -1085,6 +1086,7 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 
 	slide_data = MEM_callocN(sizeof(SlideSplineCurvatureData), "slide curvature slide");
 	slide_data->mask = mask;
+	slide_data->mask_layer = mask_layer;
 	slide_data->spline = spline;
 	slide_data->point = point;
 	slide_data->u = u;
@@ -1201,6 +1203,7 @@ static void slide_spline_solve_P2(const float u,
 
 static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Scene *scene = CTX_data_scene(C);
 	const float margin = 0.2f;
 	SlideSplineCurvatureData *slide_data = (SlideSplineCurvatureData *) op->customdata;
 	float u = slide_data->u;
@@ -1339,6 +1342,10 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {
+				/* dont key sliding feather uw's */
+				if (IS_AUTOKEY_ON(scene)) {
+					ED_mask_layer_shape_auto_key(slide_data->mask_layer, CFRA);
+				}
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
 				DAG_id_tag_update(&slide_data->mask->id, 0);
