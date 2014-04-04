@@ -491,17 +491,9 @@ static bool slide_point_check_initial_feather(MaskSpline *spline)
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &spline->points[i];
 
-		if (point->bezt.weight != 0.0f)
+		if (point->bezt.weight != 0.0f) {
 			return false;
-
-		/* comment for now. if all bezt weights are zero - this is as good-as initial */
-#if 0
-		int j;
-		for (j = 0; j < point->tot_uw; j++) {
-			if (point->uw[j].w != 0.0f)
-				return false;
 		}
-#endif
 	}
 
 	return true;
@@ -674,25 +666,6 @@ static int slide_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		WM_event_add_modal_handler(C, op);
 
-#if 0
-		if (slidedata->uw) {
-			if ((slidedata->uw->flag & SELECT) == 0) {
-				ED_mask_select_toggle_all(mask, SEL_DESELECT);
-
-				slidedata->uw->flag |= SELECT;
-
-				ED_mask_select_flush_all(mask);
-			}
-		}
-		else if (!MASKPOINT_ISSEL_ANY(slidedata->point)) {
-			ED_mask_select_toggle_all(mask, SEL_DESELECT);
-
-			BKE_mask_point_select_set(slidedata->point, true);
-
-			ED_mask_select_flush_all(mask);
-		}
-#endif
-
 		slidedata->masklay->act_spline = slidedata->spline;
 		slidedata->masklay->act_point = slidedata->point;
 
@@ -713,18 +686,9 @@ static void slide_point_delta_all_feather(SlidePointData *data, float delta)
 		MaskSplinePoint *orig_point = &data->orig_spline->points[i];
 
 		point->bezt.weight = orig_point->bezt.weight + delta;
-		if (point->bezt.weight < 0.0f)
+		if (point->bezt.weight < 0.0f) {
 			point->bezt.weight = 0.0f;
-
-		/* not needed anymore */
-#if 0
-		int j;
-		for (j = 0; j < point->tot_uw; j++) {
-			point->uw[j].w = orig_point->uw[j].w + delta;
-			if (point->uw[j].w < 0.0f)
-				point->uw[j].w = 0.0f;
 		}
-#endif
 	}
 }
 
