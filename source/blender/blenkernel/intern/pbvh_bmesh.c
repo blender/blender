@@ -686,7 +686,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 	BMVert *v_new;
 	float mid[3];
 	int i, node_index;
-	const int cd_vert_mask_offset = CustomData_get_offset(&bvh->bm->vdata, CD_PAINT_MASK);
 
 	/* Get all faces adjacent to the edge */
 	pbvh_bmesh_edge_loops(edge_loops, e);
@@ -699,12 +698,12 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 	v_new = pbvh_bmesh_vert_create(bvh, node_index, mid, e->v1);
 
 	/* update paint mask */
-	if (cd_vert_mask_offset != -1) {
-		float mask_v1 = BM_ELEM_CD_GET_FLOAT(e->v1, cd_vert_mask_offset);
-		float mask_v2 = BM_ELEM_CD_GET_FLOAT(e->v2, cd_vert_mask_offset);
+	if (eq_ctx->cd_vert_mask_offset != -1) {
+		float mask_v1 = BM_ELEM_CD_GET_FLOAT(e->v1, eq_ctx->cd_vert_mask_offset);
+		float mask_v2 = BM_ELEM_CD_GET_FLOAT(e->v2, eq_ctx->cd_vert_mask_offset);
 		float mask_v_new = 0.5f * (mask_v1 + mask_v2);
 
-		BM_ELEM_CD_SET_FLOAT(v_new, cd_vert_mask_offset, mask_v_new);
+		BM_ELEM_CD_SET_FLOAT(v_new, eq_ctx->cd_vert_mask_offset, mask_v_new);
 	}
 
 	/* For each face, add two new triangles and delete the original */
@@ -827,7 +826,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	float mask_v1 = BM_ELEM_CD_GET_FLOAT(v1, cd_vert_mask_offset);
 
 	/* one of the two vertices may be masked, select the correct one for deletion */
-	if (mask_v1 < 1.0) {
+	if (mask_v1 < 1.0f) {
 		v_del = v1;
 		v_conn = v2;
 	}
