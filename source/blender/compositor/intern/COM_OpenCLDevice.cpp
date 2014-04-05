@@ -85,7 +85,7 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
 		CL_FLOAT
 	};
 
-	cl_mem clBuffer = clCreateImage2D(this->m_context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, result->getWidth(),
+	cl_mem clBuffer = clCreateImage2D(this->m_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &imageFormat, result->getWidth(),
 	                                  result->getHeight(), 0, result->getBuffer(), &error);
 
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
