@@ -151,6 +151,27 @@ MINLINE int power_of_2_min_i(int n)
 	return n;
 }
 
+MINLINE unsigned int power_of_2_max_u(unsigned int x)
+{
+	x -= 1;
+	x |= (x >>  1);
+	x |= (x >>  2);
+	x |= (x >>  4);
+	x |= (x >>  8);
+	x |= (x >> 16);
+	return x + 1;
+}
+
+MINLINE unsigned power_of_2_min_u(unsigned x)
+{
+	x |= (x >>  1);
+	x |= (x >>  2);
+	x |= (x >>  4);
+	x |= (x >>  8);
+	x |= (x >> 16);
+	return x - (x >> 1);
+}
+
 MINLINE int iroundf(float a)
 {
 	return (int)floorf(a + 0.5f);
