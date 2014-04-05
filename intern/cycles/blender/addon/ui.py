@@ -885,9 +885,10 @@ class CyclesWorld_PT_mist(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         if CyclesButtonsPanel.poll(context):
-            for rl in context.scene.render.layers:
-                if rl.use_pass_mist:
-                    return True
+            if context.world:
+                for rl in context.scene.render.layers:
+                    if rl.use_pass_mist:
+                        return True
 
         return False
 
