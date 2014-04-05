@@ -49,12 +49,15 @@ static EnumPropertyItem prop_direction_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem brush_stroke_method_items[] = {
+static EnumPropertyItem sculpt_stroke_method_items[] = {
 	{0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
+	{BRUSH_DRAG_DOT, "DRAG_DOT", 0, "Drag Dot", "Allows a single dot to be carefully positioned"},
 	{BRUSH_SPACE, "SPACE", 0, "Space", "Limit brush application to the distance specified by spacing"},
 	{BRUSH_AIRBRUSH, "AIRBRUSH", 0, "Airbrush", "Keep applying paint effect while holding mouse (spray)"},
+    {BRUSH_ANCHORED, "ANCHORED", 0, "Anchored", "Keep the brush anchored to the initial location"},
 	{0, NULL, 0, NULL, NULL}
 };
+
 
 EnumPropertyItem brush_sculpt_tool_items[] = {
 	{SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
@@ -475,16 +478,14 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerR
 static EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                 PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
-	static EnumPropertyItem sculpt_stroke_method_items[] = {
+	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+
+	static EnumPropertyItem brush_stroke_method_items[] = {
 		{0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
-		{BRUSH_DRAG_DOT, "DRAG_DOT", 0, "Drag Dot", "Allows a single dot to be carefully positioned"},
 		{BRUSH_SPACE, "SPACE", 0, "Space", "Limit brush application to the distance specified by spacing"},
-		{BRUSH_ANCHORED, "ANCHORED", 0, "Anchored", "Keep the brush anchored to the initial location"},
 		{BRUSH_AIRBRUSH, "AIRBRUSH", 0, "Airbrush", "Keep applying paint effect while holding mouse (spray)"},
 		{0, NULL, 0, NULL, NULL}
 	};
-
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	switch (mode) {
 		case PAINT_SCULPT:
@@ -706,7 +707,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "stroke_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, brush_stroke_method_items);
+	RNA_def_property_enum_items(prop, sculpt_stroke_method_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Brush_stroke_itemf");
 	RNA_def_property_ui_text(prop, "Stroke Method", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
