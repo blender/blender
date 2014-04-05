@@ -47,6 +47,13 @@ class CyclesButtonsPanel():
     def poll(cls, context):
         rd = context.scene.render
         return rd.engine in cls.COMPAT_ENGINES
+        
+        
+def use_cpu(context):
+    cscene = context.scene.cycles
+    device_type = context.user_preferences.system.compute_device_type
+    
+    return (device_type == 'NONE' or cscene.device == 'CPU')
 
 
 def draw_samples_info(layout, cscene):
@@ -103,7 +110,6 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
-        device_type = context.user_preferences.system.compute_device_type
 
         row = layout.row(align=True)
         row.menu("CYCLES_MT_sampling_presets", text=bpy.types.CYCLES_MT_sampling_presets.bl_label)
@@ -148,7 +154,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "subsurface_samples", text="Subsurface")
             sub.prop(cscene, "volume_samples", text="Volume")
 
-        if cscene.feature_set == 'EXPERIMENTAL' and (device_type == 'NONE' or cscene.device == 'CPU'):
+        if cscene.feature_set == 'EXPERIMENTAL' and use_cpu(context):
             layout.row().prop(cscene, "sampling_pattern", text="Pattern")
 
         for rl in scene.render.layers:
@@ -1308,7 +1314,7 @@ def draw_device(self, context):
         if device_type in {'CUDA', 'OPENCL', 'NETWORK'}:
             layout.prop(cscene, "device")
 
-        if engine.with_osl() and (cscene.device == 'CPU' or device_type == 'NONE'):
+        if engine.with_osl() and use_cpu(context):
             layout.prop(cscene, "shading_system")
 
 
