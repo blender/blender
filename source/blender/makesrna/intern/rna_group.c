@@ -47,7 +47,7 @@
 
 static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 
 	/* we are actually iterating a GroupObject list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject *)internal->link)->ob);

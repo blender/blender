@@ -136,7 +136,7 @@ static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *i
 
 static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 	Sequence *seq = (Sequence *)internal->link;
 
 	if (seq->seqbase.first)
@@ -556,7 +556,7 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 
 static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 	MetaStack *ms = (MetaStack *)internal->link;
 
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);

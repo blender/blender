@@ -56,7 +56,7 @@
 
 static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 	FCurve *fcu = (FCurve *)internal->link;
 	bActionGroup *grp = fcu->grp;
 	

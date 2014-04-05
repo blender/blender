@@ -441,7 +441,7 @@ static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, Po
 
 static void rna_Armature_bones_next(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 	Bone *bone = (Bone *)internal->link;
 
 	if (bone->childbase.first)

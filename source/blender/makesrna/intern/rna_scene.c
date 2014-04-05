@@ -357,7 +357,7 @@ static int rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 
 	/* we are actually iterating a Base list, so override get */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base *)internal->link)->object);
@@ -664,7 +664,7 @@ static void rna_Scene_all_keyingsets_begin(CollectionPropertyIterator *iter, Poi
 
 static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 	KeyingSet *ks = (KeyingSet *)internal->link;
 	
 	/* if we've run out of links in Scene list, jump over to the builtins list unless we're there already */

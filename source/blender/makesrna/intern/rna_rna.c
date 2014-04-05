@@ -253,7 +253,7 @@ static void rna_inheritance_functions_listbase_next(CollectionPropertyIterator *
 
 static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 	IDProperty *group;
 
 	if (internal->flag) {
@@ -271,7 +271,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 			if (group) {
 				rna_iterator_listbase_end(iter);
 				rna_iterator_listbase_begin(iter, &group->data.group, rna_idproperty_known);
-				internal = iter->internal;
+				internal = &iter->internal.listbase;
 				internal->flag = 1;
 			}
 		}
@@ -295,7 +295,7 @@ static void rna_Struct_properties_begin(CollectionPropertyIterator *iter, Pointe
 
 static PointerRNA rna_Struct_properties_get(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 
 	/* we return either PropertyRNA* or IDProperty*, the rna_access.c
 	 * functions can handle both as PropertyRNA* with some tricks */
@@ -324,7 +324,7 @@ static void rna_Struct_functions_begin(CollectionPropertyIterator *iter, Pointer
 
 static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
 {
-	ListBaseIterator *internal = iter->internal;
+	ListBaseIterator *internal = &iter->internal.listbase;
 
 	/* we return either PropertyRNA* or IDProperty*, the rna_access.c
 	 * functions can handle both as PropertyRNA* with some tricks */
