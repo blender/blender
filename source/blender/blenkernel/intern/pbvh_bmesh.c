@@ -552,7 +552,7 @@ static void long_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
 {
 	const float len_sq = BM_edge_calc_length_squared(e);
 	if (len_sq > eq_ctx->q->limit_len_squared)
-		edge_queue_insert(eq_ctx, e, 1.0f / len_sq);
+		edge_queue_insert(eq_ctx, e, -len_sq);
 }
 
 static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
@@ -781,16 +781,19 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 
 	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
 		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
+		BMVert *v1 = pair[0], *v2 = pair[1];
 		BMEdge *e;
-
-		/* Check that the edge still exists */
-		if (!(e = BM_edge_exists(pair[0], pair[1]))) {
-			BLI_mempool_free(eq_ctx->pool, pair);
-			continue;
-		}
 
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
+
+		if (len_squared_v3v3(v1->co, v2->co) <= eq_ctx->q->limit_len_squared)
+			continue;
+
+		/* Check that the edge still exists */
+		if (!(e = BM_edge_exists(v1, v2))) {
+			continue;
+		}
 
 		/* Check that the edge's vertices are still in the PBVH. It's
 		 * possible that an edge collapse has deleted adjacent faces
@@ -801,9 +804,6 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		{
 			continue;
 		}
-
-		if (BM_edge_calc_length_squared(e) <= eq_ctx->q->limit_len_squared)
-			continue;
 
 		any_subdivided = true;
 
@@ -975,19 +975,24 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
 	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
 		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
+		BMVert *v1 = pair[0], *v2 = pair[1];
 		BMEdge *e;
-		BMVert *v1, *v2;
 
-		v1 = pair[0];
-		v2 = pair[1];
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
-		/* Check that the vertices/edge still exist */
+		/* Check the verts still exist */
 		if (BLI_ghash_haskey(deleted_verts, v1) ||
-		    BLI_ghash_haskey(deleted_verts, v2) ||
-		    !(e = BM_edge_exists(v1, v2)))
+		    BLI_ghash_haskey(deleted_verts, v2))
 		{
+			continue;
+		}
+
+		if (len_squared_v3v3(v1->co, v2->co) >= min_len_squared)
+			continue;
+
+		/* Check that the edge still exists */
+		if (!(e = BM_edge_exists(v1, v2))) {
 			continue;
 		}
 
@@ -1000,9 +1005,6 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 		{
 			continue;
 		}
-
-		if (BM_edge_calc_length_squared(e) >= min_len_squared)
-			continue;
 
 		any_collapsed = true;
 
