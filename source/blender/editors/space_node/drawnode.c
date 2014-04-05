@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -938,7 +939,7 @@ static void node_shader_buts_subsurface(uiLayout *layout, bContext *C, PointerRN
 	PointerRNA scene = CTX_data_pointer_get(C, "scene");
 	if (scene.data) {
 		PointerRNA cscene = RNA_pointer_get(&scene, "cycles");
-		if (cscene.data && RNA_enum_get(&cscene, "device") == 1)
+		if (cscene.data && (RNA_enum_get(&cscene, "device") == 1 && U.compute_device_type != 0))
 			uiItemL(layout, IFACE_("SSS not supported on GPU"), ICON_ERROR);
 	}
 
@@ -948,12 +949,12 @@ static void node_shader_buts_subsurface(uiLayout *layout, bContext *C, PointerRN
 
 static void node_shader_buts_volume(uiLayout *layout, bContext *C, PointerRNA *UNUSED(ptr))
 {
-	/* SSS does not work on GPU yet */
+	/* Volume does not work on GPU yet */
 	PointerRNA scene = CTX_data_pointer_get(C, "scene");
 	if (scene.data) {
 		PointerRNA cscene = RNA_pointer_get(&scene, "cycles");
 
-		if (cscene.data && RNA_enum_get(&cscene, "device") == 1)
+		if (cscene.data && (RNA_enum_get(&cscene, "device") == 1 && U.compute_device_type != 0))
 			uiItemL(layout, IFACE_("Volumes not supported on GPU"), ICON_ERROR);
 	}
 }
