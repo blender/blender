@@ -63,6 +63,10 @@
 /* when undefined, merge the allocs for BLI_mempool_chunk and its data */
 // #define USE_DATA_PTR
 
+/* optimize pool size */
+#define USE_CHUNK_POW2
+
+
 #ifndef NDEBUG
 static bool mempool_debug_memset = false;
 #endif
@@ -114,6 +118,26 @@ struct BLI_mempool {
 #  define CHUNK_DATA(chunk) (chunk)->_data
 #else
 #  define CHUNK_DATA(chunk) (CHECK_TYPE_INLINE(chunk, BLI_mempool_chunk *), (void *)((chunk) + 1))
+#endif
+
+/* extra bytes implicitly used for every chunk alloc */
+#ifdef USE_CHUNK_POW2
+#  define CHUNK_OVERHEAD (unsigned int)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
+#else
+#  define CHUNK_OVERHEAD (unsigned int)(MEM_SIZE_OVERHEAD)
+#endif
+
+#ifdef USE_CHUNK_POW2
+static unsigned int power_of_2_max_u(unsigned int x)
+{
+	x -= 1;
+	x = x | (x >> 1);
+	x = x | (x >> 2);
+	x = x | (x >> 4);
+	x = x | (x >> 8);
+	x = x | (x >>16);
+	return x + 1;
+}
 #endif
 
 BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, unsigned int index)
@@ -230,7 +254,7 @@ static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk)
 BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
                                 unsigned int pchunk, unsigned int flag)
 {
-	BLI_mempool *pool = NULL;
+	BLI_mempool *pool;
 	BLI_freenode *lasttail = NULL;
 	unsigned int i, maxchunks;
 
@@ -243,18 +267,28 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 	}
 
 	if (flag & BLI_MEMPOOL_ALLOW_ITER) {
-		pool->esize = MAX2(esize, (unsigned int)sizeof(BLI_freenode));
-	}
-	else {
-		pool->esize = esize;
+		esize = MAX2(esize, (unsigned int)sizeof(BLI_freenode));
 	}
 
 	maxchunks = mempool_maxchunks(totelem, pchunk);
 
-	pool->flag = flag;
-	pool->pchunk = pchunk;
-	pool->csize = esize * pchunk;
 	pool->chunks = NULL;
+	pool->esize = esize;
+	pool->csize = esize * pchunk;
+
+
+	/* Optimize chunk size to powers of 2, accounting for slop-space */
+#ifdef USE_CHUNK_POW2
+	{
+		BLI_assert(pool->csize > CHUNK_OVERHEAD);
+		pool->csize = power_of_2_max_u(pool->csize) - CHUNK_OVERHEAD;
+		pchunk = pool->csize / esize;
+	}
+#endif
+
+
+	pool->pchunk = pchunk;
+	pool->flag = flag;
 	pool->free = NULL;  /* mempool_chunk_add assigns */
 	pool->maxchunks = maxchunks;
 #ifdef USE_TOTALLOC
