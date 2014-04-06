@@ -64,6 +64,14 @@ static void (*thread_unlock_callback)(void) = NULL;
 #define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t) 1)
 
 #ifdef __GNUC__
+#  define LIKELY(x)       __builtin_expect(!!(x), 1)
+#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#else
+#  define LIKELY(x)       (x)
+#  define UNLIKELY(x)     (x)
+#endif
+
+#ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))
 #endif
 static void print_error(const char *str, ...)
@@ -126,7 +134,7 @@ void MEM_lockfree_freeN(void *vmemh)
 #endif
 	}
 	else {
-		if (malloc_debug_memset && len) {
+		if (UNLIKELY(malloc_debug_memset && len)) {
 			memset(memh + 1, 255, len);
 		}
 		free(memh);
@@ -219,7 +227,7 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
 
 	memh = (MemHead *)calloc(1, len + sizeof(MemHead));
 
-	if (memh) {
+	if (LIKELY(memh)) {
 		memh->len = len;
 		atomic_add_u(&totblock, 1);
 		atomic_add_z(&mem_in_use, len);
@@ -242,8 +250,8 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
 
 	memh = (MemHead *)malloc(len + sizeof(MemHead));
 
-	if (memh) {
-		if (malloc_debug_memset && len) {
+	if (LIKELY(memh)) {
+		if (UNLIKELY(malloc_debug_memset && len)) {
 			memset(memh + 1, 255, len);
 		}
 

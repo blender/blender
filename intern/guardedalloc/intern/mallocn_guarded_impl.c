@@ -222,6 +222,14 @@ static bool malloc_debug_memset = false;
 /* --------------------------------------------------------------------- */
 
 #ifdef __GNUC__
+#  define LIKELY(x)       __builtin_expect(!!(x), 1)
+#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#else
+#  define LIKELY(x)       (x)
+#  define UNLIKELY(x)     (x)
+#endif
+
+#ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))
 #endif
 static void print_error(const char *str, ...)
@@ -497,9 +505,9 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
 	
 	memh = (MemHead *)malloc(len + sizeof(MemHead) + sizeof(MemTail));
 
-	if (memh) {
+	if (LIKELY(memh)) {
 		make_memhead_header(memh, len, str);
-		if (malloc_debug_memset && len)
+		if (UNLIKELY(malloc_debug_memset && len))
 			memset(memh + 1, 255, len);
 
 #ifdef DEBUG_MEMCOUNTER
@@ -951,7 +959,7 @@ static void rem_memblock(MemHead *memh)
 #endif
 	}
 	else {
-		if (malloc_debug_memset && memh->len)
+		if (UNLIKELY(malloc_debug_memset && memh->len))
 			memset(memh + 1, 255, memh->len);
 		free(memh);
 	}
