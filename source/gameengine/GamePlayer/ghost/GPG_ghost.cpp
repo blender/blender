@@ -195,7 +195,7 @@ static void usage(const char* program, bool isBlenderPlayer)
 	const char * example_pathname = "";
 
 #ifdef _WIN32
-	consoleoption = "-c ";
+	consoleoption = "[-c] ";
 #else
 	consoleoption = "";
 #endif
@@ -208,33 +208,40 @@ static void usage(const char* program, bool isBlenderPlayer)
 		example_pathname = "/home/user/";
 #endif
 	}
-	
-	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
-	       "[-s stereomode] [-m aasamples] %s\n", program, consoleoption, example_filename);
+	printf("\n");
+	printf("usage:   %s [--options] %s\n\n", program, example_filename);
+	printf("Available options are: [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] ", consoleoption);
+	printf("[-s stereomode] [-m aasamples]\n");
+	printf("Optional parameters must be passed in order.\n");
+	printf("Default values are set in the blend file.\n\n");
 	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
 	printf("       --Optional parameters--\n"); 
 	printf("       w = window width\n");
-	printf("       h = window height\n\n");
+	printf("       h = window height\n");
 	printf("       l = window left coordinate\n");
 	printf("       t = window top coordinate\n");
-	printf("       Note: If w or h is defined, both must be defined.\n");
-	printf("          Also, if l or t is defined, all options must be used.\n\n");
-	printf("  -f: start game in full screen mode\n");
+	printf("       Note: To define 'w' or 'h', both must be used.");
+	printf("Also, to define 'l' or 't', all four parameters must be used.\n");
+	printf("       Example: -w   or  -w 500 300  or  -w 500 300 0 0\n\n");
+	printf("  -f: start game in fullscreen mode\n");
 	printf("       --Optional parameters--\n");
-	printf("       fw = full screen mode pixel width\n");
-	printf("       fh = full screen mode pixel height\n\n");
-	printf("       fb = full screen mode bits per pixel\n");
-	printf("       ff = full screen mode frequency\n");
-	printf("       Note: If fw or fh is defined, both must be defined.\n");
-	printf("          Also, if fb is used, fw and fh must be used. ff requires all options.\n\n");
-	printf("  -s: start player in stereo\n");
-	printf("       stereomode: hwpageflip       (Quad buffered shutter glasses)\n");
-	printf("                   syncdoubling     (Above Below)\n");
-	printf("                   sidebyside       (Left Right)\n");
+	printf("       fw = fullscreen mode pixel width    (use 0 to detect automatically)\n");
+	printf("       fh = fullscreen mode pixel height   (use 0 to detect automatically)\n");
+	printf("       fb = fullscreen mode bits per pixel (default unless set in the blend file: 32)\n");
+	printf("       ff = fullscreen mode frequency      (default unless set in the blend file: 60)\n");
+	printf("       Note: To define 'fw'' or 'fh'', both must be used.\n");
+	printf("       Example: -f  or  -f 1024 768  or  -f 0 0 16  or  -f 1024 728 16 30\n\n");
+	printf("  -s: start player in stereoscopy mode (requires 3D capable hardware)\n");
+	printf("       stereomode: nostereo         (default unless stereo is set in the blend file)\n");
 	printf("                   anaglyph         (Red-Blue glasses)\n");
+	printf("                   sidebyside       (Left Right)\n");
+	printf("                   syncdoubling     (Above Below)\n");
+	printf("                   3dtvtopbottom    (Squashed Top-Bottom for passive glasses)\n");
+	printf("                   interlace        (Interlace horizontally)\n");
 	printf("                   vinterlace       (Vertical interlace for autostereo display)\n");
-	printf("                             depending on the type of stereo you want\n\n");
+	printf("                   hwpageflip       (Quad buffered shutter glasses)\n");
+	printf("       Example: -s sidebyside  or  -s vinterlace\n\n");
 	printf("  -D: start player in dome mode\n");
 	printf("       --Optional parameters--\n");
 	printf("       angle    = field of view in degrees\n");
@@ -245,9 +252,9 @@ static void usage(const char* program, bool isBlenderPlayer)
 	printf("             truncatedrear          (Rear-Truncated)\n");
 	printf("             cubemap                (Cube Map)\n");
 	printf("             sphericalpanoramic     (Spherical Panoramic)\n");
-	printf("                             depending on the type of dome you are using\n\n");
+	printf("       Example: -D  or  -D mode cubemap\n\n");
 	printf("  -m: maximum anti-aliasing (eg. 2,4,8,16)\n\n");
-	printf("  -i: parent windows ID\n\n");
+	printf("  -i: parent window's ID\n\n");
 #ifdef _WIN32
 	printf("  -c: keep console window open\n\n");
 #endif
@@ -265,7 +272,7 @@ static void usage(const char* program, bool isBlenderPlayer)
 	printf("\n");
 	printf("  - : all arguments after this are ignored, allowing python to access them from sys.argv\n");
 	printf("\n");
-	printf("example: %s -w 320 200 10 10 -g noaudio%s%s\n", program, example_pathname, example_filename);
+	printf("example: %s -w 320 200 10 10 -g noaudio %s%s\n", program, example_pathname, example_filename);
 	printf("example: %s -g show_framerate = 0 %s%s\n", program, example_pathname, example_filename);
 	printf("example: %s -i 232421 -m 16 %s%s\n\n", program, example_pathname, example_filename);
 }
@@ -412,7 +419,7 @@ int main(int argc, char** argv)
 	int fullScreenBpp = 32;
 	int fullScreenFrequency = 60;
 	GHOST_TEmbedderWindowID parentWindow = 0;
-	bool isBlenderPlayer = false;
+	bool isBlenderPlayer = false; //true when lauching from blender or command line. false for bundled player
 	int validArguments=0;
 	bool samplesParFound = false;
 	GHOST_TUns16 aasamples = 0;
@@ -502,12 +509,19 @@ int main(int argc, char** argv)
 
 	set_free_windowmanager_cb(wm_free);
 
-	/* if running blenderplayer the last argument can't be parsed since it has to be the filename. */
+	/* if running blenderplayer the last argument can't be parsed since it has to be the filename. else it is bundled */
 	isBlenderPlayer = !BLO_is_a_runtime(argv[0]);
 	if (isBlenderPlayer)
 		validArguments = argc - 1;
 	else
 		validArguments = argc;
+
+
+	/* Parsing command line arguments (can be set from WM_OT_blenderplayer_start) */
+#if defined(DEBUG)
+		printf("Parsing command line arguments...\n");
+		printf("Num of arguments is: %i\n", validArguments-1); //-1 because i starts at 1
+#endif
 
 	for (i = 1; (i < validArguments) && !error 
 #ifdef WIN32
@@ -517,7 +531,7 @@ int main(int argc, char** argv)
 
 	{
 #if defined(DEBUG)
-		printf("argv[%d] = '%s', %i\n", i, argv[i],argc);
+		printf("argv[%d] = '%s'\n", i, argv[i]);
 #endif
 		if (argv[i][0] == '-')
 		{
@@ -529,44 +543,43 @@ int main(int argc, char** argv)
 			
 			switch (argv[i][1])
 			{
-			case 'g':
-				// Parse game options
+			case 'g': //game engine options (show_framerate, fixedtime, etc)
+			{
+				i++;
+				if (i <= validArguments)
 				{
-					i++;
-					if (i <= validArguments)
+					char* paramname = argv[i];
+					// Check for single value versus assignment
+					if (i+1 <= validArguments && (*(argv[i+1]) == '='))
 					{
-						char* paramname = argv[i];
-						// Check for single value versus assignment
-						if (i+1 <= validArguments && (*(argv[i+1]) == '='))
+						i++;
+						if (i + 1 <= validArguments)
 						{
 							i++;
-							if (i + 1 <= validArguments)
-							{
-								i++;
-								// Assignment
-								SYS_WriteCommandLineInt(syshandle, paramname, atoi(argv[i]));
-								SYS_WriteCommandLineFloat(syshandle, paramname, atof(argv[i]));
-								SYS_WriteCommandLineString(syshandle, paramname, argv[i]);
+							// Assignment
+							SYS_WriteCommandLineInt(syshandle, paramname, atoi(argv[i]));
+							SYS_WriteCommandLineFloat(syshandle, paramname, atof(argv[i]));
+							SYS_WriteCommandLineString(syshandle, paramname, argv[i]);
 #if defined(DEBUG)
-								printf("%s = '%s'\n", paramname, argv[i]);
+							printf("%s = '%s'\n", paramname, argv[i]);
 #endif
-								i++;
-							}
-							else
-							{
-								error = true;
-								printf("error: argument assignment %s without value.\n", paramname);
-							}
+							i++;
 						}
 						else
 						{
-//							SYS_WriteCommandLineInt(syshandle, argv[i++], 1);
+							error = true;
+							printf("error: argument assignment %s without value.\n", paramname);
 						}
+					}
+					else
+					{
+//						SYS_WriteCommandLineInt(syshandle, argv[i++], 1);
 					}
 				}
 				break;
-
-			case 'd':
+			}
+			case 'd': //debug on
+			{
 				i++;
 				G.debug |= G_DEBUG;
 				MEM_set_memory_debug();
@@ -574,8 +587,9 @@ int main(int argc, char** argv)
 				BLI_mempool_set_memory_debug();
 #endif
 				break;
-
-			case 'f':
+			}
+			case 'f': //fullscreen mode
+			{
 				i++;
 				fullScreen = true;
 				fullScreenParFound = true;
@@ -590,30 +604,51 @@ int main(int argc, char** argv)
 							fullScreenFrequency = atoi(argv[i++]);
 					}
 				}
+				else if ((i + 1) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
+				{
+					error = true;
+					printf("error: to define fullscreen width or height, both options must be used.\n");
+				}
 				break;
-			case 'w':
-				// Parse window position and size options
+			}
+			case 'w': //display in a window
+			{
 				i++;
 				fullScreen = false;
 				windowParFound = true;
 
+				// Parse window position and size options
 				if ((i + 2) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
 					windowWidth = atoi(argv[i++]);
 					windowHeight = atoi(argv[i++]);
+
 					if ((i + 2) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
 					{
 						windowLeft = atoi(argv[i++]);
 						windowTop = atoi(argv[i++]);
 					}
+					else if ((i + 1) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
+					{
+						error = true;
+						printf("error: to define the window left or right coordinates, both options must be used.\n");
+					}
+				}
+				else if ((i + 1) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
+				{
+					error = true;
+					printf("error: to define the window's width or height, both options must be used.\n");
 				}
 				break;
-					
-			case 'h':
+			}
+			case 'h': //display help
+			{
 				usage(argv[0], isBlenderPlayer);
 				return 0;
 				break;
-			case 'i':
+			}
+			case 'i': //parent window ID
+			{
 				i++;
 				if ( (i + 1) <= validArguments )
 					parentWindow = atoi(argv[i++]);
@@ -625,7 +660,9 @@ int main(int argc, char** argv)
 				printf("XWindows ID = %d\n", parentWindow);
 #endif // defined(DEBUG)
 				break;
-			case 'm':
+			}
+			case 'm': //maximum anti-aliasing (eg. 2,4,8,16)
+			{
 				i++;
 				samplesParFound = true;
 				if ((i+1) <= validArguments )
@@ -636,22 +673,28 @@ int main(int argc, char** argv)
 					printf("error: No argument supplied for -m");
 				}
 				break;
-			case 'c':
+			}
+			case 'c': //keep console (windows only)
+			{
 				i++;
 #ifdef WIN32
 				closeConsole = false;
 #endif
 				break;
-			case 's':  // stereo
+			}
+			case 's': //stereo mode
+			{
 				i++;
 				if ((i + 1) <= validArguments)
 				{
-					stereomode = (RAS_IRasterizer::StereoMode) atoi(argv[i]);
-					if (stereomode < RAS_IRasterizer::RAS_STEREO_NOSTEREO || stereomode >= RAS_IRasterizer::RAS_STEREO_MAXSTEREO)
-						stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
+					stereoParFound = true;
+					stereoFlag = STEREO_ENABLED;
 
-					if (!strcmp(argv[i], "nostereo"))  // ok, redundant but clear
+					if (!strcmp(argv[i], "nostereo"))  // may not be redundant if the file has different setting
+					{
 						stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
+						stereoFlag = STEREO_NOSTEREO;
+					}
 
 					// only the hardware pageflip method needs a stereo window
 					else if (!strcmp(argv[i], "hwpageflip")) {
@@ -670,6 +713,9 @@ int main(int argc, char** argv)
 					else if (!strcmp(argv[i], "sidebyside"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_SIDEBYSIDE;
 
+					else if (!strcmp(argv[i], "interlace"))
+						stereomode = RAS_IRasterizer::RAS_STEREO_INTERLACED;
+
 					else if (!strcmp(argv[i], "vinterlace"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_VINTERLACE;
 
@@ -678,10 +724,13 @@ int main(int argc, char** argv)
 //					else if (!strcmp(argv[i], "stencil")
 //						stereomode = RAS_STEREO_STENCIL;
 #endif
+					else
+					{
+						error = true;
+						printf("error: stereomode '%s' unrecognized.\n", argv[i]);
+					}
 
 					i++;
-					stereoParFound = true;
-					stereoFlag = STEREO_ENABLED;
 				}
 				else
 				{
@@ -689,7 +738,9 @@ int main(int argc, char** argv)
 					printf("error: too few options for stereo argument.\n");
 				}
 				break;
-			case 'D':
+			}
+			case 'D': //dome mode
+			{
 				stereoFlag = STEREO_DOME;
 				stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
 				i++;
@@ -730,9 +781,12 @@ int main(int argc, char** argv)
 					i++;
 				}
 				break;
-			default:
+			}
+			default:  //not recognized
+			{
 				printf("Unknown argument: %s\n", argv[i++]);
 				break;
+			}
 			}
 		}
 		else
@@ -825,8 +879,10 @@ int main(int argc, char** argv)
 					else {
 						bfd = load_game_data(BLI_program_path(), filename[0]? filename: NULL);
 					}
-					
-					//::printf("game data loaded from %s\n", filename);
+
+#if defined(DEBUG)
+					printf("Game data loaded from %s\n", filename);
+#endif
 					
 					if (!bfd) {
 						usage(argv[0], isBlenderPlayer);
@@ -834,6 +890,7 @@ int main(int argc, char** argv)
 						exitcode = KX_EXIT_REQUEST_QUIT_GAME;
 					}
 					else {
+						/* Setting options according to the blend file if not overriden in the command line */
 #ifdef WIN32
 #if !defined(DEBUG)
 						if (closeConsole) {
@@ -877,8 +934,9 @@ int main(int argc, char** argv)
 						}
 						
 						
-						// Check whether the game should be displayed in stereo
+						// Check whether the game should be displayed in stereo (dome included)
 						if (!stereoParFound) {
+							// Only use file settings when command line did not override
 							if (scene->gm.stereoflag == STEREO_ENABLED) {
 								stereomode = (RAS_IRasterizer::StereoMode) scene->gm.stereomode;
 								if (stereomode == RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
@@ -892,6 +950,7 @@ int main(int argc, char** argv)
 						if (!samplesParFound)
 							aasamples = scene->gm.aasamples;
 
+						// Dome specific settings
 						if (stereoFlag == STEREO_DOME) {
 							stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
 							scene->gm.stereoflag = STEREO_DOME;
