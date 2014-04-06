@@ -134,9 +134,6 @@ protected:
 	short	m_priority;
 	short	m_layer;
 	short	m_ipo_flags;
-	struct bPose* m_pose;
-	struct bPose* m_blendpose;
-	struct bPose* m_userpose;
 	struct bAction *m_action;
 	STR_String	m_propname;
 	STR_String	m_framepropname;

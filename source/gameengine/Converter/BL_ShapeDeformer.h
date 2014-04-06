@@ -61,7 +61,7 @@ public:
 	virtual ~BL_ShapeDeformer();
 
 	bool Update (void);
-	bool LoadShapeDrivers(Object* arma);
+	bool LoadShapeDrivers(KX_GameObject* parent);
 	bool ExecuteShapeDrivers(void);
 
 	struct Key *GetKey();

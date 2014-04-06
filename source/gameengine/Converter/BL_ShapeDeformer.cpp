@@ -51,6 +51,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_key.h"
+#include "BKE_fcurve.h"
 #include "BKE_ipo.h"
 #include "BKE_library.h"
 #include "MT_Point3.h"
@@ -119,8 +120,29 @@ void BL_ShapeDeformer::ProcessReplica()
 	m_key = BKE_key_copy(m_key);
 }
 
-bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
+bool BL_ShapeDeformer::LoadShapeDrivers(KX_GameObject* parent)
 {
+	// Fix drivers since BL_ArmatureObject makes copies
+	if (parent->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE) {
+		BL_ArmatureObject *arma = (BL_ArmatureObject*)parent;
+		FCurve *fcu;
+
+		for (fcu = (FCurve*)GetKey()->adt->drivers.first; fcu; fcu = (FCurve*)fcu->next) {
+
+			DriverVar *dvar;
+			for (dvar = (DriverVar*)fcu->driver->variables.first; dvar; dvar = (DriverVar*)dvar->next) {
+				DRIVER_TARGETS_USED_LOOPER(dvar)
+				{
+					if (dtar->id) {
+						if ((Object*)dtar->id == arma->GetOrigArmatureObject())
+							dtar->id = (ID*)arma->GetArmatureObject();
+					}
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
+
 	// This used to check if we had drivers from this armature,
 	// now we just assume we want to use shape drivers
 	// and let the animsys handle things.
@@ -132,15 +154,10 @@ bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
 bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 {
 	if (m_useShapeDrivers && PoseUpdated()) {
-		// the shape drivers use the bone matrix as input. Must 
-		// update the matrix now
-		m_armobj->ApplyPose();
-
 		// We don't need an actual time, just use 0
 		BKE_animsys_evaluate_animdata(NULL, &GetKey()->id, GetKey()->adt, 0.f, ADT_RECALC_DRIVERS);
 
 		ForceUpdate();
-		m_armobj->RestorePose();
 		m_bDynamic = true;
 		return true;
 	}

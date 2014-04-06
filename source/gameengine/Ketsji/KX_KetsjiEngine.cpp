@@ -37,6 +37,8 @@
 #include <iostream>
 #include <stdio.h>
 
+#include "BLI_task.h"
+
 #include "KX_KetsjiEngine.h"
 
 #include "ListValue.h"
@@ -185,6 +187,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_pyprofiledict = PyDict_New();
 #endif
 
+	m_taskscheduler = BLI_task_scheduler_create(TASK_SCHEDULER_AUTO_THREADS);
 }
 
 
@@ -201,6 +204,9 @@ KX_KetsjiEngine::~KX_KetsjiEngine()
 #ifdef WITH_PYTHON
 	Py_CLEAR(m_pyprofiledict);
 #endif
+
+	if (m_taskscheduler)
+		BLI_task_scheduler_free(m_taskscheduler);
 }
 
 

@@ -1937,15 +1937,11 @@ static KX_GameObject *gameobject_from_blenderobject(
 			BL_ModifierDeformer *dcont = new BL_ModifierDeformer((BL_DeformableGameObject *)gameobj,
 																kxscene->GetBlenderScene(), ob,	meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
-			if (bHasShapeKey && bHasArmature)
-				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasShapeKey) {
 			// not that we can have shape keys without dvert! 
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
 															ob, meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
-			if (bHasArmature)
-				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasArmature) {
 			BL_SkinDeformer *dcont = new BL_SkinDeformer((BL_DeformableGameObject*)gameobj,
 															ob, meshobj);
@@ -2640,12 +2636,25 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->GetDeformer()->UpdateBuckets();
 	}
 
-	// Set up armature constraints
+	// Set up armature constraints and shapekey drivers
 	for (i=0;i<sumolist->GetCount();++i)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
 		if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
-			((BL_ArmatureObject*)gameobj)->LoadConstraints(converter);
+		{
+			BL_ArmatureObject *armobj = (BL_ArmatureObject*)gameobj;
+			armobj->LoadConstraints(converter);
+
+			CListValue *children = armobj->GetChildren();
+			for (int j=0; j<children->GetCount();++j)
+			{
+				BL_ShapeDeformer *deform = dynamic_cast<BL_ShapeDeformer*>(((KX_GameObject*)children->GetValue(j))->GetDeformer());
+				if (deform)
+					deform->LoadShapeDrivers(armobj);
+			}
+
+			children->Release();
+		}
 	}
 
 	bool processCompoundChildren = false;

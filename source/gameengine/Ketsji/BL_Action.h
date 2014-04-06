@@ -38,7 +38,7 @@ class BL_Action
 {
 private:
 	struct bAction* m_action;
-	struct bPose* m_pose;
+	struct bAction* m_tmpaction;
 	struct bPose* m_blendpose;
 	struct bPose* m_blendinpose;
 	std::vector<class SG_Controller*> m_sg_contr_list;

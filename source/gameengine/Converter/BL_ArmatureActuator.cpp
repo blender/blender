@@ -155,7 +155,7 @@ bool BL_ArmatureActuator::Update(double curtime, bool frame)
 		switch (m_type) {
 		case ACT_ARM_RUN:
 			result = true;
-			obj->SetActiveAction(NULL, 0, curtime);
+			obj->UpdateTimestep(curtime);
 			break;
 		case ACT_ARM_ENABLE:
 			if (m_constraint)

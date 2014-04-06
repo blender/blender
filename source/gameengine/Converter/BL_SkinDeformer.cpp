@@ -152,44 +152,8 @@ void BL_SkinDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
 
 bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 {
-	RAS_MeshSlot::iterator it;
-	RAS_MeshMaterial *mmat;
-	RAS_MeshSlot *slot;
-	size_t i, nmat, imat;
-
-	// update the vertex in m_transverts
-	if (!Update())
-		return false;
-
-	if (m_transverts) {
-		// the vertex cache is unique to this deformer, no need to update it
-		// if it wasn't updated! We must update all the materials at once
-		// because we will not get here again for the other material
-		nmat = m_pMeshObject->NumMaterials();
-		for (imat=0; imat<nmat; imat++) {
-			mmat = m_pMeshObject->GetMeshMaterial(imat);
-			if (!mmat->m_slots[(void*)m_gameobj])
-				continue;
-
-			slot = *mmat->m_slots[(void*)m_gameobj];
-
-			// for each array
-			for (slot->begin(it); !slot->end(it); slot->next(it)) {
-				// for each vertex
-				// copy the untransformed data from the original mvert
-				for (i=it.startvertex; i<it.endvertex; i++) {
-					RAS_TexVert& v = it.vertex[i];
-					v.SetXYZ(m_transverts[v.getOrigIndex()]);
-					if (m_copyNormals)
-						v.SetNormal(m_transnors[v.getOrigIndex()]);
-				}
-			}
-		}
-
-		if (m_copyNormals)
-			m_copyNormals = false;
-	}
-	return true;
+	// We do everything in UpdateInternal() now so we can thread it.
+	return false;
 }
 
 RAS_Deformer *BL_SkinDeformer::GetReplica()
@@ -331,7 +295,7 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 		if (!shape_applied) {
 			/* store verts locally */
 			VerifyStorage();
-		
+
 			/* duplicate */
 			for (int v =0; v<m_bmesh->totvert; v++)
 			{
@@ -342,15 +306,10 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 
 		m_armobj->ApplyPose();
 
-		switch (m_armobj->GetVertDeformType())
-		{
-			case ARM_VDEF_BGE_CPU:
-				BGEDeformVerts();
-				break;
-			case ARM_VDEF_BLENDER:
-			default:
-				BlenderDeformVerts();
-		}
+		if (m_armobj->GetVertDeformType() == ARM_VDEF_BGE_CPU)
+			BGEDeformVerts();
+		else
+			BlenderDeformVerts();
 
 		/* Update the current frame */
 		m_lastArmaUpdate=m_armobj->GetLastFrame();
@@ -359,6 +318,39 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 		/* dynamic vertex, cannot use display list */
 		m_bDynamic = true;
 		/* indicate that the m_transverts and normals are up to date */
+		RAS_MeshSlot::iterator it;
+		RAS_MeshMaterial *mmat;
+		RAS_MeshSlot *slot;
+		size_t i, nmat, imat;
+
+		if (m_transverts) {
+			// the vertex cache is unique to this deformer, no need to update it
+			// if it wasn't updated! We must update all the materials at once
+			// because we will not get here again for the other material
+			nmat = m_pMeshObject->NumMaterials();
+			for (imat=0; imat<nmat; imat++) {
+				mmat = m_pMeshObject->GetMeshMaterial(imat);
+				if (!mmat->m_slots[(void*)m_gameobj])
+					continue;
+
+				slot = *mmat->m_slots[(void*)m_gameobj];
+
+				// for each array
+				for (slot->begin(it); !slot->end(it); slot->next(it)) {
+					// for each vertex
+					// copy the untransformed data from the original mvert
+					for (i=it.startvertex; i<it.endvertex; i++) {
+						RAS_TexVert& v = it.vertex[i];
+						v.SetXYZ(m_transverts[v.getOrigIndex()]);
+						if (m_copyNormals)
+							v.SetNormal(m_transnors[v.getOrigIndex()]);
+					}
+				}
+			}
+
+			if (m_copyNormals)
+				m_copyNormals = false;
+		}
 		return true;
 	}
 
