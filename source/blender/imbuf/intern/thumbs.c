@@ -66,9 +66,22 @@
 #  include "utfconv.h"
 #endif
 
+#if defined(WIN32) || defined(__APPLE__)
+   /* pass */
+#else
+#  define USE_FREEDESKTOP
+#endif
+
+/* '$HOME/.cache/thumbnails' or '$HOME/.thumbnails' */
+#ifdef USE_FREEDESKTOP
+#  define THUMBNAILS "thumbnails"
+#else
+#  define THUMBNAILS ".thumbnails"
+#endif
+
 #define URI_MAX (FILE_MAX * 3 + 8)
 
-static int get_thumb_dir(char *dir, ThumbSize size)
+static bool get_thumb_dir(char *dir, ThumbSize size)
 {
 	char *s = dir;
 	const char *subdir;
@@ -78,20 +91,30 @@ static int get_thumb_dir(char *dir, ThumbSize size)
 	SHGetSpecialFolderPathW(0, dir_16, CSIDL_PROFILE, 0);
 	conv_utf_16_to_8(dir_16, dir, FILE_MAX);
 	s += strlen(dir);
+#elif defined(USE_FREEDESKTOP)
+	const char *home_cache = getenv("XDG_CACHE_HOME");
+	const char *home = home_cache ? home_cache : getenv("HOME");
 #else
 	const char *home = getenv("HOME");
+#endif
 	if (!home) return 0;
 	s += BLI_strncpy_rlen(s, home, FILE_MAX);
+
+#ifdef USE_FREEDESKTOP
+	if (!home_cache) {
+		s += BLI_strncpy_rlen(s, "/.cache", FILE_MAX - (s - dir));
+	}
 #endif
+
 	switch (size) {
 		case THB_NORMAL:
-			subdir = "/.thumbnails/normal/";
+			subdir = "/" THUMBNAILS "/normal/";
 			break;
 		case THB_LARGE:
-			subdir = "/.thumbnails/large/";
+			subdir = "/" THUMBNAILS "/large/";
 			break;
 		case THB_FAIL:
-			subdir = "/.thumbnails/fail/blender/";
+			subdir = "/" THUMBNAILS "/fail/blender/";
 			break;
 		default:
 			return 0; /* unknown size */
@@ -102,6 +125,9 @@ static int get_thumb_dir(char *dir, ThumbSize size)
 
 	return 1;
 }
+
+#undef THUMBNAILS
+
 
 /** ----- begin of adapted code from glib ---
  * The following code is adapted from function g_escape_uri_string from the gnome glib
