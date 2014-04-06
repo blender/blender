@@ -25,8 +25,8 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,tmp:,threads:,help,no-sudo,with-all,with-opencollada,force-all,\
-force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-opencollada,\
+--long source:,install:,tmp:,threads:,help,no-sudo,with-all,with-opencollada,ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,\
+force-all,force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-opencollada,\
 force-ffmpeg,skip-python,skip-numpy,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg,\
 skip-opencollada,required-numpy,libyaml-cpp-ver: \
 -- "$@" \
@@ -88,6 +88,22 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --with-opencollada
         Build and install the OpenCOLLADA libraries.
+
+    --ver_ocio=<ver>
+        Force version of OCIO library.
+
+    --ver_oiio=<ver>
+        Force version of OIIO library.
+
+    --ver_llvm=<ver>
+        Force version of LLVM library.
+
+    --ver_osl=<ver>
+        Force version of OSL library.
+
+    Note about the --ver-foo options:
+        It may not always work as expected (some libs are actually checked out from a git rev...), yet it might help
+        to fix some build issues (like LLVM mismatch with the version used by your graphic system).
 
     --force-all
         Force the rebuild of all built libraries.
@@ -230,7 +246,8 @@ LLVM_SKIP=false
 OSL_VERSION="1.4.0"
 OSL_VERSION_MIN=$OSL_VERSION
 #OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
-OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage.git"
+#OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage.git"
+OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage.git"
 OSL_REPO_UID="175989f2610a7d54e8edfb5ace0143e28e11ac70"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
@@ -355,6 +372,26 @@ while true; do
     ;;
     --with-opencollada)
       WITH_OPENCOLLADA=true; shift; continue
+    ;;
+    --ver-ocio)
+      OCIO_VERSION="$2"
+      OCIO_VERSION_MIN=$OCIO_VERSION
+      shift; shift; continue
+    ;;
+    --ver-oiio)
+      OIIO_VERSION="$2"
+      OIIO_VERSION_MIN=$OIIO_VERSION
+      shift; shift; continue
+    ;;
+    --ver-llvm)
+      LLVM_VERSION="$2"
+      LLVM_VERSION_MIN=$LLVM_VERSION
+      shift; shift; continue
+    ;;
+    --ver-osl)
+      OSL_VERSION="$2"
+      OSL_VERSION_MIN=$OSL_VERSION
+      shift; shift; continue
     ;;
     --force-all)
       PYTHON_FORCE_REBUILD=true
@@ -1335,7 +1372,7 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=14
+  osl_magic=15
   _init_osl
 
   # Clean install if needed!
@@ -1364,11 +1401,13 @@ compile_OSL() {
 
     cd $_src
 
+    git remote set-url origin $OSL_SOURCE
+
     # XXX For now, always update from latest repo...
-    git pull origin master
+    git pull -X theirs origin master
 
     # Stick to same rev as windows' libs...
-    git checkout $OSL_REPO_UID
+    git checkout HEAD #$OSL_REPO_UID
     git reset --hard
 
     # Always refresh the whole build!
