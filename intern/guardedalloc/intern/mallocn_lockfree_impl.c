@@ -15,11 +15,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
  * Contributor(s): Brecht Van Lommel
  *                 Campbell Barton
  *                 Sergey Sharybin
@@ -62,14 +57,6 @@ static void (*thread_unlock_callback)(void) = NULL;
 #define MEMHEAD_FROM_PTR(ptr) (((MemHead*) vmemh) - 1)
 #define PTR_FROM_MEMHEAD(memhead) (memhead + 1)
 #define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t) 1)
-
-#ifdef __GNUC__
-#  define LIKELY(x)       __builtin_expect(!!(x), 1)
-#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
-#else
-#  define LIKELY(x)       (x)
-#  define UNLIKELY(x)     (x)
-#endif
 
 #ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))

@@ -77,6 +77,14 @@
 
 #define SIZET_ALIGN_4(len) ((len + 3) & ~(size_t)3)
 
+#ifdef __GNUC__
+#  define LIKELY(x)       __builtin_expect(!!(x), 1)
+#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#else
+#  define LIKELY(x)       (x)
+#  define UNLIKELY(x)     (x)
+#endif
+
 /* Prototypes for counted allocator functions */
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 void MEM_lockfree_freeN(void *vmemh);

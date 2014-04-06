@@ -222,14 +222,6 @@ static bool malloc_debug_memset = false;
 /* --------------------------------------------------------------------- */
 
 #ifdef __GNUC__
-#  define LIKELY(x)       __builtin_expect(!!(x), 1)
-#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
-#else
-#  define LIKELY(x)       (x)
-#  define UNLIKELY(x)     (x)
-#endif
-
-#ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))
 #endif
 static void print_error(const char *str, ...)
