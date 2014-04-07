@@ -4275,6 +4275,14 @@ static void ui_rgb_to_color_picker_HSVCUBE_compat_v(uiBut *but, const float rgb[
 		rgb_to_hsv_compat_v(rgb, hsv);
 }
 
+static void ui_rgb_to_color_picker_HSVCUBE_v(uiBut *but, const float rgb[3], float hsv[3])
+{
+	if (but->a1 == UI_GRAD_L_ALT)
+		rgb_to_hsl_v(rgb, hsv);
+	else
+		rgb_to_hsv_v(rgb, hsv);
+}
+
 static void ui_color_picker_to_rgb_HSVCUBE_v(uiBut *but, const float hsv[3], float rgb[3])
 {
 	if (but->a1 == UI_GRAD_L_ALT)
@@ -4509,7 +4517,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 		/* XXX hardcoded keymap check.... */
 		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
-			if (but->a1 == UI_GRAD_V_ALT) {
+			if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
 				int len;
 				
 				/* reset only value */
@@ -4521,47 +4529,20 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 					float *hsv = ui_block_hsv_get(but->block);
 					
 					RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-					rgb_to_hsv_v(def, def_hsv);
-					
+					ui_rgb_to_color_picker_HSVCUBE_v(but, def, def_hsv);
+
 					ui_get_but_vectorf(but, rgb);
-					rgb_to_hsv_compat_v(rgb, hsv);
+					ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsv);
 
 					def_hsv[0] = hsv[0];
 					def_hsv[1] = hsv[1];
 					
-					hsv_to_rgb_v(def_hsv, rgb);
+					ui_color_picker_to_rgb_HSVCUBE_v(but, def_hsv, rgb);
 					ui_set_but_vectorf(but, rgb);
 					
-					RNA_property_update(C, &but->rnapoin, but->rnaprop);					
-				}
-				return WM_UI_HANDLER_BREAK;
-			}
-			else if (but->a1 == UI_GRAD_L_ALT) {
-				int len;
-
-				/* reset only value */
-
-				len = RNA_property_array_length(&but->rnapoin, but->rnaprop);
-				if (ELEM(len, 3, 4)) {
-					float rgb[3], def_hsl[3];
-					float def[4];
-					float *hsl = ui_block_hsv_get(but->block);
-
-					RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-					rgb_to_hsl_v(def, def_hsl);
-
-					ui_get_but_vectorf(but, rgb);
-					rgb_to_hsl_compat_v(rgb, hsl);
-
-					def_hsl[0] = hsl[0];
-					def_hsl[1] = hsl[1];
-
-					hsl_to_rgb_v(def_hsl, rgb);
-					ui_set_but_vectorf(but, rgb);
-
 					RNA_property_update(C, &but->rnapoin, but->rnaprop);
+					return WM_UI_HANDLER_BREAK;
 				}
-				return WM_UI_HANDLER_BREAK;
 			}
 		}
 	}
@@ -4599,7 +4580,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	bool changed = true;
 	float mx_fl, my_fl;
 	float rgb[3];
-	float hsv[3];
+	float *hsv = ui_block_hsv_get(but->block);
 	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 
 	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
@@ -4625,8 +4606,6 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	ui_get_but_vectorf(but, rgb);
 	if (use_display_colorspace)
 		ui_block_to_display_space_v3(but->block, rgb);
-
-	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
 
 	ui_rgb_to_color_picker_compat_v(rgb, hsv);
 
@@ -4694,11 +4673,14 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
                                       const enum eSnapType snap, const bool shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
+	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 	float rgb[3];
 	float phi, r /*, sqr */ /* UNUSED */, v[2];
 	float sensitivity = (shift ? 0.06f : 0.3f) * ndof->dt;
 	
 	ui_get_but_vectorf(but, rgb);
+	if (use_display_colorspace)
+		ui_block_to_display_space_v3(but->block, rgb);
 	ui_rgb_to_color_picker_compat_v(rgb, hsv);
 	
 	/* Convert current color on hue/sat disc to circular coordinates phi, r */
@@ -4749,6 +4731,9 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 		normalize_v3(data->vec);
 		mul_v3_fl(data->vec, but->a2);
 	}
+
+	if (use_display_colorspace)
+		ui_block_to_scene_linear_v3(but->block, data->vec);
 	
 	ui_set_but_vectorf(but, data->vec);
 }
@@ -4801,10 +4786,10 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				def = MEM_callocN(sizeof(float) * len, "reset_defaults - float");
 				
 				RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-				rgb_to_hsv_v(def, def_hsv);
+				ui_color_picker_to_rgb_v(def, def_hsv);
 				
 				ui_get_but_vectorf(but, rgb);
-				rgb_to_hsv_compat_v(rgb, hsv);
+				ui_rgb_to_color_picker_compat_v(rgb, hsv);
 				
 				def_hsv[0] = hsv[0];
 				def_hsv[2] = hsv[2];
