@@ -3757,8 +3757,6 @@ void BKE_curve_nurbs_keyVertexTilts_apply(ListBase *lb, float *key)
 
 bool BKE_nurb_check_valid_u(struct Nurb *nu)
 {
-	if (nu == NULL)
-		return false;
 	if (nu->pntsu <= 1)
 		return false;
 	if (nu->type != CU_NURBS)
@@ -3779,8 +3777,6 @@ bool BKE_nurb_check_valid_u(struct Nurb *nu)
 }
 bool BKE_nurb_check_valid_v(struct Nurb *nu)
 {
-	if (nu == NULL)
-		return false;
 	if (nu->pntsv <= 1)
 		return false;
 	if (nu->type != CU_NURBS)
