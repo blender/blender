@@ -587,13 +587,16 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 	PointerRNA *ptr;
 	int a, pflag = 0, flag = 0;
 
-	buttons_texture_context_compute(C, sbuts);
-
 	if (!sbuts->path)
 		sbuts->path = MEM_callocN(sizeof(ButsContextPath), "ButsContextPath");
-	
+
 	path = sbuts->path;
-	
+
+	/* We need to set Scene path now! Else, buttons_texture_context_compute() might not get a valid scene. */
+	buttons_context_path(C, path, BCONTEXT_SCENE, pflag);
+
+	buttons_texture_context_compute(C, sbuts);
+
 	/* for each context, see if we can compute a valid path to it, if
 	 * this is the case, we know we have to display the button */
 	for (a = 0; a < BCONTEXT_TOT; a++) {
@@ -682,8 +685,8 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 1;
 	}
 	else if (CTX_data_equals(member, "scene")) {
-		set_pointer_type(path, result, &RNA_Scene);
-		return 1;
+		/* Do not return one here if scene not found in path, in this case we want to get default context scene! */
+		return set_pointer_type(path, result, &RNA_Scene);
 	}
 	else if (CTX_data_equals(member, "world")) {
 		set_pointer_type(path, result, &RNA_World);

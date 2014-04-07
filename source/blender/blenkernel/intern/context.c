@@ -873,7 +873,7 @@ Scene *CTX_data_scene(const bContext *C)
 {
 	Scene *scene;
 
-	if (ctx_data_pointer_verify(C, "scene", (void *)&scene) && scene)
+	if (ctx_data_pointer_verify(C, "scene", (void *)&scene))
 		return scene;
 	else
 		return C->data.scene;
