@@ -314,8 +314,9 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 
 	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
 
-	if (!BLI_ghash_haskey(bvh->bm_face_to_node, f)) {
+	BLI_assert(!BLI_ghash_haskey(bvh->bm_face_to_node, f));
 
+	{
 		BLI_ghash_insert(bvh->nodes[node_index].bm_faces, f, NULL);
 		BLI_ghash_insert(bvh->bm_face_to_node, f, val);
 
@@ -852,7 +853,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	}
 
 	/* Kill the edge */
-	BLI_assert(BM_edge_face_count(e) == 0);
+	BLI_assert(BM_edge_is_wire(e));
 	BM_edge_kill(bvh->bm, e);
 
 	/* For all remaining faces of v_del, create a new face that is the
@@ -936,7 +937,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		/* Check if any of the face's edges are now unused by any
 		 * face, if so delete them */
 		for (j = 0; j < 3; j++) {
-			if (BM_edge_face_count(e_tri[j]) == 0)
+			if (BM_edge_is_wire(e_tri[j]))
 				BM_edge_kill(bvh->bm, e_tri[j]);
 		}
 
