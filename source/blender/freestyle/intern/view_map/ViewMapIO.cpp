@@ -674,14 +674,16 @@ static int save(ostream& out, ViewShape *vs)
 	// ViewEdges (List)
 	tmp = vs->edges().size();
 	WRITE(tmp);
-	for (vector<ViewEdge*>::const_iterator i4 = vs->edges().begin(); i4 != vs->edges().end(); i4++)
+	for (vector<ViewEdge*>::const_iterator i4 = vs->edges().begin(); i4 != vs->edges().end(); i4++) {
 		WRITE_IF_NON_NULL(*i4);
+	}
 
 	// ViewVertices (List)
 	tmp = vs->vertices().size();
 	WRITE(tmp);
-	for (vector<ViewVertex*>::const_iterator i5 = vs->vertices().begin(); i5 != vs->vertices().end(); i5++)
+	for (vector<ViewVertex*>::const_iterator i5 = vs->vertices().begin(); i5 != vs->vertices().end(); i5++) {
 		WRITE_IF_NON_NULL(*i5);
+	}
 
 	return 0;
 }
@@ -816,8 +818,9 @@ static int save(ostream& out, SVertex *sv)
 	// FEdges (List)
 	tmp = sv->fedges().size();
 	WRITE(tmp);
-	for (vector<FEdge*>::const_iterator j = sv->fedges_begin(); j != sv->fedges_end(); j++)
+	for (vector<FEdge*>::const_iterator j = sv->fedges_begin(); j != sv->fedges_end(); j++) {
 		WRITE_IF_NON_NULL(*j);
+	}
 
 	return 0;
 }
@@ -868,8 +871,9 @@ static int save(ostream& out, ViewEdge *ve)
 	if (!(Options::getFlags() & Options::NO_OCCLUDERS)) {
 		tmp = ve->occluders().size();
 		WRITE(tmp);
-		for (vector<ViewShape*>::const_iterator i = ve->occluders().begin(); i != ve->occluders().end(); i++)
+		for (vector<ViewShape*>::const_iterator i = ve->occluders().begin(); i != ve->occluders().end(); i++) {
 			WRITE_IF_NON_NULL((*i));
+		}
 	}
 
 	return 0;
