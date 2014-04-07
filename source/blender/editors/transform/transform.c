@@ -1484,7 +1484,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
 		/* confirm transform if launch key is released after mouse move */
 		if (t->flag & T_RELEASE_CONFIRM) {
-			/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
+			/* XXX Keyrepeat bug in Xorg messes this up, will test when fixed */
 			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE)) {
 				t->state = TRANS_CONFIRM;
 			}

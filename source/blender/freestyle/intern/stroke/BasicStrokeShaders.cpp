@@ -841,7 +841,7 @@ int BezierCurveShader::shade(Stroke& stroke) const
 		if (it.isEnd()) {
 			// XXX Shocking! :P Shouldn't we break in this case???
 			if (G.debug & G_DEBUG_FREESTYLE) {
-				cout << "fucked up" << endl;
+				cout << "messed up!" << endl;
 			}
 		}
 	}
