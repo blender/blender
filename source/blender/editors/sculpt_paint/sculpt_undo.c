@@ -761,7 +761,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
 				/* Before any vertex values get modified, ensure their
 				 * original positions are logged */
 				BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL) {
-					BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
+					BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
 				}
 				BKE_pbvh_vertex_iter_end;
 				break;
