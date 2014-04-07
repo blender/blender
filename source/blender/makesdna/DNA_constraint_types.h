@@ -557,6 +557,13 @@ typedef enum eCopyScale_Flags {
 	SIZELIKE_OFFSET = (1<<3)
 } eCopyScale_Flags;
 
+/* bTransformConstraint.to/from */
+typedef enum eTransform_ToFrom {
+	TRANS_LOCATION = 0,
+	TRANS_ROTATION = 1,
+	TRANS_SCALE    = 2,
+} eTransform_ToFrom;
+
 /* bSameVolumeConstraint.flag */
 typedef enum eSameVolume_Modes {
 	SAMEVOL_X		= 0,

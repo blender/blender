@@ -3206,7 +3206,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		
 		/* obtain target effect */
 		switch (data->from) {
-			case 2: /* scale */
+			case TRANS_SCALE:
 				mat4_to_size(dvec, ct->matrix);
 				
 				if (is_negative_m4(ct->matrix)) {
@@ -3218,11 +3218,11 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 					negate_v3(dvec);
 				}
 				break;
-			case 1: /* rotation (convert to degrees first) */
+			case TRANS_ROTATION:
 				mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
-				mul_v3_fl(dvec, RAD2DEGF(1.0f)); /* rad -> deg */
 				break;
-			default: /* location */
+			case TRANS_LOCATION:
+			default:
 				copy_v3_v3(dvec, ct->matrix[3]);
 				break;
 		}
@@ -3255,32 +3255,24 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		
 		/* apply transforms */
 		switch (data->to) {
-			case 2: /* scaling */
-				for (i = 0; i < 3; i++)
-					size[i] = data->to_min[i] + (sval[(int)data->map[i]] * (data->to_max[i] - data->to_min[i]));
-				break;
-			case 1: /* rotation */
+			case TRANS_SCALE:
 				for (i = 0; i < 3; i++) {
-					float tmin, tmax;
-					float val;
-					
-					tmin = data->to_min[i];
-					tmax = data->to_max[i];
-					
-					/* all values here should be in degrees */
-					val = tmin + (sval[(int)data->map[i]] * (tmax - tmin));
-					
-					/* now convert final value back to radians, and add to original rotation (so that it can still be rotated) */
-					eul[i] += DEG2RADF(val);
+					/* multiply with original scale (so that it can still be scaled) */
+					size[i] *= data->to_min[i] + (sval[(int)data->map[i]] * (data->to_max[i] - data->to_min[i]));
 				}
 				break;
-			default: /* location */
-				/* get new location */
-				for (i = 0; i < 3; i++)
-					loc[i] = (data->to_min[i] + (sval[(int)data->map[i]] * (data->to_max[i] - data->to_min[i])));
-				
-				/* add original location back on (so that it can still be moved) */
-				add_v3_v3v3(loc, cob->matrix[3], loc);
+			case TRANS_ROTATION:
+				for (i = 0; i < 3; i++) {
+					/* add to original rotation (so that it can still be rotated) */
+					eul[i] += data->to_min[i] + (sval[(int)data->map[i]] * (data->to_max[i] - data->to_min[i]));
+				}
+				break;
+			case TRANS_LOCATION:
+			default:
+				for (i = 0; i < 3; i++) {
+					/* add to original location (so that it can still be moved) */
+					loc[i] += (data->to_min[i] + (sval[(int)data->map[i]] * (data->to_max[i] - data->to_min[i])));
+				}
 				break;
 		}
 		
