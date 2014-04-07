@@ -124,6 +124,9 @@ struct BLI_mempool {
 #  define CHUNK_DATA(chunk) (CHECK_TYPE_INLINE(chunk, BLI_mempool_chunk *), (void *)((chunk) + 1))
 #endif
 
+#define NODE_STEP_NEXT(node)  ((void *)((char *)(node) + esize))
+#define NODE_STEP_PREV(node)  ((void *)((char *)(node) - esize))
+
 /* extra bytes implicitly used for every chunk alloc */
 #ifdef USE_CHUNK_POW2
 #  define CHUNK_OVERHEAD (unsigned int)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
@@ -189,9 +192,8 @@ static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
 static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpchunk,
                                        BLI_freenode *lasttail)
 {
-	BLI_freenode *curnode = NULL;
-	const unsigned int pchunk_last = pool->pchunk - 1;
-	char *addr;
+	const unsigned int esize = pool->esize;
+	BLI_freenode *curnode = CHUNK_DATA(mpchunk);
 	unsigned int j;
 
 	/* append */
@@ -206,27 +208,29 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpc
 	mpchunk->next = NULL;
 	pool->chunk_tail = mpchunk;
 
-	if (pool->free == NULL) {
-		pool->free = CHUNK_DATA(mpchunk); /* start of the list */
-		if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
-			pool->free->freeword = FREEWORD;
-		}
+	if (UNLIKELY(pool->free == NULL)) {
+		pool->free = curnode;
 	}
 
 	/* loop through the allocated data, building the pointer structures */
-	for (addr = CHUNK_DATA(mpchunk), j = 0; j != pchunk_last; j++) {
-		curnode = ((BLI_freenode *)addr);
-		addr += pool->esize;
-		curnode->next = (BLI_freenode *)addr;
-		if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
-			if (j != pchunk_last)
-				curnode->next->freeword = FREEWORD;
+	j = pool->pchunk;
+	if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
+		while (j--) {
+			curnode->next = NODE_STEP_NEXT(curnode);
 			curnode->freeword = FREEWORD;
+			curnode = curnode->next;
+		}
+	}
+	else {
+		while (j--) {
+			curnode->next = NODE_STEP_NEXT(curnode);
+			curnode = curnode->next;
 		}
 	}
 
-	/* terminate the list,
+	/* terminate the list (rewind one)
 	 * will be overwritten if 'curnode' gets passed in again as 'lasttail' */
+	curnode = NODE_STEP_PREV(curnode);
 	curnode->next = NULL;
 
 #ifdef USE_TOTALLOC
@@ -236,9 +240,6 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpc
 	/* final pointer in the previously allocated chunk is wrong */
 	if (lasttail) {
 		lasttail->next = CHUNK_DATA(mpchunk);
-		if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
-			lasttail->freeword = FREEWORD;
-		}
 	}
 
 	return curnode;
@@ -407,9 +408,9 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
 	/* nothing is in use; free all the chunks except the first */
 	if (UNLIKELY(pool->totused == 0)) {
-		BLI_freenode *curnode = NULL;
-		char *tmpaddr = NULL;
-		unsigned int i;
+		const unsigned int esize = pool->esize;
+		BLI_freenode *curnode;
+		unsigned int j;
 		BLI_mempool_chunk *first;
 
 		first = pool->chunks;
@@ -425,12 +426,16 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 #ifdef WITH_MEM_VALGRIND
 		VALGRIND_MEMPOOL_ALLOC(pool, CHUNK_DATA(first), pool->csize);
 #endif
-		pool->free = CHUNK_DATA(first); /* start of the list */
-		for (tmpaddr = CHUNK_DATA(first), i = 0; i < pool->pchunk; i++) {
-			curnode = ((BLI_freenode *)tmpaddr);
-			tmpaddr += pool->esize;
-			curnode->next = (BLI_freenode *)tmpaddr;
+
+		curnode = CHUNK_DATA(first);
+		pool->free = curnode;
+
+		j = pool->pchunk;
+		while (j--) {
+			curnode->next = NODE_STEP_NEXT(curnode);
+			curnode = curnode->next;
 		}
+		curnode = NODE_STEP_PREV(curnode);
 		curnode->next = NULL; /* terminate the list */
 
 #ifdef WITH_MEM_VALGRIND
@@ -497,15 +502,16 @@ void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
  */
 void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 {
+	const unsigned int esize = pool->esize;
 	BLI_mempool_iter iter;
 	char *elem, *p = data;
 	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 	BLI_mempool_iternew(pool, &iter);
 	while ((elem = BLI_mempool_iterstep(&iter))) {
-		memcpy(p, elem, (size_t)pool->esize);
-		p += pool->esize;
+		memcpy(p, elem, (size_t)esize);
+		p = NODE_STEP_NEXT(p);
 	}
-	BLI_assert((unsigned int)(p - (char *)data) == pool->totused * pool->esize);
+	BLI_assert((unsigned int)(p - (char *)data) == pool->totused * esize);
 }
 
 /**
