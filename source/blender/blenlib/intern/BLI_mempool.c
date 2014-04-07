@@ -56,6 +56,7 @@
 #endif
 
 #define FREEWORD MAKE_ID('f', 'r', 'e', 'e')
+#define USEDWORD MAKE_ID('u', 's', 'e', 'd')
 
 /* currently totalloc isnt used */
 // #define USE_TOTALLOC
@@ -128,7 +129,7 @@ struct BLI_mempool {
 #define NODE_STEP_PREV(node)  ((void *)((char *)(node) - esize))
 
 /* extra bytes implicitly used for every chunk alloc */
-#ifdef USE_CHUNK_POW2
+#ifdef USE_DATA_PTR
 #  define CHUNK_OVERHEAD (unsigned int)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
 #else
 #  define CHUNK_OVERHEAD (unsigned int)(MEM_SIZE_OVERHEAD)
@@ -325,9 +326,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 
 void *BLI_mempool_alloc(BLI_mempool *pool)
 {
-	void *retval = NULL;
-
-	pool->totused++;
+	BLI_freenode *free_pop;
 
 	if (UNLIKELY(pool->free == NULL)) {
 		/* need to allocate a new chunk */
@@ -335,21 +334,22 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 		mempool_chunk_add(pool, mpchunk, NULL);
 	}
 
+	free_pop = pool->free;
+
 	BLI_assert(pool->chunk_tail->next == NULL);
 
-	retval = pool->free;
-
 	if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
-		pool->free->freeword = 0x7FFFFFFF;
+		free_pop->freeword = USEDWORD;
 	}
 
-	pool->free = pool->free->next;
+	pool->free = free_pop->next;
+	pool->totused++;
 
 #ifdef WITH_MEM_VALGRIND
-	VALGRIND_MEMPOOL_ALLOC(pool, retval, pool->esize);
+	VALGRIND_MEMPOOL_ALLOC(pool, free_pop, pool->esize);
 #endif
 
-	return retval;
+	return (void *)free_pop;
 }
 
 void *BLI_mempool_calloc(BLI_mempool *pool)
