@@ -3190,8 +3190,6 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		}
 		else if (check_object_draw_texture(scene, v3d, dt)) {
 			if (draw_glsl_material(scene, ob, v3d, dt)) {
-				/* this will be ignored mostly, but is relevant for matcaps */
-				glColor3f(1.0f, 1.0f, 1.0f);
 				glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
 				finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
@@ -3471,8 +3469,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			Paint *p;
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
-			/* this will get ignored mostly, will only be relevant for matcaps */
-			glColor3f(1.0, 1.0, 1.0);
 
 			if ((v3d->flag2 & V3D_SHOW_SOLID_MATCAP) && ob->sculpt && (p = BKE_paint_get_active(scene))) {
 				GPUVertexAttribs gattribs;

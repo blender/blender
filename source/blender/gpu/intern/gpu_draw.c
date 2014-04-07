@@ -1597,6 +1597,9 @@ int GPU_enable_material(int nr, void *attribs)
 				else
 					glDisable(GL_CULL_FACE);
 			}
+
+			if (GMS.use_matcaps)
+				glColor3f(1.0, 1.0, 1.0f);
 		}
 		else {
 			/* or do fixed function opengl material */
