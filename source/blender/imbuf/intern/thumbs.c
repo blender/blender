@@ -91,7 +91,8 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
 	SHGetSpecialFolderPathW(0, dir_16, CSIDL_PROFILE, 0);
 	conv_utf_16_to_8(dir_16, dir, FILE_MAX);
 	s += strlen(dir);
-#elif defined(USE_FREEDESKTOP)
+#else
+#if defined(USE_FREEDESKTOP)
 	const char *home_cache = getenv("XDG_CACHE_HOME");
 	const char *home = home_cache ? home_cache : getenv("HOME");
 #else
@@ -105,7 +106,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
 		s += BLI_strncpy_rlen(s, "/.cache", FILE_MAX - (s - dir));
 	}
 #endif
-
+#endif
 	switch (size) {
 		case THB_NORMAL:
 			subdir = "/" THUMBNAILS "/normal/";
