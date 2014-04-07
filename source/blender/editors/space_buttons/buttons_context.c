@@ -656,7 +656,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 /************************* Context Callback ************************/
 
 const char *buttons_context_dir[] = {
-	"texture_slot", "world", "object", "mesh", "armature", "lattice", "curve",
+	"texture_slot", "scene", "world", "object", "mesh", "armature", "lattice", "curve",
 	"meta_ball", "lamp", "speaker", "camera", "material", "material_slot",
 	"texture", "texture_user", "texture_user_property", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
@@ -679,6 +679,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			CTX_data_dir_set(result, buttons_context_dir + 1);
 		else
 			CTX_data_dir_set(result, buttons_context_dir);
+		return 1;
+	}
+	else if (CTX_data_equals(member, "scene")) {
+		set_pointer_type(path, result, &RNA_Scene);
 		return 1;
 	}
 	else if (CTX_data_equals(member, "world")) {
