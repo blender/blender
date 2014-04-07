@@ -97,7 +97,11 @@ typedef struct BLI_mempool_chunk {
  * The mempool, stores and tracks memory \a chunks and elements within those chunks \a free.
  */
 struct BLI_mempool {
-	BLI_mempool_chunk *chunks;
+	BLI_mempool_chunk *chunks;  /* single linked list of allocated chunks */
+	/* keep a pointer to the last, so we can append new chunks there
+	 * this is needed for iteration so we can loop over chunks in the order added */
+	BLI_mempool_chunk *chunk_tail;
+
 	unsigned int esize;         /* element size in bytes */
 	unsigned int csize;         /* chunk size in bytes */
 	unsigned int pchunk;        /* number of elements per chunk */
@@ -190,9 +194,17 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpc
 	char *addr;
 	unsigned int j;
 
-	/* prepend */
-	mpchunk->next = pool->chunks;
-	pool->chunks = mpchunk;
+	/* append */
+	if (pool->chunk_tail) {
+		pool->chunk_tail->next = mpchunk;
+	}
+	else {
+		BLI_assert(pool->chunks == NULL);
+		pool->chunks = mpchunk;
+	}
+
+	mpchunk->next = NULL;
+	pool->chunk_tail = mpchunk;
 
 	if (pool->free == NULL) {
 		pool->free = CHUNK_DATA(mpchunk); /* start of the list */
@@ -273,6 +285,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 	maxchunks = mempool_maxchunks(totelem, pchunk);
 
 	pool->chunks = NULL;
+	pool->chunk_tail = NULL;
 	pool->esize = esize;
 	pool->csize = esize * pchunk;
 
@@ -320,6 +333,8 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 		BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
 		mempool_chunk_add(pool, mpchunk, NULL);
 	}
+
+	BLI_assert(pool->chunk_tail->next == NULL);
 
 	retval = pool->free;
 
@@ -400,6 +415,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		first = pool->chunks;
 		mempool_chunk_free_all(first->next);
 		first->next = NULL;
+		pool->chunk_tail = first;
 
 #ifdef USE_TOTALLOC
 		pool->totalloc = pool->pchunk;
@@ -626,6 +642,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 
 	chunks_temp = pool->chunks;
 	pool->chunks = NULL;
+	pool->chunk_tail = NULL;
 
 	while ((mpchunk = chunks_temp)) {
 		chunks_temp = mpchunk->next;
