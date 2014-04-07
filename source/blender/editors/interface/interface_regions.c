@@ -1652,16 +1652,25 @@ void ui_set_but_hsv(uiBut *but)
 }
 
 /* also used by small picker, be careful with name checks below... */
-static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
+static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3], bool is_display_space)
 {
 	uiBut *bt;
 	float *hsv = ui_block_hsv_get(block);
 	struct ColorManagedDisplay *display = NULL;
-	
 	/* this is to keep the H and S value when V is equal to zero
 	 * and we are working in HSV mode, of course!
 	 */
-	ui_rgb_to_color_picker_compat_v(rgb, hsv);
+	if (is_display_space) {
+		ui_rgb_to_color_picker_compat_v(rgb, hsv);
+	}
+	else {
+		/* we need to convert to display space to use hsv, because hsv is stored in display space */
+		float rgb_display[3];
+
+		copy_v3_v3(rgb_display, rgb);
+		ui_block_to_display_space_v3(block, rgb_display);
+		ui_rgb_to_color_picker_compat_v(rgb_display, hsv);
+	}
 
 	if (block->color_profile)
 		display = ui_block_display_get(block);
@@ -1734,7 +1743,7 @@ static void do_picker_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 	
 	if (prop) {
 		RNA_property_float_get_array(&ptr, prop, rgb);
-		ui_update_block_buts_rgb(but->block, rgb);
+		ui_update_block_buts_rgb(but->block, rgb, (RNA_property_subtype(prop) == PROP_COLOR_GAMMA));
 	}
 	
 	if (popup)
@@ -1747,10 +1756,16 @@ static void do_color_wheel_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 	uiPopupBlockHandle *popup = but->block->handle;
 	float rgb[3];
 	float *hsv = ui_block_hsv_get(but->block);
-	
+	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
+
 	ui_color_picker_to_rgb_v(hsv, rgb);
 
-	ui_update_block_buts_rgb(but->block, rgb);
+	/* hsv is saved in display space so convert back */
+	if (use_display_colorspace) {
+		ui_block_to_scene_linear_v3(but->block, rgb);
+	}
+
+	ui_update_block_buts_rgb(but->block, rgb, !use_display_colorspace);
 	
 	if (popup)
 		popup->menuretval = UI_RETURN_UPDATE;
@@ -1771,7 +1786,7 @@ static void do_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexcl)
 		ui_block_to_scene_linear_v3(but->block, rgb);
 	}
 	
-	ui_update_block_buts_rgb(but->block, rgb);
+	ui_update_block_buts_rgb(but->block, rgb, false);
 	
 	if (popup)
 		popup->menuretval = UI_RETURN_UPDATE;
@@ -2002,16 +2017,24 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, c
 				uiPopupBlockHandle *popup = block->handle;
 				float rgb[3];
 				float *hsv = ui_block_hsv_get(block);
+				bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 				
 				ui_get_but_vectorf(but, rgb);
-				
-				rgb_to_hsv_compat_v(rgb, hsv);
+
+				if (use_display_colorspace)
+					ui_block_to_display_space_v3(block, rgb);
+
+				ui_rgb_to_color_picker_compat_v(rgb, hsv);
+
 				hsv[2] = CLAMPIS(hsv[2] + add, 0.0f, 1.0f);
-				hsv_to_rgb_v(hsv, rgb);
+				ui_color_picker_to_rgb_v(hsv, rgb);
+
+				if (use_display_colorspace)
+					ui_block_to_scene_linear_v3(block, rgb);
 
 				ui_set_but_vectorf(but, rgb);
 				
-				ui_update_block_buts_rgb(block, rgb);
+				ui_update_block_buts_rgb(block, rgb, !use_display_colorspace);
 				if (popup)
 					popup->menuretval = UI_RETURN_UPDATE;
 				
