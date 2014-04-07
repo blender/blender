@@ -3190,6 +3190,8 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		}
 		else if (check_object_draw_texture(scene, v3d, dt)) {
 			if (draw_glsl_material(scene, ob, v3d, dt)) {
+				/* this will be ignored mostly, but is relevant for matcaps */
+				glColor3f(1.0f, 1.0f, 1.0f);
 				glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
 				finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
