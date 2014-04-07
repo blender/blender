@@ -275,9 +275,9 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			 */
 		}
 		else {
-			int mval_prj[2];
+			float mval_prj[2];
 			float rvec[3], dvec[3];
-			float mval_f[2];
+			float mval_f[2] = {UNPACK2(mval)};
 			float zfac;
 			
 			/* Current method just converts each point in screen-coordinates to
@@ -291,11 +291,9 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			
 			gp_get_3d_reference(p, rvec);
 			zfac = ED_view3d_calc_zfac(p->ar->regiondata, rvec, NULL);
-			
-			/* method taken from editview.c - mouse_cursor() */
-			/* TODO, use ED_view3d_project_float_global */
-			if (ED_view3d_project_int_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				VECSUB2D(mval_f, mval_prj, mval);
+
+			if (ED_view3d_project_float_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+				sub_v2_v2v2(mval_f, mval_prj, mval_f);
 				ED_view3d_win_to_delta(p->ar, mval_f, dvec, zfac);
 				sub_v3_v3v3(out, rvec, dvec);
 			}
