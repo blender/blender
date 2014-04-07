@@ -3801,6 +3801,16 @@ bool BKE_nurb_check_valid_v(struct Nurb *nu)
 	return true;
 }
 
+bool BKE_nurb_check_valid_uv(struct Nurb *nu)
+{
+	if (!BKE_nurb_check_valid_u(nu))
+		return false;
+	if ((nu->pntsv > 1) && !BKE_nurb_check_valid_v(nu))
+		return false;
+
+	return true;
+}
+
 bool BKE_nurb_order_clamp_u(struct Nurb *nu)
 {
 	bool changed = false;

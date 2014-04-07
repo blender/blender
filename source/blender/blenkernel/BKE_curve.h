@@ -149,6 +149,7 @@ void BKE_nurb_knot_calc_v(struct Nurb *nu);
 /* nurb checks if they can be drawn, also clamp order func */
 bool BKE_nurb_check_valid_u(struct Nurb *nu);
 bool BKE_nurb_check_valid_v(struct Nurb *nu);
+bool BKE_nurb_check_valid_uv(struct Nurb *nu);
 
 bool BKE_nurb_order_clamp_u(struct Nurb *nu);
 bool BKE_nurb_order_clamp_v(struct Nurb *nu);
