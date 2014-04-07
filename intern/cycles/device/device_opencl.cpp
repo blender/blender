@@ -409,10 +409,22 @@ public:
 		fprintf(stderr, "%s\n", message.c_str());
 	}
 
-	void opencl_assert(cl_int err)
+#define opencl_assert(stmt) \
+	{ \
+		cl_int err = stmt; \
+		\
+		if(err != CL_SUCCESS) { \
+			string message = string_printf("OpenCL error: %s in %s", opencl_error_string(err), #stmt); \
+			if(error_msg == "") \
+				error_msg = message; \
+			fprintf(stderr, "%s\n", message.c_str()); \
+		} \
+	}
+
+	void opencl_assert_err(cl_int err, const char* where)
 	{
 		if(err != CL_SUCCESS) {
-			string message = string_printf("OpenCL error (%d): %s", err, opencl_error_string(err));
+			string message = string_printf("OpenCL error (%d): %s in %s", err, opencl_error_string(err), where);
 			if(error_msg == "")
 				error_msg = message;
 			fprintf(stderr, "%s\n", message.c_str());
@@ -452,8 +464,10 @@ public:
 		vector<cl_platform_id> platforms(num_platforms, NULL);
 
 		ciErr = clGetPlatformIDs(num_platforms, &platforms[0], NULL);
-		if(opencl_error(ciErr))
+		if(opencl_error(ciErr)){
+			fprintf(stderr, "clGetPlatformIDs failed \n");
 			return;
+		}
 
 		int num_base = 0;
 		int total_devices = 0;
@@ -478,8 +492,10 @@ public:
 			/* get devices */
 			vector<cl_device_id> device_ids(num_devices, NULL);
 
-			if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), num_devices, &device_ids[0], NULL)))
+			if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), num_devices, &device_ids[0], NULL))){
+				fprintf(stderr, "clGetDeviceIDs failed \n");
 				return;
+			}
 
 			cdDevice = device_ids[info.num - num_base];
 
@@ -515,8 +531,10 @@ public:
 				cxContext = clCreateContext(context_props, 1, &cdDevice,
 					context_notify_callback, cdDevice, &ciErr);
 
-				if(opencl_error(ciErr))
+				if(opencl_error(ciErr)){
+					opencl_error("OpenCL: clCreateContext failed");
 					return;
+				}
 
 				/* cache it */
 				OpenCLCache::store_context(cpPlatform, cdDevice, cxContext, cache_locker);
@@ -531,6 +549,7 @@ public:
 		if(opencl_error(ciErr))
 			return;
 
+		fprintf(stderr,"Device init succes\n");
 		device_initialized = true;
 	}
 
@@ -821,7 +840,7 @@ public:
 
 		mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, mem_flag, size, mem_ptr, &ciErr);
 
-		opencl_assert(ciErr);
+		opencl_assert_err(ciErr, "clCreateBuffer");
 
 		stats.mem_alloc(size);
 	}
@@ -830,8 +849,7 @@ public:
 	{
 		/* this is blocking */
 		size_t size = mem.memory_size();
-		ciErr = clEnqueueWriteBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, 0, size, (void*)mem.data_pointer, 0, NULL, NULL);
-		opencl_assert(ciErr);
+		opencl_assert(clEnqueueWriteBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, 0, size, (void*)mem.data_pointer, 0, NULL, NULL))
 	}
 
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
@@ -839,8 +857,7 @@ public:
 		size_t offset = elem*y*w;
 		size_t size = elem*w*h;
 
-		ciErr = clEnqueueReadBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, offset, size, (uchar*)mem.data_pointer + offset, 0, NULL, NULL);
-		opencl_assert(ciErr);
+		opencl_assert(clEnqueueReadBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, offset, size, (uchar*)mem.data_pointer + offset, 0, NULL, NULL))
 	}
 
 	void mem_zero(device_memory& mem)
@@ -854,9 +871,8 @@ public:
 	void mem_free(device_memory& mem)
 	{
 		if(mem.device_pointer) {
-			ciErr = clReleaseMemObject(CL_MEM_PTR(mem.device_pointer));
+			opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)))
 			mem.device_pointer = 0;
-			opencl_assert(ciErr);
 
 			stats.mem_free(mem.memory_size());
 		}
@@ -931,9 +947,8 @@ public:
 		size_t global_size[2] = {global_size_round_up(local_size[0], w), global_size_round_up(local_size[1], h)};
 
 		/* run kernel */
-		ciErr = clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL);
-		opencl_assert(ciErr);
-		opencl_assert(clFlush(cqCommandQueue));
+		opencl_assert(clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL))
+		opencl_assert(clFlush(cqCommandQueue))
 	}
 
 	void path_trace(RenderTile& rtile, int sample)
@@ -952,33 +967,29 @@ public:
 
 		/* sample arguments */
 		cl_uint narg = 0;
-		ciErr = 0;
 
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_data), (void*)&d_data);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_buffer), (void*)&d_buffer);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_rng_state), (void*)&d_rng_state);
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_data), (void*)&d_data))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_buffer), (void*)&d_buffer))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_rng_state), (void*)&d_rng_state))
 
 #define KERNEL_TEX(type, ttype, name) \
-	ciErr |= set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
+	set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_sample), (void*)&d_sample);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_x), (void*)&d_x);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_w), (void*)&d_w);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_h), (void*)&d_h);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_offset), (void*)&d_offset);
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_stride), (void*)&d_stride);
-
-		opencl_assert(ciErr);
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_sample), (void*)&d_sample))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_x), (void*)&d_x))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_w), (void*)&d_w))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_h), (void*)&d_h))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_offset), (void*)&d_offset))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_stride), (void*)&d_stride))
 
 		enqueue_kernel(ckPathTraceKernel, d_w, d_h);
 	}
 
-	cl_int set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const char *name)
+	void set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const char *name)
 	{
 		cl_mem ptr;
-		cl_int err = 0;
 
 		MemMap::iterator i = mem_map.find(name);
 		if(i != mem_map.end()) {
@@ -989,10 +1000,7 @@ public:
 			ptr = CL_MEM_PTR(null_mem);
 		}
 		
-		err |= clSetKernelArg(kernel, (*narg)++, sizeof(ptr), (void*)&ptr);
-		opencl_assert(err);
-
-		return err;
+		opencl_assert(clSetKernelArg(kernel, (*narg)++, sizeof(ptr), (void*)&ptr));
 	}
 
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)
@@ -1011,27 +1019,27 @@ public:
 
 		/* sample arguments */
 		cl_uint narg = 0;
-		ciErr = 0;
+
 
 		cl_kernel ckFilmConvertKernel = (rgba_byte)? ckFilmConvertByteKernel: ckFilmConvertHalfFloatKernel;
 
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_data), (void*)&d_data);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_rgba), (void*)&d_rgba);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_buffer), (void*)&d_buffer);
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_data), (void*)&d_data))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_rgba), (void*)&d_rgba))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_buffer), (void*)&d_buffer))
 
 #define KERNEL_TEX(type, ttype, name) \
-	ciErr |= set_kernel_arg_mem(ckFilmConvertKernel, &narg, #name);
+	set_kernel_arg_mem(ckFilmConvertKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_sample_scale), (void*)&d_sample_scale);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_x), (void*)&d_x);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_y), (void*)&d_y);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_w), (void*)&d_w);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_h), (void*)&d_h);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_offset), (void*)&d_offset);
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_stride), (void*)&d_stride);
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_sample_scale), (void*)&d_sample_scale))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_x), (void*)&d_x))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_y), (void*)&d_y))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_w), (void*)&d_w))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_h), (void*)&d_h))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_offset), (void*)&d_offset))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_stride), (void*)&d_stride))
 
-		opencl_assert(ciErr);
+
 
 		enqueue_kernel(ckFilmConvertKernel, d_w, d_h);
 	}
@@ -1048,21 +1056,18 @@ public:
 
 		/* sample arguments */
 		cl_uint narg = 0;
-		ciErr = 0;
 
-		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_data), (void*)&d_data);
-		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_input), (void*)&d_input);
-		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_output), (void*)&d_output);
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_data), (void*)&d_data))
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_input), (void*)&d_input))
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_output), (void*)&d_output))
 
 #define KERNEL_TEX(type, ttype, name) \
-	ciErr |= set_kernel_arg_mem(ckShaderKernel, &narg, #name);
+	set_kernel_arg_mem(ckShaderKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type);
-		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x);
-		ciErr |= clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w);
-
-		opencl_assert(ciErr);
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type))
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x))
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w))
 
 		enqueue_kernel(ckShaderKernel, task.shader_w, 1);
 	}

@@ -109,6 +109,7 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 #ifdef __KERNEL_OPENCL_INTEL_CPU__
+#define __CL_USE_NATIVE__
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
 #endif
