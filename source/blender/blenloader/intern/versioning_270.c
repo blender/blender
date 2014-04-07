@@ -56,6 +56,29 @@
 #include "readfile.h"
 
 
+static void do_version_constraints_radians_degrees_270_1(ListBase *lb)
+{
+	bConstraint *con;
+
+	for (con = lb->first; con; con = con->next) {
+		if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
+			bTransformConstraint *data = (bTransformConstraint *)con->data;
+			const float deg_to_rad_f = DEG2RADF(1.0f);
+
+			if (data->from == TRANS_ROTATION) {
+				mul_v3_fl(data->from_min, deg_to_rad_f);
+				mul_v3_fl(data->from_max, deg_to_rad_f);
+			}
+
+			if (data->to == TRANS_ROTATION) {
+				mul_v3_fl(data->to_min, deg_to_rad_f);
+				mul_v3_fl(data->to_max, deg_to_rad_f);
+			}
+		}
+	}
+}
+
+
 void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 {
 	if (!MAIN_VERSION_ATLEAST(main, 270, 0)) {
@@ -119,21 +142,13 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		/* Update Transform constraint (another deg -> rad stuff). */
 		for (ob = main->object.first; ob; ob = ob->id.next) {
-			bConstraint *con;
-			for (con = ob->constraints.first; con; con = con->next) {
-				if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
-					bTransformConstraint *data = (bTransformConstraint *)con->data;
-					const float deg_to_rad_f = DEG2RADF(1.0f);
+			do_version_constraints_radians_degrees_270_1(&ob->constraints);
 
-					if (data->from == TRANS_ROTATION) {
-						mul_v3_fl(data->from_min, deg_to_rad_f);
-						mul_v3_fl(data->from_max, deg_to_rad_f);
-					}
-
-					if (data->to == TRANS_ROTATION) {
-						mul_v3_fl(data->to_min, deg_to_rad_f);
-						mul_v3_fl(data->to_max, deg_to_rad_f);
-					}
+			if (ob->pose) {
+				/* Bones constraints! */
+				bPoseChannel *pchan;
+				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+					do_version_constraints_radians_degrees_270_1(&pchan->constraints);
 				}
 			}
 		}
