@@ -894,7 +894,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 		AnimData *adt = BKE_animdata_from_id(id); \
 		NtId_Type *ntp = (NtId_Type *)id; \
 		if (ntp->nodetree) { \
-			AnimData *adt2 = BKE_animdata_from_id((ID *)ntp); \
+			AnimData *adt2 = BKE_animdata_from_id((ID *)ntp->nodetree); \
 			if (adt2) func(id, adt2, user_data); \
 		} \
 		if (adt) func(id, adt, user_data); \
