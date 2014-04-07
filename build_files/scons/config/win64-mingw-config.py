@@ -169,8 +169,7 @@ BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']
 
-#May produce errors with unsupported MinGW-w64 builds
-WITH_BF_OPENMP = False
+WITH_BF_OPENMP = True
 
 #Freestyle
 WITH_BF_FREESTYLE = True
