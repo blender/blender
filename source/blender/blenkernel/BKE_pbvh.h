@@ -67,8 +67,7 @@ void BKE_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
                           struct DMGridAdjacency *gridadj, int totgrid,
                           struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden);
-void BKE_pbvh_build_bmesh(PBVH *bvh, struct BMesh *bm, int smooth_shading,
-                          struct BMLog *log);
+void BKE_pbvh_build_bmesh(PBVH *bvh, struct BMesh *bm, bool smooth_shading, struct BMLog *log);
 
 void BKE_pbvh_free(PBVH *bvh);
 void BKE_pbvh_free_layer_disp(PBVH *bvh);

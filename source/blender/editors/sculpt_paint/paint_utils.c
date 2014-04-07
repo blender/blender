@@ -75,12 +75,12 @@
 /* Convert the object-space axis-aligned bounding box (expressed as
  * its minimum and maximum corners) into a screen-space rectangle,
  * returns zero if the result is empty */
-int paint_convert_bb_to_rect(rcti *rect,
-                             const float bb_min[3],
-                             const float bb_max[3],
-                             const ARegion *ar,
-                             RegionView3D *rv3d,
-                             Object *ob)
+bool paint_convert_bb_to_rect(rcti *rect,
+                              const float bb_min[3],
+                              const float bb_max[3],
+                              const ARegion *ar,
+                              RegionView3D *rv3d,
+                              Object *ob)
 {
 	float projection_mat[4][4];
 	int i, j, k;
@@ -193,153 +193,6 @@ void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct
 	CLAMP(rgba[1], 0.0f, 1.0f);
 	CLAMP(rgba[2], 0.0f, 1.0f);
 	CLAMP(rgba[3], 0.0f, 1.0f);
-}
-
-/* 3D Paint */
-
-static void imapaint_project(Object *ob, float model[4][4], float proj[4][4], const float co[3], float pco[4])
-{
-	copy_v3_v3(pco, co);
-	pco[3] = 1.0f;
-
-	mul_m4_v3(ob->obmat, pco);
-	mul_m4_v3(model, pco);
-	mul_m4_v4(proj, pco);
-}
-
-static void imapaint_tri_weights(Object *ob,
-                                 const float v1[3], const float v2[3], const float v3[3],
-                                 const float co[2], float w[3])
-{
-	float pv1[4], pv2[4], pv3[4], h[3], divw;
-	float model[4][4], proj[4][4], wmat[3][3], invwmat[3][3];
-	GLint view[4];
-
-	/* compute barycentric coordinates */
-
-	/* get the needed opengl matrices */
-	glGetIntegerv(GL_VIEWPORT, view);
-	glGetFloatv(GL_MODELVIEW_MATRIX,  (float *)model);
-	glGetFloatv(GL_PROJECTION_MATRIX, (float *)proj);
-	view[0] = view[1] = 0;
-
-	/* project the verts */
-	imapaint_project(ob, model, proj, v1, pv1);
-	imapaint_project(ob, model, proj, v2, pv2);
-	imapaint_project(ob, model, proj, v3, pv3);
-
-	/* do inverse view mapping, see gluProject man page */
-	h[0] = (co[0] - view[0]) * 2.0f / view[2] - 1;
-	h[1] = (co[1] - view[1]) * 2.0f / view[3] - 1;
-	h[2] = 1.0f;
-
-	/* solve for (w1,w2,w3)/perspdiv in:
-	 * h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3) */
-
-	wmat[0][0] = pv1[0];  wmat[1][0] = pv2[0];  wmat[2][0] = pv3[0];
-	wmat[0][1] = pv1[1];  wmat[1][1] = pv2[1];  wmat[2][1] = pv3[1];
-	wmat[0][2] = pv1[3];  wmat[1][2] = pv2[3];  wmat[2][2] = pv3[3];
-
-	invert_m3_m3(invwmat, wmat);
-	mul_m3_v3(invwmat, h);
-
-	copy_v3_v3(w, h);
-
-	/* w is still divided by perspdiv, make it sum to one */
-	divw = w[0] + w[1] + w[2];
-	if (divw != 0.0f) {
-		mul_v3_fl(w, 1.0f / divw);
-	}
-}
-
-/* compute uv coordinates of mouse in face */
-void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const int xy[2], float uv[2])
-{
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-	MTFace *tface = dm->getTessFaceDataArray(dm, CD_MTFACE), *tf;
-	int numfaces = dm->getNumTessFaces(dm), a, findex;
-	float p[2], w[3], absw, minabsw;
-	MFace mf;
-	MVert mv[4];
-
-	/* double lookup */
-	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if (index_mf_to_mpoly == NULL) {
-		index_mp_to_orig = NULL;
-	}
-
-	minabsw = 1e10;
-	uv[0] = uv[1] = 0.0;
-
-	/* test all faces in the derivedmesh with the original index of the picked face */
-	for (a = 0; a < numfaces; a++) {
-		findex = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
-
-		if (findex == faceindex) {
-			dm->getTessFace(dm, a, &mf);
-
-			dm->getVert(dm, mf.v1, &mv[0]);
-			dm->getVert(dm, mf.v2, &mv[1]);
-			dm->getVert(dm, mf.v3, &mv[2]);
-			if (mf.v4)
-				dm->getVert(dm, mf.v4, &mv[3]);
-
-			tf = &tface[a];
-
-			p[0] = xy[0];
-			p[1] = xy[1];
-
-			if (mf.v4) {
-				/* the triangle with the largest absolute values is the one
-				 * with the most negative weights */
-				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
-				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
-				if (absw < minabsw) {
-					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[3][0] * w[2];
-					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[3][1] * w[2];
-					minabsw = absw;
-				}
-
-				imapaint_tri_weights(ob, mv[1].co, mv[2].co, mv[3].co, p, w);
-				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
-				if (absw < minabsw) {
-					uv[0] = tf->uv[1][0] * w[0] + tf->uv[2][0] * w[1] + tf->uv[3][0] * w[2];
-					uv[1] = tf->uv[1][1] * w[0] + tf->uv[2][1] * w[1] + tf->uv[3][1] * w[2];
-					minabsw = absw;
-				}
-			}
-			else {
-				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[2].co, p, w);
-				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
-				if (absw < minabsw) {
-					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[2][0] * w[2];
-					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[2][1] * w[2];
-					minabsw = absw;
-				}
-			}
-		}
-	}
-
-	dm->release(dm);
-}
-
-/* returns 0 if not found, otherwise 1 */
-int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *index, unsigned int totface)
-{
-	if (totface == 0)
-		return 0;
-
-	/* sample only on the exact position */
-	*index = view3d_sample_backbuf(vc, mval[0], mval[1]);
-
-	if ((*index) == 0 || (*index) > (unsigned int)totface) {
-		return 0;
-	}
-
-	(*index)--;
-	
-	return 1;
 }
 
 /* Uses symm to selectively flip any axis of a coordinate. */

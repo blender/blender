@@ -116,7 +116,7 @@ void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
 	}
 }
 
-int ED_sculpt_minmax(bContext *C, float min[3], float max[3])
+bool ED_sculpt_minmax(bContext *C, float min[3], float max[3])
 {
 	Object *ob = CTX_data_active_object(C);
 
@@ -165,7 +165,7 @@ MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 }
 
 /* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
-static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
+static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
 	ModifierData *md;
 	VirtualModifierData virtualModifierData;
@@ -182,7 +182,7 @@ static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 }
 
 /* Checks if there are any supported deformation modifiers active */
-static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
+static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 {
 	ModifierData *md;
 	Mesh *me = (Mesh *)ob->data;
@@ -249,7 +249,7 @@ typedef struct StrokeCache {
 
 	/* The rest is temporary storage that isn't saved as a property */
 
-	int first_time; /* Beginning of stroke may do some things special */
+	bool first_time; /* Beginning of stroke may do some things special */
 
 	/* from ED_view3d_ob_project_mat_get() */
 	float projection_mat[4][4];
@@ -284,7 +284,7 @@ typedef struct StrokeCache {
 	int radial_symmetry_pass;
 	float symm_rot_mat[4][4];
 	float symm_rot_mat_inv[4][4];
-	int original;
+	bool original;
 	float anchored_location[3];
 
 	float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
@@ -297,7 +297,7 @@ typedef struct StrokeCache {
 	char saved_active_brush_name[MAX_ID_NAME];
 	char saved_mask_brush_tool;
 	int saved_smooth_size; /* smooth tool copies the size of the current tool */
-	int alt_smooth;
+	bool alt_smooth;
 
 	float plane_trim_squared;
 
@@ -485,9 +485,9 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 	}
 
 	if (ss->face_normals) {
-		float *fn = ss->face_normals;
-		for (i = 0; i < ss->totpoly; ++i, fn += 3)
-			copy_v3_v3(fn, cache->face_norms[i]);
+		for (i = 0; i < ss->totpoly; i++) {
+			copy_v3_v3(ss->face_normals[i], cache->face_norms[i]);
+		}
 	}
 
 	if (nodes)
@@ -513,8 +513,8 @@ static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
 }
 
 /* Get a screen-space rectangle of the modified area */
-static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
-                                  Object *ob, rcti *rect)
+static bool sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
+                                   Object *ob, rcti *rect)
 {
 	PBVH *pbvh = ob->sculpt->pbvh;
 	float bb_min[3], bb_max[3];
@@ -3979,10 +3979,10 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	/* Make copies of the mesh vertex locations and normals for some tools */
 	if (brush->flag & BRUSH_ANCHORED) {
 		if (ss->face_normals) {
-			float *fn = ss->face_normals;
 			cache->face_norms = MEM_mallocN(sizeof(float) * 3 * ss->totpoly, "Sculpt face norms");
-			for (i = 0; i < ss->totpoly; ++i, fn += 3)
-				copy_v3_v3(cache->face_norms[i], fn);
+			for (i = 0; i < ss->totpoly; ++i) {
+				copy_v3_v3(cache->face_norms[i], ss->face_normals[i]);
+			}
 		}
 
 		cache->original = 1;
@@ -4815,8 +4815,7 @@ void sculpt_dynamic_topology_enable(bContext *C)
 
 	sculpt_pbvh_clear(ob);
 
-	ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags &
-	                         SCULPT_DYNTOPO_SMOOTH_SHADING);
+	ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) != 0;
 
 	/* Dynamic topology doesn't ensure selection state is valid, so remove [#36280] */
 	BKE_mesh_mselect_clear(me);

@@ -413,8 +413,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 			BMIter iter;
 			BMFace *efa;
 			BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
-				BM_elem_flag_set(efa, BM_ELEM_SMOOTH,
-				                 ss->bm_smooth_shading);
+				BM_elem_flag_set(efa, BM_ELEM_SMOOTH, ss->bm_smooth_shading);
 			}
 			if (reorder)
 				BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);

@@ -1140,8 +1140,7 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 /***************************** Public API *****************************/
 
 /* Build a PBVH from a BMesh */
-void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
-                          BMLog *log)
+void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log)
 {
 	BMIter iter;
 	BMFace *f;
