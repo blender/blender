@@ -320,7 +320,7 @@ public:
 		/* CUDA 5.x build flags for different archs */
 		if(major == 2) {
 			/* sm_2x */
-			arch_flags = "--maxrregcount=32 --use_fast_math";
+			arch_flags = "--maxrregcount=40 --use_fast_math";
 		}
 		else if(major == 3) {
 			/* sm_3x */

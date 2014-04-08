@@ -165,7 +165,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		# CUDA 5.x build flags for different archs
 		if(${arch} MATCHES "sm_2[0-9]")
 			# sm_2x
-			set(cuda_arch_flags "--maxrregcount=32")
+			set(cuda_arch_flags "--maxrregcount=40")
 		elseif(${arch} MATCHES "sm_3[0-9]")
 			# sm_3x
 			set(cuda_arch_flags "--maxrregcount=32")
