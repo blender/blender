@@ -427,13 +427,6 @@ void BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag)
 /** \name Iterator API
  * \{ */
 
-struct EdgeHashIterator {
-	EdgeHash *eh;
-	unsigned int curBucket;
-	EdgeEntry *curEntry;
-};
-
-
 /**
  * Create a new EdgeHashIterator. The hash table must not be mutated
  * while the iterator is in use, and the iterator will step exactly
@@ -442,6 +435,20 @@ struct EdgeHashIterator {
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 {
 	EdgeHashIterator *ehi = MEM_mallocN(sizeof(*ehi), "eh iter");
+	BLI_edgehashIterator_init(ehi, eh);
+	return ehi;
+}
+
+/**
+ * Init an already allocated EdgeHashIterator. The hash table must not
+ * be mutated while the iterator is in use, and the iterator will
+ * step exactly BLI_edgehash_size(eh) times before becoming done.
+ *
+ * \param ehi The EdgeHashIterator to initialize.
+ * \param eh The EdgeHash to iterate over.
+ */
+void BLI_edgehashIterator_init(EdgeHashIterator *ehi, EdgeHash *eh)
+{
 	ehi->eh = eh;
 	ehi->curEntry = NULL;
 	ehi->curBucket = UINT_MAX;  /* wraps to zero */
@@ -451,7 +458,6 @@ EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 			break;
 		ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
 	}
-	return ehi;
 }
 
 /**
@@ -462,15 +468,15 @@ void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
 	MEM_freeN(ehi);
 }
 
+/* inline functions now */
+#if 0
 /**
  * Retrieve the key from an iterator.
  */
 void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *r_v0, unsigned int *r_v1)
 {
-	if (ehi->curEntry) {
-		*r_v0 = ehi->curEntry->v0;
-		*r_v1 = ehi->curEntry->v1;
-	}
+	*r_v0 = ehi->curEntry->v0;
+	*r_v1 = ehi->curEntry->v1;
 }
 
 /**
@@ -478,7 +484,7 @@ void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *r_v0, unsi
  */
 void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi)
 {
-	return ehi->curEntry ? ehi->curEntry->val : NULL;
+	return ehi->curEntry->val;
 }
 
 /**
@@ -486,7 +492,7 @@ void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi)
  */
 void **BLI_edgehashIterator_getValue_p(EdgeHashIterator *ehi)
 {
-	return ehi->curEntry ? &ehi->curEntry->val : NULL;
+	return &ehi->curEntry->val;
 }
 
 /**
@@ -494,10 +500,17 @@ void **BLI_edgehashIterator_getValue_p(EdgeHashIterator *ehi)
  */
 void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val)
 {
-	if (ehi->curEntry) {
-		ehi->curEntry->val = val;
-	}
+	ehi->curEntry->val = val;
 }
+
+/**
+ * Determine if an iterator is done.
+ */
+bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
+{
+	return (ehi->curEntry == NULL);
+}
+#endif
 
 /**
  * Steps the iterator to the next index.
@@ -515,14 +528,6 @@ void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
 			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
 		}
 	}
-}
-
-/**
- * Determine if an iterator is done.
- */
-bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
-{
-	return (ehi->curEntry == NULL);
 }
 
 /** \} */

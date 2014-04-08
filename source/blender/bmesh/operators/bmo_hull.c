@@ -217,11 +217,11 @@ static HullFinalEdges *hull_final_edges(GSet *hull_triangles)
 	final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 0, 128, BLI_MEMPOOL_NOP);
 
 	GSET_ITER (iter, hull_triangles) {
+		HullTriangle *t = BLI_gsetIterator_getKey(&iter);
 		LinkData *link;
 		int i;
-		
+
 		for (i = 0; i < 3; i++) {
-			HullTriangle *t = BLI_gsetIterator_getKey(&iter);
 			BMVert *v1 = t->v[i];
 			BMVert *v2 = t->v[(i + 1) % 3];
 			ListBase *adj;

@@ -347,13 +347,10 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_n
 		}
 	}
 	else if (slot_dst->slot_type == BMO_OP_SLOT_MAPPING) {
-		GHashIterator it;
-		for (BLI_ghashIterator_init(&it, slot_src->data.ghash);
-		     BLI_ghashIterator_done(&it) == false;
-		     BLI_ghashIterator_step(&it))
-		{
-			void *key = BLI_ghashIterator_getKey(&it);
-			void *val = BLI_ghashIterator_getValue(&it);
+		GHashIterator gh_iter;
+		GHASH_ITER (gh_iter, slot_src->data.ghash) {
+			void *key = BLI_ghashIterator_getKey(&gh_iter);
+			void *val = BLI_ghashIterator_getValue(&gh_iter);
 			BLI_ghash_insert(slot_dst->data.ghash, key, val);
 		}
 	}
@@ -722,17 +719,15 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
 void BMO_slot_map_to_flag(BMesh *bm, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                           const char htype, const short oflag)
 {
-	GHashIterator it;
+	GHashIterator gh_iter;
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BMElemF *ele_f;
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
 
 
-	for (BLI_ghashIterator_init(&it, slot->data.ghash);
-	     (ele_f = BLI_ghashIterator_getKey(&it));
-	     BLI_ghashIterator_step(&it))
-	{
+	GHASH_ITER (gh_iter, slot->data.ghash) {
+		ele_f = BLI_ghashIterator_getKey(&gh_iter);
 		if (ele_f->head.htype & htype) {
 			BMO_elem_flag_enable(bm, ele_f, oflag);
 		}
@@ -1424,10 +1419,19 @@ void *BMO_iter_step(BMOIter *iter)
 		return ele;
 	}
 	else if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
-		void *ret = BLI_ghashIterator_getKey(&iter->giter);
-		iter->val = BLI_ghashIterator_getValue_p(&iter->giter);
+		void *ret;
 
-		BLI_ghashIterator_step(&iter->giter);
+
+		if (BLI_ghashIterator_done(&iter->giter) == false) {
+			ret = BLI_ghashIterator_getKey(&iter->giter);
+			iter->val = BLI_ghashIterator_getValue_p(&iter->giter);
+
+			BLI_ghashIterator_step(&iter->giter);
+		}
+		else {
+			ret = NULL;
+			iter->val = NULL;
+		}
 
 		return ret;
 	}

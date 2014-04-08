@@ -83,13 +83,24 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh) ATTR_MALLOC ATTR_WARN_UNUSED_RES
 
 void           BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh);
 void           BLI_ghashIterator_free(GHashIterator *ghi);
-
-void          *BLI_ghashIterator_getKey(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
-void          *BLI_ghashIterator_getValue(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
-void         **BLI_ghashIterator_getValue_p(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
-
 void           BLI_ghashIterator_step(GHashIterator *ghi);
-bool           BLI_ghashIterator_done(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
+
+BLI_INLINE void  *BLI_ghashIterator_getKey(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
+BLI_INLINE void  *BLI_ghashIterator_getValue(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
+BLI_INLINE void **BLI_ghashIterator_getValue_p(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
+BLI_INLINE bool   BLI_ghashIterator_done(GHashIterator *ghi) ATTR_WARN_UNUSED_RESULT;
+
+struct _gh_Entry { void *next, *key, *val; };
+BLI_INLINE void  *BLI_ghashIterator_getKey(GHashIterator *ghi)     { return  ((struct _gh_Entry *)ghi->curEntry)->key; }
+BLI_INLINE void  *BLI_ghashIterator_getValue(GHashIterator *ghi)   { return  ((struct _gh_Entry *)ghi->curEntry)->val; }
+BLI_INLINE void **BLI_ghashIterator_getValue_p(GHashIterator *ghi) { return &((struct _gh_Entry *)ghi->curEntry)->val; }
+BLI_INLINE bool   BLI_ghashIterator_done(GHashIterator *ghi)       { return !ghi->curEntry; }
+/* disallow further access */
+#ifdef __GNUC__
+#  pragma GCC poison _gh_Entry
+#else
+#  define _gh_Entry void
+#endif
 
 #define GHASH_ITER(gh_iter_, ghash_)                                          \
 	for (BLI_ghashIterator_init(&gh_iter_, ghash_);                           \

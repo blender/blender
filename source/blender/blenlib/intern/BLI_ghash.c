@@ -577,6 +577,8 @@ void BLI_ghashIterator_free(GHashIterator *ghi)
 	MEM_freeN(ghi);
 }
 
+/* inline functions now */
+#if 0
 /**
  * Retrieve the key from an iterator.
  *
@@ -586,7 +588,7 @@ void BLI_ghashIterator_free(GHashIterator *ghi)
  */
 void *BLI_ghashIterator_getKey(GHashIterator *ghi)
 {
-	return ghi->curEntry ? ghi->curEntry->key : NULL;
+	return ghi->curEntry->key;
 }
 
 /**
@@ -598,7 +600,7 @@ void *BLI_ghashIterator_getKey(GHashIterator *ghi)
  */
 void *BLI_ghashIterator_getValue(GHashIterator *ghi)
 {
-	return ghi->curEntry ? ghi->curEntry->val : NULL;
+	return ghi->curEntry->val;
 }
 
 /**
@@ -610,8 +612,21 @@ void *BLI_ghashIterator_getValue(GHashIterator *ghi)
  */
 void **BLI_ghashIterator_getValue_p(GHashIterator *ghi)
 {
-	return ghi->curEntry ? &ghi->curEntry->val : NULL;
+	return &ghi->curEntry->val;
 }
+
+/**
+ * Determine if an iterator is done (has reached the end of
+ * the hash table).
+ *
+ * \param ghi The iterator.
+ * \return True if done, False otherwise.
+ */
+bool BLI_ghashIterator_done(GHashIterator *ghi)
+{
+	return ghi->curEntry == NULL;
+}
+#endif
 
 /**
  * Steps the iterator to the next index.
@@ -629,18 +644,6 @@ void BLI_ghashIterator_step(GHashIterator *ghi)
 			ghi->curEntry = ghi->gh->buckets[ghi->curBucket];
 		}
 	}
-}
-
-/**
- * Determine if an iterator is done (has reached the end of
- * the hash table).
- *
- * \param ghi The iterator.
- * \return True if done, False otherwise.
- */
-bool BLI_ghashIterator_done(GHashIterator *ghi)
-{
-	return ghi->curEntry == NULL;
 }
 
 /** \} */
