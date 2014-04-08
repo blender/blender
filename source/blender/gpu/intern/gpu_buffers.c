@@ -2010,13 +2010,13 @@ static int gpu_bmesh_vert_visible_count(GSet *bm_unique_verts,
 }
 
 /* Return the total number of visible faces */
-static int gpu_bmesh_face_visible_count(GHash *bm_faces)
+static int gpu_bmesh_face_visible_count(GSet *bm_faces)
 {
-	GHashIterator gh_iter;
+	GSetIterator gh_iter;
 	int totface = 0;
 
-	GHASH_ITER (gh_iter, bm_faces) {
-		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+	GSET_ITER (gh_iter, bm_faces) {
+		BMFace *f = BLI_gsetIterator_getKey(&gh_iter);
 
 		if (!paint_is_bmesh_face_hidden(f))
 			totface++;
@@ -2029,7 +2029,7 @@ static int gpu_bmesh_face_visible_count(GHash *bm_faces)
  * shading, an element index buffer. */
 void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               BMesh *bm,
-                              GHash *bm_faces,
+                              GSet *bm_faces,
                               GSet *bm_unique_verts,
                               GSet *bm_other_verts,
                               bool show_diffuse_color)
@@ -2075,10 +2075,10 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 		diffuse_color[0] = diffuse_color[1] = diffuse_color[2] = 1.0;
 	else if (show_diffuse_color) {
 		/* due to dynamic nature of dyntopo, only get first material */
-		GHashIterator gh_iter;
+		GSetIterator gs_iter;
 		BMFace *f;
-		BLI_ghashIterator_init(&gh_iter, bm_faces);
-		f = BLI_ghashIterator_getKey(&gh_iter);
+		BLI_gsetIterator_init(&gs_iter, bm_faces);
+		f = BLI_gsetIterator_getKey(&gs_iter);
 		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
 	}
 
@@ -2117,10 +2117,10 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 			maxvert = v_index;
 		}
 		else {
-			GHashIterator gh_iter;
+			GSetIterator gs_iter;
 
-			GHASH_ITER (gh_iter, bm_faces) {
-				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+			GSET_ITER (gs_iter, bm_faces) {
+				BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
 				BLI_assert(f->len == 3);
 
@@ -2175,10 +2175,10 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 		/* Fill triangle index buffer */
 		tri_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 		if (tri_data) {
-			GHashIterator gh_iter;
+			GSetIterator gs_iter;
 
-			GHASH_ITER (gh_iter, bm_faces) {
-				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+			GSET_ITER (gs_iter, bm_faces) {
+				BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
 				if (!paint_is_bmesh_face_hidden(f)) {
 					BMLoop *l_iter;
@@ -2529,7 +2529,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 	}
 }
 
-bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GHash *bm_faces, bool show_diffuse_color)
+bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces, bool show_diffuse_color)
 {
 	float diffuse_color[4];
 
@@ -2549,10 +2549,10 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GHash *bm_faces
 	}
 	else if (buffers->use_bmesh) {
 		/* due to dynamc nature of dyntopo, only get first material */
-		GHashIterator gh_iter;
+		GSetIterator gs_iter;
 		BMFace *f;
-		BLI_ghashIterator_init(&gh_iter, bm_faces);
-		f = BLI_ghashIterator_getKey(&gh_iter);
+		BLI_gsetIterator_init(&gs_iter, bm_faces);
+		f = BLI_gsetIterator_getKey(&gs_iter);
 		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
 	}
 	else {

@@ -594,7 +594,7 @@ void BKE_pbvh_free(PBVH *bvh)
 			BKE_pbvh_node_layer_disp_free(node);
 
 			if (node->bm_faces)
-				BLI_ghash_free(node->bm_faces, NULL, NULL);
+				BLI_gset_free(node->bm_faces, NULL);
 			if (node->bm_unique_verts)
 				BLI_gset_free(node->bm_unique_verts, NULL);
 			if (node->bm_other_verts)
