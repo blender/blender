@@ -2633,33 +2633,28 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	CustomData edgeData;
-	EdgeHashIterator *ehi;
+	EdgeSetIterator *ehi;
 	MFace *mf = cddm->mface;
 	MEdge *med;
-	EdgeHash *eh;
+	EdgeSet *eh;
 	int i, *index, numEdges, numFaces = dm->numTessFaceData;
 
-	eh = BLI_edgehash_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
+	eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
 
 	for (i = 0; i < numFaces; i++, mf++) {
-		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
-			BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
-		if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
-			BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
+		BLI_edgeset_reinsert(eh, mf->v1, mf->v2);
+		BLI_edgeset_reinsert(eh, mf->v2, mf->v3);
 		
 		if (mf->v4) {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
-				BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
-			if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
-				BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
+			BLI_edgeset_reinsert(eh, mf->v3, mf->v4);
+			BLI_edgeset_reinsert(eh, mf->v4, mf->v1);
 		}
 		else {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
-				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
+			BLI_edgeset_reinsert(eh, mf->v3, mf->v1);
 		}
 	}
 
-	numEdges = BLI_edgehash_size(eh);
+	numEdges = BLI_edgeset_size(eh);
 
 	/* write new edges into a temporary CustomData */
 	CustomData_reset(&edgeData);
@@ -2669,16 +2664,16 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	med = CustomData_get_layer(&edgeData, CD_MEDGE);
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 
-	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
-	     BLI_edgehashIterator_isDone(ehi) == false;
-	     BLI_edgehashIterator_step(ehi), i++, med++, index++)
+	for (ehi = BLI_edgesetIterator_new(eh), i = 0;
+	     BLI_edgesetIterator_isDone(ehi) == false;
+	     BLI_edgesetIterator_step(ehi), i++, med++, index++)
 	{
-		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
+		BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
 
 		med->flag = ME_EDGEDRAW | ME_EDGERENDER;
 		*index = ORIGINDEX_NONE;
 	}
-	BLI_edgehashIterator_free(ehi);
+	BLI_edgesetIterator_free(ehi);
 
 	/* free old CustomData and assign new one */
 	CustomData_free(&dm->edgeData, dm->numEdgeData);
@@ -2687,7 +2682,7 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 
-	BLI_edgehash_free(eh, NULL);
+	BLI_edgeset_free(eh);
 }
 
 /* warning, this uses existing edges but CDDM_calc_edges_tessface() doesn't */
@@ -2724,9 +2719,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 		for (j = 0; j < mp->totloop; j++, ml++) {
 			v1 = ml->v;
 			v2 = ME_POLY_LOOP_NEXT(cddm->mloop, mp, j)->v;
-			if (!BLI_edgehash_haskey(eh, v1, v2)) {
-				BLI_edgehash_insert(eh, v1, v2, NULL);
-			}
+			BLI_edgehash_reinsert(eh, v1, v2, NULL);
 		}
 	}
 
