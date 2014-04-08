@@ -1242,7 +1242,7 @@ error:
 	return NULL;
 }
 
-static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
+static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
 {
 	BMFace *f;
 #ifdef USE_BMESH_HOLES
@@ -1260,7 +1260,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
 	f->totbounds = 1;
 #endif
 
-	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
+	BM_elem_attrs_copy(bm, bm, f, f_example);
 
 	return f;
 }

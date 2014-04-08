@@ -303,8 +303,6 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f,
 #endif
 	
 	if (f_new) {
-		BM_elem_attrs_copy(bm, bm, f, f_new);
-
 		/* handle multires update */
 		if (has_mdisp) {
 			BMLoop *l_iter;
@@ -393,9 +391,6 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
 	 * The radial_next is for f and goes from v_b to v_a  */
 
 	if (f_new) {
-		BM_elem_attrs_copy(bm, bm, f, f_new);
-		copy_v3_v3(f_new->no, f->no);
-
 		e = (*r_l)->e;
 		for (i = 0; i < n; i++) {
 			v_new = bmesh_semv(bm, v_b, e, &e_new);
