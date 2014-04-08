@@ -404,10 +404,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
-endif()
-
 # Tentative fix for bullet misbehavior (T38746), needs further clarification what flags conflict here
 if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
 	SET_SOURCE_FILES_PROPERTIES(src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp COMPILE_FLAGS "-O0")

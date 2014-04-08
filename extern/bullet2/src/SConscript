@@ -19,7 +19,7 @@ elif env['OURPLATFORM'] in ('linux', 'freebsd4', 'freebsd5'):
     cflags += ['-O2']
 elif sys.platform=='darwin':
     defs += ' NDEBUG'
-    bt_flags = env['CCFLAGS'] + ['-fPIC', '-msse','-msse2', '-msse3', '-mssse3', '-ffast-math'] # basic -O0 optimization
+    bt_flags = env['CCFLAGS'] + ['-fPIC', '-msse','-msse2', '-msse3', '-mssse3'] # basic -O0 optimization
     bt_opt_flags = bt_flags + ['-O3']
 
 bullet2_src = env.Glob("LinearMath/*.cpp")
