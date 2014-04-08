@@ -118,10 +118,10 @@ static GPUBufferPool *gpu_buffer_pool_new(void)
 
 	pool->maxsize = MAX_FREE_GPU_BUFFERS;
 	pool->maxpbvhsize = MAX_FREE_GPU_BUFF_IDS;
-	pool->buffers = MEM_callocN(sizeof(*pool->buffers) * pool->maxsize,
-								"GPUBufferPool.buffers");
-	pool->pbvhbufids = MEM_callocN(sizeof(*pool->pbvhbufids) * pool->maxpbvhsize,
-								"GPUBufferPool.pbvhbuffers");
+	pool->buffers = MEM_mallocN(sizeof(*pool->buffers) * pool->maxsize,
+	                            "GPUBufferPool.buffers");
+	pool->pbvhbufids = MEM_mallocN(sizeof(*pool->pbvhbufids) * pool->maxpbvhsize,
+	                               "GPUBufferPool.pbvhbuffers");
 	return pool;
 }
 
