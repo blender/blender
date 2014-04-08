@@ -1191,7 +1191,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 
 	if (mode & PBVH_Collapse) {
 		EdgeQueue q;
-		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 128, 128, BLI_MEMPOOL_NOP);
+		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 0, 128, BLI_MEMPOOL_NOP);
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset};
 
 		short_edge_queue_create(&eq_ctx, bvh, center, radius);
@@ -1204,7 +1204,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 
 	if (mode & PBVH_Subdivide) {
 		EdgeQueue q;
-		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 128, 128, BLI_MEMPOOL_NOP);
+		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 0, 128, BLI_MEMPOOL_NOP);
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset};
 
 		long_edge_queue_create(&eq_ctx, bvh, center, radius);

@@ -387,7 +387,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	/* setup context */
 	{
 		BLI_listbase_clear(&pc.state_lb);
-		pc.link_pool = BLI_mempool_create(sizeof(PathLink), 1, 512, BLI_MEMPOOL_NOP);
+		pc.link_pool = BLI_mempool_create(sizeof(PathLink), 0, 512, BLI_MEMPOOL_NOP);
 	}
 
 	/* calculate matrix */

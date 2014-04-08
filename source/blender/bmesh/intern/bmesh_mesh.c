@@ -67,9 +67,9 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 		return;
 	}
 
-	bm->vtoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), max_ii(512, bm->totvert), 512, BLI_MEMPOOL_NOP);
-	bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), max_ii(512, bm->totedge), 512, BLI_MEMPOOL_NOP);
-	bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), max_ii(512, bm->totface), 512, BLI_MEMPOOL_NOP);
+	bm->vtoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totvert, 512, BLI_MEMPOOL_NOP);
+	bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
+	bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
 
 #pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{

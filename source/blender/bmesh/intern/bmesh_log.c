@@ -375,8 +375,8 @@ static BMLogEntry *bm_log_entry_create(void)
 	entry->added_faces = BLI_ghash_ptr_new(__func__);
 	entry->modified_verts = BLI_ghash_ptr_new(__func__);
 
-	entry->pool_verts = BLI_mempool_create(sizeof(BMLogVert), 1, 64, BLI_MEMPOOL_NOP);
-	entry->pool_faces = BLI_mempool_create(sizeof(BMLogFace), 1, 64, BLI_MEMPOOL_NOP);
+	entry->pool_verts = BLI_mempool_create(sizeof(BMLogVert), 0, 64, BLI_MEMPOOL_NOP);
+	entry->pool_faces = BLI_mempool_create(sizeof(BMLogFace), 0, 64, BLI_MEMPOOL_NOP);
 
 	return entry;
 }

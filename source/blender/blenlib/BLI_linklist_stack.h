@@ -56,7 +56,7 @@
 
 #define BLI_LINKSTACK_INIT(var)  { \
 	var = NULL; \
-	_##var##_pool = BLI_mempool_create(sizeof(LinkNode), 1, 64, BLI_MEMPOOL_NOP); \
+	_##var##_pool = BLI_mempool_create(sizeof(LinkNode), 0, 64, BLI_MEMPOOL_NOP); \
 } (void)0
 
 #define BLI_LINKSTACK_SIZE(var) \
