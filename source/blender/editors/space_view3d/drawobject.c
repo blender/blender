@@ -7710,6 +7710,8 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	glColor3ub(0, 0, 0);
 
+	DM_update_materials(dm, ob);
+
 	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_enable_material, NULL, me, 0);
 
 	bbs_obmode_mesh_verts(ob, dm, 1);
@@ -7723,6 +7725,8 @@ static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 	Mesh *me = (Mesh *)ob->data;
 	
 	glColor3ub(0, 0, 0);
+
+	DM_update_materials(dm, ob);
 
 	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL))
 		dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, GPU_enable_material, NULL, me, 0);
