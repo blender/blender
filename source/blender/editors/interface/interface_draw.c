@@ -1132,7 +1132,6 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	/* layer: box outline */
 	glColor4f(0.0, 0.0, 0.0, 1.0);
 	fdrawbox(x1, y1, x1 + sizex, rect->ymax);
-	glEnd();
 	
 	/* layer: box outline */
 	glEnable(GL_BLEND);
