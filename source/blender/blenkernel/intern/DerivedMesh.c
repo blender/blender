@@ -350,6 +350,12 @@ int DM_release(DerivedMesh *dm)
 		CustomData_free(&dm->loopData, dm->numLoopData);
 		CustomData_free(&dm->polyData, dm->numPolyData);
 
+		if (dm->mat) {
+			MEM_freeN(dm->mat);
+			dm->mat = NULL;
+			dm->totmat = 0;
+		}
+
 		return 1;
 	}
 	else {
@@ -485,8 +491,18 @@ void DM_update_tessface_data(DerivedMesh *dm)
 
 void DM_update_materials(DerivedMesh *dm, Object *ob)
 {
-	dm->totmat = ob->totcol + 1; /* materials start from 1, default material is 0 */
-	dm->mat = *give_matarar(ob);
+	int i, totmat = ob->totcol + 1; /* materials start from 1, default material is 0 */
+	dm->totmat = totmat;
+
+	/* invalidate old materials */
+	if (dm->mat)
+		MEM_freeN(dm->mat);
+
+	dm->mat = MEM_callocN (totmat * sizeof(*dm->mat), "DerivedMesh.mat");
+
+	for (i = 1; i < totmat; i++) {
+		dm->mat[i] = give_current_material(ob, i);
+	}
 }
 
 
