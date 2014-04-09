@@ -4004,6 +4004,8 @@ static bool drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
 		return true;
 	}
 
+	DM_update_materials(dm, ob);
+
 	glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
 	if (dt > OB_WIRE && dm->getNumTessFaces(dm)) {
@@ -7755,6 +7757,8 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 				BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
+				DM_update_materials(dm, ob);
+
 				bbs_mesh_solid_EM(em, scene, v3d, ob, dm, ts->selectmode & SCE_SELECT_FACE);
 				if (ts->selectmode & SCE_SELECT_FACE)
 					bm_solidoffs = 1 + em->bm->totface;
@@ -7813,10 +7817,14 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	DerivedMesh *dm = NULL, *edm = NULL;
 	int glsl;
 	
-	if (ob->mode & OB_MODE_EDIT)
+	if (ob->mode & OB_MODE_EDIT) {
 		edm = editbmesh_get_derived_base(ob, me->edit_btmesh);
-	else
+		DM_update_materials(dm, ob);
+	}
+	else {
 		dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+		DM_update_materials(dm, ob);
+	}
 
 	if (dt <= OB_WIRE) {
 		if (dm)
