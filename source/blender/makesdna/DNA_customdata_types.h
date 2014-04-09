@@ -69,7 +69,7 @@ typedef struct CustomData {
 	int pad[1];
 	int totlayer, maxlayer;       /* number of layers, size of layers array */
 	int totsize;                  /* in editmode, total size of all data layers */
-	void *pool;                   /* Bmesh: Memory pool for allocation of blocks */
+	struct BLI_mempool *pool;     /* (BMesh Only): Memory pool for allocation of blocks */
 	CustomDataExternal *external; /* external file storing customdata layers */
 } CustomData;
 

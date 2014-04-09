@@ -498,7 +498,7 @@ void DM_update_materials(DerivedMesh *dm, Object *ob)
 	if (dm->mat)
 		MEM_freeN(dm->mat);
 
-	dm->mat = MEM_callocN (totmat * sizeof(*dm->mat), "DerivedMesh.mat");
+	dm->mat = MEM_callocN(totmat * sizeof(*dm->mat), "DerivedMesh.mat");
 
 	for (i = 1; i < totmat; i++) {
 		dm->mat[i] = give_current_material(ob, i);

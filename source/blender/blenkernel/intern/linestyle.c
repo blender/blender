@@ -1024,7 +1024,7 @@ void BKE_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *list
 			default:
 				continue;
 		}
-		link = (LinkData *) MEM_callocN( sizeof(LinkData), "link to color ramp");
+		link = (LinkData *) MEM_callocN(sizeof(LinkData), "link to color ramp");
 		link->data = color_ramp;
 		BLI_addtail(listbase, link);
 	}
