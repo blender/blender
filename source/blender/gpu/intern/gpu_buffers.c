@@ -422,11 +422,13 @@ static void gpu_drawobject_add_triangle(GPUDrawObject *gdo,
 
 /* for each vertex, build a list of points related to it; these lists
  * are stored in an array sized to the number of vertices */
-static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int totface)
+static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int totface, int totmat)
 {
 	GPUBufferMaterial *mat;
-	int i, mat_orig_to_new[MAX_MATERIALS];
+	int i, *mat_orig_to_new;
 
+	mat_orig_to_new = MEM_callocN(sizeof(*mat_orig_to_new) * totmat,
+	                                             "GPUDrawObject.mat_orig_to_new");
 	/* allocate the array and space for links */
 	gdo->vert_points = MEM_callocN(sizeof(GPUVertPointLink) * gdo->totvert,
 	                               "GPUDrawObject.vert_points");
@@ -466,6 +468,8 @@ static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int to
 			gdo->tot_loose_point++;
 		}
 	}
+
+	MEM_freeN(mat_orig_to_new);
 }
 
 /* see GPUDrawObject's structure definition for a description of the
@@ -474,15 +478,19 @@ GPUDrawObject *GPU_drawobject_new(DerivedMesh *dm)
 {
 	GPUDrawObject *gdo;
 	MFace *mface;
-	int points_per_mat[MAX_MATERIALS];
+	int totmat = dm->totmat;
+	int *points_per_mat;
 	int i, curmat, curpoint, totface;
+
+	/* object contains at least one material (default included) so zero means uninitialized dm */
+	BLI_assert(totmat != 0);
 
 	mface = dm->getTessFaceArray(dm);
 	totface = dm->getNumTessFaces(dm);
 
 	/* get the number of points used by each material, treating
 	 * each quad as two triangles */
-	memset(points_per_mat, 0, sizeof(int) * MAX_MATERIALS);
+	points_per_mat = MEM_callocN(sizeof(*points_per_mat) * totmat, "GPU_drawobject_new.mat_orig_to_new");
 	for (i = 0; i < totface; i++)
 		points_per_mat[mface[i].mat_nr] += mface[i].v4 ? 6 : 3;
 
@@ -492,7 +500,7 @@ GPUDrawObject *GPU_drawobject_new(DerivedMesh *dm)
 	gdo->totedge = dm->getNumEdges(dm);
 
 	/* count the number of materials used by this DerivedMesh */
-	for (i = 0; i < MAX_MATERIALS; i++) {
+	for (i = 0; i < totmat; i++) {
 		if (points_per_mat[i] > 0)
 			gdo->totmaterial++;
 	}
@@ -502,7 +510,7 @@ GPUDrawObject *GPU_drawobject_new(DerivedMesh *dm)
 	                             "GPUDrawObject.materials");
 
 	/* initialize the materials array */
-	for (i = 0, curmat = 0, curpoint = 0; i < MAX_MATERIALS; i++) {
+	for (i = 0, curmat = 0, curpoint = 0; i < totmat; i++) {
 		if (points_per_mat[i] > 0) {
 			gdo->materials[curmat].start = curpoint;
 			gdo->materials[curmat].totpoint = 0;
@@ -519,7 +527,8 @@ GPUDrawObject *GPU_drawobject_new(DerivedMesh *dm)
 	gdo->triangle_to_mface = MEM_mallocN(sizeof(int) * (gdo->tot_triangle_point / 3),
 	                                     "GPUDrawObject.triangle_to_mface");
 
-	gpu_drawobject_init_vert_points(gdo, mface, totface);
+	gpu_drawobject_init_vert_points(gdo, mface, totface, totmat);
+	MEM_freeN(points_per_mat);
 
 	return gdo;
 }

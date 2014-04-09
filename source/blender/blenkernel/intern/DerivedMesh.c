@@ -54,6 +54,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
+#include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -481,6 +482,13 @@ void DM_update_tessface_data(DerivedMesh *dm)
 
 	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;
 }
+
+void DM_update_materials(DerivedMesh *dm, Object *ob)
+{
+	dm->totmat = ob->totcol + 1; /* materials start from 1, default material is 0 */
+	dm->mat = *give_matarar(ob);
+}
+
 
 void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 {

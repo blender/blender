@@ -3419,6 +3419,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	if (!dm)
 		return;
 
+	DM_update_materials(dm, ob);
+
 	/* Check to draw dynamic paint colors (or weights from WeightVG modifiers).
 	 * Note: Last "preview-active" modifier in stack will win! */
 	if (DM_get_tessface_data_layer(dm, CD_PREVIEW_MCOL) && modifiers_isPreview(ob))
@@ -3706,6 +3708,9 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 		else
 			cageDM = editbmesh_get_derived_cage_and_final(scene, ob, em, &finalDM,
 			                                              scene->customdata_mask);
+
+		DM_update_materials(finalDM, ob);
+		DM_update_materials(cageDM, ob);
 
 		if (dt > OB_WIRE) {
 			const bool glsl = draw_glsl_material(scene, ob, v3d, dt);
