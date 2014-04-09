@@ -176,8 +176,6 @@ typedef struct Object {
 	float imat_ren[4][4];
 	
 	unsigned int lay;	/* copy of Base's layer in the scene */
-	
-	float sf; /* sf is time-offset */
 
 	short flag;			/* copy of Base */
 	short colbits DNA_DEPRECATED;		/* deprecated, use 'matbits' */
@@ -208,7 +206,7 @@ typedef struct Object {
 	 */
 
 	float formfactor;
-	float rdamping, sizefac;
+	float rdamping;
 	float margin;
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float min_vel; /* clamp the minimum velocity 0.0 is disabled */
@@ -239,7 +237,8 @@ typedef struct Object {
 	ListBase controllers;	/* game logic controllers */
 	ListBase actuators;		/* game logic actuators */
 
-	float bbsize[3]  DNA_DEPRECATED;
+	float sf; /* sf is time-offset */
+
 	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group, note: index starts at 1 */
 	float col[4];			/* object color */
@@ -270,8 +269,10 @@ typedef struct Object {
 
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
 
+	/* Runtime valuated curve-specific data, not stored in the file */
+	struct CurveCache *curve_cache;
+
 	struct DerivedMesh *derivedDeform, *derivedFinal;
-	int *pad;
 	uint64_t lastDataMask;   /* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
 	uint64_t customdata_mask; /* (extra) custom data layer mask to use for creating derivedmesh, set by depsgraph */
 	unsigned int state;			/* bit masks of game controllers that are active */
@@ -289,9 +290,6 @@ typedef struct Object {
 
 	ListBase lodlevels;		/* contains data for levels of detail */
 	LodLevel *currentlod;
-
-	/* Runtime valuated curve-specific data, not stored in the file */
-	struct CurveCache *curve_cache;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
