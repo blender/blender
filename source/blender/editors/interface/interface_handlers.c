@@ -2374,6 +2374,11 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	data->selextend = 0;
 	data->selstartx = 0.0f;
 
+#ifdef USE_DRAG_MULTINUM
+	/* this can happen from multi-drag */
+	data->applied_interactive = false;
+#endif
+
 	/* set cursor pos to the end of the text */
 	but->editstr = data->str;
 	but->pos = len;
@@ -3477,10 +3482,21 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
-			if (data->dragchange)
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			else
+			if (data->dragchange) {
+#ifdef USE_DRAG_MULTINUM
+				/* if we started multibutton but didnt drag, then edit */
+				if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
+					click = 1;
+				}
+				else
+#endif
+				{
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
+			}
+			else {
 				click = 1;
+			}
 		}
 		else if (event->type == MOUSEMOVE) {
 			const enum eSnapType snap = ui_event_to_snap(event);
@@ -3763,10 +3779,21 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
-			if (data->dragchange)
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			else
+			if (data->dragchange) {
+#ifdef USE_DRAG_MULTINUM
+				/* if we started multibutton but didnt drag, then edit */
+				if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
+					click = 1;
+				}
+				else
+#endif
+				{
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
+			}
+			else {
 				click = 1;
+			}
 		}
 		else if (event->type == MOUSEMOVE) {
 #ifdef USE_DRAG_MULTINUM

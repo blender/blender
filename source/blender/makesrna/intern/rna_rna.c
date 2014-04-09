@@ -821,7 +821,9 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 	    (ptr->type == &RNA_EnumProperty) ||
 	    (C == NULL))
 	{
-		return eprop->item;
+		if (eprop->item) {
+			return eprop->item;
+		}
 	}
 
 	return eprop->itemf(C, ptr, prop, r_free);

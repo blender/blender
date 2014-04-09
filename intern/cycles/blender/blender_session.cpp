@@ -592,16 +592,14 @@ bool BlenderSession::draw(int w, int h)
 
 	/* draw */
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+	DeviceDrawParams draw_params;
 
-	if(session->params.display_buffer_linear)
-		b_engine.bind_display_space_shader(b_scene);
+	if(session->params.display_buffer_linear) {
+		draw_params.bind_display_space_shader_cb = function_bind(&BL::RenderEngine::bind_display_space_shader, &b_engine, b_scene);
+		draw_params.unbind_display_space_shader_cb = function_bind(&BL::RenderEngine::unbind_display_space_shader, &b_engine);
+	}
 
-	bool draw_ok = !session->draw(buffer_params);
-
-	if(session->params.display_buffer_linear)
-		b_engine.unbind_display_space_shader();
-	
-	return draw_ok;
+	return !session->draw(buffer_params, draw_params);
 }
 
 void BlenderSession::get_status(string& status, string& substatus)

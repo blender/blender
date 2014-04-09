@@ -577,7 +577,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
 
 	/* mode */
-	WM_keymap_add_menu(keymap, "CLIP_MT_select_mode", TABKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", TABKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.mode");
+	RNA_string_set(kmi->ptr, "value_1", "TRACKING");
+	RNA_string_set(kmi->ptr, "value_2", "MASK");
 
 	WM_keymap_add_item(keymap, "CLIP_OT_solve_camera", SKEY, KM_PRESS, KM_SHIFT, 0);
 

@@ -981,6 +981,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	int a, vdone = false, result = BAKE_RESULT_OK;
 	bool use_mask = false;
 	bool use_displacement_buffer = false;
+	bool do_manage = BKE_scene_check_color_management_enabled(re->scene);
 	
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(re->scene);
 	
@@ -1040,6 +1041,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		}
 		handles[a].ssamp.shi[0].combinedflag = ~(SCE_PASS_SPEC);
 		handles[a].ssamp.shi[0].thread = a;
+		handles[a].ssamp.shi[0].do_manage = do_manage;
 		handles[a].ssamp.tot = 1;
 
 		handles[a].type = type;

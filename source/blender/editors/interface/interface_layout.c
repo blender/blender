@@ -888,7 +888,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 		EnumPropertyItem *item, *item_array = NULL;
 		bool free;
 		uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
-		uiLayout *column = uiLayoutColumn(split, false);
+		uiLayout *column = uiLayoutColumn(split, layout->align);
 
 		RNA_property_enum_items_gettexted(block->evil_C, &ptr, prop, &item_array, NULL, &free);
 		for (item = item_array; item->identifier; item++) {
@@ -912,7 +912,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 				if (item->name) {
 					uiBut *but;
 					if (item != item_array) {
-						column = uiLayoutColumn(split, false);
+						column = uiLayoutColumn(split, layout->align);
 						/* inconsistent, but menus with labels do not look good flipped */
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}

@@ -395,10 +395,8 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		return;
 
 	const int *viewport = canvas->GetViewPort();
-	RAS_Rect rect = canvas->GetWindowArea();
-	int rect_width = rect.GetWidth()+1, rect_height = rect.GetHeight()+1;
 
-	if (texturewidth != rect_width || textureheight != rect_height)
+	if (texturewidth != viewport[2] || textureheight != viewport[3])
 	{
 		UpdateOffsetMatrix(canvas);
 		UpdateCanvasTextureCoord(viewport);
@@ -414,22 +412,22 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if (need_depth) {
 		glActiveTextureARB(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, rect.GetLeft(), rect.GetBottom(), rect_width, rect_height, 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, viewport[0], viewport[1], viewport[2], viewport[3], 0);
 	}
 	
 	if (need_luminance) {
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, rect.GetLeft(), rect.GetBottom(), rect_width, rect_height, 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, viewport[0], viewport[1], viewport[2], viewport[3], 0);
 	}
 
 	// reverting to texunit 0, without this we get bug [#28462]
 	glActiveTextureARB(GL_TEXTURE0);
-	canvas->SetViewPort(0, 0, rect_width-1, rect_height-1);
 
 	// We do this to make side-by-side stereo rendering work correctly with 2D filters. It would probably be nicer to just set the viewport,
 	// but it can be easier for writing shaders to have the coordinates for the whole screen instead of just part of the screen. 
 	RAS_Rect scissor_rect = canvas->GetDisplayArea();
+
 	glScissor(scissor_rect.GetLeft() + viewport[0],
 	          scissor_rect.GetBottom() + viewport[1],
 	          scissor_rect.GetWidth() + 1,
@@ -459,7 +457,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 			glActiveTextureARB(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texname[0]);
-			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, rect.GetLeft(), rect.GetBottom(), rect_width, rect_height, 0); // Don't use texturewidth and textureheight in case we don't have NPOT support
+			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, viewport[0], viewport[1], viewport[2], viewport[3], 0); // Don't use texturewidth and textureheight in case we don't have NPOT support
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glBegin(GL_QUADS);
@@ -473,8 +471,6 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	}
 
 	glEnable(GL_DEPTH_TEST);
-	//We can't pass the results of canvas->GetViewPort() directly because canvas->SetViewPort() does some extra math [#34517]
-	canvas->SetViewPort(0, 0, viewport[2]-1, viewport[3]-1);
 	EndShaderProgram();
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);

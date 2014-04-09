@@ -577,10 +577,10 @@ void transformVertex(const Vec3r& vert, const Matrix44r& matrix, Vec3r& res)
 
 void transformVertices(const vector<Vec3r>& vertices, const Matrix44r& trans, vector<Vec3r>& res)
 {
-	for (vector<Vec3r>::const_iterator v = vertices.begin(); v != vertices.end(); v++) {
-		Vec3r *res_tmp = new Vec3r;
-		transformVertex(*v, trans, *res_tmp);
-		res.push_back(*res_tmp);
+	size_t i;
+	res.resize(vertices.size());
+	for (i = 0; i < vertices.size(); i++) {
+		transformVertex(vertices[i], trans, res[i]);
 	}
 }
 

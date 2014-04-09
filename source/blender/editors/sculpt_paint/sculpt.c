@@ -104,6 +104,19 @@
 #include <omp.h>
 #endif
 
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+
+/* Query how many cores not counting HT aka physical cores we've got. */
+static int system_physical_thread_count(void)
+{
+	int pcount;
+	size_t pcount_len = sizeof(pcount);
+	sysctlbyname("hw.physicalcpu", &pcount, &pcount_len, NULL, 0);
+	return pcount;
+}
+#endif  /* __APPLE__ */
+
 void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
 {
 	if (ob->sculpt->last_stroke_valid && ob->sculpt->average_stroke_counter > 0) {
@@ -230,7 +243,7 @@ typedef struct StrokeCache {
 	float initial_mouse[2];
 
 	/* Pre-allocated temporary storage used during smoothing */
-	int num_threads;
+	int num_threads, max_threads;
 	float (**tmpgrid_co)[3], (**tmprow_co)[3];
 	float **tmpgrid_mask, **tmprow_mask;
 
@@ -924,6 +937,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 	MTex *mtex = &br->mtex;
 	float avg = 1;
 	float rgba[4];
+	int thread_num;
 
 	if (!mtex->tex) {
 		avg = 1;
@@ -966,7 +980,12 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			x += br->mtex.ofs[0];
 			y += br->mtex.ofs[1];
 
-			avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool);
+#ifdef _OPENMP
+			thread_num = omp_get_thread_num();
+#else
+			thread_num = 0;
+#endif
+			avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, thread_num);
 
 			avg += br->texture_sample_bias;
 		}
@@ -3766,16 +3785,21 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	 * Justification: Empirically I've found that two threads per
 	 * processor gives higher throughput. */
 	if (sd->flags & SCULPT_USE_OPENMP) {
-		cache->num_threads = 2 * omp_get_num_procs();
-		omp_set_num_threads(cache->num_threads);
-	}
-	else
+#if defined(__APPLE__)
+		cache->num_threads = system_physical_thread_count();
+#else
+		cache->num_threads = omp_get_num_procs();
 #endif
-	{
-		(void)sd;
+	}
+	else {
 		cache->num_threads = 1;
 	}
-
+	cache->max_threads = omp_get_max_threads();
+	omp_set_num_threads(cache->num_threads);
+#else
+	(void)sd;
+	cache->num_threads = 1;
+#endif
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BKE_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
@@ -3802,6 +3826,10 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 
 static void sculpt_omp_done(SculptSession *ss)
 {
+#ifdef _OPENMP
+	omp_set_num_threads(ss->cache->max_threads);
+#endif
+
 	if (ss->multires) {
 		int i;
 

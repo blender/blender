@@ -1413,7 +1413,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
-			uiItemL(layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 			uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 		}
 	}
@@ -1816,14 +1815,14 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 *  avoids recreating splash for version updates */
-	if (false) {
+	if (true) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
 		int x = 260 - (2 * UI_DPI_WINDOW_FAC);
 		int y = 242 + (4 * UI_DPI_WINDOW_FAC);
 		int w = 240;
 
-		const char *version_suffix = "Release Candidate";
+		const char *version_suffix = "a";
 
 
 		/* hack to have text draw 'text_sel' */

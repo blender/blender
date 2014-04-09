@@ -1702,6 +1702,8 @@ KX_Scene* KX_KetsjiEngine::CreateScene(Scene *scene, bool libloading)
 KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
 {
 	Scene *scene = m_sceneconverter->GetBlenderSceneForName(scenename);
+	if (!scene)
+		return NULL;
 	return CreateScene(scene);
 }
 
@@ -1717,8 +1719,12 @@ void KX_KetsjiEngine::AddScheduledScenes()
 		{
 			STR_String scenename = *scenenameit;
 			KX_Scene* tmpscene = CreateScene(scenename);
-			m_scenes.push_back(tmpscene);
-			PostProcessScene(tmpscene);
+			if (tmpscene) {
+				m_scenes.push_back(tmpscene);
+				PostProcessScene(tmpscene);
+			} else {
+				printf("warning: scene %s could not be found, not added!\n",scenename.ReadPtr());
+			}
 		}
 		m_addingOverlayScenes.clear();
 	}
@@ -1731,9 +1737,12 @@ void KX_KetsjiEngine::AddScheduledScenes()
 		{
 			STR_String scenename = *scenenameit;
 			KX_Scene* tmpscene = CreateScene(scenename);
-			m_scenes.insert(m_scenes.begin(),tmpscene);
-			PostProcessScene(tmpscene);
-
+			if (tmpscene) {
+				m_scenes.insert(m_scenes.begin(),tmpscene);
+				PostProcessScene(tmpscene);
+			} else {
+				printf("warning: scene %s could not be found, not added!\n",scenename.ReadPtr());
+			}
 		}
 		m_addingBackgroundScenes.clear();
 	}

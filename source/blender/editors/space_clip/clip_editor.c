@@ -974,6 +974,10 @@ static bool prefetch_check_early_out(const bContext *C)
 	int first_uncached_frame, end_frame;
 	int clip_len;
 
+	if (clip == NULL) {
+		return true;
+	}
+
 	clip_len = BKE_movieclip_get_duration(clip);
 
 	/* check whether all the frames from prefetch range are cached */

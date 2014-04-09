@@ -164,26 +164,25 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 	return len_v3(delta) / scale;
 }
 
-float paint_get_tex_pixel(MTex *mtex, float u, float v, struct ImagePool *pool)
+float paint_get_tex_pixel(MTex *mtex, float u, float v, struct ImagePool *pool, int thread)
 {
 	float intensity, rgba[4];
 	float co[3] = {u, v, 0.0f};
 
 	externtex(mtex, co, &intensity,
-		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
+						   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 
 	return intensity;
 }
 
-void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool)
+void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread)
 {
 	float co[3] = {u, v, 0.0f};
 	int hasrgb;
 	float intensity;
 
 	hasrgb = externtex(mtex, co, &intensity,
-		                   rgba, rgba + 1, rgba + 2, rgba + 3, 0, pool);
-
+						   rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	if (!hasrgb) {
 		rgba[0] = intensity;
 		rgba[1] = intensity;

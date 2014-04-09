@@ -123,9 +123,9 @@ class CLIP_HT_header(Header):
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
 
-        layout.prop(sc, "mode", text="")
-
         if clip:
+            layout.prop(sc, "mode", text="")
+
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
 
@@ -1330,17 +1330,6 @@ class CLIP_MT_tracking_specials(Menu):
 
         layout.operator("clip.lock_tracks",
                         text="Unlock Tracks").action = 'UNLOCK'
-
-
-class CLIP_MT_select_mode(Menu):
-    bl_label = "Select Mode"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator_enum("clip.mode_set", "mode")
 
 
 class CLIP_MT_camera_presets(Menu):

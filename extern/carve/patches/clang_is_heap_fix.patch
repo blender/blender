@@ -1,31 +1,27 @@
-diff -r 2e6e59022e6e lib/triangulator.cpp
---- a/lib/triangulator.cpp	Fri Nov 09 09:35:35 2012 +1100
-+++ b/lib/triangulator.cpp	Thu Jan 09 16:13:17 2014 +0600
-@@ -27,6 +27,23 @@
+diff -r e82d852e4fb0 include/carve/mesh_ops.hpp
+--- a/include/carve/mesh_ops.hpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/include/carve/mesh_ops.hpp	Fri Mar 28 14:34:04 2014 +0600
+@@ -580,7 +580,7 @@
+           std::vector<VertexInfo *> queue;
+ 
+           void checkheap() {
+-#ifdef __GNUC__
++#if defined(HAVE_IS_HEAP)
+             CARVE_ASSERT(std::__is_heap(queue.begin(), queue.end(), order_by_score()));
+ #endif
+           }
+diff -r e82d852e4fb0 lib/triangulator.cpp
+--- a/lib/triangulator.cpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/lib/triangulator.cpp	Fri Mar 28 14:34:04 2014 +0600
+@@ -27,7 +27,6 @@
  
  #include <algorithm>
  
-+// Support for latest Clang/LLVM on FreeBSD which does have different libcxx.
-+//
-+// TODO(sergey): Move it some some more generic header with platform-specific
-+//               declarations.
-+
-+// Indicates whether __is_heap is available
-+#undef HAVE_IS_HEAP
-+
-+#ifdef __GNUC__
-+// NeyBSD doesn't have __is_heap
-+#  ifndef __NetBSD__
-+#    define HAVE_IS_HEAP
-+#    ifdef _LIBCPP_VERSION
-+#      define __is_heap is_heap
-+#    endif  // _LIBCPP_VERSION
-+#  endif  // !__NetBSD__
-+#endif  // __GNUC__
- 
+-
  namespace {
    // private code related to hole patching.
-@@ -122,7 +139,7 @@
+ 
+@@ -122,7 +121,7 @@
      std::vector<vertex_info *> queue;
  
      void checkheap() {

@@ -47,10 +47,11 @@ bool FastGaussianBlurOperation::getDAI(rcti *rect, rcti *output)
 {
 	// m_data->sizex * m_size should be enough? For some reason there
 	// seem to be errors in the boundary between tiles.
-	int sx = this->m_data->sizex * this->m_size * 2;
+	float size = this->m_size * COM_FAST_GAUSSIAN_MULTIPLIER;
+	int sx = this->m_data->sizex * size;
 	if (sx < 1)
 		sx = 1;
-	int sy = this->m_data->sizey * this->m_size * 2;
+	int sy = this->m_data->sizey * size;
 	if (sy < 1)
 		sy = 1;
 

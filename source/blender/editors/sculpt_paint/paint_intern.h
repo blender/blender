@@ -198,8 +198,8 @@ void paint_calc_redraw_planes(float planes[4][4],
                               const struct rcti *screen_rect);
 
 float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
-float paint_get_tex_pixel(struct MTex *mtex, float u, float v, struct ImagePool *pool);
-void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool);
+float paint_get_tex_pixel(struct MTex *mtex, float u, float v, struct ImagePool *pool, int thread);
+void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread);
 int imapaint_pick_face(struct ViewContext *vc, const int mval[2], unsigned int *index, unsigned int totface);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, const int xy[2], float uv[2]);
 void brush_drawcursor_texpaint_uvsculpt(struct bContext *C, int x, int y, void *customdata);

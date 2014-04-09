@@ -256,8 +256,7 @@ Material *localize_material(Material *ma)
 	Material *man;
 	int a;
 	
-	man = BKE_libblock_copy(&ma->id);
-	BLI_remlink(&G.main->mat, man);
+	man = BKE_libblock_copy_nolib(&ma->id);
 
 	/* no increment for texture ID users, in previewrender.c it prevents decrement */
 	for (a = 0; a < MAX_MTEX; a++) {

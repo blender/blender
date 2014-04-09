@@ -1514,19 +1514,22 @@ void ED_screen_set(bContext *C, bScreen *sc)
 
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer = NULL;
-		if (wt)
+		if (wt) {
 			WM_event_timer_sleep(wm, win, wt, true);
-		
+		}
+
 		ED_screen_exit(C, win, oldscreen);
 
 		/* Same scene, "transfer" playback to new screen. */
-		if (oldscene == sc->scene) {
-			sc->animtimer = wt;
-		}
-		/* Else, stop playback. */
-		else {
-			oldscreen->animtimer = wt;
-			ED_screen_animation_play(C, 0, 0);
+		if (wt) {
+			if (oldscene == sc->scene) {
+				sc->animtimer = wt;
+			}
+			/* Else, stop playback. */
+			else {
+				oldscreen->animtimer = wt;
+				ED_screen_animation_play(C, 0, 0);
+			}
 		}
 
 		win->screen = sc;

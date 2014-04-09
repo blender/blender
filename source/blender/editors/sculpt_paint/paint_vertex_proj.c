@@ -153,6 +153,10 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, 
 
 			vp_handle->dists_sq[index] = dist_sq;
 		}
+		else if (vp_handle->dists_sq[index] != FLT_MAX) {
+			/* already initialized & couldn't project this 'co' */
+			return;
+		}
 	}
 	/* continue with regular functionality */
 

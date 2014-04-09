@@ -734,6 +734,7 @@ Mask *BKE_mask_new(Main *bmain, const char *name)
 	return mask;
 }
 
+/* TODO(sergey): Use generic BKE_libblock_copy_nolib() instead. */
 Mask *BKE_mask_copy_nolib(Mask *mask)
 {
 	Mask *mask_new;

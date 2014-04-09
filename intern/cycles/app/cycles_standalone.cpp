@@ -188,7 +188,9 @@ static void display_info(Progress& progress)
 
 static void display()
 {
-	options.session->draw(session_buffer_params());
+	static DeviceDrawParams draw_params = DeviceDrawParams();
+
+	options.session->draw(session_buffer_params(), draw_params);
 
 	display_info(options.session->progress);
 }

@@ -1,3 +1,11 @@
+commit 901b146f28825d3e05f4157ca2a34ae00261b91a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Mar 26 17:44:09 2014 +0600
+
+    Fix bad memory write in BA code when having zero-weighted tracks
+    
+    Issue was really stupid and caused by the wrong vector initialization.
+
 commit b1381540305d69c702eb2f051bd543fb5c1c3e2c
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Feb 6 18:01:58 2014 +0600

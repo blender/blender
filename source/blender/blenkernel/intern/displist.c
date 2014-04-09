@@ -1212,7 +1212,7 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 		curve_calc_modifiers_pre(scene, ob, &nubase, forRender, renderResolution);
 
 	for (nu = nubase.first; nu; nu = nu->next) {
-		if (forRender || nu->hide == 0) {
+		if ((forRender || nu->hide == 0) && BKE_nurb_check_valid_uv(nu)) {
 			int resolu = nu->resolu, resolv = nu->resolv;
 
 			if (renderResolution) {

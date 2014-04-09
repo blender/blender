@@ -808,6 +808,32 @@ void *BKE_libblock_copy_ex(Main *bmain, ID *id)
 	return idn;
 }
 
+void *BKE_libblock_copy_nolib(ID *id)
+{
+	ID *idn;
+	size_t idn_len;
+
+	idn = alloc_libblock_notest(GS(id->name));
+	assert(idn != NULL);
+
+	BLI_strncpy(idn->name, id->name, sizeof(idn->name));
+
+	idn_len = MEM_allocN_len(idn);
+	if ((int)idn_len - (int)sizeof(ID) > 0) { /* signed to allow neg result */
+		const char *cp = (const char *)id;
+		char *cpn = (char *)idn;
+
+		memcpy(cpn + sizeof(ID), cp + sizeof(ID), idn_len - sizeof(ID));
+	}
+
+	id->newid = idn;
+	idn->flag |= LIB_NEW;
+
+	BKE_libblock_copy_data(idn, id, false);
+
+	return idn;
+}
+
 void *BKE_libblock_copy(ID *id)
 {
 	return BKE_libblock_copy_ex(G.main, id);

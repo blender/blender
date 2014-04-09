@@ -93,6 +93,8 @@ void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist
 void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
 void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
 
+void ED_view3d_lastview_store(struct RegionView3D *rv3d);
+
 /* Depth buffer */
 void  ED_view3d_depth_update(struct ARegion *ar);
 float ED_view3d_depth_read_cached(struct ViewContext *vc, int x, int y);

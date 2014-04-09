@@ -432,6 +432,11 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
 	BL::Scene b_sce = b_scene;
+	/* modifier result type (not exposed as enum in C++ API)
+	 * 1 : eModifierMode_Realtime
+	 * 2 : eModifierMode_Render
+	 */
+	int dupli_settings = preview ? 1 : 2;
 
 	bool cancel = false;
 
@@ -446,7 +451,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 
 				if(b_ob->is_duplicator() && !object_render_hide_duplis(*b_ob)) {
 					/* dupli objects */
-					b_ob->dupli_list_create(b_scene, 2);
+					b_ob->dupli_list_create(b_scene, dupli_settings);
 
 					BL::Object::dupli_list_iterator b_dup;
 

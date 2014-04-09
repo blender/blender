@@ -69,6 +69,11 @@ public:
 
 /* Device */
 
+struct DeviceDrawParams {
+	boost::function<void(void)> bind_display_space_shader_cb;
+	boost::function<void(void)> unbind_display_space_shader_cb;
+};
+
 class Device {
 protected:
 	Device(DeviceInfo& info_, Stats &stats_, bool background) : background(background), info(info_), stats(stats_) {}
@@ -121,7 +126,8 @@ public:
 	
 	/* opengl drawing */
 	virtual void draw_pixels(device_memory& mem, int y, int w, int h,
-		int dy, int width, int height, bool transparent);
+		int dy, int width, int height, bool transparent,
+		const DeviceDrawParams &draw_params);
 
 #ifdef WITH_NETWORK
 	/* networking */

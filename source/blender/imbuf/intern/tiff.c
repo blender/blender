@@ -859,7 +859,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	TIFFSetField(image, TIFFTAG_RESOLUTIONUNIT,  RESUNIT_INCH);
 	if (TIFFWriteEncodedStrip(image, 0,
 	                          (bitspersample == 16) ? (unsigned char *)pixels16 : pixels,
-	                          ibuf->x * ibuf->y * samplesperpixel * bitspersample / 8) == -1)
+	                          (size_t)ibuf->x * ibuf->y * samplesperpixel * bitspersample / 8) == -1)
 	{
 		fprintf(stderr,
 		        "imb_savetiff: Could not write encoded TIFF.\n");

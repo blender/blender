@@ -137,7 +137,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
 
 	snapGridIncrement(t, vec);
 
-	if (t->num.flag & T_NULL_ONE) {
+	if (t->flag & T_NULL_ONE) {
 		if (!(t->con.mode & CON_AXIS0))
 			vec[0] = 1.0f;
 
@@ -970,13 +970,13 @@ static void setNearestAxis3d(TransInfo *t)
 		sub_v2_v2v2(axis, axis_2d, t->center2d);
 		axis[2] = 0.0f;
 
-		if (normalize_v3(axis) != 0.0f) {
+		if (normalize_v3(axis) > 1e-3f) {
 			project_v3_v3v3(proj, mvec, axis);
 			sub_v3_v3v3(axis, mvec, proj);
 			len[i] = normalize_v3(axis);
 		}
 		else {
-			len[i] = 10000000000.0f;
+			len[i] = 1e10f;
 		}
 	}
 

@@ -61,6 +61,7 @@
 #include "BLI_math.h"
 
 #include "BKE_global.h"
+#include "BKE_scene.h"
 /* end of blender include block */
 
 
@@ -86,7 +87,7 @@ BlenderWorldInfo::BlenderWorldInfo(struct Scene *blenderscene, struct World *ble
 		copy_v3_v3(m_backgroundcolor, &blenderworld->horr);
 		copy_v3_v3(m_ambientcolor, &blenderworld->ambr);
 
-		if (blenderscene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if (BKE_scene_check_color_management_enabled(blenderscene)) {
 			linearrgb_to_srgb_v3_v3(m_mistcolor, m_mistcolor);
 			linearrgb_to_srgb_v3_v3(m_backgroundcolor, m_backgroundcolor);
 			linearrgb_to_srgb_v3_v3(m_ambientcolor, m_ambientcolor);

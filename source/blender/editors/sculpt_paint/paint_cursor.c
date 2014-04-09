@@ -45,6 +45,7 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_colortools.h"
 
@@ -59,6 +60,10 @@
 /* still needed for sculpt_stroke_get_location, should be
  * removed eventually (TODO) */
 #include "sculpt_intern.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /* TODOs:
  *
@@ -197,6 +202,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 		pool = BKE_image_pool_new();
 
+		if (mtex->tex && mtex->tex->nodetree)
+			ntreeTexBeginExecTree(mtex->tex->nodetree);  /* has internal flag to detect it only does it once */
+
 #pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {
 			int i;
@@ -241,7 +249,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 					if (col) {
 						float rgba[4];
 
-						paint_get_tex_pixel_col(mtex, x, y, rgba, pool);
+						paint_get_tex_pixel_col(mtex, x, y, rgba, pool, omp_get_thread_num());
 
 						buffer[index * 4]     = rgba[0] * 255;
 						buffer[index * 4 + 1] = rgba[1] * 255;
@@ -249,7 +257,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 						buffer[index * 4 + 3] = rgba[3] * 255;
 					}
 					else {
-						float avg = paint_get_tex_pixel(mtex, x, y, pool);
+						float avg = paint_get_tex_pixel(mtex, x, y, pool, omp_get_thread_num());
 
 						avg += br->texture_sample_bias;
 
@@ -271,6 +279,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 				}
 			}
 		}
+
+		if (mtex->tex && mtex->tex->nodetree)
+			ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
 
 		if (pool)
 			BKE_image_pool_free(pool);

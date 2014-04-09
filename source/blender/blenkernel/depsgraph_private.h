@@ -129,6 +129,7 @@ typedef struct DagForest {
 	int numNodes;
 	bool is_acyclic;
 	int time;  /* for flushing/tagging, compare with node->lasttime */
+	bool ugly_hack_sorry;  /* prevent type check */
 } DagForest;
 
 // queue operations

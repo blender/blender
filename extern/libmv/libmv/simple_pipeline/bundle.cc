@@ -416,7 +416,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   vector<Marker> markers = tracks.AllMarkers();
 
   // N-th element denotes whether track N is a constant zero-weigthed track.
-  vector<bool> zero_weight_tracks_flags(tracks.MaxTrack(), true);
+  vector<bool> zero_weight_tracks_flags(tracks.MaxTrack() + 1, true);
 
   // Residual blocks with 10 parameters are unwieldly with Ceres, so pack the
   // intrinsics into a single block and rely on local parameterizations to
