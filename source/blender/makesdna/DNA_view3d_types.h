@@ -247,6 +247,7 @@ typedef struct View3D {
 #define RV3D_CLIPPING				4
 #define RV3D_NAVIGATING				8
 #define RV3D_GPULIGHT_UPDATE		16
+#define RV3D_IS_GAME_ENGINE			32  /* runtime flag, used to check if LoD's should be used */
 
 /* RegionView3d->viewlock */
 #define RV3D_LOCKED			(1 << 0)

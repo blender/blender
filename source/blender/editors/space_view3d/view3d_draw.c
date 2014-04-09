@@ -1992,8 +1992,12 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		copy_m4_m4(savedobmat, dob->ob->obmat);
 		copy_m4_m4(dob->ob->obmat, dob->mat);
 		savedlod = dob->ob->currentlod;
-		BKE_object_lod_update(dob->ob, rv3d->viewinv[3]);
-		
+
+#ifdef WITH_GAMEENGINE
+		if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
+			BKE_object_lod_update(dob->ob, rv3d->viewinv[3]);
+		}
+#endif
 
 		/* extra service: draw the duplicator in drawtype of parent, minimum taken
 		 * to allow e.g. boundbox box objects in groups for LOD */
@@ -3208,6 +3212,8 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 	}
 }
 
+
+#ifdef WITH_GAMEENGINE
 static void update_lods(Scene *scene, float camera_pos[3])
 {
 	Scene *sce_iter;
@@ -3219,6 +3225,8 @@ static void update_lods(Scene *scene, float camera_pos[3])
 		BKE_object_lod_update(ob, camera_pos);
 	}
 }
+#endif
+
 
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit)
@@ -3242,8 +3250,15 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
 
-	/* Make sure LoDs are up to date */
-	update_lods(scene, rv3d->viewinv[3]);
+	rv3d->rflag &= ~RV3D_IS_GAME_ENGINE;
+#ifdef WITH_GAMEENGINE
+	if (STREQ(scene->r.engine, "BLENDER_GAME")) {
+		rv3d->rflag |= RV3D_IS_GAME_ENGINE;
+
+		/* Make sure LoDs are up to date */
+		update_lods(scene, rv3d->viewinv[3]);
+	}
+#endif
 
 	/* clear the background */
 	view3d_main_area_clear(scene, v3d, ar);

@@ -1482,7 +1482,12 @@ int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 static void rna_Object_lod_distance_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
+
+#ifdef WITH_GAMEENGINE
 	BKE_object_lod_sort(ob);
+#else
+	(void)ob;
+#endif
 }
 #else
 

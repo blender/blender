@@ -1403,8 +1403,12 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	const bool use_matcap = (v3d->flag2 & V3D_SHOW_SOLID_MATCAP) != 0;  /* assumes v3d->defmaterial->preview is set */
 
-	ob = BKE_object_lod_matob_get(ob, scene);
-	
+#ifdef WITH_GAMEENGINE
+	if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
+		ob = BKE_object_lod_matob_get(ob, scene);
+	}
+#endif
+
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));
 	GMS.lastmatnr = -1;

@@ -1049,6 +1049,9 @@ Object *BKE_object_add(Main *bmain, Scene *scene, int type)
 	return ob;
 }
 
+
+#ifdef WITH_GAMEENGINE
+
 void BKE_object_lod_add(Object *ob)
 {
 	LodLevel *lod = MEM_callocN(sizeof(LodLevel), "LoD Level");
@@ -1110,21 +1113,19 @@ bool BKE_object_lod_remove(Object *ob, int level)
 	return true;
 }
 
-static LodLevel *lod_level_select(Object *ob, const float cam_loc[3])
+static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
 {
 	LodLevel *current = ob->currentlod;
-	float ob_loc[3], delta[3];
-	float dist_sq;
+	float dist_sq, dist_sq_curr;
 
 	if (!current) return NULL;
 
-	copy_v3_v3(ob_loc, ob->obmat[3]);
-	sub_v3_v3v3(delta, ob_loc, cam_loc);
-	dist_sq = len_squared_v3(delta);
+	dist_sq = len_squared_v3v3(ob->obmat[3], camera_position);
+	dist_sq_curr = current->distance * current->distance;
 
-	if (dist_sq < current->distance * current->distance) {
+	if (dist_sq < dist_sq_curr) {
 		/* check for higher LoD */
-		while (current->prev && dist_sq < (current->distance * current->distance)) {
+		while (current->prev && dist_sq < dist_sq_curr) {
 			current = current->prev;
 		}
 	}
@@ -1144,17 +1145,14 @@ bool BKE_object_lod_is_usable(Object *ob, Scene *scene)
 	return (ob->mode == OB_MODE_OBJECT || !active);
 }
 
-bool BKE_object_lod_update(Object *ob, float camera_position[3])
+void BKE_object_lod_update(Object *ob, const float camera_position[3])
 {
 	LodLevel *cur_level = ob->currentlod;
 	LodLevel *new_level = lod_level_select(ob, camera_position);
 
 	if (new_level != cur_level) {
 		ob->currentlod = new_level;
-		return true;
 	}
-
-	return false;
 }
 
 static Object *lod_ob_get(Object *ob, Scene *scene, int flag)
@@ -1180,6 +1178,9 @@ struct Object *BKE_object_lod_matob_get(Object *ob, Scene *scene)
 {
 	return lod_ob_get(ob, scene, OB_LOD_USE_MAT);
 }
+
+#endif  /* WITH_GAMEENGINE */
+
 
 SoftBody *copy_softbody(SoftBody *sb, bool copy_caches)
 {
