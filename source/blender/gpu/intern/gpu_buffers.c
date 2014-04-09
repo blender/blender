@@ -377,14 +377,22 @@ void GPU_buffer_free(GPUBuffer *buffer)
 	BLI_mutex_unlock(&buffer_mutex);
 }
 
+/* currently unused */
+// #define USE_GPU_POINT_LINK
+
 typedef struct GPUVertPointLink {
+#ifdef USE_GPU_POINT_LINK
 	struct GPUVertPointLink *next;
+#endif
 	/* -1 means uninitialized */
 	int point_index;
 } GPUVertPointLink;
 
+
 /* add a new point to the list of points related to a particular
  * vertex */
+#ifdef USE_GPU_POINT_LINK
+
 static void gpu_drawobject_add_vert_point(GPUDrawObject *gdo, int vert_index, int point_index)
 {
 	GPUVertPointLink *lnk;
@@ -403,6 +411,19 @@ static void gpu_drawobject_add_vert_point(GPUDrawObject *gdo, int vert_index, in
 
 	lnk->point_index = point_index;
 }
+
+#else
+
+static void gpu_drawobject_add_vert_point(GPUDrawObject *gdo, int vert_index, int point_index)
+{
+	GPUVertPointLink *lnk;
+	lnk = &gdo->vert_points[vert_index];
+	if (lnk->point_index == -1) {
+		lnk->point_index = point_index;
+	}
+}
+
+#endif  /* USE_GPU_POINT_LINK */
 
 /* update the vert_points and triangle_to_mface fields with a new
  * triangle */
@@ -427,11 +448,13 @@ static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int to
 	mat_orig_to_new = MEM_callocN(sizeof(*mat_orig_to_new) * totmat,
 	                                             "GPUDrawObject.mat_orig_to_new");
 	/* allocate the array and space for links */
-	gdo->vert_points = MEM_callocN(sizeof(GPUVertPointLink) * gdo->totvert,
+	gdo->vert_points = MEM_mallocN(sizeof(GPUVertPointLink) * gdo->totvert,
 	                               "GPUDrawObject.vert_points");
+#ifdef USE_GPU_POINT_LINK
 	gdo->vert_points_mem = MEM_callocN(sizeof(GPUVertPointLink) * gdo->tot_triangle_point,
 	                                   "GPUDrawObject.vert_points_mem");
 	gdo->vert_points_usage = 0;
+#endif
 
 	/* build a map from the original material indices to the new
 	 * GPUBufferMaterial indices */
@@ -439,8 +462,12 @@ static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int to
 		mat_orig_to_new[gdo->materials[i].mat_nr] = i;
 
 	/* -1 indicates the link is not yet used */
-	for (i = 0; i < gdo->totvert; i++)
+	for (i = 0; i < gdo->totvert; i++) {
+#ifdef USE_GPU_POINT_LINK
+		gdo->vert_points[i].link = NULL;
+#endif
 		gdo->vert_points[i].point_index = -1;
+	}
 
 	for (i = 0; i < totface; i++, f++) {
 		mat = &gdo->materials[mat_orig_to_new[f->mat_nr]];
@@ -540,7 +567,9 @@ void GPU_drawobject_free(DerivedMesh *dm)
 	MEM_freeN(gdo->materials);
 	MEM_freeN(gdo->triangle_to_mface);
 	MEM_freeN(gdo->vert_points);
+#ifdef USE_GPU_POINT_LINK
 	MEM_freeN(gdo->vert_points_mem);
+#endif
 	GPU_buffer_free(gdo->points);
 	GPU_buffer_free(gdo->normals);
 	GPU_buffer_free(gdo->uv);

@@ -94,9 +94,13 @@ typedef struct GPUDrawObject {
 
 	/* for each original vertex, the list of related points */
 	struct GPUVertPointLink *vert_points;
+
+	/* see: USE_GPU_POINT_LINK define */
+#if 0
 	/* storage for the vert_points lists */
 	struct GPUVertPointLink *vert_points_mem;
 	int vert_points_usage;
+#endif
 	
 	int colType;
 
