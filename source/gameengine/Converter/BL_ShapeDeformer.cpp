@@ -122,6 +122,12 @@ void BL_ShapeDeformer::ProcessReplica()
 
 bool BL_ShapeDeformer::LoadShapeDrivers(KX_GameObject* parent)
 {
+	// Only load shape drivers if we have a key
+	if (GetKey() == NULL) {
+		m_useShapeDrivers = false;
+		return false;
+	}
+
 	// Fix drivers since BL_ArmatureObject makes copies
 	if (parent->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE) {
 		BL_ArmatureObject *arma = (BL_ArmatureObject*)parent;

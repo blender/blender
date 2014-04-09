@@ -1601,6 +1601,7 @@ void KX_Scene::AddAnimatedObject(CValue* gameobj)
 static void update_anim_thread_func(TaskPool *pool, void *taskdata, int UNUSED(threadid))
 {
 	KX_GameObject *gameobj, *child;
+	RAS_Deformer *deformer;
 	CListValue *children;
 	bool needs_update;
 	double curtime = *(double*)BLI_task_pool_userdata(pool);
@@ -1648,8 +1649,14 @@ static void update_anim_thread_func(TaskPool *pool, void *taskdata, int UNUSED(t
 		for (int j=0; j<children->GetCount(); ++j) {
 			child = (KX_GameObject*)children->GetValue(j);
 
-			if (child->GetDeformer())
+			deformer = child->GetDeformer();
+
+			// This check is ugly, but the modifier deformer currently doesn't
+			// work if called from here. This is a quick work-around to prevent
+			// crashing, but it really should be fixed.
+			if (deformer && !dynamic_cast<BL_ModifierDeformer*>(deformer)) {
 				child->GetDeformer()->Update();
+			}
 		}
 
 		children->Release();
