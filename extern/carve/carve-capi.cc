@@ -38,7 +38,7 @@ typedef std::pair<int, int> OrigIndex;
 typedef std::pair<MeshSet<3>::vertex_t *, MeshSet<3>::vertex_t *> VertexPair;
 typedef carve::interpolate::VertexAttr<OrigIndex> OrigVertMapping;
 typedef carve::interpolate::FaceAttr<OrigIndex> OrigFaceMapping;
-typedef carve::interpolate::FaceEdgeAttr<OrigIndex> OrigFaceEdgeMapping;
+typedef carve::interpolate::SwapableFaceEdgeAttr<OrigIndex> OrigFaceEdgeMapping;
 typedef carve::interpolate::SimpleFaceEdgeAttr<bool> FaceEdgeTriangulatedFlag;
 
 typedef struct CarveMeshDescr {
@@ -522,6 +522,39 @@ public:
 	}
 };
 
+template <typename Interpolator>
+void copyFaceEdgeAttrs(const MeshSet<3> *poly,
+                       Interpolator *old_interpolator,
+                       Interpolator *new_interpolator)
+{
+	for (MeshSet<3>::const_face_iter face_iter = poly->faceBegin();
+	     face_iter != poly->faceEnd();
+	     ++face_iter)
+	{
+		const MeshSet<3>::face_t *face = *face_iter;
+
+		for (int edge_index = 0;
+		     edge_index < face->nEdges();
+		     ++edge_index)
+		{
+			new_interpolator->copyAttribute(face,
+			                                edge_index,
+			                                old_interpolator);
+		}
+	}
+}
+
+template <typename Interpolator>
+void cleanupFaceEdgeAttrs(const MeshSet<3> *left,
+                          const MeshSet<3> *right,
+                          Interpolator *interpolator)
+{
+	Interpolator new_interpolator;
+	copyFaceEdgeAttrs(left, interpolator, &new_interpolator);
+	copyFaceEdgeAttrs(right, interpolator, &new_interpolator);
+	interpolator->swapAttributes(&new_interpolator);
+}
+
 }  // namespace
 
 CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
@@ -698,7 +731,15 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 		// intersecting that meshes tessellation of operation result can't be
 		// done properly. The only way to make such situations working is to
 		// union intersecting meshes of the same operand.
-		carve_unionIntersections(&csg, &left, &right);
+		if (carve_unionIntersections(&csg, &left, &right)) {
+			cleanupFaceEdgeAttrs(left,
+			                     right,
+			                     &output_descr->face_edge_triangulated_flag);
+			cleanupFaceEdgeAttrs(left,
+			                     right,
+			                     &output_descr->orig_face_edge_mapping);
+		}
+
 		left_mesh->poly = left;
 		right_mesh->poly = right;
 

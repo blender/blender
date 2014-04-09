@@ -70,7 +70,7 @@ void carve_getRescaleMinMax(const carve::mesh::MeshSet<3> *left,
                             carve::geom3d::Vector *min,
                             carve::geom3d::Vector *max);
 
-void carve_unionIntersections(carve::csg::CSG *csg,
+bool carve_unionIntersections(carve::csg::CSG *csg,
                               carve::mesh::MeshSet<3> **left_r,
                               carve::mesh::MeshSet<3> **right_r);
 
@@ -115,8 +115,8 @@ namespace carve {
 						attrs.find(new_edge_iter->vert);
 					if (found == attrs.end()) {
 						for (const_edge_iter_t orig_edge_iter = orig_face->begin();
-							 orig_edge_iter != orig_face->end();
-							 ++orig_edge_iter)
+						     orig_edge_iter != orig_face->end();
+						     ++orig_edge_iter)
 						{
 							if ((orig_edge_iter->vert->v - new_edge_iter->vert->v).length2() < 1e-5) {
 								attrs[new_edge_iter->vert] = attrs[orig_edge_iter->vert];
@@ -236,6 +236,20 @@ namespace carve {
 				attrs[std::make_pair(f, e)] = attr;
 			}
 
+			void copyAttribute(const meshset_t::face_t *face,
+			                   unsigned edge,
+			                   SimpleFaceEdgeAttr<attr_t> *interpolator) {
+				key_t key(face, edge);
+				typename attrmap_t::const_iterator fv = interpolator->attrs.find(key);
+				if (fv != interpolator->attrs.end()) {
+					attrs[key] = (*fv).second;
+				}
+			}
+
+			void swapAttributes(SimpleFaceEdgeAttr<attr_t> *interpolator) {
+				attrs.swap(interpolator->attrs);
+			}
+
 			SimpleFaceEdgeAttr() : Interpolator() {
 			}
 
@@ -243,6 +257,25 @@ namespace carve {
 			}
 		};
 
+		template<typename attr_t>
+		class SwapableFaceEdgeAttr : public FaceEdgeAttr<attr_t> {
+		public:
+			typedef carve::mesh::MeshSet<3> meshset_t;
+
+			void copyAttribute(const meshset_t::face_t *face,
+			                   unsigned edge,
+			                   SwapableFaceEdgeAttr<attr_t> *interpolator) {
+				typename FaceEdgeAttr<attr_t>::key_t key(face, edge);
+				typename FaceEdgeAttr<attr_t>::attrmap_t::const_iterator fv = interpolator->attrs.find(key);
+				if (fv != interpolator->attrs.end()) {
+					this->attrs[key] = (*fv).second;
+				}
+			}
+
+			void swapAttributes(SwapableFaceEdgeAttr<attr_t> *interpolator) {
+				this->attrs.swap(interpolator->attrs);
+			}
+		};
 	}  // namespace interpolate
 }  // namespace carve
 

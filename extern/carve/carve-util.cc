@@ -486,14 +486,15 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 
 // TODO(sergey): This function is to be totally re-implemented to make it
 // more clear what's going on and hopefully optimize it as well.
-void carve_unionIntersections(carve::csg::CSG *csg,
+bool carve_unionIntersections(carve::csg::CSG *csg,
                               MeshSet<3> **left_r,
                               MeshSet<3> **right_r)
 {
 	MeshSet<3> *left = *left_r, *right = *right_r;
+	bool changed = false;
 
 	if (left->meshes.size() == 1 && right->meshes.size() == 0) {
-		return;
+		return false;
 	}
 
 	MeshSet<3>::aabb_t leftAABB = left->getAABB();
@@ -503,14 +504,19 @@ void carve_unionIntersections(carve::csg::CSG *csg,
 	right = unionIntersectingMeshes(csg, right, leftAABB);
 
 	if (left != *left_r) {
+		changed = true;
 		delete *left_r;
 	}
 
-	if (right != *right_r)
+	if (right != *right_r) {
+		changed = true;
 		delete *right_r;
+	}
 
 	*left_r = left;
 	*right_r = right;
+
+	return changed;
 }
 
 static inline void add_newell_cross_v3_v3v3(const Vector &v_prev,
