@@ -68,7 +68,7 @@ static char SmoothingShader___doc__[] =
 "   Smoothes the stroke by moving the vertices to make the stroke\n"
 "   smoother.  Uses curvature flow to converge towards a curve of\n"
 "   constant curvature.  The diffusion method we use is anisotropic to\n"
-"   prevent the diffusion accross corners.\n"
+"   prevent the diffusion across corners.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
