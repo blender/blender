@@ -71,9 +71,6 @@ typedef enum {
 
 #define MAX_GPU_ATTRIB_DATA 32
 
-/* material number is an 16-bit signed short and the range (assume material number is non-negative) */
-#define MAX_MATERIALS MAXMAT
-
 /* -1 - undefined, 0 - vertex arrays, 1 - VBOs */
 static int useVBOs = -1;
 static GPUBufferState GLStates = 0;
@@ -565,7 +562,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	GPUBufferPool *pool;
 	GPUBuffer *buffer;
 	float *varray;
-	int mat_orig_to_new[MAX_MATERIALS];
+	int *mat_orig_to_new;
 	int *cur_index_per_mat;
 	int i;
 	int success;
@@ -585,6 +582,8 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 		return NULL;
 	}
 
+	mat_orig_to_new = MEM_mallocN(sizeof(*mat_orig_to_new) * dm->totmat,
+                                  "GPU_buffer_setup.mat_orig_to_new");
 	cur_index_per_mat = MEM_mallocN(sizeof(int) * object->totmaterial,
 	                                "GPU_buffer_setup.cur_index_per_mat");
 	for (i = 0; i < object->totmaterial; i++) {
@@ -657,6 +656,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	}
 
 	MEM_freeN(cur_index_per_mat);
+	MEM_freeN(mat_orig_to_new);
 
 	BLI_mutex_unlock(&buffer_mutex);
 
