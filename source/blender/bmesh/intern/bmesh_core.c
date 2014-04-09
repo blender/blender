@@ -1260,7 +1260,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
 	f->totbounds = 1;
 #endif
 
-	BM_elem_attrs_copy(bm, bm, f, f_example);
+	BM_elem_attrs_copy(bm, bm, f_example, f);
 
 	return f;
 }
