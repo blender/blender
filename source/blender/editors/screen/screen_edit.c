@@ -1840,7 +1840,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 			return NULL;
 		}
 
-		area_copy_data(old, sa, 1); /*  1 = swap spacelist */
+		area_copy_data(old, sa, 1);
 		if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
 		old->full = NULL;
 
@@ -1887,7 +1887,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 
 		/* copy area */
 		newa = newa->prev;
-		area_copy_data(newa, sa, 1);  /* 1 = swap spacelist */
+		area_copy_data(newa, sa, 1);
 		sa->flag |= AREA_TEMP_INFO;
 
 		sa->full = oldscreen;

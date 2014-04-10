@@ -38,7 +38,7 @@ struct Scene;
 #define AZONESPOT       (0.6f * U.widget_unit)
 
 /* area.c */
-void        area_copy_data(ScrArea *sa1, ScrArea *sa2, const bool swap_space);
+void        area_copy_data(ScrArea *sa1, ScrArea *sa2, const char swap_space);
 void		region_toggle_hidden(bContext *C, ARegion *ar, const bool do_fade);
 
 /* screen_edit.c */

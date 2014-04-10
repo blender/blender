@@ -1374,9 +1374,16 @@ void ED_region_toggle_hidden(bContext *C, ARegion *ar)
 	region_toggle_hidden(C, ar, 1);
 }
 
-/* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
-/* area vertices were set */
-void area_copy_data(ScrArea *sa1, ScrArea *sa2, const bool swap_space)
+/**
+ * sa2 to sa1,
+ * we swap spaces for fullscreen to keep all allocated data area vertices were set
+ *
+ * \param swap_space
+ * - 0: overwrite \a sa1 (freeing its data).
+ * - 1: simply swap.
+ * - 2: overwrite \a sa1 (when sa1 is calloc'd memory).
+ */
+void area_copy_data(ScrArea *sa1, ScrArea *sa2, const char swap_space)
 {
 	SpaceType *st;
 	ARegion *ar;
@@ -1387,34 +1394,31 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, const bool swap_space)
 	sa1->type = sa2->type;
 	sa1->butspacetype = sa2->butspacetype;
 	
-	if (swap_space == 1) {
-		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
-		/* exception: ensure preview is reset */
-//		if (sa1->spacetype == SPACE_VIEW3D)
-// XXX			BIF_view3d_previewrender_free(sa1->spacedata.first);
-	}
-	else if (swap_space == 2) {
+	if (swap_space == 0) {
+		BKE_spacedata_freelist(&sa1->spacedata);
 		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
 	}
-	else {
-		BKE_spacedata_freelist(&sa1->spacedata);
+	else if (swap_space == 1) {
+		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
+	}
+	else if (swap_space == 2) {
 		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
 	}
 	
 	/* Note; SPACE_EMPTY is possible on new screens */
 	
 	/* regions */
-	if (swap_space == 1) {
+	if (swap_space == 0) {
+		st = BKE_spacetype_from_id(spacetype);
+		for (ar = sa1->regionbase.first; ar; ar = ar->next)
+			BKE_area_region_free(st, ar);
+		BLI_freelistN(&sa1->regionbase);
+	}
+	else if (swap_space == 1) {
 		SWAP(ListBase, sa1->regionbase, sa2->regionbase);
 	}
-	else {
-		if (swap_space < 2) {
-			st = BKE_spacetype_from_id(spacetype);
-			for (ar = sa1->regionbase.first; ar; ar = ar->next)
-				BKE_area_region_free(st, ar);
-			BLI_freelistN(&sa1->regionbase);
-		}
-		
+
+	if (swap_space != 1) {
 		st = BKE_spacetype_from_id(sa2->spacetype);
 		for (ar = sa2->regionbase.first; ar; ar = ar->next) {
 			ARegion *newar = BKE_area_region_copy(st, ar);
