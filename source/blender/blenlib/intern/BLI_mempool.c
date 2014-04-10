@@ -186,9 +186,12 @@ static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
  *
  * \param pool  The pool to add the chunk into.
  * \param mpchunk  The new uninitialized chunk (can be malloc'd)
+ * \param lasttail  The last element of the previous chunk
  * (used when building free chunks initially)
+ * \return The last chunk,
  */
-static void mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpchunk)
+static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpchunk,
+                                       BLI_freenode *lasttail)
 {
 	const unsigned int esize = pool->esize;
 	BLI_freenode *curnode = CHUNK_DATA(mpchunk);
@@ -206,6 +209,10 @@ static void mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpchunk)
 	mpchunk->next = NULL;
 	pool->chunk_tail = mpchunk;
 
+	if (UNLIKELY(pool->free == NULL)) {
+		pool->free = curnode;
+	}
+
 	/* loop through the allocated data, building the pointer structures */
 	j = pool->pchunk;
 	if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
@@ -222,15 +229,21 @@ static void mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpchunk)
 		}
 	}
 
-	/* terminate the list (rewind one) */
+	/* terminate the list (rewind one)
+	 * will be overwritten if 'curnode' gets passed in again as 'lasttail' */
 	curnode = NODE_STEP_PREV(curnode);
-	/* 'pool->free' may be NULL, in this case its terminating the list */
-	curnode->next = pool->free;
-	pool->free = CHUNK_DATA(mpchunk);
+	curnode->next = NULL;
 
 #ifdef USE_TOTALLOC
 	pool->totalloc += pool->pchunk;
 #endif
+
+	/* final pointer in the previously allocated chunk is wrong */
+	if (lasttail) {
+		lasttail->next = CHUNK_DATA(mpchunk);
+	}
+
+	return curnode;
 }
 
 static void mempool_chunk_free(BLI_mempool_chunk *mpchunk)
@@ -256,6 +269,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
                                 unsigned int pchunk, unsigned int flag)
 {
 	BLI_mempool *pool;
+	BLI_freenode *lasttail = NULL;
 	unsigned int i, maxchunks;
 
 	/* allocate the pool structure */
@@ -301,7 +315,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 		/* allocate the actual chunks */
 		for (i = 0; i < maxchunks; i++) {
 			BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
-			mempool_chunk_add(pool, mpchunk);
+			lasttail = mempool_chunk_add(pool, mpchunk, lasttail);
 		}
 	}
 
@@ -319,7 +333,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 	if (UNLIKELY(pool->free == NULL)) {
 		/* need to allocate a new chunk */
 		BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
-		mempool_chunk_add(pool, mpchunk);
+		mempool_chunk_add(pool, mpchunk, NULL);
 	}
 
 	free_pop = pool->free;
@@ -599,6 +613,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 	unsigned int maxchunks;
 
 	BLI_mempool_chunk *chunks_temp;
+	BLI_freenode *lasttail = NULL;
 
 #ifdef WITH_MEM_VALGRIND
 	VALGRIND_DESTROY_MEMPOOL(pool);
@@ -639,7 +654,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 
 	while ((mpchunk = chunks_temp)) {
 		chunks_temp = mpchunk->next;
-		mempool_chunk_add(pool, mpchunk);
+		lasttail = mempool_chunk_add(pool, mpchunk, lasttail);
 	}
 }
 
