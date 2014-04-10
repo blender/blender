@@ -79,7 +79,7 @@ void libmv_samplePlanarPatch(const float * /*image*/,
 	/* TODO(sergey): implement */
 }
 
-void libmv_samplePlanarPatch(const unsigned char * /*image*/,
+void libmv_samplePlanarPatchByte(const unsigned char * /*image*/,
                              int /*width*/, int /*height*/, int /*channels*/,
                              const double * /*xs*/, const double * /*ys*/,
                              int /*num_samples_x*/, int /*num_samples_y*/,
