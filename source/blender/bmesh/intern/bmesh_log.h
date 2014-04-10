@@ -66,6 +66,9 @@ void BM_log_vert_before_modified(BMLog *log, struct BMVert *v, const int cd_vert
 /* Log a new vertex as added to the BMesh */
 void BM_log_vert_added(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
 
+/* Log a face before it is modified */
+void BM_log_face_modified(BMLog *log, struct BMFace *f);
+
 /* Log a new face as added to the BMesh */
 void BM_log_face_added(BMLog *log, struct BMFace *f);
 

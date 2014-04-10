@@ -280,7 +280,7 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 		unode->applied = true;
 	}
 
-	if (unode->type == SCULPT_UNDO_MASK) {
+	if (ELEM(unode->type, SCULPT_UNDO_MASK, SCULPT_UNDO_MASK)) {
 		int i, totnode;
 		PBVHNode **nodes;
 
@@ -756,7 +756,6 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
 	if (node) {
 		switch (type) {
 			case SCULPT_UNDO_COORDS:
-			case SCULPT_UNDO_HIDDEN:
 			case SCULPT_UNDO_MASK:
 				/* Before any vertex values get modified, ensure their
 				 * original positions are logged */
@@ -765,6 +764,22 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
 				}
 				BKE_pbvh_vertex_iter_end;
 				break;
+
+			case SCULPT_UNDO_HIDDEN:
+			{
+				GSetIterator gs_iter;
+				GSet *faces = BKE_pbvh_bmesh_node_faces(node);
+				BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL) {
+					BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
+				}
+				BKE_pbvh_vertex_iter_end;
+
+				GSET_ITER (gs_iter, faces) {
+					BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
+					BM_log_face_modified(ss->bm_log, f);
+				}
+				break;
+			}
 
 			case SCULPT_UNDO_DYNTOPO_BEGIN:
 			case SCULPT_UNDO_DYNTOPO_END:

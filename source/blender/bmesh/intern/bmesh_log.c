@@ -67,6 +67,7 @@ struct BMLogEntry {
 
 	/* Vertices whose coordinates, mask value, or hflag have changed */
 	GHash *modified_verts;
+	GHash *modified_faces;
 
 	BLI_mempool *pool_verts;
 	BLI_mempool *pool_faces;
@@ -120,6 +121,7 @@ typedef struct {
 
 typedef struct {
 	unsigned int v_ids[3];
+	char hflag;
 } BMLogFace;
 
 /************************* Get/set element IDs ************************/
@@ -234,6 +236,7 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 	lf->v_ids[1] = bm_log_vert_id_get(log, v[1]);
 	lf->v_ids[2] = bm_log_vert_id_get(log, v[2]);
 
+	lf->hflag = f->head.hflag;
 	return lf;
 }
 
@@ -341,6 +344,19 @@ static void bm_log_vert_values_swap(BMesh *bm, BMLog *log, GHash *verts)
 	}
 }
 
+static void bm_log_face_values_swap(BMLog *log, GHash *faces)
+{
+	GHashIterator gh_iter;
+	GHASH_ITER (gh_iter, faces) {
+		void *key = BLI_ghashIterator_getKey(&gh_iter);
+		BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
+		unsigned int id = GET_UINT_FROM_POINTER(key);
+		BMFace *f = bm_log_face_from_id(log, id);
+
+		SWAP(char, f->head.hflag, lf->hflag);
+	}
+}
+
 
 /**********************************************************************/
 
@@ -374,6 +390,7 @@ static BMLogEntry *bm_log_entry_create(void)
 	entry->added_verts = BLI_ghash_ptr_new(__func__);
 	entry->added_faces = BLI_ghash_ptr_new(__func__);
 	entry->modified_verts = BLI_ghash_ptr_new(__func__);
+	entry->modified_faces = BLI_ghash_ptr_new(__func__);
 
 	entry->pool_verts = BLI_mempool_create(sizeof(BMLogVert), 0, 64, BLI_MEMPOOL_NOP);
 	entry->pool_faces = BLI_mempool_create(sizeof(BMLogFace), 0, 64, BLI_MEMPOOL_NOP);
@@ -391,6 +408,7 @@ static void bm_log_entry_free(BMLogEntry *entry)
 	BLI_ghash_free(entry->added_verts, NULL, NULL);
 	BLI_ghash_free(entry->added_faces, NULL, NULL);
 	BLI_ghash_free(entry->modified_verts, NULL, NULL);
+	BLI_ghash_free(entry->modified_faces, NULL, NULL);
 
 	BLI_mempool_destroy(entry->pool_verts);
 	BLI_mempool_destroy(entry->pool_faces);
@@ -706,6 +724,7 @@ void BM_log_undo(BMesh *bm, BMLog *log)
 
 		/* Restore vertex coordinates, mask, and hflag */
 		bm_log_vert_values_swap(bm, log, entry->modified_verts);
+		bm_log_face_values_swap(log, entry->modified_faces);
 	}
 }
 
@@ -742,6 +761,7 @@ void BM_log_redo(BMesh *bm, BMLog *log)
 
 		/* Restore vertex coordinates, mask, and hflag */
 		bm_log_vert_values_swap(bm, log, entry->modified_verts);
+		bm_log_face_values_swap(log, entry->modified_faces);
 	}
 }
 
@@ -785,6 +805,7 @@ void BM_log_vert_before_modified(BMLog *log, BMVert *v, const int cd_vert_mask_o
 	}
 }
 
+
 /* Log a new vertex as added to the BMesh
  *
  * The new vertex gets a unique ID assigned. It is then added to a map
@@ -800,6 +821,22 @@ void BM_log_vert_added(BMLog *log, BMVert *v, const int cd_vert_mask_offset)
 	bm_log_vert_id_set(log, v, v_id);
 	lv = bm_log_vert_alloc(log, v, cd_vert_mask_offset);
 	BLI_ghash_insert(log->current_entry->added_verts, key, lv);
+}
+
+
+/* Log a face before it is modified
+ *
+ * This is intended to handle only header flags and we always
+ * assume face has been added before
+ */
+void BM_log_face_modified(BMLog *log, BMFace *f)
+{
+	BMLogFace *lf;
+	unsigned int f_id = bm_log_face_id_get(log, f);
+	void *key = SET_UINT_IN_POINTER(f_id);
+
+	lf = bm_log_face_alloc(log, f);
+	BLI_ghash_insert(log->current_entry->modified_faces, key, lf);
 }
 
 /* Log a new face as added to the BMesh
