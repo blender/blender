@@ -104,8 +104,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 	totedge = dm->getNumEdges(dm);
 	/* totface = dm->getNumPolys(dm); */ /* UNUSED */
 
-	vtable = MEM_callocN(sizeof(void **) * totvert, __func__);
-	etable = MEM_callocN(sizeof(void **) * totedge, __func__);
+	vtable = MEM_mallocN(sizeof(*vtable) * totvert, __func__);
+	etable = MEM_mallocN(sizeof(*etable) * totedge, __func__);
 
 	/*do verts*/
 	mv = mvert = is_cddm ? dm->getVertArray(dm) : dm->dupVertArray(dm);
