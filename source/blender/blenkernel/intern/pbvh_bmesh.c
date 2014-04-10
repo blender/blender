@@ -1338,6 +1338,11 @@ GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node)
 	return node->bm_other_verts;
 }
 
+struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node)
+{
+	return node->bm_faces;
+}
+
 /****************************** Debugging *****************************/
 
 #if 0

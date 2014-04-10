@@ -2056,7 +2056,7 @@ static int gpu_bmesh_face_visible_count(GSet *bm_faces)
 	GSET_ITER (gh_iter, bm_faces) {
 		BMFace *f = BLI_gsetIterator_getKey(&gh_iter);
 
-		if (!paint_is_bmesh_face_hidden(f))
+		if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			totface++;
 	}
 
