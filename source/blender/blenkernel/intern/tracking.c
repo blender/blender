@@ -1981,11 +1981,9 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	if (num_samples_x <= 0 || num_samples_y <= 0)
 		return NULL;
 
-	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y, 32, IB_rectfloat);
-
-	if (!search_ibuf->rect_float) {
-		IMB_float_from_rect(search_ibuf);
-	}
+	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y,
+	                              32,
+	                              search_ibuf->rect_float ? IB_rectfloat : IB_rect);
 
 	tracking_get_marker_coords_for_tracking(frame_width, frame_height, marker, src_pixel_x, src_pixel_y);
 
@@ -2015,10 +2013,26 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 		mask = BKE_tracking_track_get_mask(frame_width, frame_height, track, marker);
 	}
 
-	libmv_samplePlanarPatch(search_ibuf->rect_float, search_ibuf->x, search_ibuf->y, 4,
-	                        src_pixel_x, src_pixel_y, num_samples_x,
-	                        num_samples_y, mask, pattern_ibuf->rect_float,
-	                        &warped_position_x, &warped_position_y);
+	if (search_ibuf->rect_float) {
+		libmv_samplePlanarPatch(search_ibuf->rect_float,
+		                        search_ibuf->x, search_ibuf->y, 4,
+		                        src_pixel_x, src_pixel_y,
+		                        num_samples_x, num_samples_y,
+		                        mask,
+		                        pattern_ibuf->rect_float,
+		                        &warped_position_x,
+		                        &warped_position_y);
+	}
+	else {
+		libmv_samplePlanarPatchByte((unsigned char *) search_ibuf->rect,
+		                            search_ibuf->x, search_ibuf->y, 4,
+		                            src_pixel_x, src_pixel_y,
+		                            num_samples_x, num_samples_y,
+		                            mask,
+		                            (unsigned char *) pattern_ibuf->rect,
+		                            &warped_position_x,
+		                            &warped_position_y);
+	}
 
 	if (pos) {
 		pos[0] = warped_position_x;

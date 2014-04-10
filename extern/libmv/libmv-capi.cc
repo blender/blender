@@ -158,6 +158,19 @@ static void imageToFloatBuf(const libmv::FloatImage *image, int channels, float 
 	}
 }
 
+static void imageToByteBuf(const libmv::FloatImage *image, int channels, unsigned char *buf)
+{
+	int x, y, k, a = 0;
+
+	for (y = 0; y < image->Height(); y++) {
+		for (x = 0; x < image->Width(); x++) {
+			for (k = 0; k < channels; k++) {
+				buf[a++] = (*image)(y, x, k) * 255.0f;
+			}
+		}
+	}
+}
+
 #if defined(DUMP_FAILURE) || defined (DUMP_ALWAYS)
 static void savePNGImage(png_bytep *row_pointers, int width, int height, int depth, int color_type,
                          const char *file_name)
@@ -385,10 +398,12 @@ int libmv_trackRegion(const libmv_TrackRegionOptions *options,
 	return tracking_result;
 }
 
-void libmv_samplePlanarPatch(const float *image, int width, int height,
-                             int channels, const double *xs, const double *ys,
+void libmv_samplePlanarPatch(const float *image,
+                             int width, int height, int channels,
+                             const double *xs, const double *ys,
                              int num_samples_x, int num_samples_y,
-                             const float *mask, float *patch,
+                             const float *mask,
+                             float *patch,
                              double *warped_position_x, double *warped_position_y)
 {
 	libmv::FloatImage libmv_image, libmv_patch, libmv_mask;
@@ -402,11 +417,43 @@ void libmv_samplePlanarPatch(const float *image, int width, int height,
 		libmv_mask_for_sample = &libmv_mask;
 	}
 
-	libmv::SamplePlanarPatch(libmv_image, xs, ys, num_samples_x, num_samples_y,
-	                         libmv_mask_for_sample, &libmv_patch,
-	                         warped_position_x, warped_position_y);
+	libmv::SamplePlanarPatch(libmv_image, xs, ys,
+	                         num_samples_x, num_samples_y,
+	                         libmv_mask_for_sample,
+	                         &libmv_patch,
+	                         warped_position_x,
+	                         warped_position_y);
 
 	imageToFloatBuf(&libmv_patch, channels, patch);
+}
+
+ void libmv_samplePlanarPatchByte(const unsigned char *image,
+                                  int width, int height, int channels,
+                                  const double *xs, const double *ys,
+                                  int num_samples_x, int num_samples_y,
+                                  const float *mask,
+                                  unsigned char *patch,
+                                  double *warped_position_x, double *warped_position_y)
+{
+	libmv::FloatImage libmv_image, libmv_patch, libmv_mask;
+	libmv::FloatImage *libmv_mask_for_sample = NULL;
+
+	byteBufToImage(image, width, height, channels, &libmv_image);
+
+	if (mask) {
+		floatBufToImage(mask, width, height, 1, &libmv_mask);
+
+		libmv_mask_for_sample = &libmv_mask;
+	}
+
+	libmv::SamplePlanarPatch(libmv_image, xs, ys,
+	                         num_samples_x, num_samples_y,
+	                         libmv_mask_for_sample,
+	                         &libmv_patch,
+	                         warped_position_x,
+	                         warped_position_y);
+
+	imageToByteBuf(&libmv_patch, channels, patch);
 }
 
 /* ************ Tracks ************ */

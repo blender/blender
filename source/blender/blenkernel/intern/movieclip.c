@@ -1243,7 +1243,6 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				scopes->track_disabled = false;
 
 				if (ibuf && (ibuf->rect || ibuf->rect_float)) {
-					ImBuf *search_ibuf;
 					MovieTrackingMarker undist_marker = *marker;
 
 					if (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
@@ -1261,16 +1260,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						undist_marker.pos[1] /= height * aspy;
 					}
 
-					search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, &undist_marker, true, true);
-
-					if (search_ibuf) {
-						if (!search_ibuf->rect_float) {
-							/* sampling happens in float buffer */
-							IMB_float_from_rect(search_ibuf);
-						}
-
-						scopes->track_search = search_ibuf;
-					}
+					scopes->track_search = BKE_tracking_get_search_imbuf(ibuf, track, &undist_marker, true, true);
 
 					scopes->undist_marker = undist_marker;
 

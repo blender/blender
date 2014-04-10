@@ -1522,9 +1522,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			IMB_freeImBuf(scopes->track_preview);
 
 		tmpibuf = BKE_tracking_sample_pattern(scopes->frame_width, scopes->frame_height,
-		                                            scopes->track_search, scopes->track,
-		                                            &scopes->undist_marker, true, scopes->use_track_mask,
-		                                            width, height, scopes->track_pos);
+		                                      scopes->track_search, scopes->track,
+		                                      &scopes->undist_marker, true, scopes->use_track_mask,
+		                                      width, height, scopes->track_pos);
 
 		if (tmpibuf) {
 			if (tmpibuf->rect_float)

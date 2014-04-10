@@ -64,11 +64,22 @@ int libmv_trackRegion(const libmv_TrackRegionOptions *options,
                       const double *x1, const double *y1,
                       libmv_TrackRegionResult *result,
                       double *x2, double *y2);
-void libmv_samplePlanarPatch(const float *image, int width, int height,
-                             int channels, const double *xs, const double *ys,
+void libmv_samplePlanarPatch(const float *image,
+                             int width, int height,
+                             int channels,
+                             const double *xs, const double *ys,
                              int num_samples_x, int num_samples_y,
-                             const float *mask, float *patch,
+                             const float *mask,
+                             float *patch,
                              double *warped_position_x, double *warped_position_y);
+void libmv_samplePlanarPatchByte(const unsigned char *image,
+                                 int width, int height,
+                                 int channels,
+                                 const double *xs, const double *ys,
+                                 int num_samples_x, int num_samples_y,
+                                 const float *mask,
+                                 unsigned char *patch,
+                                 double *warped_position_x, double *warped_position_y);
 
 /* Tracks */
 struct libmv_Tracks *libmv_tracksNew(void);
