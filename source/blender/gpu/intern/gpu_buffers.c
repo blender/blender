@@ -2162,7 +2162,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 
 				BLI_assert(f->len == 3);
 
-				if (!paint_is_bmesh_face_hidden(f)) {
+				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 					BMVert *v[3];
 					float fmask = 0;
 					int i;
@@ -2218,7 +2218,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 			GSET_ITER (gs_iter, bm_faces) {
 				BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
-				if (!paint_is_bmesh_face_hidden(f)) {
+				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 					BMLoop *l_iter;
 					BMLoop *l_first;
 

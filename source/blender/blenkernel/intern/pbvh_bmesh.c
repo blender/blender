@@ -1046,7 +1046,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
 			BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
 			BLI_assert(f->len == 3);
-			if (f->len == 3 && !paint_is_bmesh_face_hidden(f)) {
+			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 				BMVert *v_tri[3];
 
 				BM_face_as_array_vert_tri(f, v_tri);
@@ -1078,7 +1078,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 		BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
 		BLI_assert(f->len == 3);
-		if (f->len == 3 && !paint_is_bmesh_face_hidden(f)) {
+		if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 			BMVert *v_tri[3];
 			bool hit_local;
 			BM_face_as_array_vert_tri(f, v_tri);
@@ -1282,7 +1282,7 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 	GSET_ITER (gs_iter, node->bm_faces) {
 		BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
-		if (paint_is_bmesh_face_hidden(f))
+		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
 #if 0
