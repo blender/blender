@@ -755,7 +755,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case KeyRelease:
 		{
 			XKeyEvent *xke = &(xe->xkey);
-			KeySym key_sym = XLookupKeysym(xke, 0);
+			KeySym key_sym;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* utf8_array[] is initial buffer used for Xutf8LookupString().
@@ -771,7 +771,29 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			char *utf8_buf = NULL;
 #endif
 			
-			GHOST_TKey gkey = convertXKey(key_sym);
+			GHOST_TKey gkey;
+
+			/* In keyboards like latin ones,
+			 * numbers needs a 'Shift' to be accessed but key_sym
+			 * is unmodified (or anyone swapping the keys with xmodmap).
+			 *
+			 * Here we look at the 'Shifted' version of the key.
+			 * If it is a number, then we take it instead of the normal key.
+			 *
+			 * The modified key is sent in the 'ascii's variable anyway.
+			 */
+			if ((xke->keycode >= 10 && xke->keycode < 20) &&
+			    ((key_sym = XLookupKeysym(xke, ShiftMask)) >= XK_0) && (key_sym <= XK_9))
+			{
+				/* pass (keep shift'ed key_sym) */
+			}
+			else {
+				/* regular case */
+				key_sym = XLookupKeysym(xke, 0);
+			}
+
+			gkey = convertXKey(key_sym);
+
 			GHOST_TEventType type = (xke->type == KeyPress) ? 
 			                        GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 			
