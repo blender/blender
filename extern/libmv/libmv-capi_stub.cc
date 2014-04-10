@@ -74,7 +74,7 @@ void libmv_samplePlanarPatch(const float * /*image*/,
                              int /*num_samples_x*/, int /*num_samples_y*/,
                              const float * /*mask*/,
                              float * /*patch*/,
-                             double * /*warped_position_x*/, double * /*warped_position_y*/
+                             double * /*warped_position_x*/, double * /*warped_position_y*/)
 {
 	/* TODO(sergey): implement */
 }
@@ -85,7 +85,7 @@ void libmv_samplePlanarPatch(const unsigned char * /*image*/,
                              int /*num_samples_x*/, int /*num_samples_y*/,
                              const float * /*mask*/,
                              unsigned char * /*patch*/,
-                             double * /*warped_position_x*/, double * /*warped_position_y*/
+                             double * /*warped_position_x*/, double * /*warped_position_y*/)
 {
 	/* TODO(sergey): implement */
 }
