@@ -478,7 +478,8 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
 			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
 				if (sa->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = sa->spacedata.first;
-					if (sima->image == rj->image) {
+					// sa->spacedata might be empty when toggling fullscreen mode.
+					if (sima != NULL && sima->image == rj->image) {
 						if (first_sa == NULL) {
 							first_sa = sa;
 						}
