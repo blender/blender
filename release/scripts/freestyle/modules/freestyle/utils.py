@@ -26,3 +26,44 @@ from _freestyle import (
     getCurrentScene,
     integrate,
     )
+
+# constructs for definition of helper functions in Python
+from freestyle.types import (
+    StrokeVertexIterator,
+    )
+import mathutils
+
+
+def stroke_normal(it):
+    """
+    Compute the 2D normal at the stroke vertex pointed by the iterator
+    'it'.  It is noted that Normal2DF0D computes normals based on
+    underlying FEdges instead, which is inappropriate for strokes when
+    they have already been modified by stroke geometry modifiers.
+    """
+    # first stroke segment
+    it_next = StrokeVertexIterator(it)
+    it_next.increment()
+    if it.is_begin:
+        e = it_next.object.point_2d - it.object.point_2d
+        n = mathutils.Vector((e[1], -e[0]))
+        n.normalize()
+        return n
+    # last stroke segment
+    it_prev = StrokeVertexIterator(it)
+    it_prev.decrement()
+    if it_next.is_end:
+        e = it.object.point_2d - it_prev.object.point_2d
+        n = mathutils.Vector((e[1], -e[0]))
+        n.normalize()
+        return n
+    # two subsequent stroke segments
+    e1 = it_next.object.point_2d - it.object.point_2d
+    e2 = it.object.point_2d - it_prev.object.point_2d
+    n1 = mathutils.Vector((e1[1], -e1[0]))
+    n2 = mathutils.Vector((e2[1], -e2[0]))
+    n1.normalize()
+    n2.normalize()
+    n = n1 + n2
+    n.normalize()
+    return n

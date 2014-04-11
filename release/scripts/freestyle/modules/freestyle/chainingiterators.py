@@ -39,8 +39,10 @@ from freestyle.types import (
 from freestyle.predicates import (
     ExternalContourUP1D,
     )
-from freestyle.utils import ContextFunctions as CF
-
+from freestyle.utils import (
+    ContextFunctions as CF,
+    stroke_normal,
+    )
 import bpy
 
 
