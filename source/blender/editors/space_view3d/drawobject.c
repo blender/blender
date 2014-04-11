@@ -1091,8 +1091,8 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 	glCullFace(GL_BACK);
 }
 
-static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
+static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
+                     const char dt, const short dflag, const unsigned char ob_wire_col[4], const bool is_obact)
 {
 	Object *ob = base->object;
 	const float pixsize = ED_view3d_pixel_size(rv3d, ob->obmat[3]);
@@ -1147,8 +1147,12 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			if (ob->id.us > 1) {
-				if (ob == OBACT || (ob->flag & SELECT)) glColor4ub(0x88, 0xFF, 0xFF, 155);
-				else glColor4ub(0x77, 0xCC, 0xCC, 155);
+				if (is_obact || (ob->flag & SELECT)) {
+					glColor4ub(0x88, 0xFF, 0xFF, 155);
+				}
+				else {
+					glColor4ub(0x77, 0xCC, 0xCC, 155);
+				}
 			}
 		}
 		
@@ -6482,7 +6486,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	glDepthMask(1);
 }
 
-static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsigned char ob_wire_col[4])
+static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const unsigned char ob_wire_col[4])
 {
 	if (ELEM4(ob->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)) {
 
@@ -6553,7 +6557,8 @@ static void draw_hooks(Object *ob)
 	}
 }
 
-static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const short dflag, unsigned char ob_wire_col[4])
+static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
+                                  const short dflag, const unsigned char ob_wire_col[4])
 {
 	const char *axis_str[3] = {"px", "py", "pz"};
 	int axis;
@@ -6731,8 +6736,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	RegionView3D *rv3d = ar->regiondata;
 	float vec1[3], vec2[3];
 	unsigned int col = 0;
-	unsigned char _ob_wire_col[4];      /* dont initialize this */
-	unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
+	unsigned char _ob_wire_col[4];            /* dont initialize this */
+	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	int i, selstart, selend, empty_object = 0;
 	short dtx;
 	char  dt;
@@ -7073,7 +7078,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				break;
 			case OB_LAMP:
 				if (!render_override) {
-					drawlamp(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					drawlamp(v3d, rv3d, base, dt, dflag, ob_wire_col, is_obact);
 				}
 				break;
 			case OB_CAMERA:
