@@ -274,8 +274,8 @@ double double_round(double x, int ndigits);
 
 #  define BLI_ASSERT_UNIT_QUAT(q)  {                                          \
 	const float _test_unit = dot_qtqt(q, q);                                  \
-	BLI_assert((fabsf(_test_unit - 1.0f) < BLI_ASSERT_UNIT_EPSILON) ||        \
-	           (fabsf(_test_unit)        < BLI_ASSERT_UNIT_EPSILON));         \
+	BLI_assert((fabsf(_test_unit - 1.0f) < BLI_ASSERT_UNIT_EPSILON * 10) ||   \
+	           (fabsf(_test_unit)        < BLI_ASSERT_UNIT_EPSILON * 10));    \
 } (void)0
 
 #  define BLI_ASSERT_ZERO_M3(m)  {                                            \
