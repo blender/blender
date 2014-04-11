@@ -2096,15 +2096,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 	else
 		totvert = tottri * 3;
 
-	/* some nodes may lose all their vertices/faces. Normally we should delete those but since we don't
-	 * support dynamic nodes yet, just return immediately to avoid opengl errors */
 	if (!tottri) {
-		if (buffers->index_buf)
-			glDeleteBuffersARB(1, &buffers->index_buf);
-		if (buffers->vert_buf)
-			glDeleteBuffersARB(1, &buffers->vert_buf);
-		buffers->vert_buf = 0;
-		buffers->index_buf = 0;
 		buffers->tot_tri = 0;
 		return;
 	}
@@ -2529,7 +2521,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 				offset += buffers->gridkey.grid_area * sizeof(VertexBufferFormat);
 			}
 		}
-		else {
+		else if (buffers->tot_tri) {
 			int totelem = buffers->tot_tri * 3;
 
 			glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
