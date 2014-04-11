@@ -1285,7 +1285,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 	Mesh *me = obedit->data;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ModifierData *md;
-	int mirrx = false, mirry = false, mirrz = false;
+	bool mirrx = false, mirry = false, mirrz = false;
 	int i, repeat;
 	float clip_dist = 0.0f;
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
@@ -1370,7 +1370,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	Mesh *me = obedit->data;
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
-	int usex = true, usey = true, usez = true, preserve_volume = true;
+	bool usex = true, usey = true, usez = true, preserve_volume = true;
 	int i, repeat;
 	float lambda_factor;
 	float lambda_border;

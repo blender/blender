@@ -402,8 +402,8 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
-	int update = false, rebuild = false;
-	int need_mask = false;
+	bool update = false, rebuild = false;
+	bool need_mask = false;
 
 	for (unode = lb->first; unode; unode = unode->next) {
 		if (strcmp(unode->idname, ob->id.name) == 0) {

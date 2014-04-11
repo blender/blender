@@ -512,8 +512,8 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	ImBuf *ibuf, *ibuf_save = NULL;
 	void *lock;
 	char name[FILE_MAX];
-	int ok = 0;
-	const short view_context = (oglrender->v3d != NULL);
+	bool ok = false;
+	const bool view_context = (oglrender->v3d != NULL);
 	Object *camera = NULL;
 	bool is_movie;
 

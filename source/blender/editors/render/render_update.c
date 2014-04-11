@@ -366,7 +366,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	Scene *scene;
 	Object *ob;
 	bNode *node;
-	int texture_draw = false;
+	bool texture_draw = false;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&tex->id));

@@ -554,7 +554,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 	int stride;
 
 	const short type = RNA_enum_get(op->ptr, "type");
-	int done = false;
+	bool done = false;
 	
 	if (ci->len == 0) {
 		return OPERATOR_CANCELLED;

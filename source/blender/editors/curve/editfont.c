@@ -716,7 +716,7 @@ static EnumPropertyItem style_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int set_style(bContext *C, const int style, const int clear)
+static int set_style(bContext *C, const int style, const bool clear)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
@@ -742,7 +742,7 @@ static int set_style(bContext *C, const int style, const int clear)
 static int set_style_exec(bContext *C, wmOperator *op)
 {
 	const int style = RNA_enum_get(op->ptr, "style");
-	const int clear = RNA_boolean_get(op->ptr, "clear");
+	const bool clear = RNA_boolean_get(op->ptr, "clear");
 
 	return set_style(C, style, clear);
 }

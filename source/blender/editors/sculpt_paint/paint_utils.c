@@ -405,7 +405,7 @@ void PAINT_OT_vert_select_ungrouped(wmOperatorType *ot)
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)
 {
-	const int unselected = RNA_boolean_get(op->ptr, "unselected");
+	const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 	Object *ob = CTX_data_active_object(C);
 	paintface_hide(ob, unselected);
 	ED_region_tag_redraw(CTX_wm_region(C));

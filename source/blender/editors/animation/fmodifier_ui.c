@@ -705,9 +705,9 @@ void free_fmodifiers_copybuf(void)
  * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
  *	- active: only copy the active modifier
  */
-short ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, short active)
+bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 {
-	short ok = 1;
+	bool ok = true;
 	
 	/* sanity checks */
 	if (ELEM(NULL, modifiers, modifiers->first))
@@ -734,10 +734,10 @@ short ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, short active)
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list 
  *	- replace: free all the existing modifiers to leave only the pasted ones 
  */
-short ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, short replace)
+bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace)
 {
 	FModifier *fcm;
-	short ok = 0;
+	bool ok = false;
 	
 	/* sanity checks */
 	if (modifiers == NULL)

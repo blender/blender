@@ -283,7 +283,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 	}
 
 	for (i = 0, me = medges; i < totedge; i++, me++) {
-		int remove = false;
+		bool remove = false;
 		if (me->v1 == me->v2) {
 			PRINT_ERR("\tEdge %u: has matching verts, both %u\n", i, me->v1);
 			remove = do_fixes;
@@ -336,7 +336,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 		PRINT_ERR("No Polys, only tesselated Faces\n");
 
 		for (i = 0, mf = mfaces, sf = sort_faces; i < totface; i++, mf++) {
-			int remove = false;
+			bool remove = false;
 			int fidx;
 			unsigned int fv[4];
 
@@ -411,7 +411,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 		sf++;
 
 		for (i = 1; i < totsortface; i++, sf++) {
-			int remove = false;
+			bool remove = false;
 
 			/* on a valid mesh, code below will never run */
 			if (memcmp(sf->es, sf_prev->es, sizeof(sf_prev->es)) == 0) {

@@ -2156,7 +2156,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	PropertyType type;
 	const char *funcname, *valstr;
 	const char *ptrstr;
-	const short has_data = (dfunc->cont.properties.first != NULL);
+	const bool has_data = (dfunc->cont.properties.first != NULL);
 	int flag, pout, cptr, first;
 
 	srna = dsrna->srna;

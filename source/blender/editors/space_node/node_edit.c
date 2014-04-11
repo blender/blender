@@ -2323,9 +2323,9 @@ static int node_shader_script_update_poll(bContext *C)
 }
 
 /* recursively check for script nodes in groups using this text and update */
-static int node_shader_script_update_text_recursive(RenderEngine *engine, RenderEngineType *type, bNodeTree *ntree, Text *text)
+static bool node_shader_script_update_text_recursive(RenderEngine *engine, RenderEngineType *type, bNodeTree *ntree, Text *text)
 {
-	int found = false;
+	bool found = false;
 	bNode *node;
 	
 	ntree->done = true;
@@ -2356,7 +2356,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 	bNode *node = NULL;
 	RenderEngine *engine;
 	RenderEngineType *type;
-	int found = false;
+	bool found = false;
 
 	/* setup render engine */
 	type = RE_engines_find(scene->r.engine);

@@ -222,7 +222,7 @@ static void ruler_item_active_set(RulerInfo *ruler_info, RulerItem *ruler_item)
 static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
                                  char *numstr, size_t numstr_size, int prec)
 {
-	const int do_split = unit->flag & USER_UNIT_OPT_SPLIT;
+	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
 
 	if (ruler_item->flag & RULERITEM_USE_ANGLE) {
 		const float ruler_angle = angle_v3v3v3(ruler_item->co[0],

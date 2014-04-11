@@ -62,13 +62,13 @@ struct NlaStrip *add_nla_soundstrip(struct Scene *scene, struct Speaker *spk);
 bool BKE_nlastrips_has_space(ListBase *strips, float start, float end);
 void BKE_nlastrips_sort_strips(ListBase *strips);
 
-short BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
+bool BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
 
 
-void BKE_nlastrips_make_metas(ListBase *strips, short temp);
-void BKE_nlastrips_clear_metas(ListBase *strips, short onlySel, short onlyTemp);
+void BKE_nlastrips_make_metas(ListBase *strips, bool is_temp);
+void BKE_nlastrips_clear_metas(ListBase *strips, bool only_sel, bool only_temp);
 void BKE_nlastrips_clear_metastrip(ListBase *strips, struct NlaStrip *strip);
-short BKE_nlameta_add_strip(struct NlaStrip *mstrip, struct NlaStrip *strip);
+bool BKE_nlameta_add_strip(struct NlaStrip *mstrip, struct NlaStrip *strip);
 void BKE_nlameta_flush_transforms(struct NlaStrip *mstrip);
 
 /* ............ */
@@ -81,24 +81,24 @@ void BKE_nlatrack_solo_toggle(struct AnimData *adt, struct NlaTrack *nlt);
 bool BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
 void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
-short BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);
+bool BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);
 
-short BKE_nlatrack_get_bounds(struct NlaTrack *nlt, float bounds[2]);
+bool BKE_nlatrack_get_bounds(struct NlaTrack *nlt, float bounds[2]);
 
 /* ............ */
 
 struct NlaStrip *BKE_nlastrip_find_active(struct NlaTrack *nlt);
 void BKE_nlastrip_set_active(struct AnimData *adt, struct NlaStrip *strip);
 
-short BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
+bool BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
 void BKE_nlastrip_recalculate_bounds(struct NlaStrip *strip);
 
 void BKE_nlastrip_validate_name(struct AnimData *adt, struct NlaStrip *strip);
 
 /* ............ */
 
-short BKE_nlatrack_has_animated_strips(struct NlaTrack *nlt);
-short BKE_nlatracks_have_animated_strips(ListBase *tracks);
+bool BKE_nlatrack_has_animated_strips(struct NlaTrack *nlt);
+bool BKE_nlatracks_have_animated_strips(ListBase *tracks);
 void BKE_nlastrip_validate_fcurves(struct NlaStrip *strip);
 
 void BKE_nla_validate_state(struct AnimData *adt);
@@ -107,7 +107,7 @@ void BKE_nla_validate_state(struct AnimData *adt);
 
 void BKE_nla_action_pushdown(struct AnimData *adt);
 
-short BKE_nla_tweakmode_enter(struct AnimData *adt);
+bool BKE_nla_tweakmode_enter(struct AnimData *adt);
 void BKE_nla_tweakmode_exit(struct AnimData *adt);
 
 /* ----------------------------- */

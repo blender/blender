@@ -1854,7 +1854,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
-	const int unselected = RNA_boolean_get(op->ptr, "unselected");
+	const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 	bool changed = false;
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {

@@ -882,7 +882,7 @@ void testhandles_fcurve(FCurve *fcu, const bool use_handle)
  */
 void sort_time_fcurve(FCurve *fcu)
 {
-	short ok = 1;
+	bool ok = true;
 	
 	/* keep adjusting order of beztriples until nothing moves (bubble-sort) */
 	while (ok) {

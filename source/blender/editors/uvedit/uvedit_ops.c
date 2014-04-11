@@ -1684,7 +1684,7 @@ typedef struct UVvert {
 static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 {
 	const float threshold = RNA_float_get(op->ptr, "threshold");
-	const int use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
+	const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
 
 	SpaceImage *sima;
 	Scene *scene;

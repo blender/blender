@@ -2971,7 +2971,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next,
 	BezTriple *bezt;
 	BPoint *bp;
 	int a;
-	short lastsel = false;
+	bool lastsel = false;
 	
 	if (next == 0) return;
 	
@@ -3141,7 +3141,7 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
 
 /******************* de select all operator ***************/
 
-static short nurb_has_selected_cps(ListBase *editnurb)
+static bool nurb_has_selected_cps(ListBase *editnurb)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -4358,7 +4358,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	NurbSort *nus1, *nus2;
-	int ok = 1;
+	bool ok = true;
 	
 	make_selection_list_nurb(editnurb);
 	
@@ -4427,7 +4427,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	ListBase *nubase = object_editcurve_get(obedit);
 	Nurb *nu, *nu1 = NULL, *nu2 = NULL;
 	BPoint *bp;
-	int ok = 0;
+	bool ok = false;
 	/* int a; */ /* UNUSED */
 
 	/* first decide if this is a surface merge! */
@@ -4913,7 +4913,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	BezTriple *bezt, *newbezt = NULL;
 	BPoint *bp, *newbp = NULL;
 	float imat[4][4], temp[3];
-	int ok = 0;
+	bool ok = false;
 	BezTriple *bezt_recalc[3] = {NULL};
 
 	invert_m4_m4(imat, obedit->obmat);

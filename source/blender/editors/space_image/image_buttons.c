@@ -839,7 +839,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	const bool is_render_out = (id && GS(id->name) == ID_SCE);
 
 	uiLayout *col, *row, *split, *sub;
-	int show_preview = false;
+	bool show_preview = false;
 
 	col = uiLayoutColumn(layout, false);
 

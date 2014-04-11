@@ -542,7 +542,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obsel = NULL;
-	const int use_bone = RNA_boolean_get(op->ptr, "use_bone");
+	const bool use_bone = RNA_boolean_get(op->ptr, "use_bone");
 	const int mode = use_bone ? OBJECT_ADDHOOK_SELOB_BONE : OBJECT_ADDHOOK_SELOB;
 	
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)

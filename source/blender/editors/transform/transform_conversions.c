@@ -6596,7 +6596,7 @@ static void MaskHandleToTransData(MaskSplinePoint *point, eMaskWhichHandle which
                                   /*const*/ float parent_inverse_matrix[3][3])
 {
 	BezTriple *bezt = &point->bezt;
-	short is_sel_any = MASKPOINT_ISSEL_ANY(point);
+	const bool is_sel_any = MASKPOINT_ISSEL_ANY(point);
 
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);

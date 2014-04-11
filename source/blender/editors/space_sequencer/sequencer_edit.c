@@ -3168,7 +3168,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = BKE_sequencer_active_get(scene);
-	const int is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
+	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
 	if (seq->type == SEQ_TYPE_IMAGE) {
 		char directory[FILE_MAX];

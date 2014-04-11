@@ -3360,7 +3360,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						
 						if ( mface->mat_nr==a1 ) {
 							float len;
-							int reverse_verts = (negative_scale != 0 && do_autosmooth == false);
+							bool reverse_verts = (negative_scale != 0 && do_autosmooth == false);
 							int rev_tab[] = {reverse_verts==0 ? 0 : 2, 1, reverse_verts==0 ? 2 : 0, 3};
 							v1= reverse_verts==0 ? mface->v1 : mface->v3;
 							v2= mface->v2;

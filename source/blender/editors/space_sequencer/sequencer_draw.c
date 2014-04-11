@@ -918,7 +918,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	GLuint last_texid;
 	void *display_buffer;
 	void *cache_handle = NULL;
-	const int is_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
+	const bool is_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
 	int format, type;
 	bool glsl_used = false;
 

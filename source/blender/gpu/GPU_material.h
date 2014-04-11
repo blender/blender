@@ -105,8 +105,8 @@ typedef struct GPUNodeStack {
 	const char *name;
 	float vec[4];
 	struct GPUNodeLink *link;
-	short hasinput;
-	short hasoutput;
+	bool hasinput;
+	bool hasoutput;
 	short sockettype;
 } GPUNodeStack;
 

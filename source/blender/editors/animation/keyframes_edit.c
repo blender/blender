@@ -428,6 +428,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
  */
 #define KEYFRAME_OK_CHECKS(check) \
 	{ \
+		CHECK_TYPE(ok, short); \
 		if (check(1)) \
 			ok |= KEYFRAME_OK_KEY; \
 		 \

@@ -893,7 +893,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 /* add color */
 static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	short is_type_set = RNA_struct_property_is_set(op->ptr, "type");
+	bool is_type_set = RNA_struct_property_is_set(op->ptr, "type");
 	int type = -1;
 	int prop_flag = SEQPROP_ENDFRAME;
 

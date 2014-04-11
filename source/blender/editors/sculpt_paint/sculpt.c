@@ -4218,9 +4218,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 /* Returns true if any of the smoothing modes are active (currently
  * one of smooth brush, autosmooth, mask smooth, or shift-key
  * smooth) */
-static int sculpt_any_smooth_mode(const Brush *brush,
-                                  StrokeCache *cache,
-                                  int stroke_mode)
+static bool sculpt_any_smooth_mode(const Brush *brush,
+                                   StrokeCache *cache,
+                                   int stroke_mode)
 {
 	return ((stroke_mode == BRUSH_STROKE_SMOOTH) ||
 	        (cache && cache->alt_smooth) ||
@@ -4393,8 +4393,8 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	int mode = RNA_enum_get(op->ptr, "mode");
-	int is_smooth = 0;
-	int need_mask = false;
+	bool is_smooth;
+	bool need_mask = false;
 
 	if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
 		need_mask = true;

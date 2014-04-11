@@ -1024,7 +1024,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
 bool pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
                             const float ray_normal[3], float *dist,
-                            int use_original)
+                            bool use_original)
 {
 	bool hit = false;
 

@@ -62,7 +62,7 @@ typedef struct bConstraintOb {
 /* ---------------------------------------------------------------------------- */
 
 /* Callback format for performing operations on ID-pointers for Constraints */
-typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, short isReference, void *userdata);
+typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, bool is_reference, void *userdata);
 
 /* ....... */
 
@@ -98,7 +98,7 @@ typedef struct bConstraintTypeInfo {
 	/* for multi-target constraints: return that list; otherwise make a temporary list (returns number of targets) */
 	int (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
 	/* for single-target constraints only: flush data back to source data, and the free memory used */
-	void (*flush_constraint_targets)(struct bConstraint *con, struct ListBase *list, short nocopy);
+	void (*flush_constraint_targets)(struct bConstraint *con, struct ListBase *list, bool no_copy);
 	
 	/* evaluation */
 	/* set the ct->matrix for the given constraint target (at the given ctime) */
@@ -136,12 +136,12 @@ struct bConstraint *BKE_constraints_findByName(struct ListBase *list, const char
 struct bConstraint *BKE_add_ob_constraint(struct Object *ob, const char *name, short type);
 struct bConstraint *BKE_add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
 
-int BKE_remove_constraint(ListBase *list, struct bConstraint *con);
-void BKE_remove_constraints_type(ListBase *list, short type, short last_only);
+bool BKE_remove_constraint(ListBase *list, struct bConstraint *con);
+void BKE_remove_constraints_type(ListBase *list, short type, bool last_only);
 
 /* Constraints + Proxies function prototypes */
 void BKE_extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);
-short BKE_proxylocked_constraints_owner(struct Object *ob, struct bPoseChannel *pchan);
+bool BKE_proxylocked_constraints_owner(struct Object *ob, struct bPoseChannel *pchan);
 
 /* Constraint Evaluation function prototypes */
 struct bConstraintOb *BKE_constraints_make_evalob(struct Scene *scene, struct Object *ob, void *subdata, short datatype);

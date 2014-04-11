@@ -596,7 +596,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	DerivedMesh *dm = NULL;
 	Key *key = me->key;
 	KeyBlock *kb;
-	int ok = 0, nonequal_verts = 0;
+	bool ok = false, nonequal_verts = false;
 	
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
@@ -606,7 +606,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 			selme = (Mesh *)base->object->data;
 			
 			if (selme->totvert == me->totvert)
-				ok++;
+				ok = true;
 			else
 				nonequal_verts = 1;
 		}

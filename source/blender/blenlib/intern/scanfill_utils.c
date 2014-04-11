@@ -319,7 +319,7 @@ static bool scanfill_preprocess_self_isect(
 		ScanFillVert *v_prev;
 		ScanFillVert *v_curr;
 
-		int inside = false;
+		bool inside = false;
 
 		/* first vert */
 #if 0

@@ -83,7 +83,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 		for (i = 0; i < seq_size; i++) {
 			Py_ssize_t item_seq_size;
 			PyObject *item;
-			int ok = 1;
+			bool ok = true;
 			item = PySequence_GetItem(seq, i);
 
 			if (item == NULL) {

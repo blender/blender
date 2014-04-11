@@ -150,7 +150,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 
 
 #define BLF_KERNING_VARS(_font, _has_kerning, _kern_mode)                        \
-	const short _has_kerning = FT_HAS_KERNING((_font)->face);                    \
+	const bool _has_kerning = FT_HAS_KERNING((_font)->face);                     \
 	const FT_UInt _kern_mode = (_has_kerning == 0) ? 0 :                         \
 	                         (((_font)->flags & BLF_KERNING_DEFAULT) ?           \
 	                          ft_kerning_default : FT_KERNING_UNFITTED)          \

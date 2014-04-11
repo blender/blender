@@ -2963,7 +2963,8 @@ int txt_setcurr_tab_spaces(Text *text, int space)
 		 *  2) within an identifier
 		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414] 
 		 */
-		int a, is_indent = 0;
+		int a;
+		bool is_indent = false;
 		for (a = 0; (a < text->curc) && (text->curl->line[a] != '\0'); a++) {
 			char ch = text->curl->line[a];
 			if (ch == '#') {

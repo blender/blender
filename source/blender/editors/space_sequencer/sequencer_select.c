@@ -952,7 +952,7 @@ static bool select_grouped_type_basic(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
 	bool changed = false;
-	short is_sound = SEQ_IS_SOUND(actseq);
+	const bool is_sound = SEQ_IS_SOUND(actseq);
 
 	SEQP_BEGIN (ed, seq)
 	{

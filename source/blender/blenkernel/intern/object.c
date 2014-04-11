@@ -2217,7 +2217,7 @@ static void ob_get_parent_matrix(Scene *scene, Object *ob, Object *par, float pa
 {
 	float tmat[4][4];
 	float vec[3];
-	int ok;
+	bool ok;
 
 	switch (ob->partype & PARTYPE) {
 		case PAROBJECT:

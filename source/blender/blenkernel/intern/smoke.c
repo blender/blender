@@ -933,7 +933,7 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
  **********************************************************/
 
 /* set "ignore cache" flag for all caches on this object */
-static void object_cacheIgnoreClear(Object *ob, int state)
+static void object_cacheIgnoreClear(Object *ob, bool state)
 {
 	ListBase pidlist;
 	PTCacheID *pid;
@@ -951,7 +951,7 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 	BLI_freelistN(&pidlist);
 }
 
-static int subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int parent_recursion, float frame, bool for_render)
+static bool subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int parent_recursion, float frame, bool for_render)
 {
 	SmokeModifierData *smd = (SmokeModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
 	bConstraint *con;
@@ -963,9 +963,9 @@ static int subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int 
 	/* if object has parents, update them too */
 	if (parent_recursion) {
 		int recursion = parent_recursion - 1;
-		int is_domain = 0;
-		if (ob->parent) is_domain += subframe_updateObject(scene, ob->parent, 0, recursion, frame, for_render);
-		if (ob->track) is_domain += subframe_updateObject(scene, ob->track, 0, recursion, frame, for_render);
+		bool is_domain = false;
+		if (ob->parent) is_domain |= subframe_updateObject(scene, ob->parent, 0, recursion, frame, for_render);
+		if (ob->track) is_domain |= subframe_updateObject(scene, ob->track, 0, recursion, frame, for_render);
 
 		/* skip subframe if object is parented
 		 *  to vertex of a dynamic paint canvas */
@@ -1073,7 +1073,7 @@ static void clampBoundsInDomain(SmokeDomainSettings *sds, int min[3], int max[3]
 	}
 }
 
-static void em_allocateData(EmissionMap *em, int use_velocity, int hires_mul)
+static void em_allocateData(EmissionMap *em, bool use_velocity, int hires_mul)
 {
 	int i, res[3];
 
@@ -1427,8 +1427,11 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 	}
 }
 
-static void sample_derivedmesh(SmokeFlowSettings *sfs, MVert *mvert, MTFace *tface, MFace *mface, float *influence_map, float *velocity_map, int index, int base_res[3], float flow_center[3], BVHTreeFromMesh *treeData, float ray_start[3],
-								float *vert_vel, int has_velocity, int defgrp_index, MDeformVert *dvert, float x, float y, float z)
+static void sample_derivedmesh(
+        SmokeFlowSettings *sfs, MVert *mvert, MTFace *tface, MFace *mface,
+        float *influence_map, float *velocity_map, int index, int base_res[3], float flow_center[3],
+        BVHTreeFromMesh *treeData, const float ray_start[3], const float *vert_vel,
+        bool has_velocity, int defgrp_index, MDeformVert *dvert, float x, float y, float z)
 {
 	float ray_dir[3] = {1.0f, 0.0f, 0.0f};
 	BVHTreeRayHit hit = {0};

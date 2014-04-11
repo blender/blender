@@ -858,7 +858,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 		float imat[3][3], mat[3][3];
-		int ok = false;
+		bool ok = false;
 
 		if (activeOnly && (pchan = BKE_pose_channel_active(ob))) {
 			add_v3_v3(normal, pchan->pose_mat[2]);

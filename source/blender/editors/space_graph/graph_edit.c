@@ -2320,7 +2320,7 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
-	short ok = 0;
+	bool ok = false;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)

@@ -922,7 +922,7 @@ static uiBlock *controller_state_mask_menu(bContext *C, ARegion *ar, void *arg_c
 	return block;
 }
 
-static int is_sensor_linked(uiBlock *block, bSensor *sens)
+static bool is_sensor_linked(uiBlock *block, bSensor *sens)
 {
 	bController *cont;
 	int i;

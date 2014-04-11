@@ -2462,7 +2462,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	} FOREACH_NODETREE_END
 	
 	{
-		int has_old_groups = 0;
+		bool has_old_groups = false;
 		/* XXX this should actually be part of do_versions, but since we need
 		 * finished library linking, it is not possible there. Instead in do_versions
 		 * we have set the NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2 flag, so at this point we can do the
@@ -2752,12 +2752,12 @@ typedef struct tConstraintLinkData {
 	ID *id;
 } tConstraintLinkData;
 /* callback function used to relink constraint ID-links */
-static void lib_link_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, short isReference, void *userdata)
+static void lib_link_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, bool is_reference, void *userdata)
 {
 	tConstraintLinkData *cld= (tConstraintLinkData *)userdata;
 	
 	/* for reference types, we need to increment the usercounts on load... */
-	if (isReference) {
+	if (is_reference) {
 		/* reference type - with usercount */
 		*idpoin = newlibadr_us(cld->fd, cld->id->lib, *idpoin);
 	}
@@ -8208,7 +8208,7 @@ typedef struct tConstraintExpandData {
 	Main *mainvar;
 } tConstraintExpandData;
 /* callback function used to expand constraint ID-links */
-static void expand_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED(isReference), void *userdata)
+static void expand_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, bool UNUSED(is_reference), void *userdata)
 {
 	tConstraintExpandData *ced = (tConstraintExpandData *)userdata;
 	expand_doit(ced->fd, ced->mainvar, *idpoin);

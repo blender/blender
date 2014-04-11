@@ -333,7 +333,7 @@ static int filter_make_index(const int x, const int y, const int w, const int h)
 	else return y * w + x;
 }
 
-static int check_pixel_assigned(const void *buffer, const char *mask, const int index, const int depth, const int is_float)
+static int check_pixel_assigned(const void *buffer, const char *mask, const int index, const int depth, const bool is_float)
 {
 	int res = 0;
 
@@ -364,7 +364,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 	const int depth = 4;     /* always 4 channels */
 	const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(unsigned char);
 	const int bsize = width * height * depth * chsize;
-	const int is_float = ibuf->rect_float != NULL;
+	const bool is_float = (ibuf->rect_float != NULL);
 	void *dstbuf = (void *) MEM_dupallocN(ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect);
 	char *dstmask = mask == NULL ? NULL : (char *) MEM_dupallocN(mask);
 	void *srcbuf = ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect;

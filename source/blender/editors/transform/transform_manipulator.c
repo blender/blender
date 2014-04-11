@@ -505,7 +505,7 @@ int calc_manipulator_stats(const bContext *C)
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan;
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
-		int ok = false;
+		bool ok = false;
 
 		if ((ob->lay & v3d->lay) == 0) return 0;
 

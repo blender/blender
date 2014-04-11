@@ -387,7 +387,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on)
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short mode)
 {
 	bAnimListElem *ale, *match = NULL;
 	int prevLevel = 0, matchLevel = 0;
@@ -437,8 +437,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 	 *	- only flush up if the current state is now disabled (negative 'off' state is default)
 	 *	  (otherwise, it's too much work to force the parents to be active too)
 	 */
-	if ( ((setting == ACHANNEL_SETTING_VISIBLE) && on) ||
-	     ((setting != ACHANNEL_SETTING_VISIBLE) && on == 0) )
+	if ( ((setting == ACHANNEL_SETTING_VISIBLE) && (mode != ACHANNEL_SETFLAG_CLEAR)) ||
+	     ((setting != ACHANNEL_SETTING_VISIBLE) && (mode == ACHANNEL_SETFLAG_CLEAR)))
 	{
 		/* go backwards in the list, until the highest-ranking element (by indention has been covered) */
 		for (ale = match->prev; ale; ale = ale->prev) {
@@ -461,7 +461,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 			 */
 			if (level < prevLevel) {
 				/* flush the new status... */
-				ANIM_channel_setting_set(ac, ale, setting, on);
+				ANIM_channel_setting_set(ac, ale, setting, mode);
 				
 				/* store this level as the 'old' level now */
 				prevLevel = level;
@@ -502,7 +502,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 			 * flush the new status...
 			 */
 			if (level > matchLevel)
-				ANIM_channel_setting_set(ac, ale, setting, on);
+				ANIM_channel_setting_set(ac, ale, setting, mode);
 			/* however, if the level is 'less than or equal to' the channel that was changed,
 			 * (i.e. the current channel is as important if not more important than the changed channel)
 			 * then we should stop, since we've found the last one of the children we should flush

@@ -127,7 +127,7 @@ static void clamp_to_filelist(int numfiles, FileSelection *sel)
 	}
 }
 
-static FileSelection file_selection_get(bContext *C, const rcti *rect, short fill)
+static FileSelection file_selection_get(bContext *C, const rcti *rect, bool fill)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -155,7 +155,7 @@ static FileSelection file_selection_get(bContext *C, const rcti *rect, short fil
 	return sel;
 }
 
-static FileSelect file_select_do(bContext *C, int selected_idx, short do_diropen)
+static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 {
 	FileSelect retval = FILE_SELECT_NOTHING;
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -205,7 +205,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, short do_diropen
 }
 
 
-static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, short fill, short do_diropen)
+static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, bool fill, bool do_diropen)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelect retval = FILE_SELECT_NOTHING;

@@ -454,7 +454,7 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on);
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short mode);
 
 
 /* Deselect all animation channels */
@@ -511,12 +511,12 @@ void free_fmodifiers_copybuf(void);
  * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
  *	- active: only copy the active modifier
  */
-short ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, short active);
+bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
 
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list 
  *	- replace: free all the existing modifiers to leave only the pasted ones 
  */
-short ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, short replace);
+bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */
@@ -537,7 +537,7 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3]);
 struct AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve */
-void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, short restore, short only_keys);
+void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, bool restore, bool only_keys);
 
 /* ..... */
 

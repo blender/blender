@@ -168,7 +168,7 @@ void EDBM_select_mirrored(BMEditMesh *em, bool extend,
 
 void EDBM_automerge(Scene *scene, Object *obedit, bool update, const char hflag)
 {
-	int ok;
+	bool ok;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	ok = BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
@@ -2092,7 +2092,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	BMVert *eve;
 	BMEdge *e, *eed;
 	BMFace *efa;
-	int sel = !RNA_boolean_get(op->ptr, "deselect");
+	const bool sel = !RNA_boolean_get(op->ptr, "deselect");
 
 	int limit;
 

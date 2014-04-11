@@ -356,7 +356,8 @@ void BKE_mball_texspace_calc(Object *ob)
 	DispList *dl;
 	BoundBox *bb;
 	float *data, min[3], max[3] /*, loc[3], size[3] */;
-	int tot, do_it = false;
+	int tot;
+	bool do_it = false;
 
 	if (ob->bb == NULL) ob->bb = MEM_callocN(sizeof(BoundBox), "mb boundbox");
 	bb = ob->bb;

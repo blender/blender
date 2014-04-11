@@ -375,7 +375,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob)
 	}
 }
 
-static int apply_objects_internal(bContext *C, ReportList *reports, int apply_loc, int apply_rot, int apply_scale)
+static int apply_objects_internal(bContext *C, ReportList *reports, bool apply_loc, bool apply_rot, bool apply_scale)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -647,9 +647,9 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 
 static int object_transform_apply_exec(bContext *C, wmOperator *op)
 {
-	const int loc = RNA_boolean_get(op->ptr, "location");
-	const int rot = RNA_boolean_get(op->ptr, "rotation");
-	const int sca = RNA_boolean_get(op->ptr, "scale");
+	const bool loc = RNA_boolean_get(op->ptr, "location");
+	const bool rot = RNA_boolean_get(op->ptr, "rotation");
+	const bool sca = RNA_boolean_get(op->ptr, "scale");
 
 	if (loc || rot || sca) {
 		return apply_objects_internal(C, op->reports, loc, rot, sca);

@@ -1259,8 +1259,8 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 /********************* Make Duplicates Real ************************/
 
 static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
-                                       const short use_base_parent,
-                                       const short use_hierarchy)
+                                       const bool use_base_parent,
+                                       const bool use_hierarchy)
 {
 	Main *bmain = CTX_data_main(C);
 	ListBase *lb;
@@ -1410,8 +1410,8 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 
-	const short use_base_parent = RNA_boolean_get(op->ptr, "use_base_parent");
-	const short use_hierarchy = RNA_boolean_get(op->ptr, "use_hierarchy");
+	const bool use_base_parent = RNA_boolean_get(op->ptr, "use_base_parent");
+	const bool use_hierarchy = RNA_boolean_get(op->ptr, "use_hierarchy");
 
 	BKE_main_id_clear_newpoins(bmain);
 

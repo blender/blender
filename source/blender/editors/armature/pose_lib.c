@@ -878,7 +878,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 			pchan = BKE_pose_channel_find_name(pose, agrp->name);
 			
 			if (pchan) {
-				short ok = 0;
+				bool ok = 0;
 				
 				/* check if this bone should get any animation applied */
 				if (pld->selcount == 0) {

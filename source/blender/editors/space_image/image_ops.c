@@ -157,7 +157,7 @@ static int space_image_file_exists_poll(bContext *C)
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ImBuf *ibuf;
 		void *lock;
-		int ret = false;
+		bool ret = false;
 		char name[FILE_MAX];
 
 		ibuf = ED_space_image_acquire_buffer(sima, &lock);

@@ -1388,7 +1388,7 @@ static bool mouse_select(bContext *C, const int mval[2],
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
 	bool is_obedit;
 	float dist = ED_view3d_select_dist_px() * 1.3333f;
-	int retval = false;
+	bool retval = false;
 	short hits;
 	const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
 

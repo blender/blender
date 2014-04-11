@@ -117,7 +117,7 @@ static int tga_out4(unsigned int data, FILE *file)
 	return ~EOF;
 }
 
-static short makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE *))
+static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE *))
 {
 	register int last, this;
 	register int copy, bytes;
@@ -196,7 +196,7 @@ static short makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE
 	return 1;
 }
 
-static int dumptarga(struct ImBuf *ibuf, FILE *file)
+static bool dumptarga(struct ImBuf *ibuf, FILE *file)
 {
 	int size;
 	uchar *rect;
@@ -253,7 +253,7 @@ int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
 {
 	char buf[20] = {0};
 	FILE *fildes;
-	short ok = 0;
+	bool ok = false;
 	
 	(void)flags; /* unused */
 

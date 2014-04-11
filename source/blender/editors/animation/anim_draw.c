@@ -223,7 +223,7 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
  *	- restore = whether to map points back to non-mapped time 
  *  - only_keys = whether to only adjust the location of the center point of beztriples
  */
-void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, short restore, short only_keys)
+void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys)
 {
 	KeyframeEditData ked = {{NULL}};
 	KeyframeEditFunc map_cb;

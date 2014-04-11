@@ -699,7 +699,7 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	MaskSpline *spline;
 	MaskSplinePoint *point = NULL;
 	float co[2];
-	int do_select = !RNA_boolean_get(op->ptr, "deselect");
+	bool do_select = !RNA_boolean_get(op->ptr, "deselect");
 	const float threshold = 19;
 	bool changed = false;
 

@@ -206,7 +206,7 @@ static void snode_autoconnect(SpaceNode *snode, const bool allow_multiple, const
 	for (nli = nodelist->first; nli; nli = nli->next) {
 		bNode *node_fr, *node_to;
 		bNodeSocket *sock_fr, *sock_to;
-		int has_selected_inputs = 0;
+		bool has_selected_inputs = false;
 
 		if (nli->next == NULL) break;
 
@@ -770,7 +770,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	RNA_END;
 
 	if (i > 1) {
-		int found = false;
+		bool found = false;
 		bNodeLink *link, *next;
 		
 		ED_preview_kill_jobs(C);

@@ -124,7 +124,7 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 /* if a selected or active bone is protected, throw error (oonly if warn == 1) and return 1 */
 /* only_selected == 1: the active bone is allowed to be protected */
 #if 0 /* UNUSED 2.5 */
-static short pose_has_protected_selected(Object *ob, short warn)
+static bool pose_has_protected_selected(Object *ob, short warn)
 {
 	/* check protection */
 	if (ob->proxy) {
