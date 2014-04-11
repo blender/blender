@@ -211,8 +211,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 				newState->curedge = curedge;
 			}
 		}
-		curedge = bmesh_disk_edge_next(curedge, shellWalk.base);
-	} while (curedge != shellWalk.curedge);
+	} while ((curedge = bmesh_disk_edge_next(curedge, shellWalk.base)) != shellWalk.curedge);
 	
 	return shellWalk.curedge;
 }

@@ -800,13 +800,13 @@ void BM_edge_kill(BMesh *bm, BMEdge *e)
 void BM_vert_kill(BMesh *bm, BMVert *v)
 {
 	if (v->e) {
-		BMEdge *e, *nexte;
+		BMEdge *e, *e_next;
 		
 		e = v->e;
 		while (v->e) {
-			nexte = bmesh_disk_edge_next(e, v);
+			e_next = bmesh_disk_edge_next(e, v);
 			BM_edge_kill(bm, e);
-			e = nexte;
+			e = e_next;
 		}
 	}
 
@@ -1023,12 +1023,8 @@ static bool disk_is_flagged(BMVert *v, int flag)
 		do {
 			if (!BM_ELEM_API_FLAG_TEST(l->f, flag))
 				return false;
-
-			l = l->radial_next;
-		} while (l != e->l);
-
-		e = bmesh_disk_edge_next(e, v);
-	} while (e != v->e);
+		} while ((l = l->radial_next) != e->l);
+	} while ((e = bmesh_disk_edge_next(e, v)) != v->e);
 
 	return true;
 }

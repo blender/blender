@@ -192,8 +192,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 					done = false;
 					break;
 				}
-				e = bmesh_disk_edge_next(e, v);
-			} while (e != v->e);
+			} while ((e = bmesh_disk_edge_next(e, v)) != v->e);
 		}
 
 		/* collapse the vertex */
