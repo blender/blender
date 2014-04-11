@@ -46,7 +46,7 @@ public:
 		_language = "Unknown";
 	}
 
-	virtual ~Interpreter() {}; //soc
+	virtual ~Interpreter() {}
 
 	virtual int interpretFile(const string& filename) = 0;
 

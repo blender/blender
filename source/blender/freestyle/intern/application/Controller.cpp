@@ -1024,7 +1024,6 @@ void Controller::init_options()
 
 	// Directories
 	ViewMapIO::Options::setModelsPath(cpath->getModelsPath());
-	PythonInterpreter::Options::setPythonPath(cpath->getPythonPath());
 	TextureManager::Options::setPatternsPath(cpath->getPatternsPath());
 	TextureManager::Options::setBrushesPath(cpath->getModelsPath());
 

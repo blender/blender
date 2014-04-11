@@ -60,12 +60,6 @@ public:
 		_language = "Python";
 		_context = 0;
 		memset(&_freestyle_bmain, 0, sizeof(Main));
-		//Py_Initialize();
-	}
-
-	virtual ~PythonInterpreter()
-	{
-		//Py_Finalize();
 	}
 
 	void setContext(bContext *C)
@@ -75,8 +69,6 @@ public:
 
 	int interpretFile(const string& filename)
 	{
-		initPath();
-
 		ReportList *reports = CTX_wm_reports(_context);
 		BKE_reports_clear(reports);
 		char *fn = const_cast<char*>(filename.c_str());
@@ -112,8 +104,6 @@ public:
 
 	int interpretText(struct Text *text, const string& name)
 	{
-		initPath();
-
 		ReportList *reports = CTX_wm_reports(_context);
 
 		BKE_reports_clear(reports);
@@ -131,63 +121,14 @@ public:
 		return 0;
 	}
 
-	struct Options
-	{
-		static void setPythonPath(const string& path)
-		{
-			_path = path;
-		}
-
-		static string getPythonPath()
-		{
-			return _path;
-		}
-	};
-
 	void reset()
 	{
-		Py_Finalize();
-		Py_Initialize();
-		_initialized = false;
+		// nothing to do
 	}
 
 private:
 	bContext *_context;
 	Main _freestyle_bmain;
-
-	void initPath()
-	{
-		if (_initialized)
-			return;
-
-		vector<string> pathnames;
-		StringUtils::getPathName(_path, "", pathnames);
-
-		struct Text *text = BKE_text_add(&_freestyle_bmain, "tmp_freestyle_initpath.txt");
-		string cmd = "import sys\n";
-		txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
-
-		for (vector<string>::const_iterator it = pathnames.begin(); it != pathnames.end(); ++it) {
-			if (!it->empty()) {
-				if (G.debug & G_DEBUG_FREESTYLE) {
-					cout << "Adding Python path: " << *it << endl;
-				}
-				cmd = "sys.path.append(r\"" + *it + "\")\n";
-				txt_insert_buf(text, const_cast<char *>(cmd.c_str()));
-			}
-		}
-
-		BPY_text_exec(_context, text, NULL, false);
-
-		// cleaning up
-		BKE_text_unlink(&_freestyle_bmain, text);
-		BKE_libblock_free(&_freestyle_bmain, text);
-
-		_initialized = true;
-	}
-
-	static bool _initialized;
-	static string _path;
 };
 
 } /* namespace Freestyle */

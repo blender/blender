@@ -485,6 +485,23 @@ PyObject *Freestyle_Init(void)
 	if (!module)
 		return NULL;
 	PyDict_SetItemString(PySys_GetObject("modules"), module_definition.m_name, module);
+
+	// update 'sys.path' for Freestyle Python API modules
+	const char * const path = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "freestyle");
+	if (path) {
+		char modpath[FILE_MAX];
+		BLI_join_dirfile(modpath, sizeof(modpath), path, "modules");
+		PyObject *sys_path = PySys_GetObject("path"); /* borrow */
+		PyObject *py_modpath = PyUnicode_FromString(modpath);
+		PyList_Append(sys_path, py_modpath);
+		Py_DECREF(py_modpath);
+#if 0
+		printf("Adding Python path: %s\n", modpath);
+#endif
+	}
+	else {
+		printf("Freestyle: couldn't find 'scripts/freestyle/modules', Freestyle won't work properly.\n");
+	}
 	
 	// attach its classes (adding the object types to the module)
 	

@@ -26,10 +26,3 @@
  */
 
 #include "PythonInterpreter.h"
-
-namespace Freestyle {
-
-string PythonInterpreter::_path = "";
-bool PythonInterpreter::_initialized = false;
-
-} /* namespace Freestyle */
