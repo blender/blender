@@ -1059,7 +1059,7 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 		if (rbo->type == RBO_TYPE_ACTIVE) {
 			
 			copy_v3_v3(keys[1].co, rbo->pos);
-			copy_v3_v3(keys[1].rot, rbo->orn);
+			copy_qt_qt(keys[1].rot, rbo->orn);
 			
 			if (old_data) {
 				memcpy(keys[2].co, data, 3 * sizeof(float));
@@ -1075,7 +1075,7 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 			interp_qt_qtqt(keys->rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 			
 			copy_v3_v3(rbo->pos, keys->co);
-			copy_v3_v3(rbo->orn, keys->rot);
+			copy_qt_qt(rbo->orn, keys->rot);
 		}
 	}
 }
