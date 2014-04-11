@@ -1375,56 +1375,51 @@ void ED_region_toggle_hidden(bContext *C, ARegion *ar)
 }
 
 /**
- * sa2 to sa1,
  * we swap spaces for fullscreen to keep all allocated data area vertices were set
- *
- * \param swap_space
- * - 0: overwrite \a sa1 (freeing its data).
- * - 1: simply swap.
- * - 2: overwrite \a sa1 (when sa1 is calloc'd memory).
  */
-void area_copy_data(ScrArea *sa1, ScrArea *sa2, const char swap_space)
+void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
 {
 	SpaceType *st;
 	ARegion *ar;
-	int spacetype = sa1->spacetype;
+	const char spacetype = sa_dst->spacetype;
 	
-	sa1->headertype = sa2->headertype;
-	sa1->spacetype = sa2->spacetype;
-	sa1->type = sa2->type;
-	sa1->butspacetype = sa2->butspacetype;
-	
-	if (swap_space == 0) {
-		BKE_spacedata_freelist(&sa1->spacedata);
-		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
-	}
-	else if (swap_space == 1) {
-		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
-	}
-	else if (swap_space == 2) {
-		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
-	}
-	
-	/* Note; SPACE_EMPTY is possible on new screens */
-	
-	/* regions */
-	if (swap_space == 0) {
-		st = BKE_spacetype_from_id(spacetype);
-		for (ar = sa1->regionbase.first; ar; ar = ar->next)
-			BKE_area_region_free(st, ar);
-		BLI_freelistN(&sa1->regionbase);
-	}
-	else if (swap_space == 1) {
-		SWAP(ListBase, sa1->regionbase, sa2->regionbase);
-	}
+	sa_dst->headertype = sa_src->headertype;
+	sa_dst->spacetype = sa_src->spacetype;
+	sa_dst->type = sa_src->type;
+	sa_dst->butspacetype = sa_src->butspacetype;
 
-	if (swap_space != 1) {
-		st = BKE_spacetype_from_id(sa2->spacetype);
-		for (ar = sa2->regionbase.first; ar; ar = ar->next) {
-			ARegion *newar = BKE_area_region_copy(st, ar);
-			BLI_addtail(&sa1->regionbase, newar);
-		}
+	/* area */
+	if (do_free) {
+		BKE_spacedata_freelist(&sa_dst->spacedata);
 	}
+	BKE_spacedata_copylist(&sa_dst->spacedata, &sa_src->spacedata);
+
+	/* Note; SPACE_EMPTY is possible on new screens */
+
+	/* regions */
+	if (do_free) {
+		st = BKE_spacetype_from_id(spacetype);
+		for (ar = sa_dst->regionbase.first; ar; ar = ar->next)
+			BKE_area_region_free(st, ar);
+		BLI_freelistN(&sa_dst->regionbase);
+	}
+	st = BKE_spacetype_from_id(sa_src->spacetype);
+	for (ar = sa_src->regionbase.first; ar; ar = ar->next) {
+		ARegion *newar = BKE_area_region_copy(st, ar);
+		BLI_addtail(&sa_dst->regionbase, newar);
+	}
+}
+
+void ED_area_data_swap(ScrArea *sa_dst, ScrArea *sa_src)
+{
+	sa_dst->headertype = sa_src->headertype;
+	sa_dst->spacetype = sa_src->spacetype;
+	sa_dst->type = sa_src->type;
+	sa_dst->butspacetype = sa_src->butspacetype;
+
+
+	SWAP(ListBase, sa_dst->spacedata, sa_src->spacedata);
+	SWAP(ListBase, sa_dst->regionbase, sa_src->regionbase);
 }
 
 /* *********** Space switching code *********** */
@@ -1436,9 +1431,9 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 	ED_area_exit(C, sa1);
 	ED_area_exit(C, sa2);
 
-	area_copy_data(tmp, sa1, 2);
-	area_copy_data(sa1, sa2, 0);
-	area_copy_data(sa2, tmp, 0);
+	ED_area_data_copy(tmp, sa1, false);
+	ED_area_data_copy(sa1, sa2, true);
+	ED_area_data_copy(sa2, tmp, true);
 	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa1);
 	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa2);
 

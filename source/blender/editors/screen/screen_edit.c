@@ -412,7 +412,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 			sa->v4 = sv2;
 		}
 
-		area_copy_data(newa, sa, 0);
+		ED_area_data_copy(newa, sa, true);
 		
 	}
 	else {
@@ -444,7 +444,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 			sa->v2 = sv2;
 		}
 
-		area_copy_data(newa, sa, 0);
+		ED_area_data_copy(newa, sa, true);
 	}
 	
 	/* remove double vertices en edges */
@@ -525,7 +525,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 		BLI_listbase_clear(&sa->actionzones);
 		BLI_listbase_clear(&sa->handlers);
 		
-		area_copy_data(sa, saf, 0);
+		ED_area_data_copy(sa, saf, true);
 	}
 	
 	/* put at zero (needed?) */
@@ -1840,7 +1840,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 			return NULL;
 		}
 
-		area_copy_data(old, sa, 1);
+		ED_area_data_swap(old, sa);
 		if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
 		old->full = NULL;
 
@@ -1887,7 +1887,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 
 		/* copy area */
 		newa = newa->prev;
-		area_copy_data(newa, sa, 1);
+		ED_area_data_swap(newa, sa);
 		sa->flag |= AREA_TEMP_INFO;
 
 		sa->full = oldscreen;
