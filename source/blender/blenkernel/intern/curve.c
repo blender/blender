@@ -2872,7 +2872,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		/* 2D Curves */
 		for (bl = bev->first; bl; bl = bl->next) {
 			if (bl->nr < 2) {
-				/* do nothing */
+				BevPoint *bevp = (BevPoint *)(bl + 1);
+				unit_qt(bevp->quat);
 			}
 			else if (bl->nr == 2) {   /* 2 pnt, treat separate */
 				make_bevel_list_segment_2D(bl);
@@ -2886,7 +2887,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		/* 3D Curves */
 		for (bl = bev->first; bl; bl = bl->next) {
 			if (bl->nr < 2) {
-				/* do nothing */
+				BevPoint *bevp = (BevPoint *)(bl + 1);
+				unit_qt(bevp->quat);
 			}
 			else if (bl->nr == 2) {   /* 2 pnt, treat separate */
 				make_bevel_list_segment_3D(bl);

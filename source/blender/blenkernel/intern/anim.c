@@ -535,6 +535,9 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 	bevp = bevpfirst;
 	bevpn = bevp + 1;
 	bevplast = bevpfirst + (bl->nr - 1);
+	if (UNLIKELY(bevpn > bevplast)) {
+		bevpn = cycl ? bevpfirst : bevplast;
+	}
 	fp = dist + 1;
 	maxdist = dist + tot;
 	fac = 1.0f / ((float)path->len - 1.0f);
@@ -545,17 +548,23 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 		d = ((float)a) * fac;
 		
 		/* we're looking for location (distance) 'd' in the array */
-		while ((fp < maxdist) && (d >= *fp)) {
-			fp++;
-			if (bevp < bevplast) bevp++;
-			bevpn = bevp + 1;
-			if (UNLIKELY(bevpn > bevplast)) {
-				bevpn = cycl ? bevpfirst : bevplast;
+		if (LIKELY(tot > 0)) {
+			while ((fp < maxdist) && (d >= *fp)) {
+				fp++;
+				if (bevp < bevplast) bevp++;
+				bevpn = bevp + 1;
+				if (UNLIKELY(bevpn > bevplast)) {
+					bevpn = cycl ? bevpfirst : bevplast;
+				}
 			}
+
+			fac1 = (*(fp) - d) / (*(fp) - *(fp - 1));
+			fac2 = 1.0f - fac1;
 		}
-		
-		fac1 = (*(fp) - d) / (*(fp) - *(fp - 1));
-		fac2 = 1.0f - fac1;
+		else {
+			fac1 = 1.0f;
+			fac1 = 0.0f;
+		}
 
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
 		pp->vec[3] = fac1 * bevp->alfa   + fac2 * bevpn->alfa;
