@@ -1188,11 +1188,18 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfr
 	}
 
 	/* Drop strips which are used for effect inputs, we don't want
-	 *them to blend into render stack in any other way than effect
+	 * them to blend into render stack in any other way than effect
 	 * string rendering.
 	 */
 	for (i = 0; i < num_effect_inputs; i++) {
 		seq = effect_inputs[i];
+		/* It's possible that effetc strip would be placed to the same
+		 * 'machine' as it's inputs. We don't want to clear such strips
+		 * from the stack.
+		 */
+		if (seq_arr[seq->machine] && seq_arr[seq->machine]->type & SEQ_TYPE_EFFECT) {
+			continue;
+		}
 		seq_arr[seq->machine] = NULL;
 	}
 
