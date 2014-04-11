@@ -372,9 +372,9 @@ static void walk_navigation_mode_set(bContext *C, WalkInfo *walk, eWalkMethod mo
 }
 
 /**
- * \param ray_distance  Distance to the hit point
+ * \param r_distance  Distance to the hit point
  */
-static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *walk, float dvec[3], float *ray_distance)
+static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *walk, const float dvec[3], float *r_distance)
 {
 	float dummy_dist_px = 0;
 	float ray_normal[3] = {0, 0, -1}; /* down */
@@ -384,22 +384,20 @@ static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *w
 	float dvec_tmp[3];
 	bool ret;
 
-	*ray_distance = TRANSFORM_DIST_MAX_RAY;
+	*r_distance = TRANSFORM_DIST_MAX_RAY;
 
 	copy_v3_v3(ray_start, rv3d->viewinv[3]);
 
-	if (dvec) {
-		mul_v3_v3fl(dvec_tmp, dvec, walk->grid);
-		add_v3_v3(ray_start, dvec_tmp);
-	}
+	mul_v3_v3fl(dvec_tmp, dvec, walk->grid);
+	add_v3_v3(ray_start, dvec_tmp);
 
 	ret = snapObjectsRayEx(CTX_data_scene(C), NULL, NULL, NULL, NULL, SCE_SNAP_MODE_FACE,
 	                       NULL, NULL,
-	                       ray_start, ray_normal, ray_distance,
+	                       ray_start, ray_normal, r_distance,
 	                       NULL, &dummy_dist_px, r_location, r_normal, SNAP_ALL);
 
 	/* artifically scale the distance to the scene size */
-	*ray_distance /= walk->grid;
+	*r_distance /= walk->grid;
 	return ret;
 }
 
@@ -1122,7 +1120,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 			/* Falling or jumping) */
 			if (ELEM(walk->gravity, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
 				float t;
-				float z_old, z_new;
+				float z_cur, z_new;
 				bool ret;
 				float ray_distance, difference = -100.0f;
 
@@ -1132,16 +1130,15 @@ static int walkApply(bContext *C, WalkInfo *walk)
 				/* keep moving if we were moving */
 				copy_v2_v2(dvec, walk->teleport.direction);
 
-				z_old = walk->rv3d->viewinv[3][2];
+				z_cur = walk->rv3d->viewinv[3][2];
 				z_new = walk->teleport.origin[2] - getFreeFallDistance(t) * walk->grid;
 
 				/* jump */
 				z_new += t * walk->speed_jump * walk->grid;
 
-				dvec[2] = z_old - z_new;
-
 				/* duration is the jump duration */
 				if (t > walk->teleport.duration) {
+
 					/* check to see if we are landing */
 					ret = walk_floor_distance_get(C, rv3d, walk, dvec, &ray_distance);
 
@@ -1149,12 +1146,20 @@ static int walkApply(bContext *C, WalkInfo *walk)
 						difference = walk->view_height - ray_distance;
 					}
 
-					if (ray_distance < walk->view_height) {
-						/* quit falling */
+					if (difference > 0.0f) {
+						/* quit falling, lands at "view_height" from the floor */
 						dvec[2] -= difference;
 						walk->gravity = WALK_GRAVITY_STATE_OFF;
 						walk->speed_jump = 0.0f;
 					}
+					else {
+						/* keep falling */
+						dvec[2] = z_cur - z_new;
+					}
+				}
+				else {
+					/* keep going up (jump) */
+					dvec[2] = z_cur - z_new;
 				}
 			}
 
