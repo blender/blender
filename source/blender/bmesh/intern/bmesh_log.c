@@ -316,6 +316,7 @@ static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
 		BMFace *f;
 
 		f = BM_face_create_verts(bm, v, 3, NULL, BM_CREATE_NOP, true);
+		f->head.hflag = lf->hflag;
 		bm_log_face_id_set(log, f, GET_UINT_FROM_POINTER(key));
 	}
 }

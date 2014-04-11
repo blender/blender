@@ -312,6 +312,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 	BLI_assert(BM_face_exists(v_tri, 3, NULL) == false);
 
 	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
+	f->head.hflag = f_example->head.hflag;
 
 	BLI_assert(!BLI_ghash_haskey(bvh->bm_face_to_node, f));
 
@@ -321,6 +322,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 
 		/* mark node for update */
 		bvh->nodes[node_index].flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+		bvh->nodes[node_index].flag &= ~PBVH_FullyHidden;
 
 		/* Log the new face */
 		BM_log_face_added(bvh->bm_log, f);
@@ -540,7 +542,8 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
 	 * should already make the brush move the vertices only 50%, which means
 	 * that topology updates will also happen less frequent, that should be
 	 * enough. */
-	if (check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2)) {
+	if ((check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2)) &&
+	    !(BM_elem_flag_test_bool(e->v1, BM_ELEM_HIDDEN) || BM_elem_flag_test_bool(e->v2, BM_ELEM_HIDDEN))) {
 		pair = BLI_mempool_alloc(eq_ctx->pool);
 		pair[0] = e->v1;
 		pair[1] = e->v2;
@@ -619,7 +622,8 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
 
 		/* Check leaf nodes marked for topology update */
 		if ((node->flag & PBVH_Leaf) &&
-		    (node->flag & PBVH_UpdateTopology))
+		    (node->flag & PBVH_UpdateTopology) &&
+		    !(node->flag & PBVH_FullyHidden))
 		{
 			GSetIterator gs_iter;
 
@@ -658,7 +662,8 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 
 		/* Check leaf nodes marked for topology update */
 		if ((node->flag & PBVH_Leaf) &&
-		    (node->flag & PBVH_UpdateTopology))
+		    (node->flag & PBVH_UpdateTopology) &&
+		    !(node->flag & PBVH_FullyHidden))
 		{
 			GSetIterator gs_iter;
 
