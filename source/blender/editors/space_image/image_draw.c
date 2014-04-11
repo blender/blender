@@ -885,7 +885,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 
 	/* render info */
 	if (ima && show_render)
-		draw_render_info(scene, ima, ar, zoomx, zoomy);
+		draw_render_info(sima->iuser.scene, ima, ar, zoomx, zoomy);
 }
 
 void draw_image_cache(const bContext *C, ARegion *ar)
