@@ -104,7 +104,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, const char *
 	bConstraintTarget *ct;
 	
 	for (curcon = conlist->first; curcon; curcon = curcon->next) {
-		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(curcon);
+		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
 		ListBase targets = {NULL, NULL};
 		
 		/* constraint targets */

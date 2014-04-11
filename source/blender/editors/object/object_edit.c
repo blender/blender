@@ -990,7 +990,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				}
 				else if (event == 22) {
 					/* Copy the constraint channels over */
-					BKE_copy_constraints(&base->object->constraints, &ob->constraints, true);
+					BKE_constraints_copy(&base->object->constraints, &ob->constraints, true);
 					
 					do_depgraph_update = true;
 				}

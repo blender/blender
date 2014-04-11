@@ -230,7 +230,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				     pose_channel = pose_channel->next)
 				{
 					CALLBACK_INVOKE(pose_channel->custom, IDWALK_NOP);
-					BKE_id_loop_constraints(&pose_channel->constraints,
+					BKE_constraints_id_loop(&pose_channel->constraints,
 					                        library_foreach_constraintObjectLooper,
 					                        &data);
 				}
@@ -239,7 +239,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			modifiers_foreachIDLink(object,
 			                        library_foreach_modifiersForeachIDLink,
 			                        &data);
-			BKE_id_loop_constraints(&object->constraints,
+			BKE_constraints_id_loop(&object->constraints,
 			                        library_foreach_constraintObjectLooper,
 			                        &data);
 			break;

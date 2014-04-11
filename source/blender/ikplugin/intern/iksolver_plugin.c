@@ -374,7 +374,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
 		 * strictly speaking, it is a posechannel)
 		 */
-		BKE_get_constraint_target_matrix(scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+		BKE_constraint_target_matrix_get(scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 
 		/* and set and transform goal */
 		mul_m4_m4m4(goal, goalinv, rootmat);
@@ -385,7 +385,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 
 		/* same for pole vector target */
 		if (data->poletar) {
-			BKE_get_constraint_target_matrix(scene, target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+			BKE_constraint_target_matrix_get(scene, target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 
 			if (data->flag & CONSTRAINT_IK_SETANGLE) {
 				/* don't solve IK when we are setting the pole angle */

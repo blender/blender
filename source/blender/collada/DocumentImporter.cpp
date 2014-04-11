@@ -478,7 +478,7 @@ void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
 		std::string name;
 		short* type = 0;
 		et->setData("type", type);
-		BKE_add_ob_constraint(ob, "Test_con", *type);
+		BKE_constraint_add_for_object(ob, "Test_con", *type);
 		
 	}
 }

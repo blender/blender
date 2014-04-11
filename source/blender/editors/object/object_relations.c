@@ -738,12 +738,12 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				bFollowPathConstraint *data;
 				float cmat[4][4], vec[3];
 				
-				con = BKE_add_ob_constraint(ob, "AutoPath", CONSTRAINT_TYPE_FOLLOWPATH);
+				con = BKE_constraint_add_for_object(ob, "AutoPath", CONSTRAINT_TYPE_FOLLOWPATH);
 				
 				data = con->data;
 				data->tar = par;
 				
-				BKE_get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
+				BKE_constraint_target_matrix_get(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
 				sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
 				
 				copy_v3_v3(ob->loc, vec);
@@ -1130,7 +1130,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		for (con = ob->constraints.last; con; con = pcon) {
 			pcon = con->prev;
 			if (ELEM3(con->type, CONSTRAINT_TYPE_TRACKTO, CONSTRAINT_TYPE_LOCKTRACK, CONSTRAINT_TYPE_DAMPTRACK))
-				BKE_remove_constraint(&ob->constraints, con);
+				BKE_constraint_remove(&ob->constraints, con);
 		}
 		
 		if (type == 1)
@@ -1186,7 +1186,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 		{
 			if (ob != obact) {
-				con = BKE_add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_DAMPTRACK);
+				con = BKE_constraint_add_for_object(ob, "AutoTrack", CONSTRAINT_TYPE_DAMPTRACK);
 
 				data = con->data;
 				data->tar = obact;
@@ -1207,7 +1207,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 		{
 			if (ob != obact) {
-				con = BKE_add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
+				con = BKE_constraint_add_for_object(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
 
 				data = con->data;
 				data->tar = obact;
@@ -1229,7 +1229,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 		{
 			if (ob != obact) {
-				con = BKE_add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_LOCKTRACK);
+				con = BKE_constraint_add_for_object(ob, "AutoTrack", CONSTRAINT_TYPE_LOCKTRACK);
 
 				data = con->data;
 				data->tar = obact;

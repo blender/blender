@@ -604,7 +604,7 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 	
 	for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
 		if (copy_constraints) {
-			BKE_copy_constraints(&listb, &pchan->constraints, true);  // BKE_copy_constraints NULLs listb
+			BKE_constraints_copy(&listb, &pchan->constraints, true);  // BKE_constraints_copy NULLs listb
 			pchan->constraints = listb;
 			pchan->mpath = NULL; /* motion paths should not get copied yet... */
 		}
@@ -727,7 +727,7 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 		pchan->mpath = NULL;
 	}
 
-	BKE_free_constraints(&pchan->constraints);
+	BKE_constraints_free(&pchan->constraints);
 	
 	if (pchan->prop) {
 		IDP_FreeProperty(pchan->prop);
@@ -843,7 +843,7 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 	pchan->iklinweight = pchan_from->iklinweight;
 
 	/* constraints */
-	BKE_copy_constraints(&pchan->constraints, &pchan_from->constraints, true);
+	BKE_constraints_copy(&pchan->constraints, &pchan_from->constraints, true);
 
 	/* id-properties */
 	if (pchan->prop) {

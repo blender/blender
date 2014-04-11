@@ -1659,16 +1659,16 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			 *     2. copy proxy-pchan's constraints on-to new
 			 *     3. add extracted local constraints back on top
 			 *
-			 * Note for BKE_copy_constraints: when copying constraints, disable 'do_extern' otherwise
+			 * Note for BKE_constraints_copy: when copying constraints, disable 'do_extern' otherwise
 			 *                                we get the libs direct linked in this blend.
 			 */
-			BKE_extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
-			BKE_copy_constraints(&pchanw.constraints, &pchanp->constraints, false);
+			BKE_constraints_proxylocal_extract(&proxylocal_constraints, &pchan->constraints);
+			BKE_constraints_copy(&pchanw.constraints, &pchanp->constraints, false);
 			BLI_movelisttolist(&pchanw.constraints, &proxylocal_constraints);
 			
 			/* constraints - set target ob pointer to own object */
 			for (con = pchanw.constraints.first; con; con = con->next) {
-				bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
+				bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
@@ -2473,7 +2473,7 @@ void BKE_pose_where_is_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float
 			cob = BKE_constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
 
 			/* Solve PoseChannel's Constraints */
-			BKE_solve_constraints(&pchan->constraints, cob, ctime); /* ctime doesnt alter objects */
+			BKE_constraints_solve(&pchan->constraints, cob, ctime); /* ctime doesnt alter objects */
 
 			/* cleanup after Constraint Solving
 			 * - applies matrix back to pchan, and frees temporary struct used

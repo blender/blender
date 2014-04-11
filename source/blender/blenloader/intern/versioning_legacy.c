@@ -541,7 +541,7 @@ void blo_do_version_old_trackto_to_constraints(Object *ob)
 {
 	/* create new trackto constraint from the relationship */
 	if (ob->track) {
-		bConstraint *con = BKE_add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
+		bConstraint *con = BKE_constraint_add_for_object(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
 		bTrackToConstraint *data = con->data;
 
 		/* copy tracking settings from the object */

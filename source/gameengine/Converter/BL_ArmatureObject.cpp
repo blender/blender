@@ -120,8 +120,8 @@ static void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 		if (copy_constraint) {
 			ListBase listb;
 			// copy all constraint for backward compatibility
-			// BKE_copy_constraints NULLs listb, no need to make extern for this operation.
-			BKE_copy_constraints(&listb, &pchan->constraints, false);
+			// BKE_constraints_copy NULLs listb, no need to make extern for this operation.
+			BKE_constraints_copy(&listb, &pchan->constraints, false);
 			pchan->constraints= listb;
 		}
 		else {
@@ -288,7 +288,7 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 			case CONSTRAINT_TYPE_TRANSFORM:
 			case CONSTRAINT_TYPE_DISTLIMIT:
 			case CONSTRAINT_TYPE_TRANSLIKE:
-				cti = BKE_constraint_get_typeinfo(pcon);
+				cti = BKE_constraint_typeinfo_get(pcon);
 				gametarget = gamesubtarget = NULL;
 				if (cti && cti->get_constraint_targets) {
 					ListBase listb = { NULL, NULL };
