@@ -1299,7 +1299,7 @@ typedef struct Scene {
 /* raytrace structure */
 #define R_RAYSTRUCTURE_AUTO				0
 #define R_RAYSTRUCTURE_OCTREE			1
-#define R_RAYSTRUCTURE_BLIBVH			2
+#define R_RAYSTRUCTURE_BLIBVH			2	/* removed */
 #define R_RAYSTRUCTURE_VBVH				3
 #define R_RAYSTRUCTURE_SIMD_SVBVH		4	/* needs SIMD */
 #define R_RAYSTRUCTURE_SIMD_QBVH		5	/* needs SIMD */

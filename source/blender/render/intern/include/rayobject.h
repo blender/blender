@@ -59,7 +59,6 @@ RayObject *RE_rayobject_octree_create(int ocres, int size);
 RayObject *RE_rayobject_instance_create(RayObject *target, float transform[4][4], void *ob, void *target_ob);
 RayObject *RE_rayobject_empty_create(void);
 
-RayObject *RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
 RayObject *RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
 RayObject *RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_svbvh.c */
 RayObject *RE_rayobject_qbvh_create(int size);		/* raytrace/rayobject_qbvh.c */

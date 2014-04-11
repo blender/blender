@@ -138,6 +138,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 270, 1)) {
+		Scene *sce;
 		Object *ob;
 
 		/* Update Transform constraint (another deg -> rad stuff). */
@@ -150,6 +151,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					do_version_constraints_radians_degrees_270_1(&pchan->constraints);
 				}
+			}
+		}
+
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			if (sce->r.raytrace_structure == R_RAYSTRUCTURE_BLIBVH) {
+				sce->r.raytrace_structure = R_RAYSTRUCTURE_AUTO;
 			}
 		}
 	}
