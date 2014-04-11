@@ -1994,7 +1994,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
 	uiDefBut(block, LABEL, 0, IFACE_("(Gamma Corrected)"), 0, yco - UI_UNIT_Y, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
-	rgb_to_hsv_v(rgba, hsv);
+	ui_rgb_to_color_picker_compat_v(rgb_gamma, hsv);
 
 	picker_new_hide_reveal(block, colormode);
 }
