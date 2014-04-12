@@ -1994,7 +1994,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
 	uiDefBut(block, LABEL, 0, IFACE_("(Gamma Corrected)"), 0, yco - UI_UNIT_Y, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
-	ui_rgb_to_color_picker_compat_v(rgb_gamma, hsv);
+	ui_rgb_to_color_picker_v(rgb_gamma, hsv);
 
 	picker_new_hide_reveal(block, colormode);
 }
@@ -2552,6 +2552,18 @@ void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3])
 			break;
 		default:
 			rgb_to_hsv_compat_v(rgb, r_cp);
+			break;
+	}
+}
+
+void ui_rgb_to_color_picker_v(const float rgb[3], float r_cp[3])
+{
+	switch (U.color_picker_type) {
+		case USER_CP_CIRCLE_HSL:
+			rgb_to_hsl_v(rgb, r_cp);
+			break;
+		default:
+			rgb_to_hsv_v(rgb, r_cp);
 			break;
 	}
 }
