@@ -4603,7 +4603,6 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		/* update last stroke position */
 		ob->sculpt->last_stroke_valid = 1;
 		ED_sculpt_get_average_stroke(ob, ob->sculpt->last_stroke);
-		mul_m4_v3(ob->obmat, ob->sculpt->last_stroke);
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
