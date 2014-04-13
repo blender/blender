@@ -176,9 +176,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 		BM_elem_index_set(self->ele, param); /* set_dirty! */
 
 		/* when setting the index assume its set invalid */
-		if (self->ele->head.htype & (BM_VERT | BM_EDGE | BM_FACE)) {
-			self->bm->elem_index_dirty |= self->ele->head.htype;
-		}
+		self->bm->elem_index_dirty |= self->ele->head.htype;
 
 		return 0;
 	}
@@ -2264,11 +2262,9 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 				index++;
 			}
 
-			if (htype & (BM_VERT | BM_EDGE | BM_FACE)) {
-				/* since this isn't the normal vert/edge/face loops,
-				 * we're setting dirty values here. so tag as dirty. */
-				bm->elem_index_dirty |= htype;
-			}
+			/* since this isn't the normal vert/edge/face loops,
+			 * we're setting dirty values here. so tag as dirty. */
+			bm->elem_index_dirty |= htype;
 
 			break;
 		}

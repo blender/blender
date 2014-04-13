@@ -1006,7 +1006,7 @@ void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, c
 	bm_decim_build_edge_cost(bm, vquadrics, vweights, eheap, eheap_table);
 
 	face_tot_target = bm->totface * factor;
-	bm->elem_index_dirty |= BM_FACE | BM_EDGE | BM_VERT;
+	bm->elem_index_dirty |= BM_FACE | BM_LOOP | BM_EDGE | BM_VERT;
 
 
 #ifdef USE_CUSTOMDATA

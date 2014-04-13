@@ -441,6 +441,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me,
 	}
 
 	bm->elem_index_dirty &= ~BM_FACE; /* added in order, clear dirty flag */
+	bm->elem_index_dirty |= BM_LOOP; /* did not set the loop indices */
 
 	if (me->mselect && me->totselect != 0) {
 

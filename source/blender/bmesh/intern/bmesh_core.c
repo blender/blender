@@ -211,6 +211,8 @@ static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
 	l->prev = NULL;
 	/* --- done --- */
 
+	/* may add to middle of the pool */
+	bm->elem_index_dirty |= BM_LOOP;
 
 	bm->totloop++;
 

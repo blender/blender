@@ -173,7 +173,26 @@ static void emDM_calcNormals(DerivedMesh *dm)
 
 static void emDM_calcLoopNormals(DerivedMesh *dm, const float split_angle)
 {
-	/* Do nothing for now! */
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->em->bm;
+	const float (*vertexCos)[3], (*vertexNos)[3], (*polyNos)[3];
+	float (*loopNos)[3];
+
+	/* calculate loop normals from poly and vertex normals */
+	emDM_ensureVertNormals(bmdm);
+	dm->dirty &= ~DM_DIRTY_NORMALS;
+
+	vertexCos = bmdm->vertexCos;
+	vertexNos = bmdm->vertexNos;
+	polyNos = bmdm->polyNos;
+
+	loopNos = dm->getLoopDataArray(dm, CD_NORMAL);
+	if (!loopNos) {
+		DM_add_loop_layer(dm, CD_NORMAL, CD_CALLOC, NULL);
+		loopNos = dm->getLoopDataArray(dm, CD_NORMAL);
+	}
+
+	BM_loops_calc_normal_vcos(bm, vertexCos, vertexNos, polyNos, split_angle, loopNos);
 }
 
 static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
@@ -1525,6 +1544,31 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 						bmdata = BM_ELEM_CD_GET_VOID_P(looptris[i][j], cd_loop_color_offset);
 						MESH_MLOOPCOL_TO_MCOL(((MLoopCol *)bmdata), (((MCol *)data) + j));
 					}
+				}
+			}
+		}
+	}
+
+	/* Special handling for CD_TESSLOOPNORMAL, we generate it on demand as well. */
+	if (type == CD_TESSLOOPNORMAL) {
+		const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
+
+		if (lnors) {
+			BMLoop *(*looptris)[3] = bmdm->em->looptris;
+			short (*tlnors)[4][3], (*tlnor)[4][3];
+			int index, i, j;
+
+			DM_add_tessface_layer(dm, type, CD_CALLOC, NULL);
+			index = CustomData_get_layer_index(&dm->faceData, type);
+			dm->faceData.layers[index].flag |= CD_FLAG_TEMPORARY;
+
+			tlnor = tlnors = DM_get_tessface_data_layer(dm, type);
+
+			BM_mesh_elem_index_ensure(bm, BM_LOOP);
+
+			for (i = 0; i < bmdm->em->tottri; i++, tlnor++, looptris++) {
+				for (j = 0; j < 3; j++) {
+					normal_float_to_short_v3((*tlnor)[j], lnors[BM_elem_index_get((*looptris)[j])]);
 				}
 			}
 		}

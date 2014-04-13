@@ -500,7 +500,7 @@ void BM_mesh_edgenet(BMesh *bm,
 		BLI_assert(BLI_mempool_count(path_pool) == 0);
 	}
 
-	bm->elem_index_dirty |= BM_FACE;
+	bm->elem_index_dirty |= BM_FACE | BM_LOOP;
 
 	BLI_mempool_destroy(edge_queue_pool);
 	BLI_mempool_destroy(path_pool);

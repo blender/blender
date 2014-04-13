@@ -66,7 +66,7 @@ typedef struct BMHeader {
 	int index; /* notes:
 	            * - Use BM_elem_index_get/set macros for index
 	            * - Uninitialized to -1 so we can easily tell its not set.
-	            * - Used for edge/vert/face, check BMesh.elem_index_dirty for valid index values,
+	            * - Used for edge/vert/face/loop, check BMesh.elem_index_dirty for valid index values,
 	            *   this is abused by various tools which set it dirty.
 	            * - For loops this is used for sorting during tessellation. */
 
@@ -188,9 +188,8 @@ typedef struct BMesh {
 	int totvertsel, totedgesel, totfacesel;
 
 	/* flag index arrays as being dirty so we can check if they are clean and
-	 * avoid looping over the entire vert/edge/face array in those cases.
-	 * valid flags are - BM_VERT | BM_EDGE | BM_FACE.
-	 * BM_LOOP isn't handled so far. */
+	 * avoid looping over the entire vert/edge/face/loop array in those cases.
+	 * valid flags are - BM_VERT | BM_EDGE | BM_FACE | BM_LOOP. */
 	char elem_index_dirty;
 
 	/* flag array table as being dirty so we know when its safe to use it,

@@ -31,6 +31,7 @@
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
 
+#include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -431,6 +432,230 @@ void BM_verts_calc_normal_vcos(BMesh *bm, const float (*fnos)[3], const float (*
 	MEM_freeN(edgevec);
 }
 
+/**
+ * Helpers for #BM_mesh_loop_normals_update and #BM_loops_calc_normals_vnos
+ */
+static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], float split_angle,
+                                    float (*r_lnos)[3])
+{
+	BMIter eiter;
+	BMEdge *e;
+	int i;
+
+	const bool check_angle = (split_angle < (float)M_PI);
+
+	if (check_angle) {
+		split_angle = cosf(split_angle);
+	}
+
+	{
+		char hflag = BM_LOOP;
+		if (vnos)
+			hflag |= BM_VERT;
+		if (fnos)
+			hflag |= BM_FACE;
+		BM_mesh_elem_index_ensure(bm, hflag);
+	}
+
+	/* This first loop checks which edges are actually smooth, and pre-populate lnos with vnos (as if they were
+	 * all smooth).
+	 */
+	BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
+		BMLoop *l_a, *l_b;
+
+		BM_elem_index_set(e, i); /* set_inline */
+		BM_elem_flag_disable(e, BM_ELEM_TAG); /* Clear tag (means edge is sharp). */
+
+		/* An edge with only two loops, might be smooth... */
+		if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+			bool is_angle_smooth = true;
+			if (check_angle) {
+				const float *no_a = fnos ? fnos[BM_elem_index_get(l_b->f)] : l_a->f->no;
+				const float *no_b = fnos ? fnos[BM_elem_index_get(l_b->f)] : l_b->f->no;
+				is_angle_smooth = (dot_v3v3(no_a, no_b) >= split_angle);
+			}
+
+			/* We only tag edges that are *really* smooth... */
+			if (is_angle_smooth &&
+			    BM_elem_flag_test_bool(e, BM_ELEM_SMOOTH) &&
+			    BM_elem_flag_test_bool(l_a->f, BM_ELEM_SMOOTH) &&
+			    BM_elem_flag_test_bool(l_b->f, BM_ELEM_SMOOTH))
+			{
+				const float *no;
+				BM_elem_flag_enable(e, BM_ELEM_TAG);
+
+				/* linked vertices might be fully smooth, copy their normals to loop ones. */
+				no = vnos ? vnos[BM_elem_index_get(l_a->v)] : l_a->v->no;
+				copy_v3_v3(r_lnos[BM_elem_index_get(l_a)], no);
+				no = vnos ? vnos[BM_elem_index_get(l_b->v)] : l_b->v->no;
+				copy_v3_v3(r_lnos[BM_elem_index_get(l_b)], no);
+			}
+		}
+	}
+
+	bm->elem_index_dirty &= ~BM_EDGE;
+}
+
+/* BMesh version of BKE_mesh_normals_loop_split() in mesh_evaluate.c */
+static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const float (*fnos)[3], float (*r_lnos)[3])
+{
+	BMIter fiter;
+	BMFace *f_curr;
+
+	/* Temp normal stack. */
+	BLI_SMALLSTACK_DECLARE(normal, float *);
+
+	{
+		char hflag = BM_LOOP;
+		if (vcos)
+			hflag |= BM_VERT;
+		if (fnos)
+			hflag |= BM_FACE;
+		BM_mesh_elem_index_ensure(bm, hflag);
+	}
+
+	/* We now know edges that can be smoothed (they are tagged), and edges that will be hard (they aren't).
+	 * Now, time to generate the normals.
+	 */
+	BM_ITER_MESH (f_curr, &fiter, bm, BM_FACES_OF_MESH) {
+		BMLoop *l_curr, *l_first;
+
+		l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
+		do {
+			if (BM_elem_flag_test_bool(l_curr->e, BM_ELEM_TAG)) {
+				/* A smooth edge.
+				 * We skip it because it is either:
+				 * - in the middle of a 'smooth fan' already computed (or that will be as soon as we hit
+				 *   one of its ends, i.e. one of its two sharp edges), or...
+				 * - the related vertex is a "full smooth" one, in which case pre-populated normals from vertex
+				 *   are just fine!
+				 */
+			}
+			else if (!BM_elem_flag_test_bool(l_curr->prev->e, BM_ELEM_TAG)) {
+				/* Simple case (both edges around that vertex are sharp in related polygon),
+				 * this vertex just takes its poly normal.
+				 */
+				const float *no = fnos ? fnos[BM_elem_index_get(f_curr)] : f_curr->no;
+				copy_v3_v3(r_lnos[BM_elem_index_get(l_curr)], no);
+			}
+			else {
+				/* We have to fan around current vertex, until we find the other non-smooth edge,
+				 * and accumulate face normals into the vertex!
+				 * Note in case this vertex has only one sharp edge, this is a waste because the normal is the same as
+				 * the vertex normal, but I do not see any easy way to detect that (would need to count number
+				 * of sharp edges per vertex, I doubt the additional memory usage would be worth it, especially as
+				 * it should not be a common case in real-life meshes anyway).
+				 */
+				BMVert *v_pivot = l_curr->v;
+				BMEdge *e_next;
+				BMLoop *lfan_pivot, *lfan_pivot_next;
+				float lnor[3] = {0.0f, 0.0f, 0.0f};
+				float vec_curr[3], vec_next[3];
+
+				const float *co_pivot = vcos ? vcos[BM_elem_index_get(v_pivot)] : v_pivot->co;
+
+				lfan_pivot = l_curr;
+				e_next = lfan_pivot->e;  /* Current edge here, actually! */
+
+				/* Only need to compute previous edge's vector once, then we can just reuse old current one! */
+				{
+					const BMVert *v_2 = BM_edge_other_vert(e_next, v_pivot);
+					const float *co_2 = vcos ? vcos[BM_elem_index_get(v_2)] : v_2->co;
+
+					sub_v3_v3v3(vec_curr, co_2, co_pivot);
+					normalize_v3(vec_curr);
+				}
+
+				while (true) {
+					/* Much simpler than in sibling code with basic Mesh data! */
+					lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
+					BLI_assert(lfan_pivot_next->v == v_pivot);
+
+					/* Compute edge vector.
+					 * NOTE: We could pre-compute those into an array, in the first iteration, instead of computing them
+					 *       twice (or more) here. However, time gained is not worth memory and time lost,
+					 *       given the fact that this code should not be called that much in real-life meshes...
+					 */
+					{
+						const BMVert *v_2 = BM_edge_other_vert(e_next, v_pivot);
+						const float *co_2 = vcos ? vcos[BM_elem_index_get(v_2)] : v_2->co;
+
+						sub_v3_v3v3(vec_next, co_2, co_pivot);
+						normalize_v3(vec_next);
+					}
+
+					{
+						/* Code similar to accumulate_vertex_normals_poly. */
+						/* Calculate angle between the two poly edges incident on this vertex. */
+						const BMFace *f = lfan_pivot->f;
+						const float fac = saacos(dot_v3v3(vec_next, vec_curr));
+						const float *no = fnos ? fnos[BM_elem_index_get(f)] : f->no;
+						/* Accumulate */
+						madd_v3_v3fl(lnor, no, fac);
+					}
+
+					/* We store here a pointer to all loop-normals processed. */
+					BLI_SMALLSTACK_PUSH(normal, (float *)r_lnos[BM_elem_index_get(lfan_pivot)]);
+
+					if (!BM_elem_flag_test_bool(e_next, BM_ELEM_TAG)) {
+						/* Next edge is sharp, we have finished with this fan of faces around this vert! */
+						break;
+					}
+
+					/* Copy next edge vector to current one. */
+					copy_v3_v3(vec_curr, vec_next);
+					/* Next pivot loop to current one. */
+					lfan_pivot = lfan_pivot_next;
+				}
+
+				/* In case we get a zero normal here, just use vertex normal already set! */
+				if (LIKELY(normalize_v3(lnor) != 0.0f)) {
+					/* Copy back the final computed normal into all related loop-normals. */
+					float *nor;
+					while ((nor = BLI_SMALLSTACK_POP(normal))) {
+						copy_v3_v3(nor, lnor);
+					}
+				}
+			}
+		} while ((l_curr = l_curr->next) != l_first);
+	}
+
+	BLI_SMALLSTACK_FREE(normal);
+}
+
+#if 0  /* Unused currently */
+/**
+ * \brief BMesh Compute Loop Normals
+ *
+ * Updates the loop normals of a mesh. Assumes vertex and face normals are valid (else call BM_mesh_normals_update()
+ * first)!
+ */
+void BM_mesh_loop_normals_update(BMesh *bm, const float split_angle, float (*r_lnos)[3])
+{
+	/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
+	bm_mesh_edges_sharp_tag(bm, NULL, NULL, split_angle, r_lnos);
+
+	/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+	bm_mesh_loops_calc_normals(bm, NULL, NULL, r_lnos);
+}
+#endif
+
+/**
+ * \brief BMesh Compute Loop Normals from/to external data.
+ *
+ * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
+ * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
+ */
+void BM_loops_calc_normal_vcos(BMesh *bm, const float (*vcos)[3], const float (*vnos)[3], const float (*fnos)[3],
+                                const float split_angle, float (*r_lnos)[3])
+{
+	/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
+	bm_mesh_edges_sharp_tag(bm, vnos, fnos, split_angle, r_lnos);
+
+	/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+	bm_mesh_loops_calc_normals(bm, vcos, fnos, r_lnos);
+}
+
 static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
 {
 	/* switch multires data out of tangent space */
@@ -585,19 +810,35 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 
 #pragma omp section
 		{
-			if (hflag & BM_FACE) {
-				if (bm->elem_index_dirty & BM_FACE) {
+			if (hflag & (BM_FACE | BM_LOOP)) {
+				if (bm->elem_index_dirty & (BM_FACE | BM_LOOP)) {
 					BMIter iter;
 					BMElem *ele;
 
+					const bool hflag_loop = (hflag & BM_LOOP) && (bm->elem_index_dirty & BM_LOOP);
+
 					int index;
+					int index_loop_start = 0;
 					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, index) {
 						BM_elem_index_set(ele, index); /* set_ok */
+
+						if (hflag_loop) {
+							BMIter liter;
+							BMElem *lele;
+
+							int index_diff;
+							BM_ITER_ELEM_INDEX (lele, &liter, ele, BM_LOOPS_OF_FACE, index_diff) {
+								BM_elem_index_set(lele, index_loop_start + index_diff); /* set_ok */
+							}
+							index_loop_start += index_diff;
+						}
 					}
 					BLI_assert(index == bm->totface);
+					if (hflag & BM_LOOP)
+						BLI_assert(index_loop_start == bm->totloop);
 				}
 				else {
-					// printf("%s: skipping face index calc!\n", __func__);
+					// printf("%s: skipping face/loop index calc!\n", __func__);
 				}
 			}
 		}
@@ -1006,7 +1247,7 @@ void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, un
 			BLI_ghash_insert(fptr_map, (void *)*fap, (void *)new_fap);
 		}
 
-		bm->elem_index_dirty |= BM_FACE;
+		bm->elem_index_dirty |= BM_FACE | BM_LOOP;
 
 		MEM_freeN(faces_pool);
 		MEM_freeN(faces_copy);
