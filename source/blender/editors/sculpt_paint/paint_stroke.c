@@ -47,6 +47,7 @@
 #include "BKE_paint.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
+#include "BKE_image.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -56,6 +57,8 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+
+#include "IMB_imbuf_types.h"
 
 #include "paint_intern.h"
 
@@ -172,6 +175,18 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		copy_v2_v2(ups->tex_mouse, mouse);
 		copy_v2_v2(ups->mask_tex_mouse, mouse);
 		stroke->cached_size_pressure = pressure;
+
+		/* check here if color sampling the main brush should do color conversion. This is done here
+		 * to avoid locking up to get the image buffer during sampling */
+		if (brush->mtex.tex && brush->mtex.tex->type == TEX_IMAGE && brush->mtex.tex->ima) {
+			ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(brush->mtex.tex->ima, &brush->mtex.tex->iuser, NULL);
+			if (tex_ibuf && tex_ibuf->rect_float == NULL) {
+				ups->do_linear_conversion = true;
+				ups->colorspace = tex_ibuf->rect_colorspace;
+			}
+			BKE_image_pool_release_ibuf(brush->mtex.tex->ima, tex_ibuf, NULL);
+		}
+
 		stroke->brush_init = true;
 	}
 

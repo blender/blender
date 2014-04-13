@@ -179,7 +179,7 @@ float paint_get_tex_pixel(MTex *mtex, float u, float v, struct ImagePool *pool, 
 	return intensity;
 }
 
-void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert_to_linear, ImBuf *ibuf)
+void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert_to_linear, struct ColorSpace *colorspace)
 {
 	float co[3] = {u, v, 0.0f};
 	int hasrgb;
@@ -195,7 +195,7 @@ void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct
 	}
 
 	if (convert_to_linear)
-		IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, ibuf->rect_colorspace);
+		IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, colorspace);
 
 	linearrgb_to_srgb_v3_v3(rgba, rgba);
 

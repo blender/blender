@@ -60,6 +60,7 @@ struct Editing;
 struct SceneStats;
 struct bGPdata;
 struct MovieClip;
+struct ColorSpace;
 
 /* ************************************************************* */
 /* Scene Data */
@@ -932,7 +933,9 @@ typedef struct UnifiedPaintSettings {
 
 	float brush_rotation;
 
-	// all this below is used to communicate with the cursor drawing routine
+	/*********************************************************************************
+	 *  all data below are used to communicate with cursor drawing and tex sampling  *
+	 *********************************************************************************/
 	int draw_anchored;
 	int   anchored_size;
 	float anchored_initial_mouse[2];
@@ -949,9 +952,14 @@ typedef struct UnifiedPaintSettings {
 	/* position of mouse, used to sample the mask texture */
 	float mask_tex_mouse[2];
 
+	/* ColorSpace cache to avoid locking up during sampling */
+	int do_linear_conversion;
+	struct ColorSpace *colorspace;
+
 	/* radius of brush, premultiplied with pressure.
 	 * In case of anchored brushes contains that radius */
 	float pixel_radius;
+	int pad2;
 } UnifiedPaintSettings;
 
 typedef enum {

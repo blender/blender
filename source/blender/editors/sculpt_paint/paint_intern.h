@@ -37,7 +37,7 @@ struct bContext;
 struct bglMats;
 struct Brush;
 struct ImagePool;
-struct ImBuf;
+struct ColorSpace;
 struct ListBase;
 struct Mesh;
 struct MTex;
@@ -200,7 +200,7 @@ void paint_calc_redraw_planes(float planes[4][4],
 
 float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
 float paint_get_tex_pixel(struct MTex *mtex, float u, float v, struct ImagePool *pool, int thread);
-void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert, struct ImBuf *ibuf);
+void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert, struct ColorSpace *colorspace);
 
 void paint_sample_color(const struct bContext *C, struct ARegion *ar, int x, int y);
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
