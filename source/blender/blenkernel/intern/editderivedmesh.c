@@ -171,6 +171,11 @@ static void emDM_calcNormals(DerivedMesh *dm)
 	dm->dirty &= ~DM_DIRTY_NORMALS;
 }
 
+static void emDM_calcLoopNormals(DerivedMesh *dm, const float split_angle)
+{
+	/* Do nothing for now! */
+}
+
 static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 {
 	/* do nothing */
@@ -1654,6 +1659,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 	bmdm->dm.getTessFaceDataArray = emDM_getTessFaceDataArray;
 
 	bmdm->dm.calcNormals = emDM_calcNormals;
+	bmdm->dm.calcLoopNormals = emDM_calcLoopNormals;
 	bmdm->dm.recalcTessellation = emDM_recalcTessellation;
 
 	bmdm->dm.foreachMappedVert = emDM_foreachMappedVert;

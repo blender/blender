@@ -1170,6 +1170,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(FreestyleFace), "FreestyleFace", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 39: CD_MLOOPTANGENT */
 	{sizeof(float[4]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 40: CD_TESSLOOPNORMAL */
+	{sizeof(short[4][3]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 /* note, numbers are from trunk and need updating for bmesh */
@@ -1185,7 +1187,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/* 25-29 */ "CDMPoly", "CDMLoop", "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight",
 	/* 30-34 */ "CDSubSurfCrease", "CDOrigSpaceLoop", "CDPreviewLoopCol", "CDBMElemPyPtr", "CDPaintMask",
 	/* 35-36 */ "CDGridPaintMask", "CDMVertSkin",
-	/* 37-38 */ "CDFreestyleEdge", "CDFreestyleFace", "CDMLoopTangent",
+	/* 37-40 */ "CDFreestyleEdge", "CDFreestyleFace", "CDMLoopTangent", "CDTessLoopNormal",
 };
 
 
@@ -1217,9 +1219,9 @@ const CustomDataMask CD_MASK_BMESH =
     CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS |
     CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
     CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
-const CustomDataMask CD_MASK_FACECORNERS =
+const CustomDataMask CD_MASK_FACECORNERS =  /* XXX Not used anywhere! */
     CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
-    CD_MASK_MLOOPCOL;
+    CD_MASK_MLOOPCOL | CD_MASK_NORMAL | CD_MASK_MLOOPTANGENT;
 const CustomDataMask CD_MASK_EVERYTHING =
     CD_MASK_MVERT | CD_MASK_MSTICKY /* DEPRECATED */ | CD_MASK_MDEFORMVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
     CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_NORMAL /* | CD_MASK_POLYINDEX */ | CD_MASK_PROP_FLT |
@@ -1229,7 +1231,9 @@ const CustomDataMask CD_MASK_EVERYTHING =
     CD_MASK_MPOLY | CD_MASK_MLOOP | CD_MASK_SHAPE_KEYINDEX | CD_MASK_SHAPEKEY | CD_MASK_BWEIGHT | CD_MASK_CREASE |
     CD_MASK_ORIGSPACE_MLOOP | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_BM_ELEM_PYPTR |
     /* BMESH ONLY END */
-    CD_MASK_PAINT_MASK | CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
+    CD_MASK_PAINT_MASK | CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN |
+    CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE |
+    CD_MASK_MLOOPTANGENT | CD_MASK_TESSLOOPNORMAL;
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {
@@ -2283,6 +2287,9 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 		else if (fdata->layers[i].type == CD_MDISPS) {
 			CustomData_add_layer_named(ldata, CD_MDISPS, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
 		}
+		else if (fdata->layers[i].type == CD_TESSLOOPNORMAL) {
+			CustomData_add_layer_named(ldata, CD_NORMAL, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
+		}
 	}
 }
 
@@ -2303,6 +2310,9 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 		}
 		else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
 			CustomData_add_layer_named(fdata, CD_ORIGSPACE, CD_CALLOC, NULL, total, ldata->layers[i].name);
+		}
+		else if (ldata->layers[i].type == CD_NORMAL) {
+			CustomData_add_layer_named(fdata, CD_TESSLOOPNORMAL, CD_CALLOC, NULL, total, ldata->layers[i].name);
 		}
 	}
 

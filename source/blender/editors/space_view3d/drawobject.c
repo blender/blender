@@ -2403,6 +2403,48 @@ static int draw_dm_test_freestyle_face_mark(BMesh *bm, BMFace *efa)
 
 #endif
 
+/* Draw loop normals. */
+static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
+{
+	/* XXX Would it be worth adding a dm->foreachMappedLoop func just for this? I doubt it... */
+
+	/* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData, EditDerivedBMesh would
+	 * return loop data from bmesh itself. */
+	float (*lnors)[3] = DM_get_loop_data_layer(dm, CD_NORMAL);
+
+	if (lnors) {
+		drawDMNormal_userData data;
+		MLoop *mloops = dm->getLoopArray(dm);
+		MVert *mverts = dm->getVertArray(dm);
+		int i, totloops = dm->getNumLoops(dm);
+
+		data.bm = em->bm;
+		data.normalsize = scene->toolsettings->normalsize;
+
+		calcDrawDMNormalScale(ob, &data);
+
+		glBegin(GL_LINES);
+		for (i = 0; i < totloops; i++, mloops++, lnors++) {
+			float no[3];
+			float *co = mverts[mloops->v].co;
+
+			if (!data.uniform_scale) {
+				mul_v3_m3v3(no, data.tmat, (float *)lnors);
+				normalize_v3(no);
+				mul_m3_v3(data.imat, no);
+			}
+			else {
+				copy_v3_v3(no,(float *)lnors);
+			}
+			mul_v3_fl(no, data.normalsize);
+			add_v3_v3(no, co);
+			glVertex3fv(co);
+			glVertex3fv(no);
+		}
+		glEnd();
+	}
+}
+
 /* Draw faces with color set based on selection
  * return 2 for the active face so it renders with stipple enabled */
 static DMDrawOption draw_dm_faces_sel__setDrawOptions(void *userData, int index)
@@ -3350,6 +3392,10 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		if (me->drawflag & ME_DRAW_VNORMALS) {
 			UI_ThemeColor(TH_VNORMAL);
 			draw_dm_vert_normals(em, scene, ob, cageDM);
+		}
+		if (me->drawflag & ME_DRAW_LNORMALS) {
+			UI_ThemeColor(TH_VNORMAL);
+			draw_dm_loop_normals(em, scene, ob, cageDM);
 		}
 
 		if ((me->drawflag & (ME_DRAWEXTRA_EDGELEN |

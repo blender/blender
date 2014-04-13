@@ -399,6 +399,11 @@ void DM_ensure_normals(DerivedMesh *dm)
 	BLI_assert((dm->dirty & DM_DIRTY_NORMALS) == 0);
 }
 
+static void DM_calc_loop_normals(DerivedMesh *dm, float split_angle)
+{
+	dm->calcLoopNormals(dm, split_angle);
+}
+
 /* note: until all modifiers can take MPoly's as input,
  * use this at the start of modifiers  */
 void DM_ensure_tessface(DerivedMesh *dm)
@@ -453,7 +458,8 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	if (CustomData_has_layer(fdata, CD_MTFACE) ||
 	    CustomData_has_layer(fdata, CD_MCOL) ||
 	    CustomData_has_layer(fdata, CD_PREVIEW_MCOL) ||
-	    CustomData_has_layer(fdata, CD_ORIGSPACE))
+	    CustomData_has_layer(fdata, CD_ORIGSPACE) ||
+	    CustomData_has_layer(fdata, CD_TESSLOOPNORMAL))
 	{
 		loopindex = MEM_mallocN(sizeof(*loopindex) * totface, __func__);
 
@@ -1471,6 +1477,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	/* XXX Same as above... For now, only weights preview in WPaint mode. */
 	const bool do_mod_wmcol = do_init_wmcol;
 
+	const bool do_loop_normals = (me->flag & ME_AUTOSMOOTH);
+	const float loop_normals_split_angle = me->smoothresh;
+
 	VirtualModifierData virtualModifierData;
 
 	ModifierApplyFlag app_flags = useRenderParams ? MOD_APPLY_RENDER : 0;
@@ -1865,7 +1874,21 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			add_orco_dm(ob, NULL, *deform_r, NULL, CD_ORCO);
 	}
 
-	{
+	if (do_loop_normals) {
+		/* Compute loop normals (note: will compute poly and vert normals as well, if needed!) */
+		DM_calc_loop_normals(finaldm, loop_normals_split_angle);
+
+		if (finaldm->getNumTessFaces(finaldm) == 0) {
+			finaldm->recalcTessellation(finaldm);
+		}
+		/* Even if tessellation is not needed, we have for sure modified loop normals layer! */
+		else {
+			/* A tessellation already exists, it should always have a CD_ORIGINDEX. */
+			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX));
+			DM_update_tessface_data(finaldm);
+		}
+	}
+	else {
 		/* calculating normals can re-calculate tessfaces in some cases */
 #if 0
 		int num_tessface = finaldm->getNumTessFaces(finaldm);
@@ -1982,7 +2005,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	ModifierData *md, *previewmd = NULL;
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask, previewmask = 0, append_mask = 0;
-	DerivedMesh *dm, *orcodm = NULL;
+	DerivedMesh *dm = NULL, *orcodm = NULL;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	CDMaskLink *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
@@ -1998,13 +2021,15 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	const bool do_mod_wmcol = do_init_wmcol;
 	VirtualModifierData virtualModifierData;
 
+	const bool do_loop_normals = (((Mesh *)(ob->data))->flag & ME_AUTOSMOOTH);
+	const float loop_normals_split_angle = ((Mesh *)(ob->data))->smoothresh;
+
 	modifiers_clearErrors(ob);
 
 	if (cage_r && cageIndex == -1) {
 		*cage_r = getEditDerivedBMesh(em, ob, NULL);
 	}
 
-	dm = NULL;
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	/* copied from mesh_calc_modifiers */
@@ -2212,6 +2237,14 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			DM_update_statvis_color(scene, ob, *final_r);
 	}
 
+	if (do_loop_normals) {
+		/* Compute loop normals */
+		DM_calc_loop_normals(*final_r, loop_normals_split_angle);
+		if (cage_r && *cage_r && (*cage_r != *final_r)) {
+			DM_calc_loop_normals(*cage_r, loop_normals_split_angle);
+		}
+	}
+
 	/* --- */
 	/* BMESH_ONLY, ensure tessface's used for drawing,
 	 * but don't recalculate if the last modifier in the stack gives us tessfaces
@@ -2229,8 +2262,10 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	}
 	/* --- */
 
-	/* same as mesh_calc_modifiers */
-	dm_ensure_display_normals(*final_r);
+	/* same as mesh_calc_modifiers (if using loop normals, poly nors have already been computed). */
+	if (!do_loop_normals) {
+		dm_ensure_display_normals(*final_r);
+	}
 
 	/* add an orco layer if needed */
 	if (dataMask & CD_MASK_ORCO)
@@ -2542,7 +2577,8 @@ DMCoNo *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 /* ******************* GLSL ******************** */
 
 typedef struct {
-	float *precomputedFaceNormals;
+	float (*precomputedFaceNormals)[3];
+	short (*precomputedLoopNormals)[4][3];
 	MTFace *mtface;     /* texture coordinates */
 	MFace *mface;       /* indices */
 	MVert *mvert;       /* vertices & normals */
@@ -2594,11 +2630,14 @@ static void GetNormal(const SMikkTSpaceContext *pContext, float r_no[3], const i
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	const bool smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH) != 0;
 
-	const int smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH);
-	if (!smoothnormal) {    // flat
+	if (pMesh->precomputedLoopNormals) {
+		normal_short_to_float_v3(r_no, pMesh->precomputedLoopNormals[face_num][vert_index]);
+	}
+	else if (!smoothnormal) {    // flat
 		if (pMesh->precomputedFaceNormals) {
-			copy_v3_v3(r_no, &pMesh->precomputedFaceNormals[3 * face_num]);
+			copy_v3_v3(r_no, pMesh->precomputedFaceNormals[face_num]);
 		}
 		else {
 			MFace *mf = &pMesh->mface[face_num];
@@ -2638,12 +2677,17 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	MFace *mface;
 	float (*orco)[3] = NULL, (*tangent)[4];
 	int /* totvert, */ totface;
-	float *nors;
+	float (*fnors)[3];
+	short (*tlnors)[4][3];
 
 	if (CustomData_get_layer_index(&dm->faceData, CD_TANGENT) != -1)
 		return;
 
-	nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	fnors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	/* Note, we assume we do have tessellated loop normals at this point (in case it is object-enabled),
+	 * have to check this is valid...
+	 */
+	tlnors = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 
 	/* check we have all the needed layers */
 	/* totvert = dm->getNumVerts(dm); */ /* UNUSED */
@@ -2669,7 +2713,8 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		SMikkTSpaceContext sContext = {NULL};
 		SMikkTSpaceInterface sInterface = {NULL};
 
-		mesh2tangent.precomputedFaceNormals = nors;
+		mesh2tangent.precomputedFaceNormals = fnors;
+		mesh2tangent.precomputedLoopNormals = tlnors;
 		mesh2tangent.mtface = mtface;
 		mesh2tangent.mface = mface;
 		mesh2tangent.mvert = mvert;

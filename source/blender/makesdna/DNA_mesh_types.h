@@ -116,8 +116,9 @@ typedef struct Mesh {
 	float rot[3];
 
 	int drawflag;
-	short texflag, pad2[3];
-	short smoothresh, flag;
+	short texflag, flag;
+	float smoothresh;
+	int pad2;
 
 	/* customdata flag, for bevel-weight and crease, which are now optional */
 	char cd_flag, pad;
@@ -211,6 +212,9 @@ typedef struct TFace {
 
 /* draw stats */
 #define ME_DRAW_STATVIS (1 << 17)
+
+/* draw loop normals */
+#define ME_DRAW_LNORMALS (1 << 18)
 
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0

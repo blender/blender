@@ -100,6 +100,8 @@ void CDDM_calc_normals_mapping(struct DerivedMesh *dm);
 void CDDM_calc_normals(struct DerivedMesh *dm);
 void CDDM_calc_normals_tessface(struct DerivedMesh *dm);
 
+void CDDM_calc_loop_normals(struct DerivedMesh *dm, const float split_angle);
+
 /* calculates edges for a CDDerivedMesh (from face data)
  * this completely replaces the current edge data in the DerivedMesh
  * builds edges from the tessellated face data.

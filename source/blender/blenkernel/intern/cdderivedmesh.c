@@ -1738,6 +1738,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	dm->calcNormals = CDDM_calc_normals;
+	dm->calcLoopNormals = CDDM_calc_loop_normals;
 	dm->recalcTessellation = CDDM_recalc_tessellation;
 
 	dm->getVertCos = cdDM_getVertCos;
@@ -2289,8 +2290,7 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const bool only_face_normals)
 		CustomData_free_layers(&dm->faceData, CD_NORMAL, dm->numTessFaceData);
 	}
 
-
-	face_nors = MEM_mallocN(sizeof(float) * 3 * dm->numTessFaceData, "face_nors");
+	face_nors = MEM_mallocN(sizeof(*face_nors) * dm->numTessFaceData, "face_nors");
 
 	/* calculate face normals */
 	BKE_mesh_calc_normals_mapping_ex(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
@@ -2298,8 +2298,7 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const bool only_face_normals)
 	                                 CustomData_get_layer(&dm->faceData, CD_ORIGINDEX), face_nors,
 	                                 only_face_normals);
 
-	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN,
-	                     face_nors, dm->numTessFaceData);
+	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, face_nors, dm->numTessFaceData);
 
 	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
 }
@@ -2352,6 +2351,48 @@ void CDDM_calc_normals(DerivedMesh *dm)
 }
 
 #endif
+
+void CDDM_calc_loop_normals(DerivedMesh *dm, const float split_angle)
+{
+	MVert *mverts = dm->getVertArray(dm);
+	MEdge *medges = dm->getEdgeArray(dm);
+	MLoop *mloops = dm->getLoopArray(dm);
+	MPoly *mpolys = dm->getPolyArray(dm);
+
+	CustomData *ldata, *pdata;
+
+	float (*lnors)[3];
+	float (*pnors)[3];
+
+	const int numVerts = dm->getNumVerts(dm);
+	const int numEdges = dm->getNumEdges(dm);
+	const int numLoops = dm->getNumLoops(dm);
+	const int numPolys = dm->getNumPolys(dm);
+
+	ldata = dm->getLoopDataLayout(dm);
+	if (CustomData_has_layer(ldata, CD_NORMAL)) {
+		lnors = CustomData_get_layer(ldata, CD_NORMAL);
+	}
+	else {
+		lnors = CustomData_add_layer(ldata, CD_NORMAL, CD_CALLOC, NULL, numLoops);
+	}
+
+	/* Compute poly (always needed) and vert normals. */
+	/* Note we can't use DM_ensure_normals, since it won't keep computed poly nors... */
+	pdata = dm->getPolyDataLayout(dm);
+	pnors = CustomData_get_layer(pdata, CD_NORMAL);
+	if (!pnors) {
+		pnors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, numPolys);
+	}
+	BKE_mesh_calc_normals_poly(mverts, numVerts, mloops, mpolys, numLoops, numPolys, pnors,
+	                           (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
+
+	dm->dirty &= ~DM_DIRTY_NORMALS;
+
+	BKE_mesh_normals_loop_split(mverts, numVerts, medges, numEdges, mloops, lnors, numLoops,
+	                            mpolys, pnors, numPolys, split_angle);
+}
+
 
 void CDDM_calc_normals_tessface(DerivedMesh *dm)
 {

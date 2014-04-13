@@ -26,6 +26,7 @@
  */
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "DNA_freestyle_types.h"
 #include "DNA_linestyle_types.h"
@@ -33,6 +34,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_main.h"
 
@@ -45,6 +47,7 @@ void BLO_update_defaults_startup_blend(Main *main)
 	Scene *scene;
 	SceneRenderLayer *srl;
 	FreestyleLineStyle *linestyle;
+	Mesh *me;
 
 	for (scene = main->scene.first; scene; scene = scene->id.next) {
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
@@ -74,6 +77,10 @@ void BLO_update_defaults_startup_blend(Main *main)
 				}
 			}
 		}
+	}
+
+	for (me = main->mesh.first; me; me = me->id.next) {
+		me->smoothresh = DEG2RADF(180.0f);
 	}
 }
 

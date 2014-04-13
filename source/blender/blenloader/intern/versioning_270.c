@@ -40,11 +40,13 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_sdna_types.h"
 
 #include "DNA_genfile.h"
 
+#include "BLI_math.h"
 
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -158,6 +160,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			if (sce->r.raytrace_structure == R_RAYSTRUCTURE_BLIBVH) {
 				sce->r.raytrace_structure = R_RAYSTRUCTURE_AUTO;
 			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 270, 2)) {
+		Mesh *me;
+
+		/* Mesh smoothresh deg->rad. */
+		for (me = main->mesh.first; me; me = me->id.next) {
+			me->smoothresh = DEG2RADF(me->smoothresh);
 		}
 	}
 }
