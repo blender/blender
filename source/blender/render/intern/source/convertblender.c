@@ -398,21 +398,23 @@ static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[
 	}
 }
 
-static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_tangent, bool do_nmap_tangent)
+static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_vertex_normal, bool do_tangent, bool do_nmap_tangent)
 {
 	int a;
 
 		/* clear all vertex normals */
-	for (a=0; a<obr->totvert; a++) {
-		VertRen *ver= RE_findOrAddVert(obr, a);
-		ver->n[0]=ver->n[1]=ver->n[2]= 0.0f;
+	if (do_vertex_normal) {
+		for (a=0; a<obr->totvert; a++) {
+			VertRen *ver= RE_findOrAddVert(obr, a);
+			ver->n[0]=ver->n[1]=ver->n[2]= 0.0f;
+		}
 	}
 
 		/* calculate cos of angles and point-masses, use as weight factor to
 		 * add face normal to vertex */
 	for (a=0; a<obr->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(obr, a);
-		if (vlr->flag & ME_SMOOTH) {
+		if (do_vertex_normal && vlr->flag & ME_SMOOTH) {
 			float *n4= (vlr->v4)? vlr->v4->n: NULL;
 			float *c4= (vlr->v4)? vlr->v4->co: NULL;
 
@@ -430,7 +432,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_tange
 	for (a=0; a<obr->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 
-		if ((vlr->flag & ME_SMOOTH)==0) {
+		if (do_vertex_normal && (vlr->flag & ME_SMOOTH)==0) {
 			if (is_zero_v3(vlr->v1->n)) copy_v3_v3(vlr->v1->n, vlr->n);
 			if (is_zero_v3(vlr->v2->n)) copy_v3_v3(vlr->v2->n, vlr->n);
 			if (is_zero_v3(vlr->v3->n)) copy_v3_v3(vlr->v3->n, vlr->n);
@@ -494,12 +496,12 @@ typedef struct ASface {
 	VertRen *nver[4];
 } ASface;
 
-static void as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
+static int as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
 {
 	ASface *asf;
-	int a;
+	int a = -1;
 	
-	if (v1 == NULL) return;
+	if (v1 == NULL) return a;
 	
 	if (asv->faces.first==NULL) {
 		asf= MEM_callocN(sizeof(ASface), "asface");
@@ -517,136 +519,129 @@ static void as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
 	
 	/* new face struct */
 	if (a==4) {
+		a = 0;
 		asf= MEM_callocN(sizeof(ASface), "asface");
 		BLI_addtail(&asv->faces, asf);
-		asf->vlr[0]= vlr;
+		asf->vlr[a]= vlr;
 		asv->totface++;
 	}
+
+	return a;
 }
 
-static int as_testvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float thresh)
+static VertRen *as_findvertex_lnor(VlakRen *vlr, VertRen *ver, ASvert *asv, const float lnor[3])
 {
-	/* return 1: vertex needs a copy */
+	/* return when new vertex already was made, or existing one is OK */
 	ASface *asf;
-	float inp;
 	int a;
-	
-	if (vlr == NULL) return 0;
-	
-	asf= asv->faces.first;
-	while (asf) {
-		for (a=0; a<4; a++) {
-			if (asf->vlr[a] && asf->vlr[a]!=vlr) {
-				inp = fabsf(dot_v3v3(vlr->n, asf->vlr[a]->n));
-				if (inp < thresh) return 1;
-			}
-		}
-		asf= asf->next;
+
+	/* First face, we can use existing vert and assign it current lnor! */
+	if (asv->totface == 1) {
+		copy_v3_v3(ver->n, lnor);
+		return ver;
 	}
-	
-	return 0;
-}
 
-static VertRen *as_findvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float thresh)
-{
-	/* return when new vertex already was made */
-	ASface *asf;
-	float inp;
-	int a;
-	
-	asf= asv->faces.first;
+	/* In case existing ver has same normal as current lnor, we can simply use it! */
+	if (equals_v3v3(lnor, ver->n)) {
+		return ver;
+	}
+
+	asf = asv->faces.first;
 	while (asf) {
-		for (a=0; a<4; a++) {
-			if (asf->vlr[a] && asf->vlr[a]!=vlr) {
+		for (a = 0; a < 4; a++) {
+			if (asf->vlr[a] && asf->vlr[a] != vlr) {
 				/* this face already made a copy for this vertex! */
 				if (asf->nver[a]) {
-					inp = fabsf(dot_v3v3(vlr->n, asf->vlr[a]->n));
-					if (inp >= thresh) {
+					if (equals_v3v3(lnor, asf->nver[a]->n)) {
 						return asf->nver[a];
 					}
 				}
 			}
 		}
-		asf= asf->next;
+		asf = asf->next;
 	}
-	
+
 	return NULL;
+}
+
+static void as_addvert_lnor(ObjectRen *obr, ASvert *asv, VertRen *ver, VlakRen *vlr, const short _lnor[3])
+{
+	VertRen *v1;
+	ASface *asf;
+	int asf_idx;
+	float lnor[3];
+
+	normal_short_to_float_v3(lnor, _lnor);
+
+	asf_idx = as_addvert(asv, ver, vlr);
+	if (asf_idx < 0) {
+		return;
+	}
+	asf = asv->faces.last;
+
+	/* already made a new vertex within threshold? */
+	v1 = as_findvertex_lnor(vlr, ver, asv, lnor);
+	if (v1 == NULL) {
+		/* make a new vertex */
+		v1 = RE_vertren_copy(obr, ver);
+		copy_v3_v3(v1->n, lnor);
+	}
+	if (v1 != ver) {
+		asf->nver[asf_idx] = v1;
+		if (vlr->v1 == ver) vlr->v1 = v1;
+		if (vlr->v2 == ver) vlr->v2 = v1;
+		if (vlr->v3 == ver) vlr->v3 = v1;
+		if (vlr->v4 == ver) vlr->v4 = v1;
+	}
 }
 
 /* note; autosmooth happens in object space still, after applying autosmooth we rotate */
 /* note2; actually, when original mesh and displist are equal sized, face normals are from original mesh */
-static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], int degr)
+static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], short (*lnors)[4][3])
 {
-	ASvert *asv, *asverts;
-	ASface *asf;
-	VertRen *ver, *v1;
+	ASvert *asverts;
+	VertRen *ver;
 	VlakRen *vlr;
-	float thresh;
-	int a, b, totvert;
-	
-	if (obr->totvert==0) return;
-	asverts= MEM_callocN(sizeof(ASvert)*obr->totvert, "all smooth verts");
-	
-	thresh= cosf(DEG2RADF((0.5f + (float)degr)));
-	
-	/* step zero: give faces normals of original mesh, if this is provided */
-	
-	
-	/* step one: construct listbase of all vertices and pointers to faces */
-	for (a=0; a<obr->totvlak; a++) {
-		vlr= RE_findOrAddVlak(obr, a);
-		/* skip wire faces */
-		if (vlr->v2 != vlr->v3) {
-			as_addvert(asverts+vlr->v1->index, vlr->v1, vlr);
-			as_addvert(asverts+vlr->v2->index, vlr->v2, vlr);
-			as_addvert(asverts+vlr->v3->index, vlr->v3, vlr);
-			if (vlr->v4)
-				as_addvert(asverts+vlr->v4->index, vlr->v4, vlr);
-		}
-	}
-	
-	totvert= obr->totvert;
-	/* we now test all vertices, when faces have a normal too much different: they get a new vertex */
-	for (a=0, asv=asverts; a<totvert; a++, asv++) {
-		if (asv->totface > 1) {
-			ver= RE_findOrAddVert(obr, a);
+	int a, totvert;
 
-			asf= asv->faces.first;
-			while (asf) {
-				for (b=0; b<4; b++) {
-				
-					/* is there a reason to make a new vertex? */
-					vlr= asf->vlr[b];
-					if ( as_testvertex(vlr, ver, asv, thresh) ) {
-						
-						/* already made a new vertex within threshold? */
-						v1= as_findvertex(vlr, ver, asv, thresh);
-						if (v1==NULL) {
-							/* make a new vertex */
-							v1= RE_vertren_copy(obr, ver);
-						}
-						asf->nver[b]= v1;
-						if (vlr->v1==ver) vlr->v1= v1;
-						if (vlr->v2==ver) vlr->v2= v1;
-						if (vlr->v3==ver) vlr->v3= v1;
-						if (vlr->v4==ver) vlr->v4= v1;
-					}
-				}
-				asf= asf->next;
+	if (obr->totvert == 0)
+		return;
+
+	totvert = obr->totvert;
+	asverts = MEM_callocN(sizeof(ASvert) * totvert, "all smooth verts");
+
+	if (lnors) {
+		/* We construct listbase of all vertices and pointers to faces, and add new verts when needed
+		 * (i.e. when existing ones do not share the same (loop)normal).
+		 */
+		for (a = 0; a < obr->totvlak; a++, lnors++) {
+			vlr = RE_findOrAddVlak(obr, a);
+			/* skip wire faces */
+			if (vlr->v2 != vlr->v3) {
+				as_addvert_lnor(obr, asverts+vlr->v1->index, vlr->v1, vlr, (const short*)lnors[0][0]);
+				as_addvert_lnor(obr, asverts+vlr->v2->index, vlr->v2, vlr, (const short*)lnors[0][1]);
+				as_addvert_lnor(obr, asverts+vlr->v3->index, vlr->v3, vlr, (const short*)lnors[0][2]);
+				if (vlr->v4)
+					as_addvert_lnor(obr, asverts+vlr->v4->index, vlr->v4, vlr, (const short*)lnors[0][3]);
 			}
 		}
 	}
-	
+
 	/* free */
 	for (a=0; a<totvert; a++) {
 		BLI_freelistN(&asverts[a].faces);
 	}
 	MEM_freeN(asverts);
-	
+
 	/* rotate vertices and calculate normal of faces */
 	for (a=0; a<obr->totvert; a++) {
 		ver= RE_findOrAddVert(obr, a);
 		mul_m4_v3(mat, ver->co);
+		if (lnors) {
+			mul_mat3_m4_v3(mat, ver->n);
+			negate_v3(ver->n);
+			normalize_v3(ver->n);
+		}
 	}
 	for (a=0; a<obr->totvlak; a++) {
 		vlr= RE_findOrAddVlak(obr, a);
@@ -1899,7 +1894,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if (path_nbr && (ma->mode_l & MA_TANGENT_STR)==0)
-		calc_vertexnormals(re, obr, 0, 0);
+		calc_vertexnormals(re, obr, 1, 0, 0);
 
 	return 1;
 }
@@ -2009,7 +2004,7 @@ static short test_for_displace(Render *re, Object *ob)
 	return 0;
 }
 
-static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale, float mat[4][4], float imat[3][3])
+static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale)
 {
 	MTFace *tface;
 	short texco= shi->mat->texco;
@@ -2021,15 +2016,6 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	copy_v3_v3(shi->co, vr->co);
 	/* vertex normal is used for textures type 'col' and 'var' */
 	copy_v3_v3(shi->vn, vr->n);
-
-	if (mat)
-		mul_m4_v3(mat, shi->co);
-
-	if (imat) {
-		shi->vn[0] = dot_v3v3(imat[0], vr->n);
-		shi->vn[1] = dot_v3v3(imat[1], vr->n);
-		shi->vn[2] = dot_v3v3(imat[2], vr->n);
-	}
 
 	if (texco & TEXCO_UV) {
 		shi->totuv= 0;
@@ -2083,9 +2069,6 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	displace[0]= shi->displace[0] * scale[0];
 	displace[1]= shi->displace[1] * scale[1];
 	displace[2]= shi->displace[2] * scale[2];
-	
-	if (mat)
-		mul_m3_v3(imat, displace);
 
 	/* 0.5 could become button once?  */
 	vr->co[0] += displace[0]; 
@@ -2108,7 +2091,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	return;
 }
 
-static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale, float mat[4][4], float imat[3][3])
+static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 
@@ -2137,17 +2120,17 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
-		displace_render_vert(re, obr, &shi, vlr->v1, 0,  scale, mat, imat);
+		displace_render_vert(re, obr, &shi, vlr->v1, 0,  scale);
 	
 	if (!vlr->v2->flag)
-		displace_render_vert(re, obr, &shi, vlr->v2, 1, scale, mat, imat);
+		displace_render_vert(re, obr, &shi, vlr->v2, 1, scale);
 
 	if (!vlr->v3->flag)
-		displace_render_vert(re, obr, &shi, vlr->v3, 2, scale, mat, imat);
+		displace_render_vert(re, obr, &shi, vlr->v3, 2, scale);
 
 	if (vlr->v4) {
 		if (!vlr->v4->flag)
-			displace_render_vert(re, obr, &shi, vlr->v4, 3, scale, mat, imat);
+			displace_render_vert(re, obr, &shi, vlr->v4, 3, scale);
 
 		/*	closest in displace value.  This will help smooth edges.   */ 
 		if (fabsf(vlr->v1->accum - vlr->v3->accum) > fabsf(vlr->v2->accum - vlr->v4->accum)) vlr->flag |=  R_DIVIDE_24;
@@ -2163,7 +2146,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	}
 }
 
-static void do_displacement(Render *re, ObjectRen *obr, float mat[4][4], float imat[3][3])
+static void displace(Render *re, ObjectRen *obr)
 {
 	VertRen *vr;
 	VlakRen *vlr;
@@ -2188,11 +2171,11 @@ static void do_displacement(Render *re, ObjectRen *obr, float mat[4][4], float i
 
 	for (i=0; i<obr->totvlak; i++) {
 		vlr=RE_findOrAddVlak(obr, i);
-		displace_render_face(re, obr, vlr, scale, mat, imat);
+		displace_render_face(re, obr, vlr, scale);
 	}
 	
 	/* Recalc vertex normals */
-	calc_vertexnormals(re, obr, 0, 0);
+	calc_vertexnormals(re, obr, 1, 0, 0);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2587,7 +2570,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 		}
 
 		/* Normals */
-		calc_vertexnormals(re, obr, 0, 0);
+		calc_vertexnormals(re, obr, 1, 0, 0);
 	}
 
 }
@@ -3154,10 +3137,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco = NULL;
+	short (*loop_nors)[4][3] = NULL;
 	bool need_orco = false, need_stress = false, need_nmap_tangent = false, need_tangent = false, need_origindex = false;
 	int a, a1, ok, vertofs;
 	int end, totvert = 0;
-	bool do_autosmooth = false;
+	bool do_autosmooth = false, do_displace = false;
 	bool use_original_normals = false;
 	int recalc_normals = 0;	/* false by default */
 	int negative_scale;
@@ -3212,12 +3196,14 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	if (re->flag & R_BAKING && re->r.bake_flag & R_BAKE_VCOL)
 		need_origindex= 1;
 
-	/* check autosmooth and displacement, we then have to skip only-verts optimize */
-	do_autosmooth |= (me->flag & ME_AUTOSMOOTH) != 0;
-	if (do_autosmooth)
-		timeoffset= 0;
-	if (test_for_displace(re, ob ) )
-		timeoffset= 0;
+	/* check autosmooth and displacement, we then have to skip only-verts optimize
+	 * Note: not sure what we want to give higher priority, currently do_displace
+	 *       takes precedence over do_autosmooth.
+	 */
+	do_displace = test_for_displace(re, ob);
+	do_autosmooth = ((me->flag & ME_AUTOSMOOTH) != 0) && !do_displace;
+	if (do_autosmooth || do_displace)
+		timeoffset = 0;
 	
 	mask= CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
 	if (!timeoffset)
@@ -3301,6 +3287,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		}
 		
 		if (!timeoffset) {
+			short (*lnp)[4][3] = NULL;
 #ifdef WITH_FREESTYLE
 			EdgeHash *edge_hash;
 
@@ -3349,6 +3336,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				if (ok) {
 					end= dm->getNumTessFaces(dm);
 					mface= dm->getTessFaceArray(dm);
+					if (!loop_nors && do_autosmooth &&
+					    (dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL) != NULL))
+					{
+						lnp = loop_nors = MEM_mallocN(sizeof(*loop_nors) * end, __func__);
+					}
 #ifdef WITH_FREESTYLE
 					index_mf_to_mpoly= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 					index_mp_to_orig= dm->getPolyDataArray(dm, CD_ORIGINDEX);
@@ -3426,7 +3418,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 								CustomDataLayer *layer;
 								MTFace *mtface, *mtf;
 								MCol *mcol, *mc;
-								int index, mtfn= 0, mcn= 0, mtng=0, vindex;
+								int index, mtfn= 0, mcn= 0, mtng=0, mln = 0, vindex;
 								char *name;
 								int nr_verts = v4!=0 ? 4 : 3;
 
@@ -3459,6 +3451,21 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 												normalize_v3(ftang+vindex*4);
 											}
 										}
+										mtng++;
+									}
+									else if (layer->type == CD_TESSLOOPNORMAL && mln < 1) {
+										if (loop_nors) {
+											const short (*lnors)[4][3] = (const short (*)[4][3])layer->data;
+											for (vindex = 0; vindex < 4; vindex++) {
+												//print_v3("lnors[a][rev_tab[vindex]]", lnors[a][rev_tab[vindex]]);
+												copy_v3_v3_short((short *)lnp[0][vindex], lnors[a][rev_tab[vindex]]);
+												/* If we copy loop normals, we are doing autosmooth, so we are still
+												 * in object space, no need to multiply with mat!
+												 */
+											}
+											lnp++;
+										}
+										mln++;
 									}
 								}
 
@@ -3541,23 +3548,21 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		if (need_stress)
 			calc_edge_stress(re, obr, me);
 
-		if (test_for_displace(re, ob ) ) {
-			recalc_normals= 1;
-			calc_vertexnormals(re, obr, 0, 0);
-			if (do_autosmooth)
-				do_displacement(re, obr, mat, imat);
-			else
-				do_displacement(re, obr, NULL, NULL);
+		if (do_displace) {
+			calc_vertexnormals(re, obr, 1, 0, 0);
+			displace(re, obr);
+			recalc_normals = 0;  /* Already computed by displace! */
 		}
-
-		if (do_autosmooth) {
-			recalc_normals= 1;
-			autosmooth(re, obr, mat, me->smoothresh);
+		else if (do_autosmooth) {
+			recalc_normals = (loop_nors == NULL);  /* Should never happen, but better be safe than sorry. */
+			autosmooth(re, obr, mat, loop_nors);
 		}
 
 		if (recalc_normals!=0 || need_tangent!=0)
-			calc_vertexnormals(re, obr, need_tangent, need_nmap_tangent);
+			calc_vertexnormals(re, obr, recalc_normals, need_tangent, need_nmap_tangent);
 	}
+
+	MEM_SAFE_FREE(loop_nors);
 
 	dm->release(dm);
 }
@@ -4357,7 +4362,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 		 * I will look at means to have autosmooth enabled for all object types
 		 * and have it as general postprocess, like displace */
 		if (ob->type!=OB_MESH && test_for_displace(re, ob))
-			do_displacement(re, obr, NULL, NULL);
+			displace(re, obr);
 	
 		if (!timeoffset) {
 			/* phong normal interpolation can cause error in tracing
