@@ -136,16 +136,24 @@
 } (void)0
 
 /* internal use, no null check */
+#define _BLI_SMALLSTACK_DEL_EX(var_src, var_dst) \
+	(void)((_##var_src##_temp = _##var_src##_stack->next), \
+	       (_##var_src##_stack->next = _##var_dst##_free), \
+	       (_##var_dst##_free = _##var_src##_stack), \
+	       (_##var_src##_stack = _##var_src##_temp)) \
+
 #define _BLI_SMALLSTACK_DEL(var) \
-	(void)((_##var##_temp = _##var##_stack->next), \
-	       (_##var##_stack->next = _##var##_free), \
-	       (_##var##_free = _##var##_stack), \
-	       (_##var##_stack = _##var##_temp)) \
+	_BLI_SMALLSTACK_DEL_EX(var, var) \
 
 /* check for typeof() */
 #define BLI_SMALLSTACK_POP(var) \
 	(_BLI_SMALLSTACK_CAST(var) ((_##var##_stack) ? \
 	(_BLI_SMALLSTACK_DEL(var), (_##var##_free->link)) : NULL))
+
+/* support to put the free-node into another stack */
+#define BLI_SMALLSTACK_POP_EX(var_src, var_dst) \
+	(_BLI_SMALLSTACK_CAST(var_src) ((_##var_src##_stack) ? \
+	(_BLI_SMALLSTACK_DEL_EX(var_src, var_dst), (_##var_dst##_free->link)) : NULL))
 
 /* loop over stack members last-added-first */
 #define BLI_SMALLSTACK_ITER_BEGIN(var, item) \
@@ -157,6 +165,13 @@
 #define BLI_SMALLSTACK_ITER_END \
 		} \
 	} (void)0
+
+#define BLI_SMALLSTACK_SWAP(var_a, var_b) \
+{ \
+	CHECK_TYPE_PAIR(_##var_a##_type, _##var_b##_type); \
+	SWAP(LinkNode *, _##var_a##_stack, _##var_b##_stack); \
+	SWAP(LinkNode *, _##var_a##_free, _##var_b##_free); \
+} (void)0
 
 #define BLI_SMALLSTACK_FREE(var)  { \
 	(void)&(_##var##_type); \
