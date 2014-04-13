@@ -68,6 +68,9 @@
 #include "paint_intern.h"
 #include "uvedit_intern.h"
 
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
+
 #include "UI_view2d.h"
 
 #define MARK_BOUNDARY   1
@@ -185,6 +188,45 @@ static int uv_sculpt_brush_poll(bContext *C)
 	return 0;
 }
 
+static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(customdata))
+{
+#define PX_SIZE_FADE_MAX 12.0f
+#define PX_SIZE_FADE_MIN 4.0f
+
+	Scene *scene = CTX_data_scene(C);
+	//Brush *brush = image_paint_brush(C);
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	Brush *brush = BKE_paint_brush(paint);
+
+	if (paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
+		const float size = (float)BKE_brush_size_get(scene, brush);
+		float alpha = 0.5f;
+
+		/* fade out the brush (cheap trick to work around brush interfering with sampling [#])*/
+		if (size < PX_SIZE_FADE_MIN) {
+			return;
+		}
+		else if (size < PX_SIZE_FADE_MAX) {
+			alpha *= (size - PX_SIZE_FADE_MIN) / (PX_SIZE_FADE_MAX - PX_SIZE_FADE_MIN);
+		}
+
+		glPushMatrix();
+
+		glTranslatef((float)x, (float)y, 0.0f);
+
+		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha);
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
+		glutil_draw_lined_arc(0, (float)(M_PI * 2.0), size, 40);
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+
+		glPopMatrix();
+	}
+#undef PX_SIZE_FADE_MAX
+#undef PX_SIZE_FADE_MIN
+}
+
 
 void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings)
 {
@@ -201,7 +243,7 @@ void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings
 		BKE_paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
 
 		WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
-		                         brush_drawcursor_texpaint_uvsculpt, NULL);
+		                         brush_drawcursor_uvsculpt, NULL);
 	}
 	else {
 		if (settings->uvsculpt)

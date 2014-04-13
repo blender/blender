@@ -941,7 +941,7 @@ typedef struct UnifiedPaintSettings {
 	int stroke_active;
 
 	/* drawing pressure */
-	float pressure_value;
+	float size_pressure_value;
 
 	/* position of mouse, used to sample the texture */
 	float tex_mouse[2];

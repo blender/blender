@@ -2496,11 +2496,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	swap_m4m4(vc->rv3d->persmat, mat);
 
-	{
-		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-		ups->pressure_value = pressure;
-	}
-
 	DAG_id_tag_update(ob->data, 0);
 	ED_region_tag_redraw(vc->ar);
 }
@@ -3015,11 +3010,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		int do_tessface = vpd->use_fast_update;
 		do_shared_vertexcol(me, vpd->mlooptag, vpd->mfacetag, do_tessface);
-	}
-
-	{
-		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-		ups->pressure_value = pressure;
 	}
 
 	ED_region_tag_redraw(vc->ar);

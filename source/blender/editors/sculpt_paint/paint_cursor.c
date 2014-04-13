@@ -597,7 +597,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			/* scale based on tablet pressure */
 			if (primary && ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
 				glTranslatef(0.5f, 0.5f, 0);
-				glScalef(1.0f / ups->pressure_value, 1.0f / ups->pressure_value, 1);
+				glScalef(1.0f / ups->size_pressure_value, 1.0f / ups->size_pressure_value, 1);
 				glTranslatef(-0.5f, -0.5f, 0);
 			}
 
@@ -725,7 +725,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			glPushMatrix();
 			glLoadIdentity();
 			glTranslatef(center[0], center[1], 0);
-			glScalef(ups->pressure_value, ups->pressure_value, 1);
+			glScalef(ups->size_pressure_value, ups->size_pressure_value, 1);
 			glTranslatef(-center[0], -center[1], 0);
 		}
 
@@ -815,7 +815,7 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 
 		/* scale 3D brush radius by pressure */
 		if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush))
-			unprojected_radius *= ups->pressure_value;
+			unprojected_radius *= ups->size_pressure_value;
 
 		/* set cached value in either Brush or UnifiedPaintSettings */
 		BKE_brush_unprojected_radius_set(vc->scene, brush, unprojected_radius);
@@ -910,7 +910,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	/* draw an inner brush */
 	if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush)) {
 		/* inner at full alpha */
-		glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius * ups->pressure_value, 40);
+		glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius * ups->size_pressure_value, 40);
 		/* outer at half alpha */
 		glColor4f(outline_col[0], outline_col[1], outline_col[2], outline_alpha * 0.5f);
 	}

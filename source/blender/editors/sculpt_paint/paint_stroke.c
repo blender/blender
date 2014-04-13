@@ -98,7 +98,7 @@ typedef struct PaintStroke {
 	bool brush_init;
 	float initial_mouse[2];
 	/* cached_pressure stores initial pressure for size pressure influence mainly */
-	float cached_pressure;
+	float cached_size_pressure;
 	/* last pressure will store last pressure value for use in interpolation for space strokes */
 	float last_pressure;
 
@@ -166,22 +166,30 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 	 *      brush coord/pressure/etc.
 	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
 	 *      changing events. We should avoid this after events system re-design */
-	if (paint_supports_dynamic_size(brush, mode) || !stroke->brush_init) {
+	if(!stroke->brush_init) {
 		copy_v2_v2(stroke->initial_mouse, mouse);
+		copy_v2_v2(ups->last_rake, mouse);
 		copy_v2_v2(ups->tex_mouse, mouse);
 		copy_v2_v2(ups->mask_tex_mouse, mouse);
-		stroke->cached_pressure = pressure;
+		stroke->cached_size_pressure = pressure;
+		stroke->brush_init = true;
+	}
+
+	if (paint_supports_dynamic_size(brush, mode)) {
+		copy_v2_v2(ups->tex_mouse, mouse);
+		copy_v2_v2(ups->mask_tex_mouse, mouse);
+		stroke->cached_size_pressure = pressure;
 	}
 
 	/* Truly temporary data that isn't stored in properties */
 
 	ups->stroke_active = true;
-	ups->pressure_value = stroke->cached_pressure;
+	ups->size_pressure_value = stroke->cached_size_pressure;
 
 	ups->pixel_radius = BKE_brush_size_get(scene, brush);
 
 	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, mode)) {
-		ups->pixel_radius *= stroke->cached_pressure;
+		ups->pixel_radius *= stroke->cached_size_pressure;
 	}
 
 	if (paint_supports_dynamic_tex_coords(brush, mode)) {
@@ -251,13 +259,8 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 		ups->draw_anchored = true;
 	}
 	else if (brush->flag & BRUSH_RAKE) {
-		if (!stroke->brush_init)
-			copy_v2_v2(ups->last_rake, mouse);
-		else
-			paint_calculate_rake_rotation(ups, mouse);
+		paint_calculate_rake_rotation(ups, mouse);
 	}
-
-	stroke->brush_init = true;
 }
 
 
