@@ -211,8 +211,10 @@
 } (void)0
 
 
-#define FTOCHAR(val) (char)(((val) <= 0.0f) ? 0 : (((val) > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * (val)) + 0.5f)))
-#define FTOUSHORT(val) ((val >= 1.0f - 0.5f / 65535) ? 65535 : (val <= 0.0f) ? 0 : (unsigned short)(val * 65535.0f + 0.5f))
+#define FTOCHAR(val) ((CHECK_TYPE_INLINE(val, float)), \
+		(char)(((val) <= 0.0f) ? 0 : (((val) > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * (val)) + 0.5f))))
+#define FTOUSHORT(val) ((CHECK_TYPE_INLINE(val, float)), \
+		((val >= 1.0f - 0.5f / 65535) ? 65535 : (val <= 0.0f) ? 0 : (unsigned short)(val * 65535.0f + 0.5f)))
 #define USHORTTOUCHAR(val) ((unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8))
 #define F3TOCHAR3(v2, v1) {                                                   \
 		(v1)[0] = FTOCHAR((v2[0]));                                           \
@@ -260,9 +262,9 @@
 		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (fac);                            \
 } (void)0
 #define VECMADD(v1, v2, v3, v4) {                                             \
-		*(v1) =   *(v2)   + *(v3) * (*(v4));                                     \
-		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (*(v4 + 1));                         \
-		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (*(v4 + 2));                         \
+		*(v1) =   *(v2)   + *(v3) * (*(v4));                                  \
+		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (*(v4 + 1));                      \
+		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (*(v4 + 2));                      \
 } (void)0
 #define VECSUBFAC(v1, v2, v3, fac) {                                          \
 		*(v1) =   *(v2)   - *(v3) * (fac);                                    \

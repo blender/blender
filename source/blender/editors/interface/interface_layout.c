@@ -3021,7 +3021,7 @@ void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
 static void ui_intro_button(DynStr *ds, uiButtonItem *bitem)
 {
 	uiBut *but = bitem->but;
-	BLI_dynstr_appendf(ds, "'type':%d, ", but->type); /* see ~ UI_interface.h:200 */
+	BLI_dynstr_appendf(ds, "'type':%d, ", (int)but->type);
 	BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr);
 	BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");  /* not exactly needed, rna has this */
 

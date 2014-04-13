@@ -543,7 +543,9 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
 	 * that topology updates will also happen less frequent, that should be
 	 * enough. */
 	if ((check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2)) &&
-	    !(BM_elem_flag_test_bool(e->v1, BM_ELEM_HIDDEN) || BM_elem_flag_test_bool(e->v2, BM_ELEM_HIDDEN))) {
+	    !(BM_elem_flag_test_bool(e->v1, BM_ELEM_HIDDEN) ||
+	      BM_elem_flag_test_bool(e->v2, BM_ELEM_HIDDEN)))
+	{
 		pair = BLI_mempool_alloc(eq_ctx->pool);
 		pair[0] = e->v1;
 		pair[1] = e->v2;

@@ -1684,6 +1684,7 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3], bool is
 		}
 		else if (strcmp(bt->str, "Hex: ") == 0) {
 			float rgb_gamma[3];
+			unsigned char rgb_gamma_uchar[3];
 			double intpart;
 			char col[16];
 			
@@ -1700,8 +1701,8 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3], bool is
 			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
 			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
 
-			BLI_snprintf(col, sizeof(col), "%02X%02X%02X",
-			             FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
+			rgb_float_to_uchar(rgb_gamma_uchar, rgb_gamma);
+			BLI_snprintf(col, sizeof(col), "%02X%02X%02X", UNPACK3OP((unsigned int), rgb_gamma_uchar));
 			
 			strcpy(bt->poin, col);
 		}
@@ -1883,6 +1884,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	static char tip[50];
 	static char hexcol[128];
 	float rgb_gamma[3];
+	unsigned char rgb_gamma_uchar[3];
 	float softmin, softmax, hardmin, hardmax, step, precision;
 	float *hsv = ui_block_hsv_get(block);
 	int yco;
@@ -1987,7 +1989,8 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 		rgba[3] = 1.0f;
 	}
 
-	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
+	rgb_float_to_uchar(rgb_gamma_uchar, rgb_gamma);
+	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", UNPACK3OP((unsigned int), rgb_gamma_uchar));
 
 	yco = -3.0f * UI_UNIT_Y;
 	bt = uiDefBut(block, TEX, 0, IFACE_("Hex: "), 0, yco, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));

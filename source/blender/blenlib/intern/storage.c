@@ -361,7 +361,7 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
 			}
 			else {
-				BLI_snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
+				BLI_snprintf(file->owner, sizeof(file->owner), "%u", file->s.st_uid);
 			}
 		}
 #endif
