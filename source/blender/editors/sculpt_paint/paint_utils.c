@@ -49,6 +49,7 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_image.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -57,6 +58,9 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "IMB_colormanagement.h"
+#include "IMB_imbuf_types.h"
 
 #include "RE_shader_ext.h"
 #include "RE_render_ext.h"
@@ -175,7 +179,7 @@ float paint_get_tex_pixel(MTex *mtex, float u, float v, struct ImagePool *pool, 
 	return intensity;
 }
 
-void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread)
+void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert_to_linear, ImBuf *ibuf)
 {
 	float co[3] = {u, v, 0.0f};
 	int hasrgb;
@@ -189,6 +193,12 @@ void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct
 		rgba[2] = intensity;
 		rgba[3] = 1.0f;
 	}
+
+	if (convert_to_linear)
+		IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, ibuf->rect_colorspace);
+
+	linearrgb_to_srgb_v3_v3(rgba, rgba);
+
 	CLAMP(rgba[0], 0.0f, 1.0f);
 	CLAMP(rgba[1], 0.0f, 1.0f);
 	CLAMP(rgba[2], 0.0f, 1.0f);

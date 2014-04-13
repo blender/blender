@@ -54,6 +54,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "IMB_imbuf_types.h"
+
 #include "ED_view3d.h"
 
 #include "paint_intern.h"
@@ -159,6 +161,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 	if (refresh) {
 		struct ImagePool *pool = NULL;
+		bool convert_to_linear = false;
+		ImBuf *tex_ibuf;
 		/* stencil is rotated later */
 		const float rotation = (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) ?
 		                       -mtex->rot : 0;
@@ -218,6 +222,16 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 			thread_num = 0;
 #endif
 
+			if (mtex->tex->type == TEX_IMAGE && mtex->tex->ima) {
+				tex_ibuf = BKE_image_pool_acquire_ibuf(mtex->tex->ima, &mtex->tex->iuser, pool);
+				/* For consistency, sampling always returns color in linear space */
+				if (tex_ibuf && tex_ibuf->rect_float == NULL) {
+					convert_to_linear = true;
+				}
+				BKE_image_pool_release_ibuf(mtex->tex->ima, tex_ibuf, pool);
+			}
+
+
 			for (i = 0; i < size; i++) {
 
 				// largely duplicated from tex_strength
@@ -256,7 +270,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 					if (col) {
 						float rgba[4];
 
-						paint_get_tex_pixel_col(mtex, x, y, rgba, pool, thread_num);
+						paint_get_tex_pixel_col(mtex, x, y, rgba, pool, thread_num, convert_to_linear, tex_ibuf);
 
 						buffer[index * 4]     = rgba[0] * 255;
 						buffer[index * 4 + 1] = rgba[1] * 255;
