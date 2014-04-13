@@ -537,15 +537,8 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 	MVert *mvert = cddm->mvert;
 	MFace *mface = cddm->mface;
 	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int a, glmode = -1, shademodel = -1, matnr = -1, drawCurrentMat = 1;
-
-#define PASSVERT(index) {						\
-	if (shademodel == GL_SMOOTH) {				\
-		short *no = mvert[index].no;			\
-		glNormal3sv(no);						\
-	}											\
-	glVertex3fv(mvert[index].co);				\
-} (void)0
 
 	if (cddm->pbvh && cddm->pbvh_draw) {
 		if (dm->numTessFaceData) {
@@ -567,7 +560,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 
 			new_glmode = mface->v4 ? GL_QUADS : GL_TRIANGLES;
 			new_matnr = mface->mat_nr + 1;
-			new_shademodel = (mface->flag & ME_SMOOTH) ? GL_SMOOTH : GL_FLAT;
+			new_shademodel = (lnors || (mface->flag & ME_SMOOTH)) ? GL_SMOOTH : GL_FLAT;
 			
 			if (new_glmode != glmode || new_matnr != matnr || new_shademodel != shademodel) {
 				glEnd();
@@ -579,7 +572,20 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 			}
 			
 			if (drawCurrentMat) {
-				if (shademodel == GL_FLAT) {
+				if (lnors) {
+					glNormal3sv((const GLshort *)lnors[0][0]);
+					glVertex3fv(mvert[mface->v1].co);
+					glNormal3sv((const GLshort *)lnors[0][1]);
+					glVertex3fv(mvert[mface->v2].co);
+					glNormal3sv((const GLshort *)lnors[0][2]);
+					glVertex3fv(mvert[mface->v3].co);
+					if (mface->v4) {
+						glNormal3sv((const GLshort *)lnors[0][3]);
+						glVertex3fv(mvert[mface->v4].co);
+					}
+					lnors++;
+				}
+				else if (shademodel == GL_FLAT) {
 					if (nors) {
 						glNormal3fv(nors);
 					}
@@ -594,13 +600,24 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 						}
 						glNormal3fv(nor);
 					}
+					glVertex3fv(mvert[mface->v1].co);
+					glVertex3fv(mvert[mface->v2].co);
+					glVertex3fv(mvert[mface->v3].co);
+					if (mface->v4) {
+						glVertex3fv(mvert[mface->v4].co);
+					}
 				}
-
-				PASSVERT(mface->v1);
-				PASSVERT(mface->v2);
-				PASSVERT(mface->v3);
-				if (mface->v4) {
-					PASSVERT(mface->v4);
+				else {  /* shademodel == GL_SMOOTH */
+					glNormal3sv(mvert[mface->v1].no);
+					glVertex3fv(mvert[mface->v1].co);
+					glNormal3sv(mvert[mface->v2].no);
+					glVertex3fv(mvert[mface->v2].co);
+					glNormal3sv(mvert[mface->v3].no);
+					glVertex3fv(mvert[mface->v3].co);
+					if (mface->v4) {
+						glNormal3sv(mvert[mface->v4].no);
+						glVertex3fv(mvert[mface->v4].co);
+					}
 				}
 			}
 
@@ -623,7 +640,6 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		GPU_buffer_unbind();
 	}
 
-#undef PASSVERT
 	glShadeModel(GL_FLAT);
 }
 
@@ -637,6 +653,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MVert *mv = cddm->mvert;
 	MFace *mf = DM_get_tessface_data_layer(dm, CD_MFACE);
 	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	MCol *mcol;
 	int i, orig;
@@ -722,7 +739,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				if (draw_option != DM_DRAW_OPTION_NO_MCOL && mcol)
 					cp = (unsigned char *) &mcol[i * 4];
 
-				if (!(mf->flag & ME_SMOOTH)) {
+				if (!(lnors || (mf->flag & ME_SMOOTH))) {
 					if (nors) {
 						glNormal3fv(nors);
 					}
@@ -742,28 +759,33 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				if (tf) glTexCoord2fv(tf[i].uv[0]);
 				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 				mvert = &mv[mf->v1];
-				if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
+				if (lnors) glNormal3sv((const GLshort *)lnors[0][0]);
+				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
 				glVertex3fv(mvert->co);
-					
+
 				if (tf) glTexCoord2fv(tf[i].uv[1]);
 				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				mvert = &mv[mf->v2];
-				if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
+				if (lnors) glNormal3sv((const GLshort *)lnors[0][1]);
+				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
 				glVertex3fv(mvert->co);
 
 				if (tf) glTexCoord2fv(tf[i].uv[2]);
 				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 				mvert = &mv[mf->v3];
-				if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
+				if (lnors) glNormal3sv((const GLshort *)lnors[0][2]);
+				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
 				glVertex3fv(mvert->co);
 
 				if (mf->v4) {
 					if (tf) glTexCoord2fv(tf[i].uv[3]);
 					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 					mvert = &mv[mf->v4];
-					if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
+					if (lnors) glNormal3sv((const GLshort *)lnors[0][3]);
+					else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
 					glVertex3fv(mvert->co);
 				}
+				if (lnors) lnors++;
 				glEnd();
 			}
 			
@@ -865,6 +887,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	MFace *mf = cddm->mface;
 	MCol *mcol;
 	float *nors = DM_get_tessface_data_layer(dm, CD_NORMAL);
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int colType, useColors = flag & DM_DRAW_USE_COLORS;
 	int i, orig;
 
@@ -895,7 +918,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	if (GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
 		DEBUG_VBO("Using legacy code. cdDM_drawMappedFaces\n");
 		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
-			int drawSmooth = (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mf->flag & ME_SMOOTH);
+			int drawSmooth = ((flag & DM_DRAW_ALWAYS_SMOOTH) || lnors) ? 1 : (mf->flag & ME_SMOOTH);
 			DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
 
 			orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i) : i;
@@ -921,7 +944,24 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 				glShadeModel(GL_SMOOTH);
 				glBegin(mf->v4 ? GL_QUADS : GL_TRIANGLES);
 
-				if (!drawSmooth) {
+				if (lnors) {
+					if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glNormal3sv((const GLshort *)lnors[0][0]);
+					glVertex3fv(mv[mf->v1].co);
+					if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glNormal3sv((const GLshort *)lnors[0][1]);
+					glVertex3fv(mv[mf->v2].co);
+					if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glNormal3sv((const GLshort *)lnors[0][2]);
+					glVertex3fv(mv[mf->v3].co);
+					if (mf->v4) {
+						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glNormal3sv((const GLshort *)lnors[0][3]);
+						glVertex3fv(mv[mf->v4].co);
+					}
+					lnors++;
+				}
+				else if (!drawSmooth) {
 					if (nors) {
 						glNormal3fv(nors);
 					}
@@ -1062,7 +1102,8 @@ static void cdDM_drawMappedFacesTex(DerivedMesh *dm,
 	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
-static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int a, int index, int vert, int smoothnormal)
+static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int a, int index, int vert,
+                                    short (*lnor)[3], int smoothnormal)
 {
 	const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	int b;
@@ -1119,9 +1160,13 @@ static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int 
 	}
 
 	/* vertex normal */
-	if (smoothnormal)
+	if (lnor) {
+		glNormal3sv((const GLshort *)lnor);
+	}
+	else if (smoothnormal) {
 		glNormal3sv(mvert[index].no);
-	
+	}
+
 	/* vertex coordinate */
 	glVertex3fv(mvert[index].co);
 }
@@ -1138,6 +1183,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	MFace *mface = cddm->mface;
 	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int a, b, matnr, new_matnr;
 	bool do_draw;
 	int orig;
@@ -1176,7 +1222,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		glBegin(GL_QUADS);
 
 		for (a = 0; a < dm->numTessFaceData; a++, mface++) {
-			const int smoothnormal = (mface->flag & ME_SMOOTH);
+			const int smoothnormal = lnors || (mface->flag & ME_SMOOTH);
+			short (*ln1)[3] = NULL, (*ln2)[3] = NULL, (*ln3)[3] = NULL, (*ln4)[3] = NULL;
 			new_matnr = mface->mat_nr + 1;
 
 			if (new_matnr != matnr) {
@@ -1222,14 +1269,22 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				}
 			}
 
-			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v1, 0, smoothnormal);
-			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v2, 1, smoothnormal);
-			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, smoothnormal);
+			if (lnors) {
+				ln1 = &lnors[0][0];
+				ln2 = &lnors[0][1];
+				ln3 = &lnors[0][2];
+				ln4 = &lnors[0][3];
+				lnors++;
+			}
+
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v1, 0, ln1, smoothnormal);
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v2, 1, ln2, smoothnormal);
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, ln3, smoothnormal);
 
 			if (mface->v4)
-				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v4, 3, smoothnormal);
+				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v4, 3, ln4, smoothnormal);
 			else
-				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, smoothnormal);
+				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, ln3, smoothnormal);
 		}
 		glEnd();
 	}
@@ -1465,6 +1520,7 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	MVert *mvert = cddm->mvert;
 	MFace *mf = cddm->mface;
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int a, matnr, new_matnr;
 	int orig;
 
@@ -1499,7 +1555,8 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	glBegin(GL_QUADS);
 
 	for (a = 0; a < dm->numTessFaceData; a++, mf++) {
-		const int smoothnormal = (mf->flag & ME_SMOOTH);
+		const int smoothnormal = lnors || (mf->flag & ME_SMOOTH);
+		short (*ln1)[3] = NULL, (*ln2)[3] = NULL, (*ln3)[3] = NULL, (*ln4)[3] = NULL;
 
 		/* material */
 		new_matnr = mf->mat_nr + 1;
@@ -1539,15 +1596,23 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 			}
 		}
 
+		if (lnors) {
+			ln1 = &lnors[0][0];
+			ln2 = &lnors[0][1];
+			ln3 = &lnors[0][2];
+			ln4 = &lnors[0][3];
+			lnors++;
+		}
+
 		/* vertices */
-		cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v1, 0, smoothnormal);
-		cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v2, 1, smoothnormal);
-		cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v3, 2, smoothnormal);
+		cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v1, 0, ln1, smoothnormal);
+		cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v2, 1, ln2, smoothnormal);
+		cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v3, 2, ln3, smoothnormal);
 
 		if (mf->v4)
-			cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v4, 3, smoothnormal);
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v4, 3, ln4, smoothnormal);
 		else
-			cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v3, 2, smoothnormal);
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mf->v3, 2, ln3, smoothnormal);
 	}
 	glEnd();
 

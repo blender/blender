@@ -737,6 +737,7 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 	float f_no[3];
 
 	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	short (*tlnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	MVert *mvert = dm->getVertArray(dm);
 	MFace *f = dm->getTessFaceArray(dm);
 
@@ -747,7 +748,20 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 		start = index[mat_orig_to_new[f->mat_nr]];
 		index[mat_orig_to_new[f->mat_nr]] += f->v4 ? 18 : 9;
 
-		if (smoothnormal) {
+		if (tlnors) {
+			short (*tlnor)[3] = tlnors[i];
+			/* Copy loop normals */
+			normal_short_to_float_v3(&varray[start], tlnor[0]);
+			normal_short_to_float_v3(&varray[start + 3], tlnor[1]);
+			normal_short_to_float_v3(&varray[start + 6], tlnor[2]);
+
+			if (f->v4) {
+				normal_short_to_float_v3(&varray[start + 9], tlnor[2]);
+				normal_short_to_float_v3(&varray[start + 12], tlnor[3]);
+				normal_short_to_float_v3(&varray[start + 15], tlnor[0]);
+			}
+		}
+		else if (smoothnormal) {
 			/* copy vertex normal */
 			normal_short_to_float_v3(&varray[start], mvert[f->v1].no);
 			normal_short_to_float_v3(&varray[start + 3], mvert[f->v2].no);

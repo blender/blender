@@ -1730,7 +1730,9 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int gridSize = ccgSubSurf_getGridSize(ss);
+	int gridFaces = gridSize - 1;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	int step = (fast) ? gridSize - 1 : 1;
 	int i, totface = ccgSubSurf_getNumFaces(ss);
@@ -1754,14 +1756,20 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
 		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 		int new_matnr, new_shademodel;
+		short (*ln)[4][3] = NULL;
 
 		if (faceFlags) {
-			new_shademodel = (faceFlags[index].flag & ME_SMOOTH) ? GL_SMOOTH : GL_FLAT;
+			new_shademodel = (lnors || (faceFlags[index].flag & ME_SMOOTH)) ? GL_SMOOTH : GL_FLAT;
 			new_matnr = faceFlags[index].mat_nr;
 		}
 		else {
 			new_shademodel = GL_SMOOTH;
 			new_matnr = 0;
+		}
+
+		if (lnors) {
+			ln = lnors;
+			lnors += gridFaces * gridFaces * numVerts;
 		}
 
 		if (shademodel != new_shademodel || matnr != new_matnr) {
@@ -1782,8 +1790,31 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 		for (S = 0; S < numVerts; S++) {
 			CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 
-			if (shademodel == GL_SMOOTH) {
-				for (y = 0; y < gridSize - 1; y += step) {
+			if (ln) {
+				/* Can't use quad strips here... */
+				glBegin(GL_QUADS);
+				for (y = 0; y < gridFaces; y += step) {
+					for (x = 0; x < gridFaces; x += step) {
+						float *a = CCG_grid_elem_co(&key, faceGridData, x, y + 0);
+						float *b = CCG_grid_elem_co(&key, faceGridData, x + step, y + 0);
+						float *c = CCG_grid_elem_co(&key, faceGridData, x + step, y + step);
+						float *d = CCG_grid_elem_co(&key, faceGridData, x, y + step);
+
+						glNormal3sv(ln[0][1]);
+						glVertex3fv(d);
+						glNormal3sv(ln[0][2]);
+						glVertex3fv(c);
+						glNormal3sv(ln[0][3]);
+						glVertex3fv(b);
+						glNormal3sv(ln[0][0]);
+						glVertex3fv(a);
+						ln += step;
+					}
+				}
+				glEnd();
+			}
+			else if (shademodel == GL_SMOOTH) {
+				for (y = 0; y < gridFaces; y += step) {
 					glBegin(GL_QUAD_STRIP);
 					for (x = 0; x < gridSize; x += step) {
 						CCGElem *a = CCG_grid_elem(&key, faceGridData, x, y + 0);
@@ -1799,8 +1830,8 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 			}
 			else {
 				glBegin(GL_QUADS);
-				for (y = 0; y < gridSize - 1; y += step) {
-					for (x = 0; x < gridSize - 1; x += step) {
+				for (y = 0; y < gridFaces; y += step) {
+					for (x = 0; x < gridFaces; x += step) {
 						float *a = CCG_grid_elem_co(&key, faceGridData, x, y + 0);
 						float *b = CCG_grid_elem_co(&key, faceGridData, x + step, y + 0);
 						float *c = CCG_grid_elem_co(&key, faceGridData, x + step, y + step);
@@ -1894,6 +1925,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int a, i, do_draw, numVerts, matnr, new_matnr, totface;
 
 	CCG_key_top_level(&key, ss);
@@ -1913,6 +1945,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	totface = ccgSubSurf_getNumFaces(ss);
 	for (a = 0, i = 0; i < totface; i++) {
 		CCGFace *f = ccgdm->faceMap[i].face;
+		short (*ln)[4][3] = NULL;
 		int S, x, y, drawSmooth;
 		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 		int origIndex = ccgDM_getFaceMapIndex(ss, f);
@@ -1920,12 +1953,17 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		numVerts = ccgSubSurf_getFaceNumVerts(f);
 
 		if (faceFlags) {
-			drawSmooth = (faceFlags[index].flag & ME_SMOOTH);
+			drawSmooth = (lnors || (faceFlags[index].flag & ME_SMOOTH));
 			new_matnr = faceFlags[index].mat_nr + 1;
 		}
 		else {
 			drawSmooth = 1;
 			new_matnr = 1;
+		}
+
+		if (lnors) {
+			ln = lnors;
+			lnors += gridFaces * gridFaces * numVerts;
 		}
 
 		if (new_matnr != matnr) {
@@ -1946,7 +1984,35 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 			CCGElem *vda, *vdb;
 
-			if (drawSmooth) {
+			if (ln) {
+				glBegin(GL_QUADS);
+				for (y = 0; y < gridFaces; y++) {
+					for (x = 0; x < gridFaces; x++) {
+						float *aco = CCG_grid_elem_co(&key, faceGridData, x, y);
+						float *bco = CCG_grid_elem_co(&key, faceGridData, x + 1, y);
+						float *cco = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
+						float *dco = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
+
+						PASSATTRIB(0, 1, 1);
+						glNormal3sv(ln[0][1]);
+						glVertex3fv(dco);
+						PASSATTRIB(1, 1, 2);
+						glNormal3sv(ln[0][2]);
+						glVertex3fv(cco);
+						PASSATTRIB(1, 0, 3);
+						glNormal3sv(ln[0][3]);
+						glVertex3fv(bco);
+						PASSATTRIB(0, 0, 0);
+						glNormal3sv(ln[0][0]);
+						glVertex3fv(aco);
+
+						ln++;
+						a++;
+					}
+				}
+				glEnd();
+			}
+			else if (drawSmooth) {
 				for (y = 0; y < gridFaces; y++) {
 					glBegin(GL_QUAD_STRIP);
 					for (x = 0; x < gridFaces; x++) {
@@ -2031,6 +2097,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int a, i, numVerts, matnr, new_matnr, totface;
 
 	CCG_key_top_level(&key, ss);
@@ -2049,6 +2116,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 	totface = ccgSubSurf_getNumFaces(ss);
 	for (a = 0, i = 0; i < totface; i++) {
 		CCGFace *f = ccgdm->faceMap[i].face;
+		short (*ln)[4][3] = NULL;
 		int S, x, y, drawSmooth;
 		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 		int origIndex = ccgDM_getFaceMapIndex(ss, f);
@@ -2057,12 +2125,17 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 
 		/* get flags */
 		if (faceFlags) {
-			drawSmooth = (faceFlags[index].flag & ME_SMOOTH);
+			drawSmooth = (lnors || (faceFlags[index].flag & ME_SMOOTH));
 			new_matnr = faceFlags[index].mat_nr + 1;
 		}
 		else {
 			drawSmooth = 1;
 			new_matnr = 1;
+		}
+
+		if (lnors) {
+			ln = lnors;
+			lnors += gridFaces * gridFaces * numVerts;
 		}
 
 		/* material */
@@ -2083,7 +2156,35 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 			CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 			CCGElem *vda, *vdb;
 
-			if (drawSmooth) {
+			if (ln) {
+				glBegin(GL_QUADS);
+				for (y = 0; y < gridFaces; y++) {
+					for (x = 0; x < gridFaces; x++) {
+						float *aco = CCG_grid_elem_co(&key, faceGridData, x, y + 0);
+						float *bco = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 0);
+						float *cco = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
+						float *dco = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
+
+						PASSATTRIB(0, 1, 1);
+						glNormal3sv(ln[0][1]);
+						glVertex3fv(dco);
+						PASSATTRIB(1, 1, 2);
+						glNormal3sv(ln[0][2]);
+						glVertex3fv(cco);
+						PASSATTRIB(1, 0, 3);
+						glNormal3sv(ln[0][3]);
+						glVertex3fv(bco);
+						PASSATTRIB(0, 0, 0);
+						glNormal3sv(ln[0][0]);
+						glVertex3fv(aco);
+
+						ln++;
+						a++;
+					}
+				}
+				glEnd();
+			}
+			else if (drawSmooth) {
 				for (y = 0; y < gridFaces; y++) {
 					glBegin(GL_QUAD_STRIP);
 					for (x = 0; x < gridFaces; x++) {
@@ -2160,6 +2261,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	CCGKey key;
 	MCol *mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	DMDrawOption draw_option;
 	int i, totface, gridSize = ccgSubSurf_getGridSize(ss);
@@ -2183,10 +2285,11 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		int drawSmooth, index = ccgDM_getFaceMapIndex(ss, f);
 		int origIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 		unsigned char *cp = NULL;
+		short (*ln)[4][3] = NULL;
 		int mat_nr;
 
 		if (faceFlags) {
-			drawSmooth = (faceFlags[origIndex].flag & ME_SMOOTH);
+			drawSmooth = (lnors || (faceFlags[origIndex].flag & ME_SMOOTH));
 			mat_nr = faceFlags[origIndex].mat_nr;
 		}
 		else {
@@ -2201,6 +2304,10 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		else
 			draw_option = GPU_enable_material(mat_nr, NULL) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
 
+		if (lnors) {
+			ln = lnors;
+			lnors += gridFaces * gridFaces * numVerts;
+		}
 
 		if (draw_option == DM_DRAW_OPTION_SKIP) {
 			if (tf) tf += gridFaces * gridFaces * numVerts;
@@ -2219,7 +2326,44 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 			CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 			CCGElem *a, *b;
 
-			if (drawSmooth) {
+			if (ln) {
+				glShadeModel(GL_SMOOTH);
+				glBegin(GL_QUADS);
+				for (y = 0; y < gridFaces; y++) {
+					for (x = 0; x < gridFaces; x++) {
+						float *a_co = CCG_grid_elem_co(&key, faceGridData, x, y + 0);
+						float *b_co = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 0);
+						float *c_co = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
+						float *d_co = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
+
+						if (tf) glTexCoord2fv(tf->uv[1]);
+						if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+						glNormal3sv(ln[0][1]);
+						glVertex3fv(d_co);
+
+						if (tf) glTexCoord2fv(tf->uv[2]);
+						if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+						glNormal3sv(ln[0][2]);
+						glVertex3fv(c_co);
+
+						if (tf) glTexCoord2fv(tf->uv[3]);
+						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glNormal3sv(ln[0][3]);
+						glVertex3fv(b_co);
+
+						if (tf) glTexCoord2fv(tf->uv[0]);
+						if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+						glNormal3sv(ln[0][0]);
+						glVertex3fv(a_co);
+
+						if (tf) tf++;
+						if (cp) cp += 16;
+						ln++;
+					}
+				}
+				glEnd();
+			}
+			else if (drawSmooth) {
 				glShadeModel(GL_SMOOTH);
 				for (y = 0; y < gridFaces; y++) {
 					glBegin(GL_QUAD_STRIP);
@@ -2360,6 +2504,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
 	MCol *mcol = NULL;
+	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int i, gridSize = ccgSubSurf_getGridSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	int useColors = flag & DM_DRAW_USE_COLORS;
@@ -2383,16 +2528,22 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 		int drawSmooth, index = ccgDM_getFaceMapIndex(ss, f);
 		int origIndex;
 		unsigned char *cp = NULL;
+		short (*ln)[4][3] = NULL;
 
 		origIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 
 		if (flag & DM_DRAW_ALWAYS_SMOOTH) drawSmooth = 1;
-		else if (faceFlags) drawSmooth = (faceFlags[origIndex].flag & ME_SMOOTH);
+		else if (faceFlags) drawSmooth = (lnors || (faceFlags[origIndex].flag & ME_SMOOTH));
 		else drawSmooth = 1;
 
 		if (mcol) {
 			cp = (unsigned char *)mcol;
 			mcol += gridFaces * gridFaces * numVerts * 4;
+		}
+
+		if (lnors) {
+			ln = lnors;
+			lnors += gridFaces * gridFaces * numVerts;
 		}
 
 		{
@@ -2415,7 +2566,35 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 				
 				for (S = 0; S < numVerts; S++) {
 					CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
-					if (drawSmooth) {
+					if (ln) {
+						glBegin(GL_QUADS);
+						for (y = 0; y < gridFaces; y++) {
+							for (x = 0; x < gridFaces; x++) {
+								float *a = CCG_grid_elem_co(&key, faceGridData, x, y + 0);
+								float *b = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 0);
+								float *c = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
+								float *d = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
+
+								if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+								glNormal3sv(ln[0][1]);
+								glVertex3fv(d);
+								if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+								glNormal3sv(ln[0][2]);
+								glVertex3fv(c);
+								if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+								glNormal3sv(ln[0][3]);
+								glVertex3fv(b);
+								if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+								glNormal3sv(ln[0][0]);
+								glVertex3fv(a);
+
+								if (cp) cp += 16;
+								ln++;
+							}
+						}
+						glEnd();
+					}
+					else if (drawSmooth) {
 						for (y = 0; y < gridFaces; y++) {
 							CCGElem *a, *b;
 							glBegin(GL_QUAD_STRIP);
