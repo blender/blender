@@ -96,6 +96,14 @@ void Attribute::add(const VoxelAttribute& f)
 		buffer.push_back(data[i]);
 }
 
+void Attribute::add(const char *data)
+{
+	size_t size = data_sizeof();
+
+	for(size_t i = 0; i < size; i++)
+		buffer.push_back(data[i]);
+}
+
 size_t Attribute::data_sizeof() const
 {
 	if(element == ATTR_ELEMENT_VOXEL)

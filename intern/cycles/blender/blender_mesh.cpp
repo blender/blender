@@ -248,6 +248,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	int numverts = b_mesh.vertices.length();
 	int numfaces = b_mesh.tessfaces.length();
 	int numtris = 0;
+	bool use_loop_normals = b_mesh.use_auto_smooth();
 
 	BL::Mesh::vertices_iterator v;
 	BL::Mesh::tessfaces_iterator f;
@@ -271,6 +272,20 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++N)
 		*N = get_float3(v->normal());
 
+	/* create generated coordinates from undeformed coordinates */
+	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
+		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
+
+		float3 loc, size;
+		mesh_texture_space(b_mesh, loc, size);
+
+		float3 *generated = attr->data_float3();
+		size_t i = 0;
+
+		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
+			generated[i++] = get_float3(v->undeformed_co())*size - loc;
+	}
+
 	/* create faces */
 	vector<int> nverts(numfaces);
 	int fi = 0, ti = 0;
@@ -282,6 +297,28 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		int shader = used_shaders[mi];
 		bool smooth = f->use_smooth();
 
+		/* split vertices if normal is different
+		 *
+		 * note all vertex attributes must have been set here so we can split
+		 * and copy attributes in split_vertex without remapping later */
+		if(use_loop_normals) {
+			BL::Array<float, 12> loop_normals = f->split_normals();
+
+			for(int i = 0; i < n; i++) {
+				float3 loop_N = make_float3(loop_normals[i * 3], loop_normals[i * 3 + 1], loop_normals[i * 3 + 2]);
+
+				if(N[vi[i]] != loop_N) {
+					int new_vi = mesh->split_vertex(vi[i]);
+
+					/* set new normal and vertex index */
+					N = attr_N->data_float3();
+					N[new_vi] = loop_N;
+					vi[i] = new_vi;
+				}
+			}
+		}
+
+		/* create triangles */
 		if(n == 4) {
 			if(is_zero(cross(mesh->verts[vi[1]] - mesh->verts[vi[0]], mesh->verts[vi[2]] - mesh->verts[vi[0]])) ||
 				is_zero(cross(mesh->verts[vi[2]] - mesh->verts[vi[0]], mesh->verts[vi[3]] - mesh->verts[vi[0]]))) {
@@ -380,20 +417,6 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				mikk_compute_tangents(b_mesh, *l, mesh, nverts, need_sign, active_render);
 			}
 		}
-	}
-
-	/* create generated coordinates from undeformed coordinates */
-	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
-		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-
-		float3 loc, size;
-		mesh_texture_space(b_mesh, loc, size);
-
-		float3 *generated = attr->data_float3();
-		size_t i = 0;
-
-		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
-			generated[i++] = get_float3(v->undeformed_co())*size - loc;
 	}
 
 	/* for volume objects, create a matrix to transform from object space to

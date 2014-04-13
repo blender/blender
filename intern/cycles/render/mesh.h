@@ -114,6 +114,7 @@ public:
 	void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
 	void add_curve_key(float3 loc, float radius);
 	void add_curve(int first_key, int num_keys, int shader);
+	int split_vertex(int vertex);
 
 	void compute_bounds();
 	void add_face_normals();

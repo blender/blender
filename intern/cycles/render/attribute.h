@@ -82,6 +82,7 @@ public:
 	void add(const float3& f);
 	void add(const Transform& f);
 	void add(const VoxelAttribute& f);
+	void add(const char *data);
 
 	static bool same_storage(TypeDesc a, TypeDesc b);
 	static const char *standard_name(AttributeStandard std);
