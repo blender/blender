@@ -155,15 +155,7 @@ mark_as_advanced(WITH_HEADLESS)
 option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
 mark_as_advanced(WITH_AUDASPACE)
 
-# (unix defaults to OpenMP On)
-if((UNIX AND NOT APPLE) OR (MINGW))
-	set(PLATFORM_DEFAULT ON)
-else()
-	set(PLATFORM_DEFAULT OFF)
-endif()
-option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ${PLATFORM_DEFAULT})
-unset(PLATFORM_DEFAULT)
-
+option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
