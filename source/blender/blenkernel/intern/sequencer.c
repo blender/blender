@@ -1156,7 +1156,7 @@ StripElem *BKE_sequencer_give_stripelem(Sequence *seq, int cfra)
 	return se;
 }
 
-static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfra)
+static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfra, int chanshown)
 {
 	Sequence *seq;
 	Sequence *effect_inputs[MAXSEQ + 1];
@@ -1200,6 +1200,12 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfr
 		if (seq_arr[seq->machine] && seq_arr[seq->machine]->type & SEQ_TYPE_EFFECT) {
 			continue;
 		}
+		/* If we're shown a specified channel, then we want to see the stirps
+		 * which belongs to this machine.
+		 */
+		if (chanshown != 0 && chanshown <= seq->machine) {
+			continue;
+		}
 		seq_arr[seq->machine] = NULL;
 	}
 
@@ -1214,7 +1220,7 @@ int BKE_sequencer_evaluate_frame(Scene *scene, int cfra)
 	if (ed == NULL)
 		return 0;
 
-	return evaluate_seq_frame_gen(seq_arr, ed->seqbasep, cfra);
+	return evaluate_seq_frame_gen(seq_arr, ed->seqbasep, cfra, 0);
 }
 
 static bool video_seq_is_rendered(Sequence *seq)
@@ -1232,7 +1238,7 @@ static int get_shown_sequences(ListBase *seqbasep, int cfra, int chanshown, Sequ
 		return 0;
 	}
 
-	if (evaluate_seq_frame_gen(seq_arr, seqbasep, cfra)) {
+	if (evaluate_seq_frame_gen(seq_arr, seqbasep, cfra, chanshown)) {
 		if (b == 0) {
 			b = MAXSEQ;
 		}
