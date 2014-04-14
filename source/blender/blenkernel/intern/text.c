@@ -2775,23 +2775,21 @@ void txt_unindent(Text *text)
 	}
 
 	while (true) {
-		int i = 0;
-		
-		if (BLI_strncasecmp(text->curl->line, remove, indentlen) == 0) {
+		bool changed = false;
+		if (strncmp(text->curl->line, remove, indentlen) == 0) {
 			if (num == 0)
 				unindented_first = true;
-			while (i < text->curl->len) {
-				text->curl->line[i] = text->curl->line[i + indentlen];
-				i++;
-			}
 			text->curl->len -= indentlen;
+			memmove(text->curl->line, text->curl->line + indentlen, text->curl->len + 1);
+			changed = true;
 		}
 	
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
 		if (text->curl == text->sell) {
-			if (i > 0) text->selc = MAX2(text->selc - indentlen, 0);
+			if (changed)
+				text->selc = MAX2(text->selc - indentlen, 0);
 			break;
 		}
 		else {
@@ -2801,7 +2799,8 @@ void txt_unindent(Text *text)
 		
 	}
 
-	if (unindented_first) text->curc = MAX2(text->curc - indentlen, 0);
+	if (unindented_first)
+		text->curc = MAX2(text->curc - indentlen, 0);
 
 	while (num > 0) {
 		text->curl = text->curl->prev;
