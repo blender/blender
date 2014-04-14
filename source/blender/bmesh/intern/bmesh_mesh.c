@@ -570,7 +570,13 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 				while (true) {
 					/* Much simpler than in sibling code with basic Mesh data! */
 					lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
-					BLI_assert(lfan_pivot_next->v == v_pivot);
+					if (lfan_pivot_next) {
+						BLI_assert(lfan_pivot_next->v == v_pivot);
+					}
+					else {
+						/* next edge is non-manifold, we have to find it ourselves! */
+						e_next = (lfan_pivot->e == e_next) ? lfan_pivot->prev->e : lfan_pivot->e;
+					}
 
 					/* Compute edge vector.
 					 * NOTE: We could pre-compute those into an array, in the first iteration, instead of computing them
