@@ -50,7 +50,7 @@ Session::Session(const SessionParams& params_)
 
 	device = Device::create(params.device, stats, params.background);
 
-	if(params.background) {
+	if(params.background && params.output_path.empty()) {
 		buffers = NULL;
 		display = NULL;
 	}
