@@ -2320,10 +2320,11 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	}
 }
 
-/* returns color in SRGB */
-/* matching ED_space_node_color_sample() */
-bool ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], float r_col[3])
+/* Returns color in the display space, matching ED_space_node_color_sample(). */
+bool ED_space_image_color_sample(Scene *scene, SpaceImage *sima, ARegion *ar, int mval[2], float r_col[3])
 {
+	const char *display_device = scene->display_settings.display_device;
+	struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 	float fx, fy;
@@ -2346,14 +2347,19 @@ bool ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], flo
 
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
-			linearrgb_to_srgb_v3_v3(r_col, fp);
+			copy_v3_v3(r_col, fp);
 			ret = true;
 		}
 		else if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 			rgb_uchar_to_float(r_col, cp);
+			IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
 			ret = true;
 		}
+	}
+
+	if (ret) {
+		IMB_colormanagement_scene_linear_to_display_v3(r_col, display);
 	}
 
 	ED_space_image_release_buffer(sima, ibuf, lock);

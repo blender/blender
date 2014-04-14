@@ -149,7 +149,7 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};
 
-					if (ED_space_image_color_sample(sima, ar, mval, r_col)) {
+					if (ED_space_image_color_sample(CTX_data_scene(C), sima, ar, mval, r_col)) {
 						return;
 					}
 				}
@@ -161,7 +161,7 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};
 
-					if (ED_space_node_color_sample(snode, ar, mval, r_col)) {
+					if (ED_space_node_color_sample(CTX_data_scene(C), snode, ar, mval, r_col)) {
 						return;
 					}
 				}
@@ -173,7 +173,7 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};
 
-					if (ED_space_clip_color_sample(sc, ar, mval, r_col)) {
+					if (ED_space_clip_color_sample(CTX_data_scene(C), sc, ar, mval, r_col)) {
 						return;
 					}
 				}
