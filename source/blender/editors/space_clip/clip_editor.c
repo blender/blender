@@ -295,6 +295,7 @@ bool ED_space_clip_color_sample(Scene *scene, SpaceClip *sc, ARegion *ar, int mv
 		}
 		else if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+			rgb_uchar_to_float(r_col, cp);
 			IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
 			ret = true;
 		}
