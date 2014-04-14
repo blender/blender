@@ -556,28 +556,6 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
         layout.prop(cdata, "dicing_rate")
 
 
-class Cycles_PT_mesh_normals(CyclesButtonsPanel, Panel):
-    bl_label = "Normals"
-    bl_context = "data"
-
-    @classmethod
-    def poll(cls, context):
-        return CyclesButtonsPanel.poll(context) and context.mesh
-
-    def draw(self, context):
-        layout = self.layout
-
-        mesh = context.mesh
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(mesh, "show_double_sided")
-
-        col = split.column()
-        col.label()
-
-
 class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
     bl_label = "Motion Blur"
     bl_context = "object"
@@ -1356,6 +1334,7 @@ def get_panels():
         "DATA_PT_context_camera",
         "DATA_PT_context_lamp",
         "DATA_PT_context_speaker",
+        "DATA_PT_normals",
         "DATA_PT_texture_space",
         "DATA_PT_curve_texture_space",
         "DATA_PT_mball_texture_space",
