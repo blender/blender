@@ -295,7 +295,12 @@ void MemoryBuffer::readEWA(float result[4], const float uv[2], const float deriv
 		zero_v4(result);
 		return;
 	}
-	/* TODO(sergey): Consider clamping u1/v1/u2/v2 to the m_rect. */
+
+	/* Clamp sampling rectagle to the buffer dimensions. */
+	u1 = max_ii(u1, m_rect.xmin);
+	u2 = min_ii(u2, m_rect.xmax);
+	v1 = max_ii(v1, m_rect.ymin);
+	v2 = min_ii(v2, m_rect.ymax);
 
 	float DDQ = 2.0f * A;
 	float U = u1 - U0;
