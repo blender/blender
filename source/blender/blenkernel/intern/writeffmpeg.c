@@ -1438,20 +1438,26 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 		BKE_ffmpeg_property_add_string(rd, "video", "bf:3");
 		BKE_ffmpeg_property_add_string(rd, "video", "refs:2");
 		BKE_ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
-		BKE_ffmpeg_property_add_string(rd, "video", "directpred:3");  // Deprecated.
 
 		BKE_ffmpeg_property_add_string(rd, "video", "trellis:0");
-		BKE_ffmpeg_property_add_string(rd, "video", "flags2:wpred");  // Deprecated.
 		BKE_ffmpeg_property_add_string(rd, "video", "weightb:1");
-		BKE_ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");  // Deprecated.
+#ifdef FFMPEG_HAVE_DEPRECATED_FLAGS2
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");
+		BKE_ffmpeg_property_add_string(rd, "video", "directpred:3");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:wpred");
+#else
 		BKE_ffmpeg_property_add_string(rd, "video", "8x8dct:1");
-		BKE_ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");  // Deprecated.
 		BKE_ffmpeg_property_add_string(rd, "video", "fast-pskip:1");
 		BKE_ffmpeg_property_add_string(rd, "video", "wpredp:2");
+#endif
 
 		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT) {
-			BKE_ffmpeg_property_add_string(rd, "video", "cqp:0");  // Deprecated.
+#ifdef FFMPEG_HAVE_DEPRECATED_FLAGS2
+			BKE_ffmpeg_property_add_string(rd, "video", "cqp:0");
+#else
 			BKE_ffmpeg_property_add_string(rd, "video", "qp:0");
+#endif
 		}
 	}
 	else if (codec_id == AV_CODEC_ID_DNXHD) {

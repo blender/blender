@@ -442,4 +442,8 @@ AVRational av_get_r_frame_rate_compat(const AVStream *stream)
 #  define AV_OPT_SEARCH_FAKE_OBJ 0
 #endif
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 59, 100)
+#  define FFMPEG_HAVE_DEPRECATED_FLAGS2
+#endif
+
 #endif
