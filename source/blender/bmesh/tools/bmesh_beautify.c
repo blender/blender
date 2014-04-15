@@ -133,10 +133,11 @@ static float bm_edge_calc_rotate_beauty__area(
 	/* not a loop (only to be able to break out) */
 	do {
 		float v1_xy[2], v2_xy[2], v3_xy[2], v4_xy[2];
+		bool is_zero_a, is_zero_b;
 
 		/* first get the 2d values */
 		{
-			bool is_zero_a, is_zero_b;
+			float no_a[3], no_b[3];
 			float no[3];
 			float axis_mat[3][3];
 
@@ -146,23 +147,20 @@ static float bm_edge_calc_rotate_beauty__area(
 			           (ELEM3(v3, v1, v2, v4) == false) &&
 			           (ELEM3(v4, v1, v2, v3) == false));
 
-			is_zero_a = area_tri_v3(v2, v3, v4) <= FLT_EPSILON;
-			is_zero_b = area_tri_v3(v2, v4, v1) <= FLT_EPSILON;
+			is_zero_a = (normal_tri_v3(no_a, v2, v3, v4) <= FLT_EPSILON);
+			is_zero_b = (normal_tri_v3(no_b, v2, v4, v1) <= FLT_EPSILON);
 
 			if (LIKELY(is_zero_a == false && is_zero_b == false)) {
-				float no_a[3], no_b[3];
-				normal_tri_v3(no_a, v2, v3, v4);  /* a */
-				normal_tri_v3(no_b, v2, v4, v1);  /* b */
 				add_v3_v3v3(no, no_a, no_b);
 				if (UNLIKELY(normalize_v3(no) <= FLT_EPSILON)) {
 					break;
 				}
 			}
 			else if (is_zero_a == false) {
-				normal_tri_v3(no, v2, v3, v4);  /* a */
+				copy_v3_v3(no, no_a);
 			}
 			else if (is_zero_b == false) {
-				normal_tri_v3(no, v2, v4, v1);  /* b */
+				copy_v3_v3(no, no_b);
 			}
 			else {
 				/* both zero area, no useful normal can be calculated */
@@ -180,7 +178,32 @@ static float bm_edge_calc_rotate_beauty__area(
 
 		// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
 
-		if (is_quad_convex_v2(v1_xy, v2_xy, v3_xy, v4_xy)) {
+		if (is_zero_a == false && is_zero_b == false) {
+			/* both tri's are valid, check we make a concave quad */
+			if (!is_quad_convex_v2(v1_xy, v2_xy, v3_xy, v4_xy)) {
+				break;
+			}
+		}
+		else {
+			/* one of the tri's was degenerate, chech we're not rotating
+			 * into a different degenerate shape or flipping the face */
+			float area_a, area_b;
+
+			area_a = area_tri_signed_v2(v1_xy, v2_xy, v3_xy);
+			area_b = area_tri_signed_v2(v1_xy, v3_xy, v4_xy);
+
+			if ((fabsf(area_a) <= FLT_EPSILON) || (fabsf(area_b) <= FLT_EPSILON)) {
+				/* one of the new rotations is degenerate */
+				break;
+			}
+
+			if ((area_a >= 0.0f) != (area_b >= 0.0f)) {
+				/* rotation would cause flipping */
+				break;
+			}
+		}
+
+		{
 			/* testing rule: the area divided by the perimeter,
 			 * check if (1-3) beats the existing (2-4) edge rotation */
 			float area_a, area_b;
@@ -249,7 +272,8 @@ static float bm_edge_calc_rotate_beauty__angle(
 }
 
 float BM_verts_calc_rotate_beauty(
-const BMVert *v1, const BMVert *v2, const BMVert *v3, const BMVert *v4, const short flag, const short method)
+        const BMVert *v1, const BMVert *v2, const BMVert *v3, const BMVert *v4,
+        const short flag, const short method)
 {
 	/* not a loop (only to be able to break out) */
 	do {
