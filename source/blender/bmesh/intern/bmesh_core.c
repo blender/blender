@@ -677,6 +677,7 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
 static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 {
 	bm->totloop--;
+	bm->elem_index_dirty |= BM_LOOP;
 	if (l->head.data)
 		CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
 
