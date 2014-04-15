@@ -679,6 +679,19 @@ int BLI_ghashutil_ptrcmp(const void *a, const void *b)
 		return (a < b) ? -1 : 1;
 }
 
+unsigned int BLI_ghashutil_uinthash_v4(const unsigned int key[4])
+{
+	unsigned int hash;
+	hash  = key[0];
+	hash *= 37;
+	hash += key[1];
+	hash *= 37;
+	hash += key[2];
+	hash *= 37;
+	hash += key[3];
+	return hash;
+}
+
 unsigned int BLI_ghashutil_uinthash(unsigned int key)
 {
 	key += ~(key << 16);

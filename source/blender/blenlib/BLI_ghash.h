@@ -132,6 +132,12 @@ int             BLI_ghashutil_strcmp(const void *a, const void *b);
                 CHECK_TYPE_INLINE(key, int), \
                 BLI_ghashutil_uinthash((unsigned int)key))
 unsigned int    BLI_ghashutil_uinthash(unsigned int key);
+#define         BLI_ghashutil_inthash_v4(key) ( \
+                CHECK_TYPE_INLINE(key, int *), \
+                BLI_ghashutil_uinthash_v4((const unsigned int *)key))
+unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
+#define         BLI_ghashutil_inthash_v4_p \
+   ((GSetHashFP)BLI_ghashutil_uinthash_v4)
 unsigned int    BLI_ghashutil_inthash_p(const void *ptr);
 int             BLI_ghashutil_intcmp(const void *a, const void *b);
 

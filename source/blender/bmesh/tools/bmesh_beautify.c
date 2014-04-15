@@ -59,16 +59,14 @@ typedef struct EdRotState {
 	int f1, f2; /*	face vert, small -> large */
 } EdRotState;
 
+#if 0
+/* use BLI_ghashutil_inthash_v4 direct */
 static unsigned int erot_gsetutil_hash(const void *ptr)
 {
 	const EdRotState *e_state = (const EdRotState *)ptr;
-	unsigned int hash;
-	hash  = BLI_ghashutil_inthash(e_state->v1);
-	hash ^= BLI_ghashutil_inthash(e_state->v2);
-	hash ^= BLI_ghashutil_inthash(e_state->f1);
-	hash ^= BLI_ghashutil_inthash(e_state->f2);
-	return hash;
+	return BLI_ghashutil_inthash_v4(&e_state->v1);
 }
+#endif
 static int erot_gsetutil_cmp(const void *a, const void *b)
 {
 	const EdRotState *e_state_a = (const EdRotState *)a;
@@ -86,7 +84,7 @@ static int erot_gsetutil_cmp(const void *a, const void *b)
 
 static GSet *erot_gset_new(void)
 {
-	return BLI_gset_new(erot_gsetutil_hash, erot_gsetutil_cmp, __func__);
+	return BLI_gset_new(BLI_ghashutil_inthash_v4_p, erot_gsetutil_cmp, __func__);
 }
 
 /* ensure v0 is smaller */
