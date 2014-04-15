@@ -35,6 +35,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -187,8 +188,6 @@ static void meshdeformModifier_do(
         float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
-	struct Mesh *me = (mmd->object) ? mmd->object->data : NULL;
-	BMEditMesh *em = me ? me->edit_btmesh : NULL;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDefInfluence *influences;
@@ -201,8 +200,18 @@ static void meshdeformModifier_do(
 	if (!mmd->object || (!mmd->bindcagecos && !mmd->bindfunc))
 		return;
 
-	/* get cage derivedmesh */
-	if (em) {
+	/* Get cage derivedmesh.
+	 *
+	 * Only do this is the target object is in edit mode by itself, meaning
+	 * we don't allow linked edit meshes here.
+	 * This is because editbmesh_get_derived_cage_and_final() might easily
+	 * conflict with the thread which evaluates object which is in the edit
+	 * mode for this mesh.
+	 *
+	 * We'll support this case once granular dependency graph is landed.
+	 */
+	if (mmd->object == md->scene->obedit) {
+		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
 		tmpdm = editbmesh_get_derived_cage_and_final(md->scene, mmd->object, em, &cagedm, 0);
 		if (tmpdm)
 			tmpdm->release(tmpdm);
