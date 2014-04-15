@@ -289,11 +289,14 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *bvh, int node_index,
 {
 	BMVert *v = BM_vert_create(bvh->bm, co, example, BM_CREATE_NOP);
 	void *val = SET_INT_IN_POINTER(node_index);
+	PBVHNode *node = &bvh->nodes[node_index];
 
 	BLI_assert((bvh->totnode == 1 || node_index) && node_index <= bvh->totnode);
 
-	BLI_gset_insert(bvh->nodes[node_index].bm_unique_verts, v);
+	BLI_gset_insert(node->bm_unique_verts, v);
 	BLI_ghash_insert(bvh->bm_vert_to_node, v, val);
+
+	node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
 
 	/* Log the new vertex */
 	BM_log_vert_added(bvh->bm_log, v, cd_vert_mask_offset);
@@ -307,6 +310,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 {
 	BMFace *f;
 	void *val = SET_INT_IN_POINTER(node_index);
+	PBVHNode *node = &bvh->nodes[node_index];
 
 	/* ensure we never add existing face */
 	BLI_assert(BM_face_exists(v_tri, 3, NULL) == false);
@@ -317,12 +321,12 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
 	BLI_assert(!BLI_ghash_haskey(bvh->bm_face_to_node, f));
 
 	{
-		BLI_gset_insert(bvh->nodes[node_index].bm_faces, f);
+		BLI_gset_insert(node->bm_faces, f);
 		BLI_ghash_insert(bvh->bm_face_to_node, f, val);
 
 		/* mark node for update */
-		bvh->nodes[node_index].flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
-		bvh->nodes[node_index].flag &= ~PBVH_FullyHidden;
+		node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
+		node->flag &= ~PBVH_FullyHidden;
 
 		/* Log the new face */
 		BM_log_face_added(bvh->bm_log, f);
@@ -378,7 +382,7 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
 
 	current_owner = pbvh_bmesh_node_lookup(bvh, bvh->bm_vert_to_node, v);
 	/* mark node for update */
-	current_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+	current_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
 
 
 	BLI_assert(current_owner != new_owner);
@@ -394,7 +398,7 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *bvh, PBVHNode *new_owner,
 	BLI_assert(!BLI_gset_haskey(new_owner->bm_other_verts, v));
 
 	/* mark node for update */
-	new_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+	new_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
 }
 
 static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
@@ -412,9 +416,9 @@ static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
 	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
 		PBVHNode *f_node = pbvh_bmesh_node_lookup(bvh, bvh->bm_face_to_node, f);
 
+		f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
+
 		/* Remove current ownership */
-		/* Should be handled above by vert_to_node removal, leaving just in case - psy-fi */
-		//BLI_ghash_remove(f_node->bm_unique_verts, v, NULL, NULL);
 		BLI_gset_remove(f_node->bm_other_verts, v, NULL);
 
 		BLI_assert(!BLI_gset_haskey(f_node->bm_unique_verts, v));
@@ -464,7 +468,7 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 	BM_log_face_removed(bvh->bm_log, f);
 
 	/* mark node for update */
-	f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+	f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
 }
 
 static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
