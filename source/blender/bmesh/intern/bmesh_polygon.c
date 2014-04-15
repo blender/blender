@@ -70,33 +70,9 @@ static bool testedgesidef(const float v1[2], const float v2[2], const float v3[2
 }
 
 /**
- * \brief COMPUTE POLY NORMAL
- *
- * Computes the normal of a planar
- * polygon See Graphics Gems for
- * computing newell normal.
- */
-static void calc_poly_normal(float normal[3], float verts[][3], int nverts)
-{
-	float const *v_prev = verts[nverts - 1];
-	float const *v_curr = verts[0];
-	float n[3] = {0.0f};
-	int i;
-
-	/* Newell's Method */
-	for (i = 0; i < nverts; v_prev = v_curr, v_curr = verts[++i]) {
-		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
-	}
-
-	if (UNLIKELY(normalize_v3_v3(normal, n) == 0.0f)) {
-		normal[2] = 1.0f; /* other axis set to 0.0 */
-	}
-}
-
-/**
  * \brief COMPUTE POLY NORMAL (BMFace)
  *
- * Same as #calc_poly_normal but operates directly on a bmesh face.
+ * Same as #normal_poly_v3 but operates directly on a bmesh face.
  */
 static void bm_face_calc_poly_normal(const BMFace *f, float n[3])
 {
@@ -229,15 +205,15 @@ void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (
  */
 float BM_face_calc_area(BMFace *f)
 {
-	BMLoop *l;
-	BMIter iter;
+	BMLoop *l_iter, *l_first;
 	float (*verts)[3] = BLI_array_alloca(verts, f->len);
 	float area;
-	int i;
+	unsigned int i = 0;
 
-	BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
-		copy_v3_v3(verts[i], l->v->co);
-	}
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		copy_v3_v3(verts[i++], l_iter->v->co);
+	} while ((l_iter = l_iter->next) != l_first);
 
 	if (f->len == 3) {
 		area = area_tri_v3(verts[0], verts[1], verts[2]);
@@ -246,9 +222,7 @@ float BM_face_calc_area(BMFace *f)
 		area = area_quad_v3(verts[0], verts[1], verts[2], verts[3]);
 	}
 	else {
-		float normal[3];
-		calc_poly_normal(normal, verts, f->len);
-		area = area_poly_v3((const float (*)[3])verts, f->len, normal);
+		area = area_poly_v3((const float (*)[3])verts, f->len);
 	}
 
 	return area;

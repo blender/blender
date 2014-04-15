@@ -693,7 +693,7 @@ static void get_dupliface_transform(MPoly *mpoly, MLoop *mloop, MVert *mvert,
 	}
 	/* scale */
 	if (use_scale) {
-		float area = BKE_mesh_calc_poly_area(mpoly, mloop, mvert, f_no);
+		float area = BKE_mesh_calc_poly_area(mpoly, mloop, mvert);
 		scale = sqrtf(area) * scale_fac;
 	}
 	else

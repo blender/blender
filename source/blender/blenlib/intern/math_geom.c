@@ -88,6 +88,27 @@ float normal_quad_v3(float n[3], const float v1[3], const float v2[3], const flo
 	return normalize_v3(n);
 }
 
+/**
+ * Computes the normal of a planar
+ * polygon See Graphics Gems for
+ * computing newell normal.
+ */
+float normal_poly_v3(float n[3], const float verts[][3], unsigned int nr)
+{
+	float const *v_prev = verts[nr - 1];
+	float const *v_curr = verts[0];
+	unsigned int i;
+
+	zero_v3(n);
+
+	/* Newell's Method */
+	for (i = 0; i < nr; v_prev = v_curr, v_curr = verts[++i]) {
+		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
+	}
+
+	return normalize_v3(n);
+}
+
 /* only convex Quadrilaterals */
 float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
@@ -134,25 +155,10 @@ float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3]
 	return area;
 }
 
-float area_poly_v3(const float verts[][3], unsigned int nr, const float normal[3])
+float area_poly_v3(const float verts[][3], unsigned int nr)
 {
-	unsigned int a;
-	int px, py;
-	const float max = axis_dominant_v3_max(&px, &py, normal);
-	float area;
-	const float *co_curr, *co_prev;
-
-	/* The Trapezium Area Rule */
-	co_prev = verts[nr - 1];
-	co_curr = verts[0];
-	area = 0.0f;
-	for (a = 0; a < nr; a++) {
-		area += (co_curr[px] - co_prev[px]) * (co_curr[py] + co_prev[py]);
-		co_prev = co_curr;
-		co_curr += 3;
-	}
-
-	return fabsf(0.5f * area / max);
+	float n[3];
+	return normal_poly_v3(n, verts, nr) * 0.5f;
 }
 
 float cross_poly_v2(const float verts[][2], unsigned int nr)
