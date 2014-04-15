@@ -81,6 +81,7 @@ Session::Session(const SessionParams& params_)
 Session::~Session()
 {
 	if(session_thread) {
+		/* wait for session thread to end */
 		progress.set_cancel("Exiting");
 
 		gpu_need_tonemap = false;
@@ -95,13 +96,19 @@ Session::~Session()
 		wait();
 	}
 
-	if(display && !params.output_path.empty()) {
+	if(!params.output_path.empty()) {
+		/* tonemap and write out image if requested */
+		delete display;
+
+		display = new DisplayBuffer(device, false);
+		display->reset(device, buffers->params);
 		tonemap();
 
 		progress.set_status("Writing Image", params.output_path);
 		display->write(device, params.output_path);
 	}
 
+	/* clean up */
 	foreach(RenderBuffers *buffers, tile_buffers)
 		delete buffers;
 
@@ -367,7 +374,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	/* in case of a permanent buffer, return it, otherwise we will allocate
 	 * a new temporary buffer */
-	if(!params.background) {
+	if(!(params.background && params.output_path.empty())) {
 		tile_manager.state.buffer.get_offset_stride(rtile.offset, rtile.stride);
 
 		rtile.buffer = buffers->buffer.device_pointer;
