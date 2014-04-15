@@ -2576,14 +2576,15 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces, bool show_diffuse_color)
 {
 	float diffuse_color[4];
+	bool use_matcaps = GPU_material_use_matcaps_get();
 
 	if (buffers->show_diffuse_color != show_diffuse_color)
 		return true;
 
-	if (buffers->use_matcaps != GPU_material_use_matcaps_get())
+	if (buffers->use_matcaps != use_matcaps)
 		return true;
 
-	if (buffers->show_diffuse_color == false)
+	if ((buffers->show_diffuse_color == false) || use_matcaps)
 		return false;
 
 	if (buffers->mface) {
