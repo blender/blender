@@ -207,43 +207,41 @@ void ui_block_translate(uiBlock *block, int x, int y)
 static void ui_text_bounds_block(uiBlock *block, float offset)
 {
 	uiStyle *style = UI_GetStyle();
-	uiBut *bt;
-	int i = 0, j, x1addval = offset, nextcol;
-	int lastcol = 0, col = 0;
-	
+	uiBut *bt, *init_col_bt, *col_bt;
+	int i = 0, j, x1addval = offset;
+
 	uiStyleFontSet(&style->widget);
-	
-	for (bt = block->buttons.first; bt; bt = bt->next) {
+
+	for (init_col_bt = bt = block->buttons.first; bt; bt = bt->next) {
 		if (!ELEM(bt->type, SEPR, SEPRLINE)) {
 			j = BLF_width(style->widget.uifont_id, bt->drawstr, sizeof(bt->drawstr));
 
-			if (j > i) i = j;
+			if (j > i)
+				i = j;
 		}
 
-		if (bt->next && bt->rect.xmin < bt->next->rect.xmin)
-			lastcol++;
+		if (bt->next && bt->rect.xmin < bt->next->rect.xmin) {
+			/* End of this column, and it’s not the last one. */
+			for (col_bt = init_col_bt; col_bt->prev != bt; col_bt = col_bt->next) {
+				col_bt->rect.xmin = x1addval;
+				col_bt->rect.xmax = x1addval + i + block->bounds;
+
+				ui_check_but(col_bt);  /* clips text again */
+			}
+
+			/* And we prepare next column. */
+			x1addval += i + block->bounds;
+			i = 0;
+			init_col_bt = col_bt;
+		}
 	}
 
-	/* cope with multi collumns */
-	bt = block->buttons.first;
-	while (bt) {
-		nextcol = (bt->next && bt->rect.xmin < bt->next->rect.xmin);
-		
-		bt->rect.xmin = x1addval;
-		bt->rect.xmax = bt->rect.xmin + i + block->bounds;
-		
-		if (col == lastcol) {
-			bt->rect.xmax = max_ff(bt->rect.xmax, offset + block->minbounds);
-		}
+	/* Last column. */
+	for (col_bt = init_col_bt; col_bt; col_bt = col_bt->next) {
+		col_bt->rect.xmin = x1addval;
+		col_bt->rect.xmax = max_ff(x1addval + i + block->bounds, offset + block->minbounds);
 
-		ui_check_but(bt);  /* clips text again */
-		
-		if (nextcol) {
-			x1addval += i + block->bounds;
-			col++;
-		}
-		
-		bt = bt->next;
+		ui_check_but(col_bt);  /* clips text again */
 	}
 }
 
