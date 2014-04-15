@@ -559,12 +559,15 @@ void sound_play_scene(struct Scene *scene)
 
 	status = scene->sound_scene_handle ? AUD_getStatus(scene->sound_scene_handle) : AUD_STATUS_INVALID;
 
-	if (status == AUD_STATUS_INVALID)
+	if (status == AUD_STATUS_INVALID) {
 		sound_start_play_scene(scene);
 
-	if (!scene->sound_scene_handle) {
-		AUD_unlock();
-		return;
+		if (!scene->sound_scene_handle) {
+			AUD_unlock();
+			return;
+		}
+
+		AUD_seek(scene->sound_scene_handle, cur_time);
 	}
 
 	if (status != AUD_STATUS_PLAYING) {
