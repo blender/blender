@@ -112,16 +112,30 @@ BLI_INLINE bool   BLI_ghashIterator_done(GHashIterator *ghi)       { return !ghi
 	     BLI_ghashIterator_done(&gh_iter_) == false;                          \
 	     BLI_ghashIterator_step(&gh_iter_), i_++)
 
-/* *** */
+/** \name Callbacks for GHash
+ *
+ * \note '_p' suffix denotes void pointer arg,
+ * so we can have functions that take correctly typed args too.
+ * \{ */
 
 unsigned int    BLI_ghashutil_ptrhash(const void *key);
 int             BLI_ghashutil_ptrcmp(const void *a, const void *b);
 
-unsigned int    BLI_ghashutil_strhash(const void *key);
+unsigned int    BLI_ghashutil_strhash_n(const char *key, size_t n);
+#define         BLI_ghashutil_strhash(key) ( \
+                CHECK_TYPE_INLINE(key, char *), \
+                BLI_ghashutil_strhash_p(key))
+unsigned int    BLI_ghashutil_strhash_p(const void *key);
 int             BLI_ghashutil_strcmp(const void *a, const void *b);
 
-unsigned int    BLI_ghashutil_inthash(const void *ptr);
+#define         BLI_ghashutil_inthash(key) ( \
+                CHECK_TYPE_INLINE(key, int), \
+                BLI_ghashutil_uinthash((unsigned int)key))
+unsigned int    BLI_ghashutil_uinthash(unsigned int key);
+unsigned int    BLI_ghashutil_inthash_p(const void *ptr);
 int             BLI_ghashutil_intcmp(const void *a, const void *b);
+
+/** \} */
 
 GHash          *BLI_ghash_ptr_new_ex(const char *info,
                                      const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;

@@ -679,7 +679,19 @@ int BLI_ghashutil_ptrcmp(const void *a, const void *b)
 		return (a < b) ? -1 : 1;
 }
 
-unsigned int BLI_ghashutil_inthash(const void *ptr)
+unsigned int BLI_ghashutil_uinthash(unsigned int key)
+{
+	key += ~(key << 16);
+	key ^=  (key >>  5);
+	key +=  (key <<  3);
+	key ^=  (key >> 13);
+	key += ~(key <<  9);
+	key ^=  (key >> 17);
+
+	return key;
+}
+
+unsigned int BLI_ghashutil_inthash_p(const void *ptr)
 {
 	uintptr_t key = (uintptr_t)ptr;
 
@@ -710,7 +722,18 @@ int BLI_ghashutil_intcmp(const void *a, const void *b)
  *
  * note: this is the same hash method that glib 2.34.0 uses.
  */
-unsigned int BLI_ghashutil_strhash(const void *ptr)
+unsigned int BLI_ghashutil_strhash_n(const char *key, size_t n)
+{
+	const signed char *p;
+	unsigned int h = 5381;
+
+	for (p = (const signed char *)key; n-- && *p != '\0'; p++) {
+		h = (h << 5) + h + (unsigned int)*p;
+	}
+
+	return h;
+}
+unsigned int BLI_ghashutil_strhash_p(const void *ptr)
 {
 	const signed char *p;
 	unsigned int h = 5381;
@@ -777,7 +800,7 @@ GHash *BLI_ghash_ptr_new(const char *info)
 GHash *BLI_ghash_str_new_ex(const char *info,
                             const unsigned int nentries_reserve)
 {
-	return BLI_ghash_new_ex(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, info,
+	return BLI_ghash_new_ex(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, info,
 	                        nentries_reserve);
 }
 GHash *BLI_ghash_str_new(const char *info)
@@ -788,7 +811,7 @@ GHash *BLI_ghash_str_new(const char *info)
 GHash *BLI_ghash_int_new_ex(const char *info,
                             const unsigned int nentries_reserve)
 {
-	return BLI_ghash_new_ex(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, info,
+	return BLI_ghash_new_ex(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, info,
 	                        nentries_reserve);
 }
 GHash *BLI_ghash_int_new(const char *info)

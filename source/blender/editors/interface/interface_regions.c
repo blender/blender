@@ -2091,9 +2091,12 @@ static unsigned int ui_popup_string_hash(const char *str)
 	int hash;
 	char *delimit = strchr(str, UI_SEP_CHAR);
 
-	if (delimit) *delimit = '\0';
-	hash = BLI_ghashutil_strhash(str);
-	if (delimit) *delimit = UI_SEP_CHAR;
+	if (delimit) {
+		hash = BLI_ghashutil_strhash_n(str, delimit - str);
+	}
+	else {
+		hash = BLI_ghashutil_strhash(str);
+	}
 
 	return hash;
 }

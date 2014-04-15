@@ -62,11 +62,11 @@ typedef struct EdRotState {
 static unsigned int erot_gsetutil_hash(const void *ptr)
 {
 	const EdRotState *e_state = (const EdRotState *)ptr;
-	unsigned int
-	hash  = BLI_ghashutil_inthash(SET_INT_IN_POINTER(e_state->v1));
-	hash ^= BLI_ghashutil_inthash(SET_INT_IN_POINTER(e_state->v2));
-	hash ^= BLI_ghashutil_inthash(SET_INT_IN_POINTER(e_state->f1));
-	hash ^= BLI_ghashutil_inthash(SET_INT_IN_POINTER(e_state->f2));
+	unsigned int hash;
+	hash  = BLI_ghashutil_inthash(e_state->v1);
+	hash ^= BLI_ghashutil_inthash(e_state->v2);
+	hash ^= BLI_ghashutil_inthash(e_state->f1);
+	hash ^= BLI_ghashutil_inthash(e_state->f2);
 	return hash;
 }
 static int erot_gsetutil_cmp(const void *a, const void *b)

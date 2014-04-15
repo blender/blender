@@ -78,8 +78,8 @@ static unsigned int tse_hash(const void *ptr)
 	const TreeStoreElem *tse = ptr;
 	unsigned int hash;
 	BLI_assert(tse->type || !tse->nr);
-	hash = BLI_ghashutil_inthash(SET_INT_IN_POINTER((tse->nr << 16) + tse->type));
-	hash ^= BLI_ghashutil_inthash(tse->id);
+	hash = BLI_ghashutil_inthash((tse->nr << 16) + tse->type);
+	hash ^= BLI_ghashutil_ptrhash(tse->id);
 	return hash;
 }
 

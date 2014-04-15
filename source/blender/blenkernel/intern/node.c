@@ -3591,9 +3591,9 @@ static void registerTextureNodes(void)
 
 void init_nodesystem(void) 
 {
-	nodetreetypes_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "nodetreetypes_hash gh");
-	nodetypes_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "nodetypes_hash gh");
-	nodesockettypes_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "nodesockettypes_hash gh");
+	nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
+	nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
+	nodesockettypes_hash = BLI_ghash_str_new("nodesockettypes_hash gh");
 
 	register_undefined_types();
 

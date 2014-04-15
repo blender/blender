@@ -1358,8 +1358,8 @@ static unsigned int uv_edge_hash(const void *key)
 {
 	UvEdge *edge = (UvEdge *)key;
 	return
-	        BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv2)) +
-	        BLI_ghashutil_inthash(SET_INT_IN_POINTER(edge->uv1));
+	        BLI_ghashutil_uinthash(edge->uv2) +
+	        BLI_ghashutil_uinthash(edge->uv1);
 }
 
 static int uv_edge_compare(const void *a, const void *b)
