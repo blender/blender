@@ -33,7 +33,7 @@ class DilateErodeNode : public Node {
 	NodeBlurData m_alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */
 public:
 	DilateErodeNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

@@ -47,83 +47,74 @@ KeyingNode::KeyingNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage)
+NodeOperationOutput *KeyingNode::setupPreBlur(NodeConverter &converter, NodeInput *inputImage, int size) const
 {
 	ConvertRGBToYCCOperation *convertRGBToYCCOperation = new ConvertRGBToYCCOperation();
 	convertRGBToYCCOperation->setMode(0);  /* ITU 601 */
-
-	inputImage->relinkConnections(convertRGBToYCCOperation->getInputSocket(0), 0, graph);
-	graph->addOperation(convertRGBToYCCOperation);
-
+	converter.addOperation(convertRGBToYCCOperation);
+	
+	converter.mapInputSocket(inputImage, convertRGBToYCCOperation->getInputSocket(0));
+	
 	CombineChannelsOperation *combineOperation = new CombineChannelsOperation();
-	graph->addOperation(combineOperation);
+	converter.addOperation(combineOperation);
 
 	for (int channel = 0; channel < 4; channel++) {
 		SeparateChannelOperation *separateOperation = new SeparateChannelOperation();
 		separateOperation->setChannel(channel);
-		addLink(graph, convertRGBToYCCOperation->getOutputSocket(0), separateOperation->getInputSocket(0));
-		graph->addOperation(separateOperation);
-
+		converter.addOperation(separateOperation);
+		
+		converter.addLink(convertRGBToYCCOperation->getOutputSocket(0), separateOperation->getInputSocket(0));
+		
 		if (channel == 0 || channel == 3) {
-			addLink(graph, separateOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
+			converter.addLink(separateOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 		}
 		else {
 			KeyingBlurOperation *blurXOperation = new KeyingBlurOperation();
-			KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
-
 			blurXOperation->setSize(size);
 			blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
-			blurXOperation->setbNode(this->getbNode());
-
+			converter.addOperation(blurXOperation);
+			
+			KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 			blurYOperation->setSize(size);
 			blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
-			blurYOperation->setbNode(this->getbNode());
-
-			addLink(graph, separateOperation->getOutputSocket(), blurXOperation->getInputSocket(0));
-			addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
-			addLink(graph, blurYOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
-
-			graph->addOperation(blurXOperation);
-			graph->addOperation(blurYOperation);
+			converter.addOperation(blurYOperation);
+			
+			converter.addLink(separateOperation->getOutputSocket(), blurXOperation->getInputSocket(0));
+			converter.addLink(blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
+			converter.addLink(blurYOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 		}
 	}
-
+	
 	ConvertYCCToRGBOperation *convertYCCToRGBOperation = new ConvertYCCToRGBOperation();
 	convertYCCToRGBOperation->setMode(0);  /* ITU 601 */
-	addLink(graph, combineOperation->getOutputSocket(0), convertYCCToRGBOperation->getInputSocket(0));
-	graph->addOperation(convertYCCToRGBOperation);
-
-	*originalImage = convertRGBToYCCOperation->getInputSocket(0)->getConnection()->getFromSocket();
-
+	converter.addOperation(convertYCCToRGBOperation);
+	
+	converter.addLink(combineOperation->getOutputSocket(0), convertYCCToRGBOperation->getInputSocket(0));
+	
 	return convertYCCToRGBOperation->getOutputSocket(0);
 }
 
-OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *postBlurInput, int size)
+NodeOperationOutput *KeyingNode::setupPostBlur(NodeConverter &converter, NodeOperationOutput *postBlurInput, int size) const
 {
 	KeyingBlurOperation *blurXOperation = new KeyingBlurOperation();
-	KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
-
 	blurXOperation->setSize(size);
 	blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
-	blurXOperation->setbNode(this->getbNode());
-
+	converter.addOperation(blurXOperation);
+	
+	KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 	blurYOperation->setSize(size);
 	blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
-	blurYOperation->setbNode(this->getbNode());
-
-	addLink(graph, postBlurInput, blurXOperation->getInputSocket(0));
-	addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
-
-	graph->addOperation(blurXOperation);
-	graph->addOperation(blurYOperation);
-
+	converter.addOperation(blurYOperation);
+	
+	converter.addLink(postBlurInput, blurXOperation->getInputSocket(0));
+	converter.addLink(blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
+	
 	return blurYOperation->getOutputSocket();
 }
 
-OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance)
+NodeOperationOutput *KeyingNode::setupDilateErode(NodeConverter &converter, NodeOperationOutput *dilateErodeInput, int distance) const
 {
 	DilateDistanceOperation *dilateErodeOperation;
-
 	if (distance > 0) {
 		dilateErodeOperation = new DilateDistanceOperation();
 		dilateErodeOperation->setDistance(distance);
@@ -132,211 +123,194 @@ OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket 
 		dilateErodeOperation = new ErodeDistanceOperation();
 		dilateErodeOperation->setDistance(-distance);
 	}
-	dilateErodeOperation->setbNode(this->getbNode());
-
-	addLink(graph, dilateErodeInput, dilateErodeOperation->getInputSocket(0));
-
-	graph->addOperation(dilateErodeOperation);
-
+	converter.addOperation(dilateErodeOperation);
+	
+	converter.addLink(dilateErodeInput, dilateErodeOperation->getInputSocket(0));
+	
 	return dilateErodeOperation->getOutputSocket(0);
 }
 
-OutputSocket *KeyingNode::setupFeather(ExecutionSystem *graph, CompositorContext *context,
-                                       OutputSocket *featherInput, int falloff, int distance)
+NodeOperationOutput *KeyingNode::setupFeather(NodeConverter &converter, const CompositorContext &context,
+                                   NodeOperationOutput *featherInput, int falloff, int distance) const
 {
 	/* this uses a modified gaussian blur function otherwise its far too slow */
-	CompositorQuality quality = context->getQuality();
+	CompositorQuality quality = context.getQuality();
 
 	/* initialize node data */
-	NodeBlurData *data = &this->m_alpha_blur;
-	memset(data, 0, sizeof(*data));
-	data->filtertype = R_FILTER_GAUSS;
-
+	NodeBlurData data;
+	memset(&data, 0, sizeof(NodeBlurData));
+	data.filtertype = R_FILTER_GAUSS;
 	if (distance > 0) {
-		data->sizex = data->sizey = distance;
+		data.sizex = data.sizey = distance;
 	}
 	else {
-		data->sizex = data->sizey = -distance;
+		data.sizex = data.sizey = -distance;
 	}
 
 	GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
-	operationx->setData(data);
+	operationx->setData(&data);
 	operationx->setQuality(quality);
 	operationx->setSize(1.0f);
 	operationx->setSubtract(distance < 0);
 	operationx->setFalloff(falloff);
-	operationx->setbNode(this->getbNode());
-	graph->addOperation(operationx);
+	converter.addOperation(operationx);
 	
 	GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
-	operationy->setData(data);
+	operationy->setData(&data);
 	operationy->setQuality(quality);
 	operationy->setSize(1.0f);
 	operationy->setSubtract(distance < 0);
 	operationy->setFalloff(falloff);
-	operationy->setbNode(this->getbNode());
-	graph->addOperation(operationy);
+	converter.addOperation(operationy);
 
-	addLink(graph, featherInput, operationx->getInputSocket(0));
-	addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
+	converter.addLink(featherInput, operationx->getInputSocket(0));
+	converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
 
 	return operationy->getOutputSocket();
 }
 
-OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen,
-                                       float factor, float colorBalance)
+NodeOperationOutput *KeyingNode::setupDespill(NodeConverter &converter, NodeOperationOutput *despillInput, NodeInput *inputScreen,
+                                   float factor, float colorBalance) const
 {
 	KeyingDespillOperation *despillOperation = new KeyingDespillOperation();
-
 	despillOperation->setDespillFactor(factor);
 	despillOperation->setColorBalance(colorBalance);
-
-	addLink(graph, despillInput, despillOperation->getInputSocket(0));
-	addLink(graph, inputScreen, despillOperation->getInputSocket(1));
-
-	graph->addOperation(despillOperation);
-
+	converter.addOperation(despillOperation);
+	
+	converter.addLink(despillInput, despillOperation->getInputSocket(0));
+	converter.mapInputSocket(inputScreen, despillOperation->getInputSocket(1));
+	
 	return despillOperation->getOutputSocket(0);
 }
 
-OutputSocket *KeyingNode::setupClip(ExecutionSystem *graph, OutputSocket *clipInput, int kernelRadius, float kernelTolerance,
-                                    float clipBlack, float clipWhite, bool edgeMatte)
+NodeOperationOutput *KeyingNode::setupClip(NodeConverter &converter, NodeOperationOutput *clipInput, int kernelRadius, float kernelTolerance,
+                                float clipBlack, float clipWhite, bool edgeMatte) const
 {
 	KeyingClipOperation *clipOperation = new KeyingClipOperation();
-
 	clipOperation->setKernelRadius(kernelRadius);
 	clipOperation->setKernelTolerance(kernelTolerance);
-
 	clipOperation->setClipBlack(clipBlack);
 	clipOperation->setClipWhite(clipWhite);
 	clipOperation->setIsEdgeMatte(edgeMatte);
-
-	addLink(graph, clipInput, clipOperation->getInputSocket(0));
-
-	graph->addOperation(clipOperation);
-
+	converter.addOperation(clipOperation);
+	
+	converter.addLink(clipInput, clipOperation->getInputSocket(0));
+	
 	return clipOperation->getOutputSocket(0);
 }
 
-void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void KeyingNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputImage = this->getInputSocket(0);
-	InputSocket *inputScreen = this->getInputSocket(1);
-	InputSocket *inputGarbageMatte = this->getInputSocket(2);
-	InputSocket *inputCoreMatte = this->getInputSocket(3);
-	OutputSocket *outputImage = this->getOutputSocket(0);
-	OutputSocket *outputMatte = this->getOutputSocket(1);
-	OutputSocket *outputEdges = this->getOutputSocket(2);
-	OutputSocket *postprocessedMatte = NULL, *postprocessedImage = NULL, *originalImage = NULL, *edgesMatte = NULL;
-
 	bNode *editorNode = this->getbNode();
 	NodeKeyingData *keying_data = (NodeKeyingData *) editorNode->storage;
-
+	
+	NodeInput *inputImage = this->getInputSocket(0);
+	NodeInput *inputScreen = this->getInputSocket(1);
+	NodeInput *inputGarbageMatte = this->getInputSocket(2);
+	NodeInput *inputCoreMatte = this->getInputSocket(3);
+	NodeOutput *outputImage = this->getOutputSocket(0);
+	NodeOutput *outputMatte = this->getOutputSocket(1);
+	NodeOutput *outputEdges = this->getOutputSocket(2);
+	NodeOperationOutput *postprocessedMatte = NULL, *postprocessedImage = NULL, *edgesMatte = NULL;
+	
 	/* keying operation */
 	KeyingOperation *keyingOperation = new KeyingOperation();
-
 	keyingOperation->setScreenBalance(keying_data->screen_balance);
-
-	inputScreen->relinkConnections(keyingOperation->getInputSocket(1), 1, graph);
-
+	converter.addOperation(keyingOperation);
+	
+	converter.mapInputSocket(inputScreen, keyingOperation->getInputSocket(1));
+	
 	if (keying_data->blur_pre) {
 		/* chroma preblur operation for input of keying operation  */
-		OutputSocket *preBluredImage = setupPreBlur(graph, inputImage, keying_data->blur_pre, &originalImage);
-		addLink(graph, preBluredImage, keyingOperation->getInputSocket(0));
+		NodeOperationOutput *preBluredImage = setupPreBlur(converter, inputImage, keying_data->blur_pre);
+		converter.addLink(preBluredImage, keyingOperation->getInputSocket(0));
 	}
 	else {
-		inputImage->relinkConnections(keyingOperation->getInputSocket(0), 0, graph);
-		originalImage = keyingOperation->getInputSocket(0)->getConnection()->getFromSocket();
+		converter.mapInputSocket(inputImage, keyingOperation->getInputSocket(0));
 	}
-
-	graph->addOperation(keyingOperation);
-
+	
 	postprocessedMatte = keyingOperation->getOutputSocket();
-
+	
 	/* black / white clipping */
 	if (keying_data->clip_black > 0.0f || keying_data->clip_white < 1.0f) {
-		postprocessedMatte = setupClip(graph, postprocessedMatte,
+		postprocessedMatte = setupClip(converter, postprocessedMatte,
 		                               keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
 		                               keying_data->clip_black, keying_data->clip_white, false);
 	}
-
+	
 	/* output edge matte */
-	if (outputEdges->isConnected()) {
-		edgesMatte = setupClip(graph, postprocessedMatte,
-		                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
-		                       keying_data->clip_black, keying_data->clip_white, true);
-	}
-
+	edgesMatte = setupClip(converter, postprocessedMatte,
+	                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
+	                       keying_data->clip_black, keying_data->clip_white, true);
+	
 	/* apply garbage matte */
-	if (inputGarbageMatte->isConnected()) {
+	if (inputGarbageMatte->isLinked()) {
 		SetValueOperation *valueOperation = new SetValueOperation();
-		MathSubtractOperation *subtractOperation = new MathSubtractOperation();
-		MathMinimumOperation *minOperation = new MathMinimumOperation();
-
 		valueOperation->setValue(1.0f);
-
-		addLink(graph, valueOperation->getOutputSocket(), subtractOperation->getInputSocket(0));
-		inputGarbageMatte->relinkConnections(subtractOperation->getInputSocket(1), 0, graph);
-
-		addLink(graph, subtractOperation->getOutputSocket(), minOperation->getInputSocket(0));
-		addLink(graph, postprocessedMatte, minOperation->getInputSocket(1));
-
+		converter.addOperation(valueOperation);
+		
+		MathSubtractOperation *subtractOperation = new MathSubtractOperation();
+		converter.addOperation(subtractOperation);
+		
+		MathMinimumOperation *minOperation = new MathMinimumOperation();
+		converter.addOperation(minOperation);
+		
+		converter.addLink(valueOperation->getOutputSocket(), subtractOperation->getInputSocket(0));
+		converter.mapInputSocket(inputGarbageMatte, subtractOperation->getInputSocket(1));
+		
+		converter.addLink(subtractOperation->getOutputSocket(), minOperation->getInputSocket(0));
+		converter.addLink(postprocessedMatte, minOperation->getInputSocket(1));
+		
 		postprocessedMatte = minOperation->getOutputSocket();
-
-		graph->addOperation(valueOperation);
-		graph->addOperation(subtractOperation);
-		graph->addOperation(minOperation);
 	}
-
+	
 	/* apply core matte */
-	if (inputCoreMatte->isConnected()) {
+	if (inputCoreMatte->isLinked()) {
 		MathMaximumOperation *maxOperation = new MathMaximumOperation();
-
-		inputCoreMatte->relinkConnections(maxOperation->getInputSocket(0), 0, graph);
-
-		addLink(graph, postprocessedMatte, maxOperation->getInputSocket(1));
-
+		converter.addOperation(maxOperation);
+		
+		converter.mapInputSocket(inputCoreMatte, maxOperation->getInputSocket(0));
+		converter.addLink(postprocessedMatte, maxOperation->getInputSocket(1));
+		
 		postprocessedMatte = maxOperation->getOutputSocket();
-
-		graph->addOperation(maxOperation);
 	}
-
+	
 	/* apply blur on matte if needed */
 	if (keying_data->blur_post)
-		postprocessedMatte = setupPostBlur(graph, postprocessedMatte, keying_data->blur_post);
+		postprocessedMatte = setupPostBlur(converter, postprocessedMatte, keying_data->blur_post);
 
 	/* matte dilate/erode */
 	if (keying_data->dilate_distance != 0) {
-		postprocessedMatte = setupDilateErode(graph, postprocessedMatte, keying_data->dilate_distance);
+		postprocessedMatte = setupDilateErode(converter, postprocessedMatte, keying_data->dilate_distance);
 	}
 
 	/* matte feather */
 	if (keying_data->feather_distance != 0) {
-		postprocessedMatte = setupFeather(graph, context, postprocessedMatte, keying_data->feather_falloff,
+		postprocessedMatte = setupFeather(converter, context, postprocessedMatte, keying_data->feather_falloff,
 		                                  keying_data->feather_distance);
 	}
 
 	/* set alpha channel to output image */
 	SetAlphaOperation *alphaOperation = new SetAlphaOperation();
-	addLink(graph, originalImage, alphaOperation->getInputSocket(0));
-	addLink(graph, postprocessedMatte, alphaOperation->getInputSocket(1));
+	converter.addOperation(alphaOperation);
+	
+	converter.mapInputSocket(inputImage, alphaOperation->getInputSocket(0));
+	converter.addLink(postprocessedMatte, alphaOperation->getInputSocket(1));
 
 	postprocessedImage = alphaOperation->getOutputSocket();
 
 	/* despill output image */
 	if (keying_data->despill_factor > 0.0f) {
-		postprocessedImage = setupDespill(graph, postprocessedImage,
-		                                  keyingOperation->getInputSocket(1)->getConnection()->getFromSocket(),
+		postprocessedImage = setupDespill(converter, postprocessedImage,
+		                                  inputScreen,
 		                                  keying_data->despill_factor,
 		                                  keying_data->despill_balance);
 	}
 
 	/* connect result to output sockets */
-	outputImage->relinkConnections(postprocessedImage);
-	outputMatte->relinkConnections(postprocessedMatte);
+	converter.mapOutputSocket(outputImage, postprocessedImage);
+	converter.mapOutputSocket(outputMatte, postprocessedMatte);
 
 	if (edgesMatte)
-		outputEdges->relinkConnections(edgesMatte);
-
-	graph->addOperation(alphaOperation);
+		converter.mapOutputSocket(outputEdges, edgesMatte);
 }

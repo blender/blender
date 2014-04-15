@@ -34,40 +34,37 @@ BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void BokehBlurNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *b_node = this->getbNode();
 
-	InputSocket *inputSizeSocket = this->getInputSocket(2);
+	NodeInput *inputSizeSocket = this->getInputSocket(2);
 
-	bool connectedSizeSocket = inputSizeSocket->isConnected();
+	bool connectedSizeSocket = inputSizeSocket->isLinked();
 
 	if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connectedSizeSocket) {
 		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
-		operation->setQuality(context->getQuality());
-		operation->setbNode(this->getbNode());
-		graph->addOperation(operation);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-
+		operation->setQuality(context.getQuality());
 		operation->setThreshold(0.0f);
 		operation->setMaxBlur(b_node->custom4);
 		operation->setDoScaleSize(true);
+		
+		converter.addOperation(operation);
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 	}
 	else {
 		BokehBlurOperation *operation = new BokehBlurOperation();
-
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(3), 2, graph);
-		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), 3, graph);
-		operation->setQuality(context->getQuality());
-		operation->setbNode(this->getbNode());
-		graph->addOperation(operation);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+		operation->setQuality(context.getQuality());
+		
+		converter.addOperation(operation);
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
+		converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 
 		if (!connectedSizeSocket) {
 			operation->setSize(this->getInputSocket(2)->getEditorValueFloat());

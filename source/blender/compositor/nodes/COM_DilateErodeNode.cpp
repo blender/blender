@@ -30,85 +30,84 @@
 
 DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
 {
-	/* pass */
+	/* initialize node data */
+	NodeBlurData *data = &m_alpha_blur;
+	memset(data, 0, sizeof(NodeBlurData));
+	data->filtertype = R_FILTER_GAUSS;
+
+	if (editorNode->custom2 > 0) {
+		data->sizex = data->sizey = editorNode->custom2;
+	}
+	else {
+		data->sizex = data->sizey = -editorNode->custom2;
+	}
 }
 
-void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void DilateErodeNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	
 	bNode *editorNode = this->getbNode();
 	if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
 		DilateErodeThresholdOperation *operation = new DilateErodeThresholdOperation();
-		operation->setbNode(editorNode);
 		operation->setDistance(editorNode->custom2);
 		operation->setInset(editorNode->custom3);
+		converter.addOperation(operation);
 		
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
 	
 		if (editorNode->custom3 < 2.0f) {
 			AntiAliasOperation *antiAlias = new AntiAliasOperation();
-			addLink(graph, operation->getOutputSocket(), antiAlias->getInputSocket(0));
-			this->getOutputSocket(0)->relinkConnections(antiAlias->getOutputSocket(0));
-			graph->addOperation(antiAlias);
+			converter.addOperation(antiAlias);
+			
+			converter.addLink(operation->getOutputSocket(), antiAlias->getInputSocket(0));
+			converter.mapOutputSocket(getOutputSocket(0), antiAlias->getOutputSocket(0));
 		}
 		else {
-			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
+			converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 		}
-		graph->addOperation(operation);
 	}
 	else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
 		if (editorNode->custom2 > 0) {
 			DilateDistanceOperation *operation = new DilateDistanceOperation();
-			operation->setbNode(editorNode);
 			operation->setDistance(editorNode->custom2);
-			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-			graph->addOperation(operation);
+			converter.addOperation(operation);
+			
+			converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+			converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 		}
 		else {
 			ErodeDistanceOperation *operation = new ErodeDistanceOperation();
-			operation->setbNode(editorNode);
 			operation->setDistance(-editorNode->custom2);
-			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-			graph->addOperation(operation);
+			converter.addOperation(operation);
+			
+			converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+			converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 		}
 	}
 	else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_FEATHER) {
 		/* this uses a modified gaussian blur function otherwise its far too slow */
-		CompositorQuality quality = context->getQuality();
-
-		/* initialize node data */
-		NodeBlurData *data = &this->m_alpha_blur;
-		memset(data, 0, sizeof(*data));
-		data->filtertype = R_FILTER_GAUSS;
-
-		if (editorNode->custom2 > 0) {
-			data->sizex = data->sizey = editorNode->custom2;
-		}
-		else {
-			data->sizex = data->sizey = -editorNode->custom2;
-
-		}
+		CompositorQuality quality = context.getQuality();
 
 		GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
-		operationx->setbNode(editorNode);
-		operationx->setData(data);
+		operationx->setData(&m_alpha_blur);
 		operationx->setQuality(quality);
 		operationx->setFalloff(PROP_SMOOTH);
-		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
-		// this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph); // no size input yet
-		graph->addOperation(operationx);
+		converter.addOperation(operationx);
+		
+		converter.mapInputSocket(getInputSocket(0), operationx->getInputSocket(0));
+		// converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1)); // no size input yet
+		
 		GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
-		operationy->setbNode(editorNode);
-		operationy->setData(data);
+		operationy->setData(&m_alpha_blur);
 		operationy->setQuality(quality);
 		operationy->setFalloff(PROP_SMOOTH);
-		this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
-		graph->addOperation(operationy);
-		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
-		// addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1)); // no size input yet
-		addPreviewOperation(graph, context, operationy->getOutputSocket());
+		converter.addOperation(operationy);
+		
+		converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
+		// converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1)); // no size input yet
+		converter.mapOutputSocket(getOutputSocket(0), operationy->getOutputSocket());
+		
+		converter.addPreview(operationy->getOutputSocket());
 
 		/* TODO? */
 		/* see gaussian blue node for original usage */
@@ -133,19 +132,19 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	else {
 		if (editorNode->custom2 > 0) {
 			DilateStepOperation *operation = new DilateStepOperation();
-			operation->setbNode(editorNode);
 			operation->setIterations(editorNode->custom2);
-			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-			graph->addOperation(operation);
+			converter.addOperation(operation);
+			
+			converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+			converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 		}
 		else {
 			ErodeStepOperation *operation = new ErodeStepOperation();
-			operation->setbNode(editorNode);
 			operation->setIterations(-editorNode->custom2);
-			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-			graph->addOperation(operation);
+			converter.addOperation(operation);
+			
+			converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+			converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 		}
 	}
 }

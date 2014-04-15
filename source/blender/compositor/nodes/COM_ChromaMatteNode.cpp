@@ -30,44 +30,38 @@ ChromaMatteNode::ChromaMatteNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ChromaMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocketImage = this->getInputSocket(0);
-	InputSocket *inputSocketKey = this->getInputSocket(1);
-	OutputSocket *outputSocketImage = this->getOutputSocket(0);
-	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
-
+	bNode *editorsnode = getbNode();
+	
+	NodeInput *inputSocketImage = this->getInputSocket(0);
+	NodeInput *inputSocketKey = this->getInputSocket(1);
+	NodeOutput *outputSocketImage = this->getOutputSocket(0);
+	NodeOutput *outputSocketMatte = this->getOutputSocket(1);
+	
 	ConvertRGBToYCCOperation *operationRGBToYCC_Image = new ConvertRGBToYCCOperation();
 	ConvertRGBToYCCOperation *operationRGBToYCC_Key = new ConvertRGBToYCCOperation();
 	operationRGBToYCC_Image->setMode(0); /* BLI_YCC_ITU_BT601 */
 	operationRGBToYCC_Key->setMode(0); /* BLI_YCC_ITU_BT601 */
-
+	converter.addOperation(operationRGBToYCC_Image);
+	converter.addOperation(operationRGBToYCC_Key);
+	
 	ChromaMatteOperation *operation = new ChromaMatteOperation();
-	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma *)editorsnode->storage);
-
-	inputSocketImage->relinkConnections(operationRGBToYCC_Image->getInputSocket(0), 0, graph);
-	inputSocketKey->relinkConnections(operationRGBToYCC_Key->getInputSocket(0), 1, graph);
-
-	addLink(graph, operationRGBToYCC_Image->getOutputSocket(), operation->getInputSocket(0));
-	addLink(graph, operationRGBToYCC_Key->getOutputSocket(), operation->getInputSocket(1));
-
-	graph->addOperation(operationRGBToYCC_Image);
-	graph->addOperation(operationRGBToYCC_Key);
-	graph->addOperation(operation);
-
-	if (outputSocketMatte->isConnected()) {
-		outputSocketMatte->relinkConnections(operation->getOutputSocket());
-	}
-
+	converter.addOperation(operation);
+	
 	SetAlphaOperation *operationAlpha = new SetAlphaOperation();
-	addLink(graph, operationRGBToYCC_Image->getInputSocket(0)->getConnection()->getFromSocket(), operationAlpha->getInputSocket(0));
-	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
-
-	graph->addOperation(operationAlpha);
-	addPreviewOperation(graph, context, operationAlpha->getOutputSocket());
-
-	if (outputSocketImage->isConnected()) {
-		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());
-	}
+	converter.addOperation(operationAlpha);
+	
+	converter.mapInputSocket(inputSocketImage, operationRGBToYCC_Image->getInputSocket(0));
+	converter.mapInputSocket(inputSocketKey, operationRGBToYCC_Key->getInputSocket(0));
+	converter.addLink(operationRGBToYCC_Image->getOutputSocket(), operation->getInputSocket(0));
+	converter.addLink(operationRGBToYCC_Key->getOutputSocket(), operation->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket());
+	
+	converter.mapInputSocket(inputSocketImage, operationAlpha->getInputSocket(0));
+	converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
+	
+	converter.addPreview(operationAlpha->getOutputSocket());
 }

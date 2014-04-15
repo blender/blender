@@ -28,17 +28,16 @@ MapUVNode::MapUVNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void MapUVNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void MapUVNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	MapUVOperation *operation = new MapUVOperation();
-
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-	
 	bNode *node = this->getbNode();
+	
+	MapUVOperation *operation = new MapUVOperation();
 	operation->setAlpha((float)node->custom1);
 	operation->setResolutionInputSocketIndex(1);
+	converter.addOperation(operation);
 
-	graph->addOperation(operation);
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

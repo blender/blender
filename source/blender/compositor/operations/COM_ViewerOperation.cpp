@@ -21,7 +21,6 @@
  */
 
 #include "COM_ViewerOperation.h"
-#include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 #include "WM_api.h"

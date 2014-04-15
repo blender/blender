@@ -23,8 +23,13 @@
 #ifndef _COM_Converter_h
 #define _COM_Converter_h
 
-#include "DNA_node_types.h"
-#include "COM_Node.h"
+struct bNode;
+
+class Node;
+class NodeOperation;
+class NodeOperationInput;
+class NodeOperationOutput;
+class NodeOperationBuilder;
 
 /**
  * @brief Conversion methods for the compositor
@@ -35,37 +40,42 @@ public:
 	 * @brief Convert/wraps a bNode in its Node instance.
 	 *
 	 * For all nodetypes a wrapper class is created.
-	 * Muted nodes are wrapped with MuteNode.
 	 *
 	 * @note When adding a new node to blender, this method needs to be changed to return the correct Node instance.
 	 *
 	 * @see Node
-	 * @see MuteNode
 	 */
-	static Node *convert(bNode *b_node, bool fast);
+	static Node *convert(bNode *b_node);
+	
+	/**
+	 * @brief True if the node is considered 'fast'.
+	 *
+	 * Slow nodes will be skipped if fast execution is required.
+	 */
+	static bool is_fast_node(bNode *b_node);
 	
 	/**
 	 * @brief This method will add a datetype conversion rule when the to-socket does not support the from-socket actual data type.
 	 *
 	 * @note this method is called when conversion is needed.
 	 *
-	 * @param connection the SocketConnection what needs conversion
+	 * @param link the NodeLink what needs conversion
 	 * @param system the ExecutionSystem to add the conversion to.
-	 * @see SocketConnection - a link between two sockets
+	 * @see NodeLink - a link between two sockets
 	 */
-	static void convertDataType(SocketConnection *connection, ExecutionSystem *system);
+	static NodeOperation *convertDataType(NodeOperationOutput *from, NodeOperationInput *to);
 	
 	/**
-	 * @brief This method will add a resolution rule based on the settings of the InputSocket.
+	 * @brief This method will add a resolution rule based on the settings of the NodeInput.
 	 *
 	 * @note Conversion logic is implemented in this method
 	 * @see InputSocketResizeMode for the possible conversions.
 	 *
-	 * @param connection the SocketConnection what needs conversion
+	 * @param link the NodeLink what needs conversion
 	 * @param system the ExecutionSystem to add the conversion to.
-	 * @see SocketConnection - a link between two sockets
+	 * @see NodeLink - a link between two sockets
 	 */
-	static void convertResolution(SocketConnection *connection, ExecutionSystem *system);
+	static void convertResolution(NodeOperationBuilder &builder, NodeOperationOutput *fromSocket, NodeOperationInput *toSocket);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:Converter")

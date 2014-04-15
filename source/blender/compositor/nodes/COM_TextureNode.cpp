@@ -29,30 +29,31 @@ TextureNode::TextureNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
+void TextureNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *editorNode = this->getbNode();
 	Tex *texture = (Tex *)editorNode->id;
 	TextureOperation *operation = new TextureOperation();
-	const ColorManagedDisplaySettings *displaySettings = context->getDisplaySettings();
+	const ColorManagedDisplaySettings *displaySettings = context.getDisplaySettings();
 	bool sceneColorManage = strcmp(displaySettings->display_device, "None") != 0;
-	this->getOutputSocket(1)->relinkConnections(operation->getOutputSocket());
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, system);
 	operation->setTexture(texture);
-	operation->setRenderData(context->getRenderData());
+	operation->setRenderData(context.getRenderData());
 	operation->setSceneColorManage(sceneColorManage);
-	system->addOperation(operation);
-	addPreviewOperation(system, context, operation->getOutputSocket());
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapOutputSocket(getOutputSocket(1), operation->getOutputSocket());
+	
+	converter.addPreview(operation->getOutputSocket());
 
-	if (this->getOutputSocket(0)->isConnected()) {
-		TextureAlphaOperation *alphaOperation = new TextureAlphaOperation();
-		this->getOutputSocket(0)->relinkConnections(alphaOperation->getOutputSocket());
-		addLink(system, operation->getInputSocket(0)->getConnection()->getFromSocket(), alphaOperation->getInputSocket(0));
-		addLink(system, operation->getInputSocket(1)->getConnection()->getFromSocket(), alphaOperation->getInputSocket(1));
-		alphaOperation->setTexture(texture);
-		alphaOperation->setRenderData(context->getRenderData());
-		alphaOperation->setSceneColorManage(sceneColorManage);
-		system->addOperation(alphaOperation);
-	}
+	TextureAlphaOperation *alphaOperation = new TextureAlphaOperation();
+	alphaOperation->setTexture(texture);
+	alphaOperation->setRenderData(context.getRenderData());
+	alphaOperation->setSceneColorManage(sceneColorManage);
+	converter.addOperation(alphaOperation);
+	
+	converter.mapInputSocket(getInputSocket(0), alphaOperation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), alphaOperation->getInputSocket(1));
+	converter.mapOutputSocket(getOutputSocket(0), alphaOperation->getOutputSocket());
 }

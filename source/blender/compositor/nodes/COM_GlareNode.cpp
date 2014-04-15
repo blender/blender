@@ -36,15 +36,13 @@ GlareNode::GlareNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *context) \
-	{
+void GlareNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+{
 	bNode *node = this->getbNode();
 	NodeGlare *glare = (NodeGlare *)node->storage;
 	
 	GlareBaseOperation *glareoperation = NULL;
-	
 	switch (glare->type) {
-	
 		default:
 		case 3:
 			glareoperation = new GlareGhostOperation();
@@ -59,28 +57,30 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 			glareoperation = new GlareSimpleStarOperation();
 			break;
 	}
-	GlareThresholdOperation *thresholdOperation = new GlareThresholdOperation();
-	SetValueOperation *mixvalueoperation = new SetValueOperation();
-	MixGlareOperation *mixoperation = new MixGlareOperation();
-	mixoperation->getInputSocket(2)->setResizeMode(COM_SC_FIT);
-	thresholdOperation->setbNode(node);
-	glareoperation->setbNode(node);
-
-	this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), 0, system);
-	addLink(system, thresholdOperation->getOutputSocket(), glareoperation->getInputSocket(0));
-	addLink(system, mixvalueoperation->getOutputSocket(), mixoperation->getInputSocket(0));
-	addLink(system, glareoperation->getOutputSocket(), mixoperation->getInputSocket(2));
-	addLink(system, thresholdOperation->getInputSocket(0)->getConnection()->getFromSocket(), mixoperation->getInputSocket(1));
-	this->getOutputSocket()->relinkConnections(mixoperation->getOutputSocket());
-
-	thresholdOperation->setGlareSettings(glare);
+	BLI_assert(glareoperation);
 	glareoperation->setGlareSettings(glare);
-	mixvalueoperation->setValue(0.5f + glare->mix * 0.5f);
-	mixoperation->setResolutionInputSocketIndex(1);
-
-	system->addOperation(glareoperation);
-	system->addOperation(thresholdOperation);
-	system->addOperation(mixvalueoperation);
-	system->addOperation(mixoperation);
 	
-	}
+	GlareThresholdOperation *thresholdOperation = new GlareThresholdOperation();
+	thresholdOperation->setGlareSettings(glare);
+	
+	SetValueOperation *mixvalueoperation = new SetValueOperation();
+	mixvalueoperation->setValue(0.5f + glare->mix * 0.5f);
+	
+	MixGlareOperation *mixoperation = new MixGlareOperation();
+	mixoperation->setResolutionInputSocketIndex(1);
+	mixoperation->getInputSocket(2)->setResizeMode(COM_SC_FIT);
+	
+	converter.addOperation(glareoperation);
+	converter.addOperation(thresholdOperation);
+	converter.addOperation(mixvalueoperation);
+	converter.addOperation(mixoperation);
+
+	converter.mapInputSocket(getInputSocket(0), thresholdOperation->getInputSocket(0));
+	converter.addLink(thresholdOperation->getOutputSocket(), glareoperation->getInputSocket(0));
+	
+	converter.addLink(mixvalueoperation->getOutputSocket(), mixoperation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(0), mixoperation->getInputSocket(1));
+	converter.addLink(glareoperation->getOutputSocket(), mixoperation->getInputSocket(2));
+	converter.mapOutputSocket(getOutputSocket(), mixoperation->getOutputSocket());
+
+}

@@ -58,7 +58,7 @@ void OpenCLDevice::execute(WorkPackage *work)
 	MemoryBuffer **inputBuffers = executionGroup->getInputBuffersOpenCL(chunkNumber);
 	MemoryBuffer *outputBuffer = executionGroup->allocateOutputBuffer(chunkNumber, &rect);
 
-	executionGroup->getOutputNodeOperation()->executeOpenCLRegion(this, &rect,
+	executionGroup->getOutputOperation()->executeOpenCLRegion(this, &rect,
 	                                                              chunkNumber, inputBuffers, outputBuffer);
 
 	delete outputBuffer;

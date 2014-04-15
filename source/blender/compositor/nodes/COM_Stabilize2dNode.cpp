@@ -38,60 +38,59 @@ Stabilize2dNode::Stabilize2dNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void Stabilize2dNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void Stabilize2dNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *imageInput = this->getInputSocket(0);
+	NodeInput *imageInput = this->getInputSocket(0);
 	MovieClip *clip = (MovieClip *)getbNode()->id;
 	
 	ScaleOperation *scaleOperation = new ScaleOperation();
+	scaleOperation->setSampler((PixelSampler)this->getbNode()->custom1);
 	RotateOperation *rotateOperation = new RotateOperation();
+	rotateOperation->setDoDegree2RadConversion(false);
 	TranslateOperation *translateOperation = new TranslateOperation();
 	MovieClipAttributeOperation *scaleAttribute = new MovieClipAttributeOperation();
 	MovieClipAttributeOperation *angleAttribute = new MovieClipAttributeOperation();
 	MovieClipAttributeOperation *xAttribute = new MovieClipAttributeOperation();
 	MovieClipAttributeOperation *yAttribute = new MovieClipAttributeOperation();
 	SetSamplerOperation *psoperation = new SetSamplerOperation();
-
+	psoperation->setSampler((PixelSampler)this->getbNode()->custom1);
+	
 	scaleAttribute->setAttribute(MCA_SCALE);
-	scaleAttribute->setFramenumber(context->getFramenumber());
+	scaleAttribute->setFramenumber(context.getFramenumber());
 	scaleAttribute->setMovieClip(clip);
-
+	
 	angleAttribute->setAttribute(MCA_ANGLE);
-	angleAttribute->setFramenumber(context->getFramenumber());
+	angleAttribute->setFramenumber(context.getFramenumber());
 	angleAttribute->setMovieClip(clip);
-
+	
 	xAttribute->setAttribute(MCA_X);
-	xAttribute->setFramenumber(context->getFramenumber());
+	xAttribute->setFramenumber(context.getFramenumber());
 	xAttribute->setMovieClip(clip);
 	
 	yAttribute->setAttribute(MCA_Y);
-	yAttribute->setFramenumber(context->getFramenumber());
+	yAttribute->setFramenumber(context.getFramenumber());
 	yAttribute->setMovieClip(clip);
 	
-	imageInput->relinkConnections(scaleOperation->getInputSocket(0), 0, graph);
-	addLink(graph, scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
-	addLink(graph, scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
+	converter.addOperation(scaleAttribute);
+	converter.addOperation(angleAttribute);
+	converter.addOperation(xAttribute);
+	converter.addOperation(yAttribute);
+	converter.addOperation(scaleOperation);
+	converter.addOperation(translateOperation);
+	converter.addOperation(rotateOperation);
+	converter.addOperation(psoperation);
 	
-	scaleOperation->setSampler((PixelSampler)this->getbNode()->custom1);
+	converter.mapInputSocket(imageInput, scaleOperation->getInputSocket(0));
+	converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
+	converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
 	
-	addLink(graph, scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
-	addLink(graph, angleAttribute->getOutputSocket(), rotateOperation->getInputSocket(1));
-	rotateOperation->setDoDegree2RadConversion(false);
+	converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
+	converter.addLink(angleAttribute->getOutputSocket(), rotateOperation->getInputSocket(1));
 
-	addLink(graph, rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
-	addLink(graph, xAttribute->getOutputSocket(), translateOperation->getInputSocket(1));
-	addLink(graph, yAttribute->getOutputSocket(), translateOperation->getInputSocket(2));
+	converter.addLink(rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
+	converter.addLink(xAttribute->getOutputSocket(), translateOperation->getInputSocket(1));
+	converter.addLink(yAttribute->getOutputSocket(), translateOperation->getInputSocket(2));
 	
-	psoperation->setSampler((PixelSampler)this->getbNode()->custom1);
-	addLink(graph, translateOperation->getOutputSocket(), psoperation->getInputSocket(0));
-	this->getOutputSocket()->relinkConnections(psoperation->getOutputSocket());
-	
-	graph->addOperation(scaleAttribute);
-	graph->addOperation(angleAttribute);
-	graph->addOperation(xAttribute);
-	graph->addOperation(yAttribute);
-	graph->addOperation(scaleOperation);
-	graph->addOperation(translateOperation);
-	graph->addOperation(rotateOperation);
-	graph->addOperation(psoperation);
+	converter.addLink(translateOperation->getOutputSocket(), psoperation->getInputSocket(0));
+	converter.mapOutputSocket(getOutputSocket(), psoperation->getOutputSocket());
 }

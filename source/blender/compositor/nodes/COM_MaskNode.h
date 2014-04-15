@@ -34,7 +34,7 @@
 class MaskNode : public Node {
 public:
 	MaskNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 
 };
 

@@ -29,13 +29,14 @@ ColorNode::ColorNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ColorNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	SetColorOperation *operation = new SetColorOperation();
-	OutputSocket *output = this->getOutputSocket(0);
-	output->relinkConnections(operation->getOutputSocket());
+	NodeOutput *output = this->getOutputSocket(0);
 	float col[4];
 	output->getEditorValueColor(col);
 	operation->setChannels(col);
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapOutputSocket(output, operation->getOutputSocket());
 }

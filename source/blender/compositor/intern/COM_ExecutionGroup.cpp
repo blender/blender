@@ -26,8 +26,6 @@
 #include <stdlib.h>
 
 #include "COM_ExecutionGroup.h"
-#include "COM_InputSocket.h"
-#include "COM_SocketConnection.h"
 #include "COM_defines.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_ReadBufferOperation.h"
@@ -36,7 +34,6 @@
 #include "COM_WorkScheduler.h"
 #include "COM_ViewerOperation.h"
 #include "COM_ChunkOrder.h"
-#include "COM_ExecutionSystemHelper.h"
 #include "COM_Debug.h"
 
 #include "MEM_guardedalloc.h"
@@ -69,84 +66,43 @@ ExecutionGroup::ExecutionGroup()
 
 CompositorPriority ExecutionGroup::getRenderPriotrity()
 {
-	return this->getOutputNodeOperation()->getRenderPriority();
-}
-
-bool ExecutionGroup::containsOperation(NodeOperation *operation)
-{
-	for (vector<NodeOperation *>::const_iterator iterator = this->m_operations.begin(); iterator != this->m_operations.end(); ++iterator) {
-		NodeOperation *inListOperation = *iterator;
-		if (inListOperation == operation) {
-			return true;
-		}
-	}
-	return false;
-}
-
-const bool ExecutionGroup::isComplex() const
-{
-	return this->m_complex;
+	return this->getOutputOperation()->getRenderPriority();
 }
 
 bool ExecutionGroup::canContainOperation(NodeOperation *operation)
 {
 	if (!this->m_initialized) { return true; }
+	
 	if (operation->isReadBufferOperation()) { return true; }
 	if (operation->isWriteBufferOperation()) { return false; }
 	if (operation->isSetOperation()) { return true; }
-
-	if (!this->isComplex()) {
-		return (!operation->isComplex());
-	}
-	else {
-		return false;
-	}
+	
+	/* complex groups don't allow further ops (except read buffer and values, see above) */
+	if (m_complex) { return false; }
+	/* complex ops can't be added to other groups (except their own, which they initialize, see above) */
+	if (operation->isComplex()) { return false; }
+	
+	return true;
 }
 
-void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operation)
+bool ExecutionGroup::addOperation(NodeOperation *operation)
 {
-	/* should never happen but in rare cases it can - it causes confusing crashes */
-	BLI_assert(operation->isOperation() == true);
-
-	if (containsOperation(operation)) return;
-	if (canContainOperation(operation)) {
-		if (!operation->isBufferOperation()) {
-			this->m_complex = operation->isComplex();
-			this->m_openCL = operation->isOpenCL();
-			this->m_singleThreaded = operation->isSingleThreaded();
-			this->m_initialized = true;
-		}
-		this->m_operations.push_back(operation);
-		if (operation->isReadBufferOperation()) {
-			ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
-			WriteBufferOperation *writeOperation = readOperation->getMemoryProxy()->getWriteBufferOperation();
-			this->addOperation(system, writeOperation);
-		}
-		else {
-			unsigned int index;
-			for (index = 0; index < operation->getNumberOfInputSockets(); index++) {
-				InputSocket *inputSocket = operation->getInputSocket(index);
-				if (inputSocket->isConnected()) {
-					NodeOperation *node = (NodeOperation *)inputSocket->getConnection()->getFromNode();
-					this->addOperation(system, node);
-				}
-			}
-		}
+	if (!canContainOperation(operation))
+		return false;
+	
+	if (!operation->isReadBufferOperation() && !operation->isWriteBufferOperation()) {
+		m_complex = operation->isComplex();
+		m_openCL = operation->isOpenCL();
+		m_singleThreaded = operation->isSingleThreaded();
+		m_initialized = true;
 	}
-	else {
-		if (operation->isWriteBufferOperation()) {
-			WriteBufferOperation *writeoperation = (WriteBufferOperation *)operation;
-			if (writeoperation->getMemoryProxy()->getExecutor() == NULL) {
-				ExecutionGroup *newGroup = new ExecutionGroup();
-				writeoperation->getMemoryProxy()->setExecutor(newGroup);
-				newGroup->addOperation(system, operation);
-				ExecutionSystemHelper::addExecutionGroup(system->getExecutionGroups(), newGroup);
-			}
-		}
-	}
+	
+	m_operations.push_back(operation);
+	
+	return true;
 }
 
-NodeOperation *ExecutionGroup::getOutputNodeOperation() const
+NodeOperation *ExecutionGroup::getOutputOperation() const
 {
 	return this->m_operations[0]; // the first operation of the group is always the output operation.
 }
@@ -197,7 +153,7 @@ void ExecutionGroup::deinitExecution()
 }
 void ExecutionGroup::determineResolution(unsigned int resolution[2])
 {
-	NodeOperation *operation = this->getOutputNodeOperation();
+	NodeOperation *operation = this->getOutputOperation();
 	resolution[0] = operation->getWidth();
 	resolution[1] = operation->getHeight();
 	this->setResolution(resolution);
@@ -226,7 +182,7 @@ void ExecutionGroup::determineNumberOfChunks()
  */
 void ExecutionGroup::execute(ExecutionSystem *graph)
 {
-	CompositorContext &context = graph->getContext();
+	const CompositorContext &context = graph->getContext();
 	const bNodeTree *bTree = context.getbNodeTree();
 	if (this->m_width == 0 || this->m_height == 0) {return; } /// @note: break out... no pixels to calculate.
 	if (bTree->test_break && bTree->test_break(bTree->tbh)) {return; } /// @note: early break out for blur and preview nodes
@@ -243,7 +199,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	for (chunkNumber = 0; chunkNumber < this->m_numberOfChunks; chunkNumber++) {
 		chunkOrder[chunkNumber] = chunkNumber;
 	}
-	NodeOperation *operation = this->getOutputNodeOperation();
+	NodeOperation *operation = this->getOutputOperation();
 	float centerX = 0.5;
 	float centerY = 0.5;
 	OrderOfChunks chunkorder = COM_ORDER_OF_CHUNKS_DEFAULT;
@@ -506,7 +462,7 @@ void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumb
 MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti *rect)
 {
 	// we asume that this method is only called from complex execution groups.
-	NodeOperation *operation = this->getOutputNodeOperation();
+	NodeOperation *operation = this->getOutputOperation();
 	if (operation->isWriteBufferOperation()) {
 		WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation;
 		MemoryBuffer *buffer = new MemoryBuffer(writeOperation->getMemoryProxy(), rect);
@@ -615,7 +571,7 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChun
 
 void ExecutionGroup::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	this->getOutputNodeOperation()->determineDependingAreaOfInterest(input, readOperation, output);
+	this->getOutputOperation()->determineDependingAreaOfInterest(input, readOperation, output);
 }
 
 void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies)
@@ -634,7 +590,7 @@ bool ExecutionGroup::isOpenCL()
 
 void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float ymax)
 {
-	NodeOperation *operation = this->getOutputNodeOperation();
+	NodeOperation *operation = this->getOutputOperation();
 
 	if (operation->isViewerOperation() || operation->isPreviewOperation()) {
 		BLI_rcti_init(&this->m_viewerBorder, xmin * this->m_width, xmax * this->m_width,
@@ -644,7 +600,7 @@ void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float y
 
 void ExecutionGroup::setRenderBorder(float xmin, float xmax, float ymin, float ymax)
 {
-	NodeOperation *operation = this->getOutputNodeOperation();
+	NodeOperation *operation = this->getOutputOperation();
 
 	if (operation->isOutputOperation(true)) {
 		/* Basically, setting border need to happen for only operations

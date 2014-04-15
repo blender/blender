@@ -30,38 +30,33 @@ LensDistortionNode::LensDistortionNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void LensDistortionNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *editorNode = this->getbNode();
 	NodeLensDist *data = (NodeLensDist *)editorNode->storage;
 	if (data->proj) {
 		ProjectorLensDistortionOperation *operation = new ProjectorLensDistortionOperation();
-		operation->setbNode(editorNode);
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(1), 2, graph);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-
-		graph->addOperation(operation);
-
+		converter.addOperation(operation);
+		
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(1));
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 	}
 	else {
 		ScreenLensDistortionOperation *operation = new ScreenLensDistortionOperation();
-		operation->setbNode(editorNode);
 		operation->setFit(data->fit);
 		operation->setJitter(data->jit);
 
-		if (!getInputSocket(1)->isConnected())
+		if (!getInputSocket(1)->isLinked())
 			operation->setDistortion(getInputSocket(1)->getEditorValueFloat());
-		if (!getInputSocket(2)->isConnected())
+		if (!getInputSocket(2)->isLinked())
 			operation->setDispersion(getInputSocket(2)->getEditorValueFloat());
 		
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
-
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-
-		graph->addOperation(operation);
+		converter.addOperation(operation);
+		
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 	}
-
 }

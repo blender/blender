@@ -23,7 +23,7 @@
 #ifndef _COM_GlareBaseOperation_h
 #define _COM_GlareBaseOperation_h
 
-#include "COM_SingleThreadedNodeOperation.h"
+#include "COM_SingleThreadedOperation.h"
 #include "DNA_node_types.h"
 
 
@@ -36,7 +36,7 @@ typedef float fRGB[4];
 #define fRGB_rgbmult(c, r, g, b) { c[0] *= (r);  c[1] *= (g);  c[2] *= (b); } (void)0
 
 
-class GlareBaseOperation : public SingleThreadedNodeOperation {
+class GlareBaseOperation : public SingleThreadedOperation {
 private:
 	/**
 	 * @brief Cached reference to the inputProgram

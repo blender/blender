@@ -25,7 +25,7 @@
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 
-TextureBaseOperation::TextureBaseOperation() : SingleThreadedNodeOperation()
+TextureBaseOperation::TextureBaseOperation() : SingleThreadedOperation()
 {
 	this->addInputSocket(COM_DT_VECTOR); //offset
 	this->addInputSocket(COM_DT_VECTOR); //size
@@ -50,7 +50,7 @@ void TextureBaseOperation::initExecution()
 	this->m_inputOffset = getInputSocketReader(0);
 	this->m_inputSize = getInputSocketReader(1);
 	this->m_pool = BKE_image_pool_new();
-	SingleThreadedNodeOperation::initExecution();
+	SingleThreadedOperation::initExecution();
 }
 void TextureBaseOperation::deinitExecution()
 {
@@ -58,7 +58,7 @@ void TextureBaseOperation::deinitExecution()
 	this->m_inputOffset = NULL;
 	BKE_image_pool_free(this->m_pool);
 	this->m_pool = NULL;
-	SingleThreadedNodeOperation::deinitExecution();
+	SingleThreadedOperation::deinitExecution();
 }
 
 void TextureBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])

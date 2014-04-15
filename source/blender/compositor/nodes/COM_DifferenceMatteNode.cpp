@@ -30,26 +30,28 @@ DifferenceMatteNode::DifferenceMatteNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void DifferenceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void DifferenceMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocket = this->getInputSocket(0);
-	InputSocket *inputSocket2 = this->getInputSocket(1);
-	OutputSocket *outputSocketImage = this->getOutputSocket(0);
-	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeInput *inputSocket2 = this->getInputSocket(1);
+	NodeOutput *outputSocketImage = this->getOutputSocket(0);
+	NodeOutput *outputSocketMatte = this->getOutputSocket(1);
 	bNode *editorNode = this->getbNode();
 
 	DifferenceMatteOperation *operationSet = new DifferenceMatteOperation();
 	operationSet->setSettings((NodeChroma *)editorNode->storage);
-	inputSocket->relinkConnections(operationSet->getInputSocket(0), 0, graph);
-	inputSocket2->relinkConnections(operationSet->getInputSocket(1), 1, graph);
-
-	outputSocketMatte->relinkConnections(operationSet->getOutputSocket(0));
-	graph->addOperation(operationSet);
+	converter.addOperation(operationSet);
+	
+	converter.mapInputSocket(inputSocket, operationSet->getInputSocket(0));
+	converter.mapInputSocket(inputSocket2, operationSet->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketMatte, operationSet->getOutputSocket(0));
 
 	SetAlphaOperation *operation = new SetAlphaOperation();
-	addLink(graph, operationSet->getInputSocket(0)->getConnection()->getFromSocket(), operation->getInputSocket(0));
-	addLink(graph, operationSet->getOutputSocket(), operation->getInputSocket(1));
-	outputSocketImage->relinkConnections(operation->getOutputSocket());
-	graph->addOperation(operation);
-	addPreviewOperation(graph, context, operation->getOutputSocket());
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+	converter.addLink(operationSet->getOutputSocket(), operation->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
+	
+	converter.addPreview(operation->getOutputSocket());
 }

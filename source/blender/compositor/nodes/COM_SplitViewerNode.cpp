@@ -32,14 +32,14 @@ SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void SplitViewerNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *editorNode = this->getbNode();
-	bool is_active = ((editorNode->flag & NODE_DO_OUTPUT_RECALC || context->isRendering()) &&
+	bool is_active = ((editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) &&
 	                  (editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 
-	InputSocket *image1Socket = this->getInputSocket(0);
-	InputSocket *image2Socket = this->getInputSocket(1);
+	NodeInput *image1Socket = this->getInputSocket(0);
+	NodeInput *image2Socket = this->getInputSocket(1);
 	Image *image = (Image *)this->getbNode()->id;
 	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
 
@@ -47,15 +47,16 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
 	splitViewerOperation->setXSplit(!this->getbNode()->custom2);
 
-	image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);
-	image2Socket->relinkConnections(splitViewerOperation->getInputSocket(1), 1, graph);
+	converter.addOperation(splitViewerOperation);
+	converter.mapInputSocket(image1Socket, splitViewerOperation->getInputSocket(0));
+	converter.mapInputSocket(image2Socket, splitViewerOperation->getInputSocket(1));
 
 	ViewerOperation *viewerOperation = new ViewerOperation();
 	viewerOperation->setImage(image);
 	viewerOperation->setImageUser(imageUser);
 	viewerOperation->setActive(is_active);
-	viewerOperation->setViewSettings(context->getViewSettings());
-	viewerOperation->setDisplaySettings(context->getDisplaySettings());
+	viewerOperation->setViewSettings(context.getViewSettings());
+	viewerOperation->setDisplaySettings(context.getDisplaySettings());
 
 	/* defaults - the viewer node has these options but not exposed for split view
 	 * we could use the split to define an area of interest on one axis at least */
@@ -63,10 +64,8 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	viewerOperation->setCenterX(0.5f);
 	viewerOperation->setCenterY(0.5f);
 
-	addLink(graph, splitViewerOperation->getOutputSocket(), viewerOperation->getInputSocket(0));
+	converter.addOperation(viewerOperation);
+	converter.addLink(splitViewerOperation->getOutputSocket(), viewerOperation->getInputSocket(0));
 
-	addPreviewOperation(graph, context, viewerOperation->getInputSocket(0));
-
-	graph->addOperation(splitViewerOperation);
-	graph->addOperation(viewerOperation);
+	converter.addPreview(splitViewerOperation->getOutputSocket());
 }

@@ -31,7 +31,7 @@
 class ChannelMatteNode : public Node {
 public:
 	ChannelMatteNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif  /* COM_ChannelMatteNODE_H */

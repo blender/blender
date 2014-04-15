@@ -20,41 +20,41 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SingleThreadedNodeOperation_h
-#define _COM_SingleThreadedNodeOperation_h
-#include "COM_NodeOperation.h"
+#include "COM_SingleThreadedOperation.h"
 
-class SingleThreadedNodeOperation : public NodeOperation {
-private:
-	MemoryBuffer *m_cachedInstance;
-	
-protected:
-	inline bool isCached() {
-		return this->m_cachedInstance != NULL;
+SingleThreadedOperation::SingleThreadedOperation() : NodeOperation()
+{
+	this->m_cachedInstance = NULL;
+	setComplex(true);
+}
+
+void SingleThreadedOperation::initExecution()
+{
+	initMutex();
+}
+
+void SingleThreadedOperation::executePixel(float output[4], int x, int y, void *data)
+{
+	this->m_cachedInstance->readNoCheck(output, x, y);
+}
+
+void SingleThreadedOperation::deinitExecution()
+{
+	deinitMutex();
+	if (this->m_cachedInstance) {
+		delete this->m_cachedInstance;
+		this->m_cachedInstance = NULL;
 	}
-
-public:
-	SingleThreadedNodeOperation();
+}
+void *SingleThreadedOperation::initializeTileData(rcti *rect)
+{
+	if (this->m_cachedInstance) return this->m_cachedInstance;
 	
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], int x, int y, void *data);
-	
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
-	
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
-
-	void *initializeTileData(rcti *rect);
-
-	virtual MemoryBuffer *createMemoryBuffer(rcti *rect) = 0;
-	
-	int isSingleThreaded() { return true; }
-};
-#endif
+	lockMutex();
+	if (this->m_cachedInstance == NULL) {
+		//
+		this->m_cachedInstance = createMemoryBuffer(rect);
+	}
+	unlockMutex();
+	return this->m_cachedInstance;
+}

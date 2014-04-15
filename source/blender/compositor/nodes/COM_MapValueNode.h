@@ -32,7 +32,7 @@
 class MapValueNode : public Node {
 public:
 	MapValueNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif  /* __COM_MAPVALUENODE_H__ */

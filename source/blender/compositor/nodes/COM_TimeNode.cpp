@@ -33,15 +33,14 @@ TimeNode::TimeNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void TimeNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	SetValueOperation *operation = new SetValueOperation();
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	bNode *node = this->getbNode();
 
 	/* stack order output: fac */
 	float fac = 0.0f;
-	const int framenumber = context->getFramenumber();
+	const int framenumber = context.getFramenumber();
 
 	if (framenumber < node->custom1) {
 		fac = 0.0f;
@@ -50,11 +49,13 @@ void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		fac = 1.0f;
 	}
 	else if (node->custom1 < node->custom2) {
-		fac = (context->getFramenumber() - node->custom1) / (float)(node->custom2 - node->custom1);
+		fac = (context.getFramenumber() - node->custom1) / (float)(node->custom2 - node->custom1);
 	}
 
 	curvemapping_initialize((CurveMapping *)node->storage);
 	fac = curvemapping_evaluateF((CurveMapping *)node->storage, 0, fac);
 	operation->setValue(CLAMPIS(fac, 0.0f, 1.0f));
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

@@ -54,28 +54,22 @@ set(SRC
 	intern/COM_compositor.cpp
 	intern/COM_ExecutionSystem.cpp
 	intern/COM_ExecutionSystem.h
-	intern/COM_ExecutionSystemHelper.cpp
-	intern/COM_ExecutionSystemHelper.h
+	intern/COM_NodeConverter.cpp
+	intern/COM_NodeConverter.h
+	intern/COM_NodeOperationBuilder.cpp
+	intern/COM_NodeOperationBuilder.h
+	intern/COM_NodeGraph.cpp
+	intern/COM_NodeGraph.h
 	intern/COM_Converter.cpp
 	intern/COM_Converter.h
 	intern/COM_ExecutionGroup.cpp
 	intern/COM_ExecutionGroup.h
 	intern/COM_Node.cpp
 	intern/COM_Node.h
-	intern/COM_NodeBase.cpp
-	intern/COM_NodeBase.h
 	intern/COM_NodeOperation.cpp
 	intern/COM_NodeOperation.h
-	intern/COM_Socket.cpp
-	intern/COM_Socket.h
 	intern/COM_SocketReader.cpp
 	intern/COM_SocketReader.h
-	intern/COM_InputSocket.cpp
-	intern/COM_InputSocket.h
-	intern/COM_OutputSocket.cpp
-	intern/COM_OutputSocket.h
-	intern/COM_SocketConnection.cpp
-	intern/COM_SocketConnection.h
 	intern/COM_MemoryProxy.cpp
 	intern/COM_MemoryProxy.h
 	intern/COM_MemoryBuffer.cpp
@@ -98,8 +92,8 @@ set(SRC
 	intern/COM_CompositorContext.h
 	intern/COM_ChannelInfo.cpp
 	intern/COM_ChannelInfo.h
-	intern/COM_SingleThreadedNodeOperation.cpp
-	intern/COM_SingleThreadedNodeOperation.h
+	intern/COM_SingleThreadedOperation.cpp
+	intern/COM_SingleThreadedOperation.h
 	intern/COM_Debug.cpp
 	intern/COM_Debug.h
 
@@ -107,10 +101,6 @@ set(SRC
 	operations/COM_QualityStepHelper.cpp
 
 	# Internal nodes
-	nodes/COM_MuteNode.cpp
-	nodes/COM_MuteNode.h
-	nodes/COM_GroupNode.cpp
-	nodes/COM_GroupNode.h
 	nodes/COM_SocketProxyNode.cpp
 	nodes/COM_SocketProxyNode.h
 
@@ -245,22 +235,10 @@ set(SRC
 	# converter nodes
 	nodes/COM_IDMaskNode.cpp
 	nodes/COM_IDMaskNode.h
-	nodes/COM_SeparateRGBANode.cpp
-	nodes/COM_SeparateRGBANode.h
-	nodes/COM_CombineRGBANode.cpp
-	nodes/COM_CombineRGBANode.h
-	nodes/COM_SeparateHSVANode.cpp
-	nodes/COM_SeparateHSVANode.h
-	nodes/COM_CombineHSVANode.cpp
-	nodes/COM_CombineHSVANode.h
-	nodes/COM_SeparateYUVANode.cpp
-	nodes/COM_SeparateYUVANode.h
-	nodes/COM_CombineYUVANode.cpp
-	nodes/COM_CombineYUVANode.h
-	nodes/COM_SeparateYCCANode.cpp
-	nodes/COM_SeparateYCCANode.h
-	nodes/COM_CombineYCCANode.cpp
-	nodes/COM_CombineYCCANode.h
+	nodes/COM_SeparateColorNode.cpp
+	nodes/COM_SeparateColorNode.h
+	nodes/COM_CombineColorNode.cpp
+	nodes/COM_CombineColorNode.h
 
 	nodes/COM_NormalNode.cpp
 	nodes/COM_NormalNode.h

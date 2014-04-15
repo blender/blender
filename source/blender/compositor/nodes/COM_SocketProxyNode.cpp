@@ -21,7 +21,6 @@
  */
 
 #include "COM_SocketProxyNode.h"
-#include "COM_SocketConnection.h"
 #include "COM_SocketProxyOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
@@ -30,15 +29,14 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
 
-SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput, bool buffer) : Node(editorNode, false)
+SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput) : Node(editorNode, false)
 {
 	DataType dt;
-	this->m_buffer = buffer;
 
 	dt = COM_DT_VALUE;
 	if (editorInput->type == SOCK_RGBA) dt = COM_DT_COLOR;
 	if (editorInput->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
-	this->addInputSocket(dt, (InputSocketResizeMode)editorInput->resizemode, editorInput);
+	this->addInputSocket(dt, editorInput);
 
 	dt = COM_DT_VALUE;
 	if (editorOutput->type == SOCK_RGBA) dt = COM_DT_COLOR;
@@ -46,59 +44,39 @@ SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bN
 	this->addOutputSocket(dt, editorOutput);
 }
 
-void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void SocketProxyNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	OutputSocket *outputsocket = this->getOutputSocket(0);
-	InputSocket *inputsocket = this->getInputSocket(0);
-	if (inputsocket->isConnected()) {
-		SocketProxyOperation *operation = new SocketProxyOperation(this->getOutputSocket()->getDataType());
-		inputsocket->relinkConnections(operation->getInputSocket(0));
-		outputsocket->relinkConnections(operation->getOutputSocket(0));
-		graph->addOperation(operation);
-		
-		if (m_buffer) {
-			WriteBufferOperation *writeOperation = new WriteBufferOperation();
-			ReadBufferOperation *readOperation = new ReadBufferOperation();
-			readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
-			
-			operation->getOutputSocket()->relinkConnections(readOperation->getOutputSocket());
-			addLink(graph, operation->getOutputSocket(), writeOperation->getInputSocket(0));
-			
-			graph->addOperation(writeOperation);
-			graph->addOperation(readOperation);
-		}
-	}
-	else if (outputsocket->isConnected()) {
-		/* If input is not connected, add a constant value operation instead */
-		switch (outputsocket->getDataType()) {
-			case COM_DT_VALUE:
-			{
-				SetValueOperation *operation = new SetValueOperation();
-				operation->setValue(inputsocket->getEditorValueFloat());
-				outputsocket->relinkConnections(operation->getOutputSocket(0));
-				graph->addOperation(operation);
-				break;
-			}
-			case COM_DT_COLOR:
-			{
-				SetColorOperation *operation = new SetColorOperation();
-				float col[4];
-				inputsocket->getEditorValueColor(col);
-				operation->setChannels(col);
-				outputsocket->relinkConnections(operation->getOutputSocket(0));
-				graph->addOperation(operation);
-				break;
-			}
-			case COM_DT_VECTOR:
-			{
-				SetVectorOperation *operation = new SetVectorOperation();
-				float vec[3];
-				inputsocket->getEditorValueVector(vec);
-				operation->setVector(vec);
-				outputsocket->relinkConnections(operation->getOutputSocket(0));
-				graph->addOperation(operation);
-				break;
-			}
-		}
-	}
+	NodeOperationOutput *proxy_output = converter.addInputProxy(getInputSocket(0));
+	converter.mapOutputSocket(getOutputSocket(), proxy_output);
+}
+
+
+SocketBufferNode::SocketBufferNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput) : Node(editorNode, false)
+{
+	DataType dt;
+
+	dt = COM_DT_VALUE;
+	if (editorInput->type == SOCK_RGBA) dt = COM_DT_COLOR;
+	if (editorInput->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
+	this->addInputSocket(dt, editorInput);
+
+	dt = COM_DT_VALUE;
+	if (editorOutput->type == SOCK_RGBA) dt = COM_DT_COLOR;
+	if (editorOutput->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
+	this->addOutputSocket(dt, editorOutput);
+}
+
+void SocketBufferNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+{
+	NodeOutput *output = this->getOutputSocket(0);
+	NodeInput *input = this->getInputSocket(0);
+	
+	WriteBufferOperation *writeOperation = new WriteBufferOperation();
+	ReadBufferOperation *readOperation = new ReadBufferOperation();
+	readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
+	converter.addOperation(writeOperation);
+	converter.addOperation(readOperation);
+	
+	converter.mapInputSocket(input, writeOperation->getInputSocket(0));
+	converter.mapOutputSocket(output, readOperation->getOutputSocket());
 }

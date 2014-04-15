@@ -30,41 +30,36 @@ ColorMatteNode::ColorMatteNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ColorMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocketImage = this->getInputSocket(0);
-	InputSocket *inputSocketKey = this->getInputSocket(1);
-	OutputSocket *outputSocketImage = this->getOutputSocket(0);
-	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
-
+	bNode *editorsnode = getbNode();
+	
+	NodeInput *inputSocketImage = this->getInputSocket(0);
+	NodeInput *inputSocketKey = this->getInputSocket(1);
+	NodeOutput *outputSocketImage = this->getOutputSocket(0);
+	NodeOutput *outputSocketMatte = this->getOutputSocket(1);
+	
 	ConvertRGBToHSVOperation *operationRGBToHSV_Image = new ConvertRGBToHSVOperation();
 	ConvertRGBToHSVOperation *operationRGBToHSV_Key = new ConvertRGBToHSVOperation();
-
+	converter.addOperation(operationRGBToHSV_Image);
+	converter.addOperation(operationRGBToHSV_Key);
+	
 	ColorMatteOperation *operation = new ColorMatteOperation();
-	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma *)editorsnode->storage);
-
-	inputSocketImage->relinkConnections(operationRGBToHSV_Image->getInputSocket(0), 0, graph);
-	inputSocketKey->relinkConnections(operationRGBToHSV_Key->getInputSocket(0), 1, graph);
-
-	addLink(graph, operationRGBToHSV_Image->getOutputSocket(), operation->getInputSocket(0));
-	addLink(graph, operationRGBToHSV_Key->getOutputSocket(), operation->getInputSocket(1));
-
-	if (outputSocketMatte->isConnected()) {
-		outputSocketMatte->relinkConnections(operation->getOutputSocket(0));
-	}
-
-	graph->addOperation(operationRGBToHSV_Image);
-	graph->addOperation(operationRGBToHSV_Key);
-	graph->addOperation(operation);
-
+	converter.addOperation(operation);
+	
 	SetAlphaOperation *operationAlpha = new SetAlphaOperation();
-	addLink(graph, operationRGBToHSV_Image->getInputSocket(0)->getConnection()->getFromSocket(), operationAlpha->getInputSocket(0));
-	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
-	graph->addOperation(operationAlpha);
-	addPreviewOperation(graph, context, operationAlpha->getOutputSocket());
-
-	if (outputSocketImage->isConnected()) {
-		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());
-	}
+	converter.addOperation(operationAlpha);
+	
+	converter.mapInputSocket(inputSocketImage, operationRGBToHSV_Image->getInputSocket(0));
+	converter.mapInputSocket(inputSocketKey, operationRGBToHSV_Key->getInputSocket(0));
+	converter.addLink(operationRGBToHSV_Image->getOutputSocket(), operation->getInputSocket(0));
+	converter.addLink(operationRGBToHSV_Key->getOutputSocket(), operation->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket(0));
+	
+	converter.mapInputSocket(inputSocketImage, operationAlpha->getInputSocket(0));
+	converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
+	
+	converter.addPreview(operationAlpha->getOutputSocket());
 }

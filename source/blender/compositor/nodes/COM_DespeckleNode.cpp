@@ -29,22 +29,21 @@ DespeckleNode::DespeckleNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void DespeckleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void DespeckleNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *editorNode = this->getbNode();
-	InputSocket *inputSocket = this->getInputSocket(0);
-	InputSocket *inputImageSocket = this->getInputSocket(1);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeInput *inputImageSocket = this->getInputSocket(1);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
+	
 	DespeckleOperation *operation = new DespeckleOperation();
-
-	operation->setbNode(editorNode);
 	operation->setThreshold(editorNode->custom3);
 	operation->setThresholdNeighbor(editorNode->custom4);
-
-	inputImageSocket->relinkConnections(operation->getInputSocket(0), 1, graph);
-	inputSocket->relinkConnections(operation->getInputSocket(1), 0, graph);
-	outputSocket->relinkConnections(operation->getOutputSocket());
-	addPreviewOperation(graph, context, operation->getOutputSocket(0));
-
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(inputImageSocket, operation->getInputSocket(0));
+	converter.mapInputSocket(inputSocket, operation->getInputSocket(1));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
+	
+	converter.addPreview(operation->getOutputSocket(0));
 }

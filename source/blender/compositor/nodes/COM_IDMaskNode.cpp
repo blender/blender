@@ -29,23 +29,24 @@ IDMaskNode::IDMaskNode(bNode *editorNode) : Node(editorNode)
 {
 	/* pass */
 }
-void IDMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void IDMaskNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *bnode = this->getbNode();
+	
 	IDMaskOperation *operation;
 	operation = new IDMaskOperation();
 	operation->setObjectIndex(bnode->custom1);
+	converter.addOperation(operation);
 	
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	if (bnode->custom2 == 0 || context->getRenderData()->scemode & R_FULL_SAMPLE) {
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	if (bnode->custom2 == 0 || context.getRenderData()->scemode & R_FULL_SAMPLE) {
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 	}
 	else {
 		AntiAliasOperation *antiAliasOperation = new AntiAliasOperation();
-		addLink(graph, operation->getOutputSocket(), antiAliasOperation->getInputSocket(0));
-		this->getOutputSocket(0)->relinkConnections(antiAliasOperation->getOutputSocket(0));
-		graph->addOperation(antiAliasOperation);
+		converter.addOperation(antiAliasOperation);
+		
+		converter.addLink(operation->getOutputSocket(), antiAliasOperation->getInputSocket(0));
+		converter.mapOutputSocket(getOutputSocket(0), antiAliasOperation->getOutputSocket(0));
 	}
-	graph->addOperation(operation);
-	
 }

@@ -30,19 +30,20 @@ PixelateNode::PixelateNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void PixelateNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void PixelateNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocket = this->getInputSocket(0);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
 	DataType datatype = inputSocket->getDataType();
-	if (inputSocket->isConnected()) {
-		SocketConnection *connection = inputSocket->getConnection();
-		OutputSocket *otherOutputSocket = connection->getFromSocket();
-		datatype = otherOutputSocket->getDataType();
+	
+	if (inputSocket->isLinked()) {
+		NodeOutput *link = inputSocket->getLink();
+		datatype = link->getDataType();
 	}
 
 	PixelateOperation *operation = new PixelateOperation(datatype);
-	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-	outputSocket->relinkConnections(operation->getOutputSocket(0));
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

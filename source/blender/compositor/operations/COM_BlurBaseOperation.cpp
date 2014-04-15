@@ -36,30 +36,29 @@ BlurBaseOperation::BlurBaseOperation(DataType data_type) : NodeOperation()
 	this->addOutputSocket(data_type);
 	this->setComplex(true);
 	this->m_inputProgram = NULL;
-	this->m_data = NULL;
+	memset(&m_data, 0, sizeof(NodeBlurData));
 	this->m_size = 1.0f;
-	this->m_deleteData = false;
 	this->m_sizeavailable = false;
 }
 void BlurBaseOperation::initExecution()
 {
 	this->m_inputProgram = this->getInputSocketReader(0);
 	this->m_inputSize = this->getInputSocketReader(1);
-	this->m_data->image_in_width = this->getWidth();
-	this->m_data->image_in_height = this->getHeight();
-	if (this->m_data->relative) {
-		switch (this->m_data->aspect) {
+	this->m_data.image_in_width = this->getWidth();
+	this->m_data.image_in_height = this->getHeight();
+	if (this->m_data.relative) {
+		switch (this->m_data.aspect) {
 			case CMP_NODE_BLUR_ASPECT_NONE:
-				this->m_data->sizex = (int)(this->m_data->percentx * 0.01f * this->m_data->image_in_width);
-				this->m_data->sizey = (int)(this->m_data->percenty * 0.01f * this->m_data->image_in_height);
+				this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_width);
+				this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_height);
 				break;
 			case CMP_NODE_BLUR_ASPECT_Y:
-				this->m_data->sizex = (int)(this->m_data->percentx * 0.01f * this->m_data->image_in_width);
-				this->m_data->sizey = (int)(this->m_data->percenty * 0.01f * this->m_data->image_in_width);
+				this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_width);
+				this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_width);
 				break;
 			case CMP_NODE_BLUR_ASPECT_X:
-				this->m_data->sizex = (int)(this->m_data->percentx * 0.01f * this->m_data->image_in_height);
-				this->m_data->sizey = (int)(this->m_data->percenty * 0.01f * this->m_data->image_in_height);
+				this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_height);
+				this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_height);
 				break;
 		}
 	}
@@ -80,7 +79,7 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
 	sum = 0.0f;
 	float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
 	for (i = -size; i <= size; i++) {
-		val = RE_filter_value(this->m_data->filtertype, (float)i * fac);
+		val = RE_filter_value(this->m_data.filtertype, (float)i * fac);
 		sum += val;
 		gausstab[i + size] = val;
 	}
@@ -144,10 +143,11 @@ void BlurBaseOperation::deinitExecution()
 {
 	this->m_inputProgram = NULL;
 	this->m_inputSize = NULL;
-	if (this->m_deleteData) {
-		delete this->m_data;
-	}
-	this->m_data = NULL;
+}
+
+void BlurBaseOperation::setData(const NodeBlurData *data)
+{
+	memcpy(&m_data, data, sizeof(NodeBlurData));
 }
 
 void BlurBaseOperation::updateSize()

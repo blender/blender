@@ -29,19 +29,17 @@
  */
 class KeyingNode : public Node {
 protected:
-	NodeBlurData m_alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */
-
-	OutputSocket *setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage);
-	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBlurInput, int size);
-	OutputSocket *setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance);
-	OutputSocket *setupFeather(ExecutionSystem *graph, CompositorContext *context, OutputSocket *featherInput,
-	                           int falloff, int distance);
-	OutputSocket *setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputSrceen,
-	                           float factor, float colorBalance);
-	OutputSocket *setupClip(ExecutionSystem *graph, OutputSocket *clipInput, int kernelRadius, float kernelTolerance,
-	                        float clipBlack, float clipWhite, bool edgeMatte);
+	NodeOperationOutput *setupPreBlur(NodeConverter &converter, NodeInput *inputImage, int size) const;
+	NodeOperationOutput *setupPostBlur(NodeConverter &converter, NodeOperationOutput *postBlurInput, int size) const;
+	NodeOperationOutput *setupDilateErode(NodeConverter &converter, NodeOperationOutput *dilateErodeInput, int distance) const;
+	NodeOperationOutput *setupFeather(NodeConverter &converter, const CompositorContext &context, NodeOperationOutput *featherInput,
+	                           int falloff, int distance) const;
+	NodeOperationOutput *setupDespill(NodeConverter &converter, NodeOperationOutput *despillInput, NodeInput *inputSrceen,
+	                           float factor, float colorBalance) const;
+	NodeOperationOutput *setupClip(NodeConverter &converter, NodeOperationOutput *clipInput, int kernelRadius, float kernelTolerance,
+	                        float clipBlack, float clipWhite, bool edgeMatte) const;
 public:
 	KeyingNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 
 };

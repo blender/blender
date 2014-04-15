@@ -23,12 +23,16 @@
 #include <typeinfo>
 #include <stdio.h>
 
-#include "COM_NodeOperation.h"
-#include "COM_InputSocket.h"
-#include "COM_SocketConnection.h"
 #include "COM_defines.h"
+#include "COM_ExecutionSystem.h"
 
-NodeOperation::NodeOperation() : NodeBase()
+#include "COM_NodeOperation.h" /* own include */
+
+/*******************
+ **** NodeOperation ****
+ *******************/
+
+NodeOperation::NodeOperation()
 {
 	this->m_resolutionInputSocketIndex = 0;
 	this->m_complex = false;
@@ -39,28 +43,63 @@ NodeOperation::NodeOperation() : NodeBase()
 	this->m_btree = NULL;
 }
 
+NodeOperation::~NodeOperation()
+{
+	while (!this->m_outputs.empty()) {
+		delete (this->m_outputs.back());
+		this->m_outputs.pop_back();
+	}
+	while (!this->m_inputs.empty()) {
+		delete (this->m_inputs.back());
+		this->m_inputs.pop_back();
+	}
+}
+
+NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index) const
+{
+	BLI_assert(index < m_outputs.size());
+	return m_outputs[index];
+}
+
+NodeOperationInput *NodeOperation::getInputSocket(unsigned int index) const
+{
+	BLI_assert(index < m_inputs.size());
+	return m_inputs[index];
+}
+
+void NodeOperation::addInputSocket(DataType datatype, InputResizeMode resize_mode)
+{
+	NodeOperationInput *socket = new NodeOperationInput(this, datatype, resize_mode);
+	m_inputs.push_back(socket);
+}
+
+void NodeOperation::addOutputSocket(DataType datatype)
+{
+	NodeOperationOutput *socket = new NodeOperationOutput(this, datatype);
+	m_outputs.push_back(socket);
+}
+
 void NodeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	unsigned int temp[2];
 	unsigned int temp2[2];
-	vector<InputSocket *> &inputsockets = this->getInputSockets();
 	
-	for (unsigned int index = 0; index < inputsockets.size(); index++) {
-		InputSocket *inputSocket = inputsockets[index];
-		if (inputSocket->isConnected()) {
+	for (unsigned int index = 0; index < m_inputs.size(); index++) {
+		NodeOperationInput *input = m_inputs[index];
+		if (input->isConnected()) {
 			if (index == this->m_resolutionInputSocketIndex) {
-				inputSocket->determineResolution(resolution, preferredResolution);
+				input->determineResolution(resolution, preferredResolution);
 				temp2[0] = resolution[0];
 				temp2[1] = resolution[1];
 				break;
 			}
 		}
 	}
-	for (unsigned int index = 0; index < inputsockets.size(); index++) {
-		InputSocket *inputSocket = inputsockets[index];
-		if (inputSocket->isConnected()) {
+	for (unsigned int index = 0; index < m_inputs.size(); index++) {
+		NodeOperationInput *input = m_inputs[index];
+		if (input->isConnected()) {
 			if (index != this->m_resolutionInputSocketIndex) {
-				inputSocket->determineResolution(temp, temp2);
+				input->determineResolution(temp, temp2);
 			}
 		}
 	}
@@ -102,25 +141,29 @@ SocketReader *NodeOperation::getInputSocketReader(unsigned int inputSocketIndex)
 {
 	return this->getInputSocket(inputSocketIndex)->getReader();
 }
+
 NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
 {
-	return this->getInputSocket(inputSocketIndex)->getOperation();
+	NodeOperationInput *input = getInputSocket(inputSocketIndex);
+	if (input && input->isConnected())
+		return &input->getLink()->getOperation();
+	else
+		return NULL;
 }
 
-void NodeOperation::getConnectedInputSockets(vector<InputSocket *> *sockets)
+void NodeOperation::getConnectedInputSockets(Inputs *sockets)
 {
-	vector<InputSocket *> &inputsockets = this->getInputSockets();
-	for (vector<InputSocket *>::iterator iterator = inputsockets.begin(); iterator != inputsockets.end(); iterator++) {
-		InputSocket *socket = *iterator;
-		if (socket->isConnected()) {
-			sockets->push_back(socket);
+	for (Inputs::const_iterator it = m_inputs.begin(); it != m_inputs.end(); ++it) {
+		NodeOperationInput *input = *it;
+		if (input->isConnected()) {
+			sockets->push_back(input);
 		}
 	}
 }
 
 bool NodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	if (this->isInputNode()) {
+	if (isInputOperation()) {
 		BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return false;
 	}
@@ -146,5 +189,58 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOper
 			}
 		}
 		return !first;
+	}
+}
+
+
+/*****************
+ **** OpInput ****
+ *****************/
+
+NodeOperationInput::NodeOperationInput(NodeOperation *op, DataType datatype, InputResizeMode resizeMode) :
+    m_operation(op),
+    m_datatype(datatype),
+    m_resizeMode(resizeMode),
+    m_link(NULL)
+{
+}
+
+SocketReader *NodeOperationInput::getReader()
+{
+	if (isConnected()) {
+		return &m_link->getOperation();
+	}
+	else {
+		return NULL;
+	}
+}
+
+void NodeOperationInput::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+{
+	if (m_link)
+		m_link->determineResolution(resolution, preferredResolution);
+}
+
+
+/******************
+ **** OpOutput ****
+ ******************/
+
+NodeOperationOutput::NodeOperationOutput(NodeOperation *op, DataType datatype) :
+    m_operation(op),
+    m_datatype(datatype)
+{
+}
+
+void NodeOperationOutput::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+{
+	NodeOperation &operation = getOperation();
+	if (operation.isResolutionSet()) {
+		resolution[0] = operation.getWidth();
+		resolution[1] = operation.getHeight();
+	}
+	else {
+		operation.determineResolution(resolution, preferredResolution);
+		operation.setResolution(resolution);
 	}
 }

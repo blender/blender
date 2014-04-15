@@ -28,12 +28,11 @@ NormalizeNode::NormalizeNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void NormalizeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void NormalizeNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	NormalizeOperation *operation = new NormalizeOperation();
+	converter.addOperation(operation);
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-
-	graph->addOperation(operation);
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }

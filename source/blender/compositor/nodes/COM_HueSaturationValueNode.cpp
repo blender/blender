@@ -35,35 +35,35 @@ HueSaturationValueNode::HueSaturationValueNode(bNode *editorNode) : Node(editorN
 	/* pass */
 }
 
-void HueSaturationValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void HueSaturationValueNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *valueSocket = this->getInputSocket(0);
-	InputSocket *colorSocket = this->getInputSocket(1);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
+	NodeInput *valueSocket = this->getInputSocket(0);
+	NodeInput *colorSocket = this->getInputSocket(1);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
 	bNode *editorsnode = getbNode();
 	NodeHueSat *storage = (NodeHueSat *)editorsnode->storage;
 
 	ConvertRGBToHSVOperation *rgbToHSV = new ConvertRGBToHSVOperation();
+	converter.addOperation(rgbToHSV);
+	
 	ConvertHSVToRGBOperation *hsvToRGB = new ConvertHSVToRGBOperation();
+	converter.addOperation(hsvToRGB);
+	
 	ChangeHSVOperation *changeHSV = new ChangeHSVOperation();
-	MixBlendOperation *blend = new MixBlendOperation();
-
-	colorSocket->relinkConnections(rgbToHSV->getInputSocket(0), 1, graph);
-	addLink(graph, rgbToHSV->getOutputSocket(), changeHSV->getInputSocket(0));
-	addLink(graph, changeHSV->getOutputSocket(), hsvToRGB->getInputSocket(0));
-	addLink(graph, hsvToRGB->getOutputSocket(), blend->getInputSocket(2));
-	addLink(graph, rgbToHSV->getInputSocket(0)->getConnection()->getFromSocket(), blend->getInputSocket(1));
-	valueSocket->relinkConnections(blend->getInputSocket(0), 0, graph);
-	outputSocket->relinkConnections(blend->getOutputSocket());
-
 	changeHSV->setHue(storage->hue);
 	changeHSV->setSaturation(storage->sat);
 	changeHSV->setValue(storage->val);
-
+	converter.addOperation(changeHSV);
+	
+	MixBlendOperation *blend = new MixBlendOperation();
 	blend->setResolutionInputSocketIndex(1);
+	converter.addOperation(blend);
 
-	graph->addOperation(rgbToHSV);
-	graph->addOperation(hsvToRGB);
-	graph->addOperation(changeHSV);
-	graph->addOperation(blend);
+	converter.mapInputSocket(colorSocket, rgbToHSV->getInputSocket(0));
+	converter.addLink(rgbToHSV->getOutputSocket(), changeHSV->getInputSocket(0));
+	converter.addLink(changeHSV->getOutputSocket(), hsvToRGB->getInputSocket(0));
+	converter.addLink(hsvToRGB->getOutputSocket(), blend->getInputSocket(2));
+	converter.mapInputSocket(colorSocket, blend->getInputSocket(1));
+	converter.mapInputSocket(valueSocket, blend->getInputSocket(0));
+	converter.mapOutputSocket(outputSocket, blend->getOutputSocket());
 }

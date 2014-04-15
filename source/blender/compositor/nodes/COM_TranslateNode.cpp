@@ -32,44 +32,43 @@ TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void TranslateNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocket = this->getInputSocket(0);
-	InputSocket *inputXSocket = this->getInputSocket(1);
-	InputSocket *inputYSocket = this->getInputSocket(2);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
-	TranslateOperation *operation = new TranslateOperation();
-
 	bNode *bnode = this->getbNode();
 	NodeTranslateData *data = (NodeTranslateData *)bnode->storage;
-
+	
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeInput *inputXSocket = this->getInputSocket(1);
+	NodeInput *inputYSocket = this->getInputSocket(2);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
+	
+	TranslateOperation *operation = new TranslateOperation();
+	if (data->relative) {
+		const RenderData *rd = context.getRenderData();
+		float fx = rd->xsch * rd->size / 100.0f;
+		float fy = rd->ysch * rd->size / 100.0f;
+		
+		operation->setFactorXY(fx, fy);
+	}
+	
+	converter.addOperation(operation);
+	converter.mapInputSocket(inputXSocket, operation->getInputSocket(1));
+	converter.mapInputSocket(inputYSocket, operation->getInputSocket(2));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+	
 	if (data->wrap_axis) {
 		WriteBufferOperation *writeOperation = new WriteBufferOperation();
 		WrapOperation *wrapOperation = new WrapOperation();
 		wrapOperation->setMemoryProxy(writeOperation->getMemoryProxy());
 		wrapOperation->setWrapping(data->wrap_axis);
 		
-		inputSocket->relinkConnections(writeOperation->getInputSocket(0), 0, graph);
-		addLink(graph, wrapOperation->getOutputSocket(), operation->getInputSocket(0));
-		
-		graph->addOperation(writeOperation);
-		graph->addOperation(wrapOperation);
+		converter.addOperation(writeOperation);
+		converter.addOperation(wrapOperation);
+		converter.mapInputSocket(inputSocket, writeOperation->getInputSocket(0));
+		converter.addLink(wrapOperation->getOutputSocket(), operation->getInputSocket(0));
 	}
 	else {
-		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+		converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 	}
-
-	if (data->relative) {
-		const RenderData *rd = context->getRenderData();
-		float fx = rd->xsch * rd->size / 100.0f;
-		float fy = rd->ysch * rd->size / 100.0f;
-
-		operation->setFactorXY(fx, fy);
-	}
-
-	inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
-	inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
-	outputSocket->relinkConnections(operation->getOutputSocket(0));
-	graph->addOperation(operation);
 }
 

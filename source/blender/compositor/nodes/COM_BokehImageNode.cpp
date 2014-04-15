@@ -29,11 +29,13 @@ BokehImageNode::BokehImageNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void BokehImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void BokehImageNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	BokehImageOperation *operation = new BokehImageOperation();
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-	graph->addOperation(operation);
 	operation->setData((NodeBokehImage *)this->getbNode()->storage);
-	addPreviewOperation(graph, context, operation->getOutputSocket(0));
+	
+	converter.addOperation(operation);
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+	
+	converter.addPreview(operation->getOutputSocket(0));
 }

@@ -30,10 +30,10 @@ FlipNode::FlipNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void FlipNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void FlipNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocket = this->getInputSocket(0);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
 	FlipOperation *operation = new FlipOperation();
 	switch (this->getbNode()->custom1) {
 		case 0: /// @TODO: I didn't find any constants in the old implementation, should I introduce them.
@@ -50,7 +50,7 @@ void FlipNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 			break;
 	}
 	
-	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-	outputSocket->relinkConnections(operation->getOutputSocket(0));
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

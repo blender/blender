@@ -21,7 +21,6 @@
  */
 
 #include "COM_CompositorOperation.h"
-#include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 

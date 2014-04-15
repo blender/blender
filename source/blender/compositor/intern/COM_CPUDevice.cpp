@@ -30,7 +30,7 @@ void CPUDevice::execute(WorkPackage *work)
 
 	executionGroup->determineChunkRect(&rect, chunkNumber);
 
-	executionGroup->getOutputNodeOperation()->executeRegion(&rect, chunkNumber);
+	executionGroup->getOutputOperation()->executeRegion(&rect, chunkNumber);
 
 	executionGroup->finalizeChunkExecution(chunkNumber, NULL);
 }

@@ -30,15 +30,15 @@ BilateralBlurNode::BilateralBlurNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void BilateralBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void BilateralBlurNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	NodeBilateralBlurData *data = (NodeBilateralBlurData *)this->getbNode()->storage;
 	BilateralBlurOperation *operation = new BilateralBlurOperation();
-	operation->setbNode(this->getbNode());
-	operation->setQuality(context->getQuality());
+	operation->setQuality(context.getQuality());
 	operation->setData(data);
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-	graph->addOperation(operation);
+	
+	converter.addOperation(operation);
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }

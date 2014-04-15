@@ -65,7 +65,7 @@ public:
 	float getCenterY() const { return this->m_centerY; }
 	OrderOfChunks getChunkOrder() const { return this->m_chunkOrder; }
 	const CompositorPriority getRenderPriority() const;
-	bool isViewerOperation() { return true; }
+	bool isViewerOperation() const { return true; }
 	void setIgnoreAlpha(bool value) { this->m_ignoreAlpha = value; }
 
 	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }

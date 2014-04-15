@@ -32,14 +32,15 @@ ColorBalanceNode::ColorBalanceNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ColorBalanceNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocket = this->getInputSocket(0);
-	InputSocket *inputImageSocket = this->getInputSocket(1);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
-	
 	bNode *node = this->getbNode();
 	NodeColorBalance *n = (NodeColorBalance *)node->storage;
+	
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeInput *inputImageSocket = this->getInputSocket(1);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
+	
 	NodeOperation *operation;
 	if (node->custom1 == 0) {
 		ColorBalanceLGGOperation *operationLGG = new ColorBalanceLGGOperation();
@@ -62,9 +63,9 @@ void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 		operationCDL->setSlope(n->slope);
 		operation = operationCDL;
 	}
+	converter.addOperation(operation);
 	
-	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-	inputImageSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
-	outputSocket->relinkConnections(operation->getOutputSocket(0));
-	graph->addOperation(operation);
+	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+	converter.mapInputSocket(inputImageSocket, operation->getInputSocket(1));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

@@ -23,7 +23,7 @@
 #include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ConvertAlphaNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	NodeOperation *operation = NULL;
 	bNode *node = this->getbNode();
@@ -35,9 +35,9 @@ void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	else {
 		operation = new ConvertStraightToPremulOperation();
 	}
-
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-
-	graph->addOperation(operation);
+	
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

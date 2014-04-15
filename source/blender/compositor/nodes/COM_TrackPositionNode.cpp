@@ -36,27 +36,24 @@ TrackPositionNode::TrackPositionNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void TrackPositionNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void TrackPositionNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	OutputSocket *outputX = this->getOutputSocket(0);
-	OutputSocket *outputY = this->getOutputSocket(1);
-
 	bNode *editorNode = this->getbNode();
 	MovieClip *clip = (MovieClip *) editorNode->id;
-
 	NodeTrackPosData *trackpos_data = (NodeTrackPosData *) editorNode->storage;
+	
+	NodeOutput *outputX = this->getOutputSocket(0);
+	NodeOutput *outputY = this->getOutputSocket(1);
 
 	int frame_number;
 	if (editorNode->custom1 == CMP_TRACKPOS_ABSOLUTE_FRAME) {
 		frame_number = editorNode->custom2;
 	}
 	else {
-		frame_number = context->getFramenumber();
+		frame_number = context.getFramenumber();
 	}
 
 	TrackPositionOperation *operationX = new TrackPositionOperation();
-	TrackPositionOperation *operationY = new TrackPositionOperation();
-
 	operationX->setMovieClip(clip);
 	operationX->setTrackingObject(trackpos_data->tracking_object);
 	operationX->setTrackName(trackpos_data->track_name);
@@ -64,7 +61,9 @@ void TrackPositionNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	operationX->setAxis(0);
 	operationX->setPosition(editorNode->custom1);
 	operationX->setRelativeFrame(editorNode->custom2);
-
+	converter.addOperation(operationX);
+	
+	TrackPositionOperation *operationY = new TrackPositionOperation();
 	operationY->setMovieClip(clip);
 	operationY->setTrackingObject(trackpos_data->tracking_object);
 	operationY->setTrackName(trackpos_data->track_name);
@@ -72,10 +71,8 @@ void TrackPositionNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	operationY->setAxis(1);
 	operationY->setPosition(editorNode->custom1);
 	operationY->setRelativeFrame(editorNode->custom2);
-
-	outputX->relinkConnections(operationX->getOutputSocket());
-	outputY->relinkConnections(operationY->getOutputSocket());
-
-	graph->addOperation(operationX);
-	graph->addOperation(operationY);
+	converter.addOperation(operationY);
+	
+	converter.mapOutputSocket(outputX, operationX->getOutputSocket());
+	converter.mapOutputSocket(outputY, operationY->getOutputSocket());
 }

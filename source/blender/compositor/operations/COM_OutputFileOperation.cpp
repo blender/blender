@@ -22,7 +22,6 @@
  */
 
 #include "COM_OutputFileOperation.h"
-#include "COM_SocketConnection.h"
 #include <string.h>
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"

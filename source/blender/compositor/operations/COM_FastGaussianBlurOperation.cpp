@@ -45,13 +45,13 @@ void FastGaussianBlurOperation::executePixel(float output[4], int x, int y, void
 // the whole image.
 bool FastGaussianBlurOperation::getDAI(rcti *rect, rcti *output)
 {
-	// m_data->sizex * m_size should be enough? For some reason there
+	// m_data.sizex * m_size should be enough? For some reason there
 	// seem to be errors in the boundary between tiles.
 	float size = this->m_size * COM_FAST_GAUSSIAN_MULTIPLIER;
-	int sx = this->m_data->sizex * size;
+	int sx = this->m_data.sizex * size;
 	if (sx < 1)
 		sx = 1;
-	int sy = this->m_data->sizey * size;
+	int sy = this->m_data.sizey * size;
 	if (sy < 1)
 		sy = 1;
 
@@ -125,8 +125,8 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 		updateSize();
 
 		int c;
-		this->m_sx = this->m_data->sizex * this->m_size / 2.0f;
-		this->m_sy = this->m_data->sizey * this->m_size / 2.0f;
+		this->m_sx = this->m_data.sizex * this->m_size / 2.0f;
+		this->m_sy = this->m_data.sizey * this->m_size / 2.0f;
 		
 		if ((this->m_sx == this->m_sy) && (this->m_sx > 0.f)) {
 			for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)
@@ -174,8 +174,8 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 	tile->copyContentFrom(buffer);
 
 	int c;
-	float sx = this->m_data->sizex * this->m_size / 2.0f;
-	float sy = this->m_data->sizey * this->m_size / 2.0f;
+	float sx = this->m_data.sizex * this->m_size / 2.0f;
+	float sy = this->m_data.sizey * this->m_size / 2.0f;
 
 	if ((sx == sy) && (sx > 0.f)) {
 		for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)

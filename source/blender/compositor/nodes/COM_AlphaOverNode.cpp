@@ -27,16 +27,13 @@
 #include "COM_AlphaOverMixedOperation.h"
 #include "COM_AlphaOverPremultiplyOperation.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
 #include "DNA_material_types.h" // the ramp types
 
-void AlphaOverNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void AlphaOverNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *valueSocket = this->getInputSocket(0);
-	InputSocket *color1Socket = this->getInputSocket(1);
-	InputSocket *color2Socket = this->getInputSocket(2);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
+	NodeInput *color1Socket = this->getInputSocket(1);
+	NodeInput *color2Socket = this->getInputSocket(2);
 	bNode *editorNode = this->getbNode();
 	
 	MixBaseOperation *convertProg;
@@ -55,18 +52,19 @@ void AlphaOverNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	}
 	
 	convertProg->setUseValueAlphaMultiply(false);
-	if (color1Socket->isConnected()) {
+	if (color1Socket->isLinked()) {
 		convertProg->setResolutionInputSocketIndex(1);
 	}
-	else if (color2Socket->isConnected()) {
+	else if (color2Socket->isLinked()) {
 		convertProg->setResolutionInputSocketIndex(2);
 	}
 	else {
 		convertProg->setResolutionInputSocketIndex(0);
 	}
-	valueSocket->relinkConnections(convertProg->getInputSocket(0), 0, graph);
-	color1Socket->relinkConnections(convertProg->getInputSocket(1), 1, graph);
-	color2Socket->relinkConnections(convertProg->getInputSocket(2), 2, graph);
-	outputSocket->relinkConnections(convertProg->getOutputSocket(0));
-	graph->addOperation(convertProg);
+	
+	converter.addOperation(convertProg);
+	converter.mapInputSocket(getInputSocket(0), convertProg->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), convertProg->getInputSocket(1));
+	converter.mapInputSocket(getInputSocket(2), convertProg->getInputSocket(2));
+	converter.mapOutputSocket(getOutputSocket(0), convertProg->getOutputSocket(0));
 }

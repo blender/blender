@@ -20,32 +20,72 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_NodeOperation_h
-#define _COM_NodeOperation_h
-class OpenCLDevice;
-#include "COM_Node.h"
+#ifndef _COM_Operation_h
+#define _COM_Operation_h
+
+#include <list>
 #include <string>
 #include <sstream>
+
+extern "C" {
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
+#include "BLI_threads.h"
+}
+
+#include "COM_Node.h"
 #include "COM_MemoryBuffer.h"
 #include "COM_MemoryProxy.h"
 #include "COM_SocketReader.h"
+
 #include "OCL_opencl.h"
-#include "list"
-#include "BLI_threads.h"
 
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+using std::list;
+using std::min;
+using std::max;
 
+class OpenCLDevice;
 class ReadBufferOperation;
+class WriteBufferOperation;
+
+class NodeOperationInput;
+class NodeOperationOutput;
 
 /**
- * @brief NodeOperation are contains calculation logic
+ * @brief Resize modes of inputsockets
+ * How are the input and working resolutions matched
+ * @ingroup Model
+ */
+typedef enum InputResizeMode {
+	/** @brief Center the input image to the center of the working area of the node, no resizing occurs */
+	COM_SC_CENTER = NS_CR_CENTER,
+	/** @brief The bottom left of the input image is the bottom left of the working area of the node, no resizing occurs */
+	COM_SC_NO_RESIZE = NS_CR_NONE,
+	/** @brief Fit the width of the input image to the width of the working area of the node */
+	COM_SC_FIT_WIDTH = NS_CR_FIT_WIDTH,
+	/** @brief Fit the height of the input image to the height of the working area of the node */
+	COM_SC_FIT_HEIGHT = NS_CR_FIT_HEIGHT,
+	/** @brief Fit the width or the height of the input image to the width or height of the working area of the node, image will be larger than the working area */
+	COM_SC_FIT = NS_CR_FIT,
+	/** @brief Fit the width and the height of the input image to the width and height of the working area of the node, image will be equally larger than the working area */
+	COM_SC_STRETCH = NS_CR_STRETCH
+} InputResizeMode;
+
+/**
+ * @brief NodeOperation contains calculation logic
  *
  * Subclasses needs to implement the execution method (defined in SocketReader) to implement logic.
  * @ingroup Model
  */
-class NodeOperation : public NodeBase, public SocketReader {
+class NodeOperation : public SocketReader {
+public:
+	typedef std::vector<NodeOperationInput*> Inputs;
+	typedef std::vector<NodeOperationOutput*> Outputs;
+	
 private:
+	Inputs m_inputs;
+	Outputs m_outputs;
+	
 	/**
 	 * @brief the index of the input socket that will be used to determine the resolution
 	 */
@@ -85,15 +125,21 @@ private:
 	 * @brief set to truth when resolution for this operation is set
 	 */
 	bool m_isResolutionSet;
+	
 public:
-	/**
-	 * @brief is this node an operation?
-	 * This is true when the instance is of the subclass NodeOperation.
-	 * @return [true:false]
-	 * @see NodeBase
+	virtual ~NodeOperation();
+	
+	unsigned int getNumberOfInputSockets() const { return m_inputs.size(); }
+	unsigned int getNumberOfOutputSockets() const { return m_outputs.size(); }
+	NodeOperationOutput *getOutputSocket(unsigned int index) const;
+	NodeOperationOutput *getOutputSocket() const { return getOutputSocket(0); }
+	NodeOperationInput *getInputSocket(unsigned int index) const;
+	
+	/** Check if this is an input operation
+	 * An input operation is an operation that only has output sockets and no input sockets
 	 */
-	const bool isOperation() const { return true; }
-
+	bool isInputOperation() const { return m_inputs.empty(); }
+	
 	/**
 	 * @brief determine the resolution of this node
 	 * @note this method will not set the resolution, this is the responsibility of the caller
@@ -117,15 +163,6 @@ public:
 	 */
 	virtual bool isOutputOperation(bool rendering) const { return false; }
 
-	/**
-	 * isBufferOperation returns if this is an operation that work directly on buffers.
-	 *
-	 * there are only 2 implementation where this is true:
-	 * @see ReadBufferOperation
-	 * @see WriteBufferOperation
-	 * for all other operations this will result in false.
-	 */
-	virtual int isBufferOperation() { return false; }
 	virtual int isSingleThreaded() { return false; }
 
 	void setbNodeTree(const bNodeTree *tree) { this->m_btree = tree; }
@@ -190,7 +227,7 @@ public:
 	}
 	
 
-	void getConnectedInputSockets(vector<InputSocket *> *sockets);
+	void getConnectedInputSockets(Inputs *sockets);
 
 	/**
 	 * @brief is this operation complex
@@ -244,13 +281,14 @@ public:
 	 * @see WorkScheduler.schedule
 	 * @see ExecutionGroup.addOperation
 	 */
-	bool isOpenCL() { return this->m_openCL; }
+	bool isOpenCL() const { return this->m_openCL; }
 	
-	virtual bool isViewerOperation() { return false; }
-	virtual bool isPreviewOperation() { return false; }
-	virtual bool isFileOutputOperation() { return false; }
+	virtual bool isViewerOperation() const { return false; }
+	virtual bool isPreviewOperation() const { return false; }
+	virtual bool isFileOutputOperation() const { return false; }
+	virtual bool isProxyOperation() const { return false; }
 	
-	inline bool isBreaked() {
+	inline bool isBreaked() const {
 		return this->m_btree->test_break(this->m_btree->tbh);
 	}
 
@@ -260,6 +298,9 @@ public:
 	}
 protected:
 	NodeOperation();
+
+	void addInputSocket(DataType datatype, InputResizeMode resize_mode = COM_SC_CENTER);
+	void addOutputSocket(DataType datatype);
 
 	void setWidth(unsigned int width) { this->m_width = width; this->m_isResolutionSet = true; }
 	void setHeight(unsigned int height) { this->m_height = height; this->m_isResolutionSet = true; }
@@ -271,7 +312,6 @@ protected:
 	void lockMutex();
 	void unlockMutex();
 	
-
 	/**
 	 * @brief set whether this operation is complex
 	 *
@@ -284,6 +324,75 @@ protected:
 	 * @brief set if this NodeOperation can be scheduled on a OpenCLDevice
 	 */
 	void setOpenCL(bool openCL) { this->m_openCL = openCL; }
+
+	/* allow the DebugInfo class to look at internals */
+	friend class DebugInfo;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
+};
+
+
+class NodeOperationInput {
+private:
+	NodeOperation *m_operation;
+	
+	/** Datatype of this socket. Is used for automatically data transformation.
+	 * @section data-conversion
+	 */
+	DataType m_datatype;
+	
+	/** Resize mode of this socket */
+	InputResizeMode m_resizeMode;
+	
+	/** Connected output */
+	NodeOperationOutput *m_link;
+	
+public:
+	NodeOperationInput(NodeOperation *op, DataType datatype, InputResizeMode resizeMode = COM_SC_CENTER);
+	
+	NodeOperation &getOperation() const { return *m_operation; }
+	DataType getDataType() const { return m_datatype; }
+	
+	void setLink(NodeOperationOutput *link) { m_link = link; }
+	NodeOperationOutput *getLink() const { return m_link; }
+	bool isConnected() const { return m_link; }
+	
+	void setResizeMode(InputResizeMode resizeMode) { this->m_resizeMode = resizeMode; }
+	InputResizeMode getResizeMode() const { return this->m_resizeMode; }
+	
+	SocketReader *getReader();
+	
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
+};
+
+
+class NodeOperationOutput {
+private:
+	NodeOperation *m_operation;
+	
+	/** Datatype of this socket. Is used for automatically data transformation.
+	 * @section data-conversion
+	 */
+	DataType m_datatype;
+	
+public:
+	NodeOperationOutput(NodeOperation *op, DataType datatype);
+	
+	NodeOperation &getOperation() const { return *m_operation; }
+	DataType getDataType() const { return m_datatype; }
+	
+	/**
+	 * @brief determine the resolution of this data going through this socket
+	 * @param resolution the result of this operation
+	 * @param preferredResolution the preferable resolution as no resolution could be determined
+	 */
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")

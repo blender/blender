@@ -24,7 +24,7 @@
 #include "COM_MathBaseOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void MathNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	MathBaseOperation *operation = NULL;
 	
@@ -85,15 +85,13 @@ void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 			break;
 	}
 	
-	if (operation != NULL) {
-		bool useClamp = this->getbNode()->custom2;
-
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-
+	if (operation) {
+		bool useClamp = getbNode()->custom2;
 		operation->setUseClamp(useClamp);
-
-		graph->addOperation(operation);
+		converter.addOperation(operation);
+		
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 	}
 }

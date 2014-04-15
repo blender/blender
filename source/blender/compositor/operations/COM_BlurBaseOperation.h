@@ -43,10 +43,9 @@ protected:
 	 */
 	SocketReader *m_inputProgram;
 	SocketReader *m_inputSize;
-	NodeBlurData *m_data;
+	NodeBlurData m_data;
 
 	float m_size;
-	bool m_deleteData;
 	bool m_sizeavailable;
 
 public:
@@ -60,9 +59,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setData(NodeBlurData *data) { this->m_data = data; }
-
-	void deleteDataWhenFinished() { this->m_deleteData = true; }
+	void setData(const NodeBlurData *data);
 
 	void setSize(float size) { this->m_size = size; this->m_sizeavailable = true; }
 };

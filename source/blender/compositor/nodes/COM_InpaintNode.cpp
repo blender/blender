@@ -31,7 +31,7 @@ InpaintNode::InpaintNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void InpaintNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void InpaintNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	
 	bNode *editorNode = this->getbNode();
@@ -39,10 +39,10 @@ void InpaintNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	/* if (editorNode->custom1 == CMP_NODE_INPAINT_SIMPLE) { */
 	if (true) {
 		InpaintSimpleOperation *operation = new InpaintSimpleOperation();
-		operation->setbNode(editorNode);
 		operation->setIterations(editorNode->custom2);
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-		graph->addOperation(operation);
+		converter.addOperation(operation);
+		
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 	}
 }

@@ -49,8 +49,8 @@ typedef enum ChannelType {
 /**
  * @brief ChannelInfo holds information about a channel.
  *
- * Channels are transported from node to node via a SocketConnection.
- * ChannelInfo holds specific setting of these channels in order that the to-node of the connection
+ * Channels are transported from node to node via a NodeLink.
+ * ChannelInfo holds specific setting of these channels in order that the to-node of the link
  * Can handle specific logic per channel setting.
  *
  * @note currently this is not used, but a future place to implement color spacing and other things.
@@ -59,7 +59,7 @@ typedef enum ChannelType {
 class ChannelInfo {
 private:
 	/**
-	 * @brief the channel number, in the connection. [0-3]
+	 * @brief the channel number, in the link. [0-3]
 	 */
 	int m_number;
 
@@ -87,12 +87,12 @@ public:
 	ChannelInfo();
 
 	/**
-	 * @brief set the index of this channel in the SocketConnection
+	 * @brief set the index of this channel in the NodeLink
 	 */
 	void setNumber(const int number) { this->m_number = number; }
 
 	/**
-	 * @brief get the index of this channel in the SocketConnection
+	 * @brief get the index of this channel in the NodeLink
 	 */
 	const int getNumber() const { return this->m_number; }
 

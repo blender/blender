@@ -31,18 +31,19 @@ MovieDistortionNode::MovieDistortionNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void MovieDistortionNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
+void MovieDistortionNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocket = this->getInputSocket(0);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
 	bNode *bnode = this->getbNode();
 	MovieClip *clip = (MovieClip *)bnode->id;
 	
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
+	
 	MovieDistortionOperation *operation = new MovieDistortionOperation(bnode->custom1 == 1);
 	operation->setMovieClip(clip);
-	operation->setFramenumber(context->getFramenumber());
+	operation->setFramenumber(context.getFramenumber());
+	converter.addOperation(operation);
 
-	inputSocket->relinkConnections(operation->getInputSocket(0), 0, system);
-	outputSocket->relinkConnections(operation->getOutputSocket(0));
-	system->addOperation(operation);
+	converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

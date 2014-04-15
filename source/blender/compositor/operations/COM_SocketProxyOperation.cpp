@@ -26,22 +26,4 @@ SocketProxyOperation::SocketProxyOperation(DataType type) : NodeOperation()
 {
 	this->addInputSocket(type);
 	this->addOutputSocket(type);
-	this->m_inputOperation = NULL;
-}
-
-void SocketProxyOperation::initExecution()
-{
-	this->m_inputOperation = this->getInputSocketReader(0);
-}
-
-void SocketProxyOperation::deinitExecution()
-{
-	this->m_inputOperation = NULL;
-}
-
-void SocketProxyOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
-{
-	if (this->m_inputOperation) {
-		this->m_inputOperation->readSampled(output, x, y, sampler);
-	}
 }

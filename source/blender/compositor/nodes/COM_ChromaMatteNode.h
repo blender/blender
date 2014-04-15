@@ -31,7 +31,7 @@
 class ChromaMatteNode : public Node {
 public:
 	ChromaMatteNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif  /* COM_ChromaMatteNODE_H */

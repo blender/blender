@@ -30,14 +30,14 @@ DirectionalBlurNode::DirectionalBlurNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void DirectionalBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void DirectionalBlurNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	NodeDBlurData *data = (NodeDBlurData *)this->getbNode()->storage;
 	DirectionalBlurOperation *operation = new DirectionalBlurOperation();
-	operation->setQuality(context->getQuality());
+	operation->setQuality(context.getQuality());
 	operation->setData(data);
-	operation->setbNode(this->getbNode());
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

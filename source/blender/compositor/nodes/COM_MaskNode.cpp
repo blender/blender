@@ -34,11 +34,11 @@ MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void MaskNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	const RenderData *rd = context->getRenderData();
+	const RenderData *rd = context.getRenderData();
 
-	OutputSocket *outputMask = this->getOutputSocket(0);
+	NodeOutput *outputMask = this->getOutputSocket(0);
 
 	bNode *editorNode = this->getbNode();
 	NodeMask *data = (NodeMask *)editorNode->storage;
@@ -46,7 +46,6 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 
 	// always connect the output image
 	MaskOperation *operation = new MaskOperation();
-	operation->setbNode(editorNode);
 
 	if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED) {
 		operation->setMaskWidth(data->size_x);
@@ -61,12 +60,8 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		operation->setMaskHeight(rd->ysch * rd->size / 100.0f);
 	}
 
-	if (outputMask->isConnected()) {
-		outputMask->relinkConnections(operation->getOutputSocket());
-	}
-
 	operation->setMask(mask);
-	operation->setFramenumber(context->getFramenumber());
+	operation->setFramenumber(context.getFramenumber());
 	operation->setSmooth((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_AA) != 0);
 	operation->setFeather((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
 
@@ -78,5 +73,6 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		operation->setMotionBlurShutter(editorNode->custom3);
 	}
 
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	converter.mapOutputSocket(outputMask, operation->getOutputSocket());
 }

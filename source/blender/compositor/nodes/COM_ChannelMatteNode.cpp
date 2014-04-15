@@ -30,15 +30,15 @@ ChannelMatteNode::ChannelMatteNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ChannelMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocketImage = this->getInputSocket(0);
-	OutputSocket *outputSocketImage = this->getOutputSocket(0);
-	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
-
-	NodeOperation *convert = NULL;
 	bNode *node = this->getbNode();
-
+	
+	NodeInput *inputSocketImage = this->getInputSocket(0);
+	NodeOutput *outputSocketImage = this->getOutputSocket(0);
+	NodeOutput *outputSocketMatte = this->getOutputSocket(1);
+	
+	NodeOperation *convert = NULL;
 	/* colorspace */
 	switch (node->custom1) {
 		case CMP_NODE_CHANNEL_MATTE_CS_RGB:
@@ -56,35 +56,31 @@ void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 		default:
 			break;
 	}
-
+	
 	ChannelMatteOperation *operation = new ChannelMatteOperation();
 	/* pass the ui properties to the operation */
 	operation->setSettings((NodeChroma *)node->storage, node->custom2);
-
+	converter.addOperation(operation);
+	
 	SetAlphaOperation *operationAlpha = new SetAlphaOperation();
-
+	converter.addOperation(operationAlpha);
+	
 	if (convert) {
-		inputSocketImage->relinkConnections(convert->getInputSocket(0), 0, graph);
-		addLink(graph, convert->getOutputSocket(), operation->getInputSocket(0));
-		addLink(graph, convert->getInputSocket(0)->getConnection()->getFromSocket(), operationAlpha->getInputSocket(0));
-		graph->addOperation(convert);
+		converter.addOperation(convert);
+		
+		converter.mapInputSocket(inputSocketImage, convert->getInputSocket(0));
+		converter.addLink(convert->getOutputSocket(), operation->getInputSocket(0));
+		converter.addLink(convert->getOutputSocket(), operationAlpha->getInputSocket(0));
 	}
 	else {
-		inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
-		addLink(graph, operation->getInputSocket(0)->getConnection()->getFromSocket(), operationAlpha->getInputSocket(0));
+		converter.mapInputSocket(inputSocketImage, operation->getInputSocket(0));
+		converter.mapInputSocket(inputSocketImage, operationAlpha->getInputSocket(0));
 	}
-
-	if (outputSocketMatte->isConnected()) {
-		outputSocketMatte->relinkConnections(operation->getOutputSocket(0));
-	}
-
-	graph->addOperation(operation);
-	graph->addOperation(operationAlpha);
-
-	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
-	addPreviewOperation(graph, context, operationAlpha->getOutputSocket());
-
-	if (outputSocketImage->isConnected()) {
-		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());
-	}
+	
+	converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket(0));
+	
+	converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
+	
+	converter.addPreview(operationAlpha->getOutputSocket());
 }

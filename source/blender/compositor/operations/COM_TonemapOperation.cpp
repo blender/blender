@@ -24,8 +24,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
-
 TonemapOperation::TonemapOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);

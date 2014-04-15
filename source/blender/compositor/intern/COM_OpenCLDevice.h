@@ -30,6 +30,8 @@ class OpenCLDevice;
 #include "COM_WorkScheduler.h"
 #include "COM_ReadBufferOperation.h"
 
+using std::list;
+
 /**
  * @brief device representing an GPU OpenCL device.
  * an instance of this class represents a single cl_device

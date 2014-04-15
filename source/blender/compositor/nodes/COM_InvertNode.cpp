@@ -30,15 +30,15 @@ InvertNode::InvertNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void InvertNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void InvertNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	InvertOperation *operation = new InvertOperation();
 	bNode *node = this->getbNode();
 	operation->setColor(node->custom1 & CMP_CHAN_RGB);
 	operation->setAlpha(node->custom1 & CMP_CHAN_A);
+	converter.addOperation(operation);
 	
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-	graph->addOperation(operation);
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }

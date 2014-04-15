@@ -29,19 +29,18 @@ DisplaceNode::DisplaceNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void DisplaceNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void DisplaceNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	NodeOperation *operation;
-	if (context->getQuality() == COM_QUALITY_LOW)
+	if (context.getQuality() == COM_QUALITY_LOW)
 		operation = new DisplaceSimpleOperation();
 	else
 		operation = new DisplaceOperation();
+	converter.addOperation(operation);
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
-	this->getInputSocket(3)->relinkConnections(operation->getInputSocket(3), 3, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-
-	graph->addOperation(operation);
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
+	converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

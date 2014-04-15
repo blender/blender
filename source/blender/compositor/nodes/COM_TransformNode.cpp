@@ -33,38 +33,39 @@ TransformNode::TransformNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void TransformNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void TransformNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *imageInput = this->getInputSocket(0);
-	InputSocket *xInput = this->getInputSocket(1);
-	InputSocket *yInput = this->getInputSocket(2);
-	InputSocket *angleInput = this->getInputSocket(3);
-	InputSocket *scaleInput = this->getInputSocket(4);
+	NodeInput *imageInput = this->getInputSocket(0);
+	NodeInput *xInput = this->getInputSocket(1);
+	NodeInput *yInput = this->getInputSocket(2);
+	NodeInput *angleInput = this->getInputSocket(3);
+	NodeInput *scaleInput = this->getInputSocket(4);
 	
 	ScaleOperation *scaleOperation = new ScaleOperation();
+	converter.addOperation(scaleOperation);
+	
 	RotateOperation *rotateOperation = new RotateOperation();
-	TranslateOperation *translateOperation = new TranslateOperation();
-	SetSamplerOperation *sampler = new SetSamplerOperation();
-
-	sampler->setSampler((PixelSampler)this->getbNode()->custom1);
-	
-	imageInput->relinkConnections(sampler->getInputSocket(0), 0, graph);
-	addLink(graph, sampler->getOutputSocket(), scaleOperation->getInputSocket(0));
-	scaleInput->relinkConnections(scaleOperation->getInputSocket(1), 4, graph);
-	addLink(graph, scaleOperation->getInputSocket(1)->getConnection()->getFromSocket(), scaleOperation->getInputSocket(2)); // xscale = yscale
-	
-	addLink(graph, scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
 	rotateOperation->setDoDegree2RadConversion(false);
-	angleInput->relinkConnections(rotateOperation->getInputSocket(1), 3, graph);
-
-	addLink(graph, rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
-	xInput->relinkConnections(translateOperation->getInputSocket(1), 1, graph);
-	yInput->relinkConnections(translateOperation->getInputSocket(2), 2, graph);
+	converter.addOperation(rotateOperation);
 	
-	this->getOutputSocket()->relinkConnections(translateOperation->getOutputSocket());
+	TranslateOperation *translateOperation = new TranslateOperation();
+	converter.addOperation(translateOperation);
 	
-	graph->addOperation(sampler);
-	graph->addOperation(scaleOperation);
-	graph->addOperation(rotateOperation);
-	graph->addOperation(translateOperation);
+	SetSamplerOperation *sampler = new SetSamplerOperation();
+	sampler->setSampler((PixelSampler)this->getbNode()->custom1);
+	converter.addOperation(sampler);
+	
+	converter.mapInputSocket(imageInput, sampler->getInputSocket(0));
+	converter.addLink(sampler->getOutputSocket(), scaleOperation->getInputSocket(0));
+	converter.mapInputSocket(scaleInput, scaleOperation->getInputSocket(1));
+	converter.addLink(sampler->getOutputSocket(), scaleOperation->getInputSocket(2)); // xscale = yscale
+	
+	converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
+	converter.mapInputSocket(angleInput, rotateOperation->getInputSocket(1));
+	
+	converter.addLink(rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
+	converter.mapInputSocket(xInput, translateOperation->getInputSocket(1));
+	converter.mapInputSocket(yInput, translateOperation->getInputSocket(2));
+	
+	converter.mapOutputSocket(getOutputSocket(), translateOperation->getOutputSocket());
 }

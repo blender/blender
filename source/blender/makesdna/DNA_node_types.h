@@ -112,7 +112,8 @@ typedef struct bNodeSocket {
 	short stack_index;			/* local stack index */
 	/* XXX deprecated, kept for forward compatibility */
 	short stack_type  DNA_DEPRECATED;
-	int resizemode;				/* compositor resize mode of the socket */
+	int pad;
+	
 	void *cache;				/* cached data from execution */
 	
 	/* internal data to retrieve relations and groups

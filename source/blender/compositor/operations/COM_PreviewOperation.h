@@ -53,7 +53,7 @@ public:
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	bool isPreviewOperation() { return true; }
+	bool isPreviewOperation() const { return true; }
 	
 };
 #endif

@@ -29,26 +29,27 @@ CompositorNode::CompositorNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void CompositorNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *editorNode = this->getbNode();
 	bool is_active = (editorNode->flag & NODE_DO_OUTPUT_RECALC) ||
-	                 context->isRendering();
+	                 context.isRendering();
 
-	InputSocket *imageSocket = this->getInputSocket(0);
-	InputSocket *alphaSocket = this->getInputSocket(1);
-	InputSocket *depthSocket = this->getInputSocket(2);
+	NodeInput *imageSocket = this->getInputSocket(0);
+	NodeInput *alphaSocket = this->getInputSocket(1);
+	NodeInput *depthSocket = this->getInputSocket(2);
 
 	CompositorOperation *compositorOperation = new CompositorOperation();
-	compositorOperation->setSceneName(context->getScene()->id.name);
-	compositorOperation->setRenderData(context->getRenderData());
-	compositorOperation->setbNodeTree(context->getbNodeTree());
+	compositorOperation->setSceneName(context.getScene()->id.name);
+	compositorOperation->setRenderData(context.getRenderData());
+	compositorOperation->setbNodeTree(context.getbNodeTree());
 	compositorOperation->setIgnoreAlpha(editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA);
 	compositorOperation->setActive(is_active);
-	imageSocket->relinkConnections(compositorOperation->getInputSocket(0), 0, graph);
-	alphaSocket->relinkConnections(compositorOperation->getInputSocket(1));
-	depthSocket->relinkConnections(compositorOperation->getInputSocket(2));
-	graph->addOperation(compositorOperation);
-
-	addPreviewOperation(graph, context, compositorOperation->getInputSocket(0));
+	
+	converter.addOperation(compositorOperation);
+	converter.mapInputSocket(imageSocket, compositorOperation->getInputSocket(0));
+	converter.mapInputSocket(alphaSocket, compositorOperation->getInputSocket(1));
+	converter.mapInputSocket(depthSocket, compositorOperation->getInputSocket(2));
+	
+	converter.addNodeInputPreview(imageSocket);
 }

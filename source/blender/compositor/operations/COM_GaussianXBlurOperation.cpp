@@ -52,7 +52,7 @@ void GaussianXBlurOperation::initExecution()
 	initMutex();
 
 	if (this->m_sizeavailable) {
-		float rad = max_ff(m_size * m_data->sizex, 0.0f);
+		float rad = max_ff(m_size * m_data.sizex, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 		
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
@@ -63,7 +63,7 @@ void GaussianXBlurOperation::updateGauss()
 {
 	if (this->m_gausstab == NULL) {
 		updateSize();
-		float rad = max_ff(m_size * m_data->sizex, 0.0f);
+		float rad = max_ff(m_size * m_data.sizex, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 		
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);

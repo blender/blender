@@ -29,11 +29,12 @@ ValueNode::ValueNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ValueNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	SetValueOperation *operation = new SetValueOperation();
-	OutputSocket *output = this->getOutputSocket(0);
-	output->relinkConnections(operation->getOutputSocket());
+	NodeOutput *output = this->getOutputSocket(0);
 	operation->setValue(output->getEditorValueFloat());
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapOutputSocket(output, operation->getOutputSocket());
 }

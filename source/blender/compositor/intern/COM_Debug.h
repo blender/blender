@@ -27,7 +27,6 @@
 
 #include "COM_defines.h"
 
-class NodeBase;
 class Node;
 class NodeOperation;
 class ExecutionSystem;
@@ -41,37 +40,41 @@ public:
 		EG_FINISHED
 	} GroupState;
 	
-	typedef std::map<NodeBase *, std::string> NodeNameMap;
-	typedef std::map<ExecutionGroup *, GroupState> GroupStateMap;
+	typedef std::map<const Node *, std::string> NodeNameMap;
+	typedef std::map<const NodeOperation *, std::string> OpNameMap;
+	typedef std::map<const ExecutionGroup *, GroupState> GroupStateMap;
 	
-	static std::string node_name(NodeBase *node);
+	static std::string node_name(const Node *node);
+	static std::string operation_name(const NodeOperation *op);
 	
 	static void convert_started();
-	static void execute_started(ExecutionSystem *system);
+	static void execute_started(const ExecutionSystem *system);
 	
-	static void node_added(Node *node);
-	static void node_to_operations(Node *node);
-	static void operation_added(NodeOperation *operation);
-	static void operation_read_write_buffer(NodeOperation *operation);
+	static void node_added(const Node *node);
+	static void node_to_operations(const Node *node);
+	static void operation_added(const NodeOperation *operation);
+	static void operation_read_write_buffer(const NodeOperation *operation);
 	
-	static void execution_group_started(ExecutionGroup *group);
-	static void execution_group_finished(ExecutionGroup *group);
+	static void execution_group_started(const ExecutionGroup *group);
+	static void execution_group_finished(const ExecutionGroup *group);
 	
-	static void graphviz(ExecutionSystem *system);
+	static void graphviz(const ExecutionSystem *system);
 	
 #ifdef COM_DEBUG
 protected:
-	static int graphviz_operation(ExecutionSystem *system, NodeOperation *operation, ExecutionGroup *group, char *str, int maxlen);
+	static int graphviz_operation(const ExecutionSystem *system, const NodeOperation *operation, const ExecutionGroup *group, char *str, int maxlen);
 	static int graphviz_legend_color(const char *name, const char *color, char *str, int maxlen);
 	static int graphviz_legend_line(const char *name, const char *color, const char *style, char *str, int maxlen);
 	static int graphviz_legend_group(const char *name, const char *color, const char *style, char *str, int maxlen);
 	static int graphviz_legend(char *str, int maxlen);
-	static bool graphviz_system(ExecutionSystem *system, char *str, int maxlen);
+	static bool graphviz_system(const ExecutionSystem *system, char *str, int maxlen);
 	
 private:
 	static int m_file_index;
 	static NodeNameMap m_node_names;			/**< map nodes to usable names for debug output */
+	static OpNameMap m_op_names;				/**< map operations to usable names for debug output */
 	static std::string m_current_node_name;		/**< base name for all operations added by a node */
+	static std::string m_current_op_name;		/**< base name for automatic sub-operations */
 	static GroupStateMap m_group_states;		/**< for visualizing group states */
 #endif
 };

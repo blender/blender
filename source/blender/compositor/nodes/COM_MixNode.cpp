@@ -34,18 +34,17 @@ MixNode::MixNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void MixNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void MixNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *valueSocket = this->getInputSocket(0);
-	InputSocket *color1Socket = this->getInputSocket(1);
-	InputSocket *color2Socket = this->getInputSocket(2);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
+	NodeInput *valueSocket = this->getInputSocket(0);
+	NodeInput *color1Socket = this->getInputSocket(1);
+	NodeInput *color2Socket = this->getInputSocket(2);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
 	bNode *editorNode = this->getbNode();
 	bool useAlphaPremultiply = this->getbNode()->custom2 & 1;
 	bool useClamp = this->getbNode()->custom2 & 2;
 	
 	MixBaseOperation *convertProg;
-	
 	switch (editorNode->custom1) {
 		case MA_RAMP_ADD:
 			convertProg = new MixAddOperation();
@@ -106,14 +105,12 @@ void MixNode::convertToOperations(ExecutionSystem *graph, CompositorContext *con
 	}
 	convertProg->setUseValueAlphaMultiply(useAlphaPremultiply);
 	convertProg->setUseClamp(useClamp);
-
-	valueSocket->relinkConnections(convertProg->getInputSocket(0), 0, graph);
-	color1Socket->relinkConnections(convertProg->getInputSocket(1), 1, graph);
-	color2Socket->relinkConnections(convertProg->getInputSocket(2), 2, graph);
-	outputSocket->relinkConnections(convertProg->getOutputSocket(0));
-	addPreviewOperation(graph, context, convertProg->getOutputSocket(0));
+	converter.addOperation(convertProg);
 	
-	convertProg->getInputSocket(2)->setResizeMode(color2Socket->getResizeMode());
+	converter.mapInputSocket(valueSocket, convertProg->getInputSocket(0));
+	converter.mapInputSocket(color1Socket, convertProg->getInputSocket(1));
+	converter.mapInputSocket(color2Socket, convertProg->getInputSocket(2));
+	converter.mapOutputSocket(outputSocket, convertProg->getOutputSocket(0));
 	
-	graph->addOperation(convertProg);
+	converter.addPreview(convertProg->getOutputSocket(0));
 }

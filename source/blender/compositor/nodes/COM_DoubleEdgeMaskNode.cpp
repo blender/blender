@@ -29,18 +29,17 @@ DoubleEdgeMaskNode::DoubleEdgeMaskNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void DoubleEdgeMaskNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
+void DoubleEdgeMaskNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	DoubleEdgeMaskOperation *operation;
 	bNode *bnode = this->getbNode();
 	
 	operation = new DoubleEdgeMaskOperation();
-	operation->setbNode(bnode);
 	operation->setAdjecentOnly(bnode->custom1);
 	operation->setKeepInside(bnode->custom2);
+	converter.addOperation(operation);
 	
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, system);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-	system->addOperation(operation);
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }

@@ -29,7 +29,7 @@ CropNode::CropNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void CropNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *node = getbNode();
 	NodeTwoXYs *cropSettings = (NodeTwoXYs *)node->storage;
@@ -44,7 +44,8 @@ void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	}
 	operation->setCropSettings(cropSettings);
 	operation->setRelative(relative);
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getOutputSocket()->relinkConnections(operation->getOutputSocket());
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
 }

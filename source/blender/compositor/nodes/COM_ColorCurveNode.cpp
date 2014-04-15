@@ -29,36 +29,32 @@ ColorCurveNode::ColorCurveNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorCurveNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ColorCurveNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	if (this->getInputSocket(2)->isConnected() || this->getInputSocket(3)->isConnected()) {
+	if (this->getInputSocket(2)->isLinked() || this->getInputSocket(3)->isLinked()) {
 		ColorCurveOperation *operation = new ColorCurveOperation();
-	
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
-		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(3), 3, graph);
-	
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-	
 		operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
-	
-		graph->addOperation(operation);
+		converter.addOperation(operation);
+		
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+		converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
+		converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
+		
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 	}
 	else {
 		ConstantLevelColorCurveOperation *operation = new ConstantLevelColorCurveOperation();
-	
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		float col[4];
 		this->getInputSocket(2)->getEditorValueColor(col);
 		operation->setBlackLevel(col);
 		this->getInputSocket(3)->getEditorValueColor(col);
 		operation->setWhiteLevel(col);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-	
 		operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
-	
-		graph->addOperation(operation);
+		converter.addOperation(operation);
+		
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+		converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 	}
 }

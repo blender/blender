@@ -32,52 +32,46 @@ OutputFileNode::OutputFileNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void OutputFileNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	NodeImageMultiFile *storage = (NodeImageMultiFile *)this->getbNode()->storage;
 	
-	if (!context->isRendering()) {
+	if (!context.isRendering()) {
 		/* only output files when rendering a sequence -
 		 * otherwise, it overwrites the output files just
 		 * scrubbing through the timeline when the compositor updates.
 		 */
-		
-		/* still, need to unlink input sockets to remove the node from the graph completely */
-		int num_inputs = getNumberOfInputSockets();
-		for (int i = 0; i < num_inputs; ++i) {
-			getInputSocket(i)->unlinkConnections(graph);
-		}
 		return;
 	}
 	
 	if (storage->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 		/* single output operation for the multilayer file */
 		OutputOpenExrMultiLayerOperation *outputOperation = new OutputOpenExrMultiLayerOperation(
-		        context->getRenderData(), context->getbNodeTree(), storage->base_path, storage->format.exr_codec);
+		        context.getRenderData(), context.getbNodeTree(), storage->base_path, storage->format.exr_codec);
+		converter.addOperation(outputOperation);
 		
 		int num_inputs = getNumberOfInputSockets();
-		bool hasConnections = false;
+		bool previewAdded = false;
 		for (int i = 0; i < num_inputs; ++i) {
-			InputSocket *input = getInputSocket(i);
+			NodeInput *input = getInputSocket(i);
 			NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
 			
 			outputOperation->add_layer(sockdata->layer, input->getDataType());
 			
-			if (input->isConnected()) {
-				hasConnections = true;
-				input->relinkConnections(outputOperation->getInputSocket(i));
+			converter.mapInputSocket(input, outputOperation->getInputSocket(i));
+			
+			if (!previewAdded) {
+				converter.addNodeInputPreview(input);
+				previewAdded = true;
 			}
 		}
-		if (hasConnections) addPreviewOperation(graph, context, outputOperation->getInputSocket(0));
-		
-		graph->addOperation(outputOperation);
 	}
 	else {  /* single layer format */
 		int num_inputs = getNumberOfInputSockets();
 		bool previewAdded = false;
 		for (int i = 0; i < num_inputs; ++i) {
-			InputSocket *input = getInputSocket(i);
-			if (input->isConnected()) {
+			NodeInput *input = getInputSocket(i);
+			if (input->isLinked()) {
 				NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
 				ImageFormatData *format = (sockdata->use_node_format ? &storage->format : &sockdata->format);
 				char path[FILE_MAX];
@@ -86,16 +80,17 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				BLI_join_dirfile(path, FILE_MAX, storage->base_path, sockdata->path);
 				
 				OutputSingleLayerOperation *outputOperation = new OutputSingleLayerOperation(
-				        context->getRenderData(), context->getbNodeTree(), input->getDataType(), format, path,
-				        context->getViewSettings(), context->getDisplaySettings());
-				input->relinkConnections(outputOperation->getInputSocket(0));
-				graph->addOperation(outputOperation);
+				        context.getRenderData(), context.getbNodeTree(), input->getDataType(), format, path,
+				        context.getViewSettings(), context.getDisplaySettings());
+				converter.addOperation(outputOperation);
+				
+				converter.mapInputSocket(input, outputOperation->getInputSocket(0));
+				
 				if (!previewAdded) {
-					addPreviewOperation(graph, context, outputOperation->getInputSocket(0));
+					converter.addNodeInputPreview(input);
 					previewAdded = true;
 				}
 			}
 		}
 	}
 }
-

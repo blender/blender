@@ -32,11 +32,11 @@ FilterNode::FilterNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void FilterNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void FilterNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocket = this->getInputSocket(0);
-	InputSocket *inputImageSocket = this->getInputSocket(1);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
+	NodeInput *inputSocket = this->getInputSocket(0);
+	NodeInput *inputImageSocket = this->getInputSocket(1);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
 	ConvolutionFilterOperation *operation = NULL;
 	
 	switch (this->getbNode()->custom1) {
@@ -73,11 +73,11 @@ void FilterNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 			operation->set3x3Filter(0, 0, 0, 0, 1, 0, 0, 0, 0);
 			break;
 	}
-	operation->setbNode(this->getbNode());
-	inputImageSocket->relinkConnections(operation->getInputSocket(0), 1, graph);
-	inputSocket->relinkConnections(operation->getInputSocket(1), 0, graph);
-	outputSocket->relinkConnections(operation->getOutputSocket());
-	addPreviewOperation(graph, context, operation->getOutputSocket(0));
+	converter.addOperation(operation);
 	
-	graph->addOperation(operation);
+	converter.mapInputSocket(inputImageSocket, operation->getInputSocket(0));
+	converter.mapInputSocket(inputSocket, operation->getInputSocket(1));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
+	
+	converter.addPreview(operation->getOutputSocket(0));
 }

@@ -39,11 +39,11 @@ DefocusNode::DefocusNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void DefocusNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *node = this->getbNode();
 	NodeDefocus *data = (NodeDefocus *)node->storage;
-	Scene *scene = node->id ? (Scene *)node->id : context->getScene();
+	Scene *scene = node->id ? (Scene *)node->id : context.getScene();
 	Object *camob = scene ? scene->camera : NULL;
 
 	NodeOperation *radiusOperation;
@@ -54,36 +54,39 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 		SetValueOperation *maxRadius = new SetValueOperation();
 		maxRadius->setValue(data->maxblur);
 		MathMinimumOperation *minimize = new MathMinimumOperation();
-		this->getInputSocket(1)->relinkConnections(multiply->getInputSocket(0), 1, graph);
-		addLink(graph, multiplier->getOutputSocket(), multiply->getInputSocket(1));
-		addLink(graph, maxRadius->getOutputSocket(), minimize->getInputSocket(1));
-		addLink(graph, multiply->getOutputSocket(), minimize->getInputSocket(0));
 		
-		graph->addOperation(multiply);
-		graph->addOperation(multiplier);
-		graph->addOperation(maxRadius);
-		graph->addOperation(minimize);
+		converter.addOperation(multiply);
+		converter.addOperation(multiplier);
+		converter.addOperation(maxRadius);
+		converter.addOperation(minimize);
+		
+		converter.mapInputSocket(getInputSocket(1), multiply->getInputSocket(0));
+		converter.addLink(multiplier->getOutputSocket(), multiply->getInputSocket(1));
+		converter.addLink(multiply->getOutputSocket(), minimize->getInputSocket(0));
+		converter.addLink(maxRadius->getOutputSocket(), minimize->getInputSocket(1));
+		
 		radiusOperation = minimize;
 	}
 	else {
-		ConvertDepthToRadiusOperation *converter = new ConvertDepthToRadiusOperation();
-		converter->setCameraObject(camob);
-		converter->setfStop(data->fstop);
-		converter->setMaxRadius(data->maxblur);
-		this->getInputSocket(1)->relinkConnections(converter->getInputSocket(0), 1, graph);
-		graph->addOperation(converter);
+		ConvertDepthToRadiusOperation *radius_op = new ConvertDepthToRadiusOperation();
+		radius_op->setCameraObject(camob);
+		radius_op->setfStop(data->fstop);
+		radius_op->setMaxRadius(data->maxblur);
+		converter.addOperation(radius_op);
+		
+		converter.mapInputSocket(getInputSocket(1), radius_op->getInputSocket(0));
 		
 		FastGaussianBlurValueOperation *blur = new FastGaussianBlurValueOperation();
-		addLink(graph, converter->getOutputSocket(0), blur->getInputSocket(0));
-		graph->addOperation(blur);
-		radiusOperation = blur;
-		converter->setPostBlur(blur);
-
 		/* maintain close pixels so far Z values don't bleed into the foreground */
 		blur->setOverlay(FAST_GAUSS_OVERLAY_MIN);
+		converter.addOperation(blur);
+		
+		converter.addLink(radius_op->getOutputSocket(0), blur->getInputSocket(0));
+		radius_op->setPostBlur(blur);
+		
+		radiusOperation = blur;
 	}
 	
-	BokehImageOperation *bokeh = new BokehImageOperation();
 	NodeBokehImage *bokehdata = new NodeBokehImage();
 	bokehdata->angle = data->rotation;
 	bokehdata->rounding = 0.0f;
@@ -95,44 +98,47 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	bokehdata->catadioptric = 0.0f;
 	bokehdata->lensshift = 0.0f;
 	
+	BokehImageOperation *bokeh = new BokehImageOperation();
 	bokeh->setData(bokehdata);
 	bokeh->deleteDataOnFinish();
-	graph->addOperation(bokeh);
-
-#ifdef COM_DEFOCUS_SEARCH	
-	InverseSearchRadiusOperation *search = new InverseSearchRadiusOperation();
-	addLink(graph, radiusOperation->getOutputSocket(0), search->getInputSocket(0));
-	search->setMaxBlur(data->maxblur);
-	graph->addOperation(search);
-#endif
-	VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-	if (data->preview) {
-		operation->setQuality(COM_QUALITY_LOW);
-	}
-	else {
-		operation->setQuality(context->getQuality());
-	}
-	operation->setMaxBlur(data->maxblur);
-	operation->setbNode(node);
-	operation->setThreshold(data->bthresh);
-	addLink(graph, bokeh->getOutputSocket(), operation->getInputSocket(1));
-	addLink(graph, radiusOperation->getOutputSocket(), operation->getInputSocket(2));
+	converter.addOperation(bokeh);
+	
 #ifdef COM_DEFOCUS_SEARCH
-	addLink(graph, search->getOutputSocket(), operation->getInputSocket(3));
+	InverseSearchRadiusOperation *search = new InverseSearchRadiusOperation();
+	search->setMaxBlur(data->maxblur);
+	converter.addOperation(search);
+	
+	converter.addLink(radiusOperation->getOutputSocket(0), search->getInputSocket(0));
 #endif
+	
+	VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
+	if (data->preview)
+		operation->setQuality(COM_QUALITY_LOW);
+	else
+		operation->setQuality(context.getQuality());
+	operation->setMaxBlur(data->maxblur);
+	operation->setThreshold(data->bthresh);
+	converter.addOperation(operation);
+	
+	converter.addLink(bokeh->getOutputSocket(), operation->getInputSocket(1));
+	converter.addLink(radiusOperation->getOutputSocket(), operation->getInputSocket(2));
+#ifdef COM_DEFOCUS_SEARCH
+	converter.addLink(search->getOutputSocket(), operation->getInputSocket(3));
+#endif
+	
 	if (data->gamco) {
 		GammaCorrectOperation *correct = new GammaCorrectOperation();
+		converter.addOperation(correct);
 		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
-		this->getInputSocket(0)->relinkConnections(correct->getInputSocket(0), 0, graph);
-		addLink(graph, correct->getOutputSocket(), operation->getInputSocket(0));
-		addLink(graph, operation->getOutputSocket(), inverse->getInputSocket(0));
-		this->getOutputSocket()->relinkConnections(inverse->getOutputSocket());
-		graph->addOperation(correct);
-		graph->addOperation(inverse);
+		converter.addOperation(inverse);
+		
+		converter.mapInputSocket(getInputSocket(0), correct->getInputSocket(0));
+		converter.addLink(correct->getOutputSocket(), operation->getInputSocket(0));
+		converter.addLink(operation->getOutputSocket(), inverse->getInputSocket(0));
+		converter.mapOutputSocket(getOutputSocket(), inverse->getOutputSocket());
 	}
 	else {
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-		this->getOutputSocket()->relinkConnections(operation->getOutputSocket());
+		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+		converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
 	}
-	graph->addOperation(operation);
 }

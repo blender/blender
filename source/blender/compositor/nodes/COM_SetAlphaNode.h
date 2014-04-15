@@ -32,7 +32,7 @@
 class SetAlphaNode : public Node {
 public:
 	SetAlphaNode(bNode *editorNode) : Node(editorNode) {}
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
 
 #endif

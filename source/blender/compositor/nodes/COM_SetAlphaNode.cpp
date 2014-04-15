@@ -24,17 +24,17 @@
 #include "COM_SetAlphaOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void SetAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void SetAlphaNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	SetAlphaOperation *operation = new SetAlphaOperation();
-
-	if (!this->getInputSocket(0)->isConnected() && this->getInputSocket(1)->isConnected()) {
+	
+	if (!this->getInputSocket(0)->isLinked() && this->getInputSocket(1)->isLinked()) {
 		operation->setResolutionInputSocketIndex(1);
 	}
-
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

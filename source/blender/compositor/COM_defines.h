@@ -24,7 +24,7 @@
 #define __COM_DEFINES_H__
 
 /**
- * @brief possible data types for SocketConnection
+ * @brief possible data types for sockets
  * @ingroup Model
  */
 typedef enum DataType {

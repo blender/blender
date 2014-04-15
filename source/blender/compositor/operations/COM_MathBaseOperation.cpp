@@ -50,7 +50,7 @@ void MathBaseOperation::deinitExecution()
 
 void MathBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
-	InputSocket *socket;
+	NodeOperationInput *socket;
 	unsigned int tempPreferredResolution[2] = {0, 0};
 	unsigned int tempResolution[2];
 

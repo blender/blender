@@ -28,6 +28,7 @@ class MemoryProxy;
 #include "COM_ExecutionGroup.h"
 
 class ExecutionGroup;
+class WriteBufferOperation;
 
 /**
  * @brief A MemoryProxy is a unique identifier for a memory buffer.

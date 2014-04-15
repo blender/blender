@@ -68,11 +68,11 @@ void GaussianBokehBlurOperation::updateGauss()
 		if (!this->m_sizeavailable) {
 			updateSize();
 		}
-		radxf = this->m_size * (float)this->m_data->sizex;
+		radxf = this->m_size * (float)this->m_data.sizex;
 		CLAMP(radxf, 0.0f, width / 2.0f);
 	
 		/* vertical */
-		radyf = this->m_size * (float)this->m_data->sizey;
+		radyf = this->m_size * (float)this->m_data.sizey;
 		CLAMP(radyf, 0.0f, height / 2.0f);
 	
 		this->m_radx = ceil(radxf);
@@ -93,7 +93,7 @@ void GaussianBokehBlurOperation::updateGauss()
 				float fj = (float)j * facy;
 				float fi = (float)i * facx;
 				float dist = sqrt(fj * fj + fi * fi);
-				*dgauss = RE_filter_value(this->m_data->filtertype, dist);
+				*dgauss = RE_filter_value(this->m_data.filtertype, dist);
 				
 				sum += *dgauss;
 			}
@@ -212,28 +212,28 @@ void GaussianBlurReferenceOperation::initExecution()
 {
 	BlurBaseOperation::initExecution();
 	// setup gaustab
-	this->m_data->image_in_width = this->getWidth();
-	this->m_data->image_in_height = this->getHeight();
-	if (this->m_data->relative) {
-		switch (this->m_data->aspect) {
+	this->m_data.image_in_width = this->getWidth();
+	this->m_data.image_in_height = this->getHeight();
+	if (this->m_data.relative) {
+		switch (this->m_data.aspect) {
 			case CMP_NODE_BLUR_ASPECT_NONE:
-				this->m_data->sizex = (int)(this->m_data->percentx * 0.01f * this->m_data->image_in_width);
-				this->m_data->sizey = (int)(this->m_data->percenty * 0.01f * this->m_data->image_in_height);
+				this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_width);
+				this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_height);
 				break;
 			case CMP_NODE_BLUR_ASPECT_Y:
-				this->m_data->sizex = (int)(this->m_data->percentx * 0.01f * this->m_data->image_in_width);
-				this->m_data->sizey = (int)(this->m_data->percenty * 0.01f * this->m_data->image_in_width);
+				this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_width);
+				this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_width);
 				break;
 			case CMP_NODE_BLUR_ASPECT_X:
-				this->m_data->sizex = (int)(this->m_data->percentx * 0.01f * this->m_data->image_in_height);
-				this->m_data->sizey = (int)(this->m_data->percenty * 0.01f * this->m_data->image_in_height);
+				this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_height);
+				this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_height);
 				break;
 		}
 	}
 	
 	
 	/* horizontal */
-	m_filtersizex = (float)this->m_data->sizex;
+	m_filtersizex = (float)this->m_data.sizex;
 	int imgx = getWidth() / 2;
 	if (m_filtersizex > imgx)
 		m_filtersizex = imgx;
@@ -242,7 +242,7 @@ void GaussianBlurReferenceOperation::initExecution()
 	m_radx = (float)m_filtersizex;
 
 	/* vertical */
-	m_filtersizey = (float)this->m_data->sizey;
+	m_filtersizey = (float)this->m_data.sizey;
 	int imgy = getHeight() / 2;
 	if (m_filtersizey > imgy)
 		m_filtersizey = imgy;
@@ -342,8 +342,8 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(rcti *inpu
 		return true;
 	}
 	else {
-		int addx = this->m_data->sizex + 2;
-		int addy = this->m_data->sizey + 2;
+		int addx = this->m_data.sizex + 2;
+		int addy = this->m_data.sizey + 2;
 		newInput.xmax = input->xmax + addx;
 		newInput.xmin = input->xmin - addx;
 		newInput.ymax = input->ymax + addy;

@@ -29,7 +29,6 @@ class ExecutionGroup;
 #include "DNA_node_types.h"
 #include <vector>
 #include "COM_Node.h"
-#include "COM_SocketConnection.h"
 #include "BKE_text.h"
 #include "COM_ExecutionGroup.h"
 #include "COM_NodeOperation.h"
@@ -73,7 +72,7 @@ using namespace std;
  *     As values are ordered differently than colors a conversion happens.
  *
  *   - Image size conversions: the system can automatically convert when resolutions do not match.
- *     An InputSocket has a resize mode. This can be any of the following settings.
+ *     An NodeInput has a resize mode. This can be any of the following settings.
  *     - [@ref InputSocketResizeMode.COM_SC_CENTER]: The center of both images are aligned
  *     - [@ref InputSocketResizeMode.COM_SC_FIT_WIDTH]: The width of both images are aligned
  *     - [@ref InputSocketResizeMode.COM_SC_FIT_HEIGHT]: the height of both images are aligned
@@ -115,6 +114,10 @@ using namespace std;
  * @brief the ExecutionSystem contains the whole compositor tree.
  */
 class ExecutionSystem {
+public:
+	typedef std::vector<NodeOperation*> Operations;
+	typedef std::vector<ExecutionGroup*> Groups;
+	
 private:
 	/**
 	 * @brief the context used during execution
@@ -122,33 +125,16 @@ private:
 	CompositorContext m_context;
 
 	/**
-	 * @brief vector of nodes
-	 */
-	vector<Node *> m_nodes;
-
-	/**
 	 * @brief vector of operations
 	 */
-	vector<NodeOperation *> m_operations;
+	Operations m_operations;
 
 	/**
 	 * @brief vector of groups
 	 */
-	vector<ExecutionGroup *> m_groups;
-
-	/**
-	 * @brief vector of connections
-	 */
-	vector<SocketConnection *> m_connections;
+	Groups m_groups;
 
 private: //methods
-	/**
-	 * @brief add ReadBufferOperation and WriteBufferOperation around an operation
-	 * @param operation the operation to add the bufferoperations around.
-	 */
-	void addReadWriteBufferOperations(NodeOperation *operation);
-
-
 	/**
 	 * find all execution group with output nodes
 	 */
@@ -175,6 +161,7 @@ public:
 	 */
 	~ExecutionSystem();
 
+	void set_operations(const Operations &operations, const Groups &groups);
 
 	/**
 	 * @brief execute this system
@@ -185,69 +172,15 @@ public:
 	void execute();
 
 	/**
-	 * @brief Add an operation to the operation list
-	 *
-	 * @param operation the operation to add
-	 */
-	void addOperation(NodeOperation *operation);
-
-	/**
-	 * Add an editor link to the system. convert it to an socketconnection (CPP-representative)
-	 * this converted socket is returned.
-	 */
-	SocketConnection *addNodeLink(bNodeLink *bNodeLink);
-	void addSocketConnection(SocketConnection *connection);
-
-	/**
-	 * Remove a socket connection from the system.
-	 */
-	void removeSocketConnection(SocketConnection *connection);
-
-	/**
-	 * @brief Convert all nodes to operations
-	 */
-	void convertToOperations();
-
-	/**
-	 * @brief group operations in ExecutionGroup's
-	 * @see ExecutionGroup
-	 */
-	void groupOperations();
-
-	/**
 	 * @brief get the reference to the compositor context
 	 */
-	CompositorContext &getContext() { return this->m_context; }
-
-	/**
-	 * @brief get the reference to the compositor nodes
-	 */
-	vector<Node *> &getNodes() { return this->m_nodes; }
-
-	/**
-	 * @brief get the reference to the compositor connections
-	 */
-	vector<SocketConnection *>& getConnections() { return this->m_connections; }
-
-	/**
-	 * @brief get the reference to the list of execution groups
-	 */
-	vector<ExecutionGroup *>& getExecutionGroups() { return this->m_groups; }
-
-	/**
-	 * @brief get the reference to the list of operations
-	 */
-	vector<NodeOperation *>& getOperations() { return this->m_operations; }
+	const CompositorContext &getContext() const { return this->m_context; }
 
 private:
-
-	/**
-	 * @brief determine the actual data types of all sockets
-	 * @param nodes list of nodes or operations to do the data type determination
-	 */
-	void determineActualSocketDataTypes(vector<NodeBase *> &nodes);
-	
 	void executeGroups(CompositorPriority priority);
+
+	/* allow the DebugInfo class to look at internals */
+	friend class DebugInfo;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")

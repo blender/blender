@@ -29,14 +29,12 @@ VectorCurveNode::VectorCurveNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void VectorCurveNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void VectorCurveNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	VectorCurveOperation *operation = new VectorCurveOperation();
-
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-
 	operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
-
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+	converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }

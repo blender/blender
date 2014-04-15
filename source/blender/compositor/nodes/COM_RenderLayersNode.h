@@ -31,7 +31,7 @@
 class RenderLayersNode : public Node {
 public:
 	RenderLayersNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 private:
-	void testSocketConnection(ExecutionSystem *graph, CompositorContext *context, int outputSocketNumber, RenderLayersBaseProg *operation);
+	void testSocketLink(NodeConverter &converter, const CompositorContext &context, int outputSocketNumber, RenderLayersBaseProg *operation) const;
 };

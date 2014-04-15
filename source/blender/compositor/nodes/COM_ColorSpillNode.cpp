@@ -29,14 +29,13 @@ ColorSpillNode::ColorSpillNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void ColorSpillNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *inputSocketImage = this->getInputSocket(0);
-	InputSocket *inputSocketFac = this->getInputSocket(1);
-	OutputSocket *outputSocketImage = this->getOutputSocket(0);
-
 	bNode *editorsnode = getbNode();
-
+	
+	NodeInput *inputSocketImage = this->getInputSocket(0);
+	NodeInput *inputSocketFac = this->getInputSocket(1);
+	NodeOutput *outputSocketImage = this->getOutputSocket(0);
 	
 	ColorSpillOperation *operation;
 	if (editorsnode->custom2 == 0) {
@@ -49,11 +48,9 @@ void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	}
 	operation->setSettings((NodeColorspill *)editorsnode->storage);
 	operation->setSpillChannel(editorsnode->custom1 - 1); // Channel for spilling
+	converter.addOperation(operation);
 	
-
-	inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
-	inputSocketFac->relinkConnections(operation->getInputSocket(1), 1, graph);
-	
-	outputSocketImage->relinkConnections(operation->getOutputSocket());
-	graph->addOperation(operation);
+	converter.mapInputSocket(inputSocketImage, operation->getInputSocket(0));
+	converter.mapInputSocket(inputSocketFac, operation->getInputSocket(1));
+	converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
 }

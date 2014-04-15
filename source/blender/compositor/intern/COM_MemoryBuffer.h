@@ -27,6 +27,7 @@ class MemoryBuffer;
 
 #include "COM_ExecutionGroup.h"
 #include "COM_MemoryProxy.h"
+#include "COM_SocketReader.h"
 
 extern "C" {
 #  include "BLI_math.h"

@@ -21,8 +21,11 @@
  */
 
 #include "COM_MemoryBuffer.h"
+
 #include "MEM_guardedalloc.h"
-//#include "BKE_global.h"
+
+using std::min;
+using std::max;
 
 unsigned int MemoryBuffer::determineBufferSize()
 {

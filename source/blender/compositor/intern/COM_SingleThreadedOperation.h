@@ -20,18 +20,41 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SeparateRGBANode_h_
-#define _COM_SeparateRGBANode_h_
+#ifndef _COM_SingleThreadedOperation_h
+#define _COM_SingleThreadedOperation_h
+#include "COM_NodeOperation.h"
 
-#include "COM_Node.h"
-#include "DNA_node_types.h"
-/**
- * @brief SeparateRGBANode
- * @ingroup Node
- */
-class SeparateRGBANode : public Node {
+class SingleThreadedOperation : public NodeOperation {
+private:
+	MemoryBuffer *m_cachedInstance;
+	
+protected:
+	inline bool isCached() {
+		return this->m_cachedInstance != NULL;
+	}
+
 public:
-	SeparateRGBANode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
+	SingleThreadedOperation();
+	
+	/**
+	 * the inner loop of this program
+	 */
+	void executePixel(float output[4], int x, int y, void *data);
+	
+	/**
+	 * Initialize the execution
+	 */
+	void initExecution();
+	
+	/**
+	 * Deinitialize the execution
+	 */
+	void deinitExecution();
+
+	void *initializeTileData(rcti *rect);
+
+	virtual MemoryBuffer *createMemoryBuffer(rcti *rect) = 0;
+	
+	int isSingleThreaded() { return true; }
 };
 #endif

@@ -31,6 +31,12 @@
 #include "COM_Device.h"
 #include "COM_CompositorContext.h"
 
+using std::vector;
+
+class ExecutionSystem;
+class MemoryProxy;
+class ReadBufferOperation;
+class Device;
 
 /**
  * @brief the execution state of a chunk in an ExecutionGroup
@@ -51,23 +57,22 @@ typedef enum ChunkExecutionState {
 	COM_ES_EXECUTED = 2
 } ChunkExecutionState;
 
-class MemoryProxy;
-class ReadBufferOperation;
-class Device;
-
 /**
- * @brief Class ExecutionGroup is a group of NodeOperations that are executed as one.
+ * @brief Class ExecutionGroup is a group of Operations that are executed as one.
  * This grouping is used to combine Operations that can be executed as one whole when multi-processing.
  * @ingroup Execution
  */
 class ExecutionGroup {
+public:
+	 typedef std::vector<NodeOperation*> Operations;
+	
 private:
 	// fields
 	
 	/**
 	 * @brief list of operations in this ExecutionGroup
 	 */
-	vector<NodeOperation *> m_operations;
+	Operations m_operations;
 	
 	/**
 	 * @brief is this ExecutionGroup an input ExecutionGroup
@@ -130,7 +135,7 @@ private:
 	/**
 	 * @brief a cached vector of all read operations in the execution group.
 	 */
-	vector<NodeOperation *> m_cachedReadOperations;
+	Operations m_cachedReadOperations;
 	
 	/**
 	 * @brief reference to the original bNodeTree, this field is only set for the 'top' execution group.
@@ -152,8 +157,8 @@ private:
 	ChunkExecutionState *m_chunkExecutionStates;
 	
 	/**
-	 * @brief indicator when this ExecutionGroup has valid NodeOperations in its vector for Execution
-	 * @note When building the ExecutionGroup NodeOperations are added via recursion. First a WriteBufferOperations is added, then the
+	 * @brief indicator when this ExecutionGroup has valid Operations in its vector for Execution
+	 * @note When building the ExecutionGroup Operations are added via recursion. First a WriteBufferOperations is added, then the
 	 * @note Operation containing the settings that is important for the ExecutiongGroup is added,
 	 * @note When this occurs, these settings are copied over from the node to the ExecutionGroup
 	 * @note and the Initialized flag is set to true.
@@ -245,23 +250,17 @@ private:
 public:
 	// constructors
 	ExecutionGroup();
-		
-	// methods
-	/**
-	 * @brief check to see if a NodeOperation is already inside this execution group
-	 * @param operation the NodeOperation to check
-	 * @return [true,false]
-	 */
-	bool containsOperation(NodeOperation *operation);
 	
+	// methods
 	/**
 	 * @brief add an operation to this ExecutionGroup
 	 * @note this method will add input of the operations recursively
 	 * @note this method can create multiple ExecutionGroup's
 	 * @param system
 	 * @param operation
+	 * @return True if the operation was successfully added
 	 */
-	void addOperation(ExecutionSystem *system, NodeOperation *operation);
+	bool addOperation(NodeOperation *operation);
 	
 	/**
 	 * @brief is this ExecutionGroup an output ExecutionGroup
@@ -292,24 +291,24 @@ public:
 	/**
 	 * @brief get the width of this execution group
 	 */
-	const unsigned int getWidth() { return this->m_width; }
+	unsigned int getWidth() const { return m_width; }
 	
 	/**
 	 * @brief get the height of this execution group
 	 */
-	const unsigned int getHeight() { return this->m_height; }
+	unsigned int getHeight() const { return m_height; }
 	
 	/**
 	 * @brief does this ExecutionGroup contains a complex NodeOperation
 	 */
-	const bool isComplex() const;
+	bool isComplex() const { return m_complex; }
 	
 	
 	/**
 	 * @brief get the output operation of this ExecutionGroup
 	 * @return NodeOperation *output operation
 	 */
-	NodeOperation *getOutputNodeOperation() const;
+	NodeOperation *getOutputOperation() const;
 	
 	/**
 	 * @brief compose multiple chunks into a single chunk
@@ -419,12 +418,12 @@ public:
 
 	void setRenderBorder(float xmin, float xmax, float ymin, float ymax);
 
+	/* allow the DebugInfo class to look at internals */
+	friend class DebugInfo;
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")
 #endif
-
-	/* allow the DebugInfo class to peek inside without having to add getters for everything */
-	friend class DebugInfo;
 };
 
 #endif

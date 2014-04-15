@@ -30,25 +30,23 @@ MapRangeNode::MapRangeNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void MapRangeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void MapRangeNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	InputSocket *valueSocket = this->getInputSocket(0);
-	InputSocket *sourceMinSocket = this->getInputSocket(1);
-	InputSocket *sourceMaxSocket = this->getInputSocket(2);
-	InputSocket *destMinSocket = this->getInputSocket(3);
-	InputSocket *destMaxSocket = this->getInputSocket(4);
-	OutputSocket *outputSocket = this->getOutputSocket(0);
-
+	NodeInput *valueSocket = this->getInputSocket(0);
+	NodeInput *sourceMinSocket = this->getInputSocket(1);
+	NodeInput *sourceMaxSocket = this->getInputSocket(2);
+	NodeInput *destMinSocket = this->getInputSocket(3);
+	NodeInput *destMaxSocket = this->getInputSocket(4);
+	NodeOutput *outputSocket = this->getOutputSocket(0);
+	
 	MapRangeOperation *operation = new MapRangeOperation();
-
-	valueSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-	sourceMinSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
-	sourceMaxSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
-	destMinSocket->relinkConnections(operation->getInputSocket(3), 3, graph);
-	destMaxSocket->relinkConnections(operation->getInputSocket(4), 4, graph);
-	outputSocket->relinkConnections(operation->getOutputSocket(0));
-
 	operation->setUseClamp(this->getbNode()->custom1);
-
-	graph->addOperation(operation);
+	converter.addOperation(operation);
+	
+	converter.mapInputSocket(valueSocket, operation->getInputSocket(0));
+	converter.mapInputSocket(sourceMinSocket, operation->getInputSocket(1));
+	converter.mapInputSocket(sourceMaxSocket, operation->getInputSocket(2));
+	converter.mapInputSocket(destMinSocket, operation->getInputSocket(3));
+	converter.mapInputSocket(destMaxSocket, operation->getInputSocket(4));
+	converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

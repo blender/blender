@@ -38,84 +38,85 @@ BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+void BlurNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *editorNode = this->getbNode();
 	NodeBlurData *data = (NodeBlurData *)editorNode->storage;
-	InputSocket *inputSizeSocket = this->getInputSocket(1);
-	bool connectedSizeSocket = inputSizeSocket->isConnected();
+	NodeInput *inputSizeSocket = this->getInputSocket(1);
+	bool connectedSizeSocket = inputSizeSocket->isLinked();
 
 	const float size = this->getInputSocket(1)->getEditorValueFloat();
 	
-	CompositorQuality quality = context->getQuality();
+	CompositorQuality quality = context.getQuality();
 	NodeOperation *input_operation = NULL, *output_operation = NULL;
 
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);
-		operationfgb->setChunksize(context->getChunksize());
-		operationfgb->setbNode(editorNode);
-		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), 1, graph);
-		graph->addOperation(operationfgb);
-
+		operationfgb->setChunksize(context.getChunksize());
+		converter.addOperation(operationfgb);
+		
+		converter.mapInputSocket(getInputSocket(1), operationfgb->getInputSocket(1));
+		
 		input_operation = operationfgb;
 		output_operation = operationfgb;
 	}
 	else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
 		MathAddOperation *clamp = new MathAddOperation();
 		SetValueOperation *zero = new SetValueOperation();
-		addLink(graph, zero->getOutputSocket(), clamp->getInputSocket(1));
-		this->getInputSocket(1)->relinkConnections(clamp->getInputSocket(0), 1, graph);
 		zero->setValue(0.0f);
 		clamp->setUseClamp(true);
-		graph->addOperation(clamp);
-		graph->addOperation(zero);
-	
+		
+		converter.addOperation(clamp);
+		converter.addOperation(zero);
+		converter.mapInputSocket(getInputSocket(1), clamp->getInputSocket(0));
+		converter.addLink(zero->getOutputSocket(), clamp->getInputSocket(1));
+		
 		GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
 		operationx->setData(data);
-		operationx->setbNode(editorNode);
 		operationx->setQuality(quality);
 		operationx->setSize(1.0f);
 		operationx->setFalloff(PROP_SMOOTH);
 		operationx->setSubtract(false);
-		addLink(graph, clamp->getOutputSocket(), operationx->getInputSocket(0));
-		graph->addOperation(operationx);
-
+		
+		converter.addOperation(operationx);
+		converter.addLink(clamp->getOutputSocket(), operationx->getInputSocket(0));
+		
 		GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
 		operationy->setData(data);
-		operationy->setbNode(editorNode);
 		operationy->setQuality(quality);
 		operationy->setSize(1.0f);
 		operationy->setFalloff(PROP_SMOOTH);
 		operationy->setSubtract(false);
-		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
-		graph->addOperation(operationy);
-
+		
+		converter.addOperation(operationy);
+		converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
+		
 		GaussianBlurReferenceOperation *operation = new GaussianBlurReferenceOperation();
 		operation->setData(data);
-		operation->setbNode(editorNode);
 		operation->setQuality(quality);
-		addLink(graph, operationy->getOutputSocket(), operation->getInputSocket(1));
-		graph->addOperation(operation);
-
+		
+		converter.addOperation(operation);
+		converter.addLink(operationy->getOutputSocket(), operation->getInputSocket(1));
+		
 		output_operation = operation;
 		input_operation = operation;
 	}
 	else if (!data->bokeh) {
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
 		operationx->setData(data);
-		operationx->setbNode(editorNode);
 		operationx->setQuality(quality);
-		this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph);
-		graph->addOperation(operationx);
+		
+		converter.addOperation(operationx);
+		converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1));
+		
 		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
 		operationy->setData(data);
-		operationy->setbNode(editorNode);
 		operationy->setQuality(quality);
 
-		graph->addOperation(operationy);
-		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
-		addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1));
+		converter.addOperation(operationy);
+		converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1));
+		converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
 
 		if (!connectedSizeSocket) {
 			operationx->setSize(size);
@@ -128,10 +129,10 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	else {
 		GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
 		operation->setData(data);
-		operation->setbNode(editorNode);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		operation->setQuality(quality);
-		graph->addOperation(operation);
+		
+		converter.addOperation(operation);
+		converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 
 		if (!connectedSizeSocket) {
 			operation->setSize(size);
@@ -144,19 +145,20 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	if (data->gamma) {
 		GammaCorrectOperation *correct = new GammaCorrectOperation();
 		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
-
-		this->getInputSocket(0)->relinkConnections(correct->getInputSocket(0), 0, graph);
-		addLink(graph, correct->getOutputSocket(), input_operation->getInputSocket(0));
-		addLink(graph, output_operation->getOutputSocket(), inverse->getInputSocket(0));
-		this->getOutputSocket()->relinkConnections(inverse->getOutputSocket());
-		graph->addOperation(correct);
-		graph->addOperation(inverse);
-
-		addPreviewOperation(graph, context, inverse->getOutputSocket());
+		converter.addOperation(correct);
+		converter.addOperation(inverse);
+		
+		converter.mapInputSocket(getInputSocket(0), correct->getInputSocket(0));
+		converter.addLink(correct->getOutputSocket(), input_operation->getInputSocket(0));
+		converter.addLink(output_operation->getOutputSocket(), inverse->getInputSocket(0));
+		converter.mapOutputSocket(getOutputSocket(), inverse->getOutputSocket());
+		
+		converter.addPreview(inverse->getOutputSocket());
 	}
 	else {
-		this->getInputSocket(0)->relinkConnections(input_operation->getInputSocket(0), 0, graph);
-		this->getOutputSocket()->relinkConnections(output_operation->getOutputSocket());
-		addPreviewOperation(graph, context, output_operation->getOutputSocket());
+		converter.mapInputSocket(getInputSocket(0), input_operation->getInputSocket(0));
+		converter.mapOutputSocket(getOutputSocket(), output_operation->getOutputSocket());
+		
+		converter.addPreview(output_operation->getOutputSocket());
 	}
 }
