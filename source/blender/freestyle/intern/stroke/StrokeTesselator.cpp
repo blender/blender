@@ -56,7 +56,7 @@ LineRep *StrokeTesselator::Tesselate(Stroke *iStroke)
 	}
 	else {
 		if (_overloadFrsMaterial)
-		line->setFrsMaterial(_FrsMaterial);
+			line->setFrsMaterial(_FrsMaterial);
 
 		line->setStyle(LineRep::LINE_STRIP);
 

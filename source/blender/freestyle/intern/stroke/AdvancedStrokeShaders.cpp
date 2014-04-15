@@ -301,7 +301,7 @@ void Smoother::computeCurvature()
 
 		_curvature[i] = normalCurvature * _normal[i];
 		if (lba + lbc > M_EPSILON)
-		_curvature[i] /= (0.5 * lba + lbc);
+			_curvature[i] /= (0.5 * lba + lbc);
 	}
 	_curvature[0] = _curvature[1];
 	_curvature[_nbVertices - 1] = _curvature[_nbVertices - 2];
@@ -325,7 +325,7 @@ void Smoother::computeCurvature()
 
 		_curvature[i] = normalCurvature * _normal[i];
 		if (lba + lbc > M_EPSILON)
-		_curvature[i] /= (0.5 * lba + lbc);
+			_curvature[i] /= (0.5 * lba + lbc);
 
 		_normal[_nbVertices - 1] = _normal[0];
 		_curvature[_nbVertices - 1] = _curvature[0];

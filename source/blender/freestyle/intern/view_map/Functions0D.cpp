@@ -182,9 +182,9 @@ int VertexOrientation3DF0D::operator()(Interface0DIterator& iter)
 		A = Vec3r(iter->getX(), iter->getY(), iter->getZ());
 	}
 	else {
-	Interface0DIterator previous = iter;
-	--previous ;
-	A = Vec3r(previous->getX(), previous->getY(), previous->getZ());
+		Interface0DIterator previous = iter;
+		--previous ;
+		A = Vec3r(previous->getX(), previous->getY(), previous->getZ());
 	}
 	Interface0DIterator next = iter;
 	++next ;

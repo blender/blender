@@ -197,43 +197,43 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 		WSFace *bface = (WSFace *)GetBordingFace(i);
 		if (bface) {
 			if ((front()) ^ (bface->front())) { // fA->front XOR fB->front (true if one is 0 and the other is 1)
-			// that means that the edge i of the face is a silhouette edge
-			// CHECK FIRST WHETHER THE EXACTSILHOUETTEEDGE HAS NOT YET BEEN BUILT ON THE OTHER FACE (1 is enough).
-			if (((WSExactFace *)bface)->exactSilhouetteEdge()) {
-				// that means that this silhouette edge has already been built
-				return ((WSExactFace *)bface)->exactSilhouetteEdge();
-			}
-			// Else we must build it
-			WOEdge *woea, *woeb;
-			real ta, tb;
-			if (!front()) { // is it in the right order ?
-				// the order of the WOEdge index is wrong
-				woea = _OEdgeList[(i + 1) % numberOfEdges()];
-				if (0 == i)
-					woeb = _OEdgeList[numberOfEdges() - 1];
-				else
-					woeb = _OEdgeList[(i - 1)];
-				ta = 0;
-				tb = 1;
-			}
-			else {
-				// the order of the WOEdge index is good
-				if (0 == i)
-					woea = _OEdgeList[numberOfEdges() - 1];
-				else
-					woea = _OEdgeList[(i - 1)];
-				woeb = _OEdgeList[(i + 1) % numberOfEdges()];
-				ta = 1;
-				tb = 0;
-			}
+				// that means that the edge i of the face is a silhouette edge
+				// CHECK FIRST WHETHER THE EXACTSILHOUETTEEDGE HAS NOT YET BEEN BUILT ON THE OTHER FACE (1 is enough).
+				if (((WSExactFace *)bface)->exactSilhouetteEdge()) {
+					// that means that this silhouette edge has already been built
+					return ((WSExactFace *)bface)->exactSilhouetteEdge();
+				}
+				// Else we must build it
+				WOEdge *woea, *woeb;
+				real ta, tb;
+				if (!front()) { // is it in the right order ?
+					// the order of the WOEdge index is wrong
+					woea = _OEdgeList[(i + 1) % numberOfEdges()];
+					if (0 == i)
+						woeb = _OEdgeList[numberOfEdges() - 1];
+					else
+						woeb = _OEdgeList[(i - 1)];
+					ta = 0;
+					tb = 1;
+				}
+				else {
+					// the order of the WOEdge index is good
+					if (0 == i)
+						woea = _OEdgeList[numberOfEdges() - 1];
+					else
+						woea = _OEdgeList[(i - 1)];
+					woeb = _OEdgeList[(i + 1) % numberOfEdges()];
+					ta = 1;
+					tb = 0;
+				}
 
-			_pSmoothEdge = new ExactSilhouetteEdge(ExactSilhouetteEdge::VERTEX_VERTEX);
-			_pSmoothEdge->setWOeA(woea);
-			_pSmoothEdge->setWOeA(woeb);
-			_pSmoothEdge->setTa(ta);
-			_pSmoothEdge->setTb(tb);
+				_pSmoothEdge = new ExactSilhouetteEdge(ExactSilhouetteEdge::VERTEX_VERTEX);
+				_pSmoothEdge->setWOeA(woea);
+				_pSmoothEdge->setWOeA(woeb);
+				_pSmoothEdge->setTa(ta);
+				_pSmoothEdge->setTb(tb);
 
-			return _pSmoothEdge;
+				return _pSmoothEdge;
 			}
 		}
 	}
