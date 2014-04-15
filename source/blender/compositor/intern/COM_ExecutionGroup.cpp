@@ -399,7 +399,7 @@ void ExecutionGroup::printBackgroundStats(void)
 
 	BLI_timestr(execution_time, timestr, sizeof(timestr));
 	printf("| Elapsed %s ", timestr);
-	printf("| Tree %s, Tile %d-%d ", this->m_bTree->id.name + 2,
+	printf("| Tree %s, Tile %u-%u ", this->m_bTree->id.name + 2,
 	       this->m_chunksFinished, this->m_numberOfChunks);
 
 	fputc('\n', stdout);

@@ -23,6 +23,10 @@
 #ifndef _COM_Converter_h
 #define _COM_Converter_h
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 struct bNode;
 
 class Node;

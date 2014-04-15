@@ -335,7 +335,7 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
 			error = clGetPlatformIDs(0, 0, &numberOfPlatforms);
 			if (error == -1001) { }   /* GPU not supported */
 			else if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-			if (G.f & G_DEBUG) printf("%d number of platforms\n", numberOfPlatforms);
+			if (G.f & G_DEBUG) printf("%u number of platforms\n", numberOfPlatforms);
 			cl_platform_id *platforms = (cl_platform_id *)MEM_mallocN(sizeof(cl_platform_id) * numberOfPlatforms, __func__);
 			error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
 			unsigned int indexPlatform;

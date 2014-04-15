@@ -22,6 +22,10 @@
 #ifndef _COM_NodeCompiler_h
 #define _COM_NodeCompiler_h
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class NodeInput;
 class NodeOutput;
 

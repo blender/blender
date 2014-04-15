@@ -30,6 +30,10 @@ extern "C" {
 #include "DNA_node_types.h"
 }
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 class CompositorContext;
 class Node;
 class NodeInput;
