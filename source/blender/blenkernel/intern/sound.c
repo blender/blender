@@ -566,8 +566,6 @@ void sound_play_scene(struct Scene *scene)
 			AUD_unlock();
 			return;
 		}
-
-		AUD_seek(scene->sound_scene_handle, cur_time);
 	}
 
 	if (status != AUD_STATUS_PLAYING) {

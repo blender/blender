@@ -47,6 +47,23 @@ AUD_AnimateableProperty::AUD_AnimateableProperty(int count) :
 	pthread_mutexattr_destroy(&attr);
 }
 
+AUD_AnimateableProperty::AUD_AnimateableProperty(int count, float value) :
+	AUD_Buffer(count * sizeof(float)), m_count(count), m_isAnimated(false)
+{
+	sample_t* buf = getBuffer();
+
+	for(int i = 0; i < count; i++)
+		buf[i] = value;
+
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+
+	pthread_mutex_init(&m_mutex, &attr);
+
+	pthread_mutexattr_destroy(&attr);
+}
+
 void AUD_AnimateableProperty::updateUnknownCache(int start, int end)
 {
 	float* buf = getBuffer();
@@ -104,7 +121,8 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 
 		if(pos == 0)
 		{
-			memset(buf, 0, position * m_count * sizeof(float));
+			for(int i = 0; i < position; i++)
+				memcpy(buf + i * m_count, data, m_count * sizeof(float));
 		}
 		else
 			updateUnknownCache(pos, position - 1);

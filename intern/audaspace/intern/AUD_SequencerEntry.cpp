@@ -53,6 +53,8 @@ AUD_SequencerEntry::AUD_SequencerEntry(boost::shared_ptr<AUD_IFactory> sound, fl
 	m_cone_angle_outer(360),
 	m_cone_angle_inner(360),
 	m_cone_volume_outer(0),
+	m_volume(1, 1.0f),
+	m_pitch(1, 1.0f),
 	m_location(3),
 	m_orientation(4)
 {
