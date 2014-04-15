@@ -197,6 +197,8 @@ typedef uint64_t u_int64_t;
 
 #endif /* ifdef platform for types */
 
+#include <stddef.h>  /* size_t define */
+
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
 #elif !defined(__bool_true_false_are_defined) && !defined(__BOOL_DEFINED)
