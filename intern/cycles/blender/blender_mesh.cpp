@@ -271,6 +271,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++N)
 		*N = get_float3(v->normal());
+	N = attr_N->data_float3();
 
 	/* create generated coordinates from undeformed coordinates */
 	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
