@@ -169,7 +169,7 @@ static void paint_brush_update(bContext *C, Brush *brush, PaintMode mode,
 	 *      brush coord/pressure/etc.
 	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
 	 *      changing events. We should avoid this after events system re-design */
-	if(!stroke->brush_init) {
+	if (!stroke->brush_init) {
 		copy_v2_v2(stroke->initial_mouse, mouse);
 		copy_v2_v2(ups->last_rake, mouse);
 		copy_v2_v2(ups->tex_mouse, mouse);

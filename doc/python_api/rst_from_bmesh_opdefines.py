@@ -113,7 +113,7 @@ def main():
     fsrc.close()
     del fsrc
 
-   # namespace hack
+    # namespace hack
     vars = (
         "BMO_OP_SLOT_ELEMENT_BUF",
         "BMO_OP_SLOT_BOOL",

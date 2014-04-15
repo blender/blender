@@ -54,7 +54,7 @@ def is_pep8(path):
         print("\nfile contains BOM, remove first 3 bytes: %r\n" % path)
 
     # templates don't have a header but should be pep8
-    for d in ("presets", "templates", "examples"):
+    for d in ("presets", "templates_py", "examples"):
         if ("%s%s%s" % (os.sep, d, os.sep)) in path:
             return 1
 

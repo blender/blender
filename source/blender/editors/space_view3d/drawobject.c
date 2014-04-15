@@ -2414,8 +2414,8 @@ static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, Deriv
 
 	if (lnors) {
 		drawDMNormal_userData data;
-		MLoop *mloops = dm->getLoopArray(dm);
-		MVert *mverts = dm->getVertArray(dm);
+		const MLoop *mloops = dm->getLoopArray(dm);
+		const MVert *mverts = dm->getVertArray(dm);
 		int i, totloops = dm->getNumLoops(dm);
 
 		data.bm = em->bm;
@@ -2426,7 +2426,7 @@ static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, Deriv
 		glBegin(GL_LINES);
 		for (i = 0; i < totloops; i++, mloops++, lnors++) {
 			float no[3];
-			float *co = mverts[mloops->v].co;
+			const float *co = mverts[mloops->v].co;
 
 			if (!data.uniform_scale) {
 				mul_v3_m3v3(no, data.tmat, (float *)lnors);
@@ -2434,7 +2434,7 @@ static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, Deriv
 				mul_m3_v3(data.imat, no);
 			}
 			else {
-				copy_v3_v3(no,(float *)lnors);
+				copy_v3_v3(no, (float *)lnors);
 			}
 			mul_v3_fl(no, data.normalsize);
 			add_v3_v3(no, co);

@@ -424,7 +424,7 @@ static void rna_MeshTessFace_split_normals_get(PointerRNA *ptr, float *values)
 		while (i--) zero_v3(&values[i * 3]);
 	}
 	else {
-		while (i--) normal_short_to_float_v3(&values[i * 3], (const short*)(*vec)[i]);
+		while (i--) normal_short_to_float_v3(&values[i * 3], (const short *)(*vec)[i]);
 	}
 }
 

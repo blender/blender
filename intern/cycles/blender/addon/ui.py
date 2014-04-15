@@ -47,12 +47,12 @@ class CyclesButtonsPanel():
     def poll(cls, context):
         rd = context.scene.render
         return rd.engine in cls.COMPAT_ENGINES
-        
-        
+
+
 def use_cpu(context):
     cscene = context.scene.cycles
     device_type = context.user_preferences.system.compute_device_type
-    
+
     return (device_type == 'NONE' or cscene.device == 'CPU')
 
 
@@ -1126,7 +1126,7 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         # node = context.texture_node
         return False
-        #return node and CyclesButtonsPanel.poll(context)
+        # return node and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

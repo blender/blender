@@ -16,7 +16,6 @@ def main(context, event, ray_max=10000.0):
     ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
     ray_target = ray_origin + (view_vector * ray_max)
 
-
     def visible_objects_and_duplis():
         """Loop over (object, matrix) pairs (mesh only)"""
 
