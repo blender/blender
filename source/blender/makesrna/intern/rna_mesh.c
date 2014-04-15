@@ -742,6 +742,68 @@ static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int
 	CustomData_set_layer_clone_index(data, type, n);
 }
 
+static int rna_MEdge_freestyle_edge_mark_get(PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	MEdge *medge = (MEdge *)ptr->data;
+	FreestyleEdge *fed = CustomData_get(&me->edata, (int)(medge - me->medge), CD_FREESTYLE_EDGE);
+
+	return fed && (fed->flag & FREESTYLE_EDGE_MARK) != 0;
+}
+
+static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, int value)
+{
+	Mesh *me = rna_mesh(ptr);
+	MEdge *medge = (MEdge *)ptr->data;
+	FreestyleEdge *fed = CustomData_get(&me->edata, (int)(medge - me->medge), CD_FREESTYLE_EDGE);
+
+	if (!fed) {
+		fed = CustomData_add_layer(&me->edata, CD_FREESTYLE_EDGE, CD_CALLOC, NULL, me->totedge);
+
+		/* auto-enable Freestyle edge mark drawing */
+		if (value) {
+			me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
+		}
+	}
+	if (value) {
+		fed->flag |= FREESTYLE_EDGE_MARK;
+	}
+	else {
+		fed->flag &= ~FREESTYLE_EDGE_MARK;
+	}
+}
+
+static int rna_MPoly_freestyle_face_mark_get(PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	MPoly *mpoly = (MPoly *)ptr->data;
+	FreestyleFace *ffa = CustomData_get(&me->pdata, (int)(mpoly - me->mpoly), CD_FREESTYLE_FACE);
+
+	return ffa && (ffa->flag & FREESTYLE_FACE_MARK) != 0;
+}
+
+static void rna_MPoly_freestyle_face_mark_set(PointerRNA *ptr, int value)
+{
+	Mesh *me = rna_mesh(ptr);
+	MPoly *mpoly = (MPoly *)ptr->data;
+	FreestyleFace *ffa = CustomData_get(&me->pdata, (int)(mpoly - me->mpoly), CD_FREESTYLE_FACE);
+
+	if (!ffa) {
+		ffa = CustomData_add_layer(&me->pdata, CD_FREESTYLE_FACE, CD_CALLOC, NULL, me->totpoly);
+
+		/* auto-enable Freestyle face mark drawing */
+		if (value) {
+			me->drawflag |= ME_DRAW_FREESTYLE_FACE;
+		}
+	}
+	if (value) {
+		ffa->flag |= FREESTYLE_FACE_MARK;
+	}
+	else {
+		ffa->flag &= ~FREESTYLE_FACE_MARK;
+	}
+}
+
 /* Generic UV rename! */
 static void rna_MeshUVLayer_name_set(PointerRNA *ptr, const char *name)
 {
@@ -1808,6 +1870,11 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
 	RNA_def_property_ui_text(prop, "Loose", "Loose edge");
 
+	prop = RNA_def_property(srna, "freestyle_edge_mark", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_MEdge_freestyle_edge_mark_get", "rna_MEdge_freestyle_edge_mark_set");
+	RNA_def_property_ui_text(prop, "Freestyle Edge Mark", "Edge mark for Freestyle line rendering");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_MeshEdge_index_get", NULL, NULL);
@@ -2005,6 +2072,11 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop = RNA_def_property(srna, "freestyle_face_mark", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_MPoly_freestyle_face_mark_get", "rna_MPoly_freestyle_face_mark_set");
+	RNA_def_property_ui_text(prop, "Freestyle Face Mark", "Face mark for Freestyle line rendering");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
