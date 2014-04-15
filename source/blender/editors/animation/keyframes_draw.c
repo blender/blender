@@ -86,10 +86,14 @@ short compare_ak_cfraPtr(void *node, void *data)
 {
 	ActKeyColumn *ak = (ActKeyColumn *)node;
 	float *cframe = data;
+	float val = *cframe;
 	
-	if (*cframe < ak->cfra)
+	if (IS_EQT(val, ak->cfra, BEZT_BINARYSEARCH_THRESH))
+		return 0;
+	
+	if (val < ak->cfra)
 		return -1;
-	else if (*cframe > ak->cfra)
+	else if (val > ak->cfra)
 		return 1;
 	else
 		return 0;
