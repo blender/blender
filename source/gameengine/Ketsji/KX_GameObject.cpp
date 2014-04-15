@@ -759,7 +759,7 @@ void KX_GameObject::UpdateLod(MT_Vector3 &cam_pos)
 	Object *bob = this->GetBlenderObject();
 	LodLevel *lod = (LodLevel*) bob->lodlevels.first;
 	for (; lod; lod = lod->next, level++) {
-		if (!lod->source) level--;
+		if (!lod->source || lod->source->type != OB_MESH) level--;
 		if (!lod->next || lod->next->distance * lod->next->distance > distance2) break;
 	}
 
