@@ -321,6 +321,10 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 		
 			mul_m4_v3(tmat, har->co);
 		}
+
+		/* imat_ren is needed for correct texture coordinates */
+		mul_m4_m4m4(obr->ob->imat_ren, re->viewmat, obr->ob->obmat);
+		invert_m4(obr->ob->imat_ren);
 	}
 	
 	for (go = re->lights.first; go; go = go->next) {
