@@ -451,10 +451,12 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const flo
 
 	{
 		char hflag = BM_LOOP;
-		if (vnos)
+		if (vnos) {
 			hflag |= BM_VERT;
-		if (fnos)
+		}
+		if (fnos) {
 			hflag |= BM_FACE;
+		}
 		BM_mesh_elem_index_ensure(bm, hflag);
 	}
 
@@ -508,10 +510,12 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 
 	{
 		char hflag = BM_LOOP;
-		if (vcos)
+		if (vcos) {
 			hflag |= BM_VERT;
-		if (fnos)
+		}
+		if (fnos) {
 			hflag |= BM_FACE;
+		}
 		BM_mesh_elem_index_ensure(bm, hflag);
 	}
 
@@ -822,27 +826,31 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 					BMIter iter;
 					BMElem *ele;
 
-					const bool hflag_loop = (hflag & BM_LOOP) && (bm->elem_index_dirty & BM_LOOP);
+					const bool update_face = (hflag & BM_FACE) && (bm->elem_index_dirty & BM_FACE);
+					const bool update_loop = (hflag & BM_LOOP) && (bm->elem_index_dirty & BM_LOOP);
 
 					int index;
-					int index_loop_start = 0;
+					int index_loop = 0;
+
 					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, index) {
-						BM_elem_index_set(ele, index); /* set_ok */
+						if (update_face) {
+							BM_elem_index_set(ele, index); /* set_ok */
+						}
 
-						if (hflag_loop) {
-							BMIter liter;
-							BMElem *lele;
+						if (update_loop) {
+							BMLoop *l_iter, *l_first;
 
-							int index_diff;
-							BM_ITER_ELEM_INDEX (lele, &liter, ele, BM_LOOPS_OF_FACE, index_diff) {
-								BM_elem_index_set(lele, index_loop_start + index_diff); /* set_ok */
-							}
-							index_loop_start += index_diff;
+							l_iter = l_first = BM_FACE_FIRST_LOOP((BMFace *)ele);
+							do {
+								BM_elem_index_set(l_iter, index_loop++); /* set_ok */
+							} while ((l_iter = l_iter->next) != l_first);
 						}
 					}
+
 					BLI_assert(index == bm->totface);
-					if (hflag & BM_LOOP)
-						BLI_assert(index_loop_start == bm->totloop);
+					if (update_loop) {
+						BLI_assert(index_loop == bm->totloop);
+					}
 				}
 				else {
 					// printf("%s: skipping face/loop index calc!\n", __func__);

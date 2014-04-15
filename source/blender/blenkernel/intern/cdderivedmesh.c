@@ -2162,6 +2162,8 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, const bool use_mdisps,
 			mloop->e = BM_elem_index_get(l_iter->e);
 			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l_iter->head.data, j);
 
+			BM_elem_index_set(l_iter, j); /* set_inline */
+
 			j++;
 			mloop++;
 		} while ((l_iter = l_iter->next) != l_first);
@@ -2170,7 +2172,7 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, const bool use_mdisps,
 
 		if (add_orig) *index++ = i;
 	}
-	bm->elem_index_dirty &= ~BM_FACE;
+	bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
 	dm->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 

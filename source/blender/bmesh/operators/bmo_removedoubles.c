@@ -219,7 +219,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
-	bm->elem_index_dirty |= BM_FACE;
+	bm->elem_index_dirty |= BM_FACE | BM_LOOP;
 
 	/* faces get "modified" by creating new faces here, then at the
 	 * end the old faces are deleted */

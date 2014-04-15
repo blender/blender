@@ -176,7 +176,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			/* Save index of correspsonding MLoop */
-			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, j++, &l_iter->head.data, true);
+			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, j, &l_iter->head.data, true);
+			BM_elem_index_set(l_iter, j++); /* set_inline */
 		} while ((l_iter = l_iter->next) != l_first);
 
 		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data, true);
@@ -195,7 +196,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 			*orig_index = ORIGINDEX_NONE;
 		}
 	}
-	if (is_init) bm->elem_index_dirty &= ~BM_FACE;
+	if (is_init) bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
 	MEM_freeN(vtable);
 	MEM_freeN(etable);
