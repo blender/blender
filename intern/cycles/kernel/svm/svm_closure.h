@@ -498,7 +498,7 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 
 	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
 	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
-	float density = param1;
+	float density = fmaxf(param1, 0.0f);
 
 	switch(type) {
 		case CLOSURE_VOLUME_ABSORPTION_ID: {

@@ -21,6 +21,6 @@ shader node_absorption_volume(
 	float Density = 1.0,
 	output closure color Volume = 0)
 {
-	Volume = ((color(1.0, 1.0, 1.0) - Color) * Density) * absorption();
+	Volume = ((color(1.0, 1.0, 1.0) - Color) * max(Density, 0.0)) * absorption();
 }
 
