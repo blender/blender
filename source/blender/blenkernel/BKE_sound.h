@@ -140,6 +140,6 @@ void *sound_get_factory(void *sound);
 
 float sound_get_length(struct bSound *sound);
 
-int sound_is_jack_supported(void);
+bool sound_is_jack_supported(void);
 
-#endif
+#endif  /* __BKE_SOUND_H__ */
