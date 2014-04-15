@@ -105,7 +105,7 @@ class SCENE_OT_freestyle_add_edge_marks_to_keying_set(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         for i, edge in enumerate(mesh.edges):
             if not edge.hide and edge.select:
-                path = 'edges[%d].use_freestyle_edge_mark' % i
+                path = 'edges[%d].use_freestyle_mark' % i
                 ks.paths.add(mesh, path, index=0)
         bpy.ops.object.mode_set(mode=ob_mode, toggle=False)
         return {'FINISHED'}
@@ -136,7 +136,7 @@ class SCENE_OT_freestyle_add_face_marks_to_keying_set(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         for i, polygon in enumerate(mesh.polygons):
             if not polygon.hide and polygon.select:
-                path = 'polygons[%d].use_freestyle_face_mark' % i
+                path = 'polygons[%d].use_freestyle_mark' % i
                 ks.paths.add(mesh, path, index=0)
         bpy.ops.object.mode_set(mode=ob_mode, toggle=False)
         return {'FINISHED'}
