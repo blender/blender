@@ -69,8 +69,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_CUDA__
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
-/* Disabled for now, compile errors */
-//#define __BRANCHED_PATH__
+#define __BRANCHED_PATH__
 
 /* Experimental on GPU */
 //#define __VOLUME__
