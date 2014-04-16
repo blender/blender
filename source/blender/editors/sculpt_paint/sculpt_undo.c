@@ -301,8 +301,7 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 			MEM_freeN(nodes);
 	}
 	else {
-		/* A bit lame, but for now just recreate the PBVH. The alternative
-		 * is to store changes to the PBVH in the undo stack. */
+		sculpt_dyntopo_node_layers_reset(ss->bm);
 		sculpt_pbvh_clear(ob);
 	}
 }
@@ -319,6 +318,8 @@ static void sculpt_undo_bmesh_enable(Object *ob,
 	/* Create empty BMesh and enable logging */
 	ss->bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_DYNTOPO_NODE);
+	BM_data_layer_add(ss->bm, &ss->bm->pdata, CD_DYNTOPO_NODE);
 	me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
 	/* Restore the BMLog using saved entries */

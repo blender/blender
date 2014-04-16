@@ -618,11 +618,6 @@ void BKE_pbvh_free(PBVH *bvh)
 	if (bvh->prim_indices)
 		MEM_freeN(bvh->prim_indices);
 
-	if (bvh->bm_vert_to_node)
-		BLI_ghash_free(bvh->bm_vert_to_node, NULL, NULL);
-	if (bvh->bm_face_to_node)
-		BLI_ghash_free(bvh->bm_face_to_node, NULL, NULL);
-
 	MEM_freeN(bvh);
 }
 

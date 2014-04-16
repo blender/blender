@@ -285,6 +285,12 @@ extern void bpy_bm_generic_invalidate(struct BPy_BMGeneric *self);
 typedef bool (*BMElemFilterFunc)(BMElem *, void *user_data);
 
 /* defines */
+#define BM_ELEM_CD_SET_INT(ele, offset, f) \
+	{ assert(offset != -1); *((int *)((char *)(ele)->head.data + (offset))) = (f); } (void)0
+
+#define BM_ELEM_CD_GET_INT(ele, offset) \
+	(assert(offset != -1), *((int *)((char *)(ele)->head.data + (offset))))
+
 #define BM_ELEM_CD_GET_VOID_P(ele, offset) \
 	(assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
 

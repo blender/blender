@@ -1037,6 +1037,17 @@ static void layerDefault_mvert_skin(void *data, int count)
 	}
 }
 
+static void layerDefault_dyntopo_node(void *data, int count)
+{
+	int *indices = data;
+	int i;
+
+	for (i = 0; i < count; i++) {
+		indices[i] = DYNTOPO_NODE_NONE;
+	}
+}
+
+
 static void layerInterp_mvert_skin(void **sources, const float *weights,
                                    const float *UNUSED(sub_weights),
                                    int count, void *dest)
@@ -1172,6 +1183,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float[4]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 40: CD_TESSLOOPNORMAL */
 	{sizeof(short[4][3]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* 41: CD_DYNTOPO_NODE */
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_dyntopo_node},
 };
 
 /* note, numbers are from trunk and need updating for bmesh */
@@ -1188,6 +1201,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/* 30-34 */ "CDSubSurfCrease", "CDOrigSpaceLoop", "CDPreviewLoopCol", "CDBMElemPyPtr", "CDPaintMask",
 	/* 35-36 */ "CDGridPaintMask", "CDMVertSkin",
 	/* 37-40 */ "CDFreestyleEdge", "CDFreestyleFace", "CDMLoopTangent", "CDTessLoopNormal",
+    /* 41 */ "CDDyntopoNode"
 };
 
 

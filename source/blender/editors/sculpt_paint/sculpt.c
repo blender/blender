@@ -4793,6 +4793,26 @@ void sculpt_pbvh_clear(Object *ob)
 	BKE_object_free_derived_caches(ob);
 }
 
+void sculpt_dyntopo_node_layers_reset(BMesh *bm)
+{
+	/* A bit lame, but for now just recreate the PBVH. The alternative
+	 * is to store changes to the PBVH in the undo stack. */
+	BMFace *f;
+	BMVert *v;
+	BMIter iter;
+	const int cd_vert_node_offset = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_NODE);
+	const int cd_face_node_offset = CustomData_get_offset(&bm->pdata, CD_DYNTOPO_NODE);
+
+	/* clear the elements of the node information */
+	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+		BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
+	}
+
+	BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
+	}
+}
+
 void sculpt_update_after_dynamic_topology_toggle(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -4825,6 +4845,8 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	BM_mesh_bm_from_me(ss->bm, me, true, true, ob->shapenr);
 	sculpt_dynamic_topology_triangulate(ss->bm);
 	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_DYNTOPO_NODE);
+	BM_data_layer_add(ss->bm, &ss->bm->pdata, CD_DYNTOPO_NODE);
 	BM_mesh_normals_update(ss->bm);
 
 	/* Enable dynamic topology */
