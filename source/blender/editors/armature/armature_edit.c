@@ -203,36 +203,43 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const bool axis_only)
 {
 	float mat[3][3], nor[3];
+	float vec[3], align_axis_proj[3], roll = 0.0f;
+
+	BLI_ASSERT_UNIT_V3(align_axis);
 
 	sub_v3_v3v3(nor, bone->tail, bone->head);
-	vec_roll_to_mat3(nor, 0.0f, mat);
-	
-	/* check the bone isn't aligned with the axis */
-	if (!is_zero_v3(align_axis) && angle_v3v3(align_axis, mat[2]) > FLT_EPSILON) {
-		float vec[3], align_axis_proj[3], roll;
-		
-		/* project the new_up_axis along the normal */
-		project_v3_v3v3(vec, align_axis, nor);
-		sub_v3_v3v3(align_axis_proj, align_axis, vec);
-		
-		if (axis_only) {
-			if (angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI / 2.0)) {
-				negate_v3(align_axis_proj);
-			}
-		}
-		
-		roll = angle_v3v3(align_axis_proj, mat[2]);
-		
-		cross_v3_v3v3(vec, mat[2], align_axis_proj);
-		
-		if (dot_v3v3(vec, nor) < 0) {
-			roll = -roll;
-		}
-		
+
+	/* if tail == head! */
+	if (is_zero_v3(nor)) {
 		return roll;
 	}
 
-	return 0.0f;
+	vec_roll_to_mat3(nor, 0.0f, mat);
+
+	/* check the bone isn't aligned with the axis */
+	if (is_zero_v3(align_axis) || dot_v3v3(align_axis, mat[2]) <= (1.0f - FLT_EPSILON)) {
+		return roll;
+	}
+
+	/* project the new_up_axis along the normal */
+	project_v3_v3v3(vec, align_axis, nor);
+	sub_v3_v3v3(align_axis_proj, align_axis, vec);
+
+	if (axis_only) {
+		if (angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI / 2.0)) {
+			negate_v3(align_axis_proj);
+		}
+	}
+
+	roll = angle_v3v3(align_axis_proj, mat[2]);
+
+	cross_v3_v3v3(vec, mat[2], align_axis_proj);
+
+	if (dot_v3v3(vec, nor) < 0.0f) {
+		roll = -roll;
+	}
+
+	return roll;
 }
 
 

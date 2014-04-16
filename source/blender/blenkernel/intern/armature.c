@@ -1488,7 +1488,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 
 	normalize_v3_v3(nor, vec);
 
-	theta = 1 + nor[1];
+	theta = 1.0f + nor[1];
 
 	/* With old algo, 1.0e-13f caused T23954 and T31333, 1.0e-6f caused T27675 and T30438,
 	 * so using 1.0e-9f as best compromise.
@@ -1496,7 +1496,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 	 * New algo is supposed much more precise, since less complex computations are performed,
 	 * but it uses two different threshold values...
 	 */
-	if (theta > 1.0e-9f) {
+	if ((nor[0] || nor[2]) && theta > 1.0e-9f) {
 		/* nor is *not* -Y.
 		 * We got these values for free... so be happy with it... ;)
 		 */
