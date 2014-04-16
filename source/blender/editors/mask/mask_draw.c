@@ -643,15 +643,21 @@ static void mask_rasterize_func(TaskPool *pool, void *taskdata, int UNUSED(threa
 	ThreadedMaskRasterizeState *state = (ThreadedMaskRasterizeState *) BLI_task_pool_userdata(pool);
 	ThreadedMaskRasterizeData *data = (ThreadedMaskRasterizeData *) taskdata;
 	int scanline;
+	const float x_inv = 1.0f / (float)state->width;
+	const float y_inv = 1.0f / (float)state->height;
+	const float x_px_ofs = x_inv * 0.5f;
+	const float y_px_ofs = y_inv * 0.5f;
 
 	for (scanline = 0; scanline < data->num_scanlines; scanline++) {
+		float xy[2];
 		int x, y = data->start_scanline + scanline;
+
+		xy[1] = ((float)y * y_inv) + y_px_ofs;
+
 		for (x = 0; x < state->width; x++) {
 			int index = y * state->width + x;
-			float xy[2];
 
-			xy[0] = (float) x / state->width;
-			xy[1] = (float) y / state->height;
+			xy[0] = ((float)x * x_inv) + x_px_ofs;
 
 			state->buffer[index] = BKE_maskrasterize_handle_sample(state->handle, xy);
 		}

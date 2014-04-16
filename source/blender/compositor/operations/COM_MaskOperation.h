@@ -43,6 +43,7 @@ protected:
 	int   m_maskHeight;
 	float m_maskWidthInv;  /* 1 / m_maskWidth  */
 	float m_maskHeightInv; /* 1 / m_maskHeight */
+	float m_mask_px_ofs[2];
 
 	float m_frame_shutter;
 	int   m_frame_number;
@@ -70,11 +71,13 @@ public:
 	{
 		this->m_maskWidth    = width;
 		this->m_maskWidthInv = 1.0f / (float)width;
+		this->m_mask_px_ofs[0] = this->m_maskWidthInv * 0.5f;
 	}
 	void setMaskHeight(int height)
 	{
 		this->m_maskHeight = height;
 		this->m_maskHeightInv = 1.0f / (float)height;
+		this->m_mask_px_ofs[1] = this->m_maskHeightInv * 0.5f;
 	}
 	void setFramenumber(int frame_number) { this->m_frame_number = frame_number; }
 	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
