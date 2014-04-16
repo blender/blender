@@ -161,16 +161,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		set(cuda_cubin kernel_${arch}.cubin)
 
 		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${CUDA_VERSION}")
-
-		# CUDA 5.x build flags for different archs
-		if(${arch} MATCHES "sm_2[0-9]")
-			# sm_2x
-			set(cuda_arch_flags "--maxrregcount=40")
-		elseif(${arch} MATCHES "sm_3[0-9]")
-			# sm_3x
-			set(cuda_arch_flags "--maxrregcount=32")
-		endif()
-
 		set(cuda_math_flags "--use_fast_math")
 		
 		if(CUDA_VERSION LESS 50 AND ${arch} MATCHES "sm_35")

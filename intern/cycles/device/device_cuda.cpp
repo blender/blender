@@ -253,7 +253,6 @@ public:
 			return false;
 		}
 		
-
 		return true;
 	}
 
@@ -315,17 +314,6 @@ public:
 		string kernel = path_join(kernel_path, "kernel.cu");
 		string include = kernel_path;
 		const int machine = system_cpu_bits();
-		string arch_flags;
-
-		/* CUDA 5.x build flags for different archs */
-		if(major == 2) {
-			/* sm_2x */
-			arch_flags = "--maxrregcount=40 --use_fast_math";
-		}
-		else if(major == 3) {
-			/* sm_3x */
-			arch_flags = "--maxrregcount=32 --use_fast_math";
-		}
 
 		double starttime = time_dt();
 		printf("Compiling CUDA kernel ...\n");
@@ -333,8 +321,8 @@ public:
 		path_create_directories(cubin);
 
 		string command = string_printf("\"%s\" -arch=sm_%d%d -m%d --cubin \"%s\" "
-			"-o \"%s\" --ptxas-options=\"-v\" %s -I\"%s\" -DNVCC -D__KERNEL_CUDA_VERSION__=%d",
-			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), arch_flags.c_str(), include.c_str(), cuda_version);
+			"-o \"%s\" --ptxas-options=\"-v\" -I\"%s\" -DNVCC -D__KERNEL_CUDA_VERSION__=%d",
+			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), include.c_str(), cuda_version);
 
 		printf("%s\n", command.c_str());
 
@@ -665,9 +653,18 @@ public:
 
 		cuda_assert(cuParamSetSize(cuPathTrace, offset))
 
-		/* launch kernel: todo find optimal size, cache config for fermi */
-		int xthreads = 16;
-		int ythreads = 16;
+		/* launch kernel */
+		int threads_per_block;
+		cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuPathTrace))
+
+		/*int num_registers;
+		cuda_assert(cuFuncGetAttribute(&num_registers, CU_FUNC_ATTRIBUTE_NUM_REGS, cuPathTrace))
+
+		printf("threads_per_block %d\n", threads_per_block);
+		printf("num_registers %d\n", num_registers);*/
+
+		int xthreads = (int)sqrt(threads_per_block);
+		int ythreads = (int)sqrt(threads_per_block);
 		int xblocks = (rtile.w + xthreads - 1)/xthreads;
 		int yblocks = (rtile.h + ythreads - 1)/ythreads;
 
@@ -730,9 +727,12 @@ public:
 
 		cuda_assert(cuParamSetSize(cuFilmConvert, offset))
 
-		/* launch kernel: todo find optimal size, cache config for fermi */
-		int xthreads = 16;
-		int ythreads = 16;
+		/* launch kernel */
+		int threads_per_block;
+		cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuFilmConvert))
+
+		int xthreads = (int)sqrt(threads_per_block);
+		int ythreads = (int)sqrt(threads_per_block);
 		int xblocks = (task.w + xthreads - 1)/xthreads;
 		int yblocks = (task.h + ythreads - 1)/ythreads;
 
@@ -752,40 +752,42 @@ public:
 
 		cuda_push_context();
 
-		CUfunction cuDisplace;
+		CUfunction cuShader;
 		CUdeviceptr d_input = cuda_device_ptr(task.shader_input);
 		CUdeviceptr d_output = cuda_device_ptr(task.shader_output);
 
 		/* get kernel function */
-		cuda_assert(cuModuleGetFunction(&cuDisplace, cuModule, "kernel_cuda_shader"))
+		cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_shader"))
 		
 		/* pass in parameters */
 		int offset = 0;
 		
-		cuda_assert(cuParamSetv(cuDisplace, offset, &d_input, sizeof(d_input)))
+		cuda_assert(cuParamSetv(cuShader, offset, &d_input, sizeof(d_input)))
 		offset += sizeof(d_input);
 
-		cuda_assert(cuParamSetv(cuDisplace, offset, &d_output, sizeof(d_output)))
+		cuda_assert(cuParamSetv(cuShader, offset, &d_output, sizeof(d_output)))
 		offset += sizeof(d_output);
 
 		int shader_eval_type = task.shader_eval_type;
 		offset = align_up(offset, __alignof(shader_eval_type));
 
-		cuda_assert(cuParamSeti(cuDisplace, offset, task.shader_eval_type))
+		cuda_assert(cuParamSeti(cuShader, offset, task.shader_eval_type))
 		offset += sizeof(task.shader_eval_type);
 
-		cuda_assert(cuParamSeti(cuDisplace, offset, task.shader_x))
+		cuda_assert(cuParamSeti(cuShader, offset, task.shader_x))
 		offset += sizeof(task.shader_x);
 
-		cuda_assert(cuParamSetSize(cuDisplace, offset))
+		cuda_assert(cuParamSetSize(cuShader, offset))
 
-		/* launch kernel: todo find optimal size, cache config for fermi */
-		int xthreads = 16;
-		int xblocks = (task.shader_w + xthreads - 1)/xthreads;
+		/* launch kernel */
+		int threads_per_block;
+		cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuShader))
 
-		cuda_assert(cuFuncSetCacheConfig(cuDisplace, CU_FUNC_CACHE_PREFER_L1))
-		cuda_assert(cuFuncSetBlockShape(cuDisplace, xthreads, 1, 1))
-		cuda_assert(cuLaunchGrid(cuDisplace, xblocks, 1))
+		int xblocks = (task.shader_w + threads_per_block - 1)/threads_per_block;
+
+		cuda_assert(cuFuncSetCacheConfig(cuShader, CU_FUNC_CACHE_PREFER_L1))
+		cuda_assert(cuFuncSetBlockShape(cuShader, threads_per_block, 1, 1))
+		cuda_assert(cuLaunchGrid(cuShader, xblocks, 1))
 
 		cuda_pop_context();
 	}
