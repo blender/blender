@@ -94,7 +94,8 @@ void BL_ConvertControllers(
 	SCA_LogicManager* logicmgr,
 	int activeLayerBitInfo,
 	bool isInActiveLayer,
-	KX_BlenderSceneConverter* converter
+	KX_BlenderSceneConverter* converter,
+	bool libloading
 ) {
 	int uniqueint=0;
 	int count = 0;
@@ -157,8 +158,9 @@ void BL_ConvertControllers(
 				SCA_PythonController* pyctrl = new SCA_PythonController(gameobj, pycont->mode);
 				gamecontroller = pyctrl;
 #ifdef WITH_PYTHON
-				PyGILState_STATE gstate = PyGILState_Ensure();
-				pyctrl->SetNamespace(converter->GetPyNamespace());
+				// When libloading, this is delayed to KX_Scene::MergeScene_LogicBrick to avoid GIL issues
+				if (!libloading)
+					pyctrl->SetNamespace(converter->GetPyNamespace());
 				
 				if (pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
 					if (pycont->text)
@@ -185,8 +187,6 @@ void BL_ConvertControllers(
 						pyctrl->SetDebug(true);
 					}
 				}
-				
-				PyGILState_Release(gstate);
 #endif // WITH_PYTHON
 
 				break;
@@ -219,8 +219,8 @@ void BL_ConvertControllers(
 			converter->RegisterGameController(gamecontroller, bcontr);
 
 #ifdef WITH_PYTHON
-			PyGILState_STATE gstate = PyGILState_Ensure();
-			if (bcontr->type==CONT_PYTHON) {
+			// When libloading, this is delayed to KX_Scene::MergeScene_LogicBrick to avoid GIL issues
+			if (!libloading && bcontr->type==CONT_PYTHON) {
 				SCA_PythonController *pyctrl= static_cast<SCA_PythonController*>(gamecontroller);
 				/* not strictly needed but gives syntax errors early on and
 				 * gives more predictable performance for larger scripts */
@@ -235,7 +235,6 @@ void BL_ConvertControllers(
 				}
 			}
 
-			PyGILState_Release(gstate);
 #endif // WITH_PYTHON
 
 			//done with gamecontroller

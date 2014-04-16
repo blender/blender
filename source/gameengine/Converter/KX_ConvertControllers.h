@@ -40,7 +40,8 @@ void BL_ConvertControllers(
 	class SCA_LogicManager* logicmgr,
 	int activeLayerBitInfo,
 	bool isInActiveLayer, 
-	class KX_BlenderSceneConverter* converter
+	class KX_BlenderSceneConverter* converter,
+    bool libloading
 );
 
 #endif  /* __KX_CONVERTCONTROLLERS_H__ */

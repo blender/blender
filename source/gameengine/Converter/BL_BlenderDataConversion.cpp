@@ -2874,7 +2874,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = gameobj->GetBlenderObject();
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertControllers(blenderobj,gameobj,logicmgr, layerMask,isInActiveLayer,converter);
+		BL_ConvertControllers(blenderobj,gameobj,logicmgr, layerMask,isInActiveLayer,converter, libloading);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
