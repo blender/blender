@@ -49,83 +49,52 @@ namespace {
 
 // Functions adopted from BLI_math.h to use Carve Vector and Matrix.
 
-void axis_angle_normalized_to_mat3(const Vector &normal,
-                                   const double angle,
-                                   Matrix3 *matrix)
+void transpose_m3__bli(double mat[3][3])
 {
-	double nsi[3], co, si, ico;
+	double t;
 
-	/* now convert this to a 3x3 matrix */
-	co = cos(angle);
-	si = sin(angle);
-
-	ico = (1.0 - co);
-	nsi[0] = normal[0] * si;
-	nsi[1] = normal[1] * si;
-	nsi[2] = normal[2] * si;
-
-	matrix->m[0][0] = ((normal[0] * normal[0]) * ico) + co;
-	matrix->m[0][1] = ((normal[0] * normal[1]) * ico) + nsi[2];
-	matrix->m[0][2] = ((normal[0] * normal[2]) * ico) - nsi[1];
-	matrix->m[1][0] = ((normal[0] * normal[1]) * ico) - nsi[2];
-	matrix->m[1][1] = ((normal[1] * normal[1]) * ico) + co;
-	matrix->m[1][2] = ((normal[1] * normal[2]) * ico) + nsi[0];
-	matrix->m[2][0] = ((normal[0] * normal[2]) * ico) + nsi[1];
-	matrix->m[2][1] = ((normal[1] * normal[2]) * ico) - nsi[0];
-	matrix->m[2][2] = ((normal[2] * normal[2]) * ico) + co;
+	t = mat[0][1];
+	mat[0][1] = mat[1][0];
+	mat[1][0] = t;
+	t = mat[0][2];
+	mat[0][2] = mat[2][0];
+	mat[2][0] = t;
+	t = mat[1][2];
+	mat[1][2] = mat[2][1];
+	mat[2][1] = t;
 }
 
-void axis_angle_to_mat3(const Vector &axis,
-                        const double angle,
-                        Matrix3 *matrix)
+void ortho_basis_v3v3_v3__bli(double r_n1[3], double r_n2[3], const double n[3])
 {
-	if (axis.length2() < FLT_EPSILON) {
-		*matrix = Matrix3();
-		return;
-	}
+	const double eps = FLT_EPSILON;
+	const double f = (n[0] * n[0]) + (n[1] * n[1]);
 
-	Vector nor = axis;
-	nor.normalize();
+	if (f > eps) {
+		const double d = 1.0f / sqrt(f);
 
-	axis_angle_normalized_to_mat3(nor, angle, matrix);
-}
-
-inline double saacos(double fac)
-{
-	if      (fac <= -1.0) return M_PI;
-	else if (fac >=  1.0) return 0.0;
-	else                  return acos(fac);
-}
-
-bool axis_dominant_v3_to_m3(const Vector &normal,
-                            Matrix3 *matrix)
-{
-	Vector up;
-	Vector axis;
-	double angle;
-
-	up.x = 0.0;
-	up.y = 0.0;
-	up.z = 1.0;
-
-	axis = carve::geom::cross(normal, up);
-	angle = saacos(carve::geom::dot(normal, up));
-
-	if (angle >= FLT_EPSILON) {
-		if (axis.length2() < FLT_EPSILON) {
-			axis[0] = 0.0;
-			axis[1] = 1.0;
-			axis[2] = 0.0;
-		}
-
-		axis_angle_to_mat3(axis, angle, matrix);
-		return true;
+		r_n1[0] =  n[1] * d;
+		r_n1[1] = -n[0] * d;
+		r_n1[2] =  0.0f;
+		r_n2[0] = -n[2] * r_n1[1];
+		r_n2[1] =  n[2] * r_n1[0];
+		r_n2[2] =  n[0] * r_n1[1] - n[1] * r_n1[0];
 	}
 	else {
-		*matrix = Matrix3();
-		return false;
+		/* degenerate case */
+		r_n1[0] = (n[2] < 0.0f) ? -1.0f : 1.0f;
+		r_n1[1] = r_n1[2] = r_n2[0] = r_n2[2] = 0.0f;
+		r_n2[1] = 1.0f;
 	}
 }
+
+void axis_dominant_v3_to_m3__bli(Matrix3 *r_mat, const Vector &normal)
+{
+	memcpy(r_mat->m[2], normal.v, sizeof(double[3]));
+	ortho_basis_v3v3_v3__bli(r_mat->m[0], r_mat->m[1], r_mat->m[2]);
+
+	transpose_m3__bli(r_mat->m);
+}
+
 
 void meshset_minmax(const MeshSet<3> *mesh,
                     Vector *min,
@@ -581,7 +550,7 @@ bool carve_checkPolyPlanarAndGetNormal(const std::vector<Vector> &vertices,
 			double magnitude = normal.length2();
 
 			normal.normalize();
-			axis_dominant_v3_to_m3(normal, axis_matrix_r);
+			axis_dominant_v3_to_m3__bli(axis_matrix_r, normal);
 
 			Vector first_projected = *axis_matrix_r * vertices[verts_of_poly[0]];
 			double min_z = first_projected[2], max_z = first_projected[2];

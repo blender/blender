@@ -317,12 +317,7 @@ static int quad_co(float *x, float *y, float v1[3], float v2[3], float v3[3], fl
 
 	/* rotate */
 	poly_rotate_plane(n, projverts, 5);
-	
-	/* flatten */
-	for (i = 0; i < 5; i++) {
-		projverts[i][2] = 0.0f;
-	}
-	
+
 	/* subtract origin */
 	for (i = 0; i < 4; i++) {
 		sub_v3_v3(projverts[i], projverts[4]);

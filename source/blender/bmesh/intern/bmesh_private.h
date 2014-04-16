@@ -72,8 +72,7 @@ enum {
 #define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->head.api_flag &   (f))
 #define BM_ELEM_API_FLAG_CLEAR(element)      ((element)->head.api_flag = 0)
 
-void calc_poly_plane(float (*verts)[3], const int nverts);
-void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts);
+void poly_rotate_plane(const float normal[3], float (*verts)[3], unsigned const int nverts);
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.h"

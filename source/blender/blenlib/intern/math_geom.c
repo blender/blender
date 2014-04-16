@@ -2133,32 +2133,20 @@ void fill_poly_v2i_n(
  * \param r_mat The matrix to return.
  * \param normal A unit length vector.
  */
-bool axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
+void axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 {
-	float up[3] = {0.0f, 0.0f, 1.0f};
-	float axis[3];
-	float angle;
-
-	/* double check they are normalized */
 	BLI_ASSERT_UNIT_V3(normal);
 
-	cross_v3_v3v3(axis, normal, up);
-	angle = saacos(dot_v3v3(normal, up));
+	copy_v3_v3(r_mat[2], normal);
+	ortho_basis_v3v3_v3(r_mat[0], r_mat[1], r_mat[2]);
 
-	if (angle >= FLT_EPSILON) {
-		if (len_squared_v3(axis) < FLT_EPSILON) {
-			axis[0] = 0.0f;
-			axis[1] = 1.0f;
-			axis[2] = 0.0f;
-		}
+	BLI_ASSERT_UNIT_V3(r_mat[0]);
+	BLI_ASSERT_UNIT_V3(r_mat[1]);
 
-		axis_angle_to_mat3(r_mat, axis, angle);
-		return true;
-	}
-	else {
-		unit_m3(r_mat);
-		return false;
-	}
+	transpose_m3(r_mat);
+
+	BLI_assert(!is_negative_m3(r_mat));
+	BLI_assert(fabsf(dot_m3_v3_row_z(r_mat, normal) - 1.0f) < BLI_ASSERT_UNIT_EPSILON);
 }
 
 /****************************** Interpolation ********************************/

@@ -362,46 +362,6 @@ void BM_face_calc_center_mean_weighted(BMFace *f, float r_cent[3])
 }
 
 /**
- * COMPUTE POLY PLANE
- *
- * Projects a set polygon's vertices to
- * a plane defined by the average
- * of its edges cross products
- */
-void calc_poly_plane(float (*verts)[3], const int nverts)
-{
-	
-	float avgc[3], norm[3], mag, avgn[3];
-	float *v1, *v2, *v3;
-	int i;
-	
-	if (nverts < 3)
-		return;
-
-	zero_v3(avgn);
-	zero_v3(avgc);
-
-	for (i = 0; i < nverts; i++) {
-		v1 = verts[i];
-		v2 = verts[(i + 1) % nverts];
-		v3 = verts[(i + 2) % nverts];
-		normal_tri_v3(norm, v1, v2, v3);
-
-		add_v3_v3(avgn, norm);
-	}
-
-	if (UNLIKELY(normalize_v3(avgn) == 0.0f)) {
-		avgn[2] = 1.0f;
-	}
-	
-	for (i = 0; i < nverts; i++) {
-		v1 = verts[i];
-		mag = dot_v3v3(v1, avgn);
-		madd_v3_v3fl(v1, avgn, -mag);
-	}
-}
-
-/**
  * \brief BM LEGAL EDGES
  *
  * takes in a face and a list of edges, and sets to NULL any edge in
@@ -430,15 +390,18 @@ static void scale_edge_v2f(float v1[2], float v2[2], const float fac)
  * Rotates a polygon so that it's
  * normal is pointing towards the mesh Z axis
  */
-void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts)
+void poly_rotate_plane(const float normal[3], float (*verts)[3], const unsigned int nverts)
 {
 	float mat[3][3];
+	float co[3];
+	unsigned int i;
 
-	if (axis_dominant_v3_to_m3(mat, normal)) {
-		int i;
-		for (i = 0; i < nverts; i++) {
-			mul_m3_v3(mat, verts[i]);
-		}
+	co[2] = 0.0f;
+
+	axis_dominant_v3_to_m3(mat, normal);
+	for (i = 0; i < nverts; i++) {
+		mul_v2_m3v3(co, mat, verts[i]);
+		copy_v3_v3(verts[i], co);
 	}
 }
 
