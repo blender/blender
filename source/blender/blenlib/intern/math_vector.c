@@ -583,25 +583,33 @@ void reflect_v3_v3v3(float out[3], const float vec[3], const float normal[3])
 	out[2] = vec[2] - (dot2 * normal[2]);
 }
 
-void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
+/**
+ * Takes a vector and computes 2 orthogonal directions.
+ *
+ * \note if \a n is n unit length, computed values will be too.
+ */
+void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3])
 {
-	const float f = sqrtf(v[0] * v[0] + v[1] * v[1]);
+	const float eps = FLT_EPSILON;
+	const float f = len_squared_v2(n);
 
-	if (f < 1e-35f) {
-		// degenerate case
-		v1[0] = (v[2] < 0.0f) ? -1.0f : 1.0f;
-		v1[1] = v1[2] = v2[0] = v2[2] = 0.0f;
-		v2[1] = 1.0f;
+	if (f > eps) {
+		const float d = 1.0f / sqrtf(f);
+
+		BLI_assert(finite(d));
+
+		r_n1[0] =  n[1] * d;
+		r_n1[1] = -n[0] * d;
+		r_n1[2] =  0.0f;
+		r_n2[0] = -n[2] * r_n1[1];
+		r_n2[1] =  n[2] * r_n1[0];
+		r_n2[2] =  n[0] * r_n1[1] - n[1] * r_n1[0];
 	}
 	else {
-		const float d = 1.0f / f;
-
-		v1[0] = v[1] * d;
-		v1[1] = -v[0] * d;
-		v1[2] = 0.0f;
-		v2[0] = -v[2] * v1[1];
-		v2[1] = v[2] * v1[0];
-		v2[2] = v[0] * v1[1] - v[1] * v1[0];
+		/* degenerate case */
+		r_n1[0] = (n[2] < 0.0f) ? -1.0f : 1.0f;
+		r_n1[1] = r_n1[2] = r_n2[0] = r_n2[2] = 0.0f;
+		r_n2[1] = 1.0f;
 	}
 }
 
