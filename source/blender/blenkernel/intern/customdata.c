@@ -1070,6 +1070,19 @@ static void layerInterp_mvert_skin(void **sources, const float *weights,
 	vs->flag &= ~MVERT_SKIN_ROOT;
 }
 
+static void layerSwap_flnor(void *data, const int *corner_indices)
+{
+	short (*flnors)[4][3] = data;
+	short nors[4][3];
+	int i = 4;
+
+	while (i--) {
+		copy_v3_v3_short(nors[i], (*flnors)[corner_indices[i]]);
+	}
+
+	memcpy(flnors, nors, sizeof(nors));
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 0: CD_MVERT */
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -1182,7 +1195,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 39: CD_MLOOPTANGENT */
 	{sizeof(float[4]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 40: CD_TESSLOOPNORMAL */
-	{sizeof(short[4][3]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(short[4][3]), "", 0, NULL, NULL, NULL, NULL, layerSwap_flnor, NULL},
     /* 41: CD_DYNTOPO_NODE */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_dyntopo_node},
 };

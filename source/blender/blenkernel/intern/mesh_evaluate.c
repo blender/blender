@@ -1236,7 +1236,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		float (*lnors)[3] = CustomData_get_layer(ldata, CD_NORMAL);
 
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, fnors++) {
-			for (j = (*lidx)[3] ? 4 : 3; j--;) {
+			for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
 				normal_float_to_short_v3((*fnors)[j], lnors[(*lidx)[j]]);
 			}
 		}
