@@ -150,7 +150,7 @@ protected:
 	void update_scene();
 	void update_status_time(bool show_pause = false, bool show_done = false);
 
-	void tonemap();
+	void tonemap(int sample);
 	void path_trace();
 	void reset_(BufferParams& params, int samples);
 

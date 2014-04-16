@@ -102,7 +102,7 @@ Session::~Session()
 
 		display = new DisplayBuffer(device, false);
 		display->reset(device, buffers->params);
-		tonemap();
+		tonemap(params.samples);
 
 		progress.set_status("Writing Image", params.output_path);
 		display->write(device, params.output_path);
@@ -172,7 +172,7 @@ bool Session::draw_gpu(BufferParams& buffer_params, DeviceDrawParams& draw_param
 			 * only access GL buffers from the main thread */
 			if(gpu_need_tonemap) {
 				thread_scoped_lock buffers_lock(buffers_mutex);
-				tonemap();
+				tonemap(tile_manager.state.sample);
 				gpu_need_tonemap = false;
 				gpu_need_tonemap_cond.notify_all();
 			}
@@ -574,8 +574,8 @@ void Session::run_cpu()
 			}
 			else if(need_tonemap) {
 				/* tonemap only if we do not reset, we don't we don't
-				 * want to show the result of an incomplete sample*/
-				tonemap();
+				 * want to show the result of an incomplete sample */
+				tonemap(tile_manager.state.sample);
 			}
 
 			if(!device->error_message().empty())
@@ -841,7 +841,7 @@ void Session::path_trace()
 	device->task_add(task);
 }
 
-void Session::tonemap()
+void Session::tonemap(int sample)
 {
 	/* add tonemap task */
 	DeviceTask task(DeviceTask::FILM_CONVERT);
@@ -853,7 +853,7 @@ void Session::tonemap()
 	task.rgba_byte = display->rgba_byte.device_pointer;
 	task.rgba_half = display->rgba_half.device_pointer;
 	task.buffer = buffers->buffer.device_pointer;
-	task.sample = tile_manager.state.sample;
+	task.sample = sample;
 	tile_manager.state.buffer.get_offset_stride(task.offset, task.stride);
 
 	if(task.w > 0 && task.h > 0) {
