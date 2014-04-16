@@ -1395,6 +1395,12 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 				isect_kind = isect_line_line_v3(kfe->v1->cageco, kfe->v2->cageco, r1, r2, p, p2);
 				if (isect_kind >= 1 && point_is_visible(kcd, p, sint, &mats)) {
 					memset(&hit, 0, sizeof(hit));
+					if (kcd->snap_midpoints) {
+						/* choose intermediate point snap too */
+						mid_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco);
+						mid_v2_v2v2(sint, se1, se2);
+						lambda = 0.5f;
+					}
 					hit.kfe = kfe;
 					copy_v3_v3(hit.hit, p);
 					copy_v3_v3(hit.cagehit, p);
