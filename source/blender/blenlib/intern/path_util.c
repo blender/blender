@@ -701,6 +701,48 @@ void BLI_path_rel(char *file, const char *relfile)
 }
 
 /**
+ * Appends a suffix to the string, fitting it before the extension
+ *
+ * string = Foo.png, suffix = 123, separator = _
+ * Foo.png -> Foo_123.png
+ *
+ * \param string  original (and final) string
+ * \param maxlen  Maximum length of string
+ * \param suffix  String to append to the original string
+ * \param sep Optional separator character
+ * \return  true if succeded
+ */
+bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
+{
+	const size_t string_len = strlen(string);
+	const size_t suffix_len = strlen(suffix);
+	const size_t sep_len = strlen(sep);
+	ssize_t a;
+	char extension[FILE_MAX];
+	bool has_extension = false;
+
+	if (string_len + sep_len + suffix_len >= maxlen)
+		return false;
+
+	for (a = string_len - 1; a >= 0; a--) {
+		if (string[a] == '.') {
+			has_extension = true;
+			break;
+		}
+		else if (ELEM(string[a], '/', '\\')) {
+			break;
+		}
+	}
+
+	if (!has_extension)
+		a = string_len;
+
+	BLI_strncpy(extension, string + a, sizeof(extension));
+	sprintf(string + a, "%s%s%s", sep, suffix, extension);
+	return true;
+}
+
+/**
  * Replaces path with the path of its parent directory, returning true if
  * it was able to find a parent directory within the pathname.
  */

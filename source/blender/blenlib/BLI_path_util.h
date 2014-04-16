@@ -172,6 +172,8 @@ void BLI_cleanup_unc_16(wchar_t *path_16);
 void BLI_cleanup_unc(char *path_16, int maxlen);
 #endif
 
+bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep) ATTR_NONNULL();
+
 /* path string comparisons: case-insensitive for Windows, case-sensitive otherwise */
 #if defined(WIN32)
 #  define BLI_path_cmp BLI_strcasecmp
