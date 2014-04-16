@@ -19,8 +19,7 @@ elif env['OURPLATFORM'] in ('linux', 'freebsd4', 'freebsd5'):
     cflags += ['-O2']
 elif sys.platform=='darwin':
     defs += ' NDEBUG'
-    bt_flags = env['CCFLAGS'] + ['-fPIC', '-msse','-msse2', '-msse3', '-mssse3'] # basic -O0 optimization
-    bt_opt_flags = bt_flags + ['-O3']
+    cflags += ['-O3','-fPIC']
 
 bullet2_src = env.Glob("LinearMath/*.cpp")
 bullet2_src += env.Glob("BulletCollision/BroadphaseCollision/*.cpp")
@@ -38,15 +37,4 @@ bullet2_src += env.Glob("BulletSoftBody/*.cpp")
 
 incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
 
-if sys.platform=='darwin':
-    if env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4':
-        # Due some bugs in bullet, clang 3.4 produces wrong code when optimized > -O0
-        # to avoid too much speed penalty when compiling whole bullet lib non-optimized,
-        # we build seperate non-optimized/optimized parts and just link together finally
-        bullet2_src.remove("BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp")
-        bullet2_fix_src = env.Glob("BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp")
-        env.BlenderLib ( libname = 'extern_fix_bullet2', sources=bullet2_fix_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], cc_compileflags=bt_flags, cxx_compileflags=bt_flags )
-		
-    env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], cc_compileflags=bt_opt_flags, cxx_compileflags=bt_opt_flags )
-else:
-	env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )
