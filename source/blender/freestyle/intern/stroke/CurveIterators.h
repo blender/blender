@@ -43,7 +43,7 @@ namespace CurveInternal {
 class CurvePointIterator : public Interface0DIteratorNested
 { 
 public:
-	friend class Curve;
+	friend class Freestyle::Curve;
 
 public:
 	float _CurvilinearLength;

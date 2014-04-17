@@ -26,6 +26,8 @@
  *  \date 03/09/2002
  */
 
+#include <cstring>
+
 #include "Silhouette.h"
 #include "SilhouetteGeomEngine.h"
 

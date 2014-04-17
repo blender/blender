@@ -26,8 +26,8 @@
  */
 
 #include "Stroke.h"
-#include "StrokeAdvancedIterators.h"
 #include "StrokeIterators.h"
+#include "StrokeAdvancedIterators.h"
 #include "StrokeRenderer.h"
 
 #include "BKE_global.h"

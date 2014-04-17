@@ -25,6 +25,8 @@
  *  \date 09/01/2003
  */
 
+#include <limits.h>
+
 #include "ViewMapIO.h"
 
 #ifdef IRIX

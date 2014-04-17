@@ -25,6 +25,8 @@
  *  \date 30/07/2002
  */
 
+#include <cstdlib>
+
 #include "FastGrid.h"
 
 #include "BKE_global.h"

@@ -26,8 +26,8 @@
  */
 
 #include "Curve.h"
-#include "CurveAdvancedIterators.h"
 #include "CurveIterators.h"
+#include "CurveAdvancedIterators.h"
 
 #include "BKE_global.h"
 #include "BLI_utildefines.h"
