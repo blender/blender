@@ -2656,7 +2656,7 @@ static void view3d_draw_objects(
 
 		/* then draw not selected and the duplis, but skip editmode object */
 		for (base = scene->base.first; base; base = base->next) {
-			lay_used |= base->lay & ((1 << 20) - 1);
+			lay_used |= base->lay;
 
 			if (v3d->lay & base->lay) {
 
@@ -2671,7 +2671,8 @@ static void view3d_draw_objects(
 			}
 		}
 
-		v3d->lay_used = lay_used;
+		/* mask out localview */
+		v3d->lay_used = lay_used & ((1 << 20) - 1);
 
 		/* draw selected and editmode */
 		for (base = scene->base.first; base; base = base->next) {
