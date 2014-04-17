@@ -234,7 +234,7 @@ if env['WITH_BF_LIBMV']:
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
     defs.append('LIBMV_NO_FAST_DETECTOR')
 
-    src = env.Glob("libmv-capi.cc")
+    src = env.Glob("*.cc")
 $src
 
     incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include ../../intern/guardedalloc'

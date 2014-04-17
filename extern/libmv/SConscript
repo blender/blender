@@ -18,10 +18,8 @@ if env['WITH_BF_LIBMV']:
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
     defs.append('LIBMV_NO_FAST_DETECTOR')
 
-    src = env.Glob('libmv-capi.cc')
-    src += env.Glob('libmv-util.cc')
+    src = env.Glob('*.cc')
     src += env.Glob('libmv/image/*.cc')
-    src += env.Glob('simple_pipeline/distortion_models.cc')
     src += env.Glob('libmv/multiview/*.cc')
     src += env.Glob('libmv/numeric/*.cc')
     src += env.Glob('libmv/simple_pipeline/*.cc')
