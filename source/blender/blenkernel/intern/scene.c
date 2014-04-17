@@ -785,8 +785,10 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 				switch (space_link->spacetype) {
 					case SPACE_NODE:
 						scene_unlink_space_node((SpaceNode *)space_link, sce);
+						break;
 					case SPACE_BUTS:
 						scene_unlink_space_buts((SpaceButs *)space_link, sce);
+						break;
 				}
 			}
 		}
