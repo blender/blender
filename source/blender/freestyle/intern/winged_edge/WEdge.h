@@ -29,7 +29,6 @@
  */
 
 #include <iterator>
-#include <math.h>
 #include <vector>
 
 #include "../geometry/Geom.h"
@@ -37,6 +36,8 @@
 #include "../scene_graph/FrsMaterial.h"
 
 #include "../system/FreestyleConfig.h"
+
+#include "BLI_math.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"

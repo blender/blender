@@ -30,8 +30,6 @@
 
 #include <string>
 
-#include "BLI_math.h"
-
 using namespace std;
 
 namespace Freestyle {

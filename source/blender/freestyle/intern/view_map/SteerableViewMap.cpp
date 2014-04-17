@@ -25,7 +25,6 @@
  *  \date 01/07/2003
  */
 
-#include <math.h>
 //soc #include <qimage.h>
 //soc #include <qstring.h>
 #include <sstream>
@@ -39,6 +38,7 @@
 #include "../image/Image.h"
 
 #include "BKE_global.h"
+#include "BLI_math.h"
 
 extern "C" {
 #include "IMB_imbuf.h"

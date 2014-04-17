@@ -45,7 +45,6 @@
 
 #include <assert.h>
 #include <cstdlib> // for malloc and free
-#include <math.h>
 #include <set>
 #include <stack>
 
@@ -54,7 +53,7 @@
 
 #include "../geometry/normal_cycle.h"
 
-#include "../system/FreestyleConfig.h"
+#include "BLI_math.h"
 
 namespace Freestyle {
 

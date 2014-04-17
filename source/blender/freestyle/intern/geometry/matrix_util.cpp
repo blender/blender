@@ -36,9 +36,9 @@
  *  \author Bruno Levy
  */
 
-#include <math.h>
-
 #include "matrix_util.h"
+
+#include "BLI_math.h"
 
 namespace Freestyle {
 

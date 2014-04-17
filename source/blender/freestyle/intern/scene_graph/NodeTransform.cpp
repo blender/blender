@@ -28,7 +28,7 @@
 
 #include "NodeTransform.h"
 
-#include "../system/FreestyleConfig.h"
+#include "BLI_math.h"
 
 namespace Freestyle {
 
