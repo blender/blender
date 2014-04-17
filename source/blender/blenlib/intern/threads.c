@@ -350,8 +350,10 @@ void BLI_end_threads(ListBase *threadbase)
 
 /* System Information */
 
-/* gets the number of openmp threads the system can make use of */
-int BLI_omp_thread_count(void)
+/**
+ * Returns the number of openmp threads the system can make use of
+ */
+int BLI_system_thread_count_omp(void)
 {
 	int t;
 #ifdef _OPENMP

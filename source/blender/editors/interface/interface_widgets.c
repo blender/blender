@@ -2462,7 +2462,7 @@ static void widget_numbut_embossn(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti
 	widget_numbut_draw(wcol, rect, state, roundboxalign, true);
 }
 
-int ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
+bool ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
 {
 	float dist, vec[4][2];
 
@@ -2479,9 +2479,9 @@ int ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
 	vec[2][0] = vec[3][0] - dist;
 	vec[2][1] = vec[3][1];
 	
-	BKE_curve_forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, sizeof(float) * 2);
-	BKE_curve_forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0] + 1, resol, sizeof(float) * 2);
-	
+	BKE_curve_forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], &coord_array[0][0], resol, sizeof(float[2]));
+	BKE_curve_forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], &coord_array[0][1], resol, sizeof(float[2]));
+
 	return 1;
 }
 
@@ -2489,7 +2489,7 @@ int ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
 void ui_draw_link_bezier(const rcti *rect)
 {
 	float coord_array[LINK_RESOL + 1][2];
-	
+
 	if (ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
 		// const float dist = 1.0f / (float)LINK_RESOL; // UNUSED

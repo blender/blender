@@ -594,7 +594,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	int *mat_orig_to_new;
 	int *cur_index_per_mat;
 	int i;
-	int success;
+	bool success;
 	GLboolean uploaded;
 
 	pool = gpu_get_global_buffer_pool();
@@ -1283,13 +1283,13 @@ void GPU_color_switch(int mode)
 
 /* return 1 if drawing should be done using old immediate-mode
  * code, 0 otherwise */
-int GPU_buffer_legacy(DerivedMesh *dm)
+bool GPU_buffer_legacy(DerivedMesh *dm)
 {
 	int test = (U.gameflags & USER_DISABLE_VBO);
 	if (test)
 		return 1;
 
-	if (dm->drawObject == 0)
+	if (dm->drawObject == NULL)
 		dm->drawObject = GPU_drawobject_new(dm);
 	return dm->drawObject->legacy;
 }

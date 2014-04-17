@@ -116,7 +116,7 @@ typedef struct GPUDrawObject {
 
 	/* if there was a failure allocating some buffer, use old
 	 * rendering code */
-	int legacy;
+	bool legacy;
 } GPUDrawObject;
 
 /* used for GLSL materials */
@@ -161,7 +161,7 @@ void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start,
 void GPU_buffer_unbind(void);
 
 /* used to check whether to use the old (without buffers) code */
-int GPU_buffer_legacy(struct DerivedMesh *dm);
+bool GPU_buffer_legacy(struct DerivedMesh *dm);
 
 /* Buffers for non-DerivedMesh drawing */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;

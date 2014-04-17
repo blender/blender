@@ -6248,7 +6248,7 @@ void uiFreeActiveButtons(const bContext *C, bScreen *screen)
 
 /* returns true if highlighted button allows drop of names */
 /* called in region context */
-int UI_but_active_drop_name(bContext *C)
+bool UI_but_active_drop_name(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
 	uiBut *but = ui_but_find_activated(ar);

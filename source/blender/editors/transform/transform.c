@@ -1522,7 +1522,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 	}
 }
 
-int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2])
+bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2])
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
 	bool success;
@@ -2000,7 +2000,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 }
 
 /* note: caller needs to free 't' on a 0 return */
-int initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
+bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
 {
 	int options = 0;
 	PropertyRNA *prop;

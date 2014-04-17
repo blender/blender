@@ -1874,7 +1874,7 @@ int BKE_scene_num_threads(const Scene *scene)
 int BKE_scene_num_omp_threads(const struct Scene *scene)
 {
 	if (scene->omp_threads_mode == SCE_OMP_AUTO)
-		return BLI_omp_thread_count();
+		return BLI_system_thread_count_omp();
 	else
 		return scene->omp_threads;
 }

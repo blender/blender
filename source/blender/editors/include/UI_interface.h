@@ -433,7 +433,7 @@ void    uiButSetDragName(uiBut *but, const char *name);
 void    uiButSetDragValue(uiBut *but);
 void    uiButSetDragImage(uiBut *but, const char *path, int icon, struct ImBuf *ima, float scale);
 
-int     UI_but_active_drop_name(struct bContext *C);
+bool    UI_but_active_drop_name(struct bContext *C);
 
 void    uiButSetFlag(uiBut *but, int flag);
 void    uiButClearFlag(uiBut *but, int flag);

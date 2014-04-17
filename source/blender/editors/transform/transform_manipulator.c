@@ -202,7 +202,7 @@ static int test_rotmode_euler(short rotmode)
 	return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0 : 1;
 }
 
-int gimbal_axis(Object *ob, float gmat[3][3])
+bool gimbal_axis(Object *ob, float gmat[3][3])
 {
 	if (ob) {
 		if (ob->mode & OB_MODE_POSE) {
