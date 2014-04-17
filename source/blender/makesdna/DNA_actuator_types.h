@@ -264,7 +264,7 @@ typedef struct bActuator {
 	 * For ipo's and props: to find out which object the actuator
 	 * belongs to */
 	struct Object *ob;
-	
+
 } bActuator;
 
 /* objectactuator->flag */
@@ -322,6 +322,7 @@ typedef struct bActuator {
 #define ACT_LINKED		8	
 #define ACT_VISIBLE		16	
 #define ACT_PIN			32
+#define ACT_DEACTIVATE  64
 
 /* link codes */
 #define LINK_SENSOR		0

@@ -573,6 +573,11 @@ static void rna_def_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Expanded", "Set actuator expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
+	prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_DEACTIVATE);
+	RNA_def_property_ui_text(prop, "Active", "Set the active state of the actuator");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	RNA_api_actuator(srna);
 }
 

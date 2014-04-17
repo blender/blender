@@ -296,6 +296,11 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SENS_DEACTIVATE);
+	RNA_def_property_ui_text(prop, "Active", "Set active state of the sensor");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set sensor expanded in the user interface");

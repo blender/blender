@@ -945,28 +945,37 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, false);
 	
-	uiItemR(row, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
+	sub = uiLayoutRow(row, false);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
+	uiItemR(sub, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
 	if (RNA_boolean_get(ptr, "show_expanded")) {
-		uiItemR(row, ptr, "type", 0, "", ICON_NONE);
-		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
+		uiItemR(sub, ptr, "type", 0, "", ICON_NONE);
+		uiItemR(sub, ptr, "name", 0, "", ICON_NONE);
 	}
 	else {
-		uiItemL(row, IFACE_(sensor_name(sens->type)), ICON_NONE);
-		uiItemL(row, sens->name, ICON_NONE);
+		uiItemL(sub, IFACE_(sensor_name(sens->type)), ICON_NONE);
+		uiItemL(sub, sens->name, ICON_NONE);
 	}
 
 	sub = uiLayoutRow(row, false);
-	uiLayoutSetActive(sub, ((RNA_boolean_get(logic_ptr, "show_sensors_active_states") &&
-	                         RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
+	uiLayoutSetActive(sub, (((RNA_boolean_get(logic_ptr, "show_sensors_active_states") &&
+	                         RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")) &&
+					         RNA_boolean_get(ptr, "active")));
 	uiItemR(sub, ptr, "pin", UI_ITEM_R_NO_BG, "", ICON_NONE);
 
 	if (RNA_boolean_get(ptr, "show_expanded")==0) {
 		sub = uiLayoutRow(row, true);
+		uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
 		uiItemEnumO(sub, "LOGIC_OT_sensor_move", "", ICON_TRIA_UP, "direction", 1); // up
 		uiItemEnumO(sub, "LOGIC_OT_sensor_move", "", ICON_TRIA_DOWN, "direction", 2); // down
 	}
 
-	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
+	sub = uiLayoutRow(row, false);
+	uiItemR(sub, ptr, "active", 0, "", ICON_NONE);
+
+	sub = uiLayoutRow(row, false);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
+	uiItemO(sub, "", ICON_X, "LOGIC_OT_sensor_remove");
 }
 
 static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
@@ -974,6 +983,7 @@ static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *box, *split, *sub, *row;
 
 	box = uiLayoutBox(layout);
+	uiLayoutSetActive(box, RNA_boolean_get(ptr, "active"));
 	split = uiLayoutSplit(box, 0.45f, false);
 	
 	row = uiLayoutRow(split, true);
@@ -1241,6 +1251,7 @@ static void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 	draw_sensor_internal_header(layout, ptr);
 	
 	box = uiLayoutBox(layout);
+	uiLayoutSetActive(box, RNA_boolean_get(ptr, "active"));
 
 	switch (RNA_enum_get(ptr, "type")) {
 
@@ -1300,27 +1311,38 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, false);
 	
-	uiItemR(row, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
+	sub = uiLayoutRow(row, false);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
+	uiItemR(sub, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
 	if (RNA_boolean_get(ptr, "show_expanded")) {
-		uiItemR(row, ptr, "type", 0, "", ICON_NONE);
-		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
+		uiItemR(sub, ptr, "type", 0, "", ICON_NONE);
+		uiItemR(sub, ptr, "name", 0, "", ICON_NONE);
 		/* XXX provisory for Blender 2.50Beta */
 		uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, state, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, IFACE_("Set controller state index (from 1 to 30)"));
 	}
 	else {
-		uiItemL(row, IFACE_(controller_name(cont->type)), ICON_NONE);
-		uiItemL(row, cont->name, ICON_NONE);
-		uiItemL(row, state, ICON_NONE);
+		uiItemL(sub, IFACE_(controller_name(cont->type)), ICON_NONE);
+		uiItemL(sub, cont->name, ICON_NONE);
+		uiItemL(sub, state, ICON_NONE);
 	}
 
-	uiItemR(row, ptr, "use_priority", 0, "", ICON_NONE);
+	sub = uiLayoutRow(row, false);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
+	uiItemR(sub, ptr, "use_priority", 0, "", ICON_NONE);
 
 	if (RNA_boolean_get(ptr, "show_expanded")==0) {
 		sub = uiLayoutRow(row, true);
+		uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
 		uiItemEnumO(sub, "LOGIC_OT_controller_move", "", ICON_TRIA_UP, "direction", 1); // up
 		uiItemEnumO(sub, "LOGIC_OT_controller_move", "", ICON_TRIA_DOWN, "direction", 2); // down
 	}
-	uiItemO(row, "", ICON_X, "LOGIC_OT_controller_remove");
+
+	sub = uiLayoutRow(row, false);
+	uiItemR(sub, ptr, "active", 0, "", ICON_NONE);
+
+	sub = uiLayoutRow(row, false);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
+	uiItemO(sub, "", ICON_X, "LOGIC_OT_controller_remove");
 }
 
 static void draw_controller_expression(uiLayout *layout, PointerRNA *ptr)
@@ -1357,6 +1379,7 @@ static void draw_brick_controller(uiLayout *layout, PointerRNA *ptr)
 		return;
 	
 	box = uiLayoutBox(layout);
+	uiLayoutSetActive(box, RNA_boolean_get(ptr, "active"));
 
 	draw_controller_state(box, ptr);
 	
@@ -1390,28 +1413,38 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 	
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, false);
-	
-	uiItemR(row, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
+
+	sub = uiLayoutRow(row, false);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
+	uiItemR(sub, ptr, "show_expanded", UI_ITEM_R_NO_BG, "", ICON_NONE);
 	if (RNA_boolean_get(ptr, "show_expanded")) {
-		uiItemR(row, ptr, "type", 0, "", ICON_NONE);
-		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
+		uiItemR(sub, ptr, "type", 0, "", ICON_NONE);
+		uiItemR(sub, ptr, "name", 0, "", ICON_NONE);
 	}
 	else {
-		uiItemL(row, IFACE_(actuator_name(act->type)), ICON_NONE);
-		uiItemL(row, act->name, ICON_NONE);
+		uiItemL(sub, IFACE_(actuator_name(act->type)), ICON_NONE);
+		uiItemL(sub, act->name, ICON_NONE);
 	}
 
 	sub = uiLayoutRow(row, false);
-	uiLayoutSetActive(sub, ((RNA_boolean_get(logic_ptr, "show_actuators_active_states") &&
-	                         RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")));
+	uiLayoutSetActive(sub, (((RNA_boolean_get(logic_ptr, "show_actuators_active_states") &&
+	                          RNA_boolean_get(ptr, "show_expanded")) || RNA_boolean_get(ptr, "pin")) &&
+	                          RNA_boolean_get(ptr, "active")));
 	uiItemR(sub, ptr, "pin", UI_ITEM_R_NO_BG, "", ICON_NONE);
 
 	if (RNA_boolean_get(ptr, "show_expanded")==0) {
 		sub = uiLayoutRow(row, true);
+		uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
 		uiItemEnumO(sub, "LOGIC_OT_actuator_move", "", ICON_TRIA_UP, "direction", 1); // up
 		uiItemEnumO(sub, "LOGIC_OT_actuator_move", "", ICON_TRIA_DOWN, "direction", 2); // down
 	}
-	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
+
+	sub = uiLayoutRow(row, false);
+	uiItemR(sub, ptr, "active", 0, "", ICON_NONE);
+
+	sub = uiLayoutRow(row, false);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "active"));
+	uiItemO(sub, "", ICON_X, "LOGIC_OT_actuator_remove");
 }
 
 static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
@@ -2160,6 +2193,7 @@ static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 		return;
 	
 	box = uiLayoutBox(layout);
+	uiLayoutSetActive(box, RNA_boolean_get(ptr, "active"));
 	
 	switch (RNA_enum_get(ptr, "type")) {
 		case ACT_ACTION:
@@ -2361,8 +2395,12 @@ void logic_buttons(bContext *C, ARegion *ar)
 			
 			/* put inlink button to the left */
 			col = uiLayoutColumn(split, false);
+			uiLayoutSetActive(col, RNA_boolean_get(&ptr, "active"));
 			uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_LEFT);
-			uiDefIconBut(block, INLINK, 0, ICON_INLINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, cont, LINK_CONTROLLER, 0, 0, 0, "");
+			but = uiDefIconBut(block, INLINK, 0, ICON_INLINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, cont, LINK_CONTROLLER, 0, 0, 0, "");
+			if (!RNA_boolean_get(&ptr, "active")) {
+				uiButSetFlag(but, UI_BUT_SCA_LINK_GREY);
+			}
 			
 			//col = uiLayoutColumn(split, true);
 			/* nested split for middle and right columns */
@@ -2378,12 +2416,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 			/* draw the brick contents */
 			draw_brick_controller(col, &ptr);
 			
-			
 			/* put link button to the right */
 			col = uiLayoutColumn(subsplit, false);
+			uiLayoutSetActive(col, RNA_boolean_get(&ptr, "active"));
 			uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_LEFT);
 			but = uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			if (!RNA_boolean_get(&ptr, "active")) {
+				uiButSetFlag(but, UI_BUT_SCA_LINK_GREY);
+			}
+
 			uiSetButLink(but, NULL, (void ***)&(cont->links), &cont->totlinks, LINK_CONTROLLER, LINK_ACTUATOR);
+
 		}
 	}
 	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
@@ -2433,7 +2476,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 				)
 			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
-				
+
 				/* make as visible, for move operator */
 				sens->flag |= SENS_VISIBLE;
 
@@ -2449,9 +2492,14 @@ void logic_buttons(bContext *C, ARegion *ar)
 				
 				/* put link button to the right */
 				col = uiLayoutColumn(split, false);
-				/* use old-school uiButtons for links for now */
+				uiLayoutSetActive(col, RNA_boolean_get(&ptr, "active"));
 				but = uiDefIconBut(block, LINK, 0, ICON_LINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-				uiSetButLink(but, NULL, (void ***)&(sens->links), &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
+				if (!RNA_boolean_get(&ptr, "active")) {
+					uiButSetFlag(but, UI_BUT_SCA_LINK_GREY);
+				}
+
+				/* use old-school uiButtons for links for now */
+				uiSetButLink(but, NULL, (void ***)&sens->links, &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
 			}
 		}
 	}
@@ -2513,7 +2561,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 				
 				/* put inlink button to the left */
 				col = uiLayoutColumn(split, false);
-				uiDefIconBut(block, INLINK, 0, ICON_INLINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, act, LINK_ACTUATOR, 0, 0, 0, "");
+				uiLayoutSetActive(col, RNA_boolean_get(&ptr, "active"));
+				but = uiDefIconBut(block, INLINK, 0, ICON_INLINK, 0, 0, UI_UNIT_X, UI_UNIT_Y, act, LINK_ACTUATOR, 0, 0, 0, "");
+				if (!RNA_boolean_get(&ptr, "active")) {
+					uiButSetFlag(but, UI_BUT_SCA_LINK_GREY);
+				}
 
 				col = uiLayoutColumn(split, true);
 				uiLayoutSetContextPointer(col, "actuator", &ptr);

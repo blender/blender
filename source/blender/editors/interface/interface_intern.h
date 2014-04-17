@@ -147,7 +147,7 @@ enum {
 typedef struct uiLinkLine {  /* only for draw/edit */
 	struct uiLinkLine *next, *prev;
 	struct uiBut *from, *to;
-	short flag, pad;
+	short flag, deactive;
 } uiLinkLine;
 
 typedef struct {

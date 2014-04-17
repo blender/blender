@@ -257,6 +257,7 @@ typedef struct bJoystickSensor {
 #define SENS_NOT		8
 #define SENS_VISIBLE	16
 #define SENS_PIN		32
+#define SENS_DEACTIVATE	64
 
 /* sensor->pulse */
 #define SENS_PULSE_CONT 	0

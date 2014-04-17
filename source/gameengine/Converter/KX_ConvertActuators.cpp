@@ -1106,7 +1106,7 @@ void BL_ConvertActuators(const char* maggiename,
 			; /* generate some error */
 		}
 		
-		if (baseact)
+		if (baseact && !(bact->flag & ACT_DEACTIVATE))
 		{
 			baseact->SetExecutePriority(executePriority++);
 			uniquename += "#ACT#";

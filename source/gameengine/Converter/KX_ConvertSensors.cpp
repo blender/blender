@@ -49,6 +49,7 @@
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_sensor_types.h"
+#include "DNA_controller_types.h"
 #include "DNA_actuator_types.h" /* for SENS_ALL_KEYS ? this define is
                                  * probably misplaced */
 /* end of blender include block */
@@ -575,7 +576,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			}
 		}
 
-		if (gamesensor)
+		if (gamesensor && !(sens->flag & SENS_DEACTIVATE))
 		{
 			gamesensor->SetExecutePriority(executePriority++);
 			STR_String uniquename = sens->name;
@@ -606,16 +607,19 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			{
 				bController* linkedcont = (bController*) sens->links[i];
 				if (linkedcont) {
-					SCA_IController* gamecont = converter->FindGameController(linkedcont);
+					// If the controller is deactived doesn't register it
+					if (!(linkedcont->flag & CONT_DEACTIVATE)) {
+						SCA_IController* gamecont = converter->FindGameController(linkedcont);
 
-					if (gamecont) {
-						logicmgr->RegisterToSensor(gamecont,gamesensor);
-					}
-					else {
-						printf("Warning, sensor \"%s\" could not find its controller "
-						       "(link %d of %d) from object \"%s\"\n"
-						       "\tthere has been an error converting the blender controller for the game engine,"
-						       "logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
+						if (gamecont) {
+							logicmgr->RegisterToSensor(gamecont,gamesensor);
+						}
+						else {
+							printf("Warning, sensor \"%s\" could not find its controller "
+							       "(link %d of %d) from object \"%s\"\n"
+							       "\tthere has been an error converting the blender controller for the game engine,"
+							       "logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
+						}
 					}
 				}
 				else {

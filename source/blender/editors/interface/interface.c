@@ -443,7 +443,7 @@ static int ui_but_float_precision(uiBut *but, double value)
 
 /* link line drawing is not part of buttons or theme.. so we stick with it here */
 
-static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines)
+static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines, int dashInactiveLines)
 {
 	rcti rect;
 
@@ -454,11 +454,13 @@ static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines)
 	rect.xmax = BLI_rctf_cent_x(&line->to->rect);
 	rect.ymax = BLI_rctf_cent_y(&line->to->rect);
 	
-	if (line->flag & UI_SELECT)
+	if (dashInactiveLines)
+		UI_ThemeColor(TH_GRID);
+	else if (line->flag & UI_SELECT)
 		glColor3ub(100, 100, 100);
 	else if (highlightActiveLines && ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE)))
 		UI_ThemeColor(TH_TEXT_HI);
-	else 
+	else
 		glColor3ub(0, 0, 0);
 
 	ui_draw_link_bezier(&rect);
@@ -469,7 +471,8 @@ static void ui_draw_links(uiBlock *block)
 	uiBut *but;
 	uiLinkLine *line;
 
-	/* Draw the inactive lines (lines with neither button being hovered over).
+	/* Draw the grey out lines. Do this first so they appear at the
+	 * bottom of inactive or active lines.
 	 * As we go, remember if we see any active or selected lines. */
 	bool found_selectline = false;
 	bool found_activeline = false;
@@ -477,8 +480,10 @@ static void ui_draw_links(uiBlock *block)
 	for (but = block->buttons.first; but; but = but->next) {
 		if (but->type == LINK && but->link) {
 			for (line = but->link->lines.first; line; line = line->next) {
-				if (!(line->from->flag & UI_ACTIVE) && !(line->to->flag & UI_ACTIVE))
-					ui_draw_linkline(line, 0);
+				if (!(line->from->flag & UI_ACTIVE) && !(line->to->flag & UI_ACTIVE)) {
+					if (line->deactive)
+						ui_draw_linkline(line, 0, true);
+				}
 				else
 					found_activeline = true;
 
@@ -488,14 +493,26 @@ static void ui_draw_links(uiBlock *block)
 		}
 	}
 
+	/* Draw the inactive lines (lines with neither button being hovered over) */
+	for (but = block->buttons.first; but; but = but->next) {
+		if (but->type == LINK && but->link) {
+			for (line = but->link->lines.first; line; line = line->next) {
+				if (!(line->from->flag & UI_ACTIVE) && !(line->to->flag & UI_ACTIVE)) {
+					if (!line->deactive)
+						ui_draw_linkline(line, 0, false);
+				}
+			}
+		}
+	}
+
 	/* Draw any active lines (lines with either button being hovered over).
-	 * Do this last so they appear on top of inactive lines. */
+	 * Do this last so they appear on top of inactive and grey out lines. */
 	if (found_activeline) {
 		for (but = block->buttons.first; but; but = but->next) {
 			if (but->type == LINK && but->link) {
 				for (line = but->link->lines.first; line; line = line->next) {
 					if ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE))
-						ui_draw_linkline(line, !found_selectline);
+						ui_draw_linkline(line, !found_selectline, false);
 				}
 			}
 		}
@@ -1348,7 +1365,7 @@ static uiBut *ui_find_inlink(uiBlock *block, void *poin)
 	return NULL;
 }
 
-static void ui_add_link_line(ListBase *listb, uiBut *but, uiBut *bt)
+static void ui_add_link_line(ListBase *listb, uiBut *but, uiBut *bt, short deactive)
 {
 	uiLinkLine *line;
 	
@@ -1356,6 +1373,7 @@ static void ui_add_link_line(ListBase *listb, uiBut *but, uiBut *bt)
 	BLI_addtail(listb, line);
 	line->from = but;
 	line->to = bt;
+	line->deactive = deactive;
 }
 
 uiBut *uiFindInlink(uiBlock *block, void *poin)
@@ -1382,14 +1400,25 @@ void uiComposeLinks(uiBlock *block)
 					for (a = 0; a < *(link->totlink); a++) {
 						bt = ui_find_inlink(block, (*ppoin)[a]);
 						if (bt) {
-							ui_add_link_line(&link->lines, but, bt);
+							if ((but->flag & UI_BUT_SCA_LINK_GREY) || (bt->flag & UI_BUT_SCA_LINK_GREY)){
+								ui_add_link_line(&link->lines, but, bt, true);
+							}
+							else {
+								ui_add_link_line(&link->lines, but, bt, false);
+							}
+
 						}
 					}
 				}
 				else if (link->poin) {
 					bt = ui_find_inlink(block, *(link->poin) );
 					if (bt) {
-						ui_add_link_line(&link->lines, but, bt);
+						if ((but->flag & UI_BUT_SCA_LINK_GREY) || (bt->flag & UI_BUT_SCA_LINK_GREY)){
+							ui_add_link_line(&link->lines, but, bt, true);
+						}
+						else {
+							ui_add_link_line(&link->lines, but, bt, false);
+						}
 					}
 				}
 			}
