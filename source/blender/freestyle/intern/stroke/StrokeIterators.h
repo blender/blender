@@ -66,9 +66,9 @@ public:
 		_end = vi._end;
 	}
 
-	StrokeVertexIterator(const ::Stroke::vertex_container::iterator& it,
-	                     const ::Stroke::vertex_container::iterator& begin,
-	                     const ::Stroke::vertex_container::iterator& end)
+	StrokeVertexIterator(const Stroke::vertex_container::iterator& it,
+	                     const Stroke::vertex_container::iterator& begin,
+	                     const Stroke::vertex_container::iterator& end)
 	{
 		_it = it;
 		_begin = begin;
@@ -208,15 +208,15 @@ public:
 	// Not exported in Python
 	//
 	//////////////////////////////////////////////////
-	const ::Stroke::vertex_container::iterator& getIt()
+	const Stroke::vertex_container::iterator& getIt()
 	{
 		return _it;
 	}
 
 private:
-	::Stroke::vertex_container::iterator _it;
-	::Stroke::vertex_container::iterator _begin;
-	::Stroke::vertex_container::iterator _end;
+	Stroke::vertex_container::iterator _it;
+	Stroke::vertex_container::iterator _begin;
+	Stroke::vertex_container::iterator _end;
 };
 
 } // end of namespace StrokeInternal

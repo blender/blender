@@ -53,21 +53,21 @@ namespace Freestyle {
 
 namespace ViewVertexInternal {
 
-class edge_const_traits : public Const_traits< ::ViewVertex::directedViewEdge>
+class edge_const_traits : public Const_traits<ViewVertex::directedViewEdge>
 {
 public:
-	typedef vector< ::ViewVertex::directedViewEdge> edges_container;
+	typedef vector<ViewVertex::directedViewEdge> edges_container;
 	typedef edges_container::const_iterator edges_container_iterator;
-	typedef vector< ::ViewVertex::directedViewEdge*> edge_pointers_container;
+	typedef vector<ViewVertex::directedViewEdge*> edge_pointers_container;
 	typedef edge_pointers_container::const_iterator edge_pointers_container_iterator;
 };
 
-class edge_nonconst_traits : public Nonconst_traits< ::ViewVertex::directedViewEdge>
+class edge_nonconst_traits : public Nonconst_traits<ViewVertex::directedViewEdge>
 {
 public:
-	typedef vector< ::ViewVertex::directedViewEdge> edges_container;
+	typedef vector<ViewVertex::directedViewEdge> edges_container;
 	typedef edges_container::iterator edges_container_iterator;
-	typedef vector< ::ViewVertex::directedViewEdge*> edge_pointers_container;
+	typedef vector<ViewVertex::directedViewEdge*> edge_pointers_container;
 	typedef edge_pointers_container::iterator edge_pointers_container_iterator;
 };
 
@@ -377,14 +377,14 @@ public:
 		_first = 0;
 	}
 
-	inline edge_iterator_base(const edge_iterator_base<Nonconst_traits< ::ViewEdge*> >& iBrother) : parent_class()
+	inline edge_iterator_base(const edge_iterator_base<Nonconst_traits<ViewEdge*> >& iBrother) : parent_class()
 	{
 		_ViewEdge = iBrother._ViewEdge;
 		_first = iBrother._first;
 		_orientation = iBrother._orientation;
 	}
 
-	inline edge_iterator_base(const edge_iterator_base<Const_traits< ::ViewEdge*> >& iBrother) : parent_class()
+	inline edge_iterator_base(const edge_iterator_base<Const_traits<ViewEdge*> >& iBrother) : parent_class()
 	{
 		_ViewEdge = iBrother._ViewEdge;
 		_first = iBrother._first;
@@ -521,7 +521,7 @@ public:
 	value_type _FEdgeB; // last fedge of the view edge
 
 public:
-	friend class ::ViewEdge;
+	friend class ViewEdge;
 	friend class fedge_iterator;
 
 	inline fedge_iterator_base() : parent_class() {}

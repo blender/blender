@@ -66,8 +66,8 @@ public:
 	friend class ViewEdge;
 
 	// FIXME
-	typedef ::TVertex::edge_pointers_container edge_pointers_container;
-	typedef ::NonTVertex::edges_container edges_container;
+	typedef TVertex::edge_pointers_container edge_pointers_container;
+	typedef NonTVertex::edges_container edges_container;
 
 protected:
 	Nature::VertexNature _Nature; // the nature of the underlying vertex
@@ -184,7 +184,7 @@ public:
 	/*! Returns a reference to the pointed orientedViewEdge.
 	 *  In the scripting language, you must call "getObject()" instead.
 	 */
-	virtual ::ViewVertex::directedViewEdge& operator*() const
+	virtual ViewVertex::directedViewEdge& operator*() const
 	{
 		if (_Nature & Nature::T_VERTEX)
 			//return _tvertex_iter;
@@ -195,7 +195,7 @@ public:
 	/*! Returns a pointer to the pointed orientedViewEdge.
 	 * Can't be called in the scripting language.
 	 */
-	virtual ::ViewVertex::directedViewEdge *operator->() const
+	virtual ViewVertex::directedViewEdge *operator->() const
 	{
 		return &(operator*());
 	}
@@ -205,11 +205,11 @@ public:
 	virtual inline int increment()
 	{
 		if (_Nature & Nature::T_VERTEX) {
-			::ViewVertex::directedViewEdge tmp = (**_tvertex_iter);
+			ViewVertex::directedViewEdge tmp = (**_tvertex_iter);
 			++_tvertex_iter;
 			if (_tvertex_iter != _tend) {
 				// FIXME : pquoi deja ?
-				::ViewVertex::directedViewEdge tmp2 = (**_tvertex_iter);
+				ViewVertex::directedViewEdge tmp2 = (**_tvertex_iter);
 				if (tmp2.first == tmp.first)
 					++_tvertex_iter;
 			}

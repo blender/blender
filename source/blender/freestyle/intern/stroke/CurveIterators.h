@@ -43,15 +43,15 @@ namespace CurveInternal {
 class CurvePointIterator : public Interface0DIteratorNested
 { 
 public:
-	friend class ::Curve;
+	friend class Curve;
 
 public:
 	float _CurvilinearLength;
 	float _step;
-	::Curve::vertex_container::iterator __A;
-	::Curve::vertex_container::iterator __B;
-	::Curve::vertex_container::iterator _begin;
-	::Curve::vertex_container::iterator _end;
+	Curve::vertex_container::iterator __A;
+	Curve::vertex_container::iterator __B;
+	Curve::vertex_container::iterator _begin;
+	Curve::vertex_container::iterator _end;
 	int _n;
 	int _currentn;
 	float _t;
@@ -104,8 +104,8 @@ public:
 	virtual ~CurvePointIterator() {}
 
 protected:
-	inline CurvePointIterator(::Curve::vertex_container::iterator iA, ::Curve::vertex_container::iterator iB,
-	                          ::Curve::vertex_container::iterator ibegin, ::Curve::vertex_container::iterator iend,
+	inline CurvePointIterator(Curve::vertex_container::iterator iA, Curve::vertex_container::iterator iB,
+	                          Curve::vertex_container::iterator ibegin, Curve::vertex_container::iterator iend,
 	                          int currentn, int n, float iCurveLength, float step, float t = 0.0f,
 	                          float iCurvilinearLength = 0.0f)
 	: Interface0DIteratorNested()
