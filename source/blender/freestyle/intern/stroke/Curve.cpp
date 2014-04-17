@@ -30,6 +30,7 @@
 #include "CurveIterators.h"
 
 #include "BKE_global.h"
+#include "BLI_utildefines.h"
 
 namespace Freestyle {
 
@@ -158,7 +159,7 @@ iA_B_eq_iB_A:
 		}
 		cerr << "Fatal error in CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)" << endl;
 	}
-	assert(__A != 0 && __B != 0);
+	BLI_assert(__A != 0 && __B != 0);
 
 #if 0
 	_Point2d = __A->point2d() + _t2d * (__B->point2d() - __A->point2d());

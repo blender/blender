@@ -28,6 +28,7 @@
 #include "FastGrid.h"
 
 #include "BKE_global.h"
+#include "BLI_utildefines.h"
 
 namespace Freestyle {
 
@@ -63,21 +64,21 @@ Cell *FastGrid::getCell(const Vec3u& p)
 		     << " " << _cells_size << endl;
 	}
 #endif
-	assert(_cells || ("_cells is a null pointer"));
-	assert((_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]) < _cells_size);
-	assert(p[0] < _cells_nb[0]);
-	assert(p[1] < _cells_nb[1]);
-	assert(p[2] < _cells_nb[2]);
+	BLI_assert(_cells || ("_cells is a null pointer"));
+	BLI_assert((_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]) < _cells_size);
+	BLI_assert(p[0] < _cells_nb[0]);
+	BLI_assert(p[1] < _cells_nb[1]);
+	BLI_assert(p[2] < _cells_nb[2]);
 	return _cells[_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]];
 }
 
 void FastGrid::fillCell(const Vec3u& p, Cell& cell)
 {
-	assert(_cells || ("_cells is a null pointer"));
-	assert((_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]) < _cells_size);
-	assert(p[0] < _cells_nb[0]);
-	assert(p[1] < _cells_nb[1]);
-	assert(p[2] < _cells_nb[2]);
+	BLI_assert(_cells || ("_cells is a null pointer"));
+	BLI_assert((_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]) < _cells_size);
+	BLI_assert(p[0] < _cells_nb[0]);
+	BLI_assert(p[1] < _cells_nb[1]);
+	BLI_assert(p[2] < _cells_nb[2]);
 	_cells[_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]] = &cell;
 }
 

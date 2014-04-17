@@ -26,6 +26,7 @@
  */
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "PseudoNoise.h"
 #include "RandGen.h"

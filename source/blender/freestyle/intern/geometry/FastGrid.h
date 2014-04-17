@@ -28,8 +28,6 @@
  *  \date 30/07/2002
  */
 
-#include <cassert>
-
 #include "Grid.h"
 
 namespace Freestyle {

@@ -25,11 +25,12 @@
  *  \date 30/07/2002
  */
 
-#include <cassert>
 #include <stdexcept>
 
 #include "BBox.h"
 #include "Grid.h"
+
+#include "BLI_utildefines.h"
 
 namespace Freestyle {
 
@@ -366,7 +367,7 @@ bool Grid::initInfiniteRay (const Vec3r &orig, const Vec3r& dir, unsigned timest
 		// is the ray intersecting the box?
 		real tmin(-1.0), tmax(-1.0);
 		if (GeomUtils::intersectRayBBox(orig, _ray_dir, boxMin, boxMax, 0, _t_end, tmin, tmax)) {
-			assert(tmin != -1.0);
+			BLI_assert(tmin != -1.0);
 			Vec3r newOrig = orig + tmin * _ray_dir;
 			for (unsigned int i = 0; i < 3; i++) {
 				_current_cell[i] = (unsigned)floor((newOrig[i] - _orig[i]) / _cell_size[i]);
