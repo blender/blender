@@ -26,7 +26,6 @@ from freestyle.predicates import (
     AndUP1D,
     ExternalContourUP1D,
     NotUP1D,
-    Operators,
     QuantitativeInvisibilityUP1D,
     TrueBP1D,
     TrueUP1D,
