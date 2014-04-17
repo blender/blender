@@ -7908,7 +7908,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	
 	if (ob->mode & OB_MODE_EDIT) {
 		edm = editbmesh_get_derived_base(ob, me->edit_btmesh);
-		DM_update_materials(dm, ob);
+		DM_update_materials(edm, ob);
 	}
 	else {
 		dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
