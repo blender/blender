@@ -48,7 +48,7 @@ namespace Functions0D {
  *  This density is evaluated using a pixels square window around the evaluation point and integrating
  *  these values using a gaussian.
  */
-class LIB_STROKE_EXPORT DensityF0D : public UnaryFunction0D<double>
+class DensityF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Builds the functor from the gaussian sigma value.
@@ -78,7 +78,7 @@ private:
 /*! Returns the average depth around a point.
  *  The result is obtained by querying the depth buffer on a window around that point.
  */
-class LIB_STROKE_EXPORT LocalAverageDepthF0D : public UnaryFunction0D<double>
+class LocalAverageDepthF0D : public UnaryFunction0D<double>
 {
 private:
 	GaussianFilter _filter;
@@ -102,7 +102,7 @@ public:
 
 // ReadMapPixel
 /*! Reads a pixel in a map. */
-class LIB_STROKE_EXPORT ReadMapPixelF0D : public UnaryFunction0D<float>
+class ReadMapPixelF0D : public UnaryFunction0D<float>
 {
 private:
 	const char * _mapName;
@@ -134,7 +134,7 @@ public:
 
 // ReadSteerableViewMapPixel
 /*! Reads a pixel in one of the level of one of the steerable viewmaps. */
-class LIB_STROKE_EXPORT ReadSteerableViewMapPixelF0D : public UnaryFunction0D<float>
+class ReadSteerableViewMapPixelF0D : public UnaryFunction0D<float>
 {
 private:
 	unsigned _orientation;
@@ -165,7 +165,7 @@ public:
 
 // ReadCompleteViewMapPixel
 /*! Reads a pixel in one of the level of the complete viewmap. */
-class LIB_STROKE_EXPORT ReadCompleteViewMapPixelF0D : public UnaryFunction0D<float>
+class ReadCompleteViewMapPixelF0D : public UnaryFunction0D<float>
 {
 private:
 	int _level;
@@ -192,7 +192,7 @@ public:
 
 // GetViewMapGradientNormF0D
 /*! Returns the norm of the gradient of the global viewmap density image. */
-class LIB_STROKE_EXPORT GetViewMapGradientNormF0D: public UnaryFunction0D< float>
+class GetViewMapGradientNormF0D: public UnaryFunction0D< float>
 {
 private:
 	int _level;

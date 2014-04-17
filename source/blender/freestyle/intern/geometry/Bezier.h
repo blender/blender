@@ -42,7 +42,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class LIB_GEOMETRY_EXPORT BezierCurveSegment
+class BezierCurveSegment
 {
 private:
 	std::vector<Vec2d> _ControlPolygon;
@@ -70,7 +70,7 @@ public:
 #endif
 };
 
-class LIB_GEOMETRY_EXPORT BezierCurve 
+class BezierCurve
 {
 private:
 	std::vector<Vec2d> _ControlPolygon;

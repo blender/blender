@@ -61,7 +61,7 @@ using namespace Geometry;
 
 class WVertex;
 
-class LIB_WINGED_EDGE_EXPORT CurvatureInfo
+class CurvatureInfo
 {
 public:
 	CurvatureInfo()
@@ -133,21 +133,21 @@ public:
 #endif
 };
 
-bool LIB_WINGED_EDGE_EXPORT gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &n);
+bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &n);
 
-bool LIB_WINGED_EDGE_EXPORT gts_vertex_gaussian_curvature(WVertex *v, real *Kg);
+bool gts_vertex_gaussian_curvature(WVertex *v, real *Kg);
 
-void LIB_WINGED_EDGE_EXPORT gts_vertex_principal_curvatures(real Kh, real Kg, real *K1, real *K2);
+void gts_vertex_principal_curvatures(real Kh, real Kg, real *K1, real *K2);
 
-void LIB_WINGED_EDGE_EXPORT gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, Vec3r &e2);
+void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, Vec3r &e2);
 
 namespace OGF {
 
 class NormalCycle ;
 
-void LIB_WINGED_EDGE_EXPORT compute_curvature_tensor( WVertex *start, double radius, NormalCycle& nc);
+void compute_curvature_tensor( WVertex *start, double radius, NormalCycle& nc);
 
-void LIB_WINGED_EDGE_EXPORT compute_curvature_tensor_one_ring(WVertex *start, NormalCycle& nc);
+void compute_curvature_tensor_one_ring(WVertex *start, NormalCycle& nc);
 
 }  // OGF namespace
 

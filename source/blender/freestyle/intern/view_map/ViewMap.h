@@ -65,7 +65,7 @@ class ViewShape;
 class TVertex;
 
 /*! Class defining the ViewMap.*/
-class LIB_VIEW_MAP_EXPORT ViewMap
+class ViewMap
 {
 public:
 	typedef vector<ViewEdge*> viewedges_container;
@@ -268,7 +268,7 @@ class orientedViewEdgeIterator;
  *  NonTVertex when it corresponds to a vertex of the initial input mesh (it is the case for vertices such as corners
  *  for example). Thus, this class can be specialized into two classes, the TVertex class and the NonTVertex class.
  */
-class LIB_VIEW_MAP_EXPORT ViewVertex : public Interface0D
+class ViewVertex : public Interface0D
 {
 public: // Implementation of Interface0D
 	/*! Returns the string "ViewVertex". */
@@ -386,7 +386,7 @@ public:
  *  Basically the front edge hides part of the back edge.
  *  So, among the back edges, 1 is of invisibility n and the other of visibility n+1
  */
-class LIB_VIEW_MAP_EXPORT TVertex : public ViewVertex
+class TVertex : public ViewVertex
 {
 public:
 	typedef vector<directedViewEdge*> edge_pointers_container;
@@ -660,7 +660,7 @@ public:
  *  Associated to a single SVertex.
  *  Can be associated to 2 or several view edges
  */
-class LIB_VIEW_MAP_EXPORT NonTVertex : public ViewVertex
+class NonTVertex : public ViewVertex
 {
 public:
 	typedef vector<directedViewEdge> edges_container;
@@ -891,7 +891,7 @@ template<class Traits> class vertex_iterator_base;
 /*! Class defining a ViewEdge. A ViewEdge in an edge of the image graph. it connects two ViewVertex.
  *  It is made by connecting a set of FEdges.
  */
-class LIB_VIEW_MAP_EXPORT ViewEdge : public Interface1D
+class ViewEdge : public Interface1D
 {
 public: // Implementation of Interface0D
 	/*! Returns the string "ViewEdge". */
@@ -1392,7 +1392,7 @@ public:
 /**********************************/
 
 /*! Class gathering the elements of the ViewMap (ViewVertex, ViewEdge) that are issued from the same input shape. */
-class LIB_VIEW_MAP_EXPORT ViewShape
+class ViewShape
 {
 private:
 	vector<ViewVertex*> _Vertices;

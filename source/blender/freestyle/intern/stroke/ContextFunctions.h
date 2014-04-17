@@ -45,27 +45,22 @@ namespace ContextFunctions {
 
 // GetTimeStamp
 /*! Returns the system time stamp */
-LIB_STROKE_EXPORT
 unsigned GetTimeStampCF();
 
 // GetCanvasWidth
 /*! Returns the canvas width */
-LIB_STROKE_EXPORT
 unsigned GetCanvasWidthCF();
 
 // GetCanvasHeight
 /*! Returns the canvas height */
-LIB_STROKE_EXPORT 
 unsigned GetCanvasHeightCF();
 
 // GetBorder
 /*! Returns the border */
-LIB_STROKE_EXPORT 
 BBox<Vec2i> GetBorderCF();
 
 // Load map
 /*! Loads an image map for further reading */
-LIB_STROKE_EXPORT 
 void LoadMapCF(const char *iFileName, const char *iMapName, unsigned iNbLevels = 4, float iSigma = 1.0f);
 
 // ReadMapPixel
@@ -80,7 +75,6 @@ void LoadMapCF(const char *iFileName, const char *iMapName, unsigned iNbLevels =
  *  \param y
  *    The y-coordinate of the pixel we wish to read. The origin is in the lower-left corner.
  */
-LIB_STROKE_EXPORT 
 float ReadMapPixelCF(const char *iMapName, int level, unsigned x, unsigned y);
 
 // ReadCompleteViewMapPixel
@@ -93,7 +87,6 @@ float ReadMapPixelCF(const char *iMapName, int level, unsigned x, unsigned y);
  *  \param y
  *    The y-coordinate of the pixel we wish to read. The origin is in the lower-left corner.
  */
-LIB_STROKE_EXPORT 
 float ReadCompleteViewMapPixelCF(int level, unsigned x, unsigned y);
 
 // ReadOrientedViewMapPixel
@@ -108,11 +101,9 @@ float ReadCompleteViewMapPixelCF(int level, unsigned x, unsigned y);
  *  \param y
  *    The y-coordinate of the pixel we wish to read. The origin is in the lower-left corner.
  */
-LIB_STROKE_EXPORT 
 float ReadDirectionalViewMapPixelCF(int iOrientation, int level, unsigned x, unsigned y);
 
 // DEBUG
-LIB_STROKE_EXPORT 
 FEdge *GetSelectedFEdgeCF();
 
 } // end of namespace ContextFunctions

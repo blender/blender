@@ -62,7 +62,7 @@ typedef vector<Polygon3r*> OccludersSet;
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-class LIB_GEOMETRY_EXPORT Cell
+class Cell
 {
 public:
 	Cell(Vec3r& orig) {
@@ -175,7 +175,7 @@ public:
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-class LIB_GEOMETRY_EXPORT Grid
+class Grid
 {
 public:
 	/*! Builds a Grid. Must be followed by a call to configure() */

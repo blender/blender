@@ -55,7 +55,7 @@ namespace Freestyle {
 
 
 /*! Class to load textures */
-class LIB_STROKE_EXPORT TextureManager
+class TextureManager
 {
 public:
 	TextureManager ();
@@ -79,7 +79,7 @@ public:
 		return _defaultTextureId;
 	}
 
-	struct LIB_STROKE_EXPORT Options
+	struct Options
 	{
 		static void setPatternsPath(const string& path);
 		static string getPatternsPath();
@@ -128,7 +128,7 @@ protected:
 /**********************************/
 
 /*! Class to render a stroke. Creates a triangle strip and stores it strip is lazily created at the first rendering */
-class LIB_STROKE_EXPORT StrokeRenderer
+class StrokeRenderer
 {
 public:
 	StrokeRenderer();

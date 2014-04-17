@@ -52,7 +52,7 @@ namespace Freestyle {
 /*                                */
 /**********************************/
 
-class LIB_STROKE_EXPORT TextStrokeRenderer : public StrokeRenderer
+class TextStrokeRenderer : public StrokeRenderer
 {
 public:
 	TextStrokeRenderer(const char *iFileName = NULL);

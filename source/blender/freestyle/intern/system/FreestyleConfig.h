@@ -46,44 +46,6 @@ namespace Config {
 	static const string PATH_SEP(":");
 #endif // WIN32
 
-// DLL import/export macros for Win32
-
-#ifndef LIB_SYSTEM_EXPORT
-#  define LIB_SYSTEM_EXPORT
-#endif // LIB_SYSTEM_EXPORT
-
-#ifndef LIB_IMAGE_EXPORT
-#  define LIB_IMAGE_EXPORT
-#endif // LIB_IMAGE_EXPORT
-
-#ifndef LIB_GEOMETRY_EXPORT
-#  define LIB_GEOMETRY_EXPORT
-#endif // LIB_GEOMETRY_EXPORT
-
-#ifndef LIB_SCENE_GRAPH_EXPORT
-#  define LIB_SCENE_GRAPH_EXPORT
-#endif // LIB_SCENE_GRAPH_EXPORT
-
-#ifndef LIB_WINGED_EDGE_EXPORT
-#  define LIB_WINGED_EDGE_EXPORT
-#endif // LIB_WINGED_EDGE_EXPORT
-
-#ifndef LIB_VIEW_MAP_EXPORT
-#  define LIB_VIEW_MAP_EXPORT
-#endif // LIB_VIEW_MAP_EXPORT
-
-#ifndef LIB_STROKE_EXPORT
-#  define LIB_STROKE_EXPORT
-#endif // LIB_STROKE_EXPORT
-
-#ifndef LIB_RENDERING_EXPORT
-#  define LIB_RENDERING_EXPORT
-#endif // LIB_RENDERING_EXPORT
-
-#ifndef LIB_WRAPPER_EXPORT
-#  define LIB_WRAPPER_EXPORT
-#endif // LIB_WRAPPER_EXPORT
-
 } // end of namespace Config
 
 } /* namespace Freestyle */

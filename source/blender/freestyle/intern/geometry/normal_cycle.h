@@ -70,7 +70,7 @@ template <class T> inline void ogf_swap(T& x, T& y)
 *    D. Cohen-Steiner and J.M. Morvan,
 *    SOCG 2003
 */
-class LIB_GEOMETRY_EXPORT NormalCycle {
+class NormalCycle {
 public:
 	NormalCycle();
 	void begin();

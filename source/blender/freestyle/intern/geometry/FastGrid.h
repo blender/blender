@@ -36,7 +36,7 @@ namespace Freestyle {
  *  We don't use a hashtable here. The grid is explicitly stored for faster computations.
  *  However, this might result in significant increase in memory usage (compared to the regular grid)
  */
-class LIB_GEOMETRY_EXPORT FastGrid : public Grid
+class FastGrid : public Grid
 {
 public:
 	FastGrid() : Grid()

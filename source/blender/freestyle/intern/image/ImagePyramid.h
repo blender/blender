@@ -40,7 +40,7 @@ namespace Freestyle {
 
 class GrayImage;
 
-class LIB_IMAGE_EXPORT ImagePyramid
+class ImagePyramid
 {
 protected:
 	std::vector<GrayImage*> _levels;
@@ -88,7 +88,7 @@ public:
 #endif
 };
 
-class LIB_IMAGE_EXPORT GaussianPyramid : public ImagePyramid
+class GaussianPyramid : public ImagePyramid
 {
 protected:
 	float _sigma;

@@ -74,7 +74,7 @@ typedef struct Point2Struct
 typedef Point2 Vector2;
 
 
-class LIB_GEOMETRY_EXPORT FitCurveWrapper
+class FitCurveWrapper
 {
 private:
 	std::vector<Vector2> _vertices;

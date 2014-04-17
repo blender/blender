@@ -66,7 +66,7 @@ using namespace Geometry;
  *  Thus, a CurvePoint is built by lineraly interpolating two SVertex.
  *  CurvePoint can be used as virtual points while querying 0D information along a curve at a given resolution.
  */
-class LIB_STROKE_EXPORT CurvePoint : public Interface0D
+class CurvePoint : public Interface0D
 {
 public: // Implementation of Interface0D
 	/*! Returns the string "CurvePoint"*/
@@ -365,7 +365,7 @@ class CurvePointIterator;
  *  SVertex is the type of the initial curve vertices.
  *  A Chain is a specialization of a Curve.
  */
-class LIB_STROKE_EXPORT Curve : public Interface1D
+class Curve : public Interface1D
 {
 public:
 	typedef CurvePoint Vertex;

@@ -52,7 +52,7 @@ namespace StrokeShaders {
 /*! [ Thickness Shader ].
  *  Assigns an absolute constant thickness to every vertices of the Stroke.
  */
-class LIB_STROKE_EXPORT ConstantThicknessShader : public StrokeShader
+class ConstantThicknessShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
@@ -85,7 +85,7 @@ private:
  *  is its thickness from the point to the strip border in the direction pointing outside the object the
  *  Stroke delimitates.
  */
-class LIB_STROKE_EXPORT ConstantExternThicknessShader : public StrokeShader
+class ConstantExternThicknessShader : public StrokeShader
 {
 public:
 	ConstantExternThicknessShader(float thickness) : StrokeShader()
@@ -112,7 +112,7 @@ private:
  *  and the last vertex.
  *  The thickness is linearly interpolated from A to B.
  */
-class LIB_STROKE_EXPORT IncreasingThicknessShader : public StrokeShader
+class IncreasingThicknessShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
@@ -147,7 +147,7 @@ private:
  *  Same as previous but here we allow the user to control the ratio thickness/length so that  we don't get
  *  fat short lines
  */
-class LIB_STROKE_EXPORT ConstrainedIncreasingThicknessShader : public StrokeShader
+class ConstrainedIncreasingThicknessShader : public StrokeShader
 {
 private:
 	float _ThicknessMin;
@@ -185,7 +185,7 @@ public:
 /*  [ Thickness Shader ].
  *  Modifys the thickness in a relative way depending on its length.
  */
-class LIB_STROKE_EXPORT LengthDependingThicknessShader : public StrokeShader
+class LengthDependingThicknessShader : public StrokeShader
 {
 private:
 	float _minThickness;
@@ -218,7 +218,7 @@ public:
 *  The new thicknesses are the result of the multiplication
 *  of the pattern and the original thickness
 */
-class LIB_STROKE_EXPORT ThicknessVariationPatternShader : public StrokeShader
+class ThicknessVariationPatternShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
@@ -263,7 +263,7 @@ private:
  *   Adds some noise to the stroke thickness.
  *   \see \htmlonly <a href=noise/noise.html>noise/noise.html</a>\endhtmlonly
  */
-class LIB_STROKE_EXPORT ThicknessNoiseShader : public StrokeShader
+class ThicknessNoiseShader : public StrokeShader
 {
 private:
 	float _amplitude;
@@ -297,7 +297,7 @@ public:
 /*!  [ Color Shader ].
  *   Assigns a constant color to every vertices of the Stroke.
  */
-class LIB_STROKE_EXPORT ConstantColorShader : public StrokeShader
+class ConstantColorShader : public StrokeShader
 {
 public:
 	/*! Builds the shader from a user-specified color.
@@ -335,7 +335,7 @@ private:
  *   The user specifies 2 colors A and B. The stroke color will change linearly from A to B between the
  *   first and the last vertex.
  */
-class LIB_STROKE_EXPORT IncreasingColorShader : public StrokeShader
+class IncreasingColorShader : public StrokeShader
 {
 private:
 	float _colorMin[4];
@@ -388,7 +388,7 @@ public:
  *  Applys a pattern to vary original color.
  *  The new color is the result of the multiplication of the pattern and the original color
  */
-class LIB_STROKE_EXPORT ColorVariationPatternShader : public StrokeShader
+class ColorVariationPatternShader : public StrokeShader
 {
 public:
 	/*! Builds the shader from the pattern texture file name.
@@ -425,7 +425,7 @@ private:
 /* [ Color Shader ].
  *  Assigns a color to the stroke depending on the material of the shape to which ot belongs to. (Disney shader)
  */
-class LIB_STROKE_EXPORT MaterialColorShader : public StrokeShader
+class MaterialColorShader : public StrokeShader
 {
 private:
 	float _coefficient;
@@ -444,7 +444,7 @@ public:
 	virtual int shade(Stroke& stroke) const;
 };
 
-class LIB_STROKE_EXPORT CalligraphicColorShader : public StrokeShader
+class CalligraphicColorShader : public StrokeShader
 {
 private:
 	/* UNUSED */
@@ -469,7 +469,7 @@ public:
 /*! [ Color Shader ].
  *  Shader to add noise to the stroke colors.
  */
-class LIB_STROKE_EXPORT ColorNoiseShader : public StrokeShader
+class ColorNoiseShader : public StrokeShader
 {
 private:
 	float _amplitude;
@@ -516,7 +516,7 @@ public:
 *  Any other value will lead to the following preset:
 *  default) -> /brushes/smoothAlpha.bmp, OPAQUE_MEDIUM.
 */
-class LIB_STROKE_EXPORT TextureAssignerShader : public StrokeShader // FIXME
+class TextureAssignerShader : public StrokeShader // FIXME
 {
 private:
 	int _textureId;
@@ -544,7 +544,7 @@ public:
 *  Assigns a texture and a blending mode to the stroke
 *  in order to simulate its marks system.
 */
-class LIB_STROKE_EXPORT StrokeTextureShader : public StrokeShader
+class StrokeTextureShader : public StrokeShader
 {
 private:
 	string _texturePath;
@@ -601,7 +601,7 @@ public:
 /*! [ Geometry Shader ].
  *  Stretches the stroke at its two extremities and following the respective directions: v(1)v(0) and v(n-1)v(n).
  */
-class LIB_STROKE_EXPORT BackboneStretcherShader : public StrokeShader
+class BackboneStretcherShader : public StrokeShader
 {
 private:
 	float _amount; 
@@ -629,7 +629,7 @@ public:
  *  Resamples the stroke.
  *  @see Stroke::Resample(float).
  */
-class LIB_STROKE_EXPORT SamplingShader: public StrokeShader
+class SamplingShader: public StrokeShader
 {
 private:
 	float _sampling;
@@ -654,7 +654,7 @@ public:
 };
 
 
-class LIB_STROKE_EXPORT ExternalContourStretcherShader : public StrokeShader
+class ExternalContourStretcherShader : public StrokeShader
 {
 private:
 	float _amount;
@@ -674,7 +674,7 @@ public:
 };
 
 // B-Spline stroke shader
-class LIB_STROKE_EXPORT BSplineShader: public StrokeShader
+class BSplineShader: public StrokeShader
 {
 public:
 	BSplineShader() : StrokeShader() {}
@@ -694,7 +694,7 @@ public:
  *  original backbone geometry.
  *  @see \htmlonly <a href=bezier/bezier.html>bezier/bezier.html</a> \endhtmlonly
  */
-class LIB_STROKE_EXPORT BezierCurveShader : public StrokeShader
+class BezierCurveShader : public StrokeShader
 {
 private:
 	float _error;
@@ -723,7 +723,7 @@ public:
  * The displacement value is proportional to the 2d curvature at the considered point (the higher the curvature,
  * the smaller the displacement) and to a value specified by the user.
  */
-class LIB_STROKE_EXPORT InflateShader : public StrokeShader
+class InflateShader : public StrokeShader
 {
 private:
 	float _amount; 
@@ -756,7 +756,7 @@ public:
  *  The basic idea is to start from the minimal stroke approximation consisting in a line joining the first vertex
  *  to the last one and to subdivide using the original stroke vertices until a certain error is reached.
  */
-class LIB_STROKE_EXPORT PolygonalizationShader : public StrokeShader
+class PolygonalizationShader : public StrokeShader
 {
 private:
 	float _error;
@@ -789,7 +789,7 @@ public:
  *  Indeed, the precision of the approximation will depend on the size of the stroke's pieces.
  *  The bigger the pieces, the rougher the approximation.
  */
-class LIB_STROKE_EXPORT GuidingLinesShader : public StrokeShader
+class GuidingLinesShader : public StrokeShader
 {
 private:
 	float _offset;
@@ -817,7 +817,7 @@ public:
 /*! [ Geometry Shader ].
  *  Removes the stroke's extremities.
  */
-class LIB_STROKE_EXPORT TipRemoverShader : public StrokeShader 
+class TipRemoverShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
@@ -844,7 +844,7 @@ protected:
 /*! [ output Shader ].
  *  streams the Stroke
  */
-class LIB_STROKE_EXPORT streamShader : public StrokeShader
+class streamShader : public StrokeShader
 {
 public:
 	/*! Destructor. */
@@ -863,7 +863,7 @@ public:
 /*! [ output Shader ].
  *  streams the Stroke in a file
  */
-class LIB_STROKE_EXPORT fstreamShader : public StrokeShader
+class fstreamShader : public StrokeShader
 {
 protected:
 	mutable ofstream _stream;

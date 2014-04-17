@@ -40,7 +40,7 @@
 
 namespace Freestyle {
 
-class LIB_WINGED_EDGE_EXPORT WFillGrid
+class WFillGrid
 {
 public:
 	inline WFillGrid(Grid *grid = NULL, WingedEdge *winged_edge = NULL)

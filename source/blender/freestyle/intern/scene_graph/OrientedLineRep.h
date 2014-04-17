@@ -34,7 +34,7 @@
 
 namespace Freestyle {
 
-class LIB_SCENE_GRAPH_EXPORT OrientedLineRep : public LineRep
+class OrientedLineRep : public LineRep
 {
 public:
 	OrientedLineRep() : LineRep() {}

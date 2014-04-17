@@ -66,7 +66,7 @@ class IndexedFaceSet;
 class DrawingStyle;
 class FrsMaterial;
 
-class LIB_SCENE_GRAPH_EXPORT SceneVisitor
+class SceneVisitor
 {
 public:
 	SceneVisitor() {}

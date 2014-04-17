@@ -61,7 +61,6 @@ namespace MatrixUtil {
 	 * @param eigen_values  (return) are in decreasing order
 	 *     size = n,   must be allocated by caller
 	 */
-	LIB_GEOMETRY_EXPORT 
 	void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, double *eigen_val);
 
 }  // MatrixUtil namespace

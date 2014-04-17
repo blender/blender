@@ -183,7 +183,7 @@ class ViewVertex;
 class ViewEdge;
 class ViewShape;
 
-class LIB_VIEW_MAP_EXPORT ViewEdgeXBuilder
+class ViewEdgeXBuilder
 {
 protected:
 	int _currentViewId;    // Id for view edges

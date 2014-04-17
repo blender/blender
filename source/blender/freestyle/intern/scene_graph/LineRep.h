@@ -40,7 +40,7 @@ using namespace std;
 namespace Freestyle {
 
 /*! Base class for all lines objects */
-class LIB_SCENE_GRAPH_EXPORT LineRep : public Rep
+class LineRep : public Rep
 {
 public:
 	/*! Line description style */

@@ -40,7 +40,7 @@
 
 namespace Freestyle {
 
-class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
+class WingedEdgeBuilder : public SceneVisitor
 {
 public:
 	inline WingedEdgeBuilder() : SceneVisitor()

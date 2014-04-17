@@ -327,7 +327,7 @@ public:
  */
 class WXFace;
 
-class LIB_WINGED_EDGE_EXPORT WXFaceLayer
+class WXFaceLayer
 {
 public:
 	void *userdata;

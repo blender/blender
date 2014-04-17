@@ -74,7 +74,7 @@ struct LoaderState {
 	float maxBBox[3];
 };
 
-class LIB_SCENE_GRAPH_EXPORT BlenderFileLoader
+class BlenderFileLoader
 {
 public:
 	/*! Builds a MaxFileLoader */

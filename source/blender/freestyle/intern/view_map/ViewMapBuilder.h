@@ -60,7 +60,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class LIB_VIEW_MAP_EXPORT ViewMapBuilder
+class ViewMapBuilder
 {
 private:
 	ViewMap *_ViewMap; // result

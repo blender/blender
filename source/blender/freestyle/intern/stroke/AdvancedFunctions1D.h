@@ -130,7 +130,7 @@ private:
  *  The density is evaluated for a set of points along the Interface1D (using the ReadCompleteViewMapPixelF0D functor)
  *  and then integrated into a single value using a user-defined integration method.
  */
-class LIB_STROKE_EXPORT GetCompleteViewMapDensityF1D : public UnaryFunction1D<double>
+class GetCompleteViewMapDensityF1D : public UnaryFunction1D<double>
 {
 public:
 	/*! Builds the functor.
@@ -172,7 +172,7 @@ private:
  *  The density is evaluated for a set of points along the Interface1D (using the ReadSteerableViewMapPixelF0D functor)
  *  and then integrated into a single value using a user-defined integration method.
  */
-class LIB_STROKE_EXPORT GetDirectionalViewMapDensityF1D : public UnaryFunction1D<double>
+class GetDirectionalViewMapDensityF1D : public UnaryFunction1D<double>
 {
 public:
 	/*! Builds the functor.
@@ -212,7 +212,7 @@ private:
 /*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is evaluated
  *  in the proper steerable ViewMap depending on its oorientation.
  */
-class LIB_STROKE_EXPORT GetSteerableViewMapDensityF1D : public UnaryFunction1D<double>
+class GetSteerableViewMapDensityF1D : public UnaryFunction1D<double>
 {
 private:
 	int _level;
@@ -253,7 +253,7 @@ public:
 /*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is evaluated in
  *  the proper steerable ViewMap depending on its oorientation.
  */
-class LIB_STROKE_EXPORT GetViewMapGradientNormF1D : public UnaryFunction1D<double>
+class GetViewMapGradientNormF1D : public UnaryFunction1D<double>
 {
 private:
 	int _level;

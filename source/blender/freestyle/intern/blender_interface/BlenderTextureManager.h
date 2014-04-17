@@ -32,7 +32,7 @@
 namespace Freestyle {
 
 /*! Class to load textures */
-class LIB_RENDERING_EXPORT BlenderTextureManager : public TextureManager
+class BlenderTextureManager : public TextureManager
 {
 public:
 	BlenderTextureManager();

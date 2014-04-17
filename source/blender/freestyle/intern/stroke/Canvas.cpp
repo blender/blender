@@ -56,10 +56,8 @@ using namespace std;
 
 namespace Freestyle {
 
-LIB_STROKE_EXPORT
 Canvas *Canvas::_pInstance = 0;
 
-LIB_STROKE_EXPORT
 const char *Canvas::_MapsPath = 0;
 
 Canvas::Canvas()

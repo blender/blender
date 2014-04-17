@@ -35,7 +35,7 @@
 
 namespace Freestyle {
 
-class LIB_WINGED_EDGE_EXPORT WSFillGrid
+class WSFillGrid
 {
 public:
 	inline WSFillGrid(Grid *grid = NULL, WingedEdge *winged_edge = NULL)

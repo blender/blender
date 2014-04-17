@@ -46,7 +46,7 @@ namespace Freestyle {
 // Adjacency iterator used in the chaining process
 //
 ///////////////////////////////////////////////////////////
-class LIB_STROKE_EXPORT AdjacencyIterator : public Iterator
+class AdjacencyIterator : public Iterator
 {
 protected:
 	ViewVertexInternal::orientedViewEdgeIterator _internalIterator;
@@ -150,7 +150,7 @@ protected:
  *  If you specify restriction rules (such as "Chain only ViewEdges of the selection"), they will be included
  *  in the adjacency iterator. (i.e, the adjacent iterator will only stop on "valid" edges).
  */
-class LIB_STROKE_EXPORT ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator
+class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator
 {
 protected:
 	bool _restrictToSelection;
@@ -258,7 +258,7 @@ public:
  *  In the case of an iteration over a set of ViewEdge that are both Silhouette and Crease, there will be a precedence
  *  of the silhouette over the crease criterion.
  */
-class LIB_STROKE_EXPORT ChainSilhouetteIterator : public ChainingIterator
+class ChainSilhouetteIterator : public ChainingIterator
 {
 public:
 	/*! Builds a ChainSilhouetteIterator from the first ViewEdge used for iteration and its orientation.
@@ -309,7 +309,7 @@ public:
  *  selection. The first ViewEdge respecting both the unary predicate and the binary predicate is kept as the next one.
  *  If none of the potential next ViewEdge respects these 2 predicates, 0 is returned.
  */
-class LIB_STROKE_EXPORT ChainPredicateIterator : public ChainingIterator
+class ChainPredicateIterator : public ChainingIterator
 {
 protected:
 	BinaryPredicate1D *_binary_predicate; // the caller is responsible for the deletion of this object

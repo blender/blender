@@ -53,7 +53,7 @@ namespace Freestyle {
 /*! Class to define an attribute associated to a Stroke Vertex.
  *  This attribute stores the color, alpha and thickness values for a Stroke Vertex.
  */
-class LIB_STROKE_EXPORT StrokeAttribute
+class StrokeAttribute
 {
 public:
 	/*! default constructor */
@@ -314,7 +314,7 @@ private:
 ////////////////////////////////////////////////////////
 
 /*! Class to define a stroke vertex. */
-class LIB_STROKE_EXPORT StrokeVertex : public CurvePoint
+class StrokeVertex : public CurvePoint
 {
 public: // Implementation of Interface0D
 	/*! Returns the string "StrokeVertex" */
@@ -489,7 +489,7 @@ class StrokeVertexIterator;
  *  This set of vertices defines the stroke's backbone geometry.
  *  Each of these stroke vertices defines the stroke's shape and appearance at this vertex position.
  */
-class LIB_STROKE_EXPORT Stroke : public Interface1D
+class Stroke : public Interface1D
 {
 public: // Implementation of Interface1D
 	/*! Returns the string "Stroke" */

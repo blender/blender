@@ -44,7 +44,7 @@ namespace Freestyle {
 /*                                */
 /**********************************/
 
-class LIB_STROKE_EXPORT PSStrokeRenderer : public StrokeRenderer
+class PSStrokeRenderer : public StrokeRenderer
 {
 public:
 	PSStrokeRenderer(const char *iFileName = NULL);

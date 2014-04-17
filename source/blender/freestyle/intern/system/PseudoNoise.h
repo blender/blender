@@ -37,7 +37,7 @@
 
 namespace Freestyle {
 
-class LIB_SYSTEM_EXPORT PseudoNoise
+class PseudoNoise
 {
 public:
 	PseudoNoise();

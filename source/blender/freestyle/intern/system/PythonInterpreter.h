@@ -55,7 +55,7 @@ extern "C" {
 
 namespace Freestyle {
 
-class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
+class PythonInterpreter : public Interpreter
 {
 public:
 	PythonInterpreter()

@@ -42,7 +42,7 @@ class NodeOrthographicCamera;
 
 class NodePerspectiveCamera;
 
-class LIB_SCENE_GRAPH_EXPORT NodeCamera : public Node
+class NodeCamera : public Node
 {
 public:
 	typedef enum {
@@ -90,7 +90,7 @@ protected:
 
 };
 
-class LIB_SCENE_GRAPH_EXPORT NodeOrthographicCamera : public NodeCamera
+class NodeOrthographicCamera : public NodeCamera
 {
 public:
 	NodeOrthographicCamera();
@@ -157,7 +157,7 @@ private:
 
 };
 
-class LIB_SCENE_GRAPH_EXPORT NodePerspectiveCamera : public NodeCamera
+class NodePerspectiveCamera : public NodeCamera
 {
 public:
 	NodePerspectiveCamera();

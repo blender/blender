@@ -50,7 +50,7 @@ class NodeGroup;
 class SShape;
 class WShape;
 
-class LIB_VIEW_MAP_EXPORT ViewMapTesselator
+class ViewMapTesselator
 {
 public:
 	inline ViewMapTesselator()

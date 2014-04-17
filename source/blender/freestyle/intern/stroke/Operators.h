@@ -53,7 +53,7 @@ namespace Freestyle {
  *  There are 4 classes of operators: Selection, Chaining, Splitting and Creating. All these operators are
  *  user controlled in the scripting language through Functors, Predicates and Shaders that are taken as arguments.
  */
-class LIB_STROKE_EXPORT Operators {
+class Operators {
 
 public:
 	typedef vector<Interface1D*> I1DContainer;

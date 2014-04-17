@@ -45,7 +45,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class LIB_SCENE_GRAPH_EXPORT NodeShape : public Node
+class NodeShape : public Node
 {
 public:
 	inline NodeShape() : Node() {}

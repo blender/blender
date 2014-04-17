@@ -60,7 +60,7 @@ struct GridHasher
 };
 
 /*! Class to define a regular grid used for ray casting computations */
-class LIB_GEOMETRY_EXPORT HashGrid : public Grid
+class HashGrid : public Grid
 {
 public:
 	typedef map<Vec3u, Cell*> GridHashTable;

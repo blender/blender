@@ -36,7 +36,7 @@
 
 namespace Freestyle {
 
-class LIB_SYSTEM_EXPORT Exception
+class Exception
 {
 public:
 	typedef enum {

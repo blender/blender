@@ -64,7 +64,7 @@ class WEdge;
 class WShape;
 class WFace;
 
-class LIB_WINGED_EDGE_EXPORT WVertex
+class WVertex
 {
 protected:
 	int _Id; // an identificator
@@ -166,7 +166,7 @@ public:
 #if defined(__GNUC__) && (__GNUC__ < 3)
 	class incoming_edge_iterator : public input_iterator<WOEdge *, ptrdiff_t>
 #else
-	class LIB_WINGED_EDGE_EXPORT incoming_edge_iterator
+	class incoming_edge_iterator
 	: public iterator<input_iterator_tag, WOEdge *, ptrdiff_t>
 #endif
 	{
@@ -254,7 +254,7 @@ public:
 #if defined(__GNUC__) && (__GNUC__ < 3)
 	class face_iterator : public input_iterator<WFace *, ptrdiff_t>
 #else
-	class LIB_WINGED_EDGE_EXPORT face_iterator : public iterator<input_iterator_tag, WFace *, ptrdiff_t>
+	class face_iterator : public iterator<input_iterator_tag, WFace *, ptrdiff_t>
 #endif
 	{
 	private:
@@ -366,7 +366,7 @@ public:
 class WFace;
 class WEdge;
 
-class LIB_WINGED_EDGE_EXPORT WOEdge
+class WOEdge
 {
 protected:
 #if 0
@@ -549,7 +549,7 @@ public:
  *                                *
  **********************************/
 
-class LIB_WINGED_EDGE_EXPORT WEdge
+class WEdge
 {
 protected:
 	WOEdge *_paOEdge; // first oriented edge
@@ -737,7 +737,7 @@ public:
  **********************************/
 
 
-class LIB_WINGED_EDGE_EXPORT WFace
+class WFace
 {
 protected:
 	vector<WOEdge *> _OEdgeList; // list of oriented edges of bording the face
@@ -1020,7 +1020,7 @@ public:
  **********************************/
 
 
-class LIB_WINGED_EDGE_EXPORT WShape
+class WShape
 {
 protected:
 	vector<WVertex *> _VertexList;

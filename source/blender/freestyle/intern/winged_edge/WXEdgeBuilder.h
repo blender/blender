@@ -35,7 +35,7 @@
 
 namespace Freestyle {
 
-class LIB_WINGED_EDGE_EXPORT WXEdgeBuilder : public WingedEdgeBuilder
+class WXEdgeBuilder : public WingedEdgeBuilder
 {
 public:
 	WXEdgeBuilder() : WingedEdgeBuilder() {}

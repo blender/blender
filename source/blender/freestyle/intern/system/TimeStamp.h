@@ -36,7 +36,7 @@
 
 namespace Freestyle {
 
-class LIB_SYSTEM_EXPORT TimeStamp
+class TimeStamp
 {
 public:
 	static inline TimeStamp *instance()

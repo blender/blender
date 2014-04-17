@@ -50,7 +50,7 @@ namespace Freestyle {
 using namespace Geometry;
 
 /*! This class takes as input a WXEdge structure and fills it */
-class LIB_VIEW_MAP_EXPORT FEdgeXDetector
+class FEdgeXDetector
 {
 public:
 	FEdgeXDetector()

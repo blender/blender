@@ -37,7 +37,7 @@
 
 namespace Freestyle {
 
-class LIB_SYSTEM_EXPORT BaseObject
+class BaseObject
 {
 public:
 	inline BaseObject()

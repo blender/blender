@@ -470,7 +470,6 @@ WShape *WFace::getShape()
  *                                *
  **********************************/
 
-LIB_WINGED_EDGE_EXPORT
 unsigned WShape::_SceneCurrentId = 0;
 
 WShape *WShape::duplicate()

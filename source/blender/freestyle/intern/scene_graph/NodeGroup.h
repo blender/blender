@@ -39,7 +39,7 @@ using namespace std;
 
 namespace Freestyle {
 
-class LIB_SCENE_GRAPH_EXPORT NodeGroup : public Node
+class NodeGroup : public Node
 {
 public:
 	inline NodeGroup(): Node() {}

@@ -35,7 +35,7 @@
 
 namespace Freestyle {
 
-class LIB_SCENE_GRAPH_EXPORT NodeDrawingStyle : public NodeGroup
+class NodeDrawingStyle : public NodeGroup
 {
 public:
 	inline NodeDrawingStyle() : NodeGroup() {}

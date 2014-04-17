@@ -38,7 +38,7 @@ using namespace std;
 
 namespace Freestyle {
 
-class LIB_SYSTEM_EXPORT Interpreter
+class Interpreter
 {
 public:
 	Interpreter()

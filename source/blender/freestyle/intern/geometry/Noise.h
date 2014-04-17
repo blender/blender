@@ -45,7 +45,7 @@ namespace Freestyle {
 using namespace Geometry;
 
 /*! Class to provide Perlin Noise functionalities */
-class LIB_GEOMETRY_EXPORT Noise
+class Noise
 {
 public:
 	/*! Builds a Noise object */

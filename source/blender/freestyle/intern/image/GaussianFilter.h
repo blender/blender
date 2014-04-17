@@ -43,7 +43,7 @@ extern "C" {
 
 namespace Freestyle {
 
-class LIB_IMAGE_EXPORT GaussianFilter
+class GaussianFilter
 {
 protected:
 	/* The mask is a symetrical 2d array (with respect to the middle point).

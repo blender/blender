@@ -29,7 +29,6 @@
 
 namespace Freestyle {
 
-LIB_SYSTEM_EXPORT
 TimeStamp TimeStamp::_instance;
 
 } /* namespace Freestyle */

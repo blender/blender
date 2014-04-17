@@ -41,7 +41,6 @@ namespace Freestyle {
 /*                                */
 /**********************************/
 
-LIB_STROKE_EXPORT
 TextureManager *StrokeRenderer::_textureManager = 0;
 
 StrokeRenderer::StrokeRenderer() {}
@@ -64,13 +63,10 @@ bool StrokeRenderer::loadTextures()
 /**********************************/
 
 
-LIB_STROKE_EXPORT
 TextureManager *TextureManager::_pInstance = 0;
 
-LIB_STROKE_EXPORT
 string TextureManager::_patterns_path;
 
-LIB_STROKE_EXPORT
 string TextureManager::_brushes_path;
 
 TextureManager::TextureManager()

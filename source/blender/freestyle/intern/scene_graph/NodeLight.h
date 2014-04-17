@@ -38,7 +38,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class LIB_SCENE_GRAPH_EXPORT NodeLight : public Node
+class NodeLight : public Node
 {
 public:
 	NodeLight(); 

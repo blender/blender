@@ -38,7 +38,7 @@
 
 namespace Freestyle {
 
-class LIB_SCENE_GRAPH_EXPORT IndexedFaceSet : public Rep
+class IndexedFaceSet : public Rep
 {
 public:
 	/*! Triangles description style:*/

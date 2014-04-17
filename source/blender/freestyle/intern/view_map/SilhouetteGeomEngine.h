@@ -46,7 +46,7 @@ using namespace Geometry;
 class SVertex;
 class FEdge;
 
-class LIB_VIEW_MAP_EXPORT SilhouetteGeomEngine 
+class SilhouetteGeomEngine
 {
 private:
 	// The viewpoint under which the silhouette has to be computed

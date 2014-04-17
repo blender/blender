@@ -36,13 +36,10 @@
 
 namespace Freestyle {
 
-LIB_STROKE_EXPORT
 ostream& operator<<(ostream& out, const StrokeAttribute& iStrokeAttribute);
 
-LIB_STROKE_EXPORT
 ostream& operator<<(ostream& out, const StrokeVertex& iStrokeVertex);
 
-LIB_STROKE_EXPORT
 ostream& operator<<(ostream& out, const Stroke& iStroke);
 
 } /* namespace Freestyle */

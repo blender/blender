@@ -42,10 +42,8 @@ namespace ViewMapIO {
 
 static const unsigned ZERO = UINT_MAX;
 
-LIB_VIEW_MAP_EXPORT
 int load(istream& in, ViewMap *vm, ProgressBar *pb = NULL);
 
-LIB_VIEW_MAP_EXPORT
 int save(ostream& out, ViewMap *vm, ProgressBar *pb = NULL);
 
 namespace Options {
@@ -53,22 +51,16 @@ namespace Options {
 static const unsigned char FLOAT_VECTORS = 1;
 static const unsigned char NO_OCCLUDERS = 2;
 
-LIB_VIEW_MAP_EXPORT
 void setFlags(const unsigned char flags);
 
-LIB_VIEW_MAP_EXPORT
 void addFlags(const unsigned char flags);
 
-LIB_VIEW_MAP_EXPORT
 void rmFlags(const unsigned char flags);
 
-LIB_VIEW_MAP_EXPORT
 unsigned char getFlags();
 
-LIB_VIEW_MAP_EXPORT
 void setModelsPath(const string& path);
 
-LIB_VIEW_MAP_EXPORT
 string getModelsPath();
 
 }; // End of namepace Options

@@ -40,7 +40,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class LIB_GEOMETRY_EXPORT GeomCleaner
+class GeomCleaner
 {
 public:
 	inline GeomCleaner() {}

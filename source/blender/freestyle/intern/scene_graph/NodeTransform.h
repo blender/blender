@@ -39,7 +39,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class LIB_SCENE_GRAPH_EXPORT NodeTransform : public NodeGroup
+class NodeTransform : public NodeGroup
 {
 public:
 	inline NodeTransform() : NodeGroup()

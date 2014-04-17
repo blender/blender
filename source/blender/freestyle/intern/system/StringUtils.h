@@ -51,7 +51,6 @@ namespace Freestyle {
 
 namespace StringUtils {
 
-LIB_SYSTEM_EXPORT
 void getPathName(const string& path, const string& base, vector<string>& pathnames);
 
 // STL related

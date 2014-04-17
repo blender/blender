@@ -32,7 +32,7 @@
 
 namespace Freestyle {
 
-class LIB_SCENE_GRAPH_EXPORT VertexRep : public Rep
+class VertexRep : public Rep
 {
 public:
 	inline VertexRep() : Rep()

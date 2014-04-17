@@ -34,7 +34,7 @@
 namespace Freestyle {
 
 /*! Base class for all lines objects */
-class LIB_SCENE_GRAPH_EXPORT TriangleRep : public Rep
+class TriangleRep : public Rep
 {
 public:
 	/*! Line description style */

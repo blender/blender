@@ -39,7 +39,7 @@ extern "C" {
 
 namespace Freestyle {
 
-class LIB_STROKE_EXPORT BlenderStrokeRenderer : public StrokeRenderer
+class BlenderStrokeRenderer : public StrokeRenderer
 {
 public:
 	BlenderStrokeRenderer(Render *re, int render_count);

@@ -42,7 +42,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-class LIB_SCENE_GRAPH_EXPORT Rep : public BaseObject
+class Rep : public BaseObject
 {
 public:
 	inline Rep() : BaseObject()

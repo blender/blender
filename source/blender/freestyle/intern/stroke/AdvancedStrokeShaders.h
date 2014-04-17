@@ -37,7 +37,7 @@ namespace Freestyle {
  *  i.e. The stroke will be the thickest in a main direction, the thinest in the direction perpendicular to this one,
  *  and an interpolation inbetween.
  */
-class LIB_STROKE_EXPORT CalligraphicShader : public StrokeShader
+class CalligraphicShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
@@ -70,7 +70,7 @@ protected:
  *  Moves the vertices to make the stroke more noisy.
  *  @see \htmlonly <a href=noise/noise.html>noise/noise.html</a> \endhtmlonly
  */
-class LIB_STROKE_EXPORT SpatialNoiseShader : public StrokeShader
+class SpatialNoiseShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
@@ -108,7 +108,7 @@ protected:
  *  to prevent the diffusion accross corners.
  *  @see \htmlonly <a href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
  */
-class LIB_STROKE_EXPORT SmoothingShader : public StrokeShader
+class SmoothingShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
@@ -149,7 +149,7 @@ protected:
 	real _carricatureFactor;
 };
 
-class LIB_STROKE_EXPORT Smoother
+class Smoother
 {
 public:
 	Smoother(Stroke &ioStroke);
@@ -184,7 +184,7 @@ protected:
 	bool _safeTest;
 };
 
-class LIB_STROKE_EXPORT Omitter : public Smoother
+class Omitter : public Smoother
 {
 public:
 	Omitter(Stroke &ioStroke);
@@ -203,7 +203,7 @@ protected:
 };
 
 /*! Omission shader */
-class LIB_STROKE_EXPORT OmissionShader : public StrokeShader
+class OmissionShader : public StrokeShader
 {
 public:
 	OmissionShader(real sizeWindow, real thrVari, real thrFlat, real lFlat);

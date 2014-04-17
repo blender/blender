@@ -40,7 +40,7 @@
 
 namespace Freestyle {
 
-class LIB_SYSTEM_EXPORT RandGen
+class RandGen
 {
 public:
 	static real drand48();
