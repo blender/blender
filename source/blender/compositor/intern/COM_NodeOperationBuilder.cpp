@@ -333,7 +333,8 @@ void NodeOperationBuilder::resolve_proxies()
 		const Link &link = *it;
 		/* don't replace links from proxy to proxy, since we may need them for replacing others! */
 		if (link.from()->getOperation().isProxyOperation() &&
-		    !link.to()->getOperation().isProxyOperation()) {
+		    !link.to()->getOperation().isProxyOperation())
+		{
 			proxy_links.push_back(link);
 		}
 	}
