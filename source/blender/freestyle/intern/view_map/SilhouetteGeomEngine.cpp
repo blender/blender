@@ -27,6 +27,7 @@
  */
 
 #include <cstring>
+#include <cstdio>
 
 #include "Silhouette.h"
 #include "SilhouetteGeomEngine.h"
