@@ -1143,6 +1143,26 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 
 /***************************** Public API *****************************/
 
+static void pbvh_bmesh_node_layers_reset(PBVH *bvh)
+{
+	BMFace *f;
+	BMVert *v;
+	BMIter iter;
+	BMesh *bm = bvh->bm;
+	int cd_vert_node_offset = bvh->cd_vert_node_offset;
+	int cd_face_node_offset = bvh->cd_face_node_offset;
+
+	/* clear the elements of the node information */
+	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+		BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
+	}
+
+	BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
+	}
+}
+
+
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log,
                           const int cd_vert_node_offset, const int cd_face_node_offset)
@@ -1166,6 +1186,8 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log,
 
 	if (smooth_shading)
 		bvh->flags |= PBVH_DYNTOPO_SMOOTH_SHADING;
+
+	pbvh_bmesh_node_layers_reset(bvh);
 
 	/* Start with all faces in the root node */
 	n = bvh->nodes = MEM_callocN(sizeof(PBVHNode), "PBVHNode");

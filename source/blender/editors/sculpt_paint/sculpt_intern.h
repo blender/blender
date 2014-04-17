@@ -48,7 +48,6 @@ struct MultiresModifierData;
 struct Object;
 struct Scene;
 struct Sculpt;
-struct SculptSession;
 struct SculptStroke;
 struct SculptUndoNode;
 
@@ -68,7 +67,6 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
-void sculpt_dyntopo_node_layers_reset(struct SculptSession *ss);
 void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
 void sculpt_update_after_dynamic_topology_toggle(bContext *C);
 void sculpt_dynamic_topology_enable(struct bContext *C);

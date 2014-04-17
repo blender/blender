@@ -301,7 +301,6 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 			MEM_freeN(nodes);
 	}
 	else {
-		sculpt_dyntopo_node_layers_reset(ss);
 		sculpt_pbvh_clear(ob);
 	}
 }
@@ -341,9 +340,6 @@ static void sculpt_undo_bmesh_restore_begin(bContext *C,
 		/* Restore the mesh from the first log entry */
 		BM_log_redo(ss->bm, ss->bm_log);
 
-		/* reset layers for all bmesh data */
-		sculpt_dyntopo_node_layers_reset(ss);
-
 		unode->applied = true;
 	}
 }
@@ -358,9 +354,6 @@ static void sculpt_undo_bmesh_restore_end(bContext *C,
 
 		/* Restore the mesh from the last log entry */
 		BM_log_undo(ss->bm, ss->bm_log);
-
-		/* reset layers for all bmesh data */
-		sculpt_dyntopo_node_layers_reset(ss);
 
 		unode->applied = false;
 	}

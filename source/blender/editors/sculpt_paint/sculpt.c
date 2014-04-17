@@ -4793,25 +4793,6 @@ void sculpt_pbvh_clear(Object *ob)
 	BKE_object_free_derived_caches(ob);
 }
 
-void sculpt_dyntopo_node_layers_reset(SculptSession *ss)
-{
-	BMFace *f;
-	BMVert *v;
-	BMIter iter;
-	BMesh *bm = ss->bm;
-	int cd_vert_node_offset = ss->cd_vert_node_offset;
-	int cd_face_node_offset = ss->cd_face_node_offset;
-
-	/* clear the elements of the node information */
-	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
-		BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
-	}
-
-	BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
-		BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
-	}
-}
-
 void sculpt_dyntopo_node_layers_add(SculptSession *ss)
 {
 	int cd_node_layer_index;
@@ -4874,7 +4855,6 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 	sculpt_dyntopo_node_layers_add(ss);
 	/* make sure the data for existing faces are initialized */
-	sculpt_dyntopo_node_layers_reset(ss);
 	BM_mesh_normals_update(ss->bm);
 
 	/* Enable dynamic topology */
@@ -5013,7 +4993,6 @@ static int sculpt_optimize_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = CTX_data_active_object(C);
 
 	sculpt_pbvh_clear(ob);
-	sculpt_dyntopo_node_layers_reset(ob->sculpt);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
@@ -5072,7 +5051,6 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Redraw */
 	sculpt_pbvh_clear(ob);
-	sculpt_dyntopo_node_layers_reset(ss);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
@@ -5333,7 +5311,6 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* force rebuild of pbvh for better BB placement */
 	sculpt_pbvh_clear(ob);
-	sculpt_dyntopo_node_layers_reset(ss);
 	/* Redraw */
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
