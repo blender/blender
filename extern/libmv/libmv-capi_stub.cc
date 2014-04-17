@@ -225,7 +225,7 @@ void libmv_cameraIntrinsicsSetThreads(struct libmv_CameraIntrinsics * /*libmv_in
 
 void libmv_cameraIntrinsicsExtractOptions(
 	const libmv_CameraIntrinsics */*libmv_intrinsics*/,
-	libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
+	libmv_CameraIntrinsicsOptions *camera_intrinsics_options)
 {
 	memset(camera_intrinsics_options, 0, sizeof(libmv_CameraIntrinsicsOptions));
 	camera_intrinsics_options->focal_length = 1.0;
