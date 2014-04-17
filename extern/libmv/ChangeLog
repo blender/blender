@@ -1,3 +1,13 @@
+commit e1fe41b6604771ba769a9b15eb2f489fbf7af251
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 17 17:52:23 2014 +0600
+
+    Fix offset array not being properly allocated
+    
+    We really do need unit test for buffer (un)distortion,
+    didn't notice this bug for until new Libmv has been
+    integrated into Blender.
+
 commit ee21415a353396df67ef21e82adaffab2a8d2a0a
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 17 16:26:12 2014 +0600
@@ -660,17 +670,3 @@ Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon May 13 04:22:05 2013 +0600
 
     Minor code style cleanup.
-
-commit ad3dbaaef10ea721230694311a359df152c7a44a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sun May 12 22:34:54 2013 +0600
-
-    Cleanup in simple pipeline's bundler
-    
-    - Better match Google's code style conventions.
-    - Move evaluation part into own function, makes
-      bundling itself easier to follow.
-    - Made evaluation an optional parameter.
-    - Removed note about unsupported camera intrinsics
-      refining flags. Technically, all combinations
-      are possible.

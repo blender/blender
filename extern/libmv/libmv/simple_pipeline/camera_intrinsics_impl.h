@@ -105,7 +105,7 @@ void LookupWarpGrid::Update(const CameraIntrinsics &intrinsics,
   }
 
   if (offset_ == NULL) {
-    offset_ = new Offset[width_ * height_];
+    offset_ = new Offset[width * height];
     Compute<WarpFunction>(intrinsics,
                           width,
                           height,
