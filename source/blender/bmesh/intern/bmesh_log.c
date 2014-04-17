@@ -530,6 +530,7 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry)
 		bm_log_id_ghash_retake(log->unused_ids, entry->added_verts);
 		bm_log_id_ghash_retake(log->unused_ids, entry->added_faces);
 		bm_log_id_ghash_retake(log->unused_ids, entry->modified_verts);
+		bm_log_id_ghash_retake(log->unused_ids, entry->modified_faces);
 	}
 
 	return log;
