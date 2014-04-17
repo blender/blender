@@ -6533,6 +6533,8 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		DerivedMesh *dm = ob->derivedFinal;
 		bool has_faces = false;
 
+		if (dm)
+			DM_update_materials(dm, ob);
 #ifdef SEQUENCER_DAG_WORKAROUND
 		ensure_curve_cache(scene, ob);
 #endif
