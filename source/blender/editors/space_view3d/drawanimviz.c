@@ -238,22 +238,25 @@ void draw_motion_path_instance(Scene *scene,
 		for (i = 0, mpv = mpv_start; i < len; i += stepsize, mpv += stepsize) {
 			int frame = sfra + i;
 			char numstr[32];
+			size_t numstr_len;
 			float co[3];
 			
 			/* only draw framenum if several consecutive highlighted points don't occur on same point */
 			if (i == 0) {
-				sprintf(numstr, " %d", frame);
+				numstr_len = sprintf(numstr, " %d", frame);
 				mul_v3_m4v3(co, ob->imat, mpv->co);
-				view3d_cached_text_draw_add(co, numstr, 0, V3D_CACHE_TEXT_WORLDSPACE | V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(co, numstr, numstr_len,
+				                            0, V3D_CACHE_TEXT_WORLDSPACE | V3D_CACHE_TEXT_ASCII, col);
 			}
 			else if ((i >= stepsize) && (i < len - stepsize)) {
 				bMotionPathVert *mpvP = (mpv - stepsize);
 				bMotionPathVert *mpvN = (mpv + stepsize);
 				
 				if ((equals_v3v3(mpv->co, mpvP->co) == 0) || (equals_v3v3(mpv->co, mpvN->co) == 0)) {
-					sprintf(numstr, " %d", frame);
+					numstr_len = sprintf(numstr, " %d", frame);
 					mul_v3_m4v3(co, ob->imat, mpv->co);
-					view3d_cached_text_draw_add(co, numstr, 0, V3D_CACHE_TEXT_WORLDSPACE | V3D_CACHE_TEXT_ASCII, col);
+					view3d_cached_text_draw_add(co, numstr, numstr_len,
+					                            0, V3D_CACHE_TEXT_WORLDSPACE | V3D_CACHE_TEXT_ASCII, col);
 				}
 			}
 		}
@@ -314,10 +317,12 @@ void draw_motion_path_instance(Scene *scene,
 				
 				if (BLI_dlrbTree_search_exact(&keys, compare_ak_cfraPtr, &mframe)) {
 					char numstr[32];
+					size_t numstr_len;
 					
-					sprintf(numstr, " %d", (sfra + i));
+					numstr_len = sprintf(numstr, " %d", (sfra + i));
 					mul_v3_m4v3(co, ob->imat, mpv->co);
-					view3d_cached_text_draw_add(co, numstr, 0, V3D_CACHE_TEXT_WORLDSPACE | V3D_CACHE_TEXT_ASCII, col);
+					view3d_cached_text_draw_add(co, numstr, numstr_len,
+					                            0, V3D_CACHE_TEXT_WORLDSPACE | V3D_CACHE_TEXT_ASCII, col);
 				}
 			}
 		}

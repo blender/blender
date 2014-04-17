@@ -38,9 +38,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_link_utils.h"
+#include "BLI_rect.h"
+#include "BLI_linklist.h"
+#include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_timecode.h"
 
 #include "BKE_context.h"
@@ -2175,56 +2179,76 @@ short UI_view2d_mouse_in_scrollers(const bContext *C, View2D *v2d, int x, int y)
 
 /* ******************* view2d text drawing cache ******************** */
 
-/* assumes caches are used correctly, so for time being no local storage in v2d */
-static ListBase strings = {NULL, NULL};
-
 typedef struct View2DString {
-	struct View2DString *next, *prev;
+	struct View2DString *next;
 	union {
 		unsigned char ub[4];
 		int pack;
 	} col;
-	int mval[2];
 	rcti rect;
+	int mval[2];
 } View2DString;
 
+/* assumes caches are used correctly, so for time being no local storage in v2d */
+static MemArena     *g_v2d_strings_arena = NULL;
+static View2DString *g_v2d_strings = NULL;
 
-void UI_view2d_text_cache_add(View2D *v2d, float x, float y, const char *str, const char col[4])
+void UI_view2d_text_cache_add(View2D *v2d, float x, float y, const char *str, size_t str_len, const char col[4])
 {
 	int mval[2];
 	
+	BLI_assert(str_len == strlen(str));
+
 	UI_view2d_view_to_region(v2d, x, y, mval, mval + 1);
 	
 	if (mval[0] != V2D_IS_CLIPPED && mval[1] != V2D_IS_CLIPPED) {
-		int len = strlen(str) + 1;
-		/* use calloc, rect has to be zeroe'd */
-		View2DString *v2s = MEM_callocN(sizeof(View2DString) + len, "View2DString");
-		char *v2s_str = (char *)(v2s + 1);
-		memcpy(v2s_str, str, len);
+		int alloc_len = str_len + 1;
+		View2DString *v2s;
 
-		BLI_addtail(&strings, v2s);
+		if (g_v2d_strings_arena == NULL) {
+			g_v2d_strings_arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 14), __func__);
+		}
+
+		v2s = BLI_memarena_alloc(g_v2d_strings_arena, sizeof(View2DString) + alloc_len);
+
+		BLI_LINKS_PREPEND(g_v2d_strings, v2s);
+
 		v2s->col.pack = *((int *)col);
+
+		memset(&v2s->rect, 0, sizeof(v2s->rect));
+
 		v2s->mval[0] = mval[0];
 		v2s->mval[1] = mval[1];
+
+		memcpy(v2s + 1, str, alloc_len);
 	}
 }
 
 /* no clip (yet) */
-void UI_view2d_text_cache_rectf(View2D *v2d, const rctf *rect, const char *str, const char col[4])
+void UI_view2d_text_cache_rectf(View2D *v2d, const rctf *rect, const char *str, size_t str_len, const char col[4])
 {
-	int len = strlen(str) + 1;
-	View2DString *v2s = MEM_callocN(sizeof(View2DString) + len, "View2DString");
-	char *v2s_str = (char *)(v2s + 1);
-	memcpy(v2s_str, str, len);
+	int alloc_len = str_len;
+	View2DString *v2s;
+
+	BLI_assert(str_len == strlen(str));
+
+	if (g_v2d_strings_arena == NULL) {
+		g_v2d_strings_arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 14), __func__);
+	}
+
+	v2s = BLI_memarena_alloc(g_v2d_strings_arena, sizeof(View2DString) + alloc_len);
+
+	BLI_LINKS_PREPEND(g_v2d_strings, v2s);
+
+	v2s->col.pack = *((int *)col);
 
 	UI_view2d_to_region_no_clip(v2d, rect->xmin, rect->ymin, &v2s->rect.xmin, &v2s->rect.ymin);
 	UI_view2d_to_region_no_clip(v2d, rect->xmax, rect->ymax, &v2s->rect.xmax, &v2s->rect.ymax);
 
-	v2s->col.pack = *((int *)col);
 	v2s->mval[0] = v2s->rect.xmin;
 	v2s->mval[1] = v2s->rect.ymin;
 
-	BLI_addtail(&strings, v2s);
+	memcpy(v2s + 1, str, alloc_len);
 }
 
 
@@ -2234,7 +2258,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	int col_pack_prev = 0;
 
 	/* investigate using BLF_ascender() */
-	const float default_height = strings.first ? BLF_height_default("28", 3) : 0.0f;
+	const float default_height = g_v2d_strings ? BLF_height_default("28", 3) : 0.0f;
 	
 	// glMatrixMode(GL_PROJECTION);
 	// glPushMatrix();
@@ -2242,7 +2266,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	// glPushMatrix();
 	ED_region_pixelspace(ar);
 
-	for (v2s = strings.first; v2s; v2s = v2s->next) {
+	for (v2s = g_v2d_strings; v2s; v2s = v2s->next) {
 		const char *str = (const char *)(v2s + 1);
 		int xofs = 0, yofs;
 
@@ -2263,14 +2287,17 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 			BLF_disable_default(BLF_CLIPPING);
 		}
 	}
-	
+	g_v2d_strings = NULL;
+
+	if (g_v2d_strings_arena) {
+		BLI_memarena_free(g_v2d_strings_arena);
+		g_v2d_strings_arena = NULL;
+	}
+
 	// glMatrixMode(GL_PROJECTION);
 	// glPopMatrix();
 	// glMatrixMode(GL_MODELVIEW);
 	// glPopMatrix();
-	
-	if (strings.first) 
-		BLI_freelistN(&strings);
 }
 
 

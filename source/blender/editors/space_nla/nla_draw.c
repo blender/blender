@@ -428,16 +428,17 @@ static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, i
 {
 	short notSolo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
 	char str[256];
+	size_t str_len;
 	char col[4];
 	float xofs;
 	rctf rect;
 	
 	/* just print the name and the range */
 	if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
-		BLI_snprintf(str, sizeof(str), "%d) Temp-Meta", index);
+		str_len = BLI_snprintf(str, sizeof(str), "%d) Temp-Meta", index);
 	}
 	else {
-		BLI_strncpy(str, strip->name, sizeof(str));
+		str_len = BLI_strncpy_rlen(str, strip->name, sizeof(str));
 	}
 	
 	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
@@ -470,7 +471,7 @@ static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, i
 	rect.ymax = ymaxc;
 	
 	/* add this string to the cache of texts to draw */
-	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
+	UI_view2d_text_cache_rectf(v2d, &rect, str, str_len, col);
 }
 
 /* add frame extents to cache of text-strings to draw in pixelspace
@@ -480,7 +481,8 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 {
 	const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
 	const char col[4] = {220, 220, 220, 255}; /* light gray */
-	char numstr[32] = "";
+	char numstr[32];
+	size_t numstr_len;
 	
 	
 	/* Always draw times above the strip, whereas sequencer drew below + above.
@@ -490,12 +492,12 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 	 *	  while also preserving some accuracy, since we do use floats
 	 */
 	/* start frame */
-	BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->start);
-	UI_view2d_text_cache_add(v2d, strip->start - 1.0f, ymaxc + ytol, numstr, col);
+	numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->start);
+	UI_view2d_text_cache_add(v2d, strip->start - 1.0f, ymaxc + ytol, numstr, numstr_len, col);
 	
 	/* end frame */
-	BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->end);
-	UI_view2d_text_cache_add(v2d, strip->end, ymaxc + ytol, numstr, col);
+	numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->end);
+	UI_view2d_text_cache_add(v2d, strip->end, ymaxc + ytol, numstr, numstr_len, col);
 }
 
 /* ---------------------- */

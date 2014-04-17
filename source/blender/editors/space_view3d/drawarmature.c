@@ -2065,7 +2065,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 						/*  Draw names of bone  */
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, pchan->pose_head, pchan->pose_tail);
-							view3d_cached_text_draw_add(vec, pchan->name, 10, 0, col);
+							view3d_cached_text_draw_add(vec, pchan->name, strlen(pchan->name), 10, 0, col);
 						}
 						
 						/*	Draw additional axes on the bone tail  */
@@ -2270,7 +2270,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, eBone->head, eBone->tail);
 							glRasterPos3fv(vec);
-							view3d_cached_text_draw_add(vec, eBone->name, 10, 0, col);
+							view3d_cached_text_draw_add(vec, eBone->name, strlen(eBone->name), 10, 0, col);
 						}
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
