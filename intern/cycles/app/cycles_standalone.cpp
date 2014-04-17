@@ -371,14 +371,12 @@ static void options_parse(int argc, const char **argv)
 	else if(ssname == "svm")
 		options.scene_params.shadingsystem = SceneParams::SVM;
 
-#ifdef WITH_CYCLES_STANDALONE_GUI
-	/* Progressive rendering for GUI */
-	if(!options.session_params.background)
-		options.session_params.progressive = true;
-#else
-	/* When building without GUI, set background */
+#ifndef WITH_CYCLES_STANDALONE_GUI
 	options.session_params.background = true;
 #endif
+
+	/* Use progressive rendering */
+	options.session_params.progressive = true;
 
 	/* find matching device */
 	DeviceType device_type = Device::type_from_string(devicename.c_str());
