@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject Curvature2DAngleF0D_Type;
 
 #define BPy_Curvature2DAngleF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Curvature2DAngleF0D_Type))

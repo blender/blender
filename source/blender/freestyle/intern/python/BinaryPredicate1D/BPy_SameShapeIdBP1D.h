@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject SameShapeIdBP1D_Type;
 
 #define BPy_SameShapeIdBP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SameShapeIdBP1D_Type))

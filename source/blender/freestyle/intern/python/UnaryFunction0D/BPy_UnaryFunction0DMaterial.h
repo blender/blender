@@ -35,8 +35,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction0DMaterial_Type;
 
 #define BPy_UnaryFunction0DMaterial_Check(v) \

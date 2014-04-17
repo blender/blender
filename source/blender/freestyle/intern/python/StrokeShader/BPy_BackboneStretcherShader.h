@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject BackboneStretcherShader_Type;
 
 #define BPy_BackboneStretcherShader_Check(v) \

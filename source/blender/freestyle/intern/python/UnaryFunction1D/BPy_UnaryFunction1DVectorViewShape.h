@@ -36,8 +36,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction1DVectorViewShape_Type;
 
 #define BPy_UnaryFunction1DVectorViewShape_Check(v) \

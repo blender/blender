@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_NATURE_H__
 #define __FREESTYLE_PYTHON_NATURE_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../winged_edge/Nature.h"
 

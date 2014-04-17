@@ -25,18 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_CHAININGITERATOR_H__
 #define __FREESTYLE_PYTHON_CHAININGITERATOR_H__
 
+#include "BPy_ViewEdgeIterator.h"
 
 #include "../../stroke/ChainingIterators.h"
-
-#include "BPy_ViewEdgeIterator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject ChainingIterator_Type;
 

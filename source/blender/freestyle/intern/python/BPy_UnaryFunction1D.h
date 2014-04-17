@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_UNARYFUNCTION1D_H__
 #define __FREESTYLE_PYTHON_UNARYFUNCTION1D_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../view_map/Functions1D.h"
 

@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H__
 #define __FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #ifdef __cplusplus
 extern "C" {

@@ -26,6 +26,7 @@
 #define __FREESTYLE_PYTHON_CHAIN_H__
 
 #include "../BPy_FrsCurve.h"
+
 #include "../../../stroke/Chain.h"
 
 #ifdef __cplusplus
@@ -33,8 +34,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Chain_Type;
 

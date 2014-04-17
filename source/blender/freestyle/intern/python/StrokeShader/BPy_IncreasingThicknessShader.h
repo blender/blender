@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject IncreasingThicknessShader_Type;
 
 #define BPy_IncreasingThicknessShader_Check(v) \

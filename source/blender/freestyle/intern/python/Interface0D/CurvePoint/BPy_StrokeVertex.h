@@ -26,6 +26,7 @@
 #define __FREESTYLE_PYTHON_STROKEVERTEX_H__
 
 #include "../BPy_CurvePoint.h"
+
 #include "../../../stroke/Stroke.h"
 
 #ifdef __cplusplus
@@ -33,8 +34,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject StrokeVertex_Type;
 

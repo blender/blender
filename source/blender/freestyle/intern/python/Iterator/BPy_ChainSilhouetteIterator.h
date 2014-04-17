@@ -25,18 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H__
 #define __FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H__
 
+#include "BPy_ChainingIterator.h"
 
 #include "../../stroke/ChainingIterators.h"
-
-#include "BPy_ChainingIterator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject ChainSilhouetteIterator_Type;
 

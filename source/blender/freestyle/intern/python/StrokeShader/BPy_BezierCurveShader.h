@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject BezierCurveShader_Type;
 
 #define BPy_BezierCurveShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&BezierCurveShader_Type))

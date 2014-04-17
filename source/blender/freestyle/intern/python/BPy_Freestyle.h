@@ -25,11 +25,11 @@
 #ifndef __FREESTYLE_PYTHON_FREESTYLE_H__
 #define __FREESTYLE_PYTHON_FREESTYLE_H__
 
-#include <Python.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <Python.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

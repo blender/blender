@@ -25,18 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__
 #define __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__
 
+#include "../BPy_Iterator.h"
 
 #include "../../view_map/ViewMapIterators.h"
-
-#include "../BPy_Iterator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject ViewEdgeIterator_Type;
 

@@ -25,17 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_CURVEPOINTITERATOR_H__
 #define __FREESTYLE_PYTHON_CURVEPOINTITERATOR_H__
 
-#include "../../stroke/CurveIterators.h"
-
 #include "../BPy_Iterator.h"
+
+#include "../../stroke/CurveIterators.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject CurvePointIterator_Type;
 

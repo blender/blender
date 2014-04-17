@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetSteerableViewMapDensityF1D_Type;
 
 #define BPy_GetSteerableViewMapDensityF1D_Check(v) \

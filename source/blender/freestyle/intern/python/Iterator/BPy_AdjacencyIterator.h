@@ -25,17 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_ADJACENCYITERATOR_H__
 #define __FREESTYLE_PYTHON_ADJACENCYITERATOR_H__
 
-#include "../../stroke/ChainingIterators.h"
 #include "../BPy_Iterator.h"
 
+#include "../../stroke/ChainingIterators.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject AdjacencyIterator_Type;
 

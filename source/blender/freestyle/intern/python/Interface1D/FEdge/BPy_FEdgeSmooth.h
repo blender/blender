@@ -26,6 +26,7 @@
 #define __FREESTYLE_PYTHON_FEDGESMOOTH_H__
 
 #include "../BPy_FEdge.h"
+
 #include "../../../view_map/Silhouette.h"
 
 #ifdef __cplusplus
@@ -33,8 +34,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject FEdgeSmooth_Type;
 

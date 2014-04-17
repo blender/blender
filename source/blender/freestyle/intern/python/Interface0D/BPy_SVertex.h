@@ -25,17 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_SVERTEX_H__
 #define __FREESTYLE_PYTHON_SVERTEX_H__
 
-#include "../../view_map/Silhouette.h"
 #include "../BPy_Interface0D.h"
 
+#include "../../view_map/Silhouette.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject SVertex_Type;
 

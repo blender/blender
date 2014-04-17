@@ -25,17 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_INTERFACE0DITERATOR_H__
 #define __FREESTYLE_PYTHON_INTERFACE0DITERATOR_H__
 
-#include "../../view_map/Interface0D.h"
 #include "../BPy_Iterator.h"
 
+#include "../../view_map/Interface0D.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Interface0DIterator_Type;
 

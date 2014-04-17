@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject IncrementChainingTimeStampF1D_Type;
 
 #define BPy_IncrementChainingTimeStampF1D_Check(v) \

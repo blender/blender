@@ -25,17 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_STROKEVERTEXITERATOR_H__
 #define __FREESTYLE_PYTHON_STROKEVERTEXITERATOR_H__
 
-#include "../../stroke/StrokeIterators.h"
-
 #include "../BPy_Iterator.h"
+
+#include "../../stroke/StrokeIterators.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject StrokeVertexIterator_Type;
 

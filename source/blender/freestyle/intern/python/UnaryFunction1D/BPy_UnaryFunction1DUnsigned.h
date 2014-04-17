@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction1DUnsigned_Type;
 
 #define BPy_UnaryFunction1DUnsigned_Check(v) \

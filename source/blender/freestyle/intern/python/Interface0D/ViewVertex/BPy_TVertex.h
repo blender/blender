@@ -26,6 +26,7 @@
 #define __FREESTYLE_PYTHON_TVERTEX_H__
 
 #include "../BPy_ViewVertex.h"
+
 #include "../../../view_map/ViewMap.h"
 
 #ifdef __cplusplus
@@ -33,8 +34,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject TVertex_Type;
 

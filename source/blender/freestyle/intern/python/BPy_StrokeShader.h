@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_STROKESHADER_H__
 #define __FREESTYLE_PYTHON_STROKESHADER_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../system/FreestyleConfig.h"
 

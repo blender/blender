@@ -26,6 +26,7 @@
 #define __FREESTYLE_PYTHON_CURVEPOINT_H__
 
 #include "../BPy_Interface0D.h"
+
 #include "../../stroke/Curve.h"
 
 #ifdef __cplusplus
@@ -33,8 +34,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject CurvePoint_Type;
 

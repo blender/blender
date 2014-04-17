@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject TextureAssignerShader_Type;
 
 #define BPy_TextureAssignerShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TextureAssignerShader_Type))

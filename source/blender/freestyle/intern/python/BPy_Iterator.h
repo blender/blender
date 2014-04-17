@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_ITERATOR_H__
 #define __FREESTYLE_PYTHON_ITERATOR_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../system/Iterator.h"
 

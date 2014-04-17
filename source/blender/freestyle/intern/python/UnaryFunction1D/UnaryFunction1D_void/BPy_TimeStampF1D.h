@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject TimeStampF1D_Type;
 
 #define BPy_TimeStampF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TimeStampF1D_Type))

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject Orientation2DF1D_Type;
 
 #define BPy_Orientation2DF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Orientation2DF1D_Type))

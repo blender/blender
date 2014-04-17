@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetViewMapGradientNormF1D_Type;
 
 #define BPy_GetViewMapGradientNormF1D_Check(v) \

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject CurveNatureF1D_Type;
 
 #define BPy_CurveNatureF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurveNatureF1D_Type))

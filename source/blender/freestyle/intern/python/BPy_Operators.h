@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_OPERATORS_H__
 #define __FREESTYLE_PYTHON_OPERATORS_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../stroke/Operators.h"
 

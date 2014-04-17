@@ -29,7 +29,10 @@
  */
 
 #include <iostream>
+
+extern "C" {
 #include <Python.h>
+}
 
 #include "StringUtils.h"
 #include "Interpreter.h"

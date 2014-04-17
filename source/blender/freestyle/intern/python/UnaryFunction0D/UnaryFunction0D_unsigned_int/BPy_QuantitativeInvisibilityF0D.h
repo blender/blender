@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject QuantitativeInvisibilityF0D_Type;
 
 #define BPy_QuantitativeInvisibilityF0D_Check(v) \

@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__
 #define __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../stroke/Stroke.h"
 

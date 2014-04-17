@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction1DDouble_Type;
 
 #define BPy_UnaryFunction1DDouble_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DDouble_Type))

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetCompleteViewMapDensityF1D_Type;
 
 #define BPy_GetCompleteViewMapDensityF1D_Check(v) \

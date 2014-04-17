@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject Orientation3DF1D_Type;
 
 #define BPy_Orientation3DF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Orientation3DF1D_Type))

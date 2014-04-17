@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject TrueUP1D_Type;
 
 #define BPy_TrueUP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TrueUP1D_Type))

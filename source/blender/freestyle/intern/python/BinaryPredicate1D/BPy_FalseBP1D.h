@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject FalseBP1D_Type;
 
 #define BPy_FalseBP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FalseBP1D_Type))

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ColorVariationPatternShader_Type;
 
 #define BPy_ColorVariationPatternShader_Check(v) \

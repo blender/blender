@@ -36,8 +36,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction0DVec2f_Type;
 
 #define BPy_UnaryFunction0DVec2f_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DVec2f_Type))

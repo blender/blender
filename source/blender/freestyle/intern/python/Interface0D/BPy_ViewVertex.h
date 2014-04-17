@@ -25,16 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_VIEWVERTEX_H__
 #define __FREESTYLE_PYTHON_VIEWVERTEX_H__
 
-#include "../../view_map/ViewMap.h"
 #include "../BPy_Interface0D.h"
+
+#include "../../view_map/ViewMap.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject ViewVertex_Type;
 

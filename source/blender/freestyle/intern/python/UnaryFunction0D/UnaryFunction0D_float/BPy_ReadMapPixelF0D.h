@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ReadMapPixelF0D_Type;
 
 #define BPy_ReadMapPixelF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ReadMapPixelF0D_Type))

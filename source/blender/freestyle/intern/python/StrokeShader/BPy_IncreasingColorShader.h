@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject IncreasingColorShader_Type;
 
 #define BPy_IncreasingColorShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&IncreasingColorShader_Type))

@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_FRSMATERIAL_H__
 #define __FREESTYLE_PYTHON_FRSMATERIAL_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../scene_graph/FrsMaterial.h"
 

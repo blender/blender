@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction0DFloat_Type;
 
 #define BPy_UnaryFunction0DFloat_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DFloat_Type))

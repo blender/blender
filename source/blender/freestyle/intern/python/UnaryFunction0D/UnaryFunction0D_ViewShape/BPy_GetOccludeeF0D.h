@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetOccludeeF0D_Type;
 
 #define BPy_GetOccludeeF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetOccludeeF0D_Type))

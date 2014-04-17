@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GuidingLinesShader_Type;
 
 #define BPy_GuidingLinesShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GuidingLinesShader_Type))

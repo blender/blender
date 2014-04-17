@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_BINARYPREDICATE1D_H__
 #define __FREESTYLE_PYTHON_BINARYPREDICATE1D_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../stroke/Predicates1D.h"
 

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetCurvilinearAbscissaF0D_Type;
 
 #define BPy_GetCurvilinearAbscissaF0D_Check(v) \

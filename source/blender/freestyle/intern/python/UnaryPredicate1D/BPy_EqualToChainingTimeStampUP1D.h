@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject EqualToChainingTimeStampUP1D_Type;
 
 #define BPy_EqualToChainingTimeStampUP1D_Check(v) \

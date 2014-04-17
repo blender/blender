@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject TipRemoverShader_Type;
 
 #define BPy_TipRemoverShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TipRemoverShader_Type))

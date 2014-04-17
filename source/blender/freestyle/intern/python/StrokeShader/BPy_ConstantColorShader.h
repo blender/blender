@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ConstantColorShader_Type;
 
 #define BPy_ConstantColorShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstantColorShader_Type))

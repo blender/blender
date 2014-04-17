@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_BBOX_H__
 #define __FREESTYLE_PYTHON_BBOX_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../geometry/BBox.h"
 #include "../geometry/Geom.h"

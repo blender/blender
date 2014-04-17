@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ReadSteerableViewMapPixelF0D_Type;
 
 #define BPy_ReadSteerableViewMapPixelF0D_Check(v) \

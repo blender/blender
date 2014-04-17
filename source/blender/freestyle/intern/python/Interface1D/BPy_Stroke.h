@@ -26,6 +26,7 @@
 #define __FREESTYLE_PYTHON_STROKE_H__
 
 #include "../BPy_Interface1D.h"
+
 #include "../../stroke/Stroke.h"
 
 #ifdef __cplusplus
@@ -33,8 +34,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Stroke_Type;
 

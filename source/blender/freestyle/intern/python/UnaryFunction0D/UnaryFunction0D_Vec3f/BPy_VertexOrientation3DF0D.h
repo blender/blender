@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject VertexOrientation3DF0D_Type;
 
 #define BPy_VertexOrientation3DF0D_Check(v) \

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject StrokeTextureShader_Type;
 
 #define BPy_StrokeTextureShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&StrokeTextureShader_Type))

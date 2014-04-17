@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_SSHAPE_H__
 #define __FREESTYLE_PYTHON_SSHAPE_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../view_map/Silhouette.h"
 

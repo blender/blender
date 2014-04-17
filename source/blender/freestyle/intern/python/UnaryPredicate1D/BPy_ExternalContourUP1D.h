@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ExternalContourUP1D_Type;
 
 #define BPy_ExternalContourUP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ExternalContourUP1D_Type))

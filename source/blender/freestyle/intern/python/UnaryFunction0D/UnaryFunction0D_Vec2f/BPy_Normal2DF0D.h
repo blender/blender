@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject Normal2DF0D_Type;
 
 #define BPy_Normal2DF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Normal2DF0D_Type))

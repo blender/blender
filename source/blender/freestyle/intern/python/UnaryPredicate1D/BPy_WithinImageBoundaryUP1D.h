@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject WithinImageBoundaryUP1D_Type;
 
 #define BPy_WithinImageBoundaryUP1D_Check(v) \

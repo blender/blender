@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject PolygonalizationShader_Type;
 
 #define BPy_PolygonalizationShader_Check(v) \

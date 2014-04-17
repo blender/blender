@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject SamplingShader_Type;
 
 #define BPy_SamplingShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SamplingShader_Type))

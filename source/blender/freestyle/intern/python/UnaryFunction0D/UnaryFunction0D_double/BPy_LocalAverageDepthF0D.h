@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject LocalAverageDepthF0D_Type;
 
 #define BPy_LocalAverageDepthF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&LocalAverageDepthF0D_Type))

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ColorNoiseShader_Type;
 
 #define BPy_ColorNoiseShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ColorNoiseShader_Type))

@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__
 #define __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../view_map/Interface1D.h"
 

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject SpatialNoiseShader_Type;
 
 #define BPy_SpatialNoiseShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SpatialNoiseShader_Type))

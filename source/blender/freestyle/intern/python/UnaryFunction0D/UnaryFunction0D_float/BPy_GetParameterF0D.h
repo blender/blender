@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetParameterF0D_Type;
 
 #define BPy_GetParameterF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetParameterF0D_Type))

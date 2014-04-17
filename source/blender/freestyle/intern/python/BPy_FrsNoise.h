@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_FRSNOISE_H__
 #define __FREESTYLE_PYTHON_FRSNOISE_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../geometry/Noise.h"
 

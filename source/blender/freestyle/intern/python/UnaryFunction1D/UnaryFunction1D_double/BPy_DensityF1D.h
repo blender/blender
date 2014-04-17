@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject DensityF1D_Type;
 
 #define BPy_DensityF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&DensityF1D_Type))

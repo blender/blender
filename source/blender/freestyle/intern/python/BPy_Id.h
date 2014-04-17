@@ -25,7 +25,10 @@
 #ifndef __FREESTYLE_PYTHON_ID_H__
 #define __FREESTYLE_PYTHON_ID_H__
 
+extern "C" {
 #include <Python.h>
+}
+
 #include <iostream>
 
 using namespace std;

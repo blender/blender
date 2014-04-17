@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetYF1D_Type;
 
 #define BPy_GetYF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetYF1D_Type))

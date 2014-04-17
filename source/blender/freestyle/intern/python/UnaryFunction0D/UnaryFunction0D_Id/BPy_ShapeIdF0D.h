@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ShapeIdF0D_Type;
 
 #define BPy_ShapeIdF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ShapeIdF0D_Type))

@@ -25,7 +25,9 @@
 #ifndef __FREESTYLE_PYTHON_VIEWMAP_H__
 #define __FREESTYLE_PYTHON_VIEWMAP_H__
 
+extern "C" {
 #include <Python.h>
+}
 
 #include "../view_map/ViewMap.h"
 

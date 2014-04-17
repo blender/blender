@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ZDiscontinuityF1D_Type;
 
 #define BPy_ZDiscontinuityF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ZDiscontinuityF1D_Type))

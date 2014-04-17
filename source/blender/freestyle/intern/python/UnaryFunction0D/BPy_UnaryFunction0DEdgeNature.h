@@ -35,8 +35,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction0DEdgeNature_Type;
 
 #define BPy_UnaryFunction0DEdgeNature_Check(v) \

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject fstreamShader_Type;
 
 #define BPy_fstreamShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&fstreamShader_Type))

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject Length2DBP1D_Type;
 
 #define BPy_Length2DBP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Length2DBP1D_Type))

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ChainingTimeStampF1D_Type;
 
 #define BPy_ChainingTimeStampF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainingTimeStampF1D_Type))

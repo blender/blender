@@ -25,17 +25,15 @@
 #ifndef __FREESTYLE_PYTHON_VIEWEDGE_H__
 #define __FREESTYLE_PYTHON_VIEWEDGE_H__
 
-#include "../../view_map/ViewMap.h"
-
 #include "../BPy_Interface1D.h"
+
+#include "../../view_map/ViewMap.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject ViewEdge_Type;
 

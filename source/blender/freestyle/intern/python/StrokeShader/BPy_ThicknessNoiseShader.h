@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ThicknessNoiseShader_Type;
 
 #define BPy_ThicknessNoiseShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ThicknessNoiseShader_Type))

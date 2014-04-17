@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ConstantThicknessShader_Type;
 
 #define BPy_ConstantThicknessShader_Check(v) \

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject DensityLowerThanUP1D_Type;
 
 #define BPy_DensityLowerThanUP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&DensityLowerThanUP1D_Type))

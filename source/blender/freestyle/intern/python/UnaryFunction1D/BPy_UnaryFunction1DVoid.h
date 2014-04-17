@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject UnaryFunction1DVoid_Type;
 
 #define BPy_UnaryFunction1DVoid_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DVoid_Type))

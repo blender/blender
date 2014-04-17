@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetProjectedXF1D_Type;
 
 #define BPy_GetProjectedXF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetProjectedXF1D_Type))

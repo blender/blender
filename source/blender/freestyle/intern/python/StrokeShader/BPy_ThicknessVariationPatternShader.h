@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ThicknessVariationPatternShader_Type;
 
 #define BPy_ThicknessVariationPatternShader_Check(v) \

@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject ReadCompleteViewMapPixelF0D_Type;
 
 #define BPy_ReadCompleteViewMapPixelF0D_Check(v) \

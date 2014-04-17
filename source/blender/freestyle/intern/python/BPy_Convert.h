@@ -25,7 +25,10 @@
 #ifndef __FREESTYLE_PYTHON_CONVERT_H__
 #define __FREESTYLE_PYTHON_CONVERT_H__
 
+extern "C" {
 #include <Python.h>
+}
+
 #include <typeinfo>
 
 #include "../geometry/Geom.h"

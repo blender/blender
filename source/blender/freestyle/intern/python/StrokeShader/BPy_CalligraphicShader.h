@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject CalligraphicShader_Type;
 
 #define BPy_CalligraphicShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CalligraphicShader_Type)

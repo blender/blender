@@ -33,8 +33,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
-
 extern PyTypeObject GetXF0D_Type;
 
 #define BPy_GetXF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetXF0D_Type))
