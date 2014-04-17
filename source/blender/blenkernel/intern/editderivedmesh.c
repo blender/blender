@@ -298,8 +298,8 @@ static void emDM_drawMappedEdges(DerivedMesh *dm,
 	}
 }
 static void emDM_drawEdges(DerivedMesh *dm,
-                           int UNUSED(drawLooseEdges),
-                           int UNUSED(drawAllEdges))
+                           bool UNUSED(drawLooseEdges),
+                           bool UNUSED(drawAllEdges))
 {
 	emDM_drawMappedEdges(dm, NULL, NULL);
 }
@@ -1058,13 +1058,13 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 }
 
 static void emDM_drawFacesGLSL(DerivedMesh *dm,
-                               int (*setMaterial)(int, void *attribs))
+                               int (*setMaterial)(int matnr, void *attribs))
 {
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
 
 static void emDM_drawMappedFacesMat(DerivedMesh *dm,
-                                    void (*setMaterial)(void *userData, int, void *attribs),
+                                    void (*setMaterial)(void *userData, int matnr, void *attribs),
                                     bool (*setFace)(void *userData, int index), void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;

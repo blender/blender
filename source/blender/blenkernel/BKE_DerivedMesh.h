@@ -359,7 +359,7 @@ struct DerivedMesh {
 	 *
 	 * Also called for *final* editmode DerivedMeshes
 	 */
-	void (*drawEdges)(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges);
+	void (*drawEdges)(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges);
 	
 	/** Draw all loose edges (edges w/ no adjoining faces) */
 	void (*drawLooseEdges)(DerivedMesh *dm);
@@ -372,7 +372,7 @@ struct DerivedMesh {
 	 * Also called for *final* editmode DerivedMeshes
 	 */
 	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
-	                       int fast, DMSetMaterial setMaterial);
+	                       bool fast, DMSetMaterial setMaterial);
 
 	/** Draw all faces using MTFace
 	 * - Drawing options too complicated to enumerate, look at code.
@@ -451,7 +451,7 @@ struct DerivedMesh {
 	 * - setFace is called to verify if a face must be hidden
 	 */
 	void (*drawMappedFacesMat)(DerivedMesh *dm,
-	                           void (*setMaterial)(void *userData, int, void *attribs),
+	                           void (*setMaterial)(void *userData, int matnr, void *attribs),
 	                           bool (*setFace)(void *userData, int index), void *userData);
 
 	/** Release reference to the DerivedMesh. This function decides internally
