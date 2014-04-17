@@ -39,7 +39,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float2 direction_to_spherical(float3 dir)
 {
-	float theta = acosf(dir.z);
+	float theta = safe_acosf(dir.z);
 	float phi = atan2f(dir.x, dir.y);
 
 	return make_float2(theta, phi);
@@ -97,7 +97,7 @@ ccl_device float3 fisheye_to_direction(float u, float v, float fov)
 	if(r > 1.0f)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
-	float phi = acosf((r != 0.0f)? u/r: 0.0f);
+	float phi = safe_acosf((r != 0.0f)? u/r: 0.0f);
 	float theta = r * fov * 0.5f;
 
 	if(v < 0.0f) phi = -phi;
@@ -111,7 +111,7 @@ ccl_device float3 fisheye_to_direction(float u, float v, float fov)
 
 ccl_device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float width, float height)
 {
-	float theta = acosf(dir.x);
+	float theta = safe_acosf(dir.x);
 	float r = 2.0f * lens * sinf(theta * 0.5f);
 	float phi = atan2f(dir.z, dir.y);
 
@@ -132,7 +132,7 @@ ccl_device float3 fisheye_equisolid_to_direction(float u, float v, float lens, f
 	if(r > rmax)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
-	float phi = acosf((r != 0.0f)? u/r: 0.0f);
+	float phi = safe_acosf((r != 0.0f)? u/r: 0.0f);
 	float theta = 2.0f * asinf(r/(2.0f * lens));
 
 	if(v < 0.0f) phi = -phi;
