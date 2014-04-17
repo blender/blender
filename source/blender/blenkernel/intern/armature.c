@@ -1482,6 +1482,9 @@ void mat3_to_vec_roll(float mat[3][3], float r_vec[3], float *r_roll)
  */
 void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 {
+#define THETA_THRESHOLD_NEGY 1.0e-9f
+#define THETA_THRESHOLD_NEGY_CLOSE 1.0e-5f
+
 	float nor[3];
 	float theta;
 	float rMatrix[3][3], bMatrix[3][3];
@@ -1495,8 +1498,11 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 	 *
 	 * New algo is supposed much more precise, since less complex computations are performed,
 	 * but it uses two different threshold values...
+	 *
+	 * Note: When theta is close to zero, we have to check we do have non-null X/Z components as well
+	 *       (due to float precision errors, we can have nor = (0.0, 0.99999994, 0.0)...).
 	 */
-	if ((nor[0] || nor[2]) && theta > 1.0e-9f) {
+	if (theta > THETA_THRESHOLD_NEGY_CLOSE || ((nor[0] || nor[2]) && theta > THETA_THRESHOLD_NEGY)) {
 		/* nor is *not* -Y.
 		 * We got these values for free... so be happy with it... ;)
 		 */
@@ -1505,7 +1511,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 		bMatrix[1][1] = nor[1];
 		bMatrix[1][2] = nor[2];
 		bMatrix[2][1] = -nor[2];
-		if (theta > 1.0e-5f) {
+		if (theta > THETA_THRESHOLD_NEGY_CLOSE) {
 			/* If nor is far enough from -Y, apply the general case. */
 			bMatrix[0][0] = 1 - nor[0] * nor[0] / theta;
 			bMatrix[2][2] = 1 - nor[2] * nor[2] / theta;
@@ -1530,6 +1536,9 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 
 	/* Combine and output result */
 	mul_m3_m3m3(mat, rMatrix, bMatrix);
+
+#undef THETA_THRESHOLD_NEGY
+#undef THETA_THRESHOLD_NEGY_CLOSE
 }
 
 
