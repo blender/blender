@@ -743,6 +743,13 @@ static void scene_unlink_space_node(SpaceNode *snode, Scene *sce)
 	}
 }
 
+static void scene_unlink_space_buts(SpaceButs *sbuts, Scene *sce)
+{
+	if (sbuts->pinid == &sce->id) {
+		sbuts->pinid = NULL;
+	}
+}
+
 void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 {
 	Scene *sce1;
@@ -775,8 +782,12 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 		for (area = screen->areabase.first; area; area = area->next) {
 			SpaceLink *space_link;
 			for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
-				if (space_link->spacetype == SPACE_NODE)
-					scene_unlink_space_node((SpaceNode *)space_link, sce);
+				switch (space_link->spacetype) {
+					case SPACE_NODE:
+						scene_unlink_space_node((SpaceNode *)space_link, sce);
+					case SPACE_BUTS:
+						scene_unlink_space_buts((SpaceButs *)space_link, sce);
+				}
 			}
 		}
 	}
