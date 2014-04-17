@@ -78,7 +78,7 @@ class /*LIB_VIEW_MAP_EXPORT*/ UnaryFunction0D
 {
 public:
 	T result;
-	PyObject *py_uf0D;
+	void *py_uf0D;
 
 	/*! The type of the value returned by the functor. */
 	typedef T ReturnedValueType;
@@ -103,6 +103,7 @@ public:
 	 *    An Interface0DIterator pointing onto the point at which we wish to evaluate the function.
 	 *  \return the result of the function of type T.
 	 */
+	/* FIXME move the implementation to Functions0D.cpp */
 	virtual int operator()(Interface0DIterator& iter)
 	{
 		return Director_BPy_UnaryFunction0D___call__(this, py_uf0D, iter);

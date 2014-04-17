@@ -30,7 +30,6 @@
 
 #include <float.h>
 #include <iostream>
-#include <Python.h>
 #include <string>
 
 #include "Functions0D.h"
@@ -148,18 +147,10 @@ public:
 	// Iterator access
 
 	/*! Returns an iterator over the Interface1D vertices, pointing to the first vertex. */
-	virtual Interface0DIterator verticesBegin()
-	{
-		PyErr_SetString(PyExc_TypeError, "method verticesBegin() not properly overridden");
-		return Interface0DIterator();
-	}
+	virtual Interface0DIterator verticesBegin();
 
 	/*! Returns an iterator over the Interface1D vertices, pointing after the last vertex. */
-	virtual Interface0DIterator verticesEnd()
-	{
-		PyErr_SetString(PyExc_TypeError, "method verticesEnd() not properly overridden");
-		return Interface0DIterator();
-	}
+	virtual Interface0DIterator verticesEnd();
 
 	/*! Returns an iterator over the Interface1D points, pointing to the first point. The difference with
 	 *  verticesBegin() is that here we can iterate over points of the 1D element at a any given sampling.
@@ -167,11 +158,7 @@ public:
 	 *  \param t
 	 *    The sampling with which we want to iterate over points of this 1D element.
 	 */
-	virtual Interface0DIterator pointsBegin(float t = 0.0f)
-	{
-		PyErr_SetString(PyExc_TypeError, "method pointsBegin() not properly overridden");
-		return Interface0DIterator();
-	}
+	virtual Interface0DIterator pointsBegin(float t = 0.0f);
 
 	/*! Returns an iterator over the Interface1D points, pointing after the last point. The difference with
 	 *  verticesEnd() is that here we can iterate over points of the 1D element at a any given sampling.
@@ -179,36 +166,19 @@ public:
 	 *  \param t
 	 *    The sampling with which we want to iterate over points of this 1D element.
 	 */
-	virtual Interface0DIterator pointsEnd(float t = 0.0f)
-	{
-		PyErr_SetString(PyExc_TypeError, "method pointsEnd() not properly overridden");
-		return Interface0DIterator();
-	}
+	virtual Interface0DIterator pointsEnd(float t = 0.0f);
 
 	// Data access methods
 
 	/*! Returns the 2D length of the 1D element. */
-	virtual real getLength2D() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getLength2D() not properly overridden");
-		return 0;
-	}
+	virtual real getLength2D() const;
 
 	/*! Returns the Id of the 1D element. */
-	virtual Id getId() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getId() not properly overridden");
-		return Id(0, 0);
-	}
-
+	virtual Id getId() const;
 
 	// FIXME: ce truc n'a rien a faire la...(c une requete complexe qui doit etre ds les Function1D)
 	/*! Returns the nature of the 1D element. */
-	virtual Nature::EdgeNature getNature() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getNature() not properly overridden");
-		return Nature::NO_FEATURE;
-	}
+	virtual Nature::EdgeNature getNature() const;
 
 	/*! Returns the time stamp of the 1D element. Mainly used for selection. */
 	virtual unsigned getTimeStamp() const

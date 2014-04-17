@@ -29,7 +29,6 @@
  */
 
 #include <iostream>
-#include <Python.h>
 #include <string>
 
 #include "../geometry/Geom.h"
@@ -76,110 +75,49 @@ public:
 	// Data access methods
 
 	/*! Returns the 3D x coordinate of the point. */
-	virtual real getX() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getX() not properly overridden");
-		return 0;
-	}
+	virtual real getX() const;
 
 	/*! Returns the 3D y coordinate of the point. */
-	virtual real getY() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getY() not properly overridden");
-		return 0;
-	}
+	virtual real getY() const;
 
-	/*!  Returns the 3D z coordinate of the point. */
-	virtual real getZ() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getZ() not properly overridden");
-		return 0;
-	}
+	/*! Returns the 3D z coordinate of the point. */
+	virtual real getZ() const;
 
-	/*!  Returns the 3D point. */
-	virtual Geometry::Vec3f getPoint3D() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getPoint3D() not properly overridden");
-		return 0;
-	}
+	/*! Returns the 3D point. */
+	virtual Geometry::Vec3f getPoint3D() const;
 
 	/*! Returns the 2D x coordinate of the point. */
-	virtual real getProjectedX() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getProjectedX() not properly overridden");
-		return 0;
-	}
+	virtual real getProjectedX() const;
 
 	/*! Returns the 2D y coordinate of the point. */
-	virtual real getProjectedY() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getProjectedY() not properly overridden");
-		return 0;
-	}
+	virtual real getProjectedY() const;
 
 	/*! Returns the 2D z coordinate of the point. */
-	virtual real getProjectedZ() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getProjectedZ() not properly overridden");
-		return 0;
-	}
+	virtual real getProjectedZ() const;
 
-	/*!  Returns the 2D point. */
-	virtual Geometry::Vec2f getPoint2D() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getPoint2D() not properly overridden");
-		return 0;
-	}
+	/*! Returns the 2D point. */
+	virtual Geometry::Vec2f getPoint2D() const;
 
 	/*! Returns the FEdge that lies between this Interface0D and the Interface0D given as argument. */
-	virtual FEdge *getFEdge(Interface0D&)
-	{
-		PyErr_SetString(PyExc_TypeError, "method getFEdge() not properly overridden");
-		return 0;
-	}
+	virtual FEdge *getFEdge(Interface0D&);
 
 	/*! Returns the Id of the point. */
-	virtual Id getId() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getId() not properly overridden");
-		return 0;
-	}
+	virtual Id getId() const;
 
 	/*! Returns the nature of the point. */
-	virtual Nature::VertexNature getNature() const
-	{
-		PyErr_SetString(PyExc_TypeError, "method getNature() not properly overridden");
-		return Nature::POINT;
-	}
-
+	virtual Nature::VertexNature getNature() const;
 
 	/*! Cast the Interface0D in SVertex if it can be. */
-	virtual SVertex *castToSVertex()
-	{
-		PyErr_SetString(PyExc_TypeError, "method castToSVertex() not properly overridden");
-		return 0;
-	}
+	virtual SVertex *castToSVertex();
 
 	/*! Cast the Interface0D in ViewVertex if it can be. */
-	virtual ViewVertex *castToViewVertex()
-	{
-		PyErr_SetString(PyExc_TypeError, "method castToViewVertex() not properly overridden");
-		return 0;
-	}
+	virtual ViewVertex *castToViewVertex();
 
 	/*! Cast the Interface0D in NonTVertex if it can be. */
-	virtual NonTVertex *castToNonTVertex()
-	{
-		PyErr_SetString(PyExc_TypeError, "method castToNonTVertex() not properly overridden");
-		return 0;
-	}
+	virtual NonTVertex *castToNonTVertex();
 
 	/*! Cast the Interface0D in TVertex if it can be. */
-	virtual TVertex *castToTVertex()
-	{
-		PyErr_SetString(PyExc_TypeError, "method castToTVertex() not properly overridden");
-		return 0;
-	}
+	virtual TVertex *castToTVertex();
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Interface0D")

@@ -32,11 +32,11 @@
 #include <iostream>
 #include <vector>
 
-#include "../python/Director.h"
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
+
+using namespace std;
 
 namespace Freestyle {
 
@@ -72,10 +72,10 @@ class Stroke;
  *  }
  *  \endcode
  */
-class LIB_STROKE_EXPORT StrokeShader
+class StrokeShader
 {
 public:
-	PyObject *py_ss;
+	void *py_ss;
 
 	/*! Default constructor. */
 	StrokeShader()
@@ -97,10 +97,7 @@ public:
 	 *    The stroke we wish to shade. this Stroke is modified by the Shader (which typically
 	 *    modifies the Stroke's attribute's values such as Color, Thickness, Geometry...)
 	 */
-	virtual int shade(Stroke& ioStroke) const
-	{
-		return Director_BPy_StrokeShader_shade( const_cast<StrokeShader *>(this), ioStroke);
-	}
+	virtual int shade(Stroke& ioStroke) const;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeShader")

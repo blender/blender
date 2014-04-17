@@ -32,7 +32,6 @@
 
 #include "Predicates1D.h"
 
-#include  "../python/Director.h"
 
 #include "../system/Iterator.h" //soc 
 
@@ -161,7 +160,7 @@ protected:
 
 public:
 	ViewEdge *result;
-	PyObject *py_c_it;
+	void *py_c_it;
 
 	/*! Builds a Chaining Iterator from the first ViewEdge used for iteration and its orientation.
 	 *  \param iRestrictToSelection
@@ -203,10 +202,7 @@ public:
 	 *  This method is called each time a new chain is started.
 	 *  It can be used to reset some history information that you might want to keep.
 	 */
-	virtual int init()
-	{
-		return Director_BPy_ChainingIterator_init(this);
-	}
+	virtual int init();
 
 	/*! This method iterates over the potential next ViewEdges and returns the one that will be followed next.
 	 *  returns the next ViewEdge to follow or 0 when the end of the chain is reached.
@@ -214,10 +210,7 @@ public:
 	 *    The iterator over the ViewEdges adjacent to the end vertex of the current ViewEdge.
 	 *    The Adjacency iterator reflects the restriction rules by only iterating over the valid ViewEdges.
 	 */
-	virtual int traverse(const AdjacencyIterator &it)
-	{
-		return Director_BPy_ChainingIterator_traverse(this, const_cast<AdjacencyIterator &>(it));
-	}
+	virtual int traverse(const AdjacencyIterator &it);
 
 	/* accessors */
 	/*! Returns true if the orientation of the current ViewEdge corresponds to its natural orientation */

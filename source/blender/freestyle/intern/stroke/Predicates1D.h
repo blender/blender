@@ -33,8 +33,6 @@
 
 #include "AdvancedFunctions1D.h"
 
-#include "../python/Director.h"
-
 #include "../system/TimeStamp.h"
 
 #include "../view_map/Interface1D.h"
@@ -61,7 +59,7 @@ class UnaryPredicate1D
 {
 public:
 	bool result;
-	PyObject *py_up1D;
+	void *py_up1D;
 
 	/*! Default constructor. */
 	UnaryPredicate1D()
@@ -83,10 +81,7 @@ public:
 	 *    The Interface1D on  which we wish to evaluate the predicate.
 	 *  \return true if the condition is satisfied, false otherwise.
 	 */
-	virtual int operator()(Interface1D& inter)
-	{
-		return Director_BPy_UnaryPredicate1D___call__(this, inter);
-	}
+	virtual int operator()(Interface1D& inter);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryPredicate1D")
@@ -108,7 +103,7 @@ class BinaryPredicate1D
 {
 public:
 	bool result;
-	PyObject *py_bp1D;
+	void *py_bp1D;
 
 	/*! Default constructor. */
 	BinaryPredicate1D()
@@ -133,10 +128,7 @@ public:
 	 *    The second Interface1D.
 	 *  \return true or false.
 	 */
-	virtual int operator()(Interface1D& inter1, Interface1D& inter2)
-	{
-		return Director_BPy_BinaryPredicate1D___call__(this, inter1, inter2);
-	}
+	virtual int operator()(Interface1D& inter1, Interface1D& inter2);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BinaryPredicate1D")

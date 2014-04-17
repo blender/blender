@@ -29,8 +29,6 @@
  *  \date 01/07/2003
  */
 
-#include "../python/Director.h"
-
 #include "../view_map/Functions0D.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -54,7 +52,7 @@ class UnaryPredicate0D
 {
 public:
 	bool result;
-	PyObject *py_up0D;
+	void *py_up0D;
 
 	/*! Default constructor. */
 	UnaryPredicate0D()
@@ -76,10 +74,7 @@ public:
 	 *    The Interface0DIterator pointing onto the Interface0D at which we wish to evaluate the predicate.
 	 *  \return true if the condition is satisfied, false otherwise.
 	 */
-	virtual int operator()(Interface0DIterator& it)
-	{
-		return Director_BPy_UnaryPredicate0D___call__(this, it);
-	}
+	virtual int operator()(Interface0DIterator& it);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:UnaryPredicate0D")
@@ -101,7 +96,7 @@ class BinaryPredicate0D
 {
 public:
 	bool result;
-	PyObject *py_bp0D;
+	void *py_bp0D;
 
 	/*! Default constructor. */
 	BinaryPredicate0D()
@@ -126,10 +121,7 @@ public:
 	 *    The second Interface0D.
 	 *  \return true or false.
 	 */
-	virtual int operator()(Interface0D& inter1, Interface0D& inter2)
-	{
-		return Director_BPy_BinaryPredicate0D___call__(this, inter1, inter2);
-	}
+	virtual int operator()(Interface0D& inter1, Interface0D& inter2);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BinaryPredicate0D")

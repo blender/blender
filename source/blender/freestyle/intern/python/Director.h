@@ -41,16 +41,6 @@ class StrokeShader;
 
 using namespace Freestyle;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <Python.h>
-
-#ifdef __cplusplus
-}
-#endif
-
 // BinaryPredicate0D: __call__
 int Director_BPy_BinaryPredicate0D___call__(BinaryPredicate0D *bp0D, Interface0D& i1, Interface0D& i2);
 
@@ -58,8 +48,8 @@ int Director_BPy_BinaryPredicate0D___call__(BinaryPredicate0D *bp0D, Interface0D
 int Director_BPy_BinaryPredicate1D___call__(BinaryPredicate1D *bp1D, Interface1D& i1, Interface1D& i2);
 
 // UnaryFunction{0D,1D}: __call__
-int Director_BPy_UnaryFunction0D___call__(void *uf0D, PyObject *obj, Interface0DIterator& if0D_it);
-int Director_BPy_UnaryFunction1D___call__(void *uf1D, PyObject *obj, Interface1D& if1D);
+int Director_BPy_UnaryFunction0D___call__(void *uf0D, void *py_uf0D, Interface0DIterator& if0D_it);
+int Director_BPy_UnaryFunction1D___call__(void *uf1D, void *py_uf1D, Interface1D& if1D);
 
 // UnaryPredicate0D: __call__
 int Director_BPy_UnaryPredicate0D___call__(UnaryPredicate0D *up0D, Interface0DIterator& if0D_it);

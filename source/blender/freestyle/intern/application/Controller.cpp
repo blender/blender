@@ -22,6 +22,10 @@
  *  \ingroup freestyle
  */
 
+extern "C" {
+#include <Python.h>
+}
+
 #include <string>
 #include <fstream>
 #include <float.h>

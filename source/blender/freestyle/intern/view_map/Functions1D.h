@@ -68,7 +68,7 @@ class /*LIB_VIEW_MAP_EXPORT*/ UnaryFunction1D
 {
 public:
 	T result;
-	PyObject *py_uf1D;
+	void *py_uf1D;
 
 	/*! The type of the value returned by the functor. */
 	typedef T ReturnedValueType;
@@ -104,6 +104,7 @@ public:
 	 *    The Interface1D on which we wish to evaluate the function.
 	 *  \return the result of the function of type T.
 	 */
+	/* FIXME move the implementation to Functions1D.cpp */
 	virtual int operator()(Interface1D& inter)
 	{
 		return Director_BPy_UnaryFunction1D___call__(this, py_uf1D, inter);
@@ -133,7 +134,7 @@ protected:
 class  UnaryFunction1D_void
 {
 public:
-	PyObject *py_uf1D;
+	void *py_uf1D;
 
 	UnaryFunction1D_void()
 	{
@@ -152,6 +153,7 @@ public:
 		return "UnaryFunction1D_void";
 	}
 
+	/* FIXME move the implementation to Functions1D.cpp */
 	int operator()(Interface1D& inter)
 	{
 		return Director_BPy_UnaryFunction1D___call__(this, py_uf1D, inter);
