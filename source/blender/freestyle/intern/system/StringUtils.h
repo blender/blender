@@ -34,15 +34,9 @@
 #include <string>
 #include <vector>
 
-#include "FreestyleConfig.h"
-
-//soc
 extern "C" {
-
 #include "BKE_utildefines.h"
-
 #include "BLI_blenlib.h"
-
 }
 
 using namespace std;

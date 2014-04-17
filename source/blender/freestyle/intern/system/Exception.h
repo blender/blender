@@ -28,8 +28,6 @@
  *  \date 10/01/2003
  */
 
-#include "FreestyleConfig.h"
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif

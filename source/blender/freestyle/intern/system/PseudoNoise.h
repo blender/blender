@@ -28,7 +28,6 @@
  *  \date 16/06/2003
  */
 
-#include "FreestyleConfig.h"
 #include "Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC

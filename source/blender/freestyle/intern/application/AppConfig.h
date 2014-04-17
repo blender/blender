@@ -30,7 +30,6 @@
 
 #include <string>
 #include <algorithm>
-#include "../system/FreestyleConfig.h"
 #include "../system/Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
