@@ -116,8 +116,8 @@ static bool convex(const float p0[3], const float up[3], const float a[3], const
 }
 
 void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
-                       GPUTexture *tex, float min[3], float max[3],
-                       int res[3], float dx, float UNUSED(base_scale), float viewnormal[3],
+                       GPUTexture *tex, const float min[3], const float max[3],
+                       const int res[3], float dx, float UNUSED(base_scale), const float viewnormal[3],
                        GPUTexture *tex_shadow, GPUTexture *tex_flame)
 {
 	const float ob_sizei[3] = {
@@ -410,9 +410,9 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	}
 
 	if (!GPU_non_power_of_two_support()) {
-		cor[0] = (float)res[0] / (float)power_of_2_max_i(res[0]);
-		cor[1] = (float)res[1] / (float)power_of_2_max_i(res[1]);
-		cor[2] = (float)res[2] / (float)power_of_2_max_i(res[2]);
+		cor[0] = (float)res[0] / (float)power_of_2_max_u(res[0]);
+		cor[1] = (float)res[1] / (float)power_of_2_max_u(res[1]);
+		cor[2] = (float)res[2] / (float)power_of_2_max_u(res[2]);
 	}
 
 	cor[0] /= size[0];

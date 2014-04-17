@@ -164,7 +164,7 @@ static void view3d_smooth_view_state_restore(const struct SmoothView3DState *sms
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
 void ED_view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
-                           float *ofs, float *quat, float *dist, float *lens,
+                           const float *ofs, const float *quat, const float *dist, const float *lens,
                            const int smooth_viewtx)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);

@@ -204,8 +204,9 @@ void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 bool ED_view3d_boundbox_clip_ex(RegionView3D *rv3d, const struct BoundBox *bb, float obmat[4][4]);
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
 
-void ED_view3d_smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *,
-                           float *ofs, float *quat, float *dist, float *lens,
+void ED_view3d_smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar,
+                           struct Object *camera_old, struct Object *camera,
+                           const float *ofs, const float *quat, const float *dist, const float *lens,
                            const int smooth_viewtx);
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);
@@ -259,8 +260,8 @@ extern const char *view3d_context_dir[]; /* doc access */
 
 /* draw_volume.c */
 void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob,
-                       struct GPUTexture *tex, float min[3], float max[3],
-                       int res[3], float dx, float base_scale, float viewnormal[3],
+                       struct GPUTexture *tex, const float min[3], const float max[3],
+                       const int res[3], float dx, float base_scale, const float viewnormal[3],
                        struct GPUTexture *tex_shadow, struct GPUTexture *tex_flame);
 
 //#define SMOKE_DEBUG_VELOCITY
