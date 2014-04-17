@@ -5303,6 +5303,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* force rebuild of pbvh for better BB placement */
 	sculpt_pbvh_clear(ob);
+	sculpt_dyntopo_node_layers_reset(ss->bm);
 	/* Redraw */
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
