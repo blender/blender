@@ -1,3 +1,15 @@
+commit 1d386b6775a71c499e9b8e4a288c0785c4937677
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Apr 17 18:42:43 2014 +0600
+
+    Add unit tests for buffer (un)distortion
+    
+    Currently only uses identity camera intrinsics just to
+    see whether lookup grids are properly allocated.
+    
+    Should prevent accidents like that one happened recently
+    with crashing Blender after Libmv re-integration.
+
 commit e1fe41b6604771ba769a9b15eb2f489fbf7af251
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 17 17:52:23 2014 +0600
@@ -664,9 +676,3 @@ Date:   Mon May 13 04:44:14 2013 +0600
     This shall save some CPU time on calling copy constructor and give
     some boost of bundle adjuster (where jet could take some time to
     be passed by value).
-
-commit eb2e567df4567a54887d602aa95d6744aa154d8b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon May 13 04:22:05 2013 +0600
-
-    Minor code style cleanup.
