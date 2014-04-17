@@ -260,9 +260,9 @@ static EnumPropertyItem prop_calc_roll_types[] = {
 	{CALC_ROLL_TAN_X, "X", 0, "Local X Tangent", ""},
 	{CALC_ROLL_TAN_Z, "Z", 0, "Local Z Tangent", ""},
 
-	{CALC_ROLL_X, "X", 0, "Global X Axis", ""},
-	{CALC_ROLL_Y, "Y", 0, "Global Y Axis", ""},
-	{CALC_ROLL_Z, "Z", 0, "Global Z Axis", ""},
+	{CALC_ROLL_X, "GLOBAL_X", 0, "Global X Axis", ""},
+	{CALC_ROLL_Y, "GLOBAL_Y", 0, "Global Y Axis", ""},
+	{CALC_ROLL_Z, "GLOBAL_Z", 0, "Global Z Axis", ""},
 
 	{CALC_ROLL_ACTIVE, "ACTIVE", 0, "Active Bone", ""},
 	{CALC_ROLL_VIEW, "VIEW", 0, "View Axis", ""},
