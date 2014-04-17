@@ -298,11 +298,11 @@ iter:
 		}
 #if 0
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			printf("SilhouetteGeomEngine::ImageToWorldParameter(): #iters = %d, dist = %e\n", i, dist);
+			cout << "SilhouetteGeomEngine::ImageToWorldParameter(): #iters = " << i << ", dist = " << dist << "\n";
 		}
 #endif
 		if (i == max_iters && G.debug & G_DEBUG_FREESTYLE) {
-			printf("SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = %e)\n", dist);
+			cout << "SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = " << dist << ")\n";
 		}
 	}
 
