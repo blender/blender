@@ -445,7 +445,9 @@ set(SRC
 	intern/stroke/Operators.h
 	intern/stroke/PSStrokeRenderer.cpp
 	intern/stroke/PSStrokeRenderer.h
+	intern/stroke/Predicates0D.cpp
 	intern/stroke/Predicates0D.h
+	intern/stroke/Predicates1D.cpp
 	intern/stroke/Predicates1D.h
 	intern/stroke/QInformationMap.h
 	intern/stroke/Stroke.cpp
@@ -460,6 +462,7 @@ set(SRC
 	intern/stroke/StrokeRenderer.h
 	intern/stroke/StrokeRep.cpp
 	intern/stroke/StrokeRep.h
+	intern/stroke/StrokeShader.cpp
 	intern/stroke/StrokeShader.h
 	intern/stroke/StrokeTesselator.cpp
 	intern/stroke/StrokeTesselator.h
@@ -509,7 +512,9 @@ set(SRC
 	intern/view_map/GridDensityProvider.h
 	intern/view_map/HeuristicGridDensityProviderFactory.cpp
 	intern/view_map/HeuristicGridDensityProviderFactory.h
+	intern/view_map/Interface0D.cpp
 	intern/view_map/Interface0D.h
+	intern/view_map/Interface1D.cpp
 	intern/view_map/Interface1D.h
 	intern/view_map/OccluderSource.cpp
 	intern/view_map/OccluderSource.h
