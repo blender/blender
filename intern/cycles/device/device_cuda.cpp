@@ -666,6 +666,11 @@ public:
 		cuda_assert(cuFuncSetBlockShape(cuPathTrace, xthreads, ythreads, 1))
 		cuda_assert(cuLaunchGridAsync(cuPathTrace, xblocks, yblocks, cuStream))
 
+		if(info.display_device) {
+			/* don't use async for device used for display, locks up UI too much */
+			cuda_assert(cuStreamSynchronize(cuStream))
+		}
+
 		cuda_pop_context();
 	}
 
@@ -995,7 +1000,6 @@ public:
 			
 			bool branched = task->integrator_branched;
 			
-
 			/* keep rendering tiles until done */
 			while(task->acquire_tile(this, tile)) {
 				int start_sample = tile.start_sample;
@@ -1016,9 +1020,9 @@ public:
 					tile.sample = sample + 1;
 					task->update_progress(tile);
 
-					if(sample == sync_sample){
+					if(!info.display_device && sample == sync_sample) {
 						cuda_push_context();
-						cuda_assert(cuEventRecord(tileDone, cuStream ))
+						cuda_assert(cuEventRecord(tileDone, cuStream))
 						cuda_assert(cuEventSynchronize(tileDone))
 
 						/* Do some time keeping to find out if we need to sync less */
