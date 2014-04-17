@@ -136,7 +136,8 @@ public:
 		_timeStamp = 0;
 	}
 
-	virtual ~Interface1D() {}; //soc
+	/*! Destructor */
+	virtual ~Interface1D() {};
 
 	/*! Returns the string "Interface1D". */
 	virtual string getExactTypeName() const

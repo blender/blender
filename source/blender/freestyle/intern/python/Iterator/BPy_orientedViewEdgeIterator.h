@@ -25,7 +25,6 @@
 #ifndef __FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H__
 #define __FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H__
 
-#include "../../stroke/Stroke.h"
 #include "../BPy_Iterator.h"
 
 #include "../../view_map/ViewMapIterators.h"

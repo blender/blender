@@ -25,8 +25,6 @@
  *  \date 2010-12-21
  */
 
-#include <math.h>
-
 #include "GridHelpers.h"
 
 namespace Freestyle {

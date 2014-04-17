@@ -27,8 +27,6 @@
 
 #include "CulledOccluderSource.h"
 
-#include "FRS_freestyle.h"
-
 #include "../geometry/GridHelpers.h"
 
 #include "BKE_global.h"

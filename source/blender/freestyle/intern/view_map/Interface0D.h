@@ -34,7 +34,7 @@
 #include "../geometry/Geom.h"
 
 #include "../system/Id.h"
-#include "../system/Iterator.h" //soc 
+#include "../system/Iterator.h"
 #include "../system/Precision.h"
 
 #include "../winged_edge/Nature.h"
@@ -64,7 +64,9 @@ class Interface0D
 public:
 	/*! Default constructor */
 	Interface0D() {}
-	virtual ~Interface0D() {}; //soc
+
+	/*! Destructor */
+	virtual ~Interface0D() {};
 
 	/*! Returns the string "Interface0D". */
 	virtual string getExactTypeName() const

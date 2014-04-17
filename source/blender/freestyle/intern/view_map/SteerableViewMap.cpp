@@ -25,8 +25,6 @@
  *  \date 01/07/2003
  */
 
-//soc #include <qimage.h>
-//soc #include <qstring.h>
 #include <sstream>
 
 #include "Silhouette.h"

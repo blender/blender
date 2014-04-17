@@ -32,8 +32,7 @@
 
 #include "Predicates1D.h"
 
-
-#include "../system/Iterator.h" //soc 
+#include "../system/Iterator.h"
 
 #include "../view_map/ViewMap.h"
 #include "../view_map/ViewMapIterators.h"
