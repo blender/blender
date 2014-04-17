@@ -664,11 +664,14 @@ public:
 
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1))
 		cuda_assert(cuFuncSetBlockShape(cuPathTrace, xthreads, ythreads, 1))
-		cuda_assert(cuLaunchGridAsync(cuPathTrace, xblocks, yblocks, cuStream))
 
 		if(info.display_device) {
 			/* don't use async for device used for display, locks up UI too much */
-			cuda_assert(cuStreamSynchronize(cuStream))
+			cuda_assert(cuLaunchGrid(cuPathTrace, xblocks, yblocks))
+			cuda_assert(cuCtxSynchronize())
+		}
+		else {
+			cuda_assert(cuLaunchGridAsync(cuPathTrace, xblocks, yblocks, cuStream))
 		}
 
 		cuda_pop_context();
