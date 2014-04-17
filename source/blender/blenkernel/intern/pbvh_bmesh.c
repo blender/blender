@@ -96,8 +96,7 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index, const int cd_ver
 }
 
 /* Recursively split the node if it exceeds the leaf_limit */
-static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index,
-                                  const int cd_vert_node_offset, const int cd_face_node_offset)
+static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 {
 	GSet *empty, *other;
 	GSetIterator gs_iter;
@@ -105,7 +104,8 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index,
 	BB cb;
 	float mid;
 	int axis, children;
-
+	const int cd_vert_node_offset = bvh->cd_vert_node_offset;
+	const int cd_face_node_offset = bvh->cd_face_node_offset;
 	n = &bvh->nodes[node_index];
 
 	if (BLI_gset_size(n->bm_faces) <= bvh->leaf_limit) {
@@ -210,8 +210,8 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index,
 	
 	/* Recurse */
 	c1 = c2 = NULL;
-	pbvh_bmesh_node_split(bvh, prim_bbc, children, cd_vert_node_offset, cd_face_node_offset);
-	pbvh_bmesh_node_split(bvh, prim_bbc, children + 1, cd_vert_node_offset, cd_face_node_offset);
+	pbvh_bmesh_node_split(bvh, prim_bbc, children);
+	pbvh_bmesh_node_split(bvh, prim_bbc, children + 1);
 
 	/* Array maybe reallocated, update current node pointer */
 	n = &bvh->nodes[node_index];
@@ -224,7 +224,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index,
 }
 
 /* Recursively split the node if it exceeds the leaf_limit */
-static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index, const int cd_vert_node_offset, const int cd_face_node_offset)
+static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 {
 	GHash *prim_bbc;
 	GSet *bm_faces;
@@ -260,7 +260,7 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index, const int cd
 		BLI_ghash_insert(prim_bbc, f, bbc);
 	}
 
-	pbvh_bmesh_node_split(bvh, prim_bbc, node_index, cd_vert_node_offset, cd_face_node_offset);
+	pbvh_bmesh_node_split(bvh, prim_bbc, node_index);
 
 	BLI_ghash_free(prim_bbc, NULL, NULL);
 	MEM_freeN(bbc_array);
@@ -1144,16 +1144,16 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 /***************************** Public API *****************************/
 
 /* Build a PBVH from a BMesh */
-void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log)
+void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log,
+                          const int cd_vert_node_offset, const int cd_face_node_offset)
 {
 	BMIter iter;
 	BMFace *f;
 	PBVHNode *n;
 	int node_index = 0;
 
-	const int cd_vert_node_offset = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_NODE);
-	const int cd_face_node_offset = CustomData_get_offset(&bm->pdata, CD_DYNTOPO_NODE);
-
+	bvh->cd_vert_node_offset = cd_vert_node_offset;
+	bvh->cd_face_node_offset = cd_face_node_offset;
 	bvh->bm = bm;
 
 	BKE_pbvh_bmesh_detail_size_set(bvh, 0.75);
@@ -1178,7 +1178,7 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log)
 
 	/* Recursively split the node until it is under the limit; if no
 	 * splitting occurs then finalize the existing leaf node */
-	if (!pbvh_bmesh_node_limit_ensure(bvh, node_index, cd_vert_node_offset, cd_face_node_offset))
+	if (!pbvh_bmesh_node_limit_ensure(bvh, node_index))
 		pbvh_bmesh_node_finalize(bvh, 0, cd_vert_node_offset, cd_face_node_offset);
 }
 
@@ -1190,8 +1190,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 	BLI_buffer_declare_static(BMFace *, edge_loops, BLI_BUFFER_NOP, 2);
 	BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
 	const int cd_vert_mask_offset = CustomData_get_offset(&bvh->bm->vdata, CD_PAINT_MASK);
-	const int cd_vert_node_offset = CustomData_get_offset(&bvh->bm->vdata, CD_DYNTOPO_NODE);
-	const int cd_face_node_offset = CustomData_get_offset(&bvh->bm->pdata, CD_DYNTOPO_NODE);
+	const int cd_vert_node_offset = bvh->cd_vert_node_offset;
+	const int cd_face_node_offset = bvh->cd_face_node_offset;
 
 	bool modified = false;
 	int n;
@@ -1312,9 +1312,6 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *bvh)
 {
 	int i;
 
-	const int cd_vert_node_offset = CustomData_get_offset(&bvh->bm->vdata, CD_DYNTOPO_NODE);
-	const int cd_face_node_offset = CustomData_get_offset(&bvh->bm->pdata, CD_DYNTOPO_NODE);
-
 	for (i = 0; i < bvh->totnode; i++) {
 		PBVHNode *n = &bvh->nodes[i];
 		if (n->flag & PBVH_Leaf) {
@@ -1323,7 +1320,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *bvh)
 
 			/* Recursively split nodes that have gotten too many
 			 * elements */
-			pbvh_bmesh_node_limit_ensure(bvh, i, cd_vert_node_offset, cd_face_node_offset);
+			pbvh_bmesh_node_limit_ensure(bvh, i);
 		}
 	}
 }

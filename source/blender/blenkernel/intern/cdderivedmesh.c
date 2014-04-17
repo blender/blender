@@ -269,7 +269,8 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 
 		BKE_pbvh_build_bmesh(cddm->pbvh, ob->sculpt->bm,
 		                     ob->sculpt->bm_smooth_shading,
-		                     ob->sculpt->bm_log);
+		                     ob->sculpt->bm_log, ob->sculpt->cd_vert_node_offset,
+		                     ob->sculpt->cd_face_node_offset);
 
 		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
 	}
