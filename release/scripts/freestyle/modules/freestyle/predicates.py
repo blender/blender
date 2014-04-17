@@ -517,9 +517,12 @@ class pyClosedCurveUP1D(UnaryPredicate1D):
 
 
 class pyZBP1D(BinaryPredicate1D):
+    def __init__(self, iType=IntegrationType.MEAN):
+        BinaryPredicate1D.__init__(self)
+        self._GetZ = GetZF1D(iType)
+
     def __call__(self, i1, i2):
-        func = GetZF1D()
-        return (func(i1) > func(i2))
+        return (self._GetZ(i1) > self._GetZ(i2))
 
 
 class pyZDiscontinuityBP1D(BinaryPredicate1D):
