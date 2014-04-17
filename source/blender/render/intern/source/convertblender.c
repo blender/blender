@@ -500,31 +500,28 @@ static int as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
 {
 	ASface *asf;
 	int a = -1;
-	
-	if (v1 == NULL) return a;
-	
-	if (asv->faces.first==NULL) {
-		asf= MEM_callocN(sizeof(ASface), "asface");
-		BLI_addtail(&asv->faces, asf);
-	}
-	
-	asf= asv->faces.last;
-	for (a=0; a<4; a++) {
-		if (asf->vlr[a]==NULL) {
-			asf->vlr[a]= vlr;
-			asv->totface++;
-			break;
+
+	if (v1 == NULL)
+		return a;
+
+	asf = asv->faces.last;
+	if (asf) {
+		for (a = 0; a < 4 && asf->vlr[a]; a++) {
 		}
 	}
-	
-	/* new face struct */
-	if (a==4) {
-		a = 0;
-		asf= MEM_callocN(sizeof(ASface), "asface");
-		BLI_addtail(&asv->faces, asf);
-		asf->vlr[a]= vlr;
-		asv->totface++;
+	else {
+		a = 4;
 	}
+
+	/* new face struct */
+	if (a == 4) {
+		a = 0;
+		asf = MEM_callocN(sizeof(ASface), "asface");
+		BLI_addtail(&asv->faces, asf);
+	}
+
+	asf->vlr[a] = vlr;
+	asv->totface++;
 
 	return a;
 }
@@ -628,14 +625,14 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], shor
 	}
 
 	/* free */
-	for (a=0; a<totvert; a++) {
+	for (a = 0; a < totvert; a++) {
 		BLI_freelistN(&asverts[a].faces);
 	}
 	MEM_freeN(asverts);
 
 	/* rotate vertices and calculate normal of faces */
-	for (a=0; a<obr->totvert; a++) {
-		ver= RE_findOrAddVert(obr, a);
+	for (a = 0; a < obr->totvert; a++) {
+		ver = RE_findOrAddVert(obr, a);
 		mul_m4_v3(mat, ver->co);
 		if (lnors) {
 			mul_mat3_m4_v3(mat, ver->n);
@@ -643,9 +640,9 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], shor
 			normalize_v3(ver->n);
 		}
 	}
-	for (a=0; a<obr->totvlak; a++) {
-		vlr= RE_findOrAddVlak(obr, a);
-		
+	for (a = 0; a < obr->totvlak; a++) {
+		vlr = RE_findOrAddVlak(obr, a);
+
 		/* skip wire faces */
 		if (vlr->v2 != vlr->v3) {
 			if (vlr->v4)
