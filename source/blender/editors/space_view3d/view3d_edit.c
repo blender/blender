@@ -3713,7 +3713,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 			mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
 			rv3d->view = RV3D_VIEW_USER;
 
-			ED_view3d_smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL,
+			ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
 			                      NULL, quat_new, NULL, NULL,
 			                      smooth_viewtx);
 

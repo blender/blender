@@ -204,10 +204,19 @@ void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 bool ED_view3d_boundbox_clip_ex(RegionView3D *rv3d, const struct BoundBox *bb, float obmat[4][4]);
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
 
-void ED_view3d_smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar,
-                           struct Object *camera_old, struct Object *camera,
-                           const float *ofs, const float *quat, const float *dist, const float *lens,
-                           const int smooth_viewtx);
+void ED_view3d_smooth_view_ex(
+        struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa,
+        struct View3D *v3d, struct ARegion *ar,
+        struct Object *camera_old, struct Object *camera,
+        const float *ofs, const float *quat, const float *dist, const float *lens,
+        const int smooth_viewtx);
+
+void ED_view3d_smooth_view(
+        struct bContext *C,
+        struct View3D *v3d, struct ARegion *ar,
+        struct Object *camera_old, struct Object *camera,
+        const float *ofs, const float *quat, const float *dist, const float *lens,
+        const int smooth_viewtx);
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);

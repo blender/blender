@@ -163,14 +163,14 @@ static void view3d_smooth_view_state_restore(const struct SmoothView3DState *sms
 
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
-void ED_view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
-                           const float *ofs, const float *quat, const float *dist, const float *lens,
-                           const int smooth_viewtx)
-{
-	wmWindowManager *wm = CTX_wm_manager(C);
-	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa = CTX_wm_area(C);
+void ED_view3d_smooth_view_ex(
+        /* avoid passing in the context */
+        wmWindowManager *wm, wmWindow *win, ScrArea *sa,
 
+        View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
+        const float *ofs, const float *quat, const float *dist, const float *lens,
+        const int smooth_viewtx)
+{
 	RegionView3D *rv3d = ar->regiondata;
 	struct SmoothView3DStore sms = {{0}};
 	bool ok = false;
@@ -310,6 +310,22 @@ void ED_view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcam
 
 		ED_region_tag_redraw(ar);
 	}
+}
+
+void ED_view3d_smooth_view(
+        bContext *C,
+        View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
+        const float *ofs, const float *quat, const float *dist, const float *lens,
+        const int smooth_viewtx)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
+	ScrArea *sa = CTX_wm_area(C);
+
+	ED_view3d_smooth_view_ex(
+	        wm, win, sa,
+	        v3d, ar, oldcamera, camera,
+	        ofs, quat, dist, lens, smooth_viewtx);
 }
 
 /* only meant for timer usage */
@@ -1152,11 +1168,14 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
 	return lay;
 }
 
-static bool view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportList *reports)
+static bool view3d_localview_init(
+        wmWindowManager *wm, wmWindow *win,
+        Main *bmain, Scene *scene, ScrArea *sa, const int smooth_viewtx,
+        ReportList *reports)
 {
 	View3D *v3d = sa->spacedata.first;
 	Base *base;
-	float min[3], max[3], box[3];
+	float min[3], max[3], box[3], mid[3];
 	float size = 0.0f, size_persp = 0.0f, size_ortho = 0.0f;
 	unsigned int locallay;
 	bool ok = false;
@@ -1211,34 +1230,48 @@ static bool view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, Report
 		
 		memcpy(v3d->localvd, v3d, sizeof(View3D));
 
+		mid_v3_v3v3(mid, min, max);
+
+		copy_v3_v3(v3d->cursor, mid);
+
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->regiontype == RGN_TYPE_WINDOW) {
 				RegionView3D *rv3d = ar->regiondata;
 
+				/* new view values */
+				Object *camera_old = NULL;
+				float dist_new, ofs_new[3];
+
 				rv3d->localvd = MEM_mallocN(sizeof(RegionView3D), "localview region");
 				memcpy(rv3d->localvd, rv3d, sizeof(RegionView3D));
-				
-				mid_v3_v3v3(v3d->cursor, min, max);
-				negate_v3_v3(rv3d->ofs, v3d->cursor);
+
+				negate_v3_v3(ofs_new, mid);
 
 				if (rv3d->persp == RV3D_CAMOB) {
 					rv3d->persp = RV3D_PERSP;
+					camera_old = v3d->camera;
 				}
 
 				/* perspective should be a bit farther away to look nice */
 				if (rv3d->persp != RV3D_ORTHO) {
-					rv3d->dist = size_persp;
+					dist_new = size_persp;
 				}
 				else {
-					rv3d->dist = size_ortho;
+					dist_new = size_ortho;
 				}
 
 				/* correction for window aspect ratio */
 				if (ar->winy > 2 && ar->winx > 2) {
 					float asp = (float)ar->winx / (float)ar->winy;
 					if (asp < 1.0f) asp = 1.0f / asp;
-					rv3d->dist *= asp;
+					dist_new *= asp;
 				}
+
+				ED_view3d_smooth_view_ex(
+				        wm, win, sa,
+				        v3d, ar, camera_old, NULL,
+				        ofs_new, NULL, &dist_new, NULL,
+				        smooth_viewtx);
 			}
 		}
 		
@@ -1259,13 +1292,18 @@ static bool view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, Report
 	return ok;
 }
 
-static void restore_localviewdata(Main *bmain, ScrArea *sa, int free)
+static void restore_localviewdata(wmWindowManager *wm, wmWindow *win, Main *bmain, ScrArea *sa, const int smooth_viewtx)
 {
+	const bool free = true;
 	ARegion *ar;
 	View3D *v3d = sa->spacedata.first;
+	Object *camera_old, *camera_new;
 	
 	if (v3d->localvd == NULL) return;
 	
+	camera_old = v3d->camera;
+	camera_new = v3d->localvd->camera;
+
 	v3d->near = v3d->localvd->near;
 	v3d->far = v3d->localvd->far;
 	v3d->lay = v3d->localvd->lay;
@@ -1283,12 +1321,20 @@ static void restore_localviewdata(Main *bmain, ScrArea *sa, int free)
 			RegionView3D *rv3d = ar->regiondata;
 			
 			if (rv3d->localvd) {
-				rv3d->dist = rv3d->localvd->dist;
-				copy_v3_v3(rv3d->ofs, rv3d->localvd->ofs);
-				copy_qt_qt(rv3d->viewquat, rv3d->localvd->viewquat);
+				Object *camera_old_rv3d, *camera_new_rv3d;
+
+				camera_old_rv3d = (rv3d->persp          == RV3D_CAMOB) ? camera_old : NULL;
+				camera_new_rv3d = (rv3d->localvd->persp == RV3D_CAMOB) ? camera_new : NULL;
+
 				rv3d->view = rv3d->localvd->view;
 				rv3d->persp = rv3d->localvd->persp;
 				rv3d->camzoom = rv3d->localvd->camzoom;
+
+				ED_view3d_smooth_view_ex(
+				        wm, win, sa,
+				        v3d, ar, camera_old_rv3d, camera_new_rv3d,
+				        rv3d->localvd->ofs, rv3d->localvd->viewquat, &rv3d->localvd->dist, NULL,
+				        smooth_viewtx);
 
 				if (free) {
 					MEM_freeN(rv3d->localvd);
@@ -1301,7 +1347,9 @@ static void restore_localviewdata(Main *bmain, ScrArea *sa, int free)
 	}
 }
 
-static bool view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
+static bool view3d_localview_exit(
+        wmWindowManager *wm, wmWindow *win,
+        Main *bmain, Scene *scene, ScrArea *sa, const int smooth_viewtx)
 {
 	View3D *v3d = sa->spacedata.first;
 	struct Base *base;
@@ -1310,8 +1358,8 @@ static bool view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 	if (v3d->localvd) {
 		
 		locallay = v3d->lay & 0xFF000000;
-		
-		restore_localviewdata(bmain, sa, 1); /* 1 = free */
+
+		restore_localviewdata(wm, win, bmain, sa, smooth_viewtx);
 
 		/* for when in other window the layers have changed */
 		if (v3d->scenelock) v3d->lay = scene->lay;
@@ -1339,6 +1387,9 @@ static bool view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 
 static int localview_exec(bContext *C, wmOperator *op)
 {
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -1346,10 +1397,10 @@ static int localview_exec(bContext *C, wmOperator *op)
 	bool changed;
 	
 	if (v3d->localvd) {
-		changed = view3d_localview_exit(bmain, scene, sa);
+		changed = view3d_localview_exit(wm, win, bmain, scene, sa, smooth_viewtx);
 	}
 	else {
-		changed = view3d_localview_init(bmain, scene, sa, op->reports);
+		changed = view3d_localview_init(wm, win, bmain, scene, sa, smooth_viewtx, op->reports);
 	}
 
 	if (changed) {
