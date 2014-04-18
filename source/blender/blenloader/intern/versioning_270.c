@@ -42,7 +42,6 @@
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_sdna_types.h"
 #include "DNA_linestyle_types.h"
 
 #include "DNA_genfile.h"
@@ -51,8 +50,6 @@
 
 #include "BKE_main.h"
 #include "BKE_node.h"
-
-#include "BLI_math.h"
 
 #include "BLO_readfile.h"
 
