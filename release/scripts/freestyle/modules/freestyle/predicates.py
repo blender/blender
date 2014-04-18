@@ -155,7 +155,6 @@ class pyParameterUP0D(UnaryPredicate0D):
 ## Unary predicates for 1D elements (curves)
 ############################################
 
-
 class AndUP1D(UnaryPredicate1D):
     def __init__(self, pred1, pred2):
         UnaryPredicate1D.__init__(self)
@@ -514,6 +513,34 @@ class pyClosedCurveUP1D(UnaryPredicate1D):
 
 ## Binary predicates for 1D elements (curves)
 #############################################
+
+class AndBP1D(BinaryPredicate1D):
+    def __init__(self, pred1, pred2):
+        BinaryPredicate1D.__init__(self)
+        self.__pred1 = pred1
+        self.__pred2 = pred2
+
+    def __call__(self, inter1, inter2):
+        return self.__pred1(inter1, inter2) and self.__pred2(inter1, inter2)
+
+
+class OrBP1D(BinaryPredicate1D):
+    def __init__(self, pred1, pred2):
+        BinaryPredicate1D.__init__(self)
+        self.__pred1 = pred1
+        self.__pred2 = pred2
+
+    def __call__(self, inter1, inter2):
+        return self.__pred1(inter1, inter2) or self.__pred2(inter1, inter2)
+
+
+class NotBP1D(BinaryPredicate1D):
+    def __init__(self, pred):
+        BinaryPredicate1D.__init__(self)
+        self.__pred = pred
+
+    def __call__(self, inter1, inter2):
+        return not self.__pred(inter1, inter2)
 
 
 class pyZBP1D(BinaryPredicate1D):
