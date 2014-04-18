@@ -232,8 +232,13 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_ADD_CLOSURE:
 				svm_node_add_closure(sd, stack, node.y, node.z, &offset, &randb, &closure_weight);
 				break;
-			case NODE_JUMP:
-				offset = node.y;
+			case NODE_JUMP_IF_ZERO:
+				if(stack_load_float(stack, node.z) == 0.0f)
+					offset += node.y;
+				break;
+			case NODE_JUMP_IF_ONE:
+				if(stack_load_float(stack, node.z) == 1.0f)
+					offset += node.y;
 				break;
 #ifdef __IMAGE_TEXTURES__
 			case NODE_TEX_IMAGE:

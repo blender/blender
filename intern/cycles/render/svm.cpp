@@ -515,11 +515,6 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 
 void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done)
 {
-	/* todo: the weak point here is that unlike the single closure sampling 
-	 * we will evaluate all nodes even if they are used as input for closures
-	 * that are unused. it's not clear what would be the best way to skip such
-	 * nodes at runtime, especially if they are tangled up  */
-	
 	/* only generate once */
 	if(closure_done.find(node) != closure_done.end())
 		return;
@@ -530,11 +525,70 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 		/* weighting is already taken care of in ShaderGraph::transform_multi_closure */
 		ShaderInput *cl1in = node->input("Closure1");
 		ShaderInput *cl2in = node->input("Closure2");
+		ShaderInput *facin = node->input("Fac");
 
-		if(cl1in->link)
-			generate_multi_closure(cl1in->link->parent, done, closure_done);
-		if(cl2in->link)
-			generate_multi_closure(cl2in->link->parent, done, closure_done);
+		/* skip empty mix/add closure nodes */
+		if(!cl1in->link && !cl2in->link)
+			return;
+
+		if(facin && facin->link) {
+			/* mix closure: generate instructions to compute mix weight */
+			set<ShaderNode*> dependencies;
+			find_dependencies(dependencies, done, facin);
+			generate_svm_nodes(dependencies, done);
+
+			stack_assign(facin); /* XXX unassign? */
+
+			/* execute shared dependencies. this is needed to allow skipping
+			 * of zero weight closures and their dependencies later, so we
+			 * ensure that they only skip dependencies that are unique to them */
+			set<ShaderNode*> cl1deps, cl2deps, shareddeps;
+
+			find_dependencies(cl1deps, done, cl1in);
+			find_dependencies(cl2deps, done, cl2in);
+
+			set_intersection(cl1deps.begin(), cl1deps.end(),
+							 cl2deps.begin(), cl2deps.end(),
+							 std::inserter(shareddeps, shareddeps.begin()));
+
+			generate_svm_nodes(shareddeps, done);
+
+			/* generate instructions for input closure 1 */
+			if(cl1in->link) {
+				/* add instruction to skip closure and its dependencies if mix weight is zero */
+				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, facin->stack_offset, 0));
+				int node_jump_skip_index = svm_nodes.size() - 1;
+
+				generate_multi_closure(cl1in->link->parent, done, closure_done);
+
+				/* fill in jump instruction location to be after closure */
+				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
+			}
+
+			/* generate instructions for input closure 2 */
+			if(cl2in->link) {
+				/* add instruction to skip closure and its dependencies if mix weight is zero */
+				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, facin->stack_offset, 0));
+				int node_jump_skip_index = svm_nodes.size() - 1;
+
+				generate_multi_closure(cl2in->link->parent, done, closure_done);
+
+				/* fill in jump instruction location to be after closure */
+				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
+			}
+
+			/* unassign */
+			facin->stack_offset = SVM_STACK_INVALID; // XXX clear?
+		}
+		else {
+			/* execute closures and their dependencies, no runtime checks
+			 * to skip closures here because was already optimized due to
+			 * fixed weight or add closure that always needs both */
+			if(cl1in->link)
+				generate_multi_closure(cl1in->link->parent, done, closure_done);
+			if(cl2in->link)
+				generate_multi_closure(cl2in->link->parent, done, closure_done);
+		}
 	}
 	else {
 		/* execute dependencies for closure */
