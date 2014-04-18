@@ -915,6 +915,24 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Stroke thickness is split by a user-defined ratio"},
 		{0, NULL, 0, NULL, NULL}
 	};
+	static EnumPropertyItem sort_key_items[] = {
+		{LS_SORT_KEY_DISTANCE_FROM_CAMERA, "DISTANCE_FROM_CAMERA", 0, "Distance from Camera", "Sort by distance from camera (closer lines lie on top of further lines)"},
+		{LS_SORT_KEY_2D_LENGTH, "2D_LENGTH", 0, "2D Length", "Sort by curvilinear 2D length (longer lines lie on top of shorter lines)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static EnumPropertyItem sort_order_items[] = {
+		{0, "DEFAULT", 0, "Default", "Default order of the sort key"},
+		{LS_REVERSE_ORDER, "REVERSE", 0, "Reverse", "Reverse order"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static EnumPropertyItem integration_type_items[] = {
+		{LS_INTEGRATION_MEAN, "MEAN", 0, "Mean", "The value computed for the chain is the mean of the values obtained for chain vertices"},
+		{LS_INTEGRATION_MIN, "MIN", 0, "Min", "The value computed for the chain is the minimum of the values obtained for chain vertices"},
+		{LS_INTEGRATION_MAX, "MAX", 0, "Max", "The value computed for the chain is the maximum of the values obtained for chain vertices"},
+		{LS_INTEGRATION_FIRST, "FIRST", 0, "First", "The value computed for the chain is the value obtained for the first chain vertex"},
+		{LS_INTEGRATION_LAST, "LAST", 0, "Last", "The value computed for the chain is the value obtained for the last chain vertex"},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "FreestyleLineStyle", "ID");
 	RNA_def_struct_ui_text(srna, "Freestyle Line Style", "Freestyle line style, reusable by multiple line sets");
@@ -1102,6 +1120,29 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "material_boundary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MATERIAL_BOUNDARY);
 	RNA_def_property_ui_text(prop, "Material Boundary", "If true, chains of feature edges are split at material boundaries");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop = RNA_def_property(srna, "use_sorting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", LS_NO_SORTING);
+	RNA_def_property_ui_text(prop, "Sorting", "Arrange the stacking order of strokes");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop = RNA_def_property(srna, "sort_key", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "sort_key");
+	RNA_def_property_enum_items(prop, sort_key_items);
+	RNA_def_property_ui_text(prop, "Sort Key", "Select the sort key to determine the stacking order of chains");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop = RNA_def_property(srna, "sort_order", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, sort_order_items);
+	RNA_def_property_ui_text(prop, "Sort Order", "Select the sort order");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop = RNA_def_property(srna, "integration_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "integration_type");
+	RNA_def_property_enum_items(prop, integration_type_items);
+	RNA_def_property_ui_text(prop, "Integration Type", "Select the way how the sort key is computed for each chain");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop = RNA_def_property(srna, "use_dashed_line", PROP_BOOLEAN, PROP_NONE);

@@ -603,6 +603,18 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             sub.active = linestyle.use_length_max
             sub.prop(linestyle, "length_max")
 
+            ## Sorting
+            layout.prop(linestyle, "use_sorting", text="Sorting:")
+            col = layout.column()
+            col.active = linestyle.use_sorting
+            row = col.row(align=True)
+            row.prop(linestyle, "sort_key", text="")
+            sub = row.row()
+            sub.active = linestyle.sort_key in {'DISTANCE_FROM_CAMERA'}
+            sub.prop(linestyle, "integration_type", text="")
+            row = col.row(align=True)
+            row.prop(linestyle, "sort_order", expand=True)
+
             ## Caps
             layout.label(text="Caps:")
             row = layout.row(align=True)

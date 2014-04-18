@@ -43,6 +43,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_sdna_types.h"
+#include "DNA_linestyle_types.h"
 
 #include "DNA_genfile.h"
 
@@ -169,6 +170,16 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* Mesh smoothresh deg->rad. */
 		for (me = main->mesh.first; me; me = me->id.next) {
 			me->smoothresh = DEG2RADF(me->smoothresh);
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 270, 3)) {
+		FreestyleLineStyle *linestyle;
+
+		for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+			linestyle->flag |= LS_NO_SORTING;
+			linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
+			linestyle->integration_type = LS_INTEGRATION_MEAN;
 		}
 	}
 }

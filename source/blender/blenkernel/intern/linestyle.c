@@ -81,7 +81,7 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->thickness = 3.0f;
 	linestyle->thickness_position = LS_THICKNESS_CENTER;
 	linestyle->thickness_ratio = 0.5f;
-	linestyle->flag = LS_SAME_OBJECT;
+	linestyle->flag = LS_SAME_OBJECT | LS_NO_SORTING;
 	linestyle->chaining = LS_CHAINING_PLAIN;
 	linestyle->rounds = 3;
 	linestyle->min_angle = DEG2RADF(0.0f);
@@ -89,6 +89,8 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->min_length = 0.0f;
 	linestyle->max_length = 10000.0f;
 	linestyle->split_length = 100;
+	linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
+	linestyle->integration_type = LS_INTEGRATION_MEAN;
 
 	BLI_listbase_clear(&linestyle->color_modifiers);
 	BLI_listbase_clear(&linestyle->alpha_modifiers);

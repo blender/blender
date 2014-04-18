@@ -368,6 +368,8 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_MAX_2D_ANGLE       (1 <<  8)
 #define LS_SPLIT_LENGTH       (1 <<  9)
 #define LS_SPLIT_PATTERN      (1 << 10)
+#define LS_NO_SORTING         (1 << 11)
+#define LS_REVERSE_ORDER      (1 << 12)  /* for sorting */
 
 /* FreestyleLineStyle::chaining */
 #define LS_CHAINING_PLAIN    1
@@ -383,6 +385,17 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_THICKNESS_INSIDE    2
 #define LS_THICKNESS_OUTSIDE   3
 #define LS_THICKNESS_RELATIVE  4 /* thickness_ratio is used */
+
+/* FreestyleLineStyle::sort_key */
+#define LS_SORT_KEY_DISTANCE_FROM_CAMERA  1
+#define LS_SORT_KEY_2D_LENGTH             2
+
+/* FreestyleLineStyle::integration_type */
+#define LS_INTEGRATION_MEAN   1
+#define LS_INTEGRATION_MIN    2
+#define LS_INTEGRATION_MAX    3
+#define LS_INTEGRATION_FIRST  4
+#define LS_INTEGRATION_LAST   5
 
 typedef struct FreestyleLineStyle {
 	ID id;
@@ -401,6 +414,7 @@ typedef struct FreestyleLineStyle {
 	unsigned short split_dash1, split_gap1;
 	unsigned short split_dash2, split_gap2;
 	unsigned short split_dash3, split_gap3;
+	int sort_key, integration_type;
 	int pad;
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	int panel; /* for UI */
