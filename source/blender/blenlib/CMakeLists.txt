@@ -135,6 +135,7 @@ set(SRC
 	BLI_kdopbvh.h
 	BLI_kdtree.h
 	BLI_lasso.h
+	BLI_link_utils.h
 	BLI_linklist.h
 	BLI_linklist_stack.h
 	BLI_listbase.h
