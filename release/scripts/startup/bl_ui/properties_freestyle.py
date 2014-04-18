@@ -534,20 +534,18 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
         row.prop(linestyle, "panel", expand=True)
         if linestyle.panel == 'STROKES':
             ## Chaining
-            layout.label(text="Chaining:")
+            layout.prop(linestyle, "use_chaining", text="Chaining:")
             split = layout.split(align=True)
+            split.active = linestyle.use_chaining
             # First column
-            col = split.column()
-            col.prop(linestyle, "use_chaining", text="Enable Chaining")
-            sub = col.row()
-            sub.active = linestyle.use_chaining
-            sub.prop(linestyle, "use_same_object")
-            # Second column
             col = split.column()
             col.active = linestyle.use_chaining
             col.prop(linestyle, "chaining", text="")
             if linestyle.chaining == 'SKETCHY':
                 col.prop(linestyle, "rounds")
+            # Second column
+            col = split.column()
+            col.prop(linestyle, "use_same_object")
 
             ## Splitting
             layout.label(text="Splitting:")
@@ -621,17 +619,15 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             row.prop(linestyle, "caps", expand=True)
 
             ## Dashed lines
-            layout.label(text="Dashed Line:")
+            layout.prop(linestyle, "use_dashed_line", text="Dashed Line:")
             row = layout.row(align=True)
-            row.prop(linestyle, "use_dashed_line", text="")
-            sub = row.row(align=True)
-            sub.active = linestyle.use_dashed_line
-            sub.prop(linestyle, "dash1", text="D1")
-            sub.prop(linestyle, "gap1", text="G1")
-            sub.prop(linestyle, "dash2", text="D2")
-            sub.prop(linestyle, "gap2", text="G2")
-            sub.prop(linestyle, "dash3", text="D3")
-            sub.prop(linestyle, "gap3", text="G3")
+            row.active = linestyle.use_dashed_line
+            row.prop(linestyle, "dash1", text="D1")
+            row.prop(linestyle, "gap1", text="G1")
+            row.prop(linestyle, "dash2", text="D2")
+            row.prop(linestyle, "gap2", text="G2")
+            row.prop(linestyle, "dash3", text="D3")
+            row.prop(linestyle, "gap3", text="G3")
 
         elif linestyle.panel == 'COLOR':
             col = layout.column()
