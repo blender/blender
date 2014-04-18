@@ -164,7 +164,7 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait)
 			Nature::RIDGE
 		};
 		int numNatures = sizeof(natures) / sizeof(Nature::EdgeNature);
-		for (unsigned int i = 0; i < numNatures; ++i) {
+		for (int i = 0; i < numNatures; ++i) {
 			if (getCurrentEdge()->getNature() & natures[i]) {
 				int n = 0;
 				while (!it.isEnd()) {
