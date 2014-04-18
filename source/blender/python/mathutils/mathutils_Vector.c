@@ -1201,11 +1201,11 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(Vector_slerp_doc,
 ".. function:: slerp(other, factor, fallback=None)\n"
 "\n"
-"   Returns the interpolation of two unit vectors (spherical coordinates).\n"
+"   Returns the interpolation of two non-zero vectors (spherical coordinates).\n"
 "\n"
 "   :arg other: value to interpolate with.\n"
 "   :type other: :class:`Vector`\n"
-"   :arg factor: The interpolation value in [0.0, 1.0].\n"
+"   :arg factor: The interpolation value typically in [0.0, 1.0].\n"
 "   :type factor: float\n"
 "   :arg fallback: return this value when the vector can't be calculated\n"
 "      (zero length vector or direct opposites)\n"
@@ -1218,8 +1218,8 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 	const int size = self->size;
 	PyObject *value = NULL;
 	float fac, cosom, w[2];
-	float tvec[3], vec[3];
-	double self_len_sq, other_len_sq;
+	float self_vec[3], other_vec[3], ret_vec[3];
+	float self_len_sq, other_len_sq;
 	int x;
 	PyObject *fallback = NULL;
 
@@ -1236,16 +1236,16 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 		return NULL;
 	}
 
-	if (mathutils_array_parse(tvec, size, size, value, "Vector.slerp(other), invalid 'other' arg") == -1) {
+	if (mathutils_array_parse(other_vec, size, size, value, "Vector.slerp(other), invalid 'other' arg") == -1) {
 		return NULL;
 	}
 
-	self_len_sq  = len_squared_vn(self->vec, size);
-	other_len_sq = len_squared_vn(tvec,      size);
+	self_len_sq  = normalize_vn_vn(self_vec, self->vec, size);
+	other_len_sq = normalize_vn(other_vec,              size);
 
 	/* use fallbacks for zero length vectors */
-	if (UNLIKELY((self_len_sq  < (double)FLT_EPSILON) ||
-	             (other_len_sq < (double)FLT_EPSILON)))
+	if (UNLIKELY((self_len_sq  < FLT_EPSILON) ||
+	             (other_len_sq < FLT_EPSILON)))
 	{
 		/* avoid exception */
 		if (fallback) {
@@ -1260,18 +1260,8 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 		}
 	}
 
-	/* no attempt made to normalize, no fallback */
-	if (UNLIKELY((fabs(self_len_sq  - 1.0) > (double)FLT_EPSILON) ||
-	             (fabs(other_len_sq - 1.0) > (double)FLT_EPSILON)))
-	{
-		PyErr_SetString(PyExc_ValueError,
-		                "Vector.slerp(): "
-		                "both vectors must be unit length");
-		return NULL;
-	}
-
 	/* We have sane state, execute slerp */
-	cosom = (float)dot_vn_vn(self->vec, tvec, size);
+	cosom = (float)dot_vn_vn(self_vec, other_vec, size);
 
 	/* direct opposite, can't slerp */
 	if (UNLIKELY(cosom < (-1.0f + FLT_EPSILON))) {
@@ -1291,12 +1281,10 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 	interp_dot_slerp(fac, cosom, w);
 
 	for (x = 0; x < size; x++) {
-		vec[x] = (w[0] * self->vec[x]) + (w[1] * tvec[x]);
+		ret_vec[x] = (w[0] * self_vec[x]) + (w[1] * other_vec[x]);
 	}
 
-	interp_v3_v3v3_slerp_safe(vec, self->vec, tvec, fac);
-
-	return Vector_CreatePyObject(vec, size, Py_NEW, Py_TYPE(self));
+	return Vector_CreatePyObject(ret_vec, size, Py_NEW, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Vector_rotate_doc,
