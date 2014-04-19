@@ -640,6 +640,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			gamesensor->Release();
 			
 		}
+		else if (gamesensor)
+			gamesensor->Release();
+
 		sens=sens->next;
 	}
 }

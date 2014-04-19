@@ -240,6 +240,8 @@ void BL_ConvertControllers(
 			//done with gamecontroller
 			gamecontroller->Release();
 		}
+		else if (gamecontroller)
+			gamecontroller->Release();
 		
 		bcontr = bcontr->next;
 	}
