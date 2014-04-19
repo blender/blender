@@ -983,19 +983,16 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		normalize_v2(dir3);
 	}
 
-	/* TODO - angle_normalized_v2v2(...) * (M_PI/180.0f)
-	 * This is incorrect. Its already given radians but without it wont work.
-	 * need to look into a fix - campbell */
 	if (is_quad) {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir4, dir1) * ((float)M_PI / 180.0f));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * ((float)M_PI / 180.0f));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * ((float)M_PI / 180.0f));
-		a4 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir4) * ((float)M_PI / 180.0f));
+		a1 = shell_v2v2_normalized_to_dist(dir4, dir1);
+		a2 = shell_v2v2_normalized_to_dist(dir1, dir2);
+		a3 = shell_v2v2_normalized_to_dist(dir2, dir3);
+		a4 = shell_v2v2_normalized_to_dist(dir3, dir4);
 	}
 	else {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir1) * ((float)M_PI / 180.0f));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * ((float)M_PI / 180.0f));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * ((float)M_PI / 180.0f));
+		a1 = shell_v2v2_normalized_to_dist(dir3, dir1);
+		a2 = shell_v2v2_normalized_to_dist(dir1, dir2);
+		a3 = shell_v2v2_normalized_to_dist(dir2, dir3);
 	}
 
 	if (is_quad) {

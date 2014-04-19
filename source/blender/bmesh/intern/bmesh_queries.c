@@ -1236,7 +1236,7 @@ float BM_vert_calc_shell_factor(BMVert *v)
 
 	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 		const float face_angle = BM_loop_calc_face_angle(l);
-		accum_shell += shell_angle_to_dist(angle_normalized_v3v3(v->no, l->f->no)) * face_angle;
+		accum_shell += shell_v3v3_normalized_to_dist(v->no, l->f->no) * face_angle;
 		accum_angle += face_angle;
 	}
 
@@ -1260,7 +1260,7 @@ float BM_vert_calc_shell_factor_ex(BMVert *v, const char hflag)
 	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 		if (BM_elem_flag_test(l->f, hflag)) {  /* <-- main difference to BM_vert_calc_shell_factor! */
 			const float face_angle = BM_loop_calc_face_angle(l);
-			accum_shell += shell_angle_to_dist(angle_normalized_v3v3(v->no, l->f->no)) * face_angle;
+			accum_shell += shell_v3v3_normalized_to_dist(v->no, l->f->no) * face_angle;
 			accum_angle += face_angle;
 			tot_sel++;
 		}

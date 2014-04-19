@@ -758,7 +758,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 								normalize_v3(tvec);
 
 								if (use_even_offset) {
-									mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_no_a, tvec)));
+									mul_v3_fl(tvec, shell_v3v3_normalized_to_dist(e_no_a, tvec));
 								}
 							}
 							else {

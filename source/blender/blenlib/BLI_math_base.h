@@ -241,8 +241,6 @@ MINLINE int mod_i(int i, int n);
 MINLINE unsigned int highest_order_bit_i(unsigned int n);
 MINLINE unsigned short highest_order_bit_s(unsigned short n);
 
-MINLINE float shell_angle_to_dist(const float angle);
-
 #if defined(_MSC_VER) && (_MSC_VER < 1800)
 extern double copysign(double x, double y);
 extern double round(double x);

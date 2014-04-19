@@ -314,6 +314,10 @@ MINLINE int min_axis_v3(const float vec[3]);
 
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count);
 
+MINLINE float shell_angle_to_dist(const float angle);
+MINLINE float shell_v3v3_normalized_to_dist(const float a[3], const float b[3]);
+MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2]);
+
 /**************************** Inline Definitions ******************************/
 
 #if BLI_MATH_DO_INLINE

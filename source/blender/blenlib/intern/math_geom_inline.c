@@ -34,6 +34,9 @@
 
 #include <string.h>
 
+/* A few small defines. Keep'em local! */
+#define SMALL_NUMBER  1.e-8f
+
 /********************************** Polygons *********************************/
 
 MINLINE float cross_tri_v2(const float v1[2], const float v2[2], const float v3[2])
@@ -226,5 +229,36 @@ MINLINE float plane_point_side_v3(const float plane[4], const float co[3])
 {
 	return dot_v3v3(co, plane) + plane[3];
 }
+
+/* useful to calculate an even width shell, by taking the angle between 2 planes.
+ * The return value is a scale on the offset.
+ * no angle between planes is 1.0, as the angle between the 2 planes approaches 180d
+ * the distance gets very high, 180d would be inf, but this case isn't valid */
+MINLINE float shell_angle_to_dist(const float angle)
+{
+	return (UNLIKELY(angle < SMALL_NUMBER)) ? 1.0f : fabsf(1.0f / cosf(angle));
+}
+/**
+ * equivalent to ``shell_angle_to_dist(angle_normalized_v3v3(a, b))``
+ */
+MINLINE float shell_v3v3_normalized_to_dist(const float a[3], const float b[3])
+{
+	const float angle_cos = fabsf(dot_v3v3(a, b));
+	BLI_ASSERT_UNIT_V3(a);
+	BLI_ASSERT_UNIT_V3(b);
+	return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+}
+/**
+ * equivalent to ``shell_angle_to_dist(angle_normalized_v2v2(a, b))``
+ */
+MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2])
+{
+	const float angle_cos = fabsf(dot_v2v2(a, b));
+	BLI_ASSERT_UNIT_V2(a);
+	BLI_ASSERT_UNIT_V2(b);
+	return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+}
+
+#undef SMALL_NUMBER
 
 #endif /* __MATH_GEOM_INLINE_C__ */

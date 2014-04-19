@@ -1928,6 +1928,7 @@ static void berekenx(float *f, float *o, int b)
 /* Calculate F-Curve value for 'evaltime' using BezTriple keyframes */
 static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime)
 {
+	const float eps = 1.e-8f;
 	BezTriple *bezt, *prevbezt, *lastbezt;
 	float v1[2], v2[2], v3[2], v4[2], opl[32], dx, fac;
 	unsigned int a;
@@ -2073,7 +2074,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 		if (exact) {
 			cvalue = prevbezt->vec[1][1];
 		}
-		else if (fabsf(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
+		else if (fabsf(bezt->vec[1][0] - evaltime) < eps) {
 			cvalue = bezt->vec[1][1];
 		}
 		/* evaltime occurs within the interval defined by these two keyframes */

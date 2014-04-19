@@ -538,13 +538,13 @@ static DerivedMesh *applyModifier(
 				    LIKELY(((orig_medge[ml[i_curr].e].flag & ME_EDGE_TMP_TAG) == 0) &&
 				           ((orig_medge[ml[i_next].e].flag & ME_EDGE_TMP_TAG) == 0)))
 				{
-					vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
+					vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], face_nors[i]) * angle;
 				}
 				else {
 					vert_angles[vidx] += angle;
 				}
 #else
-				vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
+				vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], face_nors[i]) * angle;
 #endif
 				/* --- end non-angle-calc section --- */
 

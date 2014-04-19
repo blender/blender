@@ -602,7 +602,7 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 				v = l->v;
 				index = BM_elem_index_get(v);
 				vert_accum[index] += face_angles[i];
-				vert_angles[index] += shell_angle_to_dist(angle_normalized_v3v3(v->no, f->no)) * face_angles[i];
+				vert_angles[index] += shell_v3v3_normalized_to_dist(v->no, f->no) * face_angles[i];
 				i++;
 			}
 		}
