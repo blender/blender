@@ -2377,9 +2377,8 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 	 *  be re-applied. The weights are applied directly to the targets 3D points and the
 	 *  z-depth is used to scale the targets normal as an offset.
 	 * This saves transforming the target into its Z-Up orientation and back (which could also work) */
-	const float z_up[3] = {0, 0, 1};
 	float no_tar[3], no_src[3];
-	float quat_src[4];
+	float mat_src[3][3];
 	float pt_src_xy[3];
 	float tri_xy_src[3][3];
 	float w_src[3];
@@ -2389,19 +2388,14 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 	normal_tri_v3(no_tar, tri_tar_p1, tri_tar_p2, tri_tar_p3);
 	normal_tri_v3(no_src, tri_src_p1, tri_src_p2, tri_src_p3);
 
-	rotation_between_vecs_to_quat(quat_src, no_src, z_up);
-	normalize_qt(quat_src);
-
-	copy_v3_v3(pt_src_xy, pt_src);
-	copy_v3_v3(tri_xy_src[0], tri_src_p1);
-	copy_v3_v3(tri_xy_src[1], tri_src_p2);
-	copy_v3_v3(tri_xy_src[2], tri_src_p3);
+	axis_dominant_v3_to_m3(mat_src, no_src);
 
 	/* make the source tri xy space */
-	mul_qt_v3(quat_src, pt_src_xy);
-	mul_qt_v3(quat_src, tri_xy_src[0]);
-	mul_qt_v3(quat_src, tri_xy_src[1]);
-	mul_qt_v3(quat_src, tri_xy_src[2]);
+	mul_v3_m3v3(pt_src_xy,     mat_src, pt_src);
+	mul_v3_m3v3(tri_xy_src[0], mat_src, tri_src_p1);
+	mul_v3_m3v3(tri_xy_src[1], mat_src, tri_src_p2);
+	mul_v3_m3v3(tri_xy_src[2], mat_src, tri_src_p3);
+
 
 	barycentric_weights_v2(tri_xy_src[0], tri_xy_src[1], tri_xy_src[2], pt_src_xy, w_src);
 	interp_v3_v3v3v3(pt_tar, tri_tar_p1, tri_tar_p2, tri_tar_p3, w_src);
