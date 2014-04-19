@@ -64,6 +64,7 @@ CCL_NAMESPACE_BEGIN
 #define __SUBSURFACE__
 #define __CMJ__
 #define __VOLUME__
+#define __SHADOW_RECORD_ALL__
 #endif
 
 #ifdef __KERNEL_CUDA__

@@ -17,25 +17,23 @@
  * limitations under the License.
  */
 
-/* This is a template BVH traversal function for subsurface scattering, where
- * various features can be enabled/disabled. This way we can compile optimized
- * versions for each case without new features slowing things down.
+/* This is a template BVH traversal function, where various features can be
+ * enabled/disabled. This way we can compile optimized versions for each case
+ * without new features slowing things down.
  *
  * BVH_INSTANCING: object instancing
+ * BVH_HAIR: hair curve rendering
  * BVH_MOTION: motion blur rendering
  *
  */
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersection *isect_array,
-	int subsurface_object, uint *lcg_state, int max_hits)
+ccl_device bool BVH_FUNCTION_NAME
+(KernelGlobals *kg, const Ray *ray, Intersection *isect_array, const uint max_hits, uint *num_hits)
 {
 	/* todo:
-	 * - test if pushing distance on the stack helps (for non shadow rays)
-	 * - separate version for shadow rays
 	 * - likely and unlikely for if() statements
-	 * - SSE for hair
 	 * - test restrict attribute for pointers
 	 */
 	
@@ -48,18 +46,23 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 	int nodeAddr = kernel_data.bvh.root;
 
 	/* ray parameters in registers */
+	const float tmax = ray->t;
 	float3 P = ray->P;
 	float3 dir = bvh_clamp_direction(ray->D);
 	float3 idir = bvh_inverse_direction(dir);
 	int object = OBJECT_NONE;
-	float isect_t = ray->t;
-
-	const uint visibility = PATH_RAY_ALL_VISIBILITY;
-	uint num_hits = 0;
+	float isect_t = tmax;
 
 #if FEATURE(BVH_MOTION)
 	Transform ob_tfm;
 #endif
+
+#if FEATURE(BVH_INSTANCING)
+	int num_hits_in_instance = 0;
+#endif
+
+	*num_hits = 0;
+	isect_array->t = tmax;
 
 #if defined(__KERNEL_SSE2__)
 	const shuffle_swap_t shuf_identity = shuffle_swap_identity();
@@ -120,8 +123,8 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 				/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__
 				/* this visibility test gives a 5% performance hit, how to solve? */
-				traverseChild0 = (c0max >= c0min) && (__float_as_uint(cnodes.z) & visibility);
-				traverseChild1 = (c1max >= c1min) && (__float_as_uint(cnodes.w) & visibility);
+				traverseChild0 = (c0max >= c0min) && (__float_as_uint(cnodes.z) & PATH_RAY_SHADOW);
+				traverseChild1 = (c1max >= c1min) && (__float_as_uint(cnodes.w) & PATH_RAY_SHADOW);
 #else
 				traverseChild0 = (c0max >= c0min);
 				traverseChild1 = (c1max >= c1min);
@@ -139,14 +142,16 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 				const __m128 tminmaxy = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[1], shufflexyz[1]), Psplat[1]), idirsplat[1]);
 				const __m128 tminmaxz = _mm_mul_ps(_mm_sub_ps(shuffle_swap(bvh_nodes[2], shufflexyz[2]), Psplat[2]), idirsplat[2]);
 
-				const __m128 tminmax = _mm_xor_ps(_mm_max_ps(_mm_max_ps(tminmaxx, tminmaxy), _mm_max_ps(tminmaxz, tsplat)), pn);
+				/* calculate { c0min, c1min, -c0max, -c1max} */
+				__m128 minmax = _mm_max_ps(_mm_max_ps(tminmaxx, tminmaxy), _mm_max_ps(tminmaxz, tsplat));
+				const __m128 tminmax = _mm_xor_ps(minmax, pn);
 				const __m128 lrhit = _mm_cmple_ps(tminmax, shuffle<2, 3, 0, 1>(tminmax));
 
 				/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__
 				/* this visibility test gives a 5% performance hit, how to solve? */
-				traverseChild0 = (_mm_movemask_ps(lrhit) & 1) && (__float_as_uint(cnodes.z) & visibility);
-				traverseChild1 = (_mm_movemask_ps(lrhit) & 2) && (__float_as_uint(cnodes.w) & visibility);
+				traverseChild0 = (_mm_movemask_ps(lrhit) & 1) && (__float_as_uint(cnodes.z) & PATH_RAY_SHADOW);
+				traverseChild1 = (_mm_movemask_ps(lrhit) & 2) && (__float_as_uint(cnodes.w) & PATH_RAY_SHADOW);
 #else
 				traverseChild0 = (_mm_movemask_ps(lrhit) & 1);
 				traverseChild1 = (_mm_movemask_ps(lrhit) & 2);
@@ -203,63 +208,112 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 					--stackPtr;
 
 					/* primitive intersection */
-					for(; primAddr < primAddr2; primAddr++) {
-						/* only primitives from the same object */
-						uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-
-						if(tri_object != subsurface_object)
-							continue;
-
-						/* intersect ray against primitive */
+					while(primAddr < primAddr2) {
+						bool hit;
 						uint type = kernel_tex_fetch(__prim_type, primAddr);
+
+						/* todo: specialized intersect functions which don't fill in
+						 * isect unless needed and check SD_HAS_TRANSPARENT_SHADOW?
+						 * might give a few % performance improvement */
 
 						switch(type & PRIMITIVE_ALL) {
 							case PRIMITIVE_TRIANGLE: {
-								triangle_intersect_subsurface(kg, isect_array, P, dir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								hit = triangle_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr);
 								break;
 							}
 							case PRIMITIVE_MOTION_TRIANGLE: {
-								motion_triangle_intersect_subsurface(kg, isect_array, P, dir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, PATH_RAY_SHADOW, object, primAddr);
 								break;
 							}
+#if FEATURE(BVH_HAIR)
+							case PRIMITIVE_CURVE:
+							case PRIMITIVE_MOTION_CURVE: {
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+									hit = bvh_cardinal_curve_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr, ray->time, type, NULL, 0, 0);
+								else
+									hit = bvh_curve_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr, ray->time, type, NULL, 0, 0);
+								break;
+							}
+#endif
 							default: {
+								hit = false;
 								break;
 							}
 						}
+
+						/* shadow ray early termination */
+						if(hit) {
+							/* detect if this surface has a shader with transparent shadows */
+
+							/* todo: optimize so primitive visibility flag indicates if
+							 * the primitive has a transparent shadow shader? */
+							int prim = kernel_tex_fetch(__prim_index, isect_array->prim);
+							int shader = 0;
+
+#ifdef __HAIR__
+							if(kernel_tex_fetch(__prim_type, isect_array->prim) & PRIMITIVE_ALL_TRIANGLE) {
+#endif
+								float4 Ns = kernel_tex_fetch(__tri_normal, prim);
+								shader = __float_as_int(Ns.w);
+#ifdef __HAIR__
+							}
+							else {
+								float4 str = kernel_tex_fetch(__curves, prim);
+								shader = __float_as_int(str.z);
+							}
+#endif
+							int flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
+
+							/* if no transparent shadows, all light is blocked */
+							if(!(flag & SD_HAS_TRANSPARENT_SHADOW)) {
+								return true;
+							}
+							/* if maximum number of hits reached, block all light */
+							else if(*num_hits == max_hits) {
+								return true;
+							}
+
+							/* move on to next entry in intersections array */
+							isect_array++;
+							(*num_hits)++;
+#if FEATURE(BVH_INSTANCING)
+							num_hits_in_instance++;
+#endif
+
+							isect_array->t = isect_t;
+						}
+
+						primAddr++;
 					}
 				}
 #if FEATURE(BVH_INSTANCING)
 				else {
 					/* instance push */
-					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
-						object = subsurface_object;
+					object = kernel_tex_fetch(__prim_object, -primAddr-1);
 
 #if FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
+					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
 #else
-						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
+					bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif
+
+					num_hits_in_instance = 0;
 
 #if defined(__KERNEL_SSE2__)
-						Psplat[0] = _mm_set_ps1(P.x);
-						Psplat[1] = _mm_set_ps1(P.y);
-						Psplat[2] = _mm_set_ps1(P.z);
+					Psplat[0] = _mm_set_ps1(P.x);
+					Psplat[1] = _mm_set_ps1(P.y);
+					Psplat[2] = _mm_set_ps1(P.z);
 
-						tsplat = _mm_set_ps(-isect_t, -isect_t, 0.0f, 0.0f);
+					isect_array->t = isect_t;
+					tsplat = _mm_set_ps(-isect_t, -isect_t, 0.0f, 0.0f);
 
-						gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
+					gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
-						++stackPtr;
-						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+					++stackPtr;
+					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
 
-						nodeAddr = kernel_tex_fetch(__object_node, object);
-					}
-					else {
-						/* pop */
-						nodeAddr = traversalStack[stackPtr];
-						--stackPtr;
-					}
+					nodeAddr = kernel_tex_fetch(__object_node, object);
 				}
 			}
 #endif
@@ -269,18 +323,36 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 		if(stackPtr >= 0) {
 			kernel_assert(object != OBJECT_NONE);
 
-			/* instance pop */
+			if(num_hits_in_instance) {
+				float t_fac;
+
 #if FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
+				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_tfm);
 #else
-			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect_t);
+				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
 #endif
+
+				/* scale isect->t to adjust for instancing */
+				for(int i = 0; i < num_hits_in_instance; i++)
+					(isect_array-i-1)->t *= t_fac;
+			}
+			else {
+				float ignore_t = FLT_MAX;
+
+#if FEATURE(BVH_MOTION)
+				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_tfm);
+#else
+				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
+#endif
+			}
 
 #if defined(__KERNEL_SSE2__)
 			Psplat[0] = _mm_set_ps1(P.x);
 			Psplat[1] = _mm_set_ps1(P.y);
 			Psplat[2] = _mm_set_ps1(P.z);
 
+			isect_t = tmax;
+			isect_array->t = isect_t;
 			tsplat = _mm_set_ps(-isect_t, -isect_t, 0.0f, 0.0f);
 
 			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
@@ -293,7 +365,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 #endif
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
-	return num_hits;
+	return false;
 }
 
 #undef FEATURE
