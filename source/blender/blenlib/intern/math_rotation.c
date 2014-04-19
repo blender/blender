@@ -834,6 +834,7 @@ void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const s
 void axis_angle_normalized_to_mat3(float mat[3][3], const float nor[3], const float angle)
 {
 	float nsi[3], co, si, ico;
+	float n_00, n_01, n_11, n_02, n_12, n_22;
 
 	BLI_ASSERT_UNIT_V3(nor);
 
@@ -846,15 +847,22 @@ void axis_angle_normalized_to_mat3(float mat[3][3], const float nor[3], const fl
 	nsi[1] = nor[1] * si;
 	nsi[2] = nor[2] * si;
 
-	mat[0][0] = ((nor[0] * nor[0]) * ico) + co;
-	mat[0][1] = ((nor[0] * nor[1]) * ico) + nsi[2];
-	mat[0][2] = ((nor[0] * nor[2]) * ico) - nsi[1];
-	mat[1][0] = ((nor[0] * nor[1]) * ico) - nsi[2];
-	mat[1][1] = ((nor[1] * nor[1]) * ico) + co;
-	mat[1][2] = ((nor[1] * nor[2]) * ico) + nsi[0];
-	mat[2][0] = ((nor[0] * nor[2]) * ico) + nsi[1];
-	mat[2][1] = ((nor[1] * nor[2]) * ico) - nsi[0];
-	mat[2][2] = ((nor[2] * nor[2]) * ico) + co;
+	n_00 = (nor[0] * nor[0]) * ico;
+	n_01 = (nor[0] * nor[1]) * ico;
+	n_11 = (nor[1] * nor[1]) * ico;
+	n_02 = (nor[0] * nor[2]) * ico;
+	n_12 = (nor[1] * nor[2]) * ico;
+	n_22 = (nor[2] * nor[2]) * ico;
+
+	mat[0][0] = n_00 + co;
+	mat[0][1] = n_01 + nsi[2];
+	mat[0][2] = n_02 - nsi[1];
+	mat[1][0] = n_01 - nsi[2];
+	mat[1][1] = n_11 + co;
+	mat[1][2] = n_12 + nsi[0];
+	mat[2][0] = n_02 + nsi[1];
+	mat[2][1] = n_12 - nsi[0];
+	mat[2][2] = n_22 + co;
 }
 
 
