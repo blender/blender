@@ -429,9 +429,8 @@ axis_calc:
 		cross_v3_v3v3(m1[2], m1[1], m1[0]);
 		cross_v3_v3v3(m2[2], m2[1], m2[0]);
 
-		transpose_m3(m2);
-		mul_m3_m3m3(m, m1, m2);
-		transpose_m3(m);
+		transpose_m3(m1);
+		mul_m3_m3m3(m, m2, m1);
 
 		BLI_ASSERT_UNIT_M3(m);
 	}
