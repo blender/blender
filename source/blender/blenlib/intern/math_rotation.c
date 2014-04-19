@@ -400,6 +400,55 @@ float normalize_qt_qt(float r[4], const float q[4])
 	return normalize_qt(r);
 }
 
+/**
+ * Calculate a rotation matrix from 2 normalized vectors.
+ *
+ * \note faster then using axis/angle functions.
+ */
+void rotation_between_vecs_to_mat3(float m[3][3], const float v1[3], const float v2[3])
+{
+	float axis[3];
+
+	BLI_ASSERT_UNIT_V3(v1);
+	BLI_ASSERT_UNIT_V3(v2);
+
+	cross_v3_v3v3(axis, v1, v2);
+
+	if (normalize_v3(axis) > FLT_EPSILON) {
+		float m1[3][3], m2[3][3];
+
+axis_calc:
+		BLI_ASSERT_UNIT_V3(axis);
+
+		copy_v3_v3(m1[0], v1);
+		copy_v3_v3(m2[0], v2);
+
+		copy_v3_v3(m1[1], axis);
+		copy_v3_v3(m2[1], axis);
+
+		cross_v3_v3v3(m1[2], m1[1], m1[0]);
+		cross_v3_v3v3(m2[2], m2[1], m2[0]);
+
+		transpose_m3(m2);
+		mul_m3_m3m3(m, m1, m2);
+		transpose_m3(m);
+
+		BLI_ASSERT_UNIT_M3(m);
+	}
+	else {
+		if (dot_v3v3(v1, v2) > 0.0f) {
+			/* Same vectors, zero rotation... */
+			unit_m3(m);
+		}
+		else {
+			/* Colinear but opposed vectors, 180 rotation... */
+			ortho_v3_v3(axis, v1);
+			normalize_v3(axis);
+			goto axis_calc;
+		}
+	}
+}
+
 /* note: expects vectors to be normalized */
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3])
 {
