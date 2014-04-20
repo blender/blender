@@ -672,7 +672,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 				MEM_freeN(uniqueUv);
 			}
 			if (edgeHash) {
-				MEM_freeN(edgeHash);
+				BLI_ghash_free(edgeHash, NULL, NULL);
 			}
 			uv_sculpt_stroke_exit(C, op);
 			return NULL;
