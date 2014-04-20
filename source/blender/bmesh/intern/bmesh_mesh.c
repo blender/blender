@@ -473,7 +473,7 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const flo
 		if (BM_edge_loop_pair(e, &l_a, &l_b)) {
 			bool is_angle_smooth = true;
 			if (check_angle) {
-				const float *no_a = fnos ? fnos[BM_elem_index_get(l_b->f)] : l_a->f->no;
+				const float *no_a = fnos ? fnos[BM_elem_index_get(l_a->f)] : l_a->f->no;
 				const float *no_b = fnos ? fnos[BM_elem_index_get(l_b->f)] : l_b->f->no;
 				is_angle_smooth = (dot_v3v3(no_a, no_b) >= split_angle);
 			}

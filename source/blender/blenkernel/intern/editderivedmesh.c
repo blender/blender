@@ -180,6 +180,7 @@ static void emDM_calcLoopNormals(DerivedMesh *dm, const float split_angle)
 
 	/* calculate loop normals from poly and vertex normals */
 	emDM_ensureVertNormals(bmdm);
+	emDM_ensurePolyNormals(bmdm);
 	dm->dirty &= ~DM_DIRTY_NORMALS;
 
 	vertexCos = bmdm->vertexCos;
