@@ -1349,6 +1349,11 @@ void id_clear_lib_data(Main *bmain, ID *id)
 
 	BKE_id_lib_local_paths(bmain, id->lib, id);
 
+	if (id->flag & LIB_FAKEUSER) {
+		id->us--;
+		id->flag &= ~LIB_FAKEUSER;
+	}
+
 	id->lib = NULL;
 	id->flag = LIB_LOCAL;
 	new_id(which_libbase(bmain, GS(id->name)), id, NULL);
