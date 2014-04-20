@@ -74,7 +74,7 @@
 static void update_cb(PBVHNode *node, void *rebuild)
 {
 	BKE_pbvh_node_mark_update(node);
-	if (*((int *)rebuild))
+	if (*((bool *)rebuild))
 		BKE_pbvh_node_mark_rebuild_draw(node);
 	BKE_pbvh_node_fully_hidden_set(node, 0);
 }
