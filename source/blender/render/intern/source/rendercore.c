@@ -1910,9 +1910,9 @@ static void renderflare(RenderResult *rr, float *rectf, HaloRen *har)
 	
 	for (b=1; b<har->flarec; b++) {
 		
-		fla.r= fabs(rc[0]);
-		fla.g= fabs(rc[1]);
-		fla.b= fabs(rc[2]);
+		fla.r = fabsf(rc[0]);
+		fla.g = fabsf(rc[1]);
+		fla.b = fabsf(rc[2]);
 		fla.alfa= ma->flareboost*fabsf(alfa*visifac*rc[3]);
 		fla.hard= 20.0f + fabsf(70.0f*rc[7]);
 		fla.tex= 0;

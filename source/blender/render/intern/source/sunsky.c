@@ -109,8 +109,8 @@ static float AngleBetween(float thetav, float phiv, float theta, float phi)
  * */
 static void DirectionToThetaPhi(float *toSun, float *theta, float *phi)
 {
-	*theta = acos(toSun[2]);
-	if (fabs(*theta) < 1e-5)
+	*theta = acosf(toSun[2]);
+	if (fabsf(*theta) < 1e-5f)
 		*phi = 0;
 	else
 		*phi = atan2(toSun[1], toSun[0]);

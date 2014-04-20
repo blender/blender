@@ -520,6 +520,7 @@ float angle_qtqt(const float q1[4], const float q2[4])
 
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 {
+	const float eps = 0.0001f;
 	float nor[3], tvec[3];
 	float angle, si, co, len;
 
@@ -553,7 +554,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 		nor[1] = -tvec[2];
 		nor[2] =  tvec[1];
 
-		if (fabsf(tvec[1]) + fabsf(tvec[2]) < 0.0001f)
+		if (fabsf(tvec[1]) + fabsf(tvec[2]) < eps)
 			nor[1] = 1.0f;
 
 		co = tvec[0];
@@ -563,7 +564,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 		nor[1] =  0.0;
 		nor[2] = -tvec[0];
 
-		if (fabsf(tvec[0]) + fabsf(tvec[2]) < 0.0001f)
+		if (fabsf(tvec[0]) + fabsf(tvec[2]) < eps)
 			nor[2] = 1.0f;
 
 		co = tvec[1];
@@ -573,7 +574,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 		nor[1] =  tvec[0];
 		nor[2] =  0.0;
 
-		if (fabsf(tvec[0]) + fabsf(tvec[1]) < 0.0001f)
+		if (fabsf(tvec[0]) + fabsf(tvec[1]) < eps)
 			nor[0] = 1.0f;
 
 		co = tvec[2];
@@ -582,12 +583,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 
 	normalize_v3(nor);
 
-	angle = 0.5f * saacos(co);
-	si   = sinf(angle);
-	q[0] = cosf(angle);
-	q[1] = nor[0] * si;
-	q[2] = nor[1] * si;
-	q[3] = nor[2] * si;
+	axis_angle_normalized_to_quat(q, nor, saacos(co));
 
 	if (axis != upflag) {
 		float mat[3][3];
@@ -1440,11 +1436,15 @@ void eulO_to_mat4(float M[4][4], const float e[3], const short order)
 void mat3_to_eulO(float eul[3], const short order, float M[3][3])
 {
 	float eul1[3], eul2[3];
+	float d1, d2;
 
 	mat3_to_eulo2(M, eul1, eul2, order);
 
+	d1 = fabsf(eul1[0]) + fabsf(eul1[1]) + fabsf(eul1[2]);
+	d2 = fabsf(eul2[0]) + fabsf(eul2[1]) + fabsf(eul2[2]);
+
 	/* return best, which is just the one with lowest values it in */
-	if (fabsf(eul1[0]) + fabsf(eul1[1]) + fabsf(eul1[2]) > fabsf(eul2[0]) + fabsf(eul2[1]) + fabsf(eul2[2])) {
+	if (d1 > d2) {
 		copy_v3_v3(eul, eul2);
 	}
 	else {
@@ -1478,10 +1478,12 @@ void mat3_to_compatible_eulO(float eul[3], float oldrot[3], const short order, f
 	d2 = fabsf(eul2[0] - oldrot[0]) + fabsf(eul2[1] - oldrot[1]) + fabsf(eul2[2] - oldrot[2]);
 
 	/* return best, which is just the one with lowest difference */
-	if (d1 > d2)
+	if (d1 > d2) {
 		copy_v3_v3(eul, eul2);
-	else
+	}
+	else {
 		copy_v3_v3(eul, eul1);
+	}
 }
 
 void mat4_to_compatible_eulO(float eul[3], float oldrot[3], const short order, float M[4][4])
@@ -1502,7 +1504,8 @@ void rotate_eulO(float beul[3], const short order, char axis, float ang)
 
 	assert(axis >= 'X' && axis <= 'Z');
 
-	eul[0] = eul[1] = eul[2] = 0.0f;
+	zero_v3(eul);
+
 	if (axis == 'X')
 		eul[0] = ang;
 	else if (axis == 'Y')
@@ -1538,9 +1541,7 @@ void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], const short order
 
 
 	/* Last axis is global */
-	gmat[R->axis[2]][0] = 0;
-	gmat[R->axis[2]][1] = 0;
-	gmat[R->axis[2]][2] = 0;
+	zero_v3(gmat[R->axis[2]]);
 	gmat[R->axis[2]][R->axis[2]] = 1;
 }
 
@@ -1660,7 +1661,7 @@ void dquat_to_mat4(float mat[4][4], const DualQuat *dq)
 
 void add_weighted_dq_dq(DualQuat *dqsum, const DualQuat *dq, float weight)
 {
-	int flipped = 0;
+	bool flipped = false;
 
 	/* make sure we interpolate quats in the right direction */
 	if (dot_qtqt(dq->quat, dqsum->quat) < 0) {

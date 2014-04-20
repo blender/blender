@@ -4193,7 +4193,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 
 			/* change of sign, we passed the 180 degree threshold. This means we need to add a turn.
 			 * to distinguish between transition from 0 to -1 and -PI to +PI, use comparison with PI/2 */
-			if (mouse_angle * cache->previous_vertex_rotation < 0 && fabs(cache->previous_vertex_rotation) > M_PI_2) {
+			if ((mouse_angle * cache->previous_vertex_rotation < 0.0f) &&
+			    (fabsf(cache->previous_vertex_rotation) > (float)M_PI_2))
+			{
 				if (cache->previous_vertex_rotation < 0)
 					cache->num_vertex_turns--;
 				else

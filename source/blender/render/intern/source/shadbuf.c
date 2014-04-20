@@ -2120,7 +2120,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	
 	/* clip We can test for -1.0/1.0 because of the properties of the
 	 * coordinate transformations. */
-	fac= fabs(hoco[3]);
+	fac = fabsf(hoco[3]);
 	if (hoco[0]<-fac || hoco[0]>fac)
 		return 0;
 	if (hoco[1]<-fac || hoco[1]>fac)

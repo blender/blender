@@ -643,10 +643,10 @@ static float voronoiTex(Tex *tex, const float texvec[3], TexResult *texres)
 {
 	int rv = TEX_INT;
 	float da[4], pa[12];	/* distance and point coordinate arrays of 4 nearest neighbors */
-	float aw1 = fabs(tex->vn_w1);
-	float aw2 = fabs(tex->vn_w2);
-	float aw3 = fabs(tex->vn_w3);
-	float aw4 = fabs(tex->vn_w4);
+	float aw1 = fabsf(tex->vn_w1);
+	float aw2 = fabsf(tex->vn_w2);
+	float aw3 = fabsf(tex->vn_w3);
+	float aw4 = fabsf(tex->vn_w4);
 	float sc = (aw1 + aw2 + aw3 + aw4);
 	if (sc!=0.f) sc =  tex->ns_outscale/sc;
 
@@ -751,9 +751,9 @@ static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1
 	}
 	mul_mat3_m4_v3(R.viewinv, nor);
 
-	x1= fabs(nor[0]);
-	y1= fabs(nor[1]);
-	z1= fabs(nor[2]);
+	x1 = fabsf(nor[0]);
+	y1 = fabsf(nor[1]);
+	z1 = fabsf(nor[2]);
 	
 	if (z1>=x1 && z1>=y1) {
 		*adr1 = (x + 1.0f) / 2.0f;
@@ -844,9 +844,9 @@ static int cubemap_ob(Object *ob, const float n[3], float x, float y, float z, f
 	copy_v3_v3(nor, n);
 	if (ob) mul_mat3_m4_v3(ob->imat, nor);
 	
-	x1= fabs(nor[0]);
-	y1= fabs(nor[1]);
-	z1= fabs(nor[2]);
+	x1 = fabsf(nor[0]);
+	y1 = fabsf(nor[1]);
+	z1 = fabsf(nor[2]);
 	
 	if (z1>=x1 && z1>=y1) {
 		*adr1 = (x + 1.0f) / 2.0f;

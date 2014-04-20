@@ -1684,7 +1684,7 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 	
 	if (nb_edges > 2) {
 		for (edge = iarc->edges.first; edge; edge = edge->next) {
-			if (fabs(edge->angle - avg_angle) > M_PI / 6) {
+			if (fabsf(edge->angle - avg_angle) > (float)(M_PI / 6)) {
 				large_angle = 1;
 			}
 		}
@@ -1795,7 +1795,7 @@ static float costLength(float original_length, float current_length, float lengt
 		return MAX_COST;
 	}
 	else {
-		float length_ratio = fabs((current_length - original_length) / original_length);
+		float length_ratio = fabsf((current_length - original_length) / original_length);
 		return length_weight * length_ratio * length_ratio;
 	}
 }

@@ -1886,7 +1886,7 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 
 	if (p_vert_interior(oldv)) {
 		/* hlscm criterion: angular defect smaller than threshold */
-		if (fabs(angulardefect) > (M_PI * 30.0 / 180.0))
+		if (fabsf(angulardefect) > (float)(M_PI * 30.0 / 180.0))
 			return P_FALSE;
 	}
 	else {
@@ -1952,7 +1952,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
 			sub_v3_v3v3(tetrav3, co2, oldv->co);
 			cross_v3_v3v3(c, tetrav2, tetrav3);
 
-			volumecost += fabs(dot_v3v3(edgevec, c) / 6.0f);
+			volumecost += fabsf(dot_v3v3(edgevec, c) / 6.0f);
 #if 0
 			shapecost += dot_v3v3(co1, keepv->co);
 
