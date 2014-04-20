@@ -452,11 +452,33 @@ void BLI_edgehashIterator_init(EdgeHashIterator *ehi, EdgeHash *eh)
 	ehi->eh = eh;
 	ehi->curEntry = NULL;
 	ehi->curBucket = UINT_MAX;  /* wraps to zero */
-	while (!ehi->curEntry) {
-		ehi->curBucket++;
-		if (ehi->curBucket == ehi->eh->nbuckets)
-			break;
-		ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
+	if (eh->nentries) {
+		while (!ehi->curEntry) {
+			ehi->curBucket++;
+			if (UNLIKELY(ehi->curBucket == ehi->eh->nbuckets)) {
+				break;
+			}
+
+			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
+		}
+	}
+}
+
+/**
+ * Steps the iterator to the next index.
+ */
+void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
+{
+	if (ehi->curEntry) {
+		ehi->curEntry = ehi->curEntry->next;
+		while (!ehi->curEntry) {
+			ehi->curBucket++;
+			if (UNLIKELY(ehi->curBucket == ehi->eh->nbuckets)) {
+				break;
+			}
+
+			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
+		}
 	}
 }
 
@@ -511,24 +533,6 @@ bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 	return (ehi->curEntry == NULL);
 }
 #endif
-
-/**
- * Steps the iterator to the next index.
- */
-void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
-{
-	if (ehi->curEntry) {
-		ehi->curEntry = ehi->curEntry->next;
-		while (!ehi->curEntry) {
-			ehi->curBucket++;
-			if (ehi->curBucket == ehi->eh->nbuckets) {
-				break;
-			}
-
-			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
-		}
-	}
-}
 
 /** \} */
 
