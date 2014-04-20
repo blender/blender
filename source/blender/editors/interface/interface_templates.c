@@ -1495,7 +1495,7 @@ static void colorband_update_cb(bContext *UNUSED(C), void *bt_v, void *coba_v)
 }
 
 static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand *coba, const rctf *butr,
-                                    RNAUpdateCb *cb, int expand)
+                                     RNAUpdateCb *cb, int expand)
 {
 	uiLayout *row, *split, *subsplit;
 	uiBut *bt;
@@ -2430,7 +2430,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, const char *propname,
 }
 
 void uiTemplateGameStates(uiLayout *layout, PointerRNA *ptr, const char *propname,
-                      PointerRNA *used_ptr, const char *used_propname, int active_state)
+                          PointerRNA *used_ptr, const char *used_propname, int active_state)
 {
 	uiLayout *uRow, *uCol;
 	PropertyRNA *prop, *used_prop = NULL;

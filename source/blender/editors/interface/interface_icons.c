@@ -479,13 +479,13 @@ static void init_brush_icons(void)
 
 #define INIT_BRUSH_ICON(icon_id, name)                                          \
 	{                                                                           \
-		unsigned char *rect = (unsigned char *)datatoc_ ##name## _png;			\
-		int size = datatoc_ ##name## _png_size;									\
-		DrawInfo *di;															\
+		unsigned char *rect = (unsigned char *)datatoc_ ##name## _png;          \
+		int size = datatoc_ ##name## _png_size;                                 \
+		DrawInfo *di;                                                           \
 		\
-		di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER);		\
-		di->data.buffer.image->datatoc_rect = rect;								\
-		di->data.buffer.image->datatoc_size = size;								\
+		di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER);       \
+		di->data.buffer.image->datatoc_rect = rect;                             \
+		di->data.buffer.image->datatoc_size = size;                             \
 	}
 	/* end INIT_BRUSH_ICON */
 
@@ -614,13 +614,13 @@ static void init_internal_icons(void)
 #endif
 	if (b16buf == NULL)
 		b16buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons16_png,
-		                             datatoc_blender_icons16_png_size, IB_rect, NULL, "<blender icons>");
+		                               datatoc_blender_icons16_png_size, IB_rect, NULL, "<blender icons>");
 	if (b16buf)
 		IMB_premultiply_alpha(b16buf);
 
 	if (b32buf == NULL)
 		b32buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons32_png,
-		                             datatoc_blender_icons32_png_size, IB_rect, NULL, "<blender icons>");
+		                               datatoc_blender_icons32_png_size, IB_rect, NULL, "<blender icons>");
 	if (b32buf)
 		IMB_premultiply_alpha(b32buf);
 	

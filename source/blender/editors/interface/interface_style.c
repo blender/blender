@@ -430,7 +430,7 @@ void uiStyleInit(void)
 	if (blf_mono_font_render == -1)
 		blf_mono_font_render = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
 
-	BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72 );
+	BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72);
 }
 
 void uiStyleFontSet(uiFontStyle *fs)

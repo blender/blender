@@ -1900,7 +1900,7 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 		/* Sanity checks */
 		precision = (int)but->a2;
 		if      (precision > UI_PRECISION_FLOAT_MAX) precision = UI_PRECISION_FLOAT_MAX;
-		else if (precision == -1)                 precision = 2;
+		else if (precision == -1)                    precision = 2;
 	}
 	else {
 		precision = float_precision;
@@ -3116,7 +3116,7 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 			column_end = totitems;
 
 			for (b = a + 1; b < totitems; b++) {
-				item = &item_array[ b];
+				item = &item_array[b];
 
 				/* new column on N rows or on separation label */
 				if (((b - a) % rows == 0) || (!item->identifier[0] && item->name)) {

@@ -7224,7 +7224,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 		}
 		else {
 			/* XXX issue is because WM_event_add_mousemove(C) is a bad hack and not reliable,
-			 *if that gets coded better this bypass can go away too.
+			 * if that gets coded better this bypass can go away too.
 			 *
 			 * This is needed to make sure if a button was active,
 			 * it stays active while the mouse is over it.
