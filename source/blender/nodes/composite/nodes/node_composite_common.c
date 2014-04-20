@@ -58,7 +58,7 @@ void register_node_type_cmp_group(void)
 	RNA_struct_blender_type_set(ntype.ext.srna, &ntype);
 	
 	node_type_socket_templates(&ntype, NULL, NULL);
-	node_type_size(&ntype, 120, 60, 400);
+	node_type_size(&ntype, 140, 60, 400);
 	node_type_label(&ntype, node_group_label);
 	node_type_update(&ntype, NULL, node_group_verify);
 
