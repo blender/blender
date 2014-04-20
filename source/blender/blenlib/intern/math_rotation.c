@@ -402,40 +402,30 @@ float normalize_qt_qt(float r[4], const float q[4])
 
 /**
  * Calculate a rotation matrix from 2 normalized vectors.
- *
- * \note faster then using axis/angle functions.
  */
 void rotation_between_vecs_to_mat3(float m[3][3], const float v1[3], const float v2[3])
 {
 	float axis[3];
+	/* avoid calculating the angle */
+	float angle_sin;
+	float angle_cos;
 
 	BLI_ASSERT_UNIT_V3(v1);
 	BLI_ASSERT_UNIT_V3(v2);
 
 	cross_v3_v3v3(axis, v1, v2);
 
-	if (normalize_v3(axis) > FLT_EPSILON) {
-		float m1[3][3], m2[3][3];
+	angle_sin = normalize_v3(axis);
+	angle_cos = dot_v3v3(v1, v2);
 
+	if (angle_sin > FLT_EPSILON) {
 axis_calc:
 		BLI_ASSERT_UNIT_V3(axis);
-
-		copy_v3_v3(m1[0], v1);
-		copy_v3_v3(m2[0], v2);
-
-		copy_v3_v3(m1[1], axis);
-		copy_v3_v3(m2[1], axis);
-
-		cross_v3_v3v3(m1[2], m1[1], m1[0]);
-		cross_v3_v3v3(m2[2], m2[1], m2[0]);
-
-		transpose_m3(m1);
-		mul_m3_m3m3(m, m2, m1);
-
+		axis_angle_normalized_to_mat3_ex(m, axis, angle_sin, angle_cos);
 		BLI_ASSERT_UNIT_M3(m);
 	}
 	else {
-		if (dot_v3v3(v1, v2) > 0.0f) {
+		if (angle_cos > 0.0f) {
 			/* Same vectors, zero rotation... */
 			unit_m3(m);
 		}
@@ -443,6 +433,8 @@ axis_calc:
 			/* Colinear but opposed vectors, 180 rotation... */
 			ortho_v3_v3(axis, v1);
 			normalize_v3(axis);
+			angle_sin =  0.0f;  /* sin(M_PI) */
+			angle_cos = -1.0f;  /* cos(M_PI) */
 			goto axis_calc;
 		}
 	}
@@ -878,39 +870,51 @@ void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const s
 	quat_to_axis_angle(axis, angle, q);
 }
 
-/* axis angle to 3x3 matrix - note: requires that axis is normalized */
-void axis_angle_normalized_to_mat3(float mat[3][3], const float nor[3], const float angle)
+/**
+ * axis angle to 3x3 matrix
+ *
+ * This takes the angle with sin/cos applied so we can avoid calculating it in some cases.
+ *
+ * \param axis rotation axis (must be normalized).
+ * \param co cos(angle)
+ * \param si sin(angle)
+ */
+void axis_angle_normalized_to_mat3_ex(float mat[3][3], const float axis[3],
+                                      const float angle_sin, const float angle_cos)
 {
-	float nsi[3], co, si, ico;
+	float nsi[3], ico;
 	float n_00, n_01, n_11, n_02, n_12, n_22;
 
-	BLI_ASSERT_UNIT_V3(nor);
+	BLI_ASSERT_UNIT_V3(axis);
 
 	/* now convert this to a 3x3 matrix */
-	co = cosf(angle);
-	si = sinf(angle);
 
-	ico = (1.0f - co);
-	nsi[0] = nor[0] * si;
-	nsi[1] = nor[1] * si;
-	nsi[2] = nor[2] * si;
+	ico = (1.0f - angle_cos);
+	nsi[0] = axis[0] * angle_sin;
+	nsi[1] = axis[1] * angle_sin;
+	nsi[2] = axis[2] * angle_sin;
 
-	n_00 = (nor[0] * nor[0]) * ico;
-	n_01 = (nor[0] * nor[1]) * ico;
-	n_11 = (nor[1] * nor[1]) * ico;
-	n_02 = (nor[0] * nor[2]) * ico;
-	n_12 = (nor[1] * nor[2]) * ico;
-	n_22 = (nor[2] * nor[2]) * ico;
+	n_00 = (axis[0] * axis[0]) * ico;
+	n_01 = (axis[0] * axis[1]) * ico;
+	n_11 = (axis[1] * axis[1]) * ico;
+	n_02 = (axis[0] * axis[2]) * ico;
+	n_12 = (axis[1] * axis[2]) * ico;
+	n_22 = (axis[2] * axis[2]) * ico;
 
-	mat[0][0] = n_00 + co;
+	mat[0][0] = n_00 + angle_cos;
 	mat[0][1] = n_01 + nsi[2];
 	mat[0][2] = n_02 - nsi[1];
 	mat[1][0] = n_01 - nsi[2];
-	mat[1][1] = n_11 + co;
+	mat[1][1] = n_11 + angle_cos;
 	mat[1][2] = n_12 + nsi[0];
 	mat[2][0] = n_02 + nsi[1];
 	mat[2][1] = n_12 - nsi[0];
-	mat[2][2] = n_22 + co;
+	mat[2][2] = n_22 + angle_cos;
+}
+
+void axis_angle_normalized_to_mat3(float mat[3][3], const float axis[3], const float angle)
+{
+	axis_angle_normalized_to_mat3_ex(mat, axis, sinf(angle), cosf(angle));
 }
 
 

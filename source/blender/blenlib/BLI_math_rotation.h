@@ -107,6 +107,8 @@ void print_qt(const char *str, const float q[4]);
 void axis_angle_normalized_to_quat(float r[4], const float axis[3], const float angle);
 void axis_angle_to_quat(float r[4], const float axis[3], const float angle);
 void axis_angle_to_mat3(float R[3][3], const float axis[3], const float angle);
+void axis_angle_normalized_to_mat3_ex(float mat[3][3], const float axis[3],
+                                      const float angle_sin, const float angle_cos);
 void axis_angle_normalized_to_mat3(float R[3][3], const float axis[3], const float angle);
 void axis_angle_to_mat4(float R[4][4], const float axis[3], const float angle);
 
