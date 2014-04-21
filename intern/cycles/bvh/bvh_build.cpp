@@ -511,7 +511,7 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 	/* find best rotation. we pick a target child of a first child, and swap
 	 * this with an other child. we perform the best such swap. */
 	float best_cost = FLT_MAX;
-	int best_child = -1, bets_target = -1, best_other = -1;
+	int best_child = -1, best_target = -1, best_other = -1;
 
 	for(size_t c = 0; c < 2; c++) {
 		/* ignore leaf nodes as we cannot descent into */
@@ -535,11 +535,11 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 
 			if(cost0 < cost1) {
 				best_cost = cost0;
-				bets_target = 0;
+				best_target = 0;
 			}
 			else {
 				best_cost = cost0;
-				bets_target = 1;
+				best_target = 1;
 			}
 		}
 	}
@@ -548,10 +548,13 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 	if(best_cost >= 0)
 		return;
 
+	assert(best_child == 0 || best_child == 1);
+	assert(best_target != -1);
+
 	/* perform the best found tree rotation */
 	InnerNode *child = (InnerNode*)parent->children[best_child];
 
-	swap(parent->children[best_other], child->children[bets_target]);
+	swap(parent->children[best_other], child->children[best_target]);
 	child->m_bounds = merge(child->children[0]->m_bounds, child->children[1]->m_bounds);
 }
 

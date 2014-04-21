@@ -629,6 +629,8 @@ void SkyTextureNode::compile(SVMCompiler& compiler)
 		sky_texture_precompute_old(&sunsky, sun_direction, turbidity);
 	else if(type_enum[type] == NODE_SKY_NEW)
 		sky_texture_precompute_new(&sunsky, sun_direction, turbidity, ground_albedo);
+	else
+		assert(false);
 
 	if(vector_in->link)
 		compiler.stack_assign(vector_in);
@@ -666,6 +668,8 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 		sky_texture_precompute_old(&sunsky, sun_direction, turbidity);
 	else if(type_enum[type] == NODE_SKY_NEW)
 		sky_texture_precompute_new(&sunsky, sun_direction, turbidity, ground_albedo);
+	else
+		assert(false);
 		
 	compiler.parameter("sky_model", type);
 	compiler.parameter("theta", sunsky.theta);
