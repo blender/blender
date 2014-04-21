@@ -243,7 +243,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_g
 			float light_t = path_state_rng_1D(kg, rng, &state, PRNG_LIGHT);
 			float3 emission;
 
-			if(indirect_lamp_emission(kg, &light_ray, state.flag, state.ray_pdf, light_t, &emission, state.bounce, state.transparent_bounce))
+			if(indirect_lamp_emission(kg, &state, &light_ray, light_t, &emission))
 				path_radiance_accum_emission(L, throughput, emission, state.bounce);
 		}
 #endif
@@ -270,7 +270,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray, ccl_g
 		if(!hit) {
 #ifdef __BACKGROUND__
 			/* sample background shader */
-			float3 L_background = indirect_background(kg, &ray, state.flag, state.ray_pdf, state.bounce, state.transparent_bounce);
+			float3 L_background = indirect_background(kg, &state, &ray);
 			path_radiance_accum_background(L, throughput, L_background, state.bounce);
 #endif
 
@@ -627,7 +627,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			float light_t = path_state_rng_1D(kg, rng, &state, PRNG_LIGHT);
 			float3 emission;
 
-			if(indirect_lamp_emission(kg, &light_ray, state.flag, state.ray_pdf, light_t, &emission, state.bounce, state.transparent_bounce))
+			if(indirect_lamp_emission(kg, &state, &light_ray, light_t, &emission))
 				path_radiance_accum_emission(&L, throughput, emission, state.bounce);
 		}
 #endif
@@ -664,7 +664,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 #ifdef __BACKGROUND__
 			/* sample background shader */
-			float3 L_background = indirect_background(kg, &ray, state.flag, state.ray_pdf, state.bounce, state.transparent_bounce);
+			float3 L_background = indirect_background(kg, &state, &ray);
 			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
 #endif
 
@@ -1181,7 +1181,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 #ifdef __BACKGROUND__
 			/* sample background shader */
-			float3 L_background = indirect_background(kg, &ray, state.flag, state.ray_pdf, state.bounce, state.transparent_bounce);
+			float3 L_background = indirect_background(kg, &state, &ray);
 			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
 #endif
 
