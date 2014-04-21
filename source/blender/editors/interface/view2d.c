@@ -2045,8 +2045,8 @@ void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, int *regionx, in
 void UI_view2d_to_region_float(View2D *v2d, float x, float y, float *regionx, float *regiony)
 {
 	/* express given coordinates as proportional values */
-	x = -v2d->cur.xmin / BLI_rctf_size_x(&v2d->cur);
-	y = -v2d->cur.ymin / BLI_rctf_size_y(&v2d->cur);
+	x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
+	y = (y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
 
 	/* convert proportional distances to screen coordinates */
 	*regionx = v2d->mask.xmin + x * BLI_rcti_size_x(&v2d->mask);
