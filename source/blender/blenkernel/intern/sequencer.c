@@ -948,8 +948,9 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 	Sequence *seq;
 	for (seq = seqbasep->first; seq; seq = seq->next) {
 		if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
-			/* SEQ_NAME_MAXSTR - 2 for prefix, -1 for \0, -4 for the number */
-			BLI_snprintf(sui->name_dest, sizeof(sui->name_dest), "%.59s.%03d",  sui->name_src, sui->count++);
+			/* SEQ_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for prefix */
+			BLI_snprintf(sui->name_dest, sizeof(sui->name_dest), "%.*s.%03d", SEQ_NAME_MAXSTR - 4 - 1 - 2,
+			             sui->name_src, sui->count++);
 			sui->match = 1; /* be sure to re-scan */
 		}
 	}
