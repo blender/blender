@@ -375,7 +375,8 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		
 #ifdef __APPLE__
 		/* set the state here, else OSX would not recognize changed screen resolution */
-		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
+		/* we agreed to not set any fullscreen or iconized state on startup */
+		GHOST_SetWindowState(ghostwin, GHOST_kWindowStateNormal);
 #endif
 		/* store actual window size in blender window */
 		bounds = GHOST_GetClientBounds(win->ghostwin);
