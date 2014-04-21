@@ -1164,17 +1164,17 @@ void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3])
 	copy_v3_v3(bb_max, bb.bmax);
 }
 
-void BKE_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *totface)
+void BKE_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***r_gridfaces, int *r_totface)
 {
 	PBVHIter iter;
 	PBVHNode *node;
-	GHashIterator *hiter;
-	GHash *map;
+	GSetIterator gs_iter;
+	GSet *face_set;
 	void *face, **faces;
 	unsigned i;
 	int tot;
 
-	map = BLI_ghash_ptr_new("pbvh_get_grid_updates gh");
+	face_set = BLI_gset_ptr_new(__func__);
 
 	pbvh_iter_begin(&iter, bvh, NULL, NULL);
 
@@ -1182,8 +1182,8 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 		if (node->flag & PBVH_UpdateNormals) {
 			for (i = 0; i < node->totprim; ++i) {
 				face = bvh->gridfaces[node->prim_indices[i]];
-				if (!BLI_ghash_lookup(map, face))
-					BLI_ghash_insert(map, face, face);
+				if (!BLI_gset_haskey(face_set, face))
+					BLI_gset_insert(face_set, face);
 			}
 
 			if (clear)
@@ -1193,29 +1193,24 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 
 	pbvh_iter_end(&iter);
 	
-	tot = BLI_ghash_size(map);
+	tot = BLI_gset_size(face_set);
 	if (tot == 0) {
-		*totface = 0;
-		*gridfaces = NULL;
-		BLI_ghash_free(map, NULL, NULL);
+		*r_totface = 0;
+		*r_gridfaces = NULL;
+		BLI_gset_free(face_set, NULL);
 		return;
 	}
 
-	faces = MEM_callocN(sizeof(void *) * tot, "PBVH Grid Faces");
+	faces = MEM_mallocN(sizeof(*faces) * tot, "PBVH Grid Faces");
 
-	for (hiter = BLI_ghashIterator_new(map), i = 0;
-	     BLI_ghashIterator_done(hiter) == false;
-	     BLI_ghashIterator_step(hiter), ++i)
-	{
-		faces[i] = BLI_ghashIterator_getKey(hiter);
+	GSET_ITER_INDEX (gs_iter, face_set, i) {
+		faces[i] = BLI_gsetIterator_getKey(&gs_iter);
 	}
 
-	BLI_ghashIterator_free(hiter);
+	BLI_gset_free(face_set, NULL);
 
-	BLI_ghash_free(map, NULL, NULL);
-
-	*totface = tot;
-	*gridfaces = faces;
+	*r_totface = tot;
+	*r_gridfaces = faces;
 }
 
 /***************************** PBVH Access ***********************************/
