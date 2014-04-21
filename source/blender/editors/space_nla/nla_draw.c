@@ -132,7 +132,7 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, View2D *v2d, 
 	
 	
 	/* get View2D scaling factor */
-	UI_view2d_getscale(v2d, &xscale, NULL);
+	UI_view2d_scale_get(v2d, &xscale, NULL);
 	
 	/* for now, color is hardcoded to be black */
 	glColor3f(0.0f, 0.0f, 0.0f);
@@ -471,7 +471,7 @@ static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, i
 	rect.ymax = ymaxc;
 	
 	/* add this string to the cache of texts to draw */
-	UI_view2d_text_cache_rectf(v2d, &rect, str, str_len, col);
+	UI_view2d_text_cache_add_rectf(v2d, &rect, str, str_len, col);
 }
 
 /* add frame extents to cache of text-strings to draw in pixelspace

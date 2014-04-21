@@ -625,7 +625,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	rect.xmax = x2;
 	rect.ymax = y2;
 
-	UI_view2d_text_cache_rectf(v2d, &rect, str, str_len, col);
+	UI_view2d_text_cache_add_rectf(v2d, &rect, str, str_len, col);
 }
 
 /* draws a shaded strip, made from gradient + flat color + gradient */

@@ -2182,13 +2182,13 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
  *
  *	- x,y	= scale on each axis
  */
-void UI_view2d_getscale(View2D *v2d, float *x, float *y) 
+void UI_view2d_scale_get(View2D *v2d, float *x, float *y) 
 {
 	if (x) *x = BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
 	if (y) *y = BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
-/* Same as UI_view2d_getscale() - 1.0f / x, y */
-void UI_view2d_getscale_inverse(View2D *v2d, float *x, float *y)
+/* Same as UI_view2d_scale_get() - 1.0f / x, y */
+void UI_view2d_scale_get_inverse(View2D *v2d, float *x, float *y)
 {
 	if (x) *x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 	if (y) *y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
@@ -2197,13 +2197,13 @@ void UI_view2d_getscale_inverse(View2D *v2d, float *x, float *y)
 /* Simple functions for consistent center offset access.
  * Used by node editor to shift view center for each individual node tree.
  */
-void UI_view2d_getcenter(struct View2D *v2d, float *x, float *y)
+void UI_view2d_center_get(struct View2D *v2d, float *x, float *y)
 {
 	/* get center */
 	if (x) *x = BLI_rctf_cent_x(&v2d->cur);
 	if (y) *y = BLI_rctf_cent_y(&v2d->cur);
 }
-void UI_view2d_setcenter(struct View2D *v2d, float x, float y)
+void UI_view2d_center_set(struct View2D *v2d, float x, float y)
 {
 	BLI_rctf_recenter(&v2d->cur, x, y);
 
@@ -2286,7 +2286,8 @@ typedef struct View2DString {
 static MemArena     *g_v2d_strings_arena = NULL;
 static View2DString *g_v2d_strings = NULL;
 
-void UI_view2d_text_cache_add(View2D *v2d, float x, float y, const char *str, size_t str_len, const char col[4])
+void UI_view2d_text_cache_add(View2D *v2d, float x, float y,
+                              const char *str, size_t str_len, const char col[4])
 {
 	int mval[2];
 	
@@ -2316,7 +2317,8 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y, const char *str, si
 }
 
 /* no clip (yet) */
-void UI_view2d_text_cache_rectf(View2D *v2d, const rctf *rect_view, const char *str, size_t str_len, const char col[4])
+void UI_view2d_text_cache_add_rectf(View2D *v2d, const rctf *rect_view,
+                                    const char *str, size_t str_len, const char col[4])
 {
 	rcti rect;
 

@@ -580,7 +580,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	glEnable(GL_BLEND);
 	
 	/* get View2D scaling factor */
-	UI_view2d_getscale(v2d, &xscale, NULL);
+	UI_view2d_scale_get(v2d, &xscale, NULL);
 	
 	/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
 	/* TODO: allow this opacity factor to be themed? */

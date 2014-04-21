@@ -622,7 +622,7 @@ void ED_mask_draw(const bContext *C,
 
 	ED_mask_get_size(sa, &width, &height);
 	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
-	UI_view2d_getscale(&ar->v2d, &xscale, &yscale);
+	UI_view2d_scale_get(&ar->v2d, &xscale, &yscale);
 
 	draw_masklays(C, mask, draw_flag, draw_type, width, height, xscale * aspx, yscale * aspy);
 }

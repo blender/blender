@@ -401,7 +401,7 @@ static void node_area_listener(bScreen *sc, ScrArea *sa, wmNotifier *wmn)
 					bNodeTreePath *path = snode->treepath.last;
 					/* shift view to node tree center */
 					if (ar && path)
-						UI_view2d_setcenter(&ar->v2d, path->view_center[0], path->view_center[1]);
+						UI_view2d_center_set(&ar->v2d, path->view_center[0], path->view_center[1]);
 					
 					ED_area_tag_refresh(sa);
 					break;

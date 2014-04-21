@@ -193,7 +193,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 		y = (float) CHANNEL_FIRST;
 
-		UI_view2d_getscale(v2d, &xscale, &yscale);
+		UI_view2d_scale_get(v2d, &xscale, &yscale);
 
 		/* setup colors for regular and selected strips */
 		UI_GetThemeColor3fv(TH_STRIP, strip);

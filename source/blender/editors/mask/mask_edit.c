@@ -326,7 +326,7 @@ void ED_mask_pixelspace_factor(ScrArea *sa, ARegion *ar, float *scalex, float *s
 				SpaceClip *sc = sa->spacedata.first;
 				float aspx, aspy;
 
-				UI_view2d_getscale(&ar->v2d, scalex, scaley);
+				UI_view2d_scale_get(&ar->v2d, scalex, scaley);
 				ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 				*scalex *= aspx;
@@ -343,7 +343,7 @@ void ED_mask_pixelspace_factor(ScrArea *sa, ARegion *ar, float *scalex, float *s
 				SpaceImage *sima = sa->spacedata.first;
 				float aspx, aspy;
 
-				UI_view2d_getscale(&ar->v2d, scalex, scaley);
+				UI_view2d_scale_get(&ar->v2d, scalex, scaley);
 				ED_space_image_get_aspect(sima, &aspx, &aspy);
 
 				*scalex *= aspx;

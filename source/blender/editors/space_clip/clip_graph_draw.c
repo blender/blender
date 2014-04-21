@@ -168,7 +168,7 @@ static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc)
 	userdata.hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
 	userdata.sel = false;
 	userdata.act_track = act_track;
-	UI_view2d_getscale(v2d, &userdata.xscale, &userdata.yscale);
+	UI_view2d_scale_get(v2d, &userdata.xscale, &userdata.yscale);
 	clip_graph_tracking_values_iterate(sc,
 	                                   (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
 	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,

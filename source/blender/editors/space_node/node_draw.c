@@ -1204,7 +1204,7 @@ static void snode_setup_v2d(SpaceNode *snode, ARegion *ar, const float center[2]
 	View2D *v2d = &ar->v2d;
 	
 	/* shift view to node tree center */
-	UI_view2d_setcenter(v2d, center[0], center[1]);
+	UI_view2d_center_set(v2d, center[0], center[1]);
 	UI_view2d_view_ortho(v2d);
 	
 	/* aspect+font, set each time */
@@ -1289,7 +1289,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		path = snode->treepath.last;
 		
 		/* current View2D center, will be set temporarily for parent node trees */
-		UI_view2d_getcenter(v2d, &center[0], &center[1]);
+		UI_view2d_center_get(v2d, &center[0], &center[1]);
 		
 		/* store new view center in path and current edittree */
 		copy_v2_v2(path->view_center, center);

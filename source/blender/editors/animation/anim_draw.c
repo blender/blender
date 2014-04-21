@@ -67,7 +67,7 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	short slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
-	UI_view2d_getscale(v2d, &xscale, &yscale);
+	UI_view2d_scale_get(v2d, &xscale, &yscale);
 	glScalef(1.0f / xscale, 1.0f, 1.0f);
 	
 	/* get timecode string 
