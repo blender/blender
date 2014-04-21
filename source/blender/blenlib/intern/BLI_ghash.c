@@ -384,6 +384,16 @@ void *BLI_ghash_lookup(GHash *gh, const void *key)
 }
 
 /**
+ * A version of #BLI_ghash_lookup which accepts a fallback argument.
+ */
+void *BLI_ghash_lookup_default(GHash *gh, const void *key, void *val_default)
+{
+	Entry *e = ghash_lookup_entry(gh, key);
+	IS_GHASH_ASSERT(gh);
+	return e ? e->val : val_default;
+}
+
+/**
  * Lookup a pointer to the value of \a key in \a gh.
  *
  * \param key  The key to lookup.
