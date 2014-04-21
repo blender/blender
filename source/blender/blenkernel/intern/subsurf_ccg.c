@@ -2965,6 +2965,39 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 		return origindex;
 	}
 
+	if (type == CD_TESSLOOPNORMAL) {
+		/* Create tessloopnormal on demand to save memory. */
+		/* Note that since tessellated face corners are the same a loops in CCGDM, and since all faces have four
+		 * loops/corners, we can simplify the code here by converting tessloopnormals from 'short (*)[4][3]'
+		 * to 'short (*)[3]'.
+		 */
+		short (*tlnors)[3];
+
+		/* Avoid re-creation if the layer exists already */
+		tlnors = DM_get_tessface_data_layer(dm, CD_TESSLOOPNORMAL);
+		if (!tlnors) {
+			float (*lnors)[3];
+			short (*tlnors_it)[3];
+			const int numLoops = ccgDM_getNumLoops(dm);
+			int i;
+
+			lnors = dm->getLoopDataArray(dm, CD_NORMAL);
+			if (!lnors) {
+				return NULL;
+			}
+
+			DM_add_tessface_layer(dm, CD_TESSLOOPNORMAL, CD_CALLOC, NULL);
+			tlnors = tlnors_it = (short (*)[3])DM_get_tessface_data_layer(dm, CD_TESSLOOPNORMAL);
+
+			/* With ccgdm, we have a simple one to one mapping between loops and tessellated face corners. */
+			for (i = 0; i < numLoops; ++i, ++tlnors_it, ++lnors) {
+				normal_float_to_short_v3(*tlnors_it, *lnors);
+			}
+		}
+
+		return tlnors;
+	}
+
 	return DM_get_tessface_data_layer(dm, type);
 }
 
@@ -3026,8 +3059,8 @@ static void *ccgDM_get_edge_data(DerivedMesh *dm, int index, int type)
 
 static void *ccgDM_get_tessface_data(DerivedMesh *dm, int index, int type)
 {
-	if (type == CD_ORIGINDEX) {
-		/* ensure creation of CD_ORIGINDEX layer */
+	if (ELEM(type, CD_ORIGINDEX, CD_TESSLOOPNORMAL)) {
+		/* ensure creation of CD_ORIGINDEX/CD_TESSLOOPNORMAL layers */
 		ccgDM_get_tessface_data_layer(dm, type);
 	}
 
