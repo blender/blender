@@ -122,8 +122,12 @@ protected:
 	bool node_skip_input(ShaderNode *node, ShaderInput *input);
 
 	/* single closure */
-	void find_dependencies(set<ShaderNode*>& dependencies, const set<ShaderNode*>& done, ShaderInput *input);
+	void find_dependencies(set<ShaderNode*>& dependencies,
+		const set<ShaderNode*>& done, ShaderInput *input);
 	void generate_node(ShaderNode *node, set<ShaderNode*>& done);
+	void generate_closure_node(ShaderNode *node, set<ShaderNode*>& done);
+	void generated_shared_closure_nodes(ShaderNode *node, set<ShaderNode*>& done,
+		set<ShaderNode*>& closure_done, const set<ShaderNode*>& shared);
 	void generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done);
 
 	/* multi closure */

@@ -385,6 +385,10 @@ void SVMCompiler::generate_node(ShaderNode *node, set<ShaderNode*>& done)
 		if(node->has_spatial_varying())
 			current_shader->has_heterogeneous_volume = true;
 	}
+
+	/* detect if we have a blackbody converter, to prepare lookup table */
+	if(node->has_converter_blackbody())
+		current_shader->has_converter_blackbody = true;
 }
 
 void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done)
@@ -404,10 +408,6 @@ void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNo
 							inputs_done = false;
 
 				if(inputs_done) {
-					/* Detect if we have a blackbody converter, to prepare lookup table */
-					if(node->has_converter_blackbody())
-					current_shader->has_converter_blackbody = true;
-
 					generate_node(node, done);
 					done.insert(node);
 				}
@@ -416,6 +416,59 @@ void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNo
 			}
 		}
 	} while(!nodes_done);
+}
+
+void SVMCompiler::generate_closure_node(ShaderNode *node, set<ShaderNode*>& done)
+{
+	/* execute dependencies for closure */
+	foreach(ShaderInput *in, node->inputs) {
+		if(!node_skip_input(node, in) && in->link) {
+			set<ShaderNode*> dependencies;
+			find_dependencies(dependencies, done, in);
+			generate_svm_nodes(dependencies, done);
+		}
+	}
+
+	/* closure mix weight */
+	const char *weight_name = (current_type == SHADER_TYPE_VOLUME)? "VolumeMixWeight": "SurfaceMixWeight";
+	ShaderInput *weight_in = node->input(weight_name);
+
+	if(weight_in && (weight_in->link || weight_in->value.x != 1.0f)) {
+		stack_assign(weight_in);
+		mix_weight_offset = weight_in->stack_offset;
+	}
+	else
+		mix_weight_offset = SVM_STACK_INVALID;
+
+	/* compile closure itself */
+	generate_node(node, done);
+
+	mix_weight_offset = SVM_STACK_INVALID;
+
+	if(current_type == SHADER_TYPE_SURFACE) {
+		if(node->has_surface_emission())
+			current_shader->has_surface_emission = true;
+		if(node->has_surface_transparent())
+			current_shader->has_surface_transparent = true;
+		if(node->has_surface_bssrdf()) {
+			current_shader->has_surface_bssrdf = true;
+			if(node->has_bssrdf_bump())
+				current_shader->has_bssrdf_bump = true;
+		}
+	}
+}
+
+void SVMCompiler::generated_shared_closure_nodes(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done, const set<ShaderNode*>& shared)
+{
+	if(shared.find(node) != shared.end()) {
+		generate_multi_closure(node, done, closure_done);
+	}
+	else {
+		foreach(ShaderInput *in, node->inputs) {
+			if(in->type == SHADER_SOCKET_CLOSURE && in->link)
+				generated_shared_closure_nodes(in->link->parent, done, closure_done, shared);
+		}
+	}
 }
 
 void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done)
@@ -455,8 +508,15 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			set_intersection(cl1deps.begin(), cl1deps.end(),
 							 cl2deps.begin(), cl2deps.end(),
 							 std::inserter(shareddeps, shareddeps.begin()));
+			
+			if(!shareddeps.empty()) {
+				if(cl1in->link)
+					generated_shared_closure_nodes(cl1in->link->parent, done, closure_done, shareddeps);
+				if(cl2in->link)
+					generated_shared_closure_nodes(cl2in->link->parent, done, closure_done, shareddeps);
 
-			generate_svm_nodes(shareddeps, done);
+				generate_svm_nodes(shareddeps, done);
+			}
 
 			/* generate instructions for input closure 1 */
 			if(cl1in->link) {
@@ -496,42 +556,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 		}
 	}
 	else {
-		/* execute dependencies for closure */
-		foreach(ShaderInput *in, node->inputs) {
-			if(!node_skip_input(node, in) && in->link) {
-				set<ShaderNode*> dependencies;
-				find_dependencies(dependencies, done, in);
-				generate_svm_nodes(dependencies, done);
-			}
-		}
-
-		/* closure mix weight */
-		const char *weight_name = (current_type == SHADER_TYPE_VOLUME)? "VolumeMixWeight": "SurfaceMixWeight";
-		ShaderInput *weight_in = node->input(weight_name);
-
-		if(weight_in && (weight_in->link || weight_in->value.x != 1.0f)) {
-			stack_assign(weight_in);
-			mix_weight_offset = weight_in->stack_offset;
-		}
-		else
-			mix_weight_offset = SVM_STACK_INVALID;
-
-		/* compile closure itself */
-		generate_node(node, done);
-
-		mix_weight_offset = SVM_STACK_INVALID;
-
-		if(current_type == SHADER_TYPE_SURFACE) {
-			if(node->has_surface_emission())
-				current_shader->has_surface_emission = true;
-			if(node->has_surface_transparent())
-				current_shader->has_surface_transparent = true;
-			if(node->has_surface_bssrdf()) {
-				current_shader->has_surface_bssrdf = true;
-				if(node->has_bssrdf_bump())
-					current_shader->has_bssrdf_bump = true;
-			}
-		}
+		generate_closure_node(node, done);
 	}
 
 	done.insert(node);
