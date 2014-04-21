@@ -101,9 +101,6 @@ static string opencl_kernel_build_options(const string& platform, const string *
 
 	if(opencl_kernel_use_debug())
 		build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
-
-	if(opencl_kernel_use_advanced_shading(platform))
-		build_options += "-D__KERNEL_OPENCL_NEED_ADVANCED_SHADING__ ";
 	
 	return build_options;
 }

@@ -151,12 +151,6 @@ CCL_NAMESPACE_BEGIN
 #define __HAIR__
 #endif
 
-/* Sanity check */
-
-#if defined(__KERNEL_OPENCL_NEED_ADVANCED_SHADING__) && !defined(__MULTI_CLOSURE__)
-#error "OpenCL: mismatch between advanced shading flags in device_opencl.cpp and kernel_types.h"
-#endif
-
 /* Random Numbers */
 
 typedef uint RNG;
