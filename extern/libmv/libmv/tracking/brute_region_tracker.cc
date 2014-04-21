@@ -364,8 +364,7 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
   // for sanity.
   double correlation = PearsonProductMomentCorrelation(
           image_and_gradient1_sampled,
-          image_and_gradient2_sampled,
-          pattern_width);
+          image_and_gradient2_sampled);
 
   LG << "Final correlation: " << correlation;
 

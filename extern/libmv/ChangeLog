@@ -1,3 +1,27 @@
+commit 0ddf3851bfcb8de43660b119a25a77a25674200d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 21 14:14:03 2014 +0600
+
+    Optimization of PearsonProductMomentCorrelation
+    
+    Pass the arrays by reference rather than by value,
+    should give some percent of speedup.
+    
+    Also don't pass the dimensions to the function but
+    get them from the images themselves.
+    
+    Hopefully this will give some %% of tracker speedup.
+
+commit f68fdbe5896a6c5bd8b500caeec61b876c5e44c6
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 21 14:10:43 2014 +0600
+
+    Fix wrong assert in ResizeImage()
+    
+    The assert didn't make any sense because ComputeBoundingBox()
+    is intended to return bounding box in the following way:
+    (xmin, xmax, ymin, ymax).
+
 commit 1d386b6775a71c499e9b8e4a288c0785c4937677
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 17 18:42:43 2014 +0600
@@ -657,22 +681,3 @@ Date:   Sat Jun 1 16:20:35 2013 +0600
     
     Saves couple of time which used to waste on copying objects,
     also solves win32 compilation errors caused by alignment.
-
-commit 994c02d0ec55e9ae14a93a3ada6e5d4939247fc3
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu May 30 18:00:03 2013 +0600
-
-    Code cleanup
-    
-    - Made some arguments passing to detector const.
-    - Remove unneeded include from track_region header.
-
-commit 7d0c5325a38e61929f44206761b8aa3565631af5
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon May 13 04:44:14 2013 +0600
-
-    Pass ApplyRadialDistortionCameraIntrinsics input arguments by reference
-    
-    This shall save some CPU time on calling copy constructor and give
-    some boost of bundle adjuster (where jet could take some time to
-    be passed by value).
