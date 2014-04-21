@@ -6972,7 +6972,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		switch (ob->type) {
 			case OB_MESH:
 				empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
-				if (dflag != DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE;  // mesh draws wire itself
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					/* mesh draws wire itself */
+					dtx &= ~OB_DRAWWIRE;
+				}
 
 				break;
 			case OB_FONT:
