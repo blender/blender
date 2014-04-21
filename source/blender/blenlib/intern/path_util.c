@@ -329,7 +329,7 @@ void BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim
 	BLI_uniquename_cb(uniquename_unique_check, &data, defname, delim, GIVE_STRADDR(vlink, name_offs), name_len);
 }
 
-
+static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
 
 /* ******************** string encoding ***************** */
 
@@ -394,7 +394,9 @@ void BLI_cleanup_path(const char *relabase, char *path)
 		memmove(start, eind, strlen(eind) + 1);
 	}
 
-	while ( (start = strstr(path, "\\\\")) ) {
+	/* remove two consecutive backslashes, but skip the UNC prefix,
+	 * which needs to be preserved */
+	while ( (start = strstr(path + BLI_path_unc_prefix_len(path), "\\\\")) ) {
 		eind = start + strlen("\\\\") - 1;
 		memmove(start, eind, strlen(eind) + 1);
 	}
@@ -463,6 +465,110 @@ bool BLI_path_is_rel(const char *path)
 	return path[0] == '/' && path[1] == '/';
 }
 
+/* return true if the path is a UNC share */
+bool BLI_path_is_unc(const char *name)
+{
+	return name[0] == '\\' && name[1] == '\\';
+}
+
+/**
+ * Returns the length of the identifying prefix
+ * of a UNC path which can start with '\\' (short version)
+ * or '\\?\' (long version)
+ * If the path is not a UNC path, return 0
+ *
+ * \param name  the path name
+ */
+static int BLI_path_unc_prefix_len(const char *path)
+{
+	if (BLI_path_is_unc(path)) {
+		if ((path[2] == '?') && (path[3] == '\\') ) {
+			/* we assume long UNC path like \\?\server\share\folder etc... */
+			return 4;
+		}
+		else {
+			return 2;
+		}
+	}
+
+	return 0;
+}
+
+#if defined(WIN32)
+
+/* return true if the path is absolute ie starts with a drive specifier (eg A:\) or is a UNC path */
+static bool BLI_path_is_abs(const char *name)
+{
+	return (name[1] == ':' && (name[2] == '\\' || name[2] == '/') ) || BLI_path_is_unc(name);
+}
+
+static wchar_t *next_slash(wchar_t *path)
+{
+	wchar_t *slash = path;
+	while (*slash && *slash != L'\\') slash++;
+	return slash;
+}
+
+/* adds a slash if the unc path points sto a share */
+static void BLI_path_add_slash_to_share(wchar_t *uncpath)
+{
+	wchar_t *slash_after_server = next_slash(uncpath + 2);
+	if (*slash_after_server) {
+		wchar_t *slash_after_share = next_slash(slash_after_server + 1);
+		if (!(*slash_after_share)) {
+			slash_after_share[0] = L'\\';
+			slash_after_share[1] = L'\0';
+		}
+	}
+}
+
+static void BLI_path_unc_to_short(wchar_t *unc)
+{
+	wchar_t tmp[PATH_MAX];
+
+	int len = wcslen(unc);
+	int copy_start = 0;
+	/* convert:
+	 *    \\?\UNC\server\share\folder\... to \\server\share\folder\...
+	 *    \\?\C:\ to C:\ and \\?\C:\folder\... to C:\folder\...
+	 */
+	if ((len > 3) &&
+	    (unc[0] ==  L'\\') &&
+	    (unc[1] ==  L'\\') &&
+	    (unc[2] ==  L'?') &&
+	    ((unc[3] ==  L'\\') || (unc[3] ==  L'/')))
+	{
+		if ((len > 5) && (unc[5] ==  L':')) {
+			wcsncpy(tmp, unc + 4, len - 4);
+			tmp[len - 4] = L'\0';
+			wcscpy(unc, tmp);
+		}
+		else if ((len > 7) && (wcsncmp(&unc[4], L"UNC", 3) == 0) &&
+		         ((unc[7] ==  L'\\') || (unc[7] ==  L'/')))
+		{
+			tmp[0] = L'\\';
+			tmp[1] = L'\\';
+			wcsncpy(tmp + 2, unc + 8, len - 8);
+			tmp[len - 6] = L'\0';
+			wcscpy(unc, tmp);
+		}
+	}
+}
+
+void BLI_cleanup_unc(char *path, int maxlen)
+{
+	wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
+	BLI_cleanup_unc_16(tmp_16);
+	conv_utf_16_to_8(tmp_16, path, maxlen);
+}
+
+void BLI_cleanup_unc_16(wchar_t *path_16)
+{
+	BLI_path_unc_to_short(path_16);
+	BLI_path_add_slash_to_share(path_16);
+}
+#endif
+
 /**
  * Replaces *file with a relative version (prefixed by "//") such that BLI_path_abs, given
  * the same *relfile, will convert it back to its original value.
@@ -484,7 +590,7 @@ void BLI_path_rel(char *file, const char *relfile)
 	}
 
 #ifdef WIN32
-	if (BLI_strnlen(relfile, 3) > 2 && relfile[1] != ':') {
+	if (BLI_strnlen(relfile, 3) > 2 && !BLI_path_is_abs(relfile)) {
 		char *ptemp;
 		/* fix missing volume name in relative base,
 		 * can happen with old recent-files.txt files */
@@ -500,15 +606,35 @@ void BLI_path_rel(char *file, const char *relfile)
 	}
 
 	if (BLI_strnlen(file, 3) > 2) {
-		if (temp[1] == ':' && file[1] == ':' && temp[0] != file[0])
+		bool is_unc = BLI_path_is_unc(file);
+
+		/* Ensure paths are both UNC paths or are both drives */
+		if (BLI_path_is_unc(temp) != is_unc) {
 			return;
+		}
+
+		/* Ensure both UNC paths are on the same share */
+		if (is_unc) {
+			int off;
+			int slash = 0;
+			for (off = 0; temp[off] && slash < 4; off++) {
+				if (temp[off] != file[off])
+					return;
+
+				if (temp[off] == '\\')
+					slash++;
+			}
+		}
+		else if (temp[1] == ':' && file[1] == ':' && temp[0] != file[0]) {
+			return;
+		}
 	}
 #else
 	BLI_strncpy(temp, relfile, FILE_MAX);
 #endif
 
-	BLI_char_switch(temp, '\\', '/');
-	BLI_char_switch(file, '\\', '/');
+	BLI_char_switch(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
+	BLI_char_switch(file + BLI_path_unc_prefix_len(file), '\\', '/');
 	
 	/* remove /./ which confuse the following slash counting... */
 	BLI_cleanup_path(NULL, file);
@@ -727,7 +853,7 @@ bool BLI_path_abs(char *path, const char *basepath)
 	 * blend file as a lib main - we are basically checking for the case that a 
 	 * UNIX root '/' is passed.
 	 */
-	if (!wasrelative && (vol[1] != ':' && (vol[0] == '\0' || vol[0] == '/' || vol[0] == '\\'))) {
+	if (!wasrelative && !BLI_path_is_abs(path)) {
 		char *p = path;
 		get_default_root(tmp);
 		// get rid of the slashes at the beginning of the path
@@ -757,24 +883,28 @@ bool BLI_path_abs(char *path, const char *basepath)
 	
 #endif
 
-	BLI_strncpy(base, basepath, sizeof(base));
-
-	/* file component is ignored, so don't bother with the trailing slash */
-	BLI_cleanup_path(NULL, base);
-	
 	/* push slashes into unix mode - strings entering this part are
 	 * potentially messed up: having both back- and forward slashes.
 	 * Here we push into one conform direction, and at the end we
 	 * push them into the system specific dir. This ensures uniformity
 	 * of paths and solving some problems (and prevent potential future
-	 * ones) -jesterKing. */
-	BLI_char_switch(tmp, '\\', '/');
-	BLI_char_switch(base, '\\', '/');
+	 * ones) -jesterKing.
+	 * For UNC paths the first characters containing the UNC prefix
+	 * shouldn't be switched as we need to distinguish them from
+	 * paths relative to the .blend file -elubie */
+	BLI_char_switch(tmp + BLI_path_unc_prefix_len(tmp), '\\', '/');
 
 	/* Paths starting with // will get the blend file as their base,
 	 * this isn't standard in any os but is used in blender all over the place */
 	if (wasrelative) {
-		const char * const lslash = BLI_last_slash(base);
+		const char *lslash;
+		BLI_strncpy(base, basepath, sizeof(base));
+
+		/* file component is ignored, so don't bother with the trailing slash */
+		BLI_cleanup_path(NULL, base);
+		lslash = BLI_last_slash(base);
+		BLI_char_switch(base + BLI_path_unc_prefix_len(base), '\\', '/');
+
 		if (lslash) {
 			const int baselen = (int) (lslash - base) + 1;  /* length up to and including last "/" */
 			/* use path for temp storage here, we copy back over it right away */
@@ -823,7 +953,7 @@ bool BLI_path_cwd(char *path)
 	const int filelen = strlen(path);
 	
 #ifdef WIN32
-	if (filelen >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
+	if ((filelen >= 3 && BLI_path_is_abs(path)) || BLI_path_is_unc(path))
 		wasrelative = false;
 #else
 	if (filelen >= 2 && path[0] == '/')
@@ -1369,7 +1499,7 @@ void BLI_clean(char *path)
 		BLI_char_switch(path + 2, '/', '\\');
 	}
 #else
-	BLI_char_switch(path, '\\', '/');
+	BLI_char_switch(path + BLI_path_unc_prefix_len(path), '\\', '/');
 #endif
 }
 
@@ -1486,9 +1616,12 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
 			BLI_strncpy(string, dir, 3);
 			dir += 2;
 		}
+		else if (BLI_strnlen(dir, 3) >= 2 && BLI_path_is_unc(dir)) {
+			string[0] = 0;
+		}
 		else { /* no drive specified */
 			   /* first option: get the drive from the relabase if it has one */
-			if (relabase && strlen(relabase) >= 2 && relabase[1] == ':') {
+			if (relabase && BLI_strnlen(relabase, 3) >= 2 && relabase[1] == ':') {
 				BLI_strncpy(string, relabase, 3);
 				string[2] = '\\';
 				string[3] = '\0';

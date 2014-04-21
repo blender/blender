@@ -857,7 +857,19 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 	if (sfile->params) {
 		if (BLI_parent_dir(sfile->params->dir)) {
 			BLI_cleanup_dir(G.main->name, sfile->params->dir);
-			file_change_dir(C, 0);
+			/* if not browsing in .blend file, we still want to check whether the path is a directory */
+			if (sfile->params->type == FILE_LOADLIB) {
+				char tdir[FILE_MAX], tgroup[FILE_MAX];
+				if (BLO_is_a_library(sfile->params->dir, tdir, tgroup)) {
+					file_change_dir(C, 0);
+				}
+				else {
+					file_change_dir(C, 1);
+				}
+			}
+			else {
+				file_change_dir(C, 1);
+			}
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 		}
 	}
@@ -1206,9 +1218,29 @@ static void file_expand_directory(bContext *C)
 			sfile->params->dir[2] = '\\';
 			sfile->params->dir[3] = '\0';
 		}
+		else if (BLI_path_is_unc(sfile->params->dir)) {
+			BLI_cleanup_unc(sfile->params->dir, FILE_MAX_LIBEXTRA);
+		}
 #endif
 	}
 }
+
+#if defined(WIN32)
+static bool can_create_dir(const char *dir)
+{
+	/* for UNC paths we need to check whether the parent of the new
+	 * directory is a proper directory itself and not a share or the
+	 * UNC root (server name) itself. Calling BLI_is_dir does this
+	 */
+	if (BLI_path_is_unc(dir)) {
+		char parent[PATH_MAX];
+		BLI_strncpy(parent, dir, PATH_MAX);
+		BLI_parent_dir(parent);
+		return BLI_is_dir(parent);
+	}
+	return true;
+}
+#endif
 
 void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UNUSED(arg_but))
 {
@@ -1234,6 +1266,13 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 			 * placing cursor at the end */
 			/* UI_textbutton_activate_but(C, but); */
 		}
+#if defined(WIN32)
+		else if (!can_create_dir(sfile->params->dir)) {
+			const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
+			if (lastdir)
+				BLI_strncpy(sfile->params->dir, lastdir, sizeof(sfile->params->dir));
+		}
+#endif
 		else {
 			const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
 

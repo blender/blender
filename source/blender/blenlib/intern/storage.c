@@ -478,16 +478,29 @@ int BLI_exists(const char *name)
 #else
 	struct _stati64 st;
 #endif
-	/* in Windows stat doesn't recognize dir ending on a slash
-	 * To not break code where the ending slash is expected we
-	 * don't mess with the argument name directly here - elubie */
-	wchar_t *tmp_16 = alloc_utf16_from_8(name, 0);
+	wchar_t *tmp_16 = alloc_utf16_from_8(name, 1);
 	int len, res;
 	unsigned int old_error_mode;
 
 	len = wcslen(tmp_16);
-	if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/'))
+	/* in Windows #stat doesn't recognize dir ending on a slash
+	 * so we remove it here */
+	if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/')) {
 		tmp_16[len - 1] = '\0';
+	}
+	/* two special cases where the trailing slash is needed:
+	 * 1. after the share part of a UNC path
+	 * 2. after the C:\ when the path is the volume only
+	 */
+	if ((len >= 3) && (tmp_16[0] ==  L'\\') && (tmp_16[1] ==  L'\\')) {
+		BLI_cleanup_unc_16(tmp_16);
+	}
+
+	if ((tmp_16[1] ==  L':') && (tmp_16[2] ==  L'\0')) {
+		tmp_16[2] = L'\\';
+		tmp_16[3] = L'\0';
+	}
+
 
 	/* change error mode so user does not get a "no disk in drive" popup
 	 * when looking for a file on an empty CD/DVD drive */
