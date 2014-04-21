@@ -2360,6 +2360,15 @@ void UVMapNode::compile(SVMCompiler& compiler)
 	NodeType attr_node = NODE_ATTR;
 	int attr;
 
+	if(bump == SHADER_BUMP_DX) {
+		texco_node = NODE_TEX_COORD_BUMP_DX;
+		attr_node = NODE_ATTR_BUMP_DX;
+	}
+	else if(bump == SHADER_BUMP_DY) {
+		texco_node = NODE_TEX_COORD_BUMP_DY;
+		attr_node = NODE_ATTR_BUMP_DY;
+	}
+
 	if(!out->links.empty()) {
 		if(from_dupli) {
 			compiler.stack_assign(out);
@@ -2379,6 +2388,13 @@ void UVMapNode::compile(SVMCompiler& compiler)
 
 void UVMapNode::compile(OSLCompiler& compiler)
 {
+	if(bump == SHADER_BUMP_DX)
+		compiler.parameter("bump_offset", "dx");
+	else if(bump == SHADER_BUMP_DY)
+		compiler.parameter("bump_offset", "dy");
+	else
+		compiler.parameter("bump_offset", "center");
+
 	compiler.parameter("from_dupli", from_dupli);
 	compiler.parameter("name", attribute.c_str());
 	compiler.add(this, "node_uv_map");
