@@ -3068,8 +3068,9 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 			if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
 				float cent[2];
 				uv_poly_center(efa, cent, cd_loop_uv_offset);
-				UI_view2d_view_to_region_clip(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]);
-				if (BLI_rcti_isect_pt_v(&rect, screen_uv) &&
+
+				if (UI_view2d_view_to_region_clip(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]) &&
+				    BLI_rcti_isect_pt_v(&rect, screen_uv) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 				{
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -3090,8 +3091,10 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
 						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-						UI_view2d_view_to_region_clip(&ar->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]);
-						if (BLI_rcti_isect_pt_v(&rect, screen_uv) &&
+						if (UI_view2d_view_to_region_clip(&ar->v2d,
+						                                  luv->uv[0], luv->uv[1],
+						                                  &screen_uv[0], &screen_uv[1]) &&
+						    BLI_rcti_isect_pt_v(&rect, screen_uv) &&
 						    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 						{
 							uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);

@@ -1048,16 +1048,14 @@ static void nearest_fcurve_vert_store(
 		 *  needed to access the relevant vertex coordinates in the 3x3
 		 *  'vec' matrix
 		 */
-		UI_view2d_view_to_region_clip(v2d,
-		                              bezt->vec[hpoint + 1][0], bezt->vec[hpoint + 1][1] * unit_scale,
-		                              &screen_co[0], &screen_co[1]);
-		
-		/* check if distance from mouse cursor to vert in screen space is within tolerance */
-		dist = len_v2v2_int(mval, screen_co);
-		
-		if (dist <= GVERTSEL_TOL) {
+		if (UI_view2d_view_to_region_clip(v2d,
+		                                  bezt->vec[hpoint + 1][0], bezt->vec[hpoint + 1][1] * unit_scale,
+		                                  &screen_co[0], &screen_co[1]) &&
+		    /* check if distance from mouse cursor to vert in screen space is within tolerance */
+		    ((dist = len_v2v2_int(mval, screen_co)) <= GVERTSEL_TOL))
+		{
 			tNearestVertInfo *nvi = (tNearestVertInfo *)matches->last;
-			short replace = 0;
+			bool replace = false;
 			
 			/* if there is already a point for the F-Curve, check if this point is closer than that was */
 			if ((nvi) && (nvi->fcu == fcu)) {

@@ -590,9 +590,8 @@ static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves
 		                       BLI_rctf_cent_y(&node->totr)};
 
 		/* marker in screen coords */
-		UI_view2d_view_to_region_clip(&ar->v2d, cent[0], cent[1], &screen_co[0], &screen_co[1]);
-
-		if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
+		if (UI_view2d_view_to_region_clip(&ar->v2d, cent[0], cent[1], &screen_co[0], &screen_co[1]) &&
+		    BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
 		    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
 		{
 			nodeSetSelected(node, select);
