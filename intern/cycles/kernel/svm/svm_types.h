@@ -160,7 +160,8 @@ typedef enum NodeLightPath {
 	NODE_LP_volume_scatter,
 	NODE_LP_backfacing,
 	NODE_LP_ray_length,
-	NODE_LP_ray_depth
+	NODE_LP_ray_depth,
+	NODE_LP_ray_transparent
 } NodeLightPath;
 
 typedef enum NodeLightFalloff {

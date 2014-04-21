@@ -49,7 +49,7 @@ ccl_device void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd
 #endif
 
 ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
-	const Intersection *isect, const Ray *ray, int bounce)
+	const Intersection *isect, const Ray *ray, int bounce, int transparent_bounce)
 {
 #ifdef __INSTANCING__
 	sd->object = (isect->object == PRIM_NONE)? kernel_tex_fetch(__prim_object, isect->prim): isect->object;
@@ -67,6 +67,7 @@ ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
 	sd->ray_length = isect->t;
 	sd->ray_depth = bounce;
+	sd->transparent_depth = transparent_bounce;
 
 #ifdef __UV__
 	sd->u = isect->u;
@@ -228,7 +229,7 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 
 ccl_device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
-	int shader, int object, int prim, float u, float v, float t, float time, int bounce)
+	int shader, int object, int prim, float u, float v, float t, float time, int bounce, int transparent_bounce)
 {
 	/* vectors */
 	sd->P = P;
@@ -250,6 +251,7 @@ ccl_device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 #endif
 	sd->ray_length = t;
 	sd->ray_depth = bounce;
+	sd->transparent_depth = transparent_bounce;
 
 	/* detect instancing, for non-instanced the object index is -object-1 */
 #ifdef __INSTANCING__
@@ -347,12 +349,12 @@ ccl_device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 
 	/* watch out: no instance transform currently */
 
-	shader_setup_from_sample(kg, sd, P, Ng, I, shader, object, prim, u, v, 0.0f, TIME_INVALID, 0);
+	shader_setup_from_sample(kg, sd, P, Ng, I, shader, object, prim, u, v, 0.0f, TIME_INVALID, 0, 0);
 }
 
 /* ShaderData setup from ray into background */
 
-ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce)
+ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce, int transparent_bounce)
 {
 	/* vectors */
 	sd->P = ray->D;
@@ -366,6 +368,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 #endif
 	sd->ray_length = 0.0f;
 	sd->ray_depth = bounce;
+	sd->transparent_depth = transparent_bounce;
 
 #ifdef __INSTANCING__
 	sd->object = PRIM_NONE;
@@ -395,7 +398,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 
 /* ShaderData setup from point inside volume */
 
-ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce)
+ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *sd, const Ray *ray, int bounce, int transparent_bounce)
 {
 	/* vectors */
 	sd->P = ray->P;
@@ -409,6 +412,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 #endif
 	sd->ray_length = 0.0f; /* todo: can we set this to some useful value? */
 	sd->ray_depth = bounce;
+	sd->transparent_depth = transparent_bounce;
 
 #ifdef __INSTANCING__
 	sd->object = PRIM_NONE; /* todo: fill this for texture coordinates */

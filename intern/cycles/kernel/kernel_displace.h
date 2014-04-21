@@ -55,7 +55,7 @@ ccl_device void kernel_shader_evaluate(KernelGlobals *kg, ccl_global uint4 *inpu
 #endif
 
 		/* setup shader data */
-		shader_setup_from_background(kg, &sd, &ray, 0);
+		shader_setup_from_background(kg, &sd, &ray, 0, 0);
 
 		/* evaluate */
 		int flag = 0; /* we can't know which type of BSDF this is for */

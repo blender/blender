@@ -19,7 +19,7 @@ CCL_NAMESPACE_BEGIN
 /* Direction Emission */
 
 ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
-	LightSample *ls, float3 I, differential3 dI, float t, float time, int bounce)
+	LightSample *ls, float3 I, differential3 dI, float t, float time, int bounce, int transparent_bounce)
 {
 	/* setup shading at emitter */
 	ShaderData sd;
@@ -37,13 +37,13 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 		ray.dP = differential3_zero();
 		ray.dD = dI;
 
-		shader_setup_from_background(kg, &sd, &ray, bounce+1);
+		shader_setup_from_background(kg, &sd, &ray, bounce+1, transparent_bounce);
 		eval = shader_eval_background(kg, &sd, 0, SHADER_CONTEXT_EMISSION);
 	}
 	else
 #endif
 	{
-		shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, ls->u, ls->v, t, time, bounce+1);
+		shader_setup_from_sample(kg, &sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, ls->u, ls->v, t, time, bounce+1, transparent_bounce);
 
 		ls->Ng = sd.Ng;
 
@@ -65,7 +65,7 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 
 ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 	float randt, float rando, float randu, float randv, Ray *ray, BsdfEval *eval,
-	bool *is_lamp, int bounce)
+	bool *is_lamp, int bounce, int transparent_bounce)
 {
 	LightSample ls;
 
@@ -88,7 +88,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	differential3 dD = differential3_zero();
 
 	/* evaluate closure */
-	float3 light_eval = direct_emissive_eval(kg, rando, &ls, -ls.D, dD, ls.t, sd->time, bounce);
+	float3 light_eval = direct_emissive_eval(kg, rando, &ls, -ls.D, dD, ls.t, sd->time, bounce, transparent_bounce);
 
 	if(is_zero(light_eval))
 		return false;
@@ -183,7 +183,7 @@ ccl_device_noinline float3 indirect_primitive_emission(KernelGlobals *kg, Shader
 
 /* Indirect Lamp Emission */
 
-ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int path_flag, float bsdf_pdf, float randt, float3 *emission, int bounce)
+ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int path_flag, float bsdf_pdf, float randt, float3 *emission, int bounce, int transparent_bounce)
 {
 	LightSample ls;
 	int lamp = lamp_light_eval_sample(kg, randt);
@@ -204,7 +204,7 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int
 	}
 #endif
 
-	float3 L = direct_emissive_eval(kg, 0.0f, &ls, -ray->D, ray->dD, ls.t, ray->time, bounce);
+	float3 L = direct_emissive_eval(kg, 0.0f, &ls, -ray->D, ray->dD, ls.t, ray->time, bounce, transparent_bounce);
 
 	if(!(path_flag & PATH_RAY_MIS_SKIP)) {
 		/* multiple importance sampling, get regular light pdf,
@@ -219,7 +219,7 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int
 
 /* Indirect Background */
 
-ccl_device_noinline float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, float bsdf_pdf, int bounce)
+ccl_device_noinline float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, float bsdf_pdf, int bounce, int transparent_bounce)
 {
 #ifdef __BACKGROUND__
 	int shader = kernel_data.background.surface_shader;
@@ -235,7 +235,7 @@ ccl_device_noinline float3 indirect_background(KernelGlobals *kg, Ray *ray, int 
 
 	/* evaluate background closure */
 	ShaderData sd;
-	shader_setup_from_background(kg, &sd, ray, bounce+1);
+	shader_setup_from_background(kg, &sd, ray, bounce+1, transparent_bounce);
 
 	float3 L = shader_eval_background(kg, &sd, path_flag, SHADER_CONTEXT_EMISSION);
 

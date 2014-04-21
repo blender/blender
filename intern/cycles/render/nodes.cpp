@@ -2419,6 +2419,7 @@ LightPathNode::LightPathNode()
 	add_output("Is Volume Scatter Ray", SHADER_SOCKET_FLOAT);
 	add_output("Ray Length", SHADER_SOCKET_FLOAT);
 	add_output("Ray Depth", SHADER_SOCKET_FLOAT);
+	add_output("Transparent Depth", SHADER_SOCKET_FLOAT);
 }
 
 void LightPathNode::compile(SVMCompiler& compiler)
@@ -2486,6 +2487,11 @@ void LightPathNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_depth, out->stack_offset);
 	}
 
+	out = output("Transparent Depth");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_transparent, out->stack_offset);
+	}
 }
 
 void LightPathNode::compile(OSLCompiler& compiler)

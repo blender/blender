@@ -184,7 +184,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, PathState *state, Ray *ray, float3 *throughput)
 {
 	ShaderData sd;
-	shader_setup_from_volume(kg, &sd, ray, state->bounce);
+	shader_setup_from_volume(kg, &sd, ray, state->bounce, state->transparent_bounce);
 
 	if(volume_stack_is_heterogeneous(kg, state->volume_stack))
 		kernel_volume_shadow_heterogeneous(kg, state, ray, &sd, throughput);
@@ -828,7 +828,7 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals 
 	/* debugging code to compare decoupled ray marching */
 	VolumeSegment segment;
 
-	shader_setup_from_volume(kg, sd, ray, state->bounce);
+	shader_setup_from_volume(kg, sd, ray, state->bounce, state->transparent_bounce);
 	kernel_volume_decoupled_record(kg, state, ray, sd, &segment, heterogeneous);
 
 	VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg, state, ray, sd, throughput, &tmp_rng, &segment);
@@ -837,7 +837,7 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals 
 
 	return result;
 #else
-	shader_setup_from_volume(kg, sd, ray, state->bounce);
+	shader_setup_from_volume(kg, sd, ray, state->bounce, state->transparent_bounce);
 
 	if(heterogeneous)
 		return kernel_volume_integrate_heterogeneous(kg, state, ray, sd, L, throughput, &tmp_rng);

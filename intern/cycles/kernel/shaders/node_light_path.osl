@@ -26,7 +26,8 @@ shader node_light_path(
 	output float IsTransmissionRay = 0.0,
 	output float IsVolumeScatterRay = 0.0,
 	output float RayLength = 0.0,
-	output float RayDepth = 0.0)
+	output float RayDepth = 0.0,
+	output float TransparentDepth = 0.0)
 {
 	IsCameraRay = raytype("camera");
 	IsShadowRay = raytype("shadow");
@@ -42,5 +43,9 @@ shader node_light_path(
 	int ray_depth;
 	getattribute("path:ray_depth", ray_depth);
 	RayDepth = (float)ray_depth;
+
+	int transparent_depth;
+	getattribute("path:transparent_depth", transparent_depth);
+	TransparentDepth = (float)transparent_depth;
 }
 
