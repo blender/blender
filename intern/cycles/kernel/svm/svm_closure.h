@@ -51,7 +51,6 @@ ccl_device void svm_node_glass_setup(ShaderData *sd, ShaderClosure *sc, int type
 
 ccl_device_inline ShaderClosure *svm_node_closure_get_non_bsdf(ShaderData *sd, ClosureType type, float mix_weight)
 {
-#ifdef __MULTI_CLOSURE__
 	ShaderClosure *sc = &sd->closure[sd->num_closure];
 
 	if(sd->num_closure < MAX_CLOSURE) {
@@ -65,14 +64,10 @@ ccl_device_inline ShaderClosure *svm_node_closure_get_non_bsdf(ShaderData *sd, C
 	}
 
 	return NULL;
-#else
-	return &sd->closure;
-#endif
 }
 
 ccl_device_inline ShaderClosure *svm_node_closure_get_bsdf(ShaderData *sd, float mix_weight)
 {
-#ifdef __MULTI_CLOSURE__
 	ShaderClosure *sc = &sd->closure[sd->num_closure];
 	float3 weight = sc->weight * mix_weight;
 	float sample_weight = fabsf(average(weight));
@@ -88,14 +83,10 @@ ccl_device_inline ShaderClosure *svm_node_closure_get_bsdf(ShaderData *sd, float
 	}
 
 	return NULL;
-#else
-	return &sd->closure;
-#endif
 }
 
 ccl_device_inline ShaderClosure *svm_node_closure_get_absorption(ShaderData *sd, float mix_weight)
 {
-#ifdef __MULTI_CLOSURE__
 	ShaderClosure *sc = &sd->closure[sd->num_closure];
 	float3 weight = (make_float3(1.0f, 1.0f, 1.0f) - sc->weight) * mix_weight;
 	float sample_weight = fabsf(average(weight));
@@ -111,16 +102,12 @@ ccl_device_inline ShaderClosure *svm_node_closure_get_absorption(ShaderData *sd,
 	}
 
 	return NULL;
-#else
-	return &sd->closure;
-#endif
 }
 
-ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, float randb, int path_flag, int *offset)
+ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int path_flag, int *offset)
 {
 	uint type, param1_offset, param2_offset;
 
-#ifdef __MULTI_CLOSURE__
 	uint mix_weight_offset;
 	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
 	float mix_weight = (stack_valid(mix_weight_offset)? stack_load_float(stack, mix_weight_offset): 1.0f);
@@ -132,13 +119,6 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		return;
 
 	float3 N = stack_valid(data_node.x)? stack_load_float3(stack, data_node.x): sd->N; 
-#else
-	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, NULL);
-	float mix_weight = 1.0f;
-
-	uint4 data_node = read_node(kg, offset);
-	float3 N = stack_valid(data_node.x)? stack_load_float3(stack, data_node.x): sd->N; 
-#endif
 
 	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
 	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
@@ -255,7 +235,6 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float fresnel = fresnel_dielectric_cos(cosNO, eta);
 			float roughness = param1;
 
-#ifdef __MULTI_CLOSURE__
 			/* reflection */
 			ShaderClosure *sc = &sd->closure[sd->num_closure];
 			float3 weight = sc->weight;
@@ -279,15 +258,6 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				sc->N = N;
 				svm_node_glass_setup(sd, sc, type, eta, roughness, true);
 			}
-#else
-			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
-
-			if(sc) {
-				sc->N = N;
-				bool refract = (randb > fresnel);
-				svm_node_glass_setup(sd, sc, type, eta, roughness, refract);
-			}
-#endif
 
 			break;
 		}
@@ -484,17 +454,12 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 #ifdef __VOLUME__
 	uint type, param1_offset, param2_offset;
 
-#ifdef __MULTI_CLOSURE__
 	uint mix_weight_offset;
 	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
 	float mix_weight = (stack_valid(mix_weight_offset)? stack_load_float(stack, mix_weight_offset): 1.0f);
 
 	if(mix_weight == 0.0f)
 		return;
-#else
-	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, NULL);
-	float mix_weight = 1.0f;
-#endif
 
 	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
 	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
@@ -527,7 +492,6 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 
 ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
 {
-#ifdef __MULTI_CLOSURE__
 	uint mix_weight_offset = node.y;
 
 	if(stack_valid(mix_weight_offset)) {
@@ -540,17 +504,12 @@ ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 no
 	}
 	else
 		svm_node_closure_get_non_bsdf(sd, CLOSURE_EMISSION_ID, 1.0f);
-#else
-	ShaderClosure *sc = &sd->closure;
-	sc->type = CLOSURE_EMISSION_ID;
-#endif
 
 	sd->flag |= SD_EMISSION;
 }
 
 ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 node)
 {
-#ifdef __MULTI_CLOSURE__
 	uint mix_weight_offset = node.y;
 
 	if(stack_valid(mix_weight_offset)) {
@@ -563,15 +522,10 @@ ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 
 	}
 	else
 		svm_node_closure_get_non_bsdf(sd, CLOSURE_BACKGROUND_ID, 1.0f);
-#else
-	ShaderClosure *sc = &sd->closure;
-	sc->type = CLOSURE_BACKGROUND_ID;
-#endif
 }
 
 ccl_device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 node)
 {
-#ifdef __MULTI_CLOSURE__
 	uint mix_weight_offset = node.y;
 
 	if(stack_valid(mix_weight_offset)) {
@@ -584,17 +538,12 @@ ccl_device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 nod
 	}
 	else
 		svm_node_closure_get_non_bsdf(sd, CLOSURE_HOLDOUT_ID, 1.0f);
-#else
-	ShaderClosure *sc = &sd->closure;
-	sc->type = CLOSURE_HOLDOUT_ID;
-#endif
 
 	sd->flag |= SD_HOLDOUT;
 }
 
 ccl_device void svm_node_closure_ambient_occlusion(ShaderData *sd, float *stack, uint4 node)
 {
-#ifdef __MULTI_CLOSURE__
 	uint mix_weight_offset = node.y;
 
 	if(stack_valid(mix_weight_offset)) {
@@ -607,10 +556,6 @@ ccl_device void svm_node_closure_ambient_occlusion(ShaderData *sd, float *stack,
 	}
 	else
 		svm_node_closure_get_non_bsdf(sd, CLOSURE_AMBIENT_OCCLUSION_ID, 1.0f);
-#else
-	ShaderClosure *sc = &sd->closure;
-	sc->type = CLOSURE_AMBIENT_OCCLUSION_ID;
-#endif
 
 	sd->flag |= SD_AO;
 }
@@ -619,12 +564,8 @@ ccl_device void svm_node_closure_ambient_occlusion(ShaderData *sd, float *stack,
 
 ccl_device_inline void svm_node_closure_store_weight(ShaderData *sd, float3 weight)
 {
-#ifdef __MULTI_CLOSURE__
 	if(sd->num_closure < MAX_CLOSURE)
 		sd->closure[sd->num_closure].weight = weight;
-#else
-	sd->closure.weight = weight;
-#endif
 }
 
 ccl_device void svm_node_closure_set_weight(ShaderData *sd, uint r, uint g, uint b)
@@ -665,10 +606,8 @@ ccl_device void svm_node_emission_weight(KernelGlobals *kg, ShaderData *sd, floa
 	svm_node_closure_store_weight(sd, weight);
 }
 
-ccl_device void svm_node_mix_closure(ShaderData *sd, float *stack,
-	uint4 node, int *offset, float *randb)
+ccl_device void svm_node_mix_closure(ShaderData *sd, float *stack, uint4 node)
 {
-#ifdef __MULTI_CLOSURE__
 	/* fetch weight from blend input, previous mix closures,
 	 * and write to stack to be used by closure nodes later */
 	uint weight_offset, in_weight_offset, weight1_offset, weight2_offset;
@@ -683,44 +622,6 @@ ccl_device void svm_node_mix_closure(ShaderData *sd, float *stack,
 		stack_store_float(stack, weight1_offset, in_weight*(1.0f - weight));
 	if(stack_valid(weight2_offset))
 		stack_store_float(stack, weight2_offset, in_weight*weight);
-#else
-	/* pick a closure and make the random number uniform over 0..1 again.
-	 * closure 1 starts on the next node, for closure 2 the start is at an
-	 * offset from the current node, so we jump */
-	uint weight_offset = node.y;
-	uint node_jump = node.z;
-	float weight = stack_load_float(stack, weight_offset);
-	weight = clamp(weight, 0.0f, 1.0f);
-
-	if(*randb < weight) {
-		*offset += node_jump;
-		*randb = *randb/weight;
-	}
-	else
-		*randb = (*randb - weight)/(1.0f - weight);
-#endif
-}
-
-ccl_device void svm_node_add_closure(ShaderData *sd, float *stack, uint unused,
-	uint node_jump, int *offset, float *randb, float *closure_weight)
-{
-#ifdef __MULTI_CLOSURE__
-	/* nothing to do, handled in compiler */
-#else
-	/* pick one of the two closures with probability 0.5. sampling quality
-	 * is not going to be great, for that we'd need to evaluate the weights
-	 * of the two closures being added */
-	float weight = 0.5f;
-
-	if(*randb < weight) {
-		*offset += node_jump;
-		*randb = *randb/weight;
-	}
-	else
-		*randb = (*randb - weight)/(1.0f - weight);
-	
-	*closure_weight *= 2.0f;
-#endif
 }
 
 /* (Bump) normal */

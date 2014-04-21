@@ -247,7 +247,7 @@ public:
 	void disconnect(ShaderInput *to);
 
 	void remove_unneeded_nodes();
-	void finalize(bool do_bump = false, bool do_osl = false, bool do_multi_closure = false);
+	void finalize(bool do_bump = false, bool do_osl = false);
 
 protected:
 	typedef pair<ShaderNode* const, ShaderNode*> NodePair;

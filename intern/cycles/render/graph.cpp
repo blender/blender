@@ -227,7 +227,7 @@ void ShaderGraph::disconnect(ShaderInput *to)
 	from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
 }
 
-void ShaderGraph::finalize(bool do_bump, bool do_osl, bool do_multi_transform)
+void ShaderGraph::finalize(bool do_bump, bool do_osl)
 {
 	/* before compiling, the shader graph may undergo a number of modifications.
 	 * currently we set default geometry shader inputs, and create automatic bump
@@ -242,17 +242,15 @@ void ShaderGraph::finalize(bool do_bump, bool do_osl, bool do_multi_transform)
 		if(do_bump)
 			bump_from_displacement();
 
-		if(do_multi_transform) {
-			ShaderInput *surface_in = output()->input("Surface");
-			ShaderInput *volume_in = output()->input("Volume");
+		ShaderInput *surface_in = output()->input("Surface");
+		ShaderInput *volume_in = output()->input("Volume");
 
-			/* todo: make this work when surface and volume closures are tangled up */
+		/* todo: make this work when surface and volume closures are tangled up */
 
-			if(surface_in->link)
-				transform_multi_closure(surface_in->link->parent, NULL, false);
-			if(volume_in->link)
-				transform_multi_closure(volume_in->link->parent, NULL, true);
-		}
+		if(surface_in->link)
+			transform_multi_closure(surface_in->link->parent, NULL, false);
+		if(volume_in->link)
+			transform_multi_closure(volume_in->link->parent, NULL, true);
 
 		finalized = true;
 	}

@@ -63,8 +63,6 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 	}
 	
-	bool use_multi_closure = device->info.advanced_shading;
-
 	for(i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];
 
@@ -75,8 +73,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		if(shader->use_mis && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
-		SVMCompiler compiler(scene->shader_manager, scene->image_manager,
-			use_multi_closure);
+		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
 		compiler.background = ((int)i == scene->default_background);
 		compiler.compile(shader, svm_nodes, i);
 	}
@@ -104,7 +101,7 @@ void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 
 /* Graph Compiler */
 
-SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_manager_, bool use_multi_closure_)
+SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_manager_)
 {
 	shader_manager = shader_manager_;
 	image_manager = image_manager_;
@@ -114,7 +111,6 @@ SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_man
 	current_graph = NULL;
 	background = false;
 	mix_weight_offset = SVM_STACK_INVALID;
-	use_multi_closure = use_multi_closure_;
 	compile_failed = false;
 }
 
@@ -422,97 +418,6 @@ void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNo
 	} while(!nodes_done);
 }
 
-void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
-{
-	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
-		ShaderInput *fin = node->input("Fac");
-		ShaderInput *cl1in = node->input("Closure1");
-		ShaderInput *cl2in = node->input("Closure2");
-
-		/* execute dependencies for mix weight */
-		if(fin) {
-			set<ShaderNode*> dependencies;
-			find_dependencies(dependencies, done, fin);
-			generate_svm_nodes(dependencies, done);
-
-			/* add mix node */
-			stack_assign(fin);
-		}
-
-		int mix_offset = svm_nodes.size();
-
-		if(fin)
-			add_node(NODE_MIX_CLOSURE, fin->stack_offset, 0, 0);
-		else
-			add_node(NODE_ADD_CLOSURE, 0, 0, 0);
-
-		/* generate code for closure 1
-		 * note we backup all compiler state and restore it afterwards, so one
-		 * closure choice doesn't influence the other*/
-		if(cl1in->link) {
-			StackBackup backup;
-			stack_backup(backup, done);
-
-			generate_closure(cl1in->link->parent, done);
-			add_node(NODE_END, 0, 0, 0);
-
-			stack_restore(backup, done);
-		}
-		else
-			add_node(NODE_END, 0, 0, 0);
-
-		/* generate code for closure 2 */
-		int cl2_offset = svm_nodes.size();
-
-		if(cl2in->link) {
-			StackBackup backup;
-			stack_backup(backup, done);
-
-			generate_closure(cl2in->link->parent, done);
-			add_node(NODE_END, 0, 0, 0);
-
-			stack_restore(backup, done);
-		}
-		else
-			add_node(NODE_END, 0, 0, 0);
-
-		/* set jump for mix node, -1 because offset is already
-		 * incremented when this jump is added to it */
-		svm_nodes[mix_offset].z = cl2_offset - mix_offset - 1;
-
-		done.insert(node);
-		stack_clear_users(node, done);
-		stack_clear_temporary(node);
-	}
-	else {
-		/* execute dependencies for closure */
-		foreach(ShaderInput *in, node->inputs) {
-			if(!node_skip_input(node, in) && in->link) {
-				set<ShaderNode*> dependencies;
-				find_dependencies(dependencies, done, in);
-				generate_svm_nodes(dependencies, done);
-			}
-		}
-
-		/* compile closure itself */
-		generate_node(node, done);
-
-		if(current_type == SHADER_TYPE_SURFACE) {
-			if(node->has_surface_emission())
-				current_shader->has_surface_emission = true;
-			if(node->has_surface_transparent())
-				current_shader->has_surface_transparent = true;
-			if(node->has_surface_bssrdf()) {
-				current_shader->has_surface_bssrdf = true;
-				if(node->has_bssrdf_bump())
-					current_shader->has_bssrdf_bump = true;
-			}
-		}
-
-		/* end node is added outside of this */
-	}
-}
-
 void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done)
 {
 	/* only generate once */
@@ -537,7 +442,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			find_dependencies(dependencies, done, facin);
 			generate_svm_nodes(dependencies, done);
 
-			stack_assign(facin); /* XXX unassign? */
+			stack_assign(facin);
 
 			/* execute shared dependencies. this is needed to allow skipping
 			 * of zero weight closures and their dependencies later, so we
@@ -578,7 +483,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			}
 
 			/* unassign */
-			facin->stack_offset = SVM_STACK_INVALID; // XXX clear?
+			facin->stack_offset = SVM_STACK_INVALID;
 		}
 		else {
 			/* execute closures and their dependencies, no runtime checks
@@ -706,14 +611,8 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 			}
 
 			if(generate) {
-				set<ShaderNode*> done;
-
-				if(use_multi_closure) {
-					set<ShaderNode*> closure_done;
-					generate_multi_closure(clin->link->parent, done, closure_done);
-				}
-				else
-					generate_closure(clin->link->parent, done);
+				set<ShaderNode*> done, closure_done;
+				generate_multi_closure(clin->link->parent, done, closure_done);
 			}
 		}
 
@@ -740,9 +639,9 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 			shader->graph_bump = shader->graph->copy();
 
 	/* finalize */
-	shader->graph->finalize(false, false, use_multi_closure);
+	shader->graph->finalize(false, false);
 	if(shader->graph_bump)
-		shader->graph_bump->finalize(true, false, use_multi_closure);
+		shader->graph_bump->finalize(true, false);
 
 	current_shader = shader;
 

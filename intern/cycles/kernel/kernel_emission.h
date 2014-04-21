@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Direction Emission */
 
-ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
+ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	LightSample *ls, float3 I, differential3 dI, float t, float time, int bounce, int transparent_bounce)
 {
 	/* setup shading at emitter */
@@ -49,7 +49,7 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 
 		/* no path flag, we're evaluating this for all closures. that's weak but
 		 * we'd have to do multiple evaluations otherwise */
-		shader_eval_surface(kg, &sd, rando, 0, SHADER_CONTEXT_EMISSION);
+		shader_eval_surface(kg, &sd, 0.0f, 0, SHADER_CONTEXT_EMISSION);
 
 		/* evaluate emissive closure */
 		if(sd.flag & SD_EMISSION)
@@ -64,7 +64,7 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 }
 
 ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
-	float randt, float rando, float randu, float randv, Ray *ray, BsdfEval *eval,
+	float randt, float randu, float randv, Ray *ray, BsdfEval *eval,
 	bool *is_lamp, int bounce, int transparent_bounce)
 {
 	LightSample ls;
@@ -88,7 +88,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int 
 	differential3 dD = differential3_zero();
 
 	/* evaluate closure */
-	float3 light_eval = direct_emissive_eval(kg, rando, &ls, -ls.D, dD, ls.t, sd->time, bounce, transparent_bounce);
+	float3 light_eval = direct_emissive_eval(kg, &ls, -ls.D, dD, ls.t, sd->time, bounce, transparent_bounce);
 
 	if(is_zero(light_eval))
 		return false;
@@ -204,7 +204,7 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, Ray *ray, int
 	}
 #endif
 
-	float3 L = direct_emissive_eval(kg, 0.0f, &ls, -ray->D, ray->dD, ls.t, ray->time, bounce, transparent_bounce);
+	float3 L = direct_emissive_eval(kg, &ls, -ray->D, ray->dD, ls.t, ray->time, bounce, transparent_bounce);
 
 	if(!(path_flag & PATH_RAY_MIS_SKIP)) {
 		/* multiple importance sampling, get regular light pdf,

@@ -36,10 +36,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 		 * in cases where we don't need them. after a regular shadow ray is
 		 * cast we check if the hit primitive was potentially transparent, and
 		 * only in that case start marching. this gives on extra ray cast for
-		 * the cases were we do want transparency.
-		 *
-		 * also note that for this to work correct, multi close sampling must
-		 * be used, since we don't pass a random number to shader_eval_surface */
+		 * the cases were we do want transparency. */
 		if(shader_transparent_shadow(kg, &isect)) {
 			float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 			float3 Pend = ray->P + ray->D*ray->t;
@@ -95,7 +92,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 				/* setup shader data at surface */
 				ShaderData sd;
-				shader_setup_from_ray(kg, &sd, &isect, ray, ps.bounce+1, ps.transparent_bounce);
+				shader_setup_from_ray(kg, &sd, &isect, ray, state->bounce+1, bounce);
 
 				/* attenuation from transparent surface */
 				if(!(sd.flag & SD_HAS_ONLY_VOLUME)) {

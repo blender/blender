@@ -192,7 +192,7 @@ enum PathTraceDimension {
 	PRNG_LIGHT = 3,
 	PRNG_LIGHT_U = 4,
 	PRNG_LIGHT_V = 5,
-	PRNG_LIGHT_F = 6,
+	PRNG_UNUSED_3 = 6,
 	PRNG_TERMINATE = 7,
 
 #ifdef __VOLUME__
@@ -491,15 +491,17 @@ typedef enum AttributeStandard {
 
 /* Closure data */
 
+#ifdef __MULTI_CLOSURE__
 #define MAX_CLOSURE 64
+#else
+#define MAX_CLOSURE 1
+#endif
 
 typedef struct ShaderClosure {
 	ClosureType type;
 	float3 weight;
 
-#ifdef __MULTI_CLOSURE__
 	float sample_weight;
-#endif
 
 	float data0;
 	float data1;
@@ -634,15 +636,10 @@ typedef struct ShaderData {
 	Transform ob_itfm;
 #endif
 
-#ifdef __MULTI_CLOSURE__
 	/* Closure data, we store a fixed array of closures */
 	ShaderClosure closure[MAX_CLOSURE];
 	int num_closure;
 	float randb_closure;
-#else
-	/* Closure data, with a single sampled closure for low memory usage */
-	ShaderClosure closure;
-#endif
 
 	/* ray start position, only set for backgrounds */
 	float3 ray_P;
