@@ -1454,7 +1454,7 @@ static int skin_edit_poll(bContext *C)
 	        edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH)));
 }
 
-static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
+static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GSet *visited)
 {
 	BMEdge *bm_edge;
 	BMIter bm_iter;
@@ -1462,14 +1462,14 @@ static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
 	BM_ITER_ELEM (bm_edge, &bm_iter, bm_vert, BM_EDGES_OF_VERT) {
 		BMVert *v2 = BM_edge_other_vert(bm_edge, bm_vert);
 
-		if (!BLI_ghash_lookup(visited, v2)) {
+		if (!BLI_gset_haskey(visited, v2)) {
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
 			                                     v2->head.data,
 			                                     CD_MVERT_SKIN);
 
 			/* clear vertex root flag and add to visited set */
 			vs->flag &= ~MVERT_SKIN_ROOT;
-			BLI_ghash_insert(visited, v2, v2);
+			BLI_gset_insert(visited, v2);
 
 			skin_root_clear(bm, v2, visited);
 		}
@@ -1483,14 +1483,14 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
-	GHash *visited;
+	GSet *visited;
 
-	visited = BLI_ghash_ptr_new("skin_root_mark_exec visited");
+	visited = BLI_gset_ptr_new(__func__);
 
 	BKE_mesh_ensure_skin_customdata(ob->data);
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
-		if (!BLI_ghash_lookup(visited, bm_vert) &&
+		if (!BLI_gset_haskey(visited, bm_vert) &&
 		    BM_elem_flag_test(bm_vert, BM_ELEM_SELECT))
 		{
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
@@ -1499,14 +1499,14 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 
 			/* mark vertex as root and add to visited set */
 			vs->flag |= MVERT_SKIN_ROOT;
-			BLI_ghash_insert(visited, bm_vert, bm_vert);
+			BLI_gset_insert(visited, bm_vert);
 
 			/* clear root flag from all connected vertices (recursively) */
 			skin_root_clear(bm, bm_vert, visited);
 		}
 	}
 
-	BLI_ghash_free(visited, NULL, NULL);
+	BLI_gset_free(visited, NULL);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
