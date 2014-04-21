@@ -361,7 +361,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		/* use different logic for this */
 		float x;
 		ED_sequencer_deselect_all(scene);
-		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
+		x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
 
 		SEQP_BEGIN (ed, seq)
 		{
@@ -849,23 +849,15 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	View2D *v2d = UI_view2d_fromcontext(C);
 	
 	Sequence *seq;
-	rcti rect;
 	rctf rectf, rq;
 	const bool select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
-	int mval[2];
 
 	if (ed == NULL)
 		return OPERATOR_CANCELLED;
 
-	WM_operator_properties_border_to_rcti(op, &rect);
-	
-	mval[0] = rect.xmin;
-	mval[1] = rect.ymin;
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmin, &rectf.ymin);
-	mval[0] = rect.xmax;
-	mval[1] = rect.ymax;
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmax, &rectf.ymax);
+	WM_operator_properties_border_to_rctf(op, &rectf);
+	UI_view2d_region_to_view_rctf(v2d, &rectf, &rectf);
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		seq_rectf(seq, &rq);

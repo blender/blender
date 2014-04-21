@@ -124,7 +124,7 @@ static int frame_from_event(bContext *C, const wmEvent *event)
 	int frame;
 
 	/* convert from region coordinates to View2D 'tot' space */
-	UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, NULL);
+	viewx = UI_view2d_region_to_view_x(&region->v2d, event->mval[0]);
 	
 	/* round result to nearest int (frames are ints!) */
 	frame = iroundf(viewx);
@@ -212,8 +212,8 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	WM_operator_properties_border_to_rcti(op, &rect);
 	
 	/* convert min/max values to frames (i.e. region to 'tot' rect) */
-	UI_view2d_region_to_view(&ar->v2d, rect.xmin, 0, &sfra, NULL);
-	UI_view2d_region_to_view(&ar->v2d, rect.xmax, 0, &efra, NULL);
+	sfra = UI_view2d_region_to_view_x(&ar->v2d, rect.xmin);
+	efra = UI_view2d_region_to_view_x(&ar->v2d, rect.xmax);
 	
 	/* set start/end frames for preview-range 
 	 *	- must clamp within allowable limits

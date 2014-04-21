@@ -907,7 +907,7 @@ static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *
 		}
 	}
 	else if (gps->flag & GP_STROKE_2DSPACE) {
-		UI_view2d_view_to_region(v2d, pt->x, pt->y, r_x, r_y);
+		UI_view2d_view_to_region_clip(v2d, pt->x, pt->y, r_x, r_y);
 	}
 	else {
 		if (subrect == NULL) { /* normal 3D view */

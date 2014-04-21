@@ -1184,7 +1184,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	clip_draw_main(C, sc, ar);
 
 	/* TODO(sergey): would be nice to find a way to de-duplicate all this space conversions */
-	UI_view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
 	ED_space_clip_get_size(sc, &width, &height);
 	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
 	ED_space_clip_get_aspect(sc, &aspx, &aspy);

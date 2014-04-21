@@ -1294,6 +1294,13 @@ void WM_operator_properties_border_to_rcti(struct wmOperator *op, rcti *rect)
 	rect->ymax = RNA_int_get(op->ptr, "ymax");
 }
 
+void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect)
+{
+	rcti rect_i;
+	WM_operator_properties_border_to_rcti(op, &rect_i);
+	BLI_rctf_rcti_copy(rect, &rect_i);
+}
+
 void WM_operator_properties_gesture_border(wmOperatorType *ot, bool extend)
 {
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);

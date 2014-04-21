@@ -757,7 +757,7 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		ARegion *ar = CTX_wm_region(C);
 		
 		/* store initial mouse position (in view space) */
-		UI_view2d_region_to_view(&ar->v2d, 
+		UI_view2d_region_to_view(&ar->v2d,
 		                         event->mval[0], event->mval[1],
 		                         &vzd->mx_2d, &vzd->my_2d);
 	}
@@ -1182,8 +1182,8 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 	
 	/* convert coordinates of rect to 'tot' rect coordinates */
-	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmin"), RNA_int_get(op->ptr, "ymin"), &rect.xmin, &rect.ymin);
-	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmax"), RNA_int_get(op->ptr, "ymax"), &rect.xmax, &rect.ymax);
+	WM_operator_properties_border_to_rctf(op, &rect);
+	UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
 	
 	/* check if zooming in/out view */
 	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");

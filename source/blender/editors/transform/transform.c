@@ -374,7 +374,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 			v[0] = vec[0] / aspx;
 			v[1] = vec[1] / aspy;
 
-			UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
+			UI_view2d_view_to_region(t->view, v[0], v[1], &adr[0], &adr[1]);
 		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
@@ -385,12 +385,12 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 		if (sact->flag & SACTION_DRAWTIME) {
 			//vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
 			/* same as below */
-			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out + 1);
+			UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &out[0], &out[1]);
 		}
 		else
 #endif
 		{
-			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out + 1);
+			UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &out[0], &out[1]);
 		}
 
 		adr[0] = out[0];
@@ -399,14 +399,14 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 	else if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		int out[2] = {0, 0};
 
-		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out + 1);
+		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &out[0], &out[1]);
 		adr[0] = out[0];
 		adr[1] = out[1];
 	}
 	else if (t->spacetype == SPACE_SEQ) { /* XXX not tested yet, but should work */
 		int out[2] = {0, 0};
 
-		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out + 1);
+		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &out[0], &out[1]);
 		adr[0] = out[0];
 		adr[1] = out[1];
 	}
@@ -452,14 +452,14 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 			v[0] /= aspx;
 			v[1] /= aspy;
 
-			UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
+			UI_view2d_view_to_region(t->view, v[0], v[1], &adr[0], &adr[1]);
 		}
 		else {
 			BLI_assert(0);
 		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
-		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], adr, adr + 1);
+		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &adr[0], &adr[1]);
 	}
 }
 void projectIntView(TransInfo *t, const float vec[3], int adr[2])

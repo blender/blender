@@ -1092,8 +1092,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 		
 		if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmin, rect_fl.ymin, &rect_i.xmin, &rect_i.ymin);
-			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmax, rect_fl.ymax, &rect_i.xmax, &rect_i.ymax);
+			UI_view2d_view_to_region_rcti(&butregion->v2d, &rect_fl, &rect_i);
 		}
 
 		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
@@ -1118,7 +1117,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 			int newy1 = but->rect.ymax + ofsy;
 
 			if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax)
-				UI_view2d_to_region_no_clip(&butregion->v2d, 0, newy1, NULL, &newy1);
+				newy1 = UI_view2d_view_to_region_y(&butregion->v2d, newy1);
 
 			newy1 += butregion->winrct.ymin;
 

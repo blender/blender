@@ -107,7 +107,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 			rcti *tile;
 
 			/* find window pixel coordinates of origin */
-			UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+			UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 			glPushMatrix();
 			glTranslatef(x, y, 0.0f);
@@ -509,7 +509,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 	glaDefine2DArea(&ar->winrct);
 	
 	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, fx, fy, &x, &y);
+	UI_view2d_view_to_region(&ar->v2d, fx, fy, &x, &y);
 
 	/* this part is generic image display */
 	if (sima->flag & SI_SHOW_ALPHA) {
@@ -600,7 +600,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	/* draw repeated */
 	for (sy = 0; sy + dy <= ibuf->y; sy += dy) {
 		for (sx = 0; sx + dx <= ibuf->x; sx += dx) {
-			UI_view2d_to_region_no_clip(&ar->v2d, fx + (float)sx / (float)ibuf->x, fy + (float)sy / (float)ibuf->y, &x, &y);
+			UI_view2d_view_to_region(&ar->v2d, fx + (float)sx / (float)ibuf->x, fy + (float)sy / (float)ibuf->y, &x, &y);
 
 			glaDrawPixelsSafe(x, y, dx, dy, dx, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		}
@@ -779,7 +779,7 @@ static void draw_image_paint_helpers(const bContext *C, ARegion *ar, Scene *scen
 		clonerect = get_alpha_clone_image(C, scene, &w, &h);
 
 		if (clonerect) {
-			UI_view2d_to_region_no_clip(&ar->v2d, brush->clone.offset[0], brush->clone.offset[1], &x, &y);
+			UI_view2d_view_to_region(&ar->v2d, brush->clone.offset[0], brush->clone.offset[1], &x, &y);
 
 			glPixelZoom(zoomx, zoomy);
 

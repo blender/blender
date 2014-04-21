@@ -1011,7 +1011,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		Image *ima = ED_space_image(t->sa->spacedata.first);
 		float aspx, aspy, co[2];
 		
-		UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], co, co + 1);
+		UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
 
 		if (ED_uvedit_nearest_uv(t->scene, t->obedit, ima, co, t->tsnap.snapPoint)) {
 			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
@@ -2268,8 +2268,7 @@ static bool snapNode(ToolSettings *ts, SpaceNode *UNUSED(snode), ARegion *ar, bN
 	rcti totr;
 	int new_dist;
 	
-	UI_view2d_to_region_no_clip(v2d, node->totr.xmin, node->totr.ymin, &totr.xmin, &totr.ymin);
-	UI_view2d_to_region_no_clip(v2d, node->totr.xmax, node->totr.ymax, &totr.xmax, &totr.ymax);
+	UI_view2d_view_to_region_rcti(v2d, &node->totr, &totr);
 	
 	if (border & NODE_LEFT) {
 		new_dist = abs(totr.xmin - mval[0]);

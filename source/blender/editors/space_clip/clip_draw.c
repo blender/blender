@@ -279,7 +279,7 @@ static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx
 	int x, y;
 
 	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	glColor3f(0.0f, 0.0f, 0.0f);
 	glRectf(x, y, x + zoomx * width, y + zoomy * height);
@@ -293,7 +293,7 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 	int x, y;
 
 	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	/* checkerboard for case alpha */
 	if (ibuf->planes == 32) {
@@ -328,7 +328,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	/* draw boundary border for frame if stabilization is enabled */
 	if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
@@ -1256,12 +1256,12 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 
 	/* ** find window pixel coordinates of origin ** */
 
-	/* UI_view2d_to_region_no_clip return integer values, this could
+	/* UI_view2d_view_to_region_no_clip return integer values, this could
 	 * lead to 1px flickering when view is locked to selection during playbeck.
 	 * to avoid this flickering, calculate base point in the same way as it happens
-	 * in UI_view2d_to_region_no_clip, but do it in floats here */
+	 * in UI_view2d_view_to_region_no_clip, but do it in floats here */
 
-	UI_view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	glPushMatrix();
 	glTranslatef(x, y, 0);
@@ -1503,7 +1503,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	if ((sc->flag & SC_SHOW_GRID) == 0 && (sc->flag & SC_MANUAL_CALIBRATION) == 0)
 		return;
 
-	UI_view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	glPushMatrix();
 	glTranslatef(x, y, 0);

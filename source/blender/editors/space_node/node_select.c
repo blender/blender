@@ -445,15 +445,12 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
 	bNode *node;
-	rcti rect;
 	rctf rectf;
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
-	WM_operator_properties_border_to_rcti(op, &rect);
-
-	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
+	WM_operator_properties_border_to_rctf(op, &rectf);
+	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (BLI_rctf_isect(&rectf, &node->totr, NULL)) {
@@ -593,9 +590,7 @@ static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves
 		                       BLI_rctf_cent_y(&node->totr)};
 
 		/* marker in screen coords */
-		UI_view2d_view_to_region(&ar->v2d,
-		                         cent[0], cent[1],
-		                         &screen_co[0], &screen_co[1]);
+		UI_view2d_view_to_region_clip(&ar->v2d, cent[0], cent[1], &screen_co[0], &screen_co[1]);
 
 		if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
 		    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))

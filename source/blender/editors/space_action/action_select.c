@@ -203,7 +203,7 @@ enum {
 } /*eActKeys_BorderSelect_Mode*/;
 
 
-static void borderselect_action(bAnimContext *ac, rcti rect, short mode, short selectmode)
+static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -890,7 +890,7 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wm
 		float x;
 
 		/* determine which side of the current frame mouse is on */
-		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
+		x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
 		if (x < CFRA)
 			RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
 		else

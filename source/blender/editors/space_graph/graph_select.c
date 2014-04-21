@@ -233,8 +233,7 @@ static void borderselect_graphkeys(
 	rctf rectf, scaled_rectf;
 	
 	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
-	UI_view2d_region_to_view(v2d, rectf_view->xmin, rectf_view->ymin, &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(v2d, rectf_view->xmax, rectf_view->ymax, &rectf.xmax, &rectf.ymax);
+	UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -952,7 +951,7 @@ static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, const 
 		float x;
 
 		/* determine which side of the current frame mouse is on */
-		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
+		x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
 		if (x < CFRA)
 			RNA_enum_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
 		else
@@ -1036,7 +1035,9 @@ static bool fcurve_handle_sel_check(SpaceIpo *sipo, BezTriple *bezt)
 
 /* check if the given vertex is within bounds or not */
 // TODO: should we return if we hit something?
-static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fcu, BezTriple *bezt, FPoint *fpt, short hpoint, const int mval[2], float unit_scale)
+static void nearest_fcurve_vert_store(
+        ListBase *matches, View2D *v2d, FCurve *fcu,
+        BezTriple *bezt, FPoint *fpt, short hpoint, const int mval[2], float unit_scale)
 {
 	/* Keyframes or Samples? */
 	if (bezt) {
@@ -1047,13 +1048,12 @@ static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fc
 		 *  needed to access the relevant vertex coordinates in the 3x3
 		 *  'vec' matrix
 		 */
-		UI_view2d_view_to_region(v2d, bezt->vec[hpoint + 1][0], bezt->vec[hpoint + 1][1] * unit_scale, &screen_co[0], &screen_co[1]);
+		UI_view2d_view_to_region_clip(v2d,
+		                              bezt->vec[hpoint + 1][0], bezt->vec[hpoint + 1][1] * unit_scale,
+		                              &screen_co[0], &screen_co[1]);
 		
 		/* check if distance from mouse cursor to vert in screen space is within tolerance */
-		// XXX: inlined distance calculation, since we cannot do this on ints using the math lib...
-		//dist = len_v2v2(mval, screen_co);
-		dist = sqrt((mval[0] - screen_co[0]) * (mval[0] - screen_co[0]) +
-		            (mval[1] - screen_co[1]) * (mval[1] - screen_co[1]));
+		dist = len_v2v2_int(mval, screen_co);
 		
 		if (dist <= GVERTSEL_TOL) {
 			tNearestVertInfo *nvi = (tNearestVertInfo *)matches->last;

@@ -2955,17 +2955,13 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
 static int view_ghost_border_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	View2D *v2d = UI_view2d_fromcontext(C);
 
 	rctf rect;
 
 	/* convert coordinates of rect to 'tot' rect coordinates */
-	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmin"), RNA_int_get(op->ptr, "ymin"), &rect.xmin, &rect.ymin);
-	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmax"), RNA_int_get(op->ptr, "ymax"), &rect.xmax, &rect.ymax);
-
-	if (ed == NULL)
-		return OPERATOR_CANCELLED;
+	WM_operator_properties_border_to_rctf(op, &rect);
+	UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
 
 	rect.xmin /=  fabsf(BLI_rctf_size_x(&v2d->tot));
 	rect.ymin /=  fabsf(BLI_rctf_size_y(&v2d->tot));

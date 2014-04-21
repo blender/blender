@@ -464,7 +464,7 @@ static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, const wm
 		float x;
 		
 		/* determine which side of the current frame mouse is on */
-		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
+		x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
 		if (x < CFRA)
 			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
 		else
@@ -515,7 +515,7 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 	Scene *scene = ac->scene;
 	NlaStrip *strip = NULL;
 	int channel_index;
-	float xmin, xmax, dummy;
+	float xmin, xmax;
 	float x, y;
 	
 	
@@ -526,8 +526,8 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 	/* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click 
 	 * (that is the size of keyframe icons, so user should be expecting similar tolerances) 
 	 */
-	UI_view2d_region_to_view(v2d, mval[0] - 7, mval[1], &xmin, &dummy);
-	UI_view2d_region_to_view(v2d, mval[0] + 7, mval[1], &xmax, &dummy);
+	xmin = UI_view2d_region_to_view_x(v2d, mval[0] - 7);
+	xmax = UI_view2d_region_to_view_x(v2d, mval[0] + 7);
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);

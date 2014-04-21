@@ -1345,7 +1345,7 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent
 	TreeElement *te;
 	float fmval[2];
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
 	for (te = soops->tree.first; te; te = te->next) {
 		if (do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) {

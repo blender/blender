@@ -69,18 +69,24 @@
 #include <ctype.h>
 
 /* ---------- FILE SELECTION ------------ */
-static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect)
+static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect_region)
 {
 	FileSelection sel;
-	float fxmin, fymin, fxmax, fymax;
 	
 	View2D *v2d = &ar->v2d;
 	rcti rect_view;
+	rctf rect_view_fl;
+	rctf rect_region_fl;
 
-	UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin, &fxmin, &fymin);
-	UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax, &fxmax, &fymax);
+	BLI_rctf_rcti_copy(&rect_region_fl, rect_region);
 
-	BLI_rcti_init(&rect_view, (int)(v2d->tot.xmin + fxmin), (int)(v2d->tot.xmin + fxmax), (int)(v2d->tot.ymax - fymin), (int)(v2d->tot.ymax - fymax));
+	UI_view2d_region_to_view_rctf(v2d, &rect_region_fl, &rect_view_fl);
+
+	BLI_rcti_init(&rect_view,
+	              (int)(v2d->tot.xmin + rect_view_fl.xmin),
+	              (int)(v2d->tot.xmin + rect_view_fl.xmax),
+	              (int)(v2d->tot.ymax - rect_view_fl.ymin),
+	              (int)(v2d->tot.ymax - rect_view_fl.ymax));
 
 	sel  = ED_fileselect_layout_offset_rect(sfile->layout, &rect_view);
 	

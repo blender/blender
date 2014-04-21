@@ -1925,8 +1925,8 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 	/* the image is located inside (0, 0), (1, 1) as set by view2d */
 	UI_ThemeColorShade(TH_BACK, 20);
 
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x1, &y1);
-	UI_view2d_to_region_no_clip(&ar->v2d, 1.0f, 1.0f, &x2, &y2);
+	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x1, &y1);
+	UI_view2d_view_to_region(&ar->v2d, 1.0f, 1.0f, &x2, &y2);
 	glRectf(x1, y1, x2, y2);
 
 	/* gridsize adapted to zoom level */

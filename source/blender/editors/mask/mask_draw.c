@@ -738,7 +738,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	float xofs, yofs;
 
 	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 
 	/* w = BLI_rctf_size_x(&v2d->tot); */

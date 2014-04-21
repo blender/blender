@@ -34,6 +34,8 @@
 #ifndef __UI_VIEW2D_H__
 #define __UI_VIEW2D_H__
 
+#include "BLI_compiler_attrs.h"
+
 /* ------------------------------------------ */
 /* Settings and Defines:                      */
 
@@ -190,10 +192,19 @@ void UI_view2d_listview_visible_cells(struct View2D *v2d, float columnwidth, flo
                                       int *row_min, int *row_max);
 
 /* coordinate conversion */
-void UI_view2d_region_to_view(struct View2D *v2d, float x, float y, float *viewx, float *viewy);
-void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *regionx, int *regiony);
-void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, int *regionx, int *region_y);
-void UI_view2d_to_region_float(struct View2D *v2d, float x, float y, float *regionx, float *regiony);
+float UI_view2d_region_to_view_x(struct View2D *v2d, float x);
+float UI_view2d_region_to_view_y(struct View2D *v2d, float y);
+void  UI_view2d_region_to_view(struct View2D *v2d, float x, float y, float *r_view_x, float *r_view_y) ATTR_NONNULL();
+void  UI_view2d_region_to_view_rctf(struct View2D *v2d, const struct rctf *rect_src, struct rctf *rect_dst) ATTR_NONNULL();
+
+float UI_view2d_view_to_region_x(struct View2D *v2d, float x);
+float UI_view2d_view_to_region_y(struct View2D *v2d, float y);
+bool  UI_view2d_view_to_region_clip(struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
+
+void  UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
+void  UI_view2d_view_to_region_fl(struct View2D *v2d, float x, float y, float *r_region_x, float *r_region_y) ATTR_NONNULL();
+void  UI_view2d_view_to_region_rcti(struct View2D *v2d, const struct rctf *rect_src, struct rcti *rect_dst) ATTR_NONNULL();
+bool  UI_view2d_view_to_region_rcti_clip(struct View2D *v2d, const struct rctf *rect_src, struct rcti *rect_dst) ATTR_NONNULL();
 
 /* utilities */
 struct View2D *UI_view2d_fromcontext(const struct bContext *C);
@@ -211,7 +222,7 @@ short UI_view2d_mouse_in_scrollers(const struct bContext *C, struct View2D *v2d,
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
 void UI_view2d_text_cache_add(struct View2D *v2d, float x, float y, const char *str, size_t str_len, const char col[4]);
-void UI_view2d_text_cache_rectf(struct View2D *v2d, const struct rctf *rect, const char *str, size_t str_len, const char col[4]);
+void UI_view2d_text_cache_rectf(struct View2D *v2d, const struct rctf *rect_view, const char *str, size_t str_len, const char col[4]);
 void UI_view2d_text_cache_draw(struct ARegion *ar);
 
 /* operators */

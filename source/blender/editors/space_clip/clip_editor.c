@@ -453,7 +453,7 @@ void ED_clip_point_stable_pos(SpaceClip *sc, ARegion *ar, float x, float y, floa
 	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
 	ED_space_clip_get_size(sc, &width, &height);
 
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
 
 	pos[0] = (x - sx) / zoomx;
 	pos[1] = (y - sy) / zoomy;
@@ -489,7 +489,7 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, const float c
 	int width, height;
 	int sx, sy;
 
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
 	ED_space_clip_get_size(sc, &width, &height);
 	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
 

@@ -193,8 +193,8 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
 		if (userdata.marker) {
 			int x1, y1, x2, y2;
 
-			UI_view2d_view_to_region(v2d, co[0], co[1], &x1, &y1);
-			UI_view2d_view_to_region(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2);
+			UI_view2d_view_to_region_clip(v2d, co[0], co[1], &x1, &y1);
+			UI_view2d_view_to_region_clip(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2);
 
 			if (abs(x2 - x1) <= delta && abs(y2 - y1) <= delta) {
 				if (!extend) {
@@ -366,17 +366,15 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	BorderSelectuserData userdata;
-	rcti rect;
+	rctf rect;
 
 	if (act_track == NULL) {
 		return OPERATOR_CANCELLED;
 	}
 
 	/* get rectangle from operator */
-	WM_operator_properties_border_to_rcti(op, &rect);
-
-	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &userdata.rect.xmin, &userdata.rect.ymin);
-	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &userdata.rect.xmax, &userdata.rect.ymax);
+	WM_operator_properties_border_to_rctf(op, &rect);
+	UI_view2d_region_to_view_rctf(&ar->v2d, &rect, &userdata.rect);
 
 	userdata.changed = false;
 	userdata.mode = RNA_int_get(op->ptr, "gesture_mode");

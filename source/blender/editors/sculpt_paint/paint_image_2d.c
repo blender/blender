@@ -529,8 +529,8 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int size, const flo
 
 	if (mapmode == MTEX_MAP_MODE_STENCIL) {
 		/* map from view coordinates of brush to region coordinates */
-		UI_view2d_to_region_no_clip(s->v2d, ipos[0] * invw, ipos[1] * invh, &xmin, &ymin);
-		UI_view2d_to_region_no_clip(s->v2d, (ipos[0] + size) * invw, (ipos[1] + size) * invh, &xmax, &ymax);
+		UI_view2d_view_to_region(s->v2d, ipos[0] * invw, ipos[1] * invh, &xmin, &ymin);
+		UI_view2d_view_to_region(s->v2d, (ipos[0] + size) * invw, (ipos[1] + size) * invh, &xmax, &ymax);
 
 		/* output mapping from brush ibuf x/y to region coordinates */
 		mapping->xmin = xmin;

@@ -457,7 +457,7 @@ static void gp_strokepoint_convertcoords(bContext *C, bGPDstroke *gps, bGPDspoin
 		/* get screen coordinate */
 		if (gps->flag & GP_STROKE_2DSPACE) {
 			View2D *v2d = &ar->v2d;
-			UI_view2d_to_region_float(v2d, pt->x, pt->y, &mvalf[0], &mvalf[1]);
+			UI_view2d_view_to_region_fl(v2d, pt->x, pt->y, &mvalf[0], &mvalf[1]);
 		}
 		else {
 			if (subrect) {

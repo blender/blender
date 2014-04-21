@@ -185,7 +185,7 @@ static int outliner_item_openclose(bContext *C, wmOperator *op, const wmEvent *e
 	float fmval[2];
 	const bool all = RNA_boolean_get(op->ptr, "all");
 	
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
 	for (te = soops->tree.first; te; te = te->next) {
 		if (do_outliner_item_openclose(C, soops, te, all, fmval)) 
@@ -275,7 +275,7 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), const wmEve
 	float fmval[2];
 	bool changed = false;
 	
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
 	for (te = soops->tree.first; te; te = te->next) {
 		if (do_outliner_item_rename(C, ar, soops, te, fmval)) {
