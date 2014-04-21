@@ -395,9 +395,6 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	const float thickness          = BMO_slot_float_get(op->slots_in, "thickness");
 	const float depth              = BMO_slot_float_get(op->slots_in, "depth");
 
-	/* store vert coords in normals, needed for 'use_edge_rail' */
-#define USE_VERTNORMAL_HACK
-
 	int edge_info_len = 0;
 
 	BMIter iter;
@@ -409,6 +406,11 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	InterpFace **iface_array = NULL;
 	int          iface_array_len;
 	MemArena *interp_arena = NULL;
+
+	/* BMVert original location storage */
+	const bool use_vert_coords_orig = use_edge_rail;
+	MemArena *vert_coords_orig = NULL;
+	GHash *vert_coords = NULL;
 
 	BMVert *v;
 	BMEdge *e;
@@ -456,11 +458,6 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 			BM_elem_index_set(e, -1); /* set_dirty! */
 		}
-
-#ifdef USE_VERTNORMAL_HACK
-			copy_v3_v3(e->v1->no, e->v1->co);
-			copy_v3_v3(e->v2->no, e->v2->co);
-#endif
 	}
 	bm->elem_index_dirty |= BM_EDGE;
 
@@ -478,6 +475,22 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 			/* initialize no and e_new after */
 		}
 	}
+
+
+	if (use_vert_coords_orig) {
+		vert_coords_orig = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+		vert_coords = BLI_ghash_ptr_new(__func__);
+	}
+
+	/* util macros */
+#define VERT_ORIG_STORE(_v)  { \
+		float *_co = BLI_memarena_alloc(vert_coords_orig, sizeof(float[3])); \
+		copy_v3_v3(_co, (_v)->co); \
+		BLI_ghash_insert(vert_coords, _v, _co); \
+	} (void)0
+#define VERT_ORIG_GET(_v)  \
+	(const float *)BLI_ghash_lookup_default(vert_coords, (_v), (_v)->co)
+
 
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
 		if ((es->l = bm_edge_is_mixed_face_tag(es->e_old->l))) {
@@ -572,9 +585,9 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 				/* in some cases the edge doesn't split off */
 				if (r_vout_len == 1) {
-#ifdef USE_VERTNORMAL_HACK
-					copy_v3_v3(vout[0]->no, vout[0]->co);
-#endif
+					if (use_vert_coords_orig) {
+						VERT_ORIG_STORE(vout[0]);
+					}
 					MEM_freeN(vout);
 					continue;
 				}
@@ -586,9 +599,9 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 					int vert_edge_tag_tot = 0;
 					int vecpair[2];
 
-#ifdef USE_VERTNORMAL_HACK
-					copy_v3_v3(v_split->no, v_split->co);
-#endif
+					if (use_vert_coords_orig) {
+						VERT_ORIG_STORE(v_split);
+					}
 
 					/* find adjacent */
 					BM_ITER_ELEM (e, &iter, v_split, BM_EDGES_OF_VERT) {
@@ -647,11 +660,12 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
 									/* note that we can't use 'l_other_a->v' directly since it
 									 * may be inset and give a feedback loop. */
-#ifdef USE_VERTNORMAL_HACK
-									co_other = l_other_a->v->no;
-#else
-									co_other = l_other_a->v->co;
-#endif
+									if (use_vert_coords_orig) {
+										co_other = VERT_ORIG_GET(l_other_a->v);
+									}
+									else {
+										co_other = l_other_a->v->co;
+									}
 
 									sub_v3_v3v3(tvec, co_other, v_split->co);
 									is_mid = false;
@@ -808,6 +822,11 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 				MEM_freeN(vout);
 			}
 		}
+	}
+
+	if (use_vert_coords_orig) {
+		BLI_memarena_free(vert_coords_orig);
+		BLI_ghash_free(vert_coords, NULL, NULL);
 	}
 
 	if (use_interpolate) {
