@@ -33,6 +33,10 @@
 #ifndef __RENDERDATABASE_H__
 #define __RENDERDATABASE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Object;
 struct VlakRen;
 struct VertRen;
@@ -159,6 +163,9 @@ void area_lamp_vectors(struct LampRen *lar);
 void init_render_world(Render *re);
 void RE_Database_FromScene_Vectors(Render *re, struct Main *bmain, struct Scene *sce, unsigned int lay);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RENDERDATABASE_H__ */
 

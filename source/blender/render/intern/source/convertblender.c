@@ -3188,10 +3188,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		}
 		need_nmap_tangent= 1;
 	}
-	
-	/* origindex currently only used when baking to vertex colors */
-	if (re->flag & R_BAKING && re->r.bake_flag & R_BAKE_VCOL)
-		need_origindex= 1;
 
 	/* check autosmooth and displacement, we then have to skip only-verts optimize
 	 * Note: not sure what we want to give higher priority, currently do_displace
@@ -3201,7 +3197,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	do_autosmooth = ((me->flag & ME_AUTOSMOOTH) != 0) && !do_displace;
 	if (do_autosmooth || do_displace)
 		timeoffset = 0;
-	
+
+	/* origindex currently used when using autosmooth, or baking to vertex colors. */
+	need_origindex = (do_autosmooth || ((re->flag & R_BAKING) && (re->r.bake_flag & R_BAKE_VCOL)));
+
 	mask= CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
 	if (!timeoffset)
 		if (need_orco)

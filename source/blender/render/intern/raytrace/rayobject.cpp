@@ -43,6 +43,7 @@
 #include "rayobject.h"
 #include "raycounter.h"
 #include "render_types.h"
+#include "renderdatabase.h"
 
 /* RayFace
  *
@@ -326,15 +327,33 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 			if (dist < 0.1f && is->orig.ob == face->ob) {
 				VlakRen *a = (VlakRen *)is->orig.face;
 				VlakRen *b = (VlakRen *)face->face;
+				ObjectRen *obr = ((ObjectInstanceRen *)face->ob)->obr;
 
-				/* so there's a shared edge or vertex, let's intersect ray with
-				 * face itself, if that's true we can safely return 1, otherwise
-				 * we assume the intersection is invalid, 0 */
-				if (a->v1 == b->v1 || a->v2 == b->v1 || a->v3 == b->v1 || a->v4 == b->v1 ||
-				    a->v1 == b->v2 || a->v2 == b->v2 || a->v3 == b->v2 || a->v4 == b->v2 ||
-				    a->v1 == b->v3 || a->v2 == b->v3 || a->v3 == b->v3 || a->v4 == b->v3 ||
-				    (b->v4 && (a->v1 == b->v4 || a->v2 == b->v4 || a->v3 == b->v4 || a->v4 == b->v4)))
-				{
+				VertRen **va, **vb;
+				int *org_idx_a, *org_idx_b;
+				int i, j;
+				bool is_neighbor = false;
+
+				/* "same" vertex means either the actual same VertRen, or the same 'final org index', if available
+				 * (autosmooth only, currently). */
+				for (i = 0, va = &a->v1; !is_neighbor && i < 4 && *va; ++i, ++va) {
+					org_idx_a = RE_vertren_get_origindex(obr, *va, false);
+					for (j = 0, vb = &b->v1; !is_neighbor && j < 4 && *vb; ++j, ++vb) {
+						if (*va == *vb) {
+							is_neighbor = true;
+						}
+						else if (org_idx_a) {
+							org_idx_b = RE_vertren_get_origindex(obr, *vb, 0);
+							if (org_idx_b && *org_idx_a == *org_idx_b) {
+								is_neighbor = true;
+							}
+						}
+					}
+				}
+
+				/* So there's a shared edge or vertex, let's intersect ray with self, if that's true
+				 * we can safely return 1, otherwise we assume the intersection is invalid, 0 */
+				if (is_neighbor) {
 					/* create RayFace from original face, transformed if necessary */
 					RayFace origface;
 					ObjectInstanceRen *ob = (ObjectInstanceRen *)is->orig.ob;
