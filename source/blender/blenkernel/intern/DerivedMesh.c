@@ -402,6 +402,7 @@ void DM_ensure_normals(DerivedMesh *dm)
 static void DM_calc_loop_normals(DerivedMesh *dm, float split_angle)
 {
 	dm->calcLoopNormals(dm, split_angle);
+	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
 }
 
 /* note: until all modifiers can take MPoly's as input,
@@ -1877,18 +1878,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	if (do_loop_normals) {
 		/* Compute loop normals (note: will compute poly and vert normals as well, if needed!) */
 		DM_calc_loop_normals(finaldm, loop_normals_split_angle);
-
-		if (finaldm->getNumTessFaces(finaldm) == 0) {
-			finaldm->recalcTessellation(finaldm);
-		}
-		/* Even if tessellation is not needed, we have for sure modified loop normals layer! */
-		else {
-			/* A tessellation already exists, it should always have a CD_ORIGINDEX. */
-			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX));
-			DM_update_tessface_data(finaldm);
-		}
 	}
-	else {
+
+	{
 		/* calculating normals can re-calculate tessfaces in some cases */
 #if 0
 		int num_tessface = finaldm->getNumTessFaces(finaldm);
