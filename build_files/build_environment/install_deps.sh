@@ -187,14 +187,14 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
 SUDO="sudo"
 
-PYTHON_VERSION="3.3.3"
-PYTHON_VERSION_MIN="3.3"
-PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2"
+PYTHON_VERSION="3.4.0"
+PYTHON_VERSION_MIN="3.4"
+PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz"
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
 
-NUMPY_VERSION="1.7.0"
-NUMPY_VERSION_MIN="1.7"
+NUMPY_VERSION="1.8.1"
+NUMPY_VERSION_MIN="1.8"
 NUMPY_SOURCE="http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz"
 NUMPY_FORCE_REBUILD=false
 NUMPY_SKIP=false
@@ -675,10 +675,10 @@ compile_Python() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-      wget -c $PYTHON_SOURCE -O $_src.tar.bz2
+      wget -c $PYTHON_SOURCE -O $_src.tgz
 
       INFO "Unpacking Python-$PYTHON_VERSION"
-      tar -C $SRC -xf $_src.tar.bz2
+      tar -C $SRC -xf $_src.tgz
     fi
 
     cd $_src
@@ -1899,9 +1899,9 @@ install_DEB() {
       if $NUMPY_SKIP; then
         WARNING "Skipping NumPy installation, as requested..."
       else
-        check_package_DEB python$PYTHON_VERSION_MIN-numpy
+        check_package_DEB python3-numpy
         if [ $? -eq 0 ]; then
-          install_packages_DEB python$PYTHON_VERSION_MIN-numpy
+          install_packages_DEB python3-numpy
         elif $NUMPY_REQUIRED; then
           WARNING "Valid python package but no valid numpy package!" \
                  "    Building both Python and Numpy from sources!"
