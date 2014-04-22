@@ -460,7 +460,7 @@ static PropertyRNA *rna_ensure_property(PropertyRNA *prop)
 	}
 }
 
-static const char *rna_ensure_property_identifier(PropertyRNA *prop)
+static const char *rna_ensure_property_identifier(const PropertyRNA *prop)
 {
 	if (prop->magic == RNA_MAGIC)
 		return prop->identifier;
@@ -491,7 +491,7 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 	return description;
 }
 
-static const char *rna_ensure_property_name(PropertyRNA *prop)
+static const char *rna_ensure_property_name(const PropertyRNA *prop)
 {
 	const char *name;
 
@@ -516,22 +516,22 @@ StructRNA *RNA_struct_find(const char *identifier)
 	return NULL;
 }
 
-const char *RNA_struct_identifier(StructRNA *type)
+const char *RNA_struct_identifier(const StructRNA *type)
 {
 	return type->identifier;
 }
 
-const char *RNA_struct_ui_name(StructRNA *type)
+const char *RNA_struct_ui_name(const StructRNA *type)
 {
 	return CTX_IFACE_(type->translation_context, type->name);
 }
 
-const char *RNA_struct_ui_name_raw(StructRNA *type)
+const char *RNA_struct_ui_name_raw(const StructRNA *type)
 {
 	return type->name;
 }
 
-int RNA_struct_ui_icon(StructRNA *type)
+int RNA_struct_ui_icon(const StructRNA *type)
 {
 	if (type)
 		return type->icon;
@@ -539,17 +539,17 @@ int RNA_struct_ui_icon(StructRNA *type)
 		return ICON_DOT;
 }
 
-const char *RNA_struct_ui_description(StructRNA *type)
+const char *RNA_struct_ui_description(const StructRNA *type)
 {
 	return TIP_(type->description);
 }
 
-const char *RNA_struct_ui_description_raw(StructRNA *type)
+const char *RNA_struct_ui_description_raw(const StructRNA *type)
 {
 	return type->description;
 }
 
-const char *RNA_struct_translation_context(StructRNA *type)
+const char *RNA_struct_translation_context(const StructRNA *type)
 {
 	return type->translation_context;
 }
@@ -569,17 +569,17 @@ StructRNA *RNA_struct_base(StructRNA *type)
 	return type->base;
 }
 
-bool RNA_struct_is_ID(StructRNA *type)
+bool RNA_struct_is_ID(const StructRNA *type)
 {
 	return (type->flag & STRUCT_ID) != 0;
 }
 
-bool RNA_struct_undo_check(StructRNA *type)
+bool RNA_struct_undo_check(const StructRNA *type)
 {
 	return (type->flag & STRUCT_UNDO) != 0;
 }
 
-bool RNA_struct_idprops_register_check(StructRNA *type)
+bool RNA_struct_idprops_register_check(const StructRNA *type)
 {
 	return (type->flag & STRUCT_NO_IDPROPERTIES) == 0;
 }
@@ -600,9 +600,9 @@ bool RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier)
 	return false;
 }
 
-bool RNA_struct_is_a(StructRNA *type, StructRNA *srna)
+bool RNA_struct_is_a(const StructRNA *type, const StructRNA *srna)
 {
-	StructRNA *base;
+	const StructRNA *base;
 
 	if (srna == &RNA_AnyType)
 		return true;
