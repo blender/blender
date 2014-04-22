@@ -201,7 +201,7 @@ static void bmo_face_inset_individual(
 		copy_v3_v3(v_new_co, l_iter->v->co);
 
 		if (use_even_offset) {
-			mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(eno_prev,  eno_next) / 2.0f));
+			mul_v3_fl(tvec, shell_v3v3_mid_normalized_to_dist(eno_prev,  eno_next));
 		}
 
 		/* Modify vertices and their normals */
@@ -694,14 +694,16 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 							/* scale by edge angle */
 							if (use_even_offset) {
 								if (is_mid) {
-									mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no,
-									                                                          e_info_b->no) / 2.0f));
+									mul_v3_fl(tvec, shell_v3v3_mid_normalized_to_dist(e_info_a->no,
+									                                                  e_info_b->no));
 								}
 								else {
-									mul_v3_fl(tvec, shell_angle_to_dist(max_ff(angle_normalized_v3v3(tvec,
-									                                                                 e_info_a->no),
-									                                           angle_normalized_v3v3(tvec,
-									                                                                 e_info_b->no))));
+									/* use the largest angle */
+									mul_v3_fl(tvec,
+									          shell_v3v3_normalized_to_dist(tvec,
+									                                        len_squared_v3v3(tvec, e_info_a->no) >
+									                                        len_squared_v3v3(tvec, e_info_b->no) ?
+									                                            e_info_a->no : e_info_b->no));
 								}
 							}
 

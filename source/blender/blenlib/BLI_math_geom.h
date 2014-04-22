@@ -319,6 +319,8 @@ MINLINE int poly_to_tri_count(const int poly_count, const int corner_count);
 MINLINE float shell_angle_to_dist(const float angle);
 MINLINE float shell_v3v3_normalized_to_dist(const float a[3], const float b[3]);
 MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2]);
+MINLINE float shell_v3v3_mid_normalized_to_dist(const float a[3], const float b[3]);
+MINLINE float shell_v2v2_mid_normalized_to_dist(const float a[2], const float b[2]);
 
 /**************************** Inline Definitions ******************************/
 

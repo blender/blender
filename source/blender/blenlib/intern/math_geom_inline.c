@@ -259,6 +259,34 @@ MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2])
 	return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
 }
 
+/**
+ * equivalent to ``shell_angle_to_dist(angle_normalized_v3v3(a, b) / 2)``
+ */
+MINLINE float shell_v3v3_mid_normalized_to_dist(const float a[3], const float b[3])
+{
+	float angle_cos;
+	float ab[3];
+	BLI_ASSERT_UNIT_V3(a);
+	BLI_ASSERT_UNIT_V3(b);
+	add_v3_v3v3(ab, a, b);
+	angle_cos = (normalize_v3(ab) != 0.0f) ? fabsf(dot_v3v3(a, ab)) : 0.0f;
+	return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+}
+
+/**
+ * equivalent to ``shell_angle_to_dist(angle_normalized_v2v2(a, b) / 2)``
+ */
+MINLINE float shell_v2v2_mid_normalized_to_dist(const float a[2], const float b[2])
+{
+	float angle_cos;
+	float ab[2];
+	BLI_ASSERT_UNIT_V2(a);
+	BLI_ASSERT_UNIT_V2(b);
+	add_v2_v2v2(ab, a, b);
+	angle_cos = (normalize_v2(ab) != 0.0f) ? fabsf(dot_v2v2(a, ab)) : 0.0f;
+	return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+}
+
 #undef SMALL_NUMBER
 
 #endif /* __MATH_GEOM_INLINE_C__ */

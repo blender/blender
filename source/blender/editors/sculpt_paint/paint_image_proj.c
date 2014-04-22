@@ -963,15 +963,15 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	}
 
 	if (is_quad) {
-		a1 = shell_v2v2_normalized_to_dist(dir4, dir1);
-		a2 = shell_v2v2_normalized_to_dist(dir1, dir2);
-		a3 = shell_v2v2_normalized_to_dist(dir2, dir3);
-		a4 = shell_v2v2_normalized_to_dist(dir3, dir4);
+		a1 = shell_v2v2_mid_normalized_to_dist(dir4, dir1);
+		a2 = shell_v2v2_mid_normalized_to_dist(dir1, dir2);
+		a3 = shell_v2v2_mid_normalized_to_dist(dir2, dir3);
+		a4 = shell_v2v2_mid_normalized_to_dist(dir3, dir4);
 	}
 	else {
-		a1 = shell_v2v2_normalized_to_dist(dir3, dir1);
-		a2 = shell_v2v2_normalized_to_dist(dir1, dir2);
-		a3 = shell_v2v2_normalized_to_dist(dir2, dir3);
+		a1 = shell_v2v2_mid_normalized_to_dist(dir3, dir1);
+		a2 = shell_v2v2_mid_normalized_to_dist(dir1, dir2);
+		a3 = shell_v2v2_mid_normalized_to_dist(dir2, dir3);
 	}
 
 	if (is_quad) {
