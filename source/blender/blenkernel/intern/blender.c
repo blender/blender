@@ -29,6 +29,10 @@
  *  \ingroup bke
  */
 
+#ifndef _GNU_SOURCE
+/* Needed for O_NOFOLLOW on some platforms. */
+#  define _GNU_SOURCE 1
+#endif
 
 #ifndef _WIN32 
 #  include <unistd.h> // for read close
@@ -807,7 +811,7 @@ bool BKE_undo_save_file(const char *filename)
 {
 	UndoElem *uel;
 	MemFileChunk *chunk;
-	int file;
+	int file, oflags;
 
 	if ((U.uiflag & USER_GLOBALUNDO) == 0) {
 		return 0;
@@ -823,8 +827,14 @@ bool BKE_undo_save_file(const char *filename)
 	 * however if this is ever executed explicitly by the user, we may want to allow writing to symlinks.
 	 */
 
+	oflags = O_BINARY | O_WRONLY | O_CREAT | O_TRUNC;
+#ifdef O_NOFOLLOW
 	/* use O_NOFOLLOW to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
-	file = BLI_open(filename, O_BINARY | O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW, 0666);
+	oflags |= O_NOFOLLOW;
+#else
+#  warning "Symbolic links will be followed on undo save, possibly causing CVE-2008-1103"
+#endif
+	file = BLI_open(filename,  oflags, 0666);
 
 	if (file == -1) {
 		fprintf(stderr, "Unable to save '%s': %s\n",
