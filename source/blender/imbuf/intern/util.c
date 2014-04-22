@@ -200,7 +200,7 @@ bool IMB_ispic(const char *name)
 	if (((st.st_mode) & S_IFMT) != S_IFREG)
 		return false;
 
-	if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) < 0)
+	if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) == -1)
 		return false;
 
 	memset(buf, 0, sizeof(buf));

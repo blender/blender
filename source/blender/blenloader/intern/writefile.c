@@ -3469,7 +3469,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
 	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
-	if (file < 0) {
+	if (file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
 	}

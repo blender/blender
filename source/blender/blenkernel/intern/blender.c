@@ -820,7 +820,7 @@ int BKE_undo_save_file(const char *filename)
 	 * to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
 	errno = 0;
 	file = BLI_open(filename, flag, 0666);
-	if (file < 0) {
+	if (file == -1) {
 		if (errno == EEXIST) {
 			errno = 0;
 			file = BLI_open(filename, flag & ~O_CREAT, 0666);

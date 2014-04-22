@@ -86,7 +86,7 @@ int BLI_file_gzip(const char *from, const char *to)
 	if (gzfile == NULL)
 		return -1;
 	file = BLI_open(from, O_BINARY | O_RDONLY, 0);
-	if (file < 0)
+	if (file == -1)
 		return -2;
 
 	while (1) {

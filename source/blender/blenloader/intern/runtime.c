@@ -72,7 +72,7 @@ int BLO_is_a_runtime(const char *path)
 	int datastart;
 	char buf[8];
 
-	if (fd < 0)
+	if (fd == -1)
 		goto cleanup;
 	
 	lseek(fd, -12, SEEK_END);
@@ -104,7 +104,7 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 
 	fd = BLI_open(path, O_BINARY | O_RDONLY, 0);
 
-	if (fd < 0) {
+	if (fd == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to open '%s': %s", path, strerror(errno));
 		goto cleanup;
 	}
