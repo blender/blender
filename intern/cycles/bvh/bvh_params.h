@@ -33,11 +33,12 @@ public:
 
 	/* SAH costs */
 	float sah_node_cost;
-	float sah_triangle_cost;
+	float sah_primitive_cost;
 
-	/* number of triangles in leaf */
+	/* number of primitives in leaf */
 	int min_leaf_size;
-	int max_leaf_size;
+	int max_triangle_leaf_size;
+	int max_curve_leaf_size;
 
 	/* object or mesh level bvh */
 	int top_level;
@@ -62,11 +63,14 @@ public:
 		use_spatial_split = true;
 		spatial_split_alpha = 1e-5f;
 
+		/* todo: see if splitting up primitive cost to be separate for triangles
+		 * and curves can help. so far in tests it doesn't help, but why? */
 		sah_node_cost = 1.0f;
-		sah_triangle_cost = 1.0f;
+		sah_primitive_cost = 1.0f;
 
 		min_leaf_size = 1;
-		max_leaf_size = 8;
+		max_triangle_leaf_size = 8;
+		max_curve_leaf_size = 2;
 
 		top_level = false;
 		use_cache = false;
@@ -75,11 +79,11 @@ public:
 	}
 
 	/* SAH costs */
-	__forceinline float cost(int num_nodes, int num_tris) const
-	{ return node_cost(num_nodes) + triangle_cost(num_tris); }
+	__forceinline float cost(int num_nodes, int num_primitives) const
+	{ return node_cost(num_nodes) + primitive_cost(num_primitives); }
 
-	__forceinline float triangle_cost(int n) const
-	{ return n*sah_triangle_cost; }
+	__forceinline float primitive_cost(int n) const
+	{ return n*sah_primitive_cost; }
 
 	__forceinline float node_cost(int n) const
 	{ return n*sah_node_cost; }

@@ -77,7 +77,7 @@ public:
 		/* find split candidates. */
 		float area = range.bounds().safe_area();
 
-		leafSAH = area * builder->params.triangle_cost(range.size());
+		leafSAH = area * builder->params.primitive_cost(range.size());
 		nodeSAH = area * builder->params.node_cost(2);
 
 		object = BVHObjectSplit(builder, range, nodeSAH);
@@ -92,7 +92,7 @@ public:
 
 		/* leaf SAH is the lowest => create leaf. */
 		minSAH = min(min(leafSAH, object.sah), spatial.sah);
-		no_split = (minSAH == leafSAH && range.size() <= builder->params.max_leaf_size);
+		no_split = (minSAH == leafSAH && builder->range_within_max_leaf_size(range));
 	}
 
 	__forceinline void split(BVHBuild *builder, BVHRange& left, BVHRange& right, const BVHRange& range)

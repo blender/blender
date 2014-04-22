@@ -54,8 +54,8 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder, const BVHRange& range, float n
 			right_bounds = builder->spatial_right_bounds[i - 1];
 
 			float sah = nodeSAH +
-				left_bounds.safe_area() * builder->params.triangle_cost(i) +
-				right_bounds.safe_area() * builder->params.triangle_cost(range.size() - i);
+				left_bounds.safe_area() * builder->params.primitive_cost(i) +
+				right_bounds.safe_area() * builder->params.primitive_cost(range.size() - i);
 
 			if(sah < min_sah) {
 				min_sah = sah;
@@ -150,8 +150,8 @@ BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder, const BVHRange& range, float
 			rightNum -= builder->spatial_bins[dim][i - 1].exit;
 
 			float sah = nodeSAH +
-				left_bounds.safe_area() * builder->params.triangle_cost(leftNum) +
-				builder->spatial_right_bounds[i - 1].safe_area() * builder->params.triangle_cost(rightNum);
+				left_bounds.safe_area() * builder->params.primitive_cost(leftNum) +
+				builder->spatial_right_bounds[i - 1].safe_area() * builder->params.primitive_cost(rightNum);
 
 			if(sah < this->sah) {
 				this->sah = sah;
@@ -209,10 +209,10 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 		ldb.grow(lref.bounds());
 		rdb.grow(rref.bounds());
 
-		float lac = builder->params.triangle_cost(left_end - left_start);
-		float rac = builder->params.triangle_cost(right_end - right_start);
-		float lbc = builder->params.triangle_cost(left_end - left_start + 1);
-		float rbc = builder->params.triangle_cost(right_end - right_start + 1);
+		float lac = builder->params.primitive_cost(left_end - left_start);
+		float rac = builder->params.primitive_cost(right_end - right_start);
+		float lbc = builder->params.primitive_cost(left_end - left_start + 1);
+		float rbc = builder->params.primitive_cost(right_end - right_start + 1);
 
 		float unsplitLeftSAH = lub.safe_area() * lbc + right_bounds.safe_area() * rac;
 		float unsplitRightSAH = left_bounds.safe_area() * lac + rub.safe_area() * rbc;
@@ -284,8 +284,10 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 		/* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
 		const int k0 = mesh->curves[ref.prim_index()].first_key + PRIMITIVE_UNPACK_SEGMENT(ref.prim_type());
 		const int k1 = k0 + 1;
-		const float3 v0 = float4_to_float3(mesh->curve_keys[k0]);
-		const float3 v1 = float4_to_float3(mesh->curve_keys[k1]);
+		const float4 key0 = mesh->curve_keys[k0];
+		const float4 key1 = mesh->curve_keys[k1];
+		const float3 v0 = float4_to_float3(key0);
+		const float3 v1 = float4_to_float3(key1);
 
 		float v0p = v0[dim];
 		float v1p = v1[dim];

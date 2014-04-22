@@ -70,6 +70,8 @@ protected:
 	BVHNode *create_leaf_node(const BVHRange& range);
 	BVHNode *create_object_leaf_nodes(const BVHReference *ref, int start, int num);
 
+	bool range_within_max_leaf_size(const BVHRange& range);
+
 	/* threads */
 	enum { THREAD_TASK_SIZE = 4096 };
 	void thread_build_node(InnerNode *node, int child, BVHObjectBinning *range, int level);
