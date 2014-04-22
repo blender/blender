@@ -1645,7 +1645,7 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		}
 	}
 
-	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
+	objprop.m_ghost = (blenderobject->gameflag & (OB_GHOST | OB_SENSOR | OB_CHARACTER)) != 0;
 	objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag
 	//mmm, for now, taks this for the size of the dynamicobject
 	// Blender uses inertia for radius of dynamic object
