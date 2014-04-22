@@ -125,7 +125,7 @@ typedef struct RegionView3D {
 								 * also matches -viewinv[3][0:3] in ortho mode.*/
 	float camzoom;				/* viewport zoom on the camera frame, see BKE_screen_view3d_zoom_to_fac */
 	char is_persp;				/* check if persp/ortho view, since 'persp' cant be used for this since
-								 * it can have cameras assigned as well. (only set in setwinmatrixview3d) */
+								 * it can have cameras assigned as well. (only set in view3d_winmatrix_set) */
 	char persp;
 	char view;
 	char viewlock;

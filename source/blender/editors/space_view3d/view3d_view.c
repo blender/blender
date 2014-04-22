@@ -780,10 +780,10 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 	bglPolygonOffset(viewdist, dist);
 }
 
-/*!
- * \param rect for picking, NULL not to use.
+/**
+ * \param rect, optional for picking (can be NULL).
  */
-void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)
+void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
@@ -896,7 +896,7 @@ bool ED_view3d_lock(RegionView3D *rv3d)
 }
 
 /* don't set windows active in here, is used by renderwin too */
-void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
+void view3d_viewmatrix_set(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
@@ -993,7 +993,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 		BLI_rctf_rcti_copy(&rect, input);
 	}
 	
-	setwinmatrixview3d(ar, v3d, &rect);
+	view3d_winmatrix_set(ar, v3d, &rect);
 	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->winmat, vc->rv3d->viewmat);
 	
 	if (v3d->drawtype > OB_WIRE) {
@@ -1077,7 +1077,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	hits = glRenderMode(GL_RENDER);
 	
 	G.f &= ~G_PICKSEL;
-	setwinmatrixview3d(ar, v3d, NULL);
+	view3d_winmatrix_set(ar, v3d, NULL);
 	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->winmat, vc->rv3d->viewmat);
 	
 	if (v3d->drawtype > OB_WIRE) {

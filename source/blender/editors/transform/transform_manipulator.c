@@ -1701,7 +1701,8 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	short hits;
 	const bool is_picksel = true;
 
-	extern void setwinmatrixview3d(ARegion *, View3D *, rctf *); // XXX check a bit later on this... (ton)
+	/* XXX check a bit later on this... (ton) */
+	extern void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect);
 
 	/* when looking through a selected camera, the manipulator can be at the
 	 * exact same position as the view, skip so we don't break selection */
@@ -1713,7 +1714,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	rect.ymin = mval[1] - hotspot;
 	rect.ymax = mval[1] + hotspot;
 
-	setwinmatrixview3d(ar, v3d, &rect);
+	view3d_winmatrix_set(ar, v3d, &rect);
 	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
 	glSelectBuffer(64, buffer);
@@ -1734,7 +1735,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	glPopName();
 	hits = glRenderMode(GL_RENDER);
 
-	setwinmatrixview3d(ar, v3d, NULL);
+	view3d_winmatrix_set(ar, v3d, NULL);
 	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
 	if (hits == 1) return buffer[3];
