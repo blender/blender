@@ -832,7 +832,10 @@ bool BKE_undo_save_file(const char *filename)
 	/* use O_NOFOLLOW to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
 	oflags |= O_NOFOLLOW;
 #else
-#  warning "Symbolic links will be followed on undo save, possibly causing CVE-2008-1103"
+	/* TODO(sergey): How to deal with symlinks on windows? */
+#  ifndef _MSC_VER
+#    warning "Symbolic links will be followed on undo save, possibly causing CVE-2008-1103"
+#  endif
 #endif
 	file = BLI_open(filename,  oflags, 0666);
 
