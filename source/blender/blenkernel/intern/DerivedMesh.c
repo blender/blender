@@ -1881,46 +1881,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	}
 
 	{
-		/* calculating normals can re-calculate tessfaces in some cases */
-#if 0
-		int num_tessface = finaldm->getNumTessFaces(finaldm);
-#endif
-		/* --------------------------------------------------------------------- */
-		/* First calculate the polygon and vertex normals, re-tessellation
-		 * copies these into the tessface's normal layer */
-
-
-		/* comment because this causes a bug when deform is applied after a
-		 * bug when applied after a subsurf modifier (SubSurf -> Cast) for eg,
-		 * it also looks like this isn't even needed since code above recalc's
-		 * normals - campbell */
-#if 0
-		finaldm->calcNormals(finaldm);
-#endif
-
-		/* Re-tessellation is necessary to push render data (uvs, textures, colors)
-		 * from loops and polys onto the tessfaces. This may be currently be
-		 * redundant in cases where the render mode doesn't use these inputs, but
-		 * ideally eventually tessellation would happen on-demand, and this is one
-		 * of the primary places it would be needed. */
-#if 0
-		if (num_tessface == 0 && finaldm->getNumTessFaces(finaldm) == 0)
-#else
-		if (finaldm->getNumTessFaces(finaldm) == 0) /* || !CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX)) */
-#endif
-		{
-			finaldm->recalcTessellation(finaldm);
-		}
-		/* Even if tessellation is not needed, some modifiers might have modified CD layers
-		 * (like mloopcol or mloopuv), hence we have to update those. */
-		else if (finaldm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-			/* A tessellation already exists, it should always have a CD_ORIGINDEX. */
-			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX));
-			DM_update_tessface_data(finaldm);
-		}
-		/* Need to watch this, it can cause issues, see bug [#29338]             */
-		/* take care with this block, we really need testing frameworks          */
-		/* --------------------------------------------------------------------- */
+		DM_ensure_tessface(finaldm);
 
 		/* without this, drawing ngon tri's faces will show ugly tessellated face
 		 * normals and will also have to calculate normals on the fly, try avoid
