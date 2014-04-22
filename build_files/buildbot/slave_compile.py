@@ -64,6 +64,7 @@ else:
     install_dir = os.path.join('..', 'install', builder)
 
     # Clean install directory so we'll be sure there's no
+    # residual libs and files remained from the previous install.
     if os.path.isdir(install_dir):
         shutil.rmtree(install_dir)
 
