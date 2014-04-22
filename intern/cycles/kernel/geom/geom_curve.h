@@ -438,6 +438,8 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 			* dP* is reversed if necessary.*/
 			float t = isect->t;
 			float u = 0.0f;
+			float gd = 0.0f;
+
 			if(flags & CURVE_KN_RIBBONS) {
 				float3 tg = (p_en - p_st);
 				float w = tg.x * tg.x + tg.y * tg.y;
@@ -508,7 +510,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 				}
 				/* --- */
 				float3 tg = (p_en - p_st) / l;
-				float gd = (or2 - or1) / l;
+				gd = (or2 - or1) / l;
 				float difz = -dot(p_st,tg);
 				float cyla = 1.0f - (tg.z * tg.z * (1 + gd*gd));
 				float halfb = (-p_st.z - tg.z*(difz + gd*(difz*gd + or1)));
@@ -576,8 +578,8 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 				isect->object = object;
 				isect->type = type;
 				isect->u = u;
-				isect->v = 0.0f;
-				/*isect->v = 1.0f - coverage; */
+				isect->v = gd;
+				/*isect->transparency = 1.0f - coverage; */
 				isect->t = t;
 				hit = true;
 			}
@@ -812,13 +814,10 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 				isect->object = object;
 				isect->type = type;
 				isect->u = z*invl;
-				isect->v = td/(4*a*a);
-				/*isect->v = 1.0f - adjradius;*/
+				isect->v = gd;
+				/*isect->transparency = 1.0f - adjradius;*/
 				isect->t = t;
 
-				if(backface) 
-					isect->u = -isect->u;
-				
 				return true;
 			}
 		}
@@ -901,35 +900,41 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 			motion_cardinal_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
 		}
 
-		float l = 1.0f;
-		tg = normalize_len(float4_to_float3(P_curve[2] - P_curve[1]), &l);
-		float r1 = P_curve[1].w;
-		float r2 = P_curve[2].w;
-		float gd = ((r2 - r1)/l);
-		
-		P = P + D*t;
-
 		float3 p[4];
 		p[0] = float4_to_float3(P_curve[0]);
 		p[1] = float4_to_float3(P_curve[1]);
 		p[2] = float4_to_float3(P_curve[2]);
 		p[3] = float4_to_float3(P_curve[3]);
 
+		P = P + D*t;
+
 #ifdef __UV__
 		sd->u = isect->u;
 		sd->v = 0.0f;
 #endif
 	
-		tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
-
-		if(kernel_data.curve.curveflags & CURVE_KN_RIBBONS)
+		if(kernel_data.curve.curveflags & CURVE_KN_RIBBONS) {
+			tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
 			sd->Ng = normalize(-(D - tg * (dot(tg, D))));
+		}
 		else {
+			/* direction from inside to surface of curve */
 			float3 p_curr = curvepoint(isect->u, p[0], p[1], p[2], p[3]);	
 			sd->Ng = normalize(P - p_curr);
-			sd->Ng = sd->Ng - gd * tg;
-			sd->Ng = normalize(sd->Ng);
+
+			/* adjustment for changing radius */
+			float gd = isect->v;
+
+			if(gd != 0.0f) {
+				tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
+				sd->Ng = sd->Ng - gd * tg;
+				sd->Ng = normalize(sd->Ng);
+			}
 		}
+
+		/* todo: sometimes the normal is still so that this is detected as
+		 * backfacing even if cull backfaces is enabled */
+
 		sd->N = sd->Ng;
 	}
 	else {
@@ -945,9 +950,6 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 
 		float l = 1.0f;
 		tg = normalize_len(float4_to_float3(P_curve[1] - P_curve[0]), &l);
-		float r1 = P_curve[0].w;
-		float r2 = P_curve[1].w;
-		float gd = ((r2 - r1)/l);
 		
 		P = P + D*t;
 
@@ -963,9 +965,14 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 			sd->Ng = normalize(sd->Ng);
 		}
 		else {
+			float gd = isect->v;
+
+			/* direction from inside to surface of curve */
 			sd->Ng = (dif - tg * sd->u * l) / (P_curve[0].w + sd->u * l * gd);
+
+			/* adjustment for changing radius */
 			if (gd != 0.0f) {
-				sd->Ng = sd->Ng - gd * tg ;
+				sd->Ng = sd->Ng - gd * tg;
 				sd->Ng = normalize(sd->Ng);
 			}
 		}
@@ -980,7 +987,7 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 #endif
 
 	/*add fading parameter for minimum pixel width with transparency bsdf*/
-	/*sd->curve_transparency = isect->v;*/
+	/*sd->curve_transparency = isect->transparency;*/
 	/*sd->curve_radius = sd->u * gd * l + r1;*/
 
 	if(isect->object != OBJECT_NONE) {

@@ -336,8 +336,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			
 			if(sd->flag & SD_BACKFACING && sd->type & PRIMITIVE_ALL_CURVE) {
 				ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
+
 				if(sc) {
-					sc->weight = make_float3(1.0f,1.0f,1.0f);
+					/* todo: giving a fixed weight here will cause issues when
+					 * mixing multiple BSDFS. energey will not be conserved and
+					 * the throughput can blow up after multiple bounces. we
+					 * better figure out a way to skip backfaces from rays
+					 * spawned by transmission from the front */
+					sc->weight = make_float3(1.0f, 1.0f, 1.0f);
 					sc->N = N;
 					sd->flag |= bsdf_transparent_setup(sc);
 				}
