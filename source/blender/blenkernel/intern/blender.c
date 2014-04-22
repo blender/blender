@@ -798,12 +798,15 @@ const char *BKE_undo_get_name(int nr, int *active)
 	return NULL;
 }
 
-/* saves .blend using undo buffer, returns 1 == success */
-int BKE_undo_save_file(const char *filename)
+/**
+ * Saves .blend using undo buffer.
+ *
+ * \return success.
+ */
+bool BKE_undo_save_file(const char *filename)
 {
 	UndoElem *uel;
 	MemFileChunk *chunk;
-	const int flag = O_BINARY + O_WRONLY + O_CREAT + O_TRUNC + O_EXCL;
 	int file;
 
 	if ((U.uiflag & USER_GLOBALUNDO) == 0) {
@@ -816,16 +819,12 @@ int BKE_undo_save_file(const char *filename)
 		return 0;
 	}
 
-	/* first try create the file, if it exists call without 'O_CREAT',
-	 * to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
-	errno = 0;
-	file = BLI_open(filename, flag, 0666);
-	if (file == -1) {
-		if (errno == EEXIST) {
-			errno = 0;
-			file = BLI_open(filename, flag & ~O_CREAT, 0666);
-		}
-	}
+	/* note: This is currently used for autosave and 'quit.blend', where _not_ following symlinks is OK,
+	 * however if this is ever executed explicitly by the user, we may want to allow writing to symlinks.
+	 */
+
+	/* use O_NOFOLLOW to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
+	file = BLI_open(filename, O_BINARY | O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW, 0666);
 
 	if (file == -1) {
 		fprintf(stderr, "Unable to save '%s': %s\n",
