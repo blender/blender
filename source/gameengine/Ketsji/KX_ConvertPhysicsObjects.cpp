@@ -56,8 +56,6 @@
 
 extern "C"{
 	#include "BLI_utildefines.h"
-	#include "BLI_math.h"
-	#include "BKE_DerivedMesh.h"
 	#include "BKE_object.h"
 }
 
@@ -86,177 +84,6 @@ extern "C"{
 #endif //_MSC_VER 
 #endif //WIN32
 
-// my_tex_space_mesh and my_get_local_bounds were moved from BL_BlenderDataConversion.cpp (my_boundbox_mesh is just copied)
-// there has to be a better way to do this...
-static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
-{
-	MVert *mvert;
-	BoundBox *bb;
-	float min[3], max[3];
-	float mloc[3], msize[3];
-	float radius_sq=0.0f, vert_radius_sq, *co;
-	int a;
-
-	if (me->bb==0) {
-		me->bb = BKE_boundbox_alloc_unit();
-	}
-	bb= me->bb;
-
-	INIT_MINMAX(min, max);
-
-	if (!loc) loc= mloc;
-	if (!size) size= msize;
-
-	mvert= me->mvert;
-	for (a = 0; a<me->totvert; a++, mvert++) {
-		co = mvert->co;
-
-		/* bounds */
-		minmax_v3v3_v3(min, max, co);
-
-		/* radius */
-
-		vert_radius_sq = len_squared_v3(co);
-		if (vert_radius_sq > radius_sq)
-			radius_sq = vert_radius_sq;
-	}
-
-	if (me->totvert) {
-		loc[0] = (min[0] + max[0]) / 2.0f;
-		loc[1] = (min[1] + max[1]) / 2.0f;
-		loc[2] = (min[2] + max[2]) / 2.0f;
-
-		size[0] = (max[0] - min[0]) / 2.0f;
-		size[1] = (max[1] - min[1]) / 2.0f;
-		size[2] = (max[2] - min[2]) / 2.0f;
-	}
-	else {
-		loc[0] = loc[1] = loc[2] = 0.0f;
-		size[0] = size[1] = size[2] = 0.0f;
-	}
-
-	bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = loc[0]-size[0];
-	bb->vec[4][0] = bb->vec[5][0] = bb->vec[6][0] = bb->vec[7][0] = loc[0]+size[0];
-
-	bb->vec[0][1] = bb->vec[1][1] = bb->vec[4][1] = bb->vec[5][1] = loc[1]-size[1];
-	bb->vec[2][1] = bb->vec[3][1] = bb->vec[6][1] = bb->vec[7][1] = loc[1]+size[1];
-
-	bb->vec[0][2] = bb->vec[3][2] = bb->vec[4][2] = bb->vec[7][2] = loc[2]-size[2];
-	bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = loc[2]+size[2];
-
-	return sqrtf_signed(radius_sq);
-}
-
-static void my_tex_space_mesh(Mesh *me)
-{
-	KeyBlock *kb;
-	float *fp, loc[3], size[3], min[3], max[3];
-	int a;
-
-	my_boundbox_mesh(me, loc, size);
-
-	if (me->texflag & ME_AUTOSPACE) {
-		if (me->key) {
-			kb= me->key->refkey;
-			if (kb) {
-
-				INIT_MINMAX(min, max);
-
-				fp= (float *)kb->data;
-				for (a=0; a<kb->totelem; a++, fp += 3) {
-					minmax_v3v3_v3(min, max, fp);
-				}
-				if (kb->totelem) {
-					loc[0] = (min[0]+max[0])/2.0f; loc[1] = (min[1]+max[1])/2.0f; loc[2] = (min[2]+max[2])/2.0f;
-					size[0] = (max[0]-min[0])/2.0f; size[1] = (max[1]-min[1])/2.0f; size[2] = (max[2]-min[2])/2.0f;
-				}
-				else {
-					loc[0] = loc[1] = loc[2] = 0.0;
-					size[0] = size[1] = size[2] = 0.0;
-				}
-
-			}
-		}
-
-		copy_v3_v3(me->loc, loc);
-		copy_v3_v3(me->size, size);
-		me->rot[0] = me->rot[1] = me->rot[2] = 0.0f;
-
-		if (me->size[0] == 0.0f) me->size[0] = 1.0f;
-		else if (me->size[0] > 0.0f && me->size[0]< 0.00001f) me->size[0] = 0.00001f;
-		else if (me->size[0] < 0.0f && me->size[0]> -0.00001f) me->size[0] = -0.00001f;
-
-		if (me->size[1] == 0.0f) me->size[1] = 1.0f;
-		else if (me->size[1] > 0.0f && me->size[1]< 0.00001f) me->size[1] = 0.00001f;
-		else if (me->size[1] < 0.0f && me->size[1]> -0.00001f) me->size[1] = -0.00001f;
-
-		if (me->size[2] == 0.0f) me->size[2] = 1.0f;
-		else if (me->size[2] > 0.0f && me->size[2]< 0.00001f) me->size[2] = 0.00001f;
-		else if (me->size[2] < 0.0f && me->size[2]> -0.00001f) me->size[2] = -0.00001f;
-	}
-
-}
-
-static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, float *size)
-{
-	BoundBox *bb= NULL;
-	/* uses boundbox, function used by Ketsji */
-	switch (ob->type)
-	{
-		case OB_MESH:
-			if (dm)
-			{
-				float min_r[3], max_r[3];
-				INIT_MINMAX(min_r, max_r);
-				dm->getMinMax(dm, min_r, max_r);
-				size[0] = 0.5f * fabsf(max_r[0] - min_r[0]);
-				size[1] = 0.5f * fabsf(max_r[1] - min_r[1]);
-				size[2] = 0.5f * fabsf(max_r[2] - min_r[2]);
-
-				center[0] = 0.5f * (max_r[0] + min_r[0]);
-				center[1] = 0.5f * (max_r[1] + min_r[1]);
-				center[2] = 0.5f * (max_r[2] + min_r[2]);
-				return;
-			} else
-			{
-				bb= ( (Mesh *)ob->data )->bb;
-				if (bb==0)
-				{
-					my_tex_space_mesh((struct Mesh *)ob->data);
-					bb= ( (Mesh *)ob->data )->bb;
-				}
-			}
-			break;
-		case OB_CURVE:
-		case OB_SURF:
-			center[0] = center[1] = center[2] = 0.0;
-			size[0]  = size[1]=size[2]=0.0;
-			break;
-		case OB_FONT:
-			center[0] = center[1] = center[2] = 0.0;
-			size[0]  = size[1]=size[2]=1.0;
-			break;
-		case OB_MBALL:
-			bb= ob->bb;
-			break;
-	}
-
-	if (bb==NULL)
-	{
-		center[0] = center[1] = center[2] = 0.0;
-		size[0] = size[1] = size[2] = 1.0;
-	}
-	else
-	{
-		size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
-		size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
-		size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
-
-		center[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
-		center[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
-		center[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
-	}
-}
 
 // forward declarations
 
@@ -364,8 +191,24 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (ELEM(bounds, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL) && blenderobject->type != OB_MESH)
 		bounds = OB_BOUND_SPHERE;
 
+	// Get bounds information
 	float bounds_center[3], bounds_extends[3];
-	my_get_local_bounds(blenderobject, dm, bounds_center, bounds_extends);
+	BoundBox *bb= BKE_object_boundbox_get(blenderobject);
+	if (bb==NULL)
+	{
+		bounds_center[0] = bounds_center[1] = bounds_center[2] = 0.0;
+		bounds_extends[0] = bounds_extends[1] = bounds_extends[2] = 1.0;
+	}
+	else
+	{
+		bounds_extends[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+		bounds_extends[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+		bounds_extends[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+
+		bounds_center[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
+		bounds_center[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
+		bounds_center[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
+	}
 
 	switch (bounds)
 	{
