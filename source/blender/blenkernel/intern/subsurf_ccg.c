@@ -3411,6 +3411,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	MEdge *medge = NULL;
 	/* MFace *mface = NULL; */
 	MPoly *mpoly = NULL;
+	bool has_edge_cd;
 
 	DM_from_template(&ccgdm->dm, dm, DM_TYPE_CCGDM,
 	                 ccgSubSurf_getNumFinalVerts(ss),
@@ -3570,6 +3571,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	faceOrigIndex = DM_get_tessface_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 	polyOrigIndex = DM_get_poly_data_layer(&ccgdm->dm, CD_ORIGINDEX);
+
+	has_edge_cd = ((ccgdm->dm.edgeData.totlayer - (edgeOrigIndex ? 1 : 0)) != 0);
 
 #if 0
 	/* this is not in trunk, can gives problems because colors initialize
@@ -3763,6 +3766,12 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 				vertOrigIndex++;
 			}
 			vertNum++;
+		}
+
+		if (has_edge_cd) {
+			for (i = 0; i < numFinalEdges; ++i) {
+				CustomData_copy_data(&dm->edgeData, &ccgdm->dm.edgeData, mapIndex, edgeNum + i, 1);
+			}
 		}
 
 		if (edgeOrigIndex) {
