@@ -35,6 +35,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -190,6 +191,10 @@ static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEle
 	else if (GS(tsep->id->name) == ID_WO) {
 		World *wrld = (World *)tsep->id;
 		mtex = wrld->mtex;
+	}
+	else if (GS(tsep->id->name) == ID_LS) {
+		FreestyleLineStyle *ls = (FreestyleLineStyle *)tsep->id;
+		mtex = ls->mtex;
 	}
 	else {
 		return;
