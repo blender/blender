@@ -2090,12 +2090,16 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	/* mirror keyframes */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-		short mapping_flag = ANIM_get_normalization_flags(ac);
-		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, ale->key_data, mapping_flag | ANIM_UNITCONV_ONLYKEYS);
-
+		
 		/* apply unit corrections */
-		ked.f1 = cursor_value * unit_scale;
-
+		if (mode == GRAPHKEYS_MIRROR_VALUE) {
+			short mapping_flag = ANIM_get_normalization_flags(ac);
+			float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, ale->key_data, mapping_flag | ANIM_UNITCONV_ONLYKEYS);
+			
+			ked.f1 = cursor_value * unit_scale;
+		}
+		
+		/* perform actual mirroring */
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
