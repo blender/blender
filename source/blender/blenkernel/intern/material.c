@@ -1039,7 +1039,7 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 				basemat->mode_l |= ma->mode & ~(MA_MODE_PIPELINE | MA_SHLESS);
 				basemat->mode2_l |= ma->mode2 & ~MA_MODE2_PIPELINE;
 				/* basemat only considered shadeless if all node materials are too */
-				if(!(ma->mode & MA_SHLESS))
+				if (!(ma->mode & MA_SHLESS))
 					basemat->mode_l &= ~MA_SHLESS;
 
 				if (ma->strand_surfnor > 0.0f)

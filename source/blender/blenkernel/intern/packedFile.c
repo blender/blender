@@ -627,21 +627,27 @@ void unpackAll(Main *bmain, ReportList *reports, int how)
 /* ID should be not NULL, return 1 if there's a packed file */
 bool BKE_pack_check(ID *id)
 {
-	if (GS(id->name) == ID_IM) {
-		Image *ima = (Image *)id;
-		return ima->packedfile != NULL;
-	}
-	if (GS(id->name) == ID_VF) {
-		VFont *vf = (VFont *)id;
-		return vf->packedfile != NULL;
-	}
-	if (GS(id->name) == ID_SO) {
-		bSound *snd = (bSound *)id;
-		return snd->packedfile != NULL;
-	}
-	if (GS(id->name) == ID_LI) {
-		Library *li = (Library *)id;
-		return li->packedfile != NULL;
+	switch (GS(id->name)) {
+		case ID_IM:
+		{
+			Image *ima = (Image *)id;
+			return ima->packedfile != NULL;
+		}
+		case ID_VF:
+		{
+			VFont *vf = (VFont *)id;
+			return vf->packedfile != NULL;
+		}
+		case ID_SO:
+		{
+			bSound *snd = (bSound *)id;
+			return snd->packedfile != NULL;
+		}
+		case ID_LI:
+		{
+			Library *li = (Library *)id;
+			return li->packedfile != NULL;
+		}
 	}
 	return false;
 }
@@ -649,23 +655,36 @@ bool BKE_pack_check(ID *id)
 /* ID should be not NULL */
 void BKE_unpack_id(Main *bmain, ID *id, ReportList *reports, int how)
 {
-	if (GS(id->name) == ID_IM) {
-		Image *ima = (Image *)id;
-		if (ima->packedfile)
-			unpackImage(reports, ima, how);
-	}
-	if (GS(id->name) == ID_VF) {
-		VFont *vf = (VFont *)id;
-		if (vf->packedfile)
-			unpackVFont(reports, vf, how);
-	}
-	if (GS(id->name) == ID_SO) {
-		bSound *snd = (bSound *)id;
-		if (snd->packedfile)
-			unpackSound(bmain, reports, snd, how);
-	}
-	if (GS(id->name) == ID_LI) {
-		Library *li = (Library *)id;
-		BKE_reportf(reports, RPT_ERROR, "Cannot unpack individual Library file, '%s'", li->name);
+	switch (GS(id->name)) {
+		case ID_IM:
+		{
+			Image *ima = (Image *)id;
+			if (ima->packedfile) {
+				unpackImage(reports, ima, how);
+			}
+			break;
+		}
+		case ID_VF:
+		{
+			VFont *vf = (VFont *)id;
+			if (vf->packedfile) {
+				unpackVFont(reports, vf, how);
+			}
+			break;
+		}
+		case ID_SO:
+		{
+			bSound *snd = (bSound *)id;
+			if (snd->packedfile) {
+				unpackSound(bmain, reports, snd, how);
+			}
+			break;
+		}
+		case ID_LI:
+		{
+			Library *li = (Library *)id;
+			BKE_reportf(reports, RPT_ERROR, "Cannot unpack individual Library file, '%s'", li->name);
+			break;
+		}
 	}
 }

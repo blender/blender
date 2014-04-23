@@ -159,7 +159,7 @@ static int rigidbody_world_export_exec(bContext *C, wmOperator *op)
 	char path[FILE_MAX];
 
 	/* sanity checks */
-	if ELEM(NULL, scene, rbw) {
+	if (ELEM(NULL, scene, rbw)) {
 		BKE_report(op->reports, RPT_ERROR, "No Rigid Body World to export");
 		return OPERATOR_CANCELLED;
 	}
