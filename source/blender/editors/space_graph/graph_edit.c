@@ -221,11 +221,11 @@ static int graphkeys_viewall(bContext *C, const bool do_sel_only, const bool inc
 {
 	bAnimContext ac;
 	rctf cur_new;
-
+	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-
+	
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
 	get_graph_keyframe_extents(&ac,
 	                           &cur_new.xmin, &cur_new.xmax,
@@ -233,9 +233,9 @@ static int graphkeys_viewall(bContext *C, const bool do_sel_only, const bool inc
 	                           do_sel_only, include_handles);
 
 	BLI_rctf_scale(&cur_new, 1.1f);
-
+	
 	UI_view2d_smooth_view(C, ac.ar, &cur_new, smooth_viewtx);
-
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -269,7 +269,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = graphkeys_viewall_exec;
 	ot->poll = ED_operator_graphedit_active; /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier... */
-
+	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
@@ -334,7 +334,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 		int cfra;
 		SpaceIpo *sipo = (SpaceIpo *) ac->sl;
 		short mapping_flag = ANIM_get_normalization_flags(ac);
-
+		
 		/* disable driver so that it don't muck up the sampling process */
 		fcu->driver = NULL;
 		
@@ -2403,7 +2403,7 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 		/* TODO: do we want to replace existing modifiers? add user pref for that! */
 		ok += ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, 0);
 	}
-
+	
 	/* clean up */
 	BLI_freelistN(&anim_data);
 	
