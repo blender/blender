@@ -46,6 +46,7 @@
 
 #include "DNA_genfile.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #include "BKE_main.h"
@@ -177,6 +178,29 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			linestyle->flag |= LS_NO_SORTING;
 			linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
 			linestyle->integration_type = LS_INTEGRATION_MEAN;
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 270, 4)) {
+		/* ui_previews were not handled correctly when copying areas, leading to corrupted files (see T39847).
+		 * This will always reset situation to a valid state.
+		 */
+		bScreen *sc;
+
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					ARegion *ar;
+					ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+
+					for (ar = lb->first; ar; ar = ar->next) {
+						BLI_listbase_clear(&ar->ui_previews);
+					}
+				}
+			}
 		}
 	}
 
