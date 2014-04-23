@@ -245,6 +245,9 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 		case ID_BR:
 			WM_main_add_notifier(NC_BRUSH, id);
 			break;
+		case ID_LS:
+			WM_main_add_notifier(NC_LINESTYLE, id);
+			break;
 		case ID_PA:
 		{
 			MTex *mtex = ptr->data;
