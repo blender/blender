@@ -259,7 +259,7 @@ OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
-FFMPEG_VERSION="1.0"
+FFMPEG_VERSION="2.1.4"
 FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
 FFMPEG_VERSION_MIN="0.7.6"
 FFMPEG_FORCE_REBUILD=false
@@ -1626,8 +1626,9 @@ compile_FFmpeg() {
         --disable-bzlib --disable-libgsm --disable-libspeex \
         --enable-pthreads --enable-zlib --enable-stripping --enable-runtime-cpudetect \
         --disable-vaapi --disable-libfaac --disable-nonfree --enable-gpl \
-        --disable-postproc --disable-x11grab --disable-librtmp --disable-libopencore-amrnb \
+        --disable-postproc --disable-librtmp --disable-libopencore-amrnb \
         --disable-libopencore-amrwb --disable-libdc1394 --disable-version3 --disable-outdev=sdl \
+        --disable-outdev=xv \
         --disable-outdev=alsa --disable-indev=sdl --disable-indev=alsa --disable-indev=jack \
         --disable-indev=lavfi $extra
 
