@@ -1,3 +1,20 @@
+commit d14049e00dabf8fdf49056779f0a3718fbb39e8f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 23 15:08:16 2014 +0600
+
+    Move aligned malloc implementation into own file
+    
+    It was rather stupid having it in brute region tracker,
+    now it is in own file in base library (which was also
+    added in this commit, before this it consist of header
+    files only).
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D479
+
 commit 0ddf3851bfcb8de43660b119a25a77a25674200d
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Apr 21 14:14:03 2014 +0600
@@ -672,12 +689,3 @@ Date:   Tue Jun 18 19:24:07 2013 +0600
       We could end up with something smarter in the
       future, but for now i'm not as much fan of
       forcing compiler's flag.
-
-commit 2b90b3915671cb629f7aabed30a88f28450294f8
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Jun 1 16:20:35 2013 +0600
-
-    Pass vectors by a reference
-    
-    Saves couple of time which used to waste on copying objects,
-    also solves win32 compilation errors caused by alignment.

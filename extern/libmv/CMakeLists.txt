@@ -59,6 +59,7 @@ if(WITH_LIBMV)
 	list(APPEND SRC
 		libmv-capi.cc
 		libmv-util.cc
+		libmv/base/aligned_malloc.cc
 		libmv/image/array_nd.cc
 		libmv/image/convolve.cc
 		libmv/multiview/conditioning.cc
@@ -96,6 +97,7 @@ if(WITH_LIBMV)
 		third_party/gflags/gflags_reporting.cc
 
 		libmv-util.h
+		libmv/base/aligned_malloc.h
 		libmv/base/id_generator.h
 		libmv/base/scoped_ptr.h
 		libmv/base/vector.h

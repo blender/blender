@@ -19,6 +19,7 @@ if env['WITH_BF_LIBMV']:
     defs.append('LIBMV_NO_FAST_DETECTOR')
 
     src = env.Glob('*.cc')
+    src += env.Glob('libmv/base/*.cc')
     src += env.Glob('libmv/image/*.cc')
     src += env.Glob('libmv/multiview/*.cc')
     src += env.Glob('libmv/numeric/*.cc')
