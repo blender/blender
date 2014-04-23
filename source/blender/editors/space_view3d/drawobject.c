@@ -2433,45 +2433,44 @@ static int draw_dm_test_freestyle_face_mark(BMesh *bm, BMFace *efa)
 #endif
 
 /* Draw loop normals. */
-static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
+static void draw_dm_loop_normals__mapFunc(void *userData, int vertex_index, int face_index,
+                                          const float co[3], const float no[3])
 {
-	/* XXX Would it be worth adding a dm->foreachMappedLoop func just for this? I doubt it... */
+	if (no) {
+		const drawDMNormal_userData *data = userData;
+		const BMVert *eve = BM_vert_at_index(data->bm, vertex_index);
+		const BMFace *efa = BM_face_at_index(data->bm, face_index);
+		float vec[3];
 
-	/* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData, EditDerivedBMesh would
-	 * return loop data from bmesh itself. */
-	float (*lnors)[3] = DM_get_loop_data_layer(dm, CD_NORMAL);
-
-	if (lnors) {
-		drawDMNormal_userData data;
-		const MLoop *mloops = dm->getLoopArray(dm);
-		const MVert *mverts = dm->getVertArray(dm);
-		int i, totloops = dm->getNumLoops(dm);
-
-		data.bm = em->bm;
-		data.normalsize = scene->toolsettings->normalsize;
-
-		calcDrawDMNormalScale(ob, &data);
-
-		glBegin(GL_LINES);
-		for (i = 0; i < totloops; i++, mloops++, lnors++) {
-			float no[3];
-			const float *co = mverts[mloops->v].co;
-
-			if (!data.uniform_scale) {
-				mul_v3_m3v3(no, data.tmat, (float *)lnors);
-				normalize_v3(no);
-				mul_m3_v3(data.imat, no);
+		if (!(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) || BM_elem_flag_test(efa, BM_ELEM_HIDDEN))) {
+			if (!data->uniform_scale) {
+				mul_v3_m3v3(vec, data->tmat, no);
+				normalize_v3(vec);
+				mul_m3_v3(data->imat, vec);
 			}
 			else {
-				copy_v3_v3(no, (float *)lnors);
+				copy_v3_v3(vec, no);
 			}
-			mul_v3_fl(no, data.normalsize);
-			add_v3_v3(no, co);
+			mul_v3_fl(vec, data->normalsize);
+			add_v3_v3(vec, co);
 			glVertex3fv(co);
-			glVertex3fv(no);
+			glVertex3fv(vec);
 		}
-		glEnd();
 	}
+}
+
+static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
+{
+	drawDMNormal_userData data;
+
+	data.bm = em->bm;
+	data.normalsize = scene->toolsettings->normalsize;
+
+	calcDrawDMNormalScale(ob, &data);
+
+	glBegin(GL_LINES);
+	dm->foreachMappedLoop(dm, draw_dm_loop_normals__mapFunc, &data, DM_FOREACH_USE_NORMAL);
+	glEnd();
 }
 
 /* Draw faces with color set based on selection

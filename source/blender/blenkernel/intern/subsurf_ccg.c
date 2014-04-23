@@ -1554,6 +1554,35 @@ static void ccgDM_foreachMappedEdge(
 	ccgEdgeIterator_free(ei);
 }
 
+static void ccgDM_foreachMappedLoop(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int vertex_index, int face_index, const float co[3], const float no[3]),
+        void *userData,
+        DMForeachFlag flag)
+{
+	/* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData, EditDerivedBMesh would
+	 * return loop data from bmesh itself. */
+	const float (*lnors)[3] = (flag & DM_FOREACH_USE_NORMAL) ? DM_get_loop_data_layer(dm, CD_NORMAL) : NULL;
+
+	MVert *mv = dm->getVertArray(dm);
+	MLoop *ml = dm->getLoopArray(dm);
+	MPoly *mp = dm->getPolyArray(dm);
+	const int *v_index = dm->getVertDataArray(dm, CD_ORIGINDEX);
+	const int *f_index = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	int p_idx, i;
+
+	for (p_idx = 0; p_idx < dm->numPolyData; ++p_idx, ++mp) {
+		for (i = 0; i < mp->totloop; ++i, ++ml) {
+			const int v_idx = v_index ? v_index[ml->v] : ml->v;
+			const int f_idx = f_index ? f_index[p_idx] : p_idx;
+			const float *no = lnors ? *lnors++ : NULL;
+			if (!ELEM(ORIGINDEX_NONE, v_idx, f_idx)) {
+				func(userData, v_idx, f_idx, mv[ml->v].co, no);
+			}
+		}
+	}
+}
+
 static void ccgDM_drawVerts(DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
@@ -3461,6 +3490,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getVertCos = ccgdm_getVertCos;
 	ccgdm->dm.foreachMappedVert = ccgDM_foreachMappedVert;
 	ccgdm->dm.foreachMappedEdge = ccgDM_foreachMappedEdge;
+	ccgdm->dm.foreachMappedLoop = ccgDM_foreachMappedLoop;
 	ccgdm->dm.foreachMappedFaceCenter = ccgDM_foreachMappedFaceCenter;
 	
 	ccgdm->dm.drawVerts = ccgDM_drawVerts;

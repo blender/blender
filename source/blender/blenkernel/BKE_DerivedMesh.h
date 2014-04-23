@@ -156,7 +156,7 @@ typedef enum DMDrawFlag {
 
 typedef enum DMForeachFlag {
 	DM_FOREACH_NOP = 0,
-	DM_FOREACH_USE_NORMAL = (1 << 0),  /* foreachMappedVert, foreachMappedFaceCenter */
+	DM_FOREACH_USE_NORMAL = (1 << 0),  /* foreachMappedVert, foreachMappedLoop, foreachMappedFaceCenter */
 } DMForeachFlag;
 
 typedef enum DMDirtyFlag {
@@ -308,6 +308,15 @@ struct DerivedMesh {
 	                          void (*func)(void *userData, int index,
 	                                       const float v0co[3], const float v1co[3]),
 	                          void *userData);
+
+	/** Iterate over each mapped loop in the derived mesh, calling the given function
+	 * with the original loop index and the mapped loops's new coordinate and normal.
+	 */
+	void (*foreachMappedLoop)(DerivedMesh *dm,
+	                          void (*func)(void *userData, int vertex_index, int face_index,
+	                                       const float co[3], const float no[3]),
+	                          void *userData,
+	                          DMForeachFlag flag);
 
 	/** Iterate over each mapped face in the derived mesh, calling the
 	 * given function with the original face and the mapped face's (or

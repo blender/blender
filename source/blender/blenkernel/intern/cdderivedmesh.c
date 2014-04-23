@@ -1691,6 +1691,35 @@ static void cdDM_foreachMappedEdge(
 	}
 }
 
+static void cdDM_foreachMappedLoop(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int vertex_index, int face_index, const float co[3], const float no[3]),
+        void *userData,
+        DMForeachFlag flag)
+{
+	/* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData, EditDerivedBMesh would
+	 * return loop data from bmesh itself. */
+	const float (*lnors)[3] = (flag & DM_FOREACH_USE_NORMAL) ? DM_get_loop_data_layer(dm, CD_NORMAL) : NULL;
+
+	const MVert *mv = CDDM_get_verts(dm);
+	const MLoop *ml = CDDM_get_loops(dm);
+	const MPoly *mp = CDDM_get_polys(dm);
+	const int *v_index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+	const int *f_index = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
+	int p_idx, i;
+
+	for (p_idx = 0; p_idx < dm->numPolyData; ++p_idx, ++mp) {
+		for (i = 0; i < mp->totloop; ++i, ++ml) {
+			const int v_idx = v_index ? v_index[ml->v] : ml->v;
+			const int f_idx = f_index ? f_index[p_idx] : p_idx;
+			const float *no = lnors ? *lnors++ : NULL;
+			if (!ELEM(ORIGINDEX_NONE, v_idx, f_idx)) {
+				func(userData, v_idx, f_idx, mv[ml->v].co, no);
+			}
+		}
+	}
+}
+
 static void cdDM_foreachMappedFaceCenter(
         DerivedMesh *dm,
         void (*func)(void *userData, int index, const float cent[3], const float no[3]),
@@ -1831,6 +1860,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
 	dm->foreachMappedVert = cdDM_foreachMappedVert;
 	dm->foreachMappedEdge = cdDM_foreachMappedEdge;
+	dm->foreachMappedLoop = cdDM_foreachMappedLoop;
 	dm->foreachMappedFaceCenter = cdDM_foreachMappedFaceCenter;
 
 	dm->release = cdDM_release;
