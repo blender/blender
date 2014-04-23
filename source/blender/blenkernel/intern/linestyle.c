@@ -92,6 +92,7 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
 	linestyle->integration_type = LS_INTEGRATION_MEAN;
 	linestyle->texstep = 1.0f;
+	linestyle->pr_texture = TEX_PR_TEXTURE;
 
 	BLI_listbase_clear(&linestyle->color_modifiers);
 	BLI_listbase_clear(&linestyle->alpha_modifiers);
@@ -195,6 +196,7 @@ FreestyleLineStyle *BKE_copy_linestyle(FreestyleLineStyle *linestyle)
 	new_linestyle->gap3 = linestyle->gap3;
 	new_linestyle->panel = linestyle->panel;
 	new_linestyle->texstep = linestyle->texstep;
+	new_linestyle->pr_texture = linestyle->pr_texture;
 	for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next)
 		BKE_copy_linestyle_color_modifier(new_linestyle, m);
 	for (m = (LineStyleModifier *)linestyle->alpha_modifiers.first; m; m = m->next)
