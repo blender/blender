@@ -794,9 +794,14 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		case ID_LS:
 		{
 			FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
+			int a;
 			
 			if (outliner_animdata_test(linestyle->adt))
 				outliner_add_element(soops, &te->subtree, linestyle, te, TSE_ANIM_DATA, 0);
+
+			for (a = 0; a < MAX_MTEX; a++) {
+				if (linestyle->mtex[a]) outliner_add_element(soops, &te->subtree, linestyle->mtex[a]->tex, te, 0, a);
+			}
 			break;
 		}
 	}
