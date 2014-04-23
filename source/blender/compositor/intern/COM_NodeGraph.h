@@ -105,6 +105,8 @@ protected:
 	void add_proxies_group_outputs(bNode *b_node, bNode *b_node_io, bool use_buffer);
 	void add_proxies_group(const CompositorContext &context, bNode *b_node, bNodeInstanceKey key);
 
+	void add_proxies_reroute(bNodeTree *b_ntree, bNode *b_node, bNodeInstanceKey key, bool is_active_group);
+	
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeGraph")
 #endif

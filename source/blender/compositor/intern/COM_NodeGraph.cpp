@@ -134,12 +134,16 @@ void NodeGraph::add_bNode(const CompositorContext &context, bNodeTree *b_ntree, 
 	/* special node types */
 	if (b_node->type == NODE_GROUP) {
 		add_proxies_group(context, b_node, key);
-		return;
 	}
-	
-	Node *node = Converter::convert(b_node);
-	if (node)
-		add_node(node, b_ntree, key, is_active_group);
+	else if (b_node->type == NODE_REROUTE) {
+		add_proxies_reroute(b_ntree, b_node, key, is_active_group);
+	}
+	else {
+		/* regular nodes, handled in Converter */
+		Node *node = Converter::convert(b_node);
+		if (node)
+			add_node(node, b_ntree, key, is_active_group);
+	}
 }
 
 NodeInput *NodeGraph::find_input(const NodeRange &node_range, bNodeSocket *b_socket)
@@ -277,4 +281,10 @@ void NodeGraph::add_proxies_group(const CompositorContext &context, bNode *b_nod
 	}
 	
 	add_bNodeTree(context, nodes_start, b_group_tree, key);
+}
+
+void NodeGraph::add_proxies_reroute(bNodeTree *b_ntree, bNode *b_node, bNodeInstanceKey key, bool is_active_group)
+{
+	SocketProxyNode *proxy = new SocketProxyNode(b_node, (bNodeSocket *)b_node->inputs.first, (bNodeSocket *)b_node->outputs.first);
+	add_node(proxy, b_ntree, key, is_active_group);
 }
