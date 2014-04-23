@@ -48,14 +48,20 @@
 #include "CTR_Map.h"
 #include "CTR_HashedPtr.h"
 
+#include "MT_MinMax.h"
+
 #include "KX_PhysicsEngineEnums.h"
 
 #include "KX_MotionState.h" // bridge between motionstate and scenegraph node
 
 extern "C"{
 	#include "BLI_utildefines.h"
+	#include "BLI_math.h"
 	#include "BKE_DerivedMesh.h"
+	#include "BKE_object.h"
 }
+
+#include "DNA_object_force.h"
 
 #ifdef WITH_BULLET
 #include "BulletSoftBody/btSoftBody.h"
@@ -80,7 +86,177 @@ extern "C"{
 #endif //_MSC_VER 
 #endif //WIN32
 
+// my_tex_space_mesh and my_get_local_bounds were moved from BL_BlenderDataConversion.cpp (my_boundbox_mesh is just copied)
+// there has to be a better way to do this...
+static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
+{
+	MVert *mvert;
+	BoundBox *bb;
+	float min[3], max[3];
+	float mloc[3], msize[3];
+	float radius_sq=0.0f, vert_radius_sq, *co;
+	int a;
 
+	if (me->bb==0) {
+		me->bb = BKE_boundbox_alloc_unit();
+	}
+	bb= me->bb;
+
+	INIT_MINMAX(min, max);
+
+	if (!loc) loc= mloc;
+	if (!size) size= msize;
+
+	mvert= me->mvert;
+	for (a = 0; a<me->totvert; a++, mvert++) {
+		co = mvert->co;
+
+		/* bounds */
+		minmax_v3v3_v3(min, max, co);
+
+		/* radius */
+
+		vert_radius_sq = len_squared_v3(co);
+		if (vert_radius_sq > radius_sq)
+			radius_sq = vert_radius_sq;
+	}
+
+	if (me->totvert) {
+		loc[0] = (min[0] + max[0]) / 2.0f;
+		loc[1] = (min[1] + max[1]) / 2.0f;
+		loc[2] = (min[2] + max[2]) / 2.0f;
+
+		size[0] = (max[0] - min[0]) / 2.0f;
+		size[1] = (max[1] - min[1]) / 2.0f;
+		size[2] = (max[2] - min[2]) / 2.0f;
+	}
+	else {
+		loc[0] = loc[1] = loc[2] = 0.0f;
+		size[0] = size[1] = size[2] = 0.0f;
+	}
+
+	bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = loc[0]-size[0];
+	bb->vec[4][0] = bb->vec[5][0] = bb->vec[6][0] = bb->vec[7][0] = loc[0]+size[0];
+
+	bb->vec[0][1] = bb->vec[1][1] = bb->vec[4][1] = bb->vec[5][1] = loc[1]-size[1];
+	bb->vec[2][1] = bb->vec[3][1] = bb->vec[6][1] = bb->vec[7][1] = loc[1]+size[1];
+
+	bb->vec[0][2] = bb->vec[3][2] = bb->vec[4][2] = bb->vec[7][2] = loc[2]-size[2];
+	bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = loc[2]+size[2];
+
+	return sqrtf_signed(radius_sq);
+}
+
+static void my_tex_space_mesh(Mesh *me)
+{
+	KeyBlock *kb;
+	float *fp, loc[3], size[3], min[3], max[3];
+	int a;
+
+	my_boundbox_mesh(me, loc, size);
+
+	if (me->texflag & ME_AUTOSPACE) {
+		if (me->key) {
+			kb= me->key->refkey;
+			if (kb) {
+
+				INIT_MINMAX(min, max);
+
+				fp= (float *)kb->data;
+				for (a=0; a<kb->totelem; a++, fp += 3) {
+					minmax_v3v3_v3(min, max, fp);
+				}
+				if (kb->totelem) {
+					loc[0] = (min[0]+max[0])/2.0f; loc[1] = (min[1]+max[1])/2.0f; loc[2] = (min[2]+max[2])/2.0f;
+					size[0] = (max[0]-min[0])/2.0f; size[1] = (max[1]-min[1])/2.0f; size[2] = (max[2]-min[2])/2.0f;
+				}
+				else {
+					loc[0] = loc[1] = loc[2] = 0.0;
+					size[0] = size[1] = size[2] = 0.0;
+				}
+
+			}
+		}
+
+		copy_v3_v3(me->loc, loc);
+		copy_v3_v3(me->size, size);
+		me->rot[0] = me->rot[1] = me->rot[2] = 0.0f;
+
+		if (me->size[0] == 0.0f) me->size[0] = 1.0f;
+		else if (me->size[0] > 0.0f && me->size[0]< 0.00001f) me->size[0] = 0.00001f;
+		else if (me->size[0] < 0.0f && me->size[0]> -0.00001f) me->size[0] = -0.00001f;
+
+		if (me->size[1] == 0.0f) me->size[1] = 1.0f;
+		else if (me->size[1] > 0.0f && me->size[1]< 0.00001f) me->size[1] = 0.00001f;
+		else if (me->size[1] < 0.0f && me->size[1]> -0.00001f) me->size[1] = -0.00001f;
+
+		if (me->size[2] == 0.0f) me->size[2] = 1.0f;
+		else if (me->size[2] > 0.0f && me->size[2]< 0.00001f) me->size[2] = 0.00001f;
+		else if (me->size[2] < 0.0f && me->size[2]> -0.00001f) me->size[2] = -0.00001f;
+	}
+
+}
+
+static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, float *size)
+{
+	BoundBox *bb= NULL;
+	/* uses boundbox, function used by Ketsji */
+	switch (ob->type)
+	{
+		case OB_MESH:
+			if (dm)
+			{
+				float min_r[3], max_r[3];
+				INIT_MINMAX(min_r, max_r);
+				dm->getMinMax(dm, min_r, max_r);
+				size[0] = 0.5f * fabsf(max_r[0] - min_r[0]);
+				size[1] = 0.5f * fabsf(max_r[1] - min_r[1]);
+				size[2] = 0.5f * fabsf(max_r[2] - min_r[2]);
+
+				center[0] = 0.5f * (max_r[0] + min_r[0]);
+				center[1] = 0.5f * (max_r[1] + min_r[1]);
+				center[2] = 0.5f * (max_r[2] + min_r[2]);
+				return;
+			} else
+			{
+				bb= ( (Mesh *)ob->data )->bb;
+				if (bb==0)
+				{
+					my_tex_space_mesh((struct Mesh *)ob->data);
+					bb= ( (Mesh *)ob->data )->bb;
+				}
+			}
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+			center[0] = center[1] = center[2] = 0.0;
+			size[0]  = size[1]=size[2]=0.0;
+			break;
+		case OB_FONT:
+			center[0] = center[1] = center[2] = 0.0;
+			size[0]  = size[1]=size[2]=1.0;
+			break;
+		case OB_MBALL:
+			bb= ob->bb;
+			break;
+	}
+
+	if (bb==NULL)
+	{
+		center[0] = center[1] = center[2] = 0.0;
+		size[0] = size[1] = size[2] = 1.0;
+	}
+	else
+	{
+		size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+		size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+		size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+
+		center[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
+		center[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
+		center[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
+	}
+}
 
 // forward declarations
 
@@ -90,60 +266,110 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	KX_Scene* kxscene,
 	struct	PHY_ShapeProps* shapeprops,
 	struct	PHY_MaterialProps*	smmaterial,
-	struct	KX_ObjectProperties*	objprop)
+	int activeLayerBitInfo,
+	bool isCompoundChild,
+	bool hasCompoundChildren)
 {
-
+	Object* blenderobject = gameobj->GetBlenderObject();
 	CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
 	assert(env);
 	
 
-	bool isbulletdyna = false;
-	bool isbulletsensor = false;
-	bool isbulletchar = false;
+	bool isbulletdyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;;
+	bool isbulletsensor = (blenderobject->gameflag & OB_SENSOR) != 0;
+	bool isbulletchar = (blenderobject->gameflag & OB_CHARACTER) != 0;
+	bool isbulletsoftbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
+	bool isbulletrigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
 	bool useGimpact = false;
 	CcdConstructionInfo ci;
 	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
 	class CcdShapeConstructionInfo *shapeInfo = new CcdShapeConstructionInfo();
 
-	
-	if (!objprop->m_dyna)
+	KX_GameObject *parent = gameobj->GetParent();
+	if (parent)
+	{
+		isbulletdyna = false;
+		isbulletsoftbody = false;
+		shapeprops->m_mass = 0.f;
+	}
+
+	if (!isbulletdyna)
 	{
 		ci.m_collisionFlags |= btCollisionObject::CF_STATIC_OBJECT;
 	}
-	if (objprop->m_ghost)
+	if ((blenderobject->gameflag & (OB_GHOST | OB_SENSOR | OB_CHARACTER)) != 0)
 	{
 		ci.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE;
 	}
 
 	ci.m_MotionState = motionstate;
 	ci.m_gravity = btVector3(0,0,0);
-	ci.m_linearFactor = btVector3(objprop->m_lockXaxis? 0 : 1,
-									objprop->m_lockYaxis? 0 : 1,
-									objprop->m_lockZaxis? 0 : 1);
-	ci.m_angularFactor = btVector3(objprop->m_lockXRotaxis? 0 : 1,
-									objprop->m_lockYRotaxis? 0 : 1,
-									objprop->m_lockZRotaxis? 0 : 1);
+	ci.m_linearFactor = btVector3(((blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_X_AXIS) !=0)? 0 : 1,
+									((blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Y_AXIS) !=0)? 0 : 1,
+									((blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_AXIS) !=0)? 0 : 1);
+	ci.m_angularFactor = btVector3(((blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_X_ROT_AXIS) !=0)? 0 : 1,
+									((blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Y_ROT_AXIS) !=0)? 0 : 1,
+									((blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_ROT_AXIS) !=0)? 0 : 1);
 	ci.m_localInertiaTensor =btVector3(0,0,0);
-	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
+	ci.m_mass = isbulletdyna ? shapeprops->m_mass : 0.f;
 	ci.m_clamp_vel_min = shapeprops->m_clamp_vel_min;
 	ci.m_clamp_vel_max = shapeprops->m_clamp_vel_max;
-	ci.m_margin = objprop->m_margin;
-	ci.m_stepHeight = objprop->m_character ? shapeprops->m_step_height : 0.f;
-	ci.m_jumpSpeed = objprop->m_character ? shapeprops->m_jump_speed : 0.f;
-	ci.m_fallSpeed = objprop->m_character ? shapeprops->m_fall_speed : 0.f;
-	shapeInfo->m_radius = objprop->m_radius;
-	isbulletdyna = objprop->m_dyna;
-	isbulletsensor = objprop->m_sensor;
-	isbulletchar = objprop->m_character;
-	useGimpact = ((isbulletdyna || isbulletsensor) && !objprop->m_softbody);
+	ci.m_stepHeight = isbulletchar ? shapeprops->m_step_height : 0.f;
+	ci.m_jumpSpeed = isbulletchar ? shapeprops->m_jump_speed : 0.f;
+	ci.m_fallSpeed = isbulletchar ? shapeprops->m_fall_speed : 0.f;
+
+	//mmm, for now, take this for the size of the dynamicobject
+	// Blender uses inertia for radius of dynamic object
+	shapeInfo->m_radius = ci.m_radius = blenderobject->inertia;
+	useGimpact = ((isbulletdyna || isbulletsensor) && !isbulletsoftbody);
+
+	if (isbulletsoftbody)
+	{
+		if (blenderobject->bsoft)
+		{
+			ci.m_margin = blenderobject->bsoft->margin;
+		}
+		else
+		{
+			ci.m_margin = 0.f;
+		}
+	}
+	else
+	{
+		ci.m_margin = blenderobject->margin;
+	}
 
 	ci.m_localInertiaTensor = btVector3(ci.m_mass/3.f,ci.m_mass/3.f,ci.m_mass/3.f);
 	
 	btCollisionShape* bm = 0;
 
-	switch (objprop->m_boundclass)
+	char bounds;
+	if (blenderobject->gameflag & OB_BOUNDS)
 	{
-	case KX_BOUNDSPHERE:
+		bounds = blenderobject->collision_boundtype;
+	}
+	else
+	{
+		if (blenderobject->gameflag & OB_SOFT_BODY)
+			bounds = OB_BOUND_TRIANGLE_MESH;
+		else if (blenderobject->gameflag & OB_CHARACTER)
+			bounds = OB_BOUND_SPHERE;
+		else if (isbulletdyna)
+			bounds = OB_BOUND_SPHERE;
+		else
+			bounds = OB_BOUND_TRIANGLE_MESH;
+	}
+
+	// Can't use triangle mesh or convex hull on a non-mesh object, fall-back to sphere
+	if (ELEM(bounds, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL) && blenderobject->type != OB_MESH)
+		bounds = OB_BOUND_SPHERE;
+
+	float bounds_center[3], bounds_extends[3];
+	my_get_local_bounds(blenderobject, dm, bounds_center, bounds_extends);
+
+	switch (bounds)
+	{
+	case OB_BOUND_SPHERE:
 		{
 			//float radius = objprop->m_radius;
 			//btVector3 inertiaHalfExtents (
@@ -155,15 +381,17 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 			//bm = new MultiSphereShape(inertiaHalfExtents,,&trans.getOrigin(),&radius,1);
 			shapeInfo->m_shapeType = PHY_SHAPE_SPHERE;
+			// XXX We calculated the radius but didn't use it?
+			// objprop.m_boundobject.c.m_radius = MT_max(bb.m_extends[0], MT_max(bb.m_extends[1], bb.m_extends[2]));
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		};
-	case KX_BOUNDBOX:
+	case OB_BOUND_BOX:
 		{
 			shapeInfo->m_halfExtend.setValue(
-				objprop->m_boundobject.box.m_extends[0],
-				objprop->m_boundobject.box.m_extends[1],
-				objprop->m_boundobject.box.m_extends[2]);
+					2.f * bounds_extends[0],
+			        2.f * bounds_extends[1],
+			        2.f * bounds_extends[2]);
 
 			shapeInfo->m_halfExtend /= 2.0;
 			shapeInfo->m_halfExtend = shapeInfo->m_halfExtend.absolute();
@@ -171,41 +399,44 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		};
-	case KX_BOUNDCYLINDER:
+	case OB_BOUND_CYLINDER:
 		{
+			float radius = MT_max(bounds_extends[0], bounds_extends[1]);
 			shapeInfo->m_halfExtend.setValue(
-				objprop->m_boundobject.c.m_radius,
-				objprop->m_boundobject.c.m_radius,
-				objprop->m_boundobject.c.m_height * 0.5f
+				radius,
+				radius,
+				bounds_extends[2]
 			);
 			shapeInfo->m_shapeType = PHY_SHAPE_CYLINDER;
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}
 
-	case KX_BOUNDCONE:
+	case OB_BOUND_CONE:
 		{
-			shapeInfo->m_radius = objprop->m_boundobject.c.m_radius;
-			shapeInfo->m_height = objprop->m_boundobject.c.m_height;
+			shapeInfo->m_radius = MT_max(bounds_extends[0], bounds_extends[1]);
+			shapeInfo->m_height = 2.f * bounds_extends[2];
 			shapeInfo->m_shapeType = PHY_SHAPE_CONE;
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}
-	case KX_BOUNDPOLYTOPE:
+	case OB_BOUND_CONVEX_HULL:
 		{
 			shapeInfo->SetMesh(meshobj, dm,true);
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}
-	case KX_BOUNDCAPSULE:
+	case OB_BOUND_CAPSULE:
 		{
-			shapeInfo->m_radius = objprop->m_boundobject.c.m_radius;
-			shapeInfo->m_height = objprop->m_boundobject.c.m_height;
+			shapeInfo->m_radius = MT_max(bounds_extends[0], bounds_extends[1]);
+			shapeInfo->m_height = 2.f * (bounds_extends[2] - shapeInfo->m_radius);
+			if (shapeInfo->m_height < 0.f)
+				shapeInfo->m_height = 0.f;
 			shapeInfo->m_shapeType = PHY_SHAPE_CAPSULE;
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}
-	case KX_BOUNDMESH:
+	case OB_BOUND_TRIANGLE_MESH:
 		{
 			// mesh shapes can be shared, check first if we already have a shape on that mesh
 			class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, dm, false);
@@ -220,20 +451,19 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			}
 
 			// Soft bodies can benefit from welding, don't do it on non-soft bodies
-			if (objprop->m_softbody)
+			if (isbulletsoftbody)
 			{
-				shapeInfo->setVertexWeldingThreshold1(objprop->m_soft_welding); //todo: expose this to the UI
+				// disable welding: it doesn't bring any additional stability and it breaks the relation between soft body collision shape and graphic mesh
+				// shapeInfo->setVertexWeldingThreshold1((blenderobject->bsoft) ? blenderobject->bsoft->welding ? 0.f);
+				shapeInfo->setVertexWeldingThreshold1(0.f); //todo: expose this to the UI
 			}
 
-			bm = shapeInfo->CreateBulletShape(ci.m_margin, useGimpact, !objprop->m_softbody);
+			bm = shapeInfo->CreateBulletShape(ci.m_margin, useGimpact, !isbulletsoftbody);
 			//should we compute inertia for dynamic shape?
 			//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
 
 			break;
 		}
-	case KX_BOUND_DYN_MESH:
-		/* do nothing */
-		break;
 	}
 
 
@@ -249,11 +479,11 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	//bm->setMargin(ci.m_margin);
 
 
-		if (objprop->m_isCompoundChild)
+		if (isCompoundChild)
 		{
 			//find parent, compound shape and add to it
 			//take relative transform into account!
-			CcdPhysicsController* parentCtrl = (CcdPhysicsController*)objprop->m_dynamic_parent->GetPhysicsController();
+			CcdPhysicsController* parentCtrl = (CcdPhysicsController*)parent->GetPhysicsController();
 			assert(parentCtrl);
 			CcdShapeConstructionInfo* parentShapeInfo = parentCtrl->GetShapeInfo();
 			btRigidBody* rigidbody = parentCtrl->GetRigidBody();
@@ -263,7 +493,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 			// compute the local transform from parent, this may include several node in the chain
 			SG_Node* gameNode = gameobj->GetSGNode();
-			SG_Node* parentNode = objprop->m_dynamic_parent->GetSGNode();
+			SG_Node* parentNode = parent->GetSGNode();
 			// relative transform
 			MT_Vector3 parentScale = parentNode->GetWorldScaling();
 			parentScale[0] = MT_Scalar(1.0)/parentScale[0];
@@ -298,7 +528,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			return;
 		}
 
-		if (objprop->m_hasCompoundChildren)
+		if (hasCompoundChildren)
 		{
 			// create a compound shape info
 			CcdShapeConstructionInfo *compoundShapeInfo = new CcdShapeConstructionInfo();
@@ -368,46 +598,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_fh_distance = smmaterial->m_fh_distance;
 	ci.m_fh_normal = smmaterial->m_fh_normal;
 	ci.m_fh_spring = smmaterial->m_fh_spring;
-	ci.m_radius = objprop->m_radius;
-	
-	
-	///////////////////
-	ci.m_gamesoftFlag = objprop->m_gamesoftFlag;
-	ci.m_soft_linStiff = objprop->m_soft_linStiff;
-	ci.m_soft_angStiff = objprop->m_soft_angStiff;		/* angular stiffness 0..1 */
-	ci.m_soft_volume= objprop->m_soft_volume;			/* volume preservation 0..1 */
 
-	ci.m_soft_viterations= objprop->m_soft_viterations;		/* Velocities solver iterations */
-	ci.m_soft_piterations= objprop->m_soft_piterations;		/* Positions solver iterations */
-	ci.m_soft_diterations= objprop->m_soft_diterations;		/* Drift solver iterations */
-	ci.m_soft_citerations= objprop->m_soft_citerations;		/* Cluster solver iterations */
-
-	ci.m_soft_kSRHR_CL= objprop->m_soft_kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
-	ci.m_soft_kSKHR_CL= objprop->m_soft_kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
-	ci.m_soft_kSSHR_CL= objprop->m_soft_kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
-	ci.m_soft_kSR_SPLT_CL= objprop->m_soft_kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
-
-	ci.m_soft_kSK_SPLT_CL= objprop->m_soft_kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
-	ci.m_soft_kSS_SPLT_CL= objprop->m_soft_kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
-	ci.m_soft_kVCF= objprop->m_soft_kVCF;			/* Velocities correction factor (Baumgarte) */
-	ci.m_soft_kDP= objprop->m_soft_kDP;			/* Damping coefficient [0,1] */
-
-	ci.m_soft_kDG= objprop->m_soft_kDG;			/* Drag coefficient [0,+inf] */
-	ci.m_soft_kLF= objprop->m_soft_kLF;			/* Lift coefficient [0,+inf] */
-	ci.m_soft_kPR= objprop->m_soft_kPR;			/* Pressure coefficient [-inf,+inf] */
-	ci.m_soft_kVC= objprop->m_soft_kVC;			/* Volume conversation coefficient [0,+inf] */
-
-	ci.m_soft_kDF= objprop->m_soft_kDF;			/* Dynamic friction coefficient [0,1] */
-	ci.m_soft_kMT= objprop->m_soft_kMT;			/* Pose matching coefficient [0,1] */
-	ci.m_soft_kCHR= objprop->m_soft_kCHR;			/* Rigid contacts hardness [0,1] */
-	ci.m_soft_kKHR= objprop->m_soft_kKHR;			/* Kinetic contacts hardness [0,1] */
-
-	ci.m_soft_kSHR= objprop->m_soft_kSHR;			/* Soft contacts hardness [0,1] */
-	ci.m_soft_kAHR= objprop->m_soft_kAHR;			/* Anchors hardness [0,1] */
-	ci.m_soft_collisionflags= objprop->m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
-	ci.m_soft_numclusteriterations= objprop->m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
-
-	////////////////////
 	ci.m_collisionFilterGroup = 
 		(isbulletsensor) ? short(CcdConstructionInfo::SensorFilter) :
 		(isbulletdyna) ? short(CcdConstructionInfo::DefaultFilter) :
@@ -418,10 +609,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		(isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : 
 		(isbulletchar) ? short(CcdConstructionInfo::AllFilter) :
 		short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
-	ci.m_bRigid = objprop->m_dyna && objprop->m_angular_rigidbody;
-	
-	ci.m_contactProcessingThreshold = objprop->m_contactProcessingThreshold;//todo: expose this in advanced settings, just like margin, default to 10000 or so
-	ci.m_bSoft = objprop->m_softbody;
+	ci.m_bRigid = isbulletdyna && isbulletrigidbody;
+	ci.m_bSoft = isbulletsoftbody;
 	ci.m_bDyna = isbulletdyna;
 	ci.m_bSensor = isbulletsensor;
 	ci.m_bCharacter = isbulletchar;
@@ -440,7 +629,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		gameobj->SetRecordAnimation(true);
 
 	// don't add automatically sensor object, they are added when a collision sensor is registered
-	if (!isbulletsensor && objprop->m_in_active_layer)
+	if (!isbulletsensor && (blenderobject->lay & activeLayerBitInfo) != 0)
 	{
 		env->AddCcdPhysicsController( physicscontroller);
 	}
@@ -450,20 +639,20 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 		if (rbody)
 		{
-			if (objprop->m_angular_rigidbody)
+			if (isbulletrigidbody)
 			{
 				rbody->setLinearFactor(ci.m_linearFactor);
 				rbody->setAngularFactor(ci.m_angularFactor);
 			}
 
-			if (rbody && objprop->m_disableSleeping)
+			if (rbody && (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0)
 			{
 				rbody->setActivationState(DISABLE_DEACTIVATION);
 			}
 		}
 	}
 
-	CcdPhysicsController* parentCtrl = objprop->m_dynamic_parent ? (CcdPhysicsController*)objprop->m_dynamic_parent->GetPhysicsController() : 0;
+	CcdPhysicsController* parentCtrl = parent ? (CcdPhysicsController*)parent->GetPhysicsController() : 0;
 	physicscontroller->SetParentCtrl(parentCtrl);
 
 	
@@ -473,7 +662,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	//	rbody->setCollisionFlags(rbody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 	//}
 	
-	if (objprop->m_dyna && !objprop->m_angular_rigidbody)
+	if (isbulletdyna && !isbulletrigidbody)
 	{
 #if 0
 		//setting the inertia could achieve similar results to constraint the up
@@ -493,13 +682,13 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		;
 	}
 
-	bool isActor = objprop->m_isactor;
+	bool isActor = (blenderobject->gameflag & OB_ACTOR)!=0;
 	gameobj->getClientInfo()->m_type = 
 		(isbulletsensor) ? ((isActor) ? KX_ClientObjectInfo::OBACTORSENSOR : KX_ClientObjectInfo::OBSENSOR) :
 		(isActor) ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC;
 
 	// should we record animation for this object?
-	if (objprop->m_record_animation)
+	if ((blenderobject->gameflag & OB_RECORD_ANIMATION) != 0)
 		gameobj->SetRecordAnimation(true);
 
 	// store materialname in auxinfo, needed for touchsensors
