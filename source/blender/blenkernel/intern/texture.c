@@ -788,6 +788,7 @@ void BKE_texture_make_local(Tex *tex)
 	Lamp *la;
 	Brush *br;
 	ParticleSettings *pa;
+	FreestyleLineStyle *ls;
 	int a;
 	bool is_local = false, is_lib = false;
 
@@ -855,6 +856,16 @@ void BKE_texture_make_local(Tex *tex)
 			}
 		}
 		pa = pa->id.next;
+	}
+	ls = bmain->linestyle.first;
+	while (ls) {
+		for (a = 0; a < MAX_MTEX; a++) {
+			if (ls->mtex[a] && ls->mtex[a]->tex == tex) {
+				if (ls->id.lib) is_lib = true;
+				else is_local = true;
+			}
+		}
+		ls = ls->id.next;
 	}
 	
 	if (is_local && is_lib == false) {
@@ -938,6 +949,19 @@ void BKE_texture_make_local(Tex *tex)
 				}
 			}
 			pa = pa->id.next;
+		}
+		ls = bmain->linestyle.first;
+		while (ls) {
+			for (a = 0; a < MAX_MTEX; a++) {
+				if (ls->mtex[a] && ls->mtex[a]->tex == tex) {
+					if (ls->id.lib == NULL) {
+						ls->mtex[a]->tex = tex_new;
+						tex_new->id.us++;
+						tex->id.us--;
+					}
+				}
+			}
+			ls = ls->id.next;
 		}
 	}
 }
