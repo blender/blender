@@ -612,7 +612,7 @@ static bool ConvertMaterial(
 		material->ras_mode |= ( mat->game.flag & GEMAT_BACKCULL )?0:TWOSIDED;
 
 		// cast shadows?
-		material->ras_mode |= ( mat->mode & MA_SHADBUF )?CAST_SHADOW:0;
+		material->ras_mode |= ( (mat->mode2 & MA_CASTSHADOW) && (mat->mode & MA_SHADBUF) )?CAST_SHADOW:0;
 
 		// only shadows?
 		material->ras_mode |= ( mat->mode & MA_ONLYCAST )?ONLY_SHADOW:0;

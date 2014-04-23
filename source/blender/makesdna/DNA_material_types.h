@@ -117,6 +117,7 @@ typedef struct Material {
 	short shade_flag;		/* like Cubic interpolation */
 		
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
+	int mode2, mode2_l;		/* additional mode flags */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
 	float strand_sta, strand_end, strand_ease, strand_surfnor;
@@ -278,6 +279,13 @@ typedef struct Material {
 #define MA_STR_SURFDIFF 0x80000000
 
 #define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
+#define MA_MODE_PIPELINE	(MA_TRANSP | MA_ZTRANSP | MA_RAYTRANSP \
+				 | MA_TRACEBLE | MA_FULL_OSA | MA_ENV | MA_ZINV \
+				 | MA_ONLYCAST | MA_SHADBUF)
+
+/* mode2 (is int) */
+#define MA_CASTSHADOW		(1 << 0)
+#define MA_MODE2_PIPELINE	(MA_CASTSHADOW)
 
 /* mapflag */
 #define MA_MAPFLAG_UVPROJECT (1 << 0)

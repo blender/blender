@@ -81,7 +81,7 @@ struct ShadeInputCopy {
 	short osatex;
 	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
 	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
-	int mode;						/* base material mode (OR-ed result of entire node tree) */
+	int mode, mode2;			/* base material mode (OR-ed result of entire node tree) */
 };
 
 typedef struct ShadeInputUV {
@@ -113,7 +113,7 @@ typedef struct ShadeInput {
 	short osatex;
 	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
 	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
-	int mode;						/* base material mode (OR-ed result of entire node tree) */
+	int mode, mode2;			/* base material mode (OR-ed result of entire node tree) */
 	
 	/* internal face coordinates */
 	float u, v, dx_u, dx_v, dy_u, dy_v;

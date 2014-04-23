@@ -276,6 +276,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	
 	shi->osatex = (shi->mat->texco & TEXCO_OSA);
 	shi->mode = shi->mat->mode_l;        /* or-ed result for all nodes */
+	shi->mode2 = shi->mat->mode2_l;
 
 	/* facenormal copy, can get flipped */
 	shi->flippednor = 0;

@@ -1907,6 +1907,12 @@ void RNA_def_material(BlenderRNA *brna)
 	                         "Replace the object's base alpha value with alpha from UV map image textures");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
+	prop = RNA_def_property(srna, "use_cast_shadows", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode2", MA_CASTSHADOW);
+	RNA_def_property_ui_text(prop, "Cast Shadows",
+	                         "Allow this material to cast shadows");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
 	prop = RNA_def_property(srna, "use_cast_shadows_only", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ONLYCAST);
 	RNA_def_property_ui_text(prop, "Cast Shadows Only",

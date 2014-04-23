@@ -216,15 +216,18 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, Panel):
         sub.active = mat_type
         sub.prop(mat, "use_sky")
         sub.prop(mat, "invert_z")
+        col.prop(mat, "pass_index")
 
         col = split.column()
         col.active = mat_type
 
+        col.prop(mat, "use_cast_shadows", text="Cast")
         col.prop(mat, "use_cast_shadows_only", text="Cast Only")
-        col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
         col.prop(mat, "use_cast_buffer_shadows")
+        sub = col.column()
+        sub.active = mat.use_cast_buffer_shadows
+        sub.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
         col.prop(mat, "use_cast_approximate")
-        col.prop(mat, "pass_index")
 
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel, Panel):
@@ -814,24 +817,30 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):
         col = split.column()
         col.prop(mat, "use_shadows", text="Receive")
         col.prop(mat, "use_transparent_shadows", text="Receive Transparent")
-        if simple_material(base_mat):
-            col.prop(mat, "use_cast_shadows_only", text="Cast Only")
-            col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
         col.prop(mat, "use_only_shadow", text="Shadows Only")
         sub = col.column()
         sub.active = mat.use_only_shadow
         sub.prop(mat, "shadow_only_type", text="")
 
-        col = split.column()
-        if simple_material(base_mat):
-            col.prop(mat, "use_cast_buffer_shadows")
-        sub = col.column()
-        sub.active = mat.use_cast_buffer_shadows
-        sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
+        if not simple_material(base_mat):
+            col = split.column()
+
         col.prop(mat, "use_ray_shadow_bias", text="Auto Ray Bias")
         sub = col.column()
         sub.active = (not mat.use_ray_shadow_bias)
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
+
+        if simple_material(base_mat):
+            col = split.column()
+
+            col.prop(mat, "use_cast_shadows", text="Cast")
+            col.prop(mat, "use_cast_shadows_only", text="Cast Only")
+            col.prop(mat, "use_cast_buffer_shadows")
+        sub = col.column()
+        sub.active = mat.use_cast_buffer_shadows
+        if simple_material(base_mat):
+            sub.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
+        sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
         if simple_material(base_mat):
             col.prop(mat, "use_cast_approximate")
 

@@ -179,4 +179,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			linestyle->integration_type = LS_INTEGRATION_MEAN;
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "Material", "int", "mode2")) { /* will be replaced with version check when other new flag is added to mode2 */
+		Material *ma;
+
+		for (ma = main->mat.first; ma; ma = ma->id.next)
+			ma->mode2 = MA_CASTSHADOW;
+	}
 }
