@@ -47,8 +47,7 @@ void	KX_ConvertBulletObject(class	KX_GameObject* gameobj,
 	int activeLayerBitInfo,
 	bool isCompoundChild,
 	bool hasCompoundChildren);
-	
-void	KX_ClearBulletSharedShapes();
+
 bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj);
 
 #endif

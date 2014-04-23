@@ -190,9 +190,6 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	}
 	m_meshobjects.clear();
 
-#ifdef WITH_BULLET
-	KX_ClearBulletSharedShapes();
-#endif
 
 	/* free any data that was dynamically loaded */
 	while (m_DynamicMaggie.size() != 0)

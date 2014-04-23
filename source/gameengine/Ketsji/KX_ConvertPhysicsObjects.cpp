@@ -567,11 +567,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 }
 
-
-void	KX_ClearBulletSharedShapes()
-{
-}
-
 /* Refresh the physics object from either an object or a mesh.
  * gameobj must be valid
  * from_gameobj and from_meshobj can be NULL
