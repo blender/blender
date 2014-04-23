@@ -19,6 +19,7 @@
 // IN THE SOFTWARE.
 
 #include "libmv/base/aligned_malloc.h"
+#include "libmv/logging/logging.h"
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
 // Needed for memalign on Linux and _aligned_alloc on Windows.

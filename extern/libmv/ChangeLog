@@ -1,3 +1,11 @@
+commit 0b7d83dc9627447dc7df64d7e3a468aefe9ddc13
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Apr 23 19:14:55 2014 +0600
+
+    Fix compilation on OSX after previous commit
+    
+    EXPECT_EQ wasn't defined in the scope.
+
 commit d14049e00dabf8fdf49056779f0a3718fbb39e8f
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed Apr 23 15:08:16 2014 +0600
@@ -669,23 +677,3 @@ Date:   Wed Sep 25 16:01:19 2013 +0600
     that point".
     
     Original patch by Keir Mierle made to Blender repository.
-
-commit 0d98e9bbde5d57f6cd9515ce8ff2786d322f29ea
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Jun 18 19:24:07 2013 +0600
-
-    Compilation error when using clang
-    
-    Where couple of issues:
-    
-    - Overloaded assignment operator usage ambiguity
-      around some of the Eigen matrix assignment.
-    
-    - Using -O4 flag here on linux ended up in lots
-      of cryptic linker issues, even when using recently
-      release clang 3.3.
-    
-      Disabled forcing optimization flag for now.
-      We could end up with something smarter in the
-      future, but for now i'm not as much fan of
-      forcing compiler's flag.
