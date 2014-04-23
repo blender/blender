@@ -188,6 +188,8 @@ class PHY_IPhysicsEnvironment
 		
 		virtual void	ExportFile(const char* filename) {};
 
+		virtual void MergeEnvironment(PHY_IPhysicsEnvironment *other_env) = 0;
+
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_IPhysicsEnvironment")

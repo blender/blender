@@ -103,6 +103,11 @@ public:
 			return 0.f;
 		}
 
+	virtual void MergeEnvironment(PHY_IPhysicsEnvironment *other_env)
+	{
+		// Dummy, nothing to do here
+	}
+
 		
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:DummyPhysicsEnvironment")

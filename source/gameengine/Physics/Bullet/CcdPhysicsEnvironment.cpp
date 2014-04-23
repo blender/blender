@@ -1871,8 +1871,12 @@ btDispatcher*	CcdPhysicsEnvironment::GetDispatcher()
 	return m_dynamicsWorld->getDispatcher();
 }
 
-void CcdPhysicsEnvironment::MergeEnvironment(CcdPhysicsEnvironment *other)
+void CcdPhysicsEnvironment::MergeEnvironment(PHY_IPhysicsEnvironment *other_env)
 {
+	CcdPhysicsEnvironment *other = dynamic_cast<CcdPhysicsEnvironment*>(other_env);
+	printf("KX_Scene::MergeScene: Other scene is not using Bullet physics, not merging physics.\n");
+	return;
+
 	std::set<CcdPhysicsController*>::iterator it;
 
 	while (other->m_controllers.begin() != other->m_controllers.end())

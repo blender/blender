@@ -258,7 +258,7 @@ protected:
 	
 		class btConstraintSolver*	GetConstraintSolver();
 
-		void MergeEnvironment(CcdPhysicsEnvironment *other);
+		void MergeEnvironment(PHY_IPhysicsEnvironment *other_env);
 
 	protected:
 		

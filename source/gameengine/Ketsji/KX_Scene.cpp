@@ -84,6 +84,7 @@
 #include "NG_NetworkScene.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IGraphicController.h"
+#include "PHY_IPhysicsController.h"
 #include "KX_BlenderSceneConverter.h"
 #include "KX_MotionState.h"
 
@@ -95,8 +96,6 @@
 #ifdef WITH_BULLET
 #include "KX_SoftBodyDeformer.h"
 #include "KX_ConvertPhysicsObject.h"
-#include "CcdPhysicsEnvironment.h"
-#include "CcdPhysicsController.h"
 #endif
 
 #include "KX_Light.h"
@@ -565,7 +564,6 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 		newobj->SetGraphicController(newctrl);
 	}
 
-#ifdef WITH_BULLET
 	// replicate physics controller
 	if (orgobj->GetPhysicsController())
 	{
@@ -582,7 +580,6 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 		if (parent)
 			parent->Release();
 	}
-#endif
 
 	return newobj;
 }
@@ -1882,12 +1879,10 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	brick->Replace_NetworkScene(to->GetNetworkScene());
 
 	/* near sensors have physics controllers */
-#ifdef WITH_BULLET
 	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
 	if (touch_sensor) {
 		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
-#endif
 
 	// If we end up replacing a KX_TouchEventManager, we need to make sure
 	// physics controllers are properly in place. In other words, do this
@@ -1915,10 +1910,6 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	}
 #endif
 }
-
-#ifdef WITH_BULLET
-#include "CcdGraphicController.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
-#endif
 
 static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene *from)
 {
@@ -1972,12 +1963,10 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 		ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
 
-#ifdef WITH_BULLET
 	ctrl = gameobj->GetPhysicsController();
 	if (ctrl) {
 		ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
-#endif
 
 	/* SG_Node can hold a scene reference */
 	SG_Node *sg= gameobj->GetSGNode();
@@ -2008,9 +1997,8 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 
 bool KX_Scene::MergeScene(KX_Scene *other)
 {
-#ifdef WITH_BULLET
-	CcdPhysicsEnvironment *env=			dynamic_cast<CcdPhysicsEnvironment *>(this->GetPhysicsEnvironment());
-	CcdPhysicsEnvironment *env_other=	dynamic_cast<CcdPhysicsEnvironment *>(other->GetPhysicsEnvironment());
+	PHY_IPhysicsEnvironment *env = this->GetPhysicsEnvironment();
+	PHY_IPhysicsEnvironment *env_other = other->GetPhysicsEnvironment();
 
 	if ((env==NULL) != (env_other==NULL)) /* TODO - even when both scenes have NONE physics, the other is loaded with bullet enabled, ??? */
 	{
@@ -2018,7 +2006,6 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		printf("\tsource %d, terget %d\n", (int)(env!=NULL), (int)(env_other!=NULL));
 		return false;
 	}
-#endif // WITH_BULLET
 
 	if (GetSceneConverter() != other->GetSceneConverter()) {
 		printf("KX_Scene::MergeScene: converters differ, aborting\n");
@@ -2060,10 +2047,8 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	GetLightList()->MergeList(other->GetLightList());
 	other->GetLightList()->ReleaseAndRemoveAll();
 
-#ifdef WITH_BULLET
-	if (env) /* bullet scene? - dummy scenes don't need touching */
+	if (env)
 		env->MergeEnvironment(env_other);
-#endif
 
 	/* move materials across, assume they both use the same scene-converters
 	 * Do this after lights are merged so materials can use the lights in shaders
