@@ -2444,9 +2444,9 @@ static void draw_dm_loop_normals__mapFunc(void *userData, int vertex_index, int 
 
 		if (!(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) || BM_elem_flag_test(efa, BM_ELEM_HIDDEN))) {
 			if (!data->uniform_scale) {
-				mul_v3_m3v3(vec, data->tmat, no);
+				mul_v3_m3v3(vec, (float(*)[3])data->tmat, no);
 				normalize_v3(vec);
-				mul_m3_v3(data->imat, vec);
+				mul_m3_v3((float(*)[3])data->imat, vec);
 			}
 			else {
 				copy_v3_v3(vec, no);
