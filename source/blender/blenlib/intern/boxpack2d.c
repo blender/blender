@@ -38,6 +38,9 @@
 #  pragma GCC diagnostic error "-Wpadded"
 #endif
 
+/* de-duplicate as we pack */
+#define USE_MERGE
+
 /* BoxPacker for backing 2D rectangles into a square
  * 
  * The defined Below are for internal use only */
@@ -387,8 +390,27 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						 * height of both boxes */
 						if (vert->tlb && vert->trb && (box == vert->tlb || box == vert->trb)) {
 							if (UNLIKELY(fabsf(vert->tlb->h - vert->trb->h) < EPSILON_MERGE)) {
+#ifdef USE_MERGE
+#  define A (vert->trb->v[TL])
+#  define B (vert->tlb->v[TR])
+#  define MASK (BLF | BRF)
+								BLI_assert(A->used != B->used);
+								if (A->used == false) {
+									A->free &= B->free & ~MASK;
+									B = A;
+								}
+								else {
+									B->free &= A->free & ~MASK;
+									A = B;
+								}
+								BLI_assert((A->free & MASK) == 0);
+#  undef A
+#  undef B
+#  undef MASK
+#else
 								vert->tlb->v[TR]->free &= ~BLF;
 								vert->trb->v[TL]->free &= ~BRF;
+#endif
 							}
 							if (vert->tlb->h > vert->trb->h) {
 								vert->trb->v[TL]->free &= ~(TLF | BLF);
@@ -399,8 +421,27 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						}
 						else if (vert->blb && vert->brb && (box == vert->blb || box == vert->brb)) {
 							if (UNLIKELY(fabsf(vert->blb->h - vert->brb->h) < EPSILON_MERGE)) {
+#ifdef USE_MERGE
+#  define A (vert->blb->v[BR])
+#  define B (vert->brb->v[BL])
+#  define MASK (TRF | TLF)
+								BLI_assert(A->used != B->used);
+								if (A->used == false) {
+									A->free &= B->free & ~MASK;
+									B = A;
+								}
+								else {
+									B->free &= A->free & ~MASK;
+									A = B;
+								}
+								BLI_assert((A->free & MASK) == 0);
+#  undef A
+#  undef B
+#  undef MASK
+#else
 								vert->blb->v[BR]->free &= ~TRF;
 								vert->brb->v[BL]->free &= ~TLF;
+#endif
 							}
 							else if (vert->blb->h > vert->brb->h) {
 								vert->brb->v[BL]->free &= ~(TLF | BLF);
@@ -412,8 +453,27 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						/* Horizontal */
 						if (vert->tlb && vert->blb && (box == vert->tlb || box == vert->blb)) {
 							if (UNLIKELY(fabsf(vert->tlb->w - vert->blb->w) < EPSILON_MERGE)) {
+#ifdef USE_MERGE
+#  define A (vert->blb->v[TL])
+#  define B (vert->tlb->v[BL])
+#  define MASK (TRF | BRF)
+								BLI_assert(A->used != B->used);
+								if (A->used == false) {
+									A->free &= B->free & ~MASK;
+									B = A;
+								}
+								else {
+									B->free &= A->free & ~MASK;
+									A = B;
+								}
+								BLI_assert((A->free & MASK) == 0);
+#  undef A
+#  undef B
+#  undef MASK
+#else
 								vert->blb->v[TL]->free &= ~TRF;
 								vert->tlb->v[BL]->free &= ~BRF;
+#endif
 							}
 							else if (vert->tlb->w > vert->blb->w) {
 								vert->blb->v[TL]->free &= ~(TLF | TRF);
@@ -424,8 +484,28 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						}
 						else if (vert->trb && vert->brb && (box == vert->trb || box == vert->brb)) {
 							if (UNLIKELY(fabsf(vert->trb->w - vert->brb->w) < EPSILON_MERGE)) {
+
+#ifdef USE_MERGE
+#  define A (vert->brb->v[TR])
+#  define B (vert->trb->v[BR])
+#  define MASK (TLF | BLF)
+								BLI_assert(A->used != B->used);
+								if (A->used == false) {
+									A->free &= B->free & ~MASK;
+									B = A;
+								}
+								else {
+									B->free &= A->free & ~MASK;
+									A = B;
+								}
+								BLI_assert((A->free & MASK) == 0);
+#  undef A
+#  undef B
+#  undef MASK
+#else
 								vert->brb->v[TR]->free &= ~TLF;
 								vert->trb->v[BR]->free &= ~BLF;
+#endif
 							}
 							else if (vert->trb->w > vert->brb->w) {
 								vert->brb->v[TR]->free &= ~(TLF | TRF);
