@@ -80,6 +80,7 @@
 #include "SCA_TimeEventManager.h"
 #include "KX_Light.h"
 #include "KX_Camera.h"
+#include "KX_ClientObjectInfo.h"
 #include "KX_EmptyObject.h"
 #include "KX_FontObject.h"
 #include "MT_Point3.h"
@@ -1359,7 +1360,6 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
                                       RAS_MeshObject* meshobj,
                                       KX_Scene* kxscene,
                                       int activeLayerBitInfo,
-                                      e_PhysicsEngine	physics_engine,
                                       KX_BlenderSceneConverter *converter,
                                       bool processCompoundChildren
                                       )
@@ -1413,19 +1413,31 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	DerivedMesh* dm = NULL;
 	if (gameobj->GetDeformer())
 		dm = gameobj->GetDeformer()->GetPhysicsMesh();
-	
-	switch (physics_engine)
-	{
-#ifdef WITH_BULLET
-		case UseBullet:
-			KX_ConvertBulletObject(gameobj, meshobj, dm, kxscene, shapeprops, smmaterial, activeLayerBitInfo, isCompoundChild, hasCompoundChildren);
-			break;
 
-#endif
-		case UseNone:
-		default:
-			break;
+	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
+
+	kxscene->GetPhysicsEnvironment()->ConvertObject(gameobj, meshobj, dm, kxscene, shapeprops, smmaterial, motionstate, activeLayerBitInfo, isCompoundChild, hasCompoundChildren);
+
+	bool isActor = (blenderobject->gameflag & OB_ACTOR)!=0;
+	bool isSensor = (blenderobject->gameflag & OB_SENSOR) != 0;
+	gameobj->getClientInfo()->m_type =
+		(isSensor) ? ((isActor) ? KX_ClientObjectInfo::OBACTORSENSOR : KX_ClientObjectInfo::OBSENSOR) :
+		(isActor) ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC;
+
+	// should we record animation for this object?
+	if ((blenderobject->gameflag & OB_RECORD_ANIMATION) != 0)
+		gameobj->SetRecordAnimation(true);
+
+	// store materialname in auxinfo, needed for touchsensors
+	if (meshobj)
+	{
+		const STR_String& matname=meshobj->GetMaterialName(0);
+		gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
+	} else
+	{
+		gameobj->getClientInfo()->m_auxilary_info = 0;
 	}
+
 	delete shapeprops;
 	delete smmaterial;
 	if (dm) {
@@ -2342,7 +2354,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			meshobj = gameobj->GetMesh(0);
 		}
 		int layerMask = (groupobj.find(blenderobject) == groupobj.end()) ? activeLayerBitInfo : 0;
-		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
+		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,converter,processCompoundChildren);
 	}
 
 	processCompoundChildren = true;
@@ -2358,7 +2370,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			meshobj = gameobj->GetMesh(0);
 		}
 		int layerMask = (groupobj.find(blenderobject) == groupobj.end()) ? activeLayerBitInfo : 0;
-		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
+		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,converter,processCompoundChildren);
 	}
 	
 	//set ini linearVel and int angularVel //rcruiz

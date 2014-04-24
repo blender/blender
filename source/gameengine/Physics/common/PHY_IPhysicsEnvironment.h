@@ -46,6 +46,16 @@ class PHY_ICharacter;
 class RAS_MeshObject;
 class PHY_IPhysicsController;
 
+
+class RAS_MeshObject;
+struct DerivedMesh;
+class KX_GameObject;
+class KX_Scene;
+
+struct PHY_ShapeProps;
+struct PHY_MaterialProps;
+class PHY_IMotionState;
+
 /**
  * pass back information from rayTest
  */
@@ -189,6 +199,17 @@ class PHY_IPhysicsEnvironment
 		virtual void	ExportFile(const char* filename) {};
 
 		virtual void MergeEnvironment(PHY_IPhysicsEnvironment *other_env) = 0;
+
+		virtual void ConvertObject(KX_GameObject* gameobj,
+							RAS_MeshObject* meshobj,
+							DerivedMesh* dm,
+							KX_Scene* kxscene,
+							PHY_ShapeProps* shapeprops,
+							PHY_MaterialProps*	smmaterial,
+							PHY_IMotionState *motionstate,
+							int activeLayerBitInfo,
+							bool isCompoundChild,
+							bool hasCompoundChildren) = 0;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

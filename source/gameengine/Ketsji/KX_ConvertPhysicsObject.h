@@ -32,21 +32,10 @@
 #ifndef __KX_CONVERTPHYSICSOBJECT_H__
 #define __KX_CONVERTPHYSICSOBJECT_H__
 
+class KX_GameObject;
 class RAS_MeshObject;
-class KX_Scene;
-struct DerivedMesh;
 
 #ifdef WITH_BULLET
-
-void	KX_ConvertBulletObject(class	KX_GameObject* gameobj,
-	class	RAS_MeshObject* meshobj,
-	struct  DerivedMesh* dm,
-	class	KX_Scene* kxscene,
-	struct	PHY_ShapeProps* shapeprops,
-	struct	PHY_MaterialProps*	smmaterial,
-	int activeLayerBitInfo,
-	bool isCompoundChild,
-	bool hasCompoundChildren);
 
 bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj);
 
