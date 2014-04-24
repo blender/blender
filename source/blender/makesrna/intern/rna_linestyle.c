@@ -953,7 +953,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Alpha",
+	RNA_def_property_ui_text(prop, "Alpha Transparency",
 	                         "Base alpha transparency, possibly modified by alpha transparency modifiers");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
@@ -1001,7 +1001,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "chaining", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "chaining");
 	RNA_def_property_enum_items(prop, chaining_items);
-	RNA_def_property_ui_text(prop, "Chaining", "Select the way how feature edges are jointed to form chains");
+	RNA_def_property_ui_text(prop, "Chaining Method", "Select the way how feature edges are jointed to form chains");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop = RNA_def_property(srna, "rounds", PROP_INT, PROP_UNSIGNED);
@@ -1154,7 +1154,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "caps", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "caps");
 	RNA_def_property_enum_items(prop, cap_items);
-	RNA_def_property_ui_text(prop, "Cap", "Select the shape of both ends of strokes");
+	RNA_def_property_ui_text(prop, "Caps", "Select the shape of both ends of strokes");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop = RNA_def_property(srna, "dash1", PROP_INT, PROP_UNSIGNED);

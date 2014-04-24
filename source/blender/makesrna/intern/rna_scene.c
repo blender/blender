@@ -2654,9 +2654,9 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem face_mark_condition_items[] = {
-		{0, "ONE", 0, "One Face", "Select feature edges if one of faces on the right and left has a face mark"},
+		{0, "ONE", 0, "One Face", "Select a feature edge if either of its adjacent faces is marked"},
 		{FREESTYLE_LINESET_FM_BOTH, "BOTH", 0, "Both Faces",
-		                            "Select feature edges if both faces on the right and left faces have a face mark"},
+		                            "Select a feature edge if both of its adjacent faces are marked"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
