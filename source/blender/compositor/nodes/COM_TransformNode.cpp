@@ -58,7 +58,7 @@ void TransformNode::convertToOperations(NodeConverter &converter, const Composit
 	converter.mapInputSocket(imageInput, sampler->getInputSocket(0));
 	converter.addLink(sampler->getOutputSocket(), scaleOperation->getInputSocket(0));
 	converter.mapInputSocket(scaleInput, scaleOperation->getInputSocket(1));
-	converter.addLink(sampler->getOutputSocket(), scaleOperation->getInputSocket(2)); // xscale = yscale
+	converter.mapInputSocket(scaleInput, scaleOperation->getInputSocket(2)); // xscale = yscale
 	
 	converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
 	converter.mapInputSocket(angleInput, rotateOperation->getInputSocket(1));
