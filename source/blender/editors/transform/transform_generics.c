@@ -532,6 +532,7 @@ static void recalcData_nla(TransInfo *t)
 		/* handle auto-snapping */
 		switch (snla->autosnap) {
 			case SACTSNAP_FRAME: /* snap to nearest frame */
+			case SACTSNAP_STEP: /* frame step - this is basically the same, since we don't have any remapping going on */
 			{
 				tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
 				tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
@@ -539,6 +540,7 @@ static void recalcData_nla(TransInfo *t)
 			}
 			
 			case SACTSNAP_SECOND: /* snap to nearest second */
+			case SACTSNAP_TSTEP: /* second step - this is basically the same, since we don't have any remapping going on */
 			{
 				/* This case behaves differently from the rest, since lengths of strips
 				 * may not be multiples of a second. If we just naively resize adjust
