@@ -36,7 +36,6 @@
 
 #include "MT_assert.h"
 
-#include "KX_ConvertPhysicsObject.h"
 #include "KX_SoftBodyDeformer.h"
 #include "RAS_MeshObject.h"
 #include "CTR_Map.h"

@@ -95,7 +95,6 @@
 
 #ifdef WITH_BULLET
 #include "KX_SoftBodyDeformer.h"
-#include "KX_ConvertPhysicsObject.h"
 #endif
 
 #include "KX_Light.h"
@@ -1276,11 +1275,10 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 	gameobj->AddMeshUser();
 	}
 
-#ifdef WITH_BULLET
 	if (use_phys) { /* update the new assigned mesh with the physics mesh */
-		KX_ReInstanceBulletShapeFromMesh(gameobj, NULL, use_gfx?NULL:mesh);
+		if (gameobj->GetPhysicsController())
+			gameobj->GetPhysicsController()->ReinstancePhysicsShape(NULL, use_gfx?NULL:mesh);
 	}
-#endif
 }
 
 /* Font Object routines */

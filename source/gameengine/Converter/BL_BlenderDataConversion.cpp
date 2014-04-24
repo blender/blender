@@ -180,7 +180,6 @@ extern Material defmaterial;	/* material.c */
 #include "SG_BBox.h"
 #include "SG_Tree.h"
 
-#include "KX_ConvertPhysicsObject.h"
 #ifdef WITH_BULLET
 #include "CcdPhysicsEnvironment.h"
 #include "CcdGraphicController.h"

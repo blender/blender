@@ -50,7 +50,6 @@
 
 #include "DummyPhysicsEnvironment.h"
 
-#include "KX_ConvertPhysicsObject.h"
 
 #ifdef WITH_BULLET
 #include "CcdPhysicsEnvironment.h"

@@ -41,6 +41,9 @@ class MT_Vector3;
 class MT_Point3;
 class MT_Matrix3x3;
 
+class KX_GameObject;
+class RAS_MeshObject;
+
 /**
  * PHY_IPhysicsController is the abstract simplified Interface to a physical object.
  * It contains the IMotionState and IDeformableMesh Interfaces.
@@ -123,6 +126,8 @@ class PHY_IPhysicsController : public PHY_IController
 
 		virtual bool IsDynamic() = 0;
 		virtual bool IsCompound() = 0;
+
+		virtual bool ReinstancePhysicsShape(KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj) = 0;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

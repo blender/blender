@@ -1625,6 +1625,41 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplicaForSensors()
 	return replica;
 }
 
+/* Refresh the physics object from either an object or a mesh.
+ * from_gameobj and from_meshobj can be NULL
+ *
+ * when setting the mesh, the following vars get priority
+ * 1) from_meshobj - creates the phys mesh from RAS_MeshObject
+ * 2) from_gameobj - creates the phys mesh from the DerivedMesh where possible, else the RAS_MeshObject
+ * 3) this - update the phys mesh from DerivedMesh or RAS_MeshObject
+ *
+ * Most of the logic behind this is in shapeInfo->UpdateMesh(...)
+ */
+bool CcdPhysicsController::ReinstancePhysicsShape(KX_GameObject *from_gameobj, RAS_MeshObject *from_meshobj)
+{
+	CcdShapeConstructionInfo	*shapeInfo;
+
+	shapeInfo = this->GetShapeInfo();
+
+	if (shapeInfo->m_shapeType != PHY_SHAPE_MESH/* || spc->GetSoftBody()*/)
+		return false;
+
+	this->DeleteControllerShape();
+
+	if (from_gameobj==NULL && from_meshobj==NULL)
+		from_gameobj = KX_GameObject::GetClientObject((KX_ClientObjectInfo*)this->GetNewClientInfo());
+
+	/* updates the arrays used for making the new bullet mesh */
+	shapeInfo->UpdateMesh(from_gameobj, from_meshobj);
+
+	/* create the new bullet mesh */
+	CcdConstructionInfo& cci = this->GetConstructionInfo();
+	btCollisionShape* bm= shapeInfo->CreateBulletShape(cci.m_margin, cci.m_bGimpact, !cci.m_bSoft);
+
+	this->ReplaceControllerShape(bm);
+	return true;
+}
+
 ///////////////////////////////////////////////////////////
 ///A small utility class, DefaultMotionState
 ///
