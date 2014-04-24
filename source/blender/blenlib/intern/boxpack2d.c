@@ -25,11 +25,14 @@
  */
 
 #include <stdlib.h> /* for qsort */
+#include <math.h> /* for fabsf */
 
 #include "MEM_guardedalloc.h"
-#include "BLI_strict_flags.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_boxpack2d.h"  /* own include */
+
+#include "BLI_strict_flags.h"
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wpadded"
@@ -57,6 +60,7 @@ typedef struct BoxVert {
 
 /* free vert flags */
 #define EPSILON 0.0000001f
+#define EPSILON_MERGE 0.00001f
 #define BLF 1
 #define TRF 2
 #define TLF 4
@@ -367,52 +371,52 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						 * as being used by checking the width or
 						 * height of both boxes */
 						if (vert->tlb && vert->trb && (box == vert->tlb || box == vert->trb)) {
-							if (vert->tlb->h > vert->trb->h) {
-								vert->trb->v[TL]->free &= ~(TLF | BLF);
-							}
-							else if (vert->tlb->h < vert->trb->h) {
-								vert->tlb->v[TR]->free &= ~(TRF | BRF);
-							}
-							else { /*same*/
+							if (UNLIKELY(fabsf(vert->tlb->h - vert->trb->h) < EPSILON_MERGE)) {
 								vert->tlb->v[TR]->free &= ~BLF;
 								vert->trb->v[TL]->free &= ~BRF;
 							}
+							if (vert->tlb->h > vert->trb->h) {
+								vert->trb->v[TL]->free &= ~(TLF | BLF);
+							}
+							else /* if (vert->tlb->h < vert->trb->h) */ {
+								vert->tlb->v[TR]->free &= ~(TRF | BRF);
+							}
 						}
 						else if (vert->blb && vert->brb && (box == vert->blb || box == vert->brb)) {
-							if (vert->blb->h > vert->brb->h) {
-								vert->brb->v[BL]->free &= ~(TLF | BLF);
-							}
-							else if (vert->blb->h < vert->brb->h) {
-								vert->blb->v[BR]->free &= ~(TRF | BRF);
-							}
-							else { /*same*/
+							if (UNLIKELY(fabsf(vert->blb->h - vert->brb->h) < EPSILON_MERGE)) {
 								vert->blb->v[BR]->free &= ~TRF;
 								vert->brb->v[BL]->free &= ~TLF;
+							}
+							else if (vert->blb->h > vert->brb->h) {
+								vert->brb->v[BL]->free &= ~(TLF | BLF);
+							}
+							else /* if (vert->blb->h < vert->brb->h) */ {
+								vert->blb->v[BR]->free &= ~(TRF | BRF);
 							}
 						}
 						/* Horizontal */
 						if (vert->tlb && vert->blb && (box == vert->tlb || box == vert->blb)) {
-							if (vert->tlb->w > vert->blb->w) {
-								vert->blb->v[TL]->free &= ~(TLF | TRF);
-							}
-							else if (vert->tlb->w < vert->blb->w) {
-								vert->tlb->v[BL]->free &= ~(BLF | BRF);
-							}
-							else { /*same*/
+							if (UNLIKELY(fabsf(vert->tlb->w - vert->blb->w) < EPSILON_MERGE)) {
 								vert->blb->v[TL]->free &= ~TRF;
 								vert->tlb->v[BL]->free &= ~BRF;
 							}
+							else if (vert->tlb->w > vert->blb->w) {
+								vert->blb->v[TL]->free &= ~(TLF | TRF);
+							}
+							else /* if (vert->tlb->w < vert->blb->w) */ {
+								vert->tlb->v[BL]->free &= ~(BLF | BRF);
+							}
 						}
 						else if (vert->trb && vert->brb && (box == vert->trb || box == vert->brb)) {
-							if (vert->trb->w > vert->brb->w) {
-								vert->brb->v[TR]->free &= ~(TLF | TRF);
-							}
-							else if (vert->trb->w < vert->brb->w) {
-								vert->trb->v[BR]->free &= ~(BLF | BRF);
-							}
-							else { /*same*/
+							if (UNLIKELY(fabsf(vert->trb->w - vert->brb->w) < EPSILON_MERGE)) {
 								vert->brb->v[TR]->free &= ~TLF;
 								vert->trb->v[BR]->free &= ~BLF;
+							}
+							else if (vert->trb->w > vert->brb->w) {
+								vert->brb->v[TR]->free &= ~(TLF | TRF);
+							}
+							else /* if (vert->trb->w < vert->brb->w) */ {
+								vert->trb->v[BR]->free &= ~(BLF | BRF);
 							}
 						}
 						/* End logical check */
