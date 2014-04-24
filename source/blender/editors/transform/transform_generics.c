@@ -531,15 +531,14 @@ static void recalcData_nla(TransInfo *t)
 		
 		/* handle auto-snapping */
 		switch (snla->autosnap) {
-			case SACTSNAP_FRAME: /* snap to nearest frame/time  */
-				if (snla->flag & SNLA_DRAWTIME) {
-					tdn->h1[0] = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
-					tdn->h2[0] = (float)(floor(((double)tdn->h2[0] / secf) + 0.5) * secf);
-				}
-				else {
-					tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
-					tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
-				}
+			case SACTSNAP_FRAME: /* snap to nearest frame */
+				tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
+				tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
+				break;
+				
+			case SACTSNAP_SECOND: /* snap to nearest second */
+				tdn->h1[0] = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
+				tdn->h2[0] = (float)(floor(((double)tdn->h2[0] / secf) + 0.5) * secf);
 				break;
 			
 			case SACTSNAP_MARKER: /* snap to nearest marker */
