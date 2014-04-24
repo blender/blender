@@ -54,6 +54,8 @@ extern "C" {
 #include "RE_pipeline.h"
 }
 
+#include <limits.h>
+
 namespace Freestyle {
 
 BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
@@ -342,6 +344,9 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					vertices->co[0] = svRep[0]->point2d()[0];
 					vertices->co[1] = svRep[0]->point2d()[1];
 					vertices->co[2] = get_stroke_vertex_z();
+					vertices->no[0] = 0;
+					vertices->no[1] = 0;
+					vertices->no[2] = SHRT_MAX;
 					++vertices;
 					++vertex_index;
 
@@ -349,6 +354,9 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					vertices->co[0] = svRep[1]->point2d()[0];
 					vertices->co[1] = svRep[1]->point2d()[1];
 					vertices->co[2] = get_stroke_vertex_z();
+					vertices->no[0] = 0;
+					vertices->no[1] = 0;
+					vertices->no[2] = SHRT_MAX;
 					++vertices;
 					++vertex_index;
 
@@ -364,6 +372,9 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 				vertices->co[0] = svRep[2]->point2d()[0];
 				vertices->co[1] = svRep[2]->point2d()[1];
 				vertices->co[2] = get_stroke_vertex_z();
+				vertices->no[0] = 0;
+				vertices->no[1] = 0;
+				vertices->no[2] = SHRT_MAX;
 				++vertices;
 				++vertex_index;
 
