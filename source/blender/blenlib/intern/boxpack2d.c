@@ -45,8 +45,9 @@ typedef struct BoxVert {
 	float x;
 	float y;
 
-	int free : 8;  /* vert status */
-	int pad  : 24;
+	int          free : 8;  /* vert status */
+	unsigned int used : 1;
+	unsigned int _pad : 23;
 	unsigned int index;
 
 	struct BoxPack *trb; /* top right box */
@@ -199,6 +200,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~TRF;
 		vert->trb = box;
+		vert->used = false;
 		vert->index = i++;
 		box->v[BL] = vert; vert++;
 		
@@ -207,6 +209,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~BLF;
 		vert->blb = box;
+		vert->used = false;
 		vert->index = i++;
 		box->v[TR] = vert; vert++;
 		
@@ -215,6 +218,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~BRF;
 		vert->brb = box;
+		vert->used = false;
 		vert->index = i++;
 		box->v[TL] = vert; vert++;
 		
@@ -222,7 +226,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 		            vert->isect_cache[0] = vert->isect_cache[1] =
 		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~TLF;
-		vert->tlb = box; 
+		vert->tlb = box;
+		vert->used = false;
 		vert->index = i++;
 		box->v[BR] = vert; vert++;
 	}
@@ -244,6 +249,10 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 	SET_BOXLEFT(box, 0.0f);
 	SET_BOXBOTTOM(box, 0.0f);
 	box->x = box->y = 0.0f;
+
+	for (i = 0; i < 4; i++) {
+		box->v[i]->used = true;
+	}
 
 	for (i = 0; i < 3; i++)
 		vertex_pack_indices[i] = box->v[i + 1]->index;
@@ -428,7 +437,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						/* End logical check */
 
 						for (k = 0; k < 4; k++) {
-							if (box->v[k] != vert) {
+							if (box->v[k]->used == false) {
+								box->v[k]->used = true;
 								vertex_pack_indices[verts_pack_len] = box->v[k]->index;
 								verts_pack_len++;
 							}
