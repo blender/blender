@@ -655,7 +655,11 @@ typedef enum eAnimEdit_AutoSnap {
 	/* snap to actual frames/seconds (nla-action time) */
 	SACTSNAP_FRAME = 2,
 	/* snap to nearest marker */
-	SACTSNAP_MARKER = 3
+	SACTSNAP_MARKER = 3,
+	/* snap to actual seconds (nla-action time) */
+	SACTSNAP_SECOND = 4,
+	/* snap to 1.0 second increments */
+	SACTSNAP_TSTEP = 5
 } eAnimEdit_AutoSnap;
 
 

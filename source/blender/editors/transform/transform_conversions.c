@@ -4110,11 +4110,12 @@ void flushTransGraphData(TransInfo *t)
 		 */
 		if ((td->flag & TD_NOTIMESNAP) == 0) {
 			switch (sipo->autosnap) {
-				case SACTSNAP_FRAME: /* snap to nearest frame (or second if drawing seconds) */
-					if (sipo->flag & SIPO_DRAWTIME)
-						td2d->loc[0] = floor(((double)td2d->loc[0] / secf) + 0.5) * secf;
-					else
-						td2d->loc[0] = floor((double)td2d->loc[0] + 0.5);
+				case SACTSNAP_FRAME: /* snap to nearest frame */
+					td2d->loc[0] = floor((double)td2d->loc[0] + 0.5);
+					break;
+				
+				case SACTSNAP_SECOND: /* snap to nearest second */
+					td2d->loc[0] = floor(((double)td2d->loc[0] / secf) + 0.5) * secf;
 					break;
 				
 				case SACTSNAP_MARKER: /* snap to nearest marker */
