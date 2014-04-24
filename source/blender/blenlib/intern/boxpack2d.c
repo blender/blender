@@ -45,7 +45,8 @@ typedef struct BoxVert {
 	float x;
 	float y;
 
-	int free;  /* could be a char */
+	int free : 8;  /* vert status */
+	int pad  : 24;
 	unsigned int index;
 
 	struct BoxPack *trb; /* top right box */
@@ -66,6 +67,12 @@ typedef struct BoxVert {
 #define TLF 4
 #define BRF 8
 #define CORNERFLAGS (BLF | TRF | TLF | BRF)
+
+BLI_INLINE int quad_flag(unsigned int q)
+{
+	BLI_assert(q < 4 && q >= 0);
+	return (1 << q);
+}
 
 #define BL 0
 #define TR 1
@@ -165,7 +172,6 @@ static int vertex_sort(const void *p1, const void *p2)
  *  */
 void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width, float *tot_height)
 {
-	const int quad_flags[4] = {BLF, TRF, TLF, BRF};  /* use for looping */
 	unsigned int box_index, verts_pack_len, i, j, k;
 	unsigned int *vertex_pack_indices;  /* an array of indices used for sorting verts */
 	bool isect;
@@ -269,7 +275,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 			 * */
 
 			for (j = 0; (j < 4) && isect; j++) {
-				if (vert->free & quad_flags[j]) {
+				if (vert->free & quad_flag(j)) {
 					switch (j) {
 						case BL:
 							SET_BOXRIGHT(box, vert->x);
@@ -329,7 +335,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						(*tot_height) = max_ff(BOXTOP(box), (*tot_height));
 
 						/* Place the box */
-						vert->free &= ~quad_flags[j];
+						vert->free &= (signed char)(~quad_flag(j));
 
 						switch (j) {
 							case TR:
