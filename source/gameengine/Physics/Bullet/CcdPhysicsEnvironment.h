@@ -260,6 +260,8 @@ protected:
 
 		void MergeEnvironment(PHY_IPhysicsEnvironment *other_env);
 
+		static CcdPhysicsEnvironment *Create(struct Scene *blenderscene, bool visualizePhysics);
+
 	protected:
 		
 		

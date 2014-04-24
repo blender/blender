@@ -40,9 +40,13 @@ subject to the following restrictions:
 #include "PHY_IMotionState.h"
 #include "PHY_ICharacter.h"
 #include "KX_GameObject.h"
+#include "KX_PythonInit.h" // for KX_RasterizerDrawDebugLine
 #include "RAS_MeshObject.h"
 #include "RAS_Polygon.h"
 #include "RAS_TexVert.h"
+
+#include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #define CCD_CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
@@ -2895,3 +2899,63 @@ void	CcdPhysicsEnvironment::ExportFile(const char* filename)
 	}
 }
 
+struct	BlenderDebugDraw : public btIDebugDraw
+{
+	BlenderDebugDraw () :
+		m_debugMode(0)
+	{
+	}
+
+	int m_debugMode;
+
+	virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
+	{
+		if (m_debugMode >0)
+		{
+			MT_Vector3 kxfrom(from[0],from[1],from[2]);
+			MT_Vector3 kxto(to[0],to[1],to[2]);
+			MT_Vector3 kxcolor(color[0],color[1],color[2]);
+
+			KX_RasterizerDrawDebugLine(kxfrom,kxto,kxcolor);
+		}
+	}
+
+	virtual void	reportErrorWarning(const char* warningString)
+	{
+
+	}
+
+	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,float distance,int lifeTime,const btVector3& color)
+	{
+		//not yet
+	}
+
+	virtual void	setDebugMode(int debugMode)
+	{
+		m_debugMode = debugMode;
+	}
+	virtual int		getDebugMode() const
+	{
+		return m_debugMode;
+	}
+	///todo: find out if Blender can do this
+	virtual void	draw3dText(const btVector3& location,const char* textString)
+	{
+
+	}
+
+};
+
+CcdPhysicsEnvironment *CcdPhysicsEnvironment::Create(Scene *blenderscene, bool visualizePhysics)
+{
+	CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment((blenderscene->gm.mode & WO_DBVT_CULLING) != 0);
+	ccdPhysEnv->SetDebugDrawer(new BlenderDebugDraw());
+	ccdPhysEnv->SetDeactivationLinearTreshold(blenderscene->gm.lineardeactthreshold);
+	ccdPhysEnv->SetDeactivationAngularTreshold(blenderscene->gm.angulardeactthreshold);
+	ccdPhysEnv->SetDeactivationTime(blenderscene->gm.deactivationtime);
+
+	if (visualizePhysics)
+		ccdPhysEnv->SetDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText|btIDebugDraw::DBG_DrawConstraintLimits|btIDebugDraw::DBG_DrawConstraints);
+
+	return ccdPhysEnv;
+}

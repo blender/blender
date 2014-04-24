@@ -246,60 +246,6 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 
 }
 
-#ifdef WITH_BULLET
-
-#include "LinearMath/btIDebugDraw.h"
-
-
-struct	BlenderDebugDraw : public btIDebugDraw
-{
-	BlenderDebugDraw () :
-		m_debugMode(0) 
-	{
-	}
-	
-	int m_debugMode;
-
-	virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
-	{
-		if (m_debugMode >0)
-		{
-			MT_Vector3 kxfrom(from[0],from[1],from[2]);
-			MT_Vector3 kxto(to[0],to[1],to[2]);
-			MT_Vector3 kxcolor(color[0],color[1],color[2]);
-
-			KX_RasterizerDrawDebugLine(kxfrom,kxto,kxcolor);
-		}
-	}
-	
-	virtual void	reportErrorWarning(const char* warningString)
-	{
-
-	}
-
-	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,float distance,int lifeTime,const btVector3& color)
-	{
-		//not yet
-	}
-
-	virtual void	setDebugMode(int debugMode)
-	{
-		m_debugMode = debugMode;
-	}
-	virtual int		getDebugMode() const
-	{
-		return m_debugMode;
-	}
-	///todo: find out if Blender can do this
-	virtual void	draw3dText(const btVector3& location,const char* textString)
-	{
-
-	}
-		
-};
-
-#endif
-
 void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 											class RAS_IRasterizer* rendertools,
 											class RAS_ICanvas* canvas,
@@ -308,8 +254,9 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	//find out which physics engine
 	Scene *blenderscene = destinationscene->GetBlenderScene();
 
+	PHY_IPhysicsEnvironment *phy_env = NULL;
+
 	e_PhysicsEngine physics_engine = UseBullet;
-	bool useDbvtCulling = false;
 	// hook for registration function during conversion.
 	m_currentScene = destinationscene;
 	destinationscene->SetSceneConverter(this);
@@ -318,55 +265,30 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	// when doing threaded conversion, so it's disabled for now.
 	// SG_SetActiveStage(SG_STAGE_CONVERTER);
 
-	if (blenderscene)
+	switch (blenderscene->gm.physicsEngine)
 	{
-	
-		switch (blenderscene->gm.physicsEngine)
+#ifdef WITH_BULLET
+	case WOPHY_BULLET:
 		{
-		case WOPHY_BULLET:
-			{
-				physics_engine = UseBullet;
-				useDbvtCulling = (blenderscene->gm.mode & WO_DBVT_CULLING) != 0;
-				break;
-			}
-			default:
-			case WOPHY_NONE:
-			{
-				physics_engine = UseNone;
-				break;
-			}
+			SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
+			int visualizePhysics = SYS_GetCommandLineInt(syshandle,"show_physics",0);
+
+			phy_env = CcdPhysicsEnvironment::Create(blenderscene, visualizePhysics);
+			physics_engine = UseBullet;
+			break;
+		}
+#endif
+	default:
+	case WOPHY_NONE:
+		{
+			// We should probably use some sort of factory here
+			phy_env = new DummyPhysicsEnvironment();
+			physics_engine = UseNone;
+			break;
 		}
 	}
 
-	switch (physics_engine)
-	{
-#ifdef WITH_BULLET
-		case UseBullet:
-			{
-				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment(useDbvtCulling);
-				ccdPhysEnv->SetDebugDrawer(new BlenderDebugDraw());
-				ccdPhysEnv->SetDeactivationLinearTreshold(blenderscene->gm.lineardeactthreshold);
-				ccdPhysEnv->SetDeactivationAngularTreshold(blenderscene->gm.angulardeactthreshold);
-				ccdPhysEnv->SetDeactivationTime(blenderscene->gm.deactivationtime);
-
-				SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
-				int visualizePhysics = SYS_GetCommandLineInt(syshandle,"show_physics",0);
-				if (visualizePhysics)
-					ccdPhysEnv->SetDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText|btIDebugDraw::DBG_DrawConstraintLimits|btIDebugDraw::DBG_DrawConstraints);
-		
-				//todo: get a button in blender ?
-				//disable / enable debug drawing (contact points, aabb's etc)
-				//ccdPhysEnv->setDebugMode(1);
-				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
-				break;
-			}
-#endif
-		default:
-		case UseNone:
-			physics_engine = UseNone;
-			destinationscene ->SetPhysicsEnvironment(new DummyPhysicsEnvironment());
-			break;
-	}
+	destinationscene->SetPhysicsEnvironment(phy_env);
 
 	BL_ConvertBlenderObjects(m_maggie,
 		destinationscene,
@@ -389,12 +311,6 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	//This cache mecanism is buggy so I leave it disable and the memory leak
 	//that would result from this is fixed in RemoveScene()
 	m_map_mesh_to_gamemesh.clear();
-
-#ifndef WITH_BULLET
-	/* quiet compiler warning */
-	(void)useDbvtCulling;
-#endif
-
 }
 
 // This function removes all entities stored in the converter for that scene
