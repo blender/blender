@@ -108,7 +108,10 @@ NodeOperation *SeparateHSVANode::getColorConverter(const CompositorContext &cont
 
 NodeOperation *SeparateYCCANode::getColorConverter(const CompositorContext &context) const
 {
-	return new ConvertRGBToYCCOperation();
+	ConvertRGBToYCCOperation *operation = new ConvertRGBToYCCOperation();
+	bNode *editorNode = this->getbNode();
+	operation->setMode(editorNode->custom1);
+	return operation;
 }
 
 NodeOperation *SeparateYUVANode::getColorConverter(const CompositorContext &context) const
