@@ -374,11 +374,20 @@ static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 				saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 				ED_area_tag_refresh(sa);
 			}
-			/* for selection changes of animation data, we can just redraw... otherwise autocolor might need to be done again */
-			else if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED))
-				ED_area_tag_redraw(sa);
-			else
+			/* autocolor only really needs to change when channels are added/removed, or previously hidden stuff appears 
+			 * (assume for now that if just adding these works, that will be fine)
+			 */
+			else if (((wmn->data == ND_KEYFRAME) && ELEM(wmn->action, NA_ADDED, NA_REMOVED)) ||
+			         ((wmn->data == ND_ANIMCHAN) && (wmn->action != NA_SELECTED)))
+			{
 				ED_area_tag_refresh(sa);
+			}
+			/* for simple edits to the curve data though (or just plain selections), a simple redraw should work 
+			 * (see T39851 for an example of how this can go wrong)
+			 */
+			else {
+				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_SCENE:
 			switch (wmn->data) {
@@ -469,7 +478,7 @@ static void action_header_area_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegio
 		case NC_ANIMATION:
 			switch (wmn->data) {
 				case ND_KEYFRAME:
-					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					//saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_region_tag_redraw(ar);
 					break;
 			}

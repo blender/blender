@@ -1304,7 +1304,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
 			BKE_reportf(op->reports, RPT_INFO, "Successfully added %d keyframes for keying set '%s'", success, ks->name);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
 	}
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying set failed to insert any keyframes");
@@ -1456,7 +1456,7 @@ static int delete_key_exec(bContext *C, wmOperator *op)
 			BKE_reportf(op->reports, RPT_INFO, "Successfully removed %d keyframes for keying set '%s'", success, ks->name);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
 	}
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying set failed to remove any keyframes");
@@ -1709,7 +1709,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 		uiContextAnimUpdate(C);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
 	}
 	
 	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
@@ -1780,7 +1780,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 		uiContextAnimUpdate(C);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
 	}
 	
 	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
@@ -1850,7 +1850,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 		uiContextAnimUpdate(C);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
 	}
 
 	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
