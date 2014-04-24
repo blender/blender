@@ -909,10 +909,10 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem thickness_position_items[] = {
-		{LS_THICKNESS_CENTER, "CENTER", 0, "Center", "Stroke is centered along stroke geometry"},
-		{LS_THICKNESS_INSIDE, "INSIDE", 0, "Inside", "Stroke is drawn inside stroke geometry"},
-		{LS_THICKNESS_OUTSIDE, "OUTSIDE", 0, "Outside", "Stroke is drawn outside stroke geometry"},
-		{LS_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Stroke thickness is split by a user-defined ratio"},
+		{LS_THICKNESS_CENTER, "CENTER", 0, "Center", "Silhouettes and border edges are centered along stroke geometry"},
+		{LS_THICKNESS_INSIDE, "INSIDE", 0, "Inside", "Silhouettes and border edges are drawn inside of stroke geometry"},
+		{LS_THICKNESS_OUTSIDE, "OUTSIDE", 0, "Outside", "Silhouettes and border edges are drawn outside of stroke geometry"},
+		{LS_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Silhouettes and border edges are shifted by a user-defined ratio"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem sort_key_items[] = {
@@ -966,7 +966,8 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "thickness_position", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "thickness_position");
 	RNA_def_property_enum_items(prop, thickness_position_items);
-	RNA_def_property_ui_text(prop, "Thickness Position", "Select the position of stroke thickness");
+	RNA_def_property_ui_text(prop, "Thickness Position",
+	                               "Thickness position of silhouettes and border edges (applicable when plain chaining is used with the Same Object option)");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop = RNA_def_property(srna, "thickness_ratio", PROP_FLOAT, PROP_FACTOR);
