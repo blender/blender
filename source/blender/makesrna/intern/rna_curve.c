@@ -77,20 +77,18 @@ EnumPropertyItem beztriple_interpolation_mode_items[] = {
 	
 	/* easing */
 	{0, "", 0, N_("Easing (by strength)"), "Predefined inertial transitions, useful for motion graphics (from least to most ''dramatic'')"},
-	{BEZT_IPO_QUAD, "QUAD", 0, "Quadratic", "Quadratic easing (weakest)"},
+	{BEZT_IPO_SINE, "SINE", 0, "Sinusoidal", "Sinusoidal easing (weakest, almost linear but with a slight curvature)"},
+	{BEZT_IPO_QUAD, "QUAD", 0, "Quadratic", "Quadratic easing"},
 	{BEZT_IPO_CUBIC, "CUBIC", 0, "Cubic", "Cubic easing"},
 	{BEZT_IPO_QUART, "QUART", 0, "Quartic", "Quartic easing"},
 	{BEZT_IPO_QUINT, "QUINT", 0, "Quintic", "Quintic easing"},
-	{BEZT_IPO_EXPO, "EXPO", 0, "Exponential", "Exponential easing (strongest)"},
+	{BEZT_IPO_EXPO, "EXPO", 0, "Exponential", "Exponential easing (dramatic)"},
+	{BEZT_IPO_CIRC, "CIRC", 0, "Circular", "Circular easing (strongest and most dynamic)"},
 	
 	{0, "", 0, N_("Dynamic Effects"), "Simple physics-inspired easing effects"},
 	{BEZT_IPO_BACK, "BACK", 0, "Back", "Cubic easing with overshoot and settle"},
 	{BEZT_IPO_BOUNCE, "BOUNCE", 0, "Bounce", "Exponentially decaying parabolic bounce, like when objects collide"},
 	{BEZT_IPO_ELASTIC, "ELASTIC", 0, "Elastic", "Exponentially decaying sine wave, like an elastic band"},
-	
-	{0, "", 0, N_("Other"), "Other easing equations"},
-	{BEZT_IPO_SINE, "SINE", 0, "Sinusoidal", "Sinusoidal easing"},
-	{BEZT_IPO_CIRC, "CIRC", 0, "Circular", "Circular easing"},
 	
 	{0, NULL, 0, NULL, NULL}
 };
