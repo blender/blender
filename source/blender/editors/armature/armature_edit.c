@@ -217,7 +217,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const bool 
 	vec_roll_to_mat3(nor, 0.0f, mat);
 
 	/* check the bone isn't aligned with the axis */
-	if (is_zero_v3(align_axis) || dot_v3v3(align_axis, mat[2]) <= (1.0f - FLT_EPSILON)) {
+	if (dot_v3v3(align_axis, mat[2]) >= (1.0f - FLT_EPSILON)) {
 		return roll;
 	}
 
@@ -226,7 +226,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const bool 
 	sub_v3_v3v3(align_axis_proj, align_axis, vec);
 
 	if (axis_only) {
-		if (angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI / 2.0)) {
+		if (angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI_2)) {
 			negate_v3(align_axis_proj);
 		}
 	}
@@ -236,9 +236,8 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const bool 
 	cross_v3_v3v3(vec, mat[2], align_axis_proj);
 
 	if (dot_v3v3(vec, nor) < 0.0f) {
-		roll = -roll;
+		return -roll;
 	}
-
 	return roll;
 }
 
