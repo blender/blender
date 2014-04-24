@@ -42,6 +42,9 @@
 #define USE_MERGE
 /* use strip-free */
 #define USE_FREE_STRIP
+/* slight bias, needed when packing many boxes the _exact_ same size */
+#define USE_PACK_BIAS
+
 
 /* BoxPacker for backing 2D rectangles into a square
  * 
@@ -63,11 +66,19 @@ typedef struct BoxVert {
 	/* Store last intersecting boxes here
 	 * speedup intersection testing */
 	struct BoxPack *isect_cache[4];
+
+#ifdef USE_PACK_BIAS
+	float bias;
+	int  _pad2;
+#endif
 } BoxVert;
 
 /* free vert flags */
 #define EPSILON 0.0000001f
 #define EPSILON_MERGE 0.00001f
+#ifdef USE_PACK_BIAS
+#  define EPSILON_BIAS 0.000001f
+#endif
 #define BLF 1
 #define TRF 2
 #define TLF 4
@@ -120,6 +131,15 @@ BLI_INLINE int quad_flag(unsigned int q)
 /* compiler should inline */
 static float max_ff(const float a, const float b) { return b > a ? b : a; }
 
+#ifdef USE_PACK_BIAS
+/* set when used is enabled */
+static void vert_bias_update(BoxVert *v)
+{
+	BLI_assert(v->used);
+	v->bias = (v->x * v->y) * EPSILON_BIAS;
+}
+#endif
+
 #if 0
 #define BOXDEBUG(b) \
 	printf("\tBox Debug i %i, w:%.3f h:%.3f x:%.3f y:%.3f\n", \
@@ -164,6 +184,11 @@ static int vertex_sort(const void *p1, const void *p2)
 
 	a1 = max_ff(v1->x + box_width, v1->y + box_height);
 	a2 = max_ff(v2->x + box_width, v2->y + box_height);
+
+#ifdef USE_PACK_BIAS
+	a1 += v1->bias;
+	a2 += v2->bias;
+#endif
 
 	/* sort largest to smallest */
 	if      (a1 > a2) return 1;
@@ -264,6 +289,9 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 
 	for (i = 0; i < 4; i++) {
 		box->v[i]->used = true;
+#ifdef USE_PACK_BIAS
+		vert_bias_update(box->v[i]);
+#endif
 	}
 
 	for (i = 0; i < 3; i++)
@@ -537,6 +565,9 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 						for (k = 0; k < 4; k++) {
 							if (box->v[k]->used == false) {
 								box->v[k]->used = true;
+#ifdef USE_PACK_BIAS
+								vert_bias_update(box->v[k]);
+#endif
 								vertex_pack_indices[verts_pack_len] = box->v[k]->index;
 								verts_pack_len++;
 							}
