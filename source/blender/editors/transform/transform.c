@@ -7223,7 +7223,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 			val = floorf(val + 0.5);
 		}
 		else if (autosnap == SACTSNAP_SECOND) {
-			val = (float)(floor((val / secf) + 0.5f) * secf);
+			val = (float)(floor((val / secf) + 0.5) * secf);
 		}
 		
 		/* convert frame out of nla-action time */
