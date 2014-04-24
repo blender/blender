@@ -4129,6 +4129,28 @@ void flushTransGraphData(TransInfo *t)
 			td2d->loc2d[0] = BKE_nla_tweakedit_remap(adt, td2d->loc[0], NLATIME_CONVERT_UNMAP);
 		else
 			td2d->loc2d[0] = td2d->loc[0];
+			
+		/* Time-stepping auto-snapping modes don't get applied for Graph Editor transforms,
+		 * as these use the generic transform modes which don't account for this sort of thing.
+		 * These ones aren't affected by NLA mapping, so we do this after the conversion...
+		 *
+		 * NOTE: We also have to apply to td->loc, as that's what the handle-adjustment step below looks
+		 *       to, otherwise we get "swimming handles"
+		 */
+		if ((td->flag & TD_NOTIMESNAP) == 0 && ELEM(sipo->autosnap, SACTSNAP_STEP, SACTSNAP_TSTEP)) {
+			switch (sipo->autosnap) {
+				case SACTSNAP_STEP: /* frame step */
+					td2d->loc2d[0] = floor((double)td2d->loc[0] + 0.5);
+					td->loc[0]     = floor((double)td->loc[0] + 0.5);
+					break;
+				
+				case SACTSNAP_TSTEP: /* second step */
+					/* XXX: the handle behaviour in this case is still not quite right... */
+					td2d->loc[0] = floor(((double)td2d->loc[0] / secf) + 0.5) * secf;
+					td->loc[0]   = floor(((double)td->loc[0] / secf) + 0.5) * secf;
+					break;
+			}
+		}
 		
 		/* if int-values only, truncate to integers */
 		if (td->flag & TD_INTVALUES)
