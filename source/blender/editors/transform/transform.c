@@ -7205,27 +7205,27 @@ static short getAnimEdit_SnapMode(TransInfo *t)
  * its data in frames or seconds (and the data needing to be edited as such).
  * Returns 1 if in seconds, 0 if in frames
  */
-static short getAnimEdit_DrawTime(TransInfo *t)
+static bool getAnimEdit_DrawTime(TransInfo *t)
 {
-	short drawtime;
+	bool drawtime;
 
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
 		
-		drawtime = (saction->flag & SACTION_DRAWTIME) ? 1 : 0;
+		drawtime = (saction->flag & SACTION_DRAWTIME) != 0;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla = (SpaceNla *)t->sa->spacedata.first;
 		
-		drawtime = (snla->flag & SNLA_DRAWTIME) ? 1 : 0;
+		drawtime = (snla->flag & SNLA_DRAWTIME) != 0;
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 		
-		drawtime = (sipo->flag & SIPO_DRAWTIME) ? 1 : 0;
+		drawtime = (sipo->flag & SIPO_DRAWTIME) != 0;
 	}
 	else {
-		drawtime = 0;
+		drawtime = false;
 	}
 
 	return drawtime;
@@ -7244,9 +7244,9 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 
 		const Scene *scene = t->scene;
 #if 0   /* NOTE: this works, but may be confusing behavior given the option's label, hence disabled */
-		const short do_time = getAnimEdit_DrawTime(t);
+		const bool do_time = getAnimEdit_DrawTime(t);
 #else
-		const short do_time = 0;
+		const bool do_time = false;
 #endif
 		const double secf = FPS;
 #endif
@@ -7355,7 +7355,7 @@ static void headerTimeTranslate(TransInfo *t, char str[MAX_INFO_LEN])
 	else {
 		const Scene *scene = t->scene;
 		const short autosnap = getAnimEdit_SnapMode(t);
-		const short do_time = getAnimEdit_DrawTime(t);
+		const bool do_time = getAnimEdit_DrawTime(t);
 		const double secf = FPS;
 		float val = t->values[0];
 		
@@ -7387,7 +7387,7 @@ static void applyTimeTranslateValue(TransInfo *t, float UNUSED(sval))
 	Scene *scene = t->scene;
 	int i;
 
-	const short do_time = getAnimEdit_DrawTime(t);
+	const bool do_time = getAnimEdit_DrawTime(t);
 	const double secf = FPS;
 
 	const short autosnap = getAnimEdit_SnapMode(t);
@@ -7674,7 +7674,7 @@ static void applyTimeScaleValue(TransInfo *t)
 	int i;
 
 	const short autosnap = getAnimEdit_SnapMode(t);
-	const short do_time = getAnimEdit_DrawTime(t);
+	const bool do_time = getAnimEdit_DrawTime(t);
 	const double secf = FPS;
 
 
@@ -7733,7 +7733,7 @@ bool checkUseLocalCenter_GraphEdit(TransInfo *t)
 
 bool checkUseAxisMatrix(TransInfo *t)
 {
-	/* currenly only checks for editmode */
+	/* currently only checks for editmode */
 	if (t->flag & T_EDIT) {
 		if ((t->around == V3D_LOCAL) && (ELEM4(t->obedit->type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE))) {
 			/* not all editmode supports axis-matrix */
