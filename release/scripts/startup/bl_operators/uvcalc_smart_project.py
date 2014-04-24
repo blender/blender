@@ -250,7 +250,8 @@ def optiRotateUvIsland(faces):
     # orient them vertically (could be an option)
     minx, miny, maxx, maxy = boundsIsland(faces)
     w, h = maxx - minx, maxy - miny
-    if h < w:
+    # use epsilon so we dont randomly rotate (almost) perfect squares.
+    if h + 0.00001 < w:
         from math import pi
         angle = pi / 2.0
         rotate_uvs(uv_points, angle)
