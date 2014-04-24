@@ -98,6 +98,19 @@ bool ui_block_is_menu(const uiBlock *block)
 	        ((block->flag & UI_BLOCK_KEEP_OPEN) == 0));
 }
 
+static bool ui_is_but_unit_radians_ex(UnitSettings *unit, const int unit_type)
+{
+	return (unit->system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION);
+}
+
+static bool ui_is_but_unit_radians(const uiBut *but)
+{
+	UnitSettings *unit = but->block->unit;
+	const int unit_type = uiButGetUnitType(but);
+
+	return ui_is_but_unit_radians_ex(unit, unit_type);
+}
+
 /* ************* window matrix ************** */
 
 void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y)
@@ -429,10 +442,15 @@ void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int max
 
 static int ui_but_float_precision(uiBut *but, double value)
 {
-	int prec;
+	int prec = (int)but->a2;
 
-	/* first check if prec is 0 and fallback to a simple default */
-	if ((prec = (int)but->a2) == -1) {
+	/* first check for various special cases:
+	 * * If button is radians, we want additional precision (see T39861).
+	 * * If prec is not set, we fallback to a simple default */
+	if (ui_is_but_unit_radians(but) && prec < 5) {
+		prec = 5;
+	}
+	else if (prec == -1) {
 		prec = (but->hardmax < 10.001f) ? 3 : 2;
 	}
 
@@ -1611,7 +1629,7 @@ bool ui_is_but_unit(const uiBut *but)
 		return false;
 
 #if 1 /* removed so angle buttons get correct snapping */
-	if (unit->system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION)
+	if (ui_is_but_unit_radians_ex(unit, unit_type))
 		return false;
 #endif
 	
