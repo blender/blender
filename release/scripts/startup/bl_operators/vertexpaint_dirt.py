@@ -183,7 +183,6 @@ class VertexPaintDirt(Operator):
 
     def execute(self, context):
         import time
-        from math import radians
 
         obj = context.object
         mesh = obj.data

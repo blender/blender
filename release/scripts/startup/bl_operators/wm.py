@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Menu, Operator
+from bpy.types import Operator
 from bpy.props import (StringProperty,
                        BoolProperty,
                        IntProperty,

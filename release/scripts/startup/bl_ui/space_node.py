@@ -274,7 +274,6 @@ class NODE_PT_active_node_generic(Panel):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
         return context.active_node is not None
 
     def draw(self, context):
@@ -293,7 +292,6 @@ class NODE_PT_active_node_color(Panel):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
         return context.active_node is not None
 
     def draw_header(self, context):
@@ -323,7 +321,6 @@ class NODE_PT_active_node_properties(Panel):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
         return context.active_node is not None
 
     def draw(self, context):

@@ -292,7 +292,7 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
         return (context.object) and (context.armature)
 
     def draw(self, context):
-        layout = self.layout
+        # layout = self.layout
 
         ob = context.object
         avs = ob.pose.animation_visualization

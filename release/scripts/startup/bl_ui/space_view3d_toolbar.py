@@ -1100,7 +1100,6 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
 
         settings = self.paint_settings(context)
         brush = settings.brush
-        tex_slot = brush.texture_slot
 
         col = layout.column()
 
@@ -1124,7 +1123,6 @@ class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
         layout = self.layout
 
         brush = context.tool_settings.image_paint.brush
-        tex_slot_alpha = brush.mask_texture_slot
 
         col = layout.column()
 

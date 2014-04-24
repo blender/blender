@@ -96,7 +96,7 @@ def test_urls():
     import rna_wiki_reference
 
     import urllib.error
-    from urllib.request import urlopen
+   from urllib.request import urlopen
 
     prefix = rna_wiki_reference.url_manual_prefix
     urls = {suffix for (rna_id, suffix) in rna_wiki_reference.url_manual_mapping}
@@ -118,7 +118,7 @@ def test_urls():
         print("  %s ... " % url_full, end="")
         sys.stdout.flush()
         try:
-            urllib.request.urlopen(url_full)
+            urlopen(url_full)
             print(color_green + "OK" + color_normal)
         except urllib.error.HTTPError:
             print(color_red + "FAIL!" + color_normal)

@@ -22,7 +22,6 @@ from bpy.types import Operator
 
 from bpy.props import (FloatProperty,
                        IntProperty,
-                       BoolProperty,
                        )
 from bpy.app.translations import pgettext_data as data_
 

@@ -292,7 +292,6 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                                 kmi_type_set.add(v)
             return kmi_type_set
 
-        kmi_type_set_combine = None
         for i, kmi_type in enumerate(filter_text_split):
             kmi_type_set = kmi_type_set_from_string(kmi_type)
 

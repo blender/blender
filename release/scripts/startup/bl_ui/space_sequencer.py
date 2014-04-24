@@ -486,7 +486,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        sequencer = context.scene.sequence_editor
         strip = act_strip(context)
 
         if strip.input_count > 0:

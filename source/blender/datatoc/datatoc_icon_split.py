@@ -164,7 +164,6 @@ def dice(filepath, output, output_prefix, name_style,
          minx_icon, miny_icon, maxx_icon, maxy_icon,
          spacex_icon, spacey_icon,
          ):
-    import struct
 
     is_simple = (max(minx, miny, maxx, maxy,
                      minx_icon, miny_icon, maxx_icon, maxy_icon,
@@ -209,7 +208,7 @@ def dice(filepath, output, output_prefix, name_style,
 
             # simple, no margins
             if is_simple:
-                sub_x = x * icon_x
+                sub_x = x * icon_w
                 sub_y = y * icon_h
             else:
                 sub_x = minx + ((x * (icon_w + spacex_icon)) + minx_icon)

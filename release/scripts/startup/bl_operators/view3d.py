@@ -19,7 +19,6 @@
 # <pep8-80 compliant>
 
 import bpy
-import mathutils
 from bpy.types import Operator
 from bpy.props import BoolProperty
 

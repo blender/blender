@@ -61,7 +61,6 @@ class NodeAddOperator():
     @staticmethod
     def store_mouse_cursor(context, event):
         space = context.space_data
-        v2d = context.region.view2d
         tree = space.edit_tree
 
         # convert mouse position to the View2D for later node placement

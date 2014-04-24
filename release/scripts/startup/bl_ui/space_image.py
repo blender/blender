@@ -458,7 +458,6 @@ class MASK_MT_editor_menus(Menu):
         sima = context.space_data
         ima = sima.image
 
-        show_render = sima.show_render
         show_uvedit = sima.show_uvedit
         show_maskedit = sima.show_maskedit
 
@@ -759,7 +758,6 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
-        tex_slot = brush.texture_slot
 
         col = layout.column()
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
@@ -775,7 +773,6 @@ class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
         layout = self.layout
 
         brush = context.tool_settings.image_paint.brush
-        tex_slot_alpha = brush.mask_texture_slot
 
         col = layout.column()
 

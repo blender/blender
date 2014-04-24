@@ -50,7 +50,6 @@ def parse_rst_py(filepath):
     indent_map = {}
     indent_prev = 0
     f = open(filepath, encoding="utf-8")
-    indent_lists = []
     for i, line in enumerate(f):
         line_strip = line.lstrip()
         # ^\.\.\s[a-zA-Z09\-]+::.*$

@@ -571,7 +571,7 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
 
         rd = context.scene.render
         scene = context.scene
-        cscene = scene.cycles
+        # cscene = scene.cycles
 
         layout.active = rd.use_motion_blur
 
@@ -585,7 +585,7 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
 
         rd = context.scene.render
         scene = context.scene
-        cscene = scene.cycles
+        # cscene = scene.cycles
 
         ob = context.object
         cob = ob.cycles
@@ -1194,7 +1194,7 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        cscene = scene.cycles
+        # cscene = scene.cycles
         psys = context.particle_system
         return CyclesButtonsPanel.poll(context) and psys and psys.settings.type == 'HAIR'
 
@@ -1233,7 +1233,7 @@ class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        cscene = scene.cycles
+        # cscene = scene.cycles
         ccscene = scene.cycles_curves
         psys = context.particle_system
         use_curves = ccscene.use_curves and psys

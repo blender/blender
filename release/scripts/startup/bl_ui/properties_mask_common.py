@@ -377,7 +377,6 @@ class MASK_MT_select(Menu):
 
     def draw(self, context):
         layout = self.layout
-        sc = context.space_data
 
         layout.operator("mask.select_border")
         layout.operator("mask.select_circle")

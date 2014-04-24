@@ -76,7 +76,7 @@ class MESH_UL_shape_keys(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.ShapeKey)
         obj = active_data
-        key = data
+        # key = data
         key_block = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split(0.66, False)
@@ -323,7 +323,6 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         layout = self.layout
 
         me = context.mesh
-        lay = me.uv_textures.active
 
         row = layout.row()
         col = row.column()
@@ -343,7 +342,6 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         layout = self.layout
 
         me = context.mesh
-        lay = me.vertex_colors.active
 
         row = layout.row()
         col = row.column()

@@ -687,7 +687,6 @@ class TransformsToDeltasAnim(Operator):
         DELTA_PATHS = STANDARD_TO_DELTA_PATHS.values()
 
         # try to apply on each selected object
-        success = False
         for obj in context.selected_editable_objects:
             adt = obj.animation_data
             if (adt is None) or (adt.action is None):
@@ -792,7 +791,6 @@ class LodByName(Operator):
         return (context.active_object is not None)
 
     def execute(self, context):
-        scene = context.scene
         ob = context.active_object
 
         prefix = ""
@@ -843,7 +841,6 @@ class LodClearAll(Operator):
         return (context.active_object is not None)
 
     def execute(self, context):
-        scene = context.scene
         ob = context.active_object
 
         if ob.lod_levels:

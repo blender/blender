@@ -262,7 +262,6 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
 
         sc = context.space_data
         clip = sc.clip
-        settings = clip.tracking.settings
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -641,7 +640,6 @@ class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        sc = context.space_data
         clip = context.space_data.clip
         active_track = clip.tracking.plane_tracks.active
 
@@ -1086,7 +1084,6 @@ class CLIP_PT_footage_info(CLIP_PT_clip_view_panel, Panel):
         layout = self.layout
 
         sc = context.space_data
-        clip = sc.clip
 
         col = layout.column()
         col.template_movieclip_information(sc, "clip", sc.clip_user)

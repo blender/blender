@@ -73,16 +73,11 @@ def region_2d_to_origin_3d(region, rv3d, coord):
     :return: The origin of the viewpoint in 3d space.
     :rtype: :class:`mathutils.Vector`
     """
-    from mathutils import Vector
-
     viewinv = rv3d.view_matrix.inverted()
 
     if rv3d.is_perspective:
-        from mathutils.geometry import intersect_line_plane
-
         origin_start = viewinv.translation.copy()
     else:
-        from mathutils.geometry import intersect_point_line
         persmat = rv3d.perspective_matrix.copy()
         dx = (2.0 * coord[0] / region.width) - 1.0
         dy = (2.0 * coord[1] / region.height) - 1.0

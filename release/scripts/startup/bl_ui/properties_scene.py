@@ -182,7 +182,6 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render
 
         col = layout.column()
         col.label(text="Display:")

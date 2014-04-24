@@ -195,7 +195,6 @@ class UI_UL_list(bpy.types.UIList):
         return a list mapping org_idx -> new_idx,
                or an empty list if no sorting has been done.
         """
-        neworder = [None] * len(items)
         _sort = [(idx, getattr(it, propname, "")) for idx, it in enumerate(items)]
         return cls.sort_items_helper(_sort, lambda e: e[1].lower())
 

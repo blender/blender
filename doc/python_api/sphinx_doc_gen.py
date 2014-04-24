@@ -62,7 +62,7 @@ Sphinx: PDF generation
 
 try:
     import bpy  # blender module
-except:
+except ImportError:
     print("\nERROR: this script must run from inside Blender")
     print(SCRIPT_HELP_MSG)
     import sys

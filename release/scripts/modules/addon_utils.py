@@ -229,9 +229,9 @@ def check(module_name):
 
 def _addon_ensure(module_name):
     addons = _user_preferences.addons
-    addon = _user_preferences.addons.get(module_name)
+    addon = addons.get(module_name)
     if not addon:
-        addon = _user_preferences.addons.new()
+        addon = addons.new()
         addon.module = module_name
 
 

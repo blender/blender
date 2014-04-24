@@ -87,7 +87,6 @@ class MeshMirrorUV(Operator):
 
         polys = mesh.polygons
         loops = mesh.loops
-        verts = mesh.vertices
         uv_loops = mesh.uv_layers.active.data
         nbr_polys = len(polys)
 

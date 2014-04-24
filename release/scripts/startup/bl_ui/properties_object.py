@@ -324,7 +324,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
         return (context.object)
 
     def draw(self, context):
-        layout = self.layout
+        # layout = self.layout
 
         ob = context.object
         avs = ob.animation_visualization

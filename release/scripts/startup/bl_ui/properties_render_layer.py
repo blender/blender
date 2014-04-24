@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel, UIList
+from bpy.types import Panel, UIList
 
 
 class RenderLayerButtonsPanel():

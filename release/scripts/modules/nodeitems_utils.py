@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel
 
 
 class NodeCategory():
@@ -92,7 +91,6 @@ def register_node_categories(identifier, cat_list):
     def draw_node_item(self, context):
         layout = self.layout
         col = layout.column()
-        default_context = bpy.app.translations.contexts.default
         for item in self.category.items(context):
             item.draw(item, col, context)
 
