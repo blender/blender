@@ -40,6 +40,8 @@
 
 /* de-duplicate as we pack */
 #define USE_MERGE
+/* use strip-free */
+#define USE_FREE_STRIP
 
 /* BoxPacker for backing 2D rectangles into a square
  * 
@@ -152,6 +154,13 @@ static int vertex_sort(const void *p1, const void *p2)
 
 	v1 = vertarray + ((int *)p1)[0];
 	v2 = vertarray + ((int *)p2)[0];
+
+#ifdef USE_FREE_STRIP
+	/* push free verts to the end so we can strip */
+	if      (UNLIKELY(v1->free == 0 && v2->free == 0)) return  0;
+	else if (UNLIKELY(v1->free == 0))                  return  1;
+	else if (UNLIKELY(v2->free == 0))                  return -1;
+#endif
 
 	a1 = max_ff(v1->x + box_width, v1->y + box_height);
 	a2 = max_ff(v2->x + box_width, v2->y + box_height);
@@ -271,6 +280,15 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width
 		box_height = box->h;
 
 		qsort(vertex_pack_indices, (size_t)verts_pack_len, sizeof(int), vertex_sort);
+
+#ifdef USE_FREE_STRIP
+		/* strip free vertices */
+		i = verts_pack_len - 1;
+		while ((i != 0) && vertarray[vertex_pack_indices[i]].free == 0) {
+			i--;
+		}
+		verts_pack_len = i + 1;
+#endif
 
 		/* Pack the box in with the others */
 		/* sort the verts */
