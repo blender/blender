@@ -35,6 +35,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -820,6 +821,19 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
 		case IDP_INT:
 			return (IDP_Int(prop1) == IDP_Int(prop2));
 		case IDP_FLOAT:
+#ifdef DEBUG
+			{
+				float p1 = IDP_Float(prop1);
+				float p2 = IDP_Float(prop2);
+				if ((p1 != p2) && ((fabs(p1 - p2) / max_ff(p1, p2)) < 0.001)) {
+					printf("WARNING: Comparing two float properties that have nearly the same value (%f vs. %f)\n", p1, p2);
+					printf("    p1: ");
+					IDP_spit(prop1);
+					printf("    p2: ");
+					IDP_spit(prop2);
+				}
+			}
+#endif
 			return (IDP_Float(prop1) == IDP_Float(prop2));
 		case IDP_DOUBLE:
 			return (IDP_Double(prop1) == IDP_Double(prop2));
