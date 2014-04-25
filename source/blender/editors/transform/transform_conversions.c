@@ -4107,8 +4107,9 @@ void flushTransGraphData(TransInfo *t)
 		/* handle snapping for time values
 		 *	- we should still be in NLA-mapping timespace
 		 *	- only apply to keyframes (but never to handles)
+		 *  - don't do this when cancelling, or else these changes won't go away
 		 */
-		if ((td->flag & TD_NOTIMESNAP) == 0) {
+		if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
 			switch (sipo->autosnap) {
 				case SACTSNAP_FRAME: /* snap to nearest frame */
 					td2d->loc[0] = floor((double)td2d->loc[0] + 0.5);
@@ -4136,8 +4137,11 @@ void flushTransGraphData(TransInfo *t)
 		 *
 		 * NOTE: We also have to apply to td->loc, as that's what the handle-adjustment step below looks
 		 *       to, otherwise we get "swimming handles"
+		 * NOTE: We don't do this when cancelling transforms, or else these changes don't go away
 		 */
-		if ((td->flag & TD_NOTIMESNAP) == 0 && ELEM(sipo->autosnap, SACTSNAP_STEP, SACTSNAP_TSTEP)) {
+		if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0 && 
+		    ELEM(sipo->autosnap, SACTSNAP_STEP, SACTSNAP_TSTEP)) 
+		{
 			switch (sipo->autosnap) {
 				case SACTSNAP_STEP: /* frame step */
 					td2d->loc2d[0] = floor((double)td2d->loc[0] + 0.5);

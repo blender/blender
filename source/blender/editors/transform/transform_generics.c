@@ -529,41 +529,45 @@ static void recalcData_nla(TransInfo *t)
 				break;
 		}
 		
-		/* handle auto-snapping */
-		switch (snla->autosnap) {
-			case SACTSNAP_FRAME: /* snap to nearest frame */
-			case SACTSNAP_STEP: /* frame step - this is basically the same, since we don't have any remapping going on */
-			{
-				tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
-				tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
-				break;
-			}
-			
-			case SACTSNAP_SECOND: /* snap to nearest second */
-			case SACTSNAP_TSTEP: /* second step - this is basically the same, since we don't have any remapping going on */
-			{
-				/* This case behaves differently from the rest, since lengths of strips
-				 * may not be multiples of a second. If we just naively resize adjust
-				 * the handles, things may not work correctly. Instead, we only snap
-				 * the first handle, and move the other to fit.
-				 *
-				 * FIXME: we do run into problems here when user attempts to negatively
-				 *        scale the strip, as it then just compresses down and refuses
-				 *        to expand out the other end.
-				 */
-				float h1_new = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
-				float delta  = h1_new - tdn->h1[0];
+		/* handle auto-snapping
+		 * NOTE: only do this when transform is still running, or we can't restore
+		 */
+		if (t->state != TRANS_CANCEL) {
+			switch (snla->autosnap) {
+				case SACTSNAP_FRAME: /* snap to nearest frame */
+				case SACTSNAP_STEP: /* frame step - this is basically the same, since we don't have any remapping going on */
+				{
+					tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
+					tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
+					break;
+				}
 				
-				tdn->h1[0] = h1_new;
-				tdn->h2[0] += delta;
-				break;
-			}
-			
-			case SACTSNAP_MARKER: /* snap to nearest marker */
-			{
-				tdn->h1[0] = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h1[0]);
-				tdn->h2[0] = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h2[0]);
-				break;
+				case SACTSNAP_SECOND: /* snap to nearest second */
+				case SACTSNAP_TSTEP: /* second step - this is basically the same, since we don't have any remapping going on */
+				{
+					/* This case behaves differently from the rest, since lengths of strips
+					 * may not be multiples of a second. If we just naively resize adjust
+					 * the handles, things may not work correctly. Instead, we only snap
+					 * the first handle, and move the other to fit.
+					 *
+					 * FIXME: we do run into problems here when user attempts to negatively
+					 *        scale the strip, as it then just compresses down and refuses
+					 *        to expand out the other end.
+					 */
+					float h1_new = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
+					float delta  = h1_new - tdn->h1[0];
+					
+					tdn->h1[0] = h1_new;
+					tdn->h2[0] += delta;
+					break;
+				}
+				
+				case SACTSNAP_MARKER: /* snap to nearest marker */
+				{
+					tdn->h1[0] = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h1[0]);
+					tdn->h2[0] = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h2[0]);
+					break;
+				}
 			}
 		}
 		
