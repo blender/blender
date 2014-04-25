@@ -146,10 +146,6 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 				bounce++;
 			}
 
-			/* free dynamic storage */
-			if(hits != hits_stack)
-				free(hits);
-
 #ifdef __VOLUME__
 			/* attenuation for last line segment towards light */
 			if(ps.volume_stack[0].shader != SHADER_NONE)
@@ -158,6 +154,10 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 			*shadow *= throughput;
 		}
+
+		/* free dynamic storage */
+		if(hits != hits_stack)
+			free(hits);
 	}
 	else {
 		Intersection isect;
