@@ -39,7 +39,7 @@ private:
 	OrderOfChunks m_chunkOrder;
 	bool m_doDepthBuffer;
 	ImBuf *m_ibuf;
-	bool m_ignoreAlpha;
+	bool m_useAlphaInput;
 	
 	const ColorManagedViewSettings *m_viewSettings;
 	const ColorManagedDisplaySettings *m_displaySettings;
@@ -66,7 +66,7 @@ public:
 	OrderOfChunks getChunkOrder() const { return this->m_chunkOrder; }
 	const CompositorPriority getRenderPriority() const;
 	bool isViewerOperation() const { return true; }
-	void setIgnoreAlpha(bool value) { this->m_ignoreAlpha = value; }
+	void setUseAlphaInput(bool value) { this->m_useAlphaInput = value; }
 
 	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }
 	void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings) { this->m_displaySettings = displaySettings; }

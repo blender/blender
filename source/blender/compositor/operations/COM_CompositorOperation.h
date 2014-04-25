@@ -69,7 +69,7 @@ private:
 	/**
 	 * @brief Ignore any alpha input
 	 */
-	bool m_ignoreAlpha;
+	bool m_useAlphaInput;
 
 	/**
 	 * @brief operation is active for calculating final compo result
@@ -86,7 +86,7 @@ public:
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	void setIgnoreAlpha(bool value) { this->m_ignoreAlpha = value; }
+	void setUseAlphaInput(bool value) { this->m_useAlphaInput = value; }
 	void setActive(bool active) { this->m_active = active; }
 };
 #endif

@@ -103,6 +103,33 @@ NodeOperationInput *NodeConverter::addOutputProxy(NodeOutput *output)
 	return proxy->getInputSocket(0);
 }
 
+void NodeConverter::addInputValue(NodeOperationInput *input, float value)
+{
+	SetValueOperation *operation = new SetValueOperation();
+	operation->setValue(value);
+	
+	m_builder->addOperation(operation);
+	m_builder->addLink(operation->getOutputSocket(), input);
+}
+
+void NodeConverter::addInputColor(NodeOperationInput *input, const float value[4])
+{
+	SetColorOperation *operation = new SetColorOperation();
+	operation->setChannels(value);
+	
+	m_builder->addOperation(operation);
+	m_builder->addLink(operation->getOutputSocket(), input);
+}
+
+void NodeConverter::addInputVector(NodeOperationInput *input, const float value[3])
+{
+	SetVectorOperation *operation = new SetVectorOperation();
+	operation->setVector(value);
+	
+	m_builder->addOperation(operation);
+	m_builder->addLink(operation->getOutputSocket(), input);
+}
+
 void NodeConverter::addOutputValue(NodeOutput *output, float value)
 {
 	SetValueOperation *operation = new SetValueOperation();

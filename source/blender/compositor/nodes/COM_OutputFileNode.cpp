@@ -56,7 +56,8 @@ void OutputFileNode::convertToOperations(NodeConverter &converter, const Composi
 			NodeInput *input = getInputSocket(i);
 			NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
 			
-			outputOperation->add_layer(sockdata->layer, input->getDataType());
+			/* note: layer becomes an empty placeholder if the input is not linked */
+			outputOperation->add_layer(sockdata->layer, input->getDataType(), input->isLinked());
 			
 			converter.mapInputSocket(input, outputOperation->getInputSocket(i));
 			

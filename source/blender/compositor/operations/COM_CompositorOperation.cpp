@@ -48,7 +48,7 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 	this->m_alphaInput = NULL;
 	this->m_depthInput = NULL;
 
-	this->m_ignoreAlpha = false;
+	this->m_useAlphaInput = false;
 	this->m_active = false;
 
 	this->m_sceneName[0] = '\0';
@@ -188,21 +188,14 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 			int input_x = x + dx, input_y = y + dy;
 
 			this->m_imageInput->readSampled(color, input_x, input_y, COM_PS_NEAREST);
-			if (this->m_ignoreAlpha) {
-				color[3] = 1.0f;
-			}
-			else {
-				if (this->m_alphaInput != NULL) {
-					this->m_alphaInput->readSampled(&(color[3]), input_x, input_y, COM_PS_NEAREST);
-				}
+			if (this->m_useAlphaInput) {
+				this->m_alphaInput->readSampled(&(color[3]), input_x, input_y, COM_PS_NEAREST);
 			}
 
 			copy_v4_v4(buffer + offset4, color);
 
-			if (this->m_depthInput != NULL) {
-				this->m_depthInput->readSampled(color, input_x, input_y, COM_PS_NEAREST);
-				zbuffer[offset] = color[0];
-			}
+			this->m_depthInput->readSampled(color, input_x, input_y, COM_PS_NEAREST);
+			zbuffer[offset] = color[0];
 			offset4 += COM_NUMBER_OF_CHANNELS;
 			offset++;
 			if (isBreaked()) {

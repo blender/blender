@@ -34,6 +34,7 @@ void CompositorNode::convertToOperations(NodeConverter &converter, const Composi
 	bNode *editorNode = this->getbNode();
 	bool is_active = (editorNode->flag & NODE_DO_OUTPUT_RECALC) ||
 	                 context.isRendering();
+	bool ignore_alpha = editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA;
 
 	NodeInput *imageSocket = this->getInputSocket(0);
 	NodeInput *alphaSocket = this->getInputSocket(1);
@@ -43,12 +44,17 @@ void CompositorNode::convertToOperations(NodeConverter &converter, const Composi
 	compositorOperation->setSceneName(context.getScene()->id.name);
 	compositorOperation->setRenderData(context.getRenderData());
 	compositorOperation->setbNodeTree(context.getbNodeTree());
-	compositorOperation->setIgnoreAlpha(editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA);
+	/* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */
+	compositorOperation->setUseAlphaInput(ignore_alpha || alphaSocket->isLinked());
 	compositorOperation->setActive(is_active);
 	
 	converter.addOperation(compositorOperation);
 	converter.mapInputSocket(imageSocket, compositorOperation->getInputSocket(0));
-	converter.mapInputSocket(alphaSocket, compositorOperation->getInputSocket(1));
+	/* only use alpha link if "use alpha" is enabled */
+	if (ignore_alpha)
+		converter.addInputValue(compositorOperation->getInputSocket(1), 1.0f);
+	else
+		converter.mapInputSocket(alphaSocket, compositorOperation->getInputSocket(1));
 	converter.mapInputSocket(depthSocket, compositorOperation->getInputSocket(2));
 	
 	converter.addNodeInputPreview(imageSocket);

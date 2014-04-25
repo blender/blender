@@ -36,6 +36,7 @@ void ViewerNode::convertToOperations(NodeConverter &converter, const CompositorC
 	bNode *editorNode = this->getbNode();
 	bool is_active = (editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) &&
 	                 ((editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
+	bool ignore_alpha = editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA;
 
 	NodeInput *imageSocket = this->getInputSocket(0);
 	NodeInput *alphaSocket = this->getInputSocket(1);
@@ -50,7 +51,8 @@ void ViewerNode::convertToOperations(NodeConverter &converter, const CompositorC
 	viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
 	viewerOperation->setCenterX(editorNode->custom3);
 	viewerOperation->setCenterY(editorNode->custom4);
-	viewerOperation->setIgnoreAlpha(editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA);
+	/* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */
+	viewerOperation->setUseAlphaInput(ignore_alpha || alphaSocket->isLinked());
 
 	viewerOperation->setViewSettings(context.getViewSettings());
 	viewerOperation->setDisplaySettings(context.getDisplaySettings());
@@ -64,7 +66,11 @@ void ViewerNode::convertToOperations(NodeConverter &converter, const CompositorC
 
 	converter.addOperation(viewerOperation);
 	converter.mapInputSocket(imageSocket, viewerOperation->getInputSocket(0));
-	converter.mapInputSocket(alphaSocket, viewerOperation->getInputSocket(1));
+	/* only use alpha link if "use alpha" is enabled */
+	if (ignore_alpha)
+		converter.addInputValue(viewerOperation->getInputSocket(1), 1.0f);
+	else
+		converter.mapInputSocket(alphaSocket, viewerOperation->getInputSocket(1));
 	converter.mapInputSocket(depthSocket, viewerOperation->getInputSocket(2));
 
 	converter.addNodeInputPreview(imageSocket);

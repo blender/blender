@@ -62,11 +62,14 @@ public:
 
 /* extra info for OpenEXR layers */
 struct OutputOpenExrLayer {
-	OutputOpenExrLayer(const char *name, DataType datatype);
+	OutputOpenExrLayer(const char *name, DataType datatype, bool use_layer);
 	
 	char name[EXR_TOT_MAXNAME - 2];
-	float *outputBuffer;
 	DataType datatype;
+	bool use_layer;
+	
+	/* internals */
+	float *outputBuffer;
 	SocketReader *imageInput;
 };
 
@@ -85,7 +88,7 @@ private:
 public:
 	OutputOpenExrMultiLayerOperation(const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec);
 	
-	void add_layer(const char *name, DataType datatype);
+	void add_layer(const char *name, DataType datatype, bool use_layer);
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	bool isOutputOperation(bool rendering) const { return true; }

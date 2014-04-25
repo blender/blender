@@ -155,10 +155,12 @@ void OutputSingleLayerOperation::deinitExecution()
 }
 
 
-OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_)
+OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bool use_layer_)
 {
 	BLI_strncpy(this->name, name_, sizeof(this->name));
 	this->datatype = datatype_;
+	this->use_layer = use_layer_;
+	
 	/* these are created in initExecution */
 	this->outputBuffer = 0;
 	this->imageInput = 0;
@@ -174,21 +176,20 @@ OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(
 	this->m_exr_codec = exr_codec;
 }
 
-void OutputOpenExrMultiLayerOperation::add_layer(const char *name, DataType datatype)
+void OutputOpenExrMultiLayerOperation::add_layer(const char *name, DataType datatype, bool use_layer)
 {
 	this->addInputSocket(datatype);
-	this->m_layers.push_back(OutputOpenExrLayer(name, datatype));
+	this->m_layers.push_back(OutputOpenExrLayer(name, datatype, use_layer));
 }
 
 void OutputOpenExrMultiLayerOperation::initExecution()
 {
 	for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
-		SocketReader *reader = getInputSocketReader(i);
-		this->m_layers[i].imageInput = reader;
-		if (reader)
+		if (this->m_layers[i].use_layer) {
+			SocketReader *reader = getInputSocketReader(i);
+			this->m_layers[i].imageInput = reader;
 			this->m_layers[i].outputBuffer = init_buffer(this->getWidth(), this->getHeight(), this->m_layers[i].datatype);
-		else
-			this->m_layers[i].outputBuffer = NULL;
+		}
 	}
 }
 

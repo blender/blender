@@ -75,6 +75,13 @@ public:
 	 */
 	NodeOperationInput *addOutputProxy(NodeOutput *output);
 	
+	/** Define a constant input value. */
+	void addInputValue(NodeOperationInput *input, float value);
+	/** Define a constant input color. */
+	void addInputColor(NodeOperationInput *input, const float value[4]);
+	/** Define a constant input vector. */
+	void addInputVector(NodeOperationInput *input, const float value[3]);
+	
 	/** Define a constant output value. */
 	void addOutputValue(NodeOutput *output, float value);
 	/** Define a constant output color. */
