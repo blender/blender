@@ -542,8 +542,20 @@ static int edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", rna_type);
 	Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
 
-	if (!ptr.data || !ob || ob->id.lib) return 0;
-	if (ptr.id.data && ((ID *)ptr.id.data)->lib) return 0;
+	if (!ptr.data) {
+		CTX_wm_operator_poll_msg_set(C, "Context missing 'constraint'");
+		return 0;
+	}
+
+	if (!ob) {
+		CTX_wm_operator_poll_msg_set(C, "Context missing active object");
+		return 0;
+	}
+
+	if (ob->id.lib || (ptr.id.data && ((ID *)ptr.id.data)->lib)) {
+		CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
+		return 0;
+	}
 
 	return 1;
 }
