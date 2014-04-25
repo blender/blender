@@ -1719,7 +1719,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 
 	glSelectBuffer(64, buffer);
 	glRenderMode(GL_SELECT);
-	glInitNames();  /* these two calls whatfor? It doesnt work otherwise */
+	glInitNames();  /* these two calls whatfor? It doesn't work otherwise */
 	glPushName(-2);
 
 	/* do the drawing */

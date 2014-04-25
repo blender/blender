@@ -1562,7 +1562,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 	}
 
 
-	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+	/* aftertrans does insert keyframes, and clears base flags; doesn't read transdata */
 	special_aftertrans_update(C, t);
 
 	postTrans(C, t);
@@ -2336,7 +2336,7 @@ int transformEnd(bContext *C, TransInfo *t)
 			exit_code = OPERATOR_FINISHED;
 		}
 
-		/* aftertrans does insert keyframes, and clears base flags, doesnt read transdata */
+		/* aftertrans does insert keyframes, and clears base flags; doesn't read transdata */
 		special_aftertrans_update(C, t);
 
 		/* free data */

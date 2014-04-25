@@ -404,7 +404,7 @@ static void recalcData_graphedit(TransInfo *t)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->key_data;
 		
-		/* ignore unselected fcurves */
+		/* ignore FC-Curves without any selected verts */
 		if (!fcu_test_selected(fcu))
 			continue;
 
