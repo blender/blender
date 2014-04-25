@@ -2059,9 +2059,13 @@ static struct TransIslandData *editmesh_islands_info_calc(BMEditMesh *em, int *r
 			/* pass */
 		}
 		else {
-			normalize_v3(no);
-			axis_dominant_v3_to_m3(trans_islands[i].axismtx, no);
-			invert_m3(trans_islands[i].axismtx);
+			if (normalize_v3(no) != 0.0f) {
+				axis_dominant_v3_to_m3(trans_islands[i].axismtx, no);
+				invert_m3(trans_islands[i].axismtx);
+			}
+			else {
+				unit_m3(trans_islands[i].axismtx);
+			}
 		}
 	}
 
