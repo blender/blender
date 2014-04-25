@@ -326,7 +326,7 @@ kmi.properties.name = 'VIEW3D_MT_pose_group'
 kmi = km.keymap_items.new('wm.call_menu', 'RIGHTMOUSE', 'PRESS')
 kmi.properties.name = 'VIEW3D_MT_bone_options_toggle'
 kmi = km.keymap_items.new('armature.layers_show_all', 'ACCENT_GRAVE', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('pose.armature_layers', 'M', 'PRESS', shift=True)
+kmi = km.keymap_items.new('armature.armature_layers', 'M', 'PRESS', shift=True)
 kmi = km.keymap_items.new('pose.bone_layers', 'M', 'PRESS')
 kmi = km.keymap_items.new('transform.transform', 'S', 'PRESS', ctrl=True, alt=True)
 kmi = km.keymap_items.new('anim.keyframe_insert_menu', 'S', 'PRESS')

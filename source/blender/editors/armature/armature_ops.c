@@ -139,7 +139,6 @@ void ED_operatortypes_armature(void)
 
 	WM_operatortype_append(POSE_OT_quaternions_flip);
 	
-	WM_operatortype_append(POSE_OT_armature_layers);
 	WM_operatortype_append(POSE_OT_bone_layers);
 	
 	WM_operatortype_append(POSE_OT_propagate);
@@ -284,7 +283,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_disable", WKEY, KM_PRESS, KM_ALT, 0);
-		
+	
 	/* armature/bone layers */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
@@ -385,7 +384,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	/* armature/bone layers */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
 	
 	/* special transforms: */
