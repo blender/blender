@@ -2941,12 +2941,6 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Space Timeline Editor", "Timeline editor space data");
 	
 	/* view settings */
-	prop = RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ONLYACTSEL);
-	RNA_def_property_ui_text(prop, "Only Selected Channels",
-	                         "Show keyframes for active Object and/or its selected bones only");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
-	
 	prop = RNA_def_property(srna, "show_frame_indicator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_CFRA_NUM);
 	RNA_def_property_ui_text(prop, "Show Frame Number Indicator",

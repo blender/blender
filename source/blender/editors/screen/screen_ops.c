@@ -2095,6 +2095,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	/* init binarytree-list for getting keyframes */
 	BLI_dlrbTree_init(&keys);
 	
+	/* seed up dummy dopesheet context with flags to perform necessary filtering */
+	if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
+		/* only selected channels are included */
+		ads.filterflag |= ADS_FILTER_ONLYSEL;
+	}
+	
 	/* populate tree with keyframe nodes */
 	scene_to_keylist(&ads, scene, &keys, NULL);
 

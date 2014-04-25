@@ -5247,6 +5247,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Preview Range End Frame", "Alternative end frame for UI playback");
 	RNA_def_property_update(prop, NC_SCENE | ND_FRAME, NULL);
 	
+	/* Timeline / Time Navigation settings */
+	prop = RNA_def_property(srna, "show_keys_from_selected_only", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SCE_KEYS_NO_SELONLY);
+	RNA_def_property_ui_text(prop, "Only Keyframes from Selected Channels",
+	                         "Consider keyframes for active Object and/or its selected bones only "
+	                         "(in timeline and when jumping between keyframes)");
+	RNA_def_property_update(prop, NC_SCENE | ND_FRAME, NULL);
+	
 	/* Stamp */
 	prop = RNA_def_property(srna, "use_stamp_note", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "r.stamp_udata");

@@ -341,7 +341,7 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	View2D *v2d = &ar->v2d;
-	short onlysel = (stime->flag & TIME_ONLYACTSEL);
+	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);
 	
 	/* draw scene keyframes first 
 	 *	- don't try to do this when only drawing active/selected data keyframes,
