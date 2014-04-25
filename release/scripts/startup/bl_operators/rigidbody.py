@@ -143,6 +143,9 @@ class BakeToKeyframes(Operator):
                 scene.frame_set(f)
                 for j, obj in enumerate(objects):
                     mat = bake[i][j]
+                    # convert world space transform to parent space, so parented objects don't get offset after baking
+                    if (obj.parent):
+                        mat = obj.matrix_parent_inverse.inverted() * obj.parent.matrix_world.inverted() * mat
 
                     obj.location = mat.to_translation()
 
