@@ -3000,7 +3000,7 @@ PointCache *BKE_ptcache_add(ListBase *ptcaches)
 	cache= MEM_callocN(sizeof(PointCache), "PointCache");
 	cache->startframe= 1;
 	cache->endframe= 250;
-	cache->step= 10;
+	cache->step = 1;
 	cache->index = -1;
 
 	BLI_addtail(ptcaches, cache);
