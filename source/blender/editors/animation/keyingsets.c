@@ -641,6 +641,16 @@ void ANIM_keyingset_infos_exit(void)
 	BKE_keyingsets_free(&builtin_keyingsets);
 }
 
+/* Check if the ID appears in the paths specified by the KeyingSet */
+bool ANIM_keyingset_find_id(KeyingSet *ks, ID *id)
+{
+	/* sanity checks */
+	if (ELEM(NULL, ks, id))
+		return false;
+
+	return BLI_findptr(&ks->paths, id, offsetof(KS_Path, id)) != NULL;
+}
+
 /* ******************************************* */
 /* KEYING SETS API (for UI) */
 
