@@ -326,6 +326,84 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 		clear_dither_context(di);
 }
 
+
+/* float to byte pixels, output 4-channel RGBA */
+void IMB_buffer_byte_from_float_mask(uchar *rect_to, const float *rect_from,
+                                int channels_from, float dither, bool predivide,
+                                int width, int height, int stride_to, int stride_from, char *mask)
+{
+	int x, y;
+	DitherContext *di = NULL;
+	float inv_width = 1.0f / width,
+	inv_height = 1.0f / height;
+
+	if (dither)
+		di = create_dither_context(dither);
+
+	for (y = 0; y < height; y++) {
+		float t = y * inv_height;
+
+		if (channels_from == 1) {
+			/* single channel input */
+			const float *from = rect_from + stride_from * y;
+			uchar *to = rect_to + stride_to * y * 4;
+
+			for (x = 0; x < width; x++, from++, to += 4)
+				if (*mask++ == FILTER_MASK_USED)
+					to[0] = to[1] = to[2] = to[3] = FTOCHAR(from[0]);
+		}
+		else if (channels_from == 3) {
+			/* RGB input */
+			const float *from = rect_from + stride_from * y * 3;
+			uchar *to = rect_to + stride_to * y * 4;
+
+			for (x = 0; x < width; x++, from += 3, to += 4) {
+				if (*mask++ == FILTER_MASK_USED) {
+					rgb_float_to_uchar(to, from);
+					to[3] = 255;
+				}
+			}
+		}
+		else if (channels_from == 4) {
+			/* RGBA input */
+			const float *from = rect_from + stride_from * y * 4;
+			uchar *to = rect_to + stride_to * y * 4;
+
+			float straight[4];
+
+			if (dither && predivide) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
+					if (*mask++ == FILTER_MASK_USED) {
+						premul_to_straight_v4_v4(straight, from);
+						float_to_byte_dither_v4(to, straight, di, (float) x * inv_width, t);
+					}
+				}
+			}
+			else if (dither) {
+				for (x = 0; x < width; x++, from += 4, to += 4)
+					if (*mask++ == FILTER_MASK_USED)
+						float_to_byte_dither_v4(to, from, di, (float) x * inv_width, t);
+			}
+			else if (predivide) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
+					if (*mask++ == FILTER_MASK_USED) {
+						premul_to_straight_v4_v4(straight, from);
+						rgba_float_to_uchar(to, straight);
+					}
+				}
+			}
+			else {
+				for (x = 0; x < width; x++, from += 4, to += 4)
+					if (*mask++ == FILTER_MASK_USED)
+						rgba_float_to_uchar(to, from);
+			}
+		}
+	}
+
+	if (dither)
+		clear_dither_context(di);
+}
+
 /* byte to float pixels, input and output 4-channel RGBA  */
 void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
                                 int profile_to, int profile_from, bool predivide,
@@ -461,6 +539,50 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 						linearrgb_to_srgb_v4(to, from);
 				}
 			}
+		}
+	}
+}
+
+/* float to float pixels, output 4-channel RGBA */
+void IMB_buffer_float_from_float_mask(float *rect_to, const float *rect_from, int channels_from,
+                                      int width, int height, int stride_to, int stride_from, char *mask)
+{
+	int x, y;
+
+	if (channels_from == 1) {
+		/* single channel input */
+		for (y = 0; y < height; y++) {
+			const float *from = rect_from + stride_from * y;
+			float *to = rect_to + stride_to * y * 4;
+
+			for (x = 0; x < width; x++, from++, to += 4)
+				if (*mask++ == FILTER_MASK_USED)
+					to[0] = to[1] = to[2] = to[3] = from[0];
+		}
+	}
+	else if (channels_from == 3) {
+		/* RGB input */
+		for (y = 0; y < height; y++) {
+			const float *from = rect_from + stride_from * y * 3;
+			float *to = rect_to + stride_to * y * 4;
+
+			for (x = 0; x < width; x++, from += 3, to += 4) {
+				if (*mask++ == FILTER_MASK_USED) {
+					copy_v3_v3(to, from);
+					to[3] = 1.0f;
+				}
+			}
+		}
+	}
+	else if (channels_from == 4) {
+		/* RGBA input */
+		for (y = 0; y < height; y++) {
+			const float *from = rect_from + stride_from * y * 4;
+			float *to = rect_to + stride_to * y * 4;
+
+			for (x = 0; x < width; x++, from += 4, to += 4)
+				if (*mask++ == FILTER_MASK_USED)
+					copy_v4_v4(to, from);
 		}
 	}
 }
