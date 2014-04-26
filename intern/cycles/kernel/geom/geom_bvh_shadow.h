@@ -221,10 +221,12 @@ ccl_device bool BVH_FUNCTION_NAME
 								hit = triangle_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr);
 								break;
 							}
+#if FEATURE(BVH_MOTION)
 							case PRIMITIVE_MOTION_TRIANGLE: {
 								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, PATH_RAY_SHADOW, object, primAddr);
 								break;
 							}
+#endif
 #if FEATURE(BVH_HAIR)
 							case PRIMITIVE_CURVE:
 							case PRIMITIVE_MOTION_CURVE: {

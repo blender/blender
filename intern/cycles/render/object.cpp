@@ -321,6 +321,9 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		}
 #endif
 
+		if(mesh->use_motion_blur)
+			have_motion = true;
+
 		/* dupli object coords and motion info */
 		int totalsteps = mesh->motion_steps;
 		int numsteps = (totalsteps - 1)/2;
