@@ -736,7 +736,7 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 	int start;
 	float f_no[3];
 
-	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	const float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	short (*tlnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	MVert *mvert = dm->getVertArray(dm);
 	MFace *f = dm->getTessFaceArray(dm);
@@ -1384,7 +1384,7 @@ struct GPU_PBVH_Buffers {
 	/* mesh pointers in case buffer allocation fails */
 	MFace *mface;
 	MVert *mvert;
-	int *face_indices;
+	const int *face_indices;
 	int totface;
 	const float *vmask;
 
@@ -1393,7 +1393,7 @@ struct GPU_PBVH_Buffers {
 	CCGElem **grids;
 	const DMFlagMat *grid_flag_mats;
 	BLI_bitmap * const *grid_hidden;
-	int *grid_indices;
+	const int *grid_indices;
 	int totgrid;
 	int has_hidden;
 
@@ -1908,7 +1908,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 
 	/* used in the FILL_QUAD_BUFFER macro */
 	BLI_bitmap * const *grid_hidden = NULL;
-	int *grid_indices = NULL;
+	const int *grid_indices = NULL;
 	int totgrid = 1;
 
 	/* VBO is disabled; delete the previous buffer (if it exists) and
@@ -2520,7 +2520,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		if (buffers->tot_quad) {
-			char *offset = 0;
+			const char *offset = 0;
 			int i, last = buffers->has_hidden ? 1 : buffers->totgrid;
 			for (i = 0; i < last; i++) {
 				glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),

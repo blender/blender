@@ -263,7 +263,7 @@ void IMB_filter(struct ImBuf *ibuf)
 
 void IMB_mask_filter_extend(char *mask, int width, int height)
 {
-	char *row1, *row2, *row3;
+	const char *row1, *row2, *row3;
 	int rowlen, x, y;
 	char *temprect;
 

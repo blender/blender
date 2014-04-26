@@ -330,7 +330,7 @@ struct GPUTexture {
 static unsigned char *GPU_texture_convert_pixels(int length, float *fpixels)
 {
 	unsigned char *pixels, *p;
-	float *fp;
+	const float *fp;
 	int a, len;
 
 	len = 4*length;

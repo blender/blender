@@ -190,7 +190,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	unsigned int vc_tot_linked = 0;
 	short other_axis_1, other_axis_2;
-	float *tmpf1, *tmpf2;
+	const float *tmpf1, *tmpf2;
 
 	unsigned int edge_offset;
 	

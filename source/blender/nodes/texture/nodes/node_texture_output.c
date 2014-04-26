@@ -84,7 +84,7 @@ static void unique_name(bNode *node)
 	int new_len = 0;
 	int suffix;
 	bNode *i;
-	char *name = tno->name;
+	const char *name = tno->name;
 	
 	new_name[0] = '\0';
 	i = node;

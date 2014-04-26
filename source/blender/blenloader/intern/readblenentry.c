@@ -102,8 +102,8 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 		if (bhead->code == ENDB)
 			break;
 		else {
-			short *sp = fd->filesdna->structs[bhead->SDNAnr];
-			char *name = fd->filesdna->types[sp[0]];
+			const short *sp = fd->filesdna->structs[bhead->SDNAnr];
+			const char *name = fd->filesdna->types[sp[0]];
 			char buf[4];
 			
 			buf[0] = (bhead->code >> 24) & 0xFF;
@@ -131,7 +131,7 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
 
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
 		if (bhead->code == ofblocktype) {
-			char *idname = bhead_id_name(fd, bhead);
+			const char *idname = bhead_id_name(fd, bhead);
 
 			BLI_linklist_prepend(&names, strdup(idname + 2));
 			tot++;
@@ -156,7 +156,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
 		if (bhead->code == ofblocktype) {
-			char *idname = bhead_id_name(fd, bhead);
+			const char *idname = bhead_id_name(fd, bhead);
 			switch (GS(idname)) {
 				case ID_MA: /* fall through */
 				case ID_TE: /* fall through */

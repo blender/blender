@@ -618,7 +618,7 @@ static void enlarge_picture_float(
 	y_src = 0;
 	for (y_dst = 0; y_dst < dst_height; y_dst++) {
 		float *line1 = src + ((int) y_src) * 4 * src_width;
-		float *line2 = line1 + 4 * src_width;
+		const float *line2 = line1 + 4 * src_width;
 		const float weight1y = (float)(1.0 - (y_src - (int) y_src));
 		const float weight2y = 1.0f - weight1y;
 
@@ -684,7 +684,7 @@ static void shrink_picture_float(
 	float dx_dst, x_dst;
 	float dy_dst, y_dst;
 	float y_counter;
-	float *dst_begin = dst;
+	const float *dst_begin = dst;
 
 	struct scale_outpix_float *dst_line1;
 	struct scale_outpix_float *dst_line2;
@@ -702,7 +702,7 @@ static void shrink_picture_float(
 	y_dst = 0;
 	y_counter = 1.0;
 	for (y_src = 0; y_src < src_height; y_src++) {
-		float *line = src + y_src * 4 * src_width;
+		const float *line = src + y_src * 4 * src_width;
 		uintptr_t weight1y = 1.0f - (y_dst - (int) y_dst);
 		uintptr_t weight2y = 1.0f - weight1y;
 		x_dst = 0;

@@ -54,7 +54,7 @@ void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, shor
 
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 {
-	float *from = ns->vec;
+	const float *from = ns->vec;
 		
 	if (type_in == SOCK_FLOAT) {
 		if (ns->sockettype == SOCK_FLOAT)

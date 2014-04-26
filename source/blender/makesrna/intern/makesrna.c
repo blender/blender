@@ -1536,7 +1536,7 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 {
 	PropertyRNA *prop;
-	char *func;
+	const char *func;
 
 	prop = dp->prop;
 

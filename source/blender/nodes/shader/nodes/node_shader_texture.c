@@ -75,7 +75,7 @@ static void node_shader_exec_texture(void *data, int UNUSED(thread), bNode *node
 				retval = multitex_nodes((Tex *)node->id, vec, fp, fp + 3, shi->osatex, &texres, thread, which_output, NULL, NULL, NULL);
 			}
 			else if (in[0]->datatype == NS_OSA_VALUES) {
-				float *fp = in[0]->data;
+				const float *fp = in[0]->data;
 				float dxt[3], dyt[3];
 				
 				dxt[0] = fp[0]; dxt[1] = dxt[2] = 0.0f;

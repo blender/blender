@@ -52,7 +52,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(i
 			float xoff, yoff;
 			int px, py;
 			
-			float *result;
+			const float *result;
 
 			xsize = ibuf->x / 2;
 			ysize = ibuf->y / 2;

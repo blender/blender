@@ -221,7 +221,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 /* NEAREST INTERPOLATION */
 void nearest_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
-	float *dataF;
+	const float *dataF;
 	unsigned char *dataI;
 	int y1, x1;
 

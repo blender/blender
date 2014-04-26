@@ -191,7 +191,7 @@ static void meshdeformModifier_do(
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDefInfluence *influences;
-	int *offsets;
+	const int *offsets;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], (*dco)[3], (*bindcagecos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;

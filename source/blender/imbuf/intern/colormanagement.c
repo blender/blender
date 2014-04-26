@@ -1237,7 +1237,7 @@ const char *IMB_colormanagement_get_rect_colorspace(ImBuf *ibuf)
 typedef struct DisplayBufferThread {
 	ColormanageProcessor *cm_processor;
 
-	float *buffer;
+	const float *buffer;
 	unsigned char *byte_buffer;
 
 	float *display_buffer;
@@ -1258,7 +1258,7 @@ typedef struct DisplayBufferThread {
 typedef struct DisplayBufferInitData {
 	ImBuf *ibuf;
 	ColormanageProcessor *cm_processor;
-	float *buffer;
+	const float *buffer;
 	unsigned char *byte_buffer;
 
 	float *display_buffer;

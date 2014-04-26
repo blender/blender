@@ -324,7 +324,7 @@ static int rna_member_cmp(const char *name, const char *oname)
 static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *membername, DNAStructMember *smember)
 {
 	const char *dnaname;
-	short *sp;
+	const short *sp;
 	int a, b, structnr, totmember, cmp;
 
 	structnr = DNA_struct_find_nr(sdna, structname);

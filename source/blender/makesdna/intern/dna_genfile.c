@@ -307,7 +307,7 @@ static short *findstruct_name(SDNA *sdna, const char *str)
  */
 int DNA_struct_find_nr(SDNA *sdna, const char *str)
 {
-	short *sp = NULL;
+	const short *sp = NULL;
 
 	if (sdna->lastfind < sdna->nr_structs) {
 		sp = sdna->structs[sdna->lastfind];
@@ -566,7 +566,7 @@ SDNA *DNA_sdna_from_data(const void *data, const int datalen, bool do_endian_swa
 static void recurs_test_compflags(const SDNA *sdna, char *compflags, int structnr)
 {
 	int a, b, typenr, elems;
-	short *sp;
+	const short *sp;
 	const char *cp;
 	
 	/* check all structs, test if it's inside another struct */
@@ -1307,7 +1307,7 @@ int DNA_elem_offset(SDNA *sdna, const char *stype, const char *vartype, const ch
 	
 	const int SDNAnr = DNA_struct_find_nr(sdna, stype);
 	const short * const spo = sdna->structs[SDNAnr];
-	char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
+	const char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
 	BLI_assert(SDNAnr != -1);
 	return (int)((intptr_t)cp);
 }
@@ -1319,7 +1319,7 @@ bool DNA_struct_elem_find(SDNA *sdna, const char *stype, const char *vartype, co
 	
 	if (SDNAnr != -1) {
 		const short * const spo = sdna->structs[SDNAnr];
-		char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
+		const char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
 		
 		if (cp) return true;
 		return (int)((intptr_t)cp);

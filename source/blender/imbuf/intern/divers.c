@@ -567,7 +567,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 /* converts from linear float to sRGB byte for part of the texture, buffer will hold the changed part */
 void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w, int h, bool is_data)
 {
-	float *rect_float;
+	const float *rect_float;
 	uchar *rect_byte;
 	int profile_from = IB_PROFILE_LINEAR_RGB;
 

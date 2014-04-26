@@ -344,7 +344,7 @@ static int endwrite(WriteData *wd)
 static void writestruct_at_address(WriteData *wd, int filecode, const char *structname, int nr, void *adr, void *data)
 {
 	BHead bh;
-	short *sp;
+	const short *sp;
 
 	if (adr==NULL || data==NULL || nr==0) return;
 
@@ -1337,7 +1337,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 	/* write IK param */
 	if (pose->ikparam) {
-		char *structname = (char *)BKE_pose_ikparam_get_name(pose);
+		const char *structname = (char *)BKE_pose_ikparam_get_name(pose);
 		if (structname)
 			writestruct(wd, DATA, structname, 1, pose->ikparam);
 	}
@@ -1784,7 +1784,7 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 			write_mdisps(wd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
 		}
 		else if (layer->type == CD_PAINT_MASK) {
-			float *layer_data = layer->data;
+			const float *layer_data = layer->data;
 			writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
 		}
 		else if (layer->type == CD_GRID_PAINT_MASK) {

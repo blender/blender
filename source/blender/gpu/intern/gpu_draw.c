@@ -85,7 +85,7 @@ extern Material defmaterial; /* from material.c */
 static void gpu_mcol(unsigned int ucol)
 {
 	/* mcol order is swapped */
-	char *cp= (char *)&ucol;
+	const char *cp= (char *)&ucol;
 	glColor3ub(cp[3], cp[2], cp[1]);
 }
 
