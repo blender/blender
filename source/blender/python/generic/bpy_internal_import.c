@@ -226,7 +226,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 {
 	Text *text;
 	const char *name;
-	char *filepath;
+	const char *filepath;
 //XXX	Main *maggie = bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie = bpy_import_main;
 	
@@ -265,7 +265,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	PyObject *exception, *err, *tb;
-	char *name;
+	const char *name;
 	int found = 0;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
 	int level = 0; /* relative imports */

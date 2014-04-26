@@ -144,8 +144,8 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 // PyDoc_STRVAR(bpy_user_resource_doc[] = // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	char *type;
-	char *subdir = NULL;
+	const char *type;
+	const char *subdir = NULL;
 	int folder_id;
 	static const char *kwlist[] = {"type", "subdir", NULL};
 
@@ -189,7 +189,7 @@ PyDoc_STRVAR(bpy_resource_path_doc,
 );
 static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	char *type;
+	const char *type;
 	int major = BLENDER_VERSION / 100, minor = BLENDER_VERSION % 100;
 	static const char *kwlist[] = {"type", "major", "minor", NULL};
 	int folder_id;

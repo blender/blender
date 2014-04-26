@@ -1905,7 +1905,7 @@ PyObject *BPyInit_bgl(void)
 static PyObject *Method_ShaderSource(PyObject *UNUSED(self), PyObject *args)
 {
 	unsigned int shader;
-	char *source;
+	const char *source;
 
 	if (!PyArg_ParseTuple(args, "Is", &shader, &source))
 		return NULL;

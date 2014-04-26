@@ -269,7 +269,7 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject *UNUSED(self), P
 {
 	PyObject *ret;
 	VectorObject *vec_a, *vec_b;
-	float *v_a, *v_b;
+	const float *v_a, *v_b;
 	float rad_a, rad_b;
 	float v_ab[2];
 	float dist;

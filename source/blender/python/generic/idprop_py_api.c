@@ -599,7 +599,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 			switch (prop->subtype) {
 				case IDP_FLOAT:
 				{
-					float *array = (float *)IDP_Array(prop);
+					const float *array = (float *)IDP_Array(prop);
 					for (i = 0; i < prop->len; i++) {
 						PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
 					}
@@ -607,7 +607,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 				}
 				case IDP_DOUBLE:
 				{
-					double *array = (double *)IDP_Array(prop);
+					const double *array = (double *)IDP_Array(prop);
 					for (i = 0; i < prop->len; i++) {
 						PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
 					}
@@ -615,7 +615,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 				}
 				case IDP_INT:
 				{
-					int *array = (int *)IDP_Array(prop);
+					const int *array = (int *)IDP_Array(prop);
 					for (i = 0; i < prop->len; i++) {
 						PyList_SET_ITEM(seq, i, PyLong_FromLong(array[i]));
 					}
@@ -881,7 +881,7 @@ static PyObject *BPy_IDGroup_clear(BPy_IDProperty *self)
 static PyObject *BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
 {
 	IDProperty *idprop;
-	char *key;
+	const char *key;
 	PyObject *def = Py_None;
 
 	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
@@ -1158,7 +1158,7 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 	switch (prop->subtype) {
 		case IDP_FLOAT:
 		{
-			float *array = (float *)IDP_Array(prop);
+			const float *array = (float *)IDP_Array(prop);
 			for (count = begin; count < end; count++) {
 				PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(array[count]));
 			}
@@ -1166,7 +1166,7 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 		}
 		case IDP_DOUBLE:
 		{
-			double *array = (double *)IDP_Array(prop);
+			const double *array = (double *)IDP_Array(prop);
 			for (count = begin; count < end; count++) {
 				PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(array[count]));
 			}
@@ -1174,7 +1174,7 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 		}
 		case IDP_INT:
 		{
-			int *array = (int *)IDP_Array(prop);
+			const int *array = (int *)IDP_Array(prop);
 			for (count = begin; count < end; count++) {
 				PyTuple_SET_ITEM(tuple, count - begin, PyLong_FromLong(array[count]));
 			}

@@ -86,7 +86,7 @@ short BPy_errors_to_report(ReportList *reports)
 {
 	PyObject *pystring;
 	PyObject *pystring_format = NULL;  /* workaround, see below */
-	char *cstring;
+	const char *cstring;
 
 	const char *filename;
 	int lineno;

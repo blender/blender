@@ -182,8 +182,8 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 	void *handle;
 	PyObject *cls;
 	PyObject *cb_func, *cb_args;
-	char *cb_regiontype_str;
-	char *cb_event_str;
+	const char *cb_regiontype_str;
+	const char *cb_event_str;
 	int cb_event;
 	int cb_regiontype;
 	StructRNA *srna;
@@ -248,7 +248,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 	void *handle;
 	void *customdata;
 	StructRNA *srna;
-	char *cb_regiontype_str;
+	const char *cb_regiontype_str;
 	int cb_regiontype;
 
 	if (PyTuple_GET_SIZE(args) < 2) {

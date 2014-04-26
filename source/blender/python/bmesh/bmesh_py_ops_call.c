@@ -768,7 +768,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 			/* temp code, strip off '.out' while we keep this convention */
 			{
 				char slot_name_strip[MAX_SLOTNAME];
-				char *ch = strchr(slot->slot_name, '.');  /* can't fail! */
+				const char *ch = strchr(slot->slot_name, '.');  /* can't fail! */
 				int tot = ch - slot->slot_name;
 				BLI_assert(ch != NULL);
 				memcpy(slot_name_strip, slot->slot_name, tot);

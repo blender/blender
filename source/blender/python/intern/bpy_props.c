@@ -1881,7 +1881,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PropertyRNA *prop;
 		PyObject *pyopts = NULL;
 		int opts = 0;
-		char *pysubtype = NULL;
+		const char *pysubtype = NULL;
 		int subtype = PROP_NONE;
 		PyObject *update_cb = NULL;
 		PyObject *get_cb = NULL;
@@ -1967,7 +1967,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		PyObject *pydef = NULL;
 		PyObject *pyopts = NULL;
 		int opts = 0;
-		char *pysubtype = NULL;
+		const char *pysubtype = NULL;
 		int subtype = PROP_NONE;
 		PyObject *update_cb = NULL;
 		PyObject *get_cb = NULL;
@@ -2062,7 +2062,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PropertyRNA *prop;
 		PyObject *pyopts = NULL;
 		int opts = 0;
-		char *pysubtype = NULL;
+		const char *pysubtype = NULL;
 		int subtype = PROP_NONE;
 		PyObject *update_cb = NULL;
 		PyObject *get_cb = NULL;
@@ -2154,7 +2154,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		PyObject *pydef = NULL;
 		PyObject *pyopts = NULL;
 		int opts = 0;
-		char *pysubtype = NULL;
+		const char *pysubtype = NULL;
 		int subtype = PROP_NONE;
 		PyObject *update_cb = NULL;
 		PyObject *get_cb = NULL;
@@ -2259,9 +2259,9 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PropertyRNA *prop;
 		PyObject *pyopts = NULL;
 		int opts = 0;
-		char *pysubtype = NULL;
+		const char *pysubtype = NULL;
 		int subtype = PROP_NONE;
-		char *pyunit = NULL;
+		const char *pyunit = NULL;
 		int unit = PROP_UNIT_NONE;
 		PyObject *update_cb = NULL;
 		PyObject *get_cb = NULL;
@@ -2365,9 +2365,9 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		PyObject *pydef = NULL;
 		PyObject *pyopts = NULL;
 		int opts = 0;
-		char *pysubtype = NULL;
+		const char *pysubtype = NULL;
 		int subtype = PROP_NONE;
-		char *pyunit = NULL;
+		const char *pyunit = NULL;
 		int unit = PROP_UNIT_NONE;
 		PyObject *update_cb = NULL;
 		PyObject *get_cb = NULL;
@@ -2468,7 +2468,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		PropertyRNA *prop;
 		PyObject *pyopts = NULL;
 		int opts = 0;
-		char *pysubtype = NULL;
+		const char *pysubtype = NULL;
 		int subtype = PROP_NONE;
 		PyObject *update_cb = NULL;
 		PyObject *get_cb = NULL;
@@ -2847,7 +2847,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 	else {
 		static const char *kwlist[] = {"attr", NULL};
 		
-		char *id = NULL;
+		const char *id = NULL;
 
 		if (!PyArg_ParseTupleAndKeywords(args, kw,
 		                                 "s:RemoveProperty",

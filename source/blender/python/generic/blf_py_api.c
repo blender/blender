@@ -146,7 +146,7 @@ PyDoc_STRVAR(py_blf_draw_doc,
 );
 static PyObject *py_blf_draw(PyObject *UNUSED(self), PyObject *args)
 {
-	char *text;
+	const char *text;
 	int text_length;
 	int fontid;
 
@@ -172,7 +172,7 @@ PyDoc_STRVAR(py_blf_dimensions_doc,
 );
 static PyObject *py_blf_dimensions(PyObject *UNUSED(self), PyObject *args)
 {
-	char *text;
+	const char *text;
 	float r_width, r_height;
 	PyObject *ret;
 	int fontid;
@@ -356,7 +356,7 @@ PyDoc_STRVAR(py_blf_load_doc,
 );
 static PyObject *py_blf_load(PyObject *UNUSED(self), PyObject *args)
 {
-	char *filename;
+	const char *filename;
 
 	if (!PyArg_ParseTuple(args, "s:blf.load", &filename))
 		return NULL;
@@ -374,7 +374,7 @@ PyDoc_STRVAR(py_blf_unload_doc,
 );
 static PyObject *py_blf_unload(PyObject *UNUSED(self), PyObject *args)
 {
-	char *filename;
+	const char *filename;
 
 	if (!PyArg_ParseTuple(args, "s:blf.unload", &filename))
 		return NULL;

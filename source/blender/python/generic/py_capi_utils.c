@@ -284,7 +284,7 @@ PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 {
 	Py_ssize_t i;
 	PyObject *item = o;
-	char *attr;
+	const char *attr;
 	
 	va_list vargs;
 
@@ -647,7 +647,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 
 		va_start(vargs, n);
 		for (i = 0; i * 2 < n; i++) {
-			char *format = va_arg(vargs, char *);
+			const char *format = va_arg(vargs, char *);
 			void *ptr = va_arg(vargs, void *);
 
 			ret = PyObject_CallFunction(calcsize, (char *)"s", format);
@@ -704,7 +704,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 				/* now get the values back */
 				va_start(vargs, n);
 				for (i = 0; i * 2 < n; i++) {
-					char *format = va_arg(vargs, char *);
+					const char *format = va_arg(vargs, char *);
 					void *ptr = va_arg(vargs, void *);
 					
 					PyObject *item;

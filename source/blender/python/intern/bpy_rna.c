@@ -2171,7 +2171,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
                                                             PointerRNA *r_ptr
                                                             )
 {
-	char *keyname;
+	const char *keyname;
 
 	/* first validate the args, all we know is that they are a tuple */
 	if (PyTuple_GET_SIZE(key) != 2) {
@@ -4883,7 +4883,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 				break;
 			case PROP_STRING:
 			{
-				char *data_ch;
+				const char *data_ch;
 				PyObject *value_coerce = NULL;
 				const int subtype = RNA_property_subtype(prop);
 

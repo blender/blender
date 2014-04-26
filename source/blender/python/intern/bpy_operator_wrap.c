@@ -163,7 +163,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 	PointerRNA ptr_otmacro;
 	StructRNA *srna;
 
-	char *opname;
+	const char *opname;
 	const char *macroname;
 
 	if (!PyArg_ParseTuple(args, "Os:_bpy.ops.macro_define", &macro, &opname))

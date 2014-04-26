@@ -65,10 +65,10 @@
 static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
-	char     *opname;
+	const char *opname;
 	PyObject *context_dict = NULL; /* optional args */
 	PyObject *context_dict_back;
-	char     *context_str = NULL;
+	const char *context_str = NULL;
 	PyObject *ret;
 
 	int context = WM_OP_EXEC_DEFAULT;
@@ -139,8 +139,8 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	PointerRNA ptr;
 	int operator_ret = OPERATOR_CANCELLED;
 
-	char     *opname;
-	char     *context_str = NULL;
+	const char *opname;
+	const char *context_str = NULL;
 	PyObject *kw = NULL; /* optional args */
 	PyObject *context_dict = NULL; /* optional args */
 	PyObject *context_dict_back;
@@ -310,7 +310,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	wmOperatorType *ot;
 	PointerRNA ptr;
 
-	char     *opname;
+	const char *opname;
 	PyObject *kw = NULL; /* optional args */
 	int all_args = 1;
 	int macro_args = 1;
