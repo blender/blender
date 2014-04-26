@@ -669,7 +669,7 @@ void BKE_material_clear_id(struct ID *id, bool update_data)
 Material *give_current_material(Object *ob, short act)
 {
 	Material ***matarar, *ma;
-	short *totcolp;
+	const short *totcolp;
 
 	if (ob == NULL) return NULL;
 	
@@ -774,7 +774,7 @@ void test_object_materials(Main *bmain, ID *id)
 {
 	/* make the ob mat-array same size as 'ob->data' mat-array */
 	Object *ob;
-	short *totcol;
+	const short *totcol;
 
 	if (id == NULL || (totcol = give_totcolp_id(id)) == NULL) {
 		return;

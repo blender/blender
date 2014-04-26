@@ -2724,7 +2724,7 @@ void BKE_object_foreach_display_point(
 		DispList *dl;
 
 		for (dl = ob->curve_cache->disp.first; dl; dl = dl->next) {
-			float *v3 = dl->verts;
+			const float *v3 = dl->verts;
 			int totvert = dl->nr;
 			int i;
 
@@ -3656,7 +3656,7 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 			unsigned int i;
 
 			DerivedMesh *dm = ob->derivedDeform ? ob->derivedDeform : ob->derivedFinal;
-			int *index;
+			const int *index;
 
 			if (dm && (index = CustomData_get_layer(&dm->vertData, CD_ORIGINDEX))) {
 				MVert *mvert = dm->getVertArray(dm);

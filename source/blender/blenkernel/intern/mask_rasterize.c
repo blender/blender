@@ -841,8 +841,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						open_spline_ranges[open_spline_index].vertex_total_cap_tail = 0;
 
 						if (!is_cyclic) {
-							float *fp_cent;
-							float *fp_turn;
+							const float *fp_cent;
+							const float *fp_turn;
 
 							unsigned int k;
 

@@ -1687,8 +1687,8 @@ void BKE_mask_layer_shape_to_mask_interp(MaskLayer *masklay,
 {
 	int tot = BKE_mask_layer_shape_totvert(masklay);
 	if (masklay_shape_a->tot_vert == tot && masklay_shape_b->tot_vert == tot) {
-		float *fp_a = masklay_shape_a->data;
-		float *fp_b = masklay_shape_b->data;
+		const float *fp_a = masklay_shape_a->data;
+		const float *fp_b = masklay_shape_b->data;
 		const float ifac = 1.0f - fac;
 
 		MaskSpline *spline;
@@ -2105,7 +2105,7 @@ void BKE_mask_clipboard_paste_to_layer(Main *bmain, MaskLayer *mask_layer)
 		for (i = 0; i < spline_new->tot_point; i++) {
 			MaskSplinePoint *point = &spline_new->points[i];
 			if (point->parent.id) {
-				char *id_name = BLI_ghash_lookup(mask_clipboard.id_hash, point->parent.id);
+				const char *id_name = BLI_ghash_lookup(mask_clipboard.id_hash, point->parent.id);
 				ListBase *listbase;
 
 				BLI_assert(id_name != NULL);

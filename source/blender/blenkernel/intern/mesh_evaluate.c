@@ -172,8 +172,8 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 	/* inline version of #BKE_mesh_calc_poly_normal, also does edge-vectors */
 	{
 		int i_prev = nverts - 1;
-		float const *v_prev = mvert[ml[i_prev].v].co;
-		float const *v_curr;
+		const float const *v_prev = mvert[ml[i_prev].v].co;
+		const float const *v_curr;
 
 		zero_v3(polyno);
 		/* Newell's Method */
@@ -287,7 +287,7 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
 		MFace *mf = &mfaces[i];
 		float *f_no = fnors[i];
 		float *n4 = (mf->v4) ? tnorms[mf->v4] : NULL;
-		float *c4 = (mf->v4) ? mverts[mf->v4].co : NULL;
+		const float *c4 = (mf->v4) ? mverts[mf->v4].co : NULL;
 
 		if (mf->v4)
 			normal_quad_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
@@ -738,8 +738,8 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
                                   MVert *mvert, float normal[3])
 {
 	const int nverts = mpoly->totloop;
-	float const *v_prev = mvert[loopstart[nverts - 1].v].co;
-	float const *v_curr;
+	const float const *v_prev = mvert[loopstart[nverts - 1].v].co;
+	const float const *v_curr;
 	int i;
 
 	zero_v3(normal);
@@ -788,8 +788,8 @@ static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
                                          const float (*vertex_coords)[3], float normal[3])
 {
 	const int nverts = mpoly->totloop;
-	float const *v_prev = vertex_coords[loopstart[nverts - 1].v];
-	float const *v_curr;
+	const float const *v_prev = vertex_coords[loopstart[nverts - 1].v];
+	const float const *v_curr;
 	int i;
 
 	zero_v3(normal);
@@ -1178,7 +1178,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
 	const bool hasLoopNormal = CustomData_has_layer(ldata, CD_NORMAL);
 	int findex, i, j;
-	int *pidx;
+	const int *pidx;
 	unsigned int (*lidx)[4];
 
 	for (i = 0; i < numTex; i++) {

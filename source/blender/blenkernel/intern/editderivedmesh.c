@@ -1256,7 +1256,7 @@ static int emDM_getNumPolys(DerivedMesh *dm)
 
 static void bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *r_vert)
 {
-	float *f;
+	const float *f;
 
 	copy_v3_v3(r_vert->co, ev->co);
 
@@ -1366,7 +1366,7 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *r_edge)
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
 	BMEdge *e;
-	float *f;
+	const float *f;
 
 	if (UNLIKELY(index < 0 || index >= bm->totedge)) {
 		BLI_assert(!"error in emDM_getEdge");
@@ -1557,7 +1557,7 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 	if (type == CD_MTFACE || type == CD_MCOL) {
 		const int type_from = (type == CD_MTFACE) ? CD_MTEXPOLY : CD_MLOOPCOL;
 		int index;
-		char *data, *bmdata;
+		const char *data, *bmdata;
 		index = CustomData_get_layer_index(&bm->pdata, type_from);
 
 		if (index != -1) {

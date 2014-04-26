@@ -2791,9 +2791,9 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 						int t;
 						for (t = 0; t < nr_tris_to_pile; t++) {
 							float f2x_area_uv;
-							float *p0 = verts[indices[t * 3 + 0]];
-							float *p1 = verts[indices[t * 3 + 1]];
-							float *p2 = verts[indices[t * 3 + 2]];
+							const float *p0 = verts[indices[t * 3 + 0]];
+							const float *p1 = verts[indices[t * 3 + 1]];
+							const float *p2 = verts[indices[t * 3 + 2]];
 
 							float edge_t0[2], edge_t1[2];
 							sub_v2_v2v2(edge_t0, tex_coords[indices[t * 3 + 1]], tex_coords[indices[t * 3 + 0]]);

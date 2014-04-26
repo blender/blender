@@ -426,7 +426,7 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 			for (ml = &mloop[mp->loopstart], j = mp->totloop; j--; ml++) {
 				/* loop over poly users */
 				const MeshElemMap *map_ele = &edge_poly_map[ml->e];
-				int *p = map_ele->indices;
+				const int *p = map_ele->indices;
 				int i = map_ele->count;
 				if (!(medge[ml->e].flag & ME_SHARP)) {
 					for (; i--; p++) {

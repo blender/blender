@@ -323,7 +323,7 @@ static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
 
 bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int output)
 {
-	char *name;
+	const char *name;
 
 	if (output == 0)
 		name = surface->output_name;
@@ -1678,7 +1678,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Deri
 	if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
 		MVert *mvert = result->getVertArray(result);
 		int i;
-		float *value = (float *)sData->type_data;
+		const float *value = (float *)sData->type_data;
 
 #pragma omp parallel for schedule(static)
 		for (i = 0; i < sData->total_points; i++) {
@@ -2103,7 +2103,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 			float closest_point[2], lambda, dir_vec[2];
 			int target_uv1, target_uv2, final_pixel[2], final_index;
 
-			float *s_uv1, *s_uv2, *t_uv1, *t_uv2;
+			const float *s_uv1, *s_uv2, *t_uv1, *t_uv2;
 
 			pixel[0] = ((float)(px + neighX[n_index]) + 0.5f) / (float)w;
 			pixel[1] = ((float)(py + neighY[n_index]) + 0.5f) / (float)h;
@@ -2901,7 +2901,7 @@ static void mesh_faces_spherecast_dp(void *userdata, int index, const BVHTreeRay
 	MFace *face = data->face + index;
 	short quad = 0;
 
-	float *t0, *t1, *t2, *t3;
+	const float *t0, *t1, *t2, *t3;
 	t0 = vert[face->v1].co;
 	t1 = vert[face->v2].co;
 	t2 = vert[face->v3].co;
@@ -2937,7 +2937,7 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float c
 	MFace *face = data->face + index;
 	short quad = 0;
 
-	float *t0, *t1, *t2, *t3;
+	const float *t0, *t1, *t2, *t3;
 	t0 = vert[face->v1].co;
 	t1 = vert[face->v2].co;
 	t2 = vert[face->v3].co;

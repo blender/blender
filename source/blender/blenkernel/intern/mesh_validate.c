@@ -565,7 +565,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 				/* Now check that that poly does not use a same vertex more than once! */
 				if (!sp->invalid) {
-					int *prev_v = v = sp->verts;
+					const int *prev_v = v = sp->verts;
 					j = sp->numverts;
 
 					qsort(sp->verts, j, sizeof(int), int_cmp);
@@ -598,7 +598,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 		for (i = 1; i < totpoly; i++, sp++) {
 			int p1_nv = sp->numverts, p2_nv = prev_sp->numverts;
-			int *p1_v = sp->verts, *p2_v = prev_sp->verts;
+			const int *p1_v = sp->verts, *p2_v = prev_sp->verts;
 			short p1_sub = true, p2_sub = true;
 			if (sp->invalid)
 				break;

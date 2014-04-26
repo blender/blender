@@ -134,7 +134,7 @@
  * also note that the id _must_ have a library - campbell */
 void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 {
-	char *bpath_user_data[2] = {bmain->name, lib->filepath};
+	const char *bpath_user_data[2] = {bmain->name, lib->filepath};
 
 	BKE_bpath_traverse_id(bmain, id,
 	                      BKE_bpath_relocate_visitor,

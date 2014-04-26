@@ -1127,7 +1127,7 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 	 *	- we cannot use the groups, since they may not be grouped in that way...
 	 */
 	for (fcu = act->curves.first; fcu; fcu = fcu->next) {
-		char *bPtr = NULL, *pPtr = NULL;
+		const char *bPtr = NULL, *pPtr = NULL;
 		
 		/* if enough flags have been found, we can stop checking unless we're also getting the curves */
 		if ((flags == ACT_TRANS_ALL) && (curves == NULL))

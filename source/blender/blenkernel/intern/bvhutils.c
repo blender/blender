@@ -371,7 +371,7 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 	MVert *vert = data->vert;
 	MFace *face = data->face + index;
 
-	float *t0, *t1, *t2, *t3;
+	const float *t0, *t1, *t2, *t3;
 	t0 = vert[face->v1].co;
 	t1 = vert[face->v2].co;
 	t2 = vert[face->v3].co;
@@ -406,7 +406,7 @@ static void editmesh_faces_nearest_point(void *userdata, int index, const float 
 	BMEditMesh *em = data->em_evil;
 	const BMLoop **ltri = (const BMLoop **)em->looptris[index];
 
-	float *t0, *t1, *t2;
+	const float *t0, *t1, *t2;
 	t0 = ltri[0]->v->co;
 	t1 = ltri[1]->v->co;
 	t2 = ltri[2]->v->co;
@@ -433,7 +433,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	MVert *vert = data->vert;
 	MFace *face = data->face + index;
 
-	float *t0, *t1, *t2, *t3;
+	const float *t0, *t1, *t2, *t3;
 	t0 = vert[face->v1].co;
 	t1 = vert[face->v2].co;
 	t2 = vert[face->v3].co;
@@ -471,7 +471,7 @@ static void editmesh_faces_spherecast(void *userdata, int index, const BVHTreeRa
 	BMEditMesh *em = data->em_evil;
 	const BMLoop **ltri = (const BMLoop **)em->looptris[index];
 
-	float *t0, *t1, *t2;
+	const float *t0, *t1, *t2;
 	t0 = ltri[0]->v->co;
 	t1 = ltri[1]->v->co;
 	t2 = ltri[2]->v->co;
@@ -503,7 +503,7 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float co[3
 	MEdge *edge = data->edge + index;
 	float nearest_tmp[3], dist_sq;
 
-	float *t0, *t1;
+	const float *t0, *t1;
 	t0 = vert[edge->v1].co;
 	t1 = vert[edge->v2].co;
 

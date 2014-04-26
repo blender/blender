@@ -680,7 +680,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 	 * */
 	{
 		char *str_found = str;
-		char *ch = str;
+		const char *ch = str;
 
 		while ((str_found = strchr(str_found, SEP_CHR))) {
 

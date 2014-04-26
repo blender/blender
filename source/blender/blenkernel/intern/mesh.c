@@ -1023,7 +1023,7 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 	MVert *mvert;
 	MLoop *mloop, *allloop;
 	MPoly *mpoly;
-	float *nors, *verts;
+	const float *nors, *verts;
 	int a, *index;
 	
 	dl = lb->first;
@@ -1194,7 +1194,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 	MLoop *mloop;
 	MLoopUV *mloopuv = NULL;
 	MEdge *medge;
-	float *data;
+	const float *data;
 	int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totvlak = 0;
 	int p1, p2, p3, p4, *index;
 	const bool conv_polys = ((CU_DO_2DFILL(cu) == false) ||  /* 2d polys are filled with DL_INDEX3 displists */

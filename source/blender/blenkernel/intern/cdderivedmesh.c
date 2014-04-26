@@ -537,7 +537,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	MVert *mvert = cddm->mvert;
 	MFace *mface = cddm->mface;
-	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	const float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int a, glmode = -1, shademodel = -1, matnr = -1, drawCurrentMat = 1;
 
@@ -653,7 +653,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	MVert *mv = cddm->mvert;
 	MFace *mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
+	const float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	MCol *mcol;
@@ -887,7 +887,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	MVert *mv = cddm->mvert;
 	MFace *mf = cddm->mface;
 	MCol *mcol;
-	float *nors = DM_get_tessface_data_layer(dm, CD_NORMAL);
+	const float *nors = DM_get_tessface_data_layer(dm, CD_NORMAL);
 	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int colType, useColors = flag & DM_DRAW_USE_COLORS;
 	int i, orig;
@@ -1291,7 +1291,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	}
 	else {
 		GPUBuffer *buffer = NULL;
-		char *varray = NULL;
+		const char *varray = NULL;
 		int numdata = 0, elementsize = 0, offset;
 		int start = 0, numfaces = 0 /* , prevdraw = 0 */ /* UNUSED */, curface = 0;
 		int i;
@@ -1429,7 +1429,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 						}
 					}
 					if (attribs.tottang && attribs.tang.array) {
-						float *tang = attribs.tang.array[a * 4 + 0];
+						const float *tang = attribs.tang.array[a * 4 + 0];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
 						tang = attribs.tang.array[a * 4 + 1];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize], tang);
@@ -1474,7 +1474,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 							}
 						}
 						if (attribs.tottang && attribs.tang.array) {
-							float *tang = attribs.tang.array[a * 4 + 2];
+							const float *tang = attribs.tang.array[a * 4 + 2];
 							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
 							tang = attribs.tang.array[a * 4 + 3];
 							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize], tang);
@@ -1651,7 +1651,7 @@ static void cdDM_foreachMappedVert(
         DMForeachFlag flag)
 {
 	MVert *mv = CDDM_get_verts(dm);
-	int *index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+	const int *index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
 	int i;
 
 	if (index) {
@@ -2836,7 +2836,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	EdgeHash *eh;
 	unsigned int eh_reserve;
 	int v1, v2;
-	int *eindex;
+	const int *eindex;
 	int i, j, *index;
 	const int numFaces = dm->numPolyData;
 	const int numLoops = dm->numLoopData;

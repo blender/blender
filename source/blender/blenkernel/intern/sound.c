@@ -70,7 +70,7 @@ bSound *sound_new_file(struct Main *bmain, const char *filename)
 	bSound *sound = NULL;
 
 	char str[FILE_MAX];
-	char *path;
+	const char *path;
 
 	size_t len;
 

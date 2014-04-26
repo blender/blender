@@ -891,7 +891,7 @@ static float (*displist_get_allverts(ListBase *dispbase, int *totvert))[3]
 static void displist_apply_allverts(ListBase *dispbase, float (*allverts)[3])
 {
 	DispList *dl;
-	float *fp;
+	const float *fp;
 
 	fp = (float *)allverts;
 	for (dl = dispbase->first; dl; dl = dl->next) {
@@ -1794,7 +1794,7 @@ float *BKE_displist_make_orco(Scene *scene, Object *ob, DerivedMesh *dm_final,
 void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 {
 	DispList *dl;
-	float *vert;
+	const float *vert;
 	int a, tot = 0;
 	int doit = 0;
 

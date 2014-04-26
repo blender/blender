@@ -460,7 +460,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
 	Lattice *lt = (Lattice *)ob->data;
 	
 	DispList *dl = ob->curve_cache ? BKE_displist_find(&ob->curve_cache->disp, DL_VERTS) : NULL;
-	float *co = dl ? dl->verts : NULL;
+	const float *co = dl ? dl->verts : NULL;
 	BPoint *bp = lt->def;
 	
 	MDeformVert *dv = lt->dvert;

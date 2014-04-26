@@ -1681,7 +1681,7 @@ void BKE_key_convert_from_lattice(Lattice *lt, KeyBlock *kb)
 void BKE_key_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 {
 	BPoint *bp;
-	float *fp;
+	const float *fp;
 	int a, tot;
 
 	bp = lt->def;
@@ -1752,7 +1752,7 @@ void BKE_key_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	float *fp;
+	const float *fp;
 	int a, tot;
 
 	nu = nurb->first;
@@ -1822,7 +1822,7 @@ void BKE_key_convert_from_mesh(Mesh *me, KeyBlock *kb)
 void BKE_key_convert_to_mesh(KeyBlock *kb, Mesh *me)
 {
 	MVert *mvert;
-	float *fp;
+	const float *fp;
 	int a, tot;
 
 	mvert = me->mvert;
@@ -1839,7 +1839,7 @@ void BKE_key_convert_to_mesh(KeyBlock *kb, Mesh *me)
 float (*BKE_key_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 {
 	float (*vertCos)[3], *co;
-	float *fp = kb->data;
+	const float *fp = kb->data;
 	int tot = 0, a;
 
 	/* Count of vertex coords in array */

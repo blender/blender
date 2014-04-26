@@ -684,7 +684,7 @@ static void get_dupliface_transform(MPoly *mpoly, MLoop *mloop, MVert *mvert,
 	BKE_mesh_calc_poly_center(mpoly, mloop, mvert, loc);
 	/* rotation */
 	{
-		float *v1, *v2, *v3;
+		const float *v1, *v2, *v3;
 		BKE_mesh_calc_poly_normal(mpoly, mloop, mvert, f_no);
 		v1 = mvert[mloop[0].v].co;
 		v2 = mvert[mloop[1].v].co;

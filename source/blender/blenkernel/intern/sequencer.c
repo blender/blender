@@ -1767,8 +1767,8 @@ static void color_balance_byte_float(StripColorBalance *cb_, unsigned char *rect
 static void color_balance_float_float(StripColorBalance *cb_, float *rect_float, float *mask_rect_float, int width, int height, float mul)
 {
 	float *p = rect_float;
-	float *e = rect_float + width * 4 * height;
-	float *m = mask_rect_float;
+	const float *e = rect_float + width * 4 * height;
+	const float *m = mask_rect_float;
 	StripColorBalance cb = calc_cb(cb_);
 
 	while (p < e) {
@@ -2415,7 +2415,7 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
 
 	if (make_float) {
 		/* pixels */
-		float *fp_src;
+		const float *fp_src;
 		float *fp_dst;
 
 		ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rectfloat);
@@ -2433,7 +2433,7 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
 	}
 	else {
 		/* pixels */
-		float *fp_src;
+		const float *fp_src;
 		unsigned char *ub_dst;
 
 		ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);

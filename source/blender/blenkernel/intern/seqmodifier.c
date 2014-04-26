@@ -214,7 +214,7 @@ static void curves_apply_threaded(int width, int height, unsigned char *rect, fl
 				curvemapping_evaluate_premulRGBF(curve_mapping, result, pixel);
 
 				if (mask_rect_float) {
-					float *m = mask_rect_float + pixel_index;
+					const float *m = mask_rect_float + pixel_index;
 
 					pixel[0] = pixel[0] * (1.0f - m[0]) + result[0] * m[0];
 					pixel[1] = pixel[1] * (1.0f - m[1]) + result[1] * m[1];
@@ -454,7 +454,7 @@ static void brightcontrast_apply_threaded(int width, int height, unsigned char *
 					v = a * i + b;
 
 					if (mask_rect_float) {
-						float *m = mask_rect_float + pixel_index;
+						const float *m = mask_rect_float + pixel_index;
 
 						pixel[c] = pixel[c] * (1.0f - m[c]) + v * m[c];
 					}
@@ -518,7 +518,7 @@ static void maskmodifier_apply_threaded(int width, int height, unsigned char *re
 			else if (rect_float) {
 				int c;
 				float *pixel = rect_float + pixel_index;
-				float *mask_pixel = mask_rect_float + pixel_index;
+				const float *mask_pixel = mask_rect_float + pixel_index;
 				float mask = min_fff(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
 
 				/* float buffers are premultiplied, so need to premul color

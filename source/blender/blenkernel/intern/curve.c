@@ -1598,7 +1598,7 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob, int *r_numVerts)
 						fp[2] = 0.0;
 					}
 					else {
-						float *vert;
+						const float *vert;
 						int realv = v % dl->nr;
 						int realu = u % dl->parts;
 
@@ -3673,7 +3673,7 @@ float (*BKE_curve_nurbs_vertexCos_get(ListBase *lb, int *r_numVerts))[3]
 
 void BK_curve_nurbs_vertexCos_apply(ListBase *lb, float (*vertexCos)[3])
 {
-	float *co = vertexCos[0];
+	const float *co = vertexCos[0];
 	Nurb *nu;
 	int i;
 
@@ -3897,7 +3897,7 @@ bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
 					bp++;
 				}
 				else {
-					char *f = &bezt->f1;
+					const char *f = &bezt->f1;
 					for (c = 0; c < 3; c++, f++) {
 						copy_v3_v3(bp->vec, bezt->vec[c]);
 						bp->vec[3] = 1.0;

@@ -581,7 +581,7 @@ static char *rna_path_rename_fix(ID *owner_id, const char *prefix, const char *o
 		/* if we haven't aren't able to resolve the path now, try again after fixing it */
 		if (!verify_paths || check_rna_path_is_valid(owner_id, oldpath) == 0) {
 			DynStr *ds = BLI_dynstr_new();
-			char *postfixPtr = oldNamePtr + oldNameLen;
+			const char *postfixPtr = oldNamePtr + oldNameLen;
 			char *newPath = NULL;
 			char oldChar;
 			
@@ -633,7 +633,7 @@ static void fcurves_path_rename_fix(ID *owner_id, const char *prefix, const char
 	/* we need to check every curve... */
 	for (fcu = curves->first; fcu; fcu = fcu->next) {
 		if (fcu->rna_path) {
-			char *old_path = fcu->rna_path;
+			const char *old_path = fcu->rna_path;
 			
 			/* firstly, handle the F-Curve's own path */
 			fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
