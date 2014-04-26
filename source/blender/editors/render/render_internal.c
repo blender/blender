@@ -124,7 +124,7 @@ typedef struct RenderJob {
 static void image_buffer_rect_update(RenderJob *rj, RenderResult *rr, ImBuf *ibuf, ImageUser *iuser, volatile rcti *renrect)
 {
 	Scene *scene = rj->scene;
-	float *rectf = NULL;
+	const float *rectf = NULL;
 	int ymin, ymax, xmin, xmax;
 	int rymin, rxmin;
 	int linear_stride, linear_offset_x, linear_offset_y;

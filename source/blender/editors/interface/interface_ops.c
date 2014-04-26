@@ -659,7 +659,7 @@ static void edittranslation_find_po_file(const char *root, const char *uilng, ch
 
 	/* Now try without the second iso code part (_ES in es_ES). */
 	{
-		char *tc = NULL;
+		const char *tc = NULL;
 		size_t szt = 0;
 		tstr[0] = '\0';
 

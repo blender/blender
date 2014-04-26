@@ -183,7 +183,7 @@ static void InputCustomRatioFlip(TransInfo *UNUSED(t), MouseInput *mi, const int
 	double length;
 	double distance;
 	double dx, dy;
-	int *data = mi->data;
+	const int *data = mi->data;
 	
 	if (data) {
 		dx = data[2] - data[0];

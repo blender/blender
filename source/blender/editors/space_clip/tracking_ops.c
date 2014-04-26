@@ -4060,7 +4060,7 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
 	SlidePlaneMarkerData *data = (SlidePlaneMarkerData *) op->customdata;
 	float dx, dy, mdelta[2];
 	int next_corner_index, prev_corner_index, diag_corner_index;
-	float *next_corner, *prev_corner, *diag_corner;
+	const float *next_corner, *prev_corner, *diag_corner;
 	float next_edge[2], prev_edge[2], next_diag_edge[2], prev_diag_edge[2];
 
 	switch (event->type) {

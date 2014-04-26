@@ -370,7 +370,7 @@ void lattice_foreachScreenVert(
 	Lattice *lt = obedit->data;
 	BPoint *bp = lt->editlatt->latt->def;
 	DispList *dl = obedit->curve_cache ? BKE_displist_find(&obedit->curve_cache->disp, DL_VERTS) : NULL;
-	float *co = dl ? dl->verts : NULL;
+	const float *co = dl ? dl->verts : NULL;
 	int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 
 	ED_view3d_check_mats_rv3d(vc->rv3d);

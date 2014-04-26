@@ -345,7 +345,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 	for (sel = 0; sel < 2; sel++) {
 		BezTriple *bezt = fcu->bezt, *prevbezt = NULL;
 		int basecol = (sel) ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
-		float *fp;
+		const float *fp;
 		unsigned char col[4];
 		
 		for (b = 0; b < fcu->totvert; b++, prevbezt = bezt, bezt++) {

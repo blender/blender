@@ -317,7 +317,7 @@ typedef struct {
 	SculptUndoNode *unode;
 	float (*coords)[3];
 	short (*normals)[3];
-	float *vmasks;
+	const float *vmasks;
 
 	/* Original coordinate, normal, and mask */
 	const float *co;
@@ -1613,7 +1613,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 		for (y = 0; y < gridsize; ++y) {
 			for (x = 0; x < gridsize; ++x) {
 				float *co;
-				float *fno;
+				const float *fno;
 				float *mask;
 				int index;
 
@@ -4247,14 +4247,14 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 
 typedef struct {
 	SculptSession *ss;
-	float *ray_start, *ray_normal;
+	const float *ray_start, *ray_normal;
 	int hit;
 	float dist;
 	int original;
 } SculptRaycastData;
 
 typedef struct {
-	float *ray_start, *ray_normal;
+	const float *ray_start, *ray_normal;
 	int hit;
 	float dist;
 	float detail;
@@ -5083,7 +5083,7 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 
 int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 {
-	float *paint_mask;
+	const float *paint_mask;
 	Mesh *me = ob->data;
 	int ret = 0;
 

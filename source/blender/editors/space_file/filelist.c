@@ -94,8 +94,8 @@ typedef struct FileImage {
 
 typedef struct ThumbnailJob {
 	ListBase loadimages;
-	short *stop;
-	short *do_update;
+	const short *stop;
+	const short *do_update;
 	struct FileList *filelist;
 	ReportList reports;
 } ThumbnailJob;
@@ -1097,7 +1097,7 @@ void filelist_from_library(struct FileList *filelist)
 	filelist->filelist[0].type |= S_IFDIR;
 		
 	for (i = 0, l = names; i < nnames; i++, l = l->next) {
-		char *blockname = l->link;
+		const char *blockname = l->link;
 
 		filelist->filelist[i + 1].relname = BLI_strdup(blockname);
 		if (idcode) {

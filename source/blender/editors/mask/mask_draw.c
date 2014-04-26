@@ -531,7 +531,7 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
 
 	if (!is_fill) {
 
-		float *fp         = &diff_points[0][0];
+		const float *fp   = &diff_points[0][0];
 		float *fp_feather = &feather_points[0][0];
 		float tvec[2];
 		int i;

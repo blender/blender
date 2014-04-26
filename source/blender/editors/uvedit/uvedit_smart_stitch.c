@@ -634,7 +634,7 @@ static void state_delete(StitchState *state)
 static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *state)
 {
 	UvEdge *edges = state->edges;
-	int *map = state->map;
+	const int *map = state->map;
 	UvElementMap *element_map = state->element_map;
 	UvElement *first_element = element_map->buf;
 	int i;

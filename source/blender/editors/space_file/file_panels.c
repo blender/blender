@@ -58,7 +58,7 @@
 static void file_panel_cb(bContext *C, void *arg_entry, void *UNUSED(arg_v))
 {
 	PointerRNA ptr;
-	char *entry = (char *)arg_entry;
+	const char *entry = (char *)arg_entry;
 
 	WM_operator_properties_create(&ptr, "FILE_OT_select_bookmark");
 	RNA_string_set(&ptr, "dir", entry);

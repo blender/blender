@@ -1735,7 +1735,7 @@ void init_userdef_do_versions(void)
 		
 		/* adjust themes */
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			char *col;
+			const char *col;
 			
 			/* IPO Editor: Handles/Vertices */
 			col = btheme->tipo.vertex;

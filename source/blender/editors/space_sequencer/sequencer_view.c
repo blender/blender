@@ -70,7 +70,7 @@ typedef struct ImageSampleInfo {
 	float linearcol[4];
 
 	unsigned char *colp;
-	float *colfp;
+	const float *colfp;
 
 	int draw;
 int color_manage;
@@ -110,7 +110,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 	fy += (float) ibuf->y / 2.0f;
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < ibuf->x && fy < ibuf->y) {
-		float *fp;
+		const float *fp;
 		unsigned char *cp;
 		int x = (int) fx, y = (int) fy;
 

@@ -1582,8 +1582,8 @@ static void uv_weld_align(bContext *C, int tool)
 			if (BLI_array_count(eve_line) > 2) {
 
 				/* we know the returns from these must be valid */
-				float *uv_start = uv_sel_co_from_eve(scene, ima, em, eve_line[0]);
-				float *uv_end   = uv_sel_co_from_eve(scene, ima, em, eve_line[BLI_array_count(eve_line) - 1]);
+				const float *uv_start = uv_sel_co_from_eve(scene, ima, em, eve_line[0]);
+				const float *uv_end   = uv_sel_co_from_eve(scene, ima, em, eve_line[BLI_array_count(eve_line) - 1]);
 				/* For t & u modes */
 				float a = 0.0f;
 
@@ -1695,7 +1695,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 	int uv_a_index;
 	int uv_b_index;
 	float *uv_a;
-	float *uv_b;
+	const float *uv_b;
 
 	BMIter iter, liter;
 	BMFace *efa;

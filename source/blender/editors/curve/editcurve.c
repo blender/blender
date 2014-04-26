@@ -897,7 +897,7 @@ static void calc_shapeKeys(Object *obedit)
 				}
 				else {
 					int index;
-					float *curofp;
+					const float *curofp;
 
 					if (oldkey) {
 						if (nu->bezt) {
@@ -1111,7 +1111,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 		next = fcu->next;
 
 		if (!strncmp(fcu->rna_path, "splines", 7)) {
-			char *ch = strchr(fcu->rna_path, '.');
+			const char *ch = strchr(fcu->rna_path, '.');
 
 			if (ch && (!strncmp(ch, ".bezier_points", 14) || !strncmp(ch, ".points", 7)))
 				fcurve_remove(adt, orig_curves, fcu);

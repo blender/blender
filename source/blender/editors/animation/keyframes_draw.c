@@ -85,7 +85,7 @@
 short compare_ak_cfraPtr(void *node, void *data)
 {
 	ActKeyColumn *ak = (ActKeyColumn *)node;
-	float *cframe = data;
+	const float *cframe = data;
 	float val = *cframe;
 	
 	if (IS_EQT(val, ak->cfra, BEZT_BINARYSEARCH_THRESH))
@@ -270,7 +270,7 @@ static void add_masklay_to_keycolumns_list(DLRBT_Tree *keys, MaskLayerShape *mas
 short compare_ab_cfraPtr(void *node, void *data)
 {
 	ActKeyBlock *ab = (ActKeyBlock *)node;
-	float *cframe = data;
+	const float *cframe = data;
 	float val = *cframe;
 	
 	if (val < ab->start)

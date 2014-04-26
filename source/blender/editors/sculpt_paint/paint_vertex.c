@@ -217,7 +217,7 @@ static void do_shared_vertex_tesscol(Mesh *me, bool *mfacetag)
 	int a;
 	short *scolmain, *scol;
 	char *mcol;
-	bool *mftag;
+	const bool *mftag;
 	
 	if (me->mcol == NULL || me->totvert == 0 || me->totface == 0) return;
 	

@@ -502,7 +502,7 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY)
 {
 	unsigned char *uc_rect = (unsigned char *) rect;
-	float *f_rect = (float *)rect;
+	const float *f_rect = (float *)rect;
 	float xzoom = glaGetOneFloat(GL_ZOOM_X), yzoom = glaGetOneFloat(GL_ZOOM_Y);
 	int ltexid = glaGetOneInteger(GL_TEXTURE_2D);
 	int lrowlength = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
@@ -692,17 +692,17 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_w);
 		if (format == GL_LUMINANCE || format == GL_RED) {
 			if (type == GL_FLOAT) {
-				float *f_rect = (float *)rect;
+				const float *f_rect = (float *)rect;
 				glDrawPixels(draw_w, draw_h, format, type, f_rect + (off_y * row_w + off_x));
 			}
 			else if (type == GL_INT || type == GL_UNSIGNED_INT) {
-				int *i_rect = (int *)rect;
+				const int *i_rect = (int *)rect;
 				glDrawPixels(draw_w, draw_h, format, type, i_rect + (off_y * row_w + off_x));
 			}
 		}
 		else { /* RGBA */
 			if (type == GL_FLOAT) {
-				float *f_rect = (float *)rect;
+				const float *f_rect = (float *)rect;
 				glDrawPixels(draw_w, draw_h, format, type, f_rect + (off_y * row_w + off_x) * 4);
 			}
 			else if (type == GL_UNSIGNED_BYTE) {

@@ -1884,7 +1884,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	if ((prop = RNA_struct_find_property(op->ptr, "value"))) {
-		float *values = (t->flag & T_AUTOVALUES) ? t->auto_values : t->values;
+		const float *values = (t->flag & T_AUTOVALUES) ? t->auto_values : t->values;
 		if (RNA_property_array_check(prop)) {
 			RNA_property_float_set_array(op->ptr, prop, values);
 		}
@@ -4202,7 +4202,7 @@ static void applyTranslationValue(TransInfo *t, float vec[3])
 		/* handle snapping rotation before doing the translation */
 		if (usingSnappingNormal(t)) {
 			if (validSnappingNormal(t)) {
-				float *original_normal;
+				const float *original_normal;
 				float axis[3];
 				float quat[4];
 				float mat[3][3];
@@ -6249,8 +6249,8 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 {
 	VertSlideData *sld = t->customData;
 	TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
-	float *co_orig = sv->co_orig_2d;
-	float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
+	const float *co_orig = sv->co_orig_2d;
+	const float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
 	const int mval_start[2] = {co_orig[0], co_orig[1]};
 	const int mval_end[2]   = {co_curr[0], co_curr[1]};
 

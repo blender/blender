@@ -1545,7 +1545,7 @@ void calculateCenterCursor(TransInfo *t)
 void calculateCenterCursor2D(TransInfo *t)
 {
 	float aspx = 1.0, aspy = 1.0;
-	float *cursor = NULL;
+	const float *cursor = NULL;
 	
 	if (t->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;

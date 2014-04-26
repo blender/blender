@@ -1135,7 +1135,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const int axis,
 
 BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)
 {
-	int *mirr = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer);
+	const int *mirr = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer);
 
 	BLI_assert(em->mirror_cdlayer != -1); /* invalid use */
 

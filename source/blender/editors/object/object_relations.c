@@ -819,7 +819,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	int tree_tot;
 	struct KDTree *tree = NULL;
 	int vert_par[3] = {0, 0, 0};
-	int *vert_par_p = is_vert_par ? vert_par : NULL;
+	const int *vert_par_p = is_vert_par ? vert_par : NULL;
 
 
 	if (is_vert_par) {

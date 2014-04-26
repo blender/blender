@@ -836,7 +836,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	const char *msg_sep = " : ";
 
 	char info[300];
-	char *markern;
+	const char *markern;
 	char *s = info;
 	short offset = 1.5f * UI_UNIT_X + rect->xmin;
 

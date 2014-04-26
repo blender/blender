@@ -1056,7 +1056,7 @@ typedef struct ProxyQueue {
 	int efra;
 	SpinLock spin;
 
-	short *stop;
+	const short *stop;
 	short *do_update;
 	float *progress;
 } ProxyQueue;

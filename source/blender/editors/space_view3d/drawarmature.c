@@ -271,7 +271,7 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 			}
 			else {
 				if (bcolor) {
-					char *cp = bcolor->solid;
+					const char *cp = bcolor->solid;
 					glColor4ub(cp[0], cp[1], cp[2], 204);
 				}
 				else

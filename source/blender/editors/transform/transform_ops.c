@@ -55,7 +55,7 @@
 #include "transform.h"
 
 typedef struct TransformModeItem {
-	char *idname;
+	const char *idname;
 	int mode;
 	void (*opfunc)(wmOperatorType *);
 } TransformModeItem;

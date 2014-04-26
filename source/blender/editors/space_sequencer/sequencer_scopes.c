@@ -206,7 +206,7 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 		unsigned char *last_p = NULL;
 
 		for (x = 0; x < ibuf->x; x++) {
-			float *rgb = src + 4 * (ibuf->x * y + x);
+			const float *rgb = src + 4 * (ibuf->x * y + x);
 			float v = rgb_to_luma(rgb);
 			unsigned char *p = tgt;
 
@@ -309,7 +309,7 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			int c;
-			float *rgb = src + 4 * (ibuf->x * y + x);
+			const float *rgb = src + 4 * (ibuf->x * y + x);
 			for (c = 0; c < 3; c++) {
 				unsigned char *p = tgt;
 				float v = rgb[c];
@@ -379,7 +379,7 @@ static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
 static void draw_zebra_float(ImBuf *src, ImBuf *ibuf, float perc)
 {
 	float limit = perc / 100.0f;
-	float *p = src->rect_float;
+	const float *p = src->rect_float;
 	unsigned char *o = (unsigned char *) ibuf->rect;
 	int x;
 	int y;
@@ -545,7 +545,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 		memset(cur_bins, 0, sizeof(cur_bins));
 
 		for (x = 0; x < ibuf->x; x++) {
-			float *pixel = src + (y * ibuf->x + x) * 4;
+			const float *pixel = src + (y * ibuf->x + x) * 4;
 
 			cur_bins[0][get_bin_float(pixel[0])]++;
 			cur_bins[1][get_bin_float(pixel[1])]++;
@@ -658,8 +658,8 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
-			char *src1 = src + 4 * (ibuf->x * y + x);
-			char *p;
+			const char *src1 = src + 4 * (ibuf->x * y + x);
+			const char *p;
 			
 			rgb[0] = (float)src1[0] / 255.0f;
 			rgb[1] = (float)src1[1] / 255.0f;
@@ -704,8 +704,8 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
-			float *src1 = src + 4 * (ibuf->x * y + x);
-			char *p;
+			const float *src1 = src + 4 * (ibuf->x * y + x);
+			const char *p;
 			
 			memcpy(rgb, src1, 3 * sizeof(float));
 

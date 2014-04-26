@@ -396,7 +396,7 @@ float file_shorten_string(char *string, float w, int front)
 
 	sw = file_string_width(string);
 	if (front == 1) {
-		char *s = string;
+		const char *s = string;
 		BLI_strncpy(temp, "...", 4);
 		pad = file_string_width(temp);
 		while ((*s) && (sw + pad > w)) {
@@ -412,7 +412,7 @@ float file_shorten_string(char *string, float w, int front)
 		}
 	}
 	else {
-		char *s = string;
+		const char *s = string;
 		while (sw > w) {
 			int slen = strlen(string);
 			string[slen - 1] = '\0';

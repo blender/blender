@@ -1125,7 +1125,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	SpaceImage *sima = CTX_wm_space_image(C); /* XXX other space types can call */
-	char *path = U.textudir;
+	const char *path = U.textudir;
 	Image *ima = NULL;
 
 	if (sima) {
@@ -2300,7 +2300,7 @@ typedef struct ImageSampleInfo {
 	float zf;
 
 	unsigned char *colp;
-	float *colfp;
+	const float *colfp;
 	int *zp;
 	float *zfp;
 
@@ -2338,7 +2338,7 @@ bool ED_space_image_color_sample(Scene *scene, SpaceImage *sima, ARegion *ar, in
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &fx, &fy);
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
-		float *fp;
+		const float *fp;
 		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 
@@ -2386,7 +2386,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
-		float *fp;
+		const float *fp;
 		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 		Image *image = ED_space_image(sima);

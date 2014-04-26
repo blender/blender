@@ -66,7 +66,7 @@ void paintface_flush_flags(Object *ob)
 	DerivedMesh *dm = ob->derivedFinal;
 	MPoly *polys, *mp_orig;
 	MFace *faces;
-	int *index_array = NULL;
+	const int *index_array = NULL;
 	int totface, totpoly;
 	int i;
 	
@@ -499,7 +499,7 @@ void paintvert_flush_flags(Object *ob)
 	Mesh *me = BKE_mesh_from_object(ob);
 	DerivedMesh *dm = ob->derivedFinal;
 	MVert *dm_mvert, *dm_mv;
-	int *index_array = NULL;
+	const int *index_array = NULL;
 	int totvert;
 	int i;
 

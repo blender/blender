@@ -980,7 +980,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
 	bool changed = false;
-	char *dir = actseq->strip ? actseq->strip->dir : NULL;
+	const char *dir = actseq->strip ? actseq->strip->dir : NULL;
 
 	if (!SEQ_USE_DATA(actseq))
 		return changed;

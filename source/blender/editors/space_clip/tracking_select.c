@@ -174,8 +174,8 @@ static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
 {
 	float d1, d2, d3, d4;
 	float p[2] = {co[0] - pos[0], co[1] - pos[1]};
-	float *v1 = crns[0], *v2 = crns[1];
-	float *v3 = crns[2], *v4 = crns[3];
+	const float *v1 = crns[0], *v2 = crns[1];
+	const float *v3 = crns[2], *v4 = crns[3];
 
 	d1 = dist_squared_to_line_segment_v2(p, v1, v2);
 	d2 = dist_squared_to_line_segment_v2(p, v2, v3);
@@ -189,8 +189,8 @@ static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
 static float dist_to_crns_abs(float co[2], float corners[4][2])
 {
 	float d1, d2, d3, d4;
-	float *v1 = corners[0], *v2 = corners[1];
-	float *v3 = corners[2], *v4 = corners[3];
+	const float *v1 = corners[0], *v2 = corners[1];
+	const float *v3 = corners[2], *v4 = corners[3];
 
 	d1 = dist_squared_to_line_segment_v2(co, v1, v2);
 	d2 = dist_squared_to_line_segment_v2(co, v2, v3);

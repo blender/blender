@@ -3043,7 +3043,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 			switch (ptrsize) {
 				case sizeof(int):   /* integer pointer for setting */
 				{
-					int *val = (int *)ptr;
+					const int *val = (int *)ptr;
 					
 					if (negflag)
 						return ((*val) & flag) == 0;
@@ -3052,7 +3052,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 				}
 				case sizeof(short): /* short pointer for setting */
 				{
-					short *val = (short *)ptr;
+					const short *val = (short *)ptr;
 					
 					if (negflag)
 						return ((*val) & flag) == 0;
@@ -3061,7 +3061,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 				}
 				case sizeof(char):  /* char pointer for setting */
 				{
-					char *val = (char *)ptr;
+					const char *val = (char *)ptr;
 					
 					if (negflag)
 						return ((*val) & flag) == 0;

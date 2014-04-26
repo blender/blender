@@ -99,7 +99,7 @@ typedef struct CompoJob {
 	Scene *scene;
 	bNodeTree *ntree;
 	bNodeTree *localtree;
-	short *stop;
+	const short *stop;
 	short *do_update;
 	float *progress;
 	short need_sync;

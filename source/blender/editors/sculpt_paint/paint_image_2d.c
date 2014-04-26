@@ -126,8 +126,8 @@ typedef struct ImagePaintState {
 	Image *image;
 	ImBuf *canvas;
 	ImBuf *clonecanvas;
-	char *warnpackedfile;
-	char *warnmultifile;
+	const char *warnpackedfile;
+	const char *warnmultifile;
 
 	bool do_masking;
 
@@ -399,7 +399,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter, ImBuf *oldtexibuf,
 
 				/* read from old texture buffer */
 				if (use_texture_old) {
-					float *otf = oldtexibuf->rect_float + ((y - origy + yt) * oldtexibuf->x + (x - origx + xt)) * 4;
+					const float *otf = oldtexibuf->rect_float + ((y - origy + yt) * oldtexibuf->x + (x - origx + xt)) * 4;
 					copy_v4_v4(rgba, otf);
 				}
 
@@ -671,7 +671,7 @@ static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const bool is_torus
 	}
 
 	if (ibuf->rect_float) {
-		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
+		const float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
 		copy_v4_v4(r_rgb, rrgbf);
 	}
 	else {
@@ -867,7 +867,7 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *maskb, const f
 	ImagePaintRegion region[4];
 	short torus = s->brush->flag & BRUSH_TORUS;
 	short blend = s->blend;
-	float *offset = s->brush->clone.offset;
+	const float *offset = s->brush->clone.offset;
 	float liftpos[2];
 	float brush_alpha = BKE_brush_alpha_get(s->scene, s->brush);
 	unsigned short mask_max = (unsigned short)(brush_alpha * 65535.0f);

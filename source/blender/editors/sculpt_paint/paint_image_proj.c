@@ -423,7 +423,7 @@ static int project_paint_PickFace(const ProjPaintState *ps, const float pt[2], f
 {
 	LinkNode *node;
 	float w_tmp[3];
-	float *v1, *v2, *v3, *v4;
+	const float *v1, *v2, *v3, *v4;
 	int bucket_index;
 	int face_index;
 	int best_side = -1;
@@ -560,7 +560,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps, const float pt[2],
 
 		if (rgba) {
 			if (ibuf->rect_float) {
-				float *rgba_tmp_fp = ibuf->rect_float + (xi + yi * ibuf->x * 4);
+				const float *rgba_tmp_fp = ibuf->rect_float + (xi + yi * ibuf->x * 4);
 				premul_float_to_straight_uchar(rgba, rgba_tmp_fp);
 			}
 			else {
@@ -1138,7 +1138,7 @@ static void screen_px_from_persp_ortho_weights(
 static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const float w[3],
                                int side, unsigned char rgba_ub[4], float rgba_f[4])
 {
-	float *uvCo1, *uvCo2, *uvCo3;
+	const float *uvCo1, *uvCo2, *uvCo3;
 	float uv_other[2], x, y;
 
 	uvCo1 =  (float *)tf_other->uv[0];
@@ -1218,7 +1218,7 @@ static float project_paint_uvpixel_mask(
 		MFace *mf = &ps->dm_mface[face_index];
 		float no[3], angle;
 		if (mf->flag & ME_SMOOTH) {
-			short *no1, *no2, *no3;
+			const short *no1, *no2, *no3;
 			no1 = ps->dm_mvert[mf->v1].no;
 			if (side == 1) {
 				no2 = ps->dm_mvert[mf->v3].no;
@@ -1262,7 +1262,7 @@ static float project_paint_uvpixel_mask(
 		else {
 			/* Annoying but for the perspective view we need to get the pixels location in 3D space :/ */
 			float viewDirPersp[3];
-			float *co1, *co2, *co3;
+			const float *co1, *co2, *co3;
 			co1 = ps->dm_mvert[mf->v1].co;
 			if (side == 1) {
 				co2 = ps->dm_mvert[mf->v3].co;
@@ -2652,7 +2652,7 @@ static bool project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int buck
 	/* TODO - replace this with a tricker method that uses sideofline for all screenCoords's edges against the closest bucket corner */
 	rctf bucket_bounds;
 	float p1[2], p2[2], p3[2], p4[2];
-	float *v, *v1, *v2, *v3, *v4 = NULL;
+	const float *v, *v1, *v2, *v3, *v4 = NULL;
 	int fidx;
 
 	project_bucket_bounds(ps, bucket_x, bucket_y, &bucket_bounds);
@@ -2940,7 +2940,7 @@ static void project_paint_begin(ProjPaintState *ps)
 				IDProperty *idgroup = IDP_GetProperties(&ps->reproject_image->id, 0);
 				IDProperty *view_data = IDP_GetPropertyFromGroup(idgroup, PROJ_VIEW_DATA_ID);
 
-				float *array = (float *)IDP_Array(view_data);
+				const float *array = (float *)IDP_Array(view_data);
 
 				/* use image array, written when creating image */
 				memcpy(winmat, array, sizeof(winmat)); array += sizeof(winmat) / sizeof(float);
@@ -3166,7 +3166,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 
 		if (is_face_sel && (tpage = project_paint_face_image(ps, ps->dm_mtface, face_index))) {
-			float *v1coSS, *v2coSS, *v3coSS, *v4coSS = NULL;
+			const float *v1coSS, *v2coSS, *v3coSS, *v4coSS = NULL;
 
 			v1coSS = ps->screenCoords[mf->v1];
 			v2coSS = ps->screenCoords[mf->v2];

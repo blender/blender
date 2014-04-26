@@ -904,7 +904,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		if (t->tsnap.mode == SCE_SNAP_MODE_VOLUME) {
 			ListBase depth_peels;
 			DepthPeel *p1, *p2;
-			float *last_p = NULL;
+			const float *last_p = NULL;
 			float max_dist = FLT_MAX;
 			float p[3] = {0.0f, 0.0f, 0.0f};
 			
@@ -1411,8 +1411,8 @@ static bool snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *ar
 			bone = pchan->bone;
 			/* skip hidden bones */
 			if (bone && !(bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
-				float *head_vec = pchan->pose_head;
-				float *tail_vec = pchan->pose_tail;
+				const float *head_vec = pchan->pose_head;
+				const float *tail_vec = pchan->pose_tail;
 				
 				switch (snap_mode) {
 					case SCE_SNAP_MODE_VERTEX:
@@ -1596,7 +1596,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 			case SCE_SNAP_MODE_VERTEX:
 			{
 				MVert *verts = dm->getVertArray(dm);
-				int *index_array = NULL;
+				const int *index_array = NULL;
 				int index = 0;
 				int i;
 
@@ -1645,7 +1645,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 				MVert *verts = dm->getVertArray(dm);
 				MEdge *edges = dm->getEdgeArray(dm);
 				int totedge = dm->getNumEdges(dm);
-				int *index_array = NULL;
+				const int *index_array = NULL;
 				int index = 0;
 				int i;
 

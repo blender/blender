@@ -1661,7 +1661,7 @@ typedef struct tEulerFilter {
 	
 	ID *id;                         /* ID-block which owns the channels */
 	FCurve *(fcurves[3]);           /* 3 Pointers to F-Curves */
-	char *rna_path;                 /* Pointer to one of the RNA Path's used by one of the F-Curves */
+	const char *rna_path;           /* Pointer to one of the RNA Path's used by one of the F-Curves */
 } tEulerFilter;
  
 static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)

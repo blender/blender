@@ -2071,7 +2071,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		if (use_add) {
 			/* in add mode, we add relative shape key offset */
 			if (kb) {
-				float *rco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
+				const float *rco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
 				sub_v3_v3v3(co, co, rco);
 			}
 			
@@ -2652,7 +2652,7 @@ static void mesh_separate_material_assign_mat_nr(Object *ob, const short mat_nr)
 	ID *obdata = ob->data;
 
 	Material ***matarar;
-	short *totcolp;
+	const short *totcolp;
 
 	totcolp = give_totcolp_id(obdata);
 	matarar = give_matarar_id(obdata);
@@ -4263,7 +4263,7 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 		pb = pblock[j];
 		sb = sblock[j];
 		if (pb && sb && !map[j]) {
-			char *p_blk;
+			const char *p_blk;
 			BMElemSort *s_blk;
 			int tot = totelem[j];
 			int aff = affected[j];

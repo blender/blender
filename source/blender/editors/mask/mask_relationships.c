@@ -112,7 +112,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 
 	int framenr, parent_type;
 	float parmask_pos[2], orig_corners[4][2];
-	char *sub_parent_name;
+	const char *sub_parent_name;
 
 	if (ELEM(NULL, sc, clip)) {
 		return OPERATOR_CANCELLED;

@@ -157,8 +157,8 @@ typedef struct drawDMFacesSel_userData {
 	BMesh *bm;
 
 	BMFace *efa_act;
-	int *orig_index_mf_to_mpoly;
-	int *orig_index_mp_to_orig;
+	const int *orig_index_mf_to_mpoly;
+	const int *orig_index_mp_to_orig;
 } drawDMFacesSel_userData;
 
 typedef struct drawDMNormal_userData {
@@ -1883,7 +1883,7 @@ static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D 
 static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short sel)
 {
 	BPoint *bp = lt->def;
-	float *co = dl ? dl->verts : NULL;
+	const float *co = dl ? dl->verts : NULL;
 	int u, v, w;
 
 	const int color = sel ? TH_VERTEX_SELECT : TH_VERTEX;
@@ -3863,7 +3863,7 @@ static bool drawDispListwire(ListBase *dlbase)
 {
 	DispList *dl;
 	int parts, nr;
-	float *data;
+	const float *data;
 
 	if (dlbase == NULL) return 1;
 	
@@ -3957,8 +3957,8 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 {
 	DispList *dl;
 	GPUVertexAttribs gattribs;
-	float *data;
-	float *ndata;
+	const float *data;
+	const float *ndata;
 	
 	if (lb == NULL) return;
 
@@ -5428,7 +5428,7 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 {
 	BezTriple *bezt;
-	float *fp;
+	const float *fp;
 	int a;
 
 	if (nu->hide || hide_handles) return;
@@ -5488,7 +5488,7 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 static void drawhandlesN_active(Nurb *nu)
 {
 	BezTriple *bezt;
-	float *fp;
+	const float *fp;
 	int a;
 
 	if (nu->hide) return;

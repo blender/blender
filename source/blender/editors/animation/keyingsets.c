@@ -916,7 +916,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 	ReportList *reports = CTX_wm_reports(C);
 	KS_Path *ksp;
 	int kflag = 0, success = 0;
-	char *groupname = NULL;
+	const char *groupname = NULL;
 	
 	/* sanity checks */
 	if (ks == NULL)

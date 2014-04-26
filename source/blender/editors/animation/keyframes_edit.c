@@ -1292,7 +1292,7 @@ KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode)
 /* flush selection map values to the given beztriple */
 short bezt_selmap_flush(KeyframeEditData *ked, BezTriple *bezt)
 {
-	char *map = ked->data;
+	const char *map = ked->data;
 	short on = map[ked->curIndex];
 	
 	/* select or deselect based on whether the map allows it or not */

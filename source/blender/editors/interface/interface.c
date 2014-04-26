@@ -1534,14 +1534,14 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 		}
 	}
 	else if (but->pointype == UI_BUT_POIN_CHAR) {
-		char *cp = (char *)but->poin;
+		const char *cp = (char *)but->poin;
 
 		vec[0] = ((float)cp[0]) / 255.0f;
 		vec[1] = ((float)cp[1]) / 255.0f;
 		vec[2] = ((float)cp[2]) / 255.0f;
 	}
 	else if (but->pointype == UI_BUT_POIN_FLOAT) {
-		float *fp = (float *)but->poin;
+		const float *fp = (float *)but->poin;
 		copy_v3_v3(vec, fp);
 	}
 	else {

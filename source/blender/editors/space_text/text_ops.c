@@ -272,7 +272,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 static int text_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
-	char *path = (text && text->name) ? text->name : G.main->name;
+	const char *path = (text && text->name) ? text->name : G.main->name;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_open_exec(C, op);
@@ -545,7 +545,7 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Text *text = CTX_data_edit_text(C);
-	char *str;
+	const char *str;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_save_as_exec(C, op);

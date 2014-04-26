@@ -3577,7 +3577,7 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, AnimData *adt, B
                               float mtx[3][3], float smtx[3][3])
 {
 	float *loc = bezt->vec[bi];
-	float *cent = bezt->vec[1];
+	const float *cent = bezt->vec[1];
 
 	/* New location from td gets dumped onto the old-location of td2d, which then
 	 * gets copied to the actual data at td2d->loc2d (bezt->vec[n])
@@ -6057,7 +6057,7 @@ typedef struct TransDataTracking {
 
 	/* tracks transformation from main window */
 	int area;
-	float *relative, *loc;
+	const float *relative, *loc;
 	float soffset[2], srelative[2];
 	float offset[2];
 

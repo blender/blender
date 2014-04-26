@@ -300,7 +300,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 	 */
 	for (ld = pfl->fcurves.first; ld; ld = ld->next) {
 		FCurve *fcu = (FCurve *)ld->data;
-		char *bPtr, *pPtr;
+		const char *bPtr, *pPtr;
 		
 		if (fcu->rna_path == NULL)
 			continue;

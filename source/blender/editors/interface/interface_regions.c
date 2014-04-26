@@ -1643,7 +1643,7 @@ static void ui_warp_pointer(int x, int y)
 void ui_set_but_hsv(uiBut *but)
 {
 	float col[3];
-	float *hsv = ui_block_hsv_get(but->block);
+	const float *hsv = ui_block_hsv_get(but->block);
 	
 	ui_color_picker_to_rgb_v(hsv, col);
 
@@ -1755,7 +1755,7 @@ static void do_color_wheel_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 	uiBut *but = (uiBut *)bt1;
 	uiPopupBlockHandle *popup = but->block->handle;
 	float rgb[3];
-	float *hsv = ui_block_hsv_get(but->block);
+	const float *hsv = ui_block_hsv_get(but->block);
 	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 
 	ui_color_picker_to_rgb_v(hsv, rgb);
@@ -2088,7 +2088,7 @@ static unsigned int ui_popup_string_hash(const char *str)
 {
 	/* sometimes button contains hotkey, sometimes not, strip for proper compare */
 	int hash;
-	char *delimit = strchr(str, UI_SEP_CHAR);
+	const char *delimit = strchr(str, UI_SEP_CHAR);
 
 	if (delimit) {
 		hash = BLI_ghashutil_strhash_n(str, delimit - str);

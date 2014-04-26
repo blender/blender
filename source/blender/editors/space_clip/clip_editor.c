@@ -281,7 +281,7 @@ bool ED_space_clip_color_sample(Scene *scene, SpaceClip *sc, ARegion *ar, int mv
 	fy = co[1];
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
-		float *fp;
+		const float *fp;
 		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 

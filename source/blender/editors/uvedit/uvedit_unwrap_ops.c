@@ -361,7 +361,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	/* Used to hold subsurfed Mesh */
 	DerivedMesh *derivedMesh, *initialDerived;
 	/* holds original indices for subsurfed mesh */
-	int *origVertIndices, *origEdgeIndices, *origFaceIndices, *origPolyIndices;
+	const int *origVertIndices, *origEdgeIndices, *origFaceIndices, *origPolyIndices;
 	/* Holds vertices of subsurfed mesh */
 	MVert *subsurfedVerts;
 	MEdge *subsurfedEdges;
