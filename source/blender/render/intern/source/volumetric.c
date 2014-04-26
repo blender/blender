@@ -661,7 +661,7 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int inside_volume)
 {
 	float hitco[3], col[4] = {0.f, 0.f, 0.f, 0.f};
-	float *startco, *endco;
+	const float *startco, *endco;
 	int trace_behind = 1;
 	const int ztransp = ((shi->depth == 0) && (shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_ZTRANSP));
 	Isect is;
@@ -758,7 +758,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	float hitco[3];
 	float tr[3] = {1.0, 1.0, 1.0};
 	Isect is = {{0}};
-	float *startco, *endco;
+	const float *startco, *endco;
 
 	memset(shr, 0, sizeof(ShadeResult));
 	

@@ -348,7 +348,7 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 	float *pass;
 	float fac, col[4];
 	intptr_t *rd= pa->rectdaps;
-	int *rz= pa->rectz;
+	const int *rz= pa->rectz;
 	int x, y, sample, totsample, fullsample, od;
 	
 	totsample= get_sample_layers(pa, rl, rlpp);
@@ -763,7 +763,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 			int sample;
 			
 			for (sample=0; sample<totsample; sample++) {
-				float *zrect= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_Z) + od;
+				const float *zrect= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_Z) + od;
 				float *rgbrect = rlpp[sample]->rectf + 4*od;
 				float rgb[3] = {0};
 				bool done = false;
@@ -1157,10 +1157,10 @@ static void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *da
 	ZbufSolidData *sdata = (ZbufSolidData *)data;
 	ListBase *lb= sdata->psmlist;
 	intptr_t *rd= pa->rectdaps;
-	int *ro= zspan->recto;
-	int *rp= zspan->rectp;
-	int *rz= zspan->rectz;
-	int *rm= zspan->rectmask;
+	const int *ro= zspan->recto;
+	const int *rp= zspan->rectp;
+	const int *rz= zspan->rectz;
+	const int *rm= zspan->rectmask;
 	int x, y;
 	int mask= 1<<sample;
 
@@ -1363,8 +1363,8 @@ void zbufshade_tile(RenderPart *pa)
 			rr->renlay= rl;
 			
 			if (rl->layflag & SCE_LAY_SOLID) {
-				float *fcol= rl->rectf;
-				int *ro= pa->recto, *rp= pa->rectp, *rz= pa->rectz;
+				const float *fcol= rl->rectf;
+				const int *ro= pa->recto, *rp= pa->rectp, *rz= pa->rectz;
 				int x, y, offs=0, seed;
 				
 				/* we set per pixel a fixed seed, for random AO and shadow samples */

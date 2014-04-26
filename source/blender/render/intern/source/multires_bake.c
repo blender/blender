@@ -76,7 +76,7 @@ typedef struct {
 	MFace *mface;
 	MTFace *mtface;
 	float *pvtangent;
-	float *precomputed_normals;
+	const float *precomputed_normals;
 	int w, h;
 	int face_index;
 	int i0, i1, i2;
@@ -137,7 +137,7 @@ static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],
 		}
 		else {
 			float nor[3];
-			float *p0, *p1, *p2;
+			const float *p0, *p1, *p2;
 			const int iGetNrVerts = data->mface[face_num].v4 != 0 ? 4 : 3;
 
 			p0 = data->mvert[indices[0]].co;
@@ -145,7 +145,7 @@ static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],
 			p2 = data->mvert[indices[2]].co;
 
 			if (iGetNrVerts == 4) {
-				float *p3 = data->mvert[indices[3]].co;
+				const float *p3 = data->mvert[indices[3]].co;
 				normal_quad_v3(nor, p0, p1, p2, p3);
 			}
 			else {
@@ -156,7 +156,7 @@ static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],
 		}
 	}
 	else {
-		short *no = data->mvert[indices[vert_index]].no;
+		const short *no = data->mvert[indices[vert_index]].no;
 
 		normal_short_to_float_v3(norm, no);
 		normalize_v3(norm);
@@ -181,8 +181,8 @@ static void init_bake_rast(MBakeRast *bake_rast, const ImBuf *ibuf, const MResol
 static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 {
 	float st[2] = {(x + 0.5f) / data->w, (y + 0.5f) / data->h};
-	float *st0, *st1, *st2;
-	float *tang0, *tang1, *tang2;
+	const float *st0, *st1, *st2;
+	const float *tang0, *tang1, *tang2;
 	float no0[3], no1[3], no2[3];
 	float fUV[2], from_tang[3][3], to_tang[3][3];
 	float u, v, w, sign;
@@ -451,7 +451,7 @@ static void init_ccgdm_arrays(DerivedMesh *dm)
 	CCGElem **grid_data;
 	CCGKey key;
 	int grid_size;
-	int *grid_offset;
+	const int *grid_offset;
 
 	grid_size = dm->getGridSize(dm);
 	grid_data = dm->getGridData(dm);
@@ -478,7 +478,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 		MVert *mvert = dm->getVertArray(dm);
 		MFace *mface = dm->getTessFaceArray(dm);
 		MTFace *mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
-		float *precomputed_normals = dm->getTessFaceDataArray(dm, CD_NORMAL);
+		const float *precomputed_normals = dm->getTessFaceDataArray(dm, CD_NORMAL);
 		float *pvtangent = NULL;
 
 		ListBase threads;

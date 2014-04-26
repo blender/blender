@@ -416,7 +416,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_verte
 		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if (do_vertex_normal && vlr->flag & ME_SMOOTH) {
 			float *n4= (vlr->v4)? vlr->v4->n: NULL;
-			float *c4= (vlr->v4)? vlr->v4->co: NULL;
+			const float *c4= (vlr->v4)? vlr->v4->co: NULL;
 
 			accumulate_vertex_normals(vlr->v1->n, vlr->v2->n, vlr->v3->n, n4,
 				vlr->n, vlr->v1->co, vlr->v2->co, vlr->v3->co, c4);
@@ -1325,7 +1325,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	int totchild=0, step_nbr;
 	int seed, path_nbr=0, orco1=0, num;
 	int totface;
-	char **uv_name = NULL;
+	const char **uv_name = NULL;
 
 	const int *index_mf_to_mpoly = NULL;
 	const int *index_mp_to_orig = NULL;
@@ -2045,7 +2045,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 		/* not (yet?) */
 	}
 	if (texco & TEXCO_STRESS) {
-		float *s= RE_vertren_get_stress(obr, vr, 0);
+		const float *s= RE_vertren_get_stress(obr, vr, 0);
 
 		if (s) {
 			shi->stress= *s;
@@ -2714,7 +2714,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 				/* pass */
 			}
 			else if (dl->type==DL_INDEX3) {
-				int *index;
+				const int *index;
 
 				startvert= obr->totvert;
 				data= dl->verts;
@@ -3085,7 +3085,7 @@ static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
 	FreestyleEdge *fed;
 	MEdge *medge;
 	int totedge, a;
-	int *index;
+	const int *index;
 
 	medge = dm->getEdgeArray(dm);
 	totedge = dm->getNumEdges(dm);

@@ -1683,7 +1683,7 @@ static void compatible_bump_uv_derivs(CompatibleBump *compat_bump, ShadeInput *s
 			}
 
 			if (tf) {
-				float *uv1 = tf->uv[j1], *uv2 = tf->uv[j2], *uv3 = tf->uv[j3];
+				const float *uv1 = tf->uv[j1], *uv2 = tf->uv[j2], *uv3 = tf->uv[j3];
 				const float an[3] = {fabsf(compat_bump->nn[0]), fabsf(compat_bump->nn[1]), fabsf(compat_bump->nn[2])};
 				const int a1 = (an[0] > an[1] && an[0] > an[2]) ? 1 : 0;
 				const int a2 = (an[2] > an[0] && an[2] > an[1]) ? 1 : 2;
@@ -3713,7 +3713,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 			/* for every uv map set coords and name */
 			for (i=0; i<layers; i++) {
 				if (layer_index >= 0) {
-					float *uv1, *uv2, *uv3;
+					const float *uv1, *uv2, *uv3;
 					float l;
 					CustomData *data = &orcoDm->faceData;
 					MTFace *tface = (MTFace *) data->layers[layer_index+i].data;

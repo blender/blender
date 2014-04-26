@@ -82,21 +82,21 @@ static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 	
 	if (ibuf->rect_float) {
 		if (ibuf->channels==4) {
-			float *fp= ibuf->rect_float + 4*ofs;
+			const float *fp= ibuf->rect_float + 4*ofs;
 			copy_v4_v4(col, fp);
 		}
 		else if (ibuf->channels==3) {
-			float *fp= ibuf->rect_float + 3*ofs;
+			const float *fp= ibuf->rect_float + 3*ofs;
 			copy_v3_v3(col, fp);
 			col[3]= 1.0f;
 		}
 		else {
-			float *fp= ibuf->rect_float + ofs;
+			const float *fp= ibuf->rect_float + ofs;
 			col[0]= col[1]= col[2]= col[3]= *fp;
 		}
 	}
 	else {
-		char *rect = (char *)( ibuf->rect+ ofs);
+		const char *rect = (char *)( ibuf->rect+ ofs);
 
 		col[0] = ((float)rect[0])*(1.0f/255.0f);
 		col[1] = ((float)rect[1])*(1.0f/255.0f);
@@ -727,7 +727,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
 		}
 	}
 	else {
-		char *rect = (char *)(ibuf->rect + x + y*ibuf->x);
+		const char *rect = (char *)(ibuf->rect + x + y*ibuf->x);
 		float inv_alpha_fac = (1.0f / 255.0f) * rect[3] * (1.0f / 255.0f);
 		col[0] = rect[0] * inv_alpha_fac;
 		col[1] = rect[1] * inv_alpha_fac;

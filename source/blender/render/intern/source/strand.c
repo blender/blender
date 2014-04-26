@@ -79,7 +79,7 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 {
 	Material *ma;
 	StrandBuffer *strandbuf;
-	float *simplify;
+	const float *simplify;
 	float p[4][3], data[4], cross[3], w, dx, dy, t;
 	int type;
 

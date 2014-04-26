@@ -1176,7 +1176,7 @@ static void sample_occ_surface(ShadeInput *shi)
 {
 	StrandRen *strand = shi->strand;
 	StrandSurface *mesh = strand->buffer->surface;
-	int *face, *index = RE_strandren_get_face(shi->obr, strand, 0);
+	const int *face, *index = RE_strandren_get_face(shi->obr, strand, 0);
 	float w[4], *co1, *co2, *co3, *co4;
 
 	if (mesh && mesh->face && mesh->co && mesh->ao && index) {

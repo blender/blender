@@ -154,7 +154,7 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 	ImageUser *tiuser = &tex->iuser;
 	ImageUser iuser = *(tiuser);
 	int x = 0, y = 0, z = 0;
-	float *rf;
+	const float *rf;
 
 	if (!ima) return;
 	if (iuser.frames == 0) return;

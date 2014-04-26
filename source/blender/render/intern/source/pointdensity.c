@@ -350,7 +350,7 @@ void free_pointdensities(Render *re)
 typedef struct PointDensityRangeData {
 	float *density;
 	float squared_radius;
-	float *point_data;
+	const float *point_data;
 	float *vec;
 	float softness;
 	short falloff_type;
