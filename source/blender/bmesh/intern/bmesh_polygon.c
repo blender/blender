@@ -78,8 +78,8 @@ static void bm_face_calc_poly_normal(const BMFace *f, float n[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
-	float const *v_prev = l_first->prev->v->co;
-	float const *v_curr = l_first->v->co;
+	const float const *v_prev = l_first->prev->v->co;
+	const float const *v_curr = l_first->v->co;
 
 	zero_v3(n);
 
@@ -109,8 +109,8 @@ static void bm_face_calc_poly_normal_vertex_cos(BMFace *f, float r_no[3],
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
-	float const *v_prev = vertexCos[BM_elem_index_get(l_first->prev->v)];
-	float const *v_curr = vertexCos[BM_elem_index_get(l_first->v)];
+	const float const *v_prev = vertexCos[BM_elem_index_get(l_first->prev->v)];
+	const float const *v_curr = vertexCos[BM_elem_index_get(l_first->v)];
 
 	zero_v3(r_no);
 

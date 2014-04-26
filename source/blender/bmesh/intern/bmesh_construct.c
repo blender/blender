@@ -388,7 +388,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
 
 	float cent[3], nor[3];
 
-	float *far = NULL, *far_cross = NULL;
+	const float *far = NULL, *far_cross = NULL;
 
 	float far_vec[3];
 	float far_cross_vec[3];

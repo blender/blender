@@ -1197,7 +1197,7 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int n,
 static void calculate_profile(BevelParams *bp, BoundVert *bndv)
 {
 	int i, k, ns;
-	float *uvals;
+	const float *uvals;
 	float co[3], co2[3], p[3], m[4][4];
 	float *prof_co, *prof_co_k;
 	float r;

@@ -948,7 +948,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 			zero_v3(es->e_new->v2->no);
 		}
 		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
-			float *no = es->l->f->no;
+			const float *no = es->l->f->no;
 			add_v3_v3(es->e_new->v1->no, no);
 			add_v3_v3(es->e_new->v2->no, no);
 		}

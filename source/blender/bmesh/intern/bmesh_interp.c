@@ -884,7 +884,7 @@ void BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int ds
 
 float BM_elem_float_data_get(CustomData *cd, void *element, int type)
 {
-	float *f = CustomData_bmesh_get(cd, ((BMHeader *)element)->data, type);
+	const float *f = CustomData_bmesh_get(cd, ((BMHeader *)element)->data, type);
 	return f ? *f : 0.0f;
 }
 

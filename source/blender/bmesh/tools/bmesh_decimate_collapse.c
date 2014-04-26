@@ -146,8 +146,8 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
 
 		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 			if (l->e != e && l->prev->e != e) {
-				float *co_prev = l->prev->v->co;
-				float *co_next = l->next->v->co;
+				const float *co_prev = l->prev->v->co;
+				const float *co_next = l->next->v->co;
 				float cross_exist[3];
 				float cross_optim[3];
 

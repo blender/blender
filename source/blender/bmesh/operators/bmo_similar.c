@@ -438,7 +438,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 
 					case SIMEDGE_CREASE:
 						{
-							float *c1, *c2;
+							const float *c1, *c2;
 
 							c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 							c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_CREASE);
@@ -453,7 +453,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 
 					case SIMEDGE_BEVEL:
 						{
-							float *c1, *c2;
+							const float *c1, *c2;
 
 							c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
 							c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_BWEIGHT);

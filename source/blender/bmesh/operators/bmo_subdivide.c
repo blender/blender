@@ -1002,7 +1002,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	/* copy original-geometry displacements to current coordinates */
 	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-		float *co = BM_ELEM_CD_GET_VOID_P(v, params.shape_info.cd_vert_shape_offset_tmp);
+		const float *co = BM_ELEM_CD_GET_VOID_P(v, params.shape_info.cd_vert_shape_offset_tmp);
 		copy_v3_v3(v->co, co);
 	}
 
@@ -1147,7 +1147,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	/* copy original-geometry displacements to current coordinates */
 	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-		float *co = BM_ELEM_CD_GET_VOID_P(v, params.shape_info.cd_vert_shape_offset_tmp);
+		const float *co = BM_ELEM_CD_GET_VOID_P(v, params.shape_info.cd_vert_shape_offset_tmp);
 		copy_v3_v3(v->co, co);
 	}
 
