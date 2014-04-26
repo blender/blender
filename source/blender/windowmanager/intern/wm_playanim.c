@@ -206,7 +206,7 @@ typedef struct PlayAnimPict {
 	struct PlayAnimPict *next, *prev;
 	char *mem;
 	int size;
-	char *name;
+	const char *name;
 	struct ImBuf *ibuf;
 	struct anim *anim;
 	int frame;
@@ -1223,7 +1223,7 @@ void WM_main_playanim(int argc, const char **argv)
 	bool looping = true;
 
 	while (looping) {
-		char *filepath = wm_main_playanim_intern(argc, argv);
+		const char *filepath = wm_main_playanim_intern(argc, argv);
 
 		if (filepath) {	/* use simple args */
 			argv[1] = "-a";

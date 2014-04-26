@@ -247,7 +247,7 @@ static void draw_filled_lasso_px_cb(int x, int y, void *user_data)
 
 static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 {
-	short *lasso = (short *)gt->customdata;
+	const short *lasso = (short *)gt->customdata;
 	const int tot = gt->points;
 	int (*moves)[2] = MEM_mallocN(sizeof(*moves) * (tot + 1), __func__);
 	int i;
@@ -295,7 +295,7 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 {
-	short *lasso = (short *)gt->customdata;
+	const short *lasso = (short *)gt->customdata;
 	int i;
 
 	if (filled) {

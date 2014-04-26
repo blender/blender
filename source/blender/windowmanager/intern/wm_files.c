@@ -708,7 +708,7 @@ void wm_read_history(void)
 	char name[FILE_MAX];
 	LinkNode *l, *lines;
 	struct RecentFile *recent;
-	char *line;
+	const char *line;
 	int num;
 	const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 

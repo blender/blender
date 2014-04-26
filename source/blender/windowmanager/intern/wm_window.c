@@ -918,7 +918,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			{
 				PointerRNA props_ptr;
 				wmWindow *oldWindow;
-				char *path = GHOST_GetEventData(evt);
+				const char *path = GHOST_GetEventData(evt);
 				
 				if (path) {
 					/* operator needs a valid window in context, ensures

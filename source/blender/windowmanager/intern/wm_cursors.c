@@ -300,7 +300,7 @@ void WM_cursor_time(wmWindow *win, int nr)
 	
 	/* print number bottom right justified */
 	for (idx = 3; nr && idx >= 0; idx--) {
-		char *digit = number_bitmaps[nr % 10];
+		const char *digit = number_bitmaps[nr % 10];
 		int x = idx % 2;
 		int y = idx / 2;
 

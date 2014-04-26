@@ -497,7 +497,7 @@ bool WM_operatortype_remove(const char *idname)
 /* SOME_OT_op -> some.op */
 void WM_operator_py_idname(char *to, const char *from)
 {
-	char *sep = strstr(from, "_OT_");
+	const char *sep = strstr(from, "_OT_");
 	if (sep) {
 		int ofs = (sep - from);
 		
@@ -519,7 +519,7 @@ void WM_operator_py_idname(char *to, const char *from)
 void WM_operator_bl_idname(char *to, const char *from)
 {
 	if (from) {
-		char *sep = strchr(from, '.');
+		const char *sep = strchr(from, '.');
 
 		if (sep) {
 			int ofs = (sep - from);
@@ -3336,7 +3336,7 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
 	PointerRNA itemptr;
 	float loc[2];
 	int i;
-	short *lasso = gesture->customdata;
+	const short *lasso = gesture->customdata;
 	
 	/* operator storage as path. */
 
