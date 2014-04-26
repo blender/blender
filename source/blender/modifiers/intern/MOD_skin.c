@@ -752,7 +752,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
  * having any special cases for dealing with sharing a frame between
  * two hulls.) */
 static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
-                                  const MEdge *e, int *degree)
+                                  const MEdge *e, const int *degree)
 {
 	/* prevent memory errors [#38003] */
 #define NUM_SUBDIVISIONS_MAX 128

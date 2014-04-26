@@ -621,7 +621,7 @@ static void viewops_data_create_ex(bContext *C, wmOperator *op, const wmEvent *e
 				negate_v3_v3(rv3d->ofs, dvec);
 			}
 			else {
-				float mval_ar_mid[2] = {
+				const float mval_ar_mid[2] = {
 				    (float)vod->ar->winx / 2.0f,
 				    (float)vod->ar->winy / 2.0f};
 

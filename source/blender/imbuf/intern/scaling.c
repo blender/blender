@@ -674,7 +674,7 @@ struct scale_outpix_float {
 };
 
 static void shrink_picture_float(
-        float *src, float *dst, int src_width,
+        const float *src, float *dst, int src_width,
         int src_height, int dst_width, int dst_height)
 {
 	double ratiox = (double) (dst_width) / (double) (src_width);

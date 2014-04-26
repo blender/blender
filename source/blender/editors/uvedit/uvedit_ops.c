@@ -991,7 +991,7 @@ static bool uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1,
 }
 
 static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit *hit,
-                              float limit[2], const bool extend)
+                              const float limit[2], const bool extend)
 {
 	BMFace *efa;
 	BMIter iter, liter;

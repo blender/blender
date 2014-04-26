@@ -4012,7 +4012,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 {
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
-	float mouse[2] = {
+	const float mouse[2] = {
 		cache->mouse[0],
 		cache->mouse[1]
 	};

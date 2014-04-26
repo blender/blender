@@ -1185,8 +1185,10 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 				bool found = false;
 				unsigned int index;
 
-				int mval[2] = {win->eventstate->x - vc.ar->winrct.xmin,
-				               win->eventstate->y - vc.ar->winrct.ymin};
+				const int mval[2] = {
+				    win->eventstate->x - vc.ar->winrct.xmin,
+				    win->eventstate->y - vc.ar->winrct.ymin,
+				};
 
 				view3d_operator_needs_opengl(C);
 				ED_view3d_init_mats_rv3d(vc.obact, vc.rv3d);

@@ -2235,11 +2235,13 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 {
 	/* Antialias jitter point relative coords	*/
-	float jitter5sample[10] =  {0.0f, 0.0f,
-		                        -0.2f, -0.4f,
-		                        0.2f, 0.4f,
-		                        0.4f, -0.2f,
-		                        -0.4f, 0.3f};
+	const float jitter5sample[10] =  {
+		    0.0f, 0.0f,
+		    -0.2f, -0.4f,
+		    0.2f, 0.4f,
+		    0.4f, -0.2f,
+		    -0.4f, 0.3f,
+	};
 	int ty;
 	int w, h;
 	int numOfFaces;

@@ -535,7 +535,7 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
 }
 
 static void tracking_scale_reconstruction(ListBase *tracksbase, MovieTrackingReconstruction *reconstruction,
-                                          float scale[3])
+                                          const float scale[3])
 {
 	MovieTrackingTrack *track;
 	int i;

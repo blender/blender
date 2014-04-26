@@ -1400,7 +1400,7 @@ static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 	n[2] = n1[0]*n2[1]-n1[1]*n2[0];
 }
 
-static float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
+static float calculateVertexWindForce(const float wind[3], const float vertexnormal[3])
 {
 	return dot_v3v3(wind, vertexnormal);
 }

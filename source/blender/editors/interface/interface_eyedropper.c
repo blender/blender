@@ -476,8 +476,9 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
 			if (sa->spacetype == SPACE_VIEW3D) {
 				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
-					int mval[2] = {mx - ar->winrct.xmin,
-					               my - ar->winrct.ymin};
+					const int mval[2] = {
+					    mx - ar->winrct.xmin,
+					    my - ar->winrct.ymin};
 					Base *base;
 
 					CTX_wm_area_set(C, sa);

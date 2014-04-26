@@ -1189,7 +1189,7 @@ static void draw_manipulator_rotate(
 
 static void drawsolidcube(float size)
 {
-	static float cube[8][3] = {
+	const float cube[8][3] = {
 		{-1.0, -1.0, -1.0},
 		{-1.0, -1.0,  1.0},
 		{-1.0,  1.0,  1.0},

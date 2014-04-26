@@ -1481,7 +1481,7 @@ static void gpu_color_from_mask_quad_copy(const CCGKey *key,
 static void gpu_color_from_mask_quad_set(const CCGKey *key,
                                          CCGElem *a, CCGElem *b,
                                          CCGElem *c, CCGElem *d,
-                                         float diffuse_color[4])
+                                         const float diffuse_color[4])
 {
 	float color = gpu_color_from_mask_quad(key, a, b, c, d);
 	glColor3f(diffuse_color[0] * color, diffuse_color[1] * color, diffuse_color[2] * color);

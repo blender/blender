@@ -473,7 +473,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 }
 
 static int mouse_on_slide_zone(SpaceClip *sc, MovieTrackingMarker *marker,
-                               int area, float co[2], float slide_zone[2],
+                               int area, const float co[2], const float slide_zone[2],
                                float padding, int width, int height)
 {
 	const float size = 12.0f;
@@ -504,7 +504,7 @@ static int mouse_on_slide_zone(SpaceClip *sc, MovieTrackingMarker *marker,
 }
 
 static int mouse_on_corner(SpaceClip *sc, MovieTrackingMarker *marker,
-                           int area, float co[2], int corner, float padding,
+                           int area, const float co[2], int corner, float padding,
                            int width, int height)
 {
 	float min[2], max[2], crn[2];
@@ -573,7 +573,7 @@ static int get_mouse_pattern_corner(SpaceClip *sc, MovieTrackingMarker *marker, 
 }
 
 static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                           float co[2], int width, int height)
+                           const float co[2], int width, int height)
 {
 	float pos[2], dx, dy;
 	float pat_min[2], pat_max[2];

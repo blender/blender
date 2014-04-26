@@ -475,7 +475,7 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 
 /* draw a set of strokes */
 static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int winy, int dflag,
-                            short debug, short lthick, float color[4])
+                            short debug, short lthick, const float color[4])
 {
 	bGPDstroke *gps;
 	

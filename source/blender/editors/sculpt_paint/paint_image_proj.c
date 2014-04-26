@@ -1053,9 +1053,9 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
  *
  * This is used for finding a pixels location in screenspace for painting */
 static void screen_px_from_ortho(
-        float uv[2],
-        float v1co[3], float v2co[3], float v3co[3],  /* Screenspace coords */
-        float uv1co[2], float uv2co[2], float uv3co[2],
+        const float uv[2],
+        const float v1co[3], const float v2co[3], const float v3co[3],  /* Screenspace coords */
+        const float uv1co[2], const float uv2co[2], const float uv3co[2],
         float pixelScreenCo[4],
         float w[3])
 {
@@ -1066,9 +1066,9 @@ static void screen_px_from_ortho(
 /* same as screen_px_from_ortho except we need to take into account
  * the perspective W coord for each vert */
 static void screen_px_from_persp(
-        float uv[2],
-        float v1co[4], float v2co[4], float v3co[4],  /* screenspace coords */
-        float uv1co[2], float uv2co[2], float uv3co[2],
+        const float uv[2],
+        const float v1co[4], const float v2co[4], const float v3co[4],  /* screenspace coords */
+        const float uv1co[2], const float uv2co[2], const float uv3co[2],
         float pixelScreenCo[4],
         float w[3])
 {
@@ -1101,9 +1101,9 @@ static void screen_px_from_persp(
 /* same as screen_px_from_persp except we return ortho weights back to the caller.
  * These weights will be used to determine correct interpolation of uvs in cloned uv layer */
 static void screen_px_from_persp_ortho_weights(
-        float uv[2],
-        float v1co[4], float v2co[4], float v3co[4],  /* screenspace coords */
-        float uv1co[2], float uv2co[2], float uv3co[2],
+        const float uv[2],
+        const float v1co[4], const float v2co[4], const float v3co[4],  /* screenspace coords */
+        const float uv1co[2], const float uv2co[2], const float uv3co[2],
         float pixelScreenCo[4],
         float w[3])
 {
@@ -1711,8 +1711,8 @@ static bool project_bucket_isect_circle(const float cent[2], const float radius_
 
 static void rect_to_uvspace_ortho(
         rctf *bucket_bounds,
-        float *v1coSS, float *v2coSS, float *v3coSS,
-        float *uv1co, float *uv2co, float *uv3co,
+        const float *v1coSS, const float *v2coSS, const float *v3coSS,
+        const float *uv1co, const float *uv2co, const float *uv3co,
         float bucket_bounds_uv[4][2],
         const int flip)
 {
@@ -1744,8 +1744,8 @@ static void rect_to_uvspace_ortho(
 /* same as above but use barycentric_weights_v2_persp */
 static void rect_to_uvspace_persp(
         rctf *bucket_bounds,
-        float *v1coSS, float *v2coSS, float *v3coSS,
-        float *uv1co, float *uv2co, float *uv3co,
+        const float *v1coSS, const float *v2coSS, const float *v3coSS,
+        const float *uv1co, const float *uv2co, const float *uv3co,
         float bucket_bounds_uv[4][2],
         const int flip
         )
@@ -1821,7 +1821,7 @@ static void project_bucket_clip_face(
         const bool is_ortho,
         rctf *bucket_bounds,
         float *v1coSS, float *v2coSS, float *v3coSS,
-        float *uv1co, float *uv2co, float *uv3co,
+        const float *uv1co, const float *uv2co, const float *uv3co,
         float bucket_bounds_uv[8][2],
         int *tot)
 {

@@ -191,7 +191,7 @@ static void add_vgroups__mapFunc(void *userData, int index, const float co[3],
 
 static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist,
                                     bDeformGroup **dgrouplist, bDeformGroup **dgroupflip,
-                                    float (*root)[3], float (*tip)[3], int *selected, float scale)
+                                    float (*root)[3], float (*tip)[3], const int *selected, float scale)
 {
 	/* Create vertex group weights from envelopes */
 

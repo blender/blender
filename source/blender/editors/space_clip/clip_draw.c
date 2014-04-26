@@ -468,7 +468,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 }
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                                float marker_pos[2], int width, int height)
+                                const float marker_pos[2], int width, int height)
 {
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
 	bool show_search = false;
@@ -571,7 +571,7 @@ static void track_colors(MovieTrackingTrack *track, int act, float col[3], float
 }
 
 static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                              float marker_pos[2], int width, int height, int act, int sel)
+                              const float marker_pos[2], int width, int height, int act, int sel)
 {
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
 	bool show_search = false;
@@ -785,7 +785,7 @@ static void draw_marker_slide_triangle(float x, float y, float dx, float dy, int
 }
 
 static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                                    float marker_pos[2], int outline, int sel, int act, int width, int height)
+                                    const float marker_pos[2], int outline, int sel, int act, int width, int height)
 {
 	float dx, dy, patdx, patdy, searchdx, searchdy;
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
@@ -898,7 +898,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 }
 
 static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                              float marker_pos[2], int act, int width, int height, float zoomx, float zoomy)
+                              const float marker_pos[2], int act, int width, int height, float zoomx, float zoomy)
 {
 	char str[128] = {0}, state[64] = {0};
 	float dx = 0.0f, dy = 0.0f, fontsize, pos[3];

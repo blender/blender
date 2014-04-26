@@ -2357,7 +2357,7 @@ void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const flo
 #endif
 
 		/* inline mean_value_half_tan four times here */
-		float t[4] = {
+		const float t[4] = {
 			MEAN_VALUE_HALF_TAN_V2(area, 0, 1),
 			MEAN_VALUE_HALF_TAN_V2(area, 1, 2),
 			MEAN_VALUE_HALF_TAN_V2(area, 2, 3),

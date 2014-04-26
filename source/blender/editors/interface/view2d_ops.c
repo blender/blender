@@ -1348,14 +1348,14 @@ struct SmoothView2DStore {
  */
 static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 {
-	float size_a[2] = {BLI_rctf_size_x(rect_a),
-	                   BLI_rctf_size_y(rect_a)};
-	float size_b[2] = {BLI_rctf_size_x(rect_b),
-	                   BLI_rctf_size_y(rect_b)};
-	float cent_a[2] = {BLI_rctf_cent_x(rect_a),
-	                   BLI_rctf_cent_y(rect_a)};
-	float cent_b[2] = {BLI_rctf_cent_x(rect_b),
-	                   BLI_rctf_cent_y(rect_b)};
+	const float size_a[2] = {BLI_rctf_size_x(rect_a),
+	                         BLI_rctf_size_y(rect_a)};
+	const float size_b[2] = {BLI_rctf_size_x(rect_b),
+	                         BLI_rctf_size_y(rect_b)};
+	const float cent_a[2] = {BLI_rctf_cent_x(rect_a),
+	                         BLI_rctf_cent_y(rect_a)};
+	const float cent_b[2] = {BLI_rctf_cent_x(rect_b),
+	                         BLI_rctf_cent_y(rect_b)};
 
 	float fac_max = 0.0f;
 	float tfac;

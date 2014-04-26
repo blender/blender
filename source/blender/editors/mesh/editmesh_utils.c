@@ -1261,9 +1261,11 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
 
-	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
-	               (em->selectmode & SCE_SELECT_EDGE),
-	               (em->selectmode & SCE_SELECT_FACE), };
+	const bool sels[3] = {
+	    (em->selectmode & SCE_SELECT_VERTEX) != 0,
+	    (em->selectmode & SCE_SELECT_EDGE) != 0,
+	    (em->selectmode & SCE_SELECT_FACE) != 0,
+	};
 	int i;
 
 	/* Use tag flag to remember what was hidden before all is revealed.

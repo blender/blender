@@ -295,8 +295,9 @@ static float quad_coord(const float aa[3], const float bb[3], const float cc[3],
 	return f1;
 }
 
-static int quad_co(float *x, float *y, float v1[3], float v2[3], float v3[3], float v4[3],
-                   float p[3], float n[3])
+static int quad_co(float *x, float *y,
+                   const float v1[3], const float v2[3], const float v3[3], const float v4[3],
+                   const float p[3], const float n[3])
 {
 	float projverts[5][3], n2[3];
 	float dprojverts[4][3], origin[3] = {0.0f, 0.0f, 0.0f};
@@ -384,8 +385,8 @@ static bool mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, floa
 	return 1;
 }
 
-static float bm_loop_flip_equotion(float mat[2][2], float b[2], float target_axis_x[3], float target_axis_y[3],
-                                   float coord[3], int i, int j)
+static float bm_loop_flip_equotion(float mat[2][2], float b[2], const float target_axis_x[3], const float target_axis_y[3],
+                                   const float coord[3], int i, int j)
 {
 	mat[0][0] = target_axis_x[i];
 	mat[0][1] = target_axis_y[i];
