@@ -536,7 +536,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__re
 	if (UNLIKELY(len == -1)) {
 		/* when called with NULL end, result will never be NULL,
 		 * checks for a NULL character */
-		char *p_next = BLI_str_find_next_char_utf8(p, NULL);
+		const char *p_next = BLI_str_find_next_char_utf8(p, NULL);
 		/* will never return the same pointer unless '\0',
 		 * eternal loop is prevented */
 		*index += (size_t)(p_next - p);

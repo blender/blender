@@ -646,8 +646,8 @@ void BLI_path_rel(char *file, const char *relfile)
 	if (lslash) {
 		/* find the prefix of the filename that is equal for both filenames.
 		 * This is replaced by the two slashes at the beginning */
-		char *p = temp;
-		char *q = file;
+		const char *p = temp;
+		const char *q = file;
 		char *r = res;
 
 #ifdef WIN32
@@ -1723,7 +1723,7 @@ bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 	char pattern[16];
 
 	while (ext_step[0]) {
-		char *ext_next;
+		const char *ext_next;
 		int len_ext;
 
 		if ((ext_next = strchr(ext_step, ';'))) {
@@ -2057,8 +2057,8 @@ int BLI_rebase_path(char *abs, size_t abs_len,
  */
 const char *BLI_first_slash(const char *string)
 {
-	char * const ffslash = strchr(string, '/');
-	char * const fbslash = strchr(string, '\\');
+	const char * const ffslash = strchr(string, '/');
+	const char * const fbslash = strchr(string, '\\');
 	
 	if (!ffslash) return fbslash;
 	else if (!fbslash) return ffslash;

@@ -865,7 +865,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 			/* Newell's Method */
 			/* Similar code used elsewhere, but this checks for double ups
 			 * which historically this function supports so better not change */
-			float *v_prev;
+			const float *v_prev;
 
 			zero_v3(n);
 			eve = sf_ctx->fillvertbase.last;

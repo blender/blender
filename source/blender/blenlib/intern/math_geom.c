@@ -95,8 +95,8 @@ float normal_quad_v3(float n[3], const float v1[3], const float v2[3], const flo
  */
 float normal_poly_v3(float n[3], const float verts[][3], unsigned int nr)
 {
-	float const *v_prev = verts[nr - 1];
-	float const *v_curr = verts[0];
+	const float const *v_prev = verts[nr - 1];
+	const float const *v_curr = verts[0];
 	unsigned int i;
 
 	zero_v3(n);
@@ -2554,7 +2554,7 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 {
 	const float eps = 0.00001f;  /* take care, low values cause [#36105] */
 	const float eps_sq = eps * eps;
-	float *v_curr, *v_next;
+	const float *v_curr, *v_next;
 	float ht_prev, ht;  /* half tangents */
 	float totweight = 0.0f;
 	int i = 0;
@@ -2623,7 +2623,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 {
 	const float eps = 0.00001f;  /* take care, low values cause [#36105] */
 	const float eps_sq = eps * eps;
-	float *v_curr, *v_next;
+	const float *v_curr, *v_next;
 	float ht_prev, ht;  /* half tangents */
 	float totweight = 0.0f;
 	int i = 0;
