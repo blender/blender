@@ -25,7 +25,7 @@ shader node_refraction_bsdf(
 	output closure color BSDF = 0)
 {
 	float f = max(IOR, 1e-5);
-	float eta = backfacing() ? 1.0 / f: f;
+	float eta = backfacing() ? 1.0 / f : f;
 
 	if (distribution == "Sharp")
 		BSDF = Color * refraction(Normal, eta);

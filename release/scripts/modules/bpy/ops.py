@@ -201,7 +201,7 @@ class BPyOpsSubModOp(object):
         return op_get_instance(self.idname())
 
     def __repr__(self):  # useful display, repr(op)
-        import bpy
+        # import bpy
         idname = self.idname()
         as_string = op_as_string(idname)
         # XXX You never quite know what you get from bpy.types,

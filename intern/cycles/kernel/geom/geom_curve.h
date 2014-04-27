@@ -782,10 +782,10 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 		}
 
 		float z = zcentre + (dirz * correction);
-		bool backface = false;
+		// bool backface = false;
 
 		if(flags & CURVE_KN_BACKFACING && (t < 0.0f || z < 0 || z > l)) {
-			backface = true;
+			// backface = true;
 			correction = ((-tb + rootd)/(2*a));
 			t = tcentre + correction;
 			z = zcentre + (dirz * correction);
