@@ -6340,7 +6340,7 @@ static bool ui_is_but_interactive(const uiBut *but, const bool labeledit)
 		return false;
 	if (but->flag & UI_SCROLLED)
 		return false;
-	if ((but->type == TEX) && (but->dt & UI_EMBOSSN) && !labeledit)
+	if ((but->type == TEX) && (but->dt == UI_EMBOSSN) && !labeledit)
 		return false;
 	if ((but->type == LISTROW) && labeledit)
 		return false;
