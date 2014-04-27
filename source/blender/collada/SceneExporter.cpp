@@ -193,8 +193,10 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	if (BLI_listbase_is_empty(&ob->constraints) == false) {
 		bConstraint *con = (bConstraint *) ob->constraints.first;
 		while (con) {
-			std::string con_name(id_name(con));
+			std::string con_name(translate_id(con->name));
 			std::string con_tag = con_name + "_constraint";
+			printf("%s\n", con_name.c_str());
+			printf("%s\n\n", con_tag.c_str());
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"type",con->type);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"enforce",con->enforce);
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"flag",con->flag);
