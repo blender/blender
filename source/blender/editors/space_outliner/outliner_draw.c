@@ -757,7 +757,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				prop = te->directdata;
 				
 				if (!(RNA_property_type(prop) == PROP_POINTER && (TSELEM_OPEN(tselem, soops)))) {
-					uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, sizex, te->ys, OL_RNA_COL_SIZEX,
+					uiDefAutoButR(block, ptr, prop, -1, NULL, ICON_NONE, sizex, te->ys, OL_RNA_COL_SIZEX,
 					              UI_UNIT_Y - 1);
 				}
 			}
@@ -765,7 +765,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				ptr = &te->rnaptr;
 				prop = te->directdata;
 				
-				uiDefAutoButR(block, ptr, prop, te->index, "", ICON_NONE, sizex, te->ys, OL_RNA_COL_SIZEX,
+				uiDefAutoButR(block, ptr, prop, te->index, NULL, ICON_NONE, sizex, te->ys, OL_RNA_COL_SIZEX,
 				              UI_UNIT_Y - 1);
 			}
 		}
