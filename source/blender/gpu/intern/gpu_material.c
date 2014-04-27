@@ -58,6 +58,7 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
+#include "BKE_group.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -259,18 +260,33 @@ void GPU_material_free(Material *ma)
 	BLI_freelistN(&ma->gpumaterial);
 }
 
+bool GPU_lamp_override_visible(GPULamp *lamp, SceneRenderLayer *srl, Material *ma)
+{
+	if (srl && srl->light_override)
+		return BKE_group_object_exists(srl->light_override, lamp->ob);
+	else if (ma && ma->group)
+		return BKE_group_object_exists(ma->group, lamp->ob);
+	else
+		return true;
+}
+
 void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4])
 {
 	if (material->pass) {
 		LinkData *nlink;
 		GPULamp *lamp;
 		GPUShader *shader = GPU_pass_shader(material->pass);
+		SceneRenderLayer *srl = BLI_findlink(&material->scene->r.layers, material->scene->r.actlay);
+
+		if (srl)
+			viewlay &= srl->lay;
 
 		/* handle layer lamps */
 		for (nlink=material->lamps.first; nlink; nlink=nlink->next) {
 			lamp= nlink->data;
 
-			if (!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
+			if (!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))
+			    && GPU_lamp_override_visible(lamp, srl, material->ma)) {
 				lamp->dynenergy = lamp->energy;
 				copy_v3_v3(lamp->dyncol, lamp->col);
 			}

@@ -2381,11 +2381,12 @@ typedef struct View3DShadow {
 } View3DShadow;
 
 static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object *par,
-                                   float obmat[4][4], ListBase *shadows)
+                                   float obmat[4][4], ListBase *shadows, SceneRenderLayer *srl)
 {
 	GPULamp *lamp;
 	Lamp *la = (Lamp *)ob->data;
 	View3DShadow *shadow;
+	unsigned int layers;
 	
 	lamp = GPU_lamp_from_blender(scene, ob, par);
 	
@@ -2393,7 +2394,11 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object
 		GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_RENDER), obmat);
 		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
-		if ((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
+		layers = ob->lay & v3d->lay;
+		if (srl)
+			layers &= srl->lay;
+
+		if (layers && GPU_lamp_override_visible(lamp, srl, NULL) && GPU_lamp_has_shadow_buffer(lamp)) {
 			shadow = MEM_callocN(sizeof(View3DShadow), "View3DShadow");
 			shadow->lamp = lamp;
 			BLI_addtail(shadows, shadow);
@@ -2408,6 +2413,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	Scene *sce_iter;
 	Base *base;
 	Object *ob;
+	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 	
 	BLI_listbase_clear(&shadows);
 	
@@ -2416,7 +2422,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		ob = base->object;
 		
 		if (ob->type == OB_LAMP)
-			gpu_render_lamp_update(scene, v3d, ob, NULL, ob->obmat, &shadows);
+			gpu_render_lamp_update(scene, v3d, ob, NULL, ob->obmat, &shadows, srl);
 		
 		if (ob->transflag & OB_DUPLI) {
 			DupliObject *dob;
@@ -2424,7 +2430,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 			
 			for (dob = lb->first; dob; dob = dob->next)
 				if (dob->ob->type == OB_LAMP)
-					gpu_render_lamp_update(scene, v3d, dob->ob, ob, dob->mat, &shadows);
+					gpu_render_lamp_update(scene, v3d, dob->ob, ob, dob->mat, &shadows, srl);
 			
 			free_object_duplilist(lb);
 		}
