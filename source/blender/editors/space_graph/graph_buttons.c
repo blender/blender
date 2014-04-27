@@ -342,6 +342,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 			                &bezt_ptr, "handle_left", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
+			
+			/* XXX: with label? */
+			but = uiDefButR(block, MENU, B_REDR, NULL, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			                &bezt_ptr, "handle_left_type", 0, 0, 0, -1, -1, "Type of left handle");
+			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 		}
 		
 		/* next handle - only if current is Bezier interpolation */
@@ -356,6 +361,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 			                &bezt_ptr, "handle_right", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
+			
+			/* XXX: with label? */
+			but = uiDefButR(block, MENU, B_REDR, NULL, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			                &bezt_ptr, "handle_right_type", 0, 0, 0, -1, -1, "Type of right handle");
+			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 		}
 	}
 	else {
