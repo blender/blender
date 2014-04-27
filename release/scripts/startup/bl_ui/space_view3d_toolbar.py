@@ -1315,14 +1315,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "gravity_object")
         col.separator()
 
-        col = layout.column(align=True)
-        col.label(text="Threads:")
-        col.row(align=True).prop(scene, "omp_threads_mode", expand=True)
-        sub = col.column(align=True)
-        sub.enabled = (scene.omp_threads_mode != 'AUTO')
-        sub.prop(scene, "omp_threads")
-        col.separator()
-
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
         layout.prop(sculpt, "show_low_resolution")
         layout.prop(sculpt, "use_deform_only")
