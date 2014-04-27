@@ -851,7 +851,9 @@ static void widget_draw_icon(const uiBut *but, BIFIconID icon, float alpha, cons
 	float aspect, height;
 	
 	if (but->flag & UI_ICON_PREVIEW) {
+		glEnable(GL_BLEND);
 		widget_draw_preview(icon, alpha, rect);
+		glDisable(GL_BLEND);
 		return;
 	}
 	
@@ -3753,6 +3755,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 	wt->state(wt, state);
 	wt->draw(&wt->wcol, rect, 0, 0);
 	
+	glEnable(GL_BLEND);
 	widget_draw_preview(iconid, 1.0f, rect);
 	
 	BLF_width_and_height(fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
@@ -3775,7 +3778,6 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		bg_rect.xmax = rect->xmax - PREVIEW_PAD;
 
 	glColor4ubv((unsigned char *)wt->wcol_theme->inner_sel);
-	glEnable(GL_BLEND);
 	glRecti(bg_rect.xmin, bg_rect.ymin, bg_rect.xmax, bg_rect.ymax);
 	glDisable(GL_BLEND);
 
