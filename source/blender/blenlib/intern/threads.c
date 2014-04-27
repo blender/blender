@@ -54,15 +54,9 @@
 #  include <sys/time.h>
 #endif
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-#if defined(__APPLE__) && defined(_OPENMP)
-#if (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
+#if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
 #  define USE_APPLE_OMP_FIX
 #endif
-#endif // __APPLE__
 
 #ifdef USE_APPLE_OMP_FIX
 /* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
