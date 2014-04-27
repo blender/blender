@@ -2934,7 +2934,7 @@ static void edvm_mesh_knife_face_point(BMFace *f, float r_cent[3])
 	unsigned int  (*index)[3] = BLI_array_alloca(index, tottri);
 	int j;
 
-	const float const *best_co[3] = {NULL};
+	const float *best_co[3] = {NULL};
 	float best_area  = -1.0f;
 	bool ok = false;
 

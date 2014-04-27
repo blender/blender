@@ -544,9 +544,9 @@ void BM_edgeloop_calc_center(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 	LinkData *node_first = el_store->verts.first;
 	LinkData *node_next = node_first;
 
-	const float const *v_prev = NODE_AS_CO(node_prev);
-	const float const *v_curr = NODE_AS_CO(node_curr);
-	const float const *v_next = NODE_AS_CO(node_next);
+	const float *v_prev = NODE_AS_CO(node_prev);
+	const float *v_curr = NODE_AS_CO(node_curr);
+	const float *v_next = NODE_AS_CO(node_next);
 
 	float totw = 0.0f;
 	float w_prev;
@@ -582,8 +582,8 @@ void BM_edgeloop_calc_center(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 bool BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 {
 	LinkData *node_curr = el_store->verts.first;
-	const float const *v_prev = NODE_AS_CO(el_store->verts.last);
-	const float const *v_curr = NODE_AS_CO(node_curr);
+	const float *v_prev = NODE_AS_CO(el_store->verts.last);
+	const float *v_curr = NODE_AS_CO(node_curr);
 
 	zero_v3(el_store->no);
 
@@ -619,8 +619,8 @@ bool BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 bool BM_edgeloop_calc_normal_aligned(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store, const float no_align[3])
 {
 	LinkData *node_curr = el_store->verts.first;
-	const float const *v_prev = NODE_AS_CO(el_store->verts.last);
-	const float const *v_curr = NODE_AS_CO(node_curr);
+	const float *v_prev = NODE_AS_CO(el_store->verts.last);
+	const float *v_curr = NODE_AS_CO(node_curr);
 
 	zero_v3(el_store->no);
 

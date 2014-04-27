@@ -43,7 +43,7 @@
  */
 static bool bm_face_subset_calc_normal(BMLoop *l_first, BMLoop *l_last, float r_no[3])
 {
-	const float const *v_prev, *v_curr;
+	const float *v_prev, *v_curr;
 
 	/* Newell's Method */
 	BMLoop *l_iter = l_first;

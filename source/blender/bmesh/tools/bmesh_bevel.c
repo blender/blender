@@ -1375,7 +1375,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 	BevVert *bvother;
 	VMesh *vm;
 	float co[3];
-	const float  *no;
+	const float *no;
 	float lastd;
 
 	vm = bv->vmesh;

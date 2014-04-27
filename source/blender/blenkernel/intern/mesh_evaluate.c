@@ -172,8 +172,8 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 	/* inline version of #BKE_mesh_calc_poly_normal, also does edge-vectors */
 	{
 		int i_prev = nverts - 1;
-		const float const *v_prev = mvert[ml[i_prev].v].co;
-		const float const *v_curr;
+		const float *v_prev = mvert[ml[i_prev].v].co;
+		const float *v_curr;
 
 		zero_v3(polyno);
 		/* Newell's Method */
@@ -738,8 +738,8 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
                                   MVert *mvert, float normal[3])
 {
 	const int nverts = mpoly->totloop;
-	const float const *v_prev = mvert[loopstart[nverts - 1].v].co;
-	const float const *v_curr;
+	const float *v_prev = mvert[loopstart[nverts - 1].v].co;
+	const float *v_curr;
 	int i;
 
 	zero_v3(normal);
@@ -788,8 +788,8 @@ static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
                                          const float (*vertex_coords)[3], float normal[3])
 {
 	const int nverts = mpoly->totloop;
-	const float const *v_prev = vertex_coords[loopstart[nverts - 1].v];
-	const float const *v_curr;
+	const float *v_prev = vertex_coords[loopstart[nverts - 1].v];
+	const float *v_curr;
 	int i;
 
 	zero_v3(normal);

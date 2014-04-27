@@ -95,8 +95,8 @@ float normal_quad_v3(float n[3], const float v1[3], const float v2[3], const flo
  */
 float normal_poly_v3(float n[3], const float verts[][3], unsigned int nr)
 {
-	const float const *v_prev = verts[nr - 1];
-	const float const *v_curr = verts[0];
+	const float *v_prev = verts[nr - 1];
+	const float *v_curr = verts[0];
 	unsigned int i;
 
 	zero_v3(n);
