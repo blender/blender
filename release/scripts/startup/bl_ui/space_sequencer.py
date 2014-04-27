@@ -160,7 +160,16 @@ class SEQUENCER_MT_view(Menu):
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text="Fit preview in window")
-            layout.operator("sequencer.view_zoom_ratio", text="Show preview 1:1").ratio = 1.0
+            
+            layout.separator()
+            
+            ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
+
+            for a, b in ratios:
+                layout.operator("sequencer.view_zoom_ratio", text=iface_("Zoom %d:%d") % (a, b), translate=False).ratio = a / b
+            
+            layout.separator()
+
             layout.operator_context = 'INVOKE_DEFAULT'
 
             # # XXX, invokes in the header view
