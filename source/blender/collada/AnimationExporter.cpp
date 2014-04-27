@@ -999,7 +999,9 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 		BIK_release_tree(scene, ob, ctime);
 	}
 
-	enable_fcurves(ob->adt->action, NULL);
+	if (ob->adt) {
+		enable_fcurves(ob->adt->action, NULL);
+	}
 
 	source.finish();
 
