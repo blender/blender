@@ -380,9 +380,11 @@ typedef enum eBezTriple_Interpolation {
 
 /* easing modes (used only for Keyframes - BezTriple->easing) */
 typedef enum eBezTriple_Easing {
-	BEZT_IPO_EASE_IN = 0,
-	BEZT_IPO_EASE_OUT = 1,
-	BEZT_IPO_EASE_IN_OUT = 2
+	BEZT_IPO_EASE_AUTO = 0,
+	
+	BEZT_IPO_EASE_IN = 1,
+	BEZT_IPO_EASE_OUT = 2,
+	BEZT_IPO_EASE_IN_OUT = 3
 } eBezTriple_Easing;
 
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */

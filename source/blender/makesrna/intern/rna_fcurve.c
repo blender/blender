@@ -78,6 +78,11 @@ EnumPropertyItem beztriple_keyframe_type_items[] = {
 };
 
 EnumPropertyItem beztriple_interpolation_easing_items[] =  {
+	/* XXX: auto-easing is currently using a placeholder icon... */
+	{BEZT_IPO_EASE_AUTO, "AUTO", ICON_IPO_EASE_IN_OUT, "Automatic Easing",
+	                     "Easing type is chosen automatically based on what the type of interpolation used "
+	                     "(e.g. 'Ease In' for transitional types, and 'Ease Out' for dynamic effects)"},
+						 
 	{BEZT_IPO_EASE_IN, "EASE_IN", ICON_IPO_EASE_IN, "Ease In", "Only on the end closest to the next keyframe"},
 	{BEZT_IPO_EASE_OUT, "EASE_OUT", ICON_IPO_EASE_OUT, "Ease Out", "Only on the end closest to the first keyframe"},
 	{BEZT_IPO_EASE_IN_OUT, "EASE_IN_OUT", ICON_IPO_EASE_IN_OUT, "Ease In and Out", "Segment between both keyframes"},

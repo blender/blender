@@ -1103,6 +1103,13 @@ static short set_easingtype_easeinout(KeyframeEditData *UNUSED(ked), BezTriple *
 	return 0;
 }
 
+static short set_easingtype_easeauto(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->easing = BEZT_IPO_EASE_AUTO;
+	return 0;
+}
+
 /* Set the easing type of the selected BezTriples in each F-Curve to the specified one */
 KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
 {
@@ -1114,8 +1121,10 @@ KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
 			return set_easingtype_easeout;
 		
 		case BEZT_IPO_EASE_IN_OUT: /* both */
-		default:
 			return set_easingtype_easeinout;
+			
+		default: /* auto */
+			return set_easingtype_easeauto;
 	}
 }
 

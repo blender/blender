@@ -2139,6 +2139,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_back_ease_in_out(time, begin, change, duration, prevbezt->back);
 								break;
+								
+							default: /* default/auto: same as ease out */
+								cvalue = BLI_easing_back_ease_out(time, begin, change, duration, prevbezt->back);
+								break;
 						}
 						break;
 					
@@ -2152,6 +2156,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_bounce_ease_in_out(time, begin, change, duration);
+								break;
+								
+							default: /* default/auto: same as ease out */
+								cvalue = BLI_easing_bounce_ease_out(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2167,6 +2175,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_circ_ease_in_out(time, begin, change, duration);
 								break;
+								
+							default: /* default/auto: same as ease in */
+								cvalue = BLI_easing_circ_ease_in(time, begin, change, duration);
+								break;
 						}
 						break;
 
@@ -2180,6 +2192,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_cubic_ease_in_out(time, begin, change, duration);
+								break;
+								
+							default: /* default/auto: same as ease in */
+								cvalue = BLI_easing_cubic_ease_in(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2195,6 +2211,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_elastic_ease_in_out(time, begin, change, duration, amplitude, period);
 								break;
+								
+							default: /* default/auto: same as ease out */
+								cvalue = BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
+								break;
 						}
 						break;
 					
@@ -2208,6 +2228,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_expo_ease_in_out(time, begin, change, duration);
+								break;
+								
+							default: /* default/auto: same as ease in */
+								cvalue = BLI_easing_expo_ease_in(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2223,6 +2247,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_quad_ease_in_out(time, begin, change, duration);
 								break;
+							
+							default: /* default/auto: same as ease in */
+								cvalue = BLI_easing_quad_ease_in(time, begin, change, duration);
+								break;
 						}
 						break;
 					
@@ -2236,6 +2264,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_quart_ease_in_out(time, begin, change, duration);
+								break;
+								
+							default: /* default/auto: same as ease in */
+								cvalue = BLI_easing_quart_ease_in(time, begin, change, duration);
 								break;
 						}
 						break;
@@ -2251,6 +2283,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_quint_ease_in_out(time, begin, change, duration);
 								break;
+								
+							default: /* default/auto: same as ease in */
+								cvalue = BLI_easing_quint_ease_in(time, begin, change, duration);
+								break;
 						}
 						break;
 					
@@ -2264,6 +2300,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 								break;
 							case BEZT_IPO_EASE_IN_OUT:
 								cvalue = BLI_easing_sine_ease_in_out(time, begin, change, duration);
+								break;
+								
+							default: /* default/auto: same as ease in */
+								cvalue = BLI_easing_sine_ease_in(time, begin, change, duration);
 								break;
 						}
 						break;
