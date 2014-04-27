@@ -90,7 +90,7 @@ typedef struct EditBone {
 #define BONESEL_BONE    (1 << 30)
 #define BONESEL_ANY     (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
 
-#define BONESEL_NOSEL   (1 << 31) /* Indicates a negative number */
+#define BONESEL_NOSEL   (1u << 31u)
 
 /* useful macros */
 #define EBONE_VISIBLE(arm, ebone) ( \
