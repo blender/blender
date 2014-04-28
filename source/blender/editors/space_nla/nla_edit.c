@@ -257,7 +257,7 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot)
 /* *************************** Calculate Range ************************** */
 
 /* Get the min/max strip extents */
-static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const short onlySel)
+static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const bool onlySel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -280,7 +280,7 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 			
 			for (strip = nlt->strips.first; strip; strip = strip->next) {
 				/* only consider selected strips? */
-				if ((onlySel == 0) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
+				if ((onlySel == false) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
 					/* extend range if appropriate */
 					*min = min_ff(*min, strip->start);
 					*max = max_ff(*max, strip->end);
@@ -306,7 +306,7 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 
 /* ****************** View-All Operator ****************** */
 
-static int nlaedit_viewall(bContext *C, const short onlySel)
+static int nlaedit_viewall(bContext *C, const bool onlySel)
 {
 	bAnimContext ac;
 	View2D *v2d;
