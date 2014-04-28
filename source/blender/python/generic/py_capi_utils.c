@@ -762,6 +762,9 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 
 		PyGILState_Release(gilstate);
 	}
+	else {
+		fprintf(stderr, "%s: '%s' missing\n", __func__, filepath);
+	}
 }
 
 /* generic function to avoid depending on RNA */
