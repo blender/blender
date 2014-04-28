@@ -3783,7 +3783,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 	}
 }
 
-static void sculpt_omp_start(Scene *scene, Sculpt *sd, SculptSession *ss)
+static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 {
 	StrokeCache *cache = ss->cache;
 
@@ -3805,7 +3805,6 @@ static void sculpt_omp_start(Scene *scene, Sculpt *sd, SculptSession *ss)
 	cache->max_threads = omp_get_max_threads();
 	omp_set_num_threads(cache->num_threads);
 #else
-	(void)scene;
 	(void)sd;
 	cache->num_threads = 1;
 #endif
@@ -4026,7 +4025,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->previous_vertex_rotation = 0;
 	cache->init_dir_set = false;
 
-	sculpt_omp_start(scene, sd, ss);
+	sculpt_omp_start(sd, ss);
 }
 
 static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Brush *brush)
