@@ -738,7 +738,7 @@ static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, fl
 
 static BezTriple *rna_FKeyframe_points_insert(FCurve *fcu, float frame, float value, int flag)
 {
-	int index = insert_vert_fcurve(fcu, frame, value, flag);
+	int index = insert_vert_fcurve(fcu, frame, value, flag | INSERTKEY_NO_USERPREF);
 	return ((fcu->bezt) && (index >= 0)) ? (fcu->bezt + index) : NULL;
 }
 
