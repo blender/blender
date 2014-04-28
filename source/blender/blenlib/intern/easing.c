@@ -148,12 +148,12 @@ float BLI_easing_cubic_ease_in_out(float time, float begin, float change, float 
  * When the amplitude is less then the change, we need to blend
  * \a f when we're close to the crossing point (int time), else we get an ugly sharp falloff.
  */
-static float elastic_blend(float time, float change, float amplitude, float period, float f)
+static float elastic_blend(float time, float change, float duration, float amplitude, float s, float f)
 {
 	if (change) {
 		/* Looks like a magic number,
 		 * but this is a part of the sine curve we need to blend from */
-		const float t = fabsf(period) / (64 * (float)M_PI);
+		const float t = fabsf(s);
 		if (amplitude) {
 			f *= amplitude / fabsf(change);
 		}
@@ -161,8 +161,8 @@ static float elastic_blend(float time, float change, float amplitude, float peri
 			f = 0.0f;
 		}
 
-		if (fabsf(time) < t) {
-			float l = fabsf(time) / t;
+		if (fabsf(time * duration) < t) {
+			float l = fabsf(time * duration) / t;
 			f = (f * l) + (1.0f - l);
 		}
 	}
@@ -185,11 +185,11 @@ float BLI_easing_elastic_ease_in(float time, float begin, float change, float du
 	if (!period)
 		period = duration * 0.3f;
 	if (!amplitude || amplitude < fabsf(change)) {
+		s = period / 4;
 #ifdef USE_ELASTIC_BLEND
-		f = elastic_blend(time, change, amplitude, period, f);
+		f = elastic_blend(time, change, duration, amplitude, s, f);
 #endif
 		amplitude = change;
-		s = period / 4;
 	}
 	else
 		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
@@ -210,11 +210,11 @@ float BLI_easing_elastic_ease_out(float time, float begin, float change, float d
 	if (!period)
 		period = duration * 0.3f;
 	if (!amplitude || amplitude < fabsf(change)) {
+		s = period / 4;
 #ifdef USE_ELASTIC_BLEND
-		f = elastic_blend(time, change, amplitude, period, f);
+		f = elastic_blend(time, change, duration, amplitude, s, f);
 #endif
 		amplitude = change;
-		s = period / 4;
 	}
 	else
 		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
@@ -235,11 +235,11 @@ float BLI_easing_elastic_ease_in_out(float time, float begin, float change, floa
 	if (!period)
 		period = duration * (0.3f * 1.5f);
 	if (!amplitude || amplitude < fabsf(change)) {
+		s = period / 4;
 #ifdef USE_ELASTIC_BLEND
-		f = elastic_blend(time, change, amplitude, period, f);
+		f = elastic_blend(time, change, duration, amplitude, s, f);
 #endif
 		amplitude = change;
-		s = period / 4;
 	}
 	else
 		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
