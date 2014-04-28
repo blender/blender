@@ -167,21 +167,17 @@ struct PointRef {
 	const float *pt;  /* 2d vector */
 };
 
-static int pointref_cmp_x(const void *a_, const void *b_)
+static int pointref_cmp_yx(const void *a_, const void *b_)
 {
 	const struct PointRef *a = a_;
 	const struct PointRef *b = b_;
-	if      (a->pt[0] > b->pt[0]) return  1;
-	else if (a->pt[0] < b->pt[0]) return -1;
-	else                          return  0;
-}
 
-static int pointref_cmp_y(const void *a_, const void *b_)
-{
-	const struct PointRef *a = a_;
-	const struct PointRef *b = b_;
 	if      (a->pt[1] > b->pt[1]) return  1;
 	else if (a->pt[1] < b->pt[1]) return -1;
+
+	if      (a->pt[0] > b->pt[0]) return  1;
+	else if (a->pt[0] < b->pt[0]) return -1;
+
 	else                          return  0;
 }
 
@@ -207,8 +203,7 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
 	}
 
 	/* Sort the points by X, then by Y (required by the algorithm) */
-	qsort(points_ref, (size_t)n, sizeof(struct PointRef), pointref_cmp_x);
-	qsort(points_ref, (size_t)n, sizeof(struct PointRef), pointref_cmp_y);
+	qsort(points_ref, (size_t)n, sizeof(struct PointRef), pointref_cmp_yx);
 
 	for (i = 0; i < n; i++) {
 		memcpy(points_sort[i], points_ref[i].pt, sizeof(float[2]));
