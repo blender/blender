@@ -206,15 +206,9 @@ rna.Depends (generated_files, makesrna)
 build_dir = Dir(".").abspath + os.sep
     
 if env['OURPLATFORM'] != 'linuxcross':
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw', 'win64-mingw'):
-        rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna.exe\" \""  + build_dir )
-    else:
-        rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna\" \""  + build_dir + '"' )
+    rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna\" \""  + build_dir + '"' )
 else:
-    if USE_WINE:
-        rna.Command (generated_files, '', 'wine ' + root_build_dir+os.sep+"makesrna.exe "  + build_dir)
-    else:
-        rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+    rna.Command (generated_files, '', ('', 'wine ')[USE_WINE] + root_build_dir+os.sep+"makesrna.exe "  + build_dir)
 
 
 obj = ['intern/rna_access.c']
