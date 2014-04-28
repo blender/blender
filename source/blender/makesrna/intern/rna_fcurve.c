@@ -78,9 +78,9 @@ EnumPropertyItem beztriple_keyframe_type_items[] = {
 };
 
 EnumPropertyItem beztriple_interpolation_easing_items[] =  {
-	{BEZT_IPO_EASE_IN, "EASE_IN", 0, "Ease In", "Only on the end closest to the next keyframe"},
-	{BEZT_IPO_EASE_OUT, "EASE_OUT", 0, "Ease Out", "Only on the end closest to the first keyframe"},
-	{BEZT_IPO_EASE_IN_OUT, "EASE_IN_OUT", 0, "Ease In and Out", "Segment between both keyframes"},
+	{BEZT_IPO_EASE_IN, "EASE_IN", ICON_IPO_EASE_IN, "Ease In", "Only on the end closest to the next keyframe"},
+	{BEZT_IPO_EASE_OUT, "EASE_OUT", ICON_IPO_EASE_OUT, "Ease Out", "Only on the end closest to the first keyframe"},
+	{BEZT_IPO_EASE_IN_OUT, "EASE_IN_OUT", ICON_IPO_EASE_IN_OUT, "Ease In and Out", "Segment between both keyframes"},
 	{0, NULL, 0, NULL, NULL}
 };
 
