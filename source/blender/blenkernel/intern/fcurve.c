@@ -2083,7 +2083,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 			const float change = bezt->vec[1][1] - prevbezt->vec[1][1];
 			const float duration = bezt->vec[1][0] - prevbezt->vec[1][0];
 			const float time = evaltime - prevbezt->vec[1][0];
-			const float amplitude = prevbezt->amplitude + fabsf(change);  /* see T39405 */
+			const float amplitude = prevbezt->amplitude;
 			const float period = prevbezt->period;
 			
 			/* value depends on interpolation mode */
