@@ -153,7 +153,7 @@ static float elastic_blend(float time, float change, float amplitude, float peri
 	if (change) {
 		/* Looks like a magic number,
 		 * but this is a part of the sine curve we need to blend from */
-		const float t = fabsf(period) / (32 * (float)M_PI);
+		const float t = fabsf(period) / (64 * (float)M_PI);
 		if (amplitude) {
 			f *= amplitude / fabsf(change);
 		}
