@@ -112,6 +112,8 @@ void NLA_OT_move_down(wmOperatorType *ot);
 
 void NLA_OT_action_sync_length(wmOperatorType *ot);
 
+void NLA_OT_make_single_user(wmOperatorType *ot);
+
 void NLA_OT_apply_scale(wmOperatorType *ot);
 void NLA_OT_clear_scale(wmOperatorType *ot);
 

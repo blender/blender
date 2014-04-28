@@ -158,6 +158,8 @@ void nla_operatortypes(void)
 	
 	WM_operatortype_append(NLA_OT_action_sync_length);
 	
+	WM_operatortype_append(NLA_OT_make_single_user);
+	
 	WM_operatortype_append(NLA_OT_apply_scale);
 	WM_operatortype_append(NLA_OT_clear_scale);
 	
@@ -261,6 +263,9 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	kmi = WM_keymap_add_item(keymap, "NLA_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "linked", true);
+	
+	/* single user */
+	WM_keymap_add_item(keymap, "NLA_OT_make_single_user", UKEY, KM_PRESS, 0, 0);
 		
 	/* delete */
 	WM_keymap_add_item(keymap, "NLA_OT_delete", XKEY, KM_PRESS, 0, 0);

@@ -49,6 +49,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
@@ -1707,6 +1708,80 @@ void NLA_OT_action_sync_length(wmOperatorType *ot)
 	
 	/* properties */
 	ot->prop = RNA_def_boolean(ot->srna, "active", 1, "Active Strip Only", "Only sync the active length for the active strip");
+}
+
+/* ******************** Make Single User ********************************* */
+/* Ensure that each strip has its own action */
+
+static int nlaedit_make_single_user_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* Ensure that each action used only has a single user
+	 *   - This is done in reverse order so that the original strips are
+	 *     likely to still get to keep their action
+	 */
+	for (ale = anim_data.last; ale; ale = ale->prev) {
+		NlaTrack *nlt = (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip = nlt->strips.last; strip; strip = strip->prev) {
+			/* must be action-clip only (as only these have actions) */
+			if ((strip->flag & NLASTRIP_FLAG_SELECT) && (strip->type == NLASTRIP_TYPE_CLIP)) {
+				if (strip->act == NULL) 
+					continue;
+				
+				/* multi-user? */
+				if (ID_REAL_USERS(strip->act) > 1) {
+					/* make a new copy of the action for us to use (it will have 1 user already) */
+					bAction *new_action = BKE_action_copy(strip->act);
+					
+					/* decrement user count of our existing action */
+					id_us_min(&strip->act->id);
+					
+					/* switch to the new copy */
+					strip->act = new_action;
+				}
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_make_single_user(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Make Single User";
+	ot->idname = "NLA_OT_make_single_user";
+	ot->description = "Ensure that each action is only used once in the set of strips selected";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = nlaedit_make_single_user_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ******************** Apply Scale Operator ***************************** */
