@@ -3018,7 +3018,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 					if ( (ydiff1 <= 0.0f && ydiff2 <= 0.0f) || (ydiff1 >= 0.0f && ydiff2 >= 0.0f) ) {
 						bezt->vec[2][1] = bezt->vec[1][1];
 					}
-					else { /* andles should not be beyond y coord of two others */
+					else { /* handles should not be beyond y coord of two others */
 						if (ydiff1 <= 0.0f) {
 							if (next->vec[1][1] < bezt->vec[2][1]) {
 								bezt->vec[2][1] = next->vec[1][1];
