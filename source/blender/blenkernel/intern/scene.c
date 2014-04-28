@@ -1571,10 +1571,10 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 
-	/* Extra call here to recalc aterial animation.
+	/* Extra call here to recalc material animation.
 	 *
 	 * Need to do this so changing material settings from the graph/dopesheet
-	 * will update suff in the viewport.
+	 * will update stuff in the viewport.
 	 */
 	if (DAG_id_type_tagged(bmain, ID_MA)) {
 		Material *material;
