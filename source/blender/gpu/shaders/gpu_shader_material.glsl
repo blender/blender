@@ -944,12 +944,9 @@ void mtex_rgb_dark(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 in
 	fact *= facg;
 	facm = 1.0-fact;
 
-	col= texcol.r + ((1.0 -texcol.r)*facm);
-	if(col < outcol.r) incol.r = col; else incol.r = outcol.r;
-	col= texcol.g + ((1.0 -texcol.g)*facm);
-	if(col < outcol.g) incol.g = col; else incol.g = outcol.g;
-	col= texcol.b + ((1.0 -texcol.b)*facm);
-	if(col < outcol.b) incol.b = col; else incol.b = outcol.b;
+	incol.r = min(outcol.r, texcol.r) * fact + outcol.r * facm;
+	incol.g = min(outcol.g, texcol.g) * fact + outcol.g * facm;
+	incol.b = min(outcol.b, texcol.b) * fact + outcol.b * facm;
 }
 
 void mtex_rgb_light(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
@@ -1078,8 +1075,7 @@ void mtex_value_dark(float outcol, float texcol, float fact, float facg, out flo
 	float facm;
 	mtex_value_vars(fact, facg, facm);
 
-	float col = fact*texcol;
-	if(col < outcol) incol = col; else incol = outcol;
+	incol = facm*outcol + fact*min(outcol, texcol);
 }
 
 void mtex_value_light(float outcol, float texcol, float fact, float facg, out float incol)

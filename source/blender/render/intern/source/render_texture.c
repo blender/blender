@@ -1420,12 +1420,9 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 		fact*= facg;
 		facm= 1.0f-fact;
 		
-		col= tex[0]+((1-tex[0])*facm);
-		if (col < out[0]) in[0]= col; else in[0]= out[0];
-		col= tex[1]+((1-tex[1])*facm);
-		if (col < out[1]) in[1]= col; else in[1]= out[1];
-		col= tex[2]+((1-tex[2])*facm);
-		if (col < out[2]) in[2]= col; else in[2]= out[2];
+		in[0] = min_ff(out[0], tex[0])*fact + out[0]*facm;
+		in[1] = min_ff(out[1], tex[1])*fact + out[1]*facm;
+		in[2] = min_ff(out[2], tex[2])*fact + out[2]*facm;
 		break;
 
 	case MTEX_LIGHT:
@@ -1522,8 +1519,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		break;
 
 	case MTEX_DARK:
-		col= fact*tex;
-		if (col < out) in= col; else in= out;
+		in = min_ff(out, tex)*fact + out*facm;
 		break;
 
 	case MTEX_LIGHT:

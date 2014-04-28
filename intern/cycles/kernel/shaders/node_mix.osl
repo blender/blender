@@ -88,7 +88,7 @@ color node_mix_diff(float t, color col1, color col2)
 
 color node_mix_dark(float t, color col1, color col2)
 {
-	return min(col1, col2 * t);
+	return min(col1, col2) * t + col1 * (1.0 - t);
 }
 
 color node_mix_light(float t, color col1, color col2)

@@ -292,17 +292,9 @@ void MixDarkenOperation::executePixelSampled(float output[4], float x, float y, 
 		value *= inputColor2[3];
 	}
 	float valuem = 1.0f - value;
-	float tmp;
-	tmp = inputColor2[0] + ((1.0f - inputColor2[0]) * valuem);
-	if (tmp < inputColor1[0]) output[0] = tmp;
-	else output[0] = inputColor1[0];
-	tmp = inputColor2[1] + ((1.0f - inputColor2[1]) * valuem);
-	if (tmp < inputColor1[1]) output[1] = tmp;
-	else output[1] = inputColor1[1];
-	tmp = inputColor2[2] + ((1.0f - inputColor2[2]) * valuem);
-	if (tmp < inputColor1[2]) output[2] = tmp;
-	else output[2] = inputColor1[2];
-
+	output[0] = min_ff(inputColor1[0], inputColor2[0]) * value + inputColor1[0] * valuem;
+	output[1] = min_ff(inputColor1[1], inputColor2[1]) * value + inputColor1[1] * valuem;
+	output[2] = min_ff(inputColor1[2], inputColor2[2]) * value + inputColor1[2] * valuem;
 	output[3] = inputColor1[3];
 
 	clampIfNeeded(output);
