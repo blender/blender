@@ -52,6 +52,18 @@
 #define CUDA_KERNEL_MAX_REGISTERS 32
 #define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 40
 
+/* 5.0 */
+#elif __CUDA_ARCH__ == 500
+#define CUDA_MULTIPRESSOR_MAX_REGISTERS 65536
+#define CUDA_MULTIPROCESSOR_MAX_BLOCKS 32
+#define CUDA_BLOCK_MAX_THREADS 1024
+#define CUDA_THREAD_MAX_REGISTERS 255
+
+/* tunable parameters */
+#define CUDA_THREADS_BLOCK_WIDTH 16
+#define CUDA_KERNEL_MAX_REGISTERS 32
+#define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 40
+
 /* unknown architecture */
 #else
 #error "Unknown or unuspported CUDA architecture, can't determine launch bounds"
