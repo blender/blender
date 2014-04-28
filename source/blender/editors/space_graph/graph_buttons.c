@@ -255,6 +255,32 @@ static void graphedit_activekey_handles_cb(bContext *C, void *fcu_ptr, void *bez
 	graphedit_activekey_update_cb(C, fcu_ptr, bezt_ptr);
 }
 
+/* update callback for editing coordinates of right handle in active keyframe properties
+ * NOTE: we cannot just do graphedit_activekey_handles_cb() due to "order of computation"
+ *       weirdness (see calchandleNurb_intern() and T39911)
+ */
+static void graphedit_activekey_right_handle_coord_cb(bContext *C, void *fcu_ptr, void *bezt_ptr)
+{
+	BezTriple *bezt = (BezTriple *)bezt_ptr;
+	
+	/* original state of handle selection - to be restored after performing the recalculation */
+	const char f1 = bezt->f1;
+	const char f3 = bezt->f3;
+	
+	/* temporarily make it so that only the right handle is selected, so that updates go correctly 
+	 * (i.e. it now acts as if we've just transforming the vert when it is selected by itself)
+	 */
+	bezt->f1 = 0;
+	bezt->f3 = 1;
+	
+	/* perform normal updates NOW */
+	graphedit_activekey_handles_cb(C, fcu_ptr, bezt_ptr);
+	
+	/* restore selection state so that no-one notices this hack */
+	bezt->f1 = f1;
+	bezt->f3 = f3;
+}
+
 static void graph_panel_key_properties(const bContext *C, Panel *pa)
 {
 	bAnimListElem *ale;
@@ -351,15 +377,16 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		
 		/* next handle - only if current is Bezier interpolation */
 		if (bezt->ipo == BEZT_IPO_BEZ) {
+			/* NOTE: special update callbacks are needed on the coords here due to T39911 */
 			uiItemL(col, IFACE_("Right Handle:"), ICON_NONE);
 			
 			but = uiDefButR(block, NUM, B_REDR, "X:", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_right", 0, 0, 0, -1, -1, NULL);
-			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
+			uiButSetFunc(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
 			
 			but = uiDefButR(block, NUM, B_REDR, "Y:", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_right", 1, 0, 0, -1, -1, NULL);
-			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
+			uiButSetFunc(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
 			
 			/* XXX: with label? */
