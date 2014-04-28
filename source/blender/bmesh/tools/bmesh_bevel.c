@@ -2821,7 +2821,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	 * Want edges to be ordered so that they share faces.
 	 * There may be one or more chains of shared faces broken by
 	 * gaps where there are no faces.
-	 * Want to ignore wire edges completely for edge beveling.
+	 * TODO: Want to ignore wire edges completely for edge beveling.
 	 * TODO: make following work when more than one gap.
 	 */
 
@@ -2838,15 +2838,8 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			/* good to start face chain from this edge */
 			first_bme = bme;
 		}
-		if (fcnt > 0 || bp->vertex_only) {
-			ntot++;
-			BM_BEVEL_EDGE_TAG_DISABLE(bme);
-		}
-		else {
-			/* Mark this wire edge as "chosen" already
-			 * so loop below will not choose it at all */
-			BM_BEVEL_EDGE_TAG_ENABLE(bme);
-		}
+		ntot++;
+		BM_BEVEL_EDGE_TAG_DISABLE(bme);
 	}
 	if (!first_bme)
 		first_bme = v->e;
@@ -3131,40 +3124,6 @@ static void bevel_rebuild_existing_polygons(BMesh *bm, BevelParams *bp, BMVert *
 
 		if (faces != (BMFace **)faces_stack) {
 			MEM_freeN(faces);
-		}
-	}
-}
-
-/* If there were any wire edges, they need to be reattached somewhere */
-static void bevel_reattach_wires(BMesh *bm, BevelParams *bp, BMVert *v)
-{
-	BMEdge *e;
-	BMVert *vclosest, *vother;
-	BMIter e_iter;
-	BevVert *bv;
-	BoundVert *bndv;
-	float d, dclosest;
-
-	bv = find_bevvert(bp, v);
-	if (!bv || !bv->vmesh)
-		return;
-	BM_ITER_ELEM(e, &e_iter, v, BM_EDGES_OF_VERT) {
-		if (BM_edge_is_wire(e)) {
-			/* look for the new vertex closest to the other end of e */
-			vclosest = NULL;
-			dclosest = FLT_MAX;
-			vother = BM_edge_other_vert(e, v);
-			bndv = bv->vmesh->boundstart;
-			do {
-				d = len_squared_v3v3(vother->co, bndv->nv.co);
-				if (d < dclosest) {
-					vclosest = bndv->nv.v;
-					BLI_assert(vclosest != NULL);
-					dclosest = d;
-				}
-			} while((bndv = bndv->next) != bv->vmesh->boundstart);
-			if (vclosest)
-				BM_edge_create(bm, vclosest, vother, e, 0);
 		}
 	}
 }
@@ -3545,7 +3504,6 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const int offset_type,
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				bevel_rebuild_existing_polygons(bm, &bp, v);
-				bevel_reattach_wires(bm, &bp, v);
 			}
 		}
 
