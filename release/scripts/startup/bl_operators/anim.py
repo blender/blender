@@ -23,6 +23,7 @@ if "bpy" in locals():
     if "anim_utils" in locals():
         imp.reload(anim_utils)
 
+
 import bpy
 from bpy.types import Operator
 from bpy.props import (IntProperty,
@@ -280,4 +281,88 @@ class ClearUselessActions(Operator):
 
         self.report({'INFO'}, "Removed %d empty and/or fake-user only Actions"
                               % removed)
+        return {'FINISHED'}
+
+
+class UpdateAnimatedTransformConstraint(Operator):
+    """
+    Update fcurves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)
+    """
+    bl_idname = "anim.update_animated_transform_constraints"
+    bl_label = "Update Animated Transform Constraints"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    use_convert_to_radians = BoolProperty(
+            name="Convert To Radians",
+            description="Convert fcurves/drivers affecting rotations to radians (Warning: use this only once!)",
+            default=True,
+            )
+
+    def execute(self, context):
+        import animsys_refactor
+        from math import radians
+        import io
+
+        from_paths = {"from_max_x", "from_max_y", "from_max_z", "from_min_x", "from_min_y", "from_min_z"}
+        to_paths = {"to_max_x", "to_max_y", "to_max_z", "to_min_x", "to_min_y", "to_min_z"}
+        paths = from_paths | to_paths
+
+        def update_cb(base, class_name, old_path, fcurve, options):
+            print(options)
+            def handle_deg2rad(fcurve):
+                if fcurve is not None:
+                    if hasattr(fcurve, "keyframes"):
+                        for k in fcurve.keyframes:
+                            k.co.y = radians(k.co.y)
+                    for mod in fcurve.modifiers:
+                        if mod.type == 'GENERATOR':
+                            if mod.mode == 'POLYNOMIAL':
+                                mod.coefficients[:] = [radians(c) for c in mod.coefficients]
+                            else:  # if mod.type == 'POLYNOMIAL_FACTORISED':
+                                mod.coefficients[:2] = [radians(c) for c in mod.coefficients[:2]]
+                        elif mod.type == 'FNGENERATOR':
+                            mod.amplitude = radians(mod.amplitude)
+                    fcurve.update()
+
+            data = ...
+            try:
+                data = eval("base." + old_path)
+            except:
+                pass
+            ret = (data, old_path)
+            if isinstance(base, bpy.types.TransformConstraint) and data is not ...:
+                new_path = None
+                map_info = base.map_from if old_path in from_paths else base.map_to
+                if map_info == 'ROTATION':
+                    new_path = old_path + "_rot"
+                    if options is not None and options["use_convert_to_radians"]:
+                        handle_deg2rad(fcurve)
+                elif map_info == 'SCALE':
+                    new_path = old_path + "_scale"
+
+                if new_path is not None:
+                    data = ...
+                    try:
+                        data = eval("base." + new_path)
+                    except:
+                        pass
+                    ret = (data, new_path)
+                    #print(ret)
+
+            return ret
+
+        options = {"use_convert_to_radians": self.use_convert_to_radians}
+        replace_ls = [("TransformConstraint", p, update_cb, options) for p in paths]
+        log = io.StringIO()
+
+        animsys_refactor.update_data_paths(replace_ls, log)
+
+        context.scene.frame_set(context.scene.frame_current)
+
+        log = log.getvalue()
+        if log:
+            print(log)
+            text = bpy.data.texts.new("UpdateAnimatedTransformConstraint Report")
+            text.from_string(log)
+            self.report({'INFO'}, "Complete report available on '{}' text datablock".format(text.name))
         return {'FINISHED'}
