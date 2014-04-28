@@ -79,6 +79,34 @@ static void do_version_constraints_radians_degrees_270_1(ListBase *lb)
 	}
 }
 
+static void do_version_constraints_radians_degrees_270_5(ListBase *lb)
+{
+	bConstraint *con;
+
+	for (con = lb->first; con; con = con->next) {
+		if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
+			bTransformConstraint *data = (bTransformConstraint *)con->data;
+
+			if (data->from == TRANS_ROTATION) {
+				copy_v3_v3(data->from_min_rot, data->from_min);
+				copy_v3_v3(data->from_max_rot, data->from_max);
+			}
+			else if (data->from == TRANS_SCALE) {
+				copy_v3_v3(data->from_min_scale, data->from_min);
+				copy_v3_v3(data->from_max_scale, data->from_max);
+			}
+
+			if (data->to == TRANS_ROTATION) {
+				copy_v3_v3(data->to_min_rot, data->to_min);
+				copy_v3_v3(data->to_max_rot, data->to_max);
+			}
+			else if (data->to == TRANS_SCALE) {
+				copy_v3_v3(data->to_min_scale, data->to_min);
+				copy_v3_v3(data->to_max_scale, data->to_max);
+			}
+		}
+	}
+}
 
 void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 {
@@ -199,6 +227,23 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					for (ar = lb->first; ar; ar = ar->next) {
 						BLI_listbase_clear(&ar->ui_previews);
 					}
+				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 270, 5)) {
+		Object *ob;
+
+		/* Update Transform constraint (again :|). */
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			do_version_constraints_radians_degrees_270_5(&ob->constraints);
+
+			if (ob->pose) {
+				/* Bones constraints! */
+				bPoseChannel *pchan;
+				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+					do_version_constraints_radians_degrees_270_5(&pchan->constraints);
 				}
 			}
 		}

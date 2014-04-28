@@ -338,9 +338,18 @@ typedef struct bTransformConstraint {
 	
 	float		from_min[3];	/* from_min/max defines range of target transform 	*/
 	float		from_max[3];	/* 	to map on to to_min/max range. 			*/
-	
 	float		to_min[3];		/* range of motion on owner caused by target  */
 	float		to_max[3];
+
+	float		from_min_rot[3];	/* from_min/max defines range of target transform 	*/
+	float		from_max_rot[3];	/* 	to map on to to_min/max range. 			*/
+	float		to_min_rot[3];		/* range of motion on owner caused by target  */
+	float		to_max_rot[3];
+
+	float		from_min_scale[3];	/* from_min/max defines range of target transform 	*/
+	float		from_max_scale[3];	/* 	to map on to to_min/max range. 			*/
+	float		to_min_scale[3];		/* range of motion on owner caused by target  */
+	float		to_max_scale[3];
 } bTransformConstraint;
 
 /* Pivot Constraint */
