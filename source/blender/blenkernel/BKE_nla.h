@@ -47,8 +47,8 @@ void free_nlastrip(ListBase *strips, struct NlaStrip *strip);
 void free_nlatrack(ListBase *tracks, struct NlaTrack *nlt);
 void free_nladata(ListBase *tracks);
 
-struct NlaStrip *copy_nlastrip(struct NlaStrip *strip);
-struct NlaTrack *copy_nlatrack(struct NlaTrack *nlt);
+struct NlaStrip *copy_nlastrip(struct NlaStrip *strip, const bool use_same_action);
+struct NlaTrack *copy_nlatrack(struct NlaTrack *nlt, const bool use_same_actions);
 void copy_nladata(ListBase *dst, ListBase *src);
 
 struct NlaTrack *add_nlatrack(struct AnimData *adt, struct NlaTrack *prev);

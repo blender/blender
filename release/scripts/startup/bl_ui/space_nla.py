@@ -133,7 +133,8 @@ class NLA_MT_edit(Menu):
         layout.operator_menu_enum("nla.snap", "type", text="Snap")
 
         layout.separator()
-        layout.operator("nla.duplicate")
+        layout.operator("nla.duplicate", text="Duplicate")
+        layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
         layout.operator("nla.split")
         layout.operator("nla.delete")
 

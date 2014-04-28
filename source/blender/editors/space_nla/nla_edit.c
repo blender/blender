@@ -887,7 +887,7 @@ void NLA_OT_meta_remove(wmOperatorType *ot)
  * the originals were housed in.
  */
  
-static int nlaedit_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
+static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	
@@ -895,6 +895,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	bAnimListElem *ale;
 	int filter;
 	
+	bool linked = RNA_boolean_get(op->ptr, "linked");
 	bool done = false;
 	
 	/* get editor data */
@@ -920,7 +921,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 			/* if selected, split the strip at its midpoint */
 			if (strip->flag & NLASTRIP_FLAG_SELECT) {
 				/* make a copy (assume that this is possible) */
-				nstrip = copy_nlastrip(strip);
+				nstrip = copy_nlastrip(strip, linked);
 				
 				/* in case there's no space in the track above, or we haven't got a reference to it yet, try adding */
 				if (BKE_nlatrack_add_strip(nlt->next, nstrip) == 0) {
@@ -984,6 +985,9 @@ void NLA_OT_duplicate(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* own properties */
+	ot->prop = RNA_def_boolean(ot->srna, "linked", false, "Linked", "When duplicating strips, assign new copies of the actions they use");
 	
 	/* to give to transform */
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
@@ -1102,7 +1106,7 @@ static void nlaedit_split_strip_actclip(AnimData *adt, NlaTrack *nlt, NlaStrip *
 	/* make a copy (assume that this is possible) and append
 	 * it immediately after the current strip
 	 */
-	nstrip = copy_nlastrip(strip);
+	nstrip = copy_nlastrip(strip, true);
 	BLI_insertlinkafter(&nlt->strips, strip, nstrip);
 	
 	/* set the endpoint of the first strip and the start of the new strip 

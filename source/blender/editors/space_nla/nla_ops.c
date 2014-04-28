@@ -256,7 +256,11 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_meta_remove", GKEY, KM_PRESS, KM_ALT, 0);
 		
 	/* duplicate */
-	WM_keymap_add_item(keymap, "NLA_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "linked", false);
+	
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "linked", true);
 		
 	/* delete */
 	WM_keymap_add_item(keymap, "NLA_OT_delete", XKEY, KM_PRESS, 0, 0);

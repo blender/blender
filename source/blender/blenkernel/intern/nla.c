@@ -157,8 +157,10 @@ void free_nladata(ListBase *tracks)
 
 /* Copying ------------------------------------------- */
 
-/* Copy NLA strip */
-NlaStrip *copy_nlastrip(NlaStrip *strip)
+/* Copy NLA strip 
+ * < use_same_action: if true, the existing action is used (instead of being duplicated)
+ */
+NlaStrip *copy_nlastrip(NlaStrip *strip, const bool use_same_action)
 {
 	NlaStrip *strip_d;
 	NlaStrip *cs, *cs_d;
@@ -171,9 +173,17 @@ NlaStrip *copy_nlastrip(NlaStrip *strip)
 	strip_d = MEM_dupallocN(strip);
 	strip_d->next = strip_d->prev = NULL;
 	
-	/* increase user-count of action */
-	if (strip_d->act)
-		id_us_plus(&strip_d->act->id);
+	/* handle action */
+	if (strip_d->act) {
+		if (use_same_action) {
+			/* increase user-count of action */
+			id_us_plus(&strip_d->act->id);
+		}
+		else {
+			/* use a copy of the action instead (user count shouldn't have changed yet) */
+			strip_d->act = BKE_action_copy(strip_d->act);
+		}
+	}
 		
 	/* copy F-Curves and modifiers */
 	copy_fcurves(&strip_d->fcurves, &strip->fcurves);
@@ -183,7 +193,7 @@ NlaStrip *copy_nlastrip(NlaStrip *strip)
 	BLI_listbase_clear(&strip_d->strips);
 	
 	for (cs = strip->strips.first; cs; cs = cs->next) {
-		cs_d = copy_nlastrip(cs);
+		cs_d = copy_nlastrip(cs, use_same_action);
 		BLI_addtail(&strip_d->strips, cs_d);
 	}
 	
@@ -192,7 +202,7 @@ NlaStrip *copy_nlastrip(NlaStrip *strip)
 }
 
 /* Copy NLA Track */
-NlaTrack *copy_nlatrack(NlaTrack *nlt)
+NlaTrack *copy_nlatrack(NlaTrack *nlt, const bool use_same_actions)
 {
 	NlaStrip *strip, *strip_d;
 	NlaTrack *nlt_d;
@@ -209,7 +219,7 @@ NlaTrack *copy_nlatrack(NlaTrack *nlt)
 	BLI_listbase_clear(&nlt_d->strips);
 	
 	for (strip = nlt->strips.first; strip; strip = strip->next) {
-		strip_d = copy_nlastrip(strip);
+		strip_d = copy_nlastrip(strip, use_same_actions);
 		BLI_addtail(&nlt_d->strips, strip_d);
 	}
 	
@@ -232,7 +242,8 @@ void copy_nladata(ListBase *dst, ListBase *src)
 	/* copy each NLA-track, one at a time */
 	for (nlt = src->first; nlt; nlt = nlt->next) {
 		/* make a copy, and add the copy to the destination list */
-		nlt_d = copy_nlatrack(nlt);
+		// XXX: we need to fix this sometime
+		nlt_d = copy_nlatrack(nlt, true);
 		BLI_addtail(dst, nlt_d);
 	}
 }
