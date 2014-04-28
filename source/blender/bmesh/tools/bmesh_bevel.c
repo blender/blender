@@ -3152,11 +3152,11 @@ static void bevel_reattach_wires(BMesh *bm, BevelParams *bp, BMVert *v)
 		if (BM_edge_is_wire(e)) {
 			/* look for the new vertex closest to the other end of e */
 			vclosest = NULL;
-			dclosest = 1e10;
+			dclosest = FLT_MAX;
 			vother = BM_edge_other_vert(e, v);
 			bndv = bv->vmesh->boundstart;
 			do {
-				d = len_v3v3(vother->co, bndv->nv.co);
+				d = len_squared_v3v3(vother->co, bndv->nv.co);
 				if (d < dclosest) {
 					vclosest = bndv->nv.v;
 					BLI_assert(vclosest != NULL);
