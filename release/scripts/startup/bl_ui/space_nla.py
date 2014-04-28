@@ -80,6 +80,7 @@ class NLA_MT_view(Menu):
         layout.separator()
         layout.operator("anim.previewrange_set")
         layout.operator("anim.previewrange_clear")
+        layout.operator("nla.previewrange_clear")
 
         layout.separator()
         layout.operator("nla.view_all")

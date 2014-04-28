@@ -88,6 +88,8 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 
 /* --- */
 
+void NLA_OT_previewrange_set(wmOperatorType *ot);
+
 void NLA_OT_view_all(wmOperatorType *ot);
 void NLA_OT_view_selected(wmOperatorType *ot);
 

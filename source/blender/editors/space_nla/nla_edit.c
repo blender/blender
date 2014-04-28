@@ -257,11 +257,12 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot)
 /* *************************** Calculate Range ************************** */
 
 /* Get the min/max strip extents */
-static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const bool onlySel)
+static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const bool only_sel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	bool found_bounds = false;
 	
 	/* get data to filter */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -280,10 +281,12 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 			
 			for (strip = nlt->strips.first; strip; strip = strip->next) {
 				/* only consider selected strips? */
-				if ((onlySel == false) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
+				if ((only_sel == false) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
 					/* extend range if appropriate */
 					*min = min_ff(*min, strip->start);
 					*max = max_ff(*max, strip->end);
+					
+					found_bounds = true;
 				}
 			}
 		}
@@ -291,8 +294,9 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 		/* free memory */
 		BLI_freelistN(&anim_data);
 	}
-	else {
-		/* set default range */
+	
+	/* set default range if nothing happened */
+	if (found_bounds == false) {
 		if (ac->scene) {
 			*min = (float)ac->scene->r.sfra;
 			*max = (float)ac->scene->r.efra;
@@ -302,6 +306,51 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 			*max = 100;
 		}
 	}
+}
+
+/* ****************** Automatic Preview-Range Operator ****************** */
+
+static int nlaedit_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bAnimContext ac;
+	Scene *scene;
+	float min, max;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	if (ac.scene == NULL)
+		return OPERATOR_CANCELLED;
+	else
+		scene = ac.scene;
+	
+	/* set the range directly */
+	get_nlastrip_extents(&ac, &min, &max, true);
+	scene->r.flag |= SCER_PRV_RANGE;
+	scene->r.psfra = iroundf(min);
+	scene->r.pefra = iroundf(max);
+	
+	/* set notifier that things have changed */
+	// XXX err... there's nothing for frame ranges yet, but this should do fine too
+	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void NLA_OT_previewrange_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Auto-Set Preview Range";
+	ot->idname = "NLA_OT_previewrange_set";
+	ot->description = "Automatically set Preview Range based on range of keyframes";
+	
+	/* api callbacks */
+	ot->exec = nlaedit_previewrange_exec;
+	ot->poll = ED_operator_nla_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ****************** View-All Operator ****************** */
