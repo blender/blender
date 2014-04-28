@@ -202,13 +202,16 @@ float BLI_easing_elastic_ease_in_out(float time, float begin, float change, floa
 	}
 	else
 		s = period / (2 * (float)M_PI) * asinf(change / amplitude);
-	if (time < 1.0f) {
-		time -= 1.0f;
-		return -0.5f * (amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period)) + begin;
-	}
 
 	time -= 1.0f;
-	return amplitude * powf(2, -10 * time) * sinf((-time * duration - s) * (2 * (float)M_PI) / period) * 0.5f + change + begin;
+
+	if (time < 0.0f) {
+		return -0.5f * (amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period)) + begin;
+	}
+	else {
+		time = -time;
+		return (0.5f * amplitude * powf(2, 10 * time) * sinf((time * duration - s) * (2 * (float)M_PI) / period)) + change + begin;
+	}
 }
 
 float BLI_easing_expo_ease_in(float time, float begin, float change, float duration)
