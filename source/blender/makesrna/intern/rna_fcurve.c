@@ -746,15 +746,8 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 {
 	if (tot > 0) {
 		BezTriple *bezt;
-		if (fcu->totvert) {
-			BezTriple *nbezt = MEM_callocN(sizeof(BezTriple) * (fcu->totvert + tot), "rna_FKeyframe_points_add");
-			memcpy(nbezt, fcu->bezt, sizeof(BezTriple) * fcu->totvert);
-			MEM_freeN(fcu->bezt);
-			fcu->bezt = nbezt;
-		}
-		else {
-			fcu->bezt = MEM_callocN(sizeof(BezTriple) * tot, "rna_FKeyframe_points_add");
-		}
+
+		fcu->bezt = MEM_recallocN(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + tot));
 		
 		bezt = fcu->bezt + fcu->totvert;
 		fcu->totvert += tot;

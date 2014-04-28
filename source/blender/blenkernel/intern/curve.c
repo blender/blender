@@ -701,19 +701,13 @@ void BKE_nurb_minmax(Nurb *nu, bool use_radius, float min[3], float max[3])
 /* be sure to call makeknots after this */
 void BKE_nurb_points_add(Nurb *nu, int number)
 {
-	BPoint *tmp = nu->bp;
+	BPoint *bp;
 	int i;
-	nu->bp = (BPoint *)MEM_mallocN((nu->pntsu + number) * sizeof(BPoint), "rna_Curve_spline_points_add");
 
-	if (tmp) {
-		memmove(nu->bp, tmp, nu->pntsu * sizeof(BPoint));
-		MEM_freeN(tmp);
-	}
+	nu->bp = MEM_recallocN(nu->bp, (nu->pntsu + number) * sizeof(BPoint));
 
-	memset(nu->bp + nu->pntsu, 0, number * sizeof(BPoint));
-
-	for (i = 0, tmp = nu->bp + nu->pntsu; i < number; i++, tmp++) {
-		tmp->radius = 1.0f;
+	for (i = 0, bp = &nu->bp[nu->pntsu]; i < number; i++, bp++) {
+		bp->radius = 1.0f;
 	}
 
 	nu->pntsu += number;
@@ -721,19 +715,13 @@ void BKE_nurb_points_add(Nurb *nu, int number)
 
 void BKE_nurb_bezierPoints_add(Nurb *nu, int number)
 {
-	BezTriple *tmp = nu->bezt;
+	BezTriple *bezt;
 	int i;
-	nu->bezt = (BezTriple *)MEM_mallocN((nu->pntsu + number) * sizeof(BezTriple), "rna_Curve_spline_points_add");
 
-	if (tmp) {
-		memmove(nu->bezt, tmp, nu->pntsu * sizeof(BezTriple));
-		MEM_freeN(tmp);
-	}
+	nu->bezt = MEM_recallocN(nu->bp, (nu->pntsu + number) * sizeof(BezTriple));
 
-	memset(nu->bezt + nu->pntsu, 0, number * sizeof(BezTriple));
-
-	for (i = 0, tmp = nu->bezt + nu->pntsu; i < number; i++, tmp++) {
-		tmp->radius = 1.0f;
+	for (i = 0, bezt = &nu->bezt[nu->pntsu]; i < number; i++, bezt++) {
+		bezt->radius = 1.0f;
 	}
 
 	nu->pntsu += number;
