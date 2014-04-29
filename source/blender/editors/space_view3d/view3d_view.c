@@ -569,7 +569,10 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 		if (v3d->scenelock)
 			scene->camera = ob;
 
-		if (camera_old != ob) {  /* unlikely but looks like a glitch when set to the same */
+		/* unlikely but looks like a glitch when set to the same */
+		if (camera_old != ob) {
+			ED_view3d_lastview_store(rv3d);
+
 			ED_view3d_smooth_view(C, v3d, ar, camera_old, v3d->camera,
 			                      rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens,
 			                      smooth_viewtx);
