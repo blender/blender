@@ -101,8 +101,6 @@ typedef struct RegionView3D {
 	float clip_local[6][4]; /* clip in object space, means we can test for clipping in editmode without first going into worldspace */
 	struct BoundBox *clipbb;
 
-	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
-
 	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
 	struct RenderInfo *ri;
 	struct RenderEngine *render_engine;

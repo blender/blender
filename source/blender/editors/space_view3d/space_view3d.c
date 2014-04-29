@@ -706,7 +706,6 @@ static void *view3d_main_area_duplicate(void *poin)
 		new->gpuoffscreen = NULL;
 		new->ri = NULL;
 		new->render_engine = NULL;
-		new->gpd = NULL;
 		new->sms = NULL;
 		new->smooth_timer = NULL;
 		
