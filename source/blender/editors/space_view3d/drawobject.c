@@ -1258,7 +1258,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 		copy_v3_fl3(lvec, 0.0f, 0.0f, 1.0f);
 		copy_v3_fl3(vvec, rv3d->persmat[0][2], rv3d->persmat[1][2], rv3d->persmat[2][2]);
-		mul_mat3_m4_v3(ob->obmat, vvec);
+		mul_transposed_mat3_m4_v3(ob->obmat, vvec);
 
 		x = -la->dist;
 		y = cosf(la->spotsize * 0.5f);
