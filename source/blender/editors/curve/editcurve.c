@@ -4216,7 +4216,7 @@ static void make_selection_list_nurb(ListBase *editnurb)
 	}
 }
 
-static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
+static void merge_2_nurb(wmOperator *op, Curve *cu, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
 {
 	BPoint *bp, *bp1, *bp2, *temp;
 	float len1, len2;
@@ -4331,10 +4331,12 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 
 		for (u = 0; u < nu1->pntsu; u++, bp++) {
 			if (u < origu) {
+				keyIndex_updateBP(cu->editnurb, bp1, bp, 1);
 				*bp = *bp1; bp1++;
 				select_bpoint(bp, SELECT, SELECT, HIDDEN);
 			}
 			else {
+				keyIndex_updateBP(cu->editnurb, bp2, bp, 1);
 				*bp = *bp2; bp2++;
 			}
 		}
@@ -4356,6 +4358,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 static int merge_nurb(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
+	Curve *cu = obedit->data;
 	ListBase *editnurb = object_editcurve_get(obedit);
 	NurbSort *nus1, *nus2;
 	bool ok = true;
@@ -4405,7 +4408,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	}
 
 	while (nus2) {
-		merge_2_nurb(op, editnurb, nus1->nu, nus2->nu);
+		merge_2_nurb(op, cu, editnurb, nus1->nu, nus2->nu);
 		nus2 = nus2->next;
 	}
 	
@@ -4552,6 +4555,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				nu1->bezt = bezt;
 				nu1->pntsu += nu2->pntsu;
 				BLI_remlink(nubase, nu2);
+				keyIndex_delNurb(cu->editnurb, nu2);
 				BKE_nurb_free(nu2); nu2 = NULL;
 				BKE_nurb_handles_calc(nu1);
 			}
@@ -4576,6 +4580,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 
 					BKE_nurb_knot_calc_u(nu1);
 				}
+				keyIndex_delNurb(cu->editnurb, nu2);
 				BKE_nurb_free(nu2); nu2 = NULL;
 			}
 
