@@ -404,7 +404,7 @@ static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
 #define HEADER_LENGTH 256
 	char header[HEADER_LENGTH];
 
-	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB: drag node link, RMB: cancel"));
+	BLI_strncpy(header, IFACE_("LMB: drag node link, RMB: cancel"), HEADER_LENGTH);
 	ED_area_headerprint(CTX_wm_area(C), header);
 #undef HEADER_LENGTH
 }

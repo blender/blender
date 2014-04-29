@@ -1251,7 +1251,7 @@ static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, b
 			return true;
 		case 1:
 			if (check_type) {
-				const MatrixObject *fallback = PyTuple_GET_ITEM(args, 0);
+				const MatrixObject *fallback = (MatrixObject *)PyTuple_GET_ITEM(args, 0);
 				if (!MatrixObject_Check(fallback)) {
 					PyErr_SetString(PyExc_TypeError,
 					                "Matrix.invert: "
@@ -1314,7 +1314,7 @@ static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
 	}
 	else {
 		if (PyTuple_GET_SIZE(args) == 1) {
-			MatrixObject *fallback = PyTuple_GET_ITEM(args, 0);
+			MatrixObject *fallback = (MatrixObject *)PyTuple_GET_ITEM(args, 0);
 
 			if (BaseMath_ReadCallback(fallback) == -1)
 				return NULL;
