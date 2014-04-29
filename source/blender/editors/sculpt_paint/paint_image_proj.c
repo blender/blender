@@ -1063,44 +1063,9 @@ static void screen_px_from_ortho(
 	interp_v3_v3v3v3(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
-/* same as screen_px_from_ortho except we need to take into account
- * the perspective W coord for each vert */
+/* same as screen_px_from_ortho except we
+ * do perspective correction on the pixel coordinate */
 static void screen_px_from_persp(
-        const float uv[2],
-        const float v1co[4], const float v2co[4], const float v3co[4],  /* screenspace coords */
-        const float uv1co[2], const float uv2co[2], const float uv3co[2],
-        float pixelScreenCo[4],
-        float w[3])
-{
-
-	float wtot_inv, wtot;
-	barycentric_weights_v2(uv1co, uv2co, uv3co, uv, w);
-
-	/* re-weight from the 4th coord of each screen vert */
-	w[0] *= v1co[3];
-	w[1] *= v2co[3];
-	w[2] *= v3co[3];
-
-	wtot = w[0] + w[1] + w[2];
-
-	if (wtot > 0.0f) {
-		wtot_inv = 1.0f / wtot;
-		w[0] *= wtot_inv;
-		w[1] *= wtot_inv;
-		w[2] *= wtot_inv;
-	}
-	else {
-		w[0] = w[1] = w[2] = 1.0f / 3.0f;  /* dummy values for zero area face */
-	}
-	/* done re-weighting */
-
-	interp_v3_v3v3v3(pixelScreenCo, v1co, v2co, v3co, w);
-}
-
-
-/* same as screen_px_from_persp except we return ortho weights back to the caller.
- * These weights will be used to determine correct interpolation of uvs in cloned uv layer */
-static void screen_px_from_persp_ortho_weights(
         const float uv[2],
         const float v1co[4], const float v2co[4], const float v3co[4],  /* screenspace coords */
         const float uv1co[2], const float uv2co[2], const float uv3co[2],
@@ -2183,7 +2148,6 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	float uv_clip[8][2];
 	int uv_clip_tot;
 	const bool is_ortho = ps->is_ortho;
-	const bool is_clone_other = ((ps->brush->imagepaint_tool == PAINT_TOOL_CLONE) && ps->dm_mtface_clone);
 	const bool do_backfacecull = ps->do_backfacecull;
 	const bool do_clip = ps->rv3d ? ps->rv3d->rflag & RV3D_CLIPPING : 0;
 
@@ -2291,7 +2255,6 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						has_x_isect = has_isect = 1;
 
 						if (is_ortho) screen_px_from_ortho(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
-						else if (is_clone_other) screen_px_from_persp_ortho_weights(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 						else screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 
 						/* a pity we need to get the worldspace pixel location here */
