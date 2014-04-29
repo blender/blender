@@ -1507,7 +1507,9 @@ static void draw_manipulator_rotate_cyl(
 
 	/* Screen aligned view rot circle */
 	if (drawflags & MAN_ROT_V) {
-		float unitmat[4][4] = MAT4_UNITY;
+		float unitmat[4][4];
+
+		unit_m4(unitmat);
 
 		if (is_picksel) glLoadName(MAN_ROT_V);
 		UI_ThemeColor(TH_TRANSFORM);

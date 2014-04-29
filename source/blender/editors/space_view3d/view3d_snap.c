@@ -414,7 +414,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 	MovieTracking *tracking;
 	MovieTrackingObject *object;
 	bool ok = false;
-	float min[3], max[3], mat[4][4], pos[3], cammat[4][4] = MAT4_UNITY;
+	float min[3], max[3], mat[4][4], pos[3], cammat[4][4];
 
 	if (!clip)
 		return;

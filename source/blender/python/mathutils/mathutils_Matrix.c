@@ -550,7 +550,9 @@ PyDoc_STRVAR(C_Matrix_Translation_doc,
 );
 static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 {
-	float mat[4][4] = MAT4_UNITY;
+	float mat[4][4];
+
+	unit_m4(mat);
 
 	if (mathutils_array_parse(mat[3], 3, 4, value, "mathutils.Matrix.Translation(vector), invalid vector arg") == -1)
 		return NULL;
@@ -1013,7 +1015,7 @@ PyDoc_STRVAR(Matrix_resize_4x4_doc,
 );
 static PyObject *Matrix_resize_4x4(MatrixObject *self)
 {
-	float mat[4][4] = MAT4_UNITY;
+	float mat[4][4];
 	int col;
 
 	if (self->wrapped == Py_WRAP) {
@@ -1029,13 +1031,15 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 		return NULL;
 	}
 
-	self->matrix = PyMem_Realloc(self->matrix, (sizeof(float) * 16));
+	self->matrix = PyMem_Realloc(self->matrix, (sizeof(float) * (MATRIX_MAX_DIM * MATRIX_MAX_DIM)));
 	if (self->matrix == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
 		                "Matrix.resize_4x4(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
+
+	unit_m4(mat);
 
 	for (col = 0; col < self->num_col; col++) {
 		memcpy(mat[col], MATRIX_COL_PTR(self, col), self->num_row * sizeof(float));
@@ -1177,10 +1181,7 @@ static PyObject *Matrix_invert(MatrixObject *self)
 
 	int x, y, z = 0;
 	float det = 0.0f;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 0.0f,
-	                 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
@@ -1811,7 +1812,7 @@ static PyObject *Matrix_item_col(MatrixObject *self, int col)
 static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
 {
 	int col;
-	float vec[4];
+	float vec[MATRIX_MAX_DIM];
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
 
@@ -1836,7 +1837,7 @@ static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
 static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
 {
 	int row;
-	float vec[4];
+	float vec[MATRIX_MAX_DIM];
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
 
@@ -1904,7 +1905,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 	else {
 		const int size = end - begin;
 		int row, col;
-		float mat[16];
+		float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 		float vec[4];
 
 		if (PySequence_Fast_GET_SIZE(value_fast) != size) {
@@ -1946,7 +1947,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
  *------------------------obj + obj------------------------------*/
 static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 {
-	float mat[16];
+	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
 	mat1 = (MatrixObject *)m1;
@@ -1978,7 +1979,7 @@ static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
  * subtraction */
 static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 {
-	float mat[16];
+	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
 	mat1 = (MatrixObject *)m1;
@@ -2010,7 +2011,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
  * multiplication */
 static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
 {
-	float tmat[16];
+	float tmat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 	mul_vn_vn_fl(tmat, mat->matrix, mat->num_col * mat->num_row, scalar);
 	return Matrix_CreatePyObject(tmat, mat->num_col, mat->num_row, Py_NEW, Py_TYPE(mat));
 }
@@ -2035,10 +2036,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
 	if (mat1 && mat2) {
 		/* MATRIX * MATRIX */
-		float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
-		                 0.0f, 0.0f, 0.0f, 0.0f,
-		                 0.0f, 0.0f, 0.0f, 0.0f,
-		                 0.0f, 0.0f, 0.0f, 1.0f};
+		float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 
 		int col, row, item;
 
@@ -2071,7 +2069,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 		/* MATRIX * VECTOR */
 		if (VectorObject_Check(m2)) {
 			VectorObject *vec2 = (VectorObject *)m2;
-			float tvec[4];
+			float tvec[MATRIX_MAX_DIM];
 			if (BaseMath_ReadCallback(vec2) == -1)
 				return NULL;
 			if (column_vector_multiplication(tvec, vec2, mat1) == -1) {

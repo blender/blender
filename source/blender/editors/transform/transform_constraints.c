@@ -625,8 +625,9 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 	switch (orientation) {
 		case V3D_MANIP_GLOBAL:
 		{
-			float mtx[3][3] = MAT3_UNITY;
+			float mtx[3][3];
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("global"));
+			unit_m3(mtx);
 			setConstraint(t, mtx, mode, text);
 			break;
 		}

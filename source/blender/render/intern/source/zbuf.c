@@ -1831,7 +1831,9 @@ void zbuf_render_project(float winmat[4][4], const float co[3], float ho[4])
 void zbuf_make_winmat(Render *re, float winmat[4][4])
 {
 	if (re->r.mode & R_PANORAMA) {
-		float panomat[4][4]= MAT4_UNITY;
+		float panomat[4][4];
+
+		unit_m4(panomat);
 
 		panomat[0][0]= re->panoco;
 		panomat[0][2]= re->panosi;
