@@ -71,5 +71,17 @@ struct ListBase *object_duplilist(struct EvaluationContext *eval_ctx, struct Sce
 void free_object_duplilist(struct ListBase *lb);
 int count_duplilist(struct Object *ob);
 
-#endif
+typedef struct DupliExtraData {
+	float obmat[4][4];
+} DupliExtraData;
 
+typedef struct DupliApplyData {
+	int num_objects;
+	DupliExtraData *extra;
+} DupliApplyData;
+
+DupliApplyData *duplilist_apply_matrix(struct ListBase *duplilist);
+void duplilist_restore_matrix(struct ListBase *duplilist, DupliApplyData *apply_data);
+void duplilist_free_apply_data(DupliApplyData *apply_data);
+
+#endif

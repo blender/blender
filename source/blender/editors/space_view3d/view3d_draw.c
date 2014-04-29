@@ -1966,7 +1966,6 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *lb;
 	LodLevel *savedlod;
-	float savedobmat[4][4];
 	DupliObject *dob_prev = NULL, *dob, *dob_next = NULL;
 	Base tbase = {NULL};
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
@@ -1974,12 +1973,15 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	short transflag, use_displist = -1;  /* -1 is initialize */
 	char dt;
 	short dtx;
-	
+	DupliApplyData *apply_data;
+
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
 	
 	tbase.flag = OB_FROMDUPLI | base->flag;
 	lb = object_duplilist(G.main->eval_ctx, scene, base->object);
 	// BLI_sortlist(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
+
+	apply_data = duplilist_apply_matrix(lb);
 
 	dob = dupli_step(lb->first);
 	if (dob) dob_next = dupli_step(dob->next);
@@ -1989,8 +1991,6 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 
 		/* Make sure lod is updated from dupli's position */
 
-		copy_m4_m4(savedobmat, dob->ob->obmat);
-		copy_m4_m4(dob->ob->obmat, dob->mat);
 		savedlod = dob->ob->currentlod;
 
 #ifdef WITH_GAMEENGINE
@@ -2083,11 +2083,13 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		tbase.object->dtx = dtx;
 		tbase.object->transflag = transflag;
 		tbase.object->currentlod = savedlod;
-		copy_m4_m4(tbase.object->obmat, savedobmat);
 	}
-	
-	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
-	
+
+	if (apply_data) {
+		duplilist_restore_matrix(lb, apply_data);
+		duplilist_free_apply_data(apply_data);
+	}
+
 	free_object_duplilist(lb);
 	
 	if (use_displist)
