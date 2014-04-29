@@ -2563,7 +2563,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	/* better not save _any_ settings for this operator */
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 	prop = RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
