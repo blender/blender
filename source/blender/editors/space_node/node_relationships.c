@@ -29,6 +29,8 @@
  *  \ingroup spnode
  */
 
+#include <ctype.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
@@ -53,6 +55,8 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+
+#include "BLF_translation.h"
 
 #include "node_intern.h"  /* own include */
 #include "NOD_common.h"
@@ -395,12 +399,87 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
 /* *************************** add link op ******************** */
 
-static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
+static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
+{
+#define HEADER_LENGTH 256
+	char header[HEADER_LENGTH];
+
+	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB: drag node link, RMB: cancel"));
+	ED_area_headerprint(CTX_wm_area(C), header);
+#undef HEADER_LENGTH
+}
+
+/* update link_count fields to avoid repeated link counting */
+static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
+{
+	bNodeLink *link;
+	int count = 0;
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->fromsock == sock)
+			++count;
+		if (link->tosock == sock)
+			++count;
+	}
+	return count;
+}
+
+/* test if two sockets are interchangeable
+ * XXX this could be made into a tree-type callback for flexibility
+ */
+static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
+{
+	/* tests if alphabetic prefix matches
+	 * this allows for imperfect matches, such as numeric suffixes,
+	 * like Color1/Color2
+	 */
+	int prefix_len = 0;
+	char *ca = a->name, *cb = b->name;
+	for (; *ca != '\0' && *cb != '\0'; ++ca, ++cb) {
+		/* end of common prefix? */
+		if (*ca != *cb) {
+			/* prefix delimited by non-alphabetic char */
+			if (isalpha(*ca) || isalpha(*cb))
+				return false;
+			break;
+		}
+		++prefix_len;
+	}
+	return prefix_len > 0;
+}
+
+/* find an eligible socket for linking */
+static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNodeSocket *cur, bool use_swap)
+{
+	int cur_link_count = node_count_links(ntree, cur);
+	if (cur_link_count <= cur->limit) {
+		/* current socket is fine, use it */
+		return cur;
+	}
+	else if (use_swap) {
+		/* link swapping: try to find a free slot with a matching name */
+		
+		bNodeSocket *first = cur->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
+		bNodeSocket *sock;
+		
+		sock = cur->next ? cur->next : first; /* wrap around the list end */
+		while (sock != cur) {
+			if (node_link_socket_match(sock, cur)) {
+				int link_count = node_count_links(ntree, sock);
+				/* take +1 into account since we would add a new link */
+				if (link_count + 1 <= sock->limit)
+					return sock; /* found a valid free socket we can swap to */
+			}
+			
+			sock = sock->next ? sock->next : first; /* wrap around the list end */
+		}
+	}
+	return NULL;
+}
+
+static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link, bool use_swap)
 {
 	bNodeTree *ntree = snode->edittree;
 	bNodeSocket *from = link->fromsock, *to = link->tosock;
-	int max_from = from->limit, max_to = to->limit;
-	int count_from = 1, count_to = 1; /* start at 1, link is included */
 	bNodeLink *tlink, *tlink_next;
 	
 	for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
@@ -409,18 +488,128 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
 			continue;
 		
 		if (tlink && tlink->fromsock == from) {
-			++count_from;
-			if (count_from > max_from) {
+			bNodeSocket *new_from = node_find_linkable_socket(ntree, tlink->fromnode, from, use_swap);
+			if (new_from && new_from != from) {
+				/* redirect existing link */
+				tlink->fromsock = new_from;
+				new_from->flag &= ~SOCK_HIDDEN;
+			}
+			else if (!new_from) {
+				/* no possible replacement, remove tlink */
 				nodeRemLink(ntree, tlink);
 				tlink = NULL;
 			}
 		}
 		
 		if (tlink && tlink->tosock == to) {
-			++count_to;
-			if (count_to > max_to) {
+			bNodeSocket *new_to = node_find_linkable_socket(ntree, tlink->tonode, to, use_swap);
+			if (new_to && new_to != to) {
+				/* redirect existing link */
+				tlink->tosock = new_to;
+				new_to->flag &= ~SOCK_HIDDEN;
+			}
+			else if (!new_to) {
+				/* no possible replacement, remove tlink */
 				nodeRemLink(ntree, tlink);
 				tlink = NULL;
+			}
+		}
+	}
+}
+
+static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNodeLinkDrag *nldrag = op->customdata;
+	LinkData *linkdata;
+	
+	for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
+		bNodeLink *link = linkdata->data;
+		
+		if (apply_links && link->tosock && link->fromsock) {
+			/* add link to the node tree */
+			BLI_addtail(&ntree->links, link);
+			
+			ntree->update |= NTREE_UPDATE_LINKS;
+			
+			/* tag tonode for update */
+			link->tonode->update |= NODE_UPDATE;
+			
+			/* we might need to remove a link */
+			node_remove_extra_links(snode, link, true);
+		}
+		else
+			nodeRemLink(ntree, link);
+	}
+	
+	ntreeUpdateTree(CTX_data_main(C), ntree);
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+	
+	BLI_remlink(&snode->linkdrag, nldrag);
+	/* links->data pointers are either held by the tree or freed already */
+	BLI_freelistN(&nldrag->links);
+	MEM_freeN(nldrag);
+}
+
+static void node_link_find_socket(bContext *C, wmOperator *op, float cursor[2])
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeLinkDrag *nldrag = op->customdata;
+	bNode *tnode;
+	bNodeSocket *tsock = NULL;
+	LinkData *linkdata;
+
+	if (nldrag->in_out == SOCK_OUT) {
+		if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_IN)) {
+			for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
+				bNodeLink *link = linkdata->data;
+				
+				/* skip if this is already the target socket */
+				if (link->tosock == tsock)
+					continue;
+				/* skip if socket is on the same node as the fromsock */
+				if (tnode && link->fromnode == tnode)
+					continue;
+				
+				/* attach links to the socket */
+				link->tonode = tnode;
+				link->tosock = tsock;
+			}
+		}
+		else {
+			for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
+				bNodeLink *link = linkdata->data;
+				
+				link->tonode = NULL;
+				link->tosock = NULL;
+			}
+		}
+	}
+	else {
+		if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_OUT)) {
+			for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
+				bNodeLink *link = linkdata->data;
+				
+				/* skip if this is already the target socket */
+				if (link->fromsock == tsock)
+					continue;
+				/* skip if socket is on the same node as the fromsock */
+				if (tnode && link->tonode == tnode)
+					continue;
+				
+				/* attach links to the socket */
+				link->fromnode = tnode;
+				link->fromsock = tsock;
+			}
+		}
+		else {
+			for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
+				bNodeLink *link = linkdata->data;
+				
+				link->fromnode = NULL;
+				link->fromsock = NULL;
 			}
 		}
 	}
@@ -430,78 +619,18 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
 /* in_out = starting socket */
 static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	SpaceNode *snode = CTX_wm_space_node(C);
-	ARegion *ar = CTX_wm_region(C);
 	bNodeLinkDrag *nldrag = op->customdata;
-	bNodeTree *ntree = snode->edittree;
-	bNode *tnode;
-	bNodeSocket *tsock = NULL;
-	bNodeLink *link;
-	LinkData *linkdata;
+	ARegion *ar = CTX_wm_region(C);
 	float cursor[2];
-	int in_out;
-
-	in_out = nldrag->in_out;
 	
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 	                         &cursor[0], &cursor[1]);
-
+	
 	switch (event->type) {
 		case MOUSEMOVE:
+			node_link_find_socket(C, op, cursor);
 			
-			if (in_out == SOCK_OUT) {
-				if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_IN)) {
-					for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
-						link = linkdata->data;
-						
-						/* skip if this is already the target socket */
-						if (link->tosock == tsock)
-							continue;
-						/* skip if socket is on the same node as the fromsock */
-						if (tnode && link->fromnode == tnode)
-							continue;
-						
-						/* attach links to the socket */
-						link->tonode = tnode;
-						link->tosock = tsock;
-					}
-				}
-				else {
-					for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
-						link = linkdata->data;
-						
-						link->tonode = NULL;
-						link->tosock = NULL;
-					}
-				}
-			}
-			else {
-				if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_OUT)) {
-					for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
-						link = linkdata->data;
-						
-						/* skip if this is already the target socket */
-						if (link->fromsock == tsock)
-							continue;
-						/* skip if socket is on the same node as the fromsock */
-						if (tnode && link->tonode == tnode)
-							continue;
-						
-						/* attach links to the socket */
-						link->fromnode = tnode;
-						link->fromsock = tsock;
-					}
-				}
-				else {
-					for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
-						link = linkdata->data;
-						
-						link->fromnode = NULL;
-						link->fromsock = NULL;
-					}
-				}
-			}
-			
+			node_link_update_header(C, nldrag);
 			ED_region_tag_redraw(ar);
 			break;
 			
@@ -509,34 +638,10 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
 		{
-			for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
-				link = linkdata->data;
-				
-				if (link->tosock && link->fromsock) {
-					/* add link to the node tree */
-					BLI_addtail(&ntree->links, link);
-					
-					ntree->update |= NTREE_UPDATE_LINKS;
-					
-					/* tag tonode for update */
-					link->tonode->update |= NODE_UPDATE;
-					
-					/* we might need to remove a link */
-					node_remove_extra_links(snode, link);
-				}
-				else
-					nodeRemLink(ntree, link);
-			}
+			node_link_exit(C, op, true);
 			
-			ntreeUpdateTree(CTX_data_main(C), ntree);
-			snode_notify(C, snode);
-			snode_dag_update(C, snode);
-			
-			BLI_remlink(&snode->linkdrag, nldrag);
-			/* links->data pointers are either held by the tree or freed already */
-			BLI_freelistN(&nldrag->links);
-			MEM_freeN(nldrag);
-			
+			ED_area_headerprint(CTX_wm_area(C), NULL);
+			ED_region_tag_redraw(ar);
 			return OPERATOR_FINISHED;
 		}
 	}
@@ -545,7 +650,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* return 1 when socket clicked */
-static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], const bool detach)
+static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool detach)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -630,7 +735,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], const bo
 			BLI_addtail(&nldrag->links, linkdata);
 		}
 	}
-
+	
 	return nldrag;
 }
 
@@ -641,7 +746,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	bNodeLinkDrag *nldrag;
 	float cursor[2];
 	
-	const bool detach = RNA_boolean_get(op->ptr, "detach");
+	bool detach = RNA_boolean_get(op->ptr, "detach");
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 	                         &cursor[0], &cursor[1]);
@@ -1329,7 +1434,7 @@ void ED_node_link_insert(ScrArea *sa)
 			
 			link->tonode = select;
 			link->tosock = best_input;
-			node_remove_extra_links(snode, link);
+			node_remove_extra_links(snode, link, false);
 			link->flag &= ~NODE_LINKFLAG_HILITE;
 			
 			nodeAddLink(snode->edittree, select, best_output, node, sockto);
