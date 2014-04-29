@@ -604,6 +604,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->passflag = SCE_PASS_COMBINED;
 		
 		re->r.actlay = 0;
+		srl = BLI_findlink(&re->r.layers, re->r.actlay);
+		BLI_strncpy(rl->name, srl->name, sizeof(rl->name));
 	}
 	
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
