@@ -108,8 +108,9 @@ typedef struct RenderPart {
 
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
+	int nr;							/* nr is partnr */
 	short crop, status;				/* crop is amount of pixels we crop, for filter */
-	short sample, nr;				/* sample can be used by zbuffers, nr is partnr */
+	short sample;					/* sample can be used by zbuffers */
 	short thread;					/* thread id */
 	
 	char *clipflag;					/* clipflags for part zbuffering */
