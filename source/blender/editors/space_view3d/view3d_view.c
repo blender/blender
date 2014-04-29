@@ -1408,7 +1408,7 @@ static int localview_exec(bContext *C, wmOperator *op)
 
 	if (changed) {
 		DAG_id_type_tag(bmain, ID_OB);
-		ED_area_tag_redraw(CTX_wm_area(C));
+		ED_area_tag_redraw(sa);
 
 		return OPERATOR_FINISHED;
 	}

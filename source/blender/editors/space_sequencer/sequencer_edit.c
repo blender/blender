@@ -219,7 +219,7 @@ static void seq_proxy_build_job(const bContext *C)
 		WM_jobs_start(CTX_wm_manager(C), wm_job);
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_area_tag_redraw(sa);
 }
 
 /* ********************************************************************** */

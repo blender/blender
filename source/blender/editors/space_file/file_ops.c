@@ -1060,7 +1060,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		}
 	}
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	ED_region_tag_redraw(ar);
 	
 	/* and restore context */
 	CTX_wm_region_set(C, oldar);
@@ -1147,7 +1147,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
 
 	/* set timer to smoothly view newly generated file */
-	sfile->smoothscroll_timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0 / 1000.0);    /* max 30 frs/sec */
+	sfile->smoothscroll_timer = WM_event_add_timer(wm, CTX_wm_window(C), TIMER1, 1.0 / 1000.0);  /* max 30 frs/sec */
 	sfile->scroll_offset = 0;
 
 	/* reload dir to make sure we're seeing what's in the directory */

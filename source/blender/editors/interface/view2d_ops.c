@@ -1033,7 +1033,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 	if (U.viewzoom == USER_ZOOM_CONT) {
 		/* needs a timer to continue redrawing */
-		vzd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+		vzd->timer = WM_event_add_timer(CTX_wm_manager(C), window, TIMER, 0.01f);
 		vzd->timer_lastdraw = PIL_check_seconds_timer();
 	}
 

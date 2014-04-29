@@ -494,7 +494,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 	}
 
 	if (draw) {
-		ED_area_tag_redraw(CTX_wm_area(C));
+		ED_area_tag_redraw(sa);
 	}
 
 //	if (swallow) {

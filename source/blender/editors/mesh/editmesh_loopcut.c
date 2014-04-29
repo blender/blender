@@ -415,7 +415,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 	lcd->num.unit_type[1] = B_UNIT_NONE;
 
 	/* XXX, temp, workaround for [#	] */
-	EDBM_mesh_ensure_valid_dm_hack(CTX_data_scene(C), lcd->em);
+	EDBM_mesh_ensure_valid_dm_hack(scene, lcd->em);
 
 	em_setup_viewcontext(C, &lcd->vc);
 

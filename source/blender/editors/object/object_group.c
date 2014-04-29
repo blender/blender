@@ -476,7 +476,7 @@ static int group_link_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_context(C);
-	Group *group = BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
+	Group *group = BLI_findlink(&bmain->group, RNA_enum_get(op->ptr, "group"));
 
 	if (ELEM(NULL, ob, group))
 		return OPERATOR_CANCELLED;

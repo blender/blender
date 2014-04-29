@@ -1317,7 +1317,7 @@ static void dopesheet_area_draw(const bContext *C, ARegion *ar)
 
 	/* time grid */
 	unit = (sc->flag & SC_SHOW_SECONDS) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-	grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP,
+	grid = UI_view2d_grid_calc(scene, v2d, unit, V2D_GRID_CLAMP,
 	                           V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);

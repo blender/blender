@@ -440,7 +440,7 @@ static int image_view_zoom_exec(bContext *C, wmOperator *op)
 
 	sima_zoom_set_factor(sima, ar, RNA_float_get(op->ptr, "factor"), NULL);
 
-	ED_region_tag_redraw(CTX_wm_region(C));
+	ED_region_tag_redraw(ar);
 
 	/* XXX notifier? */
 #if 0
@@ -477,7 +477,7 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		factor = 1.0f + delta / 300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 		sima_zoom_set(sima, ar, sima->zoom * factor, location);
-		ED_region_tag_redraw(CTX_wm_region(C));
+		ED_region_tag_redraw(ar);
 		
 		return OPERATOR_FINISHED;
 	}
@@ -685,7 +685,7 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
 
 	sima->xof = sima->yof = 0.0f;
 
-	ED_region_tag_redraw(CTX_wm_region(C));
+	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -748,7 +748,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	if (size <= 0.01f) size = 0.01f;
 	sima_zoom_set(sima, ar, 0.7f / size, NULL);
 
-	ED_region_tag_redraw(CTX_wm_region(C));
+	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -782,7 +782,7 @@ static int image_view_zoom_in_exec(bContext *C, wmOperator *op)
 
 	sima_zoom_set_factor(sima, ar, powf(2.0f, 1.0f / 3.0f), location);
 
-	ED_region_tag_redraw(CTX_wm_region(C));
+	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -827,7 +827,7 @@ static int image_view_zoom_out_exec(bContext *C, wmOperator *op)
 
 	sima_zoom_set_factor(sima, ar, powf(0.5f, 1.0f / 3.0f), location);
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -884,7 +884,7 @@ static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	}
 #endif
 
-	ED_region_tag_redraw(CTX_wm_region(C));
+	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2901,7 +2901,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	SUBFRA = 0.0f;
 
 	/* do updates */
-	sound_seek_scene(CTX_data_main(C), CTX_data_scene(C));
+	sound_seek_scene(CTX_data_main(C), scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

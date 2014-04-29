@@ -209,7 +209,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 		DAG_id_type_tag(bmain, ID_OB);
 		DAG_relations_tag_update(bmain);
 		
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		
 	}
 
