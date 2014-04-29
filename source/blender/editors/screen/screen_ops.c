@@ -2889,6 +2889,20 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 		if (sa->spacetype == SPACE_VIEW3D) {
 			ARegion *ar_iter;
 			RegionView3D *rv3d = ar->regiondata;
+
+			/* if this is a locked view, use settings from 'User' view */
+			if (rv3d->viewlock) {
+				View3D *v3d_user;
+				ARegion *ar_user;
+
+				if (ED_view3d_context_user_region(C, &v3d_user, &ar_user)) {
+					if (ar != ar_user) {
+						SWAP(void *, ar->regiondata, ar_user->regiondata);
+						rv3d = ar->regiondata;
+					}
+				}
+			}
+
 			rv3d->viewlock_quad = RV3D_VIEWLOCK_INIT;
 			rv3d->viewlock = 0;
 			rv3d->rflag &= ~RV3D_CLIPPING;
