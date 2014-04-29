@@ -528,6 +528,54 @@ static void viewops_data_alloc(bContext *C, wmOperator *op)
 	vod->rv3d = vod->ar->regiondata;
 }
 
+static void view3d_orbit_apply_dyn_ofs(
+        float r_ofs[3], const float dyn_ofs[3],
+        const float oldquat[4], const float viewquat[4])
+{
+	float q1[4];
+	conjugate_qt_qt(q1, oldquat);
+	mul_qt_qtqt(q1, q1, viewquat);
+
+	conjugate_qt(q1);  /* conj == inv for unit quat */
+
+	sub_v3_v3(r_ofs, dyn_ofs);
+	mul_qt_v3(q1, r_ofs);
+	add_v3_v3(r_ofs, dyn_ofs);
+}
+
+static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
+{
+	static float lastofs[3] = {0, 0, 0};
+	bool is_set = false;
+
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = OBACT;
+
+	if (ob && (ob->mode & OB_MODE_ALL_PAINT) && (BKE_object_pose_armature_get(ob) == NULL)) {
+		/* in case of sculpting use last average stroke position as a rotation
+		 * center, in other cases it's not clear what rotation center shall be
+		 * so just rotate around object origin
+		 */
+		if (ob->mode & OB_MODE_SCULPT) {
+			float stroke[3];
+			ED_sculpt_get_average_stroke(ob, stroke);
+			copy_v3_v3(lastofs, stroke);
+		}
+		else {
+			copy_v3_v3(lastofs, ob->obmat[3]);
+		}
+		is_set = true;
+	}
+	else {
+		/* If there's no selection, lastofs is unmodified and last value since static */
+		is_set = calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
+	}
+
+	copy_v3_v3(r_dyn_ofs, lastofs);
+
+	return is_set;
+}
+
 /**
  * Calculate the values for #ViewOpsData
  */
@@ -536,7 +584,6 @@ static void viewops_data_create_ex(bContext *C, wmOperator *op, const wmEvent *e
                                    const bool use_orbit_zbuf)
 {
 	ViewOpsData *vod = op->customdata;
-	static float lastofs[3] = {0, 0, 0};
 	RegionView3D *rv3d = vod->rv3d;
 
 	/* set the view from the camera, if view locking is enabled.
@@ -554,31 +601,12 @@ static void viewops_data_create_ex(bContext *C, wmOperator *op, const wmEvent *e
 	copy_v3_v3(vod->ofs, rv3d->ofs);
 
 	if (use_orbit_select) {
-		Scene *scene = CTX_data_scene(C);
-		Object *ob = OBACT;
 
 		vod->use_dyn_ofs = true;
 
-		if (ob && (ob->mode & OB_MODE_ALL_PAINT) && (BKE_object_pose_armature_get(ob) == NULL)) {
-			/* in case of sculpting use last average stroke position as a rotation
-			 * center, in other cases it's not clear what rotation center shall be
-			 * so just rotate around object origin
-			 */
-			if (ob->mode & OB_MODE_SCULPT) {
-				float stroke[3];
-				ED_sculpt_get_average_stroke(ob, stroke);
-				copy_v3_v3(lastofs, stroke);
-			}
-			else {
-				copy_v3_v3(lastofs, ob->obmat[3]);
-			}
-		}
-		else {
-			/* If there's no selection, lastofs is unmodified and last value since static */
-			calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
-		}
+		view3d_orbit_calc_center(C, vod->dyn_ofs);
 
-		negate_v3_v3(vod->dyn_ofs, lastofs);
+		negate_v3(vod->dyn_ofs);
 	}
 	else if (use_orbit_zbuf) {
 		Scene *scene = CTX_data_scene(C);
@@ -752,19 +780,10 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 
 static void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat[4])
 {
-	RegionView3D *rv3d = vod->rv3d;
-
 	if (vod->use_dyn_ofs) {
-		float q1[4];
-		conjugate_qt_qt(q1, vod->oldquat);
-		mul_qt_qtqt(q1, q1, viewquat);
-
-		conjugate_qt(q1); /* conj == inv for unit quat */
-
+		RegionView3D *rv3d = vod->rv3d;
 		copy_v3_v3(rv3d->ofs, vod->ofs);
-		sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
-		mul_qt_v3(q1, rv3d->ofs);
-		add_v3_v3(rv3d->ofs, vod->dyn_ofs);
+		view3d_orbit_apply_dyn_ofs(rv3d->ofs, vod->dyn_ofs, vod->oldquat, viewquat);
 	}
 }
 
@@ -3685,10 +3704,12 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
 	if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
 		if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
-			const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+			int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 			float angle = DEG2RADF((float)U.pad_rot_angle);
 			float quat_mul[4];
 			float quat_new[4];
+			float ofs_new[3];
+			float *ofs_new_pt = NULL;
 
 			if (ELEM(orbitdir, V3D_VIEW_STEPLEFT, V3D_VIEW_STEPRIGHT)) {
 				const float zvec[3] = {0.0f, 0.0f, 1.0f};
@@ -3713,8 +3734,24 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 			mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
 			rv3d->view = RV3D_VIEW_USER;
 
+			if (U.uiflag & USER_ORBIT_SELECTION) {
+				float dyn_ofs[3];
+
+				view3d_orbit_calc_center(C, dyn_ofs);
+				negate_v3(dyn_ofs);
+
+				copy_v3_v3(ofs_new, rv3d->ofs);
+
+				view3d_orbit_apply_dyn_ofs(ofs_new, dyn_ofs, rv3d->viewquat, quat_new);
+				ofs_new_pt = ofs_new;
+
+				/* disable smoothview in this case
+				 * although it works OK, it looks a little odd. */
+				smooth_viewtx = 0;
+			}
+
 			ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-			                      NULL, quat_new, NULL, NULL,
+			                      ofs_new_pt, quat_new, NULL, NULL,
 			                      smooth_viewtx);
 
 			return OPERATOR_FINISHED;
