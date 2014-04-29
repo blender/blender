@@ -1218,7 +1218,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		short axis;
 		
 		/* setup a 45 degree rotation matrix */
-		axis_angle_normalized_to_mat3(mat, imat[2], (float)M_PI / 4.0f);
+		axis_angle_normalized_to_mat3_ex(mat, imat[2], M_SQRT1_2, M_SQRT1_2);
 
 		/* vectors */
 		mul_v3_v3fl(v1, imat[0], circrad * 1.2f);
