@@ -665,6 +665,10 @@ static void render_update_anim_renderdata(Render *re, RenderData *rd)
 	/* freestyle */
 	re->r.line_thickness_mode = rd->line_thickness_mode;
 	re->r.unit_line_thickness = rd->unit_line_thickness;
+
+	/* render layers */
+	BLI_freelistN(&re->r.layers);
+	BLI_duplicatelist(&re->r.layers, &rd->layers);
 }
 
 void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
