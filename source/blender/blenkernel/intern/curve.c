@@ -3104,7 +3104,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 	else {
 		if (ELEM(bezt->h1, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) {
 			if (len_b > eps) {
-				len = 1.0f / orig_len_ratio;
+				len = orig_len_ratio;
 				p2_h1[0] = p2[0] + len * (p2[0] - p2_h2[0]);
 				p2_h1[1] = p2[1] + len * (p2[1] - p2_h2[1]);
 				p2_h1[2] = p2[2] + len * (p2[2] - p2_h2[2]);
@@ -3112,7 +3112,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		}
 		if (ELEM(bezt->h2, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) {   /* aligned */
 			if (len_a > eps) {
-				len = orig_len_ratio;
+				len = 1.0f / orig_len_ratio;
 				p2_h2[0] = p2[0] + len * (p2[0] - p2_h1[0]);
 				p2_h2[1] = p2[1] + len * (p2[1] - p2_h1[1]);
 				p2_h2[2] = p2[2] + len * (p2[2] - p2_h1[2]);
