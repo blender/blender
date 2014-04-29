@@ -42,6 +42,7 @@ typedef enum eMatrixAccess_t {
 	MAT_ACCESS_COL
 } eMatrixAccess_t;
 
+static PyObject *Matrix_copy_notest(MatrixObject *self, const float *matrix);
 static PyObject *Matrix_copy(MatrixObject *self);
 static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args);
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
@@ -893,7 +894,7 @@ static void matrix_copy(MatrixObject *mat_dst, const MatrixObject *mat_src)
 }
 
 /* assumes rowsize == colsize is checked and the read callback has run */
-static float matrix_determinant_internal(MatrixObject *self)
+static float matrix_determinant_internal(const MatrixObject *self)
 {
 	if (self->num_col == 2) {
 		return determinant_m2(MATRIX_ITEM(self, 0, 0), MATRIX_ITEM(self, 0, 1),
@@ -909,7 +910,9 @@ static float matrix_determinant_internal(MatrixObject *self)
 	}
 }
 
-static bool matrix_invert_internal(MatrixObject *self)
+/**
+ * \param r_mat can be from ``self->matrix`` or not. */
+static bool matrix_invert_internal(const MatrixObject *self, float *r_mat)
 {
 	float det;
 
@@ -947,7 +950,7 @@ static bool matrix_invert_internal(MatrixObject *self)
 		z = 0;
 		for (x = 0; x < self->num_col; x++) {
 			for (y = 0; y < self->num_row; y++) {
-				MATRIX_ITEM(self, y, x) = mat[z];
+				r_mat[MATRIX_ITEM_INDEX(self, y, x)] = mat[z];
 				z++;
 			}
 		}
@@ -1306,7 +1309,7 @@ static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
 		return NULL;
 	}
 
-	if (matrix_invert_internal(self)) {
+	if (matrix_invert_internal(self, self->matrix)) {
 		/* pass */
 	}
 	else {
@@ -1316,7 +1319,9 @@ static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
 			if (BaseMath_ReadCallback(fallback) == -1)
 				return NULL;
 
-			matrix_copy(self, fallback);
+			if (self != fallback) {
+				matrix_copy(self, fallback);
+			}
 		}
 		else {
 			matrix_invert_raise_degenerate();
@@ -1341,6 +1346,8 @@ PyDoc_STRVAR(Matrix_inverted_doc,
 );
 static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
 {
+	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
+
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
@@ -1352,7 +1359,7 @@ static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
 		return NULL;
 	}
 
-	if (matrix_invert_internal(self)) {
+	if (matrix_invert_internal(self, mat)) {
 		/* pass */
 	}
 	else {
@@ -1367,8 +1374,7 @@ static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
 		}
 	}
 
-	(void)BaseMath_WriteCallback(self);
-	Py_RETURN_NONE;
+	return Matrix_copy_notest(self, mat);
 }
 
 static PyObject *Matrix_inverted_noargs(MatrixObject *self)
@@ -1380,7 +1386,7 @@ static PyObject *Matrix_inverted_noargs(MatrixObject *self)
 		return NULL;
 	}
 
-	if (matrix_invert_internal(self)) {
+	if (matrix_invert_internal(self, self->matrix)) {
 		/* pass */
 	}
 	else {
@@ -1768,6 +1774,12 @@ static PyObject *Matrix_identity(MatrixObject *self)
 }
 
 /*---------------------------Matrix.copy() ------------------*/
+
+static PyObject *Matrix_copy_notest(MatrixObject *self, const float *matrix)
+{
+	return Matrix_CreatePyObject((float *)matrix, self->num_col, self->num_row, Py_NEW, Py_TYPE(self));
+}
+
 PyDoc_STRVAR(Matrix_copy_doc,
 ".. method:: copy()\n"
 "\n"
@@ -1781,7 +1793,7 @@ static PyObject *Matrix_copy(MatrixObject *self)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	return Matrix_CreatePyObject((float (*))self->matrix, self->num_col, self->num_row, Py_NEW, Py_TYPE(self));
+	return Matrix_copy_notest(self, self->matrix);
 }
 static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args)
 {
