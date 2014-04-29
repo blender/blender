@@ -883,6 +883,15 @@ void matrix_as_3x3(float mat[3][3], MatrixObject *self)
 	copy_v3_v3(mat[2], MATRIX_COL_PTR(self, 2));
 }
 
+static void matrix_copy(MatrixObject *mat_dst, const MatrixObject *mat_src)
+{
+	BLI_assert((mat_dst->num_col == mat_src->num_col) &&
+	           (mat_dst->num_row == mat_src->num_row));
+	BLI_assert(mat_dst != mat_src);
+
+	memcpy(mat_dst->matrix, mat_src->matrix, sizeof(float) * (mat_dst->num_col * mat_dst->num_row));
+}
+
 /* assumes rowsize == colsize is checked and the read callback has run */
 static float matrix_determinant_internal(MatrixObject *self)
 {
@@ -897,6 +906,56 @@ static float matrix_determinant_internal(MatrixObject *self)
 	}
 	else {
 		return determinant_m4((float (*)[4])self->matrix);
+	}
+}
+
+static bool matrix_invert_internal(MatrixObject *self)
+{
+	float det;
+
+	det = matrix_determinant_internal(self);
+
+	if (det != 0.0f) {
+		float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
+		int x, y, z;
+
+		/* calculate the classical adjoint */
+		switch (self->num_col) {
+			case 2:
+			{
+				adjoint_m2_m2((float (*)[2])mat, (float (*)[2])self->matrix);
+				break;
+			}
+			case 3:
+			{
+				adjoint_m3_m3((float (*)[3])mat, (float (*)[3])self->matrix);
+				break;
+			}
+			case 4:
+			{
+				adjoint_m4_m4((float (*)[4])mat, (float (*)[4])self->matrix);
+				break;
+			}
+			default:
+				BLI_assert(0);
+		}
+		/* divide by determinate */
+		for (x = 0; x < (self->num_col * self->num_row); x++) {
+			mat[x] /= det;
+		}
+		/* set values */
+		z = 0;
+		for (x = 0; x < self->num_col; x++) {
+			for (y = 0; y < self->num_row; y++) {
+				MATRIX_ITEM(self, y, x) = mat[z];
+				z++;
+			}
+		}
+
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
@@ -1167,76 +1226,102 @@ static PyObject *Matrix_to_scale(MatrixObject *self)
 }
 
 /*---------------------------matrix.invert() ---------------------*/
-PyDoc_STRVAR(Matrix_invert_doc,
-".. method:: invert()\n"
-"\n"
-"   Set the matrix to its inverse.\n"
-"\n"
-"   .. note:: When the matrix cant be inverted a :exc:`ValueError` exception is raised.\n"
-"\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
-);
-static PyObject *Matrix_invert(MatrixObject *self)
+
+/* re-usable checks for invert */
+static bool matrix_invert_is_compat(const MatrixObject *self)
 {
-
-	int x, y, z = 0;
-	float det = 0.0f;
-	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
-
-	if (BaseMath_ReadCallback(self) == -1)
-		return NULL;
-
 	if (self->num_col != self->num_row) {
 		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.invert(ed): "
 		                "only square matrices are supported");
-		return NULL;
-	}
-
-	/* calculate the determinant */
-	det = matrix_determinant_internal(self);
-
-	if (det != 0) {
-		/* calculate the classical adjoint */
-		switch (self->num_col) {
-			case 2:
-			{
-				adjoint_m2_m2((float (*)[2])mat, (float (*)[2])self->matrix);
-				break;
-			}
-			case 3:
-			{
-				adjoint_m3_m3((float (*)[3])mat, (float (*)[3])self->matrix);
-				break;
-			}
-			case 4:
-			{
-				adjoint_m4_m4((float (*)[4])mat, (float (*)[4])self->matrix);
-				break;
-			}
-			default:
-				PyErr_Format(PyExc_ValueError,
-				             "Matrix invert(ed): size (%d) unsupported",
-				             (int)self->num_col);
-				return NULL;
-		}
-		/* divide by determinate */
-		for (x = 0; x < (self->num_col * self->num_row); x++) {
-			mat[x] /= det;
-		}
-		/* set values */
-		for (x = 0; x < self->num_col; x++) {
-			for (y = 0; y < self->num_row; y++) {
-				MATRIX_ITEM(self, y, x) = mat[z];
-				z++;
-			}
-		}
+		return false;
 	}
 	else {
-		PyErr_SetString(PyExc_ValueError,
-		                "Matrix.invert(ed): "
-		                "matrix does not have an inverse");
+		return true;
+	}
+}
+
+static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, bool check_type)
+{
+	switch (PyTuple_GET_SIZE(args)) {
+		case 0:
+			return true;
+		case 1:
+			if (check_type) {
+				const MatrixObject *fallback = PyTuple_GET_ITEM(args, 0);
+				if (!MatrixObject_Check(fallback)) {
+					PyErr_SetString(PyExc_TypeError,
+					                "Matrix.invert: "
+					                "expects a matrix argument or nothing");
+					return false;
+				}
+
+				if ((self->num_col != fallback->num_col) ||
+				    (self->num_row != fallback->num_row))
+				{
+					PyErr_SetString(PyExc_TypeError,
+					                "Matrix.invert: "
+					                "matrix argument has different dimensions");
+					return false;
+				}
+			}
+
+			return true;
+		default:
+			PyErr_SetString(PyExc_ValueError,
+			                "Matrix.invert(ed): "
+			                "takes at most one argument");
+			return false;
+	}
+}
+
+static void matrix_invert_raise_degenerate(void)
+{
+	PyErr_SetString(PyExc_ValueError,
+	                "Matrix.invert(ed): "
+	                "matrix does not have an inverse");
+}
+
+PyDoc_STRVAR(Matrix_invert_doc,
+".. method:: invert(fallback=None)\n"
+"\n"
+"   Set the matrix to its inverse.\n"
+"\n"
+"   :arg fallback: Set the matrix to this value when the inverse can't be calculated\n"
+"      (instead of raising a :exc:`ValueError` exception).\n"
+"   :type fallback: :class:`Matrix`\n"
+"\n"
+"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
+);
+static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
+{
+	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
+
+	if (matrix_invert_is_compat(self) == false) {
+		return NULL;
+	}
+
+	if (matrix_invert_args_check(self, args, true) == false) {
+		return NULL;
+	}
+
+	if (matrix_invert_internal(self)) {
+		/* pass */
+	}
+	else {
+		if (PyTuple_GET_SIZE(args) == 1) {
+			MatrixObject *fallback = PyTuple_GET_ITEM(args, 0);
+
+			if (BaseMath_ReadCallback(fallback) == -1)
+				return NULL;
+
+			matrix_copy(self, fallback);
+		}
+		else {
+			matrix_invert_raise_degenerate();
+			return NULL;
+		}
 	}
 
 	(void)BaseMath_WriteCallback(self);
@@ -1244,18 +1329,67 @@ static PyObject *Matrix_invert(MatrixObject *self)
 }
 
 PyDoc_STRVAR(Matrix_inverted_doc,
-".. method:: inverted()\n"
+".. method:: inverted(fallback=None)\n"
 "\n"
 "   Return an inverted copy of the matrix.\n"
 "\n"
-"   :return: the inverted matrix.\n"
+"   :arg fallback: return this value when the inverse can't be calculated\n"
+"      (instead of raising a :exc:`ValueError` exception).\n"
+"   :type fallback: any\n"
+"   :return: the inverted matrix or fallback when given.\n"
 "   :rtype: :class:`Matrix`\n"
-"\n"
-"   .. note:: When the matrix cant be inverted a :exc:`ValueError` exception is raised.\n"
 );
-static PyObject *Matrix_inverted(MatrixObject *self)
+static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
 {
-	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_invert, self);
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (matrix_invert_args_check(self, args, false) == false) {
+		return NULL;
+	}
+
+	if (matrix_invert_is_compat(self) == false) {
+		return NULL;
+	}
+
+	if (matrix_invert_internal(self)) {
+		/* pass */
+	}
+	else {
+		if (PyTuple_GET_SIZE(args) == 1) {
+			PyObject *fallback = PyTuple_GET_ITEM(args, 0);
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			matrix_invert_raise_degenerate();
+			return NULL;
+		}
+	}
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Matrix_inverted_noargs(MatrixObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (matrix_invert_is_compat(self) == false) {
+		return NULL;
+	}
+
+	if (matrix_invert_internal(self)) {
+		/* pass */
+	}
+	else {
+		matrix_invert_raise_degenerate();
+		return NULL;
+	}
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
 }
 
 /*---------------------------matrix.adjugate() ---------------------*/
@@ -2203,7 +2337,7 @@ static PyNumberMethods Matrix_NumMethods = {
 	(unaryfunc)     0,      /*tp_positive*/
 	(unaryfunc)     0,      /*tp_absolute*/
 	(inquiry)   0,      /*tp_bool*/
-	(unaryfunc) Matrix_inverted,        /*nb_invert*/
+	(unaryfunc) Matrix_inverted_noargs,        /*nb_invert*/
 	NULL,                   /*nb_lshift*/
 	(binaryfunc)0,      /*nb_rshift*/
 	NULL,                   /*nb_and*/
@@ -2411,8 +2545,8 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"transposed", (PyCFunction) Matrix_transposed, METH_NOARGS, Matrix_transposed_doc},
 	{"normalize", (PyCFunction) Matrix_normalize, METH_NOARGS, Matrix_normalize_doc},
 	{"normalized", (PyCFunction) Matrix_normalized, METH_NOARGS, Matrix_normalized_doc},
-	{"invert", (PyCFunction) Matrix_invert, METH_NOARGS, Matrix_invert_doc},
-	{"inverted", (PyCFunction) Matrix_inverted, METH_NOARGS, Matrix_inverted_doc},
+	{"invert", (PyCFunction) Matrix_invert, METH_VARARGS, Matrix_invert_doc},
+	{"inverted", (PyCFunction) Matrix_inverted, METH_VARARGS, Matrix_inverted_doc},
 	{"adjugate", (PyCFunction) Matrix_adjugate, METH_NOARGS, Matrix_adjugate_doc},
 	{"adjugated", (PyCFunction) Matrix_adjugated, METH_NOARGS, Matrix_adjugated_doc},
 	{"to_3x3", (PyCFunction) Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},
