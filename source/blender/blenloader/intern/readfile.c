@@ -8489,6 +8489,8 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		{
 			if (seq->scene) expand_doit(fd, mainvar, seq->scene);
 			if (seq->scene_camera) expand_doit(fd, mainvar, seq->scene_camera);
+			if (seq->clip) expand_doit(fd, mainvar, seq->clip);
+			if (seq->mask) expand_doit(fd, mainvar, seq->mask);
 			if (seq->sound) expand_doit(fd, mainvar, seq->sound);
 		}
 		SEQ_END
