@@ -1086,22 +1086,6 @@ static void UNUSED_FUNCTION(fluidsimFreeBake)(Object *UNUSED(ob))
 
 #else /* WITH_MOD_FLUID */
 
-/* compile dummy functions for disabled fluid sim */
-
-FluidsimSettings *fluidsimSettingsNew(Object *UNUSED(srcob))
-{
-	return NULL;
-}
-
-void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
-{
-}
-
-FluidsimSettings *fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
-{
-	return NULL;
-}
-
 /* only compile dummy functions */
 static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob), short UNUSED(do_job))
 {

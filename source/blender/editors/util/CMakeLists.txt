@@ -53,7 +53,6 @@ set(SRC
 	../include/ED_curve.h
 	../include/ED_datafiles.h
 	../include/ED_fileselect.h
-	../include/ED_fluidsim.h
 	../include/ED_gpencil.h
 	../include/ED_image.h
 	../include/ED_info.h
