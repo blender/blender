@@ -222,7 +222,7 @@ public:
 		/* In order to use full 6GB of memory on Titan cards, use arrays instead
 		 * of textures. On earlier cards this seems slower, but on Titan it is
 		 * actually slightly faster in tests. */
-		use_texture_storage = (cuDevArchitecture < 350);
+		use_texture_storage = (cuDevArchitecture < 300);
 
 		cuda_pop_context();
 	}

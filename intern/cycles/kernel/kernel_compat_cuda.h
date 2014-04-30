@@ -60,7 +60,7 @@ typedef texture<uchar4, 2, cudaReadModeNormalizedFloat> texture_image_uchar4;
 /* In order to use full 6GB of memory on Titan cards, use arrays instead
  * of textures. On earlier cards this seems slower, but on Titan it is
  * actually slightly faster in tests. */
-#if __CUDA_ARCH__ < 350
+#if __CUDA_ARCH__ < 300
 #define __KERNEL_CUDA_TEX_STORAGE__
 #endif
 

@@ -199,7 +199,7 @@ BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35']
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35', 'sm_50']
 
 #Freestyle
 WITH_BF_FREESTYLE = True

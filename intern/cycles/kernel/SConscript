@@ -69,8 +69,8 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     cuda_major_minor = re.findall(r'release (\d+).(\d+)', output)[0]
     cuda_version = int(cuda_major_minor[0])*10 + int(cuda_major_minor[1])
 
-    if cuda_version != 50:
-        print("CUDA version %d.%d detected, build may succeed but only CUDA 5.0 is officially supported." % (cuda_version/10, cuda_version%10))
+    if cuda_version != 60:
+        print("CUDA version %d.%d detected, build may succeed but only CUDA 6.0 is officially supported." % (cuda_version/10, cuda_version%10))
 
     # nvcc flags
     nvcc_flags = "-m%s" % (bits)
@@ -85,6 +85,10 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
 
     # add command for each cuda architecture
     for arch in cuda_archs:
+        if cuda_version < 60 and arch == "sm_50":
+            print("Can't build kernel for CUDA sm_50 architecture, skipping")
+            continue
+
         cubin_file = os.path.join(build_dir, "kernel_%s.cubin" % arch)
 
         if env['BF_CYCLES_CUDA_ENV']:
