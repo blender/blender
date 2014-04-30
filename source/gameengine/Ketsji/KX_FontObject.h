@@ -45,7 +45,7 @@ public:
 
 	virtual ~KX_FontObject();
 
-	void DrawText();
+	void DrawFontText();
 
 	/** 
 	 * Inherited from CValue -- return a new copy of this

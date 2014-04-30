@@ -166,7 +166,7 @@ int GetFontId(VFont *vfont)
 	return fontid;
 }
 
-void KX_FontObject::DrawText()
+void KX_FontObject::DrawFontText()
 {
 	/* Allow for some logic brick control */
 	if (this->GetProperty("Text"))

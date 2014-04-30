@@ -1742,7 +1742,7 @@ void KX_Scene::RenderFonts()
 {
 	list<KX_FontObject*>::iterator it = m_fonts.begin();
 	while (it != m_fonts.end()) {
-		(*it)->DrawText();
+		(*it)->DrawFontText();
 		++it;
 	}
 }
