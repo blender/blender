@@ -455,7 +455,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 	}
 
 	/* object loop */
-	BL::Scene::objects_iterator b_ob;
+	BL::Scene::object_bases_iterator b_base;
 	BL::Scene b_sce = b_scene;
 	/* modifier result type (not exposed as enum in C++ API)
 	 * 1 : eModifierMode_Realtime
@@ -466,21 +466,22 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 	bool cancel = false;
 
 	for(; b_sce && !cancel; b_sce = b_sce.background_set()) {
-		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end() && !cancel; ++b_ob) {
-			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
-			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), render_layer.use_localview, object_is_light(*b_ob));
+		for(b_sce.object_bases.begin(b_base); b_base != b_sce.object_bases.end() && !cancel; ++b_base) {
+			BL::Object b_ob = b_base->object();
+			bool hide = (render_layer.use_viewport_visibility)? b_ob.hide(): b_ob.hide_render();
+			uint ob_layer = get_layer(b_base->layers(), b_base->layers_local_view(), render_layer.use_localview, object_is_light(b_ob));
 			hide = hide || !(ob_layer & scene_layer);
 
 			if(!hide) {
-				progress.set_sync_status("Synchronizing object", (*b_ob).name());
+				progress.set_sync_status("Synchronizing object", b_ob.name());
 
-				if(b_ob->is_duplicator() && !object_render_hide_duplis(*b_ob)) {
+				if(b_ob.is_duplicator() && !object_render_hide_duplis(b_ob)) {
 					/* dupli objects */
-					b_ob->dupli_list_create(b_scene, dupli_settings);
+					b_ob.dupli_list_create(b_scene, dupli_settings);
 
 					BL::Object::dupli_list_iterator b_dup;
 
-					for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
+					for(b_ob.dupli_list.begin(b_dup); b_dup != b_ob.dupli_list.end(); ++b_dup) {
 						Transform tfm = get_transform(b_dup->matrix());
 						BL::Object b_dup_ob = b_dup->object();
 						bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
@@ -493,27 +494,27 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 							BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_dup->persistent_id();
 
 							/* sync object and mesh or light data */
-							Object *object = sync_object(*b_ob, persistent_id.data, *b_dup, tfm, ob_layer, motion_time, hide_tris);
+							Object *object = sync_object(b_ob, persistent_id.data, *b_dup, tfm, ob_layer, motion_time, hide_tris);
 
 							/* sync possible particle data, note particle_id
 							 * starts counting at 1, first is dummy particle */
 							if(!motion && object) {
-								sync_dupli_particle(*b_ob, *b_dup, object);
+								sync_dupli_particle(b_ob, *b_dup, object);
 							}
 
 						}
 					}
 
-					b_ob->dupli_list_clear();
+					b_ob.dupli_list_clear();
 				}
 
 				/* test if object needs to be hidden */
 				bool hide_tris;
 
-				if(!object_render_hide(*b_ob, true, true, hide_tris)) {
+				if(!object_render_hide(b_ob, true, true, hide_tris)) {
 					/* object itself */
-					Transform tfm = get_transform(b_ob->matrix_world());
-					sync_object(*b_ob, NULL, PointerRNA_NULL, tfm, ob_layer, motion_time, hide_tris);
+					Transform tfm = get_transform(b_ob.matrix_world());
+					sync_object(b_ob, NULL, PointerRNA_NULL, tfm, ob_layer, motion_time, hide_tris);
 				}
 			}
 
