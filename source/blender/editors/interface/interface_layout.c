@@ -410,8 +410,8 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			uiBlockBeginAlign(block);
 
 			for (a = 0; a < colbuts; a++) {
-				int layer_num  = a + b * colbuts;
-				int layer_flag = 1 << layer_num;
+				const int layer_num  = a + b * colbuts;
+				const unsigned int layer_flag = (1u << layer_num);
 				
 				if (layer_used & layer_flag) {
 					if (layer_active & layer_flag)
@@ -428,8 +428,8 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(layer_num));
 			}
 			for (a = 0; a < colbuts; a++) {
-				int layer_num  = a + len / 2 + b * colbuts;
-				int layer_flag = 1 << layer_num;
+				const int layer_num  = a + len / 2 + b * colbuts;
+				const unsigned int layer_flag = (1u << layer_num);
 				
 				if (layer_used & layer_flag) {
 					if (layer_active & layer_flag)

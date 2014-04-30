@@ -588,14 +588,6 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 	outPose = MEM_callocN(sizeof(bPose), "pose");
 	
 	BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
-	if (outPose->chanbase.first) {
-		bPoseChannel *pchan;
-		for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
-			if (pchan->custom) {
-				id_us_plus(&pchan->custom->id);
-			}
-		}
-	}
 
 	outPose->iksolver = src->iksolver;
 	outPose->ikdata = NULL;
@@ -603,6 +595,11 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 	outPose->avs = src->avs;
 	
 	for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
+
+		if (pchan->custom) {
+			id_us_plus(&pchan->custom->id);
+		}
+
 		if (copy_constraints) {
 			BKE_constraints_copy(&listb, &pchan->constraints, true);  // BKE_constraints_copy NULLs listb
 			pchan->constraints = listb;
