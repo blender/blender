@@ -3200,6 +3200,8 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 	{
 		delete motionstate;
 		shapeInfo->Release();
+		if (parent)
+			parent->Release();
 		return;
 	}
 
@@ -3252,6 +3254,8 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 			shapeInfo->Release();
 			// delete motionstate as it's not used
 			delete motionstate;
+			if (parent)
+				parent->Release();
 			return;
 		}
 
@@ -3428,4 +3432,7 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 		}
 	}
 #endif
+
+	if (parent)
+		parent->Release();
 }
