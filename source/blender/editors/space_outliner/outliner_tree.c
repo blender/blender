@@ -77,6 +77,10 @@
 
 #include "outliner_intern.h"
 
+#ifdef WIN32
+#  include "BLI_math_base.h" /* M_PI */
+#endif
+
 /* ********************************************************* */
 /* Persistent Data */
 

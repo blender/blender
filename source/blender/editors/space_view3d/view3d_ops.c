@@ -57,6 +57,10 @@
 
 #include "view3d_intern.h"
 
+#ifdef WIN32
+#  include "BLI_math_base.h" /* M_PI */
+#endif
+
 /* ************************** copy paste ***************************** */
 
 static int view3d_copybuffer_exec(bContext *C, wmOperator *op)

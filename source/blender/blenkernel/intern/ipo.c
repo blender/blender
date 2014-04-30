@@ -77,6 +77,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#ifdef WIN32
+#  include "BLI_math_base.h"  /* M_PI */
+#endif
+
 /* *************************************************** */
 /* Old-Data Freeing Tools */
 

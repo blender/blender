@@ -50,6 +50,8 @@
 #include "GHOST_Path-api.h"
 
 #ifdef WIN32
+#  include "MEM_guardedalloc.h"
+
 #  include "utf_winfunc.h"
 #  include "utfconv.h"
 #  include <io.h>
