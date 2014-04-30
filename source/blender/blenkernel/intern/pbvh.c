@@ -34,6 +34,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_global.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_paint.h"
 
@@ -1088,6 +1089,22 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 	}
 }
 
+static void pbvh_draw_BB(PBVH *bvh)
+{
+	PBVHNode *node;
+	int a;
+
+	GPU_init_draw_pbvh_BB();
+
+	for (a = 0; a < bvh->totnode; a++) {
+		node = &bvh->nodes[a];
+
+		GPU_draw_pbvh_BB(node->vb.bmin, node->vb.bmax, ((node->flag & PBVH_Leaf) != 0));
+	}
+
+	GPU_end_draw_pbvh_BB();
+}
+
 static int pbvh_flush_bb(PBVH *bvh, PBVHNode *node, int flag)
 {
 	int update = 0;
@@ -1691,6 +1708,9 @@ void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 	else {
 		BKE_pbvh_search_callback(bvh, NULL, NULL, BKE_pbvh_node_draw, &draw_data);
 	}
+
+	if (G.debug_value == 14)
+		pbvh_draw_BB(bvh);
 }
 
 void BKE_pbvh_grids_update(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj, void **gridfaces,

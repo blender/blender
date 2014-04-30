@@ -194,6 +194,10 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, struct CCGElem **gr
 void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
                            bool wireframe);
 
+void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf);
+void GPU_end_draw_pbvh_BB(void);
+void GPU_init_draw_pbvh_BB(void);
+
 bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, struct GSet *bm_faces, bool show_diffuse_color);
 
 void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers);
