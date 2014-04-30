@@ -47,7 +47,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_threads.h"
 
 static SpinLock refcounter_spin;
