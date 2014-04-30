@@ -37,7 +37,7 @@ IF(NOT PYTHON_ROOT_DIR AND NOT $ENV{PYTHON_ROOT_DIR} STREQUAL "")
   SET(PYTHON_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
 ENDIF()
 
-SET(PYTHON_VERSION 3.3 CACHE STRING "Python Version (major and minor only)")
+SET(PYTHON_VERSION 3.4 CACHE STRING "Python Version (major and minor only)")
 MARK_AS_ADVANCED(PYTHON_VERSION)
 
 
@@ -188,7 +188,7 @@ IF(PYTHONLIBSUNIX_FOUND)
   SET(PYTHON_LIBRARIES ${PYTHON_LIBRARY})
 
   # we need this for installation
-  # XXX No more valid with debian-like py3.3 packages...
+  # XXX No more valid with debian-like py3.4 packages...
 #  GET_FILENAME_COMPONENT(PYTHON_LIBPATH ${PYTHON_LIBRARY} PATH)
 
   # not used

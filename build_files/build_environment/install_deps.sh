@@ -177,7 +177,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --required-numpy
         Use this in case your distro features a valid python package, but no matching Numpy one.
-        It will force compilation of both python 3.3 and numpy 1.7.
+        It will force compilation of both python and numpy
 
     --libyaml-cpp-ver=<ver>
         Ubuntu hack: you may have to force installation of a non-defaut version of libyaml-cpp
@@ -648,7 +648,7 @@ _init_python() {
   _src=$SRC/Python-$PYTHON_VERSION
   _git=false
   _inst=$INST/python-$PYTHON_VERSION
-  _inst_shortcut=$INST/python-3.3
+  _inst_shortcut=$INST/python-$PYTHON_VERSION_MIN
 }
 
 clean_Python() {
@@ -713,7 +713,7 @@ _init_numpy() {
   _git=false
   _inst=$INST/numpy-$NUMPY_VERSION
   _python=$INST/python-$PYTHON_VERSION
-  _site=lib/python3.3/site-packages
+  _site=lib/python$PYTHON_VERSION_MIN/site-packages
   _inst_shortcut=$_python/$_site/numpy
 }
 

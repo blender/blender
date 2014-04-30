@@ -6,7 +6,7 @@ def FindPython():
 
     python = "/usr"
     abi_flags = "m"  # Most common for linux distros
-    version = "3.3"
+    version = "3.4"
 
     _arch = platform.uname()[4] + "-linux-gnu"
 
