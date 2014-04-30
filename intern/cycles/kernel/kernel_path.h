@@ -818,7 +818,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		}
 #endif
 		
-		/* The following code is the same as in kernel_path_integrate_lighting(),
+		/* Same as kernel_path_integrate_lighting(kg, rng, &sd, &throughput, &state, &L, &ray),
 		   but for CUDA the function call is slower. */
 #ifdef __EMISSION__
 		if(kernel_data.integrator.use_direct_light) {
