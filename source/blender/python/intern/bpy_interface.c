@@ -463,11 +463,16 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
 		if (text->compiled == NULL) {   /* if it wasn't already compiled, do it now */
-			char *buf = txt_to_buf(text);
+			char *buf;
+			PyObject *fn_dummy_py;
 
-			text->compiled = Py_CompileString(buf, fn_dummy, Py_file_input);
+			fn_dummy_py = PyC_UnicodeFromByte(fn_dummy);
 
+			buf = txt_to_buf(text);
+			text->compiled = Py_CompileStringObject(buf, fn_dummy_py, Py_file_input, NULL, -1);
 			MEM_freeN(buf);
+
+			Py_DECREF(fn_dummy_py);
 
 			if (PyErr_Occurred()) {
 				if (do_jump) {
