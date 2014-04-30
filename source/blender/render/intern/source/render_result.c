@@ -481,10 +481,14 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			if (strcmp(srl->name, layername) != 0)
 				continue;
 
-		if ((re->r.scemode & R_SINGLE_LAYER) && nr != re->r.actlay)
-			continue;
-		if (srl->layflag & SCE_LAY_DISABLE)
-			continue;
+		if (re->r.scemode & R_SINGLE_LAYER) {
+			if (nr != re->r.actlay)
+				continue;
+		}
+		else {
+			if (srl->layflag & SCE_LAY_DISABLE)
+				continue;
+		}
 		
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
@@ -604,8 +608,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->passflag = SCE_PASS_COMBINED;
 		
 		re->r.actlay = 0;
-		srl = BLI_findlink(&re->r.layers, re->r.actlay);
-		BLI_strncpy(rl->name, srl->name, sizeof(rl->name));
 	}
 	
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
