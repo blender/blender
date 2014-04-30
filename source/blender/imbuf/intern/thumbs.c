@@ -163,7 +163,7 @@ static const char hex[17] = "0123456789abcdef";
 
 /* Note: This escape function works on file: URIs, but if you want to
  * escape something else, please read RFC-2396 */
-static void escape_uri_string(const char *string, char *escaped_string, int len, UnsafeCharacterSet mask)
+static void escape_uri_string(const char *string, char *escaped_string, int escaped_string_size, UnsafeCharacterSet mask)
 {
 #define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a) - 32] & use_mask))
 
@@ -173,17 +173,27 @@ static void escape_uri_string(const char *string, char *escaped_string, int len,
 	UnsafeCharacterSet use_mask;
 	use_mask = mask;
 
-	for (q = escaped_string, p = string; (*p != '\0') && len; p++) {
+	BLI_assert(escaped_string_size > 0);
+
+	/* space for \0 */
+	escaped_string_size -= 1;
+
+	for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
 		c = (unsigned char) *p;
-		len--;
 
 		if (!ACCEPTABLE(c)) {
+			if (escaped_string_size < 3) {
+				break;
+			}
+
 			*q++ = '%'; /* means hex coming */
 			*q++ = hex[c >> 4];
 			*q++ = hex[c & 15];
+			escaped_string_size -= 3;
 		}
 		else {
 			*q++ = *p;
+			escaped_string_size -= 1;
 		}
 	}
 
