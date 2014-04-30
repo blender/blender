@@ -888,6 +888,17 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		draw_render_info(sima->iuser.scene, ima, ar, zoomx, zoomy);
 }
 
+static bool show_image_cache(Image *image, Mask *mask)
+{
+	if (image == NULL && mask == NULL) {
+		return false;
+	}
+	if (mask == NULL) {
+		return ELEM(image->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE);
+	}
+	return true;
+}
+
 void draw_image_cache(const bContext *C, ARegion *ar)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -900,7 +911,7 @@ void draw_image_cache(const bContext *C, ARegion *ar)
 		mask = ED_space_image_get_mask(sima);
 	}
 
-	if (image == NULL && mask == NULL) {
+	if (!show_image_cache(image, mask)) {
 		return;
 	}
 
