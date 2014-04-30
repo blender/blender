@@ -472,18 +472,18 @@ static void txt_write_file(Text *text, ReportList *reports)
 		return;
 	}
 
-	tmp = text->lines.first;
-	while (tmp) {
-		if (tmp->next) fprintf(fp, "%s\n", tmp->line);
-		else fprintf(fp, "%s", tmp->line);
-		
-		tmp = tmp->next;
+	for (tmp = text->lines.first; tmp; tmp = tmp->next) {
+		fputs(tmp->line, fp);
+		fputc('\n', fp);
 	}
 	
 	fclose(fp);
 
 	if (BLI_stat(filepath, &st) == 0) {
 		text->mtime = st.st_mtime;
+
+		/* report since this can be called from key-shortcuts */
+		BKE_reportf(reports, RPT_INFO, "Saved Text '%s'", filepath);
 	}
 	else {
 		text->mtime = 0;

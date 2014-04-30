@@ -1449,13 +1449,16 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
-/* assumes name is FILE_MAX */
-/* ima->name and ibuf->name should end up the same */
-static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveImageOptions *simopts, int do_newpath)
+/**
+ * \return success.
+ * \note ``ima->name`` and ``ibuf->name`` should end up the same.
+ */
+static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveImageOptions *simopts, bool do_newpath)
 {
 	Image *ima = ED_space_image(sima);
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
+	bool ok = false;
 
 	if (ibuf) {
 		ImBuf *colormanaged_ibuf;
@@ -1464,7 +1467,6 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		const bool save_copy = (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
 		const bool save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") && RNA_boolean_get(op->ptr, "save_as_render"));
 		ImageFormatData *imf = &simopts->im_format;
-		bool ok = false;
 
 		/* old global to ensure a 2nd save goes to same dir */
 		BLI_strncpy(G.ima, simopts->filepath, sizeof(G.ima));
@@ -1494,8 +1496,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			Scene *scene = CTX_data_scene(C);
 			RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
 			if (rr) {
-				RE_WriteRenderResult(op->reports, rr, simopts->filepath, simopts->im_format.exr_codec);
-				ok = true;
+				ok = RE_WriteRenderResult(op->reports, rr, simopts->filepath, simopts->im_format.exr_codec);
 			}
 			else {
 				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
@@ -1503,9 +1504,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else {
-			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
-				ok = true;
-			}
+			ok = BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy);
 		}
 
 		if (ok) {
@@ -1568,6 +1567,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 	}
 
 	ED_space_image_release_buffer(sima, ibuf, lock);
+
+	return ok;
 }
 
 static void image_save_as_free(wmOperator *op)
@@ -1731,7 +1732,10 @@ static int image_save_exec(bContext *C, wmOperator *op)
 	save_image_options_from_op(&simopts, op);
 
 	if (BLI_exists(simopts.filepath) && BLI_file_is_writable(simopts.filepath)) {
-		save_image_doit(C, sima, op, &simopts, false);
+		if (save_image_doit(C, sima, op, &simopts, false)) {
+			/* report since this can be called from key-shortcuts */
+			BKE_reportf(op->reports, RPT_INFO, "Saved Image '%s'", simopts.filepath);
+		}
 	}
 	else {
 		BKE_reportf(op->reports, RPT_ERROR, "Cannot save image, path '%s' is not writable", simopts.filepath);
