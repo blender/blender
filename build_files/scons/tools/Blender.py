@@ -629,16 +629,17 @@ def WinPyBundle(target=None, source=None, env=None):
 
     # -------------
     # Extract Numpy
-    py_tar = env.subst(env['LCGDIR']).lstrip("#")
-    py_tar += '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_numpy_1.8.tar.gz'
+    if env['WITH_BF_PYTHON_INSTALL_NUMPY']:
+        py_tar = env.subst(env['LCGDIR']).lstrip("#")
+        py_tar += '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_numpy_1.8.tar.gz'
 
-    py_target = env.subst(env['BF_INSTALLDIR']).lstrip("#")
-    py_target = os.path.join(py_target, VERSION, 'python', 'lib', 'site-packages')
-    # rmtree handled above
-    # files are cleaned up in their archive
-    exclude_re = []
-    print("Unpacking '" + py_tar + "' to '" + py_target + "'")
-    untar_pybundle(py_tar, py_target, exclude_re)
+        py_target = env.subst(env['BF_INSTALLDIR']).lstrip("#")
+        py_target = os.path.join(py_target, VERSION, 'python', 'lib', 'site-packages')
+        # rmtree handled above
+        # files are cleaned up in their archive
+        exclude_re = []
+        print("Unpacking '" + py_tar + "' to '" + py_target + "'")
+        untar_pybundle(py_tar, py_target, exclude_re)
 
     # --------------------
     # Copy 'site-packages'
