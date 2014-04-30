@@ -1717,6 +1717,17 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, int flag
 				/* base gets copy of object */
 				obn = BKE_object_copy(ob);
 				base->object = obn;
+
+				if (copy_groups) {
+					if (ob->flag & OB_FROMGROUP) {
+						obn->flag |= OB_FROMGROUP;
+					}
+				}
+				else {
+					/* copy already clears */
+				}
+				base->flag = obn->flag;
+
 				ob->id.us--;
 			}
 		}
