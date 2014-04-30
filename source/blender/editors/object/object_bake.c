@@ -49,7 +49,6 @@
 #include "BLI_math_geom.h"
 
 #include "BKE_blender.h"
-#include "BKE_ccg.h"
 #include "BKE_screen.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -60,7 +59,6 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_subsurf.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"

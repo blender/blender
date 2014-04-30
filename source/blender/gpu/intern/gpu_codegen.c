@@ -43,7 +43,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
-#include "BLI_heap.h"
 
 #include "GPU_material.h"
 #include "GPU_extensions.h"

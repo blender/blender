@@ -39,19 +39,15 @@
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
-#include "BKE_pbvh.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
@@ -63,8 +59,6 @@
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_multires.h"
-#include "BKE_armature.h"
-#include "BKE_particle.h"
 #include "BKE_bvhutils.h"
 #include "BKE_deform.h"
 #include "BKE_global.h" /* For debug flag, DM_update_tessface_data() func. */

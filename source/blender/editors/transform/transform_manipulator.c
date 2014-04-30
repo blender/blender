@@ -41,12 +41,9 @@
 #include <io.h>
 #endif
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -61,7 +58,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_editmesh.h"
@@ -74,7 +70,6 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
 

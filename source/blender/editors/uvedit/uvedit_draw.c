@@ -33,8 +33,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -46,7 +44,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 
 #include "BLI_buffer.h"
@@ -54,7 +51,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "ED_util.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_uvedit.h"

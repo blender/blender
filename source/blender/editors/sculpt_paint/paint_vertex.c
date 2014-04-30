@@ -33,7 +33,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_memarena.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -58,7 +57,6 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"

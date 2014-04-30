@@ -39,7 +39,6 @@
 #include "BLI_string.h"
 
 #include "BKE_node.h"
-#include "BKE_idprop.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

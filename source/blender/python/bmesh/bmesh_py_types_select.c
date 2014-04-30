@@ -43,9 +43,7 @@
 #include "bmesh_py_types.h"
 #include "bmesh_py_types_select.h"
 
-#include "BKE_editmesh.h"
 
-#include "DNA_mesh_types.h"
 
 #include "../generic/py_capi_utils.h"
 

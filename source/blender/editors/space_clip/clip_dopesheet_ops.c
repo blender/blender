@@ -32,17 +32,12 @@
 #include "DNA_object_types.h"	/* SELECT */
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_listbase.h"
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
-#include "BKE_movieclip.h"
 #include "BKE_tracking.h"
-#include "BKE_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

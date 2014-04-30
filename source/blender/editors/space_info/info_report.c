@@ -41,7 +41,6 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

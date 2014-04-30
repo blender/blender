@@ -37,7 +37,6 @@
 #include "DNA_object_force.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_threads.h"
 #include "BLI_math.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"

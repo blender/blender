@@ -32,7 +32,6 @@
 #include <string.h>
 
 #include "DNA_color_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_movieclip_types.h"
 

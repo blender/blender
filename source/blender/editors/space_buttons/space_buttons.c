@@ -35,7 +35,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -44,15 +43,12 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
-#include "BIF_gl.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_render.h"
 
 #include "buttons_intern.h"  /* own include */
 

@@ -40,7 +40,6 @@
 #include "BKE_constraint.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
-#include "BKE_scene.h"
 
 #include "ED_armature.h"
 #include "ED_util.h"

@@ -45,7 +45,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -57,7 +56,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_treehash.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"

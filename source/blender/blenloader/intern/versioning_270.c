@@ -35,7 +35,6 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"

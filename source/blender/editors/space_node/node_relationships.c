@@ -34,14 +34,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
 
 #include "ED_node.h"  /* own include */

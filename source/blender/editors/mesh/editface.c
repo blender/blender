@@ -29,7 +29,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 #include "BLI_bitmap.h"
 
 #include "BLF_translation.h"

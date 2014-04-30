@@ -45,7 +45,6 @@
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_speaker_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_actuator_types.h"
 
@@ -61,7 +60,6 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_camera.h"
-#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -79,7 +77,6 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
-#include "BKE_modifier.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"

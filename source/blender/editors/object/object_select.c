@@ -33,8 +33,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
@@ -47,7 +45,6 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"

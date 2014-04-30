@@ -46,7 +46,6 @@
 
 #include "ED_screen.h"
 #include "ED_clip.h"  /* frame remapping functions */
-#include "ED_mask.h"  /* own include */
 
 #include "mask_intern.h"  /* own include */
 

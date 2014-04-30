@@ -44,23 +44,12 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_group_types.h"
 #include "DNA_image_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 
 #include "BKE_camera.h"
-#include "BKE_global.h"
-#include "BKE_material.h"
-#include "BKE_object.h"
-#include "BKE_image.h"
-#include "BKE_ipo.h"
-#include "BKE_key.h"
-#include "BKE_action.h"
-#include "BKE_writeavi.h"
-#include "BKE_scene.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

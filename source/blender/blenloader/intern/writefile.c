@@ -143,7 +143,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
 #include "BLI_mempool.h"
 
 #include "BKE_action.h"
@@ -152,7 +151,6 @@
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
-#include "BKE_idprop.h"
 #include "BKE_library.h" // for  set_listbasepointers
 #include "BKE_main.h"
 #include "BKE_node.h"

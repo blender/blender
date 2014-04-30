@@ -31,7 +31,6 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -40,7 +39,6 @@
 #include "BLI_timecode.h"
 
 #include "BKE_context.h"
-#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"

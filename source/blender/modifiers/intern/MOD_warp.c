@@ -34,7 +34,6 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"

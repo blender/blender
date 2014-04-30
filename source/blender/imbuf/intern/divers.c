@@ -43,7 +43,6 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-#include "BLI_threads.h"
 
 #include "MEM_guardedalloc.h"
 

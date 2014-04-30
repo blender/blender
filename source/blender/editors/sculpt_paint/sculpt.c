@@ -38,7 +38,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
 
@@ -55,7 +54,6 @@
 #include "BKE_pbvh.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
@@ -66,15 +64,10 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_lattice.h" /* for armature_deform_verts */
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
 #include "BKE_colortools.h"
-
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

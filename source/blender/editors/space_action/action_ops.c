@@ -35,7 +35,6 @@
 
 #include "DNA_space_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "ED_anim_api.h"

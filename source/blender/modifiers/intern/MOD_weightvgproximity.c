@@ -32,7 +32,6 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_rand.h"
 
 #include "DNA_mesh_types.h"
@@ -43,7 +42,6 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_library.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"       /* For SpaceTransform stuff. */
 #include "BKE_texture.h"          /* Texture masking. */

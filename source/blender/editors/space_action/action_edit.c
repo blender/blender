@@ -42,7 +42,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 
@@ -65,7 +64,6 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
 

@@ -38,7 +38,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -56,7 +55,6 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_depsgraph.h" /* for ED_view3d_camera_lock_sync */
 
 

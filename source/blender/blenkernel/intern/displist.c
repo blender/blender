@@ -40,7 +40,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_material_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BLI_blenlib.h"
@@ -54,9 +53,7 @@
 #include "BKE_displist.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
-#include "BKE_main.h"
 #include "BKE_mball.h"
-#include "BKE_material.h"
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_anim.h"

@@ -71,7 +71,6 @@
 
 #include "BKE_displist.h"
 #include "BKE_particle.h"
-#include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_key.h"
 #include "BKE_library.h"

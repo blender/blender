@@ -45,9 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
 #include "BKE_context.h"
-#include "BKE_global.h"
 
 #include "BIF_gl.h"
 

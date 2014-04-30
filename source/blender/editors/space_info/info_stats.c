@@ -34,7 +34,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
@@ -50,14 +49,12 @@
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
-#include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_editmesh.h"
 
 #include "ED_info.h"
 #include "ED_armature.h"
-#include "ED_mesh.h"
 
 #define MAX_INFO_LEN 512
 

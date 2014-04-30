@@ -46,26 +46,20 @@
 #  include "RBI_api.h"
 #endif
 
-#include "DNA_anim_types.h"
 #include "DNA_group_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_library.h"
-#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 

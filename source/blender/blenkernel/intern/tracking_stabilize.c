@@ -33,8 +33,6 @@
 
 #include <limits.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_movieclip_types.h"
 
 #include "BLI_utildefines.h"

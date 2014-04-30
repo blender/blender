@@ -46,7 +46,6 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
-#include "BKE_main.h"
 #include "BKE_texture.h"
 #include "BKE_colortools.h"
 #include "BKE_animsys.h"

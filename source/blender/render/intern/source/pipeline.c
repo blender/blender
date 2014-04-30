@@ -35,7 +35,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -80,7 +79,6 @@
 #include "RE_pipeline.h"
 
 #ifdef WITH_FREESTYLE
-#  include "BKE_library.h"
 #  include "FRS_freestyle.h"
 #endif
 

@@ -39,7 +39,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_alloca.h"
 #include "BLI_linklist_stack.h"
 
 #include "BLF_translation.h"
@@ -58,8 +57,6 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
-#include "ED_types.h"
-#include "ED_fileselect.h" 
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

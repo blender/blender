@@ -60,7 +60,6 @@
 #include "volumetric.h"
 #include "volume_precache.h"
 
-#include "BKE_global.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */

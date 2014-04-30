@@ -39,11 +39,9 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_brush.h"
-#include "BKE_main.h"
 #include "BKE_image.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"

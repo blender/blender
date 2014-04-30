@@ -34,18 +34,12 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
-#include "BKE_displist.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_particle.h"
-#include "BKE_editmesh.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"

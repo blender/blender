@@ -28,7 +28,6 @@
 
 #include "sunsky.h"
 #include "BLI_math.h"
-#include "BKE_global.h"
 
 /**
  * These macros are defined for vector operations

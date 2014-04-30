@@ -74,7 +74,6 @@
 #include "RNA_enum_types.h"
 
 #include "ED_object.h"
-#include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
 

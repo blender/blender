@@ -32,7 +32,6 @@
 #include <limits.h>
 #include <string.h>
 
-#include "DNA_action_types.h"
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"

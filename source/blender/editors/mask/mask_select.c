@@ -40,13 +40,11 @@
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_object_types.h"  /* SELECT */
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_clip.h"
 #include "ED_mask.h"  /* own include */
 
 #include "RNA_access.h"

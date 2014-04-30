@@ -56,7 +56,6 @@
 #include "ED_mball.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_transform.h"
 #include "ED_util.h"
 
 #include "WM_api.h"

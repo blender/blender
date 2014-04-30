@@ -30,7 +30,6 @@
 //#define NDOF_WALK_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesnt thrash - campbell */
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_camera_types.h"
 
 #include "MEM_guardedalloc.h"
 

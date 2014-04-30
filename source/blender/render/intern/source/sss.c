@@ -61,11 +61,8 @@
 
 #include "DNA_material_types.h"
 
-#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_node.h"
 #include "BKE_scene.h"
 
 

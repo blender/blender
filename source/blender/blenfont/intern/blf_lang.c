@@ -42,7 +42,6 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BKE_global.h"
 
 #include "DNA_userdef_types.h"
 

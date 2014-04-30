@@ -33,7 +33,6 @@
 #include "DNA_object_types.h"
 
 #include "BKE_context.h"
-#include "BKE_main.h"
 #include "BKE_object.h"
 
 #include "ED_screen.h"

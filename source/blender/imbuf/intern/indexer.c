@@ -35,14 +35,12 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_fileops.h"
-#include "BLI_math_base.h"
 
 #include "IMB_indexer.h"
 #include "IMB_anim.h"
 #include "imbuf.h"
 
 #include "MEM_guardedalloc.h"
-#include "DNA_userdef_types.h"
 #include "BKE_global.h"
 
 #ifdef WITH_AVI

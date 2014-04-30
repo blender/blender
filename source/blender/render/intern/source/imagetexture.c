@@ -38,8 +38,6 @@
 #include <io.h>
 #endif
 
-#include "MEM_guardedalloc.h"
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -52,11 +50,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_image.h"
-#include "BKE_texture.h"
-#include "BKE_library.h"
 
 #include "RE_render_ext.h"
 

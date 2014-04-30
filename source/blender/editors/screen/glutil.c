@@ -39,11 +39,7 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_threads.h"
 
-#include "BKE_blender.h"
-#include "BKE_global.h"
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 
 #include "BIF_gl.h"

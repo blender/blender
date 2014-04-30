@@ -42,8 +42,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_object_types.h"
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 

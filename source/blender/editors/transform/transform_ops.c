@@ -36,7 +36,6 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_armature.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -50,7 +49,6 @@
 #include "UI_resources.h"
 
 #include "ED_screen.h"
-#include "ED_mesh.h"
 
 #include "transform.h"
 

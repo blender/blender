@@ -31,13 +31,9 @@
 
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_object_types.h"   /* SELECT */
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
@@ -47,7 +43,6 @@
 #include "ED_clip.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_types.h"
 

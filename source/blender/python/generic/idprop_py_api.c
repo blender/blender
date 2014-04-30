@@ -29,7 +29,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "idprop_py_api.h"

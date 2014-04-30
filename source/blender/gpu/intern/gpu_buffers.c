@@ -47,12 +47,10 @@
 #include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
-#include "DNA_material_types.h"
 
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
-#include "BKE_subsurf.h"
 
 #include "DNA_userdef_types.h"
 

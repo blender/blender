@@ -34,7 +34,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"   /* SELECT */
 #include "DNA_scene_types.h"
@@ -54,10 +53,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_library.h"
-#include "BKE_mask.h"
-#include "BKE_node.h"
 #include "BKE_sound.h"
 
 #include "WM_api.h"
@@ -65,7 +61,6 @@
 
 #include "ED_screen.h"
 #include "ED_clip.h"
-#include "ED_keyframing.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

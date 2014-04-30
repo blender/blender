@@ -39,7 +39,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "DNA_camera_types.h"
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -47,11 +46,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_lamp_types.h"
 
-#include "BKE_colortools.h"
-#include "BKE_image.h"
-#include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_texture.h"
 
 
 /* own module */

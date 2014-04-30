@@ -48,8 +48,6 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
-
 
 
 /* ************************************************** */

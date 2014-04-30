@@ -52,7 +52,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_gpencil_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"

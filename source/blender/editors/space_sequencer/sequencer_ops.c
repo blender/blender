@@ -28,17 +28,10 @@
  *  \ingroup spseq
  */
 
-
 #include <stdlib.h>
 #include <math.h>
 
-
 #include "DNA_space_types.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-
-
 
 #include "WM_api.h"
 #include "WM_types.h"

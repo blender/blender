@@ -43,12 +43,8 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_editmesh.h"
-#include "BKE_sequencer.h"
-#include "BKE_node.h"
 
 #include "IMB_imbuf_types.h"
 

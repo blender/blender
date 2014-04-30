@@ -39,7 +39,6 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_main.h"
-#include "BKE_image.h"
 
 #include "ED_sculpt.h"
 #include "ED_screen.h"

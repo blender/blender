@@ -49,7 +49,6 @@
 
 #include "RNA_access.h"
 
-#include "ED_object.h"
 #include "ED_armature.h"
 
 #include "WM_api.h"

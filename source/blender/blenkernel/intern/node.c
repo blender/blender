@@ -54,11 +54,8 @@
 #include "BLF_translation.h"
 
 #include "BKE_animsys.h"
-#include "BKE_action.h"
-#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"

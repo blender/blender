@@ -50,7 +50,6 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -65,7 +64,6 @@
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_object.h"
 
 #include "WM_types.h"
 #include "WM_api.h"

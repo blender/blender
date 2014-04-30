@@ -52,7 +52,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 

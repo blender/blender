@@ -35,7 +35,6 @@
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
-#include "MEM_CacheLimiterC-Api.h"
 
 #include "DNA_sequence_types.h"
 #include "DNA_movieclip_types.h"

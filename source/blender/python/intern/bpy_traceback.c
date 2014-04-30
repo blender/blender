@@ -31,7 +31,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
-#include "BLI_string.h"
 
 #include "bpy_traceback.h"
 

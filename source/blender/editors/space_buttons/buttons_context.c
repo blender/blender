@@ -44,7 +44,6 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
-#include "DNA_speaker_types.h"
 #include "DNA_brush_types.h"
 
 #include "BKE_context.h"

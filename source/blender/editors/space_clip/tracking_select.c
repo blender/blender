@@ -31,11 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_camera_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
-#include "DNA_object_types.h"   /* SELECT */
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
@@ -43,27 +39,15 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_lasso.h"
-#include "BLI_blenlib.h"
 
-#include "BKE_main.h"
 #include "BKE_context.h"
-#include "BKE_constraint.h"
-#include "BKE_movieclip.h"
 #include "BKE_tracking.h"
-#include "BKE_global.h"
-#include "BKE_depsgraph.h"
-#include "BKE_object.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_library.h"
-#include "BKE_sound.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
-#include "ED_keyframing.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

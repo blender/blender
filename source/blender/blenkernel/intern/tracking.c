@@ -47,7 +47,6 @@
 #include "BLI_math.h"
 #include "BLI_math_base.h"
 #include "BLI_listbase.h"
-#include "BLI_ghash.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -55,7 +54,6 @@
 #include "BLF_translation.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"

@@ -34,7 +34,6 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_image_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"

@@ -35,7 +35,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -51,15 +50,12 @@
 #include "BKE_context.h"
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
-#include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_multires.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"

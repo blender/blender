@@ -34,7 +34,6 @@
 
 #include "DNA_cloth_types.h"
 #include "DNA_group_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -44,16 +43,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_ghash.h"
-#include "BLI_memarena.h"
-#include "BLI_rand.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_cloth.h"
-#include "BKE_global.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #ifdef WITH_BULLET

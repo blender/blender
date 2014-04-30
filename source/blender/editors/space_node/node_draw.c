@@ -32,7 +32,6 @@
 #include "DNA_lamp_types.h"
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
@@ -58,7 +57,6 @@
 
 #include "ED_node.h"
 #include "ED_gpencil.h"
-#include "ED_screen.h"
 #include "ED_space_api.h"
 
 #include "UI_resources.h"

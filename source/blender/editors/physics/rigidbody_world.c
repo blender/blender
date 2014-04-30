@@ -37,7 +37,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #ifdef WITH_BULLET
@@ -45,13 +44,8 @@
 #endif
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_group.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -60,7 +54,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_physics.h"
 #include "ED_screen.h"
 
 #include "physics_intern.h"

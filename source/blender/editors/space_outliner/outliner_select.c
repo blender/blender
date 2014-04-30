@@ -31,8 +31,6 @@
 
 #include <stdlib.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -47,7 +45,6 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"

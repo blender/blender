@@ -40,7 +40,6 @@
 #include "BLF_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"

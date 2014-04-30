@@ -63,7 +63,6 @@
 #include "BLI_listbase.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_string.h"
-#include "BLI_rect.h"
 #include "BLI_bitmap.h"
 
 #include "BKE_DerivedMesh.h"
@@ -108,7 +107,6 @@
 #include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
-#include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_clip.h"
 #include "ED_mask.h"

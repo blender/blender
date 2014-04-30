@@ -34,9 +34,6 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -46,11 +43,8 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_effect.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_editmesh.h"
 
@@ -64,8 +58,6 @@
 #include "ED_mesh.h"
 #include "ED_util.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

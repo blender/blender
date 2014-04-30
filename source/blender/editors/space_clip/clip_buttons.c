@@ -42,7 +42,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
-#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BLF_translation.h"
@@ -53,7 +52,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "ED_clip.h"
 #include "ED_gpencil.h"
 
 #include "UI_interface.h"

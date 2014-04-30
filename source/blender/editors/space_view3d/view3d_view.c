@@ -32,7 +32,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_lamp_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -52,7 +51,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

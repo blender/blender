@@ -66,16 +66,12 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
-#include "BLI_memarena.h"
 
 #include "DNA_material_types.h" 
-#include "DNA_mesh_types.h" 
 #include "DNA_meshdata_types.h" 
 #include "DNA_texture_types.h" 
 
 #include "BKE_customdata.h"
-#include "BKE_texture.h" 
 #include "BKE_DerivedMesh.h"
 
 #include "RE_render_ext.h"	/* externtex */

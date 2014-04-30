@@ -38,7 +38,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 
 #include "BKE_nla.h"
 #include "BKE_context.h"

@@ -36,7 +36,6 @@
 
 #include "BLI_sys_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -44,10 +43,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -58,7 +55,6 @@
 #include "BIF_glutil.h"
 
 #include "ED_gpencil.h"
-#include "ED_sequencer.h"
 #include "ED_view3d.h"
 
 #include "gpencil_intern.h"

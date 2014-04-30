@@ -32,20 +32,16 @@
 
 #include <stdio.h>
 
-#include "DNA_anim_types.h"
 #include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_threads.h"
 
 #include "BLF_translation.h"
 
-#include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"

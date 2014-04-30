@@ -39,7 +39,6 @@
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
-#include "DNA_nla_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_particle_types.h"
 

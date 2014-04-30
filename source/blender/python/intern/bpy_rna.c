@@ -73,8 +73,6 @@
 #include "BKE_report.h"
 #include "BKE_idprop.h"
 
-#include "BKE_animsys.h"
-#include "BKE_fcurve.h"
 
 #include "../generic/idprop_py_api.h" /* for IDprop lookups */
 #include "../generic/py_capi_utils.h"

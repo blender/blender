@@ -54,12 +54,9 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
-#include "DNA_material_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_ipo_types.h" // XXX old animation system stuff... to be removed!
 #include "DNA_listBase.h"
 
 #include "BLI_utildefines.h"
@@ -74,12 +71,10 @@
 #include "BLI_threads.h"
 #include "BLI_linklist.h"
 
-#include "BKE_main.h"
 #include "BKE_animsys.h"
 #include "BKE_boids.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_collision.h"
-#include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_particle.h"
 #include "BKE_global.h"
@@ -88,7 +83,6 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_cloth.h"
-#include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_pointcache.h"
 #include "BKE_mesh.h"

@@ -43,7 +43,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_movieclip.h"

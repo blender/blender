@@ -35,8 +35,6 @@
 #include <string.h>
 
 /* global includes */
-#include "BLI_math.h"
-#include "BLI_rand.h"
 
 /* own includes */
 #include "render_types.h"

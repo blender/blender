@@ -41,12 +41,10 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_idcode.h"
 #include "BKE_report.h"
 #include "BKE_global.h"
 

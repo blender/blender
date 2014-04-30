@@ -39,7 +39,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"

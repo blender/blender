@@ -31,7 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -43,7 +42,6 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -55,13 +53,11 @@
 #include "BKE_font.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
-#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"

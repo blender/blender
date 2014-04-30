@@ -45,7 +45,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
@@ -57,7 +56,6 @@
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
@@ -65,7 +63,6 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_colortools.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -75,7 +72,6 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
@@ -98,7 +94,6 @@
 
 #include "ED_datafiles.h"
 #include "ED_render.h"
-#include "ED_view3d.h"
 
 #include "UI_interface.h"
 

@@ -40,33 +40,16 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_node_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_speaker_types.h"
-#include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_mask_types.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
-#include "BKE_global.h"     // XXX remove me!
-
 
 #include "BIF_gl.h"
 

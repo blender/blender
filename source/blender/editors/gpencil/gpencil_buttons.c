@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "BLF_translation.h"

@@ -47,8 +47,6 @@
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_idprop.h"
-#include "BKE_global.h"
 #include "BKE_screen.h"
 
 

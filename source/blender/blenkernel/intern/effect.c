@@ -37,15 +37,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_listBase.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
@@ -60,27 +54,13 @@
 
 #include "PIL_time.h"
 
-#include "BKE_action.h"
 #include "BKE_anim.h"		/* needed for where_on_path */
-#include "BKE_armature.h"
-#include "BKE_blender.h"
 #include "BKE_collision.h"
-#include "BKE_constraint.h"
 #include "BKE_curve.h"
-#include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
-#include "BKE_group.h"
-#include "BKE_ipo.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_mesh.h"
-#include "BKE_material.h"
-#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -93,7 +73,6 @@
 
 /* fluid sim particle import */
 #ifdef WITH_MOD_FLUID
-#include "DNA_object_fluidsim.h"
 #include "LBM_fluidsim.h"
 #include <zlib.h>
 #include <string.h>

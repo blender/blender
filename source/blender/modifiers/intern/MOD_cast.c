@@ -38,7 +38,6 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
 
 
 #include "BKE_deform.h"

@@ -57,7 +57,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
-#include "DNA_nla_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -69,7 +68,6 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -89,7 +87,6 @@
 #include "BKE_group.h"
 #include "BKE_gpencil.h"
 #include "BKE_idprop.h"
-#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"

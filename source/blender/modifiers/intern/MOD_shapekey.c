@@ -32,21 +32,17 @@
  *  \ingroup modifiers
  */
 
-
 #include "BLI_math.h"
 
 #include "DNA_key_types.h"
 
 #include "BLI_utildefines.h"
 
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_key.h"
 #include "BKE_particle.h"
 
 #include "MOD_modifiertypes.h"
-
-#include "MEM_guardedalloc.h"
 
 static void deformVerts(ModifierData *md, Object *ob,
                         DerivedMesh *UNUSED(derivedData),

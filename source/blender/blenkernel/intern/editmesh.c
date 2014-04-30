@@ -36,8 +36,6 @@
 #include "DNA_mesh_types.h"
 
 #include "BLI_math.h"
-#include "BLI_memarena.h"
-#include "BLI_scanfill.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_cdderivedmesh.h"

@@ -29,10 +29,7 @@
  *  \ingroup imbuf
  */
 
-
 #include <stdio.h>
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"

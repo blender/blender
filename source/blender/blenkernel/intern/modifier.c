@@ -57,7 +57,6 @@
 
 #include "BLF_translation.h"
 
-#include "BKE_cloth.h"
 #include "BKE_key.h"
 #include "BKE_multires.h"
 #include "BKE_DerivedMesh.h"

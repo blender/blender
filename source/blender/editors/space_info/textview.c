@@ -40,11 +40,8 @@
 #include "BLI_string_utf8.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BKE_text.h"
-
-#include "ED_datafiles.h"
 
 #include "textview.h"
 

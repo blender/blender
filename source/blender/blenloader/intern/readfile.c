@@ -106,54 +106,40 @@
 #include "BLI_endian_switch.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 #include "BLI_threads.h"
 #include "BLI_mempool.h"
 
 #include "BLF_translation.h"
 
-#include "BKE_anim.h"
-#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
-#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
-#include "BKE_image.h"
-#include "BKE_lattice.h"
 #include "BKE_library.h" // for which_libbase
 #include "BKE_idcode.h"
-#include "BKE_idprop.h"
 #include "BKE_material.h"
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node.h" // for tree type defines
-#include "BKE_ocean.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_report.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
-#include "BKE_text.h" // for txt_extended_ascii_as_utf8
-#include "BKE_texture.h"
-#include "BKE_tracking.h"
 #include "BKE_treehash.h"
 #include "BKE_sound.h"
-#include "BKE_writeffmpeg.h"
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 

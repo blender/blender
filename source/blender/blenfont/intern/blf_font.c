@@ -54,7 +54,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_alloca.h"
-#include "BLI_linklist.h"  /* linknode */
 
 #include "BIF_gl.h"
 #include "BLF_api.h"

@@ -31,7 +31,6 @@
 #include <string.h>
 
 /* external modules: */
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -50,13 +49,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_image.h"   /* BKE_imbuf_write */
 #include "BKE_texture.h"
-
-
-
 
 /* this module */
 #include "render_types.h"

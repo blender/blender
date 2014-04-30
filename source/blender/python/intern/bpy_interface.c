@@ -43,7 +43,6 @@
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
@@ -58,7 +57,6 @@
 #include "bpy_traceback.h"
 #include "bpy_intern_string.h"
 
-#include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
 #include "BKE_context.h"

@@ -33,7 +33,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_noise.h"
 #include "BLI_rand.h"
@@ -43,7 +42,6 @@
 #include "DNA_texture_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_image_types.h"
@@ -53,7 +51,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
 
-#include "BKE_colortools.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
 
@@ -64,10 +61,7 @@
 #include "BKE_material.h"
 #include "BKE_scene.h"
 
-#include "BKE_library.h"
 #include "BKE_texture.h"
-#include "BKE_key.h"
-#include "BKE_ipo.h"
 
 #include "MEM_guardedalloc.h"
 

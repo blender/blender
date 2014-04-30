@@ -41,15 +41,11 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
-#include "BKE_mesh.h"
 
 #include "MOD_util.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
-
-#include "MEM_guardedalloc.h"
-
 
 static void initData(ModifierData *md)
 {

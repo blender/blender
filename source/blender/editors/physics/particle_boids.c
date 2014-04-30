@@ -33,7 +33,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"

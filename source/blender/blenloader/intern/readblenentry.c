@@ -42,7 +42,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
-#include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
@@ -55,7 +54,6 @@
 #include "BKE_main.h"
 #include "BKE_library.h" // for BKE_main_free
 #include "BKE_idcode.h"
-#include "BKE_report.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"

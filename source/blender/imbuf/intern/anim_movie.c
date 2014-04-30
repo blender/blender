@@ -67,14 +67,12 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
-#include "BLI_math_base.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
-#include "BKE_depsgraph.h"
 
 #include "imbuf.h"
 
@@ -1048,7 +1046,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
 			av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 			       "TC INDEX seek pos = %lld\n", pos);
 			av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
-			       "TC INDEX seek dts = %lld\n", dts);
+			       "TC INDEX seek dts = %llu\n", dts);
 
 			if (ffmpeg_seek_by_byte(anim->pFormatCtx)) {
 				av_log(anim->pFormatCtx, AV_LOG_DEBUG, 

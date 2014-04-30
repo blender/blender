@@ -74,9 +74,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "RE_pipeline.h"
 #include "RE_engine.h"
 

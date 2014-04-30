@@ -41,29 +41,9 @@
 #include "DNA_property_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 
-#include "BKE_curve.h"
-#include "BKE_constraint.h"  /* for the get_constraint_target function */
-#include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
-#include "BKE_font.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_mesh.h"
-#include "BKE_material.h"
-#include "BKE_mball.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_particle.h"
-#include "BKE_property.h"
-#include "BKE_smoke.h"
 
 #include "smoke_API.h"
 

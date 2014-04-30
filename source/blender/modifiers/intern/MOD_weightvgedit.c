@@ -30,8 +30,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
 
@@ -45,7 +43,6 @@
 #include "BKE_colortools.h"       /* CurveMapping. */
 #include "BKE_deform.h"
 #include "BKE_library.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
 

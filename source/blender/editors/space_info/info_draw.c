@@ -27,8 +27,6 @@
  *  \ingroup spinfo
  */
 
-
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +35,6 @@
 
 #include "BLF_api.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_space_types.h"
@@ -46,11 +43,7 @@
 // #include "BKE_suggestions.h"
 #include "BKE_report.h"
 
-
-#include "MEM_guardedalloc.h"
-
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
 #include "ED_types.h"

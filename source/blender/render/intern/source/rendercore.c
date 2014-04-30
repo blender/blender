@@ -45,23 +45,12 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-
-
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_group_types.h"
 
-#include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
-#include "BKE_texture.h"
-#include "BKE_scene.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

@@ -36,17 +36,11 @@
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
-#include "BKE_global.h"
-#include "BKE_idprop.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
 
 #include "RNA_access.h"

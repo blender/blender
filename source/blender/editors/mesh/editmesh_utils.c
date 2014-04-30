@@ -50,7 +50,6 @@
 #include "BKE_editmesh_bvh.h"
 
 #include "BKE_object.h"  /* XXX. only for EDBM_mesh_ensure_valid_dm_hack() which will be removed */
-#include "BKE_scene.h"  /* XXX, only for eval_ctx used in EDBM_mesh_ensure_valid_dm_hack */
 
 #include "WM_api.h"
 #include "WM_types.h"

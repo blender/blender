@@ -42,7 +42,6 @@
 #include "BLI_threads.h"
 
 #include "BKE_ccg.h"
-#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_multires.h"

@@ -49,10 +49,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "ED_render.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
-#include "ED_object.h"
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"

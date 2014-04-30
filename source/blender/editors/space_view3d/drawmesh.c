@@ -33,7 +33,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 
@@ -46,10 +45,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
@@ -70,7 +67,6 @@
 
 #include "RE_engine.h"
 
-#include "ED_mesh.h"
 #include "ED_uvedit.h"
 
 #include "view3d_intern.h"  /* own include */

@@ -31,7 +31,6 @@
  * BM remove functions.
  */
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 

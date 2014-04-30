@@ -29,7 +29,6 @@
 
 #include <stdlib.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"

@@ -53,15 +53,12 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
-#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "BKE_blender.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_image.h"
 
 #include "BIF_gl.h"

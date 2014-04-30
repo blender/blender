@@ -43,7 +43,6 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_text.h" /* only for character utility funcs */
 
 #include "WM_api.h"
 #include "WM_types.h"

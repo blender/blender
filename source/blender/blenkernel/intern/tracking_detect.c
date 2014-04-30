@@ -31,8 +31,6 @@
  * This file contains blender-side implementation of feature detection.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"   /* SELECT */

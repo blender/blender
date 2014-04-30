@@ -43,7 +43,6 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 

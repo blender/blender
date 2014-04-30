@@ -30,24 +30,18 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_image.h"
-#include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
 
@@ -57,7 +51,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_gpencil.h"
-#include "ED_image.h"
 #include "ED_screen.h"
 
 #include "RNA_access.h"

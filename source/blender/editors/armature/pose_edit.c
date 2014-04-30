@@ -36,12 +36,10 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_anim.h"
-#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"

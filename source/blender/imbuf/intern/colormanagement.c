@@ -42,9 +42,7 @@
 #include "DNA_image_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "IMB_filter.h"
 #include "IMB_imbuf.h"
@@ -66,7 +64,6 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_utildefines.h"
 #include "BKE_main.h"
 
 #include "RNA_define.h"

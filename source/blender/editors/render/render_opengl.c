@@ -37,13 +37,11 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 #include "BLI_jitter.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_world_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -59,7 +57,6 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_image.h"
 
 #include "RE_pipeline.h"
 #include "IMB_imbuf_types.h"
@@ -68,9 +65,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_extensions.h"
 

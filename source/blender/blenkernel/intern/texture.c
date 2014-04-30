@@ -38,7 +38,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_dynlib.h"
 #include "BLI_math.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
@@ -57,7 +56,6 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_ocean.h"
 
 #include "BKE_library.h"
 #include "BKE_image.h"

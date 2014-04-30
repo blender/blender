@@ -46,10 +46,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 #include "BLI_uvproject.h"
 #include "BLI_string.h"
-#include "BLI_scanfill.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_subsurf.h"
@@ -58,7 +56,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_editmesh.h"

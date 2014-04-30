@@ -47,7 +47,6 @@
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
-#include "BKE_paint.h"
 
 
 #include "IMB_colormanagement.h"

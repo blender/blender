@@ -75,7 +75,6 @@ variables on the UI for now
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_softbody.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"

@@ -39,10 +39,8 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_link_utils.h"
 #include "BLI_rect.h"
-#include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_timecode.h"
@@ -58,7 +56,6 @@
 
 #include "BLF_api.h"
 
-#include "ED_anim_api.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"

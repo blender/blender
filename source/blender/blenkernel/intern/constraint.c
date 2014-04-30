@@ -46,18 +46,15 @@
 #include "BLF_translation.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_text_types.h"
 #include "DNA_tracking_types.h"
 #include "DNA_movieclip_types.h"
 
@@ -65,7 +62,6 @@
 #include "BKE_action.h"
 #include "BKE_anim.h" /* for the curve calculation part */
 #include "BKE_armature.h"
-#include "BKE_blender.h"
 #include "BKE_bvhutils.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
@@ -75,11 +71,9 @@
 #include "BKE_DerivedMesh.h"    /* for geometry targets */
 #include "BKE_cdderivedmesh.h" /* for geometry targets */
 #include "BKE_object.h"
-#include "BKE_ipo.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_idprop.h"
-#include "BKE_mesh.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_editmesh.h"
 #include "BKE_tracking.h"

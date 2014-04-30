@@ -80,7 +80,6 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"

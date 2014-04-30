@@ -62,7 +62,6 @@
 
 #include "BLF_translation.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -75,18 +74,12 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_font.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_multires.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
-
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -99,9 +92,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_fileselect.h"
-#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
 

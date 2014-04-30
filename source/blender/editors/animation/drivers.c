@@ -46,7 +46,6 @@
 #include "DNA_space_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_context.h"
 #include "BKE_report.h"

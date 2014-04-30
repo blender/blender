@@ -38,7 +38,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -47,7 +46,6 @@
 #include "BKE_global.h"
 
 #include "ED_space_api.h"
-#include "ED_sequencer.h"
 #include "ED_screen.h"
 #include "ED_view3d.h" /* only for sequencer view3d drawing callback */
 

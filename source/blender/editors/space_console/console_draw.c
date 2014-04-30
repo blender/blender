@@ -24,7 +24,6 @@
  *  \ingroup spconsole
  */
 
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,16 +38,9 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_report.h"
-
-
 #include "MEM_guardedalloc.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
-
-#include "ED_datafiles.h"
-#include "ED_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

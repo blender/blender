@@ -40,7 +40,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"  /* Temporary, for snapping to other unselected meshes */
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
@@ -61,7 +60,6 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_tracking.h"
 
 #include "RNA_access.h"
@@ -70,7 +68,6 @@
 
 #include "ED_armature.h"
 #include "ED_image.h"
-#include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"

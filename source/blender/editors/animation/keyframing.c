@@ -40,7 +40,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -59,7 +58,6 @@
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_main.h"
 #include "BKE_idcode.h"
 #include "BKE_nla.h"
 #include "BKE_global.h"

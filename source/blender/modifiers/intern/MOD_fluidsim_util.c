@@ -45,12 +45,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_threads.h"
 
-#include "BKE_main.h"
 #include "BKE_fluidsim.h" /* ensure definitions here match */
 #include "BKE_cdderivedmesh.h"
-#include "BKE_mesh.h"
 #include "BKE_global.h" /* G.main->name only */
 
 #include "MOD_fluidsim_util.h"

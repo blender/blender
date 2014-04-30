@@ -32,8 +32,6 @@
 
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
-#include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"

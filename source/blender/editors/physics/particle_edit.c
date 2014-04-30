@@ -48,7 +48,6 @@
 #include "BLI_lasso.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_dynstr.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
@@ -62,7 +61,6 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 
 #include "BKE_pointcache.h"
 

@@ -29,15 +29,11 @@
  *  \ingroup render
  */
 
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_voxel.h"
@@ -50,7 +46,6 @@
 #include "DNA_lamp_types.h"
 #include "DNA_meta_types.h"
 
-#include "BKE_global.h"
 
 #include "render_types.h"
 #include "pixelshading.h"

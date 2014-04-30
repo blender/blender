@@ -37,41 +37,27 @@
 #include "MEM_guardedalloc.h"
 
 /* types */
-#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"	
 
 #include "BLI_blenlib.h"
-#include "BLI_threads.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_animsys.h"
-#include "BKE_armature.h"
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
 #include "BKE_fluidsim.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
-#include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_softbody.h"
-#include "BKE_unit.h"
-
 
 #include "LBM_fluidsim.h"
 
 #include "ED_screen.h"
-#include "ED_fluidsim.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -84,7 +70,6 @@
 #include "WM_api.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
 
 #include "PIL_time.h"

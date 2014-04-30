@@ -41,7 +41,6 @@
 #include "BLI_smallhash.h"
 
 #include "BKE_context.h"
-#include "BKE_displist.h"
 #include "BKE_report.h"
 #include "BKE_paint.h"
 #include "BKE_editmesh.h"
@@ -58,8 +57,6 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-
-#include "BIF_gl.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

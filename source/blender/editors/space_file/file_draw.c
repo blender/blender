@@ -34,7 +34,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
 #include "BLI_fileops_types.h"
 
 #ifdef WIN32
@@ -52,8 +51,6 @@
 #include "BLF_translation.h"
 
 #include "IMB_imbuf_types.h"
- 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"

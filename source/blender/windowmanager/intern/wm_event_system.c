@@ -51,7 +51,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
@@ -64,7 +63,6 @@
 
 #include "ED_fileselect.h"
 #include "ED_info.h"
-#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"

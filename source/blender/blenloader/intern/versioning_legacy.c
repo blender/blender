@@ -77,14 +77,12 @@
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 
 #include "BKE_armature.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
-#include "BKE_global.h" // for G
 #include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h" // for Main

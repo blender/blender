@@ -35,20 +35,16 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
-#include "BLI_dynlib.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_anim_types.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_main.h"
 #include "BKE_sequencer.h"
-#include "BKE_texture.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

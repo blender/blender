@@ -40,7 +40,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
-#include "BLI_scanfill.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_cdderivedmesh.h"

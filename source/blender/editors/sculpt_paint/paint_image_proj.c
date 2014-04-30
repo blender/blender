@@ -60,35 +60,23 @@
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_idprop.h"
 #include "BKE_brush.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_colortools.h"
-
-#include "BKE_editmesh.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_view2d.h"
 
-#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
-#include "ED_mesh.h"
 
 #include "GPU_extensions.h"
 

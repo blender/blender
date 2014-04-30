@@ -31,7 +31,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"  /* BKE_pose_channel_find_name */

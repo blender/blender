@@ -31,8 +31,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -63,7 +61,6 @@
 #include "ED_markers.h"
 #include "ED_mask.h"
 #include "ED_sequencer.h"
-#include "ED_types.h"
 #include "ED_space_api.h"
 
 #include "UI_interface.h"
@@ -71,7 +68,6 @@
 #include "UI_view2d.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 /* own include */
 #include "sequencer_intern.h"

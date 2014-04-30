@@ -34,12 +34,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_idcode.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"

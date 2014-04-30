@@ -48,7 +48,6 @@
 
 #include "BLF_translation.h"
 
-#include "BKE_global.h"
 #include "BKE_node.h"
 
 

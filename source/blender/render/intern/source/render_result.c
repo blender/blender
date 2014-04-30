@@ -36,7 +36,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
@@ -49,7 +48,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_freestyle.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

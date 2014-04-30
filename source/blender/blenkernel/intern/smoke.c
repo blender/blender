@@ -42,11 +42,8 @@
 #include <stdio.h>
 #include <string.h> /* memset */
 
-#include "BLI_linklist.h"
-#include "BLI_rand.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_threads.h"
@@ -57,9 +54,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"

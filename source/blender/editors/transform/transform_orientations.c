@@ -33,7 +33,6 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -47,7 +46,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
@@ -58,7 +56,6 @@
 #include "BLF_translation.h"
 
 #include "ED_armature.h"
-#include "ED_mesh.h"
 
 #include "RNA_define.h"
 

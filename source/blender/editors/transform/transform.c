@@ -46,8 +46,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"  /* PET modes */
@@ -58,15 +56,12 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
-#include "BLI_linklist.h"
 
 #include "BKE_nla.h"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
-#include "BKE_global.h"
 #include "BKE_particle.h"
-#include "BKE_pointcache.h"
 #include "BKE_unit.h"
 #include "BKE_mask.h"
 
@@ -81,7 +76,6 @@
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 #include "ED_clip.h"
-#include "ED_mask.h"
 #include "ED_node.h"
 
 #include "WM_types.h"

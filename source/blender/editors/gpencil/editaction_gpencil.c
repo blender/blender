@@ -37,7 +37,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_types.h"
@@ -46,7 +45,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 
-#include "ED_anim_api.h"
 #include "ED_gpencil.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
