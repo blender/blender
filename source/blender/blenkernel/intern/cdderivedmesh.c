@@ -286,12 +286,12 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh = BKE_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 
-		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
-
 		BKE_mesh_tessface_ensure(me);
 		
 		BKE_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 		                    me->totface, me->totvert, &me->vdata);
+
+		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
 
 		deformed = ss->modifiers_active || me->key;
 
