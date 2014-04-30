@@ -355,6 +355,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
  * \attention Defined in util.c
  */
 bool IMB_ispic(const char *name);
+int  IMB_ispic_type(const char *name);
 
 /**
  *

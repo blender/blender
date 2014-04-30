@@ -183,7 +183,7 @@ const char *imb_ext_audio[] = {
 	NULL
 };
 
-bool IMB_ispic(const char *name)
+int IMB_ispic_type(const char *name)
 {
 	/* increased from 32 to 64 because of the bitmaps header size */
 #define HEADER_SIZE 64
@@ -228,11 +228,15 @@ bool IMB_ispic(const char *name)
 		}
 	}
 
-	return false;
+	return 0;
 
 #undef HEADER_SIZE
 }
 
+bool IMB_ispic(const char *name)
+{
+	return (IMB_ispic_type(name) != 0);
+}
 
 static int isavi(const char *name)
 {
