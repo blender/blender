@@ -36,6 +36,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_listBase.h"
 
 #include "BLI_utildefines.h"

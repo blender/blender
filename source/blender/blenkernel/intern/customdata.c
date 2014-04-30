@@ -49,6 +49,7 @@
 #include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_mempool.h"
+#include "BLI_alloca.h"
 
 #include "BLF_translation.h"
 
