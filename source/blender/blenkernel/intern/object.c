@@ -1366,10 +1366,6 @@ static void copy_object_pose(Object *obn, Object *ob)
 		
 		chan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE);
 		
-		if (chan->custom) {
-			id_us_plus(&chan->custom->id);
-		}
-		
 		for (con = chan->constraints.first; con; con = con->next) {
 			bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
