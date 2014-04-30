@@ -1588,6 +1588,14 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op,
 		return OPERATOR_CANCELLED;
 	}
 
+	if (do_redo) {
+		if ((op->type->flag & OPTYPE_UNDO) == 0) {
+			BKE_reportf(op->reports, RPT_ERROR,
+			            "Operator '%s' does not have undo enabled, incorrect invoke function", op->type->idname);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
 	/* if we don't have global undo, we can't do undo push for automatic redo,
 	 * so we require manual OK clicking in this popup */
 	if (!do_redo || !(U.uiflag & USER_GLOBALUNDO))
