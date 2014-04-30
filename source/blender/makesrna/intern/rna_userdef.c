@@ -2252,6 +2252,12 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Other Object UVs", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "cframe");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Current Frame", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	rna_def_userdef_theme_spaces_curves(srna, false, false, false);
 }
 
