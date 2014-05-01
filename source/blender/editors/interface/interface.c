@@ -886,11 +886,12 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_strip)
 {
 
-	if (do_strip) {
-		char *cpoin = strchr(but->str, UI_SEP_CHAR);
+	if (do_strip && (but->flag & UI_BUT_HAS_SEP_CHAR)) {
+		char *cpoin = strrchr(but->str, UI_SEP_CHAR);
 		if (cpoin) {
 			*cpoin = '\0';
 		}
+		but->flag &= ~UI_BUT_HAS_SEP_CHAR;
 	}
 
 	/* without this, just allow stripping of the shortcut */
@@ -909,6 +910,7 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
 		             butstr_orig, shortcut_str);
 		MEM_freeN(butstr_orig);
 		but->str = but->strdata;
+		but->flag |= UI_BUT_HAS_SEP_CHAR;
 		ui_check_but(but);
 	}
 }

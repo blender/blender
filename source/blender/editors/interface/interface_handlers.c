@@ -5586,6 +5586,14 @@ void ui_panel_menu(bContext *C, ARegion *ar, Panel *pa)
 		char tmpstr[80];
 		BLI_snprintf(tmpstr, sizeof(tmpstr), "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift+Left Mouse"));
 		uiItemR(layout, &ptr, "use_pin", 0, tmpstr, ICON_NONE);
+
+		/* evil, force shortcut flag */
+		{
+			uiBlock *block = uiLayoutGetBlock(layout);
+			uiBut *but = block->buttons.last;
+			but->flag |= UI_BUT_HAS_SEP_CHAR;
+		}
+
 	}
 	uiPupMenuEnd(C, pup);
 }

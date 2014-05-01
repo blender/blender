@@ -1284,8 +1284,8 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 	/* cut string in 2 parts - only for menu entries */
 	if ((but->block->flag & UI_BLOCK_LOOP)) {
-		if (ELEM3(but->type, NUM, TEX, NUMSLI) == 0) {
-			drawstr_right = strchr(drawstr, UI_SEP_CHAR);
+		if (but->flag & UI_BUT_HAS_SEP_CHAR) {
+			drawstr_right = strrchr(drawstr, UI_SEP_CHAR);
 			if (drawstr_right) {
 				drawstr_left_len = (drawstr_right - drawstr);
 				drawstr_right++;
