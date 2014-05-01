@@ -1220,10 +1220,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	short dir1 = 0, dir2 = 0;
 	
 	/* transform to window coordinates, using the source button region/block */
-	butrct = but->rect;
-
-	ui_block_to_window_fl(butregion, but->block, &butrct.xmin, &butrct.ymin);
-	ui_block_to_window_fl(butregion, but->block, &butrct.xmax, &butrct.ymax);
+	ui_block_to_window_rctf(butregion, but->block, &butrct, &but->rect);
 
 	/* widget_roundbox_set has this correction too, keep in sync */
 	if (but->type != PULLDOWN) {
@@ -1250,8 +1247,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	}
 		
 	/* aspect = (float)(BLI_rcti_size_x(&block->rect) + 4);*/ /*UNUSED*/
-	ui_block_to_window_fl(butregion, but->block, &block->rect.xmin, &block->rect.ymin);
-	ui_block_to_window_fl(butregion, but->block, &block->rect.xmax, &block->rect.ymax);
+	ui_block_to_window_rctf(butregion, but->block, &block->rect, &block->rect);
 
 	//block->rect.xmin -= 2.0; block->rect.ymin -= 2.0;
 	//block->rect.xmax += 2.0; block->rect.ymax += 2.0;
@@ -1373,8 +1369,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	/* apply offset, buttons in window coords */
 	
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		ui_block_to_window_fl(butregion, but->block, &bt->rect.xmin, &bt->rect.ymin);
-		ui_block_to_window_fl(butregion, but->block, &bt->rect.xmax, &bt->rect.ymax);
+		ui_block_to_window_rctf(butregion, but->block, &bt->rect, &bt->rect);
 
 		BLI_rctf_translate(&bt->rect, xof, yof);
 
