@@ -1770,11 +1770,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBut *but;
 	uiLayout *layout, *split, *col;
 	uiStyle *style = UI_GetStyle();
-	struct RecentFile *recent;
+	const struct RecentFile *recent;
 	int i;
 	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", true);
 	char url[96];
-	char file[FILE_MAX];
 
 #ifndef WITH_HEADLESS
 	extern char datatoc_splash_png[];
@@ -1914,11 +1913,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	uiItemL(col, IFACE_("Recent"), ICON_NONE);
 	for (recent = G.recent_files.first, i = 0; (i < 5) && (recent); recent = recent->next, i++) {
-		BLI_split_file_part(recent->filepath, file, sizeof(file));
-		if (BLO_has_bfile_extension(file))
-			uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
-		else
-			uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BACKUP, "WM_OT_open_mainfile", "filepath", recent->filepath);
+		const char *filename = BLI_path_basename(recent->filepath);
+		uiItemStringO(col, filename,
+		              BLO_has_bfile_extension(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
+		              "WM_OT_open_mainfile", "filepath", recent->filepath);
 	}
 
 	uiItemS(col);
