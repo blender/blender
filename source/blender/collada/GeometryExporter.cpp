@@ -289,6 +289,12 @@ void GeometryExporter::createLooseEdgeList(Object *ob,
 
 }
 
+std::string GeometryExporter::makeVertexColorSourceId(std::string& geom_id, char *layer_name)
+{
+	std::string result = getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR) + "-" + layer_name;
+	return result;
+}
+
 // powerful because it handles both cases when there is material and when there's not
 void GeometryExporter::createPolylist(short material_index,
                                       bool has_uvs,
@@ -365,9 +371,20 @@ void GeometryExporter::createPolylist(short material_index,
 		}
 	}
 
-	if (has_color) {
-		COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::COLOR), has_uvs ? 3 : 2);
-		til.push_back(input4);
+	int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+	if (totlayer_mcol > 0) {
+		int map_index = 0;
+
+		for (int a = 0; a < totlayer_mcol; a++) {
+			char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, a);
+			COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR,
+			                        makeUrl(makeVertexColorSourceId(geom_id, layer_name)),
+			                        (has_uvs) ? 3 : 2,  // all color layers have same index order
+			                        map_index           // set number equals color map index
+			                        );
+			til.push_back(input4);
+			map_index++;
+		}
 	}
 		
 	// sets <vcount>
@@ -420,6 +437,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 	                  ARRAY_ID_SUFFIX);
 	source.setAccessorCount(totverts);
 	source.setAccessorStride(3);
+
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 	param.push_back("X");
 	param.push_back("Y");
@@ -437,40 +455,56 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 
 }
 
+
 void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
-	MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
-	if (mloopcol == NULL)
+	/* Find number of vertex color layers */
+	int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+	if (totlayer_mcol == 0)
 		return;
 
+	int active_vcolor_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
 
-	COLLADASW::FloatSourceF source(mSW);
-	source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR));
-	source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR) + ARRAY_ID_SUFFIX);
-	source.setAccessorCount(me->totloop);
-	source.setAccessorStride(3);
+	int map_index = 0;
+	for (int a = 0; a < totlayer_mcol; a++) {
 
-	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-	param.push_back("R");
-	param.push_back("G");
-	param.push_back("B");
+		map_index++;
+		MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_n(&me->ldata, CD_MLOOPCOL, a);
 
-	source.prepareToAppendValues();
+		COLLADASW::FloatSourceF source(mSW);
 
-	MPoly *mpoly;
-	int i;
-	for (i = 0, mpoly = me->mpoly; i < me->totpoly; i++, mpoly++) {
-		MLoopCol *mlc = mloopcol + mpoly->loopstart;
-		for (int j = 0; j < mpoly->totloop; j++, mlc++) {
-			source.appendValues(
-					mlc->r / 255.0f,
-					mlc->g / 255.0f,
-					mlc->b / 255.0f
-			);
+		char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, a);
+		std::string layer_id = makeVertexColorSourceId(geom_id, layer_name);
+		source.setId(layer_id);
+
+		source.setNodeName(layer_name);
+
+		source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(me->totloop);
+		source.setAccessorStride(3);
+
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("R");
+		param.push_back("G");
+		param.push_back("B");
+
+		source.prepareToAppendValues();
+
+		MPoly *mpoly;
+		int i;
+		for (i = 0, mpoly = me->mpoly; i < me->totpoly; i++, mpoly++) {
+			MLoopCol *mlc = mloopcol + mpoly->loopstart;
+			for (int j = 0; j < mpoly->totloop; j++, mlc++) {
+				source.appendValues(
+						mlc->r / 255.0f,
+						mlc->g / 255.0f,
+						mlc->b / 255.0f
+				);
+			}
 		}
-	}
 	
-	source.finish();
+		source.finish();
+	}
 }
 
 
