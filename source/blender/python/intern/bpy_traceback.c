@@ -42,10 +42,12 @@ static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
 	return PyBytes_AS_STRING((*coerce = PyUnicode_EncodeFSDefault(tb->tb_frame->f_code->co_filename)));
 }
 
-/* copied from pythonrun.c, 3.3.0 */
+/* copied from pythonrun.c, 3.4.0 */
+_Py_static_string(PyId_string, "<string>");
+
 static int
-parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
-                   int *lineno, int *offset, const char **text)
+parse_syntax_error(PyObject *err, PyObject **message, PyObject **filename,
+                   int *lineno, int *offset, PyObject **text)
 {
 	long hold;
 	PyObject *v;
@@ -56,6 +58,7 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
 	_Py_IDENTIFIER(text);
 
 	*message = NULL;
+	*filename = NULL;
 
 	/* new style errors.  `err' is an instance */
 	*message = _PyObject_GetAttrId(err, &PyId_msg);
@@ -67,13 +70,13 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
 		goto finally;
 	if (v == Py_None) {
 		Py_DECREF(v);
-		*filename = NULL;
+		*filename = _PyUnicode_FromId(&PyId_string);
+		if (*filename == NULL)
+			goto finally;
+		Py_INCREF(*filename);
 	}
 	else {
-		*filename = _PyUnicode_AsString(v);
-		Py_DECREF(v);
-		if (!*filename)
-			goto finally;
+		*filename = v;
 	}
 
 	v = _PyObject_GetAttrId(err, &PyId_lineno);
@@ -107,15 +110,13 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
 		*text = NULL;
 	}
 	else {
-		*text = _PyUnicode_AsString(v);
-		Py_DECREF(v);
-		if (!*text)
-			goto finally;
+		*text = v;
 	}
 	return 1;
 
 finally:
 	Py_XDECREF(*message);
+	Py_XDECREF(*filename);
 	return 0;
 }
 /* end copied function! */
@@ -139,9 +140,10 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 
 		if (value) { /* should always be true */
 			PyObject *message;
-			const char *filename, *text;
+			PyObject *filename_py, *text_py;
 
-			if (parse_syntax_error(value, &message, &filename, lineno, offset, &text)) {
+			if (parse_syntax_error(value, &message, &filename_py, lineno, offset, &text_py)) {
+				const char *filename = _PyUnicode_AsString(filename_py);
 				/* python adds a '/', prefix, so check for both */
 				if ((BLI_path_cmp(filename, filepath) == 0) ||
 				    ((filename[0] == '\\' || filename[0] == '/') && BLI_path_cmp(filename + 1, filepath) == 0))
