@@ -289,6 +289,55 @@ static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_sa, ARe
 	area_region_from_regiondata(sc, regiondata, r_sa, r_ar);
 }
 
+static int rna_Space_view2d_sync_get(PointerRNA *ptr)
+{
+	ScrArea *sa;
+	ARegion *ar;
+
+	sa = rna_area_from_space(ptr); /* can be NULL */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	if (ar) {
+		View2D *v2d = &ar->v2d;
+		return (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME) != 0;
+	}
+
+	return false;
+}
+
+static void rna_Space_view2d_sync_set(PointerRNA *ptr, int value)
+{
+	ScrArea *sa;
+	ARegion *ar;
+
+	sa = rna_area_from_space(ptr); /* can be NULL */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	if (ar) {
+		View2D *v2d = &ar->v2d;
+		if (value) {
+			v2d->flag |= V2D_VIEWSYNC_SCREEN_TIME;
+		}
+		else {
+			v2d->flag &= ~V2D_VIEWSYNC_SCREEN_TIME;
+		}
+	}
+}
+
+static void rna_Space_view2d_sync_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ScrArea *sa;
+	ARegion *ar;
+
+	sa = rna_area_from_space(ptr); /* can be NULL */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+
+	if (ar) {
+		bScreen *sc = (bScreen *)ptr->id.data;
+		View2D *v2d = &ar->v2d;
+
+		UI_view2d_sync(sc, sa, v2d, V2D_LOCK_SET);
+	}
+}
+
 static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
 {
 	Scene *scene = ((bScreen *)ptr->id.data)->scene;
@@ -1320,6 +1369,12 @@ static void rna_def_space(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Space data type");
+
+	/* access to V2D_VIEWSYNC_SCREEN_TIME */
+	prop = RNA_def_property(srna, "show_locked_time", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Space_view2d_sync_get", "rna_Space_view2d_sync_set");
+	RNA_def_property_ui_text(prop, "Lock Time to Other Windows", "");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, "rna_Space_view2d_sync_update");
 }
 
 /* for all spaces that use a mask */

@@ -74,6 +74,7 @@ class NLA_MT_view(Menu):
         layout.prop(st, "show_frame_indicator")
 
         layout.prop(st, "show_seconds")
+        layout.prop(st, "show_locked_time")
 
         layout.prop(st, "show_strip_curves")
 

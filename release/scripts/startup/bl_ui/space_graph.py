@@ -105,6 +105,7 @@ class GRAPH_MT_view(Menu):
         layout.prop(st, "use_only_selected_keyframe_handles")
 
         layout.prop(st, "show_seconds")
+        layout.prop(st, "show_locked_time")
 
         layout.separator()
         layout.operator("anim.previewrange_set")

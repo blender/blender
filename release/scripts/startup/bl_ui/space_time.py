@@ -126,6 +126,7 @@ class TIME_MT_view(Menu):
         st = context.space_data
 
         layout.prop(st, "show_seconds")
+        layout.prop(st, "show_locked_time")
         layout.operator("time.view_all")
 
         layout.separator()
