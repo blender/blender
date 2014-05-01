@@ -59,14 +59,6 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
-#ifdef _WIN32
-#define open _open
-#define close _close
-#define read _read
-#define write _write
-#endif
-
-
 int seekPackedFile(PackedFile *pf, int offset, int whence)
 {
 	int oldseek = -1, seek = 0;

@@ -37,9 +37,6 @@
 #  include <stddef.h>
 #  include <sys/types.h>
 #  include "mmap_win.h"
-#  define open _open
-#  define read _read
-#  define close _close
 #endif
 
 #include <stdlib.h>
