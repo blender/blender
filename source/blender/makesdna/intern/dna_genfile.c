@@ -51,17 +51,9 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h" // for SDNA ;-)
 
-
-/* gcc 4.1 on mingw was complaining that __int64 was already defined
- * actually is saw the line below as typedef long long long long...
- * Anyhow, since its already defined, its safe to do an ifndef here- Campbell */
-#ifdef FREE_WINDOWS
-#  ifndef __int64
-typedef long long __int64;
-#  endif
-#endif
-
-/*
+/**
+ * \section dna_genfile Overview
+ *
  * - please note: no builtin security to detect input of double structs
  * - if you want a struct not to be in DNA file: add two hash marks above it (#<enter>#<enter>)
  *
@@ -72,6 +64,7 @@ typedef long long __int64;
  *
  * Create a structDNA: only needed when one of the input include (.h) files change.
  * File Syntax:
+ * <pre>
  *     SDNA (4 bytes) (magic number)
  *     NAME (4 bytes)
  *     <nr> (4 bytes) amount of names (int)
@@ -93,12 +86,13 @@ typedef long long __int64;
  *     STRC (4 bytes)
  *     <nr> amount of structs (int)
  *     <typenr><nr_of_elems> <typenr><namenr> <typenr><namenr> ...
+ *</pre>
  *
- * !!Remember to read/write integer and short aligned!!
+ *  **Remember to read/write integer and short aligned!**
  *
  *  While writing a file, the names of a struct is indicated with a type number,
- *  to be found with: type = findstruct_nr(SDNA *, char *)
- *  The value of 'type' corresponds with the the index within the structs array
+ *  to be found with: ``type = DNA_struct_find_nr(SDNA *, const char *)``
+ *  The value of ``type`` corresponds with the the index within the structs array
  *
  *  For the moment: the complete DNA file is included in a .blend file. For
  *  the future we can think of smarter methods, like only included the used
@@ -114,7 +108,7 @@ typedef long long __int64;
  *  - change of a pointer type: when the name doesn't change the contents is copied
  *
  * NOT YET:
- *  - array (vec[3]) to float struct (vec3f)
+ *  - array (``vec[3]``) to float struct (``vec3f``)
  *
  * DONE:
  *  - endian compatibility
@@ -810,11 +804,7 @@ static void cast_elem(
  */
 static void cast_pointer(int curlen, int oldlen, const char *name, char *curdata, const char *olddata)
 {
-#ifdef WIN32
-	__int64 lval;
-#else
-	long long lval;
-#endif
+	int64_t lval;
 	int arrlen;
 	
 	arrlen = DNA_elem_array_size(name);
@@ -825,22 +815,15 @@ static void cast_pointer(int curlen, int oldlen, const char *name, char *curdata
 			memcpy(curdata, olddata, curlen);
 		}
 		else if (curlen == 4 && oldlen == 8) {
-#ifdef WIN32			
-			lval = *( (__int64 *)olddata);
-#else
-			lval = *( (long long *)olddata);
-#endif
+			lval = *((int64_t *)olddata);
+
 			/* WARNING: 32-bit Blender trying to load file saved by 64-bit Blender,
 			 * pointers may lose uniqueness on truncation! (Hopefully this wont
 			 * happen unless/until we ever get to multi-gigabyte .blend files...) */
 			*((int *)curdata) = lval >> 3;
 		}
 		else if (curlen == 8 && oldlen == 4) {
-#ifdef WIN32
-			*( (__int64 *)curdata) = *((int *)olddata);
-#else
-			*( (long long *)curdata) = *((int *)olddata);
-#endif
+			*((int64_t *)curdata) = *((int *)olddata);
 		}
 		else {
 			/* for debug */
