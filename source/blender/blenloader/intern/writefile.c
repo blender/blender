@@ -2089,7 +2089,7 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 				if (wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
 
-			/* nodetree is integral part of lamps, no libdata */
+			/* nodetree is integral part of world, no libdata */
 			if (wrld->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, wrld->nodetree);
 				write_nodetree(wd, wrld->nodetree);
