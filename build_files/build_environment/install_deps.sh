@@ -89,16 +89,16 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --with-opencollada
         Build and install the OpenCOLLADA libraries.
 
-    --ver_ocio=<ver>
+    --ver-ocio=<ver>
         Force version of OCIO library.
 
-    --ver_oiio=<ver>
+    --ver-oiio=<ver>
         Force version of OIIO library.
 
-    --ver_llvm=<ver>
+    --ver-llvm=<ver>
         Force version of LLVM library.
 
-    --ver_osl=<ver>
+    --ver-osl=<ver>
         Force version of OSL library.
 
     Note about the --ver-foo options:
@@ -189,26 +189,21 @@ SUDO="sudo"
 
 PYTHON_VERSION="3.4.0"
 PYTHON_VERSION_MIN="3.4"
-PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz"
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
 
 NUMPY_VERSION="1.8.1"
 NUMPY_VERSION_MIN="1.8"
-NUMPY_SOURCE="http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz"
 NUMPY_FORCE_REBUILD=false
 NUMPY_SKIP=false
 NUMPY_REQUIRED=false
 
 BOOST_VERSION="1.51.0"
-_boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
-BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download"
 BOOST_VERSION_MIN="1.49"
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
 
 OCIO_VERSION="1.0.7"
-OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
 OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
@@ -217,50 +212,34 @@ LIBYAML_CPP_VER="0.0"
 
 OPENEXR_VERSION="2.1.0"
 OPENEXR_VERSION_MIN="2.0.1"
-#OPENEXR_SOURCE="http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz"
-OPENEXR_SOURCE="https://github.com/mont29/openexr.git"
-OPENEXR_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
 ILMBASE_VERSION="2.1.0"
-ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz"
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="1.3.9"
-OIIO_VERSION_MIN="1.3.9"
-#OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
-OIIO_SOURCE="https://github.com/mont29/oiio.git"
-OIIO_REPO_UID="99113d12619c90cf44721195a759674ea61f02b1"
+OIIO_VERSION="1.4.0"
+OIIO_VERSION_MIN="1.4.0"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
 LLVM_VERSION="3.3"
 LLVM_VERSION_MIN="3.3"
 LLVM_VERSION_FOUND=""
-LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
-LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
 LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.4.0"
 OSL_VERSION_MIN=$OSL_VERSION
-#OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
-#OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage.git"
-OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage.git"
-OSL_REPO_UID="175989f2610a7d54e8edfb5ace0143e28e11ac70"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
 # Version??
 OPENCOLLADA_VERSION="1.3"
-OPENCOLLADA_SOURCE="https://github.com/KhronosGroup/OpenCOLLADA.git"
-OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
 FFMPEG_VERSION="2.1.4"
-FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
 FFMPEG_VERSION_MIN="0.7.6"
 FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
@@ -376,6 +355,7 @@ while true; do
     --ver-ocio)
       OCIO_VERSION="$2"
       OCIO_VERSION_MIN=$OCIO_VERSION
+      echo $OCIO_VERSION
       shift; shift; continue
     ;;
     --ver-oiio)
@@ -495,6 +475,35 @@ done
 if $WITH_ALL; then
   WITH_OPENCOLLADA=true
 fi
+
+
+# This has to be done here, because user might force some versions...
+PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz"
+NUMPY_SOURCE="http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz"
+_boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
+BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download"
+
+OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
+#OPENEXR_SOURCE="http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz"
+OPENEXR_SOURCE="https://github.com/mont29/openexr.git"
+OPENEXR_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
+ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz"
+
+#OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
+OIIO_SOURCE="https://github.com/mont29/oiio.git"
+OIIO_REPO_UID="99113d12619c90cf44721195a759674ea61f02b1"
+
+LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
+LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
+#OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
+#OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage.git"
+OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage.git"
+OSL_REPO_UID="4abd672ed3979e5e965323201a5ba5ab802a76a9"
+
+OPENCOLLADA_SOURCE="https://github.com/KhronosGroup/OpenCOLLADA.git"
+OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
+FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
+
 
 ##### Generic Helpers #####
 
@@ -1407,7 +1416,7 @@ compile_OSL() {
     git pull -X theirs origin master
 
     # Stick to same rev as windows' libs...
-    git checkout HEAD #$OSL_REPO_UID
+    git checkout $OSL_REPO_UID
     git reset --hard
 
     # Always refresh the whole build!
