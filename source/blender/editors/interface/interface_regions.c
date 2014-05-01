@@ -2143,6 +2143,29 @@ void ui_popup_menu_memory_set(uiBlock *block, uiBut *but)
 	ui_popup_menu_memory__internal(block, but);
 }
 
+/**
+ * Translate any popup regions (so we can drag them).
+ */
+void ui_popup_translate(bContext *C, ARegion *ar, const int mdiff[2])
+{
+	uiBlock *block;
+
+	BLI_rcti_translate(&ar->winrct, UNPACK2(mdiff));
+
+	ED_region_update_rect(C, ar);
+
+	ED_region_tag_redraw(ar);
+
+	/* update blocks */
+	for (block = ar->uiblocks.first; block; block = block->next) {
+		uiSafetyRct *saferct;
+		for (saferct = block->saferct.first; saferct; saferct = saferct->next) {
+			BLI_rctf_translate(&saferct->parent, UNPACK2(mdiff));
+			BLI_rctf_translate(&saferct->safety, UNPACK2(mdiff));
+		}
+	}
+}
+
 /******************** Popup Menu with callback or string **********************/
 
 struct uiPopupMenu {

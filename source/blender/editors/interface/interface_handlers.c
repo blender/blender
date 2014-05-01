@@ -7736,11 +7736,7 @@ static int ui_handle_menu_event(
 				sub_v2_v2v2_int(mdiff, &event->x, menu->grab_xy_prev);
 				copy_v2_v2_int(menu->grab_xy_prev, &event->x);
 
-				BLI_rcti_translate(&ar->winrct, UNPACK2(mdiff));
-
-				ED_region_update_rect(C, ar);
-
-				ED_region_tag_redraw(ar);
+				ui_popup_translate(C, ar, mdiff);
 			}
 
 			return retval;

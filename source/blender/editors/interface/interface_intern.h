@@ -473,7 +473,9 @@ struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion,
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
 uiBut *ui_popup_menu_memory_get(struct uiBlock *block);
-void   ui_popup_menu_memory_set(struct uiBlock *block, struct uiBut *but);
+void   ui_popup_menu_memory_set(uiBlock *block, struct uiBut *but);
+
+void   ui_popup_translate(struct bContext *C, struct ARegion *ar, const int mdiff[2]);
 
 float *ui_block_hsv_get(struct uiBlock *block);
 void ui_popup_block_scrolltest(struct uiBlock *block);
