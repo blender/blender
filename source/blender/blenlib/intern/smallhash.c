@@ -56,10 +56,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef WIN32
-#  include "BLI_alloca.h"
-#endif
-
 #include "BLI_smallhash.h"
 
 #include "BLI_strict_flags.h"

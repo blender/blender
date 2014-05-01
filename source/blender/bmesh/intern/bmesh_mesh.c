@@ -40,10 +40,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_multires.h"
 
-#ifdef WIN32
-#  include "BLI_alloca.h"
-#endif
-
 #include "intern/bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */

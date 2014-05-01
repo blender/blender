@@ -116,6 +116,7 @@ set(SRC
 	BLI_buffer.h
 	BLI_callbacks.h
 	BLI_compiler_attrs.h
+	BLI_compiler_compat.h
 	BLI_convexhull2d.h
 	BLI_dlrbTree.h
 	BLI_dynlib.h

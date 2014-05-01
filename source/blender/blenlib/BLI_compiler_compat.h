@@ -18,27 +18,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_ALLOCA_H__
-#define __BLI_ALLOCA_H__
+#ifndef __BLI_COMPILER_COMPAT_H__
+#define __BLI_COMPILER_COMPAT_H__
 
-/** \file BLI_alloca.h
+/** \file BLI_compiler_compat.h
  *  \ingroup bli
  *
- * Defines alloca and utility macro BLI_array_alloca
+ * Use to help with cross platform portability.
  */
 
-/* BLI_array_alloca / alloca */
-
-#if defined(__MINGW32__)
-#  include <malloc.h>  /* mingw needs for alloca() */
+#if defined(_MSC_VER)
+#  define __func__ __FUNCTION__
+#  define alloca _alloca
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
-#define BLI_array_alloca(arr, realsize) \
-	(typeof(arr))alloca(sizeof(*arr) * (realsize))
-#else
-#define BLI_array_alloca(arr, realsize) \
-	alloca(sizeof(*arr) * (realsize))
-#endif
-
-#endif /* __BLI_ALLOCA_H__ */
+#endif  /* __BLI_COMPILER_COMPAT_H__ */
