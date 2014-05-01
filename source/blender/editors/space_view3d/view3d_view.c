@@ -1408,6 +1408,11 @@ static int localview_exec(bContext *C, wmOperator *op)
 		DAG_id_type_tag(bmain, ID_OB);
 		ED_area_tag_redraw(sa);
 
+		/* unselected objects become selected when exiting */
+		if (v3d->localvd == NULL) {
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+		}
+
 		return OPERATOR_FINISHED;
 	}
 	else {
