@@ -1458,6 +1458,20 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 {
 	/* Find a mesh in the current main */
 	ID *me= static_cast<ID *>(BLI_findstring(&m_maggie->mesh, name, offsetof(ID, name) + 2));
+	Main *from_maggie = m_maggie;
+
+	if (me == NULL) {
+		// The mesh wasn't in the current main, try any dynamic (i.e., LibLoaded) ones
+		vector<Main*>::iterator it;
+
+		for (it = GetMainDynamic().begin(); it != GetMainDynamic().end(); it++) {
+			me = static_cast<ID *>(BLI_findstring(&(*it)->mesh, name, offsetof(ID, name) + 2));
+			from_maggie = *it;
+
+			if (me)
+				break;
+		}
+	}
 	
 	if (me==NULL) {
 		printf("Could not be found \"%s\"\n", name);
@@ -1467,10 +1481,10 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 	/* Watch this!, if its used in the original scene can cause big troubles */
 	if (me->us > 0) {
 		printf("Mesh has a user \"%s\"\n", name);
-		me = (ID*)BKE_mesh_copy((Mesh*)me);
+		me = (ID*)BKE_mesh_copy_ex(from_maggie, (Mesh*)me);
 		me->us--;
 	}
-	BLI_remlink(&m_maggie->mesh, me); /* even if we made the copy it needs to be removed */
+	BLI_remlink(&from_maggie->mesh, me); /* even if we made the copy it needs to be removed */
 	BLI_addtail(&maggie->mesh, me);
 
 	
@@ -1496,7 +1510,7 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 				mat_new->id.flag |= LIB_DOIT;
 				mat_old->id.us--;
 				
-				BLI_remlink(&m_maggie->mat, mat_new);
+				BLI_remlink(&G.main->mat, mat_new); // BKE_material_copy uses G.main, and there is no BKE_material_copy_ex
 				BLI_addtail(&maggie->mat, mat_new);
 				
 				mesh->mat[i] = mat_new;
