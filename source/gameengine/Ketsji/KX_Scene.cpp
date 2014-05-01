@@ -575,9 +575,6 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 		newctrl->SetNewClientInfo(newobj->getClientInfo());
 		newobj->SetPhysicsController(newctrl, newobj->IsDynamic());
 		newctrl->PostProcessReplica(motionstate, parentctrl);
-
-		if (parent)
-			parent->Release();
 	}
 
 	return newobj;
@@ -758,8 +755,6 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		KX_GameObject *parent = gameobj->GetParent();
 		if (parent != NULL)
 		{
-			parent->Release(); // GetParent() increased the refcount
-
 			// this object is not a top parent. Either it is the child of another
 			// object in the group and it will be added automatically when the parent
 			// is added. Or it is the child of an object outside the group and the group

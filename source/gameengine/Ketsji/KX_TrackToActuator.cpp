@@ -79,8 +79,6 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 				m_parentlocalmat = m_parentobj->GetSGNode()->GetLocalOrientation();
 				// use registration mechanism rather than AddRef, it creates zombie objects
 				m_parentobj->RegisterActuator(this);
-				// GetParent did AddRef, undo here
-				m_parentobj->Release();
 			}
 		}
 	}

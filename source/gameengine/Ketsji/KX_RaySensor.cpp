@@ -265,9 +265,6 @@ bool KX_RaySensor::Evaluate()
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();
 	
-	if (parent)
-		parent->Release();
-	
 
 	PHY_IPhysicsEnvironment* physics_environment = this->m_scene->GetPhysicsEnvironment();
 	

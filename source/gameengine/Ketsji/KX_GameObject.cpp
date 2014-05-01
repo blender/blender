@@ -306,9 +306,6 @@ KX_GameObject* KX_GameObject::GetParent()
 		if (node)
 			result = (KX_GameObject*)node->GetSGClientObject();
 	}
-	
-	if (result)
-		result->AddRef();
 
 	return result;
 	
@@ -2113,7 +2110,6 @@ PyObject *KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DE
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	KX_GameObject* parent = self->GetParent();
 	if (parent) {
-		parent->Release(); /* self->GetParent() AddRef's */
 		return parent->GetProxy();
 	}
 	Py_RETURN_NONE;

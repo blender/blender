@@ -342,7 +342,6 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					KX_GameObject *parent = obj->GetParent();
 					if (parent) {
 						spc = parent->GetPhysicsController();
-						parent->Release();
 					}
 				}
 				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,dynamic_cast<PHY_IPhysicsController*>(spc));

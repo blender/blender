@@ -1375,8 +1375,6 @@ void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
 			KX_GameObject *parent = gameobj->GetParent();
 			if (!physics_controller && parent)
 				physics_controller = parent->GetPhysicsController();
-			if (parent)
-				parent->Release();
 
 			KX_RayCast::Callback<RAS_OpenGLRasterizer> callback(this, physics_controller, oglmatrix);
 			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback))

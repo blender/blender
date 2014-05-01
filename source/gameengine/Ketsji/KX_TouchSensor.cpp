@@ -208,10 +208,6 @@ bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
 	KX_ClientObjectInfo *my_client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->GetNewClientInfo());
 	KX_GameObject* otherobj = ( client_info ? client_info->m_gameobject : NULL);
 
-	// first, decrement refcount as GetParent() increases it
-	if (myparent)
-		myparent->Release();
-
 	// we can only check on persistent characteristic: m_link and m_suspended are not
 	// good candidate because they are transient. That must be handled at another level
 	if (!otherobj ||
