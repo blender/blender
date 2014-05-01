@@ -397,7 +397,6 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 	COLLADAFW::MeshPrimitiveArray& prim_arr = collada_mesh->getMeshPrimitives();
 	int total_poly_count  = 0;
 	int total_loop_count  = 0;
-	int total_color_count = 0;
 
 	// collect edge_count and face_count from all parts
 	for (int i = 0; i < prim_arr.getCount(); i++) {

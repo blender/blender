@@ -463,8 +463,6 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 	if (totlayer_mcol == 0)
 		return;
 
-	int active_vcolor_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
-
 	int map_index = 0;
 	for (int a = 0; a < totlayer_mcol; a++) {
 
