@@ -45,7 +45,6 @@
 #  include <unistd.h>
 #  include <sys/times.h>
 #  include <dirent.h>
-#  include <unistd.h>
 #endif
 
 #include "DNA_space_types.h"

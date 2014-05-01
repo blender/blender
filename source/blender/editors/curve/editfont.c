@@ -34,12 +34,6 @@
 #include <wchar.h>
 #include <errno.h>
 
-#ifndef WIN32 
-#  include <unistd.h>
-#else
-#  include <io.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"

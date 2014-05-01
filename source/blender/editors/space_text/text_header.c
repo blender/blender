@@ -28,14 +28,6 @@
  *  \ingroup sptext
  */
 
-
-
-/* file time checking */
-
-#ifndef _WIN32
-#else
-#endif
-
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -50,10 +42,6 @@
 #include "ED_screen.h"
 
 #include "WM_types.h"
-
-#ifdef WITH_PYTHON
-// XXX #include "BPY_menus.h"
-#endif
 
 #include "text_intern.h"
 

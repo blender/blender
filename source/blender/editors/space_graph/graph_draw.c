@@ -32,13 +32,6 @@
 #include <string.h>
 #include <float.h>
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#endif
-
-
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 

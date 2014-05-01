@@ -27,18 +27,9 @@
  *  \ingroup edinterface
  */
 
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifndef WIN32
-#  include <unistd.h>
-#else
-#  include <io.h>
-#  include <direct.h>
-#  include "BLI_winstuff.h"
-#endif
 
 #include "MEM_guardedalloc.h"
 
