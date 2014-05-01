@@ -183,38 +183,42 @@ ccl_device_noinline float3 indirect_primitive_emission(KernelGlobals *kg, Shader
 
 /* Indirect Lamp Emission */
 
-ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *state, Ray *ray, float randt, float3 *emission)
+ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *state, Ray *ray, float3 *emission)
 {
-	LightSample ls;
-	int lamp = lamp_light_eval_sample(kg, randt);
+	bool hit_lamp = false;
 
-	if(lamp == LAMP_NONE)
-		return false;
+	*emission = make_float3(0.0f, 0.0f, 0.0f);
 
-	if(!lamp_light_eval(kg, lamp, ray->P, ray->D, ray->t, &ls))
-		return false;
+	for(int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
+		LightSample ls;
+
+		if(!lamp_light_eval(kg, lamp, ray->P, ray->D, ray->t, &ls))
+			continue;
 
 #ifdef __PASSES__
-	/* use visibility flag to skip lights */
-	if(ls.shader & SHADER_EXCLUDE_ANY) {
-		if(((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (state->flag & PATH_RAY_DIFFUSE)) ||
-		   ((ls.shader & SHADER_EXCLUDE_GLOSSY) && (state->flag & PATH_RAY_GLOSSY)) ||
-		   ((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (state->flag & PATH_RAY_TRANSMIT)))
-			return false;
-	}
+		/* use visibility flag to skip lights */
+		if(ls.shader & SHADER_EXCLUDE_ANY) {
+			if(((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (state->flag & PATH_RAY_DIFFUSE)) ||
+			   ((ls.shader & SHADER_EXCLUDE_GLOSSY) && (state->flag & PATH_RAY_GLOSSY)) ||
+			   ((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (state->flag & PATH_RAY_TRANSMIT)))
+				continue;
+		}
 #endif
 
-	float3 L = direct_emissive_eval(kg, &ls, -ray->D, ray->dD, ls.t, ray->time, state->bounce, state->transparent_bounce);
+		float3 L = direct_emissive_eval(kg, &ls, -ray->D, ray->dD, ls.t, ray->time, state->bounce, state->transparent_bounce);
 
-	if(!(state->flag & PATH_RAY_MIS_SKIP)) {
-		/* multiple importance sampling, get regular light pdf,
-		 * and compute weight with respect to BSDF pdf */
-		float mis_weight = power_heuristic(state->ray_pdf, ls.pdf);
-		L *= mis_weight;
+		if(!(state->flag & PATH_RAY_MIS_SKIP)) {
+			/* multiple importance sampling, get regular light pdf,
+			 * and compute weight with respect to BSDF pdf */
+			float mis_weight = power_heuristic(state->ray_pdf, ls.pdf);
+			L *= mis_weight;
+		}
+
+		*emission += L;
+		hit_lamp = true;
 	}
 
-	*emission = L;
-	return true;
+	return hit_lamp;
 }
 
 /* Indirect Background */

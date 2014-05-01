@@ -421,7 +421,6 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 	/* compute pdf */
 	if(ls->t != FLT_MAX)
 		ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
-	ls->eval_fac *= kernel_data.integrator.inv_pdf_lights;
 
 	return true;
 }
