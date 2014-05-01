@@ -609,7 +609,8 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         ob = context.object
         return (CyclesButtonsPanel.poll(context) and
-                ob and ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META', 'LAMP'})
+                ob and ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LAMP'} or
+                ob and ob.dupli_type == 'GROUP' and ob.dupli_group)
 
     def draw(self, context):
         layout = self.layout
