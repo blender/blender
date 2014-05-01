@@ -62,6 +62,8 @@
 // Collision & Fuzzics LTD
 
 #include "PHY_Pro.h"
+#include "PHY_IPhysicsEnvironment.h"
+#include "PHY_DynamicTypes.h"
 
 
 #include "KX_Scene.h"
@@ -1761,10 +1763,6 @@ static void UNUSED_FUNCTION(RBJconstraints)(Object *ob)//not used
 
 	}
 }
-
-#include "PHY_IPhysicsEnvironment.h"
-#include "PHY_DynamicTypes.h"
-
 
 static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
 {
