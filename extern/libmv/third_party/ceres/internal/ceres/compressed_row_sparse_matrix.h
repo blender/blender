@@ -115,6 +115,9 @@ class CompressedRowSparseMatrix : public SparseMatrix {
   const vector<int>& col_blocks() const { return col_blocks_; }
   vector<int>* mutable_col_blocks() { return &col_blocks_; }
 
+  // Destructive array resizing method.
+  void SetMaxNumNonZeros(int num_nonzeros);
+
   // Non-destructive array resizing method.
   void set_num_rows(const int num_rows) { num_rows_ = num_rows; }
   void set_num_cols(const int num_cols) { num_cols_ = num_cols; }

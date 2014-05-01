@@ -43,7 +43,9 @@ namespace internal {
 
 #ifdef _MSC_VER
 enum { IS_COMPILER_MSVC = 1 };
+#if _MSC_VER < 1800
 #define va_copy(d, s) ((d) = (s))
+#endif
 #else
 enum { IS_COMPILER_MSVC = 0 };
 #endif

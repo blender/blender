@@ -791,6 +791,78 @@ macro(TEST_UNORDERED_MAP_SUPPORT)
 	endif()
 endmacro()
 
+macro(TEST_SHARED_PTR_SUPPORT)
+	# This check are coming from Ceres library.
+	#
+	# Find shared pointer header and namespace.
+	#
+	# This module defines the following variables:
+	#
+	# SHARED_PTR_FOUND: TRUE if shared_ptr found.
+	# SHARED_PTR_TR1_MEMORY_HEADER: True if <tr1/memory> header is to be used
+	# for the shared_ptr object, otherwise use <memory>.
+	# SHARED_PTR_TR1_NAMESPACE: TRUE if shared_ptr is defined in std::tr1 namespace,
+	# otherwise it's assumed to be defined in std namespace.
+
+	include(CheckIncludeFileCXX)
+	set(SHARED_PTR_FOUND FALSE)
+	CHECK_INCLUDE_FILE_CXX(memory HAVE_STD_MEMORY_HEADER)
+	if(HAVE_STD_MEMORY_HEADER)
+		# Finding the memory header doesn't mean that shared_ptr is in std
+		# namespace.
+		#
+		# In particular, MSVC 2008 has shared_ptr declared in std::tr1.  In
+		# order to support this, we do an extra check to see which namespace
+		# should be used.
+		include(CheckCXXSourceCompiles)
+		CHECK_CXX_SOURCE_COMPILES("#include <memory>
+		                           int main() {
+		                             std::shared_ptr<int> int_ptr;
+		                             return 0;
+		                           }"
+		                          HAVE_SHARED_PTR_IN_STD_NAMESPACE)
+
+		if(HAVE_SHARED_PTR_IN_STD_NAMESPACE)
+			message("-- Found shared_ptr in std namespace using <memory> header.")
+			set(SHARED_PTR_FOUND TRUE)
+		else()
+			CHECK_CXX_SOURCE_COMPILES("#include <memory>
+			                           int main() {
+			                           std::tr1::shared_ptr<int> int_ptr;
+			                           return 0;
+			                           }"
+			                          HAVE_SHARED_PTR_IN_TR1_NAMESPACE)
+			if(HAVE_SHARED_PTR_IN_TR1_NAMESPACE)
+				message("-- Found shared_ptr in std::tr1 namespace using <memory> header.")
+				set(SHARED_PTR_TR1_NAMESPACE TRUE)
+				set(SHARED_PTR_FOUND TRUE)
+			endif()
+		endif()
+	endif()
+
+	if(NOT SHARED_PTR_FOUND)
+		# Further, gcc defines shared_ptr in std::tr1 namespace and
+		# <tr1/memory> is to be included for this. And what makes things
+		# even more tricky is that gcc does have <memory> header, so
+		# all the checks above wouldn't find shared_ptr.
+		CHECK_INCLUDE_FILE_CXX("tr1/memory" HAVE_TR1_MEMORY_HEADER)
+		if(HAVE_TR1_MEMORY_HEADER)
+			CHECK_CXX_SOURCE_COMPILES("#include <tr1/memory>
+			                           int main() {
+			                           std::tr1::shared_ptr<int> int_ptr;
+			                           return 0;
+			                           }"
+			                           HAVE_SHARED_PTR_IN_TR1_NAMESPACE_FROM_TR1_MEMORY_HEADER)
+			if(HAVE_SHARED_PTR_IN_TR1_NAMESPACE_FROM_TR1_MEMORY_HEADER)
+				message("-- Found shared_ptr in std::tr1 namespace using <tr1/memory> header.")
+				set(SHARED_PTR_TR1_MEMORY_HEADER TRUE)
+				set(SHARED_PTR_TR1_NAMESPACE TRUE)
+				set(SHARED_PTR_FOUND TRUE)
+			endif()
+		endif()
+	endif()
+endmacro()
+
 # when we have warnings as errors applied globally this
 # needs to be removed for some external libs which we dont maintain.
 

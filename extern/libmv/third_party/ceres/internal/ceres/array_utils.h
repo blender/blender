@@ -57,6 +57,14 @@ void InvalidateArray(int size, double* x);
 // equal to the "impossible" value used by InvalidateArray.
 bool IsArrayValid(int size, const double* x);
 
+// If the array contains an invalid value, return the index for it,
+// otherwise return size.
+int FindInvalidValue(const int size, const double* x);
+
+// Utility routine to print an array of doubles to a string. If the
+// array pointer is NULL, it is treated as an array of zeros.
+void AppendArrayToString(const int size, const double* x, string* result);
+
 extern const double kImpossibleValue;
 
 }  // namespace internal

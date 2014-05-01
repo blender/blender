@@ -31,8 +31,6 @@
 #ifndef CERES_INTERNAL_LINE_SEARCH_MINIMIZER_H_
 #define CERES_INTERNAL_LINE_SEARCH_MINIMIZER_H_
 
-#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
-
 #include "ceres/minimizer.h"
 #include "ceres/solver.h"
 #include "ceres/types.h"
@@ -76,5 +74,4 @@ class LineSearchMinimizer : public Minimizer {
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // CERES_NO_LINE_SEARCH_MINIMIZER
 #endif  // CERES_INTERNAL_LINE_SEARCH_MINIMIZER_H_

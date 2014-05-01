@@ -123,6 +123,7 @@ set(INC
 	.
 	include
 	internal
+	config
 	../gflags
 	../../
 )
@@ -230,29 +231,28 @@ defs.append('CERES_HAVE_RWLOCK')
 if env['WITH_BF_OPENMP']:
     defs.append('CERES_USE_OPENMP')
 
-def define_unordered_map(conf):
-    found, namespace, include_prefix = test_unordered_map(conf)
-    if found:
-        if not include_prefix:
-            if namespace == 'std':
-                defs.append('CERES_STD_UNORDERED_MAP')
-                return True
-            elif namespace == 'std::tr1':
-                defs.append('CERES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE')
-                return True
-        else:
-            if namespace == 'std::tr1':
-                defs.append('CERES_TR1_UNORDERED_MAP')
-                return True
-    return False
-
-conf = Configure(env)
-if not define_unordered_map(conf):
+if env['WITH_UNORDERED_MAP_SUPPORT']:
+    if env['UNORDERED_MAP_HEADER'] == 'unordered_map':
+        if env['UNORDERED_MAP_NAMESPACE'] == 'std':
+            defs.append('CERES_STD_UNORDERED_MAP')
+        elif env['UNORDERED_MAP_NAMESPACE'] == 'std::tr1':
+            defs.append('CERES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE')
+    elif env['UNORDERED_MAP_NAMESPACE'] == 'std::tr1':
+        defs.append('CERES_TR1_UNORDERED_MAP')
+else:
     print("-- Replacing unordered_map/set with map/set (warning: slower!)")
     defs.append('CERES_NO_UNORDERED_MAP')
-env = conf.Finish()
 
-incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
+if not env['WITH_SHARED_PTR_SUPPORT']:
+    print("-- Unable to find shared_ptr which is required for compilation.")
+    exit(1)
+
+if env['SHARED_PTR_HEADER'] == 'tr1/memory':
+    defs.append('CERES_TR1_MEMORY_HEADER')
+if env['SHARED_PTR_NAMESPACE'] == 'std::tr1':
+    defs.append('CERES_TR1_SHARED_PTR')
+
+incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags ./config'
 
 # work around broken hashtable in 10.5 SDK
 if env['OURPLATFORM'] == 'darwin' and env['WITH_BF_BOOST']:

@@ -196,9 +196,9 @@ class CovarianceImpl;
 //  covariance.GetCovarianceBlock(y, y, covariance_yy)
 //  covariance.GetCovarianceBlock(x, y, covariance_xy)
 //
-class Covariance {
+class CERES_EXPORT Covariance {
  public:
-  struct Options {
+  struct CERES_EXPORT Options {
     Options()
 #ifndef CERES_NO_SUITESPARSE
         : algorithm_type(SPARSE_QR),

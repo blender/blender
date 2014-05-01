@@ -98,6 +98,7 @@ class LinearSolver {
           dense_linear_algebra_library_type(EIGEN),
           sparse_linear_algebra_library_type(SUITE_SPARSE),
           use_postordering(false),
+          dynamic_sparsity(false),
           min_num_iterations(1),
           max_num_iterations(1),
           num_threads(1),
@@ -115,6 +116,7 @@ class LinearSolver {
 
     // See solver.h for information about this flag.
     bool use_postordering;
+    bool dynamic_sparsity;
 
     // Number of internal iterations that the solver uses. This
     // parameter only makes sense for iterative solvers like CG.

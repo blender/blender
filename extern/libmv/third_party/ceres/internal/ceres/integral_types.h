@@ -77,7 +77,6 @@ struct UnsignedInteger {
 #undef CERES_INTSIZE
 
 typedef Integer< 8>::type int8;
-typedef Integer<16>::type int16;
 typedef Integer<32>::type int32;
 typedef Integer<64>::type int64;
 

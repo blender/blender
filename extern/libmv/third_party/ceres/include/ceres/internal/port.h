@@ -31,7 +31,18 @@
 #ifndef CERES_PUBLIC_INTERNAL_PORT_H_
 #define CERES_PUBLIC_INTERNAL_PORT_H_
 
+// This file needs to compile as c code.
+#ifdef __cplusplus
+
 #include <string>
+
+#include "ceres/internal/config.h"
+
+#if defined(CERES_TR1_MEMORY_HEADER)
+#include <tr1/memory>
+#else
+#include <memory>
+#endif
 
 namespace ceres {
 
@@ -45,6 +56,33 @@ using namespace std;
 // "string" implementation in the global namespace.
 using std::string;
 
+#if defined(CERES_TR1_SHARED_PTR)
+using std::tr1::shared_ptr;
+#else
+using std::shared_ptr;
+#endif
+
 }  // namespace ceres
+
+#endif  // __cplusplus
+
+// A macro to signal which functions and classes are exported when
+// building a DLL with MSVC.
+//
+// Note that the ordering here is important, CERES_BUILDING_SHARED_LIBRARY
+// is only defined locally when Ceres is compiled, it is never exported to
+// users.  However, in order that we do not have to configure config.h
+// separately for building vs installing, if we are using MSVC and building
+// a shared library, then both CERES_BUILDING_SHARED_LIBRARY and
+// CERES_USING_SHARED_LIBRARY will be defined when Ceres is compiled.
+// Hence it is important that the check for CERES_BUILDING_SHARED_LIBRARY
+// happens first.
+#if defined(_MSC_VER) && defined(CERES_BUILDING_SHARED_LIBRARY)
+# define CERES_EXPORT __declspec(dllexport)
+#elif defined(_MSC_VER) && defined(CERES_USING_SHARED_LIBRARY)
+# define CERES_EXPORT __declspec(dllimport)
+#else
+# define CERES_EXPORT
+#endif
 
 #endif  // CERES_PUBLIC_INTERNAL_PORT_H_

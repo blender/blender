@@ -61,11 +61,13 @@ class Evaluator {
     Options()
         : num_threads(1),
           num_eliminate_blocks(-1),
-          linear_solver_type(DENSE_QR) {}
+          linear_solver_type(DENSE_QR),
+          dynamic_sparsity(false) {}
 
     int num_threads;
     int num_eliminate_blocks;
     LinearSolverType linear_solver_type;
+    bool dynamic_sparsity;
   };
 
   static Evaluator* Create(const Options& options,

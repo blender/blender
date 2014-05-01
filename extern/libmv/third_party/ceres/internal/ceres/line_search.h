@@ -33,8 +33,6 @@
 #ifndef CERES_INTERNAL_LINE_SEARCH_H_
 #define CERES_INTERNAL_LINE_SEARCH_H_
 
-#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
-
 #include <string>
 #include <vector>
 #include "ceres/internal/eigen.h"
@@ -71,6 +69,7 @@ class LineSearch {
           max_num_iterations(20),
           sufficient_curvature_decrease(0.9),
           max_step_expansion(10.0),
+          is_silent(false),
           function(NULL) {}
 
     // Degree of the polynomial used to approximate the objective
@@ -143,6 +142,8 @@ class LineSearch {
     //
     // By definition for expansion, max_step_expansion > 1.0.
     double max_step_expansion;
+
+    bool is_silent;
 
     // The one dimensional function that the line search algorithm
     // minimizes.
@@ -295,5 +296,4 @@ class WolfeLineSearch : public LineSearch {
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // CERES_NO_LINE_SEARCH_MINIMIZER
 #endif  // CERES_INTERNAL_LINE_SEARCH_H_

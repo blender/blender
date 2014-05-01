@@ -38,7 +38,7 @@ namespace ceres {
 
 // A compressed row sparse matrix used primarily for communicating the
 // Jacobian matrix to the user.
-struct CRSMatrix {
+struct CERES_EXPORT CRSMatrix {
   CRSMatrix() : num_rows(0), num_cols(0) {}
 
   int num_rows;

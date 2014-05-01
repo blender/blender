@@ -1,687 +1,646 @@
-commit 15bf0d5018dfe432ef67e726b248efcf3b58bc4f
+commit 8c62487e437b91d3d354cd1ae8957e43fe540732
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri May 16 09:44:18 2014 -0700
+
+    Preparations for 1.9.0 release.
+    
+    Version bump.
+    minor docs update.
+    
+    Change-Id: I2fbe20ba4af6b2e186fe244c96ce6d6464fe0469
+
+commit 0831275a78ab65e4c95979598cb35c54d03d3185
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri May 16 08:17:54 2014 -0700
+
+    Documentation update.
+    
+    1. Update iOS build instructions.
+    2. Update version history.
+    
+    Change-Id: I49d62e86ecff39190b50c050cb12eef4e2773357
+
+commit c7c7458625996a20203f1366d11bd701e5fb621b
+Author: Jack Feng <jackfengji@gmail.com>
+Date:   Mon May 12 10:23:56 2014 +0800
+
+    add support for building for ios
+    
+    use ios-cmake to build for ios
+    
+    Change-Id: I6b17c33339f3121322a4004d79629b22a62f7a94
+
+commit 36c2ce87d13b9b7123bd0473b8b45fb3b6ae4271
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Jan 13 20:38:28 2014 +0600
+Date:   Mon Jan 13 21:18:08 2014 +0600
 
-    Code cleanup: fix no previous declaration warnings
+    Libmv 2D homography estimation example application
     
-    Move internally used functions to an anonymous namespace,
+    Add an example application of homography matrix estimation
+    from a 2D euclidean correspondences which is done in two
+    steps:
     
-    Change-Id: I84c98facf901e64771d131b088e20e2c033cab70
+    - Coarse algebraic estimation
+    - Fine refinement using Ceres minimizer
+    
+    Nothing terribly exciting apart from an example of how to
+    use user callbacks.
+    
+    User callback is used here to stop minimizer when average
+    of symmetric geometric distance becomes good enough.
+    This might be arguable whether it's the best way to go
+    (in some cases you would want to stop minimizer when
+    maximal symmetric distance is lower than a threshold) but
+    for a callback usage example it's good enough to stick
+    to current logic.
+    
+    Change-Id: I60c8559cb10b001a0eb64ab71920c08bd68455b8
 
-commit 80a53eebfd28bfc032cedbf7852d5c56eb1d5af5
+commit d99a3a961e4a6ff7218d0ab749da57cf1a1677bd
+Author: Björn Piltz <bjornpiltz@gmail.com>
+Date:   Wed May 7 14:59:12 2014 +0200
+
+    Separate PUBLIC and PRIVATE library dependencies
+    Do not propagate 3d party libs through
+    IMPORTED_LINK_INTERFACE_LIBRARIES_[DEBUG/RELEASE] mechanism
+    when building shared libraries. SuiteSparse, lapack & co
+    are considered private. Glog still gets propagated since
+    it is part of the public interface. See documentation of
+    TARGET_LINK_LIBRARIES().
+    
+    Change-Id: If0563b0c705b102876f5190e9a86694d10f79283
+
+commit 1c089e8453583876f417b214f76a5863d7694986
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jan 9 12:40:54 2014 -0800
+Date:   Tue May 13 16:58:25 2014 -0700
 
-    Faster LBFGS.
+    Notational fix in modeling.rst by William Rucklidge.
     
-    1. Use column major storage for the various matrices used by
-    LowRankInverseHessian. Since all the operations are on columns.
-    
-    2. Use a circular buffer to keep track of history of the LBFGS updates
-    so that an update does not require copying the entire history. This
-    makes the updates O(1) rather than O(rank).
-    
-    The implementation has been checked against the denoising code
-    where it gives numerically identical results. The overhead of the
-    LBFGS code is now near negligible as compared to the gradient evaluation.
-    
-    On a sample problem
-    
-    before 1050ms after: 630ms
-    
-    Change-Id: I537ba506ac35fc4960b304c10d923a8dea2ae031
+    Change-Id: Iffa127541380fcc32da13fe4ac474692e1e3d0ec
 
-commit f55780063620e7a3dcfe7e018d6488bf6a5b29da
+commit 082d9e2a1b43b26a81157a6c711de0ff34c40ba4
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Jan 8 10:43:31 2014 -0800
+Date:   Mon May 12 20:41:27 2014 -0700
 
-    Reduce logging verbosity.
+    Add iOS.cmake from the ios-cmake project.
     
-    When user specifies Solver::Options::logging_type = SILENT,
-    ensure that the minimizer does not log anything.
+    URL: https://github.com/cristeab/ios-cmake
+    Commit: 86dc085f0d5ed955cd58e2657cc3efc7c1aabbc8
     
-    Change-Id: I94e34dae504881ab36d4a66e6adb7a19a227363e
+    Change-Id: I8fe6023d4cb6655b5a724e8b695fdae87ce3b685
 
-commit 85561eee951c91e578984c6d3eecf0073acabb64
+commit a97056c9752fe7223c8560da58862ecb1fd241ad
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jan 7 22:22:14 2014 -0800
+Date:   Tue May 13 16:45:36 2014 -0700
 
-    Use int32 for parameter block sizes.
+    Various documentation fixes from William Rucklidge.
     
-    CostFunction now uses int32 instead of int16
-    to store the size of its parameter blocks.
-    
-    This is an API breaking change.
-    
-    Change-Id: I032ea583bc7ea4b3009be25d23a3be143749c73e
+    Change-Id: I102e98f41f4b5fe2a84d1224d5ed7517fdfdb022
 
-commit a7fda3317b1a97702750bea96ac3ef3d1a2afb49
+commit 2f8fb218f0a08102231ace07ef02b34b4aad7336
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Jan 6 10:25:42 2014 +0000
+Date:   Tue May 13 20:57:39 2014 +0100
 
-    Fix typos in error messages in line search config checks.
+    Adding function to update CMake cache variables and preserve help.
     
-    Change-Id: I3ae2ae58328e996598e3e32c12869d2b10109ef7
+    - Previously we were replicating the same two lines to update a cache
+      variable whilst preserving its help string.
+    - This commit adds a function which wraps up this common operation into
+      a single line.
+    
+    Change-Id: Ic78a5adf5d59262bbbcec1e353ded7620391e862
 
-commit f695322eb8c5ff118f0d27f68d46d557338e5db1
+commit 8f4dcb25f1be74a8c12c0f9eeb67b6b0755563f5
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Jan 4 14:28:23 2014 -0800
+Date:   Tue Apr 29 21:40:57 2014 -0700
 
-    Remove a compilation warning on windows.
+    Documentation update.
     
-    Only define NOMINMAX if it is not already defined.
+    Update modeling.rst and solving.rst to reflect
+    changes to the API.
     
-    Thanks to Pierre Moulon for this fix.
-    
-    Change-Id: Ia5dc0f5ff2afe10e4c7e97a57f54297d82052b21
+    Change-Id: Id1a8adfed1486f08e5fd67c5af2d29708a26490c
 
-commit b811041d78d80518db153ef3030bcbdbaf80df8d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Jan 2 15:19:17 2014 +0600
+commit d48e7050225730f61eaef851def5b43bc439e991
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Sat May 10 08:58:58 2014 +0100
 
-    Code cleanup: fix no previous declaration warnings
+    Configure config.h and include it from the build directory.
     
-    Moved some internally used functions into an anonymous namespace.
+    - Previously we overwrote the default (empty) config.h in the source
+      tree with a configured config.h, generated using the current compile
+      options.
+    - This was undesirable as it could lead to inadvertant commits of the
+      generated config.h.
     
-    Change-Id: Ie82df61b0608abac79ccc9f7b14e7f7e04ab733d
+    - This patch moves the default config.h to <src>/config/ceres/internal,
+      separate from the other headers, thus if Ceres is compiled without
+      CMake this directory will now also have to be included.  This
+      directory is _not_ added to the CMake include directories for Ceres
+      (thus the default config.h is never used when compiling with CMake).
+    - When using CMake, the generated config.h is now placed in
+      <build>/config/ceres/internal, which is in turn added to the include
+      directories for Ceres when it is compiled, and the resulting config.h
+      is copied to ceres/internal when installed.
+    
+    Change-Id: Ib1ba45e66e383ade2ebb08603af9165c1df616f2
 
-commit f14f6bf9b7d3fbd2cab939cf4ad615b317e93c83
+commit 11c496164ffe9809306945c2b81276efcd51533d
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Dec 26 09:50:45 2013 -0800
+Date:   Fri May 9 16:27:03 2014 -0700
 
-    Speed up SPARSE_NORMAL_CHOLESKY when using CX_SPARSE.
+    Fix 80cols violation in local_parameterization.h
     
-    When using sparse cholesky factorization to solve the linear
-    least squares problem:
-    
-      Ax = b
-    
-    There are two sources of computational complexity.
-    
-    1. Computing H = A'A
-    2. Computing the sparse Cholesky factorization of H.
-    
-    Doing 1. using CX_SPARSE is particularly expensive, as it uses
-    a generic cs_multiply function which computes the structure of
-    the matrix H everytime, reallocates memory and does not take
-    advantage of the fact that the matrix being computed is a symmetric
-    outer product.
-    
-    This change adds a custom symmetric outer product algorithm for
-    CompressedRowSparseMatrix.
-    
-    It has a symbolic phase, where it computes the sparsity structure
-    of the output matrix and a "program" which allows the actual
-    multiplication routine to determine exactly which entry in the
-    values array each term in the product contributes to.
-    
-    With these two bits of information, the outer product H = A'A
-    can be computed extremely fast without any reasoning about
-    the structure of H.
-    
-    Further gains in efficiency are made by exploiting the block
-    structure of A.
-    
-    With this change, SPARSE_NORMAL_CHOLESKY with CX_SPARSE as the
-    backend results in > 300% speedup for some problems.
-    
-    The symbolic analysis phase of the solver is a bit more expensive
-    now but the increased cost is made up in 3-4 iterations.
-    
-    Change-Id: I5e4a72b4d03ba41b378a2634330bc22b299c0f12
+    Change-Id: I07f59baa9e4aba7c5ae028f0c144ea9ad153d49a
 
-commit d79f886eb87cb064e19eb12c1ad3d45bbed92198
+commit af3154422b63b7792ecd23b00ca1a0c003764dae
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Dec 30 07:39:10 2013 -0800
+Date:   Fri May 9 05:45:03 2014 -0700
 
-    Refactor line search error checking code.
+    Add Alex Stewart as a maintainer.
     
-    Move the error checking code into its own function
-    so that it can be used in upcoming changes.
+    Update contributing.rst to mention Alex
+    as one of the people who can be added
+    as a reviewer.
     
-    Change-Id: Icf348e5a8bbe8f8b663f04fb8cfc9a2149b12f22
+    Change-Id: I30ff3e635e8c419e11e8f20394aaea5f284a10d5
 
-commit 2b16b0080b6e673eaaf9ed478c9e971d9fcd65de
+commit ea765850685f1ff0431da5212656378fc20d3673
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Wed May 7 20:46:17 2014 +0100
+
+    Adding autogenerated Ceres config.h to #define Ceres compile options.
+    
+    - Previously we passed all compile options to Ceres via add_definitions
+      in CMake.  This was fine for private definitions (used only by Ceres)
+      but required additional work for public definitions to ensure they
+      were correctly propagated to clients via CMake using
+      target_compile_definitions() (>= 2.8.11) or add_definitions().
+    - A drawback to these approaches is that they did not work for chained
+      dependencies on Ceres, as in if in the users project B <- A <- Ceres,
+      then although the required Ceres public compile definitions would
+      be used when compiling A, they would not be propagated to B.
+    
+    - This patch replaces the addition of compile definitions via
+      add_definitions() with an autogenerated config.h header which
+      is installed with Ceres and defines all of the enabled Ceres compile
+      options.
+    - This removes the need for the user to propagate any compile
+      definitions in their projects, and additionally allows post-install
+      inspect of the options with which Ceres was compiled.
+    
+    Change-Id: Idbdb6abdad0eb31e7540370e301afe87a07f2260
+
+commit cbf955474acf8f275b272da6ff5acd3a629cc806
+Author: Björn Piltz <bjornpiltz@gmail.com>
+Date:   Wed May 7 17:10:15 2014 +0200
+
+    Fixes swapped verboselevel and condition.
+    
+    Change-Id: I296d86e6bbf415be4bfd19d6a0fe0963e3d36d74
+
+commit 3209b045744ea31f38d74bd9e9c8f88e605e7f76
+Author: Björn Piltz <bjornpiltz@gmail.com>
+Date:   Wed May 7 17:02:27 2014 +0200
+
+    Fixed warning : 'va_copy' : macro redefinition
+    MSVC 2013 has got va_copy
+    Compare
+    http://msdn.microsoft.com/en-us/library/kb57fad8(v=vs.110).aspx
+    and
+    http://msdn.microsoft.com/en-us/library/kb57fad8.aspx.
+    
+    Change-Id: If0937c76e8d250cde4b343844f3d35c980bf0921
+
+commit 1df2f0f5d704f0cc458cf707e2602d495979e3c6
+Author: Björn Piltz <bjornpiltz@gmail.com>
+Date:   Wed May 7 11:10:30 2014 +0200
+
+    Removed MSVC warnings
+    These are warnings which show up when using Ceres.
+    
+    Change-Id: Id1f382f46b8a60743f0b12535b5b3cdf46f988e0
+
+commit eca7e1c635581834c858794e09c1e876323b7775
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Dec 20 15:22:26 2013 -0800
+Date:   Tue May 6 10:16:19 2014 -0700
 
-    CompressedRowSparseMatrix::AppendRows and DeleteRows bugfix.
+    Remove BlockRandomAccessCRSMatrix.
     
-    CompressedRowSparseMatrix can store the row and column block structure
-    but the AppendRows and DeleteRows methods did not pay attention to them.
-    This meant that it was possible to get to a CompressedRowSparseMatrix
-    whose block structure did not match the contents of the matrix.
+    It is not used anywhere.
     
-    This change fixes this problem.
-    
-    Change-Id: I1b3c807fc03d8c049ee20511e2bc62806d211b81
+    Change-Id: I2a8ebbdacf788582f21266825ead3f76646da29e
 
-commit 27bb4a8589c47a65b5ea2c01872a903043d0ef74
+commit 7088a08f5d9e04e75a5a4c3823ef7927e13ff0e4
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Dec 18 13:06:58 2013 -0800
+Date:   Mon May 5 09:02:05 2014 -0700
 
-    Handle empty problems consistently.
+    Fix some 80col violations and reflow the comments in cmake.in file.
     
-    Until now Ceres was inconsistent in the way it handled a solve
-    call on an "empty" Problem. If the problem did not contain
-    any residual or parameter blocks, it failed. However, if after
-    constructing the reduced program, the problem was found to not
-    contain any modifiable parameter blocks, it was considered a valid
-    problem which had a constant objective function value.
-    
-    When creating problems automatically, it is often the case that
-    an empty problem is a corner case. This change makes handling this
-    corner case consistent with the rest of Ceres logic.
-    
-    Change-Id: Ia9da09fbf5d5cd7eae6b39a92c1976b8645db9fe
+    Change-Id: I4c65c89b794845aeef69159a03350c727e2ee812
 
-commit dcee120bac04911bf01d8365bddca87c74ce2af9
+commit 95cce0834d5a2d72568e6d2be968a51c244c2787
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Dec 7 21:48:56 2013 -0800
+Date:   Mon May 5 08:54:50 2014 -0700
 
-    Consolidate SolverTerminationType enum.
+    Remove some errant tabs.
     
-    1. Rename SolverTerminationType to TerminationType.
-    2. Consolidate the enum as
-      a. CONVERGENCE - subsumes FUNCTION_TOLERANCE, PARAMETER_TOLERANCE and GRADIENT_TOLERANCE
-      b. NO_CONVERGENCE
-      c. FAILURE - captures all kinds of failures including DID_NOT_RUN.
-      d. USER_SUCCESS
-      e. USER_FAILURE
-    3. Solver::Summary::error is renamed to be Solver::Summary::message, to both
-    reduce confusion as well as capture its true meaning.
-    
-    Change-Id: I27a382e66e67f5a4750d0ee914d941f6b53c326d
+    Change-Id: Ie1f7051e99bcb15ad068711b68a9d8f317b12ed7
 
-commit d1cf320bb4f032cb14b20114a29ce2d867307492
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Nov 28 23:11:11 2013 +0600
-
-    Made collections port compatible with MSVC2008
-    
-    The issue was caused by the fact that in this version
-    of MSVC unordered_map class is defined in <unordered_map>
-    header file, but this file declares the class int std::tr1
-    namespace.
-    
-    This confused existing assumption that if there's an
-    existing <unordered_map> file then class is declared
-    in std namespace.
-    
-    Added an extra check to CMake which detects whether
-    it's std or std::tr1 which actually contains class
-    of unordered_map.
-    
-    Change-Id: Ic5cf41913895a6ce8e791cc7602d7cf5492c34de
-
-commit 324eccb5f6ce2a1a0061ec9f3c40778a029a2d97
+commit a536ae76dfa2dbe2bc487900b98cf6c15276c649
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Dec 3 09:28:14 2013 -0800
+Date:   Sun May 4 21:18:42 2014 -0700
 
-    Restore the state of the Problem after a call to Evaluate.
+    Lazily initialize the bounds arrays in ParameterBlock.
     
-    Calling Problem::Evaluate mutates the state of the parameter blocks.
-    In particular, depending on the set and order of parameter blocks
-    passed to the evaluate call, it will change the internal indexing
-    used by the Program object used by ProblemImpl. This needs to be
-    undone before Evaluate returns, otherwise the Problem object
-    is in an invalid state.
+    Problems that do not use bounds do not have to pay the
+    price of storing bounds constraints.
     
-    To help with testing and debugging in the future, a new method
-    Program::IsValid has been added which checks whether the problem
-    has its parameter and residual blocks in the right state.
+    Also replace the raw pointer access to the upper and
+    lower bounds arrays with accessors which hides the
+    lazy initialization from the user.
     
-    Thanks to Stefan Leutenegger for reporting this.
-    
-    Change-Id: I209b486a31433f0cbb58b570047649eca6d42b56
+    Change-Id: I0325a35de9c29f853559f891e32e7c777686e537
 
-commit 3b1ad31a1fe89fe0bd78e1fffdf22d47d43faaf5
+commit 633b50b7af9841607c07133f585e131fba7de177
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Dec 2 15:43:20 2013 -0800
+Date:   Fri May 2 22:46:20 2014 -0700
 
-    Fix build breakage on old versions of SuiteSparse.
+    Add the (2,4,8) template specialization.
     
-    Change-Id: I2a061615fc374abef2ed323c298359002a6fc5f1
+    Change-Id: I058bcebdd1725031d573404133b184d6f27dc005
 
-commit 5fd480692b0a0c87e2af2f5a8754042a14f5f089
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Dec 2 12:16:53 2013 -0800
+commit 5ffe06019a6c741ee7edc940ffeeceaaeabfa05d
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Thu May 1 12:06:46 2014 +0100
 
-    Add more documentation to the linear solver enums.
+    Export Ceres compile definitions to targets compiled against Ceres.
     
-    Change-Id: Id57f76f73fa38043c0b6729972b1de8578ad7ede
+    - Previously all Ceres compile definitions were private to Ceres, that
+      is they were not exported to users via the CMake export mechanism.
+    - Now that we use compile definitions in public (installed) Ceres
+      headers, we need to export the Ceres compile definitions.
+    - If we did not do this, then the client's code 'see's' a different
+      version of the Ceres headers to those which were in fact compiled,
+      or in the case of shared_ptr, may not find the required header.
+    
+    - This patch makes use of the new, in CMake 2.8.11, function:
+      target_compile_definitions() to export all of the Ceres compile
+      definitions using CMake's export functionality.
+    - For CMake versions < 2.8.11, we have to use the blunter instrument of
+      calling add_definitions() in CeresConfig.cmake (invoked by a call to
+      find_package(Ceres)).  This is messy because it ends up adding the
+      Ceres compile definitions to any target declared in the user's code
+      after the call to find_package(Ceres).  Although this should do no
+      harm as all of our defines are prefaced with CERES_, so any
+      unintentional name clashes are unlikely.
+    
+    Change-Id: I5dea80949190eaf4fb08ea4ac568ce28c32dd4e0
 
-commit d73acd035359886dfa1c5762b01c6f6449edcab8
+commit 0e811b0881f1f21df0ae04fd745ae4ba5189cac1
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Dec 2 12:02:03 2013 -0800
+Date:   Thu May 1 07:54:12 2014 -0700
+
+    Fix a bug in Minimizer::RunCallbacks.
+    
+    Solver::Summary::message was not being updated when the solver
+    terminated because of a user's iteration callback indicating
+    success or failure.
+    
+    Thanks to Sergey Sharybin for reporting this.
+    
+    Change-Id: I27e6e5eed086920ddf765461b0159417ac79d7b3
+
+commit 31b503792611d2119bb1acb3528fc8d58c5bd029
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Apr 30 15:02:38 2014 -0700
 
     Lint cleanup from William Rucklidge.
     
-    Change-Id: I8abcfd369f41b895ce746a21a35f250fe05c39d1
+    Change-Id: If545f114c1a2b07edd660a3c71ecfc16ffa25e43
 
-commit 3faac6a28cec4c99c41421d3f585f3786be443b3
+commit 15c1210a8bdf3e936b4ef600d75f0fbb70878fb5
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Nov 28 07:13:26 2013 -0800
-
-    More lint cleanups and breakage fixes.
-    
-    The previous CL was a premature submit due to lack of coffee.
-    
-    Change-Id: Id425d0ef332f569a954f0413e6b1ae6087f40f30
-
-commit ed92366592a951041bd0367c24006101ef7b6286
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Nov 28 06:50:43 2013 -0800
-
-    Lint cleanup from William Rucklidge.
-    
-    Change-Id: I745810f5496a1b93263b20ff140f8883da61995e
-
-commit 34b6359f39884683f2bbf06c93040afd42ae135d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Nov 28 18:51:34 2013 +0600
-
-    Fix compilation error after recent enum rename in 33e01b9
-    
-    Change-Id: I920aa4754df6b013e86f0e77c61338d7a80e7f45
-
-commit 33e01b9c5e1416fe29c55ac0332cdca21c053c83
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Nov 27 10:24:03 2013 -0800
-
-    Rename LinearSolverTerminationType enums.
-    
-    This increases clarity, drops redundant enums and makes things
-    cleaner all around.
-    
-    Change-Id: I761f195ddf17ea6bd8e4e55bf5a72863660c4c3b
-
-commit 068437eb89d495d905465544ccd442efef457b04
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Nov 27 07:05:57 2013 -0800
-
-    Pipe minimizer termination messages to Solver::Summary.
-    
-    All minimizer termination messages are now available as
-    Solver::Summary::error.
-    
-    This is part of the ongoing refactoring or
-    
-    Change-Id: I4514c3c042645bbd1471bcde9bd3dbf81d9ee8b0
-
-commit 89a592f410fb6f80c03dea84b6b9f1a10bea36c1
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Nov 26 11:35:49 2013 -0800
-
-    LinearSolver::Summary::status -> LinearSolver::Summary::message.
-    
-    And a bunch of minor lint cleanups as they showed up.
-    
-    Change-Id: I430a6b05710923c72daf6a5df4dfcd16fbf44b3a
-
-commit b16e118b96c55451c0d8556f3c5b52ad36b69cac
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Nov 25 05:47:43 2013 -0800
-
-    Better error checking and reporting for linear solvers.
-    
-    A lot of error checking cruft has accumulated over the years
-    in the various linear solvers. This change makes the error reporting
-    more robust and consistent across the various solvers.
-    
-    Preconditioners are not covered by this change and will be the
-    subject of a future change.
-    
-    Change-Id: Ibeb2572a1e67758953dde8d12e3abc6d1df9052d
-
-commit 5794d41be2d8d6a67dcdfe607e66050f0ac04c55
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Nov 25 13:37:02 2013 -0800
-
-    Remove overzealous checks in Summary::FullReport.
-    
-    Thanks to sebi.koch@gmail.com for reporting this.
-    
-    Change-Id: I1ba9b375e5cf66639e292ba37b34a90446f13162
-
-commit 40ef90304ac200bb948549e8e3748e487d27dc53
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Nov 25 16:36:40 2013 +0000
-
-    Adding VLOG output to line search.
-    
-    - Previously line search was sparse in terms of debug orientated VLOG
-      output which made debugging failure cases difficult.
-    
-    Change-Id: Idfabf74d2b3f7b8256f79dff8c6b7fcdc2fcf4d3
-
-commit 1284a5141426597f3ca1e29ae8548c9b4c43c9c1
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Nov 24 15:09:43 2013 -0800
-
-    Use explicit formula to solve quadratic polynomials.
-    
-    polynomial.cc implements a companion matrix base method for solving
-    polynomials. This is both expensive and numerically sensitive.
-    
-    This change adds a quadratic equation solver. Instead of using the
-    usual quadratic formula, it uses the formula suggested by BKP Horn
-    for improved numerical stability.
-    
-    Change-Id: I476933ce010d81db992f1c580d2fb23a4457eb3e
-
-commit a9334d67d7973c0f56e65f12ae897dd53504ef0d
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Nov 20 10:12:23 2013 -0800
-
-    Fix constant parameter handling in inner iterations.
-    
-    There was a bug in the way RemoveFixedBlocksFromProgram was working.
-    It only removed the constant parameter blocks from the
-    linear_solver_ordering, it was not even aware of the
-    inner_iteration_ordering.
-    
-    This change fixes this bug. The code for RemoveFixedBlocksFromProgram
-    is also cleaned up and made more readable and the test have been updated.
-    
-    Thanks to Mikael Persson for reporting this.
-    
-    Change-Id: I454fa89f9b6f4f6320b02d5235e6f322cc15ff51
-
-commit 331ff090dcae7096cea50144047b71cab2d3e819
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Nov 25 13:44:53 2013 +0000
-
-    Downgrading log status of BFGS secant condition messages.
-    
-    - These messages were originally VLOG(2) and were mistakenly upgraded to
-      WARNINGs when the tolerances were reduced.
-    
-    Change-Id: I89dee666a09bc82cfa89b793dc0907268662f95e
-
-commit 9697a08a2bf29531671526b49df73bfbc0d7d237
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sat Nov 23 10:03:37 2013 +0000
-
-    Defining CERES_FOUND in addition to Ceres_FOUND in CeresConfig.
-    
-    - Previously we relied on FindPackage() to define Ceres_FOUND when
-      find_package(Ceres) was called.
-    - This is fine, but users might legitimately expect the variable to be
-      CERES_FOUND given the form of CERES_INCLUDE_DIRS/LIBRARIES.
-    - As there is an inconsistency in the CMake recommended names when
-      FindPackage() is called in Module vs Config form, we now explicltly
-      define both.
-    
-    Change-Id: I54bce9aa112b684d26b60a9ae4d11eb7925a6ee5
-
-commit 66e15b41d80b155f333f099a0278d50312cdaa15
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Nov 22 07:59:23 2013 -0800
+Date:   Tue Apr 29 08:12:19 2014 -0700
 
     Lint cleanup from Jim Roseborough.
     
-    Change-Id: I6ddbf5c3d66595d27f7967a309768e5f5dd7e1fd
+    Change-Id: I53f4e0d020602443b397387b8c5908f25649403d
 
-commit 79bde35f29291cf464b59f3dc2dd9f1fa88776a9
+commit b1668067f1c97520d5d28eecf2c11d2afc1b01b3
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Nov 21 21:33:51 2013 -0800
+Date:   Tue Apr 29 08:12:19 2014 -0700
 
-    SuiteSparse errors do not cause a fatal crash.
+    Variety of changes to documentation and example code.
     
-    1. Move LinearSolverTerminationType to ceres::internal.
-    2. Add FATAL_ERROR as a new enum to LinearSolverTerminationType.
-    3. Pipe SuiteSparse errors via a LinearSolverTerminationType so
-       to distinguish between fatal and non-fatal errors.
-    4. Update levenberg marquardt and dogleg strategies to deal
-       with FATAL_ERROR.
-    5. Update trust_region_minimizer to terminate when FATAL_ERROR
-       is encountered.
-    6. Remove SuiteSparse::SolveCholesky as it screws up the error
-       handling.
-    7. Fix all clients calling SuiteSparse to handle the result of
-       SuiteSparse::Cholesky correctly.
-    8. Remove fatal failures in SuiteSparse when symbolic factorization
-       fails.
-    9. Fix all clients of SuiteSparse to deal with null symbolic factors.
+    1. Update version history.
+    2. Minor changes to the tutorial to reflect the bounds constrained
+       problem.
+    3. Added static factory methods to the SnavelyReprojectionError.
+    4. Removed relative gradient tolerance from types.h as it is
+       not true anymore.
     
-    This is a temporary fix to deal with some production problems. A more
-    extensive cleanup and testing regime will be put in place in a
-    subsequent CL.
-    
-    Change-Id: I1f60d539799dd95db7ecc340911e261fa4824f92
+    Change-Id: I8de386e5278a008c84ef2d3290d2c4351417a9f1
 
-commit a674e0f8534ea6948f70a72fe9718e07b3d039ff
+commit 658407dacc351a999206980fbb3265099e50e7a3
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Nov 21 22:12:15 2013 -0800
+Date:   Mon Apr 28 13:25:17 2014 -0700
 
-    Fix corrector_test.cc.
+    Add missing template specializations to the NDK build.
     
-    Fix two death tests dealing with the sign of the gradient.
-    
-    Change-Id: Ic91d54a64cc509307c94fce6d1fca083078936e2
+    Change-Id: I42bb6c3bd47648050298472af80333aa900e79bf
 
-commit a8006af3110e98d64fb369e958fc00ec88d771a3
+commit 5d7eed87b47871bc882af765188fa4fbca976855
+Author: Björn Piltz <bjornpiltz@gmail.com>
+Date:   Wed Apr 23 22:13:37 2014 +0200
+
+    Suppport for MSVC DLLs.
+    
+    Change-Id: Ibbcc4ba4e59f5bbf1cb91fe81c7d3b9042d03493
+
+commit c830820a5c2be0d0cecb0822f2cff8b4ffe88f36
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Apr 28 10:28:24 2014 -0700
+
+    Add missing files to Android.mk
+    
+    Change-Id: Ibdf577c592bcde0fe5c2ce343ed8e9028b82af8f
+
+commit ceb7a3beaad140762b499f9a306fd7230715941a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 28 13:50:09 2014 +0600
+
+    Fix compilation error when using G++ compiler
+    
+    This compiler defines shared_ptr in std::tr1 namespace, but
+    for this <tr1/memory> is to be included. Further, this compiler
+    also does have <memory> header which confused previous shared
+    pointer check.
+    
+    Simplified logic around defines now, so currently we've got:
+    - CERES_TR1_MEMORY_HEADER defined if <tr1/memory> is to be
+      used for shared_ptr, otherwise <memory> is to be used.
+    - CERES_TR1_SHARED_PTR defined if shared_ptr is defined in
+      std::tr1 namespace, otherwise it's defined in std namespace.
+    
+    All the shared_ptr checks are now moved to own file FindSharedPtr
+    which simplifies main CMakeLists.
+    
+    Change-Id: I558a74793baaa0bd088801910a356be4ef17c31b
+
+commit 02db9414fb6739857a37e268500083a0546cd0a3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Apr 28 08:32:51 2014 -0700
+
+    Fix the documentation for RandNormal.
+    
+    As pointed out by Jim Roseborough, this is the Marsaglia Polar
+    method and not the Box-Muller method.
+    
+    Change-Id: Id5332bcd4b4c23a3885cc296729b44eaa5edd0a8
+
+commit 32530788d08c53f8d2c8a5f9bd61aa60a23d6e03
+Author: Richard Stebbing <richie.stebbing@gmail.com>
+Date:   Sat Apr 26 07:42:23 2014 +0100
+
+    Add dynamic_sparsity option.
+    
+    The standard sparse normal Cholesky solver assumes a fixed
+    sparsity pattern which is useful for a large number of problems
+    presented to Ceres. However, some problems are symbolically dense
+    but numerically sparse i.e. each residual is a function of a
+    large number of parameters but at any given state the residual
+    only depends on a sparse subset of them. For these class of
+    problems it is faster to re-analyse the sparsity pattern of the
+    jacobian at each iteration of the non-linear optimisation instead
+    of including all of the zero entries in the step computation.
+    
+    The proposed solution adds the dynamic_sparsity option which can
+    be used with SPARSE_NORMAL_CHOLESKY. A
+    DynamicCompressedRowSparseMatrix type (which extends
+    CompressedRowSparseMatrix) has been introduced which allows
+    dynamic addition and removal of elements. A Finalize method is
+    provided which then consolidates the matrix so that it can be
+    used in place of a regular CompressedRowSparseMatrix. An
+    associated jacobian writer has also been provided.
+    
+    Changes that were required to make this extension were adding the
+    SetMaxNumNonZeros method to CompressedRowSparseMatrix and adding
+    a JacobianFinalizer template parameter to the ProgramEvaluator.
+    
+    Change-Id: Ia5a8a9523fdae8d5b027bc35e70b4611ec2a8d01
+
+commit 2569076ff0bf8ffb3938da8b5df7edc4883aa053
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 25 23:54:48 2014 -0700
+
+    More NDK fixes.
+    
+    Fix variable names in port.h and fix fpclassify when
+    using gnustl. This was tested by switching to gnustl
+    in the JNI build.
+    
+    Thanks to Carlos Hernandez for suggesting the gnustl fixes.
+    
+    Change-Id: I690b73caf495ccc79061f45288e416da1604cc72
+
+commit e55596f8860a09b12b5e1f949237f15357c1ac59
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 25 16:17:19 2014 -0700
+
+    Change the defaults for shared_ptr.
+    
+    By default shared_ptr is now assumed to be
+    in the standard <memory> header and in the
+    std namespace.
+    
+    Previously the way the ifdefs were structured if the appropriate
+    variable was not defined, it would default to <t1/memory>.
+    
+    The new defaults are more future proof.
+    
+    Change-Id: If457806191196be2b6425b8289ea7a3488a27445
+
+commit bb05be341b8436f611e4b69954a529edcca5b577
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 13 14:22:19 2014 -0700
+
+    Solver::Options uses shared_ptr to handle ownership.
+    
+    Solver::Options::linear_solver_ordering and
+    Solver::Options::inner_iteration_ordering
+    were bare pointers even though Solver::Options took ownership of these
+    objects.
+    
+    This lead to buggy user code and the inability to copy Solver::Options
+    objects around.
+    
+    With this change, these naked pointers have been replaced by a
+    shared_ptr object which will managed the lifetime of these objects. This
+    also leads to simplification of the lifetime handling of these objects
+    inside the solver.
+    
+    The Android.mk and Application.mk files have also been updated
+    to use a newer NDK revision which ships with LLVM's libc++.
+    
+    Change-Id: I25161fb3ddf737be0b3e5dfd8e7a0039b22548cd
+
+commit 8e0991381ea3a2baddea017cd07b333f0c5de595
+Author: Joydeep Biswas <joydeep.biswas@gmail.com>
+Date:   Tue Apr 22 10:40:47 2014 -0400
+
+    Added a simplified robotics example for DynamicAutoDiffCostFunction.
+    
+    Change-Id: I9520e0a9a8d9743285c5114523fbafa6ffa5b0bd
+
+commit cc9d3bba1008066e51502cabd956985c6bdedfe8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Apr 18 22:58:09 2014 -0700
+
+    Remove a comment from conf.py
+    
+    Change-Id: I675f7e8fc5dd2143eab74901bc7241e02e37285f
+
+commit c4cd29dd7c80ade5b3ac7a1f6ee7df22c8869ab5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Apr 16 23:40:12 2014 -0700
+
+    Merge landing page with introduction.
+    
+    The existing introduction was a bit redundant and also
+    was not really an introduction. Also updated the build
+    instructions to reflect the new reality on Mac OSX.
+    
+    Also updated the beginning of the tutorial to be a bit
+    gentler and updated the history to be more consistent
+    
+    Change-Id: Ife38c1949252cf9f4c6301856957f2d38365f313
+
+commit 46ccfb376ac52ac159f9187e0f7384ef68c1cbdd
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Apr 12 21:56:51 2014 -0700
+
+    Cleanup block_structure.h/cc
+    
+    1. Remove obsolete Proto conversion functions.
+    2. Fix a strict weak ordering bug.
+    
+    Change-Id: I1ce6d4b06e29cf475df1d5bd37c79f66f20f8d93
+
+commit 7d489fdb073937ac05c0693c1902fbcb9eeb7dfc
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Apr 7 11:14:51 2014 -0700
+
+    Refactor the landing page to be a bit more compact.
+    
+    Also minor changes to the introduction.
+    
+    Change-Id: Iaa71f576b95c869f075d6837dbb60ba4bb608ee7
+
+commit 406ac7816730c15425db20d994ac0d60d932ab6c
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Apr 7 08:36:07 2014 +0000
+
+    Rework Ceres documentation as new website
+    
+    This reworks the Ceres Sphinx documentation such that it can
+    function as the main Ceres website, now hosted at
+    ceres-solver.org. This also changes to the theme sphinx_rtd_theme
+    used by Read The Docs; this theme has strong mobile support and is
+    well enough designed.
+    
+    Change-Id: I63232d985859a6dac94ff58f08bf81eb2b9e7f99
+
+commit 3e60a998ac970da659d590bac2ff892ee619aa1b
+Author: Richard Bowen <rsbowen@google.com>
+Date:   Tue Apr 1 16:22:49 2014 -0700
+
+    Added support and tests: row and column blocks for sparse matrix
+    transpose.
+    
+    Change-Id: Ife641b08a9e86826478521a405f21ba60667f0e8
+
+commit 5ecb1c3f1dfde6e8ed4b493eafef7b43dad19e72
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Apr 1 09:20:35 2014 -0700
+
+    Add Problem::IsParameterBlockPresent.
+    
+    This allows the user to query the Problem to see if a
+    parameter block is already present or not.
+    
+    Change-Id: If786f6c008cc644f3398597901d718d12a6d865d
+
+commit 75e2232b29ff2ea42c8406c9d45b138a7e7a0048
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Mar 28 11:21:02 2014 -0700
+
+    Fix spacing in building.rst
+    
+    Change-Id: I4c68d732c80d7ff2bdbc812bf0b7c7fb98c43957
+
+commit b555b489b8447434294a8a6676272289140d6a1d
+Author: Richard Bowen <rsbowen@google.com>
+Date:   Thu Mar 27 15:51:28 2014 -0700
+
+    Changes documentation to reflect changes in output format.
+    
+    Change-Id: Ic0ba234283e791edcad29aec067905dcb2130813
+
+commit 1cfb600bfc3be8342f85f155b2b219a595ee58da
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Mar 26 12:55:11 2014 -0700
+
+    Add the (2,4,9) template specialization for PartitionedMatrixView
+    and SchurEliminator.
+    
+    Also update the comment inside generate_partitioned_matrix_view_specializations.py
+    
+    Change-Id: I99a7ab4256091b1da48553da3076e5996a5757ed
+
+commit 195e49351b386ffc23020d406883eaa6511e29b3
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Nov 20 19:56:06 2013 +0000
+Date:   Wed Mar 26 11:36:11 2014 +0000
 
-    Adding threads libraries to exported dependencies if using OpenMP.
+    Check validity of residual block before removal in RemoveResidualBlock.
     
-    - Previously we were only adding the flags to the link flags for the
-      Ceres project, which resulted in them not being exported. Thus
-      projects importing Ceres (if using OpenMP) would have to manually
-      specify them in addition to CERES_LIBRARIES.
+    - Breaking change: Problem::Options::enable_fast_parameter_block_removal
+      is now Problem::Options::enable_fast_removal, as it now controls
+      the behaviour for both parameter and residual blocks.
     
-    Change-Id: If0354cc07e84dbebfc870a8862e1a8ca64659791
+    - Previously we did not check that the specified residual block to
+      remove in RemoveResidualBlock actually represented a valid residual
+      for the problem.
+    - This meant that Ceres would die unexpectedly if the user passed an
+      uninitialised residual_block, or more likely attempted to remove a
+      residual block that had already been removed automatically after
+      the user removed a parameter block upon on which it was dependent.
+    - RemoveResidualBlock now verifies the validity of the given
+      residual_block to remove.  Either by checking against a hash set of
+      all residuals maintained in ProblemImpl iff enable_fast_removal
+      is enabled.  Or by a full scan of the residual blocks if not.
+    
+    Change-Id: I9ab178e2f68a74135f0a8e20905b16405c77a62b
 
-commit 6c0d96424e2c27326757936a3738f9efc37c6c24
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Nov 20 11:52:01 2013 -0800
-
-    Minor documentation fix.
-    
-    Thanks to Satya Mallick.
-    
-    Change-Id: I556f1c141bf16739d54450351b0f29fd4ea40014
-
-commit 7747bb0e6b0e54366933ed75c1bcafe6a1109c3d
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Nov 20 11:29:22 2013 -0800
-
-    Minor corrections to the documentation.
-    
-    Thanks to Satya Mallick for reporting these.
-    
-    Change-Id: Ia52e08a7e21d5247dc475cfbf10bf57265aa118f
-
-commit 3fca2c4b2fae9abcaa9611f2bd3885ce6b11963b
+commit 74762b60332d4a1c08ec5aef75ec718da9d305a2
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Nov 18 10:26:49 2013 +0000
+Date:   Thu Mar 20 14:50:25 2014 +0000
 
-    Decreasing update threshold for BFGS as per L-BFGS.
+    Allow construction of an AutoDiffLocalParameterization with a functor.
     
-    - Improves performance of BFGS on NIST, as per L-BFGS.
-    - Adding explanation of origin and purpose of Secant condition
-      tolerance check for Hessian update in (L)BFGS.
+    - Previously AutoDiffLocalParameterization would internally instantiate
+      a functor instance whenever one was required.  This prohibits the
+      user passing arguments to the constructor of the functor.
+    - Now AutoDiffLocalParameterization can take over ownership of an
+      allocated functor which the user created.  This mimics the behaviour
+      of AutoDiffCostFunction.
     
-    Change-Id: If57b9957d31d8629c772c19a069e1e56e727b350
+    Change-Id: I264e1face44ca5d5e71cc20c77cc7654d3f74cc0
 
-commit 54fcbf893852272ba2158d6a56572a2eb3ccc41f
+commit 4f603fb0d82317a53fa9d96abe6a97b2e69bff36
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Nov 19 10:12:05 2013 -0800
+Date:   Wed Mar 19 17:16:43 2014 -0700
 
-    Relax the requirements on loss functiond derivatives.
+    Grammer fixes from William Rucklidge.
     
-    We now require that the first derivative of the loss function
-    be positive only if the second derivative is non-zero. This is
-    because when the second derivative is non-positive, we do not use
-    the second order correction suggested by BANS and instead use
-    a simpler first order strategy which does not use a division by
-    the gradient of the loss function.
-    
-    Change-Id: I3d65713f152611998e196ff389a7081acfdfd8c1
-
-commit db98425b94c9eff9b125bf4a854545162e8c1aec
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Nov 15 14:14:09 2013 -0800
-
-    Small bugfix to logging.h from Scott Ettinger.
-    
-    Change-Id: Ie6d51e7883adf36c6fc7a78ff95afab6a78e488b
-
-commit 4d0e626b55f36ab8f44a4acc8157b85cfecd4673
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Fri Nov 15 13:53:44 2013 +0000
-
-    Fixing gflags HINTS variable names (adding missing “_DIR”).
-    
-    - The HINTS variables for gflags were incorrectly used as
-      GFLAGS_[INCLUDE/LIBRARY]_HINTS when they should have been
-      GFLAGS_[INCLUDE/LIBRARY]_DIR_HINTS as per the docs.
-    - Also removing a completed TODO in the main CMakeLists.
-    - Updating method of extracting current directory in CeresConfig.cmake
-      to avoid use of CMAKE_CURRENT_LIST_DIR, which was not present in
-      CMake =< v2.8.3.
-    
-    Change-Id: I42ae696e3b785febe48688d912f0f343e8947cb0
-
-commit bf4c1b76e4926c738fc805e9ff4be0ed584d9eee
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Thu Nov 14 21:27:20 2013 +0000
-
-    Decreasing threshold at which L-BFGS Hessian is updated.
-    
-    - Decreasing threshold at which L-BFGS Hessian is updated from 1e-10
-      to 1e-14 results in a very significant improvement in NIST scores
-      (43 -> 53 for CUBIC).
-    - Adding comment in FindPolynomialRoots() explaining why behaviour
-      is correct.
-    
-    Change-Id: If668e087e7a86d29659aa74e8528b192b604c841
-
-commit 7124c3474cd201134c3a3350b46aca468f1edafa
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Thu Nov 7 16:10:02 2013 +0000
-
-    Fixes for some line search bugs & corner cases.
-    
-    - Increase precision of numeric values output in error messages to
-      allow for easier debugging.
-    - Ensure termination after Wolfe search bracketing phase if bracket
-      width has been shrunk to below tolerance.
-    - Cleaned up return value for BracketingPhase(), now false iff
-      optimisation should stop, true otherwise.
-    - Fix bug whereby we would mark a step size as satisfying the Wolfe
-      conditions when it did not due to numerical issues in the cost
-      function.
-    - Adding explanation of a subtlety in which a zoom could still be
-      acceptably invoked with bracket_low.f > bracket_high.f.
-    - Replacing hard check of a pre-condition of ZoomPhase() with a
-      conditional return if not satisfied to address issue whereby a
-      bracket could be incorrectly identified due to inconsistent values
-      & gradients returned from the cost function.
-    - Adding missing check for step size validity in line search minimizer.
-    - Adding ToDebugString() for FunctionSample.
-    
-    Change-Id: Iad98e635749877f80c079ebad126bf022d82232d
-
-commit 54fc9423673886ac9ed3fe329a80f07544aeea70
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Thu Nov 14 11:42:00 2013 +0000
-
-    Removing incorrect specialisation of install dirs on Windows.
-    
-    - Previously on Windows the leaf include & lib install directories
-      passed to CeresConfig.cmake.in when configured where capitalised on
-      Windows.
-    - This capitalisation was incorrect, as the actual paths used are
-      specified in the install() statements and are always in the standard
-      lower-case form.
-    - This likely did not cause any issues previously as although NTFS is
-      case sensitive, the Win32 API is not, and most applications access
-      files through the Win32 API, and are thus not case-sensitive.
-    
-    Change-Id: I335b6e2d10a1c64f320c2a1a68eeda1b22344e73
-
-commit fcbbb11e37386097b1427dc3aa89f264d6951ded
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Nov 13 22:22:30 2013 +0000
-
-    Ensure build paths for dependencies are searched in FindPackage(Ceres)
-    
-    - Append to hint locations used by FindPackage scripts for public
-      dependencies (glog & Eigen) the locations of the dependencies when
-      Ceres was built.
-    - This means that the user should not have to supply them again when
-      using find_package(Ceres) even if they are installed in a
-      non-standard location.
-    
-    Change-Id: I9550de91025ba47f01f1ea3c3fefe80fe38d14ff
-
-commit 7899e45d378f589a67ad8e042bf6a7cb7e15df00
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Nov 13 21:08:27 2013 +0000
-
-    Fixing a documentation typo, DIRS -> DIR in HINTS variables.
-    
-    Change-Id: I42b75a5e0b8a451c3a43ab29d0c14856e4b86ab8
-
-commit 1a041c35b780e60c3b497eb096b72ad20f47960e
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Nov 12 14:17:52 2013 -0800
-
-    Update to 1.8.0.
-    
-    Change-Id: Id42e594f03e3575d06e18c1ef66df64f43d86839
-
-commit 36b26139296060511718b3ef0da03a52706db481
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Thu Nov 7 16:57:36 2013 +0000
-
-    Fix ordering of ParseCommandLineFlags() & InitGoogleTest() for Windows.
-    
-    - On Windows gtest passes additional non-gflags command line flags
-      for death-tests, to avoid gflags invoking an error for these flags
-      InitGoogleTest() must be called before ParseCommandLineFlags() to
-      handle and remove them before gflags parses the remaining flags.
-    
-    Change-Id: I0c705ecd3aa029b70a2589b592e6a2c192745c0e
-
-commit 8c155d51fab099ee7bf64f4bdbfeda82881925a5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Nov 8 08:04:44 2013 -0800
-
-    Speed up the application of robust loss functions.
-    
-    Since we added special handling for the case for rho[2] < 0,
-    the bulk of CorrectJacobian is pointless in the common case.
-    So add a simple one dimensional loop which rescales the Jacobian.
-    This speeds up this method immensely.
-    
-    The robustification of a Jacobian gets speeded up by > 50%.
-    
-    Change-Id: I97c4e897ccbb5521c053e1fb931c5d0d32f542c7
-
-commit 58792dc8ee0e4b56331f33f753f1b1932c5c2960
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Nov 6 09:42:46 2013 -0800
-
-    Update to 1.8.0rc2.
-    
-    Change-Id: Ifbf5312377bf1791a29aefd3edc3a765999c5824
-
-commit af04d7f18740faf452e9171af530aa1bdead44bb
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Nov 5 13:47:30 2013 -0800
-
-    Remove DCHECK_GE checks from fixed_array.h
-    
-    This triggers -Wtype-limits warnings on comparisons
-    which are always true, since the test being done is
-    n >= 0, where n is of type size_t, which is always
-    true.
-    
-    This causes problems when compiling Ceres on linux
-    with miniglog.
-    
-    Change-Id: Ia1d1d1483e03469c71fde029b62ca6d84e9b27e0
+    Change-Id: Ia40df7a1d141eb2552694510453d1431bb0c8dce

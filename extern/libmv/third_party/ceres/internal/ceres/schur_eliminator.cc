@@ -102,6 +102,16 @@ SchurEliminatorBase::Create(const LinearSolver::Options& options) {
   }
   if ((options.row_block_size == 2) &&
       (options.e_block_size == 4) &&
+      (options.f_block_size == 8)) {
+    return new SchurEliminator<2, 4, 8>(options);
+  }
+  if ((options.row_block_size == 2) &&
+      (options.e_block_size == 4) &&
+      (options.f_block_size == 9)) {
+    return new SchurEliminator<2, 4, 9>(options);
+  }
+  if ((options.row_block_size == 2) &&
+      (options.e_block_size == 4) &&
       (options.f_block_size == Eigen::Dynamic)) {
     return new SchurEliminator<2, 4, Eigen::Dynamic>(options);
   }

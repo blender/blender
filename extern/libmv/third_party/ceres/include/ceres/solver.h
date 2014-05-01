@@ -46,7 +46,7 @@ namespace ceres {
 class Problem;
 
 // Interface for non-linear least squares solvers.
-class Solver {
+class CERES_EXPORT Solver {
  public:
   virtual ~Solver();
 
@@ -55,7 +55,7 @@ class Solver {
   // problems; however, better performance is often obtainable with tweaking.
   //
   // The constants are defined inside types.h
-  struct Options {
+  struct CERES_EXPORT Options {
     // Default constructor that sets up a generic sparse problem.
     Options() {
       minimizer_type = TRUST_REGION;
@@ -107,15 +107,14 @@ class Solver {
 
 
       num_linear_solver_threads = 1;
-      linear_solver_ordering = NULL;
       use_postordering = false;
+      dynamic_sparsity = false;
       min_linear_solver_iterations = 1;
       max_linear_solver_iterations = 500;
       eta = 1e-1;
       jacobi_scaling = true;
       use_inner_iterations = false;
       inner_iteration_tolerance = 1e-3;
-      inner_iteration_ordering = NULL;
       logging_type = PER_MINIMIZER_ITERATION;
       minimizer_progress_to_stdout = false;
       trust_region_problem_dump_directory = "/tmp";
@@ -126,7 +125,6 @@ class Solver {
       update_state_every_iteration = false;
     }
 
-    ~Options();
     // Minimizer options ----------------------------------------
 
     // Ceres supports the two major families of optimization strategies -
@@ -367,7 +365,7 @@ class Solver {
 
     // Minimizer terminates when
     //
-    //   max_i |gradient_i| < gradient_tolerance * max_i|initial_gradient_i|
+    //   max_i |x - Project(Plus(x, -g(x))| < gradient_tolerance
     //
     // This value should typically be 1e-4 * function_tolerance.
     double gradient_tolerance;
@@ -480,10 +478,7 @@ class Solver {
     // the parameter blocks into two groups, one for the points and one
     // for the cameras, where the group containing the points has an id
     // smaller than the group containing cameras.
-    //
-    // Once assigned, Solver::Options owns this pointer and will
-    // deallocate the memory when destroyed.
-    ParameterBlockOrdering* linear_solver_ordering;
+    shared_ptr<ParameterBlockOrdering> linear_solver_ordering;
 
     // Sparse Cholesky factorization algorithms use a fill-reducing
     // ordering to permute the columns of the Jacobian matrix. There
@@ -505,6 +500,21 @@ class Solver {
     // performance at the expense of an extra copy of the Jacobian
     // matrix. Setting use_postordering to true enables this tradeoff.
     bool use_postordering;
+
+    // Some non-linear least squares problems are symbolically dense but
+    // numerically sparse. i.e. at any given state only a small number
+    // of jacobian entries are non-zero, but the position and number of
+    // non-zeros is different depending on the state. For these problems
+    // it can be useful to factorize the sparse jacobian at each solver
+    // iteration instead of including all of the zero entries in a single
+    // general factorization.
+    //
+    // If your problem does not have this property (or you do not know),
+    // then it is probably best to keep this false, otherwise it will
+    // likely lead to worse performance.
+
+    // This settings affects the SPARSE_NORMAL_CHOLESKY solver.
+    bool dynamic_sparsity;
 
     // Some non-linear least squares problems have additional
     // structure in the way the parameter blocks interact that it is
@@ -576,7 +586,7 @@ class Solver {
     //    the lower numbered groups are optimized before the higher
     //    number groups. Each group must be an independent set. Not
     //    all parameter blocks need to be present in the ordering.
-    ParameterBlockOrdering* inner_iteration_ordering;
+    shared_ptr<ParameterBlockOrdering> inner_iteration_ordering;
 
     // Generally speaking, inner iterations make significant progress
     // in the early stages of the solve and then their contribution
@@ -703,7 +713,7 @@ class Solver {
     string solver_log;
   };
 
-  struct Summary {
+  struct CERES_EXPORT Summary {
     Summary();
 
     // A brief one line description of the state of the solver after
@@ -941,7 +951,7 @@ class Solver {
 };
 
 // Helper function which avoids going through the interface.
-void Solve(const Solver::Options& options,
+CERES_EXPORT void Solve(const Solver::Options& options,
            Problem* problem,
            Solver::Summary* summary);
 

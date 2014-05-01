@@ -45,6 +45,7 @@
 #include "ceres/internal/macros.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/collections_port.h"
 #include "ceres/problem.h"
 #include "ceres/types.h"
 
@@ -63,6 +64,7 @@ class ResidualBlock;
 class ProblemImpl {
  public:
   typedef map<double*, ParameterBlock*> ParameterMap;
+  typedef HashSet<ResidualBlock*> ResidualBlockSet;
 
   ProblemImpl();
   explicit ProblemImpl(const Problem::Options& options);
@@ -127,6 +129,10 @@ class ProblemImpl {
   void SetParameterBlockVariable(double* values);
   void SetParameterization(double* values,
                            LocalParameterization* local_parameterization);
+  const LocalParameterization* GetParameterization(double* values) const;
+
+  void SetParameterLowerBound(double* values, int index, double lower_bound);
+  void SetParameterUpperBound(double* values, int index, double upper_bound);
 
   bool Evaluate(const Problem::EvaluateOptions& options,
                 double* cost,
@@ -141,6 +147,9 @@ class ProblemImpl {
 
   int ParameterBlockSize(const double* parameter_block) const;
   int ParameterBlockLocalSize(const double* parameter_block) const;
+
+  bool HasParameterBlock(const double* parameter_block) const;
+
   void GetParameterBlocks(vector<double*>* parameter_blocks) const;
   void GetResidualBlocks(vector<ResidualBlockId>* residual_blocks) const;
 
@@ -156,9 +165,15 @@ class ProblemImpl {
   Program* mutable_program() { return program_.get(); }
 
   const ParameterMap& parameter_map() const { return parameter_block_map_; }
+  const ResidualBlockSet& residual_block_set() const {
+    CHECK(options_.enable_fast_removal)
+        << "Fast removal not enabled, residual_block_set is not maintained.";
+    return residual_block_set_;
+  }
 
  private:
   ParameterBlock* InternalAddParameterBlock(double* values, int size);
+  void InternalRemoveResidualBlock(ResidualBlock* residual_block);
 
   bool InternalEvaluate(Program* program,
                         double* cost,
@@ -179,6 +194,9 @@ class ProblemImpl {
 
   // The mapping from user pointers to parameter blocks.
   map<double*, ParameterBlock*> parameter_block_map_;
+
+  // Iff enable_fast_removal is enabled, contains the current residual blocks.
+  ResidualBlockSet residual_block_set_;
 
   // The actual parameter and residual blocks.
   internal::scoped_ptr<internal::Program> program_;

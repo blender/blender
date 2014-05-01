@@ -70,7 +70,7 @@ namespace ceres {
 //   ccf_residual[i] = f_i(my_cost_function_residual[i])
 //
 // and the Jacobian will be affected appropriately.
-class ConditionedCostFunction : public CostFunction {
+class CERES_EXPORT ConditionedCostFunction : public CostFunction {
  public:
   // Builds a cost function based on a wrapped cost function, and a
   // per-residual conditioner. Takes ownership of all of the wrapped cost

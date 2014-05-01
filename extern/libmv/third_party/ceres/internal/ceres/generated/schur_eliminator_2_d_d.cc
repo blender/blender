@@ -40,6 +40,9 @@
 // This file is generated using generate_eliminator_specialization.py.
 // Editing it manually is not recommended.
 
+// This include must come before any #ifndef check on Ceres compile options.
+#include "ceres/internal/port.h"
+
 #ifndef CERES_RESTRICT_SCHUR_SPECIALIZATION
 
 #include "ceres/schur_eliminator_impl.h"

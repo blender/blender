@@ -45,6 +45,9 @@
 
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 10
 
+// This include must come before any #ifndef check on Ceres compile options.
+#include "ceres/internal/port.h"
+
 #ifdef CERES_USE_OPENMP
 #include <omp.h>
 #endif

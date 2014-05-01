@@ -46,10 +46,23 @@ if(WITH_LIBMV)
 		-DLIBMV_NO_FAST_DETECTOR=
 	)
 
+	TEST_SHARED_PTR_SUPPORT()
+	if(SHARED_PTR_FOUND)
+		if(SHARED_PTR_TR1_MEMORY_HEADER)
+			add_definitions(-DCERES_TR1_MEMORY_HEADER)
+		endif()
+		if(SHARED_PTR_TR1_NAMESPACE)
+			add_definitions(-DCERES_TR1_SHARED_PTR)
+		endif()
+	else()
+		message(FATAL_ERROR "Unable to find shared_ptr.")
+	endif()
+
 	list(APPEND INC
 		third_party/gflags
 		third_party/glog/src
 		third_party/ceres/include
+		third_party/ceres/config
 		../../intern/guardedalloc
 	)
 

@@ -286,6 +286,13 @@ void CompressedRowSparseMatrix::ToCRSMatrix(CRSMatrix* matrix) const {
   matrix->values.resize(matrix->rows[matrix->num_rows]);
 }
 
+void CompressedRowSparseMatrix::SetMaxNumNonZeros(int num_nonzeros) {
+  CHECK_GE(num_nonzeros, 0);
+
+  cols_.resize(num_nonzeros);
+  values_.resize(num_nonzeros);
+}
+
 void CompressedRowSparseMatrix::SolveLowerTriangularInPlace(
     double* solution) const {
   for (int r = 0; r < num_rows_; ++r) {
@@ -376,6 +383,9 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::Transpose() const {
     transpose_rows[i] = transpose_rows[i - 1];
   }
   transpose_rows[0] = 0;
+
+  *(transpose->mutable_row_blocks()) = col_blocks_;
+  *(transpose->mutable_col_blocks()) = row_blocks_;
 
   return transpose;
 }

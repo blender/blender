@@ -56,11 +56,6 @@ void StringifyOrdering(const vector<int>& ordering, string* report) {
 
 }  // namespace
 
-Solver::Options::~Options() {
-  delete linear_solver_ordering;
-  delete inner_iteration_ordering;
-}
-
 Solver::~Solver() {}
 
 void Solver::Solve(const Solver::Options& options,
@@ -344,8 +339,8 @@ string Solver::Summary::FullReport() const {
   StringAppendF(&report, "Total               %25.3f\n\n",
                 total_time_in_seconds);
 
-  StringAppendF(&report, "Termination:        %25s\n",
-                TerminationTypeToString(termination_type));
+  StringAppendF(&report, "Termination:        %25s (%s)\n",
+                TerminationTypeToString(termination_type), message.c_str());
   return report;
 };
 

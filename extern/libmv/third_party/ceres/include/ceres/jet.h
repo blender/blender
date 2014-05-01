@@ -649,6 +649,8 @@ struct NumTraits<ceres::Jet<T, N> > {
     return ceres::Jet<T, N>(1e-12);
   }
 
+  static inline Real epsilon() { return Real(std::numeric_limits<T>::epsilon()); }
+
   enum {
     IsComplex = 0,
     IsInteger = 0,

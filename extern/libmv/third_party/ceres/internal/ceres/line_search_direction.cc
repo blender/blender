@@ -28,8 +28,6 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#ifndef CERES_NO_LINE_SEARCH_MINIMIZER
-
 #include "ceres/line_search_direction.h"
 #include "ceres/line_search_minimizer.h"
 #include "ceres/low_rank_inverse_hessian.h"
@@ -372,5 +370,3 @@ LineSearchDirection::Create(const LineSearchDirection::Options& options) {
 
 }  // namespace internal
 }  // namespace ceres
-
-#endif  // CERES_NO_LINE_SEARCH_MINIMIZER

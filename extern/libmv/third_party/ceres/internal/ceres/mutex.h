@@ -95,6 +95,8 @@
 #ifndef CERES_INTERNAL_MUTEX_H_
 #define CERES_INTERNAL_MUTEX_H_
 
+#include "ceres/internal/port.h"
+
 #if defined(CERES_NO_THREADS)
   typedef int MutexType;      // to keep a lock-count
 #elif defined(_WIN32) || defined(__CYGWIN32__) || defined(__CYGWIN64__)

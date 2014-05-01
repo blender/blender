@@ -30,6 +30,7 @@ set(INC
 	.
 	include
 	internal
+	config
 	../gflags
 	../../
 )
@@ -44,7 +45,6 @@ set(SRC
 	internal/ceres/block_evaluate_preparer.cc
 	internal/ceres/block_jacobian_writer.cc
 	internal/ceres/block_jacobi_preconditioner.cc
-	internal/ceres/block_random_access_crs_matrix.cc
 	internal/ceres/block_random_access_dense_matrix.cc
 	internal/ceres/block_random_access_diagonal_matrix.cc
 	internal/ceres/block_random_access_matrix.cc
@@ -69,6 +69,8 @@ set(SRC
 	internal/ceres/dense_sparse_matrix.cc
 	internal/ceres/detect_structure.cc
 	internal/ceres/dogleg_strategy.cc
+	internal/ceres/dynamic_compressed_row_jacobian_writer.cc
+	internal/ceres/dynamic_compressed_row_sparse_matrix.cc
 	internal/ceres/evaluator.cc
 	internal/ceres/file.cc
 	internal/ceres/generated/partitioned_matrix_view_d_d_d.cc
@@ -159,7 +161,6 @@ set(SRC
 	internal/ceres/block_evaluate_preparer.h
 	internal/ceres/block_jacobian_writer.h
 	internal/ceres/block_jacobi_preconditioner.h
-	internal/ceres/block_random_access_crs_matrix.h
 	internal/ceres/block_random_access_dense_matrix.h
 	internal/ceres/block_random_access_diagonal_matrix.h
 	internal/ceres/block_random_access_matrix.h
@@ -185,6 +186,9 @@ set(SRC
 	internal/ceres/dense_sparse_matrix.h
 	internal/ceres/detect_structure.h
 	internal/ceres/dogleg_strategy.h
+	internal/ceres/dynamic_compressed_row_finalizer.h
+	internal/ceres/dynamic_compressed_row_jacobian_writer.h
+	internal/ceres/dynamic_compressed_row_sparse_matrix.h
 	internal/ceres/evaluator.h
 	internal/ceres/execution_summary.h
 	internal/ceres/file.h
@@ -253,6 +257,8 @@ set(SRC
 #		internal/ceres/generated/partitioned_matrix_view_2_3_d.cc
 #		internal/ceres/generated/partitioned_matrix_view_2_4_3.cc
 #		internal/ceres/generated/partitioned_matrix_view_2_4_4.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_4_8.cc
+#		internal/ceres/generated/partitioned_matrix_view_2_4_9.cc
 #		internal/ceres/generated/partitioned_matrix_view_2_4_d.cc
 #		internal/ceres/generated/partitioned_matrix_view_2_d_d.cc
 #		internal/ceres/generated/partitioned_matrix_view_4_4_2.cc
@@ -269,6 +275,8 @@ set(SRC
 #		internal/ceres/generated/schur_eliminator_2_3_d.cc
 #		internal/ceres/generated/schur_eliminator_2_4_3.cc
 #		internal/ceres/generated/schur_eliminator_2_4_4.cc
+#		internal/ceres/generated/schur_eliminator_2_4_8.cc
+#		internal/ceres/generated/schur_eliminator_2_4_9.cc
 #		internal/ceres/generated/schur_eliminator_2_4_d.cc
 #		internal/ceres/generated/schur_eliminator_2_d_d.cc
 #		internal/ceres/generated/schur_eliminator_4_4_2.cc

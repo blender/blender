@@ -34,6 +34,9 @@ namespace ceres {
 namespace internal {
 
 bool CellLessThan(const Cell& lhs, const Cell& rhs) {
+  if (lhs.block_id == rhs.block_id) {
+    return (lhs.position  < rhs.position);
+  }
   return (lhs.block_id < rhs.block_id);
 }
 

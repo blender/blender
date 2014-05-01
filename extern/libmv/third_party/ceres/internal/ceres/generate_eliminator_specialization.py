@@ -59,6 +59,8 @@ SPECIALIZATIONS = [(2, 2, 2),
                    (2, 3, "Eigen::Dynamic"),
                    (2, 4, 3),
                    (2, 4, 4),
+                   (2, 4, 8),
+                   (2, 4, 9),
                    (2, 4, "Eigen::Dynamic"),
                    (2, "Eigen::Dynamic", "Eigen::Dynamic"),
                    (4, 4, 2),
@@ -124,6 +126,9 @@ template class SchurEliminator<%s, %s, %s>;
 """
 
 SPECIALIZATION_FILE = """
+// This include must come before any #ifndef check on Ceres compile options.
+#include "ceres/internal/port.h"
+
 #ifndef CERES_RESTRICT_SCHUR_SPECIALIZATION
 
 #include "ceres/schur_eliminator_impl.h"

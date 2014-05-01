@@ -330,7 +330,10 @@ SparseSchurComplementSolver::SolveReducedLinearSystemUsingSuiteSparse(
   }
 
   summary.termination_type =
-      ss_.Cholesky(cholmod_lhs, factor_, &summary.message);
+    ss_.Cholesky(cholmod_lhs, factor_, &summary.message);
+
+  ss_.Free(cholmod_lhs);
+
   if (summary.termination_type != LINEAR_SOLVER_SUCCESS) {
     return summary;
   }
@@ -340,7 +343,6 @@ SparseSchurComplementSolver::SolveReducedLinearSystemUsingSuiteSparse(
   cholmod_dense* cholmod_solution = ss_.Solve(factor_,
                                               cholmod_rhs,
                                               &summary.message);
-  ss_.Free(cholmod_lhs);
   ss_.Free(cholmod_rhs);
 
   if (cholmod_solution == NULL) {

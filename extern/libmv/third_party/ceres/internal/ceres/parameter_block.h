@@ -31,7 +31,9 @@
 #ifndef CERES_INTERNAL_PARAMETER_BLOCK_H_
 #define CERES_INTERNAL_PARAMETER_BLOCK_H_
 
+#include <algorithm>
 #include <cstdlib>
+#include <limits>
 #include <string>
 #include "ceres/array_utils.h"
 #include "ceres/collections_port.h"
@@ -180,16 +182,59 @@ class ParameterBlock {
     }
   }
 
+  void SetUpperBound(int index, double upper_bound) {
+    CHECK_LT(index, size_);
+
+    if (upper_bounds_.get() == NULL) {
+      upper_bounds_.reset(new double[size_]);
+      std::fill(upper_bounds_.get(),
+                upper_bounds_.get() + size_,
+                std::numeric_limits<double>::max());
+    }
+
+    upper_bounds_[index] = upper_bound;
+  };
+
+  void SetLowerBound(int index, double lower_bound) {
+    CHECK_LT(index, size_);
+
+    if (lower_bounds_.get() == NULL) {
+      lower_bounds_.reset(new double[size_]);
+      std::fill(lower_bounds_.get(),
+                lower_bounds_.get() + size_,
+                -std::numeric_limits<double>::max());
+    }
+
+    lower_bounds_[index] = lower_bound;
+  }
+
   // Generalization of the addition operation. This is the same as
-  // LocalParameterization::Plus() but uses the parameter's current state
-  // instead of operating on a passed in pointer.
+  // LocalParameterization::Plus() followed by projection onto the
+  // hyper cube implied by the bounds constraints.
   bool Plus(const double *x, const double* delta, double* x_plus_delta) {
-    if (local_parameterization_ == NULL) {
+    if (local_parameterization_ != NULL) {
+      if (!local_parameterization_->Plus(x, delta, x_plus_delta)) {
+        return false;
+      }
+    } else {
       VectorRef(x_plus_delta, size_) = ConstVectorRef(x, size_) +
                                        ConstVectorRef(delta,  size_);
-      return true;
     }
-    return local_parameterization_->Plus(x, delta, x_plus_delta);
+
+    // Project onto the box constraints.
+    if (lower_bounds_.get() != NULL) {
+      for (int i = 0; i < size_; ++i) {
+        x_plus_delta[i] = std::max(x_plus_delta[i], lower_bounds_[i]);
+      }
+    }
+
+    if (upper_bounds_.get() != NULL) {
+      for (int i = 0; i < size_; ++i) {
+        x_plus_delta[i] = std::min(x_plus_delta[i], upper_bounds_[i]);
+      }
+    }
+
+    return true;
   }
 
   string ToString() const {
@@ -232,6 +277,22 @@ class ParameterBlock {
   // .begin() and .end().
   ResidualBlockSet* mutable_residual_blocks() {
     return residual_blocks_.get();
+  }
+
+  double LowerBoundForParameter(int index) const {
+    if (lower_bounds_.get() == NULL) {
+      return -std::numeric_limits<double>::max();
+    } else {
+      return lower_bounds_[index];
+    }
+  }
+
+  double UpperBoundForParameter(int index) const {
+    if (upper_bounds_.get() == NULL) {
+      return std::numeric_limits<double>::max();
+    } else {
+      return upper_bounds_[index];
+    }
   }
 
  private:
@@ -311,6 +372,20 @@ class ParameterBlock {
 
   // If non-null, contains the residual blocks this parameter block is in.
   scoped_ptr<ResidualBlockSet> residual_blocks_;
+
+  // Upper and lower bounds for the parameter block.  SetUpperBound
+  // and SetLowerBound lazily initialize the upper_bounds_ and
+  // lower_bounds_ arrays. If they are never called, then memory for
+  // these arrays is never allocated. Thus for problems where there
+  // are no bounds, or only one sided bounds we do not pay the cost of
+  // allocating memory for the inactive bounds constraints.
+  //
+  // Upon initialization these arrays are initialized to
+  // std::numeric_limits<double>::max() and
+  // -std::numeric_limits<double>::max() respectively which correspond
+  // to the parameter block being unconstrained.
+  scoped_array<double> upper_bounds_;
+  scoped_array<double> lower_bounds_;
 
   // Necessary so ProblemImpl can clean up the parameterizations.
   friend class ProblemImpl;

@@ -29,6 +29,7 @@
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
 #include "ceres/blas.h"
+#include "ceres/internal/port.h"
 #include "glog/logging.h"
 
 extern "C" void dsyrk_(char* uplo,

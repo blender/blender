@@ -44,6 +44,7 @@
 #include "ceres/file.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/line_search.h"
 #include "ceres/linear_least_squares_problems.h"
 #include "ceres/sparse_matrix.h"
 #include "ceres/stringprintf.h"
@@ -55,8 +56,53 @@
 namespace ceres {
 namespace internal {
 namespace {
-// Small constant for various floating point issues.
-const double kEpsilon = 1e-12;
+
+LineSearch::Summary DoLineSearch(const Minimizer::Options& options,
+                                 const Vector& x,
+                                 const Vector& gradient,
+                                 const double cost,
+                                 const Vector& delta,
+                                 Evaluator* evaluator) {
+  LineSearchFunction line_search_function(evaluator);
+
+  LineSearch::Options line_search_options;
+  line_search_options.is_silent = true;
+  line_search_options.interpolation_type =
+      options.line_search_interpolation_type;
+  line_search_options.min_step_size = options.min_line_search_step_size;
+  line_search_options.sufficient_decrease =
+      options.line_search_sufficient_function_decrease;
+  line_search_options.max_step_contraction =
+      options.max_line_search_step_contraction;
+  line_search_options.min_step_contraction =
+      options.min_line_search_step_contraction;
+  line_search_options.max_num_iterations =
+      options.max_num_line_search_step_size_iterations;
+  line_search_options.sufficient_curvature_decrease =
+      options.line_search_sufficient_curvature_decrease;
+  line_search_options.max_step_expansion =
+      options.max_line_search_step_expansion;
+  line_search_options.function = &line_search_function;
+
+  string message;
+  scoped_ptr<LineSearch>
+      line_search(CHECK_NOTNULL(
+                      LineSearch::Create(ceres::ARMIJO,
+                                         line_search_options,
+                                         &message)));
+  LineSearch::Summary summary;
+  line_search_function.Init(x, delta);
+  // Try the trust region step.
+  line_search->Search(1.0, cost, gradient.dot(delta), &summary);
+  if (!summary.success) {
+    // If that was not successful, try the negative gradient as a
+    // search direction.
+    line_search_function.Init(x, -gradient);
+    line_search->Search(1.0, cost, -gradient.squaredNorm(), &summary);
+  }
+  return summary;
+}
+
 }  // namespace
 
 // Compute a scaling vector that is used to improve the conditioning
@@ -81,23 +127,29 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   double start_time = WallTimeInSeconds();
   double iteration_start_time =  start_time;
   Init(options);
-  const bool is_not_silent = !options.is_silent;
-
-  summary->termination_type = NO_CONVERGENCE;
-  summary->num_successful_steps = 0;
-  summary->num_unsuccessful_steps = 0;
 
   Evaluator* evaluator = CHECK_NOTNULL(options_.evaluator);
   SparseMatrix* jacobian = CHECK_NOTNULL(options_.jacobian);
   TrustRegionStrategy* strategy = CHECK_NOTNULL(options_.trust_region_strategy);
 
+  const bool is_not_silent = !options.is_silent;
+
+  // If the problem is bounds constrained, then enable the use of a
+  // line search after the trust region step has been computed. This
+  // line search will automatically use a projected test point onto
+  // the feasible set, there by guaranteeing the feasibility of the
+  // final output.
+  //
+  // TODO(sameeragarwal): Make line search available more generally.
+  const bool use_line_search = options.is_constrained;
+
+  summary->termination_type = NO_CONVERGENCE;
+  summary->num_successful_steps = 0;
+  summary->num_unsuccessful_steps = 0;
+
   const int num_parameters = evaluator->NumParameters();
   const int num_effective_parameters = evaluator->NumEffectiveParameters();
   const int num_residuals = evaluator->NumResiduals();
-
-  VectorRef x_min(parameters, num_parameters);
-  Vector x = x_min;
-  double x_norm = x.norm();
 
   Vector residuals(num_residuals);
   Vector trust_region_step(num_effective_parameters);
@@ -106,6 +158,8 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   Vector gradient(num_effective_parameters);
   Vector model_residuals(num_residuals);
   Vector scale(num_effective_parameters);
+  Vector negative_gradient(num_effective_parameters);
+  Vector projected_gradient_step(num_parameters);
 
   IterationSummary iteration_summary;
   iteration_summary.iteration = 0;
@@ -121,6 +175,24 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   iteration_summary.linear_solver_iterations = 0;
   iteration_summary.step_solver_time_in_seconds = 0;
 
+  VectorRef x_min(parameters, num_parameters);
+  Vector x = x_min;
+  // Project onto the feasible set.
+  if (options.is_constrained) {
+    delta.setZero();
+    if (!evaluator->Plus(x.data(), delta.data(), x_plus_delta.data())) {
+      summary->message =
+          "Unable to project initial point onto the feasible set.";
+      summary->termination_type = FAILURE;
+      LOG_IF(WARNING, is_not_silent) << "Terminating: " << summary->message;
+      return;
+    }
+    x_min = x_plus_delta;
+    x = x_plus_delta;
+  }
+
+  double x_norm = x.norm();
+
   // Do initial cost and Jacobian evaluation.
   double cost = 0.0;
   if (!evaluator->Evaluate(x.data(),
@@ -128,40 +200,43 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                            residuals.data(),
                            gradient.data(),
                            jacobian)) {
-    summary->message = "Terminating: Residual and Jacobian evaluation failed.";
+    summary->message = "Residual and Jacobian evaluation failed.";
     summary->termination_type = FAILURE;
-    LOG_IF(WARNING, is_not_silent) << summary->message;
+    LOG_IF(WARNING, is_not_silent) << "Terminating: " << summary->message;
     return;
   }
 
-  int num_consecutive_nonmonotonic_steps = 0;
-  double minimum_cost = cost;
-  double reference_cost = cost;
-  double accumulated_reference_model_cost_change = 0.0;
-  double candidate_cost = cost;
-  double accumulated_candidate_model_cost_change = 0.0;
+  negative_gradient = -gradient;
+  if (!evaluator->Plus(x.data(),
+                       negative_gradient.data(),
+                       projected_gradient_step.data())) {
+    summary->message = "Unable to compute gradient step.";
+    summary->termination_type = FAILURE;
+    LOG(ERROR) << "Terminating: " << summary->message;
+    return;
+  }
 
   summary->initial_cost = cost + summary->fixed_cost;
   iteration_summary.cost = cost + summary->fixed_cost;
-  iteration_summary.gradient_max_norm = gradient.lpNorm<Eigen::Infinity>();
-  iteration_summary.gradient_norm = gradient.norm();
+  iteration_summary.gradient_max_norm =
+    (x - projected_gradient_step).lpNorm<Eigen::Infinity>();
+  iteration_summary.gradient_norm = (x - projected_gradient_step).norm();
 
-  // The initial gradient max_norm is bounded from below so that we do
-  // not divide by zero.
-  const double initial_gradient_max_norm =
-      max(iteration_summary.gradient_max_norm, kEpsilon);
-  const double absolute_gradient_tolerance =
-      options_.gradient_tolerance * initial_gradient_max_norm;
-
-  if (iteration_summary.gradient_max_norm <= absolute_gradient_tolerance) {
-    summary->message = StringPrintf("Terminating: Gradient tolerance reached. "
-                                  "Relative gradient max norm: %e <= %e",
-                                  (iteration_summary.gradient_max_norm /
-                                   initial_gradient_max_norm),
-                                  options_.gradient_tolerance);
+  if (iteration_summary.gradient_max_norm <= options.gradient_tolerance) {
+    summary->message = StringPrintf("Gradient tolerance reached. "
+                                    "Gradient max norm: %e <= %e",
+                                    iteration_summary.gradient_max_norm,
+                                    options_.gradient_tolerance);
     summary->termination_type = CONVERGENCE;
-    VLOG_IF(1, is_not_silent) << summary->message;
+    VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
     return;
+  }
+
+  if (options_.jacobi_scaling) {
+    EstimateScale(*jacobian, scale.data());
+    jacobian->ScaleColumns(scale.data());
+  } else {
+    scale.setOnes();
   }
 
   iteration_summary.iteration_time_in_seconds =
@@ -171,35 +246,34 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       + summary->preprocessor_time_in_seconds;
   summary->iterations.push_back(iteration_summary);
 
-  if (options_.jacobi_scaling) {
-    EstimateScale(*jacobian, scale.data());
-    jacobian->ScaleColumns(scale.data());
-  } else {
-    scale.setOnes();
-  }
-
+  int num_consecutive_nonmonotonic_steps = 0;
+  double minimum_cost = cost;
+  double reference_cost = cost;
+  double accumulated_reference_model_cost_change = 0.0;
+  double candidate_cost = cost;
+  double accumulated_candidate_model_cost_change = 0.0;
   int num_consecutive_invalid_steps = 0;
   bool inner_iterations_are_enabled = options.inner_iteration_minimizer != NULL;
   while (true) {
     bool inner_iterations_were_useful = false;
-    if (!RunCallbacks(options.callbacks, iteration_summary, summary)) {
+    if (!RunCallbacks(options, iteration_summary, summary)) {
       return;
     }
 
     iteration_start_time = WallTimeInSeconds();
     if (iteration_summary.iteration >= options_.max_num_iterations) {
-      summary->message = "Terminating: Maximum number of iterations reached.";
+      summary->message = "Maximum number of iterations reached.";
       summary->termination_type = NO_CONVERGENCE;
-      VLOG_IF(1, is_not_silent) << summary->message;
+      VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
       return;
     }
 
     const double total_solver_time = iteration_start_time - start_time +
         summary->preprocessor_time_in_seconds;
     if (total_solver_time >= options_.max_solver_time_in_seconds) {
-      summary->message = "Terminating: Maximum solver time reached.";
+      summary->message = "Maximum solver time reached.";
       summary->termination_type = NO_CONVERGENCE;
-      VLOG_IF(1, is_not_silent) << summary->message;
+      VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
       return;
     }
 
@@ -229,10 +303,10 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
 
     if (strategy_summary.termination_type == LINEAR_SOLVER_FATAL_ERROR) {
       summary->message =
-          "Terminating. Linear solver failed due to unrecoverable "
+          "Linear solver failed due to unrecoverable "
           "non-numeric causes. Please see the error log for clues. ";
       summary->termination_type = FAILURE;
-      LOG_IF(WARNING, is_not_silent) << summary->message;
+      LOG_IF(WARNING, is_not_silent) << "Terminating: " << summary->message;
       return;
     }
 
@@ -276,11 +350,11 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       if (++num_consecutive_invalid_steps >=
           options_.max_num_consecutive_invalid_steps) {
         summary->message = StringPrintf(
-            "Terminating. Number of successive invalid steps more "
+            "Number of successive invalid steps more "
             "than Solver::Options::max_num_consecutive_invalid_steps: %d",
             options_.max_num_consecutive_invalid_steps);
         summary->termination_type = FAILURE;
-        LOG_IF(WARNING, is_not_silent) << summary->message;
+        LOG_IF(WARNING, is_not_silent) << "Terminating: " << summary->message;
         return;
       }
 
@@ -305,19 +379,36 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       // Undo the Jacobian column scaling.
       delta = (trust_region_step.array() * scale.array()).matrix();
 
-      double new_cost = numeric_limits<double>::max();
-      if (!evaluator->Plus(x.data(), delta.data(), x_plus_delta.data())) {
+      // Try improving the step further by using an ARMIJO line
+      // search.
+      //
+      // TODO(sameeragarwal): What happens to trust region sizing as
+      // it interacts with the line search ?
+      if (use_line_search) {
+        const LineSearch::Summary line_search_summary =
+            DoLineSearch(options, x, gradient, cost, delta, evaluator);
+        if (line_search_summary.success) {
+          delta *= line_search_summary.optimal_step_size;
+        }
+      }
+
+      double new_cost = std::numeric_limits<double>::max();
+      if (evaluator->Plus(x.data(), delta.data(), x_plus_delta.data())) {
+        if (!evaluator->Evaluate(x_plus_delta.data(),
+                                &new_cost,
+                                NULL,
+                                NULL,
+                                NULL)) {
+          LOG(WARNING) << "Step failed to evaluate. "
+                       << "Treating it as a step with infinite cost";
+          new_cost = numeric_limits<double>::max();
+        }
+      } else {
         LOG(WARNING) << "x_plus_delta = Plus(x, delta) failed. "
                      << "Treating it as a step with infinite cost";
-      } else if (!evaluator->Evaluate(x_plus_delta.data(),
-                                      &new_cost,
-                                      NULL,
-                                      NULL,
-                                      NULL)) {
-        LOG(WARNING) << "Step failed to evaluate. "
-                     << "Treating it as a step with infinite cost";
-        new_cost = numeric_limits<double>::max();
-      } else {
+      }
+
+      if (new_cost < std::numeric_limits<double>::max()) {
         // Check if performing an inner iteration will make it better.
         if (inner_iterations_are_enabled) {
           ++summary->num_inner_iteration_steps;
@@ -368,13 +459,13 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
           (x_norm + options_.parameter_tolerance);
       if (iteration_summary.step_norm <= step_size_tolerance) {
         summary->message =
-            StringPrintf("Terminating. Parameter tolerance reached. "
-                         "relative step_norm: %e <= %e.",
+            StringPrintf("Parameter tolerance reached. "
+                         "Relative step_norm: %e <= %e.",
                          (iteration_summary.step_norm /
                           (x_norm + options_.parameter_tolerance)),
                          options_.parameter_tolerance);
         summary->termination_type = CONVERGENCE;
-        VLOG_IF(1, is_not_silent) << summary->message;
+        VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
         return;
       }
 
@@ -383,12 +474,12 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
           options_.function_tolerance * cost;
       if (fabs(iteration_summary.cost_change) < absolute_function_tolerance) {
         summary->message =
-            StringPrintf("Terminating. Function tolerance reached. "
+            StringPrintf("Function tolerance reached. "
                          "|cost_change|/cost: %e <= %e",
                          fabs(iteration_summary.cost_change) / cost,
                          options_.function_tolerance);
         summary->termination_type = CONVERGENCE;
-        VLOG_IF(1, is_not_silent) << summary->message;
+        VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
         return;
       }
 
@@ -475,6 +566,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
     if (iteration_summary.step_is_successful) {
       ++summary->num_successful_steps;
       strategy->StepAccepted(iteration_summary.relative_decrease);
+
       x = x_plus_delta;
       x_norm = x.norm();
 
@@ -485,25 +577,34 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                                residuals.data(),
                                gradient.data(),
                                jacobian)) {
-        summary->message =
-            "Terminating: Residual and Jacobian evaluation failed.";
+        summary->message = "Residual and Jacobian evaluation failed.";
         summary->termination_type = FAILURE;
-        LOG_IF(WARNING, is_not_silent) << summary->message;
+        LOG_IF(WARNING, is_not_silent) << "Terminating: " << summary->message;
         return;
       }
 
-      iteration_summary.gradient_max_norm = gradient.lpNorm<Eigen::Infinity>();
-      iteration_summary.gradient_norm = gradient.norm();
-
-      if (iteration_summary.gradient_max_norm <= absolute_gradient_tolerance) {
+      negative_gradient = -gradient;
+      if (!evaluator->Plus(x.data(),
+                           negative_gradient.data(),
+                           projected_gradient_step.data())) {
         summary->message =
-            StringPrintf("Terminating: Gradient tolerance reached. "
-                         "Relative gradient max norm: %e <= %e",
-                         (iteration_summary.gradient_max_norm /
-                          initial_gradient_max_norm),
-                         options_.gradient_tolerance);
+            "projected_gradient_step = Plus(x, -gradient) failed.";
+        summary->termination_type = FAILURE;
+        LOG(ERROR) << "Terminating: " << summary->message;
+        return;
+      }
+
+      iteration_summary.gradient_max_norm =
+        (x - projected_gradient_step).lpNorm<Eigen::Infinity>();
+      iteration_summary.gradient_norm = (x - projected_gradient_step).norm();
+
+      if (iteration_summary.gradient_max_norm <= options.gradient_tolerance) {
+        summary->message = StringPrintf("Gradient tolerance reached. "
+                                        "Gradient max norm: %e <= %e",
+                                        iteration_summary.gradient_max_norm,
+                                        options_.gradient_tolerance);
         summary->termination_type = CONVERGENCE;
-        VLOG_IF(1, is_not_silent) << summary->message;
+        VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
         return;
       }
 

@@ -139,10 +139,23 @@ if(WITH_LIBMV)
 		-DLIBMV_NO_FAST_DETECTOR=
 	)
 
+	TEST_SHARED_PTR_SUPPORT()
+	if(SHARED_PTR_FOUND)
+		if(SHARED_PTR_TR1_MEMORY_HEADER)
+			add_definitions(-DCERES_TR1_MEMORY_HEADER)
+		endif()
+		if(SHARED_PTR_TR1_NAMESPACE)
+			add_definitions(-DCERES_TR1_SHARED_PTR)
+		endif()
+	else()
+		message(FATAL_ERROR "Unable to find shared_ptr.")
+	endif()
+
 	list(APPEND INC
 		third_party/gflags
 		third_party/glog/src
 		third_party/ceres/include
+		third_party/ceres/config
 		../../intern/guardedalloc
 	)
 
@@ -264,6 +277,15 @@ defs = []
 incs = '.'
 
 if env['WITH_BF_LIBMV']:
+    if not env['WITH_SHARED_PTR_SUPPORT']:
+        print("-- Unable to find shared_ptr which is required for compilation.")
+        exit(1)
+
+    if env['SHARED_PTR_HEADER'] == 'tr1/memory':
+        defs.append('CERES_TR1_MEMORY_HEADER')
+    if env['SHARED_PTR_NAMESPACE'] == 'std::tr1':
+        defs.append('CERES_TR1_SHARED_PTR')
+
     defs.append('GOOGLE_GLOG_DLL_DECL=')
     defs.append('WITH_LIBMV')
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
@@ -272,7 +294,7 @@ if env['WITH_BF_LIBMV']:
     src = env.Glob('*.cc')
 $src
 
-    incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include ../../intern/guardedalloc'
+    incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include third_party/ceres/config ../../intern/guardedalloc'
     incs += ' ' + env['BF_PNG_INC']
     incs += ' ' + env['BF_ZLIB_INC']
 

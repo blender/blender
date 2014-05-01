@@ -31,6 +31,9 @@
 #ifndef CERES_INTERNAL_SINGLE_LINKAGE_CLUSTERING_H_
 #define CERES_INTERNAL_SINGLE_LINKAGE_CLUSTERING_H_
 
+// This include must come before any #ifndef check on Ceres compile options.
+#include "ceres/internal/port.h"
+
 #ifndef CERES_NO_SUITESPARSE
 
 #include "ceres/collections_port.h"

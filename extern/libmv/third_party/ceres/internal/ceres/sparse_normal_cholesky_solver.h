@@ -34,6 +34,9 @@
 #ifndef CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 #define CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
+// This include must come before any #ifndef check on Ceres compile options.
+#include "ceres/internal/port.h"
+
 #if !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARSE)
 
 #include "ceres/cxsparse.h"
@@ -70,6 +73,8 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
       CompressedRowSparseMatrix* A,
       const LinearSolver::PerSolveOptions& options,
       double* rhs_and_solution);
+
+  void FreeFactorization();
 
   SuiteSparse ss_;
   // Cached factorization
