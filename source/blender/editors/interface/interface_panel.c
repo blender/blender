@@ -209,8 +209,8 @@ Panel *uiPanelFindByType(ARegion *ar, PanelType *pt)
 	const char *tabname = pt->idname;
 
 	for (pa = ar->panels.first; pa; pa = pa->next) {
-		if (STREQLEN(pa->panelname, idname, UI_MAX_NAME_STR)) {
-			if (STREQLEN(pa->tabname, tabname, UI_MAX_NAME_STR)) {
+		if (STREQLEN(pa->panelname, idname, sizeof(pa->panelname))) {
+			if (STREQLEN(pa->tabname, tabname, sizeof(pa->panelname))) {
 				return pa;
 			}
 		}
@@ -239,8 +239,8 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Pan
 		/* new panel */
 		pa = MEM_callocN(sizeof(Panel), "new panel");
 		pa->type = pt;
-		BLI_strncpy(pa->panelname, idname, UI_MAX_NAME_STR);
-		BLI_strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
+		BLI_strncpy(pa->panelname, idname, sizeof(pa->panelname));
+		BLI_strncpy(pa->tabname, tabname, sizeof(pa->tabname));
 
 		if (pt->flag & PNL_DEFAULT_CLOSED) {
 			if (align == BUT_VERTICAL)
@@ -261,8 +261,8 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Pan
 		if (hookname) {
 			for (patab = ar->panels.first; patab; patab = patab->next) {
 				if ((patab->runtime_flag & PNL_ACTIVE) && patab->paneltab == NULL) {
-					if (strncmp(hookname, patab->panelname, UI_MAX_NAME_STR) == 0) {
-						if (strncmp(tabname, patab->tabname, UI_MAX_NAME_STR) == 0) {
+					if (STREQLEN(hookname, patab->panelname, sizeof(patab->panelname))) {
+						if (STREQLEN(tabname, patab->tabname, sizeof(patab->tabname))) {
 							pa->paneltab = patab;
 							ui_panel_copy_offset(pa, patab);
 							break;
