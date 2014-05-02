@@ -1958,10 +1958,21 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 		}
 	}
 }
+
+/* recursively evaluate emitter parent anim at cfra */
+static void evaluate_emitter_anim(Scene *scene, Object *ob, float cfra)
+{
+	if (ob->parent)
+		evaluate_emitter_anim(scene, ob->parent, cfra);
+	
+	/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
+	BKE_object_where_is_calc_time(scene, ob, cfra);
+}
+
 /* sets particle to the emitter surface with initial velocity & rotation */
 void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, float cfra)
 {
-	Object *ob = sim->ob;
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part;
 	ParticleTexture ptex;
@@ -1970,13 +1981,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	
 	/* get precise emitter matrix if particle is born */
 	if (part->type!=PART_HAIR && dtime > 0.f && pa->time < cfra && pa->time >= sim->psys->cfra) {
-		/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
-		while (ob) {
-			BKE_animsys_evaluate_animdata(sim->scene, &ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
-			BKE_object_where_is_calc_time(sim->scene, ob, pa->time);
-			ob = ob->parent;
-		}
-		ob = sim->ob;
+		evaluate_emitter_anim(sim->scene, sim->ob, pa->time);
 
 		psys->flag |= PSYS_OB_ANIM_RESTORE;
 	}
@@ -5094,13 +5099,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	/* make sure emitter is left at correct time (particle emission can change this) */
 	if (psys->flag & PSYS_OB_ANIM_RESTORE) {
-		while (ob) {
-			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
-			BKE_object_where_is_calc_time(scene, ob, cfra);
-			ob = ob->parent;
-		}
-		ob = sim.ob;
-
+		evaluate_emitter_anim(scene, ob, cfra);
 		psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 	}
 
