@@ -167,6 +167,8 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->duh = re->duh;
 	envre->test_break = re->test_break;
 	envre->tbh = re->tbh;
+	envre->current_scene_update = re->current_scene_update;
+	envre->suh = re->suh;
 	
 	/* and for the evil stuff; copy the database... */
 	envre->totvlak = re->totvlak;

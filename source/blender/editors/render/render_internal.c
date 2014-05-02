@@ -95,6 +95,7 @@ static int render_break(void *rjv);
 typedef struct RenderJob {
 	Main *main;
 	Scene *scene;
+	Scene *current_scene;
 	Render *re;
 	SceneRenderLayer *srl;
 	struct Object *camera_override;
@@ -562,6 +563,13 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
+static void current_scene_update(void *rjv, Scene *scene)
+{
+	RenderJob *rj = rjv;
+	rj->current_scene = scene;
+	rj->iuser.scene = scene;
+}
+
 static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)
 {
 	RenderJob *rj = rjv;
@@ -866,6 +874,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj = MEM_callocN(sizeof(RenderJob), "render job");
 	rj->main = mainp;
 	rj->scene = scene;
+	rj->current_scene = rj->scene;
 	rj->srl = srl;
 	rj->camera_override = camera_override;
 	rj->lay_override = 0;
@@ -938,6 +947,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_draw_lock_cb(re, rj, render_drawlock);
 	RE_display_update_cb(re, rj, image_rect_update);
+	RE_current_scene_update_cb(re, rj, current_scene_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
 	RE_progress_cb(re, rj, render_progress_update);
 
@@ -1481,7 +1491,7 @@ Scene *ED_render_job_get_scene(const bContext *C)
 	RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(wm, WM_JOB_TYPE_RENDER);
 	
 	if (rj)
-		return rj->scene;
+		return rj->current_scene;
 	
 	return NULL;
 }
