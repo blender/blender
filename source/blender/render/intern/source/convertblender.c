@@ -3911,12 +3911,23 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	return go;
 }
 
-static bool is_object_hidden(Render *re, Object *ob)
+static bool is_object_restricted(Render *re, Object *ob)
 {
 	if (re->r.scemode & R_VIEWPORT_PREVIEW)
-		return (ob->restrictflag & OB_RESTRICT_VIEW) != 0 || ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE);
+		return (ob->restrictflag & OB_RESTRICT_VIEW) != 0;
 	else
 		return (ob->restrictflag & OB_RESTRICT_RENDER) != 0;
+}
+
+static bool is_object_hidden(Render *re, Object *ob)
+{
+	if (is_object_restricted(re, ob))
+		return true;
+	
+	/* Mesh deform cages and so on mess up the preview. To avoid the problem,
+	 * viewport doesn't show mesh object if its draw type is bounding box or wireframe.
+	 */
+	return ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE);
 }
 
 /* layflag: allows material group to ignore layerflag */
@@ -4957,7 +4968,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 		lay= (timeoffset)? renderlay & vectorlay: renderlay;
 
 		/* if the object has been restricted from rendering in the outliner, ignore it */
-		if (is_object_hidden(re, ob)) continue;
+		if (is_object_restricted(re, ob)) continue;
 
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if (ob->flag & OB_DONE) {
