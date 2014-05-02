@@ -3257,7 +3257,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		}
 	}
 
-	/* step 6) draw backdrops behidn mute+protection toggles + (sliders) ....................... */
+	/* step 6) draw backdrops behind mute+protection toggles + (sliders) ....................... */
 	/* reset offset - now goes from RHS of panel */
 	offset = 0;
 
