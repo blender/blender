@@ -7719,7 +7719,7 @@ static int ui_handle_menu_event(
 
 	/* check if mouse is inside block */
 	inside = BLI_rctf_isect_pt(&block->rect, mx, my);
-	inside_title = inside && ((my + (UI_UNIT_Y * 1.5f)) > block->rect.xmax);
+	inside_title = inside && ((my + (UI_UNIT_Y * 1.5f)) > block->rect.ymax);
 
 	/* if there's an active modal button, don't check events or outside, except for search menu */
 	but = ui_but_find_activated(ar);
