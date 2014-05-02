@@ -77,7 +77,6 @@ public:
 
 
 	void			Replace_LogicManager(SCA_LogicManager* logicmgr) { m_logicmgr= logicmgr; }
-	virtual void	Replace_PhysicsScene(class PHY_IPhysicsEnvironment* env) { } /* only for event managers that use one */
 
 protected:
 	EVENT_MANAGER_TYPE		m_mgrtype;
