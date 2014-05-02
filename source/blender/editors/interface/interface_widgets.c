@@ -920,18 +920,18 @@ static void widget_draw_icon(const uiBut *but, BIFIconID icon, float alpha, cons
 	glDisable(GL_BLEND);
 }
 
-static void ui_text_clip_give_prev_off(uiBut *but)
+static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
 {
-	const char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + but->ofs);
-	int bytes = but->drawstr + but->ofs - prev_utf8;
+	const char *prev_utf8 = BLI_str_find_prev_char_utf8(str, str + but->ofs);
+	int bytes = str + but->ofs - prev_utf8;
 
 	but->ofs -= bytes;
 }
 
-static void ui_text_clip_give_next_off(uiBut *but)
+static void ui_text_clip_give_next_off(uiBut *but, const char *str)
 {
-	const char *next_utf8 = BLI_str_find_next_char_utf8(but->drawstr + but->ofs, NULL);
-	int bytes = next_utf8 - (but->drawstr + but->ofs);
+	const char *next_utf8 = BLI_str_find_next_char_utf8(str + but->ofs, NULL);
+	int bytes = next_utf8 - (str + but->ofs);
 
 	but->ofs += bytes;
 }
@@ -1091,36 +1091,39 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 	if (but->ofs > but->pos)
 		but->ofs = but->pos;
 
-	if (BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr)) <= okwidth)
+	if (BLF_width(fstyle->uifont_id, but->editstr, INT_MAX) <= okwidth)
 		but->ofs = 0;
 
-	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
+	but->strwidth = BLF_width(fstyle->uifont_id, but->editstr + but->ofs, INT_MAX);
 
-	while (but->strwidth > okwidth) {
-		float width;
+	if (but->strwidth > okwidth) {
+		int len = strlen(but->editstr);
 
-		/* string position of cursor */
-		width = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, but->pos - but->ofs);
+		while (but->strwidth > okwidth) {
+			float width;
 
-		/* if cursor is at 20 pixels of right side button we clip left */
-		if (width > okwidth - 20) {
-			ui_text_clip_give_next_off(but);
+			/* string position of cursor */
+			width = BLF_width(fstyle->uifont_id, but->editstr + but->ofs, (but->pos - but->ofs));
+
+			/* if cursor is at 20 pixels of right side button we clip left */
+			if (width > okwidth - 20) {
+				ui_text_clip_give_next_off(but, but->editstr);
+			}
+			else {
+				int bytes;
+				/* shift string to the left */
+				if (width < 20 && but->ofs > 0)
+					ui_text_clip_give_prev_off(but, but->editstr);
+				bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->editstr, but->editstr + len));
+				if (bytes == -1)
+					bytes = 1;
+				len -= bytes;
+			}
+
+			but->strwidth = BLF_width(fstyle->uifont_id, but->editstr + but->ofs, len - but->ofs);
+
+			if (but->strwidth < 10) break;
 		}
-		else {
-			int len, bytes;
-			/* shift string to the left */
-			if (width < 20 && but->ofs > 0)
-				ui_text_clip_give_prev_off(but);
-			len = strlen(but->drawstr);
-			bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + len));
-			if (bytes < 0)
-				bytes = 1;
-			but->drawstr[len - bytes] = 0;
-		}
-
-		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
-
-		if (but->strwidth < 10) break;
 	}
 
 	if (fstyle->kerning == 1) {
@@ -1182,7 +1185,7 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 	
 		/* after the leading text is gone, chop off the : and following space, with ofs */
 		while ((but->strwidth > okwidth) && (but->ofs < 2)) {
-			ui_text_clip_give_next_off(but);
+			ui_text_clip_give_next_off(but, but->drawstr);
 			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 			if (but->strwidth < 10) break;
 		}

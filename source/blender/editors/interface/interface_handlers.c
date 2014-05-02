@@ -2004,7 +2004,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 	origstr = MEM_mallocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
 
-	BLI_strncpy(origstr, but->drawstr, data->maxlen);
+	BLI_strncpy(origstr, but->editstr, data->maxlen);
 
 	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (but->flag & UI_HAS_ICON) {

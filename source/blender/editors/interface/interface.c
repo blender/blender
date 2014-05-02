@@ -2697,7 +2697,7 @@ void ui_check_but(uiBut *but)
 
 	/* if we are doing text editing, this will override the drawstr */
 	if (but->editstr)
-		BLI_strncpy(but->drawstr, but->editstr, UI_MAX_DRAW_STR);
+		but->drawstr[0] = '\0';
 	
 	/* text clipping moved to widget drawing code itself */
 }
