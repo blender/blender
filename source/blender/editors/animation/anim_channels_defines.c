@@ -3541,10 +3541,15 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			//icon = ((enabled) ? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
 			icon = ICON_MUTE_IPO_OFF;
 			
-			if (ale->type == ANIMTYPE_FCURVE)
+			if (ale->type == ANIMTYPE_FCURVE) {
 				tooltip = TIP_("Does F-Curve contribute to result");
-			else
-				tooltip = TIP_("Do channels contribute to result");
+			}
+			else if ((ac) && (ac->spacetype == SPACE_NLA) && (ale->type != ANIMTYPE_NLATRACK)) {
+				tooltip = TIP_("Temporarily disable NLA stack evaluation (i.e. only the active action is evaluated)");
+			}
+			else {
+				tooltip = TIP_("Do channels contribute to result (toggle channel muting)");
+			}
 			break;
 			
 		default:
