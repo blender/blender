@@ -585,6 +585,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 
 		/* duplicate code... */
 		if (rr->do_exr_tile) {
+			rl->display_buffer = MEM_mapallocN(rectx * recty * sizeof(unsigned int), "Combined display space rgba");
+
 			rl->exrhandle = IMB_exr_get_handle();
 
 			IMB_exr_add_channel(rl->exrhandle, rl->name, "Combined.R", 0, 0, NULL);
