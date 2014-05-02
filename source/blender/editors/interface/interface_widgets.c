@@ -1233,6 +1233,14 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			fstyle->align = UI_STYLE_TEXT_LEFT;
 		}
 	}
+	else {
+		if (but->editstr) {
+			/* max length isn't used in this case,
+			 * we rely on string being NULL terminated. */
+			drawstr_left_len = INT_MAX;
+			drawstr = but->editstr;
+		}
+	}
 
 
 	/* text button selection and cursor */
@@ -1283,7 +1291,9 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 #endif
 
 	/* cut string in 2 parts - only for menu entries */
-	if ((but->block->flag & UI_BLOCK_LOOP)) {
+	if ((but->block->flag & UI_BLOCK_LOOP) &&
+	    (but->editstr == NULL))
+	{
 		if (but->flag & UI_BUT_HAS_SEP_CHAR) {
 			drawstr_right = strrchr(drawstr, UI_SEP_CHAR);
 			if (drawstr_right) {
