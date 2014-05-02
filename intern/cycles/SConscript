@@ -72,6 +72,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 else:
     cxxflags.append('-ffast-math'.split())
 
+# Warnings
+if env['C_COMPILER_ID'] == 'gcc':
+    cxxflags.append(['-Werror=float-conversion'])
+
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs.append(env['BF_PTHREADS_INC'])
 

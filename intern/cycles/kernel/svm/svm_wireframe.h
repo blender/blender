@@ -53,7 +53,7 @@ ccl_device void svm_node_wireframe(KernelGlobals *kg, ShaderData *sd, float *sta
 		float pixelwidth = 1.0f;
 
 		/* Triangles */
-		float np = 3;
+		int np = 3;
 		
 		if(sd->type & PRIMITIVE_TRIANGLE)
 			triangle_vertices(kg, sd->prim, Co);

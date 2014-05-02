@@ -167,7 +167,7 @@ ccl_device_inline void curvebounds(float *lower, float *upper, float *extremta, 
 
 	if(halfdiscroot >= 0) {
 		float inv3p3 = (1.0f/3.0f)/p3;
-		halfdiscroot = sqrt(halfdiscroot);
+		halfdiscroot = sqrtf(halfdiscroot);
 		ta = (-p2 - halfdiscroot) * inv3p3;
 		tb = (-p2 + halfdiscroot) * inv3p3;
 	}

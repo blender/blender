@@ -43,7 +43,7 @@ Integrator::Integrator()
 
 	volume_homogeneous_sampling = 0;
 	volume_max_steps = 1024;
-	volume_step_size = 0.1;
+	volume_step_size = 0.1f;
 
 	no_caustics = false;
 	filter_glossy = 0.0f;

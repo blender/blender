@@ -582,13 +582,13 @@ static void sky_texture_precompute_new(SunSky *sunsky, float3 dir, float turbidi
 
 	/* Copy values from sky_state to SunSky */
 	for (int i = 0; i < 9; ++i) {
-		sunsky->config_x[i] = sky_state->configs[0][i];
-		sunsky->config_y[i] = sky_state->configs[1][i];
-		sunsky->config_z[i] = sky_state->configs[2][i];
+		sunsky->config_x[i] = (float)sky_state->configs[0][i];
+		sunsky->config_y[i] = (float)sky_state->configs[1][i];
+		sunsky->config_z[i] = (float)sky_state->configs[2][i];
 	}
-	sunsky->radiance_x = sky_state->radiances[0];
-	sunsky->radiance_y = sky_state->radiances[1];
-	sunsky->radiance_z = sky_state->radiances[2];
+	sunsky->radiance_x = (float)sky_state->radiances[0];
+	sunsky->radiance_y = (float)sky_state->radiances[1];
+	sunsky->radiance_z = (float)sky_state->radiances[2];
 
 	/* Free sky_state */
 	arhosekskymodelstate_free(sky_state);

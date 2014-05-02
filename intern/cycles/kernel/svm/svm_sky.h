@@ -74,7 +74,7 @@ ccl_device float sky_radiance_internal(float *configuration, float theta, float 
 	float expM = expf(configuration[4] * gamma);
 	float rayM = cgamma * cgamma;
 	float mieM = (1.0f + rayM) / powf((1.0f + configuration[8]*configuration[8] - 2.0f*configuration[8]*cgamma), 1.5f);
-	float zenith = sqrt(ctheta);
+	float zenith = sqrtf(ctheta);
 
 	return (1.0f + configuration[0] * expf(configuration[1] / (ctheta + 0.01f))) *
 		(configuration[2] + configuration[3] * expM + configuration[5] * rayM + configuration[6] * mieM + configuration[7] * zenith);

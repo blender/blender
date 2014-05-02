@@ -94,7 +94,7 @@ void DiagSplit::partition_edge(Patch *patch, float2 *P, int *t0, int *t1, float2
 		*t1 = T(patch, *P, Pend);
 	}
 	else {
-		int I = floor(t*0.5f);
+		int I = (int)floor((float)t*0.5f);
 		*P = interp(Pstart, Pend, (t == 0)? 0: I/(float)t); /* XXX is t faces or verts */
 		*t0 = I;
 		*t1 = t - I;

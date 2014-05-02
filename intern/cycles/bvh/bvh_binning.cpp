@@ -83,14 +83,14 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange& job, BVHReference *prims)
 			int4 bin1 = get_bin(prim1.bounds());
 
 			/* increase bounds for bins for even primitive */
-			int b00 = extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(prim0.bounds());
-			int b01 = extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(prim0.bounds());
-			int b02 = extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(prim0.bounds());
+			int b00 = (int)extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(prim0.bounds());
+			int b01 = (int)extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(prim0.bounds());
+			int b02 = (int)extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(prim0.bounds());
 
 			/* increase bounds of bins for odd primitive */
-			int b10 = extract<0>(bin1); bin_count[b10][0]++; bin_bounds[b10][0].grow(prim1.bounds());
-			int b11 = extract<1>(bin1); bin_count[b11][1]++; bin_bounds[b11][1].grow(prim1.bounds());
-			int b12 = extract<2>(bin1); bin_count[b12][2]++; bin_bounds[b12][2].grow(prim1.bounds());
+			int b10 = (int)extract<0>(bin1); bin_count[b10][0]++; bin_bounds[b10][0].grow(prim1.bounds());
+			int b11 = (int)extract<1>(bin1); bin_count[b11][1]++; bin_bounds[b11][1].grow(prim1.bounds());
+			int b12 = (int)extract<2>(bin1); bin_count[b12][2]++; bin_bounds[b12][2].grow(prim1.bounds());
 		}
 
 		/* for uneven number of primitives */
@@ -100,9 +100,9 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange& job, BVHReference *prims)
 			int4 bin0 = get_bin(prim0.bounds());
 
 			/* increase bounds of bins */
-			int b00 = extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(prim0.bounds());
-			int b01 = extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(prim0.bounds());
-			int b02 = extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(prim0.bounds());
+			int b00 = (int)extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(prim0.bounds());
+			int b01 = (int)extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(prim0.bounds());
+			int b02 = (int)extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(prim0.bounds());
 		}
 	}
 

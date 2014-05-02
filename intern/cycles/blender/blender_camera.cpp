@@ -212,8 +212,8 @@ static void blender_camera_viewplane(BlenderCamera *bcam, int width, int height,
 	BoundBox2D *viewplane, float *aspectratio, float *sensor_size)
 {
 	/* dimensions */
-	float xratio = width*bcam->pixelaspect.x;
-	float yratio = height*bcam->pixelaspect.y;
+	float xratio = (float)width*bcam->pixelaspect.x;
+	float yratio = (float)height*bcam->pixelaspect.y;
 
 	/* compute x/y aspect and ratio */
 	float xaspect, yaspect;
@@ -288,8 +288,8 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 
 	/* panorama sensor */
 	if (bcam->type == CAMERA_PANORAMA && bcam->panorama_type == PANORAMA_FISHEYE_EQUISOLID) {
-		float fit_xratio = bcam->full_width*bcam->pixelaspect.x;
-		float fit_yratio = bcam->full_height*bcam->pixelaspect.y;
+		float fit_xratio = (float)bcam->full_width*bcam->pixelaspect.x;
+		float fit_yratio = (float)bcam->full_height*bcam->pixelaspect.y;
 		bool horizontal_fit;
 		float sensor_size;
 
@@ -565,10 +565,10 @@ BufferParams BlenderSync::get_buffer_params(BL::RenderSettings b_render, BL::Sce
 
 	if(use_border) {
 		/* border render */
-		params.full_x = cam->border.left*width;
-		params.full_y = cam->border.bottom*height;
-		params.width = (int)(cam->border.right*width) - params.full_x;
-		params.height = (int)(cam->border.top*height) - params.full_y;
+		params.full_x = (int)(cam->border.left * (float)width);
+		params.full_y = (int)(cam->border.bottom * (float)height);
+		params.width = (int)(cam->border.right * (float)width) - params.full_x;
+		params.height = (int)(cam->border.top * (float)height) - params.full_y;
 
 		/* survive in case border goes out of view or becomes too small */
 		params.width = max(params.width, 1);

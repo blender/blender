@@ -932,7 +932,7 @@ public:
 			CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(size_t)*3, max_work_items, NULL);
 	
 		/* try to divide evenly over 2 dimensions */
-		size_t sqrt_workgroup_size = max(sqrt((double)workgroup_size), 1.0);
+		size_t sqrt_workgroup_size = max((size_t)sqrt((double)workgroup_size), 1);
 		size_t local_size[2] = {sqrt_workgroup_size, sqrt_workgroup_size};
 
 		/* some implementations have max size 1 on 2nd dimension */

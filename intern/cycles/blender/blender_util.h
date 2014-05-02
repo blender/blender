@@ -57,7 +57,7 @@ static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size
 	for(int i = 0; i < size; i++) {
 		float color[4];
 
-		ramp.evaluate(i/(float)(size-1), color);
+		ramp.evaluate((float)i/(float)(size-1), color);
 		data[i] = make_float4(color[0], color[1], color[2], color[3]);
 	}
 }
@@ -74,7 +74,7 @@ static inline void curvemapping_color_to_array(BL::CurveMapping cumap, float4 *d
 		BL::CurveMap mapI = cumap.curves[3];
 
 		for(int i = 0; i < size; i++) {
-			float t = i/(float)(size-1);
+			float t = (float)i/(float)(size-1);
 
 			data[i][0] = mapR.evaluate(mapI.evaluate(t));
 			data[i][1] = mapG.evaluate(mapI.evaluate(t));
@@ -83,7 +83,7 @@ static inline void curvemapping_color_to_array(BL::CurveMapping cumap, float4 *d
 	}
 	else {
 		for(int i = 0; i < size; i++) {
-			float t = i/(float)(size-1);
+			float t = (float)i/(float)(size-1);
 
 			data[i][0] = mapR.evaluate(t);
 			data[i][1] = mapG.evaluate(t);

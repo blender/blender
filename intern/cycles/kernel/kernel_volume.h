@@ -203,7 +203,7 @@ ccl_device float kernel_volume_equiangular_sample(Ray *ray, float3 light_P, floa
 	float D = sqrtf(len_squared(light_P - ray->P) - delta * delta);
 	float theta_a = -atan2f(delta, D);
 	float theta_b = atan2f(t - delta, D);
-	float t_ = D * tan((xi * theta_b) + (1 - xi) * theta_a);
+	float t_ = D * tanf((xi * theta_b) + (1 - xi) * theta_a);
 
 	*pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
 

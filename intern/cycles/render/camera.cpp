@@ -44,8 +44,8 @@ Camera::Camera()
 	fisheye_lens = 10.5f;
 	fov = M_PI_4_F;
 
-	sensorwidth = 0.036;
-	sensorheight = 0.024;
+	sensorwidth = 0.036f;
+	sensorheight = 0.024f;
 
 	nearclip = 1e-5f;
 	farclip = 1e5f;

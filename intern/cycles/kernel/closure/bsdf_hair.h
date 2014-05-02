@@ -99,7 +99,7 @@ ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, con
 	float theta_h = (theta_i + theta_r) * 0.5f;
 	float t = theta_h - offset;
 
-	float phi_pdf = cos(phi_i * 0.5f) * 0.25f / roughness2;
+	float phi_pdf = cosf(phi_i * 0.5f) * 0.25f / roughness2;
 	float theta_pdf = roughness1 / (2 * (t*t + roughness1*roughness1) * (a_R - b_R)* costheta_i);
 	*pdf = phi_pdf * theta_pdf;
 
@@ -191,7 +191,7 @@ ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, f
 
 	float phi = 2 * safe_asinf(1 - 2 * randv) * roughness2;
 
-	float phi_pdf = cos(phi * 0.5f) * 0.25f / roughness2;
+	float phi_pdf = cosf(phi * 0.5f) * 0.25f / roughness2;
 
 	float theta_pdf = roughness1 / (2 * (t*t + roughness1*roughness1) * (a_R - b_R)*costheta_i);
 

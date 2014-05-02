@@ -1036,7 +1036,7 @@ public:
 						float scaling_factor = (float)target_update_frequency / (float)msec;
 
 						/* sync at earliest next sample and probably later */
-						sync_sample = (sample + 1) + sync_sample * ceil(scaling_factor);
+						sync_sample = (sample + 1) + sync_sample * (int)ceil(scaling_factor);
 
 						sync_sample = min(end_sample - 1, sync_sample); // make sure we sync the last sample always
 
