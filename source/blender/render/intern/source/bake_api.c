@@ -30,7 +30,7 @@
  *
  * The Bake API is fully implemented with Python rna functions. The operator expects/call a function:
  *
- * def  bake(scene, object, pass_type, pixel_array, num_pixels, depth, result)
+ * ``def bake(scene, object, pass_type, pixel_array, num_pixels, depth, result)``
  * - scene: current scene (Python object)
  * - object: object to render (Python object)
  * - pass_type: pass to render (string, e.g., "COMBINED", "AO", "NORMAL", ...)
@@ -44,19 +44,21 @@
  * \subsection bake_pixel BakePixel data structure
  *
  * pixel_array is a Python object storing BakePixel elements:
-
+ *
+ * <pre>
  * struct BakePixel {
  *     int primitive_id;
- *     float u, v;
- *     float dudx, dudy;
- *     float dvdx, dvdy;
+ *     float uv[2];
+ *     float du_dx, du_dy;
+ *     float dv_dx, dv_dy;
  * };
+ * </pre>
  *
  * In python you have access to:
- * - primitive_id, u, v, du_dx, du_dy, next
- * - next() is a function that returns the next BakePixel in the array.
+ * - ``primitive_id``, ``uv``, ``du_dx``, ``du_dy``, ``next``
+ * - ``next()`` is a function that returns the next #BakePixel in the array.
  *
- * \note Pixels that should not be baked have primitive_id = -1
+ * \note Pixels that should not be baked have ``primitive_id == -1``
  *
  * For a complete implementation example look at the Cycles Bake commit.
  */
