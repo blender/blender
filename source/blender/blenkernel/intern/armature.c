@@ -1522,7 +1522,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 		else {
 			/* If nor is too close to -Y, apply the special case. */
 			theta = nor[0] * nor[0] + nor[2] * nor[2];
-			bMatrix[0][0] = (nor[0] + nor[2]) * (nor[0] - nor[2]) / theta;
+			bMatrix[0][0] = (nor[0] + nor[2]) * (nor[0] - nor[2]) / -theta;
 			bMatrix[2][2] = -bMatrix[0][0];
 			bMatrix[2][0] = bMatrix[0][2] = 2.0f * nor[0] * nor[2] / theta;
 		}
