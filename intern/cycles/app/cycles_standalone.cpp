@@ -177,8 +177,14 @@ static void display_info(Progress& progress)
 
 	interactive = options.interactive? "On":"Off";
 
-	str = string_printf("%s        Time: %.2f        Latency: %.4f        Sample: %d        Average: %.4f        Interactive: %s",
-						status.c_str(), total_time, latency, sample, sample_time, interactive.c_str());
+	str = string_printf(
+	        "%s"
+	        "        Time: %.2f"
+	        "        Latency: %.4f"
+	        "        Sample: %d"
+	        "        Average: %.4f"
+	        "        Interactive: %s",
+	        status.c_str(), total_time, latency, sample, sample_time, interactive.c_str());
 
 	view_display_info(str.c_str());
 

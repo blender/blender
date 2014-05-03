@@ -416,7 +416,7 @@ public:
 				error_msg = message; \
 			fprintf(stderr, "%s\n", message.c_str()); \
 		} \
-	}
+	} (void)0
 
 	void opencl_assert_err(cl_int err, const char* where)
 	{
@@ -846,7 +846,7 @@ public:
 	{
 		/* this is blocking */
 		size_t size = mem.memory_size();
-		opencl_assert(clEnqueueWriteBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, 0, size, (void*)mem.data_pointer, 0, NULL, NULL))
+		opencl_assert(clEnqueueWriteBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, 0, size, (void*)mem.data_pointer, 0, NULL, NULL));
 	}
 
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
@@ -854,7 +854,7 @@ public:
 		size_t offset = elem*y*w;
 		size_t size = elem*w*h;
 
-		opencl_assert(clEnqueueReadBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, offset, size, (uchar*)mem.data_pointer + offset, 0, NULL, NULL))
+		opencl_assert(clEnqueueReadBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, offset, size, (uchar*)mem.data_pointer + offset, 0, NULL, NULL));
 	}
 
 	void mem_zero(device_memory& mem)
@@ -868,7 +868,7 @@ public:
 	void mem_free(device_memory& mem)
 	{
 		if(mem.device_pointer) {
-			opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)))
+			opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
 			mem.device_pointer = 0;
 
 			stats.mem_free(mem.memory_size());
@@ -944,8 +944,8 @@ public:
 		size_t global_size[2] = {global_size_round_up(local_size[0], w), global_size_round_up(local_size[1], h)};
 
 		/* run kernel */
-		opencl_assert(clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL))
-		opencl_assert(clFlush(cqCommandQueue))
+		opencl_assert(clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL));
+		opencl_assert(clFlush(cqCommandQueue));
 	}
 
 	void path_trace(RenderTile& rtile, int sample)
@@ -965,21 +965,21 @@ public:
 		/* sample arguments */
 		cl_uint narg = 0;
 
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_data), (void*)&d_data))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_buffer), (void*)&d_buffer))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_rng_state), (void*)&d_rng_state))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_data), (void*)&d_data));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_buffer), (void*)&d_buffer));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_rng_state), (void*)&d_rng_state));
 
 #define KERNEL_TEX(type, ttype, name) \
 	set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_sample), (void*)&d_sample))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_x), (void*)&d_x))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_w), (void*)&d_w))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_h), (void*)&d_h))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_offset), (void*)&d_offset))
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_stride), (void*)&d_stride))
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_sample), (void*)&d_sample));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_x), (void*)&d_x));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_w), (void*)&d_w));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_h), (void*)&d_h));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_offset), (void*)&d_offset));
+		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_stride), (void*)&d_stride));
 
 		enqueue_kernel(ckPathTraceKernel, d_w, d_h);
 	}
@@ -1020,21 +1020,21 @@ public:
 
 		cl_kernel ckFilmConvertKernel = (rgba_byte)? ckFilmConvertByteKernel: ckFilmConvertHalfFloatKernel;
 
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_data), (void*)&d_data))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_rgba), (void*)&d_rgba))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_buffer), (void*)&d_buffer))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_data), (void*)&d_data));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_rgba), (void*)&d_rgba));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_buffer), (void*)&d_buffer));
 
 #define KERNEL_TEX(type, ttype, name) \
 	set_kernel_arg_mem(ckFilmConvertKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_sample_scale), (void*)&d_sample_scale))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_x), (void*)&d_x))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_y), (void*)&d_y))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_w), (void*)&d_w))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_h), (void*)&d_h))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_offset), (void*)&d_offset))
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_stride), (void*)&d_stride))
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_sample_scale), (void*)&d_sample_scale));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_x), (void*)&d_x));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_y), (void*)&d_y));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_w), (void*)&d_w));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_h), (void*)&d_h));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_offset), (void*)&d_offset));
+		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_stride), (void*)&d_stride));
 
 
 
@@ -1054,17 +1054,17 @@ public:
 		/* sample arguments */
 		cl_uint narg = 0;
 
-		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_data), (void*)&d_data))
-		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_input), (void*)&d_input))
-		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_output), (void*)&d_output))
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_data), (void*)&d_data));
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_input), (void*)&d_input));
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_output), (void*)&d_output));
 
 #define KERNEL_TEX(type, ttype, name) \
 	set_kernel_arg_mem(ckShaderKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type))
-		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x))
-		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w))
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type));
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x));
+		opencl_assert(clSetKernelArg(ckShaderKernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w));
 
 		enqueue_kernel(ckShaderKernel, task.shader_w, 1);
 	}
