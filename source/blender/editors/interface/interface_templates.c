@@ -307,6 +307,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					Scene *scene = CTX_data_scene(C);
 					ED_object_single_user(bmain, scene, (struct Object *)id);
 					WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+					DAG_relations_tag_update(bmain);
 				}
 				else {
 					if (id) {

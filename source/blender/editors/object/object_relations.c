@@ -2284,24 +2284,32 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C); /* ok if this is NULL */
 	int flag = RNA_enum_get(op->ptr, "type"); /* 0==ALL, SELECTED==selected objecs */
 	bool copy_groups = false;
+	bool update_deps = false;
 
 	BKE_main_id_clear_newpoins(bmain);
 
-	if (RNA_boolean_get(op->ptr, "object"))
+	if (RNA_boolean_get(op->ptr, "object")) {
 		single_object_users(bmain, scene, v3d, flag, copy_groups);
 
-	if (RNA_boolean_get(op->ptr, "obdata"))
-		single_obdata_users(bmain, scene, flag);
+		/* needed since object relationships may have changed */
+		update_deps = true;
+	}
 
-	if (RNA_boolean_get(op->ptr, "material"))
+	if (RNA_boolean_get(op->ptr, "obdata")) {
+		single_obdata_users(bmain, scene, flag);
+	}
+
+	if (RNA_boolean_get(op->ptr, "material")) {
 		single_mat_users(scene, flag, RNA_boolean_get(op->ptr, "texture"));
+	}
 
 #if 0 /* can't do this separate from materials */
 	if (RNA_boolean_get(op->ptr, "texture"))
 		single_mat_users(scene, flag, true);
 #endif
-	if (RNA_boolean_get(op->ptr, "animation"))
+	if (RNA_boolean_get(op->ptr, "animation")) {
 		single_object_action_users(scene, flag);
+	}
 
 	/* TODO(sergey): This should not be needed, however some tool still could rely
 	 *               on the fact, that id->newid is kept NULL by default.
@@ -2311,6 +2319,11 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	BKE_main_id_clear_newpoins(bmain);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	if (update_deps) {
+		DAG_relations_tag_update(bmain);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
