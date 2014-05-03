@@ -27,10 +27,11 @@
  *  \ingroup modifiers
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-
 
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
@@ -86,6 +87,41 @@ static void DM_loop_interp_from_poly(DerivedMesh *source_dm,
 
 	DM_interp_loop_data(source_dm, target_dm, source_indices, weights,
 	                    source_poly->totloop, target_loop_index);
+}
+
+typedef struct DMArrays {
+	MVert *mvert;
+	MEdge *medge;
+	MLoop *mloop;
+	MPoly *mpoly;
+	bool mvert_allocated;
+	bool medge_allocated;
+	bool mloop_allocated;
+	bool mpoly_allocated;
+} DMArrays;
+
+static void dm_arrays_get(DerivedMesh *dm, DMArrays *arrays)
+{
+	arrays->mvert = DM_get_vert_array(dm, &arrays->mvert_allocated);
+	arrays->medge = DM_get_edge_array(dm, &arrays->medge_allocated);
+	arrays->mloop = DM_get_loop_array(dm, &arrays->mloop_allocated);
+	arrays->mpoly = DM_get_poly_array(dm, &arrays->mpoly_allocated);
+}
+
+static void dm_arrays_free(DMArrays *arrays)
+{
+	if (arrays->mvert_allocated) {
+		MEM_freeN(arrays->mvert);
+	}
+	if (arrays->medge_allocated) {
+		MEM_freeN(arrays->medge);
+	}
+	if (arrays->mloop_allocated) {
+		MEM_freeN(arrays->mloop);
+	}
+	if (arrays->mpoly_allocated) {
+		MEM_freeN(arrays->mpoly);
+	}
 }
 
 /* **** Importer from derived mesh to Carve ****  */
@@ -633,25 +669,30 @@ static int operation_from_optype(int int_op_type)
 	return operation;
 }
 
-static void prepare_import_data(Object *object, DerivedMesh *dm, ImportMeshData *import_data)
+static void prepare_import_data(Object *object,
+                                DerivedMesh *dm,
+                                const DMArrays *dm_arrays,
+                                ImportMeshData *import_data)
 {
 	import_data->dm = dm;
 	copy_m4_m4(import_data->obmat, object->obmat);
-	import_data->mvert = dm->getVertArray(dm);
-	import_data->medge = dm->getEdgeArray(dm);
-	import_data->mloop = dm->getLoopArray(dm);
-	import_data->mpoly = dm->getPolyArray(dm);
+	import_data->mvert = dm_arrays->mvert;
+	import_data->medge = dm_arrays->medge;
+	import_data->mloop = dm_arrays->mloop;
+	import_data->mpoly = dm_arrays->mpoly;
 }
 
-static struct CarveMeshDescr *carve_mesh_from_dm(Object *object, DerivedMesh *dm)
+static struct CarveMeshDescr *carve_mesh_from_dm(Object *object,
+                                                 DerivedMesh *dm,
+                                                 const DMArrays *dm_arrays)
 {
 	ImportMeshData import_data;
-	prepare_import_data(object, dm, &import_data);
+	prepare_import_data(object, dm, dm_arrays, &import_data);
 	return carve_addMesh(&import_data, &MeshImporter);
 }
 
-static void prepare_export_data(Object *object_left, DerivedMesh *dm_left,
-                                Object *object_right, DerivedMesh *dm_right,
+static void prepare_export_data(Object *object_left, DerivedMesh *dm_left, const DMArrays *dm_left_arrays,
+                                Object *object_right, DerivedMesh *dm_right, const DMArrays *dm_right_arrays,
                                 ExportMeshData *export_data)
 {
 	float object_right_imat[4][4];
@@ -664,12 +705,12 @@ static void prepare_export_data(Object *object_left, DerivedMesh *dm_left,
 	export_data->dm_left = dm_left;
 	export_data->dm_right = dm_right;
 
-	export_data->mvert_left = dm_left->getVertArray(dm_left);
-	export_data->mloop_left = dm_left->getLoopArray(dm_left);
-	export_data->mpoly_left = dm_left->getPolyArray(dm_left);
-	export_data->mvert_right = dm_right->getVertArray(dm_right);
-	export_data->mloop_right = dm_right->getLoopArray(dm_right);
-	export_data->mpoly_right = dm_right->getPolyArray(dm_right);
+	export_data->mvert_left = dm_left_arrays->mvert;
+	export_data->mloop_left = dm_left_arrays->mloop;
+	export_data->mpoly_left = dm_left_arrays->mpoly;
+	export_data->mvert_right = dm_right_arrays->mvert;
+	export_data->mloop_right = dm_right_arrays->mloop;
+	export_data->mpoly_right = dm_right_arrays->mpoly;
 
 	export_data->material_hash = BLI_ghash_ptr_new("CSG_mat gh");
 
@@ -690,6 +731,7 @@ DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob,
 	DerivedMesh *output_dm = NULL;
 	int operation;
 	bool result;
+	DMArrays dm_left_arrays, dm_right_arrays;
 
 	if (dm == NULL || dm_select == NULL) {
 		return NULL;
@@ -700,8 +742,11 @@ DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob,
 		return NULL;
 	}
 
-	left = carve_mesh_from_dm(ob_select, dm_select);
-	right = carve_mesh_from_dm(ob, dm);
+	dm_arrays_get(dm_select, &dm_left_arrays);
+	dm_arrays_get(dm, &dm_right_arrays);
+
+	left = carve_mesh_from_dm(ob_select, dm_select, &dm_left_arrays);
+	right = carve_mesh_from_dm(ob, dm, &dm_right_arrays);
 
 	result = carve_performBooleanOperation(left, right, operation, &output);
 
@@ -711,7 +756,9 @@ DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob,
 	if (result) {
 		ExportMeshData export_data;
 
-		prepare_export_data(ob_select, dm_select, ob, dm, &export_data);
+		prepare_export_data(ob_select, dm_select, &dm_left_arrays,
+		                    ob, dm, &dm_right_arrays,
+		                    &export_data);
 
 		carve_exportMesh(output, &MeshExporter, &export_data);
 		output_dm = export_data.dm;
@@ -722,6 +769,9 @@ DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob,
 		output_dm->dirty |= DM_DIRTY_NORMALS;
 		carve_deleteMesh(output);
 	}
+
+	dm_arrays_free(&dm_left_arrays);
+	dm_arrays_free(&dm_right_arrays);
 
 	return output_dm;
 }

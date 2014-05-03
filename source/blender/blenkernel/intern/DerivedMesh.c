@@ -3342,3 +3342,84 @@ bool DM_is_valid(DerivedMesh *dm)
 }
 
 #endif /* NDEBUG */
+
+/* -------------------------------------------------------------------- */
+
+MVert *DM_get_vert_array(DerivedMesh *dm, bool *allocated)
+{
+	CustomData *vert_data = dm->getVertDataLayout(dm);
+	MVert *mvert = CustomData_get_layer(vert_data, CD_MVERT);
+	*allocated = false;
+
+	if (mvert == NULL) {
+		mvert = MEM_mallocN(sizeof(MVert) * dm->getNumVerts(dm), "dmvh vert data array");
+		dm->copyVertArray(dm, mvert);
+		*allocated = true;
+	}
+
+	return mvert;
+}
+
+MEdge *DM_get_edge_array(DerivedMesh *dm, bool *allocated)
+{
+	CustomData *edge_data = dm->getEdgeDataLayout(dm);
+	MEdge *medge = CustomData_get_layer(edge_data, CD_MEDGE);
+	*allocated = false;
+
+	if (medge == NULL) {
+		medge = MEM_mallocN(sizeof(MEdge) * dm->getNumEdges(dm), "dm medge data array");
+		dm->copyEdgeArray(dm, medge);
+		*allocated = true;
+	}
+
+	return medge;
+}
+
+MLoop *DM_get_loop_array(DerivedMesh *dm, bool *allocated)
+{
+	CustomData *loop_data = dm->getEdgeDataLayout(dm);
+	MLoop *mloop = CustomData_get_layer(loop_data, CD_MLOOP);
+	*allocated = false;
+
+	if (mloop == NULL) {
+		mloop = MEM_mallocN(sizeof(MLoop) * dm->getNumLoops(dm), "dm loop data array");
+		dm->copyLoopArray(dm, mloop);
+		*allocated = true;
+	}
+
+	return mloop;
+}
+
+MPoly *DM_get_poly_array(DerivedMesh *dm, bool *allocated)
+{
+	CustomData *poly_data = dm->getPolyDataLayout(dm);
+	MPoly *mpoly = CustomData_get_layer(poly_data, CD_MPOLY);
+	*allocated = false;
+
+	if (mpoly == NULL) {
+		mpoly = MEM_mallocN(sizeof(MPoly) * dm->getNumPolys(dm), "dm poly data array");
+		dm->copyPolyArray(dm, mpoly);
+		*allocated = true;
+	}
+
+	return mpoly;
+}
+
+MFace *DM_get_tessface_array(DerivedMesh *dm, bool *allocated)
+{
+	CustomData *tessface_data = dm->getTessFaceDataLayout(dm);
+	MFace *mface = CustomData_get_layer(tessface_data, CD_MFACE);
+	*allocated = false;
+
+	if (mface == NULL) {
+		int numTessFaces = dm->getNumTessFaces(dm);
+
+		if (numTessFaces > 0) {
+			mface = MEM_mallocN(sizeof(MFace) * numTessFaces, "bvh mface data array");
+			dm->copyTessFaceArray(dm, mface);
+			*allocated = true;
+		}
+	}
+
+	return mface;
+}

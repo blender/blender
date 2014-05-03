@@ -53,6 +53,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_threads.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
@@ -79,6 +80,9 @@
 #include "CCGSubSurf.h"
 
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
+
+static ThreadRWMutex loops_cache_rwlock = BLI_RWLOCK_INITIALIZER;
+static ThreadRWMutex origindex_cache_rwlock = BLI_RWLOCK_INITIALIZER;
 
 static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                                          int drawInteriorEdges,
@@ -1326,16 +1330,21 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	/* DMFlagMat *faceFlags = ccgdm->faceFlags; */ /* UNUSED */
 
 	if (!ccgdm->ehash) {
-		MEdge *medge;
+		BLI_rw_mutex_lock(&loops_cache_rwlock, THREAD_LOCK_WRITE);
+		if (!ccgdm->ehash) {
+			MEdge *medge;
 
-		ccgdm->ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
-		medge = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
+			ccgdm->ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
+			medge = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
 
-		for (i = 0; i < ccgdm->dm.numEdgeData; i++) {
-			BLI_edgehash_insert(ccgdm->ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
+			for (i = 0; i < ccgdm->dm.numEdgeData; i++) {
+				BLI_edgehash_insert(ccgdm->ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
+			}
 		}
+		BLI_rw_mutex_unlock(&loops_cache_rwlock);
 	}
 
+	BLI_rw_mutex_lock(&loops_cache_rwlock, THREAD_LOCK_READ);
 	totface = ccgSubSurf_getNumFaces(ss);
 	mv = mloop;
 	for (index = 0; index < totface; index++) {
@@ -1378,6 +1387,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 			}
 		}
 	}
+	BLI_rw_mutex_unlock(&loops_cache_rwlock);
 }
 
 static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
@@ -2903,11 +2913,14 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 		int a, index, totnone, totorig;
 
 		/* Avoid re-creation if the layer exists already */
+		BLI_rw_mutex_lock(&origindex_cache_rwlock, THREAD_LOCK_READ);
 		origindex = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+		BLI_rw_mutex_unlock(&origindex_cache_rwlock);
 		if (origindex) {
 			return origindex;
 		}
 
+		BLI_rw_mutex_lock(&origindex_cache_rwlock, THREAD_LOCK_WRITE);
 		DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 		origindex = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
 
@@ -2922,6 +2935,7 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 			CCGVert *v = ccgdm->vertMap[index].vert;
 			origindex[a] = ccgDM_getVertMapIndex(ccgdm->ss, v);
 		}
+		BLI_rw_mutex_unlock(&origindex_cache_rwlock);
 
 		return origindex;
 	}
