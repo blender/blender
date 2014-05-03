@@ -1202,11 +1202,12 @@ compile_OIIO() {
     cmake_d="$cmake_d -D BUILDSTATIC=OFF"
     cmake_d="$cmake_d -D LINKSTATIC=OFF"
 
+    cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
+    cmake_d="$cmake_d -D OPENEXR_VERSION=$OPENEXR_VERSION"
+
     if [ $_with_built_openexr == true ]; then
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
-      cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
       cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
-      cmake_d="$cmake_d -D OPENEXR_VERSION=$OPENEXR_VERSION"
     fi
 
     # Optional tests and cmd tools
@@ -1433,9 +1434,10 @@ compile_OSL() {
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
     cmake_d="$cmake_d -D BUILDSTATIC=OFF"
 
+    cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
+
     if [ $_with_built_openexr == true ]; then
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
-      cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
     fi
 
     if [ -d $INST/boost ]; then
