@@ -156,12 +156,12 @@ FreestyleLineStyle *BKE_copy_linestyle(FreestyleLineStyle *linestyle)
 	BKE_free_linestyle(new_linestyle);
 
 	for (a = 0; a < MAX_MTEX; a++) {
-	        if (linestyle->mtex[a]) {
-	            new_linestyle->mtex[a] = MEM_mallocN(sizeof(MTex), "BKE_copy_linestyle");
-	            memcpy(new_linestyle->mtex[a], linestyle->mtex[a], sizeof(MTex));
-	            id_us_plus((ID *)new_linestyle->mtex[a]->tex);
-	        }
-	    }
+		if (linestyle->mtex[a]) {
+			new_linestyle->mtex[a] = MEM_mallocN(sizeof(MTex), "BKE_copy_linestyle");
+			memcpy(new_linestyle->mtex[a], linestyle->mtex[a], sizeof(MTex));
+			id_us_plus((ID *)new_linestyle->mtex[a]->tex);
+		}
+	}
 	if (linestyle->nodetree) {
 		linestyle->nodetree = ntreeCopyTree(linestyle->nodetree);
 	}

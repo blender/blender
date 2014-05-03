@@ -367,13 +367,14 @@ typedef struct BakeAPIRender {
 	bool ready;
 } BakeAPIRender;
 
-static int bake(Main *bmain, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
-				const ScenePassType pass_type, const int margin,
-				const BakeSaveMode save_mode, const bool is_clear, const bool is_split_materials,
-				const bool is_automatic_name, const bool use_selected_to_active,
-				const float cage_extrusion, const int normal_space, const BakeNormalSwizzle normal_swizzle[],
-				const char *custom_cage, const char *filepath, const int width, const int height,
-				const char *identifier)
+static int bake(
+        Main *bmain, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
+        const ScenePassType pass_type, const int margin,
+        const BakeSaveMode save_mode, const bool is_clear, const bool is_split_materials,
+        const bool is_automatic_name, const bool use_selected_to_active,
+        const float cage_extrusion, const int normal_space, const BakeNormalSwizzle normal_swizzle[],
+        const char *custom_cage, const char *filepath, const int width, const int height,
+        const char *identifier)
 {
 	int op_result = OPERATOR_CANCELLED;
 	bool ok = false;
@@ -886,11 +887,12 @@ static int bake_exec(bContext *C, wmOperator *op)
 
 	bake_init_api_data(op, C, &bkr);
 
-	result = bake(bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
-			      bkr.pass_type, bkr.margin, bkr.save_mode,
-			      bkr.is_clear, bkr.is_split_materials, bkr.is_automatic_name, bkr.use_selected_to_active,
-			      bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
-				  bkr.custom_cage, bkr.filepath, bkr.width, bkr.height, bkr.identifier);
+	result = bake(
+	        bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
+	        bkr.pass_type, bkr.margin, bkr.save_mode,
+	        bkr.is_clear, bkr.is_split_materials, bkr.is_automatic_name, bkr.use_selected_to_active,
+	        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
+	        bkr.custom_cage, bkr.filepath, bkr.width, bkr.height, bkr.identifier);
 
 	BLI_freelistN(&bkr.selected_objects);
 	return result;
@@ -900,12 +902,13 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_updat
 {
 	BakeAPIRender *bkr = (BakeAPIRender *)bkv;
 
-	bkr->result = bake(bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
-					   bkr->pass_type, bkr->margin, bkr->save_mode,
-					   bkr->is_clear, bkr->is_split_materials, bkr->is_automatic_name, bkr->use_selected_to_active,
-					   bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
-					   bkr->custom_cage, bkr->filepath, bkr->width, bkr->height, bkr->identifier
-					   );
+	bkr->result = bake(
+	        bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
+	        bkr->pass_type, bkr->margin, bkr->save_mode,
+	        bkr->is_clear, bkr->is_split_materials, bkr->is_automatic_name, bkr->use_selected_to_active,
+	        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
+	        bkr->custom_cage, bkr->filepath, bkr->width, bkr->height, bkr->identifier
+	        );
 }
 
 static void bake_freejob(void *bkv)
@@ -1018,7 +1021,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 
 	/* setup job */
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Texture Bake",
-						 WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE);
+	                     WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE);
 	WM_jobs_customdata_set(wm_job, bkr, bake_freejob);
 	WM_jobs_timer(wm_job, 0.5, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 	WM_jobs_callbacks(wm_job, bake_startjob, NULL, NULL, NULL);

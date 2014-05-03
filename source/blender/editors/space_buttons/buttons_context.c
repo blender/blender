@@ -521,6 +521,7 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 	return 0;
 }
 
+#ifdef WITH_FREESTYLE
 static bool buttons_context_linestyle_pinnable(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -537,6 +538,7 @@ static bool buttons_context_linestyle_pinnable(const bContext *C)
 	}
 	return true;
 }
+#endif
 
 static int buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int flag)
 {
