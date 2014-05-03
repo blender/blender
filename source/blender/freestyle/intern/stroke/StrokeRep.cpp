@@ -45,6 +45,7 @@ StrokeVertexRep::StrokeVertexRep(const StrokeVertexRep& iBrother)
 {
 	_point2d = iBrother._point2d;
 	_texCoord = iBrother._texCoord;
+	_texCoord_w_tips = iBrother._texCoord_w_tips;
 	_color = iBrother._color;
 	_alpha = iBrother._alpha;
 }
@@ -53,13 +54,13 @@ StrokeVertexRep::StrokeVertexRep(const StrokeVertexRep& iBrother)
 // STRIP
 /////////////////////////////////////
 
-Strip::Strip(const vector<StrokeVertex*>& iStrokeVertices, bool hasTips, bool beginTip, bool endTip)
+Strip::Strip(const vector<StrokeVertex*>& iStrokeVertices, bool hasTips, bool beginTip, bool endTip, float texStep)
 {
 	createStrip(iStrokeVertices);
-	if (!hasTips)
-		computeTexCoord (iStrokeVertices);
-	else
-		computeTexCoordWithTips (iStrokeVertices, beginTip, endTip);
+
+	// We compute both kinds of coordinates to use different kinds of textures
+	computeTexCoord (iStrokeVertices, texStep);
+	computeTexCoordWithTips (iStrokeVertices, beginTip, endTip, texStep);
 }
 
 Strip::Strip(const Strip& iBrother)
@@ -485,21 +486,19 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 // Texture coordinates
 ////////////////////////////////
 
-void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices)
+void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices, float texStep)
 {
 	vector<StrokeVertex *>::const_iterator v, vend;
 	StrokeVertex *sv;
 	int i = 0;
 	for (v = iStrokeVertices.begin(), vend = iStrokeVertices.end(); v != vend; v++) {
 		sv = (*v);
-		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / _averageThickness), 0));
-		_vertices[i]->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                             sv->attribute().getColor()[2]));
+		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / (_averageThickness * texStep)), 0));
+		_vertices[i]->setColor(Vec3r(sv->attribute().getColorRGB()));
 		_vertices[i]->setAlpha(sv->attribute().getAlpha());
 		i++;
-		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / _averageThickness), 1));
-		_vertices[i]->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                             sv->attribute().getColor()[2]));
+		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / (_averageThickness * texStep)), 1));
+		_vertices[i]->setColor(Vec3r(sv->attribute().getColorRGB()));
 		_vertices[i]->setAlpha(sv->attribute().getAlpha());
 		i++;
 #if 0
@@ -509,23 +508,23 @@ void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices)
 	}
 }
 
-void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertices, bool tipBegin, bool tipEnd)
+void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertices, bool tipBegin, bool tipEnd, float texStep)
 {
-	//soc unused - unsigned int sizeStrip = _vertices.size() + 8; //for the transition between the tip and the body
 	vector<StrokeVertex*>::const_iterator v, vend;
 	StrokeVertex *sv = NULL;
+	StrokeVertexRep *tvRep[2] = {NULL};
+
+	float l, fact, t;
+	float u = 0, uPrev = 0;
+	int tiles;
+	int i = 0;
+	float spacedThickness = _averageThickness * texStep;
 
 	v = iStrokeVertices.begin();
 	vend = iStrokeVertices.end();
-	float l = (*v)->strokeLength() / _averageThickness;
-	int tiles = int(l);
-	float fact = (float(tiles) + 0.5) / l;
-	//soc unused - float uTip2 = float(tiles) + 0.25;
-	float u = 0; 
-	float uPrev = 0;
-	int i = 0;
-	float t;
-	StrokeVertexRep *tvRep1, *tvRep2;
+	l = (*v)->strokeLength() / spacedThickness;
+	tiles = int(l + 0.5); // round to the nearest
+	fact = (float(tiles) + 0.5) / l;
 
 #if 0
 	cerr << "l=" << l << "  tiles=" << tiles << "    _averageThicnkess="
@@ -538,166 +537,117 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 		for (; v != vend; v++) {
 			sv = (*v);
 			svRep = *currentSV;
-			u = sv->curvilinearAbscissa() / _averageThickness * fact;
+			u = sv->curvilinearAbscissa() / spacedThickness * fact;
 			if (u > 0.25)
 				break;
 
-			svRep->setTexCoord(Vec2r((real)u, 0.5));
-			svRep->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-			                      sv->attribute().getColor()[2]));
-			svRep->setAlpha(sv->attribute().getAlpha());
+			svRep->setTexCoord(Vec2r((real)u, 0.5), true);
 			i++;
 			++currentSV;
 
 			svRep = *currentSV;
-			svRep->setTexCoord(Vec2r((real)u, 1));
-			svRep->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-			                      sv->attribute().getColor()[2]));
-			svRep->setAlpha(sv->attribute().getAlpha());
+			svRep->setTexCoord(Vec2r((real)u, 1), true);
 			i++;
 			++currentSV;
 			uPrev = u;
 		}
-		//first transition vertex
 
+		// first transition vertex
 		if (fabs(u - uPrev) > ZERO)
 			t = (0.25 - uPrev) / (u - uPrev);
 		else
 			t = 0;
-#if 0
-		if (!tiles)
-			t = 0.5;
-#endif
-		tvRep1 = new StrokeVertexRep(Vec2r((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d()));
-		tvRep1->setTexCoord(Vec2r(0.25, 0.5));
-		tvRep1->setColor(Vec3r((1 - t) * _vertices[i - 2]->color() +
-		                       t * Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                                 sv->attribute().getColor()[2])));
-		tvRep1->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
-		i++;
-
-		tvRep2 = new StrokeVertexRep(Vec2r((1 - t) * _vertices[i - 2]->point2d() + t  *_vertices[i]->point2d()));
-		tvRep2->setTexCoord(Vec2r(0.25, 1));
-		tvRep2->setColor(Vec3r((1 - t) * _vertices[i - 2]->color() +
-		                       t * Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                                 sv->attribute().getColor()[2])));
-		tvRep2->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
-		i++;
-
-		currentSV = _vertices.insert(currentSV, tvRep1);
-		++currentSV;
-		currentSV = _vertices.insert(currentSV, tvRep2);
-		++currentSV;
+		for (int k = 0; k < 2; k++) {
+			tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d());
+			tvRep[k]->setTexCoord((1 - t) * _vertices[i - 2]->texCoord() + t * _vertices[i]->texCoord());
+			// v coord is 0.5 for tvRep[0], 1.0 for tvRep[1]
+			tvRep[k]->setTexCoord(Vec2r(0.25, 0.5 * (k + 1)), true);
+			tvRep[k]->setColor((1 - t) * _vertices[i - 2]->color() + t * Vec3r(sv->attribute().getColorRGB()));
+			tvRep[k]->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
+			i++;
+		}
+		for (int k = 0; k < 2; k++) {
+			currentSV = _vertices.insert(currentSV, tvRep[k]);
+			++currentSV;
+		}
 
 		// copy the vertices with different texture coordinates
-		tvRep1 = new StrokeVertexRep(_vertices[i - 2]->point2d());
-		tvRep1->setTexCoord(Vec2r(0.25, 0));
-		tvRep1->setColor(_vertices[i - 2]->color());
-		tvRep1->setAlpha(_vertices[i - 2]->alpha());
-		i++;
-
-		tvRep2 = new StrokeVertexRep(_vertices[i - 2]->point2d());
-		tvRep2->setTexCoord(Vec2r(0.25, 0.5));
-		tvRep2->setColor(_vertices[i - 2]->color());
-		tvRep2->setAlpha(_vertices[i - 2]->alpha());
-		i++;
-
-		currentSV = _vertices.insert(currentSV, tvRep1);
-		++currentSV;
-		currentSV = _vertices.insert(currentSV, tvRep2);
-		++currentSV;
+		for (int k = 0; k < 2; k++) {
+			tvRep[k] = new StrokeVertexRep(*(_vertices[i - 2]));
+			// v coord is 0.0 for tvRep[0], 0.5 for tvRep[1]
+			tvRep[k]->setTexCoord(Vec2r(0.0, 0.5 * k), true); // FIXED u coord
+			i++;
+		}
+		for (int k = 0; k < 2; k++) {
+			currentSV = _vertices.insert(currentSV, tvRep[k]);
+			++currentSV;
+		}
 	}
 	uPrev = 0;
 
-	//body of the stroke
+	// body of the stroke
 	for (; v != vend; v++) {
 		sv = (*v);
 		svRep = *currentSV;
-		u = sv->curvilinearAbscissa() / _averageThickness * fact - 0.25;
+		u = sv->curvilinearAbscissa() / spacedThickness * fact - 0.25;
 		if (u > tiles)
 			break;
 
-		svRep->setTexCoord(Vec2r((real)u, 0));
-		svRep->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                      sv->attribute().getColor()[2]));
-		svRep->setAlpha(sv->attribute().getAlpha());
+		svRep->setTexCoord(Vec2r((real)u, 0), true);
 		i++;
 		++currentSV;
 
 		svRep = *currentSV;
-		svRep->setTexCoord(Vec2r((real)u, 0.5));
-		svRep->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                      sv->attribute().getColor()[2]));
-		svRep->setAlpha(sv->attribute().getAlpha());
+		svRep->setTexCoord(Vec2r((real)u, 0.5), true);
 		i++;
 		++currentSV;
 
 		uPrev = u;
 	}
 	if (tipEnd) {
-		//second transition vertex
-		if ((fabs(u - uPrev) > ZERO))
+		// second transition vertex
+		if (fabs(u - uPrev) > ZERO)
 			t = (float(tiles) - uPrev) / (u - uPrev);
 		else
 			t = 0;
+		for (int k = 0; k < 2; k++) {
+			tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d());
+			tvRep[k]->setTexCoord((1 - t) * _vertices[i - 2]->texCoord() + t * _vertices[i]->texCoord());
+			// v coord is 0.0 for tvRep[0], 0.5 for tvRep[1]
+			tvRep[k]->setTexCoord(Vec2r((real)tiles, 0.5 * k), true); // FIXED u coord
+			tvRep[k]->setColor((1 - t) * _vertices[i - 2]->color() + t * Vec3r(sv->attribute().getColorRGB()));
+			tvRep[k]->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
+			i++;
+		}
+		for (int k = 0; k < 2; k++) {
+			currentSV = _vertices.insert(currentSV, tvRep[k]);
+			++currentSV;
+		}
 
-		tvRep1 = new StrokeVertexRep(Vec2r((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d()));
-		tvRep1->setTexCoord(Vec2r((real)tiles, 0));
-		tvRep1->setColor(Vec3r((1 - t) * _vertices[i - 2]->color() +
-		                       t * Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                                 sv->attribute().getColor()[2])));
-		tvRep1->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
-		i++;
+		// copy the vertices with different texture coordinates
+		for (int k = 0; k < 2; k++) {
+			tvRep[k] = new StrokeVertexRep(*(_vertices[i - 2]));
+			// v coord is 0.5 for tvRep[0], 1.0 for tvRep[1]
+			tvRep[k]->setTexCoord(Vec2r(0.75, 0.5 * (k + 1)), true);
+			i++;
+		}
+		for (int k = 0; k < 2; k++) {
+			currentSV = _vertices.insert(currentSV, tvRep[k]);
+			++currentSV;
+		}
 
-		tvRep2 = new StrokeVertexRep(Vec2r((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d()));
-		tvRep2->setTexCoord(Vec2r((real)tiles, 0.5));
-		tvRep2->setColor(Vec3r((1 - t) * _vertices[i - 2]->color() +
-		                       t * Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-		                                 sv->attribute().getColor()[2])));
-		tvRep2->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
-		i++;
-
-		currentSV = _vertices.insert(currentSV, tvRep1);
-		++currentSV;
-		currentSV = _vertices.insert(currentSV, tvRep2);
-		++currentSV;
-
-		//copy the vertices with different texture coordinates
-		tvRep1 = new StrokeVertexRep(_vertices[i - 2]->point2d());
-		tvRep1->setTexCoord(Vec2r(0.75, 0.5));
-		tvRep1->setColor(_vertices[i - 2]->color());
-		tvRep1->setAlpha(_vertices[i - 2]->alpha());
-		i++;
-
-		tvRep2 = new StrokeVertexRep(_vertices[i - 2]->point2d());
-		tvRep2->setTexCoord(Vec2r(0.75, 1));
-		tvRep2->setColor(_vertices[i - 2]->color());
-		tvRep2->setAlpha(_vertices[i - 2]->alpha());
-		i++;
-
-		currentSV = _vertices.insert(currentSV, tvRep1);
-		++currentSV;
-		currentSV = _vertices.insert(currentSV, tvRep2);
-		++currentSV;
-
-		//end tip
+		// end tip
 		for (; v != vend; v++) {
-			sv = (*v); 
+			sv = (*v);
 			svRep = *currentSV;
-			u = 0.75 + sv->curvilinearAbscissa() / _averageThickness * fact - float(tiles) - 0.25;
+			u = 0.75 + sv->curvilinearAbscissa() / spacedThickness * fact - float(tiles) - 0.25;
 
-			svRep->setTexCoord(Vec2r((real)u, 0.5));
-			svRep->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-			                      sv->attribute().getColor()[2]));
-			svRep->setAlpha(sv->attribute().getAlpha());
+			svRep->setTexCoord(Vec2r((real)u, 0.5), true);
 			i++;
 			++currentSV;
 
 			svRep = *currentSV;
-			svRep->setTexCoord(Vec2r((real)u, 1));
-			svRep->setColor(Vec3r(sv->attribute().getColor()[0], sv->attribute().getColor()[1],
-			                      sv->attribute().getColor()[2]));
-			svRep->setAlpha(sv->attribute().getAlpha());
+			svRep->setTexCoord(Vec2r((real)u, 1), true);
 			i++;
 			++currentSV;
 		}
@@ -729,6 +679,10 @@ StrokeRep::StrokeRep()
 {
 	_stroke = 0;
 	_strokeType = Stroke::OPAQUE_MEDIUM;
+	_textureStep = 1.0;
+	for (int a = 0; a < MAX_MTEX; a++) {
+		_mtex[a] = NULL;
+	}
 	TextureManager *ptm = TextureManager::getInstance();
 	if (ptm)
 		_textureId = ptm->getDefaultTextureId();
@@ -746,6 +700,15 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 	_stroke = iStroke;
 	_strokeType = iStroke->getMediumType();
 	_textureId = iStroke->getTextureId();
+	_textureStep = iStroke->getTextureStep();
+	for (int a = 0; a < MAX_MTEX; a++) {
+		if (iStroke->getMTex(a)) {
+			_mtex[a] = iStroke->getMTex(a);
+		}
+		else {
+			_mtex[a] = NULL;
+		}
+	}
 	if (_textureId == 0) {
 		TextureManager *ptm = TextureManager::getInstance();
 		if (ptm)
@@ -768,6 +731,15 @@ StrokeRep::StrokeRep(const StrokeRep& iBrother)
 	_stroke = iBrother._stroke;
 	_strokeType = iBrother._strokeType;
 	_textureId = iBrother._textureId;
+	_textureStep = iBrother._textureStep;
+	for (int a = 0; a < MAX_MTEX; a++) {
+		if (iBrother._mtex[a]) {
+			_mtex[a] = iBrother._mtex[a];
+		}
+		else {
+			_mtex[a] = NULL;
+		}
+	}
 	for (vector<Strip*>::const_iterator s = iBrother._strips.begin(), send = iBrother._strips.end();
 	     s != send;
 	     ++s)
@@ -811,7 +783,7 @@ void StrokeRep::create()
 			end = true;
 		}
 		if ((!strip.empty()) && (strip.size() > 1)) {
-			_strips.push_back(new Strip(strip, _stroke->hasTips(), first, end));
+			_strips.push_back(new Strip(strip, _stroke->hasTips(), first, end, _stroke->getTextureStep()));
 			strip.clear();
 		}
 		first = false;

@@ -44,6 +44,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
+#include "DNA_linestyle_types.h"
 
 #include "BLI_string.h"
 #include "BLI_math.h"
@@ -1866,6 +1867,7 @@ bNodeTree *ntreeFromID(ID *id)
 		case ID_WO:  return ((World *)id)->nodetree;
 		case ID_TE:  return ((Tex *)id)->nodetree;
 		case ID_SCE: return ((Scene *)id)->nodetree;
+		case ID_LS:  return ((FreestyleLineStyle *)id)->nodetree;
 		default: return NULL;
 	}
 }
@@ -3661,6 +3663,7 @@ void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *b
 	ntreeiter->tex = bmain->tex.first;
 	ntreeiter->lamp = bmain->lamp.first;
 	ntreeiter->world = bmain->world.first;
+	ntreeiter->linestyle = bmain->linestyle.first;
 }
 bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
                              bNodeTree **r_nodetree, struct ID **r_id)
@@ -3694,6 +3697,11 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 		*r_nodetree =       ntreeiter->world->nodetree;
 		*r_id       = (ID *)ntreeiter->world;
 		ntreeiter->world  = ntreeiter->world->id.next;
+	}
+	else if (ntreeiter->linestyle) {
+		*r_nodetree =       ntreeiter->linestyle->nodetree;
+		*r_id       = (ID *)ntreeiter->linestyle;
+		ntreeiter->linestyle = ntreeiter->linestyle->id.next;
 	}
 	else {
 		return false;

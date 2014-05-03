@@ -29,6 +29,7 @@
 
 #include "StrokeShader/BPy_BackboneStretcherShader.h"
 #include "StrokeShader/BPy_BezierCurveShader.h"
+#include "StrokeShader/BPy_BlenderTextureShader.h"
 #include "StrokeShader/BPy_CalligraphicShader.h"
 #include "StrokeShader/BPy_ColorNoiseShader.h"
 #include "StrokeShader/BPy_ColorVariationPatternShader.h"
@@ -45,6 +46,7 @@
 #include "StrokeShader/BPy_SpatialNoiseShader.h"
 #include "StrokeShader/BPy_streamShader.h"
 #include "StrokeShader/BPy_StrokeTextureShader.h"
+#include "StrokeShader/BPy_StrokeTextureStepShader.h"
 #include "StrokeShader/BPy_TextureAssignerShader.h"
 #include "StrokeShader/BPy_ThicknessNoiseShader.h"
 #include "StrokeShader/BPy_ThicknessVariationPatternShader.h"
@@ -76,6 +78,11 @@ int StrokeShader_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&BezierCurveShader_Type);
 	PyModule_AddObject(module, "BezierCurveShader", (PyObject *)&BezierCurveShader_Type);
+
+	if (PyType_Ready(&BlenderTextureShader_Type) < 0)
+		return -1;
+	Py_INCREF(&BlenderTextureShader_Type);
+	PyModule_AddObject(module, "BlenderTextureShader", (PyObject *)&BlenderTextureShader_Type);
 
 	if (PyType_Ready(&CalligraphicShader_Type) < 0)
 		return -1;
@@ -157,6 +164,11 @@ int StrokeShader_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&StrokeTextureShader_Type);
 	PyModule_AddObject(module, "StrokeTextureShader", (PyObject *)&StrokeTextureShader_Type);
+
+	if (PyType_Ready(&StrokeTextureStepShader_Type) < 0)
+		return -1;
+	Py_INCREF(&StrokeTextureStepShader_Type);
+	PyModule_AddObject(module, "StrokeTextureStepShader", (PyObject *)&StrokeTextureStepShader_Type);
 
 	if (PyType_Ready(&TextureAssignerShader_Type) < 0)
 		return -1;

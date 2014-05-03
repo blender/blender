@@ -51,6 +51,7 @@
 #include "DNA_node_types.h"
 #include "DNA_color_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_linestyle_types.h"
 
 #include "IMB_imbuf.h"
 
@@ -999,6 +1000,41 @@ void set_current_lamp_texture(Lamp *la, Tex *newtex)
 	}
 }
 
+Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
+{
+	MTex *mtex = NULL;
+	Tex *tex = NULL;
+
+	if (linestyle) {
+		mtex = linestyle->mtex[(int)(linestyle->texact)];
+		if (mtex) tex = mtex->tex;
+	}
+
+	return tex;
+}
+
+void set_current_linestyle_texture(FreestyleLineStyle *linestyle, Tex *newtex)
+{
+	int act = linestyle->texact;
+
+	if (linestyle->mtex[act] && linestyle->mtex[act]->tex)
+		id_us_min(&linestyle->mtex[act]->tex->id);
+
+	if (newtex) {
+		if (!linestyle->mtex[act]) {
+			linestyle->mtex[act] = add_mtex();
+			linestyle->mtex[act]->texco = TEXCO_STROKE;
+		}
+
+		linestyle->mtex[act]->tex = newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if (linestyle->mtex[act]) {
+		MEM_freeN(linestyle->mtex[act]);
+		linestyle->mtex[act] = NULL;
+	}
+}
+
 bNode *give_current_material_texture_node(Material *ma)
 {
 	if (ma && ma->use_nodes && ma->nodetree)
@@ -1048,6 +1084,10 @@ bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 			*mtex_ar =       ((Lamp *)id)->mtex;
 			if (act) *act =  (((Lamp *)id)->texact);
 			break;
+		case ID_LS:
+			*mtex_ar =       ((FreestyleLineStyle *)id)->mtex;
+			if (act) *act =  (((FreestyleLineStyle *)id)->texact);
+			break;
 		case ID_PA:
 			*mtex_ar =       ((ParticleSettings *)id)->mtex;
 			if (act) *act =  (((ParticleSettings *)id)->texact);
@@ -1075,6 +1115,9 @@ void set_active_mtex(ID *id, short act)
 			break;
 		case ID_LA:
 			((Lamp *)id)->texact = act;
+			break;
+		case ID_LS:
+			((FreestyleLineStyle *)id)->texact = act;
 			break;
 		case ID_PA:
 			((ParticleSettings *)id)->texact = act;

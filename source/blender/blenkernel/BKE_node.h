@@ -44,6 +44,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
+#include "DNA_linestyle_types.h"
 
 #include "RNA_types.h"
 
@@ -632,6 +633,7 @@ struct NodeTreeIterStore {
 	Tex *tex;
 	Lamp *lamp;
 	World *world;
+	FreestyleLineStyle *linestyle;
 };
 
 void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain);

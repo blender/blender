@@ -92,7 +92,7 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 			}
 		}
 	}
-	else {
+	else if (snode->texfrom == SNODE_TEX_BRUSH) {
 		struct Brush *brush = NULL;
 		
 		if (ob && (ob->mode & OB_MODE_SCULPT))
@@ -103,6 +103,17 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 		if (brush) {
 			*r_from = (ID *)brush;
 			tx = give_current_brush_texture(brush);
+			if (tx) {
+				*r_id = &tx->id;
+				*r_ntree = tx->nodetree;
+			}
+		}
+	}
+	else if (snode->texfrom == SNODE_TEX_LINESTYLE) {
+		FreestyleLineStyle *linestyle = CTX_data_linestyle_from_scene(scene);
+		if (linestyle) {
+			*r_from = (ID *)linestyle;
+			tx = give_current_linestyle_texture(linestyle);
 			if (tx) {
 				*r_id = &tx->id;
 				*r_ntree = tx->nodetree;

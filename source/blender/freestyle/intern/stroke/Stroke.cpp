@@ -393,6 +393,10 @@ Stroke::Stroke()
 	//_mediumType = DEFAULT_STROKE;
 	_mediumType = OPAQUE_MEDIUM;
 	_textureId = 0;
+	_textureStep = 1.0;
+	for (int a = 0; a < MAX_MTEX; a++) {
+		_mtex[a] = NULL;
+	}
 	_tips = false;
 	_rep = NULL;
 }
@@ -411,6 +415,15 @@ Stroke::Stroke(const Stroke& iBrother)
 	_sampling = iBrother._sampling;
 	_mediumType = iBrother._mediumType;
 	_textureId = iBrother._textureId;
+	_textureStep = iBrother._textureStep;
+	for (int a = 0; a < MAX_MTEX; a++) {
+		if (iBrother._mtex) {
+			_mtex[a] = iBrother._mtex[a];
+		}
+		else {
+			_mtex[a] = NULL;
+		}
+	}
 	_tips = iBrother._tips;
 	if (iBrother._rep)
 		_rep = new StrokeRep(*(iBrother._rep));

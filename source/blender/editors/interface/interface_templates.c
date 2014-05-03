@@ -54,6 +54,7 @@
 #include "BKE_global.h"
 #include "BKE_idcode.h"
 #include "BKE_library.h"
+#include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -1302,8 +1303,8 @@ void uiTemplatePreview(uiLayout *layout, bContext *C, ID *id, int show_buttons, 
 
 	char _preview_id[UI_MAX_NAME_STR];
 
-	if (id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
-		RNA_warning("Expected ID of type material, texture, lamp or world");
+	if (id && !ELEM5(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA, ID_LS)) {
+		RNA_warning("Expected ID of type material, texture, lamp, world or line style");
 		return;
 	}
 
@@ -1318,6 +1319,8 @@ void uiTemplatePreview(uiLayout *layout, bContext *C, ID *id, int show_buttons, 
 			pr_texture = &((World *)parent)->pr_texture;
 		else if (parent && (GS(parent->name) == ID_LA))
 			pr_texture = &((Lamp *)parent)->pr_texture;
+		else if (parent && (GS(parent->name) == ID_LS))
+			pr_texture = &((FreestyleLineStyle *)parent)->pr_texture;
 
 		if (pr_texture) {
 			if (*pr_texture == TEX_PR_OTHER)
@@ -1396,6 +1399,10 @@ void uiTemplatePreview(uiLayout *layout, bContext *C, ID *id, int show_buttons, 
 			}
 			else if (GS(parent->name) == ID_WO) {
 				uiDefButS(block, ROW, B_MATPRV, IFACE_("World"),  0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
+				          pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			}
+			else if (GS(parent->name) == ID_LS) {
+				uiDefButS(block, ROW, B_MATPRV, IFACE_("Line Style"),  0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
 				          pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
 			}
 			uiDefButS(block, ROW, B_MATPRV, IFACE_("Both"),  0, 0, UI_UNIT_X * 10, UI_UNIT_Y,

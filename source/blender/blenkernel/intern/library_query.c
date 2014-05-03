@@ -39,6 +39,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -450,6 +451,19 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			}
 			break;
 		}
+
+		case ID_LS:
+		{
+			FreestyleLineStyle *linestyle = (FreestyleLineStyle *) id;
+			for (i = 0; i < MAX_MTEX; i++) {
+				if (linestyle->mtex[i]) {
+					library_foreach_mtex(&data, linestyle->mtex[i]);
+				}
+			}
+			CALLBACK_INVOKE(linestyle->nodetree, IDWALK_NOP);
+			break;
+		}
+
 	}
 
 #undef CALLBACK_INVOKE_ID

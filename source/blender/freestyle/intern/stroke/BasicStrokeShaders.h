@@ -36,6 +36,8 @@
 #include "../geometry/Bezier.h"
 #include "../geometry/Geom.h"
 
+struct MTex;
+
 using namespace std;
 
 namespace Freestyle {
@@ -891,6 +893,62 @@ public:
 	}
 
 	/*! The shading method. */
+	virtual int shade(Stroke& stroke) const;
+};
+
+/*! [ Texture Shader ].
+ *  Shader to assign texture to the Stroke material.
+ */
+
+class BlenderTextureShader : public StrokeShader
+{
+private:
+	MTex *_mtex;
+
+public:
+	/*! Builds the shader.
+	 *  \param mtex
+	 *    The blender texture to use.
+	 */
+	BlenderTextureShader(MTex *mtex) : StrokeShader()
+	{
+		_mtex = mtex;
+	}
+
+	virtual string getName() const
+	{
+		return "BlenderTextureShader";
+	}
+
+	/*! The shading method */
+	virtual int shade(Stroke& stroke) const;
+};
+
+/*! [ Texture Shader ].
+ *  Shader to assign texture to the Stroke material.
+ */
+
+class StrokeTextureStepShader : public StrokeShader
+{
+private:
+	float _step;
+
+public:
+	/*! Builds the shader.
+	 *  \param id
+	 *    The number of the preset to use.
+	 */
+	StrokeTextureStepShader(float step) : StrokeShader()
+	{
+		_step = step;
+	}
+
+	virtual string getName() const
+	{
+		return "StrokeTextureStepShader";
+	}
+
+	/*! The shading method */
 	virtual int shade(Stroke& stroke) const;
 };
 

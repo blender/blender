@@ -84,6 +84,8 @@ EnumPropertyItem linestyle_geometry_modifier_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_linestyle.h"
+#include "BKE_texture.h"
+#include "BKE_depsgraph.h"
 
 static StructRNA *rna_LineStyle_color_modifier_refine(struct PointerRNA *ptr)
 {
@@ -249,9 +251,147 @@ static void rna_LineStyleGeometryModifier_name_set(PointerRNA *ptr, const char *
 	               offsetof(LineStyleModifier, name), sizeof(m->name));
 }
 
+static void rna_LineStyle_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ptr->id.data;
+	rna_iterator_array_begin(iter, (void *)linestyle->mtex, sizeof(MTex *), MAX_MTEX, 0, NULL);
+}
+
+static PointerRNA rna_LineStyle_active_texture_get(PointerRNA *ptr)
+{
+	FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ptr->id.data;
+	Tex *tex;
+
+	tex = give_current_linestyle_texture(linestyle);
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
+}
+
+static void rna_LineStyle_active_texture_set(PointerRNA *ptr, PointerRNA value)
+{
+	FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ptr->id.data;
+
+	set_current_linestyle_texture(linestyle, value.data);
+}
+
+static void rna_LineStyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	FreestyleLineStyle *linestyle = ptr->id.data;
+
+	DAG_id_tag_update(&linestyle->id, 0);
+	WM_main_add_notifier(NC_LINESTYLE, linestyle);
+}
+
 #else
 
 #include "BLI_math.h"
+
+static void rna_def_linestyle_mtex(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem texco_items[] = {
+		{TEXCO_WINDOW, "WINDOW", 0, "Window", "Use screen coordinates as texture coordinates"},
+		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
+		{TEXCO_STROKE, "ALONG_STROKE", 0, "Along stroke", "Use stroke lenght for texture coordinates"},
+		{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_mapping_items[] = {
+		{MTEX_FLAT, "FLAT", 0, "Flat", "Map X and Y coordinates directly"},
+		{MTEX_CUBE, "CUBE", 0, "Cube", "Map using the normal vector"},
+		{MTEX_TUBE, "TUBE", 0, "Tube", "Map with Z as central axis"},
+		{MTEX_SPHERE, "SPHERE", 0, "Sphere", "Map with Z as central axis"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_x_mapping_items[] = {
+		{0, "NONE", 0, "None", ""},
+		{1, "X", 0, "X", ""},
+		{2, "Y", 0, "Y", ""},
+		{3, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_y_mapping_items[] = {
+		{0, "NONE", 0, "None", ""},
+		{1, "X", 0, "X", ""},
+		{2, "Y", 0, "Y", ""},
+		{3, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_z_mapping_items[] = {
+		{0, "NONE", 0, "None", ""},
+		{1, "X", 0, "X", ""},
+		{2, "Y", 0, "Y", ""},
+		{3, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "LineStyleTextureSlot", "TextureSlot");
+	RNA_def_struct_sdna(srna, "MTex");
+	RNA_def_struct_ui_text(srna, "LineStyle Texture Slot", "Texture slot for textures in a LineStyle datablock");
+
+	prop = RNA_def_property(srna, "mapping_x", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "projx");
+	RNA_def_property_enum_items(prop, prop_x_mapping_items);
+	RNA_def_property_ui_text(prop, "X Mapping", "");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "mapping_y", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "projy");
+	RNA_def_property_enum_items(prop, prop_y_mapping_items);
+	RNA_def_property_ui_text(prop, "Y Mapping", "");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "mapping_z", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "projz");
+	RNA_def_property_enum_items(prop, prop_z_mapping_items);
+	RNA_def_property_ui_text(prop, "Z Mapping", "");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_mapping_items);
+	RNA_def_property_ui_text(prop, "Mapping", "");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	/* map to */
+	prop = RNA_def_property(srna, "use_map_color_diffuse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COL);
+	RNA_def_property_ui_text(prop, "Diffuse Color", "The texture affects basic color of the stroke");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "use_map_alpha", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_ALPHA);
+	RNA_def_property_ui_text(prop, "Alpha", "The texture affects the alpha value");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "use_tips", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_TIPS);
+	RNA_def_property_ui_text(prop, "Use tips", "Lower half of the texture is for tips of the stroke");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texco");
+	RNA_def_property_enum_items(prop, texco_items);
+	RNA_def_property_ui_text(prop, "Texture Coordinates",
+	                         "Texture coordinates used to map the texture onto the background");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "alpha_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "alphafac");
+	RNA_def_property_ui_range(prop, -1, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Alpha Factor", "Amount texture affects alpha");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "diffuse_color_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Diffuse Color Factor", "Amount texture affects diffuse color");
+	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
+}
 
 static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items,
                                          const char *set_name_func, const bool blend, const bool color)
@@ -892,6 +1032,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_PANEL_ALPHA, "ALPHA", 0, "Alpha", "Show the panel for alpha transparency options"},
 		{LS_PANEL_THICKNESS, "THICKNESS", 0, "Thickness", "Show the panel for line thickness options"},
 		{LS_PANEL_GEOMETRY, "GEOMETRY", 0, "Geometry", "Show the panel for stroke geometry options"},
+		{LS_PANEL_TEXTURE, "TEXTURE", 0, "Texture", "Show the panel for stroke texture options"},
 #if 0 /* hidden for now */
 		{LS_PANEL_MISC, "MISC", 0, "Misc", "Show the panel for miscellaneous options"},
 #endif
@@ -937,6 +1078,9 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "FreestyleLineStyle", "ID");
 	RNA_def_struct_ui_text(srna, "Freestyle Line Style", "Freestyle line style, reusable by multiple line sets");
 	RNA_def_struct_ui_icon(srna, ICON_LINE_DATA);
+
+	rna_def_mtex_common(brna, srna, "rna_LineStyle_mtex_begin", "rna_LineStyle_active_texture_get",
+	                    "rna_LineStyle_active_texture_set", NULL, "LineStyleTextureSlot", "LineStyleTextureSlots", "rna_LineStyle_update");
 
 	prop = RNA_def_property(srna, "panel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "panel");
@@ -1192,12 +1336,36 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, USHRT_MAX);
 	RNA_def_property_ui_text(prop, "Gap 3", "Length of the 3rd gap for dashed lines");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop = RNA_def_property(srna, "use_texture", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_TEXTURE);
+	RNA_def_property_ui_text(prop, "Texture", "Enable or disable textured strokes");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	prop = RNA_def_property(srna, "texture_spacing", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "texstep");
+	RNA_def_property_range(prop, 0.01f, 100.0f);
+	RNA_def_property_ui_text(prop, "Texture spacing", "Spacing for textures along stroke lenght");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
+
+	/* nodes */
+	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based textures");
+
+	prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_ui_text(prop, "Use Nodes", "Use texture nodes for the line style");
+	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 }
 
 void RNA_def_linestyle(BlenderRNA *brna)
 {
 	rna_def_linestyle_modifiers(brna);
 	rna_def_linestyle(brna);
+	rna_def_linestyle_mtex(brna);
 }
 
 #endif

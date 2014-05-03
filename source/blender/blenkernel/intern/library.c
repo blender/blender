@@ -52,6 +52,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -1364,6 +1365,7 @@ void id_clear_lib_data(Main *bmain, ID *id)
 		case ID_LA:		ntree = ((Lamp *)id)->nodetree;			break;
 		case ID_WO:		ntree = ((World *)id)->nodetree;		break;
 		case ID_TE:		ntree = ((Tex *)id)->nodetree;			break;
+		case ID_LS:		ntree = ((FreestyleLineStyle *)id)->nodetree; break;
 	}
 	if (ntree)
 		ntree->id.lib = NULL;

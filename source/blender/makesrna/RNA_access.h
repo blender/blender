@@ -331,6 +331,7 @@ extern StructRNA RNA_LineStyleGeometryModifier_SinusDisplacement;
 extern StructRNA RNA_LineStyleGeometryModifier_SpatialNoise;
 extern StructRNA RNA_LineStyleGeometryModifier_TipRemover;
 extern StructRNA RNA_LineStyleModifier;
+extern StructRNA RNA_LineStyleTextureSlot;
 extern StructRNA RNA_LineStyleThicknessModifier;
 extern StructRNA RNA_LineStyleThicknessModifier_AlongStroke;
 extern StructRNA RNA_LineStyleThicknessModifier_Calligraphy;

@@ -30,6 +30,7 @@ to be a collection of examples for shader definition in Python
 from _freestyle import (
     BackboneStretcherShader,
     BezierCurveShader,
+    BlenderTextureShader,
     CalligraphicShader,
     ColorNoiseShader,
     ColorVariationPatternShader,
@@ -44,6 +45,7 @@ from _freestyle import (
     SmoothingShader,
     SpatialNoiseShader,
     StrokeTextureShader,
+    StrokeTextureStepShader,
     TextureAssignerShader,
     ThicknessNoiseShader,
     ThicknessVariationPatternShader,

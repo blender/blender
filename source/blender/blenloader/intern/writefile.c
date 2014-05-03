@@ -3248,6 +3248,7 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
 static void write_linestyles(WriteData *wd, ListBase *idbase)
 {
 	FreestyleLineStyle *linestyle;
+	int a;
 
 	for (linestyle = idbase->first; linestyle; linestyle = linestyle->id.next) {
 		if (linestyle->id.us>0 || wd->current) {
@@ -3260,6 +3261,13 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 			write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
 			write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);
 			write_linestyle_geometry_modifiers(wd, &linestyle->geometry_modifiers);
+			for (a=0; a<MAX_MTEX; a++) {
+				if (linestyle->mtex[a]) writestruct(wd, DATA, "MTex", 1, linestyle->mtex[a]);
+			}
+			if (linestyle->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, linestyle->nodetree);
+				write_nodetree(wd, linestyle->nodetree);
+			}
 		}
 	}
 }

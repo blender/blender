@@ -674,6 +674,19 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             for modifier in linestyle.geometry_modifiers:
                 self.draw_geometry_modifier(context, modifier)
 
+        elif linestyle.panel == 'TEXTURE':
+            layout.separator()
+
+            row = layout.row()
+            row.prop(linestyle, "use_texture", text="Use Textures")
+            row.prop(linestyle, "texture_spacing", text="Spacing Along Stroke")
+
+            row = layout.row()
+            op = row.operator("wm.properties_context_change",
+                         text="Go to Linestyle Textures Properties",
+                         icon='TEXTURE')
+            op.context = 'TEXTURE'
+
         elif linestyle.panel == 'MISC':
             pass
 

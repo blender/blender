@@ -36,6 +36,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_object_types.h"
+#include "DNA_linestyle_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -47,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
+#include "BKE_freestyle.h"
 
 #include "RNA_access.h"
 
@@ -1090,3 +1092,15 @@ int CTX_data_visible_pose_bones(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, "visible_pose_bones", list);
 }
 
+FreestyleLineStyle *CTX_data_linestyle_from_scene(Scene *scene)
+{
+	SceneRenderLayer *actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);
+	FreestyleConfig *config = &actsrl->freestyleConfig;
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
+
+	if (lineset) {
+		return lineset->linestyle;
+	}
+
+	return NULL;
+}

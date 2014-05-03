@@ -34,7 +34,6 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
@@ -137,19 +136,31 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 
 	freestyle_scene->camera = object_camera;
 
-	// Material
-	material = BKE_material_add(freestyle_bmain, "stroke_material");
-	material->mode |= MA_VERTEXCOLP;
-	material->mode |= MA_TRANSP;
-	material->mode |= MA_SHLESS;
-	material->vcol_alpha = 1;
-
 	// Reset serial mesh ID (used for BlenderStrokeRenderer::NewMesh())
 	_mesh_id = 0xffffffff;
 }
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
 {
+	// release materials
+	Link *lnk = (Link *)freestyle_bmain->mat.first;
+
+	while (lnk)
+	{
+		Material *ma = (Material*)lnk;
+		// We want to retain the linestyle mtexs, so let's detach them first
+		for (int a = 0; a < MAX_MTEX; a++) {
+			if (ma->mtex[a]) {
+				ma->mtex[a] = NULL;
+			}
+			else {
+				break; // Textures are ordered, no empty slots between two textures
+			}
+		}
+		lnk = lnk->next;
+		BKE_libblock_free(freestyle_bmain, ma);
+	}
+
 	if (0 != _textureManager) {
 		delete _textureManager;
 		_textureManager = NULL;
@@ -185,9 +196,6 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		}
 	}
 	BLI_freelistN(&freestyle_scene->base);
-
-	// release material
-	BKE_libblock_free(freestyle_bmain, material);
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
@@ -210,6 +218,55 @@ unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 {
+	bool has_mat = false;
+	int a = 0;
+
+	// Look for a good existing material
+	for (Link *lnk = (Link *)freestyle_bmain->mat.first; lnk; lnk = lnk->next) {
+		Material *ma = (Material*) lnk;
+		bool texs_are_good = true;
+		// as soon as textures differ it's not the right one
+		for (int a = 0; a < MAX_MTEX; a++) {
+			if (ma->mtex[a] != iStrokeRep->getMTex(a)) {
+				texs_are_good = false;
+				break;
+			}
+		}
+
+		if (texs_are_good) {
+			iStrokeRep->setMaterial(ma);
+			has_mat = true;
+			break; // if textures are good, no need to search anymore
+		}
+	}
+
+	// If still no material, create one
+	if (!has_mat) {
+		Material *ma = BKE_material_add(freestyle_bmain, "stroke_material");
+
+		ma->mode |= MA_VERTEXCOLP;
+		ma->mode |= MA_TRANSP;
+		ma->mode |= MA_SHLESS;
+		ma->vcol_alpha = 1;
+
+		// Textures
+		//for (int a = 0; a < MAX_MTEX; a++) {
+		while (iStrokeRep->getMTex(a)) {
+			ma->mtex[a] = (MTex *) iStrokeRep->getMTex(a);
+
+			// We'll generate both with tips and without tips
+			// coordinates, on two different UV layers.
+			if (ma->mtex[a]->texflag & MTEX_TIPS)  {
+				BLI_strncpy(ma->mtex[a]->uvname, "along_stroke_tips", sizeof(ma->mtex[a]->uvname));
+			}
+			else {
+				BLI_strncpy(ma->mtex[a]->uvname, "along_stroke", sizeof(ma->mtex[a]->uvname));
+			}
+			a++;
+		}
+		iStrokeRep->setMaterial(ma);
+	}
+
 	RenderStrokeRepBasic(iStrokeRep);
 }
 
@@ -277,7 +334,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 #endif
 		Mesh *mesh = (Mesh *)object_mesh->data;
 		mesh->mat = (Material **)MEM_mallocN(1 * sizeof(Material *), "MaterialList");
-		mesh->mat[0] = material;
+		mesh->mat[0] = iStrokeRep->getMaterial();
 		mesh->totcol = 1;
 		test_object_materials(freestyle_bmain, (ID *)mesh);
 
@@ -309,6 +366,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		MPoly *polys = mesh->mpoly;
 		MLoop *loops = mesh->mloop;
 		MLoopCol *colors = mesh->mloopcol;
+		MLoopUV *loopsuv[2];
 
 		v[0] = strip_vertices.begin();
 		v[1] = v[0] + 1;
@@ -316,6 +374,24 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
 		vertex_index = edge_index = loop_index = 0;
 		visible = false;
+
+		// First UV layer
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
+		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
+		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
+		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
+		BKE_mesh_update_customdata_pointers(mesh, true);
+
+		loopsuv[0] = mesh->mloopuv;
+
+		// Second UV layer
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
+		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
+		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
+		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
+		BKE_mesh_update_customdata_pointers(mesh, true);
+
+		loopsuv[1] = mesh->mloopuv;
 
 		// Note: Mesh generation in the following loop assumes stroke strips
 		// to be triangle strips.
@@ -394,18 +470,10 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 				polys->totloop = 3;
 				++polys;
 
+				// Even and odd loops connect triangles vertices differently
+				bool is_odd = n % 2;
 				// loops
-				if (n % 2 == 0) {
-					loops[0].v = vertex_index - 1;
-					loops[0].e = edge_index - 1;
-
-					loops[1].v = vertex_index - 2;
-					loops[1].e = edge_index - 3;
-
-					loops[2].v = vertex_index - 3;
-					loops[2].e = edge_index - 2;
-				}
-				else {
+				if (is_odd) {
 					loops[0].v = vertex_index - 1;
 					loops[0].e = edge_index - 2;
 
@@ -415,27 +483,54 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					loops[2].v = vertex_index - 2;
 					loops[2].e = edge_index - 1;
 				}
+				else {
+					loops[0].v = vertex_index - 1;
+					loops[0].e = edge_index - 1;
+
+					loops[1].v = vertex_index - 2;
+					loops[1].e = edge_index - 3;
+
+					loops[2].v = vertex_index - 3;
+					loops[2].e = edge_index - 2;
+				}
 				loops += 3;
 				loop_index += 3;
 
-				// colors
-				if (n % 2 == 0) {
-					colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
-					colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
-					colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
-					colors[0].a = (short)(255.0f * svRep[2]->alpha());
+				// UV
+				if (iStrokeRep->getMTex(0)) {
+					// First UV layer (loopsuv[0]) has no tips (texCoord(0)).
+					// Second UV layer (loopsuv[1]) has tips:  (texCoord(1)).
+					for (int L = 0; L < 2; L++) {
+						if (is_odd) {
+							loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
+							loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
 
-					colors[1].r = (short)(255.0f * svRep[1]->color()[0]);
-					colors[1].g = (short)(255.0f * svRep[1]->color()[1]);
-					colors[1].b = (short)(255.0f * svRep[1]->color()[2]);
-					colors[1].a = (short)(255.0f * svRep[1]->alpha());
+							loopsuv[L][1].uv[0] = svRep[0]->texCoord(L).x();
+							loopsuv[L][1].uv[1] = svRep[0]->texCoord(L).y();
 
-					colors[2].r = (short)(255.0f * svRep[0]->color()[0]);
-					colors[2].g = (short)(255.0f * svRep[0]->color()[1]);
-					colors[2].b = (short)(255.0f * svRep[0]->color()[2]);
-					colors[2].a = (short)(255.0f * svRep[0]->alpha());
+							loopsuv[L][2].uv[0] = svRep[1]->texCoord(L).x();
+							loopsuv[L][2].uv[1] = svRep[1]->texCoord(L).y();
+						}
+						else {
+							loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
+							loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
+
+							loopsuv[L][1].uv[0] = svRep[1]->texCoord(L).x();
+							loopsuv[L][1].uv[1] = svRep[1]->texCoord(L).y();
+
+							loopsuv[L][2].uv[0] = svRep[0]->texCoord(L).x();
+							loopsuv[L][2].uv[1] = svRep[0]->texCoord(L).y();
+						}
+						/* freestyle tex-origin is upside-down */
+						for (int i = 0; i < 3; i++) {
+							loopsuv[L][i].uv[1] *= -1;
+						}
+						loopsuv[L] += 3;
+					}
 				}
-				else {
+
+				// colors
+				if (is_odd) {
 					colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
 					colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
 					colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
@@ -450,6 +545,22 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					colors[2].g = (short)(255.0f * svRep[1]->color()[1]);
 					colors[2].b = (short)(255.0f * svRep[1]->color()[2]);
 					colors[2].a = (short)(255.0f * svRep[1]->alpha());
+					}
+				else {
+					colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
+					colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
+					colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
+					colors[0].a = (short)(255.0f * svRep[2]->alpha());
+
+					colors[1].r = (short)(255.0f * svRep[1]->color()[0]);
+					colors[1].g = (short)(255.0f * svRep[1]->color()[1]);
+					colors[1].b = (short)(255.0f * svRep[1]->color()[2]);
+					colors[1].a = (short)(255.0f * svRep[1]->alpha());
+
+					colors[2].r = (short)(255.0f * svRep[0]->color()[0]);
+					colors[2].g = (short)(255.0f * svRep[0]->color()[1]);
+					colors[2].b = (short)(255.0f * svRep[0]->color()[2]);
+					colors[2].a = (short)(255.0f * svRep[0]->alpha());
 				}
 				colors += 3;
 			}

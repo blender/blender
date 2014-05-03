@@ -209,6 +209,7 @@ typedef enum eSpaceButtons_Texture_Context {
 	SB_TEXC_LAMP = 2,
 	SB_TEXC_PARTICLES = 3,
 	SB_TEXC_OTHER = 4,
+	SB_TEXC_LINESTYLE = 5,
 } eSpaceButtons_Texture_Context;
 
 /* sbuts->align */
@@ -981,6 +982,7 @@ typedef enum eSpaceNode_TexFrom {
 	SNODE_TEX_OBJECT   = 0,
 	SNODE_TEX_WORLD    = 1,
 	SNODE_TEX_BRUSH    = 2,
+	SNODE_TEX_LINESTYLE = 3,
 } eSpaceNode_TexFrom;
 
 /* snode->shaderfrom */

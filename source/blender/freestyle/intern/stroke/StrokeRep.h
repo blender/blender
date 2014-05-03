@@ -36,6 +36,10 @@
 #include "MEM_guardedalloc.h"
 #endif
 
+extern "C" {
+#include "DNA_material_types.h"
+}
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -78,9 +82,13 @@ public:
 		return _point2d;
 	}
 
-	inline Vec2r& texCoord()
+	inline Vec2r& texCoord(bool tips=false)
 	{
-		return _texCoord;
+		if (tips) {
+			return _texCoord_w_tips;
+		}
+		else
+			return _texCoord;
 	}
 
 	inline Vec3r& color()
@@ -98,9 +106,14 @@ public:
 		_point2d = p;
 	}
 
-	inline void setTexCoord(const Vec2r& p)
+	inline void setTexCoord(const Vec2r& p, bool tips=false)
 	{
-		_texCoord = p;
+		if (tips) {
+			_texCoord_w_tips = p;
+		}
+		else {
+			_texCoord = p;
+		}
 	}
 
 	inline void setColor(const Vec3r& p)
@@ -116,6 +129,7 @@ public:
 protected:
 	Vec2r _point2d;
 	Vec2r _texCoord;
+	Vec2r _texCoord_w_tips;
 	Vec3r _color;
 	float _alpha;
 
@@ -135,15 +149,15 @@ protected:
 
 public:
 	Strip(const std::vector<StrokeVertex*>& iStrokeVertices, bool hasTips = false,
-	      bool tipBegin = false, bool tipEnd = false);
+			bool tipBegin = false, bool tipEnd = false, float texStep = 1.0);
 	Strip(const Strip& iBrother);
 	virtual ~Strip();
 
 protected:
 	void createStrip(const std::vector<StrokeVertex*>& iStrokeVertices);
 	void cleanUpSingularities(const std::vector<StrokeVertex*>& iStrokeVertices);
-	void computeTexCoord (const std::vector<StrokeVertex*>& iStrokeVertices);
-	void computeTexCoordWithTips (const std::vector<StrokeVertex*>& iStrokeVertices, bool tipBegin, bool tipEnd);
+	void computeTexCoord (const std::vector<StrokeVertex*>& iStrokeVertices, float texStep);
+	void computeTexCoordWithTips (const std::vector<StrokeVertex*>& iStrokeVertices, bool tipBegin, bool tipEnd, float texStep);
 
 public:
 	inline int sizeStrip() const
@@ -168,6 +182,9 @@ protected:
 	vector<Strip*> _strips;
 	Stroke::MediumType _strokeType;
 	unsigned int _textureId;
+	float _textureStep;
+	MTex *_mtex[MAX_MTEX];
+	Material *_material;
 
 	// float _averageTextureAlpha;
 
@@ -192,6 +209,16 @@ public:
 	inline unsigned getTextureId() const
 	{
 		return _textureId;
+	}
+
+	inline MTex *getMTex(int idx) const
+	{
+		return _mtex[idx];
+	}
+
+	inline Material *getMaterial() const
+	{
+		return _material;
 	}
 
 	inline vector<Strip*>& getStrips()
@@ -219,6 +246,16 @@ public:
 	{
 		_textureId = textureId;
 	}
+
+	inline void setMaterial(Material *mat)
+	{
+		_material = mat;
+	}
+	/*
+	inline void setMTex(int idx, MTex *mtex_ptr)
+	{
+		_mtex[idx] = mtex_ptr;
+	}*/
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeRep")

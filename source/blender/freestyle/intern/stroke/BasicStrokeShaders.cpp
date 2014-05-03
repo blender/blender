@@ -449,6 +449,17 @@ int ColorNoiseShader::shade(Stroke& stroke) const
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+int BlenderTextureShader::shade(Stroke& stroke) const
+{
+	return stroke.setMTex(_mtex);
+}
+
+int StrokeTextureStepShader::shade(Stroke& stroke) const
+{
+	stroke.setTextureStep(_step);
+	return 0;
+}
+
 int TextureAssignerShader::shade(Stroke& stroke) const
 {
 #if 0

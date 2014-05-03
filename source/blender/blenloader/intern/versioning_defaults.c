@@ -60,9 +60,10 @@ void BLO_update_defaults_startup_blend(Main *main)
 	}
 
 	for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
-		linestyle->flag = LS_SAME_OBJECT | LS_NO_SORTING;
+		linestyle->flag = LS_SAME_OBJECT | LS_NO_SORTING | LS_TEXTURE;
 		linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
 		linestyle->integration_type = LS_INTEGRATION_MEAN;
+		linestyle->texstep = 1.0;
 	}
 
 	{

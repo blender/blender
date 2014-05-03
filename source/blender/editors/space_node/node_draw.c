@@ -36,6 +36,7 @@
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
+#include "DNA_linestyle_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -106,6 +107,8 @@ static bNodeTree *node_tree_from_ID(ID *id)
 				return ((Scene *)id)->nodetree;
 			case ID_TE:
 				return ((Tex *)id)->nodetree;
+			case ID_LS:
+				return ((FreestyleLineStyle *)id)->nodetree;
 		}
 	}
 	

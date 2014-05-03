@@ -35,8 +35,16 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+#ifndef MAX_MTEX
+#define MAX_MTEX	18
+#endif
+
+/* texco (also in DNA_material_types.h) */
+#define TEXCO_STROKE	16 /* actually it's UV */
+
 struct ColorBand;
 struct CurveMapping;
+struct MTex;
 
 typedef struct LineStyleModifier {
 	struct LineStyleModifier *next, *prev;
@@ -354,7 +362,8 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_PANEL_ALPHA        3
 #define LS_PANEL_THICKNESS    4
 #define LS_PANEL_GEOMETRY     5
-#define LS_PANEL_MISC         6
+#define LS_PANEL_TEXTURE      6
+#define LS_PANEL_MISC         7
 
 /* FreestyleLineStyle::flag */
 #define LS_DS_EXPAND          (1 <<  0)  /* for animation editors */
@@ -370,6 +379,7 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_SPLIT_PATTERN      (1 << 10)
 #define LS_NO_SORTING         (1 << 11)
 #define LS_REVERSE_ORDER      (1 << 12)  /* for sorting */
+#define LS_TEXTURE            (1 << 13)
 
 /* FreestyleLineStyle::chaining */
 #define LS_CHAINING_PLAIN    1
@@ -415,9 +425,15 @@ typedef struct FreestyleLineStyle {
 	unsigned short split_dash2, split_gap2;
 	unsigned short split_dash3, split_gap3;
 	int sort_key, integration_type;
-	int pad;
+ 	float texstep;
+	short texact, pr_texture;
+	short use_nodes, pad;
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	int panel; /* for UI */
+
+	struct MTex *mtex[18];		/* MAX_MTEX */
+	/* nodes */
+	struct bNodeTree *nodetree;
 
 	ListBase color_modifiers;
 	ListBase alpha_modifiers;

@@ -166,6 +166,7 @@ static EnumPropertyItem buttons_texture_context_items[] = {
 	{SB_TEXC_WORLD, "WORLD", ICON_WORLD, "", "Show world textures"},
 	{SB_TEXC_LAMP, "LAMP", ICON_LAMP, "", "Show lamp textures"},
 	{SB_TEXC_PARTICLES, "PARTICLES", ICON_PARTICLES, "", "Show particles textures"},
+	{SB_TEXC_LINESTYLE, "LINESTYLE", ICON_LINE_DATA, "", "Show linestyle textures"},
 	{SB_TEXC_OTHER, "OTHER", ICON_TEXTURE, "", "Show other data textures"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -981,6 +982,10 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 
 	if (ED_texture_context_check_particles(C)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_PARTICLES);
+	}
+
+	if (ED_texture_context_check_linestyle(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_LINESTYLE);
 	}
 
 	if (ED_texture_context_check_others(C)) {
@@ -3393,6 +3398,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
 		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World"},
 		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush"},
+		{SNODE_TEX_LINESTYLE, "LINESTYLE", ICON_LINE_DATA, "Line Style", "Edit texture nodes from Line Style"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

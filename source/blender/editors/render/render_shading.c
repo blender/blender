@@ -1575,6 +1575,9 @@ static void copy_mtex_copybuf(ID *id)
 		case ID_PA:
 			mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
 			break;
+		case ID_LS:
+			mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
+			break;
 	}
 	
 	if (mtex && *mtex) {
@@ -1607,6 +1610,9 @@ static void paste_mtex_copybuf(ID *id)
 			break;
 		case ID_PA:
 			mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
+			break;
+		case ID_LS:
+			mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
 			break;
 		default:
 			BLI_assert("invalid id type");
@@ -1674,7 +1680,8 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 		Lamp *la = CTX_data_pointer_get_type(C, "lamp", &RNA_Lamp).data;
 		World *wo = CTX_data_pointer_get_type(C, "world", &RNA_World).data;
 		ParticleSystem *psys = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
-		
+		FreestyleLineStyle *linestyle = CTX_data_pointer_get_type(C, "line_style", &RNA_FreestyleLineStyle).data;
+
 		if (ma)
 			id = &ma->id;
 		else if (la)
@@ -1683,6 +1690,8 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 			id = &wo->id;
 		else if (psys)
 			id = &psys->part->id;
+		else if (linestyle)
+			id = &linestyle->id;
 		
 		if (id == NULL)
 			return OPERATOR_CANCELLED;
