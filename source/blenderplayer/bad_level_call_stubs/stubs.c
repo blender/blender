@@ -226,6 +226,9 @@ void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, 
 /* imagetexture.c stub */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) RET_NONE
 
+/* Freestyle */
+bool ED_texture_context_check_linestyle(const struct bContext *C) RET_ZERO
+
 /* texture.c */
 int multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage) RET_ZERO
 int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage) RET_ZERO
