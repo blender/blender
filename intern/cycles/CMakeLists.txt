@@ -128,8 +128,9 @@ include_directories(
 
 
 # Warnings
-if(CMAKE_COMPILER_IS_GNUCC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=float-conversion")
+if(CMAKE_COMPILER_IS_GNUCXX)
+	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_float_conversion "-Werror=float-conversion")
+	unset(_has_cxxflag_float_conversion)
 endif()
 
 
