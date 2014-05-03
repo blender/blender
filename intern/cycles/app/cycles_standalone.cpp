@@ -208,11 +208,11 @@ static void motion(int x, int y, int button)
 
 		/* Rotate */
 		else if(button == 2) {
-			float4 r1= make_float4(x * 0.1f, 0.0f, 1.0f, 0.0f);
-			matrix = matrix * transform_rotate(r1.x * M_PI/180.0f, make_float3(r1.y, r1.z, r1.w));
+			float4 r1= make_float4((float)x * 0.1f, 0.0f, 1.0f, 0.0f);
+			matrix = matrix * transform_rotate(DEG2RADF(r1.x), make_float3(r1.y, r1.z, r1.w));
 
-			float4 r2 = make_float4(y * 0.1, 1.0f, 0.0f, 0.0f);
-			matrix = matrix * transform_rotate(r2.x * M_PI/180.0f, make_float3(r2.y, r2.z, r2.w));
+			float4 r2 = make_float4(y * 0.1f, 1.0f, 0.0f, 0.0f);
+			matrix = matrix * transform_rotate(DEG2RADF(r2.x), make_float3(r2.y, r2.z, r2.w));
 		}
 
 		/* Update and Reset */

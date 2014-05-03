@@ -80,8 +80,8 @@ void view_display_info(const char *info)
 
 void view_display_help()
 {
-	const int w = V.width / 1.15;
-	const int h = V.height / 1.15;
+	const int w = (int)((float)V.width  / 1.15f);
+	const int h = (int)((float)V.height / 1.15f);
 
 	const int x1 = (V.width - w) / 2;
 	const int x2 = x1 + w;

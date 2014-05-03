@@ -105,7 +105,7 @@ static bool xml_read_float(float *value, pugi::xml_node node, const char *name)
 	pugi::xml_attribute attr = node.attribute(name);
 
 	if(attr) {
-		*value = atof(attr.value());
+		*value = (float)atof(attr.value());
 		return true;
 	}
 
@@ -121,7 +121,7 @@ static bool xml_read_float_array(vector<float>& value, pugi::xml_node node, cons
 		string_split(tokens, attr.value());
 
 		foreach(const string& token, tokens)
-			value.push_back(atof(token.c_str()));
+			value.push_back((float)atof(token.c_str()));
 
 		return true;
 	}
@@ -322,7 +322,7 @@ static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 	xml_read_int(&cam->height, node, "height");
 
 	if(xml_read_float(&cam->fov, node, "fov"))
-		cam->fov *= M_PI/180.0f;
+		cam->fov = DEG2RADF(cam->fov);
 
 	xml_read_float(&cam->nearclip, node, "nearclip");
 	xml_read_float(&cam->farclip, node, "farclip");
@@ -1032,7 +1032,7 @@ static void xml_read_transform(pugi::xml_node node, Transform& tfm)
 	if(node.attribute("rotate")) {
 		float4 rotate = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		xml_read_float4(&rotate, node, "rotate");
-		tfm = tfm * transform_rotate(rotate.x*M_PI/180.0f, make_float3(rotate.y, rotate.z, rotate.w));
+		tfm = tfm * transform_rotate(DEG2RADF(rotate.x), make_float3(rotate.y, rotate.z, rotate.w));
 	}
 
 	if(node.attribute("scale")) {
