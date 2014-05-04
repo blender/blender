@@ -2943,24 +2943,27 @@ print_info() {
     _buildargs="$_buildargs $_1"
   fi
 
-  _1="-D WITH_CYCLES_OSL=ON"
-  _2="-D WITH_LLVM=ON"
-  _3="-D LLVM_VERSION=$LLVM_VERSION_FOUND"
-  PRINT "  $_1"
-  PRINT "  $_2"
-  PRINT "  $_3"
-  _buildargs="$_buildargs $_1 $_2 $_3"
-  if [ -d $INST/osl ]; then
-    _1="-D CYCLES_OSL=$INST/osl"
-    PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
-  fi
-  if [ -d $INST/llvm ]; then
-    _1="-D LLVM_DIRECTORY=$INST/llvm"
-    _2="-D LLVM_STATIC=ON"
+  PRINT "$OSL_SKIP"
+  if [ "$OSL_SKIP" = false ]; then
+    _1="-D WITH_CYCLES_OSL=ON"
+    _2="-D WITH_LLVM=ON"
+    _3="-D LLVM_VERSION=$LLVM_VERSION_FOUND"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    PRINT "  $_3"
+    _buildargs="$_buildargs $_1 $_2 $_3"
+    if [ -d $INST/osl ]; then
+      _1="-D CYCLES_OSL=$INST/osl"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
+    if [ -d $INST/llvm ]; then
+      _1="-D LLVM_DIRECTORY=$INST/llvm"
+      _2="-D LLVM_STATIC=ON"
+      PRINT "  $_1"
+      PRINT "  $_2"
+      _buildargs="$_buildargs $_1 $_2"
+    fi
   fi
 
   if $WITH_OPENCOLLADA; then
@@ -2969,15 +2972,17 @@ print_info() {
     _buildargs="$_buildargs $_1"
   fi
 
-  _1="-D WITH_CODEC_FFMPEG=ON"
-  _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
-  PRINT "  $_1"
-  PRINT "  $_2"
-  _buildargs="$_buildargs $_1 $_2"
-  if [ -d $INST/ffmpeg ]; then
-    _1="-D FFMPEG=$INST/ffmpeg"
+  if [ "$FFMPEG_SKIP" = false ]; then
+    _1="-D WITH_CODEC_FFMPEG=ON"
+    _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
     PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
+    PRINT "  $_2"
+    _buildargs="$_buildargs $_1 $_2"
+    if [ -d $INST/ffmpeg ]; then
+      _1="-D FFMPEG=$INST/ffmpeg"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   PRINT ""
@@ -2992,9 +2997,11 @@ print_info() {
     PRINT "BF_PYTHON_ABI_FLAGS = 'm'"
   fi
 
-  PRINT "WITH_BF_OCIO = True"
-  if [ -d $INST/ocio ]; then
-    PRINT "BF_OCIO = '$INST/ocio'"
+  if [ "$OCIO_SKIP" = false ]; then
+    PRINT "WITH_BF_OCIO = True"
+    if [ -d $INST/ocio ]; then
+      PRINT "BF_OCIO = '$INST/ocio'"
+    fi
   fi
 
   if [ -d $INST/openexr ]; then
@@ -3012,9 +3019,11 @@ print_info() {
     PRINT "WITH_BF_STATICOPENEXR = True"
   fi
 
-  PRINT "WITH_BF_OIIO = True"
-  if [ -d $INST/oiio ]; then
-    PRINT "BF_OIIO = '$INST/oiio'"
+  if [ "$OIIO_SKIP" = false ]; then
+    PRINT "WITH_BF_OIIO = True"
+    if [ -d $INST/oiio ]; then
+      PRINT "BF_OIIO = '$INST/oiio'"
+    fi
   fi
 
   PRINT "WITH_BF_CYCLES = True"
@@ -3023,9 +3032,11 @@ print_info() {
     PRINT "BF_OSL = '$INST/osl'"
   fi
 
-  PRINT "WITH_BF_BOOST = True"
-  if [ -d $INST/boost ]; then
-    PRINT "BF_BOOST = '$INST/boost'"
+  if [ "$BOOST_SKIP" = false ]; then
+    PRINT "WITH_BF_BOOST = True"
+    if [ -d $INST/boost ]; then
+      PRINT "BF_BOOST = '$INST/boost'"
+    fi
   fi
 
   if $WITH_OPENCOLLADA; then
@@ -3035,13 +3046,15 @@ print_info() {
     fi
   fi
 
-  _ffmpeg_list_sep=" "
-  if [ -d $INST/ffmpeg ]; then
-    PRINT "BF_FFMPEG = '$INST/ffmpeg'"
+  if [ "$FFMPEG_SKIP" = false ]; then
+    _ffmpeg_list_sep=" "
+    if [ -d $INST/ffmpeg ]; then
+      PRINT "BF_FFMPEG = '$INST/ffmpeg'"
+    fi
+    PRINT "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
   fi
-  PRINT "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
 
-  if ! $WITH_ALL; then
+  if [ "$WITH_ALL" = false ]; then
     PRINT "WITH_BF_3DMOUSE = False"
   # No libspacenav in official arch repos...
   elif [ "$DISTRO" = "ARCH" ]; then
