@@ -788,7 +788,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 						offset += 0.8f * U.widget_unit;
 						
 						/* 'tweaking action' indicator - not a button */
-						UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, ICON_EDIT);
+						UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, ICON_ACTION_TWEAK);
 					}
 					else {
 						/* XXX firstly draw a little rect to help identify that it's different from the toggles */
@@ -800,7 +800,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 						glEnd();
 						
 						/* 'push down' icon for normal active-actions */
-						UI_icon_draw((float)v2d->cur.xmax - offset, ydatac, ICON_FREEZE);
+						UI_icon_draw((float)v2d->cur.xmax - offset, ydatac, ICON_NLA_PUSHDOWN);
 					}
 				}
 				
