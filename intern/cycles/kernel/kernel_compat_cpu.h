@@ -95,14 +95,14 @@ template<typename T> struct texture_image  {
 
 	ccl_always_inline float4 interp(float x, float y, bool periodic = true)
 	{
-		if(!data)
+		if(UNLIKELY(!data))
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		int ix, iy, nix, niy;
 
 		if(interpolation == INTERPOLATION_CLOSEST) {
-			frac(x*width, &ix);
-			frac(y*height, &iy);
+			frac(x*width_fl, &ix);
+			frac(y*height_fl, &iy);
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
@@ -115,8 +115,8 @@ template<typename T> struct texture_image  {
 			return read(data[ix + iy*width]);
 		}
 		else {
-			float tx = frac(x*width - 0.5f, &ix);
-			float ty = frac(y*height - 0.5f, &iy);
+			float tx = frac(x*width_fl - 0.5f, &ix);
+			float ty = frac(y*height_fl - 0.5f, &iy);
 
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
@@ -144,15 +144,15 @@ template<typename T> struct texture_image  {
 
 	ccl_always_inline float4 interp_3d(float x, float y, float z, bool periodic = false)
 	{
-		if(!data)
+		if(UNLIKELY(!data))
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		int ix, iy, iz, nix, niy, niz;
 
 		if(interpolation == INTERPOLATION_CLOSEST) {
-			frac(x*width, &ix);
-			frac(y*height, &iy);
-			frac(z*depth, &iz);
+			frac(x*width_fl, &ix);
+			frac(y*height_fl, &iy);
+			frac(z*depth_fl, &iz);
 
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
@@ -168,9 +168,9 @@ template<typename T> struct texture_image  {
 			return read(data[ix + iy*width + iz*width*height]);
 		}
 		else {
-			float tx = frac(x*width - 0.5f, &ix);
-			float ty = frac(y*height - 0.5f, &iy);
-			float tz = frac(z*depth - 0.5f, &iz);
+			float tx = frac(x*width_fl - 0.5f, &ix);
+			float ty = frac(y*height_fl - 0.5f, &iy);
+			float tz = frac(z*depth_fl - 0.5f, &iz);
 
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
@@ -207,9 +207,23 @@ template<typename T> struct texture_image  {
 		}
 	}
 
+	ccl_always_inline void dimensions_set(int width_, int height_, int depth_)
+	{
+		width = width_;
+		height = height_;
+		depth = depth_;
+
+		width_fl = (float)width_;
+		height_fl = (float)height_;
+		depth_fl = (float)depth_;
+	}
+
 	T *data;
 	int interpolation;
 	int width, height, depth;
+
+	/* avoid int/float conversion */
+	float width_fl, height_fl, depth_fl;
 };
 
 typedef texture<float4> texture_float4;

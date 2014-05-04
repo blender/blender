@@ -61,9 +61,7 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 
 		if(tex) {
 			tex->data = (float4*)mem;
-			tex->width = width;
-			tex->height = height;
-			tex->depth = depth;
+			tex->dimensions_set(width, height, depth);
 			tex->interpolation = interpolation;
 		}
 	}
@@ -78,9 +76,7 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 
 		if(tex) {
 			tex->data = (uchar4*)mem;
-			tex->width = width;
-			tex->height = height;
-			tex->depth = depth;
+			tex->dimensions_set(width, height, depth);
 			tex->interpolation = interpolation;
 		}
 	}
