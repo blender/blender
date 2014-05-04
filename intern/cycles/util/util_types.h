@@ -456,6 +456,43 @@ enum InterpolationType {
 	INTERPOLATION_SMART = 3,
 };
 
+
+/* macros */
+
+/* hints for branch pradiction, only use in code that runs a _lot_ */
+#ifdef __GNUC__
+#  define LIKELY(x)       __builtin_expect(!!(x), 1)
+#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#else
+#  define LIKELY(x)       (x)
+#  define UNLIKELY(x)     (x)
+#endif
+
+/* Causes warning:
+ * incompatible types when assigning to type 'Foo' from type 'Bar'
+ * ... the compiler optimizes away the temp var */
+#ifdef __GNUC__
+#define CHECK_TYPE(var, type)  {  \
+	__typeof(var) *__tmp;         \
+	__tmp = (type *)NULL;         \
+	(void)__tmp;                  \
+} (void)0
+
+#define CHECK_TYPE_PAIR(var_a, var_b)  {  \
+	__typeof(var_a) *__tmp;               \
+	__tmp = (__typeof(var_b) *)NULL;      \
+	(void)__tmp;                          \
+} (void)0
+#else
+#  define CHECK_TYPE(var, type)
+#  define CHECK_TYPE_PAIR(var_a, var_b)
+#endif
+
+/* can be used in simple macros */
+#define CHECK_TYPE_INLINE(val, type) \
+	((void)(((type)0) != (val)))
+
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_TYPES_H__ */

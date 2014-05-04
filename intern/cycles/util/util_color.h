@@ -61,21 +61,21 @@ ccl_device float3 rgb_to_hsv(float3 rgb)
 		h = 0.0f;
 	}
 
-	if(s == 0.0f) {
-		h = 0.0f;
-	}
-	else {
+	if(s != 0.0f) {
 		float3 cmax3 = make_float3(cmax, cmax, cmax);
 		c = (cmax3 - rgb)/cdelta;
 
-		if(rgb.x == cmax) h = c.z - c.y;
-		else if(rgb.y == cmax) h = 2.0f + c.x -  c.z;
-		else h = 4.0f + c.y - c.x;
+		if     (rgb.x == cmax) h =        c.z - c.y;
+		else if(rgb.y == cmax) h = 2.0f + c.x - c.z;
+		else                   h = 4.0f + c.y - c.x;
 
 		h /= 6.0f;
 
 		if(h < 0.0f)
 			h += 1.0f;
+	}
+	else {
+		h = 0.0f;
 	}
 
 	return make_float3(h, s, v);
@@ -90,13 +90,10 @@ ccl_device float3 hsv_to_rgb(float3 hsv)
 	s = hsv.y;
 	v = hsv.z;
 
-	if(s == 0.0f) {
-		rgb = make_float3(v, v, v);
-	}
-	else {
+	if(s != 0.0f) {
 		if(h == 1.0f)
 			h = 0.0f;
-		
+
 		h *= 6.0f;
 		i = floorf(h);
 		f = h - i;
@@ -104,13 +101,16 @@ ccl_device float3 hsv_to_rgb(float3 hsv)
 		p = v*(1.0f-s);
 		q = v*(1.0f-(s*f));
 		t = v*(1.0f-(s*(1.0f-f)));
-		
-		if(i == 0.0f) rgb = make_float3(v, t, p);
+
+		if     (i == 0.0f) rgb = make_float3(v, t, p);
 		else if(i == 1.0f) rgb = make_float3(q, v, p);
 		else if(i == 2.0f) rgb = make_float3(p, v, t);
 		else if(i == 3.0f) rgb = make_float3(p, q, v);
 		else if(i == 4.0f) rgb = make_float3(t, p, v);
-		else rgb = make_float3(v, p, q);
+		else               rgb = make_float3(v, p, q);
+	}
+	else {
+		rgb = make_float3(v, v, v);
 	}
 
 	return rgb;

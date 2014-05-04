@@ -50,7 +50,11 @@ CCL_NAMESPACE_BEGIN
 
 /* RenderServices implementation */
 
-#define COPY_MATRIX44(m1, m2) memcpy(m1, m2, sizeof(*m2))
+#define COPY_MATRIX44(m1, m2)  { \
+	CHECK_TYPE(m1, OSL::Matrix44*); \
+	CHECK_TYPE(m2, Transform*); \
+	memcpy(m1, m2, sizeof(*m2)); \
+} (void)0
 
 /* static ustrings */
 ustring OSLRenderServices::u_distance("distance");
