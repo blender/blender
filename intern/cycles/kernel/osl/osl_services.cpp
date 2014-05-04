@@ -595,44 +595,44 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 
 	/* Particle Attributes */
 	else if (name == u_particle_index) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float f = particle_index(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_particle_age) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float f = particle_age(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_particle_lifetime) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float f= particle_lifetime(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_particle_location) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float3 f = particle_location(kg, particle_id);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
 #if 0	/* unsupported */
 	else if (name == u_particle_rotation) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float4 f = particle_rotation(kg, particle_id);
 		return set_attribute_float4(f, type, derivatives, val);
 	}
 #endif
 	else if (name == u_particle_size) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float f = particle_size(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_particle_velocity) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float3 f = particle_velocity(kg, particle_id);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
 	else if (name == u_particle_angular_velocity) {
-		uint particle_id = object_particle_id(kg, sd->object);
+		int particle_id = object_particle_id(kg, sd->object);
 		float3 f = particle_angular_velocity(kg, particle_id);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
@@ -742,7 +742,8 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	ShaderData *sd = (ShaderData *)renderstate;
 	KernelGlobals *kg = sd->osl_globals;
 	bool is_curve;
-	int object, prim;
+	int object;
+	// int prim;
 
 	/* lookup of attribute on another object */
 	if (object_name != u_empty) {
@@ -752,12 +753,12 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 			return false;
 
 		object = it->second;
-		prim = PRIM_NONE;
+		// prim = PRIM_NONE;
 		is_curve = false;
 	}
 	else {
 		object = sd->object;
-		prim = sd->prim;
+		// prim = sd->prim;
 		is_curve = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
 
 		if (object == OBJECT_NONE)
