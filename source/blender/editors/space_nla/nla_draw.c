@@ -652,7 +652,11 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					
 					group = 5;
 					
-					special = ICON_ACTION;
+					/* indicate tweaking-action state by changing the icon... */
+					if ((adt) && (adt->flag & ADT_NLA_EDIT_ON))
+						special = ICON_ACTION_TWEAK;
+					else
+						special = ICON_ACTION;
 					
 					BLI_strncpy(name, act ? act->id.name + 2 : "<No Action>", sizeof(name));
 
@@ -782,13 +786,6 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 							UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, ICON_PINNED);
 						else
 							UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, ICON_UNPINNED);
-						
-						fdrawline((float)(v2d->cur.xmax - offset), yminc,
-						          (float)(v2d->cur.xmax - offset), ymaxc);
-						offset += 0.8f * U.widget_unit;
-						
-						/* 'tweaking action' indicator - not a button */
-						UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, ICON_ACTION_TWEAK);
 					}
 					else {
 						/* XXX firstly draw a little rect to help identify that it's different from the toggles */
