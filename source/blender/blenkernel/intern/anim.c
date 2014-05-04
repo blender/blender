@@ -563,7 +563,7 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 		}
 		else {
 			fac1 = 1.0f;
-			fac1 = 0.0f;
+			fac2 = 0.0f;
 		}
 
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
