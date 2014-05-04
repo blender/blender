@@ -2907,7 +2907,149 @@ static bAnimChannelType ACF_NLATRACK =
 	acf_nlatrack_setting_ptr        /* pointer for setting */
 };
 
+/* NLA Action ----------------------------------------------- */
 
+/* icon for action depends on whether it's in tweaking mode */
+static int acf_nlaaction_icon(bAnimListElem *ale)
+{
+	AnimData *adt = ale->adt;
+	
+	/* indicate tweaking-action state by changing the icon... */
+	if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
+		return ICON_ACTION_TWEAK;
+	}
+	else {
+		return ICON_ACTION;
+	}
+}
+
+/* backdrop for nla action channel */
+static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+{
+	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	View2D *v2d = &ac->ar->v2d;
+	AnimData *adt = ale->adt;
+	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+	float color[4];
+	
+	/* Action Line
+	 *   The alpha values action_get_color returns are only useful for drawing 
+	 *   strips backgrounds but here we're doing channel list backgrounds instead
+	 *   so we ignore that and use our own when needed
+	 */
+	nla_action_get_color(adt, (bAction *)ale->data, color);
+	
+	if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
+		/* Yes, the color vector has 4 components, BUT we only want to be using 3 of them! */
+		glColor3fv(color);
+	}
+	else {
+		float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) ? 0.3f : 1.0f;
+		glColor4f(color[0], color[1], color[2], alpha);
+	}
+	
+	/* only on top two corners, to show that this channel sits on top of the preceding ones */
+	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+	
+	/* draw slightly shifted up vertically to look like it has more separation from other channels,
+	 * but we then need to slightly shorten it so that it doesn't look like it overlaps
+	 */
+	uiDrawBox(GL_POLYGON, offset,  yminc + NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc + NLACHANNEL_SKIP - 1, 8);
+}
+
+/* name for nla action entries */
+static void acf_nlaaction_name(bAnimListElem *ale, char *name)
+{
+	bAction *act = (bAction *)ale->data;
+	
+	if (name) {
+		if (act) {
+			// TODO: add special decoration when doing this in tweaking mode?
+			BLI_strncpy(name, act->id.name + 2, ANIM_CHAN_NAME_SIZE);
+		}
+		else {
+			BLI_strncpy(name, "<No Action>", sizeof(name));
+		}
+	}
+}
+
+/* name property for nla action entries */
+static bool acf_nlaaction_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	if (ale->data) {
+		RNA_pointer_create(ale->id, &RNA_Action, ale->data, ptr);
+		*prop = RNA_struct_name_property(ptr->type);
+		
+		return (*prop != NULL);
+	}
+	
+	return false;
+}
+
+/* check if some setting exists for this channel */
+static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *ale, eAnimChannel_Settings setting)
+{
+	AnimData *adt = ale->adt;
+	
+	/* visibility of settings depends on various states... */
+	switch (setting) {
+		/* conditionally supported */
+		case ACHANNEL_SETTING_PINNED: /* pinned - map/unmap */
+			if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
+				/* this should only appear in tweakmode */
+				return true;
+			}
+			else {
+				return false;
+			}
+		
+		/* unsupported */
+		default:
+			return false;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_nlaaction_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
+{
+	/* clear extra return data first */
+	*neg = false;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_PINNED: /* pinned - map/unmap */
+			*neg = true; // XXX
+			return ADT_NLA_EDIT_NOMAP;
+			
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_nlaaction_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
+{
+	AnimData *adt = ale->adt;
+	return GET_ACF_FLAG_PTR(adt->flag, type);
+}
+
+/* nla action type define */
+static bAnimChannelType ACF_NLAACTION = 
+{
+	"NLA Active Action",            /* type name */
+	
+	NULL,                           /* backdrop color (NOTE: the backdrop handles this too, since it needs special hacks) */
+	acf_nlaaction_backdrop,         /* backdrop */
+	acf_generic_indention_flexible, /* indent level */
+	acf_generic_group_offset,       /* offset */           // XXX?
+	
+	acf_nlaaction_name,             /* name */
+	acf_nlaaction_name_prop,        /* name prop */
+	acf_nlaaction_icon,             /* icon */
+	
+	acf_nlaaction_setting_valid,     /* has setting */
+	acf_nlaaction_setting_flag,      /* flag for setting */
+	acf_nlaaction_setting_ptr        /* pointer for setting */
+};
 
 
 /* *********************************************** */
@@ -2968,9 +3110,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_MASKLAYER;    /* Mask Layer */
 		
 		animchannelTypeInfo[type++] = &ACF_NLATRACK;     /* NLA Track */
-		
-		// TODO: this channel type still hasn't been ported over yet, since it requires special attention
-		animchannelTypeInfo[type++] = NULL;              /* NLA Action */
+		animchannelTypeInfo[type++] = &ACF_NLAACTION;    /* NLA Action */
 	}
 } 
 
@@ -3555,6 +3695,19 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			}
 			break;
 			
+		case ACHANNEL_SETTING_PINNED: /* pin icon */
+			//icon = ((enabled) ? ICON_PINNED : ICON_UNPINNED);
+			icon = ICON_UNPINNED;
+			
+			if (ale->type == ANIMTYPE_NLAACTION) {
+				tooltip = TIP_("Display action without any time remapping");
+			}
+			else {
+				/* TODO: there are no other tools which require the 'pinning' concept yet */
+				tooltip = NULL;
+			}
+			break;
+			
 		default:
 			tooltip = NULL;
 			icon = 0;
@@ -3593,6 +3746,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 				case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
 				case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
 				case ACHANNEL_SETTING_MUTE: /* General - muting flags */
+				case ACHANNEL_SETTING_PINNED: /* NLA Actions - 'map/nomap' */
 					uiButSetNFunc(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), SET_INT_IN_POINTER(setting));
 					break;
 					
@@ -3731,6 +3885,29 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
 				offset += ICON_WIDTH;
 				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_MUTE);
+			}
+			
+			/* ----------- */
+			
+			/* pinned... */
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PINNED)) {
+				offset += ICON_WIDTH;
+				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_PINNED);
+			}
+			
+			/* NLA Action "pushdown" */
+			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->adt) && (ale->adt->flag & ADT_NLA_EDIT_ON) == 0) {
+				//const char *opname = "NLA_OT_action_pushdown"; // XXX: this is the real one
+				//const char *opname = "NLA_OT_channels_click";
+				
+				// FIXME: this needs to hook up to an operator
+				uiBlockSetEmboss(block, UI_EMBOSS);
+				
+				uiDefIconButO(block, BUT, "NLA_OT_channels_click", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN, 
+				              (int)v2d->cur.xmax - offset, yminc, ICON_WIDTH, ICON_WIDTH, 
+				              "Push action on to the top of the NLA stack as a new NLA Strip");
+				
+				uiBlockSetEmboss(block, UI_EMBOSSN);
 			}
 		}
 		

@@ -75,7 +75,7 @@
 /* get colors for drawing Action-Line 
  * NOTE: color returned includes fine-tuned alpha!
  */
-static void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
+void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 {
 	if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
 		/* greenish color (same as tweaking strip) */
