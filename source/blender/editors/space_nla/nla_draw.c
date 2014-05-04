@@ -646,6 +646,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
+#if 0
 				case ANIMTYPE_NLAACTION: /* NLA Action-Line */
 				{
 					bAction *act = (bAction *)ale->data;
@@ -664,6 +665,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					do_draw = true;
 					break;
 				}
+#endif
 				default: /* handled by standard channel-drawing API */
 					/* (draw backdrops only...) */
 					ANIM_channel_draw(ac, ale, yminc, ymaxc);
@@ -841,10 +843,24 @@ void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar)
 	UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
 	
 	/* draw channels */
-	{   /* first pass: backdrops + oldstyle drawing */
+	{   /* first pass: just the standard GL-drawing for backdrop + text */
 		y = (float)(-NLACHANNEL_HEIGHT(snla));
 		
-		draw_nla_channel_list_gl(ac, &anim_data, v2d, y);
+		for (ale = anim_data.first; ale; ale = ale->next) {
+			float yminc = (float)(y -  NLACHANNEL_HEIGHT_HALF(snla));
+			float ymaxc = (float)(y +  NLACHANNEL_HEIGHT_HALF(snla));
+			
+			/* check if visible */
+			if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+			    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) )
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw(ac, ale, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= NLACHANNEL_STEP(snla);
+		}
 	}
 	{   /* second pass: UI widgets */
 		uiBlock *block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);

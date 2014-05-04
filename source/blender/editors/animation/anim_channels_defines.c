@@ -2923,6 +2923,28 @@ static int acf_nlaaction_icon(bAnimListElem *ale)
 	}
 }
 
+/* Backdrop color for nla action channel 
+ * Although this can't be used directly for NLA Action drawing,
+ * it is still needed for use behind the RHS toggles
+ */
+static void acf_nlaaction_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
+{
+	float color[4];
+	
+	/* Action Line
+	 *   The alpha values action_get_color returns are only useful for drawing 
+	 *   strips backgrounds but here we're doing channel list backgrounds instead
+	 *   so we ignore that and use our own when needed
+	 */
+	nla_action_get_color(ale->adt, (bAction *)ale->data, color);
+	
+	/* NOTE: since the return types only allow rgb, we cannot do the alpha-blending we'd
+	 * like for the solo-drawing case. Hence, this method isn't actually used for drawing
+	 * most of the channel...
+	 */
+	copy_v3_v3(r_color, color);
+}
+ 
 /* backdrop for nla action channel */
 static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
@@ -2968,7 +2990,7 @@ static void acf_nlaaction_name(bAnimListElem *ale, char *name)
 			BLI_strncpy(name, act->id.name + 2, ANIM_CHAN_NAME_SIZE);
 		}
 		else {
-			BLI_strncpy(name, "<No Action>", sizeof(name));
+			BLI_strncpy(name, "<No Action>", ANIM_CHAN_NAME_SIZE);
 		}
 	}
 }
@@ -3037,7 +3059,7 @@ static bAnimChannelType ACF_NLAACTION =
 {
 	"NLA Active Action",            /* type name */
 	
-	NULL,                           /* backdrop color (NOTE: the backdrop handles this too, since it needs special hacks) */
+	acf_nlaaction_color,            /* backdrop color (NOTE: the backdrop handles this too, since it needs special hacks) */
 	acf_nlaaction_backdrop,         /* backdrop */
 	acf_generic_indention_flexible, /* indent level */
 	acf_generic_group_offset,       /* offset */           // XXX?
@@ -3440,6 +3462,11 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 			/* mute... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE))
 				offset += ICON_WIDTH;
+			/* pinned... */
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PINNED))
+				offset += ICON_WIDTH;
+				
+			/* NOTE: technically, NLA Action "pushdown" should be here too, but there are no sliders there */
 		}
 		
 		/* draw slider
@@ -3896,16 +3923,18 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			}
 			
 			/* NLA Action "pushdown" */
-			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->adt) && (ale->adt->flag & ADT_NLA_EDIT_ON) == 0) {
+			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->adt && ale->adt->action) && !(ale->adt->flag & ADT_NLA_EDIT_ON)) {
 				//const char *opname = "NLA_OT_action_pushdown"; // XXX: this is the real one
 				//const char *opname = "NLA_OT_channels_click";
 				
 				// FIXME: this needs to hook up to an operator
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
+				offset += UI_UNIT_X;
 				uiDefIconButO(block, BUT, "NLA_OT_channels_click", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN, 
-				              (int)v2d->cur.xmax - offset, yminc, ICON_WIDTH, ICON_WIDTH, 
+				              (int)v2d->cur.xmax - offset, ymid, UI_UNIT_X, UI_UNIT_X, 
 				              "Push action on to the top of the NLA stack as a new NLA Strip");
+				// TODO: pass channel index
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 			}
