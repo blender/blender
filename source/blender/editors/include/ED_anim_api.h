@@ -405,14 +405,14 @@ typedef struct bAnimChannelType {
 	
 	/* settings */
 	/* check if the given setting is valid in the current context */
-	bool (*has_setting)(bAnimContext *ac, bAnimListElem *ale, int setting);
+	bool (*has_setting)(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
 	/* get the flag used for this setting */
-	int (*setting_flag)(bAnimContext *ac, int setting, bool *neg);
+	int (*setting_flag)(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg);
 	/* get the pointer to int/short where data is stored,
 	 * with type being  sizeof(ptr_data) which should be fine for runtime use...
 	 *	- assume that setting has been checked to be valid for current context
 	 */
-	void *(*setting_ptr)(bAnimListElem *ale, int setting, short *type);
+	void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *type);
 } bAnimChannelType;
 
 /* ------------------------ Drawing API -------------------------- */

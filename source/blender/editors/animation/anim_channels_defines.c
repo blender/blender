@@ -365,14 +365,14 @@ static bool acf_generic_idfill_name_prop(bAnimListElem *ale, PointerRNA *ptr, Pr
 
 #if 0
 /* channel type has no settings */
-static bool acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+static bool acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting)
 {
 	return false;
 }
 #endif
 
 /* check if some setting exists for this object-based data-expander (datablock only) */
-static bool acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), int setting)
+static bool acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* expand is always supported */
@@ -438,14 +438,14 @@ static int acf_summary_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* check if some setting exists for this channel */
-static bool acf_summary_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_summary_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	/* only expanded is supported, as it is used for hiding all stuff which the summary covers */
 	return (setting == ACHANNEL_SETTING_EXPAND);
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_summary_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_summary_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	if (setting == ACHANNEL_SETTING_EXPAND) {
 		/* expanded */
@@ -460,7 +460,7 @@ static int acf_summary_setting_flag(bAnimContext *UNUSED(ac), int setting, bool 
 }
 
 /* get pointer to the setting */
-static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_summary_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	bAnimContext *ac = (bAnimContext *)ale->data;
 	
@@ -509,7 +509,7 @@ static int acf_scene_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* check if some setting exists for this channel */
-static bool acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), int setting)
+static bool acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* muted only in NLA */
@@ -531,7 +531,7 @@ static bool acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_scene_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_scene_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -557,7 +557,7 @@ static int acf_scene_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_scene_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Scene *scene = (Scene *)ale->data;
 	
@@ -649,7 +649,7 @@ static void acf_object_name(bAnimListElem *ale, char *name)
 }
 
 /* check if some setting exists for this channel */
-static bool acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+static bool acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting)
 {
 	Base *base = (Base *)ale->data;
 	Object *ob = base->object;
@@ -674,7 +674,7 @@ static bool acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_object_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_object_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -700,7 +700,7 @@ static int acf_object_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *
 }
 
 /* get pointer to the setting */
-static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Base *base = (Base *)ale->data;
 	Object *ob = base->object;
@@ -812,7 +812,7 @@ static bool acf_group_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA
 }
 
 /* check if some setting exists for this channel */
-static bool acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), int setting)
+static bool acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	/* for now, all settings are supported, though some are only conditionally */
 	switch (setting) {
@@ -830,7 +830,7 @@ static bool acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_group_setting_flag(bAnimContext *ac, int setting, bool *neg)
+static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -866,7 +866,7 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, bool *neg)
 }
 
 /* get pointer to the setting */
-static void *acf_group_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+static void *acf_group_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
 {
 	bActionGroup *agrp = (bActionGroup *)ale->data;
 	
@@ -923,7 +923,7 @@ static bool acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRN
 }
 
 /* check if some setting exists for this channel */
-static bool acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+static bool acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting)
 {
 	FCurve *fcu = (FCurve *)ale->data;
 	
@@ -950,7 +950,7 @@ static bool acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -974,7 +974,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *
 }
 
 /* get pointer to the setting */
-static void *acf_fcurve_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+static void *acf_fcurve_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
 {
 	FCurve *fcu = (FCurve *)ale->data;
 	
@@ -1010,7 +1010,7 @@ static int acf_fillactd_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* check if some setting exists for this channel */
-static bool acf_fillactd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_fillactd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* only select and expand supported */
@@ -1024,7 +1024,7 @@ static bool acf_fillactd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillactd_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_fillactd_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1043,7 +1043,7 @@ static int acf_fillactd_setting_flag(bAnimContext *UNUSED(ac), int setting, bool
 }
 
 /* get pointer to the setting */
-static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_fillactd_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	bAction *act = (bAction *)ale->data;
 	AnimData *adt = ale->adt;
@@ -1100,7 +1100,7 @@ static void acf_filldrivers_name(bAnimListElem *UNUSED(ale), char *name)
 
 /* check if some setting exists for this channel */
 // TODO: this could be made more generic
-static bool acf_filldrivers_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_filldrivers_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* only expand supported */
@@ -1113,7 +1113,7 @@ static bool acf_filldrivers_setting_valid(bAnimContext *UNUSED(ac), bAnimListEle
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_filldrivers_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_filldrivers_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1129,7 +1129,7 @@ static int acf_filldrivers_setting_flag(bAnimContext *UNUSED(ac), int setting, b
 }
 
 /* get pointer to the setting */
-static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	AnimData *adt = (AnimData *)ale->data;
 	
@@ -1174,7 +1174,7 @@ static int acf_dsmat_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1199,7 +1199,7 @@ static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dsmat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Material *ma = (Material *)ale->data;
 	
@@ -1250,7 +1250,7 @@ static int acf_dslam_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslam_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dslam_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1275,7 +1275,7 @@ static int acf_dslam_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dslam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Lamp *la = (Lamp *)ale->data;
 	
@@ -1333,7 +1333,7 @@ static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(al
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1358,7 +1358,7 @@ static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dstex_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dstex_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Tex *tex = (Tex *)ale->data;
 	
@@ -1409,7 +1409,7 @@ static int acf_dscam_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1434,7 +1434,7 @@ static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dscam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Camera *ca = (Camera *)ale->data;
 	
@@ -1495,7 +1495,7 @@ static int acf_dscur_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1520,7 +1520,7 @@ static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dscur_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Curve *cu = (Curve *)ale->data;
 	
@@ -1571,7 +1571,7 @@ static int acf_dsskey_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1596,7 +1596,7 @@ static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *
 }
 
 /* get pointer to the setting */
-static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dsskey_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Key *key = (Key *)ale->data;
 	
@@ -1647,7 +1647,7 @@ static int acf_dswor_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1672,7 +1672,7 @@ static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dswor_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	World *wo = (World *)ale->data;
 	
@@ -1723,7 +1723,7 @@ static int acf_dspart_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1748,7 +1748,7 @@ static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *
 }
 
 /* get pointer to the setting */
-static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dspart_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	ParticleSettings *part = (ParticleSettings *)ale->data;
 	
@@ -1799,7 +1799,7 @@ static int acf_dsmball_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1824,7 +1824,7 @@ static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac), int setting, bool 
 }
 
 /* get pointer to the setting */
-static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dsmball_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	MetaBall *mb = (MetaBall *)ale->data;
 	
@@ -1875,7 +1875,7 @@ static int acf_dsarm_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1900,7 +1900,7 @@ static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dsarm_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	bArmature *arm = (bArmature *)ale->data;
 	
@@ -1962,7 +1962,7 @@ static short acf_dsntree_offset(bAnimContext *ac, bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -1987,7 +1987,7 @@ static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac), int setting, bool 
 }
 
 /* get pointer to the setting */
-static void *acf_dsntree_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dsntree_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	bNodeTree *ntree = (bNodeTree *)ale->data;
 	
@@ -2038,7 +2038,7 @@ static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2063,7 +2063,7 @@ static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, b
 }
 
 /* get pointer to the setting */
-static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ale->data;
 	
@@ -2114,7 +2114,7 @@ static int acf_dsmesh_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2139,7 +2139,7 @@ static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *
 }
 
 /* get pointer to the setting */
-static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Mesh *me = (Mesh *)ale->data;
 	
@@ -2190,7 +2190,7 @@ static int acf_dslat_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2215,7 +2215,7 @@ static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dslat_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dslat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Lattice *lt = (Lattice *)ale->data;
 	
@@ -2266,7 +2266,7 @@ static int acf_dsspk_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2291,7 +2291,7 @@ static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *n
 }
 
 /* get pointer to the setting */
-static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_dsspk_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	Speaker *spk = (Speaker *)ale->data;
 	
@@ -2367,7 +2367,7 @@ static bool acf_shapekey_name_prop(bAnimListElem *ale, PointerRNA *ptr, Property
 }
 
 /* check if some setting exists for this channel */
-static bool acf_shapekey_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_shapekey_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2382,7 +2382,7 @@ static bool acf_shapekey_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_shapekey_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_shapekey_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2403,7 +2403,7 @@ static int acf_shapekey_setting_flag(bAnimContext *UNUSED(ac), int setting, bool
 }
 
 /* get pointer to the setting */
-static void *acf_shapekey_setting_ptr(bAnimListElem *ale, int setting, short *type)
+static void *acf_shapekey_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
 	KeyBlock *kb = (KeyBlock *)ale->data;
 	
@@ -2470,7 +2470,7 @@ static bool acf_gpd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSE
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2488,7 +2488,7 @@ static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg
 }
 
 /* get pointer to the setting */
-static void *acf_gpd_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+static void *acf_gpd_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
 {
 	bGPdata *gpd = (bGPdata *)ale->data;
 	
@@ -2540,7 +2540,7 @@ static bool acf_gpl_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA *
 }
 
 /* check if some setting exists for this channel */
-static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* unsupported */
@@ -2556,7 +2556,7 @@ static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSE
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2577,11 +2577,11 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg
 }
 
 /* get pointer to the setting */
-static void *acf_gpl_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+static void *acf_gpl_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
 {
 	bGPDlayer *gpl = (bGPDlayer *)ale->data;
 	
-	/* all flags are just in agrp->flag for now... */
+	/* all flags are just in gpl->flag for now... */
 	return GET_ACF_FLAG_PTR(gpl->flag, type);
 }
 
@@ -2621,7 +2621,7 @@ static int acf_mask_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* check if some setting exists for this channel */
-static bool acf_mask_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_mask_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* only select and expand supported */
@@ -2635,7 +2635,7 @@ static bool acf_mask_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUS
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2653,7 +2653,7 @@ static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *ne
 }
 
 /* get pointer to the setting */
-static void *acf_mask_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+static void *acf_mask_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
 {
 	Mask *mask = (Mask *)ale->data;
 	
@@ -2705,7 +2705,7 @@ static bool acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyR
 }
 
 /* check if some setting exists for this channel */
-static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* unsupported */
@@ -2721,7 +2721,7 @@ static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *U
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2739,11 +2739,11 @@ static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, bool 
 }
 
 /* get pointer to the setting */
-static void *acf_masklay_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+static void *acf_masklay_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
 {
 	MaskLayer *masklay = (MaskLayer *)ale->data;
 	
-	/* all flags are just in agrp->flag for now... */
+	/* all flags are just in masklay->flag for now... */
 	return GET_ACF_FLAG_PTR(masklay->flag, type);
 }
 
@@ -2810,7 +2810,7 @@ static bool acf_nlatrack_name_prop(bAnimListElem *ale, PointerRNA *ptr, Property
 }
 
 /* check if some setting exists for this channel */
-static bool acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *ale, int setting)
+static bool acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *ale, eAnimChannel_Settings setting)
 {
 	NlaTrack *nlt = (NlaTrack *)ale->data;
 	AnimData *adt = ale->adt;
@@ -2855,7 +2855,7 @@ static bool acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac), int setting, bool *neg)
+static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
@@ -2879,7 +2879,7 @@ static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac), int setting, bool
 }
 
 /* get pointer to the setting */
-static void *acf_nlatrack_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+static void *acf_nlatrack_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
 {
 	NlaTrack *nlt = (NlaTrack *)ale->data;
 	return GET_ACF_FLAG_PTR(nlt->flag, type);

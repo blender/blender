@@ -880,7 +880,7 @@ void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar)
 		glDisable(GL_BLEND);
 	}
 	
-	/* free tempolary channels */
+	/* free temporary channels */
 	BLI_freelistN(&anim_data);
 }
 
