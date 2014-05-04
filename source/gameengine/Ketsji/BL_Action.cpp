@@ -485,8 +485,15 @@ void BL_Action::Update(float curtime)
 		}
 	}
 
-	m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
+	// This isn't thread-safe, so we move it into it's own function for now
+	//m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
 
 	if (m_done)
 		ClearControllerList();
+}
+
+void BL_Action::UpdateIPOs()
+{
+	if (!m_done)
+		m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
 }

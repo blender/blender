@@ -102,3 +102,14 @@ void BL_ActionManager::Update(float curtime)
 		}
 	}
 }
+
+void BL_ActionManager::UpdateIPOs()
+{
+	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
+	{
+		if (!m_layers[i]->IsDone())
+		{
+			m_layers[i]->UpdateIPOs();
+		}
+	}
+}

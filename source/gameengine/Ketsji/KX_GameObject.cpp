@@ -462,6 +462,11 @@ void KX_GameObject::UpdateActionManager(float curtime)
 	GetActionManager()->Update(curtime);
 }
 
+void KX_GameObject::UpdateActionIPOs()
+{
+	GetActionManager()->UpdateIPOs();
+}
+
 float KX_GameObject::GetActionFrame(short layer)
 {
 	return GetActionManager()->GetActionFrame(layer);
