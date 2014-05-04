@@ -859,10 +859,11 @@ static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings settin
 		case ACHANNEL_SETTING_VISIBLE: /* visibility - graph editor */
 			*neg = 1;
 			return AGRP_NOTVISIBLE;
+			
+		default:
+			/* this shouldn't happen */
+			return 0;
 	}
-	
-	/* this shouldn't happen */
-	return 0;
 }
 
 /* get pointer to the setting */
@@ -2456,7 +2457,7 @@ static int acf_gpd_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* check if some setting exists for this channel */
-static bool acf_gpd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+static bool acf_gpd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	switch (setting) {
 		/* only select and expand supported */
@@ -2481,10 +2482,11 @@ static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings 
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return GP_DATA_EXPAND;
+		
+		default:
+			/* these shouldn't happen */
+			return 0;
 	}
-	
-	/* this shouldn't happen */
-	return 0;
 }
 
 /* get pointer to the setting */
@@ -2646,10 +2648,11 @@ static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings
 		
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return MASK_ANIMF_EXPAND;
+			
+		default:	
+			/* this shouldn't happen */
+			return 0;
 	}
-	
-	/* this shouldn't happen */
-	return 0;
 }
 
 /* get pointer to the setting */
