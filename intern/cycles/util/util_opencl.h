@@ -304,7 +304,9 @@ typedef struct _cl_kernel *         cl_kernel;
 typedef struct _cl_event *          cl_event;
 typedef struct _cl_sampler *        cl_sampler;
 
-typedef cl_uint             cl_bool;                     /* WARNING!  Unlike cl_ types in cl_platform.h, cl_bool is not guaranteed to be the same size as the bool in kernels. */ 
+/* WARNING!  Unlike cl_ types in cl_platform.h,
+ * cl_bool is not guaranteed to be the same size as the bool in kernels. */
+typedef cl_uint             cl_bool;
 typedef cl_ulong            cl_bitfield;
 typedef cl_bitfield         cl_device_type;
 typedef cl_uint             cl_platform_info;

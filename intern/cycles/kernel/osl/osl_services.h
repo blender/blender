@@ -110,9 +110,9 @@ public:
 	                      ustring dataname, TypeDesc datatype, void *data);
 
 	static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
-			TypeDesc type, bool derivatives, void *val);
+	                                     TypeDesc type, bool derivatives, void *val);
 	static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
-			TypeDesc type, bool derivatives, void *val);
+	                                          TypeDesc type, bool derivatives, void *val);
 
 	static ustring u_distance;
 	static ustring u_index;

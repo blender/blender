@@ -119,7 +119,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	/* TODO, disable the closures we won't need */
 	shader_setup_from_sample(kg, &sd, P, Ng, I, shader, object, prim, u, v, t, time, bounce, transparent_bounce);
 
-	if(is_light_pass(type)){
+	if(is_light_pass(type)) {
 		RNG rng = cmj_hash(i, 0);
 		compute_light_pass(kg, &sd, &L, rng, (type == SHADER_EVAL_AO));
 	}

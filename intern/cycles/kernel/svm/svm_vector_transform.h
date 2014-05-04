@@ -91,9 +91,9 @@ ccl_device void svm_node_vector_transform(KernelGlobals *kg, ShaderData *sd, flo
 	if(type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL)
 		in = normalize(in);
 	
-	/* Output */	
+	/* Output */
 	if(stack_valid(vector_out)) {
-			stack_store_float3(stack, vector_out, in);
+		stack_store_float3(stack, vector_out, in);
 	}
 }
 

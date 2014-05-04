@@ -84,7 +84,7 @@ ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, con
 	float theta_i = M_PI_2_F - safe_acosf(omega_in_z);
 	float cosphi_i = dot(omega_in_y, locy);
 
-	if(M_PI_2_F - fabsf(theta_i) < 0.001f || cosphi_i < 0.0f){
+	if(M_PI_2_F - fabsf(theta_i) < 0.001f || cosphi_i < 0.0f) {
 		*pdf = 0.0f;
 		return make_float3(*pdf, *pdf, *pdf);
 	}
@@ -140,7 +140,7 @@ ccl_device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, 
 	float theta_i = M_PI_2_F - safe_acosf(omega_in_z);
 	float phi_i = safe_acosf(dot(omega_in_y, locy));
 
-	if(M_PI_2_F - fabsf(theta_i) < 0.001f){
+	if(M_PI_2_F - fabsf(theta_i) < 0.001f) {
 		*pdf = 0.0f;
 		return make_float3(*pdf, *pdf, *pdf);
 	}
@@ -251,8 +251,8 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng,
 	float phi_pdf = roughness2 / (c_TT * (p * p + roughness2 * roughness2));
 
 	*omega_in =(cosf(phi) * costheta_i) * locy -
-			   (sinf(phi) * costheta_i) * locx +
-			   (            sintheta_i) * Tg;
+	           (sinf(phi) * costheta_i) * locx +
+	           (            sintheta_i) * Tg;
 
 	//differentials - TODO: find a better approximation for the transmission bounce
 #ifdef __RAY_DIFFERENTIALS__
@@ -261,7 +261,7 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng,
 #endif
 
 	*pdf = fabsf(phi_pdf * theta_pdf);
-	if(M_PI_2_F - fabsf(theta_i) < 0.001f){
+	if(M_PI_2_F - fabsf(theta_i) < 0.001f) {
 		*pdf = 0.0f;
 	}
 

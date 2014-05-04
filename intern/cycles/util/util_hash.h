@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 static inline uint hash_int_2d(uint kx, uint ky)
 {
-	#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
+#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
 
 	uint a, b, c;
 
@@ -41,7 +41,7 @@ static inline uint hash_int_2d(uint kx, uint ky)
 
 	return c;
 
-	#undef rot
+#undef rot
 }
 
 static inline uint hash_int(uint k)

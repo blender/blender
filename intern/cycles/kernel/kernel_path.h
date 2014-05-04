@@ -1304,21 +1304,21 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				/* do subsurface scatter step with copy of shader data, this will
 				 * replace the BSSRDF with a diffuse BSDF closure */
 				for(int j = 0; j < num_samples; j++) {
-						ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
-						float bssrdf_u, bssrdf_v;
-						path_branched_rng_2D(kg, &bssrdf_rng, &state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
-						int num_hits = subsurface_scatter_multi_step(kg, &sd, bssrdf_sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
+					ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
+					float bssrdf_u, bssrdf_v;
+					path_branched_rng_2D(kg, &bssrdf_rng, &state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+					int num_hits = subsurface_scatter_multi_step(kg, &sd, bssrdf_sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
 
-						/* compute lighting with the BSDF closure */
-						for(int hit = 0; hit < num_hits; hit++) {
-							PathState hit_state = state;
+					/* compute lighting with the BSDF closure */
+					for(int hit = 0; hit < num_hits; hit++) {
+						PathState hit_state = state;
 
-							path_state_branch(&hit_state, j, num_samples);
+						path_state_branch(&hit_state, j, num_samples);
 
-							kernel_branched_path_integrate_lighting(kg, rng,
-								&bssrdf_sd[hit], throughput, num_samples_inv,
-								&hit_state, &L, buffer);
-						}
+						kernel_branched_path_integrate_lighting(kg, rng,
+						                                        &bssrdf_sd[hit], throughput, num_samples_inv,
+						                                        &hit_state, &L, buffer);
+					}
 				}
 
 				state.flag &= ~PATH_RAY_BSSRDF_ANCESTOR;

@@ -109,8 +109,8 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colo
 		float sinTheta2 = 1 - cosTheta * cosTheta;
 		float sinTheta = sinTheta2 > 0 ? sqrtf(sinTheta2) : 0;
 		*omega_in = (cosf(phi) * sinTheta) * T +
-				   (sinf(phi) * sinTheta) * B +
-				   (            cosTheta) * R;
+		            (sinf(phi) * sinTheta) * B +
+		            (            cosTheta) * R;
 		if (dot(Ng, *omega_in) > 0.0f)
 		{
 			// common terms for pdf and eval

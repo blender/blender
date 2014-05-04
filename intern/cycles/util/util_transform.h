@@ -108,9 +108,9 @@ ccl_device_inline Transform transform_transpose(const Transform a)
 }
 
 ccl_device_inline Transform make_transform(float a, float b, float c, float d,
-									float e, float f, float g, float h,
-									float i, float j, float k, float l,
-									float m, float n, float o, float p)
+                                           float e, float f, float g, float h,
+                                           float i, float j, float k, float l,
+                                           float m, float n, float o, float p)
 {
 	Transform t;
 

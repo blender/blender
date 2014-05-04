@@ -42,12 +42,12 @@ ccl_device void svm_node_separate_hsv(KernelGlobals *kg, ShaderData *sd, float *
 	/* Convert to HSV */
 	color = rgb_to_hsv(color);
 
-	if (stack_valid(hue_out)) 
-			stack_store_float(stack, hue_out, color.x);
-	if (stack_valid(saturation_out)) 
-			stack_store_float(stack, saturation_out, color.y);
-	if (stack_valid(value_out)) 
-			stack_store_float(stack, value_out, color.z);
+	if (stack_valid(hue_out))
+		stack_store_float(stack, hue_out, color.x);
+	if (stack_valid(saturation_out))
+		stack_store_float(stack, saturation_out, color.y);
+	if (stack_valid(value_out))
+		stack_store_float(stack, value_out, color.z);
 }
 
 CCL_NAMESPACE_END

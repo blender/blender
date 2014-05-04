@@ -166,10 +166,11 @@ ccl_device_noinline float3 indirect_primitive_emission(KernelGlobals *kg, Shader
 	float3 L = shader_emissive_eval(kg, sd);
 
 #ifdef __HAIR__
-	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) && (sd->type & PRIMITIVE_ALL_TRIANGLE)) {
+	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) && (sd->type & PRIMITIVE_ALL_TRIANGLE))
 #else
-	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS)) {
+	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS))
 #endif
+	{
 		/* multiple importance sampling, get triangle light pdf,
 		 * and compute weight with respect to BSDF pdf */
 		float pdf = triangle_light_pdf(kg, sd->Ng, sd->I, t);

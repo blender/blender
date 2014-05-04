@@ -117,13 +117,13 @@ ccl_device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float 
 			stack_store_float3(stack, out_offset, particle_location(kg, particle_id));
 			break;
 		}
-		#if 0	/* XXX float4 currently not supported in SVM stack */
+#if 0	/* XXX float4 currently not supported in SVM stack */
 		case NODE_INFO_PAR_ROTATION: {
 			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float4(stack, out_offset, particle_rotation(kg, particle_id));
 			break;
 		}
-		#endif
+#endif
 		case NODE_INFO_PAR_SIZE: {
 			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float(stack, out_offset, particle_size(kg, particle_id));

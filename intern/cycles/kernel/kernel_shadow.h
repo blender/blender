@@ -190,7 +190,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
 {
-*shadow = make_float3(1.0f, 1.0f, 1.0f);
+	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 
 	if(ray->t == 0.0f)
 		return false;
@@ -217,10 +217,11 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 					return true;
 
 #ifdef __HAIR__
-				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect, NULL, 0.0f, 0.0f)) {
+				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect, NULL, 0.0f, 0.0f))
 #else
-				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect)) {
+				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect))
 #endif
+				{
 
 #ifdef __VOLUME__
 					/* attenuation for last line segment towards light */

@@ -554,7 +554,7 @@ bool Mesh::has_motion_blur() const
 {
 	return (use_motion_blur &&
 	        (attributes.find(ATTR_STD_MOTION_VERTEX_POSITION) ||
-			 curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)));
+	         curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)));
 }
 
 /* Mesh Manager */

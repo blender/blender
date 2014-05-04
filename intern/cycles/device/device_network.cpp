@@ -326,7 +326,7 @@ class DeviceServer {
 public:
 	thread_mutex rpc_lock;
 
-	void network_error(const string &message){
+	void network_error(const string &message) {
 		error_func.network_error(message);
 	}
 
@@ -366,7 +366,7 @@ protected:
 	{
 		/* create a new DataVector and insert it into mem_data */
 		pair<DataMap::iterator,bool> data_ins = mem_data.insert(
-				DataMap::value_type(client_pointer, DataVector()));
+		        DataMap::value_type(client_pointer, DataVector()));
 
 		/* make sure it was a unique insertion */
 		assert(data_ins.second);

@@ -14,8 +14,8 @@
  * limitations under the License
  */
 
-#ifndef __CYCLES_XML__
-#define __CYCLES_XML__
+#ifndef __CYCLES_XML_H__
+#define __CYCLES_XML_H__
 
 CCL_NAMESPACE_BEGIN
 
@@ -29,5 +29,4 @@ void xml_read_file(Scene *scene, const char *filepath);
 
 CCL_NAMESPACE_END
 
-#endif /* __CYCLES_XML__ */
-
+#endif /* __CYCLES_XML_H__ */

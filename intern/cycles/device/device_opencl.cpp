@@ -461,7 +461,7 @@ public:
 		vector<cl_platform_id> platforms(num_platforms, NULL);
 
 		ciErr = clGetPlatformIDs(num_platforms, &platforms[0], NULL);
-		if(opencl_error(ciErr)){
+		if(opencl_error(ciErr)) {
 			fprintf(stderr, "clGetPlatformIDs failed \n");
 			return;
 		}
@@ -489,7 +489,7 @@ public:
 			/* get devices */
 			vector<cl_device_id> device_ids(num_devices, NULL);
 
-			if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), num_devices, &device_ids[0], NULL))){
+			if(opencl_error(clGetDeviceIDs(cpPlatform, opencl_device_type(), num_devices, &device_ids[0], NULL))) {
 				fprintf(stderr, "clGetDeviceIDs failed \n");
 				return;
 			}
@@ -528,7 +528,7 @@ public:
 				cxContext = clCreateContext(context_props, 1, &cdDevice,
 					context_notify_callback, cdDevice, &ciErr);
 
-				if(opencl_error(ciErr)){
+				if(opencl_error(ciErr)) {
 					opencl_error("OpenCL: clCreateContext failed");
 					return;
 				}

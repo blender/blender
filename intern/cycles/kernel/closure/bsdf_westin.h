@@ -96,10 +96,9 @@ ccl_device int bsdf_westin_backscatter_sample(const ShaderClosure *sc, float3 Ng
 		float sinTheta2 = 1 - cosTheta * cosTheta;
 		float sinTheta = sinTheta2 > 0 ? sqrtf(sinTheta2) : 0;
 		*omega_in = (cosf(phi) * sinTheta) * T +
-				   (sinf(phi) * sinTheta) * B +
-				   (cosTheta) * I;
-		if(dot(Ng, *omega_in) > 0)
-		{
+		            (sinf(phi) * sinTheta) * B +
+		            (cosTheta) * I;
+		if(dot(Ng, *omega_in) > 0) {
 			// common terms for pdf and eval
 			float cosNI = dot(N, *omega_in);
 			// make sure the direction we chose is still in the right hemisphere

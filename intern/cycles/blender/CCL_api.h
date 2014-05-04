@@ -14,8 +14,8 @@
  * limitations under the License
  */
 
-#ifndef CCL_API_H
-#define CCL_API_H
+#ifndef __CCL_API_H__
+#define __CCL_API_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,5 +40,4 @@ void *CCL_python_module_init(void);
 }
 #endif
 
-#endif /* CCL_API_H */
-
+#endif /* __CCL_API_H__ */

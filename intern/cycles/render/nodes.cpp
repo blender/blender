@@ -317,7 +317,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 	compiler.parameter("is_float", is_float);
 	compiler.parameter("use_alpha", !alpha_out->links.empty());
 
-	switch (interpolation){
+	switch (interpolation) {
 		case INTERPOLATION_CLOSEST:
 			compiler.parameter("interpolation", "closest");
 			break;

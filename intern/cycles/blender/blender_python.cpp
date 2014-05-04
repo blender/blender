@@ -317,7 +317,8 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 		}
 		else if(param->type.vecsemantics == TypeDesc::POINT ||
 		        param->type.vecsemantics == TypeDesc::VECTOR ||
-		        param->type.vecsemantics == TypeDesc::NORMAL) {
+		        param->type.vecsemantics == TypeDesc::NORMAL)
+		{
 			socket_type = "NodeSocketVector";
 			data_type = BL::NodeSocket::type_VECTOR;
 

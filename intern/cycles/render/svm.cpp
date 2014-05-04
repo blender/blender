@@ -226,7 +226,8 @@ void SVMCompiler::stack_assign(ShaderInput *input)
 			else if(input->type == SHADER_SOCKET_VECTOR ||
 			        input->type == SHADER_SOCKET_NORMAL ||
 			        input->type == SHADER_SOCKET_POINT ||
-			        input->type == SHADER_SOCKET_COLOR) {
+			        input->type == SHADER_SOCKET_COLOR)
+			{
 
 				add_node(NODE_VALUE_V, input->stack_offset);
 				add_node(NODE_VALUE_V, input->value);
@@ -506,8 +507,8 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			find_dependencies(cl2deps, done, cl2in);
 
 			set_intersection(cl1deps.begin(), cl1deps.end(),
-							 cl2deps.begin(), cl2deps.end(),
-							 std::inserter(shareddeps, shareddeps.begin()));
+			                 cl2deps.begin(), cl2deps.end(),
+			                 std::inserter(shareddeps, shareddeps.begin()));
 			
 			if(!shareddeps.empty()) {
 				if(cl1in->link)

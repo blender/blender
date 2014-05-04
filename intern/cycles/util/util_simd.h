@@ -71,7 +71,7 @@ ccl_device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf
 
 #ifdef __KERNEL_SSE41__
 ccl_device_inline void gen_idirsplat_swap(const __m128 &pn, const shuffle_swap_t &shuf_identity, const shuffle_swap_t &shuf_swap,
-										  const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
+                                          const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
 {
 	const __m128 idirsplat_raw[] = { _mm_set_ps1(idir.x), _mm_set_ps1(idir.y), _mm_set_ps1(idir.z) };
 	idirsplat[0] = _mm_xor_ps(idirsplat_raw[0], pn);
@@ -87,7 +87,7 @@ ccl_device_inline void gen_idirsplat_swap(const __m128 &pn, const shuffle_swap_t
 }
 #else
 ccl_device_inline void gen_idirsplat_swap(const __m128 &pn, const shuffle_swap_t &shuf_identity, const shuffle_swap_t &shuf_swap,
-										  const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
+                                          const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
 {
 	idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
 	idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);

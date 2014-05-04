@@ -209,7 +209,7 @@ public:
 		boost::system::error_code error;
 		size_t len = boost::asio::read(socket, boost::asio::buffer(header), error);
 
-		if(error.value()){
+		if(error.value()) {
 			error_func->network_error(error.message());
 		}
 
@@ -276,7 +276,7 @@ public:
 		boost::system::error_code error;
 		size_t len = boost::asio::read(socket, boost::asio::buffer(buffer, size), error);
 
-		if(error.value()){
+		if(error.value()) {
 			error_func->network_error(error.message());
 		}
 
@@ -391,7 +391,7 @@ private:
 
 					/* add address if it's not already in the list */
 					bool found = std::find(servers.begin(), servers.end(),
-							address) != servers.end();
+					                       address) != servers.end();
 
 					if(!found)
 						servers.push_back(address);

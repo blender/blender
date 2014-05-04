@@ -524,7 +524,8 @@ static bool get_mesh_element_attribute(KernelGlobals *kg, const ShaderData *sd, 
                                const TypeDesc& type, bool derivatives, void *val)
 {
 	if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
-	    attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
+	    attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor)
+	{
 		float3 fval[3];
 		fval[0] = primitive_attribute_float3(kg, sd, attr.elem, attr.offset,
 		                                     (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
@@ -606,7 +607,7 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 	}
 	else if (name == u_particle_lifetime) {
 		int particle_id = object_particle_id(kg, sd->object);
-		float f= particle_lifetime(kg, particle_id);
+		float f = particle_lifetime(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_particle_location) {
@@ -643,10 +644,11 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 	}
 	else if ((name == u_geom_trianglevertices || name == u_geom_polyvertices)
 #ifdef __HAIR__
-		     && sd->type & PRIMITIVE_ALL_TRIANGLE) {
+		     && sd->type & PRIMITIVE_ALL_TRIANGLE)
 #else
-		) {
+		)
 #endif
+	{
 		float3 P[3];
 
 		if(sd->type & PRIMITIVE_TRIANGLE)

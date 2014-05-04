@@ -154,8 +154,8 @@ ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, fl
 		float sinThetaM  = cosThetaM * safe_sqrtf(tanThetaM2);
 		float phiM = M_2PI_F * randv;
 		float3 m = (cosf(phiM) * sinThetaM) * X +
-				 (sinf(phiM) * sinThetaM) * Y +
-							   cosThetaM  * Z;
+		           (sinf(phiM) * sinThetaM) * Y +
+		           (             cosThetaM) * Z;
 		if(!m_refractive) {
 			float cosMO = dot(m, I);
 			if(cosMO > 0) {
@@ -383,8 +383,8 @@ ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 N
 		float sinThetaM = cosThetaM * tanThetaM;
 		float phiM = M_2PI_F * randv;
 		float3 m = (cosf(phiM) * sinThetaM) * X +
-				 (sinf(phiM) * sinThetaM) * Y +
-							   cosThetaM  * Z;
+		           (sinf(phiM) * sinThetaM) * Y +
+		           (             cosThetaM) * Z;
 
 		if(!m_refractive) {
 			float cosMO = dot(m, I);

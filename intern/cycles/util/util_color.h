@@ -132,8 +132,8 @@ ccl_device float3 xyY_to_xyz(float x, float y, float Y)
 ccl_device float3 xyz_to_rgb(float x, float y, float z)
 {
 	return make_float3(3.240479f * x + -1.537150f * y + -0.498535f * z,
-					  -0.969256f * x +  1.875991f * y +  0.041556f * z,
-					   0.055648f * x + -0.204043f * y +  1.057311f * z);
+	                  -0.969256f * x +  1.875991f * y +  0.041556f * z,
+	                   0.055648f * x + -0.204043f * y +  1.057311f * z);
 }
 
 #ifndef __KERNEL_OPENCL__

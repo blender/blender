@@ -159,8 +159,8 @@ struct int2 {
 	__forceinline int& operator[](int i) { return *(&x + i); }
 };
 
-#ifdef __KERNEL_SSE__
 struct ccl_try_align(16) int3 {
+#ifdef __KERNEL_SSE__
 	union {
 		__m128i m128;
 		struct { int x, y, z, w; };
@@ -171,7 +171,6 @@ struct ccl_try_align(16) int3 {
 	__forceinline operator const __m128i&(void) const { return m128; }
 	__forceinline operator __m128i&(void) { return m128; }
 #else
-struct ccl_try_align(16) int3 {
 	int x, y, z, w;
 #endif
 
@@ -179,8 +178,8 @@ struct ccl_try_align(16) int3 {
 	__forceinline int& operator[](int i) { return *(&x + i); }
 };
 
-#ifdef __KERNEL_SSE__
 struct ccl_try_align(16) int4 {
+#ifdef __KERNEL_SSE__
 	union {
 		__m128i m128;
 		struct { int x, y, z, w; };
@@ -191,7 +190,6 @@ struct ccl_try_align(16) int4 {
 	__forceinline operator const __m128i&(void) const { return m128; }
 	__forceinline operator __m128i&(void) { return m128; }
 #else
-struct ccl_try_align(16) int4 {
 	int x, y, z, w;
 #endif
 
@@ -227,8 +225,8 @@ struct float2 {
 	__forceinline float& operator[](int i) { return *(&x + i); }
 };
 
-#ifdef __KERNEL_SSE__
 struct ccl_try_align(16) float3 {
+#ifdef __KERNEL_SSE__
 	union {
 		__m128 m128;
 		struct { float x, y, z, w; };
@@ -239,7 +237,6 @@ struct ccl_try_align(16) float3 {
 	__forceinline operator const __m128&(void) const { return m128; }
 	__forceinline operator __m128&(void) { return m128; }
 #else
-struct ccl_try_align(16) float3 {
 	float x, y, z, w;
 #endif
 
@@ -247,8 +244,8 @@ struct ccl_try_align(16) float3 {
 	__forceinline float& operator[](int i) { return *(&x + i); }
 };
 
-#ifdef __KERNEL_SSE__
 struct ccl_try_align(16) float4 {
+#ifdef __KERNEL_SSE__
 	union {
 		__m128 m128;
 		struct { float x, y, z, w; };
@@ -259,7 +256,6 @@ struct ccl_try_align(16) float4 {
 	__forceinline operator const __m128&(void) const { return m128; }
 	__forceinline operator __m128&(void) { return m128; }
 #else
-struct ccl_try_align(16) float4 {
 	float x, y, z, w;
 #endif
 

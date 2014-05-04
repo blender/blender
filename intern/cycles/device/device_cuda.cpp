@@ -508,7 +508,7 @@ public:
 				if(interpolation == INTERPOLATION_CLOSEST) {
 					cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_POINT));
 				}
-				else if (interpolation == INTERPOLATION_LINEAR){
+				else if (interpolation == INTERPOLATION_LINEAR) {
 					cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_LINEAR));
 				}
 				else {/* CUBIC and SMART are unsupported for CUDA */

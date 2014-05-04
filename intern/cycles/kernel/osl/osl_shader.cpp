@@ -409,8 +409,9 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 					sc.data1 = volume->sc.data1;
 
 					/* add */
-					if(sc.sample_weight > CLOSURE_WEIGHT_CUTOFF &&
-					   sd->num_closure < MAX_CLOSURE) {
+					if((sc.sample_weight > CLOSURE_WEIGHT_CUTOFF) &&
+					   (sd->num_closure < MAX_CLOSURE))
+					{
 						sd->closure[sd->num_closure++] = sc;
 						sd->flag |= volume->shaderdata_flag();
 					}
