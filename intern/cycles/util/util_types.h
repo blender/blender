@@ -460,7 +460,7 @@ enum InterpolationType {
 /* macros */
 
 /* hints for branch pradiction, only use in code that runs a _lot_ */
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(__KERNEL_CPU__)
 #  define LIKELY(x)       __builtin_expect(!!(x), 1)
 #  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
 #else
