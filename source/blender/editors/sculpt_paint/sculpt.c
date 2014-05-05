@@ -198,8 +198,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 	if (mmd || ob->sculpt->bm)
 		return 0;
 
-	/* non-locked shape keys could be handled in the same way as deformed mesh */
-	if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && me->key && ob->shapenr)
+	if (me->key && ob->shapenr)
 		return 1;
 
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
@@ -3424,7 +3423,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		MEM_freeN(nodes);
 
 		/* Modifiers could depend on mesh normals, so we should update them/
-		 * Note, then if sculpting happens on locked key, normals should be re-calculated
+		 * Note, then if sculpting happens on key, normals should be re-calculated
 		 * after applying coords from keyblock on base mesh */
 		BKE_mesh_calc_normals(me);
 	}
