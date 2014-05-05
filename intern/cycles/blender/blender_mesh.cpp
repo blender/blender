@@ -648,20 +648,53 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Object *object, float motion
 			return;
 	}
 
-	/* skip objects without deforming modifiers. this is not totally reliable,
-	 * would need a more extensive check to see which objects are animated */
+	/* skip empty meshes */
 	size_t numverts = mesh->verts.size();
 	size_t numkeys = mesh->curve_keys.size();
 
-	if((!numverts && !numkeys) || !ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview))
+	if(!numverts && !numkeys)
 		return;
 	
-	/* get derived mesh */
-	BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, false);
+	/* skip objects without deforming modifiers. this is not totally reliable,
+	 * would need a more extensive check to see which objects are animated */
+	BL::Mesh b_mesh(PointerRNA_NULL);
 
-	if(!b_mesh)
+	if(ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {
+		/* get derived mesh */
+		b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, false);
+	}
+
+	if(!b_mesh) {
+		/* if we have no motion blur on this frame, but on other frames, copy */
+		if(numverts) {
+			/* triangles */
+			Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+			if(attr_mP) {
+				Attribute *attr_mN = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+				Attribute *attr_N = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
+				float3 *P = &mesh->verts[0];
+				float3 *N = (attr_N)? attr_N->data_float3(): NULL;
+
+				memcpy(attr_mP->data_float3() + time_index*numverts, P, sizeof(float3)*numverts);
+				if(attr_mN)
+					memcpy(attr_mN->data_float3() + time_index*numverts, N, sizeof(float3)*numverts);
+			}
+		}
+
+		if(numkeys) {
+			/* curves */
+			Attribute *attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+			if(attr_mP) {
+				float4 *keys = &mesh->curve_keys[0];
+				memcpy(attr_mP->data_float4() + time_index*numkeys, keys, sizeof(float4)*numkeys);
+			}
+		}
+
 		return;
-	
+	}
+
 	if(numverts) {
 		/* find attributes */
 		Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -707,7 +740,8 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Object *object, float motion
 
 				for(int step = 0; step < time_index; step++) {
 					memcpy(attr_mP->data_float3() + step*numverts, P, sizeof(float3)*numverts);
-					memcpy(attr_mN->data_float3() + step*numverts, N, sizeof(float3)*numverts);
+					if(attr_mN)
+						memcpy(attr_mN->data_float3() + step*numverts, N, sizeof(float3)*numverts);
 				}
 			}
 		}
