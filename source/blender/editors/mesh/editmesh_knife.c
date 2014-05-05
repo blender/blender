@@ -1161,8 +1161,21 @@ static bool point_is_visible(KnifeTool_OpData *kcd, const float p[3], const floa
 
 	/* If not cutting through, make sure no face is in front of p */
 	if (!kcd->cut_through) {
+		float dist;
+
 		/* TODO: I think there's a simpler way to get the required raycast ray */
 		ED_view3d_unproject(mats, view, s[0], s[1], 0.0f);
+
+		/* avoid projecting behind the viewpoint */
+		if (kcd->is_ortho) {
+			dist = FLT_MAX;
+		}
+		else {
+			float p_world[3];
+			mul_v3_m4v3(p_world, kcd->ob->obmat, p);
+			dist = len_v3v3(view, p_world);
+		}
+
 		mul_m4_v3(kcd->ob->imat, view);
 
 		/* make p1 a little towards view, so ray doesn't hit p's face. */
@@ -1174,7 +1187,7 @@ static bool point_is_visible(KnifeTool_OpData *kcd, const float p[3], const floa
 		add_v3_v3(p1, no);
 
 		/* see if there's a face hit between p1 and the view */
-		f_hit = BKE_bmbvh_ray_cast(kcd->bmbvh, p1, no, KNIFE_FLT_EPS, NULL, NULL, NULL);
+		f_hit = BKE_bmbvh_ray_cast(kcd->bmbvh, p1, no, KNIFE_FLT_EPS, &dist, NULL, NULL);
 		if (f_hit)
 			return false;
 	}
