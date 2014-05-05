@@ -525,10 +525,18 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 static bool buttons_context_linestyle_pinnable(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
+	SceneRenderLayer *actsrl;
+	FreestyleConfig *config;
 	SpaceButs *sbuts;
 
 	/* if Freestyle is disabled in the scene */
 	if ((scene->r.mode & R_EDGE_FRS) == 0) {
+		return false;
+	}
+	/* if Freestyle is not in the Parameter Editor mode */
+	actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);
+	config = &actsrl->freestyleConfig;
+	if (config->mode != FREESTYLE_CONTROL_EDITOR_MODE) {
 		return false;
 	}
 	/* if the scene has already been pinned */

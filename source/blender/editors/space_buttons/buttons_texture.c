@@ -61,6 +61,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_freestyle.h"
 
 #include "RNA_access.h"
 
@@ -104,8 +105,23 @@ bool ED_texture_context_check_particles(const bContext *C)
 bool ED_texture_context_check_linestyle(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	FreestyleLineStyle *ls = CTX_data_linestyle_from_scene(scene);
-	return (scene && (scene->r.mode & R_EDGE_FRS) && ls && (ls->flag & LS_TEXTURE));
+	SceneRenderLayer *actsrl;
+	FreestyleConfig *config;
+	FreestyleLineSet *lineset;
+	FreestyleLineStyle *linestyle;
+
+	if (scene && (scene->r.mode & R_EDGE_FRS)) {
+		actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);
+		config = &actsrl->freestyleConfig;
+		if (config->mode == FREESTYLE_CONTROL_EDITOR_MODE) {
+			lineset = BKE_freestyle_lineset_get_active(config);
+			if (lineset) {
+				linestyle = lineset->linestyle;
+				return linestyle && (linestyle->flag & LS_TEXTURE);
+			}
+		}
+	}
+	return false;
 }
 
 static void texture_context_check_modifier_foreach(void *userData, Object *UNUSED(ob), ModifierData *UNUSED(md),
