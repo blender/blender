@@ -2927,7 +2927,7 @@ static int acf_nlaaction_icon(bAnimListElem *ale)
  * Although this can't be used directly for NLA Action drawing,
  * it is still needed for use behind the RHS toggles
  */
-static void acf_nlaaction_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
+static void acf_nlaaction_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
 {
 	float color[4];
 	

@@ -87,11 +87,9 @@ ccl_device bool BVH_FUNCTION_NAME
 
 	/* traversal loop */
 	do {
-		do
-		{
+		do {
 			/* traverse internal nodes */
-			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL)
-			{
+			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
 				bool traverseChild0, traverseChild1;
 				int nodeAddrChild1;
 
