@@ -357,12 +357,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->data0 = param1;
 					sc->data1 = param2;
 					sc->offset = -stack_load_float(stack, data_node.z);
-					if(sd->type & PRIMITIVE_ALL_CURVE) {
+
+					if(!(sd->type & PRIMITIVE_ALL_CURVE)) {
 						sc->T = normalize(sd->dPdv);
 						sc->offset = 0.0f;
 					}
 					else
 						sc->T = sd->dPdu;
+
 					if(type == CLOSURE_BSDF_HAIR_REFLECTION_ID) {
 						sd->flag |= bsdf_hair_reflection_setup(sc);
 					}
