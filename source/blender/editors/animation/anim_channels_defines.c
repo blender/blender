@@ -2970,8 +2970,10 @@ static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float y
 		glColor4f(color[0], color[1], color[2], alpha);
 	}
 	
-	/* only on top two corners, to show that this channel sits on top of the preceding ones */
-	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+	/* only on top left corner, to show that this channel sits on top of the preceding ones 
+	 * while still linking into the action line strip to the right
+	 */
+	uiSetRoundBox(UI_CNR_TOP_LEFT);
 	
 	/* draw slightly shifted up vertically to look like it has more separation from other channels,
 	 * but we then need to slightly shorten it so that it doesn't look like it overlaps
@@ -3430,6 +3432,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 
 	if (v2d) {
 		short draw_sliders = 0;
+		float ymin_ofs = 0.0f;
 		float color[3];
 		
 		/* get and set backdrop color */
@@ -3467,6 +3470,10 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 				offset += ICON_WIDTH;
 				
 			/* NOTE: technically, NLA Action "pushdown" should be here too, but there are no sliders there */
+			
+			/* NLA action channels have slightly different spacing requirements... */
+			if (ale->type == ANIMTYPE_NLAACTION)
+				ymin_ofs = NLACHANNEL_SKIP;
 		}
 		
 		/* draw slider
@@ -3484,7 +3491,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		 *	- starts from the point where the first toggle/slider starts, 
 		 *	- ends past the space that might be reserved for a scroller
 		 */
-		glRectf(v2d->cur.xmax - (float)offset, yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc);
+		glRectf(v2d->cur.xmax - (float)offset, yminc + ymin_ofs, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc);
 	}
 }
 
@@ -3727,7 +3734,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			icon = ICON_UNPINNED;
 			
 			if (ale->type == ANIMTYPE_NLAACTION) {
-				tooltip = TIP_("Display action without any time remapping");
+				tooltip = TIP_("Display action without any time remapping (when unpinned)");
 			}
 			else {
 				/* TODO: there are no other tools which require the 'pinning' concept yet */
