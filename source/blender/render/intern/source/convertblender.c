@@ -1323,7 +1323,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if (part->ren_as==PART_DRAW_OB || part->ren_as==PART_DRAW_GR || part->ren_as==PART_DRAW_NOT)
 		return 1;
 
-	if ((re->r.scemode & R_VIEWPORT_PREVIEW) && psys->edit)
+	if ((re->r.scemode & R_VIEWPORT_PREVIEW) && (ob->mode & OB_MODE_PARTICLE_EDIT))
 		return 0;
 
 /* 2. start initializing things */
