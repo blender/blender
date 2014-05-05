@@ -566,8 +566,14 @@ static int apply_objects_internal(bContext *C, ReportList *reports, bool apply_l
 			 *    and is something that many users would be willing to
 			 *    sacrifice for having an easy way to do this.
 			 */
-			 float max_scale = MAX3(ob->size[0], ob->size[1], ob->size[2]);
-			 ob->empty_drawsize *= max_scale;
+
+			if ((apply_loc == false) &&
+			    (apply_rot == false) &&
+			    (apply_scale == true))
+			{
+				float max_scale = max_fff(fabsf(ob->size[0]), fabsf(ob->size[1]), fabsf(ob->size[2]));
+				ob->empty_drawsize *= max_scale;
+			}
 		}
 		else {
 			continue;
