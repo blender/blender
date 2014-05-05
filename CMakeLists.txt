@@ -959,8 +959,8 @@ elseif(WIN32)
 	if(MSVC)
 
 		# drop support for older MSVC
-		if(MSVC_VERSION VERSION_LESS 1800)
-			message(FATAL_ERROR "MSVC versions older then 2013 are no longer supported")
+		if(MSVC_VERSION VERSION_LESS 1800 AND (NOT CMAKE_CL_64))
+			message(FATAL_ERROR "MSVC versions older than 2013 are no longer supported")
 		endif()
 
 		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi)
