@@ -3938,8 +3938,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 				
 				offset += UI_UNIT_X;
 				but = uiDefIconButO(block, BUT, "NLA_OT_action_pushdown", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN, 
-				                   (int)v2d->cur.xmax - offset, ymid, UI_UNIT_X, UI_UNIT_X, 
-				                   "Push action on to the top of the NLA stack as a new NLA Strip");
+				                   (int)v2d->cur.xmax - offset, ymid, UI_UNIT_X, UI_UNIT_X, NULL);
 				
 				opptr_b = uiButGetOperatorPtrRNA(but);
 				RNA_int_set(opptr_b, "channel_index", channel_index);
