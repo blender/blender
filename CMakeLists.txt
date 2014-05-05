@@ -958,11 +958,6 @@ elseif(WIN32)
 
 	if(MSVC)
 
-		# drop support for older MSVC
-		if(MSVC_VERSION VERSION_LESS 1800 AND (NOT CMAKE_CL_64))
-			message(FATAL_ERROR "MSVC versions older than 2013 are no longer supported")
-		endif()
-
 		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi)
 
 		# MSVC11 SDL is not hard linked to dxguid.lib
@@ -1094,6 +1089,9 @@ elseif(WIN32)
 			set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 		endif()
 
+		if(MSVC90)
+			set(JPEG_NAMES ${JPEG_NAMES} libjpeg)
+		endif()
 		find_package(jpeg REQUIRED)
 
 		set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
