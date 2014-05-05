@@ -610,6 +610,7 @@ void POSELIB_OT_pose_remove(wmOperatorType *ot)
 	/* properties */
 	prop = RNA_def_enum(ot->srna, "pose", DummyRNA_NULL_items, 0, "Pose", "The pose to remove");
 	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
 
@@ -699,6 +700,7 @@ void POSELIB_OT_pose_rename(wmOperatorType *ot)
 	ot->prop = RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 	prop = RNA_def_enum(ot->srna, "pose", DummyRNA_NULL_items, 0, "Pose", "The pose to rename");
 	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 }
 
 /* ************************************************************* */

@@ -862,6 +862,7 @@ static void vgroup_operator_subset_select_props(wmOperatorType *ot, bool use_act
 	else {
 		RNA_def_enum_funcs(prop, rna_vertex_group_select_itemf);
 	}
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
 
@@ -4227,6 +4228,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	/* properties */
 	prop = RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "Vertex group to set as active");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
 
