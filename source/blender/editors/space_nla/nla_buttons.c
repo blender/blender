@@ -80,19 +80,19 @@ static void do_nla_region_buttons(bContext *C, void *UNUSED(arg), int UNUSED(eve
 	WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM, NULL);
 }
 
-static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_ptr, PointerRNA *strip_ptr)
+bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_ptr, PointerRNA *strip_ptr)
 {
 	bAnimContext ac;
 	bAnimListElem *ale = NULL;
 	ListBase anim_data = {NULL, NULL};
-	short found = 0;
+	short found = 0; /* not bool, since we need to indicate "found but not ideal" status */
 	int filter;
 	
 	/* for now, only draw if we could init the anim-context info (necessary for all animation-related tools) 
 	 * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
 	 */
 	if (ANIM_animdata_get_context(C, &ac) == 0) 
-		return 0;
+		return false;
 	
 	/* extract list of active channel(s), of which we should only take the first one 
 	 *	- we need the channels flag to get the active AnimData block when there are no NLA Tracks
@@ -176,7 +176,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
-	return found;
+	return (found != 0);
 }
 
 #if 0

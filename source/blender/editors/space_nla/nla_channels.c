@@ -412,10 +412,17 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
 		
 	/* get anim-channel to use (or more specifically, the animdata block behind it) */
 	if (channel_index == -1) {
+		PointerRNA adt_ptr = {{NULL}};
+		
 		/* active animdata block */
-		// FIXME
-		BKE_report(op->reports, RPT_WARNING, "Pushdown for active AnimData block is currently not yet implemented");
-		return OPERATOR_CANCELLED;
+		if (nla_panel_context(C, &adt_ptr, NULL, NULL) == 0 || (adt_ptr.data == NULL)) {
+			BKE_report(op->reports, RPT_ERROR, "No active AnimData block to use. " 
+			           "Select a datablock expander first or set the appropriate flags on an AnimData block");
+			return OPERATOR_CANCELLED;
+		}
+		else {
+			adt = adt_ptr.data;
+		}
 	}
 	else {
 		/* indexed channel */
@@ -448,7 +455,19 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* double-check that we are free to push down here... */
-	if (adt && nlaedit_is_tweakmode_on(&ac) == 0) {
+	if (adt == NULL) {
+		BKE_report(op->reports, RPT_WARNING, "Internal Error - AnimData block is not valid");
+		return OPERATOR_CANCELLED;
+	}
+	else if (nlaedit_is_tweakmode_on(&ac)) {
+		BKE_report(op->reports, RPT_WARNING, "Cannot push down actions while tweaking a strip's action. Exit tweakmode first");
+		return OPERATOR_CANCELLED;
+	}
+	else if (adt->action == NULL) {
+		BKE_report(op->reports, RPT_WARNING, "No active action to push down");
+		return OPERATOR_CANCELLED;
+	}
+	else {
 		/* 'push-down' action - only usable when not in TweakMode */
 		BKE_nla_action_pushdown(adt);
 	}
