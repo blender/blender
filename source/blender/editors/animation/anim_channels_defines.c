@@ -3931,17 +3931,18 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			
 			/* NLA Action "pushdown" */
 			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->adt && ale->adt->action) && !(ale->adt->flag & ADT_NLA_EDIT_ON)) {
-				//const char *opname = "NLA_OT_action_pushdown"; // XXX: this is the real one
-				//const char *opname = "NLA_OT_channels_click";
+				uiBut *but;
+				PointerRNA *opptr_b;
 				
-				// FIXME: this needs to hook up to an operator
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
 				offset += UI_UNIT_X;
-				uiDefIconButO(block, BUT, "NLA_OT_channels_click", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN, 
-				              (int)v2d->cur.xmax - offset, ymid, UI_UNIT_X, UI_UNIT_X, 
-				              "Push action on to the top of the NLA stack as a new NLA Strip");
-				// TODO: pass channel index
+				but = uiDefIconButO(block, BUT, "NLA_OT_action_pushdown", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN, 
+				                   (int)v2d->cur.xmax - offset, ymid, UI_UNIT_X, UI_UNIT_X, 
+				                   "Push action on to the top of the NLA stack as a new NLA Strip");
+				
+				opptr_b = uiButGetOperatorPtrRNA(but);
+				RNA_int_set(opptr_b, "channel_index", channel_index);
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 			}

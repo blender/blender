@@ -398,6 +398,87 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 /* *********************************************** */
 /* Special Operators */
 
+/* ******************** Action Push Down ******************************** */
+
+static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	AnimData *adt = NULL;
+	int channel_index = RNA_int_get(op->ptr, "channel_index");
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get anim-channel to use (or more specifically, the animdata block behind it) */
+	if (channel_index == -1) {
+		/* active animdata block */
+		// FIXME
+		BKE_report(op->reports, RPT_WARNING, "Pushdown for active AnimData block is currently not yet implemented");
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		/* indexed channel */
+		ListBase anim_data = {NULL, NULL};
+		bAnimListElem *ale;
+		int filter;
+		
+		/* filter channels */
+		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		/* get channel from index */
+		ale = BLI_findlink(&anim_data, channel_index);
+		if (ale == NULL) {
+			BKE_reportf(op->reports, RPT_ERROR, "No animation channel found at index = %d", channel_index);
+			BLI_freelistN(&anim_data);
+			return OPERATOR_CANCELLED;
+		}
+		else if (ale->type != ANIMTYPE_NLAACTION) {
+			BKE_reportf(op->reports, RPT_ERROR, "Animation channel at index = %d is not a NLA 'Active Action' channel", channel_index);
+			BLI_freelistN(&anim_data);
+			return OPERATOR_CANCELLED;
+		}
+		
+		/* grab AnimData from the channel */
+		adt = ale->adt;
+		
+		/* we don't need anything here anymore, so free it all */
+		BLI_freelistN(&anim_data);
+	}
+	
+	/* double-check that we are free to push down here... */
+	if (adt && nlaedit_is_tweakmode_on(&ac) == 0) {
+		/* 'push-down' action - only usable when not in TweakMode */
+		BKE_nla_action_pushdown(adt);
+	}
+	
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_action_pushdown(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Push Down Action";
+	ot->idname = "NLA_OT_action_pushdown";
+	ot->description = "Push action down onto the top of the NLA stack as a new strip";
+	
+	/* callbacks */
+	ot->exec = nlachannels_pushdown_exec;
+	ot->poll = nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_int(ot->srna, "channel_index", -1, -1, INT_MAX, "Channel Index",
+	                       "Index of NLA action channel to perform pushdown operation on",
+						   0, INT_MAX);
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+}
+
 /* ******************** Add Tracks Operator ***************************** */
 /* Add NLA Tracks to the same AnimData block as a selected track, or above the selected tracks */
 
