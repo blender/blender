@@ -820,6 +820,7 @@ if(UNIX AND NOT APPLE)
 							OUTPUT_VARIABLE LLVM_LIBPATH
 							OUTPUT_STRIP_TRAILING_WHITESPACE)
 			set(LLVM_LIBPATH ${LLVM_LIBPATH} CACHE PATH "Path to the LLVM library path")
+			mark_as_advanced(LLVM_LIBPATH)
 		endif()
 
 		if(LLVM_STATIC)
