@@ -1156,12 +1156,13 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
  * s in screen projection of p. */
 static bool point_is_visible(KnifeTool_OpData *kcd, const float p[3], const float s[2], bglMats *mats)
 {
-	float p1[3], no[3], view[3];
+	float p1[3];
 	BMFace *f_hit;
 
 	/* If not cutting through, make sure no face is in front of p */
 	if (!kcd->cut_through) {
 		float dist;
+		float view[3];
 
 		/* TODO: I think there's a simpler way to get the required raycast ray */
 		ED_view3d_unproject(mats, view, s[0], s[1], 0.0f);
@@ -1182,12 +1183,10 @@ static bool point_is_visible(KnifeTool_OpData *kcd, const float p[3], const floa
 		copy_v3_v3(p1, p);
 		sub_v3_v3(view, p1);
 		normalize_v3(view);
-		copy_v3_v3(no, view);
-		mul_v3_fl(no, 3.0f * KNIFE_FLT_EPSBIG);
-		add_v3_v3(p1, no);
+		madd_v3_v3fl(p1, view, 3.0f * KNIFE_FLT_EPSBIG);
 
 		/* see if there's a face hit between p1 and the view */
-		f_hit = BKE_bmbvh_ray_cast(kcd->bmbvh, p1, no, KNIFE_FLT_EPS, &dist, NULL, NULL);
+		f_hit = BKE_bmbvh_ray_cast(kcd->bmbvh, p1, view, KNIFE_FLT_EPS, &dist, NULL, NULL);
 		if (f_hit)
 			return false;
 	}
