@@ -552,7 +552,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			uPrev = u;
 		}
 
-		if (i >= 2) {
+		if (v != vend && i >= 2) {
 			// first transition vertex
 			if (fabs(u - uPrev) > ZERO)
 				t = (0.25 - uPrev) / (u - uPrev);
@@ -608,7 +608,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 	}
 
 	if (tipEnd) {
-		if (i >= 2) {
+		if (v != vend && i >= 2) {
 			// second transition vertex
 			if (fabs(u - uPrev) > ZERO)
 				t = (float(tiles) - uPrev) / (u - uPrev);
