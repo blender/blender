@@ -678,7 +678,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             layout.separator()
 
             row = layout.row()
-            row.prop(linestyle, "use_texture", text="Use Textures")
+            row.prop(linestyle, "use_texture")
             row.prop(linestyle, "texture_spacing", text="Spacing Along Stroke")
 
             row = layout.row()

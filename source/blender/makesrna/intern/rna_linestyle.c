@@ -1339,7 +1339,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_TEXTURE);
-	RNA_def_property_ui_text(prop, "Texture", "Enable or disable textured strokes");
+	RNA_def_property_ui_text(prop, "Use Textures", "Enable or disable textured strokes");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop = RNA_def_property(srna, "texture_spacing", PROP_FLOAT, PROP_FACTOR);
