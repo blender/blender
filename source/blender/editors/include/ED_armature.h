@@ -143,6 +143,9 @@ EditBone *ED_armature_bone_find_shared_parent(EditBone *ebone_child[], const uns
 void ED_armature_ebone_to_mat3(EditBone *ebone, float mat[3][3]);
 void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4]);
 
+void ED_armature_ebone_from_mat3(EditBone *ebone, float mat[3][3]);
+void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]);
+
 void transform_armature_mirror_update(struct Object *obedit);
 void ED_armature_origin_set(struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
 

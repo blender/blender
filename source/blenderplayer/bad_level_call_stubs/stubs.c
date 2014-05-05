@@ -303,6 +303,7 @@ void WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, str
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone) RET_NONE
 void object_test_constraints(struct Object *owner) RET_NONE
 void ED_armature_ebone_to_mat4(struct EditBone *ebone, float mat[4][4]) RET_NONE
+void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]) RET_NONE
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr) RET_NONE
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con) RET_NONE
 void ED_node_composit_default(const struct bContext *C, struct Scene *scene) RET_NONE
