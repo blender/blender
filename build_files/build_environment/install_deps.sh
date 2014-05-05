@@ -2943,7 +2943,6 @@ print_info() {
     _buildargs="$_buildargs $_1"
   fi
 
-  PRINT "$OSL_SKIP"
   if [ "$OSL_SKIP" = false ]; then
     _1="-D WITH_CYCLES_OSL=ON"
     _2="-D WITH_LLVM=ON"
@@ -2964,6 +2963,12 @@ print_info() {
       PRINT "  $_2"
       _buildargs="$_buildargs $_1 $_2"
     fi
+  else
+    _1="-D WITH_CYCLES_OSL=OFF"
+    _2="-D WITH_LLVM=OFF"
+    PRINT "  $_1"
+    PRINT "  $_2"
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   if $WITH_OPENCOLLADA; then
