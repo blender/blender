@@ -1623,7 +1623,7 @@ void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
 	buffers->mvert = mvert;
 }
 
-GPU_PBVH_Buffers *GPU_build_pbvh_mesh_buffers(int (*face_vert_indices)[4],
+GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(int (*face_vert_indices)[4],
                                     MFace *mface, MVert *mvert,
                                     int *face_indices,
                                     int totface)
@@ -1644,6 +1644,16 @@ GPU_PBVH_Buffers *GPU_build_pbvh_mesh_buffers(int (*face_vert_indices)[4],
 		const MFace *f = &mface[face_indices[i]];
 		if (!paint_is_face_hidden(f, mvert))
 			tottri += f->v4 ? 2 : 1;
+	}
+
+	if (tottri == 0) {
+		buffers->tot_tri = 0;
+
+		buffers->mface = mface;
+		buffers->face_indices = face_indices;
+		buffers->totface = 0;
+
+		return buffers;
 	}
 
 	/* An element index buffer is used for smooth shading, but flat
@@ -1965,6 +1975,10 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 
 	/* Count the number of quads */
 	totquad = gpu_count_grid_quads(grid_hidden, grid_indices, totgrid, gridsize);
+
+	/* totally hidden node, return here to avoid BufferData with zero below. */
+	if (totquad == 0)
+		return buffers;
 
 	if (totquad == fully_visible_totquad) {
 		buffers->index_buf = gpu_get_grid_buffer(gridsize, &buffers->index_type, &buffers->tot_quad);

@@ -1037,7 +1037,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					break;
 				case PBVH_FACES:
 					node->draw_buffers =
-						GPU_build_pbvh_mesh_buffers(node->face_vert_indices,
+						GPU_build_mesh_pbvh_buffers(node->face_vert_indices,
 					                           bvh->faces, bvh->verts,
 					                           node->prim_indices,
 					                           node->totprim);
