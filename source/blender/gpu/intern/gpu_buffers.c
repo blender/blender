@@ -51,6 +51,7 @@
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
+#include "BKE_pbvh.h"
 
 #include "DNA_userdef_types.h"
 
@@ -1827,36 +1828,6 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 	//printf("node updated %p\n", buffers);
 }
 
-/* Returns the number of visible quads in the nodes' grids. */
-static int gpu_count_grid_quads(BLI_bitmap **grid_hidden,
-                                int *grid_indices, int totgrid,
-                                int gridsize)
-{
-	int gridarea = (gridsize - 1) * (gridsize - 1);
-	int i, x, y, totquad;
-
-	/* grid hidden layer is present, so have to check each grid for
-	 * visibility */
-
-	for (i = 0, totquad = 0; i < totgrid; i++) {
-		const BLI_bitmap *gh = grid_hidden[grid_indices[i]];
-
-		if (gh) {
-			/* grid hidden are present, have to check each element */
-			for (y = 0; y < gridsize - 1; y++) {
-				for (x = 0; x < gridsize - 1; x++) {
-					if (!paint_is_grid_face_hidden(gh, gridsize, x, y))
-						totquad++;
-				}
-			}
-		}
-		else
-			totquad += gridarea;
-	}
-
-	return totquad;
-}
-
 /* Build the element array buffer of grid indices using either
  * unsigned shorts or unsigned ints. */
 #define FILL_QUAD_BUFFER(type_, tot_quad_, buffer_)                     \
@@ -1960,7 +1931,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 }
 
 GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
-                                              BLI_bitmap **grid_hidden, int gridsize)
+											  BLI_bitmap **grid_hidden, int gridsize)
 {
 	GPU_PBVH_Buffers *buffers;
 	int totquad;
@@ -1974,7 +1945,7 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 	buffers->use_matcaps = false;
 
 	/* Count the number of quads */
-	totquad = gpu_count_grid_quads(grid_hidden, grid_indices, totgrid, gridsize);
+	totquad = BKE_pbvh_count_grid_quads(grid_hidden, grid_indices, totgrid, gridsize);
 
 	/* totally hidden node, return here to avoid BufferData with zero below. */
 	if (totquad == 0)

@@ -128,6 +128,10 @@ void BKE_pbvh_bounding_box(const PBVH *bvh, float min[3], float max[3]);
 /* multires hidden data, only valid for type == PBVH_GRIDS */
 unsigned int **BKE_pbvh_grid_hidden(const PBVH *bvh);
 
+int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
+								int *grid_indices, int totgrid,
+								int gridsize);
+
 /* multires level, only valid for type == PBVH_GRIDS */
 void BKE_pbvh_get_grid_key(const PBVH *pbvh, struct CCGKey *key);
 

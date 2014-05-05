@@ -275,6 +275,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	GHashIterator *iter;
 	GHash *map;
 	int i, j, totface;
+	bool has_visible = false;
 
 	node->uniq_verts = node->face_verts = 0;
 	totface = node->totprim;
@@ -294,6 +295,9 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 			        map_insert_vert(bvh, map, &node->face_verts,
 			                        &node->uniq_verts, (&f->v1)[j]);
 		}
+
+		if(!paint_is_face_hidden(f, bvh->verts))
+			has_visible = true;
 	}
 
 	node->vert_indices = MEM_callocN(sizeof(int) *
@@ -331,6 +335,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	BKE_pbvh_node_mark_rebuild_draw(node);
 
+	BKE_pbvh_node_fully_hidden_set(node, !has_visible);
+
 	BLI_ghash_free(map, NULL, NULL);
 }
 
@@ -346,6 +352,45 @@ static void update_vb(PBVH *bvh, PBVHNode *node, BBC *prim_bbc,
 	node->orig_vb = node->vb;
 }
 
+/* Returns the number of visible quads in the nodes' grids. */
+int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
+								int *grid_indices, int totgrid,
+								int gridsize)
+{
+	int gridarea = (gridsize - 1) * (gridsize - 1);
+	int i, x, y, totquad;
+
+	/* grid hidden layer is present, so have to check each grid for
+	 * visibility */
+
+	for (i = 0, totquad = 0; i < totgrid; i++) {
+		const BLI_bitmap *gh = grid_hidden[grid_indices[i]];
+
+		if (gh) {
+			/* grid hidden are present, have to check each element */
+			for (y = 0; y < gridsize - 1; y++) {
+				for (x = 0; x < gridsize - 1; x++) {
+					if (!paint_is_grid_face_hidden(gh, gridsize, x, y))
+						totquad++;
+				}
+			}
+		}
+		else
+			totquad += gridarea;
+	}
+
+	return totquad;
+}
+
+static void build_grid_leaf_node(PBVH *bvh, PBVHNode *node)
+{
+	int totquads = BKE_pbvh_count_grid_quads(bvh->grid_hidden, node->prim_indices,
+											 node->totprim, bvh->gridkey.grid_size);
+	BKE_pbvh_node_fully_hidden_set(node, (totquads == 0));
+	BKE_pbvh_node_mark_rebuild_draw(node);
+}
+
+
 static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
                        int offset, int count)
 {
@@ -359,8 +404,9 @@ static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
 		
 	if (bvh->faces)
 		build_mesh_leaf_node(bvh, bvh->nodes + node_index);
-	else
-		BKE_pbvh_node_mark_rebuild_draw(bvh->nodes + node_index);
+	else {
+		build_grid_leaf_node(bvh, bvh->nodes + node_index);
+	}
 }
 
 /* Return zero if all primitives in the node can be drawn with the
@@ -1033,7 +1079,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						GPU_build_grid_pbvh_buffers(node->prim_indices,
 					                           node->totprim,
 					                           bvh->grid_hidden,
-					                           bvh->gridkey.grid_size);
+											   bvh->gridkey.grid_size);
 					break;
 				case PBVH_FACES:
 					node->draw_buffers =

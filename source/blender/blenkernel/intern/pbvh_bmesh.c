@@ -48,6 +48,7 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index, const int cd_ver
 {
 	GSetIterator gs_iter;
 	PBVHNode *n = &bvh->nodes[node_index];
+	bool has_visible = false;
 
 	/* Create vert hash sets */
 	n->bm_unique_verts = BLI_gset_ptr_new("bm_unique_verts");
@@ -80,6 +81,9 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index, const int cd_ver
 			/* Update node bounding box */
 			BB_expand(&n->vb, v->co);
 		} while ((l_iter = l_iter->next) != l_first);
+
+		if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN))
+			has_visible = true;
 	}
 
 	BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] &&
@@ -90,6 +94,8 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index, const int cd_ver
 
 	/* Build GPU buffers for new node and update vertex normals */
 	BKE_pbvh_node_mark_rebuild_draw(n);
+
+	BKE_pbvh_node_fully_hidden_set(n, !has_visible);
 	n->flag |= PBVH_UpdateNormals;
 }
 
