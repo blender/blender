@@ -248,13 +248,17 @@ class SubdivisionSet(Operator):
             for mod in obj.modifiers:
                 if mod.type == 'MULTIRES':
                     if not relative:
-                        if level <= mod.total_levels:
-                            if obj.mode == 'SCULPT':
-                                if mod.sculpt_levels != level:
-                                    mod.sculpt_levels = level
-                            elif obj.mode == 'OBJECT':
-                                if mod.levels != level:
-                                    mod.levels = level
+                        if level > mod.total_levels:
+                           sub = level - mod.total_levels
+                           for i in range (0, sub):
+                               bpy.ops.object.multires_subdivide(modifier="Multires")
+
+                        if obj.mode == 'SCULPT':
+                            if mod.sculpt_levels != level:
+                                mod.sculpt_levels = level
+                        elif obj.mode == 'OBJECT':
+                            if mod.levels != level:
+                                mod.levels = level
                         return
                     else:
                         if obj.mode == 'SCULPT':
@@ -276,8 +280,13 @@ class SubdivisionSet(Operator):
 
             # add a new modifier
             try:
-                mod = obj.modifiers.new("Subsurf", 'SUBSURF')
-                mod.levels = level
+                if obj.mode == 'SCULPT':
+                    mod = obj.modifiers.new("Multires", 'MULTIRES')
+                    for i in range(0, level):
+                        bpy.ops.object.multires_subdivide(modifier="Multires")
+                else:
+                    mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+                    mod.levels = level
             except:
                 self.report({'WARNING'},
                             "Modifiers cannot be added to object: " + obj.name)
