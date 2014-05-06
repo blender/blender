@@ -222,7 +222,7 @@ static const MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 	return cddm->pmap;
 }
 
-static bool check_sculpt_object_deformed(Object *object)
+static bool check_sculpt_object_deformed(Object *object, bool for_construction)
 {
 	bool deformed = false;
 
@@ -232,10 +232,16 @@ static bool check_sculpt_object_deformed(Object *object)
 	 */
 	deformed |= object->sculpt->modifiers_active;
 
-	/* as in case with modifiers, we can't synchronize deformation made against
-	 * PBVH and non-locked keyblock, so also use PBVH only for brushes and
-	 * final DM to give final result to user */
-	deformed |= object->sculpt->kb && (object->shapeflag & OB_SHAPE_LOCK) == 0;
+	if (for_construction) {
+		deformed |= object->sculpt->kb != NULL;
+	}
+	else {
+		/* As in case with modifiers, we can't synchronize deformation made against
+		 * PBVH and non-locked keyblock, so also use PBVH only for brushes and
+		 * final DM to give final result to user.
+		 */
+		deformed |= object->sculpt->kb && (object->shapeflag & OB_SHAPE_LOCK) == 0;
+	}
 
 	return deformed;
 }
@@ -244,7 +250,7 @@ static bool can_pbvh_draw(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	Mesh *me = ob->data;
-	bool deformed = check_sculpt_object_deformed(ob);
+	bool deformed = check_sculpt_object_deformed(ob, false);
 
 	if (deformed) {
 		return false;
@@ -301,7 +307,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 
 		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
 
-		deformed = check_sculpt_object_deformed(ob);
+		deformed = check_sculpt_object_deformed(ob, true);
 
 		if (deformed && ob->derivedDeform) {
 			DerivedMesh *deformdm = ob->derivedDeform;
