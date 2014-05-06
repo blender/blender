@@ -1401,7 +1401,7 @@ static bool animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_ind
 		 * where some channels will not exist, but shouldn't lock up Action */
 		if (G.debug & G_DEBUG) {
 			printf("Animato: Invalid path. ID = '%s',  '%s[%d]'\n",
-			       (ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
+			       (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
 			       path, array_index);
 		}
 		return 0;

@@ -346,7 +346,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	 *	- don't try to do this when only drawing active/selected data keyframes,
 	 *	  since this can become quite slow
 	 */
-	if (scene && onlysel == 0) {
+	if (onlysel == 0) {
 		/* set draw color */
 		glColor3ub(0xDD, 0xA7, 0x00);
 		time_draw_idblock_keyframes(v2d, (ID *)scene, onlysel);

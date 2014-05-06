@@ -447,7 +447,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	/* text button with name */
 	if (id) {
 		char name[UI_MAX_NAME_STR];
-		const short user_alert = (id->us <= 0);
+		const bool user_alert = (id->us <= 0);
 
 		//text_idbutton(id, name);
 		name[0] = '\0';
