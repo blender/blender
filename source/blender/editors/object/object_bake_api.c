@@ -69,6 +69,7 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 
+#include "GPU_draw.h"
 
 #include "object_intern.h"
 
@@ -175,12 +176,30 @@ static bool write_internal_bake_pixels(
 	if (ibuf->rect_float)
 		ibuf->userflags |= IB_RECT_INVALID;
 
+	/* force mipmap recalc */
+	if (ibuf->mipmap[0]) {
+		ibuf->userflags |= IB_MIPMAP_INVALID;
+		imb_freemipmapImBuf(ibuf);
+	}
+
 	BKE_image_release_ibuf(image, ibuf, NULL);
 
 	if (mask_buffer)
 		MEM_freeN(mask_buffer);
 
 	return true;
+}
+
+/* force OpenGL reload */
+static void reset_images_gpu(BakeImages *bake_images)
+{
+	int i;
+	for (i = 0; i < bake_images->size; i++) {
+		Image *ima = bake_images->data[i].image;
+		if (ima->ok == IMA_OK_LOADED) {
+			GPU_free_image(ima);
+		}
+	}
 }
 
 static bool write_external_bake_pixels(
@@ -793,6 +812,8 @@ static int bake(
 		}
 	}
 
+	if (is_save_internal)
+		reset_images_gpu(&bake_images);
 
 cleanup:
 
