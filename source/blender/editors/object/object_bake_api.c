@@ -401,7 +401,7 @@ static int bake(
 	bool is_highpoly = false;
 	bool is_tangent;
 
-	BakeImages bake_images;
+	BakeImages bake_images = {NULL};
 
 	int num_pixels;
 	int tot_materials;
