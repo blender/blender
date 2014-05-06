@@ -64,6 +64,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
+#include "BKE_crazyspace.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
@@ -104,7 +105,6 @@
 #include "ED_uvedit.h"
 #include "ED_clip.h"
 #include "ED_mask.h"
-#include "ED_util.h"  /* for crazyspace correction */
 
 #include "WM_api.h"  /* for WM_event_add_notifier to deal with stabilization nodes */
 #include "WM_types.h"

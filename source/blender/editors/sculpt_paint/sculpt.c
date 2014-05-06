@@ -55,6 +55,7 @@
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
+#include "BKE_crazyspace.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
@@ -76,7 +77,6 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_util.h" /* for crazyspace correction */
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -137,38 +137,6 @@ bool ED_sculpt_minmax(bContext *C, float min[3], float max[3])
 	}
 }
 
-/* Sculpt mode handles multires differently from regular meshes, but only if
- * it's the last modifier on the stack and it is not on the first level */
-MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
-{
-	Mesh *me = (Mesh *)ob->data;
-	ModifierData *md;
-	VirtualModifierData virtualModifierData;
-
-	if (ob->sculpt && ob->sculpt->bm) {
-		/* can't combine multires and dynamic topology */
-		return NULL;
-	}
-
-	if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
-		/* multires can't work without displacement layer */
-		return NULL;
-	}
-
-	for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData); md; md = md->next) {
-		if (md->type == eModifierType_Multires) {
-			MultiresModifierData *mmd = (MultiresModifierData *)md;
-
-			if (!modifier_isEnabled(scene, md, eModifierMode_Realtime))
-				continue;
-
-			if (mmd->sculptlvl > 0) return mmd;
-			else return NULL;
-		}
-	}
-
-	return NULL;
-}
 
 /* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
 static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
@@ -187,35 +155,7 @@ static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 	return 0;
 }
 
-/* Checks if there are any supported deformation modifiers active */
-static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
-{
-	ModifierData *md;
-	Mesh *me = (Mesh *)ob->data;
-	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
-	VirtualModifierData virtualModifierData;
 
-	if (mmd || ob->sculpt->bm)
-		return 0;
-
-	/* non-locked shape keys could be handled in the same way as deformed mesh */
-	if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && me->key && ob->shapenr)
-		return 1;
-
-	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
-
-	/* exception for shape keys because we can edit those */
-	for (; md; md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
-		if (md->type == eModifierType_ShapeKey) continue;
-
-		if (mti->type == eModifierTypeType_OnlyDeform) return 1;
-		else if ((sd->flags & SCULPT_ONLY_DEFORM) == 0) return 1;
-	}
-
-	return 0;
-}
 
 typedef enum StrokeFlags {
 	CLIP_X = 1,
@@ -3561,106 +3501,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 	}
 }
 
-/**
- * \param need_mask So the DerivedMesh thats returned has mask data
- */
-void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
-                                 bool need_pmap, bool need_mask)
-{
-	DerivedMesh *dm;
-	SculptSession *ss = ob->sculpt;
-	Mesh *me = ob->data;
-	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
 
-	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
-	ss->show_diffuse_color = (sd->flags & SCULPT_SHOW_DIFFUSE) != 0;
-
-	if (need_mask) {
-		if (mmd == NULL) {
-			if (!CustomData_has_layer(&me->vdata, CD_PAINT_MASK)) {
-				ED_sculpt_mask_layers_ensure(ob, NULL);
-			}
-		}
-		else {
-			if (!CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
-#if 1
-				ED_sculpt_mask_layers_ensure(ob, mmd);
-#else				/* if we wanted to support adding mask data while multi-res painting, we would need to do this */
-				if ((ED_sculpt_mask_layers_ensure(ob, mmd) & ED_SCULPT_MASK_LAYER_CALC_LOOP)) {
-					/* remake the derived mesh */
-					ob->recalc |= OB_RECALC_DATA;
-					BKE_object_handle_update(scene, ob);
-				}
-#endif
-			}
-		}
-	}
-
-	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
-	BKE_mesh_tessface_ensure(me);
-
-	if (!mmd) ss->kb = BKE_keyblock_from_object(ob);
-	else ss->kb = NULL;
-
-	/* needs to be called after we ensure tessface */
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-
-	if (mmd) {
-		ss->multires = mmd;
-		ss->totvert = dm->getNumVerts(dm);
-		ss->totpoly = dm->getNumPolys(dm);
-		ss->mvert = NULL;
-		ss->mpoly = NULL;
-		ss->mloop = NULL;
-		ss->face_normals = NULL;
-	}
-	else {
-		ss->totvert = me->totvert;
-		ss->totpoly = me->totpoly;
-		ss->mvert = me->mvert;
-		ss->mpoly = me->mpoly;
-		ss->mloop = me->mloop;
-		ss->face_normals = NULL;
-		ss->multires = NULL;
-		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
-	}
-
-	ss->pbvh = dm->getPBVH(ob, dm);
-	ss->pmap = (need_pmap && dm->getPolyMap) ? dm->getPolyMap(ob, dm) : NULL;
-
-	pbvh_show_diffuse_color_set(ss->pbvh, ss->show_diffuse_color);
-
-	if (ss->modifiers_active) {
-		if (!ss->orig_cos) {
-			int a;
-
-			free_sculptsession_deformMats(ss);
-
-			ss->orig_cos = (ss->kb) ? BKE_key_convert_to_vertcos(ob, ss->kb) : BKE_mesh_vertexCos_get(me, NULL);
-
-			crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
-			BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
-
-			for (a = 0; a < me->totvert; ++a) {
-				invert_m3(ss->deform_imats[a]);
-			}
-		}
-	}
-	else {
-		free_sculptsession_deformMats(ss);
-	}
-
-	/* if pbvh is deformed, key block is already applied to it */
-	if (ss->kb && !BKE_pbvh_isDeformed(ss->pbvh)) {
-		float (*vertCos)[3] = BKE_key_convert_to_vertcos(ob, ss->kb);
-
-		if (vertCos) {
-			/* apply shape keys coordinates to PBVH */
-			BKE_pbvh_apply_vertCos(ss->pbvh, vertCos);
-			MEM_freeN(vertCos);
-		}
-	}
-}
 
 int sculpt_mode_poll(bContext *C)
 {
@@ -5109,76 +4950,6 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
-int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
-{
-	const float *paint_mask;
-	Mesh *me = ob->data;
-	int ret = 0;
-
-	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
-
-	/* if multires is active, create a grid paint mask layer if there
-	 * isn't one already */
-	if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
-		GridPaintMask *gmask;
-		int level = max_ii(1, mmd->sculptlvl);
-		int gridsize = BKE_ccg_gridsize(level);
-		int gridarea = gridsize * gridsize;
-		int i, j;
-
-		gmask = CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK,
-		                             CD_CALLOC, NULL, me->totloop);
-
-		for (i = 0; i < me->totloop; i++) {
-			GridPaintMask *gpm = &gmask[i];
-
-			gpm->level = level;
-			gpm->data = MEM_callocN(sizeof(float) * gridarea,
-			                        "GridPaintMask.data");
-		}
-
-		/* if vertices already have mask, copy into multires data */
-		if (paint_mask) {
-			for (i = 0; i < me->totpoly; i++) {
-				const MPoly *p = &me->mpoly[i];
-				float avg = 0;
-
-				/* mask center */
-				for (j = 0; j < p->totloop; j++) {
-					const MLoop *l = &me->mloop[p->loopstart + j];
-					avg += paint_mask[l->v];
-				}
-				avg /= (float)p->totloop;
-
-				/* fill in multires mask corner */
-				for (j = 0; j < p->totloop; j++) {
-					GridPaintMask *gpm = &gmask[p->loopstart + j];
-					const MLoop *l = &me->mloop[p->loopstart + j];
-					const MLoop *prev = ME_POLY_LOOP_PREV(me->mloop, p, j);
-					const MLoop *next = ME_POLY_LOOP_NEXT(me->mloop, p, j);
-
-					gpm->data[0] = avg;
-					gpm->data[1] = (paint_mask[l->v] +
-					                paint_mask[next->v]) * 0.5f;
-					gpm->data[2] = (paint_mask[l->v] +
-					                paint_mask[prev->v]) * 0.5f;
-					gpm->data[3] = paint_mask[l->v];
-				}
-			}
-		}
-
-		ret |= ED_SCULPT_MASK_LAYER_CALC_LOOP;
-	}
-
-	/* create vertex paint mask layer if there isn't one already */
-	if (!paint_mask) {
-		CustomData_add_layer(&me->vdata, CD_PAINT_MASK,
-		                     CD_CALLOC, NULL, me->totvert);
-		ret |= ED_SCULPT_MASK_LAYER_CALC_VERT;
-	}
-
-	return ret;
-}
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {

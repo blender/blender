@@ -51,16 +51,11 @@ struct Sculpt;
 struct SculptStroke;
 struct SculptUndoNode;
 
-/* Interface */
-struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
-
 int sculpt_mode_poll(struct bContext *C);
 int sculpt_mode_poll_view3d(struct bContext *C);
 /* checks for a brush, not just sculpt mode */
 int sculpt_poll(struct bContext *C);
 int sculpt_poll_view3d(struct bContext *C);
-void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob,
-                                 bool need_pmap, bool need_mask);
 
 /* Stroke */
 bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2]);

@@ -69,6 +69,7 @@
 #include "BKE_report.h"
 #include "BKE_object.h"
 #include "BKE_ocean.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
 #include "BKE_editmesh.h"
@@ -80,7 +81,6 @@
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_mesh.h"
 
 #include "WM_api.h"

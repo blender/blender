@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/util/crazyspace.c
- *  \ingroup edutil
+/** \file blender/blenkernel/intern/crazyspace.c
+ *  \ingroup bke
  */
 
 
@@ -42,13 +42,12 @@
 #include "BLI_math.h"
 #include "BLI_bitmap.h"
 
+#include "BKE_crazyspace.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
-
-#include "ED_util.h"
 
 typedef struct {
 	float (*vertexcos)[3];
