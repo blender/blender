@@ -59,6 +59,7 @@ CCL_NAMESPACE_BEGIN
 /* static ustrings */
 ustring OSLRenderServices::u_distance("distance");
 ustring OSLRenderServices::u_index("index");
+ustring OSLRenderServices::u_world("world");
 ustring OSLRenderServices::u_camera("camera");
 ustring OSLRenderServices::u_screen("screen");
 ustring OSLRenderServices::u_raster("raster");
@@ -209,6 +210,10 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from, float ti
 		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
+	else if (from == u_world) {
+		result.makeIdentity();
+		return true;
+	}
 
 	return false;
 }
@@ -235,6 +240,10 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to, fl
 	else if (to == u_camera) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtocamera);
 		COPY_MATRIX44(&result, &tfm);
+		return true;
+	}
+	else if (to == u_world) {
+		result.makeIdentity();
 		return true;
 	}
 
@@ -781,7 +790,9 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 
 		if (attr.elem != ATTR_ELEMENT_OBJECT) {
 			/* triangle and vertex attributes */
-			if(!get_mesh_element_attribute(kg, sd, attr, type, derivatives, val))
+			if(get_mesh_element_attribute(kg, sd, attr, type, derivatives, val))
+				return true;
+			else
 				return get_mesh_attribute(kg, sd, attr, type, derivatives, val);
 		}
 		else {

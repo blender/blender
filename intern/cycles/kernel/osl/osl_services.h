@@ -116,6 +116,7 @@ public:
 
 	static ustring u_distance;
 	static ustring u_index;
+	static ustring u_world;
 	static ustring u_camera;
 	static ustring u_screen;
 	static ustring u_raster;
