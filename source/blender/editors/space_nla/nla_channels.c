@@ -494,7 +494,7 @@ void NLA_OT_action_pushdown(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_int(ot->srna, "channel_index", -1, -1, INT_MAX, "Channel Index",
 	                       "Index of NLA action channel to perform pushdown operation on",
-						   0, INT_MAX);
+	                       0, INT_MAX);
 	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 

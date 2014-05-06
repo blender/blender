@@ -507,7 +507,7 @@ static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
 			print_m4("difmat", difmat);
 			printf("Roll = %f\n",  RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
 #endif
-			curBone->roll = (float)-atan2(difmat[2][0], difmat[2][2]);
+			curBone->roll = -atan2f(difmat[2][0], difmat[2][2]);
 			
 			/* and set restposition again */
 			BKE_armature_where_is_bone(curBone, curBone->parent);

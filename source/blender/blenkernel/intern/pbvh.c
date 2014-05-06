@@ -296,7 +296,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 			                        &node->uniq_verts, (&f->v1)[j]);
 		}
 
-		if(!paint_is_face_hidden(f, bvh->verts))
+		if (!paint_is_face_hidden(f, bvh->verts))
 			has_visible = true;
 	}
 
@@ -354,8 +354,8 @@ static void update_vb(PBVH *bvh, PBVHNode *node, BBC *prim_bbc,
 
 /* Returns the number of visible quads in the nodes' grids. */
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
-								int *grid_indices, int totgrid,
-								int gridsize)
+                              int *grid_indices, int totgrid,
+                              int gridsize)
 {
 	int gridarea = (gridsize - 1) * (gridsize - 1);
 	int i, x, y, totquad;
@@ -385,7 +385,7 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
 static void build_grid_leaf_node(PBVH *bvh, PBVHNode *node)
 {
 	int totquads = BKE_pbvh_count_grid_quads(bvh->grid_hidden, node->prim_indices,
-											 node->totprim, bvh->gridkey.grid_size);
+	                                         node->totprim, bvh->gridkey.grid_size);
 	BKE_pbvh_node_fully_hidden_set(node, (totquads == 0));
 	BKE_pbvh_node_mark_rebuild_draw(node);
 }
@@ -1079,7 +1079,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						GPU_build_grid_pbvh_buffers(node->prim_indices,
 					                           node->totprim,
 					                           bvh->grid_hidden,
-											   bvh->gridkey.grid_size);
+					                           bvh->gridkey.grid_size);
 					break;
 				case PBVH_FACES:
 					node->draw_buffers =
