@@ -1624,8 +1624,8 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 		CTX_store_set(C, NULL);
 }
 
-static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN,
-                         const char *tip, bool force_menu)
+static uiBut *ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN,
+                           const char *tip, bool force_menu)
 {
 	uiBlock *block = layout->root->block;
 	uiBut *but;
@@ -1675,6 +1675,8 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 	{
 		uiButSetMenuFromPulldown(but);
 	}
+
+	return but;
 }
 
 void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const char *name, int icon)
@@ -1821,8 +1823,7 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	MenuItemLevel *lvl;
-	char namestr_buf[UI_MAX_NAME_STR], keybuf[128];
-	char *namestr = namestr_buf;
+	uiBut *but;
 
 	UI_OPERATOR_ERROR_RET(ot, opname, return );
 
@@ -1832,10 +1833,9 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 		return;
 	}
 
-	if (name)
-		namestr += BLI_strncpy_rlen(namestr, name, sizeof(namestr_buf));
-	else
-		namestr += BLI_strncpy_rlen(namestr, RNA_struct_ui_name(ot->srna), sizeof(namestr_buf));
+	if (name == NULL) {
+		name = RNA_struct_ui_name(ot->srna);
+	}
 
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon = ICON_BLANK1;
@@ -1845,17 +1845,20 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext = layout->root->opcontext;
 
+	but = ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl,
+	                   RNA_struct_ui_description(ot->srna), true);
+
 	/* add hotkey here, lower UI code can't detect it */
-	if (layout->root->block->flag & UI_BLOCK_LOOP) {
-		if (ot->prop && ot->invoke &&
-		    WM_key_event_operator_string(C, ot->idname, layout->root->opcontext, NULL, false, keybuf, sizeof(keybuf)))
+	if ((layout->root->block->flag & UI_BLOCK_LOOP) &&
+	    (ot->prop && ot->invoke))
+	{
+		char keybuf[128];
+		if (WM_key_event_operator_string(C, ot->idname, layout->root->opcontext, NULL, false,
+		                                 keybuf, sizeof(keybuf)))
 		{
-			namestr += BLI_snprintf(namestr, sizeof(namestr_buf) - (namestr - namestr_buf), "|%s", keybuf);
+			ui_but_add_shortcut(but, keybuf, false);
 		}
 	}
-
-	ui_item_menu(layout, namestr_buf, icon, menu_item_enum_opname_menu, NULL, lvl, RNA_struct_ui_description(ot->srna),
-	             true);
 }
 
 static void menu_item_enum_rna_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)
