@@ -2252,7 +2252,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
 		/* create PBVH immediately (would be created on the fly too,
 		 * but this avoids waiting on first stroke) */
 
-		sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, false, false);
+		BKE_sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, false, false);
 	}
 
 	BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS));

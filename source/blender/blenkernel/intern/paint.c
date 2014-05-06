@@ -397,7 +397,7 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, const float mouse_
 	}
 }
 
-void free_sculptsession_deformMats(SculptSession *ss)
+void BKE_free_sculptsession_deformMats(SculptSession *ss)
 {
 	if (ss->orig_cos) MEM_freeN(ss->orig_cos);
 	if (ss->deform_cos) MEM_freeN(ss->deform_cos);
@@ -427,7 +427,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 	}
 }
 
-void sculptsession_bm_to_me(Object *ob, bool reorder)
+void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
 {
 	if (ob && ob->sculpt) {
 		sculptsession_bm_to_me_update_data_only(ob, reorder);
@@ -437,7 +437,7 @@ void sculptsession_bm_to_me(Object *ob, bool reorder)
 	}
 }
 
-void sculptsession_bm_to_me_for_render(Object *object)
+void BKE_sculptsession_bm_to_me_for_render(Object *object)
 {
 	if (object && object->sculpt) {
 		if (object->sculpt->bm) {
@@ -464,14 +464,14 @@ void sculptsession_bm_to_me_for_render(Object *object)
 	}
 }
 
-void free_sculptsession(Object *ob)
+void BKE_free_sculptsession(Object *ob)
 {
 	if (ob && ob->sculpt) {
 		SculptSession *ss = ob->sculpt;
 		DerivedMesh *dm = ob->derivedFinal;
 
 		if (ss->bm) {
-			sculptsession_bm_to_me(ob, true);
+			BKE_sculptsession_bm_to_me(ob, true);
 			BM_mesh_free(ss->bm);
 		}
 
@@ -507,7 +507,7 @@ void free_sculptsession(Object *ob)
 
 /* Sculpt mode handles multires differently from regular meshes, but only if
  * it's the last modifier on the stack and it is not on the first level */
-MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
+MultiresModifierData *BKE_sculpt_multires_active(Scene *scene, Object *ob)
 {
 	Mesh *me = (Mesh *)ob->data;
 	ModifierData *md;
@@ -544,7 +544,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 {
 	ModifierData *md;
 	Mesh *me = (Mesh *)ob->data;
-	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 	VirtualModifierData virtualModifierData;
 
 	if (mmd || ob->sculpt->bm)
@@ -572,13 +572,13 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 /**
  * \param need_mask So the DerivedMesh thats returned has mask data
  */
-void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
+void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 								 bool need_pmap, bool need_mask)
 {
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
-	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
 	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 	ss->show_diffuse_color = (sd->flags & SCULPT_SHOW_DIFFUSE) != 0;
@@ -586,13 +586,13 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 	if (need_mask) {
 		if (mmd == NULL) {
 			if (!CustomData_has_layer(&me->vdata, CD_PAINT_MASK)) {
-				ED_sculpt_mask_layers_ensure(ob, NULL);
+				BKE_sculpt_mask_layers_ensure(ob, NULL);
 			}
 		}
 		else {
 			if (!CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
 #if 1
-				ED_sculpt_mask_layers_ensure(ob, mmd);
+				BKE_sculpt_mask_layers_ensure(ob, mmd);
 #else				/* if we wanted to support adding mask data while multi-res painting, we would need to do this */
 				if ((ED_sculpt_mask_layers_ensure(ob, mmd) & ED_SCULPT_MASK_LAYER_CALC_LOOP)) {
 					/* remake the derived mesh */
@@ -642,11 +642,11 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		if (!ss->orig_cos) {
 			int a;
 
-			free_sculptsession_deformMats(ss);
+			BKE_free_sculptsession_deformMats(ss);
 
 			ss->orig_cos = (ss->kb) ? BKE_key_convert_to_vertcos(ob, ss->kb) : BKE_mesh_vertexCos_get(me, NULL);
 
-			crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
+			BKE_crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
 			BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
 
 			for (a = 0; a < me->totvert; ++a) {
@@ -655,7 +655,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		}
 	}
 	else {
-		free_sculptsession_deformMats(ss);
+		BKE_free_sculptsession_deformMats(ss);
 	}
 
 	/* if pbvh is deformed, key block is already applied to it */
@@ -670,7 +670,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 	}
 }
 
-int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
+int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 {
 	const float *paint_mask;
 	Mesh *me = ob->data;
@@ -728,14 +728,14 @@ int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 			}
 		}
 
-		ret |= ED_SCULPT_MASK_LAYER_CALC_LOOP;
+		ret |= SCULPT_MASK_LAYER_CALC_LOOP;
 	}
 
 	/* create vertex paint mask layer if there isn't one already */
 	if (!paint_mask) {
 		CustomData_add_layer(&me->vdata, CD_PAINT_MASK,
 							 CD_CALLOC, NULL, me->totvert);
-		ret |= ED_SCULPT_MASK_LAYER_CALC_VERT;
+		ret |= SCULPT_MASK_LAYER_CALC_VERT;
 	}
 
 	return ret;

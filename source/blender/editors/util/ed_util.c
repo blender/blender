@@ -158,12 +158,12 @@ void ED_editors_flush_edits(const bContext *C, bool for_render)
 
 		if (for_render) {
 			/* flush changes from dynamic topology sculpt */
-			sculptsession_bm_to_me_for_render(obact);
+			BKE_sculptsession_bm_to_me_for_render(obact);
 		}
 		else {
 			/* Set reorder=false so that saving the file doesn't reorder
 			 * the BMesh's elements */
-			sculptsession_bm_to_me(obact, false);
+			BKE_sculptsession_bm_to_me(obact, false);
 		}
 	}
 }

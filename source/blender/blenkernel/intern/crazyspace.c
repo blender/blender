@@ -118,7 +118,7 @@ static int modifiers_disable_subsurf_temporary(Object *ob)
 }
 
 /* disable subsurf temporal, get mapped cos, and enable it */
-float (*crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
+float (*BKE_crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
 {
 	Mesh *me = obedit->data;
 	DerivedMesh *dm;
@@ -153,7 +153,7 @@ float (*crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
 	return vertexcos;
 }
 
-void crazyspace_set_quats_editmesh(BMEditMesh *em, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4],
+void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4],
                                    const bool use_select)
 {
 	BMFace *f;
@@ -215,7 +215,7 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float (*origcos)[3], float (*
 	}
 }
 
-void crazyspace_set_quats_mesh(Mesh *me, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4])
+void BKE_crazyspace_set_quats_mesh(Mesh *me, float (*origcos)[3], float (*mappedcos)[3], float (*quats)[4])
 {
 	int i;
 	MVert *mvert;
@@ -328,7 +328,7 @@ int editbmesh_get_first_deform_matrices(Scene *scene, Object *ob, BMEditMesh *em
 	return numleft;
 }
 
-int sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
+int BKE_sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
 	DerivedMesh *dm;
@@ -387,9 +387,9 @@ int sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**deformma
 	return numleft;
 }
 
-void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
+void BKE_crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
 {
-	int totleft = sculpt_get_first_deform_matrices(scene, ob, deformmats, deformcos);
+	int totleft = BKE_sculpt_get_first_deform_matrices(scene, ob, deformmats, deformcos);
 
 	if (totleft) {
 		/* there are deformation modifier which doesn't support deformation matrices
@@ -421,7 +421,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 
 		quats = MEM_mallocN(me->totvert * sizeof(*quats), "crazy quats");
 
-		crazyspace_set_quats_mesh(me, origVerts, deformedVerts, quats);
+		BKE_crazyspace_set_quats_mesh(me, origVerts, deformedVerts, quats);
 
 		for (i = 0; i < me->totvert; i++) {
 			float qmat[3][3], tmat[3][3];

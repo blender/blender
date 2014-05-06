@@ -4095,7 +4095,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = BKE_paint_brush(&sd->paint);
 
-		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
+		BKE_sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
 		                            sculpt_any_smooth_mode(brush, ss->cache, 0), false);
 	}
 }
@@ -4261,7 +4261,7 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	sculpt_brush_init_tex(scene, sd, ss);
 
 	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
-	sculpt_update_mesh_elements(scene, sd, ob, is_smooth, need_mask);
+	BKE_sculpt_update_mesh_elements(scene, sd, ob, is_smooth, need_mask);
 
 	zero_v3(ob->sculpt->average_stroke_accum);
 	ob->sculpt->average_stroke_counter = 0;
@@ -4701,7 +4701,7 @@ void sculpt_update_after_dynamic_topology_toggle(bContext *C)
 	Sculpt *sd = scene->toolsettings->sculpt;
 
 	/* Create the PBVH */
-	sculpt_update_mesh_elements(scene, sd, ob, false, false);
+	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, false);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 }
 
@@ -4779,7 +4779,7 @@ void sculpt_dynamic_topology_disable(bContext *C,
 		BKE_mesh_update_customdata_pointers(me, false);
 	}
 	else {
-		sculptsession_bm_to_me(ob, true);
+		BKE_sculptsession_bm_to_me(ob, true);
 	}
 
 	/* Clear data */
@@ -4947,7 +4947,7 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 {
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, false);
+	BKE_sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
 
@@ -4959,7 +4959,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	const int mode_flag = OB_MODE_SCULPT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 	Mesh *me;
-	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 	int flush_recalc = 0;
 
 	if (!is_mode_set) {
@@ -4992,7 +4992,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		/* Leave sculptmode */
 		ob->mode &= ~mode_flag;
 
-		free_sculptsession(ob);
+		BKE_free_sculptsession(ob);
 
 		paint_cursor_delete_textures();
 	}
@@ -5030,7 +5030,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
 		/* Create sculpt mode session data */
 		if (ob->sculpt)
-			free_sculptsession(ob);
+			BKE_free_sculptsession(ob);
 
 		sculpt_init_session(scene, ob);
 
@@ -5038,7 +5038,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		if (mmd) {
 			/* XXX, we could attempt to support adding mask data mid-sculpt mode (with multi-res)
 			 * but this ends up being quite tricky (and slow) */
-			ED_sculpt_mask_layers_ensure(ob, mmd);
+			BKE_sculpt_mask_layers_ensure(ob, mmd);
 		}
 
 		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);

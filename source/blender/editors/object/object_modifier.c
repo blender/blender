@@ -161,7 +161,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 
 			if (ob->mode & OB_MODE_SCULPT) {
 				/* ensure that grid paint mask layer is created */
-				ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+				BKE_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
 			}
 		}
 		else if (type == eModifierType_Skin) {
@@ -1187,7 +1187,7 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
 	if (ob->mode & OB_MODE_SCULPT) {
 		/* ensure that grid paint mask layer is created */
-		ED_sculpt_mask_layers_ensure(ob, mmd);
+		BKE_sculpt_mask_layers_ensure(ob, mmd);
 	}
 	
 	return OPERATOR_FINISHED;

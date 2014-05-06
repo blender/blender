@@ -173,18 +173,18 @@ typedef struct SculptSession {
 	int average_stroke_counter;
 } SculptSession;
 
-void free_sculptsession(struct Object *ob);
-void free_sculptsession_deformMats(struct SculptSession *ss);
-void sculptsession_bm_to_me(struct Object *ob, bool reorder);
-void sculptsession_bm_to_me_for_render(struct Object *object);
-void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob,
+void BKE_free_sculptsession(struct Object *ob);
+void BKE_free_sculptsession_deformMats(struct SculptSession *ss);
+void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
+void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
+void BKE_sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob,
 								 bool need_pmap, bool need_mask);
-struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
-int ED_sculpt_mask_layers_ensure(struct Object *ob,
+struct MultiresModifierData *BKE_sculpt_multires_active(struct Scene *scene, struct Object *ob);
+int BKE_sculpt_mask_layers_ensure(struct Object *ob,
 								  struct MultiresModifierData *mmd);
 
 enum {
-	ED_SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
-	ED_SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1)
+	SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
+	SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1)
 };
 #endif

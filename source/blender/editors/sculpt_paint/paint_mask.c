@@ -86,7 +86,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	struct Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	struct MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	struct MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 	PaintMaskFloodMode mode;
 	float value;
 	DerivedMesh *dm;
@@ -98,7 +98,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	mode = RNA_enum_get(op->ptr, "mode");
 	value = RNA_float_get(op->ptr, "value");
 
-	ED_sculpt_mask_layers_ensure(ob, mmd);
+	BKE_sculpt_mask_layers_ensure(ob, mmd);
 
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	pbvh = dm->getPBVH(ob, dm);
@@ -195,7 +195,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	ARegion *ar = vc->ar;
 	struct Scene *scene = vc->scene;
 	Object *ob = vc->obact;
-	struct MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	struct MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 	PaintMaskFloodMode mode;
 	float value;
 	DerivedMesh *dm;
@@ -212,7 +212,7 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	ED_view3d_clipping_calc(&bb, clip_planes, &mats, rect);
 	mul_m4_fl(clip_planes, -1.0f);
 
-	ED_sculpt_mask_layers_ensure(ob, mmd);
+	BKE_sculpt_mask_layers_ensure(ob, mmd);
 
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	pbvh = dm->getPBVH(ob, dm);
@@ -359,8 +359,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &data.rect);
 		mul_m4_fl(clip_planes, -1.0f);
 
-		mmd = sculpt_multires_active(vc.scene, ob);
-		ED_sculpt_mask_layers_ensure(ob, mmd);
+		mmd = BKE_sculpt_multires_active(vc.scene, ob);
+		BKE_sculpt_mask_layers_ensure(ob, mmd);
 		dm = mesh_get_derived_final(vc.scene, ob, CD_MASK_BAREMESH);
 		pbvh = dm->getPBVH(ob, dm);
 		ob->sculpt->pbvh = pbvh;

@@ -112,7 +112,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			if (kb) {
 				ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-				sculpt_update_mesh_elements(scene, sd, ob, 0, false);
+				BKE_sculpt_update_mesh_elements(scene, sd, ob, 0, false);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
 			}
 			else {
@@ -413,7 +413,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		}
 	}
 
-	sculpt_update_mesh_elements(scene, sd, ob, 0, need_mask);
+	BKE_sculpt_update_mesh_elements(scene, sd, ob, 0, need_mask);
 
 	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
 	dm = mesh_get_derived_final(scene, ob, 0);
@@ -469,7 +469,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
 		BKE_pbvh_update(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw, NULL);
 
-		if (sculpt_multires_active(scene, ob)) {
+		if (BKE_sculpt_multires_active(scene, ob)) {
 			if (rebuild)
 				multires_mark_as_modified(ob, MULTIRES_HIDDEN_MODIFIED);
 			else
@@ -483,7 +483,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			BKE_mesh_calc_normals_tessface(mesh->mvert, mesh->totvert,
 			                               mesh->mface, mesh->totface, NULL);
 
-			free_sculptsession_deformMats(ss);
+			BKE_free_sculptsession_deformMats(ss);
 			tag_update |= true;
 		}
 
