@@ -189,10 +189,11 @@ vector<float> Object::motion_times()
 {
 	/* compute times at which we sample motion for this object */
 	vector<float> times;
-	int motion_steps = mesh->motion_steps;
 
-	if(!mesh || motion_steps == 1)
+	if(!mesh || mesh->motion_steps == 1)
 		return times;
+
+	int motion_steps = mesh->motion_steps;
 
 	for(int step = 0; step < motion_steps; step++) {
 		if(step != motion_steps / 2) {
