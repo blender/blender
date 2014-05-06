@@ -170,7 +170,11 @@ static bool write_internal_bake_pixels(
 	if (margin > 0)
 		RE_bake_margin(ibuf, mask_buffer, margin);
 
-	ibuf->userflags |= IB_BITMAPDIRTY;
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID | IB_BITMAPDIRTY;
+
+	if (ibuf->rect_float)
+		ibuf->userflags |= IB_RECT_INVALID;
+
 	BKE_image_release_ibuf(image, ibuf, NULL);
 
 	if (mask_buffer)
