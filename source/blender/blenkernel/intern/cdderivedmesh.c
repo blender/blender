@@ -222,24 +222,33 @@ static const MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
 	return cddm->pmap;
 }
 
-static bool can_pbvh_draw(Object *ob, DerivedMesh *dm)
+static bool check_sculpt_object_deformed(Object *object)
 {
-	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	Mesh *me = ob->data;
-	int deformed = 0;
+	bool deformed = false;
 
-	/* active modifiers means extra deformation, which can't be handled correct
+	/* Active modifiers means extra deformation, which can't be handled correct
 	 * on birth of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
-	 * stuff and show final DerivedMesh so user would see actual object shape */
-	deformed |= ob->sculpt->modifiers_active;
+	 * stuff and show final DerivedMesh so user would see actual object shape.
+	 */
+	deformed |= object->sculpt->modifiers_active;
 
 	/* as in case with modifiers, we can't synchronize deformation made against
 	 * PBVH and non-locked keyblock, so also use PBVH only for brushes and
 	 * final DM to give final result to user */
-	deformed |= ob->sculpt->kb && (ob->shapeflag & OB_SHAPE_LOCK) == 0;
+	deformed |= object->sculpt->kb && (object->shapeflag & OB_SHAPE_LOCK) == 0;
 
-	if (deformed)
-		return 0;
+	return deformed;
+}
+
+static bool can_pbvh_draw(Object *ob, DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
+	Mesh *me = ob->data;
+	bool deformed = check_sculpt_object_deformed(ob);
+
+	if (deformed) {
+		return false;
+	}
 
 	return cddm->mvert == me->mvert || ob->sculpt->kb;
 }
@@ -279,9 +288,8 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	 * this derivedmesh is just original mesh. it's the multires subsurf dm
 	 * that this is actually for, to support a pbvh on a modified mesh */
 	if (!cddm->pbvh && ob->type == OB_MESH) {
-		SculptSession *ss = ob->sculpt;
 		Mesh *me = ob->data;
-		int deformed = 0;
+		bool deformed;
 
 		cddm->pbvh = BKE_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
@@ -293,7 +301,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 
 		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
 
-		deformed = ss->modifiers_active || me->key;
+		deformed = check_sculpt_object_deformed(ob);
 
 		if (deformed && ob->derivedDeform) {
 			DerivedMesh *deformdm = ob->derivedDeform;
