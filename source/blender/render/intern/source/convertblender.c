@@ -3924,10 +3924,15 @@ static bool is_object_hidden(Render *re, Object *ob)
 	if (is_object_restricted(re, ob))
 		return true;
 	
-	/* Mesh deform cages and so on mess up the preview. To avoid the problem,
-	 * viewport doesn't show mesh object if its draw type is bounding box or wireframe.
-	 */
-	return ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE);
+	if (re->r.scemode & R_VIEWPORT_PREVIEW) {
+		/* Mesh deform cages and so on mess up the preview. To avoid the problem,
+		 * viewport doesn't show mesh object if its draw type is bounding box or wireframe.
+		 */
+		return ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE);
+	}
+	else {
+		return false;
+	}
 }
 
 /* layflag: allows material group to ignore layerflag */
@@ -4795,6 +4800,9 @@ void RE_Database_Free(Render *re)
 
 static int allow_render_object(Render *re, Object *ob, int nolamps, int onlyselected, Object *actob)
 {
+	if (is_object_hidden(re, ob))
+		return 0;
+	
 	/* override not showing object when duplis are used with particles */
 	if (ob->transflag & OB_DUPLIPARTS) {
 		/* pass */  /* let particle system(s) handle showing vs. not showing */
