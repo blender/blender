@@ -485,6 +485,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	/* 1. draw shadow mesh */
 	
 	if (sima->flag & SI_DRAWSHADOW) {
+		DM_update_materials(em->derivedFinal, obedit);
 		/* first try existing derivedmesh */
 		if (!draw_uvs_dm_shadow(em->derivedFinal)) {
 			/* create one if it does not exist */
