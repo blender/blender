@@ -313,6 +313,7 @@ void msub_vn_vn(float *array_tar, const float *array_src, const float f, const i
 void msub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const float f, const int size);
 void interp_vn_vn(float *array_tar, const float *array_src, const float t, const int size);
 void fill_vn_i(int *array_tar, const int size, const int val);
+void fill_vn_short(short *array_tar, const int size, const short val);
 void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
 void fill_vn_fl(float *array_tar, const int size, const float val);
 

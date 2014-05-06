@@ -70,17 +70,20 @@ enum {
 
 void initNumInput(NumInput *n)
 {
-	n->unit_sys = USER_UNIT_NONE;
-	n->unit_type[0] = n->unit_type[1] = n->unit_type[2] = B_UNIT_NONE;
-	n->idx = 0;
 	n->idx_max = 0;
+	n->unit_sys = USER_UNIT_NONE;
+	fill_vn_i(n->unit_type, NUM_MAX_ELEMENTS, B_UNIT_NONE);
+	n->unit_use_radians = false;
+
 	n->flag = 0;
-	n->val_flag[0] = n->val_flag[1] = n->val_flag[2] = 0;
-	zero_v3(n->val_org);
+	fill_vn_short(n->val_flag, NUM_MAX_ELEMENTS, 0);
 	zero_v3(n->val);
+	fill_vn_fl(n->val_org, NUM_MAX_ELEMENTS, 0.0f);
+	fill_vn_fl(n->val_inc, NUM_MAX_ELEMENTS, 1.0f);
+
+	n->idx = 0;
 	n->str[0] = '\0';
 	n->str_cur = 0;
-	copy_v3_fl(n->val_inc, 1.0f);
 }
 
 /* str must be NUM_STR_REP_LEN * (idx_max + 1) length. */
