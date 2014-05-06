@@ -42,6 +42,8 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 		float rbsdf = path_state_rng_1D(kg, &rng, &state, PRNG_BSDF);
 		shader_eval_surface(kg, sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
+		/* TODO, disable the closures we won't need */
+
 		/* sample ambient occlusion */
 		if(is_ao) {
 			kernel_path_ao(kg, sd, &L_sample, &state, &rng, throughput);
@@ -116,8 +118,8 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	/* light passes */
 	PathRadiance L;
 
-	/* TODO, disable the closures we won't need */
 	shader_setup_from_sample(kg, &sd, P, Ng, I, shader, object, prim, u, v, t, time, bounce, transparent_bounce);
+	sd.I = sd.N;
 
 	if(is_light_pass(type)) {
 		RNG rng = cmj_hash(i, 0);
