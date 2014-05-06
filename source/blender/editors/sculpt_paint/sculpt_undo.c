@@ -462,7 +462,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	}
 
 	if (update || rebuild) {
-		int tag_update = 0;
+		bool tag_update = false;
 		/* we update all nodes still, should be more clever, but also
 		 * needs to work correct when exiting/entering sculpt mode and
 		 * the nodes get recreated, though in that case it could do all */
@@ -476,15 +476,15 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 				multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 		}
 
-		tag_update = ((Mesh *)ob->data)->id.us > 1;
+		tag_update |= ((Mesh *)ob->data)->id.us > 1;
 
-		if (ss->modifiers_active) {
+		if (ss->kb || ss->modifiers_active) {
 			Mesh *mesh = ob->data;
 			BKE_mesh_calc_normals_tessface(mesh->mvert, mesh->totvert,
 			                               mesh->mface, mesh->totface, NULL);
 
 			free_sculptsession_deformMats(ss);
-			tag_update |= 1;
+			tag_update |= true;
 		}
 
 		if (tag_update) {

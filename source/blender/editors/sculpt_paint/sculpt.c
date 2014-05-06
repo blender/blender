@@ -4250,7 +4250,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
 
-	if (ss->modifiers_active) {
+	if (ss->kb || ss->modifiers_active) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -4573,12 +4573,15 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	 *
 	 * Could be optimized later, but currently don't think it's so
 	 * much common scenario.
-	 **
-	 ** Same applies to the DAG_id_tag_update() invoked from
+	 *
+	 * Same applies to the DAG_id_tag_update() invoked from
 	 * sculpt_flush_update().
 	 */
-	if (ss->kb || ss->modifiers_active) {
+	if (ss->modifiers_active) {
 		sculpt_flush_stroke_deform(sd, ob);
+	}
+	else if (ss->kb) {
+		sculpt_update_keyblock(ob);
 	}
 
 	ss->cache->first_time = false;
