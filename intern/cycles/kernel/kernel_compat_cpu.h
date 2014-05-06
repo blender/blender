@@ -101,8 +101,8 @@ template<typename T> struct texture_image  {
 		int ix, iy, nix, niy;
 
 		if(interpolation == INTERPOLATION_CLOSEST) {
-			frac(x*width_fl, &ix);
-			frac(y*height_fl, &iy);
+			frac(x*(float)width, &ix);
+			frac(y*(float)height, &iy);
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
@@ -115,8 +115,8 @@ template<typename T> struct texture_image  {
 			return read(data[ix + iy*width]);
 		}
 		else {
-			float tx = frac(x*width_fl - 0.5f, &ix);
-			float ty = frac(y*height_fl - 0.5f, &iy);
+			float tx = frac(x*(float)width - 0.5f, &ix);
+			float ty = frac(y*(float)height - 0.5f, &iy);
 
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
@@ -150,9 +150,9 @@ template<typename T> struct texture_image  {
 		int ix, iy, iz, nix, niy, niz;
 
 		if(interpolation == INTERPOLATION_CLOSEST) {
-			frac(x*width_fl, &ix);
-			frac(y*height_fl, &iy);
-			frac(z*depth_fl, &iz);
+			frac(x*(float)width, &ix);
+			frac(y*(float)height, &iy);
+			frac(z*(float)depth, &iz);
 
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
@@ -168,9 +168,9 @@ template<typename T> struct texture_image  {
 			return read(data[ix + iy*width + iz*width*height]);
 		}
 		else {
-			float tx = frac(x*width_fl - 0.5f, &ix);
-			float ty = frac(y*height_fl - 0.5f, &iy);
-			float tz = frac(z*depth_fl - 0.5f, &iz);
+			float tx = frac(x*(float)width - 0.5f, &ix);
+			float ty = frac(y*(float)height - 0.5f, &iy);
+			float tz = frac(z*(float)depth - 0.5f, &iz);
 
 			if(periodic) {
 				ix = wrap_periodic(ix, width);
@@ -212,18 +212,11 @@ template<typename T> struct texture_image  {
 		width = width_;
 		height = height_;
 		depth = depth_;
-
-		width_fl = (float)width_;
-		height_fl = (float)height_;
-		depth_fl = (float)depth_;
 	}
 
 	T *data;
 	int interpolation;
 	int width, height, depth;
-
-	/* avoid int/float conversion */
-	float width_fl, height_fl, depth_fl;
 };
 
 typedef texture<float4> texture_float4;
