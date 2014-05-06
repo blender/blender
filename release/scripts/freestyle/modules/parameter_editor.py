@@ -1369,7 +1369,6 @@ def process(layer_name, lineset_name):
         elif m.type == '2D_TRANSFORM':
             shaders_list.append(Transform2DShader(
                 m.pivot, m.scale_x, m.scale_y, m.angle, m.pivot_u, m.pivot_x, m.pivot_y))
-    color = linestyle.color
     if linestyle.use_texture:
         has_tex = False
         for slot in linestyle.texture_slots:
@@ -1378,6 +1377,7 @@ def process(layer_name, lineset_name):
                 has_tex = True
         if has_tex:
             shaders_list.append(StrokeTextureStepShader(linestyle.texture_spacing))
+    color = linestyle.color
     if (not linestyle.use_chaining) or (linestyle.chaining == 'PLAIN' and linestyle.use_same_object):
         thickness_position = linestyle.thickness_position
     else:
