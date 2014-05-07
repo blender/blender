@@ -601,6 +601,52 @@ ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *
 	}
 }
 
+#ifdef __SUBSURFACE__
+ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, Ray *ray, float3 *throughput)
+{
+	float bssrdf_probability;
+	ShaderClosure *sc = subsurface_scatter_pick_closure(kg, sd, &bssrdf_probability);
+
+	/* modify throughput for picking bssrdf or bsdf */
+	*throughput *= bssrdf_probability;
+
+	/* do bssrdf scatter step if we picked a bssrdf closure */
+	if(sc) {
+		uint lcg_state = lcg_state_init(rng, state, 0x68bc21eb);
+
+		ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
+		float bssrdf_u, bssrdf_v;
+		path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+		int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
+
+		/* compute lighting with the BSDF closure */
+		for(int hit = 0; hit < num_hits; hit++) {
+			float3 tp = *throughput;
+			PathState hit_state = *state;
+			Ray hit_ray = *ray;
+
+			hit_state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
+			hit_state.rng_offset += PRNG_BOUNCE_NUM;
+
+			if(kernel_path_integrate_lighting(kg, rng, &bssrdf_sd[hit], &tp, &hit_state, L, &hit_ray)) {
+#ifdef __LAMP_MIS__
+				hit_state.ray_t = 0.0f;
+#endif
+
+				kernel_path_indirect(kg, rng, hit_ray, tp, state->num_samples, hit_state, L);
+
+				/* for render passes, sum and reset indirect light pass variables
+				 * for the next samples */
+				path_radiance_sum_indirect(L);
+				path_radiance_reset_indirect(L);
+			}
+		}
+		return true;
+	}
+	return false;
+}
+#endif
+
 ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, ccl_global float *buffer)
 {
 	/* initialize */
@@ -776,45 +822,8 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		/* bssrdf scatter to a different location on the same object, replacing
 		 * the closures with a diffuse BSDF */
 		if(sd.flag & SD_BSSRDF) {
-			float bssrdf_probability;
-			ShaderClosure *sc = subsurface_scatter_pick_closure(kg, &sd, &bssrdf_probability);
-
-			/* modify throughput for picking bssrdf or bsdf */
-			throughput *= bssrdf_probability;
-
-			/* do bssrdf scatter step if we picked a bssrdf closure */
-			if(sc) {
-				uint lcg_state = lcg_state_init(rng, &state, 0x68bc21eb);
-
-				ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
-				float bssrdf_u, bssrdf_v;
-				path_state_rng_2D(kg, rng, &state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
-				int num_hits = subsurface_scatter_multi_step(kg, &sd, bssrdf_sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
-
-				/* compute lighting with the BSDF closure */
-				for(int hit = 0; hit < num_hits; hit++) {
-					float3 tp = throughput;
-					PathState hit_state = state;
-					Ray hit_ray = ray;
-
-					hit_state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
-					hit_state.rng_offset += PRNG_BOUNCE_NUM;
-					
-					if(kernel_path_integrate_lighting(kg, rng, &bssrdf_sd[hit], &tp, &hit_state, &L, &hit_ray)) {
-#ifdef __LAMP_MIS__
-						hit_state.ray_t = 0.0f;
-#endif
-
-						kernel_path_indirect(kg, rng, hit_ray, tp, state.num_samples, hit_state, &L);
-
-						/* for render passes, sum and reset indirect light pass variables
-						 * for the next samples */
-						path_radiance_sum_indirect(&L);
-						path_radiance_reset_indirect(&L);
-					}
-				}
+			if(kernel_path_subsurface_scatter(kg, &sd, &L, &state, rng, &ray, &throughput))
 				break;
-			}
 		}
 #endif
 		

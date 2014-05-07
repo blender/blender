@@ -17,7 +17,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, RNG rng,
-                                   bool is_combined, bool is_ao)
+                                   bool is_combined, bool is_ao, bool is_sss)
 {
 	int samples = kernel_data.integrator.aa_samples;
 
@@ -50,13 +50,21 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 			kernel_path_ao(kg, sd, &L_sample, &state, &rng, throughput);
 		}
 
+		/* sample subsurface scattering */
+		if((is_combined || is_sss) && (sd->flag & SD_BSSRDF)) {
+#ifdef __SUBSURFACE__
+			/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
+			if (kernel_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, &ray, &throughput))
+				is_sss = true;
+#endif
+		}
+
 		/* sample light and BSDF */
-		if(!is_ao) {
+		if((!is_sss) && (!is_ao)) {
 			if(kernel_path_integrate_lighting(kg, &rng, sd, &throughput, &state, &L_sample, &ray)) {
 #ifdef __LAMP_MIS__
 				state.ray_t = 0.0f;
 #endif
-
 				/* compute indirect light */
 				kernel_path_indirect(kg, &rng, ray, throughput, state.num_samples, state, &L_sample);
 
@@ -127,7 +135,9 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	if(is_light_pass(type)) {
 		RNG rng = cmj_hash(i, 0);
 		compute_light_pass(kg, &sd, &L, rng, (type == SHADER_EVAL_COMBINED),
-		                                     (type == SHADER_EVAL_AO));
+		                                     (type == SHADER_EVAL_AO),
+		                                     (type == SHADER_EVAL_SUBSURFACE_DIRECT ||
+		                                      type == SHADER_EVAL_SUBSURFACE_INDIRECT));
 	}
 
 	switch (type) {
