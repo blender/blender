@@ -64,7 +64,7 @@ void register_node_type_sh_camera(void)
 	sh_node_type_base(&ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_camera_out);
-	node_type_storage(&ntype, "node_camera", NULL, NULL);
+	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_camera);
 	node_type_gpu(&ntype, gpu_shader_camera);
 

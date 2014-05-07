@@ -147,7 +147,7 @@ void register_node_type_sh_vect_math(void)
 	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_vect_math_in, sh_node_vect_math_out);
 	node_type_label(&ntype, node_vect_math_label);
-	node_type_storage(&ntype, "node_vect_math", NULL, NULL);
+	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, NULL, NULL, node_shader_exec_vect_math);
 	node_type_gpu(&ntype, gpu_shader_vect_math);
 

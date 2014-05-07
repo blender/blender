@@ -54,7 +54,7 @@ void register_node_type_tex_coord(void)
 	
 	tex_node_type_base(&ntype, TEX_NODE_COORD, "Coordinates", NODE_CLASS_INPUT, 0);
 	node_type_socket_templates(&ntype, NULL, outputs);
-	node_type_storage(&ntype, "node_coord", NULL, NULL);
+	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, NULL, NULL, exec);
 	
 	nodeRegisterType(&ntype);
