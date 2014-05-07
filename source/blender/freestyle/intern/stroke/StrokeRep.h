@@ -148,7 +148,7 @@ protected:
 	float _averageThickness;
 
 public:
-	Strip(const std::vector<StrokeVertex*>& iStrokeVertices, bool hasTips = false,
+	Strip(const std::vector<StrokeVertex*>& iStrokeVertices, bool hasTex = false,
 			bool tipBegin = false, bool tipEnd = false, float texStep = 1.0);
 	Strip(const Strip& iBrother);
 	virtual ~Strip();
@@ -156,6 +156,7 @@ public:
 protected:
 	void createStrip(const std::vector<StrokeVertex*>& iStrokeVertices);
 	void cleanUpSingularities(const std::vector<StrokeVertex*>& iStrokeVertices);
+	void setVertexColor (const std::vector<StrokeVertex*>& iStrokeVertices);
 	void computeTexCoord (const std::vector<StrokeVertex*>& iStrokeVertices, float texStep);
 	void computeTexCoordWithTips (const std::vector<StrokeVertex*>& iStrokeVertices, bool tipBegin, bool tipEnd, float texStep);
 

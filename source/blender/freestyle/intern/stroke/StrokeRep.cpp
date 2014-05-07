@@ -54,13 +54,17 @@ StrokeVertexRep::StrokeVertexRep(const StrokeVertexRep& iBrother)
 // STRIP
 /////////////////////////////////////
 
-Strip::Strip(const vector<StrokeVertex*>& iStrokeVertices, bool hasTips, bool beginTip, bool endTip, float texStep)
+Strip::Strip(const vector<StrokeVertex*>& iStrokeVertices, bool hasTex, bool beginTip, bool endTip, float texStep)
 {
 	createStrip(iStrokeVertices);
 
-	// We compute both kinds of coordinates to use different kinds of textures
-	computeTexCoord (iStrokeVertices, texStep);
-	computeTexCoordWithTips (iStrokeVertices, beginTip, endTip, texStep);
+	setVertexColor(iStrokeVertices);
+
+	if (hasTex) {
+		// We compute both kinds of coordinates to use different kinds of textures
+		computeTexCoord(iStrokeVertices, texStep);
+		computeTexCoordWithTips(iStrokeVertices, beginTip, endTip, texStep);
+	}
 }
 
 Strip::Strip(const Strip& iBrother)
@@ -483,6 +487,30 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 }
 
 
+// Vertex color (RGBA)
+////////////////////////////////
+
+void Strip::setVertexColor (const vector<StrokeVertex *>& iStrokeVertices)
+{
+	vector<StrokeVertex *>::const_iterator v, vend;
+	StrokeVertex *sv;
+	int i = 0;
+	for (v = iStrokeVertices.begin(), vend = iStrokeVertices.end(); v != vend; v++) {
+		sv = (*v);
+		_vertices[i]->setColor(Vec3r(sv->attribute().getColorRGB()));
+		_vertices[i]->setAlpha(sv->attribute().getAlpha());
+		i++;
+		_vertices[i]->setColor(Vec3r(sv->attribute().getColorRGB()));
+		_vertices[i]->setAlpha(sv->attribute().getAlpha());
+		i++;
+#if 0
+		cerr << "col=("<<sv->attribute().getColor()[0] << ", "
+		     << sv->attribute().getColor()[1] << ", " << sv->attribute().getColor()[2] << ")" << endl;
+#endif
+	}
+}
+
+
 // Texture coordinates
 ////////////////////////////////
 
@@ -494,17 +522,9 @@ void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices, floa
 	for (v = iStrokeVertices.begin(), vend = iStrokeVertices.end(); v != vend; v++) {
 		sv = (*v);
 		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / (_averageThickness * texStep)), 0));
-		_vertices[i]->setColor(Vec3r(sv->attribute().getColorRGB()));
-		_vertices[i]->setAlpha(sv->attribute().getAlpha());
 		i++;
 		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / (_averageThickness * texStep)), 1));
-		_vertices[i]->setColor(Vec3r(sv->attribute().getColorRGB()));
-		_vertices[i]->setAlpha(sv->attribute().getAlpha());
 		i++;
-#if 0
-		cerr << "col=("<<sv->attribute().getColor()[0] << ", "
-		     << sv->attribute().getColor()[1] << ", " << sv->attribute().getColor()[2] << ")" << endl;
-#endif
 	}
 }
 
@@ -788,7 +808,7 @@ void StrokeRep::create()
 			end = true;
 		}
 		if ((!strip.empty()) && (strip.size() > 1)) {
-			_strips.push_back(new Strip(strip, _stroke->hasTips(), first, end, _stroke->getTextureStep()));
+			_strips.push_back(new Strip(strip, _stroke->hasTex(), first, end, _textureStep));
 			strip.clear();
 		}
 		first = false;

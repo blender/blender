@@ -652,6 +652,12 @@ public:
 	inline MTex *getMTex(int idx) {
 		return _mtex[idx];}
 
+	/*! Returns true if this Stroke has textures assigned, false otherwise. */
+	inline bool hasTex() const
+	{
+		return _mtex[0] != NULL;
+	}
+
 	/*! Returns true if this Stroke uses a texture with tips, false otherwise. */
 	inline bool hasTips() const
 	{

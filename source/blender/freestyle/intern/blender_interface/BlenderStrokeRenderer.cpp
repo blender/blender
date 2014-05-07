@@ -267,6 +267,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	////////////////////
 
 	vector<Strip*>& strips = iStrokeRep->getStrips();
+	const bool hasTex = iStrokeRep->getMTex(0) != NULL;
 	Strip::vertex_container::iterator v[3];
 	StrokeVertexRep *svRep[3];
 	/* Vec3r color[3]; */ /* UNUSED */
@@ -356,7 +357,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		MPoly *polys = mesh->mpoly;
 		MLoop *loops = mesh->mloop;
 		MLoopCol *colors = mesh->mloopcol;
-		MLoopUV *loopsuv[2];
+		MLoopUV *loopsuv[2] = {NULL};
 
 		v[0] = strip_vertices.begin();
 		v[1] = v[0] + 1;
@@ -365,23 +366,25 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		vertex_index = edge_index = loop_index = 0;
 		visible = false;
 
-		// First UV layer
-		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
-		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
-		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
-		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
-		BKE_mesh_update_customdata_pointers(mesh, true);
+		if (hasTex) {
+			// First UV layer
+			CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
+			CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
+			CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
+			CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
+			BKE_mesh_update_customdata_pointers(mesh, true);
 
-		loopsuv[0] = mesh->mloopuv;
+			loopsuv[0] = mesh->mloopuv;
 
-		// Second UV layer
-		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
-		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
-		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
-		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
-		BKE_mesh_update_customdata_pointers(mesh, true);
+			// Second UV layer
+			CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
+			CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
+			CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
+			CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
+			BKE_mesh_update_customdata_pointers(mesh, true);
 
-		loopsuv[1] = mesh->mloopuv;
+			loopsuv[1] = mesh->mloopuv;
+		}
 
 		// Note: Mesh generation in the following loop assumes stroke strips
 		// to be triangle strips.
@@ -487,7 +490,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 				loop_index += 3;
 
 				// UV
-				if (iStrokeRep->getMTex(0)) {
+				if (hasTex) {
 					// First UV layer (loopsuv[0]) has no tips (texCoord(0)).
 					// Second UV layer (loopsuv[1]) has tips:  (texCoord(1)).
 					for (int L = 0; L < 2; L++) {
