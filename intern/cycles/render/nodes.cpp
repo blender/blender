@@ -189,6 +189,7 @@ ImageTextureNode::ImageTextureNode()
 	slot = -1;
 	is_float = -1;
 	is_linear = false;
+	use_alpha = true;
 	filename = "";
 	builtin_data = NULL;
 	color_space = ustring("Color");
@@ -242,7 +243,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, interpolation);
+		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, interpolation, use_alpha);
 		is_float = (int)is_float_bool;
 	}
 
@@ -357,6 +358,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 	slot = -1;
 	is_float = -1;
 	is_linear = false;
+	use_alpha = true;
 	filename = "";
 	builtin_data = NULL;
 	color_space = ustring("Color");
@@ -406,7 +408,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(slot == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, INTERPOLATION_LINEAR);
+		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, INTERPOLATION_LINEAR, use_alpha);
 		is_float = (int)is_float_bool;
 	}
 

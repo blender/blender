@@ -72,6 +72,7 @@ public:
 	int slot;
 	int is_float;
 	bool is_linear;
+	bool use_alpha;
 	string filename;
 	void *builtin_data;
 	ustring color_space;
@@ -95,6 +96,7 @@ public:
 	int slot;
 	int is_float;
 	bool is_linear;
+	bool use_alpha;
 	string filename;
 	void *builtin_data;
 	ustring color_space;

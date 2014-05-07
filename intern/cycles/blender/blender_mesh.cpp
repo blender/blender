@@ -222,7 +222,7 @@ static void create_mesh_volume_attribute(BL::Object b_ob, Mesh *mesh, ImageManag
 
 	volume_data->manager = image_manager;
 	volume_data->slot = image_manager->add_image(Attribute::standard_name(std),
-		b_ob.ptr.data, animated, is_float, is_linear, INTERPOLATION_LINEAR);
+		b_ob.ptr.data, animated, is_float, is_linear, INTERPOLATION_LINEAR, true);
 }
 
 static void create_mesh_volume_attributes(Scene *scene, BL::Object b_ob, Mesh *mesh)

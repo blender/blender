@@ -152,7 +152,7 @@ static bool image_equals(ImageManager::Image *image, const string& filename, voi
 	       image->interpolation == interpolation;
 }
 
-int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float, bool& is_linear, InterpolationType interpolation)
+int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float, bool& is_linear, InterpolationType interpolation, bool use_alpha)
 {
 	Image *img;
 	size_t slot;
@@ -194,6 +194,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 		img->animated = animated;
 		img->interpolation = interpolation;
 		img->users = 1;
+		img->use_alpha = use_alpha;
 
 		float_images[slot] = img;
 	}
@@ -230,6 +231,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 		img->animated = animated;
 		img->interpolation = interpolation;
 		img->users = 1;
+		img->use_alpha = use_alpha;
 
 		images[slot] = img;
 
@@ -307,9 +309,13 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 		if(!in)
 			return false;
 
-		ImageSpec spec;
+		ImageSpec spec = ImageSpec();
+		ImageSpec config = ImageSpec();
 
-		if(!in->open(img->filename, spec)) {
+		if(img->use_alpha == false)
+			config.attribute("oiio:UnassociatedAlpha", 1);
+
+		if(!in->open(img->filename, spec, config)) {
 			delete in;
 			return false;
 		}
@@ -387,6 +393,12 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 		}
 	}
 
+	if(img->use_alpha == false) {
+		for(int i = width*height*depth-1; i >= 0; i--) {
+			pixels[i*4+3] = 255;
+		}
+	}
+
 	return true;
 }
 
@@ -405,9 +417,13 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 		if(!in)
 			return false;
 
-		ImageSpec spec;
+		ImageSpec spec = ImageSpec();
+		ImageSpec config = ImageSpec();
 
-		if(!in->open(img->filename, spec)) {
+		if(img->use_alpha == false)
+			config.attribute("oiio:UnassociatedAlpha",1);
+
+		if(!in->open(img->filename, spec, config)) {
 			delete in;
 			return false;
 		}
@@ -481,6 +497,12 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 			pixels[i*4+2] = pixels[i];
 			pixels[i*4+1] = pixels[i];
 			pixels[i*4+0] = pixels[i];
+		}
+	}
+
+	if(img->use_alpha == false) {
+		for(int i = width*height*depth-1; i >= 0; i--) {
+			pixels[i*4+3] = 1.0f;
 		}
 	}
 
