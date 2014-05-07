@@ -56,6 +56,8 @@ ccl_device float svm_math(NodeMath type, float Fac1, float Fac2)
 		Fac = Fac1 > Fac2;
 	else if(type == NODE_MATH_MODULO)
 		Fac = safe_modulo(Fac1, Fac2);
+    else if(type == NODE_MATH_ABSOLUTE)
+        Fac = fabsf(Fac1);
 	else if(type == NODE_MATH_CLAMP)
 		Fac = clamp(Fac1, 0.0f, 1.0f);
 	else

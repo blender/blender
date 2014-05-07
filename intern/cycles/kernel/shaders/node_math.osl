@@ -93,6 +93,8 @@ shader node_math(
 		Value = Value1 > Value2;
 	else if (type == "Modulo")
 		Value = safe_modulo(Value1, Value2);
+    else if (type == "Absolute")
+        Value = fabs(Value1);
 
 	if (Clamp)
 		Value = clamp(Value, 0.0, 1.0);

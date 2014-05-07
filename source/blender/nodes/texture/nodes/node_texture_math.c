@@ -174,7 +174,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 
-		case 17: /* Modulo */
+        case 17: /* Modulo */
 		{
 			if (in1 == 0.0f)
 				*out = 0.0f;
@@ -182,6 +182,13 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				*out = fmod(in0, in1);
 			break;
 		}
+
+        case 18: /* Absolute */
+        {
+            *out = fabs(in0);
+            break;
+        }
+
 		default:
 		{
 			BLI_assert(0);

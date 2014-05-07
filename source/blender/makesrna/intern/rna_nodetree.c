@@ -129,7 +129,8 @@ EnumPropertyItem node_math_items[] = {
 	{14, "ROUND",        0, "Round",        ""},
 	{15, "LESS_THAN",    0, "Less Than",    ""},
 	{16, "GREATER_THAN", 0, "Greater Than", ""},
-	{17, "MODULO", 		 0, "Modulo", 		""},		
+	{17, "MODULO",       0, "Modulo",       ""},
+	{18, "ABSOLUTE",     0, "Absolute",     ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

@@ -83,6 +83,9 @@ void MathNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		case 17: /* Modulo */
 			operation = new MathModuloOperation();
 			break;
+        case 18: /* Absolute Value */
+            operation = new MathAbsoluteOperation();
+            break;
 	}
 	
 	if (operation) {

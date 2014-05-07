@@ -163,4 +163,10 @@ public:
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
+class MathAbsoluteOperation : public MathBaseOperation {
+public:
+    MathAbsoluteOperation() : MathBaseOperation() {}
+    void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
 #endif
