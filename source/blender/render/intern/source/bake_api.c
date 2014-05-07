@@ -95,6 +95,8 @@ typedef struct BakeDataZSpan {
 	int primitive_id;
 	BakeImage *bk_image;
 	ZSpan *zspan;
+	float du_dx, du_dy;
+	float dv_dx, dv_dy;
 } BakeDataZSpan;
 
 /**
@@ -126,11 +128,10 @@ static void store_bake_pixel(void *handle, int x, int y, float u, float v)
 
 	copy_v2_fl2(pixel->uv, u, v);
 
-	pixel->du_dx =
-	pixel->du_dy =
-	pixel->dv_dx =
-	pixel->dv_dy =
-	0.0f;
+	pixel->du_dx = bd->du_dx;
+	pixel->du_dy = bd->du_dy;
+	pixel->dv_dx = bd->dv_dx;
+	pixel->dv_dy = bd->dv_dy;
 }
 
 void RE_bake_mask_fill(const BakePixel pixel_array[], const int num_pixels, char *mask)
@@ -441,6 +442,28 @@ cleanup:
 	MEM_freeN(dm_highpoly);
 }
 
+static void bake_differentials(BakeDataZSpan *bd, const float *uv1, const float *uv2, const float *uv3)
+{
+	float A;
+
+	/* assumes dPdu = P1 - P3 and dPdv = P2 - P3 */
+	A = (uv2[0] - uv1[0]) * (uv3[1] - uv1[1]) - (uv3[0] - uv1[0]) * (uv2[1] - uv1[1]);
+
+	if (fabsf(A) > FLT_EPSILON) {
+		A = 0.5f / A;
+
+		bd->du_dx = (uv2[1] - uv3[1]) * A;
+		bd->dv_dx = (uv3[1] - uv1[1]) * A;
+
+		bd->du_dy = (uv3[0] - uv2[0]) * A;
+		bd->dv_dy = (uv1[0] - uv3[0]) * A;
+	}
+	else {
+		bd->du_dx = bd->dv_dx = 0.0f;
+		bd->dv_dx = bd->dv_dy = 0.0f;
+	}
+}
+
 void RE_bake_pixels_populate(
         Mesh *me, BakePixel pixel_array[],
         const int num_pixels, const BakeImages *bake_images)
@@ -494,11 +517,14 @@ void RE_bake_pixels_populate(
 			vec[a][1] = mtf->uv[a][1] * (float)bd.bk_image->height - (0.5f + 0.002f);
 		}
 
+		bake_differentials(&bd, vec[0], vec[1], vec[2]);
 		zspan_scanconvert(&bd.zspan[image_id], (void *)&bd, vec[0], vec[1], vec[2], store_bake_pixel);
 
 		/* 4 vertices in the face */
 		if (mf->v4 != 0) {
 			bd.primitive_id = ++p_id;
+
+			bake_differentials(&bd, vec[0], vec[2], vec[3]);
 			zspan_scanconvert(&bd.zspan[image_id], (void *)&bd, vec[0], vec[2], vec[3], store_bake_pixel);
 		}
 	}
