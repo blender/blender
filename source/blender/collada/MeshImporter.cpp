@@ -179,7 +179,7 @@ VCOLDataWrapper::VCOLDataWrapper(COLLADAFW::MeshVertexData& vdata) : mVData(&vda
 void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 {
 	int stride = mVData->getStride(0);
-	if(stride == 0) stride =3;
+	if (stride == 0) stride = 3;
 
 	switch (mVData->getType()) {
 		case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:

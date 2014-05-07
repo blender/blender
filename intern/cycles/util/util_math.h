@@ -183,7 +183,7 @@ ccl_device_inline float signf(float f)
 
 ccl_device_inline float nonzerof(float f, float eps)
 {
-    if(fabsf(f) < eps)
+	if(fabsf(f) < eps)
 		return signf(f)*eps;
 	else
 		return f;

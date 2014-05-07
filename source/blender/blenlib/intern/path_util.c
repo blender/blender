@@ -710,7 +710,7 @@ void BLI_path_rel(char *file, const char *relfile)
  * \param maxlen  Maximum length of string
  * \param suffix  String to append to the original string
  * \param sep Optional separator character
- * \return  true if succeded
+ * \return  true if succeeded
  */
 bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
 {

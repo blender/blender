@@ -42,7 +42,7 @@
 
 /* hint to mark function arguments expected to be non-null
  * if no arguments are given to the macro, all of pointer
- * arguments owuld be expected to be non-null
+ * arguments would be expected to be non-null
  */
 #ifdef __GNUC__
 #  define ATTR_NONNULL(args ...) __attribute__((nonnull(args)))

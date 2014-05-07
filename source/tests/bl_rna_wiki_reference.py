@@ -96,7 +96,7 @@ def test_urls():
     import rna_wiki_reference
 
     import urllib.error
-   from urllib.request import urlopen
+    from urllib.request import urlopen
 
     prefix = rna_wiki_reference.url_manual_prefix
     urls = {suffix for (rna_id, suffix) in rna_wiki_reference.url_manual_mapping}
