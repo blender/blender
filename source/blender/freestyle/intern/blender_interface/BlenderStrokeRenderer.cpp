@@ -270,7 +270,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	const bool hasTex = iStrokeRep->getMTex(0) != NULL;
 	Strip::vertex_container::iterator v[3];
 	StrokeVertexRep *svRep[3];
-	/* Vec3r color[3]; */ /* UNUSED */
 	unsigned int vertex_index, edge_index, loop_index;
 	Vec2r p;
 
@@ -317,7 +316,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		if (visible_faces == 0)
 			continue;
 
-		//me = Mesh.New()
 #if 0
 		Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, OB_MESH);
 #else
