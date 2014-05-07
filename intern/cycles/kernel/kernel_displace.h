@@ -102,7 +102,9 @@ ccl_device bool is_light_pass(ShaderEvalType type)
 ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input, ccl_global float4 *output, ShaderEvalType type, int i)
 {
 	ShaderData sd;
-	uint4 in = input[i];
+	uint4 in = input[i * 2];
+	uint4 diff = input[i * 2 + 1];
+
 	float3 out;
 
 	int object = in.x;
@@ -113,6 +115,11 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 
 	float u = __uint_as_float(in.z);
 	float v = __uint_as_float(in.w);
+
+	float dudx = __uint_as_float(diff.x);
+	float dudy = __uint_as_float(diff.y);
+	float dvdx = __uint_as_float(diff.z);
+	float dvdy = __uint_as_float(diff.w);
 
 	int shader;
 	float3 P, Ng;
@@ -131,6 +138,14 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 
 	shader_setup_from_sample(kg, &sd, P, Ng, I, shader, object, prim, u, v, t, time, bounce, transparent_bounce);
 	sd.I = sd.N;
+
+	/* update differentials */
+	sd.dP.dx = sd.dPdu * dudx + sd.dPdv * dvdx;
+	sd.dP.dy = sd.dPdu * dudy + sd.dPdv * dvdy;
+	sd.du.dx = dudx;
+	sd.du.dy = dudy;
+	sd.dv.dx = dvdx;
+	sd.dv.dy = dvdy;
 
 	if(is_light_pass(type)) {
 		RNG rng = cmj_hash(i, 0);

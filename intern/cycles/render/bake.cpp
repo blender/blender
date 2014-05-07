@@ -26,6 +26,10 @@ m_num_pixels(num_pixels)
 	m_primitive.resize(num_pixels);
 	m_u.resize(num_pixels);
 	m_v.resize(num_pixels);
+	m_dudx.resize(num_pixels);
+	m_dudy.resize(num_pixels);
+	m_dvdx.resize(num_pixels);
+	m_dvdy.resize(num_pixels);
 }
 
 BakeData::~BakeData()
@@ -33,13 +37,21 @@ BakeData::~BakeData()
 	m_primitive.clear();
 	m_u.clear();
 	m_v.clear();
+	m_dudx.clear();
+	m_dudy.clear();
+	m_dvdx.clear();
+	m_dvdy.clear();
 }
 
-void BakeData::set(int i, int prim, float uv[2])
+void BakeData::set(int i, int prim, float uv[2], float dudx, float dudy, float dvdx, float dvdy)
 {
 	m_primitive[i] = (prim == -1 ? -1 : m_tri_offset + prim);
 	m_u[i] = uv[0];
 	m_v[i] = uv[1];
+	m_dudx[i] = dudx;
+	m_dudy[i] = dudy;
+	m_dvdx[i] = dvdx;
+	m_dvdy[i] = dvdy;
 }
 
 int BakeData::object()
@@ -65,6 +77,16 @@ uint4 BakeData::data(int i)
 		__float_as_int(m_u[i]),
 		__float_as_int(m_v[i])
 		);
+}
+
+uint4 BakeData::differentials(int i)
+{
+	return make_uint4(
+		  __float_as_int(m_dudx[i]),
+		  __float_as_int(m_dudy[i]),
+		  __float_as_int(m_dvdx[i]),
+		  __float_as_int(m_dvdy[i])
+		  );
 }
 
 BakeManager::BakeManager()
@@ -102,11 +124,12 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 
 	/* setup input for device task */
 	device_vector<uint4> d_input;
-	uint4 *d_input_data = d_input.resize(limit);
+	uint4 *d_input_data = d_input.resize(limit * 2);
 	size_t d_input_size = 0;
 
 	for(size_t i = 0; i < limit; i++) {
 		d_input_data[d_input_size++] = bake_data->data(i);
+		d_input_data[d_input_size++] = bake_data->differentials(i);
 	}
 
 	if(d_input_size == 0)
@@ -114,7 +137,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 
 	/* run device task */
 	device_vector<float4> d_output;
-	d_output.resize(d_input_size);
+	d_output.resize(limit);
 
 	/* needs to be up to data for attribute access */
 	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));

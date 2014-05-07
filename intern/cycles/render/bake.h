@@ -29,10 +29,11 @@ public:
 	BakeData(const int object, const int tri_offset, const int num_pixels);
 	~BakeData();
 
-	void set(int i, int prim, float uv[2]);
+	void set(int i, int prim, float uv[2], float dudx, float dudy, float dvdx, float dvdy);
 	int object();
 	int size();
 	uint4 data(int i);
+	uint4 differentials(int i);
 	bool is_valid(int i);
 
 private:
@@ -42,6 +43,10 @@ private:
 	vector<int>m_primitive;
 	vector<float>m_u;
 	vector<float>m_v;
+	vector<float>m_dudx;
+	vector<float>m_dudy;
+	vector<float>m_dvdx;
+	vector<float>m_dvdy;
 };
 
 class BakeManager {
