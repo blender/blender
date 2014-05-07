@@ -301,6 +301,18 @@ static void make_duplis_group(const DupliContext *ctx)
 		if (go->ob != ob) {
 			float mat[4][4];
 
+			/* Special case for instancing dupli-groups, see: T40051
+			 * this object may be instanced via dupli-verts/faces, in this case we don't want to render
+			 * (blender convention), but _do_ show in the viewport.
+			 *
+			 * Regular objects work fine but not if we're instancing dupli-groups,
+			 * because the rules for rendering aren't applied to objects they instance.
+			 * We could recursively pass down the 'hide' flag instead, but that seems unnecessary.
+			 */
+			if (for_render && go->ob->parent && go->ob->parent->transflag & (OB_DUPLIVERTS | OB_DUPLIFACES)) {
+				continue;
+			}
+
 			/* group dupli offset, should apply after everything else */
 			mul_m4_m4m4(mat, group_mat, go->ob->obmat);
 
