@@ -500,20 +500,22 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 int BKE_read_file_userdef(const char *filepath, ReportList *reports)
 {
 	BlendFileData *bfd;
-	int retval = 0;
-	
+	int retval = BKE_READ_FILE_FAIL;
+
 	bfd = BLO_read_from_file(filepath, reports);
-	if (bfd->user) {
-		retval = BKE_READ_FILE_OK_USERPREFS;
-		
-		/* only here free userdef themes... */
-		BKE_userdef_free();
-		
-		U = *bfd->user;
-		MEM_freeN(bfd->user);
+	if (bfd) {
+		if (bfd->user) {
+			retval = BKE_READ_FILE_OK_USERPREFS;
+
+			/* only here free userdef themes... */
+			BKE_userdef_free();
+
+			U = *bfd->user;
+			MEM_freeN(bfd->user);
+		}
+		BKE_main_free(bfd->main);
+		MEM_freeN(bfd);
 	}
-	BKE_main_free(bfd->main);
-	MEM_freeN(bfd);
 	
 	return retval;
 }

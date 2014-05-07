@@ -603,7 +603,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	/* check new prefs only after startup.blend was finished */
 	if (!from_memory && BLI_exists(prefstr)) {
 		int done = BKE_read_file_userdef(prefstr, NULL);
-		if (done) {
+		if (done != BKE_READ_FILE_FAIL) {
 			read_userdef_from_memory = false;
 			printf("Read new prefs: %s\n", prefstr);
 		}
