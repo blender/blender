@@ -186,7 +186,7 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 
 	/* get the py expression to be evaluated */
 	expr = driver->expression;
-	if ((expr == NULL) || (expr[0] == '\0'))
+	if (expr[0] == '\0')
 		return 0.0f;
 
 	if (!(G.f & G_SCRIPT_AUTOEXEC)) {
