@@ -489,15 +489,19 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 	int totvert=dm->getNumVerts(dm), from=psys->part->from;
 	int i, j, k, p, res=psys->part->grid_res, size[3], axis;
 
-	mv=mvert;
-
 	/* find bounding box of dm */
-	copy_v3_v3(min, mv->co);
-	copy_v3_v3(max, mv->co);
-	mv++;
-
-	for (i=1; i<totvert; i++, mv++) {
-		minmax_v3v3_v3(min, max, mv->co);
+	if (totvert > 0) {
+		mv=mvert;
+		copy_v3_v3(min, mv->co);
+		copy_v3_v3(max, mv->co);
+		mv++;
+		for (i = 1; i < totvert; i++, mv++) {
+			minmax_v3v3_v3(min, max, mv->co);
+		}
+	}
+	else {
+		zero_v3(min);
+		zero_v3(max);
 	}
 
 	sub_v3_v3v3(delta, max, min);
