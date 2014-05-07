@@ -460,90 +460,16 @@ int StrokeTextureStepShader::shade(Stroke& stroke) const
 	return 0;
 }
 
+// Legacy shaders from freestyle standalone texture system
 int TextureAssignerShader::shade(Stroke& stroke) const
 {
-#if 0
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::HUMID_MEDIUM);
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/washbrushAlpha.bmp", Stroke::HUMID_MEDIUM);
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/oil.bmp", Stroke::HUMID_MEDIUM);
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/oilnoblend.bmp", Stroke::HUMID_MEDIUM);
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::DRY_MEDIUM);
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/washbrushAlpha.bmp", Stroke::DRY_MEDIUM);
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/opaqueDryBrushAlpha.bmp", Stroke::OPAQUE_MEDIUM);
-	getBrushTextureIndex(TEXTURES_DIR "/brushes/opaqueBrushAlpha.bmp", Stroke::OPAQUE_MEDIUM);
-#endif
-
-	TextureManager *instance = TextureManager::getInstance();
-	if (!instance)
-		return 0;
-	string pathname;
-	Stroke::MediumType mediumType;
-	bool hasTips = false;
-	switch (_textureId) {
-		case 0:
-			//pathname = TextureManager::Options::getBrushesPath() + "/charcoalAlpha.bmp";
-			pathname = "/charcoalAlpha.bmp";
-			mediumType = Stroke::HUMID_MEDIUM;
-			hasTips = false;
-			break;
-		case 1:
-			pathname = "/washbrushAlpha.bmp";
-			mediumType = Stroke::HUMID_MEDIUM;
-			hasTips = true;
-			break;
-		case 2:
-			pathname = "/oil.bmp";
-			mediumType = Stroke::HUMID_MEDIUM;
-			hasTips = true;
-			break;
-		case 3:
-			pathname = "/oilnoblend.bmp";
-			mediumType = Stroke::HUMID_MEDIUM;
-			hasTips = true;
-			break;
-		case 4:
-			pathname = "/charcoalAlpha.bmp";
-			mediumType = Stroke::DRY_MEDIUM;
-			hasTips = false;
-			break;
-		case 5:
-			mediumType = Stroke::DRY_MEDIUM;
-			hasTips = true;
-			break;
-		case 6:
-			pathname = "/opaqueDryBrushAlpha.bmp";
-			mediumType = Stroke::OPAQUE_MEDIUM;
-			hasTips = true;
-			break;
-		case 7:
-			pathname = "/opaqueBrushAlpha.bmp";
-			mediumType = Stroke::OPAQUE_MEDIUM;
-			hasTips = true;
-			break;
-		default:
-			pathname = "/smoothAlpha.bmp";
-			mediumType = Stroke::OPAQUE_MEDIUM;
-			hasTips = false;
-			break;
-	}
-	unsigned int texId = instance->getBrushTextureIndex(pathname, mediumType);
-	stroke.setMediumType(mediumType);
-	stroke.setTips(hasTips);
-	stroke.setTextureId(texId);
+	cout << "TextureAssignerShader is not supported in blender, please use the BlenderTextureShader" << endl;
 	return 0;
 }
 
-// FIXME
 int StrokeTextureShader::shade(Stroke& stroke) const
 {
-	TextureManager *instance = TextureManager::getInstance();
-	if (!instance)
-		return 0;
-	string pathname = TextureManager::Options::getBrushesPath() + "/" + _texturePath;
-	unsigned int texId = instance->getBrushTextureIndex(pathname, _mediumType);
-	stroke.setMediumType(_mediumType);
-	stroke.setTips(_tips);
-	stroke.setTextureId(texId);
+	cout << "StrokeTextureShader is not supported in blender, please use the BlenderTextureShader" << endl;
 	return 0;
 }
 

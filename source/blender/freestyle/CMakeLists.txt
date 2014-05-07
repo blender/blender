@@ -38,8 +38,6 @@ set(SRC
 	intern/blender_interface/BlenderStrokeRenderer.cpp
 	intern/blender_interface/BlenderStrokeRenderer.h
 	intern/blender_interface/BlenderStyleModule.h
-	intern/blender_interface/BlenderTextureManager.cpp
-	intern/blender_interface/BlenderTextureManager.h
 	intern/blender_interface/FRS_freestyle.cpp
 	intern/geometry/BBox.h
 	intern/geometry/Bezier.cpp

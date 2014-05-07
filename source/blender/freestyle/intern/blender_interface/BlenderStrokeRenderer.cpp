@@ -23,7 +23,6 @@
  */
 
 #include "BlenderStrokeRenderer.h"
-#include "BlenderTextureManager.h"
 
 #include "../application/AppConfig.h"
 #include "../stroke/Canvas.h"
@@ -60,10 +59,6 @@ namespace Freestyle {
 BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
 	freestyle_bmain = &re->freestyle_bmain;
-
-	// TEMPORARY - need a  texture manager
-	_textureManager = new BlenderTextureManager;
-	_textureManager->load();
 
 	// for stroke mesh generation
 	_width = re->winx;
@@ -159,11 +154,6 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		}
 		lnk = lnk->next;
 		BKE_libblock_free(freestyle_bmain, ma);
-	}
-
-	if (0 != _textureManager) {
-		delete _textureManager;
-		_textureManager = NULL;
 	}
 
 	// The freestyle_scene object is not released here.  Instead,
