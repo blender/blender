@@ -855,6 +855,18 @@ Render *Controller::RenderStrokes(Render *re, bool render)
 	d = _Chrono.stop();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Stroke rendering  : " << d << endl;
+
+		uintptr_t mem_in_use = MEM_get_memory_in_use();
+		uintptr_t mmap_in_use = MEM_get_mapped_memory_in_use();
+		uintptr_t peak_memory = MEM_get_peak_memory();
+
+		float megs_used_memory = (mem_in_use - mmap_in_use) / (1024.0 * 1024.0);
+		float mmap_used_memory = (mmap_in_use) / (1024.0 * 1024.0);
+		float megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
+
+		printf("%d verts, %d faces, mem %.2fM (%.2fM, peak %.2fM)\n",
+		       freestyle_render->i.totvert, freestyle_render->i.totface,
+		       megs_used_memory, mmap_used_memory, megs_peak_memory);
 	}
 	delete blenderRenderer;
 
