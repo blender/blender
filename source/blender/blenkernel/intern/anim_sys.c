@@ -2117,7 +2117,6 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr, ListBase *channels, Li
 /* evaluate meta-strip */
 static void nlastrip_evaluate_meta(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
-	ListBase tmp_channels = {NULL, NULL};
 	ListBase tmp_modifiers = {NULL, NULL};
 	NlaStrip *strip = nes->strip;
 	NlaEvalStrip *tmp_nes;
@@ -2130,23 +2129,18 @@ static void nlastrip_evaluate_meta(PointerRNA *ptr, ListBase *channels, ListBase
 	 *
 	 * NOTE: keep this in sync with animsys_evaluate_nla()
 	 */
-
+	
 	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
 	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers); 
 	
 	/* find the child-strip to evaluate */
 	evaltime = (nes->strip_time * (strip->end - strip->start)) + strip->start;
 	tmp_nes = nlastrips_ctime_get_strip(NULL, &strip->strips, -1, evaltime);
-	if (tmp_nes == NULL)
-		return;
-		
-	/* evaluate child-strip into tmp_channels buffer before accumulating 
-	 * in the accumulation buffer
-	 */
-	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, tmp_nes);
 	
-	/* accumulate temp-buffer and full-buffer, using the 'real' strip */
-	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
+	/* directly evaluate child strip into accumulation buffer... 
+	 * - there's no need to use a temporary buffer (as it causes issues [T40082])
+	 */
+	nlastrip_evaluate(ptr, channels, &tmp_modifiers, tmp_nes);
 	
 	/* free temp eval-strip */
 	MEM_freeN(tmp_nes);
@@ -2269,7 +2263,7 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 		 *	- used for mainly for still allowing normal action evaluation...
 		 */
 		if (nlt->strips.first)
-			has_strips = 1;
+			has_strips = true;
 			
 		/* otherwise, get strip to evaluate for this channel */
 		nes = nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
