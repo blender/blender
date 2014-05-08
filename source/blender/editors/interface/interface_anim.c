@@ -125,7 +125,7 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
 			
 			/* clear invalid flags which may prevent this from working */
 			driver->flag &= ~DRIVER_FLAG_INVALID;
-			fcu->flag & ~FCURVE_DISABLED;
+			fcu->flag &= ~FCURVE_DISABLED;
 			
 			/* this notifier should update the Graph Editor and trigger depsgraph refresh? */
 			WM_event_add_notifier(but->block->evil_C, NC_ANIMATION | ND_KEYFRAME, NULL);
