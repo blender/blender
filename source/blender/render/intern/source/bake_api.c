@@ -459,7 +459,7 @@ static void bake_differentials(BakeDataZSpan *bd, const float *uv1, const float 
 		bd->dv_dy = (uv1[0] - uv3[0]) * A;
 	}
 	else {
-		bd->du_dx = bd->dv_dx = 0.0f;
+		bd->du_dx = bd->du_dy = 0.0f;
 		bd->dv_dx = bd->dv_dy = 0.0f;
 	}
 }
