@@ -1593,7 +1593,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			continue;
 		}
 		if (sculpt_mode &&
-		    (!has_multires || multires_applied || ob->sculpt->bm))
+			(!has_multires || multires_applied || sculpt_dyntopo))
 		{
 			bool unsupported = false;
 
@@ -1613,6 +1613,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			if (unsupported) {
 				modifier_setError(md, "Not supported in sculpt mode");
 				continue;
+			}
+			else {
+				modifier_setError(md, "Hide, Mask and optimized display disabled");
 			}
 		}
 		if (needMapping && !modifier_supportsMapping(md)) continue;
