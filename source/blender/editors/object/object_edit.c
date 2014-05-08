@@ -1127,8 +1127,7 @@ static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (ob->pd == NULL)
 		ob->pd = object_add_collision_fields(PFIELD_FORCE);
-
-	if (ob->pd->forcefield == 0)
+	else if (ob->pd->forcefield == 0)
 		ob->pd->forcefield = PFIELD_FORCE;
 	else
 		ob->pd->forcefield = 0;
