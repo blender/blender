@@ -1599,7 +1599,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			if (md->type == eModifierType_Multires && ((MultiresModifierData *)md)->sculptlvl == 0) {
 				/* If multires is on level 0 skip it silently without warning message. */
-				continue;
+				if (!sculpt_dyntopo)
+					continue;
 			}
 
 			if (sculpt_dyntopo && !useRenderParams)
@@ -1611,7 +1612,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			unsupported |= multires_applied;
 
 			if (unsupported) {
-				modifier_setError(md, "Not supported in sculpt mode");
+				if (sculpt_dyntopo)
+					modifier_setError(md, "Not supported in dyntopo");
+				else
+					modifier_setError(md, "Not supported in sculpt mode");
 				continue;
 			}
 			else {
