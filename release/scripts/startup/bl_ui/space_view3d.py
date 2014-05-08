@@ -2766,15 +2766,6 @@ class VIEW3D_PT_view3d_name(Panel):
                 row.label(text="", icon='BONE_DATA')
                 row.prop(bone, "name", text="")
 
-        elif ob.type == 'MESH':
-            me = ob.data
-            row = layout.row()
-            row.prop(me, "use_auto_smooth")
-            row = row.row()
-            if not me.use_auto_smooth:
-                row.active = False
-            row.prop(me, "auto_smooth_angle", text="")
-
 
 class VIEW3D_PT_view3d_display(Panel):
     bl_space_type = 'VIEW_3D'
