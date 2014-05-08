@@ -190,6 +190,8 @@ typedef struct Object {
 
 	int dupon, dupoff, dupsta, dupend;
 
+	int pad;
+
 	/* during realtime */
 
 	/* note that inertia is only called inertia for historical reasons
@@ -210,7 +212,6 @@ typedef struct Object {
 	float margin;
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float min_vel; /* clamp the minimum velocity 0.0 is disabled */
-	float m_contactProcessingThreshold;
 	float obstacleRad;
 	
 	/* "Character" physics properties */

@@ -122,6 +122,8 @@ bool ED_texture_context_check_linestyle(const bContext *C)
 			}
 		}
 	}
+#else
+	(void)C;
 #endif
 	return false;
 }

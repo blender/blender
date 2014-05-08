@@ -287,8 +287,8 @@ struct CcdConstructionInfo
 		m_fh_spring(0.f),
 		m_fh_damping(0.f),
 		m_fh_distance(1.f),
-		m_fh_normal(false),
-		m_contactProcessingThreshold(1e10f)
+		m_fh_normal(false)
+		// m_contactProcessingThreshold(1e10f)
 	{
 
 	}
@@ -390,8 +390,7 @@ struct CcdConstructionInfo
 	///however, rigid body stacking is more stable when positive contacts are still passed into the constraint solver
 	///this might sometimes lead to collisions with 'internal edges' such as a sliding character controller
 	///so disable/set m_contactProcessingThreshold to zero for sliding characters etc.
-	float		m_contactProcessingThreshold;///< Process contacts with positive distance in range [0..INF]
-
+	// float		m_contactProcessingThreshold;///< Process contacts with positive distance in range [0..INF]
 };
 
 class btRigidBody;

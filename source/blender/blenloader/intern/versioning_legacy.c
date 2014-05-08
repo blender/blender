@@ -3570,8 +3570,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		World *wrld;
 		for (ob = main->object.first; ob; ob = ob->id.next) {
-			/* pad3 is used for m_contactProcessingThreshold */
-			ob->m_contactProcessingThreshold = 1.0f;
 			if (ob->parent) {
 				/* check if top parent has compound shape set and if yes, set this object
 				 * to compound shaper as well (was the behavior before, now it's optional) */

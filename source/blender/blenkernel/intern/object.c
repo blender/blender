@@ -1002,8 +1002,6 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 	ob->margin = 0.04f;
 	ob->init_state = 1;
 	ob->state = 1;
-	/* ob->pad3 == Contact Processing Threshold */
-	ob->m_contactProcessingThreshold = 1.0f;
 	ob->obstacleRad = 1.0f;
 	ob->step_height = 0.15f;
 	ob->jump_speed = 10.0f;
