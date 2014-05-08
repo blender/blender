@@ -110,19 +110,27 @@ static int graphview_cursor_exec(bContext *C, wmOperator *op)
 /* set the operator properties from the initial event */
 static void graphview_cursor_setprops(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	float viewx, viewy;
-
+	int frame;
+	
 	/* abort if not active region (should not really be possible) */
 	if (ar == NULL)
 		return;
-
+	
 	/* convert from region coordinates to View2D 'tot' space */
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 	
-	/* store the values in the operator properties */
 	/* frame is rounded to the nearest int, since frames are ints */
-	RNA_int_set(op->ptr, "frame", iroundf(viewx));
+	frame = iroundf(viewx);
+	
+	if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
+		CLAMP(frame, PSFRA, PEFRA);
+	}
+	
+	/* store the values in the operator properties */
+	RNA_int_set(op->ptr, "frame", frame);
 	RNA_float_set(op->ptr, "value", viewy);
 }
 

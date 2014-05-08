@@ -128,11 +128,11 @@ static int frame_from_event(bContext *C, const wmEvent *event)
 	
 	/* round result to nearest int (frames are ints!) */
 	frame = iroundf(viewx);
-
+	
 	if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
 		CLAMP(frame, PSFRA, PEFRA);
 	}
-
+	
 	return frame;
 }
 
