@@ -560,7 +560,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 	for (; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
-		if (md->type == eModifierType_ShapeKey) continue;
+		if (ELEM(md->type, eModifierType_ShapeKey, eModifierType_Multires)) continue;
 
 		if (mti->type == eModifierTypeType_OnlyDeform) return 1;
 		else if ((sd->flags & SCULPT_ONLY_DEFORM) == 0) return 1;
