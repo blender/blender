@@ -31,7 +31,12 @@
 	#include "MEM_guardedalloc.h"
 #endif
 
-#define MAX_ACTION_LAYERS 8
+#include <map>
+
+// Currently, we use the max value of a short.
+// We should switch to unsigned short; doesn't make sense to support negative layers.
+// This will also give us 64k layers instead of 32k.
+#define MAX_ACTION_LAYERS 32767
 
 class BL_Action;
 
@@ -41,7 +46,20 @@ class BL_Action;
 class BL_ActionManager
 {
 private:
-	BL_Action* m_layers[MAX_ACTION_LAYERS];
+	typedef std::map<short,BL_Action*> BL_ActionMap;
+
+	class KX_GameObject* m_obj;
+	BL_ActionMap 		 m_layers;
+
+	/**
+	 * Check if an action exists
+	 */
+	BL_Action* GetAction(short layer);
+
+	/**
+	 * Add new action with given layer
+	 */
+	BL_Action* AddAction(short layer);
 
 public:
 	BL_ActionManager(class KX_GameObject* obj);

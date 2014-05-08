@@ -661,7 +661,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "layer", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 7); /* This should match BL_ActionManager::MAX_ACTION_LAYERS - 1 */
+	RNA_def_property_range(prop, 0, 32766); /* This should match BL_ActionManager::MAX_ACTION_LAYERS - 1 */
 	RNA_def_property_ui_text(prop, "Layer", "The animation layer to play the action on");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

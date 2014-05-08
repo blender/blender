@@ -24,44 +24,72 @@
  *  \ingroup ketsji
  */
 
-#include "BL_ActionManager.h"
 #include "BL_Action.h"
+#include "BL_ActionManager.h"
 
-BL_ActionManager::BL_ActionManager(class KX_GameObject *obj)
+BL_ActionManager::BL_ActionManager(class KX_GameObject *obj):
+	m_obj(obj)
 {
-	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
-		m_layers[i] = new BL_Action(obj);
 }
 
 BL_ActionManager::~BL_ActionManager()
 {
-	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
-		delete m_layers[i];
+	BL_ActionMap::iterator it;
+
+	for (it = m_layers.begin(); it != m_layers.end(); it++)
+		delete it->second;
+
+	m_layers.clear();
+}
+
+BL_Action *BL_ActionManager::GetAction(short layer)
+{
+	BL_ActionMap::iterator it = m_layers.find(layer);
+
+	return (it != m_layers.end()) ? it->second : 0;
+}
+
+BL_Action* BL_ActionManager::AddAction(short layer)
+{
+	BL_Action *action = new BL_Action(m_obj);
+	m_layers[layer] = action;
+
+	return action;
 }
 
 float BL_ActionManager::GetActionFrame(short layer)
 {
-	return m_layers[layer]->GetFrame();
+	BL_Action *action = GetAction(layer);
+
+	return action ? action->GetFrame() : 0.f;
 }
 
 void BL_ActionManager::SetActionFrame(short layer, float frame)
 {
-	m_layers[layer]->SetFrame(frame);
+	BL_Action *action = GetAction(layer);
+
+	if (action) action->SetFrame(frame);
 }
 
 struct bAction *BL_ActionManager::GetCurrentAction(short layer)
 {
-	return m_layers[layer]->GetAction();
+	BL_Action *action = GetAction(layer);
+
+	return action ? action->GetAction() : 0;
 }
 
 void BL_ActionManager::SetPlayMode(short layer, short mode)
 {
-	m_layers[layer]->SetPlayMode(mode);
+	BL_Action *action = GetAction(layer);
+
+	if (action) action->SetPlayMode(mode);
 }
 
 void BL_ActionManager::SetTimes(short layer, float start, float end)
 {
-	m_layers[layer]->SetTimes(start, end);
+	BL_Action *action = GetAction(layer);
+
+	if (action) action->SetTimes(start, end);
 }
 
 bool BL_ActionManager::PlayAction(const char* name,
@@ -76,40 +104,53 @@ bool BL_ActionManager::PlayAction(const char* name,
 								float playback_speed,
 								short blend_mode)
 {
+	// Only this method will create layer if non-existent
+	BL_Action *action = GetAction(layer);
+	if (!action)
+		action = AddAction(layer);
+
 	// Disable layer blending on the first layer
 	if (layer == 0) layer_weight = -1.f;
 
-	return m_layers[layer]->Play(name, start, end, priority, blendin, play_mode, layer_weight, ipo_flags, playback_speed, blend_mode);
+	return action->Play(name, start, end, priority, blendin, play_mode, layer_weight, ipo_flags, playback_speed, blend_mode);
 }
 
 void BL_ActionManager::StopAction(short layer)
 {
-	m_layers[layer]->Stop();
+	BL_Action *action = GetAction(layer);
+
+	if (action) action->Stop();
 }
 
 bool BL_ActionManager::IsActionDone(short layer)
 {
-	return m_layers[layer]->IsDone();
+	BL_Action *action = GetAction(layer);
+
+	return action ? action->IsDone() : true;
 }
 
 void BL_ActionManager::Update(float curtime)
 {
-	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
+	BL_ActionMap::iterator it;
+	for (it = m_layers.begin(); it != m_layers.end(); )
 	{
-		if (!m_layers[i]->IsDone())
-		{
-			m_layers[i]->Update(curtime);
+		if (it->second->IsDone()) {
+			delete it->second;
+			m_layers.erase(it++);
+		}
+		else {
+			it->second->Update(curtime);
+			++it;
 		}
 	}
 }
 
 void BL_ActionManager::UpdateIPOs()
 {
-	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
+	BL_ActionMap::iterator it;
+	for (it = m_layers.begin(); it != m_layers.end(); ++it)
 	{
-		if (!m_layers[i]->IsDone())
-		{
-			m_layers[i]->UpdateIPOs();
-		}
+		if (!it->second->IsDone())
+			it->second->UpdateIPOs();
 	}
 }
