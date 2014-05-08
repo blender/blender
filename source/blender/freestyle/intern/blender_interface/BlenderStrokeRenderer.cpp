@@ -570,11 +570,9 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	char name[MAX_ID_NAME];
 	unsigned int mesh_id = get_stroke_mesh_id();
 
-	/* XXX this is for later review, for now we start names with 27 (DEL) 
-	   to allow ignoring them in DAG_ids_check_recalc() */
-	BLI_snprintf(name, MAX_ID_NAME, "%c0%08xOB", 27, mesh_id);
+	BLI_snprintf(name, MAX_ID_NAME, "0%08xOB", mesh_id);
 	ob = BKE_object_add_only_object(freestyle_bmain, OB_MESH, name);
-	BLI_snprintf(name, MAX_ID_NAME, "%c0%08xME", 27, mesh_id);
+	BLI_snprintf(name, MAX_ID_NAME, "0%08xME", mesh_id);
 	ob->data = BKE_mesh_add(freestyle_bmain, name);
 	ob->lay = 1;
 
