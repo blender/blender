@@ -104,6 +104,7 @@ bool ED_texture_context_check_particles(const bContext *C)
 
 bool ED_texture_context_check_linestyle(const bContext *C)
 {
+#ifdef WITH_FREESTYLE
 	Scene *scene = CTX_data_scene(C);
 	SceneRenderLayer *actsrl;
 	FreestyleConfig *config;
@@ -121,6 +122,7 @@ bool ED_texture_context_check_linestyle(const bContext *C)
 			}
 		}
 	}
+#endif
 	return false;
 }
 
