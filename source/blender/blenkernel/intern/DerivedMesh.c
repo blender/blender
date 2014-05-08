@@ -1884,8 +1884,11 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 * which deals with drawing differently.
 		 *
 		 * Only calc vertex normals if they are flagged as dirty.
+		 * If using loop normals, poly nors have already been computed.
 		 */
-		dm_ensure_display_normals(finaldm);
+		if (!do_loop_normals) {
+			dm_ensure_display_normals(finaldm);
+		}
 	}
 
 #ifdef WITH_GAMEENGINE
