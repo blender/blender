@@ -5969,7 +5969,10 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_BUTS) {
 					SpaceButs *sbuts = (SpaceButs *)sl;
 					sbuts->pinid = restore_pointer_by_name(newmain, sbuts->pinid, USER_IGNORE);
-					//XXX if (sbuts->ri) sbuts->ri->curtile = 0;
+
+					/* TODO: restore path pointers: T40046
+					 * (complicated because this contains data pointers too, not just ID)*/
+					MEM_SAFE_FREE(sbuts->path);
 				}
 				else if (sl->spacetype == SPACE_FILE) {
 					SpaceFile *sfile = (SpaceFile *)sl;
