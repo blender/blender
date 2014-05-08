@@ -144,7 +144,11 @@ static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA 
 static void rna_ChannelDriver_update_expr(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ChannelDriver *driver = ptr->data;
+	
+	/* tag driver as needing to be recompiled */
 	driver->flag |= DRIVER_FLAG_RECOMPILE;
+	
+	/* update_data() clears invalid flag and schedules for updates */
 	rna_ChannelDriver_update_data(bmain, scene, ptr);
 }
 

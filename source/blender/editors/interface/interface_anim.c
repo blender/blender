@@ -117,10 +117,19 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
 	if (fcu && driven) {
 		driver = fcu->driver;
 		
-		if (driver && driver->type == DRIVER_TYPE_PYTHON) {
+		if (driver && (driver->type == DRIVER_TYPE_PYTHON)) {
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
+			
+			/* tag driver as needing to be recompiled */
 			driver->flag |= DRIVER_FLAG_RECOMPILE;
+			
+			/* clear invalid flags which may prevent this from working */
+			driver->flag &= ~DRIVER_FLAG_INVALID;
+			fcu->flag & ~FCURVE_DISABLED;
+			
+			/* this notifier should update the Graph Editor and trigger depsgraph refresh? */
 			WM_event_add_notifier(but->block->evil_C, NC_ANIMATION | ND_KEYFRAME, NULL);
+			
 			return true;
 		}
 	}
