@@ -1091,27 +1091,14 @@ static void TargetSnapActive(TransInfo *t)
 {
 	/* Only need to calculate once */
 	if ((t->tsnap.status & TARGET_INIT) == 0) {
-		TransData *td = NULL;
-		TransData *active_td = NULL;
-		int i;
-
-		for (td = t->data, i = 0; i < t->total && td->flag & TD_SELECTED; i++, td++) {
-			if (td->flag & TD_ACTIVE) {
-				active_td = td;
-				break;
-			}
-		}
-
-		if (active_td) {
-			copy_v3_v3(t->tsnap.snapTarget, active_td->center);
-			
+		if (calculateCenterActive(t, true, t->tsnap.snapTarget)) {
 			if (t->flag & (T_EDIT | T_POSE)) {
 				Object *ob = t->obedit ? t->obedit : t->poseobj;
 				mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
 			}
-			
-			TargetSnapOffset(t, active_td);
-			
+
+			TargetSnapOffset(t, NULL);
+
 			t->tsnap.status |= TARGET_INIT;
 		}
 		/* No active, default to median */

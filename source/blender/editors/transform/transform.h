@@ -461,7 +461,6 @@ typedef struct TransInfo {
 
 /* transdata->flag */
 #define TD_SELECTED			1
-#define TD_ACTIVE			(1 << 1)
 #define	TD_NOACTION			(1 << 2)
 #define	TD_USEQUAT			(1 << 3)
 #define TD_NOTCONNECTED		(1 << 4)
@@ -636,13 +635,18 @@ void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
 void recalcData(TransInfo *t);
 
-void calculateCenter(TransInfo *t);
 void calculateCenter2D(TransInfo *t);
-void calculateCenterBound(TransInfo *t);
-void calculateCenterMedian(TransInfo *t);
-void calculateCenterCursor(TransInfo *t);
 
-void calculateCenterCursor2D(TransInfo *t);
+void calculateCenter(TransInfo *t);
+
+/* API functions for getting center points */
+void calculateCenterBound(TransInfo *t, float r_center[3]);
+void calculateCenterMedian(TransInfo *t, float r_center[3]);
+void calculateCenterCursor(TransInfo *t, float r_center[3]);
+void calculateCenterCursor2D(TransInfo *t, float r_center[2]);
+void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2]);
+bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3]);
+
 void calculatePropRatio(TransInfo *t);
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3]);

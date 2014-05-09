@@ -49,6 +49,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_meta_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1518,28 +1519,26 @@ void calculateCenter2D(TransInfo *t)
 	}
 }
 
-void calculateCenterCursor(TransInfo *t)
+void calculateCenterCursor(TransInfo *t, float r_center[3])
 {
 	const float *cursor;
 	
 	cursor = ED_view3d_cursor3d_get(t->scene, t->view);
-	copy_v3_v3(t->center, cursor);
+	copy_v3_v3(r_center, cursor);
 	
 	/* If edit or pose mode, move cursor in local space */
 	if (t->flag & (T_EDIT | T_POSE)) {
 		Object *ob = t->obedit ? t->obedit : t->poseobj;
 		float mat[3][3], imat[3][3];
 		
-		sub_v3_v3v3(t->center, t->center, ob->obmat[3]);
+		sub_v3_v3v3(r_center, r_center, ob->obmat[3]);
 		copy_m3_m4(mat, ob->obmat);
 		invert_m3_m3(imat, mat);
-		mul_m3_v3(imat, t->center);
+		mul_m3_v3(imat, r_center);
 	}
-	
-	calculateCenter2D(t);
 }
 
-void calculateCenterCursor2D(TransInfo *t)
+void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 {
 	float aspx = 1.0, aspy = 1.0;
 	const float *cursor = NULL;
@@ -1586,31 +1585,27 @@ void calculateCenterCursor2D(TransInfo *t)
 				BLI_assert(!"Shall not happen");
 			}
 
-			t->center[0] = co[0] * aspx;
-			t->center[1] = co[1] * aspy;
+			r_center[0] = co[0] * aspx;
+			r_center[1] = co[1] * aspy;
 		}
 		else {
-			t->center[0] = cursor[0] * aspx;
-			t->center[1] = cursor[1] * aspy;
+			r_center[0] = cursor[0] * aspx;
+			r_center[1] = cursor[1] * aspy;
 		}
 	}
-	
-	calculateCenter2D(t);
 }
 
-static void calculateCenterCursorGraph2D(TransInfo *t)
+void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
 {
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 	Scene *scene = t->scene;
 	
 	/* cursor is combination of current frame, and graph-editor cursor value */
-	t->center[0] = (float)(scene->r.cfra);
-	t->center[1] = sipo->cursorVal;
-	
-	calculateCenter2D(t);
+	r_center[0] = (float)(scene->r.cfra);
+	r_center[1] = sipo->cursorVal;
 }
 
-void calculateCenterMedian(TransInfo *t)
+void calculateCenterMedian(TransInfo *t, float r_center[3])
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
 	int total = 0;
@@ -1626,12 +1621,10 @@ void calculateCenterMedian(TransInfo *t)
 	}
 	if (i)
 		mul_v3_fl(partial, 1.0f / total);
-	copy_v3_v3(t->center, partial);
-	
-	calculateCenter2D(t);
+	copy_v3_v3(r_center, partial);
 }
 
-void calculateCenterBound(TransInfo *t)
+void calculateCenterBound(TransInfo *t, float r_center[3])
 {
 	float max[3];
 	float min[3];
@@ -1648,83 +1641,137 @@ void calculateCenterBound(TransInfo *t)
 			copy_v3_v3(min, t->data[i].center);
 		}
 	}
-	mid_v3_v3v3(t->center, min, max);
-
-	calculateCenter2D(t);
+	mid_v3_v3v3(r_center, min, max);
 }
+
+/**
+ * \param select_only only get active center from data being transformed.
+ */
+bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
+{
+	bool ok = false;
+
+	if (t->obedit) {
+		switch (t->obedit->type) {
+			case OB_MESH:
+			{
+				BMEditSelection ese;
+				BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
+
+				if (BM_select_history_active_get(em->bm, &ese)) {
+					BM_editselection_center(&ese, r_center);
+					ok = true;
+				}
+				break;
+			}
+			case OB_ARMATURE:
+			{
+				bArmature *arm = t->obedit->data;
+				EditBone *ebo = arm->act_edbone;
+
+				if (ebo && (!select_only || (ebo->flag & (BONE_SELECTED | BONE_ROOTSEL)))) {
+					copy_v3_v3(r_center, ebo->head);
+					ok = true;
+				}
+
+				break;
+			}
+			case OB_CURVE:
+			case OB_SURF:
+			{
+				float center[3];
+				Curve *cu = (Curve *)t->obedit->data;
+
+				if (ED_curve_active_center(cu, center)) {
+					copy_v3_v3(r_center, center);
+					ok = true;
+				}
+				break;
+			}
+			case OB_MBALL:
+			{
+				MetaBall *mb = (MetaBall *)t->obedit->data;
+				MetaElem *ml_act = mb->lastelem;
+
+				if (ml_act && (!select_only || (ml_act->flag & SELECT))) {
+					copy_v3_v3(r_center, &ml_act->x);
+					ok = true;
+				}
+				break;
+			}
+			case OB_LATTICE:
+			{
+				BPoint *actbp = BKE_lattice_active_point_get(t->obedit->data);
+
+				if (actbp) {
+					copy_v3_v3(r_center, actbp->vec);
+					ok = true;
+				}
+				break;
+			}
+		}
+	}
+	else if (t->flag & T_POSE) {
+		Scene *scene = t->scene;
+		Object *ob = OBACT;
+		if (ob) {
+			bPoseChannel *pchan = BKE_pose_channel_active(ob);
+			if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
+				copy_v3_v3(r_center, pchan->pose_head);
+				ok = true;
+			}
+		}
+	}
+	else {
+		/* object mode */
+		Scene *scene = t->scene;
+		Object *ob = OBACT;
+		if (ob && (!select_only || (ob->flag & SELECT))) {
+			copy_v3_v3(r_center, ob->obmat[3]);
+			ok = true;
+		}
+	}
+
+	return ok;
+}
+
 
 void calculateCenter(TransInfo *t)
 {
 	switch (t->around) {
 		case V3D_CENTER:
-			calculateCenterBound(t);
+			calculateCenterBound(t, t->center);
 			break;
 		case V3D_CENTROID:
-			calculateCenterMedian(t);
+			calculateCenterMedian(t, t->center);
 			break;
 		case V3D_CURSOR:
 			if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP))
-				calculateCenterCursor2D(t);
+				calculateCenterCursor2D(t, t->center);
 			else if (t->spacetype == SPACE_IPO)
-				calculateCenterCursorGraph2D(t);
+				calculateCenterCursorGraph2D(t, t->center);
 			else
-				calculateCenterCursor(t);
+				calculateCenterCursor(t, t->center);
 			break;
 		case V3D_LOCAL:
 			/* Individual element center uses median center for helpline and such */
-			calculateCenterMedian(t);
+			calculateCenterMedian(t, t->center);
 			break;
 		case V3D_ACTIVE:
 		{
-			/* set median, and if if if... do object center */
-		
-			/* EDIT MODE ACTIVE EDITMODE ELEMENT */
-
-			if (t->obedit) {
-				if (t->obedit && t->obedit->type == OB_MESH) {
-					BMEditSelection ese;
-					BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
-
-					if (BM_select_history_active_get(em->bm, &ese)) {
-						BM_editselection_center(&ese, t->center);
-						calculateCenter2D(t);
-						break;
-					}
-				}
-				else if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
-					float center[3];
-					Curve *cu = (Curve *)t->obedit->data;
-
-					if (ED_curve_active_center(cu, center)) {
-						copy_v3_v3(t->center, center);
-						calculateCenter2D(t);
-						break;
-					}
-				}
-				else if (t->obedit && t->obedit->type == OB_LATTICE) {
-					BPoint *actbp = BKE_lattice_active_point_get(t->obedit->data);
-
-					if (actbp) {
-						copy_v3_v3(t->center, actbp->vec);
-						calculateCenter2D(t);
-						break;
-					}
-				}
-			} /* END EDIT MODE ACTIVE ELEMENT */
-
-			calculateCenterMedian(t);
-			if ((t->flag & (T_EDIT | T_POSE)) == 0) {
-				Scene *scene = t->scene;
-				Object *ob = OBACT;
-				if (ob) {
-					copy_v3_v3(t->center, ob->obmat[3]);
-					projectFloatView(t, t->center, t->center2d);
-				}
+			if (calculateCenterActive(t, false, t->center)) {
+				/* pass */
+			}
+			else {
+				/* fallback */
+				calculateCenterMedian(t, t->center);
 			}
 			break;
 		}
 	}
-	
+
+	calculateCenter2D(t);
+
 	/* setting constraint center */
 	copy_v3_v3(t->con.center, t->center);
 	if (t->flag & (T_EDIT | T_POSE)) {
