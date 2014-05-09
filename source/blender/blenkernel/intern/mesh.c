@@ -424,11 +424,12 @@ void BKE_mesh_unlink(Mesh *me)
 	int a;
 	
 	if (me == NULL) return;
-	
-	if (me->mat)
-	for (a = 0; a < me->totcol; a++) {
-		if (me->mat[a]) me->mat[a]->id.us--;
-		me->mat[a] = NULL;
+
+	if (me->mat) {
+		for (a = 0; a < me->totcol; a++) {
+			if (me->mat[a]) me->mat[a]->id.us--;
+			me->mat[a] = NULL;
+		}
 	}
 
 	if (me->key) {
