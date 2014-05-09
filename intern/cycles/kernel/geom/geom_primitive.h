@@ -140,7 +140,19 @@ ccl_device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 
 ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 {
-	float3 motion_pre = sd->P, motion_post = sd->P;
+	/* center position */
+	float3 center;
+
+	if(sd->type & PRIMITIVE_ALL_CURVE) {
+		center = curve_motion_center_location(kg, sd);
+
+		if(!(sd->flag & SD_TRANSFORM_APPLIED))
+			object_position_transform(kg, sd, &center);
+	}
+	else
+		center = sd->P;
+
+	float3 motion_pre = center, motion_post = center;
 
 	/* deformation motion */
 	AttributeElement elem;
@@ -168,13 +180,13 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	tfm = object_fetch_vector_transform(kg, sd->object, OBJECT_VECTOR_MOTION_POST);
 	motion_post = transform_point(&tfm, motion_post);
 
-	float3 P;
+	float3 motion_center;
 
 	/* camera motion, for perspective/orthographic motion.pre/post will be a
 	 * world-to-raster matrix, for panorama it's world-to-camera */
 	if (kernel_data.cam.type != CAMERA_PANORAMA) {
 		tfm = kernel_data.cam.worldtoraster;
-		P = transform_perspective(&tfm, sd->P);
+		motion_center = transform_perspective(&tfm, center);
 
 		tfm = kernel_data.cam.motion.pre;
 		motion_pre = transform_perspective(&tfm, motion_pre);
@@ -184,10 +196,10 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	}
 	else {
 		tfm = kernel_data.cam.worldtocamera;
-		P = normalize(transform_point(&tfm, sd->P));
-		P = float2_to_float3(direction_to_panorama(kg, P));
-		P.x *= kernel_data.cam.width;
-		P.y *= kernel_data.cam.height;
+		motion_center = normalize(transform_point(&tfm, center));
+		motion_center = float2_to_float3(direction_to_panorama(kg, motion_center));
+		motion_center.x *= kernel_data.cam.width;
+		motion_center.y *= kernel_data.cam.height;
 
 		tfm = kernel_data.cam.motion.pre;
 		motion_pre = normalize(transform_point(&tfm, motion_pre));
@@ -202,8 +214,8 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 		motion_post.y *= kernel_data.cam.height;
 	}
 
-	motion_pre = motion_pre - P;
-	motion_post = P - motion_post;
+	motion_pre = motion_pre - motion_center;
+	motion_post = motion_center - motion_post;
 
 	return make_float4(motion_pre.x, motion_pre.y, motion_post.x, motion_post.y);
 }
