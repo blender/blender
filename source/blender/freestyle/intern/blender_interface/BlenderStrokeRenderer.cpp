@@ -137,25 +137,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
 {
-	// release materials
-	Link *lnk = (Link *)freestyle_bmain->mat.first;
-
-	while (lnk)
-	{
-		Material *ma = (Material*)lnk;
-		// We want to retain the linestyle mtexs, so let's detach them first
-		for (int a = 0; a < MAX_MTEX; a++) {
-			if (ma->mtex[a]) {
-				ma->mtex[a] = NULL;
-			}
-			else {
-				break; // Textures are ordered, no empty slots between two textures
-			}
-		}
-		lnk = lnk->next;
-		BKE_libblock_free(freestyle_bmain, ma);
-	}
-
 	// The freestyle_scene object is not released here.  Instead,
 	// the scene is released in free_all_freestyle_renders() in
 	// source/blender/render/intern/source/pipeline.c, after the
@@ -186,6 +167,25 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		}
 	}
 	BLI_freelistN(&freestyle_scene->base);
+
+	// release materials
+	Link *lnk = (Link *)freestyle_bmain->mat.first;
+
+	while (lnk)
+	{
+		Material *ma = (Material*)lnk;
+		// We want to retain the linestyle mtexs, so let's detach them first
+		for (int a = 0; a < MAX_MTEX; a++) {
+			if (ma->mtex[a]) {
+				ma->mtex[a] = NULL;
+			}
+			else {
+				break; // Textures are ordered, no empty slots between two textures
+			}
+		}
+		lnk = lnk->next;
+		BKE_libblock_free(freestyle_bmain, ma);
+	}
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
