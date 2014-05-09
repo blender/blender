@@ -955,7 +955,8 @@ class DashedLineShader(StrokeShader):
                 if index == len(self._pattern):
                     index = 0
                 visible = not visible
-            it.object.attribute.visible = visible
+            if not visible:
+                it.object.attribute.visible = visible
             it.increment()
 
 
