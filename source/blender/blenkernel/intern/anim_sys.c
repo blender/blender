@@ -2140,10 +2140,12 @@ static void nlastrip_evaluate_meta(PointerRNA *ptr, ListBase *channels, ListBase
 	/* directly evaluate child strip into accumulation buffer... 
 	 * - there's no need to use a temporary buffer (as it causes issues [T40082])
 	 */
-	nlastrip_evaluate(ptr, channels, &tmp_modifiers, tmp_nes);
-	
-	/* free temp eval-strip */
-	MEM_freeN(tmp_nes);
+	if (tmp_nes) {
+		nlastrip_evaluate(ptr, channels, &tmp_modifiers, tmp_nes);
+		
+		/* free temp eval-strip */
+		MEM_freeN(tmp_nes);
+	}
 	
 	/* unlink this strip's modifiers from the parent's modifiers again */
 	nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
@@ -2153,7 +2155,7 @@ static void nlastrip_evaluate_meta(PointerRNA *ptr, ListBase *channels, ListBase
 void nlastrip_evaluate(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
 	NlaStrip *strip = nes->strip;
-
+	
 	/* to prevent potential infinite recursion problems (i.e. transition strip, beside meta strip containing a transition
 	 * several levels deep inside it), we tag the current strip as being evaluated, and clear this when we leave
 	 */
