@@ -874,37 +874,38 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			dy = (my - nsw->mystart) / UI_DPI_FAC;
 			
 			if (node) {
-				if (node->flag & NODE_HIDDEN) {
-					float widthmin = 0.0f;
-					float widthmax = 100.0f;
-					if (nsw->directions & NODE_RESIZE_RIGHT) {
-						node->miniwidth = nsw->oldminiwidth + dx;
-						CLAMP(node->miniwidth, widthmin, widthmax);
-					}
-					if (nsw->directions & NODE_RESIZE_LEFT) {
-						float locmax = nsw->oldlocx + nsw->oldminiwidth;
-						
-						node->locx = nsw->oldlocx + dx;
-						CLAMP(node->locx, locmax - widthmax, locmax - widthmin);
-						node->miniwidth = locmax - node->locx;
-					}
+				/* width can use node->width or node->miniwidth (hidden nodes) */
+				float *pwidth;
+				float oldwidth, widthmin, widthmax;
+				/* ignore hidden flag for frame nodes */
+				bool use_hidden = (node->type != NODE_FRAME);
+				if (use_hidden && node->flag & NODE_HIDDEN) {
+					pwidth = &node->miniwidth;
+					oldwidth = nsw->oldminiwidth;
+					widthmin = 0.0f;
+					widthmax = 100.0f;
 				}
 				else {
-					float widthmin = node->typeinfo->minwidth;
-					float widthmax = node->typeinfo->maxwidth;
+					pwidth = &node->width;
+					oldwidth = nsw->oldwidth;
+					widthmin = node->typeinfo->minwidth;
+					widthmax = node->typeinfo->maxwidth;
+				}
+				
+				{
 					if (nsw->directions & NODE_RESIZE_RIGHT) {
-						node->width = nsw->oldwidth + dx;
-						CLAMP(node->width, widthmin, widthmax);
+						*pwidth = oldwidth + dx;
+						CLAMP(*pwidth, widthmin, widthmax);
 					}
 					if (nsw->directions & NODE_RESIZE_LEFT) {
-						float locmax = nsw->oldlocx + nsw->oldwidth;
+						float locmax = nsw->oldlocx + oldwidth;
 						
 						node->locx = nsw->oldlocx + dx;
 						CLAMP(node->locx, locmax - widthmax, locmax - widthmin);
-						node->width = locmax - node->locx;
+						*pwidth = locmax - node->locx;
 					}
 				}
-			
+				
 				/* height works the other way round ... */
 				{
 					float heightmin = UI_DPI_FAC * node->typeinfo->minheight;
