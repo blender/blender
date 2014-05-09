@@ -162,7 +162,7 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Enter Tweak Mode";
 	ot->idname = "NLA_OT_tweakmode_enter";
-	ot->description = "Enter tweaking mode for the action referenced by the active strip";
+	ot->description = "Enter tweaking mode for the action referenced by the active strip to edit its keyframes";
 	
 	/* api callbacks */
 	ot->exec = nlaedit_enable_tweakmode_exec;
