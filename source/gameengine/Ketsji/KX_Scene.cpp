@@ -1636,6 +1636,9 @@ static void update_anim_thread_func(TaskPool *pool, void *taskdata, int UNUSED(t
 		gameobj->UpdateActionManager(curtime);
 		children = gameobj->GetChildren();
 
+		if (gameobj->GetDeformer())
+			gameobj->GetDeformer()->Update();
+
 		for (int j=0; j<children->GetCount(); ++j) {
 			child = (KX_GameObject*)children->GetValue(j);
 

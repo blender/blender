@@ -222,6 +222,9 @@ bool BL_ShapeDeformer::Update(void)
 		if (m_recalcNormal)
 			RecalcNormals();
 #endif
+
+		// We also need to handle transverts now (used to be in BL_SkinDeformer::Apply())
+		UpdateTransverts();
 		bSkinUpdate = true;
 	}
 
