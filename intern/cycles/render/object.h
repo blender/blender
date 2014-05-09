@@ -60,7 +60,7 @@ public:
 	void tag_update(Scene *scene);
 
 	void compute_bounds(bool motion_blur);
-	void apply_transform();
+	void apply_transform(bool apply_to_motion);
 
 	vector<float> motion_times();
 };
