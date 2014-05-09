@@ -129,7 +129,7 @@ bool BL_ShapeDeformer::LoadShapeDrivers(KX_GameObject* parent)
 	}
 
 	// Fix drivers since BL_ArmatureObject makes copies
-	if (parent->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE) {
+	if (parent->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE && GetKey()->adt) {
 		BL_ArmatureObject *arma = (BL_ArmatureObject*)parent;
 		FCurve *fcu;
 
