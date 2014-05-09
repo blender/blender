@@ -491,8 +491,8 @@ static void brush_painter_imbuf_partial_update(BrushPainter *painter, const floa
 		w = h = 0;
 	}
 	
-	x1 = destx;
-	y1 = desty;
+	x1 = min_ii(destx, ibuf->x);
+	y1 = min_ii(desty, ibuf->y);
 	x2 = min_ii(destx + w, ibuf->x);
 	y2 = min_ii(desty + h, ibuf->y);
 
