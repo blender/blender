@@ -106,7 +106,7 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute& a1, const StrokeAttribut
 	for (int i = 0; i < 3; ++i)
 		_color[i] = (1 - t) * a1._color[i] + t * a2._color[i];
 
-	_visible = true;
+	_visible = a1.isVisible();
 
 	// FIXME: to be checked (and enhanced)
 	if ((a1._userAttributesReal) && (a2._userAttributesReal)) {
