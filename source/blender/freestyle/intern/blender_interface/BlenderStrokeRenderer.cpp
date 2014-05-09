@@ -27,8 +27,6 @@
 #include "../application/AppConfig.h"
 #include "../stroke/Canvas.h"
 
-#include "BKE_global.h"
-
 extern "C" {
 #include "MEM_guardedalloc.h"
 
