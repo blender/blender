@@ -806,7 +806,7 @@ void *BKE_libblock_copy_ex(Main *bmain, ID *id)
 	return idn;
 }
 
-void *BKE_libblock_copy_nolib(ID *id)
+void *BKE_libblock_copy_nolib(ID *id, const bool do_action)
 {
 	ID *idn;
 	size_t idn_len;
@@ -827,7 +827,7 @@ void *BKE_libblock_copy_nolib(ID *id)
 	id->newid = idn;
 	idn->flag |= LIB_NEW;
 
-	BKE_libblock_copy_data(idn, id, false);
+	BKE_libblock_copy_data(idn, id, do_action);
 
 	return idn;
 }
