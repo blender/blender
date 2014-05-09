@@ -386,10 +386,10 @@ void BKE_relink_animdata(AnimData *adt)
  * < basepath: (str) shorter path fragment to look for
  * > returns (bool) whether there is a match
  */
-static short animpath_matches_basepath(const char path[], const char basepath[])
+static bool animpath_matches_basepath(const char path[], const char basepath[])
 {
 	/* we need start of path to be basepath */
-	return (path && basepath) && (strstr(path, basepath) == path);
+	return (path && basepath) && STRPREFIX(path, basepath);
 }
 
 /* Move F-Curves in src action to dst action, setting up all the necessary groups 
