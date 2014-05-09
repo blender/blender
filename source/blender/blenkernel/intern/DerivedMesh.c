@@ -1593,7 +1593,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			continue;
 		}
 		if (sculpt_mode &&
-			(!has_multires || multires_applied || sculpt_dyntopo))
+		    (!has_multires || multires_applied || sculpt_dyntopo))
 		{
 			bool unsupported = false;
 

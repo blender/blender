@@ -573,7 +573,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
  * \param need_mask So the DerivedMesh thats returned has mask data
  */
 void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
-								 bool need_pmap, bool need_mask)
+                                     bool need_pmap, bool need_mask)
 {
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
@@ -688,14 +688,14 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 		int i, j;
 
 		gmask = CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK,
-									 CD_CALLOC, NULL, me->totloop);
+		                             CD_CALLOC, NULL, me->totloop);
 
 		for (i = 0; i < me->totloop; i++) {
 			GridPaintMask *gpm = &gmask[i];
 
 			gpm->level = level;
 			gpm->data = MEM_callocN(sizeof(float) * gridarea,
-									"GridPaintMask.data");
+			                        "GridPaintMask.data");
 		}
 
 		/* if vertices already have mask, copy into multires data */
@@ -720,9 +720,9 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 
 					gpm->data[0] = avg;
 					gpm->data[1] = (paint_mask[l->v] +
-									paint_mask[next->v]) * 0.5f;
+					                paint_mask[next->v]) * 0.5f;
 					gpm->data[2] = (paint_mask[l->v] +
-									paint_mask[prev->v]) * 0.5f;
+					                paint_mask[prev->v]) * 0.5f;
 					gpm->data[3] = paint_mask[l->v];
 				}
 			}
@@ -734,7 +734,7 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 	/* create vertex paint mask layer if there isn't one already */
 	if (!paint_mask) {
 		CustomData_add_layer(&me->vdata, CD_PAINT_MASK,
-							 CD_CALLOC, NULL, me->totvert);
+		                     CD_CALLOC, NULL, me->totvert);
 		ret |= SCULPT_MASK_LAYER_CALC_VERT;
 	}
 

@@ -183,11 +183,11 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 
-        case 18: /* Absolute */
-        {
-            *out = fabs(in0);
-            break;
-        }
+		case 18: /* Absolute */
+		{
+			*out = fabs(in0);
+			break;
+		}
 
 		default:
 		{

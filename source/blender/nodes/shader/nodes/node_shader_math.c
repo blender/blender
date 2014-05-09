@@ -216,11 +216,11 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 				r = fmod(a, b);
 			break;
 		}
-        case 18: /* Absolute */
-        {
-            r = fabs(a);
-            break;
-        }
+		case 18: /* Absolute */
+		{
+			r = fabs(a);
+			break;
+		}
 	}
 	
 	out[0]->vec[0] = r;

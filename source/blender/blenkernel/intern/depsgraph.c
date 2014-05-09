@@ -2589,8 +2589,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, bool time)
 
 		/* we tag based on first ID type character to avoid 
 		 * looping over all ID's in case there are no tags */
-		if (id && bmain->id_tag_update[id->name[0]])
-		{
+		if (id && bmain->id_tag_update[id->name[0]]) {
 			updated = true;
 			break;
 		}
