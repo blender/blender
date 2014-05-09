@@ -795,18 +795,31 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		}
 		else if (obedit->type == OB_MBALL) {
 			MetaBall *mb = obedit->data;
+			MetaElem *ml;
+			bool ok = false;
+			float tmat[3][3];
 			
-			if (mb->lastelem) {
-				float qmat[3][3];
+			if (activeOnly && (ml = mb->lastelem)) {
+				quat_to_mat3(tmat, ml->quat);
+				add_v3_v3(normal, tmat[2]);
+				add_v3_v3(plane, tmat[1]);
+				ok = true;
+			}
+			else {
+				for (ml = mb->editelems->first; ml; ml = ml->next) {
+					if (ml->flag & SELECT) {
+						quat_to_mat3(tmat, ml->quat);
+						add_v3_v3(normal, tmat[2]);
+						add_v3_v3(plane, tmat[1]);
+						ok = true;
+					}
+				}
+			}
 
-				/* Rotation of MetaElem is stored in quat */
-				quat_to_mat3(qmat, mb->lastelem->quat);
-
-				copy_v3_v3(normal, qmat[2]);
-
-				copy_v3_v3(plane, qmat[1]);
-				
-				result = ORIENTATION_FACE;
+			if (ok) {
+				if (!is_zero_v3(plane)) {
+					result = ORIENTATION_FACE;
+				}
 			}
 		}
 		else if (obedit->type == OB_ARMATURE) {

@@ -450,16 +450,19 @@ int calc_manipulator_stats(const bContext *C)
 		}
 		else if (obedit->type == OB_MBALL) {
 			MetaBall *mb = (MetaBall *)obedit->data;
-			MetaElem *ml /* , *ml_sel = NULL */ /* UNUSED */;
+			MetaElem *ml;
 
-			ml = mb->editelems->first;
-			while (ml) {
-				if (ml->flag & SELECT) {
-					calc_tw_center(scene, &ml->x);
-					/* ml_sel = ml; */ /* UNUSED */
-					totsel++;
+			if ((v3d->around == V3D_ACTIVE) && (ml = mb->lastelem)) {
+				calc_tw_center(scene, &ml->x);
+				totsel++;
+			}
+			else {
+				for (ml = mb->editelems->first; ml; ml = ml->next) {
+					if (ml->flag & SELECT) {
+						calc_tw_center(scene, &ml->x);
+						totsel++;
+					}
 				}
-				ml = ml->next;
 			}
 		}
 		else if (obedit->type == OB_LATTICE) {
