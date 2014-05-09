@@ -362,7 +362,112 @@ void ACTION_OT_previewrange_set(wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int actkeys_viewall(bContext *C, const bool only_sel, const bool only_xaxis)
+/* Find the extents of the active channel
+ * > min: (float) bottom y-extent of channel
+ * > max: (float) top y-extent of channel
+ * > returns: success of finding a selected channel
+ */
+static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, float *max)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	short found = 0; /* NOTE: not bool, since we want prioritise individual channels over expanders */
+	float y;
+	
+	/* get all items - we need to do it this way */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through all channels, finding the first one that's selected */
+	y = (float)ACHANNEL_FIRST;
+	
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+		
+		/* must be selected... */
+		if (acf && acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT) && 
+		    ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT))
+		{
+			/* update best estimate */
+			*min = (float)(y - ACHANNEL_HEIGHT_HALF);
+			*max = (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* is this high enough priority yet? */
+			// TODO: refactor this check out into a utility function, and share this with other places which do stuff like this
+			switch (ale->type) {
+				/* datablock expanders - ignore unless nothing else comes along */
+				case ANIMTYPE_SUMMARY:
+					found = -1;
+					break;
+					
+				case ANIMTYPE_SCENE:
+				case ANIMTYPE_OBJECT:
+					found = -1;
+					break;
+				
+				case ANIMTYPE_FILLACTD:
+				case ANIMTYPE_FILLDRIVERS:
+				case ANIMTYPE_DSMAT:
+				case ANIMTYPE_DSLAM:
+				case ANIMTYPE_DSCAM:
+				case ANIMTYPE_DSCUR:
+				case ANIMTYPE_DSSKEY:
+				case ANIMTYPE_DSWOR:
+				case ANIMTYPE_DSNTREE:
+				case ANIMTYPE_DSPART:
+				case ANIMTYPE_DSMBALL:
+				case ANIMTYPE_DSARM:
+				case ANIMTYPE_DSMESH:
+				case ANIMTYPE_DSTEX:
+				case ANIMTYPE_DSLAT:
+				case ANIMTYPE_DSLINESTYLE:
+				case ANIMTYPE_DSSPK:
+					found = -1;
+					break;
+					
+				case ANIMTYPE_GPDATABLOCK:
+				case ANIMTYPE_MASKDATABLOCK:
+					found = -1;
+					break;
+				
+				
+				/* actual channels */
+				case ANIMTYPE_GROUP:
+				case ANIMTYPE_FCURVE:
+				case ANIMTYPE_SHAPEKEY:
+					found = 1;
+					break;
+				
+				case ANIMTYPE_GPLAYER:
+				case ANIMTYPE_MASKLAYER:
+					found = 1;
+					break;
+				
+				default: /* irrelevant */
+					break;
+			}
+			
+			/* only stop our search when we've found an actual channel
+			 * - datablock expanders get less priority so that we don't abort prematurely
+			 */
+			if (found > 0) {
+				break;
+			}
+		}
+		
+		/* adjust y-position for next one */
+		y -= ACHANNEL_STEP;
+	}
+	
+	/* free all temp data */
+	BLI_freelistN(&anim_data);
+	
+	return (found != 0);
+}
+
+static int actkeys_viewall(bContext *C, const bool only_sel)
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -388,9 +493,24 @@ static int actkeys_viewall(bContext *C, const bool only_sel, const bool only_xax
 	v2d->cur.xmax += extra;
 	
 	/* set vertical range */
-	if (only_xaxis == false) {
+	if (only_sel == false) {
+		/* view all -> the summary channel is usually the shows everything, and resides right at the top... */
 		v2d->cur.ymax = 0.0f;
 		v2d->cur.ymin = (float)-BLI_rcti_size_y(&v2d->mask);
+	}
+	else {
+		/* locate first selected channel (or the active one), and frame those */
+		float ymin = v2d->cur.ymin;
+		float ymax = v2d->cur.ymax;
+		
+		if (actkeys_channels_get_selected_extents(&ac, &ymin, &ymax)) {
+			/* recenter the view so that this range is in the middle */
+			float ymid = (ymax - ymin) / 2.0f + ymin;
+			float x_center;
+			
+			UI_view2d_center_get(v2d, &x_center, NULL);
+			UI_view2d_center_set(v2d, x_center, ymid);
+		}
 	}
 	
 	/* do View2D syncing */
@@ -407,13 +527,13 @@ static int actkeys_viewall(bContext *C, const bool only_sel, const bool only_xax
 static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 {	
 	/* whole range */
-	return actkeys_viewall(C, false, false);
+	return actkeys_viewall(C, false);
 }
 
 static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* only selected */
-	return actkeys_viewall(C, true, true);
+	return actkeys_viewall(C, true);
 }
  
 void ACTION_OT_view_all(wmOperatorType *ot)
