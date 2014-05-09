@@ -485,6 +485,7 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings s
 static bAnimChannelType ACF_SUMMARY = 
 {
 	"Summary",                          /* type name */
+	ACHANNEL_ROLE_EXPANDER,             /* role */
 
 	acf_summary_color,                  /* backdrop color */
 	acf_summary_backdrop,               /* backdrop */
@@ -586,6 +587,7 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_SCENE = 
 {
 	"Scene",                        /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 
 	acf_generic_root_color,         /* backdrop color */
 	acf_generic_root_backdrop,      /* backdrop */
@@ -730,6 +732,7 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
 static bAnimChannelType ACF_OBJECT = 
 {
 	"Object",                       /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_root_color,         /* backdrop color */
 	acf_generic_root_backdrop,      /* backdrop */
@@ -879,6 +882,7 @@ static void *acf_group_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNU
 static bAnimChannelType ACF_GROUP = 
 {
 	"Group",                        /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
 	
 	acf_group_color,                /* backdrop color */
 	acf_group_backdrop,             /* backdrop */
@@ -987,6 +991,7 @@ static void *acf_fcurve_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UN
 static bAnimChannelType ACF_FCURVE = 
 {
 	"F-Curve",                      /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
 	
 	acf_generic_channel_color,      /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
@@ -1071,6 +1076,7 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings 
 static bAnimChannelType ACF_FILLACTD = 
 {
 	"Ob-Action Filler",             /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1150,6 +1156,7 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, eAnimChannel_Settin
 static bAnimChannelType ACF_FILLDRIVERS = 
 {
 	"Drivers Filler",               /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1227,6 +1234,7 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSMAT =
 {
 	"Material Data Expander",       /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1303,6 +1311,7 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSLAM =
 {
 	"Lamp Expander",                /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1386,6 +1395,7 @@ static void *acf_dstex_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSTEX =
 {
 	"Texture Data Expander",        /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1462,6 +1472,7 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSCAM =
 {
 	"Camera Expander",              /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1548,6 +1559,7 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSCUR =
 {
 	"Curve Expander",               /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1624,6 +1636,7 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
 static bAnimChannelType ACF_DSSKEY =
 {
 	"Shape Key Expander",           /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1700,6 +1713,7 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSWOR =
 {
 	"World Expander",               /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1776,6 +1790,7 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
 static bAnimChannelType ACF_DSPART =
 {
 	"Particle Data Expander",       /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1852,6 +1867,7 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings s
 static bAnimChannelType ACF_DSMBALL =
 {
 	"Metaball Expander",            /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -1928,6 +1944,7 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSARM =
 {
 	"Armature Expander",            /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -2015,6 +2032,7 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings s
 static bAnimChannelType ACF_DSNTREE =
 {
 	"Node Tree Expander",           /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -2091,6 +2109,7 @@ static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale, eAnimChannel_Settin
 static bAnimChannelType ACF_DSLINESTYLE =
 {
 	"Line Style Expander",			/* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
@@ -2167,6 +2186,7 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
 static bAnimChannelType ACF_DSMESH =
 {
 	"Mesh Expander",                /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -2243,6 +2263,7 @@ static void *acf_dslat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSLAT =
 {
 	"Lattice Expander",             /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -2319,6 +2340,7 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 static bAnimChannelType ACF_DSSPK =
 {
 	"Speaker Expander",             /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_generic_dataexpand_color,   /* backdrop color */
 	acf_generic_dataexpand_backdrop, /* backdrop */
@@ -2426,6 +2448,7 @@ static void *acf_shapekey_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings 
 static bAnimChannelType ACF_SHAPEKEY =
 {
 	"Shape Key",                    /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
 	
 	acf_generic_channel_color,      /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
@@ -2502,6 +2525,7 @@ static void *acf_gpd_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSE
 static bAnimChannelType ACF_GPD = 
 {
 	"GPencil Datablock",            /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
 	
 	acf_gpd_color,                  /* backdrop color */
 	acf_group_backdrop,             /* backdrop */
@@ -2591,6 +2615,7 @@ static void *acf_gpl_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSE
 static bAnimChannelType ACF_GPL = 
 {
 	"GPencil Layer",                /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
 	
 	acf_generic_channel_color,      /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
@@ -2668,6 +2693,7 @@ static void *acf_mask_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUS
 static bAnimChannelType ACF_MASKDATA =
 {
 	"Mask Datablock",                /* type name */
+	ACHANNEL_ROLE_EXPANDER,          /* role */
 	
 	acf_mask_color,                  /* backdrop color */
 	acf_group_backdrop,              /* backdrop */
@@ -2754,6 +2780,7 @@ static void *acf_masklay_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings U
 static bAnimChannelType ACF_MASKLAYER =
 {
 	"Mask Layer",                   /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
 	
 	acf_generic_channel_color,      /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
@@ -2892,6 +2919,7 @@ static void *acf_nlatrack_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings 
 static bAnimChannelType ACF_NLATRACK = 
 {
 	"NLA Track",                    /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
 	
 	acf_nlatrack_color,             /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
@@ -3060,6 +3088,7 @@ static void *acf_nlaaction_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings
 static bAnimChannelType ACF_NLAACTION = 
 {
 	"NLA Active Action",            /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
 	
 	acf_nlaaction_color,            /* backdrop color (NOTE: the backdrop handles this too, since it needs special hacks) */
 	acf_nlaaction_backdrop,         /* backdrop */

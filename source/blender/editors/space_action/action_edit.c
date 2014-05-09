@@ -395,64 +395,12 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
 			*max = (float)(y + ACHANNEL_HEIGHT_HALF);
 			
 			/* is this high enough priority yet? */
-			// TODO: refactor this check out into a utility function, and share this with other places which do stuff like this
-			switch (ale->type) {
-				/* datablock expanders - ignore unless nothing else comes along */
-				case ANIMTYPE_SUMMARY:
-					found = -1;
-					break;
-					
-				case ANIMTYPE_SCENE:
-				case ANIMTYPE_OBJECT:
-					found = -1;
-					break;
-				
-				case ANIMTYPE_FILLACTD:
-				case ANIMTYPE_FILLDRIVERS:
-				case ANIMTYPE_DSMAT:
-				case ANIMTYPE_DSLAM:
-				case ANIMTYPE_DSCAM:
-				case ANIMTYPE_DSCUR:
-				case ANIMTYPE_DSSKEY:
-				case ANIMTYPE_DSWOR:
-				case ANIMTYPE_DSNTREE:
-				case ANIMTYPE_DSPART:
-				case ANIMTYPE_DSMBALL:
-				case ANIMTYPE_DSARM:
-				case ANIMTYPE_DSMESH:
-				case ANIMTYPE_DSTEX:
-				case ANIMTYPE_DSLAT:
-				case ANIMTYPE_DSLINESTYLE:
-				case ANIMTYPE_DSSPK:
-					found = -1;
-					break;
-					
-				case ANIMTYPE_GPDATABLOCK:
-				case ANIMTYPE_MASKDATABLOCK:
-					found = -1;
-					break;
-				
-				
-				/* actual channels */
-				case ANIMTYPE_GROUP:
-				case ANIMTYPE_FCURVE:
-				case ANIMTYPE_SHAPEKEY:
-					found = 1;
-					break;
-				
-				case ANIMTYPE_GPLAYER:
-				case ANIMTYPE_MASKLAYER:
-					found = 1;
-					break;
-				
-				default: /* irrelevant */
-					break;
-			}
+			found = acf->channel_role;
 			
 			/* only stop our search when we've found an actual channel
 			 * - datablock expanders get less priority so that we don't abort prematurely
 			 */
-			if (found > 0) {
+			if (found == ACHANNEL_ROLE_CHANNEL) {
 				break;
 			}
 		}

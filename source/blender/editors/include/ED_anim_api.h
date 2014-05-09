@@ -163,7 +163,7 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
-
+	
 	ANIMTYPE_MASKDATABLOCK,
 	ANIMTYPE_MASKLAYER,
 	
@@ -362,6 +362,13 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* ------------------------ Drawing TypeInfo -------------------------- */
 
+/* role or level of animchannel in the hierarchy */
+typedef enum eAnimChannel_Role {
+	ACHANNEL_ROLE_EXPANDER = -1,    /* datablock expander - a "composite" channel type */
+	ACHANNEL_ROLE_SPECIAL  = 0,     /* special purposes - not generally for hierarchy processing */
+	ACHANNEL_ROLE_CHANNEL  = 1      /* data channel - a channel representing one of the actual building blocks of channels */
+} eAnimChannel_Role;
+
 /* flag-setting behavior */
 typedef enum eAnimChannels_SetFlag {
 	ACHANNEL_SETFLAG_CLEAR  = 0,     /* turn off */
@@ -384,11 +391,13 @@ typedef enum eAnimChannel_Settings {
 
 /* Drawing, mouse handling, and flag setting behavior... */
 typedef struct bAnimChannelType {
-	/* type data */
+	/* -- Type data -- */
 	/* name of the channel type, for debugging */
 	const char *channel_type_name;
+	/* "level" or role in hierarchy - for finding the active channel */
+	eAnimChannel_Role channel_role;
 	
-	/* drawing */
+	/* -- Drawing -- */
 	/* get RGB color that is used to draw the majority of the backdrop */
 	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float r_color[3]);
 	/* draw backdrop strip for channel */
@@ -405,7 +414,7 @@ typedef struct bAnimChannelType {
 	/* get icon (for channel lists) */
 	int (*icon)(bAnimListElem *ale);
 	
-	/* settings */
+	/* -- Settings -- */
 	/* check if the given setting is valid in the current context */
 	bool (*has_setting)(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
 	/* get the flag used for this setting */
