@@ -47,6 +47,8 @@ extern "C" {
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
+#include "BLI_utildefines.h"
+
 #include "RE_pipeline.h"
 }
 
@@ -258,12 +260,63 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 	RenderStrokeRepBasic(iStrokeRep);
 }
 
+// Check if the triangle is visible (i.e., within the render image boundary)
+bool BlenderStrokeRenderer::test_triangle_visibility(StrokeVertexRep *svRep[3]) const
+{
+	int xl, xu, yl, yu;
+	Vec2r p;
+
+	xl = xu = yl = yu = 0;
+	for (int i = 0; i < 3; i++) {
+		p = svRep[i]->point2d();
+		if (p[0] < 0.0)
+			xl++;
+		else if (p[0] > _width)
+			xu++;
+		if (p[1] < 0.0)
+			yl++;
+		else if (p[1] > _height)
+			yu++;
+	}
+	return !(xl == 3 || xu == 3 || yl == 3 || yu == 3);
+}
+
+// Check the visibility of faces and strip segments.
+void BlenderStrokeRenderer::test_strip_visibility(Strip::vertex_container& strip_vertices,
+	int *visible_faces, int *visible_segments) const
+{
+	const int strip_vertex_count = strip_vertices.size();
+	Strip::vertex_container::iterator v[3];
+	StrokeVertexRep *svRep[3];
+	bool visible;
+
+	// iterate over all vertices and count visible faces and strip segments
+	// (note: a strip segment is a series of visible faces, while two strip
+	// segments are separated by one or more invisible faces)
+	v[0] = strip_vertices.begin();
+	v[1] = v[0] + 1;
+	v[2] = v[0] + 2;
+	*visible_faces = *visible_segments = 0;
+	visible = false;
+	for (int n = 2; n < strip_vertex_count; n++, v[0]++, v[1]++, v[2]++) {
+		svRep[0] = *(v[0]);
+		svRep[1] = *(v[1]);
+		svRep[2] = *(v[2]);
+		if (test_triangle_visibility(svRep)) {
+			(*visible_faces)++;
+			if (!visible)
+				(*visible_segments)++;
+			visible = true;
+		}
+		else {
+			visible = false;
+		}
+	}
+}
+
+// Build a mesh object representing a stroke
 void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
-	////////////////////
-	//  Build up scene
-	////////////////////
-
 	vector<Strip*>& strips = iStrokeRep->getStrips();
 	const bool hasTex = iStrokeRep->getMTex(0) != NULL;
 	Strip::vertex_container::iterator v[3];
@@ -271,136 +324,109 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	unsigned int vertex_index, edge_index, loop_index;
 	Vec2r p;
 
+	int totvert = 0, totedge = 0, totpoly = 0, totloop = 0;
+	int visible_faces, visible_segments;
+
+	bool visible;
 	for (vector<Strip*>::iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
 		Strip::vertex_container& strip_vertices = (*s)->vertices();
-		int strip_vertex_count = (*s)->sizeStrip();
-		int xl, xu, yl, yu, n, visible_faces, visible_segments;
-		bool visible;
 
-		// iterate over all vertices and count visible faces and strip segments
-		// (note: a strip segment is a series of visible faces, while two strip
-		// segments are separated by one or more invisible faces)
-		v[0] = strip_vertices.begin();
-		v[1] = v[0] + 1;
-		v[2] = v[0] + 2;
-		visible_faces = visible_segments = 0;
-		visible = false;
-		for (n = 2; n < strip_vertex_count; n++, v[0]++, v[1]++, v[2]++) {
-			svRep[0] = *(v[0]);
-			svRep[1] = *(v[1]);
-			svRep[2] = *(v[2]);
-			xl = xu = yl = yu = 0;
-			for (int j = 0; j < 3; j++) {
-				p = svRep[j]->point2d();
-				if (p[0] < 0.0)
-					xl++;
-				else if (p[0] > _width)
-					xu++;
-				if (p[1] < 0.0)
-					yl++;
-				else if (p[1] > _height)
-					yu++;
-			}
-			if (xl == 3 || xu == 3 || yl == 3 || yu == 3) {
-				visible = false;
-			}
-			else {
-				visible_faces++;
-				if (!visible)
-					visible_segments++;
-				visible = true;
-			}
-		}
+		// count visible faces and strip segments
+		test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
 		if (visible_faces == 0)
 			continue;
 
+		totvert += visible_faces + visible_segments * 2;
+		totedge += visible_faces * 2 + visible_segments;
+		totpoly += visible_faces;
+		totloop += visible_faces * 3;
+	}
+
 #if 0
-		Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, OB_MESH);
+	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, OB_MESH);
 #else
-		Object *object_mesh = NewMesh();
+	Object *object_mesh = NewMesh();
 #endif
-		Mesh *mesh = (Mesh *)object_mesh->data;
-		mesh->mat = (Material **)MEM_mallocN(1 * sizeof(Material *), "MaterialList");
-		mesh->mat[0] = iStrokeRep->getMaterial();
-		mesh->totcol = 1;
-		test_object_materials(freestyle_bmain, (ID *)mesh);
+	Mesh *mesh = (Mesh *)object_mesh->data;
+	mesh->mat = (Material **)MEM_mallocN(1 * sizeof(Material *), "MaterialList");
+	mesh->mat[0] = iStrokeRep->getMaterial();
+	mesh->totcol = 1;
+	test_object_materials(freestyle_bmain, (ID *)mesh);
 
-		// vertices allocation
-		mesh->totvert = visible_faces + visible_segments * 2;
-		mesh->mvert = (MVert *)CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
+	// vertices allocation
+	mesh->totvert = totvert; // visible_faces + visible_segments * 2;
+	mesh->mvert = (MVert *)CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
 
-		// edges allocation
-		mesh->totedge = visible_faces * 2 + visible_segments;
-		mesh->medge = (MEdge *)CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
+	// edges allocation
+	mesh->totedge = totedge; // visible_faces * 2 + visible_segments;
+	mesh->medge = (MEdge *)CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
 
-		// faces allocation
-		mesh->totpoly = visible_faces;
-		mesh->mpoly = (MPoly *)CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
+	// faces allocation
+	mesh->totpoly = totpoly; // visible_faces;
+	mesh->mpoly = (MPoly *)CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
 
-		// loops allocation
-		mesh->totloop = visible_faces * 3;
-		mesh->mloop = (MLoop *)CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
+	// loops allocation
+	mesh->totloop = totloop; // visible_faces * 3;
+	mesh->mloop = (MLoop *)CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
 
-		// colors allocation
-		mesh->mloopcol = (MLoopCol *)CustomData_add_layer(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop);
+	// colors allocation
+	mesh->mloopcol = (MLoopCol *)CustomData_add_layer(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop);
 
-		////////////////////
-		//  Data copy
-		////////////////////
+	////////////////////
+	//  Data copy
+	////////////////////
 
-		MVert *vertices = mesh->mvert;
-		MEdge *edges = mesh->medge;
-		MPoly *polys = mesh->mpoly;
-		MLoop *loops = mesh->mloop;
-		MLoopCol *colors = mesh->mloopcol;
-		MLoopUV *loopsuv[2] = {NULL};
+	MVert *vertices = mesh->mvert;
+	MEdge *edges = mesh->medge;
+	MPoly *polys = mesh->mpoly;
+	MLoop *loops = mesh->mloop;
+	MLoopCol *colors = mesh->mloopcol;
+	MLoopUV *loopsuv[2] = {NULL};
+
+	if (hasTex) {
+		// First UV layer
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
+		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
+		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
+		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
+		BKE_mesh_update_customdata_pointers(mesh, true);
+
+		loopsuv[0] = mesh->mloopuv;
+
+		// Second UV layer
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
+		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
+		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
+		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
+		BKE_mesh_update_customdata_pointers(mesh, true);
+
+		loopsuv[1] = mesh->mloopuv;
+	}
+
+	vertex_index = edge_index = loop_index = 0;
+
+	for (vector<Strip*>::iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
+		Strip::vertex_container& strip_vertices = (*s)->vertices();
+		int strip_vertex_count = strip_vertices.size();
+
+		// count visible faces and strip segments
+		test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
+		if (visible_faces == 0)
+			continue;
 
 		v[0] = strip_vertices.begin();
 		v[1] = v[0] + 1;
 		v[2] = v[0] + 2;
 
-		vertex_index = edge_index = loop_index = 0;
 		visible = false;
-
-		if (hasTex) {
-			// First UV layer
-			CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
-			CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
-			CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
-			CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
-			BKE_mesh_update_customdata_pointers(mesh, true);
-
-			loopsuv[0] = mesh->mloopuv;
-
-			// Second UV layer
-			CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
-			CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
-			CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
-			CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
-			BKE_mesh_update_customdata_pointers(mesh, true);
-
-			loopsuv[1] = mesh->mloopuv;
-		}
 
 		// Note: Mesh generation in the following loop assumes stroke strips
 		// to be triangle strips.
-		for (n = 2; n < strip_vertex_count; n++, v[0]++, v[1]++, v[2]++) {
+		for (int n = 2; n < strip_vertex_count; n++, v[0]++, v[1]++, v[2]++) {
 			svRep[0] = *(v[0]);
 			svRep[1] = *(v[1]);
 			svRep[2] = *(v[2]);
-			xl = xu = yl = yu = 0;
-			for (int j = 0; j < 3; j++) {
-				p = svRep[j]->point2d();
-				if (p[0] < 0.0)
-					xl++;
-				else if (p[0] > _width)
-					xu++;
-				if (p[1] < 0.0)
-					yl++;
-				else if (p[1] > _height)
-					yu++;
-			}
-			if (xl == 3 || xu == 3 || yl == 3 || yu == 3) {
+			if (!test_triangle_visibility(svRep)) {
 				visible = false;
 			}
 			else {
@@ -554,10 +580,13 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 				colors += 3;
 			}
 		} // loop over strip vertices
-#if 0
-		BKE_mesh_validate(mesh, true);
-#endif
 	} // loop over strips
+#if 0
+	BLI_assert(totvert == vertex_index);
+	BLI_assert(totedge == edge_index);
+	BLI_assert(totloop == loop_index);
+	BKE_mesh_validate(mesh, true);
+#endif
 }
 
 // A replacement of BKE_object_add() for better performance.
