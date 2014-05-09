@@ -431,6 +431,7 @@ static int bake(
 	int i;
 
 	re = RE_NewRender(scene->id.name);
+	RE_SetReports(re, NULL);
 
 	is_tangent = pass_type == SCE_PASS_NORMAL && normal_space == R_BAKE_SPACE_TANGENT;
 	tot_materials = ob_low->totcol;
@@ -853,8 +854,6 @@ cleanup:
 
 	if (me_low)
 		BKE_libblock_free(bmain, me_low);
-
-	RE_SetReports(re, NULL);
 
 	return op_result;
 }
