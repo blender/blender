@@ -215,7 +215,8 @@ static void calc_barycentric_from_point(
  */
 static bool cast_ray_highpoly(
         BVHTreeFromMesh *treeData, TriTessFace *triangles[], BakeHighPolyData *highpoly,
-        float const co_low[3], const float dir[3], const int pixel_id, const int tot_highpoly)
+        float const co_low[3], const float dir[3], const int pixel_id, const int tot_highpoly,
+        const float du_dx, const float du_dy, const float dv_dx, const float dv_dy)
 {
 	int i;
 	int primitive_id = -1;
@@ -257,6 +258,13 @@ static bool cast_ray_highpoly(
 			calc_barycentric_from_point(triangles[i], hits[i].index, hits[i].co, &primitive_id, uv);
 			highpoly[i].pixel_array[pixel_id].primitive_id = primitive_id;
 			copy_v2_v2(highpoly[i].pixel_array[pixel_id].uv, uv);
+
+			/* the differentials are relative to the UV/image space, so the highpoly differentials
+			 * are the same as the low poly differentials */
+			highpoly[i].pixel_array[pixel_id].du_dx = du_dx;
+			highpoly[i].pixel_array[pixel_id].du_dy = du_dy;
+			highpoly[i].pixel_array[pixel_id].dv_dx = dv_dx;
+			highpoly[i].pixel_array[pixel_id].dv_dy = dv_dy;
 		}
 		else {
 			highpoly[i].pixel_array[pixel_id].primitive_id = -1;
@@ -421,7 +429,9 @@ void RE_bake_pixels_populate_from_objects(
 		calc_point_from_barycentric(tris_low, primitive_id, u, v, cage_extrusion, co, dir);
 
 		/* cast ray */
-		if (!cast_ray_highpoly(treeData, tris_high, highpoly, co, dir, i, tot_highpoly)) {
+		if (!cast_ray_highpoly(treeData, tris_high, highpoly, co, dir, i, tot_highpoly,
+		                       pixel_array_from[i].du_dx, pixel_array_from[i].du_dy,
+		                       pixel_array_from[i].dv_dx, pixel_array_from[i].dv_dy)) {
 			/* if it fails mask out the original pixel array */
 			pixel_array_from[i].primitive_id = -1;
 		}
