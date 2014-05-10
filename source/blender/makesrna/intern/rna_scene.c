@@ -1583,6 +1583,34 @@ static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value
 	lineset->linestyle->id.us++;
 }
 
+static FreestyleLineSet *FreestyleSettings_lineset_add(ID *id, struct FreestyleSettings *config, const char *name)
+{
+	Scene *scene = (Scene *)id;
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_add((FreestyleConfig *)config);
+
+	DAG_id_tag_update(&scene->id, 0);
+	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	return lineset;
+}
+
+static void FreestyleSettings_lineset_remove(ID *id, struct FreestyleSettings *config, ReportList *reports,
+                                             PointerRNA *lineset_ptr)
+{
+	FreestyleLineSet *lineset = lineset_ptr->data;
+	Scene *scene = (Scene *)id;
+
+	if (!BKE_freestyle_lineset_delete((FreestyleConfig *)config, lineset)) {
+		BKE_reportf(reports, RPT_ERROR, "Line set '%s' could not be removed", lineset->name);
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(lineset_ptr);
+
+	DAG_id_tag_update(&scene->id, 0);
+	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
+}
+
 static PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
 {
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
@@ -2627,6 +2655,8 @@ static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "Linesets");
 	srna = RNA_def_struct(brna, "Linesets", NULL);
@@ -2645,6 +2675,21 @@ static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
 	                           "rna_FreestyleSettings_active_lineset_index_range");
 	RNA_def_property_ui_text(prop, "Active Line Set Index", "Index of active line set slot");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	func = RNA_def_function(srna, "new", "FreestyleSettings_lineset_add");
+	RNA_def_function_ui_description(func, "Add a line set to scene render layer Freestyle settings");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_string(func, "name", "LineSet", 0, "", "New name for the line set (not unique)");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "lineset", "FreestyleLineSet", "", "Newly created line set");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "FreestyleSettings_lineset_remove");
+	RNA_def_function_ui_description(func, "Remove a line set from scene render layer Freestyle settings");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "lineset", "FreestyleLineSet", "", "Line set to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_freestyle_settings(BlenderRNA *brna)
