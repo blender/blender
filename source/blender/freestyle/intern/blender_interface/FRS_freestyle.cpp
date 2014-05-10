@@ -711,14 +711,7 @@ void FRS_delete_active_lineset(FreestyleConfig *config)
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
 	if (lineset) {
-		if (lineset->group) {
-			lineset->group->id.us--;
-		}
-		if (lineset->linestyle) {
-			lineset->linestyle->id.us--;
-		}
-		BLI_remlink(&config->linesets, lineset);
-		MEM_freeN(lineset);
+		BKE_freestyle_lineset_delete(config, lineset);
 		BKE_freestyle_lineset_set_active_index(config, 0);
 	}
 }

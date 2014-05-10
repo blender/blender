@@ -195,6 +195,21 @@ FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config)
 	return lineset;
 }
 
+bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lineset)
+{
+	if (BLI_findindex(&config->linesets, lineset) == -1)
+		return false;
+	if (lineset->group) {
+		lineset->group->id.us--;
+	}
+	if (lineset->linestyle) {
+		lineset->linestyle->id.us--;
+	}
+	BLI_remlink(&config->linesets, lineset);
+	MEM_freeN(lineset);
+	return true;
+}
+
 FreestyleLineSet *BKE_freestyle_lineset_get_active(FreestyleConfig *config)
 {
 	FreestyleLineSet *lineset;

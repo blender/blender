@@ -51,6 +51,7 @@ void BKE_freestyle_module_move_down(FreestyleConfig *config, FreestyleModuleConf
 
 /* FreestyleConfig.linesets */
 FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config);
+bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lineset);
 FreestyleLineSet *BKE_freestyle_lineset_get_active(FreestyleConfig *config);
 short BKE_freestyle_lineset_get_active_index(FreestyleConfig *config);
 void BKE_freestyle_lineset_set_active_index(FreestyleConfig *config, short index);
