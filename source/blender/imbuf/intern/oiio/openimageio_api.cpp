@@ -100,9 +100,9 @@ static ImBuf *imb_oiio_load_image(ImageInput *in, int width, int height, int com
 	{
 		if (!in->read_image(TypeDesc::UINT8,
 		                    (uchar *)ibuf->rect + (height - 1) * scanlinesize,
-		           	   	    AutoStride,
-		           	   	    -scanlinesize,
-		           	   	    AutoStride))
+		                    AutoStride,
+		                    -scanlinesize,
+		                    AutoStride))
 		{
 			std::cerr << __func__ << ": ImageInput::read_image() failed:" << std::endl
 			          << in->geterror() << std::endl;
@@ -139,9 +139,9 @@ static ImBuf *imb_oiio_load_image_float(ImageInput *in, int width, int height, i
 	{
 		if (!in->read_image(TypeDesc::FLOAT,
 		                    (uchar *)ibuf->rect_float + (height - 1) * scanlinesize,
-		           	   	    AutoStride,
-		           	   	    -scanlinesize,
-		           	   	    AutoStride))
+		                    AutoStride,
+		                    -scanlinesize,
+		                    AutoStride))
 		{
 			std::cerr << __func__ << ": ImageInput::read_image() failed:" << std::endl
 			          << in->geterror() << std::endl;
@@ -185,7 +185,8 @@ int imb_is_a_photoshop(const char *filename)
 int imb_save_photoshop(struct ImBuf *ibuf, const char *name, int flags)
 {
 	if (flags & IB_mem) {
-		printf("Photoshop PSD-save: Create PSD in memory CURRENTLY NOT SUPPORTED !\n");
+		std::cerr << __func__ << ": Photoshop PSD-save: Create PSD in memory"
+		          << " currently not supported" << std::endl;
 		imb_addencodedbufferImBuf(ibuf);
 		ibuf->encodedsize = 0;
 		return(0);
@@ -202,6 +203,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 	bool is_float, is_alpha;
 	TypeDesc typedesc;
 	int basesize;
+	char file_colorspace[IM_MAX_SPACE];
 
 	/* load image from file through OIIO */
 	if (imb_is_a_photoshop(filename) == 0) return (NULL);
@@ -226,7 +228,15 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 	}
 
 	string ics = spec.get_string_attribute("oiio:ColorSpace");
-	BLI_strncpy(colorspace, ics.c_str(), IM_MAX_SPACE);
+	BLI_strncpy(file_colorspace, ics.c_str(), IM_MAX_SPACE);
+
+	/* only use colorspaces exis */
+	if (colormanage_colorspace_get_named(file_colorspace))
+		strcpy(colorspace, file_colorspace);
+	else
+		std::cerr << __func__ << ": The embed colorspace (\"" << file_colorspace
+		          << "\") not supported in existent OCIO configuration file. Fallback "
+		          << "to system default colorspace (\"" << colorspace << "\")." << std::endl;
 
 	width = spec.width;
 	height = spec.height;
