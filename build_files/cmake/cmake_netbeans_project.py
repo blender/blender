@@ -68,7 +68,7 @@ def create_nb_project_main():
             PROJECT_NAME = "Blender"
         else:
             # be tricky, get the project name from SVN if we can!
-            PROJECT_NAME = project_name_get(SOURCE_DIR)
+            PROJECT_NAME = project_name_get()
 
         # --------------- NB spesific
         defines = [("%s=%s" % cdef) if cdef[1] else cdef[0] for cdef in defines]

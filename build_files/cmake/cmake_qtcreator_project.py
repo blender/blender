@@ -92,8 +92,8 @@ def create_qtc_project_main():
         if 0:
             PROJECT_NAME = "Blender"
         else:
-            # be tricky, get the project name from SVN if we can!
-            PROJECT_NAME = project_name_get(SOURCE_DIR)
+            # be tricky, get the project name from CMake if we can!
+            PROJECT_NAME = project_name_get()
 
         FILE_NAME = PROJECT_NAME.lower()
         f = open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w')
@@ -134,7 +134,7 @@ def create_qtc_project_python():
         PROJECT_NAME = "Blender_Python"
     else:
         # be tricky, get the project name from SVN if we can!
-        PROJECT_NAME = project_name_get(SOURCE_DIR) + "_Python"
+        PROJECT_NAME = project_name_get() + "_Python"
 
     FILE_NAME = PROJECT_NAME.lower()
     f = open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w')

@@ -239,26 +239,5 @@ def cmake_compiler_defines():
     return lines
 
 
-def project_name_get(path, fallback="Blender", prefix="Blender_"):
-    if not os.path.isdir(os.path.join(path, ".svn")):
-        return fallback
-
-    import subprocess
-    try:
-        info = subprocess.Popen(["svn", "info", path],
-                                stdout=subprocess.PIPE).communicate()[0]
-    except:
-        # possibly 'svn' isnt found/installed
-        return fallback
-
-    # string version, we only want the URL
-    info = info.decode(encoding="utf-8", errors="ignore")
-
-    for l in info.split("\n"):
-        l = l.strip()
-        if l.startswith("URL"):
-            # https://svn.blender.org/svnroot/bf-blender/branches/bmesh/blender
-            # --> bmesh
-            if "/branches/" in l:
-                return prefix + l.rsplit("/branches/", 1)[-1].split("/", 1)[0]
-    return fallback
+def project_name_get():
+    return cmake_cache_var("CMAKE_PROJECT_NAME")
