@@ -73,7 +73,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 	FT_UInt glyph_index;
 	FT_Outline ftoutline;
 	float dx, dy;
-	int j, k, l, m = 0;
+	int j, k, l, l_first = 0;
 
 	/*
 	 * Generate the character 3D data
@@ -145,7 +145,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 			/* individual curve loop, start-end */
 			for (k = 0; k < n; k++) {
 				l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
-				if (k == 0) m = l;
+				if (k == 0) l_first = l;
 
 				/* virtual conic on-curve points */
 				if (k < n - 1) {
@@ -173,40 +173,24 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 
 				/* on-curve points */
 				if (ftoutline.tags[l] == FT_Curve_Tag_On) {
+					const int l_prev = (k > 0)     ? (l - 1) : ftoutline.contours[j];
+					const int l_next = (k < n - 1) ? (l + 1) : l_first;
+
 					/* left handle */
-					if (k > 0) {
-						if (ftoutline.tags[l - 1] == FT_Curve_Tag_Cubic) {
-							bezt->vec[0][0] = ftoutline.points[l - 1].x * scale;
-							bezt->vec[0][1] = ftoutline.points[l - 1].y * scale;
-							bezt->h1 = HD_FREE;
-						}
-						else if (ftoutline.tags[l - 1] == FT_Curve_Tag_Conic) {
-							bezt->vec[0][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l - 1].x)) * scale / 3.0f;
-							bezt->vec[0][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l - 1].y)) * scale / 3.0f;
-							bezt->h1 = HD_FREE;
-						}
-						else {
-							bezt->vec[0][0] = ftoutline.points[l].x * scale - (ftoutline.points[l].x - ftoutline.points[l - 1].x) * scale / 3.0f;
-							bezt->vec[0][1] = ftoutline.points[l].y * scale - (ftoutline.points[l].y - ftoutline.points[l - 1].y) * scale / 3.0f;
-							bezt->h1 = HD_VECT;
-						}
+					if (ftoutline.tags[l_prev] == FT_Curve_Tag_Cubic) {
+						bezt->vec[0][0] = ftoutline.points[l_prev].x * scale;
+						bezt->vec[0][1] = ftoutline.points[l_prev].y * scale;
+						bezt->h1 = HD_FREE;
 					}
-					else { /* first point on curve */
-						if (ftoutline.tags[ftoutline.contours[j]] == FT_Curve_Tag_Cubic) {
-							bezt->vec[0][0] = ftoutline.points[ftoutline.contours[j]].x * scale;
-							bezt->vec[0][1] = ftoutline.points[ftoutline.contours[j]].y * scale;
-							bezt->h1 = HD_FREE;
-						}
-						else if (ftoutline.tags[ftoutline.contours[j]] == FT_Curve_Tag_Conic) {
-							bezt->vec[0][0] = (ftoutline.points[l].x + (2 * ftoutline.points[ftoutline.contours[j]].x)) * scale / 3.0f;
-							bezt->vec[0][1] = (ftoutline.points[l].y + (2 * ftoutline.points[ftoutline.contours[j]].y)) * scale / 3.0f;
-							bezt->h1 = HD_FREE;
-						}
-						else {
-							bezt->vec[0][0] = ftoutline.points[l].x * scale - (ftoutline.points[l].x - ftoutline.points[ftoutline.contours[j]].x) * scale / 3.0f;
-							bezt->vec[0][1] = ftoutline.points[l].y * scale - (ftoutline.points[l].y - ftoutline.points[ftoutline.contours[j]].y) * scale / 3.0f;
-							bezt->h1 = HD_VECT;
-						}
+					else if (ftoutline.tags[l_prev] == FT_Curve_Tag_Conic) {
+						bezt->vec[0][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l_prev].x)) * scale / 3.0f;
+						bezt->vec[0][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l_prev].y)) * scale / 3.0f;
+						bezt->h1 = HD_FREE;
+					}
+					else {
+						bezt->vec[0][0] = ftoutline.points[l].x * scale - (ftoutline.points[l].x - ftoutline.points[l_prev].x) * scale / 3.0f;
+						bezt->vec[0][1] = ftoutline.points[l].y * scale - (ftoutline.points[l].y - ftoutline.points[l_prev].y) * scale / 3.0f;
+						bezt->h1 = HD_VECT;
 					}
 
 					/* midpoint (on-curve point) */
@@ -214,39 +198,20 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 					bezt->vec[1][1] = ftoutline.points[l].y * scale;
 
 					/* right handle */
-					if (k < n - 1) {
-						if (ftoutline.tags[l + 1] == FT_Curve_Tag_Cubic) {
-							bezt->vec[2][0] = ftoutline.points[l + 1].x * scale;
-							bezt->vec[2][1] = ftoutline.points[l + 1].y * scale;
-							bezt->h2 = HD_FREE;
-						}
-						else if (ftoutline.tags[l + 1] == FT_Curve_Tag_Conic) {
-							bezt->vec[2][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l + 1].x)) * scale / 3.0f;
-							bezt->vec[2][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l + 1].y)) * scale / 3.0f;
-							bezt->h2 = HD_FREE;
-						}
-						else {
-							bezt->vec[2][0] = ftoutline.points[l].x * scale - (ftoutline.points[l].x - ftoutline.points[l + 1].x) * scale / 3.0f;
-							bezt->vec[2][1] = ftoutline.points[l].y * scale - (ftoutline.points[l].y - ftoutline.points[l + 1].y) * scale / 3.0f;
-							bezt->h2 = HD_VECT;
-						}
+					if (ftoutline.tags[l_next] == FT_Curve_Tag_Cubic) {
+						bezt->vec[2][0] = ftoutline.points[l_next].x * scale;
+						bezt->vec[2][1] = ftoutline.points[l_next].y * scale;
+						bezt->h2 = HD_FREE;
 					}
-					else { /* last point on curve */
-						if (ftoutline.tags[m] == FT_Curve_Tag_Cubic) {
-							bezt->vec[2][0] = ftoutline.points[m].x * scale;
-							bezt->vec[2][1] = ftoutline.points[m].y * scale;
-							bezt->h2 = HD_FREE;
-						}
-						else if (ftoutline.tags[m] == FT_Curve_Tag_Conic) {
-							bezt->vec[2][0] = (ftoutline.points[l].x + (2 * ftoutline.points[m].x)) * scale / 3.0f;
-							bezt->vec[2][1] = (ftoutline.points[l].y + (2 * ftoutline.points[m].y)) * scale / 3.0f;
-							bezt->h2 = HD_FREE;
-						}
-						else {
-							bezt->vec[2][0] = ftoutline.points[l].x * scale - (ftoutline.points[l].x - ftoutline.points[m].x) * scale / 3.0f;
-							bezt->vec[2][1] = ftoutline.points[l].y * scale - (ftoutline.points[l].y - ftoutline.points[m].y) * scale / 3.0f;
-							bezt->h2 = HD_VECT;
-						}
+					else if (ftoutline.tags[l_next] == FT_Curve_Tag_Conic) {
+						bezt->vec[2][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l_next].x)) * scale / 3.0f;
+						bezt->vec[2][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l_next].y)) * scale / 3.0f;
+						bezt->h2 = HD_FREE;
+					}
+					else {
+						bezt->vec[2][0] = ftoutline.points[l].x * scale - (ftoutline.points[l].x - ftoutline.points[l_next].x) * scale / 3.0f;
+						bezt->vec[2][1] = ftoutline.points[l].y * scale - (ftoutline.points[l].y - ftoutline.points[l_next].y) * scale / 3.0f;
+						bezt->h2 = HD_VECT;
 					}
 
 					/* get the handles that are aligned, tricky...
