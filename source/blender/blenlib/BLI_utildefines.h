@@ -460,7 +460,7 @@
 #  define BLI_STATIC_ASSERT(a, msg)
 #endif
 
-/* hints for branch pradiction, only use in code that runs a _lot_ where */
+/* hints for branch prediction, only use in code that runs a _lot_ where */
 #ifdef __GNUC__
 #  define LIKELY(x)       __builtin_expect(!!(x), 1)
 #  define UNLIKELY(x)     __builtin_expect(!!(x), 0)

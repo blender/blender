@@ -174,7 +174,7 @@ static PyObject *py_cb_array[BLI_CB_EVT_TOT] = {NULL};
 static PyObject *make_app_cb_info(void)
 {
 	PyObject *app_cb_info;
-	int pos = 0;
+	int pos;
 
 	app_cb_info = PyStructSequence_New(&BlenderAppCbType);
 	if (app_cb_info == NULL) {

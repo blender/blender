@@ -195,8 +195,6 @@ enum {
 #define G_TRANSFORM_SEQ         4
 #define G_TRANSFORM_FCURVES     8
 
-/* G.special1 */
-
 /* Memory is allocated where? blender.c */
 extern Global G;
 
