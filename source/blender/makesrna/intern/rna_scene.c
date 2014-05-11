@@ -1586,7 +1586,7 @@ static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value
 static FreestyleLineSet *FreestyleSettings_lineset_add(ID *id, struct FreestyleSettings *config, const char *name)
 {
 	Scene *scene = (Scene *)id;
-	FreestyleLineSet *lineset = BKE_freestyle_lineset_add((FreestyleConfig *)config);
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_add((FreestyleConfig *)config, name);
 
 	DAG_id_tag_update(&scene->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);

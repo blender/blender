@@ -169,7 +169,7 @@ static FreestyleLineSet *alloc_lineset(void)
 	return (FreestyleLineSet *)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
 }
 
-FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config)
+FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config, const char *name)
 {
 	int lineset_index = BLI_countlist(&config->linesets);
 
@@ -186,10 +186,15 @@ FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config)
 	lineset->edge_types = FREESTYLE_FE_SILHOUETTE | FREESTYLE_FE_BORDER | FREESTYLE_FE_CREASE;
 	lineset->exclude_edge_types = 0;
 	lineset->group = NULL;
-	if (lineset_index > 0)
+	if (name) {
+		BLI_strncpy(lineset->name, name, sizeof(lineset->name));
+	}
+	else if (lineset_index > 0) {
 		sprintf(lineset->name, "LineSet %i", lineset_index + 1);
-	else
+	}
+	else {
 		strcpy(lineset->name, "LineSet");
+	}
 	BKE_freestyle_lineset_unique_name(config, lineset);
 
 	return lineset;
