@@ -38,6 +38,11 @@
 extern "C" {
 #endif
 
+struct FreestyleConfig;
+struct FreestyleSettings;
+struct FreestyleLineSet;
+struct FreestyleModuleConfig;
+
 /* FreestyleConfig */
 void BKE_freestyle_config_init(FreestyleConfig *config);
 void BKE_freestyle_config_free(FreestyleConfig *config);
