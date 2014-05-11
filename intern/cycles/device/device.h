@@ -54,6 +54,7 @@ public:
 	bool display_device;
 	bool advanced_shading;
 	bool pack_images;
+	bool extended_images; /* flag for GPU and Multi device */
 	vector<DeviceInfo> multi_devices;
 
 	DeviceInfo()
@@ -64,6 +65,7 @@ public:
 		display_device = false;
 		advanced_shading = true;
 		pack_images = false;
+		extended_images = false;
 	}
 };
 
