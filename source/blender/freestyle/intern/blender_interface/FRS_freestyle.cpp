@@ -712,7 +712,6 @@ void FRS_delete_active_lineset(FreestyleConfig *config)
 
 	if (lineset) {
 		BKE_freestyle_lineset_delete(config, lineset);
-		BKE_freestyle_lineset_set_active_index(config, 0);
 	}
 }
 

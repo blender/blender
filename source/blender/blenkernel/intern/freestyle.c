@@ -207,6 +207,7 @@ bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lin
 	}
 	BLI_remlink(&config->linesets, lineset);
 	MEM_freeN(lineset);
+	BKE_freestyle_lineset_set_active_index(config, 0);
 	return true;
 }
 
