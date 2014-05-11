@@ -111,13 +111,15 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 
 			for (k = 0; k < n; k++) {
 				l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
+				if (k == 0) l_first = l;
 
 				if (ftoutline.tags[l] == FT_Curve_Tag_On)
 					onpoints[j]++;
 
-				if (k < n - 1) {
-					if (ftoutline.tags[l] == FT_Curve_Tag_Conic &&
-					    ftoutline.tags[l + 1] == FT_Curve_Tag_Conic)
+				{
+					const int l_next = (k < n - 1) ? (l + 1) : l_first;
+					if (ftoutline.tags[l]      == FT_Curve_Tag_Conic &&
+					    ftoutline.tags[l_next] == FT_Curve_Tag_Conic)
 					{
 						onpoints[j]++;
 					}
@@ -148,10 +150,13 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 				if (k == 0) l_first = l;
 
 				/* virtual conic on-curve points */
-				if (k < n - 1) {
-					if (ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l + 1] == FT_Curve_Tag_Conic) {
-						dx = (ftoutline.points[l].x + ftoutline.points[l + 1].x) * scale / 2.0f;
-						dy = (ftoutline.points[l].y + ftoutline.points[l + 1].y) * scale / 2.0f;
+				{
+					const int l_next = (k < n - 1) ? (l + 1) : l_first;
+					if (ftoutline.tags[l]      == FT_Curve_Tag_Conic &&
+					    ftoutline.tags[l_next] == FT_Curve_Tag_Conic)
+					{
+						dx = (ftoutline.points[l].x + ftoutline.points[l_next].x) * scale / 2.0f;
+						dy = (ftoutline.points[l].y + ftoutline.points[l_next].y) * scale / 2.0f;
 
 						/* left handle */
 						bezt->vec[0][0] = (dx + (2 * ftoutline.points[l].x) * scale) / 3.0f;
@@ -162,8 +167,8 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 						bezt->vec[1][1] = dy;
 
 						/* right handle */
-						bezt->vec[2][0] = (dx + (2 * ftoutline.points[l + 1].x) * scale) / 3.0f;
-						bezt->vec[2][1] = (dy + (2 * ftoutline.points[l + 1].y) * scale) / 3.0f;
+						bezt->vec[2][0] = (dx + (2 * ftoutline.points[l_next].x) * scale) / 3.0f;
+						bezt->vec[2][1] = (dy + (2 * ftoutline.points[l_next].y) * scale) / 3.0f;
 
 						bezt->h1 = bezt->h2 = HD_ALIGN;
 						bezt->radius = 1.0f;
