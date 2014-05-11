@@ -84,7 +84,8 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 
 	/* If loading succeeded, convert the FT glyph to the internal format */
 	if (!err) {
-		int *npoints;
+		/* initialize as -1 to add 1 on first loop each time */
+		int contour_prev;
 		int *onpoints;
 
 		/* First we create entry for the new character to the character list */
@@ -101,26 +102,20 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 		BLI_ghash_insert(vfd->characters, SET_UINT_IN_POINTER(che->index), che);
 
 		/* Start converting the FT data */
-		npoints = (int *)MEM_mallocN((ftoutline.n_contours) * sizeof(int), "endpoints");
 		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "onpoints");
 
-		/* calculate total points of each contour */
-		for (j = 0; j < ftoutline.n_contours; j++) {
-			if (j == 0)
-				npoints[j] = ftoutline.contours[j] + 1;
-			else
-				npoints[j] = ftoutline.contours[j] - ftoutline.contours[j - 1];
-		}
-
 		/* get number of on-curve points for beziertriples (including conic virtual on-points) */
-		for (j = 0; j < ftoutline.n_contours; j++) {
-			for (k = 0; k < npoints[j]; k++) {
+		for (j = 0, contour_prev = -1; j < ftoutline.n_contours; j++) {
+			const int n = ftoutline.contours[j] - contour_prev;
+			contour_prev = ftoutline.contours[j];
+
+			for (k = 0; k < n; k++) {
 				l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
 
 				if (ftoutline.tags[l] == FT_Curve_Tag_On)
 					onpoints[j]++;
 
-				if (k < npoints[j] - 1) {
+				if (k < n - 1) {
 					if (ftoutline.tags[l] == FT_Curve_Tag_Conic &&
 					    ftoutline.tags[l + 1] == FT_Curve_Tag_Conic)
 					{
@@ -131,7 +126,10 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 		}
 
 		/* contour loop, bezier & conic styles merged */
-		for (j = 0; j < ftoutline.n_contours; j++) {
+		for (j = 0, contour_prev = -1; j < ftoutline.n_contours; j++) {
+			const int n = ftoutline.contours[j] - contour_prev;
+			contour_prev = ftoutline.contours[j];
+
 			/* add new curve */
 			nu  =  (Nurb *)MEM_callocN(sizeof(struct Nurb), "objfnt_nurb");
 			bezt = (BezTriple *)MEM_callocN((onpoints[j]) * sizeof(BezTriple), "objfnt_bezt");
@@ -145,12 +143,12 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 			nu->bezt = bezt;
 
 			/* individual curve loop, start-end */
-			for (k = 0; k < npoints[j]; k++) {
-				if (j > 0) l = k + ftoutline.contours[j - 1] + 1; else l = k;
+			for (k = 0; k < n; k++) {
+				l = (j > 0) ? (k + ftoutline.contours[j - 1] + 1) : k;
 				if (k == 0) m = l;
 
 				/* virtual conic on-curve points */
-				if (k < npoints[j] - 1) {
+				if (k < n - 1) {
 					if (ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l + 1] == FT_Curve_Tag_Conic) {
 						dx = (ftoutline.points[l].x + ftoutline.points[l + 1].x) * scale / 2.0f;
 						dy = (ftoutline.points[l].y + ftoutline.points[l + 1].y) * scale / 2.0f;
@@ -216,7 +214,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 					bezt->vec[1][1] = ftoutline.points[l].y * scale;
 
 					/* right handle */
-					if (k < (npoints[j] - 1)) {
+					if (k < n - 1) {
 						if (ftoutline.tags[l + 1] == FT_Curve_Tag_Cubic) {
 							bezt->vec[2][0] = ftoutline.points[l + 1].x * scale;
 							bezt->vec[2][1] = ftoutline.points[l + 1].y * scale;
@@ -273,8 +271,8 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 				}
 			}
 		}
-		if (npoints) MEM_freeN(npoints);
-		if (onpoints) MEM_freeN(onpoints);
+
+		MEM_freeN(onpoints);
 
 		return che;
 	}
