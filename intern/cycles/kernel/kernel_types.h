@@ -204,10 +204,8 @@ enum PathTraceDimension {
 	PRNG_UNUSED_0 = 5,
 	PRNG_UNUSED_1 = 6,	/* for some reason (6, 7) is a bad sobol pattern */
 	PRNG_UNUSED_2 = 7,  /* with a low number of samples (< 64) */
-	PRNG_BASE_NUM = 8,
-#else
-	PRNG_BASE_NUM = 4,
 #endif
+	PRNG_BASE_NUM = 8,
 
 	PRNG_BSDF_U = 0,
 	PRNG_BSDF_V = 1,
