@@ -411,6 +411,7 @@ ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance 
 {
 	float fac = 1.0f/num_samples;
 
+#ifdef __PASSES__
 	L->direct_diffuse += L_sample->direct_diffuse*fac;
 	L->direct_glossy += L_sample->direct_glossy*fac;
 	L->direct_transmission += L_sample->direct_transmission*fac;
@@ -426,6 +427,9 @@ ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance 
 	L->ao += L_sample->ao*fac;
 	L->shadow += L_sample->shadow*fac;
 	L->mist += L_sample->mist*fac;
+#else
+	*L += *L_sample * fac;
+#endif
 }
 
 CCL_NAMESPACE_END

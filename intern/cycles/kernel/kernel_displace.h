@@ -201,6 +201,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 			break;
 		}
 
+#ifdef __PASSES__
 		/* light passes */
 		case SHADER_EVAL_AO:
 		{
@@ -269,6 +270,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 #endif
 			break;
 		}
+#endif
 
 		/* extra */
 		case SHADER_EVAL_ENVIRONMENT:
