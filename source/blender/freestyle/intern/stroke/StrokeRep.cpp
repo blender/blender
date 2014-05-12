@@ -523,7 +523,7 @@ void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices, floa
 		sv = (*v);
 		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / (_averageThickness * texStep)), 0));
 		i++;
-		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / (_averageThickness * texStep)), 1));
+		_vertices[i]->setTexCoord(Vec2r((real)(sv->curvilinearAbscissa() / (_averageThickness * texStep)), -1));
 		i++;
 	}
 }
@@ -561,12 +561,12 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			if (u > 0.25)
 				break;
 
-			svRep->setTexCoord(Vec2r((real)u, 0.5), true);
+			svRep->setTexCoord(Vec2r((real)u, -0.5), true);
 			i++;
 			++currentSV;
 
 			svRep = *currentSV;
-			svRep->setTexCoord(Vec2r((real)u, 1), true);
+			svRep->setTexCoord(Vec2r((real)u, -1), true);
 			i++;
 			++currentSV;
 			uPrev = u;
@@ -582,7 +582,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 				tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d());
 				tvRep[k]->setTexCoord((1 - t) * _vertices[i - 2]->texCoord() + t * _vertices[i]->texCoord());
 				// v coord is 0.5 for tvRep[0], 1.0 for tvRep[1]
-				tvRep[k]->setTexCoord(Vec2r(0.25, 0.5 * (k + 1)), true);
+				tvRep[k]->setTexCoord(Vec2r(0.25, -0.5 * (k + 1)), true);
 				tvRep[k]->setColor((1 - t) * _vertices[i - 2]->color() + t * Vec3r(sv->attribute().getColorRGB()));
 				tvRep[k]->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
 				i++;
@@ -596,7 +596,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			for (int k = 0; k < 2; k++) {
 				tvRep[k] = new StrokeVertexRep(*(_vertices[i - 2]));
 				// v coord is 0.0 for tvRep[0], 0.5 for tvRep[1]
-				tvRep[k]->setTexCoord(Vec2r(0.0, 0.5 * k), true); // FIXED u coord
+				tvRep[k]->setTexCoord(Vec2r(0.0, -0.5 * k), true);
 				i++;
 			}
 			for (int k = 0; k < 2; k++) {
@@ -620,7 +620,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 		++currentSV;
 
 		svRep = *currentSV;
-		svRep->setTexCoord(Vec2r((real)u, 0.5), true);
+		svRep->setTexCoord(Vec2r((real)u, -0.5), true);
 		i++;
 		++currentSV;
 
@@ -638,7 +638,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 				tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d());
 				tvRep[k]->setTexCoord((1 - t) * _vertices[i - 2]->texCoord() + t * _vertices[i]->texCoord());
 				// v coord is 0.0 for tvRep[0], 0.5 for tvRep[1]
-				tvRep[k]->setTexCoord(Vec2r((real)tiles, 0.5 * k), true); // FIXED u coord
+				tvRep[k]->setTexCoord(Vec2r((real)tiles, -0.5 * k), true);
 				tvRep[k]->setColor((1 - t) * _vertices[i - 2]->color() + t * Vec3r(sv->attribute().getColorRGB()));
 				tvRep[k]->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
 				i++;
@@ -652,7 +652,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			for (int k = 0; k < 2; k++) {
 				tvRep[k] = new StrokeVertexRep(*(_vertices[i - 2]));
 				// v coord is 0.5 for tvRep[0], 1.0 for tvRep[1]
-				tvRep[k]->setTexCoord(Vec2r(0.75, 0.5 * (k + 1)), true);
+				tvRep[k]->setTexCoord(Vec2r(0.75, -0.5 * (k + 1)), true);
 				i++;
 			}
 			for (int k = 0; k < 2; k++) {
@@ -667,12 +667,12 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			svRep = *currentSV;
 			u = 0.75 + sv->curvilinearAbscissa() / spacedThickness * fact - float(tiles) - 0.25;
 
-			svRep->setTexCoord(Vec2r((real)u, 0.5), true);
+			svRep->setTexCoord(Vec2r((real)u, -0.5), true);
 			i++;
 			++currentSV;
 
 			svRep = *currentSV;
-			svRep->setTexCoord(Vec2r((real)u, 1), true);
+			svRep->setTexCoord(Vec2r((real)u, -1), true);
 			i++;
 			++currentSV;
 		}

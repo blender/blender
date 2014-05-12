@@ -536,10 +536,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 							loopsuv[L][2].uv[0] = svRep[0]->texCoord(L).x();
 							loopsuv[L][2].uv[1] = svRep[0]->texCoord(L).y();
 						}
-						/* freestyle tex-origin is upside-down */
-						for (int i = 0; i < 3; i++) {
-							loopsuv[L][i].uv[1] *= -1;
-						}
 						loopsuv[L] += 3;
 					}
 				}
