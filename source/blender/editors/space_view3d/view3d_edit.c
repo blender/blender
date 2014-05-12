@@ -35,6 +35,7 @@
 #include <float.h>
 
 #include "DNA_armature_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
@@ -47,6 +48,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
+#include "BKE_font.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
@@ -562,6 +564,21 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 		else {
 			copy_v3_v3(lastofs, ob->obmat[3]);
 		}
+		is_set = true;
+	}
+	else if (ob && (ob->mode & OB_MODE_EDIT) && (ob->type == OB_FONT)) {
+		Curve *cu = ob->data;
+		EditFont *ef = cu->editfont;
+		int i;
+
+		zero_v3(lastofs);
+		for (i = 0; i < 4; i++) {
+			add_v2_v2(lastofs, ef->textcurs[i]);
+		}
+		mul_v2_fl(lastofs, 1.0f / 4.0f);
+
+		mul_m4_v3(ob->obmat, lastofs);
+
 		is_set = true;
 	}
 	else {
