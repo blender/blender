@@ -184,8 +184,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		}
 	}
 
-	size_t num_distribution = num_triangles;
-	num_distribution += num_lights;
+	size_t num_distribution = num_triangles + num_lights;
 
 	/* emission area */
 	float4 *distribution = dscene->light_distribution.resize(num_distribution + 1);

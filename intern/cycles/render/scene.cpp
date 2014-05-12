@@ -236,9 +236,9 @@ bool Scene::need_global_attribute(AttributeStandard std)
 {
 	if(std == ATTR_STD_UV)
 		return Pass::contains(film->passes, PASS_UV);
-	if(std == ATTR_STD_MOTION_VERTEX_POSITION)
+	else if(std == ATTR_STD_MOTION_VERTEX_POSITION)
 		return need_motion() != MOTION_NONE;
-	if(std == ATTR_STD_MOTION_VERTEX_NORMAL)
+	else if(std == ATTR_STD_MOTION_VERTEX_NORMAL)
 		return need_motion() == MOTION_BLUR;
 	
 	return false;
