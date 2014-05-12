@@ -935,10 +935,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 				Object *obt = go->ob;
 				if (obt && obt->rigidbody_constraint) {
 					rbc = obt->rigidbody_constraint;
-					if (rbc->ob1 == ob) {
-						BKE_rigidbody_remove_constraint(scene, obt);
-					}
-					if (rbc->ob2 == ob) {
+					if (ELEM(ob, rbc->ob1, rbc->ob2)) {
 						BKE_rigidbody_remove_constraint(scene, obt);
 					}
 				}
