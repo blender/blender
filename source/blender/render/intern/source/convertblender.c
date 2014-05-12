@@ -5007,6 +5007,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 					DupliExtraData *dob_extra = &duplilist_apply_data->extra[i];
 					Object *obd= dob->ob;
 
+					copy_m4_m4(obd->obmat, dob->mat);
+
 					/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
 					if (!(obd->transflag & OB_RENDER_DUPLI) && dob->no_draw)
 						continue;
@@ -5019,8 +5021,6 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 					if (!allow_render_object(re, obd, nolamps, onlyselected, actob))
 						continue;
-
-					copy_m4_m4(obd->obmat, dob->mat);
 
 					if (allow_render_dupli_instance(re, dob, obd)) {
 						ParticleSystem *psys;
