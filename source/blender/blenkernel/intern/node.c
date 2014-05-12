@@ -174,7 +174,7 @@ static void node_set_typeinfo(const struct bContext *C, bNodeTree *ntree, bNode 
 {
 	/* for nodes saved in older versions storage can get lost, make undefined then */
 	if (node->flag & NODE_INIT) {
-		if (typeinfo->storagename[0] && !node->storage)
+		if (typeinfo && typeinfo->storagename[0] && !node->storage)
 			typeinfo = NULL;
 	}
 	
