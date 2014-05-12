@@ -3726,6 +3726,8 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 			float ofs_new[3];
 			float *ofs_new_pt = NULL;
 
+			view3d_ensure_persp(v3d, ar);
+
 			if (ELEM(orbitdir, V3D_VIEW_STEPLEFT, V3D_VIEW_STEPRIGHT)) {
 				const float zvec[3] = {0.0f, 0.0f, 1.0f};
 
