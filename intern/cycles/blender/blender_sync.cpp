@@ -142,8 +142,13 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, void *
 	sync_film();
 	sync_shaders();
 	sync_curve_settings();
+
+	mesh_synced.clear(); /* use for objects and motion sync */
+
 	sync_objects(b_v3d);
 	sync_motion(b_v3d, b_override, python_thread_state);
+
+	mesh_synced.clear();
 }
 
 /* Integrator */

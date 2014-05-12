@@ -616,6 +616,11 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Object *object, float motion
 
 	mesh_motion_synced.insert(mesh);
 
+	/* ensure we only motion sync meshes that also had mesh synced, to avoid
+	 * unnecessary work and to ensure that its attributes were clear */
+	if(mesh_synced.find(mesh) == mesh_synced.end())
+		return;
+
 	/* for motion pass always compute, for motion blur it can be disabled */
 	int time_index = 0;
 

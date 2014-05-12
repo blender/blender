@@ -446,7 +446,6 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 		light_map.pre_sync();
 		mesh_map.pre_sync();
 		object_map.pre_sync();
-		mesh_synced.clear();
 		particle_system_map.pre_sync();
 		motion_times.clear();
 	}
@@ -536,7 +535,6 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 			scene->object_manager->tag_update(scene);
 		if(particle_system_map.post_sync())
 			scene->particle_system_manager->tag_update(scene);
-		mesh_synced.clear();
 	}
 
 	if(motion)
