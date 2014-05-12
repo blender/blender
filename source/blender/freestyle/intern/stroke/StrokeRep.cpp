@@ -581,7 +581,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			for (int k = 0; k < 2; k++) {
 				tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d());
 				tvRep[k]->setTexCoord((1 - t) * _vertices[i - 2]->texCoord() + t * _vertices[i]->texCoord());
-				// v coord is 0.5 for tvRep[0], 1.0 for tvRep[1]
+				// v coord is -0.5 for tvRep[0], -1.0 for tvRep[1]
 				tvRep[k]->setTexCoord(Vec2r(0.25, -0.5 * (k + 1)), true);
 				tvRep[k]->setColor((1 - t) * _vertices[i - 2]->color() + t * Vec3r(sv->attribute().getColorRGB()));
 				tvRep[k]->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
@@ -595,7 +595,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			// copy the vertices with different texture coordinates
 			for (int k = 0; k < 2; k++) {
 				tvRep[k] = new StrokeVertexRep(*(_vertices[i - 2]));
-				// v coord is 0.0 for tvRep[0], 0.5 for tvRep[1]
+				// v coord is 0.0 for tvRep[0], -0.5 for tvRep[1]
 				tvRep[k]->setTexCoord(Vec2r(0.0, -0.5 * k), true);
 				i++;
 			}
@@ -637,7 +637,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			for (int k = 0; k < 2; k++) {
 				tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() + t * _vertices[i]->point2d());
 				tvRep[k]->setTexCoord((1 - t) * _vertices[i - 2]->texCoord() + t * _vertices[i]->texCoord());
-				// v coord is 0.0 for tvRep[0], 0.5 for tvRep[1]
+				// v coord is 0.0 for tvRep[0], -0.5 for tvRep[1]
 				tvRep[k]->setTexCoord(Vec2r((real)tiles, -0.5 * k), true);
 				tvRep[k]->setColor((1 - t) * _vertices[i - 2]->color() + t * Vec3r(sv->attribute().getColorRGB()));
 				tvRep[k]->setAlpha((1 - t) * _vertices[i - 2]->alpha() + t * sv->attribute().getAlpha());
@@ -651,7 +651,7 @@ void Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertice
 			// copy the vertices with different texture coordinates
 			for (int k = 0; k < 2; k++) {
 				tvRep[k] = new StrokeVertexRep(*(_vertices[i - 2]));
-				// v coord is 0.5 for tvRep[0], 1.0 for tvRep[1]
+				// v coord is -0.5 for tvRep[0], -1.0 for tvRep[1]
 				tvRep[k]->setTexCoord(Vec2r(0.75, -0.5 * (k + 1)), true);
 				i++;
 			}
