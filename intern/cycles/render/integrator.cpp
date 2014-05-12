@@ -34,11 +34,9 @@ Integrator::Integrator()
 	max_glossy_bounce = max_bounce;
 	max_transmission_bounce = max_bounce;
 	max_volume_bounce = max_bounce;
-	probalistic_termination = true;
 
 	transparent_min_bounce = min_bounce;
 	transparent_max_bounce = max_bounce;
-	transparent_probalistic = true;
 	transparent_shadows = false;
 
 	volume_homogeneous_sampling = 0;
@@ -83,10 +81,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 	/* integrator parameters */
 	kintegrator->max_bounce = max_bounce + 1;
-	if(probalistic_termination)
-		kintegrator->min_bounce = min_bounce + 1;
-	else
-		kintegrator->min_bounce = kintegrator->max_bounce;
+	kintegrator->min_bounce = min_bounce + 1;
 
 	kintegrator->max_diffuse_bounce = max_diffuse_bounce + 1;
 	kintegrator->max_glossy_bounce = max_glossy_bounce + 1;
@@ -98,10 +93,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 		kintegrator->max_volume_bounce = 1;
 
 	kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
-	if(transparent_probalistic)
-		kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
-	else
-		kintegrator->transparent_min_bounce = kintegrator->transparent_max_bounce;
+	kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
 
 	kintegrator->transparent_shadows = transparent_shadows;
 
@@ -175,10 +167,8 @@ bool Integrator::modified(const Integrator& integrator)
 		max_glossy_bounce == integrator.max_glossy_bounce &&
 		max_transmission_bounce == integrator.max_transmission_bounce &&
 		max_volume_bounce == integrator.max_volume_bounce &&
-		probalistic_termination == integrator.probalistic_termination &&
 		transparent_min_bounce == integrator.transparent_min_bounce &&
 		transparent_max_bounce == integrator.transparent_max_bounce &&
-		transparent_probalistic == integrator.transparent_probalistic &&
 		transparent_shadows == integrator.transparent_shadows &&
 		volume_homogeneous_sampling == integrator.volume_homogeneous_sampling &&
 		volume_max_steps == integrator.volume_max_steps &&

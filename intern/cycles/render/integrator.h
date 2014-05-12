@@ -34,11 +34,9 @@ public:
 	int max_glossy_bounce;
 	int max_transmission_bounce;
 	int max_volume_bounce;
-	bool probalistic_termination;
 
 	int transparent_min_bounce;
 	int transparent_max_bounce;
-	bool transparent_probalistic;
 	bool transparent_shadows;
 
 	int volume_homogeneous_sampling;
