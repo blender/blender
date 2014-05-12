@@ -2117,7 +2117,7 @@ static void tag_localizable_objects(bContext *C, int mode)
 		/* If data is also gonna to become local, mark data we're interested in
 		 * as gonna-to-be-local.
 		 */
-		if (mode == MAKE_LOCAL_SELECT_OBDATA) {
+		if (mode == MAKE_LOCAL_SELECT_OBDATA && object->data) {
 			ID *data_id = (ID *) object->data;
 			data_id->flag |= LIB_DOIT;
 		}
