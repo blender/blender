@@ -798,11 +798,11 @@ static int bake(
 				        margin, &bake->im_format, is_noncolor);
 
 				if (!ok) {
-					BKE_reportf(reports, RPT_ERROR, "Problem saving baked map in \"%s\".", name);
+					BKE_reportf(reports, RPT_ERROR, "Problem saving baked map in \"%s\"", name);
 					op_result = OPERATOR_CANCELLED;
 				}
 				else {
-					BKE_reportf(reports, RPT_INFO, "Baking map written to \"%s\".", name);
+					BKE_reportf(reports, RPT_INFO, "Baking map written to \"%s\"", name);
 					op_result = OPERATOR_FINISHED;
 				}
 

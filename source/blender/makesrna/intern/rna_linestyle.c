@@ -293,7 +293,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 	static EnumPropertyItem texco_items[] = {
 		{TEXCO_WINDOW, "WINDOW", 0, "Window", "Use screen coordinates as texture coordinates"},
 		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
-		{TEXCO_STROKE, "ALONG_STROKE", 0, "Along stroke", "Use stroke lenght for texture coordinates"},
+		{TEXCO_STROKE, "ALONG_STROKE", 0, "Along stroke", "Use stroke length for texture coordinates"},
 		{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -1345,7 +1345,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "texture_spacing", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "texstep");
 	RNA_def_property_range(prop, 0.01f, 100.0f);
-	RNA_def_property_ui_text(prop, "Texture spacing", "Spacing for textures along stroke lenght");
+	RNA_def_property_ui_text(prop, "Texture spacing", "Spacing for textures along stroke length");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	/* nodes */

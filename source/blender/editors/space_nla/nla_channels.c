@@ -460,7 +460,8 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else if (nlaedit_is_tweakmode_on(&ac)) {
-		BKE_report(op->reports, RPT_WARNING, "Cannot push down actions while tweaking a strip's action. Exit tweakmode first");
+		BKE_report(op->reports, RPT_WARNING,
+		           "Cannot push down actions while tweaking a strip's action, exit tweak mode first");
 		return OPERATOR_CANCELLED;
 	}
 	else if (adt->action == NULL) {
