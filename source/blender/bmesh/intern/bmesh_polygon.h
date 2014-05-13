@@ -32,9 +32,10 @@
 void  BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot);
 
 void  BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (*r_index)[3]);
-void  BM_face_calc_normal(const BMFace *f, float r_no[3]) ATTR_NONNULL();
-void  BM_face_calc_normal_vcos(BMesh *bm, BMFace *f, float r_no[3],
+float BM_face_calc_normal(const BMFace *f, float r_no[3]) ATTR_NONNULL();
+float BM_face_calc_normal_vcos(BMesh *bm, BMFace *f, float r_no[3],
                                float const (*vertexCos)[3]) ATTR_NONNULL();
+float BM_face_calc_normal_subset(BMLoop *l_first, BMLoop *l_last, float r_no[3]) ATTR_NONNULL();
 float BM_face_calc_area(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float BM_face_calc_perimeter(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BM_face_calc_plane(BMFace *f, float r_plane[3]) ATTR_NONNULL();
