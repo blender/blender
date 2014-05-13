@@ -2229,7 +2229,7 @@ static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)
 		return true;
 	if (l1 && l2) {
 		/* Can have case where v1 and v2 are on shared chain between two faces.
-		 * BM_face_legal_splits does visibility and self-intersection tests,
+		 * BM_face_splits_check_legal does visibility and self-intersection tests,
 		 * but it is expensive and maybe a bit buggy, so use a simple
 		 * "is the midpoint in the face" test */
 		mid_v3_v3v3(mid, v1->co, v2->co);

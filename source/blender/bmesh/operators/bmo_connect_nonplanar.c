@@ -102,7 +102,7 @@ static bool bm_face_split_find(BMFace *f, BMLoop *l_pair[2], float *r_angle)
 					if (err_test < err_best) {
 						/* check we're legal (we could batch this) */
 						BMLoop *l_split[2] = {l_a, l_b};
-						BM_face_legal_splits(f, &l_split, 1);
+						BM_face_splits_check_legal(f, &l_split, 1);
 						if (l_split[0]) {
 							err_best = err_test;
 							l_pair[0] = l_a;
