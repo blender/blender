@@ -174,7 +174,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 
-        case 17: /* Modulo */
+		case 17: /* Modulo */
 		{
 			if (in1 == 0.0f)
 				*out = 0.0f;

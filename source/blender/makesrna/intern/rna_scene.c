@@ -1660,7 +1660,7 @@ static void rna_FreestyleSettings_module_remove(ID *id, FreestyleSettings *confi
 
 	if (!BKE_freestyle_module_delete((FreestyleConfig *)config, module)) {
 		if (module->script)
-			BKE_reportf(reports, RPT_ERROR, "Style module '%s' could not be removed", module->script->id.name+2);
+			BKE_reportf(reports, RPT_ERROR, "Style module '%s' could not be removed", module->script->id.name + 2);
 		else
 			BKE_reportf(reports, RPT_ERROR, "Style module could not be removed");
 		return;

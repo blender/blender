@@ -542,7 +542,8 @@ static void sculpt_undo_free(ListBase *lb)
 	}
 }
 
-bool sculpt_undo_cleanup(bContext *C, ListBase *lb) {
+bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
+{
 	Object *ob = CTX_data_active_object(C);
 	SculptUndoNode *unode;
 
@@ -879,7 +880,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 void sculpt_undo_push_begin(const char *name)
 {
 	ED_undo_paint_push_begin(UNDO_PAINT_MESH, name,
-						  sculpt_undo_restore, sculpt_undo_free);
+	                         sculpt_undo_restore, sculpt_undo_free);
 }
 
 void sculpt_undo_push_end(void)

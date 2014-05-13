@@ -4337,7 +4337,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
 	ED_undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
-						  ED_image_undo_restore, ED_image_undo_free);
+	                         ED_image_undo_restore, ED_image_undo_free);
 
 	/* allocate and initialize spatial data structures */
 	project_paint_begin(&ps);
