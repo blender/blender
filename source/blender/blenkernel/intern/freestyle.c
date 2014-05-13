@@ -127,12 +127,13 @@ static FreestyleModuleConfig *alloc_module(void)
 	return (FreestyleModuleConfig *)MEM_callocN(sizeof(FreestyleModuleConfig), "style module configuration");
 }
 
-void BKE_freestyle_module_add(FreestyleConfig *config)
+FreestyleModuleConfig *BKE_freestyle_module_add(FreestyleConfig *config)
 {
 	FreestyleModuleConfig *module_conf = alloc_module();
 	BLI_addtail(&config->modules, (void *)module_conf);
 	module_conf->script = NULL;
 	module_conf->is_displayed = 1;
+	return module_conf;
 }
 
 static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module)
@@ -141,21 +142,30 @@ static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig
 	new_module->is_displayed = module->is_displayed;
 }
 
-void BKE_freestyle_module_delete(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
+bool BKE_freestyle_module_delete(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 {
+	if (BLI_findindex(&config->modules, module_conf) == -1)
+		return false;
 	BLI_freelinkN(&config->modules, module_conf);
+	return true;
 }
 
-void BKE_freestyle_module_move_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
+bool BKE_freestyle_module_move_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 {
+	if (BLI_findindex(&config->modules, module_conf) == -1)
+		return false;
 	BLI_remlink(&config->modules, module_conf);
 	BLI_insertlinkbefore(&config->modules, module_conf->prev, module_conf);
+	return true;
 }
 
-void BKE_freestyle_module_move_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
+bool BKE_freestyle_module_move_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 {
+	if (BLI_findindex(&config->modules, module_conf) == -1)
+		return false;
 	BLI_remlink(&config->modules, module_conf);
 	BLI_insertlinkafter(&config->modules, module_conf->next, module_conf);
+	return true;
 }
 
 void BKE_freestyle_lineset_unique_name(FreestyleConfig *config, FreestyleLineSet *lineset)
