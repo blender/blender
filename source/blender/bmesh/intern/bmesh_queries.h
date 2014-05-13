@@ -49,8 +49,15 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v);
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v);
 BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step);
 BMLoop *BM_vert_find_first_loop(BMVert *v);
-BMFace *BM_vert_pair_share_face(BMVert *v_a, BMVert *v_b,
-                                BMLoop **r_l_a, BMLoop **r_l_b);
+
+BMFace *BM_vert_pair_share_face_by_len(
+        BMVert *v_a, BMVert *v_b,
+        BMLoop **r_l_a, BMLoop **r_l_b,
+        const bool allow_adjacent) ATTR_NONNULL();
+BMFace *BM_vert_pair_share_face_by_angle(
+        BMVert *v_a, BMVert *v_b,
+        BMLoop **r_l_a, BMLoop **r_l_b,
+        const bool allow_adjacent) ATTR_NONNULL();
 
 int     BM_vert_edge_count_nonwire(BMVert *v);
 int     BM_vert_edge_count(BMVert *v);

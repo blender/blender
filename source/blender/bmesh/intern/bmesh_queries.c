@@ -184,8 +184,10 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 /**
  * Given 2 verts, find the smallest face they share and give back both loops.
  */
-BMFace *BM_vert_pair_share_face(BMVert *v_a, BMVert *v_b,
-                                BMLoop **r_l_a, BMLoop **r_l_b)
+BMFace *BM_vert_pair_share_face_by_len(
+        BMVert *v_a, BMVert *v_b,
+        BMLoop **r_l_a, BMLoop **r_l_b,
+        const bool allow_adjacent)
 {
 	BMLoop *l_cur_a = NULL, *l_cur_b = NULL;
 	BMFace *f_cur = NULL;
@@ -197,7 +199,7 @@ BMFace *BM_vert_pair_share_face(BMVert *v_a, BMVert *v_b,
 		BM_ITER_ELEM (l_a, &iter, v_a, BM_LOOPS_OF_VERT) {
 			if ((f_cur == NULL) || (l_a->f->len < f_cur->len)) {
 				l_b = BM_face_vert_share_loop(l_a->f, v_b);
-				if (l_b) {
+				if (l_b && (allow_adjacent || !BM_loop_is_adjacent(l_a, l_b))) {
 					f_cur = l_a->f;
 					l_cur_a = l_a;
 					l_cur_b = l_b;
@@ -206,11 +208,79 @@ BMFace *BM_vert_pair_share_face(BMVert *v_a, BMVert *v_b,
 		}
 	}
 
-	if (r_l_a) *r_l_a = l_cur_a;
-	if (r_l_b) *r_l_b = l_cur_b;
+	*r_l_a = l_cur_a;
+	*r_l_b = l_cur_b;
 
 	return f_cur;
 }
+
+static float bm_face_calc_split_dot(BMLoop *l_a, BMLoop *l_b)
+{
+	float no[2][3];
+
+	if ((BM_face_calc_normal_subset(l_a, l_b, no[0]) != 0.0f) &&
+	    (BM_face_calc_normal_subset(l_b, l_a, no[1]) != 0.0f))
+	{
+		return dot_v3v3(no[0], no[1]);
+	}
+	else {
+		return -1.0f;
+	}
+}
+
+/**
+ * Given 2 verts, find a face they share that has the lowest angle across these verts and give back both loops.
+ *
+ * This can be better then #BM_vert_pair_share_face_by_len because concave splits are ranked lowest.
+ */
+BMFace *BM_vert_pair_share_face_by_angle(
+        BMVert *v_a, BMVert *v_b,
+        BMLoop **r_l_a, BMLoop **r_l_b,
+        const bool allow_adjacent)
+{
+	BMLoop *l_cur_a = NULL, *l_cur_b = NULL;
+	BMFace *f_cur = NULL;
+
+	if (v_a->e && v_b->e) {
+		BMIter iter;
+		BMLoop *l_a, *l_b;
+		float dot_best = -1.0f;
+
+		BM_ITER_ELEM (l_a, &iter, v_a, BM_LOOPS_OF_VERT) {
+			l_b = BM_face_vert_share_loop(l_a->f, v_b);
+			if (l_b && (allow_adjacent || !BM_loop_is_adjacent(l_a, l_b))) {
+
+				if (f_cur == NULL) {
+					f_cur = l_a->f;
+					l_cur_a = l_a;
+					l_cur_b = l_b;
+				}
+				else {
+					/* avoid expensive calculations if we only ever find one face */
+					float dot;
+					if (dot_best == -1.0f) {
+						dot_best = bm_face_calc_split_dot(l_cur_a, l_cur_b);
+					}
+
+					dot = bm_face_calc_split_dot(l_a, l_b);
+					if (dot > dot_best) {
+						dot_best = dot;
+
+						f_cur = l_a->f;
+						l_cur_a = l_a;
+						l_cur_b = l_b;
+					}
+				}
+			}
+		}
+	}
+
+	*r_l_a = l_cur_a;
+	*r_l_b = l_cur_b;
+
+	return f_cur;
+}
+
 
 /**
  * Get the first loop of a vert. Uses the same initialization code for the first loop of the
