@@ -61,7 +61,7 @@ typedef void (*UndoFreeCb)(struct ListBase *lb);
 
 int ED_undo_paint_step(struct bContext *C, int type, int step, const char *name);
 void ED_undo_paint_step_num(struct bContext *C, int type, int num);
-const char *ED_undo_paint_get_name(int type, int nr, int *active);
+const char *ED_undo_paint_get_name(struct bContext *C, int type, int nr, int *active);
 void ED_undo_paint_free(void);
 int ED_undo_paint_valid(int type, const char *name);
 bool ED_undo_paint_empty(int type);

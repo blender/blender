@@ -51,6 +51,9 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log);
 /* Start a new log entry and update the log entry list */
 BMLogEntry *BM_log_entry_add(BMLog *log);
 
+/* Mark all used ids as unused for this node */
+void BM_log_cleanup_entry(BMLogEntry *entry);
+
 /* Remove an entry from the log */
 void BM_log_entry_drop(BMLogEntry *entry);
 

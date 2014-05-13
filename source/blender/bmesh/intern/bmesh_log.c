@@ -489,6 +489,29 @@ BMLog *BM_log_create(BMesh *bm)
 	return log;
 }
 
+void BM_log_cleanup_entry(BMLogEntry *entry)
+{
+	BMLog *log = entry->log;
+
+	if (log) {
+		/* Take all used IDs */
+		bm_log_id_ghash_retake(log->unused_ids, entry->deleted_verts);
+		bm_log_id_ghash_retake(log->unused_ids, entry->deleted_faces);
+		bm_log_id_ghash_retake(log->unused_ids, entry->added_verts);
+		bm_log_id_ghash_retake(log->unused_ids, entry->added_faces);
+		bm_log_id_ghash_retake(log->unused_ids, entry->modified_verts);
+		bm_log_id_ghash_retake(log->unused_ids, entry->modified_faces);
+
+		/* delete entries to avoid releasing ids in node cleanup */
+		BLI_ghash_clear(entry->deleted_verts, NULL, NULL);
+		BLI_ghash_clear(entry->deleted_faces, NULL, NULL);
+		BLI_ghash_clear(entry->added_verts, NULL, NULL);
+		BLI_ghash_clear(entry->added_faces, NULL, NULL);
+		BLI_ghash_clear(entry->modified_verts, NULL, NULL);
+	}
+}
+
+
 /* Allocate and initialize a new BMLog using existing BMLogEntries
  *
  * The 'entry' should be the last entry in the BMLog. Its prev pointer
@@ -684,8 +707,27 @@ void BM_log_entry_drop(BMLogEntry *entry)
 		 * entry. Since the entry is at the beginning of the undo
 		 * stack, and it's being deleted, those elements can never be
 		 * restored. Their IDs can go back into the pool. */
-		bm_log_id_ghash_release(log, entry->deleted_faces);
-		bm_log_id_ghash_release(log, entry->deleted_verts);
+
+		/* This would never happen usually since first entry of log is
+		 * usually dyntopo enable, which, when reverted will free the log
+		 * completely. However, it is possible have a stroke instead of
+		 * dyntopo enable as first entry if nodes have been cleaned up
+		 * after sculpting on a different object than A, B.
+		 *
+		 * The steps are:
+		 * A dyntopo enable - sculpt
+		 * B dyntopo enable - sculpt - undo (A objects operators get cleaned up)
+		 * A sculpt (now A's log has a sculpt operator as first entry)
+		 *
+		 * Causing a cleanup at this point will call the code below, however
+		 * this will invalidate the state of the log since the deleted vertices
+		 * have been reclaimed already on step 2 (see BM_log_cleanup_entry)
+		 *
+		 * Also, design wise, a first entry should not have any deleted vertices since it
+		 * should not have anything to delete them -from-
+		 */
+		//bm_log_id_ghash_release(log, entry->deleted_faces);
+		//bm_log_id_ghash_release(log, entry->deleted_verts);
 	}
 	else if (!entry->next) {
 		/* Release IDs of elements that are added by this entry. Since

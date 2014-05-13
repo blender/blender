@@ -489,7 +489,7 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 			name = undo_editmode_get_name(C, i, &active);
 		}
 		else if (undosys == UNDOSYSTEM_IMAPAINT) {
-			name = ED_undo_paint_get_name(UNDO_PAINT_IMAGE, i, &active);
+			name = ED_undo_paint_get_name(C, UNDO_PAINT_IMAGE, i, &active);
 		}
 		else {
 			name = BKE_undo_get_name(i, &active);

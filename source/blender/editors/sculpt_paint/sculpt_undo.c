@@ -526,9 +526,11 @@ static void sculpt_undo_free(ListBase *lb)
 		}
 		if (unode->mask)
 			MEM_freeN(unode->mask);
+
 		if (unode->bm_entry) {
 			BM_log_entry_drop(unode->bm_entry);
 		}
+
 		if (unode->bm_enter_totvert)
 			CustomData_free(&unode->bm_enter_vdata, unode->bm_enter_totvert);
 		if (unode->bm_enter_totedge)
@@ -538,6 +540,24 @@ static void sculpt_undo_free(ListBase *lb)
 		if (unode->bm_enter_totpoly)
 			CustomData_free(&unode->bm_enter_pdata, unode->bm_enter_totpoly);
 	}
+}
+
+bool sculpt_undo_cleanup(bContext *C, ListBase *lb) {
+	Object *ob = CTX_data_active_object(C);
+	SculptUndoNode *unode;
+
+	unode = lb->first;
+
+	if (strcmp(unode->idname, ob->id.name) != 0) {
+		for (unode = lb->first; unode; unode = unode->next) {
+			if (unode->bm_entry)
+				BM_log_cleanup_entry(unode->bm_entry);
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node)
@@ -859,7 +879,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 void sculpt_undo_push_begin(const char *name)
 {
 	ED_undo_paint_push_begin(UNDO_PAINT_MESH, name,
-	                      sculpt_undo_restore, sculpt_undo_free);
+						  sculpt_undo_restore, sculpt_undo_free);
 }
 
 void sculpt_undo_push_end(void)

@@ -229,6 +229,7 @@ typedef enum BrushStrokeMode {
 /* paint_undo.c */
 struct ListBase *undo_paint_push_get_list(int type);
 void undo_paint_push_count_alloc(int type, int size);
+bool sculpt_undo_cleanup(struct bContext *C, struct ListBase *lb);
 
 /* paint_hide.c */
 

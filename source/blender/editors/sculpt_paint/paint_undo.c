@@ -53,14 +53,17 @@ typedef struct UndoElem {
 	UndoFreeCb free;
 } UndoElem;
 
+typedef bool (*UndoCleanupCb)(struct bContext *C, ListBase *lb);
+
 typedef struct UndoStack {
 	int type;
 	ListBase elems;
 	UndoElem *current;
+	UndoCleanupCb cleanup;
 } UndoStack;
 
-static UndoStack ImageUndoStack = {UNDO_PAINT_IMAGE, {NULL, NULL}, NULL};
-static UndoStack MeshUndoStack = {UNDO_PAINT_MESH, {NULL, NULL}, NULL};
+static UndoStack ImageUndoStack = {UNDO_PAINT_IMAGE, {NULL, NULL}, NULL, NULL};
+static UndoStack MeshUndoStack = {UNDO_PAINT_MESH, {NULL, NULL}, NULL, sculpt_undo_cleanup};
 
 /* Generic */
 
@@ -171,9 +174,38 @@ static void undo_stack_push_end(UndoStack *stack)
 	}
 }
 
+static void undo_stack_cleanup(UndoStack *stack, bContext *C)
+{
+	UndoElem *uel = stack->elems.first;
+	bool stack_reset = false;
+
+	if (stack->cleanup) {
+		while (uel) {
+			if (stack->cleanup(C, &uel->elems)) {
+				UndoElem *uel_tmp = uel->next;
+				if (stack->current == uel) {
+					stack->current = NULL;
+					stack_reset = true;
+				}
+				undo_elem_free(stack, uel);
+				BLI_freelinkN(&stack->elems, uel);
+				uel = uel_tmp;
+			}
+			else
+				uel = uel->next;
+		}
+		if (stack_reset) {
+			stack->current = stack->elems.last;
+		}
+	}
+}
+
 static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *name)
 {
 	UndoElem *undo;
+
+	/* first cleanup any old undo steps that may belong to invalid data */
+	undo_stack_cleanup(stack, C);
 
 	if (step == 1) {
 		if (stack->current == NULL) {
@@ -315,12 +347,17 @@ static char *undo_stack_get_name(UndoStack *stack, int nr, int *active)
 	return NULL;
 }
 
-const char *ED_undo_paint_get_name(int type, int nr, int *active)
+const char *ED_undo_paint_get_name(bContext *C, int type, int nr, int *active)
 {
-	if (type == UNDO_PAINT_IMAGE)
+
+	if (type == UNDO_PAINT_IMAGE) {
+		undo_stack_cleanup(&ImageUndoStack, C);
 		return undo_stack_get_name(&ImageUndoStack, nr, active);
-	else if (type == UNDO_PAINT_MESH)
+	}
+	else if (type == UNDO_PAINT_MESH) {
+		undo_stack_cleanup(&MeshUndoStack, C);
 		return undo_stack_get_name(&MeshUndoStack, nr, active);
+	}
 	return NULL;
 }
 

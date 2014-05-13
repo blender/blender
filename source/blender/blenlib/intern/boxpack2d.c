@@ -91,7 +91,7 @@ typedef struct BoxVert {
 
 BLI_INLINE int quad_flag(unsigned int q)
 {
-	BLI_assert(q < 4 && q >= 0);
+	BLI_assert(q < 4);
 	return (1 << q);
 }
 
