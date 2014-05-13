@@ -228,28 +228,24 @@ void RAS_BucketManager::Renderbuckets(const MT_Transform& cameratrans, RAS_IRast
 	RenderSolidBuckets(cameratrans, rasty);
 	RenderAlphaBuckets(cameratrans, rasty);
 
-	/* All meshes should be up to date now */
-	/* Don't do this while processing buckets because some meshes are split between buckets */
-	BucketList::iterator bit;
-	list<RAS_MeshSlot>::iterator mit;
-	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
-		/* This (and the similar lines of code for the alpha buckets) is kind of a hacky fix for #34382. If we're
-		 * drawing shadows and the material doesn't cast shadows, then the mesh is still modified, so we don't want to
-		 * set MeshModified to false yet. This will happen correctly in the main render pass.
-		 */
-		if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && !(*bit)->GetPolyMaterial()->CastsShadows())
-			continue;
-
-		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
-			mit->m_mesh->SetMeshModified(false);
+	/* If we're drawing shadows and bucket wasn't rendered (outside of the lamp frustum or doesn't cast shadows)
+	 * then the mesh is still modified, so we don't want to set MeshModified to false yet (it will mess up
+	 * updating display lists). Just leave this step for the main render pass.
+	 */
+	if (rasty->GetDrawingMode() != RAS_IRasterizer::KX_SHADOW) {
+		/* All meshes should be up to date now */
+		/* Don't do this while processing buckets because some meshes are split between buckets */
+		BucketList::iterator bit;
+		list<RAS_MeshSlot>::iterator mit;
+		for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
+			for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+				mit->m_mesh->SetMeshModified(false);
+			}
 		}
-	}
-	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
-		if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && !(*bit)->GetPolyMaterial()->CastsShadows())
-			continue;
-
-		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
-			mit->m_mesh->SetMeshModified(false);
+		for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
+			for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+				mit->m_mesh->SetMeshModified(false);
+			}
 		}
 	}
 	
