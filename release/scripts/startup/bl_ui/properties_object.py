@@ -206,6 +206,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         obj = context.object
         obj_type = obj.type
         is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'})
+        is_wire = (obj_type in {'CAMERA', 'EMPTY'})
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE')
         is_dupli = (obj.dupli_type != 'NONE')
 
@@ -237,9 +238,13 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        if obj_type not in {'CAMERA', 'EMPTY'}:
+        if is_wire:
+            # wire objects only use the max. draw type for duplis
+            col.active = is_dupli
+            col.label(text="Maximum Dupli Draw Type:")
+        else:
             col.label(text="Maximum Draw Type:")
-            col.prop(obj, "draw_type", text="")
+        col.prop(obj, "draw_type", text="")
 
         col = split.column()
         if is_geometry or is_empty_image:
