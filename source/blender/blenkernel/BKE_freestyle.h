@@ -39,9 +39,12 @@ extern "C" {
 #endif
 
 struct FreestyleConfig;
-struct FreestyleSettings;
 struct FreestyleLineSet;
 struct FreestyleModuleConfig;
+
+/* RNA aliases */
+typedef struct FreestyleConfig FreestyleSettings;
+typedef struct FreestyleModuleConfig FreestyleModuleSettings;
 
 /* FreestyleConfig */
 void BKE_freestyle_config_init(FreestyleConfig *config);
