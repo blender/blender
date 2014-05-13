@@ -105,6 +105,9 @@ void ED_undo_push(bContext *C, const char *str)
 
 		PE_undo_push(CTX_data_scene(C), str);
 	}
+	else if (obact && obact->mode & OB_MODE_SCULPT) {
+		/* do nothing for now */
+	}
 	else {
 		BKE_write_undo(C, str);
 	}
