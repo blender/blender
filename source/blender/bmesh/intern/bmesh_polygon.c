@@ -1104,6 +1104,21 @@ void BM_face_splits_check_legal(BMFace *f, BMLoop *(*loops)[2], int len)
 	}
 }
 
+/**
+ * This simply checks that the verts don't connect faces which would have more optimal splits.
+ * but _not_ check for correctness.
+ */
+void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len)
+{
+	int i;
+
+	for (i = 0; i < len; i++) {
+		BMLoop *l_a_dummy, *l_b_dummy;
+		if (f != BM_vert_pair_share_face_by_angle(loops[i][0]->v, loops[i][1]->v, &l_a_dummy, &l_b_dummy, false)) {
+			loops[i][0] = NULL;
+		}
+	}
+}
 
 /**
  * Small utility functions for fast access
