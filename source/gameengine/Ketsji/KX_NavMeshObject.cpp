@@ -463,9 +463,10 @@ bool KX_NavMeshObject::BuildNavMesh()
 	if (dtris) MEM_freeN(dtris);
 
 	if (dvertices)
-	{
 		delete [] dvertices;
-	}
+
+	if (vertsi)
+		delete [] vertsi;
 
 	return true;
 }
@@ -591,6 +592,8 @@ int KX_NavMeshObject::FindPath(const MT_Point3& from, const MT_Point3& to, float
 				waypoint.getValue(&path[i*3]);
 			}
 		}
+
+		delete[] polys;
 	}
 
 	return pathLen;
