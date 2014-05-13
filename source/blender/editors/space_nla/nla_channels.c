@@ -416,8 +416,8 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
 		
 		/* active animdata block */
 		if (nla_panel_context(C, &adt_ptr, NULL, NULL) == 0 || (adt_ptr.data == NULL)) {
-			BKE_report(op->reports, RPT_ERROR, "No active AnimData block to use. " 
-			           "Select a datablock expander first or set the appropriate flags on an AnimData block");
+			BKE_report(op->reports, RPT_ERROR, "No active AnimData block to use "
+			           "(select a datablock expander first or set the appropriate flags on an AnimData block)");
 			return OPERATOR_CANCELLED;
 		}
 		else {
@@ -437,12 +437,12 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
 		/* get channel from index */
 		ale = BLI_findlink(&anim_data, channel_index);
 		if (ale == NULL) {
-			BKE_reportf(op->reports, RPT_ERROR, "No animation channel found at index = %d", channel_index);
+			BKE_reportf(op->reports, RPT_ERROR, "No animation channel found at index %d", channel_index);
 			BLI_freelistN(&anim_data);
 			return OPERATOR_CANCELLED;
 		}
 		else if (ale->type != ANIMTYPE_NLAACTION) {
-			BKE_reportf(op->reports, RPT_ERROR, "Animation channel at index = %d is not a NLA 'Active Action' channel", channel_index);
+			BKE_reportf(op->reports, RPT_ERROR, "Animation channel at index %d is not a NLA 'Active Action' channel", channel_index);
 			BLI_freelistN(&anim_data);
 			return OPERATOR_CANCELLED;
 		}

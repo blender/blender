@@ -350,7 +350,7 @@ static int initialize_internal_images(BakeImages *bake_images, ReportList *repor
 		}
 		else {
 			BKE_image_release_ibuf(bk_image->image, ibuf, lock);
-			BKE_reportf(reports, RPT_ERROR, "Not initialized image %s", bk_image->image->id.name + 2);
+			BKE_reportf(reports, RPT_ERROR, "Uninitialized image %s", bk_image->image->id.name + 2);
 			return 0;
 		}
 		BKE_image_release_ibuf(bk_image->image, ibuf, lock);
@@ -439,13 +439,13 @@ static int bake(
 	if (tot_materials == 0) {
 		if (is_save_internal) {
 			BKE_report(reports, RPT_ERROR,
-			           "No active image found. Add a material or bake to an external file");
+			           "No active image found, add a material or bake to an external file");
 
 			goto cleanup;
 		}
 		else if (is_split_materials) {
 			BKE_report(reports, RPT_ERROR,
-			           "No active image found. Add a material or bake without the Split Materials option");
+			           "No active image found, add a material or bake without the Split Materials option");
 
 			goto cleanup;
 		}
