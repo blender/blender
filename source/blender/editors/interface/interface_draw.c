@@ -1324,9 +1324,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 		float col[3] = {0.0f, 0.0f, 0.0f}; /* dummy arg */
 
 		grid.xmin = rect->xmin + zoomx * (-offsx);
-		grid.xmax = rect->xmax + zoomx * (-offsx);
+		grid.xmax = grid.xmin + zoomx;
 		grid.ymin = rect->ymin + zoomy * (-offsy);
-		grid.ymax = rect->ymax + zoomy * (-offsy);
+		grid.ymax = grid.ymin + zoomy;
 
 		ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f);
 
