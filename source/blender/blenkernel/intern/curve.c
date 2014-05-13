@@ -717,7 +717,7 @@ void BKE_nurb_bezierPoints_add(Nurb *nu, int number)
 	BezTriple *bezt;
 	int i;
 
-	nu->bezt = MEM_recallocN(nu->bp, (nu->pntsu + number) * sizeof(BezTriple));
+	nu->bezt = MEM_recallocN(nu->bezt, (nu->pntsu + number) * sizeof(BezTriple));
 
 	for (i = 0, bezt = &nu->bezt[nu->pntsu]; i < number; i++, bezt++) {
 		bezt->radius = 1.0f;
