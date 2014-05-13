@@ -1237,6 +1237,16 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 								gameobj->RemoveMeshes(); /* XXX - slack, should only remove meshes that are library items but mostly objects only have 1 mesh */
 								break;
 							}
+							else {
+								/* also free the mesh if it's using a tagged material */
+								int mat_index = mesh->NumMaterials();
+								while (mat_index--) {
+									if (IS_TAGGED(mesh->GetMeshMaterial(mat_index)->m_bucket->GetPolyMaterial()->GetBlenderMaterial())) {
+										gameobj->RemoveMeshes(); /* XXX - slack, same as above */
+										break;
+									}
+								}
+							}
 						}
 
 						/* make sure action actuators are not referencing tagged actions */
