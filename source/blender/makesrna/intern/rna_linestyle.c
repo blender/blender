@@ -1386,6 +1386,12 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Thickness Modifiers", "List of line thickness modifiers");
 	rna_def_freestyle_thickness_modifiers(brna, prop);
 
+	prop = RNA_def_property(srna, "geometry_modifiers", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "geometry_modifiers", NULL);
+	RNA_def_property_struct_type(prop, "LineStyleGeometryModifier");
+	RNA_def_property_ui_text(prop, "Geometry Modifiers", "List of stroke geometry modifiers");
+	rna_def_freestyle_geometry_modifiers(brna, prop);
+
 	prop = RNA_def_property(srna, "use_chaining", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", LS_NO_CHAINING);
 	RNA_def_property_ui_text(prop, "Chaining", "Enable chaining of feature edges");
@@ -1402,12 +1408,6 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 1000);
 	RNA_def_property_ui_text(prop, "Rounds", "Number of rounds in a sketchy multiple touch");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
-
-	prop = RNA_def_property(srna, "geometry_modifiers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "geometry_modifiers", NULL);
-	RNA_def_property_struct_type(prop, "LineStyleGeometryModifier");
-	RNA_def_property_ui_text(prop, "Geometry Modifiers", "List of stroke geometry modifiers");
-	rna_def_freestyle_geometry_modifiers(brna, prop);
 
 	prop = RNA_def_property(srna, "use_same_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SAME_OBJECT);
