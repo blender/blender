@@ -32,4 +32,9 @@
 #  define alloca _alloca
 #endif
 
+/* alloca is defined here for MinGW32 */
+#ifdef __MINGW32__
+#include <malloc.h>
+#endif
+
 #endif  /* __BLI_COMPILER_COMPAT_H__ */
