@@ -457,7 +457,7 @@ static void rna_FCurve_range(FCurve *fcu, float range[2])
 static void rna_FCurve_update_data_ex(FCurve *fcu)
 {
 	sort_time_fcurve(fcu);
-	testhandles_fcurve(fcu, true);
+	calchandles_fcurve(fcu);
 }
 
 /* RNA update callback for F-Curves after curve shape changes */
