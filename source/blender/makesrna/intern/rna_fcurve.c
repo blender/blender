@@ -61,7 +61,7 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise",
 	                       "Add pseudo-random noise on top of F-Curves"},
 	/*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
-	/*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},	 *//* FIXME: not implemented yet! */
+	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits",
 	                        "Restrict maximum and minimum values of F-Curve"},
 	{FMODIFIER_TYPE_STEPPED, "STEPPED", 0, "Stepped Interpolation",

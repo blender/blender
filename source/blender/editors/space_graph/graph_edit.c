@@ -2217,39 +2217,33 @@ void GRAPH_OT_smooth(wmOperatorType *ot)
 
 /* ******************** Add F-Modifier Operator *********************** */
 
-/* present a special customised popup menu for this, with some filtering */
-static int graph_fmodifier_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	wmOperatorType *ot = WM_operatortype_find("GRAPH_OT_fmodifier_add", 1);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i;
-	
-	pup = uiPupMenuBegin(C, IFACE_("Add F-Curve Modifier"), ICON_NONE);
-	layout = uiPupMenuLayout(pup);
-	
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+	int i = 0;
+
+	if (C == NULL) {
+		return fmodifier_type_items;
+	}
+
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
 		FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
-		PointerRNA props_ptr;
-		
+		int index;
+
 		/* check if modifier is valid for this context */
 		if (fmi == NULL)
 			continue;
-		
-		/* create operator menu item with relevant properties filled in */
-		props_ptr = uiItemFullO_ptr(layout, ot, IFACE_(fmi->name), ICON_NONE,
-		                            NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
-		/* the only thing that gets set from the menu is the type of F-Modifier to add */
-		RNA_enum_set(&props_ptr, "type", i);
-		/* the following properties are just repeats of existing ones... */
-		RNA_boolean_set(&props_ptr, "only_active", RNA_boolean_get(op->ptr, "only_active"));
+
+		index = RNA_enum_from_value(fmodifier_type_items, fmi->type);
+		RNA_enum_item_add(&item, &totitem, &fmodifier_type_items[index]);
 	}
-	uiItemS(layout);
-	
-	uiPupMenuEnd(C, pup);
-	
-	return OPERATOR_CANCELLED;
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
 }
 
 static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
@@ -2304,13 +2298,15 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
  
 void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Add F-Curve Modifier";
 	ot->idname = "GRAPH_OT_fmodifier_add";
 	ot->description = "Add F-Modifiers to the selected F-Curves";
 	
 	/* api callbacks */
-	ot->invoke = graph_fmodifier_add_invoke;
+	ot->invoke = WM_menu_invoke;
 	ot->exec = graph_fmodifier_add_exec;
 	ot->poll = graphop_selected_fcurve_poll; 
 	
@@ -2318,7 +2314,10 @@ void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop = RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	prop = RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, graph_fmodifier_itemf);
+	ot->prop = prop;
+
 	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve");
 }
 
