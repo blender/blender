@@ -3253,8 +3253,6 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();
-	if (parent)
-		parent->Release();
 	
 	m_pHitObject = NULL;
 	if (propName)
@@ -3399,8 +3397,6 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();
-	if (parent)
-		parent->Release();
 	
 	m_pHitObject = NULL;
 	if (propName)
