@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmesh_wireframe.c
+/** \file blender/bmesh/tools/bmesh_wireframe.c
  *  \ingroup bmesh
  *
  * Creates a solid wireframe from connected faces.

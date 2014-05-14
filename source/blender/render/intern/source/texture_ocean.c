@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/texture_ocean.c
+/** \file blender/render/intern/source/texture_ocean.c
  *  \ingroup bke
  */
 

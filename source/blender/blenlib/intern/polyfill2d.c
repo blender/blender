@@ -369,7 +369,8 @@ static unsigned int pf_index_next(const PolyFill *pf, unsigned index)
 
 /**
  * Triangulates the given (convex or concave) simple polygon to a list of triangle vertices.
- * \param vertices pairs describing vertices of the polygon, in either clockwise or counterclockwise order.
+ *
+ * \param coords pairs describing vertices of the polygon, in either clockwise or counterclockwise order.
  * \return triples of triangle indices in clockwise order.
  *         Note the returned array is reused for later calls to the same method.
  */

@@ -36,13 +36,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  
+
 #include <stdio.h>
-  
-/**
- * Test presence of OpenEXR file.
- * \param mem pointer to loaded OpenEXR bitstream
- */
 
 void		imb_initopenexr					(void);
 

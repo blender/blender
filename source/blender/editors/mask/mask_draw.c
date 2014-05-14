@@ -742,7 +742,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 
 
 	/* w = BLI_rctf_size_x(&v2d->tot); */
-	/* h = BLI_rctf_size_y(&v2d->tot);/*/
+	/* h = BLI_rctf_size_y(&v2d->tot); */
 
 
 	zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) / BLI_rctf_size_x(&ar->v2d.cur);

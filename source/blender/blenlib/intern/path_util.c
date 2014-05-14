@@ -475,8 +475,6 @@ bool BLI_path_is_unc(const char *name)
  * of a UNC path which can start with '\\' (short version)
  * or '\\?\' (long version)
  * If the path is not a UNC path, return 0
- *
- * \param name  the path name
  */
 static int BLI_path_unc_prefix_len(const char *path)
 {

@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file RAS_LightObject.h
+/** \file RAS_ILightObject.h
  *  \ingroup bgerast
  */
 

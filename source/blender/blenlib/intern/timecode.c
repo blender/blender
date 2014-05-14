@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blendlib/intern/timecode.c
+/** \file blender/blenlib/intern/timecode.c
  *  \ingroup blendlib
  *
  * Time-Code string formatting

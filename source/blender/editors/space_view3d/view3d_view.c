@@ -782,7 +782,7 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 }
 
 /**
- * \param rect, optional for picking (can be NULL).
+ * \param rect optional for picking (can be NULL).
  */
 void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect)
 {

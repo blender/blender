@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/tracking_util.c
+/** \file blender/blenkernel/intern/tracking_util.c
  *  \ingroup bke
  *
  * This file contains implementation of function which are used

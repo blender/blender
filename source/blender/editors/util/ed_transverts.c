@@ -21,7 +21,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_view3d/ed_transverts.c
+/** \file blender/editors/util/ed_transverts.c
  *  \ingroup edutil
  */
 

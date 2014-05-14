@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file Exception.h
+/** \file gameengine/VideoTexture/Exception.h
  *  \ingroup bgevideotex
  */
 
