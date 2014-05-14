@@ -214,8 +214,8 @@ class GRAPH_MT_key(Menu):
         layout.operator_menu_enum("graph.mirror", "type", text="Mirror")
 
         layout.separator()
-        layout.operator("graph.keyframe_insert")
-        layout.operator("graph.fmodifier_add")
+        layout.operator_menu_enum("graph.keyframe_insert", "type")
+        layout.operator_menu_enum("graph.fmodifier_add", "type")
         layout.operator("graph.sound_bake")
 
         layout.separator()
