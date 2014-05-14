@@ -3079,9 +3079,10 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		return;
 	}
 
-	len_a = len_v3v3(p2, p2_h1);
-	len_b = len_v3v3(p2, p2_h2);
 	if (is_fcurve == false) {
+		len_a = len_v3v3(p2, p2_h1);
+		len_b = len_v3v3(p2, p2_h2);
+
 		if (len_a == 0.0f)
 			len_a = 1.0f;
 		if (len_b == 0.0f)
