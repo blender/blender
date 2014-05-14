@@ -381,9 +381,6 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	/* when not in graph view, don't use handles */
-	SpaceIpo *sipo = (ac->spacetype == SPACE_IPO) ? (SpaceIpo *)ac->sl : NULL;
-	const bool use_handle = sipo ? !(sipo->flag & SIPO_NOHANDLES) : false;
 	
 	/* filter animation data */
 	filter = ANIMFILTER_DATA_VISIBLE;
@@ -395,7 +392,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 		
 		/* make sure keyframes in F-Curve are all in order, and handles are in valid positions */
 		sort_time_fcurve(fcu);
-		testhandles_fcurve(fcu, use_handle);
+		calchandles_fcurve(fcu);
 	}
 	
 	/* free temp data */
