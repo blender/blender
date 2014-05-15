@@ -518,6 +518,16 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
+/**
+ * Used for storing per-line data for alignment & wrapping.
+ */
+struct TempLineInfo {
+	float x_min;      /* left margin */
+	float x_max;      /* right margin */
+	int   char_nr;    /* number of characters */
+	int   wspace_nr;  /* number of whitespaces of line */
+};
+
 bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase,
                            const wchar_t **r_text, int *r_text_len, bool *r_text_free,
                            struct CharTrans **r_chartransdata)
@@ -531,12 +541,13 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	TextBox *tb;
 	VChar *che;
 	struct CharTrans *chartransdata = NULL, *ct;
-	float *f, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3, *linedata4;
+	struct TempLineInfo *lineinfo;
+	float *f, xof, yof, xtrax, linedist;
 	float twidth, maxlen = 0;
 	int i, slen, j;
 	int curbox;
 	int selstart, selend;
-	short cnr = 0, lnr = 0, wsnr = 0;
+	int cnr = 0, lnr = 0, wsnr = 0;
 	const wchar_t *mem;
 	wchar_t ascii;
 	bool ok = false;
@@ -598,11 +609,7 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	ct = chartransdata = MEM_callocN((slen + 1) * sizeof(struct CharTrans), "buildtext");
 
 	/* We assume the worst case: 1 character per line (is freed at end anyway) */
-
-	linedata  = MEM_mallocN(sizeof(float) * (slen * 2 + 1), "buildtext2");
-	linedata2 = MEM_mallocN(sizeof(float) * (slen * 2 + 1), "buildtext3");
-	linedata3 = MEM_callocN(sizeof(float) * (slen * 2 + 1), "buildtext4");
-	linedata4 = MEM_callocN(sizeof(float) * (slen * 2 + 1), "buildtext5");
+	lineinfo = MEM_mallocN(sizeof(*lineinfo) * (slen * 2 + 1), "lineinfo");
 	
 	linedist = cu->linedist;
 	
@@ -613,7 +620,9 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 
 	oldvfont = NULL;
 
-	for (i = 0; i < slen; i++) custrinfo[i].flag &= ~(CU_CHINFO_WRAP | CU_CHINFO_SMALLCAPS_CHECK);
+	for (i = 0; i < slen; i++) {
+		custrinfo[i].flag &= ~(CU_CHINFO_WRAP | CU_CHINFO_SMALLCAPS_CHECK);
+	}
 
 	tb = &(cu->tb[0]);
 	curbox = 0;
@@ -714,12 +723,12 @@ makebreak:
 
 			yof -= linedist;
 
-			linedata[lnr] = (xof - xtrax) - (tb->x / cu->fsize);
-			linedata2[lnr] = cnr;
-			linedata3[lnr] = tb->w / cu->fsize;
-			linedata4[lnr] = wsnr;
+			lineinfo[lnr].x_min     = (xof - xtrax) - (tb->x / cu->fsize);
+			lineinfo[lnr].x_max     = tb->w / cu->fsize;
+			lineinfo[lnr].char_nr   = cnr;
+			lineinfo[lnr].wspace_nr = wsnr;
 
-			CLAMP_MIN(maxlen, linedata[lnr]);
+			CLAMP_MIN(maxlen, lineinfo[lnr].x_min);
 
 			if ((tb->h != 0.0f) &&
 			    ((-(yof - (tb->y / cu->fsize))) > ((tb->h / cu->fsize) - (linedist * cu->fsize)) - cu->yof) &&
@@ -799,33 +808,43 @@ makebreak:
 		if (ascii == '\n' || ct->dobreak) cu->lines++;
 	}
 
-	/* linedata is now: width of line
-	 * linedata2 is now: number of characters
-	 * linedata3 is now: maxlen of that line
-	 * linedata4 is now: number of whitespaces of line */
+	/* linedata is now: width of line */
 
 	if (cu->spacemode != CU_LEFT) {
 		ct = chartransdata;
 
 		if (cu->spacemode == CU_RIGHT) {
-			for (i = 0; i < lnr; i++) linedata[i] = (linedata3[i] - linedata[i]) + cu->xof;
+			struct TempLineInfo *li;
+
+			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
+				li->x_min = (li->x_max - li->x_min) + cu->xof;
+			}
+
 			for (i = 0; i <= slen; i++) {
-				ct->xof += linedata[ct->linenr];
+				ct->xof += lineinfo[ct->linenr].x_min;
 				ct++;
 			}
 		}
 		else if (cu->spacemode == CU_MIDDLE) {
-			for (i = 0; i < lnr; i++) linedata[i] = ((linedata3[i] - linedata[i]) + cu->xof) / 2;
+			struct TempLineInfo *li;
+
+			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
+				li->x_min = ((li->x_max - li->x_min) + cu->xof) / 2.0f;
+			}
+
 			for (i = 0; i <= slen; i++) {
-				ct->xof += linedata[ct->linenr];
+				ct->xof += lineinfo[ct->linenr].x_min;
 				ct++;
 			}
 		}
 		else if ((cu->spacemode == CU_FLUSH) && (cu->tb[0].w != 0.0f)) {
-			for (i = 0; i < lnr; i++) {
-				linedata[i] = ((linedata3[i] - linedata[i]) + cu->xof);
-				if (linedata2[i] > 1) {
-					linedata[i] /= (linedata2[i] - 1);
+			struct TempLineInfo *li;
+
+			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
+				li->x_min = ((li->x_max - li->x_min) + cu->xof);
+
+				if (li->char_nr > 1) {
+					li->x_min /= (float)(li->char_nr - 1);
 				}
 			}
 			for (i = 0; i <= slen; i++) {
@@ -834,7 +853,7 @@ makebreak:
 				}
 
 //				if ((mem[j] != '\n') && (mem[j])) {
-				ct->xof += ct->charnr * linedata[ct->linenr];
+				ct->xof += ct->charnr * lineinfo[ct->linenr].x_min;
 //				}
 				ct++;
 			}
@@ -852,8 +871,12 @@ makebreak:
 				if ((mem[j] != '\n') &&
 				    ((chartransdata[j].dobreak != 0)))
 				{
-					if (mem[i] == ' ')
-						curofs += ((linedata3[ct->linenr] - linedata[ct->linenr]) + cu->xof) / linedata4[ct->linenr];
+					if (mem[i] == ' ') {
+						struct TempLineInfo *li;
+
+						li = &lineinfo[ct->linenr];
+						curofs += ((li->x_max - li->x_min) + cu->xof) / (float)li->wspace_nr;
+					}
 					ct->xof += curofs;
 				}
 				if (mem[i] == '\n' || chartransdata[i].dobreak) curofs = 0;
@@ -861,7 +884,9 @@ makebreak:
 			}
 		}
 	}
-	
+
+	MEM_freeN(lineinfo);
+
 	/* TEXT ON CURVE */
 	/* Note: Only OB_CURVE objects could have a path  */
 	if (cu->textoncurve && cu->textoncurve->type == OB_CURVE) {
@@ -1032,11 +1057,6 @@ makebreak:
 		f[7] = cu->fsize * ( 0.1f * si + 0.8f * co + ct->yof);
 		
 	}
-
-	MEM_freeN(linedata);
-	MEM_freeN(linedata2);
-	MEM_freeN(linedata3);
-	MEM_freeN(linedata4);
 
 	if (mode == FO_SELCHANGE) {
 		MEM_freeN(chartransdata);
