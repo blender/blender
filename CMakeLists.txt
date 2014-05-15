@@ -960,11 +960,6 @@ elseif(WIN32)
 
 		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi)
 
-		# MSVC11 SDL is not hard linked to dxguid.lib
-		if(MSVC11 AND WITH_SDL)
-			set(PLATFORM_LINKLIBS ${PLATFORM_LINKLIBS} dxguid)
-		endif()
-
 		add_definitions(
 			-D_CRT_NONSTDC_NO_DEPRECATE
 			-D_CRT_SECURE_NO_DEPRECATE
@@ -1053,9 +1048,6 @@ elseif(WIN32)
 			if(MSVC12)
 				message(STATUS "Visual C++ 2013 detected.")
 				set(LIBDIR ${LIBDIR_BASE}_vc12)
-			elseif(MSVC11)
-				message(STATUS "Visual C++ 2012 detected.")
-				set(LIBDIR ${LIBDIR_BASE}_vc11)
 			else()
 				set(LIBDIR ${LIBDIR_BASE})
 			endif()
@@ -1148,14 +1140,8 @@ elseif(WIN32)
 			find_package(FFMPEG)
 			if(NOT FFMPEG_FOUND)
 				message(WARNING "Using HARDCODED ffmpeg locations")
-				# MSVC11 FFMPEG libs are newer
-				if(MSVC11)
-					set(FFMPEG_LIBRARY_VERSION 54)
-					set(FFMPEG_LIBRARY_VERSION_AVU 52)
-				else()
-					set(FFMPEG_LIBRARY_VERSION 55)
-					set(FFMPEG_LIBRARY_VERSION_AVU 52)
-				endif()
+				set(FFMPEG_LIBRARY_VERSION 55)
+				set(FFMPEG_LIBRARY_VERSION_AVU 52)
 				set(FFMPEG_LIBRARIES
 					${LIBDIR}/ffmpeg/lib/avcodec-${FFMPEG_LIBRARY_VERSION}.lib
 					${LIBDIR}/ffmpeg/lib/avformat-${FFMPEG_LIBRARY_VERSION}.lib
@@ -1236,10 +1222,6 @@ elseif(WIN32)
 					set(BOOST_LIBPATH ${BOOST}/lib)
 					set(BOOST_POSTFIX "vc120-mt-s-1_55.lib")
 					set(BOOST_DEBUG_POSTFIX "vc120-mt-sgd-1_55.lib")
-				elseif(MSVC11)
-					set(BOOST_LIBPATH ${BOOST}/lib)
-					set(BOOST_POSTFIX "vc110-mt-s-1_53.lib")
-					set(BOOST_DEBUG_POSTFIX "vc110-mt-sgd-1_53.lib")
 				else()
 					set(BOOST_LIBPATH ${BOOST}/lib)
 					set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")

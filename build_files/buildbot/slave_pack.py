@@ -99,8 +99,6 @@ if builder.find('scons') != -1:
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
             if builder.find('mingw') != -1:
                 scons_options.append('BF_TOOLSET=mingw')
-            if builder.endswith('vc2012'):
-                scons_options.append('MSVS_VERSION=11.0')
             if builder.endswith('vc2013'):
                 scons_options.append('MSVS_VERSION=12.0')
                 scons_options.append('MSVC_VERSION=12.0')

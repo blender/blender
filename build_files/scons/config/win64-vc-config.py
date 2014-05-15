@@ -6,9 +6,6 @@ CL_STDOUT, CL_STDERR = CL_OUT.communicate()
 if "18.00." in CL_STDERR:
     VC_VERSION = '12.0'
     LCGDIR = '#../lib/win64_vc12'
-elif "17.00." in CL_STDERR:
-    VC_VERSION = '11.0'
-    LCGDIR = '#../lib/win64_vc11'
 elif "15.00." in  CL_STDERR:
     VC_VERSION = '9.0'
     LCGDIR = '#../lib/win64'
@@ -23,12 +20,8 @@ WITH_BF_FFMPEG = True
 BF_FFMPEG = LIBDIR +'/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}/include/msvc '
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-if VC_VERSION == '11.0':
-    BF_FFMPEG_LIB = 'avformat-54.lib avcodec-54.lib avdevice-54.lib avutil-52.lib avfilter-3.lib swscale-2.lib swresample-0.lib'
-    BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-54.dll ${BF_FFMPEG_LIBPATH}/avcodec-54.dll ${BF_FFMPEG_LIBPATH}/avdevice-54.dll ${BF_FFMPEG_LIBPATH}/avutil-52.dll ${BF_FFMPEG_LIBPATH}/avfilter-3.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll ${BF_FFMPEG_LIBPATH}/swresample-0.dll'
-else:
-    BF_FFMPEG_LIB = 'avformat-55.lib avcodec-55.lib avdevice-55.lib avutil-52.lib swscale-2.lib'
-    BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-55.dll ${BF_FFMPEG_LIBPATH}/avcodec-55.dll ${BF_FFMPEG_LIBPATH}/avdevice-55.dll ${BF_FFMPEG_LIBPATH}/avutil-52.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll'
+BF_FFMPEG_LIB = 'avformat-55.lib avcodec-55.lib avdevice-55.lib avutil-52.lib swscale-2.lib'
+BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-55.dll ${BF_FFMPEG_LIBPATH}/avcodec-55.dll ${BF_FFMPEG_LIBPATH}/avdevice-55.dll ${BF_FFMPEG_LIBPATH}/avutil-52.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll'
     
 
 BF_PYTHON = LIBDIR + '/python'
@@ -44,10 +37,7 @@ WITH_BF_PYTHON_INSTALL_NUMPY = False
 WITH_BF_OPENAL = True
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include '
-if VC_VERSION == '11.0':
-    BF_OPENAL_LIB = 'OpenAL32'
-else:
-    BF_OPENAL_LIB = 'wrap_oal'
+BF_OPENAL_LIB = 'wrap_oal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_SNDFILE = True
@@ -65,10 +55,7 @@ BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'
-if VC_VERSION == '11.0':
-    BF_SDL_LIB = 'SDL.lib dxguid.lib'
-else:
-    BF_SDL_LIB = 'SDL.lib'
+BF_SDL_LIB = 'SDL.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
 WITH_BF_JACK = False
@@ -215,9 +202,6 @@ BF_BOOST_INC = '${BF_BOOST}/include'
 if VC_VERSION == '12.0':
     BF_BOOST_LIB = 'libboost_date_time-vc120-mt-s-1_55 libboost_filesystem-vc120-mt-s-1_55 libboost_regex-vc120-mt-s-1_55 libboost_system-vc120-mt-s-1_55 libboost_thread-vc120-mt-s-1_55 libboost_wave-vc120-mt-s-1_55'
     BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc120-mt-s-1_55'
-elif VC_VERSION == '11.0':
-    BF_BOOST_LIB = 'libboost_date_time-vc110-mt-s-1_53 libboost_filesystem-vc110-mt-s-1_53 libboost_regex-vc110-mt-s-1_53 libboost_system-vc110-mt-s-1_53 libboost_thread-vc110-mt-s-1_53 libboost_wave-vc110-mt-s-1_53'
-    BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc110-mt-s-1_53'
 else:
     BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_49 libboost_filesystem-vc90-mt-s-1_49 libboost_regex-vc90-mt-s-1_49 libboost_system-vc90-mt-s-1_49 libboost_thread-vc90-mt-s-1_49 libboost_wave-vc90-mt-s-1_49'
     BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc90-mt-s-1_49'
@@ -274,9 +258,6 @@ if VC_VERSION == '12.0':
     BF_CYCLES_CUDA_ENV="C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
     BF_BUILDDIR = '..\\build\\win64-vc12'
     BF_INSTALLDIR='..\\install\\win64-vc12'
-elif VC_VERSION == '11.0':
-    BF_BUILDDIR = '..\\build\\win64-vc11'
-    BF_INSTALLDIR='..\\install\\win64-vc11'
 else:
     BF_BUILDDIR = '..\\build\\win64-vc'
     BF_INSTALLDIR='..\\install\\win64-vc'

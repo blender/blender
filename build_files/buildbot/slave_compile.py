@@ -144,8 +144,6 @@ else:
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
             if builder.find('mingw') != -1:
                 scons_options.append('BF_TOOLSET=mingw')
-            if builder.endswith('vc2012'):
-                scons_options.append('MSVS_VERSION=11.0')
             if builder.endswith('vc2013'):
                 scons_options.append('MSVS_VERSION=12.0')
                 scons_options.append('MSVC_VERSION=12.0')
@@ -166,8 +164,6 @@ else:
                 os.makedirs(install_dir)
             if builder.endswith('vc2013'):
                 dlls = ('msvcp120.dll', 'msvcr120.dll', 'vcomp120.dll')
-            elif builder.endswith('vc2012'):
-                dlls = ('msvcp110.dll', 'msvcr110.dll', 'vcomp110.dll')
             else:
                 dlls = ('msvcm90.dll', 'msvcp90.dll', 'msvcr90.dll', 'vcomp90.dll', 'Microsoft.VC90.CRT.manifest', 'Microsoft.VC90.OpenMP.manifest')
             if builder.find('win64') == -1:
