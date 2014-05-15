@@ -65,6 +65,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
@@ -5040,6 +5041,13 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			 * but this ends up being quite tricky (and slow) */
 			BKE_sculpt_mask_layers_ensure(ob, mmd);
 		}
+
+		if (!(fabsf(ob->size[0] - ob->size[1]) < 1e-4f && fabsf(ob->size[1] - ob->size[2]) < 1e-4f))
+			BKE_report(op->reports, RPT_INFO,
+					   "Object has non-uniform scale, sculpting may be unpredictable");
+		else if (is_negative_m4(ob->obmat))
+			BKE_report(op->reports, RPT_INFO,
+					   "Object has negative scale, sculpting may be unpredictable");
 
 		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 
