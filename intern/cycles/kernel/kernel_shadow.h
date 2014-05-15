@@ -152,7 +152,9 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 				kernel_volume_shadow(kg, &ps, ray, &throughput);
 #endif
 
-			*shadow *= throughput;
+			*shadow = throughput;
+
+			return is_zero(throughput);
 		}
 
 		/* free dynamic storage */
