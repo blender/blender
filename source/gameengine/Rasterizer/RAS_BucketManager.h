@@ -39,7 +39,9 @@
 
 class RAS_BucketManager
 {
+public:
 	typedef std::vector<class RAS_MaterialBucket*> BucketList;
+private:
 	BucketList m_SolidBuckets;
 	BucketList m_AlphaBuckets;
 	
