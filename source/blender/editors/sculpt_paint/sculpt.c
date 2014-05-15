@@ -5043,10 +5043,10 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		}
 
 		if (!(fabsf(ob->size[0] - ob->size[1]) < 1e-4f && fabsf(ob->size[1] - ob->size[2]) < 1e-4f))
-			BKE_report(op->reports, RPT_INFO,
+			BKE_report(op->reports, RPT_WARNING,
 					   "Object has non-uniform scale, sculpting may be unpredictable");
 		else if (is_negative_m4(ob->obmat))
-			BKE_report(op->reports, RPT_INFO,
+			BKE_report(op->reports, RPT_WARNING,
 					   "Object has negative scale, sculpting may be unpredictable");
 
 		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
