@@ -822,9 +822,12 @@ makebreak:
 			}
 		}
 		else if ((cu->spacemode == CU_FLUSH) && (cu->tb[0].w != 0.0f)) {
-			for (i = 0; i < lnr; i++)
-				if (linedata2[i] > 1)
-					linedata[i] = ((linedata3[i] - linedata[i]) + cu->xof) / (linedata2[i] - 1);
+			for (i = 0; i < lnr; i++) {
+				linedata[i] = ((linedata3[i] - linedata[i]) + cu->xof);
+				if (linedata2[i] > 1) {
+					linedata[i] /= (linedata2[i] - 1);
+				}
+			}
 			for (i = 0; i <= slen; i++) {
 				for (j = i; (!ELEM(mem[j], '\0', '\n')) && (chartransdata[j].dobreak == 0) && (j < slen); j++) {
 					/* do nothing */
