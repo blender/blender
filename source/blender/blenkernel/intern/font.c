@@ -681,7 +681,7 @@ makebreak:
 		    (((xof - (tb->x / cu->fsize) + twidth) * cu->fsize) > tb->w + cu->xof * cu->fsize))
 		{
 			//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
-			for (j = i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak == 0); j--) {
+			for (j = i; j && (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
 				if (mem[j] == ' ' || mem[j] == '-') {
 					ct -= (i - (j - 1));
 					cnr -= (i - (j - 1));
@@ -706,7 +706,7 @@ makebreak:
 			}
 		}
 
-		if (ascii == '\n' || ascii == '\r' || ascii == 0 || ct->dobreak) {
+		if (ascii == '\n' || ascii == 0 || ct->dobreak) {
 			ct->xof = xof;
 			ct->yof = yof;
 			ct->linenr = lnr;
@@ -733,7 +733,7 @@ makebreak:
 
 			/* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
 #if 0
-			if (ascii == '\n' || ascii == '\r')
+			if (ascii == '\n')
 				xof = cu->xof;
 			else
 				xof = cu->xof + (tb->x / cu->fsize);
@@ -796,7 +796,7 @@ makebreak:
 	for (i = 0; i <= slen; i++) {
 		ascii = mem[i];
 		ct = &chartransdata[i];
-		if (ascii == '\n' || ascii == '\r' || ct->dobreak) cu->lines++;
+		if (ascii == '\n' || ct->dobreak) cu->lines++;
 	}
 
 	/* linedata is now: width of line
@@ -826,11 +826,11 @@ makebreak:
 				if (linedata2[i] > 1)
 					linedata[i] = ((linedata3[i] - linedata[i]) + cu->xof) / (linedata2[i] - 1);
 			for (i = 0; i <= slen; i++) {
-				for (j = i; (!ELEM3(mem[j], '\0', '\n', '\r')) && (chartransdata[j].dobreak == 0) && (j < slen); j++) {
+				for (j = i; (!ELEM(mem[j], '\0', '\n')) && (chartransdata[j].dobreak == 0) && (j < slen); j++) {
 					/* do nothing */
 				}
 
-//				if ((mem[j] != '\r') && (mem[j] != '\n') && (mem[j])) {
+//				if ((mem[j] != '\n') && (mem[j])) {
 				ct->xof += ct->charnr * linedata[ct->linenr];
 //				}
 				ct++;
@@ -839,21 +839,21 @@ makebreak:
 		else if ((cu->spacemode == CU_JUSTIFY) && (cu->tb[0].w != 0.0f)) {
 			float curofs = 0.0f;
 			for (i = 0; i <= slen; i++) {
-				for (j = i; (mem[j]) && (mem[j] != '\n') &&
-				     (mem[j] != '\r') && (chartransdata[j].dobreak == 0) && (j < slen);
+				for (j = i;
+				     (mem[j]) && (mem[j] != '\n') && (chartransdata[j].dobreak == 0) && (j < slen);
 				     j++)
 				{
 					/* pass */
 				}
 
-				if ((mem[j] != '\r') && (mem[j] != '\n') &&
+				if ((mem[j] != '\n') &&
 				    ((chartransdata[j].dobreak != 0)))
 				{
 					if (mem[i] == ' ')
 						curofs += ((linedata3[ct->linenr] - linedata[ct->linenr]) + cu->xof) / linedata4[ct->linenr];
 					ct->xof += curofs;
 				}
-				if (mem[i] == '\n' || mem[i] == '\r' || chartransdata[i].dobreak) curofs = 0;
+				if (mem[i] == '\n' || chartransdata[i].dobreak) curofs = 0;
 				ct++;
 			}
 		}
@@ -1059,14 +1059,14 @@ makebreak:
 				info->mat_nr = 0;
 			}
 			/* We do not want to see any character for \n or \r */
-			if (cha != '\n' && cha != '\r')
+			if (cha != '\n')
 				buildchar(bmain, cu, r_nubase, cha, info, ct->xof, ct->yof, ct->rot, i);
 
-			if ((info->flag & CU_CHINFO_UNDERLINE) && (cha != '\n') && (cha != '\r')) {
+			if ((info->flag & CU_CHINFO_UNDERLINE) && (cha != '\n')) {
 				float ulwidth, uloverlap = 0.0f;
 				rctf rect;
 
-				if ((i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
+				if ((i < (slen - 1)) && (mem[i + 1] != '\n') &&
 				    ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) &&
 				    ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0))
 				{

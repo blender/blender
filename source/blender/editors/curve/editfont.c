@@ -250,7 +250,7 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 	cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 	
 	if (obedit->totcol > 0) {
-		obedit->actcol = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0].mat_nr;
+		obedit->actcol = cu->curinfo.mat_nr;
 
 		/* since this array is calloc'd, it can be 0 even though we try ensure
 		 * (mat_nr > 0) almost everywhere */
