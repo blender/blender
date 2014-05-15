@@ -213,10 +213,10 @@ static void draw_single_handle(const MaskLayer *mask_layer, const MaskSplinePoin
 		if (point == mask_layer->act_point)
 			glColor3f(1.0f, 1.0f, 1.0f);
 		else
-			glColor3f(1.0f, 1.0f, 0.0f);
+			UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
 	}
 	else {
-		glColor3f(0.5f, 0.5f, 0.0f);
+		UI_ThemeColor(TH_HANDLE_VERTEX);
 	}
 
 	draw_circle(handle_pos[0], handle_pos[1], handle_size, xscale, yscale);
@@ -280,10 +280,10 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 				if (point == masklay->act_point)
 					glColor3f(1.0f, 1.0f, 1.0f);
 				else
-					glColor3f(1.0f, 1.0f, 0.0f);
+					UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
 			}
 			else {
-				glColor3f(0.5f, 0.5f, 0.0f);
+				UI_ThemeColor(TH_HANDLE_VERTEX);
 			}
 
 			glBegin(GL_POINTS);
@@ -346,10 +346,10 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 			if (point == masklay->act_point)
 				glColor3f(1.0f, 1.0f, 1.0f);
 			else
-				glColor3f(1.0f, 1.0f, 0.0f);
+				UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
 		}
 		else
-			glColor3f(0.5f, 0.5f, 0.0f);
+			UI_ThemeColor(TH_HANDLE_VERTEX);
 
 		glBegin(GL_POINTS);
 		glVertex2fv(vert);
