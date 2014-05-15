@@ -3056,26 +3056,25 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 
 	btCollisionShape* bm = 0;
 
-	char bounds;
-	if (blenderobject->gameflag & OB_BOUNDS)
-	{
-		bounds = blenderobject->collision_boundtype;
-	}
-	else
+	char bounds = isbulletdyna ? OB_BOUND_SPHERE : OB_BOUND_TRIANGLE_MESH;
+	if (!(blenderobject->gameflag & OB_BOUNDS))
 	{
 		if (blenderobject->gameflag & OB_SOFT_BODY)
 			bounds = OB_BOUND_TRIANGLE_MESH;
 		else if (blenderobject->gameflag & OB_CHARACTER)
 			bounds = OB_BOUND_SPHERE;
-		else if (isbulletdyna)
-			bounds = OB_BOUND_SPHERE;
-		else
-			bounds = OB_BOUND_TRIANGLE_MESH;
 	}
-
-	// Can't use triangle mesh or convex hull on a non-mesh object, fall-back to sphere
-	if (ELEM(bounds, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL) && blenderobject->type != OB_MESH)
-		bounds = OB_BOUND_SPHERE;
+	else
+	{
+		if (ELEM(blenderobject->collision_boundtype, OB_BOUND_CONVEX_HULL, OB_BOUND_TRIANGLE_MESH)
+		    && blenderobject->type != OB_MESH)
+		{
+			// Can't use triangle mesh or convex hull on a non-mesh object, fall-back to sphere
+			bounds = OB_BOUND_SPHERE;
+		}
+		else
+			bounds = blenderobject->collision_boundtype;
+	}
 
 	// Get bounds information
 	float bounds_center[3], bounds_extends[3];
