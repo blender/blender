@@ -505,8 +505,6 @@ else:
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CPPFLAGS'].append('-DWITH_AVI')
 env['CPPFLAGS'].append('-DWITH_OPENNL')
-if env['OURPLATFORM'] in ('win32-vc', 'win64-vc') and env['MSVC_VERSION'] == '11.0':
-    env['CPPFLAGS'].append('-D_ALLOW_KEYWORD_MACROS')
 
 if env['OURPLATFORM'] not in ('win32-vc', 'win64-vc'):
     env['CPPFLAGS'].append('-DHAVE_STDBOOL_H')
@@ -1100,10 +1098,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 
     if env['WITH_BF_OPENAL']:
         dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')
-        if env['OURPLATFORM'] in ('win32-vc', 'win64-vc') and env['MSVC_VERSION'] == '11.0':
-            pass
-        else:
-            dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
+        dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
 
     if env['WITH_BF_SNDFILE']:
         dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')

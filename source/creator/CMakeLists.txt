@@ -648,19 +648,7 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		if(MSVC11)
-			install(
-				FILES
-					${LIBDIR}/ffmpeg/lib/avcodec-54.dll
-					${LIBDIR}/ffmpeg/lib/avformat-54.dll
-					${LIBDIR}/ffmpeg/lib/avdevice-54.dll
-					${LIBDIR}/ffmpeg/lib/avutil-52.dll
-					${LIBDIR}/ffmpeg/lib/avfilter-3.dll
-					${LIBDIR}/ffmpeg/lib/swresample-0.dll
-					${LIBDIR}/ffmpeg/lib/swscale-2.dll
-				DESTINATION ${TARGETDIR}
-			)
-		elseif(WITH_MINGW64)			
+		if(WITH_MINGW64)
 			install(
 				FILES
 					${LIBDIR}/ffmpeg/lib/avcodec-53.dll
@@ -693,37 +681,13 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_OPENAL)
-		if(MSVC11)
-			install(
-				FILES
-					${LIBDIR}/openal/lib/OpenAL32.dll
-				DESTINATION ${TARGETDIR}
-			)
-		else()
-			install(
-				FILES
-					${LIBDIR}/openal/lib/OpenAL32.dll
-					${LIBDIR}/openal/lib/wrap_oal.dll
-				DESTINATION ${TARGETDIR}
-			)
-		endif()
+		install(
+			FILES
+				${LIBDIR}/openal/lib/OpenAL32.dll
+				${LIBDIR}/openal/lib/wrap_oal.dll
+			DESTINATION ${TARGETDIR}
+		)
 	endif()
-
-#	if(WITH_JACK AND MSVC11)
-#		if(CMAKE_CL_64)
-#			install(
-#				FILES
-#					${LIBDIR}/jack/lib/libjack64.dll
-#				DESTINATION ${TARGETDIR}
-#			)
-#		else()
-#			install(
-#				FILES
-#					${LIBDIR}/jack/lib/libjack.dll
-#				DESTINATION ${TARGETDIR}
-#			)
-#		endif()
-#	endif()
 
 	if(WITH_SDL)
 		if(NOT CMAKE_CL_64)
