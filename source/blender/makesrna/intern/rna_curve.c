@@ -1021,7 +1021,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "underline_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ulheight");
-	RNA_def_property_range(prop, -0.2f, 0.8f);
+	RNA_def_property_range(prop, 0.0f, 0.8f);
 	RNA_def_property_ui_text(prop, "Underline Thickness", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	

@@ -312,10 +312,10 @@ static void build_underline(Curve *cu, ListBase *nubase, const rctf *rect,
 
 	bp = (BPoint *)MEM_callocN(4 * sizeof(BPoint), "underline_bp");
 
-	copy_v4_fl4(bp[0].vec, rect->xmin, (rect->ymin + yofs), 0.0f, 1.0f);
-	copy_v4_fl4(bp[1].vec, rect->xmax, (rect->ymin + yofs), 0.0f, 1.0f);
-	copy_v4_fl4(bp[2].vec, rect->xmax, (rect->ymax + yofs), 0.0f, 1.0f);
-	copy_v4_fl4(bp[3].vec, rect->xmin, (rect->ymax + yofs), 0.0f, 1.0f);
+	copy_v4_fl4(bp[0].vec, rect->xmin, (rect->ymax + yofs), 0.0f, 1.0f);
+	copy_v4_fl4(bp[1].vec, rect->xmax, (rect->ymax + yofs), 0.0f, 1.0f);
+	copy_v4_fl4(bp[2].vec, rect->xmax, (rect->ymin + yofs), 0.0f, 1.0f);
+	copy_v4_fl4(bp[3].vec, rect->xmin, (rect->ymin + yofs), 0.0f, 1.0f);
 
 	nu2->bp = bp;
 	BLI_addtail(nubase, nu2);
@@ -556,9 +556,6 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 
 	/* The VFont Data can not be found */
 	if (!vfd) return ok;
-
-	if (cu->ulheight == 0.0f)
-		cu->ulheight = 0.05f;
 	
 	if (ef) {
 		slen = ef->len;
