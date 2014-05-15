@@ -717,12 +717,13 @@ makebreak:
 
 			yof -= linedist;
 
-			maxlen = max_ff(maxlen, (xof - tb->x / cu->fsize));
-			linedata[lnr] = xof - tb->x / cu->fsize;
+			linedata[lnr] = (xof - xtrax) - (tb->x / cu->fsize);
 			linedata2[lnr] = cnr;
 			linedata3[lnr] = tb->w / cu->fsize;
 			linedata4[lnr] = wsnr;
-			
+
+			CLAMP_MIN(maxlen, linedata[lnr]);
+
 			if ((tb->h != 0.0f) &&
 			    ((-(yof - (tb->y / cu->fsize))) > ((tb->h / cu->fsize) - (linedist * cu->fsize)) - cu->yof) &&
 			    (cu->totbox > (curbox + 1)) )
