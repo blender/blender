@@ -32,8 +32,10 @@
  *  \ingroup modifiers
  */
 
+#include <string.h>
 
 #include "DNA_cloth_types.h"
+#include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
@@ -45,6 +47,7 @@
 #include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
@@ -68,7 +71,7 @@ static void initData(ModifierData *md)
 }
 
 static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
-                        int UNUSED(numVerts), ModifierApplyFlag UNUSED(flag))
+                        int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm;
 	ClothModifierData *clmd = (ClothModifierData *) md;
@@ -84,6 +87,26 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 	dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 	if (dm == derivedData)
 		dm = CDDM_copy(dm);
+
+	/* TODO(sergey): For now it actually duplicates logic from DerivedMesh.c
+	 * and needs some more generic solution. But starting experimenting with
+	 * this so close to the release is not that nice..
+	 *
+	 * Also hopefully new cloth system will arrive soon..
+	 */
+	if (derivedData == NULL && clmd->sim_parms->shapekey_rest) {
+		KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob),
+		                                     clmd->sim_parms->shapekey_rest);
+		if (kb->data != NULL) {
+			float (*layerorco)[3];
+			if (!(layerorco = DM_get_vert_data_layer(dm, CD_CLOTH_ORCO))) {
+				DM_add_vert_layer(dm, CD_CLOTH_ORCO, CD_CALLOC, NULL);
+				layerorco = DM_get_vert_data_layer(dm, CD_CLOTH_ORCO);
+			}
+
+			memcpy(layerorco, kb->data, sizeof(float) * 3 * numVerts);
+		}
+	}
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 
