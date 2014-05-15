@@ -237,6 +237,17 @@ static int render_scene_needs_vector(Render *re)
 	return 0;
 }
 
+static bool render_scene_has_layers_to_render(Scene *scene)
+{
+	SceneRenderLayer *srl;
+	for (srl = scene->r.layers.first; srl; srl = srl->next) {
+		if (!(srl->layflag & SCE_LAY_DISABLE)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* *************************************************** */
 
 Render *RE_GetRender(const char *name)
@@ -1775,11 +1786,14 @@ static void tag_scenes_for_render(Render *re)
 
 				if (node->id != (ID *)re->scene) {
 					if ((node->id->flag & LIB_DOIT) == 0) {
-						node->flag |= NODE_TEST;
-						node->id->flag |= LIB_DOIT;
+						Scene *scene = (Scene *) node->id;
+						if (render_scene_has_layers_to_render(scene)) {
+							node->flag |= NODE_TEST;
+							node->id->flag |= LIB_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-						tag_dependend_objects_for_render((Scene *) node->id, renderlay);
+							tag_dependend_objects_for_render(scene, renderlay);
 #endif
+						}
 					}
 				}
 			}
@@ -2446,7 +2460,6 @@ static int check_composite_output(Scene *scene)
 
 bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
 {
-	SceneRenderLayer *srl;
 	int scemode = check_mode_full_sample(&scene->r);
 	
 	if (scene->r.mode & R_BORDER) {
@@ -2521,10 +2534,7 @@ bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *
 	}
 	
 	/* layer flag tests */
-	for (srl = scene->r.layers.first; srl; srl = srl->next)
-		if (!(srl->layflag & SCE_LAY_DISABLE))
-			break;
-	if (srl == NULL) {
+	if (!render_scene_has_layers_to_render(scene)) {
 		BKE_report(reports, RPT_ERROR, "All render layers are disabled");
 		return 0;
 	}
