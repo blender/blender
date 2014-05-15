@@ -1326,7 +1326,8 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_LINE_DATA);
 
 	rna_def_mtex_common(brna, srna, "rna_LineStyle_mtex_begin", "rna_LineStyle_active_texture_get",
-	                    "rna_LineStyle_active_texture_set", NULL, "LineStyleTextureSlot", "LineStyleTextureSlots", "rna_LineStyle_update");
+						"rna_LineStyle_active_texture_set", NULL, "LineStyleTextureSlot", "LineStyleTextureSlots",
+						"rna_LineStyle_update", "rna_LineStyle_update");
 
 	prop = RNA_def_property(srna, "panel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "panel");
