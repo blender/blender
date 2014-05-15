@@ -808,7 +808,7 @@ makebreak:
 		ct = chartransdata;
 
 		if (cu->spacemode == CU_RIGHT) {
-			for (i = 0; i < lnr; i++) linedata[i] = linedata3[i] - linedata[i];
+			for (i = 0; i < lnr; i++) linedata[i] = (linedata3[i] - linedata[i]) + cu->xof;
 			for (i = 0; i <= slen; i++) {
 				ct->xof += linedata[ct->linenr];
 				ct++;
