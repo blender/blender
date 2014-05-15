@@ -658,14 +658,28 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		BKE_free_sculptsession_deformMats(ss);
 	}
 
-	/* if pbvh is deformed, key block is already applied to it */
-	if (ss->kb && !BKE_pbvh_isDeformed(ss->pbvh)) {
-		float (*vertCos)[3] = BKE_key_convert_to_vertcos(ob, ss->kb);
+	if (ss->kb != NULL && ss->deform_cos == NULL) {
+		ss->deform_cos = BKE_key_convert_to_vertcos(ob, ss->kb);
+	}
 
-		if (vertCos) {
-			/* apply shape keys coordinates to PBVH */
-			BKE_pbvh_apply_vertCos(ss->pbvh, vertCos);
-			MEM_freeN(vertCos);
+	/* if pbvh is deformed, key block is already applied to it */
+	if (ss->kb) {
+		bool pbvh_deformd = BKE_pbvh_isDeformed(ss->pbvh);
+		if (!pbvh_deformd || ss->deform_cos == NULL) {
+			float (*vertCos)[3] = BKE_key_convert_to_vertcos(ob, ss->kb);
+
+			if (vertCos) {
+				if (!pbvh_deformd) {
+					/* apply shape keys coordinates to PBVH */
+					BKE_pbvh_apply_vertCos(ss->pbvh, vertCos);
+				}
+				if (ss->deform_cos == NULL) {
+					ss->deform_cos = vertCos;
+				}
+				if (vertCos != ss->deform_cos) {
+					MEM_freeN(vertCos);
+				}
+			}
 		}
 	}
 }
