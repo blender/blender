@@ -1690,10 +1690,9 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		if (vert_vel) {
 			MEM_freeN(vert_vel);
 		}
-		if (dm) {
-			dm->needsFree = 1;
-			dm->release(dm);
-		}
+
+		dm->needsFree = 1;
+		dm->release(dm);
 	}
 }
 
