@@ -986,6 +986,9 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 					else {
 						but->active->value = mbut_state->origvalue + value_delta;
 					}
+
+					/* clamp based on soft limits, see: T40154 */
+					CLAMP(but->active->value, (double)but->softmin, (double)but->softmax);
 				}
 				ui_button_execute_end(C, ar, but, active_back);
 			}
