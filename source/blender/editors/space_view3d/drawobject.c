@@ -7013,8 +7013,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					for (i = 0; i < cu->totbox; i++) {
 						if (cu->tb[i].w != 0.0f) {
 							UI_ThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
-							vec1[0] = (cu->xof * cu->fsize) + cu->tb[i].x;
-							vec1[1] = (cu->yof * cu->fsize) + cu->tb[i].y + cu->fsize;
+							vec1[0] = cu->xof + cu->tb[i].x;
+							vec1[1] = cu->yof + cu->tb[i].y + cu->fsize;
 							vec1[2] = 0.001;
 							glBegin(GL_LINE_STRIP);
 							glVertex3fv(vec1);

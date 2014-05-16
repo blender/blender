@@ -518,6 +518,14 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
+static void textbox_scale(TextBox *tb_dst, const TextBox *tb_src, float scale)
+{
+	tb_dst->x = tb_src->x * scale;
+	tb_dst->y = tb_src->y * scale;
+	tb_dst->w = tb_src->w * scale;
+	tb_dst->h = tb_src->h * scale;
+}
+
 /**
  * Used for storing per-line data for alignment & wrapping.
  */
@@ -538,7 +546,8 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	VFont *vfont, *oldvfont;
 	VFontData *vfd = NULL;
 	CharInfo *info = NULL, *custrinfo;
-	TextBox *tb;
+	TextBox tb_scale;
+	bool use_textbox;
 	VChar *che;
 	struct CharTrans *chartransdata = NULL, *ct;
 	struct TempLineInfo *lineinfo;
@@ -551,6 +560,11 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	const wchar_t *mem;
 	wchar_t ascii;
 	bool ok = false;
+	const float xof_scale = cu->xof / cu->fsize;
+	const float yof_scale = cu->yof / cu->fsize;
+
+#define MARGIN_X_MIN (xof_scale + tb_scale.x)
+#define MARGIN_Y_MIN (yof_scale + tb_scale.y)
 
 	/* remark: do calculations including the trailing '\0' of a string
 	 * because the cursor can be at that location */
@@ -613,8 +627,13 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	
 	linedist = cu->linedist;
 	
-	xof = cu->xof + (cu->tb[0].x / cu->fsize);
-	yof = cu->yof + (cu->tb[0].y / cu->fsize);
+	curbox = 0;
+	textbox_scale(&tb_scale, &cu->tb[curbox], 1.0f / cu->fsize);
+	use_textbox = (tb_scale.w != 0.0f);
+
+
+	xof = MARGIN_X_MIN;
+	yof = MARGIN_Y_MIN;
 
 	xtrax = 0.5f * cu->spacing - 0.5f;
 
@@ -624,8 +643,6 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 		custrinfo[i].flag &= ~(CU_CHINFO_WRAP | CU_CHINFO_SMALLCAPS_CHECK);
 	}
 
-	tb = &(cu->tb[0]);
-	curbox = 0;
 	for (i = 0; i <= slen; i++) {
 makebreak:
 		/* Characters in the list */
@@ -651,6 +668,7 @@ makebreak:
 		if (!vfd) {
 			MEM_freeN(chartransdata);
 			chartransdata = NULL;
+			MEM_freeN(lineinfo);
 			goto finally;
 		}
 
@@ -685,9 +703,9 @@ makebreak:
 		twidth = char_width(cu, che, info);
 
 		/* Calculate positions */
-		if ((tb->w != 0.0f) &&
+		if ((tb_scale.w != 0.0f) &&
 		    (ct->dobreak == 0) &&
-		    (((xof - (tb->x / cu->fsize) + twidth) * cu->fsize) > tb->w + cu->xof * cu->fsize))
+		    (((xof - tb_scale.x) + twidth) > xof_scale + tb_scale.w))
 		{
 			//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
 			for (j = i; j && (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
@@ -723,31 +741,33 @@ makebreak:
 
 			yof -= linedist;
 
-			lineinfo[lnr].x_min     = (xof - xtrax) - (tb->x / cu->fsize);
-			lineinfo[lnr].x_max     = tb->w / cu->fsize;
+			lineinfo[lnr].x_min     = (xof - xtrax) - tb_scale.x;
+			lineinfo[lnr].x_max     = tb_scale.w;
 			lineinfo[lnr].char_nr   = cnr;
 			lineinfo[lnr].wspace_nr = wsnr;
 
 			CLAMP_MIN(maxlen, lineinfo[lnr].x_min);
 
-			if ((tb->h != 0.0f) &&
-			    ((-(yof - (tb->y / cu->fsize))) > ((tb->h / cu->fsize) - (linedist * cu->fsize)) - cu->yof) &&
-			    (cu->totbox > (curbox + 1)) )
+			if ((tb_scale.h != 0.0f) &&
+			    (cu->totbox > (curbox + 1)) &&
+			    ((-(yof - tb_scale.y)) > (tb_scale.h - (linedist * cu->fsize)) - yof_scale))
 			{
 				maxlen = 0;
-				tb++;
 				curbox++;
-				yof = cu->yof + tb->y / cu->fsize;
+
+				textbox_scale(&tb_scale, &cu->tb[curbox], 1.0f / cu->fsize);
+
+				yof = MARGIN_Y_MIN;
 			}
 
 			/* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
 #if 0
 			if (ascii == '\n')
-				xof = cu->xof;
+				xof = xof_scale;
 			else
-				xof = cu->xof + (tb->x / cu->fsize);
+				xof = MARGIN_X_MIN;
 #else
-			xof = cu->xof + (tb->x / cu->fsize);
+			xof = MARGIN_X_MIN;
 #endif
 			lnr++;
 			cnr = 0;
@@ -761,9 +781,9 @@ makebreak:
 			ct->linenr = lnr;
 			ct->charnr = cnr++;
 
-			tabfac = (xof - cu->xof + 0.01f);
+			tabfac = (xof - MARGIN_X_MIN + 0.01f);
 			tabfac = 2.0f * ceilf(tabfac / 2.0f);
-			xof = cu->xof + tabfac;
+			xof = MARGIN_X_MIN + tabfac;
 		}
 		else {
 			EditFontSelBox *sb = NULL;
@@ -817,7 +837,7 @@ makebreak:
 			struct TempLineInfo *li;
 
 			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
-				li->x_min = (li->x_max - li->x_min) + cu->xof;
+				li->x_min = (li->x_max - li->x_min) + xof_scale;
 			}
 
 			for (i = 0; i <= slen; i++) {
@@ -829,7 +849,7 @@ makebreak:
 			struct TempLineInfo *li;
 
 			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
-				li->x_min = ((li->x_max - li->x_min) + cu->xof) / 2.0f;
+				li->x_min = ((li->x_max - li->x_min) + xof_scale) / 2.0f;
 			}
 
 			for (i = 0; i <= slen; i++) {
@@ -837,11 +857,11 @@ makebreak:
 				ct++;
 			}
 		}
-		else if ((cu->spacemode == CU_FLUSH) && (cu->tb[0].w != 0.0f)) {
+		else if ((cu->spacemode == CU_FLUSH) && use_textbox) {
 			struct TempLineInfo *li;
 
 			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
-				li->x_min = ((li->x_max - li->x_min) + cu->xof);
+				li->x_min = ((li->x_max - li->x_min) + xof_scale);
 
 				if (li->char_nr > 1) {
 					li->x_min /= (float)(li->char_nr - 1);
@@ -858,7 +878,7 @@ makebreak:
 				ct++;
 			}
 		}
-		else if ((cu->spacemode == CU_JUSTIFY) && (cu->tb[0].w != 0.0f)) {
+		else if ((cu->spacemode == CU_JUSTIFY) && use_textbox) {
 			float curofs = 0.0f;
 			for (i = 0; i <= slen; i++) {
 				for (j = i;
@@ -875,7 +895,7 @@ makebreak:
 						struct TempLineInfo *li;
 
 						li = &lineinfo[ct->linenr];
-						curofs += ((li->x_max - li->x_min) + cu->xof) / (float)li->wspace_nr;
+						curofs += ((li->x_max - li->x_min) + xof_scale) / (float)li->wspace_nr;
 					}
 					ct->xof += curofs;
 				}
@@ -1143,6 +1163,9 @@ finally:
 	}
 
 	return ok;
+
+#undef MARGIN_X_MIN
+#undef MARGIN_Y_MIN
 }
 
 

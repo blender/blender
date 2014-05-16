@@ -4229,8 +4229,8 @@ void BKE_curve_material_index_clear(Curve *cu)
 
 void BKE_curve_rect_from_textbox(const struct Curve *cu, const struct TextBox *tb, struct rctf *r_rect)
 {
-	r_rect->xmin = (cu->xof * cu->fsize) + tb->x;
-	r_rect->ymax = (cu->yof * cu->fsize) + tb->y + cu->fsize;
+	r_rect->xmin = cu->xof + tb->x;
+	r_rect->ymax = cu->yof + tb->y + cu->fsize;
 
 	r_rect->xmax = r_rect->xmin + tb->w;
 	r_rect->ymin = r_rect->ymax - tb->h;
