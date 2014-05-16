@@ -1721,10 +1721,6 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 				if (handler->op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 					wm->op_undo_depth--;
 
-				if (retval & OPERATOR_FINISHED)
-					if (G.debug & G_DEBUG_WM)
-						wm_operator_print(C, handler->op);
-
 				/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
 				if (CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
 					if (handler->op->type->flag & OPTYPE_UNDO)
@@ -1753,6 +1749,9 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 					CTX_wm_area_set(C, area_prev);
 					CTX_wm_region_set(C, ar_prev);
 				}
+
+				/* for WM_operator_pystring only, custom report handling is done above */
+				wm_operator_reports(C, handler->op, retval, true);
 
 				if (retval & OPERATOR_FINISHED) {
 					WM_operator_last_properties_store(handler->op);
