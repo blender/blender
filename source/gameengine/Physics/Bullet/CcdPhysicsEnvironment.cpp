@@ -296,6 +296,44 @@ public:
 
 
 };
+
+class BlenderVehicleRaycaster: public btDefaultVehicleRaycaster
+{
+	btDynamicsWorld*	m_dynamicsWorld;
+public:
+	BlenderVehicleRaycaster(btDynamicsWorld* world)
+		:btDefaultVehicleRaycaster(world), m_dynamicsWorld(world)
+	{
+	}
+
+	virtual void* castRay(const btVector3& from,const btVector3& to, btVehicleRaycasterResult& result)
+	{
+	//	RayResultCallback& resultCallback;
+
+		btCollisionWorld::ClosestRayResultCallback rayCallback(from,to);
+
+		// We override btDefaultVehicleRaycaster so we can set this flag, otherwise our
+		// vehicles go crazy (http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=9662)
+		rayCallback.m_flags |= btTriangleRaycastCallback::kF_UseSubSimplexConvexCastRaytest;
+
+		m_dynamicsWorld->rayTest(from, to, rayCallback);
+
+		if (rayCallback.hasHit())
+		{
+
+			const btRigidBody* body = btRigidBody::upcast(rayCallback.m_collisionObject);
+			if (body && body->hasContactResponse())
+			{
+				result.m_hitPointInWorld = rayCallback.m_hitPointWorld;
+				result.m_hitNormalInWorld = rayCallback.m_hitNormalWorld;
+				result.m_hitNormalInWorld.normalize();
+				result.m_distFraction = rayCallback.m_closestHitFraction;
+				return (void*)body;
+			}
+		}
+		return 0;
+	}
+};
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
 class CcdOverlapFilterCallBack : public btOverlapFilterCallback
@@ -2824,7 +2862,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 		{
 			btRaycastVehicle::btVehicleTuning* tuning = new btRaycastVehicle::btVehicleTuning();
 			btRigidBody* chassis = rb0;
-			btDefaultVehicleRaycaster* raycaster = new btDefaultVehicleRaycaster(m_dynamicsWorld);
+			btDefaultVehicleRaycaster* raycaster = new BlenderVehicleRaycaster(m_dynamicsWorld);
 			btRaycastVehicle* vehicle = new btRaycastVehicle(*tuning,chassis,raycaster);
 			WrapperVehicle* wrapperVehicle = new WrapperVehicle(vehicle,ctrl0);
 			m_wrapperVehicles.push_back(wrapperVehicle);
