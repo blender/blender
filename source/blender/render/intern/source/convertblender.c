@@ -2635,7 +2635,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	Material **matar;
 	float *data, *fp, *orco=NULL;
 	float n[3], mat[4][4], nmat[4][4];
-	int nr, startvert, a, b;
+	int nr, startvert, a, b, negative_scale;
 	bool need_orco = false;
 	int totmat;
 
@@ -2649,6 +2649,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	
 	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
+	negative_scale = is_negative_m4(mat);
 
 	/* local object -> world space transform for normals */
 	copy_m4_m4(nmat, mat);
@@ -2718,7 +2719,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					zero_v3(n);
 					index= dl->index;
 					for (a=0; a<dl->parts; a++, index+=3) {
-						int v1 = index[0], v2 = index[1], v3 = index[2];
+						int v1 = index[0], v2 = index[2], v3 = index[1];
 						float *co1 = &dl->verts[v1 * 3],
 						      *co2 = &dl->verts[v2 * 3],
 						      *co3 = &dl->verts[v3 * 3];
@@ -2731,7 +2732,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 						/* to prevent float accuracy issues, we calculate normal in local object space (not world) */
 						if (area_tri_v3(co3, co2, co1)>FLT_EPSILON) {
-							normal_tri_v3(tmp, co3, co2, co1);
+							if (negative_scale)
+								normal_tri_v3(tmp, co1, co2, co3);
+							else
+								normal_tri_v3(tmp, co3, co2, co1);
 							add_v3_v3(n, tmp);
 						}
 
