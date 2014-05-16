@@ -1379,11 +1379,14 @@ void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
 	SpaceType *st;
 	ARegion *ar;
 	const char spacetype = sa_dst->spacetype;
+	const short flag_copy = HEADER_NO_PULLDOWN;
 	
 	sa_dst->headertype = sa_src->headertype;
 	sa_dst->spacetype = sa_src->spacetype;
 	sa_dst->type = sa_src->type;
 	sa_dst->butspacetype = sa_src->butspacetype;
+
+	sa_dst->flag = (sa_dst->flag & ~flag_copy) | (sa_src->flag & flag_copy);
 
 	/* area */
 	if (do_free) {
