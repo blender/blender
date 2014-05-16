@@ -61,7 +61,7 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	if(device_info_.type == DEVICE_CPU)
 		shader_manager = ShaderManager::create(this, params.shadingsystem);
 	else
-		shader_manager = ShaderManager::create(this, SceneParams::SVM);
+		shader_manager = ShaderManager::create(this, ShadingSystem::SVM);
 
 	/* Extended image limits for CPU and GPUs */
 	image_manager->set_extended_image_limits(device_info_);

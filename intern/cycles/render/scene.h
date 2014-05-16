@@ -120,8 +120,8 @@ public:
 
 class SceneParams {
 public:
-	enum { OSL, SVM } shadingsystem;
-	enum BVHType { BVH_DYNAMIC, BVH_STATIC } bvh_type;
+	ShadingSystem shadingsystem;
+	BVHType bvh_type;
 	bool use_bvh_cache;
 	bool use_bvh_spatial_split;
 	bool use_qbvh;

@@ -28,6 +28,7 @@
 #include "tables.h"
 
 #include "util_foreach.h"
+#include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -148,7 +149,7 @@ ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
 	ShaderManager *manager;
 
 #ifdef WITH_OSL
-	if(shadingsystem == SceneParams::OSL)
+	if(shadingsystem == ShadingSystem::OSL)
 		manager = new OSLShaderManager();
 	else
 #endif

@@ -24,6 +24,7 @@
 #include "util_progress.h"
 #include "util_stats.h"
 #include "util_thread.h"
+#include "util_types.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -59,7 +60,7 @@ public:
 	double reset_timeout;
 	double text_timeout;
 
-	enum { OSL, SVM } shadingsystem;
+	ShadingSystem shadingsystem;
 
 	SessionParams()
 	{
