@@ -279,4 +279,13 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			sce->r.bake.im_format.compress = 15;
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "FreestyleLineStyle", "MTex", "mtex")) {
+		FreestyleLineStyle *linestyle;
+
+		for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+			linestyle->flag |= LS_TEXTURE;
+			linestyle->texstep = 1.0;
+		}
+	}
 }
