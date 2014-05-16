@@ -1399,6 +1399,7 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, int *r_start, float *r_f
 			total_length += bevp_array[i - 1];
 			tmpf += bevp_array[i - 1];
 			if ((i % cu->resolu) == 0 || (bl->nr - 1) == i) {
+				BLI_assert(j < segcount);
 				segments[j++] = tmpf;
 				tmpf = 0.0f;
 			}
