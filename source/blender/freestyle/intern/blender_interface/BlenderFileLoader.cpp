@@ -521,14 +521,11 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		}
 		else {
 			RE_vlakren_get_normal(_re, obi, vlr, facenormal);
-			if (G.debug & G_DEBUG_FREESTYLE) {
-				float dist, tmpNor[3];
-				normal_tri_v3(tmpNor, v3, v2, v1); /* normals are inverted in rendering */
-				dist = len_v3v3(facenormal, tmpNor);
-				if (dist > 1.0f) {
-					printf("Warning: vlak %d has an incorrect normal (dist. %.3g)\n", p, dist);
-				}
-			}
+#ifndef NDEBUG
+			float tnor[3];
+			normal_tri_v3(tnor, v3, v2, v1);  /* normals are inverted in rendering */
+			BLI_assert(dot_v3v3(tnor, facenormal) > 0.0f);
+#endif
 			copy_v3_v3(n1, facenormal);
 			copy_v3_v3(n2, facenormal);
 			copy_v3_v3(n3, facenormal);
