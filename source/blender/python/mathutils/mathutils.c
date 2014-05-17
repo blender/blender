@@ -477,8 +477,10 @@ static struct PyModuleDef M_Mathutils_module_def = {
 
 /* submodules only */
 #include "mathutils_geometry.h"
-#include "mathutils_kdtree.h"
-#include "mathutils_noise.h"
+#ifndef MATH_STANDALONE
+#  include "mathutils_kdtree.h"
+#  include "mathutils_noise.h"
+#endif
 
 PyMODINIT_FUNC PyInit_mathutils(void)
 {
