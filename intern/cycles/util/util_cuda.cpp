@@ -194,7 +194,7 @@ bool cuLibraryInit()
 	DynamicLibrary *lib = dynamic_library_open(path);
 
 	if(lib == NULL && alternative_path)
-		lib = dynamic_library_open(path);
+		lib = dynamic_library_open(alternative_path);
 
 	if(lib == NULL)
 		return false;
