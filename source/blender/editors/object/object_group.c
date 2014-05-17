@@ -74,33 +74,26 @@ static bool group_link_early_exit_check(Group *group, Object *object)
 	return false;
 }
 
-static bool check_group_contains_object_recursive(Group *group, Object *object)
+static bool check_object_instances_group_recursive(Object *object, Group *group)
 {
-	GroupObject *group_object;
-
-	if ((group->id.flag & LIB_DOIT) == 0) {
+	if ((object->id.flag & LIB_DOIT) == 0) {
 		/* Cycle already exists in groups, let's prevent further crappyness */
 		return true;
 	}
-
-	group->id.flag &= ~LIB_DOIT;
-
-	for (group_object = group->gobject.first; group_object; group_object = group_object->next) {
-		Object *current_object = group_object->ob;
-
-		if (current_object == object) {
+	object->id.flag &= ~LIB_DOIT;
+	
+	if (object->dup_group) {
+		if (object->dup_group == group)
 			return true;
-		}
-
-		if (current_object->dup_group) {
-			if (check_group_contains_object_recursive(current_object->dup_group, object)) {
-				return true;
+		else {
+			GroupObject *gob;
+			for (gob = object->dup_group->gobject.first; gob; gob = gob->next) {
+				if (check_object_instances_group_recursive(gob->ob, group))
+					return true;
 			}
 		}
 	}
-
-	group->id.flag |= LIB_DOIT;
-
+	
 	return false;
 }
 
@@ -195,7 +188,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 			if (group_link_early_exit_check(group, base->object))
 				continue;
 
-			if (base->object->dup_group != group && !check_group_contains_object_recursive(group, base->object)) {
+			if (!check_object_instances_group_recursive(base->object, group)) {
 				BKE_group_object_add(group, base->object, scene, base);
 				updated = true;
 			}
@@ -498,7 +491,7 @@ static int group_link_exec(bContext *C, wmOperator *op)
 	 * contains our current object.
 	 */
 	BKE_main_id_tag_listbase(&bmain->group, true);
-	if (ob->dup_group == group || check_group_contains_object_recursive(group, ob)) {
+	if (check_object_instances_group_recursive(ob, group)) {
 		BKE_report(op->reports, RPT_ERROR, "Could not add the group because of dependency cycle detected");
 		return OPERATOR_CANCELLED;
 	}
