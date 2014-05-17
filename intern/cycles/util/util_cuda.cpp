@@ -180,15 +180,21 @@ bool cuLibraryInit()
 #ifdef _WIN32
 	/* expected in c:/windows/system or similar, no path needed */
 	const char *path = "nvcuda.dll";
+	const char *alternative_path = NULL;
 #elif defined(__APPLE__)
 	/* default installation path */
 	const char *path = "/usr/local/cuda/lib/libcuda.dylib";
+	const char *alternative_path = NULL;
 #else
 	const char *path = "libcuda.so";
+	const char *alternative_path = "libcuda.so.1";
 #endif
 
 	/* load library */
 	DynamicLibrary *lib = dynamic_library_open(path);
+
+	if(lib == NULL && alternative_path)
+		lib = dynamic_library_open(path);
 
 	if(lib == NULL)
 		return false;
