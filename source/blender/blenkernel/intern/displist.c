@@ -1380,7 +1380,7 @@ static void calc_bevfac_spline_mapping(BevList *bl, float bevfac, float spline_l
 static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const bool use_render_resolution,
                                 int *r_start, float *r_firstblend, int *r_steps, float *r_lastblend)
 {
-	const int resolu = (use_render_resolution) ? cu->resolu_ren : cu->resolu;
+	const int resolu = (use_render_resolution && (cu->resolu_ren != 0)) ? cu->resolu_ren : cu->resolu;
 	const int segcount = (splinetype == CU_POLY) ? bl->nr : (bl->nr / resolu);
 
 	BevPoint *bevp, *bevl;
