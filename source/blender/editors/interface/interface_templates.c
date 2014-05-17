@@ -1957,6 +1957,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 			curvemapping_changed(cumap, false);
 			break;
 	}
+	ED_undo_push(C, "CurveMap tools");
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
