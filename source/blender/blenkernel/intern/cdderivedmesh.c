@@ -575,11 +575,16 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 			new_glmode = mface->v4 ? GL_QUADS : GL_TRIANGLES;
 			new_matnr = mface->mat_nr + 1;
 			new_shademodel = (lnors || (mface->flag & ME_SMOOTH)) ? GL_SMOOTH : GL_FLAT;
-			
-			if (new_glmode != glmode || new_matnr != matnr || new_shademodel != shademodel) {
+
+
+			if ((new_glmode != glmode) || (new_shademodel != shademodel) ||
+			    (setMaterial && (new_matnr != matnr)))
+			{
 				glEnd();
 
-				drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
+				if (setMaterial) {
+					drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
+				}
 
 				glShadeModel(shademodel = new_shademodel);
 				glBegin(glmode = new_glmode);
