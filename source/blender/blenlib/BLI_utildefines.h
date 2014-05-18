@@ -361,6 +361,15 @@
 		         (((tot) - (index)) - (tot_delete)) * sizeof(*(arr))); \
 	} (void)0
 
+/* assuming a static array */
+#ifdef __GNUC__
+#  define ARRAY_SIZE(arr)                                                     \
+	((sizeof(struct {int isnt_array : ((void *)&(arr) == &(arr)[0]);}) * 0) + \
+	 (sizeof(arr) / sizeof(*(arr))))
+#else
+#  define ARRAY_SIZE(x)  sizeof(arr) / sizeof(*(arr))
+#endif
+
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
 #define SET_INT_IN_POINTER(i)    ((void *)(intptr_t)(i))
