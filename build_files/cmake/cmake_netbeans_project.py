@@ -105,8 +105,8 @@ def create_nb_project_main():
         f.write('        <data xmlns="http://www.netbeans.org/ns/make-project/1">\n')
         f.write('            <name>%s</name>\n' % PROJECT_NAME)
         f.write('            <c-extensions>c,m</c-extensions>\n')
-        f.write('            <cpp-extensions>cpp,mm</cpp-extensions>\n')
-        f.write('            <header-extensions>h,hpp,inl</header-extensions>\n')
+        f.write('            <cpp-extensions>cpp,cxx,cc,mm</cpp-extensions>\n')
+        f.write('            <header-extensions>h,hxx,hh,hpp,inl</header-extensions>\n')
         f.write('            <sourceEncoding>UTF-8</sourceEncoding>\n')
         f.write('            <make-dep-projects/>\n')
         f.write('            <sourceRootList>\n')
@@ -118,6 +118,9 @@ def create_nb_project_main():
         f.write('                    <type>0</type>\n')
         f.write('                </confElem>\n')
         f.write('            </confList>\n')
+        f.write('            <formatting>\n')
+        f.write('                <project-formatting-style>false</project-formatting-style>\n')
+        f.write('            </formatting>\n')
         f.write('        </data>\n')
         f.write('    </configuration>\n')
         f.write('</project>\n')
@@ -125,9 +128,9 @@ def create_nb_project_main():
         f = open(join(PROJECT_DIR_NB, "configurations.xml"), 'w')
 
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        f.write('<configurationDescriptor version="79">\n')
+        f.write('<configurationDescriptor version="94">\n')
         f.write('  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">\n')
-        f.write('    <df name="blender" root="%s">\n' % SOURCE_DIR)  # base_root_rel
+        f.write('    <df name="0" root="%s">\n' % SOURCE_DIR)  # base_root_rel
 
         # write files!
         files_rel_local = [normpath(relpath(join(CMAKE_DIR, path), SOURCE_DIR)) for path in files_rel]
@@ -145,7 +148,7 @@ def create_nb_project_main():
 
             for key, item in dirs:
                 f.write('%s  <df name="%s">\n' % (ident, key))
-                write_df(item, ident + "  ")
+                write_df(item, ident + "    ")
                 f.write('%s  </df>\n' % ident)
 
             for key in files:
@@ -178,9 +181,10 @@ def create_nb_project_main():
         f.write('    <conf name="Default" type="0">\n')
 
         f.write('      <toolsSet>\n')
-        f.write('        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>\n')
         f.write('        <compilerSet>default</compilerSet>\n')
         f.write('      </toolsSet>\n')
+        f.write('      <dependencyChecking>false</dependencyChecking>\n')
+        f.write('      <rebuildPropChanged>false</rebuildPropChanged>\n')
         f.write('      <makefileType>\n')
 
         f.write('        <makeTool>\n')
@@ -217,7 +221,7 @@ def create_nb_project_main():
             f.write('      <item path="%s"\n' % path)
             f.write('            ex="false"\n')
             f.write('            tool="1"\n')
-            f.write('            flavor="0">\n')
+            f.write('            flavor2="0">\n')
             f.write('      </item>\n')
 
         f.write('      <runprofile version="9">\n')
