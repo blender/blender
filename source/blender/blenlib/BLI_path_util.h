@@ -97,6 +97,7 @@ void BLI_join_dirfile(char *__restrict string, const size_t maxlen,
                       const char *__restrict dir, const char *__restrict file) ATTR_NONNULL();
 const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
+#if 0
 typedef enum bli_rebase_state {
 	BLI_REBASE_NO_SRCDIR = 0,
 	BLI_REBASE_OK        = 1,
@@ -104,6 +105,7 @@ typedef enum bli_rebase_state {
 } bli_rebase_state;
 
 int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir);
+#endif
 
 const char *BLI_last_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 int         BLI_add_slash(char *string) ATTR_NONNULL();

@@ -1950,6 +1950,8 @@ const char *BLI_path_basename(const char *path)
 	return filename ? filename + 1 : path;
 }
 
+/* UNUSED */
+#if 0
 /**
  * Produce image export path.
  * 
@@ -2076,6 +2078,8 @@ int BLI_rebase_path(char *abs, size_t abs_len,
 
 	return BLI_REBASE_OK;
 }
+#endif
+
 
 /**
  * Returns pointer to the leftmost path separator in string. Not actually used anywhere.

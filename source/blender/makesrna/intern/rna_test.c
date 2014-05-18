@@ -36,6 +36,10 @@
 
 #ifdef RNA_RUNTIME
 
+#ifdef ARRAY_SIZE
+#  undef ARRAY_SIZE
+#endif
+
 #define ARRAY_SIZE 3
 #define DYNAMIC_ARRAY_SIZE 64
 #define MARRAY_DIM [3][4][5]
