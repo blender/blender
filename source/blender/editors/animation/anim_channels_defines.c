@@ -3569,7 +3569,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	ANIM_flush_setting_anim_channels(&ac, &anim_data, ale_setting, setting, on);
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* callback for wrapping NLA Track "solo" toggle logic */

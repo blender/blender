@@ -223,7 +223,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Object *o
 		}
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* return return code - defaults to zero if nothing happened */
 	return ret;
@@ -265,7 +265,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Scene 
 		}
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* return return code - defaults to zero if nothing happened */
 	return ret;
@@ -301,7 +301,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 			break;
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	return ret_code;
 }
@@ -397,7 +397,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ************************************************************************** */

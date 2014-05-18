@@ -184,7 +184,7 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int f
 	}
 	
 	/* clean up */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* Deselect all animation channels 
@@ -373,7 +373,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ---------------------------- Graph Editor ------------------------------------- */
@@ -1177,7 +1177,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 		}
 		
 		/* free temp data */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 	
 	/* send notifier that things have changed */
@@ -1290,7 +1290,7 @@ static void animchannels_group_channels(bAnimContext *ac, bAnimListElem *adt_ref
 		}
 		
 		/* cleanup */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 }
 
@@ -1321,7 +1321,7 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
 		}
 		
 		/* free temp data */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 		
 		/* updatss */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -1393,7 +1393,7 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* updates */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -1470,7 +1470,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		
 		/* cleanup */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 	
 	/* filter data */
@@ -1515,7 +1515,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -1586,7 +1586,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 0);
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* make all the selected channels visible */
 	filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
@@ -1605,7 +1605,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 1);
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	BLI_freelistN(&all_data);
 	
 	
@@ -1683,7 +1683,7 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	BLI_freelistN(&all_data);
 	
 	/* send notifier that things have changed */
@@ -1799,7 +1799,7 @@ static void setflag_anim_channels(bAnimContext *ac, short setting, short mode, s
 			ANIM_flush_setting_anim_channels(ac, &all_data, ale, setting, mode);
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	BLI_freelistN(&all_data);
 }
 
@@ -2064,11 +2064,11 @@ static int animchannels_enable_exec(bContext *C, wmOperator *UNUSED(op))
 			fcu->driver->flag &= ~DRIVER_FLAG_INVALID;
 			
 		/* tag everything for updates - in particular, this is needed to get drivers working again */
-		ANIM_list_elem_update(ac.scene, ale);
+		ale->update |= ANIM_UPDATE_DEPS;
 	}
 	
-	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_update(&ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 		
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -2228,7 +2228,7 @@ static void borderselect_anim_channels(bAnimContext *ac, rcti *rect, short selec
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -2312,7 +2312,7 @@ static void rename_anim_channels(bAnimContext *ac, int channel_index)
 		if (G.debug & G_DEBUG)
 			printf("Error: animation channel (index = %d) not found in rename_anim_channels()\n", channel_index);
 		
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 		return;
 	}
 	
@@ -2338,7 +2338,7 @@ static void rename_anim_channels(bAnimContext *ac, int channel_index)
 	}
 	
 	/* free temp data and tag for refresh */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	ED_region_tag_redraw(ac->ar);
 }
 
@@ -2413,7 +2413,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 		if (G.debug & G_DEBUG)
 			printf("Error: animation channel (index = %d) not found in mouse_anim_channels()\n", channel_index);
 		
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 		return 0;
 	}
 
@@ -2421,7 +2421,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 	/* TODO: should this feature be extended to work with other channel types too? */
 	if ((selectmode == -1) && (ale->type != ANIMTYPE_GROUP)) {
 		/* normal channels should not behave normally in this case */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 		return 0;
 	}
 
@@ -2706,7 +2706,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 	}
 	
 	/* free channels */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* return notifier flags */
 	return notifierFlags;

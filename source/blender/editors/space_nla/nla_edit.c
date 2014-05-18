@@ -93,7 +93,7 @@ void ED_nla_postop_refresh(bAnimContext *ac)
 	}
 	
 	/* free temp memory */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* *********************************************** */
@@ -136,7 +136,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* if we managed to enter tweakmode on at least one AnimData block, 
 	 * set the flag for this in the active scene and send notifiers
@@ -200,7 +200,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* if we managed to enter tweakmode on at least one AnimData block, 
 	 * set the flag for this in the active scene and send notifiers
@@ -293,7 +293,7 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 		}
 		
 		/* free memory */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 	
 	/* set default range if nothing happened */
@@ -406,7 +406,7 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
 	}
 	
 	/* free all temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	return (found != 0);
 }
@@ -602,7 +602,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -723,7 +723,7 @@ static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* was anything added? */
 	if (done) {
@@ -815,7 +815,7 @@ static int nlaedit_add_sound_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -880,7 +880,7 @@ static int nlaedit_add_meta_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -932,7 +932,7 @@ static int nlaedit_remove_meta_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -1019,7 +1019,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	if (done) {
 		/* refresh auto strip properties */
@@ -1111,7 +1111,7 @@ static int nlaedit_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -1256,7 +1256,7 @@ static int nlaedit_split_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -1309,7 +1309,7 @@ static int nlaedit_bake_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -1375,7 +1375,7 @@ static int nlaedit_toggle_mute_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -1529,7 +1529,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -1603,7 +1603,7 @@ static int nlaedit_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -1677,7 +1677,7 @@ static int nlaedit_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -1756,7 +1756,7 @@ static int nlaedit_sync_actlen_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -1832,7 +1832,7 @@ static int nlaedit_make_single_user_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -1928,7 +1928,7 @@ static int nlaedit_apply_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -1988,7 +1988,7 @@ static int nlaedit_clear_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -2129,7 +2129,7 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
 	ED_nla_postop_refresh(&ac);
@@ -2252,7 +2252,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
@@ -2375,7 +2375,7 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* clean up */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* successful or not? */
 	if (ok) {

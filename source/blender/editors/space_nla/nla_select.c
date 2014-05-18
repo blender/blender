@@ -153,7 +153,7 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -268,7 +268,7 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -412,7 +412,7 @@ static void nlaedit_select_leftright(bContext *C, bAnimContext *ac, short leftri
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -537,7 +537,7 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 	if (ale == NULL) {
 		/* channel not found */
 		printf("Error: animation channel (index = %d) not found in mouse_nla_strips()\n", channel_index);
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 		return;
 	}
 	else {
@@ -556,7 +556,7 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 		BLI_remlink(&anim_data, ale);
 		
 		/* free list of channels, since it's not used anymore */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 	
 	/* if currently in tweakmode, exit tweakmode before changing selection states

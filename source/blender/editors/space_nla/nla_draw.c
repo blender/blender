@@ -613,7 +613,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	}
 	
 	/* free tempolary channels */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* *********************************************** */
@@ -704,7 +704,7 @@ void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar)
 	}
 	
 	/* free temporary channels */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* *********************************************** */

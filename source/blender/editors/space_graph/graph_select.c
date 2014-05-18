@@ -141,7 +141,7 @@ static void deselect_graph_keys(bAnimContext *ac, short test, short sel, short d
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -311,7 +311,7 @@ static void borderselect_graphkeys(
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -548,7 +548,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 
@@ -576,7 +576,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
 			for (ale = anim_data.first; ale; ale = ale->next)
 				ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_to_cfraelem, NULL);
 			
-			BLI_freelistN(&anim_data);
+			ANIM_animdata_freelist(&anim_data);
 			break;
 			
 		case GRAPHKEYS_COLUMNSEL_CFRA: /* current frame */
@@ -622,7 +622,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
 	
 	/* free elements */
 	BLI_freelistN(&ked.list);
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -700,7 +700,7 @@ static int graphkeys_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
@@ -764,7 +764,7 @@ static void select_moreless_graph_keys(bAnimContext *ac, short mode)
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ----------------- */
@@ -899,7 +899,7 @@ static void graphkeys_select_leftright(bAnimContext *ac, short leftright, short 
 	}
 
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ----------------- */
@@ -1147,7 +1147,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 	}
 	
 	/* free channels */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* helper for find_nearest_fcurve_vert() - get the best match to use */
@@ -1400,7 +1400,7 @@ static void graphkeys_mselect_column(bAnimContext *ac, const int mval[2], short 
 	/* free elements */
 	MEM_freeN(nvi);
 	BLI_freelistN(&ked.list);
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
  
 /* ------------------- */

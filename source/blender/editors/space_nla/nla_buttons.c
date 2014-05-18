@@ -174,7 +174,7 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	return (found != 0);
 }

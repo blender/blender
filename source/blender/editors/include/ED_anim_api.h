@@ -115,6 +115,7 @@ typedef struct bAnimListElem {
 	int     flag;           /* copy of elem's flags for quick access */
 	int     index;          /* for un-named data, the index of the data in it's collection */
 	
+	short   update;         /* tag the element for updating (eAnim_Update_Flags) */
 	short   datatype;       /* type of motion data to expect */
 	void   *key_data;       /* motion data - mostly F-Curves, but can be other types too */
 	
@@ -123,6 +124,15 @@ typedef struct bAnimListElem {
 	struct AnimData *adt;   /* source of the animation data attached to ID block (for convenience) */
 } bAnimListElem;
 
+typedef enum eAnim_Update_Flags {
+	ANIM_UPDATE_DEPS        = (1 << 0),  /* referenced data and dependencies get refreshed */
+	ANIM_UPDATE_ORDER       = (1 << 1),  /* keyframes need to be sorted */
+	ANIM_UPDATE_HANDLES     = (1 << 2),  /* recalculate handles */
+} eAnim_Update_Flags;
+
+/* used for most tools which change keyframes (flushed by ANIM_animdata_update) */
+#define ANIM_UPDATE_DEFAULT (ANIM_UPDATE_DEPS | ANIM_UPDATE_ORDER | ANIM_UPDATE_HANDLES)
+#define ANIM_UPDATE_DEFAULT_NOHANDLES (ANIM_UPDATE_DEFAULT & ~ANIM_UPDATE_HANDLES)
 
 /* Some types for easier type-testing 
  * NOTE: need to keep the order of these synchronized with the channels define code
@@ -355,6 +365,11 @@ bool ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
  * Returns whether the operation was successful.
  */
 bool ANIM_animdata_context_getdata(bAnimContext *ac);
+
+/* Acts on bAnimListElem eAnim_Update_Flags */
+void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data);
+
+void ANIM_animdata_freelist(ListBase *anim_data);
 
 /* ************************************************ */
 /* ANIMATION CHANNELS LIST */

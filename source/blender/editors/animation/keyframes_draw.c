@@ -798,7 +798,7 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 			}
 		}
 		
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 }
 
@@ -832,7 +832,7 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 	for (ale = anim_data.first; ale; ale = ale->next)
 		fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *blocks)
@@ -868,7 +868,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 	for (ale = anim_data.first; ale; ale = ale->next)
 		fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree *blocks)

@@ -139,7 +139,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	}
 	
 	/* free tempolary channels */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ************************************************************************* */
@@ -346,7 +346,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	}
 	
 	/* free tempolary channels used for drawing */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 
 	/* black line marking 'current frame' for Time-Slide transform mode */
 	if (saction->flag & SACTION_MOVING) {

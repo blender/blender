@@ -607,7 +607,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 		}
 		
 		/* free temp list */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 }
 

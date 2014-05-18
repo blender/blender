@@ -142,7 +142,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -294,7 +294,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -442,7 +442,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 
@@ -477,7 +477,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 				for (ale = anim_data.first; ale; ale = ale->next)
 					ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_to_cfraelem, NULL);
 			}
-			BLI_freelistN(&anim_data);
+			ANIM_animdata_freelist(&anim_data);
 			break;
 			
 		case ACTKEYS_COLUMNSEL_CFRA: /* current frame */
@@ -534,7 +534,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 	
 	/* free elements */
 	BLI_freelistN(&ked.list);
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -612,7 +612,7 @@ static int actkeys_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
@@ -675,7 +675,7 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
 	}
 	
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ----------------- */
@@ -838,7 +838,7 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 	}
 
 	/* Cleanup */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ----------------- */
@@ -975,7 +975,7 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 				}
 			}
 			
-			BLI_freelistN(&anim_data);
+			ANIM_animdata_freelist(&anim_data);
 		}
 		else {
 			ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
@@ -1029,7 +1029,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	
 	/* free elements */
 	BLI_freelistN(&ked.list);
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* option 4) select all keyframes in same channel */
@@ -1066,7 +1066,7 @@ static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, s
 				}
 			}
 			
-			BLI_freelistN(&anim_data);
+			ANIM_animdata_freelist(&anim_data);
 		}
 		else {
 			ANIM_animchannel_keyframes_loop(NULL, ac->ads, ale, NULL, select_cb, NULL);
@@ -1112,7 +1112,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	if (ale == NULL) {
 		/* channel not found */
 		printf("Error: animation channel (index = %d) not found in mouse_action_keys()\n", channel_index);
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 		return;
 	}
 	else {
@@ -1195,7 +1195,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 		BLI_dlrbTree_free(&anim_keys);
 		
 		/* free list of channels, since it's not used anymore */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 	
 	/* for replacing selection, firstly need to clear existing selection */

@@ -1054,7 +1054,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 	}
 	
 	/* free list of curves */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ************************************************************************* */
@@ -1139,5 +1139,5 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	}
 	
 	/* free tempolary channels */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }

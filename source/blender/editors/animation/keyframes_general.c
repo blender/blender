@@ -857,6 +857,8 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 					totmatch++;
 					paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode);
 				}
+
+				ale->update |= ANIM_UPDATE_DEFAULT;
 			}
 			
 			/* don't continue if some fcurves were pasted */
@@ -865,6 +867,8 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 		}
 	}
 	
+	ANIM_animdata_update(ac, anim_data);
+
 	return 0;
 }
 

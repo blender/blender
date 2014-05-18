@@ -151,7 +151,7 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 		}
 		
 		/* free memory */
-		BLI_freelistN(&anim_data);
+		ANIM_animdata_freelist(&anim_data);
 	}
 	else {
 		/* set default range */
@@ -369,7 +369,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 	}
 	
 	/* admin and redraws */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -505,9 +505,12 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 			insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		else
 			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -526,9 +529,6 @@ static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
 	
 	/* insert keyframes */
 	insert_graph_keys(&ac, mode);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
@@ -581,6 +581,8 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 	 * keyframes if these will be visible after doing so...
 	 */
 	if (fcurve_is_keyframable(fcu)) {
+		ListBase anim_data;
+
 		short mapping_flag = ANIM_get_normalization_flags(&ac);
 
 		/* get frame and value from props */
@@ -596,6 +598,13 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 		
 		/* insert keyframe on the specified frame + value */
 		insert_vert_fcurve(fcu, frame, val, 0);
+
+		ale->update |= ANIM_UPDATE_DEPS;
+
+		BLI_listbase_clear(&anim_data);
+		BLI_addtail(&anim_data, ale);
+
+		ANIM_animdata_update(&ac, &anim_data);
 	}
 	else {
 		/* warn about why this can't happen */
@@ -684,7 +693,7 @@ static short copy_graph_keys(bAnimContext *ac)
 	ok = copy_animedit_keys(ac, &anim_data);
 	
 	/* clean up */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 
 	return ok;
 }
@@ -708,9 +717,9 @@ static short paste_graph_keys(bAnimContext *ac,
 	
 	/* paste keyframes */
 	ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode);
-	
+
 	/* clean up */
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 
 	return ok;
 }
@@ -771,9 +780,6 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
-	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
@@ -815,10 +821,12 @@ static void duplicate_graph_keys(bAnimContext *ac)
 	/* loop through filtered data and delete selected keys */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		duplicate_fcurve_keys((FCurve *)ale->key_data);
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
-	
-	/* free filtered list */
-	BLI_freelistN(&anim_data);
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -833,9 +841,6 @@ static int graphkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 		
 	/* duplicate keyframes */
 	duplicate_graph_keys(&ac);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
@@ -876,7 +881,7 @@ static bool delete_graph_keys(bAnimContext *ac)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	bool changed = false;
+	bool changed_final = false;
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
@@ -886,9 +891,15 @@ static bool delete_graph_keys(bAnimContext *ac)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->key_data;
 		AnimData *adt = ale->adt;
+		bool changed;
 		
 		/* delete selected keyframes only */
-		changed |= delete_fcurve_keys(fcu);
+		changed = delete_fcurve_keys(fcu);
+
+		if (changed) {
+			ale->update |= ANIM_UPDATE_DEFAULT;
+			changed_final = true;
+		}
 		
 		/* Only delete curve too if it won't be doing anything anymore */
 		if ((fcu->totvert == 0) &&
@@ -898,11 +909,11 @@ static bool delete_graph_keys(bAnimContext *ac)
 			ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 		}
 	}
-	
-	/* free filtered list */
-	BLI_freelistN(&anim_data);
 
-	return changed;
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
+
+	return changed_final;
 }
 
 /* ------------------- */
@@ -918,9 +929,6 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* delete keyframes */
 	if (!delete_graph_keys(&ac))
 		return OPERATOR_CANCELLED;
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
@@ -957,11 +965,14 @@ static void clean_graph_keys(bAnimContext *ac, float thresh)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and clean curves */
-	for (ale = anim_data.first; ale; ale = ale->next)
+	for (ale = anim_data.first; ale; ale = ale->next) {
 		clean_fcurve((FCurve *)ale->key_data, thresh);
-	
-	/* free temp data */
-	BLI_freelistN(&anim_data);
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
+	}
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -980,9 +991,6 @@ static int graphkeys_clean_exec(bContext *C, wmOperator *op)
 	
 	/* clean keyframes */
 	clean_graph_keys(&ac, thresh);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -1036,10 +1044,12 @@ static void bake_graph_curves(bAnimContext *ac, int start, int end)
 		
 		/* restore driver */
 		fcu->driver = driver;
+
+		ale->update |= ANIM_UPDATE_DEPS;
 	}
-	
-	/* admin and redraws */
-	BLI_freelistN(&anim_data);
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -1062,9 +1072,6 @@ static int graphkeys_bake_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* bake keyframes */
 	bake_graph_curves(&ac, start, end);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	// NOTE: some distinction between order/number of keyframes and type should be made?
@@ -1178,16 +1185,16 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 		
 		/* sample the sound */
 		fcurve_store_samples(fcu, &sbi, start, end, fcurve_samplingcb_sound);
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
 
 	/* free sample data */
 	free(sbi.samples);
 
-	/* admin and redraws */
-	BLI_freelistN(&anim_data);
-
 	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
+	ANIM_animdata_update(&ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 
 	/* set notifier that 'keyframes' have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -1275,11 +1282,14 @@ static void sample_graph_keys(bAnimContext *ac)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and add keys between selected keyframes on every frame  */
-	for (ale = anim_data.first; ale; ale = ale->next)
+	for (ale = anim_data.first; ale; ale = ale->next) {
 		sample_fcurve((FCurve *)ale->key_data);
-	
-	/* admin and redraws */
-	BLI_freelistN(&anim_data);
+
+		ale->update |= ANIM_UPDATE_DEPS;
+	}
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -1294,9 +1304,6 @@ static int graphkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* sample keyframes */
 	sample_graph_keys(&ac);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -1381,10 +1388,12 @@ static void setexpo_graph_keys(bAnimContext *ac, short mode)
 				}
 			}
 		}
+
+		ale->update |= ANIM_UPDATE_DEPS;
 	}
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -1403,9 +1412,6 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 	
 	/* set handle type */
 	setexpo_graph_keys(&ac, mode);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframe properties have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
@@ -1449,11 +1455,14 @@ static void setipo_graph_keys(bAnimContext *ac, short mode)
 	/* loop through setting BezTriple interpolation
 	 * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
 	 */
-	for (ale = anim_data.first; ale; ale = ale->next)
+	for (ale = anim_data.first; ale; ale = ale->next) {
 		ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
+
+		ale->update |= ANIM_UPDATE_DEFAULT_NOHANDLES;
+	}
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -1472,9 +1481,6 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
 	
 	/* set handle type */
 	setipo_graph_keys(&ac, mode);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframe properties have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
@@ -1517,11 +1523,14 @@ static void seteasing_graph_keys(bAnimContext *ac, short mode)
 	/* loop through setting BezTriple easing
 	 * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
 	 */
-	for (ale = anim_data.first; ale; ale = ale->next)
+	for (ale = anim_data.first; ale; ale = ale->next) {
 		ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
+
+		ale->update |= ANIM_UPDATE_DEFAULT_NOHANDLES;
+	}
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 static int graphkeys_easing_exec(bContext *C, wmOperator *op)
@@ -1538,9 +1547,6 @@ static int graphkeys_easing_exec(bContext *C, wmOperator *op)
 	
 	/* set handle type */
 	seteasing_graph_keys(&ac, mode);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframe properties have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
@@ -1593,11 +1599,13 @@ static void sethandles_graph_keys(bAnimContext *ac, short mode)
 		if (ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, sel_cb, NULL)) {
 			/* change type of selected handles */
 			ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, edit_cb, calchandles_fcurve);
+
+			ale->update |= ANIM_UPDATE_DEFAULT;
 		}
 	}
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 /* ------------------- */
 
@@ -1615,9 +1623,6 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	
 	/* set handle type */
 	sethandles_graph_keys(&ac, mode);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframe properties have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
@@ -1724,10 +1729,12 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 			euf->rna_path = fcu->rna_path; /* this should be safe, since we're only using it for a short time */
 			euf->fcurves[fcu->array_index] = fcu;
 		}
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
-	BLI_freelistN(&anim_data);
-	
+
 	if (groups == 0) {
+		ANIM_animdata_freelist(&anim_data);
 		BKE_report(op->reports, RPT_WARNING, "No Euler Rotation F-Curves to fix up");
 		return OPERATOR_CANCELLED;
 	}
@@ -1786,6 +1793,9 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 	}
 	BLI_freelistN(&eulers);
 	
+	ANIM_animdata_update(&ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
+
 	/* updates + finishing warnings */
 	if (failed == groups) {
 		BKE_report(op->reports, RPT_ERROR, 
@@ -1800,9 +1810,6 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 			           "ensure each rotation has keys for all components, and that F-Curves for these are in "
 			           "consecutive XYZ order and selected");
 		}
-		
-		/* validate keyframes after editing */
-		ANIM_editkeyframes_refresh(&ac);
 		
 		/* set notifier that keyframes have changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -1882,7 +1889,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 		ked.i2 += current_ked.i2;
 	}
 	
-	BLI_freelistN(&anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set the new current frame and cursor values, based on the average time and value */
 	if (ked.i1) {
@@ -1984,9 +1991,12 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
-	
-	BLI_freelistN(&anim_data);
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -2005,9 +2015,6 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
 	
 	/* snap keyframes */
 	snap_graph_keys(&ac, mode);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -2111,9 +2118,12 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
-	
-	BLI_freelistN(&anim_data);
+
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -2132,9 +2142,6 @@ static int graphkeys_mirror_exec(bContext *C, wmOperator *op)
 	
 	/* mirror keyframes */
 	mirror_graph_keys(&ac, mode);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -2185,11 +2192,12 @@ static int graphkeys_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 		 * Snap->Flatten Handles anyway.
 		 */
 		smooth_fcurve(ale->key_data);
+
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
-	BLI_freelistN(&anim_data);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
+
+	ANIM_animdata_update(&ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -2283,11 +2291,12 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_ERROR, "Modifier could not be added (see console for details)");
 			break;
 		}
+
+		ale->update |= ANIM_UPDATE_DEPS;
 	}
-	BLI_freelistN(&anim_data);
-	
-	/* validate keyframes after editing */
-	ANIM_editkeyframes_refresh(&ac);
+
+	ANIM_animdata_update(&ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
 	// FIXME: this really isn't the best description for it...
@@ -2397,19 +2406,26 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	/* paste modifiers */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
+		int tot;
 
 		/* TODO: do we want to replace existing modifiers? add user pref for that! */
-		ok += ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, 0);
+		tot = ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, 0);
+
+		if (tot) {
+			ale->update |= ANIM_UPDATE_DEPS;
+		}
+
+		ok += tot;
 	}
-	
-	/* clean up */
-	BLI_freelistN(&anim_data);
+
+	if (ok) {
+		ANIM_animdata_update(&ac, &anim_data);
+	}
+	ANIM_animdata_freelist(&anim_data);
 	
 	/* successful or not? */
 	if (ok) {
-		/* validate keyframes after editing */
-		ANIM_editkeyframes_refresh(&ac);
-		
+
 		/* set notifier that keyframes have changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		
