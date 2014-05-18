@@ -51,7 +51,7 @@
 
 #undef HAVE_MALLOC_STATS
 
-#if defined(__linux__)
+#if defined(__linux__) || (defined(__FreeBSD_kernel__) && !defined(__FreeBSD__))
 #  include <malloc.h>
 #  define HAVE_MALLOC_STATS
 #elif defined(__FreeBSD__)
