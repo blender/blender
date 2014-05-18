@@ -92,6 +92,12 @@ static void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 	BKE_all_animdata_fix_paths_rename(NULL, "key_blocks", oldname, kb->name);
 }
 
+static float rna_ShapeKey_frame_get(PointerRNA *ptr)
+{
+	KeyBlock *kb = (KeyBlock *)ptr->data;
+	return kb->pos * 100.0f;  /* Because pos is ctime/100... */
+}
+
 static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)
 {
 	KeyBlock *data = (KeyBlock *)ptr->data;
@@ -571,6 +577,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
+	RNA_def_property_float_funcs(prop, "rna_ShapeKey_frame_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Frame", "Frame for absolute keys");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 	

@@ -61,7 +61,7 @@ class MESH_MT_shape_key_specials(Menu):
 
 class MESH_UL_vgroups(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # assert(isinstance(item, bpy.types.VertexGroup)
+        # assert(isinstance(item, bpy.types.VertexGroup))
         vgroup = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
@@ -74,7 +74,7 @@ class MESH_UL_vgroups(UIList):
 
 class MESH_UL_shape_keys(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # assert(isinstance(item, bpy.types.ShapeKey)
+        # assert(isinstance(item, bpy.types.ShapeKey))
         obj = active_data
         # key = data
         key_block = item
@@ -84,7 +84,9 @@ class MESH_UL_shape_keys(UIList):
             row = split.row(align=True)
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
                 row.active = False
-            if not item.relative_key or index > 0:
+            if not item.id_data.use_relative:
+                row.prop(key_block, "frame", text="", emboss=False)
+            elif index > 0:
                 row.prop(key_block, "value", text="", emboss=False)
             else:
                 row.label(text="")
@@ -96,7 +98,7 @@ class MESH_UL_shape_keys(UIList):
 
 class MESH_UL_uvmaps_vcols(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer))
+        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
             icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
