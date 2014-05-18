@@ -680,8 +680,8 @@ def buildslave(target=None, source=None, env=None):
     if platform == 'darwin':
         platform = 'OSX-' + env['MACOSX_DEPLOYMENT_TARGET'] + '-' + env['MACOSX_ARCHITECTURE']
 
-    if env['MSVC_VERSION'] == '12.0':
-        platform = env['OURPLATFORM'] + '12'
+    if env['MSVC_VERSION'] == '9.0':
+        platform = env['OURPLATFORM'] + '9'
 
     branch = env['BUILDBOT_BRANCH']
 

@@ -255,8 +255,8 @@ BF_BSC=False
 
 if VC_VERSION == '12.0':
     BF_CYCLES_CUDA_ENV="C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
-    BF_BUILDDIR = '..\\build\\win32-vc12'
-    BF_INSTALLDIR='..\\install\\win32-vc12'
-else:
     BF_BUILDDIR = '..\\build\\win32-vc'
     BF_INSTALLDIR='..\\install\\win32-vc'
+else:
+    BF_BUILDDIR = '..\\build\\win32-vc9'
+    BF_INSTALLDIR='..\\install\\win32-vc9'

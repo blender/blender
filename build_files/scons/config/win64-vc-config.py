@@ -256,8 +256,8 @@ LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 if VC_VERSION == '12.0':
     BF_CYCLES_CUDA_ENV="C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
-    BF_BUILDDIR = '..\\build\\win64-vc12'
-    BF_INSTALLDIR='..\\install\\win64-vc12'
-else:
     BF_BUILDDIR = '..\\build\\win64-vc'
     BF_INSTALLDIR='..\\install\\win64-vc'
+else:
+    BF_BUILDDIR = '..\\build\\win64-vc9'
+    BF_INSTALLDIR='..\\install\\win64-vc9'
