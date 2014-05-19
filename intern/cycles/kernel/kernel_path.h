@@ -601,6 +601,43 @@ ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *
 	}
 }
 
+ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, float3 throughput)
+{
+	int num_samples = kernel_data.integrator.ao_samples;
+	float num_samples_inv = 1.0f/num_samples;
+	float ao_factor = kernel_data.background.ao_factor;
+	float3 ao_N;
+	float3 ao_bsdf = shader_bsdf_ao(kg, sd, ao_factor, &ao_N);
+	float3 ao_alpha = shader_bsdf_alpha(kg, sd);
+
+	for(int j = 0; j < num_samples; j++) {
+		float bsdf_u, bsdf_v;
+		path_branched_rng_2D(kg, rng, state, j, num_samples, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+
+		float3 ao_D;
+		float ao_pdf;
+
+		sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+
+		if(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+			Ray light_ray;
+			float3 ao_shadow;
+
+			light_ray.P = ray_offset(sd->P, sd->Ng);
+			light_ray.D = ao_D;
+			light_ray.t = kernel_data.background.ao_distance;
+#ifdef __OBJECT_MOTION__
+			light_ray.time = sd->time;
+#endif
+			light_ray.dP = sd->dP;
+			light_ray.dD = differential3_zero();
+
+			if(!shadow_blocked(kg, state, &light_ray, &ao_shadow))
+				path_radiance_accum_ao(L, throughput*num_samples_inv, ao_alpha, ao_bsdf, ao_shadow, state->bounce);
+		}
+	}
+}
+
 #ifdef __SUBSURFACE__
 ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, Ray *ray, float3 *throughput)
 {
@@ -1043,6 +1080,49 @@ ccl_device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *
 	}
 }
 
+#ifdef __SUBSURFACE__
+ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, float3 throughput, ccl_global float *buffer)
+{
+	for(int i = 0; i< sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+
+		if(!CLOSURE_IS_BSSRDF(sc->type))
+			continue;
+
+		/* set up random number generator */
+		uint lcg_state = lcg_state_init(rng, state, 0x68bc21eb);
+		int num_samples = kernel_data.integrator.subsurface_samples;
+		float num_samples_inv = 1.0f/num_samples;
+		RNG bssrdf_rng = cmj_hash(*rng, i);
+
+		state->flag |= PATH_RAY_BSSRDF_ANCESTOR;
+
+		/* do subsurface scatter step with copy of shader data, this will
+		 * replace the BSSRDF with a diffuse BSDF closure */
+		for(int j = 0; j < num_samples; j++) {
+			ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
+			float bssrdf_u, bssrdf_v;
+			path_branched_rng_2D(kg, &bssrdf_rng, state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+			int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
+
+			/* compute lighting with the BSDF closure */
+			for(int hit = 0; hit < num_hits; hit++) {
+				PathState hit_state = *state;
+
+				path_state_branch(&hit_state, j, num_samples);
+
+				kernel_branched_path_integrate_lighting(kg, rng,
+														&bssrdf_sd[hit], throughput, num_samples_inv,
+														&hit_state, L, buffer);
+			}
+		}
+
+		state->flag &= ~PATH_RAY_BSSRDF_ANCESTOR;
+	}
+
+}
+#endif
+
 ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, ccl_global float *buffer)
 {
 	/* initialize */
@@ -1257,81 +1337,14 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #ifdef __AO__
 		/* ambient occlusion */
 		if(kernel_data.integrator.use_ambient_occlusion || (sd.flag & SD_AO)) {
-			int num_samples = kernel_data.integrator.ao_samples;
-			float num_samples_inv = 1.0f/num_samples;
-			float ao_factor = kernel_data.background.ao_factor;
-			float3 ao_N;
-			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
-			float3 ao_alpha = shader_bsdf_alpha(kg, &sd);
-
-			for(int j = 0; j < num_samples; j++) {
-				float bsdf_u, bsdf_v;
-				path_branched_rng_2D(kg, rng, &state, j, num_samples, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
-
-				float3 ao_D;
-				float ao_pdf;
-
-				sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
-
-				if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
-					Ray light_ray;
-					float3 ao_shadow;
-
-					light_ray.P = ray_offset(sd.P, sd.Ng);
-					light_ray.D = ao_D;
-					light_ray.t = kernel_data.background.ao_distance;
-#ifdef __OBJECT_MOTION__
-					light_ray.time = sd.time;
-#endif
-					light_ray.dP = sd.dP;
-					light_ray.dD = differential3_zero();
-
-					if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow))
-						path_radiance_accum_ao(&L, throughput*num_samples_inv, ao_alpha, ao_bsdf, ao_shadow, state.bounce);
-				}
-			}
+			kernel_branched_path_ao(kg, &sd, &L, &state, rng, throughput);
 		}
 #endif
 
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object */
 		if(sd.flag & SD_BSSRDF) {
-			for(int i = 0; i< sd.num_closure; i++) {
-				ShaderClosure *sc = &sd.closure[i];
-
-				if(!CLOSURE_IS_BSSRDF(sc->type))
-					continue;
-
-				/* set up random number generator */
-				uint lcg_state = lcg_state_init(rng, &state, 0x68bc21eb);
-				int num_samples = kernel_data.integrator.subsurface_samples;
-				float num_samples_inv = 1.0f/num_samples;
-				RNG bssrdf_rng = cmj_hash(*rng, i);
-
-				state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
-
-				/* do subsurface scatter step with copy of shader data, this will
-				 * replace the BSSRDF with a diffuse BSDF closure */
-				for(int j = 0; j < num_samples; j++) {
-					ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
-					float bssrdf_u, bssrdf_v;
-					path_branched_rng_2D(kg, &bssrdf_rng, &state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
-					int num_hits = subsurface_scatter_multi_step(kg, &sd, bssrdf_sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
-
-					/* compute lighting with the BSDF closure */
-					for(int hit = 0; hit < num_hits; hit++) {
-						PathState hit_state = state;
-
-						path_state_branch(&hit_state, j, num_samples);
-
-						kernel_branched_path_integrate_lighting(kg, rng,
-						                                        &bssrdf_sd[hit], throughput, num_samples_inv,
-						                                        &hit_state, &L, buffer);
-					}
-				}
-
-				state.flag &= ~PATH_RAY_BSSRDF_ANCESTOR;
-			}
+			kernel_branched_path_subsurface_scatter(kg, &sd, &L, &state, rng, throughput, buffer);
 		}
 #endif
 
