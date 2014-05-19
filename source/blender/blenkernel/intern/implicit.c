@@ -1432,7 +1432,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	float smoothfac = 2.0f * clmd->sim_parms->velocity_smooth;
 	float collfac = 2.0f * clmd->sim_parms->collider_friction;
 	unsigned int	v = 0;
-	unsigned int	i = 0;
+	int	            i = 0;
 	int				j = 0;
 	int				k = 0;
 
