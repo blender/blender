@@ -448,7 +448,7 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, depth, components);
 	}
 
-	if(!(components >= 1 && components <= 4)) {
+	if(components < 1 || width == 0 || height == 0) {
 		if(in) {
 			in->close();
 			delete in;
@@ -460,17 +460,36 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 	float *pixels = (float*)tex_img.resize(width, height, depth);
 
 	if(in) {
+		float *readpixels = pixels;
+		vector<float> tmppixels;
+
+		if(components > 4) {
+			tmppixels.resize(width*height*components);
+			readpixels = &tmppixels[0];
+		}
+
 		if(depth <= 1) {
 			int scanlinesize = width*components*sizeof(float);
 
 			in->read_image(TypeDesc::FLOAT,
-				(uchar*)pixels + (height-1)*scanlinesize,
+				(uchar*)readpixels + (height-1)*scanlinesize,
 				AutoStride,
 				-scanlinesize,
 				AutoStride);
 		}
 		else {
-			in->read_image(TypeDesc::FLOAT, (uchar*)pixels);
+			in->read_image(TypeDesc::FLOAT, (uchar*)readpixels);
+		}
+
+		if(components > 4) {
+			for(int i = width*height-1; i >= 0; i--) {
+				pixels[i*4+3] = tmppixels[i*components+3];
+				pixels[i*4+2] = tmppixels[i*components+2];
+				pixels[i*4+1] = tmppixels[i*components+1];
+				pixels[i*4+0] = tmppixels[i*components+0];
+			}
+
+			tmppixels.clear();
 		}
 
 		in->close();
