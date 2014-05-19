@@ -373,9 +373,9 @@ static void options_parse(int argc, const char **argv)
 	}
 
 	if(ssname == "osl")
-		options.scene_params.shadingsystem = SceneParams::OSL;
+		options.scene_params.shadingsystem = SHADINGSYSTEM_OSL;
 	else if(ssname == "svm")
-		options.scene_params.shadingsystem = SceneParams::SVM;
+		options.scene_params.shadingsystem = SHADINGSYSTEM_SVM;
 
 #ifndef WITH_CYCLES_STANDALONE_GUI
 	options.session_params.background = true;
@@ -408,7 +408,7 @@ static void options_parse(int argc, const char **argv)
 		fprintf(stderr, "Unknown shading system: %s\n", ssname.c_str());
 		exit(EXIT_FAILURE);
 	}
-	else if(options.scene_params.shadingsystem == SceneParams::OSL && options.session_params.device.type != DEVICE_CPU) {
+	else if(options.scene_params.shadingsystem == SHADINGSYSTEM_OSL && options.session_params.device.type != DEVICE_CPU) {
 		fprintf(stderr, "OSL shading system only works with CPU device\n");
 		exit(EXIT_FAILURE);
 	}
