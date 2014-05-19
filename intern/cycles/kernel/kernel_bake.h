@@ -45,33 +45,63 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 		/* TODO, disable the closures we won't need */
 
-		/* sample ambient occlusion */
-		if(is_combined || is_ao) {
-			kernel_path_ao(kg, sd, &L_sample, &state, &rng, throughput);
-		}
-
-		/* sample subsurface scattering */
-		if((is_combined || is_sss) && (sd->flag & SD_BSSRDF)) {
-#ifdef __SUBSURFACE__
-			/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
-			if (kernel_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, &ray, &throughput))
-				is_sss = true;
+#ifdef __BRANCHED_PATH__
+		if(!kernel_data.integrator.branched) {
+			/* regular path tracer */
 #endif
-		}
 
-		/* sample light and BSDF */
-		if((!is_sss) && (!is_ao)) {
-			if(kernel_path_integrate_lighting(kg, &rng, sd, &throughput, &state, &L_sample, &ray)) {
-#ifdef __LAMP_MIS__
-				state.ray_t = 0.0f;
-#endif
-				/* compute indirect light */
-				kernel_path_indirect(kg, &rng, ray, throughput, state.num_samples, state, &L_sample);
-
-				/* sum and reset indirect light pass variables for the next samples */
-				path_radiance_sum_indirect(&L_sample);
-				path_radiance_reset_indirect(&L_sample);
+			/* sample ambient occlusion */
+			if(is_combined || is_ao) {
+				kernel_path_ao(kg, sd, &L_sample, &state, &rng, throughput);
 			}
+
+#ifdef __SUBSURFACE__
+			/* sample subsurface scattering */
+			if((is_combined || is_sss) && (sd->flag & SD_BSSRDF)) {
+				/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
+				if (kernel_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, &ray, &throughput))
+					is_sss = true;
+			}
+#endif
+
+			/* sample light and BSDF */
+			if((!is_sss) && (!is_ao)) {
+				if(kernel_path_integrate_lighting(kg, &rng, sd, &throughput, &state, &L_sample, &ray)) {
+#ifdef __LAMP_MIS__
+					state.ray_t = 0.0f;
+#endif
+					/* compute indirect light */
+					kernel_path_indirect(kg, &rng, ray, throughput, state.num_samples, state, &L_sample);
+
+					/* sum and reset indirect light pass variables for the next samples */
+					path_radiance_sum_indirect(&L_sample);
+					path_radiance_reset_indirect(&L_sample);
+				}
+			}
+#ifdef __BRANCHED_PATH__
+		}
+		else {
+			/* branched path tracer */
+
+			/* sample ambient occlusion */
+			if(is_combined || is_ao) {
+				kernel_branched_path_ao(kg, sd, &L_sample, &state, &rng, throughput);
+			}
+
+#ifdef __SUBSURFACE__
+			/* sample subsurface scattering */
+			if((is_combined || is_sss) && (sd->flag & SD_BSSRDF)) {
+				/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
+				kernel_branched_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, throughput);
+			}
+#endif
+
+			/* sample light and BSDF */
+			if((!is_sss) && (!is_ao)) {
+				kernel_branched_path_integrate_lighting(kg, &rng,
+					sd, throughput, 1.0f, &state, &L_sample);
+			}
+#endif
 		}
 
 		/* accumulate into master L */

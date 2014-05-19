@@ -982,7 +982,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 ccl_device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *kg,
 	RNG *rng, ShaderData *sd, float3 throughput, float num_samples_adjust,
-	PathState *state, PathRadiance *L, ccl_global float *buffer)
+	PathState *state, PathRadiance *L)
 {
 #ifdef __EMISSION__
 	if(kernel_data.integrator.use_direct_light) {
@@ -1081,7 +1081,7 @@ ccl_device_noinline void kernel_branched_path_integrate_lighting(KernelGlobals *
 }
 
 #ifdef __SUBSURFACE__
-ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, float3 throughput, ccl_global float *buffer)
+ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, float3 throughput)
 {
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
@@ -1113,7 +1113,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg, Shade
 
 				kernel_branched_path_integrate_lighting(kg, rng,
 														&bssrdf_sd[hit], throughput, num_samples_inv,
-														&hit_state, L, buffer);
+														&hit_state, L);
 			}
 		}
 
@@ -1344,7 +1344,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object */
 		if(sd.flag & SD_BSSRDF) {
-			kernel_branched_path_subsurface_scatter(kg, &sd, &L, &state, rng, throughput, buffer);
+			kernel_branched_path_subsurface_scatter(kg, &sd, &L, &state, rng, throughput);
 		}
 #endif
 
@@ -1353,7 +1353,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 			/* lighting */
 			kernel_branched_path_integrate_lighting(kg, rng,
-				&sd, throughput, 1.0f, &hit_state, &L, buffer);
+				&sd, throughput, 1.0f, &hit_state, &L);
 
 			/* continue in case of transparency */
 			throughput *= shader_bsdf_transparency(kg, &sd);
