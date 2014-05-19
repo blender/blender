@@ -138,7 +138,10 @@ public:
 	void set_pause(bool pause);
 
 	void update_scene();
+	void load_kernels();
+
 	void device_free();
+
 protected:
 	struct DelayedReset {
 		thread_mutex mutex;

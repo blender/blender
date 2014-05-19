@@ -518,6 +518,12 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::Bake
 	size_t object_index = OBJECT_NONE;
 	int tri_offset = 0;
 
+	/* ensure kernels are loaded before we do any scene updates */
+	session->load_kernels();
+
+	if(session->progress.get_cancel())
+		return;
+
 	if(shader_type == SHADER_EVAL_UV) {
 		/* force UV to be available */
 		Pass::add(PASS_UV, scene->film->passes);
