@@ -3224,7 +3224,7 @@ static void bevel_reattach_wires(BMesh *bm, BevelParams *bp, BMVert *v)
 					dclosest = d;
 				}
 			}
-		} while((bndv = bndv->next) != bv->vmesh->boundstart);
+		} while ((bndv = bndv->next) != bv->vmesh->boundstart);
 		if (vclosest)
 			BM_edge_create(bm, vclosest, votherclosest, e, BM_CREATE_NO_DOUBLE);
 	}
