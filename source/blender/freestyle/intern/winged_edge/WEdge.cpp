@@ -302,34 +302,28 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
 		WEdge *we = (*it1);
 		WOEdge *woea = we->GetaOEdge();
 
-		//if ((*it1)->GetbVertex() == v2) {
 		if ((woea->GetaVertex() == v1) && (woea->GetbVertex() == v2)) {
 			// The oriented edge already exists
 			cerr << "Warning: edge " << v1->GetId() << " - " << v2->GetId() << " appears twice, correcting" << endl;
 			// Adds the edge to the face
-			//AddEdge((*it1)->GetaOEdge());
 			AddEdge(woea);
 			(*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges() + 1);
 			//sets these vertices as border:
 			v1->setBorder(true);
 			v2->setBorder(true);
-			//return (*it1)->GetaOEdge();
 			return woea;
 		}
 
 		WOEdge *woeb = we->GetbOEdge();
-		//if ((*it1)->GetbVertex() == v2)
 		if (woeb && (woeb->GetaVertex() == v1) && (woeb->GetbVertex() == v2)) {
 			// The oriented edge already exists
 			cerr << "Warning: edge " << v1->GetId() << " - " << v2->GetId() << " appears twice, correcting" << endl;
 			// Adds the edge to the face
-			//AddEdge((*it1)->GetaOEdge());
 			AddEdge(woeb);
 			(*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges() + 1);
 			//sets these vertices as border:
 			v1->setBorder(true);
 			v2->setBorder(true);
-			//return (*it1)->GetaOEdge();
 			return woeb;
 		}
 	}

@@ -473,10 +473,6 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	// by the near and far view planes.
 	int p;
 	for (p = 0; p < obr->totvlak; ++p) { // we parse the faces of the mesh
-#if 0
-		Lib3dsFace *f = &mesh->faceL[p];
-		Lib3dsMaterial *mat = NULL;
-#endif
 		if ((p & 255) == 0)
 			vlr = obr->vlaknodes[p>>8].vlak;
 		else
