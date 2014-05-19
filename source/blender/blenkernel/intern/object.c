@@ -3384,6 +3384,9 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 	VirtualModifierData virtualModifierData;
 	int flag = 0;
 
+	if(BKE_key_from_object(ob))
+		flag |= eModifierMode_Realtime|eModifierMode_Render;
+
 	/* cloth */
 	for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	     md && (flag != (eModifierMode_Render | eModifierMode_Realtime));
