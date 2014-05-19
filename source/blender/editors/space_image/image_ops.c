@@ -942,10 +942,10 @@ static void image_open_cancel(bContext *UNUSED(C), wmOperator *op)
 }
 
 /**
- * @brief Get a list of frames from the list of image files matching the first file name sequence pattern
- * @param ptr [in] the RNA pointer containing the "directory" entry and "files" collection
- * @param frames [out] the list of frame numbers found in the files matching the first one by name
- * @param path [out] the full path of the first file in the list of image files
+ * \brief Get a list of frames from the list of image files matching the first file name sequence pattern
+ * \param ptr [in] the RNA pointer containing the "directory" entry and "files" collection
+ * \param frames [out] the list of frame numbers found in the files matching the first one by name
+ * \param path [out] the full path of the first file in the list of image files
  */
 static void image_sequence_get_frames(PointerRNA *ptr, ListBase *frames, char *path, const size_t maxlen)
 {
@@ -1000,10 +1000,10 @@ static int image_cmp_frame(void *a, void *b)
 }
 
 /**
- * @brief Return the start (offset) and the length of the sequence of continuous frames in the list of frames
- * @param frames [in] the list of frame numbers, as a side-effect the list is sorted
- * @param ofs [out] offest, the first frame number in the sequence
- * @return the number of continuos frames in the sequence
+ * \brief Return the start (offset) and the length of the sequence of continuous frames in the list of frames
+ * \param frames [in] the list of frame numbers, as a side-effect the list is sorted
+ * \param ofs [out] offest, the first frame number in the sequence
+ * \return the number of continuos frames in the sequence
  */
 static int image_sequence_get_len(ListBase *frames, int *ofs)
 {

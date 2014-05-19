@@ -362,12 +362,12 @@
 	} (void)0
 
 /* assuming a static array */
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__cplusplus)
 #  define ARRAY_SIZE(arr)                                                     \
 	((sizeof(struct {int isnt_array : ((void *)&(arr) == &(arr)[0]);}) * 0) + \
 	 (sizeof(arr) / sizeof(*(arr))))
 #else
-#  define ARRAY_SIZE(x)  sizeof(arr) / sizeof(*(arr))
+#  define ARRAY_SIZE(arr)  (sizeof(arr) / sizeof(*(arr)))
 #endif
 
 /* Warning-free macros for storing ints in pointers. Use these _only_

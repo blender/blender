@@ -1161,9 +1161,9 @@ void BKE_mesh_loops_to_mface_corners(
 /**
  * Convert all CD layers from loop/poly to tessface data.
  *
- * @loopindices is an array of an int[4] per tessface, mapping tessface's verts to loops indices.
+ * \param loopindices is an array of an int[4] per tessface, mapping tessface's verts to loops indices.
  *
- * Note when mface is not NULL, mface[face_index].v4 is used to test quads, else, loopindices[face_index][3] is used.
+ * \note when mface is not NULL, mface[face_index].v4 is used to test quads, else, loopindices[face_index][3] is used.
  */
 void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData *pdata, MFace *mface,
                                 int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
@@ -1246,7 +1246,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 /**
  * Recreate tessellation.
  *
- * @do_face_nor_copy controls whether the normals from the poly are copied to the tessellated faces.
+ * \param do_face_nor_copy controls whether the normals from the poly are copied to the tessellated faces.
  *
  * \return number of tessellation faces.
  */
