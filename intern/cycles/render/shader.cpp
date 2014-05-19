@@ -28,7 +28,6 @@
 #include "tables.h"
 
 #include "util_foreach.h"
-#include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

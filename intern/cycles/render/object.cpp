@@ -25,7 +25,6 @@
 #include "util_foreach.h"
 #include "util_map.h"
 #include "util_progress.h"
-#include "util_types.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
