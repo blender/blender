@@ -3106,7 +3106,7 @@ static bool view3d_main_area_draw_engine(const bContext *C, Scene *scene,
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (v3d->flag & V3D_DISPBGPICS)
-		view3d_draw_bgpic(scene, ar, v3d, false, true);
+		view3d_draw_bgpic_test(scene, ar, v3d, false, true);
 	else
 		fdrawcheckerboard(0, 0, ar->winx, ar->winy);
 
@@ -3115,7 +3115,7 @@ static bool view3d_main_area_draw_engine(const bContext *C, Scene *scene,
 	type->view_draw(rv3d->render_engine, C);
 
 	if (v3d->flag & V3D_DISPBGPICS)
-		view3d_draw_bgpic(scene, ar, v3d, true, true);
+		view3d_draw_bgpic_test(scene, ar, v3d, true, true);
 
 	if (clip_border) {
 		/* restore scissor as it was before */
