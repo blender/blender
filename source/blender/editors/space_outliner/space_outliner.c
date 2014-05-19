@@ -345,6 +345,7 @@ static void outliner_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 		case NC_GEOM:
 			switch (wmn->data) {
 				case ND_VERTEX_GROUP:
+				case ND_DATA:
 					ED_region_tag_redraw(ar);
 					break;
 			}
