@@ -34,7 +34,7 @@
 #include "kernel_globals.h"
 #include "kernel_film.h"
 #include "kernel_path.h"
-#include "kernel_displace.h"
+#include "kernel_bake.h"
 
 CCL_NAMESPACE_BEGIN
 

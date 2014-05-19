@@ -23,7 +23,7 @@
 
 #include "kernel_film.h"
 #include "kernel_path.h"
-#include "kernel_displace.h"
+#include "kernel_bake.h"
 
 __kernel void kernel_ocl_path_trace(
 	ccl_constant KernelData *data,

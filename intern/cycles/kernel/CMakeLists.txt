@@ -19,12 +19,12 @@ set(SRC
 set(SRC_HEADERS
 	kernel.h
 	kernel_accumulate.h
+	kernel_bake.h
 	kernel_camera.h
 	kernel_compat_cpu.h
 	kernel_compat_cuda.h
 	kernel_compat_opencl.h
 	kernel_differential.h
-	kernel_displace.h
 	kernel_emission.h
 	kernel_film.h
 	kernel_globals.h
