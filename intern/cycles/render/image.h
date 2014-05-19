@@ -62,6 +62,7 @@ public:
 
 	void device_update(Device *device, DeviceScene *dscene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
+	void device_free_builtin(Device *device, DeviceScene *dscene);
 
 	void set_osl_texture_system(void *texture_system);
 	void set_pack_images(bool pack_images_);

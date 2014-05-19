@@ -109,6 +109,8 @@ void Scene::free_memory(bool final)
 
 		if(!params.persistent_data || final)
 			image_manager->device_free(device, &dscene);
+		else
+			image_manager->device_free_builtin(device, &dscene);
 
 		lookup_tables->device_free(device, &dscene);
 	}

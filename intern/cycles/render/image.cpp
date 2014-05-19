@@ -744,6 +744,17 @@ void ImageManager::device_pack_images(Device *device, DeviceScene *dscene, Progr
 	}
 }
 
+void ImageManager::device_free_builtin(Device *device, DeviceScene *dscene)
+{
+	for(size_t slot = 0; slot < images.size(); slot++)
+		if(images[slot] && images[slot]->builtin_data)
+			device_free_image(device, dscene, slot + tex_image_byte_start);
+
+	for(size_t slot = 0; slot < float_images.size(); slot++)
+		if(float_images[slot] && float_images[slot]->builtin_data)
+			device_free_image(device, dscene, slot);
+}
+
 void ImageManager::device_free(Device *device, DeviceScene *dscene)
 {
 	for(size_t slot = 0; slot < images.size(); slot++)
