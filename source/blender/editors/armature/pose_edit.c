@@ -1034,6 +1034,10 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm = ob->data;
 
+	if (ob->proxy != NULL) {
+		BKE_report(op->reports, RPT_INFO, "Undo of hiding can only be done with Reveal Selected");
+	}
+
 	if (RNA_boolean_get(op->ptr, "unselected"))
 		bone_looper(ob, arm->bonebase.first, NULL, hide_unselected_pose_bone_cb);
 	else
