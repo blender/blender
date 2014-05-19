@@ -18,6 +18,7 @@
 #define __SCENE_H__
 
 #include "image.h"
+#include "shader.h"
 
 #include "device_memory.h"
 
@@ -121,7 +122,7 @@ public:
 class SceneParams {
 public:
 	ShadingSystem shadingsystem;
-	BVHType bvh_type;
+	enum BVHType { BVH_DYNAMIC, BVH_STATIC } bvh_type;
 	bool use_bvh_cache;
 	bool use_bvh_spatial_split;
 	bool use_qbvh;
@@ -129,7 +130,7 @@ public:
 
 	SceneParams()
 	{
-		shadingsystem = SVM;
+		shadingsystem = SHADINGSYSTEM_SVM;
 		bvh_type = BVH_DYNAMIC;
 		use_bvh_cache = false;
 		use_bvh_spatial_split = false;

@@ -19,12 +19,12 @@
 
 #include "buffers.h"
 #include "device.h"
+#include "shader.h"
 #include "tile.h"
 
 #include "util_progress.h"
 #include "util_stats.h"
 #include "util_thread.h"
-#include "util_types.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -81,7 +81,7 @@ public:
 		reset_timeout = 0.1;
 		text_timeout = 1.0;
 
-		shadingsystem = SVM;
+		shadingsystem = SHADINGSYSTEM_SVM;
 		tile_order = TILE_CENTER;
 	}
 

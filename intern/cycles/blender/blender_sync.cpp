@@ -35,7 +35,6 @@
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_opengl.h"
-#include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -363,19 +362,19 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 	const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
 
 	if(shadingsystem == 0)
-		params.shadingsystem = ShadingSystem::SVM;
+		params.shadingsystem = SHADINGSYSTEM_SVM;
 	else if(shadingsystem == 1)
-		params.shadingsystem = ShadingSystem::OSL;
+		params.shadingsystem = SHADINGSYSTEM_OSL;
 	
 	if(background)
-		params.bvh_type = BVHType::BVH_STATIC;
+		params.bvh_type = SceneParams::BVH_STATIC;
 	else
-		params.bvh_type = (BVHType)RNA_enum_get(&cscene, "debug_bvh_type");
+		params.bvh_type = (SceneParams::BVHType)RNA_enum_get(&cscene, "debug_bvh_type");
 
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 	params.use_bvh_cache = (background)? RNA_boolean_get(&cscene, "use_cache"): false;
 
-	if(background && params.shadingsystem != ShadingSystem::OSL)
+	if(background && params.shadingsystem != SHADINGSYSTEM_OSL)
 		params.persistent_data = r.use_persistent_data();
 	else
 		params.persistent_data = false;
@@ -512,9 +511,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
 
 	if(shadingsystem == 0)
-		params.shadingsystem = ShadingSystem::SVM;
+		params.shadingsystem = SHADINGSYSTEM_SVM;
 	else if(shadingsystem == 1)
-		params.shadingsystem = ShadingSystem::OSL;
+		params.shadingsystem = SHADINGSYSTEM_OSL;
 	
 	/* color managagement */
 	params.display_buffer_linear = GLEW_ARB_half_float_pixel && b_engine.support_display_space_shader(b_scene);

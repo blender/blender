@@ -389,7 +389,7 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 
 	/* prepare for static BVH building */
 	/* todo: do before to support getting object level coords? */
-	if(scene->params.bvh_type == BVHType::BVH_STATIC) {
+	if(scene->params.bvh_type == SceneParams::BVH_STATIC) {
 		progress.set_status("Updating Objects", "Applying Static Transformations");
 		apply_static_transforms(dscene, scene, object_flag, progress);
 	}

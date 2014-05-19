@@ -39,6 +39,11 @@ class Scene;
 class ShaderGraph;
 struct float3;
 
+enum ShadingSystem {
+	SHADINGSYSTEM_OSL,
+	SHADINGSYSTEM_SVM
+};
+
 /* Shader describing the appearance of a Mesh, Light or Background.
  *
  * While there is only a single shader graph, it has three outputs: surface,

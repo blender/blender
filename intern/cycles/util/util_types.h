@@ -456,16 +456,6 @@ enum InterpolationType {
 	INTERPOLATION_SMART = 3,
 };
 
-enum ShadingSystem {
-	OSL,
-	SVM
-};
-
-enum BVHType {
-	BVH_DYNAMIC,
-	BVH_STATIC
-};
-
 /* macros */
 
 /* hints for branch prediction, only use in code that runs a _lot_ */
