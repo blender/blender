@@ -1094,6 +1094,8 @@ kmi = km.keymap_items.new('wm.context_set_enum', 'V', 'PRESS')
 kmi.properties.data_path = 'tool_settings.snap_element'
 kmi.properties.value = 'VERTEX'
 
+km.keymap_items.new('view3d.render_border', 'B', 'PRESS', ctrl=True)
+
 # Map Animation Channels
 km = kc.keymaps.new('Animation Channels', space_type='EMPTY', region_type='WINDOW', modal=False)
 
