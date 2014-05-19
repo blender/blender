@@ -449,7 +449,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		return;
 
 	// We allocate memory for the meshes to be imported
-	NodeTransform *currentMesh = new NodeTransform;
+	NodeGroup *currentMesh = new NodeGroup;
 	NodeShape *shape = new NodeShape;
 
 	unsigned vSize = 3 * 3 * numFaces;
@@ -798,10 +798,6 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	                                     Vec3r(ls.maxBBox[0], ls.maxBBox[1], ls.maxBBox[2]));
 	rep->setBBox(bbox);
 	shape->AddRep(rep);
-
-	Matrix44r meshMat = Matrix44r::identity();
-	currentMesh->setMatrix(meshMat);
-	currentMesh->Translate(0, 0, 0);
 
 	currentMesh->AddChild(shape);
 	_Scene->AddChild(currentMesh);
