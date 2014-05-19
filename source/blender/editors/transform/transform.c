@@ -994,11 +994,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				}
 				else {
 					if (t->obedit && t->obedit->type == OB_MESH) {
-						if ((t->mode == TFM_TRANSLATION) &&
-						    (t->spacetype == SPACE_VIEW3D) &&
-						    /* prevents accidental select-tweak, gkey. see: T40102 */
-						    (ISMOUSE(t->launch_event) == 0))
-						{
+						if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
 							resetTransModal(t);
 							resetTransRestrictions(t);
 							restoreTransObjects(t);
