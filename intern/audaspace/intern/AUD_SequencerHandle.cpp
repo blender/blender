@@ -70,7 +70,7 @@ void AUD_SequencerHandle::update(float position, float frame, float fps)
 	if(m_handle.get())
 	{
 		AUD_MutexLock lock(*m_entry);
-		if(position >= m_entry->m_end && m_entry->m_end >= 0)
+		if(position >= m_entry->m_end)
 			m_handle->pause();
 		else if(position >= m_entry->m_begin)
 			m_handle->resume();
@@ -143,7 +143,7 @@ void AUD_SequencerHandle::seek(float position)
 	if(m_handle.get())
 	{
 		AUD_MutexLock lock(*m_entry);
-		if(position >= m_entry->m_end && m_entry->m_end >= 0)
+		if(position >= m_entry->m_end)
 		{
 			m_handle->pause();
 			return;
