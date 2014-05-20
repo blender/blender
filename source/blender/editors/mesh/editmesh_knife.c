@@ -208,6 +208,9 @@ typedef struct KnifeTool_OpData {
 	bool ignore_edge_snapping;
 	bool ignore_vert_snapping;
 
+	/* use to check if we're currently dragging an angle snapped line */
+	bool is_angle_snapping;
+
 	enum {
 		ANGLE_FREE,
 		ANGLE_0,
@@ -1606,6 +1609,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 	if (f) {
 		const float maxdist_sq = maxdist * maxdist;
 		KnifeEdge *cure = NULL;
+		float cur_cagep[3];
 		ListBase *lst;
 		Ref *ref;
 		float dis_sq, curdis_sq = FLT_MAX;
@@ -1616,29 +1620,56 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 		lst = knife_get_face_kedges(kcd, f);
 		for (ref = lst->first; ref; ref = ref->next) {
 			KnifeEdge *kfe = ref->ref;
+			float test_cagep[3];
+			float lambda;
 
 			/* project edge vertices into screen space */
 			knife_project_v2(kcd, kfe->v1->cageco, kfe->v1->sco);
 			knife_project_v2(kcd, kfe->v2->cageco, kfe->v2->sco);
 
-			dis_sq = dist_squared_to_line_segment_v2(sco, kfe->v1->sco, kfe->v2->sco);
-			if (dis_sq < curdis_sq && dis_sq < maxdist_sq) {
-				if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
-					float lambda = line_point_factor_v2(sco, kfe->v1->sco, kfe->v2->sco);
-					float vec[3];
+			/* check if we're close enough and calculate 'lambda' */
+			if (kcd->is_angle_snapping) {
+			/* if snapping, check we're in bounds */
+				float sco_snap[2];
+				isect_line_line_v2_point(kfe->v1->sco, kfe->v2->sco, kcd->prev.mval, kcd->curr.mval, sco_snap);
+				lambda = line_point_factor_v2(sco_snap, kfe->v1->sco, kfe->v2->sco);
 
-					interp_v3_v3v3(vec, kfe->v1->cageco, kfe->v2->cageco, lambda);
+				/* be strict about angle-snapping within edge */
+				if ((lambda < 0.0f - KNIFE_FLT_EPSBIG) || (lambda > 1.0f + KNIFE_FLT_EPSBIG)) {
+					continue;
+				}
 
-					if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, true) == 0) {
-						cure = kfe;
-						curdis_sq = dis_sq;
-					}
+				dis_sq = len_squared_v2v2(sco, sco_snap);
+				if (dis_sq < curdis_sq && dis_sq < maxdist_sq) {
+					/* we already have 'lambda' */
 				}
 				else {
-					cure = kfe;
-					curdis_sq = dis_sq;
+					continue;
 				}
 			}
+			else {
+				dis_sq = dist_squared_to_line_segment_v2(sco, kfe->v1->sco, kfe->v2->sco);
+				if (dis_sq < curdis_sq && dis_sq < maxdist_sq) {
+					lambda = line_point_factor_v2(sco, kfe->v1->sco, kfe->v2->sco);
+				}
+				else {
+					continue;
+				}
+			}
+
+			/* now we have 'lambda' calculated */
+			interp_v3_v3v3(test_cagep, kfe->v1->cageco, kfe->v2->cageco, lambda);
+
+			if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
+				/* check we're in the view */
+				if (ED_view3d_clipping_test(kcd->vc.rv3d, test_cagep, true)) {
+					continue;
+				}
+			}
+
+			cure = kfe;
+			curdis_sq = dis_sq;
+			copy_v3_v3(cur_cagep, test_cagep);
 		}
 
 		if (fptr)
@@ -1653,11 +1684,9 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 					mid_v3_v3v3(cagep, cure->v1->cageco, cure->v2->cageco);
 				}
 				else {
-					float d;
-
-					closest_to_line_segment_v3(cagep, cageco, cure->v1->cageco, cure->v2->cageco);
-					d = len_v3v3(cagep, cure->v1->cageco) / len_v3v3(cure->v1->cageco, cure->v2->cageco);
-					interp_v3_v3v3(p, cure->v1->co, cure->v2->co, d);
+					float lambda = line_point_factor_v3(cur_cagep, cure->v1->cageco, cure->v2->cageco);
+					copy_v3_v3(cagep, cur_cagep);
+					interp_v3_v3v3(p, cure->v1->co, cure->v2->co, lambda);
 				}
 
 				/* update mouse coordinates to the snapped-to edge's screen coordinates
@@ -1717,6 +1746,13 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 
 				knife_project_v2(kcd, kfv->cageco, kfv->sco);
 
+				/* be strict about angle snapping, the vertex needs to be very close to the angle, or we ignore */
+				if (kcd->is_angle_snapping) {
+					if (dist_squared_to_line_segment_v2(kfv->sco, kcd->prev.mval, kcd->curr.mval) > KNIFE_FLT_EPSBIG) {
+						continue;
+					}
+				}
+
 				dis_sq = len_squared_v2v2(kfv->sco, sco);
 				if (dis_sq < curdis_sq && dis_sq < maxdist_sq) {
 					if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
@@ -1764,7 +1800,7 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 }
 
 /* update both kcd->curr.mval and kcd->mval to snap to required angle */
-static void knife_snap_angle(KnifeTool_OpData *kcd)
+static bool knife_snap_angle(KnifeTool_OpData *kcd)
 {
 	float dx, dy;
 	float w, abs_tan;
@@ -1772,7 +1808,7 @@ static void knife_snap_angle(KnifeTool_OpData *kcd)
 	dx = kcd->curr.mval[0] - kcd->prev.mval[0];
 	dy = kcd->curr.mval[1] - kcd->prev.mval[1];
 	if (dx == 0.0f && dy == 0.0f)
-		return;
+		return false;
 
 	if (dx == 0.0f) {
 		kcd->angle_snapping = ANGLE_90;
@@ -1801,6 +1837,8 @@ static void knife_snap_angle(KnifeTool_OpData *kcd)
 	}
 
 	copy_v2_v2(kcd->mval, kcd->curr.mval);
+
+	return true;
 }
 
 /* update active knife edge/vert pointers */
@@ -1812,12 +1850,13 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	/* view matrix may have changed, reproject */
 	knife_project_v2(kcd, kcd->prev.co, kcd->prev.mval);
 
-	if (kcd->angle_snapping != ANGLE_FREE && kcd->mode == MODE_DRAGGING)
-		knife_snap_angle(kcd);
+	if (kcd->angle_snapping != ANGLE_FREE && kcd->mode == MODE_DRAGGING) {
+		kcd->is_angle_snapping = knife_snap_angle(kcd);
+	}
+	else {
+		kcd->is_angle_snapping = false;
+	}
 
-	/* XXX knife_snap_angle updates the view coordinate mouse values to constrained angles,
-	 * which current mouse values are set to current mouse values are then used
-	 * for vertex and edge snap detection, without regard to the exact angle constraint */
 	kcd->curr.vert = knife_find_closest_vert(kcd, kcd->curr.co, kcd->curr.cage, &kcd->curr.bmface, &kcd->curr.is_space);
 
 	if (!kcd->curr.vert) {
