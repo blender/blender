@@ -4548,7 +4548,8 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
 char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	char *id_path;
-	char *data_path;
+	const char *data_path_fallback = "(null)";
+	const char *data_path;
 
 	char *ret;
 
@@ -4560,6 +4561,9 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 	id_path = RNA_path_full_ID_py(ptr->id.data);
 
 	data_path = RNA_path_from_ID_to_property(ptr, prop);
+	if (data_path == NULL) {
+		data_path = data_path_fallback;
+	}
 
 	if ((index == -1) || (RNA_property_array_check(prop) == false)) {
 		ret = BLI_sprintfN("%s.%s",
@@ -4570,8 +4574,8 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 		                   id_path, data_path, index);
 	}
 	MEM_freeN(id_path);
-	if (data_path) {
-		MEM_freeN(data_path);
+	if (data_path != data_path_fallback) {
+		MEM_freeN((void *)data_path);
 	}
 
 	return ret;
