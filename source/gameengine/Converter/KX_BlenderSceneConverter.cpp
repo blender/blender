@@ -1522,7 +1522,9 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 	
 	/* Watch this!, if its used in the original scene can cause big troubles */
 	if (me->us > 0) {
+#ifdef DEBUG
 		printf("Mesh has a user \"%s\"\n", name);
+#endif
 		me = (ID*)BKE_mesh_copy_ex(from_maggie, (Mesh*)me);
 		me->us--;
 	}
