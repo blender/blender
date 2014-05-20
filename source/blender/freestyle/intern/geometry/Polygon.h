@@ -97,14 +97,14 @@ public:
 		max = _max;
 	}
 
-	inline Point& getBBoxCenter()
+	inline Point getBBoxCenter()
 	{
 		Point result;
 		result = (_min + _max) / 2;
 		return result;
 	}
 
-	inline Point& getCenter()
+	inline Point getCenter()
 	{
 		Point result;
 		for (typename vector<Point>::iterator it = _vertices.begin(); it != _vertices.end(); it++)
