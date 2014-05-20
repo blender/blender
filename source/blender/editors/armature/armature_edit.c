@@ -405,7 +405,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1136,7 +1136,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 	}
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	
 	return OPERATOR_FINISHED;
 }
