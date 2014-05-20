@@ -3267,7 +3267,9 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				to_max = data->to_max_scale;
 				for (i = 0; i < 3; i++) {
 					/* multiply with original scale (so that it can still be scaled) */
-					size[i] *= to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i]));
+					/* size[i] *= to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i])); */
+					/* Stay absolute, else it breaks existing rigs... sigh. */
+					size[i] = to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i]));
 				}
 				break;
 			case TRANS_ROTATION:
