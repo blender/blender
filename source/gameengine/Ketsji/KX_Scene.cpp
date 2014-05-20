@@ -1348,17 +1348,6 @@ void KX_Scene::SetCameraOnTop(KX_Camera* cam)
 	}
 }
 
-
-void KX_Scene::UpdateMeshTransformations()
-{
-	// do this incrementally in the future
-	for (int i = 0; i < m_objectlist->GetCount(); i++)
-	{
-		KX_GameObject* gameobj = (KX_GameObject*)m_objectlist->GetValue(i);
-		gameobj->GetOpenGLMatrix();
-	}
-}
-
 void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam, int layer)
 {
 	int intersect = KX_Camera::INTERSECT;

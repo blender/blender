@@ -524,7 +524,6 @@ public:
 	void SetWorldInfo(class KX_WorldInfo* wi);
 	KX_WorldInfo* GetWorldInfo();
 	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam, int layer=0);
-	void UpdateMeshTransformations();
 	KX_Camera* GetpCamera();
 	NG_NetworkDeviceInterface* GetNetworkDeviceInterface();
 	NG_NetworkScene* GetNetworkScene();
