@@ -63,7 +63,7 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 	return delta_z;
 }
 
-static bool bm_face_split_find(BMFace *f, BMLoop *l_pair[2], float *r_angle)
+static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r_angle)
 {
 	BMLoop *l_iter, *l_first;
 	BMLoop **l_arr = BLI_array_alloca(l_arr, f->len);
@@ -102,7 +102,7 @@ static bool bm_face_split_find(BMFace *f, BMLoop *l_pair[2], float *r_angle)
 					if (err_test < err_best) {
 						/* check we're legal (we could batch this) */
 						BMLoop *l_split[2] = {l_a, l_b};
-						BM_face_splits_check_legal(f, &l_split, 1);
+						BM_face_splits_check_legal(bm, f, &l_split, 1);
 						if (l_split[0]) {
 							err_best = err_test;
 							l_pair[0] = l_a;
@@ -129,7 +129,7 @@ static bool bm_face_split_by_angle(BMesh *bm, BMFace *f, BMFace *r_f_pair[2], co
 	BMLoop *l_pair[2];
 	float angle;
 
-	if (bm_face_split_find(f, l_pair, &angle) && (angle > angle_limit)) {
+	if (bm_face_split_find(bm, f, l_pair, &angle) && (angle > angle_limit)) {
 		BMFace *f_new;
 		BMLoop *l_new;
 

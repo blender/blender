@@ -1889,6 +1889,7 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 				dists[i] = 0.0f;
 			}
 		}
+		bm->elem_index_dirty &= ~BM_VERT;
 	}
 
 	do {

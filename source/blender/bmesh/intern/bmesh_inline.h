@@ -106,9 +106,6 @@ BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head, const BMHeader *head_a,
  *                    adding new vert/edge/faces since they may be added at
  *                    the end of the array.
  *
- * - 'set_loop'    -- currently loop index values are not used used much so
- *                    assume each case they are dirty.
- *
  * - campbell */
 
 #define BM_elem_index_get(ele)           _bm_elem_index_get(&(ele)->head)

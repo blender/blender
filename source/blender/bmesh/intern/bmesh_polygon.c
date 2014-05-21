@@ -935,7 +935,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 #endif
 
 					if (FACE_USED_TEST(f_a) == false) {
-						FACE_USED_SET(f_a);
+						FACE_USED_SET(f_a);  /* set_dirty */
 
 						if (nf_i < edge_array_len) {
 							r_faces_new[nf_i++] = f_a;
@@ -947,7 +947,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 					}
 
 					if (FACE_USED_TEST(f_b) == false) {
-						FACE_USED_SET(f_b);
+						FACE_USED_SET(f_b);  /* set_dirty */
 
 						if (nf_i < edge_array_len) {
 							r_faces_new[nf_i++] = f_b;
@@ -972,6 +972,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			}
 		}
 	}
+	bm->elem_index_dirty |= BM_FACE;
 
 	if (r_faces_new_tot) {
 		*r_faces_new_tot = nf_i;
@@ -986,7 +987,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
  * intersecting splits, only the first of the set of intersecting
  * splits survives
  */
-void BM_face_splits_check_legal(BMFace *f, BMLoop *(*loops)[2], int len)
+void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	const int len2 = len * 2;
 	BMLoop *l;
@@ -1003,9 +1004,10 @@ void BM_face_splits_check_legal(BMFace *f, BMLoop *(*loops)[2], int len)
 	axis_dominant_v3_to_m3(axis_mat, f->no);
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
-		BM_elem_index_set(l, i); /* set_loop */
+		BM_elem_index_set(l, i);  /* set_dirty */
 		mul_v2_m3v3(projverts[i], axis_mat, l->v->co);
 	}
+	bm->elem_index_dirty |= BM_LOOP;
 
 	/* first test for completely convex face */
 	if (is_poly_convex_v2((const float (*)[2])projverts, f->len)) {

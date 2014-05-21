@@ -86,7 +86,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 	}
 
 	if (check_degenerate) {
-		BM_face_splits_check_legal(f, loops_split, STACK_SIZE(loops_split));
+		BM_face_splits_check_legal(bm, f, loops_split, STACK_SIZE(loops_split));
 	}
 	else {
 		BM_face_splits_check_optimal(f, loops_split, STACK_SIZE(loops_split));

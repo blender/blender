@@ -90,8 +90,9 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
 		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, l_iter->v->head.data, &blocks_v[i]);
 
 		/* use later for index lookups */
-		BM_elem_index_set(l_iter, i); /* set_ok */
+		BM_elem_index_set(l_iter, i); /* set_dirty */
 	} while (i++, (l_iter = l_iter->next) != l_first);
+	bm->elem_index_dirty |= BM_LOOP;
 }
 static void bm_interp_face_free(InterpFace *iface, BMesh *bm)
 {

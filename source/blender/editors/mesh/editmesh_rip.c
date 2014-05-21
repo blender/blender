@@ -217,8 +217,8 @@ static BMEdge *edbm_ripsel_edge_mark_step(BMVert *v, const int uid)
 			BM_edge_loop_pair(e, &l_a, &l_b); /* no need to check, we know this will be true */
 
 			/* so (IS_VISIT_DONE == true) */
-			BM_elem_index_set(l_a, uid);
-			BM_elem_index_set(l_b, uid);
+			BM_elem_index_set(l_a, uid);  /* set_dirty */
+			BM_elem_index_set(l_b, uid);  /* set_dirty */
 
 			return e;
 		}
@@ -250,9 +250,10 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 	/* initialize loops with dummy invalid index values */
 	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			BM_elem_index_set(l, INVALID_UID);
+			BM_elem_index_set(l, INVALID_UID);  /* set_dirty */
 		}
 	}
+	bm->elem_index_dirty |= BM_LOOP;
 
 	/* set contiguous loops ordered 'uid' values for walking after split */
 	while (true) {

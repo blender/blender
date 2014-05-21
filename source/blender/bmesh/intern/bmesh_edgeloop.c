@@ -189,7 +189,7 @@ static void vs_add(BLI_mempool *vs_pool, ListBase *lb,
 	struct VertStep *vs_new = BLI_mempool_alloc(vs_pool);
 	vs_new->v = v;
 
-	BM_elem_index_set(v, iter_tot);
+	BM_elem_index_set(v, iter_tot);  /* set_dirty */
 
 	/* This edge stores a direct path back to the original vertex so we can
 	 * backtrack without having to store an array of previous verts. */
@@ -248,6 +248,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool, ListBase *lb, const in
 
 		BLI_mempool_free(vs_pool, vs);
 	}
+	/* bm->elem_index_dirty |= BM_VERT; */  /* Commented because used in a loop, and this flag has already been set. */
 
 	/* lb is now full of free'd items, overwrite */
 	*lb = lb_tmp;
@@ -303,6 +304,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm, ListBase *r_eloops,
 		/* edge args are dummy */
 		vs_add(vs_pool, &lb_src, v_src, v_src->e,  1);
 		vs_add(vs_pool, &lb_dst, v_dst, v_dst->e, -1);
+		bm->elem_index_dirty |= BM_VERT;
 
 		do {
 			if ((bm_loop_path_build_step(vs_pool, &lb_src, 1, v_match) == false) || v_match[0]) {

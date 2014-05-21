@@ -62,7 +62,7 @@ void  BM_face_triangulate(BMesh *bm, BMFace *f,
                           const int quad_method, const int ngon_method,
                           const bool use_tag) ATTR_NONNULL(1, 2);
 
-void  BM_face_splits_check_legal(BMFace *f, BMLoop *(*loops)[2], int len) ATTR_NONNULL();
+void  BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len) ATTR_NONNULL();
 void  BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len) ATTR_NONNULL();
 
 void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3]) ATTR_NONNULL();
