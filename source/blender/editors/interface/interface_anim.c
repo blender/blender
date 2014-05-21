@@ -172,6 +172,9 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 	
 	/* get path */
 	path = RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
+	if (path == NULL) {
+		return false;
+	}
 	
 	/* create driver */
 	fcu = verify_driver_fcurve(id, path, but->rnaindex, 1);
