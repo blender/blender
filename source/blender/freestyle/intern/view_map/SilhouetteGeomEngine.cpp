@@ -319,4 +319,12 @@ Vec3r SilhouetteGeomEngine::WorldToImage(const Vec3r& M)
 	return newPoint;
 }
 
+Vec3r SilhouetteGeomEngine::CameraToImage(const Vec3r& M)
+{
+	Vec3r newPoint, p;
+	GeomUtils::fromCameraToRetina(M, p, _projectionMatrix);
+	GeomUtils::fromRetinaToImage(p, newPoint, _viewport);
+	return newPoint;
+}
+
 } /* namespace Freestyle */

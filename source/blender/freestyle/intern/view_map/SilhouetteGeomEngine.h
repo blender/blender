@@ -131,6 +131,9 @@ public:
 	/*! From world to image */
 	static Vec3r WorldToImage(const Vec3r& M);
 
+	/*! From camera to image */
+	static Vec3r CameraToImage(const Vec3r& M);
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SilhouetteGeomEngine")
 #endif
