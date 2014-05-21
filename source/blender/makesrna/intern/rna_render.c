@@ -492,6 +492,13 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_string(func, "info", NULL, 0, "Info", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
+	func = RNA_def_function(srna, "frame_set", "RE_engine_frame_set");
+	RNA_def_function_ui_description(func, "Evaluate scene at a different frame (for motion blur)");
+	prop = RNA_def_int(func, "frame", 0, INT_MIN, INT_MAX, "Frame", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_float(func, "subframe", 0.0f, 0.0f, 1.0f, "Subframe", "", 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+
 	func = RNA_def_function(srna, "update_progress", "RE_engine_update_progress");
 	RNA_def_function_ui_description(func, "Update progress percentage of render");
 	prop = RNA_def_float(func, "progress", 0, 0.0f, 1.0f, "", "Percentage of render that's done", 0.0f, 1.0f);

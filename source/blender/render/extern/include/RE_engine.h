@@ -147,6 +147,8 @@ int RE_engine_render(struct Render *re, int do_all);
 
 bool RE_engine_is_external(struct Render *re);
 
+void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe);
+
 /* Engine Types */
 
 void RE_engines_init(void);

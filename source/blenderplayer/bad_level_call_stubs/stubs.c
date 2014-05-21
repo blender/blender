@@ -585,6 +585,7 @@ void RE_engine_free(struct RenderEngine *engine) RET_NONE
 struct RenderEngineType *RE_engines_find(const char *idname) RET_NULL
 void RE_engine_update_memory_stats(struct RenderEngine *engine, float mem_used, float mem_peak) RET_NONE
 struct RenderEngine *RE_engine_create(struct RenderEngineType *type) RET_NULL
+void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe) RET_NONE
 void RE_FreePersistentData(void) RET_NONE
 
 /* python */

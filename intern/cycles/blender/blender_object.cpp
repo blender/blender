@@ -576,7 +576,7 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void
 
 		/* change frame */
 		python_thread_state_restore(python_thread_state);
-		b_scene.frame_set(frame, subframe);
+		b_engine.frame_set(frame, subframe);
 		python_thread_state_save(python_thread_state);
 
 		/* sync camera, only supports two times at the moment */
@@ -591,7 +591,7 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void
 	 * function assumes it is being executed from python and will
 	 * try to save the thread state */
 	python_thread_state_restore(python_thread_state);
-	b_scene.frame_set(frame_center, 0.0f);
+	b_engine.frame_set(frame_center, 0.0f);
 	python_thread_state_save(python_thread_state);
 
 	/* tag camera for motion update */

@@ -481,6 +481,29 @@ bool RE_bake_engine(
 	return true;
 }
 
+void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
+{
+	Render *re = engine->re;
+	Scene *scene = re->scene;
+	double cfra = (double)frame + (double)subframe;
+
+	CLAMP(cfra, MINAFRAME, MAXFRAME);
+	BKE_scene_frame_set(scene, cfra);
+
+#ifdef WITH_PYTHON
+	BPy_BEGIN_ALLOW_THREADS;
+#endif
+
+	/* It's possible that here we're including layers which were never visible before. */
+	BKE_scene_update_for_newframe_ex(re->eval_ctx, re->main, scene, (1 << 20) - 1, true);
+
+#ifdef WITH_PYTHON
+	BPy_END_ALLOW_THREADS;
+#endif
+
+	BKE_scene_camera_switch_update(scene);
+}
+
 /* Render */
 
 static bool render_layer_exclude_animated(Scene *scene, SceneRenderLayer *srl)
