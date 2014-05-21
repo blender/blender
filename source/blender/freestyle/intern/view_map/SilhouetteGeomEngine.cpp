@@ -130,45 +130,19 @@ void SilhouetteGeomEngine::retrieveViewport(int viewport[4])
 	memcpy(viewport, _viewport, 4 * sizeof(int));
 }
 
-//#define HUGE 1.0e9
-
 void SilhouetteGeomEngine::ProjectSilhouette(vector<SVertex*>& ioVertices)
 {
 	Vec3r newPoint;
-#if 0
-	real min = HUGE;
-	real max = -HUGE;
-#endif
 	vector<SVertex*>::iterator sv, svend;
 	for (sv = ioVertices.begin(), svend = ioVertices.end(); sv != svend; sv++) {
 		GeomUtils::fromWorldToImage((*sv)->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
 		(*sv)->setPoint2D(newPoint);
-#if 0
-		cerr << (*sv)->point2d().z() << "  ";
-		real d = (*sv)->point2d()[2];
-		if (d > max)
-			max =d;
-		if (d < min)
-			min =d;
-#endif
 	}
-#if 0
-	for (sv = ioVertices.begin(), svend = ioVertices.end(); sv != svend; sv++) {
-		Vec3r P((*sv)->point2d());
-		(*sv)->setPoint2D(Vec3r(P[0], P[1], 1.0 - (P[2] - min) / (max - min)));
-		//cerr << (*sv)->point2d()[2] << "  ";
-	}
-#endif
 }
 
 void SilhouetteGeomEngine::ProjectSilhouette(SVertex *ioVertex)
 {
 	Vec3r newPoint;
-#if 0
-	real min = HUGE;
-	real max = -HUGE;
-	vector<SVertex*>::iterator sv, svend;
-#endif
 	GeomUtils::fromWorldToImage(ioVertex->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
 	ioVertex->setPoint2D(newPoint);
 }
