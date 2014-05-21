@@ -843,10 +843,11 @@ static bool pixel_bounds_array(float (*uv)[2], rcti *bounds_px, const int ibuf_x
 static void project_face_winding_init(const ProjPaintState *ps, const int face_index)
 {
 	/* detect the winding of faces in uv space */
-	float winding = cross_tri_v2(ps->dm_mtface[face_index].uv[0], ps->dm_mtface[face_index].uv[1], ps->dm_mtface[face_index].uv[2]);
+	MTFace *tf = ps->dm_mtface + face_index;
+	float winding = cross_tri_v2(tf->uv[0], tf->uv[1], tf->uv[2]);
 
 	if (ps->dm_mface[face_index].v4)
-		winding += cross_tri_v2(ps->dm_mtface[face_index].uv[2], ps->dm_mtface[face_index].uv[3], ps->dm_mtface[face_index].uv[0]);
+		winding += cross_tri_v2(tf->uv[2], tf->uv[3], tf->uv[0]);
 
 	if (winding > 0)
 		ps->faceWindingFlags[face_index] |= PROJ_FACE_WINDING_CW;
