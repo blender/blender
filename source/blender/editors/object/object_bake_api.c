@@ -610,8 +610,9 @@ static int bake(
 			highpoly[i].ob->restrictflag &= ~OB_RESTRICT_RENDER;
 
 			/* lowpoly to highpoly transformation matrix */
-			invert_m4_m4(highpoly[i].mat_lowtohigh, highpoly[i].ob->obmat);
-			mul_m4_m4m4(highpoly[i].mat_lowtohigh, highpoly[i].mat_lowtohigh, mat_low);
+			copy_m4_m4(highpoly[i].mat_high, highpoly[i].ob->obmat);
+			invert_m4_m4(highpoly[i].imat_high, highpoly[i].mat_high);
+			highpoly[i].scale = mat4_to_scale(highpoly[i].mat_high);
 
 			i++;
 		}
@@ -626,7 +627,7 @@ static int bake(
 		/* populate the pixel arrays with the corresponding face data for each high poly object */
 		RE_bake_pixels_populate_from_objects(
 		        me_low, pixel_array_low, highpoly, tot_highpoly,
-		        num_pixels, cage_extrusion);
+		        num_pixels, cage_extrusion, mat_low);
 
 		/* the baking itself */
 		for (i = 0; i < tot_highpoly; i++) {
@@ -697,7 +698,7 @@ static int bake(
 			case R_BAKE_SPACE_TANGENT:
 			{
 				if (is_highpoly) {
-					RE_bake_normal_world_to_tangent(pixel_array_low, num_pixels, depth, result, me_low, normal_swizzle);
+					RE_bake_normal_world_to_tangent(pixel_array_low, num_pixels, depth, result, me_low, normal_swizzle, ob_low->obmat);
 				}
 				else {
 					/* from multiresolution */
@@ -715,7 +716,7 @@ static int bake(
 					me_nores = BKE_mesh_new_from_object(bmain, scene, ob_low, 1, 2, 1, 0);
 					RE_bake_pixels_populate(me_nores, pixel_array_low, num_pixels, &bake_images);
 
-					RE_bake_normal_world_to_tangent(pixel_array_low, num_pixels, depth, result, me_nores, normal_swizzle);
+					RE_bake_normal_world_to_tangent(pixel_array_low, num_pixels, depth, result, me_nores, normal_swizzle, ob_low->obmat);
 					BKE_libblock_free(bmain, me_nores);
 
 					if (md)

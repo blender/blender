@@ -189,7 +189,7 @@ static void calc_point_from_barycentric(
 	add_v3_v3(coord, cage);
 
 	normalize_v3_v3(dir, dir);
-	mul_v3_fl(dir, -1.0f);
+	negate_v3(dir);
 
 	copy_v3_v3(r_co, coord);
 	copy_v3_v3(r_dir, dir);
@@ -215,7 +215,7 @@ static void calc_barycentric_from_point(
  */
 static bool cast_ray_highpoly(
         BVHTreeFromMesh *treeData, TriTessFace *triangles[], BakeHighPolyData *highpoly,
-        float const co_low[3], const float dir[3], const int pixel_id, const int tot_highpoly,
+        const float co[3], const float dir[3], const int pixel_id, const int tot_highpoly,
         const float du_dx, const float du_dy, const float dv_dx, const float dv_dy)
 {
 	int i;
@@ -228,26 +228,30 @@ static bool cast_ray_highpoly(
 	hits = MEM_mallocN(sizeof(BVHTreeRayHit) * tot_highpoly, "Bake Highpoly to Lowpoly: BVH Rays");
 
 	for (i = 0; i < tot_highpoly; i++) {
-		float co_high[3];
+		float co_high[3], dir_high[3];
+
 		hits[i].index = -1;
 		/* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
 		hits[i].dist = 10000.0f;
 
-		copy_v3_v3(co_high, co_low);
+		/* transform the ray from the world space to the highpoly space */
+		mul_v3_m4v3(co_high, highpoly[i].imat_high, co);
 
-		/* transform the ray from the lowpoly to the highpoly space */
-		mul_m4_v3(highpoly[i].mat_lowtohigh, co_high);
+		copy_v3_v3(dir_high, dir);
+		mul_transposed_mat3_m4_v3(highpoly[i].mat_high, dir_high);
+		normalize_v3(dir_high);
 
 		/* cast ray */
-		BLI_bvhtree_ray_cast(treeData[i].tree, co_high, dir, 0.0f, &hits[i], treeData[i].raycast_callback, &treeData[i]);
+		BLI_bvhtree_ray_cast(treeData[i].tree, co_high, dir_high, 0.0f, &hits[i], treeData[i].raycast_callback, &treeData[i]);
 
 		if (hits[i].index != -1) {
 			/* cull backface */
-			const float dot = dot_v3v3(dir, hits[i].no);
+			const float dot = dot_v3v3(dir_high, hits[i].no);
 			if (dot < 0.0f) {
-				if (hits[i].dist < hit_distance) {
+				float distance = hits[i].dist * highpoly[i].scale;
+				if (distance < hit_distance) {
 					hit_mesh = i;
-					hit_distance = hits[i].dist;
+					hit_distance = distance;
 				}
 			}
 		}
@@ -370,11 +374,12 @@ static void mesh_calc_tri_tessface(
 void RE_bake_pixels_populate_from_objects(
         struct Mesh *me_low, BakePixel pixel_array_from[],
         BakeHighPolyData highpoly[], const int tot_highpoly, const int num_pixels,
-        const float cage_extrusion)
+        const float cage_extrusion, float mat_low[4][4])
 {
 	int i;
 	int primitive_id;
 	float u, v;
+	float imat_low [4][4];
 
 	DerivedMesh **dm_highpoly;
 	BVHTreeFromMesh *treeData;
@@ -392,6 +397,8 @@ void RE_bake_pixels_populate_from_objects(
 	treeData = MEM_callocN(sizeof(BVHTreeFromMesh) * tot_highpoly, "Highpoly BVH Trees");
 
 	mesh_calc_tri_tessface(tris_low, me_low, false, NULL);
+
+	invert_m4_m4(imat_low, mat_low);
 
 	for (i = 0; i < tot_highpoly; i++) {
 		tris_high[i] = MEM_callocN(sizeof(TriTessFace) * highpoly[i].me->totface, "MVerts Highpoly Mesh");
@@ -427,6 +434,11 @@ void RE_bake_pixels_populate_from_objects(
 
 		/* calculate from low poly mesh cage */
 		calc_point_from_barycentric(tris_low, primitive_id, u, v, cage_extrusion, co, dir);
+
+		/* convert from local to world space */
+		mul_m4_v3(mat_low, co);
+		mul_transposed_mat3_m4_v3(imat_low, dir);
+		normalize_v3(dir);
 
 		/* cast ray */
 		if (!cast_ray_highpoly(treeData, tris_high, highpoly, co, dir, i, tot_highpoly,
@@ -601,7 +613,8 @@ static void normal_compress(float out[3], const float in[3], const BakeNormalSwi
  */
 void RE_bake_normal_world_to_tangent(
         const BakePixel pixel_array[], const int num_pixels, const int depth,
-        float result[], Mesh *me, const BakeNormalSwizzle normal_swizzle[3])
+        float result[], Mesh *me, const BakeNormalSwizzle normal_swizzle[3],
+        float mat[4][4])
 {
 	int i;
 
@@ -688,6 +701,9 @@ void RE_bake_normal_world_to_tangent(
 
 		/* texture values */
 		normal_uncompress(nor, &result[offset]);
+
+		/* converts from world space to local space */
+		mul_transposed_mat3_m4_v3(mat, nor);
 
 		invert_m3_m3(itsm, tsm);
 		mul_m3_v3(itsm, nor);
