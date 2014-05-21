@@ -362,5 +362,5 @@ class UpdateAnimatedTransformConstraint(Operator):
             print(log)
             text = bpy.data.texts.new("UpdateAnimatedTransformConstraint Report")
             text.from_string(log)
-            self.report({'INFO'}, "Complete report available on '{}' text datablock".format(text.name))
+            self.report({'INFO'}, "Complete report available on '%s' text datablock" % text.name)
         return {'FINISHED'}
