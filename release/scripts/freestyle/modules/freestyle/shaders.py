@@ -765,7 +765,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
         v1 = it1.object
         if (v0.nature & Nature.CUSP) == 0 and (v1.nature & Nature.CUSP) == 0:
             d1 = (v0.point - v1.point).normalized()
-            newFirst = p0+d1*float(self._l)
+            newFirst = v0.point+d1*float(self._l)
             v0.point = newFirst
         vn_1 = itn_1.object
         vn = itn.object
