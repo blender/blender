@@ -134,6 +134,10 @@ BLI_INLINE unsigned char f_to_char(const float val)
 #define PROJ_FACE_NOSEAM3   (1 << 6)
 #define PROJ_FACE_NOSEAM4   (1 << 7)
 
+/* face winding */
+#define PROJ_FACE_WINDING_INIT 1
+#define PROJ_FACE_WINDING_CW 2
+
 #define PROJ_SRC_VIEW       1
 #define PROJ_SRC_IMAGE_CAM  2
 #define PROJ_SRC_IMAGE_VIEW 3
@@ -201,6 +205,7 @@ typedef struct ProjPaintState {
 	unsigned char *bucketFlags;         /* store if the bucks have been initialized  */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	char *faceSeamFlags;                /* store info about faces, if they are initialized etc*/
+	char *faceWindingFlags;             /* save the winding of the face in uv space, helps as an extra validation step for seam detection */
 	float (*faceSeamUVs)[4][2];         /* expanded UVs for faces to use as seams */
 	LinkNode **vertFaces;               /* Only needed for when seam_bleed_px is enabled, use to find UV seams */
 #endif
@@ -835,6 +840,20 @@ static bool pixel_bounds_array(float (*uv)[2], rcti *bounds_px, const int ibuf_x
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 
+static void project_face_winding_init(const ProjPaintState *ps, const int face_index)
+{
+	/* detect the winding of faces in uv space */
+	float winding = cross_tri_v2(ps->dm_mtface[face_index].uv[0], ps->dm_mtface[face_index].uv[1], ps->dm_mtface[face_index].uv[2]);
+
+	if (ps->dm_mface[face_index].v4)
+		winding += cross_tri_v2(ps->dm_mtface[face_index].uv[2], ps->dm_mtface[face_index].uv[3], ps->dm_mtface[face_index].uv[0]);
+
+	if (winding > 0)
+		ps->faceWindingFlags[face_index] |= PROJ_FACE_WINDING_CW;
+
+	ps->faceWindingFlags[face_index] |= PROJ_FACE_WINDING_INIT;
+}
+
 /* This function returns 1 if this face has a seam along the 2 face-vert indices
  * 'orig_i1_fidx' and 'orig_i2_fidx' */
 static bool check_seam(const ProjPaintState *ps,
@@ -882,11 +901,23 @@ static bool check_seam(const ProjPaintState *ps,
 				*other_face = face_index;
 				*orig_fidx = (i1_fidx < i2_fidx) ? i1_fidx : i2_fidx;
 
+				/* initialize face winding if needed */
+				if (!ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_INIT)
+					project_face_winding_init(ps, face_index);
+
 				/* first test if they have the same image */
 				if ((orig_tpage == tpage) &&
 				    cmp_uv(orig_tf->uv[orig_i1_fidx], tf->uv[i1_fidx]) &&
 				    cmp_uv(orig_tf->uv[orig_i2_fidx], tf->uv[i2_fidx]) )
 				{
+					/* if faces don't have the same winding in uv space,
+					 * they are on the same side so edge is boundary */
+					if ((ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_CW) !=
+					    (ps->faceWindingFlags[orig_face] & PROJ_FACE_WINDING_CW))
+					{
+						return 1;
+					}
+
 					// printf("SEAM (NONE)\n");
 					return 0;
 
@@ -1015,6 +1046,10 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
 	int other_face, other_fidx; /* vars for the other face, we also set its flag */
 	int fidx1 = is_quad ? 3 : 2;
 	int fidx2 = 0; /* next fidx in the face (0,1,2,3) -> (1,2,3,0) or (0,1,2) -> (1,2,0) for a tri */
+
+	/* initialize face winding if needed */
+	if (!ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_INIT)
+		project_face_winding_init(ps, face_index);
 
 	do {
 		if ((ps->faceSeamFlags[face_index] & (1 << fidx1 | 16 << fidx1)) == 0) {
@@ -3038,6 +3073,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	if (ps->seam_bleed_px > 0.0f) {
 		ps->vertFaces = (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->dm_totvert, "paint-vertFaces");
 		ps->faceSeamFlags = (char *)MEM_callocN(sizeof(char) * ps->dm_totface, "paint-faceSeamFlags");
+		ps->faceWindingFlags = (char *)MEM_callocN(sizeof(char) * ps->dm_totface, "paint-faceWindindFlags");
 		ps->faceSeamUVs = MEM_mallocN(sizeof(float) * ps->dm_totface * 8, "paint-faceSeamUVs");
 	}
 #endif
@@ -3346,6 +3382,7 @@ static void project_paint_end(ProjPaintState *ps)
 	if (ps->seam_bleed_px > 0.0f) {
 		MEM_freeN(ps->vertFaces);
 		MEM_freeN(ps->faceSeamFlags);
+		MEM_freeN(ps->faceWindingFlags);
 		MEM_freeN(ps->faceSeamUVs);
 	}
 #endif
