@@ -263,11 +263,19 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 		remove(name);
 	}
 
-	attributes.push_back(Attribute());
+#if __cplusplus >= 201103L
+	attributes.emplace_back();
 	attr = &attributes.back();
-
 	attr->set(name, type, element);
-	
+#else
+	{
+		Attribute attr_temp;
+		attr_temp.set(name, type, element);
+		attributes.push_back(attr_temp);
+		attr = &attributes.back();
+	}
+#endif
+
 	/* this is weak .. */
 	if(triangle_mesh)
 		attr->reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), triangle_mesh->motion_steps, 0, 0, resize);
