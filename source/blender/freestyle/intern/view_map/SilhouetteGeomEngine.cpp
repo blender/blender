@@ -140,12 +140,8 @@ void SilhouetteGeomEngine::ProjectSilhouette(vector<SVertex*>& ioVertices)
 	real max = -HUGE;
 #endif
 	vector<SVertex*>::iterator sv, svend;
-	const real depth = _zfar - _znear;
-	const real fac = (depth < 1.0e-6) ? 1.0 : 1.0 / depth;
-
 	for (sv = ioVertices.begin(), svend = ioVertices.end(); sv != svend; sv++) {
 		GeomUtils::fromWorldToImage((*sv)->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
-		newPoint[2] = (-newPoint[2] - _znear) * fac; // normalize Z between 0 and 1
 		(*sv)->setPoint2D(newPoint);
 #if 0
 		cerr << (*sv)->point2d().z() << "  ";
@@ -173,10 +169,7 @@ void SilhouetteGeomEngine::ProjectSilhouette(SVertex *ioVertex)
 	real max = -HUGE;
 	vector<SVertex*>::iterator sv, svend;
 #endif
-	const real depth = _zfar - _znear;
-	const real fac = (depth < 1.0e-6) ? 1.0 : 1.0 / depth;
 	GeomUtils::fromWorldToImage(ioVertex->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
-	newPoint[2] = (-newPoint[2] - _znear) * fac; // normalize Z between 0 and 1
 	ioVertex->setPoint2D(newPoint);
 }
 
@@ -311,11 +304,8 @@ iter:
 
 Vec3r SilhouetteGeomEngine::WorldToImage(const Vec3r& M)
 {
-	const real depth = _zfar - _znear;
-	const real fac = (depth < 1.0e-6) ? 1.0 : 1.0 / depth;
 	Vec3r newPoint;
 	GeomUtils::fromWorldToImage(M, newPoint, _transform, _viewport);
-	newPoint[2] = (-newPoint[2] - _znear) * fac; // normalize Z between 0 and 1
 	return newPoint;
 }
 
