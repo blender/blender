@@ -154,6 +154,8 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 			*shadow = throughput;
 
+			if(hits != hits_stack)
+				free(hits);
 			return is_zero(throughput);
 		}
 
