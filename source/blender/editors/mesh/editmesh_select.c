@@ -3187,6 +3187,11 @@ static int loop_find_region(BMLoop *l, int flag,
 				continue;
 			
 			BM_ITER_ELEM (l2, &liter2, l1->e, BM_LOOPS_OF_EDGE) {
+				/* avoids finding same region twice
+				 * (otherwise) the logic works fine without */
+				if (BM_elem_flag_test(l2->f, BM_ELEM_TAG)) {
+					continue;
+				}
 				if (BLI_smallhash_haskey(fhash, (uintptr_t)l2->f))
 					continue;
 				
@@ -3216,21 +3221,22 @@ static int verg_radial(const void *va, const void *vb)
 	return  0;
 }
 
+/**
+ * This function leaves faces tagged which are apart of the new region.
+ *
+ * \note faces already tagged are ignored, to avoid finding the same regions twice:
+ * important when we have regions with equal face counts, see: T40309
+ */
 static int loop_find_regions(BMEditMesh *em, const bool selbigger)
 {
 	SmallHash visithash;
 	BMIter iter;
 	const int edges_len = em->bm->totedgesel;
 	BMEdge *e, **edges;
-	BMFace *f;
 	int count = 0, i;
 	
 	BLI_smallhash_init_ex(&visithash, edges_len);
 	edges = MEM_mallocN(sizeof(*edges) * edges_len, __func__);
-	
-	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-		BM_elem_flag_disable(f, BM_ELEM_TAG);
-	}
 
 	i = 0;
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -3310,13 +3316,14 @@ static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
 	const bool select_bigger = RNA_boolean_get(op->ptr, "select_bigger");
 	int a, b;
 
+
 	/* find the set of regions with smallest number of total faces */
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
 	a = loop_find_regions(em, select_bigger);
 	b = loop_find_regions(em, !select_bigger);
-	
-	if ((a <= b) ^ select_bigger) {
-		loop_find_regions(em, select_bigger);
-	}
+
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+	loop_find_regions(em, ((a <= b) != select_bigger) ? select_bigger : !select_bigger);
 	
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 	
