@@ -891,8 +891,9 @@ static void rearrange_animchannels_filter_visible(ListBase *anim_data_visible, b
 	for (ale = anim_data.first; ale; ale = ale_next) {
 		ale_next = ale->next;
 		
-		if (ale->type != type)
+		if (ale->type != type) {
 			BLI_freelinkN(&anim_data, ale);
+		}
 	}
 	
 	/* return cleaned up list */
@@ -1045,6 +1046,13 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
 		fcu->next = NULL;
 		tgrp->channels.last = fcu;
 		act->curves.last = NULL;
+		
+		/* ensure that all of these get their group set to this temp group 
+		 * (so that visibility filtering works)
+		 */
+		for (fcu = tgrp->channels.first; fcu; fcu = fcu->next) {
+			fcu->grp = tgrp;
+		}
 	}
 	
 	/* Add temp-group to list */
@@ -1067,8 +1075,17 @@ static void join_groups_action_temp(bAction *act)
 		/* clear moved flag */
 		agrp->flag &= ~AGRP_MOVED;
 		
-		/* if temp-group... remove from list (but don't free as it's on the stack!) */
+		/* if group was temporary one:
+		 * - unassign all FCurves which were temporarily added to it
+		 * - remove from list (but don't free as it's on the stack!)
+		 */
 		if (agrp->flag & AGRP_TEMP) {
+			FCurve *fcu;
+			
+			for (fcu = agrp->channels.first; fcu; fcu = fcu->next) {
+				fcu->grp = NULL;
+			}
+			
 			BLI_remlink(&act->groups, agrp);
 			break;
 		}
