@@ -134,6 +134,7 @@ bool GPU_upload_dxt_texture(struct ImBuf *ibuf);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(void);
 void GPU_free_images_anim(void);
+void GPU_free_images_old(void);
 
 /* smoke drawing functions */
 void GPU_free_smoke(struct SmokeModifierData *smd);

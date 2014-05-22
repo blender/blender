@@ -76,6 +76,8 @@
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
+#include "PIL_time.h"
+
 #include "smoke_API.h"
 
 extern Material defmaterial; /* from material.c */
@@ -1310,6 +1312,45 @@ void GPU_free_images_anim(void)
 			if (BKE_image_is_animated(ima))
 				GPU_free_image(ima);
 }
+
+
+void GPU_free_images_old(void)
+{
+	Image *ima;
+	static int lasttime = 0;
+	int ctime = (int)PIL_check_seconds_timer();
+
+	/*
+	 * Run garbage collector once for every collecting period of time
+	 * if textimeout is 0, that's the option to NOT run the collector
+	 */
+	if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime)
+		return;
+
+	/* of course not! */
+	if (G.is_rendering)
+		return;
+
+	lasttime = ctime;
+
+	ima = G.main->image.first;
+	while (ima) {
+		if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
+			/* If it's in GL memory, deallocate and set time tag to current time
+			 * This gives textures a "second chance" to be used before dying. */
+			if (ima->bindcode || ima->repbind) {
+				GPU_free_image(ima);
+				ima->lastused = ctime;
+			}
+			/* Otherwise, just kill the buffers */
+			else {
+				BLI_image_free_buffers(ima);
+			}
+		}
+		ima = ima->id.next;
+	}
+}
+
 
 /* OpenGL Materials */
 

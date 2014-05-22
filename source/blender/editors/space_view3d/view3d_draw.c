@@ -2727,6 +2727,10 @@ static void view3d_draw_objects(
 		v3d->zbuf = false;
 		glDisable(GL_DEPTH_TEST);
 	}
+
+	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
+		GPU_free_images_old();
+	}
 }
 
 static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])

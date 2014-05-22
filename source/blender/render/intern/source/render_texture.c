@@ -1132,7 +1132,9 @@ static int multitex(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int o
 			case TEX_IMAGE:
 				if (osatex) retval = imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres, pool);
 				else        retval = imagewrap(tex, tex->ima, NULL, texvec, texres, pool);
-				BKE_image_tag_time(tex->ima); /* tag image as having being used */
+				if (tex->ima) {
+					BKE_image_tag_time(tex->ima);
+				}
 				break;
 			case TEX_ENVMAP:
 				retval = envmaptex(tex, texvec, dxt, dyt, osatex, texres, pool);

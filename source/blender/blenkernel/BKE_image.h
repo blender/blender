@@ -52,8 +52,9 @@ struct Main;
 void   BKE_images_init(void);
 void   BKE_images_exit(void);
 
+void    BLI_image_free_buffers(struct Image *image);
 /* call from library */
-void    BKE_image_free(struct Image *me);
+void    BKE_image_free(struct Image *image);
 
 void    BKE_imbuf_stamp_info(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf);
 void    BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
