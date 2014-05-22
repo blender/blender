@@ -2619,7 +2619,7 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
  *		will be placed for use.
  *	filter_mode: how should the data be filtered - bitmapping accessed flags
  */
-size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
+size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_Flags filter_mode, void *data, eAnimCont_Types datatype)
 {
 	size_t items = 0;
 	
@@ -2710,6 +2710,13 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 				
 				/* based on the channel type, filter relevant data for this */
 				items = animdata_filter_animchan(ac, anim_data, ads, data, filter_mode);
+				break;
+			}
+			
+			/* unhandled */
+			default:
+			{
+				printf("ANIM_animdata_filter() - Invalid datatype argument %d\n", datatype);
 				break;
 			}
 		}

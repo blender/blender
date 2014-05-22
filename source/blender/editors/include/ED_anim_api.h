@@ -111,12 +111,12 @@ typedef struct bAnimListElem {
 	struct bAnimListElem *next, *prev;
 	
 	void    *data;          /* source data this elem represents */
-	int     type;           /* one of the ANIMTYPE_* values */
+	int     type;           /* (eAnim_ChannelType) one of the ANIMTYPE_* values */
 	int     flag;           /* copy of elem's flags for quick access */
-	int     index;          /* for un-named data, the index of the data in it's collection */
+	int     index;          /* for un-named data, the index of the data in its collection */
 	
-	short   update;         /* tag the element for updating (eAnim_Update_Flags) */
-	short   datatype;       /* type of motion data to expect */
+	short   update;         /* (eAnim_Update_Flags)  tag the element for updating */
+	short   datatype;       /* (eAnim_KeyType) type of motion data to expect */
 	void   *key_data;       /* motion data - mostly F-Curves, but can be other types too */
 	
 	
@@ -358,7 +358,7 @@ typedef enum eAnimFilter_Flags {
 /* Obtain list of filtered Animation channels to operate on.
  * Returns the number of channels in the list
  */
-size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype);
+size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_Flags filter_mode, void *data, eAnimCont_Types datatype);
 
 /* Obtain current anim-data context from Blender Context info.
  * Returns whether the operation was successful. 
