@@ -44,6 +44,20 @@ EnumPropertyItem unpack_method_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+void rna_PackedImage_data_get(PointerRNA *ptr, char *value)
+{
+	PackedFile *pf = (PackedFile *)ptr->data;
+	memcpy(value, pf->data, (size_t)pf->size);
+	value[pf->size + 1] = '\0';
+}
+
+int rna_PackedImage_data_len(PointerRNA *ptr)
+{
+	PackedFile *pf = (PackedFile *)ptr->data;
+	return pf->size;  /* No need to include trailing NULL char here! */
+}
+
 #else
 
 void RNA_def_packedfile(BlenderRNA *brna)
@@ -58,6 +72,10 @@ void RNA_def_packedfile(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Size", "Size of packed file in bytes");
 
+	prop = RNA_def_property(srna, "data", PROP_STRING, PROP_BYTESTRING);
+	RNA_def_property_string_funcs(prop, "rna_PackedImage_data_get", "rna_PackedImage_data_len", NULL);
+	RNA_def_property_ui_text(prop, "Data", "Raw data (bytes, exact content of the embedded file)");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 #endif
