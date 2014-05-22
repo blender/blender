@@ -52,7 +52,7 @@ struct Main;
 void   BKE_images_init(void);
 void   BKE_images_exit(void);
 
-void    BLI_image_free_buffers(struct Image *image);
+void    BKE_image_free_buffers(struct Image *image);
 /* call from library */
 void    BKE_image_free(struct Image *image);
 

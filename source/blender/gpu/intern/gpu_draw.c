@@ -1344,7 +1344,7 @@ void GPU_free_images_old(void)
 			}
 			/* Otherwise, just kill the buffers */
 			else {
-				BLI_image_free_buffers(ima);
+				BKE_image_free_buffers(ima);
 			}
 		}
 		ima = ima->id.next;

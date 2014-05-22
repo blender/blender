@@ -260,7 +260,7 @@ static void image_free_cahced_frames(Image *image)
  * Simply free the image data from memory,
  * on display the image can load again (except for render buffers).
  */
-void BLI_image_free_buffers(Image *ima)
+void BKE_image_free_buffers(Image *ima)
 {
 	image_free_cahced_frames(ima);
 
@@ -282,7 +282,7 @@ void BKE_image_free(Image *ima)
 {
 	int a;
 
-	BLI_image_free_buffers(ima);
+	BKE_image_free_buffers(ima);
 	if (ima->packedfile) {
 		freePackedFile(ima->packedfile);
 		ima->packedfile = NULL;
@@ -2217,7 +2217,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 
 	switch (signal) {
 		case IMA_SIGNAL_FREE:
-			BLI_image_free_buffers(ima);
+			BKE_image_free_buffers(ima);
 			if (iuser)
 				iuser->ok = 1;
 			break;
@@ -2249,7 +2249,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 #if 0
 			/* force reload on first use, but not for multilayer, that makes nodes and buttons in ui drawing fail */
 			if (ima->type != IMA_TYPE_MULTILAYER)
-				BLI_image_free_buffers(ima);
+				BKE_image_free_buffers(ima);
 #else
 			/* image buffers for non-sequence multilayer will share buffers with RenderResult,
 			 * however sequence multilayer will own buffers. Such logic makes switching from
@@ -2258,7 +2258,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			 * are nicely detecting anyway, but freeing buffers always here makes multilayer
 			 * sequences behave stable
 			 */
-			BLI_image_free_buffers(ima);
+			BKE_image_free_buffers(ima);
 #endif
 
 			ima->ok = 1;
@@ -2277,14 +2277,14 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				if (pf) {
 					freePackedFile(ima->packedfile);
 					ima->packedfile = pf;
-					BLI_image_free_buffers(ima);
+					BKE_image_free_buffers(ima);
 				}
 				else {
 					printf("ERROR: Image not available. Keeping packed image\n");
 				}
 			}
 			else
-				BLI_image_free_buffers(ima);
+				BKE_image_free_buffers(ima);
 
 			if (iuser)
 				iuser->ok = 1;
@@ -2302,7 +2302,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			}
 			break;
 		case IMA_SIGNAL_COLORMANAGE:
-			BLI_image_free_buffers(ima);
+			BKE_image_free_buffers(ima);
 
 			ima->ok = 1;
 
@@ -2622,7 +2622,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 	int assign = 0, flag;
 
 	/* always ensure clean ima */
-	BLI_image_free_buffers(ima);
+	BKE_image_free_buffers(ima);
 
 	/* is there a PackedFile with this image ? */
 	if (ima->packedfile) {
