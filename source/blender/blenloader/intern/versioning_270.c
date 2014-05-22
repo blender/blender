@@ -280,7 +280,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!DNA_struct_elem_find(fd->filesdna, "FreestyleLineStyle", "MTex", "mtex")) {
+	if (!DNA_struct_elem_find(fd->filesdna, "FreestyleLineStyle", "float", "texstep")) {
 		FreestyleLineStyle *linestyle;
 
 		for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
