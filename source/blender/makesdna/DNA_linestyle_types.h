@@ -42,9 +42,12 @@
 /* texco (also in DNA_material_types.h) */
 #define TEXCO_STROKE	16 /* actually it's UV */
 
+struct AnimData;
 struct ColorBand;
 struct CurveMapping;
 struct MTex;
+struct Object;
+struct bNodeTree;
 
 typedef struct LineStyleModifier {
 	struct LineStyleModifier *next, *prev;
