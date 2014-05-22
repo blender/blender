@@ -58,9 +58,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 #ifdef __SUBSURFACE__
 			/* sample subsurface scattering */
 			if((is_combined || is_sss) && (sd->flag & SD_BSSRDF)) {
-				/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
-				if (kernel_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, &ray, &throughput))
-					is_sss = true;
+				kernel_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, &ray, &throughput);
 			}
 #endif
 
@@ -97,7 +95,6 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 #ifdef __SUBSURFACE__
 			/* sample subsurface scattering */
 			if((is_combined || is_sss) && (sd->flag & SD_BSSRDF)) {
-				/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
 				kernel_branched_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, throughput);
 			}
 #endif
