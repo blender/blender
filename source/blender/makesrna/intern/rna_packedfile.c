@@ -49,7 +49,7 @@ void rna_PackedImage_data_get(PointerRNA *ptr, char *value)
 {
 	PackedFile *pf = (PackedFile *)ptr->data;
 	memcpy(value, pf->data, (size_t)pf->size);
-	value[pf->size + 1] = '\0';
+	value[pf->size] = '\0';
 }
 
 int rna_PackedImage_data_len(PointerRNA *ptr)
