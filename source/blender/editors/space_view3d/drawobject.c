@@ -6943,7 +6943,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* matcap check - only when not painting color */
-	if ((v3d->flag2 & V3D_SOLID_MATCAP) && (dt == OB_SOLID) && (is_paint == false && is_picking == false)) {
+	if ((v3d->flag2 & V3D_SOLID_MATCAP) &&
+	    (dt == OB_SOLID) &&
+	    (is_paint == false && is_picking == false) &&
+	    ((v3d->flag2 & V3D_RENDER_SHADOW) == 0))
+	{
 		draw_object_matcap_check(v3d, ob);
 	}
 
