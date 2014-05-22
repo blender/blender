@@ -2575,7 +2575,8 @@ static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init)
 	BKE_ptcache_bake(&baker);
 }
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay_override, int anim, int anim_init)
+static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, Scene *scene, SceneRenderLayer *srl,
+                                       Object *camera_override, unsigned int lay_override, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2584,16 +2585,16 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	 * r.border is the clipping rect */
 	
 	/* calculate actual render result and display size */
-	winx = (scene->r.size * scene->r.xsch) / 100;
-	winy = (scene->r.size * scene->r.ysch) / 100;
+	winx = (rd->size * rd->xsch) / 100;
+	winy = (rd->size * rd->ysch) / 100;
 	
 	/* we always render smaller part, inserting it in larger image is compositor bizz, it uses disprect for it */
 	if (scene->r.mode & R_BORDER) {
-		disprect.xmin = scene->r.border.xmin * winx;
-		disprect.xmax = scene->r.border.xmax * winx;
+		disprect.xmin = rd->border.xmin * winx;
+		disprect.xmax = rd->border.xmax * winx;
 		
-		disprect.ymin = scene->r.border.ymin * winy;
-		disprect.ymax = scene->r.border.ymax * winy;
+		disprect.ymin = rd->border.ymin * winy;
+		disprect.ymax = rd->border.ymax * winy;
 	}
 	else {
 		disprect.xmin = disprect.ymin = 0;
@@ -2663,7 +2664,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	
 	scene->r.cfra = frame;
 	
-	if (render_initialize_from_main(re, bmain, scene, srl, camera_override, lay_override, 0, 0)) {
+	if (render_initialize_from_main(re, &scene->r, bmain, scene, srl, camera_override, lay_override, 0, 0)) {
 		MEM_reset_peak_memory();
 
 		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
@@ -2698,7 +2699,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
 	re->result_ok= 0;
-	if (render_initialize_from_main(re, bmain, scene, NULL, NULL, scene->lay, 0, 0)) {
+	if (render_initialize_from_main(re, &scene->r, bmain, scene, NULL, NULL, scene->lay, 0, 0)) {
 		if (render)
 			do_render_fields_blur_3d(re);
 	}
@@ -2817,12 +2818,13 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override,
                     unsigned int lay_override, int sfra, int efra, int tfra)
 {
+	RenderData rd = scene->r;
 	bMovieHandle *mh = BKE_movie_handle_get(scene->r.im_format.imtype);
 	int cfrao = scene->r.cfra;
 	int nfra, totrendered = 0, totskipped = 0;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if (!render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay_override, 0, 1))
+	if (!render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, lay_override, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2884,7 +2886,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay_override, 1, 0);
+			render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, lay_override, 1, 0);
 
 			if (nfra != scene->r.cfra) {
 				/*
