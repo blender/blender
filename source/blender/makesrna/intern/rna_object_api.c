@@ -276,7 +276,6 @@ static int dm_tessface_to_poly_index(DerivedMesh *dm, int tessface_index)
 	return ORIGINDEX_NONE;
 }
 
-/* BMESH_TODO, return polygon index, not tessface */
 static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3],
                                 float r_location[3], float r_normal[3], int *index)
 {
@@ -290,11 +289,8 @@ static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start
 	/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
 	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
 
-	if (treeData.tree == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' could not create internal data for ray casting", ob->id.name + 2);
-		return;
-	}
-	else {
+	/* may fail if the mesh has no faces, in that case the ray-cast misses */
+	if (treeData.tree != NULL) {
 		BVHTreeRayHit hit;
 		float ray_nor[3], dist;
 		sub_v3_v3v3(ray_nor, ray_end, ray_start);
