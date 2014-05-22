@@ -310,12 +310,12 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		}
 	}
 
-
+	int active_uv_layer = -1;
 	std::set<Image *> uv_textures;
 	if (ob->type == OB_MESH && ob->totcol && this->export_settings->include_uv_textures) {
 		bool active_uv_only = this->export_settings->active_uv_only;
 		Mesh *me     = (Mesh *) ob->data;
-		int active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
+		active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
 
 		BKE_mesh_tessface_ensure(me);
 		for (int i = 0; i < me->pdata.totlayer; i++) {
@@ -381,13 +381,16 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	}
 
 	std::set<Image *>::iterator uv_t_iter;
-	for (uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++ ) {
-		Image *ima = *uv_t_iter;
-		std::string key(id_name(ima));
-		key = translate_id(key);
-		int i = im_samp_map[key];
-		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i][0];
-		ep.setDiffuse(createTexture(ima, active_uv, sampler), false, "diffuse");
+	int idx;
+	for (idx = 0, uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++, idx++ ) {
+		if(active_uv_layer>-1 && idx==active_uv_layer) {
+			Image *ima = *uv_t_iter;
+			std::string key(id_name(ima));
+			key = translate_id(key);
+			int i = im_samp_map[key];
+			COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i][0];
+			ep.setDiffuse(createTexture(ima, active_uv, sampler), false, "diffuse");
+		}
 	}
 
 	// performs the actual writing
