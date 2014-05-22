@@ -436,6 +436,12 @@ static int bake(
 	is_tangent = pass_type == SCE_PASS_NORMAL && normal_space == R_BAKE_SPACE_TANGENT;
 	tot_materials = ob_low->totcol;
 
+	/* ensure active uv */
+	if (CustomData_get_active_layer(&((Mesh *)ob_low->data)->pdata, CD_MTEXPOLY) == -1) {
+		BKE_report(reports, RPT_ERROR, "No active UV layer found in the active object");
+		goto cleanup;
+	}
+
 	if (tot_materials == 0) {
 		if (is_save_internal) {
 			BKE_report(reports, RPT_ERROR,
