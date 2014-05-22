@@ -344,7 +344,7 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 /* name property for ID block entries */
 static bool acf_generic_idblock_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
 {
-	RNA_id_pointer_create(ale->id, ptr);
+	RNA_id_pointer_create(ale->data, ptr);
 	*prop = RNA_struct_name_property(ptr->type);
 	
 	return (*prop != NULL);
@@ -650,6 +650,15 @@ static void acf_object_name(bAnimListElem *ale, char *name)
 		BLI_strncpy(name, ob->id.name + 2, ANIM_CHAN_NAME_SIZE);
 }
 
+/* name property for object */
+static bool acf_object_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	RNA_id_pointer_create(ale->id, ptr);
+	*prop = RNA_struct_name_property(ptr->type);
+	
+	return (*prop != NULL);
+}
+
 /* check if some setting exists for this channel */
 static bool acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting)
 {
@@ -740,7 +749,7 @@ static bAnimChannelType ACF_OBJECT =
 	NULL,                           /* offset */
 
 	acf_object_name,                /* name */
-	acf_generic_idblock_name_prop,   /* name prop */
+	acf_object_name_prop,   		/* name prop */
 	acf_object_icon,                /* icon */
 
 	acf_object_setting_valid,       /* has setting */
