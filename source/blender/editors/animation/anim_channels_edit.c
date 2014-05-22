@@ -880,9 +880,23 @@ static void rearrange_animchannel_flatten_islands(ListBase *islands, ListBase *s
 
 static void rearrange_animchannels_filter_visible(ListBase *anim_data_visible, bAnimContext *ac, short type)
 {
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale, *ale_next;
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
-
-    ANIM_animdata_filter(ac, anim_data_visible, filter, ac->data, type);
+	
+	/* get all visible channels */
+    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* now, only keep the ones that are of the types we are interested in */
+	for (ale = anim_data.first; ale; ale = ale_next) {
+		ale_next = ale->next;
+		
+		if (ale->type != type)
+			BLI_freelinkN(&anim_data, ale);
+	}
+	
+	/* return cleaned up list */
+	*anim_data_visible = anim_data;
 }
 
 /* performing rearranging of channels using islands */
@@ -949,10 +963,6 @@ static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, short mode)
 	rearrange_func = rearrange_get_mode_func(mode);
 	if (rearrange_func == NULL)
 		return;
-	
-	/* only consider NLA data if it's accessible */
-	//if (EXPANDED_DRVD(adt) == 0)
-	//	return;
 	
 	/* Filter visible data. */
 	rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_NLATRACK);
