@@ -80,6 +80,7 @@ static bool check_object_instances_group_recursive(Object *object, Group *group)
 		/* Cycle already exists in groups, let's prevent further crappyness */
 		return true;
 	}
+	/* flag the object to identify cyclic dependencies in further dupli groups */
 	object->id.flag &= ~LIB_DOIT;
 	
 	if (object->dup_group) {
@@ -93,6 +94,9 @@ static bool check_object_instances_group_recursive(Object *object, Group *group)
 			}
 		}
 	}
+	
+	/* un-flag the object, it's allowed to have the same group multiple times in parallel */
+	object->id.flag |= LIB_DOIT;
 	
 	return false;
 }
