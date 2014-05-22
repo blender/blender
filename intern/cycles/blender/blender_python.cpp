@@ -158,8 +158,6 @@ static PyObject *bake_func(PyObject *self, PyObject *args)
 	if(!PyArg_ParseTuple(args, "OOsOiiO", &pysession, &pyobject, &pass_type, &pypixel_array,  &num_pixels, &depth, &pyresult))
 		return NULL;
 
-	Py_BEGIN_ALLOW_THREADS
-
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 
 	PointerRNA objectptr;
@@ -172,9 +170,11 @@ static PyObject *bake_func(PyObject *self, PyObject *args)
 	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pypixel_array), &bakepixelptr);
 	BL::BakePixel b_bake_pixel(bakepixelptr);
 
+	python_thread_state_save(&session->python_thread_state);
+
 	session->bake(b_object, pass_type, b_bake_pixel, num_pixels, depth, (float *)b_result);
 
-	Py_END_ALLOW_THREADS
+	python_thread_state_restore(&session->python_thread_state);
 
 	Py_RETURN_NONE;
 }
