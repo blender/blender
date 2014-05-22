@@ -36,7 +36,10 @@ void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
 	if (_pRenderMonitor && _pRenderMonitor->testBreak())
 		return;
 	WXShape *shape = new WXShape;
-	buildWShape(*shape, ifs);
+	if (!buildWShape(*shape, ifs)) {
+		delete shape;
+		return;
+	}
 	shape->setId(ifs.getId().getFirst());
 	shape->setName(ifs.getName());
 	//ifs.setId(shape->GetId());

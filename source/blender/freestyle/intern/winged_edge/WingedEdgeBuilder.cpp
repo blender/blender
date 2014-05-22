@@ -43,7 +43,10 @@ void WingedEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
 	if (_pRenderMonitor && _pRenderMonitor->testBreak())
 		return;
 	WShape *shape = new WShape;
-	buildWShape(*shape, ifs);
+	if (!buildWShape(*shape, ifs)) {
+		delete shape;
+		return;
+	}
 	shape->setId(ifs.getId().getFirst());
 	//ifs.setId(shape->GetId());
 }
@@ -80,7 +83,7 @@ void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform&)
 	_matrices_stack.pop_back();
 }
 
-void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs)
+bool WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs)
 {
 	unsigned int vsize = ifs.vsize();
 	unsigned int nsize = ifs.nsize();
@@ -171,6 +174,9 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs)
 	delete[] new_vertices;
 	delete[] new_normals;
 
+	if (shape.GetFaceList().size() == 0) // this may happen due to degenerate triangles
+		return false;
+
 	// compute bbox
 	shape.ComputeBBox();
 	// compute mean edge size:
@@ -198,8 +204,11 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs)
 			(*wv)->setSmooth(false);
 		}
 	}
+
 	// Adds the new WShape to the WingedEdge structure
 	_winged_edge->addWShape(&shape);
+
+	return true;
 }
 
 void WingedEdgeBuilder::buildWVertices(WShape& shape, const real *vertices, unsigned vsize)

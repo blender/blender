@@ -298,11 +298,18 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 
 	_bboxDiag = (_RootNode->bbox().getMax() - _RootNode->bbox().getMin()).norm();
 	if (G.debug & G_DEBUG_FREESTYLE) {
-		cout << "Triangles nb     : " << _SceneNumFaces << endl;
+		cout << "Triangles nb     : " << _SceneNumFaces << " imported, " <<
+		        _winged_edge->getNumFaces() << " retained" << endl;
 		cout << "Bounding Box     : " << _bboxDiag << endl;
 	}
 
 	ClearRootNode();
+
+	_SceneNumFaces = _winged_edge->getNumFaces();
+	if (_SceneNumFaces == 0) {
+		DeleteWingedEdge();
+		return 1;
+	}
 
 	return 0;
 }

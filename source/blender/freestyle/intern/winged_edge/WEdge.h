@@ -1309,11 +1309,13 @@ public:
 		for (vector<WShape *>::iterator it = _wshapes.begin(); it != _wshapes.end(); it++)
 			delete *it;
 		_wshapes.clear();
+		_numFaces = 0;
 	}
 
 	void addWShape(WShape *wshape)
 	{
 		_wshapes.push_back(wshape);
+		_numFaces += wshape->GetFaceList().size();
 	}
 
 	vector<WShape *>& getWShapes()
@@ -1321,8 +1323,14 @@ public:
 		return _wshapes;
 	}
 
+	unsigned getNumFaces()
+	{
+		return _numFaces;
+	}
+
 private:
 	vector<WShape *> _wshapes;
+	unsigned _numFaces;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WingedEdge")
