@@ -789,6 +789,7 @@ DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob,
 		/* Free memory used by export mesh. */
 		BLI_ghash_free(export_data.material_hash, NULL, NULL);
 
+		output_dm->cd_flag |= dm->cd_flag | dm_select->cd_flag;
 		output_dm->dirty |= DM_DIRTY_NORMALS;
 		carve_deleteMesh(output);
 	}
