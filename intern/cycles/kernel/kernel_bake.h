@@ -66,6 +66,12 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 			/* sample light and BSDF */
 			if((!is_sss) && (!is_ao)) {
+
+				if(sd->flag & SD_EMISSION) {
+					float3 emission = indirect_primitive_emission(kg, sd, 0.0f, state.flag, state.ray_pdf);
+					path_radiance_accum_emission(&L_sample, throughput, emission, state.bounce);
+				}
+
 				if(kernel_path_integrate_lighting(kg, &rng, sd, &throughput, &state, &L_sample, &ray)) {
 #ifdef __LAMP_MIS__
 					state.ray_t = 0.0f;
@@ -98,6 +104,12 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 			/* sample light and BSDF */
 			if((!is_sss) && (!is_ao)) {
+
+				if(sd->flag & SD_EMISSION) {
+					float3 emission = indirect_primitive_emission(kg, sd, 0.0f, state.flag, state.ray_pdf);
+					path_radiance_accum_emission(&L_sample, throughput, emission, state.bounce);
+				}
+
 				kernel_branched_path_integrate_lighting(kg, &rng,
 					sd, throughput, 1.0f, &state, &L_sample);
 			}
