@@ -124,15 +124,6 @@ typedef struct bAnimListElem {
 	struct AnimData *adt;   /* source of the animation data attached to ID block (for convenience) */
 } bAnimListElem;
 
-typedef enum eAnim_Update_Flags {
-	ANIM_UPDATE_DEPS        = (1 << 0),  /* referenced data and dependencies get refreshed */
-	ANIM_UPDATE_ORDER       = (1 << 1),  /* keyframes need to be sorted */
-	ANIM_UPDATE_HANDLES     = (1 << 2),  /* recalculate handles */
-} eAnim_Update_Flags;
-
-/* used for most tools which change keyframes (flushed by ANIM_animdata_update) */
-#define ANIM_UPDATE_DEFAULT (ANIM_UPDATE_DEPS | ANIM_UPDATE_ORDER | ANIM_UPDATE_HANDLES)
-#define ANIM_UPDATE_DEFAULT_NOHANDLES (ANIM_UPDATE_DEFAULT & ~ANIM_UPDATE_HANDLES)
 
 /* Some types for easier type-testing 
  * NOTE: need to keep the order of these synchronized with the channels define code
@@ -198,6 +189,20 @@ typedef enum eAnim_KeyType {
 	ALE_ACT,            /* Action summary */
 	ALE_GROUP           /* Action Group summary */
 } eAnim_KeyType;
+
+/* Flags for specifying the types of updates (i.e. recalculation/refreshing) that
+ * needs to be performed to the data contained in a channel following editing.
+ * For use with ANIM_animdata_update()
+ */
+typedef enum eAnim_Update_Flags {
+	ANIM_UPDATE_DEPS        = (1 << 0),  /* referenced data and dependencies get refreshed */
+	ANIM_UPDATE_ORDER       = (1 << 1),  /* keyframes need to be sorted */
+	ANIM_UPDATE_HANDLES     = (1 << 2),  /* recalculate handles */
+} eAnim_Update_Flags;
+
+/* used for most tools which change keyframes (flushed by ANIM_animdata_update) */
+#define ANIM_UPDATE_DEFAULT (ANIM_UPDATE_DEPS | ANIM_UPDATE_ORDER | ANIM_UPDATE_HANDLES)
+#define ANIM_UPDATE_DEFAULT_NOHANDLES (ANIM_UPDATE_DEFAULT & ~ANIM_UPDATE_HANDLES)
 
 /* ----------------- Filtering -------------------- */
 
