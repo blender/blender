@@ -1090,6 +1090,8 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
                 factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
                 factor_but(col, "use_map_translucency", "translucency_factor", "Add")
             elif idblock.type == 'VOLUME':
+                layout.label(text="Volume:")
+
                 split = layout.split()
 
                 col = split.column()
@@ -1103,6 +1105,16 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
                 factor_but(col, "use_map_color_emission", "emission_color_factor", "Emission Color")
                 factor_but(col, "use_map_color_transmission", "transmission_color_factor", "Transmission Color")
                 factor_but(col, "use_map_color_reflection", "reflection_color_factor", "Reflection Color")
+
+                layout.label(text="Geometry:")
+
+                split = layout.split()
+
+                col = split.column()
+                factor_but(col, "use_map_warp", "warp_factor", "Warp")
+
+                col = split.column()
+                factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
 
         elif isinstance(idblock, Lamp):
             split = layout.split()
