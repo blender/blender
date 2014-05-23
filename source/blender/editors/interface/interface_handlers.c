@@ -6698,7 +6698,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 
 	if (but->type == GRIP) {
 		const bool horizontal = (BLI_rctf_size_x(&but->rect) < BLI_rctf_size_y(&but->rect));
-		WM_cursor_modal_set(data->window, horizontal ? BC_EW_ARROWCURSOR : BC_NS_ARROWCURSOR);
+		WM_cursor_modal_set(data->window, horizontal ? CURSOR_X_MOVE : CURSOR_Y_MOVE);
 	}
 }
 
