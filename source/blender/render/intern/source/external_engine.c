@@ -413,13 +413,13 @@ void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
 	/* prevent crash when freeing the scene
 	 but it potentially leaves unfreed memory blocks
 	 not sure how to fix this yet -- dfelinto */
-	re->r.layers.first = re->r.layers.last = NULL;
+	BLI_listbase_clear(&re->r.layers);
 }
 
 bool RE_bake_has_engine(Render *re)
 {
 	RenderEngineType *type = RE_engines_find(re->r.engine);
-	return (bool)(type->bake);
+	return (type->bake != NULL);
 }
 
 bool RE_bake_engine(
