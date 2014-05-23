@@ -2623,6 +2623,8 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 
 	/* so input of offset zero ends up being (nth - 1) */
 	offset = mod_i(offset, nth);
+	/* depth starts at 1, this keeps active item selected */
+	offset -= 1;
 
 	if (edbm_deselect_nth(em, nth, offset) == false) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
