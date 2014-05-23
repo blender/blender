@@ -1806,7 +1806,8 @@ static void ntree_render_scenes(Render *re)
 {
 	bNode *node;
 	int cfra = re->scene->r.cfra;
-	int restore_scene = 0;
+	Scene *restore_scene = re->scene;
+	bool scene_changed = false;
 	
 	if (re->scene->nodetree == NULL) return;
 	
@@ -1820,18 +1821,18 @@ static void ntree_render_scenes(Render *re)
 				if (node->flag & NODE_TEST) {
 					Scene *scene = (Scene *)node->id;
 
+					scene_changed |= scene != restore_scene;
 					render_scene(re, scene, cfra);
-					restore_scene = (scene != re->scene);
 					node->flag &= ~NODE_TEST;
 					
-					nodeUpdate(re->scene->nodetree, node);
+					nodeUpdate(restore_scene->nodetree, node);
 				}
 			}
 		}
 	}
 
 	/* restore scene if we rendered another last */
-	if (restore_scene)
+	if (scene_changed)
 		BKE_scene_set_background(re->main, re->scene);
 }
 
