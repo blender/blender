@@ -76,27 +76,28 @@ static bool group_link_early_exit_check(Group *group, Object *object)
 
 static bool check_object_instances_group_recursive(Object *object, Group *group)
 {
-	if ((object->id.flag & LIB_DOIT) == 0) {
-		/* Cycle already exists in groups, let's prevent further crappyness */
-		return true;
-	}
-	/* flag the object to identify cyclic dependencies in further dupli groups */
-	object->id.flag &= ~LIB_DOIT;
-	
 	if (object->dup_group) {
-		if (object->dup_group == group)
+		Group *dup_group = object->dup_group;
+		if ((dup_group->id.flag & LIB_DOIT) == 0) {
+			/* Cycle already exists in groups, let's prevent further crappyness */
+			return true;
+		}
+		/* flag the object to identify cyclic dependencies in further dupli groups */
+		dup_group->id.flag &= ~LIB_DOIT;
+		
+		if (dup_group == group)
 			return true;
 		else {
 			GroupObject *gob;
-			for (gob = object->dup_group->gobject.first; gob; gob = gob->next) {
+			for (gob = dup_group->gobject.first; gob; gob = gob->next) {
 				if (check_object_instances_group_recursive(gob->ob, group))
 					return true;
 			}
 		}
+		
+		/* un-flag the object, it's allowed to have the same group multiple times in parallel */
+		dup_group->id.flag |= LIB_DOIT;
 	}
-	
-	/* un-flag the object, it's allowed to have the same group multiple times in parallel */
-	object->id.flag |= LIB_DOIT;
 	
 	return false;
 }
