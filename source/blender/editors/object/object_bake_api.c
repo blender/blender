@@ -54,6 +54,7 @@
 #include "BKE_report.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_screen.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -98,6 +99,16 @@ static int bake_break(void *UNUSED(rjv))
 	if (G.is_break)
 		return 1;
 	return 0;
+}
+
+
+static void bake_update_image(ScrArea *sa, Image *image)
+{
+	if (sa && sa->spacetype == SPACE_IMAGE) { /* in case the user changed while baking */
+		SpaceImage *sima = sa->spacedata.first;
+		if (sima)
+			sima->image = image;
+	}
 }
 
 static bool write_internal_bake_pixels(
@@ -388,6 +399,9 @@ typedef struct BakeAPIRender {
 
 	int result;
 	bool ready;
+
+	/* for redrawing */
+	ScrArea *sa;
 } BakeAPIRender;
 
 static int bake(
@@ -397,7 +411,7 @@ static int bake(
         const bool is_automatic_name, const bool use_selected_to_active,
         const float cage_extrusion, const int normal_space, const BakeNormalSwizzle normal_swizzle[],
         const char *custom_cage, const char *filepath, const int width, const int height,
-        const char *identifier)
+        const char *identifier, ScrArea *sa)
 {
 	int op_result = OPERATOR_CANCELLED;
 	bool ok = false;
@@ -756,6 +770,9 @@ static int bake(
 				         bk_image->width, bk_image->height,
 				         margin, is_clear, is_noncolor);
 
+				/* might be read by UI to set active image for display */
+				bake_update_image(sa, bk_image->image);
+
 				if (!ok) {
 					BKE_report(reports, RPT_ERROR,
 					           "Problem saving the bake map internally, "
@@ -872,10 +889,12 @@ cleanup:
 static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 {
 	bool is_save_internal;
+	bScreen *sc = CTX_wm_screen(C);
 
 	bkr->ob = CTX_data_active_object(C);
 	bkr->main = CTX_data_main(C);
 	bkr->scene = CTX_data_scene(C);
+	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL;
 
 	bkr->pass_type = RNA_enum_get(op->ptr, "type");
 	bkr->margin = RNA_int_get(op->ptr, "margin");
@@ -927,7 +946,7 @@ static int bake_exec(bContext *C, wmOperator *op)
 	        bkr.pass_type, bkr.margin, bkr.save_mode,
 	        bkr.is_clear, bkr.is_split_materials, bkr.is_automatic_name, bkr.use_selected_to_active,
 	        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
-	        bkr.custom_cage, bkr.filepath, bkr.width, bkr.height, bkr.identifier);
+	        bkr.custom_cage, bkr.filepath, bkr.width, bkr.height, bkr.identifier, bkr.sa);
 
 	BLI_freelistN(&bkr.selected_objects);
 	return result;
@@ -942,7 +961,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_updat
 	        bkr->pass_type, bkr->margin, bkr->save_mode,
 	        bkr->is_clear, bkr->is_split_materials, bkr->is_automatic_name, bkr->use_selected_to_active,
 	        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
-	        bkr->custom_cage, bkr->filepath, bkr->width, bkr->height, bkr->identifier
+	        bkr->custom_cage, bkr->filepath, bkr->width, bkr->height, bkr->identifier, bkr->sa
 	        );
 }
 
