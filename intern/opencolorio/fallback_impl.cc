@@ -60,7 +60,7 @@ void FallbackImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr * /*config*/)
 
 OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromEnv(void)
 {
-	return CONFIG_DEFAULT;
+	return NULL;
 }
 
 OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromFile(const char * /*filename*/)

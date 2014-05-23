@@ -626,8 +626,12 @@ void colormanagement_init(void)
 
 	ocio_env = getenv("OCIO");
 
-	if (ocio_env && ocio_env[0] != '\0')
+	if (ocio_env && ocio_env[0] != '\0') {
 		config = OCIO_configCreateFromEnv();
+		if (config != NULL) {
+			printf("Color management: Using %s as a configuration file\n", ocio_env);
+		}
+	}
 
 	if (config == NULL) {
 		configdir = BLI_get_folder(BLENDER_DATAFILES, "colormanagement");
