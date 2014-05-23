@@ -1059,10 +1059,17 @@ bool is_uniform_scaled_m3(float m[3][3])
 	    fabsf(l5 - l1) <= eps &&
 	    fabsf(l6 - l1) <= eps)
 	{
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
+}
+
+bool is_uniform_scaled_m4(float m[4][4])
+{
+	float t[3][3];
+	copy_m3_m4(t, m);
+	return is_uniform_scaled_m3(t);
 }
 
 void normalize_m3(float mat[3][3])

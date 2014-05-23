@@ -508,13 +508,11 @@ static int bake(
 			if (ob_iter == ob_low)
 				continue;
 
-			if (ob_iter->size[0] != ob_iter->size[1] || ob_iter->size[1] != ob_iter->size[2]) {
-				BKE_reportf(reports, RPT_ERROR,
-				            "Selected objects need to have uniform scale. Apply Scale to object \"%s\"",
+			if (!is_uniform_scaled_m4(ob_iter->obmat)){
+				BKE_reportf(reports, RPT_INFO,
+				            "Selected objects must have uniform scale. Apply scale to object \"%s\" for correct results",
 				            ob_iter->id.name + 2);
-				goto cleanup;
 			}
-
 
 			tot_highpoly ++;
 		}

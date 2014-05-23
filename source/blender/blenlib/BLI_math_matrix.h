@@ -145,6 +145,7 @@ bool is_orthonormal_m3(float mat[3][3]);
 bool is_orthonormal_m4(float mat[4][4]);
 
 bool is_uniform_scaled_m3(float mat[3][3]);
+bool is_uniform_scaled_m4(float m[4][4]);
 
 void adjoint_m2_m2(float R[2][2], float A[2][2]);
 void adjoint_m3_m3(float R[3][3], float A[3][3]);
