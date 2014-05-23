@@ -366,6 +366,11 @@ class ShapeTransfer(Operator):
         orig_coords = me_cos(me.shape_keys.key_blocks[0].data)
 
         for ob_other in objects:
+            if ob_other.type != 'MESH':
+                self.report({'WARNING'},
+                            ("Skipping '%s', "
+                             "not a mesh") % ob_other.name)
+                continue
             me_other = ob_other.data
             if len(me_other.vertices) != len(me.vertices):
                 self.report({'WARNING'},
