@@ -225,6 +225,70 @@ static void *bmw_VertShellWalker_step(BMWalker *walker)
 /** \} */
 
 
+/** \name FaceShell Walker
+ * \{
+ *
+ * Starts at an edge on the mesh and walks over the 'shell' it belongs
+ * to via visiting connected faces.
+ */
+static void bmw_FaceShellWalker_visitEdge(BMWalker *walker, BMEdge *e)
+{
+	BMwShellWalker *shellWalk = NULL;
+
+	if (BLI_gset_haskey(walker->visit_set, e)) {
+		return;
+	}
+
+	if (!bmw_mask_check_edge(walker, e)) {
+		return;
+	}
+
+	shellWalk = BMW_state_add(walker);
+	shellWalk->curedge = e;
+	BLI_gset_insert(walker->visit_set, e);
+}
+
+static void bmw_FaceShellWalker_begin(BMWalker *walker, void *data)
+{
+	BMEdge *e = data;
+	bmw_FaceShellWalker_visitEdge(walker, e);
+}
+
+static void *bmw_FaceShellWalker_yield(BMWalker *walker)
+{
+	BMwShellWalker *shellWalk = BMW_current_state(walker);
+	return shellWalk->curedge;
+}
+
+static void *bmw_FaceShellWalker_step(BMWalker *walker)
+{
+	BMwShellWalker *swalk, owalk;
+	BMEdge *e, *e2;
+	BMIter iter;
+
+	BMW_state_remove_r(walker, &owalk);
+	swalk = &owalk;
+
+	e = swalk->curedge;
+
+	if (e->l) {
+		BMLoop *l_iter, *l_first;
+
+		l_iter = l_first = e->l;
+		do {
+			BM_ITER_ELEM (e2, &iter, l_iter->f, BM_EDGES_OF_FACE) {
+				if (e2 != e) {
+					bmw_FaceShellWalker_visitEdge(walker, e2);
+				}
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+
+	return e;
+}
+/** \} */
+
+
 /** \name Connected Vertex Walker
  * \{
  *
@@ -1185,6 +1249,16 @@ static BMWalker bmw_VertShellWalker_Type = {
 	BM_EDGE, /* valid restrict masks */
 };
 
+static BMWalker bmw_FaceShellWalker_Type = {
+	BM_EDGE,
+	bmw_FaceShellWalker_begin,
+	bmw_FaceShellWalker_step,
+	bmw_FaceShellWalker_yield,
+	sizeof(BMwShellWalker),
+	BMW_BREADTH_FIRST,
+	BM_EDGE, /* valid restrict masks */
+};
+
 static BMWalker bmw_IslandboundWalker_Type = {
 	BM_LOOP,
 	bmw_IslandboundWalker_begin,
@@ -1267,6 +1341,7 @@ static BMWalker bmw_ConnectedVertexWalker_Type = {
 
 BMWalker *bm_walker_types[] = {
 	&bmw_VertShellWalker_Type,          /* BMW_VERT_SHELL */
+	&bmw_FaceShellWalker_Type,          /* BMW_FACE_SHELL */
 	&bmw_LoopWalker_Type,               /* BMW_LOOP */
 	&bmw_FaceLoopWalker_Type,           /* BMW_FACELOOP */
 	&bmw_EdgeringWalker_Type,           /* BMW_EDGERING */

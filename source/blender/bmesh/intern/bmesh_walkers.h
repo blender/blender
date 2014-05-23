@@ -108,6 +108,7 @@ void  BMW_reset(BMWalker *walker);
 
 enum {
 	BMW_VERT_SHELL,
+	BMW_FACE_SHELL,
 	BMW_LOOP,
 	BMW_FACELOOP,
 	BMW_EDGERING,
