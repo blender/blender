@@ -98,7 +98,7 @@ static bool bmw_mask_check_face(BMWalker *walker, BMFace *f)
  *
  * \todo Add restriction flag/callback for wire edges.
  */
-static void bmw_ShellWalker_visitEdge(BMWalker *walker, BMEdge *e)
+static void bmw_VertShellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 {
 	BMwShellWalker *shellWalk = NULL;
 
@@ -115,7 +115,7 @@ static void bmw_ShellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 	BLI_gset_insert(walker->visit_set, e);
 }
 
-static void bmw_ShellWalker_begin(BMWalker *walker, void *data)
+static void bmw_VertShellWalker_begin(BMWalker *walker, void *data)
 {
 	BMIter eiter;
 	BMHeader *h = data;
@@ -133,7 +133,7 @@ static void bmw_ShellWalker_begin(BMWalker *walker, void *data)
 			 * to the worklist */
 			v = (BMVert *)h;
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				bmw_ShellWalker_visitEdge(walker, e);
+				bmw_VertShellWalker_visitEdge(walker, e);
 			}
 			break;
 		}
@@ -143,7 +143,7 @@ static void bmw_ShellWalker_begin(BMWalker *walker, void *data)
 			/* starting the walk at an edge, add the single edge
 			 * to the worklist */
 			e = (BMEdge *)h;
-			bmw_ShellWalker_visitEdge(walker, e);
+			bmw_VertShellWalker_visitEdge(walker, e);
 			break;
 		}
 		default:
@@ -151,13 +151,13 @@ static void bmw_ShellWalker_begin(BMWalker *walker, void *data)
 	}
 }
 
-static void *bmw_ShellWalker_yield(BMWalker *walker)
+static void *bmw_VertShellWalker_yield(BMWalker *walker)
 {
 	BMwShellWalker *shellWalk = BMW_current_state(walker);
 	return shellWalk->curedge;
 }
 
-static void *bmw_ShellWalker_step(BMWalker *walker)
+static void *bmw_VertShellWalker_step(BMWalker *walker)
 {
 	BMwShellWalker *swalk, owalk;
 	BMEdge *e, *e2;
@@ -173,7 +173,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 	for (i = 0; i < 2; i++) {
 		v = i ? e->v2 : e->v1;
 		BM_ITER_ELEM (e2, &iter, v, BM_EDGES_OF_VERT) {
-			bmw_ShellWalker_visitEdge(walker, e2);
+			bmw_VertShellWalker_visitEdge(walker, e2);
 		}
 	}
 
@@ -181,7 +181,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 }
 
 #if 0
-static void *bmw_ShellWalker_step(BMWalker *walker)
+static void *bmw_VertShellWalker_step(BMWalker *walker)
 {
 	BMEdge *curedge, *next = NULL;
 	BMVert *v_old = NULL;
@@ -1175,11 +1175,11 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
 /** \} */
 
 
-static BMWalker bmw_ShellWalker_Type = {
+static BMWalker bmw_VertShellWalker_Type = {
 	BM_VERT | BM_EDGE,
-	bmw_ShellWalker_begin,
-	bmw_ShellWalker_step,
-	bmw_ShellWalker_yield,
+	bmw_VertShellWalker_begin,
+	bmw_VertShellWalker_step,
+	bmw_VertShellWalker_yield,
 	sizeof(BMwShellWalker),
 	BMW_BREADTH_FIRST,
 	BM_EDGE, /* valid restrict masks */
@@ -1266,7 +1266,7 @@ static BMWalker bmw_ConnectedVertexWalker_Type = {
 };
 
 BMWalker *bm_walker_types[] = {
-	&bmw_ShellWalker_Type,              /* BMW_SHELL */
+	&bmw_VertShellWalker_Type,          /* BMW_VERT_SHELL */
 	&bmw_LoopWalker_Type,               /* BMW_LOOP */
 	&bmw_FaceLoopWalker_Type,           /* BMW_FACELOOP */
 	&bmw_EdgeringWalker_Type,           /* BMW_EDGERING */

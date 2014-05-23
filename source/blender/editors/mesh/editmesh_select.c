@@ -2039,7 +2039,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			BM_elem_flag_set(v, BM_ELEM_TAG, BM_elem_flag_test(v, BM_ELEM_SELECT));
 		}
 
-		BMW_init(&walker, em->bm, BMW_SHELL,
+		BMW_init(&walker, em->bm, BMW_VERT_SHELL,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
@@ -2157,7 +2157,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 			eed = eve->e;
 		}
 
-		BMW_init(&walker, bm, BMW_SHELL,
+		BMW_init(&walker, bm, BMW_VERT_SHELL,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
@@ -2461,7 +2461,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 			break;
 		case BM_EDGE:
 			itertype = BM_EDGES_OF_MESH;
-			walktype = BMW_SHELL;
+			walktype = BMW_VERT_SHELL;
 			flushtype = SCE_SELECT_EDGE;
 			mask_edge = BMO_ELE_TAG;
 			break;

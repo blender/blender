@@ -389,7 +389,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 
-	BMW_init(&walker, bm, BMW_SHELL,
+	BMW_init(&walker, bm, BMW_VERT_SHELL,
 	         BMW_MASK_NOP, EDGE_MARK, BMW_MASK_NOP,
 	         BMW_FLAG_NOP, /* no need to use BMW_FLAG_TEST_HIDDEN, already marked data */
 	         BMW_NIL_LAY);

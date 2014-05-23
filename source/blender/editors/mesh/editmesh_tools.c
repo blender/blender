@@ -2783,7 +2783,7 @@ static bool mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh
 
 		/* Walk from the single vertex, selecting everything connected
 		 * to it */
-		BMW_init(&walker, bm_old, BMW_SHELL,
+		BMW_init(&walker, bm_old, BMW_VERT_SHELL,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_NOP,
 		         BMW_NIL_LAY);
