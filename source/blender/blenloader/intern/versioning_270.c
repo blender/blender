@@ -288,4 +288,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			linestyle->texstep = 1.0;
 		}
 	}
+
+	{
+		Scene *scene;
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			int num_layers = BLI_countlist(&scene->r.layers);
+			scene->r.actlay = min_ff(scene->r.actlay, num_layers - 1);
+		}
+	}
 }

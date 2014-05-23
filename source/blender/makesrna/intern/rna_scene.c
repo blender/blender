@@ -1059,7 +1059,8 @@ static int rna_RenderSettings_active_layer_index_get(PointerRNA *ptr)
 static void rna_RenderSettings_active_layer_index_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd = (RenderData *)ptr->data;
-	rd->actlay = value;
+	int num_layers = BLI_countlist(&rd->layers);
+	rd->actlay = min_ff(value, num_layers - 1);
 }
 
 static void rna_RenderSettings_active_layer_index_range(PointerRNA *ptr, int *min, int *max,
