@@ -327,14 +327,21 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection
 	float t, u, v;
 
 	if(ray_triangle_intersect_uv(P, dir, isect->t, verts[2], verts[0], verts[1], &u, &v, &t)) {
-		isect->prim = triAddr;
-		isect->object = object;
-		isect->type = PRIMITIVE_MOTION_TRIANGLE;
-		isect->u = u;
-		isect->v = v;
-		isect->t = t;
+#ifdef __VISIBILITY_FLAG__
+		/* visibility flag test. we do it here under the assumption
+		 * that most triangles are culled by node flags */
+		if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
+#endif
+		{
+			isect->prim = triAddr;
+			isect->object = object;
+			isect->type = PRIMITIVE_MOTION_TRIANGLE;
+			isect->u = u;
+			isect->v = v;
+			isect->t = t;
 		
-		return true;
+			return true;
+		}
 	}
 
 	return false;
