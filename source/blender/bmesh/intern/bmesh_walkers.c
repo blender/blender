@@ -60,6 +60,8 @@
 
 void *BMW_begin(BMWalker *walker, void *start)
 {
+	BLI_assert(((BMHeader *)start)->htype & walker->begin_htype);
+
 	walker->begin(walker, start);
 	
 	return BMW_current_state(walker) ? walker->step(walker) : NULL;
@@ -100,6 +102,7 @@ void BMW_init(BMWalker *walker, BMesh *bm, int type,
 	}
 	
 	if (type != BMW_CUSTOM) {
+		walker->begin_htype = bm_walker_types[type]->begin_htype;
 		walker->begin = bm_walker_types[type]->begin;
 		walker->yield = bm_walker_types[type]->yield;
 		walker->step = bm_walker_types[type]->step;

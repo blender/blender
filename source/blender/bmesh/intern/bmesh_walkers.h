@@ -27,8 +27,6 @@
  *  \ingroup bmesh
  */
 
-#include "BLI_ghash.h"
-
 /*
  * NOTE: do NOT modify topology while walking a mesh!
  */
@@ -45,6 +43,7 @@ typedef enum {
 
 /*Walkers*/
 typedef struct BMWalker {
+	char    begin_htype;  /* only for validating input */
 	void  (*begin) (struct BMWalker *walker, void *start);
 	void *(*step)  (struct BMWalker *walker);
 	void *(*yield) (struct BMWalker *walker);
@@ -67,8 +66,8 @@ typedef struct BMWalker {
 
 	BMWFlag flag;
 
-	GSet *visit_set;
-	GSet *visit_set_alt;
+	struct GSet *visit_set;
+	struct GSet *visit_set_alt;
 	int depth;
 } BMWalker;
 
@@ -108,34 +107,15 @@ void  BMW_reset(BMWalker *walker);
  */
 
 enum {
-	/* walk over connected geometry.  can restrict to a search flag,
-	 * or not, it's optional.
-	 *
-	 * takes a vert as an argument, and spits out edges, restrict flag acts
-	 * on the edges as well. */
 	BMW_SHELL,
-	/*walk over an edge loop.  search flag doesn't do anything.*/
 	BMW_LOOP,
 	BMW_FACELOOP,
 	BMW_EDGERING,
 	BMW_EDGEBOUNDARY,
-	/* #define BMW_RING	2 */
-	/* walk over uv islands; takes a loop as input.  restrict flag
-	 * restricts the walking to loops whose vert has restrict flag set as a
-	 * tool flag.
-	 *
-	 * the flag parameter to BMW_init maps to a loop customdata layer index.
-	 */
+	/* BMW_RING, */
 	BMW_LOOPDATA_ISLAND,
-	/* walk over an island of flagged faces.  note, that this doesn't work on
-	 * non-manifold geometry.  it might be better to rewrite this to extract
-	 * boundary info from the island walker, rather then directly walking
-	 * over the boundary.  raises an error if it encounters nonmanifold
-	 * geometry. */
 	BMW_ISLANDBOUND,
-	/* walk over all faces in an island of tool flagged faces. */
 	BMW_ISLAND,
-	/* walk from a vertex to all connected vertices. */
 	BMW_CONNECTED_VERTEX,
 	/* end of array index enum vals */
 
