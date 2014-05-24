@@ -665,7 +665,7 @@ def buildslave(target=None, source=None, env=None):
         platform = env['OURPLATFORM'].split('-')[0]
 
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc') and env['MSVC_VERSION'] == '9.0':
-        platform = platform + '9'
+        platform = platform + '-vc9'
 
     if platform == 'linux':
         import platform
