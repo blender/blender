@@ -718,7 +718,7 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 		return set_attribute_int(f, type, derivatives, val);
 	}
 	else if (name == u_path_transparent_depth) {
-		/* Ray Depth */
+		/* Transparent Ray Depth */
 		int f = sd->transparent_depth;
 		return set_attribute_int(f, type, derivatives, val);
 	}
@@ -758,7 +758,6 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	KernelGlobals *kg = sd->osl_globals;
 	bool is_curve;
 	int object;
-	// int prim;
 
 	/* lookup of attribute on another object */
 	if (object_name != u_empty) {
@@ -768,12 +767,10 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 			return false;
 
 		object = it->second;
-		// prim = PRIM_NONE;
 		is_curve = false;
 	}
 	else {
 		object = sd->object;
-		// prim = sd->prim;
 		is_curve = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
 
 		if (object == OBJECT_NONE)
