@@ -236,7 +236,7 @@ static int buttons_context_path_modifier(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_material(ButsContextPath *path, int for_texture)
+static int buttons_context_path_material(ButsContextPath *path, bool for_texture, bool new_shading)
 {
 	Object *ob;
 	PointerRNA *ptr = &path->ptr[path->len - 1];
@@ -257,11 +257,14 @@ static int buttons_context_path_material(ButsContextPath *path, int for_texture)
 
 			if (for_texture && give_current_material_texture_node(ma))
 				return 1;
-			
-			ma = give_node_material(ma);
-			if (ma) {
-				RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
-				path->len++;
+
+			if (!new_shading) {
+				/* Only try to get mat from node in case of old shading system (see T40331). */
+				ma = give_node_material(ma);
+				if (ma) {
+					RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
+					path->len++;
+				}
 			}
 			return 1;
 		}
@@ -411,7 +414,7 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 			if (GS(id->name) == ID_BR)
 				buttons_context_path_brush(path);
 			else if (GS(id->name) == ID_MA)
-				buttons_context_path_material(path, 0);
+				buttons_context_path_material(path, false, true);
 			else if (GS(id->name) == ID_WO)
 				buttons_context_path_world(path);
 			else if (GS(id->name) == ID_LA)
@@ -480,7 +483,7 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 			}
 		}
 		/* try material */
-		else if ((path->tex_ctx == SB_TEXC_MATERIAL) && buttons_context_path_material(path, 1)) {
+		else if ((path->tex_ctx == SB_TEXC_MATERIAL) && buttons_context_path_material(path, true, false)) {
 			ma = path->ptr[path->len - 1].data;
 
 			if (ma) {
@@ -609,7 +612,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found = buttons_context_path_particle(path);
 			break;
 		case BCONTEXT_MATERIAL:
-			found = buttons_context_path_material(path, 0);
+			found = buttons_context_path_material(path, false, (sbuts->texuser != NULL));
 			break;
 		case BCONTEXT_TEXTURE:
 			found = buttons_context_path_texture(path, sbuts->texuser);
