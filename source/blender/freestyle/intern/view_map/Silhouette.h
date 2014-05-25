@@ -103,7 +103,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*!  Returns the 3D point. */ 
-	virtual Vec3f getPoint3D() const
+	virtual Vec3r getPoint3D() const
 	{
 		return _Point3D;
 	}
@@ -127,9 +127,9 @@ public: // Implementation of Interface0D
 	}
 
 	/*!  Returns the 2D point. */ 
-	virtual Vec2f getPoint2D() const
+	virtual Vec2r getPoint2D() const
 	{
-		return Vec2f((float)_Point2D.x(), (float)_Point2D.y());
+		return Vec2f(_Point2D.x(), _Point2D.y());
 	}
 
 	/*! Returns the FEdge that lies between this Svertex and the Interface0D given as argument. */

@@ -48,7 +48,7 @@ real Interface0D::getZ() const
 	return 0;
 }
 
-Geometry::Vec3f Interface0D::getPoint3D() const
+Geometry::Vec3r Interface0D::getPoint3D() const
 {
 	PyErr_SetString(PyExc_TypeError, "method getPoint3D() not properly overridden");
 	return 0;
@@ -72,7 +72,7 @@ real Interface0D::getProjectedZ() const
 	return 0;
 }
 
-Geometry::Vec2f Interface0D::getPoint2D() const
+Geometry::Vec2r Interface0D::getPoint2D() const
 {
 	PyErr_SetString(PyExc_TypeError, "method getPoint2D() not properly overridden");
 	return 0;

@@ -419,7 +419,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*! Returns the 3D point. */
-	virtual Vec3f getPoint3D() const
+	virtual Vec3r getPoint3D() const
 	{
 		cerr << "Warning: getPoint3D() undefined for this point" << endl;
 		return _FrontSVertex->getPoint3D();
@@ -443,7 +443,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*! Returns the 2D point. */
-	virtual Vec2f getPoint2D() const
+	virtual Vec2r getPoint2D() const
 	{
 		return _FrontSVertex->getPoint2D();
 	}
@@ -692,7 +692,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*!  Returns the 3D point. */
-	virtual Vec3f getPoint3D() const
+	virtual Vec3r getPoint3D() const
 	{
 		return _SVertex->getPoint3D();
 	}
@@ -716,7 +716,7 @@ public: // Implementation of Interface0D
 	}
 
 	/*! Returns the 2D point. */
-	virtual Vec2f getPoint2D() const
+	virtual Vec2r getPoint2D() const
 	{
 		return _SVertex->getPoint2D();
 	}

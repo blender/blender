@@ -86,7 +86,7 @@ public:
 	virtual real getZ() const;
 
 	/*! Returns the 3D point. */
-	virtual Geometry::Vec3f getPoint3D() const;
+	virtual Geometry::Vec3r getPoint3D() const;
 
 	/*! Returns the 2D x coordinate of the point. */
 	virtual real getProjectedX() const;
@@ -98,7 +98,7 @@ public:
 	virtual real getProjectedZ() const;
 
 	/*! Returns the 2D point. */
-	virtual Geometry::Vec2f getPoint2D() const;
+	virtual Geometry::Vec2r getPoint2D() const;
 
 	/*! Returns the FEdge that lies between this Interface0D and the Interface0D given as argument. */
 	virtual FEdge *getFEdge(Interface0D&);
