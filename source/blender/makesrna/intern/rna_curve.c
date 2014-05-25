@@ -323,8 +323,15 @@ static int rna_Nurb_length(PointerRNA *ptr)
 
 static void rna_Nurb_type_set(PointerRNA *ptr, int value)
 {
+	Curve *cu = (Curve *)ptr->id.data;
 	Nurb *nu = (Nurb *)ptr->data;
-	BKE_nurb_type_convert(nu, value, true);
+	const int pntsu_prev = nu->pntsu;
+
+	if (BKE_nurb_type_convert(nu, value, true)) {
+		if (nu->pntsu != pntsu_prev) {
+			cu->actvert = CU_ACT_NONE;
+		}
+	}
 }
 
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

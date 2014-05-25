@@ -3830,6 +3830,9 @@ bool BKE_nurb_order_clamp_v(struct Nurb *nu)
 	return changed;
 }
 
+/**
+ * \note caller must ensure active vertex remains valid.
+ */
 bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
 {
 	BezTriple *bezt;
@@ -4011,13 +4014,18 @@ void BKE_curve_nurb_vert_active_set(Curve *cu, Nurb *nu, void *vert)
 	if (nu) {
 		BKE_curve_nurb_active_set(cu, nu);
 
-		if (nu->type == CU_BEZIER) {
-			BLI_assert(ARRAY_HAS_ITEM((BezTriple *)vert, nu->bezt, nu->pntsu));
-			cu->actvert = (BezTriple *)vert - nu->bezt;
+		if (vert) {
+			if (nu->type == CU_BEZIER) {
+				BLI_assert(ARRAY_HAS_ITEM((BezTriple *)vert, nu->bezt, nu->pntsu));
+				cu->actvert = (BezTriple *)vert - nu->bezt;
+			}
+			else {
+				BLI_assert(ARRAY_HAS_ITEM((BPoint *)vert, nu->bp, nu->pntsu * nu->pntsv));
+				cu->actvert = (BPoint *)vert - nu->bp;
+			}
 		}
 		else {
-			BLI_assert(ARRAY_HAS_ITEM((BPoint *)vert, nu->bp, nu->pntsu * nu->pntsv));
-			cu->actvert = (BPoint *)vert - nu->bp;
+			cu->actvert = CU_ACT_NONE;
 		}
 	}
 	else {

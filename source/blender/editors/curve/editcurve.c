@@ -3916,6 +3916,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
 	bool changed = false;
+	bool changed_size = false;
 	const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
 	const int type = RNA_enum_get(op->ptr, "type");
 
@@ -3926,10 +3927,16 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (isNurbsel(nu)) {
-			if (BKE_nurb_type_convert(nu, type, use_handles) == false)
-				BKE_report(op->reports, RPT_ERROR, "No conversion possible");
-			else
+			const int pntsu_prev = nu->pntsu;
+			if (BKE_nurb_type_convert(nu, type, use_handles)) {
 				changed = true;
+				if (pntsu_prev != nu->pntsu) {
+					changed_size = true;
+				}
+			}
+			else {
+				BKE_report(op->reports, RPT_ERROR, "No conversion possible");
+			}
 		}
 	}
 
@@ -3939,6 +3946,11 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 
 		DAG_id_tag_update(obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+
+		if (changed_size) {
+			Curve *cu = obedit->data;
+			cu->actvert = CU_ACT_NONE;
+		}
 
 		return OPERATOR_FINISHED;
 	}
