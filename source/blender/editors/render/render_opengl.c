@@ -340,20 +340,24 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 		return false;
 	}
 
-	/* ensure we have a 3d view */
-
-	if (!ED_view3d_context_activate(C)) {
-		RNA_boolean_set(op->ptr, "view_context", false);
-		is_view_context = false;
-	}
-
 	/* only one render job at a time */
 	if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER))
 		return false;
-	
-	if (!is_view_context && scene->camera == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Scene has no camera");
-		return false;
+
+	if (is_sequencer) {
+		is_view_context = false;
+	}
+	else {
+		/* ensure we have a 3d view */
+		if (!ED_view3d_context_activate(C)) {
+			RNA_boolean_set(op->ptr, "view_context", false);
+			is_view_context = false;
+		}
+
+		if (!is_view_context && scene->camera == NULL) {
+			BKE_report(op->reports, RPT_ERROR, "Scene has no camera");
+			return false;
+		}
 	}
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
