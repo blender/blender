@@ -2427,11 +2427,15 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	Curve *cu = (Curve *)obedit->data;
 	EditNurb *editnurb = cu->editnurb;
 	Nurb *nu;
+	int i;
 
-	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+	for (nu = editnurb->nurbs.first, i = 0; nu; nu = nu->next, i++) {
 		if (isNurbsel(nu)) {
 			BKE_nurb_direction_switch(nu);
 			keyData_switchDirectionNurb(cu, nu);
+			if ((i == cu->actnu) && (cu->actvert != CU_ACT_NONE)) {
+				cu->actvert = (nu->pntsu - 1) - cu->actvert;
+			}
 		}
 	}
 
