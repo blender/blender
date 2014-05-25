@@ -3984,7 +3984,7 @@ ListBase *BKE_curve_nurbs_get(Curve *cu)
 void BKE_curve_nurb_active_set(Curve *cu, Nurb *nu)
 {
 	if (nu == NULL) {
-		cu->actnu = -1;
+		cu->actnu = CU_ACT_NONE;
 	}
 	else {
 		ListBase *nurbs = BKE_curve_editNurbs_get(cu);

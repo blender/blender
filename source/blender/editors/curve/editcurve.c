@@ -1926,7 +1926,7 @@ static void ed_curve_delete_selected(Object *obedit)
 				}
 				if (a == 0) {
 					if (cu->actnu == nuindex)
-						cu->actnu = -1;
+						cu->actnu = CU_ACT_NONE;
 
 					BLI_remlink(nubase, nu);
 					keyIndex_delNurb(editnurb, nu);
@@ -1950,7 +1950,7 @@ static void ed_curve_delete_selected(Object *obedit)
 				}
 				if (a == 0) {
 					if (cu->actnu == nuindex)
-						cu->actnu = -1;
+						cu->actnu = CU_ACT_NONE;
 
 					BLI_remlink(nubase, nu);
 					keyIndex_delNurb(editnurb, nu);
@@ -4939,7 +4939,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 
 	if ((nu == NULL) || (nu->type == CU_BEZIER && bezt == NULL) || (nu->type != CU_BEZIER && bp == NULL)) {
 		if (mode != 'e') {
-			if (cu->actnu >= 0)
+			if (cu->actnu != CU_ACT_NONE)
 				nu = BLI_findlink(&editnurb->nurbs, cu->actnu);
 
 			if (!nu || nu->type == CU_BEZIER) {
