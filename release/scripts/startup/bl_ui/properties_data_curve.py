@@ -196,9 +196,12 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
         row.prop(curve, "bevel_factor_end", text="End")
 
         row = layout.row()
-        row.active = curve.bevel_object is not None
-        row.prop(curve, "use_map_taper")
-        row.prop(curve, "use_fill_caps")
+        sub = row.row()
+        sub.active = curve.taper_object is not None
+        sub.prop(curve, "use_map_taper")
+        sub = row.row()
+        sub.active = curve.bevel_object is not None
+        sub.prop(curve, "use_fill_caps")
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
