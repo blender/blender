@@ -1377,6 +1377,16 @@ static void calc_bevfac_spline_mapping(BevList *bl, float bevfac, float spline_l
 	}
 }
 
+static void calc_bevfac_mapping_default(
+        BevList *bl,
+        int *r_start, float *r_firstblend, int *r_steps, float *r_lastblend)
+{
+	*r_start = 0;
+	*r_steps = bl->nr;
+	*r_firstblend = 1.0f;
+	*r_lastblend = 1.0f;
+}
+
 static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const bool use_render_resolution,
                                 int *r_start, float *r_firstblend, int *r_steps, float *r_lastblend)
 {
@@ -1388,6 +1398,15 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const 
 	float *bevp_array = NULL;
 	float *segments = NULL;
 	int end = 0, i, j;
+
+	if ((BKE_nurb_check_valid_u(nu) == false) ||
+	    /* not essential, but skips unnecessary calculation */
+	    (min_ff(cu->bevfac1, cu->bevfac2) == 0.0f &&
+	     max_ff(cu->bevfac1, cu->bevfac2) == 1.0f))
+	{
+		calc_bevfac_mapping_default(bl, r_start, r_firstblend, r_steps, r_lastblend);
+		return;
+	}
 
 	if ((cu->bevfac1_mapping != CU_BEVFAC_MAP_RESOLU) ||
 	    (cu->bevfac2_mapping != CU_BEVFAC_MAP_RESOLU))
@@ -1602,8 +1621,14 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						float firstblend = 0.0f, lastblend = 0.0f;
 						int i, start, steps;
 
-						calc_bevfac_mapping(cu, bl, nu->type, use_render_resolution,
-						                    &start, &firstblend, &steps, &lastblend);
+						if (nu->flagu & CU_NURB_CYCLIC) {
+							calc_bevfac_mapping_default(bl,
+							                            &start, &firstblend, &steps, &lastblend);
+						}
+						else {
+							calc_bevfac_mapping(cu, bl, nu->type, use_render_resolution,
+							                    &start, &firstblend, &steps, &lastblend);
+						}
 
 						for (dlb = dlbev.first; dlb; dlb = dlb->next) {
 							BevPoint *bevp_first, *bevp_last;
