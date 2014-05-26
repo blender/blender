@@ -413,6 +413,9 @@ static void exporter_InitGeomArrays(ExportMeshData *export_data,
 	CustomData_merge(&dm_left->polyData, &dm->polyData, merge_mask, CD_DEFAULT, num_polys);
 	CustomData_merge(&dm_right->polyData, &dm->polyData, merge_mask, CD_DEFAULT, num_polys);
 
+	CustomData_merge(&dm_left->edgeData, &dm->edgeData, merge_mask, CD_DEFAULT, num_edges);
+	CustomData_merge(&dm_right->edgeData, &dm->edgeData, merge_mask, CD_DEFAULT, num_edges);
+
 	export_data->vert_origindex = dm->getVertDataArray(dm, CD_ORIGINDEX);
 	export_data->edge_origindex = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
 	export_data->poly_origindex = dm->getPolyDataArray(dm, CD_ORIGINDEX);
