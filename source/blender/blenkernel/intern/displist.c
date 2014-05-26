@@ -1557,13 +1557,13 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			for (; bl && nu; bl = bl->next, nu = nu->next) {
 				DispList *dl;
 				float *data;
-				BevPoint *bevp;
 				int a;
 
 				if (bl->nr) { /* blank bevel lists can happen */
 
 					/* exception handling; curve without bevel or extrude, with width correction */
 					if (BLI_listbase_is_empty(&dlbev)) {
+						BevPoint *bevp;
 						dl = MEM_callocN(sizeof(DispList), "makeDispListbev");
 						dl->verts = MEM_callocN(3 * sizeof(float) * bl->nr, "dlverts");
 						BLI_addtail(dispbase, dl);
@@ -1606,6 +1606,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						                    &start, &firstblend, &steps, &lastblend);
 
 						for (dlb = dlbev.first; dlb; dlb = dlb->next) {
+							BevPoint *bevp_first, *bevp_last;
+							BevPoint *bevp;
 
 							/* for each part of the bevel use a separate displblock */
 							dl = MEM_callocN(sizeof(DispList), "makeDispListbev1");
@@ -1631,7 +1633,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							                                 "bevelSplitFlag");
 
 							/* for each point of poly make a bevel piece */
-							bevp = (BevPoint *)(bl + 1) + start;
+							bevp_first = (BevPoint *)(bl + 1);
+							bevp_last  = (BevPoint *)(bl + 1) + (bl->nr - 1);
+							bevp       = (BevPoint *)(bl + 1) + start;
 							for (i = start, a = 0; a < steps; i++, bevp++, a++) {
 								float fac = 1.0;
 								float *cur_data = data;
@@ -1670,12 +1674,15 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 								}
 
 								/* rotate bevel piece and write in data */
-								if (a == 0)
+								if ((a == 0) && (bevp != bevp_last)) {
 									rotateBevelPiece(cu, bevp, bevp + 1, dlb, 1.0f - firstblend, widfac, fac, &data);
-								else if (a == steps - 1)
+								}
+								else if ((a == steps - 1) && (bevp != bevp_first) ) {
 									rotateBevelPiece(cu, bevp, bevp - 1, dlb, 1.0f - lastblend, widfac, fac, &data);
-								else
+								}
+								else {
 									rotateBevelPiece(cu, bevp, NULL, dlb, 0.0f, widfac, fac, &data);
+								}
 
 								if (cu->bevobj && (cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
 									if (a == 1) {
