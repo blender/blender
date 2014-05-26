@@ -35,23 +35,22 @@ DeviceTask::DeviceTask(Type type_)
 	last_update_time = time_dt();
 }
 
-void DeviceTask::split_max_size(list<DeviceTask>& tasks, int max_size)
+void DeviceTask::split(list<DeviceTask>& tasks, int num, int max_size)
 {
-	int num;
+	if(max_size != 0) {
+		int max_size_num;
 
-	if(type == SHADER) {
-		num = (shader_w + max_size - 1)/max_size;
+		if(type == SHADER) {
+			max_size_num = (shader_w + max_size - 1)/max_size;
+		}
+		else {
+			max_size = max(1, max_size/w);
+			max_size_num = (h + max_size - 1)/max_size;
+		}
+
+		num = max(max_size_num, num);
 	}
-	else {
-		max_size = max(1, max_size/w);
-		num = (h + max_size - 1)/max_size;
-	}
 
-	split(tasks, num);
-}
-
-void DeviceTask::split(list<DeviceTask>& tasks, int num)
-{
 	if(type == SHADER) {
 		num = min(shader_w, num);
 

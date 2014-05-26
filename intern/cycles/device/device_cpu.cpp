@@ -452,7 +452,11 @@ public:
 	{
 		/* split task into smaller ones */
 		list<DeviceTask> tasks;
-		task.split(tasks, TaskScheduler::num_threads());
+
+		if(task.type == DeviceTask::SHADER)
+			task.split(tasks, TaskScheduler::num_threads(), 256);
+		else
+			task.split(tasks, TaskScheduler::num_threads());
 
 		foreach(DeviceTask& task, tasks)
 			task_pool.push(new CPUDeviceTask(this, task));

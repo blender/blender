@@ -52,8 +52,7 @@ public:
 
 	DeviceTask(Type type = PATH_TRACE);
 
-	void split(list<DeviceTask>& tasks, int num);
-	void split_max_size(list<DeviceTask>& tasks, int max_size);
+	void split(list<DeviceTask>& tasks, int num, int max_size = 0);
 
 	void update_progress(RenderTile &rtile);
 

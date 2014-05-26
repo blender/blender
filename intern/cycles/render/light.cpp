@@ -70,7 +70,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 
 	/* disabled splitting for now, there's an issue with multi-GPU mem_copy_from */
 	list<DeviceTask> split_tasks;
-	main_task.split_max_size(split_tasks, 128*128); 
+	main_task.split(split_tasks, 1, 128*128);
 
 	foreach(DeviceTask& task, split_tasks) {
 		device->task_add(task);
