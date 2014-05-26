@@ -635,21 +635,15 @@ int   BLI_access(const char *filename, int mode)
  */
 int BLI_delete(const char *file, bool dir, bool recursive)
 {
-	if (strchr(file, '"')) {
-		printf("Error: not deleted file %s because of quote!\n", file);
+	if (recursive) {
+		return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
+	}
+	else if (dir) {
+		return rmdir(file);
 	}
 	else {
-		if (recursive) {
-			return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
-		}
-		else if (dir) {
-			return rmdir(file);
-		}
-		else {
-			return remove(file); //BLI_snprintf(str, sizeof(str), "/bin/rm -f \"%s\"", file);
-		}
+		return remove(file);
 	}
-	return -1;
 }
 
 /**
