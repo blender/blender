@@ -609,6 +609,9 @@ ccl_device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughn
 
 ccl_device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 {
+	if(sd->flag & SD_HAS_ONLY_VOLUME)
+		return make_float3(1.0f, 1.0f, 1.0f);
+
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int i = 0; i< sd->num_closure; i++) {
