@@ -1147,17 +1147,16 @@ static Stroke *createStroke(Interface1D& inter)
 				StrokeVertex *sv;
 				std::vector<StrokeVertex *>::iterator it = overlapping_vertices.begin();
 				if (!reverse) {
-					for (int n = 1; n < nvert; n++) {
+					for (int n = 0; n < nvert; n++) {
 						sv = (*it);
-						sv->setPoint(sv->getPoint() + offset * n);
+						sv->setPoint(sv->getPoint() + offset * (n + 1));
 						++it;
 					}
 				}
 				else {
-					int last = nvert - 1;
-					for (int n = 0; n < last; n++) {
+					for (int n = 0; n < nvert; n++) {
 						sv = (*it);
-						sv->setPoint(sv->getPoint() + offset * (last - n));
+						sv->setPoint(sv->getPoint() + offset * (nvert - n));
 						++it;
 					}
 				}
