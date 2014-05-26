@@ -129,7 +129,7 @@ public: // Implementation of Interface0D
 	/*!  Returns the 2D point. */ 
 	virtual Vec2r getPoint2D() const
 	{
-		return Vec2f(_Point2D.x(), _Point2D.y());
+		return Vec2r(_Point2D.x(), _Point2D.y());
 	}
 
 	/*! Returns the FEdge that lies between this Svertex and the Interface0D given as argument. */
