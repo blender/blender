@@ -523,9 +523,8 @@ static int bake(
 				continue;
 
 			if (!is_uniform_scaled_m4(ob_iter->obmat)) {
-				BKE_reportf(reports, RPT_INFO,
-				            "Selected objects must have uniform scale. Apply scale to object \"%s\" for correct results",
-				            ob_iter->id.name + 2);
+				BKE_reportf(reports, RPT_INFO, "Selected objects must have uniform scale "
+				            "(apply scale to object \"%s\" for correct results)", ob_iter->id.name + 2);
 			}
 
 			tot_highpoly ++;

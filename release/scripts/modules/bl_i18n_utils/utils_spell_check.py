@@ -135,6 +135,7 @@ class SpellChecker():
         "prepend",
         "preprocess", "preprocessing",
         "preseek",
+        "promillage",
         "pushdown",
         "raytree",
         "readonly",
