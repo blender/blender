@@ -43,6 +43,8 @@
 #include "Exception.h"
 
 
+struct ImBuf;
+
 // type Texture declaration
 struct Texture
 {
@@ -58,6 +60,8 @@ struct Texture
 	// original texture saved
 	bool m_orgSaved;
 
+	// kernel image buffer, to make sure the image is loaded before we swap the bindcode
+	struct ImBuf *m_imgBuf;
 	// texture image for game materials
 	Image * m_imgTexture;
 	// texture for blender materials

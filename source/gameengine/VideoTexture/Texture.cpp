@@ -41,6 +41,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_image_types.h"
 #include "IMB_imbuf_types.h"
+#include "BKE_image.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -158,6 +159,7 @@ static PyObject *Texture_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	// initialize object structure
 	self->m_actTex = 0;
 	self->m_orgSaved = false;
+	self->m_imgBuf = NULL;
 	self->m_imgTexture = NULL;
 	self->m_matTexture = NULL;
 	self->m_mipmap = false;
@@ -282,7 +284,11 @@ PyObject *Texture_close(Texture * self)
 		if (self->m_useMatTexture)
 			self->m_matTexture->swapTexture(self->m_orgTex);
 		else
+		{
 			self->m_imgTexture->bindcode = self->m_orgTex;
+			BKE_image_release_ibuf(self->m_imgTexture, self->m_imgBuf, NULL);
+			self->m_imgBuf = NULL;
+		}
 		// drop actual texture
 		if (self->m_actTex != 0)
 		{
@@ -331,6 +337,12 @@ static PyObject *Texture_refresh(Texture *self, PyObject *args)
 						self->m_orgTex = self->m_matTexture->swapTexture(self->m_actTex);
 					else
 					{
+						// Swapping will work only if the GPU has already loaded the image.
+						// If not, it will delete and overwrite our texture on next render.
+						// To avoid that, we acquire the image buffer now.
+						// WARNING: GPU has a ImageUser to pass, we don't. Using NULL
+						// works on image file, not necessarily on other type of image.
+						self->m_imgBuf = BKE_image_acquire_ibuf(self->m_imgTexture, NULL, NULL);
 						self->m_orgTex = self->m_imgTexture->bindcode;
 						self->m_imgTexture->bindcode = self->m_actTex;
 					}
