@@ -751,7 +751,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				                         (query_qual(CONTROL)   ? KM_CTRL  : 0) |
 				                         (query_qual(ALT)       ? KM_ALT   : 0) |
 				                         (query_qual(OS)        ? KM_OSKEY : 0));
-				
+
+				/* Win23/GHOST modifier bug, see T40317 */
+#ifndef WIN32
+#  define USE_WIN_ACTIVATE
+#endif
+
 				wm->winactive = win; /* no context change! c->wm->windrawable is drawable, or for area queues */
 				
 				win->active = 1;
@@ -773,44 +778,55 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 						wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 					}
 				}
+#ifdef USE_WIN_ACTIVATE
 				else {
 					if (keymodifier & KM_SHIFT) {
 						win->eventstate->shift = KM_MOD_FIRST;
 					}
 				}
+#endif
 				if (win->eventstate->ctrl) {
 					if ((keymodifier & KM_CTRL) == 0) {
 						kdata.key = GHOST_kKeyLeftControl;
 						wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 					}
 				}
+#ifdef USE_WIN_ACTIVATE
 				else {
 					if (keymodifier & KM_CTRL) {
 						win->eventstate->ctrl = KM_MOD_FIRST;
 					}
 				}
+#endif
 				if (win->eventstate->alt) {
 					if ((keymodifier & KM_ALT) == 0) {
 						kdata.key = GHOST_kKeyLeftAlt;
 						wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 					}
 				}
+#ifdef USE_WIN_ACTIVATE
 				else {
 					if (keymodifier & KM_ALT) {
 						win->eventstate->alt = KM_MOD_FIRST;
 					}
 				}
+#endif
 				if (win->eventstate->oskey) {
 					if ((keymodifier & KM_OSKEY) == 0) {
 						kdata.key = GHOST_kKeyOS;
 						wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 					}
 				}
+#ifdef USE_WIN_ACTIVATE
 				else {
 					if (keymodifier & KM_OSKEY) {
 						win->eventstate->oskey = KM_MOD_FIRST;
 					}
 				}
+#endif
+
+#undef USE_WIN_ACTIVATE
+
 
 				/* keymodifier zero, it hangs on hotkeys that open windows otherwise */
 				win->eventstate->keymodifier = 0;
