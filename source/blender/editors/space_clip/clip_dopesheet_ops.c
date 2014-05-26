@@ -93,6 +93,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 	float location[2];
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	int current_channel_index = 0, channel_index;
+	const bool show_selected_only = (dopesheet->flag & TRACKING_DOPE_SELECTED_ONLY) != 0;
 
 	RNA_float_get_array(op->ptr, "location", location);
 	channel_index = -(location[1] - (CHANNEL_FIRST + CHANNEL_HEIGHT_HALF)) / CHANNEL_STEP;
@@ -109,6 +110,9 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 			if (track->flag & TRACK_DOPE_SEL) {
 				tracking->act_track = track;
 				BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, true);
+			}
+			else if (show_selected_only == false) {
+				BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
 			}
 		}
 		else if (!extend)
