@@ -1365,16 +1365,22 @@ static void fillBevelCap(Nurb *nu, DispList *dlb, float *prev_fp, ListBase *disp
 static void calc_bevfac_spline_mapping(BevList *bl, float bevfac, float spline_length, const float *bevp_array,
                                        int *r_bev, float *r_blend)
 {
+	const float len_target = bevfac * spline_length;
 	float len = 0.0f;
+	float len_step = 0.0f;
 	int i;
-	for (i = 0; i < bl->nr; i++) {
-		*r_bev = i;
-		*r_blend = (bevfac * spline_length - len) / bevp_array[i];
-		if (len + bevp_array[i] > bevfac * spline_length) {
+	for (i = 0; i < bl->nr - 1; i++) {
+		float len_next;
+		len_step = bevp_array[i];
+		len_next = len + len_step;
+		if (len_next > len_target) {
 			break;
 		}
-		len += bevp_array[i];
+		len = len_next;
 	}
+
+	*r_bev = i;
+	*r_blend = (len_target - len) / len_step;
 }
 
 static void calc_bevfac_mapping_default(
