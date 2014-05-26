@@ -1393,14 +1393,16 @@ static void calc_bevfac_mapping_default(
 	*r_lastblend = 1.0f;
 }
 
-static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const bool use_render_resolution,
-                                int *r_start, float *r_firstblend, int *r_steps, float *r_lastblend)
+static void calc_bevfac_mapping(
+        Curve *cu, BevList *bl, Nurb *nu, const bool use_render_resolution,
+        int *r_start, float *r_firstblend, int *r_steps, float *r_lastblend)
 {
-	const int resolu = (use_render_resolution && (cu->resolu_ren != 0)) ? cu->resolu_ren : cu->resolu;
-	const int segcount = (splinetype == CU_POLY) ? bl->nr : (bl->nr / resolu);
+	const int resolu = (nu->type == CU_POLY) ?
+	                   1 : (use_render_resolution && (cu->resolu_ren != 0)) ?
+	                   cu->resolu_ren : cu->resolu;
+	const int segcount = ((nu->type == CU_POLY) ? bl->nr : nu->pntsu) - 1;
 
-	BevPoint *bevp, *bevl;
-	float l, startf, endf, tmpf = 0.0, sum = 0.0, total_length = 0.0f;
+	float l, startf, endf, tmpf, total_length = 0.0f;
 	float *bevp_array = NULL;
 	float *segments = NULL;
 	int end = 0, i, j;
@@ -1417,20 +1419,53 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const 
 	if ((cu->bevfac1_mapping != CU_BEVFAC_MAP_RESOLU) ||
 	    (cu->bevfac2_mapping != CU_BEVFAC_MAP_RESOLU))
 	{
+		BezTriple *bezt, *bezt_prev;
+		BevPoint *bevp, *bevp_prev;
+		int bevp_i;
+
 		bevp_array = MEM_mallocN(sizeof(*bevp_array) * (bl->nr - 1), "bevp_dists");
 		segments = MEM_callocN(sizeof(*segments) * segcount, "bevp_segmentlengths");
-		bevp = (BevPoint *)(bl + 1);
-		bevp++;
-		for (i = 1, j = 0; i < bl->nr; bevp++, i++) {
-			sum = 0.0f;
-			bevl = bevp - 1;
-			bevp_array[i - 1] = len_v3v3(bevp->vec, bevl->vec);
-			total_length += bevp_array[i - 1];
-			tmpf += bevp_array[i - 1];
-			if ((i % resolu) == 0 || (bl->nr - 1) == i) {
-				BLI_assert(j < segcount);
-				segments[j++] = tmpf;
-				tmpf = 0.0f;
+		bevp_prev = (BevPoint *)(bl + 1);
+		bevp = bevp_prev + 1;
+
+		if (nu->type == CU_BEZIER){
+			bezt_prev = nu->bezt;
+			bezt = bezt_prev + 1;
+			for (i = 0, bevp_i = 0; i < segcount; i++, bezt_prev++, bezt++) {
+				float seglen = 0.0f;
+				if (bezt_prev->h2 == HD_VECT && bezt->h1 == HD_VECT) {
+					seglen = len_v3v3(bevp->vec, bevp_prev->vec);
+					BLI_assert(bevp_i < bl->nr - 1);
+					bevp_array[bevp_i++] = seglen;
+
+					bevp_prev = bevp++;
+				}
+				else {
+					for (j = 0; j < resolu; j++, bevp_prev = bevp++){
+						l = len_v3v3(bevp->vec, bevp_prev->vec);
+						seglen += l;
+						BLI_assert(bevp_i < bl->nr - 1);
+						bevp_array[bevp_i++] = l;
+					}
+				}
+				BLI_assert(i < segcount);
+				segments[i] = seglen;
+				total_length += seglen;
+				seglen = 0.0f;
+			}
+		}
+		else {
+			float seglen = 0.0f;
+			for (i = 1, j = 0; i < bl->nr; i++, bevp_prev = bevp++) {
+				BLI_assert(i - 1 < bl->nr);
+				bevp_array[i - 1] = len_v3v3(bevp->vec, bevp_prev->vec);
+				total_length += bevp_array[i - 1];
+				seglen += bevp_array[i - 1];
+				if ((i % resolu) == 0 || (bl->nr - 1) == i) {
+					BLI_assert(j < segcount);
+					segments[j++] = seglen;
+					seglen = 0.0f;
+				}
 			}
 		}
 	}
@@ -1446,6 +1481,7 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const 
 		}
 		case CU_BEVFAC_MAP_SEGMENT:
 		{
+			float sum = 0.0f;
 			const float start_fl = cu->bevfac1 * (bl->nr - 1);
 			*r_start = (int)start_fl;
 
@@ -1469,7 +1505,6 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const 
 		}
 	}
 
-	sum = 0.0f;
 	switch (cu->bevfac2_mapping) {
 		case CU_BEVFAC_MAP_RESOLU:
 		{
@@ -1482,6 +1517,7 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const 
 		}
 		case CU_BEVFAC_MAP_SEGMENT:
 		{
+			float sum = 0.0f;
 			const float end_fl = cu->bevfac2 * (bl->nr - 1);
 			end = (int)end_fl;
 
@@ -1507,7 +1543,7 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, short splinetype, const 
 		}
 	}
 
-	if (end < *r_start) {
+	if (end < *r_start || (end == *r_start && *r_lastblend < 1.0f - *r_firstblend )) {
 		SWAP(int, *r_start, end);
 		tmpf = *r_lastblend;
 		*r_lastblend = 1.0f - *r_firstblend;
@@ -1632,7 +1668,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							                            &start, &firstblend, &steps, &lastblend);
 						}
 						else {
-							calc_bevfac_mapping(cu, bl, nu->type, use_render_resolution,
+							calc_bevfac_mapping(cu, bl, nu, use_render_resolution,
 							                    &start, &firstblend, &steps, &lastblend);
 						}
 
