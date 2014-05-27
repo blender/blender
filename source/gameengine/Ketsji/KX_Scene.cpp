@@ -1528,11 +1528,6 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 			MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam, layer);
 		}
 	}
-
-	for (int i=0; i < m_objectlist->GetCount(); i++) {
-		KX_GameObject *go = static_cast<KX_GameObject*>(m_objectlist->GetValue(i));
-		printf("Name: %s, Culled: %s\n", go->GetName().ReadPtr(), (go->GetCulled()) ? "True" : "False");
-	}
 }
 
 // logic stuff
