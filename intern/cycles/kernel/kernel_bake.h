@@ -356,11 +356,6 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 
 ccl_device void kernel_shader_evaluate(KernelGlobals *kg, ccl_global uint4 *input, ccl_global float4 *output, ShaderEvalType type, int i)
 {
-	if(type >= SHADER_EVAL_BAKE) {
-		kernel_bake_evaluate(kg, input, output, type, i);
-		return;
-	}
-
 	ShaderData sd;
 	uint4 in = input[i];
 	float3 out;

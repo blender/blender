@@ -746,7 +746,12 @@ public:
 		CUdeviceptr d_output = cuda_device_ptr(task.shader_output);
 
 		/* get kernel function */
-		cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_shader"));
+		if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
+			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_bake"));
+		}
+		else {
+			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_shader"));
+		}
 
 		/* do tasks in smaller chunks, so we can cancel it */
 		const int shader_chunk_size = 65536;

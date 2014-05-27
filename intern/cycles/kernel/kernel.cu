@@ -153,5 +153,14 @@ kernel_cuda_shader(uint4 *input, float4 *output, int type, int sx)
 	kernel_shader_evaluate(NULL, input, output, (ShaderEvalType)type, x);
 }
 
+extern "C" __global__ void
+CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
+kernel_cuda_bake(uint4 *input, float4 *output, int type, int sx)
+{
+	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
+
+	kernel_bake_evaluate(NULL, input, output, (ShaderEvalType)type, x);
+}
+
 #endif
 
