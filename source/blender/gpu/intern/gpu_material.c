@@ -1665,6 +1665,23 @@ void GPU_materials_free(void)
 
 /* Lamps and shadow buffers */
 
+static void gpu_lamp_calc_winmat(GPULamp *lamp)
+{
+	float temp, angle, pixsize, wsize;
+
+	if (lamp->type == LA_SUN) {
+		wsize = lamp->la->shadow_frustum_size;
+		orthographic_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+	}
+	else {
+		angle= saacos(lamp->spotsi);
+		temp= 0.5f*lamp->size*cosf(angle)/sinf(angle);
+		pixsize= (lamp->d)/temp;
+		wsize= pixsize*0.5f*lamp->size;
+		perspective_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+	}
+}
+
 void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[4][4])
 {
 	float mat[4][4];
@@ -1702,12 +1719,12 @@ void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend)
 {
 	lamp->spotsi = cosf(spotsize * 0.5f);
 	lamp->spotbl = (1.0f - lamp->spotsi) * spotblend;
+
+	gpu_lamp_calc_winmat(lamp);
 }
 
 static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *la, GPULamp *lamp)
 {
-	float temp, angle, pixsize, wsize;
-
 	lamp->scene = scene;
 	lamp->ob = ob;
 	lamp->par = par;
@@ -1750,17 +1767,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->bias *= 0.25f;
 
 	/* makeshadowbuf */
-	if (lamp->type == LA_SUN) {
-		wsize = la->shadow_frustum_size;
-		orthographic_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
-	}
-	else {
-		angle= saacos(lamp->spotsi);
-		temp= 0.5f*lamp->size*cosf(angle)/sinf(angle);
-		pixsize= (lamp->d)/temp;
-		wsize= pixsize*0.5f*lamp->size;
-		perspective_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
-	}
+	gpu_lamp_calc_winmat(lamp);
 }
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)
