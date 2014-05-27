@@ -226,6 +226,32 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	}
 }
 
+/**
+ * Apply generic operator options.
+ */
+static void sequencer_add_apply_overlap(bContext *C, wmOperator *op, Sequence *seq)
+{
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
+
+	if (RNA_boolean_get(op->ptr, "overlap") == false) {
+		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) {
+			BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
+		}
+	}
+}
+
+static void sequencer_add_apply_replace_sel(bContext *C, wmOperator *op, Sequence *seq)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	if (RNA_boolean_get(op->ptr, "replace_sel")) {
+		ED_sequencer_deselect_all(scene);
+		BKE_sequencer_active_set(scene, seq);
+		seq->flag |= SELECT;
+	}
+}
+
 /* add scene operator */
 static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 {
@@ -268,15 +294,8 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
 	
-	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		ED_sequencer_deselect_all(scene);
-		BKE_sequencer_active_set(scene, seq);
-		seq->flag |= SELECT;
-	}
-
-	if (RNA_boolean_get(op->ptr, "overlap") == false) {
-		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
-	}
+	sequencer_add_apply_replace_sel(C, op, seq);
+	sequencer_add_apply_overlap(C, op, seq);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 	
@@ -363,15 +382,8 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
 	
-	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		ED_sequencer_deselect_all(scene);
-		BKE_sequencer_active_set(scene, seq);
-		seq->flag |= SELECT;
-	}
-
-	if (RNA_boolean_get(op->ptr, "overlap") == false) {
-		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
-	}
+	sequencer_add_apply_replace_sel(C, op, seq);
+	sequencer_add_apply_overlap(C, op, seq);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 	
@@ -455,15 +467,8 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
 
-	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		ED_sequencer_deselect_all(scene);
-		BKE_sequencer_active_set(scene, seq);
-		seq->flag |= SELECT;
-	}
-
-	if (RNA_boolean_get(op->ptr, "overlap") == false) {
-		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
-	}
+	sequencer_add_apply_replace_sel(C, op, seq);
+	sequencer_add_apply_overlap(C, op, seq);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -513,9 +518,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	Scene *scene = CTX_data_scene(C); /* only for sound */
 	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	SeqLoadInfo seq_load;
-	Sequence *seq;
 	int tot_files;
-	const bool overlap = RNA_boolean_get(op->ptr, "overlap");
 
 	seq_load_operator_info(&seq_load, op);
 
@@ -536,6 +539,8 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 
 		RNA_BEGIN (op->ptr, itemptr, "files")
 		{
+			Sequence *seq;
+
 			RNA_string_get(&itemptr, "name", file_only);
 			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
@@ -544,21 +549,23 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 
 			seq = seq_load_func(C, ed->seqbasep, &seq_load);
 			if (seq) {
-				if (overlap == false) {
-					if (BKE_sequence_test_overlap(ed->seqbasep, seq))
-						BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
+				sequencer_add_apply_overlap(C, op, seq);
+				if (seq_load.seq_sound) {
+					sequencer_add_apply_overlap(C, op, seq_load.seq_sound);
 				}
 			}
 		}
 		RNA_END;
 	}
 	else {
+		Sequence *seq;
+
 		/* single file */
 		seq = seq_load_func(C, ed->seqbasep, &seq_load);
 		if (seq) {
-			if (overlap == false) {
-				if (BKE_sequence_test_overlap(ed->seqbasep, seq))
-					BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
+			sequencer_add_apply_overlap(C, op, seq);
+			if (seq_load.seq_sound) {
+				sequencer_add_apply_overlap(C, op, seq_load.seq_sound);
 			}
 		}
 	}
@@ -728,10 +735,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	/* last active name */
 	BLI_strncpy(ed->act_imagedir, strip->dir, sizeof(ed->act_imagedir));
 
-	if (RNA_boolean_get(op->ptr, "overlap") == false) {
-		if (BKE_sequence_test_overlap(ed->seqbasep, seq))
-			BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
-	}
+	sequencer_add_apply_overlap(C, op, seq);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -859,9 +863,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (RNA_boolean_get(op->ptr, "overlap") == false) {
-		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
-	}
+	sequencer_add_apply_replace_sel(C, op, seq);
+	sequencer_add_apply_overlap(C, op, seq);
 
 	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 1, 1); /* runs BKE_sequence_calc */
 
@@ -869,12 +872,6 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	/* not sure if this is needed with update_changed_seq_and_deps.
 	 * it was NOT called in blender 2.4x, but wont hurt */
 	BKE_sequencer_sort(scene); 
-
-	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		ED_sequencer_deselect_all(scene);
-		BKE_sequencer_active_set(scene, seq);
-		seq->flag |= SELECT;
-	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

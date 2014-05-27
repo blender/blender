@@ -340,11 +340,14 @@ typedef struct SeqLoadInfo {
 	int channel;
 	int flag;   /* use sound, replace sel */
 	int type;
-	int tot_success;
-	int tot_error;
 	int len;        /* only for image strips */
 	char path[1024]; /* 1024 = FILE_MAX */
+
+	/* return values */
 	char name[64];
+	struct Sequence *seq_sound;  /* for movie's */
+	int tot_success;
+	int tot_error;
 } SeqLoadInfo;
 
 /* SeqLoadInfo.flag */

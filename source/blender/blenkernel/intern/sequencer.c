@@ -4463,7 +4463,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 		int start_frame_back = seq_load->start_frame;
 		seq_load->channel++;
 
-		BKE_sequencer_add_sound_strip(C, seqbasep, seq_load);
+		seq_load->seq_sound = BKE_sequencer_add_sound_strip(C, seqbasep, seq_load);
 
 		seq_load->start_frame = start_frame_back;
 		seq_load->channel--;
