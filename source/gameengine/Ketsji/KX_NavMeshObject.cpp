@@ -304,6 +304,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 			|| vertsPerPoly<3)
 	{
 		printf("Can't build navigation mesh data for object:%s\n", m_name.ReadPtr());
+		if (vertices) delete[] vertices;
 		return false;
 	}
 	
@@ -325,7 +326,10 @@ bool KX_NavMeshObject::BuildNavMesh()
 	float cs = 0.2f;
 
 	if (!nverts || !npolys)
+	{
+		if (vertices) delete[] vertices;
 		return false;
+	}
 
 	float bmin[3], bmax[3];
 	calcMeshBounds(vertices, nverts, bmin, bmax);
