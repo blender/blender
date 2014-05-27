@@ -47,7 +47,6 @@ class KX_TrackToActuator : public SCA_IActuator
 	bool m_allow3D;
 	// time field
 	int m_time;
-	int	m_trackTime;
 	int	m_trackflag;
 	int m_upflag;
 	
