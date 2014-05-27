@@ -36,8 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
-
 #include "BLI_threads.h"
 #include "BLI_rand.h"
 #include "BLI_math.h"
