@@ -109,7 +109,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 	}
 }
 
-static void rna_Image_save(Image *image, ReportList *reports)
+static void rna_Image_save(Image *image, bContext *C, ReportList *reports)
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 	if (ibuf) {
@@ -141,9 +141,10 @@ static void rna_Image_save(Image *image, ReportList *reports)
 	}
 
 	BKE_image_release_ibuf(image, ibuf, NULL);
+	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
-static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
+static void rna_Image_pack(Image *image, bContext *C, ReportList *reports, int as_png)
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
@@ -160,6 +161,7 @@ static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
 	}
 
 	BKE_image_release_ibuf(image, ibuf, NULL);
+	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
 static void rna_Image_unpack(Image *image, ReportList *reports, int method)
@@ -299,11 +301,11 @@ void RNA_api_image(StructRNA *srna)
 
 	func = RNA_def_function(srna, "save", "rna_Image_save");
 	RNA_def_function_ui_description(func, "Save image to its source path");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 
 	func = RNA_def_function(srna, "pack", "rna_Image_pack");
 	RNA_def_function_ui_description(func, "Pack an image as embedded data into the .blend file");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_boolean(func, "as_png", 0, "as_png", "Pack the image as PNG (needed for generated/dirty images)");
 
 	func = RNA_def_function(srna, "unpack", "rna_Image_unpack");
