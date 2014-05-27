@@ -61,7 +61,7 @@
 
 /* tunable parameters */
 #define CUDA_THREADS_BLOCK_WIDTH 16
-#define CUDA_KERNEL_MAX_REGISTERS 63
+#define CUDA_KERNEL_MAX_REGISTERS 40
 #define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 63
 
 /* unknown architecture */
