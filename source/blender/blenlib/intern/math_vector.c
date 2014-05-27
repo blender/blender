@@ -646,7 +646,7 @@ void ortho_v3_v3(float p[3], const float v[3])
 /**
  * no brainer compared to v3, just have for consistency.
  */
-void ortho_v2_v2(float p[3], const float v[3])
+void ortho_v2_v2(float p[2], const float v[2])
 {
 	BLI_assert(p != v);
 

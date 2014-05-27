@@ -263,7 +263,7 @@ void project_v3_plane(float v[3], const float n[3], const float p[3]);
 void reflect_v3_v3v3(float r[3], const float v[3], const float n[3]);
 void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3]);
 void ortho_v3_v3(float p[3], const float v[3]);
-void ortho_v2_v2(float p[3], const float v[3]);
+void ortho_v2_v2(float p[2], const float v[2]);
 void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);
 void rotate_v3_v3v3fl(float v[3], const float p[3], const float axis[3], const float angle);
 void rotate_normalized_v3_v3v3fl(float v[3], const float p[3], const float axis[3], const float angle);
