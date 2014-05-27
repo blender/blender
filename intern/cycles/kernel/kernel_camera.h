@@ -262,6 +262,20 @@ ccl_device_inline float camera_distance(KernelGlobals *kg, float3 P)
 		return len(P - camP);
 }
 
+ccl_device_inline float3 camera_direction_from_point(KernelGlobals *kg, float3 P)
+{
+	Transform cameratoworld = kernel_data.cam.cameratoworld;
+
+	if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+		float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
+		return -camD;
+	}
+	else {
+		float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+		return normalize(camP - P);
+	}
+}
+
 ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
 {
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {

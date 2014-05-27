@@ -175,21 +175,13 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	float time = TIME_INVALID;
 	int bounce = 0;
 	int transparent_bounce = 0;
-	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 	/* light passes */
 	PathRadiance L;
 
 	shader_setup_from_sample(kg, &sd, P, Ng, I, shader, object, prim, u, v, t, time, bounce, transparent_bounce);
 
-	if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
-		float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
-		sd.I = -camD;
-	}
-	else {
-		float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
-		sd.I = normalize(camP - sd.P);
-	}
+	sd.I = camera_direction_from_point(kg, sd.P);
 
 	/* update differentials */
 	sd.dP.dx = sd.dPdu * dudx + sd.dPdv * dvdx;
