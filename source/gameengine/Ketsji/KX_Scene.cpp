@@ -1185,7 +1185,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 						oldblendobj, blendobj,
 						mesh,
 						true,
-						static_cast<BL_ArmatureObject*>( parentobj )
+						static_cast<BL_ArmatureObject*>( parentobj->AddRef() )
 					);
 					modifierDeformer->LoadShapeDrivers(parentobj);
 				}
@@ -1212,7 +1212,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 						mesh,
 						true,
 						true,
-						static_cast<BL_ArmatureObject*>( parentobj )
+						static_cast<BL_ArmatureObject*>( parentobj->AddRef() )
 					);
 					shapeDeformer->LoadShapeDrivers(parentobj);
 				}
@@ -1237,7 +1237,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 					mesh,
 					true,
 					true,
-					static_cast<BL_ArmatureObject*>( parentobj )
+					static_cast<BL_ArmatureObject*>( parentobj->AddRef() )
 				);
 				newobj->SetDeformer(skinDeformer);
 			}
