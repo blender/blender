@@ -1133,7 +1133,7 @@ void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_c
 	BKE_movieclip_get_size_fl(clip, user, frame_size);
 	BKE_movieclip_get_aspect(clip, &aspx, &aspy);
 
-	frame_size[1] /= (aspy / aspx);
+	frame_size[1] *= (aspy / aspx);
 
 	BKE_mask_coord_to_frame(r_co, co, frame_size);
 }
@@ -1147,7 +1147,7 @@ void BKE_mask_coord_to_image(Image *image, ImageUser *iuser, float r_co[2], cons
 	BKE_image_get_size_fl(image, iuser, frame_size);
 	BKE_image_get_aspect(image, &aspx, &aspy);
 
-	frame_size[1] /= (aspy / aspx);
+	frame_size[1] *= (aspy / aspx);
 
 	BKE_mask_coord_to_frame(r_co, co, frame_size);
 }

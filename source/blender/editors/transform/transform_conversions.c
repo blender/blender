@@ -6628,6 +6628,8 @@ static void MaskHandleToTransData(MaskSplinePoint *point, eMaskWhichHandle which
 	td->flag = 0;
 	td->loc = td2d->loc;
 	mul_v2_m3v2(td->center, parent_matrix, bezt->vec[1]);
+	td->center[0] *= asp[0];
+	td->center[1] *= asp[1];
 	copy_v3_v3(td->iloc, td->loc);
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
@@ -6689,6 +6691,8 @@ static void MaskPointToTransData(Scene *scene, MaskSplinePoint *point,
 			td->flag = 0;
 			td->loc = td2d->loc;
 			mul_v2_m3v2(td->center, parent_matrix, bezt->vec[1]);
+			td->center[0] *= asp[0];
+			td->center[1] *= asp[1];
 			copy_v3_v3(td->iloc, td->loc);
 
 			memset(td->axismtx, 0, sizeof(td->axismtx));

@@ -334,7 +334,6 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 		SpaceImage *sima = t->sa->spacedata.first;
 
 		if (t->options & CTX_MASK) {
-			/* not working quite right, TODO (see below too) */
 			float aspx, aspy;
 			float v[2];
 
@@ -346,9 +345,6 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 			v[1] = v[1] / aspy;
 
 			BKE_mask_coord_to_image(sima->image, &sima->iuser, v, v);
-
-			v[0] = v[0] / aspx;
-			v[1] = v[1] / aspy;
 
 			ED_image_point_pos__reverse(sima, t->ar, v, v);
 
@@ -405,7 +401,6 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 			MovieClip *clip = ED_space_clip_get_clip(sc);
 
 			if (clip) {
-				/* not working quite right, TODO (see above too) */
 				float aspx, aspy;
 				float v[2];
 
@@ -417,9 +412,6 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 				v[1] = v[1] / aspy;
 
 				BKE_mask_coord_to_movieclip(sc->clip, &sc->user, v, v);
-
-				v[0] = v[0] / aspx;
-				v[1] = v[1] / aspy;
 
 				ED_clip_point_stable_pos__reverse(sc, t->ar, v, v);
 
