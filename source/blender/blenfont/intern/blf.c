@@ -460,9 +460,6 @@ void BLF_blur(int fontid, int size)
 
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 {
-	if (!str)
-		return;
-
 	if (!blf_global_font_init())
 		return;
 
@@ -474,9 +471,6 @@ void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 /* same as above but call 'BLF_draw_ascii' */
 void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len)
 {
-	if (!str)
-		return;
-
 	if (!blf_global_font_init())
 		return;
 
