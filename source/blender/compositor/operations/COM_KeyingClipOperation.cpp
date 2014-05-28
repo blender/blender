@@ -71,7 +71,11 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
 	    end_y = min_ff(y + delta - 1, bufferHeight - 1);
 
 	int count = 0, totalCount = (end_x - start_x + 1) * (end_y - start_y + 1) - 1;
-	int thresholdCount = (float) totalCount * 0.9f + 0.5f;
+	int thresholdCount = ceil((float) totalCount * 0.9f);
+
+	if (delta == 0) {
+		ok = true;
+	}
 
 	for (int cx = start_x; ok == false && cx <= end_x; ++cx) {
 		for (int cy = start_y; ok == false && cy <= end_y; ++cy) {
