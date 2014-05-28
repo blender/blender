@@ -207,7 +207,7 @@ int BLI_kdtree_find_nearest(
 	BLI_assert(tree->is_balanced == true);
 #endif
 
-	if (!tree->root)
+	if (UNLIKELY(!tree->root))
 		return -1;
 
 	stack = defaultstack;
@@ -322,7 +322,7 @@ int BLI_kdtree_find_nearest_n__normal(
 	BLI_assert(tree->is_balanced == true);
 #endif
 
-	if (!tree->root || n == 0)
+	if (UNLIKELY(!tree->root || n == 0))
 		return 0;
 
 	stack = defaultstack;
@@ -445,7 +445,7 @@ int BLI_kdtree_range_search__normal(
 	BLI_assert(tree->is_balanced == true);
 #endif
 
-	if (!tree->root)
+	if (UNLIKELY(!tree->root))
 		return 0;
 
 	stack = defaultstack;
