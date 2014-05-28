@@ -477,11 +477,18 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const flo
 				is_angle_smooth = (dot_v3v3(no_a, no_b) >= split_angle);
 			}
 
-			/* We only tag edges that are *really* smooth... */
+			/* We only tag edges that are *really* smooth:
+			 * If the angle between both its polys' normals is below split_angle value,
+			 * and it is tagged as such,
+			 * and both its faces are smooth,
+			 * and both its faces have compatible (non-flipped) normals, i.e. both loops on the same edge do not share
+			 *     the same vertex.
+			 */
 			if (is_angle_smooth &&
 			    BM_elem_flag_test_bool(e, BM_ELEM_SMOOTH) &&
 			    BM_elem_flag_test_bool(l_a->f, BM_ELEM_SMOOTH) &&
-			    BM_elem_flag_test_bool(l_b->f, BM_ELEM_SMOOTH))
+			    BM_elem_flag_test_bool(l_b->f, BM_ELEM_SMOOTH) &&
+			    l_a->v != l_b->v)
 			{
 				const float *no;
 				BM_elem_flag_enable(e, BM_ELEM_TAG);
@@ -542,6 +549,14 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 				const float *no = fnos ? fnos[BM_elem_index_get(f_curr)] : f_curr->no;
 				copy_v3_v3(r_lnos[BM_elem_index_get(l_curr)], no);
 			}
+			/* We *do not need* to check/tag loops as already computed!
+			 * Due to the fact a loop only links to one of its two edges, a same fan *will never be walked more than
+			 * once!*
+			 * Since we consider edges having neighbor faces with inverted (flipped) normals as sharp, we are sure that
+			 * no fan will be skipped, even only considering the case (sharp curr_edge, smooth prev_edge), and not the
+			 * alternative (smooth curr_edge, sharp prev_edge).
+			 * All this due/thanks to link between normals and loop ordering.
+			 */
 			else {
 				/* We have to fan around current vertex, until we find the other non-smooth edge,
 				 * and accumulate face normals into the vertex!

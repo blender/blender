@@ -386,10 +386,12 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 			}
 			else if (e2l[1] == INDEX_UNSET) {
 				/* Second loop using this edge, time to test its sharpness.
-				 * An edge is sharp if it is tagged as such, or its face is not smooth, or angle between
-				 * both its polys' normals is above split_angle value...
+				 * An edge is sharp if it is tagged as such, or its face is not smooth,
+				 * or both poly have opposed (flipped) normals, i.e. both loops on the same edge share the same vertex,
+				 * or angle between both its polys' normals is above split_angle value.
 				 */
 				if (!(mp->flag & ME_SMOOTH) || (medges[ml_curr->e].flag & ME_SHARP) ||
+				    ml_curr->v == mloops[e2l[0]].v ||
 				    (check_angle && dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle))
 				{
 					/* Note: we are sure that loop != 0 here ;) */
@@ -441,8 +443,15 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 				copy_v3_v3(*lnors, polynors[mp_index]);
 				/* No need to mark loop as done here, we won't run into it again anyway! */
 			}
-			/* This loop may have been already computed, in which case its 'to_poly' map is set to -(idx + 1)... */
-			else if (loop_to_poly[ml_curr_index] >= 0) {
+			/* We *do not need* to check/tag loops as already computed!
+			 * Due to the fact a loop only links to one of its two edges, a same fan *will never be walked more than
+			 * once!*
+			 * Since we consider edges having neighbor polys with inverted (flipped) normals as sharp, we are sure that
+			 * no fan will be skipped, even only considering the case (sharp curr_edge, smooth prev_edge), and not the
+			 * alternative (smooth curr_edge, sharp prev_edge).
+			 * All this due/thanks to link between normals and loop ordering.
+			 */
+			else {
 				/* Gah... We have to fan around current vertex, until we find the other non-smooth edge,
 				 * and accumulate face normals into the vertex!
 				 * Note in case this vertex has only one sharp edges, this is a waste because the normal is the same as
@@ -505,9 +514,6 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 					/* We store here a pointer to all loop-normals processed. */
 					BLI_SMALLSTACK_PUSH(normal, &(r_loopnors[mlfan_vert_index][0]));
 
-					/* And we are done with this loop, mark it as such! */
-					loop_to_poly[mlfan_vert_index] = -(loop_to_poly[mlfan_vert_index] + 1);
-
 					if (IS_EDGE_SHARP(e2lfan_curr)) {
 						/* Current edge is sharp, we have finished with this fan of faces around this vert! */
 						break;
@@ -525,13 +531,6 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 					 */
 					mlfan_curr_index = (e2lfan_curr[0] == mlfan_curr_index) ? e2lfan_curr[1] : e2lfan_curr[0];
 					mpfan_curr_index = loop_to_poly[mlfan_curr_index];
-					/* XXX This should not happen in a mesh with consistent normals, but can occur with
-					 *     inconsistent ones (with faces in a same fan being "reversed", mlfan_curr might be the loop
-					 *     of another vertex, not the one we are fanning around) , see T40405.
-					 */
-					if (mpfan_curr_index < 0) {
-						mpfan_curr_index = -mpfan_curr_index - 1;
-					}
 
 					BLI_assert(mlfan_curr_index >= 0);
 					BLI_assert(mpfan_curr_index >= 0);
