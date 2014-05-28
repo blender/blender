@@ -705,6 +705,10 @@ MTex *add_mtex_id(ID *id, int slot)
 		MEM_freeN(mtex_ar[slot]);
 		mtex_ar[slot] = NULL;
 	}
+	else if (GS(id->name) == ID_MA) {
+		/* Reset this slot's ON/OFF toggle, for materials, when slot was empty. */
+		((Material *)id)->septex &= ~(1 << slot);
+	}
 
 	mtex_ar[slot] = add_mtex();
 
@@ -1174,8 +1178,11 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 		id_us_min(&tex->id);
 
 		if (newtex) {
-			if (!ma->mtex[act])
+			if (!ma->mtex[act]) {
 				ma->mtex[act] = add_mtex();
+				/* Reset this slot's ON/OFF toggle, for materials, when slot was empty. */
+				ma->septex &= ~(1 << act);
+			}
 			
 			ma->mtex[act]->tex = newtex;
 			id_us_plus(&newtex->id);
