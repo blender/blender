@@ -937,6 +937,9 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 
 	BM_CHECK_ELEMENT(f);
 
+	/* Loop indices are no more valid! */
+	bm->elem_index_dirty |= BM_LOOP;
+
 	return true;
 }
 
