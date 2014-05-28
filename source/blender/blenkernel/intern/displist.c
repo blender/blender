@@ -1827,7 +1827,8 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, const bool for_orco)
 }
 
 void BKE_displist_make_curveTypes_forRender(Scene *scene, Object *ob, ListBase *dispbase,
-                                      DerivedMesh **r_dm_final, const bool for_orco, const bool use_render_resolution)
+                                            DerivedMesh **r_dm_final, const bool for_orco,
+                                            const bool use_render_resolution)
 {
 	if (ob->curve_cache == NULL) {
 		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
