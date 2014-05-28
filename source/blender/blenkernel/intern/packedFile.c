@@ -368,7 +368,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 
 int checkPackedFile(const char *filename, PackedFile *pf)
 {
-	struct stat st;
+	BLI_stat_t st;
 	int ret_val, i, len, file;
 	char buf[4096];
 	char name[FILE_MAX];

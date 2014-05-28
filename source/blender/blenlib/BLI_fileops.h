@@ -59,7 +59,18 @@ int    BLI_rename(const char *from, const char *to);
 int    BLI_delete(const char *path, bool dir, bool recursive);
 int    BLI_move(const char *path, const char *to);
 int    BLI_create_symlink(const char *path, const char *to);
-int    BLI_stat(const char *path, struct stat *buffer);
+
+#ifdef WIN32
+#  ifndef __MINGW64__
+typedef struct _stat64 BLI_stat_t;
+#  else
+typedef struct stat BLI_stat_t;
+#endif
+#else
+typedef struct stat BLI_stat_t;
+#endif
+
+int    BLI_stat(const char *path, BLI_stat_t *buffer);
 
 /* Directories */
 

@@ -187,7 +187,7 @@ int IMB_ispic_type(const char *name)
 
 	unsigned char buf[HEADER_SIZE];
 	ImFileType *type;
-	struct stat st;
+	BLI_stat_t st;
 	int fp;
 
 	if (UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
@@ -391,7 +391,7 @@ static int isredcode(const char *filename)
 int imb_get_anim_type(const char *name)
 {
 	int type;
-	struct stat st;
+	BLI_stat_t st;
 
 	if (UTIL_DEBUG) printf("in getanimtype: %s\n", name);
 

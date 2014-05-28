@@ -656,7 +656,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 				}
 				else {
 					char path[FILE_MAX];
-					struct stat status;
+					BLI_stat_t status;
 					
 					BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 

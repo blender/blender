@@ -305,7 +305,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 	short tsize = 128;
 	short ex, ey;
 	float scaledx, scaledy;
-	struct stat info;
+	BLI_stat_t info;
 
 	switch (size) {
 		case THB_NORMAL:
@@ -472,7 +472,7 @@ ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
 {
 	char thumb[FILE_MAX];
 	char uri[URI_MAX];
-	struct stat st;
+	BLI_stat_t st;
 	ImBuf *img = NULL;
 	
 	if (BLI_stat(path, &st)) {

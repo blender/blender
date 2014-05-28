@@ -458,7 +458,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 {
 	FILE *fp;
 	TextLine *tmp;
-	struct stat st;
+	BLI_stat_t st;
 	char filepath[FILE_MAX];
 	
 	BLI_strncpy(filepath, text->name, FILE_MAX);

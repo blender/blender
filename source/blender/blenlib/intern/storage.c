@@ -460,7 +460,7 @@ size_t BLI_file_descriptor_size(int file)
  */
 size_t BLI_file_size(const char *path)
 {
-	struct stat stats;
+	BLI_stat_t stats;
 	if (BLI_stat(path, &stats) == -1)
 		return -1;
 	return stats.st_size;
@@ -474,7 +474,7 @@ int BLI_exists(const char *name)
 {
 #if defined(WIN32) 
 #ifndef __MINGW32__
-	struct _stat64i32 st;
+	struct _stat64 st;
 #else
 	struct _stati64 st;
 #endif
@@ -507,7 +507,7 @@ int BLI_exists(const char *name)
 	old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
 
 #ifndef __MINGW32__
-	res = _wstat(tmp_16, &st);
+	res = _wstat64(tmp_16, &st);
 #else
 	res = _wstati64(tmp_16, &st);
 #endif
@@ -525,14 +525,14 @@ int BLI_exists(const char *name)
 
 
 #ifdef WIN32
-int BLI_stat(const char *path, struct stat *buffer)
+int BLI_stat(const char *path, BLI_stat_t *buffer)
 {
 	int r;
 	UTF16_ENCODE(path);
 
 	/* workaround error in MinGW64 headers, normally, a wstat should work */
 #ifndef __MINGW64__
-	r = _wstat(path_16, buffer);
+	r = _wstat64(path_16, buffer);
 #else
 	r = _wstati64(path_16, buffer);
 #endif

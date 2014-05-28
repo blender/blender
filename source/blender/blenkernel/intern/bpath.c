@@ -210,7 +210,7 @@ static int findFileRecursive(char *filename_new,
 	/* file searching stuff */
 	DIR *dir;
 	struct dirent *de;
-	struct stat status;
+	BLI_stat_t status;
 	char path[FILE_MAX];
 	int size;
 	bool found = false;
