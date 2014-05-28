@@ -466,6 +466,10 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 				mlfan_vert_index = ml_curr_index;
 				mpfan_curr_index = mp_index;
 
+				BLI_assert(mlfan_curr_index >= 0);
+				BLI_assert(mlfan_vert_index >= 0);
+				BLI_assert(mpfan_curr_index >= 0);
+
 				/* Only need to compute previous edge's vector once, then we can just reuse old current one! */
 				{
 					const MEdge *me_prev = &medges[ml_curr->e];  /* ml_curr would be mlfan_prev if we needed that one */
@@ -521,6 +525,10 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 					 */
 					mlfan_curr_index = (e2lfan_curr[0] == mlfan_curr_index) ? e2lfan_curr[1] : e2lfan_curr[0];
 					mpfan_curr_index = loop_to_poly[mlfan_curr_index];
+
+					BLI_assert(mlfan_curr_index >= 0);
+					BLI_assert(mpfan_curr_index >= 0);
+
 					mlfan_next = &mloops[mlfan_curr_index];
 					mpfan_next = &mpolys[mpfan_curr_index];
 					if ((mlfan_curr->v == mlfan_next->v && mlfan_curr->v == mv_pivot_index) ||
