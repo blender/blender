@@ -1364,6 +1364,8 @@ static void setexpo_graph_keys(bAnimContext *ac, short mode)
 		if (mode >= 0) {
 			/* just set mode setting */
 			fcu->extend = mode;
+
+			ale->update |= ANIM_UPDATE_HANDLES;
 		}
 		else {
 			/* shortcuts for managing Cycles F-Modifiers to make it easier to toggle cyclic animation 
