@@ -186,7 +186,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 			fcu->flag |= FCURVE_ACTIVE;  /* first one added active */
 			
 		/* store path - make copy, and store that */
-		fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
+		fcu->rna_path = BLI_strdup(rna_path);
 		fcu->array_index = array_index;
 		
 		/* if a group name has been provided, try to add or find a group, then add F-Curve to it */

@@ -109,7 +109,7 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 		fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
 		
 		/* store path - make copy, and store that */
-		fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
+		fcu->rna_path = BLI_strdup(rna_path);
 		fcu->array_index = array_index;
 		
 		/* if add is negative, don't init this data yet, since it will be filled in by the pasted driver */

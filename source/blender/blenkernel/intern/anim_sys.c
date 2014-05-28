@@ -1168,7 +1168,7 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks, ID *id, const char group_name[], 
 	
 	/* just copy path info */
 	/* TODO: should array index be checked too? */
-	ksp->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
+	ksp->rna_path = BLI_strdup(rna_path);
 	ksp->array_index = array_index;
 	
 	/* store flags */
