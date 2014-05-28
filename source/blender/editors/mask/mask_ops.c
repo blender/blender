@@ -2015,6 +2015,8 @@ static int mask_layer_move_exec(bContext *C, wmOperator *op)
 		mask->masklay_act++;
 	}
 
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+
 	return OPERATOR_FINISHED;
 }
 
