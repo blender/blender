@@ -114,8 +114,8 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 				kernel_branched_path_integrate_lighting(kg, &rng,
 					sd, throughput, 1.0f, &state, &L_sample);
 			}
-#endif
 		}
+#endif
 
 		/* accumulate into master L */
 		path_radiance_accum_sample(L, &L_sample, samples);
