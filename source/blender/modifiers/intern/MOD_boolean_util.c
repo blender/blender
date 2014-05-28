@@ -383,7 +383,7 @@ static void exporter_InitGeomArrays(ExportMeshData *export_data,
 	DerivedMesh *dm_left = export_data->dm_left,
 	            *dm_right = export_data->dm_right;
 
-	/* Mask for custom data layers to be merhed from operands. */
+	/* Mask for custom data layers to be merged from operands. */
 	CustomDataMask merge_mask = CD_MASK_DERIVEDMESH & ~CD_MASK_ORIGINDEX;
 
 	export_data->dm = dm;
