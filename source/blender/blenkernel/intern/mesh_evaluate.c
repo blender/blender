@@ -441,8 +441,8 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 				copy_v3_v3(*lnors, polynors[mp_index]);
 				/* No need to mark loop as done here, we won't run into it again anyway! */
 			}
-			/* This loop may have been already computed, in which case its 'to_poly' map is set to -1... */
-			else if (loop_to_poly[ml_curr_index] != -1) {
+			/* This loop may have been already computed, in which case its 'to_poly' map is set to -(idx + 1)... */
+			else if (loop_to_poly[ml_curr_index] >= 0) {
 				/* Gah... We have to fan around current vertex, until we find the other non-smooth edge,
 				 * and accumulate face normals into the vertex!
 				 * Note in case this vertex has only one sharp edges, this is a waste because the normal is the same as
@@ -506,7 +506,7 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 					BLI_SMALLSTACK_PUSH(normal, &(r_loopnors[mlfan_vert_index][0]));
 
 					/* And we are done with this loop, mark it as such! */
-					loop_to_poly[mlfan_vert_index] = -1;
+					loop_to_poly[mlfan_vert_index] = -(loop_to_poly[mlfan_vert_index] + 1);
 
 					if (IS_EDGE_SHARP(e2lfan_curr)) {
 						/* Current edge is sharp, we have finished with this fan of faces around this vert! */
@@ -525,6 +525,13 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 					 */
 					mlfan_curr_index = (e2lfan_curr[0] == mlfan_curr_index) ? e2lfan_curr[1] : e2lfan_curr[0];
 					mpfan_curr_index = loop_to_poly[mlfan_curr_index];
+					/* XXX This should not happen in a mesh with consistent normals, but can occur with
+					 *     inconsistent ones (with faces in a same fan being "reversed", mlfan_curr might be the loop
+					 *     of another vertex, not the one we are fanning around) , see T40405.
+					 */
+					if (mpfan_curr_index < 0) {
+						mpfan_curr_index = -mpfan_curr_index - 1;
+					}
 
 					BLI_assert(mlfan_curr_index >= 0);
 					BLI_assert(mpfan_curr_index >= 0);
