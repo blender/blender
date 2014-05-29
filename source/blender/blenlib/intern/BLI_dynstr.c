@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
 
@@ -237,6 +238,7 @@ void BLI_dynstr_get_cstring_ex(DynStr *ds, char *rets)
 
 		s += slen;
 	}
+	BLI_assert((s - rets) == ds->curlen);
 	rets[ds->curlen] = '\0';
 }
 
