@@ -147,9 +147,17 @@
 	__tmp = (__typeof(var_b) *)NULL;      \
 	(void)__tmp;                          \
 } (void)0
+
+#define CHECK_TYPE_PAIR_INLINE(var_a, var_b)  ((void)({  \
+	__typeof(var_a) *__tmp;                              \
+	__tmp = (__typeof(var_b) *)NULL;                     \
+	(void)__tmp;                                         \
+}))
+
 #else
 #  define CHECK_TYPE(var, type)
 #  define CHECK_TYPE_PAIR(var_a, var_b)
+#  define CHECK_TYPE_PAIR_INLINE(var_a, var_b)
 #endif
 
 /* can be used in simple macros */
@@ -348,11 +356,12 @@
 #endif
 
 /* array helpers */
-#define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot) \
-	(arr_dtype *)((char *)arr_start + (elem_size * (tot - 1)))
+#define ARRAY_LAST_ITEM(arr_start, arr_dtype, tot) \
+	(arr_dtype *)((char *)arr_start + (sizeof(*((arr_dtype *)NULL)) * (size_t)(tot - 1)))
 
-#define ARRAY_HAS_ITEM(arr_item, arr_start, tot) \
-	((unsigned int)((arr_item) - (arr_start)) < (unsigned int)(tot))
+#define ARRAY_HAS_ITEM(arr_item, arr_start, tot)  ( \
+	CHECK_TYPE_PAIR_INLINE(arr_start, arr_item), \
+	((unsigned int)((arr_item) - (arr_start)) < (unsigned int)(tot)))
 
 #define ARRAY_DELETE(arr, index, tot_delete, tot)  { \
 		BLI_assert(index + tot_delete <= tot);  \
