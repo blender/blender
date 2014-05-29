@@ -418,11 +418,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
 		                     TIP_(template_id_browse_tip(type)));
-		if (type) {
-			but->icon = RNA_struct_ui_icon(type);
-			if (id) but->icon = ui_id_icon_get(C, id, true);
-			uiButSetFlag(but, UI_HAS_ICON | UI_ICON_PREVIEW);
-		}
+		but->icon = id ? ui_id_icon_get(C, id, true) : RNA_struct_ui_icon(type);
+		uiButSetFlag(but, UI_HAS_ICON | UI_ICON_PREVIEW);
+
 		if ((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		
@@ -431,14 +429,11 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	else if (flag & UI_ID_BROWSE) {
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
 		                     TIP_(template_id_browse_tip(type)));
-
-		if (type) {
-			but->icon = RNA_struct_ui_icon(type);
-			/* default dragging of icon for id browse buttons */
-			uiButSetDragID(but, id);
-			uiButSetFlag(but, UI_HAS_ICON);
-			uiButSetDrawFlag(but, UI_BUT_ICON_LEFT);
-		}
+		but->icon = RNA_struct_ui_icon(type);
+		/* default dragging of icon for id browse buttons */
+		uiButSetDragID(but, id);
+		uiButSetFlag(but, UI_HAS_ICON);
+		uiButSetDrawFlag(but, UI_BUT_ICON_LEFT);
 
 		if ((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
