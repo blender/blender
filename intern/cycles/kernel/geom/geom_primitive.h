@@ -143,6 +143,7 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	/* center position */
 	float3 center;
 
+#ifdef __HAIR__
 	if(sd->type & PRIMITIVE_ALL_CURVE) {
 		center = curve_motion_center_location(kg, sd);
 
@@ -150,6 +151,7 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 			object_position_transform(kg, sd, &center);
 	}
 	else
+#endif
 		center = sd->P;
 
 	float3 motion_pre = center, motion_post = center;
