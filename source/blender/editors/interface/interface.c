@@ -1796,18 +1796,7 @@ void ui_set_but_val(uiBut *but, double value)
 			value = (char)floor(value + 0.5);
 		}
 		else if (but->pointype == UI_BUT_POIN_SHORT) {
-			/* gcc 3.2.1 seems to have problems
-			 * casting a double like 32772.0 to
-			 * a short so we cast to an int, then
-			 * to a short.
-			 *
-			 * Update: even in gcc.4.6 using intermediate int cast gives -32764,
-			 * where as a direct cast from double to short gives -32768,
-			 * if this difference isn't important we could remove this hack,
-			 * since we dont support gcc3 anymore - Campbell */
-			int gcckludge;
-			gcckludge = (int) floor(value + 0.5);
-			value = (short)gcckludge;
+			value = (short)floor(value + 0.5);
 		}
 		else if (but->pointype == UI_BUT_POIN_INT)
 			value = (int)floor(value + 0.5);
