@@ -35,7 +35,312 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* GGX */
+/* Approximate erf and erfinv implementations
+ *
+ * Adapted from code (C) Copyright John Maddock 2006.
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt) */
+
+ccl_device float approx_erff_impl(float z)
+{
+	float result;
+
+	if(z < 0.5f) {
+		if(z < 1e-10f) {
+			if(z == 0) {
+				result = 0;
+			}
+			else {
+				float c = 0.0033791670f;
+				result = z * 1.125f + z * c;
+			}
+		}
+		else {
+			float Y = 1.044948577f;
+
+			float zz = z * z;
+			float num = (((-0.007727583f * zz) + -0.050999073f)*zz + -0.338165134f)*zz + 0.083430589f;
+			float denom = (((0.000370900f * zz) + 0.008585719f)*zz + 0.087522260f)*zz + 0.455004033f;
+			result = z * (Y + num / denom);
+		}
+	}
+	else if(z < 2.5f) {
+		if(z < 1.5f) {
+			float Y = 0.4059357643f;
+			float fz = z - 0.5f;
+
+			float num = (((0.088890036f * fz) + 0.191003695f)*fz + 0.178114665f)*fz + -0.098090592f;
+			float denom = (((0.123850974f * fz) + 0.578052804f)*fz + 1.426280048f)*fz + 1.847590709f;
+
+			result = Y + num / denom;
+			result *= expf(-z * z) / z;
+		}
+		else  {
+			float Y = 0.506728172f;
+			float fz = z - 1.5f;
+			float num = (((0.017567943f * fz) + 0.043948189f)*fz + 0.038654037f)*fz + -0.024350047f;
+			float denom = (((0.325732924f * fz) + 0.982403709f)*fz + 1.539914949f)*fz + 1;
+
+			result = Y + num / denom;
+			result *= expf(-z * z) / z;
+		}
+
+		result = 1 - result;
+	}
+	else {
+		result = 1;
+	}
+
+	return result;
+}
+
+ccl_device float approx_erff(float z)
+{
+	float s = 1.0f;
+
+	if(z < 0.0f) {
+		s = -1.0f;
+		z = -z;
+	}
+
+	return s * approx_erff_impl(z);
+}
+
+ccl_device float approx_erfinvf_impl(float p, float q)
+{
+	float result = 0;
+
+	if(p <= 0.5f) {
+		float Y = 0.089131474f;
+		float g = p * (p + 10);
+		float num = (((-0.012692614f * p) + 0.033480662f)*p + -0.008368748f)*p + -0.000508781f;
+		float denom = (((1.562215583f * p) + -1.565745582f)*p + -0.970005043f)*p + 1.0f;
+		float r = num / denom;
+		result = g * Y + g * r;
+	}
+	else if(q >= 0.25f) {
+		float Y = 2.249481201f;
+		float g = sqrtf(-2 * logf(q));
+		float xs = q - 0.25f;
+		float num = (((17.644729840f * xs) + 8.370503283f)*xs + 0.105264680f)*xs + -0.202433508f;
+		float denom = (((-28.660818049f * xs) + 3.971343795f)*xs + 6.242641248f)*xs + 1.0f;
+		float r = num / denom;
+		result = g / (Y + r);
+	}
+	else {
+		float x = sqrtf(-logf(q));
+
+		if(x < 3) {
+			float Y = 0.807220458f;
+			float xs = x - 1.125f;
+			float num = (((0.387079738f * xs) + 0.117030156f)*xs + -0.163794047f)*xs + -0.131102781f;
+			float denom = (((4.778465929f * xs) + 5.381683457f)*xs + 3.466254072f)*xs + 1.0f;
+			float R = num / denom;
+			result = Y * x + R * x;
+		}
+		else {
+			float Y = 0.939955711f;
+			float xs = x - 3;
+			float num = (((0.009508047f * xs) + 0.018557330f)*xs + -0.002224265f)*xs + -0.035035378f;
+			float denom = (((0.220091105f * xs) + 0.762059164f)*xs + 1.365334981f)*xs + 1.0f;
+			float R = num / denom;
+			result = Y * x + R * x;
+		}
+	}
+
+	return result;
+}
+
+ccl_device float approx_erfinvf(float z)
+{
+   float p, q, s;
+
+   if(z < 0) {
+	  p = -z;
+	  q = 1 - p;
+	  s = -1;
+   }
+   else {
+	  p = z;
+	  q = 1 - z;
+	  s = 1;
+   }
+
+	return s * approx_erfinvf_impl(p, q);
+}
+
+/* Beckmann and GGX microfacet importance sampling from:
+ * 
+ * Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals.
+ * E. Heitz and E. d'Eon, EGSR 2014 */
+
+ccl_device_inline void microfacet_beckmann_sample_slopes(
+	const float cos_theta_i, const float sin_theta_i,
+	const float alpha_x, const float alpha_y,
+	float randu, float randv, float *slope_x, float *slope_y,
+	float *G1i)
+{
+	/* special case (normal incidence) */
+	if(cos_theta_i >= 0.99999f) {
+		const float r = sqrtf(-logf(randu));
+		const float phi = M_2PI_F * randv;
+		*slope_x = r * cosf(phi);
+		*slope_y = r * sinf(phi);
+		*G1i = 1.0f;
+		return;
+	}
+
+	/* precomputations */
+	const float tan_theta_i = sin_theta_i/cos_theta_i;
+	const float inv_a = tan_theta_i;
+	const float a = 1.0f/inv_a;
+	const float erf_a = approx_erff(a);
+	const float exp_a2 = expf(-a*a);
+	const float SQRT_PI_INV = 0.56418958354f;
+	const float Lambda = 0.5f*(erf_a - 1.0f) + (0.5f*SQRT_PI_INV)*(exp_a2*inv_a);
+	const float G1 = 1.0f/(1.0f + Lambda); /* masking */
+	const float C = 1.0f - G1 * erf_a;
+
+	*G1i = G1;
+
+	/* sample slope X */
+	if(randu < C) {
+		/* rescale randu */
+		randu = randu / C;
+		const float w_1 = 0.5f * SQRT_PI_INV * sin_theta_i * exp_a2;
+		const float w_2 = cos_theta_i * (0.5f - 0.5f*erf_a);
+		const float p = w_1 / (w_1 + w_2);
+
+		if(randu < p) {
+			randu = randu / p;
+			*slope_x = -sqrtf(-logf(randu*exp_a2));
+		}
+		else {
+			randu = (randu - p) / (1.0f - p);
+			*slope_x = approx_erfinvf(randu - 1.0f - randu*erf_a);
+		}
+	}
+	else {
+		/* rescale randu */
+		randu = (randu - C) / (1.0f - C);
+		*slope_x = approx_erfinvf((-1.0f + 2.0f*randu)*erf_a);
+
+		const float p = (-(*slope_x)*sin_theta_i + cos_theta_i) / (2.0f*cos_theta_i);
+
+		if(randv > p) {
+			*slope_x = -(*slope_x);
+			randv = (randv - p) / (1.0f - p);
+		}
+		else
+			randv = randv / p;
+	}
+
+	/* sample slope Y */
+	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
+}
+
+ccl_device_inline void microfacet_ggx_sample_slopes(
+	const float cos_theta_i, const float sin_theta_i,
+	const float alpha_x, const float alpha_y,
+	float randu, float randv, float *slope_x, float *slope_y,
+	float *G1i)
+{
+	/* special case (normal incidence) */
+	if(cos_theta_i >= 0.99999f) {
+		const float r = sqrtf(randu/(1.0f - randu));
+		const float phi = M_2PI_F * randv;
+		*slope_x = r * cosf(phi);
+		*slope_y = r * sinf(phi);
+		*G1i = 1.0f;
+
+		return;
+	}
+
+	/* precomputations */
+	const float tan_theta_i = sin_theta_i/cos_theta_i;
+	const float G1_inv = 0.5f * (1.0f + safe_sqrtf(1.0f + tan_theta_i*tan_theta_i));
+
+	*G1i = 1.0f/G1_inv;
+
+	/* sample slope_x */
+	const float A = 2.0f*randu*G1_inv - 1.0f;
+	const float AA = A*A;
+	const float tmp = 1.0f/(AA - 1.0f);
+	const float B = tan_theta_i;
+	const float BB = B*B;
+	const float D = safe_sqrtf(BB*(tmp*tmp) - (AA - BB)*tmp);
+	const float slope_x_1 = B*tmp - D;
+	const float slope_x_2 = B*tmp + D;
+	*slope_x = (A < 0.0f || slope_x_2*tan_theta_i > 1.0f)? slope_x_1: slope_x_2;
+
+	/* sample slope_y */
+	float S;
+
+	if(randv > 0.5f) {
+		S = 1.0f;
+		randv = 2.0f*(randv - 0.5f);
+	}
+	else {
+		S = -1.0f;
+		randv = 2.0f*(0.5f - randv);
+	}
+
+	const float z = (randv*(randv*(randv*0.27385f - 0.73369f) + 0.46341f)) / (randv*(randv*(randv*0.093073f + 0.309420f) - 1.000000f) + 0.597999f);
+	*slope_y = S * z * safe_sqrtf(1.0f + (*slope_x)*(*slope_x));
+}
+
+ccl_device_inline float3 microfacet_sample_stretched(const float3 omega_i,
+	const float alpha_x, const float alpha_y,
+	const float randu, const float randv,
+	bool beckmann, float *G1i)
+{
+	/* 1. stretch omega_i */
+	float3 omega_i_ = make_float3(alpha_x * omega_i.x, alpha_y * omega_i.y, omega_i.z);
+	omega_i_ = normalize(omega_i_);
+
+	/* get polar coordinates of omega_i_ */
+	float costheta_ = 1.0f;
+	float sintheta_ = 0.0f;
+	float cosphi_ = 1.0f;
+	float sinphi_ = 0.0f;
+
+	if(omega_i_.z < 0.99999f) {
+		costheta_ = omega_i_.z;
+		sintheta_ = safe_sqrtf(1.0f - costheta_*costheta_);
+
+		float invlen = 1.0f/sintheta_;
+		cosphi_ = omega_i_.x * invlen;
+		sinphi_ = omega_i_.y * invlen;
+	}
+
+	/* 2. sample P22_{omega_i}(x_slope, y_slope, 1, 1) */
+	float slope_x, slope_y;
+
+	if(beckmann)
+		microfacet_beckmann_sample_slopes(costheta_, sintheta_,
+			alpha_x, alpha_y, randu, randv, &slope_x, &slope_y, G1i);
+	else
+		microfacet_ggx_sample_slopes(costheta_, sintheta_,
+			alpha_x, alpha_y, randu, randv, &slope_x, &slope_y, G1i);
+
+	/* 3. rotate */
+	float tmp = cosphi_*slope_x - sinphi_*slope_y;
+	slope_y = sinphi_*slope_x + cosphi_*slope_y;
+	slope_x = tmp;
+
+	/* 4. unstretch */
+	slope_x = alpha_x * slope_x;
+	slope_y = alpha_y * slope_y;
+
+	/* 5. compute normal */
+	return normalize(make_float3(-slope_x, -slope_y, 1.0f));
+} 
+
+/* GGX microfacet with Smith shadow-masking from:
+ *
+ * Microfacet Models for Refraction through Rough Surfaces
+ * B. Walter, S. R. Marschner, H. Li, K. E. Torrance, EGSR 2007 */
 
 ccl_device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 {
@@ -67,34 +372,44 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 	float3 N = sc->N;
 
 	if(m_refractive || m_ag <= 1e-4f)
-		return make_float3 (0, 0, 0);
+		return make_float3(0, 0, 0);
+
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
+
 	if(cosNI > 0 && cosNO > 0) {
-		// get half vector
-		float3 Hr = normalize(omega_in + I);
-		// eq. 20: (F*G*D)/(4*in*on)
-		// eq. 33: first we calculate D(m) with m=Hr:
+		/* get half vector */
+		float3 m = normalize(omega_in + I);
+
+		/* eq. 20: (F*G*D)/(4*in*on)
+		 * eq. 33: first we calculate D(m) */
 		float alpha2 = m_ag * m_ag;
-		float cosThetaM = dot(N, Hr);
+		float cosThetaM = dot(N, m);
 		float cosThetaM2 = cosThetaM * cosThetaM;
 		float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
 		float cosThetaM4 = cosThetaM2 * cosThetaM2;
 		float D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-		// eq. 34: now calculate G1(i,m) and G1(o,m)
+		/* eq. 34: now calculate G1(i,m) and G1(o,m) */
 		float G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
 		float G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI))); 
 		float G = G1o * G1i;
-		float out = (G * D) * 0.25f / cosNO;
-		// eq. 24
-		float pm = D * cosThetaM;
-		// convert into pdf of the sampled direction
-		// eq. 38 - but see also:
-		// eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
-		*pdf = pm * 0.25f / dot(Hr, I);
-		return make_float3 (out, out, out);
+
+		/* eq. 20 */
+		float common = D * 0.25f / cosNO;
+		float out = G * common;
+
+		/* eq. 2 in distribution of visible normals sampling
+		 * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
+
+		/* eq. 38 - but see also:
+		 * eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
+		 * pdf = pm * 0.25 / dot(m, I); */
+		*pdf = G1o * common;
+
+		return make_float3(out, out, out);
 	}
-	return make_float3 (0, 0, 0);
+
+	return make_float3(0, 0, 0);
 }
 
 ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
@@ -105,33 +420,46 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, con
 	float3 N = sc->N;
 
 	if(!m_refractive || m_ag <= 1e-4f)
-		return make_float3 (0, 0, 0);
+		return make_float3(0, 0, 0);
+
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
+
 	if(cosNO <= 0 || cosNI >= 0)
-		return make_float3 (0, 0, 0); // vectors on same side -- not possible
-	// compute half-vector of the refraction (eq. 16)
+		return make_float3(0, 0, 0); /* vectors on same side -- not possible */
+
+	/* compute half-vector of the refraction (eq. 16) */
 	float3 ht = -(m_eta * omega_in + I);
 	float3 Ht = normalize(ht);
 	float cosHO = dot(Ht, I);
-
 	float cosHI = dot(Ht, omega_in);
-	// eq. 33: first we calculate D(m) with m=Ht:
+
+	/* eq. 33: first we calculate D(m) with m=Ht: */
 	float alpha2 = m_ag * m_ag;
 	float cosThetaM = dot(N, Ht);
 	float cosThetaM2 = cosThetaM * cosThetaM;
 	float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
 	float cosThetaM4 = cosThetaM2 * cosThetaM2;
 	float D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-	// eq. 34: now calculate G1(i,m) and G1(o,m)
+
+	/* eq. 34: now calculate G1(i,m) and G1(o,m) */
 	float G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
 	float G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI))); 
 	float G = G1o * G1i;
-	// probability
-	float invHt2 = 1 / dot(ht, ht);
-	*pdf = D * fabsf(cosThetaM) * (fabsf(cosHI) * (m_eta * m_eta)) * invHt2;
-	float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D) * invHt2) / cosNO;
-	return make_float3 (out, out, out);
+
+	/* probability */
+	float Ht2 = dot(ht, ht);
+
+	/* eq. 2 in distribution of visible normals sampling
+	 * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
+
+	/* out = fabsf(cosHI * cosHO) * (m_eta * m_eta) * G * D / (cosNO * Ht2)
+	 * pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2 */
+	float common = D * (m_eta * m_eta) / (cosNO * Ht2);
+	float out = G * fabsf(cosHI * cosHO) * common;
+	*pdf = G1o * cosHO * fabsf(cosHI) * common;
+
+	return make_float3(out, out, out);
 }
 
 ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
@@ -144,49 +472,57 @@ ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, fl
 	if(cosNO > 0) {
 		float3 X, Y, Z = N;
 		make_orthonormals(Z, &X, &Y);
-		// generate a random microfacet normal m
-		// eq. 35,36:
-		// we take advantage of cos(atan(x)) == 1/sqrt(1+x^2)
-		//tttt  and sin(atan(x)) == x/sqrt(1+x^2)
-		float alpha2 = m_ag * m_ag;
-		float tanThetaM2 = alpha2 * randu / (1 - randu);
-		float cosThetaM  = 1 / safe_sqrtf(1 + tanThetaM2);
-		float sinThetaM  = cosThetaM * safe_sqrtf(tanThetaM2);
-		float phiM = M_2PI_F * randv;
-		float3 m = (cosf(phiM) * sinThetaM) * X +
-		           (sinf(phiM) * sinThetaM) * Y +
-		           (             cosThetaM) * Z;
+
+		/* importance sampling with distribution of visible normals. vectors are
+		 * transformed to local space before and after */
+		float3 local_I;
+
+		local_I.x = dot(X, I);
+		local_I.y = dot(Y, I);
+		local_I.z = cosNO;
+
+		float3 local_m;
+		float G1o;
+
+		local_m = microfacet_sample_stretched(local_I, m_ag, m_ag,
+			randu, randv, false, &G1o);
+
+		float3 m = X*local_m.x + Y*local_m.y + Z*local_m.z;
+		float cosThetaM = local_m.z;
+
+		/* reflection or refraction? */
 		if(!m_refractive) {
 			float cosMO = dot(m, I);
+
 			if(cosMO > 0) {
-				// eq. 39 - compute actual reflected direction
+				/* eq. 39 - compute actual reflected direction */
 				*omega_in = 2 * cosMO * m - I;
+
 				if(dot(Ng, *omega_in) > 0) {
-					if (m_ag <= 1e-4f) {
-						// some high number for MIS
+					if(m_ag <= 1e-4f) {
+						/* some high number for MIS */
 						*pdf = 1e6f;
 						*eval = make_float3(1e6f, 1e6f, 1e6f);
 					}
 					else {
-						// microfacet normal is visible to this ray
-						// eq. 33
+						/* microfacet normal is visible to this ray */
+						/* eq. 33 */
+						float alpha2 = m_ag * m_ag;
 						float cosThetaM2 = cosThetaM * cosThetaM;
 						float cosThetaM4 = cosThetaM2 * cosThetaM2;
+						float tanThetaM2 = 1/(cosThetaM2) - 1;
 						float D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-						// eq. 24
-						float pm = D * cosThetaM;
-						// convert into pdf of the sampled direction
-						// eq. 38 - but see also:
-						// eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
-						*pdf = pm * 0.25f / cosMO;
-						// eval BRDF*cosNI
+
+						/* eval BRDF*cosNI */
 						float cosNI = dot(N, *omega_in);
-						// eq. 34: now calculate G1(i,m) and G1(o,m)
-						float G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
+						/* eq. 34: now calculate G1(i,m) */
 						float G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI))); 
-						float G = G1o * G1i;
-						// eq. 20: (F*G*D)/(4*in*on)
-						float out = (G * D) * 0.25f / cosNO;
+
+						/* see eval function for derivation */
+						float common = (G1o * D) * 0.25f / cosNO;
+						float out = G1i * common;
+						*pdf = common;
+
 						*eval = make_float3(out, out, out);
 					}
 
@@ -198,14 +534,15 @@ ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, fl
 			}
 		}
 		else {
-			// CAUTION: the i and o variables are inverted relative to the paper
-			// eq. 39 - compute actual refractive direction
+			/* CAUTION: the i and o variables are inverted relative to the paper
+			 * eq. 39 - compute actual refractive direction */
 			float3 R, T;
 #ifdef __RAY_DIFFERENTIALS__
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
 			float m_eta = sc->data1;
 			bool inside;
+
 			fresnel_dielectric(m_eta, m, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 				dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
@@ -213,38 +550,43 @@ ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, fl
 				&inside);
 			
 			if(!inside) {
+
 				*omega_in = T;
 #ifdef __RAY_DIFFERENTIALS__
 				*domega_in_dx = dTdx;
 				*domega_in_dy = dTdy;
 #endif
 
-				if (m_ag <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
-					// some high number for MIS
+				if(m_ag <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
+					/* some high number for MIS */
 					*pdf = 1e6f;
 					*eval = make_float3(1e6f, 1e6f, 1e6f);
 				}
 				else {
-					// eq. 33
+					/* eq. 33 */
+					float alpha2 = m_ag * m_ag;
 					float cosThetaM2 = cosThetaM * cosThetaM;
 					float cosThetaM4 = cosThetaM2 * cosThetaM2;
+					float tanThetaM2 = 1/(cosThetaM2) - 1;
 					float D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-					// eq. 24
-					float pm = D * cosThetaM;
-					// eval BRDF*cosNI
+
+					/* eval BRDF*cosNI */
 					float cosNI = dot(N, *omega_in);
-					// eq. 34: now calculate G1(i,m) and G1(o,m)
-					float G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
+
+					/* eq. 34: now calculate G1(i,m) */
 					float G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI))); 
-					float G = G1o * G1i;
-					// eq. 21
+
+					/* eq. 21 */
 					float cosHI = dot(m, *omega_in);
 					float cosHO = dot(m, I);
 					float Ht2 = m_eta * cosHI + cosHO;
 					Ht2 *= Ht2;
-					float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D)) / (cosNO * Ht2);
-					// eq. 38 and eq. 17
-					*pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2;
+
+					/* see eval function for derivation */
+					float common = (G1o * D) * (m_eta * m_eta) / (cosNO * Ht2);
+					float out = G1i * fabsf(cosHI * cosHO) * common;
+					*pdf = cosHO * fabsf(cosHI) * common;
+
 					*eval = make_float3(out, out, out);
 				}
 			}
@@ -253,7 +595,10 @@ ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, fl
 	return (m_refractive) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
 }
 
-/* BECKMANN */
+/* Beckmann microfacet with Smith shadow-masking from:
+ *
+ * Microfacet Models for Refraction through Rough Surfaces
+ * B. Walter, S. R. Marschner, H. Li, K. E. Torrance, EGSR 2007 */
 
 ccl_device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 {
@@ -283,36 +628,47 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc,
 	float3 N = sc->N;
 
 	if(m_refractive || m_ab <= 1e-4f)
-		return make_float3 (0, 0, 0);
+		return make_float3(0, 0, 0);
+
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
+
 	if(cosNO > 0 && cosNI > 0) {
-	   // get half vector
-	   float3 Hr = normalize(omega_in + I);
-	   // eq. 20: (F*G*D)/(4*in*on)
-	   // eq. 25: first we calculate D(m) with m=Hr:
+	   /* get half vector */
+	   float3 m = normalize(omega_in + I);
+
+	   /* eq. 20: (F*G*D)/(4*in*on)
+	    * eq. 25: first we calculate D(m) */
 	   float alpha2 = m_ab * m_ab;
-	   float cosThetaM = dot(N, Hr);
+	   float cosThetaM = dot(N, m);
 	   float cosThetaM2 = cosThetaM * cosThetaM;
 	   float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
 	   float cosThetaM4 = cosThetaM2 * cosThetaM2;
 	   float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 *  cosThetaM4);
-	   // eq. 26, 27: now calculate G1(i,m) and G1(o,m)
+
+	   /* eq. 26, 27: now calculate G1(i,m) and G1(o,m) */
 	   float ao = 1 / (m_ab * safe_sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
 	   float ai = 1 / (m_ab * safe_sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
 	   float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 	   float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 	   float G = G1o * G1i;
-	   float out = (G * D) * 0.25f / cosNO;
-	   // eq. 24
-	   float pm = D * cosThetaM;
-	   // convert into pdf of the sampled direction
-	   // eq. 38 - but see also:
-	   // eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
-	   *pdf = pm * 0.25f / dot(Hr, I);
-	   return make_float3 (out, out, out);
+
+		/* eq. 20 */
+		float common = D * 0.25f / cosNO;
+		float out = G * common;
+
+		/* eq. 2 in distribution of visible normals sampling
+		 * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
+
+		/* eq. 38 - but see also:
+		 * eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
+		 * pdf = pm * 0.25 / dot(m, I); */
+		*pdf = G1o * common;
+
+		return make_float3(out, out, out);
 	}
-	return make_float3 (0, 0, 0);
+
+	return make_float3(0, 0, 0);
 }
 
 ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
@@ -323,35 +679,48 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc
 	float3 N = sc->N;
 
 	if(!m_refractive || m_ab <= 1e-4f)
-		return make_float3 (0, 0, 0);
+		return make_float3(0, 0, 0);
+
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
+
 	if(cosNO <= 0 || cosNI >= 0)
-		return make_float3 (0, 0, 0);
-	// compute half-vector of the refraction (eq. 16)
+		return make_float3(0, 0, 0);
+
+	/* compute half-vector of the refraction (eq. 16) */
 	float3 ht = -(m_eta * omega_in + I);
 	float3 Ht = normalize(ht);
 	float cosHO = dot(Ht, I);
-
 	float cosHI = dot(Ht, omega_in);
-	// eq. 33: first we calculate D(m) with m=Ht:
+
+	/* eq. 33: first we calculate D(m) with m=Ht: */
 	float alpha2 = m_ab * m_ab;
 	float cosThetaM = min(dot(N, Ht), 1.0f);
 	float cosThetaM2 = cosThetaM * cosThetaM;
 	float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
 	float cosThetaM4 = cosThetaM2 * cosThetaM2;
 	float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 *  cosThetaM4);
-	// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
+
+	/* eq. 26, 27: now calculate G1(i,m) and G1(o,m) */
 	float ao = 1 / (m_ab * safe_sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
 	float ai = 1 / (m_ab * safe_sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
 	float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 	float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 	float G = G1o * G1i;
-	// probability
-	float invHt2 = 1 / dot(ht, ht);
-	*pdf = D * fabsf(cosThetaM) * (fabsf(cosHI) * (m_eta * m_eta)) * invHt2;
-	float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D) * invHt2) / cosNO;
-	return make_float3 (out, out, out);
+
+	/* probability */
+	float Ht2 = dot(ht, ht);
+
+	/* eq. 2 in distribution of visible normals sampling
+	 * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
+
+	/* out = fabsf(cosHI * cosHO) * (m_eta * m_eta) * G * D / (cosNO * Ht2)
+	 * pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2 */
+	float common = D * (m_eta * m_eta) / (cosNO * Ht2);
+	float out = G * fabsf(cosHI * cosHO) * common;
+	*pdf = G1o * cosHO * fabsf(cosHI) * common;
+
+	return make_float3(out, out, out);
 }
 
 ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
@@ -364,64 +733,63 @@ ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 N
 	if(cosNO > 0) {
 		float3 X, Y, Z = N;
 		make_orthonormals(Z, &X, &Y);
-		// generate a random microfacet normal m
-		// eq. 35,36:
-		// we take advantage of cos(atan(x)) == 1/sqrt(1+x^2)
-		//tttt  and sin(atan(x)) == x/sqrt(1+x^2)
-		float alpha2 = m_ab * m_ab;
-		float tanThetaM, cosThetaM;
 
-		if(alpha2 == 0.0f) {
-			tanThetaM = 0.0f;
-			cosThetaM = 1.0f;
-		}
-		else {
-			tanThetaM = safe_sqrtf(-alpha2 * logf(1 - randu));
-			cosThetaM = 1 / safe_sqrtf(1 + tanThetaM * tanThetaM);
-		}
+		/* importance sampling with distribution of visible normals. vectors are
+		 * transformed to local space before and after */
+		float3 local_I;
 
-		float sinThetaM = cosThetaM * tanThetaM;
-		float phiM = M_2PI_F * randv;
-		float3 m = (cosf(phiM) * sinThetaM) * X +
-		           (sinf(phiM) * sinThetaM) * Y +
-		           (             cosThetaM) * Z;
+		local_I.x = dot(X, I);
+		local_I.y = dot(Y, I);
+		local_I.z = cosNO;
 
+		float3 local_m;
+		float G1o;
+
+		local_m = microfacet_sample_stretched(local_I, m_ab, m_ab,
+			randu, randv, true, &G1o);
+
+		float3 m = X*local_m.x + Y*local_m.y + Z*local_m.z;
+		float cosThetaM = local_m.z;
+
+		/* reflection or refraction? */
 		if(!m_refractive) {
 			float cosMO = dot(m, I);
+
 			if(cosMO > 0) {
-				// eq. 39 - compute actual reflected direction
+				/* eq. 39 - compute actual reflected direction */
 				*omega_in = 2 * cosMO * m - I;
+
 				if(dot(Ng, *omega_in) > 0) {
-					if (m_ab <= 1e-4f) {
-						// some high number for MIS
+					if(m_ab <= 1e-4f) {
+						/* some high number for MIS */
 						*pdf = 1e6f;
 						*eval = make_float3(1e6f, 1e6f, 1e6f);
 					}
 					else {
-						// microfacet normal is visible to this ray
-						// eq. 25
+						/* microfacet normal is visible to this ray
+						 * eq. 25 */
+						float alpha2 = m_ab * m_ab;
 						float cosThetaM2 = cosThetaM * cosThetaM;
-						float tanThetaM2 = tanThetaM * tanThetaM;
 						float cosThetaM4 = cosThetaM2 * cosThetaM2;
+						float tanThetaM2 = 1/(cosThetaM2) - 1;
 						float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 *  cosThetaM4);
-						// eq. 24
-						float pm = D * cosThetaM;
-						// convert into pdf of the sampled direction
-						// eq. 38 - but see also:
-						// eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
-						*pdf = pm * 0.25f / cosMO;
-						// Eval BRDF*cosNI
+
+						/* eval BRDF*cosNI */
 						float cosNI = dot(N, *omega_in);
-						// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-						float ao = 1 / (m_ab * safe_sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
+
+						/* eq. 26, 27: now calculate G1(i,m) */
 						float ai = 1 / (m_ab * safe_sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
-						float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 						float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 						float G = G1o * G1i;
-						// eq. 20: (F*G*D)/(4*in*on)
-						float out = (G * D) * 0.25f / cosNO;
+
+						/* see eval function for derivation */
+						float common = D * 0.25f / cosNO;
+						float out = G * common;
+						*pdf = G1o * common;
+
 						*eval = make_float3(out, out, out);
 					}
+
 #ifdef __RAY_DIFFERENTIALS__
 					*domega_in_dx = (2 * dot(m, dIdx)) * m - dIdx;
 					*domega_in_dy = (2 * dot(m, dIdy)) * m - dIdy;
@@ -430,14 +798,15 @@ ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 N
 			}
 		}
 		else {
-			// CAUTION: the i and o variables are inverted relative to the paper
-			// eq. 39 - compute actual refractive direction
+			/* CAUTION: the i and o variables are inverted relative to the paper
+			 * eq. 39 - compute actual refractive direction */
 			float3 R, T;
 #ifdef __RAY_DIFFERENTIALS__
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
 			float m_eta = sc->data1;
 			bool inside;
+
 			fresnel_dielectric(m_eta, m, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 				dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
@@ -446,39 +815,44 @@ ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 N
 
 			if(!inside) {
 				*omega_in = T;
+
 #ifdef __RAY_DIFFERENTIALS__
 				*domega_in_dx = dTdx;
 				*domega_in_dy = dTdy;
 #endif
-				if (m_ab <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
-					// some high number for MIS
+
+				if(m_ab <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
+					/* some high number for MIS */
 					*pdf = 1e6f;
 					*eval = make_float3(1e6f, 1e6f, 1e6f);
 				}
 				else {
-					// eq. 33
+					/* eq. 33 */
+					float alpha2 = m_ab * m_ab;
 					float cosThetaM2 = cosThetaM * cosThetaM;
-					float tanThetaM2 = tanThetaM * tanThetaM;
 					float cosThetaM4 = cosThetaM2 * cosThetaM2;
+					float tanThetaM2 = 1/(cosThetaM2) - 1;
 					float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 *  cosThetaM4);
-					// eq. 24
-					float pm = D * cosThetaM;
-					// eval BRDF*cosNI
+
+					/* eval BRDF*cosNI */
 					float cosNI = dot(N, *omega_in);
-					// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-					float ao = 1 / (m_ab * safe_sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
+
+					/* eq. 26, 27: now calculate G1(i,m) */
 					float ai = 1 / (m_ab * safe_sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
-					float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 					float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 					float G = G1o * G1i;
-					// eq. 21
+
+					/* eq. 21 */
 					float cosHI = dot(m, *omega_in);
 					float cosHO = dot(m, I);
 					float Ht2 = m_eta * cosHI + cosHO;
 					Ht2 *= Ht2;
-					float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D)) / (cosNO * Ht2);
-					// eq. 38 and eq. 17
-					*pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2;
+
+					/* see eval function for derivation */
+					float common = D * (m_eta * m_eta) / (cosNO * Ht2);
+					float out = G * fabsf(cosHI * cosHO) * common;
+					*pdf = G1o * cosHO * fabsf(cosHI) * common;
+
 					*eval = make_float3(out, out, out);
 				}
 			}
