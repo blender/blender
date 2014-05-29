@@ -208,7 +208,7 @@ int do_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, rcti *rect, b
 	/* transform the clip planes in object space */
 	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, &mats);
 	ED_view3d_clipping_calc(&bb, clip_planes, &mats, rect);
-	mul_m4_fl(clip_planes, -1.0f);
+	negate_m4(clip_planes);
 
 	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
 	pbvh = ob->sculpt->pbvh;
@@ -355,7 +355,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		       mask_lasso_px_cb, &data);
 
 		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &data.rect);
-		mul_m4_fl(clip_planes, -1.0f);
+		negate_m4(clip_planes);
 
 		BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
 		pbvh = ob->sculpt->pbvh;
