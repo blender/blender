@@ -3063,36 +3063,21 @@ static void add_volume(Render *re, ObjectRen *obr, Material *ma)
 }
 
 #ifdef WITH_FREESTYLE
-static EdgeHash *make_freestyle_edge_mark_hash(Mesh *me, DerivedMesh *dm)
+static EdgeHash *make_freestyle_edge_mark_hash(DerivedMesh *dm)
 {
 	EdgeHash *edge_hash= NULL;
 	FreestyleEdge *fed;
 	MEdge *medge;
 	int totedge, a;
-	const int *index;
 
 	medge = dm->getEdgeArray(dm);
 	totedge = dm->getNumEdges(dm);
-	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-	fed = CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
+	fed = dm->getEdgeDataArray(dm, CD_FREESTYLE_EDGE);
 	if (fed) {
 		edge_hash = BLI_edgehash_new(__func__);
-		if (!index) {
-			if (me->totedge == totedge) {
-				for (a = 0; a < me->totedge; a++) {
-					if (fed[a].flag & FREESTYLE_EDGE_MARK) {
-						BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge + a);
-					}
-				}
-			}
-		}
-		else {
-			for (a = 0; a < totedge; a++) {
-				if (index[a] == ORIGINDEX_NONE)
-					continue;
-				if (fed[index[a]].flag & FREESTYLE_EDGE_MARK)
-					BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
-			}
+		for (a = 0; a < totedge; a++) {
+			if (fed[a].flag & FREESTYLE_EDGE_MARK)
+				BLI_edgehash_insert(edge_hash, medge[a].v1, medge[a].v2, medge+a);
 		}
 	}
 	return edge_hash;
@@ -3272,7 +3257,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			EdgeHash *edge_hash;
 
 			/* create a hash table of Freestyle edge marks */
-			edge_hash = make_freestyle_edge_mark_hash(me, dm);
+			edge_hash = make_freestyle_edge_mark_hash(dm);
 #endif
 
 			/* store customdata names, because DerivedMesh is freed */
