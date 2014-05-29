@@ -2595,7 +2595,7 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 		 *	- just use ale->data for now, though it would be nicer to involve 
 		 *	  ale->type in combination too to capture corner cases (where same data performs differently)
 		 */
-		if (BLI_gset_reinsert(gs, ale->data, NULL)) {
+		if (BLI_gset_add(gs, ale->data)) {
 			/* this entry is 'unique' and can be kept */
 			items++;
 		}

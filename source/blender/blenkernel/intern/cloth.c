@@ -1323,14 +1323,14 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 	/* insert other near springs in edgeset AFTER bending springs are calculated (for selfcolls) */
 	for (i = 0; i < numedges; i++) { /* struct springs */
-		BLI_edgeset_reinsert(edgeset, medge[i].v1, medge[i].v2);
+		BLI_edgeset_add(edgeset, medge[i].v1, medge[i].v2);
 	}
 
 	for (i = 0; i < numfaces; i++) { /* edge springs */
 		if (mface[i].v4) {
-			BLI_edgeset_reinsert(edgeset, mface[i].v1, mface[i].v3);
+			BLI_edgeset_add(edgeset, mface[i].v1, mface[i].v3);
 			
-			BLI_edgeset_reinsert(edgeset, mface[i].v2, mface[i].v4);
+			BLI_edgeset_add(edgeset, mface[i].v2, mface[i].v4);
 		}
 	}
 	

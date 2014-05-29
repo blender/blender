@@ -919,8 +919,8 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
 		}
 
 		/* both may already exist */
-		BLI_gset_reinsert(walker->visit_set_alt, l->e, NULL);
-		BLI_gset_reinsert(walker->visit_set, l->f, NULL);
+		BLI_gset_add(walker->visit_set_alt, l->e);
+		BLI_gset_add(walker->visit_set, l->f);
 	}
 
 	return f;

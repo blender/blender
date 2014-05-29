@@ -588,9 +588,12 @@ void BLI_edgeset_insert(EdgeSet *es, unsigned int v0, unsigned int v1)
 }
 
 /**
- * Assign a new value to a key that may already be in edgehash.
+ * A version of BLI_edgeset_insert which checks first if the key is in the set.
+ * \returns true if a new key has been added.
+ *
+ * \note EdgeHash has no equivalent to this because typically the value would be different.
  */
-bool BLI_edgeset_reinsert(EdgeSet *es, unsigned int v0, unsigned int v1)
+bool BLI_edgeset_add(EdgeSet *es, unsigned int v0, unsigned int v1)
 {
 	unsigned int hash;
 	EdgeEntry *e;

@@ -2805,15 +2805,15 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
 
 	for (i = 0; i < numFaces; i++, mf++) {
-		BLI_edgeset_reinsert(eh, mf->v1, mf->v2);
-		BLI_edgeset_reinsert(eh, mf->v2, mf->v3);
+		BLI_edgeset_add(eh, mf->v1, mf->v2);
+		BLI_edgeset_add(eh, mf->v2, mf->v3);
 		
 		if (mf->v4) {
-			BLI_edgeset_reinsert(eh, mf->v3, mf->v4);
-			BLI_edgeset_reinsert(eh, mf->v4, mf->v1);
+			BLI_edgeset_add(eh, mf->v3, mf->v4);
+			BLI_edgeset_add(eh, mf->v4, mf->v1);
 		}
 		else {
-			BLI_edgeset_reinsert(eh, mf->v3, mf->v1);
+			BLI_edgeset_add(eh, mf->v3, mf->v1);
 		}
 	}
 

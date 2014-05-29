@@ -71,7 +71,7 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index, const int cd_ver
 			v = l_iter->v;
 			if (!BLI_gset_haskey(n->bm_unique_verts, v)) {
 				if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-					BLI_gset_reinsert(n->bm_other_verts, v, NULL);
+					BLI_gset_add(n->bm_other_verts, v);
 				}
 				else {
 					BLI_gset_insert(n->bm_unique_verts, v);

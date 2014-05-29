@@ -901,6 +901,25 @@ void BLI_gset_insert(GSet *gs, void *key)
 }
 
 /**
+ * A version of BLI_gset_insert which checks first if the key is in the set.
+ * \returns true if a new key has been added.
+ *
+ * \note GHash has no equivalent to this because typically the value would be different.
+ */
+bool BLI_gset_add(GSet *gs, void *key)
+{
+	const unsigned int hash = ghash_keyhash((GHash *)gs, key);
+	Entry *e = ghash_lookup_entry_ex((GHash *)gs, key, hash);
+	if (e) {
+		return false;
+	}
+	else {
+		ghash_insert_ex_keyonly((GHash *)gs, key, hash);
+		return true;
+	}
+}
+
+/**
  * Adds the key to the set (duplicates are managed).
  * Matching #BLI_ghash_reinsert
  *

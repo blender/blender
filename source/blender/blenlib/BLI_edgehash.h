@@ -102,7 +102,7 @@ EdgeSet *BLI_edgeset_new_ex(const char *info,
                             const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 EdgeSet *BLI_edgeset_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 int      BLI_edgeset_size(EdgeSet *es) ATTR_WARN_UNUSED_RESULT;
-bool     BLI_edgeset_reinsert(EdgeSet *es, unsigned int v0, unsigned int v1);
+bool     BLI_edgeset_add(EdgeSet *es, unsigned int v0, unsigned int v1);
 void     BLI_edgeset_insert(EdgeSet *es, unsigned int v0, unsigned int v1);
 bool     BLI_edgeset_haskey(EdgeSet *eh, unsigned int v0, unsigned int v1) ATTR_WARN_UNUSED_RESULT;
 void     BLI_edgeset_free(EdgeSet *es);
