@@ -948,8 +948,13 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 		return;
 	}
 
-	if (bvh->type != PBVH_FACES)
+	if (bvh->type != PBVH_FACES) {
+		/* make sure we clean up the flag! */
+		for (n = 0; n < totnode; n++) {
+			nodes[n]->flag &= ~PBVH_UpdateNormals;
+		}
 		return;
+	}
 
 	/* could be per node to save some memory, but also means
 	 * we have to store for each vertex which node it is in */
