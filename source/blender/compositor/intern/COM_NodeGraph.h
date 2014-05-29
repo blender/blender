@@ -78,6 +78,7 @@ public:
 	
 protected:
 	typedef std::pair<NodeIterator, NodeIterator> NodeRange;
+	typedef std::vector<NodeInput *> NodeInputs;
 	
 	static bNodeSocket *find_b_node_input(bNode *b_node, const char *identifier);
 	static bNodeSocket *find_b_node_output(bNode *b_node, const char *identifier);
@@ -89,7 +90,7 @@ protected:
 	
 	void add_bNode(const CompositorContext &context, bNodeTree *b_ntree, bNode *b_node, bNodeInstanceKey key, bool is_active_group);
 	
-	NodeInput *find_input(const NodeRange &node_range, bNodeSocket *b_socket);
+	NodeInputs find_inputs(const NodeRange &node_range, bNodeSocket *b_socket);
 	NodeOutput *find_output(const NodeRange &node_range, bNodeSocket *b_socket);
 	void add_bNodeLink(const NodeRange &node_range, bNodeLink *bNodeLink);
 	
