@@ -662,8 +662,8 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.operator("mesh.select_linked", text="Linked")
         layout.operator("mesh.shortest_path_select", text="Shortest Path")
-        layout.operator("mesh.loop_multi_select", text="Edge Loop").ring = False
-        layout.operator("mesh.loop_multi_select", text="Edge Ring").ring = True
+        layout.operator("mesh.loop_multi_select", text="Edge Loops").ring = False
+        layout.operator("mesh.loop_multi_select", text="Edge Rings").ring = True
 
         layout.separator()
 
@@ -2239,8 +2239,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.separator()
 
         layout.operator("transform.edge_slide")
-        layout.operator("mesh.loop_multi_select", text="Edge Loop").ring = False
-        layout.operator("mesh.loop_multi_select", text="Edge Ring").ring = True
+        layout.operator("mesh.loop_multi_select", text="Edge Loops").ring = False
+        layout.operator("mesh.loop_multi_select", text="Edge Rings").ring = True
         layout.operator("mesh.loop_to_region")
         layout.operator("mesh.region_to_loop")
 
@@ -2346,7 +2346,7 @@ class VIEW3D_MT_edit_mesh_delete(Menu):
         layout.separator()
 
         layout.operator("mesh.edge_collapse")
-        layout.operator("mesh.delete_edgeloop", text="Edge Loop")
+        layout.operator("mesh.delete_edgeloop", text="Edge Loops")
 
 
 class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, Menu):
