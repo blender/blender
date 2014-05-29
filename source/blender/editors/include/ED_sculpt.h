@@ -46,7 +46,7 @@ void sculpt_get_redraw_planes(float planes[4][4], struct ARegion *ar,
                               struct RegionView3D *rv3d, struct Object *ob);
 void ED_sculpt_get_average_stroke(struct Object *ob, float stroke[3]);
 bool ED_sculpt_minmax(struct bContext *C, float min[3], float max[3]);
-int do_sculpt_mask_box_select(struct ViewContext *vc, struct rcti *rect, bool select, bool extend);
+int do_sculpt_mask_box_select(struct bContext *C, struct ViewContext *vc, struct rcti *rect, bool select, bool extend);
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);

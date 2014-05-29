@@ -86,10 +86,8 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	struct Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	struct MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 	PaintMaskFloodMode mode;
 	float value;
-	DerivedMesh *dm;
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i;
@@ -98,14 +96,9 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	mode = RNA_enum_get(op->ptr, "mode");
 	value = RNA_float_get(op->ptr, "value");
 
-	BKE_sculpt_mask_layers_ensure(ob, mmd);
+	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
 
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-	pbvh = dm->getPBVH(ob, dm);
-	ob->sculpt->pbvh = pbvh;
-
-	ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
-	pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
+	pbvh = ob->sculpt->pbvh;
 
 	BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
@@ -122,16 +115,19 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 		} BKE_pbvh_vertex_iter_end;
 		
 		BKE_pbvh_node_mark_redraw(nodes[i]);
-		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
-			multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 	}
-	
+
+	if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+
 	sculpt_undo_push_end();
 
 	if (nodes)
 		MEM_freeN(nodes);
 
 	ED_region_tag_redraw(ar);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -185,7 +181,7 @@ static void flip_plane(float out[4], const float in[4], const char symm)
 	out[3] = in[3];
 }
 
-int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNUSED(extend))
+int do_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, rcti *rect, bool select, bool UNUSED(extend))
 {
 	Sculpt *sd = vc->scene->toolsettings->sculpt;
 	BoundBox bb;
@@ -195,10 +191,8 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	ARegion *ar = vc->ar;
 	struct Scene *scene = vc->scene;
 	Object *ob = vc->obact;
-	struct MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 	PaintMaskFloodMode mode;
 	float value;
-	DerivedMesh *dm;
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i, symmpass;
@@ -212,14 +206,8 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 	ED_view3d_clipping_calc(&bb, clip_planes, &mats, rect);
 	mul_m4_fl(clip_planes, -1.0f);
 
-	BKE_sculpt_mask_layers_ensure(ob, mmd);
-
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-	pbvh = dm->getPBVH(ob, dm);
-	ob->sculpt->pbvh = pbvh;
-
-	ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
-	pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
+	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
+	pbvh = ob->sculpt->pbvh;
 
 	sculpt_undo_push_begin("Mask box fill");
 
@@ -251,8 +239,6 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 							sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
 
 							BKE_pbvh_node_mark_redraw(nodes[i]);
-							if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
-								multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 						}
 						mask_flood_fill_set_elem(vi.mask, mode, value);
 					}
@@ -264,9 +250,14 @@ int do_sculpt_mask_box_select(ViewContext *vc, rcti *rect, bool select, bool UNU
 		}
 	}
 
+	if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+
 	sculpt_undo_push_end();
 
 	ED_region_tag_redraw(ar);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -325,10 +316,9 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		Object *ob;
 		ViewContext vc;
 		LassoMaskData data;
+		struct Scene *scene = CTX_data_scene(C);
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
-		struct MultiresModifierData *mmd;
-		DerivedMesh *dm;
 		PBVH *pbvh;
 		PBVHNode **nodes;
 		int totnode, i, symmpass;
@@ -359,14 +349,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &data.rect);
 		mul_m4_fl(clip_planes, -1.0f);
 
-		mmd = BKE_sculpt_multires_active(vc.scene, ob);
-		BKE_sculpt_mask_layers_ensure(ob, mmd);
-		dm = mesh_get_derived_final(vc.scene, ob, CD_MASK_BAREMESH);
-		pbvh = dm->getPBVH(ob, dm);
-		ob->sculpt->pbvh = pbvh;
-
-		ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
-		pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
+		BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
+		pbvh = ob->sculpt->pbvh;
 
 		sculpt_undo_push_begin("Mask lasso fill");
 
@@ -401,8 +385,6 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 								sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
 
 								BKE_pbvh_node_mark_redraw(nodes[i]);
-								if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
-									multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 							}
 
 							mask_flood_fill_set_elem(vi.mask, mode, value);
@@ -415,11 +397,16 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 			}
 		}
 
+		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+			multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+
 		sculpt_undo_push_end();
 
 		ED_region_tag_redraw(vc.ar);
 		MEM_freeN((void *)mcords);
 		MEM_freeN(data.px);
+
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 		return OPERATOR_FINISHED;
 	}
