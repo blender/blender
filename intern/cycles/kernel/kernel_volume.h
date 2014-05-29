@@ -226,7 +226,7 @@ ccl_device float kernel_volume_equiangular_pdf(Ray *ray, float3 light_P, float s
 	return pdf;
 }
 
-ccl_device bool kernel_volume_equiangular_light_position(KernelGlobals *kg, PathState *state, Ray *ray, RNG *rng, float3 *light_P)
+ccl_device bool kernel_volume_equiangular_light_position(KernelGlobals *kg, PathState *state, Ray *ray, RNG *rng, float3 *light_P, bool *distant)
 {
 	/* light RNGs */
 	float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
@@ -240,17 +240,9 @@ ccl_device bool kernel_volume_equiangular_light_position(KernelGlobals *kg, Path
 		return false;
 	
 	*light_P = ls.P;
+	*distant = ls.t == FLT_MAX;
+
 	return true;
-}
-
-ccl_device float kernel_volume_decoupled_equiangular_pdf(KernelGlobals *kg, PathState *state, Ray *ray, RNG *rng, float sample_t)
-{
-	float3 light_P;
-
-	if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P))
-		return 0.0f;
-
-	return kernel_volume_equiangular_pdf(ray, light_P, sample_t);
 }
 
 /* Distance sampling */
@@ -357,12 +349,20 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 				/* equiangular sampling */
 				float3 light_P;
 				float equi_pdf;
-				if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P))
+				bool light_distant;
+
+				if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P, &light_distant))
 					return VOLUME_PATH_MISSED;
 
-				sample_t = kernel_volume_equiangular_sample(ray, light_P, xi, &equi_pdf);
-				transmittance = volume_color_transmittance(sigma_t, sample_t);
-				pdf = make_float3(equi_pdf, equi_pdf, equi_pdf);
+				if(light_distant) {
+					/* distant light, revert to distance sampling because position is infinitely far away */
+					sample_t = kernel_volume_distance_sample(ray->t, sigma_t, channel, xi, &transmittance, &pdf);
+				}
+				else {
+					sample_t = kernel_volume_equiangular_sample(ray, light_P, xi, &equi_pdf);
+					transmittance = volume_color_transmittance(sigma_t, sample_t);
+					pdf = make_float3(equi_pdf, equi_pdf, equi_pdf);
+				}
 			}
 
 			/* modifiy pdf for hit/miss decision */
@@ -720,8 +720,23 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 	float3 transmittance;
 	float pdf, sample_t;
 
+	/* pick position on light for equiangular */
+	bool equiangular = (kernel_data.integrator.volume_homogeneous_sampling != 0 && kernel_data.integrator.num_all_lights);
+	float3 light_P;
+
+	if(equiangular) {
+		bool light_distant;
+
+		if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P, &light_distant))
+			return VOLUME_PATH_MISSED;
+
+		/* distant light, revert to distance sampling because position is infinitely far away */
+		if(light_distant)
+			equiangular = false;
+	}
+
 	/* distance sampling */
-	if(kernel_data.integrator.volume_homogeneous_sampling == 0 || !kernel_data.integrator.num_all_lights) { 
+	if(!equiangular) {
 		/* find step in cdf */
 		step = segment->steps;
 
@@ -762,11 +777,6 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 	}
 	/* equi-angular sampling */
 	else {
-		/* pick position on light */
-		float3 light_P;
-		if(!kernel_volume_equiangular_light_position(kg, state, ray, rng, &light_P))
-			return VOLUME_PATH_MISSED;
-
 		/* sample distance */
 		sample_t = kernel_volume_equiangular_sample(ray, light_P, xi, &pdf);
 
