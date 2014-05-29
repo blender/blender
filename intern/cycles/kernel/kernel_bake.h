@@ -180,8 +180,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	PathRadiance L;
 
 	shader_setup_from_sample(kg, &sd, P, Ng, I, shader, object, prim, u, v, t, time, bounce, transparent_bounce);
-
-	sd.I = camera_direction_from_point(kg, sd.P);
+	sd.I = sd.N;
 
 	/* update differentials */
 	sd.dP.dx = sd.dPdu * dudx + sd.dPdv * dvdx;
