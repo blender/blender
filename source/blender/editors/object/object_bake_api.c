@@ -522,11 +522,6 @@ static int bake(
 			if (ob_iter == ob_low)
 				continue;
 
-			if (!is_uniform_scaled_m4(ob_iter->obmat)) {
-				BKE_reportf(reports, RPT_INFO, "Selected objects must have uniform scale "
-				            "(apply scale to object \"%s\" for correct results)", ob_iter->id.name + 2);
-			}
-
 			tot_highpoly ++;
 		}
 
@@ -633,9 +628,14 @@ static int bake(
 			highpoly[i].ob->restrictflag &= ~OB_RESTRICT_RENDER;
 
 			/* lowpoly to highpoly transformation matrix */
-			copy_m4_m4(highpoly[i].mat_high, highpoly[i].ob->obmat);
-			invert_m4_m4(highpoly[i].imat_high, highpoly[i].mat_high);
-			highpoly[i].scale = mat4_to_scale(highpoly[i].mat_high);
+			copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
+			invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
+
+			/* rotation */
+			normalize_m4_m4(highpoly[i].rotmat, highpoly[i].imat);
+			zero_v3(highpoly[i].rotmat[3]);
+			if (is_negative_m4(highpoly[i].rotmat))
+				negate_m3(highpoly[i].rotmat);
 
 			i++;
 		}

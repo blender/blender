@@ -235,10 +235,10 @@ static bool cast_ray_highpoly(
 		hits[i].dist = 10000.0f;
 
 		/* transform the ray from the world space to the highpoly space */
-		mul_v3_m4v3(co_high, highpoly[i].imat_high, co);
+		mul_v3_m4v3(co_high, highpoly[i].imat, co);
 
-		copy_v3_v3(dir_high, dir);
-		mul_transposed_mat3_m4_v3(highpoly[i].mat_high, dir_high);
+		/* rotates */
+		mul_v3_m4v3(dir_high, highpoly[i].rotmat, dir);
 		normalize_v3(dir_high);
 
 		/* cast ray */
@@ -248,7 +248,13 @@ static bool cast_ray_highpoly(
 			/* cull backface */
 			const float dot = dot_v3v3(dir_high, hits[i].no);
 			if (dot < 0.0f) {
-				float distance = hits[i].dist * highpoly[i].scale;
+				float distance;
+				float hit_world[3];
+
+				/* distance comparison in world space */
+				mul_v3_m4v3(hit_world, highpoly[i].obmat, hits[i].co);
+				distance = len_squared_v3v3(hit_world, co);
+
 				if (distance < hit_distance) {
 					hit_mesh = i;
 					hit_distance = distance;

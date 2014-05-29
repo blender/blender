@@ -61,9 +61,10 @@ typedef struct BakeHighPolyData {
 	struct ModifierData *tri_mod;
 	struct Mesh *me;
 	char restrict_flag;
-	float mat_high[4][4];
-	float imat_high[4][4];
-	float scale;
+
+	float obmat[4][4];
+	float imat[4][4];
+	float rotmat[4][4];
 } BakeHighPolyData;
 
 /* external_engine.c */
