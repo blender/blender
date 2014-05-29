@@ -710,6 +710,22 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	assign_material(ob, value.data, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
 }
 
+static int rna_Object_active_material_editable(PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+	bool is_editable;
+
+	if ((ob->matbits == NULL) || (ob->actcol == 0) || ob->matbits[ob->actcol - 1]) {
+		is_editable = (ob->id.lib == NULL);
+	}
+	else {
+		is_editable = ob->data ? (((ID *)ob->data)->lib == NULL) : false;
+	}
+
+	return is_editable ? PROP_EDITABLE : 0;
+}
+
+
 static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max,
                                                           int *UNUSED(softmin), int *UNUSED(softmax))
 {
@@ -2252,6 +2268,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get",
 	                               "rna_Object_active_material_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_Object_active_material_editable");
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
 
