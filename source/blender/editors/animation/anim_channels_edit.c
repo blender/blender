@@ -769,10 +769,12 @@ static bool rearrange_island_bottom(ListBase *list, tReorderChannelIsland *islan
 
 /* ............................. */
 
-/* typedef for channel rearranging function 
- * < list: list that channels belong to
- * < island: island to be moved
- * > return[0]: whether operation was a success
+/**
+ * typedef for channel rearranging function
+ *
+ * \param list List that channels belong to
+ * \param island Island to be moved
+ * \return Whether operation was a success
  */
 typedef bool (*AnimChanRearrangeFp)(ListBase *list, tReorderChannelIsland *island);
 

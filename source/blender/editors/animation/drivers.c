@@ -426,15 +426,15 @@ bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int a
 /* ************************************************** */
 /* UI-Button Interface */
 
-/* Temporary wrapper for driver operators for buttons to make it easier to create
+/**
+ * Temporary wrapper for driver operators for buttons to make it easier to create
  * such drivers by rerouting all paths through the active object instead so that
  * they will get picked up by the dependency system.
  *
- * < C: context pointer - for getting active data 
- * <> ptr: RNA pointer for property's datablock. May be modified as result of path remapping.
- * < prop: RNA definition of property to add for
- *
- * > returns: MEM_alloc'd string representing the path to the property from the given PointerRNA
+ * \param C Context pointer - for getting active data
+ * \param ptr RNA pointer for property's datablock. May be modified as result of path remapping.
+ * \param prop RNA definition of property to add for
+ * \return MEM_alloc'd string representing the path to the property from the given #PointerRNA
  */
 static char *get_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {

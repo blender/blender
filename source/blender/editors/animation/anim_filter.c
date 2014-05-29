@@ -987,8 +987,10 @@ static bool skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, ID *owner_id)
 	return true;
 }
 
-/* Check if F-Curve has errors and/or is disabled 
- * > returns: (bool) True if F-Curve has errors/is disabled
+/**
+ * Check if F-Curve has errors and/or is disabled
+ *
+ * \return true if F-Curve has errors/is disabled
  */
 static bool fcurve_has_errors(FCurve *fcu)
 {

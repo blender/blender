@@ -157,8 +157,10 @@ void free_nladata(ListBase *tracks)
 
 /* Copying ------------------------------------------- */
 
-/* Copy NLA strip 
- * < use_same_action: if true, the existing action is used (instead of being duplicated)
+/**
+ * Copy NLA strip
+ *
+ * \param use_same_action When true, the existing action is used (instead of being duplicated)
  */
 NlaStrip *copy_nlastrip(NlaStrip *strip, const bool use_same_action)
 {

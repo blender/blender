@@ -763,8 +763,10 @@ EnumPropertyItem keyframe_paste_merge_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 
-/* This function pastes data from the keyframes copy/paste buffer 
- * > return status code is whether the method FAILED to do anything
+/**
+ * This function pastes data from the keyframes copy/paste buffer
+ *
+ * \return Status code is whether the method FAILED to do anything
  */
 short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
                           const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode)

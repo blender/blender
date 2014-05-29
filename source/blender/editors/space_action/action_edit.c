@@ -362,10 +362,12 @@ void ACTION_OT_previewrange_set(wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-/* Find the extents of the active channel
- * > min: (float) bottom y-extent of channel
- * > max: (float) top y-extent of channel
- * > returns: success of finding a selected channel
+/**
+ * Find the extents of the active channel
+ *
+ * \param min Bottom y-extent of channel
+ * \param max Top y-extent of channel
+ * \return Success of finding a selected channel
  */
 static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, float *max)
 {

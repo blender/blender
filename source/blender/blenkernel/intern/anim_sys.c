@@ -381,10 +381,12 @@ void BKE_relink_animdata(AnimData *adt)
 
 /* Sub-ID Regrouping ------------------------------------------- */
 
-/* helper heuristic for determining if a path is compatible with the basepath 
- * < path: (str) full RNA-path from some data (usually an F-Curve) to compare
- * < basepath: (str) shorter path fragment to look for
- * > returns (bool) whether there is a match
+/**
+ * Helper heuristic for determining if a path is compatible with the basepath
+ *
+ * \param path Full RNA-path from some data (usually an F-Curve) to compare
+ * \param basepath Shorter path fragment to look for
+ * \return Whether there is a match
  */
 static bool animpath_matches_basepath(const char path[], const char basepath[])
 {
@@ -2232,9 +2234,12 @@ void nladata_flush_channels(ListBase *channels)
 
 /* ---------------------- */
 
-/* NLA Evaluation function - values are calculated and stored in temporary "NlaEvalChannels" 
- * ! This is exported so that keyframing code can use this for make use of it for anim layers support
- * > echannels: (list<NlaEvalChannels>) evaluation channels with calculated values
+/**
+ * NLA Evaluation function - values are calculated and stored in temporary "NlaEvalChannels"
+ *
+ * \note This is exported so that keyframing code can use this for make use of it for anim layers support
+ *
+ * \param echannels Evaluation channels with calculated values
  */
 static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime)
 {
