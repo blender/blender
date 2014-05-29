@@ -91,14 +91,15 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i;
+	bool multires;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 	mode = RNA_enum_get(op->ptr, "mode");
 	value = RNA_float_get(op->ptr, "value");
 
 	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
-
 	pbvh = ob->sculpt->pbvh;
+	multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
 	BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
@@ -115,9 +116,11 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 		} BKE_pbvh_vertex_iter_end;
 		
 		BKE_pbvh_node_mark_redraw(nodes[i]);
+		if (multires)
+			BKE_pbvh_node_mark_normals_update(nodes[i]);
 	}
 
-	if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+	if (multires)
 		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 
 	sculpt_undo_push_end();
@@ -193,6 +196,7 @@ int do_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, rcti *rect, b
 	Object *ob = vc->obact;
 	PaintMaskFloodMode mode;
 	float value;
+	bool multires;
 	PBVH *pbvh;
 	PBVHNode **nodes;
 	int totnode, i, symmpass;
@@ -208,6 +212,7 @@ int do_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, rcti *rect, b
 
 	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
 	pbvh = ob->sculpt->pbvh;
+	multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
 	sculpt_undo_push_begin("Mask box fill");
 
@@ -239,6 +244,8 @@ int do_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, rcti *rect, b
 							sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
 
 							BKE_pbvh_node_mark_redraw(nodes[i]);
+							if (multires)
+								BKE_pbvh_node_mark_normals_update(nodes[i]);
 						}
 						mask_flood_fill_set_elem(vi.mask, mode, value);
 					}
@@ -250,7 +257,7 @@ int do_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, rcti *rect, b
 		}
 	}
 
-	if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+	if (multires)
 		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 
 	sculpt_undo_push_end();
@@ -322,6 +329,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		PBVH *pbvh;
 		PBVHNode **nodes;
 		int totnode, i, symmpass;
+		bool multires;
 		PaintMaskFloodMode mode = PAINT_MASK_FLOOD_VALUE;
 		bool select = true; /* TODO: see how to implement deselection */
 		float value = select ? 1.0 : 0.0;
@@ -351,6 +359,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
 		BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
 		pbvh = ob->sculpt->pbvh;
+		multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
 		sculpt_undo_push_begin("Mask lasso fill");
 
@@ -385,6 +394,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 								sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
 
 								BKE_pbvh_node_mark_redraw(nodes[i]);
+								if (multires)
+									BKE_pbvh_node_mark_normals_update(nodes[i]);
 							}
 
 							mask_flood_fill_set_elem(vi.mask, mode, value);
@@ -397,7 +408,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
+		if (multires)
 			multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 
 		sculpt_undo_push_end();
