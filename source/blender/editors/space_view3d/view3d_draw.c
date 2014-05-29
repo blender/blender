@@ -2416,7 +2416,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	Scene *sce_iter;
 	Base *base;
 	Object *ob;
-	SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
+	SceneRenderLayer *srl = v3d->scenelock ? BLI_findlink(&scene->r.layers, scene->r.actlay) : NULL;
 	
 	BLI_listbase_clear(&shadows);
 	

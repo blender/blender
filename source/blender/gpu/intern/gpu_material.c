@@ -270,13 +270,13 @@ bool GPU_lamp_override_visible(GPULamp *lamp, SceneRenderLayer *srl, Material *m
 		return true;
 }
 
-void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4])
+void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4], bool scenelock)
 {
 	if (material->pass) {
 		LinkData *nlink;
 		GPULamp *lamp;
 		GPUShader *shader = GPU_pass_shader(material->pass);
-		SceneRenderLayer *srl = BLI_findlink(&material->scene->r.layers, material->scene->r.actlay);
+		SceneRenderLayer *srl = scenelock ? BLI_findlink(&material->scene->r.layers, material->scene->r.actlay) : NULL;
 
 		if (srl)
 			viewlay &= srl->lay;

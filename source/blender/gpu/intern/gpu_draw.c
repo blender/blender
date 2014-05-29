@@ -1375,6 +1375,7 @@ static struct GPUMaterialState {
 	Object *gob;
 	Scene *gscene;
 	int glay;
+	bool gscenelock;
 	float (*gviewmat)[4];
 	float (*gviewinv)[4];
 
@@ -1463,6 +1464,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.gscene = scene;
 	GMS.totmat = use_matcap ? 1 : ob->totcol + 1;  /* materials start from 1, default material is 0 */
 	GMS.glay= (v3d->localvd)? v3d->localvd->lay: v3d->lay; /* keep lamps visible in local view */
+	GMS.gscenelock = (v3d->scenelock != 0);
 	GMS.gviewmat= rv3d->viewmat;
 	GMS.gviewinv= rv3d->viewinv;
 
@@ -1623,7 +1625,7 @@ int GPU_enable_material(int nr, void *attribs)
 
 			gpumat = GPU_material_from_blender(GMS.gscene, mat);
 			GPU_material_vertex_attributes(gpumat, gattribs);
-			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT), GMS.gviewmat, GMS.gviewinv);
+			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT), GMS.gviewmat, GMS.gviewinv, GMS.gscenelock);
 
 			auto_bump_scale = GMS.gob->derivedFinal != NULL ? GMS.gob->derivedFinal->auto_bump_scale : 1.0f;
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gob->col, auto_bump_scale);
