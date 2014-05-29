@@ -281,7 +281,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 		/* setup shading */
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray, state.bounce, state.transparent_bounce);
-		float rbsdf = path_state_rng_1D(kg, rng, &state, PRNG_BSDF);
+		float rbsdf = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_BSDF);
 		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_INDIRECT);
 #ifdef __BRANCHED_PATH__
 		shader_merge_closures(&sd);
@@ -315,7 +315,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 			break;
 		}
 		else if(probability != 1.0f) {
-			float terminate = path_state_rng_1D(kg, rng, &state, PRNG_TERMINATE);
+			float terminate = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_TERMINATE);
 
 			if(terminate >= probability)
 				break;
@@ -785,7 +785,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		/* setup shading */
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray, state.bounce, state.transparent_bounce);
-		float rbsdf = path_state_rng_1D(kg, rng, &state, PRNG_BSDF);
+		float rbsdf = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_BSDF);
 		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
 		/* holdout */
@@ -840,7 +840,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			break;
 		}
 		else if(probability != 1.0f) {
-			float terminate = path_state_rng_1D(kg, rng, &state, PRNG_TERMINATE);
+			float terminate = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_TERMINATE);
 
 			if(terminate >= probability)
 				break;
@@ -1325,7 +1325,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				break;
 			}
 			else if(probability != 1.0f) {
-				float terminate = path_state_rng_1D(kg, rng, &state, PRNG_TERMINATE);
+				float terminate = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_TERMINATE);
 
 				if(terminate >= probability)
 					break;

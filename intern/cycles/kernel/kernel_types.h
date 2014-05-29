@@ -686,9 +686,10 @@ typedef struct PathState {
 	int flag;          
 
 	/* random number generator state */
-	int rng_offset;    /* dimension offset */
-	int sample;        /* path sample number */
-	int num_samples;   /* total number of times this path will be sampled */
+	int rng_offset;    		/* dimension offset */
+	int rng_offset_bsdf;  	/* dimension offset for picking bsdf */
+	int sample;        		/* path sample number */
+	int num_samples;		/* total number of times this path will be sampled */
 
 	/* bounce counting */
 	int bounce;

@@ -266,6 +266,19 @@ ccl_device_inline float path_state_rng_1D(KernelGlobals *kg, RNG *rng, PathState
 	return path_rng_1D(kg, rng, state->sample, state->num_samples, state->rng_offset + dimension);
 }
 
+ccl_device_inline float path_state_rng_1D_for_decision(KernelGlobals *kg, RNG *rng, PathState *state, int dimension)
+{
+	/* the rng_offset is not increased for transparent bounces. if we do then
+	 * fully transparent objects can become subtly visible by the different
+	 * sampling patterns used where the transparent object is.
+	 *
+	 * however for some random numbers that will determine if we next bounce
+	 * is transparent we do need to increase the offset to avoid always making
+	 * the same decision */
+	int rng_offset = state->rng_offset + state->transparent_bounce*PRNG_BOUNCE_NUM;
+	return path_rng_1D(kg, rng, state->sample, state->num_samples, rng_offset + dimension);
+}
+
 ccl_device_inline void path_state_rng_2D(KernelGlobals *kg, RNG *rng, PathState *state, int dimension, float *fx, float *fy)
 {
 	path_rng_2D(kg, rng, state->sample, state->num_samples, state->rng_offset + dimension, fx, fy);

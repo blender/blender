@@ -63,8 +63,8 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, PathState *state, int 
 		state->flag |= PATH_RAY_TRANSPARENT;
 		state->transparent_bounce++;
 
-		/* random number generator next bounce */
-		state->rng_offset += PRNG_BOUNCE_NUM;
+		/* don't increase random number generator offset here, to avoid some
+		 * unwanted patterns, see path_state_rng_1D_for_decision */
 
 		if(!kernel_data.integrator.transparent_shadows)
 			state->flag |= PATH_RAY_MIS_SKIP;

@@ -322,11 +322,11 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 
 		/* pick random color channel, we use the Veach one-sample
 		 * model with balance heuristic for the channels */
-		float rphase = path_state_rng_1D(kg, rng, state, PRNG_PHASE);
+		float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
 		int channel = (int)(rphase*3.0f);
 		sd->randb_closure = rphase*3.0f - channel;
 
-		float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
+		float xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
 
 		/* decide if we will hit or miss */
 		float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
@@ -461,9 +461,9 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous(KernelGlo
 				if(channel == -1) {
 					/* pick random color channel, we use the Veach one-sample
 					 * model with balance heuristic for the channels */
-					xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
+					xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
 
-					float rphase = path_state_rng_1D(kg, rng, state, PRNG_PHASE);
+					float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
 					channel = (int)(rphase*3.0f);
 					sd->randb_closure = rphase*3.0f - channel;
 				}
@@ -710,11 +710,11 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 
 	/* pick random color channel, we use the Veach one-sample
 	 * model with balance heuristic for the channels */
-	float rphase = path_state_rng_1D(kg, rng, state, PRNG_PHASE);
+	float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
 	int channel = (int)(rphase*3.0f);
 	sd->randb_closure = rphase*3.0f - channel;
 
-	float xi = path_state_rng_1D(kg, rng, state, PRNG_SCATTER_DISTANCE);
+	float xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
 
 	VolumeStep *step;
 	float3 transmittance;
