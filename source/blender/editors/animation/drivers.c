@@ -432,7 +432,7 @@ bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int a
  * they will get picked up by the dependency system.
  *
  * \param C Context pointer - for getting active data
- * \param ptr RNA pointer for property's datablock. May be modified as result of path remapping.
+ * \param[in,out] ptr RNA pointer for property's datablock. May be modified as result of path remapping.
  * \param prop RNA definition of property to add for
  * \return MEM_alloc'd string representing the path to the property from the given #PointerRNA
  */

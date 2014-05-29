@@ -2239,7 +2239,7 @@ void nladata_flush_channels(ListBase *channels)
  *
  * \note This is exported so that keyframing code can use this for make use of it for anim layers support
  *
- * \param echannels Evaluation channels with calculated values
+ * \param[out] echannels Evaluation channels with calculated values
  */
 static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime)
 {
