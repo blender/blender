@@ -1921,19 +1921,24 @@ void ramp_rgbtobw(vec3 color, out float outval)
 	outval = color.r*0.3 + color.g*0.58 + color.b*0.12;
 }
 
-void shade_only_shadow(float i, float shadfac, float energy, out float outshadfac)
+void shade_only_shadow(float i, float shadfac, float energy, vec3 shadcol, out vec3 outshadrgb)
 {
-	outshadfac = i*energy*(1.0 - shadfac);
+	outshadrgb = i*energy*(1.0 - shadfac)*(vec3(1.0)-shadcol);
 }
 
-void shade_only_shadow_diffuse(float shadfac, vec3 rgb, vec4 diff, out vec4 outdiff)
+void shade_only_shadow_diffuse(vec3 shadrgb, vec3 rgb, vec4 diff, out vec4 outdiff)
 {
-	outdiff = diff - vec4(rgb*shadfac, 0.0);
+	outdiff = diff - vec4(rgb*shadrgb, 0.0);
 }
 
-void shade_only_shadow_specular(float shadfac, vec3 specrgb, vec4 spec, out vec4 outspec)
+void shade_only_shadow_specular(vec3 shadrgb, vec3 specrgb, vec4 spec, out vec4 outspec)
 {
-	outspec = spec - vec4(specrgb*shadfac, 0.0);
+	outspec = spec - vec4(specrgb*shadrgb, 0.0);
+}
+
+void shade_clamp_positive(vec4 col, out vec4 outcol)
+{
+	outcol = max(col, vec4(0.0));
 }
 
 void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, float inp, out float result)
