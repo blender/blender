@@ -395,8 +395,8 @@ void RE_bake_pixels_populate_from_objects(
 	TriTessFace **tris_high;
 
 	/* assume all lowpoly tessfaces can be quads */
-	tris_low = MEM_callocN(sizeof(TriTessFace) * (me_low->totface * 2), "MVerts Lowpoly Mesh");
-	tris_high = MEM_callocN(sizeof(TriTessFace *) * tot_highpoly, "MVerts Highpoly Mesh Array");
+	tris_low = MEM_mallocN(sizeof(TriTessFace) * (me_low->totface * 2), "MVerts Lowpoly Mesh");
+	tris_high = MEM_mallocN(sizeof(TriTessFace *) * tot_highpoly, "MVerts Highpoly Mesh Array");
 
 	/* assume all highpoly tessfaces are triangles */
 	dm_highpoly = MEM_callocN(sizeof(DerivedMesh *) * tot_highpoly, "Highpoly Derived Meshes");
@@ -407,7 +407,7 @@ void RE_bake_pixels_populate_from_objects(
 	invert_m4_m4(imat_low, mat_low);
 
 	for (i = 0; i < tot_highpoly; i++) {
-		tris_high[i] = MEM_callocN(sizeof(TriTessFace) * highpoly[i].me->totface, "MVerts Highpoly Mesh");
+		tris_high[i] = MEM_mallocN(sizeof(TriTessFace) * highpoly[i].me->totface, "MVerts Highpoly Mesh");
 		mesh_calc_tri_tessface(tris_high[i], highpoly[i].me, false, NULL);
 
 		dm_highpoly[i] = CDDM_from_mesh(highpoly[i].me);
@@ -628,7 +628,7 @@ void RE_bake_normal_world_to_tangent(
 
 	DerivedMesh *dm = CDDM_from_mesh(me);
 
-	triangles = MEM_callocN(sizeof(TriTessFace) * (me->totface * 2), "MVerts Mesh");
+	triangles = MEM_mallocN(sizeof(TriTessFace) * (me->totface * 2), "MVerts Mesh");
 	mesh_calc_tri_tessface(triangles, me, true, dm);
 
 	BLI_assert(num_pixels >= 3);
