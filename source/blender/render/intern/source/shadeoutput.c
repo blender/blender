@@ -1466,9 +1466,11 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 						shr->shad[1] -= shadfac[3]*shi->g*(1.0f-lashdw[1]);
 						shr->shad[2] -= shadfac[3]*shi->b*(1.0f-lashdw[2]);
 						
-						shr->spec[0] -= shadfac[3]*shi->specr*(1.0f-lashdw[0]);
-						shr->spec[1] -= shadfac[3]*shi->specg*(1.0f-lashdw[1]);
-						shr->spec[2] -= shadfac[3]*shi->specb*(1.0f-lashdw[2]);
+						if (!(lar->mode & LA_NO_SPEC)) {
+							shr->spec[0] -= shadfac[3]*shi->specr*(1.0f-lashdw[0]);
+							shr->spec[1] -= shadfac[3]*shi->specg*(1.0f-lashdw[1]);
+							shr->spec[2] -= shadfac[3]*shi->specb*(1.0f-lashdw[2]);
+						}
 						
 						return;
 					}
