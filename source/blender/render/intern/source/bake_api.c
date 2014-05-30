@@ -774,31 +774,25 @@ void RE_bake_normal_world_to_world(
 	}
 }
 
-void RE_bake_ibuf_clear(BakeImages *bake_images, const bool is_tangent)
+void RE_bake_ibuf_clear(Image *image, const bool is_tangent)
 {
 	ImBuf *ibuf;
 	void *lock;
-	Image *image;
-	int i;
 
 	const float vec_alpha[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	const float vec_solid[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	const float nor_alpha[4] = {0.5f, 0.5f, 1.0f, 0.0f};
 	const float nor_solid[4] = {0.5f, 0.5f, 1.0f, 1.0f};
 
-	for (i = 0; i < bake_images->size; i ++) {
-		image = bake_images->data[i].image;
+	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+	BLI_assert(ibuf);
 
-		ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
-		BLI_assert(ibuf);
+	if (is_tangent)
+		IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+	else
+		IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
 
-		if (is_tangent)
-			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
-		else
-			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
-
-		BKE_image_release_ibuf(image, ibuf, lock);
-	}
+	BKE_image_release_ibuf(image, ibuf, lock);
 }
 
 /* ************************************************************* */

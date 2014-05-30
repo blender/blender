@@ -288,7 +288,127 @@ static bool is_noncolor_pass(ScenePassType pass_type)
 	             SCE_PASS_INDEXMA);
 }
 
-static bool build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images, ReportList *reports)
+/* if all is good tag image and return true */
+static bool bake_object_check(Object *ob, ReportList *reports)
+{
+	Image *image;
+	void *lock;
+	int i;
+
+	if (ob->type != OB_MESH) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not a mesh", ob->id.name + 2);
+		return false;
+	}
+	else  {
+		Mesh *me = (Mesh *)ob->data;
+
+		const int pidx = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
+		const int lidx = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+		const int fidx = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
+
+		if ((pidx == -1) && (lidx == -1) && (fidx == -1)) {
+			BKE_reportf(reports, RPT_ERROR,
+			            "No active UV layer found in the object \"%s\"", ob->id.name + 2);
+			return false;
+		}
+	}
+
+	for (i = 0; i < ob->totcol; i++) {
+		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL);
+
+		if (image) {
+			ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+
+			if (ibuf) {
+				BKE_image_release_ibuf(image, ibuf, lock);
+			}
+			else {
+				BKE_reportf(reports, RPT_ERROR,
+				            "Uninitialized image \"%s\" from object \"%s\"",
+				            image->id.name + 2, ob->id.name + 2);
+
+				BKE_image_release_ibuf(image, ibuf, lock);
+				return false;
+			}
+		}
+		else {
+			if (ob->mat[i]) {
+				BKE_reportf(reports, RPT_ERROR,
+				            "No active image found in material \"%s\" (%d) for object \"%s\"",
+				            ob->mat[i]->id.name + 2, i, ob->id.name + 2);
+			}
+			else if (((Mesh *) ob->data)->mat[i]) {
+				BKE_reportf(reports, RPT_ERROR,
+				            "No active image found in material \"%s\" (%d) for object \"%s\"",
+				            ((Mesh *) ob->data)->mat[i]->id.name + 2, i, ob->id.name + 2);
+			}
+			else {
+				BKE_reportf(reports, RPT_ERROR,
+				            "No active image found in material (%d) for object \"%s\"",
+				            i, ob->id.name + 2);
+			}
+			return false;
+		}
+
+		image->id.flag |= LIB_DOIT;
+	}
+	return true;
+}
+
+/* before even getting in the bake function we check for some basic errors */
+static bool bake_objects_check(Main *bmain, Object *ob, ListBase *objects,
+                               ReportList *reports, const bool is_selected_to_active)
+{
+	CollectionPointerLink *link;
+
+	/* error handling and tag (in case multiple materials share the same image) */
+	BKE_main_id_tag_idcode(bmain, ID_IM, false);
+
+	if (is_selected_to_active) {
+		int tot_objects = 0;
+
+		if (!bake_object_check(ob, reports))
+			return false;
+
+		for (link = objects->first; link; link = link->next) {
+			Object *ob_iter = (Object *)link->ptr.data;
+
+			if (ob_iter == ob)
+				continue;
+
+			if (ob_iter->type != OB_MESH) {
+				BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not a mesh", ob_iter->id.name + 2);
+				return false;
+			}
+			tot_objects += 1;
+		}
+
+		if (tot_objects == 0) {
+			BKE_report(reports, RPT_ERROR, "No valid selected objects");
+			return false;
+		}
+	}
+	else {
+		for (link = objects->first; link; link = link->next) {
+			if (!bake_object_check(link->ptr.data, reports))
+				return false;
+		}
+	}
+	return true;
+}
+
+/* it needs to be called after bake_objects_check since the image tagging happens there */
+static void bake_images_clear(Main *bmain, const bool is_tangent)
+{
+	Image *image;
+	for (image = bmain->image.first; image; image = image->id.next) {
+		if ((image->id.flag & LIB_DOIT) != 0) {
+			RE_bake_ibuf_clear(image, is_tangent);
+		}
+	}
+}
+
+static bool build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 {
 	const int tot_mat = ob->totcol;
 	int i, j;
@@ -300,22 +420,6 @@ static bool build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images,
 	for (i = 0; i < tot_mat; i++) {
 		Image *image;
 		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL);
-
-		if (!image) {
-			if (ob->mat[i]) {
-				BKE_reportf(reports, RPT_ERROR,
-				            "No active image found in material %d (%s)", i, ob->mat[i]->id.name + 2);
-			}
-			else if (((Mesh *) ob->data)->mat[i]) {
-				BKE_reportf(reports, RPT_ERROR,
-				            "No active image found in material %d (%s)", i, ((Mesh *) ob->data)->mat[i]->id.name + 2);
-			}
-			else {
-				BKE_reportf(reports, RPT_ERROR,
-				            "No active image found in material %d", i);
-			}
-			return false;
-		}
 
 		if ((image->id.flag & LIB_DOIT)) {
 			for (j = 0; j < i; j++) {
@@ -384,7 +488,7 @@ typedef struct BakeAPIRender {
 	bool is_clear;
 	bool is_split_materials;
 	bool is_automatic_name;
-	bool use_selected_to_active;
+	bool is_selected_to_active;
 
 	float cage_extrusion;
 	int normal_space;
@@ -408,7 +512,7 @@ static int bake(
         Main *bmain, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
         const ScenePassType pass_type, const int margin,
         const BakeSaveMode save_mode, const bool is_clear, const bool is_split_materials,
-        const bool is_automatic_name, const bool use_selected_to_active,
+        const bool is_automatic_name, const bool is_selected_to_active,
         const float cage_extrusion, const int normal_space, const BakeNormalSwizzle normal_swizzle[],
         const char *custom_cage, const char *filepath, const int width, const int height,
         const char *identifier, ScrArea *sa)
@@ -418,7 +522,7 @@ static int bake(
 
 	Object *ob_cage = NULL;
 
-	BakeHighPolyData *highpoly;
+	BakeHighPolyData *highpoly = NULL;
 	int tot_highpoly;
 
 	char restrict_flag_low = ob_low->restrictflag;
@@ -435,9 +539,6 @@ static int bake(
 	const bool is_noncolor = is_noncolor_pass(pass_type);
 	const int depth = RE_pass_depth(pass_type);
 
-	bool is_highpoly = false;
-	bool is_tangent;
-
 	BakeImages bake_images = {NULL};
 
 	int num_pixels;
@@ -447,14 +548,7 @@ static int bake(
 	re = RE_NewRender(scene->id.name);
 	RE_SetReports(re, NULL);
 
-	is_tangent = pass_type == SCE_PASS_NORMAL && normal_space == R_BAKE_SPACE_TANGENT;
 	tot_materials = ob_low->totcol;
-
-	/* ensure active uv */
-	if (CustomData_get_active_layer(&((Mesh *)ob_low->data)->pdata, CD_MTEXPOLY) == -1) {
-		BKE_report(reports, RPT_ERROR, "No active UV layer found in the active object");
-		goto cleanup;
-	}
 
 	if (tot_materials == 0) {
 		if (is_save_internal) {
@@ -479,7 +573,7 @@ static int bake(
 	bake_images.data = MEM_callocN(sizeof(BakeImage) * tot_materials, "bake images dimensions (width, height, offset)");
 	bake_images.lookup = MEM_callocN(sizeof(int) * tot_materials, "bake images lookup (from material to BakeImage)");
 
-	if (!build_image_lookup(bmain, ob_low, &bake_images, reports))
+	if (!build_image_lookup(bmain, ob_low, &bake_images))
 		goto cleanup;
 
 	if (is_save_internal) {
@@ -487,10 +581,6 @@ static int bake(
 
 		if (num_pixels == 0) {
 			goto cleanup;
-		}
-
-		if (is_clear) {
-			RE_bake_ibuf_clear(&bake_images, is_tangent);
 		}
 	}
 	else {
@@ -512,7 +602,7 @@ static int bake(
 		}
 	}
 
-	if (use_selected_to_active) {
+	if (is_selected_to_active) {
 		CollectionPointerLink *link;
 		tot_highpoly = 0;
 
@@ -525,27 +615,19 @@ static int bake(
 			tot_highpoly ++;
 		}
 
-		if (tot_highpoly == 0) {
-			BKE_report(reports, RPT_ERROR, "No valid selected objects");
-			goto cleanup;
-		}
-		else {
-			is_highpoly = true;
-		}
-	}
+		if (custom_cage[0] != '\0') {
+			ob_cage = BLI_findstring(&bmain->object, custom_cage, offsetof(ID, name) + 2);
 
-	if (custom_cage[0] != '\0') {
-		ob_cage = BLI_findstring(&bmain->object, custom_cage, offsetof(ID, name) + 2);
+			/* TODO check if cage object has the same topology (num of triangles and a valid UV) */
+			if (ob_cage == NULL || ob_cage->type != OB_MESH) {
+				BKE_report(reports, RPT_ERROR, "No valid cage object");
+				op_result = OPERATOR_CANCELLED;
 
-		/* TODO check if cage object has the same topology (num of triangles and a valid UV) */
-		if (ob_cage == NULL || ob_cage->type != OB_MESH) {
-			BKE_report(reports, RPT_ERROR, "No valid cage object");
-			op_result = OPERATOR_CANCELLED;
-
-			goto cleanup;
-		}
-		else {
-			restrict_flag_cage = ob_cage->restrictflag;
+				goto cleanup;
+			}
+			else {
+				restrict_flag_cage = ob_cage->restrictflag;
+			}
 		}
 	}
 
@@ -559,7 +641,7 @@ static int bake(
 	pixel_array_low = MEM_callocN(sizeof(BakePixel) * num_pixels, "bake pixels low poly");
 	result = MEM_callocN(sizeof(float) * depth * num_pixels, "bake return pixels");
 
-	if (is_highpoly) {
+	if (is_selected_to_active) {
 		CollectionPointerLink *link;
 		ModifierData *md, *nmd;
 		ListBase modifiers_tmp, modifiers_original;
@@ -697,7 +779,7 @@ static int bake(
 
 	/* normal space conversion
 	 * the normals are expected to be in world space, +X +Y +Z */
-	if (pass_type == SCE_PASS_NORMAL) {
+	if (ok && pass_type == SCE_PASS_NORMAL) {
 		switch (normal_space) {
 			case R_BAKE_SPACE_WORLD:
 			{
@@ -720,7 +802,7 @@ static int bake(
 			}
 			case R_BAKE_SPACE_TANGENT:
 			{
-				if (is_highpoly) {
+				if (is_selected_to_active) {
 					RE_bake_normal_world_to_tangent(pixel_array_low, num_pixels, depth, result, me_low, normal_swizzle, ob_low->obmat);
 				}
 				else {
@@ -753,7 +835,7 @@ static int bake(
 	}
 
 	if (!ok) {
-		BKE_report(reports, RPT_ERROR, "Problem baking object map");
+		BKE_reportf(reports, RPT_ERROR, "Problem baking object \"%s\"", ob_low->id.name + 2);
 		op_result = OPERATOR_CANCELLED;
 	}
 	else {
@@ -773,9 +855,8 @@ static int bake(
 				bake_update_image(sa, bk_image->image);
 
 				if (!ok) {
-					BKE_report(reports, RPT_ERROR,
-					           "Problem saving the bake map internally, "
-					           "make sure there is a Texture Image node in the current object material");
+					BKE_reportf(reports, RPT_ERROR,
+					           "Problem saving the bake map internally for object \"%s\"", ob_low->id.name + 2);
 					op_result = OPERATOR_CANCELLED;
 				}
 				else {
@@ -845,7 +926,7 @@ static int bake(
 
 cleanup:
 
-	if (is_highpoly) {
+	if (highpoly) {
 		int i;
 		for (i = 0; i < tot_highpoly; i++) {
 			highpoly[i].ob->restrictflag = highpoly[i].restrict_flag;
@@ -904,7 +985,7 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 	bkr->is_clear = RNA_boolean_get(op->ptr, "use_clear");
 	bkr->is_split_materials = (!is_save_internal) && RNA_boolean_get(op->ptr, "use_split_materials");
 	bkr->is_automatic_name = RNA_boolean_get(op->ptr, "use_automatic_name");
-	bkr->use_selected_to_active = RNA_boolean_get(op->ptr, "use_selected_to_active");
+	bkr->is_selected_to_active = RNA_boolean_get(op->ptr, "use_selected_to_active");
 	bkr->cage_extrusion = RNA_float_get(op->ptr, "cage_extrusion");
 
 	bkr->normal_space = RNA_enum_get(op->ptr, "normal_space");
@@ -923,8 +1004,7 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 		RNA_property_enum_identifier(C, op->ptr, prop, bkr->pass_type, &bkr->identifier);
 	}
 
-	if (bkr->use_selected_to_active)
-		CTX_data_selected_objects(C, &bkr->selected_objects);
+	CTX_data_selected_objects(C, &bkr->selected_objects);
 
 	bkr->reports = op->reports;
 
@@ -940,12 +1020,35 @@ static int bake_exec(bContext *C, wmOperator *op)
 
 	bake_init_api_data(op, C, &bkr);
 
-	result = bake(
-	        bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
-	        bkr.pass_type, bkr.margin, bkr.save_mode,
-	        bkr.is_clear, bkr.is_split_materials, bkr.is_automatic_name, bkr.use_selected_to_active,
-	        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
-	        bkr.custom_cage, bkr.filepath, bkr.width, bkr.height, bkr.identifier, bkr.sa);
+	if (!bake_objects_check(bkr.main, bkr.ob, &bkr.selected_objects, bkr.reports, bkr.is_selected_to_active))
+		return OPERATOR_CANCELLED;
+
+	if (bkr.is_clear) {
+		const bool is_tangent = ((bkr.pass_type == SCE_PASS_NORMAL) && (bkr.normal_space == R_BAKE_SPACE_TANGENT));
+		bake_images_clear(bkr.main, is_tangent);
+	}
+
+	if (bkr.is_selected_to_active) {
+		result = bake(
+		        bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
+		        bkr.pass_type, bkr.margin, bkr.save_mode,
+		        bkr.is_clear, bkr.is_split_materials, bkr.is_automatic_name, true,
+		        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
+		        bkr.custom_cage, bkr.filepath, bkr.width, bkr.height, bkr.identifier, bkr.sa);
+	}
+	else {
+		CollectionPointerLink *link;
+		const bool is_clear = bkr.is_clear && (BLI_countlist(&bkr.selected_objects) == 1);
+		for (link = bkr.selected_objects.first; link; link = link->next) {
+			Object *ob_iter = link->ptr.data;
+			result = bake(
+			        bkr.main, bkr.scene, ob_iter, NULL, bkr.reports,
+			        bkr.pass_type, bkr.margin, bkr.save_mode,
+			        is_clear, bkr.is_split_materials, bkr.is_automatic_name, false,
+			        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
+			        bkr.custom_cage, bkr.filepath, bkr.width, bkr.height, bkr.identifier, bkr.sa);
+		}
+	}
 
 	BLI_freelistN(&bkr.selected_objects);
 	return result;
@@ -955,13 +1058,40 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_updat
 {
 	BakeAPIRender *bkr = (BakeAPIRender *)bkv;
 
-	bkr->result = bake(
-	        bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
-	        bkr->pass_type, bkr->margin, bkr->save_mode,
-	        bkr->is_clear, bkr->is_split_materials, bkr->is_automatic_name, bkr->use_selected_to_active,
-	        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
-	        bkr->custom_cage, bkr->filepath, bkr->width, bkr->height, bkr->identifier, bkr->sa
-	        );
+	if (!bake_objects_check(bkr->main, bkr->ob, &bkr->selected_objects, bkr->reports, bkr->is_selected_to_active)) {
+		bkr->result = OPERATOR_CANCELLED;
+		return;
+	}
+
+	if (bkr->is_clear) {
+		const bool is_tangent = ((bkr->pass_type == SCE_PASS_NORMAL) && (bkr->normal_space == R_BAKE_SPACE_TANGENT));
+		bake_images_clear(bkr->main, is_tangent);
+	}
+
+	if (bkr->is_selected_to_active) {
+		bkr->result = bake(
+		        bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
+		        bkr->pass_type, bkr->margin, bkr->save_mode,
+		        bkr->is_clear, bkr->is_split_materials, bkr->is_automatic_name, true,
+		        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
+		        bkr->custom_cage, bkr->filepath, bkr->width, bkr->height, bkr->identifier, bkr->sa);
+	}
+	else {
+		CollectionPointerLink *link;
+		const bool is_clear = bkr->is_clear && (BLI_countlist(&bkr->selected_objects) == 1);
+		for (link = bkr->selected_objects.first; link; link = link->next) {
+			Object *ob_iter = link->ptr.data;
+			bkr->result = bake(
+			        bkr->main, bkr->scene, ob_iter, NULL, bkr->reports,
+			        bkr->pass_type, bkr->margin, bkr->save_mode,
+			        is_clear, bkr->is_split_materials, bkr->is_automatic_name, false,
+			        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
+			        bkr->custom_cage, bkr->filepath, bkr->width, bkr->height, bkr->identifier, bkr->sa);
+
+			if (bkr->result == OPERATOR_CANCELLED)
+				return;
+		}
+	}
 }
 
 static void bake_freejob(void *bkv)
