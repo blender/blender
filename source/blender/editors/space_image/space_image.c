@@ -529,6 +529,13 @@ static void image_listener(bScreen *sc, ScrArea *sa, wmNotifier *wmn)
 
 			break;
 		}
+		case NC_ID:
+		{
+			if (wmn->action == NA_RENAME) {
+				ED_area_tag_redraw(sa);
+			}
+			break;
+		}
 	}
 }
 
