@@ -582,16 +582,6 @@ ccl_device void svm_node_closure_set_weight(ShaderData *sd, uint r, uint g, uint
 	svm_node_closure_store_weight(sd, weight);
 }
 
-ccl_device void svm_node_emission_set_weight_total(KernelGlobals *kg, ShaderData *sd, uint r, uint g, uint b)
-{
-	float3 weight = make_float3(__uint_as_float(r), __uint_as_float(g), __uint_as_float(b));
-
-	if(sd->object != OBJECT_NONE)
-		weight /= object_surface_area(kg, sd->object);
-
-	svm_node_closure_store_weight(sd, weight);
-}
-
 ccl_device void svm_node_closure_weight(ShaderData *sd, float *stack, uint weight_offset)
 {
 	float3 weight = stack_load_float3(stack, weight_offset);
@@ -603,13 +593,9 @@ ccl_device void svm_node_emission_weight(KernelGlobals *kg, ShaderData *sd, floa
 {
 	uint color_offset = node.y;
 	uint strength_offset = node.z;
-	uint total_power = node.w;
 
 	float strength = stack_load_float(stack, strength_offset);
 	float3 weight = stack_load_float3(stack, color_offset)*strength;
-
-	if(total_power && sd->object != OBJECT_NONE)
-		weight /= object_surface_area(kg, sd->object);
 
 	svm_node_closure_store_weight(sd, weight);
 }

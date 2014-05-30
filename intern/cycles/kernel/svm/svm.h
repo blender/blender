@@ -407,12 +407,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 				break;
 			case NODE_CLOSURE_SET_NORMAL:
 				svm_node_set_normal(kg, sd, stack, node.y, node.z );
-				break;			
-#endif
-			case NODE_EMISSION_SET_WEIGHT_TOTAL:
-				svm_node_emission_set_weight_total(kg, sd, node.y, node.z, node.w);
 				break;
-#ifdef __EXTRA_NODES__
 			case NODE_RGB_RAMP:
 				svm_node_rgb_ramp(kg, sd, stack, node, &offset);
 				break;

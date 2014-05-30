@@ -550,9 +550,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			snode = hair;
 		}
 		else if(string_iequals(node.name(), "emission")) {
-			EmissionNode *emission = new EmissionNode();
-			xml_read_bool(&emission->total_power, node, "total_power");
-			snode = emission;
+			snode = new EmissionNode();
 		}
 		else if(string_iequals(node.name(), "ambient_occlusion")) {
 			snode = new AmbientOcclusionNode();

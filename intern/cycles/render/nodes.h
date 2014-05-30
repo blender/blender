@@ -294,8 +294,6 @@ public:
 
 	bool has_surface_emission() { return true; }
 	bool has_spatial_varying() { return true; }
-
-	bool total_power;
 };
 
 class BackgroundNode : public ShaderNode {

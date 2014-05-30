@@ -17,14 +17,10 @@
 #include "stdosl.h"
 
 shader node_emission(
-	int TotalPower = 0,
 	color Color = 0.8,
 	float Strength = 1.0,
 	output closure color Emission = 0)
 {
-	if (TotalPower)
-		Emission = ((Strength / surfacearea()) * Color) * emission();
-	else
-		Emission = (Strength * Color) * emission();
+	Emission = (Strength * Color) * emission();
 }
 
