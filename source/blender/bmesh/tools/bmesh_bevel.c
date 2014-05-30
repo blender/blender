@@ -588,7 +588,9 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 	if (ang < 100.0f * BEVEL_EPSILON) {
 		/* special case: e1 and e2 are parallel; put offset point perp to both, from v.
 		 * need to find a suitable plane.
-		 * if offsets are different, we're out of luck: just use e1->offset_r */
+		 * if offsets are different, we're out of luck:
+		 * use the max of the two (so get consistent looking results if the same situation
+		 * arises elsewhere in the object but with opposite roles for e1 and e2 */
 		if (f)
 			copy_v3_v3(norm_v, f->no);
 		else
@@ -596,18 +598,24 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 		cross_v3_v3v3(norm_perp1, dir1, norm_v);
 		normalize_v3(norm_perp1);
 		copy_v3_v3(off1a, v->co);
-		madd_v3_v3fl(off1a, norm_perp1, e1->offset_r);
-		if (e2->offset_l != e1->offset_r)
-			e2->offset_l = e1->offset_r;
+		d = max_ff(e1->offset_r, e2->offset_l);
+		madd_v3_v3fl(off1a, norm_perp1, d);
+		if (e1->offset_r != d)
+			e1->offset_r = d;
+		else if (e2->offset_l != d)
+			e2->offset_l = d;
 		copy_v3_v3(meetco, off1a);
 	}
 	else if (fabsf(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
 		/* special case e1 and e2 are antiparallel, so bevel is into
 		 * a zero-area face.  Just make the offset point on the
 		 * common line, at offset distance from v. */
-		slide_dist(e2, v, e1->offset_r, meetco);
-		if (e2->offset_l != e1->offset_r)
-			e2->offset_l = e1->offset_r;
+		d = max_ff(e1->offset_r, e2->offset_l);
+		slide_dist(e2, v, d, meetco);
+		if (e1->offset_r != d)
+			e1->offset_r = d;
+		else if (e2->offset_l != d)
+			e2->offset_l = d;
 	}
 	else {
 		/* Get normal to plane where meet point should be,
@@ -1549,8 +1557,8 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		calculate_profile(bp, v);
 	} while ((v = v->next) != vm->boundstart);
 
-	if (bv->selcount == 1 && bv->edgecount == 3) {
-		/* special case: snap profile to third face */
+	if (bv->selcount == 1 && bv->edgecount >= 3) {
+		/* special case: snap profile to plane of adjacent two edges */
 		v = vm->boundstart;
 		BLI_assert(v->ebev != NULL);
 		move_profile_plane(v, v->efirst, v->next->elast);
