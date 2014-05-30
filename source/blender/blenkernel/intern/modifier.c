@@ -357,15 +357,15 @@ int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *r_lastPossibleC
 		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
 		if (md->mode & eModifierMode_DisableTemporary) continue;
 
+		if (!(md->mode & eModifierMode_Realtime)) continue;
+		if (!(md->mode & eModifierMode_Editmode)) continue;
+
 		if (!modifier_supportsMapping(md))
 			break;
 
 		if (r_lastPossibleCageIndex) {
 			*r_lastPossibleCageIndex = i;
 		}
-
-		if (!(md->mode & eModifierMode_Realtime)) continue;
-		if (!(md->mode & eModifierMode_Editmode)) continue;
 
 		if (md->mode & eModifierMode_OnCage)
 			cageIndex = i;
