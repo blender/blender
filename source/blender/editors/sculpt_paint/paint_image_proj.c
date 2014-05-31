@@ -903,7 +903,7 @@ static bool check_seam(const ProjPaintState *ps,
 				*orig_fidx = (i1_fidx < i2_fidx) ? i1_fidx : i2_fidx;
 
 				/* initialize face winding if needed */
-				if (!ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_INIT)
+				if ((ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_INIT) == 0)
 					project_face_winding_init(ps, face_index);
 
 				/* first test if they have the same image */
@@ -1049,7 +1049,7 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
 	int fidx2 = 0; /* next fidx in the face (0,1,2,3) -> (1,2,3,0) or (0,1,2) -> (1,2,0) for a tri */
 
 	/* initialize face winding if needed */
-	if (!ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_INIT)
+	if ((ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_INIT) == 0)
 		project_face_winding_init(ps, face_index);
 
 	do {
