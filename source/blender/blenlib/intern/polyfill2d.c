@@ -55,6 +55,12 @@
 #define USE_CONVEX_SKIP
 // #define USE_CONVEX_SKIP_TEST
 
+// #define DEBUG_TIME
+#ifdef DEBUG_TIME
+#  include "PIL_time_utildefines.h"
+#endif
+
+
 typedef signed char eSign;
 enum {
 	CONCAVE = -1,
@@ -392,6 +398,10 @@ void BLI_polyfill_calc_ex(
 
 	unsigned int i;
 
+#ifdef DEBUG_TIME
+	TIMEIT_START(polyfill2d);
+#endif
+
 	/* assign all polyfill members here */
 	pf.indices = r_indices;
 	pf.coords = coords;
@@ -428,6 +438,10 @@ void BLI_polyfill_calc_ex(
 	}
 
 	pf_triangulate(&pf);
+
+#ifdef DEBUG_TIME
+	TIMEIT_END(polyfill2d);
+#endif
 }
 
 void BLI_polyfill_calc_arena(
