@@ -69,11 +69,10 @@ enum {
 };
 
 typedef struct PolyFill {
-	unsigned int *indices;  /* vertex aligned */
+	struct PolyIndex *indices;  /* vertex aligned */
 
 	const float (*coords)[2];
 	unsigned int  coords_tot;
-	eSign        *coords_sign;
 #ifdef USE_CONVEX_SKIP
 	unsigned int  coords_tot_concave;
 #endif
@@ -84,19 +83,24 @@ typedef struct PolyFill {
 } PolyFill;
 
 
+/* circular linklist */
+typedef struct PolyIndex {
+	struct PolyIndex *next, *prev;
+	unsigned int index;
+	eSign sign;
+} PolyIndex;
+
+
 /* based on libgdx 2013-11-28, apache 2.0 licensed */
 
-static eSign pf_coord_sign_calc(PolyFill *pf, unsigned int index);
-static unsigned int pf_index_prev(const PolyFill *pf, const unsigned int index);
-static unsigned int pf_index_next(const PolyFill *pf, unsigned index);
-
+static void pf_coord_sign_calc(PolyFill *pf, PolyIndex *pi);
 #ifdef USE_CLIP_EVEN
-static unsigned int pf_ear_tip_find(PolyFill *pf, const unsigned int index_offset);
+static PolyIndex *pf_ear_tip_find(PolyFill *pf, PolyIndex *pi_ear_init);
 #else
-static unsigned int pf_ear_tip_find(PolyFill *pf);
+static PolyIndex *pf_ear_tip_find(PolyFill *pf);
 #endif
-static bool         pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip);
-static void         pf_ear_tip_cut(PolyFill *pf, unsigned int index_ear_tip);
+static bool       pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip);
+static void       pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip);
 
 
 BLI_INLINE eSign signum_i(float a)
@@ -133,118 +137,126 @@ static unsigned int *pf_tri_add(PolyFill *pf)
 	return pf->tris[pf->tris_tot++];
 }
 
-static void pf_coord_remove(PolyFill *pf, const unsigned int index)
+static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
 {
-	ARRAY_DELETE(pf->indices,     index, 1, pf->coords_tot);
-	ARRAY_DELETE(pf->coords_sign, index, 1, pf->coords_tot);
+	pi->next->prev = pi->prev;
+	pi->prev->next = pi->next;
+
+	if (UNLIKELY(pf->indices == pi)) {
+		pf->indices = pi->next;
+	}
+#ifdef DEBUG
+	pi->index = (unsigned int)-1;
+	pi->next = pi->prev = NULL;
+#endif
+
 	pf->coords_tot -= 1;
 }
 
 static void pf_triangulate(PolyFill *pf)
 {
 	/* localize */
-	eSign *coords_sign = pf->coords_sign;
+	PolyIndex *pi_ear;
 
-	unsigned int index_ear_tip = 0;
+	PolyIndex *pi_ear_init = pf->indices;
 
 
 	while (pf->coords_tot > 3) {
-		unsigned int i_prev, i_next;
-
-#ifdef USE_CONVEX_SKIP
+		PolyIndex *pi_prev, *pi_next;
 		eSign sign_orig_prev, sign_orig_next;
-#endif
-
 
 #ifdef USE_CLIP_EVEN
-		index_ear_tip = pf_ear_tip_find(pf, index_ear_tip);
+		pi_ear = pf_ear_tip_find(pf, pi_ear_init);
 #else
-		index_ear_tip = pf_ear_tip_find(pf);
+		pi_ear = pf_ear_tip_find(pf);
 #endif
 
 #ifdef USE_CONVEX_SKIP
-		if (coords_sign[index_ear_tip] != CONVEX) {
+		if (pi_ear->sign != CONVEX) {
 			pf->coords_tot_concave -= 1;
 		}
 #endif
 
-		pf_ear_tip_cut(pf, index_ear_tip);
+		pi_prev = pi_ear->prev;
+		pi_next = pi_ear->next;
+
+		pf_ear_tip_cut(pf, pi_ear);
 
 		/* The type of the two vertices adjacent to the clipped vertex may have changed. */
-		i_prev = pf_index_prev(pf, index_ear_tip);
-		i_next = (index_ear_tip == pf->coords_tot) ? 0 : index_ear_tip;
+		sign_orig_prev = pi_prev->sign;
+		sign_orig_next = pi_next->sign;
 
-#ifdef USE_CONVEX_SKIP
-		sign_orig_prev = coords_sign[i_prev];
-		sign_orig_next = coords_sign[i_next];
-#endif
-
-		coords_sign[i_prev] = pf_coord_sign_calc(pf, i_prev);
-		coords_sign[i_next] = pf_coord_sign_calc(pf, i_next);
-
-#ifdef USE_CONVEX_SKIP
 		/* check if any verts became convex the (else if)
 		 * case is highly unlikely but may happen with degenerate polygons */
-		if               ((sign_orig_prev != CONVEX) && (coords_sign[i_prev] == CONVEX))  pf->coords_tot_concave -= 1;
-		else if (UNLIKELY((sign_orig_prev == CONVEX) && (coords_sign[i_prev] != CONVEX))) pf->coords_tot_concave += 1;
-
-		if               ((sign_orig_next != CONVEX) && (coords_sign[i_next] == CONVEX))  pf->coords_tot_concave -= 1;
-		else if (UNLIKELY((sign_orig_next == CONVEX) && (coords_sign[i_next] != CONVEX))) pf->coords_tot_concave += 1;
+		if (sign_orig_prev != CONVEX) {
+			pf_coord_sign_calc(pf, pi_prev);
+#ifdef USE_CONVEX_SKIP
+			if (pi_prev->sign == CONVEX) {
+				pf->coords_tot_concave -= 1;
+			}
 #endif
+		}
+		if (sign_orig_next != CONVEX) {
+			pf_coord_sign_calc(pf, pi_next);
+#ifdef USE_CONVEX_SKIP
+			if (pi_next->sign == CONVEX) {
+				pf->coords_tot_concave -= 1;
+			}
+#endif
+		}
 
 #ifdef USE_CLIP_EVEN
-		index_ear_tip = i_prev;
+		pi_ear_init = pi_next->next;
 #endif
 	}
 
 	if (pf->coords_tot == 3) {
 		unsigned int *tri = pf_tri_add(pf);
-		tri[0] = pf->indices[0];
-		tri[1] = pf->indices[1];
-		tri[2] = pf->indices[2];
+		pi_ear = pf->indices;
+		tri[0] = pi_ear->index; pi_ear = pi_ear->next;
+		tri[1] = pi_ear->index; pi_ear = pi_ear->next;
+		tri[2] = pi_ear->index;
 	}
 }
 
 /**
  * \return CONCAVE, TANGENTIAL or CONVEX
  */
-static eSign pf_coord_sign_calc(PolyFill *pf, unsigned int index)
+static void pf_coord_sign_calc(PolyFill *pf, PolyIndex *pi)
 {
 	/* localize */
-	unsigned int *indices = pf->indices;
 	const float (*coords)[2] = pf->coords;
 
-	return span_tri_v2_sign(
-	        coords[indices[pf_index_prev(pf, index)]],
-	        coords[indices[index]],
-	        coords[indices[pf_index_next(pf, index)]]);
+	pi->sign = span_tri_v2_sign(
+	        coords[pi->prev->index],
+	        coords[pi->index],
+	        coords[pi->next->index]);
 }
 
 #ifdef USE_CLIP_EVEN
-static unsigned int pf_ear_tip_find(PolyFill *pf, const unsigned int index_offset)
+static PolyIndex *pf_ear_tip_find(PolyFill *pf, PolyIndex *pi_ear_init)
 #else
-static unsigned int pf_ear_tip_find(PolyFill *pf)
+static PolyIndex *pf_ear_tip_find(PolyFill *pf)
 #endif
 {
 	/* localize */
-	const eSign *coords_sign = pf->coords_sign;
 	const unsigned int coords_tot = pf->coords_tot;
+	PolyIndex *pi_ear;
 
 	unsigned int i;
 
+#ifdef USE_CLIP_EVEN
+	pi_ear = pi_ear_init;
+#else
+	pi_ear = pf->indices;
+#endif
 
 	i = coords_tot;
 	while (i--) {
-#ifdef USE_CLIP_EVEN
-		unsigned int j = (i + index_offset) % coords_tot;
-		if (pf_ear_tip_check(pf, j)) {
-			return j;
+		if (pf_ear_tip_check(pf, pi_ear)) {
+			return pi_ear;
 		}
-#else
-		if (pf_ear_tip_check(pf, i)) {
-			return i;
-		}
-#endif
+		pi_ear = pi_ear->next;
 	}
 
 	/* Desperate mode: if no vertex is an ear tip, we are dealing with a degenerate polygon (e.g. nearly collinear).
@@ -256,32 +268,29 @@ static unsigned int pf_ear_tip_find(PolyFill *pf)
 	 * Return a convex or tangential vertex if one exists.
 	 */
 
+#ifdef USE_CLIP_EVEN
+	pi_ear = pi_ear_init;
+#else
+	pi_ear = pf->indices;
+#endif
+
 	i = coords_tot;
 	while (i--) {
-#ifdef USE_CLIP_EVEN
-		unsigned int j = (i + index_offset) % coords_tot;
-		if (coords_sign[j] != CONCAVE) {
-			return j;
+		if (pi_ear->sign != CONCAVE) {
+			return pi_ear;
 		}
-#else
-		if (coords_sign[i] != CONCAVE) {
-			return i;
-		}
-#endif
+		pi_ear = pi_ear->next;
 	}
 
 	/* If all vertices are concave, just return the last one. */
-	return coords_tot - 1;
+	return pi_ear;
 }
 
-static bool pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip)
+static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 {
 	/* localize */
-	const unsigned int *indices = pf->indices;
+	PolyIndex *pi_curr;
 	const float (*coords)[2] = pf->coords;
-	const eSign *coords_sign = pf->coords_sign;
-
-	unsigned int i_prev, i_curr, i_next;
 
 	const float *v1, *v2, *v3;
 
@@ -298,7 +307,7 @@ static bool pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip)
 		unsigned int coords_tot_concave_test = 0;
 		unsigned int i = pf->coords_tot;
 		while (i--) {
-			if (coords_sign[i] != CONVEX) {
+			if (pf->indices[i].sign != CONVEX) {
 				coords_tot_concave_test += 1;
 			}
 		}
@@ -312,25 +321,22 @@ static bool pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip)
 	}
 #endif
 
-	if (UNLIKELY(coords_sign[index_ear_tip] == CONCAVE)) {
+	if (UNLIKELY(pi_ear_tip->sign == CONCAVE)) {
 		return false;
 	}
 
-	i_prev = pf_index_prev(pf, index_ear_tip);
-	i_next = pf_index_next(pf, index_ear_tip);
-
-	v1 = coords[indices[i_prev]];
-	v2 = coords[indices[index_ear_tip]];
-	v3 = coords[indices[i_next]];
+	v1 = coords[pi_ear_tip->prev->index];
+	v2 = coords[pi_ear_tip->index];
+	v3 = coords[pi_ear_tip->next->index];
 
 	/* Check if any point is inside the triangle formed by previous, current and next vertices.
 	 * Only consider vertices that are not part of this triangle, or else we'll always find one inside. */
 
-	for (i_curr = pf_index_next(pf, i_next); i_curr != i_prev; i_curr = pf_index_next(pf, i_curr)) {
+	for (pi_curr = pi_ear_tip->next->next; pi_curr != pi_ear_tip->prev; pi_curr = pi_curr->next) {
 		/* Concave vertices can obviously be inside the candidate ear, but so can tangential vertices
 		 * if they coincide with one of the triangle's vertices. */
-		if (coords_sign[i_curr] != CONVEX) {
-			const float *v = coords[indices[i_curr]];
+		if (pi_curr->sign != CONVEX) {
+			const float *v = coords[pi_curr->index];
 			/* Because the polygon has clockwise winding order,
 			 * the area sign will be positive if the point is strictly inside.
 			 * It will be 0 on the edge, which we want to include as well. */
@@ -355,25 +361,15 @@ static bool pf_ear_tip_check(PolyFill *pf, const unsigned int index_ear_tip)
 	return true;
 }
 
-static void pf_ear_tip_cut(PolyFill *pf, unsigned int index_ear_tip)
+static void pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip)
 {
 	unsigned int *tri = pf_tri_add(pf);
 
-	tri[0] = pf->indices[pf_index_prev(pf, index_ear_tip)];
-	tri[1] = pf->indices[index_ear_tip];
-	tri[2] = pf->indices[pf_index_next(pf, index_ear_tip)];
+	tri[0] = pi_ear_tip->prev->index;
+	tri[1] = pi_ear_tip->index;
+	tri[2] = pi_ear_tip->next->index;
 
-	pf_coord_remove(pf, index_ear_tip);
-}
-
-static unsigned int pf_index_prev(const PolyFill *pf, const unsigned int index)
-{
-	return (index ? index : pf->coords_tot) - 1;
-}
-
-static unsigned int pf_index_next(const PolyFill *pf, unsigned index)
-{
-	return (index + 1) % pf->coords_tot;
+	pf_coord_remove(pf, pi_ear_tip);
 }
 
 /**
@@ -383,30 +379,24 @@ static unsigned int pf_index_next(const PolyFill *pf, unsigned index)
  * \return triples of triangle indices in clockwise order.
  *         Note the returned array is reused for later calls to the same method.
  */
-void BLI_polyfill_calc_ex(
+static void polyfill_calc_ex(
         const float (*coords)[2],
         const unsigned int coords_tot,
         unsigned int (*r_tris)[3],
 
-        unsigned int *r_indices, eSign *r_coords_sign)
+        PolyIndex *r_indices)
 {
 	PolyFill pf;
 
 	/* localize */
-	unsigned int *indices = r_indices;
-	eSign *coords_sign = r_coords_sign;
+	PolyIndex *indices = r_indices;
 
 	unsigned int i;
-
-#ifdef DEBUG_TIME
-	TIMEIT_START(polyfill2d);
-#endif
 
 	/* assign all polyfill members here */
 	pf.indices = r_indices;
 	pf.coords = coords;
 	pf.coords_tot = coords_tot;
-	pf.coords_sign = r_coords_sign;
 #ifdef USE_CONVEX_SKIP
 	pf.coords_tot_concave = 0;
 #endif
@@ -417,31 +407,34 @@ void BLI_polyfill_calc_ex(
 	    cross_poly_v2(coords, coords_tot) > 0.0f)
 	{
 		for (i = 0; i < coords_tot; i++) {
-			indices[i] = i;
+			indices[i].next = &indices[i + 1];
+			indices[i].prev = &indices[i - 1];
+			indices[i].index = i;
 		}
 	}
 	else {
 		/* reversed */
 		unsigned int n = coords_tot - 1;
 		for (i = 0; i < coords_tot; i++) {
-			indices[i] = (n - i);
+			indices[i].next = &indices[i + 1];
+			indices[i].prev = &indices[i - 1];
+			indices[i].index = (n - i);
 		}
 	}
+	indices[0].prev = &indices[coords_tot - 1];
+	indices[coords_tot - 1].next = &indices[0];
 
 	for (i = 0; i < coords_tot; i++) {
-		coords_sign[i] = pf_coord_sign_calc(&pf, i);
+		PolyIndex *pi = &indices[i];
+		pf_coord_sign_calc(&pf, pi);
 #ifdef USE_CONVEX_SKIP
-		if (coords_sign[i] != CONVEX) {
+		if (pi->sign != CONVEX) {
 			pf.coords_tot_concave += 1;
 		}
 #endif
 	}
 
 	pf_triangulate(&pf);
-
-#ifdef DEBUG_TIME
-	TIMEIT_END(polyfill2d);
-#endif
 }
 
 void BLI_polyfill_calc_arena(
@@ -451,18 +444,25 @@ void BLI_polyfill_calc_arena(
 
         struct MemArena *arena)
 {
-	unsigned int *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_tot);
-	eSign *coords_sign = BLI_memarena_alloc(arena, sizeof(*coords_sign) * coords_tot);
+	PolyIndex *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_tot);
 
-	BLI_polyfill_calc_ex(
+#ifdef DEBUG_TIME
+	TIMEIT_START(polyfill2d);
+#endif
+
+	polyfill_calc_ex(
 	        coords, coords_tot,
 	        r_tris,
 	        /* cache */
 
-	        indices, coords_sign);
+	        indices);
 
-	/* indices & coords_sign are no longer needed,
+	/* indices are no longer needed,
 	 * caller can clear arena */
+
+#ifdef DEBUG_TIME
+	TIMEIT_END(polyfill2d);
+#endif
 }
 
 void BLI_polyfill_calc(
@@ -470,13 +470,20 @@ void BLI_polyfill_calc(
         const unsigned int coords_tot,
         unsigned int (*r_tris)[3])
 {
-	unsigned int *indices = BLI_array_alloca(indices, coords_tot);
-	eSign *coords_sign = BLI_array_alloca(coords_sign, coords_tot);
+	PolyIndex *indices = BLI_array_alloca(indices, coords_tot);
 
-	BLI_polyfill_calc_ex(
+#ifdef DEBUG_TIME
+	TIMEIT_START(polyfill2d);
+#endif
+
+	polyfill_calc_ex(
 	        coords, coords_tot,
 	        r_tris,
 	        /* cache */
 
-	        indices, coords_sign);
+	        indices);
+
+#ifdef DEBUG_TIME
+	TIMEIT_END(polyfill2d);
+#endif
 }

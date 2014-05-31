@@ -23,14 +23,6 @@
 
 struct MemArena;
 
-void BLI_polyfill_calc_ex(
-        const float (*coords)[2],
-        const unsigned int count,
-        unsigned int (*r_tris)[3],
-
-        /* avoid allocating each time */
-        unsigned int *r_indices, signed char *r_coords_sign);
-
 void BLI_polyfill_calc_arena(
         const float (*coords)[2],
         const unsigned int coords_tot,
