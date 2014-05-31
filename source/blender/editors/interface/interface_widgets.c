@@ -1278,6 +1278,9 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			if (drawstr[0] != 0) {
 				t = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->pos - but->ofs);
 			}
+			else {
+				t = 0;
+			}
 
 			glColor3f(0.20, 0.6, 0.9);
 			glRecti(rect->xmin + t, rect->ymin + 2, rect->xmin + t + 2, rect->ymax - 2);
