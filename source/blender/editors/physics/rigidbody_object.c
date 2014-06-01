@@ -100,10 +100,6 @@ bool ED_rigidbody_object_add(Scene *scene, Object *ob, int type, ReportList *rep
 		BKE_report(reports, RPT_ERROR, "Can't add Rigid Body to non mesh object");
 		return false;
 	}
-	if (((Mesh *)ob->data)->totpoly == 0) {
-		BKE_report(reports, RPT_ERROR, "Can't create Rigid Body from mesh with no polygons");
-		return false;
-	}
 
 	/* Add rigid body world and group if they don't exist for convenience */
 	if (rbw == NULL) {
