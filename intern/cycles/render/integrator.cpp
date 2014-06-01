@@ -95,7 +95,11 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
 	kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
 
-	kintegrator->transparent_shadows = transparent_shadows;
+	/* At this point kintegrator->transparent_shadows is set automatically
+	 * based on whether shaders use transparent shadows (see shader.cpp).
+	 * If user doesn't want transparent shadows, force them off. */
+	if(!transparent_shadows)
+		kintegrator->transparent_shadows = false;
 
 	kintegrator->volume_homogeneous_sampling = volume_homogeneous_sampling;
 	kintegrator->volume_max_steps = volume_max_steps;
