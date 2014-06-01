@@ -605,7 +605,6 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 				isect->type = type;
 				isect->u = u;
 				isect->v = gd;
-				/*isect->transparency = 1.0f - coverage; */
 				isect->t = t;
 				hit = true;
 			}
@@ -841,7 +840,6 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 				isect->type = type;
 				isect->u = z*invl;
 				isect->v = gd;
-				/*isect->transparency = 1.0f - adjradius;*/
 				isect->t = t;
 
 				return true;
@@ -1011,10 +1009,6 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 	sd->dPdu = tg;
 	sd->dPdv = cross(tg, sd->Ng);
 #endif
-
-	/*add fading parameter for minimum pixel width with transparency bsdf*/
-	/*sd->curve_transparency = isect->transparency;*/
-	/*sd->curve_radius = sd->u * gd * l + r1;*/
 
 	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
