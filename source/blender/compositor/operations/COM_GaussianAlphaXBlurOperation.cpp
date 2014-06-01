@@ -146,10 +146,16 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
 void GaussianAlphaXBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	MEM_freeN(this->m_gausstab);
-	this->m_gausstab = NULL;
-	MEM_freeN(this->m_distbuf_inv);
-	this->m_distbuf_inv = NULL;
+
+	if (this->m_gausstab) {
+		MEM_freeN(this->m_gausstab);
+		this->m_gausstab = NULL;
+	}
+
+	if (this->m_distbuf_inv) {
+		MEM_freeN(this->m_distbuf_inv);
+		this->m_distbuf_inv = NULL;
+	}
 
 	deinitMutex();
 }

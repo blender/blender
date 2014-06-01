@@ -157,8 +157,11 @@ void GaussianBokehBlurOperation::executePixel(float output[4], int x, int y, voi
 void GaussianBokehBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	MEM_freeN(this->m_gausstab);
-	this->m_gausstab = NULL;
+
+	if (this->m_gausstab) {
+		MEM_freeN(this->m_gausstab);
+		this->m_gausstab = NULL;
+	}
 
 	deinitMutex();
 }

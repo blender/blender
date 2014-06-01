@@ -100,6 +100,7 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 void GaussianXBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
+
 	if (this->m_gausstab) {
 		MEM_freeN(this->m_gausstab);
 		this->m_gausstab = NULL;
