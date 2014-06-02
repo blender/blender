@@ -528,6 +528,17 @@ class CLIP_OT_setup_tracking_scene(Operator):
             bg.layers = [False] * 10 + [True] + [False] * 9
 
     @staticmethod
+    def _wipeDefaultNodes(tree):
+        if len(tree.nodes) != 2:
+            return False
+        types = [node.type for node in tree.nodes]
+        types.sort()
+
+        if types[0] == 'COMPOSITE' and types[1] == 'R_LAYERS':
+            while tree.nodes:
+                tree.nodes.remove(tree.nodes[0])
+
+    @staticmethod
     def _findNode(tree, type):
         for node in tree.nodes:
             if node.type == type:
@@ -586,6 +597,11 @@ class CLIP_OT_setup_tracking_scene(Operator):
         clip = sc.clip
 
         need_stabilization = False
+
+        # Remove all the nodes if they came from default node setup.
+        # This is simplest way to make it so final node setup is
+        # is correct.
+        self._wipeDefaultNodes(tree)
 
         # create nodes
         rlayer_fg = self._findOrCreateNode(tree, 'CompositorNodeRLayers')
