@@ -53,7 +53,6 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);
-		operationfgb->setChunksize(context.getChunksize());
 		converter.addOperation(operationfgb);
 		
 		converter.mapInputSocket(getInputSocket(1), operationfgb->getInputSocket(1));

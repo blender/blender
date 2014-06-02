@@ -109,13 +109,4 @@ typedef enum OrderOfChunks {
 
 #define COM_BLUR_BOKEH_PIXELS 512
 
-/**
- * The fast gaussien blur is not an accurate blur.
- * This setting can be used to increase/decrease the 
- * amount of the input data. (dependent area of interest)
- *
- * Fix for: T39307
- */
-#define COM_FAST_GAUSSIAN_MULTIPLIER 3
-
 #endif  /* __COM_DEFINES_H__ */

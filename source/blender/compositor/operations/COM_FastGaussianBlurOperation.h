@@ -28,19 +28,16 @@
 
 class FastGaussianBlurOperation : public BlurBaseOperation {
 private:
+	float m_sx;
+	float m_sy;
 	MemoryBuffer *m_iirgaus;
-	int m_chunksize;
-
 public:
 	FastGaussianBlurOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void executePixel(float output[4], int x, int y, void *data);
-    void setChunksize(int size) { this->m_chunksize = size; }
 	
 	static void IIR_gauss(MemoryBuffer *src, float sigma, unsigned int channel, unsigned int xy);
-	bool getDAI(rcti *rect, rcti *output);
 	void *initializeTileData(rcti *rect);
-	void deinitializeTileData(rcti *rect, void *data);
 	void deinitExecution();
 	void initExecution();
 };
