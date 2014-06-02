@@ -3780,8 +3780,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		}
 
 		if (has_edge_cd) {
+			BLI_assert(edgeIdx >= 0 && edgeIdx < dm->getNumEdges(dm));
 			for (i = 0; i < numFinalEdges; ++i) {
-				CustomData_copy_data(&dm->edgeData, &ccgdm->dm.edgeData, mapIndex, edgeNum + i, 1);
+				CustomData_copy_data(&dm->edgeData, &ccgdm->dm.edgeData, edgeIdx, edgeNum + i, 1);
 			}
 		}
 
