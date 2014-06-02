@@ -754,7 +754,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
 				/* Win23/GHOST modifier bug, see T40317 */
 #ifndef WIN32
-#  define USE_WIN_ACTIVATE
+//#  define USE_WIN_ACTIVATE
 #endif
 
 				wm->winactive = win; /* no context change! c->wm->windrawable is drawable, or for area queues */
