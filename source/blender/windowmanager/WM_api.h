@@ -145,19 +145,22 @@ struct wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, 
 
 void		WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
 
+typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
+typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
+
 struct wmEventHandler *WM_event_add_ui_handler(
         const struct bContext *C, ListBase *handlers,
-        int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
-        void (*remove)(struct bContext *C, void *userdata), void *userdata);
-
-void		WM_event_remove_ui_handler(ListBase *handlers,
-                                       int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
-                                       void (*remove)(struct bContext *C, void *userdata),
-                                       void *userdata, const bool postpone);
-void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
-void		WM_event_free_ui_handler_all(struct bContext *C, ListBase *handlers,
-                                         int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
-                                         void (*remove)(struct bContext *C, void *userdata));
+        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
+        void *userdata);
+void WM_event_remove_ui_handler(
+        ListBase *handlers,
+        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
+        void *userdata, const bool postpone);
+void WM_event_remove_area_handler(
+        struct ListBase *handlers, void *area);
+void WM_event_free_ui_handler_all(
+        struct bContext *C, ListBase *handlers,
+        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove);
 
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);

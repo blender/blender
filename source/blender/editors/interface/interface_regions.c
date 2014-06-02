@@ -2506,7 +2506,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, const char *opn
 
 void uiPupBlock(bContext *C, uiBlockCreateFunc func, void *arg)
 {
-	uiPupBlockO(C, func, arg, NULL, 0);
+	uiPupBlockO(C, func, arg, NULL, WM_OP_INVOKE_DEFAULT);
 }
 
 void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg)

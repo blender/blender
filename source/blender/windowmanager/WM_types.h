@@ -190,9 +190,6 @@ enum {
 #define WM_UI_HANDLER_CONTINUE	0
 #define WM_UI_HANDLER_BREAK		1
 
-typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
-typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
-
 /* ************** Notifiers ****************** */
 
 typedef struct wmNotifier {

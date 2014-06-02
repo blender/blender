@@ -2547,12 +2547,14 @@ void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 	}
 }
 
-wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers,
-                                        wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
+wmEventHandler *WM_event_add_ui_handler(
+        const bContext *C, ListBase *handlers,
+        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
+        void *userdata)
 {
 	wmEventHandler *handler = MEM_callocN(sizeof(wmEventHandler), "event ui handler");
-	handler->ui_handle = func;
-	handler->ui_remove = remove;
+	handler->ui_handle = ui_handle;
+	handler->ui_remove = ui_remove;
 	handler->ui_userdata = userdata;
 	if (C) {
 		handler->ui_area    = CTX_wm_area(C);
@@ -2572,13 +2574,18 @@ wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers,
 }
 
 /* set "postpone" for win->modalhandlers, this is in a running for () loop in wm_handlers_do() */
-void WM_event_remove_ui_handler(ListBase *handlers,
-                                wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata, const bool postpone)
+void WM_event_remove_ui_handler(
+        ListBase *handlers,
+        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
+        void *userdata, const bool postpone)
 {
 	wmEventHandler *handler;
 	
 	for (handler = handlers->first; handler; handler = handler->next) {
-		if (handler->ui_handle == func && handler->ui_remove == remove && handler->ui_userdata == userdata) {
+		if ((handler->ui_handle == ui_handle) &&
+		    (handler->ui_remove == ui_remove) &&
+		    (handler->ui_userdata == userdata))
+		{
 			/* handlers will be freed in wm_handlers_do() */
 			if (postpone) {
 				handler->flag |= WM_HANDLER_DO_FREE;
@@ -2592,15 +2599,18 @@ void WM_event_remove_ui_handler(ListBase *handlers,
 	}
 }
 
-void WM_event_free_ui_handler_all(bContext *C, ListBase *handlers,
-                                  wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove)
+void WM_event_free_ui_handler_all(
+        bContext *C, ListBase *handlers,
+        wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove)
 {
 	wmEventHandler *handler, *handler_next;
 
 	for (handler = handlers->first; handler; handler = handler_next) {
 		handler_next = handler->next;
-		if (handler->ui_handle == func && handler->ui_remove == remove) {
-			remove(C, handler->ui_userdata);
+		if ((handler->ui_handle == ui_handle) &&
+		    (handler->ui_remove == ui_remove))
+		{
+			ui_remove(C, handler->ui_userdata);
 			BLI_remlink(handlers, handler);
 			wm_event_free_handler(handler);
 		}
