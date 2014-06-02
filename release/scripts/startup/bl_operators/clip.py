@@ -856,6 +856,9 @@ class CLIP_OT_setup_tracking_scene(Operator):
         scene.layers = self._mergeLayers(scene.layers, all_layers)
 
     def execute(self, context):
+        scene = context.scene
+        current_active_layer = scene.active_layer
+
         self._setupScene(context)
         self._setupWorld(context)
         self._setupCamera(context)
@@ -863,6 +866,10 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self._setupRenderLayers(context)
         self._setupNodes(context)
         self._setupObjects(context)
+
+        # Active layer has probably changed, set it back to the original value.
+        # NOTE: The active layer is always true.
+        scene.layers[current_active_layer] = True
 
         return {'FINISHED'}
 
