@@ -455,7 +455,7 @@ struct uiPopupBlockHandle {
 	/* return values */
 	int butretval;
 	int menuretval;
-	float retvalue;
+	int   retvalue;
 	float retvec[4];
 
 	/* menu direction */
