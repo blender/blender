@@ -65,13 +65,17 @@ using namespace Geometry;
  *  \attention In the scripting language, there exists several prototypes depending on the returned value type.
  *  For example, you would inherit from a UnaryFunction0DDouble if you wish to define a function that returns a double.
  *  The different existing prototypes are:
- *    - UnaryFunction0DVoid
- *    - UnaryFunction0DUnsigned
- *    - UnaryFunction0DReal
- *    - UnaryFunction0DFloat
  *    - UnaryFunction0DDouble
+ *    - UnaryFunction0DEdgeNature
+ *    - UnaryFunction0DFloat
+ *    - UnaryFunction0DId
+ *    - UnaryFunction0DMaterial
+ *    - UnaryFunction0DUnsigned
  *    - UnaryFunction0DVec2f
  *    - UnaryFunction0DVec3f
+ *    - UnaryFunction0DVectorViewShape
+ *    - UnaryFunction0DViewShape
+ *    - UnaryFunction0DVoid
  */
 template <class T>
 class UnaryFunction0D

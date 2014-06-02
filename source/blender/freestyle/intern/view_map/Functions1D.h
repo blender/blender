@@ -55,13 +55,14 @@ namespace Freestyle {
  *  \attention In the scripting language, there exists several prototypes depending on the returned value type.
  *  For example, you would inherit from a UnaryFunction1DDouble if you wish to define a function that returns a double.
  *  The different existing prototypes are:
- *    - UnaryFunction1DVoid
- *    - UnaryFunction1DUnsigned
- *    - UnaryFunction1DReal
- *    - UnaryFunction1DFloat
  *    - UnaryFunction1DDouble
+ *    - UnaryFunction1DEdgeNature
+ *    - UnaryFunction1DFloat
+ *    - UnaryFunction1DUnsigned
  *    - UnaryFunction1DVec2f
  *    - UnaryFunction1DVec3f
+ *    - UnaryFunction1DVectorViewShape
+ *    - UnaryFunction1DVoid
  */
 template <class T>
 class UnaryFunction1D
