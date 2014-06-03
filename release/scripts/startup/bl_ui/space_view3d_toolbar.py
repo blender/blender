@@ -1493,6 +1493,29 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
 # ********** default tools for texture-paint ****************
 
 
+class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
+    bl_category = "Tools"
+    bl_context = "imagepaint"
+    bl_label = "External"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings
+        ipaint = toolsettings.image_paint
+
+        col = layout.column()
+        row = col.split(align=True, percentage=0.55)
+        row.operator("image.project_edit", text="Quick Edit")
+        row.operator("image.project_apply", text="Apply")
+
+        col.row().prop(ipaint, "screen_grab_size", text="")
+
+        col.operator("paint.project_image", text="Apply Camera Image")
+        col.operator("image.save_dirty", text="Save All Edited")
+
+
 class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
     bl_category = "Options"
     bl_context = "imagepaint"
@@ -1540,18 +1563,6 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
 
         layout.prop(ipaint, "seam_bleed")
-
-        col = layout.column()
-        col.label(text="External Editing:")
-
-        row = col.split(align=True, percentage=0.55)
-        row.operator("image.project_edit", text="Quick Edit")
-        row.operator("image.project_apply", text="Apply")
-
-        col.row().prop(ipaint, "screen_grab_size", text="")
-
-        col.operator("paint.project_image", text="Apply Camera Image")
-        col.operator("image.save_dirty", text="Save All Edited")
 
 
 class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
