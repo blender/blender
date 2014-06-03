@@ -2140,7 +2140,7 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 		return;
 	}
 	
-	if (event->type == MOUSEMOVE)
+	if (event->type == MOUSEMOVE || ISKEYMODIFIER(event->type))
 		win->screen->do_draw_drag = true;
 	else if (event->type == ESCKEY) {
 		BLI_freelistN(&wm->drags);
@@ -2289,10 +2289,12 @@ void wm_event_do_handlers(bContext *C)
 									/* call even on non mouse events, since the */
 									wm_region_mouse_co(C, event);
 
-									/* does polls for drop regions and checks uibuts */
-									/* need to be here to make sure region context is true */
-									if (ELEM(event->type, MOUSEMOVE, EVT_DROP)) {
-										wm_drags_check_ops(C, event);
+									if (!BLI_listbase_is_empty(&wm->drags)) {
+										/* does polls for drop regions and checks uibuts */
+										/* need to be here to make sure region context is true */
+										if (ELEM(event->type, MOUSEMOVE, EVT_DROP) || ISKEYMODIFIER(event->type)) {
+											wm_drags_check_ops(C, event);
+										}
 									}
 									
 									action |= wm_handlers_do(C, event, &ar->handlers);

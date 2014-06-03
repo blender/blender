@@ -593,8 +593,11 @@ static int view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, const wmEvent *
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 
 	/* either holding and ctrl and no object, or dropping to empty */
-	if ((event->ctrl && !base) || (base && base->object->type == OB_EMPTY))
+	if (((base == NULL) && event->ctrl) ||
+	    ((base != NULL) && base->object->type == OB_EMPTY))
+	{
 		return view3d_ima_drop_poll(C, drag, event);
+	}
 
 	return 0;
 }
