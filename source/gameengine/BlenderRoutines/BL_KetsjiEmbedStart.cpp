@@ -91,6 +91,11 @@ extern "C" {
 
 	#include "../../blender/windowmanager/WM_types.h"
 	#include "../../blender/windowmanager/wm_window.h"
+
+/* avoid more includes (not used by BGE) */
+typedef void * wmUIHandlerFunc;
+typedef void * wmUIHandlerRemoveFunc;
+
 	#include "../../blender/windowmanager/wm_event_system.h"
 }
 
