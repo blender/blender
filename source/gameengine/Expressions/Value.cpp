@@ -494,6 +494,15 @@ void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 	}
 }
 
+
+
+int CValue::GetValueType()
+{
+	return VALUE_NO_TYPE;
+}
+
+
+
 CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 {
 

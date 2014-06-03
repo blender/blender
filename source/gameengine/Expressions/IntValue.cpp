@@ -298,6 +298,13 @@ double CIntValue::GetNumber()
 
 
 
+int CIntValue::GetValueType()
+{
+	return VALUE_INT_TYPE;
+}
+
+
+
 const STR_String & CIntValue::GetText()
 {
 	if (!m_pstrRep)

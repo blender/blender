@@ -250,6 +250,13 @@ double CListValue::GetNumber()
 
 
 
+int CListValue::GetValueType()
+{
+	return VALUE_LIST_TYPE;
+}
+
+
+
 void CListValue::SetModified(bool bModified)
 {
 	CValue::SetModified(bModified);

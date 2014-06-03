@@ -202,6 +202,8 @@ typedef struct bJoystickSensor {
 #define SENS_PROP_INTERVAL	2
 #define SENS_PROP_CHANGED	3
 #define SENS_PROP_EXPRESSION	4
+#define SENS_PROP_LESSTHAN	5
+#define SENS_PROP_GREATERTHAN	6
 
 /* raysensor->axisflag */
 /* flip x and y to make y default!!! */

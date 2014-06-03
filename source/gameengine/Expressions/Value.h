@@ -82,11 +82,9 @@ enum VALUE_DATA_TYPE {
 	VALUE_BOOL_TYPE,
 	VALUE_ERROR_TYPE,
 	VALUE_EMPTY_TYPE,
-	VALUE_SOLID_TYPE,
-	VALUE_COMBISOLID_TYPE,
+	VALUE_LIST_TYPE,
+	VALUE_VOID_TYPE,
 	VALUE_VECTOR_TYPE,
-	VALUE_MENU_TYPE,
-	VALUE_ACTOR_TYPE,
 	VALUE_MAX_TYPE				//only here to provide number of types
 };
 
@@ -311,6 +309,7 @@ public:
 
 	virtual const STR_String &	GetText() = 0;
 	virtual double		GetNumber() = 0;
+	virtual int			GetValueType();												// Get Prop value type
 	double*				ZeroVector() { return m_sZeroVec; }
 	virtual double*		GetVector3(bool bGetTransformedVec = false);
 
@@ -322,7 +321,6 @@ public:
 	virtual CValue*		GetReplica() =0;
 	virtual void			ProcessReplica();
 	//virtual CValue*		Copy() = 0;
-	
 	
 	STR_String				op2str(VALUE_OPERATOR op);
 		

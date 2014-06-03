@@ -1182,9 +1182,9 @@ static void draw_sensor_property(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(row, ptr, "value_max", 0, NULL, ICON_NONE);
 			break;
 		case SENS_PROP_EQUAL:
-			uiItemR(layout, ptr, "value", 0, NULL, ICON_NONE);
-			break;
 		case SENS_PROP_NEQUAL:
+		case SENS_PROP_LESSTHAN:
+		case SENS_PROP_GREATERTHAN:
 			uiItemR(layout, ptr, "value", 0, NULL, ICON_NONE);
 			break;
 		case SENS_PROP_CHANGED:

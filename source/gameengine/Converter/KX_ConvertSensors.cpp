@@ -377,6 +377,12 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						propchecktype = SCA_PropertySensor::KX_PROPSENSOR_EXPRESSION;
 						/* error */
 						break;
+					case SENS_PROP_LESSTHAN:
+						propchecktype = SCA_PropertySensor::KX_PROPSENSOR_LESSTHAN;
+						break;
+					case SENS_PROP_GREATERTHAN:
+						propchecktype = SCA_PropertySensor::KX_PROPSENSOR_GREATERTHAN;
+						break;
 					default:
 						; /* error */
 					}

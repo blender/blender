@@ -120,6 +120,13 @@ double CStringValue::GetNumber()
 
 
 
+int CStringValue::GetValueType()
+{
+	return VALUE_STRING_TYPE;
+}
+
+
+
 const STR_String & CStringValue::GetText()
 {
 	return m_strString;

@@ -36,6 +36,7 @@ public:
 	virtual bool		IsEqual(const STR_String & other);
 	virtual const STR_String &	GetText();
 	virtual double		GetNumber();
+	virtual int			GetValueType();
 	
 	virtual	CValue*		Calc(VALUE_OPERATOR op, CValue *val);
 	virtual	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);

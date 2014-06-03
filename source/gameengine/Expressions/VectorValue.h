@@ -37,6 +37,7 @@ public:
 	void Configure(CValue* menuvalue);
 	virtual double* GetVector3(bool bGetTransformedVec=false);
 	virtual double		GetNumber();
+	virtual int			GetValueType();
 	
 	CValue*		Calc(VALUE_OPERATOR op, CValue *val) {
 		return val->CalcFinal(VALUE_VECTOR_TYPE, op, this);

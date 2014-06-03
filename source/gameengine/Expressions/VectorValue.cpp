@@ -162,6 +162,14 @@ double CVectorValue::GetNumber()
 }
 
 
+
+int CVectorValue::GetValueType()
+{
+	return VALUE_VECTOR_TYPE;
+}
+
+
+
 double* CVectorValue::GetVector3(bool bGetTransformedVec)
 {
 	if (bGetTransformedVec)

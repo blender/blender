@@ -507,6 +507,18 @@ Property Sensor
    
    :value: 5
 
+.. data:: KX_PROPSENSOR_LESSTHAN
+
+   Activate when the property is less than the sensor value
+
+   :value: 6
+
+.. data:: KX_PROPSENSOR_GREATERTHAN
+
+   Activate when the property is greater than the sensor value
+
+   :value: 7
+
 ------------
 Radar Sensor
 ------------

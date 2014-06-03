@@ -59,6 +59,7 @@ public:
 	/// Value -> String or number
 	virtual const STR_String &	GetText();  /* Get string description of void value (unimplemented) */
 	virtual double		GetNumber()												{ return -1; }
+	virtual int			GetValueType()								   { return VALUE_VOID_TYPE; }
 
 	/// Value calculation
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val);

@@ -82,6 +82,13 @@ double CEmptyValue::GetNumber()
 
 
 
+int CEmptyValue::GetValueType()
+{
+	return VALUE_EMPTY_TYPE;
+}
+
+
+
 CListValue* CEmptyValue::GetPolySoup()
 {
 	CListValue* soup = new CListValue();

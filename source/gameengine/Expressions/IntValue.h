@@ -31,6 +31,7 @@ class CIntValue : public CPropValue
 public:
 	virtual const STR_String& GetText();
 	virtual double			GetNumber();
+	virtual int				GetValueType();
 	
 	cInt GetInt();
 	CIntValue();

@@ -33,6 +33,7 @@ public:
 
 	void Configure(CValue* menuvalue);
 	virtual double GetNumber();
+	virtual int GetValueType();
 	virtual void SetValue(CValue* newval);
 	float GetFloat();
 	void SetFloat(float fl);

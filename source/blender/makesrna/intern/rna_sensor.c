@@ -478,6 +478,8 @@ static void rna_def_property_sensor(BlenderRNA *brna)
 		{SENS_PROP_INTERVAL, "PROPINTERVAL", 0, "Interval", ""},
 		{SENS_PROP_CHANGED, "PROPCHANGED", 0, "Changed", ""},
 		/* {SENS_PROP_EXPRESSION, "PROPEXPRESSION", 0, "Expression", ""},  NOT_USED_IN_UI */
+		{SENS_PROP_LESSTHAN, "PROPLESSTHAN", 0, "Less Than", ""},
+		{SENS_PROP_GREATERTHAN, "PROPGREATERTHAN", 0, "Greater Than", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -498,7 +500,7 @@ static void rna_def_property_sensor(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "value", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "value");
-	RNA_def_property_ui_text(prop, "Value", "Check for this value in types in Equal or Not Equal types");
+	RNA_def_property_ui_text(prop, "Value", "Check for this value in types in Equal, Not Equal, Less Than and Greater Than types");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "value_min", PROP_STRING, PROP_NONE);
