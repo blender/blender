@@ -514,15 +514,7 @@ void BL_ConvertActuators(const char* maggiename,
 					break;
 				case ACT_EDOB_REPLACE_MESH:
 					{
-						RAS_MeshObject *tmpmesh = NULL;
-						if (editobact->me)
-							tmpmesh = BL_ConvertMesh(
-							            editobact->me,
-							            blenderobject,
-							            scene,
-							            converter,
-							            false
-							            );
+						RAS_MeshObject *tmpmesh = converter->FindGameMesh(editobact->me);
 
 						KX_SCA_ReplaceMeshActuator* tmpreplaceact = new KX_SCA_ReplaceMeshActuator(
 						            gameobj,
