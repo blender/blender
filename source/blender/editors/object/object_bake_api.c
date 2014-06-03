@@ -356,7 +356,7 @@ static bool bake_object_check(Object *ob, ReportList *reports)
 }
 
 /* before even getting in the bake function we check for some basic errors */
-static bool bake_objects_check(Main *bmain, Object *ob, ListBase *objects,
+static bool bake_objects_check(Main *bmain, Object *ob, ListBase *selected_objects,
                                ReportList *reports, const bool is_selected_to_active)
 {
 	CollectionPointerLink *link;
@@ -370,7 +370,7 @@ static bool bake_objects_check(Main *bmain, Object *ob, ListBase *objects,
 		if (!bake_object_check(ob, reports))
 			return false;
 
-		for (link = objects->first; link; link = link->next) {
+		for (link = selected_objects->first; link; link = link->next) {
 			Object *ob_iter = (Object *)link->ptr.data;
 
 			if (ob_iter == ob)
@@ -389,12 +389,12 @@ static bool bake_objects_check(Main *bmain, Object *ob, ListBase *objects,
 		}
 	}
 	else {
-		if (BLI_listbase_is_empty(objects)) {
+		if (BLI_listbase_is_empty(selected_objects)) {
 			BKE_report(reports, RPT_ERROR, "No valid selected objects");
 			return false;
 		}
 
-		for (link = objects->first; link; link = link->next) {
+		for (link = selected_objects->first; link; link = link->next) {
 			if (!bake_object_check(link->ptr.data, reports))
 				return false;
 		}
@@ -413,7 +413,7 @@ static void bake_images_clear(Main *bmain, const bool is_tangent)
 	}
 }
 
-static bool build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
+static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 {
 	const int tot_mat = ob->totcol;
 	int i, j;
@@ -443,7 +443,6 @@ static bool build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 	}
 
 	bake_images->size = tot_images;
-	return true;
 }
 
 /*
@@ -578,8 +577,7 @@ static int bake(
 	bake_images.data = MEM_callocN(sizeof(BakeImage) * tot_materials, "bake images dimensions (width, height, offset)");
 	bake_images.lookup = MEM_callocN(sizeof(int) * tot_materials, "bake images lookup (from material to BakeImage)");
 
-	if (!build_image_lookup(bmain, ob_low, &bake_images))
-		goto cleanup;
+	build_image_lookup(bmain, ob_low, &bake_images);
 
 	if (is_save_internal) {
 		num_pixels = initialize_internal_images(&bake_images, reports);
