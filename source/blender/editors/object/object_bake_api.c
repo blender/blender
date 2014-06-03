@@ -741,8 +741,8 @@ static int bake(
 				                    depth, pass_type, result);
 			}
 			else {
-				ok = RE_bake_internal(re, highpoly[i].ob, highpoly[i].pixel_array, num_pixels,
-				                      depth, pass_type, result);
+				BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
+				goto cleanup;
 			}
 
 			if (!ok)
@@ -773,8 +773,10 @@ static int bake(
 
 		if (RE_bake_has_engine(re))
 			ok = RE_bake_engine(re, ob_low, pixel_array_low, num_pixels, depth, pass_type, result);
-		else
-			ok = RE_bake_internal(re, ob_low, pixel_array_low, num_pixels, depth, pass_type, result);
+		else {
+				BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
+				goto cleanup;
+		}
 	}
 
 	/* normal space conversion
