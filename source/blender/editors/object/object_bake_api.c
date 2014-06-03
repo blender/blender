@@ -389,6 +389,11 @@ static bool bake_objects_check(Main *bmain, Object *ob, ListBase *objects,
 		}
 	}
 	else {
+		if (BLI_listbase_is_empty(objects)) {
+			BKE_report(reports, RPT_ERROR, "No valid selected objects");
+			return false;
+		}
+
 		for (link = objects->first; link; link = link->next) {
 			if (!bake_object_check(link->ptr.data, reports))
 				return false;
@@ -1010,6 +1015,8 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 
 	bkr->reports = op->reports;
 
+	bkr->result = OPERATOR_CANCELLED;
+
 	/* XXX hack to force saving to always be internal. Whether (and how) to support
 	 * external saving will be addressed later */
 	bkr->save_mode = R_BAKE_SAVE_INTERNAL;
@@ -1017,7 +1024,7 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 
 static int bake_exec(bContext *C, wmOperator *op)
 {
-	int result;
+	int result = OPERATOR_CANCELLED;
 	BakeAPIRender bkr = {NULL};
 
 	bake_init_api_data(op, C, &bkr);
@@ -1040,7 +1047,7 @@ static int bake_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		CollectionPointerLink *link;
-		const bool is_clear = bkr.is_clear && (BLI_countlist(&bkr.selected_objects) == 1);
+		const bool is_clear = bkr.is_clear && BLI_listbase_is_single(&bkr.selected_objects);
 		for (link = bkr.selected_objects.first; link; link = link->next) {
 			Object *ob_iter = link->ptr.data;
 			result = bake(
@@ -1080,7 +1087,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_updat
 	}
 	else {
 		CollectionPointerLink *link;
-		const bool is_clear = bkr->is_clear && (BLI_countlist(&bkr->selected_objects) == 1);
+		const bool is_clear = bkr->is_clear && BLI_listbase_is_single(&bkr->selected_objects);
 		for (link = bkr->selected_objects.first; link; link = link->next) {
 			Object *ob_iter = link->ptr.data;
 			bkr->result = bake(
