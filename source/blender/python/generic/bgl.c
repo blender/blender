@@ -1381,10 +1381,16 @@ static struct PyModuleDef BGL_module_def = {
 	NULL,  /* m_free */
 };
 
+static void expp_addconst_int(PyObject *dict, const char *name, int value)
+{
+	PyObject *item;
+	PyDict_SetItemString(dict, name, item = PyLong_FromLong(value));
+	Py_DECREF(item);
+}
 
 PyObject *BPyInit_bgl(void)
 {
-	PyObject *submodule, *dict, *item;
+	PyObject *submodule, *dict;
 	submodule = PyModule_Create(&BGL_module_def);
 	dict = PyModule_GetDict(submodule);
 
@@ -1394,11 +1400,7 @@ PyObject *BPyInit_bgl(void)
 	PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
 	Py_INCREF((PyObject *)&BGL_bufferType);
 
-#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item = PyLong_FromLong((int)x)); Py_DECREF(item)
-
-/* So, for example:
- * EXPP_ADDCONST(GL_CURRENT_BIT) becomes
- * PyDict_SetItemString(dict, "GL_CURRENT_BIT", item = PyLong_FromLong(GL_CURRENT_BIT)); Py_DECREF(item) */
+#define EXPP_ADDCONST(x) expp_addconst_int(dict, #x, x)
 
 	EXPP_ADDCONST(GL_CURRENT_BIT);
 	EXPP_ADDCONST(GL_POINT_BIT);
