@@ -3876,11 +3876,12 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 
 /* ************** DRAW DISPLIST ****************** */
 
-static bool draw_index_wire = true;
-static bool index3_nors_incr = true;
 
-/* returns 1 when nothing was drawn */
-static bool drawDispListwire(ListBase *dlbase)
+/**
+ * \param dl_type_mask Only draw types matching this mask.
+ * \return true when nothing was drawn
+ */
+static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask)
 {
 	DispList *dl;
 	int parts, nr;
@@ -3892,8 +3893,13 @@ static bool drawDispListwire(ListBase *dlbase)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	for (dl = dlbase->first; dl; dl = dl->next) {
-		if (dl->parts == 0 || dl->nr == 0)
+		if (dl->parts == 0 || dl->nr == 0) {
 			continue;
+		}
+
+		if ((dl_type_mask & (1 << dl->type)) == 0) {
+			continue;
+		}
 		
 		data = dl->verts;
 
@@ -3952,17 +3958,13 @@ static bool drawDispListwire(ListBase *dlbase)
 				break;
 
 			case DL_INDEX3:
-				if (draw_index_wire) {
-					glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-					glDrawElements(GL_TRIANGLES, 3 * dl->parts, GL_UNSIGNED_INT, dl->index);
-				}
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glDrawElements(GL_TRIANGLES, 3 * dl->parts, GL_UNSIGNED_INT, dl->index);
 				break;
 
 			case DL_INDEX4:
-				if (draw_index_wire) {
-					glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-					glDrawElements(GL_QUADS, 4 * dl->parts, GL_UNSIGNED_INT, dl->index);
-				}
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glDrawElements(GL_QUADS, 4 * dl->parts, GL_UNSIGNED_INT, dl->index);
 				break;
 		}
 	}
@@ -3972,6 +3974,20 @@ static bool drawDispListwire(ListBase *dlbase)
 	
 	return false;
 }
+
+static bool drawDispListwire(ListBase *dlbase, const short ob_type)
+{
+	unsigned int dl_mask = 0xffffffff;
+
+	/* skip fill-faces for curves & fonts */
+	if (ELEM(ob_type, OB_FONT, OB_CURVE)) {
+		dl_mask &= ~((1 << DL_INDEX3) | (1 << DL_INDEX4));
+	}
+
+	return drawDispListwire_ex(dlbase, dl_mask);
+}
+
+static bool index3_nors_incr = true;
 
 static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
                               const unsigned char ob_wire_col[4], const bool use_glsl)
@@ -4165,6 +4181,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 			lb = &ob->curve_cache->disp;
 
 			if (solid) {
+				const bool has_faces = BKE_displist_has_faces(lb);
 				dl = lb->first;
 				if (dl == NULL) {
 					return true;
@@ -4173,12 +4190,18 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 				if (dl->nors == NULL) BKE_displist_normals_add(lb);
 				index3_nors_incr = false;
 
-				if (BKE_displist_has_faces(lb) == false) {
-					if (!render_only) {
-						draw_index_wire = false;
-						drawDispListwire(lb);
-						draw_index_wire = true;
+				if (!render_only) {
+					/* when we have faces, only draw loose-wire */
+					if (has_faces) {
+						drawDispListwire_ex(lb, (1 << DL_SEGM));
 					}
+					else {
+						drawDispListwire(lb, ob->type);
+					}
+				}
+
+				if (has_faces == false) {
+					/* pass */
 				}
 				else {
 					if (draw_glsl_material(scene, ob, v3d, dt)) {
@@ -4193,20 +4216,14 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 					}
 					if (cu->editnurb && cu->bevobj == NULL && cu->taperobj == NULL && cu->ext1 == 0.0f && cu->ext2 == 0.0f) {
 						cpack(0);
-						draw_index_wire = false;
-						drawDispListwire(lb);
-						draw_index_wire = true;
+						drawDispListwire(lb, ob->type);
 					}
 				}
 				index3_nors_incr = true;
 			}
 			else {
 				if (!render_only || (render_only && BKE_displist_has_faces(lb))) {
-					int retval;
-					draw_index_wire = false;
-					retval = drawDispListwire(lb);
-					draw_index_wire = true;
-					return retval;
+					return drawDispListwire(lb, ob->type);
 				}
 			}
 			break;
@@ -4234,7 +4251,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 				}
 			}
 			else {
-				return drawDispListwire(lb);
+				return drawDispListwire(lb, ob->type);
 			}
 			break;
 		case OB_MBALL:
@@ -4259,8 +4276,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 					}
 				}
 				else {
-					/* MetaBalls use DL_INDEX4 type of DispList */
-					return drawDispListwire(lb);
+					return drawDispListwire(lb, ob->type);
 				}
 			}
 			break;
@@ -6567,20 +6583,19 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		}
 
 		if (has_faces && ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-			draw_index_wire = false;
 			if (dm) {
 				draw_mesh_object_outline(v3d, ob, dm);
 			}
 			else {
-				drawDispListwire(&ob->curve_cache->disp);
+				drawDispListwire(&ob->curve_cache->disp, ob->type);
 			}
-			draw_index_wire = true;
 		}
 	}
 	else if (ob->type == OB_MBALL) {
 		if (BKE_mball_is_basis(ob)) {
-			if ((base->flag & OB_FROMDUPLI) == 0)
-				drawDispListwire(&ob->curve_cache->disp);
+			if ((base->flag & OB_FROMDUPLI) == 0) {
+				drawDispListwire(&ob->curve_cache->disp, ob->type);
+			}
 		}
 	}
 	else if (ob->type == OB_ARMATURE) {
@@ -6608,23 +6623,18 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 
 		if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 			if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-				if (ob->type == OB_CURVE)
-					draw_index_wire = false;
 
 				if (ob->derivedFinal) {
 					drawCurveDMWired(ob);
 				}
 				else {
-					drawDispListwire(&ob->curve_cache->disp);
+					drawDispListwire(&ob->curve_cache->disp, ob->type);
 				}
-
-				if (ob->type == OB_CURVE)
-					draw_index_wire = true;
 			}
 		}
 		else if (ob->type == OB_MBALL) {
 			if (BKE_mball_is_basis(ob)) {
-				drawDispListwire(&ob->curve_cache->disp);
+				drawDispListwire(&ob->curve_cache->disp, ob->type);
 			}
 		}
 
