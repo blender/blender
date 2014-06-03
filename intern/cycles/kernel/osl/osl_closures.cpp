@@ -158,7 +158,7 @@ BSDF_CLOSURE_CLASS_BEGIN(HairReflection, hair_reflection, hair_reflection, LABEL
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
 #ifdef __HAIR__
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.T),
-	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.offset),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data2),
 #else
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
@@ -171,7 +171,7 @@ BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, hair_transmission,
 	CLOSURE_FLOAT_PARAM(HairTransmissionClosure, sc.data1),
 #ifdef __HAIR__
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.T),
-	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.offset),
+	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data2),
 #else
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),

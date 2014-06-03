@@ -534,10 +534,7 @@ typedef struct ShaderClosure {
 	float3 T;
 #endif
 
-#ifdef __HAIR__
-	float offset;
-#endif
-
+	float data2;
 #ifdef __OSL__
 	void *prim;
 #endif

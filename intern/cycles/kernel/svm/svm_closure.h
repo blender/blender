@@ -24,6 +24,7 @@ ccl_device void svm_node_glass_setup(ShaderData *sd, ShaderClosure *sc, int type
 		if(refract) {
 			sc->data0 = eta;
 			sc->data1 = 0.0f;
+			sc->data2 = 0.0f;
 			sd->flag |= bsdf_refraction_setup(sc);
 		}
 		else
@@ -31,7 +32,8 @@ ccl_device void svm_node_glass_setup(ShaderData *sd, ShaderClosure *sc, int type
 	}
 	else if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID) {
 		sc->data0 = roughness;
-		sc->data1 = eta;
+		sc->data1 = roughness;
+		sc->data2 = eta;
 
 		if(refract)
 			sd->flag |= bsdf_microfacet_beckmann_refraction_setup(sc);
@@ -40,7 +42,8 @@ ccl_device void svm_node_glass_setup(ShaderData *sd, ShaderClosure *sc, int type
 	}
 	else {
 		sc->data0 = roughness;
-		sc->data1 = eta;
+		sc->data1 = roughness;
+		sc->data2 = eta;
 
 		if(refract)
 			sd->flag |= bsdf_microfacet_ggx_refraction_setup(sc);
@@ -135,11 +138,13 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				if(roughness == 0.0f) {
 					sc->data0 = 0.0f;
 					sc->data1 = 0.0f;
+					sc->data2 = 0.0f;
 					sd->flag |= bsdf_diffuse_setup(sc);
 				}
 				else {
 					sc->data0 = roughness;
 					sc->data1 = 0.0f;
+					sc->data2 = 0.0f;
 					sd->flag |= bsdf_oren_nayar_setup(sc);
 				}
 			}
@@ -151,6 +156,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			if(sc) {
 				sc->data0 = 0.0f;
 				sc->data1 = 0.0f;
+				sc->data2 = 0.0f;
 				sc->N = N;
 				sd->flag |= bsdf_translucent_setup(sc);
 			}
@@ -162,6 +168,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			if(sc) {
 				sc->data0 = 0.0f;
 				sc->data1 = 0.0f;
+				sc->data2 = 0.0f;
 				sc->N = N;
 				sd->flag |= bsdf_transparent_setup(sc);
 			}
@@ -179,7 +186,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			if(sc) {
 				sc->N = N;
 				sc->data0 = param1;
-				sc->data1 = 0.0f;
+				sc->data1 = param1;
+				sc->data2 = 0.0f;
 
 				/* setup bsdf */
 				if(type == CLOSURE_BSDF_REFLECTION_ID)
@@ -211,12 +219,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				if(type == CLOSURE_BSDF_REFRACTION_ID) {
 					sc->data0 = eta;
 					sc->data1 = 0.0f;
+					sc->data2 = 0.0f;
 
 					sd->flag |= bsdf_refraction_setup(sc);
 				}
 				else {
 					sc->data0 = param1;
-					sc->data1 = eta;
+					sc->data1 = param1;
+					sc->data2 = eta;
 
 					if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID)
 						sd->flag |= bsdf_microfacet_beckmann_refraction_setup(sc);
@@ -302,11 +312,12 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->data1 = roughness/(1.0f - anisotropy);
 				}
 
+				sc->data2 = 0.0f;
+
 				if (type == CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID)
 					sd->flag |= bsdf_ashikhmin_shirley_setup(sc);
 				else
 					sd->flag |= bsdf_ward_setup(sc);
-
 #else
 				sd->flag |= bsdf_diffuse_setup(sc);
 #endif
@@ -322,6 +333,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				/* sigma */
 				sc->data0 = clamp(param1, 0.0f, 1.0f);
 				sc->data1 = 0.0f;
+				sc->data2 = 0.0f;
 				sd->flag |= bsdf_ashikhmin_velvet_setup(sc);
 			}
 			break;
@@ -335,6 +347,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				sc->N = N;
 				sc->data0 = param1;
 				sc->data1 = param2;
+				sc->data2 = 0.0f;
 				
 				if (type == CLOSURE_BSDF_DIFFUSE_TOON_ID)
 					sd->flag |= bsdf_diffuse_toon_setup(sc);
@@ -369,11 +382,11 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->N = N;
 					sc->data0 = param1;
 					sc->data1 = param2;
-					sc->offset = -stack_load_float(stack, data_node.z);
+					sc->data2 = -stack_load_float(stack, data_node.z);
 
 					if(!(sd->type & PRIMITIVE_ALL_CURVE)) {
 						sc->T = normalize(sd->dPdv);
-						sc->offset = 0.0f;
+						sc->data2 = 0.0f;
 					}
 					else
 						sc->T = sd->dPdu;
@@ -418,6 +431,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.x;
 					sc->data1 = texture_blur;
+					sc->data2 = 0.0f;
 					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
@@ -434,6 +448,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.y;
 					sc->data1 = texture_blur;
+					sc->data2 = 0.0f;
 					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
@@ -450,6 +465,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.z;
 					sc->data1 = texture_blur;
+					sc->data2 = 0.0f;
 					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
