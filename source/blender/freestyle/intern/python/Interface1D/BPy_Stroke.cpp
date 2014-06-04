@@ -151,10 +151,16 @@ static PyObject *Stroke_resample(BPy_Stroke *self, PyObject *args, PyObject *kwd
 	float f;
 
 	if (PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist_1, &i)) {
-		self->s->Resample(i);
+		if (self->s->Resample(i) < 0) {
+			PyErr_SetString(PyExc_RuntimeError, "Stroke resampling (by vertex count) failed");
+			return NULL;
+		}
 	}
 	else if (PyErr_Clear(), PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &f)) {
-		self->s->Resample(f);
+		if (self->s->Resample(f) < 0) {
+			PyErr_SetString(PyExc_RuntimeError, "Stroke resampling (by vertex interval) failed");
+			return NULL;
+		}
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");

@@ -508,11 +508,11 @@ public:
 	}
 };
 
-void Stroke::Resample(int iNPoints)
+int Stroke::Resample(int iNPoints)
 {
-	int vertsize = strokeVerticesSize();
-	if (iNPoints <= vertsize)
-		return;
+	int NPointsToAdd = iNPoints - strokeVerticesSize();
+	if (NPointsToAdd <= 0)
+		return 0;
 
 	StrokeInternal::StrokeVertexIterator it = strokeVerticesBegin();
 	StrokeInternal::StrokeVertexIterator next = it;
@@ -531,7 +531,7 @@ void Stroke::Resample(int iNPoints)
 		Vec2r b((next)->getPoint());
 		Vec2r vec_tmp(b - a);
 		real norm_var = vec_tmp.norm();
-		int numberOfPointsToAdd = (int)floor((iNPoints - strokeVerticesSize()) * norm_var / _Length);
+		int numberOfPointsToAdd = (int)floor(NPointsToAdd * norm_var / _Length);
 		float csampling = norm_var / (float)(numberOfPointsToAdd + 1);
 		strokeSegments.push_back(StrokeSegment(it, next, norm_var, numberOfPointsToAdd, csampling));
 		N += numberOfPointsToAdd;
@@ -543,9 +543,10 @@ void Stroke::Resample(int iNPoints)
 	meanlength /= (float)nsegments;
 
 	// if we don't have enough points let's resample finer some segments
-	int NPointsToAdd = iNPoints - vertsize;
 	bool checkEveryone = false;
+	bool resampled;
 	while (N < NPointsToAdd) {
+		resampled = false;
 		for (vector<StrokeSegment>::iterator s = strokeSegments.begin(), send = strokeSegments.end(); s != send; ++s) {
 			if (s->_sampling == 0.0f)
 				continue;
@@ -556,13 +557,19 @@ void Stroke::Resample(int iNPoints)
 				//resample
 				s->_n = s->_n + 1;
 				s->_sampling = s->_length / (float)(s->_n + 1);
-				s->_resampled = true;
+				s->_resampled = resampled = true;
 				N++;
 				if (N == NPointsToAdd)
 					break;
 			}
 		}
+		if (checkEveryone && !resampled)
+			break;
 		checkEveryone = true;
+	}
+	if (N < NPointsToAdd) {
+		// fatal error, likely because _Length is inconsistent with the stroke length computed with the vertices
+		return -1;
 	}
 	//actually resample:
 	for (vector<StrokeSegment>::iterator s = strokeSegments.begin(), send = strokeSegments.end(); s != send; ++s) {
@@ -598,15 +605,17 @@ void Stroke::Resample(int iNPoints)
 		delete _rep;
 		_rep = new StrokeRep(this);
 	}
+
+	return 0;
 }
 
-void Stroke::Resample(float iSampling)
+int Stroke::Resample(float iSampling)
 {
 	//cerr << "old size :" << strokeVerticesSize() << endl;
 	if (iSampling == 0)
-		return;
+		return 0;
 	if (iSampling >= _sampling)
-		return;
+		return 0;
 
 	_sampling = iSampling;
 	// Resample...
@@ -655,6 +664,7 @@ void Stroke::Resample(float iSampling)
 		delete _rep;
 		_rep = new StrokeRep(this);
 	}
+	return 0;
 }
 
 void Stroke::RemoveAllVertices()

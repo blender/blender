@@ -588,7 +588,7 @@ public:
 	 *  \param iNPoints
 	 *    The number of vertices we eventually want in our stroke.
 	 */
-	void Resample(int iNPoints);
+	int Resample(int iNPoints);
 
 	/*! Resampling method.
 	 *  Resamples the curve with a given sampling.
@@ -596,7 +596,7 @@ public:
 	 *  \param iSampling
 	 *    The new sampling value.  
 	 */
-	void Resample(float iSampling);
+	int Resample(float iSampling);
 
     /*! Removes all vertices from the Stroke.
      */
