@@ -2197,8 +2197,11 @@ void node_add_shader(vec4 shader1, vec4 shader2, out vec4 shader)
 
 void node_fresnel(float ior, vec3 N, vec3 I, out float result)
 {
+	/* handle perspective/orthographic */
+	vec3 I_view = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(I): vec3(0.0, 0.0, -1.0);
+
 	float eta = max(ior, 0.00001);
-	result = fresnel_dielectric(normalize(I), N, (gl_FrontFacing)? eta: 1.0/eta);
+	result = fresnel_dielectric(I_view, N, (gl_FrontFacing)? eta: 1.0/eta);
 }
 
 /* layer_weight */
@@ -2248,10 +2251,14 @@ void node_geometry(vec3 I, vec3 N, mat4 toworld,
 	out float backfacing)
 {
 	position = (toworld*vec4(I, 1.0)).xyz;
-	normal = N;
+	normal = (toworld*vec4(N, 0.0)).xyz;
 	tangent = vec3(0.0);
-	true_normal = N;
-	incoming = I;
+	true_normal = normal;
+
+	/* handle perspective/orthographic */
+	vec3 I_view = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(I): vec3(0.0, 0.0, -1.0);
+	incoming = -(toworld*vec4(I_view, 0.0)).xyz;
+
 	parametric = vec3(0.0);
 	backfacing = (gl_FrontFacing)? 0.0: 1.0;
 }
