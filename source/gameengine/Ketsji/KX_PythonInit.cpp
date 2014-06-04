@@ -2082,7 +2082,7 @@ static struct _inittab bge_internal_modules[] = {
  * Python is not initialized.
  * see bpy_interface.c's BPY_python_start() which shares the same functionality in blender.
  */
-PyObject *initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
+PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 {
 	/* Yet another gotcha in the py api
 	 * Cant run PySys_SetArgv more than once because this adds the
@@ -2093,14 +2093,20 @@ PyObject *initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	static bool first_time = true;
 	const char * const py_path_bundle = BKE_appdir_folder_id(BLENDER_SYSTEM_PYTHON, NULL);
 
-#if 0 // TODO - py3
-	STR_String pname = progname;
-	Py_SetProgramName(pname.Ptr());
-#endif
+	/* not essential but nice to set our name */
+	static wchar_t program_path_wchar[FILE_MAX]; /* python holds a reference */
+	BLI_strncpy_wchar_from_utf8(program_path_wchar, BLI_program_path(), sizeof(program_path_wchar) / sizeof(wchar_t));
+	Py_SetProgramName(program_path_wchar);
 
+	/* Update, Py3.3 resolves attempting to parse non-existing header */
+	#if 0
+	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
+	 * parse from the 'sysconfig' module which is used by 'site',
+	 * so for now disable site. alternatively we could copy the file. */
 	if (py_path_bundle != NULL) {
 		Py_NoSiteFlag = 1;
 	}
+	#endif
 
 	Py_FrozenFlag = 1;
 
@@ -2186,12 +2192,12 @@ void exitGamePlayerPythonScripting()
 /**
  * Python is already initialized.
  */
-PyObject *initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
+PyObject *initGamePythonScripting(Main *maggie)
 {
-#if 0 // XXX TODO Py3
-	STR_String pname = progname;
-	Py_SetProgramName(pname.Ptr());
-#endif
+	/* not essential but nice to set our name */
+	static wchar_t program_path_wchar[FILE_MAX]; /* python holds a reference */
+	BLI_strncpy_wchar_from_utf8(program_path_wchar, BLI_program_path(), sizeof(program_path_wchar) / sizeof(wchar_t));
+	Py_SetProgramName(program_path_wchar);
 
 #ifdef WITH_AUDASPACE
 	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
@@ -2241,9 +2247,9 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene *startscene, Main *
 	PyObject *dictionaryobject;
 
 	if (argv) /* player only */
-		dictionaryobject= initGamePlayerPythonScripting("Ketsji", psl_Lowest, blenderdata, argc, argv);
+		dictionaryobject= initGamePlayerPythonScripting(blenderdata, argc, argv);
 	else
-		dictionaryobject= initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
+		dictionaryobject= initGamePythonScripting(blenderdata);
 
 	ketsjiengine->SetPyNamespace(dictionaryobject);
 	initRasterizer(ketsjiengine->GetRasterizer(), ketsjiengine->GetCanvas());
@@ -2297,8 +2303,6 @@ PyObject *initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 {
 	gp_Canvas = canvas;
 	gp_Rasterizer = rasty;
-
-
 	PyObject *m;
 	PyObject *d;
 
