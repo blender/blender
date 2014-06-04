@@ -1408,8 +1408,10 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		drawshadbuflimits(la, ob->obmat);
 	}
 	
-	UI_GetThemeColor4ubv(TH_LAMP, col);
-	glColor4ubv(col);
+	if ((dflag & DRAW_CONSTCOLOR) == 0) {
+		UI_GetThemeColor4ubv(TH_LAMP, col);
+		glColor4ubv(col);
+	}
 
 	glEnable(GL_BLEND);
 	
@@ -1448,7 +1450,9 @@ static void draw_limit_line(float sta, float end, const short dflag, unsigned in
 	if (!(dflag & DRAW_PICKING)) {
 		glPointSize(3.0);
 		glBegin(GL_POINTS);
-		cpack(col);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			cpack(col);
+		}
 		glVertex3f(0.0, 0.0, -sta);
 		glVertex3f(0.0, 0.0, -end);
 		glEnd();
@@ -4531,7 +4535,8 @@ static void draw_particle_data(ParticleSystem *psys, RegionView3D *rv3d,
 /* 6. draw the arrays						*/
 /* 7. clean up								*/
 static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv3d,
-                                     Base *base, ParticleSystem *psys, int ob_dt)
+                                     Base *base, ParticleSystem *psys,
+                                     const char ob_dt, const short dflag)
 {
 	Object *ob = base->object;
 	ParticleEditSettings *pset = PE_settings(scene);
@@ -4609,7 +4614,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		copy_v3_v3(ma_col, &ma->r);
 	}
 
-	glColor3ubv(tcol);
+	if ((dflag & DRAW_CONSTCOLOR) == 0) {
+		glColor3ubv(tcol);
+	}
 
 	timestep = psys_get_timestep(&sim);
 
@@ -4944,8 +4951,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		if (1) { //ob_dt > OB_WIRE) {
 			glEnableClientState(GL_NORMAL_ARRAY);
 
-			if (part->draw_col == PART_DRAW_COL_MAT)
-				glEnableClientState(GL_COLOR_ARRAY);
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				if (part->draw_col == PART_DRAW_COL_MAT)
+					glEnableClientState(GL_COLOR_ARRAY);
+			}
 
 			glEnable(GL_LIGHTING);
 			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
@@ -4975,8 +4984,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 				if (1) { //ob_dt > OB_WIRE) {
 					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-					if (part->draw_col == PART_DRAW_COL_MAT)
-						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+					if ((dflag & DRAW_CONSTCOLOR) == 0) {
+						if (part->draw_col == PART_DRAW_COL_MAT) {
+							glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+						}
+					}
 				}
 
 				glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
@@ -4991,8 +5003,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 			if (1) { //ob_dt > OB_WIRE) {
 				glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-				if (part->draw_col == PART_DRAW_COL_MAT)
-					glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					if (part->draw_col == PART_DRAW_COL_MAT) {
+						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+					}
+				}
 			}
 
 			glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
@@ -5036,21 +5051,24 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		else
 			glDisableClientState(GL_VERTEX_ARRAY);
 
-		if (select) {
-			UI_ThemeColor(TH_ACTIVE);
-			
-			if (part->draw_size)
-				glPointSize(part->draw_size + 2);
-			else
-				glPointSize(4.0);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			if (select) {
+				UI_ThemeColor(TH_ACTIVE);
 
-			glLineWidth(3.0);
+				if (part->draw_size)
+					glPointSize(part->draw_size + 2);
+				else
+					glPointSize(4.0);
 
-			draw_particle_arrays(draw_as, totpoint, ob_dt, 1);
+				glLineWidth(3.0);
+
+				draw_particle_arrays(draw_as, totpoint, ob_dt, 1);
+			}
+
+			/* restore from select */
+			glColor3fv(ma_col);
 		}
 
-		/* restore from select */
-		glColor3fv(ma_col);
 		glPointSize(part->draw_size ? part->draw_size : 2.0);
 		glLineWidth(1.0);
 
@@ -5067,9 +5085,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			glDisable(GL_LIGHTING);
 		}
 
-		if (pdd->cdata) {
-			glEnableClientState(GL_COLOR_ARRAY);
-			glColorPointer(3, GL_FLOAT, 0, pdd->cdata);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			if (pdd->cdata) {
+				glEnableClientState(GL_COLOR_ARRAY);
+				glColorPointer(3, GL_FLOAT, 0, pdd->cdata);
+			}
 		}
 
 		draw_particle_arrays(draw_as, totpoint, ob_dt, 0);
@@ -5079,8 +5099,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	if (pdd && pdd->vedata) {
-		glDisableClientState(GL_COLOR_ARRAY);
-		cpack(0xC0C0C0);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			glDisableClientState(GL_COLOR_ARRAY);
+			cpack(0xC0C0C0);
+		}
 		
 		glVertexPointer(3, GL_FLOAT, 0, pdd->vedata);
 		
@@ -7285,7 +7307,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	{
 		ParticleSystem *psys;
 
-		if (col || (ob->flag & SELECT)) cpack(0xFFFFFF);    /* for visibility, also while wpaint */
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			/* for visibility, also while wpaint */
+			if (col || (ob->flag & SELECT)) {
+				cpack(0xFFFFFF);
+			}
+		}
 		//glDepthMask(GL_FALSE);
 
 		glLoadMatrixf(rv3d->viewmat);
@@ -7300,7 +7327,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					draw_update_ptcache_edit(scene, ob, edit);
 			}
 
-			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
+			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt, dflag);
 		}
 		invert_m4_m4(ob->imat, ob->obmat);
 		view3d_cached_text_draw_end(v3d, ar, 0, NULL);

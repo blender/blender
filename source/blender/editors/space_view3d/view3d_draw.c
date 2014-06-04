@@ -1961,7 +1961,9 @@ static DupliObject *dupli_step(DupliObject *dob)
 	return dob;
 }
 
-static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int color)
+static void draw_dupli_objects_color(
+        Scene *scene, ARegion *ar, View3D *v3d, Base *base,
+        const short dflag, const int color)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *lb;
@@ -1970,13 +1972,22 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	Base tbase = {NULL};
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist = 0;
+	unsigned char color_rgb[3];
+	const short dflag_dupli = dflag | DRAW_CONSTCOLOR;
 	short transflag, use_displist = -1;  /* -1 is initialize */
 	char dt;
 	short dtx;
 	DupliApplyData *apply_data;
 
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
-	
+
+	if (dflag & DRAW_CONSTCOLOR) {
+		BLI_assert(color == TH_UNDEFINED);
+	}
+	else {
+		UI_GetThemeColorBlend3ubv(color, TH_BACK, 0.5f, color_rgb);
+	}
+
 	tbase.flag = OB_FROMDUPLI | base->flag;
 	lb = object_duplilist(G.main->eval_ctx, scene, base->object);
 	// BLI_sortlist(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
@@ -2019,7 +2030,10 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		else
 			tbase.object->transflag &= ~OB_NEG_SCALE;
 
-		UI_ThemeColorBlend(color, TH_BACK, 0.5);
+		/* should move outside the loop but possible color is set in draw_object still */
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			glColor3ubv(color_rgb);
+		}
 
 		/* generate displist, test for new object */
 		if (dob_prev && dob_prev->ob != dob->ob) {
@@ -2061,7 +2075,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 
 				displist = glGenLists(1);
 				glNewList(displist, GL_COMPILE);
-				draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
+				draw_object(scene, ar, v3d, &tbase, dflag_dupli);
 				glEndList();
 
 				use_displist = true;
@@ -2077,7 +2091,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		}
 		else {
 			copy_m4_m4(dob->ob->obmat, dob->mat);
-			draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
+			draw_object(scene, ar, v3d, &tbase, dflag_dupli);
 		}
 
 		tbase.object->dt = dt;
@@ -2107,7 +2121,7 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 	if (base->object->dup_group && base->object->dup_group->id.us < 1)
 		color = TH_REDALERT;
 	
-	draw_dupli_objects_color(scene, ar, v3d, base, color);
+	draw_dupli_objects_color(scene, ar, v3d, base, 0, color);
 }
 
 /* XXX warning, not using gpu offscreen here */
@@ -2256,6 +2270,8 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 	short flag = v3d->flag;
 	float glalphaclip = U.glalphaclip;
 	int obcenter_dia = U.obcenter_dia;
+	/* no need for color when drawing depth buffer */
+	const short dflag_depth = DRAW_CONSTCOLOR;
 	/* temp set drawtype to solid */
 	
 	/* Setting these temporarily is not nice */
@@ -2290,7 +2306,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 				if (func == NULL || func(base)) {
 					draw_object(scene, ar, v3d, base, 0);
 					if (base->object->transflag & OB_DUPLI) {
-						draw_dupli_objects_color(scene, ar, v3d, base, TH_WIRE);
+						draw_dupli_objects_color(scene, ar, v3d, base, dflag_depth, TH_UNDEFINED);
 					}
 				}
 			}
@@ -2302,9 +2318,9 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 			if (func == NULL || func(base)) {
 				/* dupli drawing */
 				if (base->object->transflag & OB_DUPLI) {
-					draw_dupli_objects(scene, ar, v3d, base);
+					draw_dupli_objects_color(scene, ar, v3d, base, dflag_depth, TH_UNDEFINED);
 				}
-				draw_object(scene, ar, v3d, base, 0);
+				draw_object(scene, ar, v3d, base, dflag_depth);
 			}
 		}
 	}
@@ -2327,7 +2343,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 			glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
 			for (v3da = v3d->afterdraw_xray.first; v3da; v3da = next) {
 				next = v3da->next;
-				draw_object(scene, ar, v3d, v3da->base, 0);
+				draw_object(scene, ar, v3d, v3da->base, dflag_depth);
 			}
 			glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
 		}
@@ -2337,7 +2353,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 		v3d->transp = true;
 		for (v3da = v3d->afterdraw_transp.first; v3da; v3da = next) {
 			next = v3da->next;
-			draw_object(scene, ar, v3d, v3da->base, 0);
+			draw_object(scene, ar, v3d, v3da->base, dflag_depth);
 			BLI_remlink(&v3d->afterdraw_transp, v3da);
 			MEM_freeN(v3da);
 		}
@@ -2346,7 +2362,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 		v3d->transp = false;
 		for (v3da = v3d->afterdraw_xray.first; v3da; v3da = next) {
 			next = v3da->next;
-			draw_object(scene, ar, v3d, v3da->base, 0);
+			draw_object(scene, ar, v3d, v3da->base, dflag_depth);
 			BLI_remlink(&v3d->afterdraw_xray, v3da);
 			MEM_freeN(v3da);
 		}
@@ -2355,7 +2371,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 		v3d->transp = true;
 		for (v3da = v3d->afterdraw_xraytransp.first; v3da; v3da = next) {
 			next = v3da->next;
-			draw_object(scene, ar, v3d, v3da->base, 0);
+			draw_object(scene, ar, v3d, v3da->base, dflag_depth);
 			BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
 			MEM_freeN(v3da);
 		}
@@ -2633,14 +2649,15 @@ static void view3d_draw_objects(
 
 	/* draw set first */
 	if (scene->set) {
+		const short dflag = DRAW_CONSTCOLOR | DRAW_SCENESET;
 		Scene *sce_iter;
 		for (SETLOOPER(scene->set, sce_iter, base)) {
 			if (v3d->lay & base->lay) {
 				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
-				draw_object(scene, ar, v3d, base, DRAW_CONSTCOLOR | DRAW_SCENESET);
+				draw_object(scene, ar, v3d, base, dflag);
 
 				if (base->object->transflag & OB_DUPLI) {
-					draw_dupli_objects_color(scene, ar, v3d, base, TH_WIRE);
+					draw_dupli_objects_color(scene, ar, v3d, base, dflag, TH_UNDEFINED);
 				}
 			}
 		}

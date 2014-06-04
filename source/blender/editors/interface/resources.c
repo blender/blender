@@ -92,6 +92,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	
 	/* ensure we're not getting a color after running BKE_userdef_free */
 	BLI_assert(BLI_findindex(&U.themes, theme_active) != -1);
+	BLI_assert(colorid != TH_UNDEFINED);
 
 	if (btheme) {
 	
@@ -1224,21 +1225,25 @@ void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 	glColor4ub(r, g, b, a);
 }
 
-/* blend between to theme colors, and set it */
-void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
+void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3])
 {
-	int r, g, b;
 	const unsigned char *cp1, *cp2;
-	
+
 	cp1 = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
 	cp2 = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
 
 	CLAMP(fac, 0.0f, 1.0f);
-	r = floorf((1.0f - fac) * cp1[0] + fac * cp2[0]);
-	g = floorf((1.0f - fac) * cp1[1] + fac * cp2[1]);
-	b = floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
-	
-	glColor3ub(r, g, b);
+	col[0] = floorf((1.0f - fac) * cp1[0] + fac * cp2[0]);
+	col[1] = floorf((1.0f - fac) * cp1[1] + fac * cp2[1]);
+	col[2] = floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
+}
+
+/* blend between to theme colors, and set it */
+void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
+{
+	unsigned char col[3];
+	UI_GetThemeColorBlend3ubv(colorid1, colorid2, fac, col);
+	glColor3ubv(col);
 }
 
 /* blend between to theme colors, shade it, and set it */
