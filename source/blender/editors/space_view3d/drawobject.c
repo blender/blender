@@ -145,6 +145,13 @@ typedef struct drawDMEdgesSel_userData {
 	BMEdge *eed_act;
 } drawDMEdgesSel_userData;
 
+typedef struct drawDMEdgesSelInterp_userData {
+	BMesh *bm;
+
+	unsigned char *baseCol, *selCol;
+	unsigned char *lastCol;
+} drawDMEdgesSelInterp_userData;
+
 typedef struct drawDMFacesSel_userData {
 #ifdef WITH_FREESTYLE
 	unsigned char *cols[4];
@@ -2371,22 +2378,47 @@ static DMDrawOption draw_dm_edges_sel_interp__setDrawOptions(void *userData, int
 }
 static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int index, float t)
 {
+	drawDMEdgesSelInterp_userData *data = userData;
 	BMEdge *eed = BM_edge_at_index(((void **)userData)[0], index);
 	unsigned char **cols = userData;
-	unsigned char *col0 = cols[(BM_elem_flag_test(eed->v1, BM_ELEM_SELECT)) ? 2 : 1];
-	unsigned char *col1 = cols[(BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)) ? 2 : 1];
+	unsigned int col0_id = (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT)) ? 2 : 1;
+	unsigned int col1_id = (BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)) ? 2 : 1;
+	unsigned char *col0 = cols[col0_id];
+	unsigned char *col1 = cols[col1_id];
+	unsigned char *col_pt;
 
-	glColor4ub(col0[0] + (col1[0] - col0[0]) * t,
-	           col0[1] + (col1[1] - col0[1]) * t,
-	           col0[2] + (col1[2] - col0[2]) * t,
-	           col0[3] + (col1[3] - col0[3]) * t);
+	if (col0_id == col1_id) {
+		col_pt = col0;
+	}
+	else if (t == 0.0f) {
+		col_pt = col0;
+	}
+	else if (t == 1.0f) {
+		col_pt = col1;
+	}
+	else {
+		unsigned char  col_blend[4];
+		interp_v4_v4v4_uchar(col_blend, col0, col1, t);
+		glColor4ubv(col_blend);
+		data->lastCol = NULL;
+		return;
+	}
+
+	if (data->lastCol != col_pt) {
+		data->lastCol = col_pt;
+		glColor4ubv(col_pt);
+	}
 }
 
 static void draw_dm_edges_sel_interp(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol)
 {
-	void *cols[3] = {em->bm, baseCol, selCol};
+	drawDMEdgesSelInterp_userData data;
+	data.bm = em->bm;
+	data.baseCol = baseCol;
+	data.selCol = selCol;
+	data.lastCol = NULL;
 
-	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
+	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, &data);
 }
 
 /* Draw only seam edges */
