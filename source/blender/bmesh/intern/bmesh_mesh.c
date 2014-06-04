@@ -1004,6 +1004,10 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 	/* in debug mode double check we didn't need to recalculate */
 	BLI_assert(BM_mesh_elem_table_check(bm) == true);
 
+	if (htype_needed == 0) {
+		return;
+	}
+
 	if (htype_needed & BM_VERT) {
 		if (bm->vtable && bm->totvert <= bm->vtable_tot && bm->totvert * 2 >= bm->vtable_tot) {
 			/* pass (re-use the array) */
@@ -1038,7 +1042,9 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 		}
 	}
 
-#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+	/* skip if we only need to operate on one element */
+#pragma omp parallel sections if ((!ELEM3(htype_needed, BM_VERT, BM_EDGE, BM_FACE)) && \
+	                              (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT))
 	{
 #pragma omp section
 		{
