@@ -754,6 +754,9 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustring object_name,
                                       TypeDesc type, ustring name, void *val)
 {
+	if (renderstate == NULL)
+		return false;
+
 	ShaderData *sd = (ShaderData *)renderstate;
 	KernelGlobals *kg = sd->osl_globals;
 	bool is_curve;
