@@ -8,19 +8,17 @@ This module wraps OpenGL constants and functions, making them available from
 within Blender Python.
 
 The complete list can be retrieved from the module itself, by listing its
-contents: dir(bgl).  A simple search on the net can point to more
+contents: dir(bgl).  A simple search on the web can point to more
 than enough material to teach OpenGL programming, from books to many
 collections of tutorials.
 
-The "red book": "I{OpenGL Programming Guide: The Official Guide to Learning
-OpenGL}" and the online NeHe tutorials are two of the best resources.
+Here is a comprehensive `list of books <http://www.opengl.org/documentation/books/>`_ (non free). The `arcsynthesis tutorials  <http://www.arcsynthesis.org/gltut/>`_ is one of the best resources to learn modern OpenGL and `g-truc <http://www.g-truc.net/post-tech-content-sample.html>`_ offers a set of extensive examples, including advanced features.
+    
 
 .. note::
    You can use the :class:`Image` type to load and set textures.
    See :class:`Image.gl_load` and :class:`Image.gl_load`,
    for example.
-   `OpenGL.org <http://www.opengl.org>`_
-   `NeHe GameDev <http://nehe.gamedev.net>`_
 
 
 .. function:: glAccum(op, value):
