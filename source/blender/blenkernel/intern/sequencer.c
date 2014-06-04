@@ -3028,7 +3028,13 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seq
 				break;
 			case EARLY_DO_EFFECT:
 				if (i == 0) {
-					out = seq_render_strip(context, seq, cfra);
+					ImBuf *ibuf1 = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
+					ImBuf *ibuf2 = seq_render_strip(context, seq, cfra);
+
+					out = seq_render_strip_stack_apply_effect(context, seq, cfra, ibuf1, ibuf2);
+
+					IMB_freeImBuf(ibuf1);
+					IMB_freeImBuf(ibuf2);
 				}
 
 				break;
