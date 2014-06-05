@@ -430,7 +430,7 @@ static void draw_uvs_other_mesh_new_shading(Object *ob, const Image *curimage)
 	for (a = me->totpoly; a != 0; a--, mpoly++) {
 		const int mat_nr = mpoly->mat_nr;
 		if ((mat_nr >= ob->totcol) ||
-			(BLI_BITMAP_GET(mat_test_array, mat_nr)) == 0)
+		    (BLI_BITMAP_GET(mat_test_array, mat_nr)) == 0)
 		{
 			continue;
 		}

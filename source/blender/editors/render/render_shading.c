@@ -450,7 +450,8 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 		tex->id.us--;
 
 		if (ptr.id.data && GS(((ID *)ptr.id.data)->name) == ID_MA &&
-		    RNA_property_pointer_get(&ptr, prop).id.data == NULL) {
+		    RNA_property_pointer_get(&ptr, prop).id.data == NULL)
+		{
 			/* In case we are assigning new texture to a material, and active slot was empty, reset 'use' flag. */
 			Material *ma = (Material *)ptr.id.data;
 			ma->septex &= ~(1 << ma->texact);

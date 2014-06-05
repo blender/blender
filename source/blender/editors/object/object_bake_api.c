@@ -299,7 +299,7 @@ static bool bake_object_check(Object *ob, ReportList *reports)
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not a mesh", ob->id.name + 2);
 		return false;
 	}
-	else  {
+	else {
 		Mesh *me = (Mesh *)ob->data;
 
 		const int pidx = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
@@ -774,11 +774,12 @@ static int bake(
 		/* make sure low poly renders */
 		ob_low->restrictflag &= ~OB_RESTRICT_RENDER;
 
-		if (RE_bake_has_engine(re))
+		if (RE_bake_has_engine(re)) {
 			ok = RE_bake_engine(re, ob_low, pixel_array_low, num_pixels, depth, pass_type, result);
+		}
 		else {
-				BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
-				goto cleanup;
+			BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
+			goto cleanup;
 		}
 	}
 

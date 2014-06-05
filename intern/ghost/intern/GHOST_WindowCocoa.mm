@@ -733,7 +733,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	//now has proper multi-monitor support for fullscreen
 	struct utsname retval;
 	uname(&retval);
-	if(retval.release[0] == '1' && retval.release[1] <= '3') {
+	if (retval.release[0] == '1' && retval.release[1] <= '3') {
 		m_lionStyleFullScreen = true;
 	}
 	

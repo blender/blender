@@ -1428,7 +1428,7 @@ static void calc_bevfac_mapping(
 		bevp_prev = (BevPoint *)(bl + 1);
 		bevp = bevp_prev + 1;
 
-		if (nu->type == CU_BEZIER){
+		if (nu->type == CU_BEZIER) {
 			bezt_prev = nu->bezt;
 			bezt = bezt_prev + 1;
 			for (i = 0, bevp_i = 0; i < segcount; i++, bezt_prev++, bezt++) {
@@ -1441,7 +1441,7 @@ static void calc_bevfac_mapping(
 					bevp_prev = bevp++;
 				}
 				else {
-					for (j = 0; j < resolu; j++, bevp_prev = bevp++){
+					for (j = 0; j < resolu; j++, bevp_prev = bevp++) {
 						l = len_v3v3(bevp->vec, bevp_prev->vec);
 						seglen += l;
 						BLI_assert(bevp_i < bl->nr - 1);
