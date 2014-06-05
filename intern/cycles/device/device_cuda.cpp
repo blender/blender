@@ -762,6 +762,8 @@ public:
 			if(task.get_cancel())
 				break;
 
+			int shader_w = min(shader_chunk_size, end - shader_x);
+
 			/* pass in parameters */
 			int offset = 0;
 
@@ -780,13 +782,15 @@ public:
 			cuda_assert(cuParamSeti(cuShader, offset, shader_x));
 			offset += sizeof(shader_x);
 
+			cuda_assert(cuParamSeti(cuShader, offset, shader_w));
+			offset += sizeof(shader_w);
+
 			cuda_assert(cuParamSetSize(cuShader, offset));
 
 			/* launch kernel */
 			int threads_per_block;
 			cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuShader));
 
-			int shader_w = min(shader_chunk_size, end - shader_x);
 			int xblocks = (shader_w + threads_per_block - 1)/threads_per_block;
 
 			cuda_assert(cuFuncSetCacheConfig(cuShader, CU_FUNC_CACHE_PREFER_L1));
