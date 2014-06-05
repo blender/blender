@@ -217,6 +217,7 @@ void NODE_OT_tree_socket_move(struct wmOperatorType *ot);
 void NODE_OT_shader_script_update(struct wmOperatorType *ot);
 
 void NODE_OT_viewer_border(struct wmOperatorType *ot);
+void NODE_OT_clear_viewer_border(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 

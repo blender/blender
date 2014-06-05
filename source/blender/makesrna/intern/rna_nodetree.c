@@ -658,30 +658,6 @@ static void rna_NodeTree_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *p
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 
-	/* when using border, make it so no old data from outside of
-	 * border is hanging around
-	 * ideally shouldn't be in RNA callback, but how to teach
-	 * compo to only clear frame when border usage is actually
-	 * toggling
-	 */
-	if (ntree->flag & NTREE_VIEWER_BORDER) {
-		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-		void *lock;
-		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-
-		if (ibuf) {
-			if (ibuf->rect)
-				memset(ibuf->rect, 0, 4 * ibuf->x * ibuf->y);
-
-			if (ibuf->rect_float)
-				memset(ibuf->rect_float, 0, 4 * ibuf->x * ibuf->y * sizeof(float));
-
-			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-		}
-
-		BKE_image_release_ibuf(ima, ibuf, lock);
-	}
-
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 	WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
 

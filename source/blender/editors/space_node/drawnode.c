@@ -3122,20 +3122,17 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			}
 			
 			if ((snode->nodetree->flag & NTREE_VIEWER_BORDER) &&
-			        viewer_border->xmin < viewer_border->xmax &&
-			        viewer_border->ymin < viewer_border->ymax)
+			    viewer_border->xmin < viewer_border->xmax &&
+			    viewer_border->ymin < viewer_border->ymax)
 			{
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				setlinestyle(3);
-				cpack(0x4040FF);
-				
-				glRectf(x + snode->zoom * viewer_border->xmin * ibuf->x,
-				        y + snode->zoom * viewer_border->ymin * ibuf->y,
-				        x + snode->zoom * viewer_border->xmax * ibuf->x,
-				        y + snode->zoom * viewer_border->ymax * ibuf->y);
-				
-				setlinestyle(0);
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				rcti pixel_border;
+				UI_ThemeColor(TH_ACTIVE);
+				BLI_rcti_init(&pixel_border,
+				              x + snode->zoom * viewer_border->xmin * ibuf->x,
+				              x + snode->zoom * viewer_border->xmax * ibuf->x,
+				              y + snode->zoom * viewer_border->ymin * ibuf->y,
+				              y + snode->zoom * viewer_border->ymax * ibuf->y);
+				glaDrawBorderCorners(&pixel_border, 1.0f, 1.0f);
 			}
 		}
 		

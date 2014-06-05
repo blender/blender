@@ -222,5 +222,7 @@ void glaDrawImBuf_glsl(struct ImBuf *ibuf, float x, float y, int zoomfilter,
 /* Draw imbuf on a screen, preferably using GLSL display transform */
 void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter);
 
+void glaDrawBorderCorners(const struct rcti *border, float zoomx, float zoomy);
+
 #endif /* __BIF_GLUTIL_H__ */
 

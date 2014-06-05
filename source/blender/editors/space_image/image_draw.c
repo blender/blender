@@ -119,39 +119,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 			UI_ThemeColor(TH_FACE_SELECT);
 
 			for (i = 0, tile = tiles; i < total_tiles; i++, tile++) {
-				float delta_x = 4.0f * UI_DPI_FAC / zoomx;
-				float delta_y = 4.0f * UI_DPI_FAC / zoomy;
-
-				delta_x = min_ff(delta_x, tile->xmax - tile->xmin);
-				delta_y = min_ff(delta_y, tile->ymax - tile->ymin);
-
-				/* left bottom corner */
-				glBegin(GL_LINE_STRIP);
-				glVertex2f(tile->xmin, tile->ymin + delta_y);
-				glVertex2f(tile->xmin, tile->ymin);
-				glVertex2f(tile->xmin + delta_x, tile->ymin);
-				glEnd();
-
-				/* left top corner */
-				glBegin(GL_LINE_STRIP);
-				glVertex2f(tile->xmin, tile->ymax - delta_y);
-				glVertex2f(tile->xmin, tile->ymax);
-				glVertex2f(tile->xmin + delta_x, tile->ymax);
-				glEnd();
-
-				/* right bottom corner */
-				glBegin(GL_LINE_STRIP);
-				glVertex2f(tile->xmax - delta_x, tile->ymin);
-				glVertex2f(tile->xmax, tile->ymin);
-				glVertex2f(tile->xmax, tile->ymin + delta_y);
-				glEnd();
-
-				/* right top corner */
-				glBegin(GL_LINE_STRIP);
-				glVertex2f(tile->xmax - delta_x, tile->ymax);
-				glVertex2f(tile->xmax, tile->ymax);
-				glVertex2f(tile->xmax, tile->ymax - delta_y);
-				glEnd();
+				glaDrawBorderCorners(tile, zoomx, zoomy);
 			}
 
 			MEM_freeN(tiles);

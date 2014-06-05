@@ -50,6 +50,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
+#include "UI_interface.h"
+
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE                        0x812F
 #endif
@@ -1138,4 +1140,41 @@ void cpack(unsigned int x)
 	glColor3ub( ( (x)        & 0xFF),
 	            (((x) >>  8) & 0xFF),
 	            (((x) >> 16) & 0xFF) );
+}
+
+void glaDrawBorderCorners(const rcti *border, float zoomx, float zoomy)
+{
+	float delta_x = 4.0f * UI_DPI_FAC / zoomx;
+	float delta_y = 4.0f * UI_DPI_FAC / zoomy;
+
+	delta_x = min_ff(delta_x, border->xmax - border->xmin);
+	delta_y = min_ff(delta_y, border->ymax - border->ymin);
+
+	/* left bottom corner */
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(border->xmin, border->ymin + delta_y);
+	glVertex2f(border->xmin, border->ymin);
+	glVertex2f(border->xmin + delta_x, border->ymin);
+	glEnd();
+
+	/* left top corner */
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(border->xmin, border->ymax - delta_y);
+	glVertex2f(border->xmin, border->ymax);
+	glVertex2f(border->xmin + delta_x, border->ymax);
+	glEnd();
+
+	/* right bottom corner */
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(border->xmax - delta_x, border->ymin);
+	glVertex2f(border->xmax, border->ymin);
+	glVertex2f(border->xmax, border->ymin + delta_y);
+	glEnd();
+
+	/* right top corner */
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(border->xmax - delta_x, border->ymax);
+	glVertex2f(border->xmax, border->ymax);
+	glVertex2f(border->xmax, border->ymax - delta_y);
+	glEnd();
 }

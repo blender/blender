@@ -2482,14 +2482,6 @@ static int viewer_border_exec(bContext *C, wmOperator *op)
 				btree->flag &= ~NTREE_VIEWER_BORDER;
 			}
 			else {
-				if (ibuf->rect)
-					memset(ibuf->rect, 0, 4 * ibuf->x * ibuf->y);
-
-				if (ibuf->rect_float)
-					memset(ibuf->rect_float, 0, 4 * ibuf->x * ibuf->y * sizeof(float));
-
-				ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
 				btree->flag |= NTREE_VIEWER_BORDER;
 			}
 
@@ -2525,4 +2517,31 @@ void NODE_OT_viewer_border(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_gesture_border(ot, true);
+}
+
+static int clear_viewer_border_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *btree = snode->nodetree;
+
+	btree->flag &= ~NTREE_VIEWER_BORDER;
+	snode_notify(C, snode);
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_clear_viewer_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Viewer Border";
+	ot->description = "Clear the boundaries for viewer operations";
+	ot->idname = "NODE_OT_clear_viewer_border";
+
+	/* api callbacks */
+	ot->exec = clear_viewer_border_exec;
+	ot->poll = composite_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
