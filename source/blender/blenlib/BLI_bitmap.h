@@ -55,6 +55,10 @@ typedef unsigned int BLI_bitmap;
 	((BLI_bitmap *)MEM_callocN(BLI_BITMAP_SIZE(_tot), \
 	                         _alloc_string))
 
+/* allocate a bitmap on the stack */
+#define BLI_BITMAP_NEW_ALLOCA(_tot) \
+	((BLI_bitmap *)memset(alloca(BLI_BITMAP_SIZE(_tot)), 0, BLI_BITMAP_SIZE(_tot)))
+
 /* get the value of a single bit at '_index' */
 #define BLI_BITMAP_GET(_bitmap, _index) \
 	((_bitmap)[(_index) >> BLI_BITMAP_POWER] & \
