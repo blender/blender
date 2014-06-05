@@ -132,9 +132,12 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 /*----------------------Interface0DIterator get/setters ----------------------------*/
 
 PyDoc_STRVAR(Interface0DIterator_object_doc,
-"The Interface0D object currently pointed to by this iterator.\n"
+"The 0D object currently pointed to by this iterator.  Note that the object\n"
+"may be an instance of an Interface0D subclass. For example if the iterator\n"
+"has been created from :method:`Stroke.vertices_begin`, the .object property\n"
+"refers to a :class:`StrokeVertex` object.\n"
 "\n"
-":type: :class:`Interface0D`");
+":type: :class:`Interface0D` or one of its subclasses.");
 
 static PyObject *Interface0DIterator_object_get(BPy_Interface0DIterator *self, void *UNUSED(closure))
 {
