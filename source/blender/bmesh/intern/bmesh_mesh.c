@@ -449,14 +449,14 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const flo
 	}
 
 	{
-		char hflag = BM_LOOP;
+		char htype = BM_LOOP;
 		if (vnos) {
-			hflag |= BM_VERT;
+			htype |= BM_VERT;
 		}
 		if (fnos) {
-			hflag |= BM_FACE;
+			htype |= BM_FACE;
 		}
-		BM_mesh_elem_index_ensure(bm, hflag);
+		BM_mesh_elem_index_ensure(bm, htype);
 	}
 
 	/* This first loop checks which edges are actually smooth, and pre-populate lnos with vnos (as if they were
@@ -515,14 +515,14 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 	BLI_SMALLSTACK_DECLARE(normal, float *);
 
 	{
-		char hflag = BM_LOOP;
+		char htype = BM_LOOP;
 		if (vcos) {
-			hflag |= BM_VERT;
+			htype |= BM_VERT;
 		}
 		if (fnos) {
-			hflag |= BM_FACE;
+			htype |= BM_FACE;
 		}
-		BM_mesh_elem_index_ensure(bm, hflag);
+		BM_mesh_elem_index_ensure(bm, htype);
 	}
 
 	/* We now know edges that can be smoothed (they are tagged), and edges that will be hard (they aren't).
@@ -787,7 +787,7 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 	}
 }
 
-void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
+void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
 {
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
@@ -797,7 +797,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 	{
 #pragma omp section
 		{
-			if (hflag & BM_VERT) {
+			if (htype & BM_VERT) {
 				if (bm->elem_index_dirty & BM_VERT) {
 					BMIter iter;
 					BMElem *ele;
@@ -816,7 +816,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 
 #pragma omp section
 		{
-			if (hflag & BM_EDGE) {
+			if (htype & BM_EDGE) {
 				if (bm->elem_index_dirty & BM_EDGE) {
 					BMIter iter;
 					BMElem *ele;
@@ -835,13 +835,13 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 
 #pragma omp section
 		{
-			if (hflag & (BM_FACE | BM_LOOP)) {
+			if (htype & (BM_FACE | BM_LOOP)) {
 				if (bm->elem_index_dirty & (BM_FACE | BM_LOOP)) {
 					BMIter iter;
 					BMElem *ele;
 
-					const bool update_face = (hflag & BM_FACE) && (bm->elem_index_dirty & BM_FACE);
-					const bool update_loop = (hflag & BM_LOOP) && (bm->elem_index_dirty & BM_LOOP);
+					const bool update_face = (htype & BM_FACE) && (bm->elem_index_dirty & BM_FACE);
+					const bool update_loop = (htype & BM_LOOP) && (bm->elem_index_dirty & BM_LOOP);
 
 					int index;
 					int index_loop = 0;
@@ -873,7 +873,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 		}
 	}
 
-	bm->elem_index_dirty &= ~hflag;
+	bm->elem_index_dirty &= ~htype;
 }
 
 
