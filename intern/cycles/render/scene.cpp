@@ -284,6 +284,11 @@ void Scene::reset()
 	film->tag_update(this);
 	background->tag_update(this);
 	integrator->tag_update(this);
+	object_manager->tag_update(this);
+	mesh_manager->tag_update(this);
+	light_manager->tag_update(this);
+	particle_system_manager->tag_update(this);
+	curve_system_manager->tag_update(this);
 }
 
 void Scene::device_free()
