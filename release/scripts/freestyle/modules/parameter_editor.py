@@ -464,7 +464,7 @@ def iter_material_value(stroke, material_attribute):
         material = func(Interface0DIterator(it))
         if material_attribute == 'DIFF':
             r, g, b = material.diffuse[0:3]
-            t = 0.35 * r + 0.45 * r + 0.2 * b
+            t = 0.35 * r + 0.45 * g + 0.2 * b
         elif material_attribute == 'DIFF_R':
             t = material.diffuse[0]
         elif material_attribute == 'DIFF_G':
@@ -473,7 +473,7 @@ def iter_material_value(stroke, material_attribute):
             t = material.diffuse[2]
         elif material_attribute == 'SPEC':
             r, g, b = material.specular[0:3]
-            t = 0.35 * r + 0.45 * r + 0.2 * b
+            t = 0.35 * r + 0.45 * g + 0.2 * b
         elif material_attribute == 'SPEC_R':
             t = material.specular[0]
         elif material_attribute == 'SPEC_G':
