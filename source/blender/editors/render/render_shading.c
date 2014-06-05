@@ -652,6 +652,7 @@ static int freestyle_module_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_freestyle_module_delete(&srl->freestyleConfig, module);
 
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
 	return OPERATOR_FINISHED;
@@ -686,6 +687,7 @@ static int freestyle_module_move_exec(bContext *C, wmOperator *op)
 	else {
 		BKE_freestyle_module_move_down(&srl->freestyleConfig, module);
 	}
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
 	return OPERATOR_FINISHED;
@@ -722,6 +724,7 @@ static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_freestyle_lineset_add(&srl->freestyleConfig, NULL);
 
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
 	return OPERATOR_FINISHED;
@@ -760,8 +763,6 @@ static int freestyle_lineset_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 	FRS_copy_active_lineset(&srl->freestyleConfig);
 
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
-
 	return OPERATOR_FINISHED;
 }
 
@@ -787,6 +788,7 @@ static int freestyle_lineset_paste_exec(bContext *C, wmOperator *UNUSED(op))
 
 	FRS_paste_active_lineset(&srl->freestyleConfig);
 
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
 	return OPERATOR_FINISHED;
@@ -814,6 +816,7 @@ static int freestyle_lineset_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
 	FRS_delete_active_lineset(&srl->freestyleConfig);
 
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
 	return OPERATOR_FINISHED;
@@ -846,6 +849,7 @@ static int freestyle_lineset_move_exec(bContext *C, wmOperator *op)
 	else {
 		FRS_move_active_lineset_down(&srl->freestyleConfig);
 	}
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
 	return OPERATOR_FINISHED;
@@ -892,8 +896,8 @@ static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
 	else {
 		lineset->linestyle = BKE_new_linestyle("LineStyle", NULL);
 	}
-
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
@@ -928,7 +932,8 @@ static int freestyle_color_modifier_add_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Unknown line color modifier type");
 		return OPERATOR_CANCELLED;
 	}
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
@@ -967,7 +972,8 @@ static int freestyle_alpha_modifier_add_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Unknown alpha transparency modifier type");
 		return OPERATOR_CANCELLED;
 	}
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
@@ -1006,7 +1012,8 @@ static int freestyle_thickness_modifier_add_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Unknown line thickness modifier type");
 		return OPERATOR_CANCELLED;
 	}
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
@@ -1045,7 +1052,8 @@ static int freestyle_geometry_modifier_add_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Unknown stroke geometry modifier type");
 		return OPERATOR_CANCELLED;
 	}
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
@@ -1111,7 +1119,8 @@ static int freestyle_modifier_remove_exec(bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
 			return OPERATOR_CANCELLED;
 	}
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
@@ -1160,7 +1169,8 @@ static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
 			return OPERATOR_CANCELLED;
 	}
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
@@ -1210,7 +1220,8 @@ static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");
 			return OPERATOR_CANCELLED;
 	}
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	DAG_id_tag_update(&lineset->linestyle->id, 0);
+	WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);
 
 	return OPERATOR_FINISHED;
 }
