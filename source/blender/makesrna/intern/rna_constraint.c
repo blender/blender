@@ -662,6 +662,7 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "pole_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "poleangle");
 	RNA_def_property_range(prop, -M_PI, M_PI);
+	RNA_def_property_ui_range(prop, -M_PI, M_PI, 10, 4);
 	RNA_def_property_ui_text(prop, "Pole Angle", "Pole rotation offset");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
