@@ -171,7 +171,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 			float si, co;
 
 			if (!stabilization_median_point_get(tracking, cfra, median)) {
-				break;
+				continue;
 			}
 
 			stabilization_calculate_data(tracking, cfra, width, height, firstmedian, median, translation,
