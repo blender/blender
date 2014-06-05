@@ -135,6 +135,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 	BMEditMesh *em;
 	float center[2];
 	int imx, imy, step, digits;
+	float width = 8 * UI_UNIT_X;
 
 	ED_space_image_get_size(sima, &imx, &imy);
 	
@@ -158,9 +159,9 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 		}
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_UVEDIT_VERTEX, IFACE_("X:"), 10, 10, 145, 19, &uvedit_old_center[0],
+		uiDefButF(block, NUM, B_UVEDIT_VERTEX, IFACE_("X:"), 0, 0, width, UI_UNIT_Y, &uvedit_old_center[0],
 		          -10 * imx, 10.0 * imx, step, digits, "");
-		uiDefButF(block, NUM, B_UVEDIT_VERTEX, IFACE_("Y:"), 165, 10, 145, 19, &uvedit_old_center[1],
+		uiDefButF(block, NUM, B_UVEDIT_VERTEX, IFACE_("Y:"), width, 0, width, UI_UNIT_Y, &uvedit_old_center[1],
 		          -10 * imy, 10.0 * imy, step, digits, "");
 		uiBlockEndAlign(block);
 	}

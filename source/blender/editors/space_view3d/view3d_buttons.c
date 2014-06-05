@@ -450,7 +450,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 
 		uiBlockEndAlign(block);
-		uiBlockEndAlign(block);
 
 	}
 	else { /* apply */
