@@ -598,7 +598,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 static bool freestyle_linestyle_check_report(FreestyleLineSet *lineset, ReportList *reports)
 {
 	if (!lineset) {
-		BKE_report(reports, RPT_ERROR, "No active lineset and associated line style to add the modifier to");
+		BKE_report(reports, RPT_ERROR, "No active lineset and associated line style to manipulate the modifier");
 		return false;
 	}
 	if (!lineset->linestyle) {
