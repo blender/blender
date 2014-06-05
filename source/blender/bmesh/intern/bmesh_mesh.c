@@ -789,13 +789,22 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 
 void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
 {
+	const char htype_needed = bm->elem_index_dirty & htype;
+
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
 #endif
 
-#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+	if (htype_needed == 0) {
+		goto finally;
+	}
+
+	/* skip if we only need to operate on one element */
+#pragma omp parallel sections if ((!ELEM5(htype_needed, BM_VERT, BM_EDGE, BM_FACE, BM_LOOP, BM_FACE | BM_LOOP)) && \
+	                              (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT))
 	{
 #pragma omp section
+
 		{
 			if (htype & BM_VERT) {
 				if (bm->elem_index_dirty & BM_VERT) {
@@ -873,6 +882,8 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
 		}
 	}
 
+
+finally:
 	bm->elem_index_dirty &= ~htype;
 }
 
@@ -1005,7 +1016,7 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 	BLI_assert(BM_mesh_elem_table_check(bm) == true);
 
 	if (htype_needed == 0) {
-		return;
+		goto finally;
 	}
 
 	if (htype_needed & BM_VERT) {
@@ -1066,19 +1077,12 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 		}
 	}
 
+finally:
 	/* Only clear dirty flags when all the pointers and data are actually valid.
 	 * This prevents possible threading issues when dirty flag check failed but
 	 * data wasn't ready still.
 	 */
-	if (htype_needed & BM_VERT) {
-		bm->elem_table_dirty &= ~BM_VERT;
-	}
-	if (htype_needed & BM_EDGE) {
-		bm->elem_table_dirty &= ~BM_EDGE;
-	}
-	if (htype_needed & BM_FACE) {
-		bm->elem_table_dirty &= ~BM_FACE;
-	}
+	bm->elem_table_dirty &= ~htype_needed;
 }
 
 /* use BM_mesh_elem_table_ensure where possible to avoid full rebuild */
