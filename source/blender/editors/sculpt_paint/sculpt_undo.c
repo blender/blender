@@ -195,9 +195,9 @@ static int sculpt_undo_restore_hidden(bContext *C, DerivedMesh *dm,
 		
 		for (i = 0; i < unode->totvert; i++) {
 			MVert *v = &mvert[unode->index[i]];
-			int uval = BLI_BITMAP_GET(unode->vert_hidden, i);
+			int uval = BLI_BITMAP_TEST(unode->vert_hidden, i);
 
-			BLI_BITMAP_MODIFY(unode->vert_hidden, i,
+			BLI_BITMAP_SET(unode->vert_hidden, i,
 			                  v->flag & ME_HIDE);
 			if (uval)
 				v->flag |= ME_HIDE;
@@ -702,7 +702,7 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 		BKE_pbvh_node_num_verts(pbvh, node, NULL, &allvert);
 		BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
 		for (i = 0; i < allvert; i++) {
-			BLI_BITMAP_MODIFY(unode->vert_hidden, i,
+			BLI_BITMAP_SET(unode->vert_hidden, i,
 			                  mvert[vert_indices[i]].flag & ME_HIDE);
 		}
 	}

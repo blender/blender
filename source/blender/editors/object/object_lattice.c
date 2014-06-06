@@ -285,7 +285,7 @@ static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
 		const int i_flip = BKE_lattice_index_flip(lt, i, flip_uvw[0], flip_uvw[1], flip_uvw[2]);
 		bp = &lt->def[i];
 		if (!bp->hide) {
-			if (BLI_BITMAP_GET(selpoints, i_flip)) {
+			if (BLI_BITMAP_TEST(selpoints, i_flip)) {
 				bp->f1 |= SELECT;
 			}
 			else {
@@ -338,7 +338,7 @@ static bool lattice_test_bitmap_uvw(Lattice *lt, BLI_bitmap *selpoints, int u, i
 	else {
 		int i = BKE_lattice_index_from_uvw(lt, u, v, w);
 		if (lt->def[i].hide == 0) {
-			return (BLI_BITMAP_GET(selpoints, i) != 0) == selected;
+			return (BLI_BITMAP_TEST(selpoints, i) != 0) == selected;
 		}
 		return false;
 	}

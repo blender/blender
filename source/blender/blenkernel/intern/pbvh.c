@@ -251,12 +251,12 @@ static int map_insert_vert(PBVH *bvh, GHash *map,
 
 	if (value_p == NULL) {
 		void *value;
-		if (BLI_BITMAP_GET(bvh->vert_bitmap, vertex)) {
+		if (BLI_BITMAP_TEST(bvh->vert_bitmap, vertex)) {
 			value = SET_INT_IN_POINTER(~(*face_verts));
 			++(*face_verts);
 		}
 		else {
-			BLI_BITMAP_SET(bvh->vert_bitmap, vertex);
+			BLI_BITMAP_ENABLE(bvh->vert_bitmap, vertex);
 			value = SET_INT_IN_POINTER(*uniq_verts);
 			++(*uniq_verts);
 		}

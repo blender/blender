@@ -204,7 +204,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
 		/* only put face under cursor in array */
 		mp = &me->mpoly[index];
 		BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
-		BLI_BITMAP_SET(poly_tag, index);
+		BLI_BITMAP_ENABLE(poly_tag, index);
 	}
 	else {
 		/* fill array by selection */
@@ -215,7 +215,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
 			}
 			else if (mp->flag & ME_FACE_SEL) {
 				BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
-				BLI_BITMAP_SET(poly_tag, a);
+				BLI_BITMAP_ENABLE(poly_tag, a);
 			}
 		}
 	}
@@ -229,13 +229,13 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
 			if (mp->flag & ME_HIDE)
 				continue;
 
-			if (!BLI_BITMAP_GET(poly_tag, a)) {
+			if (!BLI_BITMAP_TEST(poly_tag, a)) {
 				mark = false;
 
 				ml = me->mloop + mp->loopstart;
 				for (b = 0; b < mp->totloop; b++, ml++) {
 					if ((me->medge[ml->e].flag & ME_SEAM) == 0) {
-						if (BLI_BITMAP_GET(edge_tag, ml->e)) {
+						if (BLI_BITMAP_TEST(edge_tag, ml->e)) {
 							mark = true;
 							break;
 						}
@@ -243,7 +243,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
 				}
 
 				if (mark) {
-					BLI_BITMAP_SET(poly_tag, a);
+					BLI_BITMAP_ENABLE(poly_tag, a);
 					BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
 					do_it = true;
 				}
@@ -254,7 +254,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
 	MEM_freeN(edge_tag);
 
 	for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++) {
-		if (BLI_BITMAP_GET(poly_tag, a)) {
+		if (BLI_BITMAP_TEST(poly_tag, a)) {
 			BKE_BIT_TEST_SET(mp->flag, select, ME_FACE_SEL);
 		}
 	}

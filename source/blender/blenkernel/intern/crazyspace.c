@@ -93,12 +93,12 @@ static void make_vertexcos__mapFunc(void *userData, int index, const float co[3]
 {
 	MappedUserData *mappedData = (MappedUserData *)userData;
 
-	if (BLI_BITMAP_GET(mappedData->vertex_visit, index) == 0) {
+	if (BLI_BITMAP_TEST(mappedData->vertex_visit, index) == 0) {
 		/* we need coord from prototype vertex, not from copies,
 		 * assume they stored in the beginning of vertex array stored in DM
 		 * (mirror modifier for eg does this) */
 		copy_v3_v3(mappedData->vertexcos[index], co);
-		BLI_BITMAP_SET(mappedData->vertex_visit, index);
+		BLI_BITMAP_ENABLE(mappedData->vertex_visit, index);
 	}
 }
 

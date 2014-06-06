@@ -1077,7 +1077,7 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
 					
 					vndx = getFaceIndex(ss, f, j, x, y, edgeSize, gridSize);
 					offset = (y * factor) * hidden_gridsize + (x * factor);
-					if (BLI_BITMAP_GET(md->hidden, offset))
+					if (BLI_BITMAP_TEST(md->hidden, offset))
 						mvert[vndx].flag |= ME_HIDE;
 				}
 			}

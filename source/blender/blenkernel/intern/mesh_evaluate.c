@@ -1021,7 +1021,7 @@ void BKE_mesh_poly_edgebitmap_insert(unsigned int *edge_bitmap, const MPoly *mp,
 	ml = mloop;
 
 	while (i-- != 0) {
-		BLI_BITMAP_SET(edge_bitmap, ml->e);
+		BLI_BITMAP_ENABLE(edge_bitmap, ml->e);
 		ml++;
 	}
 }

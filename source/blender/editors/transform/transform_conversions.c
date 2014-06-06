@@ -2623,7 +2623,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
 				if (propconnected) {
 					UvElement *element = BM_uv_element_get(elementmap, efa, l);
-					BLI_BITMAP_SET(island_enabled, element->island);
+					BLI_BITMAP_ENABLE(island_enabled, element->island);
 				}
 
 			}
@@ -2664,7 +2664,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
 			if (propconnected) {
 				UvElement *element = BM_uv_element_get(elementmap, efa, l);
-				if (!BLI_BITMAP_GET(island_enabled, element->island)) {
+				if (!BLI_BITMAP_TEST(island_enabled, element->island)) {
 					count_rejected++;
 					continue;
 				}

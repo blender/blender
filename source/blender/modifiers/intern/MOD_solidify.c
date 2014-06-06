@@ -325,8 +325,8 @@ static DerivedMesh *applyModifier(
 
 		for (eidx = 0, ed = orig_medge; eidx < numEdges; eidx++, ed++) {
 			if (!ELEM(edge_users[eidx], INVALID_UNUSED, INVALID_PAIR)) {
-				BLI_BITMAP_SET(orig_mvert_tag, ed->v1);
-				BLI_BITMAP_SET(orig_mvert_tag, ed->v2);
+				BLI_BITMAP_ENABLE(orig_mvert_tag, ed->v1);
+				BLI_BITMAP_ENABLE(orig_mvert_tag, ed->v2);
 				STACK_PUSH(new_edge_arr, eidx);
 				newFaces++;
 				newLoops += 4;
@@ -337,7 +337,7 @@ static DerivedMesh *applyModifier(
 #undef INVALID_PAIR
 
 		for (i = 0; i < numVerts; i++) {
-			if (BLI_BITMAP_GET(orig_mvert_tag, i)) {
+			if (BLI_BITMAP_TEST(orig_mvert_tag, i)) {
 				old_vert_arr[i] = STACK_SIZE(new_vert_arr);
 				STACK_PUSH(new_vert_arr, i);
 				newEdges++;

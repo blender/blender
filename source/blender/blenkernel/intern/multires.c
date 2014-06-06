@@ -134,7 +134,7 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
 	/* low-res blocks */
 	for (yl = 0; yl < lo_gridsize; yl++) {
 		for (xl = 0; xl < lo_gridsize; xl++) {
-			int lo_val = BLI_BITMAP_GET(lo_hidden, yl * lo_gridsize + xl);
+			int lo_val = BLI_BITMAP_TEST(lo_hidden, yl * lo_gridsize + xl);
 
 			/* high-res blocks */
 			for (yo = -offset; yo <= offset; yo++) {
@@ -154,14 +154,14 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
 						 * subd, except when the equivalent element in
 						 * lo_hidden is different */
 						if (lo_val != prev_hidden[hi_ndx]) {
-							BLI_BITMAP_MODIFY(subd, hi_ndx, lo_val);
+							BLI_BITMAP_SET(subd, hi_ndx, lo_val);
 						}
 						else {
-							BLI_BITMAP_MODIFY(subd, hi_ndx, prev_hidden[hi_ndx]);
+							BLI_BITMAP_SET(subd, hi_ndx, prev_hidden[hi_ndx]);
 						}
 					}
 					else {
-						BLI_BITMAP_MODIFY(subd, hi_ndx, lo_val);
+						BLI_BITMAP_SET(subd, hi_ndx, lo_val);
 					}
 				}
 			}
@@ -189,10 +189,10 @@ static BLI_bitmap *multires_mdisps_downsample_hidden(BLI_bitmap *old_hidden,
 
 	for (y = 0; y < new_gridsize; y++) {
 		for (x = 0; x < new_gridsize; x++) {
-			old_value = BLI_BITMAP_GET(old_hidden,
+			old_value = BLI_BITMAP_TEST(old_hidden,
 			                           factor * y * old_gridsize + x * factor);
 			
-			BLI_BITMAP_MODIFY(new_hidden, y * new_gridsize + x, old_value);
+			BLI_BITMAP_SET(new_hidden, y * new_gridsize + x, old_value);
 		}
 	}
 
@@ -274,7 +274,7 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 			md->hidden = BLI_BITMAP_NEW(gridarea, "MDisps.hidden initialize");
 
 			for (k = 0; k < gridarea; k++)
-				BLI_BITMAP_SET(md->hidden, k);
+				BLI_BITMAP_ENABLE(md->hidden, k);
 		}
 	}
 

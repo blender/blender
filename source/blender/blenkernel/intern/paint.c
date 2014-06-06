@@ -347,10 +347,10 @@ bool paint_is_grid_face_hidden(const unsigned int *grid_hidden,
                               int gridsize, int x, int y)
 {
 	/* skip face if any of its corners are hidden */
-	return (BLI_BITMAP_GET(grid_hidden, y * gridsize + x) ||
-	        BLI_BITMAP_GET(grid_hidden, y * gridsize + x + 1) ||
-	        BLI_BITMAP_GET(grid_hidden, (y + 1) * gridsize + x + 1) ||
-	        BLI_BITMAP_GET(grid_hidden, (y + 1) * gridsize + x));
+	return (BLI_BITMAP_TEST(grid_hidden, y * gridsize + x) ||
+	        BLI_BITMAP_TEST(grid_hidden, y * gridsize + x + 1) ||
+	        BLI_BITMAP_TEST(grid_hidden, (y + 1) * gridsize + x + 1) ||
+	        BLI_BITMAP_TEST(grid_hidden, (y + 1) * gridsize + x));
 }
 
 /* Return true if all vertices in the face are visible, false otherwise */

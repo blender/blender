@@ -1650,9 +1650,9 @@ static void skin_armature_bone_create(Object *skin_ob,
 		int v;
 
 		/* ignore edge if already visited */
-		if (BLI_BITMAP_GET(edges_visited, endx))
+		if (BLI_BITMAP_TEST(edges_visited, endx))
 			continue;
-		BLI_BITMAP_SET(edges_visited, endx);
+		BLI_BITMAP_ENABLE(edges_visited, endx);
 
 		v = (e->v1 == parent_v ? e->v2 : e->v1);
 

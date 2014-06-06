@@ -213,7 +213,7 @@ bool EDBM_backbuf_border_init(ViewContext *vc, short xmin, short ymin, short xma
 	a = (xmax - xmin + 1) * (ymax - ymin + 1);
 	while (a--) {
 		if (*dr > 0 && *dr <= bm_vertoffs) {
-			BLI_BITMAP_SET(selbuf, *dr);
+			BLI_BITMAP_ENABLE(selbuf, *dr);
 		}
 		dr++;
 	}
@@ -230,7 +230,7 @@ bool EDBM_backbuf_check(unsigned int index)
 		return true;
 
 	if (index > 0 && index <= bm_vertoffs)
-		return BLI_BITMAP_GET_BOOL(selbuf, index);
+		return BLI_BITMAP_TEST_BOOL(selbuf, index);
 
 	return false;
 }
@@ -297,7 +297,7 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 	a = (xmax - xmin + 1) * (ymax - ymin + 1);
 	while (a--) {
 		if (*dr > 0 && *dr <= bm_vertoffs && *dr_mask == true) {
-			BLI_BITMAP_SET(selbuf, *dr);
+			BLI_BITMAP_ENABLE(selbuf, *dr);
 		}
 		dr++; dr_mask++;
 	}
@@ -340,7 +340,7 @@ bool EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 		for (xc = -rads; xc <= rads; xc++, dr++) {
 			if (xc * xc + yc * yc < radsq) {
 				if (*dr > 0 && *dr <= bm_vertoffs) {
-					BLI_BITMAP_SET(selbuf, *dr);
+					BLI_BITMAP_ENABLE(selbuf, *dr);
 				}
 			}
 		}

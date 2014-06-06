@@ -120,11 +120,11 @@ void BKE_lattice_bitmap_from_flag(Lattice *lt, BLI_bitmap *bitmap, const short f
 	bp = lt->def;
 	for (i = 0; i < tot; i++, bp++) {
 		if ((bp->f1 & flag) && (!respecthide || !bp->hide)) {
-			BLI_BITMAP_SET(bitmap, i);
+			BLI_BITMAP_ENABLE(bitmap, i);
 		}
 		else {
 			if (clear) {
-				BLI_BITMAP_CLEAR(bitmap, i);
+				BLI_BITMAP_DISABLE(bitmap, i);
 			}
 		}
 	}
