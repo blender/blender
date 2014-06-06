@@ -358,7 +358,7 @@ static void buttons_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *
 		case NC_ANIMATION:
 			switch (wmn->data) {
 				case ND_KEYFRAME:
-					if (wmn->action == NA_EDITED)
+					if (ELEM3(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED))
 						ED_area_tag_redraw(sa);
 					break;
 			}
