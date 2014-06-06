@@ -1304,8 +1304,9 @@ bool DNA_struct_elem_find(SDNA *sdna, const char *stype, const char *vartype, co
 		const short * const spo = sdna->structs[SDNAnr];
 		const char * const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
 		
-		if (cp) return true;
-		return (int)((intptr_t)cp);
+		if (cp) {
+			return true;
+		}
 	}
 	return false;
 }
