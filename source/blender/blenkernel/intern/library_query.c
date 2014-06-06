@@ -184,6 +184,12 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				FreestyleModuleConfig *fmc;
 				FreestyleLineSet *fls;
 
+				if (srl->mat_override) {
+					CALLBACK_INVOKE(srl->mat_override, IDWALK_NOP);
+				}
+				if (srl->light_override) {
+					CALLBACK_INVOKE(srl->light_override, IDWALK_NOP);
+				}
 				for (fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
 					if (fmc->script) {
 						CALLBACK_INVOKE(fmc->script, IDWALK_NOP);
