@@ -56,7 +56,7 @@ static void recount_totsels(BMesh *bm)
 	tots[1] = &bm->totedgesel;
 	tots[2] = &bm->totfacesel;
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(static) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
 		BMIter iter;
 		BMElem *ele;
@@ -926,7 +926,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 		/* fast path for deselect all, avoid topology loops
 		 * since we know all will be de-selected anyway. */
 
-#pragma omp parallel for schedule(dynamic) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+#pragma omp parallel for schedule(static) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 		for (i = 0; i < 3; i++) {
 			BMIter iter;
 			BMElem *ele;
