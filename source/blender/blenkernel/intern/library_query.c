@@ -52,6 +52,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_text_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 
