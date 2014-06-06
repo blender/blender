@@ -127,8 +127,10 @@ public:
 		}
 		else if(newsize != datasize) {
 			T *newdata = (T*)malloc_aligned(sizeof(T)*newsize, alignment);
-			memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
-			free_aligned(data);
+			if(data) {
+				memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
+				free_aligned(data);
+			}
 
 			data = newdata;
 			datasize = newsize;
