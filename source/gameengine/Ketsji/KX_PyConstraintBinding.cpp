@@ -56,38 +56,95 @@
 // if there is a better way (without global), please do so!
 static PHY_IPhysicsEnvironment* g_CurrentActivePhysicsEnvironment = NULL;
 
-static char PhysicsConstraints_module_documentation[] =
-"This is the Python API for the Physics Constraints";
 
+PyDoc_STRVAR(PhysicsConstraints_module_documentation,
+"This is the Python API for the Physics Constraints"
+);
 
-static char gPySetGravity__doc__[] = "setGravity(float x,float y,float z)";
-static char gPySetDebugMode__doc__[] = "setDebugMode(int mode)";
+PyDoc_STRVAR(gPySetGravity__doc__,
+"setGravity(float x,float y,float z)\n"
+""
+);
+PyDoc_STRVAR(gPySetDebugMode__doc__,
+"setDebugMode(int mode)\n"
+""
+);
 
-static char gPySetNumIterations__doc__[] = "setNumIterations(int numiter) This sets the number of iterations for an iterative constraint solver";
-static char gPySetNumTimeSubSteps__doc__[] = "setNumTimeSubSteps(int numsubstep) This sets the number of substeps for each physics proceed. Tradeoff quality for performance.";
+PyDoc_STRVAR(gPySetNumIterations__doc__,
+"setNumIterations(int numiter)\n"
+"This sets the number of iterations for an iterative constraint solver"
+);
+PyDoc_STRVAR(gPySetNumTimeSubSteps__doc__,
+"setNumTimeSubSteps(int numsubstep)\n"
+"This sets the number of substeps for each physics proceed. Tradeoff quality for performance."
+);
 
+PyDoc_STRVAR(gPySetDeactivationTime__doc__,
+"setDeactivationTime(float time)\n"
+"This sets the time after which a resting rigidbody gets deactived"
+);
+PyDoc_STRVAR(gPySetDeactivationLinearTreshold__doc__,
+"setDeactivationLinearTreshold(float linearTreshold)\n"
+""
+);
+PyDoc_STRVAR(gPySetDeactivationAngularTreshold__doc__,
+"setDeactivationAngularTreshold(float angularTreshold)\n"
+""
+);
+PyDoc_STRVAR(gPySetContactBreakingTreshold__doc__,
+"setContactBreakingTreshold(float breakingTreshold)\n"
+"Reasonable default is 0.02 (if units are meters)"
+);
 
-static char gPySetDeactivationTime__doc__[] = "setDeactivationTime(float time) This sets the time after which a resting rigidbody gets deactived";
-static char gPySetDeactivationLinearTreshold__doc__[] = "setDeactivationLinearTreshold(float linearTreshold)";
-static char gPySetDeactivationAngularTreshold__doc__[] = "setDeactivationAngularTreshold(float angularTreshold)";
-static char gPySetContactBreakingTreshold__doc__[] = "setContactBreakingTreshold(float breakingTreshold) Reasonable default is 0.02 (if units are meters)";
+PyDoc_STRVAR(gPySetCcdMode__doc__,
+"setCcdMode(int ccdMode)\n"
+"Very experimental, not recommended"
+);
+PyDoc_STRVAR(gPySetSorConstant__doc__,
+"setSorConstant(float sor)\n"
+"Very experimental, not recommended"
+);
+PyDoc_STRVAR(gPySetSolverTau__doc__,
+"setTau(float tau)\n"
+"Very experimental, not recommended"
+);
+PyDoc_STRVAR(gPySetSolverDamping__doc__,
+"setDamping(float damping)\n"
+"Very experimental, not recommended"
+);
+PyDoc_STRVAR(gPySetLinearAirDamping__doc__,
+"setLinearAirDamping(float damping)\n"
+"Very experimental, not recommended"
+);
+PyDoc_STRVAR(gPySetUseEpa__doc__,
+"setUseEpa(int epa)\n"
+"Very experimental, not recommended"
+);
+PyDoc_STRVAR(gPySetSolverType__doc__,
+"setSolverType(int solverType)\n"
+"Very experimental, not recommended"
+);
 
-static char gPySetCcdMode__doc__[] = "setCcdMode(int ccdMode) Very experimental, not recommended";
-static char gPySetSorConstant__doc__[] = "setSorConstant(float sor) Very experimental, not recommended";
-static char gPySetSolverTau__doc__[] = "setTau(float tau) Very experimental, not recommended";
-static char gPySetSolverDamping__doc__[] = "setDamping(float damping) Very experimental, not recommended";
-static char gPySetLinearAirDamping__doc__[] = "setLinearAirDamping(float damping) Very experimental, not recommended";
-static char gPySetUseEpa__doc__[] = "setUseEpa(int epa) Very experimental, not recommended";
-static char gPySetSolverType__doc__[] = "setSolverType(int solverType) Very experimental, not recommended";
-
-
-static char gPyCreateConstraint__doc__[] = "createConstraint(ob1,ob2,float restLength,float restitution,float damping)";
-static char gPyGetVehicleConstraint__doc__[] = "getVehicleConstraint(int constraintId)";
-static char gPyGetCharacter__doc__[] = "getCharacter(KX_GameObject obj)";
-static char gPyRemoveConstraint__doc__[] = "removeConstraint(int constraintId)";
-static char gPyGetAppliedImpulse__doc__[] = "getAppliedImpulse(int constraintId)";
-
-
+PyDoc_STRVAR(gPyCreateConstraint__doc__,
+"createConstraint(ob1,ob2,float restLength,float restitution,float damping)\n"
+""
+);
+PyDoc_STRVAR(gPyGetVehicleConstraint__doc__,
+"getVehicleConstraint(int constraintId)\n"
+""
+);
+PyDoc_STRVAR(gPyGetCharacter__doc__,
+"getCharacter(KX_GameObject obj)\n"
+""
+);
+PyDoc_STRVAR(gPyRemoveConstraint__doc__,
+"removeConstraint(int constraintId)\n"
+""
+);
+PyDoc_STRVAR(gPyGetAppliedImpulse__doc__,
+"getAppliedImpulse(int constraintId)\n"
+""
+);
 
 
 
