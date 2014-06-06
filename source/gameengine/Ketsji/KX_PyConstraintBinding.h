@@ -36,7 +36,8 @@
 
 #include <Python.h>
 
-PyObject*				initPythonConstraintBinding();
+PyMODINIT_FUNC initConstraintPythonBinding();
+
 void	PHY_SetActiveEnvironment(class	PHY_IPhysicsEnvironment* env);
 PHY_IPhysicsEnvironment*	PHY_GetActiveEnvironment();
 #endif  /* WITH_PYTHON */

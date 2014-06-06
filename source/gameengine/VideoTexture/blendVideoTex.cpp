@@ -162,7 +162,7 @@ PyDoc_STRVAR(VideoTexture_module_documentation,
 );
 
 static struct PyModuleDef VideoTexture_module_def = {
-	{}, /* m_base */
+	PyModuleDef_HEAD_INIT,
 	"VideoTexture",  /* m_name */
 	VideoTexture_module_documentation,  /* m_doc */
 	0,  /* m_size */
@@ -173,7 +173,7 @@ static struct PyModuleDef VideoTexture_module_def = {
 	0,  /* m_free */
 };
 
-PyObject *initVideoTexture(void)
+PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 {
 	PyObject *m;
 	

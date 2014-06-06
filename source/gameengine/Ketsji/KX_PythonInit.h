@@ -36,6 +36,9 @@
 #include "STR_String.h"
 #include "MT_Vector3.h"
 
+class KX_KetsjiEngine;
+class KX_Scene;
+
 typedef enum {
 	psl_Lowest = 0,
 	psl_Highest,
@@ -44,10 +47,10 @@ typedef enum {
 extern bool gUseVisibilityTemp;
 
 #ifdef WITH_PYTHON
-PyObject *initGameLogic(class KX_KetsjiEngine *engine, class KX_Scene *ketsjiscene);
-PyObject *initGameKeys();
-PyObject *initRasterizer(class RAS_IRasterizer *rasty,class RAS_ICanvas *canvas);
-PyObject *initVideoTexture(void);
+PyMODINIT_FUNC initGameLogicPythonBinding(void);
+PyMODINIT_FUNC initGameKeysPythonBinding(void);
+PyMODINIT_FUNC initRasterizerPythonBinding(void);
+PyMODINIT_FUNC initVideoTexturePythonBinding(void);
 PyObject *initGamePlayerPythonScripting(struct Main *maggie, int argc, char **argv);
 PyObject *initGamePythonScripting(struct Main *maggie);
 
@@ -68,9 +71,9 @@ void removeImportMain(struct Main *maggie);
 class KX_KetsjiEngine;
 class KX_Scene;
 
-void KX_SetActiveScene(class KX_Scene *scene);
-class KX_Scene *KX_GetActiveScene();
-class KX_KetsjiEngine *KX_GetActiveEngine();
+void KX_SetActiveScene(KX_Scene *scene);
+KX_Scene *KX_GetActiveScene();
+KX_KetsjiEngine *KX_GetActiveEngine();
 
 typedef int (*PyNextFrameFunc)(void *);
 
