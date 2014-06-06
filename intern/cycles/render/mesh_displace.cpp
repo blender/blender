@@ -119,6 +119,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	task.shader_eval_type = SHADER_EVAL_DISPLACE;
 	task.shader_x = 0;
 	task.shader_w = d_output.size();
+	task.num_samples = 1;
 	task.get_cancel = function_bind(&Progress::get_cancel, &progress);
 
 	device->task_add(task);

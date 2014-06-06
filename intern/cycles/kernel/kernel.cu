@@ -146,22 +146,22 @@ kernel_cuda_convert_to_half_float(uchar4 *rgba, float *buffer, float sample_scal
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_shader(uint4 *input, float4 *output, int type, int sx, int sw)
+kernel_cuda_shader(uint4 *input, float4 *output, int type, int sx, int sw, int sample)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 
 	if(x < sx + sw)
-		kernel_shader_evaluate(NULL, input, output, (ShaderEvalType)type, x);
+		kernel_shader_evaluate(NULL, input, output, (ShaderEvalType)type, x, sample);
 }
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_bake(uint4 *input, float4 *output, int type, int sx, int sw)
+kernel_cuda_bake(uint4 *input, float4 *output, int type, int sx, int sw, int sample)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 
 	if(x < sx + sw)
-		kernel_bake_evaluate(NULL, input, output, (ShaderEvalType)type, x);
+		kernel_bake_evaluate(NULL, input, output, (ShaderEvalType)type, x, sample);
 }
 
 #endif

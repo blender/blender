@@ -67,12 +67,12 @@ void kernel_cpu_sse41_convert_to_half_float(KernelGlobals *kg, uchar4 *rgba, flo
 
 /* Shader Evaluate */
 
-void kernel_cpu_sse41_shader(KernelGlobals *kg, uint4 *input, float4 *output, int type, int i)
+void kernel_cpu_sse41_shader(KernelGlobals *kg, uint4 *input, float4 *output, int type, int i, int sample)
 {
 	if(type >= SHADER_EVAL_BAKE)
-		kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, i);
+		kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, i, sample);
 	else
-		kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, i);
+		kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, i, sample);
 }
 
 CCL_NAMESPACE_END

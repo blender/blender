@@ -17,10 +17,11 @@
 #ifndef __BAKE_H__
 #define __BAKE_H__
 
-#include "util_vector.h"
 #include "device.h"
 #include "scene.h"
-#include "session.h"
+
+#include "util_progress.h"
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -63,6 +64,9 @@ public:
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
+
+	static bool is_light_pass(ShaderEvalType type);
+	static bool is_aa_pass(ShaderEvalType type);
 
 	bool need_update;
 

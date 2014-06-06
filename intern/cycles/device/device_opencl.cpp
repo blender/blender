@@ -1067,19 +1067,24 @@ public:
 		else
 			kernel = ckShaderKernel;
 
-		opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_data), (void*)&d_data));
-		opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_input), (void*)&d_input));
-		opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_output), (void*)&d_output));
+		for(int sample = 0; sample < task.num_samples; sample++) {
+			cl_int d_sample = task.sample;
+
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_data), (void*)&d_data));
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_input), (void*)&d_input));
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_output), (void*)&d_output));
 
 #define KERNEL_TEX(type, ttype, name) \
-	set_kernel_arg_mem(kernel, &narg, #name);
+		set_kernel_arg_mem(kernel, &narg, #name);
 #include "kernel_textures.h"
 
-		opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type));
-		opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x));
-		opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w));
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type));
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x));
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w));
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_sample), (void*)&d_sample));
 
-		enqueue_kernel(kernel, task.shader_w, 1);
+			enqueue_kernel(kernel, task.shader_w, 1);
+		}
 	}
 
 	void thread_run(DeviceTask *task)

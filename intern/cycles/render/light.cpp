@@ -66,6 +66,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	main_task.shader_eval_type = SHADER_EVAL_BACKGROUND;
 	main_task.shader_x = 0;
 	main_task.shader_w = width*height;
+	main_task.num_samples = 1;
 	main_task.get_cancel = function_bind(&Progress::get_cancel, &progress);
 
 	/* disabled splitting for now, there's an issue with multi-GPU mem_copy_from */
