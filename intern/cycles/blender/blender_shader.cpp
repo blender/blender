@@ -880,12 +880,20 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				/* map node sockets for linking */
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 					ShaderInput *input = node_find_input_by_name(node, *b_node, *b_input);
+					if (!input) {
+						/* XXX should not happen, report error? */
+						continue;
+					}
 					input_map[b_input->ptr.data] = input;
 					
 					set_default_value(input, *b_node, *b_input, b_data, b_ntree);
 				}
 				for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 					ShaderOutput *output = node_find_output_by_name(node, *b_node, *b_output);
+					if (!output) {
+						/* XXX should not happen, report error? */
+						continue;
+					}
 					output_map[b_output->ptr.data] = output;
 				}
 			}
