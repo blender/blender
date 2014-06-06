@@ -153,10 +153,12 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
 						/* If prev_hidden is available, copy it to
 						 * subd, except when the equivalent element in
 						 * lo_hidden is different */
-						if (lo_val != prev_hidden[hi_ndx])
+						if (lo_val != prev_hidden[hi_ndx]) {
 							BLI_BITMAP_MODIFY(subd, hi_ndx, lo_val);
-						else
+						}
+						else {
 							BLI_BITMAP_MODIFY(subd, hi_ndx, prev_hidden[hi_ndx]);
+						}
 					}
 					else {
 						BLI_BITMAP_MODIFY(subd, hi_ndx, lo_val);
