@@ -81,6 +81,8 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 	}
 
 	f_len_best_sq = -FLT_MAX;
+	/* used in degenerate cases only */
+	f_start_index = 0;
 
 	for (i = 0; i < faces_len; i++) {
 		float f_len_test_sq;
