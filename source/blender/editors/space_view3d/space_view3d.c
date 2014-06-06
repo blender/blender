@@ -971,6 +971,7 @@ static void view3d_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 				case ND_LAYER:
 				case ND_TOOLSETTINGS:
 				case ND_LAYER_CONTENT:
+				case ND_RENDER_OPTIONS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
