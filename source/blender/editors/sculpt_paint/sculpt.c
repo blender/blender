@@ -178,7 +178,7 @@ typedef struct StrokeCache {
 	float initial_mouse[2];
 
 	/* Pre-allocated temporary storage used during smoothing */
-	int num_threads, max_threads;
+	int num_threads, init_num_threads;
 	float (**tmpgrid_co)[3], (**tmprow_co)[3];
 	float **tmpgrid_mask, **tmprow_mask;
 
@@ -3624,6 +3624,12 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	StrokeCache *cache = ss->cache;
 
 #ifdef _OPENMP
+
+#if defined(__APPLE__)
+	cache->init_num_threads = BLI_system_thread_count();
+#else
+	cache->init_num_threads = omp_get_max_threads();
+#endif
 	/* If using OpenMP then create a number of threads two times the
 	 * number of processor cores.
 	 * Justification: Empirically I've found that two threads per
@@ -3632,13 +3638,12 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 #if defined(__APPLE__)
 		cache->num_threads = system_physical_thread_count();
 #else
-		cache->num_threads = omp_get_num_procs();
+		cache->num_threads = 2 * omp_get_num_procs();
 #endif
 	}
 	else {
 		cache->num_threads = 1;
 	}
-	cache->max_threads = omp_get_max_threads();
 	omp_set_num_threads(cache->num_threads);
 #else
 	(void)sd;
@@ -3671,8 +3676,9 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 static void sculpt_omp_done(SculptSession *ss)
 {
 #ifdef _OPENMP
-	omp_set_num_threads(ss->cache->max_threads);
+	omp_set_num_threads(ss->cache->init_num_threads);
 #endif
+
 	if (ss->multires) {
 		int i;
 
@@ -4499,11 +4505,6 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
-
-#ifdef _OPENMP
-	if (!(sd->flags & SCULPT_USE_OPENMP))
-		omp_set_num_threads(BLI_system_thread_count()); /* set back to original logical corecount */
-#endif
 
 	sculpt_brush_exit_tex(sd);
 }
