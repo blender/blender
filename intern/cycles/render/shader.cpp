@@ -44,6 +44,7 @@ Shader::Shader()
 	use_mis = true;
 	use_transparent_shadow = true;
 	heterogeneous_volume = true;
+	volume_sampling_method = 0;
 
 	has_surface = false;
 	has_surface_transparent = false;
@@ -257,6 +258,10 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_HAS_BSSRDF_BUMP;
 		if(shader->has_converter_blackbody)
 			has_converter_blackbody = true;
+		if(shader->volume_sampling_method == 1)
+			flag |= SD_VOLUME_EQUIANGULAR;
+		if(shader->volume_sampling_method == 2)
+			flag |= SD_VOLUME_MIS;
 
 		/* regular shader */
 		shader_flag[i++] = flag;

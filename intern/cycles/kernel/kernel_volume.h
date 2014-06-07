@@ -116,6 +116,36 @@ ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, VolumeStack *st
 	return false;
 }
 
+ccl_device int volume_stack_sampling_method(KernelGlobals *kg, VolumeStack *stack)
+{
+	if(kernel_data.integrator.num_all_lights == 0)
+		return 0;
+
+	int method = -1;
+
+	for(int i = 0; stack[i].shader != SHADER_NONE; i++) {
+		int shader_flag = kernel_tex_fetch(__shader_flag, (stack[i].shader & SHADER_MASK)*2);
+
+		if(shader_flag & SD_VOLUME_MIS) {
+			return SD_VOLUME_MIS;
+		}
+		else if(shader_flag & SD_VOLUME_EQUIANGULAR) {
+			if(method == 0)
+				return SD_VOLUME_MIS;
+
+			method = SD_VOLUME_EQUIANGULAR;
+		}
+		else {
+			if(method == SD_VOLUME_EQUIANGULAR)
+				return SD_VOLUME_MIS;
+
+			method = 0;
+		}
+	}
+
+	return method;
+}
+
 /* Volume Shadows
  *
  * These functions are used to attenuate shadow rays to lights. Both absorption
@@ -562,6 +592,8 @@ typedef struct VolumeSegment {
 
 	float3 accum_emission;		/* accumulated emission at end of segment */
 	float3 accum_transmittance;	/* accumulated transmittance at end of segment */
+
+	int sampling_method;		/* volume sampling method */
 } VolumeSegment;
 
 /* record volume steps to the end of the volume.
@@ -709,6 +741,8 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 {
 	int closure_flag = segment->closure_flag;
 
+	/* XXX add probalistic scattering! */
+
 	if(!(closure_flag & SD_SCATTER))
 		return VOLUME_PATH_MISSED;
 
@@ -737,8 +771,8 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 	bool distance_sample = true;
 	bool use_mis = false;
 
-	if(kernel_data.integrator.volume_homogeneous_sampling && light_P) {
-		if(kernel_data.integrator.volume_homogeneous_sampling == 2) {
+	if(segment->sampling_method && light_P) {
+		if(segment->sampling_method == SD_VOLUME_MIS) {
 			/* multiple importance sample: randomly pick between
 			 * equiangular and distance sampling strategy */
 			if(xi < 0.5f) {
@@ -872,7 +906,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 }
 
 /* decide if we need to use decoupled or not */
-ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneous, bool direct)
+ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneous, bool direct, int sampling_method)
 {
 	/* decoupled ray marching for heterogenous volumes not supported on the GPU,
 	 * which also means equiangular and multiple importance sampling is not
@@ -882,9 +916,8 @@ ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneou
 		return false;
 #endif
 
-	/* equiangular sampling only implemented for decoupled */
-	bool equiangular = kernel_data.integrator.volume_homogeneous_sampling != 0;
-	if(equiangular)
+	/* equiangular and multiple importance sampling only implemented for decoupled */
+	if(sampling_method != 0)
 		return true;
 
 	/* for all light sampling use decoupled, reusing shader evaluations is

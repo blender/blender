@@ -577,7 +577,8 @@ enum ShaderDataFlag {
 	SD_AO = 512,			/* have ao closure? */
 	SD_TRANSPARENT = 1024,	/* have transparent closure? */
 
-	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|SD_BSSRDF|SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO),
+	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|
+	                    SD_BSSRDF|SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO),
 
 	/* shader flags */
 	SD_USE_MIS = 2048,					/* direct light sample */
@@ -586,13 +587,17 @@ enum ShaderDataFlag {
 	SD_HAS_ONLY_VOLUME = 16384,			/* has only volume shader, no surface */
 	SD_HETEROGENEOUS_VOLUME = 32768,	/* has heterogeneous volume */
 	SD_HAS_BSSRDF_BUMP = 65536,			/* bssrdf normal uses bump */
+	SD_VOLUME_EQUIANGULAR = 131072,		/* use equiangular sampling */
+	SD_VOLUME_MIS = 262144,				/* use multiple importance sampling */
 
-	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|SD_HAS_BSSRDF_BUMP),
+	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
+	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
+					   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS),
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 131072,			/* holdout for camera rays */
-	SD_OBJECT_MOTION = 262144,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 524288, 		/* vertices have transform applied */
+	SD_HOLDOUT_MASK = 524288,			/* holdout for camera rays */
+	SD_OBJECT_MOTION = 1048576,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 2097152, 	/* vertices have transform applied */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED)
 };
@@ -894,7 +899,6 @@ typedef struct KernelIntegrator {
 	int aa_samples;
 
 	/* volume render */
-	int volume_homogeneous_sampling;
 	int use_volumes;
 	int volume_max_steps;
 	float volume_step_size;

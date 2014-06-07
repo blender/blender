@@ -89,7 +89,8 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
-			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, false);
+			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
+			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, false, sampling_method);
 
 			if(decoupled) {
 				/* cache steps along volume for repeated sampling */
@@ -99,6 +100,8 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 				shader_setup_from_volume(kg, &volume_sd, &volume_ray, state.bounce, state.transparent_bounce);
 				kernel_volume_decoupled_record(kg, &state,
 					&volume_ray, &volume_sd, &volume_segment, heterogeneous);
+				
+				volume_segment.sampling_method = sampling_method;
 
 				/* emission */
 				if(volume_segment.closure_flag & SD_EMISSION)
@@ -468,7 +471,8 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
-			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, true);
+			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
+			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, true, sampling_method);
 
 			if(decoupled) {
 				/* cache steps along volume for repeated sampling */
@@ -478,6 +482,8 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 				shader_setup_from_volume(kg, &volume_sd, &volume_ray, state.bounce, state.transparent_bounce);
 				kernel_volume_decoupled_record(kg, &state,
 					&volume_ray, &volume_sd, &volume_segment, heterogeneous);
+
+				volume_segment.sampling_method = sampling_method;
 
 				/* emission */
 				if(volume_segment.closure_flag & SD_EMISSION)
@@ -814,7 +820,10 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 			/* direct light sampling */
 			if(volume_segment.closure_flag & SD_SCATTER) {
+				volume_segment.sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
+
 				bool all = kernel_data.integrator.sample_all_lights_direct;
+
 				kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
 					throughput, &state, &L, 1.0f, all, &volume_ray, &volume_segment);
 

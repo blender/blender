@@ -108,10 +108,10 @@ enum_integrator = (
     ('PATH', "Path Tracing", "Pure path tracing integrator"),
     )
 
-enum_volume_homogeneous_sampling = (
-    ('DISTANCE', "Distance", "Use Distance Sampling"),
-    ('EQUI_ANGULAR', "Equi-angular", "Use Equi-angular Sampling"),
-    ('MULTIPLE_IMPORTANCE', "Multiple Importance", "Combine distance and equi-angular sampling"),
+enum_volume_sampling = (
+    ('DISTANCE', "Distance", "Use distance sampling, best for dense volumes with lights far away"),
+    ('EQUIANGULAR', "Equiangular", "Use equiangular sampling, best for volumes with low density with light inside or near the volume"),
+    ('MULTIPLE_IMPORTANCE', "Multiple Importance", "Combine distance and equi-angular sampling for volumes where neither method is ideal"),
     )
 
 
@@ -145,13 +145,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Method to sample lights and materials",
                 items=enum_integrator,
                 default='PATH',
-                )
-
-        cls.volume_homogeneous_sampling = EnumProperty(
-                name="Homogeneous Sampling",
-                description="Sampling method to use for homogeneous volumes",
-                items=enum_volume_homogeneous_sampling,
-                default='DISTANCE',
                 )
 
         cls.use_square_samples = BoolProperty(
@@ -237,7 +230,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Volume Samples",
                 description="Number of volume scattering samples to render for each AA sample",
                 min=1, max=10000,
-                default=1,
+                default=0,
                 )
 
         cls.sampling_pattern = EnumProperty(
@@ -603,6 +596,12 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                             "(not using any textures), for faster rendering",
                 default=False,
                 )
+        cls.volume_sampling = EnumProperty(
+                name="Volume Sampling",
+                description="Sampling method to use for volumes",
+                items=enum_volume_sampling,
+                default='DISTANCE',
+                )
 
     @classmethod
     def unregister(cls):
@@ -672,6 +671,12 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 description="When using volume rendering, assume volume has the same density everywhere"
                             "(not using any textures), for faster rendering",
                 default=False,
+                )
+        cls.volume_sampling = EnumProperty(
+                name="Volume Sampling",
+                description="Sampling method to use for volumes",
+                items=enum_volume_sampling,
+                default='EQUIANGULAR',
                 )
 
     @classmethod

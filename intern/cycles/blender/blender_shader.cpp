@@ -977,6 +977,7 @@ void BlenderSync::sync_materials(bool update_all)
 			shader->use_mis = get_boolean(cmat, "sample_as_light");
 			shader->use_transparent_shadow = get_boolean(cmat, "use_transparent_shadow");
 			shader->heterogeneous_volume = !get_boolean(cmat, "homogeneous_volume");
+			shader->volume_sampling_method = RNA_enum_get(&cmat, "volume_sampling");
 
 			shader->set_graph(graph);
 			shader->tag_update(scene);
@@ -1006,6 +1007,7 @@ void BlenderSync::sync_world(bool update_all)
 			/* volume */
 			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
 			shader->heterogeneous_volume = !get_boolean(cworld, "homogeneous_volume");
+			shader->volume_sampling_method = RNA_enum_get(&cworld, "volume_sampling");
 		}
 		else if(b_world) {
 			ShaderNode *closure, *out;

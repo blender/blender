@@ -101,11 +101,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	if(!transparent_shadows)
 		kintegrator->transparent_shadows = false;
 
-	if(kintegrator->num_all_lights > 0)
-		kintegrator->volume_homogeneous_sampling = volume_homogeneous_sampling;
-	else
-		kintegrator->volume_homogeneous_sampling = 0;
-
 	kintegrator->volume_max_steps = volume_max_steps;
 	kintegrator->volume_step_size = volume_step_size;
 
