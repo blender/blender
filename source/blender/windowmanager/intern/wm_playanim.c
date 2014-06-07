@@ -363,7 +363,7 @@ static void build_pict_list_ex(PlayState *ps, const char *first, int totframes, 
 			size_t size;
 			int file;
 
-			file = open(filepath, O_BINARY | O_RDONLY, 0);
+			file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
 			if (file < 0) {
 				/* print errno? */
 				return;

@@ -1085,7 +1085,7 @@ static unsigned char *proxy_thread_next_frame(ProxyQueue *queue, MovieClip *clip
 
 		BKE_movieclip_filename_for_frame(clip, &user, name);
 
-		file = open(name, O_BINARY | O_RDONLY, 0);
+		file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 		if (file < 0) {
 			BLI_spin_unlock(&queue->spin);
 			return NULL;
