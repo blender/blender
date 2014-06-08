@@ -365,7 +365,7 @@ ccl_device int bsdf_microfacet_ggx_aniso_setup(ShaderClosure *sc)
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* alpha_x */
 	sc->data1 = clamp(sc->data1, 0.0f, 1.0f); /* alpha_y */
 	
-	sc->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
+	sc->type = CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
@@ -713,7 +713,7 @@ ccl_device int bsdf_microfacet_beckmann_aniso_setup(ShaderClosure *sc)
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* alpha_x */
 	sc->data1 = clamp(sc->data1, 0.0f, 1.0f); /* alpha_y */
 
-	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
+	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 

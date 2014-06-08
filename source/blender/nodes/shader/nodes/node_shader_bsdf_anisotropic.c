@@ -44,6 +44,11 @@ static bNodeSocketTemplate sh_node_bsdf_anisotropic_out[] = {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_init_anisotropic(bNodeTree *UNUSED(ntree), bNode *node)
+{
+	node->custom1 = SHD_GLOSSY_GGX;
+}
+
 static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[3].link)
@@ -61,7 +66,7 @@ void register_node_type_sh_bsdf_anisotropic(void)
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bsdf_anisotropic_in, sh_node_bsdf_anisotropic_out);
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-	node_type_init(&ntype, NULL);
+	node_type_init(&ntype, node_shader_init_anisotropic);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_bsdf_anisotropic);
 

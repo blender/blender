@@ -176,7 +176,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		}
 		case CLOSURE_BSDF_REFLECTION_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
-		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID: {
+		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
 #ifdef __CAUSTICS_TRICKS__
 			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
 				break;
@@ -194,8 +195,10 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sd->flag |= bsdf_reflection_setup(sc);
 				else if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_ID)
 					sd->flag |= bsdf_microfacet_beckmann_setup(sc);
-				else
+				else if(type == CLOSURE_BSDF_MICROFACET_GGX_ID)
 					sd->flag |= bsdf_microfacet_ggx_setup(sc);
+				else
+					sd->flag |= bsdf_ashikhmin_shirley_setup(sc);
 			}
 
 			break;
@@ -279,8 +282,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			break;
 		}
-		case CLOSURE_BSDF_WARD_ID:
-		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
+		case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID: {
 #ifdef __CAUSTICS_TRICKS__
 			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
 				break;
@@ -314,10 +318,12 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 				sc->data2 = 0.0f;
 
-				if (type == CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID)
-					sd->flag |= bsdf_ashikhmin_shirley_setup(sc);
+				if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID)
+					sd->flag |= bsdf_microfacet_beckmann_aniso_setup(sc);
+				else if (type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID)
+					sd->flag |= bsdf_microfacet_ggx_aniso_setup(sc);
 				else
-					sd->flag |= bsdf_ward_setup(sc);
+					sd->flag |= bsdf_ashikhmin_shirley_aniso_setup(sc);
 #else
 				sd->flag |= bsdf_diffuse_setup(sc);
 #endif

@@ -18,7 +18,7 @@
 
 shader node_anisotropic_bsdf(
 	color Color = 0.0,
-	string distribution = "Ward",
+	string distribution = "GGX",
 	float Roughness = 0.0,
 	float Anisotropy = 0.0,
 	float Rotation = 0.0,
@@ -45,9 +45,13 @@ shader node_anisotropic_bsdf(
 		RoughnessV = Roughness / (1.0 - aniso);
 	}
 
-	if (distribution == "Ashikhmin-Shirley")
-		BSDF = Color * ashikhmin_shirley(Normal, T, RoughnessU, RoughnessV);
+	if (distribution == "Sharp")
+		BSDF = Color * reflection(Normal);
+	else if (distribution == "Beckmann")
+		BSDF = Color * microfacet_beckmann_aniso(Normal, T, RoughnessU, RoughnessV);
+	else if (distribution == "GGX")
+		BSDF = Color * microfacet_ggx_aniso(Normal, T, RoughnessU, RoughnessV);
 	else
-		BSDF = Color * ward(Normal, T, RoughnessU, RoughnessV);
+		BSDF = Color * ashikhmin_shirley(Normal, T, RoughnessU, RoughnessV);
 }
 

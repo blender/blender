@@ -31,13 +31,25 @@ Other than that, the implementation directly follows the paper.
 
 CCL_NAMESPACE_BEGIN
 
-
 ccl_device int bsdf_ashikhmin_shirley_setup(ShaderClosure *sc)
 {
-	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f); /* store roughness. could already convert to exponent to save some cycles in eval, */
-	sc->data1 = clamp(sc->data1, 1e-4f, 1.0f); /* but this is more consistent with other bsdfs and shader_blur. */
+	/* store roughness. could already convert to exponent to save some cycles
+	 * in eval, but this is more consistent with other bsdfs and shader_blur. */
+	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f);
+	sc->data1 = sc->data0;
 
 	sc->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
+	return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
+}
+
+ccl_device int bsdf_ashikhmin_shirley_aniso_setup(ShaderClosure *sc)
+{
+	/* store roughness. could already convert to exponent to save some cycles
+	 * in eval, but this is more consistent with other bsdfs and shader_blur. */
+	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f);
+	sc->data1 = clamp(sc->data1, 1e-4f, 1.0f);
+
+	sc->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID;
 	return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
 }
 
@@ -55,7 +67,6 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float rough
 ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float3 N = sc->N;
-	float3 T = sc->T;
 
 	float NdotI = dot(N, I);           /* in Cycles/OSL convention I is omega_out    */
 	float NdotO = dot(N, omega_in);    /* and consequently we use for O omaga_in ;)  */
@@ -85,7 +96,7 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 		}
 		else {             /* => ANisotropic case */
 			float3 X, Y;
-			make_orthonormals_tangent(N, T, &X, &Y);
+			make_orthonormals_tangent(N, sc->T, &X, &Y);
 
 			float HdotX = dot(H, X);
 			float HdotY = dot(H, Y);
@@ -117,7 +128,6 @@ ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x, f
 ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float3 N = sc->N;
-	float3 T = sc->T;
 
 	float NdotI = dot(N, I);
 	if (NdotI > 0.0f) {
@@ -127,7 +137,11 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 
 		/* get x,y basis on the surface for anisotropy */
 		float3 X, Y;
-		make_orthonormals_tangent(N, T, &X, &Y);
+
+		if(n_x == n_y)
+			make_orthonormals(N, &X, &Y);
+		else
+			make_orthonormals_tangent(N, sc->T, &X, &Y);
 
 		/* sample spherical coords for h in tangent space */
 		float phi;

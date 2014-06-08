@@ -24,7 +24,6 @@
 #include "../closure/bsdf_refraction.h"
 #include "../closure/bsdf_transparent.h"
 #ifdef __ANISOTROPIC__
-#include "../closure/bsdf_ward.h"
 #include "../closure/bsdf_ashikhmin_shirley.h"
 #endif
 #include "../closure/bsdf_westin.h"
@@ -84,21 +83,20 @@ ccl_device int bsdf_sample(KernelGlobals *kg, const ShaderData *sd, const Shader
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 			label = bsdf_microfacet_ggx_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
+		case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
 			label = bsdf_microfacet_beckmann_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #ifdef __ANISOTROPIC__
-		case CLOSURE_BSDF_WARD_ID:
-			label = bsdf_ward_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
-				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
-			break;
 		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID:
 			label = bsdf_ashikhmin_shirley_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
@@ -183,18 +181,18 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 				eval = bsdf_transparent_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_GGX_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 				eval = bsdf_microfacet_ggx_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
+			case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
 				eval = bsdf_microfacet_beckmann_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #ifdef __ANISOTROPIC__
-			case CLOSURE_BSDF_WARD_ID:
-				eval = bsdf_ward_eval_reflect(sc, sd->I, omega_in, pdf);
-				break;
 			case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+			case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID:
 				eval = bsdf_ashikhmin_shirley_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #endif
@@ -253,18 +251,18 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 				eval = bsdf_transparent_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_GGX_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 				eval = bsdf_microfacet_ggx_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
+			case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
 				eval = bsdf_microfacet_beckmann_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 #ifdef __ANISOTROPIC__
-			case CLOSURE_BSDF_WARD_ID:
-				eval = bsdf_ward_eval_transmit(sc, sd->I, omega_in, pdf);
-				break;
 			case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+			case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID:
 				eval = bsdf_ashikhmin_shirley_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 #endif
@@ -341,18 +339,18 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 			bsdf_transparent_blur(sc, roughness);
 			break;
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 			bsdf_microfacet_ggx_blur(sc, roughness);
 			break;
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
+		case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
 			bsdf_microfacet_beckmann_blur(sc, roughness);
 			break;
 #ifdef __ANISOTROPIC__
-		case CLOSURE_BSDF_WARD_ID:
-			bsdf_ward_blur(sc, roughness);
-			break;
 		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID:
 			bsdf_ashikhmin_shirley_blur(sc, roughness);
 			break;
 #endif

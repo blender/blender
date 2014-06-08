@@ -323,12 +323,17 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 		switch (b_aniso_node.distribution())
 		{
+		case BL::ShaderNodeBsdfAnisotropic::distribution_SHARP:
+			aniso->distribution = ustring("Sharp");
+			break;
+		case BL::ShaderNodeBsdfAnisotropic::distribution_BECKMANN:
+			aniso->distribution = ustring("Beckmann");
+			break;
+		case BL::ShaderNodeBsdfAnisotropic::distribution_GGX:
+			aniso->distribution = ustring("GGX");
+			break;
 		case BL::ShaderNodeBsdfAnisotropic::distribution_ASHIKHMIN_SHIRLEY:
 			aniso->distribution = ustring("Ashikhmin-Shirley");
-			break;
-		case BL::ShaderNodeBsdfAnisotropic::distribution_WARD:
-		default:
-			aniso->distribution = ustring("Ward");
 			break;
 		}
 
@@ -366,6 +371,9 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			break;
 		case BL::ShaderNodeBsdfGlossy::distribution_GGX:
 			glossy->distribution = ustring("GGX");
+			break;
+		case BL::ShaderNodeBsdfGlossy::distribution_ASHIKHMIN_SHIRLEY:
+			glossy->distribution = ustring("Ashikhmin-Shirley");
 			break;
 		}
 		node = glossy;

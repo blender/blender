@@ -1585,21 +1585,23 @@ void BsdfNode::compile(OSLCompiler& compiler)
 
 /* Anisotropic BSDF Closure */
 
-static ShaderEnum anisotropic_distribution_init()
+static ShaderEnum aniso_distribution_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("Ward",              CLOSURE_BSDF_WARD_ID);
-	enm.insert("Ashikhmin-Shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
+	enm.insert("Sharp", CLOSURE_BSDF_REFLECTION_ID);
+	enm.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID);
+	enm.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID);
+	enm.insert("Ashikhmin-Shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID);
 
 	return enm;
 }
 
-ShaderEnum AnisotropicBsdfNode::distribution_enum = anisotropic_distribution_init();
+ShaderEnum AnisotropicBsdfNode::distribution_enum = aniso_distribution_init();
 
 AnisotropicBsdfNode::AnisotropicBsdfNode()
 {
-	distribution = ustring("Ward");
+	distribution = ustring("GGX");
 
 	add_input("Tangent", SHADER_SOCKET_VECTOR, ShaderInput::TANGENT);
 
@@ -1642,6 +1644,7 @@ static ShaderEnum glossy_distribution_init()
 	enm.insert("Sharp", CLOSURE_BSDF_REFLECTION_ID);
 	enm.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
 	enm.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ID);
+	enm.insert("Ashikhmin-Shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
 
 	return enm;
 }
@@ -1650,7 +1653,7 @@ ShaderEnum GlossyBsdfNode::distribution_enum = glossy_distribution_init();
 
 GlossyBsdfNode::GlossyBsdfNode()
 {
-	distribution = ustring("Beckmann");
+	distribution = ustring("GGX");
 
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.2f);
 }

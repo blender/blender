@@ -19,7 +19,7 @@
 
 shader node_glossy_bsdf(
 	color Color = 0.8,
-	string distribution = "Beckmann",
+	string distribution = "GGX",
 	float Roughness = 0.2,
 	normal Normal = N,
 	output closure color BSDF = 0)
@@ -30,6 +30,8 @@ shader node_glossy_bsdf(
 		BSDF = Color * microfacet_beckmann(Normal, Roughness);
 	else if (distribution == "GGX")
 		BSDF = Color * microfacet_ggx(Normal, Roughness);
+	else
+		BSDF = Color * ashikhmin_shirley(Normal, vector(0, 0, 0), Roughness, Roughness);
 
 }
 
