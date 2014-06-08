@@ -61,6 +61,7 @@ set(SRC_CLOSURE_HEADERS
 	closure/bsdf_transparent.h
 	closure/bsdf_util.h
 	closure/bsdf_ward.h
+	closure/bsdf_ashikhmin_shirley.h
 	closure/bsdf_westin.h
 	closure/bsdf_hair.h
 	closure/bssrdf.h

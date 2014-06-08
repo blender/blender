@@ -486,6 +486,7 @@ closure color microfacet_ggx(normal N, float ag) BUILTIN;
 closure color microfacet_ggx_refraction(normal N, float ag, float eta) BUILTIN;
 closure color microfacet_beckmann(normal N, float ab) BUILTIN;
 closure color microfacet_beckmann_refraction(normal N, float ab, float eta) BUILTIN;
+closure color ashikhmin_shirley(normal N, vector T,float ax, float ay) BUILTIN;
 closure color ward(normal N, vector T,float ax, float ay) BUILTIN;
 closure color ashikhmin_velvet(normal N, float sigma) BUILTIN;
 closure color emission() BUILTIN;

@@ -2952,6 +2952,12 @@ static EnumPropertyItem node_glossy_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem node_anisotropic_items[] = {
+	{SHD_ANISOTROPIC_WARD,              "WARD",              0, "Ward",              ""},
+	{SHD_ANISOTROPIC_ASHIKHMIN_SHIRLEY, "ASHIKHMIN_SHIRLEY", 0, "Ashikhmin-Shirley", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static EnumPropertyItem node_toon_items[] = {
 	{SHD_TOON_DIFFUSE,    "DIFFUSE",  0, "Diffuse", ""},
 	{SHD_TOON_GLOSSY,     "GLOSSY",   0, "Glossy",  ""},
@@ -3695,6 +3701,17 @@ static void def_glossy(StructRNA *srna)
 	prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, node_glossy_items);
+	RNA_def_property_ui_text(prop, "Distribution", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_anisotropic(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, node_anisotropic_items);
 	RNA_def_property_ui_text(prop, "Distribution", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }

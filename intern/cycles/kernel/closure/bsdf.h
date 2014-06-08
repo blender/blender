@@ -25,6 +25,7 @@
 #include "../closure/bsdf_transparent.h"
 #ifdef __ANISOTROPIC__
 #include "../closure/bsdf_ward.h"
+#include "../closure/bsdf_ashikhmin_shirley.h"
 #endif
 #include "../closure/bsdf_westin.h"
 #include "../closure/bsdf_toon.h"
@@ -95,6 +96,10 @@ ccl_device int bsdf_sample(KernelGlobals *kg, const ShaderData *sd, const Shader
 #ifdef __ANISOTROPIC__
 		case CLOSURE_BSDF_WARD_ID:
 			label = bsdf_ward_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			break;
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+			label = bsdf_ashikhmin_shirley_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #endif
@@ -189,6 +194,9 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 			case CLOSURE_BSDF_WARD_ID:
 				eval = bsdf_ward_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
+			case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+				eval = bsdf_ashikhmin_shirley_eval_reflect(sc, sd->I, omega_in, pdf);
+				break;
 #endif
 			case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
 				eval = bsdf_ashikhmin_velvet_eval_reflect(sc, sd->I, omega_in, pdf);
@@ -255,6 +263,9 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 #ifdef __ANISOTROPIC__
 			case CLOSURE_BSDF_WARD_ID:
 				eval = bsdf_ward_eval_transmit(sc, sd->I, omega_in, pdf);
+				break;
+			case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+				eval = bsdf_ashikhmin_shirley_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 #endif
 			case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
@@ -340,6 +351,9 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 #ifdef __ANISOTROPIC__
 		case CLOSURE_BSDF_WARD_ID:
 			bsdf_ward_blur(sc, roughness);
+			break;
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+			bsdf_ashikhmin_shirley_blur(sc, roughness);
 			break;
 #endif
 		case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:

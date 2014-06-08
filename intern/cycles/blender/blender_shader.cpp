@@ -318,7 +318,21 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		node = new HoldoutNode();
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeBsdfAnisotropic)) {
-		node = new WardBsdfNode();
+		BL::ShaderNodeBsdfAnisotropic b_aniso_node(b_node);
+		AnisotropicBsdfNode *aniso = new AnisotropicBsdfNode();
+
+		switch (b_aniso_node.distribution())
+		{
+		case BL::ShaderNodeBsdfAnisotropic::distribution_ASHIKHMIN_SHIRLEY:
+			aniso->distribution = ustring("Ashikhmin-Shirley");
+			break;
+		case BL::ShaderNodeBsdfAnisotropic::distribution_WARD:
+		default:
+			aniso->distribution = ustring("Ward");
+			break;
+		}
+
+		node = aniso;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeBsdfDiffuse)) {
 		node = new DiffuseBsdfNode();

@@ -16,8 +16,9 @@
 
 #include "stdosl.h"
 
-shader node_ward_bsdf(
+shader node_anisotropic_bsdf(
 	color Color = 0.0,
+	string distribution = "Ward",
 	float Roughness = 0.0,
 	float Anisotropy = 0.0,
 	float Rotation = 0.0,
@@ -44,6 +45,9 @@ shader node_ward_bsdf(
 		RoughnessV = Roughness / (1.0 - aniso);
 	}
 
-	BSDF = Color * ward(Normal, T, RoughnessU, RoughnessV);
+	if (distribution == "Ashikhmin-Shirley")
+		BSDF = Color * ashikhmin_shirley(Normal, T, RoughnessU, RoughnessV);
+	else
+		BSDF = Color * ward(Normal, T, RoughnessU, RoughnessV);
 }
 

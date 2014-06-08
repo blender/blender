@@ -1583,11 +1583,23 @@ void BsdfNode::compile(OSLCompiler& compiler)
 	assert(0);
 }
 
-/* Ward BSDF Closure */
+/* Anisotropic BSDF Closure */
 
-WardBsdfNode::WardBsdfNode()
+static ShaderEnum anisotropic_distribution_init()
 {
-	closure = CLOSURE_BSDF_WARD_ID;
+	ShaderEnum enm;
+
+	enm.insert("Ward",              CLOSURE_BSDF_WARD_ID);
+	enm.insert("Ashikhmin-Shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
+
+	return enm;
+}
+
+ShaderEnum AnisotropicBsdfNode::distribution_enum = anisotropic_distribution_init();
+
+AnisotropicBsdfNode::AnisotropicBsdfNode()
+{
+	distribution = ustring("Ward");
 
 	add_input("Tangent", SHADER_SOCKET_VECTOR, ShaderInput::TANGENT);
 
@@ -1596,7 +1608,7 @@ WardBsdfNode::WardBsdfNode()
 	add_input("Rotation", SHADER_SOCKET_FLOAT, 0.0f);
 }
 
-void WardBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+void AnisotropicBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	if(shader->has_surface) {
 		ShaderInput *tangent_in = input("Tangent");
@@ -1608,14 +1620,17 @@ void WardBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 	ShaderNode::attributes(shader, attributes);
 }
 
-void WardBsdfNode::compile(SVMCompiler& compiler)
+void AnisotropicBsdfNode::compile(SVMCompiler& compiler)
 {
+	closure = (ClosureType)distribution_enum[distribution];
+
 	BsdfNode::compile(compiler, input("Roughness"), input("Anisotropy"), input("Rotation"));
 }
 
-void WardBsdfNode::compile(OSLCompiler& compiler)
+void AnisotropicBsdfNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_ward_bsdf");
+	compiler.parameter("distribution", distribution);
+	compiler.add(this, "node_anisotropic_bsdf");
 }
 
 /* Glossy BSDF Closure */

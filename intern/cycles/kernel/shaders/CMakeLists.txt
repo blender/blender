@@ -4,6 +4,7 @@
 set(SRC_OSL
 	node_add_closure.osl
 	node_ambient_occlusion.osl
+	node_anisotropic_bsdf.osl
 	node_attribute.osl
 	node_background.osl
 	node_brick_texture.osl
@@ -73,7 +74,6 @@ set(SRC_OSL
 	node_vector_transform.osl
 	node_velvet_bsdf.osl
 	node_voronoi_texture.osl
-	node_ward_bsdf.osl
 	node_wavelength.osl
 	node_blackbody.osl
 	node_wave_texture.osl

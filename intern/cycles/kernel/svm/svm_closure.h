@@ -269,7 +269,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			break;
 		}
-		case CLOSURE_BSDF_WARD_ID: {
+		case CLOSURE_BSDF_WARD_ID:
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
 #ifdef __CAUSTICS_TRICKS__
 			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
 				break;
@@ -301,7 +302,11 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->data1 = roughness/(1.0f - anisotropy);
 				}
 
-				sd->flag |= bsdf_ward_setup(sc);
+				if (type == CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID)
+					sd->flag |= bsdf_ashikhmin_shirley_setup(sc);
+				else
+					sd->flag |= bsdf_ward_setup(sc);
+
 #else
 				sd->flag |= bsdf_diffuse_setup(sc);
 #endif
