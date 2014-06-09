@@ -2975,7 +2975,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 				lamp_drivers_update(scene, ob->data, ctime);
 			
 			/* particles */
-			if (ob->particlesystem.first) {
+			if (ob != scene->obedit && ob->particlesystem.first) {
 				ParticleSystem *tpsys, *psys;
 				DerivedMesh *dm;
 				ob->transflag &= ~OB_DUPLIPARTS;
