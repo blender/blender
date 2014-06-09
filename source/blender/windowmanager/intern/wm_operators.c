@@ -3241,6 +3241,9 @@ static void tweak_gesture_modal(bContext *C, const wmEvent *event)
 				wmEvent tevent;
 
 				wm_event_init_from_window(window, &tevent);
+				/* We want to get coord from start of drag, not from point where it becomes a tweak event, see T40549 */
+				tevent.x = rect->xmin + sx;
+				tevent.y = rect->ymin + sy;
 				if (gesture->event_type == LEFTMOUSE)
 					tevent.type = EVT_TWEAK_L;
 				else if (gesture->event_type == RIGHTMOUSE)
