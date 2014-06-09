@@ -1828,7 +1828,9 @@ static void widget_state(uiWidgetType *wt, int state)
 
 	if (state & UI_BUT_DRAG_MULTI) {
 		/* the button isn't SELECT but we're editing this so draw with sel color */
-		widget_state_blend(wt->wcol.inner, wt->wcol.inner_sel, 1.0f);
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+		SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
+		widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.85f);
 	}
 
 	if (state & UI_BUT_NODE_ACTIVE) {
