@@ -349,8 +349,15 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 {
 	bAnimListElem *ale;
 
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+#ifdef DEBUG
+		/* quiet assert */
+		for (ale = anim_data->first; ale; ale = ale->next) {
+			ale->update = 0;
+		}
+#endif
 		return;
+	}
 
 	for (ale = anim_data->first; ale; ale = ale->next) {
 		FCurve *fcu = ale->key_data;
