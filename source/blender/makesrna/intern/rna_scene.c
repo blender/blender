@@ -2188,7 +2188,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, stat_type);
-	RNA_def_property_ui_text(prop, "Type", "XXX");
+	RNA_def_property_ui_text(prop, "Type", "Type of data to visualize/check");
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 
