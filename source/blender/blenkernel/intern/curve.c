@@ -2505,7 +2505,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 	/*
 	 * - convert all curves to polys, with indication of resol and flags for double-vertices
 	 * - possibly; do a smart vertice removal (in case Nurb)
-	 * - separate in individual blicks with BoundBox
+	 * - separate in individual blocks with BoundBox
 	 * - AutoHole detection
 	 */
 	Curve *cu;

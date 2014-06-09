@@ -290,7 +290,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 		return done;
 
 	/* we check recursion to ensure that we do not get infinite
-	 * loops requesting data from ourselfs in a context callback */
+	 * loops requesting data from ourselves in a context callback */
 
 	/* Ok, this looks evil...
 	 * if (ret) done = -(-ret | -done);

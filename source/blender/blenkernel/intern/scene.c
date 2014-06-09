@@ -1462,7 +1462,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	bool need_singlethread_pass;
 
 	/* Early check for whether we need to invoke all the task-based
-	 * tihngs (spawn new ppol, traverse dependency graph and so on).
+	 * things (spawn new ppol, traverse dependency graph and so on).
 	 *
 	 * Basically if there's no ID datablocks tagged for update which
 	 * corresponds to object->recalc flags (which are checked in

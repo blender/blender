@@ -621,7 +621,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 static void occ_build_sh_normalize(OccNode *node)
 {
 	/* normalize spherical harmonics to not include area, so
-	 * we can clamp the dot product and then mutliply by area */
+	 * we can clamp the dot product and then multiply by area */
 	int b;
 
 	if (node->area != 0.0f)

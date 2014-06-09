@@ -57,7 +57,7 @@ struct ListBase;
  */
 typedef struct EvaluationContext {
 	bool for_render;  /* Set to true if evaluation shall be performed for render purposes,
-	                     keep at false if update shall happen for the viewport. */
+	                   * keep at false if update shall happen for the viewport. */
 } EvaluationContext;
 
 /* DagNode->eval_flags */

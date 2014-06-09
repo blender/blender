@@ -411,8 +411,8 @@ void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
 	re->r = scene->r;
 
 	/* prevent crash when freeing the scene
-	 but it potentially leaves unfreed memory blocks
-	 not sure how to fix this yet -- dfelinto */
+	 * but it potentially leaves unfreed memory blocks
+	 * not sure how to fix this yet -- dfelinto */
 	BLI_listbase_clear(&re->r.layers);
 }
 

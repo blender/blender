@@ -695,7 +695,7 @@ bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pa
 /* -------------------------------------------------------------------- */
 /**
  * Backup/Restore/Free functions,
- * \note These functions assume the data won't chane order.
+ * \note These functions assume the data won't change order.
  */
 
 struct PathStore {
