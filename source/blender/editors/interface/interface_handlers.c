@@ -2372,6 +2372,18 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 		data->str = NULL;
 	}
 
+#ifdef USE_DRAG_MULTINUM
+	/* this can happen from multi-drag */
+	if (data->applied_interactive) {
+		/* remove any small changes so canceling edit doesn't restore invalid value: T40538 */
+		data->cancel = true;
+		ui_apply_button(C, but->block, but, data, true);
+		data->cancel = false;
+
+		data->applied_interactive = false;
+	}
+#endif
+
 	/* retrieve string */
 	data->maxlen = ui_get_but_string_max_length(but);
 	data->str = MEM_callocN(sizeof(char) * data->maxlen + 1, "textedit str");
@@ -2391,11 +2403,6 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	data->origstr = BLI_strdupn(data->str, len);
 	data->selextend = 0;
 	data->selstartx = 0.0f;
-
-#ifdef USE_DRAG_MULTINUM
-	/* this can happen from multi-drag */
-	data->applied_interactive = false;
-#endif
 
 	/* set cursor pos to the end of the text */
 	but->editstr = data->str;
@@ -3308,6 +3315,11 @@ static bool ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data,
 	if (data->draglock) {
 		if (abs(mx - data->dragstartx) <= 3)
 			return changed;
+#ifdef USE_DRAG_MULTINUM
+		if (ELEM(data->multi_data.init, BUTTON_MULTI_INIT_UNSET, BUTTON_MULTI_INIT_SETUP)) {
+			return changed;
+		}
+#endif
 
 		data->draglock = false;
 		data->dragstartx = mx;  /* ignore mouse movement within drag-lock */
