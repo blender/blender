@@ -59,12 +59,11 @@ static bool stabilization_median_point_get(MovieTracking *tracking, int framenr,
 	track = tracking->tracks.first;
 	while (track) {
 		if (track->flag & TRACK_USE_2D_STAB) {
-			MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-			if (marker != NULL && (marker->flag & MARKER_DISABLED) == 0) {
-				minmax_v2v2_v2(min, max, marker->pos);
-				ok = true;
-			}
+			minmax_v2v2_v2(min, max, marker->pos);
+
+			ok = true;
 		}
 
 		track = track->next;
@@ -102,26 +101,22 @@ static void stabilization_calculate_data(MovieTracking *tracking, int framenr, i
 		float x0 = (float)width / 2.0f, y0 = (float)height / 2.0f;
 		float x = median[0] * width, y = median[1] * height;
 
-		marker = BKE_tracking_marker_get_exact(stab->rot_track, 1);
-		if (marker != NULL && (marker->flag & MARKER_DISABLED) == 0) {
-			sub_v2_v2v2(a, marker->pos, firstmedian);
-			a[0] *= width;
-			a[1] *= height;
+		marker = BKE_tracking_marker_get(stab->rot_track, 1);
+		sub_v2_v2v2(a, marker->pos, firstmedian);
+		a[0] *= width;
+		a[1] *= height;
 
-			marker = BKE_tracking_marker_get_exact(stab->rot_track, framenr);
-			if (marker != NULL && (marker->flag & MARKER_DISABLED) == 0) {
-				sub_v2_v2v2(b, marker->pos, median);
-				b[0] *= width;
-				b[1] *= height;
+		marker = BKE_tracking_marker_get(stab->rot_track, framenr);
+		sub_v2_v2v2(b, marker->pos, median);
+		b[0] *= width;
+		b[1] *= height;
 
-				*angle = -atan2f(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]);
-				*angle *= stab->rotinf;
+		*angle = -atan2f(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]);
+		*angle *= stab->rotinf;
 
-				/* convert to rotation around image center */
-				translation[0] -= (x0 + (x - x0) * cosf(*angle) - (y - y0) * sinf(*angle) - x) * (*scale);
-				translation[1] -= (y0 + (x - x0) * sinf(*angle) + (y - y0) * cosf(*angle) - y) * (*scale);
-			}
-		}
+		/* convert to rotation around image center */
+		translation[0] -= (x0 + (x - x0) * cosf(*angle) - (y - y0) * sinf(*angle) - x) * (*scale);
+		translation[1] -= (y0 + (x - x0) * sinf(*angle) + (y - y0) * cosf(*angle) - y) * (*scale);
 	}
 }
 
@@ -170,9 +165,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 			float points[4][2] = {{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
 			float si, co;
 
-			if (!stabilization_median_point_get(tracking, cfra, median)) {
-				continue;
-			}
+			stabilization_median_point_get(tracking, cfra, median);
 
 			stabilization_calculate_data(tracking, cfra, width, height, firstmedian, median, translation,
 			                             &tmp_scale, &angle);
@@ -281,9 +274,9 @@ void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, i
 	 * However, it's still better to replace this with real first
 	 * frame number at which tracks are appearing.
 	 */
-	if (stabilization_median_point_get(tracking, 1, firstmedian) &&
-	    stabilization_median_point_get(tracking, framenr, median))
-	{
+	if (stabilization_median_point_get(tracking, 1, firstmedian)) {
+		stabilization_median_point_get(tracking, framenr, median);
+
 		if ((stab->flag & TRACKING_AUTOSCALE) == 0)
 			stab->scale = 1.0f;
 
