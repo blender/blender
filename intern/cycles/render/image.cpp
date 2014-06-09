@@ -576,7 +576,8 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		string name;
 
-		if(slot >= 10) name = string_printf("__tex_image_float_0%d", slot);
+		if(slot >= 100) name = string_printf("__tex_image_float_%d", slot);
+		else if(slot >= 10) name = string_printf("__tex_image_float_0%d", slot);
 		else name = string_printf("__tex_image_float_00%d", slot);
 
 		if(!pack_images) {
@@ -607,7 +608,8 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		string name;
 
-		if(slot >= 10) name = string_printf("__tex_image_0%d", slot);
+		if(slot >= 100) name = string_printf("__tex_image_%d", slot);
+		else if(slot >= 10) name = string_printf("__tex_image_0%d", slot);
 		else name = string_printf("__tex_image_00%d", slot);
 
 		if(!pack_images) {
