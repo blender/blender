@@ -1531,7 +1531,7 @@ void BKE_mesh_from_nurbs(Object *ob)
 }
 
 typedef struct EdgeLink {
-	Link *next, *prev;
+	struct EdgeLink *next, *prev;
 	void *edge;
 } EdgeLink;
 
@@ -1610,13 +1610,11 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 			BLI_freelinkN(&edges, edges.last);          totedges--;
 
 			while (ok) { /* while connected edges are found... */
+				EdgeLink *edl = edges.last;
 				ok = false;
-				i = totedges;
-				while (i) {
-					EdgeLink *edl;
+				while (edl) {
+					EdgeLink *edl_prev = edl->prev;
 
-					i -= 1;
-					edl = BLI_findlink(&edges, i);
 					med = edl->edge;
 
 					if (med->v1 == endVert) {
@@ -1643,6 +1641,8 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 						BLI_freelinkN(&edges, edl);                 totedges--;
 						ok = true;
 					}
+
+					edl = edl_prev;
 				}
 			}
 
