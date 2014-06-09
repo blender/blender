@@ -4101,8 +4101,8 @@ void flushTransGraphData(TransInfo *t)
 	     a++, td++, td2d++, tdg++)
 	{
 		AnimData *adt = (AnimData *)td->extra; /* pointers to relevant AnimData blocks are stored in the td->extra pointers */
-		float unit_scale = tdg->unit_scale;
-		
+		float inv_unit_scale = 1.0f / tdg->unit_scale;
+
 		/* handle snapping for time values
 		 *	- we should still be in NLA-mapping timespace
 		 *	- only apply to keyframes (but never to handles)
@@ -4159,16 +4159,16 @@ void flushTransGraphData(TransInfo *t)
 		if (td->flag & TD_INTVALUES)
 			td2d->loc2d[1] = floorf(td2d->loc[1] + 0.5f);
 		else
-			td2d->loc2d[1] = td2d->loc[1] / unit_scale;
+			td2d->loc2d[1] = td2d->loc[1] * inv_unit_scale;
 		
 		if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
 			td2d->h1[0] = td2d->ih1[0] + td->loc[0] - td->iloc[0];
-			td2d->h1[1] = td2d->ih1[1] + td->loc[1] - td->iloc[1];
+			td2d->h1[1] = td2d->ih1[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
 		}
 		
 		if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
 			td2d->h2[0] = td2d->ih2[0] + td->loc[0] - td->iloc[0];
-			td2d->h2[1] = td2d->ih2[1] + td->loc[1] - td->iloc[1];
+			td2d->h2[1] = td2d->ih2[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
 		}
 	}
 }
