@@ -972,7 +972,7 @@ static void move_profile_plane(BoundVert *bndv, EdgeHalf *e1, EdgeHalf *e2)
  * The original vertex should form a third point of the desired plane. */
 static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *bndv2)
 {
-	float d1[3], d2[3], no[3], no2[3], no3[3], dot1, dot2;
+	float d1[3], d2[3], no[3], no2[3], no3[3], dot1, dot2, l1, l2, l3;
 
 	/* only do this if projecting, and d1, d2, and proj_dir are not coplanar */
 	if (is_zero_v3(bndv1->profile.proj_dir) || is_zero_v3(bndv2->profile.proj_dir))
@@ -980,22 +980,20 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
 	sub_v3_v3v3(d1, bv->v->co, bndv1->nv.co);
 	sub_v3_v3v3(d2, bv->v->co, bndv2->nv.co);
 	cross_v3_v3v3(no, d1, d2);
+	l1 = normalize_v3(no);
 	/* "no" is new normal projection plane, but don't move if
-	 * it is coplanar with one or the other of the projection dirs */
+	 * it is coplanar with both of the projection dirs */
 	cross_v3_v3v3(no2, d1, bndv1->profile.proj_dir);
+	l2 = normalize_v3(no2);
 	cross_v3_v3v3(no3, d2, bndv2->profile.proj_dir);
-	if (normalize_v3(no) > BEVEL_EPSILON &&
-	    normalize_v3(no2) > BEVEL_EPSILON &&
-	    normalize_v3(no3) > BEVEL_EPSILON)
-	{
+	l3 = normalize_v3(no3);
+	if (l1 > BEVEL_EPSILON && (l2 > BEVEL_EPSILON || l3 > BEVEL_EPSILON)) {
 		dot1 = fabsf(dot_v3v3(no, no2));
 		dot2 = fabsf(dot_v3v3(no, no3));
-		if (fabsf(dot1 - 1.0f) > BEVEL_EPSILON &&
-		    fabsf(dot2 - 1.0f) > BEVEL_EPSILON)
-		{
+		if (fabsf(dot1 - 1.0f) > BEVEL_EPSILON)
 			copy_v3_v3(bndv1->profile.plane_no, no);
+		if (fabsf(dot2 - 1.0f) > BEVEL_EPSILON)
 			copy_v3_v3(bndv2->profile.plane_no, no);
-		}
 	}
 }
 
