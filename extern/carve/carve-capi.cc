@@ -48,8 +48,8 @@ typedef struct CarveMeshDescr {
 	// N-th element of the vector indicates index of an original mesh loop.
 	std::unordered_map<std::pair<int, int>, int> orig_loop_index_map;
 
-	// N-th element of the vector indicates index of an original mesh poly.
-	std::vector<int> orig_poly_index_map;
+	// Mapping from carve face to an original face index in DM.
+	std::unordered_map<const MeshSet<3>::face_t *, int> orig_poly_index_map;
 
 	// The folloving mapping is only filled in for output mesh.
 
@@ -150,7 +150,7 @@ inline int indexOf(const T *element, const std::vector<T> &vector_from)
 void initOrigIndexMeshFaceMapping(CarveMeshDescr *mesh,
                                   int which_mesh,
                                   std::unordered_map<std::pair<int, int>, int> &orig_loop_index_map,
-                                  const std::vector<int> &orig_poly_index_map,
+                                  std::unordered_map<const MeshSet<3>::face_t*, int> &orig_poly_index_map,
                                   OrigVertMapping *orig_vert_mapping,
                                   OrigFaceEdgeMapping *orig_face_edge_mapping,
                                   FaceEdgeTriangulatedFlag *face_edge_triangulated_flag,
@@ -177,7 +177,7 @@ void initOrigIndexMeshFaceMapping(CarveMeshDescr *mesh,
 		const MeshSet<3>::face_t *face = *face_iter;
 
 		// Mapping from carve face back to original poly index.
-		int orig_poly_index = orig_poly_index_map[i];
+		int orig_poly_index = orig_poly_index_map[face];
 		orig_face_attr->setAttribute(face, std::make_pair(which_mesh, orig_poly_index));
 
 		for (MeshSet<3>::face_t::const_edge_iter_t edge_iter = face->begin();
@@ -566,14 +566,14 @@ CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
 
 	// Import verices from external mesh to Carve.
 	int num_verts = mesh_importer->getNumVerts(import_data);
-	std::vector<carve::geom3d::Vector> vertices;
-	vertices.reserve(num_verts);
+	std::vector<MeshSet<3>::vertex_t> vertex_storage;
+	vertex_storage.reserve(num_verts);
 	for (int i = 0; i < num_verts; i++) {
 		float position[3];
 		mesh_importer->getVertCoord(import_data, i, position);
-		vertices.push_back(carve::geom::VECTOR(position[0],
-		                                       position[1],
-		                                       position[2]));
+		vertex_storage.push_back(carve::geom::VECTOR(position[0],
+		                                             position[1],
+		                                             position[2]));
 	}
 
 	// Import polys from external mesh to Carve.
@@ -581,14 +581,13 @@ CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
 	int *verts_of_poly_dynamic = NULL;
 	int verts_of_poly_dynamic_size = 0;
 
-	int num_loops = mesh_importer->getNumLoops(import_data);
 	int num_polys = mesh_importer->getNumPolys(import_data);
 	int loop_index = 0;
-	int num_tessellated_polys = 0;
 	std::vector<int> face_indices;
-	face_indices.reserve(num_loops);
-	mesh_descr->orig_poly_index_map.reserve(num_polys);
 	TrianglesStorage triangles_storage;
+	std::vector<MeshSet<3>::face_t *> faces;
+	std::vector<MeshSet<3>::vertex_t *> face_vertices;
+	faces.reserve(num_polys);
 	for (int i = 0; i < num_polys; i++) {
 		int verts_per_poly =
 			mesh_importer->getNumPolyVerts(import_data, i);
@@ -611,32 +610,39 @@ CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
 		mesh_importer->getPolyVerts(import_data, i, verts_of_poly);
 
 		carve::math::Matrix3 axis_matrix;
-		if (!carve_checkPolyPlanarAndGetNormal(vertices,
+		if (!carve_checkPolyPlanarAndGetNormal(vertex_storage,
 		                                       verts_per_poly,
 		                                       verts_of_poly,
 		                                       &axis_matrix)) {
+			face_indices.clear();
 			int num_triangles = carve_triangulatePoly(import_data,
 			                                          mesh_importer,
-			                                          vertices,
+			                                          vertex_storage,
 			                                          verts_per_poly,
 			                                          verts_of_poly,
 			                                          axis_matrix,
 			                                          &face_indices,
 			                                          &triangles_storage);
-
 			for (int j = 0; j < num_triangles; ++j) {
-				mesh_descr->orig_poly_index_map.push_back(i);
+				MeshSet<3>::face_t *face = new MeshSet<3>::face_t(
+					&vertex_storage[face_indices[j * 3]],
+					&vertex_storage[face_indices[j * 3 + 1]],
+					&vertex_storage[face_indices[j * 3 + 2]]);
+				mesh_descr->orig_poly_index_map[face] = i;
+				faces.push_back(face);
 			}
-
-			num_tessellated_polys += num_triangles;
 		}
 		else {
-			face_indices.push_back(verts_per_poly);
+			face_vertices.clear();
+			face_vertices.reserve(verts_per_poly);
 			for (int j = 0; j < verts_per_poly; ++j) {
-				face_indices.push_back(verts_of_poly[j]);
+				face_vertices.push_back(&vertex_storage[verts_of_poly[j]]);
 			}
-			mesh_descr->orig_poly_index_map.push_back(i);
-			num_tessellated_polys++;
+			MeshSet<3>::face_t *face =
+				new MeshSet<3>::face_t(face_vertices.begin(),
+				                       face_vertices.end());
+			mesh_descr->orig_poly_index_map[face] = i;
+			faces.push_back(face);
 		}
 
 		for (int j = 0; j < verts_per_poly; ++j) {
@@ -650,9 +656,9 @@ CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
 		delete [] verts_of_poly_dynamic;
 	}
 
-	mesh_descr->poly = new MeshSet<3> (vertices,
-	                                   num_tessellated_polys,
-	                                   face_indices);
+	std::vector<MeshSet<3>::mesh_t *> meshes;
+	MeshSet<3>::mesh_t::create(faces.begin(), faces.end(), meshes, carve::mesh::MeshOptions());
+	mesh_descr->poly = new MeshSet<3> (vertex_storage, meshes);
 
 	return mesh_descr;
 

@@ -74,14 +74,14 @@ bool carve_unionIntersections(carve::csg::CSG *csg,
                               carve::mesh::MeshSet<3> **left_r,
                               carve::mesh::MeshSet<3> **right_r);
 
-bool carve_checkPolyPlanarAndGetNormal(const std::vector<carve::geom3d::Vector> &vertices,
+bool carve_checkPolyPlanarAndGetNormal(const std::vector<carve::mesh::MeshSet<3>::vertex_t> &vertex_storage,
                                        const int verts_per_poly,
                                        const int *verts_of_poly,
                                        carve::math::Matrix3 *axis_matrix_r);
 
 int carve_triangulatePoly(struct ImportMeshData *import_data,
                           CarveMeshImporter *mesh_importer,
-                          const std::vector<carve::geom3d::Vector> &vertices,
+                          const std::vector<carve::mesh::MeshSet<3>::vertex_t> &vertex_storage,
                           const int verts_per_poly,
                           const int *verts_of_poly,
                           const carve::math::Matrix3 &axis_matrix,
