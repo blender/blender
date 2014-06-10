@@ -2809,7 +2809,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		int y;
 		for (y = ymin; y < ymax; y++) {
 			int index = y * buffer_width * 4;
-			memcpy(ibuf->rect + index, display_buffer + index, (xmax - xmin) * 4);
+			memcpy((unsigned char *)ibuf->rect + index, display_buffer + index, (xmax - xmin) * 4);
 		}
 	}
 }
