@@ -302,11 +302,7 @@ static bool bake_object_check(Object *ob, ReportList *reports)
 	else {
 		Mesh *me = (Mesh *)ob->data;
 
-		const int pidx = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
-		const int lidx = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
-		const int fidx = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
-
-		if ((pidx == -1) && (lidx == -1) && (fidx == -1)) {
+		if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV)) {
 			BKE_reportf(reports, RPT_ERROR,
 			            "No active UV layer found in the object \"%s\"", ob->id.name + 2);
 			return false;
