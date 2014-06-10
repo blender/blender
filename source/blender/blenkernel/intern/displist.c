@@ -1668,6 +1668,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							                            &start, &firstblend, &steps, &lastblend);
 						}
 						else {
+							if (fabsf(cu->bevfac2 - cu->bevfac1) < FLT_EPSILON) {
+								continue;
+							}
+
 							calc_bevfac_mapping(cu, bl, nu, use_render_resolution,
 							                    &start, &firstblend, &steps, &lastblend);
 						}
