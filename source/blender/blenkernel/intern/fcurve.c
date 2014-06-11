@@ -2050,8 +2050,14 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 		/* evaltime occurs somewhere in the middle of the curve */
 		bool exact = false;
 		
-		/* - use binary search to find appropriate keyframes */
-		a = binarysearch_bezt_index_ex(bezts, evaltime, fcu->totvert, 0.001, &exact);
+		/* Use binary search to find appropriate keyframes...
+		 * 
+		 * The threshold here has the following constraints:
+		 *    - 0.001   is too coarse   -> We get artifacts with 2cm driver movements at 1BU = 1m (see T40332)
+		 *    - 0.00001 is too fine     -> Weird errors, like selecting the wrong keyframe range (see T39207), occur.
+		 *                                 This lower bound was established in b888a32eee8147b028464336ad2404d8155c64dd
+		 */
+		a = binarysearch_bezt_index_ex(bezts, evaltime, fcu->totvert, 0.0001, &exact);
 		if (G.debug & G_DEBUG) printf("eval fcurve '%s' - %f => %d/%d, %d\n", fcu->rna_path, evaltime, a, fcu->totvert, exact);
 		
 		if (exact) {
