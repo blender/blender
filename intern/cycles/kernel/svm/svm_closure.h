@@ -203,18 +203,26 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			if(sc) {
 				sc->N = N;
-				sc->data0 = param1;
 
 				float eta = fmaxf(param2, 1e-5f);
-				sc->data1 = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
+				eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
 				/* setup bsdf */
-				if(type == CLOSURE_BSDF_REFRACTION_ID)
+				if(type == CLOSURE_BSDF_REFRACTION_ID) {
+					sc->data0 = eta;
+					sc->data1 = 0.0f;
+
 					sd->flag |= bsdf_refraction_setup(sc);
-				else if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID)
-					sd->flag |= bsdf_microfacet_beckmann_refraction_setup(sc);
-				else
-					sd->flag |= bsdf_microfacet_ggx_refraction_setup(sc);
+				}
+				else {
+					sc->data0 = param1;
+					sc->data1 = eta;
+
+					if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID)
+						sd->flag |= bsdf_microfacet_beckmann_refraction_setup(sc);
+					else
+						sd->flag |= bsdf_microfacet_ggx_refraction_setup(sc);
+				}
 			}
 
 			break;
