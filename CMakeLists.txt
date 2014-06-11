@@ -47,6 +47,11 @@ endif()
 
 cmake_minimum_required(VERSION 2.8)
 
+if(NOT (CMAKE_VERSION VERSION_LESS 3.0))
+	# keep until CMake-3.0 is min requirement
+	cmake_policy(SET CMP0043 OLD)
+endif()
+
 if(NOT EXECUTABLE_OUTPUT_PATH)
 	set(FIRST_RUN "TRUE")
 endif()
