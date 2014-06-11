@@ -126,7 +126,7 @@ static void rna_Scene_ray_cast(Scene *scene, float ray_start[3], float ray_end[3
 	if (snapObjectsRayEx(scene, NULL, NULL, NULL, NULL, SCE_SNAP_MODE_FACE,
 	                     r_ob, (float(*)[4])r_obmat,
 	                     ray_start, ray_nor, &ray_dist,
-	                     NULL, &dummy_dist_px, r_location, r_normal, SNAP_ALL))
+	                     NULL, &dummy_dist_px, r_location, r_normal, SNAP_ALL, NULL))
 	{
 		*r_success = true;
 	}

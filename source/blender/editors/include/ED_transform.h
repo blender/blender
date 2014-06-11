@@ -110,6 +110,7 @@ struct ScrArea;
 struct Base;
 struct Scene;
 struct Object;
+struct BoundBox;
 
 /* UNUSED */
 // int BIF_snappingSupported(struct Object *obedit);
@@ -180,15 +181,15 @@ typedef enum SnapMode {
 bool peelObjectsTransForm(struct TransInfo *t, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
 bool peelObjectsContext(struct bContext *C, struct ListBase *depth_peels, const float mval[2], SnapMode mode);
 bool snapObjectsTransform(struct TransInfo *t, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
-bool snapObjectsContext(struct bContext *C, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
+bool snapObjectsContext(struct bContext *C, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode, struct BoundBox *bb_init);
 /* taks args for all settings */
 bool snapObjectsEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
                    const float mval[2], float *r_dist_px,
-                   float r_loc[3], float r_no[3], float *r_ray_dist, SnapMode mode);
+                   float r_loc[3], float r_no[3], float *r_ray_dist, SnapMode mode, struct BoundBox *bb_init);
 bool snapObjectsRayEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
                       struct Object **r_ob, float r_obmat[4][4],
                       const float ray_start[3], const float ray_normal[3], float *r_ray_dist,
-                      const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode);
+                      const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode, struct BoundBox *bb_init);
 
 bool snapNodesTransform(struct TransInfo *t, const int mval[2], float *r_dist_px, float r_loc[2], char *r_node_border, SnapMode mode);
 bool snapNodesContext(struct bContext *C, const int mval[2], float *r_dist_px, float r_loc[2], char *r_node_border, SnapMode mode);

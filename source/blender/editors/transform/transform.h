@@ -38,6 +38,7 @@
 #include "ED_view3d.h"
 
 #include "DNA_listBase.h"
+#include "DNA_object_types.h"
 
 #include "BLI_smallhash.h"
 #include "BKE_editmesh.h"
@@ -98,6 +99,7 @@ typedef struct TransSnap {
 	void  (*targetSnap)(struct TransInfo *);
 	/* Get the transform distance between two points (used by Closest snap) */
 	float  (*distance)(struct TransInfo *, const float p1[3], const float p2[3]);
+	struct BoundBox BB_init;
 } TransSnap;
 
 typedef struct TransCon {

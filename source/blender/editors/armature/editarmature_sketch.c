@@ -1088,7 +1088,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		mval[1] = dd->mval[1];
 
 		/* try to snap to closer object */
-		found = snapObjectsContext(C, mval, &dist_px, vec, no, SNAP_NOT_SELECTED);
+		found = snapObjectsContext(C, mval, &dist_px, vec, no, SNAP_NOT_SELECTED, NULL);
 		if (found == 1) {
 			pt->type = dd->type;
 			pt->mode = PT_SNAP;

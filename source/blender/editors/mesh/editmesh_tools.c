@@ -305,7 +305,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 			float mval[2], co_proj[3], no_dummy[3];
 			float dist_px_dummy;
 			if (ED_view3d_project_float_object(ar, eve->co, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				if (snapObjectsContext(C, mval, &dist_px_dummy, co_proj, no_dummy, SNAP_NOT_OBEDIT)) {
+				if (snapObjectsContext(C, mval, &dist_px_dummy, co_proj, no_dummy, SNAP_NOT_OBEDIT, NULL)) {
 					mul_v3_m4v3(eve->co, obedit->imat, co_proj);
 				}
 			}

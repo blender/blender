@@ -97,17 +97,17 @@ static bool ED_view3d_snap_co(bContext *C, float r_co[3], float r_no[3], const f
 	/* try snap edge, then face if it fails */
 	if (use_vert) {
 		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_VERTEX,
-		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
+		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL, NULL);
 	}
 	if (use_edge && (ret == false || use_depth)) {
 		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
 		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_EDGE,
-		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
+		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL, NULL);
 	}
 	if (use_face && (ret == false || use_depth)) {
 		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
 		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
-		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
+		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL, NULL);
 	}
 
 	return ret;
@@ -130,7 +130,7 @@ static bool ED_view3d_snap_ray(bContext *C, float r_co[3],
 	ret = snapObjectsRayEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
 	                       NULL, NULL,
 	                       ray_start, ray_normal, &ray_dist,
-	                       NULL, &dist_px, r_co, r_no_dummy, SNAP_ALL);
+	                       NULL, &dist_px, r_co, r_no_dummy, SNAP_ALL, NULL);
 
 	return ret;
 }
