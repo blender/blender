@@ -1,0 +1,12 @@
+diff -r e82d852e4fb0 include/carve/mesh_simplify.hpp
+--- a/include/carve/mesh_simplify.hpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/include/carve/mesh_simplify.hpp	Wed Jun 11 13:13:09 2014 +0600
+@@ -1414,7 +1414,7 @@
+ 
+ 
+       size_t removeLowVolumeManifolds(meshset_t *meshset, double min_abs_volume) {
+-        size_t n_removed;
++        size_t n_removed = 0;
+         for (size_t i = 0; i < meshset->meshes.size(); ++i) {
+           if (fabs(meshset->meshes[i]->volume()) < min_abs_volume) {
+             delete meshset->meshes[i];
