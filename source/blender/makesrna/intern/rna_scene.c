@@ -3218,8 +3218,10 @@ static void rna_def_bake_data(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "RenderSettings");
 	RNA_def_struct_ui_text(srna, "Bake Data", "Bake data for a Scene datablock");
 
-	prop = RNA_def_property(srna, "cage", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Cage", "Object to use as cage");
+	prop = RNA_def_property(srna, "custom_cage", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "cage");
+	RNA_def_property_ui_text(prop, "Custom Cage", "Object to use as cage "
+	                         "instead of calculating the cage from the active object with cage extrusion");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
@@ -3308,6 +3310,12 @@ static void rna_def_bake_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", R_BAKE_AUTO_NAME);
 	RNA_def_property_ui_text(prop, "Automatic Name",
 	                         "Automatically name the output file with the pass type (external only)");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "use_cage", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", R_BAKE_CAGE);
+	RNA_def_property_ui_text(prop, "Cage",
+	                         "Cast rays to active object from a cage");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 

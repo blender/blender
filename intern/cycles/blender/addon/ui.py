@@ -1259,8 +1259,13 @@ class CyclesRender_PT_bake(CyclesButtonsPanel, Panel):
         sub = sub.column()
 
         sub.active = cbk.use_selected_to_active
-        sub.prop(cbk, "cage_extrusion", text="Distance")
-        sub.prop_search(cbk, "cage", scene, "objects")
+
+        sub.prop(cbk, "use_cage", text="Cage")
+        if cbk.use_cage:
+            sub.prop(cbk, "cage_extrusion", text="Cage Extrusion")
+            sub.prop_search(cbk, "custom_cage", scene, "objects")
+        else:
+            sub.prop(cbk, "cage_extrusion", text="Ray Distance")
 
         if cscene.bake_type == 'NORMAL':
             col.separator()

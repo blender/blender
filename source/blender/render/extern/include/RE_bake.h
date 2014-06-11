@@ -82,8 +82,8 @@ bool RE_bake_internal(
 
 void RE_bake_pixels_populate_from_objects(
         struct Mesh *me_low, BakePixel pixel_array_from[],
-        BakeHighPolyData highpoly[], const int tot_highpoly, const int num_pixels,
-        const float cage_extrusion, float mat_low[4][4]);
+        BakeHighPolyData highpoly[], const int tot_highpoly, const int num_pixels, const bool is_custom_cage,
+        const float cage_extrusion, float mat_low[4][4], float mat_cage[4][4], struct Mesh *me_cage);
 
 void RE_bake_pixels_populate(
         struct Mesh *me, struct BakePixel *pixel_array,

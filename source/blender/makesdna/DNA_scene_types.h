@@ -1442,8 +1442,9 @@ enum {
 #define R_BAKE_LORES_MESH	32
 #define R_BAKE_VCOL			64
 #define R_BAKE_USERSCALE	128
-#define R_BAKE_SPLIT_MAT	256
-#define R_BAKE_AUTO_NAME	512
+#define R_BAKE_CAGE			256
+#define R_BAKE_SPLIT_MAT	512
+#define R_BAKE_AUTO_NAME	1024
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0
