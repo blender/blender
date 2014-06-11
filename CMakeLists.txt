@@ -46,8 +46,6 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 cmake_minimum_required(VERSION 2.8)
-# keep until CMake-3.0 is min requirement
-cmake_policy(SET CMP0043 OLD)
 
 if(NOT EXECUTABLE_OUTPUT_PATH)
 	set(FIRST_RUN "TRUE")
