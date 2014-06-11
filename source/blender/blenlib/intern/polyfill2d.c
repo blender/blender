@@ -53,6 +53,8 @@
 /* avoid fan-fill topology */
 #define USE_CLIP_EVEN
 #define USE_CONVEX_SKIP
+/* sweep back-and-forth about convex ears (avoids lop-sided fans) */
+#define USE_CLIP_SWEEP
 // #define USE_CONVEX_SKIP_TEST
 
 // #define DEBUG_TIME
@@ -94,11 +96,17 @@ typedef struct PolyIndex {
 /* based on libgdx 2013-11-28, apache 2.0 licensed */
 
 static void pf_coord_sign_calc(PolyFill *pf, PolyIndex *pi);
+
+static PolyIndex *pf_ear_tip_find(
+        PolyFill *pf
 #ifdef USE_CLIP_EVEN
-static PolyIndex *pf_ear_tip_find(PolyFill *pf, PolyIndex *pi_ear_init);
-#else
-static PolyIndex *pf_ear_tip_find(PolyFill *pf);
+        , PolyIndex *pi_ear_init
 #endif
+#ifdef USE_CLIP_SWEEP
+        , bool reverse
+#endif
+        );
+
 static bool       pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip);
 static void       pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip);
 
@@ -158,17 +166,37 @@ static void pf_triangulate(PolyFill *pf)
 	/* localize */
 	PolyIndex *pi_ear;
 
+#ifdef USE_CLIP_EVEN
 	PolyIndex *pi_ear_init = pf->indices;
-
+#endif
+#ifdef USE_CLIP_SWEEP
+	bool reverse = false;
+#endif
 
 	while (pf->coords_tot > 3) {
 		PolyIndex *pi_prev, *pi_next;
 		eSign sign_orig_prev, sign_orig_next;
 
+		pi_ear = pf_ear_tip_find(
+		        pf
 #ifdef USE_CLIP_EVEN
-		pi_ear = pf_ear_tip_find(pf, pi_ear_init);
+		        , pi_ear_init
+#endif
+#ifdef USE_CLIP_SWEEP
+		        , reverse
+#endif
+		        );
+
+#ifdef USE_CLIP_SWEEP
+#ifdef USE_CLIP_EVEN
+		if (pi_ear != pi_ear_init) {
+			reverse = !reverse;
+		}
 #else
-		pi_ear = pf_ear_tip_find(pf);
+		if (pi_ear != pf->indices) {
+			reverse = !reverse;
+		}
+#endif
 #endif
 
 #ifdef USE_CONVEX_SKIP
@@ -206,8 +234,13 @@ static void pf_triangulate(PolyFill *pf)
 		}
 
 #ifdef USE_CLIP_EVEN
+#ifdef USE_CLIP_SWEEP
+		pi_ear_init = reverse ? pi_next->next : pi_prev->prev;
+#else
 		pi_ear_init = pi_next->next;
 #endif
+#endif
+
 	}
 
 	if (pf->coords_tot == 3) {
@@ -233,11 +266,15 @@ static void pf_coord_sign_calc(PolyFill *pf, PolyIndex *pi)
 	        coords[pi->next->index]);
 }
 
+static PolyIndex *pf_ear_tip_find(
+        PolyFill *pf
 #ifdef USE_CLIP_EVEN
-static PolyIndex *pf_ear_tip_find(PolyFill *pf, PolyIndex *pi_ear_init)
-#else
-static PolyIndex *pf_ear_tip_find(PolyFill *pf)
+        , PolyIndex *pi_ear_init
 #endif
+#ifdef USE_CLIP_SWEEP
+        , bool reverse
+#endif
+        )
 {
 	/* localize */
 	const unsigned int coords_tot = pf->coords_tot;
@@ -256,7 +293,11 @@ static PolyIndex *pf_ear_tip_find(PolyFill *pf)
 		if (pf_ear_tip_check(pf, pi_ear)) {
 			return pi_ear;
 		}
+#ifdef USE_CLIP_SWEEP
+		pi_ear = reverse ? pi_ear->prev : pi_ear->next;
+#else
 		pi_ear = pi_ear->next;
+#endif
 	}
 
 	/* Desperate mode: if no vertex is an ear tip, we are dealing with a degenerate polygon (e.g. nearly collinear).
