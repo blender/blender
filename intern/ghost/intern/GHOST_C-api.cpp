@@ -363,7 +363,7 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                    GHOST_TGrabCursorMode mode,
-                                   int bounds[4], int mouse_ungrab_xy[2])
+                                   int bounds[4], const int mouse_ungrab_xy[2])
 {
 	GHOST_IWindow *window = (GHOST_IWindow *) windowhandle;
 	GHOST_Rect bounds_rect, bounds_win;

@@ -230,7 +230,7 @@ void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
 	}
 }
 
-void WM_cursor_grab_disable(wmWindow *win, int mouse_ungrab_xy[2])
+void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
 {
 	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
