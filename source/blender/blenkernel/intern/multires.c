@@ -286,7 +286,7 @@ DerivedMesh *get_multires_dm(Scene *scene, MultiresModifierData *mmd, Object *ob
 	DerivedMesh *tdm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 	DerivedMesh *dm;
 
-	dm = mti->applyModifier(md, ob, tdm, MOD_APPLY_USECACHE);
+	dm = mti->applyModifier(md, ob, tdm, MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY);
 	if (dm == tdm) {
 		dm = CDDM_copy(tdm);
 	}
@@ -338,12 +338,15 @@ MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, bool use_f
 	return mmd;
 }
 
-static int multires_get_level(Object *ob, MultiresModifierData *mmd, int render)
+static int multires_get_level(Object *ob, MultiresModifierData *mmd,
+                              bool render, bool ignore_simplify)
 {
 	if (render)
 		return (mmd->modifier.scene) ? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->renderlvl) : mmd->renderlvl;
 	else if (ob->mode == OB_MODE_SCULPT)
 		return mmd->sculptlvl;
+	else if (ignore_simplify)
+		return mmd->lvl;
 	else
 		return (mmd->modifier.scene) ? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->lvl) : mmd->lvl;
 }
@@ -433,7 +436,7 @@ int multiresModifier_reshapeFromDeformMod(Scene *scene, MultiresModifierData *mm
 	int numVerts, result;
 	float (*deformedVerts)[3];
 
-	if (multires_get_level(ob, mmd, 0) == 0)
+	if (multires_get_level(ob, mmd, false, true) == 0)
 		return 0;
 
 	/* Create DerivedMesh for deformation modifier */
@@ -682,7 +685,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int direction)
 {
 	Mesh *me = BKE_mesh_from_object(ob);
-	int lvl = multires_get_level(ob, mmd, 0);
+	int lvl = multires_get_level(ob, mmd, false, true);
 	int levels = mmd->totlvl - lvl;
 	MDisps *mdisps;
 
@@ -1431,7 +1434,9 @@ DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
 	CCGDerivedMesh *ccgdm = NULL;
 	CCGElem **gridData, **subGridData;
 	CCGKey key;
-	int lvl = multires_get_level(ob, mmd, (flags & MULTIRES_USE_RENDER_PARAMS));
+	const bool render = (flags & MULTIRES_USE_RENDER_PARAMS) != 0;
+	const bool ignore_simplify = (flags & MULTIRES_IGNORE_SIMPLIFY) != 0;
+	int lvl = multires_get_level(ob, mmd, render, ignore_simplify);
 	int i, gridSize, numGrids;
 
 	if (lvl == 0)

@@ -111,7 +111,10 @@ typedef enum ModifierApplyFlag {
 	MOD_APPLY_RENDER = 1 << 0,       /* Render time. */
 	MOD_APPLY_USECACHE = 1 << 1,     /* Result of evaluation will be cached, so modifier might
 	                                  * want to cache data for quick updates (used by subsurf) */
-	MOD_APPLY_ORCO = 1 << 2          /* Modifier evaluated for undeformed texture coordinates */
+	MOD_APPLY_ORCO = 1 << 2,         /* Modifier evaluated for undeformed texture coordinates */
+	MOD_APPLY_IGNORE_SIMPLIFY = 1 << 3, /* Ignore scene simplification flag and use subdivisions
+	                                     * level set in multires modifier.
+	                                     */
 } ModifierApplyFlag;
 
 
