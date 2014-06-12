@@ -511,6 +511,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 	bNodeSocket *sock = arg->sock;
 	bNodeTreeType *ntreetype = arg->ntree->typeinfo;
 
+	uiBlockSetFlag(block, UI_BLOCK_NO_FLIP);
 	uiBlockSetCurLayout(block, layout);
 	split = uiLayoutSplit(layout, 0.0f, false);
 
