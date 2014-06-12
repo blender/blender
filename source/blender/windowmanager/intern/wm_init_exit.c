@@ -490,9 +490,11 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	(void)do_python;
 #endif
 
-	GPU_global_buffer_pool_free();
-	GPU_free_unused_buffers();
-	GPU_extensions_exit();
+	if (!G.background) {
+		GPU_global_buffer_pool_free();
+		GPU_free_unused_buffers();
+		GPU_extensions_exit();
+	}
 
 	BKE_reset_undo(); 
 	
