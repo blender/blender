@@ -871,14 +871,30 @@ bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
 		return true;
 	}
 #endif
+	bool status;
 
-	OSLThreadData *tdata = kg->osl_tdata;
-	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
+	if(filename[0] == '@' && filename.find('.') == -1) {
+        int slot = atoi(filename.c_str() + 1);
+		float4 rgba = kernel_tex_image_interp(slot, s, 1.0f - t);
 
-	OIIO::TextureSystem::TextureHandle *th = ts->get_texture_handle(filename, thread_info);
+		result[0] = rgba[0];
+		if(options.nchannels > 1)
+			result[1] = rgba[1];
+		if(options.nchannels > 2)
+			result[2] = rgba[2];
+		if(options.nchannels > 3)
+			result[3] = rgba[3];
+		status = true;
+	}
+	else {
+		OSLThreadData *tdata = kg->osl_tdata;
+		OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
 
-	bool status = ts->texture(th, thread_info,
-	                          options, s, t, dsdx, dtdx, dsdy, dtdy, result);
+		OIIO::TextureSystem::TextureHandle *th = ts->get_texture_handle(filename, thread_info);
+
+		status = ts->texture(th, thread_info,
+		                     options, s, t, dsdx, dtdx, dsdy, dtdy, result);
+	}
 
 	if(!status) {
 		if(options.nchannels == 3 || options.nchannels == 4) {

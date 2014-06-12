@@ -305,10 +305,32 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 
 	tex_mapping.compile(compiler);
 
-	if(is_float == -1)
-		is_float = (int)image_manager->is_float_image(filename, NULL, is_linear);
+	image_manager = compiler.image_manager;
+	if(is_float == -1) {
+		if(builtin_data == NULL) {
+			is_float = (int)image_manager->is_float_image(filename, NULL, is_linear);
+		}
+		else {
+			bool is_float_bool;
+			slot = image_manager->add_image(filename, builtin_data,
+			                                animated, is_float_bool, is_linear,
+			                                interpolation, use_alpha);
+			is_float = (int)is_float_bool;
+		}
+	}
 
-	compiler.parameter("filename", filename.c_str());
+	if(slot == -1) {
+		compiler.parameter("filename", filename.c_str());
+	}
+	else {
+		/* TODO(sergey): It's not so simple to pass custom attribute
+		 * to the texture() function in order to make builtin images
+		 * support more clear. So we use special file name which is
+		 * "@<slot_number>" and check whether file name matches this
+		 * mask in the OSLRenderServices::texture().
+		 */
+		compiler.parameter("filename", string_printf("@%d", slot).c_str());
+	}
 	if(is_linear || color_space != "Color")
 		compiler.parameter("color_space", "Linear");
 	else
@@ -459,10 +481,28 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 
 	tex_mapping.compile(compiler);
 
-	if(is_float == -1)
-		is_float = (int)image_manager->is_float_image(filename, NULL, is_linear);
+	/* See comments in ImageTextureNode::compile about support
+	 * of builtin images.
+	 */
+	if(is_float == -1) {
+		if(builtin_data == NULL) {
+			is_float = (int)image_manager->is_float_image(filename, NULL, is_linear);
+		}
+		else {
+			bool is_float_bool;
+			slot = image_manager->add_image(filename, builtin_data,
+			                                animated, is_float_bool, is_linear,
+			                                INTERPOLATION_LINEAR, use_alpha);
+			is_float = (int)is_float_bool;
+		}
+	}
 
-	compiler.parameter("filename", filename.c_str());
+	if(slot == -1) {
+		compiler.parameter("filename", filename.c_str());
+	}
+	else {
+		compiler.parameter("filename", string_printf("@%d", slot).c_str());
+	}
 	compiler.parameter("projection", projection);
 	if(is_linear || color_space != "Color")
 		compiler.parameter("color_space", "Linear");
@@ -4121,4 +4161,3 @@ void TangentNode::compile(OSLCompiler& compiler)
 }
 
 CCL_NAMESPACE_END
-
