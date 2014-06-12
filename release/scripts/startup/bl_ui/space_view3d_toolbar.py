@@ -1273,7 +1273,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
         sub = col.column(align=True)
-        sub.active = brush and brush.sculpt_tool not in ('MASK')
+        sub.active = (brush and brush.sculpt_tool != 'MASK')
         if (sculpt.detail_type_method == 'CONSTANT'):
             row = sub.row(align=True)
             row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
