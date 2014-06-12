@@ -711,7 +711,7 @@ void GPU_invalid_tex_init(void)
 
 void GPU_invalid_tex_bind(int mode)
 {
-	switch(mode) {
+	switch (mode) {
 		case GL_TEXTURE_1D:
 			glBindTexture(GL_TEXTURE_1D, GG.invalid_tex_1D->bindcode);
 			break;

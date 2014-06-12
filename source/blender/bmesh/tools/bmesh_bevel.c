@@ -52,7 +52,7 @@
 #define BEVEL_EPSILON_D  1e-6
 #define BEVEL_EPSILON    1e-6f
 #define BEVEL_EPSILON_SQ 1e-12f
-#define BEVEL_EPSILON_BIG 1e-4
+#define BEVEL_EPSILON_BIG 1e-4f
 
 /* happens far too often, uncomment for development */
 // #define BEVEL_ASSERT_PROJECT
