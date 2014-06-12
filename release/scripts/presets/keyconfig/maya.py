@@ -1448,9 +1448,9 @@ kmi.properties.value = 8
 # Map Node Editor
 km = kc.keymaps.new('Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', modal=False)
 
-kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'CLICK')
+kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'CLICK', shift=True)
+kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('node.select_border', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
