@@ -52,6 +52,7 @@
 #define BEVEL_EPSILON_D  1e-6
 #define BEVEL_EPSILON    1e-6f
 #define BEVEL_EPSILON_SQ 1e-12f
+#define BEVEL_EPSILON_BIG 1e-4
 
 /* happens far too often, uncomment for development */
 // #define BEVEL_ASSERT_PROJECT
@@ -585,7 +586,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 	sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, v)->co, v->co);
 
 	ang = angle_v3v3(dir1, dir2);
-	if (ang < 100.0f * BEVEL_EPSILON) {
+	if (ang < BEVEL_EPSILON_BIG) {
 		/* special case: e1 and e2 are parallel; put offset point perp to both, from v.
 		 * need to find a suitable plane.
 		 * if offsets are different, we're out of luck:
@@ -606,7 +607,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 			e2->offset_l = d;
 		copy_v3_v3(meetco, off1a);
 	}
-	else if (fabsf(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
+	else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_BIG) {
 		/* special case e1 and e2 are antiparallel, so bevel is into
 		 * a zero-area face.  Just make the offset point on the
 		 * common line, at offset distance from v. */
@@ -811,11 +812,11 @@ static void offset_in_two_planes(BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, Ed
 	add_v3_v3v3(off2b, off2a, dir2);
 
 	ang = angle_v3v3(dir1, dir2);
-	if (ang < 100.0f * BEVEL_EPSILON) {
+	if (ang < BEVEL_EPSILON_BIG) {
 		/* lines are parallel; put intersection on emid */
 		offset_on_edge_between(bp, e1, e2, emid, v, meetco);
 	}
-	else if (fabsf(ang - (float)M_PI) < 100.0f * BEVEL_EPSILON) {
+	else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_BIG) {
 		slide_dist(e2, v, e2->offset_l, meetco);
 		d = dist_to_line_v3(meetco, v->co, BM_edge_other_vert(e1->e, v)->co);
 		if (fabsf(d - e1->offset_r) > BEVEL_EPSILON)
@@ -892,7 +893,7 @@ static void set_profile_params(BevelParams *bp, BoundVert *bndv)
 {
 	EdgeHalf *e;
 	Profile *pro;
-	float co1[3], co2[3], co3[3], d1[3], d2[3];
+	float co1[3], co2[3], co3[3], d1[3], d2[3], d3[3], l;
 	bool do_linear_interp;
 
 	copy_v3_v3(co1, bndv->nv.co);
@@ -905,6 +906,7 @@ static void set_profile_params(BevelParams *bp, BoundVert *bndv)
 		pro->super_r = bp->pro_super_r;
 		/* projection direction is direction of the edge */
 		sub_v3_v3v3(pro->proj_dir, e->e->v1->co, e->e->v2->co);
+		normalize_v3(pro->proj_dir);
 		project_to_edge(e->e, co1, co2, pro->midco);
 		/* put arc endpoints on plane with normal proj_dir, containing midco */
 		add_v3_v3v3(co3, co1, pro->proj_dir);
@@ -920,12 +922,18 @@ static void set_profile_params(BevelParams *bp, BoundVert *bndv)
 		/* default plane to project onto is the one with triangle co1 - midco - co2 in it */
 		sub_v3_v3v3(d1, pro->midco, co1);
 		sub_v3_v3v3(d2, pro->midco, co2);
+		normalize_v3(d1);
+		normalize_v3(d2);
 		cross_v3_v3v3(pro->plane_no, d1, d2);
-		if (normalize_v3(pro->plane_no) < BEVEL_EPSILON) {
-			/* co1 - midco -co2 are collinear - project onto that plane */
-			cross_v3_v3v3(co3, d1, pro->proj_dir);
-			cross_v3_v3v3(pro->plane_no, d1, co3);
-			if (normalize_v3(pro->plane_no) < BEVEL_EPSILON) {
+		l = normalize_v3(pro->plane_no);
+		if (l  <= BEVEL_EPSILON_BIG) {
+			/* co1 - midco -co2 are collinear - project plane that contains that line
+			 * and is perpendicular to the plane containing it and the beveled edge */
+			cross_v3_v3v3(d3, d1, pro->proj_dir);
+			normalize_v3(d3);
+			cross_v3_v3v3(pro->plane_no, d1, d3);
+			l = normalize_v3(pro->plane_no);
+			if (l <= BEVEL_EPSILON_BIG) {
 				/* whole profile is collinear with edge: just interpolate */
 				do_linear_interp = true;
 			}
@@ -958,9 +966,9 @@ static void move_profile_plane(BoundVert *bndv, EdgeHalf *e1, EdgeHalf *e2)
 	sub_v3_v3v3(d2, e2->e->v1->co, e2->e->v2->co);
 	cross_v3_v3v3(no, d1, d2);
 	cross_v3_v3v3(no2, d1, bndv->profile.proj_dir);
-	if (normalize_v3(no) > BEVEL_EPSILON && normalize_v3(no2) > BEVEL_EPSILON) {
+	if (normalize_v3(no) > BEVEL_EPSILON_BIG && normalize_v3(no2) > BEVEL_EPSILON_BIG) {
 		dot = fabsf(dot_v3v3(no, no2));
-		if (fabsf(dot - 1.0f) > BEVEL_EPSILON)
+		if (fabsf(dot - 1.0f) > BEVEL_EPSILON_BIG)
 			copy_v3_v3(bndv->profile.plane_no, no);
 	}
 }
@@ -1700,7 +1708,7 @@ static BoundVert *pipe_test(BevVert *bv)
 			sub_v3_v3v3(dir3, BM_edge_other_vert(v3->ebev->e, bv->v)->co, bv->v->co);
 			normalize_v3(dir1);
 			normalize_v3(dir3);
-			if (angle_v3v3(dir1, dir3) < 100.0f * BEVEL_EPSILON) {
+			if (angle_v3v3(dir1, dir3) < BEVEL_EPSILON_BIG) {
 				epipe =  v1->ebev;
 				break;
 			}
