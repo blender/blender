@@ -128,6 +128,7 @@ void MESH_OT_loopcut(struct wmOperatorType *ot);
 
 /* *** editmesh_rip.c *** */
 void MESH_OT_rip(struct wmOperatorType *ot);
+void MESH_OT_rip_edge(struct wmOperatorType *ot);
 
 
 /* *** editmesh_select.c *** */
