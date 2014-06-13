@@ -49,6 +49,7 @@ KERNEL_TEX(float4, texture_float4, __curve_keys)
 KERNEL_TEX(uint4, texture_uint4, __attributes_map)
 KERNEL_TEX(float, texture_float, __attributes_float)
 KERNEL_TEX(float4, texture_float4, __attributes_float3)
+KERNEL_TEX(uchar4, texture_uchar4, __attributes_uchar4)
 
 /* lights */
 KERNEL_TEX(float4, texture_float4, __light_distribution)

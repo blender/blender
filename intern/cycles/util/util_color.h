@@ -26,6 +26,27 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device uchar float_to_byte(float val)
+{
+	return ((val <= 0.0f) ? 0 : (((val) > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * (val)) + 0.5f)));
+}
+
+ccl_device uchar4 color_float_to_byte(float3 c)
+{
+	uchar r, g, b;
+
+	r = float_to_byte(c.x);
+	g = float_to_byte(c.y);
+	b = float_to_byte(c.z);
+
+	return make_uchar4(r, g, b, 0);
+}
+
+ccl_device_inline float3 color_byte_to_float(uchar4 c)
+{
+	return make_float3(c.x*(1.0f/255.0f), c.y*(1.0f/255.0f), c.z*(1.0f/255.0f));
+}
+
 ccl_device float color_srgb_to_scene_linear(float c)
 {
 	if(c < 0.04045f)

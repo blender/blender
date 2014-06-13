@@ -259,11 +259,20 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData 
 
 		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
 	}
-	else if(elem == ATTR_ELEMENT_CORNER) {
+	else if(elem == ATTR_ELEMENT_CORNER || elem == ATTR_ELEMENT_CORNER_BYTE) {
 		int tri = offset + sd->prim*3;
-		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
-		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
-		float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
+		float3 f0, f1, f2;
+
+		if(elem == ATTR_ELEMENT_CORNER) {
+			f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
+			f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
+			f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
+		}
+		else {
+			f0 = color_byte_to_float(kernel_tex_fetch(__attributes_uchar4, tri + 0));
+			f1 = color_byte_to_float(kernel_tex_fetch(__attributes_uchar4, tri + 1));
+			f2 = color_byte_to_float(kernel_tex_fetch(__attributes_uchar4, tri + 2));
+		}
 
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;

@@ -745,7 +745,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 	device->tex_alloc("__attributes_map", dscene->attributes_map);
 }
 
-static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_float, vector<float4>& attr_float3,
+static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_float, vector<float4>& attr_float3, vector<uchar4>& attr_uchar4,
 	Attribute *mattr, TypeDesc& type, int& offset, AttributeElement& element)
 {
 	if(mattr) {
@@ -765,6 +765,15 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 			/* store slot in offset value */
 			VoxelAttribute *voxel_data = mattr->data_voxel();
 			offset = voxel_data->slot;
+		}
+		if(mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
+			uchar4 *data = mattr->data_uchar4();
+			offset = attr_uchar4.size();
+
+			attr_uchar4.resize(attr_uchar4.size() + size);
+
+			for(size_t k = 0; k < size; k++)
+				attr_uchar4[offset+k] = data[k];
 		}
 		else if(mattr->type == TypeDesc::TypeFloat) {
 			float *data = mattr->data_float();
@@ -802,7 +811,7 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 			offset -= mesh->vert_offset;
 		else if(element == ATTR_ELEMENT_FACE)
 			offset -= mesh->tri_offset;
-		else if(element == ATTR_ELEMENT_CORNER)
+		else if(element == ATTR_ELEMENT_CORNER || element == ATTR_ELEMENT_CORNER_BYTE)
 			offset -= 3*mesh->tri_offset;
 		else if(element == ATTR_ELEMENT_CURVE)
 			offset -= mesh->curve_offset;
@@ -843,6 +852,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	 * maps next */
 	vector<float> attr_float;
 	vector<float4> attr_float3;
+	vector<uchar4> attr_uchar4;
 
 	for(size_t i = 0; i < scene->meshes.size(); i++) {
 		Mesh *mesh = scene->meshes[i];
@@ -863,10 +873,10 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 					memcpy(triangle_mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
 			}
 
-			update_attribute_element_offset(mesh, attr_float, attr_float3, triangle_mattr,
+			update_attribute_element_offset(mesh, attr_float, attr_float3, attr_uchar4, triangle_mattr,
 				req.triangle_type, req.triangle_offset, req.triangle_element);
 
-			update_attribute_element_offset(mesh, attr_float, attr_float3, curve_mattr,
+			update_attribute_element_offset(mesh, attr_float, attr_float3, attr_uchar4, curve_mattr,
 				req.curve_type, req.curve_offset, req.curve_element);
 	
 			if(progress.get_cancel()) return;
@@ -891,6 +901,10 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	if(attr_float3.size()) {
 		dscene->attributes_float3.copy(&attr_float3[0], attr_float3.size());
 		device->tex_alloc("__attributes_float3", dscene->attributes_float3);
+	}
+	if(attr_uchar4.size()) {
+		dscene->attributes_uchar4.copy(&attr_uchar4[0], attr_uchar4.size());
+		device->tex_alloc("__attributes_uchar4", dscene->attributes_uchar4);
 	}
 }
 

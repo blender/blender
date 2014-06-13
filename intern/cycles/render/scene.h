@@ -85,6 +85,7 @@ public:
 	device_vector<uint4> attributes_map;
 	device_vector<float> attributes_float;
 	device_vector<float4> attributes_float3;
+	device_vector<uchar4> attributes_uchar4;
 
 	/* lights */
 	device_vector<float4> light_distribution;

@@ -42,7 +42,7 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData);
 void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, float3 RotCam);
 void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resolution);
 void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, float3 *uvdata);
-void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, float3 *fdata);
+void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, uchar4 *cdata);
 
 ParticleCurveData::ParticleCurveData()
 {
@@ -726,9 +726,9 @@ void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset
 	}
 }
 
-void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, float3 *fdata)
+void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, uchar4 *cdata)
 {
-	if(fdata == NULL)
+	if(cdata == NULL)
 		return;
 
 	int vertexindex = vert_offset;
@@ -740,17 +740,17 @@ void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offs
 
 			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
 				for(int section = 0; section < resol; section++) {
-					fdata[vertexindex] = color_srgb_to_scene_linear(CData->curve_vcol[curve]);
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
 					vertexindex++;
-					fdata[vertexindex] = color_srgb_to_scene_linear(CData->curve_vcol[curve]);
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
 					vertexindex++;
-					fdata[vertexindex] = color_srgb_to_scene_linear(CData->curve_vcol[curve]);
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
 					vertexindex++;
-					fdata[vertexindex] = color_srgb_to_scene_linear(CData->curve_vcol[curve]);
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
 					vertexindex++;
-					fdata[vertexindex] = color_srgb_to_scene_linear(CData->curve_vcol[curve]);
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
 					vertexindex++;
-					fdata[vertexindex] = color_srgb_to_scene_linear(CData->curve_vcol[curve]);
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
 					vertexindex++;
 				}
 			}
@@ -923,13 +923,12 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 			ObtainCacheParticleVcol(mesh, &b_mesh, &b_ob, &CData, !preview, vcol_num);
 
 			if(primitive == CURVE_TRIANGLES) {
-
 				Attribute *attr_vcol = mesh->attributes.add(
-					ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER);
+					ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER_BYTE);
 
-				float3 *fdata = attr_vcol->data_float3();
+				uchar4 *cdata = attr_vcol->data_uchar4();
 
-				ExportCurveTriangleVcol(mesh, &CData, tri_num * 3, used_res, fdata);
+				ExportCurveTriangleVcol(mesh, &CData, tri_num * 3, used_res, cdata);
 			}
 			else {
 				Attribute *attr_vcol = mesh->curve_attributes.add(

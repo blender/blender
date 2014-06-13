@@ -69,6 +69,15 @@ void Attribute::add(const float& f)
 		buffer.push_back(data[i]);
 }
 
+void Attribute::add(const uchar4& f)
+{
+	char *data = (char*)&f;
+	size_t size = sizeof(f);
+
+	for(size_t i = 0; i < size; i++)
+		buffer.push_back(data[i]);
+}
+
 void Attribute::add(const float3& f)
 {
 	char *data = (char*)&f;
@@ -136,6 +145,7 @@ size_t Attribute::element_size(int numverts, int numtris, int numsteps, int numc
 			size = numtris;
 			break;
 		case ATTR_ELEMENT_CORNER:
+		case ATTR_ELEMENT_CORNER_BYTE:
 			size = numtris*3;
 			break;
 		case ATTR_ELEMENT_CURVE:
