@@ -299,7 +299,9 @@ static bool cast_ray_highpoly(
 		normalize_v3(dir_high);
 
 		/* cast ray */
-		BLI_bvhtree_ray_cast(treeData[i].tree, co_high, dir_high, 0.0f, &hits[i], treeData[i].raycast_callback, &treeData[i]);
+		if (treeData[i].tree) {
+			BLI_bvhtree_ray_cast(treeData[i].tree, co_high, dir_high, 0.0f, &hits[i], treeData[i].raycast_callback, &treeData[i]);
+		}
 
 		if (hits[i].index != -1) {
 			/* cull backface */
@@ -434,7 +436,7 @@ static void mesh_calc_tri_tessface(
 	BLI_assert(p_id < me->totface * 2);
 }
 
-void RE_bake_pixels_populate_from_objects(
+bool RE_bake_pixels_populate_from_objects(
         struct Mesh *me_low, BakePixel pixel_array_from[],
         BakeHighPolyData highpoly[], const int tot_highpoly, const int num_pixels, const bool is_custom_cage,
         const float cage_extrusion, float mat_low[4][4], float mat_cage[4][4], struct Mesh *me_cage)
@@ -444,6 +446,7 @@ void RE_bake_pixels_populate_from_objects(
 	float u, v;
 	float imat_low [4][4];
 	bool is_cage = me_cage != NULL;
+	bool result = true;
 
 	DerivedMesh *dm_low = NULL;
 	DerivedMesh **dm_highpoly;
@@ -455,10 +458,10 @@ void RE_bake_pixels_populate_from_objects(
 	TriTessFace **tris_high;
 
 	/* assume all lowpoly tessfaces can be quads */
-	tris_high = MEM_mallocN(sizeof(TriTessFace *) * tot_highpoly, "MVerts Highpoly Mesh Array");
+	tris_high = MEM_callocN(sizeof(TriTessFace *) * tot_highpoly, "MVerts Highpoly Mesh Array");
 
 	/* assume all highpoly tessfaces are triangles */
-	dm_highpoly = MEM_mallocN(sizeof(DerivedMesh *) * tot_highpoly, "Highpoly Derived Meshes");
+	dm_highpoly = MEM_callocN(sizeof(DerivedMesh *) * tot_highpoly, "Highpoly Derived Meshes");
 	treeData = MEM_callocN(sizeof(BVHTreeFromMesh) * tot_highpoly, "Highpoly BVH Trees");
 
 	if (!is_cage) {
@@ -486,12 +489,15 @@ void RE_bake_pixels_populate_from_objects(
 
 		dm_highpoly[i] = CDDM_from_mesh(highpoly[i].me);
 
-		/* Create a bvh-tree for each highpoly object */
-		bvhtree_from_mesh_faces(&treeData[i], dm_highpoly[i], 0.0, 2, 6);
+		if (dm_highpoly[i]->getNumTessFaces(dm_highpoly[i]) != 0) {
+			/* Create a bvh-tree for each highpoly object */
+			bvhtree_from_mesh_faces(&treeData[i], dm_highpoly[i], 0.0, 2, 6);
 
-		if (&treeData[i].tree == NULL) {
-			printf("Baking: Out of memory\n");
-			goto cleanup;
+			if (treeData[i].tree == NULL) {
+				printf("Baking: out of memory while creating BHVTree for object \"%s\"\n", highpoly[i].ob->id.name + 2);
+				result = false;
+				goto cleanup;
+			}
 		}
 	}
 
@@ -537,8 +543,14 @@ void RE_bake_pixels_populate_from_objects(
 cleanup:
 	for (i = 0; i < tot_highpoly; i++) {
 		free_bvhtree_from_mesh(&treeData[i]);
-		dm_highpoly[i]->release(dm_highpoly[i]);
-		MEM_freeN(tris_high[i]);
+
+		if (dm_highpoly[i]) {
+			dm_highpoly[i]->release(dm_highpoly[i]);
+		}
+
+		if (tris_high[i]) {
+			MEM_freeN(tris_high[i]);
+		}
 	}
 
 	MEM_freeN(tris_high);
@@ -554,6 +566,8 @@ cleanup:
 	if (tris_cage) {
 		MEM_freeN(tris_cage);
 	}
+
+	return result;
 }
 
 static void bake_differentials(BakeDataZSpan *bd, const float *uv1, const float *uv2, const float *uv3)
