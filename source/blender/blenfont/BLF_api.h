@@ -40,6 +40,7 @@ struct ColorManagedDisplay;
 int BLF_init(int points, int dpi);
 void BLF_exit(void);
 void BLF_default_dpi(int dpi);
+void BLF_default_set(int fontid);
 
 void BLF_cache_clear(void);
 
@@ -50,6 +51,7 @@ int BLF_load_unique(const char *name) ATTR_NONNULL();
 int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
 
 void BLF_unload(const char *name) ATTR_NONNULL();
+void BLF_unload_id(int fontid);
 
 /* Attach a file with metrics information from memory. */
 void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);

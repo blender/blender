@@ -340,11 +340,23 @@ void uiStyleInit(void)
 		U.dpi = 72;
 	CLAMP(U.dpi, 48, 144);
 	
+	for (font = U.uifonts.first; font; font = font->next) {
+		BLF_unload_id(font->blf_id);
+	}
+
+	font = U.uifonts.first;
+
 	/* default builtin */
 	if (font == NULL) {
 		font = MEM_callocN(sizeof(uiFont), "ui font");
 		BLI_addtail(&U.uifonts, font);
-		
+	}
+
+	if (U.font_path_ui[0]) {
+		BLI_strncpy(font->filename, U.font_path_ui, sizeof(font->filename));
+		font->uifont_id = UIFONT_CUSTOM1;
+	}
+	else {
 		BLI_strncpy(font->filename, "default", sizeof(font->filename));
 		font->uifont_id = UIFONT_DEFAULT;
 	}
@@ -381,8 +393,12 @@ void uiStyleInit(void)
 		}
 		else {
 			font->blf_id = BLF_load(font->filename);
-			if (font->blf_id == -1)
+			if (font->blf_id == -1) {
 				font->blf_id = BLF_load_mem("default", (unsigned char *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+			}
+			else {
+				BLF_default_set(font->blf_id);
+			}
 		}
 
 		if (font->blf_id == -1) {

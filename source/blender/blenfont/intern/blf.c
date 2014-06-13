@@ -152,6 +152,14 @@ static int blf_search_available(void)
 	return -1;
 }
 
+void BLF_default_set(int fontid)
+{
+	FontBLF *font = blf_get(fontid);
+	if (font || fontid == -1) {
+		global_font_default = fontid;
+	}
+}
+
 static int blf_global_font_init(void)
 {
 	if (global_font_default == -1) {
@@ -332,6 +340,15 @@ void BLF_unload(const char *name)
 			blf_font_free(font);
 			global_font[i] = NULL;
 		}
+	}
+}
+
+void BLF_unload_id(int fontid)
+{
+	FontBLF *font = blf_get(fontid);
+	if (font) {
+		blf_font_free(font);
+		global_font[fontid] = NULL;
 	}
 }
 

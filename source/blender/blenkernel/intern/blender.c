@@ -384,6 +384,7 @@ void BKE_userdef_free(void)
 	wmKeyMapItem *kmi;
 	wmKeyMapDiffItem *kmdi;
 	bAddon *addon, *addon_next;
+	uiFont *font;
 
 	for (km = U.user_keymaps.first; km; km = km->next) {
 		for (kmdi = km->diff_items.first; kmdi; kmdi = kmdi->next) {
@@ -412,6 +413,12 @@ void BKE_userdef_free(void)
 		}
 		MEM_freeN(addon);
 	}
+
+	for (font = U.uifonts.first; font; font = font->next) {
+		BLF_unload_id(font->blf_id);
+	}
+
+	BLF_default_set(-1);
 
 	BLI_freelistN(&U.autoexec_paths);
 
