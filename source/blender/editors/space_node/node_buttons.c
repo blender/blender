@@ -202,8 +202,8 @@ void node_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "NODE_PT_gpencil");
 	strcpy(pt->label, N_("Grease Pencil"));
 	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw_header = gpencil_panel_standard_header;
-	pt->draw = gpencil_panel_standard;
+	pt->draw_header = ED_gpencil_panel_standard_header;
+	pt->draw = ED_gpencil_panel_standard;
 	pt->poll = active_nodetree_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }

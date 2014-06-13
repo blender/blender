@@ -1236,7 +1236,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (sseq->flag & SEQ_SHOW_GPENCIL) {
 		if (is_imbuf) {
 			/* draw grease-pencil (image aligned) */
-			draw_gpencil_2dimage(C);
+			ED_gpencil_draw_2dimage(C);
 		}
 	}
 
@@ -1249,7 +1249,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (sseq->flag & SEQ_SHOW_GPENCIL) {
 		if (is_imbuf) {
 			/* draw grease-pencil (screen aligned) */
-			draw_gpencil_view2d(C, 0);
+			ED_gpencil_draw_view2d(C, 0);
 		}
 	}
 

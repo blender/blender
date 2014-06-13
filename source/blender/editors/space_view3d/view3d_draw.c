@@ -2255,7 +2255,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	glEnable(GL_DEPTH_TEST);
 
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
-		draw_gpencil_view3d(scene, v3d, ar, true);
+		ED_gpencil_draw_view3d(scene, v3d, ar, true);
 	}
 	
 	v3d->zbuf = zbuf;
@@ -2714,7 +2714,7 @@ static void view3d_draw_objects(
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		/* must be before xray draw which clears the depth buffer */
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-		draw_gpencil_view3d(scene, v3d, ar, true);
+		ED_gpencil_draw_view3d(scene, v3d, ar, true);
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 
@@ -2834,7 +2834,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 		if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 			/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-			draw_gpencil_view3d(scene, v3d, ar, false);
+			ED_gpencil_draw_view3d(scene, v3d, ar, false);
 		}
 
 		/* freeing the images again here could be done after the operator runs, leaving for now */
@@ -3449,7 +3449,7 @@ static void view3d_main_area_draw_info(const bContext *C, Scene *scene,
 
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-		draw_gpencil_view3d(scene, v3d, ar, false);
+		ED_gpencil_draw_view3d(scene, v3d, ar, false);
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {

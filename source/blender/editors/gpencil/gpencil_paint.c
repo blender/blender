@@ -177,7 +177,7 @@ static int gpencil_draw_poll(bContext *C)
 {
 	if (ED_operator_regionactive(C)) {
 		/* check if current context can support GPencil data */
-		if (gpencil_data_get_pointers(C, NULL) != NULL) {
+		if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
 			/* check if Grease Pencil isn't already running */
 			if (ED_gpencil_session_active() == 0)
 				return 1;
@@ -1161,7 +1161,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 	}
 	
 	/* get gp-data */
-	gpd_ptr = gpencil_data_get_pointers(C, &p->ownerPtr);
+	gpd_ptr = ED_gpencil_data_get_pointers(C, &p->ownerPtr);
 	if (gpd_ptr == NULL) {
 		p->status = GP_STATUS_ERROR;
 		if (G.debug & G_DEBUG)

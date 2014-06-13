@@ -70,7 +70,7 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 {
 	bGPdata **gpd_ptr = NULL, *new_gpd = NULL;
 
-	gpd_ptr = gpencil_data_get_pointers(C, NULL);
+	gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
 	if (step == 1) {  /* undo */
 		//printf("\t\tGP - undo step\n");

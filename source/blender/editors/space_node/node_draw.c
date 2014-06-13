@@ -1341,7 +1341,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		
 		if (snode->flag & SNODE_SHOW_GPENCIL) {
 			/* draw grease-pencil ('canvas' strokes) */
-			draw_gpencil_view2d(C, true);
+			ED_gpencil_draw_view2d(C, true);
 		}
 	}
 	else {
@@ -1360,7 +1360,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 	if (snode->treepath.last) {
 		if (snode->flag & SNODE_SHOW_GPENCIL) {
 			/* draw grease-pencil (screen strokes, and also paintbuffer) */
-			draw_gpencil_view2d(C, false);
+			ED_gpencil_draw_view2d(C, false);
 		}
 	}
 

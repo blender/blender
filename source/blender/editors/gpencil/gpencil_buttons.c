@@ -350,7 +350,7 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	}
 }
 
-void gpencil_panel_standard_header(const bContext *C, Panel *pa)
+void ED_gpencil_panel_standard_header(const bContext *C, Panel *pa)
 {
 	PointerRNA ptr;
 	RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, CTX_wm_space_data(C), &ptr);
@@ -359,7 +359,7 @@ void gpencil_panel_standard_header(const bContext *C, Panel *pa)
 }
 
 /* Standard panel to be included wherever Grease Pencil is used... */
-void gpencil_panel_standard(const bContext *C, Panel *pa)
+void ED_gpencil_panel_standard(const bContext *C, Panel *pa)
 {
 	bGPdata **gpd_ptr = NULL;
 	PointerRNA ptr;
@@ -369,7 +369,7 @@ void gpencil_panel_standard(const bContext *C, Panel *pa)
 	draw_gpencil_space_specials(C, pa->layout);
 	
 	/* get pointer to Grease Pencil Data */
-	gpd_ptr = gpencil_data_get_pointers((bContext *)C, &ptr);
+	gpd_ptr = ED_gpencil_data_get_pointers((bContext *)C, &ptr);
 	
 	if (gpd_ptr)
 		draw_gpencil_panel((bContext *)C, pa->layout, *gpd_ptr, &ptr);
