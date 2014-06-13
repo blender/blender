@@ -1267,8 +1267,8 @@ void OBJECT_OT_bake(wmOperatorType *ot)
 	            "Extends the baked result as a post process filter", 0, 64);
 	RNA_def_boolean(ot->srna, "use_selected_to_active", false, "Selected to Active",
 	                "Bake shading on the surface of selected objects to the active object");
-	RNA_def_float(ot->srna, "cage_extrusion", 0.0, 0.0, 1.0, "Cage Extrusion",
-	              "Distance to use for the inward ray cast when using selected to active", 0.0, 1.0);
+	RNA_def_float(ot->srna, "cage_extrusion", 0.0f, 0.0f, FLT_MAX, "Cage Extrusion",
+	              "Distance to use for the inward ray cast when using selected to active", 0.0f, 1.0f);
 	RNA_def_string(ot->srna, "cage_object", NULL, MAX_NAME, "Cage Object",
 	               "Object to use as cage, instead of calculating the cage from the active object with cage extrusion");
 	RNA_def_enum(ot->srna, "normal_space", normal_space_items, R_BAKE_SPACE_TANGENT, "Normal Space",
