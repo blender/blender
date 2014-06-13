@@ -140,15 +140,15 @@ ccl_device float voronoi_F1_distance(float3 p)
 		}
 	}
 #else
-	__m128 vec_p = load_m128(p);
-	__m128i xyzi = quick_floor_sse(vec_p);
+	ssef vec_p = load4f(p);
+	ssei xyzi = quick_floor_sse(vec_p);
 
 	for (int xx = -1; xx <= 1; xx++) {
 		for (int yy = -1; yy <= 1; yy++) {
 			for (int zz = -1; zz <= 1; zz++) {
-				__m128 ip = _mm_cvtepi32_ps(_mm_add_epi32(xyzi, _mm_setr_epi32(xx, yy, zz, 0)));
-				__m128 vp = _mm_add_ps(ip, cellnoise_color(ip));
-				float d = len_squared<1, 1, 1, 0>(_mm_sub_ps(vec_p, vp));
+				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
+				ssef vp = ip + cellnoise_color(ip);
+				float d = len_squared<1, 1, 1, 0>(vec_p - vp);
 				da = min(d, da);
 			}
 		}
@@ -184,15 +184,15 @@ ccl_device float3 voronoi_F1_color(float3 p)
 
 	return cellnoise_color(pa);
 #else
-	__m128 pa, vec_p = load_m128(p);
-	__m128i xyzi = quick_floor_sse(vec_p);
+	ssef pa, vec_p = load4f(p);
+	ssei xyzi = quick_floor_sse(vec_p);
 
 	for (int xx = -1; xx <= 1; xx++) {
 		for (int yy = -1; yy <= 1; yy++) {
 			for (int zz = -1; zz <= 1; zz++) {
-				__m128 ip = _mm_cvtepi32_ps(_mm_add_epi32(xyzi, _mm_setr_epi32(xx, yy, zz, 0)));
-				__m128 vp = _mm_add_ps(ip, cellnoise_color(ip));
-				float d = len_squared<1, 1, 1, 0>(_mm_sub_ps(vec_p, vp));
+				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
+				ssef vp = ip + cellnoise_color(ip);
+				float d = len_squared<1, 1, 1, 0>(vec_p - vp);
 
 				if(d < da) {
 					da = d;
@@ -202,7 +202,7 @@ ccl_device float3 voronoi_F1_color(float3 p)
 		}
 	}
 
-	__m128 color = cellnoise_color(pa);
+	ssef color = cellnoise_color(pa);
 	return (float3 &)color;
 #endif
 }

@@ -44,16 +44,16 @@ template<typename T> struct texture  {
 	}
 
 #if 0
-	ccl_always_inline __m128 fetch_m128(int index)
+	ccl_always_inline ssef fetch_ssef(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
-		return ((__m128*)data)[index];
+		return ((ssef*)data)[index];
 	}
 
-	ccl_always_inline __m128i fetch_m128i(int index)
+	ccl_always_inline ssei fetch_ssei(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
-		return ((__m128i*)data)[index];
+		return ((ssei*)data)[index];
 	}
 #endif
 
@@ -232,8 +232,8 @@ typedef texture_image<uchar4> texture_image_uchar4;
 /* Macros to handle different memory storage on different devices */
 
 #define kernel_tex_fetch(tex, index) (kg->tex.fetch(index))
-#define kernel_tex_fetch_m128(tex, index) (kg->tex.fetch_m128(index))
-#define kernel_tex_fetch_m128i(tex, index) (kg->tex.fetch_m128i(index))
+#define kernel_tex_fetch_ssef(tex, index) (kg->tex.fetch_ssef(index))
+#define kernel_tex_fetch_ssei(tex, index) (kg->tex.fetch_ssei(index))
 #define kernel_tex_lookup(tex, t, offset, size) (kg->tex.lookup(t, offset, size))
 #define kernel_tex_image_interp(tex, x, y) ((tex < MAX_FLOAT_IMAGES) ? kg->texture_float_images[tex].interp(x, y) : kg->texture_byte_images[tex - MAX_FLOAT_IMAGES].interp(x, y))
 #define kernel_tex_image_interp_3d(tex, x, y, z) ((tex < MAX_FLOAT_IMAGES) ? kg->texture_float_images[tex].interp_3d(x, y, z) : kg->texture_byte_images[tex - MAX_FLOAT_IMAGES].interp_3d(x, y, z))

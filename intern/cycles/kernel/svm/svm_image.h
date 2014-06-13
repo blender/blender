@@ -134,8 +134,8 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 {
 #ifdef __KERNEL_CPU__
 #ifdef __KERNEL_SSE2__
-	__m128 r_m128;
-	float4 &r = (float4 &)r_m128;
+	ssef r_ssef;
+	float4 &r = (float4 &)r_ssef;
 	r = kernel_tex_image_interp(id, x, y);
 #else
 	float4 r = kernel_tex_image_interp(id, x, y);
@@ -318,14 +318,14 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	float alpha = r.w;
 
 	if(use_alpha && alpha != 1.0f && alpha != 0.0f) {
-		r_m128 = _mm_div_ps(r_m128, _mm_set1_ps(alpha));
+		r_ssef = r_ssef / ssef(alpha);
 		if(id >= TEX_NUM_FLOAT_IMAGES)
-			r_m128 = _mm_min_ps(r_m128, _mm_set1_ps(1.0f));
+			r_ssef = min(r_ssef, ssef(1.0f));
 		r.w = alpha;
 	}
 
 	if(srgb) {
-		r_m128 = color_srgb_to_scene_linear(r_m128);
+		r_ssef = color_srgb_to_scene_linear(r_ssef);
 		r.w = alpha;
 	}
 #else

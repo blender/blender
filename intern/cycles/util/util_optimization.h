@@ -101,6 +101,10 @@
 /* SSE intrinsics headers */
 #ifndef FREE_WINDOWS64
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
+
 #ifdef __KERNEL_SSE2__
 #include <xmmintrin.h> /* SSE 1 */
 #include <emmintrin.h> /* SSE 2 */
@@ -116,6 +120,12 @@
 
 #ifdef __KERNEL_SSE41__
 #include <smmintrin.h> /* SSE 4.1 */
+#endif
+
+#ifdef __KERNEL_AVX__
+#include <immintrin.h> /* AVX */
+#endif
+
 #endif
 
 #else

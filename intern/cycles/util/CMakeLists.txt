@@ -16,6 +16,7 @@ set(SRC
 	util_opencl.cpp
 	util_path.cpp
 	util_string.cpp
+	util_simd.cpp
 	util_system.cpp
 	util_task.cpp
 	util_time.cpp
@@ -53,6 +54,9 @@ set(SRC_HEADERS
 	util_progress.h
 	util_set.h
 	util_simd.h
+	util_sseb.h
+	util_ssef.h
+	util_ssei.h
 	util_stats.h
 	util_string.h
 	util_system.h

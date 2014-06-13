@@ -1,7 +1,8 @@
 /*
- * Copyright 2011-2013 Blender Foundation
+ * Copyright 2011-2013 Intel Corporation
+ * Modifications Copyright 2014, Blender Foundation.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0(the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,263 +15,419 @@
  * limitations under the License
  */
 
-#ifndef __UTIL_SIMD_H__
-#define __UTIL_SIMD_H__
+#ifndef __UTIL_SIMD_TYPES_H__
+#define __UTIL_SIMD_TYPES_H__
+
+#include <limits>
+
+#include "util_debug.h"
+#include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_SSE2__
 
-/* SSE shuffle utility functions */
+struct sseb;
+struct ssei;
+struct ssef;
 
-#ifdef __KERNEL_SSSE3__
+extern const __m128 _mm_lookupmask_ps[16];
 
-/* faster version for SSSE3 */
-typedef __m128i shuffle_swap_t;
+/* Special Types */
 
-ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
+static struct TrueTy {
+__forceinline operator bool( ) const { return true; }
+} True ccl_maybe_unused;
+
+static struct FalseTy {
+__forceinline operator bool( ) const { return false; }
+} False ccl_maybe_unused;
+
+static struct NegInfTy
 {
-	return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
-}
+__forceinline operator          float    ( ) const { return -std::numeric_limits<float>::infinity(); }
+__forceinline operator          int      ( ) const { return std::numeric_limits<int>::min(); }
+} neg_inf ccl_maybe_unused;
 
-ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
+static struct PosInfTy
 {
-	return _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
-}
+__forceinline operator          float    ( ) const { return std::numeric_limits<float>::infinity(); }
+__forceinline operator          int      ( ) const { return std::numeric_limits<int>::max(); }
+} inf ccl_maybe_unused, pos_inf ccl_maybe_unused;
 
-ccl_device_inline const __m128 shuffle_swap(const __m128& a, const shuffle_swap_t& shuf)
-{
-	return _mm_castsi128_ps(_mm_shuffle_epi8(_mm_castps_si128(a), shuf));
-}
+/* Intrinsics Functions */
 
-#else
-
-/* somewhat slower version for SSE2 */
-typedef int shuffle_swap_t;
-
-ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
-{
-	return 0;
-}
-
-ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
-{
-	return 1;
-}
-
-ccl_device_inline const __m128 shuffle_swap(const __m128& a, shuffle_swap_t shuf)
-{
-	/* shuffle value must be a constant, so we need to branch */
-	if(shuf)
-		return _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 0, 3, 2));
-	else
-		return _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 1, 0));
-}
-
+#if defined(__BMI__) && defined(__GNUC__)
+#define _tzcnt_u32 __tzcnt_u32
+#define _tzcnt_u64 __tzcnt_u64
 #endif
 
-#ifdef __KERNEL_SSE41__
-ccl_device_inline void gen_idirsplat_swap(const __m128 &pn, const shuffle_swap_t &shuf_identity, const shuffle_swap_t &shuf_swap,
-                                          const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
-{
-	const __m128 idirsplat_raw[] = { _mm_set_ps1(idir.x), _mm_set_ps1(idir.y), _mm_set_ps1(idir.z) };
-	idirsplat[0] = _mm_xor_ps(idirsplat_raw[0], pn);
-	idirsplat[1] = _mm_xor_ps(idirsplat_raw[1], pn);
-	idirsplat[2] = _mm_xor_ps(idirsplat_raw[2], pn);
+#if defined(__LZCNT__)
+#define _lzcnt_u32 __lzcnt32
+#define _lzcnt_u64 __lzcnt64
+#endif
 
-	const __m128 signmask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
-	const __m128 shuf_identity_f = _mm_castsi128_ps(shuf_identity);
-	const __m128 shuf_swap_f = _mm_castsi128_ps(shuf_swap);
-	shufflexyz[0] = _mm_castps_si128(_mm_blendv_ps(shuf_identity_f, shuf_swap_f, _mm_and_ps(idirsplat_raw[0], signmask)));
-	shufflexyz[1] = _mm_castps_si128(_mm_blendv_ps(shuf_identity_f, shuf_swap_f, _mm_and_ps(idirsplat_raw[1], signmask)));
-	shufflexyz[2] = _mm_castps_si128(_mm_blendv_ps(shuf_identity_f, shuf_swap_f, _mm_and_ps(idirsplat_raw[2], signmask)));
+#if defined(_WIN32)
+
+__forceinline int __popcnt(int in) {
+  return _mm_popcnt_u32(in);
 }
-#else
-ccl_device_inline void gen_idirsplat_swap(const __m128 &pn, const shuffle_swap_t &shuf_identity, const shuffle_swap_t &shuf_swap,
-                                          const float3& idir, __m128 idirsplat[3], shuffle_swap_t shufflexyz[3])
-{
-	idirsplat[0] = _mm_xor_ps(_mm_set_ps1(idir.x), pn);
-	idirsplat[1] = _mm_xor_ps(_mm_set_ps1(idir.y), pn);
-	idirsplat[2] = _mm_xor_ps(_mm_set_ps1(idir.z), pn);
 
-	shufflexyz[0] = (idir.x >= 0)? shuf_identity: shuf_swap;
-	shufflexyz[1] = (idir.y >= 0)? shuf_identity: shuf_swap;
-	shufflexyz[2] = (idir.z >= 0)? shuf_identity: shuf_swap;
+#if !defined(_MSC_VER)
+__forceinline unsigned int __popcnt(unsigned int in) {
+  return _mm_popcnt_u32(in);
 }
 #endif
 
-template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& a, const __m128& b)
-{
-	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
+#if defined(__KERNEL_64_BIT__)
+__forceinline long long __popcnt(long long in) {
+  return _mm_popcnt_u64(in);
 }
-
-template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128 shuffle(const __m128& a)
-{
-	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a), _MM_SHUFFLE(i3, i2, i1, i0)));
-}
-
-template<> __forceinline const __m128 shuffle<0, 1, 0, 1>(const __m128& a)
-{
-	return _mm_movelh_ps(a, a);
-}
-
-template<> __forceinline const __m128 shuffle<2, 3, 2, 3>(const __m128& a)
-{
-	return _mm_movehl_ps(a, a);
-}
-
-template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128i shuffle(const __m128i& a)
-{
-	return _mm_shuffle_epi32(a, _MM_SHUFFLE(i3, i2, i1, i0));
-}
-
-template<size_t i0, size_t i1, size_t i2, size_t i3> ccl_device_inline const __m128i shuffle(const __m128i& a, const __m128i& b)
-{
-	return _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b), _MM_SHUFFLE(i3, i2, i1, i0)));
-}
-
-/* Blend 2 vectors based on mask: (a[i] & mask[i]) | (b[i] & ~mask[i]) */
-#ifdef __KERNEL_SSE41__
-ccl_device_inline const __m128 blend(const __m128& mask, const __m128& a, const __m128& b)
-{
-	return _mm_blendv_ps(b, a, mask);
-}
-#else
-ccl_device_inline const __m128 blend(const __m128& mask, const __m128& a, const __m128& b)
-{
-	return _mm_or_ps(_mm_and_ps(mask, a), _mm_andnot_ps(mask, b));
+__forceinline size_t __popcnt(size_t in) {
+  return _mm_popcnt_u64(in);
 }
 #endif
 
-/* calculate a*b+c (replacement for fused multiply-add on SSE CPUs) */
-ccl_device_inline const __m128 fma(const __m128& a, const __m128& b, const __m128& c)
-{
-	return _mm_add_ps(_mm_mul_ps(a, b), c);
-}
-
-/* calculate a*b-c (replacement for fused multiply-subtract on SSE CPUs) */
-ccl_device_inline const __m128 fms(const __m128& a, const __m128& b, const __m128& c)
-{
-	return _mm_sub_ps(_mm_mul_ps(a, b), c);
-}
-
-/* calculate -a*b+c (replacement for fused negated-multiply-subtract on SSE CPUs) */
-ccl_device_inline const __m128 fnma(const __m128& a, const __m128& b, const __m128& c)
-{
-	return _mm_sub_ps(c, _mm_mul_ps(a, b));
-}
-
-template<size_t N> ccl_device_inline const __m128 broadcast(const __m128& a)
-{
-	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a), _MM_SHUFFLE(N, N, N, N)));
-}
-
-template<size_t N> ccl_device_inline const __m128i broadcast(const __m128i& a)
-{
-	return _mm_shuffle_epi32(a, _MM_SHUFFLE(N, N, N, N));
-}
-
-ccl_device_inline const __m128 uint32_to_float(const __m128i &in)
-{
-	__m128i a = _mm_srli_epi32(in, 16);
-	__m128i b = _mm_and_si128(in, _mm_set1_epi32(0x0000ffff));
-	__m128i c = _mm_or_si128(a, _mm_set1_epi32(0x53000000));
-	__m128 d = _mm_cvtepi32_ps(b);
-	__m128 e = _mm_sub_ps(_mm_castsi128_ps(c), _mm_castsi128_ps(_mm_set1_epi32(0x53000000)));
-	return _mm_add_ps(e, d);
-}
-
-template<size_t S1, size_t S2, size_t S3, size_t S4>
-ccl_device_inline const __m128 set_sign_bit(const __m128 &a)
-{
-	return _mm_xor_ps(a, _mm_castsi128_ps(_mm_setr_epi32(S1 << 31, S2 << 31, S3 << 31, S4 << 31)));
-}
-
-#ifdef __KERNEL_WITH_SSE_ALIGN__
-ccl_device_inline const __m128 load_m128(const float4 &vec)
-{
-	return _mm_load_ps(&vec.x);
-}
-
-ccl_device_inline const __m128 load_m128(const float3 &vec)
-{
-	return _mm_load_ps(&vec.x);
-}
-
+__forceinline int __bsf(int v) {
+#if defined(__KERNEL_AVX2__) 
+  return _tzcnt_u32(v);
 #else
-
-ccl_device_inline const __m128 load_m128(const float4 &vec)
-{
-	return _mm_loadu_ps(&vec.x);
-}
-
-ccl_device_inline const __m128 load_m128(const float3 &vec)
-{
-	return _mm_loadu_ps(&vec.x);
-}
-#endif /* __KERNEL_WITH_SSE_ALIGN__ */
-
-ccl_device_inline const __m128 dot3_splat(const __m128& a, const __m128& b)
-{
-#ifdef __KERNEL_SSE41__
-	return _mm_dp_ps(a, b, 0x7f);
-#else
-	__m128 t = _mm_mul_ps(a, b);
-	return _mm_set1_ps(((float*)&t)[0] + ((float*)&t)[1] + ((float*)&t)[2]);
+  unsigned long r = 0; _BitScanForward(&r,v); return r;
 #endif
 }
 
-/* squared length taking only specified axes into account */
-template<size_t X, size_t Y, size_t Z, size_t W>
-ccl_device_inline float len_squared(const __m128& a)
-{
-#ifndef __KERNEL_SSE41__
-	float4& t = (float4 &)a;
-	return (X ? t.x * t.x : 0.0f) + (Y ? t.y * t.y : 0.0f) + (Z ? t.z * t.z : 0.0f) + (W ? t.w * t.w : 0.0f);
+__forceinline unsigned int __bsf(unsigned int v) {
+#if defined(__KERNEL_AVX2__) 
+  return _tzcnt_u32(v);
 #else
-	return _mm_cvtss_f32(_mm_dp_ps(a, a, (X << 4) | (Y << 5) | (Z << 6) | (W << 7) | 0xf));
+  unsigned long r = 0; _BitScanForward(&r,v); return r;
 #endif
 }
 
-ccl_device_inline float dot3(const __m128& a, const __m128& b)
-{
-#ifdef __KERNEL_SSE41__
-	return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x7f));
+__forceinline int __bsr(int v) {
+  unsigned long r = 0; _BitScanReverse(&r,v); return r;
+}
+
+__forceinline int __btc(int v, int i) {
+  long r = v; _bittestandcomplement(&r,i); return r;
+}
+
+__forceinline int __bts(int v, int i) {
+  long r = v; _bittestandset(&r,i); return r;
+}
+
+__forceinline int __btr(int v, int i) {
+  long r = v; _bittestandreset(&r,i); return r;
+}
+
+__forceinline int bitscan(int v) {
+#if defined(__KERNEL_AVX2__) 
+  return _tzcnt_u32(v);
 #else
-	__m128 t = _mm_mul_ps(a, b);
-	return ((float*)&t)[0] + ((float*)&t)[1] + ((float*)&t)[2];
+  return __bsf(v);
 #endif
 }
 
-ccl_device_inline const __m128 len3_squared_splat(const __m128& a)
+__forceinline int clz(const int x)
 {
-	return dot3_splat(a, a);
+#if defined(__KERNEL_AVX2__)
+  return _lzcnt_u32(x);
+#else
+  if (UNLIKELY(x == 0)) return 32;
+  return 31 - __bsr(x);    
+#endif
 }
 
-ccl_device_inline float len3_squared(const __m128& a)
+__forceinline int __bscf(int& v) 
 {
-	return dot3(a, a);
+  int i = __bsf(v);
+  v &= v-1;
+  return i;
 }
 
-ccl_device_inline float len3(const __m128& a)
+__forceinline unsigned int __bscf(unsigned int& v) 
 {
-	return _mm_cvtss_f32(_mm_sqrt_ss(dot3_splat(a, a)));
+  unsigned int i = __bsf(v);
+  v &= v-1;
+  return i;
 }
 
-/* calculate shuffled cross product, useful when order of components does not matter */
-ccl_device_inline const __m128 cross_zxy(const __m128& a, const __m128& b)
-{
-	return fms(a, shuffle<1, 2, 0, 3>(b), _mm_mul_ps(b, shuffle<1, 2, 0, 3>(a)));
+#if defined(__KERNEL_64_BIT__)
+
+__forceinline size_t __bsf(size_t v) {
+#if defined(__KERNEL_AVX2__) 
+  return _tzcnt_u64(v);
+#else
+  unsigned long r = 0; _BitScanForward64(&r,v); return r;
+#endif
 }
 
-ccl_device_inline const __m128 cross(const __m128& a, const __m128& b)
-{
-	return shuffle<1, 2, 0, 3>(cross_zxy(a, b));
+__forceinline size_t __bsr(size_t v) {
+  unsigned long r = 0; _BitScanReverse64(&r,v); return r;
 }
+
+__forceinline size_t __btc(size_t v, size_t i) {
+  size_t r = v; _bittestandcomplement64((__int64*)&r,i); return r;
+}
+
+__forceinline size_t __bts(size_t v, size_t i) {
+  __int64 r = v; _bittestandset64(&r,i); return r;
+}
+
+__forceinline size_t __btr(size_t v, size_t i) {
+  __int64 r = v; _bittestandreset64(&r,i); return r;
+}
+
+__forceinline size_t bitscan(size_t v) {
+#if defined(__KERNEL_AVX2__)
+#if defined(__KERNEL_64_BIT__)
+  return _tzcnt_u64(v);
+#else
+  return _tzcnt_u32(v);
+#endif
+#else
+  return __bsf(v);
+#endif
+}
+
+__forceinline size_t __bscf(size_t& v) 
+{
+  size_t i = __bsf(v);
+  v &= v-1;
+  return i;
+}
+
+#endif /* __KERNEL_64_BIT__ */
+
+#else /* _WIN32 */
+
+__forceinline unsigned int __popcnt(unsigned int in) {
+  int r = 0; asm ("popcnt %1,%0" : "=r"(r) : "r"(in)); return r;
+}
+
+__forceinline int __bsf(int v) {
+  int r = 0; asm ("bsf %1,%0" : "=r"(r) : "r"(v)); return r;
+}
+
+__forceinline int __bsr(int v) {
+  int r = 0; asm ("bsr %1,%0" : "=r"(r) : "r"(v)); return r;
+}
+
+__forceinline int __btc(int v, int i) {
+  int r = 0; asm ("btc %1,%0" : "=r"(r) : "r"(i), "0"(v) : "flags" ); return r;
+}
+
+__forceinline int __bts(int v, int i) {
+  int r = 0; asm ("bts %1,%0" : "=r"(r) : "r"(i), "0"(v) : "flags"); return r;
+}
+
+__forceinline int __btr(int v, int i) {
+  int r = 0; asm ("btr %1,%0" : "=r"(r) : "r"(i), "0"(v) : "flags"); return r;
+}
+
+__forceinline size_t __bsf(size_t v) {
+  size_t r = 0; asm ("bsf %1,%0" : "=r"(r) : "r"(v)); return r;
+}
+
+__forceinline unsigned int __bsf(unsigned int v) {
+  unsigned int r = 0; asm ("bsf %1,%0" : "=r"(r) : "r"(v)); return r;
+}
+
+__forceinline size_t __bsr(size_t v) {
+  size_t r = 0; asm ("bsr %1,%0" : "=r"(r) : "r"(v)); return r;
+}
+
+__forceinline size_t __btc(size_t v, size_t i) {
+  size_t r = 0; asm ("btc %1,%0" : "=r"(r) : "r"(i), "0"(v) : "flags" ); return r;
+}
+
+__forceinline size_t __bts(size_t v, size_t i) {
+  size_t r = 0; asm ("bts %1,%0" : "=r"(r) : "r"(i), "0"(v) : "flags"); return r;
+}
+
+__forceinline size_t __btr(size_t v, size_t i) {
+  size_t r = 0; asm ("btr %1,%0" : "=r"(r) : "r"(i), "0"(v) : "flags"); return r;
+}
+
+__forceinline int bitscan(int v) {
+#if defined(__KERNEL_AVX2__) 
+  return _tzcnt_u32(v);
+#else
+  return __bsf(v);
+#endif
+}
+
+__forceinline unsigned int bitscan(unsigned int v) {
+#if defined(__KERNEL_AVX2__) 
+  return _tzcnt_u32(v);
+#else
+  return __bsf(v);
+#endif
+}
+
+__forceinline size_t bitscan(size_t v) {
+#if defined(__KERNEL_AVX2__)
+#if defined(__KERNEL_64_BIT__)
+  return _tzcnt_u64(v);
+#else
+  return _tzcnt_u32(v);
+#endif
+#else
+  return __bsf(v);
+#endif
+}
+
+__forceinline int clz(const int x)
+{
+#if defined(__KERNEL_AVX2__)
+  return _lzcnt_u32(x);
+#else
+  if (UNLIKELY(x == 0)) return 32;
+  return 31 - __bsr(x);    
+#endif
+}
+
+__forceinline int __bscf(int& v) 
+{
+  int i = bitscan(v);
+#if defined(__KERNEL_AVX2__)
+  v &= v-1;
+#else
+  v = __btc(v,i);
+#endif
+  return i;
+}
+
+__forceinline unsigned int __bscf(unsigned int& v) 
+{
+  unsigned int i = bitscan(v);
+  v &= v-1;
+  return i;
+}
+
+__forceinline size_t __bscf(size_t& v) 
+{
+  size_t i = bitscan(v);
+#if defined(__KERNEL_AVX2__)
+  v &= v-1;
+#else
+  v = __btc(v,i);
+#endif
+  return i;
+}
+
+#endif /* _WIN32 */
+
+static const unsigned int BITSCAN_NO_BIT_SET_32 = 32;
+static const size_t       BITSCAN_NO_BIT_SET_64 = 64;
+
+/* Emulation of SSE4 functions with SSE3 */
+
+#if defined(__KERNEL_SSE3) && !defined(__KERNEL_SSE4__)
+
+#define _MM_FROUND_TO_NEAREST_INT    0x00
+#define _MM_FROUND_TO_NEG_INF        0x01
+#define _MM_FROUND_TO_POS_INF        0x02
+#define _MM_FROUND_TO_ZERO           0x03
+#define _MM_FROUND_CUR_DIRECTION     0x04
+
+#define _mm_blendv_ps __emu_mm_blendv_ps
+__forceinline __m128 _mm_blendv_ps( __m128 value, __m128 input, __m128 mask ) { 
+    return _mm_or_ps(_mm_and_ps(mask, input), _mm_andnot_ps(mask, value)); 
+}
+
+#define _mm_blend_ps __emu_mm_blend_ps
+__forceinline __m128 _mm_blend_ps( __m128 value, __m128 input, const int mask ) { 
+    assert(mask < 0x10); return _mm_blendv_ps(value, input, _mm_lookupmask_ps[mask]); 
+}
+
+#define _mm_blendv_epi8 __emu_mm_blendv_epi8
+__forceinline __m128i _mm_blendv_epi8( __m128i value, __m128i input, __m128i mask ) { 
+    return _mm_or_si128(_mm_and_si128(mask, input), _mm_andnot_si128(mask, value)); 
+}
+
+#define _mm_mullo_epi32 __emu_mm_mullo_epi32
+__forceinline __m128i _mm_mullo_epi32( __m128i value, __m128i input ) {
+  __m128i rvalue;
+  char* _r = (char*)(&rvalue + 1);
+  char* _v = (char*)(& value + 1);
+  char* _i = (char*)(& input + 1);
+  for ( ssize_t i = -16 ; i != 0 ; i += 4 ) *((int32*)(_r + i)) = *((int32*)(_v + i))*  *((int32*)(_i + i));
+  return rvalue;
+}
+
+
+#define _mm_min_epi32 __emu_mm_min_epi32
+__forceinline __m128i _mm_min_epi32( __m128i value, __m128i input ) { 
+    return _mm_blendv_epi8(input, value, _mm_cmplt_epi32(value, input)); 
+}
+
+#define _mm_max_epi32 __emu_mm_max_epi32
+__forceinline __m128i _mm_max_epi32( __m128i value, __m128i input ) { 
+    return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input)); 
+}
+
+#define _mm_extract_epi32 __emu_mm_extract_epi32
+__forceinline int _mm_extract_epi32( __m128i input, const int index ) {
+  switch ( index ) {
+  case 0: return _mm_cvtsi128_si32(input);
+  case 1: return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(1, 1, 1, 1)));
+  case 2: return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(2, 2, 2, 2)));
+  case 3: return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(3, 3, 3, 3)));
+  default: assert(false); return 0;
+  }
+}
+
+#define _mm_insert_epi32 __emu_mm_insert_epi32
+__forceinline __m128i _mm_insert_epi32( __m128i value, int input, const int index ) { 
+    assert(index >= 0 && index < 4); ((int*)&value)[index] = input; return value; 
+}
+
+#define _mm_extract_ps __emu_mm_extract_ps
+__forceinline int _mm_extract_ps( __m128 input, const int index ) {
+  int32* ptr = (int32*)&input; return ptr[index];
+}
+
+#define _mm_insert_ps __emu_mm_insert_ps
+__forceinline __m128 _mm_insert_ps( __m128 value, __m128 input, const int index )
+{ assert(index < 0x100); ((float*)&value)[(index >> 4)&0x3] = ((float*)&input)[index >> 6]; return _mm_andnot_ps(_mm_lookupmask_ps[index&0xf], value); }
+
+#define _mm_round_ps __emu_mm_round_ps
+__forceinline __m128 _mm_round_ps( __m128 value, const int flags )
+{
+  switch ( flags )
+  {
+  case _MM_FROUND_TO_NEAREST_INT: return _mm_cvtepi32_ps(_mm_cvtps_epi32(value));
+  case _MM_FROUND_TO_NEG_INF    : return _mm_cvtepi32_ps(_mm_cvtps_epi32(_mm_add_ps(value, _mm_set1_ps(-0.5f))));
+  case _MM_FROUND_TO_POS_INF    : return _mm_cvtepi32_ps(_mm_cvtps_epi32(_mm_add_ps(value, _mm_set1_ps( 0.5f))));
+  case _MM_FROUND_TO_ZERO       : return _mm_cvtepi32_ps(_mm_cvttps_epi32(value));
+  }
+  return value;
+}
+
+#ifdef _M_X64
+#define _mm_insert_epi64 __emu_mm_insert_epi64
+__forceinline __m128i _mm_insert_epi64( __m128i value, __int64 input, const int index ) { 
+    assert(size_t(index) < 4); ((__int64*)&value)[index] = input; return value; 
+}
+
+#define _mm_extract_epi64 __emu_mm_extract_epi64
+__forceinline __int64 _mm_extract_epi64( __m128i input, const int index ) { 
+    assert(size_t(index) < 2); 
+    return index == 0 ? _mm_cvtsi128_si64x(input) : _mm_cvtsi128_si64x(_mm_unpackhi_epi64(input, input)); 
+}
+#endif
+
+#endif
 
 #endif /* __KERNEL_SSE2__ */
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_SIMD_H__ */
+#include "util_math.h"
+#include "util_sseb.h"
+#include "util_ssei.h"
+#include "util_ssef.h"
+
+#endif /* __UTIL_SIMD_TYPES_H__ */
 

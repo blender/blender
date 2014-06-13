@@ -68,18 +68,18 @@ ccl_device_inline void float4_store_half(half *h, float4 f, float scale)
 	}
 #else
 	/* same as above with SSE */
-	const __m128 mm_scale = _mm_set_ps1(scale);
-	const __m128i mm_38800000 = _mm_set1_epi32(0x38800000);
-	const __m128i mm_7FFF = _mm_set1_epi32(0x7FFF);
-	const __m128i mm_7FFFFFFF = _mm_set1_epi32(0x7FFFFFFF);
-	const __m128i mm_C8000000 = _mm_set1_epi32(0xC8000000);
+	const ssef mm_scale = ssef(scale);
+	const ssei mm_38800000 = ssei(0x38800000);
+	const ssei mm_7FFF = ssei(0x7FFF);
+	const ssei mm_7FFFFFFF = ssei(0x7FFFFFFF);
+	const ssei mm_C8000000 = ssei(0xC8000000);
 
-	__m128 mm_fscale = _mm_mul_ps(load_m128(f), mm_scale);
-	__m128i x = _mm_castps_si128(_mm_min_ps(_mm_max_ps(mm_fscale, _mm_set_ps1(0.0f)), _mm_set_ps1(65500.0f)));
-	__m128i absolute = _mm_and_si128(x, mm_7FFFFFFF);
-	__m128i Z = _mm_add_epi32(absolute, mm_C8000000);
-	__m128i result = _mm_andnot_si128(_mm_cmplt_epi32(absolute, mm_38800000), Z); 
-	__m128i rh = _mm_and_si128(_mm_srai_epi32(result, 13), mm_7FFF);
+	ssef mm_fscale = load4f(f) * mm_scale;
+	ssei x = cast(min(max(mm_fscale, ssef(0.0f)), ssef(65500.0f)));
+	ssei absolute = x & mm_7FFFFFFF;
+	ssei Z = absolute + mm_C8000000;
+	ssei result = andnot(absolute < mm_38800000, Z); 
+	ssei rh = (result >> 13) & mm_7FFF;
 
 	_mm_storel_pi((__m64*)h, _mm_castsi128_ps(_mm_packs_epi32(rh, rh)));
 #endif
