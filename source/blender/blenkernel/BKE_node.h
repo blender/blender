@@ -727,7 +727,7 @@ struct ShadeResult;
 #define SH_NODE_BRIGHTCONTRAST			165
 #define SH_NODE_LIGHT_FALLOFF			166
 #define SH_NODE_OBJECT_INFO				167
-#define SH_NODE_PARTICLE_INFO           168
+#define SH_NODE_PARTICLE_INFO			168
 #define SH_NODE_TEX_BRICK				169
 #define SH_NODE_BUMP					170
 #define SH_NODE_SCRIPT					171
@@ -746,7 +746,9 @@ struct ShadeResult;
 #define SH_NODE_COMBHSV					184
 #define SH_NODE_BSDF_HAIR				185
 #define SH_NODE_LAMP					186
-#define SH_NODE_UVMAP                   187
+#define SH_NODE_UVMAP					187
+#define SH_NODE_SEPXYZ					188
+#define SH_NODE_COMBXYZ					189
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

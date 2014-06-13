@@ -144,6 +144,7 @@ set(SRC
 	shader/nodes/node_shader_rgb.c
 	shader/nodes/node_shader_sepcombRGB.c
 	shader/nodes/node_shader_sepcombHSV.c
+	shader/nodes/node_shader_sepcombXYZ.c
 	shader/nodes/node_shader_squeeze.c
 	shader/nodes/node_shader_texture.c
 	shader/nodes/node_shader_valToRgb.c

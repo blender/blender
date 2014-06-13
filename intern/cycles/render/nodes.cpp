@@ -3056,6 +3056,40 @@ void CombineRGBNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_combine_rgb");
 }
 
+/* Combine XYZ */
+CombineXYZNode::CombineXYZNode()
+: ShaderNode("combine_xyz")
+{
+	add_input("X", SHADER_SOCKET_FLOAT);
+	add_input("Y", SHADER_SOCKET_FLOAT);
+	add_input("Z", SHADER_SOCKET_FLOAT);
+	add_output("Vector", SHADER_SOCKET_VECTOR);
+}
+
+void CombineXYZNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *x_in = input("X");
+	ShaderInput *y_in = input("Y");
+	ShaderInput *z_in = input("Z");
+	ShaderOutput *vector_out = output("Vector");
+
+	compiler.stack_assign(vector_out);
+
+	compiler.stack_assign(x_in);
+	compiler.add_node(NODE_COMBINE_XYZ, x_in->stack_offset, 0, vector_out->stack_offset);
+
+	compiler.stack_assign(y_in);
+	compiler.add_node(NODE_COMBINE_XYZ, y_in->stack_offset, 1, vector_out->stack_offset);
+
+	compiler.stack_assign(z_in);
+	compiler.add_node(NODE_COMBINE_XYZ, z_in->stack_offset, 2, vector_out->stack_offset);
+}
+
+void CombineXYZNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_combine_xyz");
+}
+
 /* Combine HSV */
 CombineHSVNode::CombineHSVNode()
 : ShaderNode("combine_hsv")
@@ -3178,6 +3212,40 @@ void SeparateRGBNode::compile(SVMCompiler& compiler)
 void SeparateRGBNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_separate_rgb");
+}
+
+/* Separate XYZ */
+SeparateXYZNode::SeparateXYZNode()
+: ShaderNode("separate_xyz")
+{
+	add_input("Vector", SHADER_SOCKET_VECTOR);
+	add_output("X", SHADER_SOCKET_FLOAT);
+	add_output("Y", SHADER_SOCKET_FLOAT);
+	add_output("Z", SHADER_SOCKET_FLOAT);
+}
+
+void SeparateXYZNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *vector_in = input("Vector");
+	ShaderOutput *x_out = output("X");
+	ShaderOutput *y_out = output("Y");
+	ShaderOutput *z_out = output("Z");
+
+	compiler.stack_assign(vector_in);
+
+	compiler.stack_assign(x_out);
+	compiler.add_node(NODE_SEPARATE_XYZ, vector_in->stack_offset, 0, x_out->stack_offset);
+
+	compiler.stack_assign(y_out);
+	compiler.add_node(NODE_SEPARATE_XYZ, vector_in->stack_offset, 1, y_out->stack_offset);
+
+	compiler.stack_assign(z_out);
+	compiler.add_node(NODE_SEPARATE_XYZ, vector_in->stack_offset, 2, z_out->stack_offset);
+}
+
+void SeparateXYZNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_separate_xyz");
 }
 
 /* Separate HSV */

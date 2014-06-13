@@ -244,6 +244,12 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	else if (b_node.is_a(&RNA_ShaderNodeCombineHSV)) {
 		node = new CombineHSVNode();
 	}
+	else if (b_node.is_a(&RNA_ShaderNodeSeparateXYZ)) {
+		node = new SeparateXYZNode();
+	}
+	else if (b_node.is_a(&RNA_ShaderNodeCombineXYZ)) {
+		node = new CombineXYZNode();
+	}
 	else if (b_node.is_a(&RNA_ShaderNodeHueSaturation)) {
 		node = new HSVNode();
 	}
