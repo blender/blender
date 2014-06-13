@@ -191,7 +191,7 @@ void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (
 		} while ((l_iter = l_iter->next) != l_first);
 
 		/* complete the loop */
-		BLI_polyfill_calc((const float (*)[2])projverts, f->len, r_index);
+		BLI_polyfill_calc((const float (*)[2])projverts, f->len, -1, r_index);
 	}
 }
 
@@ -833,7 +833,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
 		}
 
-		BLI_polyfill_calc_arena((const float (*)[2])projverts, f->len, tris,
+		BLI_polyfill_calc_arena((const float (*)[2])projverts, f->len, -1, tris,
 		                        sf_arena);
 
 		if (use_beauty) {
@@ -1303,7 +1303,7 @@ void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptr
 				j++;
 			} while ((l_iter = l_iter->next) != l_first);
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, efa->len, tris, arena);
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, efa->len, -1, tris, arena);
 
 			for (j = 0; j < totfilltri; j++) {
 				BMLoop **l_ptr = looptris[i++];

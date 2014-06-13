@@ -1411,7 +1411,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata, CustomData *ldata, CustomDat
 				mul_v2_m3v3(projverts[j], axis_mat, mvert[ml->v].co);
 			}
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, tris, arena);
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, -1, tris, arena);
 
 			/* apply fill */
 			for (j = 0; j < totfilltri; j++) {

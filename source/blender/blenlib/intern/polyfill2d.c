@@ -423,6 +423,7 @@ static void pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip)
 static void polyfill_calc_ex(
         const float (*coords)[2],
         const unsigned int coords_tot,
+        int coords_sign,
         unsigned int (*r_tris)[3],
 
         PolyIndex *r_indices)
@@ -444,9 +445,22 @@ static void polyfill_calc_ex(
 	pf.tris = r_tris;
 	pf.tris_tot = 0;
 
-	if ((coords_tot < 3) ||
-	    cross_poly_v2(coords, coords_tot) > 0.0f)
-	{
+	if (coords_sign == 0) {
+		coords_sign = (cross_poly_v2(coords, coords_tot) >= 0.0f) ? 1 : -1;
+	}
+	else {
+		/* chech we're passing in correcty args */
+#ifndef NDEBUG
+		if (coords_sign == 1) {
+			BLI_assert(cross_poly_v2(coords, coords_tot) >= 0.0f);
+		}
+		else {
+			BLI_assert(cross_poly_v2(coords, coords_tot) <= 0.0f);
+		}
+#endif
+	}
+
+	if (coords_sign == 1) {
 		for (i = 0; i < coords_tot; i++) {
 			indices[i].next = &indices[i + 1];
 			indices[i].prev = &indices[i - 1];
@@ -481,6 +495,7 @@ static void polyfill_calc_ex(
 void BLI_polyfill_calc_arena(
         const float (*coords)[2],
         const unsigned int coords_tot,
+        const int coords_sign,
         unsigned int (*r_tris)[3],
 
         struct MemArena *arena)
@@ -492,7 +507,7 @@ void BLI_polyfill_calc_arena(
 #endif
 
 	polyfill_calc_ex(
-	        coords, coords_tot,
+	        coords, coords_tot, coords_sign,
 	        r_tris,
 	        /* cache */
 
@@ -509,6 +524,7 @@ void BLI_polyfill_calc_arena(
 void BLI_polyfill_calc(
         const float (*coords)[2],
         const unsigned int coords_tot,
+        const int coords_sign,
         unsigned int (*r_tris)[3])
 {
 	PolyIndex *indices = BLI_array_alloca(indices, coords_tot);
@@ -518,7 +534,7 @@ void BLI_polyfill_calc(
 #endif
 
 	polyfill_calc_ex(
-	        coords, coords_tot,
+	        coords, coords_tot, coords_sign,
 	        r_tris,
 	        /* cache */
 
