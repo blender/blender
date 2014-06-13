@@ -85,6 +85,35 @@
 #  define UNLIKELY(x)     (x)
 #endif
 
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
+// Needed for memalign on Linux and _aligned_alloc on Windows.
+#  ifdef FREE_WINDOWS
+/* make sure _aligned_malloc is included */
+#    ifdef __MSVCRT_VERSION__
+#      undef __MSVCRT_VERSION__
+#    endif
+
+#    define __MSVCRT_VERSION__ 0x0700
+#  endif  // FREE_WINDOWS
+
+#  include <malloc.h>
+#else
+// Apple's malloc is 16-byte aligned, and does not have malloc.h, so include
+// stdilb instead.
+#  include <cstdlib>
+#endif
+
+#define IS_POW2(a) (((a) & ((a) - 1)) == 0)
+
+/* Extra padding which needs to be applied on MemHead to make it aligned. */
+#define MEMHEAD_ALIGN_PADDING(alignment) ((size_t)alignment - (sizeof(MemHeadAligned) % (size_t)alignment))
+
+/* Real pointer returned by the malloc or aligned_alloc. */
+#define MEMHEAD_REAL_PTR(memh) ((char *)memh - MEMHEAD_ALIGN_PADDING(memh->alignment))
+
+void *aligned_malloc(size_t size, size_t alignment);
+void aligned_free(void *ptr);
+
 /* Prototypes for counted allocator functions */
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 void MEM_lockfree_freeN(void *vmemh);
@@ -93,6 +122,7 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *UNUSED(str))
 void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *UNUSED(str))  ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
 void *MEM_lockfree_callocN(size_t len, const char *UNUSED(str))  ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 void *MEM_lockfree_mallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 void *MEM_lockfree_mapallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 void MEM_lockfree_printmemlist_pydict(void);
 void MEM_lockfree_printmemlist(void);
@@ -119,6 +149,7 @@ void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *UNUSED(str)) 
 void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(2);
 void *MEM_guarded_callocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 void *MEM_guarded_mallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
+void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 void *MEM_guarded_mapallocN(size_t len, const char *UNUSED(str)) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 void MEM_guarded_printmemlist_pydict(void);
 void MEM_guarded_printmemlist(void);

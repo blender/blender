@@ -46,6 +46,11 @@ typedef struct MemHead {
 	size_t len;
 } MemHead;
 
+typedef struct MemHeadAligned {
+	short alignment;
+	size_t len;
+} MemHeadAligned;
+
 static unsigned int totblock = 0;
 static size_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
 static bool malloc_debug_memset = false;
@@ -54,9 +59,17 @@ static void (*error_callback)(const char *) = NULL;
 static void (*thread_lock_callback)(void) = NULL;
 static void (*thread_unlock_callback)(void) = NULL;
 
+enum {
+	MEMHEAD_MMAP_FLAG = 1,
+	MEMHEAD_ALIGN_FLAG = 2,
+};
+
 #define MEMHEAD_FROM_PTR(ptr) (((MemHead*) vmemh) - 1)
 #define PTR_FROM_MEMHEAD(memhead) (memhead + 1)
-#define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t) 1)
+#define MEMHEAD_ALIGNED_FROM_PTR(ptr) (((MemHeadAligned*) vmemh) - 1)
+#define PTR_FROM_MEMHEAD_ALIGNED(memhead) (memhead + 1)
+#define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t) MEMHEAD_MMAP_FLAG)
+#define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & (size_t) MEMHEAD_ALIGN_FLAG)
 
 #ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))
@@ -93,7 +106,7 @@ static void mem_unlock_thread(void)
 size_t MEM_lockfree_allocN_len(const void *vmemh)
 {
 	if (vmemh) {
-		return MEMHEAD_FROM_PTR(vmemh)->len & ~((size_t) 1);
+		return MEMHEAD_FROM_PTR(vmemh)->len & ~((size_t) (MEMHEAD_MMAP_FLAG | MEMHEAD_ALIGN_FLAG));
 	}
 	else {
 		return 0;
@@ -124,7 +137,13 @@ void MEM_lockfree_freeN(void *vmemh)
 		if (UNLIKELY(malloc_debug_memset && len)) {
 			memset(memh + 1, 255, len);
 		}
-		free(memh);
+		if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
+			MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+			aligned_free(MEMHEAD_REAL_PTR(memh_aligned));
+		}
+		else {
+			free(memh);
+		}
 	}
 }
 
@@ -134,8 +153,15 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
 	if (vmemh) {
 		MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
 		const size_t prev_size = MEM_allocN_len(vmemh);
-		if (MEMHEAD_IS_MMAP(memh)) {
+		if (UNLIKELY(MEMHEAD_IS_MMAP(memh))) {
 			newp = MEM_lockfree_mapallocN(prev_size, "dupli_mapalloc");
+		}
+		else if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
+			MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+			newp = MEM_lockfree_mallocN_aligned(
+				prev_size,
+				(size_t)memh_aligned->alignment,
+				"dupli_malloc");
 		}
 		else {
 			newp = MEM_lockfree_mallocN(prev_size, "dupli_malloc");
@@ -150,9 +176,20 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
 	void *newp = NULL;
 
 	if (vmemh) {
+		MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
 		size_t old_len = MEM_allocN_len(vmemh);
 
-		newp = MEM_lockfree_mallocN(len, "realloc");
+		if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
+			newp = MEM_lockfree_mallocN(len, "realloc");
+		}
+		else {
+			MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+			newp = MEM_lockfree_mallocN_aligned(
+				old_len,
+				(size_t)memh_aligned->alignment,
+				"realloc");
+		}
+
 		if (newp) {
 			if (len < old_len) {
 				/* shrink */
@@ -178,9 +215,19 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
 	void *newp = NULL;
 
 	if (vmemh) {
+		MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
 		size_t old_len = MEM_allocN_len(vmemh);
 
-		newp = MEM_lockfree_mallocN(len, "recalloc");
+		if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
+			newp = MEM_lockfree_mallocN(len, "recalloc");
+		}
+		else {
+			MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+			newp = MEM_lockfree_mallocN_aligned(old_len,
+			                                    (size_t)memh_aligned->alignment,
+			                                    "recalloc");
+		}
+
 		if (newp) {
 			if (len < old_len) {
 				/* shrink */
@@ -256,6 +303,57 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
 	return NULL;
 }
 
+void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str)
+{
+	MemHeadAligned *memh;
+
+	/* It's possible that MemHead's size is not properly aligned,
+	 * do extra padding to deal with this.
+	 *
+	 * We only support small alignments which fits into short in
+	 * order to save some bits in MemHead structure.
+	 */
+	size_t extra_padding = MEMHEAD_ALIGN_PADDING(alignment);
+
+	/* Huge alignment values doesn't make sense and they
+	 * wouldn't fit into 'short' used in the MemHead.
+	 */
+	assert(alignment < 1024);
+
+	/* We only support alignment to a power of two. */
+	assert(IS_POW2(alignment));
+
+	len = SIZET_ALIGN_4(len);
+
+	memh = (MemHeadAligned *)aligned_malloc(
+		len + extra_padding + sizeof(MemHeadAligned), alignment);
+
+	if (LIKELY(memh)) {
+		/* We keep padding in the beginning of MemHead,
+		 * this way it's always possible to get MemHead
+		 * from the data pointer.
+		 */
+		memh = (MemHeadAligned *)((char *)memh + extra_padding);
+
+		if (UNLIKELY(malloc_debug_memset && len)) {
+			memset(memh + 1, 255, len);
+		}
+
+		memh->len = len | (size_t) MEMHEAD_ALIGN_FLAG;
+		memh->alignment = (short) alignment;
+		atomic_add_u(&totblock, 1);
+		atomic_add_z(&mem_in_use, len);
+
+		/* TODO(sergey): Not strictly speaking thread-safe. */
+		peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
+
+		return PTR_FROM_MEMHEAD(memh);
+	}
+	print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+	            SIZET_ARG(len), str, (unsigned int) mem_in_use);
+	return NULL;
+}
+
 void *MEM_lockfree_mapallocN(size_t len, const char *str)
 {
 	MemHead *memh;
@@ -279,7 +377,7 @@ void *MEM_lockfree_mapallocN(size_t len, const char *str)
 #endif
 
 	if (memh != (MemHead *)-1) {
-		memh->len = len | (size_t) 1;
+		memh->len = len | (size_t) MEMHEAD_MMAP_FLAG;
 		atomic_add_u(&totblock, 1);
 		atomic_add_z(&mem_in_use, len);
 		atomic_add_z(&mmap_in_use, len);

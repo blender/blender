@@ -91,6 +91,18 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
 	return gausstab;
 }
 
+#ifdef __SSE2__
+__m128 *BlurBaseOperation::convert_gausstab_sse(const float *gausstab, float rad, int size)
+{
+	int n = 2 * size + 1;
+	__m128 *gausstab_sse = (__m128 *) MEM_mallocN_aligned(sizeof(__m128) * n, 16, "gausstab sse");
+	for (int i = 0; i < n; ++i) {
+		gausstab_sse[i] = _mm_set1_ps(gausstab[i]);
+	}
+	return gausstab_sse;
+}
+#endif
+
 /* normalized distance from the current (inverted so 1.0 is close and 0.0 is far)
  * 'ease' is applied after, looks nicer */
 float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff)

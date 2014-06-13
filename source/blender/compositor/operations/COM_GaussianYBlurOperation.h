@@ -28,6 +28,9 @@
 class GaussianYBlurOperation : public BlurBaseOperation {
 private:
 	float *m_gausstab;
+#ifdef __SSE2__
+	__m128 *m_gausstab_sse;
+#endif
 	int m_filtersize;
 	void updateGauss();
 public:

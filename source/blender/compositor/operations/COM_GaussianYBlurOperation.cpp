@@ -31,6 +31,9 @@ extern "C" {
 GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
 	this->m_gausstab = NULL;
+#ifdef __SSE2__
+	this->m_gausstab_sse = NULL;
+#endif
 	this->m_filtersize = 0;
 }
 
@@ -54,8 +57,13 @@ void GaussianYBlurOperation::initExecution()
 	if (this->m_sizeavailable) {
 		float rad = max_ff(m_size * m_data.sizey, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
-		
+
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+#ifdef __SSE2__
+		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
+		                                                               rad,
+		                                                               m_filtersize);
+#endif
 	}
 }
 
@@ -65,8 +73,13 @@ void GaussianYBlurOperation::updateGauss()
 		updateSize();
 		float rad = max_ff(m_size * m_data.sizey, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
-		
+
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+#ifdef __SSE2__
+		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
+		                                                               rad,
+		                                                               m_filtersize);
+#endif
 	}
 }
 
@@ -88,6 +101,20 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 	int index;
 	int step = getStep();
 	const int bufferIndexx = ((xmin - bufferstartx) * 4);
+
+#ifdef __SSE2__
+	__m128 accum_r = _mm_load_ps(color_accum);
+	for (int ny = ymin; ny < ymax; ny += step) {
+		index = (ny - y) + this->m_filtersize;
+		int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
+		const float multiplier = this->m_gausstab[index];
+		__m128 reg_a = _mm_load_ps(&buffer[bufferindex]);
+		reg_a = _mm_mul_ps(reg_a, this->m_gausstab_sse[index]);
+		accum_r = _mm_add_ps(accum_r, reg_a);
+		multiplier_accum += multiplier;
+	}
+	_mm_store_ps(color_accum, accum_r);
+#else
 	for (int ny = ymin; ny < ymax; ny += step) {
 		index = (ny - y) + this->m_filtersize;
 		int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
@@ -95,6 +122,7 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
 		multiplier_accum += multiplier;
 	}
+#endif
 	mul_v4_v4fl(output, color_accum, 1.0f / multiplier_accum);
 }
 
@@ -106,6 +134,12 @@ void GaussianYBlurOperation::deinitExecution()
 		MEM_freeN(this->m_gausstab);
 		this->m_gausstab = NULL;
 	}
+#ifdef __SSE2__
+	if (this->m_gausstab_sse) {
+		MEM_freeN(this->m_gausstab_sse);
+		this->m_gausstab_sse = NULL;
+	}
+#endif
 
 	deinitMutex();
 }

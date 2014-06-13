@@ -46,7 +46,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, r
 	BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->m_memoryProxy = memoryProxy;
 	this->m_chunkNumber = chunkNumber;
-	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
+	this->m_buffer = (float *)MEM_mallocN_aligned(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, 16, "COM_MemoryBuffer");
 	this->m_state = COM_MB_ALLOCATED;
 	this->m_datatype = COM_DT_COLOR;
 	this->m_chunkWidth = this->m_rect.xmax - this->m_rect.xmin;
@@ -57,7 +57,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
 	BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->m_memoryProxy = memoryProxy;
 	this->m_chunkNumber = -1;
-	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
+	this->m_buffer = (float *)MEM_mallocN_aligned(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, 16, "COM_MemoryBuffer");
 	this->m_state = COM_MB_TEMPORARILY;
 	this->m_datatype = COM_DT_COLOR;
 	this->m_chunkWidth = this->m_rect.xmax - this->m_rect.xmin;

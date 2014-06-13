@@ -31,6 +31,9 @@ extern "C" {
 GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
 	this->m_gausstab = NULL;
+#ifdef __SSE2__
+	this->m_gausstab_sse = NULL;
+#endif
 	this->m_filtersize = 0;
 }
 
@@ -54,8 +57,14 @@ void GaussianXBlurOperation::initExecution()
 	if (this->m_sizeavailable) {
 		float rad = max_ff(m_size * m_data.sizex, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
-		
+
+		/* TODO(sergey): De-duplicate with the case below and Y blur. */
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+#ifdef __SSE2__
+		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
+		                                                               rad,
+		                                                               m_filtersize);
+#endif
 	}
 }
 
@@ -65,8 +74,13 @@ void GaussianXBlurOperation::updateGauss()
 		updateSize();
 		float rad = max_ff(m_size * m_data.sizex, 0.0f);
 		m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
-		
+
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+#ifdef __SSE2__
+		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
+		                                                               rad,
+		                                                               m_filtersize);
+#endif
 	}
 }
 
@@ -88,12 +102,25 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 	int step = getStep();
 	int offsetadd = getOffsetAdd();
 	int bufferindex = ((xmin - bufferstartx) * 4) + ((ymin - bufferstarty) * 4 * bufferwidth);
+
+#ifdef __SSE2__
+	__m128 accum_r = _mm_load_ps(color_accum);
+	for (int nx = xmin, index = (xmin - x) + this->m_filtersize; nx < xmax; nx += step, index += step) {
+		__m128 reg_a = _mm_load_ps(&buffer[bufferindex]);
+		reg_a = _mm_mul_ps(reg_a, this->m_gausstab_sse[index]);
+		accum_r = _mm_add_ps(accum_r, reg_a);
+		multiplier_accum += this->m_gausstab[index];
+		bufferindex += offsetadd;
+	}
+	_mm_store_ps(color_accum, accum_r);
+#else
 	for (int nx = xmin, index = (xmin - x) + this->m_filtersize; nx < xmax; nx += step, index += step) {
 		const float multiplier = this->m_gausstab[index];
 		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
 		multiplier_accum += multiplier;
 		bufferindex += offsetadd;
 	}
+#endif
 	mul_v4_v4fl(output, color_accum, 1.0f / multiplier_accum);
 }
 
@@ -105,6 +132,12 @@ void GaussianXBlurOperation::deinitExecution()
 		MEM_freeN(this->m_gausstab);
 		this->m_gausstab = NULL;
 	}
+#ifdef __SSE2__
+	if (this->m_gausstab_sse) {
+		MEM_freeN(this->m_gausstab_sse);
+		this->m_gausstab_sse = NULL;
+	}
+#endif
 
 	deinitMutex();
 }

@@ -41,6 +41,7 @@ void *(*MEM_reallocN_id)(void *vmemh, size_t len, const char *str) = MEM_lockfre
 void *(*MEM_recallocN_id)(void *vmemh, size_t len, const char *str) = MEM_lockfree_recallocN_id;
 void *(*MEM_callocN)(size_t len, const char *str) = MEM_lockfree_callocN;
 void *(*MEM_mallocN)(size_t len, const char *str) = MEM_lockfree_mallocN;
+void *(*MEM_mallocN_aligned)(size_t len, size_t alignment, const char *str) = MEM_lockfree_mallocN_aligned;
 void *(*MEM_mapallocN)(size_t len, const char *str) = MEM_lockfree_mapallocN;
 void (*MEM_printmemlist_pydict)(void) = MEM_lockfree_printmemlist_pydict;
 void (*MEM_printmemlist)(void) = MEM_lockfree_printmemlist;
@@ -60,6 +61,40 @@ uintptr_t (*MEM_get_peak_memory)(void) = MEM_lockfree_get_peak_memory;
 const char *(*MEM_name_ptr)(void *vmemh) = MEM_lockfree_name_ptr;
 #endif
 
+void *aligned_malloc(size_t size, size_t alignment)
+{
+#ifdef _WIN32
+	return _aligned_malloc(size, alignment);
+#elif defined(__APPLE__)
+	/* On Mac OS X, both the heap and the stack are guaranteed 16-byte aligned so
+	 * they work natively with SSE types with no further work.
+	 */
+	assert(alignment == 16);
+	return malloc(size);
+#elif defined(__FreeBSD__) || defined(__NetBSD__)
+	void *result;
+
+	if (posix_memalign(&result, alignment, size)) {
+		/* non-zero means allocation error
+		 * either no allocation or bad alignment value
+		 */
+		return NULL;
+	}
+	return result;
+#else  /* This is for Linux. */
+	return memalign(alignment, size);
+#endif
+}
+
+void aligned_free(void *ptr)
+{
+#ifdef _WIN32
+	_aligned_free(ptr);
+#else
+	free(ptr);
+#endif
+}
+
 void MEM_use_guarded_allocator(void)
 {
 	MEM_allocN_len = MEM_guarded_allocN_len;
@@ -69,6 +104,7 @@ void MEM_use_guarded_allocator(void)
 	MEM_recallocN_id = MEM_guarded_recallocN_id;
 	MEM_callocN = MEM_guarded_callocN;
 	MEM_mallocN = MEM_guarded_mallocN;
+	MEM_mallocN_aligned = MEM_guarded_mallocN_aligned;
 	MEM_mapallocN = MEM_guarded_mapallocN;
 	MEM_printmemlist_pydict = MEM_guarded_printmemlist_pydict;
 	MEM_printmemlist = MEM_guarded_printmemlist;
