@@ -799,4 +799,11 @@ void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 	gp_draw_data(gpd, offsx, offsy, winx, winy, CFRA, dflag);
 }
 
+void ED_gpencil_draw_ex(bGPdata *gpd, int winx, int winy, const int cfra)
+{
+	int dflag = GP_DRAWDATA_NOSTATUS | GP_DRAWDATA_ONLYV2D;
+
+	gp_draw_data(gpd, 0, 0, winx, winy, cfra, dflag);
+}
+
 /* ************************************************** */
