@@ -377,12 +377,10 @@ void Mesh::add_vertex_normals()
 	}
 }
 
-void Mesh::pack_normals(Scene *scene, float4 *normal, float4 *vnormal)
+void Mesh::pack_normals(Scene *scene, float *tri_shader, float4 *vnormal)
 {
-	Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
 	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
 
-	float3 *fN = attr_fN->data_float3();
 	float3 *vN = attr_vN->data_float3();
 	int shader_id = 0;
 	uint last_shader = -1;
@@ -394,24 +392,15 @@ void Mesh::pack_normals(Scene *scene, float4 *normal, float4 *vnormal)
 	bool do_transform = transform_applied;
 	Transform ntfm = transform_normal;
 
+	/* save shader */
 	for(size_t i = 0; i < triangles_size; i++) {
-		float3 fNi = fN[i];
-
-		if(do_transform)
-			fNi = normalize(transform_direction(&ntfm, fNi));
-
-		normal[i].x = fNi.x;
-		normal[i].y = fNi.y;
-		normal[i].z = fNi.z;
-
-		/* stuff shader id in here too */
 		if(shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
 			last_shader = shader_ptr[i];
 			last_smooth = smooth[i];
 			shader_id = scene->shader_manager->get_shader_id(last_shader, this, last_smooth);
 		}
 
-		normal[i].w = __int_as_float(shader_id);
+		tri_shader[i] = __int_as_float(shader_id);
 	}
 
 	size_t verts_size = verts.size();
@@ -932,13 +921,13 @@ void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene 
 		/* normals */
 		progress.set_status("Updating Mesh", "Computing normals");
 
-		float4 *normal = dscene->tri_normal.resize(tri_size);
+		float *tri_shader = dscene->tri_shader.resize(tri_size);
 		float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
 		float4 *tri_verts = dscene->tri_verts.resize(vert_size);
 		float4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
-			mesh->pack_normals(scene, &normal[mesh->tri_offset], &vnormal[mesh->vert_offset]);
+			mesh->pack_normals(scene, &tri_shader[mesh->tri_offset], &vnormal[mesh->vert_offset]);
 			mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->tri_offset], mesh->vert_offset);
 
 			if(progress.get_cancel()) return;
@@ -947,7 +936,7 @@ void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene 
 		/* vertex coordinates */
 		progress.set_status("Updating Mesh", "Copying Mesh to device");
 
-		device->tex_alloc("__tri_normal", dscene->tri_normal);
+		device->tex_alloc("__tri_shader", dscene->tri_shader);
 		device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
 		device->tex_alloc("__tri_verts", dscene->tri_verts);
 		device->tex_alloc("__tri_vindex", dscene->tri_vindex);
@@ -1119,7 +1108,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->prim_visibility);
 	device->tex_free(dscene->prim_index);
 	device->tex_free(dscene->prim_object);
-	device->tex_free(dscene->tri_normal);
+	device->tex_free(dscene->tri_shader);
 	device->tex_free(dscene->tri_vnormal);
 	device->tex_free(dscene->tri_vindex);
 	device->tex_free(dscene->tri_verts);
@@ -1136,7 +1125,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->prim_visibility.clear();
 	dscene->prim_index.clear();
 	dscene->prim_object.clear();
-	dscene->tri_normal.clear();
+	dscene->tri_shader.clear();
 	dscene->tri_vnormal.clear();
 	dscene->tri_vindex.clear();
 	dscene->tri_verts.clear();
