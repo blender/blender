@@ -752,6 +752,18 @@ void combine_rgb(float r, float g, float b, out vec4 col)
 	col = vec4(r, g, b, 1.0);
 }
 
+void separate_xyz(vec3 vec, out float x, out float y, out float z)
+{
+	x = vec.r;
+	y = vec.g;
+	z = vec.b;
+}
+
+void combine_xyz(float x, float y, float z, out vec3 vec)
+{
+	vec = vec3(x, y, z);
+}
+
 void separate_hsv(vec4 col, out float h, out float s, out float v)
 {
 	vec4 hsv;
