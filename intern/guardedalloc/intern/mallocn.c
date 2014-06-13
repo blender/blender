@@ -32,6 +32,8 @@
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
+#include <assert.h>
+
 #include "mallocn_intern.h"
 
 size_t (*MEM_allocN_len)(const void *vmemh) = MEM_lockfree_allocN_len;

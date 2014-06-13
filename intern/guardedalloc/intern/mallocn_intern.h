@@ -100,7 +100,7 @@
 #else
 // Apple's malloc is 16-byte aligned, and does not have malloc.h, so include
 // stdilb instead.
-#  include <cstdlib>
+#  include <stdlib.h>
 #endif
 
 #define IS_POW2(a) (((a) & ((a) - 1)) == 0)
