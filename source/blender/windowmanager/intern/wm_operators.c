@@ -1774,6 +1774,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	int i;
 	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", true);
 	char url[96];
+	const char *version_suffix = NULL;
 
 #ifndef WITH_HEADLESS
 	extern char datatoc_splash_png[];
@@ -1828,14 +1829,18 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 *  avoids recreating splash for version updates */
-	if (1) {
+	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
+		version_suffix = "Release Candidate";
+	}
+	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
+		version_suffix = STRINGIFY(BLENDER_VERSION_CHAR);
+	}
+	if (version_suffix != NULL && version_suffix[0]) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
 		int x = 260 - (2 * UI_DPI_WINDOW_FAC);
 		int y = 242 + (4 * UI_DPI_WINDOW_FAC);
 		int w = 240;
-
-		const char *version_suffix = "Release Candidate";
 
 		/* hack to have text draw 'text_sel' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
