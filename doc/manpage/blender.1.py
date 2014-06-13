@@ -18,6 +18,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+'''
+This script generates the blender.1 man page, embedding the help text
+from the Blender executable itself. Invoke it as follows:
+
+    blender.1.py <path-to-blender> <output-filename>
+
+where <path-to-blender> is the path to the Blender executable,
+and <output-filename> is where to write the generated man page.
+'''
+
 # <pep8 compliant>
 
 import subprocess
@@ -33,26 +43,23 @@ def man_format(data):
     data = data.replace("\t", "  ")
     return data
 
-# allow passing blender as argument
-if sys.argv[-1].endswith(os.sep + "blender"):
-    blender_bin = sys.argv[-1]
-else:
-    blender_bin = os.path.join(os.path.dirname(__file__), "../../blender.bin")
+if len(sys.argv) != 3:
+    import getopt
+    raise getopt.GetoptError("Usage: %s <path-to-blender> <output-filename>" % sys.argv[0])
+
+blender_bin = sys.argv[1]
+outfilename = sys.argv[2]
 
 cmd = [blender_bin, "--help"]
 print("  executing:", " ".join(cmd))
-blender_help = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].decode(encoding="utf-8")
-
-blender_version = subprocess.Popen([blender_bin, "--version"], stdout=subprocess.PIPE).communicate()[0].decode(encoding="utf-8").strip()
-blender_version = blender_version.split("Build")[0]
-
+blender_help = subprocess.check_output(cmd).decode(encoding="utf-8")
+blender_version = subprocess.check_output([blender_bin, "--version"]).decode(encoding="utf-8").strip()
+blender_version = blender_version.split("build")[0].rstrip()
+blender_version = blender_version.partition(" ")[2]  # remove 'Blender' prefix.
 date_string = datetime.date.fromtimestamp(time.time()).strftime("%B %d, %Y")
 
-filepath = os.path.splitext(__file__)[0]
-
-file = open(filepath, "w")
-
-fw = file.write
+outfile = open(outfilename, "w")
+fw = outfile.write
 
 fw('.TH "BLENDER" "1" "%s" "Blender %s"\n' % (date_string, blender_version.replace(".", "\\&.")))
 
@@ -128,4 +135,5 @@ This manpage was written for a Debian GNU/Linux system by Daniel Mester
 <cyril.brulebois@enst-bretagne.fr> and Dan Eicher <dan@trollwerks.org>.
 ''')
 
-print("written:", filepath)
+outfile.close()
+print("written:", outfilename)

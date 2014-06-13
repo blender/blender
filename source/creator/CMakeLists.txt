@@ -387,13 +387,22 @@ endif()
 
 if(UNIX AND NOT APPLE)
 
+	install(
+		CODE
+		"
+		execute_process(COMMAND
+		                ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
+		                ${TARGETDIR}/blender
+		                ${TARGETDIR}/blender.1)
+		"
+	)
+
 	# there are a few differences between portable and system install
 	if(WITH_INSTALL_PORTABLE)
 		install(
 			FILES
 				${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
-				${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
 			DESTINATION ${TARGETDIR}
 		)
 
@@ -456,7 +465,7 @@ if(UNIX AND NOT APPLE)
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		)
 		install(
-			FILES ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
+			FILES ${TARGETDIR}/blender.1
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 		)
 		install(
