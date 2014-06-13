@@ -62,6 +62,7 @@ public:
 		system_cpu_support_sse3();
 		system_cpu_support_sse41();
 		system_cpu_support_avx();
+		system_cpu_support_avx2();
 	}
 
 	~CPUDevice()
@@ -167,6 +168,28 @@ public:
 			int start_sample = tile.start_sample;
 			int end_sample = tile.start_sample + tile.num_samples;
 
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
+			if(system_cpu_support_avx2()) {
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task.get_cancel() || task_pool.canceled()) {
+						if(task.need_finish_queue == false)
+							break;
+					}
+
+					for(int y = tile.y; y < tile.y + tile.h; y++) {
+						for(int x = tile.x; x < tile.x + tile.w; x++) {
+							kernel_cpu_avx2_path_trace(&kg, render_buffer, rng_state,
+													  sample, x, y, tile.offset, tile.stride);
+						}
+					}
+
+					tile.sample = sample + 1;
+
+					task.update_progress(tile);
+				}
+			}
+			else
+#endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
 			if(system_cpu_support_avx()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
@@ -293,6 +316,15 @@ public:
 		float sample_scale = 1.0f/(task.sample + 1);
 
 		if(task.rgba_half) {
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
+			if(system_cpu_support_avx2()) {
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_avx2_convert_to_half_float(&kernel_globals, (uchar4*)task.rgba_half, (float*)task.buffer,
+															 sample_scale, x, y, task.offset, task.stride);
+			}
+			else
+#endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
 			if(system_cpu_support_avx()) {
 				for(int y = task.y; y < task.y + task.h; y++)
@@ -337,6 +369,15 @@ public:
 			}
 		}
 		else {
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
+			if(system_cpu_support_avx2()) {
+				for(int y = task.y; y < task.y + task.h; y++)
+					for(int x = task.x; x < task.x + task.w; x++)
+						kernel_cpu_avx2_convert_to_byte(&kernel_globals, (uchar4*)task.rgba_byte, (float*)task.buffer,
+													   sample_scale, x, y, task.offset, task.stride);
+			}
+			else
+#endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
 			if(system_cpu_support_avx()) {
 				for(int y = task.y; y < task.y + task.h; y++)
@@ -390,6 +431,18 @@ public:
 		OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
 #endif
 
+#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
+		if(system_cpu_support_avx2()) {
+			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
+				for(int sample = 0; sample < task.num_samples; sample++)
+					kernel_cpu_avx2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x, sample);
+
+				if(task.get_cancel() || task_pool.canceled())
+					break;
+			}
+		}
+		else
+#endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
 		if(system_cpu_support_avx()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {

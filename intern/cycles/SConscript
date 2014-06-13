@@ -39,6 +39,7 @@ sources.remove(path.join('kernel', 'kernel_sse2.cpp'))
 sources.remove(path.join('kernel', 'kernel_sse3.cpp'))
 sources.remove(path.join('kernel', 'kernel_sse41.cpp'))
 sources.remove(path.join('kernel', 'kernel_avx.cpp'))
+sources.remove(path.join('kernel', 'kernel_avx2.cpp'))
 
 incs = [] 
 defs = []
@@ -98,6 +99,7 @@ elif env['OURPLATFORM'] == 'win64-vc':
     if env['MSVC_VERSION'] >= '12.0':
         kernel_flags['sse41'] = kernel_flags['sse3']
         kernel_flags['avx'] = kernel_flags['sse41'] + ' /arch:AVX'
+        kernel_flags['avx2'] = kernel_flags['sse41'] + ' /arch:AVX /arch:AVX2'
 else:
     # -mavx only available with relatively new gcc/clang
     kernel_flags['sse2'] = '-ffast-math -msse -msse2 -mfpmath=sse'
@@ -106,6 +108,7 @@ else:
 
     if (env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.6') or (env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.1'):
         kernel_flags['avx'] = kernel_flags['sse41'] + ' -mavx'
+        kernel_flags['avx2'] = kernel_flags['avx'] + ' -mavx2 -mfma -mbmi -mbmi2'
 
 for kernel_type in kernel_flags.keys():
     defs.append('WITH_KERNEL_' + kernel_type.upper())

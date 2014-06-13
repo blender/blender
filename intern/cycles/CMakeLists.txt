@@ -20,8 +20,10 @@ if(WIN32 AND MSVC)
 	# /arch:AVX for VC2012 and above
 	if(NOT MSVC_VERSION LESS 1700)
 		set(CYCLES_AVX_ARCH_FLAGS "/arch:AVX")
+		set(CYCLES_AVX2_ARCH_FLAGS "/arch:AVX /arch:AVX2")
 	elseif(NOT CMAKE_CL_64)
 		set(CYCLES_AVX_ARCH_FLAGS "/arch:SSE2")
+		set(CYCLES_AVX2_ARCH_FLAGS "/arch:SSE2")
 	endif()
 
 	# there is no /arch:SSE3, but intrinsics are available anyway
@@ -30,11 +32,13 @@ if(WIN32 AND MSVC)
 		set(CYCLES_SSE3_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 		set(CYCLES_SSE41_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 		set(CYCLES_AVX_KERNEL_FLAGS "${CYCLES_AVX_ARCH_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
+		set(CYCLES_AVX2_KERNEL_FLAGS "${CYCLES_AVX2_ARCH_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 	else()
 		set(CYCLES_SSE2_KERNEL_FLAGS "/arch:SSE2 /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 		set(CYCLES_SSE3_KERNEL_FLAGS "/arch:SSE2 /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 		set(CYCLES_SSE41_KERNEL_FLAGS "/arch:SSE2 /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 		set(CYCLES_AVX_KERNEL_FLAGS "${CYCLES_AVX_ARCH_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
+		set(CYCLES_AVX2_KERNEL_FLAGS "${CYCLES_AVX2_ARCH_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 	endif()
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
@@ -48,6 +52,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC)
 		set(CYCLES_SSE3_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse")
 		set(CYCLES_SSE41_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mfpmath=sse")
 		set(CYCLES_AVX_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx -mfpmath=sse")
+		set(CYCLES_AVX2_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx -mavx2 -mfma -mbmi -mbmi2 -mfpmath=sse")
 	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -57,6 +62,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		set(CYCLES_SSE3_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3")
 		set(CYCLES_SSE41_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1")
 		set(CYCLES_AVX_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx")
+		set(CYCLES_AVX2_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mssse3 -msse4.1 -mavx -mavx2 —mfma -mbmi -mbmi2")
 	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
@@ -67,6 +73,7 @@ if(CXX_HAS_SSE)
 		-DWITH_KERNEL_SSE3
 		-DWITH_KERNEL_SSE41
 		-DWITH_KERNEL_AVX
+		-DWITH_KERNEL_AVX2
 	)
 endif()
 
