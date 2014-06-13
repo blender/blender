@@ -108,7 +108,7 @@ else:
 
     if (env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.6') or (env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.1'):
         kernel_flags['avx'] = kernel_flags['sse41'] + ' -mavx'
-        kernel_flags['avx2'] = kernel_flags['avx'] + ' -mavx2 -mfma -mbmi -mbmi2'
+        kernel_flags['avx2'] = kernel_flags['avx'] + ' -mavx2 -mfma -mlzcnt -mbmi -mbmi2'
 
 for kernel_type in kernel_flags.keys():
     defs.append('WITH_KERNEL_' + kernel_type.upper())
