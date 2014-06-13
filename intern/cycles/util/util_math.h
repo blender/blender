@@ -622,11 +622,7 @@ ccl_device_inline bool is_zero(const float3 a)
 
 ccl_device_inline float reduce_add(const float3 a)
 {
-#ifdef __KERNEL_SSE__
 	return (a.x + a.y + a.z);
-#else
-	return (a.x + a.y + a.z);
-#endif
 }
 
 ccl_device_inline float average(const float3 a)
