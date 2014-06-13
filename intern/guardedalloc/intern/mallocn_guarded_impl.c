@@ -548,7 +548,7 @@ void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *str)
 	 * We only support small alignments which fits into short in
 	 * order to save some bits in MemHead structure.
 	 */
-	short extra_padding = (short)MEMHEAD_ALIGN_PADDING(alignment);
+	size_t extra_padding = MEMHEAD_ALIGN_PADDING(alignment);
 
 	/* Huge alignment values doesn't make sense and they
 	 * wouldn't fit into 'short' used in the MemHead.
@@ -560,7 +560,7 @@ void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *str)
 
 	len = SIZET_ALIGN_4(len);
 
-	memh = (MemHead *)aligned_malloc(len + (size_t)extra_padding + sizeof(MemHead) + sizeof(MemTail), alignment);
+	memh = (MemHead *)aligned_malloc(len + extra_padding + sizeof(MemHead) + sizeof(MemTail), alignment);
 
 	if (LIKELY(memh)) {
 		/* We keep padding in the beginning of MemHead,
