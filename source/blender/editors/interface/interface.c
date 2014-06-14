@@ -1882,8 +1882,7 @@ void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 		int unit_type = uiButGetUnitType(but);
 		char *orig_str;
 		
-		orig_str = MEM_callocN(sizeof(char) * maxlen + 1, "textedit sub str");
-		memcpy(orig_str, str, maxlen);
+		orig_str = BLI_strdup(str);
 		
 		bUnit_ToUnitAltName(str, maxlen, orig_str, unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
 		
