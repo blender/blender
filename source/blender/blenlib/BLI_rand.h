@@ -50,6 +50,7 @@ int         BLI_rng_get_int(struct RNG *rng);
 unsigned int BLI_rng_get_uint(struct RNG *rng);
 double      BLI_rng_get_double(struct RNG *rng);
 float       BLI_rng_get_float(struct RNG *rng);
+void        BLI_rng_get_float_unit_v2(struct RNG *rng, float v[2]);
 void        BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]);
 void        BLI_rng_shuffle_array(struct RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot);
 
