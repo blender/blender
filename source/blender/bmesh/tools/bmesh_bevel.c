@@ -555,13 +555,22 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 	madd_v3_v3fl(slideco, dir, -d);
 }
 
-/* Is co not on the edge e? */
-static bool is_outside_edge(EdgeHalf *e, const float co[3])
+/* Is co not on the edge e? if not, return the closer end of e in ret_closer_v */
+static bool is_outside_edge(EdgeHalf *e, const float co[3], BMVert **ret_closer_v)
 {
 	float d_squared;
 
 	d_squared = dist_squared_to_line_segment_v3(co, e->e->v1->co, e->e->v2->co);
-	return d_squared > 10000.0f * BEVEL_EPSILON_SQ;
+	if (d_squared > BEVEL_EPSILON_BIG * BEVEL_EPSILON_BIG) {
+		if (len_squared_v3v3(co, e->e->v1->co) > len_squared_v3v3(co, e->e->v2->co))
+			*ret_closer_v = e->e->v2;
+		else
+			*ret_closer_v = e->e->v1;
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 /*
@@ -580,6 +589,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 {
 	float dir1[3], dir2[3], norm_v[3], norm_perp1[3], norm_perp2[3],
 	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], ang, d;
+	BMVert *closer_v;
 
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
@@ -657,14 +667,15 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 			/* The lines intersect, but is it at a reasonable place?
 			 * One problem to check: if one of the offsets is 0, then don't
 			 * want an intersection that is outside that edge itself.
-			 * This can happen if angle between them is > 180 degrees. */
-			if (e1->offset_r == 0.0f && is_outside_edge(e1, meetco)) {
-				copy_v3_v3(meetco, v->co);
-				e2->offset_l = 0.0f;
+			 * This can happen if angle between them is > 180 degrees,
+			 * or if the offset amount is > the edge length*/
+			if (e1->offset_r == 0.0f && is_outside_edge(e1, meetco, &closer_v)) {
+				copy_v3_v3(meetco, closer_v->co);
+				e2->offset_l = len_v3v3(meetco, v->co);
 			}
-			if (e2->offset_l == 0.0f && is_outside_edge(e2, meetco)) {
-				copy_v3_v3(meetco, v->co);
-				e1->offset_r = 0.0f;
+			if (e2->offset_l == 0.0f && is_outside_edge(e2, meetco, &closer_v)) {
+				copy_v3_v3(meetco, closer_v->co);
+				e1->offset_r = len_v3v3(meetco, v->co);
 			}
 		}
 	}
