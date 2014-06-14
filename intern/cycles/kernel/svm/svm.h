@@ -167,9 +167,8 @@ CCL_NAMESPACE_END
 #include "svm_math.h"
 #include "svm_mix.h"
 #include "svm_ramp.h"
-#include "svm_sepcomb_rgb.h"
 #include "svm_sepcomb_hsv.h"
-#include "svm_sepcomb_xyz.h"
+#include "svm_sepcomb_vector.h"
 #include "svm_musgrave.h"
 #include "svm_sky.h"
 #include "svm_tex_coord.h"
@@ -328,17 +327,11 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_MIX:
 				svm_node_mix(kg, sd, stack, node.y, node.z, node.w, &offset);
 				break;
-			case NODE_SEPARATE_RGB:
-				svm_node_separate_rgb(sd, stack, node.y, node.z, node.w);
+			case NODE_SEPARATE_VECTOR:
+				svm_node_separate_vector(sd, stack, node.y, node.z, node.w);
 				break;
-			case NODE_COMBINE_RGB:
-				svm_node_combine_rgb(sd, stack, node.y, node.z, node.w);
-				break;
-			case NODE_SEPARATE_XYZ:
-				svm_node_separate_xyz(sd, stack, node.y, node.z, node.w);
-				break;
-			case NODE_COMBINE_XYZ:
-				svm_node_combine_xyz(sd, stack, node.y, node.z, node.w);
+			case NODE_COMBINE_VECTOR:
+				svm_node_combine_vector(sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_SEPARATE_HSV:
 				svm_node_separate_hsv(kg, sd, stack, node.y, node.z, node.w, &offset);

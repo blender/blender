@@ -3042,13 +3042,13 @@ void CombineRGBNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(color_out);
 
 	compiler.stack_assign(red_in);
-	compiler.add_node(NODE_COMBINE_RGB, red_in->stack_offset, 0, color_out->stack_offset);
+	compiler.add_node(NODE_COMBINE_VECTOR, red_in->stack_offset, 0, color_out->stack_offset);
 
 	compiler.stack_assign(green_in);
-	compiler.add_node(NODE_COMBINE_RGB, green_in->stack_offset, 1, color_out->stack_offset);
+	compiler.add_node(NODE_COMBINE_VECTOR, green_in->stack_offset, 1, color_out->stack_offset);
 
 	compiler.stack_assign(blue_in);
-	compiler.add_node(NODE_COMBINE_RGB, blue_in->stack_offset, 2, color_out->stack_offset);
+	compiler.add_node(NODE_COMBINE_VECTOR, blue_in->stack_offset, 2, color_out->stack_offset);
 }
 
 void CombineRGBNode::compile(OSLCompiler& compiler)
@@ -3076,13 +3076,13 @@ void CombineXYZNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(vector_out);
 
 	compiler.stack_assign(x_in);
-	compiler.add_node(NODE_COMBINE_XYZ, x_in->stack_offset, 0, vector_out->stack_offset);
+	compiler.add_node(NODE_COMBINE_VECTOR, x_in->stack_offset, 0, vector_out->stack_offset);
 
 	compiler.stack_assign(y_in);
-	compiler.add_node(NODE_COMBINE_XYZ, y_in->stack_offset, 1, vector_out->stack_offset);
+	compiler.add_node(NODE_COMBINE_VECTOR, y_in->stack_offset, 1, vector_out->stack_offset);
 
 	compiler.stack_assign(z_in);
-	compiler.add_node(NODE_COMBINE_XYZ, z_in->stack_offset, 2, vector_out->stack_offset);
+	compiler.add_node(NODE_COMBINE_VECTOR, z_in->stack_offset, 2, vector_out->stack_offset);
 }
 
 void CombineXYZNode::compile(OSLCompiler& compiler)
@@ -3200,13 +3200,13 @@ void SeparateRGBNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(color_in);
 
 	compiler.stack_assign(red_out);
-	compiler.add_node(NODE_SEPARATE_RGB, color_in->stack_offset, 0, red_out->stack_offset);
+	compiler.add_node(NODE_SEPARATE_VECTOR, color_in->stack_offset, 0, red_out->stack_offset);
 
 	compiler.stack_assign(green_out);
-	compiler.add_node(NODE_SEPARATE_RGB, color_in->stack_offset, 1, green_out->stack_offset);
+	compiler.add_node(NODE_SEPARATE_VECTOR, color_in->stack_offset, 1, green_out->stack_offset);
 
 	compiler.stack_assign(blue_out);
-	compiler.add_node(NODE_SEPARATE_RGB, color_in->stack_offset, 2, blue_out->stack_offset);
+	compiler.add_node(NODE_SEPARATE_VECTOR, color_in->stack_offset, 2, blue_out->stack_offset);
 }
 
 void SeparateRGBNode::compile(OSLCompiler& compiler)
@@ -3234,13 +3234,13 @@ void SeparateXYZNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(vector_in);
 
 	compiler.stack_assign(x_out);
-	compiler.add_node(NODE_SEPARATE_XYZ, vector_in->stack_offset, 0, x_out->stack_offset);
+	compiler.add_node(NODE_SEPARATE_VECTOR, vector_in->stack_offset, 0, x_out->stack_offset);
 
 	compiler.stack_assign(y_out);
-	compiler.add_node(NODE_SEPARATE_XYZ, vector_in->stack_offset, 1, y_out->stack_offset);
+	compiler.add_node(NODE_SEPARATE_VECTOR, vector_in->stack_offset, 1, y_out->stack_offset);
 
 	compiler.stack_assign(z_out);
-	compiler.add_node(NODE_SEPARATE_XYZ, vector_in->stack_offset, 2, z_out->stack_offset);
+	compiler.add_node(NODE_SEPARATE_VECTOR, vector_in->stack_offset, 2, z_out->stack_offset);
 }
 
 void SeparateXYZNode::compile(OSLCompiler& compiler)

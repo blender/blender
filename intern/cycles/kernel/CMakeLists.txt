@@ -95,9 +95,8 @@ set(SRC_SVM_HEADERS
 	svm/svm_noisetex.h
 	svm/svm_normal.h
 	svm/svm_ramp.h
-	svm/svm_sepcomb_rgb.h
 	svm/svm_sepcomb_hsv.h
-	svm/svm_sepcomb_xyz.h
+	svm/svm_sepcomb_vector.h
 	svm/svm_sky.h
 	svm/svm_tex_coord.h
 	svm/svm_texture.h
