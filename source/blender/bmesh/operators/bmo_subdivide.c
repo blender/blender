@@ -165,14 +165,11 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace
 static void alter_co(BMVert *v, BMEdge *UNUSED(origed), const SubDParams *params, float perc,
                      BMVert *vsta, BMVert *vend)
 {
-	float tvec[3], prev_co[3], fac;
+	float tvec[3], fac;
 	float *co = BM_ELEM_CD_GET_VOID_P(v, params->shape_info.cd_vert_shape_offset_tmp);
 	int i;
-	
-	BM_vert_normal_update_all(v);
 
 	copy_v3_v3(co, v->co);
-	copy_v3_v3(prev_co, co);
 
 	if (UNLIKELY(params->use_sphere)) { /* subdivide sphere */
 		normalize_v3(co);
@@ -236,7 +233,7 @@ static void alter_co(BMVert *v, BMEdge *UNUSED(origed), const SubDParams *params
 	 * this by getting the normals and coords for each shape key and
 	 * re-calculate the smooth value for each but this is quite involved.
 	 * for now its ok to simply apply the difference IMHO - campbell */
-	sub_v3_v3v3(tvec, prev_co, co);
+	sub_v3_v3v3(tvec, v->co, co);
 
 	if (params->shape_info.totlayer > 1) {
 		/* skip the last layer since its the temp */
