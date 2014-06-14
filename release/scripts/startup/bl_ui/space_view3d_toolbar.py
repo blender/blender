@@ -363,6 +363,30 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+class VIEW3D_PT_tools_meshweight(View3DPanel, Panel):
+    bl_category = "Tools"
+    bl_context = "mesh_edit"
+    bl_label = "Weight Tools"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    # Used for Weight-Paint mode and Edit-Mode
+    @staticmethod
+    def draw_generic(layout):
+        col = layout.column()
+        col.operator("object.vertex_group_normalize_all", text="Normalize All")
+        col.operator("object.vertex_group_normalize", text="Normalize")
+        col.operator("object.vertex_group_mirror", text="Mirror")
+        col.operator("object.vertex_group_invert", text="Invert")
+        col.operator("object.vertex_group_clean", text="Clean")
+        col.operator("object.vertex_group_quantize", text="Quantize")
+        col.operator("object.vertex_group_levels", text="Levels")
+        col.operator("object.vertex_group_blend", text="Blend")
+        col.operator("object.vertex_group_limit_total", text="Limit Total")
+        col.operator("object.vertex_group_fix", text="Fix Deforms")
+
+    def draw(self, context):
+        layout = self.layout
+        self.draw_generic(layout)
 
 class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
     bl_category = "Create"
@@ -1411,20 +1435,11 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        VIEW3D_PT_tools_meshweight.draw_generic(layout)
 
         col = layout.column()
-        col.operator("object.vertex_group_normalize_all", text="Normalize All")
-        col.operator("object.vertex_group_normalize", text="Normalize")
-        col.operator("object.vertex_group_mirror", text="Mirror")
-        col.operator("object.vertex_group_invert", text="Invert")
-        col.operator("object.vertex_group_clean", text="Clean")
-        col.operator("object.vertex_group_quantize", text="Quantize")
-        col.operator("object.vertex_group_levels", text="Levels")
-        col.operator("object.vertex_group_blend", text="Blend")
-        col.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
-        col.operator("object.vertex_group_limit_total", text="Limit Total")
-        col.operator("object.vertex_group_fix", text="Fix Deforms")
         col.operator("paint.weight_gradient")
+        col.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
 
 
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
