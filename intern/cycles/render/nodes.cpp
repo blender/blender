@@ -1589,7 +1589,6 @@ static ShaderEnum aniso_distribution_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("Sharp", CLOSURE_BSDF_REFLECTION_ID);
 	enm.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID);
 	enm.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID);
 	enm.insert("Ashikhmin-Shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID);

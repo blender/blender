@@ -323,9 +323,6 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 		switch (b_aniso_node.distribution())
 		{
-		case BL::ShaderNodeBsdfAnisotropic::distribution_SHARP:
-			aniso->distribution = ustring("Sharp");
-			break;
 		case BL::ShaderNodeBsdfAnisotropic::distribution_BECKMANN:
 			aniso->distribution = ustring("Beckmann");
 			break;
