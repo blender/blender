@@ -228,7 +228,7 @@ found_edge:
 void MESH_OT_rip_edge(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Extend Vertex";
+	ot->name = "Extend Vertices";
 	ot->idname = "MESH_OT_rip_edge";
 	ot->description = "Extend vertices along the edge closest to the cursor";
 

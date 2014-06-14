@@ -240,7 +240,7 @@ void ED_operatormacros_mesh(void)
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", false);
 
-	ot = WM_operatortype_append_macro("MESH_OT_rip_edge_move", "Rip Edge", "Rip polygons and move the result",
+	ot = WM_operatortype_append_macro("MESH_OT_rip_edge_move", "Extend Vertices", "Extend vertices and move the result",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_rip_edge");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
