@@ -36,7 +36,7 @@
 
 typedef struct _GSQueue GSQueue;
 
-GSQueue    *BLI_gsqueue_new(int elem_size);
+GSQueue    *BLI_gsqueue_new(size_t elem_size);
 bool        BLI_gsqueue_is_empty(GSQueue *gq);
 int         BLI_gsqueue_size(GSQueue *gq);
 void        BLI_gsqueue_peek(GSQueue *gq, void *item_r);

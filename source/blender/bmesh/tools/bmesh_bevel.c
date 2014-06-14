@@ -1639,7 +1639,7 @@ static void adjust_offsets(BevelParams *bp)
 		bv->visited = false;
 	}
 
-	q = BLI_gsqueue_new((int)sizeof(BevVert *));
+	q = BLI_gsqueue_new(sizeof(BevVert *));
 	/* the following loop terminates because at least one node is visited each time */
 	for (;;) {
 		/* look for root of a connected component in search graph */
