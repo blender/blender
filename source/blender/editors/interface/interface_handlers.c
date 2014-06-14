@@ -6906,7 +6906,7 @@ void uiContextActivePropertyHandle(bContext *C)
 		 * operator redo panel - campbell */
 		uiBlock *block = activebut->block;
 		if (block->handle_func) {
-			block->handle_func(C, block->handle_func_arg, 0);
+			block->handle_func(C, block->handle_func_arg, activebut->retval);
 		}
 	}
 }
