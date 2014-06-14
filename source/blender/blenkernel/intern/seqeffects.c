@@ -1398,7 +1398,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			x = x - halfx;
 			y = y - halfy;
 
-			temp2 = asin(abs(y) / sqrt(x * x + y * y));
+			temp2 = asin(abs(y) / hypot(x, y));
 			if (x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
 			else if (x <= 0 && y <= 0) temp2 += (float)M_PI;
 			else if (x >= 0 && y <= 0) temp2 = 2.0f * (float)M_PI - temp2;
@@ -1441,7 +1441,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 
 			temp1 = xo * (1 - facf0 / 2) - xo * facf0 / 2;
 			temp2 = yo * (1 - facf0 / 2) - yo * facf0 / 2;
-			pointdist = sqrtf(temp1 * temp1 + temp2 * temp2);
+			pointdist = hypot(temp1, temp2);
 
 			if (b2 < b1 && b2 < b3) {
 				if (hwidth < pointdist)
@@ -1498,9 +1498,9 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			hwidth = width * 0.5f;
 
 			temp1 = (halfx - (halfx) * facf0);
-			pointdist = sqrtf(temp1 * temp1 + temp1 * temp1);
+			pointdist = hypotf(temp1, temp1);
 
-			temp2 = sqrtf((halfx - x) * (halfx - x) + (halfy - y) * (halfy - y));
+			temp2 = hypotf(halfx - x, halfy - y);
 			if (temp2 > pointdist) output = in_band(hwidth, fabsf(temp2 - pointdist), 0, 1);
 			else output = in_band(hwidth, fabsf(temp2 - pointdist), 1, 1);
 

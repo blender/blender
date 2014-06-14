@@ -1718,7 +1718,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			{
 				float dx = t->mval[0] - cent[0], dy = t->mval[1] - cent[1];
 				float angle = atan2f(dy, dx);
-				float dist = sqrtf(dx * dx + dy * dy);
+				float dist = hypotf(dx, dy);
 				float delta_angle = min_ff(15.0f / dist, (float)M_PI / 4.0f);
 				float spacing_angle = min_ff(5.0f / dist, (float)M_PI / 12.0f);
 				UI_ThemeColor(TH_VIEW_OVERLAY);
