@@ -2277,6 +2277,9 @@ typedef struct View2DString {
 	} col;
 	rcti rect;
 	int mval[2];
+
+	/* str is allocated past the end */
+	char str[0];
 } View2DString;
 
 /* assumes caches are used correctly, so for time being no local storage in v2d */
@@ -2309,7 +2312,7 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y,
 		v2s->mval[0] = mval[0];
 		v2s->mval[1] = mval[1];
 
-		memcpy(v2s + 1, str, alloc_len);
+		memcpy(v2s->str, str, alloc_len);
 	}
 }
 
@@ -2340,7 +2343,7 @@ void UI_view2d_text_cache_add_rectf(View2D *v2d, const rctf *rect_view,
 		v2s->mval[0] = v2s->rect.xmin;
 		v2s->mval[1] = v2s->rect.ymin;
 
-		memcpy(v2s + 1, str, alloc_len);
+		memcpy(v2s->str, str, alloc_len);
 	}
 }
 
@@ -2360,7 +2363,6 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	ED_region_pixelspace(ar);
 
 	for (v2s = g_v2d_strings; v2s; v2s = v2s->next) {
-		const char *str = (const char *)(v2s + 1);
 		int xofs = 0, yofs;
 
 		yofs = ceil(0.5f * (BLI_rcti_size_y(&v2s->rect) - default_height));
@@ -2372,11 +2374,13 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 		}
 
 		if (v2s->rect.xmin >= v2s->rect.xmax)
-			BLF_draw_default((float)v2s->mval[0] + xofs, (float)v2s->mval[1] + yofs, 0.0, str, BLF_DRAW_STR_DUMMY_MAX);
+			BLF_draw_default((float)(v2s->mval[0] + xofs), (float)(v2s->mval[1] + yofs), 0.0,
+			                  v2s->str, BLF_DRAW_STR_DUMMY_MAX);
 		else {
 			BLF_clipping_default(v2s->rect.xmin - 4, v2s->rect.ymin - 4, v2s->rect.xmax + 4, v2s->rect.ymax + 4);
 			BLF_enable_default(BLF_CLIPPING);
-			BLF_draw_default(v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f, str, BLF_DRAW_STR_DUMMY_MAX);
+			BLF_draw_default(v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f,
+			                 v2s->str, BLF_DRAW_STR_DUMMY_MAX);
 			BLF_disable_default(BLF_CLIPPING);
 		}
 	}

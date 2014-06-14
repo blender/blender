@@ -763,8 +763,10 @@ typedef struct ViewCachedString {
 	short sco[2];
 	short xoffs;
 	short flag;
-	int str_len, pad;
+	int str_len;
+
 	/* str is allocated past the end */
+	char str[0];
 } ViewCachedString;
 
 /* one arena for all 3 string lists */
@@ -809,7 +811,7 @@ void view3d_cached_text_draw_add(const float co[3],
 	vos->str_len = str_len;
 
 	/* allocate past the end */
-	memcpy(vos + 1, str, alloc_len);
+	memcpy(vos->str, str, alloc_len);
 }
 
 void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, float mat[4][4])
@@ -868,8 +870,6 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 		
 		for (vos = g_v3d_strings[g_v3d_string_level]; vos; vos = vos->next) {
 			if (vos->sco[0] != IS_CLIPPED) {
-				const char *str = (char *)(vos + 1);
-
 				if (col_pack_prev != vos->col.pack) {
 					glColor3ubv(vos->col.ub);
 					col_pack_prev = vos->col.pack;
@@ -878,10 +878,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 				((vos->flag & V3D_CACHE_TEXT_ASCII) ?
 				 BLF_draw_default_ascii :
 				 BLF_draw_default
-				)( (float)vos->sco[0] + vos->xoffs,
-				   (float)vos->sco[1],
+				 )((float)(vos->sco[0] + vos->xoffs),
+				   (float)(vos->sco[1]),
 				   (depth_write) ? 0.0f : 2.0f,
-				   str,
+				   vos->str,
 				   vos->str_len);
 			}
 		}
