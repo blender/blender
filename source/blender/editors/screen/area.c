@@ -1339,10 +1339,6 @@ void ED_region_init(bContext *C, ARegion *ar)
 	region_subwindow(CTX_wm_window(C), ar);
 	
 	region_update_rect(ar);
-
-	/* UI convention */
-	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
-	glLoadIdentity();
 }
 
 /* for quick toggle, can skip fades */
