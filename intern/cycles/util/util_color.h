@@ -28,7 +28,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device uchar float_to_byte(float val)
 {
-	return ((val <= 0.0f) ? 0 : (((val) > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * (val)) + 0.5f)));
+	return ((val <= 0.0f) ? 0 : ((val > (1.0f - 0.5f / 255.0f)) ? 255 : (uchar)((255.0f * val) + 0.5f)));
 }
 
 ccl_device uchar4 color_float_to_byte(float3 c)
