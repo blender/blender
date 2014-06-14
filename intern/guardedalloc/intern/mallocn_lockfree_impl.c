@@ -67,7 +67,9 @@ enum {
 #define MEMHEAD_FROM_PTR(ptr) (((MemHead*) vmemh) - 1)
 #define PTR_FROM_MEMHEAD(memhead) (memhead + 1)
 #define MEMHEAD_ALIGNED_FROM_PTR(ptr) (((MemHeadAligned*) vmemh) - 1)
+#if 0  /* UNUSED */
 #define PTR_FROM_MEMHEAD_ALIGNED(memhead) (memhead + 1)
+#endif
 #define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t) MEMHEAD_MMAP_FLAG)
 #define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & (size_t) MEMHEAD_ALIGN_FLAG)
 
