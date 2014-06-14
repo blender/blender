@@ -209,7 +209,6 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	
 	uiBoundsBlock(block, 0.3f * U.widget_unit);
 	uiBlockSetDirection(block, UI_DOWN);
-	uiEndBlock(C, block);
 	
 	/* give search-field focus */
 	uiButSetFocusOnEnter(win, but);

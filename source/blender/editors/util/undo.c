@@ -385,7 +385,13 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 			ED_undo_pop_op(C, op);
 
 			if (op->type->check) {
-				op->type->check(C, op); /* ignore return value since its running again anyway */
+				if (op->type->check(C, op)) {
+					/* check for popup and re-layout buttons */
+					ARegion *ar_menu = CTX_wm_menu(C);
+					if (ar_menu) {
+						ED_region_tag_refresh_ui(ar_menu);
+					}
+				}
 			}
 
 			retval = WM_operator_repeat(C, op);

@@ -2983,6 +2983,8 @@ void uiBlockLayoutResolve(uiBlock *block, int *x, int *y)
 {
 	uiLayoutRoot *root;
 
+	BLI_assert(block->active);
+
 	if (x) *x = 0;
 	if (y) *y = 0;
 
