@@ -68,6 +68,7 @@
 #include "BLI_heap.h"
 #include "BLI_math.h"
 #include "BLI_stack.h"
+#include "BLI_bitmap.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
@@ -641,7 +642,7 @@ typedef struct {
 	int e;
 } EdgeStackElem;
 
-static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
+static void build_emats_stack(BLI_Stack *stack, BLI_bitmap *visited_e, EMat *emat,
                               const MeshElemMap *emap, const MEdge *medge,
                               const MVertSkin *vs, const MVert *mvert)
 {
@@ -654,11 +655,11 @@ static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
 	e = stack_elem.e;
 
 	/* Skip if edge already visited */
-	if (visited_e[e])
+	if (BLI_BITMAP_TEST(visited_e, e))
 		return;
 
 	/* Mark edge as visited */
-	visited_e[e] = true;
+	BLI_BITMAP_ENABLE(visited_e, e);
 	
 	/* Process edge */
 
@@ -704,11 +705,12 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 	BLI_Stack *stack;
 	EMat *emat;
 	EdgeStackElem stack_elem;
-	int *visited_e, i, v;
+	BLI_bitmap *visited_e;
+	int i, v;
 
 	stack = BLI_stack_new(sizeof(stack_elem), "build_edge_mats.stack");
 
-	visited_e = MEM_callocN(sizeof(int) * totedge, "build_edge_mats.visited_e");
+	visited_e = BLI_BITMAP_NEW(totedge, "build_edge_mats.visited_e");
 	emat = MEM_callocN(sizeof(EMat) * totedge, "build_edge_mats.emat");
 
 	/* Edge matrices are built from the root nodes, add all roots with
