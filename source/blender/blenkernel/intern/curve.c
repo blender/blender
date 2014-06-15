@@ -1676,7 +1676,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 	}
 	else if (cu->ext2 == 0.0f) {
 		dl = MEM_callocN(sizeof(DispList), "makebevelcurve2");
-		dl->verts = MEM_mallocN(2 * 3 * sizeof(float), "makebevelcurve2");
+		dl->verts = MEM_mallocN(2 * sizeof(float[3]), "makebevelcurve2");
 		BLI_addtail(disp, dl);
 		dl->type = DL_SEGM;
 		dl->parts = 1;
@@ -1693,7 +1693,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 		nr = 4 + 2 * cu->bevresol;
 
 		dl = MEM_callocN(sizeof(DispList), "makebevelcurve p1");
-		dl->verts = MEM_mallocN(nr * 3 * sizeof(float), "makebevelcurve p1");
+		dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p1");
 		BLI_addtail(disp, dl);
 		dl->type = DL_POLY;
 		dl->parts = 1;
@@ -1725,7 +1725,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 				nr = 3 + 2 * cu->bevresol;
 
 			dl = MEM_callocN(sizeof(DispList), "makebevelcurve p1");
-			dl->verts = MEM_mallocN(nr * 3 * sizeof(float), "makebevelcurve p1");
+			dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p1");
 			BLI_addtail(disp, dl);
 			dl->type = DL_SEGM;
 			dl->parts = 1;
@@ -1751,7 +1751,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 			nr = 2;
 
 			dl = MEM_callocN(sizeof(DispList), "makebevelcurve p2");
-			dl->verts = MEM_callocN(nr * 3 * sizeof(float), "makebevelcurve p2");
+			dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p2");
 			BLI_addtail(disp, dl);
 			dl->type = DL_SEGM;
 			dl->parts = 1;
@@ -1783,7 +1783,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 				nr = 3 + 2 * cu->bevresol;
 
 			dl = MEM_callocN(sizeof(DispList), "makebevelcurve p3");
-			dl->verts = MEM_mallocN(nr * 3 * sizeof(float), "makebevelcurve p3");
+			dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p3");
 			BLI_addtail(disp, dl);
 			dl->type = DL_SEGM;
 			dl->flag = DL_FRONT_CURVE;

@@ -347,7 +347,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
 
 				dl = MEM_callocN(sizeof(DispList), "makeDispListbez");
 				/* len+1 because of 'forward_diff_bezier' function */
-				dl->verts = MEM_callocN((len + 1) * 3 * sizeof(float), "dlverts");
+				dl->verts = MEM_mallocN((len + 1) * sizeof(float[3]), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts = 1;
 				dl->nr = len;
@@ -401,7 +401,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
 				len = (resolu * SEGMENTSU(nu));
 
 				dl = MEM_callocN(sizeof(DispList), "makeDispListsurf");
-				dl->verts = MEM_callocN(len * 3 * sizeof(float), "dlverts");
+				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts = 1;
 
@@ -418,7 +418,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
 			else if (nu->type == CU_POLY) {
 				len = nu->pntsu;
 				dl = MEM_callocN(sizeof(DispList), "makeDispListpoly");
-				dl->verts = MEM_callocN(len * 3 * sizeof(float), "dlverts");
+				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts = 1;
 				dl->nr = len;
@@ -1227,7 +1227,7 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 				len = SEGMENTSU(nu) * resolu;
 
 				dl = MEM_callocN(sizeof(DispList), "makeDispListsurf");
-				dl->verts = MEM_callocN(len * 3 * sizeof(float), "dlverts");
+				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
 
 				BLI_addtail(dispbase, dl);
 				dl->parts = 1;
@@ -1249,7 +1249,7 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 				len = (nu->pntsu * resolu) * (nu->pntsv * resolv);
 
 				dl = MEM_callocN(sizeof(DispList), "makeDispListsurf");
-				dl->verts = MEM_callocN(len * 3 * sizeof(float), "dlverts");
+				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
 				BLI_addtail(dispbase, dl);
 
 				dl->col = nu->mat_nr;
@@ -1344,7 +1344,7 @@ static void fillBevelCap(Nurb *nu, DispList *dlb, float *prev_fp, ListBase *disp
 	DispList *dl;
 
 	dl = MEM_callocN(sizeof(DispList), "makeDispListbev2");
-	dl->verts = MEM_mallocN(3 * sizeof(float) * dlb->nr, "dlverts");
+	dl->verts = MEM_mallocN(sizeof(float[3]) * dlb->nr, "dlverts");
 	memcpy(dl->verts, prev_fp, 3 * sizeof(float) * dlb->nr);
 
 	dl->type = DL_POLY;
@@ -1626,7 +1626,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 					if (BLI_listbase_is_empty(&dlbev)) {
 						BevPoint *bevp;
 						dl = MEM_callocN(sizeof(DispList), "makeDispListbev");
-						dl->verts = MEM_callocN(3 * sizeof(float) * bl->nr, "dlverts");
+						dl->verts = MEM_mallocN(sizeof(float[3]) * bl->nr, "dlverts");
 						BLI_addtail(dispbase, dl);
 
 						if (bl->poly != -1) dl->type = DL_POLY;
@@ -1682,7 +1682,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 							/* for each part of the bevel use a separate displblock */
 							dl = MEM_callocN(sizeof(DispList), "makeDispListbev1");
-							dl->verts = data = MEM_callocN(3 * sizeof(float) * dlb->nr * steps, "dlverts");
+							dl->verts = data = MEM_mallocN(sizeof(float[3]) * dlb->nr * steps, "dlverts");
 							BLI_addtail(dispbase, dl);
 
 							dl->type = DL_SURF;
