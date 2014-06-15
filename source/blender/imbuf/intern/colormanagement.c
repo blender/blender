@@ -1895,7 +1895,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, bool save_as_render, boo
 	 * so much useful to just ignore alpha -- it leads to bad
 	 * artifacts especially when saving byte images.
 	 *
-	 * What we do here is we're overing our image on top of
+	 * What we do here is we're overlaying our image on top of
 	 * background color (which is currently black).
 	 *
 	 * This is quite much the same as what Gimp does and it

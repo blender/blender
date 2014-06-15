@@ -2023,7 +2023,7 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 	return(ok);
 }
 
-/* same as BKE_imbuf_write() but crappy workaround not to perminantly modify
+/* same as BKE_imbuf_write() but crappy workaround not to permanently modify
  * _some_, values in the imbuf */
 int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
                        const bool save_copy)

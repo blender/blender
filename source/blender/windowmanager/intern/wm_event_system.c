@@ -3349,7 +3349,7 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
 	 *
 	 * TODO(sergey): Make it different locked states, so different jobs
 	 *               could lock different areas of blender and allow
-	 *               interation with others?
+	 *               interaction with others?
 	 */
 	BKE_spacedata_draw_locks(lock);
 }

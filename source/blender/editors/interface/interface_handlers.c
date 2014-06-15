@@ -7044,7 +7044,7 @@ void ui_button_activate_do(bContext *C, ARegion *ar, uiBut *but)
 
 void ui_button_execute_begin(struct bContext *UNUSED(C), struct ARegion *ar, uiBut *but, void **active_back)
 {
-	/* note: ideally we would not have to change 'but->active' howevwer
+	/* note: ideally we would not have to change 'but->active' however
 	 * some functions we call don't use data (as they should be doing) */
 	uiHandleButtonData *data;
 	*active_back = but->active;

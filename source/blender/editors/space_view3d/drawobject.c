@@ -791,7 +791,6 @@ void view3d_cached_text_draw_add(const float co[3],
                                  const unsigned char col[4])
 {
 	int alloc_len = str_len + 1;
-	/* TODO, replace with more efficient malloc, perhaps memarena per draw? */
 	ViewCachedString *vos;
 
 	BLI_assert(str_len == strlen(str));
