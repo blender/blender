@@ -5913,7 +5913,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 		UI_ThemeColor(TH_WIRE_EDIT);
 		for (bl = ob->curve_cache->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
-			BevPoint *bevp = (BevPoint *)(bl + 1);
+			BevPoint *bevp = bl->bevpoints;
 			int nr = bl->nr;
 			int skip = nu->resolu / 16;
 			

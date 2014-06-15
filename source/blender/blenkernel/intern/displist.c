@@ -1425,7 +1425,7 @@ static void calc_bevfac_mapping(
 
 		bevp_array = MEM_mallocN(sizeof(*bevp_array) * (bl->nr - 1), "bevp_dists");
 		segments = MEM_callocN(sizeof(*segments) * segcount, "bevp_segmentlengths");
-		bevp_prev = (BevPoint *)(bl + 1);
+		bevp_prev = bl->bevpoints;
 		bevp = bevp_prev + 1;
 
 		if (nu->type == CU_BEZIER) {
@@ -1644,7 +1644,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						dl->rt = nu->flag & ~CU_2D;
 
 						a = dl->nr;
-						bevp = (BevPoint *)(bl + 1);
+						bevp = bl->bevpoints;
 						data = dl->verts;
 						while (a--) {
 							data[0] = bevp->vec[0] + widfac * bevp->sina;
@@ -1704,9 +1704,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							                                 "bevelSplitFlag");
 
 							/* for each point of poly make a bevel piece */
-							bevp_first = (BevPoint *)(bl + 1);
-							bevp_last  = (BevPoint *)(bl + 1) + (bl->nr - 1);
-							bevp       = (BevPoint *)(bl + 1) + start;
+							bevp_first =  bl->bevpoints;
+							bevp_last  = &bl->bevpoints[bl->nr - 1];
+							bevp       = &bl->bevpoints[start];
 							for (i = start, a = 0; a < steps; i++, bevp++, a++) {
 								float fac = 1.0;
 								float *cur_data = data;

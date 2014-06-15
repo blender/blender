@@ -71,22 +71,25 @@ typedef struct Path {
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
-typedef struct BevList {
-	struct BevList *next, *prev;
-	int nr, dupe_nr;
-	int poly, hole;
-	int charidx;
-} BevList;
-
-/* These two Lines with # tell makesdna this struct can be excluded. */
-#
-#
 typedef struct BevPoint {
 	float vec[3], alfa, radius, weight;
 	float sina, cosa;				/* 2D Only */
 	float dir[3], tan[3], quat[4];	/* 3D Only */
 	short split_tag, dupe_tag;
 } BevPoint;
+
+/* These two Lines with # tell makesdna this struct can be excluded. */
+#
+#
+typedef struct BevList {
+	struct BevList *next, *prev;
+	int nr, dupe_nr;
+	int poly, hole;
+	int charidx;
+
+	/* over-alloc */
+	BevPoint bevpoints[0];
+} BevList;
 
 /**
  * Keyframes on F-Curves (allows code reuse of Bezier eval code) and
