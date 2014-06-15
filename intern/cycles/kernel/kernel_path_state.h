@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void path_state_init(KernelGlobals *kg, PathState *state, RNG *rng, int sample)
 {
-	state->flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
+	state->flag = PATH_RAY_CAMERA|PATH_RAY_MIS_SKIP;
 
 	state->rng_offset = PRNG_BASE_NUM;
 	state->sample = sample;
