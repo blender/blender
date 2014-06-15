@@ -71,8 +71,6 @@ void BKE_displist_elem_free(DispList *dl)
 		if (dl->verts) MEM_freeN(dl->verts);
 		if (dl->nors) MEM_freeN(dl->nors);
 		if (dl->index) MEM_freeN(dl->index);
-		if (dl->col1) MEM_freeN(dl->col1);
-		if (dl->col2) MEM_freeN(dl->col2);
 		if (dl->bevelSplitFlag) MEM_freeN(dl->bevelSplitFlag);
 		MEM_freeN(dl);
 	}
@@ -145,8 +143,6 @@ void BKE_displist_copy(ListBase *lbn, ListBase *lb)
 		dln->verts = MEM_dupallocN(dl->verts);
 		dln->nors = MEM_dupallocN(dl->nors);
 		dln->index = MEM_dupallocN(dl->index);
-		dln->col1 = MEM_dupallocN(dl->col1);
-		dln->col2 = MEM_dupallocN(dl->col2);
 
 		if (dl->bevelSplitFlag)
 			dln->bevelSplitFlag = MEM_dupallocN(dl->bevelSplitFlag);
@@ -1700,7 +1696,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							/* CU_2D conflicts with R_NOPUNOFLIP */
 							dl->rt = nu->flag & ~CU_2D;
 
-							dl->bevelSplitFlag = MEM_callocN(sizeof(*dl->col2) * ((steps + 0x1F) >> 5),
+							dl->bevelSplitFlag = MEM_callocN(sizeof(*dl->bevelSplitFlag) * ((steps + 0x1F) >> 5),
 							                                 "bevelSplitFlag");
 
 							/* for each point of poly make a bevel piece */

@@ -72,7 +72,6 @@ typedef struct DispList {
 	short col, rt;              /* rt used by initrenderNurbs */
 	float *verts, *nors;
 	int *index;
-	unsigned int *col1, *col2;
 	int charidx;
 	int totindex;               /* indexed array drawing surfaces */
 
