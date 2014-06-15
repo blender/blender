@@ -484,7 +484,13 @@ static int text_drop_paste_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent
 
 static void text_drop_paste(wmDrag *drag, wmDropBox *drop)
 {
-	RNA_string_set(drop->ptr, "text", ((ID *)drag->poin)->name + 2);
+	char *text;
+	ID *id = drag->poin;
+
+	/* copy drag path to properties */
+	text = RNA_path_full_ID_py(id);
+	RNA_string_set(drop->ptr, "text", text);
+	MEM_freeN(text);
 }
 
 /* this region dropbox definition */
