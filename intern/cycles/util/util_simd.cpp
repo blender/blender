@@ -15,6 +15,9 @@
  * limitations under the License
  */
 
+/* SSE optimization disabled for now on 32 bit, see bug #36316 */
+#if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
+
 #include "util_simd.h"
 
 CCL_NAMESPACE_BEGIN
@@ -44,3 +47,4 @@ const __m128 _mm_lookupmask_ps[16] = {
 
 CCL_NAMESPACE_END
 
+#endif
