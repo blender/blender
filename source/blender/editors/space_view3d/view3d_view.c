@@ -815,7 +815,7 @@ void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect)
 		rect->ymax /= (float)ar->winy;
 		rect->ymax = y1 + rect->ymax * (y2 - y1);
 		
-		if (is_ortho) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
+		if (is_ortho) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
 		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
 
 	}
