@@ -287,13 +287,13 @@ static PyObject *Stroke_stroke_vertices_end(BPy_Stroke *self)
 }
 
 PyDoc_STRVAR(Stroke_reversed_doc,
-	".. method:: __reversed__()\n"
-	"\n"
-	"   Returns a StrokeVertexIterator iterating over the vertices of the Stroke\n"
-	"   in the reversed order (from the last to the first).\n"
-	"\n"
-	"   :return: A StrokeVertexIterator pointing after the last StrokeVertex.\n"
-	"   :rtype: :class:`StrokeVertexIterator`");
+".. method:: __reversed__()\n"
+"\n"
+"   Returns a StrokeVertexIterator iterating over the vertices of the Stroke\n"
+"   in the reversed order (from the last to the first).\n"
+"\n"
+"   :return: A StrokeVertexIterator pointing after the last StrokeVertex.\n"
+"   :rtype: :class:`StrokeVertexIterator`");
 
 static PyObject *Stroke_reversed(BPy_Stroke *self)
 {

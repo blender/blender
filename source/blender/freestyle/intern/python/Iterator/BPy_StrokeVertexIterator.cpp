@@ -49,7 +49,7 @@ PyDoc_STRVAR(StrokeVertexIterator_doc,
 "specialized StrokeVertex type.  In this case, one should use a\n"
 "StrokeVertexIterator.  To call functions of the UnaryFuntion0D type,\n"
 "a StrokeVertexIterator can be converted to an Interface0DIterator by\n"
-"by calling Interface0DIterator(it)."
+"by calling Interface0DIterator(it).\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -137,6 +137,14 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 
 /*----------------------StrokeVertexIterator methods ----------------------------*/
 
+PyDoc_STRVAR(StrokeVertexIterator_incremented_doc,
+".. method:: incremented()\n"
+"\n"
+"   Returns a copy of an incremented StrokeVertexIterator.\n"
+"\n"
+"   :return: A StrokeVertexIterator pointing the next StrokeVertex.\n"
+"   :rtype: :class:`StrokeVertexIterator`");
+
 static PyObject *StrokeVertexIterator_incremented(BPy_StrokeVertexIterator *self)
 {
 	if (self->sv_it->isEnd()) {
@@ -147,6 +155,14 @@ static PyObject *StrokeVertexIterator_incremented(BPy_StrokeVertexIterator *self
 	copy->increment();
 	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(*copy, self->reversed);
 }
+
+PyDoc_STRVAR(StrokeVertexIterator_decremented_doc,
+".. method:: decremented()\n"
+"\n"
+"   Returns a copy of a decremented StrokeVertexIterator.\n"
+"\n"
+"   :return: A StrokeVertexIterator pointing the previous StrokeVertex.\n"
+"   :rtype: :class:`StrokeVertexIterator`");
 
 static PyObject *StrokeVertexIterator_decremented(BPy_StrokeVertexIterator *self)
 {
@@ -160,6 +176,15 @@ static PyObject *StrokeVertexIterator_decremented(BPy_StrokeVertexIterator *self
 	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(*copy, self->reversed);
 }
 
+PyDoc_STRVAR(StrokeVertexIterator_reversed_doc,
+".. method:: reversed()\n"
+"\n"
+"   Returns a StrokeVertexIterator that traverses stroke vertices in the\n"
+"   reversed order.\n"
+"\n"
+"   :return: A StrokeVertexIterator traversing stroke vertices backward.\n"
+"   :rtype: :class:`StrokeVertexIterator`");
+
 static PyObject *StrokeVertexIterator_reversed(BPy_StrokeVertexIterator *self)
 {
 	StrokeInternal::StrokeVertexIterator *copy = new StrokeInternal::StrokeVertexIterator(*self->sv_it);
@@ -167,9 +192,9 @@ static PyObject *StrokeVertexIterator_reversed(BPy_StrokeVertexIterator *self)
 }
 
 static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
-	{"incremented", (PyCFunction) StrokeVertexIterator_incremented, METH_NOARGS, NULL},
-	{"decremented", (PyCFunction) StrokeVertexIterator_decremented, METH_NOARGS, NULL},
-	{"reversed", (PyCFunction) StrokeVertexIterator_reversed, METH_NOARGS, NULL},
+	{"incremented", (PyCFunction) StrokeVertexIterator_incremented, METH_NOARGS, StrokeVertexIterator_incremented_doc},
+	{"decremented", (PyCFunction)StrokeVertexIterator_decremented, METH_NOARGS, StrokeVertexIterator_decremented_doc},
+	{"reversed", (PyCFunction)StrokeVertexIterator_reversed, METH_NOARGS, StrokeVertexIterator_reversed_doc},
 	{NULL, NULL, 0, NULL}
 };
 
