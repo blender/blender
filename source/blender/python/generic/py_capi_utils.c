@@ -543,8 +543,9 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
 	Py_DECREF(mod_main); /* sys.modules owns now */
 	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
 	if (filename) {
-		/* __file__ mainly for nice UI'ness */
-		PyModule_AddObject(mod_main, "__file__", PyUnicode_DecodeFSDefault(filename));
+		/* __file__ mainly for nice UI'ness
+		 * note: this wont map to a real file when executing text-blocks and buttons. */
+		PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromByte(filename));
 	}
 	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
 	Py_INCREF(interp->builtins); /* AddObject steals a reference */
