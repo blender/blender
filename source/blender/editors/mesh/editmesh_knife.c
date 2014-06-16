@@ -1177,8 +1177,8 @@ static bool point_is_visible(KnifeTool_OpData *kcd, const float p[3], const floa
 		madd_v3_v3v3fl(p_ofs, p, view, KNIFE_FLT_EPSBIG * 3.0f);
 
 		/* avoid projecting behind the viewpoint */
-		if (kcd->is_ortho) {
-			dist = FLT_MAX;
+		if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
+			dist = kcd->vc.v3d->far * 2.0f;
 		}
 
 		/* see if there's a face hit between p1 and the view */
@@ -1215,7 +1215,7 @@ static void set_linehit_depth(KnifeTool_OpData *kcd, KnifeLineHit *lh)
 
 	ED_view3d_win_to_segment(kcd->ar, kcd->vc.v3d, lh->schit, vnear, vfar, true);
 	mul_m4_v3(kcd->ob->imat, vnear);
-	if (kcd->is_ortho) {
+	if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
 		if (kcd->ortho_extent == 0.0f)
 			calc_ortho_extent(kcd);
 		clip_to_ortho_planes(vnear, vfar, kcd->ortho_extent + 10.0f);
@@ -1291,7 +1291,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	 * this gives precision error; rather then solving properly
 	 * (which may involve using doubles everywhere!),
 	 * limit the distance between these points */
-	if (kcd->is_ortho) {
+	if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
 		if (kcd->ortho_extent == 0.0f)
 			calc_ortho_extent(kcd);
 		clip_to_ortho_planes(v1, v3, kcd->ortho_extent + 10.0f);

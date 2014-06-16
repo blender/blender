@@ -320,6 +320,7 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 		end_offset = v3d->far;
 	}
 	else {
+		const float ortho_extent = 1000.0f;
 		float vec[4];
 		vec[0] = 2.0f * mval[0] / ar->winx - 1;
 		vec[1] = 2.0f * mval[1] / ar->winy - 1;
@@ -329,8 +330,8 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 		mul_m4_v4(rv3d->persinv, vec);
 		copy_v3_v3(r_ray_co, vec);
 
-		start_offset = -1000.0f;
-		end_offset = 1000.0f;
+		start_offset = (rv3d->persp == RV3D_CAMOB) ? 0.0f : -ortho_extent;
+		end_offset   = ortho_extent;
 	}
 
 	if (r_ray_start) {
