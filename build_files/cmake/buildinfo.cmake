@@ -85,6 +85,10 @@ if(EXISTS ${SOURCE_DIR}/.git)
 				endif()
 			endif()
 
+			if(MY_WC_BRANCH MATCHES "^blender-v")
+				set(MY_WC_BRANCH "master")
+			endif()
+
 			unset(_git_below_check)
 		endif()
 

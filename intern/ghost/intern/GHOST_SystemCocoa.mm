@@ -1087,7 +1087,7 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	//Check open windows if some changes are not saved
 	if (m_windowManager->getAnyModifiedState())
 	{
-		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved.\nDo you really want to quit ?",
+		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved.\nDo you really want to quit?",
 		                                 @"Cancel", @"Quit Anyway", nil);
 		if (shouldQuit == NSAlertAlternateReturn)
 		{

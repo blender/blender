@@ -1835,7 +1835,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 		int y = 242 + (4 * UI_DPI_WINDOW_FAC);
 		int w = 240;
 
-		const char *version_suffix = "Release Candidate";
+		const char *version_suffix = "Release Candidate 2";
 
 		/* hack to have text draw 'text_sel' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);

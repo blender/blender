@@ -1006,7 +1006,7 @@ macro(msgfmt_simple
 		OUTPUT  ${_file_to}
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
 		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/msgfmt ${_file_from} ${_file_to}
-		DEPENDS msgfmt)
+		DEPENDS msgfmt ${_file_from})
 
 	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
 

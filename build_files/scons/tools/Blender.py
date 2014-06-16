@@ -457,6 +457,9 @@ def buildinfo(lenv, build_type):
                 unpushed_log = os.popen('git log --oneline @{u}..').read().strip()
                 has_local_changes = unpushed_log != ''
 
+            if build_branch.startswith('blender-v'):
+                build_branch = 'master'
+
             if has_local_changes:
                 build_branch += ' (modified)'
     else:

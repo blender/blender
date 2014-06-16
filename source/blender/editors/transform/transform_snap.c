@@ -507,6 +507,7 @@ static void initSnappingMode(TransInfo *t)
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 		    (obedit != NULL && ELEM5(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) ) // Temporary limited to edit mode meshes, armature, curves, mballs
 		{
+			BoundBox *bb_init;
 			/* Exclude editmesh if using proportional edit */
 			if ((obedit->type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
 				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
@@ -517,7 +518,9 @@ static void initSnappingMode(TransInfo *t)
 
 			/* store the original bounding box -
 			 * we could slightly increase the size in screen space but leaving as TODO */
-			t->tsnap.BB_init = *BKE_object_boundbox_get(obedit);
+			bb_init = BKE_object_boundbox_get(obedit);
+			if (bb_init)
+				t->tsnap.BB_init = *bb_init;
 		}
 		/* Particles edit mode*/
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
