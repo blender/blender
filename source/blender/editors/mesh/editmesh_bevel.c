@@ -400,8 +400,21 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static void mesh_ot_bevel_offset_range_func(PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+                                            float *min, float *max, float *softmin, float *softmax)
+{
+	const int offset_type = RNA_enum_get(ptr, "offset_type");
+
+	*min = -FLT_MAX;
+	*max = FLT_MAX;
+	*softmin = 0.0f;
+	*softmax = (offset_type == BEVEL_AMT_PERCENT) ? 100.0f : 1.0f;
+}
+
 void MESH_OT_bevel(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	static EnumPropertyItem offset_type_items[] = {
 		{BEVEL_AMT_OFFSET, "OFFSET", 0, "Offset", "Amount is offset of new edges from original"},
 		{BEVEL_AMT_WIDTH, "WIDTH", 0, "Width", "Amount is width of new face"},
@@ -426,7 +439,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_POINTER | OPTYPE_BLOCKING;
 
 	RNA_def_enum(ot->srna, "offset_type", offset_type_items, 0, "Amount Type", "What distance Amount measures");
-	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Amount", "", 0.0f, 1.0f);
+	prop = RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Amount", "", 0.0f, 1.0f);
+	RNA_def_property_float_array_funcs_runtime(prop, NULL, NULL, mesh_ot_bevel_offset_range_func);
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
 	RNA_def_float(ot->srna, "profile", 0.5f, 0.15f, 1.0f, "Profile", "Controls profile shape (0.5 = round)", 0.15f, 1.0f);
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex only", "Bevel only vertices");
