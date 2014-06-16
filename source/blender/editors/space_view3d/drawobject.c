@@ -3869,12 +3869,14 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 	else {
 		/* ob->bb was set by derived mesh system, do NULL check just to be sure */
 		if (me->totpoly <= 4 || (!ob->bb || ED_view3d_boundbox_clip(rv3d, ob->bb))) {
-			const bool glsl = draw_glsl_material(scene, ob, v3d, dt);
-			const bool check_alpha = check_alpha_pass(base);
+			if (dt > OB_WIRE) {
+				const bool glsl = draw_glsl_material(scene, ob, v3d, dt);
 
-			if (dt == OB_SOLID || glsl) {
-				GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
-				                           (check_alpha) ? &do_alpha_after : NULL);
+				if (dt == OB_SOLID || glsl) {
+					const bool check_alpha = check_alpha_pass(base);
+					GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
+					                           (check_alpha) ? &do_alpha_after : NULL);
+				}
 			}
 
 			draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
@@ -6907,17 +6909,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	unsigned int col = 0;
 	unsigned char _ob_wire_col[4];            /* dont initialize this */
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
-	int i, selstart, selend, empty_object = 0;
+	int i, selstart, selend;
 	short dtx;
 	char  dt;
-	bool zbufoff = false, is_paint = false;
+	bool zbufoff = false, is_paint = false, empty_object = false;
 	const bool is_obact = (ob == OBACT);
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool is_picking = (G.f & G_PICKSEL) != 0;
 	bool particle_skip_object = false;  /* Draw particles but not their emitter object. */
-
-	/* only once set now, will be removed too, should become a global standard */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (ob != scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW) {
@@ -6970,7 +6969,13 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 	}
 
+
+	/* -------------------------------------------------------------------- */
 	/* no return after this point, otherwise leaks */
+
+	/* only once set now, will be removed too, should become a global standard */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	view3d_cached_text_draw_begin();
 	
 	/* draw motion paths (in view space) */
