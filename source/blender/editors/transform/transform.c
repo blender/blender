@@ -7342,13 +7342,17 @@ static void headerTimeTranslate(TransInfo *t, char str[MAX_INFO_LEN])
 			/* second step */
 			val = floorf((double)val / secf + 0.5);
 		}
-		else {
-			/* nearest frame/second/marker */
+		else if (autosnap == SACTSNAP_SECOND) {
+			/* nearest second */
 			val = (float)((double)val / secf);
 		}
 		
 		if (autosnap == SACTSNAP_FRAME)
 			BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%d.00 (%.4f)", (int)val, val);
+		else if (autosnap == SACTSNAP_SECOND)
+			BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%d.00 sec (%.4f)", (int)val, val);
+		else if (autosnap == SACTSNAP_TSTEP)
+			BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f sec", val);
 		else
 			BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", val);
 	}
