@@ -15,14 +15,12 @@
  * limitations under the License
  */
 
-/* SSE optimization disabled for now on 32 bit, see bug #36316 */
-#if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
+#ifdef WITH_KERNEL_SSE2
 
+#define __KERNEL_SSE2__
 #include "util_simd.h"
 
 CCL_NAMESPACE_BEGIN
-
-#ifdef WITH_KERNEL_SSE2
 
 const __m128 _mm_lookupmask_ps[16] = {
 	_mm_castsi128_ps(_mm_set_epi32( 0, 0, 0, 0)),
@@ -43,8 +41,7 @@ const __m128 _mm_lookupmask_ps[16] = {
 	_mm_castsi128_ps(_mm_set_epi32(-1,-1,-1,-1))
 };
 
-#endif  // WITH_KERNEL_SSE2
 
 CCL_NAMESPACE_END
 
-#endif
+#endif  // WITH_KERNEL_SSE2
