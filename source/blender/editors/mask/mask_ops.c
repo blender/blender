@@ -2077,6 +2077,8 @@ static int mask_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 					point++;
 				}
 				if (end >= start) {
+					int tot_point;
+					int tot_point_shape_start;
 					MaskSpline *new_spline = BKE_mask_spline_add(mask_layer);
 					MaskSplinePoint *new_point;
 					int b;
@@ -2100,15 +2102,29 @@ static int mask_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 					memcpy(new_spline->points, spline->points + start,
 					       new_spline->tot_point * sizeof(MaskSplinePoint));
 
+					tot_point = new_spline->tot_point;
+
+					/* animation requires points added one by one */
+					if (mask_layer->splines_shapes.first) {
+						new_spline->tot_point = 0;
+						tot_point_shape_start = BKE_mask_layer_shape_spline_to_index(mask_layer, new_spline);
+					}
+
 					/* Select points and duplicate their UWs (if needed). */
 					for (b = 0, new_point = new_spline->points;
-					     b < new_spline->tot_point;
+					     b < tot_point;
 					     b++, new_point++)
 					{
 						if (new_point->uw) {
 							new_point->uw = MEM_dupallocN(new_point->uw);
 						}
 						BKE_mask_point_select_set(new_point, true);
+
+
+						if (mask_layer->splines_shapes.first) {
+							new_spline->tot_point++;
+							BKE_mask_layer_shape_changed_add(mask_layer, tot_point_shape_start + b, true, false);
+						}
 					}
 
 					/* Clear cyclic flag if we didn't copy the whole spline. */

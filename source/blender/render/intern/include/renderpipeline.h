@@ -34,11 +34,13 @@
 #define __RENDERPIPELINE_H__
 
 struct Render;
+struct RenderData;
 struct RenderLayer;
 struct RenderResult;
 
 struct RenderLayer *render_get_active_layer(struct Render *re, struct RenderResult *rr);
 float panorama_pixel_rot(struct Render *re);
+void render_update_anim_renderdata(struct Render *re, struct RenderData *rd);
 
 #endif /* __RENDERPIPELINE_H__ */
 

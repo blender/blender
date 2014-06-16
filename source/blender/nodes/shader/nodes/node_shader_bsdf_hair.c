@@ -43,9 +43,6 @@ static bNodeSocketTemplate sh_node_bsdf_hair_out[] = {
 
 static int node_shader_gpu_bsdf_hair(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	if (!in[2].link)
-		in[2].link = GPU_builtin(GPU_VIEW_NORMAL);
-
 	return GPU_stack_link(mat, "node_bsdf_hair", in, out);
 }
 
