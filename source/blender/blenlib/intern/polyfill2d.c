@@ -235,7 +235,7 @@ static void kdtree2d_init(
 		}
 	}
 
-	BLI_assert(tree->totnode == (node - tree->nodes));
+	BLI_assert(tree->totnode == (unsigned int)(node - tree->nodes));
 }
 
 static unsigned int kdtree2d_balance_recursive(
