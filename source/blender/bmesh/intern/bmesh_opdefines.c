@@ -1904,4 +1904,4 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_wireframe_def,
 };
 
-const int bmo_opdefines_total = (sizeof(bmo_opdefines) / sizeof(void *));
+const int bmo_opdefines_total = ARRAY_SIZE(bmo_opdefines);

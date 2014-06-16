@@ -1352,4 +1352,4 @@ BMWalker *bm_walker_types[] = {
 	&bmw_ConnectedVertexWalker_Type,    /* BMW_CONNECTED_VERTEX */
 };
 
-const int bm_totwalkers = sizeof(bm_walker_types) / sizeof(*bm_walker_types);
+const int bm_totwalkers = ARRAY_SIZE(bm_walker_types);

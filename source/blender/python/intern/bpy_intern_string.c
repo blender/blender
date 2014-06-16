@@ -69,12 +69,12 @@ void bpy_intern_string_init(void)
 
 #undef BPY_INTERN_STR
 
-	BLI_assert(i == (sizeof(bpy_intern_str_arr) / sizeof(*bpy_intern_str_arr)));
+	BLI_assert(i == ARRAY_SIZE(bpy_intern_str_arr));
 }
 
 void bpy_intern_string_exit(void)
 {
-	unsigned int i = sizeof(bpy_intern_str_arr) / sizeof(*bpy_intern_str_arr);
+	unsigned int i = ARRAY_SIZE(bpy_intern_str_arr);
 	while (i--) {
 		Py_DECREF(bpy_intern_str_arr[i]);
 	}

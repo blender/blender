@@ -390,13 +390,13 @@ static BLF_i18n_contexts_descriptor _contexts[] = BLF_I18NCONTEXTS_DESC;
  * This allows us to avoid many handwriting, and above all, to keep all context definition stuff in BLF_translation.h!
  */
 static PyStructSequence_Field
-app_translations_contexts_fields[sizeof(_contexts) / sizeof(BLF_i18n_contexts_descriptor)] = {{NULL}};
+app_translations_contexts_fields[ARRAY_SIZE(_contexts)] = {{NULL}};
 
 static PyStructSequence_Desc app_translations_contexts_desc = {
 	(char *)"bpy.app.translations.contexts",     /* name */
 	(char *)"This named tuple contains all pre-defined translation contexts",    /* doc */
 	app_translations_contexts_fields,    /* fields */
-	(sizeof(app_translations_contexts_fields) / sizeof(PyStructSequence_Field)) - 1
+	ARRAY_SIZE(app_translations_contexts_fields) - 1
 };
 
 static PyObject *app_translations_contexts_make(void)

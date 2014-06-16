@@ -243,7 +243,7 @@ void BPY_python_start(int argc, const char **argv)
 
 	/* not essential but nice to set our name */
 	static wchar_t program_path_wchar[FILE_MAX]; /* python holds a reference */
-	BLI_strncpy_wchar_from_utf8(program_path_wchar, BLI_program_path(), sizeof(program_path_wchar) / sizeof(wchar_t));
+	BLI_strncpy_wchar_from_utf8(program_path_wchar, BLI_program_path(), ARRAY_SIZE(program_path_wchar));
 	Py_SetProgramName(program_path_wchar);
 
 	/* must run before python initializes */

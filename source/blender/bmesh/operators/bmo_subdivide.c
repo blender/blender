@@ -752,7 +752,7 @@ static const SubDPattern *patterns[] = {
 	NULL,
 };
 
-#define PATTERNS_TOT  (sizeof(patterns) / sizeof(void *))
+#define PATTERNS_TOT  ARRAY_SIZE(patterns)
 
 typedef struct SubDFaceData {
 	BMVert *start;

@@ -606,8 +606,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 		/* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
 		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
 
-		BLI_strncpy_wchar_from_utf8(py_path_bundle_wchar, py_path_bundle,
-		                            sizeof(py_path_bundle_wchar) / sizeof(wchar_t));
+		BLI_strncpy_wchar_from_utf8(py_path_bundle_wchar, py_path_bundle, ARRAY_SIZE(py_path_bundle_wchar));
 
 		Py_SetPythonHome(py_path_bundle_wchar);
 		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);

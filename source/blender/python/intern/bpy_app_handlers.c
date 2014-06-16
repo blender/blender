@@ -71,11 +71,11 @@ static PyStructSequence_Desc app_cb_info_desc = {
 	(char *)"bpy.app.handlers",     /* name */
 	(char *)"This module contains callbacks",    /* doc */
 	app_cb_info_fields,    /* fields */
-	(sizeof(app_cb_info_fields) / sizeof(PyStructSequence_Field)) - 1
+	ARRAY_SIZE(app_cb_info_fields) - 1
 };
 
 #if 0
-#  if (BLI_CB_EVT_TOT != ((sizeof(app_cb_info_fields) / sizeof(PyStructSequence_Field))))
+#  if (BLI_CB_EVT_TOT != ARRAY_SIZE(app_cb_info_fields))
 #    error "Callbacks are out of sync"
 #  endif
 #endif

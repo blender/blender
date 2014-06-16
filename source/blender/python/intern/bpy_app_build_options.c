@@ -26,6 +26,8 @@
 
 #include <Python.h>
 
+#include "BLI_utildefines.h"
+
 #include "bpy_app_build_options.h"
 
 static PyTypeObject BlenderAppBuildOptionsType;
@@ -74,7 +76,7 @@ static PyStructSequence_Desc app_builtopts_info_desc = {
 	(char *)"bpy.app.build_options",     /* name */
 	(char *)"This module contains information about options blender is built with",    /* doc */
 	app_builtopts_info_fields,    /* fields */
-	(sizeof(app_builtopts_info_fields) / sizeof(PyStructSequence_Field)) - 1
+	ARRAY_SIZE(app_builtopts_info_fields) - 1
 };
 
 static PyObject *make_builtopts_info(void)
