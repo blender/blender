@@ -189,7 +189,9 @@ static bAction *poselib_init_new(Object *ob)
 	/* init object's poselib action (unlink old one if there) */
 	if (ob->poselib)
 		id_us_min(&ob->poselib->id);
+		
 	ob->poselib = add_empty_action(G.main, "PoseLib");
+	ob->poselib->idroot = ID_OB;
 	
 	return ob->poselib;
 }
