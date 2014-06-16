@@ -5961,6 +5961,149 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
 }
 
+static void draw_editfont_textcurs(RegionView3D *rv3d, float textcurs[4][2])
+{
+	cpack(0);
+	ED_view3d_polygon_offset(rv3d, -1.0);
+	set_inverted_drawing(1);
+	glBegin(GL_QUADS);
+	glVertex2fv(textcurs[0]);
+	glVertex2fv(textcurs[1]);
+	glVertex2fv(textcurs[2]);
+	glVertex2fv(textcurs[3]);
+	glEnd();
+	set_inverted_drawing(0);
+	ED_view3d_polygon_offset(rv3d, 0.0);
+}
+
+static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+                          const char dt, const short dflag, const unsigned char ob_wire_col[4])
+{
+	Object *ob = base->object;
+	Curve *cu = ob->data;
+	EditFont *ef = cu->editfont;
+	float vec1[3], vec2[3];
+	int i, selstart, selend;
+
+	draw_editfont_textcurs(rv3d, ef->textcurs);
+
+	if (cu->flag & CU_FAST) {
+		cpack(0xFFFFFF);
+		set_inverted_drawing(1);
+		drawDispList(scene, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
+		set_inverted_drawing(0);
+	}
+	else {
+		drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+	}
+
+	if (cu->linewidth != 0.0f) {
+		UI_ThemeColor(TH_WIRE_EDIT);
+		copy_v3_v3(vec1, ob->orig);
+		copy_v3_v3(vec2, ob->orig);
+		vec1[0] += cu->linewidth;
+		vec2[0] += cu->linewidth;
+		vec1[1] += cu->linedist * cu->fsize;
+		vec2[1] -= cu->lines * cu->linedist * cu->fsize;
+		setlinestyle(3);
+		glBegin(GL_LINE_STRIP);
+		glVertex2fv(vec1);
+		glVertex2fv(vec2);
+		glEnd();
+		setlinestyle(0);
+	}
+
+	setlinestyle(3);
+	for (i = 0; i < cu->totbox; i++) {
+		if (cu->tb[i].w != 0.0f) {
+			UI_ThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
+			vec1[0] = cu->xof + cu->tb[i].x;
+			vec1[1] = cu->yof + cu->tb[i].y + cu->fsize;
+			vec1[2] = 0.001;
+			glBegin(GL_LINE_STRIP);
+			glVertex3fv(vec1);
+			vec1[0] += cu->tb[i].w;
+			glVertex3fv(vec1);
+			vec1[1] -= cu->tb[i].h;
+			glVertex3fv(vec1);
+			vec1[0] -= cu->tb[i].w;
+			glVertex3fv(vec1);
+			vec1[1] += cu->tb[i].h;
+			glVertex3fv(vec1);
+			glEnd();
+		}
+	}
+	setlinestyle(0);
+
+
+	if (BKE_vfont_select_get(ob, &selstart, &selend) && ef->selboxes) {
+		const int seltot = selend - selstart;
+		float selboxw;
+
+		cpack(0xffffff);
+		set_inverted_drawing(1);
+		for (i = 0; i <= seltot; i++) {
+			EditFontSelBox *sb = &ef->selboxes[i];
+			float tvec[3];
+
+			if (i != seltot) {
+				if (ef->selboxes[i + 1].y == sb->y)
+					selboxw = ef->selboxes[i + 1].x - sb->x;
+				else
+					selboxw = sb->w;
+			}
+			else {
+				selboxw = sb->w;
+			}
+
+			/* fill in xy below */
+			tvec[2] = 0.001;
+
+			glBegin(GL_QUADS);
+
+			if (sb->rot == 0.0f) {
+				copy_v2_fl2(tvec, sb->x, sb->y);
+				glVertex3fv(tvec);
+
+				copy_v2_fl2(tvec, sb->x + selboxw, sb->y);
+				glVertex3fv(tvec);
+
+				copy_v2_fl2(tvec, sb->x + selboxw, sb->y + sb->h);
+				glVertex3fv(tvec);
+
+				copy_v2_fl2(tvec, sb->x, sb->y + sb->h);
+				glVertex3fv(tvec);
+			}
+			else {
+				float mat[2][2];
+
+				angle_to_mat2(mat, sb->rot);
+
+				copy_v2_fl2(tvec, sb->x, sb->y);
+				glVertex3fv(tvec);
+
+				copy_v2_fl2(tvec, selboxw, 0.0f);
+				mul_m2v2(mat, tvec);
+				add_v2_v2(tvec, &sb->x);
+				glVertex3fv(tvec);
+
+				copy_v2_fl2(tvec, selboxw, sb->h);
+				mul_m2v2(mat, tvec);
+				add_v2_v2(tvec, &sb->x);
+				glVertex3fv(tvec);
+
+				copy_v2_fl2(tvec, 0.0f, sb->h);
+				mul_m2v2(mat, tvec);
+				add_v2_v2(tvec, &sb->x);
+				glVertex3fv(tvec);
+			}
+
+			glEnd();
+		}
+		set_inverted_drawing(0);
+	}
+}
+
 /* draw a sphere for use as an empty drawtype */
 static void draw_empty_sphere(float size)
 {
@@ -6015,21 +6158,6 @@ static void draw_empty_cone(float size)
 	glPopMatrix();
 	
 	gluDeleteQuadric(qobj);
-}
-
-static void draw_textcurs(RegionView3D *rv3d, float textcurs[4][2])
-{
-	cpack(0);
-	ED_view3d_polygon_offset(rv3d, -1.0);
-	set_inverted_drawing(1);
-	glBegin(GL_QUADS);
-	glVertex2fv(textcurs[0]);
-	glVertex2fv(textcurs[1]);
-	glVertex2fv(textcurs[2]);
-	glVertex2fv(textcurs[3]);
-	glEnd();
-	set_inverted_drawing(0);
-	ED_view3d_polygon_offset(rv3d, 0.0);
 }
 
 static void drawspiral(const float cent[3], float rad, float tmat[4][4], int start)
@@ -6905,11 +7033,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	Object *ob = base->object;
 	Curve *cu;
 	RegionView3D *rv3d = ar->regiondata;
-	float vec1[3], vec2[3];
 	unsigned int col = 0;
 	unsigned char _ob_wire_col[4];            /* dont initialize this */
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
-	int i, selstart, selend;
 	short dtx;
 	char  dt;
 	bool zbufoff = false, is_paint = false, empty_object = false;
@@ -7075,125 +7201,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			case OB_FONT:
 				cu = ob->data;
 				if (cu->editfont) {
-					EditFont *ef = cu->editfont;
-
-					draw_textcurs(rv3d, ef->textcurs);
-
-					if (cu->flag & CU_FAST) {
-						cpack(0xFFFFFF);
-						set_inverted_drawing(1);
-						drawDispList(scene, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
-						set_inverted_drawing(0);
-					}
-					else {
-						drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-					}
-
-					if (cu->linewidth != 0.0f) {
-						UI_ThemeColor(TH_WIRE_EDIT);
-						copy_v3_v3(vec1, ob->orig);
-						copy_v3_v3(vec2, ob->orig);
-						vec1[0] += cu->linewidth;
-						vec2[0] += cu->linewidth;
-						vec1[1] += cu->linedist * cu->fsize;
-						vec2[1] -= cu->lines * cu->linedist * cu->fsize;
-						setlinestyle(3);
-						glBegin(GL_LINE_STRIP);
-						glVertex2fv(vec1);
-						glVertex2fv(vec2);
-						glEnd();
-						setlinestyle(0);
-					}
-
-					setlinestyle(3);
-					for (i = 0; i < cu->totbox; i++) {
-						if (cu->tb[i].w != 0.0f) {
-							UI_ThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
-							vec1[0] = cu->xof + cu->tb[i].x;
-							vec1[1] = cu->yof + cu->tb[i].y + cu->fsize;
-							vec1[2] = 0.001;
-							glBegin(GL_LINE_STRIP);
-							glVertex3fv(vec1);
-							vec1[0] += cu->tb[i].w;
-							glVertex3fv(vec1);
-							vec1[1] -= cu->tb[i].h;
-							glVertex3fv(vec1);
-							vec1[0] -= cu->tb[i].w;
-							glVertex3fv(vec1);
-							vec1[1] += cu->tb[i].h;
-							glVertex3fv(vec1);
-							glEnd();
-						}
-					}
-					setlinestyle(0);
-
-
-					if (BKE_vfont_select_get(ob, &selstart, &selend) && ef->selboxes) {
-						const int seltot = selend - selstart;
-						float selboxw;
-
-						cpack(0xffffff);
-						set_inverted_drawing(1);
-						for (i = 0; i <= seltot; i++) {
-							EditFontSelBox *sb = &ef->selboxes[i];
-							float tvec[3];
-
-							if (i != seltot) {
-								if (ef->selboxes[i + 1].y == sb->y)
-									selboxw = ef->selboxes[i + 1].x - sb->x;
-								else
-									selboxw = sb->w;
-							}
-							else {
-								selboxw = sb->w;
-							}
-
-							/* fill in xy below */
-							tvec[2] = 0.001;
-
-							glBegin(GL_QUADS);
-
-							if (sb->rot == 0.0f) {
-								copy_v2_fl2(tvec, sb->x, sb->y);
-								glVertex3fv(tvec);
-
-								copy_v2_fl2(tvec, sb->x + selboxw, sb->y);
-								glVertex3fv(tvec);
-
-								copy_v2_fl2(tvec, sb->x + selboxw, sb->y + sb->h);
-								glVertex3fv(tvec);
-
-								copy_v2_fl2(tvec, sb->x, sb->y + sb->h);
-								glVertex3fv(tvec);
-							}
-							else {
-								float mat[2][2];
-
-								angle_to_mat2(mat, sb->rot);
-
-								copy_v2_fl2(tvec, sb->x, sb->y);
-								glVertex3fv(tvec);
-
-								copy_v2_fl2(tvec, selboxw, 0.0f);
-								mul_m2v2(mat, tvec);
-								add_v2_v2(tvec, &sb->x);
-								glVertex3fv(tvec);
-
-								copy_v2_fl2(tvec, selboxw, sb->h);
-								mul_m2v2(mat, tvec);
-								add_v2_v2(tvec, &sb->x);
-								glVertex3fv(tvec);
-
-								copy_v2_fl2(tvec, 0.0f, sb->h);
-								mul_m2v2(mat, tvec);
-								add_v2_v2(tvec, &sb->x);
-								glVertex3fv(tvec);
-							}
-
-							glEnd();
-						}
-						set_inverted_drawing(0);
-					}
+					draw_editfont(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && v3d->drawtype >= OB_WIRE) == 0) {
