@@ -477,7 +477,7 @@ class VIEW3D_MT_view_align(Menu):
 
 
 class VIEW3D_MT_view_align_selected(Menu):
-    bl_label = "Align View to Selected"
+    bl_label = "Align View to Active"
 
     def draw(self, context):
         layout = self.layout
