@@ -44,6 +44,7 @@ __all__ = (
     "script_paths",
     "smpte_from_frame",
     "smpte_from_seconds",
+    "units",
     "unregister_class",
     "unregister_module",
     "user_resource",
@@ -58,6 +59,7 @@ from _bpy import (
     )
 from _bpy import script_paths as _bpy_script_paths
 from _bpy import user_resource as _user_resource
+from _bpy import _utils_units as units
 
 import bpy as _bpy
 import os as _os

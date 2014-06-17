@@ -68,6 +68,7 @@ set(SRC
 	bpy_rna_callback.c
 	bpy_traceback.c
 	bpy_util.c
+	bpy_utils_units.c
 	stubs.c
 
 	gpu.h
@@ -91,6 +92,7 @@ set(SRC
 	bpy_rna_callback.h
 	bpy_traceback.h
 	bpy_util.h
+	bpy_utils_units.h
 	../BPY_extern.h
 )
 

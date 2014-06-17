@@ -49,6 +49,7 @@
 #include "bpy_props.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
+#include "bpy_utils_units.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -334,6 +335,7 @@ void BPy_init_modules(void)
 	/* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
 	PyModule_AddObject(mod, "ops", BPY_operator_module());
 	PyModule_AddObject(mod, "app", BPY_app_struct());
+	PyModule_AddObject(mod, "_utils_units", BPY_utils_units());
 
 	/* bpy context */
 	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);
