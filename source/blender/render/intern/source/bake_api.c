@@ -594,7 +594,7 @@ static void bake_differentials(BakeDataZSpan *bd, const float *uv1, const float 
 
 void RE_bake_pixels_populate(
         Mesh *me, BakePixel pixel_array[],
-        const int num_pixels, const BakeImages *bake_images)
+        const int num_pixels, const BakeImages *bake_images, const char *uv_layer)
 {
 	BakeDataZSpan bd;
 	int i, a;
@@ -619,7 +619,14 @@ void RE_bake_pixels_populate(
 		zbuf_alloc_span(&bd.zspan[i], bake_images->data[i].width, bake_images->data[i].height, R.clipcrop);
 	}
 
-	mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
+	if (uv_layer == NULL) {
+		mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
+	}
+	else {
+		int uv_id = CustomData_get_named_layer(&me->fdata, CD_MTFACE, uv_layer);
+		mtface = CustomData_get_layer_n(&me->fdata, CD_MTFACE, uv_id);
+	}
+
 	mface = CustomData_get_layer(&me->fdata, CD_MFACE);
 
 	if (mtface == NULL)

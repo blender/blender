@@ -87,7 +87,7 @@ bool RE_bake_pixels_populate_from_objects(
 
 void RE_bake_pixels_populate(
         struct Mesh *me, struct BakePixel *pixel_array,
-        const int num_pixels, const struct BakeImages *bake_images);
+        const int num_pixels, const struct BakeImages *bake_images, const char *uv_layer);
 
 void RE_bake_mask_fill(const BakePixel pixel_array[], const int num_pixels, char *mask);
 
