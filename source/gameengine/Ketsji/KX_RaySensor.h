@@ -83,13 +83,14 @@ public:
 	}
 
 	//Python Interface
+	// odd order, see: SENS_RAY_X_AXIS
 	enum RayAxis {
-		KX_RAY_AXIS_POS_X = 0,
-		KX_RAY_AXIS_POS_Y,
-		KX_RAY_AXIS_POS_Z,
-		KX_RAY_AXIS_NEG_X,
-		KX_RAY_AXIS_NEG_Y,
-		KX_RAY_AXIS_NEG_Z
+		KX_RAY_AXIS_POS_X = 1,
+		KX_RAY_AXIS_POS_Y = 0,
+		KX_RAY_AXIS_POS_Z = 2,
+		KX_RAY_AXIS_NEG_X = 3,
+		KX_RAY_AXIS_NEG_Y = 4,
+		KX_RAY_AXIS_NEG_Z = 5,
 	};
 	
 #ifdef WITH_PYTHON
