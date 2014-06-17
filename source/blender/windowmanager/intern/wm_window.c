@@ -1465,6 +1465,9 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 
 		win->eventstate->prevx = oldx;
 		win->eventstate->prevy = oldy;
+
+		win->eventstate->x = oldx;
+		win->eventstate->y = oldy;
 	}
 }
 
