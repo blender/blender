@@ -635,6 +635,7 @@ static int bake(
 			}
 			else {
 				restrict_flag_cage = ob_cage->restrictflag;
+				ob_cage->restrictflag |= OB_RESTRICT_RENDER;
 			}
 		}
 	}
@@ -772,7 +773,7 @@ static int bake(
 
 		/* reverting data back */
 		if (ob_cage) {
-			ob_cage->restrictflag |= OB_RESTRICT_RENDER;
+			ob_cage->restrictflag = restrict_flag_cage;
 		}
 		else if (is_cage) {
 			ob_low->modifiers = modifiers_original;
