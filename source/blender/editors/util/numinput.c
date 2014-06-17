@@ -256,7 +256,6 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	short idx = n->idx, idx_max = n->idx_max;
 	short dir = STRCUR_DIR_NEXT, mode = STRCUR_JUMP_NONE;
 	int cur;
-	double val;
 
 	switch (event->type) {
 		case EVT_MODAL_MAP:
@@ -467,6 +466,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	/* At this point, our value has changed, try to interpret it with python (if str is not empty!). */
 	if (n->str[0]) {
 #ifdef WITH_PYTHON
+		double val;
 		char str_unit_convert[NUM_STR_REP_LEN * 6];  /* Should be more than enough! */
 		const char *default_unit = NULL;
 
@@ -489,6 +489,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		}
 #else  /* Very unlikely, but does not harm... */
 		n->val[idx] = (float)atof(n->str);
+		(void)C;
 #endif  /* WITH_PYTHON */
 
 		if (n->val_flag[idx] & NUM_NEGATE) {

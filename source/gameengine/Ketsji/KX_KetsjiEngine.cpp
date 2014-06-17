@@ -514,13 +514,13 @@ void KX_KetsjiEngine::EndFrame()
 		RenderDebugProperties();
 	}
 
-	double tottime = m_logger->GetAverage(), time;
+	double tottime = m_logger->GetAverage();
 	if (tottime < 1e-6)
 		tottime = 1e-6;
 
 #ifdef WITH_PYTHON
 	for (int i = tc_first; i < tc_numCategories; ++i) {
-		time = m_logger->GetAverage((KX_TimeCategory)i);
+		double time = m_logger->GetAverage((KX_TimeCategory)i);
 		PyObject *val = PyTuple_New(2);
 		PyTuple_SetItem(val, 0, PyFloat_FromDouble(time*1000.f));
 		PyTuple_SetItem(val, 1, PyFloat_FromDouble(time/tottime * 100.f));

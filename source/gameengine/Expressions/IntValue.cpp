@@ -15,6 +15,8 @@
 *
 */
 
+#include <stdio.h>
+
 #include "IntValue.h"
 #include "ErrorValue.h"
 #include "FloatValue.h"

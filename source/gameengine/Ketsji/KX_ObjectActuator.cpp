@@ -32,6 +32,7 @@
  *  \ingroup ketsji
  */
 
+#include <stdio.h>
 
 #include "KX_ObjectActuator.h"
 #include "KX_GameObject.h"
