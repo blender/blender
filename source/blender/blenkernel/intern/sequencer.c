@@ -2813,8 +2813,7 @@ static ImBuf *seq_render_strip(const SeqRenderData *context, Sequence *seq, floa
 	ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
 	if (ibuf == NULL) {
-		if (ibuf == NULL)
-			ibuf = copy_from_ibuf_still(context, seq, nr);
+		ibuf = copy_from_ibuf_still(context, seq, nr);
 
 		if (ibuf == NULL) {
 			ibuf = BKE_sequencer_preprocessed_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
