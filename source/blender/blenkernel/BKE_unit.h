@@ -61,17 +61,19 @@ const char *bUnit_GetNameDisplay(void *usys_pt, int index);
 double      bUnit_GetScaler(void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
-#define     B_UNIT_NONE 0
-#define     B_UNIT_LENGTH 1
-#define     B_UNIT_AREA 2
-#define     B_UNIT_VOLUME 3
-#define     B_UNIT_MASS 4
-#define     B_UNIT_ROTATION 5
-#define     B_UNIT_TIME 6
-#define     B_UNIT_VELOCITY 7
-#define     B_UNIT_ACCELERATION 8
-#define     B_UNIT_CAMERA 9
-#define     B_UNIT_TYPE_TOT 10
+enum {
+	B_UNIT_NONE             = 0,
+	B_UNIT_LENGTH           = 1,
+	B_UNIT_AREA             = 2,
+	B_UNIT_VOLUME           = 3,
+	B_UNIT_MASS             = 4,
+	B_UNIT_ROTATION         = 5,
+	B_UNIT_TIME             = 6,
+	B_UNIT_VELOCITY         = 7,
+	B_UNIT_ACCELERATION     = 8,
+	B_UNIT_CAMERA           = 9,
+	B_UNIT_TYPE_TOT         = 10,
+};
 
 #ifdef __cplusplus
 }
