@@ -76,6 +76,9 @@ void BLI_ascii_strtolower(char *str, const size_t len) ATTR_NONNULL();
 void BLI_ascii_strtoupper(char *str, const size_t len) ATTR_NONNULL();
 int BLI_str_rstrip_float_zero(char *str, const char pad) ATTR_NONNULL();
 
+int BLI_str_index_in_array_n(const char *__restrict str, const char **__restrict str_array, const int str_array_len) ATTR_NONNULL();
+int BLI_str_index_in_array(const char *__restrict str, const char **__restrict str_array) ATTR_NONNULL();
+
 #ifdef __cplusplus
 }
 #endif
