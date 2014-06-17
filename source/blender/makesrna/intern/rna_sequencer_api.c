@@ -402,7 +402,7 @@ void RNA_api_sequence_strip(StructRNA *srna)
 	func = RNA_def_function(srna, "update", "rna_Sequence_update_rnafunc");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Update the strip dimensions");
-	parm = RNA_def_boolean(func, "data", false, "Frame",
+	parm = RNA_def_boolean(func, "data", false, "Data",
 	                       "Update strip data");
 
 	func = RNA_def_function(srna, "strip_elem_from_frame", "BKE_sequencer_give_stripelem");
