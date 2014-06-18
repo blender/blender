@@ -109,6 +109,7 @@ enable_testing()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE)
+set(TESTS_OUTPUT_DIR ${EXECUTABLE_OUTPUT_PATH}/tests CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
 # Set default config options
@@ -299,6 +300,9 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	option(WITH_GCC_MUDFLAP			"Enable mudflap" OFF)
 	mark_as_advanced(WITH_GCC_MUDFLAP)
 endif()
+
+# Unit testsing
+option(WITH_GTESTS "Enable GTest unit testing" OFF)
 
 if(APPLE)
 	cmake_minimum_required(VERSION 2.8.8)
@@ -2330,10 +2334,17 @@ endif()
 #-----------------------------------------------------------------------------
 # Libraries
 
+if(WITH_TESTS)
+	include(GTestTesting)
+endif()
+
 if(WITH_BLENDER OR WITH_PLAYER)
-	add_subdirectory(source)
 	add_subdirectory(intern)
 	add_subdirectory(extern)
+
+	# source after intern and extern to gather all
+	# internal and external library information first, for test linking
+	add_subdirectory(source)
 elseif(WITH_CYCLES_STANDALONE)
 	add_subdirectory(intern/cycles)
 	if(NOT WITH_SYSTEM_GLEW)

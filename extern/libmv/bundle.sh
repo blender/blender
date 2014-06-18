@@ -30,14 +30,19 @@ rm -rf $tmp
 
 chmod 664 ./third_party/glog/src/windows/*.cc ./third_party/glog/src/windows/*.h ./third_party/glog/src/windows/glog/*.h
 
-sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t\t/' | sort -d`
-headers=`find ./libmv -type f -iname '*.h' | sed -r 's/^\.\//\t\t/' | sort -d`
+sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v _test.cc | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
+headers=`find ./libmv -type f -iname '*.h' | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
 
-third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
-third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | grep -v gflags | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
+third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | grep -v gflags | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
 
 third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t\t/' | sort -d`
 third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t\t/' | sort -d`
+
+third_gflags_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep gflags | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
+third_gflags_headers=`find ./third_party -type f -iname '*.h' | grep gflags | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
+
+tests=`find ./libmv -type f -iname '*_test.cc' | sort -d | awk ' { name=gensub(".*/([A-Za-z_]+)_test.cc", "\\\\1", $1); printf("\tBLENDER_SRC_GTEST(\"libmv_%s\" \"%s\" \"libmv_test_dataset;extern_libmv;extern_ceres\")\n", name, $1) } '`
 
 src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t\t/' | sort -d | uniq`
 src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | grep -v ceres | sed -r 's/^\.\//\t\t/'  | sort -d | uniq`
@@ -118,6 +123,9 @@ set(INC
 	.
 )
 
+set(INC_SYS
+)
+
 set(SRC
 	libmv-capi.h
 	libmv-capi_intern.h
@@ -148,9 +156,7 @@ if(WITH_LIBMV)
 		libmv-capi.cc
 		libmv-util.cc
 ${sources}
-
 ${third_sources}
-
 		libmv-util.h
 ${headers}
 
@@ -158,7 +164,46 @@ ${third_headers}
 	)
 
 	if(WIN32)
-		list(APPEND SRC
+		list(APPEND INC
+			third_party/glog/src/windows
+		)
+
+		if(NOT MINGW)
+			list(APPEND INC
+				third_party/msinttypes
+			)
+		endif()
+	endif()
+
+	if(WITH_TESTS)
+		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}")
+	endif()
+
+${tests}
+else()
+	list(APPEND SRC
+		libmv-capi_stub.cc
+	)
+endif()
+
+blender_add_lib(extern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
+
+if(WITH_LIBMV)
+	add_subdirectory(third_party)
+endif()
+
+# make GLog a separate target, so it can be used for gtest as well.
+if(WITH_LIBMV OR WITH_TESTS)
+	# We compile GLog together with GFlag so we don't worry about
+	# adding extra lib to linker.
+	set(GLOG_SRC
+${third_gflags_sources}
+
+${third_gflags_headers}
+	)
+
+	if(WIN32)
+		list(APPEND GLOG_SRC
 			third_party/glog/src/logging.cc
 			third_party/glog/src/raw_logging.cc
 			third_party/glog/src/utilities.cc
@@ -183,33 +228,23 @@ ${third_headers}
 			third_party/glog/src/windows/port.h
 			third_party/glog/src/windows/config.h
 		)
-
-		list(APPEND INC
-			third_party/glog/src/windows
-		)
-
-		if(NOT MINGW)
-			list(APPEND INC
-				third_party/msinttypes
-			)
-		endif()
 	else()
-		list(APPEND SRC
+		list(APPEND GLOG_SRC
 ${third_glog_sources}
 
 ${third_glog_headers}
 		)
 	endif()
-else()
-	list(APPEND SRC
-		libmv-capi_stub.cc
+
+	set(GLOG_INC
+		third_party/gflags
+		third_party/glog/src
 	)
-endif()
 
-blender_add_lib(extern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
+	set(GLOG_INC_SYS
+	)
 
-if(WITH_LIBMV)
-	add_subdirectory(third_party)
+	blender_add_lib(extern_glog "\${GLOG_SRC}" "\${GLOG_INC}" "\${GLOG_INC_SYS}")
 endif()
 EOF
 
@@ -253,6 +288,8 @@ ${win_src}
         incs += ' ./third_party/glog/src'
 else:
     src = env.Glob("libmv-capi_stub.cc")
+
+src = [src for src in src if src.find('_test.cc') == -1]
 
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 

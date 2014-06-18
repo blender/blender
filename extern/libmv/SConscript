@@ -44,6 +44,8 @@ if env['WITH_BF_LIBMV']:
 else:
     src = env.Glob("libmv-capi_stub.cc")
 
+src = [src for src in src if src.find('_test.cc') == -1]
+
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 
 if env['WITH_BF_LIBMV']:

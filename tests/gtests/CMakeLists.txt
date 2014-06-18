@@ -1,0 +1,13 @@
+
+# GTest
+if(WITH_TESTS)
+
+	Include(GTestTesting)
+
+	# Otherwise we get warnings here that we cant fix in external projects
+	remove_strict_flags()
+
+	add_subdirectory(testing)
+	add_subdirectory(blenlib)
+endif()
+

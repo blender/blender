@@ -413,6 +413,240 @@ macro(setup_liblinks
 	target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
 endmacro()
 
+macro(SETUP_BLENDER_SORTED_LIBS)
+	get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
+
+	list(APPEND BLENDER_LINK_LIBS
+		bf_windowmanager
+		bf_render
+	)
+
+	if(WITH_MOD_FLUID)
+		list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
+	endif()
+
+	if(WITH_CYCLES)
+		list(APPEND BLENDER_LINK_LIBS
+			cycles_render
+			cycles_bvh
+			cycles_device
+			cycles_kernel
+			cycles_util
+			cycles_subd)
+		if(WITH_CYCLES_OSL)
+			list(APPEND BLENDER_LINK_LIBS cycles_kernel_osl)
+		endif()
+	endif()
+
+	# Sort libraries
+	set(BLENDER_SORTED_LIBS
+		bf_windowmanager
+
+		bf_editor_space_api
+		bf_editor_space_action
+		bf_editor_space_buttons
+		bf_editor_space_console
+		bf_editor_space_file
+		bf_editor_space_graph
+		bf_editor_space_image
+		bf_editor_space_info
+		bf_editor_space_logic
+		bf_editor_space_nla
+		bf_editor_space_node
+		bf_editor_space_outliner
+		bf_editor_space_script
+		bf_editor_space_sequencer
+		bf_editor_space_text
+		bf_editor_space_time
+		bf_editor_space_userpref
+		bf_editor_space_view3d
+		bf_editor_space_clip
+
+		bf_editor_transform
+		bf_editor_util
+		bf_editor_uvedit
+		bf_editor_curve
+		bf_editor_gpencil
+		bf_editor_interface
+		bf_editor_mesh
+		bf_editor_metaball
+		bf_editor_object
+		bf_editor_armature
+		bf_editor_physics
+		bf_editor_render
+		bf_editor_screen
+		bf_editor_sculpt_paint
+		bf_editor_sound
+		bf_editor_animation
+		bf_editor_datafiles
+		bf_editor_mask
+		bf_editor_io
+
+		bf_render
+		bf_python
+		bf_python_ext
+		bf_python_mathutils
+		bf_python_bmesh
+		bf_freestyle
+		bf_ikplugin
+		bf_modifiers
+		bf_bmesh
+		bf_blenkernel
+		bf_nodes
+		bf_gpu
+		bf_blenloader
+		bf_imbuf
+		bf_blenlib
+		bf_intern_ghost
+		bf_intern_string
+		bf_avi
+		bf_imbuf_cineon
+		bf_imbuf_openexr
+		bf_imbuf_openimageio
+		bf_imbuf_dds
+		bf_collada
+		bf_intern_elbeem
+		bf_intern_memutil
+		bf_intern_guardedalloc
+		bf_intern_ctr
+		bf_intern_utfconv
+		ge_blen_routines
+		ge_converter
+		ge_phys_dummy
+		ge_phys_bullet
+		bf_intern_smoke
+		extern_minilzo
+		extern_lzma
+		extern_colamd
+		ge_logic_ketsji
+		extern_recastnavigation
+		ge_logic
+		ge_rasterizer
+		ge_oglrasterizer
+		ge_logic_expressions
+		ge_scenegraph
+		ge_logic_network
+		ge_logic_ngnetwork
+		ge_logic_loopbacknetwork
+		bf_intern_moto
+		extern_openjpeg
+		extern_redcode
+		ge_videotex
+		bf_rna
+		bf_dna
+		bf_blenfont
+		bf_intern_audaspace
+		bf_intern_mikktspace
+		bf_intern_dualcon
+		bf_intern_cycles
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd
+		bf_intern_raskter
+		bf_intern_opencolorio
+		extern_rangetree
+		extern_wcwidth
+		extern_libmv
+		extern_glog
+	)
+
+	if(WITH_COMPOSITOR)
+		# added for opencl compositor
+		list_insert_before(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_compositor")
+		list_insert_after(BLENDER_SORTED_LIBS "bf_compositor" "bf_intern_opencl")
+	endif()
+
+	if(WITH_LIBMV)
+		list(APPEND BLENDER_SORTED_LIBS extern_ceres)
+	endif()
+
+	if(WITH_MOD_CLOTH_ELTOPO)
+		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
+	endif()
+
+	if(NOT WITH_SYSTEM_GLEW)
+		list(APPEND BLENDER_SORTED_LIBS extern_glew)
+	endif()
+
+	if(WITH_BINRELOC)
+		list(APPEND BLENDER_SORTED_LIBS extern_binreloc)
+	endif()
+
+	if(WITH_CXX_GUARDEDALLOC)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_guardedalloc_cpp)
+	endif()
+
+	if(WITH_IK_SOLVER)
+		list_insert_after(BLENDER_SORTED_LIBS "bf_intern_elbeem" "bf_intern_iksolver")
+	endif()
+
+	if(WITH_IK_ITASC)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_itasc)
+	endif()
+
+	if(WITH_CODEC_QUICKTIME)
+		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
+	endif()
+
+	if(WITH_INPUT_NDOF)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_ghostndof3dconnexion)
+	endif()
+	
+	if(WITH_MOD_BOOLEAN)
+		list(APPEND BLENDER_SORTED_LIBS extern_carve)
+	endif()
+
+	if(WITH_GHOST_XDND)
+		list(APPEND BLENDER_SORTED_LIBS extern_xdnd)
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		list_insert_after(BLENDER_SORTED_LIBS "cycles_kernel" "cycles_kernel_osl")
+	endif()
+
+	if(WITH_INTERNATIONAL)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
+	endif()
+
+	if(WITH_OPENNL)
+		list_insert_after(BLENDER_SORTED_LIBS "bf_render" "bf_intern_opennl")
+	endif()
+
+	if(WITH_BULLET)
+		list_insert_after(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_intern_rigidbody")
+	endif()
+
+	if(WITH_BULLET AND NOT WITH_SYSTEM_BULLET)
+		list_insert_after(BLENDER_SORTED_LIBS "ge_logic_ngnetwork" "extern_bullet")
+	endif()
+
+	foreach(SORTLIB ${BLENDER_SORTED_LIBS})
+		set(REMLIB ${SORTLIB})
+		foreach(SEARCHLIB ${BLENDER_LINK_LIBS})
+			if(${SEARCHLIB} STREQUAL ${SORTLIB})
+				set(REMLIB "")
+			endif()
+		endforeach()
+		if(REMLIB)
+			# message(STATUS "Removing library ${REMLIB} from blender linking because: not configured")
+			list(APPEND REM_MSG ${REMLIB})
+			list(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
+		endif()
+	endforeach()
+	if(REM_MSG)
+		list(SORT REM_MSG)
+		message(STATUS "Blender Skipping: (${REM_MSG})")
+	endif()
+
+	unset(SEARCHLIB)
+	unset(SORTLIB)
+	unset(REMLIB)
+	unset(REM_MSG)
+endmacro()
+
 macro(TEST_SSE_SUPPORT
 	_sse_flags
 	_sse2_flags)
