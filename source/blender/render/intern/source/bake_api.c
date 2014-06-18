@@ -619,7 +619,7 @@ void RE_bake_pixels_populate(
 		zbuf_alloc_span(&bd.zspan[i], bake_images->data[i].width, bake_images->data[i].height, R.clipcrop);
 	}
 
-	if (uv_layer == NULL) {
+	if ((uv_layer == NULL) || (uv_layer[0] == '\0')) {
 		mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
 	}
 	else {
