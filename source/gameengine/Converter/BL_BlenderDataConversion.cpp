@@ -889,10 +889,10 @@ static bool ConvertMaterial(
 	// swap the material color, so MCol on bitmap font works
 	if (validmat && (use_vcol == false) && (mat->game.flag & GEMAT_TEXT))
 	{
-		rgb[0] = KX_rgbaint2uint_new(rgb[0]);
-		rgb[1] = KX_rgbaint2uint_new(rgb[1]);
-		rgb[2] = KX_rgbaint2uint_new(rgb[2]);
-		rgb[3] = KX_rgbaint2uint_new(rgb[3]);
+		material->rgb[0] = KX_rgbaint2uint_new(rgb[0]);
+		material->rgb[1] = KX_rgbaint2uint_new(rgb[1]);
+		material->rgb[2] = KX_rgbaint2uint_new(rgb[2]);
+		material->rgb[3] = KX_rgbaint2uint_new(rgb[3]);
 	}
 
 	if (validmat)
