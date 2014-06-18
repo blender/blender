@@ -153,6 +153,8 @@ typedef struct drawDMEdgesSelInterp_userData {
 } drawDMEdgesSelInterp_userData;
 
 typedef struct drawDMEdgesWeightInterp_userData {
+	BMesh *bm;
+
 	int cd_dvert_offset;
 	int defgroup_tot;
 	int vgroup_index;
@@ -2448,7 +2450,7 @@ static void bm_color_from_weight(float col[3], BMVert *vert, drawDMEdgesWeightIn
 static void draw_dm_edges_weight_interp__setDrawInterpOptions(void *userData, int index, float t)
 {
 	drawDMEdgesWeightInterp_userData *data = userData;
-	BMEdge *eed = BM_edge_at_index(((void **)userData)[0], index);
+	BMEdge *eed = BM_edge_at_index(data->bm, index);
 	float col[3];
 
 	if (t == 0.0f) {
@@ -2474,6 +2476,7 @@ static void draw_dm_edges_weight_interp(BMEditMesh *em, DerivedMesh *dm, const c
 	drawDMEdgesWeightInterp_userData data;
 	Object *ob = em->ob;
 
+	data.bm = em->bm;
 	data.cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 	data.defgroup_tot = BLI_countlist(&ob->defbase);
 	data.vgroup_index = ob->actdef - 1;
