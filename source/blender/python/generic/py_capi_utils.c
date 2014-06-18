@@ -40,8 +40,9 @@
 /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
 #include "BLI_string_utf8.h"
 
-#ifdef _WIN32 /* BLI_setenv */
-#include "BLI_path_util.h"
+#ifdef _WIN32
+#include "BLI_path_util.h"  /* BLI_setenv() */
+#include "BLI_math_base.h"  /* finite() */
 #endif
 
 /* array utility function */
