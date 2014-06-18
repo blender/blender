@@ -1899,31 +1899,43 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 		memcpy(dists_prev, dists, sizeof(float) * bm->totvert);
 
 		while ((v = BLI_LINKSTACK_POP(queue))) {
-			BMIter iter;
-			BMEdge *e;
-			BMLoop *l;
+			/* quick checks */
+			bool has_edges = (v->e != NULL);
+			bool has_faces = false;
 
 			/* connected edge-verts */
-			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-				if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == 0) {
-					BMVert *v_other = BM_edge_other_vert(e, v);
-					if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
-						if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
-							BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-							BLI_LINKSTACK_PUSH(queue_next, v_other);
+			if (has_edges) {
+				BMIter iter;
+				BMEdge *e;
+
+				BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+					has_faces |= (BM_edge_is_wire(e) == false);
+
+					if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == 0) {
+						BMVert *v_other = BM_edge_other_vert(e, v);
+						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+								BLI_LINKSTACK_PUSH(queue_next, v_other);
+							}
 						}
 					}
 				}
 			}
 			
 			/* imaginary edge diagonally across quad */
-			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-				if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len == 4)) {
-					BMVert *v_other = l->next->next->v;
-					if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
-						if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
-							BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-							BLI_LINKSTACK_PUSH(queue_next, v_other);
+			if (has_faces) {
+				BMIter iter;
+				BMLoop *l;
+
+				BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+					if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len == 4)) {
+						BMVert *v_other = l->next->next->v;
+						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+								BLI_LINKSTACK_PUSH(queue_next, v_other);
+							}
 						}
 					}
 				}
