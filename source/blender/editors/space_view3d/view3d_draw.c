@@ -37,6 +37,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_group_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_scene_types.h"
@@ -2607,10 +2608,23 @@ static void view3d_draw_objects(
 	/* set zbuffer after we draw clipping region */
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
-		glEnable(GL_DEPTH_TEST);
 	}
 	else {
 		v3d->zbuf = false;
+	}
+
+	/* special case (depth for wire color) */
+	if (v3d->drawtype <= OB_WIRE) {
+		if (scene->obedit && scene->obedit->type == OB_MESH) {
+			Mesh *me = scene->obedit->data;
+			if (me->drawflag & ME_DRAWEIGHT) {
+				v3d->zbuf = true;
+			}
+		}
+	}
+
+	if (v3d->zbuf) {
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	if (!draw_offscreen) {

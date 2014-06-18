@@ -152,6 +152,15 @@ typedef struct drawDMEdgesSelInterp_userData {
 	unsigned char *lastCol;
 } drawDMEdgesSelInterp_userData;
 
+typedef struct drawDMEdgesWeightInterp_userData {
+	int cd_dvert_offset;
+	int defgroup_tot;
+	int vgroup_index;
+	char weight_user;
+	float alert_color[3];
+
+} drawDMEdgesWeightInterp_userData;
+
 typedef struct drawDMFacesSel_userData {
 #ifdef WITH_FREESTYLE
 	unsigned char *cols[4];
@@ -2420,6 +2429,79 @@ static void draw_dm_edges_sel_interp(BMEditMesh *em, DerivedMesh *dm, unsigned c
 	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, &data);
 }
 
+static void bm_color_from_weight(float col[3], BMVert *vert, drawDMEdgesWeightInterp_userData *data)
+{
+	MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(vert, data->cd_dvert_offset);
+	float weight = defvert_find_weight(dvert, data->vgroup_index);
+
+	if ((weight == 0.0f) &&
+	    ((data->weight_user == OB_DRAW_GROUPUSER_ACTIVE) ||
+	     ((data->weight_user == OB_DRAW_GROUPUSER_ALL) && defvert_is_weight_zero(dvert, data->defgroup_tot))))
+	{
+		copy_v3_v3(col, data->alert_color);
+	}
+	else {
+		weight_to_rgb(col, weight);
+	}
+}
+
+static void draw_dm_edges_weight_interp__setDrawInterpOptions(void *userData, int index, float t)
+{
+	drawDMEdgesWeightInterp_userData *data = userData;
+	BMEdge *eed = BM_edge_at_index(((void **)userData)[0], index);
+	float col[3];
+
+	if (t == 0.0f) {
+		bm_color_from_weight(col, eed->v1, data);
+	}
+	else if (t == 1.0f) {
+		bm_color_from_weight(col, eed->v2, data);
+	}
+	else {
+		float col_v1[3];
+		float col_v2[3];
+
+		bm_color_from_weight(col_v1, eed->v1, data);
+		bm_color_from_weight(col_v2, eed->v2, data);
+		interp_v3_v3v3(col, col_v1, col_v2, t);
+	}
+
+	glColor3fv(col);
+}
+
+static void draw_dm_edges_weight_interp(BMEditMesh *em, DerivedMesh *dm, const char weight_user)
+{
+	drawDMEdgesWeightInterp_userData data;
+	Object *ob = em->ob;
+
+	data.cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+	data.defgroup_tot = BLI_countlist(&ob->defbase);
+	data.vgroup_index = ob->actdef - 1;
+	data.weight_user = weight_user;
+	UI_GetThemeColor3fv(TH_VERTEX_UNREFERENCED, data.alert_color);
+
+	glEnable(GL_BLEND);
+	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_weight_interp__setDrawInterpOptions, &data);
+	glDisable(GL_BLEND);
+}
+
+static bool draw_dm_edges_weight_check(Mesh *me, BMEditMesh *em, View3D *v3d)
+{
+	if ((me->drawflag & ME_DRAWEIGHT) &&
+	    (em->ob->actdef) &&
+	    (CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)))
+	{
+		if ((v3d->drawtype == OB_WIRE) ||
+		    (v3d->flag2 & V3D_SOLID_MATCAP) ||
+		    ((v3d->flag2 & V3D_OCCLUDE_WIRE) && (v3d->drawtype > OB_WIRE)))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /* Draw only seam edges */
 static DMDrawOption draw_dm_edges_seams__setDrawOptions(void *userData, int index)
 {
@@ -2832,9 +2914,16 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 			draw_dm_edges_sel(em, cageDM, wireCol, selCol, actCol, eed_act);
 		}
 		else if ((me->drawflag & ME_DRAWEDGES) || (ts->selectmode & SCE_SELECT_EDGE)) {
-			if (cageDM->drawMappedEdgesInterp && (ts->selectmode & SCE_SELECT_VERTEX)) {
+			if (cageDM->drawMappedEdgesInterp &&
+			    ((ts->selectmode & SCE_SELECT_VERTEX) || (me->drawflag & ME_DRAWEIGHT)))
+			{
 				glShadeModel(GL_SMOOTH);
-				draw_dm_edges_sel_interp(em, cageDM, wireCol, selCol);
+				if (draw_dm_edges_weight_check(me, em, v3d)) {
+					draw_dm_edges_weight_interp(em, cageDM, ts->weightuser);
+				}
+				else {
+					draw_dm_edges_sel_interp(em, cageDM, wireCol, selCol);
+				}
 				glShadeModel(GL_FLAT);
 			}
 			else {
