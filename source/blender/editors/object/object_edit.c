@@ -1669,24 +1669,12 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
 void ED_object_toggle_modes(bContext *C, int mode)
 {
-	/* Couldn't we use object_mode_op_string() here?
-	 * Also, if several bits are set in mode, several toggle ops will be called, is this expected?
-	 * If so, would be nice to explain why. ;) --mont29
-	 */
-	if (mode & OB_MODE_SCULPT)
-		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if (mode & OB_MODE_VERTEX_PAINT)
-		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if (mode & OB_MODE_WEIGHT_PAINT)
-		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if (mode & OB_MODE_TEXTURE_PAINT)
-		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if (mode & OB_MODE_PARTICLE_EDIT)
-		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if (mode & OB_MODE_POSE)
-		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if (mode & OB_MODE_EDIT)
-		WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if (mode != OB_MODE_OBJECT) {
+		const char *opstring = object_mode_op_string(mode);
+		if (opstring) {
+			WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
+		}
+	}
 }
 
 /************************ Game Properties ***********************/
