@@ -8924,7 +8924,7 @@ static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, co
 				ob->lay = v3d ? v3d->layact : scene->lay;
 			}
 			
-			ob->mode = 0;
+			ob->mode = OB_MODE_OBJECT;
 			base->lay = ob->lay;
 			base->object = ob;
 			ob->id.us++;

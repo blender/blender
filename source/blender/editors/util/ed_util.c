@@ -96,8 +96,8 @@ void ED_editors_init(bContext *C)
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		int mode = ob->mode;
 
-		if (mode && (mode != OB_MODE_POSE)) {
-			ob->mode = 0;
+		if (!ELEM(mode, OB_MODE_OBJECT, OB_MODE_POSE)) {
+			ob->mode = OB_MODE_OBJECT;
 			data = ob->data;
 
 			if (ob == obact && !ob->id.lib && !(data && data->lib))

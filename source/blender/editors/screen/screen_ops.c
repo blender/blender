@@ -166,7 +166,7 @@ int ED_operator_objectmode(bContext *C)
 		return 0;
 	
 	/* add a check for ob->mode too? */
-	if (obact && obact->mode)
+	if (obact && (obact->mode != OB_MODE_OBJECT))
 		return 0;
 	
 	return 1;
