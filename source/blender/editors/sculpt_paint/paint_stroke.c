@@ -336,8 +336,13 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const float
 	}
 
 	/* TODO: can remove the if statement once all modes have this */
-	if (stroke->get_location)
-		stroke->get_location(C, location, mouse_out);
+	if (stroke->get_location) {
+		if (!stroke->get_location(C, location, mouse_out)) {
+			if (ar && (paint->flags & PAINT_SHOW_BRUSH))
+				WM_paint_cursor_tag_redraw(window, ar);
+			return;
+		}
+	}
 	else
 		zero_v3(location);
 
@@ -794,7 +799,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (event->type != INBETWEEN_MOUSEMOVE)
 		if (redraw && stroke->redraw)
 			stroke->redraw(C, stroke, false);
-	
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
