@@ -1620,20 +1620,20 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	/* Exit current mode if it's not the mode we're setting */
 	if (mode != OB_MODE_OBJECT && (ob->mode != mode || toggle)) {
 		/* Enter new mode */
-		WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
+		ED_object_toggle_modes(C, mode);
 	}
 
 	if (toggle) {
 		/* Special case for Object mode! */
 		if (mode == OB_MODE_OBJECT && restore_mode == OB_MODE_OBJECT && ob->restore_mode != OB_MODE_OBJECT) {
-			WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
+			ED_object_toggle_modes(C, ob->restore_mode);
 		}
 		else if (ob->mode == mode) {
 			/* For toggling, store old mode so we know what to go back to */
 			ob->restore_mode = restore_mode;
 		}
 		else if (ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
-			WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
+			ED_object_toggle_modes(C, ob->restore_mode);
 		}
 	}
 
