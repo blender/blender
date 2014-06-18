@@ -223,7 +223,7 @@ test:
 
 # run pep8 check check on scripts we distribute.
 test_pep8:
-	python3 source/tests/pep8.py > test_pep8.log 2>&1
+	python3 tests/python/pep8.py > test_pep8.log 2>&1
 	@echo "written: test_pep8.log"
 
 # run some checks on our cmakefiles.
@@ -233,7 +233,7 @@ test_cmake:
 
 # run deprecation tests, see if we have anything to remove.
 test_deprecated:
-	python3 source/tests/check_deprecated.py
+	python3 tests/check_deprecated.py
 
 test_style_c:
 	# run our own checks on C/C++ style

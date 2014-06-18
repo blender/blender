@@ -25,7 +25,7 @@ DEPRECATE_DAYS = 120
 
 SKIP_DIRS = ("extern",
              "scons",
-             os.path.join("source", "tests"),  # not this dir
+             "tests",  # not this dir
              )
 
 
@@ -76,7 +76,7 @@ def deprecations():
 
     """
     import datetime
-    SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))))
+    SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))))
 
     SKIP_DIRS_ABS = [os.path.join(SOURCE_DIR, p) for p in SKIP_DIRS]
 

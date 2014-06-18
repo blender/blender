@@ -21,21 +21,21 @@
 """
 Example Usage:
 
-./blender.bin --background --python source/tests/batch_import.py -- \
+./blender.bin --background --python tests/python/batch_import.py -- \
     --operator="bpy.ops.import_scene.obj" \
     --path="/fe/obj" \
     --match="*.obj" \
     --start=0 --end=10 \
     --save_path=/tmp/test
 
-./blender.bin --background --python source/tests/batch_import.py -- \
+./blender.bin --background --python tests/python/batch_import.py -- \
     --operator="bpy.ops.import_scene.autodesk_3ds" \
     --path="/fe/" \
     --match="*.3ds" \
     --start=0 --end=1000 \
     --save_path=/tmp/test
 
-./blender.bin --background --addons io_curve_svg --python source/tests/batch_import.py -- \
+./blender.bin --background --addons io_curve_svg --python tests/python/batch_import.py -- \
     --operator="bpy.ops.import_curve.svg" \
     --path="/usr/" \
     --match="*.svg" \

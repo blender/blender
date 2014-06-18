@@ -20,11 +20,11 @@
 
 # run this script in the game engine.
 # or on the command line with...
-#  ./blender.bin --background -noaudio --python source/tests/bl_rst_completeness.py
+#  ./blender.bin --background -noaudio --python tests/python/bl_rst_completeness.py
 
 # Paste this into the bge and run on an always actuator.
 '''
-filepath = "/dsk/data/src/blender/blender/source/tests/bl_rst_completeness.py"
+filepath = "/src/blender/tests/python/bl_rst_completeness.py"
 exec(compile(open(filepath).read(), filepath, 'exec'))
 '''
 

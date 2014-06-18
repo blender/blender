@@ -1,4 +1,4 @@
-# ./blender.bin --background -noaudio --python source/tests/bl_pyapi_units.py
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_units.py
 import unittest
 from test import support
 

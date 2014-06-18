@@ -32,7 +32,7 @@ import os
 # in Debian install pylint pep8 with apt-get/aptitude/etc
 #
 # on *nix run
-#   python source/tests/pep8.py > test_pep8.log 2>&1
+#   python tests/pep8.py > test_pep8.log 2>&1
 
 # how many lines to read into the file, pep8 comment
 # should be directly after the license header, ~20 in most cases

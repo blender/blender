@@ -25,7 +25,7 @@
 # Later, we may have a way to check the results are valid.
 
 
-# ./blender.bin --factory-startup --python source/tests/bl_mesh_modifiers.py
+# ./blender.bin --factory-startup --python tests/python/bl_mesh_modifiers.py
 #
 
 import math

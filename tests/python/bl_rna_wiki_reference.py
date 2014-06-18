@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 # Use for validating our wiki interlinking.
-#  ./blender.bin --background -noaudio --python source/tests/bl_rna_wiki_reference.py
+#  ./blender.bin --background -noaudio --python tests/python/bl_rna_wiki_reference.py
 #
 # 1) test_data()              -- ensure the data we have is correct format
 # 2) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path

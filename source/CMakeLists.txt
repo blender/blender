@@ -29,4 +29,3 @@ if(WITH_GAMEENGINE)
 	add_subdirectory(gameengine)
 endif()
 
-add_subdirectory(tests)
