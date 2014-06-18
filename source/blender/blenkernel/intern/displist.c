@@ -397,7 +397,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
 				len = (resolu * SEGMENTSU(nu));
 
 				dl = MEM_callocN(sizeof(DispList), "makeDispListsurf");
-				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
+				dl->verts = MEM_callocN(len * sizeof(float[3]), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts = 1;
 
