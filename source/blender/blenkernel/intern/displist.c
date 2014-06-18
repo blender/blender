@@ -1223,7 +1223,7 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 				len = SEGMENTSU(nu) * resolu;
 
 				dl = MEM_callocN(sizeof(DispList), "makeDispListsurf");
-				dl->verts = MEM_mallocN(len * sizeof(float[3]), "dlverts");
+				dl->verts = MEM_callocN(len * sizeof(float[3]), "dlverts");
 
 				BLI_addtail(dispbase, dl);
 				dl->parts = 1;
