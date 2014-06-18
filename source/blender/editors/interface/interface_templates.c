@@ -1650,8 +1650,7 @@ static uiBlock *icon_view_menu(bContext *C, ARegion *ar, void *arg_litem)
 
 	uiBoundsBlock(block, 0.3f * U.widget_unit);
 	uiBlockSetDirection(block, UI_TOP);
-	uiEndBlock(C, block);
-		
+
 	if (free) {
 		MEM_freeN(item);
 	}
