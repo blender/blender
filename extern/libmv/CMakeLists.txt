@@ -169,7 +169,7 @@ if(WITH_LIBMV)
 		endif()
 	endif()
 
-	if(WITH_TESTS)
+	if(WITH_GTESTS)
 		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "" "")
 	endif()
 
@@ -215,7 +215,7 @@ if(WITH_LIBMV)
 endif()
 
 # make GLog a separate target, so it can be used for gtest as well.
-if(WITH_LIBMV OR WITH_TESTS)
+if(WITH_LIBMV OR WITH_GTESTS)
 	# We compile GLog together with GFlag so we don't worry about
 	# adding extra lib to linker.
 	set(GLOG_SRC

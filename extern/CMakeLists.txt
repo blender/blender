@@ -80,6 +80,6 @@ if(WITH_GHOST_XDND)
 	endif()
 endif()
 
-if(WITH_TESTS)
+if(WITH_GTESTS)
 	add_subdirectory(gtest)
 endif()

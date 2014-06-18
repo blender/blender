@@ -1,6 +1,6 @@
 
 # GTest
-if(WITH_TESTS)
+if(WITH_GTESTS)
 
 	Include(GTestTesting)
 

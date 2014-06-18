@@ -13,7 +13,7 @@
 #=============================================================================
 
 macro(BLENDER_SRC_GTEST NAME SRC EXTRA_LIBS)
-	if(WITH_TESTS)
+	if(WITH_GTESTS)
 		get_property(_current_include_directories
 		             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		             PROPERTY INCLUDE_DIRECTORIES)

@@ -2334,7 +2334,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Libraries
 
-if(WITH_TESTS)
+if(WITH_GTESTS)
 	include(GTestTesting)
 endif()
 
