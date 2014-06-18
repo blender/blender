@@ -314,6 +314,9 @@ static bool icon_merge(const char *file_src,
 
 	free(pixels);
 
+	/* only for bounds check */
+	(void)canvas_h;
+
 	return true;
 }
 
