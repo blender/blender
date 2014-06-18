@@ -253,7 +253,7 @@ int uiFloatPrecisionCalc(int prec, double value)
 	static const double max_pow = 10000000.0;  /* pow(10, UI_PRECISION_FLOAT_MAX) */
 
 	BLI_assert(prec <= UI_PRECISION_FLOAT_MAX);
-	BLI_assert(pow10_neg[prec] == pow(10, -prec));
+	BLI_assert(fabs(pow10_neg[prec] - pow(10, -prec)) < 1e-16);
 
 	/* check on the number of decimal places need to display the number, this is so 0.00001 is not displayed as 0.00,
 	 * _but_, this is only for small values si 10.0001 will not get the same treatment.
