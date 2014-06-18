@@ -41,7 +41,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_packedFile_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -82,6 +84,12 @@ void ED_editors_init(bContext *C)
 	Object *ob, *obact = (sce && sce->basact) ? sce->basact->object : NULL;
 	ID *data;
 
+	/* This is called during initialization, so we don't want to store any reports */
+	ReportList *reports = CTX_wm_reports(C);
+	int reports_flag_prev = reports->flag &= ~RPT_STORE;
+
+	SWAP(int, reports->flag, reports_flag_prev);
+
 	/* toggle on modes for objects that were saved with these enabled. for
 	 * e.g. linked objects we have to ensure that they are actually the
 	 * active object in this scene. */
@@ -101,6 +109,8 @@ void ED_editors_init(bContext *C)
 	if (sce) {
 		ED_space_image_paint_update(wm, sce->toolsettings);
 	}
+
+	SWAP(int, reports->flag, reports_flag_prev);
 }
 
 /* frees all editmode stuff */
