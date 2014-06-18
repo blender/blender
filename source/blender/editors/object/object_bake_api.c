@@ -551,6 +551,13 @@ static int bake(
 	re = RE_NewRender(scene->id.name);
 	RE_SetReports(re, NULL);
 
+	RE_bake_engine_set_engine_parameters(re, bmain, scene);
+
+	if (!RE_bake_has_engine(re)) {
+		BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
+		goto cleanup;
+	}
+
 	tot_materials = ob_low->totcol;
 
 	if (uv_layer && uv_layer[0] != '\0') {
@@ -639,8 +646,6 @@ static int bake(
 			}
 		}
 	}
-
-	RE_bake_engine_set_engine_parameters(re, bmain, scene);
 
 	/* blender_test_break uses this global */
 	G.is_break = false;
@@ -753,34 +758,31 @@ static int bake(
 		            me_low, pixel_array_low, highpoly, tot_highpoly, num_pixels, ob_cage != NULL,
 		            cage_extrusion, ob_low->obmat, (ob_cage ? ob_cage->obmat : ob_low->obmat), me_cage)) {
 			BKE_report(reports, RPT_ERROR, "Error handling selected objects");
-			goto cleanup;
+			goto cage_cleanup;
 		}
 
 		/* the baking itself */
 		for (i = 0; i < tot_highpoly; i++) {
-			if (RE_bake_has_engine(re)) {
-				ok = RE_bake_engine(re, highpoly[i].ob, highpoly[i].pixel_array, num_pixels,
-				                    depth, pass_type, result);
+			ok = RE_bake_engine(re, highpoly[i].ob, highpoly[i].pixel_array, num_pixels,
+			                    depth, pass_type, result);
+			if (!ok) {
+				BKE_reportf(reports, RPT_ERROR, "Error baking from object \"%s\"", highpoly[i].ob->id.name + 2);
+				goto cage_cleanup;
 			}
-			else {
-				BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
-				goto cleanup;
-			}
-
-			if (!ok)
-				break;
 		}
 
+cage_cleanup:
 		/* reverting data back */
-		if (ob_cage) {
-			ob_cage->restrictflag = restrict_flag_cage;
-		}
-		else if (is_cage) {
+		if ((ob_cage == NULL) && is_cage) {
 			ob_low->modifiers = modifiers_original;
 
 			while ((md = BLI_pophead(&modifiers_tmp))) {
 				modifier_free(md);
 			}
+		}
+
+		if (!ok) {
+			goto cleanup;
 		}
 	}
 	else {
