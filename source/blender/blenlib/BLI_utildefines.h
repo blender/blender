@@ -313,11 +313,11 @@
 
 #define IS_EQ(a, b)  ( \
 	CHECK_TYPE_INLINE(a, double), CHECK_TYPE_INLINE(b, double), \
-	((fabs((double)(a) - (b)) >= (double) FLT_EPSILON) ? false : true))
+	((fabs((double)((a) - (b))) >= (double) FLT_EPSILON) ? false : true))
 
 #define IS_EQF(a, b)  ( \
 	CHECK_TYPE_INLINE(a, float), CHECK_TYPE_INLINE(b, float), \
-	((fabsf((float)(a) - (b)) >= (float) FLT_EPSILON) ? false : true))
+	((fabsf((float)((a) - (b))) >= (float) FLT_EPSILON) ? false : true))
 
 #define IS_EQT(a, b, c) ((a > b) ? (((a - b) <= c) ? 1 : 0) : ((((b - a) <= c) ? 1 : 0)))
 #define IN_RANGE(a, b, c) ((b < c) ? ((b < a && a < c) ? 1 : 0) : ((c < a && a < b) ? 1 : 0))
@@ -339,9 +339,9 @@
 #define STACK_PUSH(stack, val)  (void)((stack)[(_##stack##_index)++] = val)
 #define STACK_PUSH_RET(stack)  ((void)stack, ((stack)[(_##stack##_index)++]))
 #define STACK_PUSH_RET_PTR(stack)  ((void)stack, &((stack)[(_##stack##_index)++]))
-#define STACK_POP(stack)         ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : NULL)
-#define STACK_POP_PTR(stack)     ((_##stack##_index) ? &((stack)[--(_##stack##_index)]) : NULL)
-#define STACK_POP_ELSE(stack, r) ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : r)
+#define STACK_POP(stack)            ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : NULL)
+#define STACK_POP_PTR(stack)        ((_##stack##_index) ? &((stack)[--(_##stack##_index)]) : NULL)
+#define STACK_POP_DEFAULT(stack, r) ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : r)
 #define STACK_FREE(stack)      ((void)stack)
 #ifdef __GNUC__
 #define STACK_SWAP(stack_a, stack_b) { \
@@ -382,10 +382,10 @@
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
 #define SET_INT_IN_POINTER(i)    ((void *)(intptr_t)(i))
-#define GET_INT_FROM_POINTER(i)  ((int)(intptr_t)(i))
+#define GET_INT_FROM_POINTER(i)  ((void)0, ((int)(intptr_t)(i)))
 
 #define SET_UINT_IN_POINTER(i)    ((void *)(uintptr_t)(i))
-#define GET_UINT_FROM_POINTER(i)  ((unsigned int)(uintptr_t)(i))
+#define GET_UINT_FROM_POINTER(i)  ((void)0, ((unsigned int)(uintptr_t)(i)))
 
 
 /* Macro to convert a value to string in the preprocessor

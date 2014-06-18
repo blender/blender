@@ -130,7 +130,7 @@ unsigned int    BLI_ghashutil_strhash_p(const void *key);
 int             BLI_ghashutil_strcmp(const void *a, const void *b);
 
 #define         BLI_ghashutil_inthash(key) ( \
-                CHECK_TYPE_INLINE(key, int), \
+                CHECK_TYPE_INLINE(&(key), int *), \
                 BLI_ghashutil_uinthash((unsigned int)key))
 unsigned int    BLI_ghashutil_uinthash(unsigned int key);
 #define         BLI_ghashutil_inthash_v4(key) ( \

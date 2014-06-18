@@ -69,14 +69,14 @@
 	BLI_linklist_prepend_pool(&(var), ptr, _##var##_pool))
 #define BLI_LINKSTACK_POP(var) \
 	(var ? (typeof(_##var##_type))BLI_linklist_pop_pool(&(var), _##var##_pool) : NULL)
-#define BLI_LINKSTACK_POP_ELSE(var, r) \
+#define BLI_LINKSTACK_POP_DEFAULT(var, r) \
 	(var ? (typeof(_##var##_type))BLI_linklist_pop_pool(&(var), _##var##_pool) : r)
 #else  /* non gcc */
 #define BLI_LINKSTACK_PUSH(var, ptr)  ( \
 	BLI_linklist_prepend_pool(&(var), ptr, _##var##_pool))
 #define BLI_LINKSTACK_POP(var) \
 	(var ? BLI_linklist_pop_pool(&(var), _##var##_pool) : NULL)
-#define BLI_LINKSTACK_POP_ELSE(var, r) \
+#define BLI_LINKSTACK_POP_DEFAULT(var, r) \
 	(var ? BLI_linklist_pop_pool(&(var), _##var##_pool) : r)
 #endif  /* gcc check */
 

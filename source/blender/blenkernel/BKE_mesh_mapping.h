@@ -131,7 +131,8 @@ int *BKE_mesh_calc_smoothgroups(
 
 /* No good (portable) way to have exported inlined functions... */
 #define BKE_MESH_TESSFACE_VINDEX_ORDER(_mf, _v)  (                          \
-    (CHECK_TYPE_INLINE(_mf, MFace *), CHECK_TYPE_INLINE(_v, unsigned int)), \
+    (CHECK_TYPE_INLINE(_mf, MFace *),                                       \
+     CHECK_TYPE_INLINE(&(_v), unsigned int *)),                             \
     ((_mf->v1 == _v) ? 0 :                                                  \
      (_mf->v2 == _v) ? 1 :                                                  \
      (_mf->v3 == _v) ? 2 :                                                  \
