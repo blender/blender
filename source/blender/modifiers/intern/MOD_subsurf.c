@@ -98,8 +98,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	SubsurfFlags subsurf_flags = 0;
 	DerivedMesh *result;
-	const int useRenderParams = flag & MOD_APPLY_RENDER;
-	const int isFinalCalc = flag & MOD_APPLY_USECACHE;
+	const bool useRenderParams = (flag & MOD_APPLY_RENDER) != 0;
+	const bool isFinalCalc = (flag & MOD_APPLY_USECACHE) != 0;
 
 	if (useRenderParams)
 		subsurf_flags |= SUBSURF_USE_RENDER_PARAMS;
