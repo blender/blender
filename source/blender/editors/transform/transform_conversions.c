@@ -1916,20 +1916,16 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 				}
 			}
 			
-			/* connected face-verts (excluding adjacent verts) */
+			/* imaginary edge diagonally across quad */
 			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-				if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len > 3)) {
-					BMLoop *l_end = l->prev;
-					l = l->next->next;
-					do {
-						BMVert *v_other = l->v;
-						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
-							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
-								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-								BLI_LINKSTACK_PUSH(queue_next, v_other);
-							}
+				if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len == 4)) {
+					BMVert *v_other = l->next->next->v;
+					if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+						if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+							BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+							BLI_LINKSTACK_PUSH(queue_next, v_other);
 						}
-					} while ((l = l->next) != l_end);
+					}
 				}
 			}
 		}
