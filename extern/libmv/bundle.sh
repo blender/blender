@@ -42,7 +42,7 @@ third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -
 third_gflags_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep gflags | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
 third_gflags_headers=`find ./third_party -type f -iname '*.h' | grep gflags | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
 
-tests=`find ./libmv -type f -iname '*_test.cc' | sort -d | awk ' { name=gensub(".*/([A-Za-z_]+)_test.cc", "\\\\1", $1); printf("\tBLENDER_SRC_GTEST(\"libmv_%s\" \"%s\" \"libmv_test_dataset;extern_libmv;extern_ceres\")\n", name, $1) } '`
+tests=`find ./libmv -type f -iname '*_test.cc' | sort -d | awk ' { name=gensub(".*/([A-Za-z_]+)_test.cc", "\\\\1", $1); printf("\t\tBLENDER_SRC_GTEST(\"libmv_%s\" \"%s\" \"libmv_test_dataset;extern_libmv;extern_ceres\")\n", name, $1) } '`
 
 src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t\t/' | sort -d | uniq`
 src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | grep -v ceres | sed -r 's/^\.\//\t\t/'  | sort -d | uniq`
@@ -177,9 +177,9 @@ ${third_headers}
 
 	if(WITH_GTESTS)
 		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}")
-	endif()
 
 ${tests}
+	endif()
 else()
 	list(APPEND SRC
 		libmv-capi_stub.cc
