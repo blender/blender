@@ -611,25 +611,25 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "Break" << endl;
 		}
-		return NULL;
 	}
+	else {
+		// render and composite Freestyle result
+		if (controller->_ViewMap) {
+			// render strokes
+			re->i.infostr = "Freestyle: Stroke rendering";
+			re->stats_draw(re->sdh, &re->i);
+			re->i.infostr = NULL;
+			freestyle_scene = re->scene;
+			controller->DrawStrokes();
+			freestyle_render = controller->RenderStrokes(re, true);
+			controller->CloseFile();
+			freestyle_scene = NULL;
 
-	// render and composite Freestyle result
-	if (controller->_ViewMap) {
-		// render strokes
-		re->i.infostr = "Freestyle: Stroke rendering";
-		re->stats_draw(re->sdh, &re->i);
-		re->i.infostr = NULL;
-		freestyle_scene = re->scene;
-		controller->DrawStrokes();
-		freestyle_render = controller->RenderStrokes(re, true);
-		controller->CloseFile();
-		freestyle_scene = NULL;
-
-		// composite result
-		FRS_composite_result(re, srl, freestyle_render);
-		RE_FreeRenderResult(freestyle_render->result);
-		freestyle_render->result = NULL;
+			// composite result
+			FRS_composite_result(re, srl, freestyle_render);
+			RE_FreeRenderResult(freestyle_render->result);
+			freestyle_render->result = NULL;
+		}
 	}
 
 	// Free temp main (currently only text blocks are stored there)

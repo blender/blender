@@ -511,32 +511,9 @@ static int check_mode_full_sample(RenderData *rd)
 	return scemode;
 }
 
-/* what doesn't change during entire render sequence */
-/* disprect is optional, if NULL it assumes full window render */
-void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *srl, int winx, int winy, rcti *disprect)
+static void re_init_resolution(Render *re, Render *source,
+                               int winx, int winy, rcti *disprect)
 {
-	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
-
-	re->ok = true;   /* maybe flag */
-	
-	re->i.starttime = PIL_check_seconds_timer();
-
-	/* copy render data and render layers for thread safety */
-	BLI_freelistN(&re->r.layers);
-	re->r = *rd;
-	BLI_duplicatelist(&re->r.layers, &rd->layers);
-
-	if (source) {
-		/* reuse border flags from source renderer */
-		re->r.mode &= ~(R_BORDER | R_CROP);
-		re->r.mode |= source->r.mode & (R_BORDER | R_CROP);
-
-		/* dimensions shall be shared between all renderers */
-		re->r.xsch = source->r.xsch;
-		re->r.ysch = source->r.ysch;
-		re->r.size = source->r.size;
-	}
-
 	re->winx = winx;
 	re->winy = winy;
 	if (source && (source->r.mode & R_BORDER)) {
@@ -570,7 +547,41 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		re->rectx = winx;
 		re->recty = winy;
 	}
+
+	/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
+	re->clipcrop = 1.0f + 2.0f / (float)(re->winx > re->winy ? re->winy : re->winx);
+}
+
+/* what doesn't change during entire render sequence */
+/* disprect is optional, if NULL it assumes full window render */
+void RE_InitState(Render *re, Render *source, RenderData *rd,
+                  SceneRenderLayer *srl,
+                  int winx, int winy, rcti *disprect)
+{
+	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
+
+	re->ok = true;   /* maybe flag */
 	
+	re->i.starttime = PIL_check_seconds_timer();
+
+	/* copy render data and render layers for thread safety */
+	BLI_freelistN(&re->r.layers);
+	re->r = *rd;
+	BLI_duplicatelist(&re->r.layers, &rd->layers);
+
+	if (source) {
+		/* reuse border flags from source renderer */
+		re->r.mode &= ~(R_BORDER | R_CROP);
+		re->r.mode |= source->r.mode & (R_BORDER | R_CROP);
+
+		/* dimensions shall be shared between all renderers */
+		re->r.xsch = source->r.xsch;
+		re->r.ysch = source->r.ysch;
+		re->r.size = source->r.size;
+	}
+
+	re_init_resolution(re, source, winx, winy, disprect);
+
 	if (re->rectx < 1 || re->recty < 1 || (BKE_imtype_is_movie(rd->im_format.imtype) &&
 	                                       (re->rectx < 16 || re->recty < 16) ))
 	{
@@ -654,12 +665,67 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
 	
-	/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
-	re->clipcrop = 1.0f + 2.0f / (float)(re->winx > re->winy ? re->winy : re->winx);
-	
 	re->mblur_offs = re->field_offs = 0.f;
 	
 	RE_init_threadcount(re);
+}
+
+static void render_result_rescale(Render *re)
+{
+	RenderResult *result = re->result;
+	int x, y;
+	float scale_x, scale_y;
+	float *src_rectf;
+
+	src_rectf = result->rectf;
+	if (src_rectf == NULL) {
+		RenderLayer *rl = render_get_active_layer(re, re->result);
+		if (rl != NULL) {
+			src_rectf = rl->rectf;
+		}
+	}
+
+	if (src_rectf != NULL) {
+		float *dst_rectf = NULL;
+		re->result = render_result_new(re,
+		                               &re->disprect,
+		                               0,
+		                               RR_USE_MEM,
+		                               RR_ALL_LAYERS);
+
+		dst_rectf = re->result->rectf;
+		if (dst_rectf == NULL) {
+			RenderLayer *rl;
+			rl = render_get_active_layer(re, re->result);
+			if (rl != NULL) {
+				dst_rectf = rl->rectf;
+			}
+		}
+
+		scale_x = (float) result->rectx / re->result->rectx;
+		scale_y = (float) result->recty / re->result->recty;
+		for (x = 0; x < re->result->rectx; ++x) {
+			for (y = 0; y < re->result->recty; ++y) {
+				int src_x = x * scale_x,
+				    src_y = y * scale_y;
+				int dst_index = y * re->result->rectx + x,
+				    src_index = src_y * result->rectx + src_x;
+				copy_v4_v4(dst_rectf + dst_index * 4,
+				           src_rectf + src_index * 4);
+			}
+		}
+	}
+
+	render_result_free(result);
+}
+
+void RE_ChangeResolution(Render *re, int winx, int winy, rcti *disprect)
+{
+	re_init_resolution(re, NULL, winx, winy, disprect);
+
+	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+	render_result_rescale(re);
+	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
 /* update some variables that can be animated, and otherwise wouldn't be due to

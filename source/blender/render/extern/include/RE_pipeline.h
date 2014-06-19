@@ -190,7 +190,10 @@ struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name)
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 
 /* obligatory initialize call, disprect is optional */
-void RE_InitState(struct Render *re, struct Render *source, struct RenderData *rd, struct SceneRenderLayer *srl, int winx, int winy, rcti *disprect);
+void RE_InitState(struct Render *re, struct Render *source, struct RenderData *rd,
+                  struct SceneRenderLayer *srl,
+                  int winx, int winy, rcti *disprect);
+void RE_ChangeResolution(struct Render *re, int winx, int winy, rcti *disprect);
 
 /* set up the viewplane/perspective matrix, three choices */
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
