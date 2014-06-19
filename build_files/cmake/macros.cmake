@@ -645,6 +645,9 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 	unset(SORTLIB)
 	unset(REMLIB)
 	unset(REM_MSG)
+
+	# for top-level tests
+	set_property(GLOBAL PROPERTY BLENDER_SORTED_LIBS_PROP ${BLENDER_SORTED_LIBS})
 endmacro()
 
 macro(TEST_SSE_SUPPORT
