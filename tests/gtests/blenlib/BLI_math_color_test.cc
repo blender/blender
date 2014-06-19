@@ -1,3 +1,5 @@
+/* Apache License, Version 2.0 */
+
 #include "testing/testing.h"
 
 #include "BLI_math.h"

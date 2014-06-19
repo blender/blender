@@ -1,3 +1,5 @@
+# Apache License, Version 2.0
+
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py
 import unittest
 from test import support
