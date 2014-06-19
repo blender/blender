@@ -211,11 +211,6 @@ WOEdge *WOEdge::duplicate()
 	return clone;
 }
 
-Vec3r WOEdge::getVec3r ()
-{
-	return Vec3r(_pbVertex->GetVertex() - _paVertex->GetVertex());
-}
-
 WOEdge *WOEdge::twin ()
 {
 	return GetOwner()->GetOtherOEdge(this);

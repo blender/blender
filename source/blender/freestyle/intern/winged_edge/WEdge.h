@@ -525,8 +525,6 @@ public:
 	/*! Retrieves the list of edges in CW order */
 	inline void RetrieveCWOrderedEdges(vector<WEdge*>& oEdges);
 
-	/*! returns the vector between the two vertices */
-	Vec3r getVec3r ();
 	WOEdge *twin ();
 	WOEdge *getPrevOnFace();
 
