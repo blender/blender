@@ -3545,8 +3545,7 @@ static uiBlock *component_menu(bContext *C, ARegion *ar, void *args_v)
 	uiItemR(layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 	
 	uiBoundsBlock(block, 6);
-	uiBlockSetDirection(block, UI_DOWN);	
-	uiEndBlock(C, block);
+	uiBlockSetDirection(block, UI_DOWN);
 	
 	return block;
 }
