@@ -1085,12 +1085,6 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 
 	sum = (float *)MEM_callocN(sizeof(float) * len, "makeNurbfaces1");
 
-	len = totu * totv;
-	if (len == 0) {
-		MEM_freeN(sum);
-		return;
-	}
-
 	bp = nu->bp;
 	i = nu->pntsu * nu->pntsv;
 	ratcomp = 0;
@@ -1192,6 +1186,8 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 					}
 				}
 			}
+
+			zero_v3(in);
 
 			/* one! (1.0) real point now */
 			fp = sum;
@@ -1306,6 +1302,8 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 				*fp /= sumdiv;
 			}
 		}
+
+		zero_v3(coord_fp);
 
 		/* one! (1.0) real point */
 		fp = sum;
@@ -1473,7 +1471,7 @@ float *BKE_curve_surf_make_orco(Object *ob)
 			}
 			else {
 				int size = (nu->pntsu * resolu) * (nu->pntsv * resolv) * 3 * sizeof(float);
-				float *_tdata = MEM_callocN(size, "temp data");
+				float *_tdata = MEM_mallocN(size, "temp data");
 				float *tdata = _tdata;
 
 				BKE_nurb_makeFaces(nu, tdata, 0, resolu, resolv);
