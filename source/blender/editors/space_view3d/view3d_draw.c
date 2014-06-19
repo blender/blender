@@ -2236,7 +2236,7 @@ float view3d_depth_near(ViewDepths *d)
 	return far == far_real ? FLT_MAX : far;
 }
 
-void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
+void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	short zbuf = v3d->zbuf;
 	RegionView3D *rv3d = ar->regiondata;
@@ -2263,7 +2263,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 
 }
 
-void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), bool alphaoverride)
+void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaoverride)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
@@ -2304,11 +2304,9 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 		Scene *sce_iter;
 		for (SETLOOPER(scene->set, sce_iter, base)) {
 			if (v3d->lay & base->lay) {
-				if (func == NULL || func(base)) {
-					draw_object(scene, ar, v3d, base, 0);
-					if (base->object->transflag & OB_DUPLI) {
-						draw_dupli_objects_color(scene, ar, v3d, base, dflag_depth, TH_UNDEFINED);
-					}
+				draw_object(scene, ar, v3d, base, 0);
+				if (base->object->transflag & OB_DUPLI) {
+					draw_dupli_objects_color(scene, ar, v3d, base, dflag_depth, TH_UNDEFINED);
 				}
 			}
 		}
@@ -2316,13 +2314,11 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *), boo
 	
 	for (base = scene->base.first; base; base = base->next) {
 		if (v3d->lay & base->lay) {
-			if (func == NULL || func(base)) {
-				/* dupli drawing */
-				if (base->object->transflag & OB_DUPLI) {
-					draw_dupli_objects_color(scene, ar, v3d, base, dflag_depth, TH_UNDEFINED);
-				}
-				draw_object(scene, ar, v3d, base, dflag_depth);
+			/* dupli drawing */
+			if (base->object->transflag & OB_DUPLI) {
+				draw_dupli_objects_color(scene, ar, v3d, base, dflag_depth, TH_UNDEFINED);
 			}
+			draw_object(scene, ar, v3d, base, dflag_depth);
 		}
 	}
 	
