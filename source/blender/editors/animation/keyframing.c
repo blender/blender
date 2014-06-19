@@ -394,23 +394,31 @@ int insert_vert_fcurve(FCurve *fcu, float x, float y, short flag)
 	beztr.vec[2][0] = x + 1.0f;
 	beztr.vec[2][1] = y;
 	beztr.f1 = beztr.f2 = beztr.f3 = SELECT;
-
+	
+	/* set default handle types and interpolation mode */
 	if (flag & INSERTKEY_NO_USERPREF) {
+		/* for Py-API, we want scripts to have predictable behaviour,
+		 * hence the option to not depend on the userpref defaults
+		 */
 		beztr.h1 = beztr.h2 = HD_AUTO_ANIM;
 		beztr.ipo = BEZT_IPO_BEZ;
 	}
 	else {
+		/* for UI usage - defaults should come from the */
 		beztr.h1 = beztr.h2 = U.keyhandles_new; /* use default handle type here */
 		//BEZKEYTYPE(&beztr)= scene->keytype; /* default keyframe type */
-
+		
 		/* use default interpolation mode, with exceptions for int/discrete values */
 		beztr.ipo = U.ipo_new;
 	}
-
-	if (fcu->flag & FCURVE_DISCRETE_VALUES)
+	
+	/* interpolation type used is constrained by the type of values the curve can take */
+	if (fcu->flag & FCURVE_DISCRETE_VALUES) {
 		beztr.ipo = BEZT_IPO_CONST;
-	else if (beztr.ipo == BEZT_IPO_BEZ && (fcu->flag & FCURVE_INT_VALUES))
+	}
+	else if ((beztr.ipo == BEZT_IPO_BEZ) && (fcu->flag & FCURVE_INT_VALUES)) {
 		beztr.ipo = BEZT_IPO_LIN;
+	}
 	
 	/* add temp beztriple to keyframes */
 	a = insert_bezt_fcurve(fcu, &beztr, flag);
