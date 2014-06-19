@@ -43,24 +43,18 @@
 
 float BLI_easing_back_ease_in(float time, float begin, float change, float duration, float overshoot)
 {
-	if (overshoot == 0.0f)
-		overshoot = 1.70158f;
 	time /= duration;
 	return change * time * time * ((overshoot + 1) * time - overshoot) + begin;
 }
 
 float BLI_easing_back_ease_out(float time, float begin, float change, float duration, float overshoot)
 {
-	if (overshoot == 0.0f)
-		overshoot = 1.70158f;
 	time = time / duration - 1;
 	return change * (time * time * ((overshoot + 1) * time + overshoot) + 1) + begin;
 }
 
 float BLI_easing_back_ease_in_out(float time, float begin, float change, float duration, float overshoot)
 {
-	if (overshoot == 0.0f)
-		overshoot = 1.70158f; 
 	overshoot *= 1.525f;
 	if ((time /= duration / 2) < 1.0f) {
 		return change / 2 * (time * time * ((overshoot + 1) * time - overshoot)) + begin;
