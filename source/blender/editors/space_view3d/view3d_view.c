@@ -784,11 +784,11 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 /**
  * \param rect optional for picking (can be NULL).
  */
-void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect)
+void view3d_winmatrix_set(ARegion *ar, View3D *v3d, const rctf *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
-	float clipsta, clipend, x1, y1, x2, y2;
+	float clipsta, clipend;
 	bool is_ortho;
 	
 	is_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
@@ -800,28 +800,20 @@ void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect)
 	       clipsta, clipend);
 #endif
 
-	x1 = viewplane.xmin;
-	y1 = viewplane.ymin;
-	x2 = viewplane.xmax;
-	y2 = viewplane.ymax;
-
 	if (rect) {  /* picking */
-		rect->xmin /= (float)ar->winx;
-		rect->xmin = x1 + rect->xmin * (x2 - x1);
-		rect->ymin /= (float)ar->winy;
-		rect->ymin = y1 + rect->ymin * (y2 - y1);
-		rect->xmax /= (float)ar->winx;
-		rect->xmax = x1 + rect->xmax * (x2 - x1);
-		rect->ymax /= (float)ar->winy;
-		rect->ymax = y1 + rect->ymax * (y2 - y1);
-		
-		if (is_ortho) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
-		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
+		rctf r;
+		r.xmin = viewplane.xmin + (BLI_rctf_size_x(&viewplane) * (rect->xmin / (float)ar->winx));
+		r.ymin = viewplane.ymin + (BLI_rctf_size_y(&viewplane) * (rect->ymin / (float)ar->winy));
+		r.xmax = viewplane.xmin + (BLI_rctf_size_x(&viewplane) * (rect->xmax / (float)ar->winx));
+		r.ymax = viewplane.ymin + (BLI_rctf_size_y(&viewplane) * (rect->ymax / (float)ar->winy));
+		viewplane = r;
+	}
 
+	if (is_ortho) {
+		wmOrtho(viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 	}
 	else {
-		if (is_ortho) wmOrtho(x1, x2, y1, y2, clipsta, clipend);
-		else wmFrustum(x1, x2, y1, y2, clipsta, clipend);
+		wmFrustum(viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 	}
 
 	/* update matrix in 3d view region */
