@@ -970,7 +970,7 @@ void view3d_viewmatrix_set(Scene *scene, View3D *v3d, RegionView3D *rv3d)
  *
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
-short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input)
+short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input)
 {
 	Scene *scene = vc->scene;
 	View3D *v3d = vc->v3d;

@@ -269,7 +269,7 @@ bool ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], con
 
 /* select */
 #define MAXPICKBUF      10000
-short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
+short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input);
 
 /* view3d_select.c */
 float ED_view3d_select_dist_px(void);
@@ -346,7 +346,7 @@ void  ED_view3d_distance_set(struct RegionView3D *rv3d, const float dist);
 float ED_scene_grid_scale(struct Scene *scene, const char **grid_unit);
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit);
 
-void ED_scene_draw_fps(struct Scene *scene, struct rcti *rect);
+void ED_scene_draw_fps(struct Scene *scene, const struct rcti *rect);
 
 /* view matrix properties utilities */
 /* unused */

@@ -2989,10 +2989,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 }
 
 
-/* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 
- * which currently gets called during SCREEN_OT_animation_step.
+/**
+ * \note The info that this uses is updated in #ED_refresh_viewport_fps,
+ * which currently gets called during #SCREEN_OT_animation_step.
  */
-void ED_scene_draw_fps(Scene *scene, rcti *rect)
+void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 {
 	ScreenFrameRateInfo *fpsi = scene->fps_info;
 	float fps;
