@@ -64,8 +64,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     closure_dir = os.path.join(source_dir, "../closure")
 
     # get CUDA version
-    nvcc_pipe = subprocess.Popen([nvcc, "--version"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    output, erroroutput = nvcc_pipe.communicate()
+    output = subprocess.check_output([nvcc, "--version"])
     cuda_major_minor = re.findall(r'release (\d+).(\d+)', output)[0]
     cuda_version = int(cuda_major_minor[0])*10 + int(cuda_major_minor[1])
 

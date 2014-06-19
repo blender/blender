@@ -802,13 +802,14 @@ class WM_OT_path_open(Operator):
         if sys.platform[:3] == "win":
             os.startfile(filepath)
         elif sys.platform == "darwin":
-            subprocess.Popen(["open", filepath])
+            subprocess.check_call(["open", filepath])
         else:
             try:
-                subprocess.Popen(["xdg-open", filepath])
-            except OSError:
+                subprocess.check_call(["xdg-open", filepath])
+            except:
                 # xdg-open *should* be supported by recent Gnome, KDE, Xfce
-                pass
+                import traceback
+                traceback.print_exc()
 
         return {'FINISHED'}
 

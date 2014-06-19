@@ -56,7 +56,7 @@ def get_version():
     raise Exception("%s: missing version string" % fname)
 
 def get_hash():
-    build_hash = os.popen('git rev-parse --short HEAD').read().strip()
+    build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
     if build_hash == '' or build_hash == None:
         build_hash = 'UNKNOWN'
 
