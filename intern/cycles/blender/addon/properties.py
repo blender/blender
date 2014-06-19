@@ -309,7 +309,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Volume Bounces",
                 description="Maximum number of volumetric scattering events",
                 min=0, max=1024,
-                default=1,
+                default=0,
                 )
 
         cls.transparent_min_bounces = IntProperty(
