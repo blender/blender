@@ -186,15 +186,25 @@ typedef struct drawDMNormal_userData {
 	float imat[3][3];
 } drawDMNormal_userData;
 
-typedef struct bbsObmodeMeshVerts_userData {
-	void *offset;
+typedef struct drawMVertOffset_userData {
 	MVert *mvert;
-} bbsObmodeMeshVerts_userData;
+	int offset;
+} drawMVertOffset_userData;
 
 typedef struct drawDMLayer_userData {
 	BMesh *bm;
 	int cd_layer_offset;
 } drawDMLayer_userData;
+
+typedef struct drawBMOffset_userData {
+	BMesh *bm;
+	int offset;
+} drawBMOffset_userData;
+
+typedef struct drawBMSelect_userData {
+	BMesh *bm;
+	bool select;
+} drawBMSelect_userData;
 
 static void draw_bounding_volume(Object *ob, char type);
 
@@ -2184,21 +2194,21 @@ static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, Object *ob, Deriv
 
 static void draw_dm_face_centers__mapFunc(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
-	BMFace *efa = BM_face_at_index(((void **)userData)[0], index);
-	const char sel = *(((char **)userData)[1]);
+	drawBMSelect_userData *data = userData;
+	BMFace *efa = BM_face_at_index(data->bm, index);
 	
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) &&
-	    (BM_elem_flag_test(efa, BM_ELEM_SELECT) == sel))
+	    (BM_elem_flag_test(efa, BM_ELEM_SELECT) == data->select))
 	{
 		bglVertex3fv(cent);
 	}
 }
-static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, char sel)
+static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, bool select)
 {
-	void *ptrs[2] = {em->bm, &sel};
+	drawBMSelect_userData data = {em->bm, select};
 
 	bglBegin(GL_POINTS);
-	dm->foreachMappedFaceCenter(dm, draw_dm_face_centers__mapFunc, ptrs, DM_FOREACH_NOP);
+	dm->foreachMappedFaceCenter(dm, draw_dm_face_centers__mapFunc, &data, DM_FOREACH_NOP);
 	bglEnd();
 }
 
@@ -2381,7 +2391,8 @@ static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm)
 /* Draw edges with color interpolated based on selection */
 static DMDrawOption draw_dm_edges_sel_interp__setDrawOptions(void *userData, int index)
 {
-	if (BM_elem_flag_test(BM_edge_at_index(((void **)userData)[0], index), BM_ELEM_HIDDEN))
+	drawDMEdgesSelInterp_userData *data = userData;
+	if (BM_elem_flag_test(BM_edge_at_index(data->bm, index), BM_ELEM_HIDDEN))
 		return DM_DRAW_OPTION_SKIP;
 	else
 		return DM_DRAW_OPTION_NORMAL;
@@ -2389,7 +2400,7 @@ static DMDrawOption draw_dm_edges_sel_interp__setDrawOptions(void *userData, int
 static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int index, float t)
 {
 	drawDMEdgesSelInterp_userData *data = userData;
-	BMEdge *eed = BM_edge_at_index(((void **)userData)[0], index);
+	BMEdge *eed = BM_edge_at_index(data->bm, index);
 	unsigned char **cols = userData;
 	unsigned int col0_id = (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT)) ? 2 : 1;
 	unsigned int col1_id = (BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)) ? 2 : 1;
@@ -7847,23 +7858,22 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, const float co[3],
                                            const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
-	bbsObmodeMeshVerts_userData *data = userData;
+	drawMVertOffset_userData *data = userData;
 	MVert *mv = &data->mvert[index];
-	int offset = (intptr_t) data->offset;
 
 	if (!(mv->flag & ME_HIDE)) {
-		WM_framebuffer_index_set(offset + index);
+		WM_framebuffer_index_set(data->offset + index);
 		bglVertex3fv(co);
 	}
 }
 
 static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 {
-	bbsObmodeMeshVerts_userData data;
+	drawMVertOffset_userData data;
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	data.mvert = mvert;
-	data.offset = (void *)(intptr_t) offset;
+	data.offset = offset;
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
@@ -7874,34 +7884,31 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3],
                                     const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
-	void **ptrs = userData;
-	int offset = (intptr_t) ptrs[0];
-	BMVert *eve = BM_vert_at_index(ptrs[1], index);
+	drawBMOffset_userData *data = userData;
+	BMVert *eve = BM_vert_at_index(data->bm, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		WM_framebuffer_index_set(offset + index);
+		WM_framebuffer_index_set(data->offset + index);
 		bglVertex3fv(co);
 	}
 }
 static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
-	void *ptrs[2] = {(void *)(intptr_t) offset, em->bm};
-
+	drawBMOffset_userData data = {em->bm, offset};
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, ptrs, DM_FOREACH_NOP);
+	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
 	bglEnd();
 	glPointSize(1.0);
 }
 
 static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 {
-	void **ptrs = userData;
-	int offset = (intptr_t) ptrs[0];
-	BMEdge *eed = BM_edge_at_index(ptrs[1], index);
+	drawBMOffset_userData *data = userData;
+	BMEdge *eed = BM_edge_at_index(data->bm, index);
 
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-		WM_framebuffer_index_set(offset + index);
+		WM_framebuffer_index_set(data->offset + index);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -7910,18 +7917,31 @@ static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 }
 static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
-	void *ptrs[2] = {(void *)(intptr_t) offset, em->bm};
-	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, ptrs);
+	drawBMOffset_userData data = {em->bm, offset};
+	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, &data);
+}
+
+/**
+ * dont set #WM_framebuffer_index_set. just use to mask other
+ */
+static DMDrawOption bbs_mesh_mask__setSolidDrawOptions(void *userData, int index)
+{
+	BMFace *efa = BM_face_at_index(userData, index);
+	
+	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+		return DM_DRAW_OPTION_NORMAL;
+	}
+	else {
+		return DM_DRAW_OPTION_SKIP;
+	}
 }
 
 static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
 {
-	BMFace *efa = BM_face_at_index(((void **)userData)[0], index);
-	
+	BMFace *efa = BM_face_at_index(userData, index);
+
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		if (((void **)userData)[1]) {
-			WM_framebuffer_index_set(index + 1);
-		}
+		WM_framebuffer_index_set(index + 1);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -7931,7 +7951,7 @@ static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int inde
 
 static void bbs_mesh_solid__drawCenter(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
-	BMFace *efa = BM_face_at_index(((void **)userData)[0], index);
+	BMFace *efa = BM_face_at_index(userData, index);
 
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		WM_framebuffer_index_set(index + 1);
@@ -7942,26 +7962,24 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, const float ce
 
 /* two options, facecolors or black */
 static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
-                              Object *ob, DerivedMesh *dm, int facecol)
+                              Object *ob, DerivedMesh *dm, bool use_faceselect)
 {
-	void *ptrs[2] = {em->bm, NULL}; //second one being null means to draw black
 	cpack(0);
 
-	if (facecol) {
-		ptrs[1] = (void *)(intptr_t) 1;
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, GPU_enable_material, NULL, ptrs, 0);
+	if (use_faceselect) {
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, GPU_enable_material, NULL, em->bm, 0);
 
 		if (check_ob_drawface_dot(scene, v3d, ob->dt)) {
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
 
 			bglBegin(GL_POINTS);
-			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, ptrs, DM_FOREACH_NOP);
+			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, em->bm, DM_FOREACH_NOP);
 			bglEnd();
 		}
 
 	}
 	else {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, GPU_enable_material, NULL, ptrs, 0);
+		dm->drawMappedFaces(dm, bbs_mesh_mask__setSolidDrawOptions, GPU_enable_material, NULL, em->bm, 0);
 	}
 }
 
@@ -8050,7 +8068,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 				DM_update_materials(dm, ob);
 
-				bbs_mesh_solid_EM(em, scene, v3d, ob, dm, ts->selectmode & SCE_SELECT_FACE);
+				bbs_mesh_solid_EM(em, scene, v3d, ob, dm, (ts->selectmode & SCE_SELECT_FACE) != 0);
 				if (ts->selectmode & SCE_SELECT_FACE)
 					bm_solidoffs = 1 + em->bm->totface;
 				else
