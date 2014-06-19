@@ -2458,6 +2458,11 @@ static void bm_color_from_weight(float col[3], BMVert *vert, drawDMEdgesWeightIn
 	}
 }
 
+static void draw_dm_edges_nop_interp__setDrawInterpOptions(void *UNUSED(userData), int UNUSED(index), float UNUSED(t))
+{
+	/* pass */
+}
+
 static void draw_dm_edges_weight_interp__setDrawInterpOptions(void *userData, int index, float t)
 {
 	drawDMEdgesWeightInterp_userData *data = userData;
@@ -2494,17 +2499,38 @@ static void draw_dm_edges_weight_interp(BMEditMesh *em, DerivedMesh *dm, const c
 	data.weight_user = weight_user;
 	UI_GetThemeColor3fv(TH_VERTEX_UNREFERENCED, data.alert_color);
 
-	glEnable(GL_BLEND);
-	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_weight_interp__setDrawInterpOptions, &data);
-	glDisable(GL_BLEND);
+	if ((data.vgroup_index != -1) && (data.cd_dvert_offset != -1)) {
+		glEnable(GL_BLEND);
+		dm->drawMappedEdgesInterp(
+		        dm,
+		        draw_dm_edges_sel_interp__setDrawOptions,
+		        draw_dm_edges_weight_interp__setDrawInterpOptions,
+		        &data);
+		glDisable(GL_BLEND);
+	}
+	else {
+		float col[3];
+
+		if (data.weight_user == OB_DRAW_GROUPUSER_NONE) {
+			weight_to_rgb(col, 0.0f);
+		}
+		else {
+			copy_v3_v3(col, data.alert_color);
+		}
+		glColor3fv(col);
+
+		dm->drawMappedEdgesInterp(
+		        dm,
+		        draw_dm_edges_sel_interp__setDrawOptions,
+		        draw_dm_edges_nop_interp__setDrawInterpOptions,
+		        &data);
+	}
+
 }
 
-static bool draw_dm_edges_weight_check(Mesh *me, BMEditMesh *em, View3D *v3d)
+static bool draw_dm_edges_weight_check(Mesh *me, View3D *v3d)
 {
-	if ((me->drawflag & ME_DRAWEIGHT) &&
-	    (em->ob->actdef) &&
-	    (CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)))
-	{
+	if (me->drawflag & ME_DRAWEIGHT) {
 		if ((v3d->drawtype == OB_WIRE) ||
 		    (v3d->flag2 & V3D_SOLID_MATCAP) ||
 		    ((v3d->flag2 & V3D_OCCLUDE_WIRE) && (v3d->drawtype > OB_WIRE)))
@@ -2932,7 +2958,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 			    ((ts->selectmode & SCE_SELECT_VERTEX) || (me->drawflag & ME_DRAWEIGHT)))
 			{
 				glShadeModel(GL_SMOOTH);
-				if (draw_dm_edges_weight_check(me, em, v3d)) {
+				if (draw_dm_edges_weight_check(me, v3d)) {
 					draw_dm_edges_weight_interp(em, cageDM, ts->weightuser);
 				}
 				else {

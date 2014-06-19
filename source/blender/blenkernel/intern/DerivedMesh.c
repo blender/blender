@@ -1213,14 +1213,15 @@ static void calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const d
 		}
 	}
 	else {
-		int col_i;
+		unsigned char col[4];
 		if (draw_flag & (CALC_WP_GROUP_USER_ACTIVE | CALC_WP_GROUP_USER_ALL)) {
-			col_i = 0;
+			copy_v3_v3_char((char *)col, dm_wcinfo->alert_color);
+			col[3] = 255;
 		}
 		else {
-			weightpaint_color((unsigned char *)&col_i, dm_wcinfo, 0.0f);
+			weightpaint_color(col, dm_wcinfo, 0.0f);
 		}
-		fill_vn_i((int *)r_wtcol_v, numVerts, col_i);
+		fill_vn_i((int *)r_wtcol_v, numVerts, *((int *)col));
 	}
 }
 
