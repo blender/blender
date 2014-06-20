@@ -21,9 +21,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline float svm_checker(float3 p)
 {
 	/* avoid precision issues on unit coordinates */
-	p.x = (p.x + 0.00001f)*0.9999f;
-	p.y = (p.y + 0.00001f)*0.9999f;
-	p.z = (p.z + 0.00001f)*0.9999f;
+	p.x = (p.x + 0.000001f)*0.999999f;
+	p.y = (p.y + 0.000001f)*0.999999f;
+	p.z = (p.z + 0.000001f)*0.999999f;
 
 	int xi = float_to_int(fabsf(floorf(p.x)));
 	int yi = float_to_int(fabsf(floorf(p.y)));
