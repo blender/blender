@@ -56,7 +56,11 @@ def get_version():
     raise Exception("%s: missing version string" % fname)
 
 def get_hash():
-    build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
+    try:
+        build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
+    except:
+        build_hash = None
+        print("WARNING: could not use git to retrieve current Blender repository hash...")
     if build_hash == '' or build_hash == None:
         build_hash = 'UNKNOWN'
 
