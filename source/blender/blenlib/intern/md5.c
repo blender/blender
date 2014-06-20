@@ -389,3 +389,20 @@ void *md5_buffer(const char *buffer, size_t len, void *resblock)
 	/* Put result in desired memory area. */
 	return md5_read_ctx(&ctx, resblock);
 }
+
+char *md5_to_hexdigest(void *resblock, char r_hex_digest[33])
+{
+	static const char hex_map[17] = "0123456789abcdef";
+	const unsigned char *p;
+	char *q;
+	short len;
+
+	for (q = r_hex_digest, p = (const unsigned char *)resblock, len = 0; len < 16; ++p, ++len) {
+		const unsigned char c = *p;
+		*q++ = hex_map[c >> 4];
+		*q++ = hex_map[c & 15];
+	}
+	*q = '\0';
+
+	return r_hex_digest;
+}

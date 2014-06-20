@@ -41,5 +41,7 @@ void *md5_buffer(const char *buffer, size_t len, void *resblock);
 
 int md5_stream(FILE *stream, void *resblock);
 
+char *md5_to_hexdigest(void *resblock, char r_hex_digest[33]);
+
 #endif
 
