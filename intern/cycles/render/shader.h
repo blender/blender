@@ -149,6 +149,7 @@ protected:
 	AttributeIDMap unique_attribute_id;
 
 	size_t blackbody_table_offset;
+	size_t beckmann_table_offset;
 };
 
 CCL_NAMESPACE_END

@@ -176,8 +176,8 @@ ccl_device float approx_erfinvf(float z)
  * E. Heitz and E. d'Eon, EGSR 2014 */
 
 ccl_device_inline void microfacet_beckmann_sample_slopes(
+	KernelGlobals *kg,
 	const float cos_theta_i, const float sin_theta_i,
-	const float alpha_x, const float alpha_y,
 	float randu, float randv, float *slope_x, float *slope_y,
 	float *G1i)
 {
@@ -200,9 +200,11 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(
 	const float SQRT_PI_INV = 0.56418958354f;
 	const float Lambda = 0.5f*(erf_a - 1.0f) + (0.5f*SQRT_PI_INV)*(exp_a2*inv_a);
 	const float G1 = 1.0f/(1.0f + Lambda); /* masking */
-	const float C = 1.0f - G1 * erf_a;
 
 	*G1i = G1;
+
+#if 0
+	const float C = 1.0f - G1 * erf_a;
 
 	/* sample slope X */
 	if(randu < C) {
@@ -238,11 +240,20 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(
 
 	/* sample slope Y */
 	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
+#else
+	/* use precomputed table, because it better preserves stratification
+	 * of the random number pattern */
+	int beckmann_table_offset = kernel_data.tables.beckmann_offset;
+
+	*slope_x = lookup_table_read_2D(kg, randu, cos_theta_i,
+		beckmann_table_offset, BECKMANN_TABLE_SIZE, BECKMANN_TABLE_SIZE);
+	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
+#endif
+
 }
 
 ccl_device_inline void microfacet_ggx_sample_slopes(
 	const float cos_theta_i, const float sin_theta_i,
-	const float alpha_x, const float alpha_y,
 	float randu, float randv, float *slope_x, float *slope_y,
 	float *G1i)
 {
@@ -290,7 +301,8 @@ ccl_device_inline void microfacet_ggx_sample_slopes(
 	*slope_y = S * z * safe_sqrtf(1.0f + (*slope_x)*(*slope_x));
 }
 
-ccl_device_inline float3 microfacet_sample_stretched(const float3 omega_i,
+ccl_device_inline float3 microfacet_sample_stretched(
+	KernelGlobals *kg, const float3 omega_i,
 	const float alpha_x, const float alpha_y,
 	const float randu, const float randv,
 	bool beckmann, float *G1i)
@@ -317,12 +329,14 @@ ccl_device_inline float3 microfacet_sample_stretched(const float3 omega_i,
 	/* 2. sample P22_{omega_i}(x_slope, y_slope, 1, 1) */
 	float slope_x, slope_y;
 
-	if(beckmann)
-		microfacet_beckmann_sample_slopes(costheta_, sintheta_,
-			alpha_x, alpha_y, randu, randv, &slope_x, &slope_y, G1i);
-	else
+	if(beckmann) {
+		microfacet_beckmann_sample_slopes(kg, costheta_, sintheta_,
+			randu, randv, &slope_x, &slope_y, G1i);
+	}
+	else {
 		microfacet_ggx_sample_slopes(costheta_, sintheta_,
-			alpha_x, alpha_y, randu, randv, &slope_x, &slope_y, G1i);
+			randu, randv, &slope_x, &slope_y, G1i);
+	}
 
 	/* 3. rotate */
 	float tmp = cosphi_*slope_x - sinphi_*slope_y;
@@ -530,7 +544,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, con
 	return make_float3(out, out, out);
 }
 
-ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
@@ -552,7 +566,7 @@ ccl_device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, fl
 		float3 local_m;
 		float G1o;
 
-		local_m = microfacet_sample_stretched(local_I, alpha_x, alpha_y,
+		local_m = microfacet_sample_stretched(kg, local_I, alpha_x, alpha_y,
 			randu, randv, false, &G1o);
 
 		float3 m = X*local_m.x + Y*local_m.y + Z*local_m.z;
@@ -878,7 +892,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc
 	return make_float3(out, out, out);
 }
 
-ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg, const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
@@ -900,7 +914,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 N
 		float3 local_m;
 		float G1o;
 
-		local_m = microfacet_sample_stretched(local_I, alpha_x, alpha_x,
+		local_m = microfacet_sample_stretched(kg, local_I, alpha_x, alpha_x,
 			randu, randv, true, &G1o);
 
 		float3 m = X*local_m.x + Y*local_m.y + Z*local_m.z;

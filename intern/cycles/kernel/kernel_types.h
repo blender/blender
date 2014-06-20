@@ -44,6 +44,8 @@ CCL_NAMESPACE_BEGIN
 #define BB_TABLE_YPOWER			5.0f
 #define BB_TABLE_SPACING		2.0f
 
+#define BECKMANN_TABLE_SIZE		256
+
 #define TEX_NUM_FLOAT_IMAGES	5
 
 #define SHADER_NONE				(~0)
@@ -933,11 +935,11 @@ typedef struct KernelCurves {
 	float maximum_width;
 } KernelCurves;
 
-typedef struct KernelBlackbody {
-	int table_offset;
-	int pad1, pad2, pad3;
-} KernelBlackbody;
-
+typedef struct KernelTables {
+	int blackbody_offset;
+	int beckmann_offset;
+	int pad1, pad2;
+} KernelTables;
 
 typedef struct KernelData {
 	KernelCamera cam;
@@ -946,7 +948,7 @@ typedef struct KernelData {
 	KernelIntegrator integrator;
 	KernelBVH bvh;
 	KernelCurves curve;
-	KernelBlackbody blackbody;
+	KernelTables tables;
 } KernelData;
 
 CCL_NAMESPACE_END

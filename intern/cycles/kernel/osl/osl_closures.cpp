@@ -41,6 +41,8 @@
 #include "util_param.h"
 
 #include "kernel_types.h"
+#include "kernel_compat_cpu.h"
+#include "kernel_globals.h"
 #include "kernel_montecarlo.h"
 
 #include "closure/bsdf_util.h"

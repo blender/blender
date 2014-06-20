@@ -31,6 +31,95 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Beckmann sampling precomputed table, see bsdf_microfacet.h */
+
+/* 2D slope distribution (alpha = 1.0) */
+static float beckmann_table_P22(const float slope_x, const float slope_y)
+{
+	return expf(-(slope_x*slope_x + slope_y*slope_y));
+}
+
+/* maximal slope amplitude (range that contains 99.99% of the distribution) */
+static float beckmann_table_slope_max()
+{
+	return 6.0;
+}
+
+static void beckmann_table_rows(float *table, int row_from, int row_to)
+{
+	/* allocate temporary data */
+	const int DATA_TMP_SIZE = 512;
+	vector<double> slope_x(DATA_TMP_SIZE);
+	vector<double> CDF_P22_omega_i(DATA_TMP_SIZE);
+
+	/* loop over incident directions */
+	for(int index_theta = row_from; index_theta < row_to; index_theta++) {
+		/* incident vector */
+		const float cos_theta = index_theta / (BECKMANN_TABLE_SIZE - 1.0f);
+		const float sin_theta = safe_sqrtf(1.0f - cos_theta*cos_theta);
+
+		/* for a given incident vector
+		 * integrate P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
+		slope_x[0] = -beckmann_table_slope_max();
+		CDF_P22_omega_i[0] = 0;
+
+		for(int index_slope_x = 1; index_slope_x < DATA_TMP_SIZE; ++index_slope_x) {
+			/* slope_x */
+			slope_x[index_slope_x] = -beckmann_table_slope_max() + 2.0f * beckmann_table_slope_max() * index_slope_x/(DATA_TMP_SIZE - 1.0f);
+
+			/* dot product with incident vector */
+			float dot_product = fmaxf(0.0f, -slope_x[index_slope_x]*sin_theta + cos_theta);
+			/* marginalize P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
+			float P22_omega_i = 0.0f;
+
+			for(int j = 0; j < 100; ++j) {
+				float slope_y = -beckmann_table_slope_max() + 2.0f * beckmann_table_slope_max() * j * (1.0f/99.0f);
+				P22_omega_i += dot_product * beckmann_table_P22(slope_x[index_slope_x], slope_y);
+			}
+
+			/* CDF of P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
+			CDF_P22_omega_i[index_slope_x] = CDF_P22_omega_i[index_slope_x - 1] + P22_omega_i;
+		}
+
+		/* renormalize CDF_P22_omega_i */
+		for(int index_slope_x = 1; index_slope_x < DATA_TMP_SIZE; ++index_slope_x)
+			CDF_P22_omega_i[index_slope_x] /= CDF_P22_omega_i[DATA_TMP_SIZE - 1];
+
+		/* loop over random number U1 */
+		int index_slope_x = 0;
+
+		for(int index_U = 0; index_U < BECKMANN_TABLE_SIZE; ++index_U) {
+			const float U = 0.0000001f + 0.9999998f * index_U / (float)(BECKMANN_TABLE_SIZE - 1);
+
+			/* inverse CDF_P22_omega_i, solve Eq.(11) */
+			while(CDF_P22_omega_i[index_slope_x] <= U)
+				++index_slope_x;
+
+			const double interp =
+				(CDF_P22_omega_i[index_slope_x] - U) /
+				(CDF_P22_omega_i[index_slope_x] - CDF_P22_omega_i[index_slope_x - 1]);
+
+			/* store value */
+			table[index_U + index_theta*BECKMANN_TABLE_SIZE] = (float)(
+				interp * slope_x[index_slope_x - 1]
+				+ (1.0f-interp) * slope_x[index_slope_x]);
+		}
+	}
+}
+
+static void beckmann_table_build(vector<float>& table)
+{
+	table.resize(BECKMANN_TABLE_SIZE*BECKMANN_TABLE_SIZE);
+
+	/* multithreaded build */
+	TaskPool pool;
+
+	for(int i = 0; i < BECKMANN_TABLE_SIZE; i+=8)
+		pool.push(function_bind(&beckmann_table_rows, &table[0], i, i+8));
+
+	pool.wait_work();
+}
+
 /* Shader */
 
 Shader::Shader()
@@ -138,6 +227,7 @@ ShaderManager::ShaderManager()
 {
 	need_update = true;
 	blackbody_table_offset = TABLE_OFFSET_INVALID;
+	beckmann_table_offset = TABLE_OFFSET_INVALID;
 }
 
 ShaderManager::~ShaderManager()
@@ -282,17 +372,26 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	device->tex_alloc("__shader_flag", dscene->shader_flag);
 
 	/* blackbody lookup table */
-	KernelBlackbody *kblackbody = &dscene->data.blackbody;
+	KernelTables *ktables = &dscene->data.tables;
 	
 	if(has_converter_blackbody && blackbody_table_offset == TABLE_OFFSET_INVALID) {
 		vector<float> table = blackbody_table();
 		blackbody_table_offset = scene->lookup_tables->add_table(dscene, table);
 		
-		kblackbody->table_offset = (int)blackbody_table_offset;
+		ktables->blackbody_offset = (int)blackbody_table_offset;
 	}
 	else if(!has_converter_blackbody && blackbody_table_offset != TABLE_OFFSET_INVALID) {
 		scene->lookup_tables->remove_table(blackbody_table_offset);
 		blackbody_table_offset = TABLE_OFFSET_INVALID;
+	}
+
+	/* beckmann lookup table */
+	if(beckmann_table_offset == TABLE_OFFSET_INVALID) {
+		vector<float> table;
+		beckmann_table_build(table);
+		beckmann_table_offset = scene->lookup_tables->add_table(dscene, table);
+		
+		ktables->beckmann_offset = (int)beckmann_table_offset;
 	}
 
 	/* integrator */
@@ -306,6 +405,11 @@ void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scen
 	if(blackbody_table_offset != TABLE_OFFSET_INVALID) {
 		scene->lookup_tables->remove_table(blackbody_table_offset);
 		blackbody_table_offset = TABLE_OFFSET_INVALID;
+	}
+
+	if(beckmann_table_offset != TABLE_OFFSET_INVALID) {
+		scene->lookup_tables->remove_table(beckmann_table_offset);
+		beckmann_table_offset = TABLE_OFFSET_INVALID;
 	}
 
 	device->tex_free(dscene->shader_flag);

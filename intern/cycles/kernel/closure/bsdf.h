@@ -85,13 +85,13 @@ ccl_device int bsdf_sample(KernelGlobals *kg, const ShaderData *sd, const Shader
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-			label = bsdf_microfacet_ggx_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+			label = bsdf_microfacet_ggx_sample(kg, sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-			label = bsdf_microfacet_beckmann_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+			label = bsdf_microfacet_beckmann_sample(kg, sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #ifdef __ANISOTROPIC__

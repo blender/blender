@@ -55,7 +55,7 @@ ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *sta
 		just one (the OSL-lerp is also automatically done for us by "lookup_table_read") */
 		float t = powf((temperature - BB_DRAPPER) * (1.0f / BB_TABLE_SPACING), (1.0f / BB_TABLE_XPOWER));
 
-		int blackbody_table_offset = kernel_data.blackbody.table_offset;
+		int blackbody_table_offset = kernel_data.tables.blackbody_offset;
 
 		/* Retrieve colors from the lookup table */
 		float lutval = t*lookuptablenormalize;
