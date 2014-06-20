@@ -1432,19 +1432,18 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 		float scale_x = (float) ar->winx / rres.rectx;
 		float scale_y = (float) ar->winy / rres.recty;
 
-		/* Dithering is not supported on GLSL yet */
-		force_fallback |= dither != 0.0f;
-
 		/* If user decided not to use GLSL, fallback to glaDrawPixelsAuto */
 		force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
 
 		/* Try using GLSL display transform. */
 		if (force_fallback == false) {
-			if (IMB_colormanagement_setup_glsl_draw(&scene->view_settings, &scene->display_settings, 0.0f, true)) {
+			if (IMB_colormanagement_setup_glsl_draw(&scene->view_settings, &scene->display_settings, dither, true)) {
 				glEnable(GL_BLEND);
 				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				glPixelZoom(scale_x, scale_y);
 				glaDrawPixelsTex(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_FLOAT,
 				                 GL_NEAREST, rres.rectf);
+				glPixelZoom(1.0f, 1.0f);
 				glDisable(GL_BLEND);
 
 				IMB_colormanagement_finish_glsl_draw();
