@@ -243,7 +243,9 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, interpolation, use_alpha);
+		slot = image_manager->add_image(filename, builtin_data,
+		                                animated, 0, is_float_bool, is_linear,
+		                                interpolation, use_alpha);
 		is_float = (int)is_float_bool;
 	}
 
@@ -313,7 +315,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 		else {
 			bool is_float_bool;
 			slot = image_manager->add_image(filename, builtin_data,
-			                                animated, is_float_bool, is_linear,
+			                                animated, 0, is_float_bool, is_linear,
 			                                interpolation, use_alpha);
 			is_float = (int)is_float_bool;
 		}
@@ -430,7 +432,9 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(slot == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, builtin_data, animated, is_float_bool, is_linear, INTERPOLATION_LINEAR, use_alpha);
+		slot = image_manager->add_image(filename, builtin_data,
+		                                animated, 0, is_float_bool, is_linear,
+		                                INTERPOLATION_LINEAR, use_alpha);
 		is_float = (int)is_float_bool;
 	}
 
@@ -491,7 +495,7 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 		else {
 			bool is_float_bool;
 			slot = image_manager->add_image(filename, builtin_data,
-			                                animated, is_float_bool, is_linear,
+			                                animated, 0, is_float_bool, is_linear,
 			                                INTERPOLATION_LINEAR, use_alpha);
 			is_float = (int)is_float_bool;
 		}
