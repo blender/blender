@@ -88,6 +88,9 @@
 
 #include "GPU_buffers.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
@@ -4801,6 +4804,7 @@ void sculpt_dynamic_topology_disable(bContext *C,
 	sculpt_update_after_dynamic_topology_toggle(C);
 }
 
+
 static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_active_object(C);
@@ -4821,15 +4825,50 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	return OPERATOR_FINISHED;
 }
 
+
+static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, bool vdata, bool modifiers)
+{
+	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Warning!"), ICON_ERROR);
+	uiLayout *layout = uiPupMenuLayout(pup);
+
+	if (vdata) {
+		const char *msg_error = TIP_("Vertex Data Detected!");
+		const char *msg = TIP_("Dyntopo will not preserve vertex colors, UVs, or other customdata");
+		uiItemL(layout, msg_error, ICON_INFO);
+		uiItemL(layout, msg, ICON_NONE);
+		uiItemS(layout);
+	}
+
+	if (modifiers) {
+		const char *msg_error = TIP_("Generative Modifiers Detected!");
+		const char *msg = TIP_("Keeping the modifiers will increase polycount when returning to object mode");
+
+		uiItemL(layout, msg_error, ICON_INFO);
+		uiItemL(layout, msg, ICON_NONE);
+		uiItemS(layout);
+	}
+
+	uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0);
+
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+
 static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = ob->data;
 	SculptSession *ss = ob->sculpt;
-	const char *msg = TIP_("Dynamic-topology sculpting will not preserve vertex colors, UVs, or other customdata");
 
 	if (!ss->bm) {
+		Scene *scene = CTX_data_scene(C);
+		ModifierData *md;
+		VirtualModifierData virtualModifierData;
 		int i;
+		bool vdata = false;
+		bool modifiers = false;
 
 		for (i = 0; i < CD_NUMTYPES; i++) {
 			if (!ELEM7(i, CD_MVERT, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX) &&
@@ -4837,9 +4876,27 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, co
 			     CustomData_has_layer(&me->edata, i) ||
 			     CustomData_has_layer(&me->fdata, i)))
 			{
-				/* The mesh has customdata that will be lost, let the user confirm this is OK */
-				return WM_operator_confirm_message(C, op, msg);
+				vdata = true;
+				break;
 			}
+		}
+
+		md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+
+		/* exception for shape keys because we can edit those */
+		for (; md; md = md->next) {
+			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+			if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
+
+			if (mti->type == eModifierTypeType_Constructive) {
+				modifiers = true;
+				break;
+			}
+		}
+
+		if (vdata || modifiers) {
+			/* The mesh has customdata that will be lost, let the user confirm this is OK */
+			return dyntopo_warning_popup(C, op->type, vdata, modifiers);
 		}
 	}
 
