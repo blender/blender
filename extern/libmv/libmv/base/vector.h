@@ -101,8 +101,6 @@ class vector {
     size_ = size;
   }
 
-
-
   void push_back(const T &value) {
     if (size_ == capacity_) {
       reserve(size_ ? 2 * size_ : 1);
@@ -128,6 +126,10 @@ class vector {
       data_ = data;
       capacity_ = size;
     }
+  }
+
+  bool empty() {
+    return size_ == 0;
   }
 
  private:

@@ -1,3 +1,18 @@
+libmv/autotrack/autotrack.cc
+libmv/autotrack/autotrack.h
+libmv/autotrack/callbacks.h
+libmv/autotrack/frame_accessor.h
+libmv/autotrack/marker.h
+libmv/autotrack/model.h
+libmv/autotrack/predict_tracks.cc
+libmv/autotrack/predict_tracks.h
+libmv/autotrack/predict_tracks_test.cc
+libmv/autotrack/quad.h
+libmv/autotrack/reconstruction.h
+libmv/autotrack/region.h
+libmv/autotrack/tracks.cc
+libmv/autotrack/tracks.h
+libmv/autotrack/tracks_test.cc
 libmv/base/aligned_malloc.cc
 libmv/base/aligned_malloc.h
 libmv/base/id_generator.h
@@ -104,6 +119,7 @@ libmv/tracking/brute_region_tracker.h
 libmv/tracking/brute_region_tracker_test.cc
 libmv/tracking/hybrid_region_tracker.cc
 libmv/tracking/hybrid_region_tracker.h
+libmv/tracking/kalman_filter.h
 libmv/tracking/klt_region_tracker.cc
 libmv/tracking/klt_region_tracker.h
 libmv/tracking/klt_region_tracker_test.cc

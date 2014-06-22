@@ -69,54 +69,50 @@ double GRIC(const Vec &e, int d, int k, int r) {
   // http://www.robots.ox.ac.uk/~vgg/publications/papers/torr99.ps.gz
   double lambda3 = 2.0;
 
-  // measurement error of tracker
+  // Variance of tracker position. Physically, this is typically about 0.1px,
+  // and when squared becomes 0.01 px^2.
   double sigma2 = 0.01;
 
-  // Actual GRIC computation
-  double gric_result = 0.0;
-
+  // Finally, calculate the GRIC score.
+  double gric = 0.0;
   for (int i = 0; i < n; i++) {
-    double rho = std::min(e(i) * e(i) / sigma2, lambda3 * (r - d));
-    gric_result += rho;
+    gric += std::min(e(i) * e(i) / sigma2, lambda3 * (r - d));
   }
-
-  gric_result += lambda1 * d * n;
-  gric_result += lambda2 * k;
-
-  return gric_result;
+  gric += lambda1 * d * n;
+  gric += lambda2 * k;
+  return gric;
 }
 
-// Compute a generalized inverse using eigen value decomposition.
-// It'll actually also zero 7 last eigen values to deal with
-// gauges, since this function is used to compute variance of
+// Compute a generalized inverse using eigen value decomposition, clamping the
+// smallest eigenvalues if requested. This is needed to compute the variance of
 // reconstructed 3D points.
 //
-// TODO(sergey): Could be generalized by making it so number
-//               of values to be zeroed is passed by an argument
-//               and moved to numeric module.
-Mat pseudoInverse(const Mat &matrix) {
-  Eigen::EigenSolver<Mat> eigenSolver(matrix);
-  Mat D = eigenSolver.pseudoEigenvalueMatrix();
-  Mat V = eigenSolver.pseudoEigenvectors();
+// TODO(keir): Consider moving this into the numeric code, since this is not
+// related to keyframe selection.
+Mat PseudoInverseWithClampedEigenvalues(const Mat &matrix,
+                                        int num_eigenvalues_to_clamp) {
+  Eigen::EigenSolver<Mat> eigen_solver(matrix);
+  Mat D = eigen_solver.pseudoEigenvalueMatrix();
+  Mat V = eigen_solver.pseudoEigenvectors();
 
+  // Clamp too-small singular values to zero to prevent numeric blowup.
   double epsilon = std::numeric_limits<double>::epsilon();
-
   for (int i = 0; i < D.cols(); ++i) {
-    if (D(i, i) > epsilon)
+    if (D(i, i) > epsilon) {
       D(i, i) = 1.0 / D(i, i);
-    else
+    } else {
       D(i, i) = 0.0;
+    }
   }
 
-  // Zero last 7 (which corresponds to smallest eigen values).
-  // 7 equals to the number of gauge freedoms.
-  for (int i = D.cols() - 7; i < D.cols(); ++i)
+  // Apply the clamp.
+  for (int i = D.cols() - num_eigenvalues_to_clamp; i < D.cols(); ++i) {
     D(i, i) = 0.0;
-
+  }
   return V * D * V.inverse();
 }
 
-void filterZeroWeightMarkersFromTracks(const Tracks &tracks,
+void FilterZeroWeightMarkersFromTracks(const Tracks &tracks,
                                        Tracks *filtered_tracks) {
   vector<Marker> all_markers = tracks.AllMarkers();
 
@@ -143,7 +139,7 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &_tracks,
   // http://www.cs.ait.ac.th/~mdailey/papers/Tahir-KeyFrame.pdf
 
   Tracks filtered_tracks;
-  filterZeroWeightMarkersFromTracks(_tracks, &filtered_tracks);
+  FilterZeroWeightMarkersFromTracks(_tracks, &filtered_tracks);
 
   int max_image = filtered_tracks.MaxImage();
   int next_keyframe = 1;
@@ -224,9 +220,9 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &_tracks,
 
       EstimateFundamentalOptions estimate_fundamental_options;
       EstimateFundamentalFromCorrespondences(x1,
-                                        x2,
-                                        estimate_fundamental_options,
-                                        &F);
+                                             x2,
+                                             estimate_fundamental_options,
+                                             &F);
 
       // Convert fundamental to original pixel space.
       F = N_inverse * F * N;
@@ -379,7 +375,8 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks &_tracks,
       Mat &jacobian = evaluation.jacobian;
 
       Mat JT_J = jacobian.transpose() * jacobian;
-      Mat JT_J_inv = pseudoInverse(JT_J);
+      // There are 7 degrees of freedom, so clamp them out.
+      Mat JT_J_inv = PseudoInverseWithClampedEigenvalues(JT_J, 7);
 
       Mat temp_derived = JT_J * JT_J_inv * JT_J;
       bool is_inversed = (temp_derived - JT_J).cwiseAbs2().sum() <

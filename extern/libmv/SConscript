@@ -6,7 +6,6 @@
 
 import sys
 import os
-from FindSharedPtr import FindSharedPtr
 
 Import('env')
 
@@ -29,6 +28,7 @@ if env['WITH_BF_LIBMV']:
 
     src = env.Glob('intern/*.cc')
     src.remove('intern' + os.sep + 'stub.cc')
+    src += env.Glob('libmv/autotrack/*.cc')
     src += env.Glob('libmv/base/*.cc')
     src += env.Glob('libmv/image/*.cc')
     src += env.Glob('libmv/multiview/*.cc')

@@ -42,7 +42,13 @@ struct TrackRegionOptions {
   };
   Mode mode;
 
+  // Minimum normalized cross-correlation necessary between the final tracked
+  // positoin of the patch on the destination image and the reference patch
+  // needed to declare tracking success. If the minimum correlation is not met,
+  // then TrackResult::termination is INSUFFICIENT_CORRELATION.
   double minimum_correlation;
+
+  // Maximum number of Ceres iterations to run for the inner minimization.
   int max_iterations;
 
   // Use the "Efficient Second-order Minimization" scheme. This increases
@@ -123,6 +129,11 @@ struct TrackRegionResult {
     CONFIGURATION_ERROR,
   };
   Termination termination;
+
+  bool is_usable() {
+    return termination == CONVERGENCE ||
+           termination == NO_CONVERGENCE;
+  }
 
   int num_iterations;
   double correlation;

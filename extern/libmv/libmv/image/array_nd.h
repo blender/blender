@@ -41,33 +41,35 @@ class ArrayND : public BaseArray {
   typedef Tuple<int, N> Index;
 
   /// Create an empty array.
-  ArrayND() : data_(NULL), own_data(true) { Resize(Index(0)); }
+  ArrayND() : data_(NULL), own_data_(true) { Resize(Index(0)); }
 
   /// Create an array with the specified shape.
-  ArrayND(const Index &shape) : data_(NULL), own_data(true) { Resize(shape); }
+  ArrayND(const Index &shape) : data_(NULL), own_data_(true) { Resize(shape); }
 
   /// Create an array with the specified shape.
-  ArrayND(int *shape) : data_(NULL), own_data(true) { Resize(shape); }
+  ArrayND(int *shape) : data_(NULL), own_data_(true) { Resize(shape); }
 
   /// Copy constructor.
-  ArrayND(const ArrayND<T, N> &b) : data_(NULL), own_data(true) {
+  ArrayND(const ArrayND<T, N> &b) : data_(NULL), own_data_(true) {
     ResizeLike(b);
     std::memcpy(Data(), b.Data(), sizeof(T) * Size());
   }
 
-  ArrayND(int s0) : data_(NULL), own_data(true) { Resize(s0); }
-  ArrayND(int s0, int s1) : data_(NULL), own_data(true) { Resize(s0, s1); }
-  ArrayND(int s0, int s1, int s2) : data_(NULL), own_data(true) {
+  ArrayND(int s0) : data_(NULL), own_data_(true) { Resize(s0); }
+  ArrayND(int s0, int s1) : data_(NULL), own_data_(true) { Resize(s0, s1); }
+  ArrayND(int s0, int s1, int s2) : data_(NULL), own_data_(true) {
      Resize(s0, s1, s2);
   }
 
-  ArrayND(T* data, int s0, int s1, int s2) : data_(data), own_data(false) {
+  ArrayND(T* data, int s0, int s1, int s2) : data_(data), own_data_(false) {
     Resize(s0, s1, s2);
   }
 
   /// Destructor deletes pixel data.
   ~ArrayND() {
-    delete [] data_;
+    if (own_data_) {
+      delete [] data_;
+    }
   }
 
   /// Assignation copies pixel data.
@@ -97,7 +99,7 @@ class ArrayND : public BaseArray {
     for (int i = N - 1; i > 0; --i) {
       strides_(i - 1) = strides_(i) * shape_(i);
     }
-    if (own_data) {
+    if (own_data_) {
       delete [] data_;
       data_ = NULL;
       if (Size() > 0) {
@@ -336,7 +338,7 @@ class ArrayND : public BaseArray {
   T *data_;
 
   /// Flag if this Array either own or reference the data
-  bool own_data;
+  bool own_data_;
 };
 
 /// 3D array (row, column, channel).

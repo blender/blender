@@ -1,3 +1,365 @@
+commit d976e034cdf74b34860e0632d7b29713f47c5756
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat Aug 23 00:38:01 2014 -0700
+
+    Minor keyframe selection cleanups
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D757
+
+commit bc99ca55dadfca89fde0f93764397c2fe028943d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Aug 23 01:55:32 2014 +0600
+
+    implement backward prediction
+    
+    The title actually says it all, just extend current implementation
+    of PredictMarkerPosition() to cases when tracking happens in the reverse
+    order (from the end frame to start).
+    
+    it's still doesn't solve all the ambiguity happening in the function
+    in cases when one tracks the feature and then re-tracks it in order
+    to refine the sliding. This is considered a separate TODO for now and
+    will likely be solved by passing tracking direction to the prediction
+    function.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D663
+
+commit 5b87682d98df65ade02638bc6482d824cf0dd0b3
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Aug 21 22:45:22 2014 -0700
+
+    Make libmv compile on Ubuntu 14.04
+    
+    Reviewers: fsiddi
+    
+    Reviewed By: fsiddi
+    
+    Subscribers: sergey
+    
+    Differential Revision: https://developer.blender.org/D755
+
+commit 0a81db623c458e0384b4f7060d1bcff8993fb469
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Jul 23 00:42:00 2014 +0600
+
+    Fix wrong residual blocks counter
+    
+    This happened in cases when having zero-weighted tracks
+    and could lead to some assert failures on marking parameter
+    block constant.
+
+commit 2824dbac54cacf74828678be7a5c9fd960ce83e2
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Jul 18 12:52:03 2014 +0600
+
+    Fix search area sliding issue
+    
+    The only way to do this is to store search region in floats
+    and round when we need to sample it. Otherwise you'll always
+    have sliding effect caused by rounding the issues, especially
+    when doing incremental offset (thing which happens in the
+    prediction code).
+    
+    Pretty much straightforward change apart from stuff to be kept
+    in mind: offset calculation int should happen relative to the
+    rounded search region. This is because tracker works in the space
+    of the search window image which get's rounded on the frame access,
+    
+    This makes API a bit creepy because frame accessor uses the same
+    Region struct as the search window in Marker and ideally we would
+    need to have either IntRegion or Region<int> in order to make
+    Libmv fully track on what's getting rounded and when.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D616
+
+commit 04862c479332308be47a0f27361402444ace8880
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 9 23:00:03 2014 +0200
+
+    Start the automatic 2D tracking code
+    
+    This starts the 2D automatic tracking code. It is totally unfinished.
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D523
+
+commit be679f67d807a2139c1f7d7e2ca45141940b30d5
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 9 14:36:04 2014 +0200
+
+    Also shift the search window
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D520
+
+commit 66b8f5eef2633ebcde32a388fc14c60171011821
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 9 13:06:28 2014 +0200
+
+    Change the search region to absolute frame coordinates
+    
+    Smarter Eigen usage
+    
+    Better error logging
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D519
+
+commit a08193319ae409fad8f08887eae1f79f02e91eaa
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 9 12:02:47 2014 +0200
+
+    First cut at predictive tracing
+    
+    This adds a Kalman filter-based approach to predict where a marker
+    will go in the next frame to track. Hopefully this will make the
+    tracker work faster by avoiding lengthy searches. This code
+    compiles, but is otherwise untested, and likely does not work.
+    
+    Fix else branch
+    
+    Add some tests
+    
+    Update patch coordinates as well (and test)
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D518
+
+commit 607ffb2f62b56e34a841abbb952d83e19cd1e23c
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 8 16:05:28 2014 +0200
+
+    Add constructor to AutoTrack
+
+commit c39e20a0c27da3733804c3848454b5d4c4f0e66b
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 8 16:04:20 2014 +0200
+
+    Fix GetMarker compilation issue
+
+commit 8dd93e431b6e44439c803bfd26ec2669b656177e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 8 15:50:26 2014 +0200
+
+    Expose GetMarker() in AutoTrack
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D516
+
+commit 4405dff60ea08d454b64da1a7c0595d9328cf8a3
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 8 15:38:14 2014 +0200
+
+    Add public SetMarkers to AutoTrack
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D515
+
+commit c90837f6db276a3b1f610eaad509155f6a43b24f
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 8 15:17:48 2014 +0200
+
+    Make autotrack skeleton compile
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D514
+
+commit be01baa2e82e36f63e548f073157e68d2ff870c0
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed May 7 18:48:55 2014 +0200
+
+    Add preliminary TrackMarkerToFrame in autotrack
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D509
+
+commit 0cab028d591b3d08672ca86eb6c6e4ac1aacf1d0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 7 17:59:11 2014 +0200
+
+    Remove assert from ArrayND Resize
+    
+    That assert broke initialization of arrays which doesn't
+    own the data since constructor uses Resize to set shape
+    and strides.
+    
+    Strides are still to be fixed, but that's for later.
+
+commit 64f9c118029a9351e9023e96527c120e1d724d5b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 7 17:42:21 2014 +0200
+
+    Fix ArrayND freeing the data it doesn't own
+    
+    Can't really guarantee it works fully correct now,
+    but at least this check is needed anyway and compilation
+    works just fine.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D508
+
+commit 0618f1c8e88dfc738cdde55784da80b889905e7c
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed May 7 12:03:32 2014 +0200
+
+    Minor changes
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D505
+
+commit 5c34335e1bb90c4ed701ee830c718ed4e20dbffa
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 7 11:12:23 2014 +0200
+
+    Fix compilation error in frame accessor
+    
+    - int64 is not a standard type, we've got int64_t defined in
+      std int. We also have an msvc port of this header, so should
+      not be an issue.
+    
+    - Fixed inconsistency in usage of CacheKey and Key, used Key.
+    
+    - Some functions weren't marked as virtual.
+    
+    Additional change: added self to authors.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D504
+
+commit 06bc207614e262cd688e2c3ed820ade7c77bdb66
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 6 22:30:59 2014 +0200
+
+    Start new Tracks implementation
+    
+    This adds the new Tracks implementation, as well as a
+    trivial test to show it compiles.
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D502
+
+commit 25ce061e6da69881460ba7718bb0d660a2380a02
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 6 19:10:51 2014 +0200
+
+    Add Reconstruction class for new API
+    
+    This starts the new Reconstruction class (with support for e.g. planes). This
+    also starts the new namespace "mv" which will eventually have all the symbols
+    we wish to export.
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D501
+
+commit 0a6af3e29016048978aea607673340500e050339
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 6 17:52:53 2014 +0200
+
+    Add a new Tracks implementation
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D500
+
+commit 887b68d29c2b198f4939f9ab5153881aa2c1806e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 6 17:01:39 2014 +0200
+
+    Initial commit of unfinished AutoTrack API
+    
+    This starts the creating the new AutoTrack API. The new API will
+    make it possible for libmv to do full autotracking, including
+    predictive tracking and also support multiple motion models (3D
+    planes etc).
+    
+    The first goal (not in this patch) is to convert Blender to use
+    the new API without adding any new functionality.
+    
+    Note: This does not add any of the API to the build system!
+    It likely does not compile.
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D499
+
+commit 08cc227d431d257d27f300fbb8e6991e663302da
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue May 6 13:09:22 2014 +0200
+
+    Fix homography test failure
+    
+    It was caused by assuming that reconstructed homography matrix
+    should look exactly the same as the matrix used to generate a
+    test case.
+    
+    It's not actually valid assumption because different-looking
+    matrices could correspond to the same exact transform.
+    
+    In this change we make it so actual "re-projected" vectors
+    are being checked, not the values in matrix. This makes it
+    more predictable verification.
+    
+    Reviewers: keir
+    
+    Reviewed By: keir
+    
+    Differential Revision: https://developer.blender.org/D488
+
 commit 0b7d83dc9627447dc7df64d7e3a468aefe9ddc13
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed Apr 23 19:14:55 2014 +0600
@@ -338,342 +700,3 @@ Date:   Thu Feb 13 23:55:03 2014 +0600
     
     Actually we're to switch to external Ceres rather than
     bundled one, would make life much easier actually.
-
-commit b1381540305d69c702eb2f051bd543fb5c1c3e2c
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Feb 6 18:01:58 2014 +0600
-
-    Made FAST detector optional
-    
-    This way it's possible to bundle Libmv sources subset
-    to applications which doesn't need FAST detector.
-    
-    Mainly this is done for Blender integration.
-
-commit da4607f010bca0b3532cd4444afbb10bc774fc32
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Jan 28 18:32:39 2014 +0600
-
-    Implemented scoped_array and use it in detector
-    
-    scoped_array is pretty much the same as scoped_ptr
-    with the only difference that it'll free memory using
-    delete[] operator.
-    
-    It also gives some additional API functions to access
-    array elements.
-    
-    Currently it only used to manage images denoted as byte
-    arrays in detector.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D266
-
-commit cd7eb3eff2e69ce5e08570ead83ae6d35ee48857
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Jan 28 17:23:47 2014 +0600
-
-    Improvements to weighted tracks behavior
-    
-    First thing changed by this commit is making it so
-    Euclidean intersection takes track weight into account
-    when solving minimization problem. This behaves the
-    same exact way as it is for BA step.
-    
-    Second thing is related on how average reprojection error
-    is being calculated. It didn't take track weight into
-    account which could confuse users. Now average reprojection
-    error will give the same result as intersection/BA uses
-    during minimization which gives much more predictable
-    behavior.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    CC: sebastian_k
-    
-    Differential Revision: https://developer.blender.org/D265
-
-commit 6559b36dc14369175bfa0830323146acd3426483
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Jan 28 16:39:14 2014 +0600
-
-    Fixes for keyframe selection
-    
-    Using tracks with constant zero weight used to crash
-    keyframe selection since it was trying to use missing
-    parameter blocks for Jacobian evaluation,
-    
-    Also fixed possible issues with wrong camera block being
-    marked as variable. This could technically happen when
-    having zero weighted tracks. Made it so all camera blocks
-    are marked as variable for now.
-
-commit 557d531b061aa69d114e89cbb325c5175389afec
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Jan 28 16:10:33 2014 +0600
-
-    Style cleanup: wrong indentation of wrapped line
-
-commit ca15262cf07a873268173965ee1fb84f9729b744
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Jan 28 15:21:36 2014 +0600
-
-    Rework detector API and implement Harris detector
-    
-    Switch the detector API to a single function which accepts
-    a float image and detector options. This makes usage of
-    feature detection more unified across different algorithms.
-    
-    Options structure is pretty much straightforward and contains
-    detector to be used and all the detector-specific settings.
-    
-    Also implemented Harris feature detection algorithm which
-    is not as fast as FAST one but is expected to detect more
-    robust feature points.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D258
-
-commit 6458915f64fceba108c5279b7320ca8c76e8a742
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Jan 24 19:14:18 2014 +0600
-
-    Add arcanist configuration file
-
-commit 0a69fadadc5aacbd339f839ac5bd12c3571278b1
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Jan 9 15:50:11 2014 +0600
-
-    Fix compilation error on NetBSD
-    
-    - NetBSD doesn't provide sincos(3) in libm, so don't try to use it
-    - Use posix_memalign on NetBSD
-    
-    Original patch is by Jeorg Sonnenberger to Blender patch tracker, thanks!
-
-commit b0df3e291e6c85f791658be04334efafc41989f5
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Jan 2 15:12:18 2014 +0600
-
-    Fix build configuration warnings
-    
-    Those warnings were mainly caused by installation
-    configuration of Ceres. Made some tweaks to make
-    CMake happy for now.
-    
-    But for sure bigger cleanup here is needed.
-
-commit b68de6acd20f3ffab92e0cd450198a700cd109ab
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Jan 2 15:04:05 2014 +0600
-
-    Code and style cleanup
-    
-    Mainly fixed some style warnings reported by cpplint.
-    
-    Also changed how camera (un)distortion happens internally
-    by replacing number of channels as a template argument
-    with number as channels passing as function argument.
-    Makes code easier to follow by eliminating loads checks
-    how much channels are used and which argument to pass to
-    the template.
-
-commit b9e467e7c077b58199c4110f6967b7c18d1e7bf7
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 20:34:39 2013 +0600
-
-    Update Ceres to the latest upstream
-    
-    This brings up much easier termination type usage,
-    which for us means we might use:
-    
-      ceres::Summary::IsSolutionUsable()
-    
-    instead of doing manual funky enum values check.
-
-commit 3aeb2367e50b52ca2b9d59d4f0f0b4bbfd6a05e8
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 20:43:24 2013 +0600
-
-    Update gtest to latest version 1.7.0
-    
-    Also reshuffled CMakeLists in order to avoid
-    conflicts happening between gflags bundled to
-    Ceres and third_party.
-
-commit 30aaa9cd0b4a4eb0948a17824e7e7622d8ebcb41
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 20:10:06 2013 +0600
-
-    Changes for VC2013
-    
-    Solves compilation error when using msvc2013
-    
-    Original patch is by Alexandr Kuznetsov to blender.git
-
-commit b204c0d25065a2b149de256929ff37d8f00f45bb
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Dec 31 20:05:58 2013 +0600
-
-    Eagerly attempt to refine a track before doing a brute search
-    
-    Before the refinement phase of tracking, a brute force SAD search
-    is run across the search area. This works well but is slow;
-    especially if the guess for the track's location is accurate.
-    
-    This patch runs a refinement phase before running a brute force
-    search, hoping that the guessed position (in x2, y2) is close to
-    the best answer. If it is, then no brute search is done. If it is
-    not, then a normal brute force search followed by refinement is
-    done.
-    
-    In some cases this may produce worse tracks than before; the
-    regressions will need investigation. The predictive motion model
-    (to be implemented) will reduce the probability of that happening.
-
-commit 5361513f0328ff94b53125d29129561bb03132e8
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Dec 31 20:04:46 2013 +0600
-
-    Fix bug where libmv tracking incorrectly succeeds on failure
-    
-    Before this patch, if Ceres returned USER_SUCCESS indicating that
-    Ceres was only changing the tracked quad slightly between
-    iterations (indicating convergence), no final correlation check
-    was done. This leads to incorrectly returning that the tracking
-    was successful, when it actually failed.
-
-commit ba9e63eed09e33a48bbcb081058f45ac16f8738e
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 20:00:46 2013 +0600
-
-    Implementation of weighted tracks
-    
-    Added a weight field to Track structure which means
-    how much affect this track will have on the final
-    reconstruction.
-    
-    Currently it affects on BA step only which in most
-    cases will work just fine. However, it worth looking
-    into weight support for intersection/resection.
-
-commit 4600df8b685ca8c4daa22d6c3b0125fd42c3bc67
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 19:30:14 2013 +0600
-
-    Code cleanup: move function prototype to header file
-
-commit 0ce5b6efde774b3f042acf9e42c95674548f1c01
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 19:26:48 2013 +0600
-
-    Get rid of Allow Fallback option for euclidean resection
-    
-    It was rather confusing from the user usage point of view
-    and didn't get so much improvement after new bundle adjuster
-    was added.
-    
-    In the future we might want to switch resection to PPnP algorithm,
-    which could also might be a nice alternative to fallback option.
-
-commit 5d063426f4809000c27f38ed798e4224bbd09a6d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 19:24:05 2013 +0600
-
-    Use explicit declaration of int types sign
-    
-    Mainly needs to make blender happy with this custom
-    header which used to run into conflict with other int
-    types headers.
-    
-    Wouldn't harm being more explicit here anyway.
-
-commit c5be59dee94f94de369006c544080282cfb245cc
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Dec 31 14:50:00 2013 +0600
-
-    Implement refinement of estimated homography/fundamental matrices
-    
-    It was only possible to perform algebraic estimation, which didn't
-    give so much accurate results.
-    
-    Implemented a way to perform algebraic estimation followed with
-    refinement step using Ceres minimizer.
-    
-    The code was actually mostly already there since keyframe selection
-    patch. Made such estimation a generic function in multiview/ and
-    hanged API for estimation in order to pass all additional options via
-    an options structure (the same way as it's done fr Ceres).
-    
-    Most of the options are straight-forward to understand,but some
-    deserves more description here:
-    
-    * expected_average_symmetric_distance is used as an early output check
-      and as soon as average symmetric error goes below this threshold
-      refining finishes.
-    
-      This distance is measured in the same units as input points are.
-    
-      It is arguable whether we need callback for this or not, but seems
-      Ceres doesn't have some kind of absolute threshold for function value
-      and function_tolerance behaves different from logic behind expected
-      symmetric error.
-    
-    * There' an option to normalize correspondences before estimating the
-      homography in order to increase estimation stability. See
-    
-        R. Hartley and A. Zisserman. Multiple View Geometry in Computer
-        Vision. Cambridge University Press, second edition, 2003.
-    
-        https://www.cs.ubc.ca/grads/resources/thesis/May09/Dubrofsky_Elan.pdf
-
-commit 1cdad972c4a9005e78891524cbd6d65600ca7e99
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Sep 25 16:12:29 2013 +0600
-
-    Code cleanup: Minor function capitalization fix
-    
-    Original patch by Joseph Mansfield to the Blender repository.
-
-commit 434316d084e8a41fd452f03610d7244d664948dc
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Sep 25 16:07:43 2013 +0600
-
-    Code cleanup: spelling correction
-    
-    Original patch by Joseph Mansfield to the Blender repository.
-
-commit 5cfe8465ac70407c0959c53bcd5206657a1322a2
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Sep 25 16:02:48 2013 +0600
-
-    Fix for uninitialized covariance matrix
-    
-    Lead to unpredictable tracking termination criteria.
-
-commit fd86b77d413489649a989f075b061714ed9a72fc
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Sep 25 16:01:19 2013 +0600
-
-    Add Procrustes PNP ("PPnP") resection algorithm to libmv
-    
-    This adds a new Euclidean resection method, used to create the
-    initial reconstruction in the motion tracker, to libmv. The method
-    is based on the Procrustes PNP algorithm (aka "PPnP"). Currently
-    the algorithm is not connected with the motion tracker, but it
-    will be eventually since it supports initialization.
-    
-    Having an initial guess when doing resection is important for
-    ambiguous cases where potentially the user could offer extra
-    guidance to the solver, in the form of "this point is in front of
-    that point".
-    
-    Original patch by Keir Mierle made to Blender repository.
