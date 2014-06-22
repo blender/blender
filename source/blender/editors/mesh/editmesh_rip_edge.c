@@ -162,7 +162,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 				/* pass */
 			}
 			/* selection not 0 or 1, do nothing */
-			else  {
+			else {
 				goto found_edge;
 			}
 #endif

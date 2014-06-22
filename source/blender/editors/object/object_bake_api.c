@@ -756,7 +756,8 @@ static int bake(
 		/* populate the pixel arrays with the corresponding face data for each high poly object */
 		if (!RE_bake_pixels_populate_from_objects(
 		            me_low, pixel_array_low, highpoly, tot_highpoly, num_pixels, ob_cage != NULL,
-		            cage_extrusion, ob_low->obmat, (ob_cage ? ob_cage->obmat : ob_low->obmat), me_cage)) {
+		            cage_extrusion, ob_low->obmat, (ob_cage ? ob_cage->obmat : ob_low->obmat), me_cage))
+		{
 			BKE_report(reports, RPT_ERROR, "Error handling selected objects");
 			goto cage_cleanup;
 		}
