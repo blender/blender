@@ -66,19 +66,22 @@ if(WITH_LIBMV)
 
 	list(APPEND INC_SYS
 		../Eigen3
-		${PNG_INCLUDE_DIR}
+		${PNG_INCLUDE_DIRS}
 		${ZLIB_INCLUDE_DIRS}
 	)
 
 	list(APPEND SRC
+		intern/autotrack.cc
 		intern/camera_intrinsics.cc
 		intern/detector.cc
+		intern/frame_accessor.cc
 		intern/homography.cc
 		intern/image.cc
 		intern/logging.cc
 		intern/reconstruction.cc
 		intern/track_region.cc
 		intern/tracks.cc
+		intern/tracksN.cc
 		libmv/autotrack/autotrack.cc
 		libmv/autotrack/predict_tracks.cc
 		libmv/autotrack/tracks.cc
@@ -117,14 +120,17 @@ if(WITH_LIBMV)
 		libmv/tracking/trklt_region_tracker.cc
 
 
+		intern/autotrack.h
 		intern/camera_intrinsics.h
 		intern/detector.h
+		intern/frame_accessor.h
 		intern/homography.h
 		intern/image.h
 		intern/logging.h
 		intern/reconstruction.h
 		intern/track_region.h
 		intern/tracks.h
+		intern/tracksN.h
 		libmv/autotrack/autotrack.h
 		libmv/autotrack/callbacks.h
 		libmv/autotrack/frame_accessor.h
@@ -245,7 +251,7 @@ if(WITH_LIBMV)
 	endif()
 else()
 	list(APPEND SRC
-		libmv-capi_stub.cc
+		intern/stub.cc
 	)
 endif()
 

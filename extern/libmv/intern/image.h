@@ -64,7 +64,7 @@ typedef struct libmv_FloatImage {
   int channels;
 } libmv_FloatImage;
 
-void libmv_floatImaheDestroy(libmv_FloatImage *image);
+void libmv_floatImageDestroy(libmv_FloatImage *image);
 
 void libmv_samplePlanarPatchFloat(const float* image,
                                   int width,

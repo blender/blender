@@ -34,7 +34,7 @@
 using libmv::FloatImage;
 using libmv::SamplePlanarPatch;
 
-void libmv_floatImaheDestroy(libmv_FloatImage *image) {
+void libmv_floatImageDestroy(libmv_FloatImage *image) {
   delete [] image->buffer;
 }
 

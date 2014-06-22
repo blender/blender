@@ -97,6 +97,10 @@ void libmv_samplePlanarPatchByte(const unsigned char * /*image*/,
   /* TODO(sergey): implement */
 }
 
+void libmv_floatImageDestroy(libmv_FloatImage* /*image*/)
+{
+}
+
 /* ************ Tracks ************ */
 
 libmv_Tracks *libmv_tracksNew(void) {
@@ -328,3 +332,68 @@ void libmv_homography2DFromCorrespondencesEuc(/* const */ double (*x1)[2],
   H[1][1] = 1.0f;
   H[2][2] = 1.0f;
 }
+
+/* ************ autotrack ************ */
+
+libmv_AutoTrack* libmv_autoTrackNew(libmv_FrameAccessor* /*frame_accessor*/)
+{
+  return NULL;
+}
+
+void libmv_autoTrackDestroy(libmv_AutoTrack* /*libmv_autotrack*/)
+{
+}
+
+void libmv_autoTrackSetOptions(libmv_AutoTrack* /*libmv_autotrack*/,
+                               const libmv_AutoTrackOptions* /*options*/)
+{
+}
+
+int libmv_autoTrackMarker(libmv_AutoTrack* /*libmv_autotrack*/,
+                          const libmv_TrackRegionOptions* /*libmv_options*/,
+                          libmv_Marker */*libmv_tracker_marker*/,
+                          libmv_TrackRegionResult* /*libmv_result*/)
+{
+  return 0;
+}
+
+void libmv_autoTrackAddMarker(libmv_AutoTrack* /*libmv_autotrack*/,
+                              const libmv_Marker* /*libmv_marker*/)
+{
+}
+
+int libmv_autoTrackGetMarker(libmv_AutoTrack* /*libmv_autotrack*/,
+                             int /*clip*/,
+                             int /*frame*/,
+                             int /*track*/,
+                             libmv_Marker* /*libmv_marker*/)
+{
+  return 0;
+}
+
+/* ************ frame accessor ************ */
+
+libmv_FrameAccessor* libmv_FrameAccessorNew(
+    libmv_FrameAccessorUserData* /*user_data**/,
+    libmv_GetImageCallback /*get_image_callback*/,
+    libmv_ReleaseImageCallback /*release_image_callback*/)
+{
+  return NULL;
+}
+
+void libmv_FrameAccessorDestroy(libmv_FrameAccessor* /*frame_accessor*/)
+{
+}
+
+int64_t libmv_frameAccessorgetTransformKey(
+    const libmv_FrameTransform */*transform*/)
+{
+  return 0;
+}
+
+void libmv_frameAccessorgetTransformRun(const libmv_FrameTransform* /*transform*/,
+                                        const libmv_FloatImage* /*input_image*/,
+                                        libmv_FloatImage* /*output_image*/)
+{
+}
+
