@@ -212,13 +212,20 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 
 	for (v = BMO_iter_new(&siter, op->slots_in, "verts", BM_VERT); v; v = BMO_iter_step(&siter)) {
 		dupev = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
+		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
+
 		if (has_vskin)
 			bm_extrude_disable_skin_root(bm, v);
 
-		e = BM_edge_create(bm, v, dupev, NULL, BM_CREATE_NOP);
+		/* not essentuial, but ensures face normals from extruded edges are contiguous */
+		if (BM_vert_is_wire_endpoint(v)) {
+			if (v->e->v1 == v) {
+				SWAP(BMVert *, v, dupev);
+			}
+		}
 
+		e = BM_edge_create(bm, v, dupev, NULL, BM_CREATE_NOP);
 		BMO_elem_flag_enable(bm, e, EXT_KEEP);
-		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
 	}
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, EXT_KEEP);
