@@ -217,7 +217,7 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 		if (has_vskin)
 			bm_extrude_disable_skin_root(bm, v);
 
-		/* not essentuial, but ensures face normals from extruded edges are contiguous */
+		/* not essential, but ensures face normals from extruded edges are contiguous */
 		if (BM_vert_is_wire_endpoint(v)) {
 			if (v->e->v1 == v) {
 				SWAP(BMVert *, v, dupev);
@@ -415,7 +415,15 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	/* link isolated vert */
 	for (v = BMO_iter_new(&siter, dupeop.slots_out, "isovert_map.out", 0); v; v = BMO_iter_step(&siter)) {
 		BMVert *v2 = BMO_iter_map_value_ptr(&siter);
-		BM_edge_create(bm, v, v2, v->e, BM_CREATE_NO_DOUBLE);
+
+		/* not essential, but ensures face normals from extruded edges are contiguous */
+		if (BM_vert_is_wire_endpoint(v)) {
+			if (v->e->v1 == v) {
+				SWAP(BMVert *, v, v2);
+			}
+		}
+
+		BM_edge_create(bm, v, v2, NULL, BM_CREATE_NO_DOUBLE);
 	}
 
 	/* cleanup */

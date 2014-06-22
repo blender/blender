@@ -693,7 +693,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Duplicate or Extrude at 3D Cursor";
+	ot->name = "Duplicate or Extrude to Cursor";
 	ot->idname = "MESH_OT_dupli_extrude_cursor";
 	ot->description = "Duplicate and extrude selected vertices, edges or faces towards the mouse cursor";
 	
