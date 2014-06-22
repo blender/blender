@@ -1003,7 +1003,7 @@ static int image_cmp_frame(void *a, void *b)
  * \brief Return the start (offset) and the length of the sequence of continuous frames in the list of frames
  * \param frames [in] the list of frame numbers, as a side-effect the list is sorted
  * \param ofs [out] offest, the first frame number in the sequence
- * \return the number of continuos frames in the sequence
+ * \return the number of contiguous frames in the sequence
  */
 static int image_sequence_get_len(ListBase *frames, int *ofs)
 {
