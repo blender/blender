@@ -197,19 +197,6 @@ static void escape_uri_string(const char *string, char *escaped_string, int esca
 	*q = '\0';
 }
 
-static void to_hex_char(char *hexbytes, const unsigned char *bytes, int len)
-{
-	const unsigned char *p;
-	char *q;
-
-	for (q = hexbytes, p = bytes; len; p++) {
-		const unsigned char c = (unsigned char) *p;
-		len--;
-		*q++ = hex[c >> 4];
-		*q++ = hex[c & 15];
-	}
-}
-
 /** ----- end of adapted code from glib --- */
 
 static int uri_from_filename(const char *path, char *uri)
