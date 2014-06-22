@@ -210,15 +210,17 @@ void BKE_tracking_disable_channels(struct ImBuf *ibuf, bool disable_red, bool di
                                    bool disable_blue, bool grayscale);
 
 /* **** 2D tracking **** */
-struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user,
-                                                      const bool backwards, const bool sequence);
-void BKE_tracking_context_free(struct MovieTrackingContext *context);
-void BKE_tracking_context_sync(struct MovieTrackingContext *context);
-void BKE_tracking_context_sync_user(const struct MovieTrackingContext *context, struct MovieClipUser *user);
-bool BKE_tracking_context_step(struct MovieTrackingContext *context);
-void BKE_tracking_context_finish(struct MovieTrackingContext *context);
-
 void BKE_tracking_refine_marker(struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, bool backwards);
+
+/* *** 2D auto track  *** */
+
+struct AutoTrackContext *BKE_autotrack_context_new(struct MovieClip *clip, struct MovieClipUser *user,
+                                                   const bool backwards, const bool sequence);
+bool BKE_autotrack_context_step(struct AutoTrackContext *context);
+void BKE_autotrack_context_sync(struct AutoTrackContext *context);
+void BKE_autotrack_context_sync_user(struct AutoTrackContext *context, struct MovieClipUser *user);
+void BKE_autotrack_context_finish(struct AutoTrackContext *context);
+void BKE_autotrack_context_free(struct AutoTrackContext *context);
 
 /* **** Plane tracking **** */
 

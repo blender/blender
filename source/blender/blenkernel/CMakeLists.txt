@@ -158,6 +158,7 @@ set(SRC
 	intern/text.c
 	intern/texture.c
 	intern/tracking.c
+	intern/tracking_auto.c
 	intern/tracking_detect.c
 	intern/tracking_plane_tracker.c
 	intern/tracking_region_tracker.c

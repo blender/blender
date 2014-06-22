@@ -67,21 +67,12 @@ int libmv_autoTrackMarker(libmv_AutoTrack* libmv_autotrack,
   libmv_apiMarkerToMarker(*libmv_tracked_marker, &tracked_marker);
   libmv_configureTrackRegionOptions(*libmv_options,
                                     &options);
-
-  bool tracking_result
-    = ((AutoTrack*) libmv_autotrack)->TrackMarker(&tracked_marker,
-                                                  &result,
-                                                  &options);
+  (((AutoTrack*) libmv_autotrack)->TrackMarker(&tracked_marker,
+                                               &result,
+                                               &options));
   libmv_markerToApiMarker(tracked_marker, libmv_tracked_marker);
   libmv_regionTrackergetResult(result, libmv_result);
-
-  // TODO(keir): Update the termination string with failure details.
-  if (result.termination == TrackRegionResult::CONVERGENCE ||
-      result.termination == TrackRegionResult::NO_CONVERGENCE) {
-    tracking_result = true;
-  }
-
-  return tracking_result;
+  return result.is_usable();
 }
 
 void libmv_autoTrackAddMarker(libmv_AutoTrack* libmv_autotrack,

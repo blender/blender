@@ -95,4 +95,32 @@ void tracking_cameraIntrinscisOptionsFromTracking(struct MovieTracking *tracking
 void tracking_trackingCameraFromIntrinscisOptions(struct MovieTracking *tracking,
                                                   const struct libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
 
+struct libmv_TrackRegionOptions;
+
+void tracking_configure_tracker(const MovieTrackingTrack *track, float *mask,
+                                struct libmv_TrackRegionOptions *options);
+
+struct MovieTrackingMarker *tracking_get_keyframed_marker(
+	struct MovieTrackingTrack *track,
+	int current_frame,
+	bool backwards);
+
+/*********************** Frame accessr *************************/
+
+struct libmv_FrameAccessor;
+
+#define MAX_ACCESSOR_CLIP 64
+typedef struct TrackingImageAccessor {
+	struct MovieCache *cache;
+	struct MovieClip *clips[MAX_ACCESSOR_CLIP];
+	int num_clips;
+	int start_frame;
+	struct libmv_FrameAccessor *libmv_accessor;
+} TrackingImageAccessor;
+
+TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR_CLIP],
+                                                   int num_clips,
+                                                   int start_frame);
+void tracking_image_accessor_destroy(TrackingImageAccessor *accessor);
+
 #endif  /* __TRACKING_PRIVATE_H__ */

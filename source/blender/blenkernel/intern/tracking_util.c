@@ -47,7 +47,12 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_movieclip.h"
 #include "BKE_tracking.h"
+
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+#include "IMB_moviecache.h"
 
 #include "tracking_private.h"
 
@@ -390,8 +395,7 @@ void tracking_marker_insert_disabled(MovieTrackingTrack *track, const MovieTrack
 }
 
 
-/* Fill in Libmv C-API camera intrinsics options from tracking structure.
- */
+/* Fill in Libmv C-API camera intrinsics options from tracking structure. */
 void tracking_cameraIntrinscisOptionsFromTracking(MovieTracking *tracking,
                                                   int calibration_width, int calibration_height,
                                                   libmv_CameraIntrinsicsOptions *camera_intrinsics_options)
@@ -452,4 +456,440 @@ void tracking_trackingCameraFromIntrinscisOptions(MovieTracking *tracking,
 		default:
 			BLI_assert(!"Unknown distortion model");
 	}
+}
+
+/* Get previous keyframed marker. */
+MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
+                                                   int current_frame,
+                                                   bool backwards)
+{
+	MovieTrackingMarker *marker_keyed = NULL;
+	MovieTrackingMarker *marker_keyed_fallback = NULL;
+	int a = BKE_tracking_marker_get(track, current_frame) - track->markers;
+
+	while (a >= 0 && a < track->markersnr) {
+		int next = backwards ? a + 1 : a - 1;
+		bool is_keyframed = false;
+		MovieTrackingMarker *cur_marker = &track->markers[a];
+		MovieTrackingMarker *next_marker = NULL;
+
+		if (next >= 0 && next < track->markersnr)
+			next_marker = &track->markers[next];
+
+		if ((cur_marker->flag & MARKER_DISABLED) == 0) {
+			/* If it'll happen so we didn't find a real keyframe marker,
+			 * fallback to the first marker in current tracked segment
+			 * as a keyframe.
+			 */
+			if (next_marker && next_marker->flag & MARKER_DISABLED) {
+				if (marker_keyed_fallback == NULL)
+					marker_keyed_fallback = cur_marker;
+			}
+
+			is_keyframed |= (cur_marker->flag & MARKER_TRACKED) == 0;
+		}
+
+		if (is_keyframed) {
+			marker_keyed = cur_marker;
+
+			break;
+		}
+
+		a = next;
+	}
+
+	if (marker_keyed == NULL)
+		marker_keyed = marker_keyed_fallback;
+
+	return marker_keyed;
+}
+
+/*********************** Frame accessr *************************/
+
+typedef struct AccessCacheKey {
+	int clip_index;
+	int frame;
+	int downscale;
+	libmv_InputMode input_mode;
+	int64_t transform_key;
+} AccessCacheKey;
+
+static unsigned int accesscache_hashhash(const void *key_v)
+{
+	const AccessCacheKey *key = (const AccessCacheKey *) key_v;
+	/* TODP(sergey): Need better hasing here for faster frame access. */
+	return key->clip_index << 16 | key->frame;
+}
+
+static bool accesscache_hashcmp(const void *a_v, const void *b_v)
+{
+	const AccessCacheKey *a = (const AccessCacheKey *) a_v;
+	const AccessCacheKey *b = (const AccessCacheKey *) b_v;
+
+#define COMPARE_FIELD(field)
+	{ \
+		if (a->clip_index != b->clip_index) { \
+			return false; \
+		} \
+	} (void) 0
+
+	COMPARE_FIELD(clip_index);
+	COMPARE_FIELD(frame);
+	COMPARE_FIELD(downscale);
+	COMPARE_FIELD(input_mode);
+	COMPARE_FIELD(transform_key);
+
+#undef COMPARE_FIELD
+
+	return true;
+}
+
+static void accesscache_put(TrackingImageAccessor *accessor,
+                            int clip_index,
+                            int frame,
+                            libmv_InputMode input_mode,
+                            int downscale,
+                            int64_t transform_key,
+                            ImBuf *ibuf)
+{
+	AccessCacheKey key;
+	key.clip_index = clip_index;
+	key.frame = frame;
+	key.input_mode = input_mode;
+	key.downscale = downscale;
+	key.transform_key = transform_key;
+	IMB_moviecache_put(accessor->cache, &key, ibuf);
+}
+
+static ImBuf *accesscache_get(TrackingImageAccessor *accessor,
+                              int clip_index,
+                              int frame,
+                              libmv_InputMode input_mode,
+                              int downscale,
+                              int64_t transform_key)
+{
+	AccessCacheKey key;
+	key.clip_index = clip_index;
+	key.frame = frame;
+	key.input_mode = input_mode;
+	key.downscale = downscale;
+	key.transform_key = transform_key;
+	return IMB_moviecache_get(accessor->cache, &key);
+}
+
+static ImBuf *accessor_get_preprocessed_ibuf(TrackingImageAccessor *accessor,
+                                             int clip_index,
+                                             int frame)
+{
+	MovieClip *clip;
+	MovieClipUser user;
+	ImBuf *ibuf;
+	int scene_frame;
+
+	BLI_assert(clip_index < accessor->num_clips);
+
+	clip = accessor->clips[clip_index];
+	scene_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, frame);
+	BKE_movieclip_user_set_frame(&user, scene_frame);
+	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
+	user.render_flag = 0;
+	ibuf = BKE_movieclip_get_ibuf(clip, &user);
+
+	return ibuf;
+}
+
+static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
+{
+	ImBuf *grayscale = IMB_allocImBuf(ibuf->x, ibuf->y, 32, 0);
+	size_t size;
+	int i;
+
+	BLI_assert(ibuf->channels == 3 || ibuf->channels == 4);
+
+	/* TODO(sergey): Bummer, currently IMB API only allows to create 4 channels
+	 * float buffer, so we do it manually here.
+	 *
+	 * Will generalize it later.
+	 */
+	size = (size_t)grayscale->x * (size_t)grayscale->y * sizeof(float);
+	grayscale->channels = 1;
+	if ((grayscale->rect_float = MEM_mapallocN(size, "tracking grayscale image"))) {
+		grayscale->mall |= IB_rectfloat;
+		grayscale->flags |= IB_rectfloat;
+	}
+
+	for (i = 0; i < grayscale->x * grayscale->y; ++i) {
+		const float *pixel = ibuf->rect_float + ibuf->channels * i;
+
+		grayscale->rect_float[i] = 0.2126f * pixel[0] +
+		                           0.7152f * pixel[1] +
+		                           0.0722f * pixel[2];
+	}
+
+	return grayscale;
+}
+
+static void ibuf_to_float_image(const ImBuf *ibuf, libmv_FloatImage *float_image)
+{
+	BLI_assert(ibuf->rect_float != NULL);
+	float_image->buffer = ibuf->rect_float;
+	float_image->width = ibuf->x;
+	float_image->height = ibuf->y;
+	float_image->channels = ibuf->channels;
+}
+
+static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
+{
+	ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
+	size_t size = (size_t)ibuf->x * (size_t)ibuf->y *
+	              float_image->channels * sizeof(float);
+	ibuf->channels = float_image->channels;
+	if ((ibuf->rect_float = MEM_mapallocN(size, "tracking grayscale image"))) {
+		ibuf->mall |= IB_rectfloat;
+		ibuf->flags |= IB_rectfloat;
+	}
+	memcpy(ibuf->rect_float, float_image->buffer, size);
+	return ibuf;
+}
+
+static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
+                                int clip_index,
+                                int frame,
+                                libmv_InputMode input_mode,
+                                int downscale,
+                                const libmv_Region *region,
+                                const libmv_FrameTransform *transform)
+{
+	ImBuf *ibuf, *orig_ibuf, *final_ibuf;
+	int64_t transform_key = 0;
+
+	if (transform != NULL) {
+		transform_key = libmv_frameAccessorgetTransformKey(transform);
+	}
+
+	/* First try to get fully processed image from the cache. */
+	ibuf = accesscache_get(accessor,
+	                       clip_index,
+	                       frame,
+	                       input_mode,
+	                       downscale,
+	                       transform_key);
+	if (ibuf != NULL) {
+		return ibuf;
+	}
+
+	/* And now we do postprocessing of the original frame. */
+	orig_ibuf = accessor_get_preprocessed_ibuf(accessor, clip_index, frame);
+
+	if (orig_ibuf == NULL) {
+		return NULL;
+	}
+
+	if (region != NULL) {
+		int width = region->max[0] - region->min[0],
+		    height = region->max[1] - region->min[1];
+
+		/* If the requested region goes outside of the actual frame we still
+		 * return the requested region size, but only fill it's partially with
+		 * the data we can.
+		 */
+		int clamped_origin_x = max_ii((int)region->min[0], 0),
+		    clamped_origin_y = max_ii((int)region->min[1], 0);
+		int dst_offset_x = clamped_origin_x - (int)region->min[0],
+		    dst_offset_y = clamped_origin_y - (int)region->min[1];
+		int clamped_width = width - dst_offset_x,
+		    clamped_height = height - dst_offset_y;
+		clamped_width = min_ii(clamped_width, orig_ibuf->x - clamped_origin_x);
+		clamped_height = min_ii(clamped_height, orig_ibuf->y - clamped_origin_y);
+
+		final_ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat);
+
+		if (orig_ibuf->rect_float != NULL) {
+			IMB_rectcpy(final_ibuf, orig_ibuf,
+			            dst_offset_x, dst_offset_y,
+			            clamped_origin_x, clamped_origin_y,
+			            clamped_width, clamped_height);
+		}
+		else {
+			int y;
+			/* TODO(sergey): We don't do any color space or alpha conversion
+			 * here. Probably Libmv is better to work in the linear space,
+			 * but keep sRGB space here for compatibility for now.
+			 */
+			for (y = 0; y < clamped_height; ++y) {
+				int x;
+				for (x = 0; x < clamped_width; ++x) {
+					int src_x = x + clamped_origin_x,
+					    src_y = y + clamped_origin_y;
+					int dst_x = x + dst_offset_x,
+					    dst_y = y + dst_offset_y;
+					int dst_index = (dst_y * width + dst_x) * 4,
+					    src_index = (src_y * orig_ibuf->x + src_x) * 4;
+					rgba_uchar_to_float(final_ibuf->rect_float + dst_index,
+					                    (unsigned char *)orig_ibuf->rect +
+					                                     src_index);
+				}
+			}
+		}
+	}
+	else {
+		/* Libmv only works with float images,
+		 *
+		 * This would likely make it so loads of float buffers are being stored
+		 * in the cache which is nice on the one hand (faster re-use of the
+		 * frames) but on the other hand it bumps the memory usage up.
+		 */
+		BLI_lock_thread(LOCK_MOVIECLIP);
+		IMB_float_from_rect(orig_ibuf);
+		BLI_unlock_thread(LOCK_MOVIECLIP);
+		final_ibuf = orig_ibuf;
+	}
+
+	if (downscale > 0) {
+		if (final_ibuf == orig_ibuf) {
+			final_ibuf = IMB_dupImBuf(orig_ibuf);
+		}
+		IMB_scaleImBuf(final_ibuf,
+		               ibuf->x / (1 << downscale),
+		               ibuf->y / (1 << downscale));
+	}
+
+	if (input_mode == LIBMV_IMAGE_MODE_RGBA) {
+		BLI_assert(ibuf->channels == 3 || ibuf->channels == 4);
+		/* pass */
+	}
+	else /* if (input_mode == LIBMV_IMAGE_MODE_MONO) */ {
+		ImBuf *grayscale_ibuf = make_grayscale_ibuf_copy(final_ibuf);
+		if (final_ibuf != orig_ibuf) {
+			/* We dereference original frame later. */
+			IMB_freeImBuf(final_ibuf);
+		}
+		final_ibuf = grayscale_ibuf;
+	}
+
+	if (transform != NULL) {
+		libmv_FloatImage input_image, output_image;
+		ibuf_to_float_image(final_ibuf, &input_image);
+		libmv_frameAccessorgetTransformRun(transform,
+		                                   &input_image,
+		                                   &output_image);
+		if (final_ibuf != orig_ibuf) {
+			IMB_freeImBuf(final_ibuf);
+		}
+		final_ibuf = float_image_to_ibuf(&output_image);
+		libmv_floatImageDestroy(&output_image);
+	}
+
+	/* it's possible processing stil didn't happen at this point,
+	 * but we really need a copy of the buffer to be transformed
+	 * and to be put to the cache.
+	 */
+	if (final_ibuf == orig_ibuf) {
+		final_ibuf = IMB_dupImBuf(orig_ibuf);
+	}
+
+	IMB_freeImBuf(orig_ibuf);
+
+	/* We put postprocessed frame to the cache always for now,
+	 * not the smartest thing in the world, but who cares at this point.
+	 */
+
+	/* TODO(sergey): Disable cache for now, because we don't store region
+	 * in the cache key and can't check whether cached version is usable for
+	 * us or not.
+	 *
+	 * Need to think better about what to cache and when.
+	 */
+	if (false) {
+		accesscache_put(accessor,
+		                clip_index,
+		                frame,
+		                input_mode,
+		                downscale,
+		                transform_key,
+		                final_ibuf);
+	}
+
+	return final_ibuf;
+}
+
+static libmv_CacheKey accessor_get_image_callback(
+		struct libmv_FrameAccessorUserData *user_data,
+		int clip_index,
+		int frame,
+		libmv_InputMode input_mode,
+		int downscale,
+		const libmv_Region *region,
+		const libmv_FrameTransform *transform,
+		float **destination,
+		int *width,
+		int *height,
+		int *channels)
+{
+	TrackingImageAccessor *accessor = (TrackingImageAccessor *) user_data;
+	ImBuf *ibuf;
+
+	BLI_assert(clip_index >= 0 && clip_index < accessor->num_clips);
+
+	ibuf = accessor_get_ibuf(accessor,
+	                         clip_index,
+	                         frame,
+	                         input_mode,
+	                         downscale,
+	                         region,
+	                         transform);
+
+	if (ibuf) {
+		*destination = ibuf->rect_float;
+		*width = ibuf->x;
+		*height = ibuf->y;
+		*channels = ibuf->channels;
+	}
+	else {
+		*destination = NULL;
+		*width = 0;
+		*height = 0;
+		*channels = 0;
+	}
+
+	return ibuf;
+}
+
+static void accessor_release_image_callback(libmv_CacheKey cache_key)
+{
+	ImBuf *ibuf = (ImBuf *) cache_key;
+	IMB_freeImBuf(ibuf);
+}
+
+TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR_CLIP],
+                                                   int num_clips,
+                                                   int start_frame)
+{
+	TrackingImageAccessor *accessor =
+		MEM_callocN(sizeof(TrackingImageAccessor), "tracking image accessor");
+
+	BLI_assert(num_clips <= MAX_ACCESSOR_CLIP);
+
+	accessor->cache = IMB_moviecache_create("frame access cache",
+	                                        sizeof(AccessCacheKey),
+	                                        accesscache_hashhash,
+	                                        accesscache_hashcmp);
+
+	memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip*));
+	accessor->num_clips = num_clips;
+	accessor->start_frame = start_frame;
+
+	accessor->libmv_accessor =
+		libmv_FrameAccessorNew((libmv_FrameAccessorUserData *) accessor,
+		                       accessor_get_image_callback,
+		                       accessor_release_image_callback);
+
+	return accessor;
+}
+
+void tracking_image_accessor_destroy(TrackingImageAccessor *accessor)
+{
+	IMB_moviecache_free(accessor->cache);
+	libmv_FrameAccessorDestroy(accessor->libmv_accessor);
+	MEM_freeN(accessor);
 }
