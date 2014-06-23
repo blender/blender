@@ -58,7 +58,7 @@ def get_version():
 def get_hash():
     try:
         build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
-    except:
+    except OSError:
         build_hash = None
         print("WARNING: could not use git to retrieve current Blender repository hash...")
     if build_hash == '' or build_hash == None:

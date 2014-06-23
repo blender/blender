@@ -414,7 +414,7 @@ def buildinfo(lenv, build_type):
     if os.path.isdir(os.path.abspath('.git')):
         try:
             build_commit_timestamp = subprocess.check_output(args=['git', 'log', '-1', '--format=%ct']).strip()
-        except:
+        except OSError:
             build_commit_timestamp = None
         if not build_commit_timestamp:
             # Git command not found
