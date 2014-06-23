@@ -41,7 +41,6 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
-#include BLI_SYSTEM_PID_H
 #include "BLI_threads.h"
 
 #include "BKE_image.h"
@@ -1030,14 +1029,13 @@ void render_result_exr_file_path(Scene *scene, const char *layname, int sample, 
 	
 	BLI_split_file_part(G.main->name, fi, sizeof(fi));
 	if (sample == 0) {
-		BLI_snprintf(name, sizeof(name), "%s_%s_%s_%d.exr", fi, scene->id.name + 2, layname, abs(getpid()));
+		BLI_snprintf(name, sizeof(name), "%s_%s_%s.exr", fi, scene->id.name + 2, layname);
 	}
 	else {
-		BLI_snprintf(name, sizeof(name), "%s_%s_%s%d_%d.exr", fi, scene->id.name + 2, layname, sample,
-		             abs(getpid()));
+		BLI_snprintf(name, sizeof(name), "%s_%s_%s%d.exr", fi, scene->id.name + 2, layname, sample);
 	}
 
-	BLI_make_file_string("/", filepath, BLI_temporary_dir(), name);
+	BLI_make_file_string("/", filepath, BLI_temp_dir_session(), name);
 }
 
 /* only for temp buffer files, makes exact copy of render result */

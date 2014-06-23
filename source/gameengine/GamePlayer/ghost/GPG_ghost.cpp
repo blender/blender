@@ -430,7 +430,7 @@ int main(int argc, char** argv)
 #endif /* __alpha__ */
 #endif /* __linux__ */
 	BLI_init_program_path(argv[0]);
-	BLI_init_temporary_dir(NULL);
+	BLI_temp_dir_init(NULL);
 	
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
@@ -1141,6 +1141,8 @@ int main(int argc, char** argv)
 		MEM_set_error_callback(mem_error_cb);
 		MEM_printmemlist();
 	}
+
+	BLI_temp_dir_session_purge();
 
 	return error ? -1 : 0;
 }

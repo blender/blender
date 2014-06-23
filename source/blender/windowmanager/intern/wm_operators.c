@@ -2587,7 +2587,7 @@ void WM_recover_last_session(bContext *C, ReportList *reports)
 {
 	char filepath[FILE_MAX];
 	
-	BLI_make_file_string("/", filepath, BLI_temporary_dir(), BLENDER_QUIT_FILE);
+	BLI_make_file_string("/", filepath, BLI_temp_dir_base(), BLENDER_QUIT_FILE);
 	/* if reports==NULL, it's called directly without operator, we add a quick check here */
 	if (reports || BLI_exists(filepath)) {
 		G.fileflags |= G_FILE_RECOVER;

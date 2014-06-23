@@ -405,7 +405,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 				/* save the undo state as quit.blend */
 				char filename[FILE_MAX];
 				
-				BLI_make_file_string("/", filename, BLI_temporary_dir(), BLENDER_QUIT_FILE);
+				BLI_make_file_string("/", filename, BLI_temp_dir_base(), BLENDER_QUIT_FILE);
 
 				if (BKE_undo_save_file(filename))
 					printf("Saved session recovery to '%s'\n", filename);
@@ -527,6 +527,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		MEM_printmemlist();
 	}
 	wm_autosave_delete();
+
+	BLI_temp_dir_session_purge();
 }
 
 void WM_exit(bContext *C)
