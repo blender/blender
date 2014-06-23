@@ -320,7 +320,7 @@ static bool delete_recursive(const char *dir)
 			/* Skip! */
 		}
 		else if (S_ISDIR(fl->type)) {
-			if (delete_recursive(fl->path) {
+			if (delete_recursive(fl->path)) {
 				err = true;
 			}
 		}
