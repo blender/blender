@@ -68,13 +68,13 @@ static void beckmann_table_rows(float *table, int row_from, int row_to)
 			slope_x[index_slope_x] = -beckmann_table_slope_max() + 2.0f * beckmann_table_slope_max() * index_slope_x/(DATA_TMP_SIZE - 1.0f);
 
 			/* dot product with incident vector */
-			float dot_product = fmaxf(0.0f, -slope_x[index_slope_x]*sin_theta + cos_theta);
+			float dot_product = fmaxf(0.0f, -(float)slope_x[index_slope_x]*sin_theta + cos_theta);
 			/* marginalize P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
 			float P22_omega_i = 0.0f;
 
 			for(int j = 0; j < 100; ++j) {
 				float slope_y = -beckmann_table_slope_max() + 2.0f * beckmann_table_slope_max() * j * (1.0f/99.0f);
-				P22_omega_i += dot_product * beckmann_table_P22(slope_x[index_slope_x], slope_y);
+				P22_omega_i += dot_product * beckmann_table_P22((float)slope_x[index_slope_x], slope_y);
 			}
 
 			/* CDF of P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
