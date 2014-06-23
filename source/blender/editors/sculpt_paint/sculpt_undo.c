@@ -62,7 +62,8 @@
 
 #include "GPU_buffers.h"
 
-#include "ED_sculpt.h"
+#include "ED_paint.h"
+
 #include "bmesh.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"

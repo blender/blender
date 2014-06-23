@@ -3750,7 +3750,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				if (ob->sculpt->partial_redraw) {
 					if (ar->do_draw & RGN_DRAW_PARTIAL) {
-						sculpt_get_redraw_planes(planes, ar, rv3d, ob);
+						ED_sculpt_redraw_planes_get(planes, ar, rv3d, ob);
 						fpl = planes;
 						ob->sculpt->partial_redraw = 0;
 					}
@@ -3848,7 +3848,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				if (ob->sculpt->partial_redraw) {
 					if (ar->do_draw & RGN_DRAW_PARTIAL) {
-						sculpt_get_redraw_planes(planes, ar, rv3d, ob);
+						ED_sculpt_redraw_planes_get(planes, ar, rv3d, ob);
 						fpl = planes;
 						ob->sculpt->partial_redraw = 0;
 					}

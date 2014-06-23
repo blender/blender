@@ -73,8 +73,8 @@
 
 #include "UI_view2d.h"
 
+#include "ED_paint.h"
 #include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 

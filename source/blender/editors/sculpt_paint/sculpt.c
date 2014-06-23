@@ -115,7 +115,7 @@ static int system_physical_thread_count(void)
 }
 #endif  /* __APPLE__ */
 
-void ED_sculpt_get_average_stroke(Object *ob, float stroke[3])
+void ED_sculpt_stroke_get_average(Object *ob, float stroke[3])
 {
 	if (ob->sculpt->last_stroke_valid && ob->sculpt->average_stroke_counter > 0) {
 		float fac = 1.0f / ob->sculpt->average_stroke_counter;
@@ -489,8 +489,8 @@ static bool sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	return 1;
 }
 
-void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
-                              RegionView3D *rv3d, Object *ob)
+void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *ar,
+                                 RegionView3D *rv3d, Object *ob)
 {
 	PBVH *pbvh = ob->sculpt->pbvh;
 	/* copy here, original will be used below */
@@ -4483,7 +4483,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 		/* update last stroke position */
 		ob->sculpt->last_stroke_valid = 1;
-		ED_sculpt_get_average_stroke(ob, ob->sculpt->last_stroke);
+		ED_sculpt_stroke_get_average(ob, ob->sculpt->last_stroke);
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;

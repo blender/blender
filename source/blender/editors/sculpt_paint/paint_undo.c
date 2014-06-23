@@ -38,7 +38,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 
-#include "ED_sculpt.h"
+#include "ED_paint.h"
 
 #include "paint_intern.h"
 

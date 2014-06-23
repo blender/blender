@@ -558,7 +558,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 		 */
 		if (ob->mode & OB_MODE_SCULPT) {
 			float stroke[3];
-			ED_sculpt_get_average_stroke(ob, stroke);
+			ED_sculpt_stroke_get_average(ob, stroke);
 			copy_v3_v3(lastofs, stroke);
 		}
 		else {

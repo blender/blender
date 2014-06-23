@@ -61,7 +61,7 @@
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "ED_sculpt.h"
+#include "ED_paint.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
 

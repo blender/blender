@@ -184,7 +184,7 @@ static void flip_plane(float out[4], const float in[4], const char symm)
 	out[3] = in[3];
 }
 
-int do_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, rcti *rect, bool select, bool UNUSED(extend))
+int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select, bool UNUSED(extend))
 {
 	Sculpt *sd = vc->scene->toolsettings->sculpt;
 	BoundBox bb;
