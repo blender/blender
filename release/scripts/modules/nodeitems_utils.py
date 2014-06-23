@@ -108,7 +108,7 @@ def register_node_categories(identifier, cat_list):
             "bl_space_type": 'NODE_EDITOR',
             "bl_region_type": 'TOOLS',
             "bl_label": cat.name,
-            "bl_options": {'DEFAULT_CLOSED'},
+            "bl_category": cat.name,
             "category": cat,
             "poll": cat.poll,
             "draw": draw_node_item,

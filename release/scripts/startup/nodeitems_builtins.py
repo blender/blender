@@ -50,9 +50,10 @@ class TextureNodeCategory(NodeCategory):
         return context.space_data.tree_type == 'TextureNodeTree'
 
 
-# menu entry for making a new group from selected nodes
-def group_make_draw(self, layout, context):
+# menu entry for node group tools
+def group_tools_draw(self, layout, context):
     layout.operator("node.group_make")
+    layout.operator("node.group_ungroup")
     layout.separator()
 
 # maps node tree type to group node type
@@ -72,7 +73,7 @@ def node_group_items(context):
     if not ntree:
         return
 
-    yield NodeItemCustom(draw=group_make_draw)
+    yield NodeItemCustom(draw=group_tools_draw)
 
     def contains_group(nodetree, group):
         if nodetree == group:
