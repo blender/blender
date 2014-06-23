@@ -315,22 +315,20 @@ static bool object_select_all_by_dup_group(bContext *C, Object *ob)
 
 static bool object_select_all_by_particle(bContext *C, Object *ob)
 {
+	ParticleSystem *psys_act = psys_get_current(ob);
 	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
 		if ((base->flag & SELECT) == 0) {
-			/* loop through other, then actives particles*/
+			/* loop through other particles*/
 			ParticleSystem *psys;
-			ParticleSystem *psys_act;
-
+			
 			for (psys = base->object->particlesystem.first; psys; psys = psys->next) {
-				for (psys_act = ob->particlesystem.first; psys_act; psys_act = psys_act->next) {
-					if (psys->part == psys_act->part) {
-						base->flag |= SELECT;
-						changed = true;
-						break;
-					}
+				if (psys->part == psys_act->part) {
+					base->flag |= SELECT;
+					changed = true;
+					break;
 				}
 
 				if (base->flag & SELECT) {
