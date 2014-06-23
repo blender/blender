@@ -60,6 +60,7 @@
 #include "RE_bake.h"
 
 #include "initrender.h"
+#include "renderpipeline.h"
 #include "render_types.h"
 #include "render_result.h"
 
@@ -575,6 +576,7 @@ int RE_engine_render(Render *re, int do_all)
 		}
 
 		BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene, lay);
+		render_update_anim_renderdata(re, &re->scene->r);
 	}
 
 	/* create render result */

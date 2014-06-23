@@ -730,7 +730,7 @@ void RE_ChangeResolution(Render *re, int winx, int winy, rcti *disprect)
 
 /* update some variables that can be animated, and otherwise wouldn't be due to
  * RenderData getting copied once at the start of animation render */
-static void render_update_anim_renderdata(Render *re, RenderData *rd)
+void render_update_anim_renderdata(Render *re, RenderData *rd)
 {
 	/* filter */
 	re->r.gauss = rd->gauss;
