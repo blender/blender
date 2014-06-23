@@ -733,7 +733,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	char darwin_ver[10];
 	size_t len = sizeof(darwin_ver);
 	sysctlbyname("kern.osrelease", &darwin_ver, &len, NULL, 0);
-	if(darwin_ver[0] == '1' && darwin_ver[1] <= '3') {
+	if(darwin_ver[0] == '1' && darwin_ver[1] >= '3') {
 		m_lionStyleFullScreen = true;
 	}
 	
