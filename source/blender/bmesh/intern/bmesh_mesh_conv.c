@@ -233,7 +233,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me,
 	BMEdge *e, **etable = NULL;
 	BMFace *f;
 	float (*keyco)[3] = NULL;
-	int totuv, i, j;
+	int totuv, totloops, i, j;
 
 	int cd_vert_bweight_offset;
 	int cd_edge_bweight_offset;
@@ -395,7 +395,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me,
 
 	mloop = me->mloop;
 	mp = me->mpoly;
-	for (i = 0; i < me->totpoly; i++, mp++) {
+	for (i = 0, totloops = 0; i < me->totpoly; i++, mp++) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
 
@@ -426,6 +426,9 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me,
 		j = mp->loopstart;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
+			/* don't use 'j' since we may have skipped some faces, hence some loops. */
+			BM_elem_index_set(l_iter, totloops++); /* set_ok */
+
 			/* Save index of correspsonding MLoop */
 			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, j++, &l_iter->head.data, true);
 		} while ((l_iter = l_iter->next) != l_first);
@@ -438,8 +441,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me,
 		}
 	}
 
-	bm->elem_index_dirty &= ~BM_FACE; /* added in order, clear dirty flag */
-	bm->elem_index_dirty |= BM_LOOP; /* did not set the loop indices */
+	bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP); /* added in order, clear dirty flag */
 
 	if (me->mselect && me->totselect != 0) {
 
