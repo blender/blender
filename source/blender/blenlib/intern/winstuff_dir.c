@@ -28,7 +28,7 @@
  * (opendir, readdir, closedir)
  */
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#ifdef WIN32
 
 /* standalone for inclusion in binaries other then blender */
 #  ifdef USE_STANDALONE
@@ -43,6 +43,13 @@
 #include "BLI_winstuff.h"
 #include "BLI_utildefines.h"
 #include "utfconv.h"
+
+/* Note: MinGW (FREE_WINDOWS) has opendir() and _wopendir(), and only the
+* latter accepts a path name of wchar_t type.  Rather than messing up with
+* extra #ifdef's here and there, Blender's own implementations of opendir()
+* and related functions are used to properly support paths with non-ASCII
+* characters. (kjym3)
+*/
 
 DIR *opendir(const char *path)
 {

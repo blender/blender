@@ -255,22 +255,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 					file->relname = dlink->name;
 					file->path = BLI_strdupcat(dirname, dlink->name);
 					BLI_join_dirfile(fullname, sizeof(fullname), dirname, dlink->name);
-// use 64 bit file size, only needed for WIN32 and WIN64. 
-// Excluding other than current MSVC compiler until able to test
-#ifdef WIN32
-					{
-						wchar_t *name_16 = alloc_utf16_from_8(fullname, 0);
-#if defined(_MSC_VER) && (_MSC_VER >= 1500)
-						_wstat64(name_16, &file->s);
-#elif defined(__MINGW32__)
-						_stati64(fullname, &file->s);
-#endif
-						free(name_16);
-					}
-
-#else
-					stat(fullname, &file->s);
-#endif
+					BLI_stat(fullname, &file->s);
 					file->type = file->s.st_mode;
 					file->flags = 0;
 					dir_ctx->nrfiles++;
@@ -473,11 +458,7 @@ size_t BLI_file_size(const char *path)
 int BLI_exists(const char *name)
 {
 #if defined(WIN32) 
-#ifndef __MINGW32__
-	struct _stat64 st;
-#else
-	struct _stati64 st;
-#endif
+	BLI_stat_t st;
 	wchar_t *tmp_16 = alloc_utf16_from_8(name, 1);
 	int len, res;
 	unsigned int old_error_mode;
@@ -506,11 +487,7 @@ int BLI_exists(const char *name)
 	 * when looking for a file on an empty CD/DVD drive */
 	old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
 
-#ifndef __MINGW32__
-	res = _wstat64(tmp_16, &st);
-#else
-	res = _wstati64(tmp_16, &st);
-#endif
+	res = BLI_wstat(tmp_16, &st);
 
 	SetErrorMode(old_error_mode);
 
@@ -530,15 +507,21 @@ int BLI_stat(const char *path, BLI_stat_t *buffer)
 	int r;
 	UTF16_ENCODE(path);
 
-	/* workaround error in MinGW64 headers, normally, a wstat should work */
-#ifndef __MINGW64__
-	r = _wstat64(path_16, buffer);
-#else
-	r = _wstati64(path_16, buffer);
-#endif
+	r = BLI_wstat(path_16, buffer);
 
 	UTF16_UN_ENCODE(path);
 	return r;
+}
+
+int BLI_wstat(const wchar_t *path, BLI_stat_t *buffer)
+{
+#if (defined(_MSC_VER) && (_MSC_VER >= 1500)) || defined(__MINGW64__)
+	return _wstat64(path, buffer);
+#elif defined(__MINGW32__)
+	return _wstati64(path, buffer);
+#else
+	return _wstat(path, buffer);
+#endif
 }
 #else
 int BLI_stat(const char *path, struct stat *buffer)

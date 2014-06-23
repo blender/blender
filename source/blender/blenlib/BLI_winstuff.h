@@ -125,10 +125,6 @@ typedef long ssize_t;
 #  endif
 #endif
 
-
-#ifdef FREE_WINDOWS
-#include <dirent.h>
-#else
 struct dirent {
 	int d_ino;
 	int d_off;
@@ -151,7 +147,6 @@ typedef struct _DIR {
 DIR *opendir(const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir(DIR *dp);
-#endif
 
 void RegisterBlendExtension(void);
 void get_default_root(char *root);

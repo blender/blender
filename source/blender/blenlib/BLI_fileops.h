@@ -60,17 +60,23 @@ int    BLI_delete(const char *path, bool dir, bool recursive);
 int    BLI_move(const char *path, const char *to);
 int    BLI_create_symlink(const char *path, const char *to);
 
+/* keep in sync with the definition of struct direntry in BLI_fileops_types.h */
 #ifdef WIN32
-#  ifndef __MINGW64__
+#  if (defined(_MSC_VER) && (_MSC_VER >= 1500)) || defined(__MINGW64__)
 typedef struct _stat64 BLI_stat_t;
+#  elif defined(__MINGW32__)
+typedef struct _stati64 BLI_stat_t;
 #  else
-typedef struct stat BLI_stat_t;
-#endif
+typedef struct _stat BLI_stat_t;
+#  endif
 #else
 typedef struct stat BLI_stat_t;
 #endif
 
 int    BLI_stat(const char *path, BLI_stat_t *buffer);
+#ifdef WIN32
+int    BLI_wstat(const wchar_t *path, BLI_stat_t *buffer);
+#endif
 
 /* Directories */
 

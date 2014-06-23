@@ -45,12 +45,16 @@ struct direntry {
 	mode_t  type;
 	char   *relname;
 	char   *path;
-#if (defined(WIN32) || defined(WIN64)) && !defined(__MINGW32__) && (_MSC_VER >= 1500)
+#ifdef WIN32 /* keep in sync with the definition of BLI_stat_t in BLI_fileops.h */
+#  if (defined(_MSC_VER) && (_MSC_VER >= 1500)) || defined(__MINGW64__)
 	struct _stat64 s;
-#elif defined(__MINGW32__)
+#  elif defined(__MINGW32__)
 	struct _stati64 s;
+#  else
+	struct _stat s;
+#  endif
 #else
-	struct  stat s;
+	struct stat s;
 #endif
 	unsigned int flags;
 	char    size[16];
