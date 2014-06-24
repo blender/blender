@@ -1777,7 +1777,7 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const bool do_id_user)
 		if (tntree == ntree)
 			break;
 	if (tntree == NULL) {
-		BKE_libblock_free_data(&ntree->id);
+		BKE_libblock_free_data(G.main, &ntree->id);
 	}
 }
 /* same as ntreeFreeTree_ex but always manage users */

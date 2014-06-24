@@ -2148,7 +2148,7 @@ Mesh *BKE_mesh_new_from_object(
 			 * if it didn't the curve did not have any segments or otherwise 
 			 * would have generated an empty mesh */
 			if (tmpobj->type != OB_MESH) {
-				BKE_libblock_free_us(G.main, tmpobj);
+				BKE_libblock_free_us(bmain, tmpobj);
 				return NULL;
 			}
 
