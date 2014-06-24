@@ -24,6 +24,8 @@ chaining iterators in Python
 """
 
 __all__ = (
+    "ChainPredicateIterator",
+    "ChainSilhouetteIterator",
     "pyChainSilhouetteIterator",
     "pyChainSilhouetteGenericIterator",
     "pyExternalContourChainingIterator",
