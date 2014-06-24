@@ -61,11 +61,6 @@ PyDoc_STRVAR(SVertex_doc,
 "   :arg id: An Id object.\n"
 "   :type id: :class:`Id`");
 
-static int convert_v3(PyObject *obj, void *v)
-{
-	return float_array_from_PyObject(obj, (float *)v, 3);
-}
-
 static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist_1[] = {"brother", NULL};
@@ -283,8 +278,9 @@ static PyObject *SVertex_point_3d_get(BPy_SVertex *self, void *UNUSED(closure))
 static int SVertex_point_3d_set(BPy_SVertex *self, PyObject *value, void *UNUSED(closure))
 {
 	float v[3];
-	if (!float_array_from_PyObject(value, v, 3)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+	if (mathutils_array_parse(v, 3, 3, value,
+	                          "value must be a 3-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	Vec3r p(v[0], v[1], v[2]);
@@ -305,8 +301,9 @@ static PyObject *SVertex_point_2d_get(BPy_SVertex *self, void *UNUSED(closure))
 static int SVertex_point_2d_set(BPy_SVertex *self, PyObject *value, void *UNUSED(closure))
 {
 	float v[3];
-	if (!float_array_from_PyObject(value, v, 3)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+	if (mathutils_array_parse(v, 3, 3, value,
+	                          "value must be a 3-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	Vec3r p(v[0], v[1], v[2]);

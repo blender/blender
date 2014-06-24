@@ -525,8 +525,9 @@ static PyObject *StrokeAttribute_color_get(BPy_StrokeAttribute *self, void *UNUS
 static int StrokeAttribute_color_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
 {
 	float v[3];
-	if (!float_array_from_PyObject(value, v, 3)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+	if (mathutils_array_parse(v, 3, 3, value,
+	                          "value must be a 3-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	self->sa->setColor(v[0], v[1], v[2]);
@@ -549,8 +550,9 @@ static PyObject *StrokeAttribute_thickness_get(BPy_StrokeAttribute *self, void *
 static int StrokeAttribute_thickness_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
 {
 	float v[2];
-	if (!float_array_from_PyObject(value, v, 2)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 2-dimensional vector");
+	if (mathutils_array_parse(v, 2, 2, value,
+	                          "value must be a 2-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	self->sa->setThickness(v[0], v[1]);

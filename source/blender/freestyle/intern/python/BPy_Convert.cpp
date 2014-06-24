@@ -718,7 +718,7 @@ bool Vec3r_ptr_from_PyTuple(PyObject *obj, Vec3r &vec)
 	return true;
 }
 
-// helper for argument parsing
+// helpers for argument parsing
 
 bool float_array_from_PyObject(PyObject *obj, float *v, int n)
 {
@@ -744,6 +744,22 @@ bool float_array_from_PyObject(PyObject *obj, float *v, int n)
 	}
 	return 0;
 }
+
+int convert_v4(PyObject *obj, void *v)
+{
+	return mathutils_array_parse((float *)v, 4, 4, obj, "Error parsing 4D vector");
+}
+
+int convert_v3(PyObject *obj, void *v)
+{
+	return mathutils_array_parse((float *)v, 3, 3, obj, "Error parsing 3D vector");
+}
+
+int convert_v2(PyObject *obj, void *v)
+{
+	return mathutils_array_parse((float *)v, 2, 2, obj, "Error parsing 2D vector");
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

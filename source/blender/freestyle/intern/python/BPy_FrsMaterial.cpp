@@ -80,11 +80,6 @@ PyDoc_STRVAR(FrsMaterial_doc,
 "   :arg shininess: The shininess coefficient.\n"
 "   :type shininess: :class:float");
 
-static int convert_v4(PyObject *obj, void *v)
-{
-	return float_array_from_PyObject(obj, (float *)v, 4);
-}
-
 static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist_1[] = {"brother", NULL};
@@ -299,8 +294,9 @@ static PyObject *FrsMaterial_diffuse_get(BPy_FrsMaterial *self, void *UNUSED(clo
 static int FrsMaterial_diffuse_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!float_array_from_PyObject(value, color, 4)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+	if (mathutils_array_parse(color, 4, 4, value,
+	                          "value must be a 4-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	self->m->setDiffuse(color[0], color[1], color[2], color[3]);
@@ -320,8 +316,9 @@ static PyObject *FrsMaterial_specular_get(BPy_FrsMaterial *self, void *UNUSED(cl
 static int FrsMaterial_specular_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!float_array_from_PyObject(value, color, 4)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+	if (mathutils_array_parse(color, 4, 4, value,
+	                          "value must be a 4-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	self->m->setSpecular(color[0], color[1], color[2], color[3]);
@@ -341,8 +338,9 @@ static PyObject *FrsMaterial_ambient_get(BPy_FrsMaterial *self, void *UNUSED(clo
 static int FrsMaterial_ambient_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!float_array_from_PyObject(value, color, 4)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+	if (mathutils_array_parse(color, 4, 4, value,
+	                          "value must be a 4-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	self->m->setAmbient(color[0], color[1], color[2], color[3]);
@@ -362,8 +360,9 @@ static PyObject *FrsMaterial_emission_get(BPy_FrsMaterial *self, void *UNUSED(cl
 static int FrsMaterial_emission_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!float_array_from_PyObject(value, color, 4)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+	if (mathutils_array_parse(color, 4, 4, value,
+	                          "value must be a 4-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	self->m->setEmission(color[0], color[1], color[2], color[3]);

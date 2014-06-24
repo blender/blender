@@ -164,8 +164,9 @@ static PyObject *FEdgeSmooth_normal_get(BPy_FEdgeSmooth *self, void *UNUSED(clos
 static int FEdgeSmooth_normal_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
 {
 	float v[3];
-	if (!float_array_from_PyObject(value, v, 3)) {
-		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+	if (mathutils_array_parse(v, 3, 3, value,
+	                          "value must be a 3-dimensional vector") == -1)
+	{
 		return -1;
 	}
 	Vec3r p(v[0], v[1], v[2]);
