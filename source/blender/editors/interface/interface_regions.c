@@ -267,7 +267,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			glColor3fv(tip_colors[UI_TIP_LC_MAIN]);
 			uiStyleFontDraw(&fstyle_header, &bbox, data->header);
 
-			xofs += BLF_width(fstyle_header.uifont_id, data->header, sizeof(data->header));
+			xofs = BLF_width(fstyle_header.uifont_id, data->header, sizeof(data->header));
 			bbox.xmin += xofs;
 
 			glColor3fv(tip_colors[UI_TIP_LC_ACTIVE]);
