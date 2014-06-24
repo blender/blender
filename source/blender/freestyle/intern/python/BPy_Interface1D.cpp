@@ -113,7 +113,7 @@ static int Interface1D_init(BPy_Interface1D *self, PyObject *args, PyObject *kwd
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->if1D = new Interface1D();
-	self->borrowed = 0;
+	self->borrowed = false;
 	return 0;
 }
 
@@ -141,7 +141,7 @@ PyDoc_STRVAR(Interface1D_vertices_begin_doc,
 static PyObject * Interface1D_vertices_begin(BPy_Interface1D *self)
 {
 	Interface0DIterator if0D_it(self->if1D->verticesBegin());
-	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
+	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, false);
 }
 
 PyDoc_STRVAR(Interface1D_vertices_end_doc,
@@ -156,7 +156,7 @@ PyDoc_STRVAR(Interface1D_vertices_end_doc,
 static PyObject * Interface1D_vertices_end(BPy_Interface1D *self)
 {
 	Interface0DIterator if0D_it(self->if1D->verticesEnd());
-	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 1);
+	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, true);
 }
 
 PyDoc_STRVAR(Interface1D_points_begin_doc,
@@ -181,7 +181,7 @@ static PyObject * Interface1D_points_begin(BPy_Interface1D *self, PyObject *args
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
 		return NULL;
 	Interface0DIterator if0D_it(self->if1D->pointsBegin(f));
-	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
+	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, false);
 }
 
 PyDoc_STRVAR(Interface1D_points_end_doc,
@@ -206,7 +206,7 @@ static PyObject * Interface1D_points_end(BPy_Interface1D *self, PyObject *args, 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
 		return NULL;
 	Interface0DIterator if0D_it(self->if1D->pointsEnd(f));
-	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 1);
+	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, true);
 }
 
 static PyMethodDef BPy_Interface1D_methods[] = {

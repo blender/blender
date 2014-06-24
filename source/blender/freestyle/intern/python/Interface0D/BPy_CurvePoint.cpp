@@ -124,7 +124,7 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 		return -1;
 	}
 	self->py_if0D.if0D = self->cp;
-	self->py_if0D.borrowed = 0;
+	self->py_if0D.borrowed = false;
 	return 0;
 }
 

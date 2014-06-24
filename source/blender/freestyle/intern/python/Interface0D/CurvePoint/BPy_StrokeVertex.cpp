@@ -150,7 +150,7 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
 	}
 	self->py_cp.cp = self->sv;
 	self->py_cp.py_if0D.if0D = self->sv;
-	self->py_cp.py_if0D.borrowed = 0;
+	self->py_cp.py_if0D.borrowed = false;
 	return 0;
 }
 

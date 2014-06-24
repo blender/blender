@@ -101,7 +101,7 @@ static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-	self->borrowed = 0;
+	self->borrowed = false;
 	Py_XINCREF(self->py_ss);
 	return 0;
 }

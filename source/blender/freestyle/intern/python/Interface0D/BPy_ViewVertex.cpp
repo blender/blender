@@ -70,7 +70,7 @@ PyDoc_STRVAR(ViewVertex_edges_begin_doc,
 static PyObject *ViewVertex_edges_begin(BPy_ViewVertex *self)
 {
 	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesBegin());
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 0);
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, false);
 }
 
 PyDoc_STRVAR(ViewVertex_edges_end_doc,
@@ -113,7 +113,7 @@ static PyObject *ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args,
 		return NULL;
 	ViewEdge *ve = ((BPy_ViewEdge *)py_ve)->ve;
 	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesIterator(ve));
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 0);
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, false);
 }
 
 static PyMethodDef BPy_ViewVertex_methods[] = {

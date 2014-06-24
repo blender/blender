@@ -67,7 +67,7 @@ static int NonTVertex_init(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 		self->ntv = new NonTVertex(((BPy_SVertex *)obj)->sv);
 	self->py_vv.vv = self->ntv;
 	self->py_vv.py_if0D.if0D = self->ntv;
-	self->py_vv.py_if0D.borrowed = 0;
+	self->py_vv.py_if0D.borrowed = false;
 	return 0;
 }
 

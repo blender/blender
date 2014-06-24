@@ -90,7 +90,7 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 		return -1;
 	}
 	self->py_if0D.if0D = self->sv;
-	self->py_if0D.borrowed = 0;
+	self->py_if0D.borrowed = false;
 	return 0;
 }
 

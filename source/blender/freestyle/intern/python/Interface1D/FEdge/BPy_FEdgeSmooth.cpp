@@ -86,7 +86,7 @@ static int FEdgeSmooth_init(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwd
 	}
 	self->py_fe.fe = self->fes;
 	self->py_fe.py_if1D.if1D = self->fes;
-	self->py_fe.py_if1D.borrowed = 0;
+	self->py_fe.py_if1D.borrowed = false;
 	return 0;
 }
 

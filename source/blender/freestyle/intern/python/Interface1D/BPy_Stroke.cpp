@@ -73,14 +73,14 @@ static int Stroke_init(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 	else
 		self->s = new Stroke(*(((BPy_Stroke *)brother)->s));
 	self->py_if1D.if1D = self->s;
-	self->py_if1D.borrowed = 0;
+	self->py_if1D.borrowed = false;
 	return 0;
 }
 
 static PyObject *Stroke_iter(PyObject *self)
 {
 	StrokeInternal::StrokeVertexIterator sv_it( ((BPy_Stroke *)self)->s->strokeVerticesBegin() );
-	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it, 0 );
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(sv_it, false);
 }
 
 static Py_ssize_t Stroke_sq_length(BPy_Stroke *self)
@@ -192,7 +192,7 @@ static PyObject *Stroke_insert_vertex(BPy_Stroke *self, PyObject *args, PyObject
 	{
 		return NULL;
 	}
-	((BPy_StrokeVertex *)py_sv)->py_cp.py_if0D.borrowed = 1; /* make the wrapped StrokeVertex internal */
+	((BPy_StrokeVertex *)py_sv)->py_cp.py_if0D.borrowed = true; /* make the wrapped StrokeVertex internal */
 	StrokeVertex *sv = ((BPy_StrokeVertex *)py_sv)->sv;
 	StrokeInternal::StrokeVertexIterator sv_it(*(((BPy_StrokeVertexIterator *)py_sv_it)->sv_it));
 	self->s->InsertVertex(sv, sv_it);

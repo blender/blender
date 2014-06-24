@@ -121,7 +121,7 @@ int Director_BPy_UnaryPredicate0D___call__(UnaryPredicate0D *up0D, Interface0DIt
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_up0D) not initialized");
 		return -1;
 	}
-	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
+	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, false);
 	if (!arg)
 		return -1;
 	PyObject *result = PyObject_CallMethod((PyObject *)up0D->py_up0D, (char *)"__call__", (char *)"O", arg);
@@ -226,7 +226,7 @@ int Director_BPy_UnaryFunction0D___call__(void *uf0D, void *py_uf0D, Interface0D
 		return -1;
 	}
 	PyObject *obj = (PyObject *)py_uf0D;
-	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
+	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, false);
 	if (!arg)
 		return -1;
 	PyObject *result = PyObject_CallMethod(obj, (char *)"__call__", (char *)"O", arg);

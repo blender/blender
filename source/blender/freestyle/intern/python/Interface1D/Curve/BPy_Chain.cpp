@@ -84,7 +84,7 @@ static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 	}
 	self->py_c.c = self->c;
 	self->py_c.py_if1D.if1D = self->c;
-	self->py_c.py_if1D.borrowed = 0;
+	self->py_c.py_if1D.borrowed = false;
 	return 0;
 }
 

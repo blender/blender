@@ -94,7 +94,7 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 		return -1;
 	}
 	self->py_if1D.if1D = self->fe;
-	self->py_if1D.borrowed = 0;
+	self->py_if1D.borrowed = false;
 	return 0;
 }
 

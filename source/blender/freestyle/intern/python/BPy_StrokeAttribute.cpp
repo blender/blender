@@ -124,7 +124,7 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-	self->borrowed = 0;
+	self->borrowed = false;
 	return 0;
 }
 

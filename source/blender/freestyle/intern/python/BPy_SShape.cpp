@@ -78,7 +78,7 @@ static int SShape_init(BPy_SShape *self, PyObject *args, PyObject *kwds)
 		self->ss = new SShape();
 	else
 		self->ss = new SShape(*(((BPy_SShape *)brother)->ss));
-	self->borrowed = 0;
+	self->borrowed = false;
 	return 0;
 }
 
