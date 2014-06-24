@@ -741,8 +741,6 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 {
 	int closure_flag = segment->closure_flag;
 
-	/* XXX add probalistic scattering! */
-
 	if(!(closure_flag & SD_SCATTER))
 		return VOLUME_PATH_MISSED;
 
@@ -760,8 +758,10 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 			/* rescale random number so we can reuse it */
 			xi = 1.0f - (1.0f - xi - sample_transmittance)/(1.0f - sample_transmittance);
 		}
-		else
+		else {
+			*throughput /= sample_transmittance;
 			return VOLUME_PATH_MISSED;
+		}
 	}
 
 	VolumeStep *step;

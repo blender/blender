@@ -132,6 +132,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 						scatter = kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f);
 				}
 
+				if(result != VOLUME_PATH_SCATTERED)
+					throughput *= volume_segment.accum_transmittance;
+
 				/* free cached steps */
 				kernel_volume_decoupled_free(kg, &volume_segment);
 
@@ -513,6 +516,9 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 					if(result == VOLUME_PATH_SCATTERED)
 						scatter = kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f);
 				}
+
+				if(result != VOLUME_PATH_SCATTERED)
+					throughput *= volume_segment.accum_transmittance;
 
 				/* free cached steps */
 				kernel_volume_decoupled_free(kg, &volume_segment);
