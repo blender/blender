@@ -378,10 +378,10 @@ static bool kdtree2d_isect_tri_recursive(
 	/* bounds then triangle intersect */
 	if ((node->flag & KDNODE_FLAG_REMOVED) == 0) {
 		/* bounding box test first */
-		if ((co[0] > bounds[0].min) &&
-		    (co[0] < bounds[0].max) &&
-		    (co[1] > bounds[1].min) &&
-		    (co[1] < bounds[1].max))
+		if ((co[0] >= bounds[0].min) &&
+		    (co[0] <= bounds[0].max) &&
+		    (co[1] >= bounds[1].min) &&
+		    (co[1] <= bounds[1].max))
 		{
 			if ((span_tri_v2_sign(tri_coords[0], tri_coords[1], co) != CONCAVE) &&
 			    (span_tri_v2_sign(tri_coords[1], tri_coords[2], co) != CONCAVE) &&
