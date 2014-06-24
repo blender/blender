@@ -384,6 +384,21 @@
 #  define ARRAY_SIZE(arr)  (sizeof(arr) / sizeof(*(arr)))
 #endif
 
+/* Like offsetof(typeof(), member), for non-gcc compilers */
+#define OFFSETOF_STRUCT(_struct, _member) \
+	((((char *)&((_struct)->_member)) - ((char *)(_struct))) + sizeof((_struct)->_member))
+
+/* memcpy, skipping the first part of a struct,
+ * ensures 'struct_dst' isn't const and that the offset can be computed at compile time */
+#define MEMCPY_STRUCT_OFS(struct_dst, struct_src, member)  { \
+	void *_not_const = struct_dst; \
+	(void)_not_const; \
+	((void)(struct_dst == struct_src), \
+	 memcpy((char *)(struct_dst)  + OFFSETOF_STRUCT(struct_dst, member), \
+	        (char *)(struct_src)  + OFFSETOF_STRUCT(struct_dst, member), \
+	        sizeof(*(struct_dst)) - OFFSETOF_STRUCT(struct_dst, member))); \
+} (void)0
+
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
 #define SET_INT_IN_POINTER(i)    ((void *)(intptr_t)(i))

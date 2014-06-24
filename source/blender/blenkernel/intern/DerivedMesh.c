@@ -615,7 +615,8 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 		MEM_freeN(me->mselect);
 	}
 
-	*me = tmp;
+	/* skip the listbase */
+	MEMCPY_STRUCT_OFS(me, &tmp, id.prev);
 }
 
 void DM_to_meshkey(DerivedMesh *dm, Mesh *me, KeyBlock *kb)
