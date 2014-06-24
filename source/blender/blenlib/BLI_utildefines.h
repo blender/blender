@@ -343,6 +343,11 @@
 #define STACK_POP_PTR(stack)        ((_##stack##_index) ? &((stack)[--(_##stack##_index)]) : NULL)
 #define STACK_POP_DEFAULT(stack, r) ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : r)
 #define STACK_FREE(stack)      ((void)stack)
+/* take care, re-orders */
+#define STACK_REMOVE(stack, i) \
+	if (--_##stack##_index != i) { \
+		stack[i] = stack[_##stack##_index]; \
+	} (void)0
 #ifdef __GNUC__
 #define STACK_SWAP(stack_a, stack_b) { \
 	SWAP(typeof(stack_a), stack_a, stack_b); \
