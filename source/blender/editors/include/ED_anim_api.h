@@ -467,13 +467,13 @@ void ANIM_channel_draw_widgets(struct bContext *C, bAnimContext *ac, bAnimListEl
  *
  *  - setting: eAnimChannel_Settings
  */
-short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting);
+short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
 
 /* Change value of some setting for a channel 
  *	- setting: eAnimChannel_Settings
  *	- mode: eAnimChannels_SetFlag
  */
-void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting, short mode);
+void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode);
 
 
 /* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting 
@@ -485,14 +485,14 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short mode);
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode);
 
 
 /* Deselect all animation channels */
-void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, short test, short sel);
+void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types datatype, bool test, eAnimChannels_SetFlag sel);
 
 /* Set the 'active' channel of type channel_type, in the given action */
-void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
+void ANIM_set_active_channel(bAnimContext *ac, void *data, eAnimCont_Types datatype, eAnimFilter_Flags filter, void *channel_data, eAnim_ChannelType channel_type);
 
 
 /* Delete the F-Curve from the given AnimData block (if possible), as appropriate according to animation context */

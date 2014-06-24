@@ -74,7 +74,7 @@
 
 /* Set the given animation-channel as the active one for the active context */
 // TODO: extend for animdata types...
-void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type)
+void ANIM_set_active_channel(bAnimContext *ac, void *data, eAnimCont_Types datatype, eAnimFilter_Flags filter, void *channel_data, eAnim_ChannelType channel_type)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -173,6 +173,8 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int f
 			case ANIMTYPE_DSLAT:
 			case ANIMTYPE_DSLINESTYLE:
 			case ANIMTYPE_DSSPK:
+			case ANIMTYPE_DSNTREE:
+			case ANIMTYPE_DSTEX:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale && ale->adt) {
@@ -180,6 +182,17 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int f
 				}
 				break;
 			}
+			
+			/* unhandled currently, but may be interesting */
+			case ANIMTYPE_GPLAYER:
+			case ANIMTYPE_MASKLAYER:
+			case ANIMTYPE_SHAPEKEY:
+			case ANIMTYPE_NLAACTION:
+				break;
+			
+			/* other types */
+			default:
+				break;
 		}
 	}
 	
@@ -193,7 +206,7 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int f
  *	- test: check if deselecting instead of selecting
  *	- sel: eAnimChannels_SetFlag;
  */
-void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, short test, short sel)
+void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types datatype, bool test, eAnimChannels_SetFlag sel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -387,7 +400,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
  *	- setting: type of setting to set
  *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short mode)
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode)
 {
 	bAnimListElem *ale, *match = NULL;
 	int prevLevel = 0, matchLevel = 0;
@@ -2213,9 +2226,9 @@ static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
 		
 	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
-		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 0, ACHANNEL_SETFLAG_TOGGLE);
+		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, false, ACHANNEL_SETFLAG_TOGGLE);
 	else
-		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 1, ACHANNEL_SETFLAG_ADD);
+		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, true, ACHANNEL_SETFLAG_ADD);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
@@ -2362,7 +2375,7 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (!extend)
-		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 1, ACHANNEL_SETFLAG_CLEAR);
+		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, true, ACHANNEL_SETFLAG_CLEAR);
 
 	if (gesture_mode == GESTURE_MODAL_SELECT)
 		selectmode = ACHANNEL_SETFLAG_ADD;
@@ -2625,7 +2638,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 				}
 				else {
 					/* select AnimData block by itself */
-					ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
 					ale->adt->flag |= ADT_UI_SELECTED;
 				}
 				
@@ -2680,7 +2693,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 				FCurve *fcu;
 				
 				/* deselect all other channels */
-				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
 				if (pchan) ED_pose_deselectall(ob, 0);
 				
 				/* only select channels in group and group itself */
@@ -2690,7 +2703,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			}
 			else {
 				/* select group by itself */
-				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
 				if (pchan) ED_pose_deselectall(ob, 0);
 				
 				agrp->flag |= AGRP_SELECTED;
@@ -2720,7 +2733,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			}
 			else {
 				/* select F-Curve by itself */
-				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
 				fcu->flag |= FCURVE_SELECTED;
 			}
 			
@@ -2742,7 +2755,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			}
 			else {
 				/* select ShapeKey by itself */
-				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
 				kb->flag |= KEYBLOCK_SEL;
 			}
 				
@@ -2772,7 +2785,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			}
 			else {
 				/* select layer by itself */
-				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
 				gpl->flag |= GP_LAYER_SELECT;
 			}
 			
@@ -2802,7 +2815,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			}
 			else {
 				/* select layer by itself */
-				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
 				masklay->flag |= MASK_LAYERFLAG_SELECT;
 			}
 			
