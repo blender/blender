@@ -66,6 +66,7 @@
 #  ifdef WITH_BINRELOC
 #    include "binreloc.h"
 #  endif
+#  include <unistd.h>  /* mkdtemp on OSX (and probably all *BSD?), not worth making specific check for this OS. */
 #endif /* WIN32 */
 
 /* local */
