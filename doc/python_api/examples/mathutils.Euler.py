@@ -5,7 +5,7 @@ import math
 eul = mathutils.Euler((0.0, math.radians(45.0), 0.0), 'XYZ')
 
 # rotate the euler
-eul.rotate_axis(math.radians(10.0), 'Z')
+eul.rotate_axis('Z', math.radians(10.0))
 
 # you can access its components by attribute or index
 print("Euler X", eul.x)
