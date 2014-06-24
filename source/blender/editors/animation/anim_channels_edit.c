@@ -623,13 +623,13 @@ static int animedit_poll_channels_nla_tweakmode_off(bContext *C)
 /* ****************** Rearrange Channels Operator ******************* */
 
 /* constants for channel rearranging */
-/* WARNING: don't change exising ones without modifying rearrange func accordingly */
-enum {
+/* WARNING: don't change existing ones without modifying rearrange func accordingly */
+typedef enum eRearrangeAnimChan_Mode {
 	REARRANGE_ANIMCHAN_TOP = -2,
 	REARRANGE_ANIMCHAN_UP = -1,
 	REARRANGE_ANIMCHAN_DOWN = 1,
 	REARRANGE_ANIMCHAN_BOTTOM = 2
-};
+} eRearrangeAnimChan_Mode;
 
 /* defines for rearranging channels */
 static EnumPropertyItem prop_animchannel_rearrange_types[] = {
@@ -733,13 +733,13 @@ static bool rearrange_island_down(ListBase *list, tReorderChannelIsland *island)
 				/* push it down */
 				BLI_insertlinkafter(list, next, island);
 				
-				return 1;
+				return true;
 			}
 		}
 		/* else: no next channel, so we're at the bottom already, so can't move */
 	}
 	
-	return 0;
+	return false;
 }
 
 static bool rearrange_island_bottom(ListBase *list, tReorderChannelIsland *island)
@@ -761,10 +761,10 @@ static bool rearrange_island_bottom(ListBase *list, tReorderChannelIsland *islan
 			
 		}
 		
-		return 1;
+		return true;
 	}
 	
-	return 0;
+	return false;
 }
 
 /* ............................. */
@@ -779,7 +779,7 @@ static bool rearrange_island_bottom(ListBase *list, tReorderChannelIsland *islan
 typedef bool (*AnimChanRearrangeFp)(ListBase *list, tReorderChannelIsland *island);
 
 /* get rearranging function, given 'rearrange' mode */
-static AnimChanRearrangeFp rearrange_get_mode_func(short mode)
+static AnimChanRearrangeFp rearrange_get_mode_func(eRearrangeAnimChan_Mode mode)
 {
 	switch (mode) {
 		case REARRANGE_ANIMCHAN_TOP:
@@ -798,7 +798,9 @@ static AnimChanRearrangeFp rearrange_get_mode_func(short mode)
 /* Rearrange Islands Generics ------------------------------------- */
 
 /* add channel into list of islands */
-static void rearrange_animchannel_add_to_islands(ListBase *islands, ListBase *srcList, Link *channel, short type, const bool is_hidden)
+static void rearrange_animchannel_add_to_islands(ListBase *islands, ListBase *srcList,
+                                                 Link *channel, eAnim_ChannelType type,
+                                                 const bool is_hidden)
 {
 	tReorderChannelIsland *island = islands->last;  /* always try to add to last island if possible */
 	bool is_sel = false, is_untouchable = false;
@@ -880,7 +882,8 @@ static void rearrange_animchannel_flatten_islands(ListBase *islands, ListBase *s
 
 /* ............................. */
 
-static void rearrange_animchannels_filter_visible(ListBase *anim_data_visible, bAnimContext *ac, short type)
+/* get a list of all bAnimListElem's of a certain type which are currently visible */
+static void rearrange_animchannels_filter_visible(ListBase *anim_data_visible, bAnimContext *ac, eAnim_ChannelType type)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale, *ale_next;
@@ -904,7 +907,8 @@ static void rearrange_animchannels_filter_visible(ListBase *anim_data_visible, b
 
 /* performing rearranging of channels using islands */
 static bool rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp rearrange_func,
-                                          short mode, short type, ListBase *anim_data_visible)
+                                          eRearrangeAnimChan_Mode mode, eAnim_ChannelType type,
+                                          ListBase *anim_data_visible)
 {
 	ListBase islands = {NULL, NULL};
 	Link *channel, *chanNext = NULL;
@@ -954,7 +958,7 @@ static bool rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp re
  * ! NLA tracks are displayed in opposite order, so directions need care
  *	mode: REARRANGE_ANIMCHAN_*  
  */
-static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, short mode)
+static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
 {
 	AnimChanRearrangeFp rearrange_func;
 	ListBase anim_data_visible = {NULL, NULL};
@@ -982,7 +986,7 @@ static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, short mode)
 /* Change the order drivers within AnimData block
  *	mode: REARRANGE_ANIMCHAN_*  
  */
-static void rearrange_driver_channels(bAnimContext *ac, AnimData *adt, short mode)
+static void rearrange_driver_channels(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
 {
 	/* get rearranging function */
 	AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
@@ -1097,7 +1101,7 @@ static void join_groups_action_temp(bAction *act)
 /* Change the order of anim-channels within action 
  *	mode: REARRANGE_ANIMCHAN_*  
  */
-static void rearrange_action_channels(bAnimContext *ac, bAction *act, short mode)
+static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrangeAnimChan_Mode mode)
 {
 	bActionGroup tgrp;
 	ListBase anim_data_visible = {NULL, NULL};
@@ -1764,7 +1768,7 @@ static EnumPropertyItem prop_animchannel_settings_types[] = {
  *	onlysel: only selected channels get the flag set
  */
 // TODO: enable a setting which turns flushing on/off?
-static void setflag_anim_channels(bAnimContext *ac, short setting, short mode, short onlysel, short flush)
+static void setflag_anim_channels(bAnimContext *ac, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode, bool onlysel, bool flush)
 {
 	ListBase anim_data = {NULL, NULL};
 	ListBase all_data = {NULL, NULL};
@@ -1837,8 +1841,9 @@ static void setflag_anim_channels(bAnimContext *ac, short setting, short mode, s
 static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	short mode, setting;
-	short flush = 1;
+	eAnimChannel_Settings setting;
+	eAnimChannels_SetFlag mode;
+	bool flush = true;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1850,12 +1855,12 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 	
 	/* check if setting is flushable */
 	if (setting == ACHANNEL_SETTING_EXPAND)
-		flush = 0;
+		flush = false;
 	
 	/* modify setting 
 	 *	- only selected channels are affected
 	 */
-	setflag_anim_channels(&ac, setting, mode, 1, flush);
+	setflag_anim_channels(&ac, setting, mode, true, flush);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -1968,7 +1973,7 @@ static void ANIM_OT_channels_editable_toggle(wmOperatorType *ot)
 static int animchannels_expand_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	short onlysel = 1;
+	bool onlysel = true;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1976,10 +1981,10 @@ static int animchannels_expand_exec(bContext *C, wmOperator *op)
 		
 	/* only affect selected channels? */
 	if (RNA_boolean_get(op->ptr, "all"))
-		onlysel = 0;
+		onlysel = false;
 	
 	/* modify setting */
-	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_ADD, onlysel, 0);
+	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_ADD, onlysel, false);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -2010,7 +2015,7 @@ static void ANIM_OT_channels_expand(wmOperatorType *ot)
 static int animchannels_collapse_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	short onlysel = 1;
+	bool onlysel = true;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -2018,10 +2023,10 @@ static int animchannels_collapse_exec(bContext *C, wmOperator *op)
 		
 	/* only affect selected channels? */
 	if (RNA_boolean_get(op->ptr, "all"))
-		onlysel = 0;
+		onlysel = false;
 	
 	/* modify setting */
-	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_CLEAR, onlysel, 0);
+	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_CLEAR, onlysel, false);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -2044,7 +2049,7 @@ static void ANIM_OT_channels_collapse(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
+	ot->prop = RNA_def_boolean(ot->srna, "all", true, "All", "Collapse all channels (not just selected ones)");
 }
 
 /* ******************* Reenable Disabled Operator ******************* */
@@ -2233,7 +2238,7 @@ static void ANIM_OT_channels_select_all_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop = RNA_def_boolean(ot->srna, "invert", false, "Invert", "");
 }
 
 /* ******************** Borderselect Operator *********************** */
@@ -2882,10 +2887,10 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
 	
 	/* properties */
 	/* NOTE: don't save settings, otherwise, can end up with some weird behaviour (sticky extend) */
-	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", ""); // SHIFTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	
-	prop = RNA_def_boolean(ot->srna, "children_only", 0, "Select Children Only", ""); // CTRLKEY|SHIFTKEY
+	prop = RNA_def_boolean(ot->srna, "children_only", false, "Select Children Only", ""); // CTRLKEY|SHIFTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
