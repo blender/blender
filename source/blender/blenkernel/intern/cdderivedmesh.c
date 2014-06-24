@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
+#include "BLI_stackdefines.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_cdderivedmesh.h"
@@ -2770,17 +2771,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	MEM_freeN(oldv);
 	MEM_freeN(olde);
 	MEM_freeN(oldl);
-	MEM_freeN(oldp);
-
-	STACK_FREE(oldv);
-	STACK_FREE(olde);
-	STACK_FREE(oldl);
-	STACK_FREE(oldp);
-
-	STACK_FREE(mvert);
-	STACK_FREE(medge);
-	STACK_FREE(mloop);
-	STACK_FREE(mpoly);
+	MEM_freeN(oldp);;
 
 	BLI_edgehash_free(ehash, NULL);
 

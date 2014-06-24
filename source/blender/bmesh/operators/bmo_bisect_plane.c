@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_stackdefines.h"
 #include "BLI_math.h"
 
 #include "bmesh.h"
@@ -103,7 +104,6 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 			BM_vert_kill(bm, v);
 		}
 
-		STACK_FREE(vert_arr);
 		MEM_freeN(vert_arr);
 	}
 

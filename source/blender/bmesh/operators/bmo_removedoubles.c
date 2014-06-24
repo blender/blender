@@ -31,6 +31,7 @@
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_alloca.h"
+#include "BLI_stackdefines.h"
 
 #include "BKE_customdata.h"
 
@@ -151,9 +152,6 @@ static void remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap
 			}
 		}
 	}
-
-	STACK_FREE(edges);
-	STACK_FREE(loops);
 }
 
 /**

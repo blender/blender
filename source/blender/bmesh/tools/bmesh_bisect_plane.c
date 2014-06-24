@@ -38,6 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_stackdefines.h"
 #include "BLI_alloca.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
@@ -275,9 +276,9 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 		}
 	}
 
-finally:
-	STACK_FREE(vert_split_arr);
 
+finally:
+	(void)vert_split_arr;
 }
 
 /* -------------------------------------------------------------------- */

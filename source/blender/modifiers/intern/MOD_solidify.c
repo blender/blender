@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_stackdefines.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 
@@ -812,9 +813,6 @@ static DerivedMesh *applyModifier(
 		MEM_freeN(edge_users);
 		MEM_freeN(edge_order);
 	}
-
-	STACK_FREE(new_vert_arr);
-	STACK_FREE(new_edge_arr);
 
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);

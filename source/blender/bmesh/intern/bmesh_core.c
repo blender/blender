@@ -32,6 +32,7 @@
 #include "BLI_array.h"
 #include "BLI_alloca.h"
 #include "BLI_smallhash.h"
+#include "BLI_stackdefines.h"
 
 #include "BLF_translation.h"
 
@@ -2112,8 +2113,6 @@ void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 		}
 	}
 #endif
-
-	STACK_FREE(stack);
 
 	BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 		i = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&visithash, (uintptr_t)e));

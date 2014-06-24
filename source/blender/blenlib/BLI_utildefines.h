@@ -332,34 +332,6 @@
 #define UNPACK3OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2])
 #define UNPACK4OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
 
-/* simple stack */
-#define STACK_DECLARE(stack)   unsigned int _##stack##_index
-#define STACK_INIT(stack)      ((void)stack, (void)((_##stack##_index) = 0))
-#define STACK_SIZE(stack)      ((void)stack, (_##stack##_index))
-#define STACK_PUSH(stack, val)  (void)((stack)[(_##stack##_index)++] = val)
-#define STACK_PUSH_RET(stack)  ((void)stack, ((stack)[(_##stack##_index)++]))
-#define STACK_PUSH_RET_PTR(stack)  ((void)stack, &((stack)[(_##stack##_index)++]))
-#define STACK_POP(stack)            ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : NULL)
-#define STACK_POP_PTR(stack)        ((_##stack##_index) ? &((stack)[--(_##stack##_index)]) : NULL)
-#define STACK_POP_DEFAULT(stack, r) ((_##stack##_index) ?  ((stack)[--(_##stack##_index)]) : r)
-#define STACK_FREE(stack)      ((void)stack)
-/* take care, re-orders */
-#define STACK_REMOVE(stack, i) \
-	if (--_##stack##_index != i) { \
-		stack[i] = stack[_##stack##_index]; \
-	} (void)0
-#ifdef __GNUC__
-#define STACK_SWAP(stack_a, stack_b) { \
-	SWAP(typeof(stack_a), stack_a, stack_b); \
-	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
-	} (void)0
-#else
-#define STACK_SWAP(stack_a, stack_b) { \
-	SWAP(void *, stack_a, stack_b); \
-	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
-	} (void)0
-#endif
-
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, tot) \
 	(arr_dtype *)((char *)arr_start + (sizeof(*((arr_dtype *)NULL)) * (size_t)(tot - 1)))

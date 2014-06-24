@@ -28,8 +28,9 @@
  *  \ingroup modifiers
  */
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_stackdefines.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "MEM_guardedalloc.h"
@@ -623,7 +624,6 @@ static void initSystem(LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh
 		memcpy(sys->index_anchors, index_anchors, sizeof(int) * total_anchors);
 		memcpy(sys->co, vertexCos, sizeof(float[3]) * numVerts);
 		MEM_freeN(index_anchors);
-		STACK_FREE(index_anchors);
 		lmd->vertexco = MEM_mallocN(sizeof(float[3]) * numVerts, "ModDeformCoordinates");
 		memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * numVerts);
 		lmd->total_verts = numVerts;
