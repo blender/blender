@@ -1011,7 +1011,7 @@ static void *distribute_threads_exec_cb(void *data)
 	return 0;
 }
 
-static int distribute_compare_orig_index(void *user_data, const void *p1, const void *p2)
+static int distribute_compare_orig_index(const void *p1, const void *p2, void *user_data)
 {
 	int *orig_index = (int *) user_data;
 	int index1 = orig_index[*(const int *)p1];

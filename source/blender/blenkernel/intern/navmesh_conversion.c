@@ -305,7 +305,7 @@ struct SortContext {
 	const int *trisToFacesMap;
 };
 
-static int compareByData(void *ctx, const void *a, const void *b)
+static int compareByData(const void *a, const void *b, void *ctx)
 {
 	return (((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int *)a]] -
 	        ((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int *)b]]);
