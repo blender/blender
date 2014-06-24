@@ -51,6 +51,7 @@ from freestyle.types import (
     TVertex,
     UnaryPredicate0D,
     UnaryPredicate1D,
+    Id,
     )
 from freestyle.functions import (
     Curvature2DAngleF0D,
@@ -70,14 +71,15 @@ from freestyle.functions import (
     pyDensityAnisotropyF1D,
     pyViewMapGradientNormF1D,
     )
+
 import random
 
 
-## Unary predicates for 0D elements (vertices)
-##############################################
+# -- Unary predicates for 0D elements (vertices) -- #
+
 
 class pyHigherCurvature2DAngleUP0D(UnaryPredicate0D):
-    def __init__(self,a):
+    def __init__(self, a):
         UnaryPredicate0D.__init__(self)
         self._a = a
 
@@ -88,15 +90,15 @@ class pyHigherCurvature2DAngleUP0D(UnaryPredicate0D):
 
 
 class pyUEqualsUP0D(UnaryPredicate0D):
-    def __init__(self,u, w):
+    def __init__(self, u, w):
         UnaryPredicate0D.__init__(self)
         self._u = u
         self._w = w
+        self._func = pyCurvilinearLengthF0D()
 
     def __call__(self, inter):
-        func = pyCurvilinearLengthF0D()
-        u = func(inter)
-        return (u > (self._u-self._w)) and (u < (self._u+self._w))
+        u = self._func(inter)
+        return (u > (self._u - self._w)) and (u < (self._u + self._w))
 
 
 class pyVertexNatureUP0D(UnaryPredicate0D):
@@ -105,26 +107,23 @@ class pyVertexNatureUP0D(UnaryPredicate0D):
         self._nature = nature
 
     def __call__(self, inter):
-        v = inter.object
-        return (v.nature & self._nature) != 0
+        return bool(inter.object.nature & self._nature)
 
 
-## check whether an Interface0DIterator
-## is a TVertex and is the one that is
-## hidden (inferred from the context)
 class pyBackTVertexUP0D(UnaryPredicate0D):
+    """
+    Check whether an Interface0DIterator
+    references a TVertex and is the one that is
+    hidden (inferred from the context)
+    """
     def __init__(self):
         UnaryPredicate0D.__init__(self)
         self._getQI = QuantitativeInvisibilityF0D()
 
     def __call__(self, iter):
-        if (iter.object.nature & Nature.T_VERTEX) == 0:
+        if not (iter.object.nature & Nature.T_VERTEX) or iter.is_end:
             return False
-        if iter.is_end:
-            return False
-        if self._getQI(iter) != 0:
-            return True
-        return False
+        return self._getQI(iter) != 0
 
 
 class pyParameterUP0DGoodOne(UnaryPredicate0D):
@@ -135,7 +134,7 @@ class pyParameterUP0DGoodOne(UnaryPredicate0D):
 
     def __call__(self, inter):
         u = inter.u
-        return ((u>=self._m) and (u<=self._M))
+        return ((u >= self._m) and (u <= self._M))
 
 
 class pyParameterUP0D(UnaryPredicate0D):
@@ -143,36 +142,39 @@ class pyParameterUP0D(UnaryPredicate0D):
         UnaryPredicate0D.__init__(self)
         self._m = pmin
         self._M = pmax
+        self._func = Curvature2DAngleF0D()
 
     def __call__(self, inter):
-        func = Curvature2DAngleF0D()
-        c = func(inter)
-        b1 = (c>0.1)
+        c = self._func(inter)
+        b1 = (c > 0.1)
         u = inter.u
-        b = ((u>=self._m) and (u<=self._M))
-        return b and b1
+        b = ((u >= self._m) and (u <= self._M))
+        return (b and b1)
 
-## Unary predicates for 1D elements (curves)
-############################################
+
+# -- Unary predicates for 1D elements (curves) -- #
+
 
 class AndUP1D(UnaryPredicate1D):
-    def __init__(self, pred1, pred2):
+    def __init__(self, *predicates):
         UnaryPredicate1D.__init__(self)
-        self.__pred1 = pred1
-        self.__pred2 = pred2
+        self.predicates = predicates
+        if len(self.predicates) < 2:
+            raise ValueError("Expected two or more UnaryPredicate1D")
 
     def __call__(self, inter):
-        return self.__pred1(inter) and self.__pred2(inter)
+        return all(pred(inter) for pred in self.predicates)
 
 
 class OrUP1D(UnaryPredicate1D):
-    def __init__(self, pred1, pred2):
+    def __init__(self, *predicates):
         UnaryPredicate1D.__init__(self)
-        self.__pred1 = pred1
-        self.__pred2 = pred2
+        self.predicates = predicates
+        if len(self.predicates) < 2:
+            raise ValueError("Expected two or more UnaryPredicate1D")
 
     def __call__(self, inter):
-        return self.__pred1(inter) or self.__pred2(inter)
+        return any(pred(inter) for pred in self.predicates)
 
 
 class NotUP1D(UnaryPredicate1D):
@@ -184,6 +186,29 @@ class NotUP1D(UnaryPredicate1D):
         return not self.__pred(inter)
 
 
+class ObjectNamesUP1D(UnaryPredicate1D):
+    def __init__(self, names, negative=False):
+        UnaryPredicate1D.__init__(self)
+        self._names = names
+        self._negative = negative
+
+    def __call__(self, viewEdge):
+        found = viewEdge.viewshape.name in self._names
+        return found if not self._negative else not found
+
+
+class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
+    def __init__(self, qi_start, qi_end):
+        UnaryPredicate1D.__init__(self)
+        self.__getQI = QuantitativeInvisibilityF1D()
+        self.__qi_start = qi_start
+        self.__qi_end = qi_end
+
+    def __call__(self, inter):
+        qi = self.__getQI(inter)
+        return (self.__qi_start <= qi <= self.__qi_end)
+
+
 class pyNFirstUP1D(UnaryPredicate1D):
     def __init__(self, n):
         UnaryPredicate1D.__init__(self)
@@ -191,14 +216,12 @@ class pyNFirstUP1D(UnaryPredicate1D):
         self.__count = 0
 
     def __call__(self, inter):
-        self.__count = self.__count + 1
-        if self.__count <= self.__n:
-            return True
-        return False
+        self.__count += 1
+        return (self.__count <= self.__n)
 
 
 class pyHigherLengthUP1D(UnaryPredicate1D):
-    def __init__(self,l):
+    def __init__(self, l):
         UnaryPredicate1D.__init__(self)
         self._l = l
 
@@ -213,28 +236,20 @@ class pyNatureUP1D(UnaryPredicate1D):
         self._getNature = CurveNatureF1D()
 
     def __call__(self, inter):
-        if(self._getNature(inter) & self._nature):
-            return True
-        return False
+        return bool(self._getNature(inter) & self._nature)
 
 
 class pyHigherNumberOfTurnsUP1D(UnaryPredicate1D):
-    def __init__(self,n,a):
+    def __init__(self, n, a):
         UnaryPredicate1D.__init__(self)
         self._n = n
         self._a = a
 
     def __call__(self, inter):
-        count = 0
         func = Curvature2DAngleF0D()
         it = inter.vertices_begin()
-        while not it.is_end:
-            if func(it) > self._a:
-                count = count+1
-            if count > self._n:
-                return True
-            it.increment()
-        return False
+        # sum the turns, check against n
+        return sum(1 for ve in it if func(it) > self._a) > self._n
 
 
 class pyDensityUP1D(UnaryPredicate1D):
@@ -278,9 +293,7 @@ class pyHighSteerableViewMapDensityUP1D(UnaryPredicate1D):
     def __init__(self, threshold, level, integration=IntegrationType.MEAN):
         UnaryPredicate1D.__init__(self)
         self._threshold = threshold
-        self._level = level
-        self._integration = integration
-        self._func = GetSteerableViewMapDensityF1D(self._level, self._integration)
+        self._func = GetSteerableViewMapDensityF1D(level, integration)
 
     def __call__(self, inter):
         return (self._func(inter) > self._threshold)
@@ -290,24 +303,17 @@ class pyHighDirectionalViewMapDensityUP1D(UnaryPredicate1D):
     def __init__(self, threshold, orientation, level, integration=IntegrationType.MEAN, sampling=2.0):
         UnaryPredicate1D.__init__(self)
         self._threshold = threshold
-        self._orientation = orientation
-        self._level = level
-        self._integration = integration
-        self._sampling = sampling
+        self._func = GetDirectionalViewMapDensityF1D(orientation, level, integration, sampling)
 
     def __call__(self, inter):
-        func = GetDirectionalViewMapDensityF1D(self._orientation, self._level, self._integration, self._sampling)
-        return (func(inter) > self._threshold)
+        return (self.func(inter) > self._threshold)
 
 
 class pyHighViewMapDensityUP1D(UnaryPredicate1D):
     def __init__(self, threshold, level, integration=IntegrationType.MEAN, sampling=2.0):
         UnaryPredicate1D.__init__(self)
         self._threshold = threshold
-        self._level = level
-        self._integration = integration
-        self._sampling = sampling
-        self._func = GetCompleteViewMapDensityF1D(self._level, self._integration, self._sampling) # 2.0 is the smpling
+        self._func = GetCompleteViewMapDensityF1D(level, integration, sampling)
 
     def __call__(self, inter):
         return (self._func(inter) > self._threshold)
@@ -316,67 +322,56 @@ class pyHighViewMapDensityUP1D(UnaryPredicate1D):
 class pyDensityFunctorUP1D(UnaryPredicate1D):
     def __init__(self, wsize, threshold, functor, funcmin=0.0, funcmax=1.0, integration=IntegrationType.MEAN):
         UnaryPredicate1D.__init__(self)
-        self._wsize = wsize
         self._threshold = float(threshold)
         self._functor = functor
         self._funcmin = float(funcmin)
         self._funcmax = float(funcmax)
-        self._integration = integration
+        self._func = DensityF1D(wsize, integration)
 
     def __call__(self, inter):
-        func = DensityF1D(self._wsize, self._integration)
         res = self._functor(inter)
-        k = (res-self._funcmin)/(self._funcmax-self._funcmin)
+        k = (res - self._funcmin) / (self._funcmax - self._funcmin)
         return (func(inter) < (self._threshold * k))
 
 
 class pyZSmallerUP1D(UnaryPredicate1D):
-    def __init__(self,z, integration=IntegrationType.MEAN):
+    def __init__(self, z, integration=IntegrationType.MEAN):
         UnaryPredicate1D.__init__(self)
         self._z = z
-        self._integration = integration
+        self.func = GetProjectedZF1D(integration)
 
     def __call__(self, inter):
-        func = GetProjectedZF1D(self._integration)
-        return (func(inter) < self._z)
+        return (self.func(inter) < self._z)
 
 
 class pyIsOccludedByUP1D(UnaryPredicate1D):
     def __init__(self,id):
         UnaryPredicate1D.__init__(self)
+        if not isinstance(id, Id):
+            raise TypeError("pyIsOccludedByUP1D expected freestyle.types.Id, not " + type(id).__name__)
         self._id = id
 
     def __call__(self, inter):
-        func = GetShapeF1D()
-        shapes = func(inter)
-        for s in shapes:
-            if(s.id == self._id):
-                return False
+        shapes = GetShapeF1D()(inter)
+        if any(s.id == self._id for s in shapes):
+            return False
+
+        # construct iterators
         it = inter.vertices_begin()
         itlast = inter.vertices_end()
         itlast.decrement()
-        v = it.object
-        vlast = itlast.object
-        tvertex = v.viewvertex
-        if type(tvertex) is TVertex:
-            #print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
+
+        vertex = next(it)
+        if type(vertex) is TVertex:
+            eit = vertex.edges_begin()
+            if any(ve.id == self._id for (ve, incoming) in eit):
+                return True
+
+        vertex = next(itlast)
+        if type(vertex) is TVertex:
             eit = tvertex.edges_begin()
-            while not eit.is_end:
-                ve, incoming = eit.object
-                if ve.id == self._id:
-                    return True
-                #print("-------", ve.id.first, "-", ve.id.second)
-                eit.increment()
-        tvertex = vlast.viewvertex
-        if type(tvertex) is TVertex:
-            #print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
-            eit = tvertex.edges_begin()
-            while not eit.is_end:
-                ve, incoming = eit.object
-                if ve.id == self._id:
-                    return True
-                #print("-------", ve.id.first, "-", ve.id.second)
-                eit.increment()
+            if any(ve.id == self._id for (ve, incoming) in eit):
+                return True
         return False
 
 
@@ -386,12 +381,8 @@ class pyIsInOccludersListUP1D(UnaryPredicate1D):
         self._id = id
 
     def __call__(self, inter):
-        func = GetOccludersF1D()
-        occluders = func(inter)
-        for a in occluders:
-            if a.id == self._id:
-                return True
-        return False
+        occluders = GetOccludersF1D()(inter)
+        return any(a.id == self._id for a in occluders)
 
 
 class pyIsOccludedByItselfUP1D(UnaryPredicate1D):
@@ -403,11 +394,7 @@ class pyIsOccludedByItselfUP1D(UnaryPredicate1D):
     def __call__(self, inter):
         lst1 = self.__func1(inter)
         lst2 = self.__func2(inter)
-        for vs1 in lst1:
-            for vs2 in lst2:
-                if vs1.id == vs2.id:
-                    return True
-        return False
+        return any(vs1.id == vs2.id for vs1 in lst1 for vs2 in lst2)
 
 
 class pyIsOccludedByIdListUP1D(UnaryPredicate1D):
@@ -417,27 +404,17 @@ class pyIsOccludedByIdListUP1D(UnaryPredicate1D):
         self.__func1 = GetOccludersF1D()
 
     def __call__(self, inter):
-        lst1 = self.__func1(inter)
-        for vs1 in lst1:
-            for _id in self._idlist:
-                if vs1.id == _id:
-                    return True
-        return False
+        lst1 = self.__func1(inter.object)
+        return any(vs1.id == _id for vs1 in lst1 for _id in self._idlist)
 
 
 class pyShapeIdListUP1D(UnaryPredicate1D):
     def __init__(self,idlist):
         UnaryPredicate1D.__init__(self)
-        self._idlist = idlist
-        self._funcs = []
-        for _id in idlist:
-            self._funcs.append(ShapeUP1D(_id.first, _id.second))
+        self._funcs = tuple(ShapeUP1D(_id, 0) for _id in idlist)
 
     def __call__(self, inter):
-        for func in self._funcs:
-            if func(inter) == 1:
-                return True
-        return False
+        return any(func(inter) for func in self._funcs)
 
 
 ## deprecated
@@ -447,12 +424,8 @@ class pyShapeIdUP1D(UnaryPredicate1D):
         self._id = _id
 
     def __call__(self, inter):
-        func = GetShapeF1D()
-        shapes = func(inter)
-        for a in shapes:
-            if a.id == self._id:
-                return True
-        return False
+        shapes = GetShapeF1D()(inter)
+        return any(a.id == self._id for a in shapes)
 
 
 class pyHighDensityAnisotropyUP1D(UnaryPredicate1D):
@@ -473,7 +446,6 @@ class pyHighViewMapGradientNormUP1D(UnaryPredicate1D):
 
     def __call__(self, inter):
         gn = self._GetGradient(inter)
-        #print(gn)
         return (gn > self._threshold)
 
 
@@ -503,53 +475,50 @@ class pyClosedCurveUP1D(UnaryPredicate1D):
         it = inter.vertices_begin()
         itlast = inter.vertices_end()
         itlast.decrement()
-        vlast = itlast.object
-        v = it.object
-        #print(v.id.first, v.id.second)
-        #print(vlast.id.first, vlast.id.second)
-        if v.id == vlast.id:
-            return True
-        return False
+        return (next(it).id == next(itlast).id)
 
-## Binary predicates for 1D elements (curves)
-#############################################
+
+# -- Binary predicates for 1D elements (curves) -- #
+
 
 class AndBP1D(BinaryPredicate1D):
-    def __init__(self, pred1, pred2):
+    def __init__(self, *predicates):
         BinaryPredicate1D.__init__(self)
-        self.__pred1 = pred1
-        self.__pred2 = pred2
+        self._predicates = predicates
+        if len(self.predicates) < 2:
+            raise ValueError("Expected two or more BinaryPredicate1D")
 
-    def __call__(self, inter1, inter2):
-        return self.__pred1(inter1, inter2) and self.__pred2(inter1, inter2)
+    def __call__(self, i1, i2):
+        return all(pred(i1, i2) for pred in self._predicates)
 
 
 class OrBP1D(BinaryPredicate1D):
-    def __init__(self, pred1, pred2):
+    def __init__(self, *predicates):
         BinaryPredicate1D.__init__(self)
-        self.__pred1 = pred1
-        self.__pred2 = pred2
+        self._predicates = predicates
+        if len(self.predicates) < 2:
+            raise ValueError("Expected two or more BinaryPredicate1D")
 
-    def __call__(self, inter1, inter2):
-        return self.__pred1(inter1, inter2) or self.__pred2(inter1, inter2)
+    def __call__(self, i1, i2):
+        return any(pred(i1, i2) for pred in self._predicates)
 
 
 class NotBP1D(BinaryPredicate1D):
-    def __init__(self, pred):
+    def __init__(self, predicate):
         BinaryPredicate1D.__init__(self)
-        self.__pred = pred
+        self._predicate = predicate
 
-    def __call__(self, inter1, inter2):
-        return not self.__pred(inter1, inter2)
+    def __call__(self, i1, i2):
+        return (not self._precicate(i1, i2))
 
 
 class pyZBP1D(BinaryPredicate1D):
     def __init__(self, iType=IntegrationType.MEAN):
         BinaryPredicate1D.__init__(self)
-        self._GetZ = GetZF1D(iType)
+        self.func = GetZF1D(iType)
 
     def __call__(self, i1, i2):
-        return (self._GetZ(i1) > self._GetZ(i2))
+        return (self.func(i1) > self.func(i2))
 
 
 class pyZDiscontinuityBP1D(BinaryPredicate1D):
@@ -569,10 +538,10 @@ class pyLengthBP1D(BinaryPredicate1D):
 class pySilhouetteFirstBP1D(BinaryPredicate1D):
     def __call__(self, inter1, inter2):
         bpred = SameShapeIdBP1D()
-        if (bpred(inter1, inter2) != 1):
+        if (not bpred(inter1, inter2)):
             return False
         if (inter1.nature & Nature.SILHOUETTE):
-            return (inter2.nature & Nature.SILHOUETTE) != 0
+            return bool(inter2.nature & Nature.SILHOUETTE)
         return (inter1.nature == inter2.nature)
 
 
@@ -587,16 +556,13 @@ class pyViewMapGradientNormBP1D(BinaryPredicate1D):
         self._GetGradient = pyViewMapGradientNormF1D(l, IntegrationType.MEAN)
 
     def __call__(self, i1,i2):
-        #print("compare gradient")
         return (self._GetGradient(i1) > self._GetGradient(i2))
 
 
 class pyShuffleBP1D(BinaryPredicate1D):
     def __init__(self):
         BinaryPredicate1D.__init__(self)
-        random.seed(1)
+        random.seed = 1
 
     def __call__(self, inter1, inter2):
-        r1 = random.uniform(0,1)
-        r2 = random.uniform(0,1)
-        return (r1<r2)
+        return (random.uniform(0,1) < random.uniform(0,1))

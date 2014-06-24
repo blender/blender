@@ -23,6 +23,20 @@ rules.  Also intended to be a collection of examples for defining
 chaining iterators in Python
 """
 
+__all__ = (
+    "pyChainSilhouetteIterator",
+    "pyChainSilhouetteGenericIterator",
+    "pyExternalContourChainingIterator",
+    "pySketchyChainSilhouetteIterator",
+    "pySketchyChainingIterator",
+    "pyFillOcclusionsRelativeChainingIterator",
+    "pyFillOcclusionsAbsoluteChainingIterator",
+    "pyFillOcclusionsAbsoluteAndRelativeChainingIterator",
+    "pyFillQi0AbsoluteAndRelativeChainingIterator",
+    "pyNoIdChainSilhouetteIterator",
+    )
+
+
 # module members
 from _freestyle import (
     ChainPredicateIterator,
@@ -41,9 +55,28 @@ from freestyle.predicates import (
     )
 from freestyle.utils import (
     ContextFunctions as CF,
-    stroke_normal,
+    get_chain_length,
+    find_matching_vertex,
     )
+
 import bpy
+
+
+NATURES = (
+    Nature.SILHOUETTE,
+    Nature.BORDER,
+    Nature.CREASE,
+    Nature.MATERIAL_BOUNDARY,
+    Nature.EDGE_MARK,
+    Nature.SUGGESTIVE_CONTOUR,
+    Nature.VALLEY,
+    Nature.RIDGE
+    )
+
+
+def nature_in_preceding(nature, index):
+    """ Returns True if given nature appears before index, else False """
+    return any(nature & nat for nat in NATURES[:index])
 
 
 class pyChainSilhouetteIterator(ChainingIterator):
@@ -61,43 +94,28 @@ class pyChainSilhouetteIterator(ChainingIterator):
         pass
 
     def traverse(self, iter):
-        winner = None
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                if ve.id == mateVE.id:
-                    winner = ve
-                    break
-                it.increment()
-        else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for i in range(len(natures)):
-                currentNature = self.current_edge.nature
-                if (natures[i] & currentNature) != 0:
-                    count=0
-                    while not it.is_end:
-                        visitNext = 0
-                        oNature = it.object.nature
-                        if (oNature & natures[i]) != 0:
-                            if natures[i] != oNature:
-                                for j in range(i):
-                                    if (natures[j] & oNature) != 0:
-                                        visitNext = 1
-                                        break
-                                if visitNext != 0:
-                                    break
-                            count = count+1
-                            winner = it.object
-                        it.increment()
-                    if count != 1:
-                        winner = None
-                    break
-        return winner
+        ## case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            mate = vertex.get_mate(self.current_edge)
+            return find_matching_vertex(mate.id, it)
+        ## case of NonTVertex
+        winner = None
+        for i, nat in enumerate(NATURES):
+            if (nat & self.current_edge.nature):
+                for ve in it:
+                    ve_nat = ve.nature
+                    if (ve_nat & nat):
+                        # search for matches in previous natures. if match -> break
+                        if nat != ve_nat and nature_in_preceding(ve_nat, index=i):
+                            break
+                        # a second match must be an error
+                        if winner is not None:
+                            return None
+                        # assign winner
+                        winner = ve
+                return winner
 
 
 class pyChainSilhouetteGenericIterator(ChainingIterator):
@@ -120,47 +138,30 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
         pass
 
     def traverse(self, iter):
-        winner = None
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                if ve.id == mateVE.id:
-                    winner = ve
-                    break
-                it.increment()
-        else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for i in range(len(natures)):
-                currentNature = self.current_edge.nature
-                if (natures[i] & currentNature) != 0:
-                    count=0
-                    while not it.is_end:
-                        visitNext = 0
-                        oNature = it.object.nature
-                        ve = it.object
-                        if ve.id == self.current_edge.id:
-                            it.increment()
-                            continue
-                        if (oNature & natures[i]) != 0:
-                            if natures[i] != oNature:
-                                for j in range(i):
-                                    if (natures[j] & oNature) != 0:
-                                        visitNext = 1
-                                        break
-                                if visitNext != 0:
-                                    break
-                            count = count+1
-                            winner = ve
-                        it.increment()
-                    if count != 1:
-                        winner = None
-                    break
-        return winner
+        ## case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            mate = vertex.get_mate(self.current_edge)
+            return find_matching_vertex(mate.id, it)
+        ## case of NonTVertex
+        winner = None
+        for i, nat in enumerate(NATURES):
+            if (nat & self.current_edge.nature):
+                for ve in it:
+                    ve_nat = ve.nature
+                    if ve.id == self.current_edge.id:
+                        continue
+                    if (ve_nat & nat):
+                        if nat != ve_nat and nature_in_preceding(ve_nat, index=i):
+                            break
+
+                        if winner is not None:
+                            return None
+
+                        winner = ve
+                return winner
+        return None
 
 
 class pyExternalContourChainingIterator(ChainingIterator):
@@ -168,49 +169,40 @@ class pyExternalContourChainingIterator(ChainingIterator):
 
     def __init__(self):
         ChainingIterator.__init__(self, False, True, None, True)
-        self._isExternalContour = ExternalContourUP1D()
+        self.ExternalContour = ExternalContourUP1D()
 
     def init(self):
         self._nEdges = 0
-        self._isInSelection = 1
 
     def checkViewEdge(self, ve, orientation):
-        if orientation != 0:
-            vertex = ve.second_svertex()
-        else:
-            vertex = ve.first_svertex()
-        it = AdjacencyIterator(vertex,1,1)
-        while not it.is_end:
-            ave = it.object
-            if self._isExternalContour(ave):
-                return True
-            it.increment()
-        if bpy.app.debug_freestyle:
+        vertex = (ve.first_viewvertex if orientation else
+                  ve.last_viewvertex)
+
+        it = AdjacencyIterator(vertex, True, True)
+        result = any(self.ExternalContour(ave) for ave in it)
+        # report if there is no result (that's bad)
+        if not result and bpy.app.debug_freestyle:
             print("pyExternalContourChainingIterator : didn't find next edge")
-        return False
+
+        return result
 
     def traverse(self, iter):
         winner = None
-        it = AdjacencyIterator(iter)
-        while not it.is_end:
-            ve = it.object
-            if self._isExternalContour(ve):
-                if ve.time_stamp == CF.get_time_stamp():
-                    winner = ve
-            it.increment()
+        self._nEdges += 1
 
-        self._nEdges = self._nEdges+1
+        it = AdjacencyIterator(iter)
+        time_stamp = CF.get_time_stamp()
+
+        for ve in it:
+            if self.ExternalContour(ve) and ve.time_stamp == time_stamp:
+                winner = ve
+
         if winner is None:
-            orient = 1
             it = AdjacencyIterator(iter)
-            while not it.is_end:
-                ve = it.object
-                if it.is_incoming:
-                    orient = 0
-                good = self.checkViewEdge(ve,orient)
-                if good != 0:
+            for ve in it:
+                if self.checkViewEdge(ve, not it.is_incoming):
                     winner = ve
-                it.increment()
+
         return winner
 
 
@@ -227,58 +219,49 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 
     def __init__(self, nRounds=3,stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
-        self._timeStamp = CF.get_time_stamp()+nRounds
+        self._timeStamp = CF.get_time_stamp() + nRounds
         self._nRounds = nRounds
 
     def init(self):
-        self._timeStamp = CF.get_time_stamp()+self._nRounds
+        self._timeStamp = CF.get_time_stamp() + self._nRounds
+
+    # keeping this local saves passing a reference to 'self' around
+    def make_sketchy(self, ve):
+        """
+        Creates the skeychy effect by causing the chain to run from
+        the start again. (loop over itself again)
+        """
+        if ve is None:
+            ve = self.current_edge
+        if ve.chaining_time_stamp == self._timeStamp:
+            return None
+        return ve
 
     def traverse(self, iter):
-        winner = None
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                if ve.id == mateVE.id:
-                    winner = ve
-                    break
-                it.increment()
-        else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for i in range(len(natures)):
-                currentNature = self.current_edge.nature
-                if (natures[i] & currentNature) != 0:
-                    count=0
-                    while not it.is_end:
-                        visitNext = 0
-                        oNature = it.object.nature
-                        ve = it.object
-                        if ve.id == self.current_edge.id:
-                            it.increment()
-                            continue
-                        if (oNature & natures[i]) != 0:
-                            if (natures[i] != oNature) != 0:
-                                for j in range(i):
-                                    if (natures[j] & oNature) != 0:
-                                        visitNext = 1
-                                        break
-                                if visitNext != 0:
-                                    break
-                            count = count+1
-                            winner = ve
-                        it.increment()
-                    if count != 1:
-                        winner = None
-                    break
-        if winner is None:
-            winner = self.current_edge
-        if winner.chaining_time_stamp == self._timeStamp:
-            winner = None
-        return winner
+        ## case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            mate = vertex.get_mate(self.current_edge)
+            return self.make_sketchy(find_matching_vertex(mate.id, it))
+        ## case of NonTVertex
+        winner = None
+        for i, nat in enumerate(NATURES):
+            if (nat & self.current_edge.nature):
+                for ve in it:
+                    if ve.id == self.current_edge.id:
+                        continue
+                    ve_nat = ve.nature
+                    if (ve_nat & nat):
+                        if nat != ve_nat and nature_in_preceding(ve_nat, i):
+                            break
+
+                        if winner is not None:
+                            return self.make_sketchy(None)
+
+                        winner = ve
+                break
+        return self.make_sketchy(winner)
 
 
 class pySketchyChainingIterator(ChainingIterator):
@@ -289,30 +272,30 @@ class pySketchyChainingIterator(ChainingIterator):
     """
     def __init__(self, nRounds=3, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
-        self._timeStamp = CF.get_time_stamp()+nRounds
+        self._timeStamp = CF.get_time_stamp() + nRounds
         self._nRounds = nRounds
+        self.t = False
 
     def init(self):
-        self._timeStamp = CF.get_time_stamp()+self._nRounds
+        self._timeStamp = CF.get_time_stamp() + self._nRounds
 
     def traverse(self, iter):
         winner = None
         found = False
-        it = AdjacencyIterator(iter)
-        while not it.is_end:
-            ve = it.object
-            if ve.id == self.current_edge.id:
+
+        for ve in AdjacencyIterator(iter):
+            if self.current_edge.id == ve.id:
                 found = True
-                it.increment()
                 continue
             winner = ve
-            it.increment()
+
         if not found:
             # This is a fatal error condition: self.current_edge must be found
             # among the edges seen by the AdjacencyIterator [bug #35695].
             if bpy.app.debug_freestyle:
                 print('pySketchyChainingIterator: current edge not found')
             return None
+
         if winner is None:
             winner = self.current_edge
         if winner.chaining_time_stamp == self._timeStamp:
@@ -330,97 +313,61 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 
     def __init__(self, percent):
         ChainingIterator.__init__(self, False, True, None, True)
-        self._length = 0
+        self._length = 0.0
         self._percent = float(percent)
+        self.timestamp = CF.get_time_stamp()
 
     def init(self):
         # A chain's length should preferably be evaluated only once.
         # Therefore, the chain length is reset here.
-        self._length = 0
+        self._length = 0.0
 
     def traverse(self, iter):
         winner = None
-
         winnerOrientation = False
-        winnerOrientation = 0
-        #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                if ve.id == mateVE.id:
-                    winner = ve
-                    winnerOrientation = not it.is_incoming
-                    break
-                it.increment()
+        ## case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            mate = vertex.get_mate(self.current_edge)
+            winner = find_matching_vertex(mate.id, it)
+            winnerOrientation = not it.is_incoming if not it.is_end else False
+        ## case of NonTVertex
         else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for nat in natures:
-                if (self.current_edge.nature & nat) != 0:
-                    count=0
-                    while not it.is_end:
-                        ve = it.object
-                        if (ve.nature & nat) != 0:
-                            count = count+1
+            for nat in NATURES:
+                if (self.current_edge.nature & nat):
+                    for ve in it:
+                        if (ve.nature & nat):
+                            if winner is not None:
+                                return None
                             winner = ve
                             winnerOrientation = not it.is_incoming
-                        it.increment()
-                    if count != 1:
-                        winner = None
                     break
-        if winner is not None:
-            # check whether this edge was part of the selection
-            if winner.time_stamp != CF.get_time_stamp():
-                #print("---", winner.id.first, winner.id.second)
-                # if not, let's check whether it's short enough with
-                # respect to the chain made without staying in the selection
-                #------------------------------------------------------------
-                # Did we compute the prospective chain length already ?
-                if self._length == 0:
-                    #if not, let's do it
-                    _it = pyChainSilhouetteGenericIterator(False, False)
-                    _it.begin = winner
-                    _it.current_edge = winner
-                    _it.orientation = winnerOrientation
-                    _it.init()
-                    while not _it.is_end:
-                        ve = _it.object
-                        #print("--------", ve.id.first, ve.id.second)
-                        self._length = self._length + ve.length_2d
-                        _it.increment()
-                        if _it.is_begin:
-                            break;
-                    _it.begin = winner
-                    _it.current_edge = winner
-                    _it.orientation = winnerOrientation
-                    if not _it.is_begin:
-                        _it.decrement()
-                        while (not _it.is_end) and (not _it.is_begin):
-                            ve = _it.object
-                            #print("--------", ve.id.first, ve.id.second)
-                            self._length = self._length + ve.length_2d
-                            _it.decrement()
 
-                # let's do the comparison:
-                # nw let's compute the length of this connex non selected part:
-                connexl = 0
+        # check timestamp to see if this edge was part of the selection
+        if winner is not None and winner.time_stamp != self.timestamp:
+            # if the edge wasn't part of the selection, let's see
+            # whether it's short enough (with respect to self.percent)
+            # to be included.
+            if self._length == 0.0:
+                self._length = get_chain_length(winner, winnerOrientation)
 
-                _cit = pyChainSilhouetteGenericIterator(False, False)
-                _cit.begin = winner
-                _cit.current_edge = winner
-                _cit.orientation = winnerOrientation
-                _cit.init()
-                while _cit.is_end == 0 and _cit.object.time_stamp != CF.get_time_stamp():
-                    ve = _cit.object
-                    #print("-------- --------", ve.id.first, ve.id.second)
-                    connexl = connexl + ve.length_2d
-                    _cit.increment()
-                if connexl > self._percent * self._length:
-                    winner = None
+            # check if the gap can be bridged
+            connexl = 0.0
+            _cit = pyChainSilhouetteGenericIterator(False, False)
+            _cit.begin = winner
+            _cit.current_edge = winner
+            _cit.orientation = winnerOrientation
+            _cit.init()
+
+            while (not _cit.is_end) and _cit.object.time_stamp != self.timestamp:
+                connexl += _cit.object.length_2d
+                _cit.increment()
+                if _cit.is_begin: break
+
+            if connexl > self._percent * self._length:
+                return None
+
         return winner
 
 
@@ -433,6 +380,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
     def __init__(self, length):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = float(length)
+        self.timestamp = CF.get_time_stamp()
 
     def init(self):
         pass
@@ -440,53 +388,41 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
     def traverse(self, iter):
         winner = None
         winnerOrientation = False
-        #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                if ve.id == mateVE.id:
-                    winner = ve
-                    winnerOrientation = not it.is_incoming
-                    break
-                it.increment()
+        ## case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            mate = vertex.get_mate(self.current_edge)
+            winner = find_matching_vertex(mate.id, it)
+            winnerOrientation = not it.is_incoming if not it.is_end else False
+        ## case of NonTVertex
         else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for nat in natures:
-                if (self.current_edge.nature & nat) != 0:
-                    count=0
-                    while not it.is_end:
-                        ve = it.object
-                        if (ve.nature & nat) != 0:
-                            count = count+1
+            for nat in NATURES:
+                if (self.current_edge.nature & nat):
+                    for ve in it:
+                        if (ve.nature & nat):
+                            if winner is not None:
+                                return None
                             winner = ve
                             winnerOrientation = not it.is_incoming
-                        it.increment()
-                    if count != 1:
-                        winner = None
                     break
-        if winner is not None:
-            # check whether this edge was part of the selection
-            if winner.time_stamp != CF.get_time_stamp():
-                #print("---", winner.id.first, winner.id.second)
-                # nw let's compute the length of this connex non selected part:
-                connexl = 0
-                _cit = pyChainSilhouetteGenericIterator(False, False)
-                _cit.begin = winner
-                _cit.current_edge = winner
-                _cit.orientation = winnerOrientation
-                _cit.init()
-                while _cit.is_end == 0 and _cit.object.time_stamp != CF.get_time_stamp():
-                    ve = _cit.object
-                    #print("-------- --------", ve.id.first, ve.id.second)
-                    connexl = connexl + ve.length_2d
-                    _cit.increment()
-                if connexl > self._length:
-                    winner = None
+
+        if winner is not None and winner.time_stamp != self.timestamp:
+            connexl = 0.0
+            _cit = pyChainSilhouetteGenericIterator(False, False)
+            _cit.begin = winner
+            _cit.current_edge = winner
+            _cit.orientation = winnerOrientation
+            _cit.init()
+
+            while (not _cit.is_end) and _cit.object.time_stamp != self.timestamp:
+                connexl += _cit.object.length_2d
+                _cit.increment()
+                if _cit.is_begin: break
+
+            if connexl > self._length:
+                return None
+
         return winner
 
 
@@ -500,7 +436,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
     """
     def __init__(self, percent, l):
         ChainingIterator.__init__(self, False, True, None, True)
-        self._length = 0
+        self._length = 0.0
         self._absLength = l
         self._percent = float(percent)
 
@@ -508,88 +444,48 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
         # each time we're evaluating a chain length
         # we try to do it once. Thus we reinit
         # the chain length here:
-        self._length = 0
+        self._length = 0.0
 
     def traverse(self, iter):
         winner = None
         winnerOrientation = False
-        #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                if ve.id == mateVE.id:
-                    winner = ve
-                    winnerOrientation = not it.is_incoming
-                    break
-                it.increment()
+        ## case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            mate = vertex.get_mate(self.current_edge)
+            winner = find_matching_vertex(mate.id, it)
+            winnerOrientation = not it.is_incoming if not it.is_end else False
+        ## case of NonTVertex
         else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for nat in natures:
-                if (self.current_edge.nature & nat) != 0:
-                    count=0
-                    while not it.is_end:
-                        ve = it.object
-                        if (ve.nature & nat) != 0:
-                            count = count+1
+            for nat in NATURES:
+                if (self.current_edge.nature & nat):
+                    for ve in it:
+                        if (ve.nature & nat):
+                            if winner is not None:
+                                return None
                             winner = ve
                             winnerOrientation = not it.is_incoming
-                        it.increment()
-                    if count != 1:
-                        winner = None
                     break
-        if winner is not None:
-            # check whether this edge was part of the selection
-            if winner.time_stamp != CF.get_time_stamp():
-                #print("---", winner.id.first, winner.id.second)
-                # if not, let's check whether it's short enough with
-                # respect to the chain made without staying in the selection
-                #------------------------------------------------------------
-                # Did we compute the prospective chain length already ?
-                if self._length == 0:
-                    #if not, let's do it
-                    _it = pyChainSilhouetteGenericIterator(False, False)
-                    _it.begin = winner
-                    _it.current_edge = winner
-                    _it.orientation = winnerOrientation
-                    _it.init()
-                    while not _it.is_end:
-                        ve = _it.object
-                        #print("--------", ve.id.first, ve.id.second)
-                        self._length = self._length + ve.length_2d
-                        _it.increment()
-                        if _it.is_begin:
-                            break;
-                    _it.begin = winner
-                    _it.current_edge = winner
-                    _it.orientation = winnerOrientation
-                    if not _it.is_begin:
-                        _it.decrement()
-                        while (not _it.is_end) and (not _it.is_begin):
-                            ve = _it.object
-                            #print("--------", ve.id.first, ve.id.second)
-                            self._length = self._length + ve.length_2d
-                            _it.decrement()
 
-                # let's do the comparison:
-                # nw let's compute the length of this connex non selected part:
-                connexl = 0
+        if winner is not None and winner.time_stamp != CF.get_time_stamp():
+
+                if self._length == 0.0:
+                    self._length = get_chain_length(winner, winnerOrientation)
+
+                connexl = 0.0
                 _cit = pyChainSilhouetteGenericIterator(False, False)
                 _cit.begin = winner
                 _cit.current_edge = winner
                 _cit.orientation = winnerOrientation
                 _cit.init()
-                while _cit.is_end == 0 and _cit.object.time_stamp != CF.get_time_stamp():
-                    ve = _cit.object
-                    #print("-------- --------", ve.id.first, ve.id.second)
-                    connexl = connexl + ve.length_2d
+                while (not _cit.is_end) and _cit.object.time_stamp != CF.get_time_stamp():
+                    connexl += _cit.object.length_2d
                     _cit.increment()
+                    if _cit.is_begin: break
+
                 if (connexl > self._percent * self._length) or (connexl > self._absLength):
-                    winner = None
+                    return None
         return winner
 
 
@@ -603,96 +499,55 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
     """
     def __init__(self, percent, l):
         ChainingIterator.__init__(self, False, True, None, True)
-        self._length = 0
+        self._length = 0.0
         self._absLength = l
-        self._percent = float(percent)
+        self._percent = percent
 
     def init(self):
         # A chain's length should preverably be evaluated only once.
         # Therefore, the chain length is reset here.
-        self._length = 0
+        self._length = 0.0
 
     def traverse(self, iter):
         winner = None
         winnerOrientation = False
-
-        #print(self.current_edge.id.first, self.current_edge.id.second)
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                if ve.id == mateVE.id:
-                    winner = ve
-                    winnerOrientation = not it.is_incoming
-                    break
-                it.increment()
+        ## case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            mate = vertex.get_mate(self.current_edge)
+            winner = find_matching_vertex(mate.id, it)
+            winnerOrientation = not it.is_incoming if not it.is_end else False
+        ## case of NonTVertex
         else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for nat in natures:
-                if (self.current_edge.nature & nat) != 0:
-                    count=0
-                    while not it.is_end:
-                        ve = it.object
-                        if (ve.nature & nat) != 0:
-                            count = count+1
+            for nat in NATURES:
+                if (self.current_edge.nature & nat):
+                    for ve in it:
+                        if (ve.nature & nat):
+                            if winner is not None:
+                                return None
                             winner = ve
                             winnerOrientation = not it.is_incoming
-                        it.increment()
-                    if count != 1:
-                        winner = None
                     break
-        if winner is not None:
-            # check whether this edge was part of the selection
-            if winner.qi != 0:
-                #print("---", winner.id.first, winner.id.second)
-                # if not, let's check whether it's short enough with
-                # respect to the chain made without staying in the selection
-                #------------------------------------------------------------
-                # Did we compute the prospective chain length already ?
-                if self._length == 0:
-                    #if not, let's do it
-                    _it = pyChainSilhouetteGenericIterator(False, False)
-                    _it.begin = winner
-                    _it.current_edge = winner
-                    _it.orientation = winnerOrientation
-                    _it.init()
-                    while not _it.is_end:
-                        ve = _it.object
-                        #print("--------", ve.id.first, ve.id.second)
-                        self._length = self._length + ve.length_2d
-                        _it.increment()
-                        if _it.is_begin:
-                            break;
-                    _it.begin = winner
-                    _it.current_edge = winner
-                    _it.orientation = winnerOrientation
-                    if not _it.is_begin:
-                        _it.decrement()
-                        while (not _it.is_end) and (not _it.is_begin):
-                            ve = _it.object
-                            #print("--------", ve.id.first, ve.id.second)
-                            self._length = self._length + ve.length_2d
-                            _it.decrement()
 
-                # let's do the comparison:
-                # nw let's compute the length of this connex non selected part:
+        if winner is not None and winner.qi:
+
+
+                if self._length == 0.0:
+                    self._length = get_chain_length(winner, winnerOrientation)
+
                 connexl = 0
                 _cit = pyChainSilhouetteGenericIterator(False, False)
                 _cit.begin = winner
                 _cit.current_edge = winner
                 _cit.orientation = winnerOrientation
                 _cit.init()
-                while not _cit.is_end and _cit.object.qi != 0:
-                    ve = _cit.object
-                    #print("-------- --------", ve.id.first, ve.id.second)
-                    connexl = connexl + ve.length_2d
+                while (not _cit.is_end) and _cit.object.qi != 0:
+                    connexl += _cit.object.length_2d
                     _cit.increment()
+                    if _cit.is_begin: break
                 if (connexl > self._percent * self._length) or (connexl > self._absLength):
-                    winner = None
+                    return None
         return winner
 
 
@@ -717,63 +572,44 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
     def traverse(self, iter):
         winner = None
         it = AdjacencyIterator(iter)
-        tvertex = self.next_vertex
-        if type(tvertex) is TVertex:
-            mateVE = tvertex.get_mate(self.current_edge)
-            while not it.is_end:
-                ve = it.object
-                feB = self.current_edge.last_fedge
-                feA = ve.first_fedge
-                vB = feB.second_svertex
-                vA = feA.first_svertex
+        # case of TVertex
+        vertex = self.next_vertex
+        if type(vertex) is TVertex:
+            for ve in it:
+                # case one
+                vA = self.current_edge.last_fedge.second_svertex
+                vB = ve.first_fedge.first_svertex
                 if vA.id.first == vB.id.first:
-                    winner = ve
-                    break
-                feA = self.current_edge.first_fedge
-                feB = ve.last_fedge
-                vB = feB.second_svertex
-                vA = feA.first_svertex
+                    return ve
+                # case two
+                vA = self.current_edge.first_fedge.first_svertex
+                vB = ve.last_fedge.second_svertex
                 if vA.id.first == vB.id.first:
-                    winner = ve
-                    break
-                feA = self.current_edge.last_fedge
-                feB = ve.last_fedge
-                vB = feB.second_svertex
-                vA = feA.second_svertex
+                    return ve
+                # case three
+                vA = self.current_edge.last_fedge.second_svertex
+                vB = ve.last_fedge.second_svertex
                 if vA.id.first == vB.id.first:
-                    winner = ve
-                    break
-                feA = self.current_edge.first_fedge
-                feB = ve.first_fedge
-                vB = feB.first_svertex
-                vA = feA.first_svertex
+                    return ve
+                # case four
+                vA = self.current_edge.first_fedge.first_svertex
+                vB = ve.first_fedge.first_svertex
                 if vA.id.first == vB.id.first:
-                    winner = ve
-                    break
-                it.increment()
+                    return ve
+            return None
+        ## case of NonTVertex
         else:
-            ## case of NonTVertex
-            natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.MATERIAL_BOUNDARY,Nature.EDGE_MARK,
-                       Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
-            for i in range(len(natures)):
-                currentNature = self.current_edge.nature
-                if (natures[i] & currentNature) != 0:
-                    count=0
-                    while not it.is_end:
-                        visitNext = 0
-                        oNature = it.object.nature
-                        if (oNature & natures[i]) != 0:
-                            if natures[i] != oNature:
-                                for j in range(i):
-                                    if (natures[j] & oNature) != 0:
-                                        visitNext = 1
-                                        break
-                                if visitNext != 0:
-                                    break
-                            count = count+1
-                            winner = it.object
-                        it.increment()
-                    if count != 1:
-                        winner = None
-                    break
-        return winner
+            for i, nat in enumerate(NATURES):
+                 if (nat & self.current_edge.nature):
+                    for ve in it:
+                        ve_nat = ve.nature
+                        if (ve_nat & nat):
+                            if (nat != ve_nat) and any(n & ve_nat for n in NATURES[:i]):
+                                break
+
+                            if winner is not None:
+                                return
+
+                            winner = ve
+                    return winner
+            return None
