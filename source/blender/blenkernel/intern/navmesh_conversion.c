@@ -341,7 +341,7 @@ int buildNavMeshData(const int nverts, const float *verts,
 		trisMapping[i] = i;
 	context.recastData = recastData;
 	context.trisToFacesMap = trisToFacesMap;
-	BLI_qsort_r(trisMapping, ntris, sizeof(int), &context, compareByData);
+	BLI_qsort_r(trisMapping, ntris, sizeof(int), compareByData, &context);
 
 	/* search first valid triangle - triangle of convex polygon */
 	validTriStart = -1;

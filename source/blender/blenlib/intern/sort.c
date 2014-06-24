@@ -89,7 +89,7 @@ BLI_INLINE char *med3(char *a, char *b, char *c, BLI_sort_cmp_t cmp, void *thunk
  *
  * \note Follows BSD arg order (incompatible with glibc).
  */
-void BLI_qsort_r(void *a, size_t n, size_t es, void *thunk, BLI_sort_cmp_t cmp)
+void BLI_qsort_r(void *a, size_t n, size_t es, BLI_sort_cmp_t cmp, void *thunk)
 {
 	char *pa, *pb, *pc, *pd, *pl, *pm, *pn;
 	int d, r, swaptype, swap_cnt;
@@ -166,7 +166,7 @@ loop:
 	r = min(pd - pc, pn - pd - es);
 	vecswap(pb, pn - r, r);
 	if ((r = pb - pa) > es)
-		BLI_qsort_r(a, r / es, es, thunk, cmp);
+		BLI_qsort_r(a, r / es, es, cmp, thunk);
 	if ((r = pd - pc) > es) {
 		/* Iterate rather than recurse to save stack space */
 		a = pn - r;
