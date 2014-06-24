@@ -323,6 +323,9 @@ void nla_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
 	
+	/* find (i.e. a shortcut for setting the name filter) */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_find", FKEY, KM_PRESS, KM_CTRL, 0);
+	
 	/* channels ---------------------------------------------------------- */
 	/* Channels are not directly handled by the NLA Editor module, but are inherited from the Animation module. 
 	 * Most of the relevant operations, keymaps, drawing, etc. can therefore all be found in that module instead, as there

@@ -2052,7 +2052,7 @@ static void ANIM_OT_channels_collapse(wmOperatorType *ot)
 static int animchannels_enable_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
-
+	
 	/* channels region test */
 	/* TODO: could enhance with actually testing if channels region? */
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
@@ -2118,6 +2118,82 @@ static void ANIM_OT_channels_fcurves_enable(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ****************** Find / Set Filter Operator ******************** */
+
+/* XXX: make this generic? */
+static int animchannels_find_poll(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	
+	if (sa == NULL)
+		return 0;
+	
+	/* animation editor with dopesheet */
+	return ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA);
+}
+
+/* find_invoke() - Get initial channels */
+static int animchannels_find_invoke(bContext *C, wmOperator *op, const wmEvent *evt)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* set initial filter text, and enable filter */
+	RNA_string_set(op->ptr, "query", ac.ads->searchstr);
+	
+	/* defer to popup */
+	return WM_operator_props_popup(C, op, evt);
+}
+
+/* find_exec() -  Called to set the value */
+static int animchannels_find_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* update filter text, and ensure that filter is enabled if there's something there
+	 * NOTE: we turn the filter off if there's nothing (this is a quicky shortcut for dismissing)
+	 */
+	RNA_string_get(op->ptr, "query", ac.ads->searchstr);
+	
+	if (ac.ads->searchstr[0]) {
+		ac.ads->filterflag |= ADS_FILTER_BY_FCU_NAME;
+	}
+	else {
+		ac.ads->filterflag &= ~ADS_FILTER_BY_FCU_NAME;
+	}
+	
+	/* redraw */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channels_find(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Find Channels";
+	ot->idname = "ANIM_OT_channels_find";
+	ot->description = "Filter the set of channels shown to only include those with matching names";
+	
+	/* callbacks */
+	ot->invoke = animchannels_find_invoke;
+	ot->exec = animchannels_find_exec;
+	ot->poll = animchannels_find_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_string(ot->srna, "query", "Query", sizeof(((bDopeSheet *)NULL)->searchstr), "", "Text to search for in channel names");
 }
 
 /* ********************** Select All Operator *********************** */
@@ -2824,6 +2900,8 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_click);
 	WM_operatortype_append(ANIM_OT_channels_rename);
 	
+	WM_operatortype_append(ANIM_OT_channels_find);
+	
 	WM_operatortype_append(ANIM_OT_channels_setting_enable);
 	WM_operatortype_append(ANIM_OT_channels_setting_disable);
 	WM_operatortype_append(ANIM_OT_channels_setting_toggle);
@@ -2852,8 +2930,7 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation Channels", 0, 0);
 	wmKeyMapItem *kmi;
-
-	/* selection */
+	
 	/* click-select */
 	/* XXX for now, only leftmouse.... */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -2863,6 +2940,9 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	/* rename */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
+	
+	/* find (i.e. a shortcut for setting the name filter) */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_find", FKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);

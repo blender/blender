@@ -476,7 +476,14 @@ static void action_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 			break;
 		case NC_ANIMATION:
 			switch (wmn->data) {
-				case ND_KEYFRAME:
+				case ND_ANIMCHAN: /* set of visible animchannels changed */
+					/* NOTE: for now, this should usually just mean that the filters changed 
+					 *       It may be better if we had a dedicated flag for that though
+					 */
+					ED_region_tag_redraw(ar);
+					break;
+					
+				case ND_KEYFRAME: /* new keyframed added -> active action may have changed */
 					//saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_region_tag_redraw(ar);
 					break;
