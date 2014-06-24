@@ -1389,16 +1389,14 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	bool isCompoundChild = false;
-	bool hasCompoundChildren = !parent && (blenderobject->gameflag & OB_CHILD);
+	bool hasCompoundChildren = !parent && (blenderobject->gameflag & OB_CHILD) && !(blenderobject->gameflag & OB_SOFT_BODY);
 
 	/* When the parent is not OB_DYNAMIC and has no OB_COLLISION then it gets no bullet controller
-	 * and cant be apart of the parents compound shape */
+	 * and cant be apart of the parents compound shape, same goes for OB_SOFT_BODY */
 	if (parent && (parent->gameflag & (OB_DYNAMIC | OB_COLLISION))) {
-		
-		if ((parent->gameflag & OB_CHILD) != 0 && (blenderobject->gameflag & OB_CHILD))
-		{
+		if( (parent->gameflag & OB_CHILD)!=0 && (blenderobject->gameflag & OB_CHILD) && !(parent->gameflag & OB_SOFT_BODY)) {
 			isCompoundChild = true;
-		} 
+		}
 	}
 	if (processCompoundChildren != isCompoundChild)
 		return;
