@@ -1001,6 +1001,7 @@ static int render_frame(int argc, const char **argv, void *data)
 					break;
 			}
 
+			BLI_begin_threaded_malloc();
 			BKE_reports_init(&reports, RPT_PRINT);
 
 			frame = CLAMPIS(frame, MINAFRAME, MAXFRAME);
@@ -1008,6 +1009,7 @@ static int render_frame(int argc, const char **argv, void *data)
 			RE_SetReports(re, &reports);
 			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);
 			RE_SetReports(re, NULL);
+			BLI_end_threaded_malloc();
 			return 1;
 		}
 		else {
@@ -1029,10 +1031,12 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 		Main *bmain = CTX_data_main(C);
 		Render *re = RE_NewRender(scene->id.name);
 		ReportList reports;
+		BLI_begin_threaded_malloc();
 		BKE_reports_init(&reports, RPT_PRINT);
 		RE_SetReports(re, &reports);
 		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 		RE_SetReports(re, NULL);
+		BLI_end_threaded_malloc();
 	}
 	else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
