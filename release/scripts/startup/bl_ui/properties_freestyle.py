@@ -39,7 +39,7 @@ class RenderFreestyleButtonsPanel():
 class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'CYCLES'}
 
     def draw_header(self, context):
         rd = context.scene.render
@@ -111,7 +111,7 @@ class RENDER_MT_lineset_specials(Menu):
 
 class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'CYCLES'}
 
     def draw(self, context):
         layout = self.layout
@@ -165,7 +165,7 @@ class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
 
 class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, Panel):
     bl_label = "Freestyle Line Set"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'CYCLES'}
 
     def draw_edge_type_buttons(self, box, lineset, edge_type):
         # property names
@@ -257,7 +257,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
 class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel, Panel):
     bl_label = "Freestyle Line Style"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'CYCLES'}
 
     def draw_modifier_box_header(self, box, modifier):
         row = box.row()

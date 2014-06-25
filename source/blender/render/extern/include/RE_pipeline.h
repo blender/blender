@@ -234,6 +234,7 @@ void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, 
                     unsigned int lay_override, int sfra, int efra, int tfra);
 #ifdef WITH_FREESTYLE
 void RE_RenderFreestyleStrokes(struct Render *re, struct Main *bmain, struct Scene *scene, int render);
+void RE_RenderFreestyleExternal(struct Render *re);
 #endif
 
 /* error reporting */

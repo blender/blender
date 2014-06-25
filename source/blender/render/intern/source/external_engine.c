@@ -647,6 +647,11 @@ int RE_engine_render(Render *re, int do_all)
 	if (type->render)
 		type->render(engine, re->scene);
 
+#ifdef WITH_FREESTYLE
+	if (re->r.mode & R_EDGE_FRS)
+		RE_RenderFreestyleExternal(re);
+#endif
+
 	engine->tile_x = 0;
 	engine->tile_y = 0;
 	engine->flag &= ~RE_ENGINE_RENDERING;

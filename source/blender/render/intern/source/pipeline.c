@@ -2810,6 +2810,16 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render
 	}
 	re->result_ok = 1;
 }
+
+void RE_RenderFreestyleExternal(Render *re)
+{
+	if (!re->test_break(re->tbh)) {
+		RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
+		RE_Database_Preprocess(re);
+		add_freestyle(re, 1);
+		RE_Database_Free(re);
+	}
+}
 #endif
 
 static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
