@@ -577,7 +577,7 @@ void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 	}
 }
 
-void BLI_reverselist(ListBase *lb)
+void BLI_listbase_reverse(ListBase *lb)
 {
 	struct Link *curr = lb->first;
 	struct Link *prev = NULL;

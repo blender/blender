@@ -75,7 +75,7 @@ void BLI_freelinkN(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 
 void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
 void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src) ATTR_NONNULL(1, 2);
-void BLI_reverselist(struct ListBase *lb) ATTR_NONNULL(1);
+void BLI_listbase_reverse(struct ListBase *lb) ATTR_NONNULL(1);
 void BLI_rotatelist_first(struct ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
 void BLI_rotatelist_last(struct ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
 

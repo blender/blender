@@ -3791,8 +3791,7 @@ void uiBlockSetDirection(uiBlock *block, char direction)
 /* this call escapes if there's alignment flags */
 void uiBlockFlipOrder(uiBlock *block)
 {
-	ListBase lb;
-	uiBut *but, *next;
+	uiBut *but;
 	float centy, miny = 10000, maxy = -10000;
 
 	if (U.uiflag & USER_MENUFIXEDORDER)
@@ -3814,15 +3813,7 @@ void uiBlockFlipOrder(uiBlock *block)
 	}
 	
 	/* also flip order in block itself, for example for arrowkey */
-	BLI_listbase_clear(&lb);
-	but = block->buttons.first;
-	while (but) {
-		next = but->next;
-		BLI_remlink(&block->buttons, but);
-		BLI_addtail(&lb, but);
-		but = next;
-	}
-	block->buttons = lb;
+	BLI_listbase_reverse(&block->buttons);
 }
 
 
