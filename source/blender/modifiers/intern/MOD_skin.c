@@ -1705,6 +1705,11 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 	so.bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	so.mat_nr = 0;
 	
+	/* BMESH_TODO: bumping up the stack level (see MOD_array.c) */
+	BM_mesh_elem_toolflags_ensure(so.bm);
+	BMO_push(so.bm, NULL);
+	bmesh_edit_begin(so.bm, 0);
+
 	if (input_dvert)
 		BM_data_layer_add(so.bm, &so.bm->vdata, CD_MDEFORMVERT);
 
