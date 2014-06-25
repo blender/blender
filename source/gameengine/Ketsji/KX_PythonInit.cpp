@@ -87,6 +87,7 @@ extern "C" {
 #include "KX_SCA_DynamicActuator.h"
 #include "KX_SteeringActuator.h"
 #include "KX_NavMeshObject.h"
+#include "KX_MouseActuator.h"
 
 #include "SCA_IInputDevice.h"
 #include "SCA_PropertySensor.h"
@@ -1819,6 +1820,12 @@ PyObject *initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	/* BL_Action blend modes */
 	KX_MACRO_addTypesToDict(d, KX_ACTION_BLEND_BLEND, BL_Action::ACT_BLEND_BLEND);
 	KX_MACRO_addTypesToDict(d, KX_ACTION_BLEND_ADD, BL_Action::ACT_BLEND_ADD);
+
+	/* Mouse Actuator object axis*/
+	KX_MACRO_addTypesToDict(d, KX_ACT_MOUSE_OBJECT_AXIS_X, KX_MouseActuator::KX_ACT_MOUSE_OBJECT_AXIS_X);
+	KX_MACRO_addTypesToDict(d, KX_ACT_MOUSE_OBJECT_AXIS_Y, KX_MouseActuator::KX_ACT_MOUSE_OBJECT_AXIS_Y);
+	KX_MACRO_addTypesToDict(d, KX_ACT_MOUSE_OBJECT_AXIS_Z, KX_MouseActuator::KX_ACT_MOUSE_OBJECT_AXIS_Z);
+
 
 	// Check for errors
 	if (PyErr_Occurred())

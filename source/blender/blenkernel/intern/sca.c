@@ -391,6 +391,7 @@ void init_actuator(bActuator *act)
 	bSoundActuator *sa;
 	bSteeringActuator *sta;
 	bArmatureActuator *arma;
+	bMouseActuator *ma;
 	
 	if (act->data) MEM_freeN(act->data);
 	act->data= NULL;
@@ -476,6 +477,15 @@ void init_actuator(bActuator *act)
 		sta->velocity= 3.f;
 		sta->flag = ACT_STEERING_AUTOMATICFACING;
 		sta->facingaxis = 1;
+		break;
+	case ACT_MOUSE:
+		ma = act->data = MEM_callocN(sizeof( bMouseActuator ), "mouse act");
+		ma->flag = ACT_MOUSE_VISIBLE|ACT_MOUSE_USE_AXIS_X|ACT_MOUSE_USE_AXIS_Y|ACT_MOUSE_RESET_X|ACT_MOUSE_RESET_Y|ACT_MOUSE_LOCAL_Y;
+		ma->sensitivity[0] = ma->sensitivity[1] = 2.f;
+		ma->object_axis[0] = ACT_MOUSE_OBJECT_AXIS_Z;
+		ma->object_axis[1] = ACT_MOUSE_OBJECT_AXIS_X;
+		ma->limit_y[0] = DEG2RADF(-90.0f);
+		ma->limit_y[1] = DEG2RADF(90.0f);
 		break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */

@@ -245,6 +245,18 @@ typedef struct bSteeringActuator {
 	struct Object *navmesh;
 } bSteeringActuator;
 
+typedef struct bMouseActuator {
+	short type; /* 0=Visibility, 1=Look */
+	short flag;
+
+	int object_axis[2];
+	float threshold[2];
+	float sensitivity[2];
+	float limit_x[2];
+	float limit_y[2];
+} bMouseActuator;
+
+
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
@@ -314,6 +326,7 @@ typedef struct bActuator {
 #define ACT_STATE		22
 #define ACT_ARMATURE	23
 #define ACT_STEERING    24
+#define ACT_MOUSE		25
 
 /* actuator flag */
 #define ACT_SHOW		1
@@ -541,5 +554,23 @@ typedef struct bActuator {
 #define ACT_STEERING_ENABLEVISUALIZATION   2
 #define ACT_STEERING_AUTOMATICFACING   4
 #define ACT_STEERING_NORMALUP  8
+
+/* mouseactuator->type */
+#define ACT_MOUSE_VISIBILITY	0
+#define ACT_MOUSE_LOOK			1
+
+/* mouseactuator->flag */
+#define ACT_MOUSE_VISIBLE	(1 << 0)
+#define ACT_MOUSE_USE_AXIS_X	(1 << 1)
+#define ACT_MOUSE_USE_AXIS_Y	(1 << 2)
+#define ACT_MOUSE_RESET_X	(1 << 3)
+#define ACT_MOUSE_RESET_Y	(1 << 4)
+#define ACT_MOUSE_LOCAL_X	(1 << 5)
+#define ACT_MOUSE_LOCAL_Y	(1 << 6)
+
+/* mouseactuator->object_axis */
+#define ACT_MOUSE_OBJECT_AXIS_X	0
+#define ACT_MOUSE_OBJECT_AXIS_Y	1
+#define ACT_MOUSE_OBJECT_AXIS_Z	2
 
 #endif  /* __DNA_ACTUATOR_TYPES_H__ */

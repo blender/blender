@@ -519,6 +519,8 @@ static const char *actuator_name(int type)
 		return N_("Armature");
 	case ACT_STEERING:
 		return N_("Steering");
+	case ACT_MOUSE:
+		return N_("Mouse");
 	}
 	return N_("Unknown");
 }
@@ -2177,6 +2179,68 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
+static void draw_actuator_mouse(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row, *col, *subcol, *split, *subsplit;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+
+	switch (RNA_enum_get(ptr, "mode")) {
+		case ACT_MOUSE_VISIBILITY:
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "visible", UI_ITEM_R_TOGGLE, NULL, 0);
+			break;
+
+		case ACT_MOUSE_LOOK:
+			/* X axis */
+			row = uiLayoutRow(layout, 0);
+			col = uiLayoutColumn(row, 1);
+
+			uiItemR(col, ptr, "use_axis_x", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			subcol = uiLayoutColumn(col, 1);
+			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_axis_x")==1);
+			uiItemR(subcol, ptr, "sensitivity_x", 0, NULL, 0);
+			uiItemR(subcol, ptr, "threshold_x", 0, NULL, 0);
+
+			uiItemR(subcol, ptr, "min_x", 0, NULL, 0);
+			uiItemR(subcol, ptr, "max_x", 0, NULL, 0);
+
+			uiItemR(subcol, ptr, "object_axis_x", 0, NULL, 0);
+
+			/* Y Axis */
+			col = uiLayoutColumn(row, 1);
+
+			uiItemR(col, ptr, "use_axis_y", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			subcol = uiLayoutColumn(col, 1);
+			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_axis_y")==1);
+			uiItemR(subcol, ptr, "sensitivity_y", 0, NULL, 0);
+			uiItemR(subcol, ptr, "threshold_y", 0, NULL, 0);
+
+			uiItemR(subcol, ptr, "min_y", 0, NULL, 0);
+			uiItemR(subcol, ptr, "max_y", 0, NULL, 0);
+
+			uiItemR(subcol, ptr, "object_axis_y", 0, NULL, 0);
+
+			/* Lower options */
+			row = uiLayoutRow(layout, 0);
+			split = uiLayoutSplit(row, 0.5, 0);
+
+			subsplit = uiLayoutSplit(split, 0.5, 1);
+			uiLayoutSetActive(subsplit, RNA_boolean_get(ptr, "use_axis_x")==1);
+			uiItemR(subsplit, ptr, "local_x", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(subsplit, ptr, "reset_x", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			subsplit = uiLayoutSplit(split, 0.5, 1);
+			uiLayoutSetActive(subsplit, RNA_boolean_get(ptr, "use_axis_y")==1);
+			uiItemR(subsplit, ptr, "local_y", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(subsplit, ptr, "reset_y", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			break;
+	}
+}
+
 static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
@@ -2241,6 +2305,10 @@ static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 			break;
 		case ACT_STEERING:
 			draw_actuator_steering(box, ptr);
+			break;
+		case ACT_MOUSE:
+			draw_actuator_mouse(box, ptr);
+			break;
 	}
 }
 

@@ -55,6 +55,7 @@ static EnumPropertyItem actuator_type_items[] = {
 	{ACT_2DFILTER, "FILTER_2D", 0, "Filter 2D", ""},
 	{ACT_GAME, "GAME", 0, "Game", ""},
 	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
+    {ACT_MOUSE, "MOUSE", 0, "Mouse", ""},
 	{ACT_OBJECT, "MOTION", 0, "Motion", ""},
 	{ACT_PARENT, "PARENT", 0, "Parent", ""},
 	{ACT_PROPERTY, "PROPERTY", 0, "Property", ""},
@@ -110,6 +111,8 @@ static StructRNA *rna_Actuator_refine(struct PointerRNA *ptr)
 			return &RNA_ArmatureActuator;
 		case ACT_STEERING:
 			return &RNA_SteeringActuator;
+		case ACT_MOUSE:
+			return &RNA_MouseActuator;
 		default:
 			return &RNA_Actuator;
 	}
@@ -459,6 +462,7 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, Property
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_2DFILTER);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_GAME);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_MESSAGE);
+	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_MOUSE);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_OBJECT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PARENT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PROPERTY);
@@ -2038,6 +2042,132 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
+static void rna_def_mouse_actuator(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_type_items[] = {
+		{ACT_MOUSE_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
+		{ACT_MOUSE_LOOK, "LOOK", 0, "Look", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_object_axis_items[] = {
+		{ACT_MOUSE_OBJECT_AXIS_X, "OBJECT_AXIS_X", 0, "X Axis", ""},
+		{ACT_MOUSE_OBJECT_AXIS_Y, "OBJECT_AXIS_Y", 0, "Y Axis", ""},
+		{ACT_MOUSE_OBJECT_AXIS_Z, "OBJECT_AXIS_Z", 0, "Z Axis", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "MouseActuator", "Actuator");
+	RNA_def_struct_ui_text(srna, "Mouse Actuator", "Actuator to ..");
+	RNA_def_struct_sdna_from(srna, "bMouseActuator", "data");
+
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* Visibility */
+	prop = RNA_def_property(srna, "visible", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_MOUSE_VISIBLE);
+	RNA_def_property_ui_text(prop, "Visible", "Make mouse cursor visible");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* Mouse Look */
+	prop = RNA_def_property(srna, "use_axis_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_MOUSE_USE_AXIS_X);
+	RNA_def_property_ui_text(prop, "Use X Axis", "Calculate mouse movement on the X axis");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "use_axis_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_MOUSE_USE_AXIS_Y);
+	RNA_def_property_ui_text(prop, "Use Y Axis", "Calculate mouse movement on the Y axis");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "reset_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_MOUSE_RESET_X);
+	RNA_def_property_ui_text(prop, "Reset", "Reset the cursor's X position to the center of the screen space after calculating");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "reset_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_MOUSE_RESET_Y);
+	RNA_def_property_ui_text(prop, "Reset", "Reset the cursor's Y position to the center of the screen space after calculating");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "local_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_MOUSE_LOCAL_X);
+	RNA_def_property_ui_text(prop, "Local", "Apply rotation locally");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "local_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_MOUSE_LOCAL_Y);
+	RNA_def_property_ui_text(prop, "Local", "Apply rotation locally");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "threshold_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "threshold[0]");
+	RNA_def_property_ui_range(prop, 0, 0.5, 1, 3);
+	RNA_def_property_ui_text(prop, "Threshold", "The amount of X motion before mouse movement will register");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "threshold_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "threshold[1]");
+	RNA_def_property_ui_range(prop, 0, 0.5, 1, 3);
+	RNA_def_property_ui_text(prop, "Threshold", "The amount of Y motion before mouse movement will register");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "object_axis_x", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "object_axis[0]");
+	RNA_def_property_enum_items(prop, prop_object_axis_items);
+	RNA_def_property_ui_text(prop, "Obj Axis", "Local object axis mouse movement in the X direction will apply to");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "object_axis_y", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "object_axis[1]");
+	RNA_def_property_enum_items(prop, prop_object_axis_items);
+	RNA_def_property_ui_text(prop, "Obj Axis", "The object axis mouse movement in the Y direction will apply to");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "sensitivity_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sensitivity[0]");
+	RNA_def_property_ui_range(prop, -100.0, 100.0, 0.2, 3);
+	RNA_def_property_ui_text(prop, "Sensitivity", "Set the sensitivity of the X axis");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "sensitivity_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sensitivity[1]");
+	RNA_def_property_ui_range(prop, -100.0, 100.0, 0.2, 3);
+	RNA_def_property_ui_text(prop, "Sensitivity", "Set the sensitivity of the Y axis");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "min_x", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_x[0]");
+	RNA_def_property_ui_range(prop, DEG2RADF(-3600.0f), 0.0, 9, 3);
+	RNA_def_property_ui_text(prop, "min", "The maximum negative rotation allowed by x mouse movement (0 for infinite)");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "max_x", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_x[1]");
+	RNA_def_property_ui_range(prop, 0.0, DEG2RADF(3600.0f), 9, 3);
+	RNA_def_property_ui_text(prop, "max", "The maximum positive rotation allowed by x mouse movement (0 for infinite)");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "min_y", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_y[0]");
+	RNA_def_property_ui_range(prop, DEG2RADF(-3600.0f), 0.0, 9, 3);
+	RNA_def_property_ui_text(prop, "min", "The maximum negative rotation allowed by y mouse movement (0 for infinite)");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "max_y", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_y[1]");
+	RNA_def_property_ui_range(prop, 0.0, DEG2RADF(3600.0f), 9, 3);
+	RNA_def_property_ui_text(prop, "max", "The maximum positive rotation allowed by y mouse movement (0 for infinite)");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+}
+
 void RNA_def_actuator(BlenderRNA *brna)
 {
 	rna_def_actuator(brna);
@@ -2059,6 +2189,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 	rna_def_state_actuator(brna);
 	rna_def_armature_actuator(brna);
 	rna_def_steering_actuator(brna);
+	rna_def_mouse_actuator(brna);
 }
 
 #endif

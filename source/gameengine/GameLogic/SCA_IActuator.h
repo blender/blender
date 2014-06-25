@@ -89,6 +89,7 @@ public:
 		KX_ACT_STATE,
 		KX_ACT_ARMATURE,
 		KX_ACT_STEERING,
+		KX_ACT_MOUSE,
 	};
 
 	SCA_IActuator(SCA_IObject* gameobj, KX_ACTUATOR_TYPE type); 
