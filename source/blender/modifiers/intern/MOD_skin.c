@@ -1757,13 +1757,12 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 
 static void skin_set_orig_indices(DerivedMesh *dm)
 {
-	int *orig, totpoly, i;
+	int *orig, totpoly;
 
 	totpoly = dm->getNumPolys(dm);
 	orig = CustomData_add_layer(&dm->polyData, CD_ORIGINDEX,
 	                            CD_CALLOC, NULL, totpoly);
-	for (i = 0; i < totpoly; i++)
-		orig[i] = ORIGINDEX_NONE;
+	fill_vn_i(orig, totpoly, ORIGINDEX_NONE);
 }
 
 /*
