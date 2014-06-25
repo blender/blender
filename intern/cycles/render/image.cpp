@@ -157,7 +157,8 @@ static bool image_equals(ImageManager::Image *image, const string& filename, voi
 	       image->interpolation == interpolation;
 }
 
-int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float, bool& is_linear, InterpolationType interpolation, bool use_alpha)
+int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, float frame,
+	bool& is_float, bool& is_linear, InterpolationType interpolation, bool use_alpha)
 {
 	Image *img;
 	size_t slot;
@@ -168,8 +169,13 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 	if(is_float) {
 		/* find existing image */
 		for(slot = 0; slot < float_images.size(); slot++) {
-			if(float_images[slot] && image_equals(float_images[slot], filename, builtin_data, interpolation)) {
-				float_images[slot]->users++;
+			img = float_images[slot];
+			if(img && image_equals(img, filename, builtin_data, interpolation)) {
+				if(img->frame != frame) {
+					img->frame = frame;
+					img->need_load = true;
+				}
+				img->users++;
 				return slot;
 			}
 		}
@@ -197,6 +203,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 		img->builtin_data = builtin_data;
 		img->need_load = true;
 		img->animated = animated;
+		img->frame = frame;
 		img->interpolation = interpolation;
 		img->users = 1;
 		img->use_alpha = use_alpha;
@@ -205,8 +212,13 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 	}
 	else {
 		for(slot = 0; slot < images.size(); slot++) {
-			if(images[slot] && image_equals(images[slot], filename, builtin_data, interpolation)) {
-				images[slot]->users++;
+			img = images[slot];
+			if(img && image_equals(img, filename, builtin_data, interpolation)) {
+				if(img->frame != frame) {
+					img->frame = frame;
+					img->need_load = true;
+				}
+				img->users++;
 				return slot+tex_image_byte_start;
 			}
 		}
@@ -234,6 +246,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 		img->builtin_data = builtin_data;
 		img->need_load = true;
 		img->animated = animated;
+		img->frame = frame;
 		img->interpolation = interpolation;
 		img->users = 1;
 		img->use_alpha = use_alpha;
@@ -242,6 +255,7 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 
 		slot += tex_image_byte_start;
 	}
+
 	need_update = true;
 
 	return slot;
