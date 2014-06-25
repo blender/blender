@@ -5564,6 +5564,18 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	return block;
 }
 
+static void menu_add_shortcut_cancel(struct bContext *C, void *arg1)
+{
+	uiBut *but = (uiBut *)arg1;
+	wmKeyMap *km;
+	wmKeyMapItem *kmi;
+	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, true, &km);
+	
+	kmi = WM_keymap_item_find_id(km, kmi_id);
+	WM_keymap_remove_item(km, kmi);
+}
+
 static void popup_change_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 {
 	uiBut *but = (uiBut *)arg1;
@@ -5589,7 +5601,7 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 {
 	uiBut *but = (uiBut *)arg1;
 	button_timers_tooltip_remove(C, but);
-	uiPupBlock(C, menu_add_shortcut, but);
+	uiPupBlockEx(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but);
 }
 
 /**
