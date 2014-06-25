@@ -1040,16 +1040,17 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
-	if (RNA_struct_property_is_set(op->ptr, "files") && RNA_struct_property_is_set(op->ptr, "directory")) {	
+	RNA_string_get(op->ptr, "filepath", path);
+
+	if (!IMB_isanim(path) && RNA_struct_property_is_set(op->ptr, "files") &&
+	    RNA_struct_property_is_set(op->ptr, "directory"))
+	{
 		ListBase frames;
 
 		BLI_listbase_clear(&frames);
 		image_sequence_get_frames(op->ptr, &frames, path, sizeof(path));
 		frame_seq_len = image_sequence_get_len(&frames, &frame_ofs);
 		BLI_freelistN(&frames);
-	}
-	else {
-		RNA_string_get(op->ptr, "filepath", path);
 	}
 
 	errno = 0;
