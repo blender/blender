@@ -1679,7 +1679,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Link Data";
-	ot->description = "Make links from the active object to other selected objects";
+	ot->description = "Apply active object links to other selected objects";
 	ot->idname = "OBJECT_OT_make_links_data";
 
 	/* api callbacks */
