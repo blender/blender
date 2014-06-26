@@ -211,9 +211,9 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 	if (use_verts) {
 		BMIter viter;
-		BMVert *v;
+		BMVert *v, *v_next;
 
-		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH_MUTABLE (v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
 				if (BM_vert_edge_count(v) == 2) {
 					BM_vert_collapse_edge(bm, v->e, v, true);
