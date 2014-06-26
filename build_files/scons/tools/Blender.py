@@ -413,7 +413,7 @@ def buildinfo(lenv, build_type):
 
     if os.path.isdir(os.path.abspath('.git')):
         try:
-            build_commit_timestamp = subprocess.check_output(args=['git', 'log', '-1', '--format=%ct']).strip()
+            build_commit_timestamp = btools.get_command_output(args=['git', 'log', '-1', '--format=%ct']).strip()
         except OSError:
             build_commit_timestamp = None
         if not build_commit_timestamp:
@@ -425,42 +425,42 @@ def buildinfo(lenv, build_type):
             no_upstream = False
 
             try :
-                build_hash = subprocess.check_output(['git', 'rev-parse', '--short', '@{u}']).strip()
+                build_hash = btools.get_command_output(['git', 'rev-parse', '--short', '@{u}']).strip()
             except subprocess.CalledProcessError:
                 # assume branch has no upstream configured
                 build_hash = ''
 
-            build_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
+            build_branch = btools.get_command_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
 
             if build_branch == 'HEAD':
-                master_check = subprocess.check_output(['git', 'branch', '--list', 'master', '--contains', build_hash]).strip()
+                master_check = btools.get_command_output(['git', 'branch', '--list', 'master', '--contains', build_hash]).strip()
                 if master_check == 'master':
                     build_branch = 'master'
                 else:
-                    head_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
-                    tag_hashes = subprocess.check_output(['git', 'show-ref', '--tags', '-d'])
+                    head_hash = btools.get_command_output(['git', 'rev-parse', 'HEAD']).strip()
+                    tag_hashes = btools.get_command_output(['git', 'show-ref', '--tags', '-d'])
                     if tag_hashes.find(head_hash) != -1:
                         build_branch = 'master'
 
             if build_hash == '':
-                build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
+                build_hash = btools.get_command_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
                 no_upstream = True
             else:
-                older_commits = subprocess.check_output(['git', 'log', '--oneline', 'HEAD..@{u}']).strip()
+                older_commits = btools.get_command_output(['git', 'log', '--oneline', 'HEAD..@{u}']).strip()
                 if older_commits:
-                    build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
+                    build_hash = btools.get_command_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
 
             # ## Check for local modifications
             has_local_changes = False
 
             # Update GIT index before getting dirty files
             os.system('git update-index -q --refresh')
-            changed_files = subprocess.check_output(['git', 'diff-index', '--name-only', 'HEAD', '--']).strip()
+            changed_files = btools.get_command_output(['git', 'diff-index', '--name-only', 'HEAD', '--']).strip()
 
             if changed_files:
                 has_local_changes = True
             elif no_upstream == False:
-                unpushed_log = subprocess.check_output(['git', 'log', '--oneline', '@{u}..']).strip()
+                unpushed_log = btools.get_command_output(['git', 'log', '--oneline', '@{u}..']).strip()
                 has_local_changes = unpushed_log != ''
 
             if build_branch.startswith('blender-v'):

@@ -285,7 +285,7 @@ if env['OURPLATFORM']=='darwin':
     import subprocess
 
     command = ["%s"%env['CC'], "--version"]
-    line = subprocess.check_output(command)
+    line = btools.get_command_output(command)
     ver = re.search(r'[0-9]+(\.[0-9]+[svn]+)+', line) or re.search(r'[0-9]+(\.[0-9]+)+', line) # read the "based on LLVM x.xsvn" version here, not the Apple version
     if ver:
         env['CCVERSION'] = ver.group(0).strip('svn')

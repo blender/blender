@@ -30,6 +30,7 @@ import subprocess
 import sys
 import os
 import Blender as B
+import btools
 
 def normpath(path):
     return os.path.abspath(os.path.normpath(path))
@@ -64,7 +65,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     closure_dir = os.path.join(source_dir, "../closure")
 
     # get CUDA version
-    output = subprocess.check_output([nvcc, "--version"])
+    output = btools.get_command_output([nvcc, "--version"])
     cuda_major_minor = re.findall(r'release (\d+).(\d+)', output)[0]
     cuda_version = int(cuda_major_minor[0])*10 + int(cuda_major_minor[1])
 
