@@ -1083,6 +1083,9 @@ void BKE_object_lod_sort(Object *ob)
 bool BKE_object_lod_remove(Object *ob, int level)
 {
 	LodLevel *rem;
+	
+	if (ob == NULL)
+		return false;
 
 	if (level < 1 || level > BLI_countlist(&ob->lodlevels) - 1)
 		return false;
