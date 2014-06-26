@@ -1234,8 +1234,7 @@ static int brush_needs_sculpt_normal(const Brush *brush)
 	return ((ELEM(brush->sculpt_tool,
 	              SCULPT_TOOL_GRAB,
 	              SCULPT_TOOL_SNAKE_HOOK) &&
-	         ((brush->normal_weight > 0) ||
-	          (brush->flag & BRUSH_FRONTFACE))) ||
+	         (brush->normal_weight > 0)) ||
 
 	        ELEM7(brush->sculpt_tool,
 	              SCULPT_TOOL_BLOB,
