@@ -67,6 +67,7 @@ extern "C" {
 
 // Freestyle configuration
 static bool freestyle_is_initialized = false;
+static Config::Path *pathconfig = NULL;
 static Controller *controller = NULL;
 static AppView *view = NULL;
 
@@ -104,6 +105,7 @@ void FRS_initialize()
 	if (freestyle_is_initialized)
 		return;
 
+	pathconfig = new Config::Path;
 	controller = new Controller();
 	view = new AppView;
 	controller->setView(view);
@@ -126,6 +128,7 @@ void FRS_set_context(bContext *C)
 
 void FRS_exit()
 {
+	delete pathconfig;
 	delete controller;
 	delete view;
 }
