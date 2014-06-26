@@ -26,7 +26,7 @@ def get_command_output(*popenargs, **kwargs):
         cmd = kwargs.get("args")
         if cmd is None:
             cmd = popenargs[0]
-        raise
+        raise subprocess.CalledProcessError(retcode, cmd, output=output)
     return output
 
 def get_version():
