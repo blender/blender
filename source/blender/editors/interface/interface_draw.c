@@ -587,7 +587,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	int i, c;
 	float w, w3, h, alpha, yofs;
 	GLint scissor[4];
-	float colors[3][3] = MAT3_UNITY;
+	float colors[3][3];
 	float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
 	float colors_alpha[3][3], colorsycc_alpha[3][3]; /* colors  pre multiplied by alpha for speed up */
 	float min, max;
@@ -609,6 +609,8 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	/* log scale for alpha */
 	alpha = scopes->wavefrm_alpha * scopes->wavefrm_alpha;
 	
+	unit_m3(colors);
+
 	for (c = 0; c < 3; c++) {
 		for (i = 0; i < 3; i++) {
 			colors_alpha[c][i] = colors[c][i] * alpha;

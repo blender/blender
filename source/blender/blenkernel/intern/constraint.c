@@ -1158,7 +1158,6 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 	if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVE)) {
 		Curve *cu = ct->tar->data;
 		float vec[4], dir[3], radius;
-		float totmat[4][4] = MAT4_UNITY;
 		float curvetime;
 
 		unit_m4(ct->matrix);
@@ -1206,6 +1205,9 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 			}
 			
 			if (where_on_path(ct->tar, curvetime, vec, dir, (data->followflag & FOLLOWPATH_FOLLOW) ? quat : NULL, &radius, NULL) ) {  /* quat_pt is quat or NULL*/
+				float totmat[4][4];
+				unit_m4(totmat);
+
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
 #if 0
 					float x1, q[4];
@@ -3039,11 +3041,12 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 	if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVE)) {
 		float obmat[4][4], ownLoc[3];
 		float curveMin[3], curveMax[3];
-		float targetMatrix[4][4] = MAT4_UNITY;
+		float targetMatrix[4][4];
 		
 		copy_m4_m4(obmat, cob->matrix);
 		copy_v3_v3(ownLoc, obmat[3]);
 		
+		unit_m4(targetMatrix);
 		INIT_MINMAX(curveMin, curveMax);
 		/* XXX - don't think this is good calling this here - campbell */
 		BKE_object_minmax(ct->tar, curveMin, curveMax, true);
