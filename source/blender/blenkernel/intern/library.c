@@ -71,6 +71,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLI_threads.h"
 #include "BLF_translation.h"
 
 #include "BKE_action.h"
@@ -747,14 +748,14 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name)
 	
 	id = alloc_libblock_notest(type);
 	if (id) {
-		BLI_spin_lock(&bmain->lock);
+		BKE_main_lock(bmain);
 		BLI_addtail(lb, id);
 		id->us = 1;
 		id->icon_id = 0;
 		*( (short *)id->name) = type;
 		new_id(lb, id, name);
 		/* alphabetic insertion: is in new_id */
-		BLI_spin_unlock(&bmain->lock);
+		BKE_main_unlock(bmain);
 	}
 	DAG_id_type_tag(bmain, type);
 	return id;
@@ -1008,7 +1009,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, bool do_id_user)
 	}
 
 	/* avoid notifying on removed data */
-	BLI_spin_lock(&bmain->lock);
+	BKE_main_lock(bmain);
 
 	if (free_notifier_reference_cb)
 		free_notifier_reference_cb(id);
@@ -1016,7 +1017,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, bool do_id_user)
 	BLI_remlink(lb, id);
 
 	BKE_libblock_free_data(bmain, id);
-	BLI_spin_unlock(&bmain->lock);
+	BKE_main_unlock(bmain);
 
 	MEM_freeN(id);
 }
@@ -1048,7 +1049,8 @@ Main *BKE_main_new(void)
 	Main *bmain = MEM_callocN(sizeof(Main), "new main");
 	bmain->eval_ctx = MEM_callocN(sizeof(EvaluationContext),
 	                              "EvaluationContext");
-	BLI_spin_init(&bmain->lock);
+	bmain->lock = MEM_mallocN(sizeof(SpinLock), "main lock");
+	BLI_spin_init(bmain->lock);
 	return bmain;
 }
 
@@ -1111,9 +1113,20 @@ void BKE_main_free(Main *mainvar)
 		}
 	}
 
-	BLI_spin_end(&mainvar->lock);
+	BLI_spin_end(mainvar->lock);
+	MEM_freeN(mainvar->lock);
 	MEM_freeN(mainvar->eval_ctx);
 	MEM_freeN(mainvar);
+}
+
+void BKE_main_lock(struct Main *bmain)
+{
+	BLI_spin_lock(bmain->lock);
+}
+
+void BKE_main_unlock(struct Main *bmain)
+{
+	BLI_spin_unlock(bmain->lock);
 }
 
 /* ***************** ID ************************ */

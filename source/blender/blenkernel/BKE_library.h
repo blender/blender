@@ -84,6 +84,9 @@ void BKE_libblock_free_data(struct Main *bmain, struct ID *id);
 struct Main *BKE_main_new(void);
 void BKE_main_free(struct Main *mainvar);
 
+void BKE_main_lock(struct Main *bmain);
+void BKE_main_unlock(struct Main *bmain);
+
 void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const bool tag);
 void BKE_main_id_tag_listbase(struct ListBase *lb, const bool tag);
 void BKE_main_id_tag_all(struct Main *mainvar, const bool tag);

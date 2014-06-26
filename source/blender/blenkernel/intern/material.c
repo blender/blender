@@ -780,13 +780,13 @@ void test_object_materials(Main *bmain, ID *id)
 		return;
 	}
 
-	BLI_spin_lock(&bmain->lock);
+	BKE_main_lock(bmain);
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->data == id) {
 			BKE_material_resize_object(ob, *totcol, false);
 		}
 	}
-	BLI_spin_unlock(&bmain->lock);
+	BKE_main_unlock(bmain);
 }
 
 void assign_material_id(ID *id, Material *ma, short act)
