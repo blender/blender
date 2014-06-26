@@ -75,7 +75,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
  * switching to dynamic heap allocation */
 #define BLI_array_staticdeclare(arr, maxstatic)                               \
 	int   _##arr##_count = 0;                                                 \
-	char  _##arr##_static[maxstatic * sizeof(arr)]
+	char  _##arr##_static[maxstatic * sizeof(*(arr))]
 
 /* this returns the logical size of the array, not including buffering. */
 #define BLI_array_count(arr) _##arr##_count
