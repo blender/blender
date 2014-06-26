@@ -797,7 +797,7 @@ static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob), ReportList
 				BKE_report(reports, RPT_ERROR, "Keying Set does not contain any paths");
 			}
 		}
-		return 0;
+		return false;
 	}
 	
 	/* select each object that Keying Set refers to */

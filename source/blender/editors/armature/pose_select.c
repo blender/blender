@@ -45,6 +45,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -732,7 +733,7 @@ static bool pose_select_same_layer(bContext *C, Object *ob, bool extend)
 	return changed;
 }
 
-static bool pose_select_same_keyingset(bContext *C, Object *ob, bool extend)
+static bool pose_select_same_keyingset(bContext *C, ReportList *reports, Object *ob, bool extend)
 {
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
 	KS_Path *ksp;
@@ -742,11 +743,26 @@ static bool pose_select_same_keyingset(bContext *C, Object *ob, bool extend)
 	bool changed = false;
 	
 	/* sanity checks: validate Keying Set and object */
-	if ((ks == NULL) || (ANIM_validate_keyingset(C, NULL, ks) != 0))
-		return 0;
+	if (ks == NULL) {
+		BKE_report(reports, RPT_ERROR, "No active Keying Set to use");
+		return false;
+	}
+	else if (ANIM_validate_keyingset(C, NULL, ks) != 0) {
+		if (ks->paths.first == NULL) {
+			if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+				BKE_report(reports, RPT_ERROR, 
+				           "Use another Keying Set, as the active one depends on the currently "
+				           "selected items or cannot find any targets due to unsuitable context");
+			}
+			else {
+				BKE_report(reports, RPT_ERROR, "Keying Set does not contain any paths");
+			}
+		}
+		return false;
+	}
 		
 	if (ELEM3(NULL, ob, pose, arm))
-		return 0;
+		return false;
 		
 	/* if not extending selection, deselect all selected first */
 	if (extend == false) {
@@ -811,7 +827,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 			break;
 			
 		case POSE_SEL_SAME_KEYINGSET: /* Keying Set */
-			changed = pose_select_same_keyingset(C, ob, extend);
+			changed = pose_select_same_keyingset(C, op->reports, ob, extend);
 			break;
 		
 		default:
