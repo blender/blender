@@ -776,14 +776,29 @@ static bool select_grouped_gameprops(bContext *C, Object *ob)
 	return changed;
 }
 
-static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
+static bool select_grouped_keyingset(bContext *C, ReportList *reports, Object *UNUSED(ob))
 {
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
 	bool changed = false;
 	
 	/* firstly, validate KeyingSet */
-	if ((ks == NULL) || (ANIM_validate_keyingset(C, NULL, ks) != 0))
+	if (ks == NULL) {
+		BKE_report(reports, RPT_ERROR, "No active Keying Set to use");
+		return false;
+	}
+	else if (ANIM_validate_keyingset(C, NULL, ks) != 0) {
+		if (ks->paths.first == NULL) {
+			if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+				BKE_report(reports, RPT_ERROR, 
+				           "Use another Keying Set, as the active one depends on the currently "
+						   "selected objects or cannot find any targets due to unsuitable context");
+			}
+			else {
+				BKE_report(reports, RPT_ERROR, "Keying Set does not contain any paths");
+			}
+		}
 		return 0;
+	}
 	
 	/* select each object that Keying Set refers to */
 	/* TODO: perhaps to be more in line with the rest of these, we should only take objects
@@ -852,7 +867,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	else if (nr == 9) changed |= select_grouped_index_object(C, ob);
 	else if (nr == 10) changed |= select_grouped_color(C, ob);
 	else if (nr == 11) changed |= select_grouped_gameprops(C, ob);
-	else if (nr == 12) changed |= select_grouped_keyingset(C, ob);
+	else if (nr == 12) changed |= select_grouped_keyingset(C, op->reports, ob);
 	else if (nr == 13) changed |= select_similar_lamps(C, ob);
 	else if (nr == 14) changed |= select_similar_pass_index(C, ob);
 
