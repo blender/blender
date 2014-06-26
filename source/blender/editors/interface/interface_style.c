@@ -330,7 +330,7 @@ void UI_DrawString(float x, float y, const char *str)
 /* reading without uifont will create one */
 void uiStyleInit(void)
 {
-	uiFont *font = U.uifonts.first;
+	uiFont *font;
 	uiStyle *style = U.uistyles.first;
 	int monofont_size = datatoc_bmonofont_ttf_size;
 	unsigned char *monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;

@@ -776,7 +776,7 @@ static bool select_grouped_gameprops(bContext *C, Object *ob)
 	return changed;
 }
 
-static bool select_grouped_keyingset(bContext *C, ReportList *reports, Object *UNUSED(ob))
+static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob), ReportList *reports)
 {
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
 	bool changed = false;
@@ -867,7 +867,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	else if (nr == 9) changed |= select_grouped_index_object(C, ob);
 	else if (nr == 10) changed |= select_grouped_color(C, ob);
 	else if (nr == 11) changed |= select_grouped_gameprops(C, ob);
-	else if (nr == 12) changed |= select_grouped_keyingset(C, op->reports, ob);
+	else if (nr == 12) changed |= select_grouped_keyingset(C, ob, op->reports);
 	else if (nr == 13) changed |= select_similar_lamps(C, ob);
 	else if (nr == 14) changed |= select_similar_pass_index(C, ob);
 

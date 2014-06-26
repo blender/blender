@@ -795,8 +795,6 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		BM_mesh_edgesplit(em->bm, true, true, true);
 	}
 
-	dist_sq = FLT_MAX;
-
 	{
 		/* --- select which vert --- */
 		BMVert *v_best = NULL;
