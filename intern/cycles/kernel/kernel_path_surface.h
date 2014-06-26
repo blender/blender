@@ -112,7 +112,7 @@ ccl_device void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RN
 
 			if(!shadow_blocked(kg, state, &light_ray, &shadow)) {
 				/* accumulate */
-				path_radiance_accum_light(L, throughput, &L_light, shadow, num_samples_adjust, state->bounce, is_lamp);
+				path_radiance_accum_light(L, throughput*num_samples_adjust, &L_light, shadow, num_samples_adjust, state->bounce, is_lamp);
 			}
 		}
 	}
