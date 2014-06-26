@@ -1050,7 +1050,7 @@ Main *BKE_main_new(void)
 	bmain->eval_ctx = MEM_callocN(sizeof(EvaluationContext),
 	                              "EvaluationContext");
 	bmain->lock = MEM_mallocN(sizeof(SpinLock), "main lock");
-	BLI_spin_init(bmain->lock);
+	BLI_spin_init((SpinLock *)bmain->lock);
 	return bmain;
 }
 
@@ -1113,7 +1113,7 @@ void BKE_main_free(Main *mainvar)
 		}
 	}
 
-	BLI_spin_end(mainvar->lock);
+	BLI_spin_end((SpinLock *)mainvar->lock);
 	MEM_freeN(mainvar->lock);
 	MEM_freeN(mainvar->eval_ctx);
 	MEM_freeN(mainvar);
@@ -1121,12 +1121,12 @@ void BKE_main_free(Main *mainvar)
 
 void BKE_main_lock(struct Main *bmain)
 {
-	BLI_spin_lock(bmain->lock);
+	BLI_spin_lock((SpinLock *) bmain->lock);
 }
 
 void BKE_main_unlock(struct Main *bmain)
 {
-	BLI_spin_unlock(bmain->lock);
+	BLI_spin_unlock((SpinLock *) bmain->lock);
 }
 
 /* ***************** ID ************************ */
