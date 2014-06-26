@@ -155,25 +155,27 @@ void ED_editors_exit(bContext *C)
  * rendering, copying, etc. */
 void ED_editors_flush_edits(const bContext *C, bool for_render)
 {
-	Object *obact = CTX_data_active_object(C);
+	Object *ob;
 	Object *obedit = CTX_data_edit_object(C);
-
+	Main *bmain = CTX_data_main(C);
 	/* get editmode results */
 	if (obedit)
 		ED_object_editmode_load(obedit);
 
-	if (obact && (obact->mode & OB_MODE_SCULPT)) {
-		/* flush multires changes (for sculpt) */
-		multires_force_update(obact);
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (ob && (ob->mode & OB_MODE_SCULPT)) {
+			/* flush multires changes (for sculpt) */
+			multires_force_update(ob);
 
-		if (for_render) {
-			/* flush changes from dynamic topology sculpt */
-			BKE_sculptsession_bm_to_me_for_render(obact);
-		}
-		else {
-			/* Set reorder=false so that saving the file doesn't reorder
+			if (for_render) {
+				/* flush changes from dynamic topology sculpt */
+				BKE_sculptsession_bm_to_me_for_render(ob);
+			}
+			else {
+				/* Set reorder=false so that saving the file doesn't reorder
 			 * the BMesh's elements */
-			BKE_sculptsession_bm_to_me(obact, false);
+				BKE_sculptsession_bm_to_me(ob, false);
+			}
 		}
 	}
 }
