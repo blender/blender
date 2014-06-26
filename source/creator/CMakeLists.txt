@@ -177,6 +177,7 @@ if(WITH_BUILDINFO)
 
 	# make an object library so can load with it in tests
 	add_library(buildinfoobj OBJECT buildinfo.c)
+	add_dependencies(buildinfoobj buildinfo)
 endif()
 
 # message(STATUS "Configuring blender")
