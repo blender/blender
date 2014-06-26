@@ -78,7 +78,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 	char  _##arr##_static[maxstatic * sizeof(*(arr))]
 
 /* this returns the logical size of the array, not including buffering. */
-#define BLI_array_count(arr) _##arr##_count
+#define BLI_array_count(arr) ((void)0, _##arr##_count)
 
 /* Grow the array by a fixed number of items.
  *
