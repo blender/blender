@@ -210,6 +210,7 @@ void Controller::setContext(bContext *C)
 {
 	PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter*>(_inter);
 	py_inter->setContext(C);
+	_context = C;
 }
 
 int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
@@ -850,7 +851,7 @@ void Controller::ResetRenderCount()
 Render *Controller::RenderStrokes(Render *re, bool render)
 {
 	_Chrono.start();
-	BlenderStrokeRenderer *blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
+	BlenderStrokeRenderer *blenderRenderer = new BlenderStrokeRenderer(_context, re, ++_render_count);
 	if (render)
 		_Canvas->Render(blenderRenderer);
 	real d = _Chrono.stop();

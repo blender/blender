@@ -29,12 +29,11 @@
 #include "../system/FreestyleConfig.h"
 
 extern "C" {
-#include "DNA_material_types.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_main.h"
-
-#include "render_types.h"
+struct Main;
+struct Object;
+struct Render;
+struct Scene;
+struct bContext;
 }
 
 namespace Freestyle {
@@ -42,7 +41,7 @@ namespace Freestyle {
 class BlenderStrokeRenderer : public StrokeRenderer
 {
 public:
-	BlenderStrokeRenderer(Render *re, int render_count);
+	BlenderStrokeRenderer(bContext *C, Render *re, int render_count);
 	virtual ~BlenderStrokeRenderer();
 
 	/*! Renders a stroke rep */
@@ -57,6 +56,7 @@ protected:
 	Main *freestyle_bmain;
 	Scene *old_scene;
 	Scene *freestyle_scene;
+	bContext *_context;
 	float _width, _height;
 	float _z, _z_delta;
 	unsigned int _mesh_id;

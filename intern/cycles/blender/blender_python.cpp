@@ -84,10 +84,12 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 
 	PointerRNA dataptr;
 	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydata), &dataptr);
+	std::cout << "_cycles.create: dataptr " << PyLong_AsVoidPtr(pydata) << std::endl;
 	BL::BlendData data(dataptr);
 
 	PointerRNA sceneptr;
 	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
+	std::cout << "_cycles.create: sceneptr " << PyLong_AsVoidPtr(pyscene) << std::endl;
 	BL::Scene scene(sceneptr);
 
 	PointerRNA regionptr;

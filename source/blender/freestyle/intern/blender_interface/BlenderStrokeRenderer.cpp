@@ -32,35 +32,43 @@ extern "C" {
 
 #include "DNA_camera_types.h"
 #include "DNA_listBase.h"
+#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h" /* free_libblock */
-#include "BKE_main.h" /* struct Main */
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "BLI_utildefines.h"
 
 #include "RE_pipeline.h"
+
+#include "C:\bf-blender\blender.git\source\blender\nodes\NOD_shader.h"
+#include "C:\bf-blender\blender.git\source\blender\makesrna\RNA_access.h"
+
+#include "render_types.h"
 }
 
 #include <limits.h>
 
 namespace Freestyle {
 
-BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
+BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render_count) : StrokeRenderer()
 {
 	freestyle_bmain = re->freestyle_bmain;
 
 	// for stroke mesh generation
+	_context = C;
 	_width = re->winx;
 	_height = re->winy;
 
@@ -72,6 +80,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	freestyle_scene->r.cfra = old_scene->r.cfra;
 	freestyle_scene->r.mode = old_scene->r.mode &
 	                          ~(R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR | R_BORDER);
+	freestyle_scene->r.mode |= R_PERSISTENT_DATA; // for nested Cycles sessions
 	freestyle_scene->r.xsch = re->rectx; // old_scene->r.xsch
 	freestyle_scene->r.ysch = re->recty; // old_scene->r.ysch
 	freestyle_scene->r.xasp = 1.0f; // old_scene->r.xasp;
@@ -98,7 +107,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	freestyle_scene->r.filtertype = old_scene->r.filtertype;
 	freestyle_scene->r.gauss = old_scene->r.gauss;
 	freestyle_scene->r.dither_intensity = old_scene->r.dither_intensity;
-	strcpy(freestyle_scene->r.engine, "BLENDER_RENDER"); // old_scene->r.engine
+	BLI_strncpy(freestyle_scene->r.engine, old_scene->r.engine, sizeof(freestyle_scene->r.engine));
 	freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA; 
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 	BKE_scene_disable_color_management(freestyle_scene);
@@ -254,6 +263,64 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 			}
 			a++;
 		}
+
+		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
+			bNodeTree *ntree;
+			bNodeSocket *fromsock, *tosock;
+
+			BLI_assert(BKE_scene_use_new_shading_nodes(freestyle_scene));
+
+			ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
+			ma->nodetree = ntree;
+			ma->use_nodes = 1;
+
+			bNode *input_attribute = nodeAddStaticNode(_context, ntree, SH_NODE_ATTRIBUTE);
+			input_attribute->locx = 0.0f;
+			input_attribute->locy = 0.0f;
+			NodeShaderAttribute *storage = (NodeShaderAttribute *)input_attribute->storage;
+			BLI_strncpy(storage->name, "Col", sizeof(storage->name));
+
+			bNode *shader_emission = nodeAddStaticNode(_context, ntree, SH_NODE_EMISSION);
+			shader_emission->locx = 200.0f;
+			shader_emission->locy = 0.0f;
+
+			bNode *input_light_path = nodeAddStaticNode(_context, ntree, SH_NODE_LIGHT_PATH);
+			input_light_path->locx = 200.0f;
+			input_light_path->locy = 300.0f;
+
+			bNode *shader_mix = nodeAddStaticNode(_context, ntree, SH_NODE_MIX_SHADER);
+			shader_mix->locx = 400.0f;
+			shader_mix->locy = 100.0f;
+
+			bNode *output_material = nodeAddStaticNode(_context, ntree, SH_NODE_OUTPUT_MATERIAL);
+			output_material->locx = 600.0f;
+			output_material->locy = 100.0f;
+
+			fromsock = (bNodeSocket *)BLI_findlink(&input_attribute->outputs, 0);
+			tosock = (bNodeSocket *)BLI_findlink(&shader_emission->inputs, 0);
+			nodeAddLink(ntree, input_attribute, fromsock, shader_emission, tosock);
+
+			fromsock = (bNodeSocket *)BLI_findlink(&shader_emission->outputs, 0);
+			tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 2);
+			nodeAddLink(ntree, shader_emission, fromsock, shader_mix, tosock);
+
+			fromsock = (bNodeSocket *)BLI_findlink(&input_light_path->outputs, 0);
+			tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 0);
+			nodeAddLink(ntree, input_light_path, fromsock, shader_mix, tosock);
+
+			fromsock = (bNodeSocket *)BLI_findlink(&shader_mix->outputs, 0);
+			tosock = (bNodeSocket *)BLI_findlink(&output_material->inputs, 0);
+			nodeAddLink(ntree, shader_mix, fromsock, output_material, tosock);
+
+			nodeSetActive(ntree, shader_mix);
+			ntreeUpdateTree(freestyle_bmain, ntree);
+
+			PointerRNA scene_ptr;
+			RNA_pointer_create(NULL, &RNA_Scene, freestyle_scene, &scene_ptr);
+			PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
+			RNA_boolean_set(&cycles_ptr, "film_transparent", 1);
+		}
+
 		iStrokeRep->setMaterial(ma);
 	}
 
