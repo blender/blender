@@ -791,7 +791,7 @@ static bool select_grouped_keyingset(bContext *C, ReportList *reports, Object *U
 			if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
 				BKE_report(reports, RPT_ERROR, 
 				           "Use another Keying Set, as the active one depends on the currently "
-						   "selected objects or cannot find any targets due to unsuitable context");
+				           "selected objects or cannot find any targets due to unsuitable context");
 			}
 			else {
 				BKE_report(reports, RPT_ERROR, "Keying Set does not contain any paths");
