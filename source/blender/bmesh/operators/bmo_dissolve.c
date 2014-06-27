@@ -357,6 +357,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
 		BMIter itersub;
 		BMLoop *l_first;
+		BMEdge *e_first = NULL;
 		BM_ITER_ELEM (l_first, &itersub, v, BM_LOOPS_OF_VERT) {
 			BMLoop *l_iter;
 			l_iter = l_first;
@@ -364,26 +365,26 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 				BMO_elem_flag_enable(bm, l_iter->v, VERT_ISGC);
 				BMO_elem_flag_enable(bm, l_iter->e, EDGE_ISGC);
 			} while ((l_iter = l_iter->next) != l_first);
+
+			e_first = l_first->e;
 		}
 
-		/* clean wire edges and mark vert-edge-pairs (unrelated to checks above) */
-		if ((e = v->e)) {
-			int edge_count = 0;
+		/* important e_first won't be deleted */
+		if (e_first) {
+			e = e_first;
 			do {
 				e_next = BM_DISK_EDGE_NEXT(e, v);
 				if (BM_edge_is_wire(e)) {
 					BM_edge_kill(bm, e);
 				}
-				else {
-					BMO_elem_flag_enable(bm, e, EDGE_ISGC);
-					edge_count += 1;
-				}
-			} while (v->e && (e = e_next) != v->e);
+			} while ((e = e_next) != e_first);
+		}
+	}
 
-			/* tag here so we avoid feedback loop (checking topology as we edit) */
-			if (edge_count == 2) {
-				BMO_elem_flag_enable(bm, v, VERT_MARK_PAIR);
-			}
+	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
+		/* tag here so we avoid feedback loop (checking topology as we edit) */
+		if (BM_vert_is_edge_pair(v)) {
+			BMO_elem_flag_enable(bm, v, VERT_MARK_PAIR);
 		}
 	}
 
