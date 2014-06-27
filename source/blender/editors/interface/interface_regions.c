@@ -612,18 +612,28 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	rect_fl.xmax = rect_fl.xmin + fontw + (TIP_BORDER_X * 2);
 	rect_fl.ymax = but->rect.ymin + ofsy - TIP_BORDER_Y;
 	rect_fl.ymin = rect_fl.ymax - fonth  - TIP_BORDER_Y;
-
-#undef TIP_BORDER_X
-#undef TIP_BORDER_Y
 	
 	/* since the text has beens caled already, the size of tooltips is defined now */
 	/* here we try to figure out the right location */
 	if (butregion) {
+		float mx, my;
 		float ofsx_fl = rect_fl.xmin, ofsy_fl = rect_fl.ymax;
 		ui_block_to_window_fl(butregion, but->block, &ofsx_fl, &ofsy_fl);
-		BLI_rctf_translate(&rect_fl, ofsx_fl - rect_fl.xmin, ofsy_fl - rect_fl.ymax);
+
+#if 1
+		/* use X mouse location */
+		mx = (win->eventstate->x + (TIP_BORDER_X * 2)) - BLI_rctf_cent_x(&but->rect);
+#else
+		mx = ofsx_fl - rect_fl.xmin;
+#endif
+		my = ofsy_fl - rect_fl.ymax;
+
+		BLI_rctf_translate(&rect_fl, mx, my);
 	}
 	BLI_rcti_rctf_copy(&rect_i, &rect_fl);
+
+#undef TIP_BORDER_X
+#undef TIP_BORDER_Y
 
 	/* clip with window boundaries */
 	winx = WM_window_pixels_x(win);
