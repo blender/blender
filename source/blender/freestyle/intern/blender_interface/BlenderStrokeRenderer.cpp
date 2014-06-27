@@ -80,7 +80,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render
 	freestyle_scene->r.cfra = old_scene->r.cfra;
 	freestyle_scene->r.mode = old_scene->r.mode &
 	                          ~(R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR | R_BORDER);
-	freestyle_scene->r.mode |= R_PERSISTENT_DATA; // for nested Cycles sessions
 	freestyle_scene->r.xsch = re->rectx; // old_scene->r.xsch
 	freestyle_scene->r.ysch = re->recty; // old_scene->r.ysch
 	freestyle_scene->r.xasp = 1.0f; // old_scene->r.xasp;
