@@ -766,7 +766,7 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 			VoxelAttribute *voxel_data = mattr->data_voxel();
 			offset = voxel_data->slot;
 		}
-		if(mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
+		else if(mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
 			uchar4 *data = mattr->data_uchar4();
 			offset = attr_uchar4.size();
 
