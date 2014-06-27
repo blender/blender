@@ -209,8 +209,6 @@ cat > SConscript << EOF
 import sys
 import os
 
-from unordered_map import test_unordered_map
-
 Import('env')
 
 src = []
