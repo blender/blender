@@ -47,6 +47,8 @@ bool    bmesh_loop_validate(BMFace *f);
 /* DISK CYCLE MANAGMENT */
 void    bmesh_disk_edge_append(BMEdge *e, BMVert *v);
 void    bmesh_disk_edge_remove(BMEdge *e, BMVert *v);
+BLI_INLINE BMEdge *bmesh_disk_edge_next_safe(const BMEdge *e, const BMVert *v);
+BLI_INLINE BMEdge *bmesh_disk_edge_prev_safe(const BMEdge *e, const BMVert *v);
 BLI_INLINE BMEdge *bmesh_disk_edge_next(const BMEdge *e, const BMVert *v);
 BLI_INLINE BMEdge *bmesh_disk_edge_prev(const BMEdge *e, const BMVert *v);
 int     bmesh_disk_facevert_count(const BMVert *v);

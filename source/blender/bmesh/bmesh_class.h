@@ -311,6 +311,15 @@ typedef bool (*BMElemFilterFunc)(BMElem *, void *user_data);
 #  define BM_FACE_FIRST_LOOP(p) ((p)->l_first)
 #endif
 
+#define BM_DISK_EDGE_NEXT(e, v)  ( \
+	CHECK_TYPE_INLINE(e, BMEdge *), CHECK_TYPE_INLINE(v, BMVert *), \
+	BLI_assert(BM_vert_in_edge(e, v)), \
+	(((&e->v1_disk_link)[v == e->v2]).next))
+#define BM_DISK_EDGE_PREV(e, v)  ( \
+	CHECK_TYPE_INLINE(e, BMEdge *), CHECK_TYPE_INLINE(v, BMVert *), \
+	BLI_assert(BM_vert_in_edge(e, v)), \
+	(((&e->v1_disk_link)[v == e->v2]).prev))
+
 /**
  * size to use for stack arrays when dealing with NGons,
  * alloc after this limit is reached.

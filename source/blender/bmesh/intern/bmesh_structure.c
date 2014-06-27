@@ -130,17 +130,6 @@ bool bmesh_edge_swapverts(BMEdge *e, BMVert *v_orig, BMVert *v_new)
  * cycle order and all non-manifold conditions are represented trivially.
  */
 
-BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(BMEdge *e, BMVert *v)
-{
-	if (v == e->v1) {
-		return &e->v1_disk_link;
-	}
-	else {
-		BLI_assert(v == e->v2);
-		return &e->v2_disk_link;
-	}
-}
-
 void bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 {
 	if (!v->e) {
@@ -205,28 +194,15 @@ BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2)
 
 int bmesh_disk_count(const BMVert *v)
 {
+	int count = 0;
 	if (v->e) {
 		BMEdge *e_first, *e_iter;
-		int count = 0;
-
 		e_iter = e_first = v->e;
-
 		do {
-			if (!e_iter) {
-				return 0;
-			}
-
-			if (count >= (1 << 20)) {
-				printf("bmesh error: infinite loop in disk cycle!\n");
-				return 0;
-			}
 			count++;
 		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-		return count;
 	}
-	else {
-		return 0;
-	}
+	return count;
 }
 
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)

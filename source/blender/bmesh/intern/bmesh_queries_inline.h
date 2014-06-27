@@ -144,8 +144,7 @@ BLI_INLINE bool BM_vert_is_wire_endpoint(const BMVert *v)
 {
 	const BMEdge *e = v->e;
 	if (e && e->l == NULL) {
-		const BMDiskLink *dl = (e->v1 == v) ? &e->v1_disk_link : &e->v2_disk_link;
-		return (dl->next == e);
+		return (BM_DISK_EDGE_NEXT(e, v) == e);
 	}
 	return false;
 }
