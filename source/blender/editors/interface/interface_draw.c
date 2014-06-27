@@ -1028,13 +1028,13 @@ static void ui_draw_colorband_handle(
 	if (active)
 		glColor3ub(196, 196, 196);
 	else
-		glColor3ub(128, 128, 128);
+		glColor3ub(96, 96, 96);
 	ui_draw_colorband_handle_tri(x, y1 + height, half_width, half_width, true);
 
 	if (active)
 		glColor3ub(255, 255, 255);
 	else
-		glColor3ub(196, 196, 196);
+		glColor3ub(128, 128, 128);
 	ui_draw_colorband_handle_tri_hlight(x, y1 + height - 1, (half_width - 1), (half_width - 1));
 
 	glColor3ub(0, 0, 0);
