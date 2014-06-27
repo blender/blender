@@ -1131,6 +1131,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->attributes_map);
 	device->tex_free(dscene->attributes_float);
 	device->tex_free(dscene->attributes_float3);
+	device->tex_free(dscene->attributes_uchar4);
 
 	dscene->bvh_nodes.clear();
 	dscene->object_node.clear();
@@ -1148,6 +1149,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->attributes_map.clear();
 	dscene->attributes_float.clear();
 	dscene->attributes_float3.clear();
+	dscene->attributes_uchar4.clear();
 
 #ifdef WITH_OSL
 	OSLGlobals *og = (OSLGlobals*)device->osl_memory();
