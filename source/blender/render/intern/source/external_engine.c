@@ -152,7 +152,6 @@ RenderEngine *RE_engine_create_ex(RenderEngineType *type, bool use_for_viewport)
 
 void RE_engine_free(RenderEngine *engine)
 {
-	printf("%s: engine %s\n", __func__, (engine->type) ? engine->type->idname : "<unknown>");
 #ifdef WITH_PYTHON
 	if (engine->py_instance) {
 		BPY_DECREF_RNA_INVALIDATE(engine->py_instance);
@@ -655,7 +654,6 @@ int RE_engine_render(Render *re, int do_all)
 	render_result_free_list(&engine->fullresult, engine->fullresult.first);
 
 	/* re->engine becomes zero if user changed active render engine during render */
-	printf("%s: persistent_data = %s\n", __func__, persistent_data ? "true" : "false");
 	if (!persistent_data || !re->engine) {
 		RE_engine_free(engine);
 		re->engine = NULL;

@@ -2764,8 +2764,6 @@ void RE_SetReports(Render *re, ReportList *reports)
 void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override,
                      unsigned int lay_override, int frame, const bool write_still)
 {
-	printf("%s: bmain %p scene %p\n", __func__, bmain, scene);
-
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.is_rendering = true;
 	
@@ -2800,20 +2798,17 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 
 	/* UGLY WARNING */
 	G.is_rendering = false;
-	printf("%s: done\n", __func__);
 }
 
 #ifdef WITH_FREESTYLE
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
-	printf("%s: bmain %p scene %p\n", __func__, bmain, scene);
 	re->result_ok= 0;
 	if (render_initialize_from_main(re, &scene->r, bmain, scene, NULL, NULL, scene->lay, 0, 0)) {
 		if (render)
 			do_render_fields_blur_3d(re);
 	}
 	re->result_ok = 1;
-	printf("%s: done\n", __func__);
 }
 
 void RE_RenderFreestyleExternal(Render *re)
