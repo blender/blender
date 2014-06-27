@@ -88,7 +88,7 @@ DynStr *BLI_dynstr_new(void)
  * \param ds The DynStr to append to.
  * \param cstr The c-string to append.
  */
-void BLI_dynstr_append(DynStr *ds, const char *cstr)
+void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
 {
 	DynStrElem *dse = malloc(sizeof(*dse));
 	int cstrlen = strlen(cstr);
@@ -112,7 +112,7 @@ void BLI_dynstr_append(DynStr *ds, const char *cstr)
  * \param cstr The c-string to append.
  * \param len The maximum length of the c-string to copy.
  */
-void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len)
+void BLI_dynstr_nappend(DynStr *__restrict ds, const char *cstr, int len)
 {
 	DynStrElem *dse = malloc(sizeof(*dse));
 	int cstrlen = BLI_strnlen(cstr, len);
@@ -130,7 +130,7 @@ void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len)
 	ds->curlen += cstrlen;
 }
 
-void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
+void BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format, va_list args)
 {
 	char *message, fixedmessage[256];
 	int len = sizeof(fixedmessage);
@@ -189,7 +189,7 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
  * \param ds The DynStr to append to.
  * \param format The printf format string to use.
  */
-void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
+void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ...)
 {
 	va_list args;
 	char *message, fixedmessage[256];
@@ -264,7 +264,7 @@ int BLI_dynstr_get_len(DynStr *ds)
  * \param ds The DynStr of interest.
  * \param str The string to fill.
  */
-void BLI_dynstr_get_cstring_ex(DynStr *ds, char *rets)
+void BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict rets)
 {
 	char *s;
 	DynStrElem *dse;
