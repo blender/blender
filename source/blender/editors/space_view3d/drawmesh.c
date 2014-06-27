@@ -237,6 +237,12 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 	int has_texface = texface != NULL;
 	bool need_set_tpage = false;
 
+	if (ma != NULL) {
+		if (ma->mode & MA_TRANSP) {
+			alphablend = GPU_BLEND_ALPHA;
+		}
+	}
+
 	if (clearcache) {
 		c_textured = c_lit = c_backculled = -1;
 		memset(&c_texface, 0, sizeof(MTFace));
