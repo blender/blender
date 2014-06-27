@@ -48,6 +48,7 @@
 #define EDGE_ISGC   8
 
 #define VERT_MARK   1
+#define VERT_MARK_PAIR 4
 #define VERT_TAG    2
 #define VERT_ISGC   8
 
@@ -346,13 +347,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
 
 	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
-		BMIter itersub;
-
 		BMO_elem_flag_enable(bm, v, VERT_MARK | VERT_ISGC);
-
-		BM_ITER_ELEM (e, &itersub, v, BM_EDGES_OF_VERT) {
-			BMO_elem_flag_enable(bm, e, EDGE_ISGC);
-		}
 	}
 
 	if (use_face_split) {
@@ -370,12 +365,32 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 				BMO_elem_flag_enable(bm, l_iter->e, EDGE_ISGC);
 			} while ((l_iter = l_iter->next) != l_first);
 		}
+
+		/* clean wire edges and mark vert-edge-pairs (unrelated to checks above) */
+		if ((e = v->e)) {
+			int edge_count = 0;
+			do {
+				e_next = BM_DISK_EDGE_NEXT(e, v);
+				if (BM_edge_is_wire(e)) {
+					BM_edge_kill(bm, e);
+				}
+				else {
+					BMO_elem_flag_enable(bm, e, EDGE_ISGC);
+					edge_count += 1;
+				}
+			} while (v->e && (e = e_next) != v->e);
+
+			/* tag here so we avoid feedback loop (checking topology as we edit) */
+			if (edge_count == 2) {
+				BMO_elem_flag_enable(bm, v, VERT_MARK_PAIR);
+			}
+		}
 	}
 
 	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
 		BMIter itersub;
 
-		if (BM_vert_edge_count(v) != 2) {
+		if (!BMO_elem_flag_test(bm, v, VERT_MARK_PAIR)) {
 			BM_ITER_ELEM (e, &itersub, v, BM_EDGES_OF_VERT) {
 				BMFace *fa, *fb;
 				if (BM_edge_face_pair(e, &fa, &fb)) {
@@ -400,20 +415,20 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 			BM_edge_kill(bm, e);
 		}
 	}
+
+	/* final cleanup */
+	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
+		if (BM_vert_is_edge_pair(v)) {
+			BM_vert_collapse_edge(bm, v->e, v, false, true);
+		}
+	}
+
 	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 		if ((v->e == NULL) && BMO_elem_flag_test(bm, v, VERT_ISGC)) {
 			BM_vert_kill(bm, v);
 		}
 	}
 	/* done with cleanup */
-
-	BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
-		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
-			if (BM_vert_edge_count(v) == 2) {
-				BM_vert_collapse_edge(bm, v->e, v, true, true);
-			}
-		}
-	}
 }
 
 /* Limited Dissolve */
