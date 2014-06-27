@@ -78,7 +78,7 @@ bool BM_vert_dissolve(BMesh *bm, BMVert *v)
 		}
 		else if (!v->e->l) {
 			if (len == 2) {
-				return (BM_vert_collapse_edge(bm, v->e, v, true) != NULL);
+				return (BM_vert_collapse_edge(bm, v->e, v, true, true) != NULL);
 			}
 			else {
 				/* used to kill the vertex here, but it may be connected to faces.
@@ -92,7 +92,7 @@ bool BM_vert_dissolve(BMesh *bm, BMVert *v)
 	}
 	else if (len == 2 && BM_vert_face_count(v) == 1) {
 		/* boundary vertex on a face */
-		return (BM_vert_collapse_edge(bm, v->e, v, true) != NULL);
+		return (BM_vert_collapse_edge(bm, v->e, v, true, true) != NULL);
 	}
 	else {
 		return BM_disk_dissolve(bm, v);
@@ -144,7 +144,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 		if (UNLIKELY(!BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, true))) {
 			return false;
 		}
-		else if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, false, true))) {
+		else if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true))) {
 			return false;
 		}
 #endif
@@ -152,7 +152,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 	}
 	else if (keepedge == NULL && len == 2) {
 		/* collapse the vertex */
-		e = BM_vert_collapse_faces(bm, v->e, v, 1.0, true, true);
+		e = BM_vert_collapse_faces(bm, v->e, v, 1.0, true, true, true);
 
 		if (!e) {
 			return false;
@@ -196,7 +196,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 
 		/* collapse the vertex */
 		/* note, the baseedge can be a boundary of manifold, use this as join_faces arg */
-		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, !BM_edge_is_boundary(baseedge), true);
+		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, true, !BM_edge_is_boundary(baseedge), true);
 
 		if (!e) {
 			return false;
@@ -440,7 +440,7 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
  * \returns The New Edge
  */
 BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
-                               const bool join_faces, const bool kill_degenerate_faces)
+                               const bool do_del, const bool join_faces, const bool kill_degenerate_faces)
 {
 	BMEdge *e_new = NULL;
 	BMVert *tv = BM_edge_other_vert(e_kill, v_kill);
@@ -513,7 +513,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
 		/* single face or no faces */
 		/* same as BM_vert_collapse_edge() however we already
 		 * have vars to perform this operation so don't call. */
-		e_new = bmesh_jekv(bm, e_kill, v_kill, true);
+		e_new = bmesh_jekv(bm, e_kill, v_kill, do_del, true);
 		/* e_new = BM_edge_exists(tv, tv2); */ /* same as return above */
 
 		if (e_new && kill_degenerate_faces) {
@@ -553,7 +553,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
  * \return The New Edge
  */
 BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
-                              const bool kill_degenerate_faces)
+                              const bool do_del, const bool kill_degenerate_faces)
 {
 	/* nice example implementation but we want loops to have their customdata
 	 * accounted for */
@@ -571,9 +571,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
 			BMVert *tv2 = BM_edge_other_vert(e2, v_kill);
 			if (tv2) {
 				/* only action, other calls here only get the edge to return */
-				e_new = bmesh_jekv(bm, e_kill, v_kill);
-
-				/* e_new = BM_edge_exists(tv, tv2); */ /* same as return above */
+				e_new = bmesh_jekv(bm, e_kill, v_kill, do_del);
 			}
 		}
 	}
@@ -582,7 +580,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
 #else
 	/* with these args faces are never joined, same as above
 	 * but account for loop customdata */
-	return BM_vert_collapse_faces(bm, e_kill, v_kill, 1.0f, false, kill_degenerate_faces);
+	return BM_vert_collapse_faces(bm, e_kill, v_kill, 1.0f, do_del, false, kill_degenerate_faces);
 #endif
 }
 

@@ -46,9 +46,9 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
                         BMLoop **r_l, BMEdge *example);
 
 BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
-                               const bool join_faces, const bool kill_degenerate_faces);
+                               const bool do_del, const bool join_faces, const bool kill_degenerate_faces);
 BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
-                              const bool kill_degenerate_faces);
+                              const bool do_del, const bool kill_degenerate_faces);
 
 
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent);

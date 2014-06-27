@@ -237,7 +237,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 			if (LIKELY(v != NULL) &&
 			    BM_vert_edge_count(v) == 2)
 			{
-				BM_vert_collapse_edge(bm, v->e, v, true); /* join edges */
+				BM_vert_collapse_edge(bm, v->e, v, true, true);  /* join edges */
 			}
 		}
 	}
@@ -275,7 +275,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 			i = BM_elem_index_get(v);
 
 			if (BM_vert_edge_count(v) == 2) {
-				e_new = BM_vert_collapse_edge(bm, v->e, v, true); /* join edges */
+				e_new = BM_vert_collapse_edge(bm, v->e, v, true, true);  /* join edges */
 
 				if (e_new) {
 

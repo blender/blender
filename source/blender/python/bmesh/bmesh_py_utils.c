@@ -90,7 +90,7 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObjec
 
 	bm = py_edge->bm;
 
-	e_new = BM_vert_collapse_edge(bm, py_edge->e, py_vert->v, true);
+	e_new = BM_vert_collapse_edge(bm, py_edge->e, py_vert->v, true, true);
 
 	if (e_new) {
 		return BPy_BMEdge_CreatePyObject(bm, e_new);
@@ -156,7 +156,7 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObje
 
 	bm = py_edge->bm;
 
-	e_new = BM_vert_collapse_faces(bm, py_edge->e, py_vert->v, CLAMPIS(fac, 0.0f, 1.0f), do_join_faces, true);
+	e_new = BM_vert_collapse_faces(bm, py_edge->e, py_vert->v, CLAMPIS(fac, 0.0f, 1.0f), true, do_join_faces, true);
 
 	if (e_new) {
 		return BPy_BMEdge_CreatePyObject(bm, e_new);

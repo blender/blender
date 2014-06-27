@@ -1657,7 +1657,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  * faces with just 2 edges. It is up to the caller to decide what to do with
  * these faces.
  */
-BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_edge_double)
+BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
+                   const bool do_del, const bool check_edge_double)
 {
 	BMEdge *e_old;
 	BMVert *v_old, *tv;
@@ -1667,6 +1668,8 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 #ifndef NDEBUG
 	bool edok;
 #endif
+
+	BLI_assert(BM_vert_in_edge(e_kill, v_kill));
 
 	if (BM_vert_in_edge(e_kill, v_kill) == 0) {
 		return NULL;
@@ -1759,7 +1762,12 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool check_e
 			bm_kill_only_edge(bm, e_kill);
 
 			/* deallocate vertex */
-			bm_kill_only_vert(bm, v_kill);
+			if (do_del) {
+				bm_kill_only_vert(bm, v_kill);
+			}
+			else {
+				v_kill->e = NULL;
+			}
 
 #ifndef NDEBUG
 			/* Validate disk cycle lengths of v_old, tv are unchanged */
