@@ -65,6 +65,7 @@ int     BM_edge_face_count(BMEdge *e);
 int     BM_vert_face_count(BMVert *v);
 BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e);
 
+bool    BM_vert_is_edge_pair(BMVert *v);
 bool    BM_vert_is_wire(const BMVert *v);
 BLI_INLINE bool    BM_edge_is_wire(const BMEdge *e);
 

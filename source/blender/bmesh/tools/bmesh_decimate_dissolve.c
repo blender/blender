@@ -235,7 +235,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 		for (i = 0; i < vinput_len; i++) {
 			BMVert *v = vinput_arr[i];
 			if (LIKELY(v != NULL) &&
-			    BM_vert_edge_count(v) == 2)
+			    BM_vert_is_edge_pair(v))
 			{
 				BM_vert_collapse_edge(bm, v->e, v, true, true);  /* join edges */
 			}
@@ -274,7 +274,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool
 			v = BLI_heap_node_ptr(vnode_top);
 			i = BM_elem_index_get(v);
 
-			if (BM_vert_edge_count(v) == 2) {
+			if (BM_vert_is_edge_pair(v)) {
 				e_new = BM_vert_collapse_edge(bm, v->e, v, true, true);  /* join edges */
 
 				if (e_new) {

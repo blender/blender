@@ -659,6 +659,19 @@ bool BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
 }
 
 /**
+ * Fast alternative to ``(BM_vert_edge_count(v) == 2)``
+ */
+bool BM_vert_is_edge_pair(BMVert *v)
+{
+	BMEdge *e = v->e;
+	if (e) {
+		const BMDiskLink *dl = bmesh_disk_edge_link_from_vert(e, v);
+		return (dl->next == dl->prev);
+	}
+	return false;
+}
+
+/**
  *	Returns the number of edges around this vertex.
  */
 int BM_vert_edge_count(BMVert *v)

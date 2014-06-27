@@ -92,7 +92,7 @@ static void bm_face_split(BMesh *bm, const short oflag)
 	BMIter liter;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, oflag)) {
-			if (BM_vert_edge_count(v) > 2) {
+			if (BM_vert_is_edge_pair(v) == false) {
 				BMLoop *l;
 				BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 					if (l->f->len > 3) {
@@ -129,7 +129,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		BMVert *v;
 
 		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-			BMO_elem_flag_set(bm, v, VERT_MARK, (BM_vert_edge_count(v) != 2));
+			BMO_elem_flag_set(bm, v, VERT_MARK, !BM_vert_is_edge_pair(v));
 		}
 	}
 
@@ -215,7 +215,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 		BM_ITER_MESH_MUTABLE (v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
-				if (BM_vert_edge_count(v) == 2) {
+				if (BM_vert_is_edge_pair(v)) {
 					BM_vert_collapse_edge(bm, v->e, v, true, true);
 				}
 			}
@@ -272,7 +272,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 
 	if (use_verts) {
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			BMO_elem_flag_set(bm, v, VERT_MARK, (BM_vert_edge_count(v) != 2));
+			BMO_elem_flag_set(bm, v, VERT_MARK, !BM_vert_is_edge_pair(v));
 		}
 	}
 
@@ -327,7 +327,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	if (use_verts) {
 		BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
-				if (BM_vert_edge_count(v) == 2) {
+				if (BM_vert_is_edge_pair(v)) {
 					BM_vert_collapse_edge(bm, v->e, v, true, true);
 				}
 			}
