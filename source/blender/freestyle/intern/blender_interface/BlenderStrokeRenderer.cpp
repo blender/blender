@@ -30,6 +30,8 @@
 extern "C" {
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
+
 #include "DNA_camera_types.h"
 #include "DNA_listBase.h"
 #include "DNA_material_types.h"
@@ -52,9 +54,6 @@ extern "C" {
 #include "BLI_utildefines.h"
 
 #include "RE_pipeline.h"
-
-#include "C:\bf-blender\blender.git\source\blender\nodes\NOD_shader.h"
-#include "C:\bf-blender\blender.git\source\blender\makesrna\RNA_access.h"
 
 #include "render_types.h"
 }
@@ -269,7 +268,7 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 
 			BLI_assert(BKE_scene_use_new_shading_nodes(freestyle_scene));
 
-			ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
+			ntree = ntreeAddTree(NULL, "stroke_material", "ShaderNodeTree");
 			ma->nodetree = ntree;
 			ma->use_nodes = 1;
 
