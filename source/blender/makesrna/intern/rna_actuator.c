@@ -2061,7 +2061,7 @@ static void rna_def_mouse_actuator(BlenderRNA *brna)
 	};
 
 	srna = RNA_def_struct(brna, "MouseActuator", "Actuator");
-	RNA_def_struct_ui_text(srna, "Mouse Actuator", "Actuator to ..");
+	RNA_def_struct_ui_text(srna, "Mouse Actuator", "");
 	RNA_def_struct_sdna_from(srna, "bMouseActuator", "data");
 
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
