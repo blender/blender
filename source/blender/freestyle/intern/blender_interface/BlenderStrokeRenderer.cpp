@@ -60,6 +60,8 @@ extern "C" {
 
 #include <limits.h>
 
+//#define USE_CYCLES_FOR_STROKE_RENDERING 1
+
 namespace Freestyle {
 
 BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render_count) : StrokeRenderer()
@@ -105,7 +107,11 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render
 	freestyle_scene->r.filtertype = old_scene->r.filtertype;
 	freestyle_scene->r.gauss = old_scene->r.gauss;
 	freestyle_scene->r.dither_intensity = old_scene->r.dither_intensity;
+#ifdef USE_CYCLES_FOR_STROKE_RENDERING
 	BLI_strncpy(freestyle_scene->r.engine, old_scene->r.engine, sizeof(freestyle_scene->r.engine));
+#else
+	BLI_strncpy(freestyle_scene->r.engine, "BLENDER_RENDER", sizeof(freestyle_scene->r.engine));
+#endif
 	freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA; 
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 	BKE_scene_disable_color_management(freestyle_scene);
