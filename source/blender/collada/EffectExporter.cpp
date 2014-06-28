@@ -372,6 +372,10 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		MTex *t = ma->mtex[tex_indices[a]];
 		Image *ima = t->tex->ima;
 
+		if (!ima) {
+			continue;
+		}
+
 		std::string key(id_name(ima));
 		key = translate_id(key);
 		int i = im_samp_map[key];
