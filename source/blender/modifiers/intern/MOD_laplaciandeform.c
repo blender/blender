@@ -604,7 +604,8 @@ static void initSystem(LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh
 		int *index_anchors = MEM_mallocN(sizeof(int) * numVerts, __func__);  /* over-alloc */
 		MFace *tessface;
 		STACK_DECLARE(index_anchors);
-		STACK_INIT(index_anchors);
+
+		STACK_INIT(index_anchors, numVerts);
 
 		modifier_get_vgroup(ob, dm, lmd->anchor_grp_name, &dvert, &defgrp_index);
 		BLI_assert(dvert != NULL);
