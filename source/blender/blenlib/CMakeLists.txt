@@ -164,6 +164,7 @@ set(SRC
 	BLI_sort.h
 	BLI_sort_utils.h
 	BLI_stack.h
+	BLI_stackdefines.h
 	BLI_strict_flags.h
 	BLI_string.h
 	BLI_string_cursor_utf8.h

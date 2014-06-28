@@ -23,7 +23,7 @@
 
 set(INC
 	.
-	../
+	..
 	../../../source/blender/blenlib
 	../../../source/blender/makesdna
 	../../../source/blender/bmesh

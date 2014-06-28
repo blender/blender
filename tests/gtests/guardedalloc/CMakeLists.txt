@@ -23,7 +23,7 @@
 
 set(INC
 	.
-	../
+	..
 	../../../intern/guardedalloc
 )
 

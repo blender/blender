@@ -23,7 +23,7 @@
 
 set(INC
 	.
-	../
+	..
 	../../../extern/libmv/third_party/gflags
 	../../../extern/gtest/include
 )
@@ -43,6 +43,8 @@ set(INC_SYS
 
 set(SRC
 	testing_main.cc
+
+	testing.h
 )
 
 blender_add_lib(bf_testing_main "${SRC}" "${INC}" "${INC_SYS}")
