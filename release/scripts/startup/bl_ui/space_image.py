@@ -154,6 +154,8 @@ class IMAGE_MT_image(Menu):
 
         show_render = sima.show_render
 
+        layout.operator("image.read_renderlayers")
+
         if ima:
             if not show_render:
                 layout.operator("image.replace")

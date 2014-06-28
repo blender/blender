@@ -37,6 +37,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -1012,7 +1013,7 @@ void render_result_exr_file_end(Render *re)
 	render_result_free_list(&re->fullresult, re->result);
 	re->result = NULL;
 
-	render_result_exr_file_read(re, 0);
+	render_result_exr_file_read_sample(re, 0);
 }
 
 /* save part into exr file */
@@ -1038,25 +1039,23 @@ void render_result_exr_file_path(Scene *scene, const char *layname, int sample, 
 	BLI_make_file_string("/", filepath, BLI_temp_dir_session(), name);
 }
 
-/* only for temp buffer files, makes exact copy of render result */
-int render_result_exr_file_read(Render *re, int sample)
+/* only for temp buffer, makes exact copy of render result */
+int render_result_exr_file_read_sample(Render *re, int sample)
 {
 	RenderLayer *rl;
-	char str[FILE_MAX];
+	char str[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
 	bool success = true;
 
 	RE_FreeRenderResult(re->result);
 	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 
 	for (rl = re->result->layers.first; rl; rl = rl->next) {
-
 		render_result_exr_file_path(re->scene, rl->name, sample, str);
 		printf("read exr tmp file: %s\n", str);
 
 		if (!render_result_exr_file_read_path(re->result, rl, str)) {
 			printf("cannot read: %s\n", str);
 			success = false;
-
 		}
 	}
 
@@ -1113,6 +1112,65 @@ int render_result_exr_file_read_path(RenderResult *rr, RenderLayer *rl_single, c
 	IMB_exr_close(exrhandle);
 
 	return 1;
+}
+
+static void render_result_exr_file_cache_path(Scene *sce, const char *root, char *r_path)
+{
+	char filename_full[FILE_MAX + MAX_ID_NAME + 100], filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
+	char path_digest[16] = {0};
+	char path_hexdigest[33];
+
+	/* If root is relative, use either current .blend file dir, or temp one if not saved. */
+	if (G.main->name[0]) {
+		BLI_split_dirfile(G.main->name, dirname, filename, sizeof(dirname), sizeof(filename));
+		BLI_replace_extension(filename, sizeof(filename), "");  /* strip '.blend' */
+		md5_buffer(G.main->name, strlen(G.main->name), path_digest);
+	}
+	else {
+		BLI_strncpy(dirname, BLI_temp_dir_base(), sizeof(dirname));
+		BLI_strncpy(filename, "UNSAVED", sizeof(filename));
+	}
+	md5_to_hexdigest(path_digest, path_hexdigest);
+
+	/* Default to *non-volatile* tmp dir. */
+	if (*root == '\0') {
+		root = BLI_temp_dir_base();
+	}
+
+	BLI_snprintf(filename_full, sizeof(filename_full), "cached_RR_%s_%s_%s.exr",
+	             filename, sce->id.name + 2, path_hexdigest);
+	BLI_make_file_string(dirname, r_path, root, filename_full);
+}
+
+void render_result_exr_file_cache_write(Render *re)
+{
+	RenderResult *rr = re->result;
+	char str[FILE_MAXFILE + FILE_MAXFILE + MAX_ID_NAME + 100];
+	char *root = U.render_cachedir;
+
+	render_result_exr_file_cache_path(re->scene, root, str);
+	printf("Caching exr file, %dx%d, %s\n", rr->rectx, rr->recty, str);
+	RE_WriteRenderResult(NULL, rr, str, 0);
+}
+
+/* For cache, makes exact copy of render result */
+bool render_result_exr_file_cache_read(Render *re)
+{
+	char str[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
+	char *root = U.render_cachedir;
+
+	RE_FreeRenderResult(re->result);
+	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
+
+	/* First try cache. */
+	render_result_exr_file_cache_path(re->scene, root, str);
+
+	printf("read exr cache file: %s\n", str);
+	if (!render_result_exr_file_read_path(re->result, NULL, str)) {
+		printf("cannot read: %s\n", str);
+		return false;
+	}
+	return true;
 }
 
 /*************************** Combined Pixel Rect *****************************/

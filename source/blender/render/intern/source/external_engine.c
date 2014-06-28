@@ -664,6 +664,12 @@ int RE_engine_render(Render *re, int do_all)
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 
+	if (re->r.scemode & R_EXR_CACHE_FILE) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		render_result_exr_file_cache_write(re);
+		BLI_rw_mutex_unlock(&re->resultmutex);
+	}
+
 	RE_parts_free(re);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))

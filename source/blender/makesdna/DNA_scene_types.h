@@ -1377,6 +1377,7 @@ typedef struct Scene {
 /* #define R_RECURS_PROTECTION	0x20000 */
 #define R_TEXNODE_PREVIEW	0x40000
 #define R_VIEWPORT_PREVIEW	0x80000
+#define R_EXR_CACHE_FILE	0x100000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001

@@ -4811,6 +4811,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	                         "and length of frame numbers");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
+	/* Render result EXR cache. */
+	prop = RNA_def_property(srna, "use_render_cache", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXR_CACHE_FILE);
+	RNA_def_property_ui_text(prop, "Cache Result",
+	                         "Save render cache to EXR files (useful for heavy compositing, "
+	                         "Note: affects indirectly rendered scenes)");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	/* Bake */
 	
 	prop = RNA_def_property(srna, "bake_type", PROP_ENUM, PROP_NONE);

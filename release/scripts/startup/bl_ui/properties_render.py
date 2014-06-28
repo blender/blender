@@ -396,7 +396,9 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
-        split.prop(rd, "use_file_extension")
+        col = split.column()
+        col.prop(rd, "use_file_extension")
+        col.prop(rd, "use_render_cache")
 
         layout.template_image_settings(image_settings, color_management=False)
 
