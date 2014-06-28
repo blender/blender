@@ -2068,7 +2068,7 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 	BMFace *f;
 	int i;
 
-	STACK_INIT(group_array);
+	STACK_INIT(group_array, bm->totface);
 
 	BLI_assert(((htype_step & ~(BM_VERT | BM_EDGE)) == 0) && (htype_step != 0));
 
@@ -2096,7 +2096,7 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 
 		BLI_assert(tot_touch < tot_faces);
 
-		STACK_INIT(stack);
+		STACK_INIT(stack, tot_faces);
 
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_TAG) == false) {
@@ -2224,7 +2224,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 	BMEdge *e;
 	int i;
 
-	STACK_INIT(group_array);
+	STACK_INIT(group_array, bm->totface);
 
 	/* init the array */
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
@@ -2250,7 +2250,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 
 		BLI_assert(tot_touch < tot_edges);
 
-		STACK_INIT(stack);
+		STACK_INIT(stack, tot_edges);
 
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_TAG) == false) {

@@ -90,7 +90,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 		plane_outer[3] = plane[3] - dist;
 		plane_inner[3] = plane[3] + dist;
 
-		STACK_INIT(vert_arr);
+		STACK_INIT(vert_arr, vert_arr_max);
 
 		BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
 			if ((clear_outer && plane_point_side_v3(plane_outer, v->co) > 0.0f) ||

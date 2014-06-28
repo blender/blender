@@ -92,8 +92,8 @@ static void remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap
 	STACK_DECLARE(edges);
 	STACK_DECLARE(loops);
 
-	STACK_INIT(edges);
-	STACK_INIT(loops);
+	STACK_INIT(edges, f->len);
+	STACK_INIT(loops, f->len);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		BMVert *v1 = l->v;

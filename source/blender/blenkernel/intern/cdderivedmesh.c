@@ -2602,15 +2602,15 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 
 	int i, j, c;
 	
-	STACK_INIT(oldv);
-	STACK_INIT(olde);
-	STACK_INIT(oldl);
-	STACK_INIT(oldp);
+	STACK_INIT(oldv, totvert_final);
+	STACK_INIT(olde, totedge);
+	STACK_INIT(oldl, totloop);
+	STACK_INIT(oldp, totpoly);
 
-	STACK_INIT(mvert);
-	STACK_INIT(medge);
-	STACK_INIT(mloop);
-	STACK_INIT(mpoly);
+	STACK_INIT(mvert, totvert_final);
+	STACK_INIT(medge, totedge);
+	STACK_INIT(mloop, totloop);
+	STACK_INIT(mpoly, totpoly);
 
 	/* fill newl with destination vertex indices */
 	mv = cddm->mvert;
