@@ -1891,11 +1891,11 @@ elseif(APPLE)
 		set(OpenMP_C_FLAGS "-fopenmp" CACHE STRING "C compiler flags for OpenMP parallization" FORCE)
 		set(OpenMP_CXX_FLAGS "-fopenmp" CACHE STRING "C++ compiler flags for OpenMP parallization" FORCE)
 		include_directories(${LIBDIR}/openmp/include)
-		LINK_DIRECTORIES(${LIBDIR}/openmp/lib)
+		link_directories(${LIBDIR}/openmp/lib)
+		# XXX, BAD PRACTICE, DON'T DO THIS!!!
 		execute_process(COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES} ${LIBDIR}/openmp/lib/libiomp5.dylib ${CMAKE_BINARY_DIR}/bin/libiomp5.dylib) # for intermediate binaries, lib id is @loader_path
 	else()
-		set(OpenMP_C_FLAGS "" CACHE STRING "C compiler flags for OpenMP parallization" FORCE) # unset
-		set(OpenMP_CXX_FLAGS "" CACHE STRING "C++ compiler flags for OpenMP parallization" FORCE) # unset
+		set(WITH_OPENMP OFF)
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)
