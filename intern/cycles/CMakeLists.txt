@@ -116,7 +116,10 @@ endif()
 if(WITH_CYCLES_OSL)
 	add_definitions(-DWITH_OSL)
 	add_definitions(-DOSL_STATIC_LIBRARY)
-	include_directories(${OSL_INCLUDES})
+	include_directories(
+		SYSTEM
+		${OSL_INCLUDES}
+	)
 endif()
 
 add_definitions(

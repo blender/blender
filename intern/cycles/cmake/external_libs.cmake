@@ -8,7 +8,10 @@ if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
 	find_package(GLUT)
 	message(STATUS "GLUT_FOUND=${GLUT_FOUND}")
 
-	include_directories(${GLUT_INCLUDE_DIR})
+	include_directories(
+		SYSTEM
+		${GLUT_INCLUDE_DIR}
+	)
 endif()
 
 if(WITH_SYSTEM_GLEW)
