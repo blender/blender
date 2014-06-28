@@ -31,6 +31,8 @@
 #include "../application/AppView.h"
 #include "../application/Controller.h"
 
+#include "BlenderStrokeRenderer.h"
+
 using namespace std;
 using namespace Freestyle;
 
@@ -728,6 +730,13 @@ void FRS_move_active_lineset_down(FreestyleConfig *config)
 		BLI_remlink(&config->linesets, lineset);
 		BLI_insertlinkafter(&config->linesets, lineset->next, lineset);
 	}
+}
+
+// Testing
+
+Material *FRS_create_stroke_material(bContext *C, Main *bmain, Scene *scene)
+{
+	return BlenderStrokeRenderer::GetStrokeMaterial(C, bmain, scene);
 }
 
 } // extern "C"

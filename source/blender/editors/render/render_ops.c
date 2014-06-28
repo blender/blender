@@ -75,6 +75,7 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_freestyle_modifier_remove);
 	WM_operatortype_append(SCENE_OT_freestyle_modifier_move);
 	WM_operatortype_append(SCENE_OT_freestyle_modifier_copy);
+	WM_operatortype_append(SCENE_OT_freestyle_stroke_material_create);
 #endif
 
 	WM_operatortype_append(TEXTURE_OT_slot_copy);

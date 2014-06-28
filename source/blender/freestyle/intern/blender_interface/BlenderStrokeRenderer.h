@@ -52,6 +52,8 @@ public:
 
 	Render *RenderScene(Render *re, bool render);
 
+	static Material* GetStrokeMaterial(bContext *C, Main *bmain, Scene *scene);
+
 protected:
 	Main *freestyle_bmain;
 	Scene *old_scene;

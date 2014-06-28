@@ -213,6 +213,68 @@ unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
 	return mesh_id;
 }
 
+Material* BlenderStrokeRenderer::GetStrokeMaterial(bContext *C, Main *bmain, Scene *scene)
+{
+	Material *ma = BKE_material_add(bmain, "stroke_material");
+
+	ma->mode |= MA_VERTEXCOLP;
+	ma->mode |= MA_TRANSP;
+	ma->mode |= MA_SHLESS;
+	ma->vcol_alpha = 1;
+
+	if (BKE_scene_use_new_shading_nodes(scene)) {
+		bNodeTree *ntree;
+		bNodeSocket *fromsock, *tosock;
+
+		ntree = ntreeAddTree(NULL, "stroke_material", "ShaderNodeTree");
+		ma->nodetree = ntree;
+		ma->use_nodes = 1;
+
+		bNode *input_attribute = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
+		input_attribute->locx = 0.0f;
+		input_attribute->locy = 0.0f;
+		NodeShaderAttribute *storage = (NodeShaderAttribute *)input_attribute->storage;
+		BLI_strncpy(storage->name, "Col", sizeof(storage->name));
+
+		bNode *shader_emission = nodeAddStaticNode(C, ntree, SH_NODE_EMISSION);
+		shader_emission->locx = 200.0f;
+		shader_emission->locy = 0.0f;
+
+		bNode *input_light_path = nodeAddStaticNode(C, ntree, SH_NODE_LIGHT_PATH);
+		input_light_path->locx = 200.0f;
+		input_light_path->locy = 300.0f;
+
+		bNode *shader_mix = nodeAddStaticNode(C, ntree, SH_NODE_MIX_SHADER);
+		shader_mix->locx = 400.0f;
+		shader_mix->locy = 100.0f;
+
+		bNode *output_material = nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_MATERIAL);
+		output_material->locx = 600.0f;
+		output_material->locy = 100.0f;
+
+		fromsock = (bNodeSocket *)BLI_findlink(&input_attribute->outputs, 0);
+		tosock = (bNodeSocket *)BLI_findlink(&shader_emission->inputs, 0);
+		nodeAddLink(ntree, input_attribute, fromsock, shader_emission, tosock);
+
+		fromsock = (bNodeSocket *)BLI_findlink(&shader_emission->outputs, 0);
+		tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 2);
+		nodeAddLink(ntree, shader_emission, fromsock, shader_mix, tosock);
+
+		fromsock = (bNodeSocket *)BLI_findlink(&input_light_path->outputs, 0);
+		tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 0);
+		nodeAddLink(ntree, input_light_path, fromsock, shader_mix, tosock);
+
+		fromsock = (bNodeSocket *)BLI_findlink(&shader_mix->outputs, 0);
+		tosock = (bNodeSocket *)BLI_findlink(&output_material->inputs, 0);
+		nodeAddLink(ntree, shader_mix, fromsock, output_material, tosock);
+
+		nodeSetActive(ntree, shader_mix);
+		ntreeUpdateTree(bmain, ntree);
+	}
+
+	return ma;
+}
+
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 {
 	bool has_mat = false;
@@ -239,17 +301,12 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 
 	// If still no material, create one
 	if (!has_mat) {
-		Material *ma = BKE_material_add(freestyle_bmain, "stroke_material");
-
-		ma->mode |= MA_VERTEXCOLP;
-		ma->mode |= MA_TRANSP;
-		ma->mode |= MA_SHLESS;
-		ma->vcol_alpha = 1;
+		Material *ma = BlenderStrokeRenderer::GetStrokeMaterial(_context, freestyle_bmain, freestyle_scene);
 
 		// Textures
 		//for (int a = 0; a < MAX_MTEX; a++) {
 		while (iStrokeRep->getMTex(a)) {
-			ma->mtex[a] = (MTex *) iStrokeRep->getMTex(a);
+			ma->mtex[a] = (MTex *)iStrokeRep->getMTex(a);
 
 			// We'll generate both with tips and without tips
 			// coordinates, on two different UV layers.
@@ -263,56 +320,6 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 		}
 
 		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
-			bNodeTree *ntree;
-			bNodeSocket *fromsock, *tosock;
-
-			BLI_assert(BKE_scene_use_new_shading_nodes(freestyle_scene));
-
-			ntree = ntreeAddTree(NULL, "stroke_material", "ShaderNodeTree");
-			ma->nodetree = ntree;
-			ma->use_nodes = 1;
-
-			bNode *input_attribute = nodeAddStaticNode(_context, ntree, SH_NODE_ATTRIBUTE);
-			input_attribute->locx = 0.0f;
-			input_attribute->locy = 0.0f;
-			NodeShaderAttribute *storage = (NodeShaderAttribute *)input_attribute->storage;
-			BLI_strncpy(storage->name, "Col", sizeof(storage->name));
-
-			bNode *shader_emission = nodeAddStaticNode(_context, ntree, SH_NODE_EMISSION);
-			shader_emission->locx = 200.0f;
-			shader_emission->locy = 0.0f;
-
-			bNode *input_light_path = nodeAddStaticNode(_context, ntree, SH_NODE_LIGHT_PATH);
-			input_light_path->locx = 200.0f;
-			input_light_path->locy = 300.0f;
-
-			bNode *shader_mix = nodeAddStaticNode(_context, ntree, SH_NODE_MIX_SHADER);
-			shader_mix->locx = 400.0f;
-			shader_mix->locy = 100.0f;
-
-			bNode *output_material = nodeAddStaticNode(_context, ntree, SH_NODE_OUTPUT_MATERIAL);
-			output_material->locx = 600.0f;
-			output_material->locy = 100.0f;
-
-			fromsock = (bNodeSocket *)BLI_findlink(&input_attribute->outputs, 0);
-			tosock = (bNodeSocket *)BLI_findlink(&shader_emission->inputs, 0);
-			nodeAddLink(ntree, input_attribute, fromsock, shader_emission, tosock);
-
-			fromsock = (bNodeSocket *)BLI_findlink(&shader_emission->outputs, 0);
-			tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 2);
-			nodeAddLink(ntree, shader_emission, fromsock, shader_mix, tosock);
-
-			fromsock = (bNodeSocket *)BLI_findlink(&input_light_path->outputs, 0);
-			tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 0);
-			nodeAddLink(ntree, input_light_path, fromsock, shader_mix, tosock);
-
-			fromsock = (bNodeSocket *)BLI_findlink(&shader_mix->outputs, 0);
-			tosock = (bNodeSocket *)BLI_findlink(&output_material->inputs, 0);
-			nodeAddLink(ntree, shader_mix, fromsock, output_material, tosock);
-
-			nodeSetActive(ntree, shader_mix);
-			ntreeUpdateTree(freestyle_bmain, ntree);
-
 			PointerRNA scene_ptr;
 			RNA_pointer_create(NULL, &RNA_Scene, freestyle_scene, &scene_ptr);
 			PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");

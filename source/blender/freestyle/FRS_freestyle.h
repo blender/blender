@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 struct Render;
+struct Material;
 struct FreestyleConfig;
 struct bContext;
 
@@ -56,6 +57,9 @@ void FRS_paste_active_lineset(struct FreestyleConfig *config);
 void FRS_delete_active_lineset(struct FreestyleConfig *config);
 void FRS_move_active_lineset_up(struct FreestyleConfig *config);
 void FRS_move_active_lineset_down(struct FreestyleConfig *config);
+
+/* Testing */
+struct Material *FRS_create_stroke_material(struct bContext *C, struct Main *bmain, struct Scene *scene);
 
 #ifdef __cplusplus
 }
