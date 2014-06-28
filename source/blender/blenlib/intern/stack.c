@@ -28,21 +28,23 @@
 #include <string.h>
 #include <stdlib.h>  /* abort() */
 
-#include "BLI_stack.h"  /* own include */
-
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
+
+#include "BLI_stack.h"  /* own include */
+
+#include "BLI_strict_flags.h"
 
 struct BLI_Stack {
 	void *data;
 
-	int totelem;
-	int maxelem;
+	size_t totelem;
+	size_t maxelem;
 
-	int elem_size;
+	size_t elem_size;
 };
 
-BLI_Stack *BLI_stack_new(int elem_size, const char *description)
+BLI_Stack *BLI_stack_new(size_t elem_size, const char *description)
 {
 	BLI_Stack *stack = MEM_callocN(sizeof(*stack), description);
 
@@ -74,11 +76,11 @@ void BLI_stack_push(BLI_Stack *stack, void *src)
 			 * number of elements */
 			stack->maxelem = 32;
 			stack->data = MEM_mallocN((stack->elem_size *
-			                           stack->maxelem), AT);
+			                           stack->maxelem), __func__);
 		}
 		else {
 			/* Double stack size */
-			int maxelem = stack->maxelem + stack->maxelem;
+			size_t maxelem = stack->maxelem + stack->maxelem;
 			/* Check for overflow */
 			BLI_assert(maxelem > stack->maxelem);
 			stack->data = MEM_reallocN(stack->data,
@@ -104,7 +106,7 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
 	}
 }
 
-int BLI_stack_empty(const BLI_Stack *stack)
+bool BLI_stack_is_empty(const BLI_Stack *stack)
 {
 	return stack->totelem == 0;
 }

@@ -732,7 +732,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 		}
 	}
 
-	while (!BLI_stack_empty(stack)) {
+	while (!BLI_stack_is_empty(stack)) {
 		build_emats_stack(stack, visited_e, emat, emap, medge, vs, mvert);
 	}
 

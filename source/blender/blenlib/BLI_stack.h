@@ -31,7 +31,7 @@
 typedef struct BLI_Stack BLI_Stack;
 
 /* Create a new homogeneous stack with elements of 'elem_size' bytes */
-BLI_Stack *BLI_stack_new(int elem_size, const char *description);
+BLI_Stack *BLI_stack_new(size_t elem_size, const char *description);
 
 /* Free the stack's data and the stack itself */
 void BLI_stack_free(BLI_Stack *stack);
@@ -49,6 +49,6 @@ void BLI_stack_push(BLI_Stack *stack, void *src);
 void BLI_stack_pop(BLI_Stack *stack, void *dst);
 
 /* Returns true if the stack is empty, false otherwise */
-int BLI_stack_empty(const BLI_Stack *stack);
+bool BLI_stack_is_empty(const BLI_Stack *stack);
 
 #endif
