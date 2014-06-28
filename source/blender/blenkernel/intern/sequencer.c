@@ -2539,7 +2539,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	}
 
 	/* prevent eternal loop */
-	do_seq = context->scene->r.scemode & R_DOSEQ;
+	do_seq = scene->r.scemode & R_DOSEQ;
 	scene->r.scemode &= ~R_DOSEQ;
 	
 #ifdef DURIAN_CAMERA_SWITCH
