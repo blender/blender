@@ -94,7 +94,8 @@ static bool checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), c
 /* high level function */
 void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
 {
-	BKE_bpath_traverse_main(bmain, checkMissingFiles_visit_cb, BKE_BPATH_TRAVERSE_ABS, reports);
+	BKE_bpath_traverse_main(bmain, checkMissingFiles_visit_cb,
+	                        BKE_BPATH_TRAVERSE_ABS | BKE_BPATH_TRAVERSE_SKIP_PACKED, reports);
 }
 
 typedef struct BPathRemap_Data {
