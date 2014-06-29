@@ -178,16 +178,6 @@ if crossbuild and platform not in ('win32-vc', 'win64-vc'):
 
 env['OURPLATFORM'] = platform
 
-# Put all auto configuration run-time tests here
-
-from FindSharedPtr import FindSharedPtr
-from FindUnorderedMap import FindUnorderedMap
-
-conf = Configure(env)
-FindSharedPtr(conf)
-FindUnorderedMap(conf)
-env = conf.Finish()
-
 configfile = os.path.join("build_files", "scons", "config", platform + "-config.py")
 
 if os.path.exists(configfile):
@@ -604,6 +594,16 @@ if not os.path.isdir ( B.root_build_dir):
 # # Docs not working with epy anymore
 # if not os.path.isdir(B.doc_build_dir) and env['WITH_BF_DOCS']:
 #     os.makedirs ( B.doc_build_dir )
+
+# Put all auto configuration run-time tests here
+
+from FindSharedPtr import FindSharedPtr
+from FindUnorderedMap import FindUnorderedMap
+
+conf = Configure(env)
+FindSharedPtr(conf)
+FindUnorderedMap(conf)
+env = conf.Finish()
 
 ###################################
 # Ensure all data files are valid #
