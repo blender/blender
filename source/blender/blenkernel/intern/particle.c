@@ -2666,6 +2666,9 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 		/* get the original coordinates (orco) for texture usage */
 		cpa_from = part->from;
 		cpa_num = pa->num;
+		/* XXX hack to avoid messed up particle num and subsequent crash (#40733) */
+		if (cpa_num > ctx->sim.psmd->dm->getNumTessFaces(ctx->sim.psmd->dm))
+			cpa_num = 0;
 		cpa_fuv = pa->fuv;
 
 		psys_particle_on_emitter(ctx->sim.psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa_fuv, pa->foffset, co, ornor, 0, 0, orco, 0);
