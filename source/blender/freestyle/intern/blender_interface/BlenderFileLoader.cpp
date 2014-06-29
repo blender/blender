@@ -395,6 +395,8 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			vlr = obr->vlaknodes[a>>8].vlak;
 		else
 			vlr++;
+		if (vlr->mat->mode & MA_ONLYCAST)
+			continue;
 		if (vlr->mat->material_type == MA_TYPE_WIRE) {
 			wire_material = 1;
 			continue;
@@ -492,7 +494,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			vlr = obr->vlaknodes[p>>8].vlak;
 		else
 			vlr++;
-		if (vlr->mat->material_type == MA_TYPE_WIRE)
+		if ((vlr->mat->mode & MA_ONLYCAST) || vlr->mat->material_type == MA_TYPE_WIRE)
 			continue;
 		copy_v3_v3(v1, vlr->v1->co);
 		copy_v3_v3(v2, vlr->v2->co);
