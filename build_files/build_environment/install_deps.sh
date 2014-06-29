@@ -478,34 +478,55 @@ fi
 
 
 # This has to be done here, because user might force some versions...
-PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz"
-NUMPY_SOURCE="http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz"
+PYTHON_SOURCE=( "http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz" )
+NUMPY_SOURCE=( "http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz" )
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
-BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download"
+BOOST_SOURCE=( "http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download" )
 
-OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
-#OPENEXR_SOURCE="http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz"
-OPENEXR_SOURCE="https://github.com/mont29/openexr.git"
+OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION" )
+#OPENEXR_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz" )
+OPENEXR_SOURCE=( "https://github.com/mont29/openexr.git" )
 OPENEXR_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
-ILMBASE_SOURCE="http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz"
+ILMBASE_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz" )
 
-#OIIO_SOURCE="https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz"
-OIIO_SOURCE="https://github.com/mont29/oiio.git"
+#OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz" )
+OIIO_SOURCE=( "https://github.com/mont29/oiio.git" )
 OIIO_REPO_UID="99113d12619c90cf44721195a759674ea61f02b1"
 
-LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
-LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
-#OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz"
-#OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage.git"
-OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage.git"
+LLVM_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz" )
+LLVM_CLANG_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz" "http://llvm.org/releases/$LLVM_VERSION/cfe-$LLVM_VERSION.src.tar.gz" )
+#OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
+#OSL_SOURCE=( "https://github.com/mont29/OpenShadingLanguage.git" )
+OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage.git" )
 OSL_REPO_UID="4abd672ed3979e5e965323201a5ba5ab802a76a9"
 
-OPENCOLLADA_SOURCE="https://github.com/KhronosGroup/OpenCOLLADA.git"
+OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
 OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
-FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
+FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
 
 ##### Generic Helpers #####
+
+# Check return code of wget for success...
+download() {
+  declare -a sources=("${!1}")
+  sources_count=${#sources[@]}
+  error=1
+
+  for (( i=0; $i < $sources_count; i++ ))
+  do
+    wget -c ${sources[$i]} -O $2
+    if [ $? -eq 0 ]; then
+      error=0
+      break
+    fi
+  done
+
+  if [ $error -eq 1 ]; then
+    ERROR "wget could not find $1, or could not write it to $2, exiting"
+    exit 1
+  fi
+}
 
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
@@ -684,7 +705,7 @@ compile_Python() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-      wget -c $PYTHON_SOURCE -O $_src.tgz
+      download PYTHON_SOURCE[@] $_src.tgz
 
       INFO "Unpacking Python-$PYTHON_VERSION"
       tar -C $SRC -xf $_src.tgz
@@ -749,7 +770,7 @@ compile_Numpy() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-      wget -c $NUMPY_SOURCE -O $_src.tar.gz
+      download NUMPY_SOURCE[@] $_src.tar.gz
 
       INFO "Unpacking Numpy-$NUMPY_VERSION"
       tar -C $SRC -xf $_src.tar.gz
@@ -815,7 +836,7 @@ compile_Boost() {
     if [ ! -d $_src ]; then
       INFO "Downloading Boost-$BOOST_VERSION"
       mkdir -p $SRC
-      wget -c $BOOST_SOURCE -O $_src.tar.bz2
+      download BOOST_SOURCE[@] $_src.tar.bz2
       tar -C $SRC --transform "s,(.*/?)boost_1_[^/]+(.*),\1boost-$BOOST_VERSION\2,x" -xf $_src.tar.bz2
     fi
 
@@ -879,7 +900,7 @@ compile_OCIO() {
     if [ ! -d $_src ]; then
       INFO "Downloading OpenColorIO-$OCIO_VERSION"
       mkdir -p $SRC
-      wget -c $OCIO_SOURCE -O $_src.tar.gz
+      download OCIO_SOURCE[@] $_src.tar.gz
 
       INFO "Unpacking OpenColorIO-$OCIO_VERSION"
       tar -C $SRC --transform "s,(.*/?)imageworks-OpenColorIO[^/]*(.*),\1OpenColorIO-$OCIO_VERSION\2,x" \
@@ -975,7 +996,7 @@ compile_ILMBASE() {
     if [ ! -d $_src ]; then
       INFO "Downloading ILMBase-$ILMBASE_VERSION"
       mkdir -p $SRC
-      wget -c $ILMBASE_SOURCE -O $_src.tar.gz
+      download ILMBASE_SOURCE[@] $_src.tar.gz
 
       INFO "Unpacking ILMBase-$ILMBASE_VERSION"
       tar -C $SRC --transform "s,(.*/?)ilmbase-[^/]*(.*),\1ILMBase-$ILMBASE_VERSION\2,x" \
@@ -1067,13 +1088,13 @@ compile_OPENEXR() {
       INFO "Downloading OpenEXR-$OPENEXR_VERSION"
       mkdir -p $SRC
 
-#      wget -c $OPENEXR_SOURCE -O $_src.tar.gz
+#      download OPENEXR_SOURCE[@] $_src.tar.gz
 
 #      INFO "Unpacking OpenEXR-$OPENEXR_VERSION"
 #      tar -C $SRC --transform "s,(.*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" \
 #          -xf $_src.tar.gz
 
-      git clone $OPENEXR_SOURCE $_src
+      git clone ${OPENEXR_SOURCE[0]} $_src
 
     fi
 
@@ -1169,13 +1190,13 @@ compile_OIIO() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-#      wget -c $OIIO_SOURCE -O "$_src.tar.gz"
+#      download OIIO_SOURCE[@] "$_src.tar.gz"
 
 #      INFO "Unpacking OpenImageIO-$OIIO_VERSION"
 #      tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
 #          -xf $_src.tar.gz
 
-      git clone $OIIO_SOURCE $_src
+      git clone ${OIIO_SOURCE[0]} $_src
 
     fi
 
@@ -1292,8 +1313,8 @@ compile_LLVM() {
 
     if [ ! -d $_src -o true ]; then
       mkdir -p $SRC
-      wget -c $LLVM_SOURCE -O "$_src.tar.gz"
-      wget -c $LLVM_CLANG_SOURCE -O "$_src_clang.tar.gz"
+      download LLVM_SOURCE[@] "$_src.tar.gz"
+      download LLVM_CLANG_SOURCE[@] "$_src_clang.tar.gz"
 
       INFO "Unpacking LLVM-$LLVM_VERSION"
       tar -C $SRC --transform "s,([^/]*/?)llvm-[^/]*(.*),\1LLVM-$LLVM_VERSION\2,x" \
@@ -1400,13 +1421,13 @@ compile_OSL() {
     if [ ! -d $_src ]; then
       mkdir -p $SRC
 
-#      wget -c $OSL_SOURCE -O "$_src.tar.gz"
+#      download OSL_SOURCE[@] "$_src.tar.gz"
 
 #      INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
 #      tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
 #          -xf $_src.tar.gz
 
-      git clone $OSL_SOURCE $_src
+      git clone ${OSL_SOURCE[0]} $_src
 
     fi
 
@@ -1591,7 +1612,7 @@ compile_FFmpeg() {
     if [ ! -d $_src ]; then
       INFO "Downloading ffmpeg-$FFMPEG_VERSION"
       mkdir -p $SRC
-      wget -c $FFMPEG_SOURCE -O "$_src.tar.bz2"
+      download FFMPEG_SOURCE[@] "$_src.tar.bz2"
 
       INFO "Unpacking ffmpeg-$FFMPEG_VERSION"
       tar -C $SRC -xf $_src.tar.bz2
