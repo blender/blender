@@ -35,78 +35,169 @@
 
 #include "BLI_strict_flags.h"
 
-struct BLI_Stack {
-	void *data;
+// #define USE_TOTELEM
 
-	size_t totelem;
-	size_t maxelem;
+#define CHUNK_EMPTY ((size_t)-1)
+/* target chunks size: 64kb */
+#define CHUNK_SIZE_DEFAULT (1 << 16)
+/* ensure we get at least this many elems per chunk */
+#define CHUNK_ELEM_MIN     32
 
-	size_t elem_size;
+/* Gets the last element in the stack */
+#define CHUNK_LAST_ELEM(_stack) \
+	((void)0, (((char *)(_stack)->chunk_curr->data) + \
+	           ((_stack)->elem_size * (_stack)->chunk_index)))
+
+#define IS_POW2(a) (((a) & ((a) - 1)) == 0)
+
+struct StackChunk {
+	struct StackChunk *next;
+	char data[0];
 };
 
-BLI_Stack *BLI_stack_new(size_t elem_size, const char *description)
+struct BLI_Stack {
+	struct StackChunk *chunk_curr;      /* currently active chunk */
+	struct StackChunk *chunk_free;      /* free chunks */
+	size_t             chunk_index;     /* index into 'chunk_curr' */
+	size_t             chunk_elem_max;  /* number of elements per chunk */
+	size_t elem_size;
+#ifdef USE_TOTELEM
+	size_t totelem;
+#endif
+};
+
+/**
+ * \return number of elements per chunk, optimized for slop-space.
+ */
+static size_t stack_chunk_elem_max_calc(const size_t elem_size, size_t chunk_size)
+{
+	/* get at least this number of elems per chunk */
+	const size_t elem_size_min = elem_size * CHUNK_ELEM_MIN;
+
+	BLI_assert((elem_size != 0) && (chunk_size != 0));
+
+	while (UNLIKELY(chunk_size <= elem_size_min)) {
+		chunk_size <<= 1;
+	}
+
+	/* account for slop-space */
+	chunk_size -= (sizeof(struct StackChunk) + MEM_SIZE_OVERHEAD);
+
+	return chunk_size / elem_size;
+}
+
+BLI_Stack *BLI_stack_new_ex(const size_t elem_size, const char *description,
+                            const size_t chunk_size)
 {
 	BLI_Stack *stack = MEM_callocN(sizeof(*stack), description);
 
+	stack->chunk_elem_max = stack_chunk_elem_max_calc(elem_size, chunk_size);
 	stack->elem_size = elem_size;
+	/* force init */
+	stack->chunk_index = stack->chunk_elem_max - 1;
+
+	/* ensure we have a correctly rounded size */
+	BLI_assert((IS_POW2(stack->elem_size) == 0) ||
+	           (IS_POW2((stack->chunk_elem_max * stack->elem_size) +
+	                    (sizeof(struct StackChunk) + MEM_SIZE_OVERHEAD))));
 
 	return stack;
 }
 
+/**
+ * Create a new homogeneous stack with elements of 'elem_size' bytes.
+ */
+BLI_Stack *BLI_stack_new(const size_t elem_size, const char *description)
+{
+	return BLI_stack_new_ex(elem_size, description, CHUNK_SIZE_DEFAULT);
+}
+
+static void stack_free_chunks(struct StackChunk *data)
+{
+	while (data) {
+		struct StackChunk *data_next = data->next;
+		MEM_freeN(data);
+		data = data_next;
+	}
+}
+
+/**
+ * Free the stack's data and the stack itself
+ */
 void BLI_stack_free(BLI_Stack *stack)
 {
-	if (stack) {
-		if (stack->data)
-			MEM_freeN(stack->data);
-		MEM_freeN(stack);
-	}
+	stack_free_chunks(stack->chunk_curr);
+	stack_free_chunks(stack->chunk_free);
+	MEM_freeN(stack);
 }
 
-/* Gets the last element in the stack */
-#define STACK_LAST_ELEM(stack__) \
-	(((char *)(stack__)->data) + \
-	 ((stack__)->elem_size * ((stack__)->totelem - 1)))
-
-void BLI_stack_push(BLI_Stack *stack, void *src)
+/**
+ * Copies the source value onto the stack (note that it copies
+ * elem_size bytes from 'src', the pointer itself is not stored)
+ */
+void BLI_stack_push(BLI_Stack *stack, const void *src)
 {
-	/* Ensure stack is large enough */
-	if (stack->totelem == stack->maxelem) {
-		if (stack->maxelem == 0) {
-			/* Initialize stack with space for a small hardcoded
-			 * number of elements */
-			stack->maxelem = 32;
-			stack->data = MEM_mallocN((stack->elem_size *
-			                           stack->maxelem), __func__);
+	stack->chunk_index++;
+
+	if (UNLIKELY(stack->chunk_index == stack->chunk_elem_max)) {
+		struct StackChunk *chunk;
+		if (stack->chunk_free) {
+			chunk = stack->chunk_free;
+			stack->chunk_free = chunk->next;
 		}
 		else {
-			/* Double stack size */
-			size_t maxelem = stack->maxelem + stack->maxelem;
-			/* Check for overflow */
-			BLI_assert(maxelem > stack->maxelem);
-			stack->data = MEM_reallocN(stack->data,
-			                           (stack->elem_size *
-			                            maxelem));
-			stack->maxelem = maxelem;
+			chunk = MEM_mallocN(
+			        sizeof(*chunk) + (stack->elem_size * stack->chunk_elem_max),
+			        __func__);
 		}
+		chunk->next = stack->chunk_curr;
+		stack->chunk_curr = chunk;
+		stack->chunk_index = 0;
 	}
 
-	BLI_assert(stack->totelem < stack->maxelem);
+	BLI_assert(stack->chunk_index < stack->chunk_elem_max);
+
+#ifdef USE_TOTELEM
+	stack->totelem++;
+#endif
 
 	/* Copy source to end of stack */
-	stack->totelem++;
-	memcpy(STACK_LAST_ELEM(stack), src, stack->elem_size);
+	memcpy(CHUNK_LAST_ELEM(stack), src, stack->elem_size);
 }
 
+/**
+ * Retrieves and removes the top element from the stack.
+ * The value is copies to \a dst, which must be at least \a elem_size bytes.
+ *
+ * Does not reduce amount of allocated memory.
+ */
 void BLI_stack_pop(BLI_Stack *stack, void *dst)
 {
-	BLI_assert(stack->totelem > 0);
-	if (stack->totelem > 0) {
-		memcpy(dst, STACK_LAST_ELEM(stack), stack->elem_size);
+	BLI_assert(BLI_stack_is_empty(stack) == false);
+
+	if (!BLI_stack_is_empty(stack)) {
+		memcpy(dst, CHUNK_LAST_ELEM(stack), stack->elem_size);
+#ifdef USE_TOTELEM
 		stack->totelem--;
+#endif
+		if (--stack->chunk_index == CHUNK_EMPTY) {
+			struct StackChunk *chunk_free;
+
+			chunk_free        = stack->chunk_curr;
+			stack->chunk_curr = stack->chunk_curr->next;
+
+			chunk_free->next  = stack->chunk_free;
+			stack->chunk_free = chunk_free;
+
+			stack->chunk_index = stack->chunk_elem_max - 1;
+		}
 	}
 }
 
+/**
+ * Returns true if the stack is empty, false otherwise
+ */
 bool BLI_stack_is_empty(const BLI_Stack *stack)
 {
-	return stack->totelem == 0;
+	return (stack->chunk_curr == NULL);
 }
