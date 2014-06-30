@@ -53,7 +53,7 @@ if(NOT WITH_HEADLESS)
 		)
 	endif()
 
-	include_directories(${PNG_INCLUDE_DIR})
+	include_directories(${PNG_INCLUDE_DIRS})
 	link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
 
 	add_executable(datatoc_icon ${SRC})

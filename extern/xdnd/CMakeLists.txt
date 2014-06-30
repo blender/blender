@@ -28,7 +28,7 @@ set(INC
 )
 
 set(INC_SYS
-
+	${X11_X11_INCLUDE_PATH}
 )
 
 set(SRC

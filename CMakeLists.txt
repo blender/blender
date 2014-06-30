@@ -1089,7 +1089,7 @@ elseif(WIN32)
 			message(WARNING "Using HARDCODED libpng locations")
 			set(PNG_LIBRARIES libpng)
 			set(PNG "${LIBDIR}/png")
-			set(PNG_INCLUDE_DIR "${PNG}/include")
+			set(PNG_INCLUDE_DIRS "${PNG}/include")
 			set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 		endif()
 
@@ -1360,7 +1360,7 @@ elseif(WIN32)
 		add_definitions(-DFREE_WINDOWS)
 
 		set(PNG "${LIBDIR}/png")
-		set(PNG_INCLUDE_DIR "${PNG}/include")
+		set(PNG_INCLUDE_DIRS "${PNG}/include")
 		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
 		if(WITH_MINGW64)
@@ -1780,7 +1780,7 @@ elseif(APPLE)
 	endif()
 
 	set(PNG "${LIBDIR}/png")
-	set(PNG_INCLUDE_DIR "${PNG}/include")
+	set(PNG_INCLUDE_DIRS "${PNG}/include")
 	set(PNG_LIBPATH ${PNG}/lib)
 
 	set(JPEG "${LIBDIR}/jpeg")

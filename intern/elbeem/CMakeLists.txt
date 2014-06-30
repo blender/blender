@@ -29,7 +29,7 @@ set(INC
 )
 
 set(INC_SYS
-	${PNG_INCLUDE_DIR}
+	${PNG_INCLUDE_DIRS}
 	${ZLIB_INCLUDE_DIRS}
 )
 
