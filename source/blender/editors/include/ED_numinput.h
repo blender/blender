@@ -76,7 +76,7 @@ enum {
  */
 
 void initNumInput(NumInput *n);
-void outputNumInput(NumInput *n, char *str);
+void outputNumInput(NumInput *n, char *str, const float scale_length);
 bool hasNumInput(const NumInput *n);
 bool applyNumInput(NumInput *n, float *vec);
 bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event);

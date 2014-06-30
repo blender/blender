@@ -79,13 +79,14 @@ static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
+	Scene *sce = CTX_data_scene(C);
 
 	if (sa) {
 		BevelData *opdata = op->customdata;
 		char offset_str[NUM_STR_REP_LEN];
 
 		if (hasNumInput(&opdata->num_input)) {
-			outputNumInput(&opdata->num_input, offset_str);
+			outputNumInput(&opdata->num_input, offset_str, sce->unit.scale_length);
 		}
 		else {
 			BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "offset"));

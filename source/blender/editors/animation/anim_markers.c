@@ -846,7 +846,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 			applyNumInput(&mm->num, &value);
 
 			if (hasNumInput(&mm->num)) {
-				outputNumInput(&mm->num, str_tx);
+				outputNumInput(&mm->num, str_tx, scene->unit.scale_length);
 			}
 			else {
 				BLI_snprintf(str_tx, sizeof(str_tx), "%d", (int)value);

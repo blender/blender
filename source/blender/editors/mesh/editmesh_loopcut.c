@@ -696,10 +696,11 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (show_cuts) {
+		Scene *sce = CTX_data_scene(C);
 		char buf[64 + NUM_STR_REP_LEN * 2];
 		char str_rep[NUM_STR_REP_LEN * 2];
 		if (hasNumInput(&lcd->num)) {
-			outputNumInput(&lcd->num, str_rep);
+			outputNumInput(&lcd->num, str_rep, sce->unit.scale_length);
 		}
 		else {
 			BLI_snprintf(str_rep, NUM_STR_REP_LEN, "%d", cuts);
