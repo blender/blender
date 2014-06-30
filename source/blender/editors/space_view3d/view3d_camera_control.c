@@ -272,28 +272,8 @@ void ED_view3d_cameracontrol_update(
 	}
 
 	/* record the motion */
-	if (use_autokey && autokeyframe_cfra_can_key(scene, id_key)) {
-		ListBase dsources = {NULL, NULL};
-
-		/* add data-source override for the camera object */
-		ANIM_relative_keyingset_add_source(&dsources, id_key, NULL, NULL);
-
-		/* insert keyframes
-		 * 1) on the first frame
-		 * 2) on each subsequent frame
-		 *    TODO: need to check in future that frame changed before doing this
-		 */
-		if (do_rotate) {
-			struct KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
-			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-		}
-		if (do_translate) {
-			struct KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
-			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-		}
-
-		/* free temp data */
-		BLI_freelistN(&dsources);
+	if (use_autokey) {
+		ED_view3d_camera_autokey(scene, id_key, C, do_rotate, do_translate);
 	}
 }
 

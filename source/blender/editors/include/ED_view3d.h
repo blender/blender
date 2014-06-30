@@ -332,6 +332,13 @@ void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera, return true if */
 bool ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
 
+bool ED_view3d_camera_autokey(
+        struct Scene *scene, struct ID *id_key,
+        struct bContext *C, const bool do_rotate, const bool do_translate);
+bool ED_view3d_camera_lock_autokey(
+        struct View3D *v3d, struct RegionView3D *rv3d,
+        struct bContext *C, const bool do_rotate, const bool do_translate);
+
 void ED_view3D_lock_clear(struct View3D *v3d);
 
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d);

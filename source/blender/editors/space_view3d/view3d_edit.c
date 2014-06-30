@@ -71,6 +71,7 @@
 
 #include "ED_armature.h"
 #include "ED_particle.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_mesh.h"
@@ -177,6 +178,72 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 		}
 
 		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool ED_view3d_camera_autokey(
+        Scene *scene, ID *id_key,
+        struct bContext *C, const bool do_rotate, const bool do_translate)
+{
+	if (autokeyframe_cfra_can_key(scene, id_key)) {
+		ListBase dsources = {NULL, NULL};
+
+		/* add data-source override for the camera object */
+		ANIM_relative_keyingset_add_source(&dsources, id_key, NULL, NULL);
+
+		/* insert keyframes
+		 * 1) on the first frame
+		 * 2) on each subsequent frame
+		 *    TODO: need to check in future that frame changed before doing this
+		 */
+		if (do_rotate) {
+			struct KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
+			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		}
+		if (do_translate) {
+			struct KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
+			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		}
+
+		/* free temp data */
+		BLI_freelistN(&dsources);
+
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
+ * Call after modifying a locked view.
+ *
+ * \note Not every view edit currently auto-keys (numpad for eg),
+ * this is complicated because of smoothview.
+ */
+bool ED_view3d_camera_lock_autokey(
+        View3D *v3d, RegionView3D *rv3d,
+        struct bContext *C, const bool do_rotate, const bool do_translate)
+{
+	/* similar to ED_view3d_cameracontrol_update */
+	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
+		Scene *scene = CTX_data_scene(C);
+		ID *id_key;
+		Object *root_parent;
+		if ((U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0 && (root_parent = v3d->camera->parent)) {
+			while (root_parent->parent) {
+				root_parent = root_parent->parent;
+			}
+			id_key = &root_parent->id;
+		}
+		else {
+			id_key = &v3d->camera->id;
+		}
+
+		return ED_view3d_camera_autokey(scene, id_key, C, do_rotate, do_translate);
 	}
 	else {
 		return false;
@@ -1052,7 +1119,9 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		viewrotate_apply(vod, event->x, event->y);
 	}
 	else if (event_code == VIEW_CONFIRM) {
+		ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, true, true);
 		ED_view3d_depth_tag_update(vod->rv3d);
+
 		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
@@ -1860,6 +1929,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		viewmove_apply(vod, event->x, event->y);
 	}
 	else if (event_code == VIEW_CONFIRM) {
+		ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
 		ED_view3d_depth_tag_update(vod->rv3d);
 
 		viewops_data_free(C, op);
@@ -2125,6 +2195,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		viewzoom_apply(vod, &event->x, U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
 	}
 	else if (event_code == VIEW_CONFIRM) {
+		ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
 		ED_view3d_depth_tag_update(vod->rv3d);
 		viewops_data_free(C, op);
 
@@ -2385,6 +2456,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		viewdolly_apply(vod, event->x, event->y, (U.uiflag & USER_ZOOM_INVERT) != 0);
 	}
 	else if (event_code == VIEW_CONFIRM) {
+		ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
 		ED_view3d_depth_tag_update(vod->rv3d);
 		viewops_data_free(C, op);
 
@@ -3867,6 +3939,7 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		viewroll_apply(vod, event->x, event->y);
 	}
 	else if (event_code == VIEW_CONFIRM) {
+		ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, true, false);
 		ED_view3d_depth_tag_update(vod->rv3d);
 		viewops_data_free(C, op);
 
