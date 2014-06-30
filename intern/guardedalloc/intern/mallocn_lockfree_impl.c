@@ -70,6 +70,23 @@ enum {
 #define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t) MEMHEAD_MMAP_FLAG)
 #define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & (size_t) MEMHEAD_ALIGN_FLAG)
 
+/* Uncomment this to have proper peak counter. */
+//#define USE_ATOMIC_MAX
+
+MEM_INLINE void update_maximum(size_t *maximum_value, size_t value)
+{
+#ifdef USE_ATOMIC_MAX
+	size_t prev_value = *maximum_value;
+	while (prev_value < value) {
+		if (atomic_cas_z(maximum_value, prev_value, value) != prev_value) {
+			break;
+		}
+	}
+#else
+	*maximum_value = value > *maximum_value ? value : *maximum_value;
+#endif
+}
+
 #ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))
 #endif
@@ -264,9 +281,7 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
 		memh->len = len;
 		atomic_add_u(&totblock, 1);
 		atomic_add_z(&mem_in_use, len);
-
-		/* TODO(sergey): Not strictly speaking thread-safe. */
-		peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
+		update_maximum(&peak_mem, mem_in_use);
 
 		return PTR_FROM_MEMHEAD(memh);
 	}
@@ -291,9 +306,7 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
 		memh->len = len;
 		atomic_add_u(&totblock, 1);
 		atomic_add_z(&mem_in_use, len);
-
-		/* TODO(sergey): Not strictly speaking thread-safe. */
-		peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
+		update_maximum(&peak_mem, mem_in_use);
 
 		return PTR_FROM_MEMHEAD(memh);
 	}
@@ -342,9 +355,7 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
 		memh->alignment = (short) alignment;
 		atomic_add_u(&totblock, 1);
 		atomic_add_z(&mem_in_use, len);
-
-		/* TODO(sergey): Not strictly speaking thread-safe. */
-		peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
+		update_maximum(&peak_mem, mem_in_use);
 
 		return PTR_FROM_MEMHEAD(memh);
 	}
@@ -381,9 +392,8 @@ void *MEM_lockfree_mapallocN(size_t len, const char *str)
 		atomic_add_z(&mem_in_use, len);
 		atomic_add_z(&mmap_in_use, len);
 
-		/* TODO(sergey): Not strictly speaking thread-safe. */
-		peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
-		peak_mem = mmap_in_use > peak_mem ? mmap_in_use : peak_mem;
+		update_maximum(&peak_mem, mem_in_use);
+		update_maximum(&peak_mem, mmap_in_use);
 
 		return PTR_FROM_MEMHEAD(memh);
 	}

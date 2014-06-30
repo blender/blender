@@ -103,6 +103,13 @@
 #  include <stdlib.h>
 #endif
 
+/* visual studio 2012 does not define inline for C */
+#ifdef _MSC_VER
+#  define MEM_INLINE static __inline
+#else
+#  define MEM_INLINE static inline
+#endif
+
 #define IS_POW2(a) (((a) & ((a) - 1)) == 0)
 
 /* Extra padding which needs to be applied on MemHead to make it aligned. */
