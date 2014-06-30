@@ -77,13 +77,12 @@ void WrapOperation::executePixelSampled(float output[4], float x, float y, Pixel
 bool WrapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-
 	newInput.xmin = input->xmin;
 	newInput.xmax = input->xmax;
 	newInput.ymin = input->ymin;
 	newInput.ymax = input->ymax;
 
-	if (m_wrappingType == 1 || m_wrappingType == 3) {
+	if (m_wrappingType == CMP_NODE_WRAP_X || m_wrappingType == CMP_NODE_WRAP_XY) {
 		// wrap only on the x-axis if tile is wrapping
 		newInput.xmin = getWrappedOriginalXPos(input->xmin);
 		newInput.xmax = getWrappedOriginalXPos(input->xmax);
@@ -92,7 +91,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOper
 			newInput.xmax = this->getWidth();
 		}
 	}
-	if (m_wrappingType == 2 || m_wrappingType == 3) {
+	if (m_wrappingType == CMP_NODE_WRAP_Y || m_wrappingType == CMP_NODE_WRAP_XY) {
 		// wrap only on the y-axis if tile is wrapping
 		newInput.ymin = getWrappedOriginalYPos(input->ymin);
 		newInput.ymax = getWrappedOriginalYPos(input->ymax);
