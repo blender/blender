@@ -217,6 +217,7 @@ class SpellChecker():
         "passepartout",
         "perspectively",
         "pixelate",
+        "polycount",
         "polygonization", "polygonalization",  # yuck!
         "selectability",
         "slurph",
@@ -455,6 +456,7 @@ class SpellChecker():
         "uvwarp",
 
         # Algorithm names
+        "ashikhmin",  # Ashikhmin-Shirley
         "beckmann",
         "catmull",
         "catrom",
