@@ -378,7 +378,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
     def draw(self, context):
         lamp = context.lamp
 
-        self.layout.template_curve_mapping(lamp, "falloff_curve")
+        self.layout.template_curve_mapping(lamp, "falloff_curve", use_negative_slope=True)
 
 
 class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, Panel):
