@@ -1886,16 +1886,22 @@ elseif(APPLE)
 		endif()
 	endif()
 	
-	if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
-		set(OPENMP_FOUND ON)
-		set(OpenMP_C_FLAGS "-fopenmp" CACHE STRING "C compiler flags for OpenMP parallization" FORCE)
-		set(OpenMP_CXX_FLAGS "-fopenmp" CACHE STRING "C++ compiler flags for OpenMP parallization" FORCE)
-		include_directories(${LIBDIR}/openmp/include)
-		link_directories(${LIBDIR}/openmp/lib)
-		# XXX, BAD PRACTICE, DON'T DO THIS!!!
-		execute_process(COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES} ${LIBDIR}/openmp/lib/libiomp5.dylib ${CMAKE_BINARY_DIR}/bin/libiomp5.dylib) # for intermediate binaries, lib id is @loader_path
-	else()
-		set(WITH_OPENMP OFF)
+	if(WITH_OPENMP)
+		execute_process(COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE COMPILER_VENDOR)
+		string(SUBSTRING "${COMPILER_VENDOR}" 0 5 VENDOR_NAME) # truncate output
+		if(${VENDOR_NAME} MATCHES "Apple") # Apple does not support OpenMP yet
+			set(WITH_OPENMP OFF)
+		else() # vanilla gcc or clang_omp support OpenMP
+			message(STATUS "Using special OpenMP enabled compiler !")
+			set(OPENMP_FOUND ON)
+			set(OpenMP_C_FLAGS "-fopenmp" CACHE STRING "C compiler flags for OpenMP parallization" FORCE)
+			set(OpenMP_CXX_FLAGS "-fopenmp" CACHE STRING "C++ compiler flags for OpenMP parallization" FORCE)
+			include_directories(${LIBDIR}/openmp/include)
+			link_directories(${LIBDIR}/openmp/lib)
+			# This is a workaround for our helperbinaries ( datatoc, masgfmt, ... ),
+			# They are linked also to omp lib, so we need it in builddir for runtime exexcution, TODO: remove all unneeded dependencies from these
+			execute_process(COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES} ${LIBDIR}/openmp/lib/libiomp5.dylib ${CMAKE_BINARY_DIR}/bin/libiomp5.dylib) # for intermediate binaries, lib id is @loader_path
+		endif()
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)
