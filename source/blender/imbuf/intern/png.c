@@ -35,8 +35,10 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_fileops.h"
-
 #include "BLI_math.h"
+
+#include "BKE_global.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
@@ -484,6 +486,23 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	return(1);
 }
 
+static void imb_png_warning(png_structp png_ptr, png_const_charp message)
+{
+	/* We supress iCCP warnings. That's how Blender always used to behave,
+	 * and with new libpng it became too much picky, giving a warning on
+	 * the splash screen even.
+	 */
+	if ((G.debug & G_DEBUG) == 0 && !strncmp(message, "iCCP", 4)) {
+		return;
+	}
+	fprintf(stderr, "libpng warning: %s\n", message);
+}
+
+static void imb_png_error(png_structp png_ptr, png_const_charp message)
+{
+	fprintf(stderr, "libpng error: %s\n", message);
+}
+
 ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
@@ -512,6 +531,8 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[I
 		printf("Cannot png_create_read_struct\n");
 		return NULL;
 	}
+
+	png_set_error_fn(png_ptr, NULL, imb_png_error, imb_png_warning);
 
 	info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL) {
