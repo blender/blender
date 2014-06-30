@@ -142,16 +142,13 @@ void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y
 
 	int ix = x - dx;
 	int iy = y - dy;
-#else
-	int ix = x;
-	int iy = y;
 #endif
 
 	if (this->m_inputBuffer == NULL) {
 		zero_v4(output);
 	}
 	else {
-		doInterpolation(output, ix, iy, sampler);
+		doInterpolation(output, x, y, sampler);
 	}
 }
 
@@ -204,22 +201,13 @@ RenderLayersAlphaProg::RenderLayersAlphaProg() : RenderLayersBaseProg(SCE_PASS_C
 
 void RenderLayersAlphaProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	int ix = x;
-	int iy = y;
 	float *inputBuffer = this->getInputBuffer();
 
-	if (inputBuffer == NULL || ix < 0 || iy < 0 || ix >= (int)this->getWidth() || iy >= (int)this->getHeight() ) {
-		output[0] = 0.0f;
-		output[1] = 0.0f;
-		output[2] = 0.0f;
-		output[3] = 0.0f;
+	if (inputBuffer == NULL) {
+		zero_v4(output);
 	}
 	else {
-		unsigned int offset = (iy * this->getWidth() + ix) * 4;
-		output[0] = inputBuffer[offset + 3];
-		output[1] = 0.0f;
-		output[2] = 0.0f;
-		output[3] = 0.0f;
+		doInterpolation(output, x, y, sampler);
 	}
 }
 
