@@ -4221,8 +4221,7 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
 	if (ima) {
 		bgpic->ima = ima;
 		
-		if (ima->id.us == 0) id_us_plus(&ima->id);
-		else id_lib_extern(&ima->id);
+		id_us_plus(&ima->id);
 		
 		if (!(v3d->flag & V3D_DISPBGPICS))
 			v3d->flag |= V3D_DISPBGPICS;
