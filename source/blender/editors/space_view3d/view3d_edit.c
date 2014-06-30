@@ -4265,6 +4265,19 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
 
 	if (bgpic_rem) {
 		ED_view3D_background_image_remove(v3d, bgpic_rem);
+
+		if (bgpic_rem->source == V3D_BGPIC_IMAGE) {
+			Image *ima = bgpic_rem->ima;
+			if (ima) {
+				id_us_min(&ima->id);
+			}
+		}
+		else if (bgpic_rem->source == V3D_BGPIC_MOVIE) {
+			MovieClip *clip = bgpic_rem->clip;
+			if (clip) {
+				id_us_min(&clip->id);
+			}
+		}
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 		return OPERATOR_FINISHED;
 	}
