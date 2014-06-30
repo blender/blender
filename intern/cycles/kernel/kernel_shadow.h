@@ -64,18 +64,21 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 	bool blocked;
 
 	if(kernel_data.integrator.transparent_shadows) {
+		/* check transparent bounces here, for volume scatter which can do
+		 * lighting before surface path termination is checked */
+		if(state->transparent_bounce < kernel_data.integrator.transparent_max_bounce)
+			return true;
+
 		/* intersect to find an opaque surface, or record all transparent surface hits */
 		Intersection hits_stack[STACK_MAX_HITS];
-		Intersection *hits;
+		Intersection *hits = hits_stack;
 		uint max_hits = kernel_data.integrator.transparent_max_bounce - state->transparent_bounce - 1;
 
 		/* prefer to use stack but use dynamic allocation if too deep max hits
 		 * we need max_hits + 1 storage space due to the logic in
 		 * scene_intersect_shadow_all which will first store and then check if
 		 * the limit is exceeded */
-		if(max_hits + 1 <= STACK_MAX_HITS)
-			hits = hits_stack;
-		else
+		if(max_hits + 1 > STACK_MAX_HITS)
 			hits = (Intersection*)malloc(sizeof(Intersection)*(max_hits + 1));
 
 		uint num_hits;
