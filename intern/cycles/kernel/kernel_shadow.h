@@ -66,7 +66,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 	if(kernel_data.integrator.transparent_shadows) {
 		/* check transparent bounces here, for volume scatter which can do
 		 * lighting before surface path termination is checked */
-		if(state->transparent_bounce < kernel_data.integrator.transparent_max_bounce)
+		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce)
 			return true;
 
 		/* intersect to find an opaque surface, or record all transparent surface hits */
