@@ -168,8 +168,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
 		if(CUDA_VERSION LESS 60 AND ${arch} MATCHES "sm_50")
 			message(WARNING "Can't build kernel for CUDA sm_50 architecture, skipping")
-		elseif(CUDA_VERSION LESS 50 AND ${arch} MATCHES "sm_35")
-			message(WARNING "Can't build kernel for CUDA sm_35 architecture, skipping")
 		else()
 			add_custom_command(
 				OUTPUT ${cuda_cubin}
