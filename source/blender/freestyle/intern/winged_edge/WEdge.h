@@ -1295,7 +1295,9 @@ protected:
 class WingedEdge
 {
 public:
-	WingedEdge() {}
+	WingedEdge() {
+		_numFaces = 0;
+	}
 
 	~WingedEdge()
 	{
