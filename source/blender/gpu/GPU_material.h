@@ -147,6 +147,7 @@ void GPU_material_vertex_attributes(GPUMaterial *material,
 	struct GPUVertexAttribs *attrib);
 
 bool GPU_material_do_color_management(GPUMaterial *mat);
+bool GPU_material_use_new_shading_nodes(GPUMaterial *mat);
 
 /* Exported shading */
 

@@ -417,6 +417,11 @@ bool GPU_material_do_color_management(GPUMaterial *mat)
 	return !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT));
 }
 
+bool GPU_material_use_new_shading_nodes(GPUMaterial *mat)
+{
+	return BKE_scene_use_new_shading_nodes(mat->scene);
+}
+
 static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **lv, GPUNodeLink **dist)
 {
 	GPUNodeLink *visifac, *inpr;

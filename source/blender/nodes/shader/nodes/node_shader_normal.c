@@ -61,7 +61,12 @@ static void node_shader_exec_normal(void *UNUSED(data), int UNUSED(thread), bNod
 static int gpu_shader_normal(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *vec = GPU_uniform(out[0].vec);
-	return GPU_stack_link(mat, "normal", in, out, vec);
+	int ret = GPU_stack_link(mat, "normal", in, out, vec);
+	if (ret && GPU_material_use_new_shading_nodes(mat)) {
+		float fac[3] = {1.0f, 0.0f, 0.0f};
+		GPU_link(mat, "invert", GPU_uniform(fac), out[1].link, &out[1].link);
+	}
+	return ret;
 }
 
 void register_node_type_sh_normal(void)
