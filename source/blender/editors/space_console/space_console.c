@@ -158,6 +158,18 @@ static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
 
+/* same as 'text_cursor' */
+static void console_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+{
+	SpaceText *st = sa->spacedata.first;
+	int wmcursor = BC_TEXTEDITCURSOR;
+
+	if (st->text && BLI_rcti_isect_pt(&st->txtbar, win->eventstate->x - ar->winrct.xmin, st->txtbar.ymin)) {
+		wmcursor = CURSOR_STD;
+	}
+
+	WM_cursor_set(win, wmcursor);
+}
 
 /* ************* dropboxes ************* */
 
@@ -396,6 +408,7 @@ void ED_spacetype_console(void)
 
 	art->init = console_main_area_init;
 	art->draw = console_main_area_draw;
+	art->cursor = console_cursor;
 	art->listener = console_main_area_listener;
 	
 	
