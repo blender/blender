@@ -319,6 +319,10 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 			}
 		}
 	}
+
+	// If we have constraints, make sure we get treated as an "animated" object
+	if (m_constraintNumber > 0)
+		GetActionManager();
 }
 
 BL_ArmatureConstraint* BL_ArmatureObject::GetConstraint(const char* posechannel, const char* constraintname)
