@@ -160,7 +160,7 @@ typedef struct uiTooltipData {
 			UI_TIP_STYLE_NORMAL = 0,
 			UI_TIP_STYLE_HEADER,
 			UI_TIP_STYLE_MONO,
-		} style : 2;
+		} style : 3;
 		enum {
 			UI_TIP_LC_MAIN = 0,     /* primary text */
 			UI_TIP_LC_VALUE,        /* the value of buttons (also shortcuts) */
