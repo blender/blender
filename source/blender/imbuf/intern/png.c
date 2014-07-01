@@ -486,7 +486,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	return(1);
 }
 
-static void imb_png_warning(png_structp png_ptr, png_const_charp message)
+static void imb_png_warning(png_structp UNUSED(png_ptr), png_const_charp message)
 {
 	/* We supress iCCP warnings. That's how Blender always used to behave,
 	 * and with new libpng it became too much picky, giving a warning on
@@ -498,7 +498,7 @@ static void imb_png_warning(png_structp png_ptr, png_const_charp message)
 	fprintf(stderr, "libpng warning: %s\n", message);
 }
 
-static void imb_png_error(png_structp png_ptr, png_const_charp message)
+static void imb_png_error(png_structp UNUSED(png_ptr), png_const_charp message)
 {
 	fprintf(stderr, "libpng error: %s\n", message);
 }
