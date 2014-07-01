@@ -3106,7 +3106,17 @@ short DAG_get_eval_flags_for_object(Scene *scene, void *object)
 		/* Happens when external render engine exports temporary objects
 		 * which are not in the DAG.
 		 */
+
 		/* TODO(sergey): Doublecheck objects with Curve Deform exports all fine. */
+
+		/* TODO(sergey): Weak but currently we can't really access proper DAG from
+		 * the modifiers stack. This is because in most cases modifier is to use
+		 * the foreground scene, but to access evaluation flags we need to know
+		 * active background scene, which we don't know.
+		 */
+		if (scene->set) {
+			return DAG_get_eval_flags_for_object(scene->set, object);
+		}
 		return 0;
 	}
 }
