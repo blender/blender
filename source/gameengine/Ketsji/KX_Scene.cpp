@@ -867,8 +867,6 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	m_map_gameobject_to_replica.clear();
 	m_groupGameObjects.clear();
 
-	// todo: place a timebomb in the object, for temporarily objects :)
-	// lifespan of zero means 'this object lives forever'
 	KX_GameObject* originalobj = (KX_GameObject*) originalobject;
 	KX_GameObject* parentobj = (KX_GameObject*) parentobject;
 
@@ -877,9 +875,10 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	// lets create a replica
 	KX_GameObject* replica = (KX_GameObject*) AddNodeReplicaObject(NULL,originalobj);
 
+	// add a timebomb to this object
+	// lifespan of zero means 'this object lives forever'
 	if (lifespan > 0)
 	{
-		// add a timebomb to this object
 		// for now, convert between so called frames and realtime
 		m_tempObjectList->Add(replica->AddRef());
 		// this convert the life from frames to sort-of seconds, hard coded 0.02 that assumes we have 50 frames per second
@@ -915,7 +914,6 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	
 	// get the rootnode's scale
 	MT_Vector3 newscale = parentobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
-
 	// set the replica's relative scale with the rootnode's scale
 	replica->NodeSetRelativeScale(newscale);
 
