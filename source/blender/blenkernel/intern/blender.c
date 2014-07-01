@@ -197,29 +197,38 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	bScreen *curscreen = NULL;
 	Scene *curscene = NULL;
 	int recover;
-	char mode;
+	enum {
+		LOAD_UI = 1,
+		LOAD_UI_OFF,
+		LOAD_UNDO,
+	} mode;
 
-	/* 'u' = undo save, 'n' = no UI load */
-	if (BLI_listbase_is_empty(&bfd->main->screen)) mode = 'u';
-	else if (G.fileflags & G_FILE_NO_UI) mode = 'n';
-	else mode = 0;
+	if (BLI_listbase_is_empty(&bfd->main->screen)) {
+		mode = LOAD_UNDO;
+	}
+	else if (G.fileflags & G_FILE_NO_UI) {
+		mode = LOAD_UI_OFF;
+	}
+	else {
+		mode = LOAD_UI;
+	}
 
 	recover = (G.fileflags & G_FILE_RECOVER);
 
 	/* Free all render results, without this stale data gets displayed after loading files */
-	if (mode != 'u') {
+	if (mode != LOAD_UNDO) {
 		RE_FreeAllRenderResults();
 	}
 
 	/* Only make filepaths compatible when loading for real (not undo) */
-	if (mode != 'u') {
+	if (mode != LOAD_UNDO) {
 		clean_paths(bfd->main);
 	}
 
 	/* XXX here the complex windowmanager matching */
 	
 	/* no load screens? */
-	if (mode) {
+	if (mode != LOAD_UI) {
 		/* comes from readfile.c */
 		SWAP(ListBase, G.main->wm, bfd->main->wm);
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
@@ -263,7 +272,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	}
 	
 	/* case G_FILE_NO_UI or no screens in file */
-	if (mode) {
+	if (mode != LOAD_UI) {
 		/* leave entire context further unaltered? */
 		CTX_data_scene_set(C, curscene);
 	}
@@ -332,7 +341,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	
 	/* baseflags, groups, make depsgraph, etc */
 	/* first handle case if other windows have different scenes visible */
-	if (mode == 0) {
+	if (mode == LOAD_UI) {
 		wmWindowManager *wm = G.main->wm.first;
 		
 		if (wm) {
@@ -347,7 +356,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	}
 	BKE_scene_set_background(G.main, CTX_data_scene(C));
 
-	if (mode != 'u') {
+	if (mode != LOAD_UNDO) {
 		IMB_colormanagement_check_file_config(G.main);
 	}
 
