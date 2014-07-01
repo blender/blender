@@ -75,7 +75,6 @@ public:
 
 			case CUDA_ERROR_INVALID_IMAGE: return "Invalid kernel image";
 			case CUDA_ERROR_INVALID_CONTEXT: return "Invalid context";
-			case CUDA_ERROR_CONTEXT_ALREADY_CURRENT: return "Context already current";
 			case CUDA_ERROR_MAP_FAILED: return "Map failed";
 			case CUDA_ERROR_UNMAP_FAILED: return "Unmap failed";
 			case CUDA_ERROR_ARRAY_IS_MAPPED: return "Array is mapped";
@@ -87,11 +86,15 @@ public:
 			case CUDA_ERROR_NOT_MAPPED_AS_POINTER: return "Mapped resource not available for access as a pointer";
 			case CUDA_ERROR_ECC_UNCORRECTABLE: return "Uncorrectable ECC error detected";
 			case CUDA_ERROR_UNSUPPORTED_LIMIT: return "CUlimit not supported by device";
+			case CUDA_ERROR_CONTEXT_ALREADY_IN_USE: return "Context already in use";
+			case CUDA_ERROR_PEER_ACCESS_UNSUPPORTED: return "Peer access unsupported";
+			case CUDA_ERROR_INVALID_PTX: return "Invalid PTX code";
 
 			case CUDA_ERROR_INVALID_SOURCE: return "Invalid source";
 			case CUDA_ERROR_FILE_NOT_FOUND: return "File not found";
 			case CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND: return "Link to a shared object failed to resolve";
 			case CUDA_ERROR_SHARED_OBJECT_INIT_FAILED: return "Shared object initialization failed";
+			case CUDA_ERROR_OPERATING_SYSTEM: return "OS call failed";
 
 			case CUDA_ERROR_INVALID_HANDLE: return "Invalid handle";
 
@@ -99,10 +102,19 @@ public:
 
 			case CUDA_ERROR_NOT_READY: return "CUDA not ready";
 
-			case CUDA_ERROR_LAUNCH_FAILED: return "Launch failed";
+			case CUDA_ERROR_ILLEGAL_ADDRESS: return "Illegal adress";
 			case CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES: return "Launch exceeded resources";
 			case CUDA_ERROR_LAUNCH_TIMEOUT: return "Launch exceeded timeout";
 			case CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING: return "Launch with incompatible texturing";
+			case CUDA_ERROR_HARDWARE_STACK_ERROR: return "Stack error";
+			case CUDA_ERROR_ILLEGAL_INSTRUCTION: return "Illegal instruction";
+			case CUDA_ERROR_MISALIGNED_ADDRESS: return "Misaligned adress";
+			case CUDA_ERROR_INVALID_ADDRESS_SPACE: return "Invalid adress space";
+			case CUDA_ERROR_INVALID_PC: return "Invalid program counter";
+			case CUDA_ERROR_LAUNCH_FAILED: return "Launch failed";
+
+			case CUDA_ERROR_NOT_PERMITTED: return "Operation not permitted";
+			case CUDA_ERROR_NOT_SUPPORTED: return "Operation not supported";
 
 			case CUDA_ERROR_UNKNOWN: return "Unknown error";
 
