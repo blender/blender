@@ -102,7 +102,7 @@ static int PyKDTree__tp_init(PyKDTree *self, PyObject *args, PyObject *kwargs)
 	unsigned int maxsize;
 	const char *keywords[] = {"size", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, (char *)"I:KDTree", (char **)keywords, &maxsize)) {
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I:KDTree", (char **)keywords, &maxsize)) {
 		return -1;
 	}
 
@@ -425,7 +425,7 @@ PyMODINIT_FUNC PyInit_mathutils_kdtree(void)
 	if (PyType_Ready(&PyKDTree_Type)) {
 		return NULL;
 	}
-	PyModule_AddObject(m, (char *)"KDTree", (PyObject *) &PyKDTree_Type);
+	PyModule_AddObject(m, "KDTree", (PyObject *) &PyKDTree_Type);
 
 	return m;
 }

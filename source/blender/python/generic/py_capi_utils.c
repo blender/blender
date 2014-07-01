@@ -419,7 +419,7 @@ PyObject *PyC_ExceptionBuffer(void)
 	if (!(string_io_mod = PyImport_ImportModule("io"))) {
 		goto error_cleanup;
 	}
-	else if (!(string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
+	else if (!(string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
 		goto error_cleanup;
 	}
 	else if (!(string_io_getvalue = PyObject_GetAttrString(string_io, "getvalue"))) {
@@ -651,12 +651,12 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 			const char *format = va_arg(vargs, char *);
 			void *ptr = va_arg(vargs, void *);
 
-			ret = PyObject_CallFunction(calcsize, (char *)"s", format);
+			ret = PyObject_CallFunction(calcsize, "s", format);
 
 			if (ret) {
 				sizes[i] = PyLong_AsLong(ret);
 				Py_DECREF(ret);
-				ret = PyObject_CallFunction(unpack, (char *)"sy#", format, (char *)ptr, sizes[i]);
+				ret = PyObject_CallFunction(unpack, "sy#", format, (char *)ptr, sizes[i]);
 			}
 
 			if (ret == NULL) {

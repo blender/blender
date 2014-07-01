@@ -212,25 +212,29 @@ static PyObject *CCL_initPython(void)
 #endif
 
 static struct _inittab bpy_internal_modules[] = {
-	{(char *)"mathutils", PyInit_mathutils},
-//	{(char *)"mathutils.geometry", PyInit_mathutils_geometry},
-//	{(char *)"mathutils.noise", PyInit_mathutils_noise},
-//	{(char *)"mathutils.kdtree", PyInit_mathutils_kdtree},
-	{(char *)"_bpy_path", BPyInit__bpy_path},
-	{(char *)"bgl", BPyInit_bgl},
-	{(char *)"blf", BPyInit_blf},
-	{(char *)"bmesh", BPyInit_bmesh},
-	// {(char *)"bmesh.types", BPyInit_bmesh_types},
-	// {(char *)"bmesh.utils", BPyInit_bmesh_utils},
-	// {(char *)"bmesh.utils", BPyInit_bmesh_geometry},
+	{"mathutils", PyInit_mathutils},
+#if 0
+	{"mathutils.geometry", PyInit_mathutils_geometry},
+	{"mathutils.noise", PyInit_mathutils_noise},
+	{"mathutils.kdtree", PyInit_mathutils_kdtree},
+#endif
+	{"_bpy_path", BPyInit__bpy_path},
+	{"bgl", BPyInit_bgl},
+	{"blf", BPyInit_blf},
+	{"bmesh", BPyInit_bmesh},
+#if 0
+	{"bmesh.types", BPyInit_bmesh_types},
+	{"bmesh.utils", BPyInit_bmesh_utils},
+	{"bmesh.utils", BPyInit_bmesh_geometry},
+#endif
 #ifdef WITH_AUDASPACE
-	{(char *)"aud", AUD_initPython},
+	{"aud", AUD_initPython},
 #endif
 #ifdef WITH_CYCLES
-	{(char *)"_cycles", CCL_initPython},
+	{"_cycles", CCL_initPython},
 #endif
-	{(char *)"gpu", GPU_initPython},
-	{(char *)"idprop", BPyInit_idprop},
+	{"gpu", GPU_initPython},
+	{"idprop", BPyInit_idprop},
 	{NULL, NULL}
 };
 
