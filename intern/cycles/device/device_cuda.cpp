@@ -226,7 +226,7 @@ public:
 		cuda_assert(cuCtxDestroy(cuContext));
 	}
 
-	bool support_device(bool experimental, bool branched)
+	bool support_device(bool experimental)
 	{
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
@@ -332,7 +332,7 @@ public:
 			return false;
 		
 		/* check if GPU is supported */
-		if(!support_device(experimental, false))
+		if(!support_device(experimental))
 			return false;
 
 		/* get kernel */
@@ -594,7 +594,7 @@ public:
 		CUdeviceptr d_rng_state = cuda_device_ptr(rtile.rng_state);
 
 		/* get kernel function */
-		if(branched && support_device(true, branched)) {
+		if(branched) {
 			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"));
 		}
 		else {
