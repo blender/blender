@@ -240,7 +240,7 @@ struct Render
 	ListBase volumes;
 
 #ifdef WITH_FREESTYLE
-	struct Main freestyle_bmain;
+	struct Main *freestyle_bmain;
 	ListBase freestyle_renders;
 #endif
 

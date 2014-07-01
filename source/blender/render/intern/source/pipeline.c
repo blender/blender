@@ -61,6 +61,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
@@ -1822,11 +1823,13 @@ static void tag_scenes_for_render(Render *re)
 	}
 	
 #ifdef WITH_FREESTYLE
-	for (sce = re->freestyle_bmain.scene.first; sce; sce = sce->id.next) {
-		sce->id.flag &= ~LIB_DOIT;
+	if (re->freestyle_bmain) {
+		for (sce = re->freestyle_bmain->scene.first; sce; sce = sce->id.next) {
+			sce->id.flag &= ~LIB_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-		tag_dependend_objects_for_render(sce, renderlay);
+			tag_dependend_objects_for_render(sce, renderlay);
 #endif
+		}
 	}
 #endif
 
@@ -1928,6 +1931,8 @@ static void add_freestyle(Render *re, int render)
 
 	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
 
+	re->freestyle_bmain = BKE_main_new();
+
 	/* We use the same window manager for freestyle bmain as
 	 * real bmain uses. This is needed because freestyle's
 	 * bmain could be used to tag scenes for update, which
@@ -1935,7 +1940,7 @@ static void add_freestyle(Render *re, int render)
 	 * and that function requires proper window manager
 	 * to present (sergey)
 	 */
-	re->freestyle_bmain.wm = re->main->wm;
+	re->freestyle_bmain->wm = re->main->wm;
 
 	FRS_init_stroke_rendering(re);
 
@@ -2000,10 +2005,18 @@ static void free_all_freestyle_renders(void)
 			if (freestyle_render) {
 				freestyle_scene = freestyle_render->scene;
 				RE_FreeRender(freestyle_render);
-				BKE_scene_unlink(&re1->freestyle_bmain, freestyle_scene, NULL);
+				BKE_scene_unlink(re1->freestyle_bmain, freestyle_scene, NULL);
 			}
 		}
 		BLI_freelistN(&re1->freestyle_renders);
+
+		/* detach the window manager from freestyle bmain (see comments in
+		 * add_freestyle() for more detail)
+		 */
+		re1->freestyle_bmain->wm.first = re1->freestyle_bmain->wm.last = NULL;
+
+		BKE_main_free(re1->freestyle_bmain);
+		re1->freestyle_bmain = NULL;
 	}
 }
 #endif
@@ -2154,8 +2167,10 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 		scene->id.flag |= LIB_DOIT;
 	
 #ifdef WITH_FREESTYLE
-	for (scene = re->freestyle_bmain.scene.first; scene; scene = scene->id.next)
-		scene->id.flag &= ~LIB_DOIT;
+	if (re->freestyle_bmain) {
+		for (scene = re->freestyle_bmain->scene.first; scene; scene = scene->id.next)
+			scene->id.flag &= ~LIB_DOIT;
+	}
 #endif
 
 	for (node = ntree->nodes.first; node; node = node->next) {

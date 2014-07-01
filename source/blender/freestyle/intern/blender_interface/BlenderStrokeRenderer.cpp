@@ -58,7 +58,7 @@ namespace Freestyle {
 
 BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
-	freestyle_bmain = &re->freestyle_bmain;
+	freestyle_bmain = re->freestyle_bmain;
 
 	// for stroke mesh generation
 	_width = re->winx;
