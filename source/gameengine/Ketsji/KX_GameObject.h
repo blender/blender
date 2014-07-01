@@ -852,10 +852,10 @@ public:
 	/**
 	 * Was this object culled?
 	 */
-	inline bool
+	bool
 	GetCulled(
 		void
-	) { return m_bCulled; }
+	);
 
 	/**
 	 * Set culled flag of this object
