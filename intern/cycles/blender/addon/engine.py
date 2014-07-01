@@ -28,7 +28,7 @@ def init():
     _cycles.init(path, user_path)
 
 
-def create(engine, data, scene, region=0, v3d=0, rv3d=0, preview_osl=False):
+def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False):
     import bpy
     import _cycles
 
