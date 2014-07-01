@@ -286,6 +286,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		CTX_wm_area_set(C, NULL);
 		CTX_wm_region_set(C, NULL);
 		CTX_wm_menu_set(C, NULL);
+		curscene = bfd->curscene;
 	}
 	
 	/* this can happen when active scene was lib-linked, and doesn't exist anymore */
@@ -298,6 +299,9 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		CTX_wm_screen(C)->scene = CTX_data_scene(C);
 		curscene = CTX_data_scene(C);
 	}
+
+	BLI_assert(curscene == CTX_data_scene(C));
+
 
 	/* special cases, override loaded flags: */
 	if (G.f != bfd->globalf) {
@@ -349,12 +353,12 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 			
 			for (win = wm->windows.first; win; win = win->next) {
 				if (win->screen && win->screen->scene) /* zealous check... */
-					if (win->screen->scene != CTX_data_scene(C))
+					if (win->screen->scene != curscene)
 						BKE_scene_set_background(G.main, win->screen->scene);
 			}
 		}
 	}
-	BKE_scene_set_background(G.main, CTX_data_scene(C));
+	BKE_scene_set_background(G.main, curscene);
 
 	if (mode != LOAD_UNDO) {
 		IMB_colormanagement_check_file_config(G.main);
