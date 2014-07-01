@@ -476,11 +476,12 @@ static void draw_fcurve_samples(SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, View2DGrid *grid)
 {
 	ChannelDriver *driver;
-	float samplefreq, ctime;
+	float samplefreq;
 	float stime, etime;
 	float unitFac;
 	float dx, dy;
 	short mapping_flag = ANIM_get_normalization_flags(ac);
+	int i, n;
 
 	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
 	 * best just bail out in this case */
@@ -524,10 +525,12 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	 *	  the displayed values appear correctly in the viewport
 	 */
 	glBegin(GL_LINE_STRIP);
-	
-	for (ctime = stime; ctime <= etime; ctime += samplefreq)
+
+	for (i = 0, n = (etime - stime) / samplefreq + 0.5f; i < n; ++i) {
+		float ctime = stime + i * samplefreq;
 		glVertex2f(ctime, evaluate_fcurve(fcu, ctime) * unitFac);
-	
+	}
+
 	glEnd();
 	
 	/* restore driver */
