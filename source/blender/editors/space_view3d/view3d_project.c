@@ -321,10 +321,10 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 		r_ray_co[1] = 2.0f * mval[1] / ar->winy - 1.0f;
 
 		if (rv3d->persp == RV3D_CAMOB) {
-			r_ray_co[1] = -1.0f;
+			r_ray_co[2] = -1.0f;
 		}
 		else {
-			r_ray_co[1] = 0.0f;
+			r_ray_co[2] = 0.0f;
 		}
 
 		mul_project_m4_v3(rv3d->persinv, r_ray_co);
