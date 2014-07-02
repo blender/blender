@@ -76,6 +76,9 @@ def get_hash():
     except OSError:
         build_hash = None
         print("WARNING: could not use git to retrieve current Blender repository hash...")
+    except subprocess.CalledProcessError as e:
+        build_hash = None
+        print("WARNING: git errored while retrieving current Blender repository hash (%d)..." % e.returncode)
     if build_hash == '' or build_hash == None:
         build_hash = 'UNKNOWN'
 
