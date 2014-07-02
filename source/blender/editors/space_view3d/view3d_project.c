@@ -315,23 +315,27 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 
 	if (rv3d->is_persp) {
 		copy_v3_v3(r_ray_co, rv3d->viewinv[3]);
-
-		start_offset = v3d->near;
-		end_offset = v3d->far;
 	}
 	else {
-		const float ortho_extent = 1000.0f;
-		float vec[4];
-		vec[0] = 2.0f * mval[0] / ar->winx - 1;
-		vec[1] = 2.0f * mval[1] / ar->winy - 1;
-		vec[2] = 0.0f;
-		vec[3] = 1.0f;
+		r_ray_co[0] = 2.0f * mval[0] / ar->winx - 1.0f;
+		r_ray_co[1] = 2.0f * mval[1] / ar->winy - 1.0f;
 
-		mul_m4_v4(rv3d->persinv, vec);
-		copy_v3_v3(r_ray_co, vec);
+		if (rv3d->persp == RV3D_CAMOB) {
+			r_ray_co[1] = -1.0f;
+		}
+		else {
+			r_ray_co[1] = 0.0f;
+		}
 
-		start_offset = (rv3d->persp == RV3D_CAMOB) ? 0.0f : -ortho_extent;
-		end_offset   = ortho_extent;
+		mul_project_m4_v3(rv3d->persinv, r_ray_co);
+	}
+
+	if ((rv3d->is_persp == false) && (rv3d->persp != RV3D_CAMOB)) {
+		end_offset = v3d->far / 2.0f;
+		start_offset = -end_offset;
+	}
+	else {
+		ED_view3d_clip_range_get(v3d, rv3d, &start_offset, &end_offset, false);
 	}
 
 	if (r_ray_start) {
