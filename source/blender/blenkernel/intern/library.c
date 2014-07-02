@@ -829,6 +829,7 @@ void *BKE_libblock_copy_nolib(ID *id, const bool do_action)
 
 	id->newid = idn;
 	idn->flag |= LIB_NEW;
+	idn->us = 1;
 
 	BKE_libblock_copy_data(idn, id, do_action);
 
