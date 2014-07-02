@@ -1546,20 +1546,32 @@ static void initialize_particle_texture(ParticleSimulationData *sim, ParticleDat
 	ParticleSettings *part = psys->part;
 	ParticleTexture ptex;
 
-	if (part->type != PART_FLUID) {
-		psys_get_texture(sim, pa, &ptex, PAMAP_INIT, 0.f);
-
+	psys_get_texture(sim, pa, &ptex, PAMAP_INIT, 0.f);
+	
+	switch (part->type) {
+	case PART_EMITTER:
 		if (ptex.exist < psys_frand(psys, p+125))
 			pa->flag |= PARS_UNEXIST;
-
-		pa->time = (part->type == PART_HAIR) ? 0.f : part->sta + (part->end - part->sta)*ptex.time;
+		pa->time = part->sta + (part->end - part->sta)*ptex.time;
+		break;
+	case PART_HAIR:
+		if (ptex.exist < psys_frand(psys, p+125))
+			pa->flag |= PARS_UNEXIST;
+		pa->time = 0.f;
+		break;
+	case PART_FLUID:
+		break;
 	}
 }
 
 /* set particle parameters that don't change during particle's life */
-void initialize_particle(ParticleData *pa)
+void initialize_particle(ParticleSimulationData *sim, ParticleData *pa)
 {
+	ParticleSettings *part = sim->psys->part;
+	float birth_time = (float)(pa - sim->psys->particles) / (float)sim->psys->totpart;
+	
 	pa->flag &= ~PARS_UNEXIST;
+	pa->time = part->sta + (part->end - part->sta) * birth_time;
 
 	pa->hair_index = 0;
 	/* we can't reset to -1 anymore since we've figured out correct index in distribute_particles */
@@ -1575,7 +1587,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 
 	LOOP_PARTICLES {
 		if ((pa->flag & PARS_UNEXIST)==0)
-			initialize_particle(pa);
+			initialize_particle(sim, pa);
 
 		if (pa->flag & PARS_UNEXIST)
 			psys->totunexist++;
