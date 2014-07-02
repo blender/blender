@@ -69,7 +69,7 @@ void OBJECT_OT_lod_add(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = object_lod_add_exec;
-	ot->poll = ED_operator_objectmode;
+	ot->poll = ED_operator_object_active;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -101,7 +101,7 @@ void OBJECT_OT_lod_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = object_lod_remove_exec;
-	ot->poll = ED_operator_objectmode;
+	ot->poll = ED_operator_object_active;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
