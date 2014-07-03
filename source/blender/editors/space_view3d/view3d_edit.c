@@ -4435,20 +4435,46 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	}
 }
 
-static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static void view3d_cursor3d_update(bContext *C, const int *mval)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	float *fp = ED_view3d_cursor3d_get(scene, v3d);
 
-	ED_view3d_cursor3d_position(C, fp, event->mval);
-	
+	ED_view3d_cursor3d_position(C, fp, mval);
+
 	if (v3d && v3d->localvd)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	else
 		WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
-	
-	return OPERATOR_FINISHED;
+}
+
+static int view3d_cursor3d_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	view3d_cursor3d_update(C, event->mval);
+	op->customdata = SET_INT_IN_POINTER(event->type);
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int view3d_cursor3d_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	int event_type = GET_INT_FROM_POINTER(op->customdata);
+
+	if (event->type == event_type) {
+		return OPERATOR_FINISHED;
+	}
+
+	switch (event->type) {
+		case MOUSEMOVE:
+			view3d_cursor3d_update(C, event->mval);
+			break;
+		case LEFTMOUSE:
+			return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)
@@ -4461,6 +4487,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = view3d_cursor3d_invoke;
+	ot->modal  = view3d_cursor3d_modal;
 
 	ot->poll = ED_operator_view3d_active;
 
