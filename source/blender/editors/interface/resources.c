@@ -2420,7 +2420,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (U.versionfile < 272 || (U.versionfile == 272 && U.subversionfile < 1)) {
+	if (U.versionfile < 271) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->tui.wcol_tooltip.text, 255, 255, 255, 255);
