@@ -1117,7 +1117,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 
 void GHOST_WindowWin32::processWin32TabletInitEvent()
 {
-	if (m_wintab) {
+	if (m_wintab && m_tabletData) {
 		GHOST_WIN32_WTInfo fpWTInfo = (GHOST_WIN32_WTInfo) ::GetProcAddress(m_wintab, "WTInfoA");
 
 		// let's see if we can initialize tablet here
