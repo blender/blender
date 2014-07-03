@@ -264,9 +264,16 @@ PyAttributeDef SCA_PythonController::Attributes[] = {
 void SCA_PythonController::ErrorPrint(const char *error_msg)
 {
 	// If GetParent() is NULL, then most likely the object this controller
-	// was attached to is gone (e.g., removed by LibFree()).
-	const char *obj_name = (GetParent()) ? GetParent()->GetName().ReadPtr() : "Unavailable";
-	const char *ctr_name = (GetParent()) ? GetName().ReadPtr() : "Unavailable";
+	// was attached to is gone (e.g., removed by LibFree()). Also, GetName()
+	// can be a bad pointer if GetParent() is NULL, so better be safe and
+	// flag it as unavailable as well
+	const char *obj_name, *ctr_name;
+	if (GetParent()) {
+		obj_name = GetParent()->GetName().ReadPtr();
+		ctr_name = GetName().ReadPtr();
+	} else {
+		obj_name = ctr_name = "Unavailable";
+	}
 	printf("%s - object '%s', controller '%s':\n", error_msg, obj_name, ctr_name);
 	PyErr_Print();
 	
