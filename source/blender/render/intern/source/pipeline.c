@@ -2010,13 +2010,14 @@ static void free_all_freestyle_renders(void)
 		}
 		BLI_freelistN(&re1->freestyle_renders);
 
-		/* detach the window manager from freestyle bmain (see comments in
-		 * add_freestyle() for more detail)
-		 */
 		if (re1->freestyle_bmain) {
+			/* detach the window manager from freestyle bmain (see comments
+			 * in add_freestyle() for more detail)
+			 */
 			re1->freestyle_bmain->wm.first = re1->freestyle_bmain->wm.last = NULL;
 
 			BKE_main_free(re1->freestyle_bmain);
+			re1->freestyle_bmain = NULL;
 		}
 	}
 }
