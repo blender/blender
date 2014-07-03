@@ -2188,8 +2188,14 @@ int KX_GameObject::pyattr_set_collisionCallbacks(void *self_v, const KX_PYATTRIB
 		return PY_SET_ATTR_FAIL;
 	}
 
-	Py_XDECREF(self->m_collisionCallbacks);
+	if (self->m_collisionCallbacks == NULL) {
+		self->RegisterCollisionCallbacks();
+	} else {
+		Py_DECREF(self->m_collisionCallbacks);
+	}
+
 	Py_INCREF(value);
+
 
 	self->m_collisionCallbacks = value;
 
