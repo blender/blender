@@ -263,7 +263,11 @@ PyAttributeDef SCA_PythonController::Attributes[] = {
 
 void SCA_PythonController::ErrorPrint(const char *error_msg)
 {
-	printf("%s - object '%s', controller '%s':\n", error_msg, GetParent()->GetName().Ptr(), GetName().Ptr());
+	// If GetParent() is NULL, then most likely the object this controller
+	// was attached to is gone (e.g., removed by LibFree()).
+	const char *obj_name = (GetParent()) ? GetParent()->GetName().ReadPtr() : "Unavailable";
+	const char *ctr_name = (GetParent()) ? GetName().ReadPtr() : "Unavailable";
+	printf("%s - object '%s', controller '%s':\n", error_msg, obj_name, ctr_name);
 	PyErr_Print();
 	
 	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
