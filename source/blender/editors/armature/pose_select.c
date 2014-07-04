@@ -243,7 +243,7 @@ static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
 {
 	Bone *curBone;
 	
-	/* stop when unconnected child is encontered, or when unselectable bone is encountered */
+	/* stop when unconnected child is encountered, or when unselectable bone is encountered */
 	if (!(bone->flag & BONE_CONNECTED) || (bone->flag & BONE_UNSELECTABLE))
 		return;
 	
