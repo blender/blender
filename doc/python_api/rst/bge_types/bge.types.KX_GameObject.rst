@@ -145,13 +145,13 @@ base class --- :class:`SCA_IObject`
 
    .. attribute:: groupMembers
 
-      Returns the list of group members if the object is a group object, otherwise None is returned.
+      Returns the list of group members if the object is a group object (dupli group instance), otherwise None is returned.
 
       :type: :class:`CListValue` of :class:`KX_GameObject` or None
 
    .. attribute:: groupObject
 
-      Returns the group object that the object belongs to or None if the object is not part of a group.
+      Returns the group object (dupli group instance) that the object belongs to or None if the object is not part of a group.
 
       :type: :class:`KX_GameObject` or None
 
