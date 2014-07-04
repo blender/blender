@@ -182,26 +182,27 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
         col.label(text="Bevel Object:")
         col.prop(curve, "bevel_object", text="")
 
-        col = layout.column(align=True)
-        row = col.row()
-        row.label(text="Bevel Factor:")
+        if type(curve) is not TextCurve:
+            col = layout.column(align=True)
+            row = col.row()
+            row.label(text="Bevel Factor:")
 
-        col = layout.column()
-        col.active = (curve.bevel_depth > 0 or curve.bevel_object is not None)
-        row = col.row(align=True)
-        row.prop(curve, "bevel_factor_mapping_start", text="")
-        row.prop(curve, "bevel_factor_start", text="Start")
-        row = col.row(align=True)
-        row.prop(curve, "bevel_factor_mapping_end", text="")
-        row.prop(curve, "bevel_factor_end", text="End")
+            col = layout.column()
+            col.active = (curve.bevel_depth > 0 or curve.bevel_object is not None)
+            row = col.row(align=True)
+            row.prop(curve, "bevel_factor_mapping_start", text="")
+            row.prop(curve, "bevel_factor_start", text="Start")
+            row = col.row(align=True)
+            row.prop(curve, "bevel_factor_mapping_end", text="")
+            row.prop(curve, "bevel_factor_end", text="End")
 
-        row = layout.row()
-        sub = row.row()
-        sub.active = curve.taper_object is not None
-        sub.prop(curve, "use_map_taper")
-        sub = row.row()
-        sub.active = curve.bevel_object is not None
-        sub.prop(curve, "use_fill_caps")
+            row = layout.row()
+            sub = row.row()
+            sub.active = curve.taper_object is not None
+            sub.prop(curve, "use_map_taper")
+            sub = row.row()
+            sub.active = curve.bevel_object is not None
+            sub.prop(curve, "use_fill_caps")
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
