@@ -104,7 +104,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	BKE_scene_disable_color_management(freestyle_scene);
 
 	if (G.debug & G_DEBUG_FREESTYLE) {
-		printf("%s: %d threads\n", __func__, freestyle_scene->r.threads);
+		printf("%s: %d thread(s)\n", __func__, BKE_render_num_threads(&freestyle_scene->r));
 	}
 
 	// Render layer
