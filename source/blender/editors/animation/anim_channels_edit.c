@@ -2178,7 +2178,7 @@ static int animchannels_find_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* update filter text, and ensure that filter is enabled if there's something there
-	 * NOTE: we turn the filter off if there's nothing (this is a quicky shortcut for dismissing)
+	 * NOTE: we turn the filter off if there's nothing (this is a quick shortcut for dismissing)
 	 */
 	RNA_string_get(op->ptr, "query", ac.ads->searchstr);
 	

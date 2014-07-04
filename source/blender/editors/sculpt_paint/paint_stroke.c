@@ -155,7 +155,8 @@ static float event_tablet_data(const wmEvent *event, int *pen_flip)
 	return pressure;
 }
 
-static bool paint_tool_require_location(Brush *brush, PaintMode mode) {
+static bool paint_tool_require_location(Brush *brush, PaintMode mode)
+{
 	switch (mode) {
 		case PAINT_SCULPT:
 			if (ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
@@ -163,9 +164,9 @@ static bool paint_tool_require_location(Brush *brush, PaintMode mode) {
 			{
 				return false;
 			}
-			else
+			else {
 				return true;
-
+			}
 		default:
 			break;
 	}
