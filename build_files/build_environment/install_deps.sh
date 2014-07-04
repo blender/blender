@@ -1320,8 +1320,9 @@ compile_LLVM() {
       tar -C $SRC --transform "s,([^/]*/?)llvm-[^/]*(.*),\1LLVM-$LLVM_VERSION\2,x" \
           -xf $_src.tar.gz
       INFO "Unpacking CLANG-$LLVM_VERSION to $_src/tools/clang"
+      # Stupid clang guys renamed 'clang' to 'cfe' for now handle both cases... :(
       tar -C $_src/tools \
-          --transform "s,([^/]*/?)clang-[^/]*(.*),\1clang\2,x" \
+          --transform "s,([^/]*/?)(clang|cfe)-[^/]*(.*),\1clang\3,x" \
           -xf $_src_clang.tar.gz
 
       cd $_src
