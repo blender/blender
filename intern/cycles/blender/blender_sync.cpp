@@ -316,6 +316,8 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 	BL::RenderSettings::layers_iterator b_rlay;
 	int use_layer_samples = RNA_enum_get(&cscene, "use_layer_samples");
 	bool first_layer = true;
+	uint layer_override = get_layer(b_engine.layer_override());
+	uint scene_layers = layer_override ? layer_override : get_layer(b_scene.layers());
 
 	for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
 		if((!layer && first_layer) || (layer && b_rlay->name() == layer)) {
@@ -324,7 +326,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.holdout_layer = get_layer(b_rlay->layers_zmask());
 			render_layer.exclude_layer = get_layer(b_rlay->layers_exclude());
 
-			render_layer.scene_layer = get_layer(b_scene.layers()) & ~render_layer.exclude_layer;
+			render_layer.scene_layer = scene_layers & ~render_layer.exclude_layer;
 			render_layer.scene_layer |= render_layer.exclude_layer & render_layer.holdout_layer;
 
 			render_layer.layer = get_layer(b_rlay->layers());

@@ -544,6 +544,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "camera_override");
 	RNA_def_property_struct_type(prop, "Object");
 
+	prop = RNA_def_property(srna, "layer_override", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "layer_override", 1);
+	RNA_def_property_array(prop, 20);
+
 	prop = RNA_def_property(srna, "tile_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "tile_x");
 	prop = RNA_def_property(srna, "tile_y", PROP_INT, PROP_UNSIGNED);

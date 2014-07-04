@@ -192,7 +192,7 @@ struct Render
 	RenderData r;
 	World wrld;
 	struct Object *camera_override;
-	unsigned int lay;
+	unsigned int lay, layer_override;
 	
 	ListBase parts;
 	

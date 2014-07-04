@@ -104,6 +104,7 @@ typedef struct RenderEngine {
 
 	int flag;
 	struct Object *camera_override;
+	unsigned int layer_override;
 
 	int tile_x;
 	int tile_y;

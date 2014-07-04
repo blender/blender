@@ -2700,6 +2700,7 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	re->camera_override = camera_override;
 	re->lay = lay_override ? lay_override : scene->lay;
+	re->layer_override = lay_override;
 	re->i.localview = (re->lay & 0xFF000000) != 0;
 	
 	/* not too nice, but it survives anim-border render */
