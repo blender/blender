@@ -107,8 +107,6 @@ void node_socket_select(struct bNode *node, struct bNodeSocket *sock);
 void node_socket_deselect(struct bNode *node, struct bNodeSocket *sock, const bool deselect_node);
 void node_deselect_all_input_sockets(struct SpaceNode *snode, const bool deselect_nodes);
 void node_deselect_all_output_sockets(struct SpaceNode *snode, const bool deselect_nodes);
-int node_select_same_type(struct SpaceNode *snode);
-int node_select_same_type_np(struct SpaceNode *snode, int dir);
 void node_select_single(struct bContext *C, struct bNode *node);
 
 void NODE_OT_select(struct wmOperatorType *ot);
@@ -118,7 +116,7 @@ void NODE_OT_select_linked_from(struct wmOperatorType *ot);
 void NODE_OT_select_border(struct wmOperatorType *ot);
 void NODE_OT_select_circle(struct wmOperatorType *ot);
 void NODE_OT_select_lasso(struct wmOperatorType *ot);
-void NODE_OT_select_same_type(struct wmOperatorType *ot);
+void NODE_OT_select_grouped(struct wmOperatorType *ot);
 void NODE_OT_select_same_type_step(struct wmOperatorType *ot);
 void NODE_OT_find_node(struct wmOperatorType *ot);
 

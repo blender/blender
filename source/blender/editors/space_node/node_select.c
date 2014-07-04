@@ -32,10 +32,12 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_rect.h"
 #include "BLI_lasso.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -205,79 +207,144 @@ void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_node
 	}
 }
 
-/* return 1 if we need redraw otherwise zero. */
-int node_select_same_type(SpaceNode *snode)
+/* Return true if we need redraw, otherwise false. */
+
+static bool node_select_grouped_type(SpaceNode *snode, bNode *node_act)
 {
-	bNode *nac, *p;
-	int redraw;
+	bNode *node;
+	bool changed;
 
-	/* search for the active node. */
-	for (nac = snode->edittree->nodes.first; nac; nac = nac->next) {
-		if (nac->flag & SELECT)
-			break;
-	}
-
-	/* no active node, return. */
-	if (!nac)
-		return(0);
-
-	redraw = 0;
-	for (p = snode->edittree->nodes.first; p; p = p->next) {
-		if (p->type != nac->type && p->flag & SELECT) {
-			/* if it's selected but different type, unselect */
-			redraw = 1;
-			nodeSetSelected(p, false);
-		}
-		else if (p->type == nac->type && (!(p->flag & SELECT))) {
-			/* if it's the same type and is not selected, select! */
-			redraw = 1;
-			nodeSetSelected(p, true);
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		if ((node->flag & SELECT) == 0) {
+			if (node->type == node_act->type) {
+				nodeSetSelected(node, true);
+				changed = true;
+			}
 		}
 	}
-	return(redraw);
+
+	return changed;
 }
 
-/* return 1 if we need redraw, otherwise zero.
- * dir can be 0 == next or 0 != prev.
- */
-int node_select_same_type_np(SpaceNode *snode, int dir)
+static bool node_select_grouped_color(SpaceNode *snode, bNode *node_act)
 {
-	bNode *nac, *p, *tnode;
+	bNode *node;
+	bool changed = false;
 
-	/* search the active one. */
-	for (nac = snode->edittree->nodes.first; nac; nac = nac->next) {
-		if (nac->flag & SELECT)
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		if ((node->flag & SELECT) == 0) {
+			if (compare_v3v3(node->color, node_act->color, 0.005f)) {
+				nodeSetSelected(node, true);
+				changed = true;
+			}
+		}
+	}
+
+	return changed;
+}
+
+static bool node_select_grouped_name(SpaceNode *snode, bNode *node_act, const bool from_right)
+{
+	bNode *node;
+	bool changed = false;
+	const unsigned int delims[] = {'.', '-', '_', '\0'};
+	size_t index_act, index_curr;
+	char *sep, *suf_act, *suf_curr;
+
+	index_act = BLI_str_partition_ex_utf8(node_act->name, delims, &sep, &suf_act, from_right);
+
+	if (index_act > 0) {
+		for (node = snode->edittree->nodes.first; node; node = node->next) {
+			if ((node->flag & SELECT) == 0) {
+				index_curr = BLI_str_partition_ex_utf8(node->name, delims, &sep, &suf_curr, from_right);
+				if ((from_right && STREQ(suf_act, suf_curr)) ||
+				    (!from_right && (index_act == index_curr) && STREQLEN(node_act->name, node->name, index_act)))
+				{
+					nodeSetSelected(node, true);
+					changed = true;
+				}
+			}
+		}
+	}
+
+	return changed;
+}
+
+enum {
+	NODE_SELECT_GROUPED_TYPE   = 0,
+	NODE_SELECT_GROUPED_COLOR  = 1,
+	NODE_SELECT_GROUPED_PREFIX = 2,
+	NODE_SELECT_GROUPED_SUFIX  = 3,
+};
+
+static int node_select_grouped_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *node_act = nodeGetActive(snode->edittree);
+	bNode *node;
+	bool changed = false;
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const int type = RNA_enum_get(op->ptr, "type");
+
+	if (!extend) {
+		for (node = snode->edittree->nodes.first; node; node = node->next) {
+			nodeSetSelected(node, false);
+		}
+	}
+	nodeSetSelected(node_act, true);
+
+	switch (type) {
+		case NODE_SELECT_GROUPED_TYPE:
+			changed = node_select_grouped_type(snode, node_act);
+			break;
+		case NODE_SELECT_GROUPED_COLOR:
+			changed = node_select_grouped_color(snode, node_act);
+			break;
+		case NODE_SELECT_GROUPED_PREFIX:
+			changed = node_select_grouped_name(snode, node_act, false);
+			break;
+		case NODE_SELECT_GROUPED_SUFIX:
+			changed = node_select_grouped_name(snode, node_act, true);
+			break;
+		default:
 			break;
 	}
 
-	/* no active node, return. */
-	if (!nac)
-		return(0);
-
-	if (dir == 0)
-		p = nac->next;
-	else
-		p = nac->prev;
-
-	while (p) {
-		/* Now search the next with the same type. */
-		if (p->type == nac->type)
-			break;
-
-		if (dir == 0)
-			p = p->next;
-		else
-			p = p->prev;
+	if (changed) {
+		ED_node_sort(snode->edittree);
+		WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
+		return OPERATOR_FINISHED;
 	}
 
-	if (p) {
-		for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
-			if (tnode != p)
-				nodeSetSelected(tnode, false);
-		nodeSetSelected(p, true);
-		return(1);
-	}
-	return(0);
+	return OPERATOR_CANCELLED;
+}
+
+void NODE_OT_select_grouped(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_select_grouped_types[] = {
+		{NODE_SELECT_GROUPED_TYPE, "TYPE", 0, "Type", ""},
+		{NODE_SELECT_GROUPED_COLOR, "COLOR", 0, "Color", ""},
+		{NODE_SELECT_GROUPED_PREFIX, "PREFIX", 0, "Prefix", ""},
+		{NODE_SELECT_GROUPED_SUFIX, "SUFFIX", 0, "Suffix", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Select Grouped";
+	ot->description = "Select nodes with similar properties";
+	ot->idname = "NODE_OT_select_grouped";
+
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = node_select_grouped_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
 void node_select_single(bContext *C, bNode *node)
@@ -786,40 +853,6 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
-/* ****** Select Same Type ****** */
-
-static int node_select_same_type_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-
-	node_select_same_type(snode);
-
-	ED_node_sort(snode->edittree);
-
-	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_select_same_type(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select Same Type";
-	ot->description = "Select all the nodes of the same type";
-	ot->idname = "NODE_OT_select_same_type";
-	
-	/* api callbacks */
-	ot->exec = node_select_same_type_exec;
-	ot->poll = ED_operator_node_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/* ****** Select The Next/Prev Node Of The Same Type ****** */
-
-/* ************************** */
-
 
 static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 {
