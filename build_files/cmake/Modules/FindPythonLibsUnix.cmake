@@ -71,7 +71,7 @@ IF((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
 
   SET(_python_ABI_FLAGS
     "m;mu;u; "    # release
-    "md;mud;ud;d" # debug
+    "dm;dmu;du;d" # debug
   )
 
   STRING(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
