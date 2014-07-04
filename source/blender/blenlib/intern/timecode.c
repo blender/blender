@@ -33,6 +33,7 @@
 #include <stdio.h>
 
 
+#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_math.h"
 

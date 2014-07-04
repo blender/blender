@@ -66,6 +66,10 @@ int          BLI_wcswidth(const wchar_t *pwcs, size_t n) ATTR_NONNULL();
 int          BLI_str_utf8_char_width(const char *p) ATTR_NONNULL(); /* warning, can return -1 on bad chars */
 int          BLI_str_utf8_char_width_safe(const char *p) ATTR_NONNULL();
 
+size_t       BLI_str_partition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf) ATTR_NONNULL();
+size_t       BLI_str_rpartition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf) ATTR_NONNULL();
+size_t       BLI_str_partition_ex_utf8(const char *str, const unsigned int delim[], char **sep, char **suf, const bool from_right) ATTR_NONNULL();
+
 #define      BLI_UTF8_MAX 6        /* mem */
 #define      BLI_UTF8_WIDTH_MAX 2  /* columns */
 #define      BLI_UTF8_ERR ((unsigned int)-1)

@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLI_utildefines.h"
 #include "BLI_string.h"
 
 #include "MEM_guardedalloc.h"

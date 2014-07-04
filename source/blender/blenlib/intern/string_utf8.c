@@ -703,3 +703,49 @@ char *BLI_str_prev_char_utf8(const char *p)
 	}
 }
 /* end glib copy */
+
+size_t BLI_str_partition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf)
+{
+	return BLI_str_partition_ex_utf8(str, delim, sep, suf, false);
+}
+
+size_t BLI_str_rpartition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf)
+{
+	return BLI_str_partition_ex_utf8(str, delim, sep, suf, true);
+}
+
+size_t BLI_str_partition_ex_utf8(const char *str, const unsigned int delim[], char **sep, char **suf,
+                                 const bool from_right)
+{
+	const unsigned int *d;
+	const size_t str_len = strlen(str);
+	size_t index;
+
+	*suf = (char *)(str + str_len);
+
+	for (*sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, str + str_len) : str), index = 0;
+	     *sep != NULL && **sep != '\0';
+	     *sep = (char *)(from_right ? (char *)BLI_str_find_prev_char_utf8(str, *sep) : str + index))
+	{
+		const unsigned int c = BLI_str_utf8_as_unicode_and_size(*sep, &index);
+
+		if (c == BLI_UTF8_ERR) {
+			*suf = *sep = NULL;
+			break;
+		}
+
+		for (d = delim; *d != '\0'; ++d) {
+			if (*d == c) {
+				/* *suf is already correct in case from_right is true. */
+				if (!from_right)
+					*suf = (char *)(str + index);
+				return (size_t)(*sep - str);
+			}
+		}
+
+		*suf = *sep;  /* Useful in 'from_right' case! */
+	}
+
+	*suf = *sep = NULL;
+	return str_len;
+}

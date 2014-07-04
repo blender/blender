@@ -681,3 +681,63 @@ int BLI_str_index_in_array(const char *str, const char **str_array)
 	return -1;
 }
 
+/**
+ * Find the first char matching one of the chars in \a delim, from left.
+ *
+ * \param str The string to search within.
+ * \param delim The set of delimiters to search for, as unicode values.
+ * \param sep Return value, set to the first delimiter found (or NULL if none found).
+ * \param suf Return value, set to next char after the first delimiter found (or NULL if none found).
+ * \return The length of the prefix (i.e. *sep - str).
+ */
+size_t BLI_str_partition(const char *str, const unsigned int delim[], char **sep, char **suf)
+{
+	return BLI_str_partition_ex(str, delim, sep, suf, false);
+}
+
+/**
+ * Find the first char matching one of the chars in \a delim, from right.
+ *
+ * \param str The string to search within.
+ * \param delim The set of delimiters to search for, as unicode values.
+ * \param sep Return value, set to the first delimiter found (or NULL if none found).
+ * \param suf Return value, set to next char after the first delimiter found (or NULL if none found).
+ * \return The length of the prefix (i.e. *sep - str).
+ */
+size_t BLI_str_rpartition(const char *str, const unsigned int delim[], char **sep, char **suf)
+{
+	return BLI_str_partition_ex(str, delim, sep, suf, true);
+}
+
+/**
+ * Find the first char matching one of the chars in \a delim, either from left or right.
+ *
+ * \param str The string to search within.
+ * \param delim The set of delimiters to search for, as unicode values.
+ * \param sep Return value, set to the first delimiter found (or NULL if none found).
+ * \param suf Return value, set to next char after the first delimiter found (or NULL if none found).
+ * \param from_right If %true, search from the right of \a str, else, search from its left.
+ * \return The length of the prefix (i.e. *sep - str).
+ */
+size_t BLI_str_partition_ex(const char *str, const unsigned int delim[], char **sep, char **suf, const bool from_right)
+{
+	const unsigned int *d;
+	char *(*func)(const char *str, int c) = from_right ? strrchr : strchr;
+
+	*sep = *suf = NULL;
+
+	for (d = delim; *d != '\0'; ++d) {
+		char *tmp = func(str, (int)*d);
+
+		if (tmp && (from_right ? (*sep < tmp) : (!*sep || *sep > tmp))) {
+			*sep = tmp;
+		}
+	}
+
+	if (*sep) {
+		*suf = *sep + 1;
+		return (size_t)(*sep - str);
+	}
+
+	return strlen(str);
+}
