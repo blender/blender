@@ -88,6 +88,12 @@ BF_JPEG_INC = '${BF_JPEG}/include'
 BF_JPEG_LIB = 'jpeg'
 BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 
+WITH_BF_OPENJPEG = True
+BF_OPENJPEG = '#extern/libopenjpeg'
+BF_OPENJPEG_LIB = ''
+BF_OPENJPEG_INC = '${BF_OPENJPEG}'
+BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
+
 WITH_BF_PNG = True
 BF_PNG = LIBDIR + '/png'
 BF_PNG_INC = '${BF_PNG}/include'
