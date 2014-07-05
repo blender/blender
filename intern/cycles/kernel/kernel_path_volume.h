@@ -103,8 +103,6 @@ ccl_device bool kernel_path_volume_bounce(KernelGlobals *kg, RNG *rng,
 	return true;
 }
 
-#ifdef __KERNEL_CPU__
-
 ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
 	ShaderData *sd, float3 throughput, PathState *state, PathRadiance *L,
 	float num_samples_adjust, bool sample_all_lights, Ray *ray, const VolumeSegment *segment)
@@ -272,8 +270,6 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 	}
 #endif
 }
-
-#endif
 
 #endif
 

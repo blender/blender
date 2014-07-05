@@ -582,11 +582,7 @@ typedef struct VolumeStep {
 } VolumeStep;
 
 typedef struct VolumeSegment {
-#ifdef __KERNEL_CPU__
 	VolumeStep *steps;			/* recorded steps */
-#else
-	VolumeStep steps[1];		/* recorded steps */
-#endif
 	int numsteps;				/* number of steps */
 	int closure_flag;			/* accumulated closure flags from all steps */
 
@@ -601,7 +597,7 @@ typedef struct VolumeSegment {
  * it would be nice if we could only record up to the point that we need to scatter,
  * but the entire segment is needed to do always scattering, rather than probalistically
  * hitting or missing the volume. if we don't know the transmittance at the end of the
- * volume we can't generate stratitied distance samples up to that transmittance */
+ * volume we can't generate stratified distance samples up to that transmittance */
 ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *state,
 	Ray *ray, ShaderData *sd, VolumeSegment *segment, bool heterogeneous)
 {
