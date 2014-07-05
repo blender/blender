@@ -212,7 +212,7 @@ void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_node
 static bool node_select_grouped_type(SpaceNode *snode, bNode *node_act)
 {
 	bNode *node;
-	bool changed;
+	bool changed = false;
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if ((node->flag & SELECT) == 0) {
