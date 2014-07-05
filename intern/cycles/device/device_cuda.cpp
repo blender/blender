@@ -102,14 +102,14 @@ public:
 
 			case CUDA_ERROR_NOT_READY: return "CUDA not ready";
 
-			case CUDA_ERROR_ILLEGAL_ADDRESS: return "Illegal adress";
+			case CUDA_ERROR_ILLEGAL_ADDRESS: return "Illegal address";
 			case CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES: return "Launch exceeded resources";
-			case CUDA_ERROR_LAUNCH_TIMEOUT: return "Launch exceeded timeout";
+			case CUDA_ERROR_LAUNCH_TIMEOUT: return "Launch exceeded time out";
 			case CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING: return "Launch with incompatible texturing";
 			case CUDA_ERROR_HARDWARE_STACK_ERROR: return "Stack error";
 			case CUDA_ERROR_ILLEGAL_INSTRUCTION: return "Illegal instruction";
-			case CUDA_ERROR_MISALIGNED_ADDRESS: return "Misaligned adress";
-			case CUDA_ERROR_INVALID_ADDRESS_SPACE: return "Invalid adress space";
+			case CUDA_ERROR_MISALIGNED_ADDRESS: return "Misaligned address";
+			case CUDA_ERROR_INVALID_ADDRESS_SPACE: return "Invalid address space";
 			case CUDA_ERROR_INVALID_PC: return "Invalid program counter";
 			case CUDA_ERROR_LAUNCH_FAILED: return "Launch failed";
 

@@ -66,7 +66,7 @@
 
 /* unknown architecture */
 #else
-#error "Unknown or unuspported CUDA architecture, can't determine launch bounds"
+#error "Unknown or unsupported CUDA architecture, can't determine launch bounds"
 #endif
 
 /* compute number of threads per block and minimum blocks per multiprocessor
