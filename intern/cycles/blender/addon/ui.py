@@ -566,7 +566,6 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
 
         rd = context.scene.render
         scene = context.scene
-        # cscene = scene.cycles
 
         layout.active = rd.use_motion_blur
 
@@ -580,7 +579,6 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
 
         rd = context.scene.render
         scene = context.scene
-        # cscene = scene.cycles
 
         ob = context.object
         cob = ob.cycles
@@ -1203,7 +1201,6 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        # cscene = scene.cycles
         psys = context.particle_system
         return CyclesButtonsPanel.poll(context) and psys and psys.settings.type == 'HAIR'
 
@@ -1246,38 +1243,34 @@ class CyclesRender_PT_bake(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
-
         cbk = scene.render.bake
-
-        layout.operator("object.bake", icon='RENDER_STILL').type = \
-        cscene.bake_type
-
+    
+        layout.operator("object.bake", icon='RENDER_STILL').type = cscene.bake_type
+        
         col = layout.column()
         col.prop(cscene, "bake_type")
-
         col.separator()
+        
         split = layout.split()
 
-        sub = split.column()
-        sub.prop(cbk, "use_clear")
-        sub.prop(cbk, "margin")
+        col = split.column()
+        col.prop(cbk, "margin")
+        col.prop(cbk, "use_clear")
 
-        sub = split.column()
-        sub.prop(cbk, "use_selected_to_active")
-        sub = sub.column()
-
+        col = split.column()
+        col.prop(cbk, "use_selected_to_active")
+        sub = col.column()
         sub.active = cbk.use_selected_to_active
-
         sub.prop(cbk, "use_cage", text="Cage")
         if cbk.use_cage:
-            sub.prop(cbk, "cage_extrusion", text="Cage Extrusion")
-            sub.prop_search(cbk, "cage_object", scene, "objects")
+            sub.prop(cbk, "cage_extrusion", text="Extrusion")
+            sub.prop_search(cbk, "cage_object", scene, "objects", text="")
         else:
             sub.prop(cbk, "cage_extrusion", text="Ray Distance")
 
         if cscene.bake_type == 'NORMAL':
-            col.separator()
-            box = col.box()
+            layout.separator()
+            box = layout.box()
             box.label(text="Normal Settings:")
             box.prop(cbk, "normal_space", text="Space")
 
@@ -1295,7 +1288,6 @@ class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        # cscene = scene.cycles
         ccscene = scene.cycles_curves
         psys = context.particle_system
         use_curves = ccscene.use_curves and psys
