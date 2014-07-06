@@ -374,6 +374,7 @@ if env['OURPLATFORM']=='darwin':
 
     SDK_FLAGS=['-isysroot',  env['MACOSX_SDK'],'-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-arch',env['MACOSX_ARCHITECTURE']] # always used
     env['PLATFORM_LINKFLAGS'] = ['-mmacosx-version-min='+ env['MACOSX_DEPLOYMENT_TARGET'],'-isysroot', env['MACOSX_SDK'],'-arch',env['MACOSX_ARCHITECTURE']]+ARCH_FLAGS+env['PLATFORM_LINKFLAGS']
+    env['CFLAGS']=SDK_FLAGS+env['CFLAGS']
     env['CCFLAGS']=SDK_FLAGS+env['CCFLAGS']
     env['CXXFLAGS']=SDK_FLAGS+env['CXXFLAGS']
 
