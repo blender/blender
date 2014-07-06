@@ -7703,12 +7703,6 @@ static void applyTimeScale(TransInfo *t, const int UNUSED(mval[2]))
 
 
 /* TODO, move to: transform_queries.c */
-bool checkUseLocalCenter_GraphEdit(TransInfo *t)
-{
-	return ((t->around == V3D_LOCAL) &&
-	        !ELEM4(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE));
-}
-
 bool checkUseAxisMatrix(TransInfo *t)
 {
 	/* currently only checks for editmode */

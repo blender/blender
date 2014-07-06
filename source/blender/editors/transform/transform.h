@@ -680,7 +680,6 @@ void freeVertSlideVerts(TransInfo *t);
 
 
 /* TODO. transform_queries.c */
-bool checkUseLocalCenter_GraphEdit(TransInfo *t);
 bool checkUseAxisMatrix(TransInfo *t);
 
 #endif

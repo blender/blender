@@ -3570,7 +3570,7 @@ typedef struct TransDataGraph {
  */
 static void bezt_to_transdata(TransData *td, TransData2D *td2d, TransDataGraph *tdg,
                               AnimData *adt, BezTriple *bezt,
-                              int bi, short selected, short ishandle, short intvals,
+                              int bi, bool selected, bool ishandle, bool intvals,
                               float mtx[3][3], float smtx[3][3], float unit_scale)
 {
 	float *loc = bezt->vec[bi];
@@ -3608,19 +3608,16 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, TransDataGraph *
 		copy_v3_v3(td->iloc, td->loc);
 	}
 
-	if (td->flag & TD_MOVEHANDLE1) {
+	if (!ishandle) {
 		td2d->h1 = bezt->vec[0];
-		copy_v2_v2(td2d->ih1, td2d->h1);
-	}
-	else
-		td2d->h1 = NULL;
-
-	if (td->flag & TD_MOVEHANDLE2) {
 		td2d->h2 = bezt->vec[2];
+		copy_v2_v2(td2d->ih1, td2d->h1);
 		copy_v2_v2(td2d->ih2, td2d->h2);
 	}
-	else 
+	else {
+		td2d->h1 = NULL;
 		td2d->h2 = NULL;
+	}
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
@@ -3649,6 +3646,16 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, TransDataGraph *
 	tdg->unit_scale = unit_scale;
 }
 
+static bool graph_edit_is_translation_mode(TransInfo *t)
+{
+	return ELEM4(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE);
+}
+
+static bool graph_edit_use_local_center(TransInfo *t)
+{
+	return (t->around == V3D_LOCAL) && !graph_edit_is_translation_mode(t);
+}
+
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
@@ -3669,8 +3676,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	int count = 0, i;
 	float cfra;
 	float mtx[3][3], smtx[3][3];
+	const bool is_translation_mode = graph_edit_is_translation_mode(t);
 	const bool use_handle = !(sipo->flag & SIPO_NOHANDLES);
-	const bool use_local_center = checkUseLocalCenter_GraphEdit(t);
+	const bool use_local_center = graph_edit_use_local_center(t);
 	short anim_map_flag = ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS;
 	
 	/* determine what type of data we are operating on */
@@ -3717,11 +3725,11 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				const char sel2 = bezt->f2 & SELECT;
-				const char sel1 = use_handle ? bezt->f1 & SELECT : sel2;
-				const char sel3 = use_handle ? bezt->f3 & SELECT : sel2;
+				const bool sel2 = bezt->f2 & SELECT;
+				const bool sel1 = use_handle ? bezt->f1 & SELECT : sel2;
+				const bool sel3 = use_handle ? bezt->f3 & SELECT : sel2;
 
-				if (ELEM4(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE)) {
+				if (is_translation_mode) {
 					/* for 'normal' pivots - just include anything that is selected.
 					 * this works a bit differently in translation modes */
 					if (sel2) {
@@ -3732,9 +3740,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						if (sel3) count++;
 					}
 				}
-				else if (sipo->around == V3D_LOCAL) {
-					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
-					 * don't get moved wrong
+				else if (use_local_center) {
+					/* for local-pivot we only need to count the number of selected handles only,
+					 * so that centerpoints don't get moved wrong
 					 */
 					if (bezt->ipo == BEZT_IPO_BEZ) {
 						if (sel1) count++;
@@ -3796,7 +3804,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
-		short intvals = (fcu->flag & FCURVE_INT_VALUES);
+		bool intvals = (fcu->flag & FCURVE_INT_VALUES);
 		float unit_scale;
 
 		/* convert current-frame to action-time (slightly less accurate, especially under
@@ -3816,9 +3824,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				const char sel2 = bezt->f2 & SELECT;
-				const char sel1 = use_handle ? bezt->f1 & SELECT : sel2;
-				const char sel3 = use_handle ? bezt->f3 & SELECT : sel2;
+				const bool sel2 = bezt->f2 & SELECT;
+				const bool sel1 = use_handle ? bezt->f1 & SELECT : sel2;
+				const bool sel3 = use_handle ? bezt->f3 & SELECT : sel2;
 
 				TransDataCurveHandleFlags *hdata = NULL;
 				/* short h1=1, h2=1; */ /* UNUSED */
@@ -3826,10 +3834,10 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				/* only include handles if selected, irrespective of the interpolation modes.
 				 * also, only treat handles specially if the center point isn't selected. 
 				 */
-				if (!ELEM4(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE) || !(sel2)) {
+				if (!is_translation_mode || !(sel2)) {
 					if (sel1) {
 						hdata = initTransDataCurveHandles(td, bezt);
-						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, 1, 1, intvals, mtx, smtx, unit_scale);
+						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, sel1, true, intvals, mtx, smtx, unit_scale);
 					}
 					else {
 						/* h1 = 0; */ /* UNUSED */
@@ -3838,7 +3846,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					if (sel3) {
 						if (hdata == NULL)
 							hdata = initTransDataCurveHandles(td, bezt);
-						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, 1, 1, intvals, mtx, smtx, unit_scale);
+						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, sel3, true, intvals, mtx, smtx, unit_scale);
 					}
 					else {
 						/* h2 = 0; */ /* UNUSED */
@@ -3846,10 +3854,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				}
 				
 				/* only include main vert if selected */
-				if (sel2 && (use_local_center == false)) {
-
+				if (sel2 && !use_local_center) {
 					/* move handles relative to center */
-					if (ELEM4(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE)) {
+					if (is_translation_mode) {
 						if (sel1) td->flag |= TD_MOVEHANDLE1;
 						if (sel3) td->flag |= TD_MOVEHANDLE2;
 					}
@@ -3859,8 +3866,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						if (hdata == NULL)
 							hdata = initTransDataCurveHandles(td, bezt);
 					}
-				
-					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, 1, 0, intvals, mtx, smtx, unit_scale);
+					
+					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, sel2, false, intvals, mtx, smtx, unit_scale);
 					
 				}
 				/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
