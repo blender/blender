@@ -387,7 +387,7 @@ ccl_device int bsdf_microfacet_ggx_aniso_setup(ShaderClosure *sc)
 ccl_device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* alpha_x */
-	sc->data1 = sc->data1; /* alpha_y */
+	sc->data1 = sc->data0; /* alpha_y */
 
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 
@@ -734,7 +734,7 @@ ccl_device int bsdf_microfacet_beckmann_aniso_setup(ShaderClosure *sc)
 ccl_device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
 {
 	sc->data0 = clamp(sc->data0, 0.0f, 1.0f); /* alpha_x */
-	sc->data1 = sc->data1; /* alpha_y */
+	sc->data1 = sc->data0; /* alpha_y */
 
 	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
