@@ -50,6 +50,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "RNA_access.h"
@@ -73,7 +74,7 @@
  *	--> Most channels are now selection only...
  */
 
-static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, short selectmode)
+static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channel_index, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -153,6 +154,9 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 					ob->flag |= SELECT;
 					if (adt) adt->flag |= ADT_UI_SELECTED;
 				}
+				
+				/* change active object - regardless of whether it is now selected [T37883] */
+				ED_base_object_activate(C, base); /* adds notifier */
 				
 				if ((adt) && (adt->flag & ADT_UI_SELECTED))
 					adt->flag |= ADT_UI_ACTIVE;
@@ -366,7 +370,7 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEv
 	UI_view2d_listview_view_to_cell(v2d, NLACHANNEL_NAMEWIDTH, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);
 	
 	/* handle mouse-click in the relevant channel then */
-	notifierFlags = mouse_nla_channels(&ac, x, channel_index, selectmode);
+	notifierFlags = mouse_nla_channels(C, &ac, x, channel_index, selectmode);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | notifierFlags, NULL);
