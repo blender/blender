@@ -459,6 +459,13 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 
 /* ******************************************** */
 
+static void clear_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
+                              TreeStoreElem *tselem, void *UNUSED(arg))
+{
+	BKE_free_animdata(tselem->id);
+}
+
+
 static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
                                   TreeStoreElem *tselem, void *UNUSED(arg))
 {
@@ -1076,6 +1083,8 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
 typedef enum eOutliner_AnimDataOps {
 	OUTLINER_ANIMOP_INVALID = 0,
 	
+	OUTLINER_ANIMOP_CLEAR_ADT,
+	
 	OUTLINER_ANIMOP_SET_ACT,
 	OUTLINER_ANIMOP_CLEAR_ACT,
 	
@@ -1087,6 +1096,7 @@ typedef enum eOutliner_AnimDataOps {
 } eOutliner_AnimDataOps;
 
 static EnumPropertyItem prop_animdata_op_types[] = {
+	{OUTLINER_ANIMOP_CLEAR_ADT, "CLEAR_ANIMDATA", 0, "Clear Animation Data", "Remove this animation data container"},
 	{OUTLINER_ANIMOP_SET_ACT, "SET_ACT", 0, "Set Action", ""},
 	{OUTLINER_ANIMOP_CLEAR_ACT, "CLEAR_ACT", 0, "Unlink Action", ""},
 	{OUTLINER_ANIMOP_REFRESH_DRV, "REFRESH_DRIVERS", 0, "Refresh Drivers", ""},
@@ -1115,6 +1125,14 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 	
 	/* perform the core operation */
 	switch (event) {
+		case OUTLINER_ANIMOP_CLEAR_ADT:
+			/* Remove Animation Data - this may remove the active action, in some cases... */
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, clear_animdata_cb, NULL);
+			
+			WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+			ED_undo_push(C, "Clear Animation Data");
+			break;
+		
 		case OUTLINER_ANIMOP_SET_ACT:
 			/* delegate once again... */
 			WM_operator_name_call(C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, NULL);
