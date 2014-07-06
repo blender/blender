@@ -629,11 +629,8 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 
 	segment->closure_flag = 0;
 	segment->numsteps = 0;
-#ifdef __KERNEL_CPU__
+
 	segment->steps = (VolumeStep*)malloc(sizeof(VolumeStep)*max_steps);
-#else
-	kernel_assert(max_steps == 1);
-#endif
 
 	VolumeStep *step = segment->steps;
 
@@ -719,9 +716,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 
 ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *segment)
 {
-#ifdef __KERNEL_CPU__
 	free(segment->steps);
-#endif
 }
 
 /* scattering for homogeneous and heterogeneous volumes, using decoupled ray
