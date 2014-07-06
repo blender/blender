@@ -251,6 +251,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot);
 
 typedef enum {
 	PAINT_MASK_FLOOD_VALUE,
+	PAINT_MASK_FLOOD_VALUE_INVERSE,
 	PAINT_MASK_INVERT
 } PaintMaskFloodMode;
 

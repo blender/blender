@@ -67,6 +67,13 @@
 
 #include <stdlib.h>
 
+static EnumPropertyItem mode_items[] = {
+	{PAINT_MASK_FLOOD_VALUE, "VALUE", 0, "Value", "Set mask to the level specified by the 'value' property"},
+    {PAINT_MASK_FLOOD_VALUE_INVERSE, "VALUE_INVERSE", 0, "Value Inverted", "Set mask to the level specified by the inverted 'value' property"},
+	{PAINT_MASK_INVERT, "INVERT", 0, "Invert", "Invert the mask"},
+	{0}};
+
+
 static void mask_flood_fill_set_elem(float *elem,
                                      PaintMaskFloodMode mode,
                                      float value)
@@ -74,6 +81,9 @@ static void mask_flood_fill_set_elem(float *elem,
 	switch (mode) {
 		case PAINT_MASK_FLOOD_VALUE:
 			(*elem) = value;
+			break;
+		case PAINT_MASK_FLOOD_VALUE_INVERSE:
+			(*elem) = 1.0f - value;
 			break;
 		case PAINT_MASK_INVERT:
 			(*elem) = 1.0f - (*elem);
@@ -137,11 +147,6 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 {
-	static EnumPropertyItem mode_items[] = {
-		{PAINT_MASK_FLOOD_VALUE, "VALUE", 0, "Value", "Set mask to the level specified by the 'value' property"},
-		{PAINT_MASK_INVERT, "INVERT", 0, "Invert", "Invert the mask"},
-		{0}};
-
 	/* identifiers */
 	ot->name = "Mask Flood Fill";
 	ot->idname = "PAINT_OT_mask_flood_fill";
@@ -330,9 +335,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		PBVHNode **nodes;
 		int totnode, i, symmpass;
 		bool multires;
-		PaintMaskFloodMode mode = PAINT_MASK_FLOOD_VALUE;
-		bool select = true; /* TODO: see how to implement deselection */
-		float value = select ? 1.0 : 0.0;
+		PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
+		float value = RNA_float_get(op->ptr, "value");
 
 		/* Calculations of individual vertices are done in 2D screen space to diminish the amount of
 		 * calculations done. Bounding box PBVH collision is not computed against enclosing rectangle
@@ -442,4 +446,8 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
 	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+
+	RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
+	RNA_def_float(ot->srna, "value", 1.0, 0, 1.0, "Value",
+	              "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked", 0, 1);
 }
