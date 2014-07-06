@@ -244,7 +244,7 @@ void BKE_free_animdata(ID *id)
 	}
 }
 
-/* Freeing -------------------------------------------- */
+/* Copying -------------------------------------------- */
 
 /* Make a copy of the given AnimData - to be used when copying datablocks */
 AnimData *BKE_copy_animdata(AnimData *adt, const bool do_action)

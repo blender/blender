@@ -1170,7 +1170,7 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
 static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	short mode;
+	eRearrangeAnimChan_Mode mode;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
