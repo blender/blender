@@ -465,9 +465,9 @@ static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, const wm
 		/* determine which side of the current frame mouse is on */
 		x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
 		if (x < CFRA)
-			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
+			RNA_enum_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
 		else
-			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_RIGHT);
+			RNA_enum_set(op->ptr, "mode", NLAEDIT_LRSEL_RIGHT);
 	}
 	
 	/* perform selection */

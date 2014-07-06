@@ -2078,7 +2078,7 @@ static void ANIM_OT_channels_collapse(wmOperatorType *ot)
  *  3) No drivers
  */
  
-static int animchannels_clean_empty_exec(bContext *C, wmOperator *op)
+static int animchannels_clean_empty_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
