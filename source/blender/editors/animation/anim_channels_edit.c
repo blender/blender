@@ -49,6 +49,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
@@ -2065,6 +2066,113 @@ static void ANIM_OT_channels_collapse(wmOperatorType *ot)
 	ot->prop = RNA_def_boolean(ot->srna, "all", true, "All", "Collapse all channels (not just selected ones)");
 }
 
+/* ************ Remove All "Empty" AnimData Blocks Operator ********* */
+/* We define "empty" AnimData blocks here as those which have all 3 of criteria:
+ *  1) No active action OR that active actions are empty
+ *     Assuming that all legitimate entries will have an action,
+ *     and that empty actions
+ *  2) No NLA Tracks + NLA Strips
+ *     Assuming that users haven't set up any of these as "placeholders"
+ *     for convenience sake, and that most that exist were either unintentional
+ *     or are no longer wanted
+ *  3) No drivers
+ */
+ 
+static int animchannels_clean_empty_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get animdata blocks */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		ID *id = ale->id;
+		AnimData *adt = ale->data;
+		
+		bool action_empty  = false;
+		bool nla_empty     = false;
+		bool drivers_empty = false;
+		
+		/* sanity checks */
+		BLI_assert((id != NULL) && (adt != NULL));
+		
+		/* check if this is "empty" and can be deleted */
+		/* (For now, there are only these 3 criteria) */
+		
+		/* 1) Active Action is missing or empty */
+		if (ELEM(NULL, adt->action, adt->action->curves.first)) {
+			action_empty = true;
+		}
+		else {
+			/* TODO: check for keyframe + fmodifier data on these too */
+		}
+		
+		/* 2) No NLA Tracks and/or NLA Strips */
+		if (adt->nla_tracks.first == NULL) {
+			nla_empty = true;
+		}
+		else {
+			NlaTrack *nlt;
+			
+			/* empty tracks? */
+			for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+				if (nlt->strips.first) {
+					/* stop searching, as we found one that actually had stuff we don't want lost 
+					 * NOTE: nla_empty gets reset to false, as a previous track may have been empty
+					 */
+					nla_empty = false;
+					break;
+				}
+				else if (nlt->strips.first == NULL) {
+					/* this track is empty, but another one may still have stuff in it, so can't break yet */
+					nla_empty = true;
+				}
+			}
+		}
+		
+		/* 3) Drivers */
+		drivers_empty = (adt->drivers.first == NULL);
+		
+		
+		/* remove AnimData? */
+		if (action_empty && nla_empty && drivers_empty) {
+			BKE_free_animdata(id);
+		}
+	}
+	
+	/* free temp data */
+	ANIM_animdata_freelist(&anim_data);
+	
+	/* send notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channels_clean_empty(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Empty Animation Data";
+	ot->idname = "ANIM_OT_channels_clean_empty";
+	ot->description = "Delete all empty animation data containers from visible datablocks";
+	
+	/* api callbacks */
+	ot->exec = animchannels_clean_empty_exec;
+	ot->poll = animedit_poll_channels_nla_tweakmode_off;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ******************* Reenable Disabled Operator ******************* */
 
 static int animchannels_enable_poll(bContext *C)
@@ -2938,6 +3046,8 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_visibility_set);
 	
 	WM_operatortype_append(ANIM_OT_channels_fcurves_enable);
+	
+	WM_operatortype_append(ANIM_OT_channels_clean_empty);
 	
 	WM_operatortype_append(ANIM_OT_channels_group);
 	WM_operatortype_append(ANIM_OT_channels_ungroup);
