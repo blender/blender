@@ -261,6 +261,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			/* override text-style */
 			fstyle_header.shadow = 1;
 			fstyle_header.shadowcolor = rgb_to_luma(tip_colors[UI_TIP_LC_MAIN]);
+			fstyle_header.shadx = fstyle_header.shady = 0;
 			fstyle_header.shadowalpha = 1.0f;
 
 			uiStyleFontSet(&fstyle_header);
@@ -609,7 +610,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ofsy = 0; //(but->block->panel) ? but->block->panel->ofsy : 0;
 
 	rect_fl.xmin = BLI_rctf_cent_x(&but->rect) + ofsx - TIP_BORDER_X;
-	rect_fl.xmax = rect_fl.xmin + fontw + (TIP_BORDER_X * 2);
+	rect_fl.xmax = rect_fl.xmin + fontw + pad_px;
 	rect_fl.ymax = but->rect.ymin + ofsy - TIP_BORDER_Y;
 	rect_fl.ymin = rect_fl.ymax - fonth  - TIP_BORDER_Y;
 	
