@@ -279,7 +279,7 @@ LineStyleModifier *BKE_add_linestyle_color_modifier(FreestyleLineStyle *linestyl
 			break;
 		case LS_MODIFIER_MATERIAL:
 			((LineStyleColorModifier_Material *)m)->color_ramp = add_colorband(1);
-			((LineStyleColorModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+			((LineStyleColorModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_LINE;
 			break;
 		default:
 			return NULL; /* unknown modifier type */
@@ -424,7 +424,7 @@ LineStyleModifier *BKE_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyl
 		{
 			LineStyleAlphaModifier_Material *p = (LineStyleAlphaModifier_Material *)m;
 			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-			p->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+			p->mat_attr = LS_MODIFIER_MATERIAL_ALPHA;
 			break;
 		}
 		default:
@@ -583,7 +583,7 @@ LineStyleModifier *BKE_add_linestyle_thickness_modifier(FreestyleLineStyle *line
 		{
 			LineStyleThicknessModifier_Material *p = (LineStyleThicknessModifier_Material *)m;
 			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-			p->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+			p->mat_attr = LS_MODIFIER_MATERIAL_LINE;
 			p->value_min = 0.0f;
 			p->value_max = 1.0f;
 			break;

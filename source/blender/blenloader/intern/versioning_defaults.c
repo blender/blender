@@ -35,6 +35,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_main.h"
 
@@ -48,6 +49,7 @@ void BLO_update_defaults_startup_blend(Main *main)
 	SceneRenderLayer *srl;
 	FreestyleLineStyle *linestyle;
 	Mesh *me;
+	Material *mat;
 
 	for (scene = main->scene.first; scene; scene = scene->id.next) {
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
@@ -85,6 +87,11 @@ void BLO_update_defaults_startup_blend(Main *main)
 
 	for (me = main->mesh.first; me; me = me->id.next) {
 		me->smoothresh = DEG2RADF(180.0f);
+	}
+
+	for (mat = main->mat.first; mat; mat = mat->id.next) {
+		mat->line_col[0] = mat->line_col[1] = mat->line_col[2] = 0.0f;
+		mat->line_col[3] = 1.0f;
 	}
 }
 

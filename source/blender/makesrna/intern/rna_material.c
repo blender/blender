@@ -931,6 +931,20 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Specular Ramp Factor", "Blending factor (also uses alpha in Colorband)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	/* Freestyle line color */
+	prop = RNA_def_property(srna, "line_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "line_col");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Line Color", "Line color used for Freestyle line rendering");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop = RNA_def_property(srna, "line_priority", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "line_priority");
+	RNA_def_property_range(prop, 0, 32767);
+	RNA_def_property_ui_text(prop, "Line Priority",
+	                         "The line color of a higher priority is used at material boundaries");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
 static void rna_def_material_diffuse(StructRNA *srna)

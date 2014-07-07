@@ -98,14 +98,21 @@ from mathutils import Vector
 class CurveMaterialF0D(UnaryFunction0DMaterial):
     """
     A replacement of the built-in MaterialF0D for stroke creation.
-    MaterialF0D does not work with Curves and Strokes.
+    MaterialF0D does not work with Curves and Strokes.  Line color
+    priority is used to pick one of the two materials at material
+    boundaries.
     """
     def __call__(self, inter):
         cp = inter.object
         assert(isinstance(cp, CurvePoint))
         fe = cp.first_svertex.get_fedge(cp.second_svertex)
         assert(fe is not None), "CurveMaterialF0D: fe is None"
-        return fe.material if fe.is_smooth else fe.material_left
+        if fe.is_smooth:
+            return fe.material
+        elif fe.material_right.priority > fe.material_left.priority:
+            return fe.material_right
+        else:
+            return fe.material_left
 
 
 class pyInverseCurvature2DAngleF0D(UnaryFunction0DDouble):

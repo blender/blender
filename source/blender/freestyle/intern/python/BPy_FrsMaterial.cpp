@@ -64,11 +64,13 @@ PyDoc_STRVAR(FrsMaterial_doc,
 "   :arg brother: A Material object.\n"
 "   :type brother: :class:`Material`\n"
 "\n"
-".. method:: __init__(diffuse, ambient, specular, emission, shininess)\n"
+".. method:: __init__(line, diffuse, ambient, specular, emission, shininess, priority)\n"
 "\n"
-"   Builds a Material from its diffuse, ambient, specular, emissive\n"
-"   colors and a shininess coefficient.\n"
+"   Builds a Material from its line, diffuse, ambient, specular, emissive\n"
+"   colors, a shininess coefficient and line color priority.\n"
 "\n"
+"   :arg line: The line color.\n"
+"   :type line: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg diffuse: The diffuse color.\n"
 "   :type diffuse: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg ambient: The ambient color.\n"
@@ -78,14 +80,17 @@ PyDoc_STRVAR(FrsMaterial_doc,
 "   :arg emission: The emissive color.\n"
 "   :type emission: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg shininess: The shininess coefficient.\n"
-"   :type shininess: :class:float");
+"   :type shininess: :class:float\n"
+"   :arg priority: The line color priority.\n"
+"   :type priority: :class:int");
 
 static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist_1[] = {"brother", NULL};
-	static const char *kwlist_2[] = {"diffuse", "ambient", "specular", "emission", "shininess", NULL};
+	static const char *kwlist_2[] = {"line", "diffuse", "ambient", "specular", "emission", "shininess", "priority", NULL};
 	PyObject *brother = 0;
-	float diffuse[4], ambient[4], specular[4], emission[4], shininess;
+	float line[4], diffuse[4], ambient[4], specular[4], emission[4], shininess;
+	int priority;
 
 	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FrsMaterial_Type, &brother)) {
 		if (!brother) {
@@ -101,14 +106,15 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
 		}
 	}
 	else if (PyErr_Clear(),
-	         PyArg_ParseTupleAndKeywords(args, kwds, "O&O&O&O&f", (char **)kwlist_2,
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O&O&O&O&O&fi", (char **)kwlist_2,
+	                                     convert_v4, line,
 	                                     convert_v4, diffuse,
 	                                     convert_v4, ambient,
 	                                     convert_v4, specular,
 	                                     convert_v4, emission,
-	                                     &shininess))
+	                                     &shininess, &priority))
 	{
-		self->m = new FrsMaterial(diffuse, ambient, specular, emission, shininess);
+		self->m = new FrsMaterial(line, diffuse, ambient, specular, emission, shininess, priority);
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -135,6 +141,7 @@ static PyObject *FrsMaterial_repr(BPy_FrsMaterial *self)
 #define MATHUTILS_SUBTYPE_SPECULAR  2
 #define MATHUTILS_SUBTYPE_AMBIENT   3
 #define MATHUTILS_SUBTYPE_EMISSION  4
+#define MATHUTILS_SUBTYPE_LINE      5
 
 static int FrsMaterial_mathutils_check(BaseMathObject *bmo)
 {
@@ -147,6 +154,12 @@ static int FrsMaterial_mathutils_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
 	switch (subtype) {
+	case MATHUTILS_SUBTYPE_LINE:
+		bmo->data[0] = self->m->lineR();
+		bmo->data[1] = self->m->lineG();
+		bmo->data[2] = self->m->lineB();
+		bmo->data[3] = self->m->lineA();
+		break;
 	case MATHUTILS_SUBTYPE_DIFFUSE:
 		bmo->data[0] = self->m->diffuseR();
 		bmo->data[1] = self->m->diffuseG();
@@ -181,6 +194,9 @@ static int FrsMaterial_mathutils_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
 	switch (subtype) {
+	case MATHUTILS_SUBTYPE_LINE:
+		self->m->setLine(bmo->data[0], bmo->data[1], bmo->data[2], bmo->data[3]);
+		break;
 	case MATHUTILS_SUBTYPE_DIFFUSE:
 		self->m->setDiffuse(bmo->data[0], bmo->data[1], bmo->data[2], bmo->data[3]);
 		break;
@@ -203,6 +219,12 @@ static int FrsMaterial_mathutils_get_index(BaseMathObject *bmo, int subtype, int
 {
 	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
 	switch (subtype) {
+	case MATHUTILS_SUBTYPE_LINE:
+	{
+		const float *color = self->m->line();
+		bmo->data[index] = color[index];
+	}
+		break;
 	case MATHUTILS_SUBTYPE_DIFFUSE:
 		{
 			const float *color = self->m->diffuse();
@@ -238,6 +260,11 @@ static int FrsMaterial_mathutils_set_index(BaseMathObject *bmo, int subtype, int
 	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
 	float color[4];
 	switch (subtype) {
+	case MATHUTILS_SUBTYPE_LINE:
+		copy_v4_v4(color, self->m->line());
+		color[index] = bmo->data[index];
+		self->m->setLine(color[0], color[1], color[2], color[3]);
+		break;
 	case MATHUTILS_SUBTYPE_DIFFUSE:
 		copy_v4_v4(color, self->m->diffuse());
 		color[index] = bmo->data[index];
@@ -280,6 +307,28 @@ void FrsMaterial_mathutils_register_callback()
 }
 
 /*----------------------FrsMaterial get/setters ----------------------------*/
+
+PyDoc_STRVAR(FrsMaterial_line_doc,
+"RGBA components of the line color of the material.\n"
+"\n"
+":type: mathutils.Vector");
+
+static PyObject *FrsMaterial_line_get(BPy_FrsMaterial *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 4, FrsMaterial_mathutils_cb_index, MATHUTILS_SUBTYPE_LINE);
+}
+
+static int FrsMaterial_line_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
+{
+	float color[4];
+	if (mathutils_array_parse(color, 4, 4, value,
+	                          "value must be a 4-dimensional vector") == -1)
+	{
+		return -1;
+	}
+	self->m->setLine(color[0], color[1], color[2], color[3]);
+	return 0;
+}
 
 PyDoc_STRVAR(FrsMaterial_diffuse_doc,
 "RGBA components of the diffuse color of the material.\n"
@@ -390,7 +439,30 @@ static int FrsMaterial_shininess_set(BPy_FrsMaterial *self, PyObject *value, voi
 	return 0;
 }
 
+PyDoc_STRVAR(FrsMaterial_priority_doc,
+"Line color priority of the material.\n"
+"\n"
+":type: int");
+
+static PyObject *FrsMaterial_priority_get(BPy_FrsMaterial *self, void *UNUSED(closure))
+{
+	return PyLong_FromLong(self->m->priority());
+}
+
+static int FrsMaterial_priority_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
+{
+	int scalar;
+	if ((scalar = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "value must be an integer");
+		return -1;
+	}
+	self->m->setPriority(scalar);
+	return 0;
+}
+
 static PyGetSetDef BPy_FrsMaterial_getseters[] = {
+	{(char *)"line", (getter)FrsMaterial_line_get, (setter)FrsMaterial_line_set,
+	                 (char *)FrsMaterial_line_doc, NULL},
 	{(char *)"diffuse", (getter)FrsMaterial_diffuse_get, (setter)FrsMaterial_diffuse_set,
 	                    (char *)FrsMaterial_diffuse_doc, NULL},
 	{(char *)"specular", (getter)FrsMaterial_specular_get, (setter)FrsMaterial_specular_set,
@@ -401,6 +473,8 @@ static PyGetSetDef BPy_FrsMaterial_getseters[] = {
 	                     (char *)FrsMaterial_emission_doc, NULL},
 	{(char *)"shininess", (getter)FrsMaterial_shininess_get, (setter)FrsMaterial_shininess_set,
 	                      (char *)FrsMaterial_shininess_doc, NULL},
+	{(char *)"priority", (getter)FrsMaterial_priority_get, (setter)FrsMaterial_priority_set,
+	                     (char *)FrsMaterial_priority_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

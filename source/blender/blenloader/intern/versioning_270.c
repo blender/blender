@@ -298,4 +298,16 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 271, 1)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "line[4]")) {
+			Material *mat;
+
+			for (mat = main->mat.first; mat; mat = mat->id.next) {
+				mat->line_col[0] = mat->line_col[1] = mat->line_col[2] = 0.0f;
+				mat->line_col[3] = mat->alpha;
+			}
+		}
+
+	}
 }

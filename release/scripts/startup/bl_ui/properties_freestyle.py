@@ -344,7 +344,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 row.prop(modifier, "material_attribute", text="")
                 sub = row.column()
                 sub.prop(modifier, "use_ramp")
-                if modifier.material_attribute in {'DIFF', 'SPEC'}:
+                if modifier.material_attribute in {'LINE', 'DIFF', 'SPEC'}:
                     sub.active = True
                     show_ramp = modifier.use_ramp
                 else:
@@ -689,6 +689,38 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
 
         elif linestyle.panel == 'MISC':
             pass
+
+
+# Material properties
+
+class MaterialFreestyleButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "material"
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        material = context.material
+        with_freestyle = bpy.app.build_options.freestyle
+        return with_freestyle and material and scene and scene.render.use_freestyle and \
+            (scene.render.engine in cls.COMPAT_ENGINES)
+
+
+class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
+    bl_label = "Freestyle Line"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'} # TODO: 'CYCLES'
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material
+
+        row = layout.row()
+        row.prop(mat, "line_color", text="")
+        row.prop(mat, "line_priority", text="Priority")
 
 
 if __name__ == "__main__":  # only for live edit.

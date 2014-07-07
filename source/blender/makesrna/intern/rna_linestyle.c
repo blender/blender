@@ -681,16 +681,20 @@ static void rna_def_modifier_material_common(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem mat_attr_items[] = {
-		{LS_MODIFIER_MATERIAL_DIFF, "DIFF", 0, "Diffuse", ""},
-		{LS_MODIFIER_MATERIAL_DIFF_R, "DIFF_R", 0, "Diffuse Red", ""},
-		{LS_MODIFIER_MATERIAL_DIFF_G, "DIFF_G", 0, "Diffuse Green", ""},
-		{LS_MODIFIER_MATERIAL_DIFF_B, "DIFF_B", 0, "Diffuse Blue", ""},
-		{LS_MODIFIER_MATERIAL_SPEC, "SPEC", 0, "Specular", ""},
-		{LS_MODIFIER_MATERIAL_SPEC_R, "SPEC_R", 0, "Specular Red", ""},
-		{LS_MODIFIER_MATERIAL_SPEC_G, "SPEC_G", 0, "Specular Green", ""},
-		{LS_MODIFIER_MATERIAL_SPEC_B, "SPEC_B", 0, "Specular Blue", ""},
+		{LS_MODIFIER_MATERIAL_LINE, "LINE", 0, "Line Color", ""},
+		{LS_MODIFIER_MATERIAL_LINE_R, "LINE_R", 0, "Line Color Red", ""},
+		{LS_MODIFIER_MATERIAL_LINE_G, "LINE_G", 0, "Line Color Green", ""},
+		{LS_MODIFIER_MATERIAL_LINE_B, "LINE_B", 0, "Line Color Blue", ""},
+		{LS_MODIFIER_MATERIAL_DIFF, "DIFF", 0, "Diffuse Color", ""},
+		{LS_MODIFIER_MATERIAL_DIFF_R, "DIFF_R", 0, "Diffuse Color Red", ""},
+		{LS_MODIFIER_MATERIAL_DIFF_G, "DIFF_G", 0, "Diffuse Color Green", ""},
+		{LS_MODIFIER_MATERIAL_DIFF_B, "DIFF_B", 0, "Diffuse Color Blue", ""},
+		{LS_MODIFIER_MATERIAL_SPEC, "SPEC", 0, "Specular Color", ""},
+		{LS_MODIFIER_MATERIAL_SPEC_R, "SPEC_R", 0, "Specular Color Red", ""},
+		{LS_MODIFIER_MATERIAL_SPEC_G, "SPEC_G", 0, "Specular Color Green", ""},
+		{LS_MODIFIER_MATERIAL_SPEC_B, "SPEC_B", 0, "Specular Color Blue", ""},
 		{LS_MODIFIER_MATERIAL_SPEC_HARD, "SPEC_HARD", 0, "Specular Hardness", ""},
-		{LS_MODIFIER_MATERIAL_ALPHA, "ALPHA", 0, "Alpha", ""},
+		{LS_MODIFIER_MATERIAL_ALPHA, "ALPHA", 0, "Alpha Transparency", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -447,7 +447,9 @@ def iter_material_color(stroke, material_attribute):
     it = stroke.stroke_vertices_begin()
     while not it.is_end:
         material = func(Interface0DIterator(it))
-        if material_attribute == 'DIFF':
+        if material_attribute == 'LINE':
+            color = material.line[0:3]
+        elif material_attribute == 'DIFF':
             color = material.diffuse[0:3]
         elif material_attribute == 'SPEC':
             color = material.specular[0:3]
@@ -462,7 +464,18 @@ def iter_material_value(stroke, material_attribute):
     it = stroke.stroke_vertices_begin()
     while not it.is_end:
         material = func(Interface0DIterator(it))
-        if material_attribute == 'DIFF':
+        if material_attribute == 'LINE':
+            r, g, b = material.line[0:3]
+            t = 0.35 * r + 0.45 * g + 0.2 * b
+        elif material_attribute == 'LINE_R':
+            t = material.line[0]
+        elif material_attribute == 'LINE_G':
+            t = material.line[1]
+        elif material_attribute == 'LINE_B':
+            t = material.line[2]
+        elif material_attribute == 'ALPHA':
+            t = material.line[3]
+        elif material_attribute == 'DIFF':
             r, g, b = material.diffuse[0:3]
             t = 0.35 * r + 0.45 * g + 0.2 * b
         elif material_attribute == 'DIFF_R':
@@ -482,8 +495,6 @@ def iter_material_value(stroke, material_attribute):
             t = material.specular[2]
         elif material_attribute == 'SPEC_HARDNESS':
             t = material.shininess
-        elif material_attribute == 'ALPHA':
-            t = material.diffuse[3]
         else:
             raise ValueError("unexpected material attribute: " + material_attribute)
         yield it, t
@@ -497,7 +508,7 @@ class ColorMaterialShader(ColorRampModifier):
         self.__use_ramp = use_ramp
 
     def shade(self, stroke):
-        if self.__material_attribute in {'DIFF', 'SPEC'} and not self.__use_ramp:
+        if self.__material_attribute in {'LINE', 'DIFF', 'SPEC'} and not self.__use_ramp:
             for it, b in iter_material_color(stroke, self.__material_attribute):
                 sv = it.object
                 a = sv.attribute.color

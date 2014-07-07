@@ -43,7 +43,10 @@ public:
 	/*! Default constructor */
 	inline FrsMaterial();
 
-	/*! Builds a Material from its diffuse, ambiant, specular, emissive colors and a shininess coefficient.
+	/*! Builds a Material from its line, diffuse, ambiant, specular, emissive
+	 *  colors, a shininess coefficient and line color priority.
+	 *    \param iLine
+	 *      A 4 element float-array containing the line color.
 	 *    \param iDiffuse
 	 *      A 4 element float-array containing the diffuse color.
 	 *    \param iAmbiant
@@ -54,9 +57,11 @@ public:
 	 *      A 4 element float-array containing the emissive color.
 	 *    \param iShininess
 	 *      The shininess coefficient.
+	 *    \param iPriority
+	 *      The line color priority.
 	 */
-	inline FrsMaterial(const float *iDiffuse, const float *iAmbiant, const float *iSpecular, const float *iEmission,
-	                   const float iShininess);
+	inline FrsMaterial(const float *iLine, const float *iDiffuse, const float *iAmbiant, const float *iSpecular,
+	                   const float *iEmission, const float iShininess, const int iPriority);
 
 	/*! Copy constructor */
 	inline FrsMaterial(const FrsMaterial& m);
@@ -64,6 +69,35 @@ public:
 	/*! Destructor */
 	virtual ~FrsMaterial() {}
 
+	/*! Returns the line color as a 4 float array */
+	inline const float *line() const
+	{
+		return Line;
+	}
+
+	/*! Returns the red component of the line color */
+	inline const float lineR() const
+	{
+		return Line[0];
+	}
+
+	/*! Returns the green component of the line color */
+	inline const float lineG() const
+	{
+		return Line[1];
+	}
+
+	/*! Returns the blue component of the line color */
+	inline const float lineB() const
+	{
+		return Line[2];
+	}
+
+	/*! Returns the alpha component of the line color */
+	inline const float lineA() const
+	{
+		return Line[3];
+	}
 
 	/*! Returns the diffuse color as a 4 float array */
 	inline const float *diffuse() const
@@ -191,6 +225,24 @@ public:
 		return Shininess;
 	}
 
+	/*! Returns the line color priority */
+	inline const int priority() const
+	{
+		return Priority;
+	}
+
+	/*! Sets the line color.
+	 *    \param r
+	 *      Red component
+	 *    \param g
+	 *      Green component
+	 *    \param b
+	 *     Blue component
+	 *    \param a
+	 *      Alpha component
+	 */
+	inline void setLine(const float r, const float g, const float b, const float a);
+
 	/*! Sets the diffuse color.
 	 *    \param r
 	 *      Red component
@@ -245,6 +297,12 @@ public:
 	 */
 	inline void setShininess(const float s);
 
+	/*! Sets the line color priority.
+	*    \param priority
+	*      Priority
+	*/
+	inline void setPriority(const int priority);
+
 	/* operators */
 	inline FrsMaterial& operator=(const FrsMaterial& m);
 	inline bool operator!=(const FrsMaterial& m) const;
@@ -252,11 +310,13 @@ public:
 
 private:
 	/*! Material properties */
+	float Line[4];
 	float Diffuse[4];
 	float Specular[4];
 	float Ambient[4];
 	float Emission[4];
 	float Shininess;
+	int Priority;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:FrsMaterial")
@@ -265,6 +325,9 @@ private:
 
 FrsMaterial::FrsMaterial()
 {
+	Line[0] = Line[1] = Line[2] = 0.0f;
+	Line[3] = 1.0f;
+
 	Ambient[0] = Ambient[1] = Ambient[2] = 0.2f;
 	Ambient[3] = 1.0f;
 
@@ -278,12 +341,14 @@ FrsMaterial::FrsMaterial()
 	Specular[3] = 1.0f;
 
 	Shininess = 0.0f;
+	Priority = 0;
 }
 
-FrsMaterial::FrsMaterial(const float *iDiffuse, const float *iAmbiant, const float *iSpecular, const float *iEmission,
-                         const float iShininess)
+FrsMaterial::FrsMaterial(const float *iLine, const float *iDiffuse, const float *iAmbiant, const float *iSpecular,
+                         const float *iEmission, const float iShininess, const int iPriority)
 {
 	for (int i = 0; i < 4; i++) {
+		Line[i] = iLine[i];
 		Diffuse[i]  = iDiffuse[i];
 		Specular[i] = iSpecular[i];
 		Ambient[i]  = iAmbiant[i];
@@ -291,11 +356,13 @@ FrsMaterial::FrsMaterial(const float *iDiffuse, const float *iAmbiant, const flo
 	}
 
 	Shininess = iShininess;
+	Priority = iPriority;
 }
 
 FrsMaterial::FrsMaterial(const FrsMaterial& m)
 {
 	for (int i = 0; i < 4; i++) {
+		Line[i] = m.line()[i];
 		Diffuse[i]  = m.diffuse()[i];
 		Specular[i] = m.specular()[i];
 		Ambient[i]  = m.ambient()[i];
@@ -303,6 +370,15 @@ FrsMaterial::FrsMaterial(const FrsMaterial& m)
 	}
 
 	Shininess = m.shininess();
+	Priority = m.priority();
+}
+
+void FrsMaterial::setLine(const float r, const float g, const float b, const float a)
+{
+	Line[0] = r;
+	Line[1] = g;
+	Line[2] = b;
+	Line[3] = a;
 }
 
 void FrsMaterial::setDiffuse(const float r, const float g, const float b, const float a)
@@ -342,9 +418,15 @@ void FrsMaterial::setShininess(const float s)
 	Shininess = s;
 }
 
+void FrsMaterial::setPriority(const int priority)
+{
+	Priority = priority;
+}
+
 FrsMaterial& FrsMaterial::operator=(const FrsMaterial& m)
 {
 	for (int i = 0; i < 4; i++) {
+		Line[i] = m.line()[i];
 		Diffuse[i]  = m.diffuse()[i];
 		Specular[i] = m.specular()[i];
 		Ambient[i]  = m.ambient()[i];
@@ -352,6 +434,7 @@ FrsMaterial& FrsMaterial::operator=(const FrsMaterial& m)
 	}
 
 	Shininess = m.shininess();
+	Priority = m.priority();
 	return *this;
 }
 
@@ -359,8 +442,12 @@ bool FrsMaterial::operator!=(const FrsMaterial& m) const
 {
 	if (Shininess != m.shininess())
 		return true;
+	if (Priority != m.priority())
+		return true;
 
 	for (int i = 0; i < 4; i++) {
+		if (Line[i] != m.line()[i])
+			return true;
 		if (Diffuse[i]  != m.diffuse()[i])
 			return true;
 		if (Specular[i] != m.specular()[i])
