@@ -56,9 +56,14 @@ struct ListBase;
  * which is needed for it's evaluation,
  */
 typedef struct EvaluationContext {
-	bool for_render;  /* Set to true if evaluation shall be performed for render purposes,
-	                   * keep at false if update shall happen for the viewport. */
+	int mode;               /* evaluation mode */
 } EvaluationContext;
+
+typedef enum eEvaluationMode {
+	DAG_EVAL_VIEWPORT       = 0,    /* evaluate for OpenGL viewport */
+    DAG_EVAL_PREVIEW        = 1,    /* evaluate for render with preview settings */
+    DAG_EVAL_RENDER         = 2,    /* evaluate for render purposes */
+} eEvaluationMode;
 
 /* DagNode->eval_flags */
 enum {

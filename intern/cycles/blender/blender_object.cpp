@@ -457,10 +457,10 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 	BL::Scene::object_bases_iterator b_base;
 	BL::Scene b_sce = b_scene;
 	/* modifier result type (not exposed as enum in C++ API)
-	 * 1 : eModifierMode_Realtime
-	 * 2 : eModifierMode_Render
-	 */
-	int dupli_settings = preview ? 1 : 2;
+     * 1 : DAG_EVAL_PREVIEW
+     * 2 : DAG_EVAL_RENDER
+     */
+    int dupli_settings = preview ? 1 : 2;
 
 	bool cancel = false;
 

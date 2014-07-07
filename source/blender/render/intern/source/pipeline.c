@@ -387,7 +387,7 @@ Render *RE_NewRender(const char *name)
 		BLI_strncpy(re->name, name, RE_MAXNAME);
 		BLI_rw_mutex_init(&re->resultmutex);
 		re->eval_ctx = MEM_callocN(sizeof(EvaluationContext), "re->eval_ctx");
-		re->eval_ctx->for_render = true;
+		re->eval_ctx->mode = DAG_EVAL_RENDER;
 	}
 	
 	RE_InitRenderCB(re);
@@ -660,6 +660,11 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		re->result->rectx = re->rectx;
 		re->result->recty = re->recty;
 	}
+	
+	if (re->r.scemode & R_VIEWPORT_PREVIEW)
+		re->eval_ctx->mode = DAG_EVAL_PREVIEW;
+	else
+		re->eval_ctx->mode = DAG_EVAL_RENDER;
 	
 	/* ensure renderdatabase can use part settings correct */
 	RE_parts_clamp(re);

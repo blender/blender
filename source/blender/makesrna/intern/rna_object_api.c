@@ -42,6 +42,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_depsgraph.h"
+
 #include "rna_internal.h"  /* own include */
 
 static EnumPropertyItem space_items[] = {
@@ -66,7 +68,6 @@ static EnumPropertyItem space_items[] = {
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -167,9 +168,9 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
 static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, int settings)
 {
-	int for_render = settings == eModifierMode_Render;
+	bool for_render = (settings == DAG_EVAL_RENDER);
 	EvaluationContext eval_ctx = {0};
-	eval_ctx.for_render = for_render;
+	eval_ctx.mode = settings;
 
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis");
@@ -432,6 +433,13 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem dupli_eval_mode_items[] = {
+		{DAG_EVAL_VIEWPORT, "VIEWPORT", 0, "Viewport", "Generate duplis using viewport settings"},
+		{DAG_EVAL_PREVIEW, "PREVIEW", 0, "Preview", "Generate duplis using preview settings"},
+		{DAG_EVAL_RENDER, "RENDER", 0, "Render", "Generate duplis using render settings"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 #ifndef NDEBUG
 	static EnumPropertyItem mesh_dm_info_items[] = {
 		{0, "SOURCE", 0, "Source", "Source mesh"},
@@ -483,7 +491,7 @@ void RNA_api_object(StructRNA *srna)
 	                                "objects real matrix and layers");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
-	RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Generate texture coordinates for rendering");
+	RNA_def_enum(func, "settings", dupli_eval_mode_items, 0, "", "Generate texture coordinates for rendering");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	func = RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");

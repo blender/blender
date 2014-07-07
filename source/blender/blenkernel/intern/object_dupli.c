@@ -101,7 +101,7 @@ static void init_context(DupliContext *r_ctx, EvaluationContext *eval_ctx, Scene
 	r_ctx->eval_ctx = eval_ctx;
 	r_ctx->scene = scene;
 	/* don't allow BKE_object_handle_update for viewport during render, can crash */
-	r_ctx->do_update = update && !(G.is_rendering && !eval_ctx->for_render);
+	r_ctx->do_update = update && !(G.is_rendering && eval_ctx->mode != DAG_EVAL_RENDER);
 	r_ctx->animated = false;
 	r_ctx->group = NULL;
 
@@ -268,7 +268,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 /* OB_DUPLIGROUP */
 static void make_duplis_group(const DupliContext *ctx)
 {
-	bool for_render = ctx->eval_ctx->for_render;
+	bool for_render = (ctx->eval_ctx->mode == DAG_EVAL_RENDER);
 	Object *ob = ctx->object;
 	Group *group;
 	GroupObject *go;
@@ -524,7 +524,7 @@ static void make_duplis_verts(const DupliContext *ctx)
 {
 	Scene *scene = ctx->scene;
 	Object *parent = ctx->object;
-	bool for_render = ctx->eval_ctx->for_render;
+	bool use_texcoords = ELEM(ctx->eval_ctx->mode, DAG_EVAL_RENDER, DAG_EVAL_PREVIEW);
 	VertexDupliData vdd;
 
 	vdd.ctx = ctx;
@@ -534,7 +534,7 @@ static void make_duplis_verts(const DupliContext *ctx)
 	{
 		Mesh *me = parent->data;
 		BMEditMesh *em = BKE_editmesh_from_object(parent);
-		CustomDataMask dm_mask = (for_render ? CD_MASK_BAREMESH | CD_MASK_ORCO : CD_MASK_BAREMESH);
+		CustomDataMask dm_mask = (use_texcoords ? CD_MASK_BAREMESH | CD_MASK_ORCO : CD_MASK_BAREMESH);
 
 		if (em)
 			vdd.dm = editbmesh_get_derived_cage(scene, parent, em, dm_mask);
@@ -542,7 +542,7 @@ static void make_duplis_verts(const DupliContext *ctx)
 			vdd.dm = mesh_get_derived_final(scene, parent, dm_mask);
 		vdd.edit_btmesh = me->edit_btmesh;
 
-		if (for_render)
+		if (use_texcoords)
 			vdd.orco = vdd.dm->getVertDataArray(vdd.dm, CD_ORCO);
 		else
 			vdd.orco = NULL;
@@ -724,6 +724,7 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
 	float (*orco)[3] = fdd->orco;
 	MLoopUV *mloopuv = fdd->mloopuv;
 	int a, totface = fdd->totface;
+	bool use_texcoords = ELEM(ctx->eval_ctx->mode, DAG_EVAL_RENDER, DAG_EVAL_PREVIEW);
 	float child_imat[4][4];
 	DupliObject *dob;
 
@@ -762,7 +763,7 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
 		mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
 
 		dob = make_dupli(ctx, inst_ob, obmat, a, false, false);
-		if (ctx->eval_ctx->for_render) {
+		if (use_texcoords) {
 			float w = 1.0f / (float)mp->totloop;
 
 			if (orco) {
@@ -789,7 +790,7 @@ static void make_duplis_faces(const DupliContext *ctx)
 {
 	Scene *scene = ctx->scene;
 	Object *parent = ctx->object;
-	bool for_render = ctx->eval_ctx->for_render;
+	bool use_texcoords = ELEM(ctx->eval_ctx->mode, DAG_EVAL_RENDER, DAG_EVAL_PREVIEW);
 	FaceDupliData fdd;
 
 	fdd.use_scale = ((parent->transflag & OB_DUPLIFACES_SCALE) != 0);
@@ -797,14 +798,14 @@ static void make_duplis_faces(const DupliContext *ctx)
 	/* gather mesh info */
 	{
 		BMEditMesh *em = BKE_editmesh_from_object(parent);
-		CustomDataMask dm_mask = (for_render ? CD_MASK_BAREMESH | CD_MASK_ORCO | CD_MASK_MLOOPUV : CD_MASK_BAREMESH);
+		CustomDataMask dm_mask = (use_texcoords ? CD_MASK_BAREMESH | CD_MASK_ORCO | CD_MASK_MLOOPUV : CD_MASK_BAREMESH);
 
 		if (em)
 			fdd.dm = editbmesh_get_derived_cage(scene, parent, em, dm_mask);
 		else
 			fdd.dm = mesh_get_derived_final(scene, parent, dm_mask);
 
-		if (for_render) {
+		if (use_texcoords) {
 			fdd.orco = fdd.dm->getVertDataArray(fdd.dm, CD_ORCO);
 			fdd.mloopuv = fdd.dm->getLoopDataArray(fdd.dm, CD_MLOOPUV);
 		}
@@ -834,7 +835,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 {
 	Scene *scene = ctx->scene;
 	Object *par = ctx->object;
-	bool for_render = ctx->eval_ctx->for_render;
+	bool for_render = ctx->eval_ctx->mode == DAG_EVAL_RENDER;
+	bool use_texcoords = ELEM(ctx->eval_ctx->mode, DAG_EVAL_RENDER, DAG_EVAL_PREVIEW);
 
 	GroupObject *go;
 	Object *ob = NULL, **oblist = NULL, obcopy, *obcopylist = NULL;
@@ -1051,7 +1053,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 					dob = make_dupli(ctx, go->ob, mat, a, false, false);
 					dob->particle_system = psys;
-					if (for_render)
+					if (use_texcoords)
 						psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 				}
 			}
@@ -1100,7 +1102,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 				dob = make_dupli(ctx, ob, mat, a, false, false);
 				dob->particle_system = psys;
-				if (for_render)
+				if (use_texcoords)
 					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 				/* XXX blender internal needs this to be set to dupligroup to render
 				 * groups correctly, but we don't want this hack for cycles */
@@ -1161,7 +1163,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 		return NULL;
 
 	/* Should the dupli's be generated for this object? - Respect restrict flags */
-	if (ctx->eval_ctx->for_render ? (restrictflag & OB_RESTRICT_RENDER) : (restrictflag & OB_RESTRICT_VIEW))
+	if (ctx->eval_ctx->mode == DAG_EVAL_RENDER ? (restrictflag & OB_RESTRICT_RENDER) : (restrictflag & OB_RESTRICT_VIEW))
 		return NULL;
 
 	if (transflag & OB_DUPLIPARTS) {
