@@ -565,7 +565,7 @@ protected:
 		virtual void	SetMass(MT_Scalar newmass);
 		
 		// physics methods
-		virtual void		ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulsein);
+		virtual void		ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulsein, bool local);
 		virtual void		ApplyTorque(const MT_Vector3& torque,bool local);
 		virtual void		ApplyForce(const MT_Vector3& force,bool local);
 		virtual void		SetAngularVelocity(const MT_Vector3& ang_vel,bool local);

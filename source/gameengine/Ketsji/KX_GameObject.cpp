@@ -3034,19 +3034,20 @@ PyObject *KX_GameObject::PyApplyImpulse(PyObject *args)
 {
 	PyObject *pyattach;
 	PyObject *pyimpulse;
+	int local = 0;
 	
 	if (!m_pPhysicsController)	{
 		PyErr_SetString(PyExc_RuntimeError, "This object has no physics controller");
 		return NULL;
 	}
 	
-	if (PyArg_ParseTuple(args, "OO:applyImpulse", &pyattach, &pyimpulse))
+	if (PyArg_ParseTuple(args, "OO|i:applyImpulse", &pyattach, &pyimpulse, &local))
 	{
 		MT_Point3  attach;
 		MT_Vector3 impulse;
 		if (PyVecTo(pyattach, attach) && PyVecTo(pyimpulse, impulse))
 		{
-			m_pPhysicsController->ApplyImpulse(attach, impulse);
+			m_pPhysicsController->ApplyImpulse(attach, impulse, (local!=0));
 			Py_RETURN_NONE;
 		}
 

@@ -551,7 +551,7 @@ base class --- :class:`SCA_IObject`
 
          This is not implimented at the moment.
 
-   .. method:: applyImpulse(point, impulse)
+   .. method:: applyImpulse(point, impulse, local=False)
 
       Applies an impulse to the game object.
 
@@ -559,8 +559,14 @@ base class --- :class:`SCA_IObject`
       If point != position, applyImpulse will also change the object's angular momentum.
       Otherwise, only linear momentum will change.
 
-      :arg point: the point to apply the impulse to (in world coordinates)
-      :type point: the point to apply the impulse to (in world coordinates)
+      :arg point: the point to apply the impulse to (in world or local coordinates)
+      :type point: point [ix, iy, iz] the point to apply the impulse to (in world or local coordinates)
+      :arg impulse: impulse vector.
+      :type impulse: 3D Vector
+      :arg local:
+         * False: you get the "global" impulse ie: relative to world coordinates with world orientation.
+         * True: you get the "local" impulse ie: relative to local coordinates with object orientation.
+      :type local: boolean
 
    .. method:: suspendDynamics()
 

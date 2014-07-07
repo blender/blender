@@ -1309,8 +1309,9 @@ void		CcdPhysicsController::SetLinearVelocity(const MT_Vector3& lin_vel,bool loc
 		}
 	}
 }
-void		CcdPhysicsController::ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulsein)
+void		CcdPhysicsController::ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulsein, bool local)
 {
+	btVector3 pos;
 	btVector3 impulse(impulsein.x(), impulsein.y(), impulsein.z());
 
 	if (m_object && impulse.length2() > (SIMD_EPSILON*SIMD_EPSILON))
@@ -1323,7 +1324,19 @@ void		CcdPhysicsController::ApplyImpulse(const MT_Point3& attach, const MT_Vecto
 			return;
 		}
 		
-		btVector3 pos(attach.x(), attach.y(), attach.z());
+		btTransform xform = m_object->getWorldTransform();
+
+		if (local)
+		{
+			pos = btVector3(attach.x(), attach.y(), attach.z());
+			impulse = xform.getBasis() * impulse;
+		}
+		else {
+			/* If the point of impulse application is not equal to the object position
+			 * then an angular momentum is generated in the object*/
+			pos = btVector3(attach.x()-xform.getOrigin().x(), attach.y()-xform.getOrigin().y(), attach.z()-xform.getOrigin().z());
+		}
+
 		btRigidBody* body = GetRigidBody();
 		if (body)
 			body->applyImpulse(impulse,pos);

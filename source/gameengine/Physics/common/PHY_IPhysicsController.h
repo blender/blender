@@ -82,7 +82,7 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual void		SetMass(MT_Scalar newmass)=0;
 
 		// physics methods
-		virtual void		ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulse)=0;
+		virtual void		ApplyImpulse(const MT_Point3& attach, const MT_Vector3& impulse,bool local)=0;
 		virtual void		ApplyTorque(const MT_Vector3& torque,bool local)=0;
 		virtual void		ApplyForce(const MT_Vector3& force,bool local)=0;
 		virtual void		SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
