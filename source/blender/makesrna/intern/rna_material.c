@@ -375,6 +375,7 @@ void rna_mtex_texture_slots_clear(ID *self_id, struct bContext *C, ReportList *r
 		id_us_min((ID *)mtex_ar[index]->tex);
 		MEM_freeN(mtex_ar[index]);
 		mtex_ar[index] = NULL;
+		DAG_id_tag_update(self_id, 0);
 	}
 
 	/* for redraw only */
