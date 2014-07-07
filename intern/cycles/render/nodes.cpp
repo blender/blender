@@ -488,6 +488,7 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 	/* See comments in ImageTextureNode::compile about support
 	 * of builtin images.
 	 */
+	image_manager = compiler.image_manager;
 	if(is_float == -1) {
 		if(builtin_data == NULL) {
 			is_float = (int)image_manager->is_float_image(filename, NULL, is_linear);
