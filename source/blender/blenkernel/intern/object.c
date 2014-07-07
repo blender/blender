@@ -2909,7 +2909,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 					uint64_t data_mask = scene->customdata_mask | CD_MASK_BAREMESH;
 #ifdef WITH_FREESTYLE
 					/* make sure Freestyle edge/face marks appear in DM for render (see T40315) */
-					if (eval_ctx->for_render) {
+					if (eval_ctx->mode != DAG_EVAL_VIEWPORT) {
 						data_mask |= CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
 					}
 #endif
