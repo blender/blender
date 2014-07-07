@@ -1894,7 +1894,7 @@ elseif(APPLE)
 		else() # vanilla gcc or clang_omp support OpenMP
 			message(STATUS "Using special OpenMP enabled compiler !") # letting find_package(OpenMP) module work for gcc
 			string(SUBSTRING "${CMAKE_C_COMPILER}" 0 5 CLANG_OMP)
-			message(STATUS "Using clang-omp from darwin libs "${CLANG_OMP})
+			message(STATUS "Using clang-omp from darwin libs " ${CLANG_OMP})
 			if(CMAKE_C_COMPILER_ID MATCHES "Clang") # clang-omp in darwin libs
 				set(OPENMP_FOUND ON)
 				set(OpenMP_C_FLAGS "-fopenmp" CACHE STRING "C compiler flags for OpenMP parallization" FORCE)

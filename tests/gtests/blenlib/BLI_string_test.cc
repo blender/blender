@@ -35,7 +35,7 @@ int mk_wcswidth(const wchar_t *pwcs, size_t n)
 /* BLI_str_partition */
 TEST(string, StrPartition)
 {
-	const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
+	const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
 	char *sep, *suf;
 	size_t pre_ln;
 
@@ -94,7 +94,7 @@ TEST(string, StrPartition)
 /* BLI_str_rpartition */
 TEST(string, StrRPartition)
 {
-	const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
+	const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
 	char *sep, *suf;
 	size_t pre_ln;
 
