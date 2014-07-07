@@ -1893,8 +1893,6 @@ elseif(APPLE)
 			set(WITH_OPENMP OFF)
 		else() # vanilla gcc or clang_omp support OpenMP
 			message(STATUS "Using special OpenMP enabled compiler !") # letting find_package(OpenMP) module work for gcc
-			string(SUBSTRING "${CMAKE_C_COMPILER}" 0 5 CLANG_OMP)
-			message(STATUS "Using clang-omp from darwin libs " ${CLANG_OMP})
 			if(CMAKE_C_COMPILER_ID MATCHES "Clang") # clang-omp in darwin libs
 				set(OPENMP_FOUND ON)
 				set(OpenMP_C_FLAGS "-fopenmp" CACHE STRING "C compiler flags for OpenMP parallization" FORCE)
@@ -2031,11 +2029,18 @@ blender_include_dirs_sys("${OPENGL_INCLUDE_DIR}")
 
 #-----------------------------------------------------------------------------
 # Configure OpenMP.
-if(WITH_OPENMP AND ( NOT APPLE AND NOT C_COMPILER_ID MATCHES "Clang")) # only vanilla gcc can use this find_module, older pre clang Apple gcc have broken omp anyway !
+if(WITH_OPENMP)
 	find_package(OpenMP)
 	if(OPENMP_FOUND)
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+		# Some tests with clang-omp fail due special buid env ( dylib )
+		# we push the openmp flags to rel flags to circumvent this as a tentative fix for now until i found a real fix
+		if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang") # Some tests with clang-omp fail due special buid env
+			set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${OpenMP_C_FLAGS}")
+			set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
+		else()
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+		endif()
 	else()
 		set(WITH_OPENMP OFF)
 	endif()
