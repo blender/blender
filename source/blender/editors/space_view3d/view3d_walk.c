@@ -280,7 +280,7 @@ typedef struct WalkInfo {
 	bool is_reversed;
 
 	/* gravity system */
-	eWalkGravityState gravity;
+	eWalkGravityState gravity_state;
 
 	/* height to use in walk mode */
 	float view_height;
@@ -360,11 +360,11 @@ static void walk_navigation_mode_set(bContext *C, WalkInfo *walk, eWalkMethod mo
 {
 	if (mode == WALK_MODE_FREE) {
 		walk->navigation_mode = WALK_MODE_FREE;
-		walk->gravity = WALK_GRAVITY_STATE_OFF;
+		walk->gravity_state = WALK_GRAVITY_STATE_OFF;
 	}
 	else { /* WALK_MODE_GRAVITY */
 		walk->navigation_mode = WALK_MODE_GRAVITY;
-		walk->gravity = WALK_GRAVITY_STATE_START;
+		walk->gravity_state = WALK_GRAVITY_STATE_START;
 	}
 
 	walk_update_header(C, walk);
@@ -510,7 +510,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->speed = U.walk_navigation.walk_speed;
 	walk->speed_factor = U.walk_navigation.walk_speed_factor;
 
-	walk->gravity = WALK_GRAVITY_STATE_OFF;
+	walk->gravity_state = WALK_GRAVITY_STATE_OFF;
 
 	walk->is_reversed = ((U.walk_navigation.flag & USER_WALK_MOUSE_REVERSE) != 0);
 
@@ -758,7 +758,7 @@ static void walkEvent(bContext *C, wmOperator *UNUSED(op), WalkInfo *walk, const
 #define JUMP_SPEED_MAX sqrtf(2.0f * EARTH_GRAVITY * walk->jump_height)
 
 			case WALK_MODAL_JUMP_STOP:
-				if (walk->gravity == WALK_GRAVITY_STATE_JUMP) {
+				if (walk->gravity_state == WALK_GRAVITY_STATE_JUMP) {
 					float t;
 
 					/* delta time */
@@ -772,18 +772,18 @@ static void walkEvent(bContext *C, wmOperator *UNUSED(op), WalkInfo *walk, const
 					walk->teleport.duration = getVelocityZeroTime(walk->speed_jump);
 
 					/* no more increase of jump speed */
-					walk->gravity = WALK_GRAVITY_STATE_ON;
+					walk->gravity_state = WALK_GRAVITY_STATE_ON;
 				}
 				break;
 			case WALK_MODAL_JUMP:
 				if ((walk->navigation_mode == WALK_MODE_GRAVITY) &&
-				    (walk->gravity == WALK_GRAVITY_STATE_OFF) &&
+				    (walk->gravity_state == WALK_GRAVITY_STATE_OFF) &&
 				    (walk->teleport.state == WALK_TELEPORT_STATE_OFF))
 				{
 					/* no need to check for ground,
 					 * walk->gravity wouldn't be off
 					 * if we were over a hole */
-					walk->gravity = WALK_GRAVITY_STATE_JUMP;
+					walk->gravity_state = WALK_GRAVITY_STATE_JUMP;
 					walk->speed_jump = JUMP_SPEED_MAX;
 
 					walk->teleport.initial_time = PIL_check_seconds_timer();
@@ -910,7 +910,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 		if ((walk->active_directions) ||
 		    moffset[0] || moffset[1] ||
 		    walk->teleport.state == WALK_TELEPORT_STATE_ON ||
-		    walk->gravity != WALK_GRAVITY_STATE_OFF)
+		    walk->gravity_state != WALK_GRAVITY_STATE_OFF)
 		{
 			float dvec_tmp[3];
 
@@ -1000,7 +1000,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 
 			/* WASD - 'move' translation code */
 			if ((walk->active_directions) &&
-			    (walk->gravity == WALK_GRAVITY_STATE_OFF))
+			    (walk->gravity_state == WALK_GRAVITY_STATE_OFF))
 			{
 
 				short direction;
@@ -1076,7 +1076,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 
 			/* stick to the floor */
 			if (walk->navigation_mode == WALK_MODE_GRAVITY &&
-			    ELEM(walk->gravity,
+			    ELEM(walk->gravity_state,
 			         WALK_GRAVITY_STATE_OFF,
 			         WALK_GRAVITY_STATE_START))
 			{
@@ -1101,13 +1101,13 @@ static int walkApply(bContext *C, WalkInfo *walk)
 					dvec[2] -= difference;
 
 					/* in case we switched from FREE to GRAVITY too close to the ground */
-					if (walk->gravity == WALK_GRAVITY_STATE_START)
-						walk->gravity = WALK_GRAVITY_STATE_OFF;
+					if (walk->gravity_state == WALK_GRAVITY_STATE_START)
+						walk->gravity_state = WALK_GRAVITY_STATE_OFF;
 				}
 				else {
 					/* hijack the teleport variables */
 					walk->teleport.initial_time = PIL_check_seconds_timer();
-					walk->gravity = WALK_GRAVITY_STATE_ON;
+					walk->gravity_state = WALK_GRAVITY_STATE_ON;
 					walk->teleport.duration = 0.0f;
 
 					copy_v3_v3(walk->teleport.origin, walk->rv3d->viewinv[3]);
@@ -1117,7 +1117,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 			}
 
 			/* Falling or jumping) */
-			if (ELEM(walk->gravity, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
+			if (ELEM(walk->gravity_state, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
 				float t;
 				float z_cur, z_new;
 				bool ret;
@@ -1148,7 +1148,7 @@ static int walkApply(bContext *C, WalkInfo *walk)
 					if (difference > 0.0f) {
 						/* quit falling, lands at "view_height" from the floor */
 						dvec[2] -= difference;
-						walk->gravity = WALK_GRAVITY_STATE_OFF;
+						walk->gravity_state = WALK_GRAVITY_STATE_OFF;
 						walk->speed_jump = 0.0f;
 					}
 					else {
