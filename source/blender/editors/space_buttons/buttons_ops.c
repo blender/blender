@@ -239,6 +239,8 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	ot->exec = file_browse_exec;
 	ot->cancel = file_browse_cancel;
 
+	ot->flag |= OPTYPE_UNDO;
+
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
@@ -256,6 +258,8 @@ void BUTTONS_OT_directory_browse(wmOperatorType *ot)
 	ot->invoke = file_browse_invoke;
 	ot->exec = file_browse_exec;
 	ot->cancel = file_browse_cancel;
+
+	ot->flag |= OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE,
