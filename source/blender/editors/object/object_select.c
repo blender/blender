@@ -524,7 +524,6 @@ static EnumPropertyItem prop_select_grouped_types[] = {
 	{11, "PROPERTIES", 0, "Properties", "Game Properties"},
 	{12, "KEYINGSET", 0, "Keying Set", "Objects included in active Keying Set"},
 	{13, "LAMP_TYPE", 0, "Lamp Type", "Matching lamp types"},
-	{14, "PASS_INDEX", 0, "Pass Index", "Matching object pass index"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -670,20 +669,6 @@ static bool select_similar_lamps(bContext *C, Object *ob)
 				ED_base_object_select(base, BA_SELECT);
 				changed = true;
 			}
-		}
-	}
-	CTX_DATA_END;
-	return changed;
-}
-static bool select_similar_pass_index(bContext *C, Object *ob)
-{
-	bool changed = false;
-
-	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
-	{
-		if ((base->object->index == ob->index) && !(base->flag & SELECT)) {
-			ED_base_object_select(base, BA_SELECT);
-			changed = true;
 		}
 	}
 	CTX_DATA_END;
@@ -869,8 +854,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	else if (nr == 11) changed |= select_grouped_gameprops(C, ob);
 	else if (nr == 12) changed |= select_grouped_keyingset(C, ob, op->reports);
 	else if (nr == 13) changed |= select_similar_lamps(C, ob);
-	else if (nr == 14) changed |= select_similar_pass_index(C, ob);
-
+	
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		return OPERATOR_FINISHED;
