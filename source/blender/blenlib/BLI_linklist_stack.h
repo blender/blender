@@ -160,7 +160,7 @@
 	                             _##var##_stack->link : NULL))
 
 #define BLI_SMALLSTACK_IS_EMPTY(var) \
-	(_BLI_SMALLSTACK_CAST(var) (_##var##_stack != NULL))
+	((_BLI_SMALLSTACK_CAST(var) _##var##_stack) == NULL)
 
 /* loop over stack members last-added-first */
 #define BLI_SMALLSTACK_ITER_BEGIN(var, item) \
