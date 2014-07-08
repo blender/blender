@@ -156,3 +156,13 @@ void NodeConverter::addOutputVector(NodeOutput *output, const float value[3])
 	m_builder->addOperation(operation);
 	m_builder->mapOutputSocket(output, operation->getOutputSocket());
 }
+
+void NodeConverter::registerViewer(ViewerOperation *viewer)
+{
+	m_builder->registerViewer(viewer);
+}
+
+ViewerOperation *NodeConverter::active_viewer() const
+{
+	return m_builder->active_viewer();
+}

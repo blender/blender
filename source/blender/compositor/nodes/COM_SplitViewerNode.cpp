@@ -35,8 +35,7 @@ SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
 void SplitViewerNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
 	bNode *editorNode = this->getbNode();
-	bool is_active = ((editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) &&
-	                  (editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
+	bool do_output = (editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) && (editorNode->flag & NODE_DO_OUTPUT);
 
 	NodeInput *image1Socket = this->getInputSocket(0);
 	NodeInput *image2Socket = this->getInputSocket(1);
@@ -54,7 +53,6 @@ void SplitViewerNode::convertToOperations(NodeConverter &converter, const Compos
 	ViewerOperation *viewerOperation = new ViewerOperation();
 	viewerOperation->setImage(image);
 	viewerOperation->setImageUser(imageUser);
-	viewerOperation->setActive(is_active);
 	viewerOperation->setViewSettings(context.getViewSettings());
 	viewerOperation->setDisplaySettings(context.getDisplaySettings());
 
@@ -68,4 +66,7 @@ void SplitViewerNode::convertToOperations(NodeConverter &converter, const Compos
 	converter.addLink(splitViewerOperation->getOutputSocket(), viewerOperation->getInputSocket(0));
 
 	converter.addPreview(splitViewerOperation->getOutputSocket());
+
+	if (do_output)
+		converter.registerViewer(viewerOperation);
 }

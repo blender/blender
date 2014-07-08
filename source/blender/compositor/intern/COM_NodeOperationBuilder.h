@@ -44,6 +44,7 @@ class NodeOperationOutput;
 
 class PreviewOperation;
 class WriteBufferOperation;
+class ViewerOperation;
 
 class NodeOperationBuilder {
 public:
@@ -87,6 +88,12 @@ private:
 	
 	Node *m_current_node;
 	
+	/** Operation that will be writing to the viewer image
+	 *  Only one operation can occupy this place at a time,
+	 *  to avoid race conditions
+	 */
+	ViewerOperation *m_active_viewer;
+	
 public:
 	NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree);
 	~NodeOperationBuilder();
@@ -109,6 +116,11 @@ public:
 	void addPreview(NodeOperationOutput *output);
 	/** Add a preview operation for a node input */
 	void addNodeInputPreview(NodeInput *input);
+	
+	/** Define a viewer operation as the active output, if possible */
+	void registerViewer(ViewerOperation *viewer);
+	/** The currently active viewer output operation */
+	ViewerOperation *active_viewer() const { return m_active_viewer; }
 	
 protected:
 	static NodeInput *find_node_input(const InputSocketMap &map, NodeOperationInput *op_input);

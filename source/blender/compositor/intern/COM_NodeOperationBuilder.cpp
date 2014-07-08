@@ -38,12 +38,14 @@ extern "C" {
 #include "COM_SocketProxyOperation.h"
 #include "COM_ReadBufferOperation.h"
 #include "COM_WriteBufferOperation.h"
+#include "COM_ViewerOperation.h"
 
 #include "COM_NodeOperationBuilder.h" /* own include */
 
 NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree) :
     m_context(context),
-    m_current_node(NULL)
+    m_current_node(NULL),
+    m_active_viewer(NULL)
 {
 	m_graph.from_bNodeTree(*context, b_nodetree);
 }
@@ -236,6 +238,25 @@ void NodeOperationBuilder::addNodeInputPreview(NodeInput *input)
 		addOperation(operation);
 		
 		mapInputSocket(input, operation->getInputSocket(0));
+	}
+}
+
+void NodeOperationBuilder::registerViewer(ViewerOperation *viewer)
+{
+	if (m_active_viewer) {
+		if (m_current_node->isInActiveGroup()) {
+			/* deactivate previous viewer */
+			m_active_viewer->setActive(false);
+			
+			m_active_viewer = viewer;
+			viewer->setActive(true);
+		}
+	}
+	else {
+		if (m_current_node->getbNodeTree() == m_context->getbNodeTree()) {
+			m_active_viewer = viewer;
+			viewer->setActive(true);
+		}
 	}
 }
 
