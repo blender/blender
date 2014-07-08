@@ -2032,16 +2032,8 @@ blender_include_dirs_sys("${OPENGL_INCLUDE_DIR}")
 if(WITH_OPENMP)
 	find_package(OpenMP)
 	if(OPENMP_FOUND)
-		# Some tests with clang-omp fail due special buid env ( dylib )
-		# we push the openmp flags to buildtype flags to circumvent this as a tentative fix for now
-		if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang") # Some tests with clang-omp fail due special buid env
-			string(TOUPPER ${CMAKE_BUILD_TYPE} B_TYPE)
-			set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_${B_TYPE}} ${OpenMP_C_FLAGS}")
-			set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_${B_TYPE}} ${OpenMP_CXX_FLAGS}")
-		else()
-			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-		endif()
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 	else()
 		set(WITH_OPENMP OFF)
 	endif()
@@ -2165,6 +2157,10 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	endif()
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+
+	if(APPLE AND WITH_OPENMP) # we need the Intel omp lib linked here to not fail all tests due presence of -fopenmp !
+		set(CMAKE_REQUIRED_FLAGS "-L${LIBDIR}/openmp/lib -liomp5") # these are only used for the checks
+	endif()
 
 	# strange, clang complains these are not supported, but then yses them.
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
