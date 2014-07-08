@@ -2033,10 +2033,11 @@ if(WITH_OPENMP)
 	find_package(OpenMP)
 	if(OPENMP_FOUND)
 		# Some tests with clang-omp fail due special buid env ( dylib )
-		# we push the openmp flags to rel flags to circumvent this as a tentative fix for now until i found a real fix
+		# we push the openmp flags to buildtype flags to circumvent this as a tentative fix for now
 		if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang") # Some tests with clang-omp fail due special buid env
-			set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${OpenMP_C_FLAGS}")
-			set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
+			string(TOUPPER ${CMAKE_BUILD_TYPE} B_TYPE)
+			set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_${B_TYPE}} ${OpenMP_C_FLAGS}")
+			set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_${B_TYPE}} ${OpenMP_CXX_FLAGS}")
 		else()
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
