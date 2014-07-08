@@ -143,7 +143,6 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
           (i.e. if there is no available and satisfactory package)!
         * If the “force-rebuilt” library is a dependency of others, it will force the rebuild
           of those libraries too (e.g. --force-boost will also rebuild oiio and osl...).
-        * Do not forget --with-osl if you built it and still want it!
 
     --skip-python
         Unconditionally skip Python installation/building.
