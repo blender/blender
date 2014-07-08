@@ -3890,6 +3890,8 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 }
 void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTexture *ptex, int event, float cfra)
 {
+	Object *ob = sim->ob;
+	Mesh *me = (Mesh *)ob->data;
 	ParticleSettings *part = sim->psys->part;
 	MTex **mtexp = part->mtex;
 	MTex *mtex;
@@ -3929,6 +3931,14 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 				/* no break, failed to get uv's, so let's try orco's */
 				case TEXCO_ORCO:
 					psys_particle_on_emitter(sim->psmd, sim->psys->part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, 0, 0, 0, texvec, 0);
+					
+					if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
+						BKE_mesh_texspace_calc(me);
+					}
+					sub_v3_v3(texvec, me->loc);
+					if (me->size[0] != 0.0f) texvec[0] /= me->size[0];
+					if (me->size[1] != 0.0f) texvec[1] /= me->size[1];
+					if (me->size[2] != 0.0f) texvec[2] /= me->size[2];
 					break;
 				case TEXCO_PARTICLE:
 					/* texture coordinates in range [-1, 1] */
