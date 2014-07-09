@@ -423,6 +423,11 @@ static AVFrame *generate_video_frame(uint8_t *pixels, ReportList *reports)
 		          current_frame->data, current_frame->linesize);
 		delete_picture(rgb_frame);
 	}
+
+	current_frame->format = PIX_FMT_BGR32;
+	current_frame->width = width;
+	current_frame->height = height;
+
 	return current_frame;
 }
 
