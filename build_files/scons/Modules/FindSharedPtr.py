@@ -15,11 +15,11 @@ def FindSharedPtr(conf):
         # order to support this, we do an extra check to see which namespace
         # should be used.
 
-        if conf.CheckType('std::shared_ptr<int>', language = 'CXX', includes="#include <memory>"):
+        if conf.CheckType('std::shared_ptr<int>', language = 'C++', includes="#include <memory>"):
             print("-- Found shared_ptr in std namespace using <memory> header.")
             namespace = 'std'
             header = 'memory'
-        elif conf.CheckType('std::tr1::shared_ptr<int>', language = 'CXX', includes="#include <memory>"):
+        elif conf.CheckType('std::tr1::shared_ptr<int>', language = 'C++', includes="#include <memory>"):
             print("-- Found shared_ptr in std::tr1 namespace using <memory> header..")
             namespace = 'std::tr1'
             header = 'memory'
@@ -29,7 +29,7 @@ def FindSharedPtr(conf):
         # <tr1/memory> is to be included for this. And what makes things
         # even more tricky is that gcc does have <memory> header, so
         # all the checks above wouldn't find shared_ptr.
-        if conf.CheckType('std::tr1::shared_ptr<int>', language = 'CXX', includes="#include <tr1/memory>"):
+        if conf.CheckType('std::tr1::shared_ptr<int>', language = 'C++', includes="#include <tr1/memory>"):
             print("-- Found shared_ptr in std::tr1 namespace using <tr1/memory> header..")
             namespace = 'std::tr1'
             header = 'tr1/memory'
