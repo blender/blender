@@ -34,7 +34,6 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 	/* init path state */
 	path_state_init(kg, &state, &rng, sample);
-	state.num_samples = kernel_data.integrator.aa_samples;
 
 	/* evaluate surface shader */
 	float rbsdf = path_state_rng_1D(kg, &rng, &state, PRNG_BSDF);
