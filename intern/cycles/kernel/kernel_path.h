@@ -1050,11 +1050,8 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg, ccl_global uin
 {
 	float filter_u;
 	float filter_v;
-#ifdef __CMJ__
+
 	int num_samples = kernel_data.integrator.aa_samples;
-#else
-	int num_samples = 0;
-#endif
 
 	path_rng_init(kg, rng_state, sample, num_samples, rng, x, y, &filter_u, &filter_v);
 
