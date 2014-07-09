@@ -252,14 +252,14 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
 	}
 }
 
-static void partialvis_update_bmesh_faces(GSet *faces, PartialVisAction action)
+static void partialvis_update_bmesh_faces(GSet *faces)
 {
 	GSetIterator gs_iter;
 
 	GSET_ITER (gs_iter, faces) {
 		BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
-		if ((action == PARTIALVIS_HIDE) && paint_is_bmesh_face_hidden(f))
+		if (paint_is_bmesh_face_hidden(f))
 			BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
 		else
 			BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
@@ -301,7 +301,7 @@ static void partialvis_update_bmesh(Object *ob,
 	                              &any_visible);
 
 	/* finally loop over node faces and tag the ones that are fully hidden */
-	partialvis_update_bmesh_faces(faces, action);
+	partialvis_update_bmesh_faces(faces);
 
 	if (any_changed) {
 		BKE_pbvh_node_mark_rebuild_draw(node);
