@@ -522,8 +522,6 @@ static float get_property(Bone *bone, const char *key, float def)
  */
 static void create_restpose_mat(Bone *bone, float mat[4][4])
 {
-	const double PI = 3.1415926535897932384626433832795;
-
 	float loc[3] = {
 		get_property(bone, "restpose_loc_x", 0.0),
 		get_property(bone, "restpose_loc_y", 0.0),
@@ -531,9 +529,9 @@ static void create_restpose_mat(Bone *bone, float mat[4][4])
 	};
 
 	float rot[3] = {
-		PI * get_property(bone, "restpose_rot_x", 0.0) / 180.0,
-		PI * get_property(bone, "restpose_rot_y", 0.0) / 180.0,
-		PI * get_property(bone, "restpose_rot_z", 0.0) / 180.0
+		DEG2RADF(get_property(bone, "restpose_rot_x", 0.0)),
+		DEG2RADF(get_property(bone, "restpose_rot_y", 0.0)),
+		DEG2RADF(get_property(bone, "restpose_rot_z", 0.0))
 	};
 
 	float scale[3] = {
