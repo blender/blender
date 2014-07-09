@@ -707,7 +707,7 @@ class MaterialFreestyleButtonsPanel():
 class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle Line"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'} # TODO: 'CYCLES'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'CYCLES'}
 
     def draw(self, context):
         layout = self.layout
