@@ -315,7 +315,6 @@ typedef struct ObHook {
 typedef struct DupliObject {
 	struct DupliObject *next, *prev;
 	struct Object *ob;
-	unsigned int origlay, pad;
 	float mat[4][4];
 	float orco[3], uv[2];
 

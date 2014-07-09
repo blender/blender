@@ -162,9 +162,6 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 	dob->type = ctx->gen->type;
 	dob->animated = animated || ctx->animated; /* object itself or some parent is animated */
 
-	dob->origlay = ob->lay;
-	ob->lay = ctx->lay;
-
 	/* set persistent id, which is an array with a persistent index for each level
 	 * (particle number, vertex number, ..). by comparing this we can find the same
 	 * dupli object between frames, which is needed for motion blur. last level
@@ -250,13 +247,6 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 					ob->flag |= OB_DONE;  /* doesnt render */
 
 				make_child_duplis_cb(ctx, userdata, ob);
-
-				/* Set proper layer in case of scene looping,
-				 * in case of groups the object layer will be
-				 * changed when it's duplicated due to the
-				 * group duplication.
-				 */
-				ob->lay = ctx->object->lay;
 			}
 		}
 	}
@@ -458,7 +448,6 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 	Object *inst_ob = vdd->inst_ob;
 	DupliObject *dob;
 	float obmat[4][4], space_mat[4][4];
-	unsigned int origlay;
 
 	/* obmat is transform to vertex */
 	get_duplivert_transform(co, nor_f, nor_s, vdd->use_rotation, inst_ob->trackflag, inst_ob->upflag, obmat);
@@ -472,10 +461,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 	 */
 	mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
 
-	origlay = vdd->inst_ob->lay;
 	dob = make_dupli(vdd->ctx, vdd->inst_ob, obmat, index, false, false);
-	/* restore the original layer so that each dupli will have proper dob->origlay */
-	vdd->inst_ob->lay = origlay;
 
 	if (vdd->orco)
 		copy_v3_v3(dob->orco, vdd->orco[index]);
@@ -1217,15 +1203,6 @@ ListBase *object_duplilist(EvaluationContext *eval_ctx, Scene *sce, Object *ob)
 
 void free_object_duplilist(ListBase *lb)
 {
-	DupliObject *dob;
-
-	/* loop in reverse order, if object is instanced multiple times
-	 * the original layer may not really be original otherwise, proper
-	 * solution is more complicated */
-	for (dob = lb->last; dob; dob = dob->prev) {
-		dob->ob->lay = dob->origlay;
-	}
-
 	BLI_freelistN(lb);
 	MEM_freeN(lb);
 }
@@ -1260,10 +1237,11 @@ int count_duplilist(Object *ob)
 	return 1;
 }
 
-DupliApplyData *duplilist_apply_matrix(ListBase *duplilist)
+DupliApplyData *duplilist_apply(Object *ob, ListBase *duplilist)
 {
 	DupliApplyData *apply_data = NULL;
 	int num_objects = BLI_countlist(duplilist);
+	
 	if (num_objects > 0) {
 		DupliObject *dob;
 		int i;
@@ -1273,14 +1251,19 @@ DupliApplyData *duplilist_apply_matrix(ListBase *duplilist)
 		                                "DupliObject apply extra data");
 
 		for (dob = duplilist->first, i = 0; dob; dob = dob->next, ++i) {
+			/* copy obmat from duplis */
 			copy_m4_m4(apply_data->extra[i].obmat, dob->ob->obmat);
 			copy_m4_m4(dob->ob->obmat, dob->mat);
+			
+			/* copy layers from the main duplicator object */
+			apply_data->extra[i].lay = dob->ob->lay;
+			dob->ob->lay = ob->lay;
 		}
 	}
 	return apply_data;
 }
 
-void duplilist_restore_matrix(ListBase *duplilist, DupliApplyData *apply_data)
+void duplilist_restore(ListBase *duplilist, DupliApplyData *apply_data)
 {
 	DupliObject *dob;
 	int i;
@@ -1290,6 +1273,8 @@ void duplilist_restore_matrix(ListBase *duplilist, DupliApplyData *apply_data)
 	 */
 	for (dob = duplilist->last, i = apply_data->num_objects - 1; dob; dob = dob->prev, --i) {
 		copy_m4_m4(dob->ob->obmat, apply_data->extra[i].obmat);
+		
+		dob->ob->lay = apply_data->extra[i].lay;
 	}
 }
 

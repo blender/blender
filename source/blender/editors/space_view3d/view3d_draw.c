@@ -1993,7 +1993,7 @@ static void draw_dupli_objects_color(
 	lb = object_duplilist(G.main->eval_ctx, scene, base->object);
 	// BLI_sortlist(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
 
-	apply_data = duplilist_apply_matrix(lb);
+	apply_data = duplilist_apply(base->object, lb);
 
 	dob = dupli_step(lb->first);
 	if (dob) dob_next = dupli_step(dob->next);
@@ -2102,7 +2102,7 @@ static void draw_dupli_objects_color(
 	}
 
 	if (apply_data) {
-		duplilist_restore_matrix(lb, apply_data);
+		duplilist_restore(lb, apply_data);
 		duplilist_free_apply_data(apply_data);
 	}
 
