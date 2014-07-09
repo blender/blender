@@ -273,6 +273,9 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
         col.prop(rd, "tile_x", text="X")
         col.prop(rd, "tile_y", text="Y")
 
+        col.separator()
+        col.prop(rd, 'preview_start_resolution')
+
         col = split.column()
         col.label(text="Memory:")
         sub = col.column()

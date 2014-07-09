@@ -1014,8 +1014,6 @@ void RENDER_OT_render(wmOperatorType *ot)
 #define PR_UPDATE_MATERIAL			4
 #define PR_UPDATE_DATABASE			8
 
-#define START_RESOLUTION_DIVIDER	8
-
 typedef struct RenderPreview {
 	/* from wmJob */
 	void *owner;
@@ -1032,6 +1030,7 @@ typedef struct RenderPreview {
 	
 	float viewmat[4][4];
 
+	int start_resolution_divider;
 	int resolution_divider;
 } RenderPreview;
 
@@ -1193,7 +1192,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	rstats = RE_GetStats(re);
 
 	if (update_flag & PR_UPDATE_VIEW) {
-		rp->resolution_divider = START_RESOLUTION_DIVIDER;
+		rp->resolution_divider = rp->start_resolution_divider;
 	}
 
 	use_border = render_view3d_disprect(rp->scene, rp->ar, rp->v3d,
@@ -1388,7 +1387,12 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	wmJob *wm_job;
 	RenderPreview *rp;
 	Scene *scene = CTX_data_scene(C);
-	
+	ARegion *ar = CTX_wm_region(C);
+	int width = ar->winx, height = ar->winy;
+	int divider = 1;
+	int resolution_threshold = scene->r.preview_start_resolution *
+	                           scene->r.preview_start_resolution;
+
 	if (CTX_wm_window(C) == NULL)
 		return;
 	if (!render_view3d_flag_changed(engine, C))
@@ -1399,6 +1403,12 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	rp = MEM_callocN(sizeof(RenderPreview), "render preview");
 	rp->job = wm_job;
 
+	while (width * height > resolution_threshold) {
+		width = max_ii(1, width / 2);
+		height = max_ii(1, height / 2);
+		divider *= 2;
+	}
+
 	/* customdata for preview thread */
 	rp->scene = scene;
 	rp->engine = engine;
@@ -1407,7 +1417,8 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	rp->v3d = rp->sa->spacedata.first;
 	rp->rv3d = CTX_wm_region_view3d(C);
 	rp->bmain = CTX_data_main(C);
-	rp->resolution_divider = START_RESOLUTION_DIVIDER;
+	rp->resolution_divider = divider;
+	rp->start_resolution_divider = divider;
 	copy_m4_m4(rp->viewmat, rp->rv3d->viewmat);
 	
 	/* clear info text */

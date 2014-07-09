@@ -604,6 +604,9 @@ typedef struct RenderData {
 
 	/* Cycles baking */
 	struct BakeData bake;
+
+	int preview_start_resolution;
+	int pad;
 } RenderData;
 
 /* *************************************************************** */

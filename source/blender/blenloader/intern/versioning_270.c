@@ -309,4 +309,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "int", "preview_start_resolution")) {
+		Scene *scene;
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			scene->r.preview_start_resolution = 64;
+		}
+	}
 }
