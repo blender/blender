@@ -251,6 +251,7 @@ float angle_v3v3v3(const float a[3], const float b[3], const float c[3]) ATTR_WA
 float cos_v3v3v3(const float p1[3], const float p2[3], const float p3[3]) ATTR_WARN_UNUSED_RESULT;
 float angle_normalized_v3v3(const float v1[3], const float v2[3]) ATTR_WARN_UNUSED_RESULT;
 float angle_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float v3[3], const float axis[3]) ATTR_WARN_UNUSED_RESULT;
+float angle_signed_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float v3[3], const float axis[3]) ATTR_WARN_UNUSED_RESULT;
 void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3]);
 void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 void angle_poly_v3(float *angles, const float *verts[3], int len);

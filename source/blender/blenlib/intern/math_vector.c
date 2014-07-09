@@ -467,6 +467,32 @@ float angle_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float 
 	return angle_v3v3(v1_proj, v2_proj);
 }
 
+float angle_signed_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float v3[3], const float axis[3])
+{
+	float v1_proj[3], v2_proj[3], tproj[3];
+	float angle;
+
+	sub_v3_v3v3(v1_proj, v1, v2);
+	sub_v3_v3v3(v2_proj, v3, v2);
+
+	/* project the vectors onto the axis */
+	project_v3_v3v3(tproj, v1_proj, axis);
+	sub_v3_v3(v1_proj, tproj);
+
+	project_v3_v3v3(tproj, v2_proj, axis);
+	sub_v3_v3(v2_proj, tproj);
+
+	angle = angle_v3v3(v1_proj, v2_proj);
+
+	/* calculate the sign (reuse 'tproj') */
+	cross_v3_v3v3(tproj, v2_proj, v1_proj);
+	if (dot_v3v3(tproj, axis) < 0.0f) {
+		angle = ((float)(M_PI * 2.0)) - angle;
+	}
+
+	return angle;
+}
+
 void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	float ed1[3], ed2[3], ed3[3];
