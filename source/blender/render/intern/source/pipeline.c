@@ -729,9 +729,11 @@ void RE_ChangeResolution(Render *re, int winx, int winy, rcti *disprect)
 {
 	re_init_resolution(re, NULL, winx, winy, disprect);
 
-	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	render_result_rescale(re);
-	BLI_rw_mutex_unlock(&re->resultmutex);
+	if (re->result) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		render_result_rescale(re);
+		BLI_rw_mutex_unlock(&re->resultmutex);
+	}
 }
 
 /* update some variables that can be animated, and otherwise wouldn't be due to

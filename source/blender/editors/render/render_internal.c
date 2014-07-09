@@ -1128,6 +1128,30 @@ static void render_view3d_renderinfo_cb(void *rjp, RenderStats *rs)
 	}
 }
 
+BLI_INLINE void rcti_scale_coords(rcti *scaled_rect, const rcti *rect,
+                                  const float scale)
+{
+	scaled_rect->xmin = rect->xmin * scale;
+	scaled_rect->ymin = rect->ymin * scale;
+	scaled_rect->xmax = rect->xmax * scale;
+	scaled_rect->ymax = rect->ymax * scale;
+}
+
+static void render_update_resolution(Render *re, const RenderPreview *rp,
+                                     bool use_border, const rcti *clip_rect)
+{
+	int winx = rp->ar->winx / rp->resolution_divider,
+	    winy = rp->ar->winy / rp->resolution_divider;
+	if (use_border) {
+		rcti scaled_cliprct;
+		rcti_scale_coords(&scaled_cliprct, clip_rect,
+		                  1.0f / rp->resolution_divider);
+		RE_ChangeResolution(re, winx, winy, &scaled_cliprct);
+	}
+	else {
+		RE_ChangeResolution(re, winx, winy, NULL);
+	}
+}
 
 static void render_view3d_startjob(void *customdata, short *stop, short *do_update, float *UNUSED(progress))
 {
@@ -1140,6 +1164,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	bool orth, restore = 0;
 	char name[32];
 	int update_flag;
+	bool use_border = false;
 
 	update_flag = rp->engine->job_update_flag;
 	rp->engine->job_update_flag = 0;
@@ -1171,10 +1196,11 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		rp->resolution_divider = START_RESOLUTION_DIVIDER;
 	}
 
+	use_border = render_view3d_disprect(rp->scene, rp->ar, rp->v3d,
+	                                    rp->rv3d, &cliprct);
+
 	if ((update_flag & (PR_UPDATE_RENDERSIZE | PR_UPDATE_DATABASE)) || rstats->convertdone == 0) {
 		RenderData rdata;
-		int winx = rp->ar->winx / rp->resolution_divider,
-		    winy = rp->ar->winy / rp->resolution_divider;
 
 		/* no osa, blur, seq, layers, etc for preview render */
 		rdata = rp->scene->r;
@@ -1186,17 +1212,12 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		rdata.scemode |= R_SINGLE_LAYER;
 
 		/* initalize always */
-		if (render_view3d_disprect(rp->scene, rp->ar, rp->v3d, rp->rv3d, &cliprct)) {
+		if (use_border) {
 			rdata.mode |= R_BORDER;
-			RE_InitState(re, NULL, &rdata, NULL, winx, winy, &cliprct);
+			RE_InitState(re, NULL, &rdata, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
 		}
 		else
-			RE_InitState(re, NULL, &rdata, NULL, winx, winy, NULL);
-	}
-	else if (update_flag & PR_UPDATE_VIEW) {
-		int winx = rp->ar->winx / rp->resolution_divider,
-		    winy = rp->ar->winy / rp->resolution_divider;
-		RE_ChangeResolution(re, winx, winy, NULL);
+			RE_InitState(re, NULL, &rdata, NULL, rp->ar->winx, rp->ar->winy, NULL);
 	}
 
 	if (orth)
@@ -1244,26 +1265,30 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 
 	/* OK, can we enter render code? */
 	if (rstats->convertdone) {
+		bool first_time = true;
 		for (;;) {
-			RE_TileProcessor(re);
+			if (first_time == false) {
+				if (restore)
+					RE_DataBase_IncrementalView(re, rp->viewmat, 1);
 
-			if (!*stop && rp->resolution_divider > 1) {
-				int winx, winy;
 				rp->resolution_divider /= 2;
-				winx = rp->ar->winx / rp->resolution_divider;
-				winy = rp->ar->winy / rp->resolution_divider;
 				*do_update = 1;
-				RE_ChangeResolution(re, winx, winy, NULL);
 
-				/* Otherwise shadows are incorrect. */
-				if (orth) {
-					RE_SetOrtho(re, &viewplane, clipsta, clipend);
-				}
-				else {
-					RE_SetWindow(re, &viewplane, clipsta, clipend);
-				}
+				render_update_resolution(re, rp, use_border, &cliprct);
+
+				RE_DataBase_IncrementalView(re, rp->viewmat, 0);
+				RE_DataBase_ApplyWindow(re);
+				restore = 1;
 			}
 			else {
+				render_update_resolution(re, rp, use_border, &cliprct);
+			}
+
+			RE_TileProcessor(re);
+
+			first_time = false;
+
+			if (*stop || rp->resolution_divider == 1) {
 				break;
 			}
 		}
@@ -1427,13 +1452,29 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	RE_AcquireResultImage(re, &rres);
 	
 	if (rres.rectf) {
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
 		ARegion *ar = CTX_wm_region(C);
 		bool force_fallback = false;
 		bool need_fallback = true;
 		float dither = scene->r.dither_intensity;
-		float scale_x = (float) ar->winx / rres.rectx;
-		float scale_y = (float) ar->winy / rres.recty;
+		float scale_x, scale_y;
+		rcti clip_rect;
+		int xof, yof;
+
+		if (render_view3d_disprect(scene, ar, v3d, rv3d, &clip_rect)) {
+			scale_x = (float) BLI_rcti_size_x(&clip_rect) / rres.rectx;
+			scale_y = (float) BLI_rcti_size_y(&clip_rect) / rres.recty;
+			xof = clip_rect.xmin;
+			yof = clip_rect.ymin;
+		}
+		else {
+			scale_x = (float) ar->winx / rres.rectx;
+			scale_y = (float) ar->winy / rres.recty;
+			xof = rres.xof;
+			yof = rres.yof;
+		}
 
 		/* If user decided not to use GLSL, fallback to glaDrawPixelsAuto */
 		force_fallback |= (U.image_draw_method != IMAGE_DRAW_METHOD_GLSL);
@@ -1444,8 +1485,8 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 				glEnable(GL_BLEND);
 				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 				glPixelZoom(scale_x, scale_y);
-				glaDrawPixelsTex(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_FLOAT,
-				                 GL_NEAREST, rres.rectf);
+				glaDrawPixelsTex(xof, yof, rres.rectx, rres.recty,
+				                 GL_RGBA, GL_FLOAT, GL_NEAREST, rres.rectf);
 				glPixelZoom(1.0f, 1.0f);
 				glDisable(GL_BLEND);
 
@@ -1465,7 +1506,8 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 			glEnable(GL_BLEND);
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			glPixelZoom(scale_x, scale_y);
-			glaDrawPixelsAuto(rres.xof, rres.yof, rres.rectx, rres.recty, GL_RGBA, GL_UNSIGNED_BYTE,
+			glaDrawPixelsAuto(xof, yof, rres.rectx, rres.recty,
+			                  GL_RGBA, GL_UNSIGNED_BYTE,
 			                  GL_NEAREST, display_buffer);
 			glPixelZoom(1.0f, 1.0f);
 			glDisable(GL_BLEND);
