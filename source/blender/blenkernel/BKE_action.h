@@ -180,10 +180,12 @@ void framechange_poses_clear_unkeyed(void);
 /* Bone Groups API --------------------- */	
 
 /* Adds a new bone-group */
-void BKE_pose_add_group(struct Object *ob);
+struct bActionGroup *BKE_pose_add_group(struct bPose *pose, const char *name);
 
-/* Remove the active bone-group */
-void BKE_pose_remove_group(struct Object *ob);
+/* Remove a bone-group */
+void BKE_pose_remove_group(struct bPose *pose, struct bActionGroup *grp, const int index);
+/* Remove the matching bone-group from its index */
+void BKE_pose_remove_group_index(struct bPose *pose, const int index);
 
 /* Assorted Evaluation ----------------- */	
 
