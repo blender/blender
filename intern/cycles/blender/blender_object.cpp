@@ -289,7 +289,6 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 	if(b_parent.ptr.data != b_ob.ptr.data) {
 		visibility &= object_ray_visibility(b_parent);
-		object->random_id ^= hash_int(hash_string(b_parent.name().c_str()));
 	}
 
 	/* make holdout objects on excluded layer invisible for non-camera rays */
