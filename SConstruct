@@ -601,6 +601,7 @@ from FindSharedPtr import FindSharedPtr
 from FindUnorderedMap import FindUnorderedMap
 
 conf = Configure(env)
+conf.env.Append(LINKFLAGS=env['PLATFORM_LINKFLAGS'])
 FindSharedPtr(conf)
 FindUnorderedMap(conf)
 env = conf.Finish()
