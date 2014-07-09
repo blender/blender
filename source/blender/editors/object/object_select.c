@@ -510,20 +510,36 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 
 /*********************** Selected Grouped ********************/
 
+enum {
+	OBJECT_GRPSEL_CHILDREN_RECURSIVE =  0,
+	OBJECT_GRPSEL_CHILDREN           =  1,
+	OBJECT_GRPSEL_PARENT             =  2,
+	OBJECT_GRPSEL_SIBLINGS           =  3,
+	OBJECT_GRPSEL_TYPE               =  4,
+	OBJECT_GRPSEL_LAYER              =  5,
+	OBJECT_GRPSEL_GROUP              =  6,
+	OBJECT_GRPSEL_HOOK               =  7,
+	OBJECT_GRPSEL_PASS               =  8,
+	OBJECT_GRPSEL_COLOR              =  9,
+	OBJECT_GRPSEL_PROPERTIES         = 10,
+	OBJECT_GRPSEL_KEYINGSET          = 11,
+	OBJECT_GRPSEL_LAMP_TYPE          = 12,
+};
+
 static EnumPropertyItem prop_select_grouped_types[] = {
-	{1, "CHILDREN_RECURSIVE", 0, "Children", ""},
-	{2, "CHILDREN", 0, "Immediate Children", ""},
-	{3, "PARENT", 0, "Parent", ""},
-	{4, "SIBLINGS", 0, "Siblings", "Shared Parent"},
-	{5, "TYPE", 0, "Type", "Shared object type"},
-	{6, "LAYER", 0, "Layer", "Shared layers"},
-	{7, "GROUP", 0, "Group", "Shared group"},
-	{8, "HOOK", 0, "Hook", ""},
-	{9, "PASS", 0, "Pass", "Render pass Index"},
-	{10, "COLOR", 0, "Color", "Object Color"},
-	{11, "PROPERTIES", 0, "Properties", "Game Properties"},
-	{12, "KEYINGSET", 0, "Keying Set", "Objects included in active Keying Set"},
-	{13, "LAMP_TYPE", 0, "Lamp Type", "Matching lamp types"},
+	{OBJECT_GRPSEL_CHILDREN_RECURSIVE, "CHILDREN_RECURSIVE", 0, "Children", ""},
+	{OBJECT_GRPSEL_CHILDREN, "CHILDREN", 0, "Immediate Children", ""},
+	{OBJECT_GRPSEL_PARENT, "PARENT", 0, "Parent", ""},
+	{OBJECT_GRPSEL_SIBLINGS, "SIBLINGS", 0, "Siblings", "Shared Parent"},
+	{OBJECT_GRPSEL_TYPE, "TYPE", 0, "Type", "Shared object type"},
+	{OBJECT_GRPSEL_LAYER, "LAYER", 0, "Layer", "Shared layers"},
+	{OBJECT_GRPSEL_GROUP, "GROUP", 0, "Group", "Shared group"},
+	{OBJECT_GRPSEL_HOOK, "HOOK", 0, "Hook", ""},
+	{OBJECT_GRPSEL_PASS, "PASS", 0, "Pass", "Render pass Index"},
+	{OBJECT_GRPSEL_COLOR, "COLOR", 0, "Color", "Object Color"},
+	{OBJECT_GRPSEL_PROPERTIES, "PROPERTIES", 0, "Properties", "Game Properties"},
+	{OBJECT_GRPSEL_KEYINGSET, "KEYINGSET", 0, "Keying Set", "Objects included in active Keying Set"},
+	{OBJECT_GRPSEL_LAMP_TYPE, "LAMP_TYPE", 0, "Lamp Type", "Matching lamp types"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -655,7 +671,7 @@ static bool select_grouped_siblings(bContext *C, Object *ob)
 	CTX_DATA_END;
 	return changed;
 }
-static bool select_similar_lamps(bContext *C, Object *ob)
+static bool select_grouped_lamptype(bContext *C, Object *ob)
 {
 	Lamp *la = ob->data;
 
@@ -816,11 +832,11 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
-	int nr = RNA_enum_get(op->ptr, "type");
+	const int type = RNA_enum_get(op->ptr, "type");
 	bool changed = false, extend;
 
 	extend = RNA_boolean_get(op->ptr, "extend");
-	
+
 	if (extend == 0) {
 		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 		{
@@ -829,37 +845,66 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	
+
 	ob = OBACT;
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
 	}
 
-	if (nr == 13 && ob->type != OB_LAMP) {
-		BKE_report(op->reports, RPT_ERROR, "Active object must be a lamp");
-		return OPERATOR_CANCELLED;
+	switch (type) {
+		case OBJECT_GRPSEL_CHILDREN_RECURSIVE:
+			changed = select_grouped_children(C, ob, true);
+			break;
+		case OBJECT_GRPSEL_CHILDREN:
+			changed = select_grouped_children(C, ob, false);
+			break;
+		case OBJECT_GRPSEL_PARENT:
+			changed = select_grouped_parent(C);
+			break;
+		case OBJECT_GRPSEL_SIBLINGS:
+			changed = select_grouped_siblings(C, ob);
+			break;
+		case OBJECT_GRPSEL_TYPE:
+			changed = select_grouped_type(C, ob);
+			break;
+		case OBJECT_GRPSEL_LAYER:
+			changed = select_grouped_layer(C, ob);
+			break;
+		case OBJECT_GRPSEL_GROUP:
+			changed = select_grouped_group(C, ob);
+			break;
+		case OBJECT_GRPSEL_HOOK:
+			changed = select_grouped_object_hooks(C, ob);
+			break;
+		case OBJECT_GRPSEL_PASS:
+			changed = select_grouped_index_object(C, ob);
+			break;
+		case OBJECT_GRPSEL_COLOR:
+			changed = select_grouped_color(C, ob);
+			break;
+		case OBJECT_GRPSEL_PROPERTIES:
+			changed = select_grouped_gameprops(C, ob);
+			break;
+		case OBJECT_GRPSEL_KEYINGSET:
+			changed = select_grouped_keyingset(C, ob, op->reports);
+			break;
+		case OBJECT_GRPSEL_LAMP_TYPE:
+			if (ob->type != OB_LAMP) {
+				BKE_report(op->reports, RPT_ERROR, "Active object must be a lamp");
+				break;
+			}
+			changed = select_grouped_lamptype(C, ob);
+			break;
+		default:
+			break;
 	}
 
-	if      (nr == 1) changed |= select_grouped_children(C, ob, 1);
-	else if (nr == 2) changed |= select_grouped_children(C, ob, 0);
-	else if (nr == 3) changed |= select_grouped_parent(C);
-	else if (nr == 4) changed |= select_grouped_siblings(C, ob);
-	else if (nr == 5) changed |= select_grouped_type(C, ob);
-	else if (nr == 6) changed |= select_grouped_layer(C, ob);
-	else if (nr == 7) changed |= select_grouped_group(C, ob);
-	else if (nr == 8) changed |= select_grouped_object_hooks(C, ob);
-	else if (nr == 9) changed |= select_grouped_index_object(C, ob);
-	else if (nr == 10) changed |= select_grouped_color(C, ob);
-	else if (nr == 11) changed |= select_grouped_gameprops(C, ob);
-	else if (nr == 12) changed |= select_grouped_keyingset(C, ob, op->reports);
-	else if (nr == 13) changed |= select_similar_lamps(C, ob);
-	
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		return OPERATOR_FINISHED;
 	}
-	
+
 	return OPERATOR_CANCELLED;
 }
 
