@@ -1052,18 +1052,43 @@ static void createTransPose(TransInfo *t, Object *ob)
 	if (ik_on) transform_autoik_update(t, 0);
 }
 
-/* ********************* armature ************** */
+void restoreBones(TransInfo *t)
+{
+	BoneInitData *bid = t->customData;
+	EditBone *ebo;
 
+	while (bid->bone) {
+		ebo = bid->bone;
+		ebo->dist = bid->dist;
+		ebo->rad_tail = bid->rad_tail;
+		ebo->roll = bid->roll;
+		ebo->xwidth = bid->xwidth;
+		ebo->zwidth = bid->zwidth;
+		copy_v3_v3(ebo->head, bid->head);
+		copy_v3_v3(ebo->tail, bid->tail);
+
+		bid++;
+	}
+}
+
+
+/* ********************* armature ************** */
 static void createTransArmatureVerts(TransInfo *t)
 {
-	EditBone *ebo;
+	EditBone *ebo, *eboflip;
 	bArmature *arm = t->obedit->data;
 	ListBase *edbo = arm->edbo;
-	TransData *td;
+	TransData *td, *td_old;
 	float mtx[3][3], smtx[3][3], bonemat[3][3];
+	bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
+	int total_mirrored = 0, i;
+	int oldtot;
+	BoneInitData *bid;
 	
 	t->total = 0;
 	for (ebo = edbo->first; ebo; ebo = ebo->next) {
+		oldtot = t->total;
+
 		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
 			if (t->mode == TFM_BONESIZE) {
 				if (ebo->flag & BONE_SELECTED)
@@ -1080,6 +1105,12 @@ static void createTransArmatureVerts(TransInfo *t)
 					t->total++;
 			}
 		}
+
+		if (mirror && (oldtot < t->total)) {
+			eboflip = ED_armature_bone_get_mirrored(arm->edbo, ebo);
+			if (eboflip)
+				total_mirrored++;
+		}
 	}
 
 	if (!t->total) return;
@@ -1091,7 +1122,15 @@ static void createTransArmatureVerts(TransInfo *t)
 
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransEditBone");
 
+	if (mirror) {
+		t->customData = bid = MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData");
+		t->flag |= T_FREE_CUSTOMDATA;
+	}
+
+	i = 0;
+
 	for (ebo = edbo->first; ebo; ebo = ebo->next) {
+		td_old = td;
 		ebo->oldlength = ebo->length;   // length==0.0 on extrude, used for scaling radius of bone points
 
 		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
@@ -1223,6 +1262,26 @@ static void createTransArmatureVerts(TransInfo *t)
 				}
 			}
 		}
+
+		if (mirror && (td_old != td)) {
+			eboflip = ED_armature_bone_get_mirrored(arm->edbo, ebo);
+			if (eboflip) {
+				bid[i].bone = eboflip;
+				bid[i].dist = eboflip->dist;
+				bid[i].rad_tail = eboflip->rad_tail;
+				bid[i].roll = eboflip->roll;
+				bid[i].xwidth = eboflip->xwidth;
+				bid[i].zwidth = eboflip->zwidth;
+				copy_v3_v3(bid[i].head, eboflip->head);
+				copy_v3_v3(bid[i].tail, eboflip->tail);
+				i++;
+			}
+		}
+	}
+
+	if (mirror && total_mirrored) {
+		/* trick to terminate iteration */
+		bid[total_mirrored].bone = NULL;
 	}
 }
 

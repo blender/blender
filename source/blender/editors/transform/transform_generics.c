@@ -847,9 +847,12 @@ static void recalcData_objects(TransInfo *t)
 				}
 			}
 			
-			if (arm->flag & ARM_MIRROR_EDIT)
-				transform_armature_mirror_update(t->obedit);
-			
+			if (arm->flag & ARM_MIRROR_EDIT) {
+				if (t->state != TRANS_CANCEL)
+					transform_armature_mirror_update(t->obedit);
+				else
+					restoreBones(t);
+			}
 		}
 		else {
 			if (t->state != TRANS_CANCEL) {

@@ -61,6 +61,7 @@ struct wmEvent;
 struct wmTimer;
 struct ARegion;
 struct ReportList;
+struct EditBone;
 
 /* transinfo->redraw */
 typedef enum {
@@ -250,6 +251,17 @@ typedef struct VertSlideData {
 
 	int curr_sv_index;
 } VertSlideData;
+
+typedef struct BoneInitData {
+	struct EditBone *bone;
+	float tail[3];
+	float rad_tail;
+	float roll;
+	float head[3];
+	float dist;
+	float xwidth;
+	float zwidth;
+} BoneInitData;
 
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
@@ -520,6 +532,7 @@ void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
 void flushTransTracking(TransInfo *t);
 void flushTransMasking(TransInfo *t);
+void restoreBones(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
 bool gimbal_axis(struct Object *ob, float gmat[3][3]); /* return 0 when no gimbal for selection */
