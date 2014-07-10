@@ -89,7 +89,7 @@ static void beckmann_table_rows(float *table, int row_from, int row_to)
 		int index_slope_x = 0;
 
 		for(int index_U = 0; index_U < BECKMANN_TABLE_SIZE; ++index_U) {
-			const float U = 0.0000001f + 0.9999998f * index_U / (float)(BECKMANN_TABLE_SIZE - 1);
+			const double U = 0.0000001 + 0.9999998 * index_U / (double)(BECKMANN_TABLE_SIZE - 1);
 
 			/* inverse CDF_P22_omega_i, solve Eq.(11) */
 			while(CDF_P22_omega_i[index_slope_x] <= U)
