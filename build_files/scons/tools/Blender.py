@@ -428,7 +428,8 @@ def buildinfo(lenv, build_type):
                 build_hash = btools.get_command_output(['git', 'rev-parse', '--short', '@{u}']).strip()
             except subprocess.CalledProcessError:
                 # assume branch has no upstream configured
-                build_hash = ''
+                build_hash = btools.get_command_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
+                no_upstream = True
 
             build_branch = btools.get_command_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
 
@@ -442,10 +443,7 @@ def buildinfo(lenv, build_type):
                     if tag_hashes.find(head_hash) != -1:
                         build_branch = 'master'
 
-            if build_hash == '':
-                build_hash = btools.get_command_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
-                no_upstream = True
-            else:
+            if not no_upstream:
                 older_commits = btools.get_command_output(['git', 'log', '--oneline', 'HEAD..@{u}']).strip()
                 if older_commits:
                     build_hash = btools.get_command_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
