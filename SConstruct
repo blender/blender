@@ -777,16 +777,17 @@ B.init_lib_dict()
 
 ##### END SETUP ##########
 
-# Put all auto configuration run-time tests here
+if B.targets != ['cudakernels']:
+    # Put all auto configuration run-time tests here
 
-from FindSharedPtr import FindSharedPtr
-from FindUnorderedMap import FindUnorderedMap
+    from FindSharedPtr import FindSharedPtr
+    from FindUnorderedMap import FindUnorderedMap
 
-conf = Configure(env)
-conf.env.Append(LINKFLAGS=env['PLATFORM_LINKFLAGS'])
-FindSharedPtr(conf)
-FindUnorderedMap(conf)
-env = conf.Finish()
+    conf = Configure(env)
+    conf.env.Append(LINKFLAGS=env['PLATFORM_LINKFLAGS'])
+    FindSharedPtr(conf)
+    FindUnorderedMap(conf)
+    env = conf.Finish()
 
 # End of auto configuration
 
