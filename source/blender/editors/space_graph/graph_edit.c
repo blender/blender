@@ -907,6 +907,7 @@ static bool delete_graph_keys(bAnimContext *ac)
 		    (fcu->driver == NULL))
 		{
 			ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
+			ale->key_data = NULL;
 		}
 	}
 
