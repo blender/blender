@@ -45,6 +45,11 @@ static float beckmann_table_slope_max()
 	return 6.0;
 }
 
+/* Paper used: Importance Sampling Microfacet-Based BSDFs with the
+ * Distribution of Visible Normals. Supplemental Material 2/2.
+ *
+ * http://hal.inria.fr/docs/01/00/66/20/ANNEX/supplemental2.pdf
+ */
 static void beckmann_table_rows(float *table, int row_from, int row_to)
 {
 	/* allocate temporary data */
