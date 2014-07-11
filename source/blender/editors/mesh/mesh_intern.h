@@ -112,6 +112,9 @@ void MESH_OT_screw(struct wmOperatorType *ot);
 /* *** editmesh_inset.c *** */
 void MESH_OT_inset(struct wmOperatorType *ot);
 
+/* *** editmesh_intersect.c *** */
+void MESH_OT_face_split_by_edges(struct wmOperatorType *ot);
+
 
 /* *** editmesh_knife.c *** */
 void MESH_OT_knife_tool(struct wmOperatorType *ot);

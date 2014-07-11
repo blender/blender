@@ -2278,6 +2278,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator("mesh.poke")
         layout.operator("mesh.quads_convert_to_tris")
         layout.operator("mesh.tris_convert_to_quads")
+        layout.operator("mesh.face_split_by_edges")
 
         layout.separator()
 
