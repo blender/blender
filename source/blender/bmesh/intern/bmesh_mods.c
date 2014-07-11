@@ -928,6 +928,9 @@ bool BM_face_split_edgenet(
 		BM_face_kill(bm, face_arr[0]);
 		face_arr[0] = f;
 	}
+	else {
+		BM_ELEM_API_FLAG_DISABLE(f, FACE_NET);
+	}
 
 	for (i = 0; i < BLI_array_count(face_arr); i++) {
 		BM_ELEM_API_FLAG_DISABLE(face_arr[i], FACE_NET);
