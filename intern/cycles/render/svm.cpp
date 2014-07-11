@@ -363,14 +363,17 @@ bool SVMCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 	return false;
 }
 
-void SVMCompiler::find_dependencies(set<ShaderNode*>& dependencies, const set<ShaderNode*>& done, ShaderInput *input)
+void SVMCompiler::find_dependencies(set<ShaderNode*>& dependencies,
+                                    const set<ShaderNode*>& done,
+                                    ShaderInput *input,
+                                    ShaderNode *skip_node)
 {
 	ShaderNode *node = (input->link)? input->link->parent: NULL;
 
-	if(node && done.find(node) == done.end()) {
+	if(node && done.find(node) == done.end() && node != skip_node) {
 		foreach(ShaderInput *in, node->inputs)
 			if(!node_skip_input(node, in))
-				find_dependencies(dependencies, done, in);
+				find_dependencies(dependencies, done, in, skip_node);
 
 		dependencies.insert(node);
 	}
@@ -459,20 +462,28 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, set<ShaderNode*>& done
 	}
 }
 
-void SVMCompiler::generated_shared_closure_nodes(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done, const set<ShaderNode*>& shared)
+void SVMCompiler::generated_shared_closure_nodes(ShaderNode *root_node,
+                                                 ShaderNode *node,
+                                                 set<ShaderNode*>& done,
+                                                 set<ShaderNode*>& closure_done,
+                                                 const set<ShaderNode*>& shared)
 {
 	if(shared.find(node) != shared.end()) {
-		generate_multi_closure(node, done, closure_done);
+		generate_multi_closure(root_node, node, done, closure_done);
 	}
 	else {
 		foreach(ShaderInput *in, node->inputs) {
 			if(in->type == SHADER_SOCKET_CLOSURE && in->link)
-				generated_shared_closure_nodes(in->link->parent, done, closure_done, shared);
+				generated_shared_closure_nodes(root_node, in->link->parent,
+				                               done, closure_done, shared);
 		}
 	}
 }
 
-void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done)
+void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
+                                         ShaderNode *node,
+                                         set<ShaderNode*>& done,
+                                         set<ShaderNode*>& closure_done)
 {
 	/* only generate once */
 	if(closure_done.find(node) != closure_done.end())
@@ -509,12 +520,33 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			set_intersection(cl1deps.begin(), cl1deps.end(),
 			                 cl2deps.begin(), cl2deps.end(),
 			                 std::inserter(shareddeps, shareddeps.begin()));
-			
+
+			/* it's possible some nodes are not shared between this mix node
+			 * inputs, but still needed to be always executed, this mainly
+			 * happens when a node of current subbranch is used by a parent
+			 * node or so */
+			if(root_node != node) {
+				foreach(ShaderInput *in, root_node->inputs) {
+					set<ShaderNode*> rootdeps;
+					find_dependencies(rootdeps, done, in, node);
+					set_intersection(rootdeps.begin(), rootdeps.end(),
+					                 cl1deps.begin(), cl1deps.end(),
+					                 std::inserter(shareddeps, shareddeps.begin()));
+					set_intersection(rootdeps.begin(), rootdeps.end(),
+					                 cl2deps.begin(), cl2deps.end(),
+					                 std::inserter(shareddeps, shareddeps.begin()));
+				}
+			}
+
 			if(!shareddeps.empty()) {
-				if(cl1in->link)
-					generated_shared_closure_nodes(cl1in->link->parent, done, closure_done, shareddeps);
-				if(cl2in->link)
-					generated_shared_closure_nodes(cl2in->link->parent, done, closure_done, shareddeps);
+				if(cl1in->link) {
+					generated_shared_closure_nodes(root_node, cl1in->link->parent,
+					                               done, closure_done, shareddeps);
+				}
+				if(cl2in->link) {
+					generated_shared_closure_nodes(root_node, cl2in->link->parent,
+					                               done, closure_done, shareddeps);
+				}
 
 				generate_svm_nodes(shareddeps, done);
 			}
@@ -525,7 +557,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, facin->stack_offset, 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
-				generate_multi_closure(cl1in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl1in->link->parent, done, closure_done);
 
 				/* fill in jump instruction location to be after closure */
 				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
@@ -537,7 +569,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, facin->stack_offset, 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
-				generate_multi_closure(cl2in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl2in->link->parent, done, closure_done);
 
 				/* fill in jump instruction location to be after closure */
 				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
@@ -551,9 +583,9 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			 * to skip closures here because was already optimized due to
 			 * fixed weight or add closure that always needs both */
 			if(cl1in->link)
-				generate_multi_closure(cl1in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl1in->link->parent, done, closure_done);
 			if(cl2in->link)
-				generate_multi_closure(cl2in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl2in->link->parent, done, closure_done);
 		}
 	}
 	else {
@@ -638,7 +670,8 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
 			if(generate) {
 				set<ShaderNode*> done, closure_done;
-				generate_multi_closure(clin->link->parent, done, closure_done);
+				generate_multi_closure(clin->link->parent, clin->link->parent,
+				                       done, closure_done);
 			}
 		}
 
