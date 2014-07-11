@@ -501,7 +501,7 @@ static void tracking_scale_marker_search(const MovieTrackingMarker *old_marker, 
 static void tracking_insert_new_marker(MovieTrackingContext *context, MovieTrackingTrack *track,
                                        const MovieTrackingMarker *old_marker, int curfra, bool tracked,
                                        int frame_width, int frame_height,
-                                       double dst_pixel_x[5], double dst_pixel_y[5])
+                                       const double dst_pixel_x[5], const double dst_pixel_y[5])
 {
 	MovieTrackingMarker new_marker;
 	int frame_delta = context->backwards ? -1 : 1;

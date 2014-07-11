@@ -1108,7 +1108,7 @@ static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcin
 
 static void calc_weightpaint_vert_color(
         unsigned char r_col[4],
-        MDeformVert *dv, 
+        const MDeformVert *dv,
         DMWeightColorInfo *dm_wcinfo,
         const int defbase_tot, const int defbase_act,
         const bool *defbase_sel, const int defbase_sel_tot,
@@ -1123,7 +1123,7 @@ static void calc_weightpaint_vert_color(
 		bool was_a_nonzero = false;
 		unsigned int i;
 
-		MDeformWeight *dw = dv->dw;
+		const MDeformWeight *dw = dv->dw;
 		for (i = dv->totweight; i != 0; i--, dw++) {
 			/* in multipaint, get the average if auto normalize is inactive
 			 * get the sum if it is active */

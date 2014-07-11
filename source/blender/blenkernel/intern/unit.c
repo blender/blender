@@ -349,7 +349,7 @@ static void unit_dual_convert(double value, bUnitCollection *usys, bUnitDef **un
 
 static size_t unit_as_string(char *str, int len_max, double value, int prec, bUnitCollection *usys,
                              /* non exposed options */
-                             bUnitDef *unit, char pad)
+                             const bUnitDef *unit, char pad)
 {
 	double value_conv;
 	size_t len, i;

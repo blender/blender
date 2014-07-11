@@ -112,7 +112,7 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
 
                                                    /* assumed to be at hi_level (or
                                                     *  null) */
-                                                   BLI_bitmap *prev_hidden)
+                                                   const BLI_bitmap *prev_hidden)
 {
 	BLI_bitmap *subd;
 	int hi_gridsize = BKE_ccg_gridsize(hi_level);

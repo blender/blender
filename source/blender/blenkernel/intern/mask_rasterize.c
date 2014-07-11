@@ -326,7 +326,7 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
  *   are to any of the triangle edges.
  */
 static bool layer_bucket_isect_test(
-        MaskRasterLayer *layer, unsigned int face_index,
+        const MaskRasterLayer *layer, unsigned int face_index,
         const unsigned int bucket_x, const unsigned int bucket_y,
         const float bucket_size_x, const float bucket_size_y,
         const float bucket_max_rad_squared)
