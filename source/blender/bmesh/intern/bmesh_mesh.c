@@ -641,6 +641,10 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 						copy_v3_v3(nor, lnor);
 					}
 				}
+				else {
+					/* We still have to clear the stack! */
+					while (BLI_SMALLSTACK_POP(normal));
+				}
 			}
 		} while ((l_curr = l_curr->next) != l_first);
 	}
