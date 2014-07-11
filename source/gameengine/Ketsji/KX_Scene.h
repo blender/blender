@@ -289,6 +289,8 @@ protected:
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
 
+	double				m_previousAnimTime; //the last time animations were updated
+
 	struct Scene* m_blenderScene;
 
 	RAS_2DFilterManager m_filtermanager;

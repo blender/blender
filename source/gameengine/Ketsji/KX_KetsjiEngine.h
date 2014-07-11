@@ -111,7 +111,6 @@ private:
 	double				m_frameTime;//discrete timestamp of the 'game logic frame'
 	double				m_clockTime;//current time
 	double				m_previousClockTime;//previous clock time
-	double				m_previousAnimTime; //the last time animations were updated
 	double				m_remainingTime;
 
 	static int				m_maxLogicFrame;	/* maximum number of consecutive logic frame */

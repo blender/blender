@@ -1529,6 +1529,9 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 			MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam, layer);
 		}
 	}
+
+	// Now that we know visible meshes, update LoDs
+	UpdateObjectLods();
 }
 
 // logic stuff
@@ -1634,6 +1637,20 @@ static void update_anim_thread_func(TaskPool *pool, void *taskdata, int UNUSED(t
 
 void KX_Scene::UpdateAnimations(double curtime)
 {
+	KX_KetsjiEngine *engine = KX_GetActiveEngine();
+
+	if (engine->GetRestrictAnimationFPS())
+	{
+		// Handle the animations independently of the logic time step
+		double anim_timestep = 1.0 / GetAnimationFPS();
+		if (curtime - m_previousAnimTime < anim_timestep)
+			return;
+
+		// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
+		// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
+		m_previousAnimTime = curtime;
+	}
+
 	TaskPool *pool = BLI_task_pool_create(KX_GetActiveEngine()->GetTaskScheduler(), &curtime);
 
 	for (int i=0; i<m_animatedlist->GetCount(); ++i) {

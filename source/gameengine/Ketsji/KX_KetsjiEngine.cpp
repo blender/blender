@@ -140,7 +140,6 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_frameTime(0.f),
 	m_clockTime(0.f),
 	m_previousClockTime(0.f),
-	m_previousAnimTime(0.f),
 
 
 	m_exitcode(KX_EXIT_REQUEST_NO_REQUEST),
@@ -686,16 +685,6 @@ bool KX_KetsjiEngine::NextFrame()
 				SG_SetActiveStage(SG_STAGE_ACTUATOR_UPDATE);
 				scene->UpdateParents(m_frameTime);
 
-				// update levels of detail
-				scene->UpdateObjectLods();
-
-				if (!GetRestrictAnimationFPS())
-				{
-					m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
-					SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
-					scene->UpdateAnimations(m_frameTime);
-				}
-
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS2);
 				scene->GetPhysicsEnvironment()->BeginFrame();
@@ -795,27 +784,6 @@ bool KX_KetsjiEngine::NextFrame()
 					scene->setSuspendedTime(m_clockTime);
 
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
-		}
-	}
-
-		
-	// Handle the animations independently of the logic time step
-	if (GetRestrictAnimationFPS())
-	{
-		double clocktime = m_kxsystem->GetTimeInSeconds();
-		m_logger->StartLog(tc_animations, clocktime, true);
-		SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
-
-		double anim_timestep = 1.0/KX_GetActiveScene()->GetAnimationFPS();
-		if (clocktime - m_previousAnimTime > anim_timestep)
-		{
-			// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
-			// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
-			m_previousAnimTime = clocktime;
-			for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
-			{
-				(*sceneit)->UpdateAnimations(clocktime);
-			}
 		}
 	}
 	
@@ -1186,7 +1154,14 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 			raslight->BindShadowBuffer(m_canvas, cam, camtrans);
 
 			/* update scene */
+			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 			scene->CalculateVisibleMeshes(m_rasterizer, cam, raslight->GetShadowLayer());
+
+			m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+			scene->UpdateAnimations(GetFrameTime());
+
+			m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
+
 
 			/* render */
 			m_rasterizer->ClearDepthBuffer();
@@ -1318,6 +1293,11 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	SG_SetActiveStage(SG_STAGE_CULLING);
 
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);
+
+	m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+	SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
+
+	scene->UpdateAnimations(GetFrameTime());
 
 	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
 	SG_SetActiveStage(SG_STAGE_RENDER);

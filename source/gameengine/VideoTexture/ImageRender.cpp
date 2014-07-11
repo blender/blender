@@ -274,6 +274,8 @@ void ImageRender::Render()
 
 	m_scene->CalculateVisibleMeshes(m_rasterizer,m_camera);
 
+	m_scene->UpdateAnimations(m_engine->GetFrameTime());
+
 	m_scene->RenderBuckets(camtrans, m_rasterizer);
 
 	m_scene->RenderFonts();
