@@ -60,7 +60,7 @@ extern "C" {
 
 #include <limits.h>
 
-//#define USE_CYCLES_FOR_STROKE_RENDERING 1
+#define USE_CYCLES_FOR_STROKE_RENDERING 1
 
 namespace Freestyle {
 
