@@ -370,7 +370,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	if (wrld && !limited_mode)
 		buttons_texture_users_find_nodetree(users, &wrld->id, wrld->nodetree, "World");
 	if (linestyle && !limited_mode)
-		buttons_texture_users_find_nodetree(users, &linestyle->id, linestyle->nodetree, "LineStyle");
+		buttons_texture_users_find_nodetree(users, &linestyle->id, linestyle->nodetree, "Line Style");
 
 	if (ob) {
 		ParticleSystem *psys = psys_get_current(ob);
