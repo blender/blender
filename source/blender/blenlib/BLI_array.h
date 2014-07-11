@@ -144,7 +144,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 
 /* set the count of the array, doesn't actually increase the allocated array
  * size.  don't use this unless you know what you're doing. */
-#define BLI_array_length_set(arr, count)                                      \
+#define BLI_array_count_set(arr, count)                                      \
 	{ _##arr##_count = (count); }(void)0
 
 /* only to prevent unused warnings */
