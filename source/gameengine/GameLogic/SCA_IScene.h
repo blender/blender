@@ -67,9 +67,11 @@ public:
 	virtual void	ReplaceMesh(class CValue* gameobj,
 								void* meshobj, bool use_gfx, bool use_phys)=0;
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
+	bool			PropertyInDebugList(class CValue *gameobj, const STR_String &name);
+	bool			ObjectInDebugList(class CValue *gameobj);
 	void			RemoveAllDebugProperties();
-	void			AddDebugProperty(class CValue* debugprop,
-									 const STR_String &name);
+	void			AddDebugProperty(class CValue* debugprop, const STR_String &name);
+	void			RemoveDebugProperty(class CValue *gameobj, const STR_String &name);
 	void			RemoveObjectDebugProperties(class CValue* gameobj);
 
 	virtual void	Update2DFilter(std::vector<STR_String>& propNames, void* gameObj, 

@@ -595,7 +595,9 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 {
 	/* add properties to debug list, for added objects and DupliGroups */
-	AddObjectDebugProperties(newobj);
+	if (KX_GetActiveEngine()->GetAutoAddDebugProperties()) {
+		AddObjectDebugProperties(newobj);
+	}
 	// also relink the controller to sensors/actuators
 	SCA_ControllerList& controllers = newobj->GetControllers();
 	//SCA_SensorList&     sensors     = newobj->GetSensors();
@@ -1005,7 +1007,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
 
-	/* remove property to debug list */
+	/* remove property from debug list */
 	RemoveObjectDebugProperties(newobj);
 
 	/* Invalidate the python reference, since the object may exist in script lists
@@ -2022,7 +2024,11 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)other->GetObjectList()->GetValue(i);
 		MergeScene_GameObject(gameobj, this, other);
-		AddObjectDebugProperties(gameobj); // add properties to debug list for LibLoad objects
+
+		/* add properties to debug list for LibLoad objects */
+		if (KX_GetActiveEngine()->GetAutoAddDebugProperties()) {
+			AddObjectDebugProperties(gameobj);
+		}
 
 		gameobj->UpdateBuckets(false); /* only for active objects */
 	}

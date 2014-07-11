@@ -934,6 +934,11 @@ public:
 		m_pObstacleSimulation = NULL;
 	}
 	
+	/**
+	 * add debug object to the debuglist.
+	 */
+	void SetUseDebugProperties(bool debug, bool recursive);
+
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
 	
 	CListValue* GetChildren();
@@ -993,6 +998,7 @@ public:
 	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	KX_PYMETHOD_DOC_VARARGS(KX_GameObject, sendMessage);
 	KX_PYMETHOD_VARARGS(KX_GameObject, ReinstancePhysicsMesh);
+	KX_PYMETHOD_DOC(KX_GameObject, addDebugProperty);
 
 	KX_PYMETHOD_DOC(KX_GameObject, playAction);
 	KX_PYMETHOD_DOC(KX_GameObject, stopAction);
@@ -1060,7 +1066,11 @@ public:
 	static int			pyattr_set_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_collisionCallbacks(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_collisionCallbacks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	
+	static PyObject*	pyattr_get_debug(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_debug(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_debugRecursive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_debugRecursive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
 	/* Experimental! */
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_controllers(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

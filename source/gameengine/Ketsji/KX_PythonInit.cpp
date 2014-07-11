@@ -1389,6 +1389,71 @@ static PyObject *gPyGetVsync(PyObject *)
 	return PyLong_FromLong(gp_Canvas->GetSwapInterval());
 }
 
+static PyObject *gPyShowFramerate(PyObject *, PyObject *args)
+{
+	int visible;
+	if (!PyArg_ParseTuple(args,"i:showFramerate",&visible))
+		return NULL;
+
+	if (visible && gp_KetsjiEngine)
+		gp_KetsjiEngine->SetShowFramerate(true);
+	else
+		gp_KetsjiEngine->SetShowFramerate(false);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyShowProfile(PyObject *, PyObject *args)
+{
+	int visible;
+	if (!PyArg_ParseTuple(args,"i:showProfile",&visible))
+		return NULL;
+
+	if (visible && gp_KetsjiEngine)
+		gp_KetsjiEngine->SetShowProfile(true);
+	else
+		gp_KetsjiEngine->SetShowProfile(false);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyShowProperties(PyObject *, PyObject *args)
+{
+	int visible;
+	if (!PyArg_ParseTuple(args,"i:showProperties",&visible))
+		return NULL;
+
+	if (visible && gp_KetsjiEngine)
+		gp_KetsjiEngine->SetShowProperties(true);
+	else
+		gp_KetsjiEngine->SetShowProperties(false);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyAutoDebugList(PyObject *, PyObject *args)
+{
+	int add;
+	if (!PyArg_ParseTuple(args,"i:autoAddProperties",&add))
+		return NULL;
+
+	if (add && gp_KetsjiEngine)
+		gp_KetsjiEngine->SetAutoAddDebugProperties(true);
+	else
+		gp_KetsjiEngine->SetAutoAddDebugProperties(false);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyClearDebugList(PyObject *)
+{
+	if (gp_KetsjiScene)
+		gp_KetsjiScene->RemoveAllDebugProperties();
+
+	Py_RETURN_NONE;
+}
+
+
 static struct PyMethodDef rasterizer_methods[] = {
 	{"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
 	 METH_VARARGS, "getWindowWidth doc"},
@@ -1436,6 +1501,11 @@ static struct PyMethodDef rasterizer_methods[] = {
 	{"getMipmapping", (PyCFunction) gPyGetMipmapping, METH_NOARGS, ""},
 	{"setVsync", (PyCFunction) gPySetVsync, METH_VARARGS, ""},
 	{"getVsync", (PyCFunction) gPyGetVsync, METH_NOARGS, ""},
+	{"showFramerate",(PyCFunction) gPyShowFramerate, METH_VARARGS, "show or hide the framerate"},
+	{"showProfile",(PyCFunction) gPyShowProfile, METH_VARARGS, "show or hide the profile"},
+	{"showProperties",(PyCFunction) gPyShowProperties, METH_VARARGS, "show or hide the debug properties"},
+	{"autoDebugList",(PyCFunction) gPyAutoDebugList, METH_VARARGS, "enable or disable auto adding debug properties to the debug  list"},
+	{"clearDebugList",(PyCFunction) gPyClearDebugList, METH_NOARGS, "clears the debug property list"},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 

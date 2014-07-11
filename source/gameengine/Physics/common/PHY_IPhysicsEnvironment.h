@@ -126,6 +126,8 @@ class PHY_IPhysicsEnvironment
 		//returns 0.f if no fixed timestep is used
 		virtual	float		GetFixedTimeStep()=0;
 
+		///getDebugMode return the actual debug visualization state
+		virtual int			GetDebugMode()const=0;
 		///setDebugMode is used to support several ways of debug lines, contact point visualization
 		virtual void		SetDebugMode(int debugMode) {}
 		///setNumIterations set the number of iterations for iterative solvers

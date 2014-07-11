@@ -163,6 +163,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_showProperties(false),
 	m_showBackground(false),
 	m_show_debug_properties(false),
+	m_autoAddDebugProperties(true),
 
 	m_animation_record(false),
 
@@ -1895,6 +1896,46 @@ void KX_KetsjiEngine::SetExitKey(short key)
 short KX_KetsjiEngine::GetExitKey()
 {
 	return m_exitkey;
+}
+
+void KX_KetsjiEngine::SetShowFramerate(bool frameRate)
+{
+	m_show_framerate = frameRate;
+}
+
+bool KX_KetsjiEngine::GetShowFramerate()
+{
+	return m_show_framerate;
+}
+
+void KX_KetsjiEngine::SetShowProfile(bool profile)
+{
+	m_show_profile = profile;
+}
+
+bool KX_KetsjiEngine::GetShowProfile()
+{
+	return m_show_profile;
+}
+
+void KX_KetsjiEngine::SetShowProperties(bool properties)
+{
+	m_show_debug_properties = properties;
+}
+
+bool KX_KetsjiEngine::GetShowProperties()
+{
+	return m_show_debug_properties;
+}
+
+void KX_KetsjiEngine::SetAutoAddDebugProperties(bool add)
+{
+	m_autoAddDebugProperties = add;
+}
+
+bool KX_KetsjiEngine::GetAutoAddDebugProperties()
+{
+	return m_autoAddDebugProperties;
 }
 
 void KX_KetsjiEngine::SetTimingDisplay(bool frameRate, bool profile, bool properties)

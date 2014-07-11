@@ -70,6 +70,32 @@ std::vector<SCA_DebugProp*>& SCA_IScene::GetDebugProperties()
 }
 
 
+bool SCA_IScene::PropertyInDebugList( class CValue *gameobj, const STR_String &name )
+{
+	for (std::vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
+		!(it==m_debugList.end());++it) {
+		STR_String debugname = (*it)->m_name;
+		CValue *debugobj = (*it)->m_obj;
+
+		if (debugobj == gameobj && debugname == name)
+			return true;
+	}
+	return false;
+}
+
+
+bool SCA_IScene::ObjectInDebugList( class CValue *gameobj )
+{
+	for (std::vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
+		!(it==m_debugList.end());++it) {
+		CValue* debugobj = (*it)->m_obj;
+
+		if (debugobj == gameobj)
+			return true;
+	}
+	return false;
+}
+
 
 void SCA_IScene::AddDebugProperty(class CValue* debugprop,
 								  const STR_String &name)
@@ -80,6 +106,24 @@ void SCA_IScene::AddDebugProperty(class CValue* debugprop,
 		debugprop->AddRef();
 		dprop->m_name = name;
 		m_debugList.push_back(dprop);
+	}
+}
+
+
+void SCA_IScene::RemoveDebugProperty(class CValue *gameobj,
+								  const STR_String &name)
+{
+	vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
+	while(it != m_debugList.end()) {
+		STR_String debugname = (*it)->m_name;
+		CValue *debugobj = (*it)->m_obj;
+
+		if (debugobj == gameobj && debugname == name) {
+			delete (*it);
+			m_debugList.erase(it);
+			break;
+		}
+		++it;
 	}
 }
 

@@ -78,8 +78,10 @@ float		DummyPhysicsEnvironment::GetFixedTimeStep()
 	return 0.f;
 }
 
-
-
+int DummyPhysicsEnvironment::GetDebugMode() const
+{
+	return 0;
+}
 
 void DummyPhysicsEnvironment::SetGravity(float x,float y,float z)
 {

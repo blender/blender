@@ -301,6 +301,34 @@ Functions
 
    Disable the motion blur effect.
 
+.. function:: showFramerate(enable)
+
+   Show or hide the framerate.
+
+   :type enable: boolean
+
+.. function:: showProfile(enable)
+
+   Show or hide the profile.
+
+   :type enable: boolean
+
+.. function:: showProperties(enable)
+
+   Show or hide the debug properties.
+
+   :type enable: boolean
+
+.. function:: autoDebugList(enable)
+
+   Enable or disable auto adding debug properties to the debug list.
+
+   :type enable: boolean
+
+.. function:: clearDebugList()
+
+   Clears the debug property list.
+
 .. function:: setVsync(value)
 
    Set the vsync value

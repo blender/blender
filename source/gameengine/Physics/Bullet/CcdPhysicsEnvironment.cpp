@@ -877,6 +877,14 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 	}
 }
 
+int			CcdPhysicsEnvironment::GetDebugMode() const
+{
+	if (m_debugDrawer) {
+		return m_debugDrawer->getDebugMode();
+	}
+	return 0;
+}
+
 void		CcdPhysicsEnvironment::SetDebugMode(int debugMode)
 {
 	if (m_debugDrawer) {

@@ -139,6 +139,7 @@ protected:
 		virtual	float		GetFixedTimeStep() { return 0.f; }
 
 		virtual void		SetDebugMode(int debugMode);
+		virtual int			GetDebugMode()const;
 
 		virtual	void		SetGravity(float x,float y,float z);
 		virtual	void		GetGravity(MT_Vector3& grav);

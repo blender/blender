@@ -363,6 +363,18 @@ base class --- :class:`SCA_IObject`
 
       :type: float
 
+   .. attribute:: debug
+
+      If true, the object's debug properties will be displayed on screen.
+
+      :type: boolean
+
+   .. attribute:: debugRecursive
+
+      If true, the object's and children's debug properties will be displayed on screen.
+
+      :type: boolean
+
    .. method:: endObject()
 
       Delete this object, can be used in place of the EndObject Actuator.
@@ -857,3 +869,11 @@ base class --- :class:`SCA_IObject`
       :return: Whether or not the action is playing
       :rtype: boolean
 
+   .. method:: addDebugProperty (name, debug = True)
+
+      Adds a single debug property to the debug list.
+
+      :arg name: name of the property that added to the debug list.
+      :type name: string
+      :arg debug: the debug state.
+      :type debug: boolean
