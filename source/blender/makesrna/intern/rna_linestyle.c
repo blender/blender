@@ -87,6 +87,8 @@ EnumPropertyItem linestyle_geometry_modifier_type_items[] = {
 #include "BKE_texture.h"
 #include "BKE_depsgraph.h"
 
+#include "ED_node.h"
+
 #include "RNA_access.h"
 
 static StructRNA *rna_LineStyle_color_modifier_refine(struct PointerRNA *ptr)
@@ -281,6 +283,16 @@ static void rna_LineStyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 
 	DAG_id_tag_update(&linestyle->id, 0);
 	WM_main_add_notifier(NC_LINESTYLE, linestyle);
+}
+
+static void rna_LineStyle_use_nodes_update(bContext *C, PointerRNA *ptr)
+{
+	FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ptr->data;
+
+	if (linestyle->use_nodes && linestyle->nodetree == NULL)
+		ED_node_shader_default(C, &linestyle->id);
+
+	rna_LineStyle_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 static LineStyleModifier *rna_LineStyle_color_modifier_add(FreestyleLineStyle *linestyle, ReportList *reports,
@@ -1606,14 +1618,14 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	/* nodes */
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
-	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based textures");
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node-based shaders");
 
 	prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_ui_text(prop, "Use Nodes", "Use texture nodes for the line style");
-	RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
+	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes for the line style");
+	RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_use_nodes_update");
 }
 
 void RNA_def_linestyle(BlenderRNA *brna)

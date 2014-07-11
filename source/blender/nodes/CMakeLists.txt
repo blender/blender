@@ -277,4 +277,8 @@ if(WITH_COMPOSITOR)
 	add_definitions(-DWITH_COMPOSITOR)
 endif()
 
+if(WITH_FREESTYLE)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
+
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}")

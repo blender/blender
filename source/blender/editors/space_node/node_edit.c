@@ -434,6 +434,19 @@ void ED_node_shader_default(const bContext *C, ID *id)
 				strength = 1.0f;
 			break;
 		}
+		case ID_LS:
+		{
+			FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
+			linestyle->nodetree = ntree;
+
+			/* TODO use appropriate output_type & shader_type */
+			output_type = SH_NODE_OUTPUT_MATERIAL;
+			shader_type = SH_NODE_BSDF_DIFFUSE;
+
+			copy_v3_v3(color, &linestyle->r);
+			strength = 1.0f;
+			break;
+		}
 		default:
 			printf("ED_node_shader_default called on wrong ID type.\n");
 			return;
