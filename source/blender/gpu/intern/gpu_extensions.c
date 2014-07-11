@@ -58,6 +58,8 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#define MAX_DEFINE_LENGTH 72
+
 /* Extensions support */
 
 /* extensions used:
@@ -1187,29 +1189,44 @@ static void shader_print_errors(const char *task, char *log, const char *code)
 	fprintf(stderr, "%s\n", log);
 }
 
-static const char *gpu_shader_standard_extensions(void)
+static const char *gpu_shader_version(void)
 {
-	/* need this extensions for high quality bump mapping */
-	if (GPU_bicubic_bump_support()) {
-		return "#version 130\n"
-		       "#extension GL_ARB_texture_query_lod: enable\n"
-		       "#define BUMP_BICUBIC\n";
+	/* turn on glsl 1.30 for bicubic bump mapping and ATI clipping support */
+	if (GLEW_VERSION_3_0 &&
+	    (GPU_bicubic_bump_support() || GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)))
+	{
+		return "#version 130\n";
 	}
 
 	return "";
 }
 
-static const char *gpu_shader_standard_defines(void)
+
+static const char *gpu_shader_standard_extensions(void)
+{
+	/* need this extensions for high quality bump mapping */
+	if (GPU_bicubic_bump_support())
+		return "#extension GL_ARB_texture_query_lod: enable\n";
+
+	return "";
+}
+
+static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
 {
 	/* some useful defines to detect GPU type */
-	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
-		return "#define GPU_ATI\n";
+	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+		strcat(defines, "#define GPU_ATI\n");
+		if (GLEW_VERSION_3_0)
+			strcat(defines, "#define CLIP_WORKAROUND");
+	}
 	else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
-		return "#define GPU_NVIDIA\n";
+		strcat(defines, "#define GPU_NVIDIA\n");
 	else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
-		return "#define GPU_INTEL\n";
-	
-	return "";
+		strcat(defines, "#define GPU_INTEL\n");
+
+	if (GPU_bicubic_bump_support())
+		strcat(defines, "#define BUMP_BICUBIC\n");
+	return;
 }
 
 GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *libcode, const char *defines)
@@ -1218,6 +1235,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	GLcharARB log[5000];
 	GLsizei length = 0;
 	GPUShader *shader;
+	char standard_defines[MAX_DEFINE_LENGTH] = "";
 
 	if (!GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader)
 		return NULL;
@@ -1239,12 +1257,16 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 		return NULL;
 	}
 
+	gpu_shader_standard_defines(standard_defines);
+
 	if (vertexcode) {
-		const char *source[4];
+		const char *source[5];
+		/* custom limit, may be too small, beware */
 		int num_source = 0;
 
+		source[num_source++] = gpu_shader_version();
 		source[num_source++] = gpu_shader_standard_extensions();
-		source[num_source++] = gpu_shader_standard_defines();
+		source[num_source++] = standard_defines;
 
 		if (defines) source[num_source++] = defines;
 		if (vertexcode) source[num_source++] = vertexcode;
@@ -1265,11 +1287,12 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	}
 
 	if (fragcode) {
-		const char *source[5];
+		const char *source[6];
 		int num_source = 0;
 
+		source[num_source++] = gpu_shader_version();
 		source[num_source++] = gpu_shader_standard_extensions();
-		source[num_source++] = gpu_shader_standard_defines();
+		source[num_source++] = standard_defines;
 
 		if (defines) source[num_source++] = defines;
 		if (libcode) source[num_source++] = libcode;
