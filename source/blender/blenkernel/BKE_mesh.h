@@ -212,6 +212,10 @@ bool BKE_mesh_center_median(struct Mesh *me, float cent[3]);
 bool BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
 bool BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
 
+void BKE_mesh_calc_volume(struct MVert *mverts, int numVerts,
+                          struct MFace *mfaces, int numFaces,
+                          float *r_vol, float *r_com);
+
 /* tessface */
 void BKE_mesh_loops_to_mface_corners(
         struct CustomData *fdata, struct CustomData *ldata,

@@ -69,6 +69,9 @@ void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw);
 /* 'validate' (i.e. make new or replace old) Physics-Engine objects */
 void BKE_rigidbody_validate_sim_world(struct Scene *scene, struct RigidBodyWorld *rbw, bool rebuild);
 
+void BKE_rigidbody_calc_volume(struct Object *ob, float *r_vol);
+void BKE_rigidbody_calc_center_of_mass(struct Object *ob, float r_com[3]);
+
 /* -------------- */
 /* Utilities */
 

@@ -238,6 +238,18 @@ float volume_tetrahedron_v3(const float v1[3], const float v2[3], const float v3
 	return fabsf(determinant_m3_array(m)) / 6.0f;
 }
 
+/**
+ * The volume from a tetrahedron, normal pointing inside gives negative volume
+ */
+float volume_tetrahedron_signed_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float m[3][3];
+	sub_v3_v3v3(m[0], v1, v2);
+	sub_v3_v3v3(m[1], v2, v3);
+	sub_v3_v3v3(m[2], v3, v4);
+	return determinant_m3_array(m) / 6.0f;
+}
+
 
 /********************************* Distance **********************************/
 

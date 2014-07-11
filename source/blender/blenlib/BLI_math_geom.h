@@ -72,6 +72,7 @@ MINLINE float plane_point_side_v3(const float plane[4], const float co[3]);
 /********************************* Volume **********************************/
 
 float volume_tetrahedron_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
+float volume_tetrahedron_signed_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 
 bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);

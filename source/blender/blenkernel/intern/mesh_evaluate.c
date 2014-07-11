@@ -1096,6 +1096,125 @@ bool BKE_mesh_center_centroid(Mesh *me, float cent[3])
 
 /* -------------------------------------------------------------------- */
 
+/** \name Mesh Volume Calculation
+ * \{ */
+
+static bool mesh_calc_center_centroid_ex(MVert *mverts, int UNUSED(numVerts),
+                                         MFace *mfaces, int numFaces,
+                                         float center[3])
+{
+	float totweight;
+	int f;
+	
+	zero_v3(center);
+	
+	if (numFaces == 0)
+		return false;
+	
+	totweight = 0.0f;
+	for (f = 0; f < numFaces; ++f) {
+		MFace *face = &mfaces[f];
+		MVert *v1 = &mverts[face->v1];
+		MVert *v2 = &mverts[face->v2];
+		MVert *v3 = &mverts[face->v3];
+		MVert *v4 = &mverts[face->v4];
+		float area;
+		
+		area = area_tri_v3(v1->co, v2->co, v3->co);
+		madd_v3_v3fl(center, v1->co, area);
+		madd_v3_v3fl(center, v2->co, area);
+		madd_v3_v3fl(center, v3->co, area);
+		totweight += area;
+		
+		if (face->v4) {
+			area = area_tri_v3(v3->co, v4->co, v1->co);
+			madd_v3_v3fl(center, v3->co, area);
+			madd_v3_v3fl(center, v4->co, area);
+			madd_v3_v3fl(center, v1->co, area);
+			totweight += area;
+		}
+	}
+	if (totweight == 0.0f)
+		return false;
+	
+	mul_v3_fl(center, 1.0f / (3.0f * totweight));
+	
+	return true;
+}
+
+void BKE_mesh_calc_volume(MVert *mverts, int numVerts,
+                          MFace *mfaces, int numFaces,
+                          float *r_vol, float *r_com)
+{
+	float center[3];
+	float totvol;
+	int f;
+	
+	if (r_vol) *r_vol = 0.0f;
+	if (r_com) zero_v3(r_com);
+	
+	if (numFaces == 0)
+		return;
+	
+	if (!mesh_calc_center_centroid_ex(mverts, numVerts, mfaces, numFaces, center))
+		return;
+	
+	totvol = 0.0f;
+	for (f = 0; f < numFaces; ++f) {
+		MFace *face = &mfaces[f];
+		MVert *v1 = &mverts[face->v1];
+		MVert *v2 = &mverts[face->v2];
+		MVert *v3 = &mverts[face->v3];
+		MVert *v4 = &mverts[face->v4];
+		float vol;
+		
+		vol = volume_tetrahedron_signed_v3(center, v1->co, v2->co, v3->co);
+		if (r_vol) {
+			totvol += vol;
+		}
+		if (r_com) {
+			/* averaging factor 1/4 is applied in the end */
+			madd_v3_v3fl(r_com, center, vol); // XXX could extract this
+			madd_v3_v3fl(r_com, v1->co, vol);
+			madd_v3_v3fl(r_com, v2->co, vol);
+			madd_v3_v3fl(r_com, v3->co, vol);
+		}
+		
+		if (face->v4) {
+			vol = volume_tetrahedron_signed_v3(center, v3->co, v4->co, v1->co);
+			
+			if (r_vol) {
+				totvol += vol;
+			}
+			if (r_com) {
+				/* averaging factor 1/4 is applied in the end */
+				madd_v3_v3fl(r_com, center, vol); // XXX could extract this
+				madd_v3_v3fl(r_com, v3->co, vol);
+				madd_v3_v3fl(r_com, v4->co, vol);
+				madd_v3_v3fl(r_com, v1->co, vol);
+			}
+		}
+	}
+	
+	/* Note: Depending on arbitrary centroid position,
+	 * totvol can become negative even for a valid mesh.
+	 * The true value is always the positive value.
+	 */
+	if (r_vol) {
+		*r_vol = fabsf(totvol);
+	}
+	if (r_com) {
+		/* Note: Factor 1/4 is applied once for all vertices here.
+		 * This also automatically negates the vector if totvol is negative.
+		 */
+		if (totvol != 0.0f)
+			mul_v3_fl(r_com, 0.25f / totvol);
+	}
+}
+
+
+/* -------------------------------------------------------------------- */
+
 /** \name NGon Tessellation (NGon/Tessface Conversion)
  * \{ */
 
