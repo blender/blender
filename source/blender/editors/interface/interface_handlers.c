@@ -633,7 +633,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 		}
 
 		if (after.optype)
-			WM_operator_name_call(C, after.optype->idname, after.opcontext, (after.opptr) ? &opptr : NULL);
+			WM_operator_name_call_ptr(C, after.optype, after.opcontext, (after.opptr) ? &opptr : NULL);
 
 		if (after.opptr)
 			WM_operator_properties_free(&opptr);
@@ -8476,7 +8476,7 @@ static int ui_handler_popup(bContext *C, const wmEvent *event, void *userdata)
 			if (temp.popup_func)
 				temp.popup_func(C, temp.popup_arg, temp.retvalue);
 			if (temp.optype)
-				WM_operator_name_call(C, temp.optype->idname, temp.opcontext, NULL);
+				WM_operator_name_call_ptr(C, temp.optype, temp.opcontext, NULL);
 		}
 		else if (temp.cancel_func)
 			temp.cancel_func(C, temp.popup_arg);

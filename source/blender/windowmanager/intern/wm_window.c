@@ -974,14 +974,15 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				const char *path = GHOST_GetEventData(evt);
 				
 				if (path) {
+					wmOperatorType *ot = WM_operatortype_find("WM_OT_open_mainfile", false);
 					/* operator needs a valid window in context, ensures
 					 * it is correctly set */
 					oldWindow = CTX_wm_window(C);
 					CTX_wm_window_set(C, win);
 					
-					WM_operator_properties_create(&props_ptr, "WM_OT_open_mainfile");
+					WM_operator_properties_create_ptr(&props_ptr, ot);
 					RNA_string_set(&props_ptr, "filepath", path);
-					WM_operator_name_call(C, "WM_OT_open_mainfile", WM_OP_EXEC_DEFAULT, &props_ptr);
+					WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr);
 					WM_operator_properties_free(&props_ptr);
 					
 					CTX_wm_window_set(C, oldWindow);

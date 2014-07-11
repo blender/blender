@@ -241,7 +241,8 @@ int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_call_notest(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
 bool        WM_operator_repeat_check(const struct bContext *C, struct wmOperator *op);
-int			WM_operator_name_call	(struct bContext *C, const char *opstring, short context, struct PointerRNA *properties);
+int         WM_operator_name_call_ptr(struct bContext *C, struct wmOperatorType *ot, short context, struct PointerRNA *properties);
+int			WM_operator_name_call(struct bContext *C, const char *opstring, short context, struct PointerRNA *properties);
 int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, struct PointerRNA *properties, struct ReportList *reports, const bool is_undo);
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */

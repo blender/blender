@@ -3188,7 +3188,7 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 	wmOperatorType *ot = arg2;
 	
 	if (ot)
-		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
+		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)

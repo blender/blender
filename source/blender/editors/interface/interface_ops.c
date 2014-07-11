@@ -693,6 +693,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 	int ret = OPERATOR_CANCELLED;
 
 	if (but) {
+		wmOperatorType *ot;
 		PointerRNA ptr;
 		char popath[FILE_MAX];
 		const char *root = U.i18ndir;
@@ -714,7 +715,8 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 			                                   "Directory' path to a valid directory");
 			return OPERATOR_CANCELLED;
 		}
-		if (!WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0)) {
+		ot = WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0);
+		if (ot == NULL) {
 			BKE_reportf(op->reports, RPT_ERROR, "Could not find operator '%s'! Please enable ui_translate addon "
 			                                    "in the User Preferences", EDTSRC_I18N_OP_NAME);
 			return OPERATOR_CANCELLED;
@@ -730,7 +732,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		uiButGetStrInfo(C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
 		                &rna_struct, &rna_prop, &rna_enum, &rna_ctxt, NULL);
 
-		WM_operator_properties_create(&ptr, EDTSRC_I18N_OP_NAME);
+		WM_operator_properties_create_ptr(&ptr, ot);
 		RNA_string_set(&ptr, "lang", uilng);
 		RNA_string_set(&ptr, "po_file", popath);
 		RNA_string_set(&ptr, "but_label", but_label.strinfo);
@@ -743,7 +745,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		RNA_string_set(&ptr, "rna_prop", rna_prop.strinfo);
 		RNA_string_set(&ptr, "rna_enum", rna_enum.strinfo);
 		RNA_string_set(&ptr, "rna_ctxt", rna_ctxt.strinfo);
-		ret = WM_operator_name_call(C, EDTSRC_I18N_OP_NAME, WM_OP_INVOKE_DEFAULT, &ptr);
+		ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
 
 		/* Clean up */
 		if (but_label.strinfo)

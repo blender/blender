@@ -1277,8 +1277,9 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 			const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
 
 			/* if not, ask to create it and enter if confirmed */
+			wmOperatorType *ot = WM_operatortype_find("FILE_OT_directory_new", false);
 			PointerRNA ptr;
-			WM_operator_properties_create(&ptr, "FILE_OT_directory_new");
+			WM_operator_properties_create_ptr(&ptr, ot);
 			RNA_string_set(&ptr, "directory", sfile->params->dir);
 			RNA_boolean_set(&ptr, "open", true);
 
@@ -1286,7 +1287,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 				BLI_strncpy(sfile->params->dir, lastdir, sizeof(sfile->params->dir));
 
 
-			WM_operator_name_call(C, "FILE_OT_directory_new", WM_OP_INVOKE_DEFAULT, &ptr);
+			WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
 			WM_operator_properties_free(&ptr);
 		}
 

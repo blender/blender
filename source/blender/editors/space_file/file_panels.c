@@ -57,12 +57,13 @@
 
 static void file_panel_cb(bContext *C, void *arg_entry, void *UNUSED(arg_v))
 {
+	wmOperatorType *ot = WM_operatortype_find("FILE_OT_select_bookmark", false);
 	PointerRNA ptr;
 	const char *entry = (char *)arg_entry;
 
-	WM_operator_properties_create(&ptr, "FILE_OT_select_bookmark");
+	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_string_set(&ptr, "dir", entry);
-	WM_operator_name_call(C, "FILE_OT_select_bookmark", WM_OP_INVOKE_REGION_WIN, &ptr);
+	WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_REGION_WIN, &ptr);
 	WM_operator_properties_free(&ptr);
 }
 

@@ -1261,11 +1261,17 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 
 /* invokes operator in context */
+int WM_operator_name_call_ptr(bContext *C, wmOperatorType *ot, short context, PointerRNA *properties)
+{
+	BLI_assert(ot == WM_operatortype_find(ot->idname, true));
+	return wm_operator_call_internal(C, ot, properties, NULL, context, false);
+}
 int WM_operator_name_call(bContext *C, const char *opstring, short context, PointerRNA *properties)
 {
 	wmOperatorType *ot = WM_operatortype_find(opstring, 0);
-	if (ot)
-		return wm_operator_call_internal(C, ot, properties, NULL, context, false);
+	if (ot) {
+		return WM_operator_name_call_ptr(C, ot, context, properties);
+	}
 
 	return 0;
 }
