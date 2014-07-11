@@ -64,7 +64,8 @@ enum {
 	_FLAG_JF       = (1 << 0),  /* join faces */
 	_FLAG_MF       = (1 << 1),  /* make face */
 	_FLAG_MV       = (1 << 1),  /* make face, vertex */
-	_FLAG_OVERLAP  = (1 << 2)   /* general overlap flag  */
+	_FLAG_OVERLAP  = (1 << 2),  /* general overlap flag  */
+	_FLAG_WALK     = (1 << 3),  /* general walk flag (keep clean) */
 };
 
 #define BM_ELEM_API_FLAG_ENABLE(element, f)  { ((element)->head.api_flag |=  (f)); } (void)0
