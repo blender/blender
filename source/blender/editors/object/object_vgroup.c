@@ -2301,7 +2301,6 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 
 	if (dvert_array)
 		MEM_freeN(dvert_array);
-	BLI_SMALLSTACK_FREE(dv_stack);
 
 	/* not so efficient to get 'dvert_array' again just so unselected verts are NULL'd */
 	if (use_mirror) {

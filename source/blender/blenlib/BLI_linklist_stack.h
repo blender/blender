@@ -116,6 +116,9 @@
 #  define _BLI_SMALLSTACK_CAST(var)
 #endif
 
+#define _BLI_SMALLSTACK_FAKEUSER(var) \
+	(void)(&(_##var##_type))
+
 #define BLI_SMALLSTACK_DECLARE(var, type) \
 	LinkNode *_##var##_stack = NULL, *_##var##_free = NULL, *_##var##_temp = NULL; \
 	type _##var##_type
@@ -133,11 +136,14 @@
 	_##var##_temp->next = _##var##_stack; \
 	_##var##_temp->link = data; \
 	_##var##_stack = _##var##_temp; \
+	_BLI_SMALLSTACK_FAKEUSER(var); \
 } (void)0
 
 /* internal use, no null check */
 #define _BLI_SMALLSTACK_DEL_EX(var_src, var_dst) \
-	(void)((_##var_src##_temp = _##var_src##_stack->next), \
+	(void)(_BLI_SMALLSTACK_FAKEUSER(var_src), \
+	       _BLI_SMALLSTACK_FAKEUSER(var_dst), \
+	       (_##var_src##_temp = _##var_src##_stack->next), \
 	       (_##var_src##_stack->next = _##var_dst##_free), \
 	       (_##var_dst##_free = _##var_src##_stack), \
 	       (_##var_src##_stack = _##var_src##_temp)) \
@@ -178,10 +184,6 @@
 	CHECK_TYPE_PAIR(_##var_a##_type, _##var_b##_type); \
 	SWAP(LinkNode *, _##var_a##_stack, _##var_b##_stack); \
 	SWAP(LinkNode *, _##var_a##_free, _##var_b##_free); \
-} (void)0
-
-#define BLI_SMALLSTACK_FREE(var)  { \
-	(void)&(_##var##_type); \
 } (void)0
 
 /** \} */

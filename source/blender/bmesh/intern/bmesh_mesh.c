@@ -648,8 +648,6 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 			}
 		} while ((l_curr = l_curr->next) != l_first);
 	}
-
-	BLI_SMALLSTACK_FREE(normal);
 }
 
 #if 0  /* Unused currently */

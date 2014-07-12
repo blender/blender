@@ -578,8 +578,6 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 		}
 	}
 
-	BLI_SMALLSTACK_FREE(normal);
-
 	MEM_freeN(edge_to_loops);
 	MEM_freeN(loop_to_poly);
 

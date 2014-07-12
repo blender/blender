@@ -1766,9 +1766,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			break;
 		}
 	}
-	
-	BLI_SMALLSTACK_FREE(pt_stack);
-	
+
 	/* clear */
 	if (ar->overlap) {
 		/* view should be in pixelspace */
