@@ -116,7 +116,7 @@ PyDoc_STRVAR(orientedViewEdgeIterator_object_doc,
 "value) currently pointed to by this iterator. If the boolean value is true,\n"
 "the ViewEdge is incoming.\n"
 "\n"
-":type: (:class:`directedViewEdge`, bool)");
+":type: (:class:`ViewEdge`, bool)");
 
 static PyObject *orientedViewEdgeIterator_object_get(BPy_orientedViewEdgeIterator *self, void *UNUSED(closure))
 {

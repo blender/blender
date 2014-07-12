@@ -268,7 +268,7 @@ void SVertex_mathutils_register_callback()
 PyDoc_STRVAR(SVertex_point_3d_doc,
 "The 3D coordinates of the SVertex.\n"
 "\n"
-":type: mathutils.Vector");
+":type: :class:`mathutils.Vector`");
 
 static PyObject *SVertex_point_3d_get(BPy_SVertex *self, void *UNUSED(closure))
 {
@@ -291,7 +291,7 @@ static int SVertex_point_3d_set(BPy_SVertex *self, PyObject *value, void *UNUSED
 PyDoc_STRVAR(SVertex_point_2d_doc,
 "The projected 3D coordinates of the SVertex.\n"
 "\n"
-":type: mathutils.Vector");
+":type: :class:`mathutils.Vector`");
 
 static PyObject *SVertex_point_2d_get(BPy_SVertex *self, void *UNUSED(closure))
 {
