@@ -208,8 +208,8 @@ ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3
 	return t*t/cos_pi;
 }
 
-ccl_device bool lamp_light_sample(KernelGlobals *kg, int lamp,
-	float randu, float randv, float3 P, LightSample *ls, bool for_volume)
+ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
+	float randu, float randv, float3 P, LightSample *ls)
 {
 	float4 data0 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 0);
 	float4 data1 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 1);
@@ -224,11 +224,6 @@ ccl_device bool lamp_light_sample(KernelGlobals *kg, int lamp,
 	ls->v = randv;
 
 	if(type == LIGHT_DISTANT) {
-#ifdef __VOLUME__
-		if(for_volume)
-			return false;
-#endif
-
 		/* distant light */
 		float3 lightD = make_float3(data0.y, data0.z, data0.w);
 		float3 D = lightD;
@@ -249,11 +244,6 @@ ccl_device bool lamp_light_sample(KernelGlobals *kg, int lamp,
 	}
 #ifdef __BACKGROUND_MIS__
 	else if(type == LIGHT_BACKGROUND) {
-#ifdef __VOLUME__
-		if(for_volume)
-			return false;
-#endif
-
 		/* infinite area light (e.g. light dome or env light) */
 		float3 D = background_light_sample(kg, randu, randv, &ls->pdf);
 
@@ -309,8 +299,6 @@ ccl_device bool lamp_light_sample(KernelGlobals *kg, int lamp,
 		ls->eval_fac *= kernel_data.integrator.inv_pdf_lights;
 		ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 	}
-
-	return true;
 }
 
 ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
@@ -526,7 +514,7 @@ ccl_device int light_distribution_sample(KernelGlobals *kg, float randt)
 
 /* Generic Light */
 
-ccl_device bool light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, LightSample *ls, bool for_volume)
+ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, LightSample *ls)
 {
 	/* sample index */
 	int index = light_distribution_sample(kg, randt);
@@ -545,12 +533,10 @@ ccl_device bool light_sample(KernelGlobals *kg, float randt, float randu, float 
 		ls->D = normalize_len(ls->P - P, &ls->t);
 		ls->pdf = triangle_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 		ls->shader |= shader_flag;
-
-		return true;
 	}
 	else {
 		int lamp = -prim-1;
-		return lamp_light_sample(kg, lamp, randu, randv, P, ls, for_volume);
+		lamp_light_sample(kg, lamp, randu, randv, P, ls);
 	}
 }
 
@@ -560,9 +546,9 @@ ccl_device int light_select_num_samples(KernelGlobals *kg, int index)
 	return __float_as_int(data3.x);
 }
 
-ccl_device bool light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls, bool for_volume)
+ccl_device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls)
 {
-	return lamp_light_sample(kg, index, randu, randv, P, ls, for_volume);
+	lamp_light_sample(kg, index, randu, randv, P, ls);
 }
 
 ccl_device int lamp_light_eval_sample(KernelGlobals *kg, float randt)

@@ -50,7 +50,7 @@ ccl_device void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RN
 				path_branched_rng_2D(kg, &lamp_rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
 				LightSample ls;
-				light_select(kg, i, light_u, light_v, sd->P, &ls, false);
+				light_select(kg, i, light_u, light_v, sd->P, &ls);
 
 				if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
 					/* trace shadow ray */
@@ -82,7 +82,7 @@ ccl_device void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RN
 					light_t = 0.5f*light_t;
 
 				LightSample ls;
-				light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls, false);
+				light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls);
 
 				if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
 					/* trace shadow ray */
@@ -103,7 +103,7 @@ ccl_device void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RN
 		path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 		LightSample ls;
-		light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls, false);
+		light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls);
 
 		/* sample random light */
 		if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
@@ -200,7 +200,7 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, RNG 
 #endif
 
 	LightSample ls;
-	light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls, false);
+	light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, &ls);
 
 	if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
 		/* trace shadow ray */
