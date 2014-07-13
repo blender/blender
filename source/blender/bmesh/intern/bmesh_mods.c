@@ -616,12 +616,11 @@ static bool bm_face_split_edgenet_find_loop_walk(
 		BMIter eiter;
 		BMEdge *e_next;
 
-		BLI_SMALLSTACK_PUSH(vert_visit, v);
-		BM_ELEM_API_FLAG_ENABLE(v, VERT_VISIT);
-
-
 #ifdef USE_FASTPATH_NOFORK
 walk_nofork:
+#else
+		BLI_SMALLSTACK_PUSH(vert_visit, v);
+		BM_ELEM_API_FLAG_ENABLE(v, VERT_VISIT);
 #endif
 
 		BLI_assert(STACK_SIZE(edge_order) == 0);
@@ -681,6 +680,12 @@ walk_nofork:
 				edge_order[j].angle = angle_signed_on_axis_v3v3v3_v3(v_prev->co, v->co, edge_order[j].v->co, face_normal);
 			}
 			qsort(edge_order, STACK_SIZE(edge_order), sizeof(struct VertOrder), BLI_sortutil_cmp_float_reverse);
+
+#ifdef USE_FASTPATH_NOFORK
+			/* only tag forks */
+			BLI_SMALLSTACK_PUSH(vert_visit, v);
+			BM_ELEM_API_FLAG_ENABLE(v, VERT_VISIT);
+#endif
 		}
 
 		while ((eo = STACK_POP_PTR(edge_order))) {
