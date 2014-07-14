@@ -62,6 +62,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_editmesh.h"
+#include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object_deform.h"
@@ -4323,7 +4324,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
+static int vgroup_sort_alphanumeric(void *def_a_ptr, void *def_b_ptr)
 {
 	bDeformGroup *def_a = (bDeformGroup *)def_a_ptr;
 	bDeformGroup *def_b = (bDeformGroup *)def_b_ptr;
@@ -4331,18 +4332,56 @@ static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
 	return BLI_natstrcmp(def_a->name, def_b->name);
 }
 
+static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
+{
+	if (bonebase == NULL) {
+		Object *armobj = modifiers_isDeformedByArmature(ob);
+		if (armobj != NULL) {
+			bonebase = &((struct bArmature *)armobj->data)->bonebase;
+		}
+	}
+
+	if (bonebase != NULL) {
+		Bone *bone;
+		for (bone = bonebase->last; bone; bone = bone->prev) {
+			bDeformGroup *dg = defgroup_find_name(ob, bone->name);
+			vgroup_sort_bone_hierarchy(ob, &bone->childbase);
+
+			if (dg != NULL) {
+				BLI_remlink(&ob->defbase, dg);
+				BLI_addhead(&ob->defbase, dg);
+			}
+		}
+	}
+
+	return;
+}
+
+enum {
+	SORT_TYPE_ALPHANUMERIC  = 0,
+	SORT_TYPE_BONEHIERARCHY = 1
+};
+
 static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	char *name_array;
 	int ret;
+	int sort_type = RNA_enum_get(op->ptr, "sort_type");
 
 	/*init remapping*/
 	name_array = vgroup_init_remap(ob);
 
 	/*sort vgroup names*/
-	BLI_sortlist(&ob->defbase, vgroup_sort);
-
+	switch(sort_type) {
+		case SORT_TYPE_ALPHANUMERIC: 
+			BLI_sortlist(&ob->defbase, vgroup_sort_alphanumeric);
+			break;
+		case SORT_TYPE_BONEHIERARCHY:
+			vgroup_sort_bone_hierarchy(ob, NULL);
+			break;
+	}
+	
 	/*remap vgroup data to map to correct names*/
 	ret = vgroup_do_remap(ob, name_array, op);
 
@@ -4358,9 +4397,15 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
+	static EnumPropertyItem vgroup_sort_type[] = {
+			{SORT_TYPE_ALPHANUMERIC, "ALPHANUMERIC", 0, "Alphanumeric", ""},
+			{SORT_TYPE_BONEHIERARCHY, "BONE_HIERARCHY", 0, "Bone Hierarchy", ""},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	ot->name = "Sort Vertex Groups";
 	ot->idname = "OBJECT_OT_vertex_group_sort";
-	ot->description = "Sort vertex groups alphabetically";
+	ot->description = "Sort vertex groups";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
@@ -4368,6 +4413,8 @@ void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "sort_type", vgroup_sort_type, SORT_TYPE_ALPHANUMERIC, "Sort type", "Sort type");
 }
 
 static int vgroup_move_exec(bContext *C, wmOperator *op)
