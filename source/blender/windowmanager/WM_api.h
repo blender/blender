@@ -449,6 +449,8 @@ void        WM_event_ndof_rotate_get(const struct wmNDOFMotionData *ndof, float 
 float       WM_event_ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3]);
 void        WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4]);
 
+float       WM_event_tablet_data(const struct wmEvent *event, int *pen_flip);
+
 #ifdef __cplusplus
 }
 #endif

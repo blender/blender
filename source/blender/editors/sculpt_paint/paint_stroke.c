@@ -135,26 +135,6 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 	}
 }
 
-/* if this is a tablet event, return tablet pressure and set *pen_flip
- * to 1 if the eraser tool is being used, 0 otherwise */
-static float event_tablet_data(const wmEvent *event, int *pen_flip)
-{
-	int erasor = 0;
-	float pressure = 1;
-
-	if (event->tablet_data) {
-		wmTabletData *wmtab = event->tablet_data;
-
-		erasor = (wmtab->Active == EVT_TABLET_ERASER);
-		pressure = (wmtab->Active != EVT_TABLET_NONE) ? wmtab->Pressure : 1;
-	}
-
-	if (pen_flip)
-		(*pen_flip) = erasor;
-
-	return pressure;
-}
-
 static bool paint_tool_require_location(Brush *brush, PaintMode mode)
 {
 	switch (mode) {
@@ -735,7 +715,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	float pressure;
 
 	/* see if tablet affects event */
-	pressure = event_tablet_data(event, &stroke->pen_flip);
+	pressure = WM_event_tablet_data(event, &stroke->pen_flip);
 
 	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
 	paint_stroke_sample_average(stroke, &sample_average);
