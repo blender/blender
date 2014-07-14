@@ -852,7 +852,8 @@ void RE_bake_normal_world_to_object(
 		offset = i * depth;
 		normal_uncompress(nor, &result[offset]);
 
-		mul_m4_v3(iobmat, nor);
+		/* rotates only without translation */
+		mul_mat3_m4_v3(iobmat, nor);
 		normalize_v3(nor);
 
 		/* save back the values */
