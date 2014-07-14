@@ -1719,7 +1719,7 @@ static BoundVert *pipe_test(BevVert *bv)
 			sub_v3_v3v3(dir3, BM_edge_other_vert(v3->ebev->e, bv->v)->co, bv->v->co);
 			normalize_v3(dir1);
 			normalize_v3(dir3);
-			if (angle_v3v3(dir1, dir3) < BEVEL_EPSILON_BIG) {
+			if (angle_normalized_v3v3(dir1, dir3) < BEVEL_EPSILON_BIG) {
 				epipe =  v1->ebev;
 				break;
 			}
