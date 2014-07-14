@@ -3681,20 +3681,20 @@ void RNA_def_modifier(BlenderRNA *brna)
 	/* flags */
 	prop = RNA_def_property(srna, "show_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Realtime);
-	RNA_def_property_ui_text(prop, "Realtime", "Display modifier in realtime");
+	RNA_def_property_ui_text(prop, "Realtime", "Display modifier in viewport");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 0);
 	
 	prop = RNA_def_property(srna, "show_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Render);
-	RNA_def_property_ui_text(prop, "Render", "Use modifier during rendering");
+	RNA_def_property_ui_text(prop, "Render", "Use modifier during render");
 	RNA_def_property_ui_icon(prop, ICON_SCENE, 0);
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 	
 	prop = RNA_def_property(srna, "show_in_editmode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Editmode);
-	RNA_def_property_ui_text(prop, "Edit Mode", "Use modifier in Edit mode");
+	RNA_def_property_ui_text(prop, "Edit Mode", "Display modifier in Edit mode");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
 	
