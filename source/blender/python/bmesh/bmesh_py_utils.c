@@ -486,8 +486,8 @@ PyDoc_STRVAR(bpy_bm_utils_face_split_edgenet_doc,
 "   :type face: :class:`bmesh.types.BMFace`\n"
 "   :arg face: The face to split.\n"
 "   :type face: :class:`bmesh.types.BMFace`\n"
-"   :arg edgenet: Sequence of faces.\n"
-"   :type edgenet: :class:`bmesh.types.BMFace`\n"
+"   :arg edgenet: Sequence of edges.\n"
+"   :type edgenet: :class:`bmesh.types.BMEdge`\n"
 "   :return: The newly created faces.\n"
 "   :rtype: tuple of (:class:`bmesh.types.BMFace`)\n"
 );
