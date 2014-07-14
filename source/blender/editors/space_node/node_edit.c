@@ -439,9 +439,8 @@ void ED_node_shader_default(const bContext *C, ID *id)
 			FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
 			linestyle->nodetree = ntree;
 
-			/* TODO use appropriate output_type & shader_type */
-			output_type = SH_NODE_OUTPUT_MATERIAL;
-			shader_type = SH_NODE_BSDF_DIFFUSE;
+			output_type = SH_NODE_OUTPUT_LINESTYLE;
+			shader_type = SH_NODE_TEX_IMAGE;
 
 			copy_v3_v3(color, &linestyle->r);
 			strength = 1.0f;
@@ -656,8 +655,8 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 			if (node->id && ELEM(GS(node->id->name), ID_MA, ID_LA, ID_WO))
 				nodeClearActiveID(ntree, ID_TE);
 			
-			if (ELEM(node->type, SH_NODE_OUTPUT, SH_NODE_OUTPUT_MATERIAL,
-			          SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP))
+			if (ELEM5(node->type, SH_NODE_OUTPUT, SH_NODE_OUTPUT_MATERIAL,
+			          SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP, SH_NODE_OUTPUT_LINESTYLE))
 			{
 				bNode *tnode;
 				

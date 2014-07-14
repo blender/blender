@@ -175,6 +175,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeOutputMaterial"),
         NodeItem("ShaderNodeOutputLamp"),
         NodeItem("ShaderNodeOutputWorld"),
+        NodeItem("ShaderNodeOutputLineStyle"),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_SHADER", "Shader", items=[
