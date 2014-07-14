@@ -996,3 +996,39 @@ GSet *BLI_gset_pair_new(const char *info)
 }
 
 /** \} */
+
+
+/** \name Debugging & Introspection
+ * \{ */
+#ifdef DEBUG
+
+/**
+ * Measure how well the hash function performs
+ * (1.0 is approx as good as random distribution).
+ */
+double BLI_ghash_calc_quality(GHash *gh)
+{
+	uint64_t sum = 0;
+	unsigned int i;
+
+	if (gh->nentries == 0)
+		return -1.0;
+
+	for (i = 0; i < gh->nbuckets; i++) {
+		uint64_t count = 0;
+		Entry *e;
+		for (e = gh->buckets[i]; e; e = e->next) {
+			count += 1;
+		}
+		sum += count * (count + 1);
+	}
+	return ((double)sum * (double)gh->nbuckets /
+	        ((double)gh->nentries * (gh->nentries + 2 * gh->nbuckets - 1)));
+}
+double BLI_gset_calc_quality(GSet *gs)
+{
+	return BLI_ghash_calc_quality((GHash *)gs);
+}
+
+#endif
+/** \} */

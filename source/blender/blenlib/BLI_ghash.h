@@ -224,6 +224,11 @@ BLI_INLINE bool BLI_gsetIterator_done(GSetIterator *gsi) { return BLI_ghashItera
 	     BLI_gsetIterator_done(&gs_iter_) == false;                           \
 	     BLI_gsetIterator_step(&gs_iter_), i_++)
 
+#ifdef DEBUG
+double BLI_ghash_calc_quality(GHash *gh);
+double BLI_gset_calc_quality(GSet *gs);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

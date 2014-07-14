@@ -114,5 +114,9 @@ BLI_INLINE void BLI_edgesetIterator_getKey(EdgeSetIterator *esi, unsigned int *r
 BLI_INLINE void BLI_edgesetIterator_step(EdgeSetIterator *esi) { BLI_edgehashIterator_step((EdgeHashIterator *)esi); }
 BLI_INLINE bool BLI_edgesetIterator_isDone(EdgeSetIterator *esi) { return BLI_edgehashIterator_isDone((EdgeHashIterator *)esi); }
 
+#ifdef DEBUG
+double          BLI_edgehash_calc_quality(EdgeHash *eh);
+double          BLI_edgeset_calc_quality(EdgeSet *es);
+#endif
 
 #endif  /* __BLI_EDGEHASH_H__ */
