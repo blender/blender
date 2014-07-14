@@ -301,7 +301,8 @@ void ED_armature_transform(struct bArmature *arm, float mat[4][4]) RET_NONE
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op) RET_NULL
 struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep) RET_NULL
 void WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer) RET_NONE
-float WM_event_tablet_data(const struct wmEvent *event, int *pen_flip) RET_ZERO
+float WM_event_tablet_data(const struct wmEvent *event, int *pen_flip, float tilt[2]) RET_ZERO
+bool WM_event_is_tablet(const struct wmEvent *event) RET_ZERO
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone) RET_NONE
 void object_test_constraints(struct Object *owner) RET_NONE
 void ED_armature_ebone_to_mat4(struct EditBone *ebone, float mat[4][4]) RET_NONE

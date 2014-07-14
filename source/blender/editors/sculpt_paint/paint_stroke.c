@@ -715,7 +715,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	float pressure;
 
 	/* see if tablet affects event */
-	pressure = WM_event_tablet_data(event, &stroke->pen_flip);
+	pressure = WM_event_tablet_data(event, &stroke->pen_flip, NULL);
 
 	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
 	paint_stroke_sample_average(stroke, &sample_average);

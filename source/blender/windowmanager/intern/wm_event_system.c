@@ -3406,16 +3406,25 @@ void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
 
 /* if this is a tablet event, return tablet pressure and set *pen_flip
  * to 1 if the eraser tool is being used, 0 otherwise */
-float WM_event_tablet_data(const wmEvent *event, int *pen_flip)
+float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2])
 {
 	int erasor = 0;
 	float pressure = 1;
+
+	if (tilt)
+		zero_v2(tilt);
 
 	if (event->tablet_data) {
 		wmTabletData *wmtab = event->tablet_data;
 
 		erasor = (wmtab->Active == EVT_TABLET_ERASER);
-		pressure = (wmtab->Active != EVT_TABLET_NONE) ? wmtab->Pressure : 1;
+		if (wmtab->Active != EVT_TABLET_NONE) {
+			pressure = wmtab->Pressure;
+			if (tilt) {
+				tilt[0] = wmtab->Xtilt;
+				tilt[1] = wmtab->Ytilt;
+			}
+		}
 	}
 
 	if (pen_flip)
@@ -3423,5 +3432,11 @@ float WM_event_tablet_data(const wmEvent *event, int *pen_flip)
 
 	return pressure;
 }
+
+bool WM_event_is_tablet(const struct wmEvent *event)
+{
+	return (event->tablet_data) ? true : false;
+}
+
 
 /** \} */
