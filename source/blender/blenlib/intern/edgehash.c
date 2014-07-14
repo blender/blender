@@ -270,7 +270,7 @@ static void edgehash_free_cb(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 		for (e = eh->buckets[i]; e; ) {
 			EdgeEntry *e_next = e->next;
 
-			if (valfreefp) valfreefp(e->val);
+			valfreefp(e->val);
 
 			e = e_next;
 		}
