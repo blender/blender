@@ -269,6 +269,13 @@ void NodeOperationBuilder::add_datatype_conversions()
 	Links convert_links;
 	for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
 		const Link &link = *it;
+		
+		/* proxy operations can skip data type conversion */
+		NodeOperation *from_op = &link.from()->getOperation();
+		NodeOperation *to_op = &link.to()->getOperation();
+		if (!from_op->useDatatypeConversion() || !to_op->useDatatypeConversion())
+			continue;
+		
 		if (link.from()->getDataType() != link.to()->getDataType())
 			convert_links.push_back(link);
 	}

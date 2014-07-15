@@ -70,12 +70,12 @@ public:
 	 *  This operation will be removed later and replaced
 	 *  by direct links between the connected operations.
 	 */
-	NodeOperationOutput *addInputProxy(NodeInput *input);
+	NodeOperationOutput *addInputProxy(NodeInput *input, bool use_conversion);
 	/** Create a proxy operation for a node output.
 	 *  This operation will be removed later and replaced
 	 *  by direct links between the connected operations.
 	 */
-	NodeOperationInput *addOutputProxy(NodeOutput *output);
+	NodeOperationInput *addOutputProxy(NodeOutput *output, bool use_conversion);
 	
 	/** Define a constant input value. */
 	void addInputValue(NodeOperationInput *input, float value);

@@ -202,7 +202,7 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
 void NodeGraph::add_proxies_mute(bNodeTree *b_ntree, bNode *b_node, bNodeInstanceKey key, bool is_active_group)
 {
 	for (bNodeLink *b_link = (bNodeLink *)b_node->internal_links.first; b_link; b_link = b_link->next) {
-		SocketProxyNode *proxy = new SocketProxyNode(b_node, b_link->fromsock, b_link->tosock);
+		SocketProxyNode *proxy = new SocketProxyNode(b_node, b_link->fromsock, b_link->tosock, false);
 		add_node(proxy, b_ntree, key, is_active_group);
 	}
 }
@@ -219,7 +219,7 @@ void NodeGraph::add_proxies_skip(bNodeTree *b_ntree, bNode *b_node, bNodeInstanc
 		}
 		
 		if (input) {
-			SocketProxyNode *proxy = new SocketProxyNode(b_node, input, output);
+			SocketProxyNode *proxy = new SocketProxyNode(b_node, input, output, true);
 			add_node(proxy, b_ntree, key, is_active_group);
 		}
 	}
@@ -237,7 +237,7 @@ void NodeGraph::add_proxies_group_inputs(bNode *b_node, bNode *b_node_io)
 	for (bNodeSocket *b_sock_io = (bNodeSocket *)b_node_io->outputs.first; b_sock_io; b_sock_io = b_sock_io->next) {
 		bNodeSocket *b_sock_group = find_b_node_input(b_node, b_sock_io->identifier);
 		if (b_sock_group) {
-			SocketProxyNode *proxy = new SocketProxyNode(b_node_io, b_sock_group, b_sock_io);
+			SocketProxyNode *proxy = new SocketProxyNode(b_node_io, b_sock_group, b_sock_io, true);
 			add_node(proxy, b_group_tree, key, is_active_group);
 		}
 	}
@@ -260,7 +260,7 @@ void NodeGraph::add_proxies_group_outputs(bNode *b_node, bNode *b_node_io, bool 
 				add_node(buffer, b_group_tree, key, is_active_group);
 			}
 			else {
-				SocketProxyNode *proxy = new SocketProxyNode(b_node_io, b_sock_io, b_sock_group);
+				SocketProxyNode *proxy = new SocketProxyNode(b_node_io, b_sock_io, b_sock_group, true);
 				add_node(proxy, b_group_tree, key, is_active_group);
 			}
 		}
@@ -294,6 +294,6 @@ void NodeGraph::add_proxies_group(const CompositorContext &context, bNode *b_nod
 
 void NodeGraph::add_proxies_reroute(bNodeTree *b_ntree, bNode *b_node, bNodeInstanceKey key, bool is_active_group)
 {
-	SocketProxyNode *proxy = new SocketProxyNode(b_node, (bNodeSocket *)b_node->inputs.first, (bNodeSocket *)b_node->outputs.first);
+	SocketProxyNode *proxy = new SocketProxyNode(b_node, (bNodeSocket *)b_node->inputs.first, (bNodeSocket *)b_node->outputs.first, false);
 	add_node(proxy, b_ntree, key, is_active_group);
 }

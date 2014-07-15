@@ -83,9 +83,9 @@ NodeOperation *NodeConverter::setInvalidOutput(NodeOutput *output)
 	return operation;
 }
 
-NodeOperationOutput *NodeConverter::addInputProxy(NodeInput *input)
+NodeOperationOutput *NodeConverter::addInputProxy(NodeInput *input, bool use_conversion)
 {
-	SocketProxyOperation *proxy = new SocketProxyOperation(input->getDataType());
+	SocketProxyOperation *proxy = new SocketProxyOperation(input->getDataType(), use_conversion);
 	m_builder->addOperation(proxy);
 	
 	m_builder->mapInputSocket(input, proxy->getInputSocket(0));
@@ -93,9 +93,9 @@ NodeOperationOutput *NodeConverter::addInputProxy(NodeInput *input)
 	return proxy->getOutputSocket();
 }
 
-NodeOperationInput *NodeConverter::addOutputProxy(NodeOutput *output)
+NodeOperationInput *NodeConverter::addOutputProxy(NodeOutput *output, bool use_conversion)
 {
-	SocketProxyOperation *proxy = new SocketProxyOperation(output->getDataType());
+	SocketProxyOperation *proxy = new SocketProxyOperation(output->getDataType(), use_conversion);
 	m_builder->addOperation(proxy);
 	
 	m_builder->mapOutputSocket(output, proxy->getOutputSocket());

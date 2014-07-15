@@ -33,9 +33,9 @@ void SwitchNode::convertToOperations(NodeConverter &converter, const CompositorC
 	
 	NodeOperationOutput *result;
 	if (!condition)
-		result = converter.addInputProxy(getInputSocket(0));
+		result = converter.addInputProxy(getInputSocket(0), false);
 	else
-		result = converter.addInputProxy(getInputSocket(1));
+		result = converter.addInputProxy(getInputSocket(1), false);
 	
 	converter.mapOutputSocket(getOutputSocket(0), result);
 }

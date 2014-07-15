@@ -288,6 +288,8 @@ public:
 	virtual bool isFileOutputOperation() const { return false; }
 	virtual bool isProxyOperation() const { return false; }
 	
+	virtual bool useDatatypeConversion() const { return true; }
+	
 	inline bool isBreaked() const {
 		return this->m_btree->test_break(this->m_btree->tbh);
 	}

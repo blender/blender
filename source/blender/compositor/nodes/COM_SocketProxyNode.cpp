@@ -29,7 +29,9 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
 
-SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput) : Node(editorNode, false)
+SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput, bool use_conversion) :
+    Node(editorNode, false),
+    m_use_conversion(use_conversion)
 {
 	DataType dt;
 
@@ -46,7 +48,7 @@ SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bN
 
 void SocketProxyNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	NodeOperationOutput *proxy_output = converter.addInputProxy(getInputSocket(0));
+	NodeOperationOutput *proxy_output = converter.addInputProxy(getInputSocket(0), m_use_conversion);
 	converter.mapOutputSocket(getOutputSocket(), proxy_output);
 }
 
