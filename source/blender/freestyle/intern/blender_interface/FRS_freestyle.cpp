@@ -328,7 +328,7 @@ static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
 						cout << " (" << module_conf->script->name << ")";
 					cout << endl;
 				}
-				controller->InsertStyleModule(layer_count, id_name, module_conf->script);
+				controller->InsertStyleModule(layer_count, id_name, NULL, module_conf->script);
 				controller->toggleLayer(layer_count, true);
 				layer_count++;
 			}
@@ -369,7 +369,7 @@ static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
 					        (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
 				}
 				Text *text = create_lineset_handler(bmain, srl->name, lineset->name);
-				controller->InsertStyleModule(layer_count, lineset->name, text);
+				controller->InsertStyleModule(layer_count, lineset->name, lineset->linestyle, text);
 				controller->toggleLayer(layer_count, true);
 				if (!(lineset->selection & FREESTYLE_SEL_EDGE_TYPES) || !lineset->edge_types) {
 					++use_ridges_and_valleys;
@@ -736,7 +736,12 @@ void FRS_move_active_lineset_down(FreestyleConfig *config)
 
 Material *FRS_create_stroke_material(bContext *C, Main *bmain, Scene *scene)
 {
-	return BlenderStrokeRenderer::GetStrokeMaterial(C, bmain, scene);
+	FreestyleLineStyle *linestyle = CTX_data_linestyle_from_scene(scene);
+
+	if (!linestyle) {
+		cout << "FRS_create_stroke_material: No active line style in the current scene" << endl;
+	}
+	return BlenderStrokeRenderer::GetStrokeShader(C, bmain, linestyle);
 }
 
 } // extern "C"

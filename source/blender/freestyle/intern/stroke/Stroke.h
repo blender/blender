@@ -45,6 +45,8 @@
 
 extern "C" {
 #include "DNA_material_types.h"
+
+struct FreestyleLineStyle;
 }
 
 #ifndef MAX_MTEX
@@ -623,6 +625,7 @@ public:
 
 	/* Render method */
 	void ScaleThickness(float iFactor);
+	void SetLineStyle(struct FreestyleLineStyle *iLineStyle);
 	void Render(const StrokeRenderer *iRenderer);
 	void RenderBasic(const StrokeRenderer *iRenderer);
 

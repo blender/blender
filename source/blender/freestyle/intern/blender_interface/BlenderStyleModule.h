@@ -33,6 +33,8 @@ extern "C" {
 #include "BKE_library.h"
 #include "BKE_text.h"
 #include "BLI_utildefines.h"
+
+struct FreestyleLineStyle;
 }
 
 namespace Freestyle {
@@ -40,13 +42,23 @@ namespace Freestyle {
 class BlenderStyleModule : public StyleModule
 {
 public:
-	BlenderStyleModule(struct Text *text, const string &name, Interpreter *inter) : StyleModule(name, inter)
+	BlenderStyleModule(struct Text *text, struct FreestyleLineStyle *linestyle, const string &name,
+	                   Interpreter *inter) : StyleModule(name, inter)
 	{
 		_text = text;
+		_linestyle = linestyle;
 	}
 
 	virtual ~BlenderStyleModule()
 	{
+	}
+
+	virtual StrokeLayer *execute()
+	{
+
+		StrokeLayer *sl = StyleModule::execute();
+		sl->SetLineStyle(_linestyle);
+		return sl;
 	}
 
 protected:
@@ -59,6 +71,7 @@ protected:
 
 private:
 	struct Text *_text;
+	struct FreestyleLineStyle *_linestyle;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderStyleModule")

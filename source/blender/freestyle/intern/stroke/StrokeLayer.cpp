@@ -43,6 +43,13 @@ void StrokeLayer::ScaleThickness(float iFactor)
 	}
 }
 
+void StrokeLayer::SetLineStyle(struct FreestyleLineStyle *iLineStyle)
+{
+	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
+		(*s)->SetLineStyle(iLineStyle);
+	}
+}
+
 void StrokeLayer::Render(const StrokeRenderer *iRenderer)
 {
 	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {

@@ -34,6 +34,7 @@ struct Object;
 struct Render;
 struct Scene;
 struct bContext;
+struct FreestyleLineStyle;
 }
 
 namespace Freestyle {
@@ -52,7 +53,7 @@ public:
 
 	Render *RenderScene(Render *re, bool render);
 
-	static Material* GetStrokeMaterial(bContext *C, Main *bmain, Scene *scene);
+	static Material* GetStrokeShader(bContext *C, Main *bmain, FreestyleLineStyle *linestyle);
 
 protected:
 	Main *freestyle_bmain;

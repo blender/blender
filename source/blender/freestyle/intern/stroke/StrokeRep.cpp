@@ -704,6 +704,7 @@ StrokeRep::StrokeRep()
 {
 	_stroke = 0;
 	_strokeType = Stroke::OPAQUE_MEDIUM;
+	_lineStyle = NULL;
 	_textureStep = 1.0;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		_mtex[a] = NULL;
@@ -724,6 +725,7 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 {
 	_stroke = iStroke;
 	_strokeType = iStroke->getMediumType();
+	_lineStyle = NULL;
 	_textureId = iStroke->getTextureId();
 	_textureStep = iStroke->getTextureStep();
 	for (int a = 0; a < MAX_MTEX; a++) {
@@ -757,6 +759,7 @@ StrokeRep::StrokeRep(const StrokeRep& iBrother)
 	_strokeType = iBrother._strokeType;
 	_textureId = iBrother._textureId;
 	_textureStep = iBrother._textureStep;
+	_lineStyle = iBrother._lineStyle;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		if (iBrother._mtex[a]) {
 			_mtex[a] = iBrother._mtex[a];

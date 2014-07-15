@@ -38,6 +38,7 @@
 
 extern "C" {
 #include "DNA_material_types.h" // for MAX_MTEX
+struct FreestyleLineStyle;
 }
 
 namespace Freestyle {
@@ -186,6 +187,7 @@ protected:
 	float _textureStep;
 	MTex *_mtex[MAX_MTEX];
 	Material *_material;
+	FreestyleLineStyle *_lineStyle;
 
 	// float _averageTextureAlpha;
 
@@ -220,6 +222,11 @@ public:
 	inline Material *getMaterial() const
 	{
 		return _material;
+	}
+
+	inline FreestyleLineStyle *getLineStyle() const
+	{
+		return _lineStyle;
 	}
 
 	inline vector<Strip*>& getStrips()
@@ -257,6 +264,11 @@ public:
 	{
 		_mtex[idx] = mtex_ptr;
 	}*/
+
+	inline void setLineStyle(FreestyleLineStyle *iLineStyle)
+	{
+		_lineStyle = iLineStyle;
+	}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeRep")

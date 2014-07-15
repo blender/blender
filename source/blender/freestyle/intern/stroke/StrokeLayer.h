@@ -34,6 +34,10 @@
 #include "MEM_guardedalloc.h"
 #endif
 
+extern "C" {
+struct FreestyleLineStyle;
+}
+
 namespace Freestyle {
 
 class Stroke;
@@ -63,6 +67,7 @@ public:
 
 	/*! Render method */
 	void ScaleThickness(float iFactor);
+	void SetLineStyle(struct FreestyleLineStyle *iLineStyle);
 	void Render(const StrokeRenderer *iRenderer);
 	void RenderBasic(const StrokeRenderer *iRenderer);
 
