@@ -208,6 +208,9 @@ bool KX_MouseActuator::Update()
 						parent->ApplyRotation(rotation, m_local_x);
 					}
 				}
+				else {
+					setposition[0] = 0.5;
+				}
 
 				//Calculating Y axis.
 				if (m_use_axis_y) {
@@ -265,6 +268,9 @@ bool KX_MouseActuator::Update()
 						}
 						parent->ApplyRotation(rotation, m_local_y);
 					}
+				}
+				else {
+					setposition[1] = 0.5;
 				}
 
 				setMousePosition(setposition[0], setposition[1]);
