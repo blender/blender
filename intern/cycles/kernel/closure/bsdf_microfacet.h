@@ -513,6 +513,10 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, con
 	float cosHO = dot(Ht, I);
 	float cosHI = dot(Ht, omega_in);
 
+	/* those situations makes chi+ terms in eq. 33, 34 be zero */
+	if(dot(Ht, N) <= 0.0f || cosHO * cosNO <= 0.0f || cosHI * cosNI <= 0.0f)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
 	float D, G1o, G1i;
 
 	/* eq. 33: first we calculate D(m) with m=Ht: */
@@ -862,7 +866,11 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc
 	float cosHO = dot(Ht, I);
 	float cosHI = dot(Ht, omega_in);
 
-	/* eq. 33: first we calculate D(m) with m=Ht: */
+	/* those situations makes chi+ terms in eq. 25, 27 be zero */
+	if(dot(Ht, N) <= 0.0f || cosHO * cosNO <= 0.0f || cosHI * cosNI <= 0.0f)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
+	/* eq. 25: first we calculate D(m) with m=Ht: */
 	float alpha2 = alpha_x * alpha_y;
 	float cosThetaM = min(dot(N, Ht), 1.0f);
 	float cosThetaM2 = cosThetaM * cosThetaM;
