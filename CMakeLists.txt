@@ -1080,7 +1080,7 @@ elseif(WIN32)
 		set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
 		set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
 		set(ZLIB_DIR ${LIBDIR}/zlib)
-		find_package(zlib) # we want to find before finding things that depend on it like png
+		#find_package(zlib) # we want to find before finding things that depend on it like png
 
 
 		find_package(png)
@@ -1093,7 +1093,7 @@ elseif(WIN32)
 			set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 		endif()
 
-		if(MSVC90)
+		if(MSVC)
 			set(JPEG_NAMES ${JPEG_NAMES} libjpeg)
 		endif()
 		find_package(jpeg REQUIRED)
@@ -1225,6 +1225,9 @@ elseif(WIN32)
 			if(WITH_INTERNATIONAL)
 				list(APPEND boost_extra_libs locale)
 			endif(WITH_INTERNATIONAL)
+			set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
+			set(Boost_USE_MULTITHREADED ON) # suffix -mt
+			set(Boost_USE_STATIC_LIBS ON) # suffix -s
 			find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
 			IF(NOT Boost_FOUND)
 				message(WARNING "USING HARDCODED boost locations")
