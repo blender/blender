@@ -68,6 +68,21 @@ class KX_TrackToActuator : public SCA_IActuator
 	virtual void Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map);
 	virtual bool Update(double curtime, bool frame);
 
+	//Python Interface
+	enum UpAxis {
+		KX_TRACK_UPAXIS_POS_X = 0,
+		KX_TRACK_UPAXIS_POS_Y,
+		KX_TRACK_UPAXIS_POS_Z
+	};
+	enum TrackAxis {
+		KX_TRACK_TRAXIS_POS_X = 0,
+		KX_TRACK_TRAXIS_POS_Y,
+		KX_TRACK_TRAXIS_POS_Z,
+		KX_TRACK_TRAXIS_NEG_X,
+		KX_TRACK_TRAXIS_NEG_Y,
+		KX_TRACK_TRAXIS_NEG_Z
+	};
+
 #ifdef WITH_PYTHON
 
 	/* Python part */

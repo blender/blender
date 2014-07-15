@@ -392,6 +392,7 @@ void init_actuator(bActuator *act)
 	bSteeringActuator *sta;
 	bArmatureActuator *arma;
 	bMouseActuator *ma;
+	bEditObjectActuator *eoa;
 	
 	if (act->data) MEM_freeN(act->data);
 	act->data= NULL;
@@ -430,6 +431,9 @@ void init_actuator(bActuator *act)
 		break;
 	case ACT_EDIT_OBJECT:
 		act->data= MEM_callocN(sizeof(bEditObjectActuator), "editobact");
+		eoa = act->data;
+		eoa->upflag= ACT_TRACK_UP_Z;
+		eoa->trackflag= ACT_TRACK_TRAXIS_Y;
 		break;
 	case ACT_CONSTRAINT:
 		act->data= MEM_callocN(sizeof(bConstraintActuator), "cons act");

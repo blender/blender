@@ -868,6 +868,23 @@ See :class:`bge.types.KX_SteeringActuator.behavior`
 
    :value: 3
 
+.. _logic-trackto-actuator:
+
+-----------------
+TrackTo Actuator
+-----------------
+
+See :class:`bge.types.KX_TrackToActuator`
+
+.. data:: KX_TRACK_UPAXIS_POS_X
+.. data:: KX_TRACK_UPAXIS_POS_Y
+.. data:: KX_TRACK_UPAXIS_POS_Z
+.. data:: KX_TRACK_TRAXIS_POS_X
+.. data:: KX_TRACK_TRAXIS_POS_Y
+.. data:: KX_TRACK_TRAXIS_POS_Z
+.. data:: KX_TRACK_TRAXIS_NEG_X
+.. data:: KX_TRACK_TRAXIS_NEG_Y
+.. data:: KX_TRACK_TRAXIS_NEG_Z
 
 =======
 Various

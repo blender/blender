@@ -77,6 +77,13 @@ GEN_INLINE MT_Vector3 MT_Vector3::safe_normalized() const {
         *this / len; 
 }
 
+GEN_INLINE MT_Vector3 MT_Vector3::safe_normalized_vec(MT_Vector3 vecnormalized) const {
+	MT_Scalar len = length();
+	return MT_fuzzyZero(len) ?
+        vecnormalized :
+        *this / len;
+}
+
 GEN_INLINE void MT_Vector3::scale(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz) {
     m_co[0] *= xx; m_co[1] *= yy; m_co[2] *= zz;
 }

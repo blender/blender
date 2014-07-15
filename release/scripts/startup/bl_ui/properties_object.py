@@ -301,10 +301,11 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
 
         split = layout.split()
 
-        col = split.column()
-        col.label(text="Tracking Axes:")
-        col.prop(ob, "track_axis", text="Axis")
-        col.prop(ob, "up_axis", text="Up Axis")
+        if context.scene.render.engine != 'BLENDER_GAME':
+            col = split.column()
+            col.label(text="Tracking Axes:")
+            col.prop(ob, "track_axis", text="Axis")
+            col.prop(ob, "up_axis", text="Up Axis")
 
         col = split.column()
         col.prop(ob, "use_slow_parent")

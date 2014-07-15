@@ -75,7 +75,7 @@ public:
     void        normalize();
     MT_Vector3  normalized() const;
 	MT_Vector3  safe_normalized() const;
-	
+	MT_Vector3  safe_normalized_vec(MT_Vector3 vecnormalized) const;
 
     void        scale(MT_Scalar x, MT_Scalar y, MT_Scalar z); 
     MT_Vector3  scaled(MT_Scalar x, MT_Scalar y, MT_Scalar z) const; 

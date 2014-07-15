@@ -538,8 +538,8 @@ void BL_ConvertActuators(const char* maggiename,
 						            originalval,
 						            editobact->time,
 						            editobact->flag,
-						            blenderobject->trackflag,
-						            blenderobject->upflag);
+						            editobact->trackflag,
+						            editobact->upflag);
 						baseact = tmptrackact;
 						break;
 					}

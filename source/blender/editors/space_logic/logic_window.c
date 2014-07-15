@@ -1720,6 +1720,12 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 			sub = uiLayoutSplit(split, 0.7f, false);
 			uiItemR(sub, ptr, "time", 0, NULL, ICON_NONE);
 			uiItemR(sub, ptr, "use_3d_tracking", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+
+			row = uiLayoutRow(layout, false);
+			uiItemR(row, ptr, "up_axis", 0, NULL, ICON_NONE);
+
+			row = uiLayoutRow(layout, false);
+			uiItemR(row, ptr, "track_axis", 0, NULL, ICON_NONE);
 			break;
 		case ACT_EDOB_DYNAMICS:
 			if (ob->type != OB_MESH) {

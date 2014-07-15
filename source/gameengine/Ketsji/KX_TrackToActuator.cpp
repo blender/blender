@@ -31,8 +31,7 @@
  * Replace the mesh for this actuator's parent
  */
 
-/* todo: not all trackflags / upflags are implemented/tested !
- * m_trackflag is used to determine the forward tracking direction
+/* m_trackflag is used to determine the forward tracking direction
  * m_upflag for the up direction
  * normal situation is +y for forward, +z for up */
 
@@ -177,7 +176,77 @@ static MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, in
 	return EulToMat3(eul);
 }
 
+static float basis_cross(int n, int m)
+{
+	switch (n - m) {
+		case 1:
+		case -2:
+			return 1.0f;
 
+		case -1:
+		case 2:
+			return -1.0f;
+
+		default:
+			return 0.0f;
+	}
+}
+
+/* vectomat function obtained from constrain.c and modified to work with MOTO library */
+static MT_Matrix3x3 vectomat(MT_Vector3 vec, short axis, short upflag, short threedimup)
+{
+	MT_Matrix3x3 mat;
+	MT_Vector3 y(MT_Scalar(0.0), MT_Scalar(1.0), MT_Scalar(0.0));
+	MT_Vector3 z(MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(1.0)); /* world Z axis is the global up axis */
+	MT_Vector3 proj;
+	MT_Vector3 right;
+	MT_Scalar mul;
+	int right_index;
+
+	/* Normalized Vec vector*/
+	vec = vec.safe_normalized_vec(z);
+
+	/* if 2D doesn't move the up vector */
+	if (!threedimup){
+		vec.setValue(MT_Scalar(vec[0]), MT_Scalar(vec[1]), MT_Scalar(0.0));
+		vec = (vec - z.dot(vec)*z).safe_normalized_vec(z);
+	}
+
+	if (axis > 2)
+		axis -= 3;
+	else
+		vec = -vec;
+
+	/* project the up vector onto the plane specified by vec */
+	/* first z onto vec... */
+	mul = z.dot(vec) / vec.dot(vec);
+	proj = vec * mul;
+	/* then onto the plane */
+	proj = z - proj;
+	/* proj specifies the transformation of the up axis */
+	proj = proj.safe_normalized_vec(y);
+
+	/* Normalized cross product of vec and proj specifies transformation of the right axis */
+	right = proj.cross(vec);
+	right.normalize();
+
+	if (axis != upflag) {
+		right_index = 3 - axis - upflag;
+
+		/* account for up direction, track direction */
+		right = right * basis_cross(axis, upflag);
+		mat.setRow(right_index, right);
+		mat.setRow(upflag, proj);
+		mat.setRow(axis, vec);
+		mat = mat.inverse();
+	}
+	/* identity matrix - don't do anything if the two axes are the same */
+	else {
+		mat.setIdentity();
+	}
+
+	return mat;
+}
 
 KX_TrackToActuator::~KX_TrackToActuator()
 {
@@ -247,153 +316,24 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 	else if (m_object)
 	{
 		KX_GameObject* curobj = (KX_GameObject*) GetParent();
-		MT_Vector3 dir = ((KX_GameObject*)m_object)->NodeGetWorldPosition() - curobj->NodeGetWorldPosition();
-		if (dir.length2())
-			dir.normalize();
-		MT_Vector3 up(0,0,1);
-		
-		
-#ifdef DSADSA
-		switch (m_upflag)
-		{
-		case 0:
-			{
-				up.setValue(1.0,0,0);
-				break;
-			} 
-		case 1:
-			{
-				up.setValue(0,1.0,0);
-				break;
-			}
-		case 2:
-		default:
-			{
-				up.setValue(0,0,1.0);
-			}
-		}
-#endif 
-		if (m_allow3D)
-		{
-			up = (up - up.dot(dir) * dir).safe_normalized();
-			
-		}
-		else
-		{
-			dir = (dir - up.dot(dir)*up).safe_normalized();
-		}
-		
-		MT_Vector3 left;
+		MT_Vector3 dir = curobj->NodeGetWorldPosition() - ((KX_GameObject*)m_object)->NodeGetWorldPosition();
 		MT_Matrix3x3 mat;
-		
-		switch (m_trackflag)
-		{
-		case 0: // TRACK X
-			{
-				// (1.0 , 0.0 , 0.0 ) x direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = dir.safe_normalized();
-				dir = up.cross(left).safe_normalized();
-				mat.setValue (
-					left[0], dir[0],up[0], 
-					left[1], dir[1],up[1],
-					left[2], dir[2],up[2]
-					);
-				
-				break;
-			};
-		case 1:	// TRACK Y
-			{
-				// (0.0 , 1.0 , 0.0 ) y direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = (dir.cross(up)).safe_normalized();
-				mat.setValue (
-					left[0], dir[0],up[0], 
-					left[1], dir[1],up[1],
-					left[2], dir[2],up[2]
-					);
-				
-				break;
-			}
-			
-		case 2: // track Z
-			{
-				left = up.safe_normalized();
-				up = dir.safe_normalized();
-				dir = left;
-				left  = (dir.cross(up)).safe_normalized();
-				mat.setValue (
-					left[0], dir[0],up[0], 
-					left[1], dir[1],up[1],
-					left[2], dir[2],up[2]
-					);
-				break;
-			}
-			
-		case 3: // TRACK -X
-			{
-				// (1.0 , 0.0 , 0.0 ) x direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = -dir.safe_normalized();
-				dir = up.cross(left).safe_normalized();
-				mat.setValue (
-					left[0], dir[0],up[0], 
-					left[1], dir[1],up[1],
-					left[2], dir[2],up[2]
-					);
-				
-				break;
-			};
-		case 4: // TRACK -Y
-			{
-				// (0.0 , -1.0 , 0.0 ) -y direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = (-dir.cross(up)).safe_normalized();
-				mat.setValue (
-					left[0], -dir[0],up[0], 
-					left[1], -dir[1],up[1],
-					left[2], -dir[2],up[2]
-					);
-				break;
-			}
-		case 5: // track -Z
-			{
-				left = up.safe_normalized();
-				up = -dir.safe_normalized();
-				dir = left;
-				left  = (dir.cross(up)).safe_normalized();
-				mat.setValue (
-					left[0], dir[0],up[0], 
-					left[1], dir[1],up[1],
-					left[2], dir[2],up[2]
-					);
-				
-				break;
-			}
-			
-		default:
-			{
-				// (1.0 , 0.0 , 0.0 ) -x direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = -dir.safe_normalized();
-				dir = up.cross(left).safe_normalized();
-				mat.setValue (
-					left[0], dir[0],up[0], 
-					left[1], dir[1],up[1],
-					left[2], dir[2],up[2]
-					);
-			}
-		}
-		
 		MT_Matrix3x3 oldmat;
-		oldmat= curobj->NodeGetWorldOrientation();
+
+		mat = vectomat(dir, m_trackflag, m_upflag, m_allow3D);
+		oldmat = curobj->NodeGetWorldOrientation();
 		
 		/* erwin should rewrite this! */
-		mat= matrix3x3_interpol(oldmat, mat, m_time);
+		mat = matrix3x3_interpol(oldmat, mat, m_time);
 		
-
-		if (m_parentobj) { // check if the model is parented and calculate the child transform
+		/* check if the model is parented and calculate the child transform */
+		if (m_parentobj) {
 				
 			MT_Point3 localpos;
 			localpos = curobj->GetSGNode()->GetLocalPosition();
 			// Get the inverse of the parent matrix
 			MT_Matrix3x3 parentmatinv;
-			parentmatinv = m_parentobj->NodeGetWorldOrientation ().inverse ();
+			parentmatinv = m_parentobj->NodeGetWorldOrientation().inverse();
 			// transform the local coordinate system into the parents system
 			mat = parentmatinv * mat;
 			// append the initial parent local rotation matrix
@@ -404,8 +344,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 			curobj->NodeSetLocalPosition(localpos);
 			//curobj->UpdateTransform();
 		}
-		else
-		{
+		else {
 			curobj->NodeSetLocalOrientation(mat);
 		}
 
@@ -451,6 +390,8 @@ PyMethodDef KX_TrackToActuator::Methods[] = {
 PyAttributeDef KX_TrackToActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("time",0,1000,true,KX_TrackToActuator,m_time),
 	KX_PYATTRIBUTE_BOOL_RW("use3D",KX_TrackToActuator,m_allow3D),
+	KX_PYATTRIBUTE_INT_RW("upAxis", 0, 2, true, KX_TrackToActuator,m_upflag),
+	KX_PYATTRIBUTE_INT_RW("trackAxis", 0, 5, true, KX_TrackToActuator,m_trackflag),
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_TrackToActuator, pyattr_get_object, pyattr_set_object),
 
 	{ NULL }	//Sentinel

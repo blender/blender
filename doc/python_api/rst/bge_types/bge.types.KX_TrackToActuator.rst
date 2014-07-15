@@ -37,3 +37,25 @@ base class --- :class:`SCA_IActuator`
 
       :type: boolean
 
+   .. attribute:: upAxis
+
+      The axis that points upward.
+
+      :type: integer from 0 to 2
+
+      * KX_TRACK_UPAXIS_POS_X
+      * KX_TRACK_UPAXIS_POS_Y
+      * KX_TRACK_UPAXIS_POS_Z
+
+   .. attribute:: trackAxis
+
+      The axis that points to the target object.
+
+      :type: integer from 0 to 5
+
+      * KX_TRACK_TRAXIS_POS_X
+      * KX_TRACK_TRAXIS_POS_Y
+      * KX_TRACK_TRAXIS_POS_Z
+      * KX_TRACK_TRAXIS_NEG_X
+      * KX_TRACK_TRAXIS_NEG_Y
+      * KX_TRACK_TRAXIS_NEG_Z
