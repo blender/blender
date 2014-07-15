@@ -93,7 +93,7 @@ int BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const f
 void BLI_bvhtree_update_tree(BVHTree *tree);
 
 /* collision/overlap: check two trees if they overlap, alloc's *overlap with length of the int return value */
-BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int *result);
+BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int *r_overlap_tot);
 
 float BLI_bvhtree_getepsilon(const BVHTree *tree);
 
