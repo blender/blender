@@ -1686,7 +1686,7 @@ void copy_matcopybuf(Material *ma)
 			matcopybuf.mtex[a] = MEM_dupallocN(mtex);
 		}
 	}
-	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, false);
+	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, G.main, false);
 	matcopybuf.preview = NULL;
 	BLI_listbase_clear(&matcopybuf.gpumaterial);
 	matcopied = 1;
@@ -1739,7 +1739,7 @@ void paste_matcopybuf(Material *ma)
 		}
 	}
 
-	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, false);
+	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, G.main, false);
 }
 
 

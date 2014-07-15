@@ -1205,13 +1205,13 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_
 	return newtree;
 }
 
-bNodeTree *ntreeCopyTree_ex(bNodeTree *ntree, const bool do_id_user)
+bNodeTree *ntreeCopyTree_ex(bNodeTree *ntree, Main *bmain, const bool do_id_user)
 {
-	return ntreeCopyTree_internal(ntree, G.main, do_id_user, true, true);
+	return ntreeCopyTree_internal(ntree, bmain, do_id_user, true, true);
 }
 bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
-	return ntreeCopyTree_ex(ntree, true);
+	return ntreeCopyTree_ex(ntree, G.main, true);
 }
 
 /* use when duplicating scenes */
