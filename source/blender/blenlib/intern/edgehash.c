@@ -93,7 +93,7 @@ BLI_INLINE unsigned int edgehash_keyhash(EdgeHash *eh, unsigned int v0, unsigned
 {
 	BLI_assert(v0 < v1);
 
-	return ((v0 * 39) ^ (v1 * 31)) % eh->nbuckets;
+	return ((v0 * 65) ^ (v1 * 31)) % eh->nbuckets;
 }
 
 /**
