@@ -104,9 +104,9 @@ static void free_cache(bNodeTree *ntree)
 }
 
 /* local tree then owns all compbufs */
-static void localize(bNodeTree *localtree, bNodeTree *ntree)
+static void localize(bNodeTree *UNUSED(localtree), bNodeTree *ntree)
 {
-	bNode *node, *node_next;
+	bNode *node;
 	bNodeSocket *sock;
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
@@ -130,26 +130,6 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 			sock->new_sock->cache = sock->cache;
 			sock->cache = NULL;
 			sock->new_sock->new_sock = sock;
-		}
-	}
-	
-	/* replace muted nodes and reroute nodes by internal links */
-	for (node = localtree->nodes.first; node; node = node_next) {
-		node_next = node->next;
-		
-		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-			/* make sure the update tag isn't lost when removing the muted node.
-			 * propagate this to all downstream nodes.
-			 */
-			if (node->need_exec) {
-				bNodeLink *link;
-				for (link = localtree->links.first; link; link = link->next)
-					if (link->fromnode == node && link->tonode)
-						link->tonode->need_exec = 1;
-			}
-			
-			nodeInternalRelink(localtree, node);
-			nodeFreeNode(localtree, node);
 		}
 	}
 }
