@@ -35,7 +35,7 @@
 
 #include "BLI_strict_flags.h"
 
-// #define USE_TOTELEM
+#define USE_TOTELEM
 
 #define CHUNK_EMPTY ((size_t)-1)
 /* target chunks size: 64kb */
@@ -135,7 +135,7 @@ void BLI_stack_free(BLI_Stack *stack)
  * Copies the source value onto the stack (note that it copies
  * elem_size bytes from 'src', the pointer itself is not stored)
  */
-void BLI_stack_push(BLI_Stack *stack, const void *src)
+void *BLI_stack_push_r(BLI_Stack *stack)
 {
 	stack->chunk_index++;
 
@@ -161,8 +161,14 @@ void BLI_stack_push(BLI_Stack *stack, const void *src)
 	stack->totelem++;
 #endif
 
-	/* Copy source to end of stack */
-	memcpy(CHUNK_LAST_ELEM(stack), src, stack->elem_size);
+	/* Return end of stack */
+	return CHUNK_LAST_ELEM(stack);
+}
+
+void BLI_stack_push(BLI_Stack *stack, const void *src)
+{
+	void *dst = BLI_stack_push_r(stack);
+	memcpy(dst, src, stack->elem_size);
 }
 
 /**
@@ -175,23 +181,53 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
 {
 	BLI_assert(BLI_stack_is_empty(stack) == false);
 
-	if (!BLI_stack_is_empty(stack)) {
-		memcpy(dst, CHUNK_LAST_ELEM(stack), stack->elem_size);
+	memcpy(dst, CHUNK_LAST_ELEM(stack), stack->elem_size);
 #ifdef USE_TOTELEM
-		stack->totelem--;
+	stack->totelem--;
 #endif
-		if (--stack->chunk_index == CHUNK_EMPTY) {
-			struct StackChunk *chunk_free;
+	if (--stack->chunk_index == CHUNK_EMPTY) {
+		struct StackChunk *chunk_free;
 
-			chunk_free        = stack->chunk_curr;
-			stack->chunk_curr = stack->chunk_curr->next;
+		chunk_free        = stack->chunk_curr;
+		stack->chunk_curr = stack->chunk_curr->next;
 
-			chunk_free->next  = stack->chunk_free;
-			stack->chunk_free = chunk_free;
+		chunk_free->next  = stack->chunk_free;
+		stack->chunk_free = chunk_free;
 
-			stack->chunk_index = stack->chunk_elem_max - 1;
-		}
+		stack->chunk_index = stack->chunk_elem_max - 1;
 	}
+}
+
+void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n)
+{
+	BLI_assert(n <= BLI_stack_count(stack));
+
+	while (n--) {
+		BLI_stack_pop(stack, dst);
+		dst = (void *)((char *)dst + stack->elem_size);
+	}
+}
+
+size_t BLI_stack_count(const BLI_Stack *stack)
+{
+#ifdef USE_TOTELEM
+	return stack->totelem;
+#else
+	struct StackChunk *data = stack->chunk_curr;
+	size_t totelem = stack->chunk_index + 1;
+	size_t i;
+	if (totelem != stack->chunk_elem_max) {
+		data = data->next;
+	}
+	else {
+		totelem = 0;
+	}
+	for (i = 0; data; data = data->next) {
+		i++;
+	}
+	totelem += stack->chunk_elem_max * i;
+	return totelem;
+#endif
 }
 
 /**
@@ -199,5 +235,8 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
  */
 bool BLI_stack_is_empty(const BLI_Stack *stack)
 {
+#ifdef USE_TOTELEM
+	BLI_assert((stack->chunk_curr == NULL) == (stack->totelem == 0));
+#endif
 	return (stack->chunk_curr == NULL);
 }

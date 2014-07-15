@@ -17,6 +17,7 @@ TEST(stack, Empty)
 
 	stack = BLI_stack_new(sizeof(int), __func__);
 	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+	EXPECT_EQ(BLI_stack_count(stack), 0);
 	BLI_stack_free(stack);
 }
 
@@ -29,9 +30,11 @@ TEST(stack, One)
 
 	BLI_stack_push(stack, (void *)&in);
 	EXPECT_EQ(BLI_stack_is_empty(stack), false);
+	EXPECT_EQ(BLI_stack_count(stack), 1);
 	BLI_stack_pop(stack, (void *)&out);
 	EXPECT_EQ(in, out);
 	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+	EXPECT_EQ(BLI_stack_count(stack), 0);
 	BLI_stack_free(stack);
 }
 
@@ -79,7 +82,6 @@ TEST(stack, String)
 		*((int *)in) = i;
 		BLI_stack_pop(stack, (void *)&out);
 		EXPECT_STREQ(in, out);
-
 	}
 	EXPECT_EQ(BLI_stack_is_empty(stack), true);
 
@@ -131,6 +133,15 @@ TEST(stack, Reuse)
 		EXPECT_GT(i, -1);
 	}
 	EXPECT_EQ(i, 0);
+	EXPECT_EQ(memcmp(sizes, sizes_test, sizeof(sizes) - sizeof(int)), 0);
+
+
+	/* finally test BLI_stack_pop_n */
+	for (i = ARRAY_SIZE(sizes); i--; ) {
+		BLI_stack_push(stack, (void *)&sizes[i]);
+	}
+	EXPECT_EQ(BLI_stack_count(stack), ARRAY_SIZE(sizes));
+	BLI_stack_pop_n(stack, (void *)sizes_test, ARRAY_SIZE(sizes));
 	EXPECT_EQ(memcmp(sizes, sizes_test, sizeof(sizes) - sizeof(int)), 0);
 
 	BLI_stack_free(stack);
