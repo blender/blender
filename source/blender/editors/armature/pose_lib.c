@@ -1490,7 +1490,6 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
 			BKE_pose_where_is(scene, ob);
-		
 	}
 	else if (pld->state == PL_PREVIEW_CONFIRM) {
 		/* tag poses as appropriate */
@@ -1510,6 +1509,9 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 		else
 			BKE_pose_where_is(scene, ob);
 	}
+	
+	/* Request final redraw of the view. */
+	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, pld->ob);
 	
 	/* free memory used for backups and searching */
 	poselib_backup_free_data(pld);
