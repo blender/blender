@@ -193,7 +193,7 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 			
 			case ID_LS:
 			{
-				char *path = BKE_path_from_ID_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
+				char *path = BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
 				if (path)
 					return path;
 				break;
@@ -277,7 +277,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 				ListBase listbase;
 				LinkData *link;
 
-				BKE_list_modifier_color_ramps((FreestyleLineStyle *)id, &listbase);
+				BKE_linestyle_modifier_list_color_ramps((FreestyleLineStyle *)id, &listbase);
 				for (link = (LinkData *)listbase.first; link; link = link->next) {
 					RNA_pointer_create(id, &RNA_ColorRamp, link->data, &ramp_ptr);
 					COLRAMP_GETPATH;

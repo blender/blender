@@ -187,7 +187,7 @@ FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config, const char 
 	BLI_addtail(&config->linesets, (void *)lineset);
 	BKE_freestyle_lineset_set_active_index(config, lineset_index);
 
-	lineset->linestyle = BKE_new_linestyle("LineStyle", NULL);
+	lineset->linestyle = BKE_linestyle_new("LineStyle", NULL);
 	lineset->flags |= FREESTYLE_LINESET_ENABLED;
 	lineset->selection = FREESTYLE_SEL_VISIBILITY | FREESTYLE_SEL_EDGE_TYPES | FREESTYLE_SEL_IMAGE_BORDER;
 	lineset->qi = FREESTYLE_QI_VISIBLE;

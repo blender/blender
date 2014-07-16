@@ -685,7 +685,7 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, Poin
 
 FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name)
 {
-	FreestyleLineStyle *linestyle = BKE_new_linestyle(name, bmain);
+	FreestyleLineStyle *linestyle = BKE_linestyle_new(name, bmain);
 	id_us_min(&linestyle->id);
 	return linestyle;
 }

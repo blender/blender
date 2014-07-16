@@ -154,7 +154,7 @@ static int buttons_context_path_linestyle(ButsContextPath *path)
 	/* if we have a scene, use the lineset's linestyle */
 	else if (buttons_context_path_scene(path)) {
 		scene = path->ptr[path->len - 1].data;
-		linestyle = BKE_get_linestyle_from_scene(scene);
+		linestyle = BKE_linestyle_active_from_scene(scene);
 		if (linestyle) {
 			RNA_id_pointer_create(&linestyle->id, &path->ptr[path->len]);
 			path->len++;

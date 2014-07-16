@@ -44,35 +44,35 @@ struct Main;
 struct Object;
 struct ColorBand;
 
-FreestyleLineStyle *BKE_new_linestyle(const char *name, struct Main *main);
-void BKE_free_linestyle(FreestyleLineStyle *linestyle);
-FreestyleLineStyle *BKE_copy_linestyle(FreestyleLineStyle *linestyle);
+FreestyleLineStyle *BKE_linestyle_new(const char *name, struct Main *main);
+void                BKE_linestyle_free(FreestyleLineStyle *linestyle);
+FreestyleLineStyle *BKE_linestyle_copy(FreestyleLineStyle *linestyle);
 
-FreestyleLineStyle *BKE_get_linestyle_from_scene(struct Scene *scene);
+FreestyleLineStyle *BKE_linestyle_active_from_scene(struct Scene *scene);
 
-LineStyleModifier *BKE_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, const char *name, int type);
-LineStyleModifier *BKE_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, const char *name, int type);
-LineStyleModifier *BKE_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, const char *name, int type);
-LineStyleModifier *BKE_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, const char *name, int type);
+LineStyleModifier *BKE_linestyle_modifier_add_color(FreestyleLineStyle *linestyle, const char *name, int type);
+LineStyleModifier *BKE_linestyle_modifier_add_alpha(FreestyleLineStyle *linestyle, const char *name, int type);
+LineStyleModifier *BKE_linestyle_modifier_add_thickness(FreestyleLineStyle *linestyle, const char *name, int type);
+LineStyleModifier *BKE_linestyle_modifier_add_geometry(FreestyleLineStyle *linestyle, const char *name, int type);
 
-LineStyleModifier *BKE_copy_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
-LineStyleModifier *BKE_copy_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
-LineStyleModifier *BKE_copy_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
-LineStyleModifier *BKE_copy_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
+LineStyleModifier *BKE_linestyle_modifier_copy_color(FreestyleLineStyle *linestyle, LineStyleModifier *m);
+LineStyleModifier *BKE_linestyle_modifier_copy_alpha(FreestyleLineStyle *linestyle, LineStyleModifier *m);
+LineStyleModifier *BKE_linestyle_modifier_copy_thickness(FreestyleLineStyle *linestyle, LineStyleModifier *m);
+LineStyleModifier *BKE_linestyle_modifier_copy_geometry(FreestyleLineStyle *linestyle, LineStyleModifier *m);
 
-int BKE_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
-int BKE_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
-int BKE_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
-int BKE_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+int BKE_linestyle_modifier_remove_color(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+int BKE_linestyle_modifier_remove_alpha(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+int BKE_linestyle_modifier_remove_thickness(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+int BKE_linestyle_modifier_remove_geometry(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
 
-void BKE_move_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
-void BKE_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
-void BKE_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
-void BKE_move_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+void BKE_linestyle_modifier_move_color(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+void BKE_linestyle_modifier_move_alpha(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+void BKE_linestyle_modifier_move_thickness(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+void BKE_linestyle_modifier_move_geometry(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 
-void BKE_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
-char *BKE_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, struct ColorBand *color_ramp);
+void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
+char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, struct ColorBand *color_ramp);
 
-void BKE_unlink_linestyle_target_object(FreestyleLineStyle *linestyle, struct Object *ob);
+void BKE_linestyle_target_object_unlink(FreestyleLineStyle *linestyle, struct Object *ob);
 
 #endif  /* __BKE_LINESTYLE_H__ */

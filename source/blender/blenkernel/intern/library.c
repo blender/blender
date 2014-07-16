@@ -382,7 +382,7 @@ bool id_copy(ID *id, ID **newid, bool test)
 			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
 			return true;
 		case ID_LS:
-			if (!test) *newid = (ID *)BKE_copy_linestyle((FreestyleLineStyle *)id);
+			if (!test) *newid = (ID *)BKE_linestyle_copy((FreestyleLineStyle *)id);
 			return true;
 	}
 	
@@ -1005,7 +1005,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, bool do_id_user)
 			BKE_mask_free(bmain, (Mask *)id);
 			break;
 		case ID_LS:
-			BKE_free_linestyle((FreestyleLineStyle *)id);
+			BKE_linestyle_free((FreestyleLineStyle *)id);
 			break;
 	}
 

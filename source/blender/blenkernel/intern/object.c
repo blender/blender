@@ -709,7 +709,7 @@ void BKE_object_unlink(Object *ob)
 				     lineset; lineset = lineset->next)
 				{
 					if (lineset->linestyle) {
-						BKE_unlink_linestyle_target_object(lineset->linestyle, ob);
+						BKE_linestyle_target_object_unlink(lineset->linestyle, ob);
 					}
 				}
 			}
