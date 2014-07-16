@@ -254,7 +254,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 	color_mix_rgb->locy = -200.0f;
 	tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 0); // Fac
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
-	RNA_float_set(&toptr, "default_value", 1.0f);
+	RNA_float_set(&toptr, "default_value", 0.0f);
 
 	bNode *shader_emission = nodeAddStaticNode(C, ntree, SH_NODE_EMISSION);
 	shader_emission->locx = 400.0f;
@@ -273,7 +273,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 	output_material->locy = 100.0f;
 
 	fromsock = (bNodeSocket *)BLI_findlink(&input_attribute->outputs, 0); // Color
-	tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 2); // Color2
+	tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 1); // Color1
 	nodeAddLink(ntree, input_attribute, fromsock, color_mix_rgb, tosock);
 
 	fromsock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->outputs, 0); // Color
@@ -297,10 +297,17 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 		bNodeLink *link;
 
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 0); // Color
+		tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 2); // Color2
 		link = (bNodeLink *)BLI_findptr(&ntree->links, outsock, offsetof(bNodeLink, tosock));
 		if (link) {
-			tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 1); // Color1
 			nodeAddLink(ntree, link->fromnode, link->fromsock, color_mix_rgb, tosock);
+		}
+		else {
+			float color[4];
+			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
+			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+			RNA_float_get_array(&fromptr, "default_value", color);
+			RNA_float_set_array(&toptr, "default_value", color);
 		}
 
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 1); // Color Fac
