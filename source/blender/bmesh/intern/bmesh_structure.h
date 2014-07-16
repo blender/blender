@@ -39,39 +39,37 @@
  * descriptive comments.  but seriously, don't use this stuff.
  */
 
-struct ListBase;
-
 /* LOOP CYCLE MANAGEMENT */
-bool    bmesh_loop_validate(BMFace *f);
+bool    bmesh_loop_validate(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* DISK CYCLE MANAGMENT */
-void    bmesh_disk_edge_append(BMEdge *e, BMVert *v);
-void    bmesh_disk_edge_remove(BMEdge *e, BMVert *v);
-BLI_INLINE BMEdge *bmesh_disk_edge_next_safe(const BMEdge *e, const BMVert *v);
-BLI_INLINE BMEdge *bmesh_disk_edge_prev_safe(const BMEdge *e, const BMVert *v);
-BLI_INLINE BMEdge *bmesh_disk_edge_next(const BMEdge *e, const BMVert *v);
-BLI_INLINE BMEdge *bmesh_disk_edge_prev(const BMEdge *e, const BMVert *v);
-int     bmesh_disk_facevert_count(const BMVert *v);
-BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v);
-BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v);
+void    bmesh_disk_edge_append(BMEdge *e, BMVert *v) ATTR_NONNULL();
+void    bmesh_disk_edge_remove(BMEdge *e, BMVert *v) ATTR_NONNULL();
+BLI_INLINE BMEdge *bmesh_disk_edge_next_safe(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BLI_INLINE BMEdge *bmesh_disk_edge_prev_safe(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BLI_INLINE BMEdge *bmesh_disk_edge_next(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BLI_INLINE BMEdge *bmesh_disk_edge_prev(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int     bmesh_disk_facevert_count(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* RADIAL CYCLE MANAGMENT */
-void    bmesh_radial_append(BMEdge *e, BMLoop *l);
-void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e);
+void    bmesh_radial_append(BMEdge *e, BMLoop *l) ATTR_NONNULL();
+void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e) ATTR_NONNULL(1);
 /* note:
  *      bmesh_radial_loop_next(BMLoop *l) / prev.
  * just use member access l->radial_next, l->radial_prev now */
 
-int     bmesh_radial_facevert_count(const BMLoop *l, const BMVert *v);
-BMLoop *bmesh_radial_faceloop_find_first(const BMLoop *l, const BMVert *v);
-BMLoop *bmesh_radial_faceloop_find_next(const BMLoop *l, const BMVert *v);
-BMLoop *bmesh_radial_faceloop_find_vert(const BMFace *f, const BMVert *v);
-bool    bmesh_radial_validate(int radlen, BMLoop *l);
+int     bmesh_radial_facevert_count(const BMLoop *l, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BMLoop *bmesh_radial_faceloop_find_first(const BMLoop *l, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BMLoop *bmesh_radial_faceloop_find_next(const BMLoop *l, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BMLoop *bmesh_radial_faceloop_find_vert(const BMFace *f, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    bmesh_radial_validate(int radlen, BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* EDGE UTILITIES */
-bool    bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv);  /* relink edge */
-BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2);
-bool    bmesh_disk_validate(int len, BMEdge *e, BMVert *v);
+bool    bmesh_edge_swapverts(BMEdge *e, BMVert *v_orig, BMVert *v_new) ATTR_NONNULL();
+BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 #include "intern/bmesh_structure_inline.h"
 
