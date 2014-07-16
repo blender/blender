@@ -234,7 +234,6 @@ int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBas
 struct Main *CTX_data_main(const bContext *C);
 struct Scene *CTX_data_scene(const bContext *C);
 struct ToolSettings *CTX_data_tool_settings(const bContext *C);
-struct FreestyleLineStyle *CTX_data_linestyle_from_scene(struct Scene *scene);
 
 const char *CTX_data_mode_string(const bContext *C);
 int CTX_data_mode_enum(const bContext *C);

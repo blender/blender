@@ -43,6 +43,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
@@ -207,6 +208,18 @@ FreestyleLineStyle *BKE_copy_linestyle(FreestyleLineStyle *linestyle)
 		BKE_copy_linestyle_geometry_modifier(new_linestyle, m);
 
 	return new_linestyle;
+}
+
+FreestyleLineStyle *BKE_get_linestyle_from_scene(Scene *scene)
+{
+	SceneRenderLayer *actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);
+	FreestyleConfig *config = &actsrl->freestyleConfig;
+	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
+
+	if (lineset) {
+		return lineset->linestyle;
+	}
+	return NULL;
 }
 
 static LineStyleModifier *new_modifier(const char *name, int type, size_t size)
