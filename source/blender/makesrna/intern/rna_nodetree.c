@@ -3172,6 +3172,12 @@ static void def_sh_output(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_output_linestyle(StructRNA *srna)
+{
+	def_sh_output(srna);
+	def_mix_rgb(srna);
+}
+
 static void def_sh_material(StructRNA *srna)
 {
 	PropertyRNA *prop;

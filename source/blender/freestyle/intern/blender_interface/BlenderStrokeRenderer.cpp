@@ -296,6 +296,9 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 		bNodeSocket *outsock;
 		bNodeLink *link;
 
+		color_mix_rgb->custom1 = output_linestyle->custom1; // blend_type
+		color_mix_rgb->custom2 = output_linestyle->custom2; // use_clamp
+
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 0); // Color
 		tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 2); // Color2
 		link = (bNodeLink *)BLI_findptr(&ntree->links, outsock, offsetof(bNodeLink, tosock));

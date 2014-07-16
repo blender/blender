@@ -1174,6 +1174,8 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
 	output_linestyle = nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_LINESTYLE);
 	output_linestyle->locx = 300.0f;
 	output_linestyle->locy = 300.0f;
+	output_linestyle->custom1 = MA_RAMP_BLEND;
+	output_linestyle->custom2 = 0; // use_clamp
 
 	nodeSetActive(ntree, input_texure);
 

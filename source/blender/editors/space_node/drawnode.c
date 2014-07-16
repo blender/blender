@@ -1000,6 +1000,18 @@ static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA
 #endif
 }
 
+static void node_buts_output_linestyle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *row, *col;
+
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+
+	col = uiLayoutColumn(layout, false);
+	row = uiLayoutRow(col, true);
+	uiItemR(row, ptr, "blend_type", 0, "", ICON_NONE);
+	uiItemR(col, ptr, "use_clamp", 0, NULL, ICON_NONE);
+}
+
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
@@ -1125,6 +1137,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_UVMAP:
 			ntype->draw_buttons = node_shader_buts_uvmap;
+			break;
+		case SH_NODE_OUTPUT_LINESTYLE:
+			ntype->draw_buttons = node_buts_output_linestyle;
 			break;
 	}
 }
