@@ -30,7 +30,7 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_output_linestyle_in[] = {
-	{	SOCK_RGBA, 1, N_("Color"),			1.0f, 1.0f, 1.0f, 1.0f	},
+	{	SOCK_RGBA, 1, N_("Color"),			1.0f, 0.0f, 1.0f, 1.0f	},
 	{	SOCK_FLOAT, 1, N_("Color Fac"),		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR	},
 	{	SOCK_FLOAT, 1, N_("Alpha"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR	},
 	{	SOCK_FLOAT, 1, N_("Alpha Fac"),		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR	},
