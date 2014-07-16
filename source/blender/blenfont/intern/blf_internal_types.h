@@ -99,6 +99,8 @@ typedef struct GlyphBLF {
 
 	/* advance size. */
 	float advance;
+	/* avoid conversion to int while drawing */
+	int advance_i;
 
 	/* texture id where this glyph is store. */
 	GLuint tex;

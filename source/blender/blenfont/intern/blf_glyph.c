@@ -279,6 +279,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	}
 
 	g->advance = ((float)slot->advance.x) / 64.0f;
+	g->advance_i = (int)g->advance;
 	g->pos_x = (float)slot->bitmap_left;
 	g->pos_y = (float)slot->bitmap_top;
 	g->pitch = slot->bitmap.pitch;
