@@ -1178,7 +1178,7 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
 	nodeSetActive(ntree, input_texure);
 
 	fromsock = (bNodeSocket *)BLI_findlink(&input_texure->outputs, 0); // Color
-	tosock = (bNodeSocket *)BLI_findlink(&output_linestyle->outputs, 0); // Color
+	tosock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 0); // Color
 	nodeAddLink(ntree, input_texure, fromsock, output_linestyle, tosock);
 
 	ntreeUpdateTree(CTX_data_main(C), ntree);
