@@ -185,7 +185,7 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
 #ifdef USE_TOTELEM
 	stack->totelem--;
 #endif
-	if (--stack->chunk_index == CHUNK_EMPTY) {
+	if (UNLIKELY(--stack->chunk_index == CHUNK_EMPTY)) {
 		struct StackChunk *chunk_free;
 
 		chunk_free        = stack->chunk_curr;

@@ -1039,7 +1039,7 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 			if (!node2->totnode) {
 				BVHTreeOverlap *overlap;
 
-				if (node1 == node2) {
+				if (UNLIKELY(node1 == node2)) {
 					return;
 				}
 
@@ -1073,8 +1073,13 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 	BVHOverlapData **data;
 	
 	/* check for compatibility of both trees (can't compare 14-DOP with 18-DOP) */
-	if ((tree1->axis != tree2->axis) && (tree1->axis == 14 || tree2->axis == 14) && (tree1->axis == 18 || tree2->axis == 18))
+	if (UNLIKELY((tree1->axis != tree2->axis) &&
+	             (tree1->axis == 14 || tree2->axis == 14) &&
+	             (tree1->axis == 18 || tree2->axis == 18)))
+	{
+		BLI_assert(0);
 		return NULL;
+	}
 	
 	/* fast check root nodes for collision before doing big splitting + traversal */
 	if (!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf],
@@ -1084,10 +1089,10 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 		return NULL;
 	}
 
-	data = MEM_callocN(sizeof(BVHOverlapData *) * tree1->tree_type, "BVHOverlapData_star");
+	data = MEM_mallocN(sizeof(BVHOverlapData *) * tree1->tree_type, "BVHOverlapData_star");
 	
 	for (j = 0; j < tree1->tree_type; j++) {
-		data[j] = MEM_callocN(sizeof(BVHOverlapData), "BVHOverlapData");
+		data[j] = MEM_mallocN(sizeof(BVHOverlapData), "BVHOverlapData");
 		
 		/* init BVHOverlapData */
 		data[j]->overlap = BLI_stack_new(sizeof(BVHTreeOverlap), __func__);
@@ -1159,13 +1164,6 @@ static float calc_nearest_point_squared(const float proj[3], BVHNode *node, floa
 	return len_squared_v3v3(proj, nearest);
 }
 
-
-typedef struct NodeDistance {
-	BVHNode *node;
-	float dist;
-
-} NodeDistance;
-
 /* TODO: use a priority queue to reduce the number of nodes looked on */
 static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 {
@@ -1212,6 +1210,12 @@ static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 
 
 #if 0
+
+typedef struct NodeDistance {
+	BVHNode *node;
+	float dist;
+
+} NodeDistance;
 
 #define DEFAULT_FIND_NEAREST_HEAP_SIZE 1024
 
