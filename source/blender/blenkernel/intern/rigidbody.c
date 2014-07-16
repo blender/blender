@@ -522,10 +522,10 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 			
 				DM_ensure_tessface(dm);
 			
-				mvert   = (dm) ? dm->getVertArray(dm) : NULL;
-				totvert = (dm) ? dm->getNumVerts(dm) : 0;
-				mface   = (dm) ? dm->getTessFaceArray(dm) : NULL;
-				totface = (dm) ? dm->getNumTessFaces(dm) : 0;
+				mvert   = dm->getVertArray(dm);
+				totvert = dm->getNumVerts(dm);
+				mface   = dm->getTessFaceArray(dm);
+				totface = dm->getNumTessFaces(dm);
 				
 				if (totvert > 0 && totface > 0) {
 					BKE_mesh_calc_volume(mvert, totvert, mface, totface, &volume, NULL);
@@ -605,10 +605,10 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_com[3])
 			
 				DM_ensure_tessface(dm);
 			
-				mvert   = (dm) ? dm->getVertArray(dm) : NULL;
-				totvert = (dm) ? dm->getNumVerts(dm) : 0;
-				mface   = (dm) ? dm->getTessFaceArray(dm) : NULL;
-				totface = (dm) ? dm->getNumTessFaces(dm) : 0;
+				mvert   = dm->getVertArray(dm);
+				totvert = dm->getNumVerts(dm);
+				mface   = dm->getTessFaceArray(dm);
+				totface = dm->getNumTessFaces(dm);
 				
 				if (totvert > 0 && totface > 0) {
 					BKE_mesh_calc_volume(mvert, totvert, mface, totface, NULL, r_com);
