@@ -392,10 +392,8 @@ typedef enum LightType {
 	LIGHT_DISTANT,
 	LIGHT_BACKGROUND,
 	LIGHT_AREA,
-	LIGHT_AO,
 	LIGHT_SPOT,
-	LIGHT_TRIANGLE,
-	LIGHT_STRAND
+	LIGHT_TRIANGLE
 } LightType;
 
 /* Camera Type */
@@ -530,13 +528,11 @@ typedef struct ShaderClosure {
 
 	float data0;
 	float data1;
+	float data2;
 
 	float3 N;
-#if defined(__ANISOTROPIC__) || defined(__SUBSURFACE__) || defined(__HAIR__)
 	float3 T;
-#endif
 
-	float data2;
 #ifdef __OSL__
 	void *prim;
 #endif
@@ -927,7 +923,6 @@ typedef enum CurveFlag {
 } CurveFlag;
 
 typedef struct KernelCurves {
-	/* strand intersect and normal parameters - many can be changed to flags */
 	int curveflags;
 	int subdivisions;
 
