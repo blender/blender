@@ -29,8 +29,8 @@ class MESH_MT_vertex_group_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.vertex_group_sort", icon='SORTALPHA').sort_type="ALPHANUMERIC"
-        layout.operator("object.vertex_group_sort", icon='ARMATURE_DATA', text="Sort by Bone Hierarchy").sort_type="BONE_HIERARCHY"
+        layout.operator("object.vertex_group_sort", icon='SORTALPHA').sort_type = "NAME"
+        layout.operator("object.vertex_group_sort", icon='ARMATURE_DATA', text="Sort by Bone Hierarchy").sort_type = "BONE_HIERARCHY"
         layout.operator("object.vertex_group_copy", icon='COPY_ID')
         layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
         layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')

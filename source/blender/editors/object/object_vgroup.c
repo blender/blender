@@ -4324,7 +4324,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int vgroup_sort_alphanumeric(void *def_a_ptr, void *def_b_ptr)
+static int vgroup_sort_name(void *def_a_ptr, void *def_b_ptr)
 {
 	bDeformGroup *def_a = (bDeformGroup *)def_a_ptr;
 	bDeformGroup *def_b = (bDeformGroup *)def_b_ptr;
@@ -4332,12 +4332,15 @@ static int vgroup_sort_alphanumeric(void *def_a_ptr, void *def_b_ptr)
 	return BLI_natstrcmp(def_a->name, def_b->name);
 }
 
+/* Sorts the weight groups according to the bone hierarchy of the
+   associated armature (similar to how bones are ordered in the Outliner) */
 static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
 {
 	if (bonebase == NULL) {
 		Object *armobj = modifiers_isDeformedByArmature(ob);
 		if (armobj != NULL) {
-			bonebase = &((struct bArmature *)armobj->data)->bonebase;
+			bArmature *armature = armobj->data;
+			bonebase = &armature->bonebase;
 		}
 	}
 
@@ -4358,7 +4361,7 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
 }
 
 enum {
-	SORT_TYPE_ALPHANUMERIC  = 0,
+	SORT_TYPE_NAME          = 0,
 	SORT_TYPE_BONEHIERARCHY = 1
 };
 
@@ -4374,8 +4377,8 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 
 	/*sort vgroup names*/
 	switch(sort_type) {
-		case SORT_TYPE_ALPHANUMERIC: 
-			BLI_sortlist(&ob->defbase, vgroup_sort_alphanumeric);
+		case SORT_TYPE_NAME: 
+			BLI_sortlist(&ob->defbase, vgroup_sort_name);
 			break;
 		case SORT_TYPE_BONEHIERARCHY:
 			vgroup_sort_bone_hierarchy(ob, NULL);
@@ -4398,7 +4401,7 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
 	static EnumPropertyItem vgroup_sort_type[] = {
-			{SORT_TYPE_ALPHANUMERIC, "ALPHANUMERIC", 0, "Alphanumeric", ""},
+			{SORT_TYPE_NAME, "NAME", 0, "Name", ""},
 			{SORT_TYPE_BONEHIERARCHY, "BONE_HIERARCHY", 0, "Bone Hierarchy", ""},
 			{0, NULL, 0, NULL, NULL}
 	};
@@ -4414,7 +4417,7 @@ void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "sort_type", vgroup_sort_type, SORT_TYPE_ALPHANUMERIC, "Sort type", "Sort type");
+	RNA_def_enum(ot->srna, "sort_type", vgroup_sort_type, SORT_TYPE_NAME, "Sort type", "Sort type");
 }
 
 static int vgroup_move_exec(bContext *C, wmOperator *op)
