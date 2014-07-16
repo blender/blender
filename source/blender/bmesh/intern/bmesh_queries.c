@@ -183,6 +183,26 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 }
 
 /**
+ * Check if verts share a face.
+ */
+bool BM_vert_pair_share_face_check(
+        BMVert *v_a, BMVert *v_b)
+{
+	if (v_a->e && v_b->e) {
+		BMIter iter;
+		BMFace *f;
+
+		BM_ITER_ELEM (f, &iter, v_a, BM_FACES_OF_VERT) {
+			if (BM_vert_in_face(f, v_b)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/**
  * Given 2 verts, find the smallest face they share and give back both loops.
  */
 BMFace *BM_vert_pair_share_face_by_len(

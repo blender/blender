@@ -1960,6 +1960,8 @@ bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 		return false;
 	}
 
+	BLI_assert(BM_vert_pair_share_face_check(v, v_target) == false);
+
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {
 

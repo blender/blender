@@ -50,6 +50,8 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v);
 BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step);
 BMLoop *BM_vert_find_first_loop(BMVert *v);
 
+bool    BM_vert_pair_share_face_check(
+        BMVert *v_a, BMVert *v_b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMFace *BM_vert_pair_share_face_by_len(
         BMVert *v_a, BMVert *v_b,
         BMLoop **r_l_a, BMLoop **r_l_b,
