@@ -1953,10 +1953,6 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
  */
 bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 {
-	void *loops_stack[BM_DEFAULT_ITER_STACK_SIZE];
-	BMLoop **loops;
-	int i, loops_tot;
-
 	BMEdge *e;
 
 	/* verts already spliced */
@@ -1964,21 +1960,23 @@ bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 		return false;
 	}
 
-	/* we can't modify the vert while iterating so first allocate an array of loops */
-	loops = BM_iter_as_arrayN(bm, BM_LOOPS_OF_VERT, v, &loops_tot,
-	                          loops_stack, BM_DEFAULT_ITER_STACK_SIZE);
-
-	if (LIKELY(loops != NULL)) {
-		for (i = 0; i < loops_tot; i++) {
-			loops[i]->v = v_target;
-		}
-		if (loops != (BMLoop **)loops_stack) {
-			MEM_freeN(loops);
-		}
-	}
-
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {
+
+		/* loop  */
+		BMLoop *l_first;
+		if ((l_first = e->l)) {
+			BMLoop *l_iter = l_first;
+			do {
+				if (l_iter->v == v) {
+					l_iter->v = v_target;
+				}
+				/* else if (l_iter->prev->v == v) {...}
+				 * (this case will be handled by a different edge) */
+			} while ((l_iter = l_iter->radial_next) != l_first);
+		}
+
+		/* disk */
 		bmesh_disk_edge_remove(e, v);
 		bmesh_edge_swapverts(e, v, v_target);
 		bmesh_disk_edge_append(e, v_target);
