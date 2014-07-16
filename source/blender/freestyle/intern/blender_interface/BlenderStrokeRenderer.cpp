@@ -231,7 +231,6 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 		for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
 			if (node->type == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
 				output_linestyle = node;
-				cout << "output found" << endl;
 				break;
 			}
 		}
