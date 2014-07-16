@@ -43,6 +43,7 @@
 struct Main;
 struct Object;
 struct ColorBand;
+struct bContext;
 
 FreestyleLineStyle *BKE_linestyle_new(const char *name, struct Main *main);
 void                BKE_linestyle_free(FreestyleLineStyle *linestyle);
@@ -74,5 +75,7 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, List
 char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, struct ColorBand *color_ramp);
 
 void BKE_linestyle_target_object_unlink(FreestyleLineStyle *linestyle, struct Object *ob);
+
+void BKE_linestyle_default_shader(const struct bContext *C, FreestyleLineStyle *linestyle);
 
 #endif  /* __BKE_LINESTYLE_H__ */

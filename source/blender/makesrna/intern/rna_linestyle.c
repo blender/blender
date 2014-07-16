@@ -290,7 +290,7 @@ static void rna_LineStyle_use_nodes_update(bContext *C, PointerRNA *ptr)
 	FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ptr->data;
 
 	if (linestyle->use_nodes && linestyle->nodetree == NULL)
-		ED_node_shader_default(C, &linestyle->id);
+		BKE_linestyle_default_shader(C, linestyle);
 
 	rna_LineStyle_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }

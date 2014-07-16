@@ -43,6 +43,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -51,6 +52,8 @@
 #include "BKE_texture.h"
 #include "BKE_colortools.h"
 #include "BKE_animsys.h"
+
+#include "RNA_access.h"
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
 	NULL,
@@ -1149,4 +1152,34 @@ void BKE_linestyle_target_object_unlink(FreestyleLineStyle *linestyle, struct Ob
 			}
 		}
 	}
+}
+
+void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linestyle)
+{
+	Scene *scene = CTX_data_scene(C);
+	bNode *input_texure, *output_linestyle;
+	bNodeSocket *fromsock, *tosock;
+	bNodeTree *ntree;
+
+	BLI_assert(linestyle->nodetree == NULL);
+
+	ntree = ntreeAddTree(NULL, "default_shader", "ShaderNodeTree");
+
+	linestyle->nodetree = ntree;
+
+	input_texure = nodeAddStaticNode(C, ntree, SH_NODE_TEX_IMAGE);
+	input_texure->locx = 10.0f;
+	input_texure->locy = 300.0f;
+
+	output_linestyle = nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_LINESTYLE);
+	output_linestyle->locx = 300.0f;
+	output_linestyle->locy = 300.0f;
+
+	nodeSetActive(ntree, input_texure);
+
+	fromsock = (bNodeSocket *)BLI_findlink(&input_texure->outputs, 0); // Color
+	tosock = (bNodeSocket *)BLI_findlink(&output_linestyle->outputs, 0); // Color
+	nodeAddLink(ntree, input_texure, fromsock, output_linestyle, tosock);
+
+	ntreeUpdateTree(CTX_data_main(C), ntree);
 }
