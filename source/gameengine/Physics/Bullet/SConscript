@@ -39,6 +39,7 @@ incs = [
     '#source/blender/blenkernel',
     '#source/blender/blenlib',
     '#source/blender/makesdna',
+    '#source/gameengine/Converter',
     '#source/gameengine/Expressions',
     '#source/gameengine/GameLogic',
     '#source/gameengine/Ketsji',

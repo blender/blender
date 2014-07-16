@@ -42,6 +42,7 @@ subject to the following restrictions:
 #include "PHY_Pro.h"
 #include "KX_GameObject.h"
 #include "KX_PythonInit.h" // for KX_RasterizerDrawDebugLine
+#include "KX_BlenderSceneConverter.h"
 #include "RAS_MeshObject.h"
 #include "RAS_Polygon.h"
 #include "RAS_TexVert.h"
@@ -3044,9 +3045,17 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 	CcdConstructionInfo ci;
 	class CcdShapeConstructionInfo *shapeInfo = new CcdShapeConstructionInfo();
 
-	KX_GameObject *parent = gameobj->GetParent();
-	if (parent)
+	// get Root Parent of blenderobject
+	Object *blenderparent = blenderobject->parent;
+	while (blenderparent && blenderparent->parent) {
+		blenderparent = blenderparent->parent;
+	}
+
+	KX_GameObject *parent = NULL;
+	if (blenderparent)
 	{
+		KX_BlenderSceneConverter *converter = (KX_BlenderSceneConverter*)KX_GetActiveEngine()->GetSceneConverter();
+		parent = converter->FindGameObject(blenderparent);
 		isbulletdyna = false;
 		isbulletsoftbody = false;
 		shapeprops->m_mass = 0.f;

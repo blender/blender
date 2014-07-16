@@ -223,6 +223,7 @@ public:
 	PyObject*		GetPyProfileDict();
 #endif
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
+	KX_ISceneConverter* GetSceneConverter() { return m_sceneconverter; }
 	void			SetAnimRecordMode(bool animation_record, int startFrame);
 
 	RAS_IRasterizer*		GetRasterizer() { return m_rasterizer; }
