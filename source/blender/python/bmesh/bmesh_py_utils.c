@@ -247,7 +247,7 @@ static PyObject *bpy_bm_utils_vert_separate(PyObject *UNUSED(self), PyObject *ar
 
 	BM_vert_separate(bm, py_vert->v, &elem, &elem_len, edge_array, edge_array_len);
 	/* return collected verts */
-	ret = BPy_BMElem_Array_As_Tuple(bm, (BMHeader **)elem, elem_len);
+	ret = BPy_BMVert_Array_As_Tuple(bm, elem, elem_len);
 	MEM_freeN(elem);
 
 	PyMem_FREE(edge_array);
@@ -535,11 +535,7 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject *UNUSED(self), PyObjec
 	PyMem_FREE(edge_array);
 
 	if (ok) {
-		PyObject *ret = PyTuple_New(face_arr_len);
-		int i;
-		for (i = 0; i < face_arr_len; i++) {
-			PyTuple_SET_ITEM(ret, i, BPy_BMFace_CreatePyObject(bm, face_arr[i]));
-		}
+		PyObject *ret = BPy_BMFace_Array_As_Tuple(bm, face_arr, face_arr_len);
 		MEM_freeN(face_arr);
 		return ret;
 	}

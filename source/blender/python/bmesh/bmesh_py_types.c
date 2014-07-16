@@ -3669,13 +3669,50 @@ err_cleanup:
 	}
 }
 
-
 PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len)
 {
 	Py_ssize_t i;
 	PyObject *ret = PyTuple_New(elem_len);
 	for (i = 0; i < elem_len; i++) {
 		PyTuple_SET_ITEM(ret, i, BPy_BMElem_CreatePyObject(bm, elem[i]));
+	}
+	return ret;
+}
+PyObject *BPy_BMVert_Array_As_Tuple(BMesh *bm, BMVert **elem, Py_ssize_t elem_len)
+{
+	Py_ssize_t i;
+	PyObject *ret = PyTuple_New(elem_len);
+	for (i = 0; i < elem_len; i++) {
+		PyTuple_SET_ITEM(ret, i, BPy_BMVert_CreatePyObject(bm, elem[i]));
+	}
+	return ret;
+}
+PyObject *BPy_BMEdge_Array_As_Tuple(BMesh *bm, BMEdge **elem, Py_ssize_t elem_len)
+{
+	Py_ssize_t i;
+	PyObject *ret = PyTuple_New(elem_len);
+	for (i = 0; i < elem_len; i++) {
+		PyTuple_SET_ITEM(ret, i, BPy_BMEdge_CreatePyObject(bm, elem[i]));
+	}
+
+	return ret;
+}
+PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_len)
+{
+	Py_ssize_t i;
+	PyObject *ret = PyTuple_New(elem_len);
+	for (i = 0; i < elem_len; i++) {
+		PyTuple_SET_ITEM(ret, i, BPy_BMFace_CreatePyObject(bm, elem[i]));
+	}
+
+	return ret;
+}
+PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm, BMLoop **elem, Py_ssize_t elem_len)
+{
+	Py_ssize_t i;
+	PyObject *ret = PyTuple_New(elem_len);
+	for (i = 0; i < elem_len; i++) {
+		PyTuple_SET_ITEM(ret, i, BPy_BMLoop_CreatePyObject(bm, elem[i]));
 	}
 
 	return ret;
