@@ -736,7 +736,7 @@ void FRS_move_active_lineset_down(FreestyleConfig *config)
 
 Material *FRS_create_stroke_material(bContext *C, Main *bmain, Scene *scene)
 {
-	FreestyleLineStyle *linestyle = CTX_data_linestyle_from_scene(scene);
+	FreestyleLineStyle *linestyle = BKE_get_linestyle_from_scene(scene);
 
 	if (!linestyle) {
 		cout << "FRS_create_stroke_material: No active line style in the current scene" << endl;

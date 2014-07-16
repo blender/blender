@@ -49,6 +49,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
@@ -100,7 +101,7 @@ static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tre
 	}
 #ifdef WITH_FREESTYLE
 	else if (snode->shaderfrom == SNODE_SHADER_LINESTYLE) {
-		FreestyleLineStyle *linestyle = CTX_data_linestyle_from_scene(scene);
+		FreestyleLineStyle *linestyle = BKE_get_linestyle_from_scene(scene);
 		if (linestyle) {
 			*r_from = NULL;
 			*r_id = &linestyle->id;
