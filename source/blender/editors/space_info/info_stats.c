@@ -458,7 +458,7 @@ static void stats_string(Scene *scene)
 	}
 	else {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
-		                    IFACE_("Verts: %s | Faces:%s | Tris:%s | Objects:%s/%s | Lamps:%s/%s%s"),
+		                    IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s | Lamps:%s/%s%s"),
 		                    stats_fmt.totvert, stats_fmt.totface,
 		                    stats_fmt.tottri, stats_fmt.totobjsel,
 		                    stats_fmt.totobj, stats_fmt.totlampsel,
