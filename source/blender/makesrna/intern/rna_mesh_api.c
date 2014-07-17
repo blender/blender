@@ -206,9 +206,15 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "validate", "BKE_mesh_validate");
-	RNA_def_function_ui_description(func, "validate geometry, return True when the mesh has had "
+	RNA_def_function_ui_description(func, "Validate geometry, return True when the mesh has had "
 	                                "invalid geometry corrected/removed");
 	RNA_def_boolean(func, "verbose", 0, "Verbose", "Output information about the errors found");
+	parm = RNA_def_boolean(func, "result", 0, "Result", "");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "validate_material_indices", "BKE_mesh_validate_material_indices");
+	RNA_def_function_ui_description(func, "Validate material indices of polygons, return True when the mesh has had "
+	                                "invalid indices corrected (to default 0)");
 	parm = RNA_def_boolean(func, "result", 0, "Result", "");
 	RNA_def_function_return(func, parm);
 }

@@ -909,8 +909,6 @@ static bool mesh_validate_customdata(CustomData *data, CustomDataMask mask,
 	return is_valid;
 }
 
-#undef PRINT
-
 /**
  * \returns is_valid.
  */
@@ -1052,8 +1050,36 @@ void BKE_mesh_cd_validate(Mesh *me)
 		}
 	}
 }
-/** \} */
 
+/**
+ * Check all material indices of polygons are valid, invalid ones are set to 0.
+ * \returns is_valid.
+ */
+int BKE_mesh_validate_material_indices(Mesh *me)
+{
+	MPoly *mp;
+	const int max_idx = max_ii(0, me->totcol - 1);
+	const int totpoly = me->totpoly;
+	int i;
+	bool is_valid = true;
+
+	for (mp = me->mpoly, i = 0; i < totpoly; i++, mp++) {
+		if (mp->mat_nr > max_idx) {
+			mp->mat_nr = 0;
+			is_valid = false;
+		}
+	}
+
+	if (!is_valid) {
+		DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/** \} */
 
 
 /* -------------------------------------------------------------------- */

@@ -87,6 +87,7 @@ bool BKE_curve_center_bounds(struct Curve *cu, float cent[3]);
 void BKE_curve_translate(struct Curve *cu, float offset[3], const bool do_keys);
 void BKE_curve_material_index_remove(struct Curve *cu, int index);
 void BKE_curve_material_index_clear(struct Curve *cu);
+int BKE_curve_material_index_validate(struct Curve *cu);
 
 ListBase    *BKE_curve_nurbs_get(struct Curve *cu);
 

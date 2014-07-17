@@ -52,6 +52,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -4227,6 +4228,45 @@ void BKE_curve_material_index_clear(Curve *cu)
 				nu->charidx = 0;
 			}
 		}
+	}
+}
+
+int BKE_curve_material_index_validate(Curve *cu)
+{
+	const int curvetype = BKE_curve_type_get(cu);
+	bool is_valid = true;
+
+	if (curvetype == OB_FONT) {
+		CharInfo *info = cu->strinfo;
+		const int max_idx = max_ii(0, cu->totcol);  /* OB_FONT use 1 as first mat index, not 0!!! */
+		int i;
+		for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
+			if (info->mat_nr > max_idx) {
+				info->mat_nr = 0;
+				is_valid = false;
+			}
+		}
+	}
+	else {
+		Nurb *nu;
+		const int max_idx = max_ii(0, cu->totcol - 1);
+		for (nu = cu->nurb.first; nu; nu = nu->next) {
+			if (nu->mat_nr > max_idx) {
+				nu->mat_nr = 0;
+				if (curvetype == OB_CURVE) {
+					nu->charidx = 0;
+				}
+				is_valid = false;
+			}
+		}
+	}
+
+	if (!is_valid) {
+		DAG_id_tag_update(&cu->id, OB_RECALC_DATA);
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 

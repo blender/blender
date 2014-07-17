@@ -287,6 +287,7 @@ void BKE_mesh_calc_relative_deform(
 
 int BKE_mesh_validate(struct Mesh *me, const int do_verbose);
 void BKE_mesh_cd_validate(struct Mesh *me);
+int BKE_mesh_validate_material_indices(struct Mesh *me);
 
 bool BKE_mesh_validate_arrays(
         struct Mesh *me,
