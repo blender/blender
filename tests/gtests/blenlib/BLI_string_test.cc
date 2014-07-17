@@ -267,3 +267,37 @@ TEST(string, StrRPartitionUtf8)
 		EXPECT_EQ(NULL, suf);
 	}
 }
+
+/* BLI_str_format_int_grouped */
+TEST(string, StrFormatIntGrouped)
+{
+	char num_str[16];
+	int num;
+
+	BLI_str_format_int_grouped(num_str, num = 0);
+	EXPECT_STREQ("0", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = 1);
+	EXPECT_STREQ("1", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = -1);
+	EXPECT_STREQ("-1", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = -2147483648);
+	EXPECT_STREQ("-2,147,483,648", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = 2147483647);
+	EXPECT_STREQ("2,147,483,647", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = 1000);
+	EXPECT_STREQ("1,000", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = -1000);
+	EXPECT_STREQ("-1,000", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = 999);
+	EXPECT_STREQ("999", num_str);
+
+	BLI_str_format_int_grouped(num_str, num = -999);
+	EXPECT_STREQ("-999", num_str);
+}

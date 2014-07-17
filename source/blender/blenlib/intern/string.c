@@ -741,3 +741,38 @@ size_t BLI_str_partition_ex(const char *str, const char delim[], char **sep, cha
 
 	return strlen(str);
 }
+
+/**
+ * Format ints with decimal grouping.
+ * 1000 -> 1,000
+ *
+ * \param dst  The resulting string
+ * \param num  Number to format
+ * \return The length of \a dst
+ */
+size_t BLI_str_format_int_grouped(char dst[16], int num)
+{
+	char src[16];
+	char *p_src = src;
+	char *p_dst = dst;
+
+	const char separator = ',';
+	int num_len, commas;
+
+	num_len = sprintf(src, "%d", num);
+
+	if (*p_src == '-') {
+		*p_dst++ = *p_src++;
+		num_len--;
+	}
+
+	for (commas = 2 - num_len % 3; *p_src; commas = (commas + 1) % 3) {
+		*p_dst++ = *p_src++;
+		if (commas == 1) {
+			*p_dst++ = separator;
+		}
+	}
+	*--p_dst = '\0';
+
+	return (size_t)(p_dst - dst);
+}

@@ -57,6 +57,7 @@
 #include "ED_armature.h"
 
 #define MAX_INFO_LEN 512
+#define MAX_INFO_NUM_LEN 16
 
 typedef struct SceneStats {
 	int totvert, totvertsel;
@@ -65,10 +66,21 @@ typedef struct SceneStats {
 	int totbone, totbonesel;
 	int totobj,  totobjsel;
 	int totlamp, totlampsel; 
-	int tottri, totmesh;
+	int tottri;
 
 	char infostr[MAX_INFO_LEN];
 } SceneStats;
+
+typedef struct SceneStatsFmt {
+	/* Totals */
+	char totvert[MAX_INFO_NUM_LEN], totvertsel[MAX_INFO_NUM_LEN];
+	char totface[MAX_INFO_NUM_LEN], totfacesel[MAX_INFO_NUM_LEN];
+	char totedge[MAX_INFO_NUM_LEN], totedgesel[MAX_INFO_NUM_LEN];
+	char totbone[MAX_INFO_NUM_LEN], totbonesel[MAX_INFO_NUM_LEN];
+	char totobj[MAX_INFO_NUM_LEN], totobjsel[MAX_INFO_NUM_LEN];
+	char totlamp[MAX_INFO_NUM_LEN], totlampsel[MAX_INFO_NUM_LEN];
+	char tottri[MAX_INFO_NUM_LEN];
+} SceneStatsFmt;
 
 static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 {
@@ -78,8 +90,6 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 			/* we assume derivedmesh is already built, this strictly does stats now. */
 			DerivedMesh *dm = ob->derivedFinal;
 			int totvert, totedge, totface, totloop;
-
-			stats->totmesh += totob;
 
 			if (dm) {
 				totvert = dm->getNumVerts(dm);
@@ -367,6 +377,7 @@ static void stats_string(Scene *scene)
 {
 #define MAX_INFO_MEM_LEN  64
 	SceneStats *stats = scene->stats;
+	SceneStatsFmt stats_fmt;
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 	uintptr_t mem_in_use, mmap_in_use;
 	char memstr[MAX_INFO_MEM_LEN];
@@ -375,6 +386,34 @@ static void stats_string(Scene *scene)
 
 	mem_in_use = MEM_get_memory_in_use();
 	mmap_in_use = MEM_get_mapped_memory_in_use();
+
+
+	/* Generate formatted numbers */
+#define SCENE_STATS_FMT_INT(_id) \
+	BLI_str_format_int_grouped(stats_fmt._id, stats->_id)
+
+	SCENE_STATS_FMT_INT(totvert);
+	SCENE_STATS_FMT_INT(totvertsel);
+
+	SCENE_STATS_FMT_INT(totedge);
+	SCENE_STATS_FMT_INT(totedgesel);
+
+	SCENE_STATS_FMT_INT(totface);
+	SCENE_STATS_FMT_INT(totfacesel);
+
+	SCENE_STATS_FMT_INT(totbone);
+	SCENE_STATS_FMT_INT(totbonesel);
+
+	SCENE_STATS_FMT_INT(totobj);
+	SCENE_STATS_FMT_INT(totobjsel);
+
+	SCENE_STATS_FMT_INT(totlamp);
+	SCENE_STATS_FMT_INT(totlampsel);
+
+	SCENE_STATS_FMT_INT(tottri);
+
+#undef SCENE_STATS_FMT_INT
+
 
 	/* get memory statistics */
 	s = memstr;
@@ -394,32 +433,36 @@ static void stats_string(Scene *scene)
 
 		if (scene->obedit->type == OB_MESH) {
 			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
-			                    IFACE_("Verts:%d/%d | Edges:%d/%d | Faces:%d/%d | Tris:%d"),
-		                        stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge,
-		                        stats->totfacesel, stats->totface, stats->tottri);
+			                    IFACE_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
+			                    stats_fmt.totvertsel, stats_fmt.totvert, stats_fmt.totedgesel, stats_fmt.totedge,
+			                    stats_fmt.totfacesel, stats_fmt.totface, stats_fmt.tottri);
 		}
 		else if (scene->obedit->type == OB_ARMATURE) {
-			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%d/%d | Bones:%d/%d"), stats->totvertsel,
-			                    stats->totvert, stats->totbonesel, stats->totbone);
+			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%s/%s | Bones:%s/%s"), stats_fmt.totvertsel,
+			                    stats_fmt.totvert, stats_fmt.totbonesel, stats_fmt.totbone);
 		}
 		else {
-			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%d/%d"), stats->totvertsel, stats->totvert);
+			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%s/%s"), stats_fmt.totvertsel,
+			                    stats_fmt.totvert);
 		}
 
 		ofs += BLI_strncpy_rlen(s + ofs, memstr, MAX_INFO_LEN - ofs);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Bones:%d/%d %s"),
-		                    stats->totbonesel, stats->totbone, memstr);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Bones:%s/%s %s"),
+		                    stats_fmt.totbonesel, stats_fmt.totbone, memstr);
 	}
 	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
-		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%d | Tris:%d"), stats->totvert, stats->tottri);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%s | Tris:%s"), stats_fmt.totvert,
+		                    stats_fmt.tottri);
 	}
 	else {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
-		                    IFACE_("Verts:%d | Faces:%d | Tris:%d | Objects:%d/%d | Lamps:%d/%d%s"), stats->totvert,
-		                    stats->totface, stats->tottri, stats->totobjsel, stats->totobj, stats->totlampsel,
-		                    stats->totlamp, memstr);
+		                    IFACE_("Verts: %s | Faces:%s | Tris:%s | Objects:%s/%s | Lamps:%s/%s%s"),
+		                    stats_fmt.totvert, stats_fmt.totface,
+		                    stats_fmt.tottri, stats_fmt.totobjsel,
+		                    stats_fmt.totobj, stats_fmt.totlampsel,
+		                    stats_fmt.totlamp, memstr);
 	}
 
 	if (ob)
