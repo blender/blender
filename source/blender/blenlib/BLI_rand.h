@@ -42,33 +42,33 @@ typedef struct RNG RNG;
 
 struct RNG *BLI_rng_new(unsigned int seed);
 struct RNG *BLI_rng_new_srandom(unsigned int seed);
-void        BLI_rng_free(struct RNG *rng);
+void        BLI_rng_free(struct RNG *rng) ATTR_NONNULL(1);
 
-void        BLI_rng_seed(struct RNG *rng, unsigned int seed);
-void        BLI_rng_srandom(struct RNG *rng, unsigned int seed);
-int         BLI_rng_get_int(struct RNG *rng);
-unsigned int BLI_rng_get_uint(struct RNG *rng);
-double      BLI_rng_get_double(struct RNG *rng);
-float       BLI_rng_get_float(struct RNG *rng);
-void        BLI_rng_get_float_unit_v2(struct RNG *rng, float v[2]);
-void        BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]);
-void        BLI_rng_shuffle_array(struct RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot);
+void        BLI_rng_seed(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
+void        BLI_rng_srandom(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
+int         BLI_rng_get_int(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+unsigned int BLI_rng_get_uint(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+double      BLI_rng_get_double(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+float       BLI_rng_get_float(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void        BLI_rng_get_float_unit_v2(struct RNG *rng, float v[2]) ATTR_NONNULL(1, 2);
+void        BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]) ATTR_NONNULL(1, 2);
+void        BLI_rng_shuffle_array(struct RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot) ATTR_NONNULL(1, 2);
 
 /** Note that skipping is as slow as generating n numbers! */
-void        BLI_rng_skip(struct RNG *rng, int n);
+void        BLI_rng_skip(struct RNG *rng, int n) ATTR_NONNULL(1);
 
 /** Seed for the random number generator, using noise.c hash[] */
 void    BLI_srandom(unsigned int seed);
 
 /** Return a pseudo-random number N where 0<=N<(2^31) */
-int     BLI_rand(void);
+int     BLI_rand(void) ATTR_WARN_UNUSED_RESULT;
 
 /** Return a pseudo-random number N where 0.0f<=N<1.0f */
-float   BLI_frand(void);
+float   BLI_frand(void) ATTR_WARN_UNUSED_RESULT;
 void    BLI_frand_unit_v3(float v[3]);
 
 /** Return a pseudo-random (hash) float from an integer value */
-float	BLI_hash_frand(unsigned int seed);
+float	BLI_hash_frand(unsigned int seed) ATTR_WARN_UNUSED_RESULT;
 
 /** Shuffle an array randomly using the given seed.
  * contents. This routine does not use nor modify
@@ -83,10 +83,10 @@ void    BLI_thread_srandom(int thread, unsigned int seed);
 
 /** Return a pseudo-random number N where 0<=N<(2^31) */
 /** Allows up to BLENDER_MAX_THREADS threads to address */
-int     BLI_thread_rand(int thread);
+int     BLI_thread_rand(int thread) ATTR_WARN_UNUSED_RESULT;
 
 /** Return a pseudo-random number N where 0.0f<=N<1.0f */
 /** Allows up to BLENDER_MAX_THREADS threads to address */
-float   BLI_thread_frand(int thread);
+float   BLI_thread_frand(int thread) ATTR_WARN_UNUSED_RESULT;
 
 #endif  /* __BLI_RAND_H__ */

@@ -35,31 +35,31 @@ typedef void (*HeapFreeFP)(void *ptr);
 
 /* Creates a new heap. BLI_memarena is used for allocating nodes. Removed nodes
  * are recycled, so memory usage will not shrink. */
-Heap           *BLI_heap_new_ex(unsigned int tot_reserve);
-Heap           *BLI_heap_new(void);
-void            BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp);
+Heap           *BLI_heap_new_ex(unsigned int tot_reserve) ATTR_WARN_UNUSED_RESULT;
+Heap           *BLI_heap_new(void) ATTR_WARN_UNUSED_RESULT;
+void            BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp) ATTR_NONNULL(1);
 
 /* Insert heap node with a value (often a 'cost') and pointer into the heap,
  * duplicate values are allowed. */
-HeapNode       *BLI_heap_insert(Heap *heap, float value, void *ptr);
+HeapNode       *BLI_heap_insert(Heap *heap, float value, void *ptr) ATTR_NONNULL(1);
 
 /* Remove a heap node. */
-void            BLI_heap_remove(Heap *heap, HeapNode *node);
+void            BLI_heap_remove(Heap *heap, HeapNode *node) ATTR_NONNULL(1, 2);
 
 /* Return 0 if the heap is empty, 1 otherwise. */
-bool            BLI_heap_is_empty(Heap *heap);
+bool            BLI_heap_is_empty(Heap *heap) ATTR_NONNULL(1);
 
 /* Return the size of the heap. */
-unsigned int    BLI_heap_size(Heap *heap);
+unsigned int    BLI_heap_size(Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* Return the top node of the heap. This is the node with the lowest value. */
-HeapNode       *BLI_heap_top(Heap *heap);
+HeapNode       *BLI_heap_top(Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* Pop the top node off the heap and return it's pointer. */
-void           *BLI_heap_popmin(Heap *heap);
+void           *BLI_heap_popmin(Heap *heap) ATTR_NONNULL(1);
 
 /* Return the value or pointer of a heap node. */
-float           BLI_heap_node_value(HeapNode *heap);
-void           *BLI_heap_node_ptr(HeapNode *heap);
+float           BLI_heap_node_value(HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void           *BLI_heap_node_ptr(HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 #endif  /* __BLI_HEAP_H__ */
