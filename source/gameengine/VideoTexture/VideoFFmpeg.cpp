@@ -545,6 +545,7 @@ void VideoFFmpeg::openFile (char *filename)
 		// but it is really not desirable to seek on http file, so force streaming.
 		// It would be good to find this information from the context but there are no simple indication
 		!strncmp(filename, "http://", 7) ||
+		!strncmp(filename, "rtsp://", 7) ||
 		(m_formatCtx->pb && !m_formatCtx->pb->seekable)
 		)
 	{
@@ -680,6 +681,12 @@ bool VideoFFmpeg::play (void)
 		{
 			// set video position
 			setPositions();
+
+			if (m_isStreaming)
+			{
+				av_read_play(m_formatCtx);
+			}
+
 			// return success
 			return true;
 		}
@@ -696,6 +703,10 @@ bool VideoFFmpeg::pause (void)
 	{
 		if (VideoBase::pause())
 		{
+			if (m_isStreaming)
+			{
+				av_read_pause(m_formatCtx);
+			}
 			return true;
 		}
 	}
