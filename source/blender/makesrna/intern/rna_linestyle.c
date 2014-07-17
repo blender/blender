@@ -286,7 +286,7 @@ static void rna_LineStyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 static LineStyleModifier *rna_LineStyle_color_modifier_add(FreestyleLineStyle *linestyle, ReportList *reports,
                                                            const char *name, int type)
 {
-	LineStyleModifier *modifier = BKE_linestyle_modifier_add_color(linestyle, name, type);
+	LineStyleModifier *modifier = BKE_linestyle_color_modifier_add(linestyle, name, type);
 
 	if (!modifier) {
 		BKE_report(reports, RPT_ERROR, "Failed to add the color modifier");
@@ -304,7 +304,7 @@ static void rna_LineStyle_color_modifier_remove(FreestyleLineStyle *linestyle, R
 {
 	LineStyleModifier *modifier = modifier_ptr->data;
 
-	if (BKE_linestyle_modifier_remove_color(linestyle, modifier) == -1) {
+	if (BKE_linestyle_color_modifier_remove(linestyle, modifier) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Color modifier '%s' could not be removed", modifier->name);
 		return;
 	}
@@ -318,7 +318,7 @@ static void rna_LineStyle_color_modifier_remove(FreestyleLineStyle *linestyle, R
 static LineStyleModifier *rna_LineStyle_alpha_modifier_add(FreestyleLineStyle *linestyle, ReportList *reports,
                                                            const char *name, int type)
 {
-	LineStyleModifier *modifier = BKE_linestyle_modifier_add_alpha(linestyle, name, type);
+	LineStyleModifier *modifier = BKE_linestyle_alpha_modifier_add(linestyle, name, type);
 
 	if (!modifier) {
 		BKE_report(reports, RPT_ERROR, "Failed to add the alpha modifier");
@@ -336,7 +336,7 @@ static void rna_LineStyle_alpha_modifier_remove(FreestyleLineStyle *linestyle, R
 {
 	LineStyleModifier *modifier = modifier_ptr->data;
 
-	if (BKE_linestyle_modifier_remove_alpha(linestyle, modifier) == -1) {
+	if (BKE_linestyle_alpha_modifier_remove(linestyle, modifier) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Alpha modifier '%s' could not be removed", modifier->name);
 		return;
 	}
@@ -350,7 +350,7 @@ static void rna_LineStyle_alpha_modifier_remove(FreestyleLineStyle *linestyle, R
 static LineStyleModifier *rna_LineStyle_thickness_modifier_add(FreestyleLineStyle *linestyle, ReportList *reports,
                                                                const char *name, int type)
 {
-	LineStyleModifier *modifier = BKE_linestyle_modifier_add_thickness(linestyle, name, type);
+	LineStyleModifier *modifier = BKE_linestyle_thickness_modifier_add(linestyle, name, type);
 
 	if (!modifier) {
 		BKE_report(reports, RPT_ERROR, "Failed to add the thickness modifier");
@@ -368,7 +368,7 @@ static void rna_LineStyle_thickness_modifier_remove(FreestyleLineStyle *linestyl
 {
 	LineStyleModifier *modifier = modifier_ptr->data;
 
-	if (BKE_linestyle_modifier_remove_thickness(linestyle, modifier) == -1) {
+	if (BKE_linestyle_thickness_modifier_remove(linestyle, modifier) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Thickness modifier '%s' could not be removed", modifier->name);
 		return;
 	}
@@ -382,7 +382,7 @@ static void rna_LineStyle_thickness_modifier_remove(FreestyleLineStyle *linestyl
 static LineStyleModifier *rna_LineStyle_geometry_modifier_add(FreestyleLineStyle *linestyle, ReportList *reports,
                                                               const char *name, int type)
 {
-	LineStyleModifier *modifier = BKE_linestyle_modifier_add_geometry(linestyle, name, type);
+	LineStyleModifier *modifier = BKE_linestyle_geometry_modifier_add(linestyle, name, type);
 
 	if (!modifier) {
 		BKE_report(reports, RPT_ERROR, "Failed to add the geometry modifier");
@@ -400,7 +400,7 @@ static void rna_LineStyle_geometry_modifier_remove(FreestyleLineStyle *linestyle
 {
 	LineStyleModifier *modifier = modifier_ptr->data;
 
-	if (BKE_linestyle_modifier_remove_geometry(linestyle, modifier) == -1) {
+	if (BKE_linestyle_geometry_modifier_remove(linestyle, modifier) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Geometry modifier '%s' could not be removed", modifier->name);
 		return;
 	}
