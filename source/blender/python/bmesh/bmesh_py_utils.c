@@ -630,7 +630,7 @@ static PyObject *bpy_bm_utils_face_vert_separate(PyObject *UNUSED(self), PyObjec
 	bm = py_face->bm;
 
 	BPY_BM_CHECK_OBJ(py_face);
-	BPY_BM_CHECK_SOURCE_OBJ(py_vert, bm, "face_vert_separate()");
+	BPY_BM_CHECK_SOURCE_OBJ(bm, "face_vert_separate()", py_vert);
 
 	l = BM_face_vert_share_loop(py_face->f, py_vert->v);
 

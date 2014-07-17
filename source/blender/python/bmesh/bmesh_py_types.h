@@ -175,7 +175,7 @@ char     *BPy_BMElem_StringFromHType(const char htype);
 
 // void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
 int  bpy_bm_generic_valid_check(BPy_BMGeneric *self);
-int  bpy_bm_generic_valid_check_source(BPy_BMGeneric *self, BMesh *bm_source, const char *error_prefix);
+int  bpy_bm_generic_valid_check_source(BMesh *bm_source, const char *error_prefix, void **args, unsigned int args_n) ATTR_NONNULL(1, 2);
 
 #define BPY_BM_CHECK_OBJ(obj) \
 	if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return NULL; } (void)0
@@ -183,10 +183,18 @@ int  bpy_bm_generic_valid_check_source(BPy_BMGeneric *self, BMesh *bm_source, co
 	if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return -1; }   (void)0
 
 /* macros like BPY_BM_CHECK_OBJ/BPY_BM_CHECK_INT that ensure we're from the right BMesh */
-#define BPY_BM_CHECK_SOURCE_OBJ(obj, bm, errmsg) \
-	if (UNLIKELY(bpy_bm_generic_valid_check_source((BPy_BMGeneric *)obj, bm, errmsg) == -1)) { return NULL; } (void)0
-#define BPY_BM_CHECK_SOURCE_INT(obj, bm, errmsg) \
-	if (UNLIKELY(bpy_bm_generic_valid_check_source((BPy_BMGeneric *)obj, bm, errmsg) == -1)) { return -1; }   (void)0
+#define BPY_BM_CHECK_SOURCE_OBJ(bm, errmsg, ...)  { \
+	void *_args[] = {__VA_ARGS__}; \
+	if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1)) { \
+		return NULL; \
+	} \
+} (void)0
+#define BPY_BM_CHECK_SOURCE_INT(bm, errmsg, ...)  { \
+	void *_args[] = {__VA_ARGS__}; \
+	if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1)) { \
+		return -1; \
+	} \
+} (void)0
 
 #define BPY_BM_IS_VALID(obj) (LIKELY((obj)->bm != NULL))
 

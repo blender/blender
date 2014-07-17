@@ -281,7 +281,7 @@ static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerIte
 	}
 
 	BPY_BM_CHECK_OBJ(self);
-	BPY_BM_CHECK_SOURCE_OBJ(value, self->bm, "layer.copy_from()");
+	BPY_BM_CHECK_SOURCE_OBJ(self->bm, "layer.copy_from()", value);
 
 	if ((self->htype != value->htype) ||
 	    (self->type  != value->type))
