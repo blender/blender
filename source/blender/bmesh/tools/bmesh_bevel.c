@@ -187,6 +187,7 @@ typedef struct BevelParams {
 	bool limit_offset;      /* should offsets be limited by collisions? */
 	const struct MDeformVert *dvert; /* vertex group array, maybe set if vertex_only */
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
+	int mat_nr;            /* if >= 0, material number for bevel; else material comes from adjacent faces */
 } BevelParams;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -356,11 +357,12 @@ static BMFace *boundvert_rep_face(BoundVert *v)
  * Make ngon from verts alone.
  * Make sure to properly copy face attributes and do custom data interpolation from
  * corresponding elements of face_arr, if that is non-NULL, else from facerep.
+ * If mat_nr >= 0 then the material of the face is set to that.
  *
  * \note ALL face creation goes through this function, this is important to keep!
  */
 static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
-                               BMFace **face_arr, BMFace *facerep, bool do_interp)
+                               BMFace **face_arr, BMFace *facerep, int mat_nr, bool do_interp)
 {
 	BMIter iter;
 	BMLoop *l;
@@ -395,22 +397,24 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
 		BM_elem_flag_enable(f, BM_ELEM_TAG);
 	}
 
+	if (mat_nr >= 0)
+		f->mat_nr = mat_nr;
 	return f;
 }
 
 static BMFace *bev_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                   BMFace *facerep, bool do_interp)
+                                   BMFace *facerep, int mat_nr, bool do_interp)
 {
 	BMVert *varr[4] = {v1, v2, v3, v4};
-	return bev_create_ngon(bm, varr, v4 ? 4 : 3, NULL, facerep, do_interp);
+	return bev_create_ngon(bm, varr, v4 ? 4 : 3, NULL, facerep, mat_nr, do_interp);
 }
 
 static BMFace *bev_create_quad_tri_ex(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                      BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4)
+                                      BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4, int mat_nr)
 {
 	BMVert *varr[4] = {v1, v2, v3, v4};
 	BMFace *farr[4] = {f1, f2, f3, f4};
-	return bev_create_ngon(bm, varr, v4 ? 4 : 3, farr, f1, true);
+	return bev_create_ngon(bm, varr, v4 ? 4 : 3, farr, f1, mat_nr, true);
 }
 
 
@@ -490,13 +494,13 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
  * one side (f1, arbitrarily), and interpolate them all on that side.
  * For face data, use f1 (arbitrarily) as face representative. */
 static BMFace *bev_create_quad_straddle(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-        BMFace *f1, BMFace *f2, bool is_seam)
+        BMFace *f1, BMFace *f2, int mat_nr, bool is_seam)
 {
 	BMFace *f, *facerep;
 	BMLoop *l;
 	BMIter iter;
 
-	f = bev_create_quad_tri(bm, v1, v2, v3, v4, f1, false);
+	f = bev_create_quad_tri(bm, v1, v2, v3, v4, f1, mat_nr, false);
 
 	if (!f)
 		return NULL;
@@ -2500,6 +2504,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 	BMVert *bmv1, *bmv2, *bmv3, *bmv4;
 	BMFace *f, *f2, *f23;
 	BoundVert *vpipe;
+	int mat_nr = bp->mat_nr;
 
 	n = bv->vmesh->count;
 	ns = bv->vmesh->seg;
@@ -2552,7 +2557,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 				if (odd && k == ns2 && f2 && !v->any_seam)
 					f23 = f2;
 				bev_create_quad_tri_ex(bm, bmv1, bmv2, bmv3, bmv4,
-				                       f, f23, f23, f);
+				                       f, f23, f23, f, mat_nr);
 			}
 		}
 	} while ((v = v->next) != vm->boundstart);
@@ -2589,13 +2594,13 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 			BLI_array_append(vf, v->any_seam ? f : boundvert_rep_face(v));
 		} while ((v = v->next) != vm->boundstart);
 		f = boundvert_rep_face(vm->boundstart);
-		bev_create_ngon(bm, vv, BLI_array_count(vv), vf, f, true);
+		bev_create_ngon(bm, vv, BLI_array_count(vv), vf, f, mat_nr, true);
 
 		BLI_array_free(vv);
 	}
 }
 
-static BMFace *bevel_build_poly(BMesh *bm, BevVert *bv)
+static BMFace *bevel_build_poly(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	int n, k;
@@ -2625,7 +2630,7 @@ static BMFace *bevel_build_poly(BMesh *bm, BevVert *bv)
 		}
 	} while ((v = v->next) != vm->boundstart);
 	if (n > 2) {
-		f = bev_create_ngon(bm, vv, n, vf, boundvert_rep_face(v), true);
+		f = bev_create_ngon(bm, vv, n, vf, boundvert_rep_face(v), bp->mat_nr, true);
 	}
 	else {
 		f = NULL;
@@ -2634,12 +2639,12 @@ static BMFace *bevel_build_poly(BMesh *bm, BevVert *bv)
 	return f;
 }
 
-static void bevel_build_trifan(BMesh *bm, BevVert *bv)
+static void bevel_build_trifan(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	BLI_assert(next_bev(bv, NULL)->seg == 1 || bv->selcount == 1);
 
-	f = bevel_build_poly(bm, bv);
+	f = bevel_build_poly(bp, bm, bv);
 
 	if (f) {
 		/* we have a polygon which we know starts at the previous vertex, make it into a fan */
@@ -2669,12 +2674,12 @@ static void bevel_build_trifan(BMesh *bm, BevVert *bv)
 	}
 }
 
-static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
+static void bevel_build_quadstrip(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	BLI_assert(bv->selcount == 2);
 
-	f = bevel_build_poly(bm, bv);
+	f = bevel_build_poly(bp, bm, bv);
 
 	if (f) {
 		/* we have a polygon which we know starts at this vertex, make it into strips */
@@ -2813,16 +2818,16 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 				bevel_build_one_wire(bm, bv);
 			break;
 		case M_POLY:
-			bevel_build_poly(bm, bv);
+			bevel_build_poly(bp, bm, bv);
 			break;
 		case M_ADJ:
 			bevel_build_rings(bp, bm, bv);
 			break;
 		case M_TRI_FAN:
-			bevel_build_trifan(bm, bv);
+			bevel_build_trifan(bp, bm, bv);
 			break;
 		case M_QUAD_STRIP:
-			bevel_build_quadstrip(bm, bv);
+			bevel_build_quadstrip(bp, bm, bv);
 			break;
 	}
 }
@@ -3173,7 +3178,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 	}
 	if (do_rebuild) {
 		n = BLI_array_count(vv);
-		f_new = bev_create_ngon(bm, vv, n, NULL, f, true);
+		f_new = bev_create_ngon(bm, vv, n, NULL, f, -1, true);
 
 		for (k = 0; k < BLI_array_count(vv_fix); k++) {
 			bev_merge_uvs(bm, vv_fix[k]);
@@ -3382,8 +3387,9 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	VMesh *vm1, *vm2;
 	EdgeHalf *e1, *e2;
 	BMEdge *bme1, *bme2;
-	BMFace *f1, *f2, *f;
+	BMFace *f1, *f2, *f, *newf;
 	int k, nseg, i1, i2, odd, mid;
+	int mat_nr = bp->mat_nr;
 
 	if (!BM_edge_is_manifold(bme))
 		return;
@@ -3422,7 +3428,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	vm2 = bv2->vmesh;
 
 	if (nseg == 1) {
-		bev_create_quad_straddle(bm, bmv1, bmv2, bmv3, bmv4, f1, f2, e1->is_seam);
+		newf = bev_create_quad_straddle(bm, bmv1, bmv2, bmv3, bmv4, f1, f2, mat_nr, e1->is_seam);
 	}
 	else {
 		bmv1i = bmv1;
@@ -3433,11 +3439,11 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 			bmv4i = mesh_vert(vm1, i1, 0, k)->v;
 			bmv3i = mesh_vert(vm2, i2, 0, nseg - k)->v;
 			if (odd && k == mid + 1) {
-				bev_create_quad_straddle(bm, bmv1i, bmv2i, bmv3i, bmv4i, f1, f2, e1->is_seam);
+				bev_create_quad_straddle(bm, bmv1i, bmv2i, bmv3i, bmv4i, f1, f2, mat_nr, e1->is_seam);
 			}
 			else {
 				f = (k <= mid) ? f1 : f2;
-				bev_create_quad_tri(bm, bmv1i, bmv2i, bmv3i, bmv4i, f, true);
+				bev_create_quad_tri(bm, bmv1i, bmv2i, bmv3i, bmv4i, f, mat_nr, true);
 			}
 			bmv1i = bmv4i;
 			bmv2i = bmv3i;
@@ -3676,7 +3682,7 @@ static float bevel_limit_offset(BMesh *bm, BevelParams *bp)
 void BM_mesh_bevel(BMesh *bm, const float offset, const int offset_type,
                    const float segments, const float profile,
                    const bool vertex_only, const bool use_weights, const bool limit_offset,
-                   const struct MDeformVert *dvert, const int vertex_group)
+                   const struct MDeformVert *dvert, const int vertex_group, const int mat)
 {
 	BMIter iter;
 	BMVert *v, *v_next;
@@ -3694,6 +3700,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const int offset_type,
 	bp.limit_offset = limit_offset;
 	bp.dvert = dvert;
 	bp.vertex_group = vertex_group;
+	bp.mat_nr = mat;
 
 	if (bp.pro_super_r < 0.60f)
 		bp.pro_super_r = 0.60f;  /* TODO: implement 0 case properly */

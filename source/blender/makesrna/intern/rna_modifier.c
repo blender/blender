@@ -2239,6 +2239,13 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.15f, 1.0f, 0.05, 2);
 	RNA_def_property_ui_text(prop, "Profile", "The profile shape (0.5 = round)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "material", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mat");
+	RNA_def_property_range(prop, -1, SHRT_MAX);
+	RNA_def_property_ui_text(prop, "Material", "Material index of generated faces, -1 for automatic");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
 }
 
 static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)

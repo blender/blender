@@ -308,6 +308,9 @@ typedef struct BevelModifierData {
 	short val_flags;      /* used to interpret the bevel value */
 	short lim_flags;      /* flags to tell the tool how to limit the bevel */
 	short e_flags;        /* flags to direct how edge weights are applied to verts */
+	short mat;            /* material index if >= 0, else material inherited from surrounding faces */
+	short pad;
+	int pad2;
 	float profile;        /* controls profile shape (0->1, .5 is round) */
 	/* if the MOD_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
 	float bevel_angle;

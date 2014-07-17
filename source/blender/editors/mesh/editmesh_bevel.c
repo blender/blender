@@ -146,15 +146,19 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const int segments = RNA_int_get(op->ptr, "segments");
 	const float profile = RNA_float_get(op->ptr, "profile");
 	const bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
+	int material = RNA_int_get(op->ptr, "material");
 
 	/* revert to original mesh */
 	if (opdata->is_modal) {
 		EDBM_redo_state_restore(opdata->mesh_backup, em, false);
 	}
 
+	if (em->ob)
+		material = CLAMPIS(material, -1, em->ob->totcol - 1);
+
 	EDBM_op_init(em, &bmop, op,
-	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f",
-	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile);
+	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f material=%i",
+	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile, material);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -445,4 +449,5 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
 	RNA_def_float(ot->srna, "profile", 0.5f, 0.15f, 1.0f, "Profile", "Controls profile shape (0.5 = round)", 0.15f, 1.0f);
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex only", "Bevel only vertices");
+	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material", "Material for bevel faces (-1 means use adjacent faces)", -1, 100);
 }

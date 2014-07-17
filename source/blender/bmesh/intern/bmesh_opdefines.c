@@ -1580,6 +1580,7 @@ static BMOpDefine bmo_bevel_def = {
 	 {"segments", BMO_OP_SLOT_INT},         /* number of segments in bevel */
 	 {"profile", BMO_OP_SLOT_FLT},          /* profile shape, 0->1 (.5=>round) */
 	 {"vertex_only", BMO_OP_SLOT_BOOL},	/* only bevel vertices, not edges */
+	 {"material", BMO_OP_SLOT_INT},         /* material for bevel faces, -1 means get from adjacent faces */
 	 {{'\0'}},
 	},
 	/* slots_out */
