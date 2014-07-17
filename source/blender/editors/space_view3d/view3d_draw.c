@@ -1981,6 +1981,7 @@ static void draw_dupli_objects_color(
 	DupliApplyData *apply_data;
 
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
+	if ((base->object->restrictflag & OB_RESTRICT_RENDER) && (v3d->flag2 & V3D_RENDER_OVERRIDE)) return;
 
 	if (dflag & DRAW_CONSTCOLOR) {
 		BLI_assert(color == TH_UNDEFINED);

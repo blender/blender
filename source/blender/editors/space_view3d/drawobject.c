@@ -7171,23 +7171,23 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	const bool is_obact = (ob == OBACT);
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool is_picking = (G.f & G_PICKSEL) != 0;
-	bool skip_object = false;
+	const bool has_particles = (ob->particlesystem.first != NULL);
 	bool particle_skip_object = false;  /* Draw particles but not their emitter object. */
 
 	if (ob != scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW)
-			skip_object = true;
+			return;
 		
 		if (render_override) {
 			if (ob->restrictflag & OB_RESTRICT_RENDER)
-				skip_object = true;
+				return;
 			
-			if (ob->transflag & OB_DUPLI)
-				skip_object = true; /* note: can be reset by particle "draw emitter" below */
+			if (!has_particles && (ob->transflag & OB_DUPLI))
+				return;
 		}
 	}
 
-	if (ob->particlesystem.first) {
+	if (has_particles) {
 		/* XXX particles are not safe for simultaneous threaded render */
 		if (G.is_rendering) {
 			return;
@@ -7200,16 +7200,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 				/* Once we have found a psys which renders its emitter object, we are done. */
 				if (psys->part->draw & PART_DRAW_EMITTER) {
-					skip_object = false;
 					particle_skip_object = false;
 					break;
 				}
 			}
 		}
 	}
-
-	if (skip_object)
-		return;
 
 	/* xray delay? */
 	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0 && (v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
