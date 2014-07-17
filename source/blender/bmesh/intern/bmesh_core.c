@@ -2032,15 +2032,16 @@ void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 
 		/* Considering only edges and faces incident on vertex v, walk
 		 * the edges & faces and assign an index to each connected set */
+		BLI_smallhash_insert(&visithash, (uintptr_t)e, SET_INT_IN_POINTER(maxindex));
 		do {
-			BLI_smallhash_insert(&visithash, (uintptr_t)e, SET_INT_IN_POINTER(maxindex));
-
 			if (e->l) {
 				BMLoop *l_iter, *l_first;
 				l_iter = l_first = e->l;
 				do {
 					l_new = (l_iter->v == v) ? l_iter->prev : l_iter->next;
+					BLI_assert(BM_vert_in_edge(l_new->e, v));
 					if (!BLI_smallhash_haskey(&visithash, (uintptr_t)l_new->e)) {
+						BLI_smallhash_insert(&visithash, (uintptr_t)l_new->e, SET_INT_IN_POINTER(maxindex));
 						STACK_PUSH(stack, l_new->e);
 					}
 				} while ((l_iter = l_iter->radial_next) != l_first);
