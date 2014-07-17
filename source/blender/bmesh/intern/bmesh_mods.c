@@ -868,7 +868,7 @@ bool BM_face_split_edgenet(
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			BM_ITER_ELEM (l_other, &iter, l_iter->v, BM_LOOPS_OF_VERT) {
-				if (l_other->f != f) {
+				if ((l_other->f != f) && BM_ELEM_API_FLAG_TEST(l_other->f, FACE_NET)) {
 					CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata,
 					                           l_iter->head.data, &l_other->head.data);
 				}
