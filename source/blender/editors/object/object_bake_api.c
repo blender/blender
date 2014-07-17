@@ -74,6 +74,63 @@
 
 #include "object_intern.h"
 
+
+typedef struct BakeAPIRender {
+	Object *ob;
+	Main *main;
+	Scene *scene;
+	ReportList *reports;
+	ListBase selected_objects;
+
+	ScenePassType pass_type;
+	int margin;
+
+	int save_mode;
+
+	bool is_clear;
+	bool is_split_materials;
+	bool is_automatic_name;
+	bool is_selected_to_active;
+	bool is_cage;
+
+	float cage_extrusion;
+	int normal_space;
+	BakeNormalSwizzle normal_swizzle[3];
+
+	char uv_layer[MAX_CUSTOMDATA_LAYER_NAME];
+	char custom_cage[MAX_NAME];
+	char filepath[FILE_MAX];
+
+	int width;
+	int height;
+	const char *identifier;
+
+	int result;
+	bool ready;
+
+	/* callbacks */
+	Render *render;
+	float *progress;
+	short *do_update;
+
+	/* for redrawing */
+	ScrArea *sa;
+} BakeAPIRender;
+
+/* callbacks */
+
+static void bake_progress_update(void *bjv, float progress)
+{
+	BakeAPIRender *bj = bjv;
+
+	if (bj->progress && *bj->progress != progress) {
+		*bj->progress = progress;
+
+		/* make jobs timer to send notifier */
+		*(bj->do_update) = true;
+	}
+}
+
 /* catch esc */
 static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
@@ -473,45 +530,8 @@ static int initialize_internal_images(BakeImages *bake_images, ReportList *repor
 	return tot_size;
 }
 
-typedef struct BakeAPIRender {
-	Object *ob;
-	Main *main;
-	Scene *scene;
-	ReportList *reports;
-	ListBase selected_objects;
-
-	ScenePassType pass_type;
-	int margin;
-
-	int save_mode;
-
-	bool is_clear;
-	bool is_split_materials;
-	bool is_automatic_name;
-	bool is_selected_to_active;
-	bool is_cage;
-
-	float cage_extrusion;
-	int normal_space;
-	BakeNormalSwizzle normal_swizzle[3];
-
-	char uv_layer[MAX_CUSTOMDATA_LAYER_NAME];
-	char custom_cage[MAX_NAME];
-	char filepath[FILE_MAX];
-
-	int width;
-	int height;
-	const char *identifier;
-
-	int result;
-	bool ready;
-
-	/* for redrawing */
-	ScrArea *sa;
-} BakeAPIRender;
-
 static int bake(
-        Main *bmain, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
+        Render *re, Main *bmain, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
         const ScenePassType pass_type, const int margin,
         const BakeSaveMode save_mode, const bool is_clear, const bool is_split_materials,
         const bool is_automatic_name, const bool is_selected_to_active, const bool is_cage,
@@ -532,7 +552,6 @@ static int bake(
 
 	Mesh *me_low = NULL;
 	Mesh *me_cage = NULL;
-	Render *re;
 
 	float *result = NULL;
 
@@ -547,9 +566,6 @@ static int bake(
 	int num_pixels;
 	int tot_materials;
 	int i;
-
-	re = RE_NewRender(scene->id.name);
-	RE_SetReports(re, NULL);
 
 	RE_bake_engine_set_engine_parameters(re, bmain, scene);
 
@@ -646,11 +662,6 @@ static int bake(
 			}
 		}
 	}
-
-	/* blender_test_break uses this global */
-	G.is_break = false;
-
-	RE_test_break_cb(re, NULL, bake_break);
 
 	pixel_array_low = MEM_callocN(sizeof(BakePixel) * num_pixels, "bake pixels low poly");
 	result = MEM_callocN(sizeof(float) * depth * num_pixels, "bake return pixels");
@@ -1038,6 +1049,8 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 
 	bkr->result = OPERATOR_CANCELLED;
 
+	bkr->render = RE_NewRender(bkr->scene->id.name);
+
 	/* XXX hack to force saving to always be internal. Whether (and how) to support
 	 * external saving will be addressed later */
 	bkr->save_mode = R_BAKE_SAVE_INTERNAL;
@@ -1045,10 +1058,16 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 
 static int bake_exec(bContext *C, wmOperator *op)
 {
+	Render *re;
 	int result = OPERATOR_CANCELLED;
 	BakeAPIRender bkr = {NULL};
 
 	bake_init_api_data(op, C, &bkr);
+	re = bkr.render;
+
+	/* setup new render */
+	RE_test_break_cb(re, NULL, bake_break);
+	RE_progress_cb(re, NULL, bake_progress_update);
 
 	if (!bake_objects_check(bkr.main, bkr.ob, &bkr.selected_objects, bkr.reports, bkr.is_selected_to_active))
 		return OPERATOR_CANCELLED;
@@ -1058,9 +1077,11 @@ static int bake_exec(bContext *C, wmOperator *op)
 		bake_images_clear(bkr.main, is_tangent);
 	}
 
+	RE_SetReports(re, bkr.reports);
+
 	if (bkr.is_selected_to_active) {
 		result = bake(
-		        bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
+		        bkr.render, bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
 		        bkr.pass_type, bkr.margin, bkr.save_mode,
 		        bkr.is_clear, bkr.is_split_materials, bkr.is_automatic_name, true, bkr.is_cage,
 		        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
@@ -1073,7 +1094,7 @@ static int bake_exec(bContext *C, wmOperator *op)
 		for (link = bkr.selected_objects.first; link; link = link->next) {
 			Object *ob_iter = link->ptr.data;
 			result = bake(
-			        bkr.main, bkr.scene, ob_iter, NULL, bkr.reports,
+			        bkr.render, bkr.main, bkr.scene, ob_iter, NULL, bkr.reports,
 			        bkr.pass_type, bkr.margin, bkr.save_mode,
 			        is_clear, bkr.is_split_materials, bkr.is_automatic_name, false, bkr.is_cage,
 			        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
@@ -1082,13 +1103,21 @@ static int bake_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	RE_SetReports(re, NULL);
+
 	BLI_freelistN(&bkr.selected_objects);
 	return result;
 }
 
-static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_update), float *UNUSED(progress))
+static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, float *progress)
 {
 	BakeAPIRender *bkr = (BakeAPIRender *)bkv;
+
+	/* setup new render */
+	bkr->do_update = do_update;
+	bkr->progress = progress;
+
+	RE_SetReports(bkr->render, bkr->reports);
 
 	if (!bake_objects_check(bkr->main, bkr->ob, &bkr->selected_objects, bkr->reports, bkr->is_selected_to_active)) {
 		bkr->result = OPERATOR_CANCELLED;
@@ -1102,7 +1131,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_updat
 
 	if (bkr->is_selected_to_active) {
 		bkr->result = bake(
-		        bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
+		        bkr->render, bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
 		        bkr->pass_type, bkr->margin, bkr->save_mode,
 		        bkr->is_clear, bkr->is_split_materials, bkr->is_automatic_name, true, bkr->is_cage,
 		        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
@@ -1115,7 +1144,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_updat
 		for (link = bkr->selected_objects.first; link; link = link->next) {
 			Object *ob_iter = link->ptr.data;
 			bkr->result = bake(
-			        bkr->main, bkr->scene, ob_iter, NULL, bkr->reports,
+			        bkr->render, bkr->main, bkr->scene, ob_iter, NULL, bkr->reports,
 			        bkr->pass_type, bkr->margin, bkr->save_mode,
 			        is_clear, bkr->is_split_materials, bkr->is_automatic_name, false, bkr->is_cage,
 			        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
@@ -1126,6 +1155,8 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *UNUSED(do_updat
 				return;
 		}
 	}
+
+	RE_SetReports(bkr->render, NULL);
 }
 
 static void bake_freejob(void *bkv)
@@ -1228,6 +1259,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 {
 	wmJob *wm_job;
 	BakeAPIRender *bkr;
+	Render *re;
 	Scene *scene = CTX_data_scene(C);
 
 	bake_set_props(op, scene);
@@ -1240,6 +1272,11 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 
 	/* init bake render */
 	bake_init_api_data(op, C, bkr);
+	re = bkr->render;
+
+	/* setup new render */
+	RE_test_break_cb(re, NULL, bake_break);
+	RE_progress_cb(re, bkr, bake_progress_update);
 
 	/* setup job */
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Texture Bake",
