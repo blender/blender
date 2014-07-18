@@ -281,7 +281,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ADS_FLAG_SHOW_DBFILTERS);
 	RNA_def_property_ui_text(prop, "Show Datablock Filters",
 	                         "Show options for whether channels related to certain types of data are included");
-	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, -1);
+	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, NULL);
 	
 	/* General Filtering Settings */
