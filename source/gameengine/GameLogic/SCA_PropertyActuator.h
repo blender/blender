@@ -44,6 +44,7 @@ class SCA_PropertyActuator : public SCA_IActuator
 		KX_ACT_PROP_ADD,
 		KX_ACT_PROP_COPY,
 		KX_ACT_PROP_TOGGLE,
+		KX_ACT_PROP_LEVEL,
 		KX_ACT_PROP_MAX
 	};
 	

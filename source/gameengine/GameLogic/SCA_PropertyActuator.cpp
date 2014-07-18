@@ -69,13 +69,24 @@ bool SCA_PropertyActuator::Update()
 
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
-
+	CValue* propowner = GetParent();
 
 	if (bNegativeEvent)
-		return false; // do nothing on negative events
+	{
+		if (m_type==KX_ACT_PROP_LEVEL)
+		{
+			CValue* newval = new CBoolValue(false);
+			CValue* oldprop = propowner->GetProperty(m_propname);
+			if (oldprop)
+			{
+				oldprop->SetValue(newval);
+			}
+			newval->Release();
+		}
+		return false;
+	}
 
 
-	CValue* propowner = GetParent();
 	CParser parser;
 	parser.SetContext( propowner->AddRef());
 	
@@ -93,6 +104,19 @@ bool SCA_PropertyActuator::Update()
 		} else
 		{	/* as not been assigned, evaluate as false, so assign true */
 			newval = new CBoolValue(true);
+			propowner->SetProperty(m_propname,newval);
+		}
+		newval->Release();
+	}
+	else if (m_type==KX_ACT_PROP_LEVEL)
+	{
+		CValue* newval = new CBoolValue(true);
+		CValue* oldprop = propowner->GetProperty(m_propname);
+		if (oldprop)
+		{
+			oldprop->SetValue(newval);
+		} else
+		{
 			propowner->SetProperty(m_propname,newval);
 		}
 		newval->Release();

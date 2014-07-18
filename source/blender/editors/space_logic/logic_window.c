@@ -1939,6 +1939,7 @@ static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
 
 	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_PROP_TOGGLE:
+		case ACT_PROP_LEVEL:
 			break;
 		case ACT_PROP_ADD:
 			uiItemR(layout, ptr, "value", 0, NULL, ICON_NONE);

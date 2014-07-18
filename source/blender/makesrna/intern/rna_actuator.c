@@ -1090,6 +1090,7 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 		{ACT_PROP_ADD, "ADD", 0, "Add", ""},
 		{ACT_PROP_COPY, "COPY", 0, "Copy", ""},
 		{ACT_PROP_TOGGLE, "TOGGLE", 0, "Toggle", "For bool/int/float/timer properties only"},
+		{ACT_PROP_LEVEL, "LEVEL", 0, "Level", "For bool/int/float/timer properties only"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
