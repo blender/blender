@@ -472,8 +472,8 @@ void ED_region_tag_redraw(ARegion *ar)
 	 * but python scripts can cause this to happen indirectly */
 	if (ar && !(ar->do_draw & RGN_DRAWING)) {
 		/* zero region means full region redraw */
-		ar->do_draw &= ~RGN_DRAW_PARTIAL;  /* just incase */
-		ar->do_draw = RGN_DRAW;
+		ar->do_draw &= ~RGN_DRAW_PARTIAL;
+		ar->do_draw |= RGN_DRAW;
 		memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	}
 }
@@ -494,9 +494,9 @@ void ED_region_tag_refresh_ui(ARegion *ar)
 void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
 {
 	if (ar && !(ar->do_draw & RGN_DRAWING)) {
-		if (!ar->do_draw) {
+		if (!(ar->do_draw & RGN_DRAW)) {
 			/* no redraw set yet, set partial region */
-			ar->do_draw = RGN_DRAW_PARTIAL;
+			ar->do_draw |= RGN_DRAW_PARTIAL;
 			ar->drawrct = *rct;
 		}
 		else if (ar->drawrct.xmin != ar->drawrct.xmax) {
