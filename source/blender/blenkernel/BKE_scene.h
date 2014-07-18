@@ -84,6 +84,7 @@ typedef struct SceneBaseIter {
 	struct ListBase *duplilist;
 	struct DupliObject *dupob;
 	float omat[4][4];
+	struct Object *dupli_refob;
 	int phase;
 } SceneBaseIter;
 
