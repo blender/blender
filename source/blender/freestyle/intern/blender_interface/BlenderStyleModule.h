@@ -57,7 +57,7 @@ public:
 	{
 
 		StrokeLayer *sl = StyleModule::execute();
-		sl->SetLineStyle(_linestyle);
+		sl->setLineStyle(_linestyle);
 		return sl;
 	}
 

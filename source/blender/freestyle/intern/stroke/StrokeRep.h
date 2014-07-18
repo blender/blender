@@ -265,11 +265,6 @@ public:
 		_mtex[idx] = mtex_ptr;
 	}*/
 
-	inline void setLineStyle(FreestyleLineStyle *iLineStyle)
-	{
-		_lineStyle = iLineStyle;
-	}
-
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeRep")
 #endif

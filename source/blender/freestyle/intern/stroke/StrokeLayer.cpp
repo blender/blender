@@ -36,17 +36,17 @@ StrokeLayer::~StrokeLayer()
 	clear();
 }
 
+void StrokeLayer::setLineStyle(struct FreestyleLineStyle *iLineStyle)
+{
+	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
+		(*s)->setLineStyle(iLineStyle);
+	}
+}
+
 void StrokeLayer::ScaleThickness(float iFactor)
 {
 	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
 		(*s)->ScaleThickness(iFactor);
-	}
-}
-
-void StrokeLayer::SetLineStyle(struct FreestyleLineStyle *iLineStyle)
-{
-	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
-		(*s)->SetLineStyle(iLineStyle);
 	}
 }
 

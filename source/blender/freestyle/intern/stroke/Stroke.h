@@ -546,6 +546,7 @@ private:
 	bool _tips;
 	Vec2r _extremityOrientations[2]; // the orientations of the first and last extermity
 	StrokeRep *_rep;
+	FreestyleLineStyle *_lineStyle;
 
 public:
 	/*! default constructor */
@@ -625,7 +626,6 @@ public:
 
 	/* Render method */
 	void ScaleThickness(float iFactor);
-	void SetLineStyle(struct FreestyleLineStyle *iLineStyle);
 	void Render(const StrokeRenderer *iRenderer);
 	void RenderBasic(const StrokeRenderer *iRenderer);
 
@@ -643,6 +643,12 @@ public:
 	inline MediumType getMediumType() const
 	{
 		return _mediumType;
+	}
+
+	/*! Return the line style associated to this Stroke. */
+	inline FreestyleLineStyle *getLineStyle()
+	{
+		return _lineStyle;
 	}
 
 	/*! Returns the id of the texture used to simulate th marks system for this Stroke */
@@ -739,6 +745,12 @@ public:
 
 	/*! sets the 2D length of the Stroke. */
 	void setLength(float iLength);
+
+	/*! sets the line style of the Stroke. */
+	void setLineStyle(struct FreestyleLineStyle *iLineStyle)
+	{
+		_lineStyle = iLineStyle;
+	}
 
 	/*! sets the medium type that must be used for this Stroke. */
 	inline void setMediumType(MediumType iType)

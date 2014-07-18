@@ -774,13 +774,6 @@ void Stroke::ScaleThickness(float iFactor)
 	}
 }
 
-void Stroke::SetLineStyle(struct FreestyleLineStyle *iLineStyle)
-{
-	if (!_rep)
-		_rep = new StrokeRep(this);
-	_rep->setLineStyle(iLineStyle);
-}
-
 void Stroke::Render(const StrokeRenderer *iRenderer)
 {
 	if (!_rep)

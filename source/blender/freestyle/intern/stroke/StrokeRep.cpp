@@ -725,7 +725,7 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 {
 	_stroke = iStroke;
 	_strokeType = iStroke->getMediumType();
-	_lineStyle = NULL;
+	_lineStyle = iStroke->getLineStyle();
 	_textureId = iStroke->getTextureId();
 	_textureStep = iStroke->getTextureStep();
 	for (int a = 0; a < MAX_MTEX; a++) {

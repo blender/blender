@@ -67,7 +67,6 @@ public:
 
 	/*! Render method */
 	void ScaleThickness(float iFactor);
-	void SetLineStyle(struct FreestyleLineStyle *iLineStyle);
 	void Render(const StrokeRenderer *iRenderer);
 	void RenderBasic(const StrokeRenderer *iRenderer);
 
@@ -105,6 +104,8 @@ public:
 	{
 		_strokes.push_back(iStroke);
 	}
+
+	void setLineStyle(struct FreestyleLineStyle *iLineStyle);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeLayer")
