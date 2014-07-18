@@ -390,7 +390,7 @@ float RB_body_get_mass(rbRigidBody *object)
 	float value = (float)body->getInvMass();
 	
 	if (value)
-		value = 1.0 / value;
+		value = 1.0f / value;
 		
 	return value;
 }

@@ -4376,8 +4376,8 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 	name_array = vgroup_init_remap(ob);
 
 	/*sort vgroup names*/
-	switch(sort_type) {
-		case SORT_TYPE_NAME: 
+	switch (sort_type) {
+		case SORT_TYPE_NAME:
 			BLI_sortlist(&ob->defbase, vgroup_sort_name);
 			break;
 		case SORT_TYPE_BONEHIERARCHY:
@@ -4401,9 +4401,9 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
 	static EnumPropertyItem vgroup_sort_type[] = {
-			{SORT_TYPE_NAME, "NAME", 0, "Name", ""},
-			{SORT_TYPE_BONEHIERARCHY, "BONE_HIERARCHY", 0, "Bone Hierarchy", ""},
-			{0, NULL, 0, NULL, NULL}
+		{SORT_TYPE_NAME, "NAME", 0, "Name", ""},
+		{SORT_TYPE_BONEHIERARCHY, "BONE_HIERARCHY", 0, "Bone Hierarchy", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	ot->name = "Sort Vertex Groups";

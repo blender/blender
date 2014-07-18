@@ -832,7 +832,7 @@ bool BM_face_split_edgenet(
 				BM_ELEM_API_FLAG_ENABLE(f_new, FACE_NET);
 
 				/* add new verts to keep finding loops for
-				 * (verts betweem boundary and manifold edges) */
+				 * (verts between boundary and manifold edges) */
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
 				l_prev_is_boundary = (bm_edge_flagged_radial_count(l_iter->prev->e) == 1);
 				do {
