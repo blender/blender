@@ -1191,7 +1191,7 @@ static int *initialize_index_map(Object *obedit, int *r_old_totvert)
 
 	for (nu = editnurb->nurbs.first, vertex_index = 0;
 	     nu != NULL;
-	     nu = nu->next, vertex_index++)
+	     nu = nu->next)
 	{
 		if (nu->bezt) {
 			BezTriple *bezt = nu->bezt;
