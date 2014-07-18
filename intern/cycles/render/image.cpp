@@ -313,6 +313,32 @@ void ImageManager::remove_image(const string& filename, void *builtin_data, Inte
 	}
 }
 
+/* TODO(sergey): Deduplicate with the iteration above, but make it pretty,
+ * without bunch of arguments passing around making code readability even
+ * more cluttered.
+ */
+void ImageManager::tag_reload_image(const string& filename, void *builtin_data, InterpolationType interpolation)
+{
+	size_t slot;
+
+	for(slot = 0; slot < images.size(); slot++) {
+		if(images[slot] && image_equals(images[slot], filename, builtin_data, interpolation)) {
+			images[slot]->need_load = true;
+			break;
+		}
+	}
+
+	if(slot == images.size()) {
+		/* see if it's in a float texture slot */
+		for(slot = 0; slot < float_images.size(); slot++) {
+			if(float_images[slot] && image_equals(float_images[slot], filename, builtin_data, interpolation)) {
+				images[slot]->need_load = true;
+				break;
+			}
+		}
+	}
+}
+
 bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 {
 	if(img->filename == "")

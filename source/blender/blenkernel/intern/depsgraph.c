@@ -2502,6 +2502,23 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 			}
 		}
 
+		/* Not pretty to iterate all the nodes here, but it's as good as it
+		 * could be with the current depsgraph design/
+		 */
+		if (idtype == ID_IM) {
+			FOREACH_NODETREE(bmain, ntree, parent_id) {
+				if (ntree->type == NTREE_SHADER) {
+					bNode *node;
+					for (node = ntree->nodes.first; node; node = node->next) {
+						if (node->id == id) {
+							lib_id_recalc_tag(bmain, &ntree->id);
+							break;
+						}
+					}
+				}
+			} FOREACH_NODETREE_END
+		}
+
 		if (idtype == ID_MSK) {
 			if (sce->nodetree) {
 				bNode *node;

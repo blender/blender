@@ -48,6 +48,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
@@ -1866,6 +1867,7 @@ static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	// XXX other users?
 	BKE_image_signal(ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_RELOAD);
+	DAG_id_tag_update(&ima->id, 0);
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 	
