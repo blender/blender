@@ -399,7 +399,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 				}
 			}
 
-			if (origindex_final != ORIGINDEX_NONE) {
+			if (origindex_final != ORIGINDEX_NONE && origindex_final < totelem) {
 				if (nodearray[origindex_final]) {
 					/* prepend */
 					node->next = nodearray[origindex_final];
