@@ -722,16 +722,14 @@ void BKE_displist_make_mball(EvaluationContext *eval_ctx, Scene *scene, Object *
 		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
 	}
 
-	if (ob->type == OB_MBALL) {
-		if (ob == BKE_mball_basis_find(scene, ob)) {
-			BKE_mball_polygonize(eval_ctx, scene, ob, &ob->curve_cache->disp);
-			BKE_mball_texspace_calc(ob);
+	if (ob == BKE_mball_basis_find(scene, ob)) {
+		BKE_mball_polygonize(eval_ctx, scene, ob, &ob->curve_cache->disp);
+		BKE_mball_texspace_calc(ob);
 
-			object_deform_mball(ob, &ob->curve_cache->disp);
-		}
-
-		boundbox_displist_object(ob);
+		object_deform_mball(ob, &ob->curve_cache->disp);
 	}
+
+	boundbox_displist_object(ob);
 }
 
 void BKE_displist_make_mball_forRender(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
@@ -1831,7 +1829,7 @@ void BKE_displist_make_curveTypes_forRender(Scene *scene, Object *ob, ListBase *
                                             const bool use_render_resolution)
 {
 	if (ob->curve_cache == NULL) {
-		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
+		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
 	}
 
 	do_makeDispListCurveTypes(scene, ob, dispbase, r_dm_final, true, for_orco, use_render_resolution);
@@ -1840,7 +1838,7 @@ void BKE_displist_make_curveTypes_forRender(Scene *scene, Object *ob, ListBase *
 void BKE_displist_make_curveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase)
 {
 	if (ob->curve_cache == NULL) {
-		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
+		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
 	}
 
 	do_makeDispListCurveTypes(scene, ob, dispbase, NULL, 1, 1, 1);
@@ -1896,7 +1894,7 @@ void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 static void boundbox_displist_object(Object *ob)
 {
 	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		/* Curver's BB is already calculated as a part of modifier stack,
+		/* Curve's BB is already calculated as a part of modifier stack,
 		 * here we only calculate object BB based on final display list.
 		 */
 
