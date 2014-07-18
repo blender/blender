@@ -253,7 +253,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
         active = pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_x", text="X", icon_only=True)
+        split.prop(pchan, "lock_ik_x", text="X")
         split.active = active
         row = split.row()
         row.prop(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
@@ -270,7 +270,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
         sub.active = pchan.lock_ik_x is False and pchan.use_ik_limit_x and active
 
         split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_y", text="Y", icon_only=True)
+        split.prop(pchan, "lock_ik_y", text="Y")
         split.active = active
         row = split.row()
         row.prop(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
@@ -288,7 +288,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
         sub.active = pchan.lock_ik_y is False and pchan.use_ik_limit_y and active
 
         split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_z", text="Z", icon_only=True)
+        split.prop(pchan, "lock_ik_z", text="Z")
         split.active = active
         sub = split.row()
         sub.prop(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
