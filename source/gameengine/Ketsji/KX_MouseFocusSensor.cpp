@@ -60,15 +60,21 @@
 KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr, 
                                          int startx,
                                          int starty,
-                                         short int mousemode,
-                                         int focusmode,
-                                         bool bTouchPulse,
-                                         KX_Scene* kxscene,
-                                         KX_KetsjiEngine *kxengine,
-                                         SCA_IObject* gameobj)
+										 short int mousemode,
+										 int focusmode,
+										 bool bTouchPulse,
+										 const STR_String& propname,
+										 bool bFindMaterial,
+										 bool bXRay,
+										 KX_Scene* kxscene,
+										 KX_KetsjiEngine *kxengine,
+										 SCA_IObject* gameobj)
 	: SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj),
 	  m_focusmode(focusmode),
 	  m_bTouchPulse(bTouchPulse),
+	  m_propertyname(propname),
+	  m_bFindMaterial(bFindMaterial),
+	  m_bXRay(bXRay),
 	  m_kxscene(kxscene),
 	  m_kxengine(kxengine)
 {
@@ -146,20 +152,73 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *r
 	 * self-hits are excluded by setting the correct ignore-object.)
 	 * Hitspots now become valid. */
 	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
+
+	bool bFound = false;
+
 	if ((m_focusmode == 2) || hitKXObj == thisObj)
 	{
-		m_hitObject = hitKXObj;
-		m_hitPosition = result->m_hitPoint;
-		m_hitNormal = result->m_hitNormal;
-		m_hitUV = result->m_hitUV;
-		return true;
+		if (m_propertyname.Length() == 0)
+		{
+			bFound = true;
+		}
+		else
+		{
+			if (m_bFindMaterial)
+			{
+				if (client_info->m_auxilary_info)
+				{
+					bFound = (m_propertyname== ((char*)client_info->m_auxilary_info));
+				}
+			}
+			else
+			{
+				bFound = hitKXObj->GetProperty(m_propertyname) != NULL;
+			}
+		}
+
+		if (bFound)
+		{
+			m_hitObject = hitKXObj;
+			m_hitPosition = result->m_hitPoint;
+			m_hitNormal = result->m_hitNormal;
+			m_hitUV = result->m_hitUV;
+			return true;
+		}		
 	}
 	
 	return true;     // object must be visible to trigger
 	//return false;  // occluded objects can trigger
 }
 
-
+/* this function is used to pre-filter the object before casting the ray on them.
+ * This is useful for "X-Ray" option when we want to see "through" unwanted object.
+ */
+bool KX_MouseFocusSensor::NeedRayCast(KX_ClientObjectInfo* client)
+{
+	if (client->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// Unknown type of object, skip it.
+		// Should not occur as the sensor objects are filtered in RayTest()
+		printf("Invalid client type %d found ray casting\n", client->m_type);
+		return false;
+	}
+	if (m_bXRay && m_propertyname.Length() != 0)
+	{
+		if (m_bFindMaterial)
+		{
+			// not quite correct: an object may have multiple material
+			// should check all the material and not only the first one
+			if (!client->m_auxilary_info || (m_propertyname != ((char*)client->m_auxilary_info)))
+				return false;
+		}
+		else
+		{
+			if (client->m_gameobject->GetProperty(m_propertyname) == NULL)
+				return false;
+		}
+	}
+	return true;
+}
 
 bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 {
@@ -384,7 +443,10 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("hitPosition",	KX_MouseFocusSensor, pyattr_get_hit_position),
 	KX_PYATTRIBUTE_RO_FUNCTION("hitNormal",		KX_MouseFocusSensor, pyattr_get_hit_normal),
 	KX_PYATTRIBUTE_RO_FUNCTION("hitUV",		KX_MouseFocusSensor, pyattr_get_hit_uv),
-	KX_PYATTRIBUTE_BOOL_RW("usePulseFocus",	KX_MouseFocusSensor,m_bTouchPulse),
+	KX_PYATTRIBUTE_BOOL_RW("usePulseFocus",	KX_MouseFocusSensor, m_bTouchPulse),
+	KX_PYATTRIBUTE_BOOL_RW("useXRay",		KX_MouseFocusSensor, m_bXRay),
+	KX_PYATTRIBUTE_BOOL_RW("useMaterial", KX_MouseFocusSensor, m_bFindMaterial),
+	KX_PYATTRIBUTE_STRING_RW("propName", 0, MAX_PROP_NAME, false, KX_MouseFocusSensor, m_propertyname),
 	{ NULL }	//Sentinel
 };
 

@@ -405,6 +405,12 @@ static void rna_def_mouse_sensor(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem prop_mouse_type_items[] = {
+		{SENS_COLLISION_PROPERTY, "PROPERTY", ICON_LOGIC, "Property", "Use a material for ray intersections"},
+		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a property for ray intersections"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "MouseSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Mouse Sensor", "Sensor to detect mouse events");
 	RNA_def_struct_sdna_from(srna, "bMouseSensor", "data");
@@ -418,6 +424,27 @@ static void rna_def_mouse_sensor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_pulse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_MOUSE_FOCUS_PULSE);
 	RNA_def_property_ui_text(prop, "Pulse", "Moving the mouse over a different object generates a pulse");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop = RNA_def_property(srna, "use_material", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, prop_mouse_type_items);
+	RNA_def_property_ui_text(prop, "M/P", "Toggle collision on material or property");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "propname");
+	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property (blank = all objects)");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "matname");
+	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material (blank = all objects)");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);	
+
+	prop = RNA_def_property(srna, "use_x_ray", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_RAY_XRAY);
+	RNA_def_property_ui_text(prop, "X-Ray", "Toggle X-Ray option (see through objects that don't have the property)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

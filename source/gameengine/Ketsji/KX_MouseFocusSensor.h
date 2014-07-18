@@ -57,6 +57,9 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 						short int mousemode,
 						int focusmode,
 						bool bTouchPulse,
+						const STR_String& propname,
+						bool bFindMaterial,
+						bool bXRay,
 						KX_Scene* kxscene,
 						KX_KetsjiEngine* kxengine,
 						SCA_IObject* gameobj);
@@ -88,7 +91,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	};
 
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
-	bool NeedRayCast(KX_ClientObjectInfo* client) { return true; }
+	bool NeedRayCast(KX_ClientObjectInfo* client);
 	
 	const MT_Point3& RaySource() const;
 	const MT_Point3& RayTarget() const;
@@ -133,6 +136,21 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 */
 	bool m_bTouchPulse;
 	
+	/**
+	 * Flags get trought other objects
+	 */
+	bool m_bXRay;
+
+	/**
+	 * Flags material
+	 */
+	bool m_bFindMaterial;
+
+	/**
+	 * Property or material name
+	 */
+	STR_String m_propertyname;
+
 	/**
 	 * Flags whether the previous test evaluated positive.
 	 */

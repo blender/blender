@@ -64,3 +64,20 @@ base class --- :class:`SCA_MouseSensor`
 
       :type: boolean
 
+   .. attribute:: useXRay
+
+      If enabled it allows the sensor to see through game objects that don't have the selected property or material.
+
+     :type: boolean
+
+   .. attribute:: propName
+
+      The property or material the sensor is looking for.
+
+     :type: string
+
+   .. attribute:: useMaterial
+
+      Determines if the sensor is looking for a property or material. KX_True = Find material; KX_False = Find property.
+
+     :type: boolean

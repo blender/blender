@@ -57,7 +57,9 @@ typedef struct bMouseSensor {
 	short type;
 	short flag;
 	short pad1;
-	short pad2;
+	short mode;			/* flag to choose material or property */
+	char propname[64];
+	char matname[64];
 } bMouseSensor;
 
 /* DEPRECATED */
