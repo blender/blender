@@ -2094,7 +2094,7 @@ void	CcdPhysicsEnvironment::SetConstraintParam(int constraintId,int param,float 
 
 			case 12: case 13: case 14: case 15: case 16: case 17:
 			{
-				//param 13-17 are for motorized springs on each of the degrees of freedom
+				//param 12-17 are for motorized springs on each of the degrees of freedom
 					btGeneric6DofSpringConstraint* genCons = (btGeneric6DofSpringConstraint*)typedConstraint;
 					int springIndex = param-12;
 					if (value0!=0.f)

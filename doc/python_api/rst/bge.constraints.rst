@@ -28,6 +28,7 @@ Physics Constraints (bge.constraints)
    - :class:`ANGULAR_CONSTRAINT`
    - :class:`CONETWIST_CONSTRAINT`
    - :class:`VEHICLE_CONSTRAINT`
+   - :class:`GENERIC_6DOF_CONSTRAINT`
 
    :type constrainttype: int
 
@@ -49,7 +50,7 @@ Physics Constraints (bge.constraints)
    :arg axisZ: Z axis
    :type axisZ: float
 
-   :arg flag: .. to do
+   :arg flag: 128 to disable collision between linked bodies
    :type flag: int
 
 .. attribute:: error
@@ -363,6 +364,13 @@ Physics Constraints (bge.constraints)
    .. to do
 
 .. data:: VEHICLE_CONSTRAINT
+
+   .. note::
+      Constraint type to be used with function :class:`createConstraint`
+
+   .. to do
+
+.. data:: GENERIC_6DOF_CONSTRAINT
 
    .. note::
       Constraint type to be used with function :class:`createConstraint`
