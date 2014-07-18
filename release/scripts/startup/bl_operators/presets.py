@@ -253,7 +253,7 @@ class AddPresetCamera(AddPresetBase, Operator):
     preset_menu = "CAMERA_MT_presets"
 
     preset_defines = [
-        "cam = bpy.context.object.data"
+        "cam = bpy.context.camera"
     ]
 
     preset_subdir = "camera"
@@ -352,7 +352,7 @@ class AddPresetSunSky(AddPresetBase, Operator):
     preset_menu = "LAMP_MT_sunsky_presets"
 
     preset_defines = [
-        "sky = bpy.context.object.data.sky"
+        "sky = bpy.context.lamp.sky"
     ]
 
     preset_values = [

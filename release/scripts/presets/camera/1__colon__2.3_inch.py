@@ -1,4 +1,4 @@
 import bpy
-bpy.context.object.data.sensor_width = 6.16
-bpy.context.object.data.sensor_height = 4.62
-bpy.context.object.data.sensor_fit = 'HORIZONTAL'
+bpy.context.camera.sensor_width = 6.16
+bpy.context.camera.sensor_height = 4.62
+bpy.context.camera.sensor_fit = 'HORIZONTAL'
