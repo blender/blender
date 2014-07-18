@@ -1620,8 +1620,8 @@ typedef enum eVGroupSelect {
 #define SCE_FRAME_DROP			(1<<3)
 
 
-	/* return flag BKE_scene_base_iter_next function */
-#define F_ERROR			-1
+	/* return flag BKE_scene_base_iter_next functions */
+/* #define F_ERROR			-1 */  /* UNUSED */
 #define F_START			0
 #define F_SCENE			1
 #define F_DUPLI			3
