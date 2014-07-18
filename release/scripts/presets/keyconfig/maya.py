@@ -329,6 +329,7 @@ kmi = km.keymap_items.new('armature.layers_show_all', 'ACCENT_GRAVE', 'PRESS', c
 kmi = km.keymap_items.new('armature.armature_layers', 'M', 'PRESS', shift=True)
 kmi = km.keymap_items.new('pose.bone_layers', 'M', 'PRESS')
 kmi = km.keymap_items.new('transform.transform', 'S', 'PRESS', ctrl=True, alt=True)
+kmi.properties.mode = 'BONE_SIZE'
 kmi = km.keymap_items.new('anim.keyframe_insert_menu', 'S', 'PRESS')
 kmi = km.keymap_items.new('anim.keyframe_delete_v3d', 'S', 'PRESS', alt=True)
 kmi = km.keymap_items.new('anim.keying_set_active_set', 'I', 'PRESS', shift=True, ctrl=True, alt=True)
