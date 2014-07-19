@@ -516,6 +516,7 @@ void Strip::setVertexColor (const vector<StrokeVertex *>& iStrokeVertices)
 
 void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices, float texStep)
 {
+	cout << "Strip::computeTexCoord texStep " << texStep << endl;
 	vector<StrokeVertex *>::const_iterator v, vend;
 	StrokeVertex *sv;
 	int i = 0;
@@ -705,6 +706,8 @@ StrokeRep::StrokeRep()
 	_stroke = 0;
 	_strokeType = Stroke::OPAQUE_MEDIUM;
 	_lineStyle = NULL;
+	_useShadingNodes = false;
+	_hasTex = false;
 	_textureStep = 1.0;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		_mtex[a] = NULL;
@@ -726,6 +729,8 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 	_stroke = iStroke;
 	_strokeType = iStroke->getMediumType();
 	_lineStyle = iStroke->getLineStyle();
+	_useShadingNodes = iStroke->useShadingNodes();
+	_hasTex = iStroke->hasTex();
 	_textureId = iStroke->getTextureId();
 	_textureStep = iStroke->getTextureStep();
 	for (int a = 0; a < MAX_MTEX; a++) {
@@ -760,6 +765,8 @@ StrokeRep::StrokeRep(const StrokeRep& iBrother)
 	_textureId = iBrother._textureId;
 	_textureStep = iBrother._textureStep;
 	_lineStyle = iBrother._lineStyle;
+	_useShadingNodes = iBrother._useShadingNodes;
+	_hasTex = iBrother._hasTex;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		if (iBrother._mtex[a]) {
 			_mtex[a] = iBrother._mtex[a];
@@ -811,7 +818,7 @@ void StrokeRep::create()
 			end = true;
 		}
 		if ((!strip.empty()) && (strip.size() > 1)) {
-			_strips.push_back(new Strip(strip, _stroke->hasTex(), first, end, _textureStep));
+			_strips.push_back(new Strip(strip, _hasTex, first, end, _textureStep));
 			strip.clear();
 		}
 		first = false;

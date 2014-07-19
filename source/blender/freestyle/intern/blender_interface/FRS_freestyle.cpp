@@ -50,6 +50,7 @@ extern "C" {
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
 
@@ -294,6 +295,8 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
 
 static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
 {
+	const bool use_shading_nodes = BKE_scene_use_new_shading_nodes(re->scene);
+
 	// load mesh
 	re->i.infostr = "Freestyle: Mesh loading";
 	re->stats_draw(re->sdh, &re->i);
@@ -328,7 +331,7 @@ static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
 						cout << " (" << module_conf->script->name << ")";
 					cout << endl;
 				}
-				controller->InsertStyleModule(layer_count, id_name, NULL, module_conf->script);
+				controller->InsertStyleModule(layer_count, id_name, module_conf->script, NULL, use_shading_nodes);
 				controller->toggleLayer(layer_count, true);
 				layer_count++;
 			}
@@ -369,7 +372,7 @@ static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
 					        (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
 				}
 				Text *text = create_lineset_handler(bmain, srl->name, lineset->name);
-				controller->InsertStyleModule(layer_count, lineset->name, lineset->linestyle, text);
+				controller->InsertStyleModule(layer_count, lineset->name, text, lineset->linestyle, use_shading_nodes);
 				controller->toggleLayer(layer_count, true);
 				if (!(lineset->selection & FREESTYLE_SEL_EDGE_TYPES) || !lineset->edge_types) {
 					++use_ridges_and_valleys;

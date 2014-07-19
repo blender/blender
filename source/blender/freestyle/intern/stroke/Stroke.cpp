@@ -30,7 +30,11 @@
 #include "StrokeAdvancedIterators.h"
 #include "StrokeRenderer.h"
 
+#include "DNA_linestyle_types.h"
+
 #include "BKE_global.h"
+#include "BKE_linestyle.h"
+#include "BKE_node.h"
 
 namespace Freestyle {
 
@@ -394,11 +398,12 @@ Stroke::Stroke()
 	_mediumType = OPAQUE_MEDIUM;
 	_textureId = 0;
 	_textureStep = 1.0;
+	_lineStyle = NULL;
+	_useShadingNodes = false;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		_mtex[a] = NULL;
 	}
 	_tips = false;
-	_rep = NULL;
 }
 
 Stroke::Stroke(const Stroke& iBrother)
@@ -416,6 +421,8 @@ Stroke::Stroke(const Stroke& iBrother)
 	_mediumType = iBrother._mediumType;
 	_textureId = iBrother._textureId;
 	_textureStep = iBrother._textureStep;
+	_lineStyle = iBrother._lineStyle;
+	_useShadingNodes = iBrother._useShadingNodes;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		if (iBrother._mtex) {
 			_mtex[a] = iBrother._mtex[a];
@@ -425,10 +432,6 @@ Stroke::Stroke(const Stroke& iBrother)
 		}
 	}
 	_tips = iBrother._tips;
-	if (iBrother._rep)
-		_rep = new StrokeRep(*(iBrother._rep));
-	else
-		_rep = NULL;
 }
 
 Stroke::~Stroke()
@@ -441,10 +444,6 @@ Stroke::~Stroke()
 	}
 
 	_ViewEdges.clear();
-	if (_rep) {
-		delete _rep;
-		_rep = NULL;
-	}
 }
 
 Stroke& Stroke::operator=(const Stroke& iBrother)
@@ -462,10 +461,6 @@ Stroke& Stroke::operator=(const Stroke& iBrother)
 	_id = iBrother._id;
 	_ViewEdges = iBrother._ViewEdges;
 	_sampling = iBrother._sampling;
-	if (_rep)
-		delete _rep;
-	if (iBrother._rep)
-		_rep = new StrokeRep(*(iBrother._rep));
 	return *this;
 }
 
@@ -601,11 +596,6 @@ int Stroke::Resample(int iNPoints)
 	_Vertices = newVertices;
 	newVertices.clear();
 
-	if (_rep) {
-		delete _rep;
-		_rep = new StrokeRep(this);
-	}
-
 	return 0;
 }
 
@@ -660,10 +650,6 @@ int Stroke::Resample(float iSampling)
 	_Vertices = newVertices;
 	newVertices.clear();
 
-	if (_rep) {
-		delete _rep;
-		_rep = new StrokeRep(this);
-	}
 	return 0;
 }
 
@@ -774,18 +760,21 @@ void Stroke::ScaleThickness(float iFactor)
 	}
 }
 
+bool Stroke::hasTex() const
+{
+	return BKE_linestyle_use_textures(_lineStyle, _useShadingNodes);
+}
+
 void Stroke::Render(const StrokeRenderer *iRenderer)
 {
-	if (!_rep)
-		_rep = new StrokeRep(this);
-	iRenderer->RenderStrokeRep(_rep);
+	StrokeRep rep(this);
+	iRenderer->RenderStrokeRep(&rep);
 }
 
 void Stroke::RenderBasic(const StrokeRenderer *iRenderer)
 {
-	if (!_rep)
-		_rep = new StrokeRep(this);
-	iRenderer->RenderStrokeRepBasic(_rep);
+	StrokeRep rep(this);
+	iRenderer->RenderStrokeRepBasic(&rep);
 }
 
 Stroke::vertex_iterator Stroke::vertices_begin(float sampling)

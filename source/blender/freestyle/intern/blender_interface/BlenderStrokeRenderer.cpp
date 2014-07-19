@@ -52,6 +52,7 @@ extern "C" {
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "RE_pipeline.h"
@@ -330,6 +331,22 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 2); // Alpha
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 3); // Alpha Fac
 #endif
+
+#if 0
+		for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
+			if (node->type == SH_NODE_TEX_IMAGE) {
+				bNode *input_uvmap = nodeAddStaticNode(C, ntree, SH_NODE_UVMAP);
+				input_uvmap->locx = node->locx - 200.0f;
+				input_uvmap->locy = node->locy;
+				NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
+				BLI_strncpy(storage->uv_map, "along_stroke_tips", sizeof(storage->uv_map));
+
+				fromsock = (bNodeSocket *)BLI_findlink(&input_uvmap->outputs, 0); // UV
+				tosock = (bNodeSocket *)BLI_findlink(&node->inputs, 0); // Vector
+				nodeAddLink(ntree, input_uvmap, fromsock, node, tosock);
+			}
+		}
+#endif
 	}
 
 	nodeSetActive(ntree, shader_mix);
@@ -340,7 +357,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 {
-	if (BKE_scene_use_new_shading_nodes(freestyle_scene)) {
+	if (iStrokeRep->useShadingNodes()) {
 		Material *ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, iStrokeRep->getLineStyle());
 
 		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
@@ -464,7 +481,7 @@ void BlenderStrokeRenderer::test_strip_visibility(Strip::vertex_container& strip
 void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
 	vector<Strip*>& strips = iStrokeRep->getStrips();
-	const bool hasTex = iStrokeRep->getMTex(0) != NULL;
+	const bool hasTex = iStrokeRep->hasTex();
 	Strip::vertex_container::iterator v[3];
 	StrokeVertexRep *svRep[3];
 	unsigned int vertex_index, edge_index, loop_index;
@@ -535,7 +552,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
 		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
 		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
-		BKE_mesh_update_customdata_pointers(mesh, true);
+		BKE_mesh_update_customdata_pointers(mesh, false);
 
 		loopsuv[0] = mesh->mloopuv;
 
@@ -544,7 +561,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
 		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
 		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
-		BKE_mesh_update_customdata_pointers(mesh, true);
+		BKE_mesh_update_customdata_pointers(mesh, false);
 
 		loopsuv[1] = mesh->mloopuv;
 	}

@@ -188,6 +188,8 @@ protected:
 	MTex *_mtex[MAX_MTEX];
 	Material *_material;
 	FreestyleLineStyle *_lineStyle;
+	bool _useShadingNodes;
+	bool _hasTex;
 
 	// float _averageTextureAlpha;
 
@@ -227,6 +229,16 @@ public:
 	inline FreestyleLineStyle *getLineStyle() const
 	{
 		return _lineStyle;
+	}
+
+	inline bool useShadingNodes() const
+	{
+		return _useShadingNodes;
+	}
+
+	inline bool hasTex() const
+	{
+		return _hasTex;
 	}
 
 	inline vector<Strip*>& getStrips()

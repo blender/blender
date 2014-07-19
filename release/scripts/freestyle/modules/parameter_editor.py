@@ -1075,7 +1075,21 @@ def process(layer_name, lineset_name):
         elif m.type == '2D_TRANSFORM':
             shaders_list.append(Transform2DShader(
                 m.pivot, m.scale_x, m.scale_y, m.angle, m.pivot_u, m.pivot_x, m.pivot_y))
-            
+    has_tex = False
+    if scene.render.use_shading_nodes:
+        if linestyle.use_nodes and linestyle.node_tree:
+            ### TODO ###
+            #shaders_list.append(BlenderTextureShader(linestyle.nodetree))
+            has_tex = True
+    else:
+        if linestyle.use_texture:
+            for slot in linestyle.texture_slots:
+                if slot is not None:
+                    shaders_list.append(BlenderTextureShader(slot))
+                    has_tex = True
+    if has_tex:
+        shaders_list.append(StrokeTextureStepShader(linestyle.texture_spacing))
+    color = linestyle.color
     if (not linestyle.use_chaining) or (linestyle.chaining == 'PLAIN' and linestyle.use_same_object):
         thickness_position = linestyle.thickness_position
     else:

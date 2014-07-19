@@ -29,12 +29,11 @@
 #include "../system/PythonInterpreter.h"
 
 extern "C" {
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_text.h"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.h" // BLI_assert()
 
 struct FreestyleLineStyle;
+struct Scene;
+struct Text;
 }
 
 namespace Freestyle {
@@ -42,11 +41,13 @@ namespace Freestyle {
 class BlenderStyleModule : public StyleModule
 {
 public:
-	BlenderStyleModule(struct Text *text, struct FreestyleLineStyle *linestyle, const string &name,
-	                   Interpreter *inter) : StyleModule(name, inter)
+	BlenderStyleModule(const string &name, Interpreter *inter, struct Text *text,
+	                   struct FreestyleLineStyle *lineStyle, bool useShadingNodes)
+	: StyleModule(name, inter)
 	{
 		_text = text;
-		_linestyle = linestyle;
+		_lineStyle = lineStyle;
+		_useShadingNodes = useShadingNodes;
 	}
 
 	virtual ~BlenderStyleModule()
@@ -55,9 +56,8 @@ public:
 
 	virtual StrokeLayer *execute()
 	{
-
 		StrokeLayer *sl = StyleModule::execute();
-		sl->setLineStyle(_linestyle);
+		sl->setLineStyle(_lineStyle, _useShadingNodes);
 		return sl;
 	}
 
@@ -71,7 +71,8 @@ protected:
 
 private:
 	struct Text *_text;
-	struct FreestyleLineStyle *_linestyle;
+	struct FreestyleLineStyle *_lineStyle;
+	bool _useShadingNodes;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderStyleModule")

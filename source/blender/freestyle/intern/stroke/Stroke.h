@@ -545,8 +545,8 @@ private:
 	MTex *_mtex[MAX_MTEX];
 	bool _tips;
 	Vec2r _extremityOrientations[2]; // the orientations of the first and last extermity
-	StrokeRep *_rep;
 	FreestyleLineStyle *_lineStyle;
+	bool _useShadingNodes;
 
 public:
 	/*! default constructor */
@@ -651,6 +651,12 @@ public:
 		return _lineStyle;
 	}
 
+	/*! Return true if the new shading nodes are used. */
+	inline bool useShadingNodes()
+	{
+		return _useShadingNodes;
+	}
+
 	/*! Returns the id of the texture used to simulate th marks system for this Stroke */
 	inline unsigned int getTextureId() {return _textureId;}
 
@@ -663,10 +669,7 @@ public:
 	}
 
 	/*! Returns true if this Stroke has textures assigned, false otherwise. */
-	inline bool hasTex() const
-	{
-		return _mtex[0] != NULL;
-	}
+	bool hasTex() const;
 
 	/*! Returns true if this Stroke uses a texture with tips, false otherwise. */
 	inline bool hasTips() const
@@ -747,9 +750,10 @@ public:
 	void setLength(float iLength);
 
 	/*! sets the line style of the Stroke. */
-	void setLineStyle(struct FreestyleLineStyle *iLineStyle)
+	void setLineStyle(struct FreestyleLineStyle *iLineStyle, bool iUseShadingNodes)
 	{
 		_lineStyle = iLineStyle;
+		_useShadingNodes = iUseShadingNodes;
 	}
 
 	/*! sets the medium type that must be used for this Stroke. */

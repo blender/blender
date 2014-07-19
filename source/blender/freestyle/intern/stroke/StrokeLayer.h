@@ -105,7 +105,7 @@ public:
 		_strokes.push_back(iStroke);
 	}
 
-	void setLineStyle(struct FreestyleLineStyle *iLineStyle);
+	void setLineStyle(struct FreestyleLineStyle *iLineStyle, bool iUseShadingNodes);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeLayer")
