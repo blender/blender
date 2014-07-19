@@ -2257,6 +2257,11 @@ void node_attribute(vec3 attr_uv, out vec4 outcol, out vec3 outvec, out float ou
 	outf = (attr_uv.x + attr_uv.y + attr_uv.z)/3.0;
 }
 
+void node_uvmap(vec3 attr_uv, out vec3 outvec)
+{
+	outvec = attr_uv;
+}
+
 void node_geometry(vec3 I, vec3 N, mat4 toworld,
 	out vec3 position, out vec3 normal, out vec3 tangent,
 	out vec3 true_normal, out vec3 incoming, out vec3 parametric,
