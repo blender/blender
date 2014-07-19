@@ -403,20 +403,28 @@ static void draw_uvs_other_mesh_new_shading(Object *ob, const Image *curimage)
 	int a;
 	BLI_bitmap *mat_test_array;
 	bool ok = false;
+	int totcol = 0;
 
 	if (me->mloopuv == NULL) {
 		return;
 	}
 
-	if (ob->totcol == 0) {
+	if (curimage && ob->totcol == 0) {
 		return;
 	}
 
-	mat_test_array = BLI_BITMAP_NEW_ALLOCA(ob->totcol);
+	totcol = max_ii(ob->totcol, 1);
+	mat_test_array = BLI_BITMAP_NEW_ALLOCA(totcol);
 
-	for (a = 0; a < ob->totcol; a++) {
+	for (a = 0; a < totcol; a++) {
 		Image *image;
-		ED_object_get_active_image(ob, a + 1, &image, NULL, NULL);
+		
+		/* if no materials, assume a default material with no image */
+		if(ob->totcol)
+			ED_object_get_active_image(ob, a + 1, &image, NULL, NULL);
+		else
+			image = NULL;
+
 		if (image == curimage) {
 			BLI_BITMAP_ENABLE(mat_test_array, a);
 			ok = true;
@@ -429,7 +437,7 @@ static void draw_uvs_other_mesh_new_shading(Object *ob, const Image *curimage)
 
 	for (a = me->totpoly; a != 0; a--, mpoly++) {
 		const int mat_nr = mpoly->mat_nr;
-		if ((mat_nr >= ob->totcol) ||
+		if ((mat_nr >= totcol) ||
 		    (BLI_BITMAP_TEST(mat_test_array, mat_nr)) == 0)
 		{
 			continue;
