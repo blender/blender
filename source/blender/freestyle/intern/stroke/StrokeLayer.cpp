@@ -36,13 +36,6 @@ StrokeLayer::~StrokeLayer()
 	clear();
 }
 
-void StrokeLayer::setLineStyle(struct FreestyleLineStyle *iLineStyle, bool iUseShadingNodes)
-{
-	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
-		(*s)->setLineStyle(iLineStyle, iUseShadingNodes);
-	}
-}
-
 void StrokeLayer::ScaleThickness(float iFactor)
 {
 	for (StrokeLayer::stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {

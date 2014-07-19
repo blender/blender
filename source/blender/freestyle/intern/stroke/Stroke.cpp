@@ -30,10 +30,7 @@
 #include "StrokeAdvancedIterators.h"
 #include "StrokeRenderer.h"
 
-#include "DNA_linestyle_types.h"
-
 #include "BKE_global.h"
-#include "BKE_linestyle.h"
 #include "BKE_node.h"
 
 namespace Freestyle {
@@ -398,11 +395,10 @@ Stroke::Stroke()
 	_mediumType = OPAQUE_MEDIUM;
 	_textureId = 0;
 	_textureStep = 1.0;
-	_lineStyle = NULL;
-	_useShadingNodes = false;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		_mtex[a] = NULL;
 	}
+	_nodeTree = NULL;
 	_tips = false;
 }
 
@@ -421,8 +417,6 @@ Stroke::Stroke(const Stroke& iBrother)
 	_mediumType = iBrother._mediumType;
 	_textureId = iBrother._textureId;
 	_textureStep = iBrother._textureStep;
-	_lineStyle = iBrother._lineStyle;
-	_useShadingNodes = iBrother._useShadingNodes;
 	for (int a = 0; a < MAX_MTEX; a++) {
 		if (iBrother._mtex) {
 			_mtex[a] = iBrother._mtex[a];
@@ -431,6 +425,7 @@ Stroke::Stroke(const Stroke& iBrother)
 			_mtex[a] = NULL;
 		}
 	}
+	_nodeTree = iBrother._nodeTree;
 	_tips = iBrother._tips;
 }
 
@@ -758,11 +753,6 @@ void Stroke::ScaleThickness(float iFactor)
 		StrokeAttribute& attr = (*it)->attribute();
 		attr.setThickness(iFactor * attr.getThicknessR(), iFactor * attr.getThicknessL());
 	}
-}
-
-bool Stroke::hasTex() const
-{
-	return BKE_linestyle_use_textures(_lineStyle, _useShadingNodes);
 }
 
 void Stroke::Render(const StrokeRenderer *iRenderer)

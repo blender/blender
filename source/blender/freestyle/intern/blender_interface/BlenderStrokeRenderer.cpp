@@ -146,7 +146,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
 {
-	return; //XXX
+#if 0
+	return; // XXX
+#endif
 
 	// The freestyle_scene object is not released here.  Instead,
 	// the scene is released in free_all_freestyle_renders() in
@@ -217,7 +219,7 @@ unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
 	return mesh_id;
 }
 
-Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, FreestyleLineStyle *linestyle)
+Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree)
 {
 	Material *ma = BKE_material_add(bmain, "stroke_shader");
 	bNodeTree *ntree;
@@ -226,9 +228,9 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 	PointerRNA fromptr, toptr;
 
 	cout << "linestyle " << linestyle << " nodetree " << linestyle->nodetree << " use_nodes " << linestyle->use_nodes << endl;
-	if (linestyle && linestyle->use_nodes && linestyle->nodetree) {
+	if (iNodeTree) {
 		// make a copy of linestyle->nodetree
-		ntree = ntreeCopyTree_ex(linestyle->nodetree, bmain, true);
+		ntree = ntreeCopyTree_ex(iNodeTree, bmain, true);
 
 		// find the active Output Line Style node
 		for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
@@ -357,8 +359,8 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, Frees
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 {
-	if (iStrokeRep->useShadingNodes()) {
-		Material *ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, iStrokeRep->getLineStyle());
+	if (BKE_scene_use_new_shading_nodes(freestyle_scene)) {
+		Material *ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, iStrokeRep->getNodeTree());
 
 		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
 			PointerRNA scene_ptr;

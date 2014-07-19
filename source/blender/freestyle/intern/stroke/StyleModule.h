@@ -62,7 +62,7 @@ public:
 
 	virtual ~StyleModule() {}
 
-	virtual StrokeLayer *execute()
+	StrokeLayer *execute()
 	{
 		if (!_inter) {
 			cerr << "Error: no interpreter was found to execute the script" << endl;

@@ -892,10 +892,9 @@ void Controller::InsertStyleModule(unsigned index, const char *iFileName)
 	_Canvas->InsertStyleModule(index, sm);
 }
 
-void Controller::InsertStyleModule(unsigned index, const char *iName, struct Text *iText,
-                                   struct FreestyleLineStyle *iLineStyle, bool iUseShadingNodes)
+void Controller::InsertStyleModule(unsigned index, const char *iName, struct Text *iText)
 {
-	StyleModule *sm = new BlenderStyleModule(iName, _inter, iText, iLineStyle, iUseShadingNodes);
+	StyleModule *sm = new BlenderStyleModule(iText, iName, _inter);
 	_Canvas->InsertStyleModule(index, sm);
 }
 

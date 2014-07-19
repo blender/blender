@@ -36,7 +36,10 @@
 #include "../geometry/Bezier.h"
 #include "../geometry/Geom.h"
 
+extern "C" {
 struct MTex;
+struct bNodeTree;
+}
 
 using namespace std;
 
@@ -904,6 +907,7 @@ class BlenderTextureShader : public StrokeShader
 {
 private:
 	MTex *_mtex;
+	bNodeTree *_nodeTree;
 
 public:
 	/*! Builds the shader.
@@ -913,6 +917,17 @@ public:
 	BlenderTextureShader(MTex *mtex) : StrokeShader()
 	{
 		_mtex = mtex;
+		_nodeTree = NULL;
+	}
+
+	/*! Builds the shader.
+	*  \param nodetree
+	*    A node tree (of new shading nodes) to define textures.
+	*/
+	BlenderTextureShader(bNodeTree *nodetree) : StrokeShader()
+	{
+		_nodeTree = nodetree;
+		_mtex = NULL;
 	}
 
 	virtual string getName() const

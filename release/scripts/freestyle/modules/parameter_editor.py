@@ -1078,8 +1078,7 @@ def process(layer_name, lineset_name):
     has_tex = False
     if scene.render.use_shading_nodes:
         if linestyle.use_nodes and linestyle.node_tree:
-            ### TODO ###
-            #shaders_list.append(BlenderTextureShader(linestyle.nodetree))
+            shaders_list.append(BlenderTextureShader(linestyle.node_tree))
             has_tex = True
     else:
         if linestyle.use_texture:

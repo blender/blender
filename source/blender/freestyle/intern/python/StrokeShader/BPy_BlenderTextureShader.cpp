@@ -41,38 +41,46 @@ static char BlenderTextureShader___doc__[] =
 "\n"
 "[Texture shader]\n"
 "\n"
-".. method:: __init__(LineStyleTextureSlot)\n"
+".. method:: __init__(texture)\n"
 "\n"
 "   Builds a BlenderTextureShader object.\n"
 "\n"
-"	:arg mtex: texture slot to add to stroke shading.\n"
-"   :type mtex: LineStyleTextureSlot\n"
-
+"   :arg texture: A line style texture slot or a shader node tree to define\n"
+"       a set of textures.\n"
+"   :type texture: :class:`LineStyleTextureSlot` or :class:`ShaderNodeTree`\n"
 "\n"
 ".. method:: shade(stroke)\n"
 "\n"
-"   Assigns a blender texture slot to the stroke  shading\n"
-"	in order to simulate marks.\n"
+"   Assigns a blender texture slot to the stroke  shading in order to\n"
+"   simulate marks.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
 static int BlenderTextureShader___init__(BPy_BlenderTextureShader *self, PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"LineStyleTextureSlot", NULL};
-	PyObject *py_mtex;
+	static const char *kwlist[] = {"texture", NULL};
+	PyObject *obj;
 	MTex *_mtex;
+	bNodeTree *_nodetree;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &py_mtex))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return -1;
-
-	_mtex = (MTex*)PyC_RNA_AsPointer(py_mtex, "LineStyleTextureSlot");
-
+	_mtex = (MTex *)PyC_RNA_AsPointer(obj, "LineStyleTextureSlot");
 	if (_mtex) {
 		self->py_ss.ss = new StrokeShaders::BlenderTextureShader(_mtex);
+		return 0;
 	}
-
-	return 0;
+	PyErr_Clear();
+	_nodetree = (bNodeTree *)PyC_RNA_AsPointer(obj, "ShaderNodeTree");
+	if (_nodetree) {
+		self->py_ss.ss = new StrokeShaders::BlenderTextureShader(_nodetree);
+		return 0;
+	}
+	PyErr_Format(PyExc_TypeError,
+	             "expected either 'LineStyleTextureSlot' or 'ShaderNodeTree', "
+	             "found '%.200s' instead", Py_TYPE(obj)->tp_name);
+	return -1;
 }
 
 /*-----------------------BPy_BlenderTextureShader type definition ------------------------------*/

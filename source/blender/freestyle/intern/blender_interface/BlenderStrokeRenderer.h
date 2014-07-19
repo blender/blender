@@ -30,11 +30,12 @@
 
 extern "C" {
 struct Main;
+struct Material;
 struct Object;
 struct Render;
 struct Scene;
 struct bContext;
-struct FreestyleLineStyle;
+struct bNodeTree;
 }
 
 namespace Freestyle {
@@ -53,7 +54,7 @@ public:
 
 	Render *RenderScene(Render *re, bool render);
 
-	static Material* GetStrokeShader(bContext *C, Main *bmain, FreestyleLineStyle *linestyle);
+	static Material* GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree);
 
 protected:
 	Main *freestyle_bmain;

@@ -34,10 +34,6 @@
 #include "MEM_guardedalloc.h"
 #endif
 
-extern "C" {
-struct FreestyleLineStyle;
-}
-
 namespace Freestyle {
 
 class Stroke;
@@ -104,8 +100,6 @@ public:
 	{
 		_strokes.push_back(iStroke);
 	}
-
-	void setLineStyle(struct FreestyleLineStyle *iLineStyle, bool iUseShadingNodes);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeLayer")

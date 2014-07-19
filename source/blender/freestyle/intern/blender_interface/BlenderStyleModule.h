@@ -31,7 +31,6 @@
 extern "C" {
 #include "BLI_utildefines.h" // BLI_assert()
 
-struct FreestyleLineStyle;
 struct Scene;
 struct Text;
 }
@@ -41,24 +40,13 @@ namespace Freestyle {
 class BlenderStyleModule : public StyleModule
 {
 public:
-	BlenderStyleModule(const string &name, Interpreter *inter, struct Text *text,
-	                   struct FreestyleLineStyle *lineStyle, bool useShadingNodes)
-	: StyleModule(name, inter)
+	BlenderStyleModule(struct Text *text, const string &name, Interpreter *inter) : StyleModule(name, inter)
 	{
 		_text = text;
-		_lineStyle = lineStyle;
-		_useShadingNodes = useShadingNodes;
 	}
 
 	virtual ~BlenderStyleModule()
 	{
-	}
-
-	virtual StrokeLayer *execute()
-	{
-		StrokeLayer *sl = StyleModule::execute();
-		sl->setLineStyle(_lineStyle, _useShadingNodes);
-		return sl;
 	}
 
 protected:
@@ -71,8 +59,6 @@ protected:
 
 private:
 	struct Text *_text;
-	struct FreestyleLineStyle *_lineStyle;
-	bool _useShadingNodes;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderStyleModule")

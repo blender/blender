@@ -89,8 +89,7 @@ public:
 	Render *RenderStrokes(Render *re, bool render);
 	void SwapStyleModules(unsigned i1, unsigned i2);
 	void InsertStyleModule(unsigned index, const char *iFileName);
-	void InsertStyleModule(unsigned index, const char *iName, struct Text *iText,
-                           struct FreestyleLineStyle *iLineStyle, bool iUseShadingNodes);
+	void InsertStyleModule(unsigned index, const char *iName, struct Text *iText);
 	void AddStyleModule(const char *iFileName);
 	void RemoveStyleModule(unsigned index);
 	void ReloadStyleModule(unsigned index, const char * iFileName);

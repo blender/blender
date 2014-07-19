@@ -46,7 +46,7 @@
 extern "C" {
 #include "DNA_material_types.h"
 
-struct FreestyleLineStyle;
+struct bNodeTree;
 }
 
 #ifndef MAX_MTEX
@@ -543,10 +543,9 @@ private:
 	MediumType _mediumType;
 	unsigned int _textureId;
 	MTex *_mtex[MAX_MTEX];
+	bNodeTree *_nodeTree;
 	bool _tips;
 	Vec2r _extremityOrientations[2]; // the orientations of the first and last extermity
-	FreestyleLineStyle *_lineStyle;
-	bool _useShadingNodes;
 
 public:
 	/*! default constructor */
@@ -645,18 +644,6 @@ public:
 		return _mediumType;
 	}
 
-	/*! Return the line style associated to this Stroke. */
-	inline FreestyleLineStyle *getLineStyle()
-	{
-		return _lineStyle;
-	}
-
-	/*! Return true if the new shading nodes are used. */
-	inline bool useShadingNodes()
-	{
-		return _useShadingNodes;
-	}
-
 	/*! Returns the id of the texture used to simulate th marks system for this Stroke */
 	inline unsigned int getTextureId() {return _textureId;}
 
@@ -668,8 +655,17 @@ public:
 		return _mtex[idx];
 	}
 
+	/*! Return the shader node tree to define textures. */
+	inline bNodeTree *getNodeTree()
+	{
+		return _nodeTree;
+	}
+
 	/*! Returns true if this Stroke has textures assigned, false otherwise. */
-	bool hasTex() const;
+	inline bool hasTex() const
+	{
+		return (_mtex && _mtex[0] != NULL) || _nodeTree;
+	}
 
 	/*! Returns true if this Stroke uses a texture with tips, false otherwise. */
 	inline bool hasTips() const
@@ -749,13 +745,6 @@ public:
 	/*! sets the 2D length of the Stroke. */
 	void setLength(float iLength);
 
-	/*! sets the line style of the Stroke. */
-	void setLineStyle(struct FreestyleLineStyle *iLineStyle, bool iUseShadingNodes)
-	{
-		_lineStyle = iLineStyle;
-		_useShadingNodes = iUseShadingNodes;
-	}
-
 	/*! sets the medium type that must be used for this Stroke. */
 	inline void setMediumType(MediumType iType)
 	{
@@ -784,6 +773,12 @@ public:
 			}
 		}
 		return -1; /* no free slots */
+	}
+
+	/*! assigns a node tree (of new shading nodes) to define textures. */
+	inline void setNodeTree(bNodeTree *iNodeTree)
+	{
+		_nodeTree = iNodeTree;
 	}
 
 	/*! sets the flag telling whether this stroke is using a texture with tips or not. */
