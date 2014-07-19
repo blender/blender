@@ -52,6 +52,7 @@ extern "C" {
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
@@ -142,6 +143,15 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render
 
 	// Reset serial mesh ID (used for BlenderStrokeRenderer::NewMesh())
 	_mesh_id = 0xffffffff;
+
+	// Check if the rendering engine uses new shading nodes
+	_use_shading_nodes = BKE_scene_use_new_shading_nodes(freestyle_scene);
+
+	// Create a bNodeTree-to-Material hash table
+	if (_use_shading_nodes)
+		_nodetree_hash = BLI_ghash_ptr_new("BlenderStrokeRenderer::_nodetree_hash");
+	else
+		_nodetree_hash = NULL;
 }
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
@@ -199,6 +209,9 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		lnk = lnk->next;
 		BKE_libblock_free(freestyle_bmain, ma);
 	}
+
+	if (_use_shading_nodes)
+		BLI_ghash_free(_nodetree_hash, NULL, NULL);
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
@@ -358,8 +371,18 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 {
-	if (BKE_scene_use_new_shading_nodes(freestyle_scene)) {
-		Material *ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, iStrokeRep->getNodeTree());
+	if (_use_shading_nodes) {
+		bNodeTree *nt = iStrokeRep->getNodeTree();
+		Material *ma = (Material *)BLI_ghash_lookup(_nodetree_hash, nt);
+		if (!ma) {
+			ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, nt);
+			BLI_ghash_insert(_nodetree_hash, nt, ma);
+#if 0
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				printf("Material '%s' created using ShaderNodeTree '%s'\n", ma->id.name+2, nt->id.name+2);
+			}
+#endif
+		}
 
 		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
 			PointerRNA scene_ptr;

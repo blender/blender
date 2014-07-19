@@ -29,6 +29,7 @@
 #include "../system/FreestyleConfig.h"
 
 extern "C" {
+struct GHash;
 struct Main;
 struct Material;
 struct Object;
@@ -64,6 +65,8 @@ protected:
 	float _width, _height;
 	float _z, _z_delta;
 	unsigned int _mesh_id;
+	bool _use_shading_nodes;
+	struct GHash *_nodetree_hash;
 
 	float get_stroke_vertex_z(void) const;
 	unsigned int get_stroke_mesh_id(void) const;
