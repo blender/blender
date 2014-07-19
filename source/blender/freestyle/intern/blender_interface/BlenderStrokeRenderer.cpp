@@ -227,7 +227,6 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	bNodeSocket *fromsock, *tosock;
 	PointerRNA fromptr, toptr;
 
-	cout << "linestyle " << linestyle << " nodetree " << linestyle->nodetree << " use_nodes " << linestyle->use_nodes << endl;
 	if (iNodeTree) {
 		// make a copy of linestyle->nodetree
 		ntree = ntreeCopyTree_ex(iNodeTree, bmain, true);

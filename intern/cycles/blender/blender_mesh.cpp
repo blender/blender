@@ -408,30 +408,17 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				float3 *fdata = attr->data_float3();
 				size_t i = 0;
 
-				std::cout << "name " << name << std::endl;
 				for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
 					fdata[0] =  get_float3(t->uv1());
 					fdata[1] =  get_float3(t->uv2());
 					fdata[2] =  get_float3(t->uv3());
 					fdata += 3;
-#if 0
-					std::cout << "  1st "
-					          << "( " << t->uv1()[0] << ", " << t->uv1()[1] << ") "
-					          << "( " << t->uv2()[0] << ", " << t->uv2()[1] << ") "
-					          << "( " << t->uv3()[0] << ", " << t->uv3()[1] << ") " << std::endl;
-#endif
 
 					if(nverts[i] == 4) {
 						fdata[0] =  get_float3(t->uv1());
 						fdata[1] =  get_float3(t->uv3());
 						fdata[2] =  get_float3(t->uv4());
 						fdata += 3;
-#if 0
-						std::cout << "  2nd "
-						          << "( " << t->uv1()[0] << ", " << t->uv1()[1] << ") "
-						          << "( " << t->uv3()[0] << ", " << t->uv3()[1] << ") "
-						          << "( " << t->uv4()[0] << ", " << t->uv4()[1] << ") " << std::endl;
-#endif
 					}
 				}
 			}

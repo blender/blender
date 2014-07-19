@@ -516,7 +516,6 @@ void Strip::setVertexColor (const vector<StrokeVertex *>& iStrokeVertices)
 
 void Strip::computeTexCoord (const vector<StrokeVertex *>& iStrokeVertices, float texStep)
 {
-	cout << "Strip::computeTexCoord texStep " << texStep << endl;
 	vector<StrokeVertex *>::const_iterator v, vend;
 	StrokeVertex *sv;
 	int i = 0;
