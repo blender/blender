@@ -1308,8 +1308,8 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 				 *	- they were degrees/10 
 				 *	- we need radians for RNA to do the right thing
 				 */
-				if ( ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
-				     ((icu->blocktype == ID_PO) && ELEM3(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)) )
+				if ( ((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
+				     ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)) )
 				{
 					const float fac = (float)M_PI / 18.0f; //10.0f * M_PI/180.0f;
 					
@@ -1341,7 +1341,7 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 					DriverVar *dvar = fcu->driver->variables.first;
 					DriverTarget *dtar = &dvar->targets[0];
 					
-					if (ELEM3(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ)) {
+					if (ELEM(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ)) {
 						const float fac = (float)M_PI / 18.0f;
 						
 						dst->vec[0][0] *= fac;
@@ -1388,7 +1388,7 @@ static void ipo_to_animato(ID *id, Ipo *ipo, char actname[], char constname[], S
 	IpoCurve *icu;
 	
 	/* sanity check */
-	if (ELEM3(NULL, ipo, anim, drivers))
+	if (ELEM(NULL, ipo, anim, drivers))
 		return;
 		
 	if (G.debug & G_DEBUG) printf("ipo_to_animato\n");

@@ -784,7 +784,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	perspective_m4(shb->winmat, -wsize, wsize, -wsize, wsize, shb->d, shb->clipend);
 	mul_m4_m4m4(shb->persmat, shb->winmat, shb->viewmat);
 
-	if (ELEM3(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP)) {
+	if (ELEM(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP)) {
 		shb->totbuf= lar->buffers;
 
 		/* jitter, weights - not threadsafe! */

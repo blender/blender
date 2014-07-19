@@ -605,7 +605,7 @@ static int animedit_poll_channels_active(bContext *C)
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
 		return 0;
 	/* animation editor test */
-	if (ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
+	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
 		return 0;
 
 	return 1;
@@ -622,7 +622,7 @@ static int animedit_poll_channels_nla_tweakmode_off(bContext *C)
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
 		return 0;
 	/* animation editor test */
-	if (ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
+	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
 		return 0;
 	
 	/* NLA TweakMode test */
@@ -2257,7 +2257,7 @@ static int animchannels_find_poll(bContext *C)
 		return 0;
 	
 	/* animation editor with dopesheet */
-	return ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA);
+	return ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA);
 }
 
 /* find_invoke() - Get initial channels */

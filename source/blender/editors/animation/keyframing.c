@@ -652,7 +652,7 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	const char *identifier = NULL;
 	
 	/* validate data */
-	if (ELEM3(NULL, ptr, ptr->data, prop))
+	if (ELEM(NULL, ptr, ptr->data, prop))
 		return 0;
 	
 	/* get first constraint and determine type of keyframe constraints to check for 
@@ -1042,7 +1042,7 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 				/* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
 				 * is determined by the array index for the F-Curve
 				 */
-				if (ELEM5(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
+				if (ELEM(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
 					fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
 				}
 			}

@@ -1460,7 +1460,7 @@ void text_scroll_to_cursor(SpaceText *st, ScrArea *sa)
 	ARegion *ar = NULL;
 	int i, x, winx = 0;
 
-	if (ELEM3(NULL, st, st->text, st->text->curl)) return;
+	if (ELEM(NULL, st, st->text, st->text->curl)) return;
 
 	text = st->text;
 

@@ -2424,7 +2424,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	float (*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
 	
 	/* edit-object needed for matrix, and ar->regiondata for projections to work */
-	if (ELEM3(NULL, obedit, ar, ar->regiondata))
+	if (ELEM(NULL, obedit, ar, ar->regiondata))
 		return OPERATOR_CANCELLED;
 	
 	if (bm->totvertsel < 2) {

@@ -122,7 +122,7 @@ bool BKE_displist_has_faces(ListBase *lb)
 	DispList *dl;
 
 	for (dl = lb->first; dl; dl = dl->next) {
-		if (ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
+		if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
 			return true;
 		}
 	}
@@ -766,7 +766,7 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob,
 		if (mti->type == eModifierTypeType_Constructive)
 			return pretessellatePoint;
 
-		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
+		if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 			pretessellatePoint = md;
 
 			/* this modifiers are moving point of tessellation automatically
@@ -1566,7 +1566,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 	Curve *cu = ob->data;
 
 	/* we do allow duplis... this is only displist on curve level */
-	if (!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
+	if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
 
 	if (ob->type == OB_SURF) {
 		BKE_displist_make_surf(scene, ob, dispbase, r_dm_final, for_render, for_orco, use_render_resolution);
@@ -1809,7 +1809,7 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, const bool for_orco)
 	/* The same check for duplis as in do_makeDispListCurveTypes.
 	 * Happens when curve used for constraint/bevel was converted to mesh.
 	 * check there is still needed for render displist and orco displists. */
-	if (!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT))
+	if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT))
 		return;
 
 	BKE_object_free_derived_caches(ob);
@@ -1894,7 +1894,7 @@ void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 /* this is confusing, there's also min_max_object, appplying the obmat... */
 static void boundbox_displist_object(Object *ob)
 {
-	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+	if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		/* Curve's BB is already calculated as a part of modifier stack,
 		 * here we only calculate object BB based on final display list.
 		 */

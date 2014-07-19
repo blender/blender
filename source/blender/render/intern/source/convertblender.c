@@ -3704,8 +3704,8 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	
 	/* Annoying, lamp UI does this, but the UI might not have been used? - add here too.
 	 * make sure this matches buttons_shading.c's logic */
-	if (ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && (la->mode & LA_SHAD_RAY))
-		if (ELEM3(la->type, LA_SPOT, LA_SUN, LA_LOCAL))
+	if (ELEM(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && (la->mode & LA_SHAD_RAY))
+		if (ELEM(la->type, LA_SPOT, LA_SUN, LA_LOCAL))
 			if (la->ray_samp_method == LA_SAMP_CONSTANT) la->ray_samp_method = LA_SAMP_HALTON;
 	
 	lar->ray_samp_method= la->ray_samp_method;
@@ -4831,7 +4831,7 @@ static int allow_render_dupli_instance(Render *UNUSED(re), DupliObject *dob, Obj
 	}
 
 	for (psys=obd->particlesystem.first; psys; psys=psys->next)
-		if (!ELEM5(psys->part->ren_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
+		if (!ELEM(psys->part->ren_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
 			return 0;
 
 	/* don't allow lamp, animated duplis, or radio render */
@@ -5833,8 +5833,8 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	Object *camera;
 	float mat[4][4];
 	float amb[3];
-	const short onlyselected= !ELEM5(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW, RE_BAKE_AO, RE_BAKE_VERTEX_COLORS);
-	const short nolamps= ELEM5(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_VERTEX_COLORS);
+	const short onlyselected= !ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW, RE_BAKE_AO, RE_BAKE_VERTEX_COLORS);
+	const short nolamps= ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_VERTEX_COLORS);
 
 	re->main= bmain;
 	re->scene= scene;
@@ -5858,7 +5858,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	if (type==RE_BAKE_VERTEX_COLORS)
 		re->flag |=  R_NEED_VCOL;
 
-	if (!actob && ELEM6(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_VERTEX_COLORS)) {
+	if (!actob && ELEM(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_VERTEX_COLORS)) {
 		re->r.mode &= ~R_SHADOW;
 		re->r.mode &= ~R_RAYTRACE;
 	}

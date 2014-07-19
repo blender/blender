@@ -405,7 +405,7 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
 	FCurve *fcu, *fcn = NULL;
 	
 	/* sanity checks */
-	if (ELEM3(NULL, srcAct, dstAct, basepath)) {
+	if (ELEM(NULL, srcAct, dstAct, basepath)) {
 		if (G.debug & G_DEBUG) {
 			printf("ERROR: action_partition_fcurves_by_basepath(%p, %p, %p) has insufficient info to work with\n",
 			       (void *)srcAct, (void *)dstAct, (void *)basepath);
@@ -1062,7 +1062,7 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks, ID *id, const char group_name[],
 	KS_Path *ksp;
 	
 	/* sanity checks */
-	if (ELEM3(NULL, ks, rna_path, id))
+	if (ELEM(NULL, ks, rna_path, id))
 		return NULL;
 	
 	/* loop over paths in the current KeyingSet, finding the first one where all settings match 

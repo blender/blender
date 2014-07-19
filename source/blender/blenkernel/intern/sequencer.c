@@ -758,7 +758,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
 	int prev_startdisp = 0, prev_enddisp = 0;
 	/* note: don't rename the strip, will break animation curves */
 
-	if (ELEM7(seq->type,
+	if (ELEM(seq->type,
 	          SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_SOUND_RAM,
 	          SEQ_TYPE_SCENE, SEQ_TYPE_META, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) == 0)
 	{
@@ -2808,7 +2808,7 @@ static ImBuf *seq_render_strip(const SeqRenderData *context, Sequence *seq, floa
 	float nr = give_stripelem_index(seq, cfra);
 	/* all effects are handled similarly with the exception of speed effect */
 	int type = (seq->type & SEQ_TYPE_EFFECT && seq->type != SEQ_TYPE_SPEED) ? SEQ_TYPE_EFFECT : seq->type;
-	bool is_preprocessed = !ELEM3(type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SCENE);
+	bool is_preprocessed = !ELEM(type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SCENE);
 
 	ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
@@ -2875,7 +2875,7 @@ static bool seq_must_swap_input_in_blend_mode(Sequence *seq)
 	/* bad hack, to fix crazy input ordering of 
 	 * those two effects */
 
-	if (ELEM3(seq->blend_mode, SEQ_TYPE_ALPHAOVER, SEQ_TYPE_ALPHAUNDER, SEQ_TYPE_OVERDROP)) {
+	if (ELEM(seq->blend_mode, SEQ_TYPE_ALPHAOVER, SEQ_TYPE_ALPHAUNDER, SEQ_TYPE_OVERDROP)) {
 		swap_input = true;
 	}
 	
@@ -2960,7 +2960,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seq
 		/* Some of the blend modes are unclear how to apply with only single input,
 		 * or some of them will just produce an empty result..
 		 */
-		if (ELEM3(seq->blend_mode, SEQ_BLEND_REPLACE, SEQ_TYPE_CROSS, SEQ_TYPE_ALPHAOVER)) {
+		if (ELEM(seq->blend_mode, SEQ_BLEND_REPLACE, SEQ_TYPE_CROSS, SEQ_TYPE_ALPHAOVER)) {
 			int early_out;
 			if (seq->blend_mode == SEQ_BLEND_REPLACE) {
 				early_out = EARLY_NO_INPUT;
@@ -3688,7 +3688,7 @@ Sequence *BKE_sequencer_foreground_frame_get(Scene *scene, int frame)
 		if (seq->flag & SEQ_MUTE || seq->startdisp > frame || seq->enddisp <= frame)
 			continue;
 		/* only use elements you can see - not */
-		if (ELEM5(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIE, SEQ_TYPE_COLOR)) {
+		if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIE, SEQ_TYPE_COLOR)) {
 			if (seq->machine > best_machine) {
 				best_seq = seq;
 				best_machine = seq->machine;

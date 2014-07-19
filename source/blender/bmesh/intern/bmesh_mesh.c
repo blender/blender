@@ -802,7 +802,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
 	}
 
 	/* skip if we only need to operate on one element */
-#pragma omp parallel sections if ((!ELEM5(htype_needed, BM_VERT, BM_EDGE, BM_FACE, BM_LOOP, BM_FACE | BM_LOOP)) && \
+#pragma omp parallel sections if ((!ELEM(htype_needed, BM_VERT, BM_EDGE, BM_FACE, BM_LOOP, BM_FACE | BM_LOOP)) && \
 	                              (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT))
 	{
 #pragma omp section
@@ -1056,7 +1056,7 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 	}
 
 	/* skip if we only need to operate on one element */
-#pragma omp parallel sections if ((!ELEM3(htype_needed, BM_VERT, BM_EDGE, BM_FACE)) && \
+#pragma omp parallel sections if ((!ELEM(htype_needed, BM_VERT, BM_EDGE, BM_FACE)) && \
 	                              (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT))
 	{
 #pragma omp section

@@ -289,7 +289,7 @@ void wm_event_do_notifiers(bContext *C)
 						do_anim = true;
 				}
 			}
-			if (ELEM5(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE, NC_WM)) {
+			if (ELEM(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE, NC_WM)) {
 				ED_info_stats_clear(win->screen->scene);
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 			}
@@ -393,7 +393,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ARegion *region = CTX_wm_region(C);
 	ARegion *menu = CTX_wm_menu(C);
 	static bool do_wheel_ui = true;
-	const bool is_wheel = ELEM3(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN);
+	const bool is_wheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN);
 	int retval;
 	
 	/* UI code doesn't handle return values - it just always returns break. 
@@ -2010,7 +2010,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	if (CTX_wm_window(C) == NULL)
 		return action;
 
-	if (!ELEM3(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE, EVENT_NONE) && !ISTIMER(event->type)) {
+	if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE, EVENT_NONE) && !ISTIMER(event->type)) {
 
 		/* test for CLICK events */
 		if (wm_action_not_handled(action)) {
@@ -2694,7 +2694,7 @@ bool WM_modal_tweak_exit(const wmEvent *event, int tweak_event)
 		else {
 			/* if the initial event wasn't a tweak event then
 			 * ignore USER_RELEASECONFIRM setting: see [#26756] */
-			if (ELEM3(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
+			if (ELEM(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
 				return 1;
 			}
 		}

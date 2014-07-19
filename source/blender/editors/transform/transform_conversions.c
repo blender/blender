@@ -124,8 +124,8 @@
 static void transform_around_single_fallback(TransInfo *t)
 {
 	if ((t->total == 1) &&
-	    (ELEM3(t->around, V3D_CENTER, V3D_CENTROID, V3D_ACTIVE)) &&
-	    (ELEM3(t->mode, TFM_RESIZE, TFM_ROTATION, TFM_TRACKBALL)))
+	    (ELEM(t->around, V3D_CENTER, V3D_CENTROID, V3D_ACTIVE)) &&
+	    (ELEM(t->mode, TFM_RESIZE, TFM_ROTATION, TFM_TRACKBALL)))
 	{
 		t->around = V3D_LOCAL;
 	}
@@ -282,7 +282,7 @@ static void createTransTexspace(TransInfo *t)
 	}
 
 	id = ob->data;
-	if (id == NULL || !ELEM3(GS(id->name), ID_ME, ID_CU, ID_MB)) {
+	if (id == NULL || !ELEM(GS(id->name), ID_ME, ID_CU, ID_MB)) {
 		BKE_report(t->reports, RPT_ERROR, "Unsupported object type for text-space transform");
 		t->total = 0;
 		return;
@@ -3707,7 +3707,7 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, TransDataGraph *
 
 static bool graph_edit_is_translation_mode(TransInfo *t)
 {
-	return ELEM4(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE);
+	return ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE);
 }
 
 static bool graph_edit_use_local_center(TransInfo *t)
@@ -4767,12 +4767,12 @@ static bool constraints_list_needinv(TransInfo *t, ListBase *list)
 			if ((con->flag & CONSTRAINT_DISABLE) == 0 && (con->enforce != 0.0f)) {
 				/* (affirmative) returns for specific constraints here... */
 				/* constraints that require this regardless  */
-				if (ELEM5(con->type,
-				          CONSTRAINT_TYPE_CHILDOF,
-				          CONSTRAINT_TYPE_FOLLOWPATH,
-				          CONSTRAINT_TYPE_CLAMPTO,
-				          CONSTRAINT_TYPE_OBJECTSOLVER,
-				          CONSTRAINT_TYPE_FOLLOWTRACK))
+				if (ELEM(con->type,
+				         CONSTRAINT_TYPE_CHILDOF,
+				         CONSTRAINT_TYPE_FOLLOWPATH,
+				         CONSTRAINT_TYPE_CLAMPTO,
+				         CONSTRAINT_TYPE_OBJECTSOLVER,
+				         CONSTRAINT_TYPE_FOLLOWTRACK))
 				{
 					return true;
 				}

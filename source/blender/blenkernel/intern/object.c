@@ -246,7 +246,7 @@ void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
 	ModifierData *md;
 	BKE_object_free_modifiers(ob_dst);
 
-	if (!ELEM5(ob_dst->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+	if (!ELEM(ob_dst->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 		/* only objects listed above can have modifiers and linking them to objects
 		 * which doesn't have modifiers stack is quite silly */
 		return;
@@ -255,11 +255,11 @@ void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
 	for (md = ob_src->modifiers.first; md; md = md->next) {
 		ModifierData *nmd = NULL;
 
-		if (ELEM4(md->type,
-		          eModifierType_Hook,
-		          eModifierType_Softbody,
-		          eModifierType_ParticleInstance,
-		          eModifierType_Collision))
+		if (ELEM(md->type,
+		         eModifierType_Hook,
+		         eModifierType_Softbody,
+		         eModifierType_ParticleInstance,
+		         eModifierType_Collision))
 		{
 			continue;
 		}
@@ -296,7 +296,7 @@ void BKE_object_free_derived_caches(Object *ob)
 			me->bb->flag |= BOUNDBOX_DIRTY;
 		}
 	}
-	else if (ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
+	else if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
 		Curve *cu = ob->data;
 
 		if (cu->bb) {
@@ -977,7 +977,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 	ob->empty_drawtype = OB_PLAINAXES;
 	ob->empty_drawsize = 1.0;
 
-	if (ELEM3(type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
+	if (ELEM(type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
 		ob->trackflag = OB_NEGZ;
 		ob->upflag = OB_POSY;
 	}
@@ -1978,7 +1978,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	unit_m4(mat);
 	
 	cu = par->data;
-	if (ELEM3(NULL, par->curve_cache, par->curve_cache->path, par->curve_cache->path->data)) /* only happens on reload file, but violates depsgraph still... fix! */
+	if (ELEM(NULL, par->curve_cache, par->curve_cache->path, par->curve_cache->path->data)) /* only happens on reload file, but violates depsgraph still... fix! */
 		BKE_displist_make_curveTypes(scene, par, 0);
 	if (par->curve_cache->path == NULL) return;
 	
@@ -2473,7 +2473,7 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 	if (ob->type == OB_MESH) {
 		bb = BKE_mesh_boundbox_get(ob);
 	}
-	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		bb = BKE_curve_boundbox_get(ob);
 	}
 	else if (ob->type == OB_MBALL) {

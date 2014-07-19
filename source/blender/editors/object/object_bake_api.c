@@ -335,14 +335,14 @@ static bool write_external_bake_pixels(
 
 static bool is_noncolor_pass(ScenePassType pass_type)
 {
-	return ELEM7(pass_type,
-	             SCE_PASS_Z,
-	             SCE_PASS_NORMAL,
-	             SCE_PASS_VECTOR,
-	             SCE_PASS_INDEXOB,
-	             SCE_PASS_UV,
-	             SCE_PASS_RAYHITS,
-	             SCE_PASS_INDEXMA);
+	return ELEM(pass_type,
+	            SCE_PASS_Z,
+	            SCE_PASS_NORMAL,
+	            SCE_PASS_VECTOR,
+	            SCE_PASS_INDEXOB,
+	            SCE_PASS_UV,
+	            SCE_PASS_RAYHITS,
+	            SCE_PASS_INDEXMA);
 }
 
 /* if all is good tag image and return true */
@@ -429,7 +429,7 @@ static bool bake_objects_check(Main *bmain, Object *ob, ListBase *selected_objec
 			if (ob_iter == ob)
 				continue;
 
-			if (ELEM5(ob_iter->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL) == false) {
+			if (ELEM(ob_iter->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL) == false) {
 				BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, Surface or Metaball)", ob_iter->id.name + 2);
 				return false;
 			}

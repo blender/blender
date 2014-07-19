@@ -846,7 +846,7 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 static int clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
 	if (drag->type == WM_DRAG_PATH)
-		if (ELEM4(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) /* rule might not work? */
+		if (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) /* rule might not work? */
 			return true;
 
 	return false;

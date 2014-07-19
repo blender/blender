@@ -7019,7 +7019,7 @@ static int match_texture_space_poll(bContext *C)
 {
 	Object *object = CTX_data_active_object(C);
 
-	return object && ELEM3(object->type, OB_CURVE, OB_SURF, OB_FONT);
+	return object && ELEM(object->type, OB_CURVE, OB_SURF, OB_FONT);
 }
 
 static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))

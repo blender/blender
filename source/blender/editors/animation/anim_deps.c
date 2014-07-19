@@ -193,7 +193,7 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 	/* major priority is selection status, so refer to the checks done in anim_filter.c 
 	 * skip_fcurve_selected_data() for reference about what's going on here...
 	 */
-	if (ELEM3(NULL, fcu, fcu->rna_path, owner_id))
+	if (ELEM(NULL, fcu, fcu->rna_path, owner_id))
 		return;
 	
 	if (GS(owner_id->name) == ID_OB) {

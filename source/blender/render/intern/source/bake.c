@@ -174,7 +174,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		
 		/* only do AO for a full bake (and obviously AO bakes)
 		 * AO for light bakes is a leftover and might not be needed */
-		if (ELEM3(bs->type, RE_BAKE_ALL, RE_BAKE_AO, RE_BAKE_LIGHT))
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_AO, RE_BAKE_LIGHT))
 			shade_samples_do_AO(ssamp);
 		
 		if (shi->mat->nodetree && shi->mat->use_nodes) {
@@ -303,7 +303,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			rgb_float_to_uchar(col, shr.combined);
 		}
 		
-		if (ELEM3(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE, RE_BAKE_VERTEX_COLORS)) {
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE, RE_BAKE_VERTEX_COLORS)) {
 			col[3] = FTOCHAR(shr.alpha);
 		}
 		else {

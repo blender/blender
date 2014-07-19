@@ -262,7 +262,7 @@ static void animrecord_check_state(Scene *scene, ID *id, wmTimer *animtimer)
 	ScreenAnimData *sad = (animtimer) ? animtimer->customdata : NULL;
 	
 	/* sanity checks */
-	if (ELEM3(NULL, scene, id, sad))
+	if (ELEM(NULL, scene, id, sad))
 		return;
 	
 	/* check if we need a new strip if:
@@ -817,7 +817,7 @@ static void recalcData_objects(TransInfo *t)
 				}
 			}
 			
-			if (!ELEM3(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONESIZE)) {
+			if (!ELEM(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONESIZE)) {
 				/* fix roll */
 				for (i = 0; i < t->total; i++, td++) {
 					if (td->extra) {
@@ -1193,7 +1193,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 		/* exceptional case */
 		if (t->around == V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
-			if (ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
+			if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
 				t->options |= CTX_NO_PET;
 			}
 		}

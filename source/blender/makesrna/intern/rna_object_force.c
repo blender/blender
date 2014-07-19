@@ -733,7 +733,7 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRN
 
 		return curve_shape_items;
 	}
-	else if (ELEM3(ob->type, OB_MESH, OB_SURF, OB_FONT)) {
+	else if (ELEM(ob->type, OB_MESH, OB_SURF, OB_FONT)) {
 		if (ob->pd->forcefield == PFIELD_VORTEX)
 			return vortex_shape_items;
 

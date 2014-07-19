@@ -1707,7 +1707,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 		 */
 		if (strstr(fcu->rna_path, "rotation_euler") == NULL)
 			continue;
-		else if (ELEM3(fcu->array_index, 0, 1, 2) == 0) {
+		else if (ELEM(fcu->array_index, 0, 1, 2) == 0) {
 			BKE_reportf(op->reports, RPT_WARNING,
 			            "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)",
 			            (ale->id) ? ale->id->name : TIP_("<No ID>"), fcu->rna_path, fcu->array_index);
@@ -1750,7 +1750,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 		
 		/* sanity check: ensure that there are enough F-Curves to work on in this group */
 		/* TODO: also enforce assumption that there be a full set of keyframes at each position by ensuring that totvert counts are same? */
-		if (ELEM3(NULL, euf->fcurves[0], euf->fcurves[1], euf->fcurves[2])) {
+		if (ELEM(NULL, euf->fcurves[0], euf->fcurves[1], euf->fcurves[2])) {
 			/* report which components are missing */
 			BKE_reportf(op->reports, RPT_WARNING,
 			            "Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%s'",

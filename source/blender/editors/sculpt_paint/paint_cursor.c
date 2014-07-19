@@ -756,7 +756,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
                                      ViewContext *vc, int x, int y, float zoom, PaintMode mode)
 {
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
-	bool col = ELEM3(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true : false;
+	bool col = ELEM(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true : false;
 	OverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
@@ -880,7 +880,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		 * invert key modifier without starting a stroke */
 		if ((!(brush->flag & BRUSH_INVERTED) ^
 		     !(brush->flag & BRUSH_DIR_IN)) &&
-		    ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW,
+		    ELEM(brush->sculpt_tool, SCULPT_TOOL_DRAW,
 		          SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
 		          SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
 		{

@@ -821,7 +821,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	TreeStoreElem *tselem;
 	ID *id = idv;
 	
-	if (ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+	if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		id = ((PointerRNA *)idv)->id.data;
 		if (!id) id = ((PointerRNA *)idv)->data;
 	}
@@ -847,10 +847,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	
 	te->parent = parent;
 	te->index = index;   // for data arays
-	if (ELEM3(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
+	if (ELEM(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		/* pass */
 	}
-	else if (ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+	else if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		/* pass */
 	}
 	else if (type == TSE_ANIM_DATA) {
@@ -985,7 +985,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->directdata = seq;
 		te->name = seq->strip->stripdata->name;
 	}
-	else if (ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+	else if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		PointerRNA pptr, propptr, *ptr = (PointerRNA *)idv;
 		PropertyRNA *prop, *iterprop;
 		PropertyType proptype;
@@ -1062,7 +1062,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				else if (tot)
 					te->flag |= TE_LAZY_CLOSED;
 			}
-			else if (ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
+			else if (ELEM(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
 				tot = RNA_property_array_length(ptr, prop);
 
 				if (TSELEM_OPEN(tselem, soops)) {

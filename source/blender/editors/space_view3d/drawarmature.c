@@ -93,7 +93,7 @@ static void set_pchan_colorset(Object *ob, bPoseChannel *pchan)
 	short color_index = 0;
 	
 	/* sanity check */
-	if (ELEM4(NULL, ob, arm, pose, pchan)) {
+	if (ELEM(NULL, ob, arm, pose, pchan)) {
 		bcolor = NULL;
 		return;
 	}

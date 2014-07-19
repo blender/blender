@@ -98,7 +98,7 @@ void outputNumInput(NumInput *n, char *str, const float scale_length)
 		const short i = (n->flag & NUM_AFFECT_ALL && n->idx != j && !(n->val_flag[j] & NUM_EDITED)) ? 0 : j;
 
 		/* Use scale_length if needed! */
-		const float fac = ELEM3(n->unit_type[j], B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME) ? scale_length : 1.0f;
+		const float fac = ELEM(n->unit_type[j], B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME) ? scale_length : 1.0f;
 
 		if (n->val_flag[i] & NUM_EDITED) {
 			/* Get the best precision, allows us to draw '10.0001' as '10' instead! */
@@ -480,7 +480,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			default_unit = "r";
 
 		/* Use scale_length if needed! */
-		if (ELEM3(n->unit_type[idx], B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME))
+		if (ELEM(n->unit_type[idx], B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME))
 			fac /= sce->unit.scale_length;
 
 		BLI_strncpy(str_unit_convert, n->str, sizeof(str_unit_convert));

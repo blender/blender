@@ -422,7 +422,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			Image *ima;
 			ima = (Image *)id;
 			if (ima->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-				if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 					if (rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data)) {
 						if (!ima->packedfile) {
 							BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);

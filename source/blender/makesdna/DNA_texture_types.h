@@ -585,7 +585,7 @@ typedef struct ColorMapping {
 #define TEX_VD_IMAGE_SEQUENCE	3
 #define TEX_VD_SMOKE			4
 /* for voxels which use VoxelData->source_path */
-#define TEX_VD_IS_SOURCE_PATH(_format) (ELEM3(_format, TEX_VD_BLENDERVOXEL, TEX_VD_RAW_8BIT, TEX_VD_RAW_16BIT))
+#define TEX_VD_IS_SOURCE_PATH(_format) (ELEM(_format, TEX_VD_BLENDERVOXEL, TEX_VD_RAW_8BIT, TEX_VD_RAW_16BIT))
 
 /* smoke data types */
 #define TEX_VD_SMOKEDENSITY		0

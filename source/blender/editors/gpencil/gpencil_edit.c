@@ -1412,7 +1412,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	rctf subrect, *subrect_ptr = NULL;
 
 	/* error checking */
-	if (ELEM3(NULL, gpd, gpl, gpf))
+	if (ELEM(NULL, gpd, gpl, gpf))
 		return;
 
 	/* only convert if there are any strokes on this layer's frame to convert */

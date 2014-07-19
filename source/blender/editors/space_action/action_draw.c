@@ -219,7 +219,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT))
 					sel = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
 				
-				if (ELEM3(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
+				if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
 					switch (ale->type) {
 						case ANIMTYPE_SUMMARY:
 						{

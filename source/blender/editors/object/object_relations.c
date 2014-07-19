@@ -444,7 +444,7 @@ EnumPropertyItem prop_clear_parent_types[] = {
 /* Helper for ED_object_parent_clear() - Remove deform-modifiers associated with parent */
 static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
 {
-	if (ELEM3(par->type, OB_ARMATURE, OB_LATTICE, OB_CURVE)) {
+	if (ELEM(par->type, OB_ARMATURE, OB_LATTICE, OB_CURVE)) {
 		ModifierData *md, *mdn;
 		
 		/* assume that we only need to remove the first instance of matching deform modifier here */
@@ -593,7 +593,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
                          int partype, bool xmirror, bool keep_transform, const int vert_par[3])
 {
 	bPoseChannel *pchan = NULL;
-	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
+	int pararm = ELEM(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
 	
 	DAG_id_tag_update(&par->id, OB_RECALC_OB);
 	
@@ -678,7 +678,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				 *   assuming that the parent is selected too...
 				 */
 				// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
-				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+				if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 					ModifierData *md;
 					
 					switch (partype) {
@@ -1128,7 +1128,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		/* also remove all tracking constraints */
 		for (con = ob->constraints.last; con; con = pcon) {
 			pcon = con->prev;
-			if (ELEM3(con->type, CONSTRAINT_TYPE_TRACKTO, CONSTRAINT_TYPE_LOCKTRACK, CONSTRAINT_TYPE_DAMPTRACK))
+			if (ELEM(con->type, CONSTRAINT_TYPE_TRACKTO, CONSTRAINT_TYPE_LOCKTRACK, CONSTRAINT_TYPE_DAMPTRACK))
 				BKE_constraint_remove(&ob->constraints, con);
 		}
 		
@@ -1192,7 +1192,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				
 				/* Lamp, Camera and Speaker track differently by default */
-				if (ELEM3(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
+				if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
 					data->trackflag = TRACK_nZ;
 				}
 			}
@@ -1213,7 +1213,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				
 				/* Lamp, Camera and Speaker track differently by default */
-				if (ELEM3(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
+				if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
 					data->reserved1 = TRACK_nZ;
 					data->reserved2 = UP_Y;
 				}
@@ -1235,7 +1235,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				
 				/* Lamp, Camera and Speaker track differently by default */
-				if (ELEM3(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
+				if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
 					data->trackflag = TRACK_nZ;
 					data->lockflag = LOCK_Y;
 				}

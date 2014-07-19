@@ -66,7 +66,7 @@ typedef struct VFont {
 #define FO_SELCHANGE	10
 
 /* BKE_vfont_to_curve will move the cursor in these cases */
-#define FO_CURS_IS_MOTION(mode) (ELEM4(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN))
+#define FO_CURS_IS_MOTION(mode) (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN))
 
 #define FO_BUILTIN_NAME "<builtin>"
 

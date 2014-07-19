@@ -935,7 +935,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 	if (pd->flag & PFIELD_DO_LOCATION) {
 		madd_v3_v3fl(total_force, force, 1.0f/point->vel_to_sec);
 
-		if (ELEM3(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG, PFIELD_SMOKEFLOW)==0 && pd->f_flow != 0.0f) {
+		if (ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG, PFIELD_SMOKEFLOW)==0 && pd->f_flow != 0.0f) {
 			madd_v3_v3fl(total_force, point->vel, -pd->f_flow * efd->falloff);
 		}
 	}

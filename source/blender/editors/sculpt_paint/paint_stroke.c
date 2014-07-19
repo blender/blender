@@ -139,8 +139,8 @@ static bool paint_tool_require_location(Brush *brush, PaintMode mode)
 {
 	switch (mode) {
 		case PAINT_SCULPT:
-			if (ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
-			                              SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB))
+			if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
+			                             SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB))
 			{
 				return false;
 			}
@@ -566,7 +566,7 @@ bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
 
 static bool sculpt_is_grab_tool(Brush *br)
 {
-	return ELEM4(br->sculpt_tool,
+	return ELEM(br->sculpt_tool,
 	             SCULPT_TOOL_GRAB,
 	             SCULPT_TOOL_THUMB,
 	             SCULPT_TOOL_ROTATE,
@@ -613,7 +613,7 @@ bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 bool paint_supports_texture(PaintMode mode)
 {
 	/* ommit: PAINT_WEIGHT, PAINT_SCULPT_UV, PAINT_INVALID */
-	return ELEM4(mode, PAINT_SCULPT, PAINT_VERTEX, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
+	return ELEM(mode, PAINT_SCULPT, PAINT_VERTEX, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
 }
 
 /* return true if the brush size can change during paint (normally used for pressure) */

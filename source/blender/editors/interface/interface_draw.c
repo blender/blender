@@ -695,11 +695,11 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 		}
 
 		/* RGB / YCC (3 channels) */
-		else if (ELEM4(scopes->wavefrm_mode,
-		               SCOPES_WAVEFRM_RGB,
-		               SCOPES_WAVEFRM_YCC_601,
-		               SCOPES_WAVEFRM_YCC_709,
-		               SCOPES_WAVEFRM_YCC_JPEG))
+		else if (ELEM(scopes->wavefrm_mode,
+		              SCOPES_WAVEFRM_RGB,
+		              SCOPES_WAVEFRM_YCC_601,
+		              SCOPES_WAVEFRM_YCC_709,
+		              SCOPES_WAVEFRM_YCC_JPEG))
 		{
 			int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB);
 			

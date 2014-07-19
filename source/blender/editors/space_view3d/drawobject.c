@@ -4868,7 +4868,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		normalize_v3(imat[1]);
 	}
 
-	if (ELEM3(draw_as, PART_DRAW_DOT, PART_DRAW_CROSS, PART_DRAW_LINE) &&
+	if (ELEM(draw_as, PART_DRAW_DOT, PART_DRAW_CROSS, PART_DRAW_LINE) &&
 	    (part->draw_col > PART_DRAW_COL_MAT))
 	{
 		create_cdata = 1;
@@ -6782,7 +6782,7 @@ static void draw_bounding_volume(Object *ob, char type)
 	if (ob->type == OB_MESH) {
 		bb = BKE_mesh_boundbox_get(ob);
 	}
-	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		bb = BKE_curve_boundbox_get(ob);
 	}
 	else if (ob->type == OB_MBALL) {
@@ -6839,7 +6839,7 @@ static void drawtexspace(Object *ob)
 	if (ob->type == OB_MESH) {
 		BKE_mesh_texspace_get(ob->data, loc, NULL, size);
 	}
-	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		BKE_curve_texspace_get(ob->data, loc, NULL, size);
 	}
 	else if (ob->type == OB_MBALL) {
@@ -6877,7 +6877,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 	glDepthMask(0);
 	
-	if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
+	if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		DerivedMesh *dm = ob->derivedFinal;
 		bool has_faces = false;
 
@@ -6921,7 +6921,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 
 static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const unsigned char ob_wire_col[4])
 {
-	if (ELEM4(ob->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)) {
+	if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)) {
 
 		if (scene->obedit == ob) {
 			UI_ThemeColor(TH_WIRE_EDIT);
@@ -6933,7 +6933,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 		ED_view3d_polygon_offset(rv3d, 1.0);
 		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 
-		if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
+		if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 			if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
 
 				if (ob->derivedFinal) {

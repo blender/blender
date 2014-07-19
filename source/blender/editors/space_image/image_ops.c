@@ -1383,7 +1383,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		/* sanitize all settings */
 
 		/* unlikely but just in case */
-		if (ELEM3(simopts->im_format.planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA) == 0) {
+		if (ELEM(simopts->im_format.planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA) == 0) {
 			simopts->im_format.planes = R_IMF_PLANES_RGBA;
 		}
 

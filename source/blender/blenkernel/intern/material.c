@@ -467,7 +467,7 @@ Material ***give_matarar(Object *ob)
 		me = ob->data;
 		return &(me->mat);
 	}
-	else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
+	else if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
 		cu = ob->data;
 		return &(cu->mat);
 	}
@@ -488,7 +488,7 @@ short *give_totcolp(Object *ob)
 		me = ob->data;
 		return &(me->totcol);
 	}
-	else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
+	else if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
 		cu = ob->data;
 		return &(cu->totcol);
 	}
@@ -1291,7 +1291,7 @@ bool object_remove_material_slot(Object *ob)
 	}
 
 	/* check indices from mesh */
-	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
 		material_data_index_remove_id((ID *)ob->data, actcol - 1);
 		if (ob->curve_cache) {
 			BKE_displist_free(&ob->curve_cache->disp);

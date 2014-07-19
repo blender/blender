@@ -307,7 +307,7 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED
 	if (ma->material_type == MA_TYPE_VOLUME) {
 		
 	}
-	else if (ELEM3(ma->material_type, MA_TYPE_SURFACE, MA_TYPE_HALO, MA_TYPE_WIRE)) {
+	else if (ELEM(ma->material_type, MA_TYPE_SURFACE, MA_TYPE_HALO, MA_TYPE_WIRE)) {
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_UV);
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_STRAND);
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_WINDOW);

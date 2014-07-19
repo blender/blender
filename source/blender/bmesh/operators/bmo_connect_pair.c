@@ -134,7 +134,7 @@ static void state_calc_co_pair(const PathContext *pc,
 static bool state_link_find(PathLinkState *state, BMElem *ele)
 {
 	PathLink *link = state->link_last;
-	BLI_assert(ELEM3(ele->head.htype, BM_VERT, BM_EDGE, BM_FACE));
+	BLI_assert(ELEM(ele->head.htype, BM_VERT, BM_EDGE, BM_FACE));
 	if (link) {
 		do {
 			if (link->ele == ele) {

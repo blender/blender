@@ -385,7 +385,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, bool apply_l
 	/* first check if we can execute */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (ELEM6(ob->type, OB_MESH, OB_ARMATURE, OB_LATTICE, OB_MBALL, OB_CURVE, OB_SURF)) {
+		if (ELEM(ob->type, OB_MESH, OB_ARMATURE, OB_LATTICE, OB_MBALL, OB_CURVE, OB_SURF)) {
 			ID *obdata = ob->data;
 			if (ID_REAL_USERS(obdata) > 1) {
 				BKE_reportf(reports, RPT_ERROR,

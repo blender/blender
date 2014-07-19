@@ -779,7 +779,7 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 					break;
 				case ND_NLA:
 				case ND_KEYFRAME:
-					if (ELEM3(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED))
+					if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED))
 						ED_region_tag_redraw(ar);
 					break;
 				case ND_ANIMCHAN:
@@ -1030,7 +1030,7 @@ static void view3d_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa
 					break;
 				case ND_NLA:
 				case ND_KEYFRAME:
-					if (ELEM3(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED))
+					if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED))
 						ED_region_tag_redraw(ar);
 					break;
 			}

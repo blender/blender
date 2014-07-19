@@ -770,7 +770,7 @@ static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const 
 
 static bool is_multires_bake(Scene *scene)
 {
-	if (ELEM4(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_AO))
+	if (ELEM(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_AO))
 		return scene->r.bake_flag & R_BAKE_MULTIRES;
 
 	return 0;

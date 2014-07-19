@@ -931,11 +931,11 @@ static bool region_is_overlap(wmWindow *win, ScrArea *sa, ARegion *ar)
 	if (U.uiflag2 & USER_REGION_OVERLAP) {
 		if (WM_is_draw_triple(win)) {
 			if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ)) {
-				if (ELEM3(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
+				if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
 					return 1;
 			}
 			else if (sa->spacetype == SPACE_IMAGE) {
-				if (ELEM4(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS, RGN_TYPE_PREVIEW))
+				if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS, RGN_TYPE_PREVIEW))
 					return 1;
 			}
 		}

@@ -203,7 +203,7 @@ static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
 		return NULL;
 	}
 
-	if (!(ELEM3(axis, 'X', 'Y', 'Z'))) {
+	if (!(ELEM(axis, 'X', 'Y', 'Z'))) {
 		PyErr_SetString(PyExc_ValueError,
 		                "Euler.rotate_axis(): "
 		                "expected axis to be 'X', 'Y' or 'Z'");

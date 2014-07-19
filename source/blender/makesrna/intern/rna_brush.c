@@ -120,9 +120,9 @@ EnumPropertyItem brush_image_tool_items[] = {
 static int rna_SculptToolCapabilities_has_accumulate_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM6(br->sculpt_tool,
-	             SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CREASE,
-	             SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_LAYER);
+	return ELEM(br->sculpt_tool,
+	            SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CREASE,
+	            SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_LAYER);
 }
 
 static int rna_SculptToolCapabilities_has_auto_smooth_get(PointerRNA *ptr)
@@ -142,9 +142,9 @@ static int rna_SculptToolCapabilities_has_jitter_get(PointerRNA *ptr)
 	Brush *br = (Brush *)ptr->data;
 	return (!(br->flag & BRUSH_ANCHORED) &&
 	        !(br->flag & BRUSH_DRAG_DOT) &&
-	        !ELEM4(br->sculpt_tool,
-	               SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
-	               SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
+	        !ELEM(br->sculpt_tool,
+	              SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
+	              SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
 }
 
 static int rna_SculptToolCapabilities_has_normal_weight_get(PointerRNA *ptr)
@@ -156,7 +156,7 @@ static int rna_SculptToolCapabilities_has_normal_weight_get(PointerRNA *ptr)
 static int rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM3(br->mtex.brush_map_mode,
+	return ELEM(br->mtex.brush_map_mode,
 	            MTEX_MAP_MODE_VIEW,
 	            MTEX_MAP_MODE_TILED,
 	            MTEX_MAP_MODE_STENCIL);
@@ -177,22 +177,22 @@ static int rna_SculptToolCapabilities_has_pinch_factor_get(PointerRNA *ptr)
 static int rna_SculptToolCapabilities_has_plane_offset_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM5(br->sculpt_tool, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
-	             SCULPT_TOOL_FILL, SCULPT_TOOL_FLATTEN, SCULPT_TOOL_SCRAPE);
+	return ELEM(br->sculpt_tool, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
+	            SCULPT_TOOL_FILL, SCULPT_TOOL_FLATTEN, SCULPT_TOOL_SCRAPE);
 }
 
 static int rna_SculptToolCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return (!ELEM4(br->sculpt_tool,
-	               SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
-	               SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
+	return (!ELEM(br->sculpt_tool,
+	              SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
+	              SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
 }
 
 static int rna_BrushCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return (ELEM3(br->mtex.brush_map_mode,
+	return (ELEM(br->mtex.brush_map_mode,
 	             MTEX_MAP_MODE_VIEW,
 	             MTEX_MAP_MODE_AREA,
 	             MTEX_MAP_MODE_RANDOM) &&
@@ -202,19 +202,19 @@ static int rna_BrushCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 static int rna_SculptToolCapabilities_has_sculpt_plane_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return !ELEM4(br->sculpt_tool, SCULPT_TOOL_INFLATE,
-	              SCULPT_TOOL_MASK, SCULPT_TOOL_PINCH,
-	              SCULPT_TOOL_SMOOTH);
+	return !ELEM(br->sculpt_tool, SCULPT_TOOL_INFLATE,
+	             SCULPT_TOOL_MASK, SCULPT_TOOL_PINCH,
+	             SCULPT_TOOL_SMOOTH);
 }
 
 static int rna_SculptToolCapabilities_has_secondary_color_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM10(br->sculpt_tool,
-	              SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
-	              SCULPT_TOOL_CREASE, SCULPT_TOOL_DRAW, SCULPT_TOOL_FILL,
-	              SCULPT_TOOL_FLATTEN, SCULPT_TOOL_INFLATE, SCULPT_TOOL_PINCH,
-	              SCULPT_TOOL_SCRAPE);
+	return ELEM(br->sculpt_tool,
+	            SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
+	            SCULPT_TOOL_CREASE, SCULPT_TOOL_DRAW, SCULPT_TOOL_FILL,
+	            SCULPT_TOOL_FLATTEN, SCULPT_TOOL_INFLATE, SCULPT_TOOL_PINCH,
+	            SCULPT_TOOL_SCRAPE);
 }
 
 static int rna_SculptToolCapabilities_has_smooth_stroke_get(PointerRNA *ptr)
@@ -222,17 +222,17 @@ static int rna_SculptToolCapabilities_has_smooth_stroke_get(PointerRNA *ptr)
 	Brush *br = (Brush *)ptr->data;
 	return (!(br->flag & BRUSH_ANCHORED) &&
 	        !(br->flag & BRUSH_DRAG_DOT) &&
-	        !ELEM4(br->sculpt_tool,
-	               SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
-	               SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
+	        !ELEM(br->sculpt_tool,
+	              SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
+	              SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
 }
 
 static int rna_SculptToolCapabilities_has_space_attenuation_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return ((br->flag & BRUSH_SPACE) &&
-	        !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
-	               SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SNAKE_HOOK));
+	        !ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
+	              SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SNAKE_HOOK));
 }
 
 static int rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
@@ -250,12 +250,12 @@ static int rna_SculptToolCapabilities_has_strength_get(PointerRNA *ptr)
 static int rna_BrushCapabilities_has_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM5(br->mtex.brush_map_mode,
-	             MTEX_MAP_MODE_VIEW,
-	             MTEX_MAP_MODE_AREA,
-	             MTEX_MAP_MODE_TILED,
-	             MTEX_MAP_MODE_STENCIL,
-	             MTEX_MAP_MODE_RANDOM);
+	return ELEM(br->mtex.brush_map_mode,
+	            MTEX_MAP_MODE_VIEW,
+	            MTEX_MAP_MODE_AREA,
+	            MTEX_MAP_MODE_TILED,
+	            MTEX_MAP_MODE_STENCIL,
+	            MTEX_MAP_MODE_RANDOM);
 }
 
 static int rna_SculptToolCapabilities_has_gravity_get(PointerRNA *ptr)
@@ -267,7 +267,7 @@ static int rna_SculptToolCapabilities_has_gravity_get(PointerRNA *ptr)
 static int rna_BrushCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM3(br->mtex.brush_map_mode,
+	return ELEM(br->mtex.brush_map_mode,
 	            MTEX_MAP_MODE_VIEW,
 	            MTEX_MAP_MODE_AREA,
 	            MTEX_MAP_MODE_RANDOM);

@@ -1470,7 +1470,7 @@ static void convert_ensure_curve_cache(Main *bmain, Scene *scene, Object *ob)
 		/* Force creation. This is normally not needed but on operator
 		 * redo we might end up with an object which isn't evaluated yet.
 		 */
-		if (ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
+		if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
 			BKE_displist_make_curveTypes(scene, ob, false);
 		}
 		else if (ob->type == OB_MBALL) {
@@ -2274,7 +2274,7 @@ static int join_poll(bContext *C)
 
 	if (!ob || ob->id.lib) return 0;
 
-	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
+	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
 		return ED_operator_screenactive(C);
 	else
 		return 0;

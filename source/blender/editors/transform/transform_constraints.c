@@ -663,7 +663,7 @@ void drawConstraint(TransInfo *t)
 {
 	TransCon *tc = &(t->con);
 
-	if (!ELEM3(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE))
+	if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE))
 		return;
 	if (!(tc->mode & CON_APPLY))
 		return;

@@ -442,7 +442,7 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 					/* Find contiguous smooth groups already assigned, these are the values we can't reuse! */
 					for (; i--; p++) {
 						int bit = poly_groups[*p];
-						if (!ELEM3(bit, 0, poly_group_id, poly_group_id_overflowed) &&
+						if (!ELEM(bit, 0, poly_group_id, poly_group_id_overflowed) &&
 						    !(bit_poly_group_mask & bit))
 						{
 							bit_poly_group_mask |= bit;

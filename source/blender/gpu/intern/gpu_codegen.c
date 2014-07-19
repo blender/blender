@@ -97,7 +97,7 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 
 	/* skip a variable/function name */
 	while (*str) {
-		if (ELEM7(*str, ' ', '(', ')', ',', '\t', '\n', '\r'))
+		if (ELEM(*str, ' ', '(', ')', ',', '\t', '\n', '\r'))
 			break;
 		else {
 			if (token && len < max-1) {
@@ -115,7 +115,7 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 	/* skip the next special characters:
 	 * note the missing ')' */
 	while (*str) {
-		if (ELEM6(*str, ' ', '(', ',', '\t', '\n', '\r'))
+		if (ELEM(*str, ' ', '(', ',', '\t', '\n', '\r'))
 			str++;
 		else
 			break;

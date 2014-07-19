@@ -396,7 +396,7 @@ static int movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 	int hand;
 
 	if (drag->type == WM_DRAG_PATH)
-		if (ELEM3(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK)) /* rule might not work? */
+		if (ELEM(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK)) /* rule might not work? */
 			if (find_nearest_seq(scene, &ar->v2d, &hand, event->mval) == NULL)
 				return 1;
 	return 0;

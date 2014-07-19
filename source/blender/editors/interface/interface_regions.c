@@ -392,7 +392,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->totline++;
 	}
 
-	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (ELEM(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* better not show the value of a password */
 		if ((but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD)) == 0) {
 			/* full string */

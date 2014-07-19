@@ -597,7 +597,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 
-	if (ELEM4(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
+	if (ELEM(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "geometry.intersect_line_plane(...): "
 		                " can't use 2D Vectors");
@@ -654,7 +654,7 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	if (ELEM4(2, plane_a_co->size, plane_a_no->size, plane_b_co->size, plane_b_no->size)) {
+	if (ELEM(2, plane_a_co->size, plane_a_no->size, plane_b_co->size, plane_b_no->size)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "geometry.intersect_plane_plane(...): "
 		                " can't use 2D Vectors");
@@ -726,7 +726,7 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	if (ELEM3(2, line_a->size, line_b->size, sphere_co->size)) {
+	if (ELEM(2, line_a->size, line_b->size, sphere_co->size)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "geometry.intersect_line_sphere(...): "
 		                " can't use 2D Vectors");

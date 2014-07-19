@@ -387,7 +387,7 @@ static bool kdtree2d_isect_tri_recursive(
 			    (span_tri_v2_sign(tri_coords[1], tri_coords[2], co) != CONCAVE) &&
 			    (span_tri_v2_sign(tri_coords[2], tri_coords[0], co) != CONCAVE))
 			{
-				if (!ELEM3(node->index, tri_index[0], tri_index[1], tri_index[2])) {
+				if (!ELEM(node->index, tri_index[0], tri_index[1], tri_index[2])) {
 					return true;
 				}
 			}

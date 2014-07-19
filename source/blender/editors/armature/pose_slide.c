@@ -134,7 +134,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, short mode)
 	pso->nextFrame = RNA_int_get(op->ptr, "next_frame");
 	
 	/* check the settings from the context */
-	if (ELEM4(NULL, pso->ob, pso->arm, pso->ob->adt, pso->ob->adt->action))
+	if (ELEM(NULL, pso->ob, pso->arm, pso->ob->adt, pso->ob->adt->action))
 		return 0;
 	else
 		act = pso->ob->adt->action;

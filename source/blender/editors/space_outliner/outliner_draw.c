@@ -638,7 +638,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiButSetFlag(bt, UI_BUT_DRAG_LOCK);
 				
 				layflag++;  /* is lay_xor */
-				if (ELEM8(passflag, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT,
+				if (ELEM(passflag, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT,
 				          SCE_PASS_INDIRECT, SCE_PASS_EMIT, SCE_PASS_ENVIRONMENT))
 				{
 					bt = uiDefIconButBitI(block, TOG, passflag, 0, (*layflag & passflag) ? ICON_DOT : ICON_BLANK1,

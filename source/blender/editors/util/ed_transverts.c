@@ -192,7 +192,7 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3],
 
 bool ED_transverts_check_obedit(Object *obedit)
 {
-	return (ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL));
+	return (ELEM(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL));
 }
 
 void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const int mode)

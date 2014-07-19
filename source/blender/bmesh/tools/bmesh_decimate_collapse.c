@@ -414,10 +414,10 @@ static void bm_decim_triangulate_end(BMesh *bm)
 								BM_vert_in_edge(e, l_b->next->v) ? l_b->prev->v : l_b->next->v,
 							};
 
-							BLI_assert(ELEM3(vquad[0], vquad[1], vquad[2], vquad[3]) == false);
-							BLI_assert(ELEM3(vquad[1], vquad[0], vquad[2], vquad[3]) == false);
-							BLI_assert(ELEM3(vquad[2], vquad[1], vquad[0], vquad[3]) == false);
-							BLI_assert(ELEM3(vquad[3], vquad[1], vquad[2], vquad[0]) == false);
+							BLI_assert(ELEM(vquad[0], vquad[1], vquad[2], vquad[3]) == false);
+							BLI_assert(ELEM(vquad[1], vquad[0], vquad[2], vquad[3]) == false);
+							BLI_assert(ELEM(vquad[2], vquad[1], vquad[0], vquad[3]) == false);
+							BLI_assert(ELEM(vquad[3], vquad[1], vquad[2], vquad[0]) == false);
 
 							if (is_quad_convex_v3(vquad[0]->co, vquad[1]->co, vquad[2]->co, vquad[3]->co)) {
 								/* highly unlikely to fail, but prevents possible double-ups */

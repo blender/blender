@@ -120,7 +120,7 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		return BUT_VERTICAL;
 	else if (sa->spacetype == SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
 		return BUT_VERTICAL;
-	else if (ELEM3(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
+	else if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
 		return BUT_VERTICAL;
 	
 	return 0;
@@ -1131,7 +1131,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		button = 1;
 	else if (event == AKEY)
 		button = 1;
-	else if (ELEM3(event, 0, RETKEY, LEFTMOUSE) && shift) {
+	else if (ELEM(event, 0, RETKEY, LEFTMOUSE) && shift) {
 		block->panel->flag ^= PNL_PIN;
 		button = 2;
 	}
@@ -1716,7 +1716,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 		
 		/* XXX hardcoded key warning */
 		if ((inside || inside_header) && event->val == KM_PRESS) {
-			if (event->type == AKEY && !ELEM4(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
+			if (event->type == AKEY && !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if (pa->flag & PNL_CLOSEDY) {
 					if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my))

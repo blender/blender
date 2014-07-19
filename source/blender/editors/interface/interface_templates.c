@@ -489,7 +489,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	
 		if (user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
 		
-		if (id->lib == NULL && !(ELEM5(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB))) {
+		if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB))) {
 			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}
@@ -808,7 +808,7 @@ static int modifier_can_delete(ModifierData *md)
 static int modifier_is_simulation(ModifierData *md)
 {
 	/* Physic Tab */
-	if (ELEM7(md->type, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim, eModifierType_Smoke,
+	if (ELEM(md->type, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim, eModifierType_Smoke,
 	          eModifierType_Softbody, eModifierType_Surface, eModifierType_DynamicPaint))
 	{
 		return 1;
@@ -906,9 +906,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
 		} /* tessellation point for curve-typed objects */
-		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 			/* some modifiers could work with pre-tessellated curves only */
-			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
+			if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 				/* add disabled pre-tessellated button, so users could have
 				 * message for this modifiers */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0,
@@ -979,7 +979,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
-			if (!ELEM5(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem,
+			if (!ELEM(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem,
 			           eModifierType_Cloth, eModifierType_Smoke))
 			{
 				uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
@@ -1298,7 +1298,7 @@ void uiTemplatePreview(uiLayout *layout, bContext *C, ID *id, int show_buttons, 
 
 	char _preview_id[UI_MAX_NAME_STR];
 
-	if (id && !ELEM5(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA, ID_LS)) {
+	if (id && !ELEM(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA, ID_LS)) {
 		RNA_warning("Expected ID of type material, texture, lamp, world or line style");
 		return;
 	}

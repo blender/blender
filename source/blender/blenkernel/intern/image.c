@@ -1257,7 +1257,7 @@ static bool do_add_image_extension(char *string, const char imtype, const ImageF
 			extension = extension_test;
 	}
 #endif
-	else if (ELEM5(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
+	else if (ELEM(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
 		if (!BLI_testextensie(string, extension_test = ".png"))
 			extension = extension_test;
 	}
@@ -1900,7 +1900,7 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 		ibuf->ftype = RADHDR;
 	}
 #endif
-	else if (ELEM5(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
+	else if (ELEM(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
 		ibuf->ftype = PNG;
 
 		if (imtype == R_IMF_IMTYPE_PNG) {

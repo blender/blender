@@ -151,7 +151,7 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
 	const char *name;
 	int tot = 0;
 
-	assert(ELEM3(label_align, '\0', 'H', 'V'));
+	assert(ELEM(label_align, '\0', 'H', 'V'));
 
 	RNA_STRUCT_BEGIN (ptr, prop)
 	{

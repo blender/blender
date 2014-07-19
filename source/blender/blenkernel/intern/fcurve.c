@@ -276,7 +276,7 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 	int matches = 0;
 	
 	/* sanity checks */
-	if (ELEM4(NULL, dst, src, dataPrefix, dataName))
+	if (ELEM(NULL, dst, src, dataPrefix, dataName))
 		return 0;
 	else if ((dataPrefix[0] == 0) || (dataName[0] == 0))
 		return 0;

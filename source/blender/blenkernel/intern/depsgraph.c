@@ -524,7 +524,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 									if (ct->tar->type == OB_MESH)
 										node3->customdata_mask |= CD_MASK_MDEFORMVERT;
 								}
-								else if (ELEM3(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK))
+								else if (ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK))
 									dag_add_relation(dag, node3, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, cti->name);
 								else
 									dag_add_relation(dag, node3, node, DAG_RL_OB_DATA, cti->name);
@@ -803,7 +803,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			continue;
 
 		/* special case for camera tracking -- it doesn't use targets to define relations */
-		if (ELEM3(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+		if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
 			int depends_on_camera = 0;
 
 			if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
@@ -843,7 +843,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				if (ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO))
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
 				else {
-					if (ELEM3(obt->type, OB_ARMATURE, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) {
+					if (ELEM(obt->type, OB_ARMATURE, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) {
 						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
 						if (obt->type == OB_MESH)
 							node2->customdata_mask |= CD_MASK_MDEFORMVERT;
@@ -1386,7 +1386,7 @@ static bool check_object_needs_evaluation(Object *object)
 	if (object->type == OB_MESH) {
 		return object->derivedFinal == NULL;
 	}
-	else if (ELEM5(object->type, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
+	else if (ELEM(object->type, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 		return object->curve_cache == NULL;
 	}
 
@@ -1400,7 +1400,7 @@ static bool check_object_tagged_for_update(Object *object)
 		return true;
 	}
 
-	if (ELEM6(object->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
+	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 		ID *data_id = object->data;
 		return (data_id->flag & (LIB_ID_RECALC_DATA | LIB_ID_RECALC)) != 0;
 	}
@@ -1983,7 +1983,7 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 			
 			if (cti) {
 				/* special case for camera tracking -- it doesn't use targets to define relations */
-				if (ELEM3(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+				if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
 					ob->recalc |= OB_RECALC_OB;
 				}
 				else if (cti->get_constraint_targets) {
@@ -2272,7 +2272,7 @@ static void dag_group_on_visible_update(Group *group)
 	group->id.flag |= LIB_DOIT;
 
 	for (go = group->gobject.first; go; go = go->next) {
-		if (ELEM6(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
+		if (ELEM(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 			go->ob->recalc |= OB_RECALC_DATA;
 			go->ob->id.flag |= LIB_DOIT;
 			lib_id_recalc_tag(G.main, &go->ob->id);
@@ -2319,7 +2319,7 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 			oblay = (node) ? node->lay : ob->lay;
 
 			if ((oblay & lay) & ~scene->lay_updated) {
-				if (ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
+				if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 					ob->recalc |= OB_RECALC_DATA;
 					lib_id_recalc_tag(bmain, &ob->id);
 				}
@@ -2481,7 +2481,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con = con->next) {
 					bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-					if (ELEM3(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER,
+					if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER,
 					          CONSTRAINT_TYPE_OBJECTSOLVER))
 					{
 						obt->recalc |= OB_RECALC_OB;
@@ -2759,7 +2759,7 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 				if (ob->type == OB_FONT) {
 					Curve *cu = ob->data;
 
-					if (ELEM4((struct VFont *)id, cu->vfont, cu->vfontb, cu->vfonti, cu->vfontbi)) {
+					if (ELEM((struct VFont *)id, cu->vfont, cu->vfontb, cu->vfonti, cu->vfontbi)) {
 						ob->recalc |= (flag & OB_RECALC_ALL);
 					}
 				}

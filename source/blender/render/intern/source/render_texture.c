@@ -3564,7 +3564,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 
 			/* depending of material type, strip non-compatible mapping modes */
 			if (mat->material_type == MA_TYPE_SURFACE) {
-				if (!ELEM4(mtex->texco, TEXCO_ORCO, TEXCO_OBJECT, TEXCO_GLOB, TEXCO_UV)) {
+				if (!ELEM(mtex->texco, TEXCO_ORCO, TEXCO_OBJECT, TEXCO_GLOB, TEXCO_UV)) {
 					/* ignore this texture */
 					mtex->texco = 0;
 					continue;
@@ -3573,7 +3573,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 				mtex->mapto = (mtex->mapto & MAP_COL) | (mtex->mapto & MAP_ALPHA);
 			}
 			else if (mat->material_type == MA_TYPE_VOLUME) {
-				if (!ELEM3(mtex->texco, TEXCO_OBJECT, TEXCO_ORCO, TEXCO_GLOB)) {
+				if (!ELEM(mtex->texco, TEXCO_OBJECT, TEXCO_ORCO, TEXCO_GLOB)) {
 					/* ignore */
 					mtex->texco = 0;
 					continue;

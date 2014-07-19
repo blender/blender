@@ -880,7 +880,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *UNU
 	}
 	else {
 		const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
-		const int is_float = ELEM3(imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
+		const int is_float = ELEM(imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
 		EnumPropertyItem *item_8bit =  &image_color_depth_items[0];
 		EnumPropertyItem *item_10bit = &image_color_depth_items[1];
@@ -1316,7 +1316,7 @@ static void object_simplify_update(Object *ob)
 	ob->id.flag &= ~LIB_DOIT;
 
 	for (md = ob->modifiers.first; md; md = md->next) {
-		if (ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
+		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}

@@ -616,7 +616,7 @@ void KX_BlenderMaterial::ActivateMeshSlot(const RAS_MeshSlot & ms, RAS_IRasteriz
 		/* we do blend modes here, because they can change per object
 		 * with the same material due to obcolor/obalpha */
 		alphablend = mBlenderShader->GetAlphaBlend();
-		if (ELEM3(alphablend, GEMAT_SOLID, GEMAT_ALPHA, GEMAT_ALPHA_SORT) && mMaterial->alphablend != GEMAT_SOLID)
+		if (ELEM(alphablend, GEMAT_SOLID, GEMAT_ALPHA, GEMAT_ALPHA_SORT) && mMaterial->alphablend != GEMAT_SOLID)
 			alphablend = mMaterial->alphablend;
 
 		rasty->SetAlphaBlend(alphablend);

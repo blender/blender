@@ -1415,7 +1415,7 @@ const char *BLI_get_folder_create(int folder_id, const char *subfolder)
 	const char *path;
 
 	/* only for user folders */
-	if (!ELEM4(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_SCRIPTS, BLENDER_USER_AUTOSAVE))
+	if (!ELEM(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_SCRIPTS, BLENDER_USER_AUTOSAVE))
 		return NULL;
 	
 	path = BLI_get_folder(folder_id, subfolder);
@@ -1783,7 +1783,7 @@ bool BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 	ssize_t a;
 
 	for (a = path_len - 1; a >= 0; a--) {
-		if (ELEM3(path[a], '.', '/', '\\')) {
+		if (ELEM(path[a], '.', '/', '\\')) {
 			break;
 		}
 	}

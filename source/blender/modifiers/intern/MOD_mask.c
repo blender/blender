@@ -153,7 +153,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const int defbase_tot = BLI_countlist(&ob->defbase);
 		
 		/* check that there is armature object with bones to use, otherwise return original mesh */
-		if (ELEM3(NULL, oba, oba->pose, ob->defbase.first))
+		if (ELEM(NULL, oba, oba->pose, ob->defbase.first))
 			return dm;
 		
 		/* determine whether each vertexgroup is associated with a selected bone or not 

@@ -465,7 +465,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			DerivedMesh *target_dm = obr->derivedFinal;
 			bool free_target_dm = false;
 			if (!target_dm) {
-				if (ELEM3(obr->type, OB_CURVE, OB_SURF, OB_FONT))
+				if (ELEM(obr->type, OB_CURVE, OB_SURF, OB_FONT))
 					target_dm = CDDM_from_curve(obr);
 				else if (obr->type == OB_MESH) {
 					Mesh *me = (Mesh *)obr->data;

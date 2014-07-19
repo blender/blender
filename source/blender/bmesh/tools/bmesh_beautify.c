@@ -142,10 +142,10 @@ static float bm_edge_calc_rotate_beauty__area(
 			float axis_mat[3][3];
 
 			// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
-			BLI_assert((ELEM3(v1, v2, v3, v4) == false) &&
-			           (ELEM3(v2, v1, v3, v4) == false) &&
-			           (ELEM3(v3, v1, v2, v4) == false) &&
-			           (ELEM3(v4, v1, v2, v3) == false));
+			BLI_assert((ELEM(v1, v2, v3, v4) == false) &&
+			           (ELEM(v2, v1, v3, v4) == false) &&
+			           (ELEM(v3, v1, v2, v4) == false) &&
+			           (ELEM(v4, v1, v2, v3) == false));
 
 			is_zero_a = (normal_tri_v3(no_a, v2, v3, v4) <= FLT_EPSILON);
 			is_zero_b = (normal_tri_v3(no_b, v2, v4, v1) <= FLT_EPSILON);

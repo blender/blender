@@ -506,7 +506,7 @@ void gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
 	bGPDlayer *gpl;
 	
 	/* error checking */
-	if (ELEM3(NULL, gpd, gpd->layers.first, active))
+	if (ELEM(NULL, gpd, gpd->layers.first, active))
 		return;
 		
 	/* loop over layers deactivating all */

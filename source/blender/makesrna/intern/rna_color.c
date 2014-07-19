@@ -176,7 +176,7 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 				char *node_path;
 				
 				for (node = ntree->nodes.first; node; node = node->next) {
-					if (ELEM3(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
+					if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
 						if (node->storage == ptr->data) {
 							/* all node color ramp properties called 'color_ramp'
 							 * prepend path from ID to the node
@@ -265,7 +265,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 				bNode *node;
 				
 				for (node = ntree->nodes.first; node; node = node->next) {
-					if (ELEM3(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
+					if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
 						RNA_pointer_create(id, &RNA_ColorRamp, node->storage, &ramp_ptr);
 						COLRAMP_GETPATH;
 					}
@@ -324,7 +324,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				bNode *node;
 
 				for (node = ntree->nodes.first; node; node = node->next) {
-					if (ELEM3(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
+					if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
 						ED_node_tag_update_nodetree(bmain, ntree);
 					}
 				}

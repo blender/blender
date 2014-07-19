@@ -40,6 +40,26 @@
 #include <stdio.h>
 #endif
 
+
+/* varargs macros (keep first so others can use) */
+/* --- internal helpers --- */
+#define _VA_NARGS_GLUE(x, y) x y
+#define _VA_NARGS_RETURN_COUNT(\
+	_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_, _10_, _11_, _12_, _13_, _14_, _15_, _16_, \
+	_17_, _18_, _19_, _20_, _21_, _22_, _23_, _24_, _25_, _26_, _27_, _28_, _29_, _30_, _31_, _32_, \
+	count, ...) count
+#define _VA_NARGS_EXPAND(args) _VA_NARGS_RETURN_COUNT args
+#define _VA_NARGS_COUNT_MAX16(...) _VA_NARGS_EXPAND((__VA_ARGS__, \
+	32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, \
+	15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
+#define _VA_NARGS_OVERLOAD_MACRO2(name, count) name##count
+#define _VA_NARGS_OVERLOAD_MACRO1(name, count) _VA_NARGS_OVERLOAD_MACRO2(name, count)
+#define _VA_NARGS_OVERLOAD_MACRO(name,  count) _VA_NARGS_OVERLOAD_MACRO1(name, count)
+/* --- expose for re-use --- */
+#define VA_NARGS_CALL_OVERLOAD(name, ...) \
+	_VA_NARGS_GLUE(_VA_NARGS_OVERLOAD_MACRO(name, _VA_NARGS_COUNT_MAX16(__VA_ARGS__)), (__VA_ARGS__))
+
+
 /* useful for finding bad use of min/max */
 #if 0
 /* gcc only */
@@ -182,38 +202,41 @@
 	(b) = (tval);                 \
 } (void)0
 
-
 /* ELEM#(v, ...): is the first arg equal any others? */
-#define ELEM(v, a, b) \
+/* internal helpers*/
+#define _VA_ELEM3(v, a, b) \
        (((v) == (a)) || ((v) == (b)))
-#define ELEM3(v, a, b, c) \
-        (ELEM(v, a, b) || ((v) == (c)))
-#define ELEM4(v, a, b, c, d) \
-       (ELEM3(v, a, b, c) || ((v) == (d)))
-#define ELEM5(v, a, b, c, d, e) \
-       (ELEM4(v, a, b, c, d) || ((v) == (e)))
-#define ELEM6(v, a, b, c, d, e, f) \
-       (ELEM5(v, a, b, c, d, e) || ((v) == (f)))
-#define ELEM7(v, a, b, c, d, e, f, g) \
-       (ELEM6(v, a, b, c, d, e, f) || ((v) == (g)))
-#define ELEM8(v, a, b, c, d, e, f, g, h) \
-       (ELEM7(v, a, b, c, d, e, f, g) || ((v) == (h)))
-#define ELEM9(v, a, b, c, d, e, f, g, h, i) \
-       (ELEM8(v, a, b, c, d, e, f, g, h) || ((v) == (i)))
-#define ELEM10(v, a, b, c, d, e, f, g, h, i, j) \
-        (ELEM9(v, a, b, c, d, e, f, g, h, i) || ((v) == (j)))
-#define ELEM11(v, a, b, c, d, e, f, g, h, i, j, k) \
-       (ELEM10(v, a, b, c, d, e, f, g, h, i, j) || ((v) == (k)))
-#define ELEM12(v, a, b, c, d, e, f, g, h, i, j, k, l) \
-       (ELEM11(v, a, b, c, d, e, f, g, h, i, j, k) || ((v) == (l)))
-#define ELEM13(v, a, b, c, d, e, f, g, h, i, j, k, l, m) \
-       (ELEM12(v, a, b, c, d, e, f, g, h, i, j, k, l) || ((v) == (m)))
-#define ELEM14(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) \
-       (ELEM13(v, a, b, c, d, e, f, g, h, i, j, k, l, m) || ((v) == (n)))
-#define ELEM15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) \
-       (ELEM14(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) || ((v) == (o)))
-#define ELEM16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) \
-       (ELEM15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) || ((v) == (p)))
+#define _VA_ELEM4(v, a, b, c) \
+       (_VA_ELEM3(v, a, b) || ((v) == (c)))
+#define _VA_ELEM5(v, a, b, c, d) \
+       (_VA_ELEM4(v, a, b, c) || ((v) == (d)))
+#define _VA_ELEM6(v, a, b, c, d, e) \
+       (_VA_ELEM5(v, a, b, c, d) || ((v) == (e)))
+#define _VA_ELEM7(v, a, b, c, d, e, f) \
+       (_VA_ELEM6(v, a, b, c, d, e) || ((v) == (f)))
+#define _VA_ELEM8(v, a, b, c, d, e, f, g) \
+       (_VA_ELEM7(v, a, b, c, d, e, f) || ((v) == (g)))
+#define _VA_ELEM9(v, a, b, c, d, e, f, g, h) \
+       (_VA_ELEM8(v, a, b, c, d, e, f, g) || ((v) == (h)))
+#define _VA_ELEM10(v, a, b, c, d, e, f, g, h, i) \
+       (_VA_ELEM9(v, a, b, c, d, e, f, g, h) || ((v) == (i)))
+#define _VA_ELEM11(v, a, b, c, d, e, f, g, h, i, j) \
+       (_VA_ELEM10(v, a, b, c, d, e, f, g, h, i) || ((v) == (j)))
+#define _VA_ELEM12(v, a, b, c, d, e, f, g, h, i, j, k) \
+       (_VA_ELEM11(v, a, b, c, d, e, f, g, h, i, j) || ((v) == (k)))
+#define _VA_ELEM13(v, a, b, c, d, e, f, g, h, i, j, k, l) \
+       (_VA_ELEM12(v, a, b, c, d, e, f, g, h, i, j, k) || ((v) == (l)))
+#define _VA_ELEM14(v, a, b, c, d, e, f, g, h, i, j, k, l, m) \
+       (_VA_ELEM13(v, a, b, c, d, e, f, g, h, i, j, k, l) || ((v) == (m)))
+#define _VA_ELEM15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) \
+       (_VA_ELEM14(v, a, b, c, d, e, f, g, h, i, j, k, l, m) || ((v) == (n)))
+#define _VA_ELEM16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) \
+       (_VA_ELEM15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) || ((v) == (o)))
+#define _VA_ELEM17(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) \
+       (_VA_ELEM16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) || ((v) == (p)))
+
+/* reusable ELEM macro */
+#define ELEM(...) VA_NARGS_CALL_OVERLOAD(_VA_ELEM, __VA_ARGS__)
 
 
 /* shift around elements */

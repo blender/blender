@@ -76,7 +76,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 
 	/* sanity checks */
 	// XXX: actually, we can probably still get away with no object - at most we have no updates
-	if (ELEM4(NULL, ob, ob->pose, pchan, pchan->bone))
+	if (ELEM(NULL, ob, ob->pose, pchan, pchan->bone))
 		return;
 	
 	arm = ob->data;
@@ -644,7 +644,7 @@ static bool pose_select_same_group(bContext *C, Object *ob, bool extend)
 	bool changed = false, tagged = false;
 	
 	/* sanity checks */
-	if (ELEM3(NULL, ob, pose, arm))
+	if (ELEM(NULL, ob, pose, arm))
 		return 0;
 		
 	/* count the number of groups */
@@ -701,7 +701,7 @@ static bool pose_select_same_layer(bContext *C, Object *ob, bool extend)
 	bool changed = false;
 	int layers = 0;
 	
-	if (ELEM3(NULL, ob, pose, arm))
+	if (ELEM(NULL, ob, pose, arm))
 		return 0;
 	
 	/* figure out what bones are selected */
@@ -761,7 +761,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, Object 
 		return false;
 	}
 		
-	if (ELEM3(NULL, ob, pose, arm))
+	if (ELEM(NULL, ob, pose, arm))
 		return false;
 		
 	/* if not extending selection, deselect all selected first */

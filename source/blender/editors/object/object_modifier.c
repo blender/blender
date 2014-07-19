@@ -98,7 +98,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 	
 	/* only geometry objects should be able to get modifiers [#25291] */
-	if (!ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+	if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 		BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to object '%s'", ob->id.name + 2);
 		return NULL;
 	}
@@ -1876,7 +1876,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		else if (ob->type == OB_MBALL) {
 			BKE_displist_make_mball(CTX_data_main(C)->eval_ctx, scene, ob);
 		}
-		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 			BKE_displist_make_curveTypes(scene, ob, 0);
 		}
 

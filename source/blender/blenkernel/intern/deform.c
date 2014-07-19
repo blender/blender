@@ -559,7 +559,7 @@ void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 
 static bool is_char_sep(const char c)
 {
-	return ELEM4(c, '.', ' ', '-', '_');
+	return ELEM(c, '.', ' ', '-', '_');
 }
 
 /* based on BLI_split_dirfile() / os.path.splitext(), "a.b.c" -> ("a.b", ".c") */

@@ -307,12 +307,12 @@ static void view3d_boxview_clip(ScrArea *sa)
 	}
 
 	for (val = 0; val < 8; val++) {
-		if (ELEM4(val, 0, 3, 4, 7))
+		if (ELEM(val, 0, 3, 4, 7))
 			bb->vec[val][0] = -x1 - ofs[0];
 		else
 			bb->vec[val][0] =  x1 - ofs[0];
 
-		if (ELEM4(val, 0, 1, 4, 5))
+		if (ELEM(val, 0, 1, 4, 5))
 			bb->vec[val][1] = -y1 - ofs[1];
 		else
 			bb->vec[val][1] =  y1 - ofs[1];

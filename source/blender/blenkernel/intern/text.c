@@ -2697,7 +2697,7 @@ void txt_indent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	if (ELEM3(NULL, text, text->curl, text->sell)) {
+	if (ELEM(NULL, text, text->curl, text->sell)) {
 		return;
 	}
 
@@ -2764,7 +2764,7 @@ void txt_unindent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	if (ELEM3(NULL, text, text->curl, text->sell)) {
+	if (ELEM(NULL, text, text->curl, text->sell)) {
 		return;
 	}
 

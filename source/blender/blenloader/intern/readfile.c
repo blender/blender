@@ -2664,9 +2664,9 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 				}
 			}
 			else if (ntree->type==NTREE_COMPOSIT) {
-				if (ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
+				if (ELEM(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 					direct_link_curvemapping(fd, node->storage);
-				else if (ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
+				else if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 					((ImageUser *)node->storage)->ok = 1;
 			}
 			else if ( ntree->type==NTREE_TEXTURE) {
@@ -5355,7 +5355,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			if (seq->strip && seq->strip->done==0) {
 				seq->strip->done = true;
 				
-				if (ELEM4(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+				if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
 					seq->strip->stripdata = newdataadr(fd, seq->strip->stripdata);
 				}
 				else {

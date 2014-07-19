@@ -395,7 +395,7 @@ static void rigidbody_validate_sim_shape(Object *ob, bool rebuild)
 	}
 	mul_v3_fl(size, 0.5f);
 
-	if (ELEM3(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
+	if (ELEM(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
 		/* take radius as largest x/y dimension, and height as z-dimension */
 		radius = MAX2(size[0], size[1]);
 		height = size[2];
@@ -477,7 +477,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 	// XXX: all dimensions are auto-determined now... later can add stored settings for this
 	BKE_object_dimensions_get(ob, size);
 
-	if (ELEM3(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
+	if (ELEM(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
 		/* take radius as largest x/y dimension, and height as z-dimension */
 		radius = MAX2(size[0], size[1]) * 0.5f;
 		height = size[2];
@@ -720,7 +720,7 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
 		return;
 	}
 
-	if (ELEM4(NULL, rbc->ob1, rbc->ob1->rigidbody_object, rbc->ob2, rbc->ob2->rigidbody_object)) {
+	if (ELEM(NULL, rbc->ob1, rbc->ob1->rigidbody_object, rbc->ob2, rbc->ob2->rigidbody_object)) {
 		if (rbc->physics_constraint) {
 			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
 			RB_constraint_delete(rbc->physics_constraint);

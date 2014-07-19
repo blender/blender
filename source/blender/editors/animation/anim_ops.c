@@ -72,7 +72,7 @@ static int change_frame_poll(bContext *C)
 	 * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
 	 */
 	if (sa) {
-		if (ELEM5(sa->spacetype, SPACE_TIME, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
+		if (ELEM(sa->spacetype, SPACE_TIME, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
 			return true;
 		}
 		else if (sa->spacetype == SPACE_IPO) {

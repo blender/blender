@@ -756,7 +756,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 							if (flag) {
 								float tvec[3];
 								if ((v3d->around == V3D_LOCAL) ||
-								    ELEM3(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3))
+								    ELEM(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3))
 								{
 									BKE_nurb_bezt_calc_normal(nu, bezt, tvec);
 									add_v3_v3(normal, tvec);

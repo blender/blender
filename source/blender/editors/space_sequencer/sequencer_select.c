@@ -912,7 +912,7 @@ static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_IS_EFFECT(_seq) ((_seq->type & SEQ_TYPE_EFFECT) != 0)
 
-#define SEQ_USE_DATA(_seq) (ELEM3(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
+#define SEQ_USE_DATA(_seq) (ELEM(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
 static bool select_grouped_type(Editing *ed, Sequence *actseq)
 {
@@ -1035,7 +1035,7 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq)
 
 	SEQP_BEGIN (ed, seq)
 	{
-		if (ELEM3(actseq, seq->seq1, seq->seq2, seq->seq3)) {
+		if (ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
 			effects[seq->type] = true;
 		}
 	}

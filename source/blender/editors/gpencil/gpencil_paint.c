@@ -1861,7 +1861,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
 	if (ISKEYBOARD(event->type)) {
-		if (ELEM4(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY)) {
+		if (ELEM(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY)) {
 			/* allow some keys - for frame changing: [#33412] */
 		}
 		else {
@@ -1874,7 +1874,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	/* exit painting mode (and/or end current stroke) 
 	 * NOTE: cannot do RIGHTMOUSE (as is standard for canceling) as that would break polyline [#32647]
 	 */
-	if (ELEM4(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY)) {
+	if (ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY)) {
 		/* exit() ends the current stroke before cleaning up */
 		/* printf("\t\tGP - end of paint op + end of stroke\n"); */
 		p->status = GP_STATUS_DONE;
@@ -1949,7 +1949,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		/* eraser size */
 		else if ((p->paintmode == GP_PAINTMODE_ERASER) &&
-		         ELEM4(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, PADPLUSKEY, PADMINUS))
+		         ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, PADPLUSKEY, PADMINUS))
 		{
 			/* just resize the brush (local version)
 			 * TODO: fix the hardcoded size jumps (set to make a visible difference) and hardcoded keys

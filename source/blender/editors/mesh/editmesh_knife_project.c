@@ -65,7 +65,7 @@ static LinkNode *knifeproject_poly_from_object(ARegion *ar, Scene *scene, Object
 		dm = ob->derivedFinal ? ob->derivedFinal : mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 		dm_needsFree = false;
 	}
-	else if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
+	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		dm = CDDM_from_curve(ob);
 		dm_needsFree = true;
 	}

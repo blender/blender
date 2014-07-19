@@ -948,7 +948,7 @@ static bool do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Sp
 					
 					WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 				}
-				else if (ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
+				else if (ELEM(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
 					WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
 				else {  // rest of types

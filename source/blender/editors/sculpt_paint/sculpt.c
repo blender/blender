@@ -359,19 +359,19 @@ static int sculpt_stroke_dynamic_topology(const SculptSession *ss,
 	        !(brush->flag & BRUSH_ANCHORED) &&
 	        !(brush->flag & BRUSH_DRAG_DOT) &&
         
-	        (!ELEM6(brush->sculpt_tool,
-	                /* These brushes, as currently coded, cannot
-	                 * support dynamic topology */
-	                SCULPT_TOOL_GRAB,
-	                SCULPT_TOOL_ROTATE,
-	                SCULPT_TOOL_THUMB,
-	                SCULPT_TOOL_LAYER,
+	        (!ELEM(brush->sculpt_tool,
+	               /* These brushes, as currently coded, cannot
+	                * support dynamic topology */
+	               SCULPT_TOOL_GRAB,
+	               SCULPT_TOOL_ROTATE,
+	               SCULPT_TOOL_THUMB,
+	               SCULPT_TOOL_LAYER,
 
-	                /* These brushes could handle dynamic topology,
-	                 * but user feedback indicates it's better not
-	                 * to */
-	                SCULPT_TOOL_SMOOTH,
-	                SCULPT_TOOL_MASK)));
+	               /* These brushes could handle dynamic topology,
+	                * but user feedback indicates it's better not
+	                * to */
+	               SCULPT_TOOL_SMOOTH,
+	               SCULPT_TOOL_MASK)));
 }
 
 /*** paint mesh ***/
@@ -1236,14 +1236,14 @@ static int brush_needs_sculpt_normal(const Brush *brush)
 	              SCULPT_TOOL_SNAKE_HOOK) &&
 	         (brush->normal_weight > 0)) ||
 
-	        ELEM7(brush->sculpt_tool,
-	              SCULPT_TOOL_BLOB,
-	              SCULPT_TOOL_CREASE,
-	              SCULPT_TOOL_DRAW,
-	              SCULPT_TOOL_LAYER,
-	              SCULPT_TOOL_NUDGE,
-	              SCULPT_TOOL_ROTATE,
-	              SCULPT_TOOL_THUMB) ||
+	        ELEM(brush->sculpt_tool,
+	             SCULPT_TOOL_BLOB,
+	             SCULPT_TOOL_CREASE,
+	             SCULPT_TOOL_DRAW,
+	             SCULPT_TOOL_LAYER,
+	             SCULPT_TOOL_NUDGE,
+	             SCULPT_TOOL_ROTATE,
+	             SCULPT_TOOL_THUMB) ||
 
 	        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
 }
@@ -3030,11 +3030,11 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 	radius = ss->cache->radius * 1.25f;
 
 	data.radius_squared = radius * radius;
-	data.original = ELEM4(brush->sculpt_tool,
-	                      SCULPT_TOOL_GRAB,
-	                      SCULPT_TOOL_ROTATE,
-	                      SCULPT_TOOL_THUMB,
-	                      SCULPT_TOOL_LAYER) ? true : ss->cache->original;
+	data.original = ELEM(brush->sculpt_tool,
+	                     SCULPT_TOOL_GRAB,
+	                     SCULPT_TOOL_ROTATE,
+	                     SCULPT_TOOL_THUMB,
+	                     SCULPT_TOOL_LAYER) ? true : ss->cache->original;
 
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
@@ -3092,11 +3092,11 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 	data.ss = ss;
 	data.sd = sd;
 	data.radius_squared = ss->cache->radius_squared;
-	data.original = ELEM4(brush->sculpt_tool,
-	                      SCULPT_TOOL_GRAB,
-	                      SCULPT_TOOL_ROTATE,
-	                      SCULPT_TOOL_THUMB,
-	                      SCULPT_TOOL_LAYER) ? true : ss->cache->original;
+	data.original = ELEM(brush->sculpt_tool,
+	                     SCULPT_TOOL_GRAB,
+	                     SCULPT_TOOL_ROTATE,
+	                     SCULPT_TOOL_THUMB,
+	                     SCULPT_TOOL_LAYER) ? true : ss->cache->original;
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
 	/* Only act if some verts are inside the brush area */
@@ -3233,8 +3233,8 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 	    ss->cache->supports_gravity)
 	{
 		/* these brushes start from original coordinates */
-		const bool use_orco = ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
-		                            SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB);
+		const bool use_orco = ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB,
+		                           SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB);
 
 #pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
@@ -3780,7 +3780,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	mul_m3_v3(mat, viewDir);
 	normalize_v3_v3(cache->true_view_normal, viewDir);
 
-	cache->supports_gravity = (!ELEM3(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SIMPLIFY) &&
+	cache->supports_gravity = (!ELEM(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SIMPLIFY) &&
 	                           (sd->gravity_factor > 0.0f));
 	/* get gravity vector in world space */
 	if (cache->supports_gravity) {
@@ -3838,10 +3838,10 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 		cache->original = 1;
 	}
 
-	if (ELEM9(brush->sculpt_tool,
-	          SCULPT_TOOL_DRAW, SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB,
-	          SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
-	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_ROTATE, SCULPT_TOOL_FLATTEN))
+	if (ELEM(brush->sculpt_tool,
+	         SCULPT_TOOL_DRAW, SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB,
+	         SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
+	         SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_ROTATE, SCULPT_TOOL_FLATTEN))
 	{
 		if (!(brush->flag & BRUSH_ACCUMULATE)) {
 			cache->original = 1;
@@ -3868,10 +3868,10 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 	};
 	int tool = brush->sculpt_tool;
 
-	if (ELEM5(tool,
-	          SCULPT_TOOL_GRAB, SCULPT_TOOL_NUDGE,
-	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_SNAKE_HOOK,
-	          SCULPT_TOOL_THUMB))
+	if (ELEM(tool,
+	         SCULPT_TOOL_GRAB, SCULPT_TOOL_NUDGE,
+	         SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_SNAKE_HOOK,
+	         SCULPT_TOOL_THUMB))
 	{
 		float grab_location[3], imat[4][4], delta[3], loc[3];
 
@@ -4856,7 +4856,7 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, co
 		bool modifiers = false;
 
 		for (i = 0; i < CD_NUMTYPES; i++) {
-			if (!ELEM7(i, CD_MVERT, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX) &&
+			if (!ELEM(i, CD_MVERT, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX) &&
 			    (CustomData_has_layer(&me->vdata, i) ||
 			     CustomData_has_layer(&me->edata, i) ||
 			     CustomData_has_layer(&me->fdata, i)))

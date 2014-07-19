@@ -881,7 +881,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 				}
 			}
 		}
-		else if (ELEM3(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
+		else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
 			Key *key = NULL;
 			KeyBlock *kb = NULL;
 

@@ -359,12 +359,12 @@ static bool rna_idproperty_verify_valid(PointerRNA *ptr, PropertyRNA *prop, IDPr
 
 			if (idprop->subtype == IDP_FLOAT && prop->type != PROP_FLOAT)
 				return false;
-			if (idprop->subtype == IDP_INT && !ELEM3(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM))
+			if (idprop->subtype == IDP_INT && !ELEM(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM))
 				return false;
 
 			break;
 		case IDP_INT:
-			if (!ELEM3(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM))
+			if (!ELEM(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM))
 				return false;
 			break;
 		case IDP_FLOAT:
@@ -872,8 +872,8 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 	if ((index < 4) && ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE)) {
 		return quatitem[index];
 	}
-	else if ((index < 4) && ELEM8(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_XYZ_LENGTH,
-	                              PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION, PROP_COORDS))
+	else if ((index < 4) && ELEM(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_XYZ_LENGTH,
+	                             PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION, PROP_COORDS))
 	{
 		return vectoritem[index];
 	}
@@ -902,7 +902,7 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name)
 				return 3;
 		}
 	}
-	else if (ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ,
+	else if (ELEM(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ,
 	               PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
 	{
 		switch (name) {
@@ -3329,7 +3329,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		/* check type */
 		itemtype = RNA_property_type(itemprop);
 
-		if (!ELEM3(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
+		if (!ELEM(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
 			BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported");
 			return 0;
 		}
@@ -3409,7 +3409,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						break;
 					}
 
-					if (!ELEM3(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
+					if (!ELEM(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
 						BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported");
 						err = 1;
 						break;

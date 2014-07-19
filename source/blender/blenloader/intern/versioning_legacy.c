@@ -473,7 +473,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 
 	if (ntree->type == NTREE_COMPOSIT) {
 		for (node = ntree->nodes.first; node; node = node->next) {
-			if (ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+			if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				/* only image had storage */
 				if (node->storage) {
 					NodeImageAnim *nia = node->storage;

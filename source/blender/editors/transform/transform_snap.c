@@ -117,8 +117,8 @@ int BIF_snappingSupported(Object *obedit)
 {
 	int status = 0;
 	
-	if (obedit == NULL || ELEM5(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) /* only support object mesh, armature, curves */
-	{
+	/* only support object mesh, armature, curves */
+	if (obedit == NULL || ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
 		status = 1;
 	}
 	
@@ -505,7 +505,7 @@ static void initSnappingMode(TransInfo *t)
 
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-		    (obedit != NULL && ELEM5(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) ) // Temporary limited to edit mode meshes, armature, curves, mballs
+		    (obedit != NULL && ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) ) // Temporary limited to edit mode meshes, armature, curves, mballs
 		{
 			/* Exclude editmesh if using proportional edit */
 			if ((obedit->type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
@@ -588,7 +588,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	}
 	/* use scene defaults only when transform is modal */
 	else if (t->flag & T_MODAL) {
-		if (ELEM3(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE)) {
+		if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE)) {
 			if (ts->snap_flag & SCE_SNAP) {
 				t->modifiers |= MOD_SNAP;
 			}

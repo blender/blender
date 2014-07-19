@@ -830,7 +830,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 		 * fun first pass on all buttons so first word chars always get first priority */
 
 		for (but = block->buttons.first; but; but = but->next) {
-			if (!ELEM5(but->type, BUT, BUTM, MENU, BLOCK, PULLDOWN) || (but->flag & UI_HIDDEN)) {
+			if (!ELEM(but->type, BUT, BUTM, MENU, BLOCK, PULLDOWN) || (but->flag & UI_HIDDEN)) {
 				/* pass */
 			}
 			else if (but->menu_key == '\0') {
@@ -1320,7 +1320,7 @@ int ui_is_but_push_ex(uiBut *but, double *value)
 	int is_push = 0;
 
 	if (but->bit) {
-		const bool state = ELEM3(but->type, TOGN, ICONTOGN, OPTIONN) ? false : true;
+		const bool state = ELEM(but->type, TOGN, ICONTOGN, OPTIONN) ? false : true;
 		int lvalue;
 		UI_GET_BUT_VALUE_INIT(but, *value);
 		lvalue = (int)*value;
@@ -1630,7 +1630,7 @@ bool ui_is_but_float(const uiBut *but)
 
 bool ui_is_but_bool(const uiBut *but)
 {
-	if (ELEM4(but->type, TOG, TOGN, ICONTOG, ICONTOGN))
+	if (ELEM(but->type, TOG, TOGN, ICONTOG, ICONTOGN))
 		return true;
 
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_BOOLEAN)
@@ -1843,7 +1843,7 @@ void ui_set_but_val(uiBut *but, double value)
 
 int ui_get_but_string_max_length(uiBut *but)
 {
-	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK))
+	if (ELEM(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK))
 		return but->hardmax;
 	else
 		return UI_MAX_DRAW_STR;
@@ -1958,7 +1958,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
  */
 void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision)
 {
-	if (but->rnaprop && ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (but->rnaprop && ELEM(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		PropertyType type;
 		const char *buf = NULL;
 		int buf_len;
@@ -2095,7 +2095,7 @@ bool ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double
 
 bool ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
-	if (but->rnaprop && ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
+	if (but->rnaprop && ELEM(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
@@ -2747,7 +2747,7 @@ void uiBlockEndAlign(uiBlock *block)
 
 bool ui_but_can_align(uiBut *but)
 {
-	return !ELEM5(but->type, LABEL, OPTION, OPTIONN, SEPR, SEPRLINE);
+	return !ELEM(but->type, LABEL, OPTION, OPTIONN, SEPR, SEPRLINE);
 }
 
 static void ui_block_do_align_but(uiBut *first, short nr)
@@ -3029,7 +3029,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	if ((block->flag & UI_BLOCK_LOOP) ||
-	    ELEM8(but->type, MENU, TEX, LABEL, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR, SEARCH_MENU_UNLINK))
+	    ELEM(but->type, MENU, TEX, LABEL, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR, SEARCH_MENU_UNLINK))
 	{
 		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
 	}
@@ -3048,7 +3048,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	/* keep track of UI_interface.h */
-	if      (ELEM11(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR, SEPRLINE, GRIP)) {}
+	if      (ELEM(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR, SEPRLINE, GRIP)) {}
 	else if (but->type >= SEARCH_MENU) {}
 	else but->flag |= UI_BUT_UNDO;
 
@@ -3213,12 +3213,12 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	int icon = 0;
 	uiMenuCreateFunc func = NULL;
 
-	if (ELEM3(type, COLOR, HSVCIRCLE, HSVCUBE)) {
+	if (ELEM(type, COLOR, HSVCIRCLE, HSVCUBE)) {
 		BLI_assert(index == -1);
 	}
 
 	/* use rna values if parameters are not specified */
-	if ((proptype == PROP_ENUM) && ELEM3(type, MENU, ROW, LISTROW)) {
+	if ((proptype == PROP_ENUM) && ELEM(type, MENU, ROW, LISTROW)) {
 		/* MENU is handled a little differently here */
 		EnumPropertyItem *item;
 		int value;
@@ -4339,7 +4339,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 			}
 			tmp = BLI_strdup(_tmp);
 		}
-		else if (ELEM3(type, BUT_GET_RNAENUM_IDENTIFIER, BUT_GET_RNAENUM_LABEL, BUT_GET_RNAENUM_TIP)) {
+		else if (ELEM(type, BUT_GET_RNAENUM_IDENTIFIER, BUT_GET_RNAENUM_LABEL, BUT_GET_RNAENUM_TIP)) {
 			PointerRNA *ptr = NULL;
 			PropertyRNA *prop = NULL;
 			int value = 0;

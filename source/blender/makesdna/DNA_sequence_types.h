@@ -434,7 +434,7 @@ enum {
  */
 
 
-#define SEQ_HAS_PATH(_seq) (ELEM4((_seq)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD))
+#define SEQ_HAS_PATH(_seq) (ELEM((_seq)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD))
 
 /* modifiers */
 

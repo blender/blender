@@ -3846,7 +3846,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 	short offset;
 	
 	/* sanity checks - don't draw anything */
-	if (ELEM3(NULL, acf, ale, block))
+	if (ELEM(NULL, acf, ale, block))
 		return;
 	
 	/* get initial offset */

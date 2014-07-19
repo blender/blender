@@ -1181,7 +1181,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	if (flag & UI_ITEM_R_ICON_ONLY) {
 		/* pass */
 	}
-	else if (ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER)) {
+	else if (ELEM(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER)) {
 		name = ui_item_name_add_colon(name, namestr);
 	}
 	else if (type == PROP_BOOLEAN && is_array && index == RNA_NO_INDEX) {
@@ -1559,7 +1559,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	}
 	
 	type = RNA_property_type(prop);
-	if (!ELEM3(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
+	if (!ELEM(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
 		RNA_warning("Property %s must be a pointer, string or enum", propname);
 		return;
 	}

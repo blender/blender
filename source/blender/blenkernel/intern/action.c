@@ -315,7 +315,7 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 {	
 	/* sanity checks */
-	if (ELEM3(NULL, act, agrp, fcurve))
+	if (ELEM(NULL, act, agrp, fcurve))
 		return;
 	
 	/* if no channels anywhere, just add to two lists at the same time */
@@ -417,7 +417,7 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
 bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
 {
 	/* sanity checks */
-	if (ELEM3(NULL, act, act->groups.first, name) || (name[0] == 0))
+	if (ELEM(NULL, act, act->groups.first, name) || (name[0] == 0))
 		return NULL;
 		
 	/* do string comparisons */
@@ -526,7 +526,7 @@ bPoseChannel *BKE_pose_channel_active(Object *ob)
 	bArmature *arm = (ob) ? ob->data : NULL;
 	bPoseChannel *pchan;
 
-	if (ELEM3(NULL, ob, ob->pose, arm)) {
+	if (ELEM(NULL, ob, ob->pose, arm)) {
 		return NULL;
 	}
 

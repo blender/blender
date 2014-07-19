@@ -485,7 +485,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 					}
 					
 					/* target checks for specific constraints */
-					if (ELEM3(curcon->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) {
+					if (ELEM(curcon->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) {
 						if (ct->tar) {
 							if (ct->tar->type != OB_CURVE) {
 								ct->tar = NULL;
