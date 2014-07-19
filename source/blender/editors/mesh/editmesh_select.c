@@ -2807,6 +2807,13 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 	BMEdge *e;
 	BMIter iter;
 
+	const bool use_wire = RNA_boolean_get(op->ptr, "use_wire");
+	const bool use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
+	const bool use_multi_face = RNA_boolean_get(op->ptr, "use_multi_face");
+	const bool use_non_contiguous = RNA_boolean_get(op->ptr, "use_non_contiguous");
+	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
+
+
 	if (!RNA_boolean_get(op->ptr, "extend"))
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
@@ -2819,15 +2826,30 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-		if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN) && !BM_vert_is_manifold(v)) {
-			BM_vert_select_set(em->bm, v, true);
+	if (use_verts) {
+		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+			if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+				if (!BM_vert_is_manifold(v)) {
+					BM_vert_select_set(em->bm, v, true);
+				}
+			}
 		}
 	}
 	
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && !BM_edge_is_manifold(e)) {
-			BM_edge_select_set(em->bm, e, true);
+	if (use_wire || use_boundary || use_multi_face || use_non_contiguous) {
+		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+				if ((use_wire && BM_edge_is_wire(e)) ||
+				    (use_boundary && BM_edge_is_boundary(e)) ||
+				    (use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
+				    (use_multi_face && (BM_edge_face_count(e) > 2)))
+				{
+					/* check we never select perfect edge (in test above) */
+					BLI_assert(!(BM_edge_is_manifold(e) && BM_edge_is_contiguous(e)));
+
+					BM_edge_select_set(em->bm, e, true);
+				}
+			}
 		}
 	}
 
@@ -2854,6 +2876,18 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend the selection");
+	/* edges */
+	RNA_def_boolean(ot->srna, "use_wire", true, "Wire",
+	                "Wire edges");
+	RNA_def_boolean(ot->srna, "use_boundary", true, "Boundaries",
+	                "Boundary edges");
+	RNA_def_boolean(ot->srna, "use_multi_face", true,
+	                "Multiple Faces", "Edges shared by 3+ faces");
+	RNA_def_boolean(ot->srna, "use_non_contiguous", true, "Non Contiguous",
+	                "Edges between faces pointing in alternate directions");
+	/* verts */
+	RNA_def_boolean(ot->srna, "use_verts", true, "Vertices",
+	                "Vertices connecting multiple face regions");
 }
 
 static int edbm_select_random_exec(bContext *C, wmOperator *op)
