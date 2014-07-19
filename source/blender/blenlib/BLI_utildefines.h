@@ -182,17 +182,39 @@
 	(b) = (tval);                 \
 } (void)0
 
-/* ELEM#(a, ...): is the first arg equal any of the others */
-#define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
-#define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
-#define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )
-#define ELEM5(a, b, c, d, e, f) (ELEM(a, b, c) || ELEM3(a, d, e, f) )
-#define ELEM6(a, b, c, d, e, f, g)      (ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
-#define ELEM7(a, b, c, d, e, f, g, h)   (ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
-#define ELEM8(a, b, c, d, e, f, g, h, i)        (ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
-#define ELEM9(a, b, c, d, e, f, g, h, i, j)        (ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
-#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        (ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
-#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        (ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
+
+/* ELEM#(v, ...): is the first arg equal any others? */
+#define ELEM(v, a, b) \
+       (((v) == (a)) || ((v) == (b)))
+#define ELEM3(v, a, b, c) \
+        (ELEM(v, a, b) || ((v) == (c)))
+#define ELEM4(v, a, b, c, d) \
+       (ELEM3(v, a, b, c) || ((v) == (d)))
+#define ELEM5(v, a, b, c, d, e) \
+       (ELEM4(v, a, b, c, d) || ((v) == (e)))
+#define ELEM6(v, a, b, c, d, e, f) \
+       (ELEM5(v, a, b, c, d, e) || ((v) == (f)))
+#define ELEM7(v, a, b, c, d, e, f, g) \
+       (ELEM6(v, a, b, c, d, e, f) || ((v) == (g)))
+#define ELEM8(v, a, b, c, d, e, f, g, h) \
+       (ELEM7(v, a, b, c, d, e, f, g) || ((v) == (h)))
+#define ELEM9(v, a, b, c, d, e, f, g, h, i) \
+       (ELEM8(v, a, b, c, d, e, f, g, h) || ((v) == (i)))
+#define ELEM10(v, a, b, c, d, e, f, g, h, i, j) \
+        (ELEM9(v, a, b, c, d, e, f, g, h, i) || ((v) == (j)))
+#define ELEM11(v, a, b, c, d, e, f, g, h, i, j, k) \
+       (ELEM10(v, a, b, c, d, e, f, g, h, i, j) || ((v) == (k)))
+#define ELEM12(v, a, b, c, d, e, f, g, h, i, j, k, l) \
+       (ELEM11(v, a, b, c, d, e, f, g, h, i, j, k) || ((v) == (l)))
+#define ELEM13(v, a, b, c, d, e, f, g, h, i, j, k, l, m) \
+       (ELEM12(v, a, b, c, d, e, f, g, h, i, j, k, l) || ((v) == (m)))
+#define ELEM14(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) \
+       (ELEM13(v, a, b, c, d, e, f, g, h, i, j, k, l, m) || ((v) == (n)))
+#define ELEM15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) \
+       (ELEM14(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) || ((v) == (o)))
+#define ELEM16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) \
+       (ELEM15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) || ((v) == (p)))
+
 
 /* shift around elements */
 #define SHIFT3(type, a, b, c)  {                                              \
