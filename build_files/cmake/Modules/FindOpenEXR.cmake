@@ -34,6 +34,9 @@ IF(NOT OPENEXR_ROOT_DIR AND NOT $ENV{OPENEXR_ROOT_DIR} STREQUAL "")
   SET(OPENEXR_ROOT_DIR $ENV{OPENEXR_ROOT_DIR})
 ENDIF()
 
+# Old versions (before 2.0?) do not have any version string, just assuming this should be fine though.
+SET(_openexr_libs_ver_init "2.0")
+
 SET(_openexr_FIND_COMPONENTS
   Half
   Iex
@@ -82,18 +85,18 @@ IF(OPENEXR_INCLUDE_DIR)
     IF(OPENEXR_BUILD_SPECIFICATION)
       MESSAGE(STATUS "${OPENEXR_BUILD_SPECIFICATION}")
       STRING(REGEX REPLACE ".*#define[ \t]+OPENEXR_VERSION_STRING[ \t]+\"([.0-9]+)\".*"
-             "\\1" XYZ ${OPENEXR_BUILD_SPECIFICATION})
-      SET("OPENEXR_VERSION" ${XYZ} CACHE STRING "Version of OpenEXR lib")
+             "\\1" _openexr_libs_ver_init ${OPENEXR_BUILD_SPECIFICATION})
     ELSE()
-      # Old versions (before 2.0?) do not have any version string, just assuming 2.0 should be fine though. 
-      MESSAGE(WARNING "Could not determine ILMBase library version, assuming 2.0.")
-      SET("OPENEXR_VERSION" "2.0" CACHE STRING "Version of OpenEXR lib")
+      MESSAGE(WARNING "Could not determine ILMBase library version, assuming ${_openexr_libs_ver_init}.")
     ENDIF()
 
     UNSET(_openexr_CONFIG CACHE)
 
   ENDIF()
 ENDIF()
+
+SET("OPENEXR_VERSION" ${_openexr_libs_ver_init} CACHE STRING "Version of OpenEXR lib")
+UNSET(_openexr_libs_ver_init)
 
 STRING(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _openexr_libs_ver ${OPENEXR_VERSION})
 
