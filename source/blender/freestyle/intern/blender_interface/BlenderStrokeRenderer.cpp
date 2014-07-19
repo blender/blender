@@ -145,6 +145,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
 {
+	return; //XXX
+
 	// The freestyle_scene object is not released here.  Instead,
 	// the scene is released in free_all_freestyle_renders() in
 	// source/blender/render/intern/source/pipeline.c, after the

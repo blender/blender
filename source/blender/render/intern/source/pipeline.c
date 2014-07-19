@@ -1940,6 +1940,7 @@ static void add_freestyle(Render *re, int render)
 
 	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
 
+#if 0
 	re->freestyle_bmain = BKE_main_new();
 
 	/* We use the same window manager for freestyle bmain as
@@ -1950,6 +1951,9 @@ static void add_freestyle(Render *re, int render)
 	 * to present (sergey)
 	 */
 	re->freestyle_bmain->wm = re->main->wm;
+#else
+	re->freestyle_bmain = G.main;
+#endif
 
 	FRS_init_stroke_rendering(re);
 
@@ -2016,18 +2020,22 @@ static void free_all_freestyle_renders(void)
 			if (freestyle_render) {
 				freestyle_scene = freestyle_render->scene;
 				RE_FreeRender(freestyle_render);
+#if 0
 				BKE_scene_unlink(re1->freestyle_bmain, freestyle_scene, NULL);
+#endif
 			}
 		}
 		BLI_freelistN(&re1->freestyle_renders);
 
 		if (re1->freestyle_bmain) {
+#if 0
 			/* detach the window manager from freestyle bmain (see comments
 			 * in add_freestyle() for more detail)
 			 */
 			re1->freestyle_bmain->wm.first = re1->freestyle_bmain->wm.last = NULL;
 
 			BKE_main_free(re1->freestyle_bmain);
+#endif
 			re1->freestyle_bmain = NULL;
 		}
 	}
