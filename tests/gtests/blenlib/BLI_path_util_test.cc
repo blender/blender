@@ -46,7 +46,7 @@ char *zLhm65070058860608_br_find_exe(const char *default_exe)
 /* tests */
 
 /* BLI_cleanup_path */
-TEST(pathutils, PathUtilClean)
+TEST(path_util, PathUtilClean)
 {
 	/* "/./" -> "/" */
 	{
@@ -102,7 +102,7 @@ TEST(pathutils, PathUtilClean)
 }
 
 /* BLI_path_frame */
-TEST(pathutils, PathUtilFrame)
+TEST(path_util, PathUtilFrame)
 {
 	bool ret;
 
@@ -165,7 +165,7 @@ TEST(pathutils, PathUtilFrame)
 }
 
 /* BLI_split_dirfile */
-TEST(pathutils, PathUtilSplitDirfile)
+TEST(path_util, PathUtilSplitDirfile)
 {
 	{
 		const char *path = "";

@@ -4,7 +4,7 @@
 
 #include "BLI_math.h"
 
-TEST(mathutils, RGBToHSVRoundtrip)
+TEST(math_color, RGBToHSVRoundtrip)
 {
 	float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
 	float hsv[3], rgb[3];
@@ -13,7 +13,7 @@ TEST(mathutils, RGBToHSVRoundtrip)
 	EXPECT_V3_NEAR(orig_rgb, rgb, 1e-5);
 }
 
-TEST(mathutils, RGBToHSLRoundtrip)
+TEST(math_color, RGBToHSLRoundtrip)
 {
 	float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
 	float hsl[3], rgb[3];
@@ -22,7 +22,7 @@ TEST(mathutils, RGBToHSLRoundtrip)
 	EXPECT_V3_NEAR(orig_rgb, rgb, 1e-5);
 }
 
-TEST(mathutils, RGBToYUVRoundtrip)
+TEST(math_color, RGBToYUVRoundtrip)
 {
 	float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
 	float yuv[3], rgb[3];
@@ -33,7 +33,7 @@ TEST(mathutils, RGBToYUVRoundtrip)
 	EXPECT_V3_NEAR(orig_rgb, rgb, 1e-4);
 }
 
-TEST(mathutils, RGBToYCCRoundtrip)
+TEST(math_color, RGBToYCCRoundtrip)
 {
 	float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
 	float ycc[3], rgb[3];
@@ -63,21 +63,21 @@ TEST(mathutils, RGBToYCCRoundtrip)
 	EXPECT_V3_NEAR(orig_rgb, rgb, 1e-3);
 }
 
-TEST(mathutils, LinearRGBTosRGBNearZero)
+TEST(math_color, LinearRGBTosRGBNearZero)
 {
 	float linear_color = 0.002f;
 	float srgb_color = linearrgb_to_srgb(linear_color);
 	EXPECT_NEAR(0.02584f, srgb_color, 1e-5);
 }
 
-TEST(mathutils, LinearRGBTosRGB)
+TEST(math_color, LinearRGBTosRGB)
 {
 	float linear_color = 0.75f;
 	float srgb_color = linearrgb_to_srgb(linear_color);
 	EXPECT_NEAR(0.880824f, srgb_color, 1e-5);
 }
 
-TEST(mathutils, LinearRGBTosRGBRoundtrip)
+TEST(math_color, LinearRGBTosRGBRoundtrip)
 {
 	const int N = 50;
 	int i;

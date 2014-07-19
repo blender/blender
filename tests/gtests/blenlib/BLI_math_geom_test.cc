@@ -4,7 +4,7 @@
 
 #include "BLI_math.h"
 
-TEST(mathutils, DistToLine2DSimple)
+TEST(math_geom, DistToLine2DSimple)
 {
 	float p[2] = {5.0f, 1.0f},
 	      a[2] = {0.0f, 0.0f},
@@ -13,7 +13,7 @@ TEST(mathutils, DistToLine2DSimple)
 	EXPECT_NEAR(1.0f, distance, 1e-6);
 }
 
-TEST(mathutils, DistToLineSegment2DSimple)
+TEST(math_geom, DistToLineSegment2DSimple)
 {
 	float p[2] = {3.0f, 1.0f},
 	      a[2] = {0.0f, 0.0f},
