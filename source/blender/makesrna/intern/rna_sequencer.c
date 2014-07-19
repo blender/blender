@@ -539,6 +539,8 @@ static StructRNA *rna_Sequence_refine(struct PointerRNA *ptr)
 			return &RNA_ColorSequence;
 		case SEQ_TYPE_SPEED:
 			return &RNA_SpeedControlSequence;
+		case SEQ_TYPE_GAUSSIAN_BLUR:
+			return &RNA_GaussianBlurSequence;
 		default:
 			return &RNA_Sequence;
 	}
@@ -1374,6 +1376,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TYPE_SPEED, "SPEED", 0, "Speed", ""},
 		{SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 		{SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+		{SEQ_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -2203,6 +2206,23 @@ static void rna_def_speed_control(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
 	RNA_def_property_ui_text(prop, "Scale to length", "Scale values from 0.0 to 1.0 to target sequence length");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
+}
+
+static void rna_def_gaussian_blur(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "GaussianBlurVars", "effectdata");
+	prop = RNA_def_property(srna, "size_x", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Size X", "Size of the blur along X axis");
+	RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, -1);
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
+	prop = RNA_def_property(srna, "size_y", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Size Y", "Size of the blur along Y axis");
+	RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, -1);
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 }
 
 static EffectInfo def_effects[] = {
@@ -2227,6 +2247,8 @@ static EffectInfo def_effects[] = {
 	 "Sequence strip applying affine transformations to other strips", rna_def_transform, 1},
 	{"WipeSequence", "Wipe Sequence", "Sequence strip creating a wipe transition",
 	 rna_def_wipe, 1},
+	{"GaussianBlurSequence", "Gaussian Blur Sequence", "Sequence strip creating a gaussian blur",
+	 rna_def_gaussian_blur, 1},
 	{"", "", "", NULL, 0}
 };
 

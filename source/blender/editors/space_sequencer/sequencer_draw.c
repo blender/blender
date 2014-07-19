@@ -142,19 +142,21 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 		case SEQ_TYPE_GLOW:
 		case SEQ_TYPE_MULTICAM:
 		case SEQ_TYPE_ADJUSTMENT:
+		case SEQ_TYPE_GAUSSIAN_BLUR:
 			UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 
 			/* slightly offset hue to distinguish different effects */
-			if      (seq->type == SEQ_TYPE_ADD)        rgb_byte_set_hue_float_offset(col, 0.04);
-			else if (seq->type == SEQ_TYPE_SUB)        rgb_byte_set_hue_float_offset(col, 0.08);
-			else if (seq->type == SEQ_TYPE_MUL)        rgb_byte_set_hue_float_offset(col, 0.12);
-			else if (seq->type == SEQ_TYPE_ALPHAOVER)  rgb_byte_set_hue_float_offset(col, 0.16);
-			else if (seq->type == SEQ_TYPE_ALPHAUNDER) rgb_byte_set_hue_float_offset(col, 0.20);
-			else if (seq->type == SEQ_TYPE_OVERDROP)   rgb_byte_set_hue_float_offset(col, 0.24);
-			else if (seq->type == SEQ_TYPE_GLOW)       rgb_byte_set_hue_float_offset(col, 0.28);
-			else if (seq->type == SEQ_TYPE_TRANSFORM)  rgb_byte_set_hue_float_offset(col, 0.36);
-			else if (seq->type == SEQ_TYPE_MULTICAM)   rgb_byte_set_hue_float_offset(col, 0.32);
-			else if (seq->type == SEQ_TYPE_ADJUSTMENT) rgb_byte_set_hue_float_offset(col, 0.40);
+			if      (seq->type == SEQ_TYPE_ADD)           rgb_byte_set_hue_float_offset(col, 0.04);
+			else if (seq->type == SEQ_TYPE_SUB)           rgb_byte_set_hue_float_offset(col, 0.08);
+			else if (seq->type == SEQ_TYPE_MUL)           rgb_byte_set_hue_float_offset(col, 0.12);
+			else if (seq->type == SEQ_TYPE_ALPHAOVER)     rgb_byte_set_hue_float_offset(col, 0.16);
+			else if (seq->type == SEQ_TYPE_ALPHAUNDER)    rgb_byte_set_hue_float_offset(col, 0.20);
+			else if (seq->type == SEQ_TYPE_OVERDROP)      rgb_byte_set_hue_float_offset(col, 0.24);
+			else if (seq->type == SEQ_TYPE_GLOW)          rgb_byte_set_hue_float_offset(col, 0.28);
+			else if (seq->type == SEQ_TYPE_TRANSFORM)     rgb_byte_set_hue_float_offset(col, 0.36);
+			else if (seq->type == SEQ_TYPE_MULTICAM)      rgb_byte_set_hue_float_offset(col, 0.32);
+			else if (seq->type == SEQ_TYPE_ADJUSTMENT)    rgb_byte_set_hue_float_offset(col, 0.40);
+			else if (seq->type == SEQ_TYPE_GAUSSIAN_BLUR) rgb_byte_set_hue_float_offset(col, 0.42);
 			break;
 
 		case SEQ_TYPE_COLOR:

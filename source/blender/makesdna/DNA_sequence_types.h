@@ -249,6 +249,11 @@ typedef struct SpeedControlVars {
 	int lastValidFrame;
 } SpeedControlVars;
 
+typedef struct GaussianBlurVars {
+	float size_x;
+	float size_y;
+} GaussianBlurVars;
+
 /* ***************** Sequence modifiers ****************** */
 
 typedef struct SequenceModifierData {
@@ -421,7 +426,8 @@ enum {
 	SEQ_TYPE_SPEED       = 29,
 	SEQ_TYPE_MULTICAM    = 30,
 	SEQ_TYPE_ADJUSTMENT  = 31,
-	SEQ_TYPE_EFFECT_MAX  = 31
+	SEQ_TYPE_GAUSSIAN_BLUR = 40,
+	SEQ_TYPE_EFFECT_MAX  = 40
 };
 
 #define SEQ_MOVIECLIP_RENDER_UNDISTORTED (1 << 0)

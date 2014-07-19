@@ -284,6 +284,7 @@ class SEQUENCER_MT_add_effect(Menu):
         layout.operator("sequencer.effect_strip_add", text="Alpha Under").type = 'ALPHA_UNDER'
         layout.operator("sequencer.effect_strip_add", text="Cross").type = 'CROSS'
         layout.operator("sequencer.effect_strip_add", text="Gamma Cross").type = 'GAMMA_CROSS'
+        layout.operator("sequencer.effect_strip_add", text="Gaussian Blur").type = 'GAUSSIAN_BLUR'
         layout.operator("sequencer.effect_strip_add", text="Multiply").type = 'MULTIPLY'
         layout.operator("sequencer.effect_strip_add", text="Over Drop").type = 'OVER_DROP'
         layout.operator("sequencer.effect_strip_add", text="Wipe").type = 'WIPE'
@@ -490,7 +491,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         return strip.type in {'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-                              'MULTICAM'}
+                              'MULTICAM', 'GAUSSIAN_BLUR'}
 
     def draw(self, context):
         layout = self.layout
@@ -588,6 +589,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "use_default_fade", "Default fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect fader")
+        elif strip.type == 'GAUSSIAN_BLUR':
+            col.prop(strip, "size_x")
+            col.prop(strip, "size_y")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):

@@ -994,28 +994,29 @@ void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
 static const char *give_seqname_by_type(int type)
 {
 	switch (type) {
-		case SEQ_TYPE_META:       return "Meta";
-		case SEQ_TYPE_IMAGE:      return "Image";
-		case SEQ_TYPE_SCENE:      return "Scene";
-		case SEQ_TYPE_MOVIE:      return "Movie";
-		case SEQ_TYPE_MOVIECLIP:  return "Clip";
-		case SEQ_TYPE_MASK:       return "Mask";
-		case SEQ_TYPE_SOUND_RAM:  return "Audio";
-		case SEQ_TYPE_CROSS:      return "Cross";
-		case SEQ_TYPE_GAMCROSS:   return "Gamma Cross";
-		case SEQ_TYPE_ADD:        return "Add";
-		case SEQ_TYPE_SUB:        return "Sub";
-		case SEQ_TYPE_MUL:        return "Mul";
-		case SEQ_TYPE_ALPHAOVER:  return "Alpha Over";
-		case SEQ_TYPE_ALPHAUNDER: return "Alpha Under";
-		case SEQ_TYPE_OVERDROP:   return "Over Drop";
-		case SEQ_TYPE_WIPE:       return "Wipe";
-		case SEQ_TYPE_GLOW:       return "Glow";
-		case SEQ_TYPE_TRANSFORM:  return "Transform";
-		case SEQ_TYPE_COLOR:      return "Color";
-		case SEQ_TYPE_MULTICAM:   return "Multicam";
-		case SEQ_TYPE_ADJUSTMENT: return "Adjustment";
-		case SEQ_TYPE_SPEED:      return "Speed";
+		case SEQ_TYPE_META:          return "Meta";
+		case SEQ_TYPE_IMAGE:         return "Image";
+		case SEQ_TYPE_SCENE:         return "Scene";
+		case SEQ_TYPE_MOVIE:         return "Movie";
+		case SEQ_TYPE_MOVIECLIP:     return "Clip";
+		case SEQ_TYPE_MASK:          return "Mask";
+		case SEQ_TYPE_SOUND_RAM:     return "Audio";
+		case SEQ_TYPE_CROSS:         return "Cross";
+		case SEQ_TYPE_GAMCROSS:      return "Gamma Cross";
+		case SEQ_TYPE_ADD:           return "Add";
+		case SEQ_TYPE_SUB:           return "Sub";
+		case SEQ_TYPE_MUL:           return "Mul";
+		case SEQ_TYPE_ALPHAOVER:     return "Alpha Over";
+		case SEQ_TYPE_ALPHAUNDER:    return "Alpha Under";
+		case SEQ_TYPE_OVERDROP:      return "Over Drop";
+		case SEQ_TYPE_WIPE:          return "Wipe";
+		case SEQ_TYPE_GLOW:          return "Glow";
+		case SEQ_TYPE_TRANSFORM:     return "Transform";
+		case SEQ_TYPE_COLOR:         return "Color";
+		case SEQ_TYPE_MULTICAM:      return "Multicam";
+		case SEQ_TYPE_ADJUSTMENT:    return "Adjustment";
+		case SEQ_TYPE_SPEED:         return "Speed";
+		case SEQ_TYPE_GAUSSIAN_BLUR: return "Gaussian Blur";
 		default:
 			return NULL;
 	}
