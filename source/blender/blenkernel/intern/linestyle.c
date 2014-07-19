@@ -1154,6 +1154,27 @@ void BKE_linestyle_target_object_unlink(FreestyleLineStyle *linestyle, struct Ob
 	}
 }
 
+bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, const bool use_shading_nodes)
+{
+	if (use_shading_nodes) {
+		if (linestyle && linestyle->use_nodes && linestyle->nodetree) {
+			bNode *node;
+
+			for (node = linestyle->nodetree->nodes.first; node; node = node->next) {
+				if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+					return true;
+				}
+			}
+		}
+	}
+	else {
+		if (linestyle && (linestyle->flag & LS_TEXTURE)) {
+			return (linestyle->mtex[0] != NULL);
+		}
+	}
+	return false;
+}
+
 void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linestyle)
 {
 	Scene *scene = CTX_data_scene(C);
