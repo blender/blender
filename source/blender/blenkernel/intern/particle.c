@@ -1657,11 +1657,14 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 		index_mp_to_orig = NULL;
 	}
 
+	totface = dm->getNumTessFaces(dm);
+	if (!totface) {
+		return DMCACHE_NOTFOUND;
+	}
+
 	mpoly = dm->getPolyArray(dm);
 	osface = dm->getTessFaceDataArray(dm, CD_ORIGSPACE);
 
-	totface = dm->getNumTessFaces(dm);
-	
 	if (osface == NULL || index_mf_to_mpoly == NULL) {
 		/* Assume we don't need osface data */
 		if (index < totface) {

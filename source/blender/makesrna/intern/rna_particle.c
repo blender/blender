@@ -432,25 +432,24 @@ static EnumPropertyItem *rna_Particle_Material_itemf(bContext *C, PointerRNA *UN
 	return item;
 }
 
-static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, ReportList *reports,
-                                             ParticleSystemModifierData *modifier, ParticleData *particle,
-                                             int particle_no, int uv_no,
-                                             float r_uv[2])
+/* return < 0 means invalid (no matching tessellated face could be found). */
+static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesystem,
+                                                     ParticleSystemModifierData *modifier, ParticleData *particle,
+                                                     int particle_no, float (**r_fuv)[4])
 {
 	ParticleSettings *part = 0;
 	int totpart;
 	int totchild = 0;
-	int num;
+	int totface;
+	int num = -1;
 
-	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPUV)) {
-		BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
-		return;
-	}
 	DM_ensure_tessface(modifier->dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+	totface = modifier->dm->getNumTessFaces(modifier->dm);
 
 	/* 1. check that everything is ok & updated */
-	if (particlesystem == NULL)
-		return;
+	if (!particlesystem || !totface) {
+		return num;
+	}
 
 	part = particlesystem->part;
 
@@ -468,52 +467,31 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Rep
 	totpart = particlesystem->totpart;
 
 	if (particle_no >= totpart + totchild)
-		return;
+		return num;
 
-/* 3. start creating renderable things */
-	/* setup per particle individual stuff */
+	/* 2. get matching face index. */
 	if (particle_no < totpart) {
-
-		/* get uvco & mcol */
-		num = (ELEM(particle->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ?
-		          particle->num : particle->num_dmcache;
+		num = (ELEM(particle->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? particle->num : particle->num_dmcache;
 
 		if (num == DMCACHE_NOTFOUND)
-			if (particle->num < modifier->dm->getNumTessFaces(modifier->dm))
-				num = particle->num;
+			num = particle->num;
 
-		if (r_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-			if (num != DMCACHE_NOTFOUND) {
-				MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-				MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
-				mtface += num;
-				
-				psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
-			}
-			else {
-				r_uv[0] = 0.0f;
-				r_uv[1] = 0.0f;
+		if (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+			if (num != DMCACHE_NOTFOUND && num < totface) {
+				*r_fuv = &particle->fuv;
+				return num;
 			}
 		}
 	}
 	else {
 		ChildParticle *cpa = particlesystem->child + particle_no - totpart;
-
 		num = cpa->num;
 
-		/* get uvco & mcol */
 		if (part->childtype == PART_CHILD_FACES) {
-			if (r_uv && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
-				if (cpa->num != DMCACHE_NOTFOUND) {
-					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
-					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
-					mtface += cpa->num;
-					
-					psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, r_uv);
-				}
-				else {
-					r_uv[0] = 0.0f;
-					r_uv[1] = 0.0f;
+			if (ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
+				if (num != DMCACHE_NOTFOUND && num < totface) {
+					*r_fuv = &cpa->fuv;
+					return num;
 				}
 			}
 		}
@@ -522,137 +500,78 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Rep
 			num = parent->num_dmcache;
 
 			if (num == DMCACHE_NOTFOUND)
-				if (parent->num < modifier->dm->getNumTessFaces(modifier->dm))
-					num = parent->num;
+				num = parent->num;
 
-			if (r_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-				if (num != DMCACHE_NOTFOUND) {
-					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
-					mtface += num;
-					
-					psys_interpolate_uvs(mtface, mface->v4, parent->fuv, r_uv);
-				}
-				else {
-					r_uv[0] = 0.0f;
-					r_uv[1] = 0.0f;
+			if (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+				if (num != DMCACHE_NOTFOUND && num < totface) {
+					*r_fuv = &parent->fuv;
+					return num;
 				}
 			}
+		}
+	}
+
+	return -1;
+}
+
+static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, ReportList *reports,
+                                             ParticleSystemModifierData *modifier, ParticleData *particle,
+                                             int particle_no, int uv_no, float r_uv[2])
+{
+	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPUV)) {
+		BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
+		zero_v2(r_uv);
+		return;
+	}
+
+	{
+		float (*fuv)[4];
+		/* Note all sanity checks are done in this helper func. */
+		const int num = rna_ParticleSystem_tessfaceidx_on_emitter(particlesystem, modifier, particle,
+		                                                          particle_no, &fuv);
+
+		if (num < 0) {
+			/* No matching face found. */
+			zero_v2(r_uv);
+		}
+		else {
+			MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
+			MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
+
+			psys_interpolate_uvs(&mtface[num], mface->v4, *fuv, r_uv);
 		}
 	}
 }
 
-static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier,
-                                               ParticleData *particle, int particle_no, int vcol_no,
-                                               float n_mcol[3])
+static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, ReportList *reports,
+                                               ParticleSystemModifierData *modifier, ParticleData *particle,
+                                               int particle_no, int vcol_no, float r_mcol[3])
 {
-	ParticleSettings *part;
-	int totpart;
-	int totchild = 0;
-	int num;
-	MCol mcol = {255, 255, 255, 255};
-
-	/* 1. check that everything is ok & updated */
-	if (particlesystem == NULL)
+	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPCOL)) {
+		BKE_report(reports, RPT_ERROR, "Mesh has no VCol data");
+		zero_v3(r_mcol);
 		return;
-
-	part = particlesystem->part;
-
-	if (particlesystem->renderdata) {
-		totchild = particlesystem->totchild;
-	}
-	else {
-		totchild = (int)((float)particlesystem->totchild * (float)(part->disp) / 100.0f);
 	}
 
-	/* can happen for disconnected/global hair */
-	if (part->type == PART_HAIR && !particlesystem->childcache)
-		totchild = 0;
+	{
+		float (*fuv)[4];
+		/* Note all sanity checks are done in this helper func. */
+		const int num = rna_ParticleSystem_tessfaceidx_on_emitter(particlesystem, modifier, particle,
+		                                                          particle_no, &fuv);
 
-	totpart = particlesystem->totpart;
-
-	if (particle_no >= totpart + totchild)
-		return;
-
-	/* 3. start creating renderable things */
-	/* setup per particle individual stuff */
-	if (particle_no < totpart) {
-
-		/* get uvco & mcol */
-		num = particle->num_dmcache;
-
-		if (num == DMCACHE_NOTFOUND)
-			if (particle->num < modifier->dm->getNumTessFaces(modifier->dm))
-				num = particle->num;
-
-		if (n_mcol && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-			if (num != DMCACHE_NOTFOUND) {
-				MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-				MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
-				mc += num * 4;
-
-				psys_interpolate_mcol(mc, mface->v4, particle->fuv, &mcol);
-				n_mcol[0] = (float)mcol.b / 255.0f;
-				n_mcol[1] = (float)mcol.g / 255.0f;
-				n_mcol[2] = (float)mcol.r / 255.0f;
-			}
-			else {
-				n_mcol[0] = 0.0f;
-				n_mcol[1] = 0.0f;
-				n_mcol[2] = 0.0f;
-			}
-		}
-	}
-	else {
-		ChildParticle *cpa = particlesystem->child + particle_no - totpart;
-
-		num = cpa->num;
-
-		/* get uvco & mcol */
-		if (part->childtype == PART_CHILD_FACES) {
-			if (n_mcol && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
-				if (cpa->num != DMCACHE_NOTFOUND) {
-					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
-					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
-					mc += cpa->num * 4;
-
-					psys_interpolate_mcol(mc, mface->v4, cpa->fuv, &mcol);
-					n_mcol[0] = (float)mcol.b / 255.0f;
-					n_mcol[1] = (float)mcol.g / 255.0f;
-					n_mcol[2] = (float)mcol.r / 255.0f;
-				}
-				else {
-					n_mcol[0] = 0.0f;
-					n_mcol[1] = 0.0f;
-					n_mcol[2] = 0.0f;
-				}
-			}
+		if (num < 0) {
+			/* No matching face found. */
+			zero_v3(r_mcol);
 		}
 		else {
-			ParticleData *parent = particlesystem->particles + cpa->parent;
-			num = parent->num_dmcache;
+			MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
+			MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
+			MCol mcol;
 
-			if (num == DMCACHE_NOTFOUND)
-				if (parent->num < modifier->dm->getNumTessFaces(modifier->dm))
-					num = parent->num;
-
-			if (n_mcol && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-				if (num != DMCACHE_NOTFOUND) {
-					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
-					mc += num * 4;
-
-					psys_interpolate_mcol(mc, mface->v4, parent->fuv, &mcol);
-					n_mcol[0] = (float)mcol.b / 255.0f;
-					n_mcol[1] = (float)mcol.g / 255.0f;
-					n_mcol[2] = (float)mcol.r / 255.0f;
-				}
-				else {
-					n_mcol[0] = 0.0f;
-					n_mcol[1] = 0.0f;
-					n_mcol[2] = 0.0f;
-				}
-			}
+			psys_interpolate_mcol(&mc[num * 4], mface->v4, *fuv, &mcol);
+			r_mcol[0] = (float)mcol.b / 255.0f;
+			r_mcol[1] = (float)mcol.g / 255.0f;
+			r_mcol[2] = (float)mcol.r / 255.0f;
 		}
 	}
 }
@@ -3496,6 +3415,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	/* extract hair mcols */
 	func = RNA_def_function(srna, "mcol_on_emitter", "rna_ParticleSystem_mcol_on_emitter");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Obtain mcol for all particles");
 	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
 	RNA_def_property_flag(prop, PROP_REQUIRED | PROP_NEVER_NULL);
