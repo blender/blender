@@ -95,15 +95,20 @@ void BLI_rng_srandom(RNG *rng, unsigned int seed)
 	BLI_rng_seed(rng, seed + hash[seed & 255]);
 }
 
-int BLI_rng_get_int(RNG *rng)
+BLI_INLINE void rng_step(RNG *rng)
 {
 	rng->X = (MULTIPLIER * rng->X + ADDEND) & MASK;
+}
+
+int BLI_rng_get_int(RNG *rng)
+{
+	rng_step(rng);
 	return (int) (rng->X >> 17);
 }
 
 unsigned int BLI_rng_get_uint(RNG *rng)
 {
-	rng->X = (MULTIPLIER * rng->X + ADDEND) & MASK;
+	rng_step(rng);
 	return (unsigned int) (rng->X >> 17);
 }
 
@@ -167,10 +172,9 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsig
 
 void BLI_rng_skip(RNG *rng, int n)
 {
-	int i;
-
-	for (i = 0; i < n; i++)
-		BLI_rng_get_int(rng);
+	while (n--) {
+		rng_step(rng);
+	}
 }
 
 /***/

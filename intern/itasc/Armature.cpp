@@ -15,8 +15,10 @@
 
 namespace iTaSC {
 
+#if 0
 // a joint constraint is characterized by 5 values: tolerance, K, alpha, yd, yddot
 static const unsigned int constraintCacheSize = 5;
+#endif
 std::string Armature::m_root = "root";
 
 Armature::Armature():
