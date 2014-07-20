@@ -37,7 +37,7 @@
 #endif
 
 extern "C" {
-#include "DNA_material_types.h"
+#include "DNA_material_types.h" // for MAX_MTEX
 }
 
 namespace Freestyle {
