@@ -735,16 +735,9 @@ void FRS_move_active_lineset_down(FreestyleConfig *config)
 
 // Testing
 
-Material *FRS_create_stroke_material(bContext *C, Main *bmain, Scene *scene)
+Material *FRS_create_stroke_material(bContext *C, Main *bmain, struct FreestyleLineStyle *linestyle)
 {
-	FreestyleLineStyle *linestyle = BKE_linestyle_active_from_scene(scene);
-	Material *ma;
-
-	if (!linestyle) {
-		cout << "FRS_create_stroke_material: No active line style in the current scene" << endl;
-		return NULL;
-	}
-	ma = BlenderStrokeRenderer::GetStrokeShader(C, bmain, linestyle->nodetree, true);
+	Material *ma = BlenderStrokeRenderer::GetStrokeShader(C, bmain, linestyle->nodetree, true);
 	ma->id.us = 0;
 	return ma;
 }

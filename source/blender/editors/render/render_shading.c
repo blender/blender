@@ -1254,8 +1254,14 @@ static int freestyle_stroke_material_create_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	FreestyleLineStyle *linestyle = BKE_linestyle_active_from_scene(scene);
 
-	FRS_create_stroke_material(C, bmain, scene);
+	if (!linestyle) {
+		BKE_report(op->reports, RPT_ERROR, "No active line style in the current scene");
+		return OPERATOR_CANCELLED;
+	}
+
+	FRS_create_stroke_material(C, bmain, linestyle);
 
 	return OPERATOR_FINISHED;
 }
