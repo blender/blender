@@ -352,68 +352,68 @@ void _va_mul_serie_m4_3(
         float r[4][4],
         float m1[4][4], float m2[4][4])
 {
-	mul_m4_m4m4(r, m2, m1);
+	mul_m4_m4m4(r, m1, m2);
 }
 void _va_mul_serie_m4_4(
         float r[4][4],
         float m1[4][4], float m2[4][4], float m3[4][4])
 {
-	mul_m4_m4m4(r, m2, m1);
-	mul_m4_m4m4(r, m3, r);
+	mul_m4_m4m4(r, m1, m2);
+	mul_m4_m4m4(r, r, m3);
 }
 void _va_mul_serie_m4_5(
         float r[4][4],
         float m1[4][4], float m2[4][4], float m3[4][4], float m4[4][4])
 {
-	mul_m4_m4m4(r, m2, m1);
-	mul_m4_m4m4(r, m3, r);
-	mul_m4_m4m4(r, m4, r);
+	mul_m4_m4m4(r, m1, m2);
+	mul_m4_m4m4(r, r, m3);
+	mul_m4_m4m4(r, r, m4);
 }
 void _va_mul_serie_m4_6(
         float r[4][4],
         float m1[4][4], float m2[4][4], float m3[4][4], float m4[4][4],
         float m5[4][4])
 {
-	mul_m4_m4m4(r, m2, m1);
-	mul_m4_m4m4(r, m3, r);
-	mul_m4_m4m4(r, m4, r);
-	mul_m4_m4m4(r, m5, r);
+	mul_m4_m4m4(r, m1, m2);
+	mul_m4_m4m4(r, r, m3);
+	mul_m4_m4m4(r, r, m4);
+	mul_m4_m4m4(r, r, m5);
 }
 void _va_mul_serie_m4_7(
         float r[4][4],
         float m1[4][4], float m2[4][4], float m3[4][4], float m4[4][4],
         float m5[4][4], float m6[4][4])
 {
-	mul_m4_m4m4(r, m2, m1);
-	mul_m4_m4m4(r, m3, r);
-	mul_m4_m4m4(r, m4, r);
-	mul_m4_m4m4(r, m5, r);
-	mul_m4_m4m4(r, m6, r);
+	mul_m4_m4m4(r, m1, m2);
+	mul_m4_m4m4(r, r, m3);
+	mul_m4_m4m4(r, r, m4);
+	mul_m4_m4m4(r, r, m5);
+	mul_m4_m4m4(r, r, m6);
 }
 void _va_mul_serie_m4_8(
         float r[4][4],
         float m1[4][4], float m2[4][4], float m3[4][4], float m4[4][4],
         float m5[4][4], float m6[4][4], float m7[4][4])
 {
-	mul_m4_m4m4(r, m2, m1);
-	mul_m4_m4m4(r, m3, r);
-	mul_m4_m4m4(r, m4, r);
-	mul_m4_m4m4(r, m5, r);
-	mul_m4_m4m4(r, m6, r);
-	mul_m4_m4m4(r, m7, r);
+	mul_m4_m4m4(r, m1, m2);
+	mul_m4_m4m4(r, r, m3);
+	mul_m4_m4m4(r, r, m4);
+	mul_m4_m4m4(r, r, m5);
+	mul_m4_m4m4(r, r, m6);
+	mul_m4_m4m4(r, r, m7);
 }
 void _va_mul_serie_m4_9(
         float r[4][4],
         float m1[4][4], float m2[4][4], float m3[4][4], float m4[4][4],
         float m5[4][4], float m6[4][4], float m7[4][4], float m8[4][4])
 {
-	mul_m4_m4m4(r, m2, m1);
-	mul_m4_m4m4(r, m3, r);
-	mul_m4_m4m4(r, m4, r);
-	mul_m4_m4m4(r, m5, r);
-	mul_m4_m4m4(r, m6, r);
-	mul_m4_m4m4(r, m7, r);
-	mul_m4_m4m4(r, m8, r);
+	mul_m4_m4m4(r, m1, m2);
+	mul_m4_m4m4(r, r, m3);
+	mul_m4_m4m4(r, r, m4);
+	mul_m4_m4m4(r, r, m5);
+	mul_m4_m4m4(r, r, m6);
+	mul_m4_m4m4(r, r, m7);
+	mul_m4_m4m4(r, r, m8);
 }
 /** \} */
 
