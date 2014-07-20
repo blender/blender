@@ -232,7 +232,7 @@ unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
 	return mesh_id;
 }
 
-Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree)
+Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree, bool do_id_user)
 {
 	Material *ma = BKE_material_add(bmain, "stroke_shader");
 	bNodeTree *ntree;
@@ -242,7 +242,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 
 	if (iNodeTree) {
 		// make a copy of linestyle->nodetree
-		ntree = ntreeCopyTree_ex(iNodeTree, bmain, true);
+		ntree = ntreeCopyTree_ex(iNodeTree, bmain, do_id_user);
 
 		// find the active Output Line Style node
 		for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
@@ -387,7 +387,7 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 		bNodeTree *nt = iStrokeRep->getNodeTree();
 		Material *ma = (Material *)BLI_ghash_lookup(_nodetree_hash, nt);
 		if (!ma) {
-			ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, nt);
+			ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, nt, false);
 			BLI_ghash_insert(_nodetree_hash, nt, ma);
 #if 0
 			if (G.debug & G_DEBUG_FREESTYLE) {

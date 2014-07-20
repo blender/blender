@@ -43,6 +43,7 @@ extern "C" {
 #include "DNA_camera_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_group_types.h"
+#include "DNA_material_types.h"
 #include "DNA_text_types.h"
 
 #include "BKE_freestyle.h"
@@ -737,12 +738,15 @@ void FRS_move_active_lineset_down(FreestyleConfig *config)
 Material *FRS_create_stroke_material(bContext *C, Main *bmain, Scene *scene)
 {
 	FreestyleLineStyle *linestyle = BKE_linestyle_active_from_scene(scene);
+	Material *ma;
 
 	if (!linestyle) {
 		cout << "FRS_create_stroke_material: No active line style in the current scene" << endl;
 		return NULL;
 	}
-	return BlenderStrokeRenderer::GetStrokeShader(C, bmain, linestyle->nodetree);
+	ma = BlenderStrokeRenderer::GetStrokeShader(C, bmain, linestyle->nodetree, true);
+	ma->id.us = 0;
+	return ma;
 }
 
 } // extern "C"

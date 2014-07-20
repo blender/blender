@@ -55,7 +55,7 @@ public:
 
 	Render *RenderScene(Render *re, bool render);
 
-	static Material* GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree);
+	static Material* GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree, bool do_id_user);
 
 protected:
 	Main *freestyle_bmain;
