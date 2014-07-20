@@ -346,21 +346,33 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 3); // Alpha Fac
 #endif
 
-#if 0
 		for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
-			if (node->type == SH_NODE_TEX_IMAGE) {
+			if (node->type == SH_NODE_UVALONGSTROKE) {
+				// UV output of the UV Along Stroke node
+				bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->outputs, 0);
+
+				// add new UV Map node
 				bNode *input_uvmap = nodeAddStaticNode(C, ntree, SH_NODE_UVMAP);
 				input_uvmap->locx = node->locx - 200.0f;
 				input_uvmap->locy = node->locy;
 				NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
-				BLI_strncpy(storage->uv_map, "along_stroke_tips", sizeof(storage->uv_map));
-
+				if (node->custom1 & 1) { // use_tips
+					BLI_strncpy(storage->uv_map, "along_stroke_tips", sizeof(storage->uv_map));
+				}
+				else {
+					BLI_strncpy(storage->uv_map, "along_stroke", sizeof(storage->uv_map));
+				}
 				fromsock = (bNodeSocket *)BLI_findlink(&input_uvmap->outputs, 0); // UV
-				tosock = (bNodeSocket *)BLI_findlink(&node->inputs, 0); // Vector
-				nodeAddLink(ntree, input_uvmap, fromsock, node, tosock);
+
+				// replace links from the UV Along Stroke node by links from the UV Map node
+				for (bNodeLink *link = (bNodeLink *)ntree->links.first; link; link = link->next) {
+					if (link->fromnode == node && link->fromsock == sock) {
+						nodeAddLink(ntree, input_uvmap, fromsock, link->tonode, link->tosock);
+					}
+				}
+				nodeRemSocketLinks(ntree, sock);
 			}
 		}
-#endif
 	}
 
 	nodeSetActive(ntree, shader_mix);
