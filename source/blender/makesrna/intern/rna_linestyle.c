@@ -500,7 +500,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_tips", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_TIPS);
-	RNA_def_property_ui_text(prop, "Use tips", "Lower half of the texture is for tips of the stroke");
+	RNA_def_property_ui_text(prop, "Use Tips", "Lower half of the texture is for tips of the stroke");
 	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
 
 	prop = RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
