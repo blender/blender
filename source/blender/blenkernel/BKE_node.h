@@ -753,6 +753,7 @@ struct ShadeResult;
 #define SH_NODE_SEPXYZ					188
 #define SH_NODE_COMBXYZ					189
 #define SH_NODE_OUTPUT_LINESTYLE		190
+#define SH_NODE_UVALONGSTROKE			191
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

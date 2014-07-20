@@ -114,6 +114,7 @@ void register_node_type_sh_subsurface_scattering(void);
 void register_node_type_sh_mix_shader(void);
 void register_node_type_sh_add_shader(void);
 void register_node_type_sh_uvmap(void);
+void register_node_type_sh_uvalongstroke(void);
 
 void register_node_type_sh_output_lamp(void);
 void register_node_type_sh_output_material(void);
