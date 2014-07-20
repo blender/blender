@@ -34,6 +34,8 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
 /********************************* Init **************************************/
 
 void zero_m3(float R[3][3]);
@@ -67,12 +69,33 @@ void mul_m4_m4m3(float R[4][4], float A[4][4], float B[3][3]);
 void mul_m4_m4m4(float R[4][4], float A[4][4], float B[4][4]);
 void mul_m3_m3m4(float R[3][3], float A[4][4], float B[3][3]);
 
-void mul_serie_m3(float R[3][3],
-                  float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
-                  float M5[3][3], float M6[3][3], float M7[3][3], float M8[3][3]);
-void mul_serie_m4(float R[4][4],
-                  float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
-                  float M5[4][4], float M6[4][4], float M7[4][4], float M8[4][4]);
+/* mul_serie_m3 */
+void _va_mul_serie_m3_3(float R[3][3], float M1[3][3], float M2[3][3]) ATTR_NONNULL();
+void _va_mul_serie_m3_4(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3]) ATTR_NONNULL();
+void _va_mul_serie_m3_5(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3]) ATTR_NONNULL();
+void _va_mul_serie_m3_6(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
+                        float M5[3][3]) ATTR_NONNULL();
+void _va_mul_serie_m3_7(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
+                        float M5[3][3], float M6[3][3]) ATTR_NONNULL();
+void _va_mul_serie_m3_8(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
+                        float M5[3][3], float M6[3][3], float M7[3][3]) ATTR_NONNULL();
+void _va_mul_serie_m3_9(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
+                        float M5[3][3], float M6[3][3], float M7[3][3], float M8[3][3]) ATTR_NONNULL();
+/* mul_serie_m4 */
+void _va_mul_serie_m4_3(float R[4][4], float M1[4][4], float M2[4][4]) ATTR_NONNULL();
+void _va_mul_serie_m4_4(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4]) ATTR_NONNULL();
+void _va_mul_serie_m4_5(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4]) ATTR_NONNULL();
+void _va_mul_serie_m4_6(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
+                        float M5[4][4]) ATTR_NONNULL();
+void _va_mul_serie_m4_7(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
+                        float M5[4][4], float M6[4][4]) ATTR_NONNULL();
+void _va_mul_serie_m4_8(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
+                        float M5[4][4], float M6[4][4], float M7[4][4]) ATTR_NONNULL();
+void _va_mul_serie_m4_9(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
+                        float M5[4][4], float M6[4][4], float M7[4][4], float M8[4][4]) ATTR_NONNULL();
+
+#define mul_serie_m3(...) VA_NARGS_CALL_OVERLOAD(_va_mul_serie_m3_, __VA_ARGS__)
+#define mul_serie_m4(...) VA_NARGS_CALL_OVERLOAD(_va_mul_serie_m4_, __VA_ARGS__)
 
 void mul_m4_v3(float M[4][4], float r[3]);
 void mul_v3_m4v3(float r[3], float M[4][4], const float v[3]);

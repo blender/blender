@@ -1212,7 +1212,7 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point, float ctime, float
 						}
 
 						invert_m3_m3(mask_to_clip_matrix, mask_from_clip_matrix);
-						mul_serie_m3(parent_matrix, mask_to_clip_matrix, H, mask_from_clip_matrix, NULL, NULL, NULL, NULL, NULL);
+						mul_serie_m3(parent_matrix, mask_to_clip_matrix, H, mask_from_clip_matrix);
 					}
 				}
 			}

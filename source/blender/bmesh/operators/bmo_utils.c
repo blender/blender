@@ -63,7 +63,7 @@ void bmo_transform_exec(BMesh *UNUSED(bm), BMOperator *op)
 
 	if (!is_zero_m4(mat_space)) {
 		invert_m4_m4(imat_space, mat_space);
-		mul_serie_m4(mat, imat_space, mat, mat_space, NULL, NULL, NULL, NULL, NULL);
+		mul_serie_m4(mat, imat_space, mat, mat_space);
 	}
 
 	BMO_ITER (v, &iter, op->slots_in, "verts", BM_VERT) {

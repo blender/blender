@@ -4546,8 +4546,7 @@ static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *d
 
 		obi->duplitexmat= BLI_memarena_alloc(re->memArena, sizeof(float)*4*4);
 		invert_m4_m4(imat, dob->mat);
-		mul_serie_m4(obi->duplitexmat, re->viewmat, omat, imat, re->viewinv,
-		             NULL, NULL, NULL, NULL);
+		mul_serie_m4(obi->duplitexmat, re->viewmat, omat, imat, re->viewinv);
 	}
 
 	copy_v3_v3(obi->dupliorco, dob->orco);

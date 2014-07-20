@@ -77,7 +77,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 		BKE_object_to_mat4(ob, C);
 		copy_v3_v3(ob->size, scale);
 
-		mul_serie_m4(tmat, ob->parent->obmat, ob->parentinv, C, NULL, NULL, NULL, NULL, NULL);
+		mul_serie_m4(tmat, ob->parent->obmat, ob->parentinv, C);
 
 		// calculate local mat
 

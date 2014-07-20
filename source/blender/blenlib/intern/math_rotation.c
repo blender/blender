@@ -1606,7 +1606,7 @@ void mat4_to_dquat(DualQuat *dq, float basemat[4][4], float mat[4][4])
 		mul_m4_m4m4(S, baseRinv, baseRS);
 
 		/* set scaling part */
-		mul_serie_m4(dq->scale, basemat, S, baseinv, NULL, NULL, NULL, NULL, NULL);
+		mul_serie_m4(dq->scale, basemat, S, baseinv);
 		dq->scale_weight = 1.0f;
 	}
 	else {

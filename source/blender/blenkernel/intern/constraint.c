@@ -3909,7 +3909,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, imat);
 				invert_m4(imat);
 
-				mul_serie_m4(cob->matrix, obmat, mat, imat, NULL, NULL, NULL, NULL, NULL);
+				mul_serie_m4(cob->matrix, obmat, mat, imat);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 			else {
@@ -4187,7 +4187,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 
 			invert_m4_m4(imat, mat);
 
-			mul_serie_m4(cob->matrix, cammat, imat, camimat, parmat, obmat, NULL, NULL, NULL);
+			mul_serie_m4(cob->matrix, cammat, imat, camimat, parmat, obmat);
 		}
 	}
 }

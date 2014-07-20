@@ -584,12 +584,12 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, pmat, omat, cmat, NULL, NULL, NULL, NULL, NULL);
-			mul_serie_m3(td->ext->r_mtx, rpmat, omat, cmat, NULL, NULL, NULL, NULL, NULL);
+			mul_serie_m3(td->mtx, pmat, omat, cmat);
+			mul_serie_m3(td->ext->r_mtx, rpmat, omat, cmat);
 		}
 		else {
-			mul_serie_m3(td->mtx, pmat, omat, NULL, NULL, NULL, NULL, NULL, NULL);
-			mul_serie_m3(td->ext->r_mtx, rpmat, omat, NULL, NULL, NULL, NULL, NULL, NULL);
+			mul_serie_m3(td->mtx, pmat, omat);
+			mul_serie_m3(td->ext->r_mtx, rpmat, omat);
 		}
 		invert_m3_m3(td->ext->r_smtx, td->ext->r_mtx);
 	}
@@ -2368,8 +2368,7 @@ static void createTransEditVerts(TransInfo *t)
 						quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
 
 						if (defmats)
-							mul_serie_m3(mat, mtx, qmat, defmats[a],
-							             NULL, NULL, NULL, NULL, NULL);
+							mul_serie_m3(mat, mtx, qmat, defmats[a]);
 						else
 							mul_m3_m3m3(mat, mtx, qmat);
 					}

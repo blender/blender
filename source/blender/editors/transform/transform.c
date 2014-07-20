@@ -3627,7 +3627,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		
 		
 		if (td->flag & TD_USEQUAT) {
-			mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
+			mul_serie_m3(fmat, td->mtx, mat, td->smtx);
 			mat3_to_quat(quat, fmat);   // Actual transform
 			
 			if (td->ext->quat) {
@@ -3697,7 +3697,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		if ((t->flag & T_V3D_ALIGN) == 0) { /* align mode doesn't rotate objects itself */
 			/* euler or quaternion/axis-angle? */
 			if (td->ext->rotOrder == ROT_MODE_QUAT) {
-				mul_serie_m3(fmat, td->ext->r_mtx, mat, td->ext->r_smtx, NULL, NULL, NULL, NULL, NULL);
+				mul_serie_m3(fmat, td->ext->r_mtx, mat, td->ext->r_smtx);
 				
 				mat3_to_quat(quat, fmat); /* Actual transform */
 				
@@ -3712,7 +3712,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
-				mul_serie_m3(fmat, td->ext->r_mtx, mat, td->ext->r_smtx, NULL, NULL, NULL, NULL, NULL);
+				mul_serie_m3(fmat, td->ext->r_mtx, mat, td->ext->r_smtx);
 				mat3_to_quat(quat, fmat); /* Actual transform */
 				mul_qt_qtqt(tquat, quat, iquat);
 				
@@ -3769,7 +3769,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				/* can be called for texture space translate for example, then opt out */
 				if (td->ext->quat) {
-					mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
+					mul_serie_m3(fmat, td->mtx, mat, td->smtx);
 					mat3_to_quat(quat, fmat);   // Actual transform
 					
 					mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
@@ -3783,7 +3783,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
-				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
+				mul_serie_m3(fmat, td->mtx, mat, td->smtx);
 				mat3_to_quat(quat, fmat);   // Actual transform
 				mul_qt_qtqt(tquat, quat, iquat);
 				

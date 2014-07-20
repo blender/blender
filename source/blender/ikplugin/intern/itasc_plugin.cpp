@@ -566,7 +566,7 @@ static bool target_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Fram
 			float chanmat[4][4];
 			copy_m4_m4(chanmat, pchan->pose_mat);
 			copy_v3_v3(chanmat[3], pchan->pose_tail);
-			mul_serie_m4(restmat, target->owner->obmat, chanmat, target->eeRest, NULL, NULL, NULL, NULL, NULL);
+			mul_serie_m4(restmat, target->owner->obmat, chanmat, target->eeRest);
 		}
 		else {
 			mul_m4_m4m4(restmat, target->owner->obmat, target->eeRest);
