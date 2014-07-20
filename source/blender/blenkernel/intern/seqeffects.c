@@ -2620,8 +2620,12 @@ static void copy_gaussian_blur_effect(Sequence *dst, Sequence *src)
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static int early_out_gaussian_blur(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_gaussian_blur(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
 {
+	GaussianBlurVars *data = seq->effectdata;
+	if (data->size_x == 0.0f && data->size_y == 0) {
+		return EARLY_USE_INPUT_1;
+	}
 	return EARLY_DO_EFFECT;
 }
 
