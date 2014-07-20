@@ -522,17 +522,28 @@ bool calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 			
 			/* only loop over keyframes to find extents for values if needed */
 			if (ymin || ymax) {
-				BezTriple *bezt;
+				BezTriple *bezt, *prevbezt = NULL;
 				
-				for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
-					if ((do_sel_only == false) || BEZSELECTED(bezt)) {
+				for (bezt = fcu->bezt, i = 0; i < fcu->totvert; prevbezt = bezt, bezt++, i++) {
+					if ((do_sel_only == false) || BEZSELECTED(bezt)) {	
+						/* keyframe itself */
+						yminv = min_ff(yminv, bezt->vec[1][1]);
+						ymaxv = max_ff(ymaxv, bezt->vec[1][1]);
+						
 						if (include_handles) {
-							yminv = min_ffff(yminv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
-							ymaxv = max_ffff(ymaxv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
-						}
-						else {
-							yminv = min_ff(yminv, bezt->vec[1][1]);
-							ymaxv = max_ff(ymaxv, bezt->vec[1][1]);
+							/* left handle - only if applicable 
+							 * NOTE: for the very first keyframe, the left handle actually has no bearings on anything
+							 */
+							if (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)) {
+								yminv = min_ff(yminv, bezt->vec[0][1]);
+								ymaxv = max_ff(ymaxv, bezt->vec[0][1]);
+							}
+							
+							/* right handle - only if applicable */
+							if (bezt->ipo == BEZT_IPO_BEZ) {
+								yminv = min_ff(yminv, bezt->vec[2][1]);
+								ymaxv = min_ff(ymaxv, bezt->vec[2][1]);
+							}
 						}
 						
 						foundvert = true;
