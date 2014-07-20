@@ -2685,7 +2685,7 @@ static void do_gaussian_blur_effect_byte(Sequence *seq,
 			float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 			float accum_weight = 0.0f;
 			for (current_y = i - size_y;
-			     current_y < i + size_y;
+			     current_y <= i + size_y;
 			     ++current_y)
 			{
 				if (current_y < -start_line ||
@@ -2696,7 +2696,7 @@ static void do_gaussian_blur_effect_byte(Sequence *seq,
 				}
 
 				for (current_x = j - size_x;
-				     current_x < j + size_x;
+				     current_x <= j + size_x;
 				     ++current_x)
 				{
 					float weight;
@@ -2708,8 +2708,16 @@ static void do_gaussian_blur_effect_byte(Sequence *seq,
 					BLI_assert(index >= 0);
 					BLI_assert(index < frame_width * frame_height * 4);
 
-					weight = gausstab_x[current_x - j + size_x] *
-					         gausstab_y[current_y - i + size_y];
+					if (size_x != 0 && size_y != 0) {
+						weight = gausstab_x[current_x - j + size_x] *
+							gausstab_y[current_y - i + size_y];
+					}
+					else if (size_x == 0) {
+						weight = gausstab_y[current_y - i + size_y];
+					}
+					else {
+						weight = gausstab_x[current_x - j + size_x];
+					}
 					accum[0] += rect[index] * weight;
 					accum[1] += rect[index + 1] * weight;
 					accum[2] += rect[index + 2] * weight;
@@ -2761,7 +2769,7 @@ static void do_gaussian_blur_effect_float(Sequence *seq,
 			float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 			float accum_weight = 0.0f;
 			for (current_y = i - size_y;
-			     current_y < i + size_y;
+			     current_y <= i + size_y;
 			     ++current_y)
 			{
 				float weight;
@@ -2773,7 +2781,7 @@ static void do_gaussian_blur_effect_float(Sequence *seq,
 				}
 
 				for (current_x = j - size_x;
-				     current_x < j + size_x;
+				     current_x <= j + size_x;
 				     ++current_x)
 				{
 					int index = INDEX(current_x, current_y + start_line);
@@ -2782,8 +2790,16 @@ static void do_gaussian_blur_effect_float(Sequence *seq,
 						continue;
 					}
 
-					weight = gausstab_x[current_x - j + size_x] *
-					         gausstab_y[current_y - i + size_y];
+					if (size_x != 0 && size_y != 0) {
+						weight = gausstab_x[current_x - j + size_x] *
+							gausstab_y[current_y - i + size_y];
+					}
+					else if (size_x == 0) {
+						weight = gausstab_y[current_y - i + size_y];
+					}
+					else {
+						weight = gausstab_x[current_x - j + size_x];
+					}
 					madd_v4_v4fl(accum, &rect[index], weight);
 					accum_weight += weight;
 				}
