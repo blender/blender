@@ -595,7 +595,9 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject *UNUSED(self), PyObjec
 
 	if (ok) {
 		PyObject *ret = BPy_BMFace_Array_As_Tuple(bm, face_arr, face_arr_len);
-		MEM_freeN(face_arr);
+		if (face_arr) {
+			MEM_freeN(face_arr);
+		}
 		return ret;
 	}
 	else {
