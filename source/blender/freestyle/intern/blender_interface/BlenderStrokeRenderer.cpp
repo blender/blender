@@ -283,7 +283,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	mix_rgb_alpha->custom1 = MA_RAMP_BLEND; // Mix
 	mix_rgb_alpha->locx = 600.0f;
 	mix_rgb_alpha->locy = 300.0f;
-	tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 0); // Fac
+	tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_alpha->inputs, 0); // Fac
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
 	RNA_float_set(&toptr, "default_value", 0.0f);
 
