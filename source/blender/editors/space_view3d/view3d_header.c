@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
@@ -45,6 +46,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_editmesh.h"
 
@@ -336,8 +338,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 	if (obedit == NULL && is_paint) {
-
-		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob->mode & OB_MODE_ALL_PAINT) {
 			/* Only for Weight Paint. makes no sense in other paint modes. */
 			row = uiLayoutRow(layout, true);
 			uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

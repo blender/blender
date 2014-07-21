@@ -37,6 +37,7 @@
 
 #include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -501,11 +502,36 @@ void DM_update_materials(DerivedMesh *dm, Object *ob)
 
 	dm->mat = MEM_callocN(totmat * sizeof(*dm->mat), "DerivedMesh.mat");
 
-	for (i = 1; i < totmat; i++) {
-		dm->mat[i] = give_current_material(ob, i);
+	/* we leave last material as empty - rationale here is being able to index
+	 * the materials by using the mf->mat_nr directly and leaving the last
+	 * material as NULL in case no materials exist on mesh, so indexing will not fail */
+	for (i = 0; i < totmat - 1; i++) {
+		dm->mat[i] = give_current_material(ob, i + 1);
 	}
 }
 
+MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
+{
+	MTFace *tf_base;
+
+	BLI_assert(mat_nr < dm->totmat);
+
+	if (dm->mat[mat_nr] && dm->mat[mat_nr]->texpaintslot &&
+	    dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname[0])
+	{
+		tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE,
+		                                     dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname);
+		/* This can fail if we have changed the name in the UV layer list and have assigned the old name in the material
+			 * texture slot.*/
+		if (!tf_base)
+			tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+	}
+	else {
+		tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+	}
+
+	return tf_base;
+}
 
 void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 {
@@ -3091,7 +3117,7 @@ static void navmesh_drawColored(DerivedMesh *dm)
 static void navmesh_DM_drawFacesTex(DerivedMesh *dm,
                                     DMSetDrawOptionsTex setDrawOptions,
                                     DMCompareDrawOptions compareDrawOptions,
-                                    void *userData)
+                                    void *userData, DMDrawFlag UNUSED(flag))
 {
 	(void) setDrawOptions;
 	(void) compareDrawOptions;

@@ -2383,6 +2383,9 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, float fa
 		if (t->options & CTX_MASK) {
 			ED_space_image_get_aspect(t->sa->spacedata.first, asp, asp + 1);
 		}
+		else if (t->options & CTX_PAINT_CURVE) {
+			asp[0] = asp[1] = 1.0;
+		}
 		else {
 			ED_space_image_get_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
 		}

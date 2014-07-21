@@ -83,12 +83,15 @@ static void brush_defaults(Brush *brush)
 	brush->plane_trim = 0.5f;
 	brush->clone.alpha = 0.5f;
 	brush->normal_weight = 0.0f;
+	brush->fill_threshold = 0.2f;
 	brush->flag |= BRUSH_ALPHA_PRESSURE;
 
 	/* BRUSH PAINT TOOL SETTINGS */
 	brush->rgb[0] = 1.0f; /* default rgb color of the brush when painting - white */
 	brush->rgb[1] = 1.0f;
 	brush->rgb[2] = 1.0f;
+
+	zero_v3(brush->secondary_rgb);
 
 	/* BRUSH STROKE SETTINGS */
 	brush->flag |= (BRUSH_SPACE | BRUSH_SPACE_ATTEN);
@@ -161,6 +164,9 @@ Brush *BKE_brush_copy(Brush *brush)
 	if (brush->mask_mtex.tex)
 		id_us_plus((ID *)brush->mask_mtex.tex);
 
+	if (brush->paint_curve)
+		id_us_plus((ID *)brush->paint_curve);
+
 	if (brush->icon_imbuf)
 		brushn->icon_imbuf = IMB_dupImBuf(brush->icon_imbuf);
 
@@ -180,11 +186,9 @@ Brush *BKE_brush_copy(Brush *brush)
 /* not brush itself */
 void BKE_brush_free(Brush *brush)
 {
-	if (brush->mtex.tex)
-		brush->mtex.tex->id.us--;
-
-	if (brush->mask_mtex.tex)
-		brush->mask_mtex.tex->id.us--;
+	id_us_min((ID *)brush->mtex.tex);
+	id_us_min((ID *)brush->mask_mtex.tex);
+	id_us_min((ID *)brush->paint_curve);
 
 	if (brush->icon_imbuf)
 		IMB_freeImBuf(brush->icon_imbuf);
@@ -192,6 +196,9 @@ void BKE_brush_free(Brush *brush)
 	BKE_previewimg_free(&(brush->preview));
 
 	curvemapping_free(brush->curve);
+
+	if (brush->gradient)
+		MEM_freeN(brush->gradient);
 }
 
 static void extern_local_brush(Brush *brush)
@@ -199,6 +206,7 @@ static void extern_local_brush(Brush *brush)
 	id_lib_extern((ID *)brush->mtex.tex);
 	id_lib_extern((ID *)brush->mask_mtex.tex);
 	id_lib_extern((ID *)brush->clone.image);
+	id_lib_extern((ID *)brush->paint_curve);
 }
 
 void BKE_brush_make_local(Brush *brush)
@@ -742,10 +750,23 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
 		          rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool);
 	}
 
+	CLAMP(intensity, 0.0f, 1.0f);
+
+	switch (br->mask_pressure) {
+		case BRUSH_MASK_PRESSURE_CUTOFF:
+			intensity  = ((1.0f - intensity) < ups->size_pressure_value) ? 1.0f : 0.0f;
+			break;
+		case BRUSH_MASK_PRESSURE_RAMP:
+			intensity = ups->size_pressure_value + intensity * (1.0f - ups->size_pressure_value);
+			break;
+		default:
+			break;
+	}
+
 	return intensity;
 }
 
-/* Unified Size and Strength */
+/* Unified Size / Strength / Color */
 
 /* XXX: be careful about setting size and unprojected radius
  * because they depend on one another
@@ -759,6 +780,29 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
  * radius.  Not completely convinced that is correct.
  * In any case, a better solution is needed to prevent
  * inconsistency. */
+
+
+float *BKE_brush_color_get(const struct Scene *scene, struct Brush *brush)
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+	return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->rgb : brush->rgb;
+}
+
+float *BKE_brush_secondary_color_get(const struct Scene *scene, struct Brush *brush)
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+	return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->secondary_rgb : brush->secondary_rgb;
+}
+
+void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float color[3])
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+	if (ups->flag & UNIFIED_PAINT_COLOR)
+		copy_v3_v3(ups->rgb, color);
+	else
+		copy_v3_v3(brush->rgb, color);
+}
 
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
 {

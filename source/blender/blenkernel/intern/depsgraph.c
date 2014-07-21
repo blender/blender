@@ -2472,6 +2472,17 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 						BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 		}
 
+		if (ELEM(idtype, ID_MA, ID_TE)) {
+			const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(sce);
+			for (obt = bmain->object.first; obt; obt = obt->id.next) {
+				if (obt->mode & OB_MODE_TEXTURE_PAINT) {
+					obt->recalc |= OB_RECALC_DATA;
+					BKE_texpaint_slots_refresh_object(obt, new_shading_nodes);
+					lib_id_recalc_data_tag(bmain, &obt->id);
+				}
+			}
+		}
+
 		if (idtype == ID_MC) {
 			MovieClip *clip = (MovieClip *) id;
 

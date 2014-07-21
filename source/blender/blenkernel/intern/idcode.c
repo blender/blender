@@ -73,6 +73,8 @@ static IDType idtypes[] = {
 	{ ID_NT,     "NodeTree",         "node_groups",     IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_OB,     "Object",           "objects",         IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_PA,     "ParticleSettings", "particles",       0                       },
+	{ ID_PAL,    "Palettes",         "palettes",        IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_PC,     "PaintCurve",       "paint_curves",    IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_SCE,    "Scene",            "scenes",          IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_SCR,    "Screen",           "screens",         0                       },
 	{ ID_SEQ,    "Sequence",         "sequences",       0                       }, /* not actually ID data */

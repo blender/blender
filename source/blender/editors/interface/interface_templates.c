@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
@@ -60,6 +61,7 @@
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_particle.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
 #include "BKE_screen.h"
@@ -349,6 +351,8 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_BR:  return N_("Browse Brush to be linked");
 			case ID_PA:  return N_("Browse Particle Settings to be linked");
 			case ID_GD:  return N_("Browse Grease Pencil Data to be linked");
+			case ID_PAL: return N_("Browse Palette Data to be linked");
+			case ID_PC:  return N_("Browse Paint Curve Data to be linked");
 		}
 	}
 	return N_("Browse ID data to be linked");
@@ -2362,6 +2366,61 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 		}
 	}
 }
+
+void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, int UNUSED(colors))
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+	PointerRNA cptr;
+	Palette *palette;
+	PaletteColor *color;
+	uiBlock *block;
+	uiLayout *col;
+	int row_cols = 0, col_id = 0;
+	int cols_per_row = MAX2(uiLayoutGetWidth(layout) / UI_UNIT_X, 1);
+
+	if (!prop) {
+		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	cptr = RNA_property_pointer_get(ptr, prop);
+	if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Palette))
+		return;
+
+	block = uiLayoutGetBlock(layout);
+
+	palette = cptr.data;
+
+	/* first delete any pending colors */
+	BKE_palette_cleanup(palette);
+
+	color = palette->colors.first;
+
+	col = uiLayoutColumn(layout, true);
+	uiLayoutRow(col, true);
+	uiDefIconButO(block, BUT, "PALETTE_OT_color_add", WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+	uiDefIconButO(block, BUT, "PALETTE_OT_color_delete", WM_OP_INVOKE_DEFAULT, ICON_ZOOMOUT, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+
+	col = uiLayoutColumn(layout, true);
+	uiLayoutRow(col, true);
+
+	for (; color; color = color->next) {
+		PointerRNA ptr;
+
+		if (row_cols >= cols_per_row) {
+			uiLayoutRow(col, true);
+			row_cols = 0;
+		}
+
+		RNA_pointer_create(&palette->id, &RNA_PaletteColor, color, &ptr);
+		uiDefButR(block, COLOR, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, &ptr, "color", -1, 0.0, 1.0,
+		          UI_PALETTE_COLOR, (col_id == palette->active_color) ? UI_PALETTE_COLOR_ACTIVE : 0.0, "");
+
+		row_cols++;
+		col_id++;
+	}
+}
+
 
 /********************* Layer Buttons Template ************************/
 

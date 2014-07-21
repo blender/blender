@@ -663,47 +663,6 @@ static bool sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float loca
 /* ===== Sculpting =====
  *
  */
-
-static float overlapped_curve(Brush *br, float x)
-{
-	int i;
-	const int n = 100 / br->spacing;
-	const float h = br->spacing / 50.0f;
-	const float x0 = x - 1;
-
-	float sum;
-
-	sum = 0;
-	for (i = 0; i < n; i++) {
-		float xx;
-
-		xx = fabsf(x0 + i * h);
-
-		if (xx < 1.0f)
-			sum += BKE_brush_curve_strength(br, xx, 1);
-	}
-
-	return sum;
-}
-
-static float integrate_overlap(Brush *br)
-{
-	int i;
-	int m = 10;
-	float g = 1.0f / m;
-	float max;
-
-	max = 0;
-	for (i = 0; i < m; i++) {
-		float overlap = overlapped_curve(br, i * g);
-
-		if (overlap > max)
-			max = overlap;
-	}
-
-	return max;
-}
-
 static void flip_v3(float v[3], const char symm)
 {
 	flip_v3_v3(v, v, symm);
@@ -776,7 +735,7 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
 /* Return modified brush strength. Includes the direction of the brush, positive
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor. */
-static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
+static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather, UnifiedPaintSettings *ups)
 {
 	const Scene *scene = cache->vc->scene;
 	Brush *brush = BKE_paint_brush(&sd->paint);
@@ -788,13 +747,10 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	float pressure     = BKE_brush_use_alpha_pressure(scene, brush) ? cache->pressure : 1;
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
-	float accum        = integrate_overlap(brush);
+	float overlap       = ups->overlap_factor;
 	/* spacing is integer percentage of radius, divide by 50 to get
 	 * normalized diameter */
-	float overlap      = (brush->flag & BRUSH_SPACE_ATTEN &&
-	                      brush->flag & BRUSH_SPACE &&
-	                      !(brush->flag & BRUSH_ANCHORED) &&
-	                      (brush->spacing < 100)) ? 1.0f / accum : 1;
+
 	float flip         = dir * invert * pen_flip;
 
 	switch (brush->sculpt_tool) {
@@ -3377,7 +3333,7 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 	/* XXX This reduces the length of the grab delta if it approaches the line of symmetry
 	 * XXX However, a different approach appears to be needed */
 #if 0
-	if (sd->flags & SCULPT_SYMMETRY_FEATHER) {
+	if (sd->paint.symmetry_flags & SCULPT_SYMMETRY_FEATHER) {
 		float frac = 1.0f / max_overlap_count(sd);
 		float reduce = (feather - frac) / (1 - frac);
 
@@ -3437,7 +3393,7 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
 }
 
 static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
-                                         BrushActionFunc action)
+                                         BrushActionFunc action, UnifiedPaintSettings *ups)
 {
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
@@ -3447,7 +3403,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
 
 	float feather = calc_symmetry_feather(sd, ss->cache);
 
-	cache->bstrength = brush_strength(sd, cache, feather);
+	cache->bstrength = brush_strength(sd, cache, feather, ups);
 	cache->symmetry = symm;
 
 	/* symm is a bit combination of XYZ - 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */ 
@@ -3733,8 +3689,8 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 
 	/* not very nice, but with current events system implementation
 	 * we can't handle brush appearance inversion hotkey separately (sergey) */
-	if (cache->invert) brush->flag |= BRUSH_INVERTED;
-	else brush->flag &= ~BRUSH_INVERTED;
+	if (cache->invert) ups->draw_inverted = true;
+	else ups->draw_inverted = false;
 
 	/* Alt-Smooth */
 	if (cache->alt_smooth) {
@@ -3992,16 +3948,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	cache->radius_squared = cache->radius * cache->radius;
 
 	if (brush->flag & BRUSH_ANCHORED) {
+		/* true location has been calculated as part of the stroke system already here */
 		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
-			float halfway[2];
-			float out[3];
-			halfway[0] = 0.5f * (cache->mouse[0] + cache->initial_mouse[0]);
-			halfway[1] = 0.5f * (cache->mouse[1] + cache->initial_mouse[1]);
-
-			if (sculpt_stroke_get_location(C, out, halfway)) {
-				copy_v3_v3(cache->anchored_location, out);
-				copy_v3_v3(cache->true_location, cache->anchored_location);
-			}
+			RNA_float_get_array(ptr, "location", cache->true_location);
 		}
 
 		cache->radius = paint_calc_object_space_radius(cache->vc,
@@ -4393,10 +4342,10 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	}
 
 	if (sculpt_stroke_dynamic_topology(ss, brush)) {
-		do_symmetrical_brush_actions(sd, ob, sculpt_topology_update);
+		do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
 	}
 
-	do_symmetrical_brush_actions(sd, ob, do_brush_action);
+	do_symmetrical_brush_actions(sd, ob, do_brush_action, ups);
 
 	sculpt_combine_proxies(sd, ob);
 
@@ -4446,8 +4395,9 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 	/* Finished */
 	if (ss->cache) {
+		UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 		Brush *brush = BKE_paint_brush(&sd->paint);
-		brush->flag &= ~BRUSH_INVERTED;
+		ups->draw_inverted = false;
 
 		sculpt_stroke_modifiers_check(C, ob);
 
@@ -4506,7 +4456,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
 	if (!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
 
-	stroke = paint_stroke_new(C, sculpt_stroke_get_location,
+	stroke = paint_stroke_new(C, op, sculpt_stroke_get_location,
 	                          sculpt_stroke_test_start,
 	                          sculpt_stroke_update_step, NULL,
 	                          sculpt_stroke_done, event->type);
@@ -4521,10 +4471,13 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
 		return OPERATOR_PASS_THROUGH;
 	}
 	
+	if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
+		paint_stroke_data_free(op);
+		return OPERATOR_FINISHED;
+	}
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
-	retval = op->type->modal(C, op, event);
 	OPERATOR_RETVAL_CHECK(retval);
 	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 	
@@ -4536,7 +4489,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	if (!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
 
-	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location, sculpt_stroke_test_start,
+	op->customdata = paint_stroke_new(C, op, sculpt_stroke_get_location, sculpt_stroke_test_start,
 	                                  sculpt_stroke_update_step, NULL, sculpt_stroke_done, 0);
 
 	/* frees op->customdata */
@@ -5062,11 +5015,11 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			ts->sculpt->paint.flags |= PAINT_SHOW_BRUSH;
 
 			/* Make sure at least dyntopo subdivision is enabled */
-			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;
+			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
 		}
 
 		if (!ts->sculpt->detail_size) {
-			ts->sculpt->detail_size = 30;
+			ts->sculpt->detail_size = 12;
 		}
 
 		if (ts->sculpt->constant_detail == 0.0f)

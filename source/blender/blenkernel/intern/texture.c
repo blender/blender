@@ -474,7 +474,8 @@ void BKE_texture_free(Tex *tex)
 
 void default_tex(Tex *tex)
 {
-	tex->type = TEX_CLOUDS;
+	tex->type = TEX_IMAGE;
+	tex->ima = NULL;
 	tex->stype = 0;
 	tex->flag = TEX_CHECKER_ODD;
 	tex->imaflag = TEX_INTERPOL | TEX_MIPMAP | TEX_USEALPHA;
@@ -592,7 +593,7 @@ Tex *add_texture(Main *bmain, const char *name)
 
 void default_mtex(MTex *mtex)
 {
-	mtex->texco = TEXCO_ORCO;
+	mtex->texco = TEXCO_UV;
 	mtex->mapto = MAP_COL;
 	mtex->object = NULL;
 	mtex->projx = PROJ_X;

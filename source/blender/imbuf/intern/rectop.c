@@ -65,6 +65,39 @@ void IMB_blend_color_byte(unsigned char dst[4], unsigned char src1[4], unsigned 
 			blend_color_erase_alpha_byte(dst, src1, src2); break;
 		case IMB_BLEND_ADD_ALPHA:
 			blend_color_add_alpha_byte(dst, src1, src2); break;
+		case IMB_BLEND_OVERLAY:
+			blend_color_overlay_byte(dst, src1, src2); break;
+		case IMB_BLEND_HARDLIGHT:
+			blend_color_hardlight_byte(dst, src1, src2); break;
+		case IMB_BLEND_COLORBURN:
+			blend_color_burn_byte(dst, src1, src2); break;
+		case IMB_BLEND_LINEARBURN:
+			blend_color_linearburn_byte(dst, src1, src2); break;
+		case IMB_BLEND_COLORDODGE:
+			blend_color_dodge_byte(dst, src1, src2); break;
+		case IMB_BLEND_SCREEN:
+			blend_color_screen_byte(dst, src1, src2); break;
+		case IMB_BLEND_SOFTLIGHT:
+			blend_color_softlight_byte(dst, src1, src2); break;
+		case IMB_BLEND_PINLIGHT:
+			blend_color_pinlight_byte(dst, src1, src2); break;
+		case IMB_BLEND_LINEARLIGHT:
+			blend_color_linearlight_byte(dst, src1, src2); break;
+		case IMB_BLEND_VIVIDLIGHT:
+			blend_color_vividlight_byte(dst, src1, src2); break;
+		case IMB_BLEND_DIFFERENCE:
+			blend_color_difference_byte(dst, src1, src2); break;
+		case IMB_BLEND_EXCLUSION:
+			blend_color_exclusion_byte(dst, src1, src2); break;
+		case IMB_BLEND_COLOR:
+			blend_color_color_byte(dst, src1, src2); break;
+		case IMB_BLEND_HUE:
+			blend_color_hue_byte(dst, src1, src2); break;
+		case IMB_BLEND_SATURATION:
+			blend_color_saturation_byte(dst, src1, src2); break;
+		case IMB_BLEND_LUMINOSITY:
+			blend_color_luminosity_byte(dst, src1, src2); break;
+
 		default:
 			dst[0] = src1[0];
 			dst[1] = src1[1];
@@ -93,6 +126,38 @@ void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], IMB_Blend
 			blend_color_erase_alpha_float(dst, src1, src2); break;
 		case IMB_BLEND_ADD_ALPHA:
 			blend_color_add_alpha_float(dst, src1, src2); break;
+		case IMB_BLEND_OVERLAY:
+			blend_color_overlay_float(dst, src1, src2); break;
+		case IMB_BLEND_HARDLIGHT:
+			blend_color_hardlight_float(dst, src1, src2); break;
+		case IMB_BLEND_COLORBURN:
+			blend_color_burn_float(dst, src1, src2); break;
+		case IMB_BLEND_LINEARBURN:
+			blend_color_linearburn_float(dst, src1, src2); break;
+		case IMB_BLEND_COLORDODGE:
+			blend_color_dodge_float(dst, src1, src2); break;
+		case IMB_BLEND_SCREEN:
+			blend_color_screen_float(dst, src1, src2); break;
+		case IMB_BLEND_SOFTLIGHT:
+			blend_color_softlight_float(dst, src1, src2); break;
+		case IMB_BLEND_PINLIGHT:
+			blend_color_pinlight_float(dst, src1, src2); break;
+		case IMB_BLEND_LINEARLIGHT:
+			blend_color_linearlight_float(dst, src1, src2); break;
+		case IMB_BLEND_VIVIDLIGHT:
+			blend_color_vividlight_float(dst, src1, src2); break;
+		case IMB_BLEND_DIFFERENCE:
+			blend_color_difference_float(dst, src1, src2); break;
+		case IMB_BLEND_EXCLUSION:
+			blend_color_exclusion_float(dst, src1, src2); break;
+		case IMB_BLEND_COLOR:
+			blend_color_color_float(dst, src1, src2); break;
+		case IMB_BLEND_HUE:
+			blend_color_hue_float(dst, src1, src2); break;
+		case IMB_BLEND_SATURATION:
+			blend_color_saturation_float(dst, src1, src2); break;
+		case IMB_BLEND_LUMINOSITY:
+			blend_color_luminosity_float(dst, src1, src2); break;
 		default:
 			dst[0] = src1[0];
 			dst[1] = src1[1];
@@ -226,22 +291,23 @@ static void imb_rectclip3(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, int *destx,
 void IMB_rectcpy(ImBuf *dbuf, ImBuf *sbuf, int destx, 
                  int desty, int srcx, int srcy, int width, int height)
 {
-	IMB_rectblend(dbuf, dbuf, sbuf, NULL, NULL, 0, destx, desty, destx, desty, srcx, srcy, width, height, IMB_BLEND_COPY);
+	IMB_rectblend(dbuf, dbuf, sbuf, NULL, NULL, NULL, 0, destx, desty, destx, desty, srcx, srcy, width, height, IMB_BLEND_COPY, false);
 }
 
 typedef void (*IMB_blend_func)(unsigned char *dst, const unsigned char *src1, const unsigned char *src2);
 typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
 
 
-void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
-                   unsigned short *smask, unsigned short mask_max,
+void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask, unsigned short *curvemask,
+                   unsigned short *texmask, float mask_max,
                    int destx,  int desty, int origx, int origy, int srcx, int srcy, int width, int height,
-                   IMB_BlendMode mode)
+                   IMB_BlendMode mode, bool accumulate)
 {
 	unsigned int *drect = NULL, *orect, *srect = NULL, *dr, *or, *sr;
 	float *drectf = NULL, *orectf, *srectf = NULL, *drf, *orf, *srf;
-	unsigned short *smaskrect = smask, *smr;
+	unsigned short *cmaskrect = curvemask, *cmr;
 	unsigned short *dmaskrect = dmask, *dmr;
+	unsigned short *texmaskrect = texmask, *tmr;
 	int do_float, do_char, srcskip, destskip, origskip, x;
 	IMB_blend_func func = NULL;
 	IMB_blend_func_float func_float = NULL;
@@ -277,8 +343,11 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 		if (do_float) srectf = sbuf->rect_float + (srcy * sbuf->x + srcx) * 4;
 		srcskip = sbuf->x;
 
-		if (smaskrect)
-			smaskrect += srcy * sbuf->x + srcx;
+		if (cmaskrect)
+			cmaskrect += srcy * sbuf->x + srcx;
+
+		if (texmaskrect)
+			texmaskrect += srcy * sbuf->x + srcx;
 	}
 	else {
 		srect = drect;
@@ -388,6 +457,70 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 				func = blend_color_add_alpha_byte;
 				func_float = blend_color_add_alpha_float;
 				break;
+			case IMB_BLEND_OVERLAY:
+				func = blend_color_overlay_byte;
+				func_float = blend_color_overlay_float;
+				break;
+			case IMB_BLEND_HARDLIGHT:
+				func = blend_color_hardlight_byte;
+				func_float = blend_color_hardlight_float;
+				break;
+			case IMB_BLEND_COLORBURN:
+				func = blend_color_burn_byte;
+				func_float = blend_color_burn_float;
+				break;
+			case IMB_BLEND_LINEARBURN:
+				func = blend_color_linearburn_byte;
+				func_float = blend_color_linearburn_float;
+				break;
+			case IMB_BLEND_COLORDODGE:
+				func = blend_color_dodge_byte;
+				func_float = blend_color_dodge_float;
+				break;
+			case IMB_BLEND_SCREEN:
+				func = blend_color_screen_byte;
+				func_float = blend_color_screen_float;
+				break;
+			case IMB_BLEND_SOFTLIGHT:
+				func = blend_color_softlight_byte;
+				func_float = blend_color_softlight_float;
+				break;
+			case IMB_BLEND_PINLIGHT:
+				func = blend_color_pinlight_byte;
+				func_float = blend_color_pinlight_float;
+				break;
+			case IMB_BLEND_LINEARLIGHT:
+				func = blend_color_linearlight_byte;
+				func_float = blend_color_linearlight_float;
+				break;
+			case IMB_BLEND_VIVIDLIGHT:
+				func = blend_color_vividlight_byte;
+				func_float = blend_color_vividlight_float;
+				break;
+			case IMB_BLEND_DIFFERENCE:
+				func = blend_color_difference_byte;
+				func_float = blend_color_difference_float;
+				break;
+			case IMB_BLEND_EXCLUSION:
+				func = blend_color_exclusion_byte;
+				func_float = blend_color_exclusion_float;
+				break;
+			case IMB_BLEND_COLOR:
+				func = blend_color_color_byte;
+				func_float = blend_color_color_float;
+				break;
+			case IMB_BLEND_HUE:
+				func = blend_color_hue_byte;
+				func_float = blend_color_hue_float;
+				break;
+			case IMB_BLEND_SATURATION:
+				func = blend_color_saturation_byte;
+				func_float = blend_color_saturation_float;
+				break;
+			case IMB_BLEND_LUMINOSITY:
+				func = blend_color_luminosity_byte;
+				func_float = blend_color_luminosity_float;
+				break;
 			default:
 				break;
 		}
@@ -399,21 +532,60 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 				or = orect;
 				sr = srect;
 
-				if (dmaskrect && smaskrect) {
+				if (cmaskrect) {
 					/* mask accumulation for painting */
-					dmr = dmaskrect;
-					smr = smaskrect;
+					cmr = cmaskrect;
+					tmr = texmaskrect;
 
-					for (x = width; x > 0; x--, dr++, or++, sr++, dmr++, smr++) {
-						unsigned char *src = (unsigned char *)sr;
+					/* destination mask present, do max alpha masking */
+					if (dmaskrect) {
+						dmr = dmaskrect;
+						for (x = width; x > 0; x--, dr++, or++, sr++, dmr++, cmr++) {
+							unsigned char *src = (unsigned char *)sr;
+							float mask_lim = mask_max * (*cmr);
 
-						if (src[3] && *smr) {
-							unsigned short mask = *dmr + (((mask_max - *dmr) * (*smr)) / 65535);
+							if (texmaskrect)
+								mask_lim *= ((*tmr++) / 65535.0f);
 
-							if (mask > *dmr) {
+							if (src[3] && mask_lim) {
+								float mask;
+
+								if (accumulate)
+									mask = *dmr + mask_lim;
+								else
+									mask = *dmr + mask_lim - (*dmr  * (*cmr / 65535.0f));
+
+								mask = min_ff(mask, 65535.0);
+
+								if (mask > *dmr) {
+									unsigned char mask_src[4];
+
+									*dmr = mask;
+
+									mask_src[0] = src[0];
+									mask_src[1] = src[1];
+									mask_src[2] = src[2];
+									mask_src[3] = divide_round_i(src[3] * mask, 65535);
+
+									func((unsigned char *)dr, (unsigned char *)or, mask_src);
+								}
+							}
+						}
+						dmaskrect += origskip;
+					}
+					/* no destination mask buffer, do regular blend with masktexture if present */
+					else {
+						for (x = width; x > 0; x--, dr++, or++, sr++, cmr++) {
+							unsigned char *src = (unsigned char *)sr;
+							float mask = (float)mask_max * ((float)(*cmr));
+
+							if (texmaskrect)
+								mask *= ((float)(*tmr++) / 65535.0f);
+
+							mask = min_ff(mask, 65535.0);
+
+							if (src[3] && (mask > 0.0f)) {
 								unsigned char mask_src[4];
-
-								*dmr = mask;
 
 								mask_src[0] = src[0];
 								mask_src[1] = src[1];
@@ -425,8 +597,9 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 						}
 					}
 
-					dmaskrect += origskip;
-					smaskrect += srcskip;
+					cmaskrect += srcskip;
+					if (texmaskrect)
+						texmaskrect += srcskip;
 				}
 				else {
 					/* regular blending */
@@ -446,28 +619,65 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 				orf = orectf;
 				srf = srectf;
 
-				if (dmaskrect && smaskrect) {
+				if (cmaskrect) {
 					/* mask accumulation for painting */
-					dmr = dmaskrect;
-					smr = smaskrect;
+					cmr = cmaskrect;
+					tmr = texmaskrect;
 
-					for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4, dmr++, smr++) {
-						if (srf[3] != 0 && *smr) {
-							unsigned short mask = *dmr + (((mask_max - *dmr) * (*smr)) / 65535);
+					/* destination mask present, do max alpha masking */
+					if (dmaskrect) {
+						dmr = dmaskrect;
+						for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4, dmr++, cmr++) {
+							float mask_lim = mask_max * (*cmr);
 
-							if (mask > *dmr) {
+							if (texmaskrect)
+								mask_lim *= ((*tmr++) / 65535.0f);
+
+							if (srf[3] && mask_lim) {
+								float mask;
+
+								if (accumulate)
+									mask = min_ff(*dmr + mask_lim, 65535.0);
+								else
+									mask = *dmr + mask_lim - (*dmr  * (*cmr / 65535.0f));
+
+								mask = min_ff(mask, 65535.0);
+
+								if (mask > *dmr) {
+									float mask_srf[4];
+
+									*dmr = mask;
+									mul_v4_v4fl(mask_srf, srf, mask / 65535.0f);
+
+									func_float(drf, orf, mask_srf);
+								}
+							}
+						}
+						dmaskrect += origskip;
+					}
+					/* no destination mask buffer, do regular blend with masktexture if present */
+					else {
+						for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4, cmr++) {
+							float mask = (float)mask_max * ((float)(*cmr));
+
+							if (texmaskrect)
+								mask *= ((float)(*tmr++) / 65535.0f);
+
+							mask = min_ff(mask, 65535.0);
+
+							if (srf[3] && (mask > 0.0f)) {
 								float mask_srf[4];
 
-								*dmr = mask;
-								mul_v4_v4fl(mask_srf, srf, mask * (1.0f / 65535.0f));
+								mul_v4_v4fl(mask_srf, srf, mask / 65535.0f);
 
 								func_float(drf, orf, mask_srf);
 							}
 						}
 					}
 
-					dmaskrect += origskip;
-					smaskrect += srcskip;
+					cmaskrect += srcskip;
+					if (texmaskrect)
+						texmaskrect += srcskip;
 				}
 				else {
 					/* regular blending */

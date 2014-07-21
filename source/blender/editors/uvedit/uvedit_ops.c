@@ -3827,7 +3827,8 @@ static void UV_OT_reveal(wmOperatorType *ot)
 static int uv_set_2d_cursor_poll(bContext *C)
 {
 	return ED_operator_uvedit_space_image(C) ||
-	       ED_space_image_maskedit_poll(C);
+	       ED_space_image_maskedit_poll(C) ||
+	       ED_space_image_paint_curve(C);
 }
 
 static int uv_set_2d_cursor_exec(bContext *C, wmOperator *op)

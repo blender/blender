@@ -33,6 +33,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
@@ -2825,6 +2826,17 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 
 	widgetbase_draw(&wtb, wcol);
 	
+	if (but->a1 == UI_PALETTE_COLOR && but->a2 == UI_PALETTE_COLOR_ACTIVE) {
+		float width = rect->xmax - rect->xmin;
+		float height = rect->ymax - rect->ymin;
+
+		glColor4ubv((unsigned char *)wcol->outline);
+		glBegin(GL_TRIANGLES);
+		glVertex2f(rect->xmin + 0.1f * width, rect->ymin + 0.9f * height);
+		glVertex2f(rect->xmin + 0.1f * width, rect->ymin + 0.5f * height);
+		glVertex2f(rect->xmin + 0.5f * width, rect->ymin + 0.9f * height);
+		glEnd();
+	}
 }
 
 static void widget_normal(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))

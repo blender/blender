@@ -38,6 +38,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -74,6 +75,7 @@
 #include "BKE_lattice.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_paint.h"
 #include "BKE_sequencer.h"
 #include "BKE_editmesh.h"
 #include "BKE_tracking.h"
@@ -98,6 +100,7 @@
 #include "WM_api.h"
 
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "transform.h"
 
@@ -653,6 +656,9 @@ static void recalcData_image(TransInfo *t)
 	if (t->options & CTX_MASK) {
 		recalcData_mask_common(t);
 	}
+	else if (t->options & CTX_PAINT_CURVE) {
+		flushTransPaintCurve(t);
+	}
 	else if (t->obedit && t->obedit->type == OB_MESH) {
 		SpaceImage *sima = t->sa->spacedata.first;
 		
@@ -965,6 +971,9 @@ void recalcData(TransInfo *t)
 	else if (t->options & CTX_EDGE) {
 		recalcData_objects(t);
 	}
+	else if (t->options & CTX_PAINT_CURVE) {
+		flushTransPaintCurve(t);
+	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		recalcData_image(t);
 	}
@@ -1073,6 +1082,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
 	Object *obedit = CTX_data_edit_object(C);
+	Object *ob = CTX_data_active_object(C);
 	PropertyRNA *prop;
 	
 	t->scene = sce;
@@ -1198,6 +1208,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			}
 		}
 
+		if (ob && ob->mode & OB_MODE_ALL_PAINT) {
+			Paint *p = BKE_paint_get_active_from_context(C);
+			if (p && p->brush && (p->brush->flag & BRUSH_CURVE)) {
+				t->options |= CTX_PAINT_CURVE;
+			}
+		}
+
 		/* initialize UV transform from */
 		if (op && ((prop = RNA_struct_find_property(op->ptr, "correct_uv")))) {
 			if (RNA_property_is_set(op->ptr, prop)) {
@@ -1226,9 +1243,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		else if (sima->mode == SI_MODE_MASK) {
 			t->options |= CTX_MASK;
 		}
-		else {
-			/* image not in uv edit, nor in mask mode, can happen for some tools */
+		else if (sima->mode == SI_MODE_PAINT) {
+			Paint *p = &sce->toolsettings->imapaint.paint;
+			if (p->brush && (p->brush->flag & BRUSH_CURVE)) {
+				t->options |= CTX_PAINT_CURVE;
+			}
 		}
+		/* image not in uv edit, nor in mask mode, can happen for some tools */
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		// XXX for now, get View2D from the active region
@@ -1409,7 +1430,7 @@ void postTrans(bContext *C, TransInfo *t)
 	}
 	
 	if (t->spacetype == SPACE_IMAGE) {
-		if (t->options & CTX_MASK) {
+		if (t->options & (CTX_MASK | CTX_PAINT_CURVE)) {
 			/* pass */
 		}
 		else {
@@ -1539,6 +1560,13 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 		invert_m3_m3(imat, mat);
 		mul_m3_v3(imat, r_center);
 	}
+	else if (t->options & CTX_PAINT_CURVE) {
+		if (ED_view3d_project_float_global(t->ar, cursor, r_center, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+			r_center[0] = t->ar->winx / 2.0f;
+			r_center[1] = t->ar->winy / 2.0f;
+		}
+		r_center[2] = 0.0f;
+	}
 }
 
 void calculateCenterCursor2D(TransInfo *t, float r_center[2])
@@ -1585,6 +1613,12 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 
 			r_center[0] = co[0] * aspx;
 			r_center[1] = co[1] * aspy;
+		}
+		else if (t->options & CTX_PAINT_CURVE) {
+			if (t->spacetype == SPACE_IMAGE) {
+				r_center[0] = UI_view2d_view_to_region_x(&t->ar->v2d, cursor[0]);
+				r_center[1] = UI_view2d_view_to_region_y(&t->ar->v2d, cursor[1]);
+			}
 		}
 		else {
 			r_center[0] = cursor[0] * aspx;
@@ -1719,6 +1753,14 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 				ok = true;
 			}
 		}
+	}
+	else if (t->options & CTX_PAINT_CURVE) {
+		Paint *p = BKE_paint_get_active(t->scene);
+		Brush *br = p->brush;
+		PaintCurve *pc = br->paint_curve;
+		copy_v3_v3(r_center, pc->points[pc->add_index - 1].bez.vec[1]);
+		r_center[2] = 0.0f;
+		ok = true;
 	}
 	else {
 		/* object mode */

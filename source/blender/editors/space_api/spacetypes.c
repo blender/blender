@@ -144,6 +144,7 @@ void ED_spacetypes_init(void)
 	ED_operatormacros_curve();
 	ED_operatormacros_mask();
 	ED_operatormacros_sequencer();
+	ED_operatormacros_paint();
 
 	/* register dropboxes (can use macros) */
 	spacetypes = BKE_spacetypes_list();

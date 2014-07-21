@@ -163,6 +163,22 @@ typedef enum IMB_BlendMode {
 	IMB_BLEND_DARKEN = 5,
 	IMB_BLEND_ERASE_ALPHA = 6,
 	IMB_BLEND_ADD_ALPHA = 7,
+	IMB_BLEND_OVERLAY = 8,
+	IMB_BLEND_HARDLIGHT	= 9,
+	IMB_BLEND_COLORBURN	= 10,
+	IMB_BLEND_LINEARBURN = 11,
+	IMB_BLEND_COLORDODGE = 12,
+	IMB_BLEND_SCREEN = 13,
+	IMB_BLEND_SOFTLIGHT	= 14,
+	IMB_BLEND_PINLIGHT = 15,
+	IMB_BLEND_VIVIDLIGHT = 16,
+	IMB_BLEND_LINEARLIGHT = 17,
+	IMB_BLEND_DIFFERENCE = 18,
+	IMB_BLEND_EXCLUSION	= 19,
+	IMB_BLEND_HUE = 20,
+	IMB_BLEND_SATURATION = 21,
+	IMB_BLEND_LUMINOSITY = 22,
+	IMB_BLEND_COLOR	= 23,
 
 	IMB_BLEND_COPY = 1000,
 	IMB_BLEND_COPY_RGB = 1001,
@@ -179,9 +195,9 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
 void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *obuf, struct ImBuf *sbuf,
-	unsigned short *dmask, unsigned short *smask, unsigned short mask_max,
+	unsigned short *dmask, unsigned short *curvemask, unsigned short *mmask, float mask_max,
 	int destx,  int desty, int origx, int origy, int srcx, int srcy,
-	int width, int height, IMB_BlendMode mode);
+	int width, int height, IMB_BlendMode mode, bool accumulate);
 
 /**
  *

@@ -1016,7 +1016,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				/* make blender drop event with custom data pointing to wm drags */
 				event.type = EVT_DROP;
 				event.val = KM_RELEASE;
-				event.custom = EVT_DATA_LISTBASE;
+				event.custom = EVT_DATA_DRAGDROP;
 				event.customdata = &wm->drags;
 				event.customdatafree = 1;
 				
@@ -1035,7 +1035,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 						/* try to get icon type from extension */
 						icon = ED_file_extension_icon((char *)stra->strings[a]);
 						
-						WM_event_start_drag(C, icon, WM_DRAG_PATH, stra->strings[a], 0.0);
+						WM_event_start_drag(C, icon, WM_DRAG_PATH, stra->strings[a], 0.0, WM_DRAG_NOP);
 						/* void poin should point to string, it makes a copy */
 						break; /* only one drop element supported now */
 					}

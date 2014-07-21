@@ -77,6 +77,8 @@ sources.extend((
     os.path.join(env['DATA_SOURCES'], "soften.png.c"),
     os.path.join(env['DATA_SOURCES'], "subtract.png.c"),
     os.path.join(env['DATA_SOURCES'], "texdraw.png.c"),
+    os.path.join(env['DATA_SOURCES'], "texfill.png.c"),
+    os.path.join(env['DATA_SOURCES'], "texmask.png.c"),
     os.path.join(env['DATA_SOURCES'], "thumb.png.c"),
     os.path.join(env['DATA_SOURCES'], "twist.png.c"),
     os.path.join(env['DATA_SOURCES'], "vertexdraw.png.c"),

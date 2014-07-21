@@ -45,8 +45,10 @@
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_listbase.h"
 
 #include "BKE_brush.h"
+#include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
 #include "BKE_depsgraph.h"
@@ -269,6 +271,105 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 	}
 }
 
+void BKE_paint_curve_free(PaintCurve *pc)
+{
+	if (pc->points) {
+		MEM_freeN(pc->points);
+		pc->points = NULL;
+		pc->tot_points = 0;
+	}
+}
+
+PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
+{
+	PaintCurve *pc;
+
+	pc = BKE_libblock_alloc(bmain, ID_PC, name);
+
+	return pc;
+}
+
+Palette *BKE_paint_palette(Paint *p)
+{
+	return p ? p->palette : NULL;
+}
+
+void BKE_paint_palette_set(Paint *p, Palette *palette)
+{
+	if (p) {
+		id_us_min((ID *)p->palette);
+		id_us_plus((ID *)palette);
+		p->palette = palette;
+	}
+}
+
+void BKE_paint_curve_set(Brush *br, PaintCurve *pc)
+{
+	if (br) {
+		id_us_min((ID *)br->paint_curve);
+		id_us_plus((ID *)pc);
+		br->paint_curve = pc;
+	}
+}
+
+/* remove colour from palette. Must be certain color is inside the palette! */
+void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
+{
+	BLI_remlink(&palette->colors, color);
+	BLI_addhead(&palette->deleted, color);
+}
+
+void BKE_palette_cleanup(Palette *palette)
+{
+	BLI_freelistN(&palette->deleted);
+}
+
+
+Palette *BKE_palette_add(Main *bmain, const char *name)
+{
+	Palette *palette;
+
+	palette = BKE_libblock_alloc(bmain, ID_PAL, name);
+
+	/* enable fake user by default */
+	palette->id.flag |= LIB_FAKEUSER;
+
+	return palette;
+}
+
+void BKE_palette_free(Palette *palette)
+{
+	BLI_freelistN(&palette->colors);
+}
+
+PaletteColor *BKE_palette_color_add(Palette *palette)
+{
+	PaletteColor *color = MEM_callocN(sizeof(*color), "Pallete Color");
+	BLI_addtail(&palette->colors, color);
+	palette->active_color = BLI_countlist(&palette->colors) - 1;
+	return color;
+}
+
+void BKE_palette_color_delete(struct Palette *palette)
+{
+	PaletteColor *color = BLI_findlink(&palette->colors, palette->active_color);
+
+	if(color) {
+		if ((color == palette->colors.last) && (palette->colors.last != palette->colors.first))
+			palette->active_color--;
+
+		BLI_remlink(&palette->colors, color);
+		BLI_addhead(&palette->deleted, color);
+	}
+}
+
+
+bool BKE_palette_is_empty(const struct Palette *palette)
+{
+	return BLI_listbase_is_empty(&palette->colors);
+}
+
+
 /* are we in vertex paint or weight pain face select mode? */
 bool BKE_paint_select_face_test(Object *ob)
 {
@@ -318,6 +419,7 @@ void BKE_paint_init(Paint *p, const char col[3])
 void BKE_paint_free(Paint *paint)
 {
 	id_us_min((ID *)paint->brush);
+	id_us_min((ID *)paint->palette);
 }
 
 /* called when copying scene settings, so even if 'src' and 'tar' are the same
@@ -328,6 +430,7 @@ void BKE_paint_copy(Paint *src, Paint *tar)
 {
 	tar->brush = src->brush;
 	id_us_plus((ID *)tar->brush);
+	id_us_plus((ID *)tar->palette);
 }
 
 /* returns non-zero if any of the face's vertices

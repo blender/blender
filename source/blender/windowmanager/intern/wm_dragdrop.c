@@ -143,7 +143,7 @@ void wm_dropbox_free(void)
 /* *********************************** */
 
 /* note that the pointer should be valid allocated and not on stack */
-wmDrag *WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value)
+wmDrag *WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmDrag *drag = MEM_callocN(sizeof(struct wmDrag), "new drag");
@@ -152,6 +152,7 @@ wmDrag *WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, 
 	/* if multiple drags are added, they're drawn as list */
 	
 	BLI_addtail(&wm->drags, drag);
+	drag->flags = flags;
 	drag->icon = icon;
 	drag->type = type;
 	if (type == WM_DRAG_PATH)
@@ -171,6 +172,22 @@ void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale, int sx, int sy)
 	drag->sy = sy;
 }
 
+void WM_drag_free(wmDrag *drag)
+{
+	if ((drag->flags & WM_DRAG_FREE_DATA) && drag->poin) {
+		MEM_freeN(drag->poin);
+	}
+
+	MEM_freeN(drag);
+}
+
+void WM_drag_free_list(struct ListBase *lb)
+{
+	wmDrag *drag;
+	while ((drag = BLI_pophead(lb))) {
+		WM_drag_free(drag);
+	}
+}
 
 static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, wmEvent *event)
 {

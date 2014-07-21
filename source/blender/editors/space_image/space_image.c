@@ -633,6 +633,12 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	/* image paint polls for mode */
+	keymap = WM_keymap_find(wm->defaultconf, "Curve", 0, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap = WM_keymap_find(wm->defaultconf, "Paint Curve", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
 	keymap = WM_keymap_find(wm->defaultconf, "Image Paint", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
@@ -657,6 +663,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	Object *obact = CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Mask *mask = NULL;
+	bool curve = false;
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = &ar->v2d;
 	//View2DScrollers *scrollers;
@@ -701,6 +708,9 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else if (sima->mode == SI_MODE_MASK) {
 		mask = ED_space_image_get_mask(sima);
+	}
+	else if (ED_space_image_paint_curve(C)) {
+		curve = true;
 	}
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -749,6 +759,11 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 		                    true, false,
 		                    NULL, C);
 
+		UI_view2d_view_ortho(v2d);
+		draw_image_cursor(ar, sima->cursor);
+		UI_view2d_view_restore(C);
+	}
+	else if (curve) {
 		UI_view2d_view_ortho(v2d);
 		draw_image_cursor(ar, sima->cursor);
 		UI_view2d_view_restore(C);

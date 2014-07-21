@@ -165,6 +165,7 @@ void ED_render_engine_changed(Main *bmain)
 	bScreen *sc;
 	ScrArea *sa;
 	Scene *scene;
+	Material *ma;
 
 	for (sc = bmain->screen.first; sc; sc = sc->id.next)
 		for (sa = sc->areabase.first; sa; sa = sa->next)
@@ -174,6 +175,11 @@ void ED_render_engine_changed(Main *bmain)
 
 	for (scene = bmain->scene.first; scene; scene = scene->id.next)
 		ED_render_id_flush_update(bmain, &scene->id);
+
+	/* reset texture painting */
+	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
+		BKE_texpaint_slots_clear(ma);
+	}
 }
 
 /***************************** Updates ***********************************

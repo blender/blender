@@ -87,7 +87,7 @@ int GPU_get_material_alpha_blend(void);
  * - passing NULL clears the state again */
 
 int GPU_set_tpage(struct MTFace *tface, int mipmap, int transp);
-
+void GPU_clear_tpage(bool force);
 /* Lights
  * - returns how many lights were enabled
  * - this affects fixed functions materials and texface, not glsl */

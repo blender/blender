@@ -44,6 +44,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
@@ -57,6 +58,8 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_view3d.h"
+
+#include "UI_resources.h"
 
 #include "paint_intern.h"
 /* still needed for sculpt_stroke_get_location, should be
@@ -791,6 +794,138 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	glPopAttrib();
 }
 
+
+BLI_INLINE void draw_tri_point(float *co, float width, bool selected)
+{
+	float w = width / 2.0f;
+	if (selected)
+		UI_ThemeColor4(TH_VERTEX_SELECT);
+	else
+		UI_ThemeColor4(TH_PAINT_CURVE_PIVOT);
+
+	glLineWidth(3.0);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(co[0], co[1] + w);
+	glVertex2f(co[0] - w, co[1] - w);
+	glVertex2f(co[0] + w, co[1] - w);
+	glEnd();
+
+	glColor4f(1.0, 1.0, 1.0, 0.5);
+	glLineWidth(1.0);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(co[0], co[1] + w);
+	glVertex2f(co[0] - w, co[1] - w);
+	glVertex2f(co[0] + w, co[1] - w);
+	glEnd();
+}
+
+BLI_INLINE void draw_rect_point(float *co, float width, bool selected)
+{
+	float w = width / 2.0f;
+	if (selected)
+		UI_ThemeColor4(TH_VERTEX_SELECT);
+	else
+		UI_ThemeColor4(TH_PAINT_CURVE_HANDLE);
+	glLineWidth(3.0);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(co[0] + w, co[1] + w);
+	glVertex2f(co[0] - w, co[1] + w);
+	glVertex2f(co[0] - w, co[1] - w);
+	glVertex2f(co[0] + w, co[1] - w);
+	glEnd();
+
+	glColor4f(1.0, 1.0, 1.0, 0.5);
+	glLineWidth(1.0);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(co[0] + w, co[1] + w);
+	glVertex2f(co[0] - w, co[1] + w);
+	glVertex2f(co[0] - w, co[1] - w);
+	glVertex2f(co[0] + w, co[1] - w);
+	glEnd();
+}
+
+
+BLI_INLINE void draw_bezier_handle_lines(BezTriple *bez)
+{
+	short line1[] = {0, 1};
+	short line2[] = {1, 2};
+
+	glVertexPointer(2, GL_FLOAT, 3 * sizeof(float), bez->vec);
+	glColor4f(0.0, 0.0, 0.0, 0.5);
+	glLineWidth(3.0);
+	glDrawArrays(GL_LINE_STRIP, 0, 3);
+
+	glLineWidth(1.0);
+	if (bez->f1 || bez->f2)
+		UI_ThemeColor4(TH_VERTEX_SELECT);
+	else
+		glColor4f(1.0, 1.0, 1.0, 0.5);
+	glDrawElements(GL_LINES, 2, GL_UNSIGNED_SHORT, line1);
+	if (bez->f3 || bez->f2)
+		UI_ThemeColor4(TH_VERTEX_SELECT);
+	else
+		glColor4f(1.0, 1.0, 1.0, 0.5);
+	glDrawElements(GL_LINES, 2, GL_UNSIGNED_SHORT, line2);
+}
+
+static void paint_draw_curve_cursor(Brush *brush)
+{
+	if (brush->paint_curve && brush->paint_curve->points) {
+		int i;
+		PaintCurve *pc = brush->paint_curve;
+		PaintCurvePoint *cp = pc->points;
+
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
+		glEnableClientState(GL_VERTEX_ARRAY);
+
+		/* draw the bezier handles and the curve segment between the current and next point */
+		for (i = 0; i < pc->tot_points - 1; i++, cp++) {
+			int j;
+			PaintCurvePoint *cp_next = cp + 1;
+			float data[(PAINT_CURVE_NUM_SEGMENTS + 1) * 2];
+			/* use color coding to distinguish handles vs curve segments  */
+			draw_bezier_handle_lines(&cp->bez);
+			draw_tri_point(&cp->bez.vec[1][0], 10.0, cp->bez.f2);
+			draw_rect_point(&cp->bez.vec[0][0], 8.0, cp->bez.f1 || cp->bez.f2);
+			draw_rect_point(&cp->bez.vec[2][0], 8.0, cp->bez.f3 || cp->bez.f2);
+
+			for (j = 0; j < 2; j++)
+				BKE_curve_forward_diff_bezier(
+				        cp->bez.vec[1][j],
+				        cp->bez.vec[2][j],
+				        cp_next->bez.vec[0][j],
+				        cp_next->bez.vec[1][j],
+				        data + j, PAINT_CURVE_NUM_SEGMENTS, sizeof(float[2]));
+
+			glVertexPointer(2, GL_FLOAT, 0, data);
+			glLineWidth(3.0);
+			glColor4f(0.0, 0.0, 0.0, 0.5);
+			glDrawArrays(GL_LINE_STRIP, 0, PAINT_CURVE_NUM_SEGMENTS + 1);
+
+			glLineWidth(1.0);
+			glColor4f(0.9, 0.9, 1.0, 0.5);
+			glDrawArrays(GL_LINE_STRIP, 0, PAINT_CURVE_NUM_SEGMENTS + 1);
+		}
+
+		/* draw last line segment */
+		draw_bezier_handle_lines(&cp->bez);
+		draw_tri_point(&cp->bez.vec[1][0], 10.0, cp->bez.f2);
+		draw_rect_point(&cp->bez.vec[0][0], 8.0, cp->bez.f1 || cp->bez.f2);
+		draw_rect_point(&cp->bez.vec[2][0], 8.0, cp->bez.f3 || cp->bez.f2);
+
+		glLineWidth(1.0);
+
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+}
+
 /* Special actions taken when paint cursor goes over mesh */
 /* TODO: sculpt only for now */
 static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewContext *vc,
@@ -848,6 +983,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	zoomx = max_ff(zoomx, zoomy);
 	mode = BKE_paintmode_get_active_from_context(C);
 
+	/* skip everything and draw brush here */
+	if (brush->flag & BRUSH_CURVE) {
+		paint_draw_curve_cursor(brush);
+		return;
+	}
+
 	/* set various defaults */
 	translation[0] = x;
 	translation[1] = y;
@@ -857,8 +998,11 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* don't calculate rake angles while a stroke is active because the rake variables are global and
 	 * we may get interference with the stroke itself. For line strokes, such interference is visible */
-	if (!ups->stroke_active && (brush->flag & BRUSH_RAKE))
-		paint_calculate_rake_rotation(ups, translation);
+	if (!ups->stroke_active) {
+		if (brush->flag & BRUSH_RAKE)
+			/* here, translation contains the mouse coordinates. */
+			paint_calculate_rake_rotation(ups, translation);
+	}
 
 	/* draw overlay */
 	paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
@@ -878,7 +1022,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		/* check if brush is subtracting, use different color then */
 		/* TODO: no way currently to know state of pen flip or
 		 * invert key modifier without starting a stroke */
-		if ((!(brush->flag & BRUSH_INVERTED) ^
+		if ((!(ups->draw_inverted) ^
 		     !(brush->flag & BRUSH_DIR_IN)) &&
 		    ELEM(brush->sculpt_tool, SCULPT_TOOL_DRAW,
 		          SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
@@ -890,12 +1034,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		/* only do if brush is over the mesh */
 		if (hit)
 			paint_cursor_on_hit(ups, brush, &vc, location);
+	}
 
-		if (ups->draw_anchored) {
-			final_radius = ups->anchored_size;
-			translation[0] = ups->anchored_initial_mouse[0];
-			translation[1] = ups->anchored_initial_mouse[1];
-		}
+	if (ups->draw_anchored) {
+		final_radius = ups->anchored_size;
+		translation[0] = ups->anchored_initial_mouse[0];
+		translation[1] = ups->anchored_initial_mouse[1];
 	}
 
 	/* make lines pretty */

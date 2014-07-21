@@ -370,9 +370,9 @@ static void gpu_make_repbind(Image *ima)
 	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
-static void gpu_clear_tpage(void)
+void GPU_clear_tpage(bool force)
 {
-	if (GTS.lasttface==NULL)
+	if (GTS.lasttface==NULL && !force)
 		return;
 	
 	GTS.lasttface= NULL;
@@ -866,7 +866,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 	
 	/* check if we need to clear the state */
 	if (tface==NULL) {
-		gpu_clear_tpage();
+		GPU_clear_tpage(false);
 		return 0;
 	}
 

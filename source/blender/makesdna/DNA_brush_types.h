@@ -35,6 +35,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_texture_types.h" /* for MTex */
+#include "DNA_curve_types.h"
 
 //#ifndef MAX_MTEX // XXX Not used?
 //#define MAX_MTEX	18
@@ -62,6 +63,9 @@ typedef struct Brush {
 
 	struct ImBuf *icon_imbuf;
 	PreviewImage *preview;
+	struct ColorBand *gradient;	/* color gradient */
+	struct PaintCurve *paint_curve;
+
 	char icon_filepath[1024]; /* 1024 = FILE_MAX */
 
 	float normal_weight;
@@ -71,6 +75,7 @@ typedef struct Brush {
 	float weight;       /* brush weight */
 	int size;           /* brush diameter */
 	int flag;           /* general purpose flag */
+	int mask_pressure;  /* pressure influence for mask */
 	float jitter;       /* jitter the position of the brush */
 	int jitter_absolute;	/* absolute jitter in pixels */
 	int overlay_flags;
@@ -82,9 +87,16 @@ typedef struct Brush {
 	float rgb[3];           /* color */
 	float alpha;            /* opacity */
 
+	float secondary_rgb[3]; /* background color */
+
 	int sculpt_plane;       /* the direction of movement for sculpt vertices */
 
 	float plane_offset;     /* offset for plane brushes (clay, flatten, fill, scrape) */
+
+	float pad;
+	int gradient_spacing;
+	int gradient_stroke_mode; /* source for stroke color gradient application */
+	int gradient_fill_mode;   /* source for fill tool color gradient application */
 
 	char sculpt_tool;       /* active sculpt tool */
 	char vertexpaint_tool;  /* active vertex/weight paint blend mode (poorly named) */
@@ -100,11 +112,20 @@ typedef struct Brush {
 
 	float texture_sample_bias;
 
+	/* overlay */
 	int texture_overlay_alpha;
 	int mask_overlay_alpha;
 	int cursor_overlay_alpha;
 
 	float unprojected_radius;
+
+	/* soften/sharpen */
+	float sharp_threshold;
+	int blur_kernel_radius;
+	int blur_mode;
+
+	/* fill tool */
+	float fill_threshold;
 
 	float add_col[3];
 	float sub_col[3];
@@ -116,6 +137,52 @@ typedef struct Brush {
 	float mask_stencil_dimension[2];
 } Brush;
 
+typedef struct PaletteColor
+{
+	struct PaletteColor *next, *prev;
+	/* two values, one to store rgb, other to store values for sculpt/weight */
+	float rgb[3];
+	float value;
+} PaletteColor;
+
+typedef struct Palette
+{
+	ID id;
+
+	/* pointer to individual colours */
+	ListBase colors;
+	ListBase deleted;
+
+	int num_of_colours;
+	int active_color;
+} Palette;
+
+typedef struct PaintCurvePoint
+{
+	BezTriple bez; /* bezier handle */
+	float pressure; /* pressure on that point */
+} PaintCurvePoint;
+
+typedef struct PaintCurve
+{
+	ID id;
+	PaintCurvePoint *points; /* points of curve */
+	int tot_points;
+	int add_index; /* index where next point will be added */
+} PaintCurve;
+
+/* Brush.gradient_source */
+typedef enum BrushGradientSourceStroke {
+	BRUSH_GRADIENT_PRESSURE = 0, /* gradient from pressure */
+	BRUSH_GRADIENT_SPACING_REPEAT = 1, /* gradient from spacing */
+	BRUSH_GRADIENT_SPACING_CLAMP = 2 /* gradient from spacing */
+} BrushGradientSourceStroke;
+
+typedef enum BrushGradientSourceFill {
+	BRUSH_GRADIENT_LINEAR = 0, /* gradient from pressure */
+	BRUSH_GRADIENT_RADIAL = 1 /* gradient from spacing */
+} BrushGradientSourceFill;
+
 /* Brush.flag */
 typedef enum BrushFlags {
 	BRUSH_AIRBRUSH = (1 << 0),
@@ -124,7 +191,7 @@ typedef enum BrushFlags {
 	BRUSH_SIZE_PRESSURE = (1 << 3),
 	BRUSH_JITTER_PRESSURE = (1 << 4),
 	BRUSH_SPACING_PRESSURE = (1 << 5),
-	// BRUSH_FIXED_TEX = (1 << 6), /* obsolete, use mtex->brush_map_mode = MTEX_MAP_MODE_TILED instead */
+	BRUSH_UNUSED = (1 << 6),
 	BRUSH_RAKE = (1 << 7),
 	BRUSH_ANCHORED = (1 << 8),
 	BRUSH_DIR_IN = (1 << 9),
@@ -138,7 +205,7 @@ typedef enum BrushFlags {
 	BRUSH_SPACE_ATTEN = (1 << 18),
 	BRUSH_ADAPTIVE_SPACE = (1 << 19),
 	BRUSH_LOCK_SIZE = (1 << 20),
-//	BRUSH_TEXTURE_OVERLAY = (1 << 21), /* obsolete, use overlay_flags |= BRUSH_OVERLAY_PRIMARY instead */
+	BRUSH_USE_GRADIENT = (1 << 21),
 	BRUSH_EDGE_TO_EDGE = (1 << 22),
 	BRUSH_DRAG_DOT = (1 << 23),
 	BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
@@ -146,12 +213,15 @@ typedef enum BrushFlags {
 	BRUSH_PLANE_TRIM = (1 << 26),
 	BRUSH_FRONTFACE = (1 << 27),
 	BRUSH_CUSTOM_ICON = (1 << 28),
-
-	/* temporary flag which sets up automatically for correct brush
-	 * drawing when inverted modal operator is running */
-	BRUSH_INVERTED = (1 << 29),
-	BRUSH_ABSOLUTE_JITTER = (1 << 30)
+	BRUSH_LINE = (1 << 29),
+	BRUSH_ABSOLUTE_JITTER = (1 << 30),
+	BRUSH_CURVE = (1 << 31)
 } BrushFlags;
+
+typedef enum {
+	BRUSH_MASK_PRESSURE_RAMP = (1 << 1),
+	BRUSH_MASK_PRESSURE_CUTOFF = (1 << 2)
+} BrushMaskPressureFlags;
 
 /* Brush.overlay_flags */
 typedef enum OverlayFlags {
@@ -195,7 +265,9 @@ typedef enum BrushImagePaintTool {
 	PAINT_TOOL_DRAW = 0,
 	PAINT_TOOL_SOFTEN = 1,
 	PAINT_TOOL_SMEAR = 2,
-	PAINT_TOOL_CLONE = 3
+	PAINT_TOOL_CLONE = 3,
+	PAINT_TOOL_FILL = 4,
+	PAINT_TOOL_MASK = 5
 } BrushImagePaintTool;
 
 /* direction that the brush displaces along */
@@ -221,6 +293,12 @@ typedef enum {
 	BRUSH_MASK_DRAW = 0,
 	BRUSH_MASK_SMOOTH = 1
 } BrushMaskTool;
+
+/* blur kernel types, Brush.blur_mode */
+typedef enum BlurKernelType {
+	KERNEL_GAUSSIAN,
+	KERNEL_BOX
+} BlurKernelType;
 
 #define MAX_BRUSH_PIXEL_RADIUS 200
 

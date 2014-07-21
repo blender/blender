@@ -38,7 +38,7 @@
 /* customdata type */
 #define EVT_DATA_GESTURE        1
 #define EVT_DATA_TIMER          2
-#define EVT_DATA_LISTBASE       3
+#define EVT_DATA_DRAGDROP       3
 #define EVT_DATA_NDOF_MOTION    4
 
 /* tablet active, matches GHOST_TTabletMode */

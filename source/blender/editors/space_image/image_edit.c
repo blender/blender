@@ -28,6 +28,7 @@
  *  \ingroup spimage
  */
 
+#include "DNA_brush_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -297,44 +298,51 @@ bool ED_space_image_show_render(SpaceImage *sima)
 bool ED_space_image_show_paint(SpaceImage *sima)
 {
 	if (ED_space_image_show_render(sima))
-		return 0;
+		return false;
 
 	return (sima->mode == SI_MODE_PAINT);
+}
+
+bool ED_space_image_show_texpaint(SpaceImage *sima, Object *ob)
+{
+	return (ob && ob->type == OB_MESH &&
+	        ob->mode == OB_MODE_TEXTURE_PAINT &&
+	        !(sima->flag & SI_NO_DRAW_TEXPAINT));
 }
 
 bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 {
 	if (sima && (ED_space_image_show_render(sima) || ED_space_image_show_paint(sima)))
-		return 0;
+		return false;
 
 	if (obedit && obedit->type == OB_MESH) {
 		struct BMEditMesh *em = BKE_editmesh_from_object(obedit);
-		int ret;
+		bool ret;
 
 		ret = EDBM_mtexpoly_check(em);
 
 		return ret;
 	}
 
-	return 0;
+	return false;
 }
 
 bool ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 {
 	if (ED_space_image_show_render(sima))
-		return 0;
+		return false;
 
 	if (ED_space_image_show_paint(sima))
 		if (obedit && obedit->type == OB_MESH) {
 			struct BMEditMesh *em = BKE_editmesh_from_object(obedit);
-			int ret;
+			bool ret;
 
 			ret = EDBM_mtexpoly_check(em);
 
-			return ret;
+			return ret && !(sima->flag & SI_NO_DRAW_TEXPAINT);
 		}
 
-	return 0;
+	return false;
 }
 
 /* matches clip function */
@@ -360,6 +368,21 @@ int ED_space_image_maskedit_poll(bContext *C)
 
 	return false;
 }
+
+bool ED_space_image_paint_curve(const bContext *C)
+{
+	SpaceImage *sima = CTX_wm_space_image(C);
+
+	if (sima && sima->mode == SI_MODE_PAINT) {
+		Brush *br = CTX_data_tool_settings(C)->imapaint.paint.brush;
+
+		if (br && (br->flag & BRUSH_CURVE))
+			return true;
+	}
+
+	return false;
+}
+
 
 int ED_space_image_maskedit_mask_poll(bContext *C)
 {

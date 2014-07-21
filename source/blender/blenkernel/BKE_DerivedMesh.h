@@ -150,8 +150,10 @@ typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
 typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTFace *tface, const bool has_vcol, int matnr);
 
 typedef enum DMDrawFlag {
-	DM_DRAW_USE_COLORS = 1,
-	DM_DRAW_ALWAYS_SMOOTH = 2
+	DM_DRAW_USE_COLORS          = (1 << 0),
+	DM_DRAW_ALWAYS_SMOOTH       = (1 << 1),
+	DM_DRAW_USE_ACTIVE_UV       = (1 << 2),
+	DM_DRAW_USE_TEXPAINT_UV     = (1 << 3),
 } DMDrawFlag;
 
 typedef enum DMForeachFlag {
@@ -389,7 +391,7 @@ struct DerivedMesh {
 	void (*drawFacesTex)(DerivedMesh *dm,
 	                     DMSetDrawOptionsTex setDrawOptions,
 	                     DMCompareDrawOptions compareDrawOptions,
-	                     void *userData);
+	                     void *userData, DMDrawFlag uvflag);
 
 	/** Draw all faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
@@ -423,7 +425,7 @@ struct DerivedMesh {
 	void (*drawMappedFacesTex)(DerivedMesh *dm,
 	                           DMSetDrawOptions setDrawOptions,
 	                           DMCompareDrawOptions compareDrawOptions,
-	                           void *userData);
+	                           void *userData, DMDrawFlag uvflag);
 
 	/** Draw mapped faces with GLSL materials
 	 * - setMaterial is called for every different material nr
@@ -593,6 +595,8 @@ void DM_ensure_tessface(DerivedMesh *dm);
 void DM_update_tessface_data(DerivedMesh *dm);
 
 void DM_update_materials(DerivedMesh *dm, struct Object *ob);
+struct MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr);
+
 /** interpolates vertex data from the vertices indexed by src_indices in the
  * source mesh using the given weights and stores the result in the vertex
  * indexed by dest_index in the dest mesh

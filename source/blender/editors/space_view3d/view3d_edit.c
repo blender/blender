@@ -4435,7 +4435,7 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	}
 }
 
-static void view3d_cursor3d_update(bContext *C, const int *mval)
+void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -4451,7 +4451,7 @@ static void view3d_cursor3d_update(bContext *C, const int *mval)
 
 static int view3d_cursor3d_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	view3d_cursor3d_update(C, event->mval);
+	ED_view3d_cursor3d_update(C, event->mval);
 	op->customdata = SET_INT_IN_POINTER(event->type);
 	WM_event_add_modal_handler(C, op);
 
@@ -4468,7 +4468,7 @@ static int view3d_cursor3d_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
 	switch (event->type) {
 		case MOUSEMOVE:
-			view3d_cursor3d_update(C, event->mval);
+			ED_view3d_cursor3d_update(C, event->mval);
 			break;
 		case LEFTMOUSE:
 			return OPERATOR_FINISHED;

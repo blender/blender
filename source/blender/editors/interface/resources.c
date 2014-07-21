@@ -35,21 +35,25 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_mesh_types.h"  /* init_userdef_factory */
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_mesh_types.h"  /* init_userdef_factory */
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BKE_brush.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
+#include "BKE_library.h"
 
 
 #include "BIF_gl.h"
@@ -537,6 +541,13 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->preview_stitch_active;
 					break;
 
+				case TH_PAINT_CURVE_HANDLE:
+					cp = ts->paint_curve_handle;
+					break;
+				case TH_PAINT_CURVE_PIVOT:
+					cp = ts->paint_curve_pivot;
+					break;
+
 				case TH_UV_OTHERS:
 					cp = ts->uv_others;
 					break;
@@ -871,6 +882,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.title, 0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.freestyle_edge_mark, 0x7f, 0xff, 0x7f, 255);
 	rgba_char_args_set(btheme->tv3d.freestyle_face_mark, 0x7f, 0xff, 0x7f, 51);
+	rgba_char_args_set_fl(btheme->tv3d.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);
+	rgba_char_args_set_fl(btheme->tv3d.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
 
 	btheme->tv3d.facedot_size = 4;
 
@@ -2427,6 +2440,16 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (U.versionfile < 272|| (U.versionfile == 272 && U.subversionfile < 2)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set_fl(btheme->tv3d.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);
+			rgba_char_args_set_fl(btheme->tv3d.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
+			rgba_char_args_set_fl(btheme->tima.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);
+			rgba_char_args_set_fl(btheme->tima.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
+		}
+	}
+
 	{
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
@@ -2468,6 +2491,36 @@ void init_userdef_factory(void)
 		Mesh *me;
 		for (me = G.main->mesh.first; me; me = me->id.next) {
 			me->flag &= ~ME_TWOSIDED;
+		}
+	}
+
+	{
+		Brush *br;
+		br = BKE_brush_add(G.main, "Fill");
+		br->imagepaint_tool = PAINT_TOOL_FILL;
+		br->ob_mode = OB_MODE_TEXTURE_PAINT;
+
+		br = (Brush *)BKE_libblock_find_name(ID_BR, "Mask");
+		if (br) {
+			br->imagepaint_tool = PAINT_TOOL_MASK;
+			br->ob_mode |= OB_MODE_TEXTURE_PAINT;
+		}
+	}
+
+	{
+		Scene *scene;
+
+		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
+			if (scene->toolsettings) {
+				ToolSettings *ts = scene->toolsettings;
+
+				if (ts->sculpt) {
+					Sculpt *sculpt = ts->sculpt;
+					sculpt->paint.symmetry_flags |= PAINT_SYMM_X;
+					sculpt->flags |= SCULPT_DYNTOPO_COLLAPSE;
+					sculpt->detail_size = 12;
+				}
+			}
 		}
 	}
 }

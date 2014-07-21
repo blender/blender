@@ -139,6 +139,7 @@ void GPU_drawobject_free(struct DerivedMesh *dm);
 void GPU_vertex_setup(struct DerivedMesh *dm);
 void GPU_normal_setup(struct DerivedMesh *dm);
 void GPU_uv_setup(struct DerivedMesh *dm);
+void GPU_texpaint_uv_setup(struct DerivedMesh *dm);
 /* colType is the cddata MCol type to use! */
 void GPU_color_setup(struct DerivedMesh *dm, int colType);
 void GPU_edge_setup(struct DerivedMesh *dm); /* does not mix with other data */

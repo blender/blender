@@ -532,6 +532,7 @@ void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
 void flushTransTracking(TransInfo *t);
 void flushTransMasking(TransInfo *t);
+void flushTransPaintCurve(TransInfo *t);
 void restoreBones(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */

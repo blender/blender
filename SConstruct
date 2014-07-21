@@ -730,6 +730,8 @@ if B.targets != ['cudakernels']:
     data_to_c_simple("release/datafiles/brushicons/soften.png")
     data_to_c_simple("release/datafiles/brushicons/subtract.png")
     data_to_c_simple("release/datafiles/brushicons/texdraw.png")
+    data_to_c_simple("release/datafiles/brushicons/texfill.png")
+    data_to_c_simple("release/datafiles/brushicons/texmask.png")
     data_to_c_simple("release/datafiles/brushicons/thumb.png")
     data_to_c_simple("release/datafiles/brushicons/twist.png")
     data_to_c_simple("release/datafiles/brushicons/vertexdraw.png")

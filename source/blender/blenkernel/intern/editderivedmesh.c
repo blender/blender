@@ -911,7 +911,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 static void emDM_drawFacesTex(DerivedMesh *dm,
                               DMSetDrawOptionsTex setDrawOptions,
                               DMCompareDrawOptions compareDrawOptions,
-                              void *userData)
+                              void *userData, DMDrawFlag UNUSED(flag))
 {
 	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
@@ -919,7 +919,7 @@ static void emDM_drawFacesTex(DerivedMesh *dm,
 static void emDM_drawMappedFacesTex(DerivedMesh *dm,
                                     DMSetDrawOptions setDrawOptions,
                                     DMCompareDrawOptions compareDrawOptions,
-                                    void *userData)
+                                    void *userData, DMDrawFlag UNUSED(flag))
 {
 	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }

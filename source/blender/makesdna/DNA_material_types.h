@@ -41,6 +41,7 @@
 #endif
 
 struct MTex;
+struct Image;
 struct ColorBand;
 struct Group;
 struct bNodeTree;
@@ -81,6 +82,11 @@ typedef struct GameSettings {
 	int face_orientation;
 	int pad1;
 } GameSettings;
+
+typedef struct TexPaintSlot {
+	struct Image *ima; /* image to be painted on */
+	char uvname[64]; /* customdata index for uv layer, MAX_NAME*/
+} TexPaintSlot;
 
 typedef struct Material {
 	ID id;
@@ -182,8 +188,15 @@ typedef struct Material {
 	float line_col[4];
 	short line_priority;
 	short vcol_alpha;
-	int pad4;
 
+	/* texture painting */
+	short paint_active_slot;
+	short paint_clone_slot;
+	short tot_slots;
+	short pad4[3];
+
+	struct TexPaintSlot *texpaintslot; /* cached slot for painting. Make sure to recalculate before use
+	                                    * with refresh_texpaint_image_cache */
 	ListBase gpumaterial;		/* runtime */
 } Material;
 

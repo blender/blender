@@ -213,6 +213,8 @@ typedef struct PreviewImage {
 #define ID_MC		MAKE_ID2('M', 'C') /* MovieClip */
 #define ID_MSK		MAKE_ID2('M', 'S') /* Mask */
 #define ID_LS		MAKE_ID2('L', 'S') /* FreestyleLineStyle */
+#define ID_PAL		MAKE_ID2('P', 'L') /* Palette */
+#define ID_PC		MAKE_ID2('P', 'C') /* Paint Curve  */
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
 #define ID_SEQ		MAKE_ID2('S', 'Q')

@@ -51,6 +51,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_curve.h"
 
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -669,7 +670,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
                                      DMSetDrawOptionsTex drawParams,
                                      DMSetDrawOptions drawParamsMapped,
                                      DMCompareDrawOptions compareDrawOptions,
-                                     void *userData)
+                                     void *userData, DMDrawFlag uvflag)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	MVert *mv = cddm->mvert;
@@ -680,6 +681,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MCol *mcol;
 	int i, orig;
 	int colType, startFace = 0;
+	bool use_tface = (uvflag & DM_DRAW_USE_ACTIVE_UV) != 0;
 
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
@@ -718,14 +720,35 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	cdDM_update_normals_from_pbvh(dm);
 
 	if (GPU_buffer_legacy(dm)) {
+		int mat_nr_cache = -1;
+		MTFace *tf_base = DM_get_tessface_data_layer(dm, CD_MTFACE);
+		MTFace *tf_stencil_base = NULL;
+		MTFace *tf_stencil = NULL;
+
+		if (uvflag & DM_DRAW_USE_TEXPAINT_UV) {
+			int stencil = CustomData_get_stencil_layer(&dm->faceData, CD_MTFACE);
+			tf_stencil_base = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, stencil);
+		}
+
 		DEBUG_VBO("Using legacy code. cdDM_drawFacesTex_common\n");
 		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
 			MVert *mvert;
 			DMDrawOption draw_option;
 			unsigned char *cp = NULL;
 
+			if (uvflag & DM_DRAW_USE_TEXPAINT_UV) {
+				if (mf->mat_nr != mat_nr_cache) {
+					tf_base = DM_paint_uvlayer_active_get(dm, mf->mat_nr);
+
+					mat_nr_cache = mf->mat_nr;
+				}
+			}
+
+			tf = tf_base ? tf_base + i : NULL;
+			tf_stencil = tf_stencil_base ? tf_stencil_base + i : NULL;
+
 			if (drawParams) {
-				draw_option = drawParams(tf ? &tf[i] : NULL, (mcol != NULL), mf->mat_nr);
+				draw_option = drawParams(use_tface ? tf : NULL, (mcol != NULL), mf->mat_nr);
 			}
 			else {
 				if (index_mf_to_mpoly) {
@@ -778,21 +801,24 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				}
 
 				glBegin(mf->v4 ? GL_QUADS : GL_TRIANGLES);
-				if (tf) glTexCoord2fv(tf[i].uv[0]);
+				if (tf) glTexCoord2fv(tf->uv[0]);
+				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[0]);
 				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 				mvert = &mv[mf->v1];
 				if (lnors) glNormal3sv((const GLshort *)lnors[0][0]);
 				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
 				glVertex3fv(mvert->co);
 
-				if (tf) glTexCoord2fv(tf[i].uv[1]);
+				if (tf) glTexCoord2fv(tf->uv[1]);
+				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[1]);
 				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				mvert = &mv[mf->v2];
 				if (lnors) glNormal3sv((const GLshort *)lnors[0][1]);
 				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
 				glVertex3fv(mvert->co);
 
-				if (tf) glTexCoord2fv(tf[i].uv[2]);
+				if (tf) glTexCoord2fv(tf->uv[2]);
+				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[2]);
 				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 				mvert = &mv[mf->v3];
 				if (lnors) glNormal3sv((const GLshort *)lnors[0][2]);
@@ -800,7 +826,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				glVertex3fv(mvert->co);
 
 				if (mf->v4) {
-					if (tf) glTexCoord2fv(tf[i].uv[3]);
+					if (tf) glTexCoord2fv(tf->uv[3]);
+					if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[3]);
 					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 					mvert = &mv[mf->v4];
 					if (lnors) glNormal3sv((const GLshort *)lnors[0][3]);
@@ -819,7 +846,10 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		GPU_vertex_setup(dm);
 		GPU_normal_setup(dm);
-		GPU_uv_setup(dm);
+		if (uvflag & DM_DRAW_USE_TEXPAINT_UV)
+			GPU_texpaint_uv_setup(dm);
+		else
+			GPU_uv_setup(dm);
 		if (mcol) {
 			GPU_color_setup(dm, colType);
 		}
@@ -839,7 +869,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
 
 				if (drawParams) {
-					draw_option = drawParams(tf ? &tf[actualFace] : NULL, (mcol != NULL), mf[actualFace].mat_nr);
+					draw_option = drawParams(use_tface && tf ? &tf[actualFace] : NULL, (mcol != NULL), mf[actualFace].mat_nr);
 				}
 				else {
 					if (index_mf_to_mpoly) {
@@ -895,9 +925,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 static void cdDM_drawFacesTex(DerivedMesh *dm,
                               DMSetDrawOptionsTex setDrawOptions,
                               DMCompareDrawOptions compareDrawOptions,
-                              void *userData)
+                              void *userData, DMDrawFlag uvflag)
 {
-	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
+	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData, uvflag);
 }
 
 static void cdDM_drawMappedFaces(DerivedMesh *dm,
@@ -1123,9 +1153,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 static void cdDM_drawMappedFacesTex(DerivedMesh *dm,
                                     DMSetDrawOptions setDrawOptions,
                                     DMCompareDrawOptions compareDrawOptions,
-                                    void *userData)
+                                    void *userData, DMDrawFlag flag)
 {
-	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
+	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData, flag);
 }
 
 static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int a, int index, int vert,

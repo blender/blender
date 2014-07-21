@@ -51,19 +51,17 @@ typedef struct UndoElem {
 
 	UndoRestoreCb restore;
 	UndoFreeCb free;
+	UndoCleanupCb cleanup;
 } UndoElem;
-
-typedef bool (*UndoCleanupCb)(struct bContext *C, ListBase *lb);
 
 typedef struct UndoStack {
 	int type;
 	ListBase elems;
 	UndoElem *current;
-	UndoCleanupCb cleanup;
 } UndoStack;
 
-static UndoStack ImageUndoStack = {UNDO_PAINT_IMAGE, {NULL, NULL}, NULL, NULL};
-static UndoStack MeshUndoStack = {UNDO_PAINT_MESH, {NULL, NULL}, NULL, sculpt_undo_cleanup};
+static UndoStack ImageUndoStack = {UNDO_PAINT_IMAGE, {NULL, NULL}, NULL};
+static UndoStack MeshUndoStack = {UNDO_PAINT_MESH, {NULL, NULL}, NULL};
 
 /* Generic */
 
@@ -81,7 +79,7 @@ static void undo_elem_free(UndoStack *UNUSED(stack), UndoElem *uel)
 	}
 }
 
-static void undo_stack_push_begin(UndoStack *stack, const char *name, UndoRestoreCb restore, UndoFreeCb free)
+static void undo_stack_push_begin(UndoStack *stack, const char *name, UndoRestoreCb restore, UndoFreeCb free, UndoCleanupCb cleanup)
 {
 	UndoElem *uel;
 	int nr;
@@ -101,6 +99,7 @@ static void undo_stack_push_begin(UndoStack *stack, const char *name, UndoRestor
 	stack->current = uel = MEM_callocN(sizeof(UndoElem), "undo file");
 	uel->restore = restore;
 	uel->free = free;
+	uel->cleanup = cleanup;
 	BLI_addtail(&stack->elems, uel);
 
 	/* name can be a dynamic string */
@@ -179,25 +178,24 @@ static void undo_stack_cleanup(UndoStack *stack, bContext *C)
 	UndoElem *uel = stack->elems.first;
 	bool stack_reset = false;
 
-	if (stack->cleanup) {
-		while (uel) {
-			if (stack->cleanup(C, &uel->elems)) {
-				UndoElem *uel_tmp = uel->next;
-				if (stack->current == uel) {
-					stack->current = NULL;
-					stack_reset = true;
-				}
-				undo_elem_free(stack, uel);
-				BLI_freelinkN(&stack->elems, uel);
-				uel = uel_tmp;
+	while (uel) {
+		if (uel->cleanup && uel->cleanup(C, &uel->elems)) {
+			UndoElem *uel_tmp = uel->next;
+			if (stack->current == uel) {
+				stack->current = NULL;
+				stack_reset = true;
 			}
-			else
-				uel = uel->next;
+			undo_elem_free(stack, uel);
+			BLI_freelinkN(&stack->elems, uel);
+			uel = uel_tmp;
 		}
-		if (stack_reset) {
-			stack->current = stack->elems.last;
-		}
+		else
+			uel = uel->next;
 	}
+	if (stack_reset) {
+		stack->current = stack->elems.last;
+	}
+
 }
 
 static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *name)
@@ -255,23 +253,25 @@ static void undo_stack_free(UndoStack *stack)
 
 /* Exported Functions */
 
-void ED_undo_paint_push_begin(int type, const char *name, UndoRestoreCb restore, UndoFreeCb free)
+void ED_undo_paint_push_begin(int type, const char *name, UndoRestoreCb restore, UndoFreeCb free, UndoCleanupCb cleanup)
 {
 	if (type == UNDO_PAINT_IMAGE)
-		undo_stack_push_begin(&ImageUndoStack, name, restore, free);
+		undo_stack_push_begin(&ImageUndoStack, name, restore, free, cleanup);
 	else if (type == UNDO_PAINT_MESH)
-		undo_stack_push_begin(&MeshUndoStack, name, restore, free);
+		undo_stack_push_begin(&MeshUndoStack, name, restore, free, cleanup);
 }
 
 ListBase *undo_paint_push_get_list(int type)
 {
 	if (type == UNDO_PAINT_IMAGE) {
-		if (ImageUndoStack.current)
+		if (ImageUndoStack.current) {
 			return &ImageUndoStack.current->elems;
+		}
 	}
 	else if (type == UNDO_PAINT_MESH) {
-		if (MeshUndoStack.current)
+		if (MeshUndoStack.current) {
 			return &MeshUndoStack.current->elems;
+		}
 	}
 	
 	return NULL;

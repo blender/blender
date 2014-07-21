@@ -597,6 +597,12 @@ typedef struct wmReport {
 #define WM_DRAG_PATH	2
 #define WM_DRAG_NAME	3
 #define WM_DRAG_VALUE	4
+#define WM_DRAG_COLOR	5
+
+typedef enum wmDragFlags {
+	WM_DRAG_NOP         = 0,
+	WM_DRAG_FREE_DATA   = 1,
+} wmDragFlags;
 
 /* note: structs need not exported? */
 
@@ -613,6 +619,7 @@ typedef struct wmDrag {
 	int sx, sy;
 	
 	char opname[200]; /* if set, draws operator name*/
+	unsigned int flags;
 } wmDrag;
 
 /* dropboxes are like keymaps, part of the screen/area/region definition */

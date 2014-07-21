@@ -756,6 +756,9 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 				/* untested - mask aspect is TODO */
 				ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			}
+			else if (t->options & CTX_PAINT_CURVE) {
+				aspx = aspy = 1.0;
+			}
 			else {
 				ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			}

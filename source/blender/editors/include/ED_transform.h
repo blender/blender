@@ -98,6 +98,7 @@ enum TfmMode {
 #define CTX_NDOF            (1 << 5)
 #define CTX_MOVIECLIP       (1 << 6)
 #define CTX_MASK            (1 << 7)
+#define CTX_PAINT_CURVE     (1 << 8)
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)

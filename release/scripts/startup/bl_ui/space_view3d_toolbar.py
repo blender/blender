@@ -18,11 +18,12 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Menu, Panel, UIList
 from bl_ui.properties_grease_pencil_common import GreasePencilPanel
 from bl_ui.properties_paint_common import (
         UnifiedPaintPanel,
         brush_texture_settings,
+        brush_texpaint_common,
         brush_mask_texture_settings,
         )
 
@@ -363,6 +364,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 
         draw_repeat_tools(context, layout)
 
+
 class VIEW3D_PT_tools_meshweight(View3DPanel, Panel):
     bl_category = "Tools"
     bl_context = "mesh_edit"
@@ -387,6 +389,7 @@ class VIEW3D_PT_tools_meshweight(View3DPanel, Panel):
     def draw(self, context):
         layout = self.layout
         self.draw_generic(layout)
+
 
 class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
     bl_category = "Create"
@@ -979,25 +982,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         # Texture Paint Mode #
 
         elif context.image_paint_object and brush:
-            col = layout.column()
-
-            if brush.image_tool == 'DRAW' and brush.blend not in ('ERASE_ALPHA', 'ADD_ALPHA'):
-                col.template_color_picker(brush, "color", value_slider=True)
-                col.prop(brush, "color", text="")
-
-            row = col.row(align=True)
-            self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
-            self.prop_unified_size(row, context, brush, "use_pressure_size")
-
-            row = col.row(align=True)
-            self.prop_unified_strength(row, context, brush, "strength", text="Strength")
-            self.prop_unified_strength(row, context, brush, "use_pressure_strength")
-
-            col.prop(brush, "blend", text="Blend")
-
-            col = layout.column()
-            col.active = (brush.blend not in {'ERASE_ALPHA', 'ADD_ALPHA'})
-            col.prop(brush, "use_alpha")
+            brush_texpaint_common(self, context, layout, brush, settings)
 
         # Weight Paint Mode #
         elif context.weight_paint_object and brush:
@@ -1024,9 +1009,12 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         # Vertex Paint Mode #
         elif context.vertex_paint_object and brush:
             col = layout.column()
-            col.template_color_picker(brush, "color", value_slider=True)
-            col.prop(brush, "color", text="")
+            self.prop_unified_color_picker(col, context, brush, "color", value_slider=True)
+            if settings.palette:
+                col.template_palette(settings, "palette", color=True)
+            self.prop_unified_color(col, context, brush, "color", text="")
 
+            col.separator()
             row = col.row(align=True)
             self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
             self.prop_unified_size(row, context, brush, "use_pressure_size")
@@ -1036,11 +1024,74 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             # XXX - TODO
-            #row = col.row(align=True)
-            #row.prop(brush, "jitter", slider=True)
-            #row.prop(brush, "use_pressure_jitter", toggle=True, text="")
-
+            # row = col.row(align=True)
+            # row.prop(brush, "jitter", slider=True)
+            # row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+            col.separator()
             col.prop(brush, "vertex_tool", text="Blend")
+
+            col.separator()
+            col.template_ID(settings, "palette", new="palette.new")
+
+
+class TEXTURE_UL_texpaintslots(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        ma = data
+        ima = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text=ima.name, translate=False, icon_value=icon)
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="")
+
+
+class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
+    bl_context = "imagepaint"
+    bl_label = "Slots"
+    bl_category = "Layers"
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.tool_settings.image_paint.brush
+        ob = context.active_object
+        return (brush is not None and ob is not None)
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        ob = context.active_object
+        col = layout.column()
+
+        if len(ob.material_slots) > 1:
+            col.label("Materials")
+            col.template_list("MATERIAL_UL_matslots", "",
+                              ob, "material_slots",
+                              ob, "active_material_index", rows=2)
+
+        mat = ob.active_material
+        if mat:
+            col.label("Available Paint Slots")
+            col.template_list("TEXTURE_UL_texpaintslots", "",
+                              mat, "texture_paint_slots",
+                              mat, "paint_active_slot", rows=2)
+
+            if not mat.use_nodes:
+                col.operator_menu_enum("paint.add_texture_paint_slot", "type")
+
+                row = col.row(align=True)
+                row.prop(settings, "slot_xresolution_default")
+                row.prop(settings, "slot_yresolution_default")
+                col.prop(settings, "slot_color_default")
+
+            if brush.image_tool == 'CLONE' and settings.use_clone_layer:
+                col.label("Clone Slot")
+                col.template_list("TEXTURE_UL_texpaintslots", "",
+                                  mat, "texture_paint_slots",
+                                  mat, "paint_clone_slot", rows=2)
 
 
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
@@ -1194,9 +1245,18 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
         if brush.use_space:
             col.separator()
             row = col.row(align=True)
-            row.active = brush.use_space
             row.prop(brush, "spacing", text="Spacing")
             row.prop(brush, "use_pressure_spacing", toggle=True, text="")
+
+        if brush.use_line or brush.use_curve:
+            col.separator()
+            row = col.row(align=True)
+            row.prop(brush, "spacing", text="Spacing")
+
+        if brush.use_curve:
+            col.separator()
+            col.template_ID(brush, "paint_curve", new="paintcurve.new")
+            col.operator("paintcurve.draw")
 
         if context.sculpt_object:
             if brush.sculpt_capabilities.has_jitter:
@@ -1234,12 +1294,13 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             col = layout.column()
             col.separator()
 
-            col.prop(brush, "use_smooth_stroke")
+            if brush.brush_capabilities.has_smooth_stroke:
+                col.prop(brush, "use_smooth_stroke")
 
-            sub = col.column()
-            sub.active = brush.use_smooth_stroke
-            sub.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
-            sub.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+                sub = col.column()
+                sub.active = brush.use_smooth_stroke
+                sub.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+                sub.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
         layout.prop(settings, "input_samples")
 
@@ -1263,7 +1324,8 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
 
         layout.template_curve_mapping(brush, "curve", brush=True)
 
-        row = layout.row(align=True)
+        col = layout.column(align=True)
+        row = col.row(align=True)
         row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
         row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
         row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
@@ -1493,7 +1555,7 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
 
         col = layout.column()
         row = col.row()
-        #col.prop(vpaint, "mode", text="")
+        # col.prop(vpaint, "mode", text="")
         row.prop(vpaint, "use_normal")
         col.prop(vpaint, "use_spray")
 
@@ -1531,7 +1593,7 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
         col.operator("image.save_dirty", text="Save All Edited")
 
 
-class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
+class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
     bl_category = "Options"
     bl_context = "imagepaint"
     bl_label = "Project Paint"
@@ -1551,6 +1613,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         settings = toolsettings.image_paint
 
         col = layout.column()
+
         col.prop(ipaint, "use_occlude")
         col.prop(ipaint, "use_backface_culling")
 
@@ -1565,19 +1628,21 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
 
         split.prop(ipaint, "use_stencil_layer", text="Stencil")
 
-        row = split.row()
-        row.active = (ipaint.use_stencil_layer)
+        col = split.column()
+        col.active = (ipaint.use_stencil_layer)
+        row = col.row()
         stencil_text = mesh.uv_texture_stencil.name if mesh.uv_texture_stencil else ""
         row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
+        col.template_ID(ipaint, "stencil_image", new="image.new")
+        col.prop(ipaint, "stencil_color")
 
         col = layout.column()
         col.active = (settings.brush.image_tool == 'CLONE')
-        col.prop(ipaint, "use_clone_layer", text="Clone from UV map")
-        clone_text = mesh.uv_texture_clone.name if mesh.uv_texture_clone else ""
-        col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
+        col.prop(ipaint, "use_clone_layer", text="Clone from paint slot")
 
         layout.prop(ipaint, "seam_bleed")
+        self.unified_paint_settings(layout, context)
 
 
 class VIEW3D_PT_imagepaint_options(View3DPaintPanel):

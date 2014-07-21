@@ -75,6 +75,9 @@ struct ImBuf;
 struct bNodeTree;
 struct bNode;
 struct bNodeSocket;
+struct wmDropBox;
+struct wmDrag;
+struct wmEvent;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -288,6 +291,9 @@ typedef enum {
 #define UI_GRAD_V_ALT   9
 #define UI_GRAD_L_ALT   10
 
+#define UI_PALETTE_COLOR 20
+#define UI_PALETTE_COLOR_ACTIVE 1
+
 /* Drawing
  *
  * Functions to draw various shapes, taking theme settings into account.
@@ -437,6 +443,7 @@ void    uiButSetDragValue(uiBut *but);
 void    uiButSetDragImage(uiBut *but, const char *path, int icon, struct ImBuf *ima, float scale);
 
 bool    UI_but_active_drop_name(struct bContext *C);
+bool    UI_but_active_drop_color(struct bContext *C);
 
 void    uiButSetFlag(uiBut *but, int flag);
 void    uiButClearFlag(uiBut *but, int flag);
@@ -847,6 +854,7 @@ void uiTemplateVectorscope(uiLayout *layout, struct PointerRNA *ptr, const char 
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int type,
                             int levels, int brush, int neg_slope);
 void uiTemplateColorPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic);
+void uiTemplatePalette(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int color);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer);
 void uiTemplateGameStates(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
@@ -916,7 +924,14 @@ void uiItemMenuEnumO(uiLayout *layout, struct bContext *C, const char *opname, c
 void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name, int icon);
 
 /* UI Operators */
+typedef struct uiDragColorHandle {
+	float color[3];
+	bool gamma_corrected;
+} uiDragColorHandle;
+
 void UI_buttons_operatortypes(void);
+void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);
+int UI_drop_color_poll(struct bContext *C, struct wmDrag *drag, const struct wmEvent *event);
 
 /* Helpers for Operators */
 uiBut *uiContextActiveButton(const struct bContext *C);

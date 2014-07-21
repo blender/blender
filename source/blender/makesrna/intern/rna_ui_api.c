@@ -740,6 +740,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "lock_luminosity", false, "", "Keep the color at its original vector length");
 	RNA_def_boolean(func, "cubic", false, "", "Cubic saturation for picking values close to white");
 
+	func = RNA_def_function(srna, "template_palette", "uiTemplatePalette");
+	RNA_def_function_ui_description(func, "Item. A palette used to pick colors");
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "color", 0, "", "Display the colors as colors or values");
+
 	func = RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "image", "Image", "", "");
