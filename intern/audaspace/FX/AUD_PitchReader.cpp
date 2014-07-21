@@ -48,5 +48,7 @@ float AUD_PitchReader::getPitch() const
 
 void AUD_PitchReader::setPitch(float pitch)
 {
+	if(pitch <= 0)
+		pitch = 1;
 	m_pitch = pitch;
 }

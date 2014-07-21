@@ -422,6 +422,8 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setPitch(float pitch)
 {
 	if(!m_status)
 		return false;
+	if(pitch <= 0)
+		pitch = 1;
 	m_user_pitch = pitch;
 	return true;
 }
