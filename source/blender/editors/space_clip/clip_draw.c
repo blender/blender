@@ -1728,7 +1728,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 			smat[1][1] = 1.0f / height;
 			invert_m4_m4(ismat, smat);
 
-			mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat);
+			mul_m4_series(sc->unistabmat, smat, sc->stabmat, ismat);
 		}
 	}
 	else if ((sc->flag & SC_MUTE_FOOTAGE) == 0) {

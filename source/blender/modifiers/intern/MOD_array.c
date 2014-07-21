@@ -370,7 +370,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		else
 			unit_m4(obinv);
 
-		mul_serie_m4(result_mat, offset,
+		mul_m4_series(result_mat, offset,
 		             obinv, amd->offset_ob->obmat);
 		copy_m4_m4(offset, result_mat);
 	}

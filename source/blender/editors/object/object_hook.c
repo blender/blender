@@ -528,7 +528,7 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 	
 	invert_m4_m4(ob->imat, ob->obmat);
 	/* apparently this call goes from right to left... */
-	mul_serie_m4(hmd->parentinv, pose_mat, ob->imat, obedit->obmat);
+	mul_m4_series(hmd->parentinv, pose_mat, ob->imat, obedit->obmat);
 	
 	DAG_relations_tag_update(bmain);
 

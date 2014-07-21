@@ -804,7 +804,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 			// evaluate_joint_world_transform_at_frame(temp, NULL, node, fra);
 
 			// calc special matrix
-			mul_serie_m4(mat, irest, temp, irest_dae, rest);
+			mul_m4_series(mat, irest, temp, irest_dae, rest);
 		}
 		else {
 			copy_m4_m4(mat, matfra);
@@ -1210,7 +1210,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 		// evaluate_joint_world_transform_at_frame(temp, NULL, node, fra);
 
 		// calc special matrix
-		mul_serie_m4(mat, irest, temp, irest_dae, rest);
+		mul_m4_series(mat, irest, temp, irest_dae, rest);
 
 		float rot[4], loc[3], scale[3];
 
@@ -1545,7 +1545,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 			// evaluate_joint_world_transform_at_frame(temp, NULL, node, fra);
 
 			// calc special matrix
-			mul_serie_m4(mat, irest, temp, irest_dae, rest);
+			mul_m4_series(mat, irest, temp, irest_dae, rest);
 		}
 		else {
 			copy_m4_m4(mat, matfra);

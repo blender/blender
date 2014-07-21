@@ -439,6 +439,6 @@ void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect
 	rotate_m4(rotation_mat, 'Z', angle);         /* rotation matrix */
 
 	/* compose transformation matrix */
-	mul_serie_m4(mat, translation_mat, center_mat, aspect_mat, rotation_mat, inv_aspect_mat,
+	mul_m4_series(mat, translation_mat, center_mat, aspect_mat, rotation_mat, inv_aspect_mat,
 	             scale_mat, inv_center_mat);
 }

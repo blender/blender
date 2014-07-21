@@ -2277,7 +2277,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingOb
 			copy_v3_v3(lmat[3], obmat[3]);
 			invert_m4_m4(ilmat, lmat);
 
-			mul_serie_m4(mat, lmat, mat, ilmat, obmat);
+			mul_m4_series(mat, lmat, mat, ilmat, obmat);
 		}
 		else {
 			mul_m4_m4m4(mat, obmat, mat);

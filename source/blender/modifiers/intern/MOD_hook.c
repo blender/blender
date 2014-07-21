@@ -156,7 +156,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 		copy_m4_m4(dmat, hmd->object->obmat);
 	}
 	invert_m4_m4(ob->imat, ob->obmat);
-	mul_serie_m4(mat, ob->imat, dmat, hmd->parentinv);
+	mul_m4_series(mat, ob->imat, dmat, hmd->parentinv);
 
 	modifier_get_vgroup(ob, dm, hmd->name, &dvert, &defgrp_index);
 	max_dvert = (dvert) ? numVerts : 0;

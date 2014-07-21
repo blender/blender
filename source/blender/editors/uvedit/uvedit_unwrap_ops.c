@@ -938,7 +938,7 @@ static void uv_map_rotation_matrix(float result[4][4], RegionView3D *rv3d, Objec
 	rotup[0][0] =  1.0f / radius;
 
 	/* calculate transforms*/
-	mul_serie_m4(result, rotup, rotside, viewmatrix, rotobj);
+	mul_m4_series(result, rotup, rotside, viewmatrix, rotobj);
 }
 
 static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float rotmat[4][4])

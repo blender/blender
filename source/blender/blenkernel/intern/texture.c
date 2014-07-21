@@ -145,12 +145,12 @@ void init_tex_mapping(TexMapping *texmap)
 		if (texmap->type == TEXMAP_TYPE_TEXTURE) {
 			/* to transform a texture, the inverse transform needs
 			 * to be applied to the texture coordinate */
-			mul_serie_m4(texmap->mat, tmat, rmat, smat);
+			mul_m4_series(texmap->mat, tmat, rmat, smat);
 			invert_m4(texmap->mat);
 		}
 		else if (texmap->type == TEXMAP_TYPE_POINT) {
 			/* forward transform */
-			mul_serie_m4(texmap->mat, tmat, rmat, smat);
+			mul_m4_series(texmap->mat, tmat, rmat, smat);
 		}
 		else if (texmap->type == TEXMAP_TYPE_VECTOR) {
 			/* no translation for vectors */

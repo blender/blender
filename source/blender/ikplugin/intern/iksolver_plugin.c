@@ -215,7 +215,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[3][3])   // nr = 
 	copy_m4_m3(ikmat, ik_mat);
 
 	if (pchan->parent)
-		mul_serie_m4(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat);
+		mul_m4_series(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat);
 	else
 		mul_m4_m4m4(pchan->pose_mat, pchan->chan_mat, ikmat);
 
@@ -420,7 +420,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			/* end effector in world space */
 			copy_m4_m4(end_pose, pchan->pose_mat);
 			copy_v3_v3(end_pose[3], pchan->pose_tail);
-			mul_serie_m4(world_pose, goalinv, ob->obmat, end_pose);
+			mul_m4_series(world_pose, goalinv, ob->obmat, end_pose);
 
 			/* blend position */
 			goalpos[0] = fac * goalpos[0] + mfac * world_pose[3][0];
