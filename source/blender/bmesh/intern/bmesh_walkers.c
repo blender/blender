@@ -47,7 +47,7 @@
  *
  * basic design pattern: the walker step function goes through it's
  * list of possible choices for recursion, and recurses (by pushing a new state)
- * using the first non-visited one.  this choise is the flagged as visited using
+ * using the first non-visited one.  This choice is the flagged as visited using
  * the ghash.  each step may push multiple new states onto the worklist at once.
  *
  * - Walkers use tool flags, not header flags.

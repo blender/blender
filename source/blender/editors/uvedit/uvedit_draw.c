@@ -420,7 +420,7 @@ static void draw_uvs_other_mesh_new_shading(Object *ob, const Image *curimage)
 		Image *image;
 		
 		/* if no materials, assume a default material with no image */
-		if(ob->totcol)
+		if (ob->totcol)
 			ED_object_get_active_image(ob, a + 1, &image, NULL, NULL);
 		else
 			image = NULL;

@@ -308,7 +308,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool src
 		int scissor_height = BLI_rcti_size_y(srct);
 
 		/* typically a single pixel doesn't matter,
-		 * but one pixel offset is noticable with viewport border render */
+		 * but one pixel offset is noticeable with viewport border render */
 		if (srct_pad) {
 			scissor_width  += 1;
 			scissor_height += 1;

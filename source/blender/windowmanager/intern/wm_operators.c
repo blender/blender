@@ -501,7 +501,7 @@ void WM_operator_py_idname(char *to, const char *from)
 		int ofs = (sep - from);
 		
 		/* note, we use ascii tolower instead of system tolower, because the
-		 * latter depends on the locale, and can lead to idname mistmatch */
+		 * latter depends on the locale, and can lead to idname mismatch */
 		memcpy(to, from, sizeof(char) * ofs);
 		BLI_ascii_strtolower(to, ofs);
 

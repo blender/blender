@@ -137,7 +137,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	bool m_bTouchPulse;
 	
 	/**
-	 * Flags get trought other objects
+	 * Flags get through other objects
 	 */
 	bool m_bXRay;
 
