@@ -212,17 +212,20 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 {
 	float k = 0.0f;
 	float chroma;
+	float min_gb;
 
 	if (g < b) {
 		SWAP(float, g, b);
 		k = -1.0f;
 	}
+	min_gb = b;
 	if (r < g) {
 		SWAP(float, r, g);
-		k = -2.0f * 6e-1f - k;
+		k = -2.0f / 6.0f - k;
+		min_gb = min_ff(g, b);
 	}
 
-	chroma = r - min_ff(g, b);
+	chroma = r - min_gb;
 
 	*lh = fabsf(k + (g - b) / (6.0f * chroma + 1e-20f));
 	*ls = chroma / (r + 1e-20f);
