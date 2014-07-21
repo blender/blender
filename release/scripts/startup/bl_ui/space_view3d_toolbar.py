@@ -982,7 +982,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         # Texture Paint Mode #
 
         elif context.image_paint_object and brush:
-            brush_texpaint_common(self, context, layout, brush, settings)
+            brush_texpaint_common(self, context, layout, brush, settings, True)
 
         # Weight Paint Mode #
         elif context.weight_paint_object and brush:
@@ -1086,12 +1086,6 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 row.prop(settings, "slot_xresolution_default")
                 row.prop(settings, "slot_yresolution_default")
                 col.prop(settings, "slot_color_default")
-
-            if brush.image_tool == 'CLONE' and settings.use_clone_layer:
-                col.label("Clone Slot")
-                col.template_list("TEXTURE_UL_texpaintslots", "",
-                                  mat, "texture_paint_slots",
-                                  mat, "paint_clone_slot", rows=2)
 
 
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
@@ -1636,10 +1630,6 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
         col.template_ID(ipaint, "stencil_image", new="image.new")
         col.prop(ipaint, "stencil_color")
-
-        col = layout.column()
-        col.active = (settings.brush.image_tool == 'CLONE')
-        col.prop(ipaint, "use_clone_layer", text="Clone from paint slot")
 
         layout.prop(ipaint, "seam_bleed")
         self.unified_paint_settings(layout, context)
