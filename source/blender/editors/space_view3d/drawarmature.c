@@ -1815,7 +1815,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet,
 		 * stick bones and/or wire custom-shapes are drawn in next loop 
 		 */
-		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) == 0 && (draw_wire == false)) {
+		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) == 0 && (draw_wire == false) && index != -1) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);
 			index = -1;
@@ -1881,7 +1881,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 				index += 0x10000;  /* pose bones count in higher 2 bytes only */
 		}
 		/* stick or wire bones have not been drawn yet so don't clear object selection in this case */
-		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) == 0 && draw_wire) {
+		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) == 0 && draw_wire && index != -1) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);
 			index = -1;
