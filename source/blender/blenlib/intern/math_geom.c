@@ -1910,6 +1910,39 @@ bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v
 	return 1;
 }
 
+/**
+ * \param r_vi The point \a p projected onto the triangle.
+ * \return True when \a p is inside the triangle.
+ * \note Its up to the caller to check the distance between \a p and \a r_vi against an error margin.
+ */
+bool isect_point_tri_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3],
+                        float r_vi[3])
+{
+	if (isect_point_tri_prism_v3(p, v1, v2, v3)) {
+		float no[3], n1[3], n2[3];
+
+		/* Could use normal_tri_v3, but doesn't have to be unit-length */
+		sub_v3_v3v3(n1, v1, v2);
+		sub_v3_v3v3(n2, v2, v3);
+		cross_v3_v3v3(no, n1, n2);
+
+		if (LIKELY(len_squared_v3(no) != 0.0f)) {
+			float plane[4];
+			plane_from_point_normal_v3(plane, v1, no);
+			closest_to_plane_v3(r_vi, plane, p);
+		}
+		else {
+			/* degenerate */
+			copy_v3_v3(r_vi, p);
+		}
+
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 bool clip_segment_v3_plane(float p1[3], float p2[3], const float plane[4])
 {
 	float dp[3], div, t, pc[3];

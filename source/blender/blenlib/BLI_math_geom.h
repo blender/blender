@@ -169,6 +169,8 @@ int  isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2],
 bool isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int  isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y2, const int a, const int b);
 bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3]);
+bool isect_point_tri_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3],
+                        float r_vi[3]);
 
 /* axis-aligned bounding box */
 bool isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);

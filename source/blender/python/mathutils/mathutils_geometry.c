@@ -893,13 +893,69 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	return ret;
 }
 
+PyDoc_STRVAR(M_Geometry_intersect_point_tri_doc,
+".. function:: intersect_point_tri(pt, tri_p1, tri_p2, tri_p3)\n"
+"\n"
+"   Takes 4 vectors: one is the point and the next 3 define the triangle.\n"
+"\n"
+"   :arg pt: Point\n"
+"   :type pt: :class:`mathutils.Vector`\n"
+"   :arg tri_p1: First point of the triangle\n"
+"   :type tri_p1: :class:`mathutils.Vector`\n"
+"   :arg tri_p2: Second point of the triangle\n"
+"   :type tri_p2: :class:`mathutils.Vector`\n"
+"   :arg tri_p3: Third point of the triangle\n"
+"   :type tri_p3: :class:`mathutils.Vector`\n"
+"   :return: Point on the triangles plane or None if its outside the triangle\n"
+"   :rtype: :class:`mathutils.Vector` or None\n"
+);
+static PyObject *M_Geometry_intersect_point_tri(PyObject *UNUSED(self), PyObject *args)
+{
+	VectorObject *pt_vec, *tri_p1, *tri_p2, *tri_p3;
+	float vi[3];
+
+	if (!PyArg_ParseTuple(args, "O!O!O!O!:intersect_point_tri",
+	                      &vector_Type, &pt_vec,
+	                      &vector_Type, &tri_p1,
+	                      &vector_Type, &tri_p2,
+	                      &vector_Type, &tri_p3))
+	{
+		return NULL;
+	}
+
+	if (BaseMath_ReadCallback(pt_vec) == -1 ||
+	    BaseMath_ReadCallback(tri_p1) == -1 ||
+	    BaseMath_ReadCallback(tri_p2) == -1 ||
+	    BaseMath_ReadCallback(tri_p3) == -1)
+	{
+		return NULL;
+	}
+
+	if (pt_vec->size < 3 ||
+	    tri_p1->size < 3 ||
+	    tri_p2->size < 3 ||
+	    tri_p3->size < 3)
+	{
+		PyErr_SetString(PyExc_ValueError,
+		                "One of more of the vector arguments wasn't a 3D vector");
+		return NULL;
+	}
+
+	if (isect_point_tri_v3(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec, vi)) {
+		return Vector_CreatePyObject(vi, 3, Py_NEW, NULL);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
 PyDoc_STRVAR(M_Geometry_intersect_point_tri_2d_doc,
 ".. function:: intersect_point_tri_2d(pt, tri_p1, tri_p2, tri_p3)\n"
 "\n"
 "   Takes 4 vectors (using only the x and y coordinates): one is the point and the next 3 define the triangle. Returns 1 if the point is within the triangle, otherwise 0.\n"
 "\n"
 "   :arg pt: Point\n"
-"   :type v1: :class:`mathutils.Vector`\n"
+"   :type pt: :class:`mathutils.Vector`\n"
 "   :arg tri_p1: First point of the triangle\n"
 "   :type tri_p1: :class:`mathutils.Vector`\n"
 "   :arg tri_p2: Second point of the triangle\n"
@@ -1606,6 +1662,7 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject *UNUSED(self), PyObject *poi
 static PyMethodDef M_Geometry_methods[] = {
 	{"intersect_ray_tri", (PyCFunction) M_Geometry_intersect_ray_tri, METH_VARARGS, M_Geometry_intersect_ray_tri_doc},
 	{"intersect_point_line", (PyCFunction) M_Geometry_intersect_point_line, METH_VARARGS, M_Geometry_intersect_point_line_doc},
+	{"intersect_point_tri", (PyCFunction) M_Geometry_intersect_point_tri, METH_VARARGS, M_Geometry_intersect_point_tri_doc},
 	{"intersect_point_tri_2d", (PyCFunction) M_Geometry_intersect_point_tri_2d, METH_VARARGS, M_Geometry_intersect_point_tri_2d_doc},
 	{"intersect_point_quad_2d", (PyCFunction) M_Geometry_intersect_point_quad_2d, METH_VARARGS, M_Geometry_intersect_point_quad_2d_doc},
 	{"intersect_line_line", (PyCFunction) M_Geometry_intersect_line_line, METH_VARARGS, M_Geometry_intersect_line_line_doc},
