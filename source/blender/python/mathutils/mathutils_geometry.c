@@ -229,6 +229,11 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		}
 
 		result = isect_line_line_v3(v1, v2, v3, v4, i1, i2);
+		/* The return-code isnt exposed,
+		 * this way we can check know how close the lines are. */
+		if (result == 1) {
+			closest_to_line_v3(i2, i1, v3, v4);
+		}
 
 		if (result == 0) {
 			/* colinear */
