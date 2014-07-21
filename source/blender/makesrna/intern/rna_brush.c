@@ -228,7 +228,7 @@ static int rna_SculptToolCapabilities_has_smooth_stroke_get(PointerRNA *ptr)
 	        !(br->flag & BRUSH_DRAG_DOT) &&
 	        !(br->flag & BRUSH_LINE) &&
 	        !(br->flag & BRUSH_CURVE) &&
-			!ELEM(br->sculpt_tool,
+	        !ELEM(br->sculpt_tool,
 	               SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
 	               SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
 }
@@ -246,7 +246,7 @@ static int rna_SculptToolCapabilities_has_space_attenuation_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return ((br->flag & (BRUSH_SPACE | BRUSH_LINE | BRUSH_CURVE)) &&
-			!ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
+	        !ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
 	               SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SNAKE_HOOK));
 }
 
@@ -306,7 +306,7 @@ static int rna_ImapaintToolCapabilities_has_accumulate_get(PointerRNA *ptr)
 	        (br->imagepaint_tool == PAINT_TOOL_SOFTEN) ||
 	        (br->imagepaint_tool == PAINT_TOOL_SMEAR) ||
 	        (br->imagepaint_tool == PAINT_TOOL_FILL) ||
-			(br->mtex.tex && !ELEM(br->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D))
+	        (br->mtex.tex && !ELEM(br->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D))
 	        ) ? false : true;
 }
 

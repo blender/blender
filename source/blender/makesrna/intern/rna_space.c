@@ -89,12 +89,12 @@ EnumPropertyItem space_type_items[] = {
 
 static EnumPropertyItem pivot_items_full[] = {
 	{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center",
-				 "Pivot around bounding box center of selected object(s)"},
+	             "Pivot around bounding box center of selected object(s)"},
 	{V3D_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", "Pivot around the 3D cursor"},
 	{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION,
-				"Individual Origins", "Pivot around each object's own origin"},
+	            "Individual Origins", "Pivot around each object's own origin"},
 	{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point",
-				   "Pivot around the median point of selected objects"},
+	               "Pivot around the median point of selected objects"},
 	{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", "Pivot around active object"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -812,7 +812,7 @@ static void rna_SpaceImageEditor_scopes_update(Main *UNUSED(bmain), Scene *scene
 }
 
 static EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-												PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+                                                          PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	static EnumPropertyItem pivot_items[] = {
 		{V3D_CENTER, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},

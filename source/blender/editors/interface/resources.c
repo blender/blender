@@ -2440,7 +2440,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (U.versionfile < 272|| (U.versionfile == 272 && U.subversionfile < 2)) {
+	if (U.versionfile < 272 || (U.versionfile == 272 && U.subversionfile < 2)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set_fl(btheme->tv3d.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);

@@ -354,7 +354,7 @@ void BKE_palette_color_delete(struct Palette *palette)
 {
 	PaletteColor *color = BLI_findlink(&palette->colors, palette->active_color);
 
-	if(color) {
+	if (color) {
 		if ((color == palette->colors.last) && (palette->colors.last != palette->colors.first))
 			palette->active_color--;
 
@@ -481,7 +481,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,
 	return gpm->data[(y * factor) * gridsize + (x * factor)];
 }
 
-/* threshhold to move before updating the brush rotation */
+/* threshold to move before updating the brush rotation */
 #define RAKE_THRESHHOLD 20
 
 void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, const float mouse_pos[2])

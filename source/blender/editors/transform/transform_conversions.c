@@ -7039,7 +7039,8 @@ typedef struct TransDataPaintCurve {
 
 #define PC_IS_ANY_SEL(pc) (((pc)->bez.f1 | (pc)->bez.f2 | (pc)->bez.f3) & SELECT)
 
-static void PaintCurveConvertHandle(PaintCurvePoint *pcp, int id, TransData2D *td2d, TransDataPaintCurve *tdpc, TransData *td) {
+static void PaintCurveConvertHandle(PaintCurvePoint *pcp, int id, TransData2D *td2d, TransDataPaintCurve *tdpc, TransData *td)
+{
 	BezTriple *bezt = &pcp->bez;
 	copy_v2_v2(td2d->loc, bezt->vec[id]);
 	td2d->loc[2] = 0.0f;

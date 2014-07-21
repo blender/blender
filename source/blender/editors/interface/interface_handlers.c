@@ -4319,7 +4319,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 				PaletteColor *color = but->rnapoin.data;
 				palette->active_color = BLI_findindex(&palette->colors, color);
 
-				if( !event->ctrl) {
+				if (!event->ctrl) {
 					float color[3];
 					Scene *scene = CTX_data_scene(C);
 					Paint *paint = BKE_paint_get_active(scene);
