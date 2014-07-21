@@ -3113,9 +3113,11 @@ static void initResize(TransInfo *t)
 	t->num.flag |= NUM_AFFECT_ALL;
 	if (!t->obedit) {
 		t->flag |= T_NO_ZERO;
+#if 0  /* Disabling, since when you type you know what you are doing, and being able to set it to zero is handy. */
 		t->num.val_flag[0] |= NUM_NO_ZERO;
 		t->num.val_flag[1] |= NUM_NO_ZERO;
 		t->num.val_flag[2] |= NUM_NO_ZERO;
+#endif
 	}
 	
 	t->idx_max = 2;
@@ -3405,9 +3407,11 @@ static void initSkinResize(TransInfo *t)
 	t->num.flag |= NUM_AFFECT_ALL;
 	if (!t->obedit) {
 		t->flag |= T_NO_ZERO;
+#if 0  /* Disabling, since when you type you know what you are doing, and being able to set it to zero is handy. */
 		t->num.val_flag[0] |= NUM_NO_ZERO;
 		t->num.val_flag[1] |= NUM_NO_ZERO;
 		t->num.val_flag[2] |= NUM_NO_ZERO;
+#endif
 	}
 	
 	t->idx_max = 2;
@@ -4515,7 +4519,9 @@ static void initCurveShrinkFatten(TransInfo *t)
 	t->num.unit_type[0] = B_UNIT_NONE;
 
 	t->flag |= T_NO_ZERO;
+#if 0  /* Disabling, since when you type you know what you are doing, and being able to set it to zero is handy. */
 	t->num.val_flag[0] |= NUM_NO_ZERO;
+#endif
 
 	t->flag |= T_NO_CONSTRAINT;
 }
@@ -4590,7 +4596,9 @@ static void initMaskShrinkFatten(TransInfo *t)
 	t->num.unit_type[0] = B_UNIT_NONE;
 
 	t->flag |= T_NO_ZERO;
+#if 0  /* Disabling, since when you type you know what you are doing, and being able to set it to zero is handy. */
 	t->num.val_flag[0] |= NUM_NO_ZERO;
+#endif
 
 	t->flag |= T_NO_CONSTRAINT;
 }

@@ -189,14 +189,14 @@ bool applyNumInput(NumInput *n, float *vec)
 				if (n->val_flag[i] & NUM_NO_NEGATIVE && val < 0.0f) {
 					val = 0.0f;
 				}
-				if (n->val_flag[i] & NUM_NO_ZERO && val == 0.0f) {
-					val = 0.0001f;
-				}
 				if (n->val_flag[i] & NUM_NO_FRACTION && val != floorf(val)) {
 					val = floorf(val + 0.5f);
 					if (n->val_flag[i] & NUM_NO_ZERO && val == 0.0f) {
 						val = 1.0f;
 					}
+				}
+				else if (n->val_flag[i] & NUM_NO_ZERO && val == 0.0f) {
+					val = 0.0001f;
 				}
 			}
 			vec[j] = val;
