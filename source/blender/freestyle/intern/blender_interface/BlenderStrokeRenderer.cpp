@@ -239,6 +239,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	bNode *output_linestyle = NULL;
 	bNodeSocket *fromsock, *tosock;
 	PointerRNA fromptr, toptr;
+	NodeShaderAttribute *storage;
 
 	if (iNodeTree) {
 		// make a copy of linestyle->nodetree
@@ -258,17 +259,31 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	ma->nodetree = ntree;
 	ma->use_nodes = 1;
 
-	bNode *input_attribute = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
-	input_attribute->locx = 0.0f;
-	input_attribute->locy = -200.0f;
-	NodeShaderAttribute *storage = (NodeShaderAttribute *)input_attribute->storage;
-	BLI_strncpy(storage->name, "Col", sizeof(storage->name));
+	bNode *input_attr_color = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
+	input_attr_color->locx = 0.0f;
+	input_attr_color->locy = -200.0f;
+	storage = (NodeShaderAttribute *)input_attr_color->storage;
+	BLI_strncpy(storage->name, "color", sizeof(storage->name));
 
-	bNode *color_mix_rgb = nodeAddStaticNode(C, ntree, SH_NODE_MIX_RGB);
-	color_mix_rgb->custom1 = MA_RAMP_BLEND; // Mix
-	color_mix_rgb->locx = 200.0f;
-	color_mix_rgb->locy = -200.0f;
-	tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 0); // Fac
+	bNode *mix_rgb_color = nodeAddStaticNode(C, ntree, SH_NODE_MIX_RGB);
+	mix_rgb_color->custom1 = MA_RAMP_BLEND; // Mix
+	mix_rgb_color->locx = 200.0f;
+	mix_rgb_color->locy = -200.0f;
+	tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 0); // Fac
+	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+	RNA_float_set(&toptr, "default_value", 0.0f);
+
+	bNode *input_attr_alpha = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
+	input_attr_alpha->locx = 400.0f;
+	input_attr_alpha->locy = 300.0f;
+	storage = (NodeShaderAttribute *)input_attr_alpha->storage;
+	BLI_strncpy(storage->name, "alpha", sizeof(storage->name));
+
+	bNode *mix_rgb_alpha = nodeAddStaticNode(C, ntree, SH_NODE_MIX_RGB);
+	mix_rgb_alpha->custom1 = MA_RAMP_BLEND; // Mix
+	mix_rgb_alpha->locx = 600.0f;
+	mix_rgb_alpha->locy = 300.0f;
+	tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 0); // Fac
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
 	RNA_float_set(&toptr, "default_value", 0.0f);
 
@@ -280,46 +295,70 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	input_light_path->locx = 400.0f;
 	input_light_path->locy = 100.0f;
 
-	bNode *shader_mix = nodeAddStaticNode(C, ntree, SH_NODE_MIX_SHADER);
-	shader_mix->locx = 600.0f;
-	shader_mix->locy = 100.0f;
+	bNode *mix_shader_color = nodeAddStaticNode(C, ntree, SH_NODE_MIX_SHADER);
+	mix_shader_color->locx = 600.0f;
+	mix_shader_color->locy = -100.0f;
+
+	bNode *shader_transparent = nodeAddStaticNode(C, ntree, SH_NODE_BSDF_TRANSPARENT);
+	shader_transparent->locx = 600.0f;
+	shader_transparent->locy = 100.0f;
+
+	bNode *mix_shader_alpha = nodeAddStaticNode(C, ntree, SH_NODE_MIX_SHADER);
+	mix_shader_alpha->locx = 800.0f;
+	mix_shader_alpha->locy = 100.0f;
 
 	bNode *output_material = nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_MATERIAL);
-	output_material->locx = 800.0f;
+	output_material->locx = 1000.0f;
 	output_material->locy = 100.0f;
 
-	fromsock = (bNodeSocket *)BLI_findlink(&input_attribute->outputs, 0); // Color
-	tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 1); // Color1
-	nodeAddLink(ntree, input_attribute, fromsock, color_mix_rgb, tosock);
+	fromsock = (bNodeSocket *)BLI_findlink(&input_attr_color->outputs, 0); // Color
+	tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 1); // Color1
+	nodeAddLink(ntree, input_attr_color, fromsock, mix_rgb_color, tosock);
 
-	fromsock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->outputs, 0); // Color
+	fromsock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->outputs, 0); // Color
 	tosock = (bNodeSocket *)BLI_findlink(&shader_emission->inputs, 0); // Color
-	nodeAddLink(ntree, color_mix_rgb, fromsock, shader_emission, tosock);
+	nodeAddLink(ntree, mix_rgb_color, fromsock, shader_emission, tosock);
 
 	fromsock = (bNodeSocket *)BLI_findlink(&shader_emission->outputs, 0); // Emission
-	tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 2); // Shader (second)
-	nodeAddLink(ntree, shader_emission, fromsock, shader_mix, tosock);
+	tosock = (bNodeSocket *)BLI_findlink(&mix_shader_color->inputs, 2); // Shader (second)
+	nodeAddLink(ntree, shader_emission, fromsock, mix_shader_color, tosock);
 
 	fromsock = (bNodeSocket *)BLI_findlink(&input_light_path->outputs, 0); // In Camera Ray
-	tosock = (bNodeSocket *)BLI_findlink(&shader_mix->inputs, 0); // Fac
-	nodeAddLink(ntree, input_light_path, fromsock, shader_mix, tosock);
+	tosock = (bNodeSocket *)BLI_findlink(&mix_shader_color->inputs, 0); // Fac
+	nodeAddLink(ntree, input_light_path, fromsock, mix_shader_color, tosock);
 
-	fromsock = (bNodeSocket *)BLI_findlink(&shader_mix->outputs, 0); // Shader
+	fromsock = (bNodeSocket *)BLI_findlink(&mix_rgb_alpha->outputs, 0); // Color
+	tosock = (bNodeSocket *)BLI_findlink(&mix_shader_alpha->inputs, 0); // Fac
+	nodeAddLink(ntree, mix_rgb_alpha, fromsock, mix_shader_alpha, tosock);
+
+	fromsock = (bNodeSocket *)BLI_findlink(&input_attr_alpha->outputs, 0); // Color
+	tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_alpha->inputs, 1); // Color1
+	nodeAddLink(ntree, input_attr_alpha, fromsock, mix_rgb_alpha, tosock);
+
+	fromsock = (bNodeSocket *)BLI_findlink(&shader_transparent->outputs, 0); // BSDF
+	tosock = (bNodeSocket *)BLI_findlink(&mix_shader_alpha->inputs, 1); // Shader (first)
+	nodeAddLink(ntree, shader_transparent, fromsock, mix_shader_alpha, tosock);
+
+	fromsock = (bNodeSocket *)BLI_findlink(&mix_shader_color->outputs, 0); // Shader
+	tosock = (bNodeSocket *)BLI_findlink(&mix_shader_alpha->inputs, 2); // Shader (second)
+	nodeAddLink(ntree, mix_shader_color, fromsock, mix_shader_alpha, tosock);
+
+	fromsock = (bNodeSocket *)BLI_findlink(&mix_shader_alpha->outputs, 0); // Shader
 	tosock = (bNodeSocket *)BLI_findlink(&output_material->inputs, 0); // Surface
-	nodeAddLink(ntree, shader_mix, fromsock, output_material, tosock);
+	nodeAddLink(ntree, mix_shader_alpha, fromsock, output_material, tosock);
 
 	if (output_linestyle) {
 		bNodeSocket *outsock;
 		bNodeLink *link;
 
-		color_mix_rgb->custom1 = output_linestyle->custom1; // blend_type
-		color_mix_rgb->custom2 = output_linestyle->custom2; // use_clamp
+		mix_rgb_color->custom1 = output_linestyle->custom1; // blend_type
+		mix_rgb_color->custom2 = output_linestyle->custom2; // use_clamp
 
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 0); // Color
-		tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 2); // Color2
+		tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 2); // Color2
 		link = (bNodeLink *)BLI_findptr(&ntree->links, outsock, offsetof(bNodeLink, tosock));
 		if (link) {
-			nodeAddLink(ntree, link->fromnode, link->fromsock, color_mix_rgb, tosock);
+			nodeAddLink(ntree, link->fromnode, link->fromsock, mix_rgb_color, tosock);
 		}
 		else {
 			float color[4];
@@ -330,10 +369,10 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 		}
 
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 1); // Color Fac
-		tosock = (bNodeSocket *)BLI_findlink(&color_mix_rgb->inputs, 0); // Fac
+		tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 0); // Fac
 		link = (bNodeLink *)BLI_findptr(&ntree->links, outsock, offsetof(bNodeLink, tosock));
 		if (link) {
-			nodeAddLink(ntree, link->fromnode, link->fromsock, color_mix_rgb, tosock);
+			nodeAddLink(ntree, link->fromnode, link->fromsock, mix_rgb_color, tosock);
 		}
 		else {
 			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
@@ -341,10 +380,32 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 			RNA_float_set(&toptr, "default_value", RNA_float_get(&fromptr, "default_value"));
 		}
 
-#if 0 // TODO
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 2); // Alpha
+		tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_alpha->inputs, 2); // Color2
+		link = (bNodeLink *)BLI_findptr(&ntree->links, outsock, offsetof(bNodeLink, tosock));
+		if (link) {
+			nodeAddLink(ntree, link->fromnode, link->fromsock, mix_rgb_alpha, tosock);
+		}
+		else {
+			float color[4];
+			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
+			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+			color[0] = color[1] = color[2] = RNA_float_get(&fromptr, "default_value");
+			color[3] = 1.0f;
+			RNA_float_set_array(&toptr, "default_value", color);
+		}
+
 		outsock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 3); // Alpha Fac
-#endif
+		tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_alpha->inputs, 0); // Fac
+		link = (bNodeLink *)BLI_findptr(&ntree->links, outsock, offsetof(bNodeLink, tosock));
+		if (link) {
+			nodeAddLink(ntree, link->fromnode, link->fromsock, mix_rgb_alpha, tosock);
+		}
+		else {
+			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
+			RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+			RNA_float_set(&toptr, "default_value", RNA_float_get(&fromptr, "default_value"));
+		}
 
 		for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
 			if (node->type == SH_NODE_UVALONGSTROKE) {
@@ -375,7 +436,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 		}
 	}
 
-	nodeSetActive(ntree, shader_mix);
+	nodeSetActive(ntree, output_material);
 	ntreeUpdateTree(bmain, ntree);
 
 	return ma;
@@ -568,8 +629,9 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	mesh->totloop = totloop; // visible_faces * 3;
 	mesh->mloop = (MLoop *)CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
 
-	// colors allocation
-	mesh->mloopcol = (MLoopCol *)CustomData_add_layer(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop);
+	// colors and alpha transparency (the latter represented by grayscale colors)
+	MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "color");
+	MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "alpha");
 
 	////////////////////
 	//  Data copy
@@ -579,7 +641,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	MEdge *edges = mesh->medge;
 	MPoly *polys = mesh->mpoly;
 	MLoop *loops = mesh->mloop;
-	MLoopCol *colors = mesh->mloopcol;
 	MLoopUV *loopsuv[2] = {NULL};
 
 	if (hasTex) {
@@ -739,7 +800,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					}
 				}
 
-				// colors
+				// colors and alpha transparency
 				if (is_odd) {
 					colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
 					colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
@@ -755,7 +816,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					colors[2].g = (short)(255.0f * svRep[1]->color()[1]);
 					colors[2].b = (short)(255.0f * svRep[1]->color()[2]);
 					colors[2].a = (short)(255.0f * svRep[1]->alpha());
-					}
+				}
 				else {
 					colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
 					colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
@@ -772,7 +833,11 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					colors[2].b = (short)(255.0f * svRep[0]->color()[2]);
 					colors[2].a = (short)(255.0f * svRep[0]->alpha());
 				}
+				transp[0].r = transp[0].g = transp[0].b = colors[0].a;
+				transp[1].r = transp[1].g = transp[1].b = colors[1].a;
+				transp[2].r = transp[2].g = transp[2].b = colors[2].a;
 				colors += 3;
+				transp += 3;
 			}
 		} // loop over strip vertices
 	} // loop over strips
