@@ -37,112 +37,38 @@
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 {
-	if (s != 0.0f) {
-		float i, f, p;
-		h = (h - floorf(h)) * 6.0f;
+	float nr, ng, nb;
 
-		i = floorf(h);
-		f = h - i;
+	nr =        fabsf(h * 6.0f - 3.0f) - 1.0f;
+	ng = 2.0f - fabsf(h * 6.0f - 2.0f);
+	nb = 2.0f - fabsf(h * 6.0f - 4.0f);
 
-		/* avoid computing q/t when not needed */
-		p = (v * (1.0f - s));
-#define q   (v * (1.0f - (s * f)))
-#define t   (v * (1.0f - (s * (1.0f - f))))
+	CLAMP(nr, 0.0f, 1.0f);
+	CLAMP(nb, 0.0f, 1.0f);
+	CLAMP(ng, 0.0f, 1.0f);
 
-		/* faster to compare floats then int conversion */
-		if (i < 1.0f) {
-			*r = v;
-			*g = t;
-			*b = p;
-		}
-		else if (i < 2.0f) {
-			*r = q;
-			*g = v;
-			*b = p;
-		}
-		else if (i < 3.0f) {
-			*r = p;
-			*g = v;
-			*b = t;
-		}
-		else if (i < 4.0f) {
-			*r = p;
-			*g = q;
-			*b = v;
-		}
-		else if (i < 5.0f) {
-			*r = t;
-			*g = p;
-			*b = v;
-		}
-		else {
-			*r = v;
-			*g = p;
-			*b = q;
-		}
-
-#undef q
-#undef t
-
-	}
-	else {
-		*r = v;
-		*g = v;
-		*b = v;
-	}
+	*r = ((nr - 1.0f) * s + 1.0f) * v;
+	*g = ((ng - 1.0f) * s + 1.0f) * v;
+	*b = ((nb - 1.0f) * s + 1.0f) * v;
 }
 
-/* HSL to rgb conversion from https://en.wikipedia.org/wiki/HSL_and_HSV */
 void hsl_to_rgb(float h, float s, float l, float *r, float *g, float *b)
 {
-	float i, f, c;
-	h = (h - floorf(h)) * 6.0f;
-	c = (l > 0.5f) ? (2.0f * (1.0f - l) * s) : (2.0f * l * s);
-	i = floorf(h);
-	f = h - i;
+	float nr, ng, nb, chroma;
 
-#define x2 (c * f)
-#define x1 (c * (1.0f - f))
+	nr =        fabsf(h * 6.0f - 3.0f) - 1.0f;
+	ng = 2.0f - fabsf(h * 6.0f - 2.0f);
+	nb = 2.0f - fabsf(h * 6.0f - 4.0f);
 
-	/* faster to compare floats then int conversion */
-	if (i < 1.0f) {
-		*r = c;
-		*g = x2;
-		*b = 0;
-	}
-	else if (i < 2.0f) {
-		*r = x1;
-		*g = c;
-		*b = 0;
-	}
-	else if (i < 3.0f) {
-		*r = 0;
-		*g = c;
-		*b = x2;
-	}
-	else if (i < 4.0f) {
-		*r = 0;
-		*g = x1;
-		*b = c;
-	}
-	else if (i < 5.0f) {
-		*r = x2;
-		*g = 0;
-		*b = c;
-	}
-	else {
-		*r = c;
-		*g = 0;
-		*b = x1;
-	}
+	CLAMP(nr, 0.0f, 1.0f);
+	CLAMP(nb, 0.0f, 1.0f);
+	CLAMP(ng, 0.0f, 1.0f);
 
-#undef x1
-#undef x2
+	chroma = (1.0f - fabsf(2.0f * l - 1.0f)) * s;
 
-	f = l - 0.5f * c;
-	*r += f;
-	*g += f;
-	*b += f;
+	*r = (nr - 0.5f) * chroma + l;
+	*g = (ng - 0.5f) * chroma + l;
+	*b = (nb - 0.5f) * chroma + l;
 }
 
 /* convenience function for now */
@@ -284,57 +210,23 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 {
-	float h, s, v;
-	float cmax, cmin;
+	float k = 0.0f;
+	float chroma;
 
-	cmax = r;
-	cmin = r;
-	cmax = (g > cmax ? g : cmax);
-	cmin = (g < cmin ? g : cmin);
-	cmax = (b > cmax ? b : cmax);
-	cmin = (b < cmin ? b : cmin);
-
-	v = cmax; /* value */
-	if (cmax != 0.0f) {
-		float cdelta;
-
-		cdelta = cmax - cmin;
-		s = cdelta / cmax;
-
-		if (s != 0.0f) {
-			float rc, gc, bc;
-
-			rc = (cmax - r) / cdelta;
-			gc = (cmax - g) / cdelta;
-			bc = (cmax - b) / cdelta;
-
-			if (r == cmax) {
-				h = bc - gc;
-				if (h < 0.0f) {
-					h += 6.0f;
-				}
-			}
-			else if (g == cmax) {
-				h = 2.0f + rc - bc;
-			}
-			else {
-				h = 4.0f + gc - rc;
-			}
-
-			h *= (1.0f / 6.0f);
-		}
-		else {
-			h = 0.0f;
-		}
+	if (g < b) {
+		SWAP(float, g, b);
+		k = -1.0f;
 	}
-	else {
-		h = 0.0f;
-		s = 0.0f;
+	if (r < g) {
+		SWAP(float, r, g);
+		k = -2.0f * 6e-1f - k;
 	}
 
-	*lh = h;
-	*ls = s;
-	*lv = v;
+	chroma = r - min_ff(g, b);
+
+	*lh = fabsf(k + (g - b) / (6.0f * chroma + 1e-20f));
+	*ls = chroma / (r + 1e-20f);
+	*lv = r;
 }
 
 /* convenience function for now */
