@@ -263,7 +263,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	input_attr_color->locx = 0.0f;
 	input_attr_color->locy = -200.0f;
 	storage = (NodeShaderAttribute *)input_attr_color->storage;
-	BLI_strncpy(storage->name, "color", sizeof(storage->name));
+	BLI_strncpy(storage->name, "Color", sizeof(storage->name));
 
 	bNode *mix_rgb_color = nodeAddStaticNode(C, ntree, SH_NODE_MIX_RGB);
 	mix_rgb_color->custom1 = MA_RAMP_BLEND; // Mix
@@ -277,7 +277,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	input_attr_alpha->locx = 400.0f;
 	input_attr_alpha->locy = 300.0f;
 	storage = (NodeShaderAttribute *)input_attr_alpha->storage;
-	BLI_strncpy(storage->name, "alpha", sizeof(storage->name));
+	BLI_strncpy(storage->name, "Alpha", sizeof(storage->name));
 
 	bNode *mix_rgb_alpha = nodeAddStaticNode(C, ntree, SH_NODE_MIX_RGB);
 	mix_rgb_alpha->custom1 = MA_RAMP_BLEND; // Mix
@@ -615,23 +615,35 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
 	// vertices allocation
 	mesh->totvert = totvert; // visible_faces + visible_segments * 2;
-	mesh->mvert = (MVert *)CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
+	CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
 
 	// edges allocation
 	mesh->totedge = totedge; // visible_faces * 2 + visible_segments;
-	mesh->medge = (MEdge *)CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
+	CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
 
 	// faces allocation
 	mesh->totpoly = totpoly; // visible_faces;
-	mesh->mpoly = (MPoly *)CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
+	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
 
 	// loops allocation
 	mesh->totloop = totloop; // visible_faces * 3;
-	mesh->mloop = (MLoop *)CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
+	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
 
-	// colors and alpha transparency (the latter represented by grayscale colors)
-	MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "color");
-	MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "alpha");
+	// uv maps
+	MLoopUV *loopsuv[2] = { NULL };
+	if (hasTex) {
+		loopsuv[0] = (MLoopUV *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
+		loopsuv[1] = (MLoopUV *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
+
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
+	}
+
+	// colors and transparency (the latter represented by grayscale colors)
+	MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "Color");
+	MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "Alpha");
+
+	BKE_mesh_update_customdata_pointers(mesh, true);
 
 	////////////////////
 	//  Data copy
@@ -641,27 +653,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	MEdge *edges = mesh->medge;
 	MPoly *polys = mesh->mpoly;
 	MLoop *loops = mesh->mloop;
-	MLoopUV *loopsuv[2] = {NULL};
-
-	if (hasTex) {
-		// First UV layer
-		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
-		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
-		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
-		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
-		BKE_mesh_update_customdata_pointers(mesh, false);
-
-		loopsuv[0] = mesh->mloopuv;
-
-		// Second UV layer
-		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
-		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
-		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
-		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
-		BKE_mesh_update_customdata_pointers(mesh, false);
-
-		loopsuv[1] = mesh->mloopuv;
-	}
 
 	vertex_index = edge_index = loop_index = 0;
 
