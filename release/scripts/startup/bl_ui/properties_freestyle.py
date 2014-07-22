@@ -59,10 +59,6 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
         if (rd.line_thickness_mode == 'ABSOLUTE'):
             layout.prop(rd, "line_thickness")
 
-        row = layout.row()
-        row.label(text="Line style settings are in the Render Layers tab")
-        row.operator("wm.properties_context_change", text="", icon='RENDERLAYERS').context = 'RENDER_LAYER'
-
 
 # Render layer properties
 
