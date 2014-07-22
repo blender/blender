@@ -1896,7 +1896,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima;
 	Scene *scene;
 	Object *obedit;
-	Object *ob;
 	Image *ima;
 	Main *bmain;
 	PointerRNA ptr, idptr;
@@ -1905,13 +1904,13 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	char *name = _name;
 	float color[4];
 	int width, height, floatbuf, gen_type, alpha;
+	bool stencil;
 
 	/* retrieve state */
 	sima = CTX_wm_space_image(C);
 	scene = CTX_data_scene(C);
 	obedit = CTX_data_edit_object(C);
 	bmain = CTX_data_main(C);
-	ob = OBACT;
 
 	prop = RNA_struct_find_property(op->ptr, "name");
 	RNA_property_string_get(op->ptr, prop, name);
@@ -1925,7 +1924,8 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	gen_type = RNA_enum_get(op->ptr, "generated_type");
 	RNA_float_get_array(op->ptr, "color", color);
 	alpha = RNA_boolean_get(op->ptr, "alpha");
-	
+	stencil = RNA_boolean_get(op->ptr, "texstencil");
+
 	if (!alpha)
 		color[3] = 1.0f;
 
@@ -1957,7 +1957,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 			tex->ima = ima;
 			ED_area_tag_redraw(CTX_wm_area(C));
 		}
-		else if (ob && ob->mode == OB_MODE_TEXTURE_PAINT) {
+		else if (stencil) {
 			ImagePaintSettings *imapaint = &(CTX_data_tool_settings(C)->imapaint);
 
 			if (imapaint->stencil)
@@ -2012,6 +2012,9 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "generated_type", image_generated_type_items, IMA_GENTYPE_BLANK,
 	             "Generated Type", "Fill the image with a grid for UV map testing");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
+	prop = RNA_def_boolean(ot->srna, "texstencil", 0, "Stencil", "Set Image as stencil");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
 }
 
 #undef IMA_DEF_NAME

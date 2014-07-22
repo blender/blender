@@ -186,7 +186,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain, Scene *s
 		struct bNode *node;
 		int index = 0;
 		for (node = ma->nodetree->nodes.first; node; node = node->next) {
-			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
 				if (index++ == ma->paint_active_slot) {
 					break;
 				}

@@ -1628,7 +1628,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         stencil_text = mesh.uv_texture_stencil.name if mesh.uv_texture_stencil else ""
         row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
-        col.template_ID(ipaint, "stencil_image", new="image.new")
+        col.template_ID(ipaint, "stencil_image")
+        col.operator("image.new").texstencil = True;
         col.prop(ipaint, "stencil_color")
 
         layout.prop(ipaint, "seam_bleed")
