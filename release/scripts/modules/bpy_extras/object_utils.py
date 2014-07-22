@@ -245,6 +245,7 @@ def object_image_guess(obj, bm=None):
     me = obj.data
     if bm is None:
         if obj.mode == 'EDIT':
+            import bmesh
             bm = bmesh.from_edit_mesh(me)
 
     if bm is not None:
