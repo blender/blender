@@ -539,9 +539,8 @@ void EuclideanBundleCommonIntrinsics(
       }
 
       zero_weight_tracks_flags[marker.track] = false;
+      num_residuals++;
     }
-
-    num_residuals++;
   }
   LG << "Number of residuals: " << num_residuals;
 
