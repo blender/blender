@@ -1036,7 +1036,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
 class TEXTURE_UL_texpaintslots(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        ma = data
+        # ma = data
         ima = item
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -1061,7 +1061,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         layout = self.layout
 
         settings = context.tool_settings.image_paint
-        brush = settings.brush
+        # brush = settings.brush
 
         ob = context.active_object
         col = layout.column()
@@ -1383,7 +1383,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
+        # scene = context.scene
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
@@ -1604,7 +1604,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         mesh = ob.data
         toolsettings = context.tool_settings
         ipaint = toolsettings.image_paint
-        settings = toolsettings.image_paint
+        # settings = toolsettings.image_paint
 
         col = layout.column()
 

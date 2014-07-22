@@ -434,11 +434,6 @@ def modifier_hook_add(scene, obj, use_vgroup=True):
         for v in mesh.vertices:
             v.select = False
 
-        if IS_BMESH:
-            face_verts = mesh_bmesh_poly_vertices(mesh.polygons[0])
-        else:
-            face_verts = mesh.faces[0].vertices[:]
-
         for i in mesh.faces[0].vertices:
             mesh.vertices[i].select = True
 

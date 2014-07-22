@@ -57,6 +57,7 @@ def rna_idprop_ui_prop_clear(item, prop):
     except:
         pass
 
+
 def rna_idprop_context_value(context, context_member, property_type):
     space = context.space_data
 
@@ -73,10 +74,12 @@ def rna_idprop_context_value(context, context_member, property_type):
 
     return rna_item, context_member
 
+
 def rna_idprop_has_properties(rna_item):
     keys = rna_item.keys()
     nbr_props = len(keys)
     return (nbr_props > 1) or (nbr_props and '_RNA_UI' not in keys)
+
 
 def draw(layout, context, context_member, property_type, use_edit=True):
 

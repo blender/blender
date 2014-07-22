@@ -1172,7 +1172,6 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             col = split.column()
             factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
 
-
         layout.separator()
 
         if not isinstance(idblock, ParticleSettings):

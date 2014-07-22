@@ -1244,13 +1244,13 @@ class CyclesRender_PT_bake(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
         cbk = scene.render.bake
-    
+
         layout.operator("object.bake", icon='RENDER_STILL').type = cscene.bake_type
-        
+
         col = layout.column()
         col.prop(cscene, "bake_type")
         col.separator()
-        
+
         split = layout.split()
 
         col = split.column()

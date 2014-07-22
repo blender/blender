@@ -261,7 +261,7 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
         layout = self.layout
 
         sc = context.space_data
-        clip = sc.clip
+        # clip = sc.clip
 
         col = layout.column(align=True)
         row = col.row(align=True)

@@ -31,7 +31,6 @@ and <output-filename> is where to write the generated man page.
 # <pep8 compliant>
 
 import subprocess
-import os
 import sys
 
 import time

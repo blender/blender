@@ -249,9 +249,9 @@ class SubdivisionSet(Operator):
                 if mod.type == 'MULTIRES':
                     if not relative:
                         if level > mod.total_levels:
-                           sub = level - mod.total_levels
-                           for i in range (0, sub):
-                               bpy.ops.object.multires_subdivide(modifier="Multires")
+                            sub = level - mod.total_levels
+                            for i in range (0, sub):
+                                bpy.ops.object.multires_subdivide(modifier="Multires")
 
                         if obj.mode == 'SCULPT':
                             if mod.sculpt_levels != level:
