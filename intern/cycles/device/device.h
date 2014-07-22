@@ -122,6 +122,7 @@ public:
 	virtual bool load_kernels(bool experimental) { return true; }
 
 	/* tasks */
+	virtual int get_split_task_count(DeviceTask& task) = 0;
 	virtual void task_add(DeviceTask& task) = 0;
 	virtual void task_wait() = 0;
 	virtual void task_cancel() = 0;

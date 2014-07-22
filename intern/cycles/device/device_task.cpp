@@ -35,7 +35,7 @@ DeviceTask::DeviceTask(Type type_)
 	last_update_time = time_dt();
 }
 
-void DeviceTask::split(list<DeviceTask>& tasks, int num, int max_size)
+int DeviceTask::get_subtask_count(int num, int max_size)
 {
 	if(max_size != 0) {
 		int max_size_num;
@@ -53,7 +53,21 @@ void DeviceTask::split(list<DeviceTask>& tasks, int num, int max_size)
 
 	if(type == SHADER) {
 		num = min(shader_w, num);
+	}
+	else if(type == PATH_TRACE) {
+	}
+	else {
+		num = min(h, num);
+	}
 
+	return num;
+}
+
+void DeviceTask::split(list<DeviceTask>& tasks, int num, int max_size)
+{
+	num = get_subtask_count(num, max_size);
+
+	if(type == SHADER) {
 		for(int i = 0; i < num; i++) {
 			int tx = shader_x + (shader_w/num)*i;
 			int tw = (i == num-1)? shader_w - i*(shader_w/num): shader_w/num;
@@ -71,8 +85,6 @@ void DeviceTask::split(list<DeviceTask>& tasks, int num, int max_size)
 			tasks.push_back(*this);
 	}
 	else {
-		num = min(h, num);
-
 		for(int i = 0; i < num; i++) {
 			int ty = y + (h/num)*i;
 			int th = (i == num-1)? h - i*(h/num): h/num;
@@ -87,9 +99,10 @@ void DeviceTask::split(list<DeviceTask>& tasks, int num, int max_size)
 	}
 }
 
-void DeviceTask::update_progress(RenderTile &rtile)
+void DeviceTask::update_progress(RenderTile *rtile)
 {
-	if (type != PATH_TRACE)
+	if((type != PATH_TRACE) &&
+	   (type != SHADER))
 		return;
 
 	if(update_progress_sample)
@@ -99,7 +112,7 @@ void DeviceTask::update_progress(RenderTile &rtile)
 		double current_time = time_dt();
 
 		if (current_time - last_update_time >= 1.0) {
-			update_tile_sample(rtile);
+			update_tile_sample(*rtile);
 
 			last_update_time = current_time;
 		}

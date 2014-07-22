@@ -70,6 +70,9 @@ public:
 
 	bool need_update;
 
+	int num_samples;
+	int num_parts;
+
 private:
 	BakeData *m_bake_data;
 	bool m_is_baking;

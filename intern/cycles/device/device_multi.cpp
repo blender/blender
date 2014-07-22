@@ -278,6 +278,11 @@ public:
 		return -1;
 	}
 
+	int get_split_task_count(DeviceTask& task)
+	{
+		return 1;
+	}
+
 	void task_add(DeviceTask& task)
 	{
 		list<DeviceTask> tasks;

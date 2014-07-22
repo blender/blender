@@ -52,9 +52,10 @@ public:
 
 	DeviceTask(Type type = PATH_TRACE);
 
+	int get_subtask_count(int num, int max_size = 0);
 	void split(list<DeviceTask>& tasks, int num, int max_size = 0);
 
-	void update_progress(RenderTile &rtile);
+	void update_progress(RenderTile *rtile);
 
 	boost::function<bool(Device *device, RenderTile&)> acquire_tile;
 	boost::function<void(void)> update_progress_sample;

@@ -554,6 +554,8 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::Bake
 	session->reset(buffer_params, session_params.samples);
 	session->update_scene();
 
+	session->progress.set_update_callback(function_bind(&BlenderSession::update_bake_progress, this));
+
 	scene->bake_manager->bake(scene->device, &scene->dscene, scene, session->progress, shader_type, bake_data, result);
 
 	/* free all memory used (host and device), so we wouldn't leave render
@@ -763,6 +765,26 @@ void BlenderSession::get_progress(float& progress, double& total_time)
 		progress = ((float)sample / (float)(tile_total * samples_per_tile));
 	else
 		progress = 0.0;
+}
+
+void BlenderSession::update_bake_progress()
+{
+	float progress;
+	int sample, samples_per_task, parts_total;
+
+	sample = session->progress.get_sample();
+	samples_per_task = scene->bake_manager->num_samples;
+	parts_total = scene->bake_manager->num_parts;
+
+	if(samples_per_task)
+		progress = ((float)sample / (float)(parts_total * samples_per_task));
+	else
+		progress = 0.0;
+
+	if(progress != last_progress) {
+		b_engine.update_progress(progress);
+		last_progress = progress;
+	}
 }
 
 void BlenderSession::update_status_progress()

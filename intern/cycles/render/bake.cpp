@@ -155,6 +155,10 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 	task.shader_w = d_output.size();
 	task.num_samples = is_aa_pass(shader_type)? scene->integrator->aa_samples: 1;
 	task.get_cancel = function_bind(&Progress::get_cancel, &progress);
+	task.update_progress_sample = function_bind(&Progress::increment_sample_update, &progress);
+
+	this->num_parts = device->get_split_task_count(task);
+	this->num_samples = task.num_samples;
 
 	device->task_add(task);
 	device->task_wait();

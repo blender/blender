@@ -149,6 +149,12 @@ public:
 		sample++;
 	}
 
+	void increment_sample_update()
+	{
+		increment_sample();
+		set_update();
+	}
+
 	int get_sample()
 	{
 		return sample;

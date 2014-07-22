@@ -73,6 +73,7 @@ public:
 	void get_progress(float& progress, double& total_time);
 	void test_cancel();
 	void update_status_progress();
+	void update_bake_progress();
 
 	bool background;
 	Session *session;

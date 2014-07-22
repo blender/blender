@@ -1068,7 +1068,11 @@ public:
 			kernel = ckShaderKernel;
 
 		for(int sample = 0; sample < task.num_samples; sample++) {
-			cl_int d_sample = task.sample;
+
+			if(task.get_cancel())
+				break;
+
+			cl_int d_sample = sample;
 
 			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_data), (void*)&d_data));
 			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_input), (void*)&d_input));
@@ -1084,6 +1088,8 @@ public:
 			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_sample), (void*)&d_sample));
 
 			enqueue_kernel(kernel, task.shader_w, 1);
+
+			task.update_progress(NULL);
 		}
 	}
 
@@ -1113,7 +1119,7 @@ public:
 
 					tile.sample = sample + 1;
 
-					task->update_progress(tile);
+					task->update_progress(&tile);
 				}
 
 				task->release_tile(tile);
@@ -1129,6 +1135,11 @@ public:
 			run = function_bind(&OpenCLDevice::thread_run, device, this);
 		}
 	};
+
+	int get_split_task_count(DeviceTask& task)
+	{
+		return 1;
+	}
 
 	void task_add(DeviceTask& task)
 	{

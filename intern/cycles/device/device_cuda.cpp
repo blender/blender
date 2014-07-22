@@ -732,13 +732,10 @@ public:
 		const int start = task.shader_x;
 		const int end = task.shader_x + task.shader_w;
 
-		for(int shader_x = start; shader_x < end; shader_x += shader_chunk_size) {
-			if(task.get_cancel())
-				break;
-
-			int shader_w = min(shader_chunk_size, end - shader_x);
-
-			for(int sample = 0; sample < task.num_samples; sample++) {
+		bool cancelled = false;
+		for(int sample = 0; sample < task.num_samples && !cancelled; sample++) {
+			for(int shader_x = start; shader_x < end; shader_x += shader_chunk_size) {
+				int shader_w = min(shader_chunk_size, end - shader_x);
 
 				/* pass in parameters */
 				void *args[] = {&d_input,
@@ -761,7 +758,14 @@ public:
 										   0, 0, args, 0));
 
 				cuda_assert(cuCtxSynchronize());
+
+				if(task.get_cancel()) {
+					cancelled = false;
+					break;
+				}
 			}
+
+			task.update_progress(NULL);
 		}
 
 		cuda_pop_context();
@@ -991,7 +995,7 @@ public:
 
 					tile.sample = sample + 1;
 
-					task->update_progress(tile);
+					task->update_progress(&tile);
 				}
 
 				task->release_tile(tile);
@@ -1014,6 +1018,11 @@ public:
 			run = function_bind(&CUDADevice::thread_run, device, this);
 		}
 	};
+
+	int get_split_task_count(DeviceTask& task)
+	{
+		return 1;
+	}
 
 	void task_add(DeviceTask& task)
 	{
