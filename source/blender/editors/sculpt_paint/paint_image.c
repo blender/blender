@@ -1392,7 +1392,7 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 	layernum = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
 
 	if (layernum == 0) {
-		BKE_reportf(op->reports, RPT_WARNING, "Object did not have UV map. Recommend manual unwrap");
+		BKE_reportf(op->reports, RPT_WARNING, "Object did not have UV map, manual unwrap recommended");
 
 		ED_mesh_uv_texture_add(me, "UVMap", true);
 	}

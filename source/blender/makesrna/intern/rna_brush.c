@@ -56,7 +56,8 @@ static EnumPropertyItem sculpt_stroke_method_items[] = {
 	{BRUSH_AIRBRUSH, "AIRBRUSH", 0, "Airbrush", "Keep applying paint effect while holding mouse (spray)"},
 	{BRUSH_ANCHORED, "ANCHORED", 0, "Anchored", "Keep the brush anchored to the initial location"},
 	{BRUSH_LINE, "LINE", 0, "Line", "Draw a line with dabs separated according to spacing"},
-	{BRUSH_CURVE, "CURVE", 0, "Curve", "Define the stroke curve with a bezier curve. Dabs are separated according to spacing"},
+	{BRUSH_CURVE, "CURVE", 0, "Curve",
+	              "Define the stroke curve with a bezier curve (dabs are separated according to spacing)"},
 	{0, NULL, 0, NULL, NULL}
 };
 

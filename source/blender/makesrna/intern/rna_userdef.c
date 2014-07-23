@@ -3967,19 +3967,22 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
 	func = RNA_def_function(srna, "is_occlusion_query_supported", "rna_Scene_GPU_selection_supported");
-	parm = RNA_def_boolean(func, "is_supported", 0, "Occlusion Query Support", "Check if GPU supports Occlusion Queries");
+	parm = RNA_def_boolean(func, "is_supported", 0, "Occlusion Query Support",
+	                       "Check if GPU supports Occlusion Queries");
 	RNA_def_function_return(func, parm);
 
 	prop = RNA_def_property(srna, "select_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gpu_select_method");
 	RNA_def_property_enum_items(prop, gpu_select_method_items);
-	RNA_def_property_ui_text(prop, "Selection Method", "Use OpenGL occlusion queries o selection rendermode to accelerate selection");
+	RNA_def_property_ui_text(prop, "Selection Method",
+	                         "Use OpenGL occlusion queries or selection render mode to accelerate selection");
 
 	/* Full scene anti-aliasing */
 	prop = RNA_def_property(srna, "multi_sample", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ogl_multisamples");
 	RNA_def_property_enum_items(prop, multi_sample_levels);
-	RNA_def_property_ui_text(prop, "MultiSample", "Enable OpenGL multi-sampling, only for systems that support it, requires restart");
+	RNA_def_property_ui_text(prop, "MultiSample",
+	                         "Enable OpenGL multi-sampling, only for systems that support it, requires restart");
 
 	prop = RNA_def_property(srna, "use_region_overlap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag2", USER_REGION_OVERLAP);
