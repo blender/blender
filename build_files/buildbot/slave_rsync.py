@@ -25,17 +25,16 @@ import os
 import sys
 
 # get builder name
-if len(sys.argv) < 3:
-    sys.stderr.write("Not enough arguments, expecting builder and branch names\n")
+if len(sys.argv) < 2:
+    sys.stderr.write("Not enough arguments, expecting builder name\n")
     sys.exit(1)
 
 builder = sys.argv[1]
-branch = sys.argv[2]
 
 # rsync, this assumes ssh keys are setup so no password is needed
 local_zip = "buildbot_upload.zip"
 remote_folder = "builder.blender.org:/data/buildbot-master/uploaded/"
-remote_zip = remote_folder + "buildbot_upload_" + builder + "_" + branch + ".zip"
+remote_zip = remote_folder + "buildbot_upload_" + builder + ".zip"
 command = "rsync -avz %s %s" % (local_zip, remote_zip)
 
 print(command)
