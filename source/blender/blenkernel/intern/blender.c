@@ -479,7 +479,9 @@ int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 	return (bfd ? retval : BKE_READ_FILE_FAIL);
 }
 
-int BKE_read_file_from_memory(bContext *C, const void *filebuf, int filelength, ReportList *reports, int update_defaults)
+bool BKE_read_file_from_memory(
+        bContext *C, const void *filebuf, int filelength,
+        ReportList *reports, bool update_defaults)
 {
 	BlendFileData *bfd;
 
@@ -496,7 +498,9 @@ int BKE_read_file_from_memory(bContext *C, const void *filebuf, int filelength, 
 }
 
 /* memfile is the undo buffer */
-int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *reports)
+bool BKE_read_file_from_memfile(
+        bContext *C, MemFile *memfile,
+        ReportList *reports)
 {
 	BlendFileData *bfd;
 

@@ -69,10 +69,12 @@ int BKE_read_file(struct bContext *C, const char *filepath, struct ReportList *r
 #define BKE_READ_FILE_OK                1 /* OK */
 #define BKE_READ_FILE_OK_USERPREFS      2 /* OK, and with new user settings */
 
-int BKE_read_file_from_memory(struct bContext *C, const void *filebuf,
-	int filelength, struct ReportList *reports, int update_defaults);
-int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile,
-	struct ReportList *reports);
+bool BKE_read_file_from_memory(
+        struct bContext *C, const void *filebuf,
+        int filelength, struct ReportList *reports, bool update_defaults);
+bool BKE_read_file_from_memfile(
+        struct bContext *C, struct MemFile *memfile,
+        struct ReportList *reports);
 
 int BKE_read_file_userdef(const char *filepath, struct ReportList *reports);
 int BKE_write_file_userdef(const char *filepath, struct ReportList *reports);
