@@ -117,17 +117,20 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg, ShaderDat
 }
 
 /* normal on triangle  */
-ccl_device_inline float3 triangle_normal(KernelGlobals *kg, int prim)
+ccl_device_inline float3 triangle_normal(KernelGlobals *kg, ShaderData *sd)
 {
 	/* load triangle vertices */
-	float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, prim));
+	float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
 
 	float3 v0 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.x)));
 	float3 v1 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.y)));
 	float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
 	
 	/* return normal */
-	return normalize(cross(v1 - v0, v2 - v0));
+	if(sd->flag & SD_NEGATIVE_SCALE_APPLIED)
+		return normalize(cross(v2 - v0, v1 - v0));
+	else
+		return normalize(cross(v1 - v0, v2 - v0));
 }
 
 /* point and normal on triangle  */
