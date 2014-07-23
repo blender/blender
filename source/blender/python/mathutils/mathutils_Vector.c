@@ -814,17 +814,20 @@ static PyObject *Vector_orthogonal(VectorObject *self)
 {
 	float vec[3];
 
-	if (self->size != 3) {
+	if (self->size > 3) {
 		PyErr_SetString(PyExc_TypeError,
 		                "Vector.orthogonal(): "
-		                "Vector must be 3D");
+		                "Vector must be 3D or 2D");
 		return NULL;
 	}
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	ortho_v3_v3(vec, self->vec);
+	if (self->size == 3)
+		ortho_v3_v3(vec, self->vec);
+	else
+		ortho_v2_v2(vec, self->vec);
 
 	return Vector_CreatePyObject(vec, self->size, Py_NEW, Py_TYPE(self));
 }
