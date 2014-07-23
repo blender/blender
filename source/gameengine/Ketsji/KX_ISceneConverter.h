@@ -45,8 +45,8 @@ class KX_ISceneConverter
 {
 
 public:
-	KX_ISceneConverter() :addInitFromFrame(false) {}//this addInitFromFrame is a back hack, todo remove
-	virtual ~KX_ISceneConverter () {};
+	KX_ISceneConverter() {}
+	virtual ~KX_ISceneConverter () {}
 
 	/*
 	 * scenename: name of the scene to be converted,
@@ -59,7 +59,7 @@ public:
 		class RAS_IRasterizer* rendertools,
 		class RAS_ICanvas*  canvas,
 		bool libloading=false)=0;
-	
+
 	virtual void RemoveScene(class KX_Scene *scene)=0;
 
 	// handle any pending merges from asynchronous loads
@@ -69,11 +69,9 @@ public:
 
 	virtual void	SetNewFileName(const STR_String& filename) = 0;
 	virtual bool	TryAndLoadNewFile() = 0;
-	bool	addInitFromFrame;//rcruiz
 
 	virtual void	ResetPhysicsObjectsAnimationIpo(bool clearIpo) = 0;
 
-	
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
 	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber) = 0;
 	virtual void	TestHandlesPhysicsObjectToAnimationIpo() = 0;

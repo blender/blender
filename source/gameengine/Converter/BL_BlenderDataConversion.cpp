@@ -1745,8 +1745,7 @@ static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
  * note: all var names match args are passed from the caller */
 static void bl_ConvertBlenderObject_Single(
         KX_BlenderSceneConverter *converter,
-        Scene *blenderscene, Object *blenderobject,
-        vector<MT_Vector3> &inivel, vector<MT_Vector3> &iniang,
+       Object *blenderobject,
         vector<parentChildLink> &vec_parent_child,
         CListValue* logicbrick_conversionlist,
         CListValue* objectlist, CListValue* inactivelist, CListValue*	sumolist,
@@ -1755,10 +1754,6 @@ static void bl_ConvertBlenderObject_Single(
         bool isInActiveLayer
         )
 {
-	MT_Point3 posPrev;
-	MT_Matrix3x3 angor;
-	if (converter->addInitFromFrame) blenderscene->r.cfra=blenderscene->r.sfra;
-
 	MT_Point3 pos(
 		blenderobject->loc[0]+blenderobject->dloc[0],
 		blenderobject->loc[1]+blenderobject->dloc[1],
@@ -1772,35 +1767,6 @@ static void bl_ConvertBlenderObject_Single(
 
 	MT_Vector3 scale(blenderobject->size);
 
-	if (converter->addInitFromFrame) {//rcruiz
-		blenderscene->r.cfra=blenderscene->r.sfra-1;
-		//XXX update_for_newframe();
-		MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
-		                             blenderobject->loc[1]+blenderobject->dloc[1],
-		                             blenderobject->loc[2]+blenderobject->dloc[2]
-		                             );
-
-		float rotmatPrev[3][3];
-		BKE_object_rot_to_mat3(blenderobject, rotmatPrev, false);
-
-		float eulxyz[3], eulxyzPrev[3];
-		mat3_to_eul(eulxyz, rotmat);
-		mat3_to_eul(eulxyzPrev, rotmatPrev);
-
-		double fps = (double) blenderscene->r.frs_sec/
-		        (double) blenderscene->r.frs_sec_base;
-
-		tmp.scale(fps, fps, fps);
-		inivel.push_back(tmp);
-		tmp[0]=eulxyz[0]-eulxyzPrev[0];
-		tmp[1]=eulxyz[1]-eulxyzPrev[1];
-		tmp[2]=eulxyz[2]-eulxyzPrev[2];
-		tmp.scale(fps, fps, fps);
-		iniang.push_back(tmp);
-		blenderscene->r.cfra=blenderscene->r.sfra;
-		//XXX update_for_newframe();
-	}
-
 	gameobj->NodeSetLocalPosition(pos);
 	gameobj->NodeSetLocalOrientation(rotation);
 	gameobj->NodeSetLocalScale(scale);
@@ -1813,7 +1779,7 @@ static void bl_ConvertBlenderObject_Single(
 	gameobj->SetName(blenderobject->id.name + 2);
 
 	// update children/parent hierarchy
-	if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
+	if (blenderobject->parent != 0)
 	{
 		// blender has an additional 'parentinverse' offset in each object
 		SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
@@ -1872,10 +1838,6 @@ static void bl_ConvertBlenderObject_Single(
 
 	logicbrick_conversionlist->Add(gameobj->AddRef());
 
-	if (converter->addInitFromFrame) {
-		posPrev=gameobj->NodeGetWorldPosition();
-		angor=gameobj->NodeGetWorldOrientation();
-	}
 	if (isInActiveLayer)
 	{
 		objectlist->Add(gameobj->AddRef());
@@ -1883,18 +1845,12 @@ static void bl_ConvertBlenderObject_Single(
 
 		gameobj->NodeUpdateGS(0);
 		gameobj->AddMeshUser();
-
 	}
 	else
 	{
 		//we must store this object otherwise it will be deleted
 		//at the end of this function if it is not a root object
 		inactivelist->Add(gameobj->AddRef());
-	}
-
-	if (converter->addInitFromFrame) {
-		gameobj->NodeSetLocalPosition(posPrev);
-		gameobj->NodeSetLocalOrientation(angor);
 	}
 }
 
@@ -1914,8 +1870,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 #define BL_CONVERTBLENDEROBJECT_SINGLE                                 \
 	bl_ConvertBlenderObject_Single(converter,                          \
-	                               blenderscene, blenderobject,        \
-	                               inivel, iniang,                     \
+	                               blenderobject,                      \
 	                               vec_parent_child,                   \
 	                               logicbrick_conversionlist,          \
 	                               objectlist, inactivelist, sumolist, \
@@ -1937,7 +1892,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	RAS_FrameSettings::RAS_FrameType frame_type;
 	int aspect_width;
 	int aspect_height;
-	vector<MT_Vector3> inivel,iniang;
 	set<Group*> grouplist;	// list of groups to be converted
 	set<Object*> allblobj;	// all objects converted
 	set<Object*> groupobj;	// objects from groups (never in active layer)
@@ -2024,23 +1978,15 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 										rendertools, 
 										converter,
 										libloading);
-										
-		bool isInActiveLayer = (blenderobject->lay & activeLayerBitInfo) !=0;
-		bool addobj=true;
-		
-		if (converter->addInitFromFrame)
-			if (!isInActiveLayer)
-				addobj=false;
 
+		bool isInActiveLayer = (blenderobject->lay & activeLayerBitInfo) !=0;
 		if (gameobj)
 		{
-			if (addobj)
-			{	/* macro calls object conversion funcs */
-				BL_CONVERTBLENDEROBJECT_SINGLE;
+			/* macro calls object conversion funcs */
+			BL_CONVERTBLENDEROBJECT_SINGLE;
 
-				if (gameobj->IsDupliGroup()) {
-					grouplist.insert(blenderobject->dup_group);
-				}
+			if (gameobj->IsDupliGroup()) {
+				grouplist.insert(blenderobject->dup_group);
 			}
 
 			/* Note about memory leak issues:
@@ -2084,22 +2030,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 														rendertools, 
 														converter,
 														libloading);
-										
-						// this code is copied from above except that
-						// object from groups are never in active layer
-						bool isInActiveLayer = false;
-						bool addobj=true;
-						
-						if (converter->addInitFromFrame)
-							if (!isInActiveLayer)
-								addobj=false;
 
+						bool isInActiveLayer = false;
 						if (gameobj)
 						{
-							if (addobj)
-							{	/* macro calls object conversion funcs */
-								BL_CONVERTBLENDEROBJECT_SINGLE;
-							}
+							/* macro calls object conversion funcs */
+							BL_CONVERTBLENDEROBJECT_SINGLE;
 
 							if (gameobj->IsDupliGroup())
 							{
@@ -2108,7 +2044,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 									grouplist.insert(blenderobject->dup_group);
 								}
 							}
-
 
 							/* see comment above re: mem leaks */
 							gameobj->Release();
@@ -2330,18 +2265,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 		int layerMask = (groupobj.find(blenderobject) == groupobj.end()) ? activeLayerBitInfo : 0;
 		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,converter,processCompoundChildren);
-	}
-	
-	//set ini linearVel and int angularVel //rcruiz
-	if (converter->addInitFromFrame) {
-		for (i=0;i<sumolist->GetCount();i++)
-		{
-			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-			if (gameobj->IsDynamic()) {
-				gameobj->setLinearVelocity(inivel[i],false);
-				gameobj->setAngularVelocity(iniang[i],false);
-			}
-		}
 	}
 
 	// create physics joints

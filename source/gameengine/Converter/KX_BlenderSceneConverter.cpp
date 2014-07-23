@@ -599,6 +599,8 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
 
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 {
+	//TODO this entire function is deprecated, written for 2.4x
+	//the functionality should be rewritten, currently it does nothing
 
 	KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
 	int numScenes = scenes->size();
@@ -614,7 +616,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 		{
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsRecordAnimation()) {
-				
+
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject)
 				{
@@ -625,21 +627,21 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 					{ 	//clear the curve data
 						if (clearIpo) {//rcruiz
 							IpoCurve *icu1;
-														
+
 							int numCurves = 0;
 							for ( icu1 = (IpoCurve*)ipo->curve.first; icu1;  ) {
-							
+
 								IpoCurve* tmpicu = icu1;
-								
+
 								/*int i;
 								BezTriple *bezt;
 								for ( bezt = tmpicu->bezt, i = 0;	i < tmpicu->totvert; i++, bezt++) {
 									printf("(%f,%f,%f),(%f,%f,%f),(%f,%f,%f)\n",bezt->vec[0][0],bezt->vec[0][1],bezt->vec[0][2],bezt->vec[1][0],bezt->vec[1][1],bezt->vec[1][2],bezt->vec[2][0],bezt->vec[2][1],bezt->vec[2][2]);
 								}*/
-								
+
 								icu1 = icu1->next;
 								numCurves++;
-			
+
 								BLI_remlink( &( blenderObject->ipo->curve ), tmpicu );
 								if ( tmpicu->bezt )
 									MEM_freeN( tmpicu->bezt );
@@ -657,8 +659,8 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 			}
 
 		}
-		
-	
+
+
 	}
 
 
@@ -667,45 +669,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 
 void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo()
 {
-	if (addInitFromFrame) {
-		KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
-		int numScenes = scenes->size();
-		if (numScenes>=0) {
-			KX_Scene* scene = scenes->at(0);
-			CListValue* parentList = scene->GetRootParentList();
-			for (int ix=0;ix<parentList->GetCount();ix++) {
-				KX_GameObject* gameobj = (KX_GameObject*)parentList->GetValue(ix);
-				if (!gameobj->IsRecordAnimation()) {
-					Object* blenderobject = gameobj->GetBlenderObject();
-					if (!blenderobject)
-						continue;
-					if (blenderobject->type==OB_ARMATURE)
-						continue;
-					float eu[3];
-					mat4_to_eul(eu,blenderobject->obmat);
-					MT_Point3 pos = MT_Point3(
-						blenderobject->obmat[3][0],
-						blenderobject->obmat[3][1],
-						blenderobject->obmat[3][2]
-					);
-					MT_Vector3 eulxyz = MT_Vector3(
-						eu[0],
-						eu[1],
-						eu[2]
-					);
-					MT_Vector3 scale = MT_Vector3(
-						blenderobject->size[0],
-						blenderobject->size[1],
-						blenderobject->size[2]
-					);
-					gameobj->NodeSetLocalPosition(pos);
-					gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
-					gameobj->NodeSetLocalScale(scale);
-					gameobj->NodeUpdateGS(0);
-				}
-			}
-		}
-	}
+	//TODO the functionality should be rewritten
 }
 
 
