@@ -956,6 +956,7 @@ static BMOpDefine bmo_dissolve_verts_def = {
 	/* slots_in */
 	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
 	 {"use_face_split", BMO_OP_SLOT_BOOL},
+	 {"use_boundary_tear", BMO_OP_SLOT_BOOL},
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */

@@ -51,6 +51,7 @@
 #define VERT_MARK_PAIR 4
 #define VERT_TAG    2
 #define VERT_ISGC   8
+#define VERT_MARK_TEAR 16
 
 
 
@@ -85,7 +86,7 @@ static bool UNUSED_FUNCTION(check_hole_in_region) (BMesh *bm, BMFace *f)
 	return true;
 }
 
-static void bm_face_split(BMesh *bm, const short oflag)
+static void bm_face_split(BMesh *bm, const short oflag, bool use_edge_delete)
 {
 	BMIter iter;
 	BMVert *v;
@@ -102,6 +103,12 @@ static void bm_face_split(BMesh *bm, const short oflag)
 						{
 							BM_face_split(bm, l->f, l->next, l->prev, NULL, NULL, true);
 						}
+					}
+				}
+				/* remove surrounding edges & faces */
+				if (use_edge_delete) {
+					while (v->e) {
+						BM_edge_kill(bm, v->e);
 					}
 				}
 			}
@@ -268,7 +275,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		bm_face_split(bm, VERT_TAG);
+		bm_face_split(bm, VERT_TAG, false);
 	}
 
 	if (use_verts) {
@@ -345,13 +352,30 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	BMFace *act_face = bm->act_face;
 
 	const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
+	const bool use_boundary_tear = BMO_slot_bool_get(op->slots_in, "use_boundary_tear");
 
 	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
 		BMO_elem_flag_enable(bm, v, VERT_MARK | VERT_ISGC);
 	}
 
 	if (use_face_split) {
-		bm_face_split(bm, VERT_MARK);
+		bm_face_split(bm, VERT_MARK, false);
+	}
+
+	if (use_boundary_tear) {
+		BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
+			if (!BM_vert_is_edge_pair(v)) {
+				BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+					if (BM_edge_is_boundary(e)) {
+						BMO_elem_flag_enable(bm, v, VERT_MARK_TEAR);
+						break;
+					}
+				}
+			}
+		}
+		if (!use_face_split) {
+			bm_face_split(bm, VERT_MARK_TEAR, true);
+		}
 	}
 
 	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {

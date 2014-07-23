@@ -3479,6 +3479,11 @@ static void edbm_dissolve_prop__use_face_split(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_face_split", 0, "Face Split",
 	                "Split off face corners to maintain surrounding geometry");
 }
+static void edbm_dissolve_prop__use_boundary_tear(wmOperatorType *ot)
+{
+	RNA_def_boolean(ot->srna, "use_boundary_tear", 0, "Tear Boundary",
+	                "Split off face corners instead of merging faces");
+}
 
 static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 {
@@ -3486,8 +3491,11 @@ static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
+	const bool use_boundary_tear = RNA_boolean_get(op->ptr, "use_boundary_tear");
 
-	if (!EDBM_op_callf(em, op, "dissolve_verts verts=%hv use_face_split=%b", BM_ELEM_SELECT, use_face_split))
+	if (!EDBM_op_callf(em, op,
+	                   "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
+	                   BM_ELEM_SELECT, use_face_split, use_boundary_tear))
 		return OPERATOR_CANCELLED;
 
 	EDBM_update_generic(em, true, true);
@@ -3510,6 +3518,7 @@ void MESH_OT_dissolve_verts(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	edbm_dissolve_prop__use_face_split(ot);
+	edbm_dissolve_prop__use_boundary_tear(ot);
 }
 
 static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
@@ -3621,6 +3630,7 @@ void MESH_OT_dissolve_mode(wmOperatorType *ot)
 
 	edbm_dissolve_prop__use_verts(ot);
 	edbm_dissolve_prop__use_face_split(ot);
+	edbm_dissolve_prop__use_boundary_tear(ot);
 }
 
 static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
