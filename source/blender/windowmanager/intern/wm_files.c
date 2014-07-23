@@ -278,11 +278,13 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 /* in case UserDef was read, we re-initialize all, and do versioning */
 static void wm_init_userdef(bContext *C, const bool from_memory)
 {
+	Main *bmain = CTX_data_main(C);
+
 	/* versioning is here */
 	UI_init_userdef();
 	
 	MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
-	sound_init(CTX_data_main(C));
+	sound_init(bmain);
 
 	/* needed so loading a file from the command line respects user-pref [#26156] */
 	BKE_BIT_TEST_SET(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
@@ -295,7 +297,7 @@ static void wm_init_userdef(bContext *C, const bool from_memory)
 
 	/* avoid re-saving for every small change to our prefs, allow overrides */
 	if (from_memory) {
-		UI_init_userdef_factory();
+		BLO_update_defaults_userpref_blend();
 	}
 
 	/* update tempdir from user preferences */

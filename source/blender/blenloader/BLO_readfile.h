@@ -275,7 +275,8 @@ void BLO_main_expander(void (*expand_doit_func)(void *, struct Main *, void *));
  */
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);
 
-/* Update defaults in startup.blend, without having to save and embed it */
+/* Update defaults in startup.blend & userprefs.blend, without having to save and embed it */
+void BLO_update_defaults_userpref_blend(void);
 void BLO_update_defaults_startup_blend(struct Main *mainvar);
 
 #ifdef __cplusplus

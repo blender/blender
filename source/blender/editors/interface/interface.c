@@ -4429,11 +4429,6 @@ void UI_init_userdef(void)
 	uiStyleInit();
 }
 
-void UI_init_userdef_factory(void)
-{
-	init_userdef_factory();
-}
-
 void UI_reinit_font(void)
 {
 	uiStyleInit();

@@ -1150,14 +1150,17 @@ void BKE_main_unlock(struct Main *bmain)
 }
 
 /* ***************** ID ************************ */
-
-
-ID *BKE_libblock_find_name(const short type, const char *name)      /* type: "OB" or "MA" etc */
+ID *BKE_libblock_find_name_ex(struct Main *bmain, const short type, const char *name)
 {
-	ListBase *lb = which_libbase(G.main, type);
+	ListBase *lb = which_libbase(bmain, type);
 	BLI_assert(lb != NULL);
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
+ID *BKE_libblock_find_name(const short type, const char *name)
+{
+	return BKE_libblock_find_name_ex(G.main, type, name);
+}
+
 
 void id_sort_by_name(ListBase *lb, ID *id)
 {

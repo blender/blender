@@ -28,6 +28,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_scene_types.h"
@@ -36,14 +37,34 @@
 #include "DNA_userdef_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
+#include "BKE_brush.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 
 #include "BLO_readfile.h"
 
-/* Update defaults in startup.blend, without having to save and embed the file.
+
+/**
+ * Override values in in-memory startup.blend, avoids resaving for small changes.
+ */
+void BLO_update_defaults_userpref_blend(void)
+{
+	/* defaults from T37518 */
+
+	U.uiflag |= USER_ZBUF_CURSOR;
+	U.uiflag |= USER_QUIT_PROMPT;
+	U.uiflag |= USER_CONTINUOUS_MOUSE;
+
+	U.versions = 1;
+	U.savetime = 2;
+}
+
+/**
+ * Update defaults in startup.blend, without having to save and embed the file.
  * This function can be emptied each time the startup.blend is updated. */
-void BLO_update_defaults_startup_blend(Main *main)
+void BLO_update_defaults_startup_blend(Main *bmain)
 {
 	Scene *scene;
 	SceneRenderLayer *srl;
@@ -51,7 +72,7 @@ void BLO_update_defaults_startup_blend(Main *main)
 	Mesh *me;
 	Material *mat;
 
-	for (scene = main->scene.first; scene; scene = scene->id.next) {
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 		scene->r.im_format.compress = 15;
 
@@ -59,9 +80,20 @@ void BLO_update_defaults_startup_blend(Main *main)
 			srl->freestyleConfig.sphere_radius = 0.1f;
 			srl->pass_alpha_threshold = 0.5f;
 		}
+
+		if (scene->toolsettings) {
+			ToolSettings *ts = scene->toolsettings;
+
+			if (ts->sculpt) {
+				Sculpt *sculpt = ts->sculpt;
+				sculpt->paint.symmetry_flags |= PAINT_SYMM_X;
+				sculpt->flags |= SCULPT_DYNTOPO_COLLAPSE;
+				sculpt->detail_size = 12;
+			}
+		}
 	}
 
-	for (linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+	for (linestyle = bmain->linestyle.first; linestyle; linestyle = linestyle->id.next) {
 		linestyle->flag = LS_SAME_OBJECT | LS_NO_SORTING | LS_TEXTURE;
 		linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
 		linestyle->integration_type = LS_INTEGRATION_MEAN;
@@ -71,7 +103,7 @@ void BLO_update_defaults_startup_blend(Main *main)
 	{
 		bScreen *screen;
 
-		for (screen = main->screen.first; screen; screen = screen->id.next) {
+		for (screen = bmain->screen.first; screen; screen = screen->id.next) {
 			ScrArea *area;
 			for (area = screen->areabase.first; area; area = area->next) {
 				SpaceLink *space_link;
@@ -85,13 +117,27 @@ void BLO_update_defaults_startup_blend(Main *main)
 		}
 	}
 
-	for (me = main->mesh.first; me; me = me->id.next) {
+	for (me = bmain->mesh.first; me; me = me->id.next) {
 		me->smoothresh = DEG2RADF(180.0f);
+		me->flag &= ~ME_TWOSIDED;
 	}
 
-	for (mat = main->mat.first; mat; mat = mat->id.next) {
+	for (mat = bmain->mat.first; mat; mat = mat->id.next) {
 		mat->line_col[0] = mat->line_col[1] = mat->line_col[2] = 0.0f;
 		mat->line_col[3] = 1.0f;
+	}
+
+	{
+		Brush *br;
+		br = BKE_brush_add(bmain, "Fill");
+		br->imagepaint_tool = PAINT_TOOL_FILL;
+		br->ob_mode = OB_MODE_TEXTURE_PAINT;
+
+		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Mask");
+		if (br) {
+			br->imagepaint_tool = PAINT_TOOL_MASK;
+			br->ob_mode |= OB_MODE_TEXTURE_PAINT;
+		}
 	}
 }
 

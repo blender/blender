@@ -35,10 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_mesh_types.h"  /* init_userdef_factory */
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -48,13 +45,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BKE_brush.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
-#include "BKE_library.h"
-
 
 #include "BIF_gl.h"
 
@@ -2471,56 +2465,4 @@ void init_userdef_do_versions(void)
 	/* this timer uses U */
 // XXX	reset_autosave();
 
-}
-
-/**
- * Override values in in-memory startup.blend, avoids resaving for small changes.
- */
-void init_userdef_factory(void)
-{
-	/* defaults from T37518 */
-
-	U.uiflag |= USER_ZBUF_CURSOR;
-	U.uiflag |= USER_QUIT_PROMPT;
-	U.uiflag |= USER_CONTINUOUS_MOUSE;
-
-	U.versions = 1;
-	U.savetime = 2;
-
-	{
-		Mesh *me;
-		for (me = G.main->mesh.first; me; me = me->id.next) {
-			me->flag &= ~ME_TWOSIDED;
-		}
-	}
-
-	{
-		Brush *br;
-		br = BKE_brush_add(G.main, "Fill");
-		br->imagepaint_tool = PAINT_TOOL_FILL;
-		br->ob_mode = OB_MODE_TEXTURE_PAINT;
-
-		br = (Brush *)BKE_libblock_find_name(ID_BR, "Mask");
-		if (br) {
-			br->imagepaint_tool = PAINT_TOOL_MASK;
-			br->ob_mode |= OB_MODE_TEXTURE_PAINT;
-		}
-	}
-
-	{
-		Scene *scene;
-
-		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
-			if (scene->toolsettings) {
-				ToolSettings *ts = scene->toolsettings;
-
-				if (ts->sculpt) {
-					Sculpt *sculpt = ts->sculpt;
-					sculpt->paint.symmetry_flags |= PAINT_SYMM_X;
-					sculpt->flags |= SCULPT_DYNTOPO_COLLAPSE;
-					sculpt->detail_size = 12;
-				}
-			}
-		}
-	}
 }
