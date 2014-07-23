@@ -51,6 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
@@ -367,10 +368,22 @@ static bool bake_object_check(Object *ob, ReportList *reports)
 	}
 
 	for (i = 0; i < ob->totcol; i++) {
-		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL);
+		bNodeTree *ntree = NULL;
+		bNode *node = NULL;
+		ED_object_get_active_image(ob, i + 1, &image, NULL, &node, &ntree);
 
 		if (image) {
-			ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+			ImBuf *ibuf;
+
+			if (node) {
+				if (BKE_node_is_connected_to_output(ntree, node)) {
+					BKE_reportf(reports, RPT_ERROR,
+					            "Circular dependency for image \"%s\" from object \"%s\"",
+					            image->id.name + 2, ob->id.name + 2);
+				}
+			}
+
+			ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
 			if (ibuf) {
 				BKE_image_release_ibuf(image, ibuf, lock);
@@ -477,7 +490,7 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 
 	for (i = 0; i < tot_mat; i++) {
 		Image *image;
-		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL);
+		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
 
 		if ((image->id.flag & LIB_DOIT)) {
 			for (j = 0; j < i; j++) {

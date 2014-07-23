@@ -201,7 +201,7 @@ void uvedit_get_aspect(Scene *scene, Object *ob, BMEditMesh *em, float *aspx, fl
 
 	if (efa) {
 		if (BKE_scene_use_new_shading_nodes(scene)) {
-			ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL);
+			ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
 		}
 		else {
 			MTexPoly *tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);

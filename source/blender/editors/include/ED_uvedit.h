@@ -54,7 +54,7 @@ void ED_uvedit_assign_image(struct Main *bmain, struct Scene *scene, struct Obje
 bool ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float min[2], float max[2]);
 
 bool ED_object_get_active_image(struct Object *ob, int mat_nr,
-                                struct Image **r_ima, struct ImageUser **r_iuser, struct bNode **r_node);
+                                struct Image **r_ima, struct ImageUser **r_iuser, struct bNode **r_node, struct bNodeTree **r_ntree);
 void ED_object_assign_active_image(struct Main *bmain, struct Object *ob, int mat_nr, struct Image *ima);
 
 bool ED_uvedit_test(struct Object *obedit);

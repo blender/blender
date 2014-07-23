@@ -137,21 +137,24 @@ static bool is_image_texture_node(bNode *node)
 }
 
 bool ED_object_get_active_image(Object *ob, int mat_nr,
-                                Image **r_ima, ImageUser **r_iuser, bNode **r_node)
+                                Image **r_ima, ImageUser **r_iuser, bNode **r_node, bNodeTree **r_ntree)
 {
 	Material *ma = give_current_material(ob, mat_nr);
-	bNode *node = (ma && ma->use_nodes) ? nodeGetActiveTexture(ma->nodetree) : NULL;
+	bNodeTree *ntree = (ma && ma->use_nodes) ? ma->nodetree : NULL;
+	bNode *node = (ntree) ? nodeGetActiveTexture(ntree) : NULL;
 
 	if (node && is_image_texture_node(node)) {
 		if (r_ima) *r_ima = (Image *)node->id;
 		if (r_iuser) *r_iuser = NULL;
 		if (r_node) *r_node = node;
+		if (r_ntree) *r_ntree = ntree;
 		return true;
 	}
 	
 	if (r_ima) *r_ima = NULL;
 	if (r_iuser) *r_iuser = NULL;
 	if (r_node) *r_node = node;
+	if (r_ntree) *r_ntree = ntree;
 
 	return false;
 }

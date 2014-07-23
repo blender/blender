@@ -585,6 +585,9 @@ void            node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpufu
 void            node_type_internal_links(struct bNodeType *ntype, void (*update_internal_links)(struct bNodeTree *, struct bNode *));
 void            node_type_compatibility(struct bNodeType *ntype, short compatibility);
 
+/* ************** GENERIC NODE FUNCTIONS *************** */
+bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node);
+
 /* ************** COMMON NODES *************** */
 
 #define NODE_UNDEFINED	-2		/* node type is not registered */

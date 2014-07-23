@@ -941,7 +941,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	int texture_set = 0;
 
 	/* draw image texture if we find one */
-	if (ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser, &node)) {
+	if (ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser, &node, NULL)) {
 		/* get openl texture */
 		int mipmap = 1;
 		int bindcode = (ima) ? GPU_verify_image(ima, iuser, 0, 0, mipmap, false) : 0;

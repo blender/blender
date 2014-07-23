@@ -336,6 +336,40 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
 			node_reroute_inherit_type_recursive(ntree, node);
 }
 
+static bool node_is_connected_to_output_recursive(bNodeTree *ntree, bNode *node)
+{
+	bNodeLink *link;
+
+	/* avoid redundant checks, and infinite loops in case of cyclic node links */
+	if (node->done)
+		return false;
+	node->done = 1;
+
+	/* main test, done before child loop so it catches output nodes themselves as well */
+	if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->flag & NODE_DO_OUTPUT)
+		return true;
+
+	/* test all connected nodes, first positive find is sufficient to return true */
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->fromnode == node) {
+			if (node_is_connected_to_output_recursive(ntree, link->tonode))
+				return true;
+		}
+	}
+	return false;
+}
+
+bool BKE_node_is_connected_to_output(bNodeTree *ntree, bNode *node)
+{
+	bNode *tnode;
+
+	/* clear flags */
+	for (tnode = ntree->nodes.first; tnode; tnode = tnode->next)
+		tnode->done = 0;
+
+	return node_is_connected_to_output_recursive(ntree, node);
+}
+
 void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree)
 {
 	bNode *node;
