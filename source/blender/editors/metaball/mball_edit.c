@@ -594,7 +594,7 @@ bool mouse_mball(bContext *C, const int mval[2], bool extend, bool deselect, boo
 	rect.ymin = mval[1] - 12;
 	rect.ymax = mval[1] + 12;
 
-	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
+	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, true);
 
 	/* does startelem exist? */
 	ml = mb->editelems->first;

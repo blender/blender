@@ -7231,7 +7231,7 @@ void createTransData(bContext *C, TransInfo *t)
 			}
 		}
 		else if (t->options & CTX_PAINT_CURVE) {
-			if(!ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN))
+			if (!ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN))
 				createTransPaintCurveVerts(C, t);
 		}
 		else if (t->obedit) {

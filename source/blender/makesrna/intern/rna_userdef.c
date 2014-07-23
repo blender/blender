@@ -91,6 +91,7 @@ EnumPropertyItem navigation_mode_items[] = {
 #include "BKE_idprop.h"
 
 #include "GPU_draw.h"
+#include "GPU_select.h"
 
 #include "BLF_api.h"
 
@@ -330,6 +331,11 @@ static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, Pointe
 
 	WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_GPU, NULL);
 	rna_userdef_update(bmain, scene, ptr);
+}
+
+static int rna_Scene_GPU_selection_supported(UserDef *UNUSED(U))
+{
+	return GPU_select_query_check_support();
 }
 
 static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -3588,7 +3594,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
 static void rna_def_userdef_system(BlenderRNA *brna)
 {
+	FunctionRNA *func;
 	PropertyRNA *prop;
+	PropertyRNA *parm;
 	StructRNA *srna;
 
 	static EnumPropertyItem gl_texture_clamp_items[] = {
@@ -3706,6 +3714,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{IMAGE_DRAW_METHOD_GLSL, "GLSL", 0, "GLSL", "Use GLSL shaders for display transform and draw image with 2D texture"},
 		{IMAGE_DRAW_METHOD_DRAWPIXELS, "DRAWPIXELS", 0, "DrawPixels", "Use CPU for display transform and draw image using DrawPixels"},
 		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem gpu_select_method_items[] = {
+	    {USER_SELECT_AUTO, "AUTO", 0, "Automatic", ""},
+	    {USER_SELECT_USE_SELECT_RENDERMODE, "GL_SELECT", 0, "OpenGL Select", ""},
+	    {USER_SELECT_USE_OCCLUSION_QUERY, "GL_QUERY", 0, "OpenGL Occlusion Queries", ""},
+	    {0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "UserPreferencesSystem", NULL);
@@ -3950,7 +3965,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_AA);
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
 	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
-	
+
+	func = RNA_def_function(srna, "is_occlusion_query_supported", "rna_Scene_GPU_selection_supported");
+	parm = RNA_def_boolean(func, "is_supported", 0, "Occlusion Query Support", "Check if GPU supports Occlusion Queries");
+	RNA_def_function_return(func, parm);
+
+	prop = RNA_def_property(srna, "select_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "gpu_select_method");
+	RNA_def_property_enum_items(prop, gpu_select_method_items);
+	RNA_def_property_ui_text(prop, "Selection Method", "Use OpenGL occlusion queries o selection rendermode to accelerate selection");
+
 	/* Full scene anti-aliasing */
 	prop = RNA_def_property(srna, "multi_sample", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ogl_multisamples");

@@ -39,6 +39,7 @@ incs = [
     '../../blenlib',
     '../../makesdna',
     '../../makesrna',
+    '../../gpu',
     '../../windowmanager',
     ]
 incs = ' '.join(incs)

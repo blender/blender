@@ -51,12 +51,14 @@ set(SRC
 	intern/gpu_extensions.c
 	intern/gpu_material.c
 	intern/gpu_simple_shader.c
+	intern/gpu_select.c
 
 	GPU_buffers.h
 	GPU_draw.h
 	GPU_extensions.h
 	GPU_material.h
 	GPU_simple_shader.h
+	GPU_select.h
 	intern/gpu_codegen.h
 )
 

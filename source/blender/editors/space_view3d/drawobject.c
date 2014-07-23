@@ -86,6 +86,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "GPU_select.h"
 
 #include "ED_mesh.h"
 #include "ED_particle.h"
@@ -1586,7 +1587,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 			continue;
 
 		if (dflag & DRAW_PICKING)
-			glLoadName(base->selcol + (tracknr << 16));
+			GPU_select_load_id(base->selcol + (tracknr << 16));
 
 		glPushMatrix();
 		glTranslatef(track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
@@ -1737,7 +1738,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	}
 
 	if (dflag & DRAW_PICKING)
-		glLoadName(base->selcol);
+		GPU_select_load_id(base->selcol);
 }
 
 /* flag similar to draw_object() */
@@ -6479,7 +6480,7 @@ static bool drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			
 			if (G.f & G_PICKSEL) {
 				ml->selcol1 = code;
-				glLoadName(code++);
+				GPU_select_load_id(code++);
 			}
 		}
 		drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad, imat);
@@ -6493,7 +6494,7 @@ static bool drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			
 			if (G.f & G_PICKSEL) {
 				ml->selcol2 = code;
-				glLoadName(code++);
+				GPU_select_load_id(code++);
 			}
 			drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad * atanf(ml->s) / (float)M_PI_2, imat);
 		}
