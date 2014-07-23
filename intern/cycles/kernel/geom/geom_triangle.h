@@ -127,10 +127,7 @@ ccl_device_inline float3 triangle_normal(KernelGlobals *kg, ShaderData *sd)
 	float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
 	
 	/* return normal */
-	if(sd->flag & SD_NEGATIVE_SCALE_APPLIED)
-		return normalize(cross(v2 - v0, v1 - v0));
-	else
-		return normalize(cross(v1 - v0, v2 - v0));
+	return normalize(cross(v1 - v0, v2 - v0));
 }
 
 /* point and normal on triangle  */

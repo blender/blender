@@ -449,8 +449,6 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 				}
 
 				object_flag[i] |= SD_TRANSFORM_APPLIED;
-				if(object->mesh->transform_negative_scaled)
-					object_flag[i] |= SD_NEGATIVE_SCALE_APPLIED;
 			}
 			else
 				have_instancing = true;

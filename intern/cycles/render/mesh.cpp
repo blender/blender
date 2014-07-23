@@ -341,6 +341,13 @@ void Mesh::add_vertex_normals()
 				vN[i] = -vN[i];
 		}
 	}
+	else if(flip) {
+		Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+		float3 *vN = attr_vN->data_float3();
+		for(size_t i = 0; i < verts_size; i++) {
+			vN[i] = -vN[i];
+		}
+	}
 
 	/* motion vertex normals */
 	Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -372,6 +379,14 @@ void Mesh::add_vertex_normals()
 				mN[i] = normalize(mN[i]);
 				if(flip)
 					mN[i] = -mN[i];
+			}
+		}
+	}
+	else if(has_motion_blur() && attr_mN && flip) {
+		for(int step = 0; step < motion_steps - 1; step++) {
+			float3 *mN = attr_mN->data_float3() + step*verts.size();
+			for(size_t i = 0; i < verts_size; i++) {
+				mN[i] = -mN[i];
 			}
 		}
 	}

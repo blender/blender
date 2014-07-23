@@ -593,7 +593,6 @@ enum ShaderDataFlag {
 	SD_HOLDOUT_MASK = 524288,			/* holdout for camera rays */
 	SD_OBJECT_MOTION = 1048576,			/* has object motion blur */
 	SD_TRANSFORM_APPLIED = 2097152,		/* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED = 4194304,	/* vertices have negative scale applied */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED)
 };
