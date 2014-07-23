@@ -517,7 +517,7 @@ MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
 	BLI_assert(mat_nr < dm->totmat);
 
 	if (dm->mat[mat_nr] && dm->mat[mat_nr]->texpaintslot &&
-	    dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname[0])
+	    dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname)
 	{
 		tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE,
 		                                     dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname);

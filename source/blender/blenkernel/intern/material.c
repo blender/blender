@@ -1388,7 +1388,7 @@ void BKE_texpaint_slot_refresh_cache(Material *ma, bool use_nodes)
 		for (mtex = ma->mtex, i = 0; i < MAX_MTEX; i++, mtex++) {
 			if (get_mtex_slot_valid_texpaint(*mtex)) {
 				ma->texpaintslot[index].ima = (*mtex)->tex->ima;
-				BLI_strncpy(ma->texpaintslot[index++].uvname, (*mtex)->uvname, 64);
+				ma->texpaintslot[index++].uvname = (*mtex)->uvname;
 			}
 		}
 	}

@@ -2107,7 +2107,7 @@ void RNA_def_material(BlenderRNA *brna)
 	                    "rna_Material_active_texture_set", "rna_Material_active_texture_editable",
 	                    "MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update", "rna_Material_update");
 
-	rna_def_mtex_texpaint(srna);
+	rna_def_texpaint_slots(brna, srna);
 
 	/* only material has this one */
 	prop = RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
@@ -2197,16 +2197,42 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, update_index);
 }
 
-void rna_def_mtex_texpaint(StructRNA *srna)
+static void rna_def_tex_slot(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "TexPaintSlot", NULL);
+	RNA_def_struct_ui_text(srna, "Texture Paint Slot",
+	                       "Slot that contains information about texture painting");
+
+	prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_maxlength(prop, 64); /* else it uses the pointer size! */
+	RNA_def_property_string_sdna(prop, NULL, "uvname");
+	RNA_def_property_ui_text(prop, "UV Map", "Name of UV map");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+}
+
+
+void rna_def_texpaint_slots(BlenderRNA *brna, StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+	rna_def_tex_slot(brna);
+
 	/* mtex */
-	prop = RNA_def_property(srna, "texture_paint_slots", PROP_COLLECTION, PROP_NONE);
+	prop = RNA_def_property(srna, "texture_paint_images", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "texpaintslot", NULL);
 	RNA_def_property_collection_funcs(prop, "rna_Material_texpaint_begin", "rna_iterator_array_next", "rna_iterator_array_end",
 	                                  "rna_iterator_array_dereference_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "Image");
-	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures");
+	RNA_def_property_ui_text(prop, "Texture Slot Images", "Texture images used for texture painting");
+
+	prop = RNA_def_property(srna, "texture_paint_slots", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_Material_texpaint_begin", "rna_iterator_array_next", "rna_iterator_array_end",
+	                                  "rna_iterator_array_get", NULL, NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "TexPaintSlot");
+	RNA_def_property_ui_text(prop, "Texture Slots", "Texture slots defining the mapping and influence of textures");
 
 	prop = RNA_def_property(srna, "paint_active_slot", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 0, INT_MAX);
@@ -2218,6 +2244,5 @@ void rna_def_mtex_texpaint(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Clone Paint Texture Index", "Index of clone texture paint slot");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, NULL);
 }
-
 
 #endif

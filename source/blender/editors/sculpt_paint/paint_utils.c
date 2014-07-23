@@ -312,7 +312,7 @@ static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, c
 			if (mf.v4)
 				dm->getVert(dm, mf.v4, &mv[3]);
 
-			if (!slot->uvname[0] || !(tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, slot->uvname)))
+			if (!slot->uvname || !(tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, slot->uvname)))
 				tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
 
 			tf = &tf_base[a];

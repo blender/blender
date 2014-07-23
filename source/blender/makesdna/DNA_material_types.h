@@ -85,7 +85,7 @@ typedef struct GameSettings {
 
 typedef struct TexPaintSlot {
 	struct Image *ima; /* image to be painted on */
-	char uvname[64]; /* customdata index for uv layer, MAX_NAME*/
+	char *uvname; /* customdata index for uv layer, MAX_NAME*/
 } TexPaintSlot;
 
 typedef struct Material {

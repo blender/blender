@@ -497,7 +497,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 		MPoly *mpoly = me->mpoly;
 		MLoopUV *mloopuv, *mloopuv_base;
 		int a, b;
-		if (!(ma && ma->texpaintslot && ma->texpaintslot[ma->paint_active_slot].uvname[0] &&
+		if (!(ma && ma->texpaintslot && ma->texpaintslot[ma->paint_active_slot].uvname &&
 		      (mloopuv = CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, ma->texpaintslot[ma->paint_active_slot].uvname))))
 		{
 			mloopuv = me->mloopuv;

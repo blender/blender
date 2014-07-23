@@ -1076,7 +1076,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         if mat:
             col.label("Available Paint Slots")
             col.template_list("TEXTURE_UL_texpaintslots", "",
-                              mat, "texture_paint_slots",
+                              mat, "texture_paint_images",
                               mat, "paint_active_slot", rows=2)
 
             if not mat.use_nodes:
@@ -1086,6 +1086,11 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 row.prop(settings, "slot_xresolution_default")
                 row.prop(settings, "slot_yresolution_default")
                 col.prop(settings, "slot_color_default")
+
+                slot = mat.texture_paint_slots[mat.paint_active_slot]
+                col.separator()
+                col.label("UV Layer")
+                col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
 
 
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
