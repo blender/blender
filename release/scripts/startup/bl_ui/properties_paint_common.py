@@ -170,7 +170,7 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
         panel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
         panel.prop_unified_size(row, context, brush, "use_pressure_size")
 
-        row = col.row(align=True)
+    row = col.row(align=True)
 
     if capabilities.has_space_attenuation:
         row.prop(brush, "use_space_attenuation", toggle=True, icon_only=True)
