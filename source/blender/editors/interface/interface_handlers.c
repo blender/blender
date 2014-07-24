@@ -385,7 +385,7 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 	}
 }
 
-static bool ui_but_editable(uiBut *but)
+static bool ui_but_is_editable(const uiBut *but)
 {
 	return ELEM(but->type, LABEL, SEPR, SEPRLINE, ROUNDBOX, LISTBOX, PROGRESSBAR);
 }
@@ -394,7 +394,7 @@ static uiBut *ui_but_prev(uiBut *but)
 {
 	while (but->prev) {
 		but = but->prev;
-		if (!ui_but_editable(but)) return but;
+		if (ui_but_is_editable(but)) return but;
 	}
 	return NULL;
 }
@@ -403,7 +403,7 @@ static uiBut *ui_but_next(uiBut *but)
 {
 	while (but->next) {
 		but = but->next;
-		if (!ui_but_editable(but)) return but;
+		if (ui_but_is_editable(but)) return but;
 	}
 	return NULL;
 }
@@ -414,7 +414,7 @@ static uiBut *ui_but_first(uiBlock *block)
 	
 	but = block->buttons.first;
 	while (but) {
-		if (!ui_but_editable(but)) return but;
+		if (ui_but_is_editable(but)) return but;
 		but = but->next;
 	}
 	return NULL;
@@ -426,7 +426,7 @@ static uiBut *ui_but_last(uiBlock *block)
 	
 	but = block->buttons.last;
 	while (but) {
-		if (!ui_but_editable(but)) return but;
+		if (ui_but_is_editable(but)) return but;
 		but = but->prev;
 	}
 	return NULL;
@@ -8600,15 +8600,15 @@ static int ui_handler_popup(bContext *C, const wmEvent *event, void *userdata)
 
 	/* free if done, does not free handle itself */
 	if (menu->menuretval) {
+		wmWindow *win = CTX_wm_window(C);
 		/* copy values, we have to free first (closes region) */
 		uiPopupBlockHandle temp = *menu;
 		
 		ui_popup_block_free(C, menu);
-		UI_remove_popup_handlers(&CTX_wm_window(C)->modalhandlers, menu);
+		UI_remove_popup_handlers(&win->modalhandlers, menu);
 
 #ifdef USE_DRAG_TOGGLE
 		{
-			wmWindow *win = CTX_wm_window(C);
 			WM_event_free_ui_handler_all(C, &win->modalhandlers,
 			                             ui_handler_region_drag_toggle, ui_handler_region_drag_toggle_remove);
 		}
