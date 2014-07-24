@@ -4849,7 +4849,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 				mtex->mapto = type;
 
 				if (mtex->tex) {
-					float color[4];
+					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 					char imagename[MAX_ID_NAME - 2] = "Material Diffuse Color";
 					int width = 1024;
 					int height = 1024;
