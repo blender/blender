@@ -7906,6 +7906,7 @@ static int ui_handle_menu_event(
 	if (menu->is_grab) {
 		if (event->type == LEFTMOUSE) {
 			menu->is_grab = false;
+			retval = WM_UI_HANDLER_BREAK;
 		}
 		else {
 			if (event->type == MOUSEMOVE) {
@@ -8263,9 +8264,10 @@ static int ui_handle_menu_event(
 			else if ((event->type == LEFTMOUSE) && (event->val == KM_PRESS) &&
 			         (inside && is_floating && inside_title))
 			{
-				if (!ui_but_find_activated(ar)) {
+				if (!but || !ui_mouse_inside_button(ar, but, event->x, event->y)) {
 					menu->is_grab = true;
 					copy_v2_v2_int(menu->grab_xy_prev, &event->x);
+					retval = WM_UI_HANDLER_BREAK;
 				}
 			}
 #endif
