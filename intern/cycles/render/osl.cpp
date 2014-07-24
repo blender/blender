@@ -248,7 +248,11 @@ void OSLShaderManager::shading_system_free()
 
 bool OSLShaderManager::osl_compile(const string& inputfile, const string& outputfile)
 {
+#if OSL_LIBRARY_VERSION_CODE >= 10500
+	vector<string_view> options;
+#else
 	vector<string> options;
+#endif
 	string stdosl_path;
 
 	/* specify output file name */
