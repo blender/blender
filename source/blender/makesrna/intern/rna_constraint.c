@@ -2452,6 +2452,12 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, frame_method_items);
 	RNA_def_property_ui_text(prop, "Frame Method", "How the footage fits in the camera frame");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	/* use undistortion */
+	prop = RNA_def_property(srna, "use_undistorted_position", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FOLLOWTRACK_USE_UNDISTORTION);
+	RNA_def_property_ui_text(prop, "Undistort", "Parent to undistorted position of 2D track");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
 
 static void rna_def_constraint_camera_solver(BlenderRNA *brna)

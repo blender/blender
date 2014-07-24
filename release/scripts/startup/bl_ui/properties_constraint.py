@@ -788,6 +788,10 @@ class ConstraintButtonsPanel():
         row.prop(con, "use_active_clip")
         row.prop(con, "use_3d_position")
 
+        sub = row.column()
+        sub.active = not con.use_3d_position
+        sub.prop(con, "use_undistorted_position")
+
         col = layout.column()
 
         if not con.use_active_clip:

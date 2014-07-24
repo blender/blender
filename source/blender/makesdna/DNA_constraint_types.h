@@ -796,7 +796,8 @@ typedef enum ePivotConstraint_Flag {
 
 typedef enum eFollowTrack_Flags {
 	FOLLOWTRACK_ACTIVECLIP	= (1<<0),
-	FOLLOWTRACK_USE_3D_POSITION	= (1<<1)
+	FOLLOWTRACK_USE_3D_POSITION	= (1<<1),
+	FOLLOWTRACK_USE_UNDISTORTION	= (1<<2)
 } eFollowTrack_Flags;
 
 typedef enum eFollowTrack_FrameMethod {

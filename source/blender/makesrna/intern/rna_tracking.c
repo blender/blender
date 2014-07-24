@@ -393,6 +393,7 @@ static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerR
 	nodeUpdateID(scene->nodetree, &clip->id);
 
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
+	WM_main_add_notifier(NC_SCENE, NULL);
 	DAG_id_tag_update(&clip->id, 0);
 }
 

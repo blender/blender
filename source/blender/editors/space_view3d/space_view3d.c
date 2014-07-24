@@ -915,7 +915,7 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_MOVIECLIP:
-			if (wmn->data == ND_DISPLAY)
+			if (wmn->data == ND_DISPLAY || wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
