@@ -1392,7 +1392,7 @@ void paint_2d_bucket_fill(
 		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y);
 
 		if (do_float) {
-			for (; x_px < ibuf->x; x_px++) {
+			for (x_px = 0; x_px < ibuf->x; x_px++) {
 				for (y_px = 0; y_px < ibuf->y; y_px++) {
 					blend_color_mix_float(ibuf->rect_float + 4 * (y_px * ibuf->x + x_px),
 					                      ibuf->rect_float + 4 * (y_px * ibuf->x + x_px), color_f);
@@ -1400,7 +1400,7 @@ void paint_2d_bucket_fill(
 			}
 		}
 		else {
-			for (; x_px < ibuf->x; x_px++) {
+			for (x_px = 0; x_px < ibuf->x; x_px++) {
 				for (y_px = 0; y_px < ibuf->y; y_px++) {
 					blend_color_mix_byte((unsigned char *)(ibuf->rect + y_px * ibuf->x + x_px),
 					                     (unsigned char *)(ibuf->rect + y_px * ibuf->x + x_px), (unsigned char *)&color_b);

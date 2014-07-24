@@ -6435,10 +6435,13 @@ bool UI_but_active_drop_name(bContext *C)
 bool UI_but_active_drop_color(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
-	uiBut *but = ui_but_find_activated(ar);
 
-	if (but && but->type == COLOR)
-		return true;
+	if (ar) {
+		uiBut *but = ui_but_find_activated(ar);
+
+		if (but && but->type == COLOR)
+			return true;
+	}
 
 	return false;
 }

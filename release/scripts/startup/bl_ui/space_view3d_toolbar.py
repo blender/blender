@@ -1049,7 +1049,7 @@ class TEXTURE_UL_texpaintslots(UIList):
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
     bl_context = "imagepaint"
     bl_label = "Slots"
-    bl_category = "Layers"
+    bl_category = "Slots"
 
     @classmethod
     def poll(cls, context):
@@ -1092,7 +1092,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
     bl_context = "imagepaint"
     bl_label = "Stencil"
-    bl_category = "Layers"
+    bl_category = "Slots"
 
     @classmethod
     def poll(cls, context):
