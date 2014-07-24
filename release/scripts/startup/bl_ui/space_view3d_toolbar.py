@@ -1040,7 +1040,7 @@ class TEXTURE_UL_texpaintslots(UIList):
         ima = item
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=ima.name, translate=False, icon_value=icon)
+            layout.prop(item, "name", text="", emboss=False, icon_value=icon)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="")
@@ -1068,7 +1068,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
         if len(ob.material_slots) > 1:
             col.label("Materials")
-            col.template_list("MATERIAL_UL_matslots", "",
+            col.template_list("MATERIAL_UL_matslots", "layers",
                               ob, "material_slots",
                               ob, "active_material_index", rows=2)
 
