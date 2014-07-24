@@ -4816,11 +4816,10 @@ static EnumPropertyItem layer_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-bool proj_paint_add_slot(bContext *C, int type, Material *ma, wmOperator *op)
+bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
-	int i;
 	bool use_nodes = BKE_scene_use_new_shading_nodes(scene);
 
 	if (!ob)
@@ -4841,19 +4840,17 @@ bool proj_paint_add_slot(bContext *C, int type, Material *ma, wmOperator *op)
 			if (mtex) {
 				Main *bmain = CTX_data_main(C);
 				Image *ima;
-				const char *name;
+				int type = MAP_COL;
 
-				/* get the name of the texture layer type */
-				i = RNA_enum_from_value(layer_type_items, type);
-				BLI_assert(i != -1);
-				name = layer_type_items[i].name;
+				if (op)
+					type = RNA_enum_get(op->ptr, "type");
 
-				mtex->tex = add_texture(bmain, DATA_(name));
+				mtex->tex = add_texture(bmain, DATA_(layer_type_items[type].name));
 				mtex->mapto = type;
 
 				if (mtex->tex) {
-					char imagename[FILE_MAX];
 					float color[4];
+					char imagename[MAX_ID_NAME - 2] = "Material Diffuse Color";
 					int width = 1024;
 					int height = 1024;
 					bool use_float = false;
@@ -4867,6 +4864,7 @@ bool proj_paint_add_slot(bContext *C, int type, Material *ma, wmOperator *op)
 						gen_type = RNA_enum_get(op->ptr, "generated_type");
 						RNA_float_get_array(op->ptr, "color", color);
 						alpha = RNA_boolean_get(op->ptr, "alpha");
+						RNA_string_get(op->ptr, "name", imagename);
 					}
 
 					if (!use_float) {
@@ -4874,9 +4872,6 @@ bool proj_paint_add_slot(bContext *C, int type, Material *ma, wmOperator *op)
 						 * painting result on viewport too opaque */
 						color[3] = 1.0;
 					}
-
-					/* take the second letter to avoid the ID identifier */
-					BLI_snprintf(imagename, FILE_MAX, "%s_%s", &ma->id.name[2], name);
 
 					ima = mtex->tex->ima = BKE_image_add_generated(bmain, width, height, imagename, alpha ? 32 : 24, use_float,
 					                                               gen_type, color);
@@ -4899,16 +4894,30 @@ bool proj_paint_add_slot(bContext *C, int type, Material *ma, wmOperator *op)
 
 static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op)
 {
-	int type = RNA_enum_get(op->ptr, "type");
-
-	return proj_paint_add_slot(C, type, NULL, op);
+	return proj_paint_add_slot(C, NULL, op);
 }
 
 
 static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	char imagename[MAX_ID_NAME - 2];
+	Object *ob = CTX_data_active_object(C);
+	Material *ma = give_current_material(ob, ob->actcol);
+	int type = RNA_enum_get(op->ptr, "type");
+
+	type = RNA_enum_from_value(layer_type_items, type);
+
+	/* get the name of the texture layer type */
+	BLI_assert(type != -1);
+
+	/* take the second letter to avoid the ID identifier */
+	BLI_snprintf(imagename, FILE_MAX, "%s %s", &ma->id.name[2], layer_type_items[type].name);
+
+	RNA_string_set(op->ptr, "name", imagename);
 	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
 }
+
+#define IMA_DEF_NAME N_("Untitled")
 
 
 void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
@@ -4932,6 +4941,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
 	/* properties */
 	prop = RNA_def_enum(ot->srna, "type", layer_type_items, 0, "Type", "Merge method to use");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_string(ot->srna, "name", IMA_DEF_NAME, MAX_ID_NAME - 2, "Name", "Image datablock name");
 	prop = RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width", 1, 16384);
 	RNA_def_property_subtype(prop, PROP_PIXEL);
 	prop = RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height", 1, 16384);

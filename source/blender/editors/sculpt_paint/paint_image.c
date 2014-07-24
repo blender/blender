@@ -1372,7 +1372,7 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 			if (ma) {
 				has_material = true;
 				if (!ma->texpaintslot) {
-					proj_paint_add_slot(C, MAP_COL, ma, NULL);
+					proj_paint_add_slot(C, ma, NULL);
 				}
 			}
 		}
@@ -1385,7 +1385,7 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 		Material *ma = BKE_material_add(CTX_data_main(C), "Material");
 		/* no material found, just assign to first slot */
 		assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
-		proj_paint_add_slot(C, MAP_COL, ma, NULL);
+		proj_paint_add_slot(C, ma, NULL);
 	}
 
 	me = BKE_mesh_from_object(ob);
