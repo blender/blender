@@ -45,6 +45,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_icons.h"
 #include "BKE_main.h"
@@ -178,7 +179,10 @@ void ED_render_engine_changed(Main *bmain)
 
 	/* reset texture painting */
 	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
-		BKE_texpaint_slots_clear(ma);
+		if (ma->texpaintslot) {
+			BKE_texpaint_slots_clear(ma);
+			DAG_id_tag_update(&ma->id, 0);
+		}
 	}
 }
 
