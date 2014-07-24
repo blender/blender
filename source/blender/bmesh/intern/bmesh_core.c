@@ -1732,8 +1732,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
 						l_kill = l_kill->radial_next;
 					}
 					for (i = 0; i < radlen; i++) {
-						bm->totloop--;
-						BLI_mempool_free(bm->lpool, loops[i]);
+						bm_kill_only_loop(bm, loops[i]);
 					}
 				}
 #ifndef NDEBUG
