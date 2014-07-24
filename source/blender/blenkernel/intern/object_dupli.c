@@ -754,14 +754,14 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
 
 			if (orco) {
 				int j;
-				for (j = 0; j < mpoly->totloop; j++) {
+				for (j = 0; j < mp->totloop; j++) {
 					madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
 				}
 			}
 
 			if (mloopuv) {
 				int j;
-				for (j = 0; j < mpoly->totloop; j++) {
+				for (j = 0; j < mp->totloop; j++) {
 					madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j].uv, w);
 				}
 			}
