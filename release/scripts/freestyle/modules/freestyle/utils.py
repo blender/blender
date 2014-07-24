@@ -191,12 +191,21 @@ def iter_material_value(stroke, func, attribute):
     for svert in it:
         material = func(it)
         # main
-        if attribute == 'DIFF':
-            value = rgb_to_bw(*material.diffuse[0:3])
+        if attribute == 'LINE':
+            value = rgb_to_bw(*material.line[0:3])
         elif attribute == 'ALPHA':
-            value = material.diffuse[3]
+            value = material.line[3]
+        elif attribute == 'DIFF':
+            value = rgb_to_bw(*material.diffuse[0:3])
         elif attribute == 'SPEC':
             value = rgb_to_bw(*material.specular[0:3])
+        # line seperate
+        elif attribute == 'LINE_R':
+            value = material.line[0]
+        elif attribute == 'LINE_G':
+            value = material.line[1]
+        elif attribute == 'LINE_B':
+            value = material.line[2]
         # diffuse seperate
         elif attribute == 'DIFF_R':
             value = material.diffuse[0]

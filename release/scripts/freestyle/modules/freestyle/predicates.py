@@ -46,13 +46,13 @@ from _freestyle import (
 # constructs for predicate definition in Python
 from freestyle.types import (
     BinaryPredicate1D,
+    Id,
     IntegrationType,
+    Interface0DIterator,
     Nature,
     TVertex,
     UnaryPredicate0D,
     UnaryPredicate1D,
-    Id,
-    Interface0DIterator,
     )
 from freestyle.functions import (
     Curvature2DAngleF0D,
@@ -160,7 +160,7 @@ class AndUP1D(UnaryPredicate1D):
         self.predicates = predicates
         # there are cases in which only one predicate is supplied (in the parameter editor)
         if len(self.predicates) < 1:
-            raise ValueError("Expected two or more UnaryPredicate1D, got ", len(predicates))
+            raise ValueError("Expected one or more UnaryPredicate1D, got ", len(predicates))
 
     def __call__(self, inter):
         return all(pred(inter) for pred in self.predicates)
@@ -172,7 +172,7 @@ class OrUP1D(UnaryPredicate1D):
         self.predicates = predicates
         # there are cases in which only one predicate is supplied (in the parameter editor)
         if len(self.predicates) < 1:
-            raise ValueError("Expected two or more UnaryPredicate1D, got ", len(predicates))
+            raise ValueError("Expected one or more UnaryPredicate1D, got ", len(predicates))
 
     def __call__(self, inter):
         return any(pred(inter) for pred in self.predicates)

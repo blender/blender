@@ -207,13 +207,13 @@ class ThicknessBlenderMixIn(ThicknessModifierMixIn):
         v = self.blend(outer + inner, v)
 
         # Part 1: blend
-        if self.position == "CENTER":
+        if self.position == 'CENTER':
             outer = inner = v * 0.5
-        elif self.position == "INSIDE":
+        elif self.position == 'INSIDE':
             outer, inner = 0, v
-        elif self.position == "OUTSIDE":
+        elif self.position == 'OUTSIDE':
             outer, inner = v, 0
-        elif self.position == "RELATIVE":
+        elif self.position == 'RELATIVE':
             outer, inner = v * self.ratio, v - (v * self.ratio)
         else:
             raise ValueError("unknown thickness position: " + position)
@@ -415,10 +415,10 @@ class ColorMaterialShader(ColorRampModifier):
         if not self.use_ramp and self.attribute in attributes:
             for svert in it:
                 material = self.func(it)
-                if self.attribute == 'DIFF':
-                    b = material.diffuse[0:3]
-                elif self.attribute == 'LINE':
+                if self.attribute == 'LINE':
                     b = material.line[0:3] 
+                elif self.attribute == 'DIFF':
+                    b = material.diffuse[0:3]
                 else:
                     b = material.specular[0:3]
                 a = svert.attribute.color
@@ -706,10 +706,10 @@ class DashedLineShader(StrokeShader):
     def shade(self, stroke):
         start = 0.0  # 2D curvilinear length
         visible = True
-        """ The extra 'sampling' term is added below, because the
-        visibility attribute of the i-th vertex refers to the
-        visibility of the stroke segment between the i-th and
-        (i+1)-th vertices. """
+        # The extra 'sampling' term is added below, because the
+        # visibility attribute of the i-th vertex refers to the
+        # visibility of the stroke segment between the i-th and
+        # (i+1)-th vertices.
         sampling = 1.0
         it = stroke.stroke_vertices_begin(sampling)
         pattern_cycle = cycle(self.pattern)
