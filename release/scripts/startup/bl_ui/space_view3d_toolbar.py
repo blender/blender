@@ -1079,7 +1079,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                               mat, "texture_paint_images",
                               mat, "paint_active_slot", rows=2)
 
-            if not mat.use_nodes:
+            if (not mat.use_nodes) and (context.scene.render.engine == 'BLENDER_RENDER'):
                 col.operator_menu_enum("paint.add_texture_paint_slot", "type")
 
                 slot = mat.texture_paint_slots[mat.paint_active_slot]
