@@ -33,10 +33,8 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 builder = sys.argv[1]
-branch = ''
-
-if len(sys.argv) >= 3:
-    branch = sys.argv[2]
+# Never write branch if it is master.
+branch = sys.argv[2] if (len(sys.argv) >= 3 and sys.argv[2] != 'master') else ''
 
 # scons does own packaging
 if builder.find('scons') != -1:
