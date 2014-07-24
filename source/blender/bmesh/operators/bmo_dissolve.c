@@ -373,9 +373,8 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 		}
-		if (!use_face_split) {
-			bm_face_split(bm, VERT_MARK_TEAR, true);
-		}
+
+		bm_face_split(bm, VERT_MARK_TEAR, true);
 	}
 
 	BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
