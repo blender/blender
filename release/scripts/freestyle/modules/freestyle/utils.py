@@ -27,13 +27,20 @@ from _freestyle import (
     integrate,
     )
 
+from freestyle.types import (
+    Interface0DIterator,
+    Stroke,
+    StrokeVertexIterator,
+    )
+
+
 from mathutils import Vector
-from functools import lru_cache
+from functools import lru_cache, namedtuple
 from math import cos, sin, pi
+from itertools import tee
 
 
 # -- real utility functions  -- #
-
 
 def rgb_to_bw(r, g, b):
     """ Method to convert rgb to a bw intensity value. """
@@ -55,7 +62,6 @@ def bounding_box(stroke):
     x, y = zip(*(svert.point for svert in stroke))
     return (Vector((min(x), min(y))), Vector((max(x), max(y))))
 
-
 # -- General helper functions -- #
 
 
@@ -72,9 +78,11 @@ def phase_to_direction(length):
         results.append((phase, Vector((cos(2 * pi * phase), sin(2 * pi * phase)))))
     return results
 
+# A named tuple primitive used for storing data that 
+# has an upper and lower bound (eg. thickness, range and certain values)
+BoundedProperty = namedtuple("BoundedProperty", ["min", "max", "delta"])
 
 # -- helper functions for chaining -- #
-
 
 def get_chain_length(ve, orientation):
     """Returns the 2d length of a given ViewEdge """
@@ -112,156 +120,112 @@ def get_chain_length(ve, orientation):
 
 
 def find_matching_vertex(id, it):
-    """Finds the matching vertexn, or returns None """
+    """Finds the matching vertex, or returns None """
     return next((ve for ve in it if ve.id == id), None)
-
 
 # -- helper functions for iterating -- #
 
+def pairwise(iterable, types={Stroke, StrokeVertexIterator}):
+    """Yields a tuple containing the previous and current object """
+    # use .incremented() for types that support it
+    if type(iterable) in types:
+        it = iter(iterable)
+        return zip(it, it.incremented())
+    else:
+        a, b = tee(iterable)
+        next(b, None)
+        return zip(a, b)
 
-def iter_current_previous(stroke):
-    """
-    iterates over the given iterator. yields a tuple of the form
-    (it, prev, current)
-    """
-    prev = stroke[0]
-    it = Interface0DIterator(stroke)
-    for current in it:
-        yield (it, prev, current)
+
+def tripplewise(iterable):
+    """Yields a tuple containing the current object and its immediate neighbors """
+    a, b, c = tee(iterable)
+    next(b, None)
+    next(c, None)
+    return zip(a, b, c)
 
 
 def iter_t2d_along_stroke(stroke):
-    """
-    Yields the distance between two stroke vertices
-    relative to the total stroke length.
-    """
+    """ Yields the progress along the stroke """
     total = stroke.length_2d
     distance = 0.0
-    for it, prev, svert in iter_current_previous(stroke):
+    # yield for the comparison from the first vertex to itself
+    yield 0.0
+    for prev, svert in pairwise(stroke):
         distance += (prev.point - svert.point).length
-        t = min(distance / total, 1.0) if total > 0.0 else 0.0
-        yield (it, t)
+        yield min(distance / total, 1.0) if total != 0.0 else 0.0
 
 
-def iter_distance_from_camera(stroke, range_min, range_max):
+def iter_distance_from_camera(stroke, range_min, range_max, normfac):
     """
     Yields the distance to the camera relative to the maximum
     possible distance for every stroke vertex, constrained by
     given minimum and maximum values.
     """
-    normfac = range_max - range_min  # normalization factor
-    it = Interface0DIterator(stroke)
-    for svert in it:
-        distance = svert.point_3d.length  # in the camera coordinate
-        if distance < range_min:
-            t = 0.0
-        elif distance > range_max:
-            t = 1.0
+    for svert in stroke:
+        # length in the camera coordinate
+        distance = svert.point_3d.length
+        if range_min < distance < range_max:
+            yield (svert, (distance - range_min) / normfac)
         else:
-            t = (distance - range_min) / normfac
-        yield (it, t)
+            yield (svert, 0.0) if range_min > distance else (svert, 1.0)
 
 
-def iter_distance_from_object(stroke, object, range_min, range_max):
+def iter_distance_from_object(stroke, location, range_min, range_max, normfac):
     """
     yields the distance to the given object relative to the maximum
     possible distance for every stroke vertex, constrained by
     given minimum and maximum values.
     """
-    scene = getCurrentScene()
-    mv = scene.camera.matrix_world.copy().inverted()  # model-view matrix
-    loc = mv * object.location  # loc in the camera coordinate
-    normfac = range_max - range_min  # normalization factor
-    it = Interface0DIterator(stroke)
-    for svert in it:
-        distance = (svert.point_3d - loc).length # in the camera coordinate
-        if distance < range_min:
-            t = 0.0
-        elif distance > range_max:
-            t = 1.0
+    for svert in stroke:
+        distance = (svert.point_3d - location).length  # in the camera coordinate
+        if range_min < distance < range_max:
+            yield (svert, (distance - range_min) / normfac)
         else:
-            t = (distance - range_min) / normfac
-        yield (it, t)
+            yield (svert, 0.0) if distance < range_min else (svert, 1.0)
 
 
-def iter_material_color(stroke, material_attribute):
-    """
-    yields the specified material attribute for every stroke vertex.
-    the material is taken from the object behind the vertex.
-    """
-    func = CurveMaterialF0D()
-    it = Interface0DIterator(stroke)
-    for inter in it:
-        material = func(it)
-        if material_attribute == 'DIFF':
-            color = material.diffuse[0:3]
-        elif material_attribute == 'SPEC':
-            color = material.specular[0:3]
-        else:
-            raise ValueError("unexpected material attribute: " + material_attribute)
-        yield (it, color)
-
-
-def iter_material_value(stroke, material_attribute):
-    """
-    yields a specific material attribute
-    from the vertex' underlying material.
-    """
-    func = CurveMaterialF0D()
+def iter_material_value(stroke, func, attribute):
+    "Yields a specific material attribute from the vertex' underlying material. "
     it = Interface0DIterator(stroke)
     for svert in it:
         material = func(it)
-        if material_attribute == 'DIFF':
-            t = rgb_to_bw(*material.diffuse[0:3])
-        elif material_attribute == 'DIFF_R':
-            t = material.diffuse[0]
-        elif material_attribute == 'DIFF_G':
-            t = material.diffuse[1]
-        elif material_attribute == 'DIFF_B':
-            t = material.diffuse[2]
-        elif material_attribute == 'SPEC':
-            t = rgb_to_bw(*material.specular[0:3])
-        elif material_attribute == 'SPEC_R':
-            t = material.specular[0]
-        elif material_attribute == 'SPEC_G':
-            t = material.specular[1]
-        elif material_attribute == 'SPEC_B':
-            t = material.specular[2]
-        elif material_attribute == 'SPEC_HARDNESS':
-            t = material.shininess
-        elif material_attribute == 'ALPHA':
-            t = material.diffuse[3]
+        # main
+        if attribute == 'DIFF':
+            value = rgb_to_bw(*material.diffuse[0:3])
+        elif attribute == 'ALPHA':
+            value = material.diffuse[3]
+        elif attribute == 'SPEC':
+            value = rgb_to_bw(*material.specular[0:3])
+        # diffuse seperate
+        elif attribute == 'DIFF_R':
+            value = material.diffuse[0]
+        elif attribute == 'DIFF_G':
+            value = material.diffuse[1]
+        elif attribute == 'DIFF_B':
+            value = material.diffuse[2]
+        # specular seperate
+        elif attribute == 'SPEC_R':
+            value = material.specular[0]
+        elif attribute == 'SPEC_G':
+            value = material.specular[1]
+        elif attribute == 'SPEC_B':
+            value = material.specular[2]
+        elif attribute == 'SPEC_HARDNESS':
+            value = material.shininess
         else:
-            raise ValueError("unexpected material attribute: " + material_attribute)
-        yield (it, t)
-
+            raise ValueError("unexpected material attribute: " + attribute)
+        yield (svert, value)
 
 def iter_distance_along_stroke(stroke):
-    """
-    yields the absolute distance between
-    the current and preceding vertex.
-    """
+    "Yields the absolute distance along the stroke up to the current vertex."
     distance = 0.0
-    prev = stroke[0]
-    it = Interface0DIterator(stroke)
-    for svert in it:
-        p = svert.point
-        distance += (prev - p).length
-        prev = p.copy()  # need a copy because the point can be altered
-        yield it, distance
-
-
-def iter_triplet(it):
-    """
-    Iterates over it, yielding a tuple containing
-    the current vertex and its immediate neighbors
-    """
-    prev = next(it)
-    current = next(it)
-    for succ in it:
-        yield prev, current, succ
-        prev, current = current, succ
-
+    # the positions need to be copied, because they are changed in the calling function
+    points = tuple(svert.point.copy() for svert in stroke)
+    yield distance
+    for prev, curr in pairwise(points):
+        distance += (prev - curr).length
+        yield distance
 
 # -- mathmatical operations -- #
 
@@ -272,55 +236,73 @@ def stroke_curvature(it):
     K = 1 / R
     where R is the radius of the circle going through the current vertex and its neighbors
     """
+    for _ in it:
+        if (it.is_begin or it.is_end):
+            yield 0.0
+            continue
+        else:
+            it.decrement()
+            prev, current, succ = it.object.point.copy(), next(it).point.copy(), next(it).point.copy()
+            # return the iterator in an unchanged state
+            it.decrement()
 
-    if it.is_end or it.is_begin:
-        return 0.0
+        ab = (current - prev)
+        bc = (succ - current)
+        ac = (prev - succ)
 
-    next = it.incremented().point
-    prev = it.decremented().point
-    current = it.object.point
+        a, b, c = ab.length, bc.length, ac.length
 
+        try:
+            area = 0.5 * ab.cross(ac)
+            K = (4 * area) / (a * b * c)
+        except ZeroDivisionError:
+            K = 0.0
 
-    ab = (current - prev)
-    bc = (next - current)
-    ac = (prev - next)
+        yield abs(K)
 
-    a, b, c = ab.length, bc.length, ac.length
-
-    try:
-        area = 0.5 * ab.cross(ac)
-        K = (4 * area) / (a * b * c)
-        K = bound(0.0, K, 1.0)
-
-    except ZeroDivisionError:
-        K = 0.0
-
-    return K
-
-
-def stroke_normal(it):
+def stroke_normal(stroke):
     """
     Compute the 2D normal at the stroke vertex pointed by the iterator
     'it'.  It is noted that Normal2DF0D computes normals based on
     underlying FEdges instead, which is inappropriate for strokes when
     they have already been modified by stroke geometry modifiers.
+
+    The returned normals are dynamic: they update when the
+    vertex position (and therefore the vertex normal) changes.
+    for use in geometry modifiers it is advised to 
+    cast this generator function to a tuple or list
     """
-    # first stroke segment
-    it_next = it.incremented()
-    if it.is_begin:
-        e = it_next.object.point_2d - it.object.point_2d
-        n = Vector((e[1], -e[0]))
-        return n.normalized()
-    # last stroke segment
-    it_prev = it.decremented()
-    if it_next.is_end:
-        e = it.object.point_2d - it_prev.object.point_2d
-        n = Vector((e[1], -e[0]))
-        return n.normalized()
-    # two subsequent stroke segments
-    e1 = it_next.object.point_2d - it.object.point_2d
-    e2 = it.object.point_2d - it_prev.object.point_2d
-    n1 = Vector((e1[1], -e1[0])).normalized()
-    n2 = Vector((e2[1], -e2[0])).normalized()
-    n = (n1 + n2)
-    return n.normalized()
+    n = len(stroke) - 1
+
+    for i, svert in enumerate(stroke):
+        if i == 0:
+            e = stroke[i + 1].point - svert.point
+            yield Vector((e[1], -e[0])).normalized()
+        elif i == n:
+            e = svert.point - stroke[i - 1].point
+            yield Vector((e[1], -e[0])).normalized()
+        else:
+            e1 = stroke[i + 1].point - svert.point
+            e2 = svert.point - stroke[i - 1].point
+            n1 = Vector((e1[1], -e1[0])).normalized()
+            n2 = Vector((e2[1], -e2[0])).normalized()
+            yield (n1 + n2).normalized()
+
+def get_test_stroke():
+    """Returns a static stroke object for testing """
+    from freestyle.types import Stroke, Interface0DIterator, StrokeVertexIterator, SVertex, Id, StrokeVertex
+    # points for our fake stroke
+    points = (Vector((1.0, 5.0, 3.0)), Vector((1.0, 2.0, 9.0)),
+              Vector((6.0, 2.0, 3.0)), Vector((7.0, 2.0, 3.0)), 
+              Vector((2.0, 6.0, 3.0)), Vector((2.0, 8.0, 3.0)))
+    ids = (Id(0, 0), Id(1, 1), Id(2, 2), Id(3, 3), Id(4, 4), Id(5, 5))
+
+    stroke = Stroke()
+    it = iter(stroke)
+
+    for svert in map(SVertex, points, ids):
+        stroke.insert_vertex(StrokeVertex(svert), it)
+        it = iter(stroke)
+
+    stroke.update_length()
+    return stroke
