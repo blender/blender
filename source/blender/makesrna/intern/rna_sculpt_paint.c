@@ -614,11 +614,6 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "stencil_col");
 	RNA_def_property_ui_text(prop, "Stencil Color", "Stencil color in the viewport");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_stencil_update");
-
-	prop = RNA_def_property(srna, "slot_color_default", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "New Layer Color", "Color/Alpha used for new");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	
 	prop = RNA_def_property(srna, "use_clone_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);
@@ -639,16 +634,6 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	prop = RNA_def_int_array(srna, "screen_grab_size", 2, NULL, 0, 0, "screen_grab_size",
 	                         "Size to capture the image for re-projecting", 0, 0);
 	RNA_def_property_range(prop, 512, 16384);
-
-	prop = RNA_def_property(srna, "slot_xresolution_default", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_range(prop, 1, SHRT_MAX);
-	RNA_def_property_ui_range(prop, 64, 4096, 0, -1);
-	RNA_def_property_ui_text(prop, "X resolution", "X Resolution of new image");
-
-	prop = RNA_def_property(srna, "slot_yresolution_default", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_range(prop, 1, SHRT_MAX);
-	RNA_def_property_ui_range(prop, 64, 4096, 0, -1);
-	RNA_def_property_ui_text(prop, "Y resolution", "Y Resolution of new image");
 }
 
 static void rna_def_particle_edit(BlenderRNA *brna)

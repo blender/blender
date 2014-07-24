@@ -1082,11 +1082,6 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
             if not mat.use_nodes:
                 col.operator_menu_enum("paint.add_texture_paint_slot", "type")
 
-                row = col.row(align=True)
-                row.prop(settings, "slot_xresolution_default")
-                row.prop(settings, "slot_yresolution_default")
-                col.prop(settings, "slot_color_default")
-
                 slot = mat.texture_paint_slots[mat.paint_active_slot]
                 col.separator()
                 col.label("UV Layer")
