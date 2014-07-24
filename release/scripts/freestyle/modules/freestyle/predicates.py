@@ -112,9 +112,8 @@ class pyVertexNatureUP0D(UnaryPredicate0D):
 
 class pyBackTVertexUP0D(UnaryPredicate0D):
     """
-    Check whether an Interface0DIterator
-    references a TVertex and is the one that is
-    hidden (inferred from the context)
+    Check whether an Interface0DIterator references a TVertex and is
+    the one that is hidden (inferred from the context).
     """
     def __init__(self):
         UnaryPredicate0D.__init__(self)

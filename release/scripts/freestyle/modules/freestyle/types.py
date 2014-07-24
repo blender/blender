@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Submodule containing all Freestyle types
+Submodule containing all Freestyle types.
 """
 
 # module members

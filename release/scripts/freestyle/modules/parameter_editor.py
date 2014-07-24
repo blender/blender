@@ -109,7 +109,7 @@ from itertools import cycle, tee
 
 
 class ColorRampModifier(StrokeShader):
-    """Primitive for the color modifiers """
+    """Primitive for the color modifiers."""
     def __init__(self, blend, influence, ramp):
         StrokeShader.__init__(self)
         self.blend = blend
@@ -125,7 +125,7 @@ class ColorRampModifier(StrokeShader):
 
 
 class ScalarBlendModifier(StrokeShader):
-    """Primitive for alpha and thickness modifiers """
+    """Primitive for alpha and thickness modifiers."""
     def __init__(self, blend_type, influence):
         StrokeShader.__init__(self)
         self.blend_type = blend_type
@@ -201,7 +201,7 @@ class ThicknessBlenderMixIn(ThicknessModifierMixIn):
         self.ratio = ratio
 
     def blend_thickness(self, svert, v):
-        """ Blends and sets the thickness."""
+        """Blends and sets the thickness."""
         outer, inner = svert.attribute.thickness
         fe = svert.fedge
         v = self.blend(outer + inner, v)
@@ -262,7 +262,7 @@ class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
 # Along Stroke modifiers
 
 class ColorAlongStrokeShader(ColorRampModifier):
-    """Maps a ramp to the color of the stroke, using the curvilinear abscissa (t) """
+    """Maps a ramp to the color of the stroke, using the curvilinear abscissa (t)."""
     def shade(self, stroke):
         for svert, t in zip(stroke, iter_t2d_along_stroke(stroke)):
             a = svert.attribute.color
@@ -271,7 +271,7 @@ class ColorAlongStrokeShader(ColorRampModifier):
 
 
 class AlphaAlongStrokeShader(CurveMappingModifier):
-    """Maps a curve to the alpha/transparancy of the stroke, using the curvilinear abscissa (t) """
+    """Maps a curve to the alpha/transparancy of the stroke, using the curvilinear abscissa (t)."""
     def shade(self, stroke):
         for svert, t in zip(stroke, iter_t2d_along_stroke(stroke)):
             a = svert.attribute.alpha
@@ -280,7 +280,7 @@ class AlphaAlongStrokeShader(CurveMappingModifier):
 
 
 class ThicknessAlongStrokeShader(ThicknessBlenderMixIn, CurveMappingModifier):
-    """Maps a curve to the thickness of the stroke, using the curvilinear abscissa (t) """
+    """Maps a curve to the thickness of the stroke, using the curvilinear abscissa (t)."""
     def __init__(self, thickness_position, thickness_ratio,
                  blend, influence, mapping, invert, curve, value_min, value_max):
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
@@ -296,7 +296,7 @@ class ThicknessAlongStrokeShader(ThicknessBlenderMixIn, CurveMappingModifier):
 # -- Distance from Camera modifiers -- #
 
 class ColorDistanceFromCameraShader(ColorRampModifier):
-    """Picks a color value from a ramp based on the vertex' distance from the camera """
+    """Picks a color value from a ramp based on the vertex' distance from the camera."""
     def __init__(self, blend, influence, ramp, range_min, range_max):
         ColorRampModifier.__init__(self, blend, influence, ramp)
         self.range = BoundedProperty(range_min, range_max, range_max - range_min)
@@ -310,7 +310,7 @@ class ColorDistanceFromCameraShader(ColorRampModifier):
 
 
 class AlphaDistanceFromCameraShader(CurveMappingModifier):
-    """Picks an alpha value from a curve based on the vertex' distance from the camera """
+    """Picks an alpha value from a curve based on the vertex' distance from the camera"""
     def __init__(self, blend, influence, mapping, invert, curve, range_min, range_max):
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.range = BoundedProperty(range_min, range_max, range_max - range_min)
@@ -324,7 +324,7 @@ class AlphaDistanceFromCameraShader(CurveMappingModifier):
 
 
 class ThicknessDistanceFromCameraShader(ThicknessBlenderMixIn, CurveMappingModifier):
-    """Picks a thickness value from a curve based on the vertex' distance from the camera """
+    """Picks a thickness value from a curve based on the vertex' distance from the camera."""
     def __init__(self, thickness_position, thickness_ratio,
                  blend, influence, mapping, invert, curve, range_min, range_max, value_min, value_max):
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
@@ -341,7 +341,7 @@ class ThicknessDistanceFromCameraShader(ThicknessBlenderMixIn, CurveMappingModif
 # Distance from Object modifiers
 
 class ColorDistanceFromObjectShader(ColorRampModifier):
-    """Picks a color value from a ramp based on the vertex' distance from a given object """
+    """Picks a color value from a ramp based on the vertex' distance from a given object."""
     def __init__(self, blend, influence, ramp, target, range_min, range_max):
         ColorRampModifier.__init__(self, blend, influence, ramp)
         if target is None:
@@ -361,7 +361,7 @@ class ColorDistanceFromObjectShader(ColorRampModifier):
 
 
 class AlphaDistanceFromObjectShader(CurveMappingModifier):
-    """Picks an alpha value from a curve based on the vertex' distance from a given object """
+    """Picks an alpha value from a curve based on the vertex' distance from a given object."""
     def __init__(self, blend, influence, mapping, invert, curve, target, range_min, range_max):
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         if target is None:
@@ -381,7 +381,7 @@ class AlphaDistanceFromObjectShader(CurveMappingModifier):
 
 
 class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModifier):
-    """Picks a thickness value from a curve based on the vertex' distance from a given object """
+    """Picks a thickness value from a curve based on the vertex' distance from a given object."""
     def __init__(self, thickness_position, thickness_ratio,
                  blend, influence, mapping, invert, curve, target, range_min, range_max, value_min, value_max):
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
@@ -403,7 +403,7 @@ class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModif
 
 # Material modifiers
 class ColorMaterialShader(ColorRampModifier):
-    """ Assigns a color to the vertices based on their underlying material """
+    """Assigns a color to the vertices based on their underlying material."""
     def __init__(self, blend, influence, ramp, material_attribute, use_ramp):
         ColorRampModifier.__init__(self, blend, influence, ramp)
         self.attribute = material_attribute
@@ -430,7 +430,7 @@ class ColorMaterialShader(ColorRampModifier):
                 svert.attribute.color = self.blend_ramp(a, b)
 
 class AlphaMaterialShader(CurveMappingModifier):
-    """ Assigns an alpha value to the vertices based on their underlying material """
+    """Assigns an alpha value to the vertices based on their underlying material."""
     def __init__(self, blend, influence, mapping, invert, curve, material_attribute):
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.attribute = material_attribute
@@ -444,7 +444,7 @@ class AlphaMaterialShader(CurveMappingModifier):
 
 
 class ThicknessMaterialShader(ThicknessBlenderMixIn, CurveMappingModifier):
-    """ Assigns a thickness value to the vertices based on their underlying material """
+    """Assigns a thickness value to the vertices based on their underlying material."""
     def __init__(self, thickness_position, thickness_ratio,
                  blend, influence, mapping, invert, curve, material_attribute, value_min, value_max):
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
@@ -463,7 +463,7 @@ class ThicknessMaterialShader(ThicknessBlenderMixIn, CurveMappingModifier):
 
 
 class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
-    """Thickness modifier for achieving a calligraphy-like effect """
+    """Thickness modifier for achieving a calligraphy-like effect."""
     def __init__(self, thickness_position, thickness_ratio,
                  blend_type, influence, orientation, thickness_min, thickness_max):
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
@@ -488,7 +488,7 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
 # Geometry modifiers
 
 class SinusDisplacementShader(StrokeShader):
-    """Displaces the stroke in a sinewave-like shape """
+    """Displaces the stroke in a sinewave-like shape."""
     def __init__(self, wavelength, amplitude, phase):
         StrokeShader.__init__(self)
         self.wavelength = wavelength
@@ -510,7 +510,7 @@ class PerlinNoise1DShader(StrokeShader):
     """
     Displaces the stroke using the curvilinear abscissa.  This means
     that lines with the same length and sampling interval will be
-    identically distorded
+    identically distorded.
     """
     def __init__(self, freq=10, amp=10, oct=4, angle=radians(45), seed=-1):
         StrokeShader.__init__(self)
@@ -531,9 +531,9 @@ class PerlinNoise1DShader(StrokeShader):
 class PerlinNoise2DShader(StrokeShader):
     """
     Displaces the stroke using the strokes coordinates.  This means
-    that in a scene no strokes will be distorded identically
+    that in a scene no strokes will be distorded identically.
 
-    More information on the noise shaders can be found at
+    More information on the noise shaders can be found at:
     freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
     """
     def __init__(self, freq=10, amp=10, oct=4, angle=radians(45), seed=-1):
@@ -553,7 +553,7 @@ class PerlinNoise2DShader(StrokeShader):
 
 
 class Offset2DShader(StrokeShader):
-    """Offsets the stroke by a given amount """
+    """Offsets the stroke by a given amount."""
     def __init__(self, start, end, x, y):
         StrokeShader.__init__(self)
         self.start = start

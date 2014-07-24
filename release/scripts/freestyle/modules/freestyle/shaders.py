@@ -23,7 +23,7 @@
 
 """
 Stroke shaders used for creation of stylized strokes.  Also intended
-to be a collection of examples for shader definition in Python
+to be a collection of examples for shader definition in Python.
 """
 
 # module members
@@ -100,7 +100,7 @@ from random import randint
 class pyDepthDiscontinuityThicknessShader(StrokeShader):
     """
     Assigns a thickness to the stroke based on the stroke's distance
-    to the camera (Z-value)
+    to the camera (Z-value).
     """
     def __init__(self, min, max):
         StrokeShader.__init__(self)
@@ -118,7 +118,7 @@ class pyDepthDiscontinuityThicknessShader(StrokeShader):
 
 class pyConstantThicknessShader(StrokeShader):
     """
-    Assigns a constant thickness along the stroke
+    Assigns a constant thickness along the stroke.
     """
     def __init__(self, thickness):
         StrokeShader.__init__(self)
@@ -131,7 +131,7 @@ class pyConstantThicknessShader(StrokeShader):
 
 class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
     """
-    Assings thickness to a stroke based on the density of the diffuse map
+    Assings thickness to a stroke based on the density of the diffuse map.
     """
     def __init__(self, wsize, threshold_min, threshold_max, thicknessMin, thicknessMax):
         StrokeShader.__init__(self)
@@ -155,7 +155,7 @@ class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
 
 class pyIncreasingThicknessShader(StrokeShader):
     """
-    Increasingly thickens the stroke
+    Increasingly thickens the stroke.
     """
     def __init__(self, thicknessMin, thicknessMax):
         StrokeShader.__init__(self)
@@ -176,7 +176,7 @@ class pyIncreasingThicknessShader(StrokeShader):
 class pyConstrainedIncreasingThicknessShader(StrokeShader):
     """
     Increasingly thickens the stroke, constrained by a ratio of the
-    stroke's length
+    stroke's length.
     """
     def __init__(self, thicknessMin, thicknessMax, ratio):
         StrokeShader.__init__(self)
@@ -203,7 +203,7 @@ class pyConstrainedIncreasingThicknessShader(StrokeShader):
 
 class pyDecreasingThicknessShader(StrokeShader):
     """
-    Inverse of pyIncreasingThicknessShader, decreasingly thickens the stroke
+    Inverse of pyIncreasingThicknessShader, decreasingly thickens the stroke.
     """
     def __init__(self, thicknessMin, thicknessMax):
         StrokeShader.__init__(self)
@@ -224,7 +224,7 @@ class pyDecreasingThicknessShader(StrokeShader):
 
 class pyNonLinearVaryingThicknessShader(StrokeShader):
     """
-    Assigns thickness to a stroke based on an exponential function
+    Assigns thickness to a stroke based on an exponential function.
     """
     def __init__(self, thicknessExtremity, thicknessMiddle, exponent):
         self._thicknessMin = thicknessMiddle
@@ -243,7 +243,7 @@ class pyNonLinearVaryingThicknessShader(StrokeShader):
 
 class pySLERPThicknessShader(StrokeShader):
     """
-    Assigns thickness to a stroke based on spherical linear interpolation
+    Assigns thickness to a stroke based on spherical linear interpolation.
     """
     def __init__(self, thicknessMin, thicknessMax, omega=1.2):
         StrokeShader.__init__(self)
@@ -267,7 +267,7 @@ class pySLERPThicknessShader(StrokeShader):
 
 class pyTVertexThickenerShader(StrokeShader):
     """
-    Thickens TVertices (visual intersections between two edges)
+    Thickens TVertices (visual intersections between two edges).
     """
     def __init__(self, a=1.5, n=3):
         StrokeShader.__init__(self)
@@ -297,7 +297,7 @@ class pyImportance2DThicknessShader(StrokeShader):
     """
     Assigns thickness based on distance to a given point in 2D space.
     the thickness is inverted, so the vertices closest to the
-    specified point have the lowest thickness
+    specified point have the lowest thickness.
     """
     def __init__(self, x, y, w, kmin, kmax):
         StrokeShader.__init__(self)
@@ -317,7 +317,7 @@ class pyImportance2DThicknessShader(StrokeShader):
 
 class pyImportance3DThicknessShader(StrokeShader):
     """
-    Assigns thickness based on distance to a given point in 3D space
+    Assigns thickness based on distance to a given point in 3D space.
     """
     def __init__(self, x, y, z, w, kmin, kmax):
         StrokeShader.__init__(self)
@@ -338,7 +338,7 @@ class pyImportance3DThicknessShader(StrokeShader):
 class pyZDependingThicknessShader(StrokeShader):
     """
     Assigns thickness based on an object's local Z depth (point
-    closest to camera is 1, point furthest from camera is zero)
+    closest to camera is 1, point furthest from camera is zero).
     """
     def __init__(self, min, max):
         StrokeShader.__init__(self)
@@ -363,7 +363,7 @@ class pyZDependingThicknessShader(StrokeShader):
 
 class pyConstantColorShader(StrokeShader):
     """
-    Assigns a constant color to the stroke
+    Assigns a constant color to the stroke.
     """
     def __init__(self,r,g,b, a = 1):
         StrokeShader.__init__(self)
@@ -377,7 +377,7 @@ class pyConstantColorShader(StrokeShader):
 
 class pyIncreasingColorShader(StrokeShader):
     """
-    Fades from one color to another along the stroke
+    Fades from one color to another along the stroke.
     """
     def __init__(self,r1,g1,b1,a1, r2,g2,b2,a2):
         StrokeShader.__init__(self)
@@ -397,7 +397,7 @@ class pyIncreasingColorShader(StrokeShader):
 
 class pyInterpolateColorShader(StrokeShader):
     """
-    Fades from one color to another and back
+    Fades from one color to another and back.
     """
     def __init__(self,r1,g1,b1,a1, r2,g2,b2,a2):
         StrokeShader.__init__(self)
@@ -431,7 +431,7 @@ class pyModulateAlphaShader(StrokeShader):
 
 class pyMaterialColorShader(StrokeShader):
     """
-    Assigns the color of the underlying material to the stroke
+    Assigns the color of the underlying material to the stroke.
     """
     def __init__(self, threshold=50):
         StrokeShader.__init__(self)
@@ -493,7 +493,7 @@ class pyMaterialColorShader(StrokeShader):
 
 class pyRandomColorShader(StrokeShader):
     """
-    Assigns a color to the stroke based on given seed
+    Assigns a color to the stroke based on given seed.
     """
     def __init__(self, s=1):
         StrokeShader.__init__(self)
@@ -510,7 +510,7 @@ class pyRandomColorShader(StrokeShader):
 class py2DCurvatureColorShader(StrokeShader):
     """
     Assigns a color (greyscale) to the stroke based on the curvature.
-    A higher curvature will yield a brighter color
+    A higher curvature will yield a brighter color.
     """
     def shade(self, stroke):
         func = Curvature2DAngleF0D()
@@ -526,7 +526,7 @@ class py2DCurvatureColorShader(StrokeShader):
 class pyTimeColorShader(StrokeShader):
     """
     Assigns a greyscale value that increases for every vertex.
-    The brightness will increase along the stroke
+    The brightness will increase along the stroke.
     """
     def __init__(self, step=0.01):
         StrokeShader.__init__(self)
@@ -543,7 +543,7 @@ class pyTimeColorShader(StrokeShader):
 class pySamplingShader(StrokeShader):
     """
     Resamples the stroke, which gives the stroke the ammount of
-    vertices specified
+    vertices specified.
     """
     def __init__(self, sampling):
         StrokeShader.__init__(self)
@@ -556,7 +556,7 @@ class pySamplingShader(StrokeShader):
 
 class pyBackboneStretcherShader(StrokeShader):
     """
-    Stretches the stroke's backbone by a given length (in pixels)
+    Stretches the stroke's backbone by a given length (in pixels).
     """
     def __init__(self, l):
         StrokeShader.__init__(self)
@@ -617,7 +617,7 @@ class pyGuidingLineShader(StrokeShader):
 
 class pyBackboneStretcherNoCuspShader(StrokeShader):
     """
-    Stretches the stroke's backbone, excluding cusp vertices (end junctions)
+    Stretches the stroke's backbone, excluding cusp vertices (end junctions).
     """
     def __init__(self, l):
         StrokeShader.__init__(self)
@@ -663,7 +663,7 @@ class pyDiffusion2Shader(StrokeShader):
 
 class pyTipRemoverShader(StrokeShader):
     """
-    Removes the tips of the stroke
+    Removes the tips of the stroke.
     """
     def __init__(self, l):
         StrokeShader.__init__(self)
@@ -704,7 +704,7 @@ class pyTipRemoverShader(StrokeShader):
 
 class pyTVertexRemoverShader(StrokeShader):
     """
-    Removes t-vertices from the stroke
+    Removes t-vertices from the stroke.
     """
     def shade(self, stroke):
         if len(stroke) < 4:
@@ -721,7 +721,7 @@ class pyTVertexRemoverShader(StrokeShader):
 class pyHLRShader(StrokeShader):
     """
     Controlls visibility based upon the quantative invisibility (QI)
-    based on hidden line removal (HLR)
+    based on hidden line removal (HLR).
     """
     def shade(self, stroke):
         if len(stroke) < 4:
@@ -736,7 +736,7 @@ class pyHLRShader(StrokeShader):
 
 class pySinusDisplacementShader(StrokeShader):
     """
-    Displaces the stroke in the shape of a sine wave
+    Displaces the stroke in the shape of a sine wave.
     """
     def __init__(self, f, a):
         StrokeShader.__init__(self)
@@ -758,7 +758,7 @@ class pyPerlinNoise1DShader(StrokeShader):
     """
     Displaces the stroke using the curvilinear abscissa.  This means
     that lines with the same length and sampling interval will be
-    identically distorded
+    identically distorded.
     """
     def __init__(self, freq=10, amp=10, oct=4, seed=-1):
         StrokeShader.__init__(self)
@@ -778,9 +778,9 @@ class pyPerlinNoise1DShader(StrokeShader):
 class pyPerlinNoise2DShader(StrokeShader):
     """
     Displaces the stroke using the strokes coordinates.  This means
-    that in a scene no strokes will be distorded identically
+    that in a scene no strokes will be distorded identically.
 
-    More information on the noise shaders can be found at
+    More information on the noise shaders can be found at:
     freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
     """
     def __init__(self, freq=10, amp=10, oct=4, seed=-1):
@@ -799,7 +799,7 @@ class pyPerlinNoise2DShader(StrokeShader):
 
 class pyBluePrintCirclesShader(StrokeShader):
     """
-    Draws the silhouette of the object as a circle
+    Draws the silhouette of the object as a circle.
     """
     def __init__(self, turns=1, random_radius=3, random_center=5):
         StrokeShader.__init__(self)
@@ -983,7 +983,7 @@ class pyBluePrintSquaresShader(StrokeShader):
 
 class pyBluePrintDirectedSquaresShader(StrokeShader):
     """
-    Replaces the stroke with a directed square
+    Replaces the stroke with a directed square.
     """
     def __init__(self, turns=1, bb_len=10, mult=1):
         StrokeShader.__init__(self)

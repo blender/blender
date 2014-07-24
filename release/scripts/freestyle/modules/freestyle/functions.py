@@ -19,7 +19,7 @@
 """
 Functions operating on vertices (0D elements) and polylines (1D
 elements).  Also intended to be a collection of examples for predicate
-definition in Python
+definition in Python.
 """
 
 # module members
@@ -97,7 +97,7 @@ from mathutils import Vector
 class CurveMaterialF0D(UnaryFunction0DMaterial):
     """
     A replacement of the built-in MaterialF0D for stroke creation.
-    MaterialF0D does not work with Curves and Strokes. Line color
+    MaterialF0D does not work with Curves and Strokes.  Line color
     priority is used to pick one of the two materials at material
     boundaries.
 
@@ -128,7 +128,7 @@ class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
 
 
 class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
-    """Estimates the anisotropy of density"""
+    """Estimates the anisotropy of density."""
     def __init__(self, level):
         UnaryFunction0DDouble.__init__(self)
         self.IsoDensity = ReadCompleteViewMapPixelF0D(level)
@@ -149,7 +149,7 @@ class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
 
 
 class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
-    """Returns the gradient vector for a pixel
+    """Returns the gradient vector for a pixel.
 
     :arg level: the level at which to compute the gradient
     :type level: int

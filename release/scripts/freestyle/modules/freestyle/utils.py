@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Helper functions used for Freestyle style module writing
+Helper functions used for Freestyle style module writing.
 """
 
 # module members
@@ -43,12 +43,12 @@ from itertools import tee
 # -- real utility functions  -- #
 
 def rgb_to_bw(r, g, b):
-    """ Method to convert rgb to a bw intensity value. """
+    """Method to convert rgb to a bw intensity value."""
     return 0.35 * r + 0.45 * g + 0.2 * b
 
 
 def bound(lower, x, higher):
-    """ Returns x bounded by a maximum and minimum value. equivalent to:
+    """Returns x bounded by a maximum and minimum value. Equivalent to:
     return min(max(x, lower), higher)
     """
     # this is about 50% quicker than min(max(x, lower), higher)
@@ -78,14 +78,14 @@ def phase_to_direction(length):
         results.append((phase, Vector((cos(2 * pi * phase), sin(2 * pi * phase)))))
     return results
 
-# A named tuple primitive used for storing data that 
-# has an upper and lower bound (eg. thickness, range and certain values)
+# A named tuple primitive used for storing data that has an upper and
+# lower bound (e.g., thickness, range and certain values)
 BoundedProperty = namedtuple("BoundedProperty", ["min", "max", "delta"])
 
 # -- helper functions for chaining -- #
 
 def get_chain_length(ve, orientation):
-    """Returns the 2d length of a given ViewEdge """
+    """Returns the 2d length of a given ViewEdge."""
     from freestyle.chainingiterators import pyChainSilhouetteGenericIterator
     length = 0.0
     # setup iterator
@@ -120,7 +120,7 @@ def get_chain_length(ve, orientation):
 
 
 def find_matching_vertex(id, it):
-    """Finds the matching vertex, or returns None """
+    """Finds the matching vertex, or returns None."""
     return next((ve for ve in it if ve.id == id), None)
 
 # -- helper functions for iterating -- #
@@ -146,7 +146,7 @@ def tripplewise(iterable):
 
 
 def iter_t2d_along_stroke(stroke):
-    """ Yields the progress along the stroke """
+    """Yields the progress along the stroke."""
     total = stroke.length_2d
     distance = 0.0
     # yield for the comparison from the first vertex to itself
@@ -186,7 +186,7 @@ def iter_distance_from_object(stroke, location, range_min, range_max, normfac):
 
 
 def iter_material_value(stroke, func, attribute):
-    "Yields a specific material attribute from the vertex' underlying material. "
+    "Yields a specific material attribute from the vertex' underlying material."
     it = Interface0DIterator(stroke)
     for svert in it:
         material = func(it)

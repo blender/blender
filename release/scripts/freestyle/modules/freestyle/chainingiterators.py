@@ -77,7 +77,7 @@ NATURES = (
 
 
 def nature_in_preceding(nature, index):
-    """ Returns True if given nature appears before index, else False """
+    """Returns True if given nature appears before index, else False."""
     return any(nature & nat for nat in NATURES[:index])
 
 
