@@ -61,7 +61,10 @@
 #  endif
 #endif
 
-#if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__) || defined(__s390x__) || defined(__powerpc64__) || defined(__aarch64__) || (defined(__sparc__) && defined(__arch64__))
+/* This is becoming a bit nastier that it was originally foreseen,
+ * consider using autoconfig detection instead.
+ */
+#if defined(_M_X64) || defined(__amd64__) || defined(__x86_64__) || defined(__s390x__) || defined(__powerpc64__) || defined(__aarch64__) || (defined(__sparc__) && defined(__arch64__)) || defined(__alpha__) || defined(__mips64)
 #  define LG_SIZEOF_PTR 3
 #  define LG_SIZEOF_INT 2
 #else
