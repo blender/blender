@@ -189,18 +189,18 @@ static const NDOF_ButtonT Generic_HID_map[] = {
 
 static const int genericButtonCount = sizeof(Generic_HID_map) / sizeof(NDOF_ButtonT);
 
-GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
-	: m_system(sys)
-	, m_deviceType(NDOF_UnknownDevice) // each platform has its own device detection code
-	, m_buttonCount(genericButtonCount)
-	, m_buttonMask(0)
-	, m_hidMap(Generic_HID_map)
-	, m_buttons(0)
-	, m_motionTime(0)
-	, m_prevMotionTime(0)
-	, m_motionState(GHOST_kNotStarted)
-	, m_motionEventPending(false)
-	, m_deadZone(0.f)
+GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System &sys)
+    : m_system(sys),
+      m_deviceType(NDOF_UnknownDevice),  /* each platform has its own device detection code */
+      m_buttonCount(genericButtonCount),
+      m_buttonMask(0),
+      m_hidMap(Generic_HID_map),
+      m_buttons(0),
+      m_motionTime(0),
+      m_prevMotionTime(0),
+      m_motionState(GHOST_kNotStarted),
+      m_motionEventPending(false),
+      m_deadZone(0.0f)
 {
 	// to avoid the rare situation where one triple is updated and
 	// the other is not, initialize them both here:

@@ -85,9 +85,9 @@ using namespace std;
 
 GHOST_SystemX11::
 GHOST_SystemX11(
-    ) :
-	GHOST_System(),
-	m_start_time(0)
+        )
+    : GHOST_System(),
+      m_start_time(0)
 {
 	m_display = XOpenDisplay(NULL);
 	

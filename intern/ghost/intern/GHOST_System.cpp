@@ -45,13 +45,13 @@
 
 
 GHOST_System::GHOST_System()
-	: m_nativePixel(false),
-	m_displayManager(NULL),
-	m_timerManager(NULL),
-	m_windowManager(NULL),
-	m_eventManager(NULL)
+    : m_nativePixel(false),
+      m_displayManager(NULL),
+      m_timerManager(NULL),
+      m_windowManager(NULL),
+      m_eventManager(NULL)
 #ifdef WITH_INPUT_NDOF
-	, m_ndofManager(0)
+      , m_ndofManager(0)
 #endif
 {
 }

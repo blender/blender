@@ -40,9 +40,8 @@
 #include "GHOST_Debug.h"
 
 
-GHOST_DisplayManager::GHOST_DisplayManager(
-    void)
-	: m_settingsInitialized(false)
+GHOST_DisplayManager::GHOST_DisplayManager(void)
+    : m_settingsInitialized(false)
 {
 }
 

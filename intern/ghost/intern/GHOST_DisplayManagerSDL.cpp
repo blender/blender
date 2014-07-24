@@ -35,8 +35,7 @@
 #include "GHOST_WindowManager.h"
 
 GHOST_DisplayManagerSDL::GHOST_DisplayManagerSDL(GHOST_SystemSDL *system)
-    :
-      GHOST_DisplayManager(),
+    : GHOST_DisplayManager(),
       m_system(system)
 {
 	memset(&m_mode, 0, sizeof(m_mode));

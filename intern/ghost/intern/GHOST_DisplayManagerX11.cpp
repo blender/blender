@@ -42,10 +42,9 @@
 
 GHOST_DisplayManagerX11::
 GHOST_DisplayManagerX11(
-    GHOST_SystemX11 *system
-    ) :
-	GHOST_DisplayManager(),
-	m_system(system)
+        GHOST_SystemX11 *system)
+    : GHOST_DisplayManager(),
+      m_system(system)
 {
 	/* nothing to do. */
 }

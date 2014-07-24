@@ -161,30 +161,29 @@ GLXContext GHOST_WindowX11::s_firstContext = NULL;
 
 GHOST_WindowX11::
 GHOST_WindowX11(
-    GHOST_SystemX11 *system,
-    Display *display,
-    const STR_String& title,
-    GHOST_TInt32 left,
-    GHOST_TInt32 top,
-    GHOST_TUns32 width,
-    GHOST_TUns32 height,
-    GHOST_TWindowState state,
-    const GHOST_TEmbedderWindowID parentWindow,
-    GHOST_TDrawingContextType type,
-    const bool stereoVisual,
-    const bool exclusive,
-    const GHOST_TUns16 numOfAASamples
-    ) :
-	GHOST_Window(width, height, state, type, stereoVisual, exclusive, numOfAASamples),
-	m_context(NULL),
-	m_display(display),
-	m_normal_state(GHOST_kWindowStateNormal),
-	m_system(system),
-	m_valid_setup(false),
-	m_invalid_window(false),
-	m_empty_cursor(None),
-	m_custom_cursor(None),
-	m_visible_cursor(None)
+        GHOST_SystemX11 *system,
+        Display *display,
+        const STR_String& title,
+        GHOST_TInt32 left,
+        GHOST_TInt32 top,
+        GHOST_TUns32 width,
+        GHOST_TUns32 height,
+        GHOST_TWindowState state,
+        const GHOST_TEmbedderWindowID parentWindow,
+        GHOST_TDrawingContextType type,
+        const bool stereoVisual,
+        const bool exclusive,
+        const GHOST_TUns16 numOfAASamples)
+    : GHOST_Window(width, height, state, type, stereoVisual, exclusive, numOfAASamples),
+      m_context(NULL),
+      m_display(display),
+      m_normal_state(GHOST_kWindowStateNormal),
+      m_system(system),
+      m_valid_setup(false),
+      m_invalid_window(false),
+      m_empty_cursor(None),
+      m_custom_cursor(None),
+      m_visible_cursor(None)
 {
 	
 	/* Set up the minimum atrributes that we require and see if

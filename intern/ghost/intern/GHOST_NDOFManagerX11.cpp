@@ -30,9 +30,8 @@
 
 
 GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
-	:
-	GHOST_NDOFManager(sys),
-	m_available(false)
+    : GHOST_NDOFManager(sys),
+      m_available(false)
 {
 	setDeadZone(0.1f); /* how to calibrate on Linux? throw away slight motion! */
 

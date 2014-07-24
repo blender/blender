@@ -105,7 +105,7 @@ typedef enum {
 class GHOST_NDOFManager
 {
 public:
-	GHOST_NDOFManager(GHOST_System&);
+	GHOST_NDOFManager(GHOST_System &);
 
 	virtual ~GHOST_NDOFManager() {}
 

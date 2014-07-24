@@ -30,7 +30,7 @@
 extern "C" {
 	#include <ConnexionClientAPI.h>
 	#include <stdio.h>
-	}
+}
 
 
 // static functions need to talk to these objects:
