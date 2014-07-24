@@ -5638,7 +5638,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "physics_settings.gravity");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, -200.0f, 200.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Gravity", "Constant acceleration in a given direction");
 	RNA_def_property_update(prop, 0, "rna_Physics_update");
 
