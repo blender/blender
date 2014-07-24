@@ -387,7 +387,7 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 
 static bool ui_but_is_editable(const uiBut *but)
 {
-	return ELEM(but->type, LABEL, SEPR, SEPRLINE, ROUNDBOX, LISTBOX, PROGRESSBAR);
+	return !ELEM(but->type, LABEL, SEPR, SEPRLINE, ROUNDBOX, LISTBOX, PROGRESSBAR);
 }
 
 static uiBut *ui_but_prev(uiBut *but)
