@@ -106,7 +106,7 @@ public:
 	                 OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
 	                 const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy, float *result);
 
-	bool get_texture_info(ustring filename, int subimage,
+	bool get_texture_info(OSL::ShaderGlobals *sg, ustring filename, int subimage,
 	                      ustring dataname, TypeDesc datatype, void *data);
 
 	static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
@@ -214,6 +214,12 @@ public:
 	bool get_userdata(bool derivatives, ustring name, TypeDesc type,
 	                  void *renderstate, void *val) {
 		return get_userdata(derivatives, name, type, (OSL::ShaderGlobals *) renderstate, val);
+	}
+
+	bool get_texture_info(OSL::ShaderGlobals *sg, ustring filename, int subimage,
+	                      ustring dataname, TypeDesc datatype, void *data) {
+		return 	get_texture_info(NULL, filename, subimage,
+									  dataname, datatype, *data);
 	}
 #endif
 private:

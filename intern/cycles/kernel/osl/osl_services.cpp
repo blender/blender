@@ -969,7 +969,7 @@ bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
 	return status;
 }
 
-bool OSLRenderServices::get_texture_info(ustring filename, int subimage,
+bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *sg, ustring filename, int subimage,
                                          ustring dataname,
                                          TypeDesc datatype, void *data)
 {
