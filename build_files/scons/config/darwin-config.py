@@ -154,7 +154,7 @@ BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
 BF_OPENCOLLADA = LIBDIR + '/opencollada'
 BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
-BF_OPENCOLLADA_LIB = 'OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 buffer ftoa'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = LIBDIR + '/opencollada'
 BF_PCRE = LIBDIR + '/opencollada'
 BF_PCRE_LIB = 'pcre'
@@ -181,7 +181,7 @@ WITH_BF_LLVM = True
 BF_LLVM = LIBDIR + '/llvm'
 BF_LLVM_LIB = 'LLVMBitReader LLVMJIT LLVMipo LLVMVectorize LLVMBitWriter LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMX86AsmPrinter ' + \
     'LLVMX86Utils LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMInstCombine LLVMTransformUtils LLVMipa LLVMAnalysis LLVMExecutionEngine ' + \
-    'LLVMTarget LLVMMC LLVMCore LLVMSupport'
+    'LLVMTarget LLVMMC LLVMCore LLVMSupport LLVMObject'
 BF_LLVM_LIBPATH = '${BF_LLVM}/lib'
 
 WITH_BF_OIIO = True
