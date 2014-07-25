@@ -293,7 +293,7 @@ PyDoc_STRVAR(ViewShape_name_doc,
 
 static PyObject *ViewShape_name_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(self->vs->getName().c_str());
+	return PyUnicode_FromString(self->vs->getName());
 }
 
 PyDoc_STRVAR(ViewShape_id_doc,

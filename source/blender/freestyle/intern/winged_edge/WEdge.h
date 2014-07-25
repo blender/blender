@@ -1025,7 +1025,7 @@ protected:
 	vector<WEdge *> _EdgeList;
 	vector<WFace *> _FaceList;
 	int _Id;
-	string _Name;
+	const char *_Name;
 	static unsigned _SceneCurrentId;
 	Vec3r _min;
 	Vec3r _max;
@@ -1113,7 +1113,7 @@ public:
 		return _meanEdgeSize;
 	}
 
-	inline const string& getName() const
+	inline const char *getName() const
 	{
 		return _Name;
 	}
@@ -1160,7 +1160,7 @@ public:
 		_FrsMaterials = iMaterials;
 	}
 
-	inline void setName(const string& name)
+	inline void setName(const char *name)
 	{
 		_Name = name;
 	}

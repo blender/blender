@@ -1566,7 +1566,7 @@ public:
 	}
 
 	/*! Returns the ViewShape id. */
-	inline const string& getName() const
+	inline const char *getName() const
 	{
 		return _SShape->getName();
 	}

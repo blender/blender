@@ -1415,7 +1415,7 @@ private:
 	vector<SVertex*> _verticesList;  // list of all vertices
 	vector<FEdge*> _edgesList;       // list of all edges
 	Id _Id;
-	string _Name;
+	const char *_Name;
 	BBox<Vec3r> _BBox;
 	vector<FrsMaterial> _FrsMaterials;  
 
@@ -1435,6 +1435,7 @@ public:
 		userdata = NULL;
 		_importance = 0.0f;
 		_ViewShape = NULL;
+		_Name = NULL;
 	}
 
 	/*! Copy constructor */
@@ -1887,7 +1888,7 @@ public:
 	}
 
 	/*! Returns the name of the Shape. */
-	inline const string& getName() const
+	inline const char *getName() const
 	{
 		return _Name;
 	}
@@ -1900,7 +1901,7 @@ public:
 	}
 
 	/*! Sets the name of the shape.*/
-	inline void setName(const string& name)
+	inline void setName(const char *name)
 	{
 		_Name = name;
 	}

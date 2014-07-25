@@ -185,7 +185,7 @@ PyDoc_STRVAR(SShape_name_doc,
 
 static PyObject *SShape_name_get(BPy_SShape *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(self->ss->getName().c_str());
+	return PyUnicode_FromString(self->ss->getName());
 }
 
 static int SShape_name_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
@@ -194,7 +194,7 @@ static int SShape_name_set(BPy_SShape *self, PyObject *value, void *UNUSED(closu
 		PyErr_SetString(PyExc_TypeError, "value must be a string");
 		return -1;
 	}
-	const string name = _PyUnicode_AsString(value);
+	const char *name = _PyUnicode_AsString(value);
 	self->ss->setName(name);
 	return 0;
 }
