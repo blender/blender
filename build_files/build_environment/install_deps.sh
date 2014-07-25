@@ -176,11 +176,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --required-numpy
         Use this in case your distro features a valid python package, but no matching Numpy one.
-        It will force compilation of both python and numpy
-
-    --libyaml-cpp-ver=<ver>
-        Ubuntu hack: you may have to force installation of a non-defaut version of libyaml-cpp
-        (e.g. ocio in trusty uses 0.3, while default version is 0.5... *sigh*)\""
+        It will force compilation of both python and numpy\""
 
 ##### Main Vars #####
 
@@ -202,12 +198,10 @@ BOOST_VERSION_MIN="1.49"
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
 
-OCIO_VERSION="1.0.7"
+OCIO_VERSION="1.0.9"
 OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
-LIBYAML_CPP_VER_DEFINED=false
-LIBYAML_CPP_VER="0.0"
 
 OPENEXR_VERSION="2.1.0"
 OPENEXR_VERSION_MIN="2.0.1"
@@ -452,9 +446,6 @@ while true; do
     ;;
     --required-numpy)
       NUMPY_REQUIRED=true; shift; continue
-    ;;
-    --libyaml-cpp-ver)
-      LIBYAML_CPP_VER_DEFINED=true; LIBYAML_CPP_VER="$2"; shift; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -1992,13 +1983,14 @@ install_DEB() {
   if $OCIO_SKIP; then
     WARNING "Skipping OpenColorIO installation, as requested..."
   else
-    check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      install_packages_DEB libopencolorio-dev
-      clean_OCIO
-    else
+    # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
+    #check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
+    #if [ $? -eq 0 ]; then
+      #install_packages_DEB libopencolorio-dev
+      #clean_OCIO
+    #else
       compile_OCIO
-    fi
+    #fi
   fi
 
   PRINT ""
@@ -2426,13 +2418,14 @@ install_RPM() {
   if $OCIO_SKIP; then
     WARNING "Skipping OpenColorIO installation, as requested..."
   else
-    check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      install_packages_RPM OpenColorIO-devel
-      clean_OCIO
-    else
+    # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
+    #check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
+    #if [ $? -eq 0 ]; then
+      #install_packages_RPM OpenColorIO-devel
+      #clean_OCIO
+    #else
       compile_OCIO
-    fi
+    #fi
   fi
 
   PRINT ""
@@ -2735,14 +2728,15 @@ install_ARCH() {
   if $OCIO_SKIP; then
     WARNING "Skipping OpenColorIO installation, as requested..."
   else
-    check_package_version_ge_ARCH opencolorio $OCIO_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      install_packages_ARCH opencolorio yaml-cpp tinyxml
-      clean_OCIO
-    else
+    # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
+    #check_package_version_ge_ARCH opencolorio $OCIO_VERSION_MIN
+    #if [ $? -eq 0 ]; then
+      #install_packages_ARCH opencolorio yaml-cpp tinyxml
+      #clean_OCIO
+    #else
       install_packages_ARCH yaml-cpp tinyxml
       compile_OCIO
-    fi
+    #fi
   fi
 
   PRINT ""
