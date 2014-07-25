@@ -244,8 +244,6 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_diffuse_toon_params(), bsdf_diffuse_toon_prepare);
 	register_closure(ss, "glossy_toon", id++,
 		bsdf_glossy_toon_params(), bsdf_glossy_toon_prepare);
-	register_closure(ss, "specular_toon", id++,
-		bsdf_glossy_toon_params(), bsdf_glossy_toon_prepare);
 	register_closure(ss, "westin_backscatter", id++,
 		bsdf_westin_backscatter_params(), bsdf_westin_backscatter_prepare);
 	register_closure(ss, "westin_sheen", id++,
@@ -267,10 +265,6 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_bssrdf_cubic_params(), closure_bssrdf_cubic_prepare);
 	register_closure(ss, "bssrdf_gaussian", id++,
 		closure_bssrdf_gaussian_params(), closure_bssrdf_gaussian_prepare);
-	register_closure(ss, "bssrdf_cubic", id++,
-		closure_bssrdf_cubic_extended_params(), closure_bssrdf_cubic_prepare);
-	register_closure(ss, "bssrdf_gaussian", id++,
-		closure_bssrdf_gaussian_extended_params(), closure_bssrdf_gaussian_prepare);
 
 	register_closure(ss, "hair_reflection", id++,
 		bsdf_hair_reflection_params(), bsdf_hair_reflection_prepare);
