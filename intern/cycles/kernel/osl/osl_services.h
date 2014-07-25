@@ -216,10 +216,9 @@ public:
 		return get_userdata(derivatives, name, type, (OSL::ShaderGlobals *) renderstate, val);
 	}
 
-	bool get_texture_info(OSL::ShaderGlobals *sg, ustring filename, int subimage,
+	bool get_texture_info(ustring filename, int subimage,
 	                      ustring dataname, TypeDesc datatype, void *data) {
-		return 	get_texture_info(NULL, filename, subimage,
-									  dataname, datatype, *data);
+		return get_texture_info(NULL, filename, subimage, dataname, datatype, data);
 	}
 #endif
 private:
