@@ -99,7 +99,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXVertex")
 #endif
-
 };
 
 
@@ -117,7 +116,7 @@ private:
 	// flag to indicate whether the edge is a silhouette edge or not
 	WXNature _nature;
 	// 0: the order doesn't matter. 1: the order is the orginal one. -1: the order is not good
-	int _order;
+	short _order;
 	// A front facing edge is an edge for which the bording face which is the nearest from the viewpoint is front.
 	// A back facing edge is the opposite.
 	bool _front;
@@ -177,7 +176,7 @@ public:
 		return _front;
 	}
 
-	inline int order() const
+	inline short order() const
 	{
 		return _order;
 	}
@@ -206,7 +205,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXEdge")
 #endif
-
 };
 
 /**********************************
@@ -221,11 +219,10 @@ public:
 class WXSmoothEdge
 {
 public:
-	typedef enum {
-		EDGE_EDGE,
-		VERTEX_EDGE,
-		EDGE_VERTEX,
-	} Configuration;
+	typedef unsigned short Configuration;
+	static const Configuration EDGE_EDGE = 1;
+	static const Configuration VERTEX_EDGE = 2;
+	static const Configuration EDGE_VERTEX = 3;
 
 	WOEdge *_woea; // Oriented edge from which the silhouette edge starts
 	WOEdge *_woeb; // Oriented edge where the silhouette edge ends
@@ -403,7 +400,7 @@ public:
 		return _ClosestPointIndex;
 	}
 
-	inline Nature::EdgeNature nature() const
+	inline WXNature nature() const
 	{
 		return _Nature;
 	}
@@ -700,7 +697,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXFace")
 #endif
-
 };
 
 
@@ -801,7 +797,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXShape")
 #endif
-
 };
 
 /*

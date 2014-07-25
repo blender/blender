@@ -55,8 +55,10 @@ void FEdgeXDetector::processShapes(WingedEdge& we)
 		if (_pRenderMonitor && _pRenderMonitor->testBreak())
 			break;
 		wxs = dynamic_cast<WXShape*>(*it);
+#if 0
 		wxs->bbox(Min, Max);
 		_bbox_diagonal = (Max - Min).norm();
+#endif
 		if (_changes) {
 			vector<WFace*>& wfaces = wxs->GetFaceList();
 			for (vector<WFace*>::iterator wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend; ++wf) {
@@ -117,7 +119,11 @@ void FEdgeXDetector::preProcessShape(WXShape *iWShape)
 	_minKr = FLT_MAX;
 	_maxKr = -FLT_MAX;
 	_nPoints = 0;
+#if 0
 	_meanEdgeSize = iWShape->getMeanEdgeSize();
+#else
+	_meanEdgeSize = iWShape->ComputeMeanEdgeSize();
+#endif
 
 	vector<WFace*>& wfaces = iWShape->GetFaceList();
 	vector<WFace*>::iterator f, fend;

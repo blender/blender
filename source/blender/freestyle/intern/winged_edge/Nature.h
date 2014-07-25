@@ -34,6 +34,7 @@ namespace Freestyle {
 namespace Nature {
 
 /* XXX Why not using enums??? */
+/* In order to optimize for space (enum is int) - T.K. */
 
 typedef unsigned short VertexNature;
 /*! true for any 0D element */

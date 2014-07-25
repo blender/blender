@@ -72,7 +72,7 @@ protected:
 	vector<WEdge*> _EdgeList;
 	WShape *_Shape; // the shape to which the vertex belongs
 	bool _Smooth; // flag to indicate whether the Vertex belongs to a smooth edge or not
-	int _Border; // 1 -> border, 0 -> no border, -1 -> not set
+	short _Border; // 1 -> border, 0 -> no border, -1 -> not set
 
 public:
 	void *userdata; // designed to store specific user data
@@ -467,7 +467,6 @@ public:
 		return _angle;
 	}
 
-
 	/*! modifiers */
 #if 0
 	inline void SetaCWEdge(WOEdge *pe)
@@ -552,7 +551,7 @@ class WEdge
 protected:
 	WOEdge *_paOEdge; // first oriented edge
 	WOEdge *_pbOEdge; // second oriented edge
-	int _nOEdges;     // number of oriented edges associated with this edge. (1 means border edge)
+	short _nOEdges;   // number of oriented edges associated with this edge. (1 means border edge)
 	bool _Mark;       // user-specified edge mark for feature edge detection
 	int _Id;          // Identifier for the edge
 
@@ -633,7 +632,7 @@ public:
 		return _pbOEdge;
 	}
 
-	inline int GetNumberOfOEdges()
+	inline short GetNumberOfOEdges()
 	{
 		return _nOEdges;
 	}
@@ -700,7 +699,7 @@ public:
 		}
 	}
 
-	inline void setNumberOfOEdges(int n)
+	inline void setNumberOfOEdges(short n)
 	{
 		_nOEdges = n;
 	}
@@ -1027,15 +1026,21 @@ protected:
 	int _Id;
 	const char *_Name;
 	static unsigned _SceneCurrentId;
+#if 0
 	Vec3r _min;
 	Vec3r _max;
+#endif
 	vector<FrsMaterial> _FrsMaterials;
+#if 0
 	real _meanEdgeSize;
+#endif
 
 public:
 	inline WShape()
 	{
+#if 0
 		_meanEdgeSize = 0;
+#endif
 		_Id = _SceneCurrentId;
 		_SceneCurrentId++;
 	}
@@ -1092,11 +1097,13 @@ public:
 		return _Id;
 	}
 
+#if 0
 	inline void bbox(Vec3r& min, Vec3r& max)
 	{
 		min = _min;
 		max = _max;
 	}
+#endif
 
 	inline const FrsMaterial& frs_material(unsigned i) const
 	{
@@ -1108,10 +1115,12 @@ public:
 		return _FrsMaterials;
 	}
 
+#if 0
 	inline const real getMeanEdgeSize() const
 	{
 		return _meanEdgeSize;
 	}
+#endif
 
 	inline const char *getName() const
 	{
@@ -1144,11 +1153,13 @@ public:
 		_Id = id;
 	}
 
+#if 0
 	inline void setBBox(const Vec3r& min, const Vec3r& max)
 	{
 		_min = min;
 		_max = max;
 	}
+#endif
 
 	inline void setFrsMaterial(const FrsMaterial& frs_material, unsigned i)
 	{
@@ -1240,6 +1251,7 @@ public:
 		}
 	}
 
+#if 0
 	inline void ComputeBBox()
 	{
 		_min = _VertexList[0]->GetVertex();
@@ -1256,12 +1268,17 @@ public:
 			}
 		}
 	}
+#endif
 
+#if 0
 	inline real ComputeMeanEdgeSize()
 	{
 		_meanEdgeSize = _meanEdgeSize / _EdgeList.size();
 		return _meanEdgeSize;
 	}
+#else
+	real ComputeMeanEdgeSize() const;
+#endif
 
 protected:
 	/*! Builds the face passed as argument (which as already been allocated)

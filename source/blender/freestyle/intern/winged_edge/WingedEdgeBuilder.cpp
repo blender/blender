@@ -177,10 +177,12 @@ bool WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs)
 	if (shape.GetFaceList().size() == 0) // this may happen due to degenerate triangles
 		return false;
 
+#if 0
 	// compute bbox
 	shape.ComputeBBox();
 	// compute mean edge size:
 	shape.ComputeMeanEdgeSize();
+#endif
 
 	// Parse the built winged-edge shape to update post-flags
 	set<Vec3r> normalsSet;

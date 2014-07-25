@@ -472,8 +472,10 @@ WShape::WShape(WShape& iBrother)
 	_Id = iBrother.GetId();
 	_Name = iBrother._Name;
 	_FrsMaterials = iBrother._FrsMaterials;
+#if 0
 	_meanEdgeSize = iBrother._meanEdgeSize;
 	iBrother.bbox(_min, _max);
+#endif
 	vector<WVertex *>& vertexList = iBrother.getVertexList();
 	vector<WVertex *>::iterator v = vertexList.begin(), vend = vertexList.end();
 	for (; v != vend; ++v) {
@@ -681,8 +683,10 @@ WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeM
 			// means that we just created a new edge and that we must add it to the shape's edges list
 			edge->setId(_EdgeList.size());
 			AddEdge(edge);
+#if 0
 			// compute the mean edge value:
 			_meanEdgeSize += edge->GetaOEdge()->GetVec().norm();
+#endif
 		}
 
 		edge->setMark(*mit);
@@ -694,6 +698,18 @@ WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeM
 	AddFace(face);
 
 	return face;
+}
+
+real WShape::ComputeMeanEdgeSize() const
+{
+	real meanEdgeSize = 0.0;
+	for (vector<WEdge *>::const_iterator it = _EdgeList.begin(), itend = _EdgeList.end();
+	     it != itend;
+	     it++)
+	{
+		meanEdgeSize += (*it)->GetaOEdge()->GetVec().norm();
+	}
+	return meanEdgeSize / _EdgeList.size();
 }
 
 } /* namespace Freestyle */

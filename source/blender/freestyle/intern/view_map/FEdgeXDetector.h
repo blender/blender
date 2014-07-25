@@ -58,7 +58,9 @@ public:
 		_pProgressBar = NULL;
 		_pRenderMonitor = NULL;
 		_computeViewIndependent = true;
+#if 0
 		_bbox_diagonal = 1.0;
+#endif
 		_meanEdgeSize = 0;
 		_computeRidgesAndValleys = true;
 		_computeSuggestiveContours = true;
@@ -211,7 +213,9 @@ public:
 
 protected:
 	Vec3r _Viewpoint;
+#if 0
 	real _bbox_diagonal; // diagonal of the current processed shape bbox
+#endif
 	//oldtmp values
 	bool _computeViewIndependent;
 	real _meanK1;
