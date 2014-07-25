@@ -1084,7 +1084,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
                 slot = mat.texture_paint_slots[mat.paint_active_slot]
                 col.separator()
-                col.label("UV Layer")
+                col.label("UV Map")
                 col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
 
 
