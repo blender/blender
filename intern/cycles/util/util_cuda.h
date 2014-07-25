@@ -509,6 +509,7 @@ typedef CUresult CUDAAPI tcuGLCtxCreate(CUcontext *pCtx, unsigned int Flags, CUd
 typedef CUresult CUDAAPI tcuGraphicsGLRegisterBuffer(CUgraphicsResource *pCudaResource, GLuint buffer, unsigned int Flags);
 typedef CUresult CUDAAPI tcuGraphicsGLRegisterImage(CUgraphicsResource *pCudaResource, GLuint image, GLenum target, unsigned int Flags);
 typedef CUresult CUDAAPI tcuCtxSetCurrent(CUcontext ctx);
+typedef CUresult CUDAAPI tcuLaunchKernel(CUfunction f, unsigned gridDimX, unsigned gridDimY, unsigned gridDimZ, unsigned blockDimX, unsigned blockDimY, unsigned blockDimZ, unsigned sharedMemBytes, CUstream hStream, void* kernelParams, void* extra);
 
 /* function declarations */
 
@@ -629,6 +630,7 @@ extern tcuGLCtxCreate *cuGLCtxCreate;
 extern tcuGraphicsGLRegisterBuffer *cuGraphicsGLRegisterBuffer;
 extern tcuGraphicsGLRegisterImage *cuGraphicsGLRegisterImage;
 extern tcuCtxSetCurrent *cuCtxSetCurrent;
+extern tcuLaunchKernel *cuLaunchKernel;
 
 #endif /* __UTIL_CUDA_H__ */
 

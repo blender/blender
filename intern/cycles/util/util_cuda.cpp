@@ -149,6 +149,7 @@ tcuGLCtxCreate *cuGLCtxCreate;
 tcuGraphicsGLRegisterBuffer *cuGraphicsGLRegisterBuffer;
 tcuGraphicsGLRegisterImage *cuGraphicsGLRegisterImage;
 tcuCtxSetCurrent *cuCtxSetCurrent;
+tcuLaunchKernel *cuLaunchKernel;
 
 CCL_NAMESPACE_BEGIN
 
@@ -386,6 +387,7 @@ bool cuLibraryInit()
 
 	/* cuda 4.0 */
 	CUDA_LIBRARY_FIND(cuCtxSetCurrent);
+	CUDA_LIBRARY_FIND(cuLaunchKernel);
 
 	if(cuHavePrecompiledKernels())
 		result = true;

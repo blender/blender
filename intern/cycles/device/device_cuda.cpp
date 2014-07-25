@@ -615,40 +615,17 @@ public:
 
 		if(have_error())
 			return;
-	
+
 		/* pass in parameters */
-		int offset = 0;
-		
-		cuda_assert(cuParamSetv(cuPathTrace, offset, &d_buffer, sizeof(d_buffer)));
-		offset += sizeof(d_buffer);
-
-		cuda_assert(cuParamSetv(cuPathTrace, offset, &d_rng_state, sizeof(d_rng_state)));
-		offset += sizeof(d_rng_state);
-
-		offset = align_up(offset, __alignof(sample));
-
-		cuda_assert(cuParamSeti(cuPathTrace, offset, sample));
-		offset += sizeof(sample);
-
-		cuda_assert(cuParamSeti(cuPathTrace, offset, rtile.x));
-		offset += sizeof(rtile.x);
-
-		cuda_assert(cuParamSeti(cuPathTrace, offset, rtile.y));
-		offset += sizeof(rtile.y);
-
-		cuda_assert(cuParamSeti(cuPathTrace, offset, rtile.w));
-		offset += sizeof(rtile.w);
-
-		cuda_assert(cuParamSeti(cuPathTrace, offset, rtile.h));
-		offset += sizeof(rtile.h);
-
-		cuda_assert(cuParamSeti(cuPathTrace, offset, rtile.offset));
-		offset += sizeof(rtile.offset);
-
-		cuda_assert(cuParamSeti(cuPathTrace, offset, rtile.stride));
-		offset += sizeof(rtile.stride);
-
-		cuda_assert(cuParamSetSize(cuPathTrace, offset));
+		void *args[] = {&d_buffer,
+						 &d_rng_state,
+						 &sample,
+						 &rtile.x,
+						 &rtile.y,
+						 &rtile.w,
+						 &rtile.h,
+						 &rtile.offset,
+						 &rtile.stride};
 
 		/* launch kernel */
 		int threads_per_block;
@@ -666,8 +643,11 @@ public:
 		int yblocks = (rtile.h + ythreads - 1)/ythreads;
 
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetBlockShape(cuPathTrace, xthreads, ythreads, 1));
-		cuda_assert(cuLaunchGrid(cuPathTrace, xblocks, yblocks));
+
+		cuda_assert(cuLaunchKernel(cuPathTrace,
+								   xblocks , yblocks, 1, /* blocks */
+								   xthreads, ythreads, 1, /* threads */
+								   0, 0, args, 0));
 
 		cuda_assert(cuCtxSynchronize());
 
@@ -693,40 +673,19 @@ public:
 			cuda_assert(cuModuleGetFunction(&cuFilmConvert, cuModule, "kernel_cuda_convert_to_byte"));
 		}
 
-		/* pass in parameters */
-		int offset = 0;
-
-		cuda_assert(cuParamSetv(cuFilmConvert, offset, &d_rgba, sizeof(d_rgba)));
-		offset += sizeof(d_rgba);
-		
-		cuda_assert(cuParamSetv(cuFilmConvert, offset, &d_buffer, sizeof(d_buffer)));
-		offset += sizeof(d_buffer);
 
 		float sample_scale = 1.0f/(task.sample + 1);
-		offset = align_up(offset, __alignof(sample_scale));
 
-		cuda_assert(cuParamSetf(cuFilmConvert, offset, sample_scale));
-		offset += sizeof(sample_scale);
-
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.x));
-		offset += sizeof(task.x);
-
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.y));
-		offset += sizeof(task.y);
-
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.w));
-		offset += sizeof(task.w);
-
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.h));
-		offset += sizeof(task.h);
-
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.offset));
-		offset += sizeof(task.offset);
-
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.stride));
-		offset += sizeof(task.stride);
-
-		cuda_assert(cuParamSetSize(cuFilmConvert, offset));
+		/* pass in parameters */
+		void *args[] = {&d_rgba,
+						 &d_buffer,
+						 &sample_scale,
+						 &task.x,
+						 &task.y,
+						 &task.w,
+						 &task.h,
+						 &task.offset,
+						 &task.stride};
 
 		/* launch kernel */
 		int threads_per_block;
@@ -738,8 +697,11 @@ public:
 		int yblocks = (task.h + ythreads - 1)/ythreads;
 
 		cuda_assert(cuFuncSetCacheConfig(cuFilmConvert, CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetBlockShape(cuFilmConvert, xthreads, ythreads, 1));
-		cuda_assert(cuLaunchGrid(cuFilmConvert, xblocks, yblocks));
+
+		cuda_assert(cuLaunchKernel(cuFilmConvert,
+								   xblocks , yblocks, 1, /* blocks */
+								   xthreads, ythreads, 1, /* threads */
+								   0, 0, args, 0));
 
 		unmap_pixels((rgba_byte)? rgba_byte: rgba_half);
 
@@ -777,31 +739,14 @@ public:
 			int shader_w = min(shader_chunk_size, end - shader_x);
 
 			for(int sample = 0; sample < task.num_samples; sample++) {
+
 				/* pass in parameters */
-				int offset = 0;
-
-				cuda_assert(cuParamSetv(cuShader, offset, &d_input, sizeof(d_input)));
-				offset += sizeof(d_input);
-
-				cuda_assert(cuParamSetv(cuShader, offset, &d_output, sizeof(d_output)));
-				offset += sizeof(d_output);
-
-				int shader_eval_type = task.shader_eval_type;
-				offset = align_up(offset, __alignof(shader_eval_type));
-
-				cuda_assert(cuParamSeti(cuShader, offset, task.shader_eval_type));
-				offset += sizeof(task.shader_eval_type);
-
-				cuda_assert(cuParamSeti(cuShader, offset, shader_x));
-				offset += sizeof(shader_x);
-
-				cuda_assert(cuParamSeti(cuShader, offset, shader_w));
-				offset += sizeof(shader_w);
-
-				cuda_assert(cuParamSeti(cuShader, offset, sample));
-				offset += sizeof(sample);
-
-				cuda_assert(cuParamSetSize(cuShader, offset));
+				void *args[] = {&d_input,
+								 &d_output,
+								 &task.shader_eval_type,
+								 &shader_x,
+								 &shader_w,
+								 &sample};
 
 				/* launch kernel */
 				int threads_per_block;
@@ -810,8 +755,10 @@ public:
 				int xblocks = (shader_w + threads_per_block - 1)/threads_per_block;
 
 				cuda_assert(cuFuncSetCacheConfig(cuShader, CU_FUNC_CACHE_PREFER_L1));
-				cuda_assert(cuFuncSetBlockShape(cuShader, threads_per_block, 1, 1));
-				cuda_assert(cuLaunchGrid(cuShader, xblocks, 1));
+				cuda_assert(cuLaunchKernel(cuShader,
+										   xblocks , 1, 1, /* blocks */
+										   threads_per_block, 1, 1, /* threads */
+										   0, 0, args, 0));
 
 				cuda_assert(cuCtxSynchronize());
 			}
