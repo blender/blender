@@ -216,19 +216,19 @@ OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="1.4.0"
+OIIO_VERSION="1.4.11"
 OIIO_VERSION_MIN="1.4.0"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
-LLVM_VERSION="3.3"
-LLVM_VERSION_MIN="3.3"
+LLVM_VERSION="3.4"
+LLVM_VERSION_MIN="3.4"
 LLVM_VERSION_FOUND=""
 LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.4.0"
+OSL_VERSION="1.5.0"
 OSL_VERSION_MIN=$OSL_VERSION
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
@@ -238,8 +238,8 @@ OPENCOLLADA_VERSION="1.3"
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
-FFMPEG_VERSION="2.1.4"
-FFMPEG_VERSION_MIN="0.7.6"
+FFMPEG_VERSION="2.1.5"
+FFMPEG_VERSION_MIN="2.1.5"
 FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
 _ffmpeg_list_sep=";"
@@ -483,21 +483,22 @@ _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
 BOOST_SOURCE=( "http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download" )
 
 OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION" )
+
 #OPENEXR_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz" )
 OPENEXR_SOURCE=( "https://github.com/mont29/openexr.git" )
 OPENEXR_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
 ILMBASE_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz" )
 
 #OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz" )
-OIIO_SOURCE=( "https://github.com/mont29/oiio.git" )
-OIIO_REPO_UID="99113d12619c90cf44721195a759674ea61f02b1"
+OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio.git" )
+OIIO_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
 
 LLVM_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz" )
 LLVM_CLANG_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz" "http://llvm.org/releases/$LLVM_VERSION/cfe-$LLVM_VERSION.src.tar.gz" )
 #OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
-#OSL_SOURCE=( "https://github.com/mont29/OpenShadingLanguage.git" )
-OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage.git" )
-OSL_REPO_UID="4abd672ed3979e5e965323201a5ba5ab802a76a9"
+#OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage.git" )
+OSL_SOURCE=( "https://github.com/mont29/OpenShadingLanguage.git" )
+OSL_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
 
 OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
 OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
@@ -1189,11 +1190,11 @@ compile_OIIO() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-#      download OIIO_SOURCE[@] "$_src.tar.gz"
-
-#      INFO "Unpacking OpenImageIO-$OIIO_VERSION"
-#      tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
-#          -xf $_src.tar.gz
+      #download OIIO_SOURCE[@] "$_src.tar.gz"
+#
+      #INFO "Unpacking OpenImageIO-$OIIO_VERSION"
+      #tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
+          #-xf $_src.tar.gz
 
       git clone ${OIIO_SOURCE[0]} $_src
 
@@ -1421,11 +1422,11 @@ compile_OSL() {
     if [ ! -d $_src ]; then
       mkdir -p $SRC
 
-#      download OSL_SOURCE[@] "$_src.tar.gz"
+      #download OSL_SOURCE[@] "$_src.tar.gz"
 
-#      INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
-#      tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
-#          -xf $_src.tar.gz
+      #INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
+      #tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
+          #-xf $_src.tar.gz
 
       git clone ${OSL_SOURCE[0]} $_src
 
@@ -1458,6 +1459,7 @@ compile_OSL() {
     cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
 
     if [ $_with_built_openexr == true ]; then
+      INFO "ILMBASE_HOME=$INST/openexr"
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
     fi
 
