@@ -164,16 +164,20 @@ static int search_poly_cmp(const void *v1, const void *v2)
 {
 	const SortPoly *sp1 = v1, *sp2 = v2;
 	const int max_idx = sp1->numverts > sp2->numverts ? sp2->numverts : sp1->numverts;
-	int idx = 0;
+	int idx;
 
 	/* Reject all invalid polys at end of list! */
 	if (sp1->invalid || sp2->invalid)
-		return sp1->invalid && sp2->invalid ? 0 : sp1->invalid ? 1 : -1;
-	/* Else, sort on first non-egal verts (remember verts of valid polys are sorted). */
-	while (idx < max_idx && sp1->verts[idx] == sp2->verts[idx])
-		idx++;
-	return sp1->verts[idx] > sp2->verts[idx] ? 1 : sp1->verts[idx] < sp2->verts[idx] ? -1 :
-	       sp1->numverts > sp2->numverts ? 1 : sp1->numverts < sp2->numverts ? -1 : 0;
+		return sp1->invalid ? (sp2->invalid ? 0 : 1) : -1;
+	/* Else, sort on first non-equal verts (remember verts of valid polys are sorted). */
+	for (idx = 0; idx < max_idx; idx++) {
+		const int v1 = sp1->verts[idx];
+		const int v2 = sp2->verts[idx];
+		if (v1 != v2) {
+			return (v1 > v2) ? 1 : -1;
+		}
+	}
+	return sp1->numverts > sp2->numverts ? 1 : sp1->numverts < sp2->numverts ? -1 : 0;
 }
 
 static int search_polyloop_cmp(const void *v1, const void *v2)
