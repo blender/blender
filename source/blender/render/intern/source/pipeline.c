@@ -1935,6 +1935,8 @@ static void add_freestyle(Render *re, int render)
 {
 	SceneRenderLayer *srl, *actsrl;
 	LinkData *link;
+	Render *r;
+	const bool do_link = (re->r.mode & R_MBLUR) == 0 || re->i.curblur == re->r.mblur_samples;
 
 	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
 
@@ -1951,15 +1953,17 @@ static void add_freestyle(Render *re, int render)
 
 	FRS_init_stroke_rendering(re);
 
-	for (srl= (SceneRenderLayer *)re->r.layers.first; srl; srl= srl->next) {
-
-		link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
-		BLI_addtail(&re->freestyle_renders, link);
-
+	for (srl = (SceneRenderLayer *)re->r.layers.first; srl; srl = srl->next) {
+		if (do_link) {
+			link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
+			BLI_addtail(&re->freestyle_renders, link);
+		}
 		if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
 			continue;
 		if (FRS_is_freestyle_enabled(srl)) {
-			link->data = (void *)FRS_do_stroke_rendering(re, srl, render);
+			r = FRS_do_stroke_rendering(re, srl, render);
+			if (do_link)
+				link->data = (void *)r;
 		}
 	}
 
