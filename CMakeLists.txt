@@ -1764,7 +1764,7 @@ elseif(APPLE)
 		)
 
 		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-		set(OPENCOLLADA_LIBRARIES "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2 -lbuffer -lftoa")
+		set(OPENCOLLADA_LIBRARIES "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lxml2 -lbuffer -lftoa")
 		# pcre is bundled with openCollada
 		#set(PCRE ${LIBDIR}/pcre)
 		#set(PCRE_LIBPATH ${PCRE}/lib)
@@ -1929,6 +1929,8 @@ elseif(APPLE)
 		# Xcode 5 is always using CLANG, which has too low template depth of 128 for libmv
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=1024")
 	endif()
+	# Get rid of eventually clashes, we export some symbols explicite as local
+	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map")
 endif()
 
 #-----------------------------------------------------------------------------
