@@ -99,6 +99,7 @@ extern "C" {
 #include "COM_SetValueOperation.h"
 #include "COM_SplitViewerNode.h"
 #include "COM_Stabilize2dNode.h"
+#include "COM_SunBeamsNode.h"
 #include "COM_SwitchNode.h"
 #include "COM_TextureNode.h"
 #include "COM_TimeNode.h"
@@ -393,6 +394,9 @@ Node *Converter::convert(bNode *b_node)
 			break;
 		case CMP_NODE_CORNERPIN:
 			node = new CornerPinNode(b_node);
+			break;
+		case CMP_NODE_SUNBEAMS:
+			node = new SunBeamsNode(b_node);
 			break;
 	}
 	return node;

@@ -852,6 +852,12 @@ typedef struct NodeShaderUVMap {
 	char uv_map[64];
 } NodeShaderUVMap;
 
+typedef struct NodeSunBeams {
+	float source[2];
+
+	float ray_length;
+} NodeSunBeams;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL		0
 #define NODE_SCRIPT_EXTERNAL		1

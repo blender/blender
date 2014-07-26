@@ -125,7 +125,7 @@ void register_node_type_cmp_mask(void);
 void register_node_type_cmp_glare(void);
 void register_node_type_cmp_tonemap(void);
 void register_node_type_cmp_lensdist(void);
-
+void register_node_type_cmp_sunbeams(void);
 
 void register_node_type_cmp_colorcorrection(void);
 void register_node_type_cmp_boxmask(void);

@@ -2307,6 +2307,12 @@ static void node_composit_buts_cornerpin(uiLayout *UNUSED(layout), bContext *UNU
 {
 }
 
+static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "source", UI_ITEM_R_EXPAND, "", ICON_NONE);
+	uiItemR(layout, ptr, "ray_length", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2530,6 +2536,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_CORNERPIN:
 			ntype->draw_buttons = node_composit_buts_cornerpin;
+			break;
+		case CMP_NODE_SUNBEAMS:
+			ntype->draw_buttons = node_composit_buts_sunbeams;
 			break;
 	}
 }

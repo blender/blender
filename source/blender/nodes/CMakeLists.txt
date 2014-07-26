@@ -105,6 +105,7 @@ set(SRC
 	composite/nodes/node_composite_setalpha.c
 	composite/nodes/node_composite_splitViewer.c
 	composite/nodes/node_composite_stabilize2d.c
+	composite/nodes/node_composite_sunbeams.c
 	composite/nodes/node_composite_texture.c
 	composite/nodes/node_composite_tonemap.c
 	composite/nodes/node_composite_trackpos.c

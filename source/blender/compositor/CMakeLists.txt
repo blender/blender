@@ -175,6 +175,11 @@ set(SRC
 	nodes/COM_GlareNode.cpp
 	nodes/COM_GlareNode.h
 
+	nodes/COM_SunBeamsNode.cpp
+	nodes/COM_SunBeamsNode.h
+	operations/COM_SunBeamsOperation.cpp
+	operations/COM_SunBeamsOperation.h
+
 	nodes/COM_CornerPinNode.cpp
 	nodes/COM_CornerPinNode.h
 	nodes/COM_PlaneTrackDeformNode.cpp

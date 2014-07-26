@@ -6187,6 +6187,27 @@ static void def_cmp_planetrackdeform(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_sunbeams(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeSunBeams", "storage");
+
+	prop = RNA_def_property(srna, "source", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "source");
+	RNA_def_property_range(prop, -100.0f, 100.0f);
+	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 10, 3);
+	RNA_def_property_ui_text(prop, "Source", "Source point of rays as a factor of the image width & height");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "ray_length", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "ray_length");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10, 3);
+	RNA_def_property_ui_text(prop, "Ray Length", "Length of rays as a factor of the image size");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 /* -- Texture Nodes --------------------------------------------------------- */
 
 static void def_tex_output(StructRNA *srna)
