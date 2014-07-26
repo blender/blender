@@ -200,10 +200,22 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	float distance;
 	int i, iflip, j;
 	bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+	bool use_mask = false;
+
+	if ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
+	    (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)))
+	{
+		use_mask = true;
+	}
 
 	/* for each vertex in the mesh */
 	for (i = 0; i < mesh->totvert; i++) {
-		iflip = (dgroupflip) ? mesh_get_x_mirror_vert(ob, i, use_topology) : 0;
+
+		if (use_mask && !(mesh->mvert[i].flag & SELECT)) {
+			continue;
+		}
+
+		iflip = (dgroupflip) ? mesh_get_x_mirror_vert(ob, i, use_topology) : -1;
 		
 		/* for each skinnable bone */
 		for (j = 0; j < numbones; ++j) {
@@ -224,7 +236,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 				ED_vgroup_vert_remove(ob, dgroup, i);
 			
 			/* do same for mirror */
-			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
+			if (dgroupflip && dgroupflip[j] && iflip != -1) {
 				if (distance != 0.0f)
 					ED_vgroup_vert_add(ob, dgroupflip[j], iflip, distance,
 					                   WEIGHT_REPLACE);

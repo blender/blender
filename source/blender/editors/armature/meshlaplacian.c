@@ -635,8 +635,8 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
 	MVert *mvert = me->mvert;
-	bool use_vert_sel = false;
-	bool use_face_sel = false;
+	bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+	bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
 	*err_str = NULL;
 
@@ -652,9 +652,8 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 		return;
 
 	/* count triangles and create mask */
-	if (ob->mode == OB_MODE_WEIGHT_PAINT &&
-	    ((use_face_sel = ((me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0)) ||
-	     (use_vert_sel = ((me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0))))
+	if (ob->mode & OB_MODE_WEIGHT_PAINT &&
+	    (use_face_sel || use_vert_sel))
 	{
 		mask = MEM_callocN(sizeof(int) * me->totvert, "heat_bone_weighting mask");
 
