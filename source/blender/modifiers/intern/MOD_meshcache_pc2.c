@@ -32,6 +32,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_math.h"
+#ifdef __BIG_ENDIAN__
+#  include "BLI_endian_switch.h"
+#endif
 
 #include "MOD_meshcache_util.h"  /* own include */
 
