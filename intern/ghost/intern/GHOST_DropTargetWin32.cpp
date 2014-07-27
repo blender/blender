@@ -43,10 +43,11 @@ void printLastError(void);
 #endif // GHOST_DEBUG
 
 
-GHOST_DropTargetWin32::GHOST_DropTargetWin32(GHOST_WindowWin32 *window, GHOST_SystemWin32 *system)
-	:
-	m_window(window),
-	m_system(system)
+GHOST_DropTargetWin32::GHOST_DropTargetWin32(
+        GHOST_WindowWin32 *window,
+        GHOST_SystemWin32 *system)
+    : m_window(window),
+      m_system(system)
 {
 	m_cRef = 1;
 	m_hWnd = window->getHWND();
@@ -68,8 +69,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppvO
 		return E_INVALIDARG;
 	*ppvObj = NULL;
 
-	if (riid == IID_IUnknown || riid == IID_IDropTarget)
-	{
+	if (riid == IID_IUnknown || riid == IID_IDropTarget) {
 		AddRef();
 		*ppvObj = (void *)this;
 		return S_OK;
@@ -208,8 +208,7 @@ GHOST_TDragnDropTypes GHOST_DropTargetWin32::getGhostType(IDataObject *pDataObje
 void *GHOST_DropTargetWin32::getGhostData(IDataObject *pDataObject)
 {
 	GHOST_TDragnDropTypes type = getGhostType(pDataObject);
-	switch (type)
-	{
+	switch (type) {
 		case GHOST_kDragnDropTypeFilenames:
 			return getDropDataAsFilenames(pDataObject);
 			break;
@@ -241,15 +240,12 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
 
 	// Check if dataobject supplies the format we want.
 	// Double checking here, first in getGhostType.
-	if (pDataObject->QueryGetData(&fmtetc) == S_OK)
-	{
-		if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK)
-		{
+	if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
+		if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
 			hdrop = (HDROP) ::GlobalLock(stgmed.hGlobal);
 
 			totfiles = ::DragQueryFileW(hdrop, -1, NULL, 0);
-			if (!totfiles)
-			{
+			if (!totfiles) {
 				::GlobalUnlock(stgmed.hGlobal);
 				return NULL;
 			}
@@ -258,14 +254,11 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
 			strArray->count = 0;
 			strArray->strings = (GHOST_TUns8 **) ::malloc(totfiles * sizeof(GHOST_TUns8 *));
 
-			for (UINT nfile = 0; nfile < totfiles; nfile++)
-			{
-				if (::DragQueryFileW(hdrop, nfile, fpath, MAX_PATH) > 0)
-				{
-					if (!(temp_path = alloc_utf_8_from_16(fpath, 0)) )
-					{
+			for (UINT nfile = 0; nfile < totfiles; nfile++) {
+				if (::DragQueryFileW(hdrop, nfile, fpath, MAX_PATH) > 0) {
+					if (!(temp_path = alloc_utf_8_from_16(fpath, 0)) ) {
 						continue;
-					} 
+					}
 					// Just ignore paths that could not be converted verbatim.
 
 					strArray->strings[nvalid] = (GHOST_TUns8 *) temp_path;
@@ -291,13 +284,10 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
 
 	// Try unicode first.
 	// Check if dataobject supplies the format we want.
-	if (pDataObject->QueryGetData(&fmtetc) == S_OK)
-	{
-		if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK)
-		{
+	if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
+		if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
 			LPCWSTR wstr = (LPCWSTR) ::GlobalLock(stgmed.hGlobal);
-			if (!(tmp_string = alloc_utf_8_from_16((wchar_t *)wstr, 0)) )
-			{
+			if (!(tmp_string = alloc_utf_8_from_16((wchar_t *)wstr, 0)) ) {
 				::GlobalUnlock(stgmed.hGlobal);
 				return NULL;
 			}
@@ -313,21 +303,17 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
 
 	fmtetc.cfFormat = CF_TEXT;
 
-	if (pDataObject->QueryGetData(&fmtetc) == S_OK)
-	{
-		if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK)
-		{
+	if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
+		if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
 			char *str = (char *)::GlobalLock(stgmed.hGlobal);
 			
 			tmp_string = (char *)::malloc(::strlen(str) + 1);
-			if (!tmp_string)
-			{
+			if (!tmp_string) {
 				::GlobalUnlock(stgmed.hGlobal);
 				return NULL;
 			}
 
-			if (!::strcpy(tmp_string, str) )
-			{
+			if (!::strcpy(tmp_string, str) ) {
 				::free(tmp_string);
 				::GlobalUnlock(stgmed.hGlobal);
 				return NULL;
@@ -358,8 +344,7 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char * &out)
 	                             NULL, NULL
 	                             );
 	
-	if (!size)
-	{
+	if (!size) {
 #ifdef GHOST_DEBUG
 		::printLastError();
 #endif // GHOST_DEBUG
@@ -367,8 +352,7 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char * &out)
 	}
 
 	out = (char *)::malloc(size);
-	if (!out)
-	{
+	if (!out) {
 		::printf("\nmalloc failed!!!");
 		return 0;
 	}
@@ -382,8 +366,7 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char * &out)
 	                             NULL, NULL
 	                             );
 
-	if (!size)
-	{
+	if (!size) {
 #ifdef GHOST_DEBUG
 		::printLastError();
 #endif //GHOST_DEBUG
@@ -407,8 +390,7 @@ void printLastError(void)
 	                  0,
 	                  (LPTSTR)&s,
 	                  0,
-	                  NULL)
-	    )
+	                  NULL))
 	{
 		printf("\nLastError: (%d) %s\n", (int)err, s);
 		LocalFree(s);

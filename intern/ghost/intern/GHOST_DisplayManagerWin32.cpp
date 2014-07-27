@@ -56,7 +56,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplays(GHOST_TUns8& numDisplay
 	return numDisplays > 0 ? GHOST_kSuccess : GHOST_kFailure;
 }
 
-static BOOL get_dd(DWORD d, DISPLAY_DEVICE* dd)
+static BOOL get_dd(DWORD d, DISPLAY_DEVICE *dd)
 {
 	dd->cb = sizeof(DISPLAY_DEVICE);
 	return ::EnumDisplayDevices(NULL, d, dd, 0);
@@ -161,8 +161,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 d
 
 	LONG status = ::ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
 #ifdef GHOST_DEBUG
-	switch (status)
-	{
+	switch (status) {
 		case DISP_CHANGE_SUCCESSFUL:
 			printf("display change: The settings change was successful.\n");
 			break;
@@ -173,7 +172,8 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 d
 			printf("display change: An invalid set of flags was passed in.\n");
 			break;
 		case DISP_CHANGE_BADPARAM:
-			printf("display change: An invalid parameter was passed in. This can include an invalid flag or combination of flags.\n");
+			printf("display change: An invalid parameter was passed in. "
+			       "This can include an invalid flag or combination of flags.\n");
 			break;
 		case DISP_CHANGE_FAILED:
 			printf("display change: The display driver failed the specified graphics mode.\n");
