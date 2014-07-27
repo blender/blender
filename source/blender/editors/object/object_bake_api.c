@@ -1080,7 +1080,6 @@ static int bake_exec(bContext *C, wmOperator *op)
 
 	/* setup new render */
 	RE_test_break_cb(re, NULL, bake_break);
-	RE_progress_cb(re, NULL, bake_progress_update);
 
 	if (!bake_objects_check(bkr.main, bkr.ob, &bkr.selected_objects, bkr.reports, bkr.is_selected_to_active))
 		return OPERATOR_CANCELLED;
