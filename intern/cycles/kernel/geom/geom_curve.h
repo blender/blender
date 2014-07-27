@@ -936,9 +936,10 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 		sd->u = isect->u;
 		sd->v = 0.0f;
 #endif
-	
+
+		tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
+
 		if(kernel_data.curve.curveflags & CURVE_KN_RIBBONS) {
-			tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
 			sd->Ng = normalize(-(D - tg * (dot(tg, D))));
 		}
 		else {
@@ -950,7 +951,6 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 			float gd = isect->v;
 
 			if(gd != 0.0f) {
-				tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
 				sd->Ng = sd->Ng - gd * tg;
 				sd->Ng = normalize(sd->Ng);
 			}
