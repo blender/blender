@@ -34,7 +34,7 @@ IndexedFaceSet::IndexedFaceSet() : Rep()
 	_Vertices = NULL;
 	_Normals = NULL;
 	_FrsMaterials = 0;
-	_TexCoords = 0;
+	_TexCoords = NULL;
 	_FaceEdgeMarks = 0;
 	_VSize = 0;
 	_NSize = 0;
