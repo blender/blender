@@ -533,7 +533,7 @@ void Controller::ComputeViewMap()
 	}
 	_Chrono.start();
 
-	edgeDetector.setViewpoint(Vec3r(vp));
+	edgeDetector.setViewpoint(vp);
 	edgeDetector.enableOrthographicProjection(proj[3][3] != 0.0);
 	edgeDetector.enableRidgesAndValleysFlag(_ComputeRidges);
 	edgeDetector.enableSuggestiveContours(_ComputeSuggestive);
@@ -557,7 +557,7 @@ void Controller::ComputeViewMap()
 	//----------------------------------------------------------
 	ViewMapBuilder vmBuilder;
 	vmBuilder.setEnableQI(_EnableQI);
-	vmBuilder.setViewpoint(Vec3r(vp));
+	vmBuilder.setViewpoint(vp);
 	vmBuilder.setTransform(mv, proj, viewport, _pView->GetFocalLength(), _pView->GetAspect(), _pView->GetFovyRadian());
 	vmBuilder.setFrustum(_pView->znear(), _pView->zfar());
 	vmBuilder.setGrid(&_Grid);
