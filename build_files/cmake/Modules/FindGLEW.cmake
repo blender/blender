@@ -3,13 +3,13 @@
 # This module defines
 #  GLEW_INCLUDE_DIRS, where to find glew.h, Set when
 #                        GLEW_INCLUDE_DIR is found.
-#  GLEW_LIBRARIES, libraries to link against to use Glew.
 #  GLEW_ROOT_DIR, The base directory to search for Glew.
 #                    This can also be an environment variable.
 #  GLEW_FOUND, If false, do not try to use Glew.
 #
-# also defined, but not for general use are
+# also defined,
 #  GLEW_LIBRARY, where to find the Glew library.
+#  GLEW_MX_LIBRARY, where to find the GlewMX library.
 
 #=============================================================================
 # Copyright 2014 Blender Foundation.
@@ -50,6 +50,16 @@ FIND_LIBRARY(GLEW_LIBRARY
     lib64 lib
   )
 
+
+FIND_LIBRARY(GLEW_MX_LIBRARY
+  NAMES
+    GLEWmx
+  HINTS
+    ${_glew_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
+  )
+
 # handle the QUIETLY and REQUIRED arguments and set GLEW_FOUND to TRUE if 
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
@@ -57,11 +67,11 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(Glew DEFAULT_MSG
     GLEW_LIBRARY GLEW_INCLUDE_DIR)
 
 IF(GLEW_FOUND)
-  SET(GLEW_LIBRARIES ${GLEW_LIBRARY})
   SET(GLEW_INCLUDE_DIRS ${GLEW_INCLUDE_DIR})
 ENDIF(GLEW_FOUND)
 
 MARK_AS_ADVANCED(
   GLEW_INCLUDE_DIR
   GLEW_LIBRARY
+  GLEW_MX_LIBRARY
 )
