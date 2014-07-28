@@ -130,4 +130,11 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 
 void sculpt_update_object_bounding_box(struct Object *ob);
 
+/* Setting zero so we can catch bugs in OpenMP/sculpt. */
+#ifdef DEBUG
+#  define SCULPT_OMP_LIMIT 0
+#else
+#  define SCULPT_OMP_LIMIT 8
+#endif
+
 #endif
