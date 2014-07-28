@@ -134,7 +134,7 @@ void sculpt_update_object_bounding_box(struct Object *ob);
 #ifdef DEBUG
 #  define SCULPT_OMP_LIMIT 0
 #else
-#  define SCULPT_OMP_LIMIT 8
+#  define SCULPT_OMP_LIMIT 4
 #endif
 
 #endif
