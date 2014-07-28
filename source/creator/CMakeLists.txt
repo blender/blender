@@ -511,16 +511,22 @@ if(UNIX AND NOT APPLE)
 				PATTERN "idlelib" EXCLUDE                   # ./idlelib
 				PATTERN "test" EXCLUDE                      # ./test
 				PATTERN "turtledemo" EXCLUDE                # ./turtledemo
-				PATTERN "turtle.py" EXCLUDE					# ./turtle.py
+				PATTERN "turtle.py" EXCLUDE                 # ./turtle.py
 			)
 
 			# # doesnt work, todo
 			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
-			
+
 			if(WITH_PYTHON_INSTALL_NUMPY)
+				# Install to the same directory as the source, so debian-like
+				# distros are happy with their policy.
+				set(_suffix "site-packages")
+				if(${PYTHON_NUMPY_PATH} MATCHES "dist-packages")
+					set(_suffix "dist-packages")
+				endif()
 				install(
 					DIRECTORY ${PYTHON_NUMPY_PATH}/numpy
-					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/site-packages
+					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
 					PATTERN ".svn" EXCLUDE
 					PATTERN "__pycache__" EXCLUDE           # * any cache *
 					PATTERN "*.pyc" EXCLUDE                 # * any cache *
@@ -534,19 +540,47 @@ if(UNIX AND NOT APPLE)
 					PATTERN "*.h" EXCLUDE                   # some includes are not in include dirs
 					PATTERN "*.a" EXCLUDE                   # ./core/lib/libnpymath.a - for linking, we dont need.
 				)
+				unset(_suffix)
 			endif()
 
 			# Copy requests, we need to generalize site-packages
 			if(WITH_PYTHON_INSTALL_REQUESTS)
+				set(_suffix "site-packages")
+				if(${PYTHON_REQUESTS_PATH} MATCHES "dist-packages")
+					set(_suffix "dist-packages")
+				endif()
 				install(
 					DIRECTORY ${PYTHON_REQUESTS_PATH}/requests
-					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/site-packages
+					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
 					PATTERN ".svn" EXCLUDE
 					PATTERN "__pycache__" EXCLUDE           # * any cache *
 					PATTERN "*.pyc" EXCLUDE                 # * any cache *
 					PATTERN "*.pyo" EXCLUDE                 # * any cache *
 					PATTERN "cacert.pem" EXCLUDE            # for now we don't deal with security
 				)
+				# On some platforms requests does have extra dependencies.
+				set(_requests_deps "chardet" "urllib3")
+				foreach(_requests_dep ${_requests_deps})
+					if(EXISTS ${PYTHON_REQUESTS_PATH}/${_requests_dep})
+						install(
+							DIRECTORY ${PYTHON_REQUESTS_PATH}/${_requests_dep}
+							DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+							PATTERN ".svn" EXCLUDE
+							PATTERN "__pycache__" EXCLUDE           # * any cache *
+							PATTERN "*.pyc" EXCLUDE                 # * any cache *
+							PATTERN "*.pyo" EXCLUDE                 # * any cache *
+						)
+					endif()
+				endforeach()
+				if(EXISTS ${PYTHON_REQUESTS_PATH}/six.py)
+					install(
+						FILES ${PYTHON_REQUESTS_PATH}/six.py
+						DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+					)
+					endif()
+				unset(_requests_dep)
+				unset(_requests_deps)
+				unset(_suffix)
 			endif()
 			unset(_target_LIB)
 			
