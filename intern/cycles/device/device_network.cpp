@@ -299,6 +299,11 @@ public:
 		snd.write();
 	}
 
+	int get_split_task_count(DeviceTask& task)
+	{
+		return 1;
+	}
+
 private:
 	NetworkError error_func;
 };
