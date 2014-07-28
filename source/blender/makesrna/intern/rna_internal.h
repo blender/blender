@@ -413,4 +413,24 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 #  endif
 #endif
 
+/* C11 for compile time range checks */
+#if __STDC_VERSION__ >= 201112L
+#  define USE_RNA_RANGE_CHECK
+#  define TYPEOF_MAX(x) \
+	_Generic(x, \
+		bool: 1, \
+		char: CHAR_MAX, signed char: SCHAR_MAX, unsigned char: UCHAR_MAX, \
+		signed short: SHRT_MAX, unsigned short: USHRT_MAX, \
+		signed int: INT_MAX, unsigned int: UINT_MAX, \
+		float: FLT_MAX, double: DBL_MAX)
+
+#  define TYPEOF_MIN(x) \
+	_Generic(x, \
+		bool: 0, \
+		char: CHAR_MIN, signed char: SCHAR_MIN, unsigned char: 0, \
+		signed short: SHRT_MIN, unsigned short: 0, \
+		signed int: INT_MIN, unsigned int: 0, \
+		float: -FLT_MAX, double: -DBL_MAX)
+#endif
+
 #endif  /* __RNA_INTERNAL_H__ */

@@ -745,6 +745,24 @@ static void rna_clamp_value_range(FILE *f, PropertyRNA *prop)
 	}
 }
 
+#ifdef USE_RNA_RANGE_CHECK
+static void rna_clamp_value_range_check(
+        FILE *f, PropertyRNA *prop,
+        const char *dnaname_prefix, const char *dnaname)
+{
+	if (prop->type == PROP_INT) {
+		IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+		fprintf(f,
+		        "	{ BLI_STATIC_ASSERT("
+		        "(TYPEOF_MAX(%s%s) >= %d) && "
+		        "(TYPEOF_MIN(%s%s) <= %d), "
+		        "\"invalid limits\"); }\n",
+		        dnaname_prefix, dnaname, iprop->hardmax,
+		        dnaname_prefix, dnaname, iprop->hardmin);
+	}
+}
+#endif  /* USE_RNA_RANGE_CHECK */
+
 static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 {
 	if (prop->type == PROP_INT) {
@@ -944,6 +962,18 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					}
 					fprintf(f, "	}\n");
 				}
+
+#ifdef USE_RNA_RANGE_CHECK
+				if (dp->dnaname && manualfunc == NULL) {
+					if (dp->dnaarraylength == 1) {
+						rna_clamp_value_range_check(f, prop, "data->", dp->dnaname);
+					}
+					else {
+						rna_clamp_value_range_check(f, prop, "*data->", dp->dnaname);
+					}
+				}
+#endif
+
 				fprintf(f, "}\n\n");
 			}
 			else {
@@ -975,6 +1005,13 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 						rna_clamp_value(f, prop, 0);
 					}
 				}
+
+#ifdef USE_RNA_RANGE_CHECK
+				if (dp->dnaname && manualfunc == NULL) {
+					rna_clamp_value_range_check(f, prop, "data->", dp->dnaname);
+				}
+#endif
+
 				fprintf(f, "}\n\n");
 			}
 			break;
