@@ -965,12 +965,11 @@ clean_ILMBASE() {
 
 compile_ILMBASE() {
   # To be changed each time we make edits that would modify the compiled result!
-  ilmbase_magic=8
+  ilmbase_magic=9
   _init_ilmbase
 
   # Clean install if needed!
   magic_compile_check ilmbase-$ILMBASE_VERSION $ilmbase_magic
-
   if [ $? -eq 1 -o $OPENEXR_FORCE_REBUILD == true ]; then
     clean_ILMBASE
     rm -rf $_openexr_inst
@@ -1052,7 +1051,7 @@ clean_OPENEXR() {
 
 compile_OPENEXR() {
   # To be changed each time we make edits that would modify the compiled result!
-  openexr_magic=12
+  openexr_magic=13
 
   # Clean install if needed!
   magic_compile_check openexr-$OPENEXR_VERSION $openexr_magic
