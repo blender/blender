@@ -1493,6 +1493,8 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
                             const float mval[2], float r_loc[3], float r_no[3], float *r_dist_px, float *r_depth, bool do_bb)
 {
 	bool retval = false;
+	const bool do_ray_start_correction = (snap_mode == SCE_SNAP_MODE_FACE && ar &&
+	                                      !((RegionView3D *)ar->regiondata)->is_persp);
 	int totvert = dm->getNumVerts(dm);
 
 	if (totvert > 0) {
@@ -1519,6 +1521,24 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 				return retval;
 			}
 		}
+		else if (do_ray_start_correction) {
+			/* We *need* a reasonably valid len_diff in this case.
+			 * Default to distance from object's center (i.e. point (0,0,0) since we are in local space)
+			 * minus farthest vertex from this center.
+			 */
+			int i = totvert;
+			MVert *mv = dm->getVertArray(dm);
+			float max_dist_squared = 0.0f;
+
+			for (; i; i--, mv++) {
+				const float d = len_squared_v3(mv->co);
+				if (d > max_dist_squared) {
+					max_dist_squared = d;
+				}
+			}
+
+			len_diff = len_v3(ray_start_local) - sqrtf(max_dist_squared);
+		}
 
 		switch (snap_mode) {
 			case SCE_SNAP_MODE_FACE:
@@ -1530,7 +1550,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 				 * been *inside* boundbox, leading to snap failures (see T38409).
 				 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
 				 */
-				if (ar && !((RegionView3D *)ar->regiondata)->is_persp) {
+				if (do_ray_start_correction) {
 					float ray_org_local[3];
 
 					copy_v3_v3(ray_org_local, ray_origin);
