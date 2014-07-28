@@ -19,7 +19,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-BakeData::BakeData(const int object, const int tri_offset, const int num_pixels):
+BakeData::BakeData(const int object, const size_t tri_offset, const size_t num_pixels):
 m_object(object),
 m_tri_offset(tri_offset),
 m_num_pixels(num_pixels)
@@ -60,7 +60,7 @@ int BakeData::object()
 	return m_object;
 }
 
-int BakeData::size()
+size_t BakeData::size()
 {
 	return m_num_pixels;
 }
@@ -113,7 +113,7 @@ void BakeManager::set_baking(const bool value)
 	m_is_baking = value;
 }
 
-BakeData *BakeManager::init(const int object, const int tri_offset, const int num_pixels)
+BakeData *BakeManager::init(const int object, const size_t tri_offset, const size_t num_pixels)
 {
 	m_bake_data = new BakeData(object, tri_offset, num_pixels);
 	return m_bake_data;

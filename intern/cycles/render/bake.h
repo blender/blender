@@ -27,20 +27,20 @@ CCL_NAMESPACE_BEGIN
 
 class BakeData {
 public:
-	BakeData(const int object, const int tri_offset, const int num_pixels);
+	BakeData(const int object, const size_t tri_offset, const size_t num_pixels);
 	~BakeData();
 
 	void set(int i, int prim, float uv[2], float dudx, float dudy, float dvdx, float dvdy);
 	int object();
-	int size();
+	size_t size();
 	uint4 data(int i);
 	uint4 differentials(int i);
 	bool is_valid(int i);
 
 private:
 	int m_object;
-	int m_tri_offset;
-	int m_num_pixels;
+	size_t m_tri_offset;
+	size_t m_num_pixels;
 	vector<int>m_primitive;
 	vector<float>m_u;
 	vector<float>m_v;
@@ -58,7 +58,7 @@ public:
 	bool get_baking();
 	void set_baking(const bool value);
 
-	BakeData *init(const int object, const int tri_offset, const int num_pixels);
+	BakeData *init(const int object, const size_t tri_offset, const size_t num_pixels);
 
 	bool bake(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress, ShaderEvalType shader_type, BakeData *bake_data, float result[]);
 

@@ -492,7 +492,7 @@ static void populate_bake_data(BakeData *data, BL::BakePixel pixel_array, const 
 	}
 }
 
-void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::BakePixel pixel_array, int num_pixels, int depth, float result[])
+void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::BakePixel pixel_array, const size_t num_pixels, const int depth, float result[])
 {
 	ShaderEvalType shader_type = get_shader_type(pass_type);
 	size_t object_index = OBJECT_NONE;
