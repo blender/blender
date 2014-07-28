@@ -1,59 +1,67 @@
+# - Find GLEW library
+# Find the native Glew includes and library
+# This module defines
+#  GLEW_INCLUDE_DIRS, where to find glew.h, Set when
+#                        GLEW_INCLUDE_DIR is found.
+#  GLEW_LIBRARIES, libraries to link against to use Glew.
+#  GLEW_ROOT_DIR, The base directory to search for Glew.
+#                    This can also be an environment variable.
+#  GLEW_FOUND, If false, do not try to use Glew.
 #
-# Try to find GLEW library and include path.
-# Once done this will define
+# also defined, but not for general use are
+#  GLEW_LIBRARY, where to find the Glew library.
+
+#=============================================================================
+# Copyright 2014 Blender Foundation.
 #
-# GLEW_FOUND
-# GLEW_INCLUDE_PATH
-# GLEW_LIBRARY
-# 
+# Distributed under the OSI-approved BSD License (the "License");
+# see accompanying file Copyright.txt for details.
+#
+# This software is distributed WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the License for more information.
+#=============================================================================
 
-IF (WIN32)
-	FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
-		$ENV{PROGRAMFILES}/GLEW/include
-		${PROJECT_SOURCE_DIR}/src/nvgl/glew/include
-		DOC "The directory where GL/glew.h resides")
-	IF (NV_SYSTEM_PROCESSOR STREQUAL "AMD64")
-		FIND_LIBRARY( GLEW_LIBRARY
-			NAMES glew64 glew64s
-			PATHS
-			$ENV{PROGRAMFILES}/GLEW/lib
-			${PROJECT_SOURCE_DIR}/src/nvgl/glew/bin
-			${PROJECT_SOURCE_DIR}/src/nvgl/glew/lib
-			DOC "The GLEW library (64-bit)"
-		)
-	ELSE(NV_SYSTEM_PROCESSOR STREQUAL "AMD64")
-		FIND_LIBRARY( GLEW_LIBRARY
-			NAMES glew GLEW glew32 glew32s
-			PATHS
-			$ENV{PROGRAMFILES}/GLEW/lib
-			${PROJECT_SOURCE_DIR}/src/nvgl/glew/bin
-			${PROJECT_SOURCE_DIR}/src/nvgl/glew/lib
-			DOC "The GLEW library"
-		)
-	ENDIF(NV_SYSTEM_PROCESSOR STREQUAL "AMD64")
-ELSE (WIN32)
-	FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
-		/usr/include
-		/usr/local/include
-		/sw/include
-		/opt/local/include
-		DOC "The directory where GL/glew.h resides")
-	FIND_LIBRARY( GLEW_LIBRARY
-		NAMES GLEW glew
-		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		DOC "The GLEW library")
-ENDIF (WIN32)
+# If GLEW_ROOT_DIR was defined in the environment, use it.
+IF(NOT GLEW_ROOT_DIR AND NOT $ENV{GLEW_ROOT_DIR} STREQUAL "")
+	SET(GLEW_ROOT_DIR $ENV{GLEW_ROOT_DIR})
+ENDIF()
 
-IF (GLEW_INCLUDE_PATH)
-	SET(GLEW_FOUND TRUE)
-ELSE (GLEW_INCLUDE_PATH)
-	SET(GLEW_FOUND FALSE)
-ENDIF (GLEW_INCLUDE_PATH)
+SET(_glew_SEARCH_DIRS
+  ${GLEW_ROOT_DIR}
+  /usr/local
+)
 
-MARK_AS_ADVANCED( GLEW_FOUND )
+FIND_PATH(GLEW_INCLUDE_DIR
+  NAMES
+    GL/glew.h
+  HINTS
+    ${_glew_SEARCH_DIRS}
+  PATH_SUFFIXES
+    include
+)
+
+FIND_LIBRARY(GLEW_LIBRARY
+  NAMES
+    GLEW
+  HINTS
+    ${_glew_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
+  )
+
+# handle the QUIETLY and REQUIRED arguments and set GLEW_FOUND to TRUE if 
+# all listed variables are TRUE
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Glew DEFAULT_MSG
+    GLEW_LIBRARY GLEW_INCLUDE_DIR)
+
+IF(GLEW_FOUND)
+  SET(GLEW_LIBRARIES ${GLEW_LIBRARY})
+  SET(GLEW_INCLUDE_DIRS ${GLEW_INCLUDE_DIR})
+ENDIF(GLEW_FOUND)
+
+MARK_AS_ADVANCED(
+  GLEW_INCLUDE_DIR
+  GLEW_LIBRARY
+)

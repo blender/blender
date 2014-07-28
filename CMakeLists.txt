@@ -2066,10 +2066,7 @@ if(WITH_SYSTEM_GLEW)
 		message(FATAL_ERROR "GLEW is required to build blender, install it or disable WITH_SYSTEM_GLEW")
 	endif()
 
-	mark_as_advanced(
-		GLEW_LIBRARY
-		GLEW_INCLUDE_PATH
-	)
+	set(GLEW_INCLUDE_PATH "${GLEW_INCLUDE_DIRS}")
 else()
 	# set(GLEW_LIBRARY "")  # unused
 	set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
