@@ -510,6 +510,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.border.ymin = 0.0f;
 	sce->r.border.xmax = 1.0f;
 	sce->r.border.ymax = 1.0f;
+
+	sce->r.preview_start_resolution = 64;
 	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 	sce->toolsettings->doublimit = 0.001;
