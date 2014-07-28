@@ -658,7 +658,8 @@ static void setSnappingCallback(TransInfo *t)
 
 void addSnapPoint(TransInfo *t)
 {
-	if (t->tsnap.status & POINT_INIT) {
+	/* Currently only 3D viewport works for snapping points. */
+	if (t->tsnap.status & POINT_INIT && t->spacetype == SPACE_VIEW3D) {
 		TransSnapPoint *p = MEM_callocN(sizeof(TransSnapPoint), "SnapPoint");
 
 		t->tsnap.selectedPoint = p;
