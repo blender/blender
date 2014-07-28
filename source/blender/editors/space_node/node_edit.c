@@ -643,8 +643,8 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 			if (node->id && ELEM(GS(node->id->name), ID_MA, ID_LA, ID_WO))
 				nodeClearActiveID(ntree, ID_TE);
 			
-			if (ELEM5(node->type, SH_NODE_OUTPUT, SH_NODE_OUTPUT_MATERIAL,
-			          SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP, SH_NODE_OUTPUT_LINESTYLE))
+			if (ELEM(node->type, SH_NODE_OUTPUT, SH_NODE_OUTPUT_MATERIAL,
+			         SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP, SH_NODE_OUTPUT_LINESTYLE))
 			{
 				bNode *tnode;
 				
