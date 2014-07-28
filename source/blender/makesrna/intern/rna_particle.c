@@ -2439,7 +2439,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "simplify_refsize", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "simplify_refsize");
-	RNA_def_property_range(prop, 1, 32768);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "Reference Size", "Reference size in pixels, after which simplification begins");
 
 	prop = RNA_def_property(srna, "simplify_rate", PROP_FLOAT, PROP_NONE);
