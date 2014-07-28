@@ -462,31 +462,41 @@ static void ui_draw_panel_scalewidget(const rcti *rect)
 	fdrawline(xmin + dx, ymin + 1, xmax, ymax - dy + 1);
 	glDisable(GL_BLEND);
 }
-
 static void ui_draw_panel_dragwidget(const rctf *rect)
 {
-	float xmin, xmax, dx;
-	float ymin, ymax, dy;
-	
-	xmin = rect->xmin;
-	xmax = rect->xmax;
-	ymin = rect->ymin;
-	ymax = rect->ymax;
-	
-	dx = (xmax - xmin) / 3.0f;
-	dy = (ymax - ymin) / 3.0f;
-	
-	glEnable(GL_BLEND);
-	glColor4ub(255, 255, 255, 50);
-	fdrawline(xmin, ymax, xmax, ymin);
-	fdrawline(xmin + dx, ymax, xmax, ymin + dy);
-	fdrawline(xmin + 2 * dx, ymax, xmax, ymin + 2 * dy);
-	
-	glColor4ub(0, 0, 0, 50);
-	fdrawline(xmin, ymax + 1, xmax, ymin + 1);
-	fdrawline(xmin + dx, ymax + 1, xmax, ymin + dy + 1);
-	fdrawline(xmin + 2 * dx, ymax + 1, xmax, ymin + 2 * dy + 1);
-	glDisable(GL_BLEND);
+	unsigned char col_back[3], col_high[3], col_dark[3];
+	const int col_tint = 84;
+
+	const int px = (int)U.pixelsize;
+	const int px_zoom = max_ii(iroundf(BLI_rctf_size_y(rect) / 22.0f), 1);
+
+	const int box_margin = max_ii(iroundf((float)(px_zoom * 2.0f)), px);
+	const int box_size = max_ii(iroundf((BLI_rctf_size_y(rect) / 8.0f) - px), px);
+
+	const int x_min = rect->xmin;
+	const int y_min = rect->ymin;
+	const int y_ofs = max_ii(iroundf(BLI_rctf_size_y(rect) / 3.0f), px);
+	const int x_ofs = y_ofs;
+	int i_x, i_y;
+
+
+	UI_GetThemeColor3ubv(UI_GetThemeValue(TH_PANEL_SHOW_HEADER) ? TH_PANEL_HEADER : TH_PANEL_BACK, col_back);
+	UI_GetColorPtrShade3ubv(col_back, col_high,  col_tint);
+	UI_GetColorPtrShade3ubv(col_back, col_dark, -col_tint);
+
+
+	/* draw multiple boxes */
+	for (i_x = 0; i_x < 4; i_x++) {
+		for (i_y = 0; i_y < 2; i_y++) {
+			const int x_co = (x_min + x_ofs) + (i_x * (box_size + box_margin));
+			const int y_co = (y_min + y_ofs) + (i_y * (box_size + box_margin));
+
+			glColor3ubv(col_dark);
+			glRectf(x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom);
+			glColor3ubv(col_high);
+			glRectf(x_co - box_size, y_co, x_co, y_co + box_size);
+		}
+	}
 }
 
 
