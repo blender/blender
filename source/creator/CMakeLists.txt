@@ -539,7 +539,7 @@ if(UNIX AND NOT APPLE)
 			# Copy requests, we need to generalize site-packages
 			if(WITH_PYTHON_INSTALL_REQUESTS)
 				install(
-					DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests
+					DIRECTORY ${PYTHON_REQUESTS_PATH}/requests
 					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/site-packages
 					PATTERN ".svn" EXCLUDE
 					PATTERN "__pycache__" EXCLUDE           # * any cache *

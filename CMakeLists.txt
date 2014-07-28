@@ -257,11 +257,13 @@ if(UNIX AND NOT APPLE)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install folder"  ON)
-set(PYTHON_NUMPY_PATH            "" CACHE PATH "Python to python site-packages or dist-packages containing 'numpy' module")
+set(PYTHON_NUMPY_PATH            "" CACHE PATH "Path to python site-packages or dist-packages containing 'numpy' module")
 mark_as_advanced(PYTHON_NUMPY_PATH)
 
 if(UNIX AND NOT APPLE)
 	option(WITH_PYTHON_INSTALL_REQUESTS "Copy system requests into the blender install folder" ON)
+	set(PYTHON_REQUESTS_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'requests' module")
+	mark_as_advanced(PYTHON_REQUESTS_PATH)
 endif()
 
 # Cycles
@@ -2245,62 +2247,13 @@ if(WITH_PYTHON)
 	if(WIN32)
 		# pass, we have this in an archive to extract
 	elseif(WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY)
-		# set but invalid
-		# -- disabled until we make numpy bundled with blender - campbell
-		if((NOT ${PYTHON_NUMPY_PATH} STREQUAL "") AND (NOT ${PYTHON_NUMPY_PATH} MATCHES NOTFOUND))
-#			if(NOT EXISTS "${PYTHON_NUMPY_PATH}/numpy")
-#				message(WARNING "PYTHON_NUMPY_PATH is invalid, numpy not found in '${PYTHON_NUMPY_PATH}' "
-#				                "WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
-#				set(WITH_PYTHON_INSTALL_NUMPY OFF)
-#			endif()
-		# not set, so initialize
-		else()
-			string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
-			list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
-
-			# re-cache
-			unset(PYTHON_NUMPY_PATH CACHE)
-			find_path(PYTHON_NUMPY_PATH
-			  NAMES
-			    numpy
-			  HINTS
-			    "${PYTHON_LIBPATH}/python${PYTHON_VERSION}/"
-			    "${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/"
-			  PATH_SUFFIXES
-			    site-packages
-			    dist-packages
-			   NO_DEFAULT_PATH
-			)
-
-			if(NOT EXISTS "${PYTHON_NUMPY_PATH}")
-				message(WARNING "'numpy' path could not be found in:\n"
-				                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/numpy', "
-				                "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/site-packages/numpy', "
-				                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/dist-packages/numpy', "
-				                "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/dist-packages/numpy', "
-				                "WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
-				set(WITH_PYTHON_INSTALL_NUMPY OFF)
-			else()
-				message(STATUS "numpy found at '${PYTHON_NUMPY_PATH}'")
-			endif()
-
-			unset(_PY_VER_SPLIT)
-			unset(_PY_VER_MAJOR)
-		endif()
+		find_python_package(numpy)
 	endif()
 
 	if(WIN32 OR APPLE)
 		# pass, we have this in lib/python/site-packages
 	elseif(WITH_PYTHON_INSTALL_REQUESTS)
-		if(NOT EXISTS ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests)
-			# gets annoying otherwise...
-			if(FIRST_RUN)
-				message(WARNING "'requests' path could not be found in:\n"
-				                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/requests'\n"
-				                "WITH_PYTHON_INSTALL_REQUESTS option will be ignored when installing python")
-			endif()
-			set(WITH_PYTHON_INSTALL_REQUESTS OFF)
-		endif()
+		find_python_package(requests)
 	endif()
 endif()
 
