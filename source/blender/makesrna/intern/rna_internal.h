@@ -414,7 +414,7 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 #endif
 
 /* C11 for compile time range checks */
-#if __STDC_VERSION__ >= 201112L
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define USE_RNA_RANGE_CHECK
 #  define TYPEOF_MAX(x) \
 	_Generic(x, \

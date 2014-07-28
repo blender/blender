@@ -51,10 +51,12 @@
 #define STACK_FIXED_DEPTH   100
 
 /* Setting zero so we can catch bugs in OpenMP/PBVH. */
-#ifdef DEBUG
-#  define PBVH_OMP_LIMIT 0
-#else
-#  define PBVH_OMP_LIMIT 8
+#ifdef _OPENMP
+#  ifdef DEBUG
+#    define PBVH_OMP_LIMIT 0
+#  else
+#    define PBVH_OMP_LIMIT 8
+#  endif
 #endif
 
 typedef struct PBVHStack {
