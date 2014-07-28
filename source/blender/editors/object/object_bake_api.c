@@ -178,7 +178,7 @@ static bool write_internal_bake_pixels(
 	void *lock;
 	bool is_float;
 	char *mask_buffer = NULL;
-	const int num_pixels = width * height;
+	const size_t num_pixels = width * height;
 
 	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
@@ -311,7 +311,7 @@ static bool write_external_bake_pixels(
 	/* margins */
 	if (margin > 0) {
 		char *mask_buffer = NULL;
-		const int num_pixels = width * height;
+		const size_t num_pixels = (size_t)width * (size_t)height;
 
 		mask_buffer = MEM_callocN(sizeof(char) * num_pixels, "Bake Mask");
 		RE_bake_mask_fill(pixel_array, num_pixels, mask_buffer);
@@ -514,10 +514,10 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 /*
  * returns the total number of pixels
  */
-static int initialize_internal_images(BakeImages *bake_images, ReportList *reports)
+static size_t initialize_internal_images(BakeImages *bake_images, ReportList *reports)
 {
 	int i;
-	int tot_size = 0;
+	size_t tot_size = 0;
 
 	for (i = 0; i < bake_images->size; i++) {
 		ImBuf *ibuf;
@@ -576,7 +576,7 @@ static int bake(
 
 	BakeImages bake_images = {NULL};
 
-	int num_pixels;
+	size_t num_pixels;
 	int tot_materials;
 	int i;
 
@@ -633,7 +633,7 @@ static int bake(
 	else {
 		/* when saving extenally always use the size specified in the UI */
 
-		num_pixels = width * height * bake_images.size;
+		num_pixels = (size_t)width * (size_t)height * bake_images.size;
 
 		for (i = 0; i < bake_images.size; i++) {
 			bake_images.data[i].width = width;
