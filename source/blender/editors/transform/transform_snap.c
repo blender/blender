@@ -1523,21 +1523,25 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 		}
 		else if (do_ray_start_correction) {
 			/* We *need* a reasonably valid len_diff in this case.
-			 * Default to distance from object's center (i.e. point (0,0,0) since we are in local space)
-			 * minus farthest vertex from this center.
+			 * Use BHVTree to find the closest face from ray_start_local.
 			 */
-			int i = totvert;
-			MVert *mv = dm->getVertArray(dm);
-			float max_dist_squared = 0.0f;
+			BVHTreeFromMesh treeData;
+			BVHTreeNearest nearest;
+			len_diff = 0.0f;  /* In case BVHTree would fail for some reason... */
 
-			for (; i; i--, mv++) {
-				const float d = len_squared_v3(mv->co);
-				if (d > max_dist_squared) {
-					max_dist_squared = d;
+			treeData.em_evil = em;
+			bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 2, 6);
+			if (treeData.tree != NULL) {
+				nearest.index = -1;
+				nearest.dist_sq = FLT_MAX;
+				/* Compute and store result. */
+				BLI_bvhtree_find_nearest(treeData.tree, ray_start_local, &nearest,
+				                         treeData.nearest_callback, &treeData);
+				if (nearest.index != -1) {
+					len_diff = sqrtf(nearest.dist_sq);
 				}
 			}
-
-			len_diff = len_v3(ray_start_local) - sqrtf(max_dist_squared);
+			free_bvhtree_from_mesh(&treeData);
 		}
 
 		switch (snap_mode) {
