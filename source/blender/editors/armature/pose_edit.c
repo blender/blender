@@ -1074,7 +1074,9 @@ static int show_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
 	if (arm->layer & bone->layer) {
 		if (bone->flag & BONE_HIDDEN_P) {
 			bone->flag &= ~BONE_HIDDEN_P;
-			bone->flag |= BONE_SELECTED;
+			if (!(bone->flag & BONE_UNSELECTABLE)) {
+				bone->flag |= BONE_SELECTED;
+			}
 		}
 	}
 	

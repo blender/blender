@@ -139,7 +139,9 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	/* XXX need a context loop to handle such cases */
 	for (base = FIRSTBASE; base; base = base->next) {
 		if ((base->lay & v3d->lay) && base->object->restrictflag & OB_RESTRICT_VIEW) {
-			base->flag |= SELECT;
+			if (!(base->object->restrictflag & OB_RESTRICT_SELECT)) {
+				base->flag |= SELECT;
+			}
 			base->object->flag = base->flag;
 			base->object->restrictflag &= ~OB_RESTRICT_VIEW; 
 			changed = true;

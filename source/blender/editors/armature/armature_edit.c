@@ -1343,7 +1343,9 @@ static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (arm->layer & ebone->layer) {
 			if (ebone->flag & BONE_HIDDEN_A) {
-				ebone->flag |= (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+				if (!(ebone->flag & BONE_UNSELECTABLE)) {
+					ebone->flag |= (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+				}
 				ebone->flag &= ~BONE_HIDDEN_A;
 			}
 		}
