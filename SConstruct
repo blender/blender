@@ -438,6 +438,10 @@ if env['OURPLATFORM']=='darwin':
             env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
         env.Append(BF_PROGRAM_LINKFLAGS=['-Xlinker','-force_load','-Xlinker',OSX_OSL_LIBPATH +'/liboslexec.a'])
 
+    if env['WITH_BF_LLVM'] == 0:
+        # Due duplicated generic UTF functions, we pull them either from LLVMSupport or COLLADA
+        env.Append(BF_OPENCOLLADA_LIB=' UTF')
+
     # Trying to get rid of eventually clashes, we export some symbols explicite as local
     env.Append(LINKFLAGS=['-Xlinker','-unexported_symbols_list','-Xlinker','./source/creator/osx_locals.map'])
     
