@@ -56,7 +56,7 @@ base class --- :class:`PyObjectPlus`
          * 1: Y axis position
          * 2: Z axis position
 
-      axis = 3..5 are relative constraint (Euler) angles in degrees
+      axis = 3..5 are relative constraint (Euler) angles in radians
          * 3: X axis angle
          * 4: Y axis angle
          * 5: Z axis angle
@@ -86,7 +86,7 @@ base class --- :class:`PyObjectPlus`
          * 13: Y axis position
          * 14: Z axis position
 
-      axis = 15..17 are for angular springs on each of the degrees of freedom
+      axis = 15..17 are for angular springs on each of the angle of freedom in radians
          * 15: X axis angle
          * 16: Y axis angle
          * 17: Z axis angle
@@ -113,7 +113,7 @@ base class --- :class:`PyObjectPlus`
       :return: position
       :rtype: float
 
-      axis = 3..5 are relative constraint (Euler) angles in degrees 
+      axis = 3..5 are relative constraint (Euler) angles in radians 
          * 3: X axis angle
          * 4: Y axis angle
          * 5: Z axis angle
