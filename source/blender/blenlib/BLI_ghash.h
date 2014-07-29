@@ -139,6 +139,9 @@ unsigned int    BLI_ghashutil_uinthash(unsigned int key);
 unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
 #define         BLI_ghashutil_inthash_v4_p \
    ((GSetHashFP)BLI_ghashutil_uinthash_v4)
+int BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b);
+#define         BLI_ghashutil_inthash_v4_cmp \
+                BLI_ghashutil_uinthash_v4_cmp
 unsigned int    BLI_ghashutil_inthash_p(const void *ptr);
 int             BLI_ghashutil_intcmp(const void *a, const void *b);
 

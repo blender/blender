@@ -67,6 +67,7 @@ static unsigned int erot_gsetutil_hash(const void *ptr)
 	return BLI_ghashutil_inthash_v4(&e_state->v1);
 }
 #endif
+#if 0
 static int erot_gsetutil_cmp(const void *a, const void *b)
 {
 	const EdRotState *e_state_a = (const EdRotState *)a;
@@ -81,10 +82,10 @@ static int erot_gsetutil_cmp(const void *a, const void *b)
 	else if (e_state_a->f2 > e_state_b->f2) return  1;
 	else                                    return  0;
 }
-
+#endif
 static GSet *erot_gset_new(void)
 {
-	return BLI_gset_new(BLI_ghashutil_inthash_v4_p, erot_gsetutil_cmp, __func__);
+	return BLI_gset_new(BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, __func__);
 }
 
 /* ensure v0 is smaller */

@@ -704,6 +704,11 @@ unsigned int BLI_ghashutil_uinthash_v4(const unsigned int key[4])
 	return hash;
 }
 
+int BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b)
+{
+	return memcmp(a, b, sizeof(unsigned int[4]));
+}
+
 unsigned int BLI_ghashutil_uinthash(unsigned int key)
 {
 	key += ~(key << 16);
