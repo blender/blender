@@ -2802,7 +2802,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 				
 				/* deselect all other channels */
 				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
-				if (pchan) ED_pose_deselectall(ob, 0);
+				if (pchan) ED_pose_de_selectall(ob, SEL_DESELECT, false);
 				
 				/* only select channels in group and group itself */
 				for (fcu = agrp->channels.first; fcu && fcu->grp == agrp; fcu = fcu->next)
@@ -2812,7 +2812,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			else {
 				/* select group by itself */
 				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
-				if (pchan) ED_pose_deselectall(ob, 0);
+				if (pchan) ED_pose_de_selectall(ob, SEL_DESELECT, false);
 				
 				agrp->flag |= AGRP_SELECTED;
 			}

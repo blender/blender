@@ -69,6 +69,28 @@
 
 /* ***************** Pose Select Utilities ********************* */
 
+/* Note: SEL_TOGGLE is assumed to have already been handled! */
+static void pose_do_bone_select(bPoseChannel *pchan, const int select_mode) {
+	/* select pchan only if selectable, but deselect works always */
+	switch (select_mode) {
+		case SEL_SELECT:
+			if (!(pchan->bone->flag & BONE_UNSELECTABLE))
+				pchan->bone->flag |= BONE_SELECTED;
+			break;
+		case SEL_DESELECT:
+			pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			break;
+		case SEL_INVERT:
+			if (pchan->bone->flag & BONE_SELECTED) {
+				pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			}
+			else if (!(pchan->bone->flag & BONE_UNSELECTABLE)) {
+				pchan->bone->flag |= BONE_SELECTED;
+			}
+			break;
+	}
+}
+
 /* Utility method for changing the selection status of a bone */
 void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 {
@@ -139,7 +161,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		}
 
 		if (!extend && !deselect && !toggle) {
-			ED_pose_deselectall(ob, 0);
+			ED_pose_de_selectall(ob, SEL_DESELECT, true);
 			nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			arm->act_bone = nearBone;
 		}
@@ -191,16 +213,12 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 	return nearBone != NULL;
 }
 
-/* test==0: deselect all
- * test==1: swap select (apply to all the opposite of current situation) 
- * test==2: only clear active tag
- * test==3: swap select (no test / inverse selection status of all independently)
- */
-void ED_pose_deselectall(Object *ob, int test)
+/* 'select_mode' is usual SEL_SELECT/SEL_DESELECT/SEL_TOGGLE/SEL_INVERT.
+ * When true, 'ignore_visibility' makes this func also affect invisible bones (hidden or on hidden layers). */
+void ED_pose_de_selectall(Object *ob, int select_mode, const bool ignore_visibility)
 {
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;
-	int selectmode = 0;
 	
 	/* we call this from outliner too */
 	if (ob->pose == NULL) {
@@ -208,31 +226,23 @@ void ED_pose_deselectall(Object *ob, int test)
 	}
 	
 	/*	Determine if we're selecting or deselecting	*/
-	if (test == 1) {
+	if (select_mode == SEL_TOGGLE) {
+		select_mode = SEL_SELECT;
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-			if (PBONE_VISIBLE(arm, pchan->bone)) {
-				if (pchan->bone->flag & BONE_SELECTED)
+			if (ignore_visibility || PBONE_VISIBLE(arm, pchan->bone)) {
+				if (pchan->bone->flag & BONE_SELECTED) {
+					select_mode = SEL_DESELECT;
 					break;
+				}
 			}
 		}
-		
-		if (pchan == NULL)
-			selectmode = 1;
 	}
-	else if (test == 2)
-		selectmode = 2;
 	
-	/*	Set the flags accordingly	*/
+	/* Set the flags accordingly */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		/* ignore the pchan if it isn't visible or if its selection cannot be changed */
-		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE))) {
-			if (test == 3) {
-				pchan->bone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			}
-			else {
-				if (selectmode == 0) pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				else if (selectmode == 1) pchan->bone->flag |= BONE_SELECTED;
-			}
+		if (ignore_visibility || PBONE_VISIBLE(arm, pchan->bone)) {
+			pose_do_bone_select(pchan, select_mode);
 		}
 	}
 }
@@ -353,24 +363,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones)
 	{
-		/* select pchan only if selectable, but deselect works always */
-		switch (action) {
-			case SEL_SELECT:
-				if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0)
-					pchan->bone->flag |= BONE_SELECTED;
-				break;
-			case SEL_DESELECT:
-				pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				break;
-			case SEL_INVERT:
-				if (pchan->bone->flag & BONE_SELECTED) {
-					pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				}
-				else if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-					pchan->bone->flag |= BONE_SELECTED;
-				}
-				break;
-		}
+		pose_do_bone_select(pchan, action);
 	}
 	CTX_DATA_END;
 
