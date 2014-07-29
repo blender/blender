@@ -231,7 +231,7 @@ int KX_LightObject::pyattr_set_distance(void *self_v, const KX_PYATTRIBUTE_DEF *
 		else if (val > 5000.f)
 			val = 5000.f;
 
-		self->m_lightobj->m_energy = val;
+		self->m_lightobj->m_distance = val;
 		return PY_SET_ATTR_SUCCESS;
 	}
 
