@@ -3220,6 +3220,16 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 				
 		}
 	}
+	else if (regiontype == RGN_TYPE_CHANNELS) {
+		switch (spacetype) {
+			case SPACE_IPO:
+			case SPACE_ACTION:
+			case SPACE_NLA:
+				if (redraws & TIME_ALL_ANIM_WIN)
+					return 1;
+				break;
+		}
+	}
 	else if (regiontype == RGN_TYPE_UI) {
 		if (spacetype == SPACE_CLIP) {
 			/* Track Preview button is on Properties Editor in SpaceClip,
