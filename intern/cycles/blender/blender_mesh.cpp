@@ -35,14 +35,14 @@ CCL_NAMESPACE_BEGIN
 /* Tangent Space */
 
 struct MikkUserData {
-	MikkUserData(const BL::Mesh mesh_, const BL::MeshTextureFaceLayer layer_, int num_faces_)
+	MikkUserData(const BL::Mesh mesh_, BL::MeshTextureFaceLayer *layer_, int num_faces_)
 	: mesh(mesh_), layer(layer_), num_faces(num_faces_)
 	{
 		tangent.resize(num_faces*4);
 	}
 
 	BL::Mesh mesh;
-	BL::MeshTextureFaceLayer layer;
+	BL::MeshTextureFaceLayer *layer;
 	int num_faces;
 	vector<float4> tangent;
 };
@@ -78,26 +78,34 @@ static void mikk_get_position(const SMikkTSpaceContext *context, float P[3], con
 static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float uv[2], const int face_num, const int vert_num)
 {
 	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	BL::MeshTextureFace tf = userdata->layer.data[face_num];
-	float3 tfuv;
-	
-	switch (vert_num) {
-		case 0:
-			tfuv = get_float3(tf.uv1());
-			break;
-		case 1:
-			tfuv = get_float3(tf.uv2());
-			break;
-		case 2:
-			tfuv = get_float3(tf.uv3());
-			break;
-		default:
-			tfuv = get_float3(tf.uv4());
-			break;
+	if(userdata->layer != NULL) {
+		BL::MeshTextureFace tf = userdata->layer->data[face_num];
+		float3 tfuv;
+
+		switch (vert_num) {
+			case 0:
+				tfuv = get_float3(tf.uv1());
+				break;
+			case 1:
+				tfuv = get_float3(tf.uv2());
+				break;
+			case 2:
+				tfuv = get_float3(tf.uv3());
+				break;
+			default:
+				tfuv = get_float3(tf.uv4());
+				break;
+		}
+
+		uv[0] = tfuv.x;
+		uv[1] = tfuv.y;
 	}
-	
-	uv[0] = tfuv.x;
-	uv[1] = tfuv.y;
+	else {
+		int vert_idx = userdata->mesh.tessfaces[face_num].vertices()[vert_num];
+		float3 orco =
+			get_float3(userdata->mesh.vertices[vert_idx].undeformed_co());
+		map_to_sphere(&uv[0], &uv[1], orco[0], orco[1], orco[2]);
+	}
 }
 
 static void mikk_get_normal(const SMikkTSpaceContext *context, float N[3], const int face_num, const int vert_num)
@@ -127,7 +135,7 @@ static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const floa
 	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
 }
 
-static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_layer, Mesh *mesh, vector<int>& nverts, bool need_sign, bool active_render)
+static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer *b_layer, Mesh *mesh, vector<int>& nverts, bool need_sign, bool active_render)
 {
 	/* setup userdata */
 	MikkUserData userdata(b_mesh, b_layer, nverts.size());
@@ -153,7 +161,11 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 
 	/* create tangent attributes */
 	Attribute *attr;
-	ustring name = ustring((string(b_layer.name().c_str()) + ".tangent").c_str());
+	ustring name;
+	if(b_layer != NULL)
+		name = ustring((string(b_layer->name().c_str()) + ".tangent").c_str());
+	else
+		name = ustring("orco.tangent");
 
 	if(active_render)
 		attr = mesh->attributes.add(ATTR_STD_UV_TANGENT, name);
@@ -167,7 +179,11 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 
 	if(need_sign) {
 		Attribute *attr_sign;
-		ustring name_sign = ustring((string(b_layer.name().c_str()) + ".tangent_sign").c_str());
+		ustring name_sign;
+		if(b_layer != NULL)
+			name_sign = ustring((string(b_layer->name().c_str()) + ".tangent_sign").c_str());
+		else
+			name_sign = ustring("orco.tangent_sign");
 
 		if(active_render)
 			attr_sign = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN, name_sign);
@@ -371,7 +387,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	}
 
 	/* create uv map attributes */
-	{
+	if (b_mesh.tessface_uv_textures.length() != 0) {
 		BL::Mesh::tessface_uv_textures_iterator l;
 
 		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
@@ -416,9 +432,13 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
 				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
 
-				mikk_compute_tangents(b_mesh, *l, mesh, nverts, need_sign, active_render);
+				mikk_compute_tangents(b_mesh, &(*l), mesh, nverts, need_sign, active_render);
 			}
 		}
+	}
+	else if(mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
+		bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
+		mikk_compute_tangents(b_mesh, NULL, mesh, nverts, need_sign, true);
 	}
 
 	/* for volume objects, create a matrix to transform from object space to
