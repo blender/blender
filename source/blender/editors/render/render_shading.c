@@ -1270,7 +1270,7 @@ void SCENE_OT_freestyle_stroke_material_create(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Create Freestyle Stroke Material";
-	ot->idname = "freestyle_stroke_material_create_exec";
+	ot->idname = "SCENE_OT_freestyle_stroke_material_create";
 	ot->description = "Create Freestyle stroke material for testing";
 
 	/* api callbacks */
