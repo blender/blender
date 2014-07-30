@@ -2021,7 +2021,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	
 	/* draw DoFs */
 	if (arm->flag & ARM_POSEMODE) {
-		if (((base->flag & OB_FROMDUPLI) == 0)) {
+		if (((base->flag & OB_FROMDUPLI) == 0) && ((v3d->flag & V3D_HIDE_HELPLINES) == 0)) {
 			draw_pose_dofs(ob);
 		}
 	}
