@@ -225,40 +225,22 @@ MINLINE void blend_color_add_alpha_byte(unsigned char dst[4], const unsigned cha
 
 MINLINE void blend_color_overlay_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = (int)src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
-		if (src1[0] > 127)
-			temp = 255 - ((255 - 2 * (src1[0] - 127)) * (255 - src2[0]) / 255);
-		else
-			temp = (2 * src1[0] * src2[0]) >> 8;
-		temp = (temp * fac + src1[0] * mfac) / 255;
-		if (temp < 255)
-			dst[0] = temp;
-		else
-			dst[0] = 255;
-		if (src1[1] > 127)
-			temp = 255 - ((255 - 2 * (src1[1] - 127)) * (255 - src2[1]) / 255);
-		else
-			temp = (2 * src1[1] * src2[1]) / 255;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		temp = (temp * fac + src1[1] * mfac) / 255;
-		if (temp < 255)
-			dst[1] = temp;
-		else
-			dst[1] = 255;
+		while (i--) {
+			int temp;
 
-		if (src1[2] > 127)
-			temp = 255 - ((255 - 2 * (src1[2] - 127)) * (255 - src2[2]) / 255);
-		else
-			temp = (2 * src1[2] * src2[2]) / 255;
-
-		temp = (temp * fac + src1[2] * mfac) / 255;
-		if (temp < 255)
-			dst[2] = temp;
-		else
-			dst[2] = 255;
+			if (src1[i] > 127) {
+				temp = 255 - ((255 - 2 * (src1[i] - 127)) * (255 - src2[i]) / 255);
+			}
+			else {
+				temp = (2 * src1[i] * src2[i]) >> 8;
+			}
+			dst[i] = (unsigned char)min_ii((temp * fac + src1[i] * mfac) / 255, 255);
+		}
 	}
 	else {
 		/* no op */
@@ -269,33 +251,22 @@ MINLINE void blend_color_overlay_byte(unsigned char dst[4], unsigned const char 
 
 MINLINE void blend_color_hardlight_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = (int)src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
-		if (src2[0] > 127)
-			temp = 255 - ((255 - 2 * (src2[0] - 127)) * (255 - src1[0]) / 255);
-		else
-			temp = (2 * src2[0] * src1[0]) >> 8;
-		temp = (temp * fac + src1[0] * mfac) / 255;
-		if (temp < 255) dst[0] = temp; else dst[0] = 255;
+		const int mfac = 255 - fac;
+		int i = 3;
 
+		while (i--) {
+			int temp;
 
-		if (src2[1] > 127)
-			temp = 255 - ((255 - 2 * (src2[1] - 127)) * (255 - src1[1]) / 255);
-		else
-			temp = (2 * src2[1] * src1[1]) / 255;
-		temp = (temp * fac + src1[1] * mfac) / 255;
-		if (temp < 255) dst[1] = temp; else dst[1] = 255;
-
-
-		if (src2[2] > 127)
-			temp = 255 - ((255 - 2 * (src2[2] - 127)) * (255 - src1[2]) / 255);
-		else
-			temp = (2 * src2[2] * src1[2]) / 255;
-
-		temp = (temp * fac + src1[2] * mfac) / 255;
-		if (temp < 255) dst[2] = temp; else dst[2] = 255;
+			if (src2[i] > 127) {
+				temp = 255 - ((255 - 2 * (src2[i] - 127)) * (255 - src1[i]) / 255);
+			}
+			else {
+				temp = (2 * src2[i] * src1[i]) >> 8;
+			}
+			dst[i] = (unsigned char)min_ii((temp * fac + src1[i] * mfac) / 255, 255);
+		}
 	}
 	else {
 		/* no op */
@@ -306,38 +277,15 @@ MINLINE void blend_color_hardlight_byte(unsigned char dst[4], unsigned const cha
 
 MINLINE void blend_color_burn_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-
-		if (src2[0] == 0)
-			temp = 0;
-		else
-			temp = 255 - ((255 - src1[0]) * 255) / src2[0];
-		if (temp < 0)
-			temp = 0;
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
-
-
-		if (src2[1] == 0)
-			temp = 0;
-		else
-			temp = 255 - ((255 - src1[1]) * 255) / src2[1];
-		if (temp < 0)
-			temp = 0;
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-
-		if (src2[2] == 0)
-			temp = 0;
-		else
-			temp = 255 - ((255 - src1[2]) * 255) / src2[2];
-		if (temp < 0)
-			temp = 0;
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
-
+		while (i--) {
+			const int temp = (src2[i] == 0) ? 0 : max_ii(255 - ((255 - src1[i]) * 255) / src2[i], 0);
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
+		}
 	}
 	else {
 		/* no op */
@@ -348,22 +296,15 @@ MINLINE void blend_color_burn_byte(unsigned char dst[4], unsigned const char src
 
 MINLINE void blend_color_linearburn_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		temp = src1[0] + src2[0] - 255;
-		if (temp < 0) temp = 0;
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
-
-		temp = src1[1] + src2[1] - 255;
-		if (temp < 0) temp = 0;
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		temp = src1[2] + src2[2] - 255;
-		if (temp < 0) temp = 0;
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
+		while (i--) {
+			const int temp = max_ii(src1[i] + src2[i] - 255, 0);
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
+		}
 	}
 	else {
 		/* no op */
@@ -374,25 +315,15 @@ MINLINE void blend_color_linearburn_byte(unsigned char dst[4], unsigned const ch
 
 MINLINE void blend_color_dodge_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		if (src2[0] == 255) temp = 255;
-		else temp = (src1[0] * 255) / (255 - src2[0]);
-		if (temp > 255) temp = 255;
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
-
-		if (src2[1] == 255) temp = 255;
-		else temp = (src1[1] * 255) / (255 - src2[1]);
-		if (temp > 255) temp = 255;
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		if (src2[2] == 255) temp = 255;
-		else temp = (src1[2] * 255) / (255 - src2[2]);
-		if (temp > 255) temp = 255;
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
+		while (i--) {
+			const int temp = (src2[i] == 255) ? 255 : min_ii((src1[i] * 255) / (255 - src2[i]), 255);
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
+		}
 	}
 	else {
 		/* no op */
@@ -402,22 +333,15 @@ MINLINE void blend_color_dodge_byte(unsigned char dst[4], unsigned const char sr
 
 MINLINE void blend_color_screen_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		temp = 255 - (((255 - src1[0]) * (255 - src2[0])) / 255);
-		if (temp < 0) temp = 0;
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
-
-		temp = 255 - (((255 - src1[1]) * (255 - src2[1])) / 255);
-		if (temp < 0) temp = 0;
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		temp = 255 - (((255 - src1[2]) * (255 - src2[2])) / 255);
-		if (temp < 0) temp = 0;
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
+		while (i--) {
+			const int temp = max_ii(255 - (((255 - src1[i]) * (255 - src2[i])) / 255), 0);
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
+		}
 	}
 	else {
 		/* no op */
@@ -428,19 +352,22 @@ MINLINE void blend_color_screen_byte(unsigned char dst[4], unsigned const char s
 
 MINLINE void blend_color_softlight_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		temp = ((unsigned char)((src1[0] < 127) ? ((2 * ((src2[0] / 2) + 64)) * (src1[0])) / 255 : (255 - (2 * (255 - ((src2[0] / 2) + 64)) * (255 - src1[0]) / 255))));
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
+		while (i--) {
+			int temp;
 
-		temp = ((unsigned char)((src1[1] < 127) ? ((2 * ((src2[1] / 2) + 64)) * (src1[1])) / 255 : (255 - (2 * (255 - ((src2[1] / 2) + 64)) * (255 - src1[1]) / 255))));
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		temp = ((unsigned char)((src1[2] < 127) ? ((2 * ((src2[2] / 2) + 64)) * (src1[2])) / 255 : (255 - (2 * (255 - ((src2[2] / 2) + 64)) * (255 - src1[2]) / 255))));
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
+			if (src1[i] < 127) {
+				temp = ((2 * ((src2[i] / 2) + 64)) * src1[i]) / 255;
+			}
+			else {
+				temp = 255 - (2 * (255 - ((src2[i] / 2) + 64)) * (255 - src1[i]) / 255);
+			}
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
+		}
 	}
 	else {
 		/* no op */
@@ -451,46 +378,22 @@ MINLINE void blend_color_softlight_byte(unsigned char dst[4], unsigned const cha
 
 MINLINE void blend_color_pinlight_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		if (src2[0] > 127) {
-			temp = 2 * (src2[0] - 127);
-			if (src1[0] > temp)
-				temp = src1[0];
+		while (i--) {
+			int temp;
+
+			if (src2[i] > 127) {
+				temp = max_ii(2 * (src2[i] - 127), src1[i]);
+			}
+			else {
+				temp = min_ii(2 * src2[i], src1[i]);
+			}
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
 		}
-		else {
-			temp = 2 * src2[0];
-			if (src1[0] < temp)
-				temp = src1[0];
-		}
-
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
-
-
-		if (src2[1] > 127) {
-			temp = 2 * (src2[1] - 127);
-			if (src1[1] > temp) temp = src1[1];
-		}
-		else {
-			temp = 2 * src2[1];
-			if (src1[1] < temp) temp = src1[1];
-		}
-
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-
-		if (src2[2] > 127) {
-			temp = 2 * (src2[2] - 127);
-			if (src1[2] > temp) temp = src1[2];
-		}
-		else {
-			temp = 2 * src2[2];
-			if (src1[2] < temp) temp = src1[2];
-		}
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
 	}
 	else {
 		/* no op */
@@ -501,43 +404,22 @@ MINLINE void blend_color_pinlight_byte(unsigned char dst[4], unsigned const char
 
 MINLINE void blend_color_linearlight_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		if (src2[0] > 127) {
-			temp = src1[0] + 2 * (src2[0] - 127);
-			if (temp > 255)
-				temp = 255;
-		}
-		else {
-			temp = src1[0] + 2 * src2[0] - 255;
-			if (temp < 0) temp = 0;
-		}
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
+		while (i--) {
+			int temp;
 
-		if (src2[1] > 127) {
-			temp = src1[1] + 2 * (src2[1] - 127);
-			if (temp > 255)
-				temp = 255;
+			if (src2[i] > 127) {
+				temp = min_ii(src1[i] + 2 * (src2[i] - 127), 255);
+			}
+			else {
+				temp = max_ii(src1[i] + 2 * src2[i] - 255, 0);
+			}
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
 		}
-		else {
-			temp = src1[1] + 2 * src2[1] - 255;
-			if (temp < 0) temp = 0;
-		}
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		if (src2[2] > 127) {
-			temp = src1[2] + 2 * (src2[2] - 127);
-			if (temp > 255)
-				temp = 255;
-		}
-		else {
-			temp = src1[2] + 2 * src2[2] - 255;
-			if (temp < 0) temp = 0;
-		}
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
 	}
 	else {
 		/* no op */
@@ -548,55 +430,28 @@ MINLINE void blend_color_linearlight_byte(unsigned char dst[4], unsigned const c
 
 MINLINE void blend_color_vividlight_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		if (src2[0] == 255)
-			temp = 255;
-		else if (src2[0] == 0)
-			temp = 0;
-		else if (src2[0] > 127)  {
-			temp = ((src1[0]) * 255) / (2 * (255 - src2[0]));
-			if (temp > 255) temp = 255;
-		}
-		else {
-			temp = 255 - ((255 - src1[0]) * 255 / (2 * src2[0]));
-			if (temp < 0) temp = 0;
-		}
+		while (i--) {
+			int temp;
 
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
-
-		if (src2[1] == 255)
-			temp = 255;
-		else if (src2[1] == 0)
-			temp = 0;
-		else if (src2[1] > 127)  {
-			temp = ((src1[1]) * 255) / (2 * (255 - src2[1]));
-			if (temp > 255) temp = 255;
+			if (src2[i] == 255) {
+				temp = 255;
+			}
+			else if (src2[i] == 0) {
+				temp = 0;
+			}
+			else if (src2[i] > 127)  {
+				temp = min_ii(((src1[i]) * 255) / (2 * (255 - src2[i])), 255);
+			}
+			else {
+				temp = max_ii(255 - ((255 - src1[i]) * 255 / (2 * src2[i])), 0);
+			}
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
 		}
-		else {
-			temp = 255 - ((255 - src1[1]) * 255 / (2 * src2[1]));
-			if (temp < 0) temp = 0;
-		}
-
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		if (src2[2] == 255)
-			temp = 255;
-		else if (src2[2] == 0)
-			temp = 0;
-		else if (src2[2] > 127)  {
-			temp = ((src1[2]) * 255) / (2 * (255 - src2[2]));
-			if (temp > 255) temp = 255;
-		}
-		else {
-			temp = 255 - ((255 - src1[2]) * 255 / (2 * src2[2]));
-			if (temp < 0) temp = 0;
-		}
-
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
 	}
 	else {
 		/* no op */
@@ -608,22 +463,15 @@ MINLINE void blend_color_vividlight_byte(unsigned char dst[4], unsigned const ch
 
 MINLINE void blend_color_difference_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
-		temp = src1[0] - src2[0];
-		if (temp < 0) temp = -temp;
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		temp = src1[1] - src2[1];
-		if (temp < 0) temp = -temp;
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		temp = src1[2] - src2[2];
-		if (temp < 0) temp = -temp;
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
-
+		while (i--) {
+			const int temp = abs(src1[i] - src2[i]);
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
+		}
 	}
 	else {
 		/* no op */
@@ -634,18 +482,15 @@ MINLINE void blend_color_difference_byte(unsigned char dst[4], unsigned const ch
 
 MINLINE void blend_color_exclusion_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int temp;
-		int mfac = 255 - fac;
-		temp = 127 - ((2 * (src1[0] - 127) * (src2[0] - 127)) / 255);
-		dst[0] = (temp * fac + src1[0] * mfac) / 255;
+		const int mfac = 255 - fac;
+		int i = 3;
 
-		temp = 127 - ((2 * (src1[1] - 127) * (src2[1] - 127)) / 255);
-		dst[1] = (temp * fac + src1[1] * mfac) / 255;
-
-		temp = 127 - ((2 * (src1[2] - 127) * (src2[2] - 127)) / 255);
-		dst[2] = (temp * fac + src1[2] * mfac) / 255;
+		while (i--) {
+			const int temp = 127 - ((2 * (src1[i] - 127) * (src2[i] - 127)) / 255);
+			dst[i] = (unsigned char)((temp * fac + src1[i] * mfac) / 255);
+		}
 	}
 	else {
 		/* no op */
@@ -655,9 +500,9 @@ MINLINE void blend_color_exclusion_byte(unsigned char dst[4], unsigned const cha
 
 MINLINE void blend_color_color_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
@@ -670,9 +515,9 @@ MINLINE void blend_color_color_byte(unsigned char dst[4], unsigned const char sr
 
 		hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-		dst[0] = ((int)(r * 255.0f) * fac + src1[0] * mfac) / 255;
-		dst[1] = ((int)(g * 255.0f) * fac + src1[1] * mfac) / 255;
-		dst[2] = ((int)(b * 255.0f) * fac + src1[2] * mfac) / 255;
+		dst[0] = (unsigned char)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
+		dst[1] = (unsigned char)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
+		dst[2] = (unsigned char)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
 	}
 	else {
 		/* no op */
@@ -682,9 +527,9 @@ MINLINE void blend_color_color_byte(unsigned char dst[4], unsigned const char sr
 
 MINLINE void blend_color_hue_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
@@ -696,9 +541,9 @@ MINLINE void blend_color_hue_byte(unsigned char dst[4], unsigned const char src1
 
 		hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-		dst[0] = ((int)(r * 255.0f) * fac + src1[0] * mfac) / 255;
-		dst[1] = ((int)(g * 255.0f) * fac + src1[1] * mfac) / 255;
-		dst[2] = ((int)(b * 255.0f) * fac + src1[2] * mfac) / 255;
+		dst[0] = (unsigned char)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
+		dst[1] = (unsigned char)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
+		dst[2] = (unsigned char)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
 	}
 	else {
 		/* no op */
@@ -709,9 +554,9 @@ MINLINE void blend_color_hue_byte(unsigned char dst[4], unsigned const char src1
 
 MINLINE void blend_color_saturation_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
@@ -724,9 +569,9 @@ MINLINE void blend_color_saturation_byte(unsigned char dst[4], unsigned const ch
 
 		hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-		dst[0] = ((int)(r * 255.0f) * fac + src1[0] * mfac) / 255;
-		dst[1] = ((int)(g * 255.0f) * fac + src1[1] * mfac) / 255;
-		dst[2] = ((int)(b * 255.0f) * fac + src1[2] * mfac) / 255;
+		dst[0] = (unsigned char)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
+		dst[1] = (unsigned char)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
+		dst[2] = (unsigned char)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
 	}
 	else {
 		/* no op */
@@ -736,23 +581,22 @@ MINLINE void blend_color_saturation_byte(unsigned char dst[4], unsigned const ch
 
 MINLINE void blend_color_luminosity_byte(unsigned char dst[4], unsigned const char src1[4], unsigned const char src2[4])
 {
-	const unsigned char fac = src2[3];
+	const int fac = src2[3];
 	if (fac != 0) {
-		int mfac = 255 - fac;
+		const int mfac = 255 - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
 		rgb_to_hsv(src1[0] / 255.0f, src1[1] / 255.0f, src1[2] / 255.0f, &h1, &s1, &v1);
 		rgb_to_hsv(src2[0] / 255.0f, src2[1] / 255.0f, src2[2] / 255.0f, &h2, &s2, &v2);
 
-
 		v1 = v2;
 
 		hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-		dst[0] = ((int)(r * 255.0f) * fac + src1[0] * mfac) / 255;
-		dst[1] = ((int)(g * 255.0f) * fac + src1[1] * mfac) / 255;
-		dst[2] = ((int)(b * 255.0f) * fac + src1[2] * mfac) / 255;
+		dst[0] = (unsigned char)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
+		dst[1] = (unsigned char)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
+		dst[2] = (unsigned char)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
 
 	}
 	else {
@@ -939,43 +783,22 @@ MINLINE void blend_color_add_alpha_float(float dst[4], const float src1[4], cons
 
 MINLINE void blend_color_overlay_float(float dst[3], const float src1[3], const float src2[3])
 {
-	float fac = src2[3];
+	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		float temp;
-		float fac = src2[3];
-		float mfac = 1.0f - fac;
+		while (i--) {
+			float temp;
 
-		if (src1[0] > 0.5f)
-			temp = 1 - (1 - 2 * (src1[0] - 0.5f)) * (1 - src2[0]);
-		else
-			temp = 2 * src1[0] * src2[0];
-		temp = temp * fac + src1[0] * mfac;
-		if (temp < 1.0f)
-			dst[0] = temp;
-		else
-			dst[0] = 1.0f;
-
-
-		if (src1[1] > 0.5f)
-			temp = 1.0f - (1.0f - 2.0f * (src1[1] - 0.5f)) * (1.0f - src2[1]);
-		else
-			temp = 2.0f * src1[1] * src2[1];
-		temp = temp * fac + src1[1] * mfac;
-		if (temp < 1.0f)
-			dst[1] = temp;
-		else
-			dst[1] = 1.0f;
-
-		if (src1[2] > 0.5f)
-			temp = 1 - (1.0f - 2.0f * (src1[2] - 0.5f)) * (1.0f - src2[2]);
-		else
-			temp = 2.0f * src1[2] * src2[2];
-		temp = temp * fac + src1[2] * mfac;
-		if (temp < 1.0f)
-			dst[2] = temp;
-		else
-			dst[2] = 1.0f;
+			if (src1[i] > 0.5f) {
+				temp = 1.0f - (1.0f - 2.0f * (src1[i] - 0.5f)) * (1.0f - src2[i]);
+			}
+			else {
+				temp = 2.0f * src1[i] * src2[i];
+			}
+			dst[i] = min_ff(temp * fac + src1[i] * mfac, 1.0f);
+		}
 	}
 	else {
 		/* no op */
@@ -988,33 +811,20 @@ MINLINE void blend_color_hardlight_float(float dst[4], const float src1[4], cons
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
-		if (src2[0] > 0.5f)
-			temp = 1 - ((1.0f - 2.0f * (src2[0] - 0.5f)) * (1.0f - src1[0]));
-		else
-			temp = 2.0f * src2[0] * src1[0];
-		temp = (temp * fac + src1[0] * mfac) / 1.0f;
-		if (temp < 1.0f) dst[0] = temp; else dst[0] = 1.0f;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		if (src2[1] > 0.5f)
-			temp = 1 - ((1.0f - 2.0f * (src2[1] - 0.5f)) * (1.0f - src1[1]));
-		else
-			temp = 2.0f * src2[1] * src1[1];
-		temp = (temp * fac + src1[1] * mfac) / 1.0f;
-		if (temp < 1.0f) dst[1] = temp; else dst[1] = 1.0f;
+		while (i--) {
+			float temp;
 
-		if (src2[2] > 0.5f)
-			temp = 1 - ((1.0f - 2.0f * (src2[2] - 0.5f)) * (1.0f - src1[2]));
-		else
-			temp = 2.0f * src2[2] * src1[2];
-		temp = (temp * fac + src1[2] * mfac) / 1.0f;
-
-		if (temp < 1.0f)
-			dst[2] = temp;
-		else
-			dst[2] = 1.0f;
-
+			if (src2[i] > 0.5f) {
+				temp = 1.0f - ((1.0f - 2.0f * (src2[i] - 0.5f)) * (1.0f - src1[i]));
+			}
+			else {
+				temp = 2.0f * src2[i] * src1[i];
+			}
+			dst[i] = min_ff((temp * fac + src1[i] * mfac) / 1.0f, 1.0f);
+		}
 	}
 	else {
 		/* no op */
@@ -1026,32 +836,13 @@ MINLINE void blend_color_burn_float(float dst[3], const float src1[3], const flo
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		if (src2[0] == 0.0f)
-			temp = 0.0f;
-		else
-			temp = 1.0f - ((1.0f - src1[0]) / src2[0]);
-		if (temp < 0.0f)
-			temp = 0.0f;
-		dst[0] = (temp * fac + src1[0] * mfac);
-
-		if (src2[1] == 0.0f)
-			temp = 0.0f;
-		else
-			temp = 1.0f - ((1.0f - src1[1]) / src2[1]);
-		if (temp < 0.0f)
-			temp = 0.0f;
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		if (src2[2] == 0.0f)
-			temp = 0.0f;
-		else
-			temp = 1.0f - ((1.0f - src1[2]) / src2[2]);
-		if (temp < 0.0f)
-			temp = 0.0f;
-		dst[2] = (temp * fac + src1[2] * mfac);
+		while (i--) {
+			const float temp = (src2[i] == 0.0f) ? 0.0f : max_ff(1.0f - ((1.0f - src1[i]) / src2[i]), 0.0f);
+			dst[i] = (temp * fac + src1[i] * mfac);
+		}
 	}
 	else {
 		/* no op */
@@ -1063,21 +854,13 @@ MINLINE void blend_color_linearburn_float(float dst[3], const float src1[3], con
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		temp = src1[0] + src2[0] - 1.0f;
-		if (temp < 0) temp = 0;
-		dst[0] = (temp * fac + src1[0] * mfac);
-
-		temp = src1[1] + src2[1] - 1.0f;
-		if (temp < 0) temp = 0;
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		temp = src1[2] + src2[2] - 1.0f;
-		if (temp < 0) temp = 0;
-		dst[2] = (temp * fac + src1[2] * mfac);
-
+		while (i--) {
+			const float temp = max_ff(src1[i] + src2[i] - 1.0f, 0.0f);
+			dst[i] = (temp * fac + src1[i] * mfac);
+		}
 	}
 	else {
 		/* no op */
@@ -1090,23 +873,13 @@ MINLINE void blend_color_dodge_float(float dst[3], const float src1[3], const fl
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		if (src2[0] >= 1.0f) temp = 1.0f;
-		else temp = (src1[0]) / (1.0f - src2[0]);
-		if (temp > 1.0f) temp = 1.0f;
-		dst[0] = (temp * fac + src1[0] * mfac);
-
-		if (src2[1] >= 1.0f) temp = 1.0f;
-		else temp = (src1[1]) / (1.0f - src2[1]);
-		if (temp > 1.0f) temp = 1.0f;
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		if (src2[2] >= 1.0f) temp = 1.0f;
-		else temp = (src1[2]) / (1.0f - src2[2]);
-		if (temp > 1.0f) temp = 1.0f;
-		dst[2] = (temp * fac + src1[2] * mfac);
+		while (i--) {
+			const float temp = (src2[i] >= 1.0f) ? 1.0f : min_ff(src1[i] / (1.0f - src2[i]), 1.0f);
+			dst[i] = (temp * fac + src1[i] * mfac);
+		}
 	}
 	else {
 		/* no op */
@@ -1118,20 +891,13 @@ MINLINE void blend_color_screen_float(float dst[3], const float src1[3], const f
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		temp = 1.0f - ((1.0f - src1[0]) * (1.0f - src2[0]));
-		if (temp < 0) temp = 0;
-		dst[0] = (temp * fac + src1[0] * mfac);
-
-		temp = 1.0f - ((1.0f - src1[1]) * (1.0f - src2[1]));
-		if (temp < 0) temp = 0;
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		temp = 1.0f - ((1.0f - src1[2]) * (1.0f - src2[2]));
-		if (temp < 0) temp = 0;
-		dst[2] = (temp * fac + src1[2] * mfac);
+		while (i--) {
+			const float temp = max_ff(1.0f - ((1.0f - src1[i]) * (1.0f - src2[i])), 0.0f);
+			dst[i] = (temp * fac + src1[i] * mfac);
+		}
 	}
 	else {
 		/* no op */
@@ -1143,17 +909,20 @@ MINLINE void blend_color_softlight_float(float dst[3], const float src1[3], cons
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		temp = (((src1[0] < 0.5f) ? ((src2[0] + 0.5f) * (src1[0])) : (1.0f - ((1.0f - ((src2[0]) + 0.5f)) * (1.0f - src1[0])))));
-		dst[0] = (temp * fac + src1[0] * mfac);
+		while (i--) {
+			float temp;
 
-		temp = (((src1[1] < 0.5f) ? ((src2[1] + 0.5f) * (src1[1])) : (1.0f - ((1.0f - ((src2[1]) + 0.5f)) * (1.0f - src1[1])))));
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		temp = (((src1[2] < 0.5f) ? ((src2[2] + 0.5f) * (src1[2])) : (1.0f - ((1.0f - ((src2[2]) + 0.5f)) * (1.0f - src1[2])))));
-		dst[2] = (temp * fac + src1[2] * mfac);
+			if (src1[i] < 0.5f) {
+				temp = (src2[i] + 0.5f) * src1[i];
+			}
+			else {
+				temp = 1.0f - ((1.0f - (src2[i] + 0.5f)) * (1.0f - src1[i]));
+			}
+			dst[i] = (temp * fac + src1[i] * mfac);
+		}
 	}
 	else {
 		/* no op */
@@ -1165,44 +934,20 @@ MINLINE void blend_color_pinlight_float(float dst[3], const float src1[3], const
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		if (src2[0] > 0.5f) {
-			temp = 2 * (src2[0] - 0.5f);
-			if (src1[0] > temp)
-				temp = src1[0];
+		while (i--) {
+			float temp;
+
+			if (src2[i] > 0.5f) {
+				temp = max_ff(2.0f * (src2[i] - 0.5f), src1[i]);
+			}
+			else {
+				temp = min_ff(2.0f * src2[i], src1[i]);
+			}
+			dst[i] = (temp * fac + src1[i] * mfac);
 		}
-		else {
-			temp = 2 * src2[0];
-			if (src1[0] < temp)
-				temp = src1[0];
-		}
-
-		dst[0] = (temp * fac + src1[0] * mfac);
-
-
-		if (src2[1] > 0.5f) {
-			temp = 2 * (src2[1] - 0.5f);
-			if (src1[1] > temp) temp = src1[1];
-		}
-		else {
-			temp = 2 * src2[1];
-			if (src1[1] < temp) temp = src1[1];
-		}
-
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-
-		if (src2[2] > 0.5f) {
-			temp = 2 * (src2[2] - 0.5f);
-			if (src1[2] > temp) temp = src1[2];
-		}
-		else {
-			temp = 2 * src2[2];
-			if (src1[2] < temp) temp = src1[2];
-		}
-		dst[2] = (temp * fac + src1[2] * mfac);
 	}
 	else {
 		/* no op */
@@ -1215,41 +960,20 @@ MINLINE void blend_color_linearlight_float(float dst[3], const float src1[3], co
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		if (src2[0] > 0.5f) {
-			temp = src1[0] + 2 * (src2[0] - 0.5f);
-			if (temp > 1.0f)
-				temp = 1.0f;
-		}
-		else {
-			temp = src1[0] + 2 * src2[0] - 1.0f;
-			if (temp < 0) temp = 0;
-		}
-		dst[0] = (temp * fac + src1[0] * mfac);
+		while (i--) {
+			float temp;
 
-		if (src2[1] > 0.5f) {
-			temp = src1[1] + 2 * (src2[1] - 0.5f);
-			if (temp > 1.0f)
-				temp = 1.0f;
+			if (src2[i] > 0.5f) {
+				temp = min_ff(src1[i] + 2.0f * (src2[i] - 0.5f), 1.0f);
+			}
+			else {
+				temp = max_ff(src1[i] + 2.0f * src2[i] - 1.0f, 0.0f);
+			}
+			dst[i] = (temp * fac + src1[i] * mfac);
 		}
-		else {
-			temp = src1[1] + 2 * src2[1] - 1.0f;
-			if (temp < 0) temp = 0;
-		}
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		if (src2[2] > 0.5f) {
-			temp = src1[2] + 2 * (src2[2] - 0.5f);
-			if (temp > 1.0f)
-				temp = 1.0f;
-		}
-		else {
-			temp = src1[2] + 2 * src2[2] - 1.0f;
-			if (temp < 0) temp = 0;
-		}
-		dst[2] = (temp * fac + src1[2] * mfac);
 	}
 	else {
 		/* no op */
@@ -1262,53 +986,26 @@ MINLINE void blend_color_vividlight_float(float dst[3], const float src1[3], con
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		if (src2[0] == 1.0f)
-			temp = 1.0f;
-		else if (src2[0] == 0)
-			temp = 0;
-		else if (src2[0] > 0.5f) {
-			temp = ((src1[0]) * 1.0f) / (2 * (1.0f - src2[0]));
-			if (temp > 1.0f) temp = 1.0f;
-		}
-		else {
-			temp = 1.0f - ((1.0f - src1[0]) * 1.0f / (2 * src2[0]));
-			if (temp < 0) temp = 0;
-		}
+		while (i--) {
+			float temp;
 
-		dst[0] = (temp * fac + src1[0] * mfac);
-
-		if (src2[1] == 1.0f)
-			temp = 1.0f;
-		else if (src2[1] == 0)
-			temp = 0;
-		else if (src2[1] > 0.5f) {
-			temp = ((src1[1]) * 1.0f) / (2 * (1.0f - src2[1]));
-			if (temp > 1.0f) temp = 1.0f;
+			if (src2[i] == 1.0f) {
+				temp = 1.0f;
+			}
+			else if (src2[i] == 0.0f) {
+				temp = 0.0f;
+			}
+			else if (src2[i] > 0.5f) {
+				temp = min_ff(((src1[i]) * 1.0f) / (2.0f * (1.0f - src2[i])), 1.0f);
+			}
+			else {
+				temp = max_ff(1.0f - ((1.0f - src1[i]) * 1.0f / (2.0f * src2[i])), 0.0f);
+			}
+			dst[i] = (temp * fac + src1[i] * mfac);
 		}
-		else {
-			temp = 1.0f - ((1.0f - src1[1]) * 1.0f / (2 * src2[1]));
-			if (temp < 0) temp = 0;
-		}
-
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		if (src2[2] == 1.0f)
-			temp = 1.0f;
-		else if (src2[2] == 0)
-			temp = 0;
-		else if (src2[2] > 0.5f) {
-			temp = ((src1[2]) * 1.0f) / (2 * (1.0f - src2[2]));
-			if (temp > 1.0f) temp = 1.0f;
-		}
-		else {
-			temp = 1.0f - ((1.0f - src1[2]) * 1.0f / (2 * src2[2]));
-			if (temp < 0) temp = 0;
-		}
-
-		dst[2] = (temp * fac + src1[2] * mfac);
 	}
 	else {
 		/* no op */
@@ -1320,20 +1017,12 @@ MINLINE void blend_color_difference_float(float dst[3], const float src1[3], con
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
-		temp = src1[0] - src2[0];
-		if (temp < 0) temp = -temp;
-		dst[0] = (temp * fac + src1[0] * mfac);
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		temp = src1[1] - src2[1];
-		if (temp < 0) temp = -temp;
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		temp = src1[2] - src2[2];
-		if (temp < 0) temp = -temp;
-		dst[2] = (temp * fac + src1[2] * mfac);
-
+		while (i--) {
+			dst[i] = (fabsf(src1[i] - src2[i]) * fac + src1[i] * mfac);
+		}
 	}
 	else {
 		/* no op */
@@ -1346,16 +1035,13 @@ MINLINE void blend_color_exclusion_float(float dst[3], const float src1[3], cons
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float temp;
-		float mfac = 1.0f - fac;
-		temp = 0.5f - ((2 * (src1[0] - 0.5f) * (src2[0] - 0.5f)));
-		dst[0] = (temp * fac + src1[0] * mfac);
+		const float mfac = 1.0f - fac;
+		int i = 3;
 
-		temp = 0.5f - ((2 * (src1[1] - 0.5f) * (src2[1] - 0.5f)));
-		dst[1] = (temp * fac + src1[1] * mfac);
-
-		temp = 0.5f - ((2 * (src1[2] - 0.5f) * (src2[2] - 0.5f)));
-		dst[2] = (temp * fac + src1[2] * mfac);
+		while (i--) {
+			const float temp = 0.5f - ((2 * (src1[i] - 0.5f) * (src2[i] - 0.5f)));
+			dst[i] = (temp * fac + src1[i] * mfac);
+		}
 	}
 	else {
 		/* no op */
@@ -1368,13 +1054,13 @@ MINLINE void blend_color_color_float(float dst[3], const float src1[3], const fl
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
+
 		rgb_to_hsv(src1[0], src1[1], src1[2], &h1, &s1, &v1);
 		rgb_to_hsv(src2[0], src2[1], src2[2], &h2, &s2, &v2);
-
 
 		h1 = h2;
 		s1 = s2;
@@ -1396,13 +1082,13 @@ MINLINE void blend_color_hue_float(float dst[3], const float src1[3], const floa
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
+
 		rgb_to_hsv(src1[0], src1[1], src1[2], &h1, &s1, &v1);
 		rgb_to_hsv(src2[0], src2[1], src2[2], &h2, &s2, &v2);
-
 
 		h1 = h2;
 
@@ -1422,10 +1108,11 @@ MINLINE void blend_color_saturation_float(float dst[3], const float src1[3], con
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
+
 		rgb_to_hsv(src1[0], src1[1], src1[2], &h1, &s1, &v1);
 		rgb_to_hsv(src2[0], src2[1], src2[2], &h2, &s2, &v2);
 
@@ -1448,13 +1135,13 @@ MINLINE void blend_color_luminosity_float(float dst[3], const float src1[3], con
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
-		float mfac = 1.0f - fac;
+		const float mfac = 1.0f - fac;
 		float h1, s1, v1;
 		float h2, s2, v2;
 		float r, g, b;
+
 		rgb_to_hsv(src1[0], src1[1], src1[2], &h1, &s1, &v1);
 		rgb_to_hsv(src2[0], src2[1], src2[2], &h2, &s2, &v2);
-
 
 		v1 = v2;
 		hsv_to_rgb(h1, s1, v1, &r, &g, &b);
@@ -1473,7 +1160,7 @@ MINLINE void blend_color_luminosity_float(float dst[3], const float src1[3], con
 MINLINE void blend_color_interpolate_float(float dst[4], const float src1[4], const float src2[4], float t)
 {
 	/* interpolation, colors are premultiplied so it goes fine */
-	float mt = 1.0f - t;
+	const float mt = 1.0f - t;
 
 	dst[0] = mt * src1[0] + t * src2[0];
 	dst[1] = mt * src1[1] + t * src2[1];
