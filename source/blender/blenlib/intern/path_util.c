@@ -1515,21 +1515,6 @@ void BLI_setenv_if_new(const char *env, const char *val)
 		BLI_setenv(env, val);
 }
 
-
-/**
- * Changes to the path separators to the native ones for this OS.
- */
-void BLI_clean(char *path)
-{
-#ifdef WIN32
-	if (path && BLI_strnlen(path, 3) > 2) {
-		BLI_char_switch(path + 2, '/', '\\');
-	}
-#else
-	BLI_char_switch(path + BLI_path_unc_prefix_len(path), '\\', '/');
-#endif
-}
-
 /**
  * Change every \a from in \a string into \a to. The
  * result will be in \a string
@@ -1681,7 +1666,7 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
 	strcat(string, file);
 	
 	/* Push all slashes to the system preferred direction */
-	BLI_clean(string);
+	BLI_path_native_slash(string);
 }
 
 static bool testextensie_ex(const char *str, const size_t str_len,
@@ -2143,6 +2128,20 @@ void BLI_del_slash(char *string)
 			break;
 		}
 	}
+}
+
+/**
+ * Changes to the path separators to the native ones for this OS.
+ */
+void BLI_path_native_slash(char *path)
+{
+#ifdef WIN32
+	if (path && BLI_strnlen(path, 3) > 2) {
+		BLI_char_switch(path + 2, '/', '\\');
+	}
+#else
+	BLI_char_switch(path + BLI_path_unc_prefix_len(path), '\\', '/');
+#endif
 }
 
 /**

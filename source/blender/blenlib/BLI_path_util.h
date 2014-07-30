@@ -111,6 +111,7 @@ const char *BLI_last_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_R
 int         BLI_add_slash(char *string) ATTR_NONNULL();
 void        BLI_del_slash(char *string) ATTR_NONNULL();
 const char *BLI_first_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+void        BLI_path_native_slash(char *path) ATTR_NONNULL();
 
 void BLI_getlastdir(const char *dir, char *last, const size_t maxlen);
 bool BLI_testextensie(const char *str, const char *ext) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
@@ -127,9 +128,6 @@ void BLI_newname(char *name, int add);
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
 int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
-
-/* make sure path separators conform to system one */
-void BLI_clean(char *path) ATTR_NONNULL();
 
 /**
  * dir can be any input, like from buttons, and this function
