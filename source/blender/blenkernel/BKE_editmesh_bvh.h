@@ -43,9 +43,16 @@ struct Scene;
 
 typedef struct BMBVHTree BMBVHTree;
 
-BMBVHTree      *BKE_bmbvh_new_from_editmesh(struct BMEditMesh *em, int flag, const float (*cos_cage)[3], const bool cos_cage_free);
-BMBVHTree      *BKE_bmbvh_new(struct BMesh *bm, struct BMLoop *(*looptris)[3], int looptris_tot, int flag,
-                              const float (*cos_cage)[3], const bool cos_cage_free);
+BMBVHTree      *BKE_bmbvh_new_from_editmesh(
+        struct BMEditMesh *em, int flag,
+        const float (*cos_cage)[3], const bool cos_cage_free);
+BMBVHTree      *BKE_bmbvh_new_ex(
+        struct BMesh *bm, struct BMLoop *(*looptris)[3], int looptris_tot, int flag,
+        const float (*cos_cage)[3], const bool cos_cage_free,
+        bool (*test_fn)(struct BMFace *, void *user_data), void *user_data);
+BMBVHTree      *BKE_bmbvh_new(
+        struct BMesh *bm, struct BMLoop *(*looptris)[3], int looptris_tot, int flag,
+        const float (*cos_cage)[3], const bool cos_cage_free);
 void            BKE_bmbvh_free(BMBVHTree *tree);
 struct BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree);
 struct BMFace  *BKE_bmbvh_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3], const float radius,

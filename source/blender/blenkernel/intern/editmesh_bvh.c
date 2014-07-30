@@ -53,13 +53,17 @@ struct BMBVHTree {
 	int flag;
 };
 
-BMBVHTree *BKE_bmbvh_new_from_editmesh(BMEditMesh *em, int flag, const float (*cos_cage)[3], const bool cos_cage_free)
+BMBVHTree *BKE_bmbvh_new_from_editmesh(
+        BMEditMesh *em, int flag,
+        const float (*cos_cage)[3], const bool cos_cage_free)
 {
 	return BKE_bmbvh_new(em->bm, em->looptris, em->tottri, flag, cos_cage, cos_cage_free);
 }
 
-BMBVHTree *BKE_bmbvh_new(BMesh *bm, BMLoop *(*looptris)[3], int looptris_tot, int flag, const float (*cos_cage)[3],
-const bool cos_cage_free)
+BMBVHTree *BKE_bmbvh_new_ex(
+        BMesh *bm, BMLoop *(*looptris)[3], int looptris_tot, int flag,
+        const float (*cos_cage)[3], const bool cos_cage_free,
+        bool (*test_fn)(BMFace *, void *user_data), void *user_data)
 {
 	/* could become argument */
 	const float epsilon = FLT_EPSILON * 2.0f;
@@ -68,6 +72,10 @@ const bool cos_cage_free)
 	float cos[3][3];
 	int i;
 	int tottri;
+
+	/* avoid testing every tri */
+	BMFace *f_test, *f_test_prev;
+	bool test_fn_ret;
 
 	/* BKE_editmesh_tessface_calc() must be called already */
 	BLI_assert(looptris_tot != 0 || bm->totface == 0);
@@ -83,18 +91,22 @@ const bool cos_cage_free)
 	bmtree->cos_cage_free = cos_cage_free;
 	bmtree->flag = flag;
 
-	if (flag & (BMBVH_RESPECT_SELECT)) {
+	if (test_fn) {
+		/* callback must do... */
+		BLI_assert(!(flag & (BMBVH_RESPECT_SELECT | BMBVH_RESPECT_HIDDEN)));
+
+		f_test_prev = NULL;
+		test_fn_ret = false;
+
 		tottri = 0;
 		for (i = 0; i < looptris_tot; i++) {
-			if (BM_elem_flag_test(looptris[i][0]->f, BM_ELEM_SELECT)) {
-				tottri++;
+			f_test = looptris[i][0]->f;
+			if (f_test != f_test_prev) {
+				test_fn_ret = test_fn(f_test, user_data);
+				f_test_prev = f_test;
 			}
-		}
-	}
-	else if (flag & (BMBVH_RESPECT_HIDDEN)) {
-		tottri = 0;
-		for (i = 0; i < looptris_tot; i++) {
-			if (!BM_elem_flag_test(looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+
+			if (test_fn_ret) {
 				tottri++;
 			}
 		}
@@ -105,17 +117,19 @@ const bool cos_cage_free)
 
 	bmtree->tree = BLI_bvhtree_new(tottri, epsilon, 8, 8);
 
-	for (i = 0; i < looptris_tot; i++) {
+	f_test_prev = NULL;
+	test_fn_ret = false;
 
-		if (flag & BMBVH_RESPECT_SELECT) {
+	for (i = 0; i < looptris_tot; i++) {
+		if (test_fn) {
 			/* note, the arrays wont align now! take care */
-			if (!BM_elem_flag_test(looptris[i][0]->f, BM_ELEM_SELECT)) {
-				continue;
+			f_test = looptris[i][0]->f;
+			if (f_test != f_test_prev) {
+				test_fn_ret = test_fn(f_test, user_data);
+				f_test_prev = f_test;
 			}
-		}
-		else if (flag & BMBVH_RESPECT_HIDDEN) {
-			/* note, the arrays wont align now! take care */
-			if (BM_elem_flag_test(looptris[i][0]->f, BM_ELEM_HIDDEN)) {
+
+			if (!test_fn_ret) {
 				continue;
 			}
 		}
@@ -138,6 +152,38 @@ const bool cos_cage_free)
 	
 	return bmtree;
 }
+
+static bool bm_face_is_select(BMFace *f, void *UNUSED(user_data))
+{
+	return (BM_elem_flag_test(f, BM_ELEM_SELECT) != 0);
+}
+
+static bool bm_face_is_not_hidden(BMFace *f, void *UNUSED(user_data))
+{
+	return (BM_elem_flag_test(f, BM_ELEM_HIDDEN) == 0);
+}
+
+BMBVHTree *BKE_bmbvh_new(
+        BMesh *bm, BMLoop *(*looptris)[3], int looptris_tot, int flag,
+        const float (*cos_cage)[3], const bool cos_cage_free)
+{
+	bool (*test_fn)(BMFace *, void *user_data);
+
+	if (flag & BMBVH_RESPECT_SELECT) {
+		test_fn = bm_face_is_select;
+	}
+	else if (flag & BMBVH_RESPECT_HIDDEN) {
+		test_fn = bm_face_is_not_hidden;
+	}
+	else {
+		test_fn = NULL;
+	}
+
+	flag &= ~(BMBVH_RESPECT_SELECT | BMBVH_RESPECT_HIDDEN);
+
+	return BKE_bmbvh_new_ex(bm, looptris, looptris_tot, flag, cos_cage, cos_cage_free, test_fn, NULL);
+}
+
 
 void BKE_bmbvh_free(BMBVHTree *bmtree)
 {
