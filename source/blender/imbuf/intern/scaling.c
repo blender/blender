@@ -1353,7 +1353,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 			val_g += 0.5f;
 
 			val_r = rect[3];
-			nval_r = rect[skipx + 4];
+			nval_r = rect[skipx + 3];
 			diff_r = nval_r - val_r;
 			val_r += 0.5f;
 
