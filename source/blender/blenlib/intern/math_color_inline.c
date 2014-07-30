@@ -255,11 +255,11 @@ MINLINE float rgb_to_luma_y(const float rgb[3])
 
 MINLINE int compare_rgb_uchar(const unsigned char col_a[3], const unsigned char col_b[3], const int limit)
 {
-	int r = (int)col_a[0] - (int)col_b[0];
+	const int r = (int)col_a[0] - (int)col_b[0];
 	if (ABS(r) < limit) {
-		int g = (int)col_a[1] - (int)col_b[1];
+		const int g = (int)col_a[1] - (int)col_b[1];
 		if (ABS(g) < limit) {
-			int b = (int)col_a[2] - (int)col_b[2];
+			const int b = (int)col_a[2] - (int)col_b[2];
 			if (ABS(b) < limit) {
 				return 1;
 			}
@@ -280,7 +280,7 @@ MINLINE void premul_to_straight_v4_v4(float straight[4], const float premul[4])
 		straight[3] = premul[3];
 	}
 	else {
-		float alpha_inv = 1.0f / premul[3];
+		const float alpha_inv = 1.0f / premul[3];
 		straight[0] = premul[0] * alpha_inv;
 		straight[1] = premul[1] * alpha_inv;
 		straight[2] = premul[2] * alpha_inv;
@@ -295,7 +295,7 @@ MINLINE void premul_to_straight_v4(float color[4])
 
 MINLINE void straight_to_premul_v4_v4(float premul[4], const float straight[4])
 {
-	float alpha = straight[3];
+	const float alpha = straight[3];
 	premul[0] = straight[0] * alpha;
 	premul[1] = straight[1] * alpha;
 	premul[2] = straight[2] * alpha;
@@ -309,8 +309,8 @@ MINLINE void straight_to_premul_v4(float color[4])
 
 MINLINE void straight_uchar_to_premul_float(float result[4], const unsigned char color[4])
 {
-	float alpha = color[3] * (1.0f / 255.0f);
-	float fac = alpha * (1.0f / 255.0f);
+	const float alpha = color[3] * (1.0f / 255.0f);
+	const float fac = alpha * (1.0f / 255.0f);
 
 	result[0] = color[0] * fac;
 	result[1] = color[1] * fac;
@@ -327,7 +327,7 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
 		result[3] = FTOCHAR(color[3]);
 	}
 	else {
-		float alpha_inv = 1.0f / color[3];
+		const float alpha_inv = 1.0f / color[3];
 
 		/* hopefully this would be optimized */
 		result[0] = FTOCHAR(color[0] * alpha_inv);

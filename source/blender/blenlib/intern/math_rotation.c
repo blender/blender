@@ -139,7 +139,7 @@ float dot_qtqt(const float q1[4], const float q2[4])
 
 void invert_qt(float q[4])
 {
-	float f = dot_qtqt(q, q);
+	const float f = dot_qtqt(q, q);
 
 	if (f == 0.0f)
 		return;
@@ -380,9 +380,8 @@ void mat3_to_quat_is_ok(float q[4], float wmat[3][3])
 
 float normalize_qt(float q[4])
 {
-	float len;
+	const float len = sqrtf(dot_qtqt(q, q));
 
-	len = sqrtf(dot_qtqt(q, q));
 	if (len != 0.0f) {
 		mul_qt_fl(q, 1.0f / len);
 	}
@@ -520,7 +519,7 @@ float angle_qtqt(const float q1[4], const float q2[4])
 
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 {
-	const float eps = 0.0001f;
+	const float eps = 1e-4f;
 	float nor[3], tvec[3];
 	float angle, si, co, len;
 
@@ -669,7 +668,7 @@ void QuatInterpolW(float *result, float quat1[4], float quat2[4], float t)
  */
 void interp_dot_slerp(const float t, const float cosom, float r_w[2])
 {
-	const float eps = 0.0001f;
+	const float eps = 1e-4f;
 
 	BLI_assert(IN_RANGE_INCL(cosom, -1.0001f, 1.0001f));
 
@@ -783,9 +782,8 @@ void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const f
 float tri_to_quat(float quat[4], const float v1[3], const float v2[3], const float v3[3])
 {
 	float vec[3];
-	float len;
+	const float len = normal_tri_v3(vec, v1, v2, v3);
 
-	len = normal_tri_v3(vec, v1, v2, v3);
 	tri_to_quat_ex(quat, v1, v2, v3, vec);
 	return len;
 }
@@ -1658,7 +1656,7 @@ void add_weighted_dq_dq(DualQuat *dqsum, const DualQuat *dq, float weight)
 
 	/* make sure we interpolate quats in the right direction */
 	if (dot_qtqt(dq->quat, dqsum->quat) < 0) {
-		flipped = 1;
+		flipped = true;
 		weight = -weight;
 	}
 
@@ -1689,7 +1687,7 @@ void add_weighted_dq_dq(DualQuat *dqsum, const DualQuat *dq, float weight)
 
 void normalize_dq(DualQuat *dq, float totweight)
 {
-	float scale = 1.0f / totweight;
+	const float scale = 1.0f / totweight;
 
 	mul_qt_fl(dq->quat, scale);
 	mul_qt_fl(dq->trans, scale);

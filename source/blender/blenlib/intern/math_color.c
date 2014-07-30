@@ -113,7 +113,7 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb)
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace)
 {
 	float sr, sg, sb;
-	float y = 128.f, cr = 128.f, cb = 128.f;
+	float y = 128.0f, cr = 128.0f, cb = 128.0f;
 
 	sr = 255.0f * r;
 	sg = 255.0f * g;
@@ -152,7 +152,7 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, in
 /* FIXME comment above must be wrong because BLI_YCC_ITU_BT601 y 16.0 cr 16.0 -> r -0.7009 */
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, int colorspace)
 {
-	float r = 128.f, g = 128.f, b = 128.f;
+	float r = 128.0f, g = 128.0f, b = 128.0f;
 
 	switch (colorspace) {
 		case BLI_YCC_ITU_BT601:
@@ -269,8 +269,8 @@ void rgb_to_hsl(float r, float g, float b, float *lh, float *ls, float *ll)
 
 void rgb_to_hsl_compat(float r, float g, float b, float *lh, float *ls, float *ll)
 {
-	float orig_s = *ls;
-	float orig_h = *lh;
+	const float orig_s = *ls;
+	const float orig_h = *lh;
 
 	rgb_to_hsl(r, g, b, lh, ls, ll);
 
@@ -302,8 +302,8 @@ void rgb_to_hsl_v(const float rgb[3], float r_hsl[3])
 
 void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv)
 {
-	float orig_h = *lh;
-	float orig_s = *ls;
+	const float orig_h = *lh;
+	const float orig_s = *ls;
 
 	rgb_to_hsv(r, g, b, lh, ls, lv);
 
@@ -598,11 +598,12 @@ static float index_to_float(const unsigned short i)
 
 void BLI_init_srgb_conversion(void)
 {
-	static int initialized = 0;
+	static bool initialized = false;
 	unsigned int i, b;
 
-	if (initialized) return;
-	initialized = 1;
+	if (initialized)
+		return;
+	initialized = true;
 
 	/* Fill in the lookup table to convert floats to bytes: */
 	for (i = 0; i < 0x10000; i++) {
@@ -657,13 +658,13 @@ static float xyz_to_lab_component(float v)
 
 void xyz_to_lab(float x, float y, float z, float *l, float *a, float *b)
 {
-	float xr = x / 95.047f;
-	float yr = y / 100.0f;
-	float zr = z / 108.883f;
+	const float xr = x / 95.047f;
+	const float yr = y / 100.0f;
+	const float zr = z / 108.883f;
 
-	float fx = xyz_to_lab_component(xr);
-	float fy = xyz_to_lab_component(yr);
-	float fz = xyz_to_lab_component(zr);
+	const float fx = xyz_to_lab_component(xr);
+	const float fy = xyz_to_lab_component(yr);
+	const float fz = xyz_to_lab_component(zr);
 
 	*l = 116.0f * fy - 16.0f;
 	*a = 500.0f * (fx - fy);

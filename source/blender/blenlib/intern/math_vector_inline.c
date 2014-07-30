@@ -850,17 +850,17 @@ MINLINE void normal_float_to_short_v3(short out[3], const float in[3])
 
 MINLINE bool is_zero_v2(const float v[2])
 {
-	return (v[0] == 0 && v[1] == 0);
+	return (v[0] == 0.0f && v[1] == 0.0f);
 }
 
 MINLINE bool is_zero_v3(const float v[3])
 {
-	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
+	return (v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f);
 }
 
 MINLINE bool is_zero_v4(const float v[4])
 {
-	return (v[0] == 0 && v[1] == 0 && v[2] == 0 && v[3] == 0);
+	return (v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f && v[3] == 0.0f);
 }
 
 MINLINE bool is_finite_v2(const float v[2])
@@ -880,7 +880,7 @@ MINLINE bool is_finite_v4(const float v[4])
 
 MINLINE bool is_one_v3(const float v[3])
 {
-	return (v[0] == 1 && v[1] == 1 && v[2] == 1);
+	return (v[0] == 1.0f && v[1] == 1.0f && v[2] == 1.0f);
 }
 
 
