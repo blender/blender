@@ -271,12 +271,12 @@ typedef struct ARegion {
 // #define WIN_EQUAL		3  // UNUSED
 
 /* area->flag */
-#define HEADER_NO_PULLDOWN		1
-#define AREA_FLAG_DRAWJOINTO	2
-#define AREA_FLAG_DRAWJOINFROM	4
-#define AREA_TEMP_INFO			8
-#define AREA_FLAG_DRAWSPLIT_H	16
-#define AREA_FLAG_DRAWSPLIT_V	32
+#define HEADER_NO_PULLDOWN      (1 << 0)
+#define AREA_FLAG_DRAWJOINTO    (1 << 1)
+#define AREA_FLAG_DRAWJOINFROM  (1 << 2)
+#define AREA_TEMP_INFO          (1 << 3)
+#define AREA_FLAG_DRAWSPLIT_H   (1 << 4)
+#define AREA_FLAG_DRAWSPLIT_V   (1 << 5)
 
 #define EDGEWIDTH	1
 #define AREAGRID	4
