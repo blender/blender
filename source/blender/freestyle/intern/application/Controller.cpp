@@ -469,7 +469,7 @@ void Controller::ComputeViewMap()
 	// Restore the context of view:
 	// we need to perform all these operations while the 
 	// 3D context is on.
-	Vec3r vp(freestyle_viewpoint[0], freestyle_viewpoint[1], freestyle_viewpoint[2]);
+	Vec3f vp(freestyle_viewpoint[0], freestyle_viewpoint[1], freestyle_viewpoint[2]);
 
 #if 0
 	if (G.debug & G_DEBUG_FREESTYLE) {

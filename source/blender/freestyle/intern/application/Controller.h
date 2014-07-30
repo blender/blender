@@ -136,12 +136,12 @@ public:
 
 	void setComputeSteerableViewMapFlag(bool iBool);
 	bool getComputeSteerableViewMapFlag() const;
-	void setCreaseAngle(real angle) {_creaseAngle = angle;}
-	real getCreaseAngle() const {return _creaseAngle;}
-	void setSphereRadius(real s) {_sphereRadius = s;}
-	real getSphereRadius() const {return _sphereRadius;}
-	void setSuggestiveContourKrDerivativeEpsilon(real dkr) {_suggestiveContourKrDerivativeEpsilon = dkr;}
-	real getSuggestiveContourKrDerivativeEpsilon() const {return _suggestiveContourKrDerivativeEpsilon;}
+	void setCreaseAngle(float angle) {_creaseAngle = angle;}
+	float getCreaseAngle() const {return _creaseAngle;}
+	void setSphereRadius(float s) {_sphereRadius = s;}
+	float getSphereRadius() const {return _sphereRadius;}
+	void setSuggestiveContourKrDerivativeEpsilon(float dkr) {_suggestiveContourKrDerivativeEpsilon = dkr;}
+	float getSuggestiveContourKrDerivativeEpsilon() const {return _suggestiveContourKrDerivativeEpsilon;}
 
 	void setModelsDir(const string& dir);
 	string getModelsDir() const;
@@ -243,9 +243,9 @@ private:
 	bool _ComputeRidges;
 	bool _ComputeSuggestive;
 	bool _ComputeMaterialBoundaries;
-	real _creaseAngle;
-	real _sphereRadius;
-	real _suggestiveContourKrDerivativeEpsilon;
+	float _creaseAngle;
+	float _sphereRadius;
+	float _suggestiveContourKrDerivativeEpsilon;
 
 	bool _ComputeSteerableViewMap;
 
