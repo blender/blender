@@ -219,7 +219,10 @@ def resolve_ncase(path):
 
         # we are expecting 'dirpath' to be a directory, but it could be a file
         if _os.path.isdir(dirpath):
-            files = _os.listdir(dirpath)
+            try:
+                files = _os.listdir(dirpath)
+            except PermissionError:  # We might not have the permission to list dirpath...
+                return path, False
         else:
             return path, False
 
