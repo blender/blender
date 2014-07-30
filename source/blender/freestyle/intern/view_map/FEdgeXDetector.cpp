@@ -424,6 +424,7 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
 		flayer->PushDotP(wxv->curvatures()->K1);
 	}
 
+#if 0 // XXX fabs(flayer->dotP(i)) < threshold cannot be true
 	real threshold = 0;
 	//real threshold = _maxK1 - (_maxK1 - _meanK1) / 20.0;
 
@@ -436,6 +437,7 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
 			flayer->ReplaceDotP(2, 0);
 		}
 	}
+#endif
 }
 
 #if 0
