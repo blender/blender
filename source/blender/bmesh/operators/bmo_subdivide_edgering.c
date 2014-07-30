@@ -920,13 +920,13 @@ static void bm_edgering_pair_order(BMesh *bm,
 		}
 		BLI_assert(node != NULL);
 
-		BLI_rotatelist_first(lb_b, node);
+		BLI_listbase_rotate_first(lb_b, node);
 
 		/* now check we are winding the same way */
 		if (bm_edgering_pair_order_is_flipped(bm, el_store_a, el_store_b)) {
 			BM_edgeloop_flip(bm, el_store_b);
 			/* re-ensure the first node */
-			BLI_rotatelist_first(lb_b, node);
+			BLI_listbase_rotate_first(lb_b, node);
 		}
 
 		/* sanity checks that we are aligned & winding now */

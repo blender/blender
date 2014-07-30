@@ -3047,7 +3047,7 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 		}
 
 		/* set this vertex first */
-		BLI_rotatelist_first(verts, v_act_link);
+		BLI_listbase_rotate_first(verts, v_act_link);
 		BM_edgeloop_edges_get(el_store, edges);
 
 

@@ -784,7 +784,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	}
 
 	if (ctx_ob_act) {
-		BLI_rotatelist_first(&ctx_data_list, (LinkData *)ctx_ob_act);
+		BLI_listbase_rotate_first(&ctx_data_list, (LinkData *)ctx_ob_act);
 	}
 
 	for (tob = bmain->object.first; tob; tob = tob->id.next) {

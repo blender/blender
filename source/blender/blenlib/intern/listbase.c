@@ -599,7 +599,7 @@ void BLI_listbase_reverse(ListBase *lb)
 /**
  * \param vlink Link to make first.
  */
-void BLI_rotatelist_first(ListBase *lb, void *vlink)
+void BLI_listbase_rotate_first(ListBase *lb, void *vlink)
 {
 	/* make circular */
 	((Link *)lb->first)->prev = lb->last;
@@ -615,7 +615,7 @@ void BLI_rotatelist_first(ListBase *lb, void *vlink)
 /**
  * \param vlink Link to make last.
  */
-void BLI_rotatelist_last(ListBase *lb, void *vlink)
+void BLI_listbase_rotate_last(ListBase *lb, void *vlink)
 {
 	/* make circular */
 	((Link *)lb->first)->prev = lb->last;
