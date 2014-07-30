@@ -542,7 +542,7 @@ bool calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 							/* right handle - only if applicable */
 							if (bezt->ipo == BEZT_IPO_BEZ) {
 								yminv = min_ff(yminv, bezt->vec[2][1]);
-								ymaxv = min_ff(ymaxv, bezt->vec[2][1]);
+								ymaxv = max_ff(ymaxv, bezt->vec[2][1]);
 							}
 						}
 						
