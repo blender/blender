@@ -274,7 +274,7 @@ elseif(APPLE)
 	if(WITH_PYTHON_MODULE)
 		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
 	else()
-		set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
+		set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/Resources/${BLENDER_VERSION})
 	endif()
 
 endif()
