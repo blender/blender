@@ -705,7 +705,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 					ListBase *duplilist;
 					DupliObject *dob;
 					duplilist = object_duplilist(G.main->eval_ctx, scene, ob);
-					for (dob= duplilist->first; dob; dob = dob->next) {
+					for (dob = duplilist->first; dob; dob = dob->next) {
 						node2 = dag_get_node(dag, dob->ob);
 						dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Object Font");
 					}

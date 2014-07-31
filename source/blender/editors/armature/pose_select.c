@@ -70,7 +70,8 @@
 /* ***************** Pose Select Utilities ********************* */
 
 /* Note: SEL_TOGGLE is assumed to have already been handled! */
-static void pose_do_bone_select(bPoseChannel *pchan, const int select_mode) {
+static void pose_do_bone_select(bPoseChannel *pchan, const int select_mode)
+{
 	/* select pchan only if selectable, but deselect works always */
 	switch (select_mode) {
 		case SEL_SELECT:

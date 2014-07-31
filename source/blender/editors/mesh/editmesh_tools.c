@@ -3496,7 +3496,9 @@ static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_callf(em, op,
 	                   "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
 	                   BM_ELEM_SELECT, use_face_split, use_boundary_tear))
+	{
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_update_generic(em, true, true);
 
