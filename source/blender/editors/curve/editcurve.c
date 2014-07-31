@@ -1165,7 +1165,7 @@ int ED_curve_updateAnimPaths(Curve *cu)
 
 /* ********************* LOAD and MAKE *************** */
 
-static int *initialize_index_map(Object *obedit, int *r_old_totvert)
+static int *initialize_index_map(Object *obedit, int *r_old_totvert, bool reverse)
 {
 	Curve *curve = (Curve *) obedit->data;
 	EditNurb *editnurb = curve->editnurb;
@@ -1200,15 +1200,29 @@ static int *initialize_index_map(Object *obedit, int *r_old_totvert)
 			while (a--) {
 				keyIndex = getCVKeyIndex(editnurb, bezt);
 				if (keyIndex) {
-					if (keyIndex->switched) {
-						old_to_new_map[keyIndex->vertex_index] = vertex_index + 2;
-						old_to_new_map[keyIndex->vertex_index + 1] = vertex_index + 1;
-						old_to_new_map[keyIndex->vertex_index + 2] = vertex_index;
+					if (reverse) {
+						if (keyIndex->switched) {
+							old_to_new_map[vertex_index] = keyIndex->vertex_index + 2;
+							old_to_new_map[vertex_index + 1] = keyIndex->vertex_index + 1;
+							old_to_new_map[vertex_index + 2] = keyIndex->vertex_index;
+						}
+						else {
+							old_to_new_map[vertex_index] = keyIndex->vertex_index;
+							old_to_new_map[vertex_index + 1] = keyIndex->vertex_index + 1;
+							old_to_new_map[vertex_index + 2] = keyIndex->vertex_index + 2;
+						}
 					}
 					else {
-						old_to_new_map[keyIndex->vertex_index] = vertex_index;
-						old_to_new_map[keyIndex->vertex_index + 1] = vertex_index + 1;
-						old_to_new_map[keyIndex->vertex_index + 2] = vertex_index + 2;
+						if (keyIndex->switched) {
+							old_to_new_map[keyIndex->vertex_index] = vertex_index + 2;
+							old_to_new_map[keyIndex->vertex_index + 1] = vertex_index + 1;
+							old_to_new_map[keyIndex->vertex_index + 2] = vertex_index;
+						}
+						else {
+							old_to_new_map[keyIndex->vertex_index] = vertex_index;
+							old_to_new_map[keyIndex->vertex_index + 1] = vertex_index + 1;
+							old_to_new_map[keyIndex->vertex_index + 2] = vertex_index + 2;
+						}
 					}
 				}
 				vertex_index += 3;
@@ -1222,7 +1236,12 @@ static int *initialize_index_map(Object *obedit, int *r_old_totvert)
 			while (a--) {
 				keyIndex = getCVKeyIndex(editnurb, bp);
 				if (keyIndex) {
-					old_to_new_map[keyIndex->vertex_index] = vertex_index;
+					if (reverse) {
+						old_to_new_map[vertex_index] = keyIndex->vertex_index;
+					}
+					else {
+						old_to_new_map[keyIndex->vertex_index] = vertex_index;
+					}
 				}
 				vertex_index++;
 				bp++;
@@ -1234,7 +1253,7 @@ static int *initialize_index_map(Object *obedit, int *r_old_totvert)
 	return old_to_new_map;
 }
 
-static void remap_hooks_and_vertex_parents(Object *obedit)
+static void remap_hooks_and_vertex_parents(Object *obedit, bool reverse)
 {
 	Object *object;
 	Curve *curve = (Curve *) obedit->data;
@@ -1249,7 +1268,9 @@ static void remap_hooks_and_vertex_parents(Object *obedit)
 		    ELEM(object->partype, PARVERT1, PARVERT3))
 		{
 			if (old_to_new_map == NULL) {
-				old_to_new_map = initialize_index_map(obedit, &old_totvert);
+				old_to_new_map = initialize_index_map(obedit,
+				                                      &old_totvert,
+				                                      reverse);
 			}
 
 			if (object->par1 < old_totvert) {
@@ -1278,7 +1299,9 @@ static void remap_hooks_and_vertex_parents(Object *obedit)
 					int i, j;
 
 					if (old_to_new_map == NULL) {
-						old_to_new_map = initialize_index_map(obedit, &old_totvert);
+						old_to_new_map = initialize_index_map(obedit,
+						                                      &old_totvert,
+						                                      reverse);
 					}
 
 					for (i = j = 0; i < hmd->totindex; i++) {
@@ -1314,8 +1337,6 @@ void load_editNurb(Object *obedit)
 		Curve *cu = obedit->data;
 		Nurb *nu, *newnu;
 		ListBase newnurb = {NULL, NULL}, oldnurb = cu->nurb;
-
-		remap_hooks_and_vertex_parents(obedit);
 
 		for (nu = editnurb->first; nu; nu = nu->next) {
 			newnu = BKE_nurb_duplicate(nu);
@@ -6871,8 +6892,9 @@ void CURVE_OT_tilt_clear(wmOperatorType *ot)
 
 /****************** undo for curves ****************/
 
-static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
+static void undoCurve_to_editCurve(void *ucu, void *edata, void *cu_v)
 {
+	Object *obedit = (Object *) edata;
 	Curve *cu = cu_v;
 	UndoCurve *undoCurve = ucu;
 	ListBase *undobase = &undoCurve->nubase;
@@ -6880,6 +6902,8 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 	Nurb *nu, *newnu;
 	EditNurb *editnurb = cu->editnurb;
 	AnimData *ad = BKE_animdata_from_id(&cu->id);
+
+	remap_hooks_and_vertex_parents(obedit, true);
 
 	BKE_nurbList_free(editbase);
 
@@ -6914,8 +6938,9 @@ static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
 	ED_curve_updateAnimPaths(cu);
 }
 
-static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)
+static void *editCurve_to_undoCurve(void *edata, void *cu_v)
 {
+	Object *obedit = (Object *) edata;
 	Curve *cu = cu_v;
 	ListBase *nubase = BKE_curve_editNurbs_get(cu);
 	UndoCurve *undoCurve;
@@ -6950,6 +6975,8 @@ static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)
 
 	undoCurve->actvert = cu->actvert;
 	undoCurve->actnu = cu->actnu;
+
+	remap_hooks_and_vertex_parents(obedit, false);
 
 	return undoCurve;
 }
