@@ -95,6 +95,7 @@ BakeManager::BakeManager()
 	m_bake_data = NULL;
 	m_is_baking = false;
 	need_update = true;
+	m_shader_limit = 512 * 512;
 }
 
 BakeManager::~BakeManager()
@@ -119,74 +120,98 @@ BakeData *BakeManager::init(const int object, const size_t tri_offset, const siz
 	return m_bake_data;
 }
 
+void BakeManager::set_shader_limit(const size_t x, const size_t y)
+{
+	m_shader_limit = x * y;
+	m_shader_limit = pow(2, ceil(log(m_shader_limit)/log(2)));
+}
+
 bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress, ShaderEvalType shader_type, BakeData *bake_data, float result[])
 {
-	size_t limit = bake_data->size();
+	size_t num_pixels = bake_data->size();
 
-	/* setup input for device task */
-	device_vector<uint4> d_input;
-	uint4 *d_input_data = d_input.resize(limit * 2);
-	size_t d_input_size = 0;
+	progress.reset_sample();
+	this->num_parts = 0;
 
-	for(size_t i = 0; i < limit; i++) {
-		d_input_data[d_input_size++] = bake_data->data(i);
-		d_input_data[d_input_size++] = bake_data->differentials(i);
+	/* calculate the total parts for the progress bar */
+	for(size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
+		size_t shader_size = fminf(num_pixels - shader_offset, m_shader_limit);
+
+		DeviceTask task(DeviceTask::SHADER);
+		task.shader_w = shader_size;
+
+		this->num_parts += device->get_split_task_count(task);
 	}
 
-	if(d_input_size == 0)
-		return false;
+	this->num_samples = is_aa_pass(shader_type)? scene->integrator->aa_samples : 1;
 
-	/* run device task */
-	device_vector<float4> d_output;
-	d_output.resize(limit);
+	for(size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
+		size_t shader_size = fminf(num_pixels - shader_offset, m_shader_limit);
 
-	/* needs to be up to data for attribute access */
-	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+		/* setup input for device task */
+		device_vector<uint4> d_input;
+		uint4 *d_input_data = d_input.resize(shader_size * 2);
+		size_t d_input_size = 0;
 
-	device->mem_alloc(d_input, MEM_READ_ONLY);
-	device->mem_copy_to(d_input);
-	device->mem_alloc(d_output, MEM_WRITE_ONLY);
+		for(size_t i = shader_offset; i < (shader_offset + shader_size); i++) {
+			d_input_data[d_input_size++] = bake_data->data(i);
+			d_input_data[d_input_size++] = bake_data->differentials(i);
+		}
 
-	DeviceTask task(DeviceTask::SHADER);
-	task.shader_input = d_input.device_pointer;
-	task.shader_output = d_output.device_pointer;
-	task.shader_eval_type = shader_type;
-	task.shader_x = 0;
-	task.shader_w = d_output.size();
-	task.num_samples = is_aa_pass(shader_type)? scene->integrator->aa_samples: 1;
-	task.get_cancel = function_bind(&Progress::get_cancel, &progress);
-	task.update_progress_sample = function_bind(&Progress::increment_sample_update, &progress);
+		if(d_input_size == 0) {
+			m_is_baking = false;
+			return false;
+		}
 
-	this->num_parts = device->get_split_task_count(task);
-	this->num_samples = task.num_samples;
+		/* run device task */
+		device_vector<float4> d_output;
+		d_output.resize(shader_size);
 
-	device->task_add(task);
-	device->task_wait();
+		/* needs to be up to data for attribute access */
+		device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
-	if(progress.get_cancel()) {
+		device->mem_alloc(d_input, MEM_READ_ONLY);
+		device->mem_copy_to(d_input);
+		device->mem_alloc(d_output, MEM_WRITE_ONLY);
+
+		DeviceTask task(DeviceTask::SHADER);
+		task.shader_input = d_input.device_pointer;
+		task.shader_output = d_output.device_pointer;
+		task.shader_eval_type = shader_type;
+		task.shader_x = 0;
+		task.shader_w = d_output.size();
+		task.num_samples = this->num_samples;
+		task.get_cancel = function_bind(&Progress::get_cancel, &progress);
+		task.update_progress_sample = function_bind(&Progress::increment_sample_update, &progress);
+
+		device->task_add(task);
+		device->task_wait();
+
+		if(progress.get_cancel()) {
+			device->mem_free(d_input);
+			device->mem_free(d_output);
+			m_is_baking = false;
+			return false;
+		}
+
+		device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
 		device->mem_free(d_input);
 		device->mem_free(d_output);
-		m_is_baking = false;
-		return false;
-	}
 
-	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
-	device->mem_free(d_input);
-	device->mem_free(d_output);
+		/* read result */
+		int k = 0;
 
-	/* read result */
-	int k = 0;
+		float4 *offset = (float4*)d_output.data_pointer;
 
-	float4 *offset = (float4*)d_output.data_pointer;
+		size_t depth = 4;
+		for(size_t i=shader_offset; i < (shader_offset + shader_size); i++) {
+			size_t index = i * depth;
+			float4 out = offset[k++];
 
-	size_t depth = 4;
-	for(size_t i = 0; i < limit; i++) {
-		size_t index = i * depth;
-		float4 out = offset[k++];
-
-		if(bake_data->is_valid(i)) {
-			for(size_t j=0; j < 4; j++) {
-				result[index + j] = out[j];
+			if(bake_data->is_valid(i)) {
+				for(size_t j=0; j < 4; j++) {
+					result[index + j] = out[j];
+				}
 			}
 		}
 	}

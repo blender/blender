@@ -454,8 +454,8 @@ bool RE_bake_engine(
 	engine->resolution_y = re->winy;
 
 	RE_parts_init(re, false);
-	engine->tile_x = re->partx;
-	engine->tile_y = re->party;
+	engine->tile_x = re->r.tilex;
+	engine->tile_y = re->r.tiley;
 
 	/* update is only called so we create the engine.session */
 	if (type->update)

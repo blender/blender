@@ -60,6 +60,8 @@ public:
 
 	BakeData *init(const int object, const size_t tri_offset, const size_t num_pixels);
 
+	void set_shader_limit(const size_t x, const size_t y);
+
 	bool bake(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress, ShaderEvalType shader_type, BakeData *bake_data, float result[]);
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
@@ -76,6 +78,7 @@ public:
 private:
 	BakeData *m_bake_data;
 	bool m_is_baking;
+	size_t m_shader_limit;
 };
 
 CCL_NAMESPACE_END
