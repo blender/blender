@@ -2338,6 +2338,17 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 		
 	/* 3. free temporary evaluation data that's not used elsewhere */
 	BLI_freelistN(&estrips);
+
+	/* Tag ID as updated so render engines will recognize changes in data
+	 * which is nimated but doesn't have actions.
+	 */
+	if (ptr->id.data != NULL) {
+		ID *id = ptr->id.data;
+		if (!(id->flag & LIB_ANIM_NO_RECALC)) {
+			id->flag |= LIB_ID_RECALC;
+			DAG_id_type_tag(G.main, GS(id->name));
+		}
+	}
 }
 
 /* NLA Evaluation function (mostly for use through do_animdata) 
