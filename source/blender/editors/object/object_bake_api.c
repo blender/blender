@@ -178,7 +178,7 @@ static bool write_internal_bake_pixels(
 	void *lock;
 	bool is_float;
 	char *mask_buffer = NULL;
-	const size_t num_pixels = width * height;
+	const size_t num_pixels = (size_t)width * (size_t)height;
 
 	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
