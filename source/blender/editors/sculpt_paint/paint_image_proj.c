@@ -356,7 +356,7 @@ static TexPaintSlot *project_paint_face_paint_slot(const ProjPaintState *ps, int
 {
 	MFace *mf = ps->dm_mface + face_index;
 	Material *ma = ps->dm->mat[mf->mat_nr];
-	return &ma->texpaintslot[ma->paint_active_slot];
+	return ma->texpaintslot + ma->paint_active_slot;
 }
 
 static Image *project_paint_face_paint_image(const ProjPaintState *ps, int face_index)
@@ -367,7 +367,8 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int face_
 	else {
 		MFace *mf = ps->dm_mface + face_index;
 		Material *ma = ps->dm->mat[mf->mat_nr];
-		return ma->texpaintslot[ma->paint_active_slot].ima;
+		TexPaintSlot *slot = ma->texpaintslot + ma->paint_active_slot;
+		return slot ? slot->ima : NULL;
 	}
 }
 
@@ -3288,18 +3289,20 @@ static void project_paint_begin(ProjPaintState *ps)
 		if (!ps->do_stencil_brush) {
 			slot = project_paint_face_paint_slot(ps, face_index);
 			/* all faces should have a valid slot, reassert here */
-			if (slot == NULL)
-				continue;
-
-			if (slot != slot_last) {
-				if (!slot->uvname || !(tf_base = CustomData_get_layer_named(&ps->dm->faceData, CD_MTFACE, slot->uvname)))
-					tf_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
-				slot_last = slot;
+			if (slot == NULL) {
+				tf_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
 			}
+			else {
+				if (slot != slot_last) {
+					if (!slot->uvname || !(tf_base = CustomData_get_layer_named(&ps->dm->faceData, CD_MTFACE, slot->uvname)))
+						tf_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
+					slot_last = slot;
+				}
 
-			/* don't allow using the same inage for painting and stencilling */
-			if (slot->ima == ps->stencil_ima)
-				continue;
+				/* don't allow using the same inage for painting and stencilling */
+				if (slot->ima == ps->stencil_ima)
+					continue;
+			}
 		}
 
 		*tf = tf_base + face_index;
