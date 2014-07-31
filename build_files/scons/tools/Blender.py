@@ -702,37 +702,37 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,installdir, binary, binary)
     commands.getoutput(cmd)
-    cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/'%(installdir, binary, VERSION)
+    cmd = 'mkdir %s/%s.app/Contents/Resources/%s/'%(installdir, binary, VERSION)
     commands.getoutput(cmd)
     cmd = installdir + '/%s.app/Contents/MacOS/%s'%(binary,VERSION)
 
     # blenderplayer doesn't need all the files
     if binary == 'blender':
-        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles'%(installdir, binary, VERSION)
+        cmd = 'mkdir %s/%s.app/Contents/Resources/%s/datafiles'%(installdir, binary, VERSION)
         commands.getoutput(cmd)
-        cmd = 'cp -R %s/release/datafiles/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+        cmd = 'cp -R %s/release/datafiles/fonts %s/%s.app/Contents/Resources/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
         mo_dir = os.path.join(builddir[:-4], "locale")
         for f in os.listdir(mo_dir):
-            cmd = 'ditto %s/%s %s/%s.app/Contents/MacOS/%s/datafiles/locale/%s/LC_MESSAGES/blender.mo'%(mo_dir, f, installdir, binary, VERSION, f[:-3])
+            cmd = 'ditto %s/%s %s/%s.app/Contents/Resources/%s/datafiles/locale/%s/LC_MESSAGES/blender.mo'%(mo_dir, f, installdir, binary, VERSION, f[:-3])
             commands.getoutput(cmd)
-        cmd = 'cp %s/release/datafiles/locale/languages %s/%s.app/Contents/MacOS/%s/datafiles/locale/'%(bldroot, installdir, binary, VERSION)
+        cmd = 'cp %s/release/datafiles/locale/languages %s/%s.app/Contents/Resources/%s/datafiles/locale/'%(bldroot, installdir, binary, VERSION)
         commands.getoutput(cmd)
 
         if env['WITH_BF_OCIO']:
-            cmd = 'cp -R %s/release/datafiles/colormanagement %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+            cmd = 'cp -R %s/release/datafiles/colormanagement %s/%s.app/Contents/Resources/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
             commands.getoutput(cmd)
         
-        cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/Resources/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
         if VERSION_RELEASE_CYCLE == "release":
-            cmd = 'rm -rf %s/%s.app/Contents/MacOS/%s/scripts/addons_contrib'%(installdir,binary,VERSION)
+            cmd = 'rm -rf %s/%s.app/Contents/Resources/%s/scripts/addons_contrib'%(installdir,binary,VERSION)
             commands.getoutput(cmd)
 
         if env['WITH_BF_CYCLES']:
             croot = '%s/intern/cycles' % (bldroot)
-            cinstalldir = '%s/%s.app/Contents/MacOS/%s/scripts/addons/cycles' % (installdir,binary,VERSION)
+            cinstalldir = '%s/%s.app/Contents/Resources/%s/scripts/addons/cycles' % (installdir,binary,VERSION)
 
             cmd = 'mkdir %s' % (cinstalldir)
             commands.getoutput(cmd)
@@ -760,11 +760,11 @@ def AppIt(target=None, source=None, env=None):
                 commands.getoutput(cmd)
 
     if env['WITH_OSX_STATICPYTHON']:
-        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
+        cmd = 'mkdir %s/%s.app/Contents/Resources/%s/python/'%(installdir,binary, VERSION)
         commands.getoutput(cmd)
-        cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
+        cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/Resources/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
         commands.getoutput(cmd)
-        cmd = 'cp -R %s/release/site-packages/ %s/%s.app/Contents/MacOS/%s/python/lib/python%s/site-packages/'%(libdir,installdir,binary,VERSION,env['BF_PYTHON_VERSION'])
+        cmd = 'cp -R %s/release/site-packages/ %s/%s.app/Contents/Resources/%s/python/lib/python%s/site-packages/'%(libdir,installdir,binary,VERSION,env['BF_PYTHON_VERSION'])
         commands.getoutput(cmd)
 
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)
@@ -781,28 +781,28 @@ def AppIt(target=None, source=None, env=None):
         if env['C_COMPILER_ID'] == 'gcc' and env['CCVERSION'] >= '4.6.1': # for correct errorhandling with gcc >= 4.6.1 we need the gcc.dylib and gomp.dylib to link, thus distribute in app-bundle
             print "Bundling libgcc and libgomp"
             instname = env['BF_CXX']
-            cmd = 'ditto --arch %s %s/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/lib/'%(osxarch, instname, installdir, binary) # copy libgcc
+            cmd = 'ditto --arch %s %s/lib/libgcc_s.1.dylib %s/%s.app/Contents/Resources/lib/'%(osxarch, instname, installdir, binary) # copy libgcc
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -id @executable_path/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/lib/libgcc_s.1.dylib'%(installdir, binary) # change id of libgcc
+            cmd = 'install_name_tool -id @executable_path/../Resources/lib/libgcc_s.1.dylib %s/%s.app/Contents/Resources/lib/libgcc_s.1.dylib'%(installdir, binary) # change id of libgcc
             commands.getoutput(cmd)
-            cmd = 'ditto --arch %s %s/lib/libgomp.1.dylib %s/%s.app/Contents/MacOS/lib/'%(osxarch, instname, installdir, binary) # copy libgomp
+            cmd = 'ditto --arch %s %s/lib/libgomp.1.dylib %s/%s.app/Contents/Resources/lib/'%(osxarch, instname, installdir, binary) # copy libgomp
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -id @executable_path/lib/libgomp.1.dylib %s/%s.app/Contents/MacOS/lib/libgomp.1.dylib'%(installdir, binary) # change id of libgomp
+            cmd = 'install_name_tool -id @executable_path/../Resources/lib/libgomp.1.dylib %s/%s.app/Contents/Resources/lib/libgomp.1.dylib'%(installdir, binary) # change id of libgomp
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -change %s/lib/libgcc_s.1.dylib  @executable_path/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/lib/libgomp.1.dylib'%(instname, installdir, binary) # change ref to libgcc
+            cmd = 'install_name_tool -change %s/lib/libgcc_s.1.dylib  @executable_path/../Resources/lib/libgcc_s.1.dylib %s/%s.app/Contents/Resources/lib/libgomp.1.dylib'%(instname, installdir, binary) # change ref to libgcc
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -change %s/lib/libgcc_s.1.dylib  @executable_path/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/%s'%(instname, installdir, binary, binary) # change ref to libgcc ( blender )
+            cmd = 'install_name_tool -change %s/lib/libgcc_s.1.dylib  @executable_path/../Resources/lib/libgcc_s.1.dylib %s/%s.app/Contents/MacOS/%s'%(instname, installdir, binary, binary) # change ref to libgcc ( blender )
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -change %s/lib/libgomp.1.dylib  @executable_path/lib/libgomp.1.dylib %s/%s.app/Contents/MacOS/%s'%(instname, installdir, binary, binary) # change ref to libgomp ( blender )
+            cmd = 'install_name_tool -change %s/lib/libgomp.1.dylib  @executable_path/../Resources/lib/libgomp.1.dylib %s/%s.app/Contents/MacOS/%s'%(instname, installdir, binary, binary) # change ref to libgomp ( blender )
             commands.getoutput(cmd)
         if env['C_COMPILER_ID'] == 'clang' and env['CCVERSION'] >= '3.4':
             print "Bundling libiomp5"
             instname = env['LCGDIR'][1:] # made libiomp5 part of blender libs
-            cmd = 'ditto --arch %s %s/openmp/lib/libiomp5.dylib %s/%s.app/Contents/MacOS/lib/'%(osxarch, instname, installdir, binary) # copy libiomp5
+            cmd = 'ditto --arch %s %s/openmp/lib/libiomp5.dylib %s/%s.app/Contents/Resources/lib/'%(osxarch, instname, installdir, binary) # copy libiomp5
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -id @loader_path/lib/libiomp5.dylib %s/%s.app/Contents/MacOS/lib/libiomp5.dylib'%(installdir, binary) # change id of libiomp5
+            cmd = 'install_name_tool -id @loader_path/../Resources/lib/libiomp5.dylib %s/%s.app/Contents/Resources/lib/libiomp5.dylib'%(installdir, binary) # change id of libiomp5
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -change @loader_path/libiomp5.dylib  @loader_path/lib/libiomp5.dylib %s/%s.app/Contents/MacOS/%s'%(installdir, binary, binary) # change ref to libiomp5 ( blender )
+            cmd = 'install_name_tool -change @loader_path/libiomp5.dylib  @loader_path/../Resources/lib/libiomp5.dylib %s/%s.app/Contents/MacOS/%s'%(installdir, binary, binary) # change ref to libiomp5 ( blender )
             commands.getoutput(cmd)
 
 # extract copy system python, be sure to update other build systems

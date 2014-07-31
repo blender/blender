@@ -1175,7 +1175,13 @@ static bool get_path_local(char *targetpath, const char *folder_name, const char
 	}
 
 	/* try EXECUTABLE_DIR/2.5x/folder_name - new default directory for local blender installed files */
+#ifdef __APPLE__
+	static char osx_resourses[FILE_MAX]; /* due new codesign situation in OSX > 10.9.5 we must move the blender_version dir with contents to Resources */
+	sprintf(osx_resourses, "%s../Resources", bprogdir);
+	return test_path(targetpath, osx_resourses, blender_version_decimal(ver), relfolder);
+#else
 	return test_path(targetpath, bprogdir, blender_version_decimal(ver), relfolder);
+#endif
 }
 
 /**
