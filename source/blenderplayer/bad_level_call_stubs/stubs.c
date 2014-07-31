@@ -413,7 +413,7 @@ void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) 
 void ED_view3D_background_image_clear(struct View3D *v3d) RET_NONE
 void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4]) RET_NONE
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) RET_ZERO
-void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa) RET_NONE
+void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View3D *v3d, struct ScrArea *sa) RET_NONE
 void ED_node_shader_default(const struct bContext *C, struct ID *id) RET_NONE
 void ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int refresh) RET_NONE
 struct bScreen *ED_screen_animation_playing(const struct wmWindowManager *wm) RET_NULL
