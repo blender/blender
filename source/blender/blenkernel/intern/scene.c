@@ -39,6 +39,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
@@ -46,6 +47,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -62,6 +65,7 @@
 #include "BKE_action.h"
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
+#include "BKE_editmesh.h"
 #include "BKE_fcurve.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
@@ -85,6 +89,8 @@
 #include "PIL_time.h"
 
 #include "IMB_colormanagement.h"
+
+#include "bmesh.h"
 
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
@@ -1554,6 +1560,53 @@ static void scene_update_tagged_recursive(EvaluationContext *eval_ctx, Main *bma
 	
 }
 
+static bool check_rendered_viewport_visible(Main *bmain)
+{
+	wmWindowManager *wm = bmain->wm.first;
+	wmWindow *window;
+	for (window = wm->windows.first; window != NULL; window = window->next) {
+		bScreen *screen = window->screen;
+		ScrArea *area;
+		for (area = screen->areabase.first; area != NULL; area = area->next) {
+			View3D *v3d = area->spacedata.first;
+			if (area->spacetype != SPACE_VIEW3D) {
+				continue;
+			}
+			if (v3d->drawtype == OB_RENDER) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
+{
+	/* This is needed to prepare mesh to be used by the render
+	 * engine from the viewport rendering. We do loading here
+	 * so all the objects which shares the same mesh datablock
+	 * are nicely tagged for update and updated.
+	 *
+	 * This makes it so viewport render engine doesn't need to
+	 * call loading of the edit data for the mesh objects.
+	 */
+
+	Object *obedit = scene->obedit;
+	if (obedit) {
+		Mesh *mesh = obedit->data;
+		/* TODO(sergey): Check object recalc flags as well? */
+		if ((obedit->type == OB_MESH) &&
+		    (mesh->id.flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)))
+		{
+			if (check_rendered_viewport_visible(bmain)) {
+				BMesh *bm = mesh->edit_btmesh->bm;
+				BM_mesh_bm_to_me(bm, mesh, false);
+				DAG_id_tag_update(&mesh->id, 0);
+			}
+		}
+	}
+}
+
 void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *scene)
 {
 	Scene *sce_iter;
@@ -1564,6 +1617,9 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	/* (re-)build dependency graph if needed */
 	for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set)
 		DAG_scene_relations_update(bmain, sce_iter);
+
+	/* flush editing data if needed */
+	prepare_mesh_for_viewport_render(bmain, scene);
 
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);

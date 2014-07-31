@@ -1305,7 +1305,7 @@ static bool view3d_localview_init(
 	return ok;
 }
 
-static void restore_localviewdata(wmWindowManager *wm, wmWindow *win, Main *bmain, ScrArea *sa, const int smooth_viewtx)
+static void restore_localviewdata(wmWindowManager *wm, wmWindow *win, Main *bmain, Scene *scene, ScrArea *sa, const int smooth_viewtx)
 {
 	const bool free = true;
 	ARegion *ar;
@@ -1355,7 +1355,7 @@ static void restore_localviewdata(wmWindowManager *wm, wmWindow *win, Main *bmai
 				}
 			}
 
-			ED_view3d_shade_update(bmain, v3d, sa);
+			ED_view3d_shade_update(bmain, scene, v3d, sa);
 		}
 	}
 }
@@ -1372,7 +1372,7 @@ static bool view3d_localview_exit(
 		
 		locallay = v3d->lay & 0xFF000000;
 
-		restore_localviewdata(wm, win, bmain, sa, smooth_viewtx);
+		restore_localviewdata(wm, win, bmain, scene, sa, smooth_viewtx);
 
 		/* for when in other window the layers have changed */
 		if (v3d->scenelock) v3d->lay = scene->lay;

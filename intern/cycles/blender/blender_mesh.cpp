@@ -568,7 +568,13 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(render_layer.use_surfaces || render_layer.use_hair) {
-		if(preview)
+		/* mesh objects does have special handle in the dependency graph,
+		 * they're ensured to have properly updated.
+		 *
+		 * updating meshes here will end up having derived mesh referencing
+		 * freed data from the blender side.
+		 */
+		if(preview && b_ob.type() != BL::Object::type_MESH)
 			b_ob.update_from_editmode();
 
 		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);

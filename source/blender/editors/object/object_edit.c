@@ -363,6 +363,11 @@ static bool ED_object_editmode_load_ex(Object *obedit, const bool freedata)
 		if (freedata) free_editMball(obedit);
 	}
 
+	/* Tag update so no access to freed data referenced from
+	 * derived cache will happen.
+	 */
+	DAG_id_tag_update((ID *)obedit->data, 0);
+
 	return true;
 }
 
