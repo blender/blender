@@ -337,6 +337,46 @@ void applyProject(TransInfo *t)
 					mul_m3_v3(td->smtx, tvec);
 
 					add_v3_v3(td->loc, tvec);
+
+					if (t->tsnap.align) {
+						/* handle alignment as well */
+						const float *original_normal;
+						float axis[3];
+						float mat[3][3];
+						float angle;
+						float totmat[3][3], smat[3][3];
+						float eul[3], fmat[3][3], quat[4];
+						float obmat[3][3];
+
+						/* In pose mode, we want to align normals with Y axis of bones... */
+						original_normal = td->axismtx[2];
+
+						cross_v3_v3v3(axis, original_normal, no);
+						angle = saacos(dot_v3v3(original_normal, no));
+
+						axis_angle_to_quat(quat, axis, angle);
+
+						quat_to_mat3(mat, quat);
+
+						mul_m3_m3m3(totmat, mat, td->mtx);
+						mul_m3_m3m3(smat, td->smtx, totmat);
+
+						/* calculate the total rotatation in eulers */
+						add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
+						eulO_to_mat3(obmat, eul, td->ext->rotOrder);
+						/* mat = transform, obmat = object rotation */
+						mul_m3_m3m3(fmat, smat, obmat);
+
+						mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
+
+						/* correct back for delta rot */
+						sub_v3_v3v3(eul, eul, td->ext->drot);
+
+						/* and apply */
+						copy_v3_v3(td->ext->rot, eul);
+
+						/* TODO support constraints for rotation too? see ElementRotation */
+					}
 				}
 			}
 			
