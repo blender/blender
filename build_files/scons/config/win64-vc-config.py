@@ -157,7 +157,7 @@ BF_COLLADA_LIB = 'bf_collada'
 
 BF_OPENCOLLADA = LIBDIR + '/opencollada'
 BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include/opencollada'
-BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml pcre buffer ftoa UTF'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib/opencollada'
 
 WITH_BF_3DMOUSE = True
@@ -186,7 +186,7 @@ WITH_BF_OIIO = True
 BF_OIIO = '${LIBDIR}/openimageio'
 BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
-BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/OpenImageIO.lib'
+BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/OpenImageIO.lib ${BF_OIIO_LIBPATH}/OpenImageIO_Util.lib'
 WITH_BF_STATICOIIO = True
 
 WITH_BF_OCIO = True
@@ -236,6 +236,7 @@ CCFLAGS = ['/nologo', '/J', '/W3', '/Gd', '/w34062', '/wd4018', '/wd4065', '/wd4
 # We want to support Vista level ABI for x64
 if VC_VERSION == '12.0':
     CCFLAGS.append('/D_WIN32_WINNT=0x600')
+    CCFLAGS.append('/DOIIO_STATIC_BUILD')  # OIIO api changed with 1.4 making this needed 
 
 CXXFLAGS = ['/EHsc']
 BGE_CXXFLAGS = ['/O2', '/Ob2', '/EHsc', '/GR', '/fp:fast']
