@@ -508,6 +508,7 @@ closure color henyey_greenstein(float g) BUILTIN;
 closure color absorption() BUILTIN;
 
 // Renderer state
+int backfacing () BUILTIN;
 int raytype (string typename) BUILTIN;
 // the individual 'isFOOray' functions are deprecated
 int iscameraray () { return raytype("camera"); }
