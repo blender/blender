@@ -648,7 +648,7 @@ int BLI_str_rstrip_float_zero(char *str, const char pad)
  * \param str_array_len The length of the array, or -1 for a NULL-terminated array.
  * \return The index of str in str_array or -1.
  */
-int BLI_str_index_in_array_n(const char *str, const char **str_array, const int str_array_len)
+int BLI_str_index_in_array_n(const char *__restrict str, const char **__restrict str_array, const int str_array_len)
 {
 	int index;
 	const char **str_iter = str_array;
@@ -668,7 +668,7 @@ int BLI_str_index_in_array_n(const char *str, const char **str_array, const int 
  * \param str_array Array of strings, (must be NULL-terminated).
  * \return The index of str in str_array or -1.
  */
-int BLI_str_index_in_array(const char *str, const char **str_array)
+int BLI_str_index_in_array(const char *__restrict str, const char **__restrict str_array)
 {
 	int index;
 	const char **str_iter = str_array;
