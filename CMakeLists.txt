@@ -996,6 +996,7 @@ elseif(WIN32)
 			# We want to support Vista level ABI for x64
 			if(NOT MSVC_VERSION VERSION_LESS 1700)
 				add_definitions(-D_WIN32_WINNT=0x600)
+				add_definitions(-DOIIO_STATIC_BUILD)
 			endif()
 		endif()
 
@@ -1144,8 +1145,12 @@ elseif(WIN32)
 				${OPENCOLLADA}/lib/opencollada/xml.lib
 				${OPENCOLLADA}/lib/opencollada/buffer.lib
 				${OPENCOLLADA}/lib/opencollada/ftoa.lib
-				${OPENCOLLADA}/lib/opencollada/UTF.lib
 			)
+
+			if(!WITH_LLVM)
+				list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
+			endif()
+
 			set(PCRE_LIBRARIES
 				${OPENCOLLADA}/lib/opencollada/pcre.lib
 			)
@@ -1278,7 +1283,9 @@ elseif(WIN32)
 			find_package(OpenImageIO)
 			set(OPENIMAGEIO ${LIBDIR}/openimageio)
 			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
-			set(OPENIMAGEIO_LIBRARIES optimized OpenImageIO debug OpenImageIO_d)
+			set(OIIO_OPTIMIZED OpenImageIO OpenImageIO_Util)
+			set(OIIO_DEBUG OpenImageIO_d OpenImageIO_Util_d)
+			set(OPENIMAGEIO_LIBRARIES optimized ${OIIO_OPTIMIZED} debug ${OIIO_DEBUG})
 			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
 			set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
 		endif()
