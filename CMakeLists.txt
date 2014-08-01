@@ -1147,7 +1147,7 @@ elseif(WIN32)
 				${OPENCOLLADA}/lib/opencollada/ftoa.lib
 			)
 
-			if(!WITH_LLVM)
+			if(NOT WITH_LLVM)
 				list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
 			endif()
 
