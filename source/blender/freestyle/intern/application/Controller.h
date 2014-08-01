@@ -30,21 +30,12 @@
 
 #include <string>
 
-//#include "ConfigIO.h"
 #include "../geometry/FastGrid.h"
 #include "../scene_graph/SceneHash.h"
-#include "../system/Interpreter.h"
-#include "../system/ProgressBar.h"
 #include "../system/Precision.h"
-#include "../system/RenderMonitor.h"
 #include "../system/TimeUtils.h"
 #include "../view_map/FEdgeXDetector.h"
 #include "../view_map/ViewMapBuilder.h"
-
-extern "C" {
-#include "render_types.h"
-#include "DNA_scene_types.h"
-}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -52,16 +43,15 @@ extern "C" {
 
 namespace Freestyle {
 
-class AppView;
-class NodeGroup;
-class WShape;
-class SShape;
-class ViewMap;
-class ViewEdge;
 class AppCanvas;
-class InteractiveShader;
-class Shader;
-class StrokeRenderer;
+class AppView;
+class Interpreter;
+class NodeGroup;
+class ProgressBar;
+class RenderMonitor;
+class SShape;
+class ViewEdge;
+class ViewMap;
 
 class Controller
 {
