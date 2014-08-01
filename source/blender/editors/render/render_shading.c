@@ -1261,7 +1261,7 @@ static int freestyle_stroke_material_create_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	FRS_create_stroke_material(C, bmain, linestyle);
+	FRS_create_stroke_material(bmain, linestyle);
 
 	return OPERATOR_FINISHED;
 }

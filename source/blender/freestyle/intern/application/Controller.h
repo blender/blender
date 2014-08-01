@@ -217,7 +217,6 @@ private:
 	real _EPSILON;
 	real _bboxDiag;
 
-	bContext *_context;
 	int _render_count;
 
 	//AppStyleWindow *_pStyleWindow;

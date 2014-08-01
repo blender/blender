@@ -44,7 +44,7 @@ namespace Freestyle {
 class BlenderStrokeRenderer : public StrokeRenderer
 {
 public:
-	BlenderStrokeRenderer(bContext *C, Render *re, int render_count);
+	BlenderStrokeRenderer(Render *re, int render_count);
 	virtual ~BlenderStrokeRenderer();
 
 	/*! Renders a stroke rep */
@@ -55,7 +55,7 @@ public:
 
 	Render *RenderScene(Render *re, bool render);
 
-	static Material* GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree, bool do_id_user);
+	static Material* GetStrokeShader(Main *bmain, bNodeTree *iNodeTree, bool do_id_user);
 
 protected:
 	Main *freestyle_bmain;

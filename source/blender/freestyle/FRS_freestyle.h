@@ -33,7 +33,6 @@ struct Render;
 struct Material;
 struct FreestyleConfig;
 struct FreestyleLineStyle;
-struct bContext;
 
 extern struct Scene *freestyle_scene;
 extern float freestyle_viewpoint[3];
@@ -60,7 +59,7 @@ void FRS_move_active_lineset_up(struct FreestyleConfig *config);
 void FRS_move_active_lineset_down(struct FreestyleConfig *config);
 
 /* Testing */
-struct Material *FRS_create_stroke_material(struct bContext *C, struct Main *bmain, struct FreestyleLineStyle *linestyle);
+struct Material *FRS_create_stroke_material(struct Main *bmain, struct FreestyleLineStyle *linestyle);
 
 #ifdef __cplusplus
 }

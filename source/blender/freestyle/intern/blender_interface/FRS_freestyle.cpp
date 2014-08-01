@@ -735,10 +735,10 @@ void FRS_move_active_lineset_down(FreestyleConfig *config)
 
 // Testing
 
-Material *FRS_create_stroke_material(bContext *C, Main *bmain, struct FreestyleLineStyle *linestyle)
+Material *FRS_create_stroke_material(Main *bmain, struct FreestyleLineStyle *linestyle)
 {
 	bNodeTree *nt = (linestyle->use_nodes) ? linestyle->nodetree : NULL;
-	Material *ma = BlenderStrokeRenderer::GetStrokeShader(C, bmain, nt, true);
+	Material *ma = BlenderStrokeRenderer::GetStrokeShader(bmain, nt, true);
 	ma->id.us = 0;
 	return ma;
 }

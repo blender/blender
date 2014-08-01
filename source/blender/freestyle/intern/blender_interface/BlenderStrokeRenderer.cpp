@@ -65,12 +65,11 @@ extern "C" {
 
 namespace Freestyle {
 
-BlenderStrokeRenderer::BlenderStrokeRenderer(bContext *C, Render *re, int render_count) : StrokeRenderer()
+BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
 	freestyle_bmain = re->freestyle_bmain;
 
 	// for stroke mesh generation
-	_context = C;
 	_width = re->winx;
 	_height = re->winy;
 
@@ -228,7 +227,7 @@ unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
 	return mesh_id;
 }
 
-Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNodeTree *iNodeTree, bool do_id_user)
+Material* BlenderStrokeRenderer::GetStrokeShader(Main *bmain, bNodeTree *iNodeTree, bool do_id_user)
 {
 	Material *ma = BKE_material_add(bmain, "stroke_shader");
 	bNodeTree *ntree;
@@ -255,13 +254,13 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	ma->nodetree = ntree;
 	ma->use_nodes = 1;
 
-	bNode *input_attr_color = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
+	bNode *input_attr_color = nodeAddStaticNode(NULL, ntree, SH_NODE_ATTRIBUTE);
 	input_attr_color->locx = 0.0f;
 	input_attr_color->locy = -200.0f;
 	storage = (NodeShaderAttribute *)input_attr_color->storage;
 	BLI_strncpy(storage->name, "Color", sizeof(storage->name));
 
-	bNode *mix_rgb_color = nodeAddStaticNode(C, ntree, SH_NODE_MIX_RGB);
+	bNode *mix_rgb_color = nodeAddStaticNode(NULL, ntree, SH_NODE_MIX_RGB);
 	mix_rgb_color->custom1 = MA_RAMP_BLEND; // Mix
 	mix_rgb_color->locx = 200.0f;
 	mix_rgb_color->locy = -200.0f;
@@ -269,13 +268,13 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
 	RNA_float_set(&toptr, "default_value", 0.0f);
 
-	bNode *input_attr_alpha = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
+	bNode *input_attr_alpha = nodeAddStaticNode(NULL, ntree, SH_NODE_ATTRIBUTE);
 	input_attr_alpha->locx = 400.0f;
 	input_attr_alpha->locy = 300.0f;
 	storage = (NodeShaderAttribute *)input_attr_alpha->storage;
 	BLI_strncpy(storage->name, "Alpha", sizeof(storage->name));
 
-	bNode *mix_rgb_alpha = nodeAddStaticNode(C, ntree, SH_NODE_MIX_RGB);
+	bNode *mix_rgb_alpha = nodeAddStaticNode(NULL, ntree, SH_NODE_MIX_RGB);
 	mix_rgb_alpha->custom1 = MA_RAMP_BLEND; // Mix
 	mix_rgb_alpha->locx = 600.0f;
 	mix_rgb_alpha->locy = 300.0f;
@@ -283,27 +282,27 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
 	RNA_float_set(&toptr, "default_value", 0.0f);
 
-	bNode *shader_emission = nodeAddStaticNode(C, ntree, SH_NODE_EMISSION);
+	bNode *shader_emission = nodeAddStaticNode(NULL, ntree, SH_NODE_EMISSION);
 	shader_emission->locx = 400.0f;
 	shader_emission->locy = -200.0f;
 
-	bNode *input_light_path = nodeAddStaticNode(C, ntree, SH_NODE_LIGHT_PATH);
+	bNode *input_light_path = nodeAddStaticNode(NULL, ntree, SH_NODE_LIGHT_PATH);
 	input_light_path->locx = 400.0f;
 	input_light_path->locy = 100.0f;
 
-	bNode *mix_shader_color = nodeAddStaticNode(C, ntree, SH_NODE_MIX_SHADER);
+	bNode *mix_shader_color = nodeAddStaticNode(NULL, ntree, SH_NODE_MIX_SHADER);
 	mix_shader_color->locx = 600.0f;
 	mix_shader_color->locy = -100.0f;
 
-	bNode *shader_transparent = nodeAddStaticNode(C, ntree, SH_NODE_BSDF_TRANSPARENT);
+	bNode *shader_transparent = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_TRANSPARENT);
 	shader_transparent->locx = 600.0f;
 	shader_transparent->locy = 100.0f;
 
-	bNode *mix_shader_alpha = nodeAddStaticNode(C, ntree, SH_NODE_MIX_SHADER);
+	bNode *mix_shader_alpha = nodeAddStaticNode(NULL, ntree, SH_NODE_MIX_SHADER);
 	mix_shader_alpha->locx = 800.0f;
 	mix_shader_alpha->locy = 100.0f;
 
-	bNode *output_material = nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_MATERIAL);
+	bNode *output_material = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_MATERIAL);
 	output_material->locx = 1000.0f;
 	output_material->locy = 100.0f;
 
@@ -409,7 +408,7 @@ Material* BlenderStrokeRenderer::GetStrokeShader(bContext *C, Main *bmain, bNode
 				bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->outputs, 0);
 
 				// add new UV Map node
-				bNode *input_uvmap = nodeAddStaticNode(C, ntree, SH_NODE_UVMAP);
+				bNode *input_uvmap = nodeAddStaticNode(NULL, ntree, SH_NODE_UVMAP);
 				input_uvmap->locx = node->locx - 200.0f;
 				input_uvmap->locy = node->locy;
 				NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
@@ -444,7 +443,7 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 		bNodeTree *nt = iStrokeRep->getNodeTree();
 		Material *ma = (Material *)BLI_ghash_lookup(_nodetree_hash, nt);
 		if (!ma) {
-			ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, nt, false);
+			ma = BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false);
 			BLI_ghash_insert(_nodetree_hash, nt, ma);
 		}
 
