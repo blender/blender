@@ -2500,6 +2500,28 @@ DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em)
 	return getEditDerivedBMesh(em, obedit, NULL);
 }
 
+/***/
+
+/* get derived mesh from an object, using editbmesh if available. */
+DerivedMesh *object_get_derived_final(Object *ob, const bool for_render)
+{
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+
+	if (for_render) {
+		/* TODO(sergey): use proper derived render here in the future. */
+		return ob->derivedFinal;
+	}
+
+	if (em) {
+		DerivedMesh *dm = em->derivedFinal;
+		return dm;
+	}
+
+	return ob->derivedFinal;
+}
+
+
 /* UNUSED */
 #if 0
 

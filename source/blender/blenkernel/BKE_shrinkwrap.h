@@ -31,15 +31,6 @@
  *  \ingroup bke
  */
 
-/* mesh util */
-
-//TODO: move this somewhere else
-#include "BKE_customdata.h"
-struct DerivedMesh;
-struct Object;
-struct DerivedMesh *object_get_derived_final(struct Object *ob, bool for_render);
-
-
 /* SpaceTransform stuff */
 /*
  * TODO: move this somewhere else

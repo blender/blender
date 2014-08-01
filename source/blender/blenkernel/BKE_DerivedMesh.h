@@ -691,6 +691,9 @@ DerivedMesh *editbmesh_get_derived_cage(struct Scene *scene, struct Object *,
 DerivedMesh *editbmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
                                                   struct BMEditMesh *em, DerivedMesh **r_final,
                                                   CustomDataMask dataMask);
+
+DerivedMesh *object_get_derived_final(struct Object *ob, const bool for_render);
+
 float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *r_numVerts))[3];
 bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
 void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *em, 

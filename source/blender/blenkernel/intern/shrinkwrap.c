@@ -66,26 +66,6 @@
 /* Util macros */
 #define OUT_OF_MEMORY() ((void)printf("Shrinkwrap: Out of memory\n"))
 
-/* get derived mesh */
-/* TODO is anyfunction that does this? returning the derivedFinal without we caring if its in edit mode or not? */
-DerivedMesh *object_get_derived_final(Object *ob, bool for_render)
-{
-	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
-
-	if (for_render) {
-		/* TODO(sergey): use proper derived render here in the future. */
-		return ob->derivedFinal;
-	}
-
-	if (em) {
-		DerivedMesh *dm = em->derivedFinal;
-		return dm;
-	}
-
-	return ob->derivedFinal;
-}
-
 /* Space transform */
 void space_transform_from_matrixs(SpaceTransform *data, float local[4][4], float target[4][4])
 {
