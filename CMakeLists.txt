@@ -136,6 +136,11 @@ if(APPLE)
 endif()
 
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
+if(${CMAKE_VERSION} VERSION_LESS 2.8.8)
+	# add_library OBJECT arg unsupported
+	set(WITH_BUILDINFO OFF)
+endif()
+
 option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)
 option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" ON)
