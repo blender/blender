@@ -43,7 +43,6 @@
 #include "BKE_deform.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
-#include "BKE_shrinkwrap.h"       /* For SpaceTransform stuff. */
 #include "BKE_texture.h"          /* Texture masking. */
 
 #include "depsgraph_private.h"
@@ -73,12 +72,12 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
                                    DerivedMesh *target, const SpaceTransform *loc2trgt)
 {
 	int i;
-	BVHTreeFromMesh treeData_v = NULL_BVHTreeFromMesh;
-	BVHTreeFromMesh treeData_e = NULL_BVHTreeFromMesh;
-	BVHTreeFromMesh treeData_f = NULL_BVHTreeFromMesh;
-	BVHTreeNearest nearest_v   = NULL_BVHTreeNearest;
-	BVHTreeNearest nearest_e   = NULL_BVHTreeNearest;
-	BVHTreeNearest nearest_f   = NULL_BVHTreeNearest;
+	BVHTreeFromMesh treeData_v = {0};
+	BVHTreeFromMesh treeData_e = {0};
+	BVHTreeFromMesh treeData_f = {0};
+	BVHTreeNearest nearest_v   = {0};
+	BVHTreeNearest nearest_e   = {0};
+	BVHTreeNearest nearest_f   = {0};
 
 	if (dist_v) {
 		/* Create a bvh-tree of the given target's verts. */
@@ -120,7 +119,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 
 		/* Convert the vertex to tree coordinates. */
 		copy_v3_v3(tmp_co, v_cos[i]);
-		space_transform_apply(loc2trgt, tmp_co);
+		BLI_space_transform_apply(loc2trgt, tmp_co);
 
 		/* Use local proximity heuristics (to reduce the nearest search).
 		 *
@@ -484,7 +483,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				float *dists_e = use_trgt_edges ? MEM_mallocN(sizeof(float) * numIdx, "dists_e") : NULL;
 				float *dists_f = use_trgt_faces ? MEM_mallocN(sizeof(float) * numIdx, "dists_f") : NULL;
 
-				SPACE_TRANSFORM_SETUP(&loc2trgt, ob, obr);
+				BLI_SPACE_TRANSFORM_SETUP(&loc2trgt, ob, obr);
 				get_vert2geom_distance(numIdx, v_cos, dists_v, dists_e, dists_f,
 				                       target_dm, &loc2trgt);
 				for (i = 0; i < numIdx; i++) {

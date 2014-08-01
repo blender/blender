@@ -37,6 +37,7 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

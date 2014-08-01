@@ -3375,7 +3375,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 		unit_m4(ct->matrix);
 		
 		if (target != NULL) {
-			space_transform_from_matrixs(&transform, cob->matrix, ct->tar->obmat);
+			BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->obmat);
 			
 			switch (scon->shrinkType) {
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
@@ -3397,7 +3397,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 						break;
 					}
 					
-					space_transform_apply(&transform, co);
+					BLI_space_transform_apply(&transform, co);
 					
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
 					
@@ -3405,7 +3405,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 					if (dist != 0.0f) {
 						interp_v3_v3v3(co, co, nearest.co, (dist - scon->dist) / dist);   /* linear interpolation */
 					}
-					space_transform_invert(&transform, co);
+					BLI_space_transform_invert(&transform, co);
 					break;
 				}
 				case MOD_SHRINKWRAP_PROJECT:

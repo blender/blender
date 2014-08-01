@@ -224,6 +224,22 @@ bool is_negative_m4(float mat[4][4]);
 bool is_zero_m3(float mat[3][3]);
 bool is_zero_m4(float mat[4][4]);
 
+/* SpaceTransform helper */
+typedef struct SpaceTransform {
+	float local2target[4][4];
+	float target2local[4][4];
+
+} SpaceTransform;
+
+void BLI_space_transform_from_matrices(struct SpaceTransform *data, float local[4][4], float target[4][4]);
+void BLI_space_transform_apply(const struct SpaceTransform *data, float co[3]);
+void BLI_space_transform_invert(const struct SpaceTransform *data, float co[3]);
+void BLI_space_transform_apply_normal(const struct SpaceTransform *data, float no[3]);
+void BLI_space_transform_invert_normal(const struct SpaceTransform *data, float no[3]);
+
+#define BLI_SPACE_TRANSFORM_SETUP(data, local, target) \
+	BLI_space_transform_from_matrices((data), (local)->obmat, (target)->obmat)
+
 /*********************************** Other ***********************************/
 
 void print_m3(const char *str, float M[3][3]);

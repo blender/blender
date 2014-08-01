@@ -31,43 +31,6 @@
  *  \ingroup bke
  */
 
-/* SpaceTransform stuff */
-/*
- * TODO: move this somewhere else
- *
- * this structs encapsulates all needed data to convert between 2 coordinate spaces
- * (where conversion can be represented by a matrix multiplication)
- *
- * This is used to reduce the number of arguments to pass to functions that need to perform
- * this kind of operation and make it easier for the coder, as he/she doenst needs to recode
- * the matrix calculation.
- *
- * A SpaceTransform is initialized using:
- *   SPACE_TRANSFORM_SETUP( &data,  ob1, ob2 )
- *
- * After that the following calls can be used:
- *   space_transform_apply (&data, co); //converts a coordinate in ob1 coords space to the corresponding ob2 coords
- *   space_transform_invert(&data, co); //converts a coordinate in ob2 coords space to the corresponding ob1 coords
- *
- *	//Same Concept as space_transform_apply and space_transform_invert, but no is normalized after conversion
- *   space_transform_apply_normal (&data, &no);
- *   space_transform_invert_normal(&data, &no);
- *
- */
-struct Object;
-
-typedef struct SpaceTransform {
-	float local2target[4][4];
-	float target2local[4][4];
-
-} SpaceTransform;
-
-void space_transform_from_matrixs(struct SpaceTransform *data, float local[4][4], float target[4][4]);
-void space_transform_apply(const struct SpaceTransform *data, float co[3]);
-void space_transform_invert(const struct SpaceTransform *data, float co[3]);
-
-#define SPACE_TRANSFORM_SETUP(data, local, target) space_transform_from_matrixs(data, (local)->obmat, (target)->obmat)
-
 /* Shrinkwrap stuff */
 #include "BKE_bvhutils.h"
 
@@ -91,6 +54,7 @@ struct MDeformVert;
 struct ShrinkwrapModifierData;
 struct MDeformVert;
 struct BVHTree;
+struct SpaceTransform;
 
 
 typedef struct ShrinkwrapCalcData {
@@ -106,7 +70,7 @@ typedef struct ShrinkwrapCalcData {
 	int vgroup;                     //Vertex group num
 
 	struct DerivedMesh *target;     //mesh we are shrinking to
-	SpaceTransform local2target;    //transform to move between local and target space
+	struct SpaceTransform local2target;    //transform to move between local and target space
 
 	float keepDist;                 //Distance to keep above target surface (units are in local space)
 
@@ -127,7 +91,7 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object
  */
 bool BKE_shrinkwrap_project_normal(
         char options, const float vert[3], const float dir[3],
-        const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit,
+        const struct SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit,
         BVHTree_RayCastCallback callback, void *userdata);
 
 /*
