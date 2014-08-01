@@ -64,7 +64,7 @@ static char idp_size_table[] = {
 /** \name IDP Array API
  * \{ */
 
-#define GETPROP(prop, i) (((IDProperty *)(prop)->data.pointer) + (i))
+#define GETPROP(prop, i) &(IDP_IDPArray(prop)[i])
 
 /* --------- property array type -------------*/
 

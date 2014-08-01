@@ -121,11 +121,27 @@ void IDP_ClearProperty(IDProperty *prop);
 void IDP_UnlinkProperty(struct IDProperty *prop);
 
 #define IDP_Int(prop)                     ((prop)->data.val)
-#define IDP_Float(prop)        (*(float *)&(prop)->data.val)
-#define IDP_Double(prop)      (*(double *)&(prop)->data.val)
-#define IDP_String(prop)         ((char *) (prop)->data.pointer)
 #define IDP_Array(prop)                   ((prop)->data.pointer)
-#define IDP_IDPArray(prop) ((IDProperty *) (prop)->data.pointer)
+/* C11 const correctness for casts */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#  define IDP_Float(prop)  _Generic(prop, \
+	IDProperty *:             (*(float *)&(prop)->data.val), \
+	const IDProperty *: (*(const float *)&(prop)->data.val))
+#  define IDP_Double(prop)  _Generic(prop, \
+	IDProperty *:             (*(double *)&(prop)->data.val), \
+	const IDProperty *: (*(const double *)&(prop)->data.val))
+#  define IDP_String(prop)  _Generic(prop, \
+	IDProperty *:             ((char *) (prop)->data.pointer), \
+	const IDProperty *: ((const char *) (prop)->data.pointer))
+#  define IDP_IDPArray(prop)  _Generic(prop, \
+	IDProperty *:             ((IDProperty *) (prop)->data.pointer), \
+	const IDProperty *: ((const IDProperty *) (prop)->data.pointer))
+#else
+#  define IDP_Float(prop)        (*(float *)&(prop)->data.val)
+#  define IDP_Double(prop)      (*(double *)&(prop)->data.val)
+#  define IDP_String(prop)         ((char *) (prop)->data.pointer)
+#  define IDP_IDPArray(prop) ((IDProperty *) (prop)->data.pointer)
+#endif
 
 #ifdef DEBUG
 /* for printout only */

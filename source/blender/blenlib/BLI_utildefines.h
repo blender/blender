@@ -174,10 +174,16 @@
 	(void)__tmp;                                         \
 }))
 
+#define CHECK_TYPE_NONCONST(var)  {           \
+	void *non_const = ((__typeof(var))NULL);  \
+	(void)non_const;                          \
+} (void)0
+
 #else
 #  define CHECK_TYPE(var, type)
 #  define CHECK_TYPE_PAIR(var_a, var_b)
 #  define CHECK_TYPE_PAIR_INLINE(var_a, var_b) (void)0
+#  define CHECK_TYPE_NONCONST(var) (void)0
 #endif
 
 /* can be used in simple macros */
