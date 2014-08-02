@@ -157,9 +157,6 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include/opencollada'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib/opencollada'
 
-if not WITH_BF_LLVM or VC_VERSION == '9.0':
-    BF_OPENCOLLADA_LIB = BF_OPENCOLLADA_LIB + ' UTF'
-
 WITH_BF_3DMOUSE = True
 
 WITH_BF_OPENMP = True
@@ -266,3 +263,4 @@ if VC_VERSION == '12.0':
 else:
     BF_BUILDDIR = '..\\build\\win32-vc9'
     BF_INSTALLDIR='..\\install\\win32-vc9'
+    BF_OPENCOLLADA_LIB = BF_OPENCOLLADA_LIB + ' UTF'
