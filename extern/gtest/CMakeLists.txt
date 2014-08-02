@@ -39,6 +39,7 @@ set(SRC
 	src/gtest-test-part.cc
 	src/gtest-typed-test.cc
 
+	src/gtest-internal-inl.h
 	include/gtest/gtest-death-test.h
 	include/gtest/gtest.h
 	include/gtest/gtest-message.h

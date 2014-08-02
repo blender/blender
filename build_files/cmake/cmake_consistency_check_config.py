@@ -2,6 +2,7 @@ import os
 
 IGNORE = (
     "/test/",
+    "/tests/gtests/",
     "/BSP_GhostTest/",
     "/release/",
     "/xembed/",
