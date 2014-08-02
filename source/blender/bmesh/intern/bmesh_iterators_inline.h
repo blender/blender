@@ -80,60 +80,70 @@ BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *da
 			break;
 		case BM_EDGES_OF_VERT:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_VERT);
 			iter->begin = (BMIter__begin_cb)bmiter__edge_of_vert_begin;
 			iter->step  = (BMIter__step_cb)bmiter__edge_of_vert_step;
 			iter->data.edge_of_vert.vdata = (BMVert *)data;
 			break;
 		case BM_FACES_OF_VERT:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_VERT);
 			iter->begin = (BMIter__begin_cb)bmiter__face_of_vert_begin;
 			iter->step  = (BMIter__step_cb)bmiter__face_of_vert_step;
 			iter->data.face_of_vert.vdata = (BMVert *)data;
 			break;
 		case BM_LOOPS_OF_VERT:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_VERT);
 			iter->begin = (BMIter__begin_cb)bmiter__loop_of_vert_begin;
 			iter->step  = (BMIter__step_cb)bmiter__loop_of_vert_step;
 			iter->data.loop_of_vert.vdata = (BMVert *)data;
 			break;
 		case BM_VERTS_OF_EDGE:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_EDGE);
 			iter->begin = (BMIter__begin_cb)bmiter__vert_of_edge_begin;
 			iter->step  = (BMIter__step_cb)bmiter__vert_of_edge_step;
 			iter->data.vert_of_edge.edata = (BMEdge *)data;
 			break;
 		case BM_FACES_OF_EDGE:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_EDGE);
 			iter->begin = (BMIter__begin_cb)bmiter__face_of_edge_begin;
 			iter->step  = (BMIter__step_cb)bmiter__face_of_edge_step;
 			iter->data.face_of_edge.edata = (BMEdge *)data;
 			break;
 		case BM_VERTS_OF_FACE:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_FACE);
 			iter->begin = (BMIter__begin_cb)bmiter__vert_of_face_begin;
 			iter->step  = (BMIter__step_cb)bmiter__vert_of_face_step;
 			iter->data.vert_of_face.pdata = (BMFace *)data;
 			break;
 		case BM_EDGES_OF_FACE:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_FACE);
 			iter->begin = (BMIter__begin_cb)bmiter__edge_of_face_begin;
 			iter->step  = (BMIter__step_cb)bmiter__edge_of_face_step;
 			iter->data.edge_of_face.pdata = (BMFace *)data;
 			break;
 		case BM_LOOPS_OF_FACE:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_FACE);
 			iter->begin = (BMIter__begin_cb)bmiter__loop_of_face_begin;
 			iter->step  = (BMIter__step_cb)bmiter__loop_of_face_step;
 			iter->data.loop_of_face.pdata = (BMFace *)data;
 			break;
 		case BM_LOOPS_OF_LOOP:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_LOOP);
 			iter->begin = (BMIter__begin_cb)bmiter__loop_of_loop_begin;
 			iter->step  = (BMIter__step_cb)bmiter__loop_of_loop_step;
 			iter->data.loop_of_loop.ldata = (BMLoop *)data;
 			break;
 		case BM_LOOPS_OF_EDGE:
 			BLI_assert(data != NULL);
+			BLI_assert(((BMElem *)data)->head.htype == BM_EDGE);
 			iter->begin = (BMIter__begin_cb)bmiter__loop_of_edge_begin;
 			iter->step  = (BMIter__step_cb)bmiter__loop_of_edge_step;
 			iter->data.loop_of_edge.edata = (BMEdge *)data;
