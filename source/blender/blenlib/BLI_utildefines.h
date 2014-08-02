@@ -157,38 +157,37 @@
  * ... the compiler optimizes away the temp var */
 #ifdef __GNUC__
 #define CHECK_TYPE(var, type)  {  \
-	__typeof(var) *__tmp;         \
+	typeof(var) *__tmp;         \
 	__tmp = (type *)NULL;         \
 	(void)__tmp;                  \
 } (void)0
 
 #define CHECK_TYPE_PAIR(var_a, var_b)  {  \
-	__typeof(var_a) *__tmp;               \
-	__tmp = (__typeof(var_b) *)NULL;      \
+	typeof(var_a) *__tmp;                 \
+	__tmp = (typeof(var_b) *)NULL;        \
 	(void)__tmp;                          \
 } (void)0
 
 #define CHECK_TYPE_PAIR_INLINE(var_a, var_b)  ((void)({  \
-	__typeof(var_a) *__tmp;                              \
-	__tmp = (__typeof(var_b) *)NULL;                     \
+	typeof(var_a) *__tmp;                                \
+	__tmp = (typeof(var_b) *)NULL;                       \
 	(void)__tmp;                                         \
 }))
-
-#define CHECK_TYPE_NONCONST(var)  {           \
-	void *non_const = ((__typeof(var))NULL);  \
-	(void)non_const;                          \
-} (void)0
 
 #else
 #  define CHECK_TYPE(var, type)
 #  define CHECK_TYPE_PAIR(var_a, var_b)
 #  define CHECK_TYPE_PAIR_INLINE(var_a, var_b) (void)0
-#  define CHECK_TYPE_NONCONST(var) (void)0
 #endif
 
 /* can be used in simple macros */
 #define CHECK_TYPE_INLINE(val, type) \
 	((void)(((type)0) != (val)))
+
+#define CHECK_TYPE_NONCONST(var)  {      \
+	void *non_const = 0 ? (var) : NULL;  \
+	(void)non_const;                     \
+} (void)0
 
 #define SWAP(type, a, b)  {    \
 	type sw_ap;                \
@@ -414,8 +413,7 @@
 /* memcpy, skipping the first part of a struct,
  * ensures 'struct_dst' isn't const and that the offset can be computed at compile time */
 #define MEMCPY_STRUCT_OFS(struct_dst, struct_src, member)  { \
-	void *_not_const = struct_dst; \
-	(void)_not_const; \
+	CHECK_TYPE_NONCONST(struct_dst); \
 	((void)(struct_dst == struct_src), \
 	 memcpy((char *)(struct_dst)  + OFFSETOF_STRUCT(struct_dst, member), \
 	        (char *)(struct_src)  + OFFSETOF_STRUCT(struct_dst, member), \

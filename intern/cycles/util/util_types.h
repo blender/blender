@@ -474,14 +474,14 @@ enum InterpolationType {
  * ... the compiler optimizes away the temp var */
 #ifdef __GNUC__
 #define CHECK_TYPE(var, type)  {  \
-	__typeof(var) *__tmp;         \
+	typeof(var) *__tmp;         \
 	__tmp = (type *)NULL;         \
 	(void)__tmp;                  \
 } (void)0
 
 #define CHECK_TYPE_PAIR(var_a, var_b)  {  \
-	__typeof(var_a) *__tmp;               \
-	__tmp = (__typeof(var_b) *)NULL;      \
+	typeof(var_a) *__tmp;                 \
+	__tmp = (typeof(var_b) *)NULL;        \
 	(void)__tmp;                          \
 } (void)0
 #else

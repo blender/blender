@@ -163,7 +163,7 @@ static const int NAN_INT = 0x7FC00000;
 #ifndef CHECK_TYPE
 #ifdef __GNUC__
 #define CHECK_TYPE(var, type)  {  \
-	__typeof(var) *__tmp;         \
+	typeof(var) *__tmp;           \
 	__tmp = (type *)NULL;         \
 	(void)__tmp;                  \
 } (void)0
