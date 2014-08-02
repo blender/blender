@@ -18,7 +18,7 @@
 /* Triangle Primitive
  *
  * Basic triangle with 3 vertices is used to represent mesh surfaces. For BVH
- * ray intersection we use a precomputed triangle storage to accelarate
+ * ray intersection we use a precomputed triangle storage to accelerate
  * intersection at the cost of more memory usage */
 
 CCL_NAMESPACE_BEGIN

@@ -371,7 +371,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 				if(sc) {
 					/* todo: giving a fixed weight here will cause issues when
-					 * mixing multiple BSDFS. energey will not be conserved and
+					 * mixing multiple BSDFS. energy will not be conserved and
 					 * the throughput can blow up after multiple bounces. we
 					 * better figure out a way to skip backfaces from rays
 					 * spawned by transmission from the front */

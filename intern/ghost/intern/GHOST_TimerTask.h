@@ -48,7 +48,7 @@ public:
 	 * Constructor.
 	 * \param start		The timer start time.
 	 * \param interval	The interval between calls to the timerProc
-	 * \param timerProc	The callbak invoked when the interval expires.
+	 * \param timerProc	The callback invoked when the interval expires.
 	 * \param data		The timer user data.
 	 */
 	GHOST_TimerTask(GHOST_TUns64 start,

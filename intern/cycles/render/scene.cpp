@@ -141,7 +141,7 @@ void Scene::device_update(Device *device_, Progress& progress)
 	 * the different managers, using data computed by previous managers.
 	 *
 	 * - Image manager uploads images used by shaders.
-	 * - Camera may be used for adapative subdivison.
+	 * - Camera may be used for adaptive subdivision.
 	 * - Displacement shader must have all shader data available.
 	 * - Light manager needs lookup tables and final mesh data to compute emission CDF.
 	 * - Film needs light manager to run for use_light_visibility

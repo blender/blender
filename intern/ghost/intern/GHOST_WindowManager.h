@@ -121,7 +121,7 @@ public:
 
 	/**
 	 * Set this window to be inactive (not receiving events).
-	 * \param window The window to decativate.
+	 * \param window The window to deactivate.
 	 */
 	virtual void setWindowInactive(const GHOST_IWindow *window);
 	

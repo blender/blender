@@ -66,7 +66,7 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 	glColor3f(1.0f, 1.0f, 1.0f);
 
 	if(rgba.data_type == TYPE_HALF) {
-		/* for multi devices, this assumes the ineffecient method that we allocate
+		/* for multi devices, this assumes the inefficient method that we allocate
 		 * all pixels on the device even though we only render to a subset */
 		GLhalf *data_pointer = (GLhalf*)rgba.data_pointer;
 		data_pointer += 4*y*w;

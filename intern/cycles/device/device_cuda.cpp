@@ -732,8 +732,8 @@ public:
 		const int start = task.shader_x;
 		const int end = task.shader_x + task.shader_w;
 
-		bool cancelled = false;
-		for(int sample = 0; sample < task.num_samples && !cancelled; sample++) {
+		bool canceled = false;
+		for(int sample = 0; sample < task.num_samples && !canceled; sample++) {
 			for(int shader_x = start; shader_x < end; shader_x += shader_chunk_size) {
 				int shader_w = min(shader_chunk_size, end - shader_x);
 
@@ -760,7 +760,7 @@ public:
 				cuda_assert(cuCtxSynchronize());
 
 				if(task.get_cancel()) {
-					cancelled = false;
+					canceled = false;
 					break;
 				}
 			}
@@ -907,7 +907,7 @@ public:
 
 			cuda_push_context();
 
-			/* for multi devices, this assumes the ineffecient method that we allocate
+			/* for multi devices, this assumes the inefficient method that we allocate
 			 * all pixels on the device even though we only render to a subset */
 			size_t offset = 4*y*w;
 

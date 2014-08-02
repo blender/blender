@@ -123,7 +123,7 @@ protected:
 /* BVH Range
  *
  * Build range used during construction, to indicate the bounds and place in
- * the reference array of a subset of pirmitives Again uses trickery to pack
+ * the reference array of a subset of primitives Again uses trickery to pack
  * integers into BoundBox for alignment purposes. */
 
 class BVHRange

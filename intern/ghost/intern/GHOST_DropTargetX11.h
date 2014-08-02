@@ -73,7 +73,7 @@ private:
 	/* Internal helper functions */
 
 	/**
-	 * Initiailize XDND and all related X atoms
+	 * Initialize XDND and all related X atoms
 	 */
 	void Initialize(void);
 

@@ -362,7 +362,7 @@ ccl_device_inline float3 microfacet_sample_stretched(
  * E. Heitz, Research Report 2014
  *
  * Anisotropy is only supported for reflection currently, but adding it for
- * tranmission is just a matter of copying code from reflection if needed. */
+ * transmission is just a matter of copying code from reflection if needed. */
 
 ccl_device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 {

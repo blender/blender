@@ -3784,7 +3784,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 			sub_v3_v3v3(rgba, projPixel->pixel.f_pt, rgba);
 
 			/* now rgba_ub contains the edge result, but this should be converted to luminance to avoid
-			 * colored speckles appearing in final image, and also to check for threshhold */
+			 * colored speckles appearing in final image, and also to check for threshold */
 			rgba[0] = rgba[1] = rgba[2] = rgb_to_grayscale(rgba);
 			if (fabsf(rgba[0]) > ps->brush->sharp_threshold) {
 				float alpha = projPixel->pixel.f_pt[3];
@@ -3845,7 +3845,7 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 			/* subtract blurred image from normal image gives high pass filter */
 			sub_v3_v3v3(rgba, rgba_pixel, rgba);
 			/* now rgba_ub contains the edge result, but this should be converted to luminance to avoid
-			 * colored speckles appearing in final image, and also to check for threshhold */
+			 * colored speckles appearing in final image, and also to check for threshold */
 			rgba[0] = rgba[1] = rgba[2] = rgb_to_grayscale(rgba);
 			if (fabsf(rgba[0]) > ps->brush->sharp_threshold) {
 				float alpha = rgba_pixel[3];

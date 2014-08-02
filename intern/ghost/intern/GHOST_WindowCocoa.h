@@ -126,7 +126,7 @@ public:
 	/**
 	 * Returns the client rectangle dimensions.
 	 * The left and top members of the rectangle are always zero.
-	 * \param bounds The bounding rectangle of the cleient area of the window.
+	 * \param bounds The bounding rectangle of the client area of the window.
 	 */
 	virtual void getClientBounds(GHOST_Rect& bounds) const;
 

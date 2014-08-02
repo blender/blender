@@ -215,7 +215,7 @@ public:
 protected:
 	/**
 	 * Initializes the system.
-	 * For now, it justs registers the window class (WNDCLASS).
+	 * For now, it just registers the window class (WNDCLASS).
 	 * \return A success value.
 	 */
 	virtual GHOST_TSuccess init();
@@ -231,7 +231,7 @@ protected:
 	 * \param window->	The window for this handling
 	 * \param vKey		The virtual key from hardKey
 	 * \param ScanCode	The ScanCode of pressed key (simular to PS/2 Set 1)
-	 * \param extend	Flag if key is not primerly (left or right)
+	 * \param extend	Flag if key is not primly (left or right)
 	 * \return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
 	virtual GHOST_TKey convertKey(GHOST_IWindow *window, short vKey, short ScanCode, short extend) const;

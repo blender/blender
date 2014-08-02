@@ -2340,7 +2340,7 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 	BLI_freelistN(&estrips);
 
 	/* Tag ID as updated so render engines will recognize changes in data
-	 * which is nimated but doesn't have actions.
+	 * which is animated but doesn't have actions.
 	 */
 	if (ptr->id.data != NULL) {
 		ID *id = ptr->id.data;

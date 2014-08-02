@@ -84,7 +84,7 @@ struct BufferLineAccumulator {
 	 * Set up the initial buffer pointer and calculate necessary variables for looping.
 	 *
 	 * Note that sector space is centered around the "source" point while the loop starts
-	 * at dist_min from the target pt. This way the loop can be cancelled as soon as it runs
+	 * at dist_min from the target pt. This way the loop can be canceled as soon as it runs
 	 * out of the buffer rect, because no pixels further along the line can contribute.
 	 *
 	 * \param x, y  Start location in the buffer
@@ -122,7 +122,7 @@ struct BufferLineAccumulator {
 	 * Only pixels withing dist_min..dist_max contribute.
 	 *
 	 * The loop runs backwards(!) over the primary sector space axis u, i.e. increasing distance to pt.
-	 * After each step it decrements v by dv < 1, adding a buffer shift when necesserary.
+	 * After each step it decrements v by dv < 1, adding a buffer shift when necessary.
 	 */
 	static void eval(MemoryBuffer *input, float output[4], const float pt_ofs[2], const float source[2],
 	                 float dist_min, float dist_max)

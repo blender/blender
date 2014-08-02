@@ -111,7 +111,7 @@ ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
 /* Path Radiance
  *
  * We accumulate different render passes separately. After summing at the end
- * to get the combined result, it should be identical. We definte directly
+ * to get the combined result, it should be identical. We definite directly
  * visible as the first non-transparent hit, while indirectly visible are the
  * bounces after that. */
 

@@ -265,7 +265,7 @@ public:
 protected:
 	/**
 	 * Initializes the system.
-	 * For now, it justs registers the window class (WNDCLASS).
+	 * For now, it just registers the window class (WNDCLASS).
 	 * \return A success value.
 	 */
 	virtual GHOST_TSuccess init();
