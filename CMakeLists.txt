@@ -1001,9 +1001,10 @@ elseif(WIN32)
 			# We want to support Vista level ABI for x64
 			if(NOT MSVC_VERSION VERSION_LESS 1700)
 				add_definitions(-D_WIN32_WINNT=0x600)
-				add_definitions(-DOIIO_STATIC_BUILD)
 			endif()
 		endif()
+
+		add_definitions(-DOIIO_STATIC_BUILD)
 
 		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc /MP" CACHE STRING "MSVC MT C++ flags " FORCE)
 		set(CMAKE_C_FLAGS   "/nologo /J /Gd /MP"       CACHE STRING "MSVC MT C++ flags " FORCE)
