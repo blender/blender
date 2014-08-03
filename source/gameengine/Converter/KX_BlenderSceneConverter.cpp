@@ -529,70 +529,51 @@ void KX_BlenderSceneConverter::CacheBlenderMaterial(KX_Scene *scene, struct Mate
 		m_mat_cache[scene][mat] = blmat;
 }
 
+
 BL_Material *KX_BlenderSceneConverter::FindCachedBlenderMaterial(KX_Scene *scene, struct Material *mat)
 {
 	return (m_use_mat_cache) ? m_mat_cache[scene][mat] : NULL;
 }
 
-void KX_BlenderSceneConverter::RegisterInterpolatorList(
-									BL_InterpolatorList *actList,
-									struct bAction *for_act)
+
+void KX_BlenderSceneConverter::RegisterInterpolatorList(BL_InterpolatorList *actList, struct bAction *for_act)
 {
 	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_act), actList);
 }
 
-
-
-BL_InterpolatorList *KX_BlenderSceneConverter::FindInterpolatorList(
-									struct bAction *for_act)
+BL_InterpolatorList *KX_BlenderSceneConverter::FindInterpolatorList(struct bAction *for_act)
 {
 	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_act)];
-		
 	return listp?*listp:NULL;
 }
 
 
-
-void KX_BlenderSceneConverter::RegisterGameActuator(
-									SCA_IActuator *act,
-									struct bActuator *for_actuator)
+void KX_BlenderSceneConverter::RegisterGameActuator(SCA_IActuator *act, struct bActuator *for_actuator)
 {
 	m_map_blender_to_gameactuator.insert(CHashedPtr(for_actuator), act);
 }
 
-
-
-SCA_IActuator *KX_BlenderSceneConverter::FindGameActuator(
-									struct bActuator *for_actuator)
+SCA_IActuator *KX_BlenderSceneConverter::FindGameActuator(struct bActuator *for_actuator)
 {
 	SCA_IActuator **actp = m_map_blender_to_gameactuator[CHashedPtr(for_actuator)];
-	
 	return actp?*actp:NULL;
 }
 
 
-
-void KX_BlenderSceneConverter::RegisterGameController(
-									SCA_IController *cont,
-									struct bController *for_controller)
+void KX_BlenderSceneConverter::RegisterGameController(SCA_IController *cont, struct bController *for_controller)
 {
 	m_map_blender_to_gamecontroller.insert(CHashedPtr(for_controller), cont);
 }
 
-
-
-SCA_IController *KX_BlenderSceneConverter::FindGameController(
-									struct bController *for_controller)
+SCA_IController *KX_BlenderSceneConverter::FindGameController(struct bController *for_controller)
 {
 	SCA_IController **contp = m_map_blender_to_gamecontroller[CHashedPtr(for_controller)];
-	
 	return contp?*contp:NULL;
 }
 
 
 
-void KX_BlenderSceneConverter::RegisterWorldInfo(
-									KX_WorldInfo *worldinfo)
+void KX_BlenderSceneConverter::RegisterWorldInfo(KX_WorldInfo *worldinfo)
 {
 	m_worldinfos.push_back(pair<KX_Scene*,KX_WorldInfo*>(m_currentScene,worldinfo));
 }
