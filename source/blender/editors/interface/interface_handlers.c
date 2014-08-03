@@ -385,7 +385,7 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 	}
 }
 
-static bool ui_but_is_editable(const uiBut *but)
+bool ui_but_is_editable(const uiBut *but)
 {
 	return !ELEM(but->type, LABEL, SEPR, SEPRLINE, ROUNDBOX, LISTBOX, PROGRESSBAR);
 }
@@ -7199,6 +7199,17 @@ void ui_button_activate_do(bContext *C, ARegion *ar, uiBut *but)
 	ui_do_button(C, but->block, but, &event);
 }
 
+/**
+ * Simulate moving the mouse over a button (or navigating to it with arrow keys).
+ *
+ * exported so menus can start with a highlighted button,
+ * even if the mouse isnt over it
+ */
+void ui_button_activate_over(bContext *C, ARegion *ar, uiBut *but)
+{
+	button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
+}
+
 void ui_button_execute_begin(struct bContext *UNUSED(C), struct ARegion *ar, uiBut *but, void **active_back)
 {
 	/* note: ideally we would not have to change 'but->active' however
@@ -7261,12 +7272,20 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				retval = WM_UI_HANDLER_CONTINUE;
 				break;
 			case MOUSEMOVE:
-				/* verify if we are still over the button, if not exit */
-				if (!ui_mouse_inside_button(ar, but, event->x, event->y)) {
-					data->cancel = true;
-					button_activate_state(C, but, BUTTON_STATE_EXIT);
+			{
+				uiBut *but_other = ui_but_find_mouse_over(ar, event);
+				bool exit = false;
+
+				if (!ui_block_is_menu(block) &&
+				    !ui_mouse_inside_button(ar, but, event->x, event->y))
+				{
+					exit = true;
 				}
-				else if (ui_but_find_mouse_over(ar, event) != but) {
+				else if (but_other && ui_but_is_editable(but_other) && (but_other != but)) {
+					exit = true;
+				}
+
+				if (exit) {
 					data->cancel = true;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
@@ -7277,6 +7296,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				}
 
 				break;
+			}
 			case TIMER:
 			{
 				/* handle tooltip timer */
@@ -7858,6 +7878,16 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
 	ARegion *ar = menu->region;
 	uiBut *but = ui_but_find_activated(ar);
 	int retval;
+
+	if (but) {
+		/* Its possible there is an active menu item NOT under the mouse,
+		 * in this case ignore mouse clicks outside the button (but Enter etc is accepted) */
+		if ((event->type != MOUSEMOVE) && ISMOUSE(event->type)) {
+			if (!ui_mouse_inside_button(but->active->region, but, event->x, event->y)) {
+				but = NULL;
+			}
+		}
+	}
 
 	if (but) {
 		ScrArea *ctx_area = CTX_wm_area(C);

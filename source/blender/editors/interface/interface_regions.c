@@ -2408,6 +2408,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	if (pup->popup) {
+		uiBut *but_activate = NULL;
 		uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_NUMSELECT);
 		uiBlockSetDirection(block, direction);
 
@@ -2421,6 +2422,10 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			 * block to be under the mouse */
 			offset[0] = -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect));
 			offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
+
+			if (ui_but_is_editable(bt)) {
+				but_activate = bt;
+			}
 		}
 		else {
 			/* position mouse at 0.8*width of the button and below the tile
@@ -2430,6 +2435,20 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 				offset[0] = min_ii(offset[0], -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect)));
 
 			offset[1] = 2.1 * UI_UNIT_Y;
+
+			for (bt = block->buttons.first; bt; bt = bt->next) {
+				if (ui_but_is_editable(bt)) {
+					but_activate = bt;
+					break;
+				}
+			}
+		}
+
+		/* in rare cases this is needed since moving the popup
+		 * to be within the window bounds may move it away from the mouse,
+		 * This ensures we set an item to be active. */
+		if (but_activate) {
+			ui_button_activate_over(C, handle->region, but_activate);
 		}
 
 		block->minbounds = minwidth;

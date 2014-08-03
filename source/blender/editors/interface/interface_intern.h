@@ -552,6 +552,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol
 PointerRNA *ui_handle_afterfunc_add_operator(struct wmOperatorType *ot, int opcontext, bool create_props);
 extern void ui_pan_to_scroll(const struct wmEvent *event, int *type, int *val);
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
+extern void ui_button_activate_over(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_execute_begin(struct bContext *C, struct ARegion *ar, uiBut *but, void **active_back);
 extern void ui_button_execute_end(struct bContext *C, struct ARegion *ar, uiBut *but, void *active_back);
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
@@ -559,6 +560,7 @@ extern bool ui_button_is_active(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
 extern int ui_button_open_menu_direction(uiBut *but);
 extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
 extern uiBut *ui_but_find_activated(struct ARegion *ar);
+bool ui_but_is_editable(const uiBut *but);
 
 void ui_button_clipboard_free(void);
 void ui_panel_menu(struct bContext *C, ARegion *ar, Panel *pa);
