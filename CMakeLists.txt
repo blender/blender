@@ -322,7 +322,9 @@ if(APPLE)
 	endif()
 	
 	execute_process(COMMAND uname -r OUTPUT_VARIABLE MAC_SYS) # check for actual system-version
-	if(${MAC_SYS} MATCHES 13)
+	if(${MAC_SYS} MATCHES 14)
+		set(OSX_SYSTEM 10.10)
+	elseif(${MAC_SYS} MATCHES 13)
 		set(OSX_SYSTEM 10.9)
 	elseif(${MAC_SYS} MATCHES 12)
 		set(OSX_SYSTEM 10.8)

@@ -323,7 +323,10 @@ if env['OURPLATFORM']=='darwin':
     print B.bc.OKGREEN + "Available SDK's: \n" + B.bc.ENDC + MACOSX_SDK_CHECK.replace('\t', '')
 
     if env['MACOSX_SDK'] == '': # no set sdk, choosing best one found
-        if 'OS X 10.9' in MACOSX_SDK_CHECK:
+        if 'OS X 10.10' in MACOSX_SDK_CHECK:
+            env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+            env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.10.sdk'
+        elif 'OS X 10.9' in MACOSX_SDK_CHECK:
             env['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
             env['MACOSX_SDK']='/Developer/SDKs/MacOSX10.9.sdk'
         elif 'OS X 10.8' in MACOSX_SDK_CHECK:
