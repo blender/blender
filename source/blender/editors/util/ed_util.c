@@ -86,7 +86,7 @@ void ED_editors_init(bContext *C)
 
 	/* This is called during initialization, so we don't want to store any reports */
 	ReportList *reports = CTX_wm_reports(C);
-	int reports_flag_prev = reports->flag &= ~RPT_STORE;
+	int reports_flag_prev = reports->flag & ~RPT_STORE;
 
 	SWAP(int, reports->flag, reports_flag_prev);
 
