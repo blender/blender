@@ -7882,7 +7882,10 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
 	if (but) {
 		/* Its possible there is an active menu item NOT under the mouse,
 		 * in this case ignore mouse clicks outside the button (but Enter etc is accepted) */
-		if ((event->type != MOUSEMOVE) && ISMOUSE(event->type)) {
+		if (event->val == KM_RELEASE) {
+			/* pass, needed so we can exit active menu-items when click-dragging out of them */
+		}
+		else if ((event->type != MOUSEMOVE) && ISMOUSE(event->type)) {
 			if (!ui_mouse_inside_button(but->active->region, but, event->x, event->y)) {
 				but = NULL;
 			}
