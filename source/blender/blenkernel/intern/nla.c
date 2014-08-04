@@ -430,7 +430,7 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
 			return (strip->end + (strip->actstart * scale - cframe)) / scale;
 		}
 		else { /* if (mode == NLATIME_CONVERT_EVAL) */
-			if (IS_EQF(cframe, strip->end) && IS_EQF(strip->repeat, ((int)strip->repeat))) {
+			if (IS_EQF((float)cframe, strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
 				/* this case prevents the motion snapping back to the first frame at the end of the strip 
 				 * by catching the case where repeats is a whole number, which means that the end of the strip
 				 * could also be interpreted as the end of the start of a repeat
@@ -453,7 +453,7 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
 			return strip->actstart + (cframe - strip->start) / scale;
 		}
 		else { /* if (mode == NLATIME_CONVERT_EVAL) */
-			if (IS_EQF(cframe, strip->end) && IS_EQF(strip->repeat, ((int)strip->repeat))) {
+			if (IS_EQF(cframe, strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
 				/* this case prevents the motion snapping back to the first frame at the end of the strip 
 				 * by catching the case where repeats is a whole number, which means that the end of the strip
 				 * could also be interpreted as the end of the start of a repeat

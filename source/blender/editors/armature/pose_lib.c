@@ -307,7 +307,7 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
 		/* check if any pose matches this */
 		/* TODO: don't go looking through the list like this every time... */
 		for (marker = act->markers.first; marker; marker = marker->next) {
-			if (IS_EQ(marker->frame, (double)ak->cfra)) {
+			if (IS_EQ((double)marker->frame, (double)ak->cfra)) {
 				marker->flag = -1;
 				break;
 			}
