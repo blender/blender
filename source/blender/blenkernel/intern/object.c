@@ -1994,17 +1994,20 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 		 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
 		 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 		 */
-		if (IS_EQF(cu->pathlen, 0.0f) == 0)
+		if (cu->pathlen) {
 			ctime = cu->ctime / cu->pathlen;
-		else
+		}
+		else {
 			ctime = cu->ctime;
+		}
 
 		CLAMP(ctime, 0.0f, 1.0f);
 	}
 	else {
 		ctime = BKE_scene_frame_get(scene);
-		if (IS_EQF(cu->pathlen, 0.0f) == 0)
+		if (cu->pathlen) {
 			ctime /= cu->pathlen;
+		}
 		
 		CLAMP(ctime, 0.0f, 1.0f);
 	}
