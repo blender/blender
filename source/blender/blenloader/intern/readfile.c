@@ -434,8 +434,7 @@ void blo_join_main(ListBase *mainlist)
 	while ((tojoin = mainl->next)) {
 		add_main_to_main(mainl, tojoin);
 		BLI_remlink(mainlist, tojoin);
-		MEM_freeN(tojoin->eval_ctx);
-		MEM_freeN(tojoin);
+		BKE_main_free(tojoin);
 	}
 }
 
