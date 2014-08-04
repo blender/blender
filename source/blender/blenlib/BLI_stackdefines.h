@@ -36,7 +36,7 @@
 #  define _STACK_SWAP_TOTALLOC(stack_a, stack_b) SWAP(unsigned int, _##stack_a##_totalloc, _##stack_b##_totalloc)
 #else
 #  define STACK_DECLARE(stack)   unsigned int _##stack##_index
-#  define STACK_INIT(stack, tot) ((void)stack, (void)((_##stack##_index) = 0), (void)(tot))
+#  define STACK_INIT(stack, tot) ((void)stack, (void)((_##stack##_index) = 0), (void)(0 ? tot : 0))
 #  define _STACK_SIZETEST(stack, off) (void)(stack), (void)(off)
 #  define _STACK_SWAP_TOTALLOC(stack_a, stack_b) (void)(stack_a), (void)(stack_b)
 #endif
@@ -57,9 +57,12 @@
 #define STACK_PEEK_PTR(stack)       (BLI_assert(_##stack##_index), &((stack)[_##stack##_index - 1]))
 /** remove any item from the stack, take care, re-orders */
 #define STACK_REMOVE(stack, i) \
-	_STACK_BOUNDSTEST(stack, i); \
-	if (--_##stack##_index != i) { \
-		stack[i] = stack[_##stack##_index]; \
+	{ \
+		const unsigned int _i = i; \
+		_STACK_BOUNDSTEST(stack, _i); \
+		if (--_##stack##_index != _i) { \
+			stack[_i] = stack[_##stack##_index]; \
+		} \
 	} (void)0
 #ifdef __GNUC__
 #define STACK_SWAP(stack_a, stack_b) { \

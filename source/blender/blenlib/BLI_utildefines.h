@@ -59,7 +59,6 @@
 #define VA_NARGS_CALL_OVERLOAD(name, ...) \
 	_VA_NARGS_GLUE(_VA_NARGS_OVERLOAD_MACRO(name, _VA_NARGS_COUNT_MAX16(__VA_ARGS__)), (__VA_ARGS__))
 
-
 /* useful for finding bad use of min/max */
 #if 0
 /* gcc only */
@@ -181,8 +180,14 @@
 #endif
 
 /* can be used in simple macros */
-#define CHECK_TYPE_INLINE(val, type) \
-	((void)(((type)0) != (val)))
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#  define CHECK_TYPE_INLINE(val, type) \
+	(void)((void)(((type)0) != (0 ? (val) : ((type)0))), \
+	       _Generic((val), type: 0, const type: 0))
+#else
+#  define CHECK_TYPE_INLINE(val, type) \
+	((void)(((type)0) != (0 ? (val) : ((type)0))))
+#endif
 
 #define CHECK_TYPE_NONCONST(var)  {      \
 	void *non_const = 0 ? (var) : NULL;  \
