@@ -465,11 +465,13 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, bool do_clip)
 	 * properties are always being edited, weak */
 	viewlock = rv3d->viewlock;
 
-	if ((viewlock & RV3D_LOCKED) == 0)
+	if ((viewlock & RV3D_LOCKED) == 0) {
+		do_clip = (viewlock & RV3D_BOXCLIP) != 0;
 		viewlock = 0;
-	else if ((viewlock & RV3D_BOXVIEW) == 0) {
-		viewlock &= ~RV3D_BOXCLIP;
+	}
+	else if ((viewlock & RV3D_BOXVIEW) == 0 && (viewlock & RV3D_BOXCLIP) != 0) {
 		do_clip = true;
+		viewlock &= ~RV3D_BOXCLIP;
 	}
 
 	for (; ar; ar = ar->prev) {
