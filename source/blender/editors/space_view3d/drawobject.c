@@ -7183,7 +7183,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (ob->restrictflag & OB_RESTRICT_RENDER)
 				return;
 			
-			if (!has_particles && (ob->transflag & OB_DUPLI))
+			if (!has_particles && (ob->transflag & (OB_DUPLI & ~OB_DUPLIFRAMES)))
 				return;
 		}
 	}
