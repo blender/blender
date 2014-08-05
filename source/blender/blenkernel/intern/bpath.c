@@ -107,7 +107,7 @@ typedef struct BPathRemap_Data {
 	int count_failed;
 } BPathRemap_Data;
 
-static bool makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char *path_src)
+static bool bpath_relative_convert_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
 	BPathRemap_Data *data = (BPathRemap_Data *)userdata;
 
@@ -133,6 +133,7 @@ static bool makeFilesRelative_visit_cb(void *userdata, char *path_dst, const cha
 void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *reports)
 {
 	BPathRemap_Data data = {NULL};
+	const int flag = BKE_BPATH_TRAVERSE_SKIP_LIBRARY;
 
 	if (basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
@@ -142,14 +143,14 @@ void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *re
 	data.basedir = basedir;
 	data.reports = reports;
 
-	BKE_bpath_traverse_main(bmain, makeFilesRelative_visit_cb, 0, (void *)&data);
+	BKE_bpath_traverse_main(bmain, bpath_relative_convert_visit_cb, flag, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
 	            "Total files %d | Changed %d | Failed %d",
 	            data.count_tot, data.count_changed, data.count_failed);
 }
 
-static bool makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char *path_src)
+static bool bpath_absolute_convert_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
 	BPathRemap_Data *data = (BPathRemap_Data *)userdata;
 
@@ -176,6 +177,7 @@ static bool makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const cha
 void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *reports)
 {
 	BPathRemap_Data data = {NULL};
+	const int flag = BKE_BPATH_TRAVERSE_SKIP_LIBRARY;
 
 	if (basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
@@ -185,7 +187,7 @@ void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
 	data.basedir = basedir;
 	data.reports = reports;
 
-	BKE_bpath_traverse_main(bmain, makeFilesAbsolute_visit_cb, 0, (void *)&data);
+	BKE_bpath_traverse_main(bmain, bpath_absolute_convert_visit_cb, flag, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
 	            "Total files %d | Changed %d | Failed %d",
