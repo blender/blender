@@ -414,8 +414,8 @@ macro(setup_liblinks
 
 	# We put CLEW and CUEW here because OPENSUBDIV_LIBRARIES dpeends on them..
 	if(WITH_CYCLES OR WITH_COMPOSITOR OR WITH_OPENSUBDIV)
-		target_link_libraries(blender "extern_clew")
-		target_link_libraries(blender "extern_cuew")
+		target_link_libraries(${target} "extern_clew")
+		target_link_libraries(${target} "extern_cuew")
 	endif()
 endmacro()
 
