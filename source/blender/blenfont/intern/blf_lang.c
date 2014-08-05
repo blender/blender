@@ -235,15 +235,11 @@ void BLF_lang_set(const char *str)
 		else {
 			short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
 		}
+		bl_locale_set(short_locale_utf8);
+		MEM_freeN((void *)short_locale_utf8);
 	}
 	else {
-		short_locale_utf8 = short_locale;
-	}
-
-	bl_locale_set(short_locale_utf8);
-
-	if (short_locale[0]) {
-		MEM_freeN((void *)short_locale_utf8);
+		bl_locale_set(short_locale);
 	}
 #else
 	(void)str;
