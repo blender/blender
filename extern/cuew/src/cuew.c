@@ -686,7 +686,7 @@ int cuewCompilerVersion(void) {
 
   while (!feof(pipe)) {
     if (fgets(buf, sizeof(buf), pipe) != NULL) {
-      strncat(output, buf, sizeof(output) - strlen(output));
+      strncat(output, buf, sizeof(output) - strlen(output) - 1 );
     }
   }
 
