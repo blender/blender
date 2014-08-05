@@ -260,12 +260,18 @@ bool OSLShaderManager::osl_compile(const string& inputfile, const string& output
 	options.push_back(outputfile);
 
 	/* specify standard include path */
-	options.push_back("-I" + path_get("shader"));
+	options.push_back("-I");
+	options.push_back(path_get("shader"));
+
 	stdosl_path = path_get("shader/stdosl.h");
 
 	/* compile */
 	OSL::OSLCompiler *compiler = OSL::OSLCompiler::create();
+#if OSL_LIBRARY_VERSION_CODE >= 10500
+	bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
+#else
 	bool ok = compiler->compile(inputfile, options, stdosl_path);
+#endif
 	delete compiler;
 
 	return ok;
