@@ -137,7 +137,7 @@ if(WIN32)
 	execute_process(COMMAND cmd /c time /t OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
-# Write a file with the SVNVERSION define
+# Write a file with the BUILD_HASH define
 file(WRITE buildinfo.h.txt
 	"#define BUILD_HASH \"${MY_WC_HASH}\"\n"
 	"#define BUILD_COMMIT_TIMESTAMP ${MY_WC_COMMIT_TIMESTAMP}\n"

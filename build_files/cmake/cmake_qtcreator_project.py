@@ -27,7 +27,7 @@ Example Win32 usage:
  c:\Python32\python.exe c:\blender_dev\blender\build_files\cmake\cmake_qtcreator_project.py c:\blender_dev\cmake_build
 
 example linux usage
- python .~/blenderSVN/blender/build_files/cmake/cmake_qtcreator_project.py ~/blenderSVN/cmake
+ python .~/blender-git/blender/build_files/cmake/cmake_qtcreator_project.py ~/blender-git/cmake
 """
 
 from project_info import (SIMPLE_PROJECTFILE,
@@ -133,7 +133,7 @@ def create_qtc_project_python():
     if 0:
         PROJECT_NAME = "Blender_Python"
     else:
-        # be tricky, get the project name from SVN if we can!
+        # be tricky, get the project name from git if we can!
         PROJECT_NAME = project_name_get() + "_Python"
 
     FILE_NAME = PROJECT_NAME.lower()

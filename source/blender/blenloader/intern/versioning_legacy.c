@@ -2232,7 +2232,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			}
 
 			if (sce->r.mode & R_PANORAMA) {
-				/* all these checks to ensure saved files with svn version keep working... */
+				/* all these checks to ensure saved files between released versions keep working... */
 				if (sce->r.xsch < sce->r.ysch) {
 					Object *obc = blo_do_versions_newlibadr(fd, lib, sce->camera);
 					if (obc && obc->type == OB_CAMERA) {
