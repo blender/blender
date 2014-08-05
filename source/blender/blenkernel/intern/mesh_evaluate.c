@@ -731,7 +731,7 @@ void BKE_mesh_loop_tangents(Mesh *mesh, const char *uvmap, float (*r_looptangent
 	}
 
 	BKE_mesh_loop_tangents_ex(mesh->mvert, mesh->totvert, mesh->mloop, r_looptangents,
-                              loopnors, loopuvs, mesh->totloop, mesh->mpoly, mesh->totpoly, reports);
+	                          loopnors, loopuvs, mesh->totloop, mesh->mpoly, mesh->totpoly, reports);
 }
 
 /** \} */

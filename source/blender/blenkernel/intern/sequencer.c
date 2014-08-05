@@ -2225,7 +2225,7 @@ static ImBuf *seq_render_effect_execute_threaded(struct SeqEffectHandle *sh, con
 	init_data.out = out;
 
 	IMB_processor_apply_threaded(out->y, sizeof(RenderEffectThread), &init_data,
-                                 render_effect_execute_init_handle, render_effect_execute_do_thread);
+	                             render_effect_execute_init_handle, render_effect_execute_do_thread);
 
 	return out;
 }

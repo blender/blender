@@ -616,7 +616,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	}
 
 	mat_orig_to_new = MEM_mallocN(sizeof(*mat_orig_to_new) * dm->totmat,
-                                  "GPU_buffer_setup.mat_orig_to_new");
+	                              "GPU_buffer_setup.mat_orig_to_new");
 	cur_index_per_mat = MEM_mallocN(sizeof(int) * object->totmaterial,
 	                                "GPU_buffer_setup.cur_index_per_mat");
 	for (i = 0; i < object->totmaterial; i++) {

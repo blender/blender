@@ -165,8 +165,8 @@ public:
 
 class MathAbsoluteOperation : public MathBaseOperation {
 public:
-    MathAbsoluteOperation() : MathBaseOperation() {}
-    void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+	MathAbsoluteOperation() : MathBaseOperation() {}
+	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

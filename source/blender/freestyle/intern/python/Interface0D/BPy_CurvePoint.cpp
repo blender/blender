@@ -186,9 +186,9 @@ PyDoc_STRVAR(CurvePoint_fedge_doc,
 
 static PyObject *CurvePoint_fedge_get(BPy_CurvePoint *self, void *UNUSED(closure))
 {
-    SVertex *A = self->cp->A();
-    Interface0D *B = (Interface0D *)self->cp->B();
-    return Any_BPy_Interface1D_from_Interface1D(*(A->getFEdge(*B)));
+	SVertex *A = self->cp->A();
+	Interface0D *B = (Interface0D *)self->cp->B();
+	return Any_BPy_Interface1D_from_Interface1D(*(A->getFEdge(*B)));
 }
 
 PyDoc_STRVAR(CurvePoint_t2d_doc,

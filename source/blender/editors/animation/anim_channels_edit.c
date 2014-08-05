@@ -901,10 +901,10 @@ static void rearrange_animchannels_filter_visible(ListBase *anim_data_visible, b
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale, *ale_next;
-    int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+	int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	
 	/* get all visible channels */
-    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* now, only keep the ones that are of the types we are interested in */
 	for (ale = anim_data.first; ale; ale = ale_next) {

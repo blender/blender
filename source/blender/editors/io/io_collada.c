@@ -250,7 +250,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, false);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemL(split, IFACE_("Transformation Type"), ICON_NONE);
+	uiItemL(split, IFACE_("Transformation Type"), ICON_NONE);
 	uiItemR(split, imfptr, "export_transformation_type_selection", 0, "", ICON_NONE);
 
 	row = uiLayoutRow(box, false);

@@ -335,12 +335,11 @@ void MathModuloOperation::executePixelSampled(float output[4], float x, float y,
 
 void MathAbsoluteOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-    float inputValue1[4];
+	float inputValue1[4];
 
-    this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
 
-    output[0] = fabs(inputValue1[0]);
+	output[0] = fabs(inputValue1[0]);
 
-    clampIfNeeded(output);
+	clampIfNeeded(output);
 }
-
