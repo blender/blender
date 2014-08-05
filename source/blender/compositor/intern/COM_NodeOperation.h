@@ -38,7 +38,7 @@ extern "C" {
 #include "COM_MemoryProxy.h"
 #include "COM_SocketReader.h"
 
-#include "OCL_opencl.h"
+#include "clew.h"
 
 using std::list;
 using std::min;

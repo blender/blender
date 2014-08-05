@@ -20,12 +20,13 @@
 #include "device.h"
 #include "device_intern.h"
 
-#include "util_cuda.h"
+#include "cuew.h"
+#include "clew.h"
+
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_half.h"
 #include "util_math.h"
-#include "util_opencl.h"
 #include "util_opengl.h"
 #include "util_time.h"
 #include "util_types.h"
@@ -141,7 +142,7 @@ Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
 			break;
 #ifdef WITH_CUDA
 		case DEVICE_CUDA:
-			if(cuLibraryInit())
+			if(device_cuda_init())
 				device = device_cuda_create(info, stats, background);
 			else
 				device = NULL;
@@ -159,7 +160,7 @@ Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
 #endif
 #ifdef WITH_OPENCL
 		case DEVICE_OPENCL:
-			if(clLibraryInit())
+			if(device_opencl_init())
 				device = device_opencl_create(info, stats, background);
 			else
 				device = NULL;
@@ -213,12 +214,12 @@ vector<DeviceType>& Device::available_types()
 		types.push_back(DEVICE_CPU);
 
 #ifdef WITH_CUDA
-		if(cuLibraryInit())
+		if(device_cuda_init())
 			types.push_back(DEVICE_CUDA);
 #endif
 
 #ifdef WITH_OPENCL
-		if(clLibraryInit())
+		if(device_opencl_init())
 			types.push_back(DEVICE_OPENCL);
 #endif
 
@@ -242,12 +243,12 @@ vector<DeviceInfo>& Device::available_devices()
 
 	if(!devices_init) {
 #ifdef WITH_CUDA
-		if(cuLibraryInit())
+		if(device_cuda_init())
 			device_cuda_info(devices);
 #endif
 
 #ifdef WITH_OPENCL
-		if(clLibraryInit())
+		if(device_opencl_init())
 			device_opencl_info(devices);
 #endif
 

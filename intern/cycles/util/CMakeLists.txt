@@ -10,10 +10,8 @@ set(INC_SYS
 
 set(SRC
 	util_cache.cpp
-	util_cuda.cpp
 	util_dynlib.cpp
 	util_md5.cpp
-	util_opencl.cpp
 	util_path.cpp
 	util_string.cpp
 	util_simd.cpp
@@ -34,7 +32,6 @@ set(SRC_HEADERS
 	util_args.h
 	util_boundbox.h
 	util_cache.h
-	util_cuda.h
 	util_debug.h
 	util_dynlib.h
 	util_foreach.h
@@ -46,7 +43,6 @@ set(SRC_HEADERS
 	util_map.h
 	util_math.h
 	util_md5.h
-	util_opencl.h
 	util_opengl.h
 	util_optimization.h
 	util_param.h

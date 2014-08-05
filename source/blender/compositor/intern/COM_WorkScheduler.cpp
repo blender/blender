@@ -28,7 +28,7 @@
 #include "COM_CPUDevice.h"
 #include "COM_OpenCLDevice.h"
 #include "COM_OpenCLKernels.cl.h"
-#include "OCL_opencl.h"
+#include "clew.h"
 #include "COM_WriteBufferOperation.h"
 
 #include "MEM_guardedalloc.h"
@@ -274,7 +274,7 @@ bool WorkScheduler::hasGPUDevices()
 #endif
 }
 
-static void clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
+static void CL_CALLBACK clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
 {
 	printf("OPENCL error: %s\n", errinfo);
 }
@@ -326,7 +326,7 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
 		g_context = NULL;
 		g_program = NULL;
 
-		if (!OCL_init()) /* this will check for errors and skip if already initialized */
+		if (clewInit() != CLEW_SUCCESS) /* this will check for errors and skip if already initialized */
 			return;
 
 		if (clCreateContextFromType) {

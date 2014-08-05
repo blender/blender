@@ -27,38 +27,9 @@
 
 Import ('env')
 
-SConscript(['audaspace/SConscript',
-            'string/SConscript',
-            'ghost/SConscript',
-            'guardedalloc/SConscript',
-            'moto/SConscript',
-            'memutil/SConscript/',
-            'iksolver/SConscript',
-            'itasc/SConscript',
-            'opencolorio/SConscript',
-            'opennl/SConscript',
-            'mikktspace/SConscript',
-            'smoke/SConscript',
-            'raskter/SConscript'])
+sources = env.Glob('src/cuew.c')
 
-# currently only contains headers
-# SConscript('container/SConscript')
+incs = 'include'
+defs = []
 
-if env ['WITH_BF_REMESH']:
-    SConscript(['dualcon/SConscript'])
-
-if env['WITH_BF_FLUID']:
-    SConscript(['elbeem/SConscript'])
-
-if env['WITH_BF_CYCLES']:
-    SConscript(['cycles/SConscript'])
-
-if env['WITH_BF_INTERNATIONAL']:
-    SConscript(['locale/SConscript'])
-
-if env['WITH_BF_BULLET']:
-    SConscript (['rigidbody/SConscript'])
-
-if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-mingw', 'linuxcross', 'win64-vc'):
-    SConscript(['utfconv/SConscript'])
-
+env.BlenderLib ('extern_cuew', sources, Split(incs), defines=defs, libtype=['system'], priority = [0])

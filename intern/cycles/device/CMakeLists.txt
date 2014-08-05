@@ -11,6 +11,8 @@ set(INC
 set(INC_SYS
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_PATH}
+	../../../extern/cuew/include
+	../../../extern/clew/include
 )
 
 set(SRC

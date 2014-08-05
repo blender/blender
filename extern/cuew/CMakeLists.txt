@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -21,14 +19,22 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Nathan Letwory.
+# Contributor(s): Jacques Beaurain.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-Import ('env')
+set(INC
+	.
+	include
+)
 
-sources = env.Glob('intern/*.c')
+set(INC_SYS
 
-incs = '.'
+)
 
-env.BlenderLib ( 'bf_intern_opencl', sources, Split(incs), libtype=['core','player'], priority = [192,192] )
+set(SRC
+	include/cuew.h
+	src/cuew.c
+)
+
+blender_add_lib(extern_cuew "${SRC}" "${INC}" "${INC_SYS}")

@@ -411,6 +411,12 @@ macro(setup_liblinks
 	endif()
 
 	target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
+
+	# We put CLEW and CUEW here because OPENSUBDIV_LIBRARIES dpeends on them..
+	if(WITH_CYCLES OR WITH_COMPOSITOR OR WITH_OPENSUBDIV)
+		target_link_libraries(blender "extern_clew")
+		target_link_libraries(blender "extern_cuew")
+	endif()
 endmacro()
 
 macro(SETUP_BLENDER_SORTED_LIBS)

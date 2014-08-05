@@ -26,7 +26,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 Import ('env')
-defs = ['GLEW_STATIC']
+defs = ['GLEW_STATIC', 'CL_USE_DEPRECATED_OPENCL_1_1_APIS']
 
 sources_intern = env.Glob('intern/*.cpp')
 sources_nodes = env.Glob('nodes/*.cpp')
@@ -37,7 +37,7 @@ incs = [
     'intern',
     'nodes',
     'operations',
-    '#/intern/opencl',
+    '#/extern/clew/include',
     '../blenkernel',
     '../blenlib',
     '../imbuf',

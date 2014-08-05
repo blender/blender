@@ -23,61 +23,20 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# add_subdirectory(atomic)  # header only
-add_subdirectory(string)
-add_subdirectory(ghost)
-add_subdirectory(guardedalloc)
-add_subdirectory(memutil)
-add_subdirectory(opencolorio)
-add_subdirectory(mikktspace)
-add_subdirectory(raskter)
+set(INC
+	.
+	include
+)
 
-if(WITH_AUDASPACE)
-	add_subdirectory(audaspace)
-endif()
+set(INC_SYS
 
-if(WITH_MOD_REMESH)
-	add_subdirectory(dualcon)
-endif()
+)
 
-if(WITH_MOD_FLUID)
-	add_subdirectory(elbeem)
-endif()
+set(SRC
+	include/clew.h
+	src/clew.c
+)
 
-if(WITH_MOD_SMOKE)
-	add_subdirectory(smoke)
-endif()
+add_definitions(-DCL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
-if(WITH_IK_SOLVER)
-	add_subdirectory(iksolver)
-endif()
-
-if(WITH_IK_ITASC)
-	add_subdirectory(itasc)
-endif()
-
-if(WITH_IK_SOLVER OR WITH_GAMEENGINE OR WITH_MOD_BOOLEAN)
-	add_subdirectory(moto)
-endif()
-
-if(WITH_CYCLES)
-	add_subdirectory(cycles)
-endif()
-
-if(WITH_INTERNATIONAL)
-	add_subdirectory(locale)
-endif()
-
-if(WITH_BULLET)
-	add_subdirectory(rigidbody)
-endif()
-
-if(WITH_OPENNL)
-	add_subdirectory(opennl)
-endif()
-
-# only windows needs utf16 converter
-if(WIN32)
-	add_subdirectory(utfconv)
-endif()
-
+blender_add_lib(extern_clew "${SRC}" "${INC}" "${INC_SYS}")

@@ -25,11 +25,12 @@
 
 #include "buffers.h"
 
+#include "clew.h"
+
 #include "util_foreach.h"
 #include "util_map.h"
 #include "util_math.h"
 #include "util_md5.h"
-#include "util_opencl.h"
 #include "util_opengl.h"
 #include "util_path.h"
 #include "util_time.h"
@@ -552,7 +553,7 @@ public:
 		device_initialized = true;
 	}
 
-	static void context_notify_callback(const char *err_info,
+	static void CL_CALLBACK context_notify_callback(const char *err_info,
 		const void *private_info, size_t cb, void *user_data)
 	{
 		char name[256];
@@ -1160,6 +1161,26 @@ public:
 Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 {
 	return new OpenCLDevice(info, stats, background);
+}
+
+bool device_opencl_init(void) {
+	static bool initialized = false;
+	static bool result = false;
+
+	if (initialized)
+		return result;
+
+	initialized = true;
+
+	// OpenCL disabled for now, only works with this environment variable set
+	if(!getenv("CYCLES_OPENCL_TEST")) {
+		result = false;
+	}
+	else {
+		result = clewInit() == CLEW_SUCCESS;
+	}
+
+	return result;
 }
 
 void device_opencl_info(vector<DeviceInfo>& devices)

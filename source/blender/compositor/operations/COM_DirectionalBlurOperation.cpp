@@ -109,8 +109,8 @@ void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
 	cl_kernel directionalBlurKernel = device->COM_clCreateKernel("directionalBlurKernel", NULL);
 
 	cl_int iterations = pow(2.0f, this->m_data->iter);
-	cl_float2 ltxy = {this->m_tx,  this->m_ty};
-	cl_float2 centerpix = {this->m_center_x_pix, this->m_center_y_pix};
+	cl_float2 ltxy = {{this->m_tx,  this->m_ty}};
+	cl_float2 centerpix = {{this->m_center_x_pix, this->m_center_y_pix}};
 	cl_float lsc = this->m_sc;
 	cl_float lrot = this->m_rot;
 	

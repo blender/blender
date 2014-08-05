@@ -28,6 +28,8 @@ set(LIBRARIES
 	${JPEG_LIBRARIES}
 	${ZLIB_LIBRARIES}
 	${TIFF_LIBRARY}
+	extern_clew
+	extern_cuew
 )
 
 if(WIN32)

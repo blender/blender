@@ -32,7 +32,7 @@ extern "C" {
 #include "COM_compositor.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_WorkScheduler.h"
-#include "OCL_opencl.h"
+#include "clew.h"
 #include "COM_MovieDistortionOperation.h"
 
 static ThreadMutex s_compositorMutex;
