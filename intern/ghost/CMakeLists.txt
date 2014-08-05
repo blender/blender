@@ -129,7 +129,7 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
 	endif()
 
 
-	# ack, this is still system dependant
+	# ack, this is still system dependent
 	if(APPLE)
 		list(APPEND SRC
 			intern/GHOST_SystemPathsCocoa.mm

@@ -2403,7 +2403,7 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
 
 /* Overview of how this system works:
  *	1) Depsgraph sorts data as necessary, so that data is in an order that means 
- *		that all dependencies are resolved before dependants.
+ *		that all dependencies are resolved before dependents.
  *	2) All normal animation is evaluated, so that drivers have some basis values to
  *		work with
  *		a.	NLA stacks are done first, as the Active Actions act as 'tweaking' tracks

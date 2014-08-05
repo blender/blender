@@ -333,7 +333,7 @@ protected:
 	virtual GHOST_TSuccess createFullScreenWindow(GHOST_Window **window, const GHOST_DisplaySetting &settings,
 	                                              const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0);
 
-	/** The display manager (platform dependant). */
+	/** The display manager (platform dependent). */
 	GHOST_DisplayManager *m_displayManager;
 
 	/** The timer manager. */
