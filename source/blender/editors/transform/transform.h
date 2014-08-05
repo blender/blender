@@ -130,15 +130,15 @@ typedef struct TransDataExtension {
 	// float drotAxis[3];	 /* Initial object drotAxis, TODO: not yet implemented */
 	float dquat[4];		 /* Initial object dquat */
 	float dscale[3];     /* Initial object dscale */
-	float *rot;          /* Rotation of the data to transform (Faculative)                                 */
+	float *rot;          /* Rotation of the data to transform                                              */
 	float  irot[3];      /* Initial rotation                                                               */
-	float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
+	float *quat;         /* Rotation quaternion of the data to transform                                   */
 	float  iquat[4];	 /* Initial rotation quaternion                                                    */
-	float *rotAngle;	 /* Rotation angle of the data to transform (Faculative)                           */
+	float *rotAngle;	 /* Rotation angle of the data to transform                                        */
 	float  irotAngle;	 /* Initial rotation angle                                                         */
-	float *rotAxis;		 /* Rotation axis of the data to transform (Faculative)                            */
+	float *rotAxis;		 /* Rotation axis of the data to transform                                         */
 	float  irotAxis[4];	 /* Initial rotation axis                                                          */
-	float *size;         /* Size of the data to transform (Faculative)                                     */
+	float *size;         /* Size of the data to transform                                                  */
 	float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[4][4];	 /* Object matrix */
 	float  l_smtx[3][3]; /* use instead of td->smtx, It is the same but without the 'bone->bone_mat', see TD_PBONE_LOCAL_MTX_C */
