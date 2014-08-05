@@ -25,6 +25,7 @@
 
 #include "cuew.h"
 #include "util_debug.h"
+#include "util_foreach.h"
 #include "util_map.h"
 #include "util_opengl.h"
 #include "util_path.h"
@@ -966,7 +967,10 @@ public:
 
 	int get_split_task_count(DeviceTask& task)
 	{
-		return 1;
+		if (task.type == DeviceTask::SHADER)
+			return task.get_subtask_count(TaskScheduler::num_threads(), 1024 * 1024);
+		else
+			return 1;
 	}
 
 	void task_add(DeviceTask& task)
@@ -978,6 +982,15 @@ public:
 			cuda_push_context();
 			cuda_assert(cuCtxSynchronize());
 			cuda_pop_context();
+		}
+		else if(task.type == DeviceTask::SHADER) {
+			/* split task into smaller ones */
+			list<DeviceTask> tasks;
+
+			task.split(tasks, TaskScheduler::num_threads(), 1024 * 1024);
+
+			foreach(DeviceTask& task, tasks)
+				task_pool.push(new CUDADeviceTask(this, task));
 		}
 		else {
 			task_pool.push(new CUDADeviceTask(this, task));

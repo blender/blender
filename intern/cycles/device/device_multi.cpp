@@ -280,7 +280,18 @@ public:
 
 	int get_split_task_count(DeviceTask& task)
 	{
-		return 1;
+		int total_tasks = 0;
+		list<DeviceTask> tasks;
+		task.split(tasks, devices.size());
+		foreach(SubDevice& sub, devices) {
+			if(!tasks.empty()) {
+				DeviceTask subtask = tasks.front();
+				tasks.pop_front();
+
+				total_tasks += sub.device->get_split_task_count(subtask);
+			}
+		}
+		return total_tasks;
 	}
 
 	void task_add(DeviceTask& task)
