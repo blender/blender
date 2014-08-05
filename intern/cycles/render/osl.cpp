@@ -248,12 +248,13 @@ void OSLShaderManager::shading_system_free()
 
 bool OSLShaderManager::osl_compile(const string& inputfile, const string& outputfile)
 {
-#if OSL_LIBRARY_VERSION_CODE >= 10500
-	vector<string_view> options;
-#else
-	vector<string> options;
+#if OSL_LIBRARY_VERSION_CODE < 10500
+	typedef string string_view;
 #endif
+
+	vector<string_view> options;
 	string stdosl_path;
+	string shader_path = path_get("shader");
 
 	/* specify output file name */
 	options.push_back("-o");
@@ -261,17 +262,13 @@ bool OSLShaderManager::osl_compile(const string& inputfile, const string& output
 
 	/* specify standard include path */
 	options.push_back("-I");
-	options.push_back(path_get("shader"));
+	options.push_back(shader_path);
 
 	stdosl_path = path_get("shader/stdosl.h");
 
 	/* compile */
 	OSL::OSLCompiler *compiler = OSL::OSLCompiler::create();
-#if OSL_LIBRARY_VERSION_CODE >= 10500
 	bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
-#else
-	bool ok = compiler->compile(inputfile, options, stdosl_path);
-#endif
 	delete compiler;
 
 	return ok;
