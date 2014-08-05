@@ -1883,6 +1883,7 @@ elseif(APPLE)
 		             PATHS ${LLVM_LIBPATH})
 
 		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIBPATH)
+			set(LLVM_STATIC ON CACHE BOOL "ON" FORCE) # we use always the static libs default, else gives linking errors
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
