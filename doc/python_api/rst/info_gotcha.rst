@@ -408,17 +408,19 @@ These returns the absolute path which can be used with native python modules.
 Unicode Problems
 ================
 
-Python supports many different encodings so there is nothing stopping you from writing a script in latin1 or iso-8859-15.
+Python supports many different encodings so there is nothing stopping you from
+writing a script in ``latin1`` or ``iso-8859-15``.
 
 See `pep-0263 <http://www.python.org/dev/peps/pep-0263/>`_
 
-However this complicates things for the python api because blend files themselves don't have an encoding.
+However this complicates matters for Blender's Python API because ``.blend`` files don't have an explicit encoding.
 
-To simplify the problem for python integration and script authors we have decided all strings in blend files **must** be UTF-8 or ASCII compatible.
+To avoid the problem for Python integration and script authors we have decided all strings in blend files
+**must** be ``UTF-8``, ``ASCII`` compatible.
 
 This means assigning strings with different encodings to an object names for instance will raise an error.
 
-Paths are an exception to this rule since we cannot ignore the existane of non-utf-8 paths on peoples filesystems.
+Paths are an exception to this rule since we cannot ignore the existence of non ``UTF-8`` paths on users file-system.
 
 This means seemingly harmless expressions can raise errors, eg.
 
