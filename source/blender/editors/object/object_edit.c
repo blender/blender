@@ -596,7 +596,7 @@ static int editmode_toggle_poll(bContext *C)
 	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT))
 		return 0;
 
-	return (ELEM(ob->type, OB_MESH, OB_ARMATURE, OB_FONT, OB_MBALL, OB_LATTICE, OB_SURF, OB_CURVE));
+	return OB_TYPE_SUPPORT_EDITMODE(ob->type);
 }
 
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
