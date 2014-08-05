@@ -66,6 +66,8 @@ public:
 	                         int index, void *val);
 	bool get_attribute(OSL::ShaderGlobals *sg, bool derivatives, ustring object,
 	                   TypeDesc type, ustring name, void *val);
+	bool get_attribute(ShaderData *sd, bool derivatives, ustring object_name,
+	                   TypeDesc type, ustring name, void *val);
 
 	bool get_userdata(bool derivatives, ustring name, TypeDesc type,
 	                  OSL::ShaderGlobals *sg, void *val);
