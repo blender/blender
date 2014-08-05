@@ -927,8 +927,21 @@ bool RNA_path_resolve_property(PointerRNA *ptr, const char *path,
 bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path,
                                     PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
 
+typedef struct PropertyElemRNA PropertyElemRNA;
+struct PropertyElemRNA {
+	PropertyElemRNA *next, *prev;
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+};
+bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, struct ListBase *r_elements);
+
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
+
+char *RNA_path_resolve_from_type_to_property(
+        struct PointerRNA *ptr, struct PropertyRNA *prop,
+        const struct StructRNA *type);
 
 char *RNA_path_full_ID_py(struct ID *id);
 char *RNA_path_full_struct_py(struct PointerRNA *ptr);

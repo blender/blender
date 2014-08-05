@@ -4015,11 +4015,14 @@ static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, Prope
 }
 
 static bool rna_path_parse(PointerRNA *ptr, const char *path,
-                           PointerRNA *r_ptr, PropertyRNA **r_prop, int *index,
+                           PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index,
+                           ListBase *r_elements,
                            const bool eval_pointer)
 {
 	PropertyRNA *prop;
 	PointerRNA curptr;
+	PropertyElemRNA *prop_elem = NULL;
+	int index = -1;
 	char fixedbuf[256];
 	int type;
 
@@ -4061,6 +4064,14 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 		if (!prop)
 			return false;
 
+		if (r_elements) {
+			prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
+			prop_elem->ptr = curptr;
+			prop_elem->prop = prop;
+			prop_elem->index = -1;  /* index will be added later, if needed. */
+			BLI_addtail(r_elements, prop_elem);
+		}
+
 		type = RNA_property_type(prop);
 
 		/* now look up the value of this property if it is a pointer or
@@ -4076,7 +4087,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 					
 					curptr = nextptr;
 					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-					if (index) *index = -1;
+					index = -1;
 				}
 				break;
 			}
@@ -4093,21 +4104,38 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 					
 					curptr = nextptr;
 					prop = NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
-					if (index) *index = -1;
+					index = -1;
 				}
 				break;
 			}
 			default:
-				if (index) {
-					if (!rna_path_parse_array_index(&path, &curptr, prop, index))
+				if (r_index || prop_elem) {
+					if (!rna_path_parse_array_index(&path, &curptr, prop, &index)) {
 						return false;
+					}
+
+					if (prop_elem) {
+						prop_elem->index = index;
+					}
 				}
 				break;
 		}
 	}
 
-	*r_ptr = curptr;
-	*r_prop = prop;
+	if (r_ptr)
+		*r_ptr = curptr;
+	if (r_prop)
+		*r_prop = prop;
+	if (r_index)
+		*r_index = index;
+
+	if (prop_elem && (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop || prop_elem->index != index)) {
+		PropertyElemRNA *prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
+		prop_elem->ptr = curptr;
+		prop_elem->prop = prop;
+		prop_elem->index = index;
+		BLI_addtail(r_elements, prop_elem);
+	}
 
 	return true;
 }
@@ -4120,7 +4148,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
  */
 bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, true))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, true))
 		return false;
 
 	return r_ptr->data != NULL;
@@ -4134,7 +4162,7 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prop
  */
 bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, true))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, true))
 		return false;
 
 	return r_ptr->data != NULL;
@@ -4149,7 +4177,7 @@ bool RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr,
  */
 bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, false))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, false))
 		return false;
 
 	return r_ptr->data != NULL && *r_prop != NULL;
@@ -4165,12 +4193,25 @@ bool RNA_path_resolve_property(PointerRNA *ptr, const char *path, PointerRNA *r_
  */
 bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
-	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, false))
+	if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, false))
 		return false;
 
 	return r_ptr->data != NULL && *r_prop != NULL;
 }
 
+/**
+ * Resolve the given RNA Path into a linked list of PropertyElemRNA's.
+ *
+ * To be used when complex operations over path are needed, like e.g. get relative paths, to avoid too much
+ * string operations.
+ *
+ * \return True if there was no error while resolving the path
+ * \note Assumes all pointers provided are valid
+ */
+bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_elements)
+{
+	return rna_path_parse(ptr, path, NULL, NULL, NULL, r_elements, false);
+}
 
 char *RNA_path_append(const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *prop, int intkey, const char *strkey)
 {
@@ -4494,6 +4535,47 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		path = NULL;
 	}
 
+	return path;
+}
+
+/**
+ * \return the path to given ptr/prop from the closest ancestor of given type, if any (else return NULL).
+ */
+char *RNA_path_resolve_from_type_to_property(
+        PointerRNA *ptr, PropertyRNA *prop,
+        const StructRNA *type)
+{
+	/* Try to recursively find an "type"'d ancestor,
+	 * to handle situations where path from ID is not enough. */
+	PointerRNA idptr;
+	ListBase path_elems = {NULL};
+	char *path = NULL;
+	char *full_path = RNA_path_from_ID_to_property(ptr, prop);
+
+	if (full_path == NULL) {
+		return NULL;
+	}
+
+	RNA_id_pointer_create(ptr->id.data, &idptr);
+
+	if (RNA_path_resolve_elements(&idptr, full_path, &path_elems)) {
+		PropertyElemRNA *prop_elem;
+
+		for (prop_elem = path_elems.last; prop_elem; prop_elem = prop_elem->prev) {
+			if (RNA_struct_is_a(prop_elem->ptr.type, type)) {
+				char *ref_path = RNA_path_from_ID_to_struct(&prop_elem->ptr);
+				if (ref_path) {
+					path = BLI_strdup(full_path + strlen(ref_path) + 1);  /* +1 for the linking '.' */
+					MEM_freeN(ref_path);
+				}
+				break;
+			}
+		}
+
+		BLI_freelistN(&path_elems);
+	}
+
+	MEM_freeN(full_path);
 	return path;
 }
 

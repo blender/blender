@@ -262,28 +262,43 @@ static void UI_OT_unset_property_button(wmOperatorType *ot)
 
 /* Copy To Selected Operator ------------------------ */
 
-static bool copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb, bool *use_path)
+static bool copy_to_selected_list(
+        bContext *C, PointerRNA *ptr, PropertyRNA *prop,
+        ListBase *r_lb, bool *r_use_path_from_id, char **r_path)
 {
-	*use_path = false;
+	*r_use_path_from_id = false;
+	*r_path = NULL;
 
-	if (RNA_struct_is_a(ptr->type, &RNA_EditBone))
-		*lb = CTX_data_collection_get(C, "selected_editable_bones");
-	else if (RNA_struct_is_a(ptr->type, &RNA_PoseBone))
-		*lb = CTX_data_collection_get(C, "selected_pose_bones");
-	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence))
-		*lb = CTX_data_collection_get(C, "selected_editable_sequences");
-	else {
+	if (RNA_struct_is_a(ptr->type, &RNA_EditBone)) {
+		*r_lb = CTX_data_collection_get(C, "selected_editable_bones");
+	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
+		*r_lb = CTX_data_collection_get(C, "selected_pose_bones");
+	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
+		*r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
+	}
+	else if (ptr->id.data) {
 		ID *id = ptr->id.data;
 
-		if (id && GS(id->name) == ID_OB) {
-			*lb = CTX_data_collection_get(C, "selected_editable_objects");
-			*use_path = true;
+		if (GS(id->name) == ID_OB) {
+			*r_lb = CTX_data_collection_get(C, "selected_editable_objects");
+			*r_use_path_from_id = true;
+			*r_path = RNA_path_from_ID_to_property(ptr, prop);
 		}
-		else {
-			return false;
+		else if (GS(id->name) == ID_SCE) {
+			/* Sequencer's ID is scene :/ */
+			/* Try to recursively find an RNA_Sequence ancestor, to handle situations like T41062... */
+			if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence)) != NULL) {
+				*r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
+			}
 		}
+		return (*r_path != NULL);
 	}
-	
+	else {
+		return false;
+	}
+
 	return true;
 }
 
@@ -307,47 +322,54 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop) {
 		char *path = NULL;
-		bool use_path;
+		bool use_path_from_id;
 		CollectionPointerLink *link;
 		ListBase lb;
 
-		if (!copy_to_selected_list(C, &ptr, &lb, &use_path))
+		if (!copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path))
 			return success;
 
-		if (!use_path || (path = RNA_path_from_ID_to_property(&ptr, prop))) {
-			for (link = lb.first; link; link = link->next) {
-				if (link->ptr.data != ptr.data) {
-					if (use_path) {
-						lprop = NULL;
-						RNA_id_pointer_create(link->ptr.id.data, &idptr);
-						RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
-					}
-					else {
-						lptr = link->ptr;
-						lprop = prop;
-					}
+		for (link = lb.first; link; link = link->next) {
+			if (link->ptr.data != ptr.data) {
+				if (use_path_from_id) {
+					/* Path relative to ID. */
+					lprop = NULL;
+					RNA_id_pointer_create(link->ptr.id.data, &idptr);
+					RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
+				}
+				else if (path) {
+					/* Path relative to elements from list. */
+					lprop = NULL;
+					RNA_path_resolve_property(&link->ptr, path, &lptr, &lprop);
+				}
+				else {
+					lptr = link->ptr;
+					lprop = prop;
+				}
 
-					if (lprop == prop) {
-						if (RNA_property_editable(&lptr, lprop)) {
-							if (poll) {
+				if (lptr.data == ptr.data) {
+					/* lptr might not be the same as link->ptr! */
+					continue;
+				}
+
+				if (lprop == prop) {
+					if (RNA_property_editable(&lptr, lprop)) {
+						if (poll) {
+							success = true;
+							break;
+						}
+						else {
+							if (RNA_property_copy(&lptr, &ptr, prop, (all) ? -1 : index)) {
+								RNA_property_update(C, &lptr, prop);
 								success = true;
-								break;
-							}
-							else {
-								if (RNA_property_copy(&lptr, &ptr, prop, (all) ? -1 : index)) {
-									RNA_property_update(C, &lptr, prop);
-									success = true;
-								}
 							}
 						}
 					}
 				}
 			}
-
-			if (path)
-				MEM_freeN(path);
 		}
 
+		MEM_SAFE_FREE(path);
 		BLI_freelistN(&lb);
 	}
 
