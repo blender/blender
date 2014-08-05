@@ -8304,6 +8304,10 @@ static int ui_handle_menu_event(
 			         (inside && is_floating && inside_title))
 			{
 				if (!but || !ui_mouse_inside_button(ar, but, event->x, event->y)) {
+					if (but) {
+						button_timers_tooltip_remove(C, but);
+					}
+
 					menu->is_grab = true;
 					copy_v2_v2_int(menu->grab_xy_prev, &event->x);
 					retval = WM_UI_HANDLER_BREAK;
