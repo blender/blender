@@ -416,11 +416,11 @@ typedef void* DynamicLibrary;
 
 def print_dl_helper_macro():
     print("""#define %s_LIBRARY_FIND_CHECKED(name) \\
-        name = (t##name *)dynamic_library_find(lib, #name);
-
-#define %s_LIBRARY_FIND(name) \\
         name = (t##name *)dynamic_library_find(lib, #name); \\
         assert(name);
+
+#define %s_LIBRARY_FIND(name) \\
+        name = (t##name *)dynamic_library_find(lib, #name);
 
 static DynamicLibrary lib;""" % (REAL_LIB, REAL_LIB))
     print("")
