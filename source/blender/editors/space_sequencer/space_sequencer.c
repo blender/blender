@@ -279,24 +279,40 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
 			}
 			break;
 		case SEQ_VIEW_SEQUENCE_PREVIEW:
-			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
-				ar_main->flag &= ~RGN_FLAG_HIDDEN;
-				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-				view_changed = true;
-			}
-			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
-				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
-				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-				ar_preview->v2d.cur = ar_preview->v2d.tot;
-				view_changed = true;
-			}
-			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
-				ar_main->alignment = RGN_ALIGN_NONE;
-				view_changed = true;
-			}
-			if (ar_preview && ar_preview->alignment != RGN_ALIGN_TOP) {
-				ar_preview->alignment = RGN_ALIGN_TOP;
-				view_changed = true;
+			if (ar_main && ar_preview) {
+				/* Get available height (without DPI correction). */
+				const float height = (sa->winy - ED_area_headersize()) / UI_DPI_FAC;
+
+				/* We reuse hidden area's size, allows to find same layout as before if we just switch
+				 * between one 'full window' view and the combined one. This gets lost if we switch to both
+				 * 'full window' views before, though... Better than nothing. */
+				if (ar_main->flag & RGN_FLAG_HIDDEN) {
+					ar_main->flag &= ~RGN_FLAG_HIDDEN;
+					ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+					ar_preview->sizey = (int)(height - ar_main->sizey);
+					view_changed = true;
+				}
+				if (ar_preview->flag & RGN_FLAG_HIDDEN) {
+					ar_preview->flag &= ~RGN_FLAG_HIDDEN;
+					ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+					ar_preview->v2d.cur = ar_preview->v2d.tot;
+					ar_main->sizey = (int)(height - ar_preview->sizey);
+					view_changed = true;
+				}
+				if (ar_main->alignment != RGN_ALIGN_NONE) {
+					ar_main->alignment = RGN_ALIGN_NONE;
+					view_changed = true;
+				}
+				if (ar_preview->alignment != RGN_ALIGN_TOP) {
+					ar_preview->alignment = RGN_ALIGN_TOP;
+					view_changed = true;
+				}
+				/* Final check that both preview and main height are reasonable! */
+				if (ar_preview->sizey < 10 || ar_main->sizey < 10 || ar_preview->sizey + ar_main->sizey > height) {
+					ar_preview->sizey = (int)(height * 0.4f + 0.5f);
+					ar_main->sizey = (int)(height - ar_preview->sizey);
+					view_changed = true;
+				}
 			}
 			break;
 	}
@@ -682,7 +698,6 @@ void ED_spacetype_sequencer(void)
 	/* preview */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_PREVIEW;
-	art->prefsizey = 240; // XXX
 	art->init = sequencer_preview_area_init;
 	art->draw = sequencer_preview_area_draw;
 	art->listener = sequencer_preview_area_listener;
