@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 
 
@@ -151,6 +151,14 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
             sub.prop_search(ob, "parent_bone", parent.data, "bones", text="")
         sub.active = (parent is not None)
 
+class GROUP_MT_specials(Menu):
+    bl_label = "Group Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.group_unlink", icon='X')
+        layout.operator("object.grouped_select")
 
 class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
     bl_label = "Groups"
@@ -183,6 +191,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
                 row = col.box().row()
                 row.prop(group, "name", text="")
                 row.operator("object.group_remove", text="", icon='X', emboss=False)
+                row.menu("GROUP_MT_specials", icon='DOWNARROW_HLT', text="")
 
                 split = col.box().split()
 

@@ -229,6 +229,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_link);
 	WM_operatortype_append(OBJECT_OT_group_remove);
+	WM_operatortype_append(OBJECT_OT_group_unlink);
+	WM_operatortype_append(OBJECT_OT_grouped_select);
 
 	WM_operatortype_append(OBJECT_OT_hook_add_selob);
 	WM_operatortype_append(OBJECT_OT_hook_add_newob);

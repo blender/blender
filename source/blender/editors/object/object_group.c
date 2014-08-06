@@ -563,3 +563,67 @@ void OBJECT_OT_group_remove(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+
+static int group_unlink_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Group *group = CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
+
+	if (!group)
+		return OPERATOR_CANCELLED;
+
+	BKE_group_unlink(group);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_group_unlink(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unlink Group";
+	ot->idname = "OBJECT_OT_group_unlink";
+	ot->description = "Unlink the group from all objects";
+
+	/* api callbacks */
+	ot->exec = group_unlink_exec;
+	ot->poll = ED_operator_objectmode;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select objects in the same group as the active */
+{
+	Group *group = CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
+
+	if (!group)
+		return OPERATOR_CANCELLED;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		if (!(base->flag & SELECT) && BKE_group_object_exists(group, base->object)) {
+			ED_base_object_select(base, BA_SELECT);
+		}
+	}
+	CTX_DATA_END;
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_grouped_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Grouped";
+	ot->idname = "OBJECT_OT_grouped_select";
+	ot->description = "Select all objects in group";
+
+	/* api callbacks */
+	ot->exec = select_grouped_exec;
+	ot->poll = ED_operator_objectmode;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
