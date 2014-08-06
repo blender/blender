@@ -653,8 +653,8 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
 		bevels_to_filledpoly(cu, dispbase);
 	}
 	else {
-		/* TODO, investigate passing zup instead of NULL */
-		BKE_displist_fill(dispbase, dispbase, NULL, false);
+		const float z_up[3] = {0.0f, 0.0f, 1.0f};
+		BKE_displist_fill(dispbase, dispbase, z_up, false);
 	}
 }
 
