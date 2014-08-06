@@ -524,14 +524,14 @@ typedef struct ShaderClosure {
 	ClosureType type;
 	float3 weight;
 
-	float sample_weight;
-
 	float data0;
 	float data1;
 	float data2;
 
 	float3 N;
 	float3 T;
+	
+	float sample_weight;
 
 #ifdef __OSL__
 	void *prim;
