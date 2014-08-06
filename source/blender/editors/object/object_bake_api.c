@@ -531,7 +531,7 @@ static size_t initialize_internal_images(BakeImages *bake_images, ReportList *re
 			bk_image->height = ibuf->y;
 			bk_image->offset = tot_size;
 
-			tot_size += ibuf->x * ibuf->y;
+			tot_size += (size_t)ibuf->x * (size_t)ibuf->y;
 		}
 		else {
 			BKE_image_release_ibuf(bk_image->image, ibuf, lock);
