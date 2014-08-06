@@ -159,6 +159,8 @@ class GROUP_MT_specials(Menu):
 
         layout.operator("object.group_unlink", icon='X')
         layout.operator("object.grouped_select")
+        layout.operator("object.dupli_offset_from_cursor")
+
 
 class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
     bl_label = "Groups"
@@ -175,8 +177,6 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
             row.operator("object.group_add", text="Add to Group")
         row.operator("object.group_add", text="", icon='ZOOMIN')
 
-        # XXX, this is bad practice, yes, I wrote it :( - campbell
-        index = 0
         obj_name = obj.name
         for group in bpy.data.groups:
             # XXX this is slow and stupid!, we need 2 checks, one thats fast
@@ -200,10 +200,6 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
 
                 col = split.column()
                 col.prop(group, "dupli_offset", text="")
-
-                props = col.operator("object.dupli_offset_from_cursor", text="From Cursor")
-                props.group = index
-                index += 1
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):

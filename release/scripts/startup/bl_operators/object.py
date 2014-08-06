@@ -775,22 +775,15 @@ class DupliOffsetFromCursor(Operator):
     bl_label = "Set Offset From Cursor"
     bl_options = {'REGISTER', 'UNDO'}
 
-    group = IntProperty(
-            name="Group",
-            description="Group index to set offset for",
-            default=0,
-            )
-
     @classmethod
     def poll(cls, context):
         return (context.active_object is not None)
 
     def execute(self, context):
         scene = context.scene
-        ob = context.active_object
-        group = self.group
+        group = context.group
 
-        ob.users_group[group].dupli_offset = scene.cursor_location
+        group.dupli_offset = scene.cursor_location
 
         return {'FINISHED'}
 
