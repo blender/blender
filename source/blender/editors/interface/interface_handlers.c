@@ -1264,7 +1264,7 @@ static bool ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data,
 				valid = true;
 			}
 			else if (but->pointype == UI_BUT_POIN_CHAR) {
-				rgba_uchar_to_float(drag_info->color, (unsigned char *)but->poin);
+				rgb_uchar_to_float(drag_info->color, (unsigned char *)but->poin);
 				valid = true;
 			}
 
