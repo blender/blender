@@ -634,7 +634,7 @@ def packIslands(islandList):
     # print 'Box Packing Time:', time.time() - time1
 
     #if len(pa	ckedLs) != len(islandList):
-    #	raise "Error packed boxes differs from original length"
+    #    raise ValueError("Packed boxes differs from original length")
 
     #print '\tWriting Packed Data to faces'
 #XXX	Window.DrawProgressBar(0.8, "Writing Packed Data to faces")

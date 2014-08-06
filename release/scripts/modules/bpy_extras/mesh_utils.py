@@ -421,7 +421,6 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
                     loop_segments.append(context_loop)
                 else:
                     if context_loop and context_loop[-1][1] == v[1]:
-                        #raise "as"
                         pass
                     else:
                         context_loop.append(v)

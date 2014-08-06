@@ -470,9 +470,7 @@ def lightmap_uvpack(meshes,
                         pretty_faces.append(pf_parent)
 
                         w, h = pf_parent.width, pf_parent.height
-
-                        if w > h:
-                            raise "error"
+                        assert(w <= h)
 
                         if w == h:
                             even_dict.setdefault(w, []).append(pf_parent)
