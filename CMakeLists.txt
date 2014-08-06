@@ -283,7 +283,11 @@ unset(PLATFORM_DEFAULT)
 
 # LLVM
 option(WITH_LLVM					"Use LLVM" OFF)
-option(LLVM_STATIC					"Link with LLVM static libraries" OFF)
+if(APPLE)
+	option(LLVM_STATIC					"Link with LLVM static libraries" ON) # we prefer static llvm build on Apple, dyn build possible though
+else()
+	option(LLVM_STATIC					"Link with LLVM static libraries" OFF)
+endif()
 mark_as_advanced(LLVM_STATIC)
 
 # disable for now, but plan to support on all platforms eventually
@@ -1862,7 +1866,6 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_LLVM)
-		set(LLVM_STATIC ON CACHE BOOL "ON" FORCE) # we use always the static libs default, else gives linking errors
 		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
 		set(LLVM_VERSION "3.4" CACHE STRING	"Version of LLVM to use")
 		if(EXISTS "${LLVM_DIRECTORY}/bin/llvm-config")
@@ -1892,6 +1895,8 @@ elseif(APPLE)
 				                OUTPUT_VARIABLE LLVM_LIBRARY
 				                OUTPUT_STRIP_TRAILING_WHITESPACE)
 				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
+			else()
+				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -lLLVM-3.4")
 			endif()
 		else()
 			message(FATAL_ERROR "LLVM not found.")

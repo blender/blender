@@ -826,6 +826,13 @@ elseif(APPLE)
 		)
 	endif()
 
+	if(WITH_LLVM AND NOT LLVM_STATIC)
+		install(
+			FILES ${LIBDIR}/llvm/lib/libLLVM-3.4.dylib
+			DESTINATION ${TARGETDIR}/blender.app/Contents/MacOS
+		)
+	endif()
+
 	# python
 	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
 		# the python zip is first extract as part of the build process,
