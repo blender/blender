@@ -30,8 +30,6 @@
 
 /** \file BLI_gsqueue.h
  *  \ingroup bli
- *  \brief A generic structure queue (a queue for fixed length
- *   (generally small) structures.
  */
 
 typedef struct _GSQueue GSQueue;
@@ -46,4 +44,3 @@ void        BLI_gsqueue_pushback(GSQueue *gq, const void *item);
 void        BLI_gsqueue_free(GSQueue *gq);
 
 #endif /* __BLI_GSQUEUE_H__ */
-

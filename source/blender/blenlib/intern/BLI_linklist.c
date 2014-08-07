@@ -38,17 +38,12 @@
 
 int BLI_linklist_length(LinkNode *list)
 {
-	if (0) {
-		return list ? (1 + BLI_linklist_length(list->next)) : 0;
-	}
-	else {
-		int len;
+	int len;
 
-		for (len = 0; list; list = list->next)
-			len++;
-	
-		return len;
-	}
+	for (len = 0; list; list = list->next)
+		len++;
+
+	return len;
 }
 
 int BLI_linklist_index(LinkNode *list, void *ptr)

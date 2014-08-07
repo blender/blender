@@ -27,6 +27,12 @@
 
 /** \file blender/blenlib/intern/gsqueue.c
  *  \ingroup bli
+ *
+ * \brief A generic structure queue
+ * (a queue for fixed length generally small) structures.
+ *
+ * \note Only use this if you need (first-in-first-out),
+ * otherwise #BLI_stack is more efficient (first-in-last-out).
  */
 
 #include <string.h>
