@@ -393,8 +393,8 @@ static LinkNode *bm_edgenet_path_calc_best(
 	if (path == NULL) {
 		return NULL;
 	}
-	else if (path_cost <= 1) {
-		/* any face that takes 1-2 iterations to find we consider valid */
+	else if (path_cost < 1) {
+		/* any face that takes 1 iteration to find we consider valid */
 		return path;
 	}
 	else {
@@ -465,7 +465,6 @@ void BM_mesh_edgenet(BMesh *bm,
 
 	if (use_edge_tag == false) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			BM_elem_flag_enable(e, BM_ELEM_TAG);
 			BM_elem_flag_set(e, BM_ELEM_TAG, bm_edge_step_ok(e));
 		}
 	}
