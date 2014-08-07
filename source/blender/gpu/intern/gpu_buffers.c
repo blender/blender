@@ -2674,11 +2674,14 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces,
 	}
 	else if (buffers->use_bmesh) {
 		/* due to dynamc nature of dyntopo, only get first material */
-		GSetIterator gs_iter;
-		BMFace *f;
-		BLI_gsetIterator_init(&gs_iter, bm_faces);
-		f = BLI_gsetIterator_getKey(&gs_iter);
-		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
+		if (BLI_gset_size(bm_faces) > 0) {
+			GSetIterator gs_iter;
+			BMFace *f;
+
+			BLI_gsetIterator_init(&gs_iter, bm_faces);
+			f = BLI_gsetIterator_getKey(&gs_iter);
+			GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
+		}
 	}
 	else {
 		const DMFlagMat *flags = &buffers->grid_flag_mats[buffers->grid_indices[0]];
