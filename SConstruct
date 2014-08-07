@@ -832,7 +832,17 @@ for x in B.create_blender_liblist(env, 'system'):
     thelibincs.append(os.path.dirname(x))
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-    env.BlenderProg(B.root_build_dir, "blender", creob + mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+    blender_progname = "blender"
+    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
+        blender_progname = "blender-app"
+
+        lenv = env.Clone()
+        lenv.Append(LINKFLAGS = env['PLATFORM_LINKFLAGS'])
+        targetpath = B.root_build_dir + '/blender'
+        launcher_obj = [env.Object(B.root_build_dir + 'source/creator/creator/creator_launch_win', ['#source/creator/creator_launch_win.c'])]
+        env.BlenderProg(B.root_build_dir, 'blender', [launcher_obj] + B.resources, [], [], 'blender')
+
+    env.BlenderProg(B.root_build_dir, blender_progname, creob + mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
     playerlist = B.create_blender_liblist(env, 'player')
     playerlist += B.create_blender_liblist(env, 'player2')
@@ -881,6 +891,9 @@ if env['OURPLATFORM']!='darwin':
     for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
         td, tf = os.path.split(targetdir)
         dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+
+    scriptinstall.append(env.InstallAs(env['BF_INSTALLDIR'] + '/blender-app.exe.manifest',
+                                       'source/icons/blender.exe.manifest'))
 
     if env['WITH_BF_PYTHON']:
         #-- local/VERSION/scripts

@@ -932,3 +932,18 @@ setup_blender_sorted_libs()
 target_link_libraries(blender ${BLENDER_SORTED_LIBS})
 
 setup_liblinks(blender)
+
+# -----------------------------------------------------------------------------
+# Setup launcher
+
+if(WIN32 AND NOT WITH_PYTHON_MODULE)
+	set(LAUNCHER_SRC
+		creator_launch_win.c
+		../icons/winblender.rc
+	)
+	add_executable(blender-launcher ${LAUNCHER_SRC})
+	target_link_libraries(blender-launcher ${PLATFORM_LINKLIBS})
+
+	set_target_properties(blender PROPERTIES OUTPUT_NAME blender-app)
+	set_target_properties(blender-launcher PROPERTIES OUTPUT_NAME blender)
+endif()
