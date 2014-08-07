@@ -83,14 +83,23 @@ static const char *euler_order_str(EulerObject *self)
 short euler_order_from_string(const char *str, const char *error_prefix)
 {
 	if ((str[0] && str[1] && str[2] && str[3] == '\0')) {
+
+#ifdef __LITTLE_ENDIAN__
+#  define MAKE_ID3(a, b, c)  (((a)) | ((b) << 8) | ((c) << 16))
+#else
+#  define MAKE_ID3(a, b, c)  (((a) << 24) | ((b) << 16) | ((c) << 8))
+#endif
+
 		switch (*((PY_INT32_T *)str)) {
-			case 'X' | 'Y' << 8 | 'Z' << 16:    return EULER_ORDER_XYZ;
-			case 'X' | 'Z' << 8 | 'Y' << 16:    return EULER_ORDER_XZY;
-			case 'Y' | 'X' << 8 | 'Z' << 16:    return EULER_ORDER_YXZ;
-			case 'Y' | 'Z' << 8 | 'X' << 16:    return EULER_ORDER_YZX;
-			case 'Z' | 'X' << 8 | 'Y' << 16:    return EULER_ORDER_ZXY;
-			case 'Z' | 'Y' << 8 | 'X' << 16:    return EULER_ORDER_ZYX;
+			case MAKE_ID3('X', 'Y', 'Z'): return EULER_ORDER_XYZ;
+			case MAKE_ID3('X', 'Z', 'Y'): return EULER_ORDER_XZY;
+			case MAKE_ID3('Y', 'X', 'Z'): return EULER_ORDER_YXZ;
+			case MAKE_ID3('Y', 'Z', 'X'): return EULER_ORDER_YZX;
+			case MAKE_ID3('Z', 'X', 'Y'): return EULER_ORDER_ZXY;
+			case MAKE_ID3('Z', 'Y', 'X'): return EULER_ORDER_ZYX;
 		}
+
+#undef MAKE_ID3
 	}
 
 	PyErr_Format(PyExc_ValueError,
