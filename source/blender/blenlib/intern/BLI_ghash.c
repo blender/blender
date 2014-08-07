@@ -570,12 +570,12 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 	ghi->curEntry = NULL;
 	ghi->curBucket = UINT_MAX;  /* wraps to zero */
 	if (gh->nentries) {
-		while (!ghi->curEntry) {
+		do {
 			ghi->curBucket++;
 			if (UNLIKELY(ghi->curBucket == ghi->gh->nbuckets))
 				break;
 			ghi->curEntry = ghi->gh->buckets[ghi->curBucket];
-		}
+		} while (!ghi->curEntry);
 	}
 }
 

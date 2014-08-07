@@ -463,14 +463,14 @@ void BLI_edgehashIterator_init(EdgeHashIterator *ehi, EdgeHash *eh)
 	ehi->curEntry = NULL;
 	ehi->curBucket = UINT_MAX;  /* wraps to zero */
 	if (eh->nentries) {
-		while (!ehi->curEntry) {
+		do {
 			ehi->curBucket++;
 			if (UNLIKELY(ehi->curBucket == ehi->eh->nbuckets)) {
 				break;
 			}
 
 			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
-		}
+		} while (!ehi->curEntry);
 	}
 }
 
