@@ -779,6 +779,8 @@ static void ui_theme_space_init_handles_color(ThemeSpace *theme_space)
 	rgba_char_args_set(theme_space->handle_sel_auto, 0xf0, 0xff, 0x40, 255);
 	rgba_char_args_set(theme_space->handle_sel_vect, 0x40, 0xc0, 0x30, 255);
 	rgba_char_args_set(theme_space->handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+	rgba_char_args_set(theme_space->handle_vertex, 0x00, 0x00, 0x00, 0xff);
+	rgba_char_args_set(theme_space->handle_vertex_select, 0xff, 0xff, 0, 0xff);
 	rgba_char_args_set(theme_space->act_spline, 0xdb, 0x25, 0x12, 255);
 }
 
@@ -1136,8 +1138,6 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
 	rgba_char_args_set(btheme->tclip.grid, 0x5e, 0x5e, 0x5e, 255);
 	rgba_char_args_set(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
-	rgba_char_args_set(btheme->tclip.handle_vertex, 0x00, 0x00, 0x00, 0xff);
-	rgba_char_args_set(btheme->tclip.handle_vertex_select, 0xff, 0xff, 0, 0xff);
 	rgba_char_args_set(btheme->tclip.list, 0x66, 0x66, 0x66, 0xff);
 	rgba_char_args_set(btheme->tclip.strip, 0x0c, 0x0a, 0x0a, 0x80);
 	rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
