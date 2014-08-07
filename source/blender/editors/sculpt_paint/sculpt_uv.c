@@ -239,12 +239,14 @@ void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings
 
 		BKE_paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
 
-		WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
-		                         brush_drawcursor_uvsculpt, NULL);
+		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
+		                                                                  brush_drawcursor_uvsculpt, NULL);
 	}
 	else {
-		if (settings->uvsculpt)
-			settings->uvsculpt->paint.flags &= ~PAINT_SHOW_BRUSH;
+		if (settings->uvsculpt) {
+			WM_paint_cursor_end(wm, settings->uvsculpt->paint.paint_cursor);
+			settings->uvsculpt->paint.paint_cursor = NULL;
+		}
 	}
 }
 
