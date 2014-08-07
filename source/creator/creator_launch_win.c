@@ -23,8 +23,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#pragma comment(linker, "/subsystem:windows")
-
 /* Binary name to launch. */
 #define BLENDER_BINARY "blender-app.exe"
 
@@ -33,21 +31,29 @@
 #include <stdlib.h>
 #include <windows.h>
 
-int WINAPI WinMain(HINSTANCE hInstance,
-                   HINSTANCE hPrevInstance,
-                   LPSTR lpCmdLine,
-                   int nCmdShow)
+int main(int argc, char **argv)
 {
 	PROCESS_INFORMATION processInformation = {0};
 	STARTUPINFOA startupInfo = {0};
 	BOOL result;
+	char command[65536];
+	int i, len = sizeof(command);
 
 	_putenv_s("OMP_WAIT_POLICY", "PASSIVE");
 
 	startupInfo.cb = sizeof(startupInfo);
-	result = CreateProcessA(NULL, BLENDER_BINARY, NULL, NULL, FALSE,
-	                       0, NULL, NULL,
-	                       &startupInfo, &processInformation);
+
+	strncpy(command, BLENDER_BINARY, len - 1);
+	len -= strlen(BLENDER_BINARY);
+	for (i = 1; i < argc; ++i) {
+		strncat(command, " ", len - 1);
+		strncat(command, argv[i], len - 2);
+		len -= strlen(argv[i]) + 1;
+	}
+
+	result = CreateProcessA(NULL, command, NULL, NULL, TRUE,
+	                        0, NULL, NULL,
+	                        &startupInfo, &processInformation);
 
 	if (!result) {
 		fprintf(stderr, "Error launching " BLENDER_BINARY "\n");
