@@ -11,10 +11,6 @@ __pycache__/
 *.swo
 *#
 
-# conflicts
-*.orig
-*.rej
-
 # QtCreator
 CMakeLists.txt.user
 
