@@ -39,10 +39,6 @@
 #include "BLI_fileops.h"
 #include "BLI_utildefines.h"
 
-#if defined(_MSC_VER) && (_MSC_VER <= 1500)
-#include "BLI_math_base.h"
-#endif
-
 #include "MEM_guardedalloc.h"
 
 /*

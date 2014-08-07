@@ -76,17 +76,6 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef _WIN32
 
-#ifndef __KERNEL_GPU__
-
-#if defined(_MSC_VER) && (_MSC_VER < 1800)
-#  define copysignf(x, y) ((float)_copysign(x, y))
-#  define hypotf(x, y) _hypotf(x, y)
-#  define isnan(x) _isnan(x)
-#  define isfinite(x) _finite(x)
-#endif
-
-#endif
-
 #ifndef __KERNEL_OPENCL__
 
 ccl_device_inline float fmaxf(float a, float b)

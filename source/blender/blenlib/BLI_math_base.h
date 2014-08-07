@@ -147,13 +147,7 @@ static const int NAN_INT = 0x7FC00000;
 
 #ifdef WIN32
 #  if defined(_MSC_VER)
-#    if (_MSC_VER < 1800) && !defined(isnan)
-#      define isnan(n) _isnan(n)
-#    endif
 #    define finite(n) _finite(n)
-#    if (_MSC_VER < 1800) && !defined(hypot)
-#      define hypot(a, b) _hypot(a, b)
-#    endif
 #  endif
 #endif
 
@@ -240,11 +234,6 @@ MINLINE int mod_i(int i, int n);
 
 MINLINE unsigned int highest_order_bit_i(unsigned int n);
 MINLINE unsigned short highest_order_bit_s(unsigned short n);
-
-#if defined(_MSC_VER) && (_MSC_VER < 1800)
-extern double copysign(double x, double y);
-extern double round(double x);
-#endif
 
 double double_round(double x, int ndigits);
 

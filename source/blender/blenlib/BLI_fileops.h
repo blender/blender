@@ -62,7 +62,7 @@ int    BLI_create_symlink(const char *path, const char *to);
 
 /* keep in sync with the definition of struct direntry in BLI_fileops_types.h */
 #ifdef WIN32
-#  if (defined(_MSC_VER) && (_MSC_VER >= 1500)) || defined(__MINGW64__)
+#  if defined(_MSC_VER) || defined(__MINGW64__)
 typedef struct _stat64 BLI_stat_t;
 #  elif defined(__MINGW32__)
 typedef struct _stati64 BLI_stat_t;

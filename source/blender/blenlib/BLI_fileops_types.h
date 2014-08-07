@@ -46,7 +46,7 @@ struct direntry {
 	char   *relname;
 	char   *path;
 #ifdef WIN32 /* keep in sync with the definition of BLI_stat_t in BLI_fileops.h */
-#  if (defined(_MSC_VER) && (_MSC_VER >= 1500)) || defined(__MINGW64__)
+#  if defined(_MSC_VER) || defined(__MINGW64__)
 	struct _stat64 s;
 #  elif defined(__MINGW32__)
 	struct _stati64 s;

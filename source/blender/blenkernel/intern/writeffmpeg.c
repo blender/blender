@@ -30,13 +30,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(_WIN32) && defined(DEBUG) && !defined(__MINGW32__) && !defined(__CYGWIN__)
-/* This does not seem necessary or present on MSVC 8, but may be needed in earlier versions? */
-#  if _MSC_VER < 1400
-#    include <stdint.h>
-#  endif
-#endif
-
 #include <stdlib.h>
 
 #include <libavformat/avformat.h>

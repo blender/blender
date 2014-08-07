@@ -254,10 +254,6 @@ static int isqtime(const char *name)
 
 #ifdef WITH_FFMPEG
 
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#define va_copy(dst, src) ((dst) = (src))
-#endif
-
 /* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
 #ifdef __GNUC__
 #  pragma GCC diagnostic push

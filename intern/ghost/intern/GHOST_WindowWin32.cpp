@@ -183,7 +183,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		MONITORINFO monitor;
 		GHOST_TUns32 tw, th; 
 
-#if !defined(_MSC_VER) || _MSC_VER < 1700
+#ifndef _MSC_VER
 		int cxsizeframe = GetSystemMetrics(SM_CXSIZEFRAME);
 		int cysizeframe = GetSystemMetrics(SM_CYSIZEFRAME);
 #else

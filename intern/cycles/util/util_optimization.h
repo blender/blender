@@ -69,13 +69,6 @@
 #define WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
 #endif
 
-/* MSVC 2008, no SSE41 (broken blendv intrinsic) and no AVX support */
-#if defined(_MSC_VER) && (_MSC_VER < 1700)
-#undef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
-#undef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-#undef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
-#endif
-
 #endif
 
 /* SSE Experiment

@@ -84,7 +84,7 @@ void DrawRasterizerLine(const float* from,const float* to,int color);
 
 // This was copied from the old KX_ConvertPhysicsObjects
 #ifdef WIN32
-#if defined(_MSC_VER) && (_MSC_VER >= 1310)
+#ifdef _MSC_VER
 //only use SIMD Hull code under Win32
 //#define TEST_HULL 1
 #ifdef TEST_HULL

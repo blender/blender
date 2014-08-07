@@ -30,9 +30,7 @@
 
 #include <cstring> // for memset
 #include <float.h>
-#if !defined(_MSC_VER) || _MSC_VER >= 1700
 #include <stdint.h> // For SET_UINT_IN_POINTER, i.e. uintptr_t.
-#endif
 #include <vector>
 
 #include "Geom.h"
