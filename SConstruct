@@ -125,7 +125,7 @@ else:
     B.quickie=[]
 
 toolset = B.arguments.get('BF_TOOLSET', None)
-vcver = B.arguments.get('MSVS_VERSION', '9.0')
+vcver = B.arguments.get('MSVS_VERSION', '12.0')
 
 if toolset:
     print "Using " + toolset
