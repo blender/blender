@@ -1181,7 +1181,11 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
  *
  * WARNING: Be careful if you keep pointers to affected BM elements, or arrays, when using this func!
  */
-void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, unsigned int *face_idx)
+void BM_mesh_remap(
+        BMesh *bm,
+        const unsigned int *vert_idx,
+        const unsigned int *edge_idx,
+        const unsigned int *face_idx)
 {
 	/* Mapping old to new pointers. */
 	GHash *vptr_map = NULL, *eptr_map = NULL, *fptr_map = NULL;
@@ -1194,18 +1198,23 @@ void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, un
 	if (!(vert_idx || edge_idx || face_idx))
 		return;
 
+	BM_mesh_elem_table_ensure(
+	        bm,
+	        (vert_idx ? BM_VERT : 0) |
+	        (edge_idx ? BM_EDGE : 0) |
+	        (face_idx ? BM_FACE : 0));
+
 	/* Remap Verts */
 	if (vert_idx) {
 		BMVert **verts_pool, *verts_copy, **vep;
 		int i, totvert = bm->totvert;
-		unsigned int *new_idx = NULL;
+		const unsigned int *new_idx;
 
 		/* Init the old-to-new vert pointers mapping */
 		vptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap vert pointers mapping", bm->totvert);
 
 		/* Make a copy of all vertices. */
-		verts_pool = MEM_callocN(sizeof(BMVert *) * totvert, "BM_mesh_remap verts pool");
-		BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)verts_pool, totvert);
+		verts_pool = bm->vtable;
 		verts_copy = MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy");
 		for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--; ve--, vep--) {
 			*ve = **vep;
@@ -1223,8 +1232,8 @@ void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, un
 			BLI_ghash_insert(vptr_map, (void *)*vep, (void *)new_vep);
 		}
 		bm->elem_index_dirty |= BM_VERT;
+		bm->elem_table_dirty |= BM_VERT;
 
-		MEM_freeN(verts_pool);
 		MEM_freeN(verts_copy);
 	}
 
@@ -1232,14 +1241,13 @@ void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, un
 	if (edge_idx) {
 		BMEdge **edges_pool, *edges_copy, **edp;
 		int i, totedge = bm->totedge;
-		unsigned int *new_idx = NULL;
+		const unsigned int *new_idx;
 
 		/* Init the old-to-new vert pointers mapping */
 		eptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap edge pointers mapping", bm->totedge);
 
 		/* Make a copy of all vertices. */
-		edges_pool = MEM_callocN(sizeof(BMEdge *) * totedge, "BM_mesh_remap edges pool");
-		BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)edges_pool, totedge);
+		edges_pool = bm->etable;
 		edges_copy = MEM_mallocN(sizeof(BMEdge) * totedge, "BM_mesh_remap edges copy");
 		for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--; ed--, edp--) {
 			*ed = **edp;
@@ -1256,8 +1264,8 @@ void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, un
 /*			printf("mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);*/
 		}
 		bm->elem_index_dirty |= BM_EDGE;
+		bm->elem_table_dirty |= BM_EDGE;
 
-		MEM_freeN(edges_pool);
 		MEM_freeN(edges_copy);
 	}
 
@@ -1265,14 +1273,13 @@ void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, un
 	if (face_idx) {
 		BMFace **faces_pool, *faces_copy, **fap;
 		int i, totface = bm->totface;
-		unsigned int *new_idx = NULL;
+		const unsigned int *new_idx;
 
 		/* Init the old-to-new vert pointers mapping */
 		fptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap face pointers mapping", bm->totface);
 
 		/* Make a copy of all vertices. */
-		faces_pool = MEM_callocN(sizeof(BMFace *) * totface, "BM_mesh_remap faces pool");
-		BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)faces_pool, totface);
+		faces_pool = bm->ftable;
 		faces_copy = MEM_mallocN(sizeof(BMFace) * totface, "BM_mesh_remap faces copy");
 		for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--; fa--, fap--) {
 			*fa = **fap;
@@ -1289,8 +1296,8 @@ void BM_mesh_remap(BMesh *bm, unsigned int *vert_idx, unsigned int *edge_idx, un
 		}
 
 		bm->elem_index_dirty |= BM_FACE | BM_LOOP;
+		bm->elem_table_dirty |= BM_FACE;
 
-		MEM_freeN(faces_pool);
 		MEM_freeN(faces_copy);
 	}
 
