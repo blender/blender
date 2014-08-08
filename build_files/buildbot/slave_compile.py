@@ -53,9 +53,13 @@ if builder.find('cmake') != -1:
     retcode = subprocess.call(['make', '-s', '-j4', 'install'])
     sys.exit(retcode)
 else:
+    python_bin = 'python'
+    if builder.find('linux') != -1:
+        python_bin = '/opt/lib/python-2.7/bin/python2.7'
+
     # scons
     os.chdir(blender_dir)
-    scons_cmd = ['python', 'scons/scons.py']
+    scons_cmd = [python_bin, 'scons/scons.py']
     scons_options = ['BF_FANCY=False']
 
     # We're using the same rules as release builder, so tweak
@@ -173,6 +177,6 @@ else:
             for dll in dlls:
                 shutil.copyfile(os.path.join(dlls_path, dll), os.path.join(install_dir, dll))
 
-        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+        retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
 
         sys.exit(retcode)
