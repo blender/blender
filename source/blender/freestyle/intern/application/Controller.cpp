@@ -882,10 +882,13 @@ void Controller::ResetRenderCount()
 
 Render *Controller::RenderStrokes(Render *re, bool render)
 {
+	int totmesh = 0;
 	_Chrono.start();
 	BlenderStrokeRenderer *blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
-	if (render)
+	if (render) {
 		_Canvas->Render(blenderRenderer);
+		totmesh = blenderRenderer->GenerateScene();
+	}
 	real d = _Chrono.stop();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Temporary scene generation: " << d << endl;
@@ -904,8 +907,8 @@ Render *Controller::RenderStrokes(Render *re, bool render)
 		float mmap_used_memory = (mmap_in_use) / (1024.0 * 1024.0);
 		float megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
-		printf("%d verts, %d faces, mem %.2fM (%.2fM, peak %.2fM)\n",
-		       freestyle_render->i.totvert, freestyle_render->i.totface,
+		printf("%d objs, %d verts, %d faces, mem %.2fM (%.2fM, peak %.2fM)\n",
+		       totmesh, freestyle_render->i.totvert, freestyle_render->i.totface,
 		       megs_used_memory, mmap_used_memory, megs_peak_memory);
 	}
 	delete blenderRenderer;

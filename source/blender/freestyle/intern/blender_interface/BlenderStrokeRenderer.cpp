@@ -66,6 +66,8 @@ extern "C" {
 
 namespace Freestyle {
 
+const char *BlenderStrokeRenderer::uvNames[] = {"along_stroke", "along_stroke_tips"};
+
 BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
 	freestyle_bmain = re->freestyle_bmain;
@@ -208,6 +210,8 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 
 	if (_use_shading_nodes)
 		BLI_ghash_free(_nodetree_hash, NULL, NULL);
+
+	FreeStrokeGroups();
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
@@ -414,10 +418,10 @@ Material* BlenderStrokeRenderer::GetStrokeShader(Main *bmain, bNodeTree *iNodeTr
 				input_uvmap->locy = node->locy;
 				NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
 				if (node->custom1 & 1) { // use_tips
-					BLI_strncpy(storage->uv_map, "along_stroke_tips", sizeof(storage->uv_map));
+					BLI_strncpy(storage->uv_map, uvNames[1], sizeof(storage->uv_map));
 				}
 				else {
-					BLI_strncpy(storage->uv_map, "along_stroke", sizeof(storage->uv_map));
+					BLI_strncpy(storage->uv_map, uvNames[0], sizeof(storage->uv_map));
 				}
 				fromsock = (bNodeSocket *)BLI_findlink(&input_uvmap->outputs, 0); // UV
 
@@ -439,6 +443,11 @@ Material* BlenderStrokeRenderer::GetStrokeShader(Main *bmain, bNodeTree *iNodeTr
 }
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
+{
+	RenderStrokeRepBasic(iStrokeRep);
+}
+
+void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
 	if (_use_shading_nodes) {
 		bNodeTree *nt = iStrokeRep->getNodeTree();
@@ -509,10 +518,10 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 				// We'll generate both with tips and without tips
 				// coordinates, on two different UV layers.
 				if (ma->mtex[a]->texflag & MTEX_TIPS)  {
-					BLI_strncpy(ma->mtex[a]->uvname, "along_stroke_tips", sizeof(ma->mtex[a]->uvname));
+					BLI_strncpy(ma->mtex[a]->uvname, uvNames[1], sizeof(ma->mtex[a]->uvname));
 				}
 				else {
-					BLI_strncpy(ma->mtex[a]->uvname, "along_stroke", sizeof(ma->mtex[a]->uvname));
+					BLI_strncpy(ma->mtex[a]->uvname, uvNames[0], sizeof(ma->mtex[a]->uvname));
 				}
 				a++;
 			}
@@ -521,7 +530,42 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 		}
 	}
 
-	RenderStrokeRepBasic(iStrokeRep);
+	const vector<Strip*>& strips = iStrokeRep->getStrips();
+	const bool hasTex = iStrokeRep->hasTex();
+	int totvert = 0, totedge = 0, totpoly = 0, totloop = 0;
+	int visible_faces, visible_segments;
+	for (vector<Strip*>::const_iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
+		Strip::vertex_container& strip_vertices = (*s)->vertices();
+
+		// count visible faces and strip segments
+		test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
+		if (visible_faces == 0)
+			continue;
+
+		totvert += visible_faces + visible_segments * 2;
+		totedge += visible_faces * 2 + visible_segments;
+		totpoly += visible_faces;
+		totloop += visible_faces * 3;
+	}
+
+	BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this); // FIXME
+	vector<StrokeGroup*> *groups = hasTex ? &self->texturedStrokeGroups : &self->strokeGroups;
+	StrokeGroup *group;
+	if (groups->empty() || !(groups->back()->totvert + totvert < MESH_MAX_VERTS &&
+	    groups->back()->totcol + 1 < MAXMAT))
+	{
+		group = new StrokeGroup;
+		groups->push_back(group);
+	}
+	else {
+		group = groups->back();
+	}
+	group->strokes.push_back(iStrokeRep);
+	group->totvert += totvert;
+	group->totedge += totedge;
+	group->totpoly += totpoly;
+	group->totloop += totloop;
+	group->totcol++;
 }
 
 // Check if the triangle is visible (i.e., within the render image boundary)
@@ -578,117 +622,168 @@ void BlenderStrokeRenderer::test_strip_visibility(Strip::vertex_container& strip
 	}
 }
 
-// Build a mesh object representing a stroke
-void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
+// Release allocated memory for stroke groups
+void BlenderStrokeRenderer::FreeStrokeGroups()
 {
-	vector<Strip*>& strips = iStrokeRep->getStrips();
-	const bool hasTex = iStrokeRep->hasTex();
-	Strip::vertex_container::iterator v[3];
-	StrokeVertexRep *svRep[3];
-	unsigned int vertex_index, edge_index, loop_index;
-	Vec2r p;
+	vector<StrokeGroup*>::const_iterator it, itend;
 
-	int totvert = 0, totedge = 0, totpoly = 0, totloop = 0;
-	int visible_faces, visible_segments;
-
-	bool visible;
-	for (vector<Strip*>::iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
-		Strip::vertex_container& strip_vertices = (*s)->vertices();
-
-		// count visible faces and strip segments
-		test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
-		if (visible_faces == 0)
-			continue;
-
-		totvert += visible_faces + visible_segments * 2;
-		totedge += visible_faces * 2 + visible_segments;
-		totpoly += visible_faces;
-		totloop += visible_faces * 3;
+	for (it = strokeGroups.begin(), itend = strokeGroups.end();
+	     it != itend; ++it)
+	{
+		delete (*it);
 	}
+	for (it = texturedStrokeGroups.begin(), itend = texturedStrokeGroups.end();
+	     it != itend; ++it)
+	{
+		delete (*it);
+	}
+}
 
+// Build a scene populated by mesh objects representing stylized strokes
+int BlenderStrokeRenderer::GenerateScene()
+{
+	vector<StrokeGroup*>::const_iterator it, itend;
+
+	for (it = strokeGroups.begin(), itend = strokeGroups.end();
+	     it != itend; ++it)
+	{
+		GenerateStrokeMesh(*it, false);
+	}
+	for (it = texturedStrokeGroups.begin(), itend = texturedStrokeGroups.end();
+	     it != itend; ++it)
+	{
+		GenerateStrokeMesh(*it, true);
+	}
+	return strokeGroups.size() + texturedStrokeGroups.size();
+}
+
+// Build a mesh object representing a group of stylized strokes
+void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
+{
 #if 0
 	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, OB_MESH);
 #else
 	Object *object_mesh = NewMesh();
 #endif
 	Mesh *mesh = (Mesh *)object_mesh->data;
-	mesh->mat = (Material **)MEM_mallocN(1 * sizeof(Material *), "MaterialList");
-	mesh->mat[0] = iStrokeRep->getMaterial();
-	mesh->totcol = 1;
-	test_object_materials(freestyle_bmain, (ID *)mesh);
 
-	// vertices allocation
-	mesh->totvert = totvert; // visible_faces + visible_segments * 2;
-	CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
+	mesh->totvert = group->totvert;
+	mesh->totedge = group->totedge;
+	mesh->totpoly = group->totpoly;
+	mesh->totloop = group->totloop;
+	mesh->totcol = group->totcol;
 
-	// edges allocation
-	mesh->totedge = totedge; // visible_faces * 2 + visible_segments;
-	CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
-
-	// faces allocation
-	mesh->totpoly = totpoly; // visible_faces;
-	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
-
-	// loops allocation
-	mesh->totloop = totloop; // visible_faces * 3;
-	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
-
-	// uv maps
-	MLoopUV *loopsuv[2] = { NULL };
-	if (hasTex) {
-		loopsuv[0] = (MLoopUV *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke");
-		loopsuv[1] = (MLoopUV *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, "along_stroke_tips");
-
-		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke");
-		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, "along_stroke_tips");
-	}
-
-	// colors and transparency (the latter represented by grayscale colors)
-	MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "Color");
-	MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "Alpha");
-
-	BKE_mesh_update_customdata_pointers(mesh, true);
-
-	////////////////////
-	//  Data copy
-	////////////////////
+	mesh->mvert = (MVert *)CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
+	mesh->medge = (MEdge *)CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
+	mesh->mpoly = (MPoly *)CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
+	mesh->mloop = (MLoop *)CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
 
 	MVert *vertices = mesh->mvert;
 	MEdge *edges = mesh->medge;
 	MPoly *polys = mesh->mpoly;
 	MLoop *loops = mesh->mloop;
+	MLoopUV *loopsuv[2] = { NULL };
 
-	vertex_index = edge_index = loop_index = 0;
+	if (hasTex) {
+		// First UV layer
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, uvNames[0]);
+		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, uvNames[0]);
+		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 0);
+		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
+		BKE_mesh_update_customdata_pointers(mesh, true);
+		loopsuv[0] = mesh->mloopuv;
 
-	for (vector<Strip*>::iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
-		Strip::vertex_container& strip_vertices = (*s)->vertices();
-		int strip_vertex_count = strip_vertices.size();
+		// Second UV layer
+		CustomData_add_layer_named(&mesh->pdata, CD_MTEXPOLY, CD_CALLOC, NULL, mesh->totpoly, uvNames[1]);
+		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_CALLOC, NULL, mesh->totloop, uvNames[1]);
+		CustomData_set_layer_active(&mesh->pdata, CD_MTEXPOLY, 1);
+		CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
+		BKE_mesh_update_customdata_pointers(mesh, true);
+		loopsuv[1] = mesh->mloopuv;
+	}
 
-		// count visible faces and strip segments
-		test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
-		if (visible_faces == 0)
-			continue;
+	// colors and transparency (the latter represented by grayscale colors)
+	MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "Color");
+	MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop, "Alpha");
+	mesh->mloopcol = colors;
 
-		v[0] = strip_vertices.begin();
-		v[1] = v[0] + 1;
-		v[2] = v[0] + 2;
+	mesh->mat = (Material **)MEM_mallocN(sizeof(Material *) * mesh->totcol, "MaterialList");
 
-		visible = false;
+	////////////////////
+	//  Data copy
+	////////////////////
 
-		// Note: Mesh generation in the following loop assumes stroke strips
-		// to be triangle strips.
-		for (int n = 2; n < strip_vertex_count; n++, v[0]++, v[1]++, v[2]++) {
-			svRep[0] = *(v[0]);
-			svRep[1] = *(v[1]);
-			svRep[2] = *(v[2]);
-			if (!test_triangle_visibility(svRep)) {
-				visible = false;
-			}
-			else {
-				if (!visible) {
-					// first vertex
-					vertices->co[0] = svRep[0]->point2d()[0];
-					vertices->co[1] = svRep[0]->point2d()[1];
+	int vertex_index = 0, edge_index = 0, loop_index = 0, material_index = 0;
+	int visible_faces, visible_segments;
+	bool visible;
+	Strip::vertex_container::iterator v[3];
+	StrokeVertexRep *svRep[3];
+	Vec2r p;
+
+	for (vector<StrokeRep*>::const_iterator it = group->strokes.begin(), itend = group->strokes.end();
+	     it != itend; ++it)
+	{
+		mesh->mat[material_index] = (*it)->getMaterial();
+		material_index++;
+
+		vector<Strip*>& strips = (*it)->getStrips();
+		for (vector<Strip*>::const_iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
+			Strip::vertex_container& strip_vertices = (*s)->vertices();
+			int strip_vertex_count = strip_vertices.size();
+
+			// count visible faces and strip segments
+			test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
+			if (visible_faces == 0)
+				continue;
+
+			v[0] = strip_vertices.begin();
+			v[1] = v[0] + 1;
+			v[2] = v[0] + 2;
+
+			visible = false;
+
+			// Note: Mesh generation in the following loop assumes stroke strips
+			// to be triangle strips.
+			for (int n = 2; n < strip_vertex_count; n++, v[0]++, v[1]++, v[2]++) {
+				svRep[0] = *(v[0]);
+				svRep[1] = *(v[1]);
+				svRep[2] = *(v[2]);
+				if (!test_triangle_visibility(svRep)) {
+					visible = false;
+				}
+				else {
+					if (!visible) {
+						// first vertex
+						vertices->co[0] = svRep[0]->point2d()[0];
+						vertices->co[1] = svRep[0]->point2d()[1];
+						vertices->co[2] = get_stroke_vertex_z();
+						vertices->no[0] = 0;
+						vertices->no[1] = 0;
+						vertices->no[2] = SHRT_MAX;
+						++vertices;
+						++vertex_index;
+
+						// second vertex
+						vertices->co[0] = svRep[1]->point2d()[0];
+						vertices->co[1] = svRep[1]->point2d()[1];
+						vertices->co[2] = get_stroke_vertex_z();
+						vertices->no[0] = 0;
+						vertices->no[1] = 0;
+						vertices->no[2] = SHRT_MAX;
+						++vertices;
+						++vertex_index;
+
+						// first edge
+						edges->v1 = vertex_index - 2;
+						edges->v2 = vertex_index - 1;
+						++edges;
+						++edge_index;
+					}
+					visible = true;
+
+					// vertex
+					vertices->co[0] = svRep[2]->point2d()[0];
+					vertices->co[1] = svRep[2]->point2d()[1];
 					vertices->co[2] = get_stroke_vertex_z();
 					vertices->no[0] = 0;
 					vertices->no[1] = 0;
@@ -696,150 +791,127 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 					++vertices;
 					++vertex_index;
 
-					// second vertex
-					vertices->co[0] = svRep[1]->point2d()[0];
-					vertices->co[1] = svRep[1]->point2d()[1];
-					vertices->co[2] = get_stroke_vertex_z();
-					vertices->no[0] = 0;
-					vertices->no[1] = 0;
-					vertices->no[2] = SHRT_MAX;
-					++vertices;
-					++vertex_index;
-
-					// first edge
-					edges->v1 = vertex_index - 2;
-					edges->v2 = vertex_index - 1;
+					// edges
+					edges->v1 = vertex_index - 1;
+					edges->v2 = vertex_index - 3;
 					++edges;
 					++edge_index;
-				}
-				visible = true;
 
-				// vertex
-				vertices->co[0] = svRep[2]->point2d()[0];
-				vertices->co[1] = svRep[2]->point2d()[1];
-				vertices->co[2] = get_stroke_vertex_z();
-				vertices->no[0] = 0;
-				vertices->no[1] = 0;
-				vertices->no[2] = SHRT_MAX;
-				++vertices;
-				++vertex_index;
+					edges->v1 = vertex_index - 1;
+					edges->v2 = vertex_index - 2;
+					++edges;
+					++edge_index;
 
-				// edges
-				edges->v1 = vertex_index - 1;
-				edges->v2 = vertex_index - 3;
-				++edges;
-				++edge_index;
+					// poly
+					polys->loopstart = loop_index;
+					polys->totloop = 3;
+					++polys;
 
-				edges->v1 = vertex_index - 1;
-				edges->v2 = vertex_index - 2;
-				++edges;
-				++edge_index;
+					// Even and odd loops connect triangles vertices differently
+					bool is_odd = n % 2;
+					// loops
+					if (is_odd) {
+						loops[0].v = vertex_index - 1;
+						loops[0].e = edge_index - 2;
 
-				// poly
-				polys->loopstart = loop_index;
-				polys->totloop = 3;
-				++polys;
+						loops[1].v = vertex_index - 3;
+						loops[1].e = edge_index - 3;
 
-				// Even and odd loops connect triangles vertices differently
-				bool is_odd = n % 2;
-				// loops
-				if (is_odd) {
-					loops[0].v = vertex_index - 1;
-					loops[0].e = edge_index - 2;
-
-					loops[1].v = vertex_index - 3;
-					loops[1].e = edge_index - 3;
-
-					loops[2].v = vertex_index - 2;
-					loops[2].e = edge_index - 1;
-				}
-				else {
-					loops[0].v = vertex_index - 1;
-					loops[0].e = edge_index - 1;
-
-					loops[1].v = vertex_index - 2;
-					loops[1].e = edge_index - 3;
-
-					loops[2].v = vertex_index - 3;
-					loops[2].e = edge_index - 2;
-				}
-				loops += 3;
-				loop_index += 3;
-
-				// UV
-				if (hasTex) {
-					// First UV layer (loopsuv[0]) has no tips (texCoord(0)).
-					// Second UV layer (loopsuv[1]) has tips:  (texCoord(1)).
-					for (int L = 0; L < 2; L++) {
-						if (is_odd) {
-							loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
-							loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
-
-							loopsuv[L][1].uv[0] = svRep[0]->texCoord(L).x();
-							loopsuv[L][1].uv[1] = svRep[0]->texCoord(L).y();
-
-							loopsuv[L][2].uv[0] = svRep[1]->texCoord(L).x();
-							loopsuv[L][2].uv[1] = svRep[1]->texCoord(L).y();
-						}
-						else {
-							loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
-							loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
-
-							loopsuv[L][1].uv[0] = svRep[1]->texCoord(L).x();
-							loopsuv[L][1].uv[1] = svRep[1]->texCoord(L).y();
-
-							loopsuv[L][2].uv[0] = svRep[0]->texCoord(L).x();
-							loopsuv[L][2].uv[1] = svRep[0]->texCoord(L).y();
-						}
-						loopsuv[L] += 3;
+						loops[2].v = vertex_index - 2;
+						loops[2].e = edge_index - 1;
 					}
+					else {
+						loops[0].v = vertex_index - 1;
+						loops[0].e = edge_index - 1;
+
+						loops[1].v = vertex_index - 2;
+						loops[1].e = edge_index - 3;
+
+						loops[2].v = vertex_index - 3;
+						loops[2].e = edge_index - 2;
+					}
+					loops += 3;
+					loop_index += 3;
+
+					// UV
+					if (hasTex) {
+						// First UV layer (loopsuv[0]) has no tips (texCoord(0)).
+						// Second UV layer (loopsuv[1]) has tips:  (texCoord(1)).
+						for (int L = 0; L < 2; L++) {
+							if (is_odd) {
+								loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
+								loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
+
+								loopsuv[L][1].uv[0] = svRep[0]->texCoord(L).x();
+								loopsuv[L][1].uv[1] = svRep[0]->texCoord(L).y();
+
+								loopsuv[L][2].uv[0] = svRep[1]->texCoord(L).x();
+								loopsuv[L][2].uv[1] = svRep[1]->texCoord(L).y();
+							}
+							else {
+								loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
+								loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
+
+								loopsuv[L][1].uv[0] = svRep[1]->texCoord(L).x();
+								loopsuv[L][1].uv[1] = svRep[1]->texCoord(L).y();
+
+								loopsuv[L][2].uv[0] = svRep[0]->texCoord(L).x();
+								loopsuv[L][2].uv[1] = svRep[0]->texCoord(L).y();
+							}
+							loopsuv[L] += 3;
+						}
+					}
+
+					// colors and alpha transparency
+					if (is_odd) {
+						colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
+						colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
+						colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
+						colors[0].a = (short)(255.0f * svRep[2]->alpha());
+
+						colors[1].r = (short)(255.0f * svRep[0]->color()[0]);
+						colors[1].g = (short)(255.0f * svRep[0]->color()[1]);
+						colors[1].b = (short)(255.0f * svRep[0]->color()[2]);
+						colors[1].a = (short)(255.0f * svRep[0]->alpha());
+
+						colors[2].r = (short)(255.0f * svRep[1]->color()[0]);
+						colors[2].g = (short)(255.0f * svRep[1]->color()[1]);
+						colors[2].b = (short)(255.0f * svRep[1]->color()[2]);
+						colors[2].a = (short)(255.0f * svRep[1]->alpha());
+					}
+					else {
+						colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
+						colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
+						colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
+						colors[0].a = (short)(255.0f * svRep[2]->alpha());
+
+						colors[1].r = (short)(255.0f * svRep[1]->color()[0]);
+						colors[1].g = (short)(255.0f * svRep[1]->color()[1]);
+						colors[1].b = (short)(255.0f * svRep[1]->color()[2]);
+						colors[1].a = (short)(255.0f * svRep[1]->alpha());
+
+						colors[2].r = (short)(255.0f * svRep[0]->color()[0]);
+						colors[2].g = (short)(255.0f * svRep[0]->color()[1]);
+						colors[2].b = (short)(255.0f * svRep[0]->color()[2]);
+						colors[2].a = (short)(255.0f * svRep[0]->alpha());
+					}
+					transp[0].r = transp[0].g = transp[0].b = colors[0].a;
+					transp[1].r = transp[1].g = transp[1].b = colors[1].a;
+					transp[2].r = transp[2].g = transp[2].b = colors[2].a;
+					colors += 3;
+					transp += 3;
 				}
+			} // loop over strip vertices
+		} // loop over strips
+	} // loop over strokes
 
-				// colors and alpha transparency
-				if (is_odd) {
-					colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
-					colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
-					colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
-					colors[0].a = (short)(255.0f * svRep[2]->alpha());
+	test_object_materials(freestyle_bmain, (ID *)mesh);
 
-					colors[1].r = (short)(255.0f * svRep[0]->color()[0]);
-					colors[1].g = (short)(255.0f * svRep[0]->color()[1]);
-					colors[1].b = (short)(255.0f * svRep[0]->color()[2]);
-					colors[1].a = (short)(255.0f * svRep[0]->alpha());
-
-					colors[2].r = (short)(255.0f * svRep[1]->color()[0]);
-					colors[2].g = (short)(255.0f * svRep[1]->color()[1]);
-					colors[2].b = (short)(255.0f * svRep[1]->color()[2]);
-					colors[2].a = (short)(255.0f * svRep[1]->alpha());
-				}
-				else {
-					colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
-					colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
-					colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
-					colors[0].a = (short)(255.0f * svRep[2]->alpha());
-
-					colors[1].r = (short)(255.0f * svRep[1]->color()[0]);
-					colors[1].g = (short)(255.0f * svRep[1]->color()[1]);
-					colors[1].b = (short)(255.0f * svRep[1]->color()[2]);
-					colors[1].a = (short)(255.0f * svRep[1]->alpha());
-
-					colors[2].r = (short)(255.0f * svRep[0]->color()[0]);
-					colors[2].g = (short)(255.0f * svRep[0]->color()[1]);
-					colors[2].b = (short)(255.0f * svRep[0]->color()[2]);
-					colors[2].a = (short)(255.0f * svRep[0]->alpha());
-				}
-				transp[0].r = transp[0].g = transp[0].b = colors[0].a;
-				transp[1].r = transp[1].g = transp[1].b = colors[1].a;
-				transp[2].r = transp[2].g = transp[2].b = colors[2].a;
-				colors += 3;
-				transp += 3;
-			}
-		} // loop over strip vertices
-	} // loop over strips
-#if 0
-	BLI_assert(totvert == vertex_index);
-	BLI_assert(totedge == edge_index);
-	BLI_assert(totloop == loop_index);
+#if 0 // XXX
+	BLI_assert(mesh->totvert == vertex_index);
+	BLI_assert(mesh->totedge == edge_index);
+	BLI_assert(mesh->totloop == loop_index);
+	BLI_assert(mesh->totcol == material_index);
 	BKE_mesh_validate(mesh, true);
 #endif
 }

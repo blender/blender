@@ -400,6 +400,7 @@ Stroke::Stroke()
 	}
 	_nodeTree = NULL;
 	_tips = false;
+	_rep = NULL;
 }
 
 Stroke::Stroke(const Stroke& iBrother)
@@ -427,6 +428,10 @@ Stroke::Stroke(const Stroke& iBrother)
 	}
 	_nodeTree = iBrother._nodeTree;
 	_tips = iBrother._tips;
+	if (iBrother._rep)
+		_rep = new StrokeRep(*(iBrother._rep));
+	else
+		_rep = NULL;
 }
 
 Stroke::~Stroke()
@@ -439,6 +444,10 @@ Stroke::~Stroke()
 	}
 
 	_ViewEdges.clear();
+	if (_rep) {
+		delete _rep;
+		_rep = NULL;
+	}
 }
 
 Stroke& Stroke::operator=(const Stroke& iBrother)
@@ -456,6 +465,12 @@ Stroke& Stroke::operator=(const Stroke& iBrother)
 	_id = iBrother._id;
 	_ViewEdges = iBrother._ViewEdges;
 	_sampling = iBrother._sampling;
+	if (_rep)
+		delete _rep;
+	if (iBrother._rep)
+		_rep = new StrokeRep(*(iBrother._rep));
+	else
+		_rep = NULL;
 	return *this;
 }
 
@@ -757,14 +772,16 @@ void Stroke::ScaleThickness(float iFactor)
 
 void Stroke::Render(const StrokeRenderer *iRenderer)
 {
-	StrokeRep rep(this);
-	iRenderer->RenderStrokeRep(&rep);
+	if (!_rep)
+		_rep = new StrokeRep(this);
+	iRenderer->RenderStrokeRep(_rep);
 }
 
 void Stroke::RenderBasic(const StrokeRenderer *iRenderer)
 {
-	StrokeRep rep(this);
-	iRenderer->RenderStrokeRepBasic(&rep);
+	if (!_rep)
+		_rep = new StrokeRep(this);
+	iRenderer->RenderStrokeRep(_rep);
 }
 
 Stroke::vertex_iterator Stroke::vertices_begin(float sampling)

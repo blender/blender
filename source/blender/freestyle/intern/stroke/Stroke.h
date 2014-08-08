@@ -549,6 +549,7 @@ private:
 	MTex *_mtex[MAX_MTEX];
 	bNodeTree *_nodeTree;
 	bool _tips;
+	StrokeRep *_rep;
 	Vec2r _extremityOrientations[2]; // the orientations of the first and last extermity
 
 public:
