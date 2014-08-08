@@ -72,9 +72,9 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 	: SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj),
 	  m_focusmode(focusmode),
 	  m_bTouchPulse(bTouchPulse),
-	  m_propertyname(propname),
-	  m_bFindMaterial(bFindMaterial),
 	  m_bXRay(bXRay),
+	  m_bFindMaterial(bFindMaterial),
+	  m_propertyname(propname),
 	  m_kxscene(kxscene),
 	  m_kxengine(kxengine)
 {
