@@ -338,7 +338,7 @@ void applyProject(TransInfo *t)
 
 					add_v3_v3(td->loc, tvec);
 
-					if (t->tsnap.align) {
+					if (t->tsnap.align && (t->flag & T_OBJECT)) {
 						/* handle alignment as well */
 						const float *original_normal;
 						float axis[3];
