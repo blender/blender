@@ -201,7 +201,16 @@ static PyObject *gp_OrigPythonSysModules= NULL;
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyLong_FromLong(SCA_IInputDevice::KX_##name))
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, item=PyLong_FromLong(name)); Py_DECREF(item)
 /* For the defines for types from logic bricks, we do stuff explicitly... */
-#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyLong_FromLong(name2)); Py_DECREF(item)
+#define KX_MACRO_addTypesToDict(dict, name, value) KX_MACRO_addTypesToDict_fn(dict, #name, value)
+static void KX_MACRO_addTypesToDict_fn(PyObject *dict, const char *name, long value)
+{
+	PyObject *item;
+
+	item = PyLong_FromLong(value);
+	PyDict_SetItemString(dict, name, item);
+	Py_DECREF(item);
+}
+
 
 
 // temporarily python stuff, will be put in another place later !
@@ -2270,7 +2279,6 @@ PyObject *initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 
 	PyObject *m;
 	PyObject *d;
-	PyObject *item;
 
 	/* Use existing module where possible
 	 * be careful not to init any runtime vars after this */
@@ -2400,7 +2408,6 @@ PyObject *initGameKeys()
 {
 	PyObject *m;
 	PyObject *d;
-	PyObject *item;
 	
 	/* Use existing module where possible */
 	m = PyImport_ImportModule( "GameKeys" );
