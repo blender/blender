@@ -602,7 +602,7 @@ int KX_SteeringActuator::pyattr_set_navmesh(void *self, const struct KX_PYATTRIB
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_SteeringActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 
-	if (!PyObject_TypeCheck(value, &KX_NavMeshObject::Type))
+    if (dynamic_cast<KX_NavMeshObject *>(gameobj) == NULL)
 	{
 		PyErr_Format(PyExc_TypeError, "KX_NavMeshObject is expected");
 		return PY_SET_ATTR_FAIL;
