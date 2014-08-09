@@ -805,10 +805,14 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 	// DIFFUSE
 	// color
 	if (ef->getDiffuse().isColor()) {
+		/* too high intensity can create artefacts (fireflies)
+		   So here we take care that intensity is set to 0.8 wherever possible
+		*/
 		col = ef->getDiffuse().getColor();
-		ma->r = col.getRed();
-		ma->g = col.getGreen();
-		ma->b = col.getBlue();
+		ma->ref = max_ffff(col.getRed(), col.getGreen(), col.getBlue(), 0.8);
+		ma->r = col.getRed()   / ma->ref;
+		ma->g = col.getGreen() / ma->ref;
+		ma->b = col.getBlue()  / ma->ref;
 	}
 	// texture
 	else if (ef->getDiffuse().isTexture()) {
