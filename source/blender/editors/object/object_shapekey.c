@@ -494,7 +494,7 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 	{
 		KeyBlock *kb, *kb_other, *kb_iter;
 		const int type = RNA_enum_get(op->ptr, "type");
-		const int shape_tot = BLI_countlist(&key->block);
+		const int shape_tot = key->totkey;
 		const int shapenr_act = ob->shapenr - 1;
 		const int shapenr_swap = (shape_tot + shapenr_act + type) % shape_tot;
 
