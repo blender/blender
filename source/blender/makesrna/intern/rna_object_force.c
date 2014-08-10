@@ -598,11 +598,20 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 
 static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Scene *scene = (Scene *)ptr->id.data;
-	Base *base;
+	ID *id = ptr->id.data;
 
-	for (base = scene->base.first; base; base = base->next)
-		BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
+	if (id && GS(id->name) == ID_SCE) {
+		Scene *scene = (Scene *)id;
+		Base *base;
+
+		for (base = scene->base.first; base; base = base->next) {
+			BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
+		}
+	}
+	else {
+		DAG_id_tag_update(id, OB_RECALC_DATA | PSYS_RECALC_RESET);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+	}
 }
 
 static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
