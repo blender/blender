@@ -485,27 +485,22 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 static int shape_key_move_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
-
-	int type = RNA_enum_get(op->ptr, "type");
 	Key *key = BKE_key_from_object(ob);
 
-	if (key) {
-		KeyBlock *kb, *kb_other;
-		int shapenr_act = ob->shapenr - 1;
-		int shapenr_swap = shapenr_act + type;
+	if (!key) {
+		return OPERATOR_CANCELLED;
+	}
+
+	{
+		KeyBlock *kb, *kb_other, *kb_iter;
+		const int type = RNA_enum_get(op->ptr, "type");
+		const int shape_tot = BLI_countlist(&key->block);
+		const int shapenr_act = ob->shapenr - 1;
+		const int shapenr_swap = (shape_tot + shapenr_act + type) % shape_tot;
+
 		kb = BLI_findlink(&key->block, shapenr_act);
-
-		if ((type == -1 && kb->prev == NULL) || (type == 1 && kb->next == NULL)) {
+		if (!kb || shape_tot == 1) {
 			return OPERATOR_CANCELLED;
-		}
-
-		for (kb_other = key->block.first; kb_other; kb_other = kb_other->next) {
-			if (kb_other->relative == shapenr_act) {
-				kb_other->relative += type;
-			}
-			else if (kb_other->relative == shapenr_swap) {
-				kb_other->relative -= type;
-			}
 		}
 
 		if (type == -1) {
@@ -513,17 +508,57 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 			kb_other = kb->prev;
 			BLI_remlink(&key->block, kb);
 			BLI_insertlinkbefore(&key->block, kb_other, kb);
-			ob->shapenr--;
 		}
 		else {
 			/* move next */
 			kb_other = kb->next;
 			BLI_remlink(&key->block, kb);
 			BLI_insertlinkafter(&key->block, kb_other, kb);
-			ob->shapenr++;
 		}
 
-		SWAP(float, kb_other->pos, kb->pos); /* for absolute shape keys */
+		ob->shapenr = shapenr_swap + 1;
+
+		/* for relative shape keys */
+		if (kb_other) {
+			for (kb_iter = key->block.first; kb_iter; kb_iter = kb_iter->next) {
+				if (kb_iter->relative == shapenr_act) {
+					kb_iter->relative = shapenr_swap;
+				}
+				else if (kb_iter->relative == shapenr_swap) {
+					kb_iter->relative = shapenr_act;
+				}
+			}
+		}
+		/* First key became last, or vice-versa, we have to change all keys' relative value. */
+		else {
+			for (kb_iter = key->block.first; kb_iter; kb_iter = kb_iter->next) {
+				if (kb_iter->relative == shapenr_act) {
+					kb_iter->relative = shapenr_swap;
+				}
+				else {
+					kb_iter->relative += type;
+				}
+			}
+		}
+
+		/* for absolute shape keys */
+		if (kb_other) {
+			SWAP(float, kb_other->pos, kb->pos);
+		}
+		/* First key became last, or vice-versa, we have to change all keys' pos value. */
+		else {
+			float pos = kb->pos;
+			if (type == -1) {
+				for (kb_iter = key->block.first; kb_iter; kb_iter = kb_iter->next) {
+					SWAP(float, kb_iter->pos, pos);
+				}
+			}
+			else {
+				for (kb_iter = key->block.last; kb_iter; kb_iter = kb_iter->prev) {
+					SWAP(float, kb_iter->pos, pos);
+				}
+			}
+		}
 
 		/* First key is refkey, matches interface and BKE_key_sort */
 		key->refkey = key->block.first;
