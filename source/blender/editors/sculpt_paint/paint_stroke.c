@@ -213,6 +213,9 @@ static bool paint_brush_update(bContext *C,
 		copy_v2_v2(ups->mask_tex_mouse, mouse);
 		stroke->cached_size_pressure = pressure;
 
+		ups->do_linear_conversion = false;
+		ups->colorspace = NULL;
+
 		/* check here if color sampling the main brush should do color conversion. This is done here
 		 * to avoid locking up to get the image buffer during sampling */
 		if (brush->mtex.tex && brush->mtex.tex->type == TEX_IMAGE && brush->mtex.tex->ima) {
