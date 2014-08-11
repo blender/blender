@@ -885,7 +885,7 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
 	}
 }
 
-static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "use_tips", 0, NULL, 0);
 }
@@ -1008,8 +1008,6 @@ static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA
 static void node_buts_output_linestyle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *row, *col;
-
-	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 
 	col = uiLayoutColumn(layout, false);
 	row = uiLayoutRow(col, true);
