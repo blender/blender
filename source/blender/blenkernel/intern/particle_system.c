@@ -507,7 +507,7 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 	sub_v3_v3v3(delta, max, min);
 
 	/* determine major axis */
-	axis = (delta[0]>=delta[1]) ? 0 : ((delta[1]>=delta[2]) ? 1 : 2);
+	axis = axis_dominant_v3_single(delta);
 	 
 	d = delta[axis]/(float)res;
 
