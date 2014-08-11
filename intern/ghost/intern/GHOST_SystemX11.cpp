@@ -140,6 +140,8 @@ GHOST_SystemX11(
 #undef GHOST_INTERN_ATOM
 
 	m_last_warp = 0;
+	m_last_release_keycode = 0;
+	m_last_release_time = 0;
 
 	/* compute the initial time */
 	timeval tv;
