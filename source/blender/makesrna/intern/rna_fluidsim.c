@@ -465,7 +465,8 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "volumeInitType");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, volume_type_items);
-	RNA_def_property_ui_text(prop, "Volume Initialization", "Volume initialization type");
+	RNA_def_property_ui_text(prop, "Volume Initialization", "Volume initialization type "
+	                         "(WARNING: complex volumes might require too much memory and break simulation)");
 
 	prop = RNA_def_property(srna, "use_animated_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "domainNovecgen", 0);
