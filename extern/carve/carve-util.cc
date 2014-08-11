@@ -365,7 +365,10 @@ MeshSet<3> *getIntersectedOperand(std::vector<MeshSet<3>::mesh_t*> *meshes,
 
 MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
                                     MeshSet<3> *poly,
-                                    const MeshSet<3>::aabb_t &otherAABB)
+                                    const MeshSet<3> *other_poly,
+                                    const MeshSet<3>::aabb_t &otherAABB,
+                                    UnionIntersectionsCallback callback,
+                                    void *user_data)
 {
 	if (poly->meshes.size() <= 1) {
 		return poly;
@@ -409,6 +412,7 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 				                                  carve::csg::CSG::UNION,
 				                                  NULL, carve::csg::CSG::CLASSIFY_EDGE);
 
+				callback(result, other_poly, user_data);
 				delete left;
 				delete right;
 
@@ -419,6 +423,8 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 			std::cerr << "CSG failed, exception " << e.str() << std::endl;
 
 			MeshSet<3> *result = meshSetFromTwoMeshes(left->meshes, right->meshes);
+
+			callback(result, other_poly, user_data);
 
 			delete left;
 			delete right;
@@ -455,37 +461,36 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 
 // TODO(sergey): This function is to be totally re-implemented to make it
 // more clear what's going on and hopefully optimize it as well.
-bool carve_unionIntersections(carve::csg::CSG *csg,
+void carve_unionIntersections(carve::csg::CSG *csg,
                               MeshSet<3> **left_r,
-                              MeshSet<3> **right_r)
+                              MeshSet<3> **right_r,
+                              UnionIntersectionsCallback callback,
+                              void *user_data)
 {
 	MeshSet<3> *left = *left_r, *right = *right_r;
-	bool changed = false;
 
 	if (left->meshes.size() == 1 && right->meshes.size() == 0) {
-		return false;
+		return;
 	}
 
 	MeshSet<3>::aabb_t leftAABB = left->getAABB();
 	MeshSet<3>::aabb_t rightAABB = right->getAABB();;
 
-	left = unionIntersectingMeshes(csg, left, rightAABB);
-	right = unionIntersectingMeshes(csg, right, leftAABB);
+	left = unionIntersectingMeshes(csg, left, right, rightAABB,
+	                               callback, user_data);
+	right = unionIntersectingMeshes(csg, right, left, leftAABB,
+	                                callback, user_data);
 
 	if (left != *left_r) {
-		changed = true;
 		delete *left_r;
 	}
 
 	if (right != *right_r) {
-		changed = true;
 		delete *right_r;
 	}
 
 	*left_r = left;
 	*right_r = right;
-
-	return changed;
 }
 
 static inline void add_newell_cross_v3_v3v3(const Vector &v_prev,

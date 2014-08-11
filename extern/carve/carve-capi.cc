@@ -555,6 +555,19 @@ void cleanupFaceEdgeAttrs(const MeshSet<3> *left,
 	interpolator->swapAttributes(&new_interpolator);
 }
 
+void cleanupFaceEdgeAttrsCallback(const MeshSet<3> *left,
+                                  const MeshSet<3> *right,
+                                  void *descr_v)
+{
+	CarveMeshDescr *descr = (CarveMeshDescr *) descr_v;
+	cleanupFaceEdgeAttrs(left,
+	                     right,
+	                     &descr->face_edge_triangulated_flag);
+	cleanupFaceEdgeAttrs(left,
+	                     right,
+	                     &descr->orig_face_edge_mapping);
+}
+
 }  // namespace
 
 CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
@@ -737,14 +750,9 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 		// intersecting that meshes tessellation of operation result can't be
 		// done properly. The only way to make such situations working is to
 		// union intersecting meshes of the same operand.
-		if (carve_unionIntersections(&csg, &left, &right)) {
-			cleanupFaceEdgeAttrs(left,
-			                     right,
-			                     &output_descr->face_edge_triangulated_flag);
-			cleanupFaceEdgeAttrs(left,
-			                     right,
-			                     &output_descr->orig_face_edge_mapping);
-		}
+		carve_unionIntersections(&csg, &left, &right,
+		                         cleanupFaceEdgeAttrsCallback,
+		                         (void *) output_descr);
 
 		left_mesh->poly = left;
 		right_mesh->poly = right;
