@@ -1,8 +1,7 @@
 # Apache License, Version 2.0
 
-# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py -- --verbose
 import unittest
-from test import support
 from mathutils import Matrix, Vector
 from mathutils import kdtree
 import math
@@ -291,19 +290,7 @@ class KDTreeTesting(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             k.find(co)
 
-
-def test_main():
-    try:
-        support.run_unittest(MatrixTesting)
-        support.run_unittest(VectorTesting)
-        support.run_unittest(KDTreeTesting)
-    except:
-        import traceback
-        traceback.print_exc()
-
-        # alert CTest we failed
-        import sys
-        sys.exit(1)
-
 if __name__ == '__main__':
-    test_main()
+    import sys
+    sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    unittest.main()
