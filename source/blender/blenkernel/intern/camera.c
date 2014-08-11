@@ -201,7 +201,7 @@ void BKE_camera_params_init(CameraParams *params)
 
 	/* fallback for non camera objects */
 	params->clipsta = 0.1f;
-	params->clipsta = 100.0f;
+	params->clipend = 100.0f;
 }
 
 void BKE_camera_params_from_object(CameraParams *params, Object *ob)
