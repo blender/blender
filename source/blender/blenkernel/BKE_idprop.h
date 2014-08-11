@@ -143,7 +143,7 @@ void IDP_UnlinkProperty(struct IDProperty *prop);
 #  define IDP_IDPArray(prop) ((IDProperty *) (prop)->data.pointer)
 #endif
 
-#ifdef DEBUG
+#ifndef NDEBUG
 /* for printout only */
 void IDP_spit(IDProperty *prop);
 #endif

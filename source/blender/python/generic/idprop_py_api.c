@@ -1541,7 +1541,7 @@ PyObject *BPyInit_idprop(void)
 }
 
 
-#ifdef DEBUG
+#ifndef NDEBUG
 /* -------------------------------------------------------------------- */
 /* debug only function */
 
