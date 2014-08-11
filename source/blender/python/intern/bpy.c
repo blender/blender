@@ -51,11 +51,14 @@
 #include "bpy_operator.h"
 #include "bpy_utils_units.h"
 
+#include "../generic/py_capi_utils.h"
+
 #include "MEM_guardedalloc.h"
 
 /* external util modules */
 #include "../generic/idprop_py_api.h"
 #include "../generic/bgl.h"
+#include "../generic/blf_py_api.h"
 #include "../generic/blf_py_api.h"
 #include "../mathutils/mathutils.h"
 
@@ -80,11 +83,11 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 	const char *path;
 
 	path = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
-	item = PyUnicode_DecodeFSDefault(path ? path : "");
+	item = PyC_UnicodeFromByte(path ? path : "");
 	BLI_assert(item != NULL);
 	PyTuple_SET_ITEM(ret, 0, item);
 	path = BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
-	item = PyUnicode_DecodeFSDefault(path ? path : "");
+	item = PyC_UnicodeFromByte(path ? path : "");
 	BLI_assert(item != NULL);
 	PyTuple_SET_ITEM(ret, 1, item);
 
@@ -94,7 +97,7 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 static bool bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
 	PyObject *list = (PyObject *)userdata;
-	PyObject *item = PyUnicode_DecodeFSDefault(path_src);
+	PyObject *item = PyC_UnicodeFromByte(path_src);
 	PyList_Append(list, item);
 	Py_DECREF(item);
 	return false; /* never edits the path */
@@ -171,7 +174,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	if (!path)
 		path = BLI_get_user_folder_notest(folder_id, subdir);
 
-	return PyUnicode_DecodeFSDefault(path ? path : "");
+	return PyC_UnicodeFromByte(path ? path : "");
 }
 
 PyDoc_STRVAR(bpy_resource_path_doc,
@@ -210,7 +213,7 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 
 	path = BLI_get_folder_version(folder_id, (major * 100) + minor, false);
 
-	return PyUnicode_DecodeFSDefault(path ? path : "");
+	return PyC_UnicodeFromByte(path ? path : "");
 }
 
 PyDoc_STRVAR(bpy_escape_identifier_doc,
