@@ -650,6 +650,39 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
 		is_set = true;
 	}
+	else if (ob == NULL || ob->mode == OB_MODE_OBJECT) {
+		/* object mode use boundbox centers */
+		View3D *v3d = CTX_wm_view3d(C);
+		Base *base;
+		unsigned int tot = 0;
+		float select_center[3];
+
+		zero_v3(select_center);
+		for (base = FIRSTBASE; base; base = base->next) {
+			if (TESTBASE(v3d, base)) {
+				/* use the boundbox if we can */
+				Object *ob = base->object;
+
+				if (ob->bb && !(ob->bb->flag & BOUNDBOX_DIRTY)) {
+					float cent[3];
+
+					BKE_boundbox_calc_center_aabb(ob->bb, cent);
+
+					mul_m4_v3(ob->obmat, cent);
+					add_v3_v3(select_center, cent);
+				}
+				else {
+					add_v3_v3(select_center, ob->obmat[3]);
+				}
+				tot++;
+			}
+		}
+		if (tot) {
+			mul_v3_fl(select_center, 1.0f / (float)tot);
+			copy_v3_v3(lastofs, select_center);
+			is_set = true;
+		}
+	}
 	else {
 		/* If there's no selection, lastofs is unmodified and last value since static */
 		is_set = calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
