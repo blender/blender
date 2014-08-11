@@ -892,8 +892,9 @@ if env['OURPLATFORM']!='darwin':
         td, tf = os.path.split(targetdir)
         dotblenderinstall.append(env.Install(dir=td, source=srcfile))
 
-    scriptinstall.append(env.InstallAs(env['BF_INSTALLDIR'] + '/blender-app.exe.manifest',
-                                       'source/icons/blender.exe.manifest'))
+    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
+        scriptinstall.append(env.InstallAs(env['BF_INSTALLDIR'] + '/blender-app.exe.manifest',
+                                           'source/icons/blender.exe.manifest'))
 
     if env['WITH_BF_PYTHON']:
         #-- local/VERSION/scripts
