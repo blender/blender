@@ -127,7 +127,7 @@ typedef struct Object {
 	struct Object *proxy, *proxy_group, *proxy_from;
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	/* struct Path *path; */
-	struct BoundBox *bb;
+	struct BoundBox *bb;  /* axis aligned boundbox (in localspace) */
 	struct bAction *action  DNA_DEPRECATED;	 // XXX deprecated... old animation system
 	struct bAction *poselib;
 	struct bPose *pose;  /* pose data, armature objects only */
@@ -188,6 +188,7 @@ typedef struct Object {
 	char scavisflag;			/* more display settings for game logic */
 	char depsflag;
 
+	/* dupli-frame settings */
 	int dupon, dupoff, dupsta, dupend;
 
 	int pad;

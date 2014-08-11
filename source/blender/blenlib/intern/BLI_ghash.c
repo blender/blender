@@ -399,7 +399,7 @@ void *BLI_ghash_lookup_default(GHash *gh, const void *key, void *val_default)
  * \param key  The key to lookup.
  * \returns the pointer to value for \a key or NULL.
  *
- * \note This has 2 main benifits over #BLI_ghash_lookup.
+ * \note This has 2 main benefits over #BLI_ghash_lookup.
  * - A NULL return always means that \a key isn't in \a gh.
  * - The value can be modified in-place without further function calls (faster).
  */
