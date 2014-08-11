@@ -223,10 +223,9 @@ enum PathTraceDimension {
 	PRNG_PHASE_V = 9,
 	PRNG_PHASE = 10,
 	PRNG_SCATTER_DISTANCE = 11,
-	PRNG_BOUNCE_NUM = 12,
-#else
-	PRNG_BOUNCE_NUM = 8,
 #endif
+
+	PRNG_BOUNCE_NUM = 12,
 };
 
 enum SamplingPattern {
