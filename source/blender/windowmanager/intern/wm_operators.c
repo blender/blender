@@ -2049,6 +2049,41 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the menu");
 }
 
+static int wm_call_pie_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	char idname[BKE_ST_MAXNAME];
+	RNA_string_get(op->ptr, "name", idname);
+
+	uiPieMenuInvoke(C, idname, event);
+
+	return OPERATOR_CANCELLED;
+}
+
+static int wm_call_pie_menu_exec(bContext *C, wmOperator *op)
+{
+	char idname[BKE_ST_MAXNAME];
+	RNA_string_get(op->ptr, "name", idname);
+
+	uiPieMenuInvoke(C, idname, CTX_wm_window(C)->eventstate);
+
+	return OPERATOR_CANCELLED;
+}
+
+static void WM_OT_call_menu_pie(wmOperatorType *ot)
+{
+	ot->name = "Call Pie Menu";
+	ot->idname = "WM_OT_call_menu_pie";
+	ot->description = "Call (draw) a pre-defined pie menu";
+
+	ot->invoke = wm_call_pie_menu_invoke;
+	ot->exec = wm_call_pie_menu_exec;
+	ot->poll = WM_operator_winactive;
+
+	ot->flag = OPTYPE_INTERNAL;
+
+	RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the pie menu");
+}
+
 /* ************ window / screen operator definitions ************** */
 
 /* this poll functions is needed in place of WM_operator_winactive
@@ -4427,6 +4462,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
+	WM_operatortype_append(WM_OT_call_menu_pie);
 	WM_operatortype_append(WM_OT_radial_control);
 #if defined(WIN32)
 	WM_operatortype_append(WM_OT_console_toggle);

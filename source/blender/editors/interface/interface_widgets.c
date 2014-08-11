@@ -1596,6 +1596,21 @@ static struct uiWidgetColors wcol_menu_back = {
 	25, -20
 };
 
+/* pie menus */
+static struct uiWidgetColors wcol_pie_menu = {
+	{10, 10, 10, 200},
+	{25, 25, 25, 230},
+	{140, 140, 140, 255},
+	{45, 45, 45, 230},
+
+	{160, 160, 160, 255},
+	{255, 255, 255, 255},
+
+	1,
+	10, -10
+};
+
+
 /* tooltip color */
 static struct uiWidgetColors wcol_tooltip = {
 	{0, 0, 0, 255},
@@ -1743,6 +1758,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_menu = wcol_menu;
 	tui->wcol_pulldown = wcol_pulldown;
 	tui->wcol_menu_back = wcol_menu_back;
+	tui->wcol_pie_menu = wcol_pie_menu;
 	tui->wcol_tooltip = wcol_tooltip;
 	tui->wcol_menu_item = wcol_menu_item;
 	tui->wcol_box = wcol_box;
@@ -1889,6 +1905,34 @@ static void widget_state_pulldown(uiWidgetType *wt, int state)
 
 	if (state & UI_ACTIVE)
 		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+}
+
+/* special case, pie menu items */
+static void widget_state_pie_menu_item(uiWidgetType *wt, int state)
+{
+	wt->wcol = *(wt->wcol_theme);
+
+	/* active and disabled (not so common) */
+	if ((state & UI_BUT_DISABLED) && (state & UI_ACTIVE)) {
+		widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
+		/* draw the backdrop at low alpha, helps navigating with keys
+		 * when disabled items are active */
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.item);
+		wt->wcol.inner[3] = 64;
+	}
+	/* regular disabled */
+	else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+		widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
+	}
+	/* regular active */
+	else if (state & UI_SELECT) {
+		copy_v4_v4_char(wt->wcol.outline, wt->wcol.inner_sel);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+	}
+	else if (state & UI_ACTIVE) {
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.item);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+	}
 }
 
 /* special case, menu items */
@@ -2973,6 +3017,29 @@ static void widget_menu_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(sta
 	widgetbase_draw(&wtb, wcol);
 }
 
+static void widget_menu_radial_itembut(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+{
+	uiWidgetBase wtb;
+	float rad;
+	float fac = but->block->pie_data.alphafac;
+
+	widget_init(&wtb);
+
+	wtb.emboss = 0;
+
+	rad = 0.5f * BLI_rcti_size_y(rect);
+	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
+
+	wcol->inner[3] *= fac;
+	wcol->inner_sel[3] *= fac;
+	wcol->item[3] *= fac;
+	wcol->text[3] *= fac;
+	wcol->text_sel[3] *= fac;
+	wcol->outline[3] *= fac;
+
+	widgetbase_draw(&wtb, wcol);
+}
+
 static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
 	uiWidgetBase wtb;
@@ -3291,6 +3358,12 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme = &btheme->tui.wcol_progress;
 			wt.custom = widget_progressbar;
 			break;
+
+		case UI_WTYPE_MENU_ITEM_RADIAL:
+			wt.wcol_theme = &btheme->tui.wcol_pie_menu;
+			wt.custom = widget_menu_radial_itembut;
+			wt.state = widget_state_pie_menu_item;
+			break;
 	}
 	
 	return &wt;
@@ -3396,6 +3469,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	else if (but->dt == UI_EMBOSSN) {
 		/* "nothing" */
 		wt = widget_type(UI_WTYPE_ICON);
+	}
+	else if (but->dt == UI_EMBOSSR) {
+		wt = widget_type(UI_WTYPE_MENU_ITEM_RADIAL);
 	}
 	else {
 		
@@ -3648,6 +3724,125 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 		}
 	}
 }
+
+static void draw_disk_shaded(
+        float start, float angle,
+        float radius_int, float radius_ext, int subd,
+        const char col1[4], const char col2[4],
+        bool shaded)
+{
+	const float radius_ext_scale = (0.5f / radius_ext);  /* 1 / (2 * radius_ext) */
+	int i;
+
+	float s, c;
+	float y1, y2;
+	float fac;
+	unsigned char r_col[4];
+
+	glBegin(GL_TRIANGLE_STRIP);
+
+	s = sinf(start);
+	c = cosf(start);
+
+	y1 = s * radius_int;
+	y2 = s * radius_ext;
+
+	if (shaded) {
+		fac = (y1 + radius_ext) * radius_ext_scale;
+		round_box_shade_col4_r(r_col, col1, col2, fac);
+
+		glColor4ubv(r_col);
+	}
+
+	glVertex2f(c * radius_int, s * radius_int);
+
+	if (shaded) {
+		fac = (y2 + radius_ext) * radius_ext_scale;
+		round_box_shade_col4_r(r_col, col1, col2, fac);
+
+		glColor4ubv(r_col);
+	}
+	glVertex2f(c * radius_ext, s * radius_ext);
+
+	for (i = 1; i < subd; i++) {
+		float a;
+
+		a = start + ((i) / (float)(subd - 1)) * angle;
+		s = sinf(a);
+		c = cosf(a);
+		y1 = s * radius_int;
+		y2 = s * radius_ext;
+
+		if (shaded) {
+			fac = (y1 + radius_ext) * radius_ext_scale;
+			round_box_shade_col4_r(r_col, col1, col2, fac);
+
+			glColor4ubv(r_col);
+		}
+		glVertex2f(c * radius_int, s * radius_int);
+
+		if (shaded) {
+			fac = (y2 + radius_ext) * radius_ext_scale;
+			round_box_shade_col4_r(r_col, col1, col2, fac);
+
+			glColor4ubv(r_col);
+		}
+		glVertex2f(c * radius_ext, s * radius_ext);
+	}
+	glEnd();
+
+}
+
+void ui_draw_pie_center(uiBlock *block)
+{
+	bTheme *btheme = UI_GetTheme();
+	float cx = block->pie_data.pie_center_spawned[0];
+	float cy = block->pie_data.pie_center_spawned[1];
+
+	float *pie_dir = block->pie_data.pie_dir;
+
+	float pie_radius_internal = U.pixelsize * U.pie_menu_threshold;
+	float pie_radius_external = U.pixelsize * (U.pie_menu_threshold + 7.0f);
+
+	int subd = 40;
+
+	float angle = atan2(pie_dir[1], pie_dir[0]);
+	float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? ((float)M_PI / 2.0f) : ((float)M_PI / 4.0f);
+
+	glPushMatrix();
+	glTranslatef(cx, cy, 0.0f);
+
+	glEnable(GL_BLEND);
+	if (btheme->tui.wcol_pie_menu.shaded) {
+		char col1[4], col2[4];
+		shadecolors4(col1, col2, btheme->tui.wcol_pie_menu.inner, btheme->tui.wcol_pie_menu.shadetop, btheme->tui.wcol_pie_menu.shadedown);
+		draw_disk_shaded(0.0f, (float)(M_PI * 2.0), pie_radius_internal, pie_radius_external, subd, col1, col2, true);
+	}
+	else {
+		glColor4ubv((GLubyte *)btheme->tui.wcol_pie_menu.inner);
+		draw_disk_shaded(0.0f, (float)(M_PI * 2.0), pie_radius_internal, pie_radius_external, subd, NULL, NULL, false);
+	}
+
+	if (!(block->pie_data.flags & UI_PIE_INVALID_DIR)) {
+		if (btheme->tui.wcol_pie_menu.shaded) {
+			char col1[4], col2[4];
+			shadecolors4(col1, col2, btheme->tui.wcol_pie_menu.inner_sel, btheme->tui.wcol_pie_menu.shadetop, btheme->tui.wcol_pie_menu.shadedown);
+			draw_disk_shaded(angle - range / 2.0f, range, pie_radius_internal, pie_radius_external, subd, col1, col2, true);
+		}
+		else {
+			glColor4ubv((GLubyte *)btheme->tui.wcol_pie_menu.inner_sel);
+			draw_disk_shaded(angle - range / 2.0f, range, pie_radius_internal, pie_radius_external, subd, NULL, NULL, false);
+		}
+	}
+
+	glColor4ubv((GLubyte *)btheme->tui.wcol_pie_menu.outline);
+	glutil_draw_lined_arc(0.0f, (float)M_PI * 2.0f, pie_radius_internal, subd);
+	glutil_draw_lined_arc(0.0f, (float)M_PI * 2.0f, pie_radius_external, subd);
+
+	glDisable(GL_BLEND);
+	glPopMatrix();
+}
+
 
 uiWidgetColors *ui_tooltip_get_theme(void)
 {

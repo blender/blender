@@ -2454,6 +2454,31 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (U.versionfile < 271 || (U.versionfile == 271 && U.subversionfile < 4)) {
+		bTheme *btheme;
+
+		struct uiWidgetColors wcol_pie_menu = {
+			{10, 10, 10, 200},
+			{25, 25, 25, 230},
+			{140, 140, 140, 255},
+			{45, 45, 45, 230},
+
+			{160, 160, 160, 255},
+			{255, 255, 255, 255},
+
+			1,
+			10, -10
+		};
+
+		U.pie_menu_radius = 150;
+		U.pie_menu_threshold = 12;
+		U.pie_animation_timeout = 6;
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			btheme->tui.wcol_pie_menu = wcol_pie_menu;
+		}
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

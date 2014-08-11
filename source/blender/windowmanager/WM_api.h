@@ -151,7 +151,7 @@ typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 struct wmEventHandler *WM_event_add_ui_handler(
         const struct bContext *C, ListBase *handlers,
         wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
-        void *userdata);
+        void *userdata,  const bool accept_dbl_click);
 void WM_event_remove_ui_handler(
         ListBase *handlers,
         wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,

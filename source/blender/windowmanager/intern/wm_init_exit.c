@@ -187,6 +187,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	(void)argv; /* unused */
 #endif
 
+	ED_spacemacros_init();
+
 	if (!G.background && !wm_start_with_console)
 		GHOST_toggleConsole(3);
 

@@ -162,7 +162,7 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_radio, wcol_option, wcol_toggle;
 	uiWidgetColors wcol_num, wcol_numslider;
 	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item, wcol_tooltip;
-	uiWidgetColors wcol_box, wcol_scroll, wcol_progress, wcol_list_item;
+	uiWidgetColors wcol_box, wcol_scroll, wcol_progress, wcol_list_item, wcol_pie_menu;
 	
 	uiWidgetStateColors wcol_state;
 
@@ -533,6 +533,15 @@ typedef struct UserDef {
 	
 	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
 	float pixelsize;			/* private, set by GHOST, to multiply DPI with */
+
+	short pie_interaction_type;     /* if keeping a pie menu spawn button pressed after this time, it turns into
+	                             * a drag/release pie menu */
+	short pie_initial_timeout;  /* direction in the pie menu will always be calculated from the initial position
+	                             * within this time limit */
+	int pie_animation_timeout;
+	int pad2;
+	short pie_menu_radius;        /* pie menu radius */
+	short pie_menu_threshold;     /* pie menu distance from center before a direction is set */
 
 	struct WalkNavigation walk_navigation;
 } UserDef;

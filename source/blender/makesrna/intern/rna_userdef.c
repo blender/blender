@@ -953,6 +953,12 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Menu Backdrop Colors", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "wcol_pie_menu", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Pie Menu Colors", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	prop = RNA_def_property(srna, "wcol_tooltip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Tooltip Colors", "");
@@ -3207,6 +3213,26 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 40);
 	RNA_def_property_ui_text(prop, "Sub Level Menu Open Delay",
 	                         "Time delay in 1/10 seconds before automatically opening sub level menus");
+
+	/* pie menus */
+	prop = RNA_def_property(srna, "pie_initial_timeout", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_text(prop, "Recenter Timeout",
+	                         "Pie menus will use the initial mouse position as center for this amount of time "
+	                         "(in 1/100ths of sec)");
+
+	prop = RNA_def_property(srna, "pie_animation_timeout", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_text(prop, "Animation Timeout",
+	                         "Time needed to fully animate the pie to unfolded state (in 1/100ths of sec)");
+
+	prop = RNA_def_property(srna, "pie_menu_radius", PROP_INT, PROP_PIXEL);
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_text(prop, "Radius", "Pie menu size in pixels");
+
+	prop = RNA_def_property(srna, "pie_menu_threshold", PROP_INT, PROP_PIXEL);
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_text(prop, "Threshold", "Distance from center needed before a selection can be made");
 
 	prop = RNA_def_property(srna, "use_quit_dialog", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_QUIT_PROMPT);

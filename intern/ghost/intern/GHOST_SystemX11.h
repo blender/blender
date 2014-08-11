@@ -356,6 +356,10 @@ private:
 	 *  and stop accumulating all events generated before that */
 	Time m_last_warp;
 
+	/* detect autorepeat glitch */
+	unsigned int m_last_release_keycode;
+	Time m_last_release_time;
+
 	/**
 	 * Return the ghost window associated with the
 	 * X11 window xwind

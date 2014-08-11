@@ -527,7 +527,33 @@ class WM_OT_context_menu_enum(Operator):
 
         context.window_manager.popup_menu(draw_func=draw_cb, title=prop.name, icon=prop.icon)
 
-        return {'PASS_THROUGH'}
+        return {'FINISHED'}
+
+
+class WM_OT_context_pie_enum(Operator):
+    bl_idname = "wm.context_pie_enum"
+    bl_label = "Context Enum Pie"
+    bl_options = {'UNDO', 'INTERNAL'}
+    data_path = rna_path_prop
+
+    def invoke(self, context, event):
+        data_path = self.data_path
+        value = context_path_validate(context, data_path)
+
+        if value is Ellipsis:
+            return {'PASS_THROUGH'}
+
+        base_path, prop_string = data_path.rsplit(".", 1)
+        value_base = context_path_validate(context, base_path)
+        prop = value_base.bl_rna.properties[prop_string]
+
+        def draw_cb(self, context):
+            layout = self.layout
+            layout.prop(value_base, prop_string, expand=True)
+
+        context.window_manager.popup_menu_pie(draw_func=draw_cb, title=prop.name, icon=prop.icon, event=event)
+
+        return {'FINISHED'}
 
 
 class WM_OT_context_set_id(Operator):

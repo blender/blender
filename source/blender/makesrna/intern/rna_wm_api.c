@@ -310,6 +310,24 @@ static void rna_PupMenuEnd(bContext *C, PointerRNA *handle)
 	uiPupMenuEnd(C, handle->data);
 }
 
+/* pie menu wrapper */
+static PointerRNA rna_PieMenuBegin(bContext *C, const char *title, int icon, PointerRNA *event)
+{
+	PointerRNA r_ptr;
+	void *data;
+
+	data = (void *)uiPieMenuBegin(C, title, icon, event->data);
+
+	RNA_pointer_create(NULL, &RNA_UIPieMenu, data, &r_ptr);
+
+	return r_ptr;
+}
+
+static void rna_PieMenuEnd(bContext *C, PointerRNA *handle)
+{
+	uiPieMenuEnd(C, handle->data);
+}
+
 #else
 
 #define WM_GEN_INVOKE_EVENT (1 << 0)
@@ -460,6 +478,26 @@ void RNA_api_wm(StructRNA *srna)
 	func = RNA_def_function(srna, "pupmenu_end__internal", "rna_PupMenuEnd");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "menu", "UIPopupMenu", "", "");
+	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+
+	/* wrap uiPieMenuBegin */
+	func = RNA_def_function(srna, "piemenu_begin__internal", "rna_PieMenuBegin");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	parm = RNA_def_string(func, "title", NULL, 0, "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(parm, icon_items);
+	parm = RNA_def_pointer(func, "event", "Event", "", "");
+	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	/* return */
+	parm = RNA_def_pointer(func, "menu_pie", "UIPieMenu", "", "");
+	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_function_return(func, parm);
+
+	/* wrap uiPieMenuEnd */
+	func = RNA_def_function(srna, "piemenu_end__internal", "rna_PieMenuEnd");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	parm = RNA_def_pointer(func, "menu", "UIPieMenu", "", "");
 	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
 }
 

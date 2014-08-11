@@ -1784,11 +1784,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem manipulators_items[] = {
-		{V3D_MANIP_TRANSLATE, "TRANSLATE", ICON_MAN_TRANS, "Manipulator Translate",
+		{V3D_MANIP_TRANSLATE, "TRANSLATE", ICON_MAN_TRANS, "Translate",
 		                      "Use the manipulator for movement transformations"},
-		{V3D_MANIP_ROTATE, "ROTATE", ICON_MAN_ROT, "Manipulator Rotate",
+		{V3D_MANIP_ROTATE, "ROTATE", ICON_MAN_ROT, "Rotate",
 		                   "Use the manipulator for rotation transformations"},
-		{V3D_MANIP_SCALE, "SCALE", ICON_MAN_SCALE, "Manipulator Scale",
+		{V3D_MANIP_SCALE, "SCALE", ICON_MAN_SCALE, "Scale",
 		                  "Use the manipulator for scale transformations"},
 		{0, NULL, 0, NULL, NULL}
 	};

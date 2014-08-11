@@ -321,6 +321,20 @@ static void ui_centered_bounds_block(wmWindow *window, uiBlock *block)
 	ui_bounds_block(block);
 	
 }
+
+static void ui_centered_pie_bounds_block(uiBlock *block)
+{
+	const int xy[2] = {
+	    block->pie_data.pie_center_spawned[0],
+	    block->pie_data.pie_center_spawned[1]
+	};
+
+	ui_block_translate(block, xy[0], xy[1]);
+
+	/* now recompute bounds and safety */
+	ui_bounds_block(block);
+}
+
 static void ui_popup_bounds_block(wmWindow *window, uiBlock *block,
                                   eBlockBoundsCalc bounds_calc, const int xy[2])
 {
@@ -1062,6 +1076,42 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 	return found;
 }
 
+/* this goes in a seemingly weird pattern:
+ *
+ *     4
+ *  5     6
+ * 1       2
+ *  7     8
+ *     3
+ *
+ * but it's actually quite logical. It's designed to be 'upwards compatible'
+ * for muscle memory so that the menu item locations are fixed and don't move
+ * as new items are added to the menu later on. It also optimises efficiency -
+ * a radial menu is best kept symmetrical, with as large an angle between
+ * items as possible, so that the gestural mouse movements can be fast and inexact.
+
+ * It starts off with two opposite sides for the first two items
+ * then joined by the one below for the third (this way, even with three items,
+ * the menu seems to still be 'in order' reading left to right). Then the fourth is
+ * added to complete the compass directions. From here, it's just a matter of
+ * subdividing the rest of the angles for the last 4 items.
+ *
+ * --Matt 07/2006
+ */
+const char ui_radial_dir_order[8] = {
+    UI_RADIAL_W,  UI_RADIAL_E,  UI_RADIAL_S,  UI_RADIAL_N,
+    UI_RADIAL_NW, UI_RADIAL_NE, UI_RADIAL_SW, UI_RADIAL_SE};
+
+const char  ui_radial_dir_to_numpad[8] = {8, 9, 6, 3, 2, 1, 4, 7};
+const short ui_radial_dir_to_angle_visual[8] = {90, 40, 0, 320, 270, 220, 180, 140};
+const short ui_radial_dir_to_angle[8] =        {90, 45, 0, 315, 270, 225, 180, 135};
+
+static void ui_but_pie_direction_string(uiBut *but, char *buf, int size)
+{
+	BLI_assert(but->pie_dir < ARRAY_SIZE(ui_radial_dir_to_numpad));
+	BLI_snprintf(buf, size, "%d", ui_radial_dir_to_numpad[but->pie_dir]);
+}
+
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
@@ -1071,13 +1121,23 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	if (block->rect.xmin != block->rect.xmax)
 		return;
 
-	for (but = block->buttons.first; but; but = but->next) {
-
-		if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
-			ui_but_add_shortcut(but, buf, false);
+	if (block->flag & UI_BLOCK_RADIAL) {
+		for (but = block->buttons.first; but; but = but->next) {
+			if (but->pie_dir != UI_RADIAL_NONE) {
+				ui_but_pie_direction_string(but, buf, sizeof(buf));
+				ui_but_add_shortcut(but, buf, false);
+			}
 		}
-		else if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
-			ui_but_add_shortcut(but, buf, false);
+	}
+	else {
+		for (but = block->buttons.first; but; but = but->next) {
+
+			if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+				ui_but_add_shortcut(but, buf, false);
+			}
+			else if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
+				ui_but_add_shortcut(but, buf, false);
+			}
 		}
 	}
 }
@@ -1173,6 +1233,9 @@ void uiEndBlock_ex(const bContext *C, uiBlock *block, const int xy[2])
 		case UI_BLOCK_BOUNDS_POPUP_CENTER:
 			ui_centered_bounds_block(window, block);
 			break;
+		case UI_BLOCK_BOUNDS_PIE_CENTER:
+			ui_centered_pie_bounds_block(block);
+			break;
 
 			/* fallback */
 		case UI_BLOCK_BOUNDS_POPUP_MOUSE:
@@ -1244,6 +1307,10 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	rcti rect;
 	int multisample_enabled;
 	
+	/* early exit if cancelled */
+	if ((block->flag & UI_BLOCK_RADIAL) && (block->pie_data.flags & UI_PIE_FINISHED))
+		return;
+
 	/* get menu region or area region */
 	ar = CTX_wm_menu(C);
 	if (!ar)
@@ -1279,7 +1346,9 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
 	
 	/* back */
-	if (block->flag & UI_BLOCK_LOOP)
+	if (block->flag & UI_BLOCK_RADIAL)
+		ui_draw_pie_center(block);
+	else if (block->flag & UI_BLOCK_LOOP)
 		ui_draw_menu_back(&style, block, &rect);
 	else if (block->panel)
 		ui_draw_aligned_panel(&style, block, &rect, UI_panel_category_is_visible(ar));
@@ -3002,6 +3071,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	but->lock = block->lock;
 	but->lockstr = block->lockstr;
 	but->dt = block->dt;
+	but->pie_dir = UI_RADIAL_NONE;
 
 	but->block = block;  /* pointer back, used for frontbuffer status, and picker */
 
@@ -3028,8 +3098,11 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 		}
 	}
 
-	if ((block->flag & UI_BLOCK_LOOP) ||
-	    ELEM(but->type, MENU, TEX, LABEL, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR, SEARCH_MENU_UNLINK))
+	if (block->flag & UI_BLOCK_RADIAL) {
+		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
+	}
+	else if ((block->flag & UI_BLOCK_LOOP) ||
+	         ELEM(but->type, MENU, TEX, LABEL, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR, SEARCH_MENU_UNLINK))
 	{
 		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
 	}

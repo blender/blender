@@ -401,8 +401,12 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	
 	/* UI code doesn't handle return values - it just always returns break. 
 	 * to make the DBL_CLICK conversion work, we just don't send this to UI, except mouse clicks */
-	if (event->type != LEFTMOUSE && event->val == KM_DBL_CLICK)
+	if (((handler->flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
+	    (event->type != LEFTMOUSE) &&
+	    (event->val == KM_DBL_CLICK))
+	{
 		return WM_HANDLER_CONTINUE;
+	}
 	
 	/* UI is quite aggressive with swallowing events, like scrollwheel */
 	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
@@ -2563,7 +2567,7 @@ void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 wmEventHandler *WM_event_add_ui_handler(
         const bContext *C, ListBase *handlers,
         wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
-        void *userdata)
+        void *userdata, const bool accept_dbl_click)
 {
 	wmEventHandler *handler = MEM_callocN(sizeof(wmEventHandler), "event ui handler");
 	handler->ui_handle = ui_handle;
@@ -2580,6 +2584,9 @@ wmEventHandler *WM_event_add_ui_handler(
 		handler->ui_menu    = NULL;
 	}
 
+	if (accept_dbl_click) {
+		handler->flag |= WM_HANDLER_ACCEPT_DBL_CLICK;
+	}
 	
 	BLI_addhead(handlers, handler);
 	

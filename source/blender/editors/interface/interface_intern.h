@@ -88,6 +88,7 @@ typedef enum {
 	
 	UI_WTYPE_PULLDOWN,
 	UI_WTYPE_MENU_ITEM,
+	UI_WTYPE_MENU_ITEM_RADIAL,
 	UI_WTYPE_MENU_BACK,
 
 	/* specials */
@@ -121,6 +122,24 @@ enum {
 	/* warn: rest of uiBut->flag in UI_interface.h */
 };
 
+/* but->pie_dir */
+typedef enum RadialDirection {
+	UI_RADIAL_NONE  = -1,
+	UI_RADIAL_N     =  0,
+	UI_RADIAL_NE    =  1,
+	UI_RADIAL_E     =  2,
+	UI_RADIAL_SE    =  3,
+	UI_RADIAL_S     =  4,
+	UI_RADIAL_SW    =  5,
+	UI_RADIAL_W     =  6,
+	UI_RADIAL_NW    =  7,
+} RadialDirection;
+
+extern const char  ui_radial_dir_order[8];
+extern const char  ui_radial_dir_to_numpad[8];
+extern const short ui_radial_dir_to_angle_visual[8];
+extern const short ui_radial_dir_to_angle[8];
+
 /* internal panel drawing defines */
 #define PNL_GRID    (UI_UNIT_Y / 5) /* 4 default */
 #define PNL_HEADER  (UI_UNIT_Y + 4) /* 24 default */
@@ -143,6 +162,19 @@ enum {
 
 /* split numbuts by ':' and align l/r */
 #define USE_NUMBUTS_LR_ALIGN
+
+/* PieMenuData->flags */
+enum {
+	UI_PIE_DEGREES_RANGE_LARGE  = (1 << 0),  /* pie menu item collision is detected at 90 degrees */
+	UI_PIE_INITIAL_DIRECTION    = (1 << 1),  /* use initial center of pie menu to calculate direction */
+	UI_PIE_3_ITEMS              = (1 << 2),  /* pie menu has only 3 items, careful when centering */
+	UI_PIE_INVALID_DIR          = (1 << 3),  /* mouse not far enough from center position  */
+	UI_PIE_FINISHED             = (1 << 4),  /* pie menu finished but we still wait for a release event  */
+	UI_PIE_CLICK_STYLE          = (1 << 5),  /* pie menu changed to click style, click to confirm  */
+	UI_PIE_ANIMATION_FINISHED   = (1 << 6),  /* pie animation finished, do not calculate any more motio  */
+};
+
+#define PIE_CLICK_THRESHOLD_SQ 50.0f
 
 typedef struct uiLinkLine {  /* only for draw/edit */
 	struct uiLinkLine *next, *prev;
@@ -227,6 +259,7 @@ struct uiBut {
 	BIFIconID icon;
 	bool lock;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied from the block */
+	signed char pie_dir; /* direction in a pie menu, used for collision detection (RadialDirection) */
 	char changed; /* could be made into a single flag */
 	unsigned char unit_type; /* so buttons can support unit systems which are not RNA */
 	short modifier_key;
@@ -272,6 +305,15 @@ struct uiBut {
 	
 	/* pointer back */
 	uiBlock *block;
+};
+
+struct PieMenuData {
+	float pie_dir[2];
+	float pie_center_init[2];
+	float pie_center_spawned[2];
+	int flags;
+	int event; /* initial event used to fire the pie menu, store here so we can query for release */
+	float alphafac;
 };
 
 struct uiBlock {
@@ -356,6 +398,7 @@ struct uiBlock {
 	char display_device[64]; /* display device name used to display this block,
 	                          * used by color widgets to transform colors from/to scene linear
 	                          */
+	struct PieMenuData pie_data;
 };
 
 typedef struct uiSafetyRct {
@@ -561,6 +604,9 @@ extern int ui_button_open_menu_direction(uiBut *but);
 extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
 extern uiBut *ui_but_find_activated(struct ARegion *ar);
 bool ui_but_is_editable(const uiBut *but);
+void ui_but_pie_dir_visual(RadialDirection dir, float vec[2]);
+void ui_but_pie_dir(RadialDirection dir, float vec[2]);
+void ui_block_calculate_pie_segment(struct uiBlock *block, const float event_xy[2]);
 
 void ui_button_clipboard_free(void);
 void ui_panel_menu(struct bContext *C, ARegion *ar, Panel *pa);
@@ -571,6 +617,7 @@ uiBut *ui_but_find_new(uiBlock *block_old, const uiBut *but_new);
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad, bool use_alpha);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
+void ui_draw_pie_center(uiBlock *block);
 uiWidgetColors *ui_tooltip_get_theme(void);
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *block, rcti *rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);

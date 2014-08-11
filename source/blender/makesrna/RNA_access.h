@@ -633,6 +633,7 @@ extern StructRNA RNA_TransformConstraint;
 extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UILayout;
 extern StructRNA RNA_UIList;
+extern StructRNA RNA_UIPieMenu;
 extern StructRNA RNA_UIPopupMenu;
 extern StructRNA RNA_UVWarpModifier;
 extern StructRNA RNA_UVProjectModifier;
@@ -793,6 +794,8 @@ int  RNA_enum_from_identifier(EnumPropertyItem *item, const char *identifier);
 void RNA_property_enum_items(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop,
                              EnumPropertyItem **item, int *r_totitem, bool *r_free);
 void RNA_property_enum_items_gettexted(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop,
+                                       EnumPropertyItem **r_item, int *r_totitem, bool *r_free);
+void RNA_property_enum_items_gettexted_all(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop,
                                        EnumPropertyItem **r_item, int *r_totitem, bool *r_free);
 bool RNA_property_enum_value(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *r_value);
 bool RNA_property_enum_identifier(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
