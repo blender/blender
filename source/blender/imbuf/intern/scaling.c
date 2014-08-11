@@ -33,6 +33,7 @@
 
 
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_math_interp.h"
 #include "MEM_guardedalloc.h"
@@ -309,18 +310,18 @@ MINLINE void straight_uchar_to_premul_ushort(unsigned short result[4], const uns
 MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsigned short color[4])
 {
 	if (color[3] <= 255) {
-		result[0] = color[0] / 255;
-		result[1] = color[1] / 255;
-		result[2] = color[2] / 255;
-		result[3] = color[3] / 255;
+		result[0] = USHORTTOUCHAR(color[0]);
+		result[1] = USHORTTOUCHAR(color[1]);
+		result[2] = USHORTTOUCHAR(color[2]);
+		result[3] = USHORTTOUCHAR(color[3]);
 	}
 	else {
 		unsigned short alpha = color[3] / 255;
 
-		result[0] = color[0] / alpha;
-		result[1] = color[1] / alpha;
-		result[2] = color[2] / alpha;
-		result[3] = alpha;
+		result[0] = USHORTTOUCHAR(color[0] / alpha * 255);
+		result[1] = USHORTTOUCHAR(color[1] / alpha * 255);
+		result[2] = USHORTTOUCHAR(color[2] / alpha * 255);
+		result[3] = USHORTTOUCHAR(color[3]);
 	}
 }
 
