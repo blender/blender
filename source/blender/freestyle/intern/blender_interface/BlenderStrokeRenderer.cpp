@@ -446,11 +446,6 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 		if (!ma) {
 			ma = BlenderStrokeRenderer::GetStrokeShader(_context, freestyle_bmain, nt, false);
 			BLI_ghash_insert(_nodetree_hash, nt, ma);
-#if 0
-			if (G.debug & G_DEBUG_FREESTYLE) {
-				printf("Material '%s' created using ShaderNodeTree '%s'\n", ma->id.name+2, nt->id.name+2);
-			}
-#endif
 		}
 
 		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
@@ -494,7 +489,6 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 			ma->vcol_alpha = 1;
 
 			// Textures
-			//for (int a = 0; a < MAX_MTEX; a++) {
 			while (iStrokeRep->getMTex(a)) {
 				ma->mtex[a] = (MTex *)iStrokeRep->getMTex(a);
 
