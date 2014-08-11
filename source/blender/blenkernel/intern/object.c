@@ -2469,6 +2469,20 @@ void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float
 	bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = max[2];
 }
 
+void BKE_boundbox_calc_center_aabb(const BoundBox *bb, float r_cent[3])
+{
+	r_cent[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
+	r_cent[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
+	r_cent[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
+}
+
+void BKE_boundbox_calc_size_aabb(const BoundBox *bb, float r_size[3])
+{
+	r_size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+	r_size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+	r_size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+}
+
 BoundBox *BKE_object_boundbox_get(Object *ob)
 {
 	BoundBox *bb = NULL;
@@ -2486,7 +2500,7 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 }
 
 /* used to temporally disable/enable boundbox */
-void BKE_object_boundbox_flag(Object *ob, int flag, int set)
+void BKE_object_boundbox_flag(Object *ob, int flag, const bool set)
 {
 	BoundBox *bb = BKE_object_boundbox_get(ob);
 	if (bb) {
@@ -3129,8 +3143,10 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
  * Test a bounding box for ray intersection
  * assumes the ray is already local to the boundbox space
  */
-bool BKE_boundbox_ray_hit_check(struct BoundBox *bb, const float ray_start[3], const float ray_normal[3],
-                                float *r_lambda)
+bool BKE_boundbox_ray_hit_check(
+        const struct BoundBox *bb,
+        const float ray_start[3], const float ray_normal[3],
+        float *r_lambda)
 {
 	const int triangle_indexes[12][3] = {
 	    {0, 1, 2}, {0, 2, 3},

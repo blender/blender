@@ -6700,28 +6700,6 @@ static void draw_box(float vec[8][3])
 	glEnd();
 }
 
-/* uses boundbox, function used by Ketsji */
-#if 0
-static void get_local_bounds(Object *ob, float center[3], float size[3])
-{
-	BoundBox *bb = BKE_object_boundbox_get(ob);
-	
-	if (bb == NULL) {
-		zero_v3(center);
-		copy_v3_v3(size, ob->size);
-	}
-	else {
-		size[0] = 0.5 * fabsf(bb->vec[0][0] - bb->vec[4][0]);
-		size[1] = 0.5 * fabsf(bb->vec[0][1] - bb->vec[2][1]);
-		size[2] = 0.5 * fabsf(bb->vec[0][2] - bb->vec[1][2]);
-
-		center[0] = (bb->vec[0][0] + bb->vec[4][0]) / 2.0;
-		center[1] = (bb->vec[0][1] + bb->vec[2][1]) / 2.0;
-		center[2] = (bb->vec[0][2] + bb->vec[1][2]) / 2.0;
-	}
-}
-#endif
-
 static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
 {
 	float size[3], cent[3];
@@ -6729,17 +6707,13 @@ static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
 	
 	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
 	
-	size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
-	size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
-	size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+	BKE_boundbox_calc_size_aabb(bb, size);
 
 	if (around_origin) {
 		zero_v3(cent);
 	}
 	else {
-		cent[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
-		cent[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
-		cent[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
+		BKE_boundbox_calc_center_aabb(bb, cent);
 	}
 	
 	glPushMatrix();
@@ -6808,9 +6782,7 @@ static void draw_bounding_volume(Object *ob, char type)
 		if (type == OB_BOUND_BOX) {
 			float vec[8][3], size[3];
 			
-			size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
-			size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
-			size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+			BKE_boundbox_calc_size_aabb(bb, size);
 			
 			vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = -size[0];
 			vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = +size[0];
@@ -7125,9 +7097,7 @@ static void draw_rigidbody_shape(Object *ob)
 
 	switch (ob->rigidbody_object->shape) {
 		case RB_SHAPE_BOX:
-			size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
-			size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
-			size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
+			BKE_boundbox_calc_size_aabb(bb, size);
 			
 			vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = -size[0];
 			vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = +size[0];
