@@ -1428,7 +1428,7 @@ static bool isStartedFromCommandPrompt()
 	if (hwnd) {
 		DWORD pid = (DWORD)-1;
 		DWORD ppid = GetParentProcessID();
-        char parent_name[MAX_PATH];
+		char parent_name[MAX_PATH];
 		bool start_from_launcher = false;
 
 		GetWindowThreadProcessId(hwnd, &pid);
