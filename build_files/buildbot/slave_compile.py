@@ -168,8 +168,6 @@ else:
                 os.makedirs(install_dir)
             if builder.endswith('vc2013'):
                 dlls = ('msvcp120.dll', 'msvcr120.dll', 'vcomp120.dll')
-            else:
-                dlls = ('msvcm90.dll', 'msvcp90.dll', 'msvcr90.dll', 'vcomp90.dll', 'Microsoft.VC90.CRT.manifest', 'Microsoft.VC90.OpenMP.manifest')
             if builder.find('win64') == -1:
                 dlls_path = '..\\..\\..\\redist\\x86'
             else:

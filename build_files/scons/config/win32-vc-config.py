@@ -6,9 +6,6 @@ CL_STDOUT, CL_STDERR = CL_OUT.communicate()
 if "18.00." in CL_STDERR:
     VC_VERSION = '12.0'
     LCGDIR = '#../lib/windows_vc12'
-elif "15.00." in  CL_STDERR:
-    VC_VERSION = '9.0'
-    LCGDIR = '#../lib/windows'
 else:
     import sys
     print("Visual C version not supported {}\n".format(CL_STDERR))
@@ -72,10 +69,7 @@ WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR '
-if VC_VERSION == '12.0':
-    BF_OPENEXR_LIB = ' Iex-2_1 Half IlmImf-2_1 Imath-2_1 IlmThread-2_1 '
-else:
-    BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
+BF_OPENEXR_LIB = ' Iex-2_1 Half IlmImf-2_1 Imath-2_1 IlmThread-2_1 '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
@@ -196,12 +190,8 @@ WITH_BF_STATICOCIO = True
 WITH_BF_BOOST = True
 BF_BOOST = '${LIBDIR}/boost'
 BF_BOOST_INC = '${BF_BOOST}/include'
-if VC_VERSION == '12.0':
-    BF_BOOST_LIB = 'libboost_date_time-vc120-mt-s-1_55 libboost_filesystem-vc120-mt-s-1_55 libboost_regex-vc120-mt-s-1_55 libboost_system-vc120-mt-s-1_55 libboost_thread-vc120-mt-s-1_55 libboost_wave-vc120-mt-s-1_55'
-    BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc120-mt-s-1_55'
-else:
-    BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_49 libboost_filesystem-vc90-mt-s-1_49 libboost_regex-vc90-mt-s-1_49 libboost_system-vc90-mt-s-1_49 libboost_thread-vc90-mt-s-1_49 libboost_wave-vc90-mt-s-1_49'
-    BF_BOOST_LIB_INTERNATIONAL = 'libboost_locale-vc90-mt-s-1_49'
+BF_BOOST_LIB = 'libboost_date_time-vc120-mt-s-1_55 libboost_filesystem-vc120-mt-s-1_55 libboost_regex-vc120-mt-s-1_55 libboost_system-vc120-mt-s-1_55 libboost_thread-vc120-mt-s-1_55 libboost_wave-vc120-mt-s-1_55'
+BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc120-mt-s-1_55'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 #CUDA
@@ -256,11 +246,6 @@ PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/STACK:2097152','/IN
 
 BF_BSC=False
 
-if VC_VERSION == '12.0':
-    BF_CYCLES_CUDA_ENV="C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
-    BF_BUILDDIR = '..\\build\\win32-vc'
-    BF_INSTALLDIR='..\\install\\win32-vc'
-else:
-    BF_BUILDDIR = '..\\build\\win32-vc9'
-    BF_INSTALLDIR='..\\install\\win32-vc9'
-    BF_OPENCOLLADA_LIB = BF_OPENCOLLADA_LIB + ' UTF'
+BF_CYCLES_CUDA_ENV="C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
+BF_BUILDDIR = '..\\build\\win32-vc'
+BF_INSTALLDIR='..\\install\\win32-vc'
