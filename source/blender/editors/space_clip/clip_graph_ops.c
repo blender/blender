@@ -104,7 +104,7 @@ typedef struct {
 	int coord;          /* coordinate index of found entuty (0 = X-axis, 1 = Y-axis) */
 	bool has_prev;      /* if there's valid coordinate of previous point of curve segment */
 
-	float min_dist,     /* minimal distance between mouse and currently found entuty */
+	float min_dist_sq,  /* minimal distance between mouse and currently found entity */
 	      mouse_co[2],  /* mouse coordinate */
 	      prev_co[2],   /* coordinate of previeous point of segment */
 	      min_co[2];    /* coordinate of entity with minimal distance */
@@ -121,11 +121,11 @@ static void find_nearest_tracking_segment_cb(void *userdata, MovieTrackingTrack 
 	float co[2] = {scene_framenr, val};
 
 	if (data->has_prev) {
-		float d = dist_to_line_segment_v2(data->mouse_co, data->prev_co, co);
+		float dist_sq = dist_squared_to_line_segment_v2(data->mouse_co, data->prev_co, co);
 
-		if (data->track == NULL || d < data->min_dist) {
+		if (data->track == NULL || dist_sq < data->min_dist_sq) {
 			data->track = track;
-			data->min_dist = d;
+			data->min_dist_sq = dist_sq;
 			data->coord = coord;
 			copy_v2_v2(data->min_co, co);
 		}
@@ -146,15 +146,15 @@ static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *tr
                                           MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
 {
 	MouseSelectUserData *data = userdata;
-	float dx = scene_framenr - data->mouse_co[0], dy = val - data->mouse_co[1];
-	float d = dx * dx + dy * dy;
+	float mdiff[2] = {scene_framenr - data->mouse_co[0], val - data->mouse_co[1]};
+	float dist_sq = len_squared_v2(mdiff);
 
-	if (data->marker == NULL || d < data->min_dist) {
+	if (data->marker == NULL || dist_sq < data->min_dist_sq) {
 		float co[2] = {scene_framenr, val};
 
 		data->track = track;
 		data->marker = marker;
-		data->min_dist = d;
+		data->min_dist_sq = dist_sq;
 		data->coord = coord;
 		copy_v2_v2(data->min_co, co);
 	}
@@ -164,7 +164,7 @@ static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *tr
 static void mouse_select_init_data(MouseSelectUserData *userdata, const float co[2])
 {
 	memset(userdata, 0, sizeof(MouseSelectUserData));
-	userdata->min_dist = FLT_MAX;
+	userdata->min_dist_sq = FLT_MAX;
 	copy_v2_v2(userdata->mouse_co, co);
 }
 
