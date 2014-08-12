@@ -467,10 +467,10 @@ static const unsigned int bone_octahedral_solid_tris[8][3] = {
 
 /* aligned with bone_octahedral_solid_tris */
 static const float bone_octahedral_solid_normals[8][3] = {
-	{ 0.70710683f, -0.70710683f,  0.00000000f},
-	{-0.00000000f, -0.70710683f, -0.70710683f},
-	{-0.70710683f, -0.70710683f,  0.00000000f},
-	{ 0.00000000f, -0.70710683f,  0.70710683f},
+	{ M_SQRT1_2,   -M_SQRT1_2,    0.00000000f},
+	{-0.00000000f, -M_SQRT1_2,   -M_SQRT1_2},
+	{-M_SQRT1_2,   -M_SQRT1_2,    0.00000000f},
+	{ 0.00000000f, -M_SQRT1_2,    M_SQRT1_2},
 	{ 0.99388373f,  0.11043154f, -0.00000000f},
 	{ 0.00000000f,  0.11043154f, -0.99388373f},
 	{-0.99388373f,  0.11043154f,  0.00000000f},

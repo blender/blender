@@ -1360,7 +1360,7 @@ float mat3_to_scale(float mat[3][3])
 {
 	/* unit length vector */
 	float unit_vec[3];
-	copy_v3_fl(unit_vec, 0.577350269189626f);
+	copy_v3_fl(unit_vec, (float)(1.0 / M_SQRT3));
 	mul_m3_v3(mat, unit_vec);
 	return len_v3(unit_vec);
 }
@@ -1369,7 +1369,7 @@ float mat4_to_scale(float mat[4][4])
 {
 	/* unit length vector */
 	float unit_vec[3];
-	copy_v3_fl(unit_vec, 0.577350269189626f);
+	copy_v3_fl(unit_vec, (float)(1.0 / M_SQRT3));
 	mul_mat3_m4_v3(mat, unit_vec);
 	return len_v3(unit_vec);
 }

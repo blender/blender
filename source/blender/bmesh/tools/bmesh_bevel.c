@@ -1869,7 +1869,7 @@ static float sabin_gamma(int n)
 		k2 = k * k;
 		k4 = k2 * k2;
 		k6 = k4 * k2;
-		y = pow(1.73205080756888 * sqrt(64.0 * k6 - 144.0 * k4 + 135.0 * k2 - 27.0) + 9.0 * k,
+		y = pow(M_SQRT3 * sqrt(64.0 * k6 - 144.0 * k4 + 135.0 * k2 - 27.0) + 9.0 * k,
 		        1.0 / 3.0);
 		x = 0.480749856769136 * y - (0.231120424783545 * (12.0 * k2 - 9.0)) / y;
 		ans = (k * x + 2.0 * k2 - 1.0) / (x * x * (k * x + 1.0));
@@ -2262,7 +2262,7 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 		bndv = bndv->next;
 	}
 	/* center vertex */
-	w = 0.57735027f;  /* 1/sqrt(3) */
+	w = (float)(1.0 / M_SQRT3);
 	co[0] = w;
 	co[1] = w;
 	co[2] = w;
