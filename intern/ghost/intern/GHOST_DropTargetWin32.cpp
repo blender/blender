@@ -186,7 +186,7 @@ DWORD GHOST_DropTargetWin32::allowedDropEffect(DWORD dwAllowed)
 GHOST_TDragnDropTypes GHOST_DropTargetWin32::getGhostType(IDataObject *pDataObject)
 {
 	/* Text
-	 * Note: Unicode text is aviable as CF_TEXT too, the system can do the 
+	 * Note: Unicode text is available as CF_TEXT too, the system can do the
 	 * conversion, but we do the conversion ourself with WC_NO_BEST_FIT_CHARS.
 	 */
 	FORMATETC fmtetc = { CF_TEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };

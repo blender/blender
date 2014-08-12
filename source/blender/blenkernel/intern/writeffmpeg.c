@@ -701,7 +701,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 		 * you have various implementations around. float samples in particular are not always supported.
 		 */
 		const enum AVSampleFormat *p = codec->sample_fmts;
-		for (; *p!=-1; p++) {
+		for (; *p != -1; p++) {
 			if (*p == st->codec->sample_fmt)
 				break;
 		}

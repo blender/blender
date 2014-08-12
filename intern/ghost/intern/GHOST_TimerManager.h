@@ -67,7 +67,7 @@ public:
 	virtual GHOST_TUns32 getNumTimers();
 
 	/**
-	 * Returns whther this timer task ins in our list.
+	 * Returns whether this timer task ins in our list.
 	 * \return Indication of presence.
 	 */
 	virtual bool getTimerFound(GHOST_TimerTask *timer);

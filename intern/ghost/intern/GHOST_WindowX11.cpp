@@ -55,7 +55,7 @@
 #include <algorithm>
 #include <string>
 
-/* For obscure full screen mode stuuf
+/* For obscure full screen mode stuff
  * lifted verbatim from blut. */
 
 typedef struct {
@@ -186,7 +186,7 @@ GHOST_WindowX11(
       m_visible_cursor(None)
 {
 	
-	/* Set up the minimum atrributes that we require and see if
+	/* Set up the minimum attributes that we require and see if
 	 * X can find us a visual matching those requirements. */
 
 	int attributes[40], i, samples;
