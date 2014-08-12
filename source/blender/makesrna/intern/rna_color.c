@@ -378,7 +378,7 @@ static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *repo
 	RNA_POINTER_INVALIDATE(element_ptr);
 }
 
-void rna_CurveMap_remove_point(CurveMap *cuma, ReportList *reports, PointerRNA *point_ptr)
+static void rna_CurveMap_remove_point(CurveMap *cuma, ReportList *reports, PointerRNA *point_ptr)
 {
 	CurveMapPoint *point = point_ptr->data;
 	if (curvemap_remove_point(cuma, point) == false) {

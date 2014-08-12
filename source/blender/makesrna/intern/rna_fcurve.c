@@ -820,7 +820,7 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod, Repor
 	return (env->data + i);
 }
 
-void rna_FModifierEnvelope_points_remove(FModifier *fmod, ReportList *reports, PointerRNA *point)
+static void rna_FModifierEnvelope_points_remove(FModifier *fmod, ReportList *reports, PointerRNA *point)
 {
 	FCM_EnvelopeData *cp = point->data;
 	FMod_Envelope *env = (FMod_Envelope *)fmod->data;

@@ -683,14 +683,14 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, Poin
 		            gpd->id.name + 2, ID_REAL_USERS(gpd));
 }
 
-FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name)
+static FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name)
 {
 	FreestyleLineStyle *linestyle = BKE_linestyle_new(name, bmain);
 	id_us_min(&linestyle->id);
 	return linestyle;
 }
 
-void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
+static void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
 {
 	if (ID_REAL_USERS(linestyle) <= 0)
 		BKE_libblock_free(bmain, linestyle);

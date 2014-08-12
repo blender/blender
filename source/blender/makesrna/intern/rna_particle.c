@@ -316,9 +316,9 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ReportList *repor
 static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object,
                                        int particle_no, int step, float n_co[3])
 {
-	ParticleSettings *part = 0;
-	ParticleData *pars = 0;
-	ParticleCacheKey *cache = 0;
+	ParticleSettings *part = NULL;
+	ParticleData *pars = NULL;
+	ParticleCacheKey *cache = NULL;
 	int totchild = 0;
 	int path_nbr = 0;
 	int totpart;
@@ -437,7 +437,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
                                                      ParticleSystemModifierData *modifier, ParticleData *particle,
                                                      int particle_no, float (**r_fuv)[4])
 {
-	ParticleSettings *part = 0;
+	ParticleSettings *part = NULL;
 	int totpart;
 	int totchild = 0;
 	int totface;

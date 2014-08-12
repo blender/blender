@@ -111,7 +111,7 @@ static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 }
 
 /* placeholder data for final implementation of a true progressbar */
-struct wmStaticProgress {
+static struct wmStaticProgress {
 	float min;
 	float max;
 	bool  is_valid;

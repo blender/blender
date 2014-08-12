@@ -43,7 +43,7 @@
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
-void rna_Curve_transform(Curve *cu, float *mat)
+static void rna_Curve_transform(Curve *cu, float *mat)
 {
 	ED_curve_transform(cu, (float (*)[4])mat);
 }

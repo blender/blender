@@ -475,7 +475,7 @@ static int rna_Armature_is_editmode_get(PointerRNA *ptr)
 	return (arm->edbo != NULL);
 }
 
-void rna_Armature_transform(struct bArmature *arm, float *mat)
+static void rna_Armature_transform(struct bArmature *arm, float *mat)
 {
 	ED_armature_transform(arm, (float (*)[4])mat);
 }

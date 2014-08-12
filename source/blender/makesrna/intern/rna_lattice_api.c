@@ -43,7 +43,7 @@
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
-void rna_Lattice_transform(Lattice *lt, float *mat)
+static void rna_Lattice_transform(Lattice *lt, float *mat)
 {
 	ED_lattice_transform(lt, (float (*)[4])mat);
 }
