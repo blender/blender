@@ -22,7 +22,8 @@
  *                 Ton Roosendaal,
  *                 Ben Batt,
  *                 Brecht Van Lommel,
- *                 Campbell Barton
+ *                 Campbell Barton,
+ *                 Patrice Bertrand
  *
  * ***** END GPL LICENSE BLOCK *****
  *
@@ -30,16 +31,14 @@
 
 /** \file blender/modifiers/intern/MOD_array.c
  *  \ingroup modifiers
+ *
+ * Array modifier: duplicates the object multiple times along an axis.
  */
-
-
-/* Array modifier: duplicates the object multiple times along an axis */
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
@@ -53,13 +52,7 @@
 
 #include "MOD_util.h"
 
-#include "bmesh.h"
-
 #include "depsgraph_private.h"
-
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
 
 /* Due to cyclic dependencies it's possible that curve used for
  * deformation here is not evaluated at the time of evaluating
@@ -140,7 +133,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-static float vertarray_size(MVert *mvert, int numVerts, int axis)
+static float vertarray_size(const MVert *mvert, int numVerts, int axis)
 {
 	int i;
 	float min_co, max_co;
@@ -159,206 +152,303 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	return max_co - min_co;
 }
 
-static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
-                                   const ArrayModifierData *amd,
-                                   int *index_map_length)
+BLI_INLINE float sum_v3(const float v[3])
 {
-	BMOperator find_op;
-	BMOIter oiter;
-	BMVert *v, *v2;
-	BMElem *ele;
-	int *index_map, i;
-
-	BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-	             "find_doubles verts=%av dist=%f keep_verts=%s",
-	             amd->merge_dist, dupe_op, "geom");
-
-	BMO_op_exec(bm, &find_op);
-
-	i = 0;
-	BMO_ITER (ele, &oiter, dupe_op->slots_in, "geom", BM_ALL) {
-		BM_elem_index_set(ele, i); /* set_dirty */
-		i++;
-	}
-
-	BMO_ITER (ele, &oiter, dupe_op->slots_out, "geom.out", BM_ALL) {
-		BM_elem_index_set(ele, i); /* set_dirty */
-		i++;
-	}
-	/* above loops over all, so set all to dirty, if this is somehow
-	 * setting valid values, this line can be removed - campbell */
-	bm->elem_index_dirty |= BM_ALL;
-
-	(*index_map_length) = i;
-	index_map = MEM_callocN(sizeof(int) * (*index_map_length), "index_map");
-
-	/*element type argument doesn't do anything here*/
-	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
-		v2 = BMO_iter_map_value_ptr(&oiter);
-
-		index_map[BM_elem_index_get(v)] = BM_elem_index_get(v2) + 1;
-	}
-
-	BMO_op_finish(bm, &find_op);
-
-	return index_map;
+	return v[0] + v[1] + v[2];
 }
 
-/* Used for start/end cap.
- *
- * this function expects all existing vertices to be tagged,
- * so we can know new verts are not tagged.
- *
- * All verts will be tagged on exit.
+/* Structure used for sorting vertices, when processing doubles */
+typedef struct SortVertsElem {
+	int vertex_num;     /* The original index of the vertex, prior to sorting */
+	float co[3];        /* Its coordinates */
+	float sum_co;       /* sum_v3(co), just so we don't do the sum many times.  */
+} SortVertsElem;
+
+
+static int svert_sum_cmp(const void *e1, const void *e2)
+{
+	const SortVertsElem *sv1 = (SortVertsElem *)e1;
+	const SortVertsElem *sv2 = (SortVertsElem *)e2;
+
+	if      (sv1->sum_co > sv2->sum_co) return  1;
+	else if (sv1->sum_co < sv2->sum_co) return -1;
+	else                                return  0;
+}
+
+static void svert_from_mvert(SortVertsElem *sv, const MVert *mv, const int i_begin, const int i_end)
+{
+	int i;
+	for (i = i_begin; i < i_end; i++, sv++, mv++) {
+		sv->vertex_num = i;
+		copy_v3_v3(sv->co, mv->co);
+		sv->sum_co = sum_v3(mv->co);
+	}
+}
+
+/**
+ * Take as inputs two sets of verts, to be processed for detection of doubles and mapping.
+ * Each set of verts is defined by its start within mverts array and its num_verts;
+ * It builds a mapping for all vertices within source, to vertices within target, or -1 if no double found
+ * The int doubles_map[num_verts_source] array must have been allocated by caller.
  */
-static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
-                                  const ArrayModifierData *amd,
-                                  BMOperator *dupe_op,
-                                  BMOpSlot dupe_op_slot_args[BMO_OP_MAX_SLOTS], const char *dupe_slot_name,
-                                  BMOperator *weld_op)
+static void dm_mvert_map_doubles(
+        int *doubles_map,
+        const MVert *mverts,
+        const int target_start,
+        const int target_num_verts,
+        const int source_start,
+        const int source_num_verts,
+        const float dist,
+        const bool with_follow)
 {
-	const bool is_input = (dupe_op->slots_in == dupe_op_slot_args);
-	BMVert *v, *v2, *v3;
-	BMIter iter;
+	const float dist3 = (M_SQRT3 + 0.00005f) * dist;   /* Just above sqrt(3) */
+	int i_source, i_target, i_target_low_bound, target_end, source_end;
+	SortVertsElem *sorted_verts_target, *sorted_verts_source;
+	SortVertsElem *sve_source, *sve_target, *sve_target_low_bound;
+	bool target_scan_completed;
 
-	/* Add the DerivedMesh's elements to the BMesh. The pre-existing
-	 * elements were already tagged, so the new elements can be
-	 * identified by not having the BM_ELEM_TAG flag set. */
-	DM_to_bmesh_ex(dm, bm, false);
+	target_end = target_start + target_num_verts;
+	source_end = source_start + source_num_verts;
 
-	if (amd->flags & MOD_ARR_MERGE) {
-		/* if merging is enabled, find doubles */
-		
-		BMOIter oiter;
-		BMOperator find_op;
-		BMOpSlot *slot_targetmap;
+	/* build array of MVerts to be tested for merging */
+	sorted_verts_target = MEM_mallocN(sizeof(SortVertsElem) * target_num_verts, __func__);
+	sorted_verts_source = MEM_mallocN(sizeof(SortVertsElem) * source_num_verts, __func__);
 
-		BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-		             is_input ?  /* ugh */
-		             "find_doubles verts=%Hv dist=%f keep_verts=%s" :
-		             "find_doubles verts=%Hv dist=%f keep_verts=%S",
-		             BM_ELEM_TAG, amd->merge_dist,
-		             dupe_op, dupe_slot_name);
+	/* Copy target vertices index and cos into SortVertsElem array */
+	svert_from_mvert(sorted_verts_target, mverts + target_start, target_start, target_end);
 
-		/* append the dupe's geom to the findop input verts */
-		if (is_input) {
-			BMO_slot_buffer_append(&find_op, slots_in, "verts",
-			                       dupe_op,  slots_in, dupe_slot_name);
+	/* Copy source vertices index and cos into SortVertsElem array */
+	svert_from_mvert(sorted_verts_source, mverts + source_start, source_start, source_end);
+
+	/* sort arrays according to sum of vertex coordinates (sumco) */
+	qsort(sorted_verts_target, target_num_verts, sizeof(SortVertsElem), svert_sum_cmp);
+	qsort(sorted_verts_source, source_num_verts, sizeof(SortVertsElem), svert_sum_cmp);
+
+	sve_target_low_bound = sorted_verts_target;
+	i_target_low_bound = 0;
+	target_scan_completed = false;
+
+	/* Scan source vertices, in SortVertsElem sorted array, */
+	/* all the while maintaining the lower bound of possible doubles in target vertices */
+	for (i_source = 0, sve_source = sorted_verts_source;
+	     i_source < source_num_verts;
+	     i_source++, sve_source++)
+	{
+		bool double_found;
+		float sve_source_sumco;
+
+		/* If source has already been assigned to a target (in an earlier call, with other chunks) */
+		if (doubles_map[sve_source->vertex_num] != -1) {
+			continue;
 		}
-		else if (dupe_op->slots_out == dupe_op_slot_args) {
-			BMO_slot_buffer_append(&find_op, slots_in,  "verts",
-			                       dupe_op,  slots_out, dupe_slot_name);
-		}
-		else {
-			BLI_assert(0);
+
+		/* If target fully scanned already, then all remaining source vertices cannot have a double */
+		if (target_scan_completed) {
+			doubles_map[sve_source->vertex_num] = -1;
+			continue;
 		}
 
-		/* transform and tag verts */
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				mul_m4_v3(mat, v->co);
-				BM_elem_flag_enable(v, BM_ELEM_TAG);
+		sve_source_sumco = sum_v3(sve_source->co);
+
+		/* Skip all target vertices that are more than dist3 lower in terms of sumco */
+		/* and advance the overall lower bound, applicable to all remaining vertices as well. */
+		while ((i_target_low_bound < target_num_verts) &&
+		       (sve_target_low_bound->sum_co < sve_source_sumco - dist3))
+		{
+			i_target_low_bound++;
+			sve_target_low_bound++;
+		}
+		/* If end of target list reached, then no more possible doubles */
+		if (i_target_low_bound >= target_num_verts) {
+			doubles_map[sve_source->vertex_num] = -1;
+			target_scan_completed = true;
+			continue;
+		}
+		/* Test target candidates starting at the low bound of possible doubles, ordered in terms of sumco */
+		i_target = i_target_low_bound;
+		sve_target = sve_target_low_bound;
+
+		/* i_target will scan vertices in the [v_source_sumco - dist3;  v_source_sumco + dist3] range */
+
+		double_found = false;
+		while ((i_target < target_num_verts) &&
+		       (sve_target->sum_co <= sve_source_sumco + dist3))
+		{
+			/* Testing distance for candidate double in target */
+			/* v_target is within dist3 of v_source in terms of sumco;  check real distance */
+			if (compare_len_v3v3(sve_source->co, sve_target->co, dist)) {
+				/* Double found */
+				/* If double target is itself already mapped to other vertex,
+				 * behavior depends on with_follow option */
+				int target_vertex = sve_target->vertex_num;
+				if (doubles_map[target_vertex] != -1) {
+					if (with_follow) { /* with_follow option:  map to initial target */
+						target_vertex = doubles_map[target_vertex];
+					}
+					else {
+						/* not with_follow: if target is mapped, then we do not map source, and stop searching  */
+						break;
+					}
+				}
+				doubles_map[sve_source->vertex_num] = target_vertex;
+				double_found = true;
+				break;
 			}
+			i_target++;
+			sve_target++;
 		}
-
-		BMO_op_exec(bm, &find_op);
-
-		slot_targetmap = BMO_slot_get(weld_op->slots_in, "targetmap");
-
-		/* add new merge targets to weld operator */
-		BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
-			v2 = BMO_iter_map_value_ptr(&oiter);
-			/* check in case the target vertex (v2) is already marked
-			 * for merging */
-			while ((v3 = BMO_slot_map_elem_get(slot_targetmap, v2))) {
-				v2 = v3;
-			}
-			BMO_slot_map_elem_insert(weld_op, slot_targetmap, v, v2);
+		/* End of candidate scan: if none found then no doubles */
+		if (!double_found) {
+			doubles_map[sve_source->vertex_num] = -1;
 		}
-
-		BMO_op_finish(bm, &find_op);
 	}
-	else {
-		/* transform and tag verts */
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				mul_m4_v3(mat, v->co);
-				BM_elem_flag_enable(v, BM_ELEM_TAG);
-			}
-		}
+
+	MEM_freeN(sorted_verts_source);
+	MEM_freeN(sorted_verts_target);
+}
+
+
+static void dm_merge_transform(
+        DerivedMesh *result, DerivedMesh *cap_dm, float cap_offset[4][4],
+        unsigned int cap_verts_index, unsigned int cap_edges_index, int cap_loops_index, int cap_polys_index,
+        int cap_nverts, int cap_nedges, int cap_nloops, int cap_npolys)
+{
+	int *index_orig;
+	int i;
+	MVert *mv;
+	MEdge *me;
+	MLoop *ml;
+	MPoly *mp;
+
+	/* needed for subsurf so arrays are allocated */
+	cap_dm->getVertArray(cap_dm);
+	cap_dm->getEdgeArray(cap_dm);
+	cap_dm->getNumLoops(cap_dm);
+	cap_dm->getNumPolys(cap_dm);
+
+	DM_copy_vert_data(cap_dm, result, 0, cap_verts_index, cap_nverts);
+	DM_copy_edge_data(cap_dm, result, 0, cap_edges_index, cap_nedges);
+	DM_copy_loop_data(cap_dm, result, 0, cap_loops_index, cap_nloops);
+	DM_copy_poly_data(cap_dm, result, 0, cap_polys_index, cap_npolys);
+
+	mv = CDDM_get_verts(result) + cap_verts_index;
+
+	for (i = 0; i < cap_nverts; i++, mv++) {
+		mul_m4_v3(cap_offset, mv->co);
+		/* Reset MVert flags for caps */
+		mv->flag = mv->bweight = 0;
+	}
+
+	/* adjust cap edge vertex indices */
+	me = CDDM_get_edges(result) + cap_edges_index;
+	for (i = 0; i < cap_nedges; i++, me++) {
+		me->v1 += cap_verts_index;
+		me->v2 += cap_verts_index;
+	}
+
+	/* adjust cap poly loopstart indices */
+	mp = CDDM_get_polys(result) + cap_polys_index;
+	for (i = 0; i < cap_npolys; i++, mp++) {
+		mp->loopstart += cap_loops_index;
+	}
+
+	/* adjust cap loop vertex and edge indices */
+	ml = CDDM_get_loops(result) + cap_loops_index;
+	for (i = 0; i < cap_nloops; i++, ml++) {
+		ml->v += cap_verts_index;
+		ml->e += cap_edges_index;
+	}
+
+	/* set origindex */
+	index_orig = result->getVertDataArray(result, CD_ORIGINDEX);
+	if (index_orig) {
+		fill_vn_i(index_orig + cap_verts_index, cap_nverts, ORIGINDEX_NONE);
+	}
+
+	index_orig = result->getEdgeDataArray(result, CD_ORIGINDEX);
+	if (index_orig) {
+		fill_vn_i(index_orig + cap_edges_index, cap_nedges, ORIGINDEX_NONE);
+	}
+
+	index_orig = result->getPolyDataArray(result, CD_ORIGINDEX);
+	if (index_orig) {
+		fill_vn_i(index_orig + cap_polys_index, cap_npolys, ORIGINDEX_NONE);
+	}
+
+	index_orig = result->getLoopDataArray(result, CD_ORIGINDEX);
+	if (index_orig) {
+		fill_vn_i(index_orig + cap_loops_index, cap_nloops, ORIGINDEX_NONE);
 	}
 }
 
-static void merge_first_last(BMesh *bm,
-                             const ArrayModifierData *amd,
-                             BMOperator *dupe_first,
-                             BMOperator *dupe_last,
-                             BMOperator *weld_op)
+static DerivedMesh *arrayModifier_doArray(
+        ArrayModifierData *amd,
+        Scene *scene, Object *ob, DerivedMesh *dm,
+        ModifierApplyFlag flag)
 {
-	BMOperator find_op;
-	BMOIter oiter;
-	BMVert *v, *v2;
-	BMOpSlot *slot_targetmap;
+	const float eps = 1e-6f;
+	const MVert *src_mvert;
+	MVert *mv, *mv_prev, *result_dm_verts;
 
-	BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-	             "find_doubles verts=%s dist=%f keep_verts=%s",
-	             dupe_first, "geom", amd->merge_dist,
-	             dupe_first, "geom");
-
-	/* append the last dupe's geom to the findop input verts */
-	BMO_slot_buffer_append(&find_op,  slots_in,  "verts",
-	                       dupe_last, slots_out, "geom.out");
-
-	BMO_op_exec(bm, &find_op);
-
-	/* add new merge targets to weld operator */
-	slot_targetmap = BMO_slot_get(weld_op->slots_in, "targetmap");
-	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
-		if (!BMO_slot_map_contains(slot_targetmap, v)) {
-			v2 = BMO_iter_map_value_ptr(&oiter);
-			BMO_slot_map_elem_insert(weld_op, slot_targetmap, v, v2);
-		}
-	}
-
-	BMO_op_finish(bm, &find_op);
-}
-
-static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
-                                          Scene *scene, Object *ob, DerivedMesh *dm,
-                                          ModifierApplyFlag flag)
-{
-	DerivedMesh *result;
-	BMesh *bm = DM_to_bmesh(dm, false);
-	BMOperator first_dupe_op, dupe_op, old_dupe_op, weld_op;
-	BMVert **first_geom = NULL;
-	int i, j;
-	int index_len = -1;  /* initialize to an invalid value */
+	MEdge *me;
+	MLoop *ml;
+	MPoly *mp;
+	int i, j, c, count;
+	float length = amd->length;
 	/* offset matrix */
 	float offset[4][4];
+	float scale[3];
+	bool offset_has_scale;
+	float current_offset[4][4];
 	float final_offset[4][4];
-	float length = amd->length;
-	int count = amd->count, maxVerts;
-	int *indexMap = NULL;
-	DerivedMesh *start_cap = NULL, *end_cap = NULL;
-	MVert *src_mvert;
-	BMOpSlot *slot_targetmap = NULL;  /* for weld_op */
+	int *full_doubles_map = NULL;
+	int tot_doubles;
 
-	/* need to avoid infinite recursion here */
-	if (amd->start_cap && amd->start_cap != ob && amd->start_cap->type == OB_MESH)
-		start_cap = get_dm_for_modifier(amd->start_cap, flag);
-	if (amd->end_cap && amd->end_cap != ob && amd->end_cap->type == OB_MESH)
-		end_cap = get_dm_for_modifier(amd->end_cap, flag);
+	int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
+	int end_cap_nverts = 0, end_cap_nedges = 0, end_cap_npolys = 0, end_cap_nloops = 0;
+	int result_nverts = 0, result_nedges = 0, result_npolys = 0, result_nloops = 0;
+	int chunk_nverts, chunk_nedges, chunk_nloops, chunk_npolys;
+	int first_chunk_start, first_chunk_nverts, last_chunk_start, last_chunk_nverts;
+
+	DerivedMesh *result, *start_cap_dm = NULL, *end_cap_dm = NULL;
+
+	chunk_nverts = dm->getNumVerts(dm);
+	chunk_nedges = dm->getNumEdges(dm);
+	chunk_nloops = dm->getNumLoops(dm);
+	chunk_npolys = dm->getNumPolys(dm);
+
+	count = amd->count;
+
+	if (amd->start_cap && amd->start_cap != ob && amd->start_cap->type == OB_MESH) {
+		start_cap_dm = get_dm_for_modifier(amd->start_cap, flag);
+		if (start_cap_dm) {
+			start_cap_nverts = start_cap_dm->getNumVerts(start_cap_dm);
+			start_cap_nedges = start_cap_dm->getNumEdges(start_cap_dm);
+			start_cap_nloops = start_cap_dm->getNumLoops(start_cap_dm);
+			start_cap_npolys = start_cap_dm->getNumPolys(start_cap_dm);
+		}
+	}
+	if (amd->end_cap && amd->end_cap != ob && amd->end_cap->type == OB_MESH) {
+		end_cap_dm = get_dm_for_modifier(amd->end_cap, flag);
+		if (end_cap_dm) {
+			end_cap_nverts = end_cap_dm->getNumVerts(end_cap_dm);
+			end_cap_nedges = end_cap_dm->getNumEdges(end_cap_dm);
+			end_cap_nloops = end_cap_dm->getNumLoops(end_cap_dm);
+			end_cap_npolys = end_cap_dm->getNumPolys(end_cap_dm);
+		}
+	}
+
+	/* Build up offset array, cumulating all settings options */
 
 	unit_m4(offset);
-
 	src_mvert = dm->getVertArray(dm);
-	maxVerts = dm->getNumVerts(dm);
 
 	if (amd->offset_type & MOD_ARR_OFF_CONST)
 		add_v3_v3v3(offset[3], offset[3], amd->offset);
+
 	if (amd->offset_type & MOD_ARR_OFF_RELATIVE) {
 		for (j = 0; j < 3; j++)
-			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert, maxVerts, j);
+			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert, chunk_nverts, j);
 	}
 
 	if ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
@@ -371,9 +461,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			unit_m4(obinv);
 
 		mul_m4_series(result_mat, offset,
-		             obinv, amd->offset_ob->obmat);
+		              obinv, amd->offset_ob->obmat);
 		copy_m4_m4(offset, result_mat);
 	}
+
+	/* Check if there is some scaling.  If scaling, then we will not translate mapping */
+	mat4_to_size(scale, offset);
+	offset_has_scale = !is_one_v3(scale);
 
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
@@ -396,195 +490,229 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if (amd->fit_type == MOD_ARR_FITLENGTH || amd->fit_type == MOD_ARR_FITCURVE) {
 		float dist = len_v3(offset[3]);
 
-		if (dist > 1e-6f)
+		if (dist > eps) {
 			/* this gives length = first copy start to last copy end
 			 * add a tiny offset for floating point rounding errors */
-			count = (length + 1e-6f) / dist;
-		else
+			count = (length + eps) / dist;
+		}
+		else {
 			/* if the offset has no translation, just make one copy */
 			count = 1;
+		}
 	}
 
 	if (count < 1)
 		count = 1;
 
-	/* calculate the offset matrix of the final copy (for merging) */
-	unit_m4(final_offset);
+	/* The number of verts, edges, loops, polys, before eventually merging doubles */
+	result_nverts = chunk_nverts * count + start_cap_nverts + end_cap_nverts;
+	result_nedges = chunk_nedges * count + start_cap_nedges + end_cap_nedges;
+	result_nloops = chunk_nloops * count + start_cap_nloops + end_cap_nloops;
+	result_npolys = chunk_npolys * count + start_cap_npolys + end_cap_npolys;
 
-	for (j = 0; j < count - 1; j++) {
-		float tmp_mat[4][4];
-		mul_m4_m4m4(tmp_mat, offset, final_offset);
-		copy_m4_m4(final_offset, tmp_mat);
-	}
-
-	/* BMESH_TODO: bumping up the stack level avoids computing the normals
-	 * after every top-level operator execution (and this modifier has the
-	 * potential to execute a *lot* of top-level BMOps. There should be a
-	 * cleaner way to do this. One possibility: a "mirror" BMOp would
-	 * certainly help by compressing it all into one top-level BMOp that
-	 * executes a lot of second-level BMOps. */
-	BM_mesh_elem_toolflags_ensure(bm);
-	BMO_push(bm, NULL);
-	bmesh_edit_begin(bm, 0);
+	/* Initialize a result dm */
+	result = CDDM_from_template(dm, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+	result_dm_verts = CDDM_get_verts(result);
 
 	if (amd->flags & MOD_ARR_MERGE) {
-		BMO_op_init(bm, &weld_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-		            "weld_verts");
-
-		slot_targetmap = BMO_slot_get(weld_op.slots_in, "targetmap");
+		/* Will need full_doubles_map for handling merge */
+		full_doubles_map = MEM_mallocN(sizeof(int) * result_nverts, "mod array doubles map");
+		fill_vn_i(full_doubles_map, result_nverts, -1);
 	}
 
-	BMO_op_initf(bm, &dupe_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-	             "duplicate geom=%avef");
-	first_dupe_op = dupe_op;
+	/* copy customdata to original geometry */
+	DM_copy_vert_data(dm, result, 0, 0, chunk_nverts);
+	DM_copy_edge_data(dm, result, 0, 0, chunk_nedges);
+	DM_copy_loop_data(dm, result, 0, 0, chunk_nloops);
+	DM_copy_poly_data(dm, result, 0, 0, chunk_npolys);
 
-	for (j = 0; j < count - 1; j++) {
-		BMVert *v, *v2, *v3;
-		BMOpSlot *geom_slot;
-		BMOpSlot *geom_out_slot;
-		BMOIter oiter;
+	/* subsurf for eg wont have mesh data in the
+	 * now add mvert/medge/mface layers */
 
-		if (j != 0) {
-			BMO_op_initf(bm, &dupe_op,
-			             (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-			             "duplicate geom=%S", &old_dupe_op, "geom.out");
+	if (!CustomData_has_layer(&dm->vertData, CD_MVERT)) {
+		dm->copyVertArray(dm, result_dm_verts);
+	}
+	if (!CustomData_has_layer(&dm->edgeData, CD_MEDGE)) {
+		dm->copyEdgeArray(dm, CDDM_get_edges(result));
+	}
+	if (!CustomData_has_layer(&dm->polyData, CD_MPOLY)) {
+		dm->copyLoopArray(dm, CDDM_get_loops(result));
+		dm->copyPolyArray(dm, CDDM_get_polys(result));
+	}
+
+	/* Remember first chunk, in case of cap merge */
+	first_chunk_start = 0;
+	first_chunk_nverts = chunk_nverts;
+
+	unit_m4(current_offset);
+	for (c = 1; c < count; c++) {
+		/* copy customdata to new geometry */
+		DM_copy_vert_data(result, result, 0, c * chunk_nverts, chunk_nverts);
+		DM_copy_edge_data(result, result, 0, c * chunk_nedges, chunk_nedges);
+		DM_copy_loop_data(result, result, 0, c * chunk_nloops, chunk_nloops);
+		DM_copy_poly_data(result, result, 0, c * chunk_npolys, chunk_npolys);
+
+		mv_prev = result_dm_verts;
+		mv = mv_prev + c * chunk_nverts;
+
+		/* recalculate cumulative offset here */
+		mul_m4_m4m4(current_offset, current_offset, offset);
+
+		/* apply offset to all new verts */
+		for (i = 0; i < chunk_nverts; i++, mv++, mv_prev++) {
+			mul_m4_v3(current_offset, mv->co);
 		}
-		BMO_op_exec(bm, &dupe_op);
 
-		geom_slot   = BMO_slot_get(dupe_op.slots_in,  "geom");
-		geom_out_slot = BMO_slot_get(dupe_op.slots_out, "geom.out");
-
-		if ((amd->flags & MOD_ARR_MERGEFINAL) && j == 0) {
-			int first_geom_bytes = sizeof(BMVert *) * geom_slot->len;
-				
-			/* make a copy of the initial geometry ordering so the
-			 * last duplicate can be merged into it */
-			first_geom = MEM_mallocN(first_geom_bytes, "first_geom");
-			memcpy(first_geom, geom_slot->data.buf, first_geom_bytes);
+		/* adjust edge vertex indices */
+		me = CDDM_get_edges(result) + c * chunk_nedges;
+		for (i = 0; i < chunk_nedges; i++, me++) {
+			me->v1 += c * chunk_nverts;
+			me->v2 += c * chunk_nverts;
 		}
 
-		/* apply transformation matrix */
-		BMO_ITER (v, &oiter, dupe_op.slots_out, "geom.out", BM_VERT) {
-			mul_m4_v3(offset, v->co);
+		mp = CDDM_get_polys(result) + c * chunk_npolys;
+		for (i = 0; i < chunk_npolys; i++, mp++) {
+			mp->loopstart += c * chunk_nloops;
 		}
 
-		if (amd->flags & MOD_ARR_MERGE) {
-			/*calculate merge mapping*/
-			if (j == 0) {
-				indexMap = find_doubles_index_map(bm, &dupe_op,
-				                                  amd, &index_len);
-			}
+		/* adjust loop vertex and edge indices */
+		ml = CDDM_get_loops(result) + c * chunk_nloops;
+		for (i = 0; i < chunk_nloops; i++, ml++) {
+			ml->v += c * chunk_nverts;
+			ml->e += c * chunk_nedges;
+		}
 
-#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
-
-			/* ensure this is set */
-			BLI_assert(index_len != -1);
-
-			for (i = 0; i < index_len; i++) {
-				if (!indexMap[i]) continue;
-
-				/* merge v (from 'geom.out') into v2 (from old 'geom') */
-				v = _E(geom_out_slot, i - geom_slot->len);
-				v2 = _E(geom_slot, indexMap[i] - 1);
-
-				/* check in case the target vertex (v2) is already marked
-				 * for merging */
-				while ((v3 = BMO_slot_map_elem_get(slot_targetmap, v2))) {
-					v2 = v3;
+		/* Handle merge between chunk n and n-1 */
+		if ((amd->flags & MOD_ARR_MERGE) && (c >= 1)) {
+			if (!offset_has_scale && (c >= 2)) {
+				/* Mapping chunk 3 to chunk 2 is a translation of mapping 2 to 1
+				 * ... that is except if scaling makes the distance grow */
+				int k;
+				int this_chunk_index = c * chunk_nverts;
+				int prev_chunk_index = (c - 1) * chunk_nverts;
+				for (k = 0; k < chunk_nverts; k++, this_chunk_index++, prev_chunk_index++) {
+					int target = full_doubles_map[prev_chunk_index];
+					if (target != -1) {
+						target += chunk_nverts; /* translate mapping */
+						/* The rule here is to not follow mapping to chunk N-2, which could be too far
+						 * so if target vertex was itself mapped, then this vertex is not mapped */
+						if (full_doubles_map[target] != -1) {
+							target = -1;
+						}
+					}
+					full_doubles_map[this_chunk_index] = target;
 				}
-
-				BMO_slot_map_elem_insert(&weld_op, slot_targetmap, v, v2);
 			}
-
-#undef _E
+			else {
+				dm_mvert_map_doubles(
+				        full_doubles_map,
+				        result_dm_verts,
+				        (c - 1) * chunk_nverts,
+				        chunk_nverts,
+				        c * chunk_nverts,
+				        chunk_nverts,
+				        amd->merge_dist,
+				        false);
+			}
 		}
-
-		/* already copied earlier, but after executation more slot
-		 * memory may be allocated */
-		if (j == 0)
-			first_dupe_op = dupe_op;
-		
-		if (j >= 2)
-			BMO_op_finish(bm, &old_dupe_op);
-		old_dupe_op = dupe_op;
 	}
+
+	last_chunk_start = (count - 1) * chunk_nverts;
+	last_chunk_nverts = chunk_nverts;
+
+	copy_m4_m4(final_offset, current_offset);
 
 	if ((amd->flags & MOD_ARR_MERGE) &&
 	    (amd->flags & MOD_ARR_MERGEFINAL) &&
 	    (count > 1))
 	{
-		/* Merge first and last copies. Note that we can't use the
-		 * indexMap for this because (unless the array is forming a
-		 * loop) the offset between first and last is different from
-		 * dupe X to dupe X+1. */
-
-		merge_first_last(bm, amd, &first_dupe_op, &dupe_op, &weld_op);
+		/* Merge first and last copies */
+		dm_mvert_map_doubles(
+		        full_doubles_map,
+		        result_dm_verts,
+		        last_chunk_start,
+		        last_chunk_nverts,
+		        first_chunk_start,
+		        first_chunk_nverts,
+		        amd->merge_dist,
+		        false);
 	}
 
 	/* start capping */
-	if (start_cap || end_cap) {
-		BM_mesh_elem_hflag_enable_all(bm, BM_VERT, BM_ELEM_TAG, false);
-
-		if (start_cap) {
-			float startoffset[4][4];
-			invert_m4_m4(startoffset, offset);
-			bm_merge_dm_transform(bm, start_cap, startoffset, amd,
-			                      &first_dupe_op, first_dupe_op.slots_in, "geom", &weld_op);
+	if (start_cap_dm) {
+		float start_offset[4][4];
+		int start_cap_start = result_nverts - start_cap_nverts - end_cap_nverts;
+		invert_m4_m4(start_offset, offset);
+		dm_merge_transform(
+		        result, start_cap_dm, start_offset,
+		        result_nverts - start_cap_nverts - end_cap_nverts,
+		        result_nedges - start_cap_nedges - end_cap_nedges,
+		        result_nloops - start_cap_nloops - end_cap_nloops,
+		        result_npolys - start_cap_npolys - end_cap_npolys,
+		        start_cap_nverts, start_cap_nedges, start_cap_nloops, start_cap_npolys);
+		/* Identify doubles with first chunk */
+		if (amd->flags & MOD_ARR_MERGE) {
+			dm_mvert_map_doubles(
+			        full_doubles_map,
+			        result_dm_verts,
+			        first_chunk_start,
+			        first_chunk_nverts,
+			        start_cap_start,
+			        start_cap_nverts,
+			        amd->merge_dist,
+			        false);
 		}
+	}
 
-		if (end_cap) {
-			float endoffset[4][4];
-			mul_m4_m4m4(endoffset, offset, final_offset);
-			bm_merge_dm_transform(bm, end_cap, endoffset, amd,
-			                      &dupe_op, (count == 1) ? dupe_op.slots_in : dupe_op.slots_out,
-			                      (count == 1) ? "geom" : "geom.out", &weld_op);
+	if (end_cap_dm) {
+		float end_offset[4][4];
+		int end_cap_start = result_nverts - end_cap_nverts;
+		mul_m4_m4m4(end_offset, current_offset, offset);
+		dm_merge_transform(
+		        result, end_cap_dm, end_offset,
+		        result_nverts - end_cap_nverts,
+		        result_nedges - end_cap_nedges,
+		        result_nloops - end_cap_nloops,
+		        result_npolys - end_cap_npolys,
+		        end_cap_nverts, end_cap_nedges, end_cap_nloops, end_cap_npolys);
+		/* Identify doubles with last chunk */
+		if (amd->flags & MOD_ARR_MERGE) {
+			dm_mvert_map_doubles(
+			        full_doubles_map,
+			        result_dm_verts,
+			        last_chunk_start,
+			        last_chunk_nverts,
+			        end_cap_start,
+			        end_cap_nverts,
+			        amd->merge_dist,
+			        false);
 		}
 	}
 	/* done capping */
 
-	/* free remaining dupe operators */
-	BMO_op_finish(bm, &first_dupe_op);
-	if (count > 2)
-		BMO_op_finish(bm, &dupe_op);
-
-	/* run merge operator */
-	if (amd->flags & MOD_ARR_MERGE) {
-		BMO_op_exec(bm, &weld_op);
-		BMO_op_finish(bm, &weld_op);
+	/* Handle merging */
+	tot_doubles = 0;
+	if (full_doubles_map) {
+		for (i = 0; i < result_nverts; i++) {
+			if (full_doubles_map[i] != -1) {
+				tot_doubles++;
+			}
+		}
+		if (tot_doubles > 0) {
+			result = CDDM_merge_verts(result, full_doubles_map, tot_doubles, CDDM_MERGE_VERTS_DUMP_IF_EQUAL);
+		}
+		MEM_freeN(full_doubles_map);
 	}
-
-	/* Bump the stack level back down to match the adjustment up above */
-	BMO_pop(bm);
-
-	result = CDDM_from_bmesh(bm, false);
-
-	if ((dm->dirty & DM_DIRTY_NORMALS) ||
-	    ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)))
-	{
-		/* Update normals in case offset object has rotation. */
-		result->dirty |= DM_DIRTY_NORMALS;
-	}
-
-	BM_mesh_free(bm);
-
-	if (indexMap)
-		MEM_freeN(indexMap);
-	if (first_geom)
-		MEM_freeN(first_geom);
-
 	return result;
 }
+
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
-	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData *) md;
-
-	result = arrayModifier_doArray(amd, md->scene, ob, dm, flag);
-
-	return result;
+	return arrayModifier_doArray(amd, md->scene, ob, dm, flag);
 }
 
 

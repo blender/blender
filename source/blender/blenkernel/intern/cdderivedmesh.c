@@ -2572,25 +2572,200 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
 #if 1
 
 /**
+ * Poly compare with vtargetmap
+ * Function used by #CDDM_merge_verts.
+ * The function compares poly_source after applying vtargetmap, with poly_target.
+ * The two polys are identical if they share the same vertices in the same order, or in reverse order,
+ * but starting position loopstart may be different.
+ * The function is called with direct_reverse=1 for same order (i.e. same normal),
+ * and may be called again with direct_reverse=-1 for reverse order.
+ * \return 1 if polys are identical,  0 if polys are different.
+ */
+static int cddm_poly_compare(MLoop *mloop_array, MPoly *mpoly_source, MPoly *mpoly_target, const int *vtargetmap, const int direct_reverse)
+{
+	int vert_source, first_vert_source, vert_target;
+	int i_loop_source;
+	int i_loop_target, i_loop_target_start, i_loop_target_offset, i_loop_target_adjusted;
+	bool compare_completed = false;
+	bool same_loops = false;
+
+	MLoop *mloop_source, *mloop_target;
+
+	BLI_assert(direct_reverse == 1 || direct_reverse == -1);
+
+	i_loop_source = 0;
+	mloop_source = mloop_array + mpoly_source->loopstart;
+	vert_source = mloop_source->v;
+
+	if (vtargetmap[vert_source] != -1) {
+		vert_source = vtargetmap[vert_source];
+	}
+	else {
+		/* All source loop vertices should be mapped */
+		BLI_assert(false);
+	}
+
+	/* Find same vertex within mpoly_target's loops */
+	mloop_target = mloop_array + mpoly_target->loopstart;
+	for (i_loop_target = 0; i_loop_target < mpoly_target->totloop; i_loop_target++, mloop_target++) {
+		if (mloop_target->v == vert_source) {
+			break;
+		}
+	}
+
+	/* If same vertex not found, then polys cannot be equal */
+	if (i_loop_target >= mpoly_target->totloop) {
+		return false;
+	}
+
+	/* Now mloop_source and m_loop_target have one identical vertex */
+	/* mloop_source is at position 0, while m_loop_target has advanced to find identical vertex */
+	/* Go around the loop and check that all vertices match in same order */
+	/* Skipping source loops when consecutive source vertices are mapped to same target vertex */
+
+	i_loop_target_start = i_loop_target;
+	i_loop_target_offset = 0;
+	first_vert_source = vert_source;
+
+	compare_completed = false;
+	same_loops = false;
+
+	while (!compare_completed) {
+
+		vert_target = mloop_target->v;
+
+		/* First advance i_loop_source, until it points to different vertex, after mapping applied */
+		do {
+			i_loop_source++;
+
+			if (i_loop_source == mpoly_source->totloop) {
+				/* End of loops for source, must match end of loop for target.  */
+				if (i_loop_target_offset == mpoly_target->totloop - 1) {
+					compare_completed = true;
+					same_loops = true;
+					break;  /* Polys are identical */
+				}
+				else {
+					compare_completed = true;
+					same_loops = false;
+					break;  /* Polys are different */
+				}
+			}
+
+			mloop_source++;
+			vert_source = mloop_source->v;
+
+			if (vtargetmap[vert_source] != -1) {
+				vert_source = vtargetmap[vert_source];
+			}
+			else {
+				/* All source loop vertices should be mapped */
+				BLI_assert(false);
+			}
+
+		} while (vert_source == vert_target);
+
+		if (compare_completed) {
+			break;
+		}
+
+		/* Now advance i_loop_target as well */
+		i_loop_target_offset++;
+
+		if (i_loop_target_offset == mpoly_target->totloop) {
+			/* End of loops for target only, that means no match */
+			/* except if all remaining source vertices are mapped to first target */
+			for (; i_loop_source < mpoly_source->totloop; i_loop_source++, mloop_source++) {
+				vert_source = vtargetmap[mloop_source->v];
+				if (vert_source != first_vert_source) {
+					compare_completed = true;
+					same_loops = false;
+					break;
+				}
+			}
+			if (!compare_completed) {
+				same_loops = true;
+			}
+			break;
+		}
+
+		/* Adjust i_loop_target for cycling around and for direct/reverse order defined by delta = +1 or -1 */
+		i_loop_target_adjusted = (i_loop_target_start + direct_reverse * i_loop_target_offset) % mpoly_target->totloop;
+		if (i_loop_target_adjusted < 0) {
+			i_loop_target_adjusted += mpoly_target->totloop;
+		}
+		mloop_target = mloop_array + mpoly_target->loopstart + i_loop_target_adjusted;
+		vert_target = mloop_target->v;
+
+		if (vert_target != vert_source) {
+			same_loops = false;  /* Polys are different */
+			break;
+		}
+	}
+	return same_loops;
+}
+
+/* Utility stuff for using GHash with polys */
+
+typedef struct PolyKey {
+	int poly_index;   /* index of the MPoly within the derived mesh */
+	int totloops;     /* number of loops in the poly */
+	unsigned int hash_sum;  /* Sum of all vertices indices */
+	unsigned int hash_xor;  /* Xor of all vertices indices */
+} PolyKey;
+
+
+static unsigned int poly_gset_hash_fn(const void *key)
+{
+	const PolyKey *pk = key;
+	return pk->hash_sum;
+}
+
+static int poly_gset_compare_fn(const void *k1, const void *k2)
+{
+	const PolyKey *pk1 = k1;
+	const PolyKey *pk2 = k2;
+	if ((pk1->hash_sum == pk2->hash_sum) &&
+	    (pk1->hash_xor == pk2->hash_xor) &&
+	    (pk1->totloops == pk2->totloops))
+	{
+		/* Equality - note that this does not mean equality of polys */
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
+
+/**
  * Merge Verts
+ *
+ * This frees dm, and returns a new one.
  *
  * \param vtargetmap  The table that maps vertices to target vertices.  a value of -1
  * indicates a vertex is a target, and is to be kept.
  * This array is aligned with 'dm->numVertData'
  *
- * \param tot_vtargetmap  The number of non '-1' values in vtargetmap.
- * (not the size )
+ * \param tot_vtargetmap  The number of non '-1' values in vtargetmap. (not the size)
  *
- * this frees dm, and returns a new one.
+ * \param merge_mode enum with two modes.
+ * - #CDDM_MERGE_VERTS_DUMP_IF_MAPPED
+ * When called by the Mirror Modifier,
+ * In this mode it skips any faces that have all vertices merged (to avoid creating pairs
+ * of faces sharing the same set of vertices)
+ * - #CDDM_MERGE_VERTS_DUMP_IF_EQUAL
+ * When called by the Array Modifier,
+ * In this mode, faces where all vertices are merged are double-checked,
+ * to see whether all target vertices actually make up a poly already.
+ * Indeed it could be that all of a poly's vertices are merged,
+ * but merged to vertices that do not make up a single poly,
+ * in which case the original poly should not be dumped.
+ * Actually this later behavior could apply to the Mirror Modifier as well, but the additional checks are
+ * costly and not necessary in the case of mirror, because each vertex is only merged to its own mirror.
  *
- * note, CDDM_recalc_tessellation has to run on the returned DM if you want to access tessfaces.
- *
- * Note: This function is currently only used by the Mirror modifier, so it
- *       skips any faces that have all vertices merged (to avoid creating pairs
- *       of faces sharing the same set of vertices). If used elsewhere, it may
- *       be necessary to make this functionality optional.
+ * \note #CDDM_recalc_tessellation has to run on the returned DM if you want to access tessfaces.
  */
-DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int tot_vtargetmap)
+DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int tot_vtargetmap, const int merge_mode)
 {
 // #define USE_LOOPS
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
@@ -2631,7 +2806,10 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	EdgeHash *ehash = BLI_edgehash_new_ex(__func__, totedge);
 
 	int i, j, c;
-	
+
+	PolyKey *poly_keys;
+	GSet *poly_gset = NULL;
+
 	STACK_INIT(oldv, totvert_final);
 	STACK_INIT(olde, totedge);
 	STACK_INIT(oldl, totloop);
@@ -2673,10 +2851,9 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	med = cddm->medge;
 	c = 0;
 	for (i = 0; i < totedge; i++, med++) {
-		
-		if (LIKELY(med->v1 != med->v2)) {
-			const unsigned int v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
-			const unsigned int v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
+		const unsigned int v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
+		const unsigned int v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
+		if (LIKELY(v1 != v2)) {
 			void **eh_p = BLI_edgehash_lookup_p(ehash, v1, v2);
 
 			if (eh_p) {
@@ -2695,13 +2872,49 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		}
 	}
 	
+	if (merge_mode == CDDM_MERGE_VERTS_DUMP_IF_EQUAL) {
+		/* In this mode, we need to determine,  whenever a poly' vertices are all mapped */
+		/* if the targets already make up a poly, in which case the new poly is dropped */
+		/* This poly equality check is rather complex.   We use a BLI_ghash to speed it up with a first level check */
+		PolyKey *mpgh;
+		poly_keys = MEM_mallocN(sizeof(PolyKey) * totpoly, __func__);
+		poly_gset = BLI_gset_new_ex(poly_gset_hash_fn, poly_gset_compare_fn, __func__, totpoly);
+		/* Duplicates allowed because our compare function is not pure equality */
+		BLI_gset_flag_set(poly_gset, GHASH_FLAG_ALLOW_DUPES);
+
+		mp = cddm->mpoly;
+		mpgh = poly_keys;
+		for (i = 0; i < totpoly; i++, mp++, mpgh++) {
+			mpgh->poly_index = i;
+			mpgh->totloops = mp->totloop;
+			ml = cddm->mloop + mp->loopstart;
+			mpgh->hash_sum = mpgh->hash_xor = 0;
+			for (j = 0; j < mp->totloop; j++, ml++) {
+				mpgh->hash_sum += ml->v;
+				mpgh->hash_xor ^= ml->v;
+			}
+			BLI_gset_insert(poly_gset, mpgh);
+		}
+
+		if (cddm->pmap) {
+			MEM_freeN(cddm->pmap);
+			MEM_freeN(cddm->pmap_mem);
+		}
+		/* Can we optimise by reusing an old pmap ?  How do we know an old pmap is stale ?  */
+		/* When called by MOD_array.c, the cddm has just been created, so it has no valid pmap.   */
+		BKE_mesh_vert_poly_map_create(&cddm->pmap, &cddm->pmap_mem,
+		                              cddm->mpoly, cddm->mloop,
+		                              totvert, totpoly, totloop);
+	}  /* done preparing for fast poly compare */
+
+
 	mp = cddm->mpoly;
 	for (i = 0; i < totpoly; i++, mp++) {
 		MPoly *mp_new;
 		
 		ml = cddm->mloop + mp->loopstart;
 
-		/* skip faces with all vertices merged */
+		/* check faces with all vertices merged */
 		{
 			bool all_vertices_merged = true;
 
@@ -2713,16 +2926,86 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 			}
 
 			if (UNLIKELY(all_vertices_merged)) {
-				continue;
+				if (merge_mode == CDDM_MERGE_VERTS_DUMP_IF_MAPPED) {
+					/* In this mode, all vertices merged is enough to dump face */
+					continue;
+				}
+				else if (merge_mode == CDDM_MERGE_VERTS_DUMP_IF_EQUAL) {
+					/* Additional condition for face dump:  target vertices must make up an identical face */
+					/* The test has 2 steps:  (1) first step is fast ghash lookup, but not failproof       */
+					/*                        (2) second step is thorough but more costly poly compare     */
+					int i_poly, v_target, v_prev;
+					bool found = false;
+					PolyKey pkey;
+
+					/* Use poly_gset for fast (although not 100% certain) identification of same poly */
+					/* First, make up a poly_summary structure */
+					ml = cddm->mloop + mp->loopstart;
+					pkey.hash_sum = pkey.hash_xor = 0;
+					pkey.totloops = 0;
+					v_prev = vtargetmap[(ml + mp->totloop -1)->v];  /* since it loops around, the prev of first is the last */
+					for (j = 0; j < mp->totloop; j++, ml++) {
+						v_target = vtargetmap[ml->v];   /* Cannot be -1, they are all mapped */
+						if (v_target == v_prev) {
+							/* consecutive vertices in loop map to the same target:  discard */
+							/* but what about last to first ? */
+							continue;
+						}
+						pkey.hash_sum += v_target;
+						pkey.hash_xor ^= v_target;
+						pkey.totloops++;
+						v_prev = v_target;
+					}
+					if (BLI_gset_haskey(poly_gset, &pkey)) {
+
+						/* There might be a poly that matches this one.
+						 * We could just leave it there and say there is, and do a "continue".
+						 * ... but we are checking whether there is an exact poly match.
+						 * It's not so costly in terms of CPU since it's very rare, just a lot of complex code.
+						 */
+
+						/* Consider current loop again */
+						ml = cddm->mloop + mp->loopstart;
+						/* Consider the target of the loop's first vert */
+						v_target = vtargetmap[ml->v];
+						/* Now see if v_target belongs to a poly that shares all vertices with source poly,
+						 * in same order, or reverse order */
+
+						for (i_poly = 0; i_poly < cddm->pmap[v_target].count; i_poly++) {
+							MPoly *target_poly = cddm->mpoly + *(cddm->pmap[v_target].indices + i_poly);
+
+							if (cddm_poly_compare(cddm->mloop, mp, target_poly, vtargetmap, +1) ||
+							    cddm_poly_compare(cddm->mloop, mp, target_poly, vtargetmap, -1))
+							{
+								found = true;
+								break;
+							}
+						}
+						if (found) {
+							/* Current poly's vertices are mapped to a poly that is strictly identical */
+							/* Current poly is dumped */
+							continue;
+						}
+					}
+				}
 			}
 		}
 
+
+		/* Here either the poly's vertices were not all merged
+		 * or they were all merged, but targets do not make up an identical poly,
+		 * the poly is retained.
+		 */
 		ml = cddm->mloop + mp->loopstart;
 
 		c = 0;
 		for (j = 0; j < mp->totloop; j++, ml++) {
+			unsigned int v1, v2;
+
 			med = cddm->medge + ml->e;
-			if (LIKELY(med->v1 != med->v2)) {
+			v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
+			v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
+			if (LIKELY(v1 != v2)) {
 #ifdef USE_LOOPS
 				newl[j + mp->loopstart] = STACK_SIZE(mloop);
 #endif
@@ -2742,6 +3025,14 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		mp_new->loopstart = STACK_SIZE(mloop) - c;
 		
 		STACK_PUSH(oldp, i);
+	}  /* end of the loop that tests polys   */
+
+
+	if (poly_gset) {
+		// printf("hash quality %.6f\n", BLI_gset_calc_quality(poly_gset));
+
+		BLI_gset_free(poly_gset, NULL);
+		MEM_freeN(poly_keys);
 	}
 	
 	/*create new cddm*/
