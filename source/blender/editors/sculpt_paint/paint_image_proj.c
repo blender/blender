@@ -3763,7 +3763,9 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 	for (yk = 0; yk < kernel->side; yk++) {
 		for (xk = 0; xk < kernel->side; xk++) {
 			float rgba_tmp[4];
-			float co_ofs[2] = {xk - kernel->pixel_len, yk - kernel->pixel_len};
+			float x_offs = xk - kernel->pixel_len;
+			float y_offs = yk - kernel->pixel_len;
+			float co_ofs[2] = {x_offs, y_offs};
 
 			add_v2_v2(co_ofs, projPixel->projCoSS);
 
