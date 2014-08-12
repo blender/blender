@@ -1723,7 +1723,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	shi->refcol[0]= shi->refcol[1]= shi->refcol[2]= shi->refcol[3]= 0.0f;
 	
 	/* material color itself */
-	if (passflag & (SCE_PASS_COMBINED|SCE_PASS_RGBA)) {
+	if (passflag & (SCE_PASS_COMBINED|SCE_PASS_RGBA|SCE_PASS_DIFFUSE|SCE_PASS_SPEC)) {
 		if (ma->mode & (MA_FACETEXTURE)) {
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
