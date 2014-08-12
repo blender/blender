@@ -137,6 +137,10 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
 	func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
+/* XXX muting disabled in previews because of threading issues with the main execution
+ * it works here, but disabled for consistency
+ */
+#if 0
 static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 {
 	bNode *node, *node_next;
@@ -151,6 +155,11 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 		}
 	}
 }
+#else
+static void localize(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
+{
+}
+#endif
 
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
