@@ -4377,7 +4377,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 }
 
 
-void paint_proj_stroke(const bContext *C, void *pps, const float prev_pos[2], const float pos[2], float pressure, float distance, float size)
+void paint_proj_stroke(const bContext *C, void *pps, const float prev_pos[2], const float pos[2], const bool eraser, float pressure, float distance, float size)
 {
 	ProjPaintState *ps = pps;
 	Brush *brush = ps->brush;
@@ -4385,7 +4385,10 @@ void paint_proj_stroke(const bContext *C, void *pps, const float prev_pos[2], co
 	int a;
 
 	ps->brush_size = size;
-
+	ps->blend = brush->blend;
+	if (eraser)
+		ps->blend = IMB_BLEND_ERASE_ALPHA;
+	
 	/* clone gets special treatment here to avoid going through image initialization */
 	if (ps->tool == PAINT_TOOL_CLONE && ps->mode == BRUSH_STROKE_INVERT) {
 		View3D *v3d = ps->v3d;

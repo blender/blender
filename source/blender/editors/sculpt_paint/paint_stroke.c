@@ -1123,6 +1123,11 @@ void *paint_stroke_mode_data(struct PaintStroke *stroke)
 	return stroke->mode_data;
 }
 
+bool paint_stroke_flipped(struct PaintStroke *stroke)
+{
+	return stroke->pen_flip;
+}
+
 float paint_stroke_distance_get(struct PaintStroke *stroke)
 {
 	return stroke->stroke_distance;
