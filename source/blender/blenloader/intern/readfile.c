@@ -5960,8 +5960,12 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					v3d->ob_centre = restore_pointer_by_name(newmain, (ID *)v3d->ob_centre, USER_ONE);
 					
 					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
-						bgpic->ima = restore_pointer_by_name(newmain, (ID *)bgpic->ima, USER_ONE);
-						bgpic->clip = restore_pointer_by_name(newmain, (ID *)bgpic->clip, USER_ONE);
+						if ((bgpic->ima = restore_pointer_by_name(newmain, (ID *)bgpic->ima, USER_IGNORE))) {
+							id_us_plus((ID *)bgpic->ima);
+						}
+						if ((bgpic->clip = restore_pointer_by_name(newmain, (ID *)bgpic->clip, USER_IGNORE))) {
+							id_us_plus((ID *)bgpic->clip);
+						}
 					}
 					if (v3d->localvd) {
 						/*Base *base;*/
@@ -7540,8 +7544,9 @@ static void lib_link_all(FileData *fd, Main *main)
 	/* No load UI for undo memfiles */
 	if (fd->memfile == NULL) {
 		lib_link_windowmanager(fd, main);
-		lib_link_screen(fd, main);
 	}
+	/* DO NOT skip screens here, 3Dview may contains pointers to other ID data (like bgpic)! See T41411. */
+	lib_link_screen(fd, main);
 	lib_link_scene(fd, main);
 	lib_link_object(fd, main);
 	lib_link_curve(fd, main);
