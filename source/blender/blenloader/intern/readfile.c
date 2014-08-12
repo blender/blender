@@ -5834,9 +5834,9 @@ static void lib_link_screen(FileData *fd, Main *main)
 
 /* how to handle user count on pointer restore */
 typedef enum ePointerUserMode {
-	USER_IGNORE,	/* ignore user count */
-	USER_ONE,		/* ensure at least one user (fake also counts) */
-	USER_REAL		/* ensure at least one real user (fake user ignored) */
+	USER_IGNORE = 0,  /* ignore user count */
+	USER_ONE    = 1,  /* ensure at least one user (fake also counts) */
+	USER_REAL   = 2,  /* ensure at least one real user (fake user ignored) */
 } ePointerUserMode;
 
 static bool restore_pointer(ID *id, ID *newid, ePointerUserMode user)
@@ -5861,9 +5861,9 @@ static bool restore_pointer(ID *id, ID *newid, ePointerUserMode user)
  * Only for undo files, or to restore a screen after reading without UI...
  *
  * user
- * - 0: no usercount change
- * - 1: ensure a user
- * - 2: ensure a real user (even if a fake one is set)
+ * - USER_IGNORE: no usercount change
+ * - USER_ONE: ensure a user
+ * - USER_REAL: ensure a real user (even if a fake one is set)
  */
 static void *restore_pointer_by_name(Main *mainp, ID *id, ePointerUserMode user)
 {
