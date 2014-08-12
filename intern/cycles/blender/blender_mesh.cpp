@@ -560,7 +560,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
 	
 	/* compares curve_keys rather than strands in order to handle quick hair
-	 * adjustsments in dynamic BVH - other methods could probably do this better*/
+	 * adjustments in dynamic BVH - other methods could probably do this better*/
 	vector<float4> oldcurve_keys = mesh->curve_keys;
 
 	mesh->clear();

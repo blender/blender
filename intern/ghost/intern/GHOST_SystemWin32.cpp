@@ -1439,9 +1439,7 @@ static bool isStartedFromCommandPrompt()
 			}
 		}
 
-		/* When we're starting from a wrapper we need to comare with
-		 * parent process ID.
-		 */
+		/* When we're starting from a wrapper we need to compare with parent process ID. */
 		if (pid == (start_from_launcher ? ppid : GetCurrentProcessId()))
 			return true;
 	}

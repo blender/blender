@@ -58,7 +58,7 @@
 #include "BKE_report.h"
 #include "BKE_context.h"
 
-/* so operators called can spawn threads which aquire the GIL */
+/* so operators called can spawn threads which acquire the GIL */
 #define BPY_RELEASE_GIL
 
 

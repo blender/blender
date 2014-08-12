@@ -72,9 +72,9 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
                                    DerivedMesh *target, const SpaceTransform *loc2trgt)
 {
 	int i;
-	BVHTreeFromMesh treeData_v = {0};
-	BVHTreeFromMesh treeData_e = {0};
-	BVHTreeFromMesh treeData_f = {0};
+	BVHTreeFromMesh treeData_v = {NULL};
+	BVHTreeFromMesh treeData_e = {NULL};
+	BVHTreeFromMesh treeData_f = {NULL};
 	BVHTreeNearest nearest_v   = {0};
 	BVHTreeNearest nearest_e   = {0};
 	BVHTreeNearest nearest_f   = {0};
