@@ -1177,7 +1177,6 @@ bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, const bool use_sh
 
 void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linestyle)
 {
-	Scene *scene = CTX_data_scene(C);
 	bNode *uv_along_stroke, *input_texure, *output_linestyle;
 	bNodeSocket *fromsock, *tosock;
 	bNodeTree *ntree;
@@ -1205,12 +1204,12 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
 
 	nodeSetActive(ntree, input_texure);
 
-	fromsock = (bNodeSocket *)BLI_findlink(&uv_along_stroke->outputs, 0); // UV
-	tosock = (bNodeSocket *)BLI_findlink(&input_texure->inputs, 0); // UV
+	fromsock = BLI_findlink(&uv_along_stroke->outputs, 0); // UV
+	tosock = BLI_findlink(&input_texure->inputs, 0); // UV
 	nodeAddLink(ntree, uv_along_stroke, fromsock, input_texure, tosock);
 
-	fromsock = (bNodeSocket *)BLI_findlink(&input_texure->outputs, 0); // Color
-	tosock = (bNodeSocket *)BLI_findlink(&output_linestyle->inputs, 0); // Color
+	fromsock = BLI_findlink(&input_texure->outputs, 0); // Color
+	tosock = BLI_findlink(&output_linestyle->inputs, 0); // Color
 	nodeAddLink(ntree, input_texure, fromsock, output_linestyle, tosock);
 
 	ntreeUpdateTree(CTX_data_main(C), ntree);
