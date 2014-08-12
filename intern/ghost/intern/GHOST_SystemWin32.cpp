@@ -1408,19 +1408,41 @@ static DWORD GetParentProcessID(void)
 	return ppid;
 }
 
+static bool getProcessName(int pid, char *buffer, int max_len)
+{
+	bool result = false;
+	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+	                            FALSE, pid);
+	if (handle) {
+		GetModuleFileNameEx(handle, 0, buffer, max_len);
+		result = true;
+	}
+	CloseHandle(handle);
+	return result;
+}
+
 static bool isStartedFromCommandPrompt()
 {
 	HWND hwnd = GetConsoleWindow();
 	
 	if (hwnd) {
 		DWORD pid = (DWORD)-1;
+		DWORD ppid = GetParentProcessID();
+        char parent_name[MAX_PATH];
+		bool start_from_launcher = false;
 
 		GetWindowThreadProcessId(hwnd, &pid);
+		if (getProcessName(ppid, parent_name, sizeof(parent_name))) {
+			char *filename = strrchr(parent_name, '\\');
+			if (filename != NULL) {
+				start_from_launcher = strstr(filename, "blender.exe") != NULL;
+			}
+		}
 
-		/* Because we're starting from a wrapper we need to comare with
+		/* When we're starting from a wrapper we need to comare with
 		 * parent process ID.
 		 */
-		if (pid == GetParentProcessID())
+		if (pid == (start_from_launcher ? ppid : GetCurrentProcessId()))
 			return true;
 	}
 
