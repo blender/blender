@@ -1072,17 +1072,19 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
-/* Find intersection of v1-v2 with face f.
- * Only take intersections that are at least face_tol (in screen space) away
+/**
+ * Find intersection of v1-v2 with face f.
+ * Only take intersections that are at least \a face_tol_sq (in screen space) away
  * from other intersection elements.
  * If v1-v2 is coplanar with f, call that "no intersection though
  * it really means "infinite number of intersections".
- * In such a case we should have gotten hits on edges or verts of the face. */
+ * In such a case we should have gotten hits on edges or verts of the face.
+ */
 static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
                                      const float s[2],
                                      const float v1[3], const float v2[3],
                                      BMFace *f,
-                                     const float face_tol,
+                                     const float face_tol_sq,
                                      float intersectp[3])
 {
 	int tottri, tri_i;
@@ -1129,8 +1131,8 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
 				kfe = ref->ref;
 				knife_project_v2(kcd, kfe->v1->cageco, se1);
 				knife_project_v2(kcd, kfe->v2->cageco, se2);
-				d = dist_to_line_segment_v2(s, se1, se2);
-				if (d < face_tol) {
+				d = dist_squared_to_line_segment_v2(s, se1, se2);
+				if (d < face_tol_sq) {
 					return false;
 				}
 			}
@@ -1258,7 +1260,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	float s[2], se1[2], se2[2], sint[2];
 	float p[3], p2[3], r1[3], r2[3];
 	float d, d1, d2, lambda;
-	float vert_tol, vert_tol_sq, line_tol, face_tol;
+	float vert_tol, vert_tol_sq;
+	float line_tol, line_tol_sq;
+	float face_tol, face_tol_sq;
 	float eps_scale;
 	int isect_kind;
 	unsigned int tot;
@@ -1372,8 +1376,12 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
 	vert_tol = KNIFE_FLT_EPS_PX * eps_scale;
 	line_tol = KNIFE_FLT_EPS_PX * eps_scale;
-	vert_tol_sq = vert_tol * vert_tol;
 	face_tol = max_ff(vert_tol, line_tol);
+
+	vert_tol_sq = vert_tol * vert_tol;
+	line_tol_sq = line_tol * line_tol;
+	face_tol_sq = face_tol * face_tol;
+
 	/* Assume these tolerances swamp floating point rounding errors in calculations below */
 
 	/* first look for vertex hits */
@@ -1404,18 +1412,18 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 		if (isect_kind == -1) {
 			/* isect_seg_seg_v2 doesn't do tolerance test around ends of s1-s2 */
 			closest_to_line_segment_v2(sint, s1, se1, se2);
-			if (len_squared_v2v2(sint, s1) <= vert_tol_sq)
+			if (len_squared_v2v2(sint, s1) <= line_tol_sq)
 				isect_kind = 1;
 			else {
 				closest_to_line_segment_v2(sint, s2, se1, se2);
-				if (len_squared_v2v2(sint, s2) <= vert_tol_sq)
+				if (len_squared_v2v2(sint, s2) <= line_tol_sq)
 					isect_kind = 1;
 			}
 		}
 		if (isect_kind == 1) {
 			d1 = len_v2v2(sint, se1);
 			d2 = len_v2v2(se2, se1);
-			if (!(d1 <= vert_tol || d2 <= vert_tol || fabsf(d1 - d2) <= vert_tol)) {
+			if (!(d1 <= line_tol || d2 <= line_tol || fabsf(d1 - d2) <= line_tol)) {
 				lambda = d1 / d2;
 				/* Can't just interpolate between ends of kfe because
 				 * that doesn't work with perspective transformation.
@@ -1445,7 +1453,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	for (val = BLI_smallhash_iternew(&faces, &hiter, (uintptr_t *)&f); val;
 	     val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f))
 	{
-		if (knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol, p)) {
+		if (knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol_sq, p)) {
 			if (point_is_visible(kcd, p, s1, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.f = f;
@@ -1456,7 +1464,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 				BLI_array_append(linehits, hit);
 			}
 		}
-		if (knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol, p)) {
+		if (knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol_sq, p)) {
 			if (point_is_visible(kcd, p, s2, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.f = f;
