@@ -972,6 +972,17 @@ void BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp)
 {
 	BLI_ghash_free((GHash *)gs, keyfreefp, NULL);
 }
+
+void BLI_gset_flag_set(GSet *gs, unsigned int flag)
+{
+	((GHash *)gs)->flag |= flag;
+}
+
+void BLI_gset_flag_clear(GSet *gs, unsigned int flag)
+{
+	((GHash *)gs)->flag &= ~flag;
+}
+
 /** \} */
 
 
@@ -1010,6 +1021,8 @@ GSet *BLI_gset_pair_new(const char *info)
 /**
  * Measure how well the hash function performs
  * (1.0 is approx as good as random distribution).
+ *
+ * Smaller is better!
  */
 double BLI_ghash_calc_quality(GHash *gh)
 {

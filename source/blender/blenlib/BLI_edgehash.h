@@ -106,6 +106,8 @@ bool     BLI_edgeset_add(EdgeSet *es, unsigned int v0, unsigned int v1);
 void     BLI_edgeset_insert(EdgeSet *es, unsigned int v0, unsigned int v1);
 bool     BLI_edgeset_haskey(EdgeSet *eh, unsigned int v0, unsigned int v1) ATTR_WARN_UNUSED_RESULT;
 void     BLI_edgeset_free(EdgeSet *es);
+void     BLI_edgeset_flag_set(EdgeSet *es, unsigned int flag);
+void     BLI_edgeset_flag_clear(EdgeSet *es, unsigned int flag);
 
 /* rely on inline api for now */
 BLI_INLINE EdgeSetIterator *BLI_edgesetIterator_new(EdgeSet *gs) { return (EdgeSetIterator *)BLI_edgehashIterator_new((EdgeHash *)gs); }

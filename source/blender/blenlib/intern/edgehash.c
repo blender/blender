@@ -622,6 +622,16 @@ void BLI_edgeset_free(EdgeSet *es)
 	BLI_edgehash_free((EdgeHash *)es, NULL);
 }
 
+void BLI_edgeset_flag_set(EdgeSet *es, unsigned int flag)
+{
+	((EdgeHash *)es)->flag |= flag;
+}
+
+void BLI_edgeset_flag_clear(EdgeSet *es, unsigned int flag)
+{
+	((EdgeHash *)es)->flag &= ~flag;
+}
+
 /** \} */
 
 /** \name Debugging & Introspection
