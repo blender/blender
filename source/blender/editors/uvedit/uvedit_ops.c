@@ -3036,7 +3036,8 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 
 /* ******************** lasso select operator **************** */
 
-static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short moves, const bool select)
+static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short moves,
+                                    const bool select, const bool extend)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);
@@ -3062,6 +3063,10 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 	rcti rect;
 
 	BLI_lasso_boundbox(&rect, mcords, moves);
+
+	if (!extend && select) {
+		uv_select_all_perform(scene, ima, em, SEL_DESELECT);
+	}
 
 	if (use_face_center) { /* Face Center Sel */
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -3125,11 +3130,12 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
-		bool select;
+		bool select, extend;
 		bool changed;
 
 		select = !RNA_boolean_get(op->ptr, "deselect");
-		changed = do_lasso_select_mesh_uv(C, mcords, mcords_tot, select);
+		extend = RNA_boolean_get(op->ptr, "extend");
+		changed = do_lasso_select_mesh_uv(C, mcords, mcords_tot, select, extend);
 
 		MEM_freeN((void *)mcords);
 
