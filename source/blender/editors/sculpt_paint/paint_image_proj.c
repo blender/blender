@@ -4852,7 +4852,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 				mtex->mapto = type;
 
 				if (mtex->tex) {
-					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+					float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 					char imagename[MAX_ID_NAME - 2] = "Material Diffuse Color";
 					int width = 1024;
 					int height = 1024;
@@ -4868,12 +4868,6 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 						RNA_float_get_array(op->ptr, "color", color);
 						alpha = RNA_boolean_get(op->ptr, "alpha");
 						RNA_string_get(op->ptr, "name", imagename);
-					}
-
-					if (!use_float) {
-						/* crappy workaround because we only upload straight color to OpenGL and that makes
-						 * painting result on viewport too opaque */
-						color[3] = 1.0;
 					}
 
 					ima = mtex->tex->ima = BKE_image_add_generated(bmain, width, height, imagename, alpha ? 32 : 24, use_float,
@@ -4926,7 +4920,7 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	static float default_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	/* identifiers */
 	ot->name = "Add Texture Paint Slot";

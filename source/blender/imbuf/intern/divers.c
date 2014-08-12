@@ -720,6 +720,7 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 		                            ibuf->channels, IB_PROFILE_SRGB, profile_from, true,
 		                            w, h, w, ibuf->x);
 
+		IMB_buffer_float_unpremultiply(buffer, w, h);
 		/* XXX: need to convert to image buffer's rect space */
 		IMB_buffer_byte_from_float(rect_byte, buffer,
 		                           4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,

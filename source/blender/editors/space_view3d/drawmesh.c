@@ -303,11 +303,13 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 				c_badtex = false;
 				if (GPU_verify_image(ima, NULL, 0, 1, 0, false)) {
 					glEnable(GL_TEXTURE_2D);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 				}
 				else {
 					c_badtex = true;
 					GPU_clear_tpage(true);
 					glDisable(GL_TEXTURE_2D);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 					glBindTexture(GL_TEXTURE_2D, 0);
 				}
 			}
@@ -437,7 +439,8 @@ static void draw_textured_end(void)
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glActiveTexture(GL_TEXTURE0);
-		}
+		}		
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		/* manual reset, since we don't use tpage */
 		glBindTexture(GL_TEXTURE_2D, 0);
 		/* force switch off textures */
