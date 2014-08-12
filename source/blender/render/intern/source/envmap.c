@@ -329,9 +329,9 @@ void env_rotate_scene(Render *re, float mat[4][4], int do_rotate)
 		
 		/* copy from add_render_lamp */
 		if (do_rotate == 1)
-			mul_m4_m4m4(tmpmat, re->viewmat, go->ob->obmat);
+			mul_m4_m4m4(tmpmat, re->viewmat, lar->lampmat);
 		else
-			mul_m4_m4m4(tmpmat, re->viewmat_orig, go->ob->obmat);
+			mul_m4_m4m4(tmpmat, re->viewmat_orig, lar->lampmat);
 		invert_m4_m4(go->ob->imat, tmpmat);
 		
 		copy_m3_m4(lar->mat, tmpmat);

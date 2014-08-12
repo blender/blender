@@ -3650,6 +3650,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
 
+	copy_m4_m4(lar->lampmat, ob->obmat);
 	copy_m3_m4(lar->mat, mat);
 	copy_m3_m4(lar->imat, ob->imat);
 
