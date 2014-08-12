@@ -4855,7 +4855,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 				mtex->mapto = type;
 
 				if (mtex->tex) {
-					float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 					char imagename[MAX_ID_NAME - 2] = "Material Diffuse Color";
 					int width = 1024;
 					int height = 1024;
@@ -4923,7 +4923,7 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static float default_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	/* identifiers */
 	ot->name = "Add Texture Paint Slot";
