@@ -1192,7 +1192,17 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	rstats = RE_GetStats(re);
 
 	if (update_flag & PR_UPDATE_VIEW) {
+		Object *object;
 		rp->resolution_divider = rp->start_resolution_divider;
+
+		/* Same as database_init_objects(), loop over all objects.
+		 * We might consider de-duplicating the code between this two cases.
+		 */
+		for (object = rp->bmain->object.first; object; object = object->id.next) {
+			float mat[4][4];
+			mul_m4_m4m4(mat, rp->viewmat, object->obmat);
+			invert_m4_m4(object->imat_ren, mat);
+        }
 	}
 
 	use_border = render_view3d_disprect(rp->scene, rp->ar, rp->v3d,
