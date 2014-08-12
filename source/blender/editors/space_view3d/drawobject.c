@@ -110,7 +110,7 @@
  *
  * Ideally we don't want to evaluate objects from drawing,
  * but it'll require some major sequencer re-design. So
- * for now just fallback to legacy behaior with calling
+ * for now just fallback to legacy behavior with calling
  * display ist creating from draw().
  */
 #define SEQUENCER_DAG_WORKAROUND

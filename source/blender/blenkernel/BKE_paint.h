@@ -170,7 +170,7 @@ typedef struct SculptSession {
 	struct PBVH *pbvh;
 	bool show_diffuse_color;
 
-	/* Paiting on deformed mesh */
+	/* Painting on deformed mesh */
 	bool modifiers_active; /* object is deformed with some modifiers */
 	float (*orig_cos)[3]; /* coords of undeformed mesh */
 	float (*deform_cos)[3]; /* coords of deformed mesh but without stroke displacement */

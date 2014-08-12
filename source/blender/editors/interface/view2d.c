@@ -384,7 +384,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_
 	 *	- cur must not fall outside of tot
 	 *	- axis locks (zoom and offset) must be maintained
 	 *	- zoom must not be excessive (check either sizes or zoom values)
-	 *	- aspect ratio should be respected (NOTE: this is quite closely realted to zoom too)
+	 *	- aspect ratio should be respected (NOTE: this is quite closely related to zoom too)
 	 */
 	
 	/* Step 1: if keepzoom, adjust the sizes of the rects only

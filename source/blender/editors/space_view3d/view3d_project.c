@@ -277,7 +277,7 @@ eV3DProjStatus ED_view3d_project_float_object(const ARegion *ar, const float co[
  * *************************************************** */
 
 /**
- * Caculate a depth value from \a co, use with #ED_view3d_win_to_delta
+ * Calculate a depth value from \a co, use with #ED_view3d_win_to_delta
  */
 float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_flip)
 {

@@ -389,7 +389,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	const bool use_outset          = BMO_slot_bool_get(op->slots_in, "use_outset");
 	const bool use_boundary        = BMO_slot_bool_get(op->slots_in, "use_boundary") && (use_outset == false);
 	const bool use_even_offset     = BMO_slot_bool_get(op->slots_in, "use_even_offset");
-	const bool use_even_boundry    = use_even_offset; /* could make own option */
+	const bool use_even_boundary   = use_even_offset; /* could make own option */
 	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
 	const bool use_edge_rail       = BMO_slot_bool_get(op->slots_in, "use_edge_rail");
 	const bool use_interpolate     = BMO_slot_bool_get(op->slots_in, "use_interpolate");
@@ -716,7 +716,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 						else if (vert_edge_tag_tot == 1) { /* 1 edge user - boundary vert, not so common */
 							const float *e_no_a = edge_info[vecpair[0]].no;
 
-							if (use_even_boundry) {
+							if (use_even_boundary) {
 
 								/* This case where only one edge attached to v_split
 								 * is used - ei - the face to inset is on a boundary.
@@ -984,7 +984,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				const float fac = (depth *
 				                   (use_relative_offset ? bm_edge_info_average_length(v, edge_info) : 1.0f) *
-				                   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
+				                   (use_even_boundary   ? BM_vert_calc_shell_factor(v) : 1.0f));
 				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
 			}
 		}

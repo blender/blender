@@ -274,7 +274,7 @@ void ED_view3d_smooth_view_ex(
 			rv3d->rflag |= RV3D_NAVIGATING;
 			
 			/* not essential but in some cases the caller will tag the area for redraw,
-			 * and in that case we can get a ficker of the 'org' user view but we want to see 'src' */
+			 * and in that case we can get a flicker of the 'org' user view but we want to see 'src' */
 			view3d_smooth_view_state_restore(&sms.src, v3d, rv3d);
 
 			/* keep track of running timer! */

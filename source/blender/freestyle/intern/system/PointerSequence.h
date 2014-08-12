@@ -30,7 +30,7 @@
  *  PointerSequence
  *
  *  Produces a wrapped version of a sequence type (std::vector, std::deque, std::list) that will take ownership of
- *  pointers tht it stores.  Those pointers will be deleted in its destructor.
+ *  pointers that it stores.  Those pointers will be deleted in its destructor.
  *
  *  Because the contained pointers are wholly owned by the sequence, you cannot make a copy of the sequence.
  *  Making a copy would result in a double free.

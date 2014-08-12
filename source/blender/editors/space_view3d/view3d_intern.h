@@ -285,7 +285,7 @@ void draw_smoke_heat(struct SmokeDomainSettings *domain, struct Object *ob);
 
 /* workaround for trivial but noticeable camera bug caused by imprecision
  * between view border calculation in 2D/3D space, workaround for bug [#28037].
- * without this deifne we get the old behavior which is to try and align them
+ * without this define we get the old behavior which is to try and align them
  * both which _mostly_ works fine, but when the camera moves beyond ~1000 in
  * any direction it starts to fail */
 #define VIEW3D_CAMERA_BORDER_HACK

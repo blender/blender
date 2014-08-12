@@ -346,7 +346,7 @@ void ED_image_undo_restore(bContext *C, ListBase *lb)
 
 		if (ima && ibuf && strcmp(tile->ibufname, ibuf->name) != 0) {
 			/* current ImBuf filename was changed, probably current frame
-			 * was changed when paiting on image sequence, rather than storing
+			 * was changed when painting on image sequence, rather than storing
 			 * full image user (which isn't so obvious, btw) try to find ImBuf with
 			 * matched file name in list of already loaded images */
 

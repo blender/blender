@@ -124,7 +124,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 
 	/* add plane-aligned verts to the stack
 	 * and check we have verts from both sides in this face,
-	 * ... that the face doesn't only have boundry verts on the plane for eg. */
+	 * ... that the face doesn't only have boundary verts on the plane for eg. */
 	l_iter = l_first;
 	do {
 		if (vert_is_center_test(l_iter->v)) {

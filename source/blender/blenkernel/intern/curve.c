@@ -643,8 +643,9 @@ void BKE_nurb_test2D(Nurb *nu)
 	}
 }
 
-/* if use_radius is truth, minmax will take points' radius into account,
- * which will make boundbox closer to bevelled curve.
+/**
+ * if use_radius is truth, minmax will take points' radius into account,
+ * which will make boundbox closer to beveled curve.
  */
 void BKE_nurb_minmax(Nurb *nu, bool use_radius, float min[3], float max[3])
 {

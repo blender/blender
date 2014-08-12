@@ -291,7 +291,7 @@ typedef struct Curve {
 #define CU_PATH_RADIUS	4096 /* make use of the path radius if this is enabled (default for new curves) */
 #define CU_DEFORM_FILL	8192 /* fill 2d curve after deformation */
 #define CU_FILL_CAPS	16384 /* fill bevel caps */
-#define CU_MAP_TAPER	32768 /* map taper object to bevelled area */
+#define CU_MAP_TAPER	32768 /* map taper object to beveled area */
 
 /* twist mode */
 #define CU_TWIST_Z_UP			0

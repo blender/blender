@@ -100,7 +100,7 @@ public:
 
 	/**
 	 * Changes the current setting for this display device.
-	 * The setting given to this method is matched against the available diplay settings.
+	 * The setting given to this method is matched against the available display settings.
 	 * The best match is activated (@see findMatch()).
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
 	 * \param setting The setting of the display device to be matched and activated.
