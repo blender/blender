@@ -6378,25 +6378,15 @@ static bool ui_but_contains_pt(uiBut *but, float mx, float my)
 	return BLI_rctf_isect_pt(&but->rect, mx, my);
 }
 
-static void ui_but_pie_dir__internal(RadialDirection dir, float vec[2], const short angles[8])
+void ui_but_pie_dir(RadialDirection dir, float vec[2])
 {
 	float angle;
 
 	BLI_assert(dir != UI_RADIAL_NONE);
 
-	angle = DEG2RADF((float)angles[dir]);
+	angle = DEG2RADF((float)ui_radial_dir_to_angle[dir]);
 	vec[0] = cosf(angle);
 	vec[1] = sinf(angle);
-}
-
-void ui_but_pie_dir_visual(RadialDirection dir, float vec[2])
-{
-	ui_but_pie_dir__internal(dir, vec, ui_radial_dir_to_angle_visual);
-}
-
-void ui_but_pie_dir(RadialDirection dir, float vec[2])
-{
-	ui_but_pie_dir__internal(dir, vec, ui_radial_dir_to_angle);
 }
 
 static bool ui_but_isect_pie_seg(uiBlock *block, uiBut *but)
@@ -8650,17 +8640,25 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 					block->pie_data.flags |= UI_PIE_ANIMATION_FINISHED;
 				}
 
-				pie_radius *= fac;
-
 				for (but = block->buttons.first; but; but = but->next) {
 					if (but->pie_dir != UI_RADIAL_NONE) {
-						float dir[2];
+						float vec[2];
+						float center[2];
+			
+						ui_but_pie_dir(but->pie_dir, vec);
 
-						ui_but_pie_dir_visual(but->pie_dir, dir);
+						center[0] = (vec[0] > 0.01f) ? 0.5f : ((vec[0] < -0.01f) ? -0.5f : 0.0f);
+						center[1] = (vec[1] > 0.99f) ? 0.5f : ((vec[1] < -0.99f) ? -0.5f : 0.0f);
 
-						mul_v2_fl(dir, pie_radius );
-						add_v2_v2(dir, block->pie_data.pie_center_spawned);
-						BLI_rctf_recenter(&but->rect, dir[0], dir[1]);
+						center[0] *= BLI_rctf_size_x(&but->rect);
+						center[1] *= BLI_rctf_size_y(&but->rect);
+						
+						mul_v2_fl(vec, pie_radius);
+						add_v2_v2(vec, center);
+						mul_v2_fl(vec, fac);						
+						add_v2_v2(vec, block->pie_data.pie_center_spawned);
+						            
+						BLI_rctf_recenter(&but->rect, vec[0], vec[1]);
 					}
 				}
 				block->pie_data.alphafac = fac;

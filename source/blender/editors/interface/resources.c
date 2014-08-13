@@ -2454,7 +2454,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (U.versionfile < 271 || (U.versionfile == 271 && U.subversionfile < 4)) {
+	if (U.versionfile < 271 || (U.versionfile == 271 && U.subversionfile < 5)) {
 		bTheme *btheme;
 
 		struct uiWidgetColors wcol_pie_menu = {
@@ -2470,7 +2470,7 @@ void init_userdef_do_versions(void)
 			10, -10
 		};
 
-		U.pie_menu_radius = 150;
+		U.pie_menu_radius = 100;
 		U.pie_menu_threshold = 12;
 		U.pie_animation_timeout = 6;
 

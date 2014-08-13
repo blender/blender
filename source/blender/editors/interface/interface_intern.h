@@ -137,7 +137,6 @@ typedef enum RadialDirection {
 
 extern const char  ui_radial_dir_order[8];
 extern const char  ui_radial_dir_to_numpad[8];
-extern const short ui_radial_dir_to_angle_visual[8];
 extern const short ui_radial_dir_to_angle[8];
 
 /* internal panel drawing defines */

@@ -113,7 +113,7 @@ int ui_step_name_menu(uiBut *but, int direction)
 {
 	/* currenly only RNA buttons */
 	if ((but->rnaprop == NULL) || (RNA_property_type(but->rnaprop) != PROP_ENUM)) {
-		printf("%s: cannot cycle button '%s'\n", __func__, but->str);
+		printf("%s: cannot cycle button '%s'", __func__, but->str);
 		return 0;
 	}
 
