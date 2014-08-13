@@ -2682,6 +2682,9 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces,
 			f = BLI_gsetIterator_getKey(&gs_iter);
 			GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
 		}
+		else {
+			return false;
+		}
 	}
 	else {
 		const DMFlagMat *flags = &buffers->grid_flag_mats[buffers->grid_indices[0]];
@@ -2689,9 +2692,7 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces,
 		GPU_material_diffuse_get(flags->mat_nr + 1, diffuse_color);
 	}
 
-	return diffuse_color[0] != buffers->diffuse_color[0] ||
-	       diffuse_color[1] != buffers->diffuse_color[1] ||
-	       diffuse_color[2] != buffers->diffuse_color[2];
+	return !equals_v3v3(diffuse_color, buffers->diffuse_color);
 }
 
 /* release a GPU_PBVH_Buffers id;
