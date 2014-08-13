@@ -215,7 +215,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	int shader;
 	float3 P, Ng;
 
-	triangle_point_normal(kg, prim, u, v, &P, &Ng, &shader);
+	triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
 
 	/* dummy initilizations copied from SHADER_EVAL_DISPLACE */
 	float3 I = Ng;

@@ -457,7 +457,7 @@ ccl_device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	v = randv*randu;
 
 	/* triangle, so get position, normal, shader */
-	triangle_point_normal(kg, prim, u, v, &ls->P, &ls->Ng, &ls->shader);
+	triangle_point_normal(kg, object, prim, u, v, &ls->P, &ls->Ng, &ls->shader);
 	ls->object = object;
 	ls->prim = prim;
 	ls->lamp = LAMP_NONE;

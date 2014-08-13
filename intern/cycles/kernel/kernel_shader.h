@@ -340,7 +340,7 @@ ccl_device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	float3 P, Ng, I = make_float3(0.0f, 0.0f, 0.0f);
 	int shader;
 
-	triangle_point_normal(kg, prim, u, v, &P, &Ng, &shader);
+	triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
 
 	/* force smooth shading for displacement */
 	shader |= SHADER_SMOOTH_NORMAL;
