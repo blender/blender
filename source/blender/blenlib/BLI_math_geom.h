@@ -215,9 +215,14 @@ void interp_cubic_v3(float x[3], float v[3],
 
 int interp_sparse_array(float *array, const int list_size, const float invalid);
 
-void barycentric_transform(float pt_tar[3], float const pt_src[3],
-                           const float tri_tar_p1[3], const float tri_tar_p2[3], const float tri_tar_p3[3],
-                           const float tri_src_p1[3], const float tri_src_p2[3], const float tri_src_p3[3]);
+void transform_point_by_tri_v3(
+        float pt_tar[3], float const pt_src[3],
+        const float tri_tar_p1[3], const float tri_tar_p2[3], const float tri_tar_p3[3],
+        const float tri_src_p1[3], const float tri_src_p2[3], const float tri_src_p3[3]);
+void transform_point_by_seg_v3(
+        float p_dst[3], const float p_src[3],
+        const float l_dst_p1[3], const float l_dst_p2[3],
+        const float l_src_p1[3], const float l_src_p2[3]);
 
 void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2],
                             const float co[2], float w[3]);

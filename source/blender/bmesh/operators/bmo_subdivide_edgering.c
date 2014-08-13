@@ -727,8 +727,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm, LoopPairStore *lpair,
 
 					tri_tmp = tri_array[i];
 
-					barycentric_transform(co_a, v_a->co, UNPACK3(tri_tmp), UNPACK3(tri_sta));
-					barycentric_transform(co_b, v_b->co, UNPACK3(tri_tmp), UNPACK3(tri_end));
+					transform_point_by_tri_v3(co_a, v_a->co, UNPACK3(tri_tmp), UNPACK3(tri_sta));
+					transform_point_by_tri_v3(co_b, v_b->co, UNPACK3(tri_tmp), UNPACK3(tri_end));
 
 					interp_v3_v3v3(((BMVert *)v_iter->data)->co, co_a, co_b, (float)i / (float)(resolu - 1));
 				}

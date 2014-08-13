@@ -1114,7 +1114,7 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	VectorObject *vec_t1_src, *vec_t2_src, *vec_t3_src;
 	float vec[3];
 
-	if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!:barycentric_transform",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!::barycentric_transform",
 	                      &vector_Type, &vec_pt,
 	                      &vector_Type, &vec_t1_src,
 	                      &vector_Type, &vec_t2_src,
@@ -1150,9 +1150,10 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	barycentric_transform(vec, vec_pt->vec,
-	                      vec_t1_tar->vec, vec_t2_tar->vec, vec_t3_tar->vec,
-	                      vec_t1_src->vec, vec_t2_src->vec, vec_t3_src->vec);
+	transform_point_by_tri_v3(
+	        vec, vec_pt->vec,
+	        vec_t1_tar->vec, vec_t2_tar->vec, vec_t3_tar->vec,
+	        vec_t1_src->vec, vec_t2_src->vec, vec_t3_src->vec);
 
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }

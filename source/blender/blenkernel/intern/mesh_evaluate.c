@@ -2231,11 +2231,10 @@ void BKE_mesh_calc_relative_deform(
 
 			float tvec[3];
 
-			barycentric_transform(
-			            tvec, vert_cos_dst[v_curr],
-			            vert_cos_org[v_prev], vert_cos_org[v_curr], vert_cos_org[v_next],
-			            vert_cos_src[v_prev], vert_cos_src[v_curr], vert_cos_src[v_next]
-			            );
+			transform_point_by_tri_v3(
+			        tvec, vert_cos_dst[v_curr],
+			        vert_cos_org[v_prev], vert_cos_org[v_curr], vert_cos_org[v_next],
+			        vert_cos_src[v_prev], vert_cos_src[v_curr], vert_cos_src[v_next]);
 
 			add_v3_v3(vert_cos_new[v_curr], tvec);
 			vert_accum[v_curr] += 1;

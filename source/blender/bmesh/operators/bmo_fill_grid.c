@@ -313,12 +313,12 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const unsigned int xt
 			if (use_interp_simple == false) {
 				float co_a[3], co_b[3];
 
-				barycentric_transform(
+				transform_point_by_tri_v3(
 				            co_a,
 				            v_grid[x]->co,
 				            tri_t[0], tri_t[1], tri_t[2],
 				            tri_a[0], tri_a[1], tri_a[2]);
-				barycentric_transform(
+				transform_point_by_tri_v3(
 				            co_b,
 				            v_grid[(xtot * ytot) + (x - xtot)]->co,
 				            tri_t[0], tri_t[1], tri_t[2],
