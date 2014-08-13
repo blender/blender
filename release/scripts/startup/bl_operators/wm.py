@@ -560,7 +560,11 @@ class WM_OT_operator_pie_enum(Operator):
     bl_idname = "wm.operator_pie_enum"
     bl_label = "Operator Enum Pie"
     bl_options = {'UNDO', 'INTERNAL'}
-    data_path = rna_path_prop
+    data_path = StringProperty(
+            name="Operator",
+            description="Operator name (in python as string)",
+            maxlen=1024,
+            )
     prop_string = StringProperty(
             name="Property",
             description="Property name (as a string)",
