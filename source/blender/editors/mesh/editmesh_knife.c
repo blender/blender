@@ -344,7 +344,7 @@ static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], const
 	copy_v3_v3(kfv->co, co);
 	copy_v3_v3(kfv->cageco, cageco);
 
-	knife_project_v2(kcd, kfv->co, kfv->sco);
+	knife_project_v2(kcd, kfv->cageco, kfv->sco);
 
 	return kfv;
 }
@@ -487,21 +487,14 @@ static void knife_edge_append_face(KnifeTool_OpData *kcd, KnifeEdge *kfe, BMFace
 	knife_append_list(kcd, &kfe->faces, f);
 }
 
-static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd, KnifeEdge *kfe, float co[3], KnifeEdge **newkfe_out)
+static KnifeVert *knife_split_edge(
+        KnifeTool_OpData *kcd, KnifeEdge *kfe,
+        const float co[3], const float cageco[3],
+        KnifeEdge **r_kfe)
 {
 	KnifeEdge *newkfe = new_knife_edge(kcd);
 	Ref *ref;
 	BMFace *f;
-	float perc, cageco[3], l12;
-
-	l12 = len_v3v3(kfe->v1->co, kfe->v2->co);
-	if (l12 < KNIFE_FLT_EPS) {
-		copy_v3_v3(cageco, kfe->v1->cageco);
-	}
-	else {
-		perc = len_v3v3(co, kfe->v1->co) / l12;
-		interp_v3_v3v3(cageco, kfe->v1->cageco, kfe->v2->cageco, perc);
-	}
 
 	newkfe->v1 = kfe->v1;
 	newkfe->v2 = new_knife_vert(kcd, co, cageco);
@@ -533,7 +526,7 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd, KnifeEdge *kfe, float 
 	newkfe->draw = kfe->draw;
 	newkfe->e = kfe->e;
 
-	*newkfe_out = newkfe;
+	*r_kfe = newkfe;
 
 	return newkfe->v2;
 }
@@ -671,7 +664,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 		kfe->v1 = lh1->v;
 	}
 	else if (lh1->kfe) {
-		kfe->v1 = knife_split_edge(kcd, lh1->kfe, lh1->cagehit, &kfe2);
+		kfe->v1 = knife_split_edge(kcd, lh1->kfe, lh1->hit, lh1->cagehit, &kfe2);
 		lh1->v = kfe->v1;  /* record the KnifeVert for this hit  */
 	}
 	else {
@@ -687,7 +680,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 		kfe->v2 = lh2->v;
 	}
 	else if (lh2->kfe) {
-		kfe->v2 = knife_split_edge(kcd, lh2->kfe, lh2->cagehit, &kfe2);
+		kfe->v2 = knife_split_edge(kcd, lh2->kfe, lh2->hit, lh2->cagehit, &kfe2);
 		lh2->v = kfe->v2;  /* future uses of lh2 won't split again */
 	}
 	else {
@@ -1080,12 +1073,11 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
  * it really means "infinite number of intersections".
  * In such a case we should have gotten hits on edges or verts of the face.
  */
-static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
-                                     const float s[2],
-                                     const float v1[3], const float v2[3],
-                                     BMFace *f,
-                                     const float face_tol_sq,
-                                     float intersectp[3])
+static bool knife_ray_intersect_face(
+        KnifeTool_OpData *kcd,
+        const float s[2], const float v1[3], const float v2[3],
+        BMFace *f, const float face_tol_sq,
+        float hit_co[3], float hit_cageco[3])
 {
 	int tottri, tri_i;
 	float raydir[3];
@@ -1125,8 +1117,8 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
 			{
 				return false;
 			}
-			copy_v3_v3(intersectp, v1);
-			madd_v3_v3fl(intersectp, raydir, lambda);
+			copy_v3_v3(hit_cageco, v1);
+			madd_v3_v3fl(hit_cageco, raydir, lambda);
 			/* Now check that far enough away from verts and edges */
 			lst = knife_get_face_kedges(kcd, f);
 			for (ref = lst->first; ref; ref = ref->next) {
@@ -1138,6 +1130,11 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
 					return false;
 				}
 			}
+
+			transform_point_by_tri_v3(
+			        hit_co, hit_cageco,
+			        tri[0]->v->co, tri[1]->v->co, tri[2]->v->co,
+			        lv1, lv2, lv3);
 			return true;
 		}
 	}
@@ -1260,7 +1257,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	void *val;
 	float plane_cos[12];
 	float s[2], se1[2], se2[2], sint[2];
-	float p[3], p2[3], r1[3], r2[3];
+	float r1[3], r2[3];
 	float d, d1, d2, lambda;
 	float vert_tol, vert_tol_sq;
 	float line_tol, line_tol_sq;
@@ -1396,7 +1393,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 			if (point_is_visible(kcd, v->cageco, s, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.v = v;
-				copy_v3_v3(hit.hit, v->cageco);
+				copy_v3_v3(hit.hit, v->co);
 				copy_v3_v3(hit.cagehit, v->cageco);
 				copy_v2_v2(hit.schit, s);
 				set_linehit_depth(kcd, &hit);
@@ -1426,23 +1423,27 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 			d1 = len_v2v2(sint, se1);
 			d2 = len_v2v2(se2, se1);
 			if (!(d1 <= line_tol || d2 <= line_tol || fabsf(d1 - d2) <= line_tol)) {
+				float p_cage[3], p_cage_tmp[3];
 				lambda = d1 / d2;
 				/* Can't just interpolate between ends of kfe because
 				 * that doesn't work with perspective transformation.
 				 * Need to find 3d intersection of ray through sint */
 				knife_input_ray_segment(kcd, sint, 1.0f, r1, r2);
-				isect_kind = isect_line_line_v3(kfe->v1->cageco, kfe->v2->cageco, r1, r2, p, p2);
-				if (isect_kind >= 1 && point_is_visible(kcd, p, sint, &mats)) {
+				isect_kind = isect_line_line_v3(kfe->v1->cageco, kfe->v2->cageco, r1, r2, p_cage, p_cage_tmp);
+				if (isect_kind >= 1 && point_is_visible(kcd, p_cage, sint, &mats)) {
 					memset(&hit, 0, sizeof(hit));
 					if (kcd->snap_midpoints) {
 						/* choose intermediate point snap too */
-						mid_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco);
+						mid_v3_v3v3(p_cage, kfe->v1->cageco, kfe->v2->cageco);
 						mid_v2_v2v2(sint, se1, se2);
 						lambda = 0.5f;
 					}
 					hit.kfe = kfe;
-					copy_v3_v3(hit.hit, p);
-					copy_v3_v3(hit.cagehit, p);
+					transform_point_by_seg_v3(
+					        hit.hit, p_cage,
+					        kfe->v1->co, kfe->v2->co,
+					        kfe->v1->cageco, kfe->v2->cageco);
+					copy_v3_v3(hit.cagehit, p_cage);
 					copy_v2_v2(hit.schit, sint);
 					hit.perc = lambda;
 					set_linehit_depth(kcd, &hit);
@@ -1455,23 +1456,25 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	for (val = BLI_smallhash_iternew(&faces, &hiter, (uintptr_t *)&f); val;
 	     val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f))
 	{
-		if (knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol_sq, p)) {
-			if (point_is_visible(kcd, p, s1, &mats)) {
+		float p[3], p_cage[3];
+
+		if (knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol_sq, p, p_cage)) {
+			if (point_is_visible(kcd, p_cage, s1, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.f = f;
 				copy_v3_v3(hit.hit, p);
-				copy_v3_v3(hit.cagehit, p);
+				copy_v3_v3(hit.cagehit, p_cage);
 				copy_v2_v2(hit.schit, s1);
 				set_linehit_depth(kcd, &hit);
 				BLI_array_append(linehits, hit);
 			}
 		}
-		if (knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol_sq, p)) {
-			if (point_is_visible(kcd, p, s2, &mats)) {
+		if (knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol_sq, p, p_cage)) {
+			if (point_is_visible(kcd, p_cage, s2, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.f = f;
 				copy_v3_v3(hit.hit, p);
-				copy_v3_v3(hit.cagehit, p);
+				copy_v3_v3(hit.cagehit, p_cage);
 				copy_v2_v2(hit.schit, s2);
 				set_linehit_depth(kcd, &hit);
 				BLI_array_append(linehits, hit);
@@ -1879,7 +1882,7 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	copy_v2_v2(kcd->curr.mval, kcd->mval);
 
 	/* view matrix may have changed, reproject */
-	knife_project_v2(kcd, kcd->prev.co, kcd->prev.mval);
+	knife_project_v2(kcd, kcd->prev.cage, kcd->prev.mval);
 
 	if (kcd->angle_snapping != ANGLE_FREE && kcd->mode == MODE_DRAGGING) {
 		kcd->is_angle_snapping = knife_snap_angle(kcd);
