@@ -556,6 +556,37 @@ class WM_OT_context_pie_enum(Operator):
         return {'FINISHED'}
 
 
+class WM_OT_operator_pie_enum(Operator):
+    bl_idname = "wm.operator_pie_enum"
+    bl_label = "Operator Enum Pie"
+    bl_options = {'UNDO', 'INTERNAL'}
+    data_path = rna_path_prop
+    prop_string = StringProperty(
+            name="Property",
+            description="Property name (as a string)",
+            maxlen=1024,
+            )
+
+    def invoke(self, context, event):
+        op = eval("bpy.ops.%s" % self.data_path)
+
+        if not op:
+            return {'PASS_THROUGH'}
+
+        title = op.get_rna().bl_rna.name
+        op_name = self.data_path
+        prop_name = self.prop_string
+
+        def draw_cb(self, context):
+            layout = self.layout
+            pie = layout.menu_pie()
+            pie.operator_enum(op_name, prop_name)
+
+        context.window_manager.popup_menu_pie(draw_func=draw_cb, title=title, event=event)
+
+        return {'FINISHED'}
+
+
 class WM_OT_context_set_id(Operator):
     """Set a context value to an ID data-block"""
     bl_idname = "wm.context_set_id"
