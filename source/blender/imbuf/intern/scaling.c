@@ -52,26 +52,17 @@
 /************************************************************************/
 
 
-struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
+static void imb_half_x_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
-	struct ImBuf *ibuf2;
 	uchar *p1, *_p1, *dest;
 	short a, r, g, b;
 	int x, y;
 	float af, rf, gf, bf, *p1f, *_p1f, *destf;
 	bool do_rect, do_float;
 
-	if (ibuf1 == NULL) return (NULL);
-	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
-
 	do_rect = (ibuf1->rect != NULL);
-	do_float = (ibuf1->rect_float != NULL);
+	do_float = (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
 	
-	if (ibuf1->x <= 1) return(IMB_dupImBuf(ibuf1));
-	
-	ibuf2 = IMB_allocImBuf((ibuf1->x) / 2, ibuf1->y, ibuf1->planes, ibuf1->flags);
-	if (ibuf2 == NULL) return (NULL);
-
 	_p1 = (uchar *) ibuf1->rect;
 	dest = (uchar *) ibuf2->rect;
 
@@ -114,9 +105,24 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 		if (do_rect) _p1 += (ibuf1->x << 2);
 		if (do_float) _p1f += (ibuf1->x << 2);
 	}
-	return (ibuf2);
 }
 
+struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
+{
+	struct ImBuf *ibuf2;
+
+	if (ibuf1 == NULL) return (NULL);
+	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
+
+	if (ibuf1->x <= 1) return(IMB_dupImBuf(ibuf1));
+	
+	ibuf2 = IMB_allocImBuf((ibuf1->x) / 2, ibuf1->y, ibuf1->planes, ibuf1->flags);
+	if (ibuf2 == NULL) return (NULL);
+
+	imb_half_x_no_alloc(ibuf2, ibuf1);
+	
+	return (ibuf2);
+}
 
 struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 {
@@ -171,9 +177,8 @@ struct ImBuf *IMB_double_x(struct ImBuf *ibuf1)
 }
 
 
-struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
+static void imb_half_y_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
-	struct ImBuf *ibuf2;
 	uchar *p1, *p2, *_p1, *dest;
 	short a, r, g, b;
 	int x, y;
@@ -182,15 +187,9 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 
 	p1 = p2 = NULL;
 	p1f = p2f = NULL;
-	if (ibuf1 == NULL) return (NULL);
-	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
-	if (ibuf1->y <= 1) return(IMB_dupImBuf(ibuf1));
 
 	do_rect = (ibuf1->rect != NULL);
-	do_float = (ibuf1->rect_float != NULL);
-
-	ibuf2 = IMB_allocImBuf(ibuf1->x, (ibuf1->y) / 2, ibuf1->planes, ibuf1->flags);
-	if (ibuf2 == NULL) return (NULL);
+	do_float = (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
 
 	_p1 = (uchar *) ibuf1->rect;
 	dest = (uchar *) ibuf2->rect;
@@ -239,6 +238,23 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 		if (do_rect) _p1 += (ibuf1->x << 3);
 		if (do_float) _p1f += (ibuf1->x << 3);
 	}
+}
+
+
+struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
+{
+	struct ImBuf *ibuf2;
+
+	if (ibuf1 == NULL) return (NULL);
+	if (ibuf1->rect == NULL && ibuf1->rect_float == NULL) return (NULL);
+	
+	if (ibuf1->y <= 1) return(IMB_dupImBuf(ibuf1));
+
+	ibuf2 = IMB_allocImBuf(ibuf1->x, (ibuf1->y) / 2, ibuf1->planes, ibuf1->flags);
+	if (ibuf2 == NULL) return (NULL);
+
+	imb_half_y_no_alloc(ibuf2, ibuf1);
+	
 	return (ibuf2);
 }
 
@@ -336,28 +352,38 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 		imb_addrectImBuf(ibuf2);
 	}
 
+	if (ibuf1->x <= 1) {
+		imb_half_y_no_alloc(ibuf2, ibuf1);
+		return;
+	}
+	if (ibuf1->y <= 1) {
+		imb_half_x_no_alloc(ibuf2, ibuf1);
+		return;
+	}
+	
 	if (do_rect) {
 		unsigned char *cp1, *cp2, *dest;
 		
 		cp1 = (unsigned char *) ibuf1->rect;
 		dest = (unsigned char *) ibuf2->rect;
+		
 		for (y = ibuf2->y; y > 0; y--) {
 			cp2 = cp1 + (ibuf1->x << 2);
 			for (x = ibuf2->x; x > 0; x--) {
 				unsigned short p1i[8], p2i[8], desti[4];
-
+				
 				straight_uchar_to_premul_ushort(p1i, cp1);
 				straight_uchar_to_premul_ushort(p2i, cp2);
 				straight_uchar_to_premul_ushort(p1i + 4, cp1 + 4);
 				straight_uchar_to_premul_ushort(p2i + 4, cp2 + 4);
-
+				
 				desti[0] = ((unsigned int) p1i[0] + p2i[0] + p1i[4] + p2i[4]) >> 2;
 				desti[1] = ((unsigned int) p1i[1] + p2i[1] + p1i[5] + p2i[5]) >> 2;
 				desti[2] = ((unsigned int) p1i[2] + p2i[2] + p1i[6] + p2i[6]) >> 2;
 				desti[3] = ((unsigned int) p1i[3] + p2i[3] + p1i[7] + p2i[7]) >> 2;
-
+				
 				premul_ushort_to_straight_uchar(dest, desti);
-
+				
 				cp1 += 8;
 				cp2 += 8;
 				dest += 4;
