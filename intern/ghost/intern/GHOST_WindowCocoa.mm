@@ -728,15 +728,14 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
 
-//Using lion_fullscreen suffers from an uncovered problem when called from operator, disabled for now
-//	//Starting with 10.9 (darwin 13.x.x), we always use Lion fullscreen, since it
-//	//now has proper multi-monitor support for fullscreen
-//	char darwin_ver[10];
-//	size_t len = sizeof(darwin_ver);
-//	sysctlbyname("kern.osrelease", &darwin_ver, &len, NULL, 0);
-//	if(darwin_ver[0] == '1' && darwin_ver[1] >= '3') {
-//		m_lionStyleFullScreen = true;
-//	}
+	//Starting with 10.9 (darwin 13.x.x), we always use Lion fullscreen, since it
+	//now has proper multi-monitor support for fullscreen
+	char darwin_ver[10];
+	size_t len = sizeof(darwin_ver);
+	sysctlbyname("kern.osrelease", &darwin_ver, &len, NULL, 0);
+	if(darwin_ver[0] == '1' && darwin_ver[1] >= '3') {
+		m_lionStyleFullScreen = true;
+	}
 	
 	[pool drain];
 }
