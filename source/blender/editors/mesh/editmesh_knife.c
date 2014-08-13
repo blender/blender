@@ -1120,8 +1120,8 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
 			/* check if line coplanar with tri */
 			normal_tri_v3(tri_norm, lv1, lv2, lv3);
 			plane_from_point_normal_v3(tri_plane, lv1, tri_norm);
-			if ((fabsf(dist_squared_to_plane_v3(v1, tri_plane)) < KNIFE_FLT_EPS) &&
-			    (fabsf(dist_squared_to_plane_v3(v2, tri_plane)) < KNIFE_FLT_EPS))
+			if ((dist_squared_to_plane_v3(v1, tri_plane) < KNIFE_FLT_EPS) &&
+			    (dist_squared_to_plane_v3(v2, tri_plane) < KNIFE_FLT_EPS))
 			{
 				return false;
 			}

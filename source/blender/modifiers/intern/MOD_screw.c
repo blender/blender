@@ -362,7 +362,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
 			for (i = 0, mv_orig = mvert_orig; i < totvert; i++, mv_orig++) {
-				const float v = dist_squared_to_plane_v3(mv_orig->co, uv_axis_plane);
+				const float v = dist_signed_squared_to_plane_v3(mv_orig->co, uv_axis_plane);
 				uv_v_minmax[0] = min_ff(v, uv_v_minmax[0]);
 				uv_v_minmax[1] = max_ff(v, uv_v_minmax[1]);
 			}
@@ -897,8 +897,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		if (has_mloop_orig == false && mloopuv_layers_tot) {
-			uv_v_offset_a = dist_to_plane_v3(mvert_new[medge_new[i].v1].co, uv_axis_plane);
-			uv_v_offset_b = dist_to_plane_v3(mvert_new[medge_new[i].v2].co, uv_axis_plane);
+			uv_v_offset_a = dist_signed_to_plane_v3(mvert_new[medge_new[i].v1].co, uv_axis_plane);
+			uv_v_offset_b = dist_signed_to_plane_v3(mvert_new[medge_new[i].v2].co, uv_axis_plane);
 
 			if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
 				uv_v_offset_a = (uv_v_offset_a - uv_v_minmax[0]) * uv_v_range_inv;

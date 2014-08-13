@@ -1082,7 +1082,7 @@ static PyObject *M_Geometry_distance_point_to_plane(PyObject *UNUSED(self), PyOb
 	}
 
 	plane_from_point_normal_v3(plane, plane_co->vec, plane_no->vec);
-	return PyFloat_FromDouble(dist_to_plane_v3(pt->vec, plane));
+	return PyFloat_FromDouble(dist_signed_to_plane_v3(pt->vec, plane));
 }
 
 PyDoc_STRVAR(M_Geometry_barycentric_transform_doc,

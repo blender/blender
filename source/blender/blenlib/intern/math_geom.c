@@ -376,23 +376,35 @@ void closest_to_plane_v3(float r_close[3], const float plane[4], const float pt[
 	madd_v3_v3v3fl(r_close, pt, plane, -side / len_sq);
 }
 
-float dist_squared_to_plane_v3(const float pt[3], const float plane[4])
+float dist_signed_squared_to_plane_v3(const float pt[3], const float plane[4])
 {
 	const float len_sq = len_squared_v3(plane);
 	const float side = plane_point_side_v3(plane, pt);
 	const float fac = side / len_sq;
 	return copysignf(len_sq * (fac * fac), side);
 }
+float dist_squared_to_plane_v3(const float pt[3], const float plane[4])
+{
+	const float len_sq = len_squared_v3(plane);
+	const float side = plane_point_side_v3(plane, pt);
+	const float fac = side / len_sq;
+	/* only difference to code above - no 'copysignf' */
+	return len_sq * (fac * fac);
+}
 
 /**
  * Return the signed distance from the point to the plane.
  */
-float dist_to_plane_v3(const float pt[3], const float plane[4])
+float dist_signed_to_plane_v3(const float pt[3], const float plane[4])
 {
 	const float len_sq = len_squared_v3(plane);
 	const float side = plane_point_side_v3(plane, pt);
 	const float fac = side / len_sq;
 	return sqrtf(len_sq) * fac;
+}
+float dist_to_plane_v3(const float pt[3], const float plane[4])
+{
+	return fabsf(dist_signed_to_plane_v3(pt, plane));
 }
 
 /* distance v1 to line-piece l1-l2 in 3D */

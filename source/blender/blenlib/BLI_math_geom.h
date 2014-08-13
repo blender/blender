@@ -86,8 +86,11 @@ float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const
 float         dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2]);
 
-float dist_squared_to_plane_v3(const float p[3], const float plane[4]);
-float dist_to_plane_v3(const float p[3], const float plane[4]);
+float dist_signed_squared_to_plane_v3(const float p[3], const float plane[4]);
+float        dist_squared_to_plane_v3(const float p[3], const float plane[4]);
+float dist_signed_to_plane_v3(const float p[3], const float plane[4]);
+float        dist_to_plane_v3(const float p[3], const float plane[4]);
+
 float dist_squared_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
 float         dist_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
 float dist_squared_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
