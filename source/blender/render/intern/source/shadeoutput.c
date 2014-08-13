@@ -1706,9 +1706,19 @@ static void wrld_exposure_correct(float diff[3])
 
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 {
+	/* Passes which might need to know material color.
+	 *
+	 * It seems to be faster to just calculate material color
+	 * even if the pass doesn't really need it than tryign to
+	 * figure out whether color is really needed or not.
+	 */
+	const int color_passes =
+		SCE_PASS_COMBINED | SCE_PASS_RGBA | SCE_PASS_DIFFUSE | SCE_PASS_SPEC |
+		SCE_PASS_REFLECT | SCE_PASS_NORMAL | SCE_PASS_REFRACT | SCE_PASS_EMIT;
+
 	Material *ma= shi->mat;
 	int passflag= shi->passflag;
-	
+
 	memset(shr, 0, sizeof(ShadeResult));
 	
 	if (!(shi->mode & MA_TRANSP)) shi->alpha = 1.0f;
@@ -1723,7 +1733,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	shi->refcol[0]= shi->refcol[1]= shi->refcol[2]= shi->refcol[3]= 0.0f;
 	
 	/* material color itself */
-	if (passflag & (SCE_PASS_COMBINED|SCE_PASS_RGBA|SCE_PASS_DIFFUSE|SCE_PASS_SPEC)) {
+	if (passflag & color_passes) {
 		if (ma->mode & (MA_FACETEXTURE)) {
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
