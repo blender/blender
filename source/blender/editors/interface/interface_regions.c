@@ -2715,17 +2715,20 @@ uiPieMenu *uiPieMenuBegin(struct bContext *C, const char *title, int icon, const
 
 	/* create title button */
 	if (title[0]) {
+		uiBut *but;
 		char titlestr[256];
 		int w;
 		if (icon) {
 			BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
 			w = uiPieTitleWidth(titlestr, icon);
-			uiDefIconTextBut(pie->block_radial, LABEL, 0, icon, titlestr, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+			but = uiDefIconTextBut(pie->block_radial, LABEL, 0, icon, titlestr, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else {
 			w = uiPieTitleWidth(title, 0);
-			uiDefBut(pie->block_radial, LABEL, 0, title, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+			but = uiDefBut(pie->block_radial, LABEL, 0, title, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
+		/* do not align left */
+		but->drawflag &= ~UI_BUT_TEXT_LEFT;
 	}
 
 	return pie;
