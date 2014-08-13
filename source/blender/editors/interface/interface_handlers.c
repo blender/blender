@@ -7941,6 +7941,9 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
 		if (event->val == KM_RELEASE) {
 			/* pass, needed so we can exit active menu-items when click-dragging out of them */
 		}
+		else if (!ui_block_is_menu(but->block)) {
+			/* pass, skip for dialogs */
+		}
 		else if (!ui_mouse_inside_region(but->active->region, event->x, event->y)) {
 			/* pass, needed to click-exit outside of non-flaoting menus */
 		}
