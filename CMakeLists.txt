@@ -1198,13 +1198,23 @@ elseif(WIN32)
 			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-			set(OPENEXR_LIBRARIES
-				${OPENEXR_LIBPATH}/Iex.lib
-				${OPENEXR_LIBPATH}/Half.lib
-				${OPENEXR_LIBPATH}/IlmImf.lib
-				${OPENEXR_LIBPATH}/Imath.lib
-				${OPENEXR_LIBPATH}/IlmThread.lib
-			)
+			if(MSVC12)
+				set(OPENEXR_LIBRARIES
+					${OPENEXR_LIBPATH}/Iex-2_1.lib
+					${OPENEXR_LIBPATH}/Half.lib
+					${OPENEXR_LIBPATH}/IlmImf-2_1.lib
+					${OPENEXR_LIBPATH}/Imath-2_1.lib
+					${OPENEXR_LIBPATH}/IlmThread-2_1.lib
+				)
+			else()
+				set(OPENEXR_LIBRARIES
+					${OPENEXR_LIBPATH}/Iex.lib
+					${OPENEXR_LIBPATH}/Half.lib
+					${OPENEXR_LIBPATH}/IlmImf.lib
+					${OPENEXR_LIBPATH}/Imath.lib
+					${OPENEXR_LIBPATH}/IlmThread.lib
+				)
+			endif()
 			endif(NOT OPENEXR_FOUND)
 		endif()
 
