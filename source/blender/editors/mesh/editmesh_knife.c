@@ -1088,7 +1088,7 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
                                      float intersectp[3])
 {
 	int tottri, tri_i;
-	float lv1[3], lv2[3], lv3[3], raydir[3];
+	float raydir[3];
 	float tri_norm[3], tri_plane[4];
 	float se1[2], se2[2];
 	float d, lambda;
@@ -1104,12 +1104,14 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
 	BLI_assert(tri_i >= 0 && tri_i < tottri);
 
 	for (; tri_i < tottri; tri_i++) {
+		const float *lv1, *lv2, *lv3;
+
 		tri = kcd->em->looptris[tri_i];
 		if (tri[0]->f != f)
 			break;
-		copy_v3_v3(lv1, kcd->cagecos[BM_elem_index_get(tri[0]->v)]);
-		copy_v3_v3(lv2, kcd->cagecos[BM_elem_index_get(tri[1]->v)]);
-		copy_v3_v3(lv3, kcd->cagecos[BM_elem_index_get(tri[2]->v)]);
+		lv1 = kcd->cagecos[BM_elem_index_get(tri[0]->v)];
+		lv2 = kcd->cagecos[BM_elem_index_get(tri[1]->v)];
+		lv3 = kcd->cagecos[BM_elem_index_get(tri[2]->v)];
 		/* using epsilon test in case ray is directly through an internal
 		 * tesselation edge and might not hit either tesselation tri with
 		 * an exact test;
