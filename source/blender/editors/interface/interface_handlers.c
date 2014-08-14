@@ -604,7 +604,13 @@ static void ui_apply_autokey(bContext *C, uiBut *but)
 
 	/* make a little report about what we've done! */
 	if (but->rnaprop) {
-		char *buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
+		char *buf;
+
+		if (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD) {
+			return;
+		}
+
+		buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
 		if (buf) {
 			BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
 			MEM_freeN(buf);
