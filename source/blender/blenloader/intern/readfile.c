@@ -6339,6 +6339,9 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 		else if (sa->spacetype == SPACE_VIEW3D)
 			blo_do_versions_view3d_split_250(sa->spacedata.first, &sa->regionbase);
 		
+		/* incase we set above */
+		sa->butspacetype = sa->spacetype;
+
 		for (sl = sa->spacedata.first; sl; sl = sl->next) {
 			link_list(fd, &(sl->regionbase));
 
