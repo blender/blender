@@ -529,7 +529,7 @@ static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
 
 	const float dist  = BMO_slot_float_get(op->slots_in, "dist");
 	const float dist_sq = dist * dist;
-	const float dist3 = dist * 3.0f;
+	const float dist3 = (M_SQRT3 + 0.00005f) * dist;   /* Just above sqrt(3) */
 
 	/* Test whether keep_verts arg exists and is non-empty */
 	if (BMO_slot_exists(op->slots_in, "keep_verts")) {
