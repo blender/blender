@@ -1393,7 +1393,7 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 	}
 
 	/* Make sure we have a stencil to paint on! */
-	if (br->imagepaint_tool == PAINT_TOOL_MASK) {
+	if (br && br->imagepaint_tool == PAINT_TOOL_MASK) {
 		imapaint->flag |= IMAGEPAINT_PROJECT_LAYER_STENCIL;
 
 		if (imapaint->stencil == NULL) {
