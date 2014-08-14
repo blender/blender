@@ -3677,6 +3677,8 @@ typedef struct {
 	StructRNA *image_id_srna;
 	float initial_value, current_value, min_value, max_value;
 	int initial_mouse[2];
+	int slow_mouse[2];
+	bool slow_mode;
 	unsigned int gltex;
 	ListBase orig_paintcursors;
 	bool use_secondary_tex;
@@ -4129,24 +4131,48 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 {
 	RadialControl *rc = op->customdata;
 	float new_value, dist, zoom[2];
-	float delta[2], snap, ret = OPERATOR_RUNNING_MODAL;
-
+	float delta[2], ret = OPERATOR_RUNNING_MODAL;
+	bool snap;
 	/* TODO: fix hardcoded events */
 
-	snap = event->ctrl;
+	snap = event->ctrl != 0;
 
 	switch (event->type) {
 		case MOUSEMOVE:
-			delta[0] = rc->initial_mouse[0] - event->x;
-			delta[1] = rc->initial_mouse[1] - event->y;
+			if (rc->slow_mode) {
+				delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
+				delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
+				
+				if (rc->zoom_prop) {
+					RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
+					delta[0] /= zoom[0];
+					delta[1] /= zoom[1];
+				}
+	
+				dist = len_v2(delta);
+				
+				delta[0] = event->x - rc->slow_mouse[0];
+				delta[1] = event->y - rc->slow_mouse[1];
 
-			if (rc->zoom_prop) {
-				RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
-				delta[0] /= zoom[0];
-				delta[1] /= zoom[1];
+				if (rc->zoom_prop) {
+					delta[0] /= zoom[0];
+					delta[1] /= zoom[1];
+				}
+	
+				dist = dist + 0.1f * (delta[0] + delta[1]);								
+			} 
+			else {
+				delta[0] = rc->initial_mouse[0] - event->x;
+				delta[1] = rc->initial_mouse[1] - event->y;
+
+				if (rc->zoom_prop) {
+					RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
+					delta[0] /= zoom[0];
+					delta[1] /= zoom[1];
+				}
+	
+				dist = len_v2(delta);				
 			}
-
-			dist = len_v2(delta);
 
 			/* calculate new value and apply snapping  */
 			switch (rc->subtype) {
@@ -4187,6 +4213,18 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 			/* done; value already set */
 			RNA_property_update(C, &rc->ptr, rc->prop);
 			ret = OPERATOR_FINISHED;
+			break;
+			
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			if (event->val == KM_PRESS) {
+				rc->slow_mouse[0] = event->x;
+				rc->slow_mouse[1] = event->y;
+				rc->slow_mode = true;
+			}
+			if (event->val == KM_RELEASE) {
+				rc->slow_mode = false;
+			}
 			break;
 	}
 
