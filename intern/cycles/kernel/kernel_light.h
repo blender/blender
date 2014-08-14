@@ -546,11 +546,6 @@ ccl_device int light_select_num_samples(KernelGlobals *kg, int index)
 	return __float_as_int(data3.x);
 }
 
-ccl_device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls)
-{
-	lamp_light_sample(kg, index, randu, randv, P, ls);
-}
-
 ccl_device int lamp_light_eval_sample(KernelGlobals *kg, float randt)
 {
 	/* sample index */

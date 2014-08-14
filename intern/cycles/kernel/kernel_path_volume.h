@@ -134,7 +134,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 				path_branched_rng_2D(kg, &lamp_rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
 				LightSample ls;
-				light_select(kg, i, light_u, light_v, ray->P, &ls);		
+				lamp_light_sample(kg, i, light_u, light_v, ray->P, &ls);		
 
 				float3 tp = throughput;
 
@@ -149,7 +149,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 					continue;
 
 				/* todo: split up light_sample so we don't have to call it again with new position */
-				light_select(kg, i, light_u, light_v, sd->P, &ls);
+				lamp_light_sample(kg, i, light_u, light_v, sd->P, &ls);
 
 				if(ls.pdf == 0.0f)
 					continue;
