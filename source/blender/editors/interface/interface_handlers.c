@@ -101,6 +101,8 @@
 /* drag popups by their header */
 #define USE_DRAG_POPUP
 
+#define UI_MAX_PASSWORD_STR 128
+
 /* proto */
 static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
 static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
@@ -1946,28 +1948,35 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 static int ui_text_position_from_hidden(uiBut *but, int pos)
 {
-	const char *strpos;
+	const char *strpos, *butstr;
 	int i;
 
-	for (i = 0, strpos = but->drawstr; i < pos; i++)
+	butstr = (but->editstr) ? but->editstr : but->drawstr;
+
+	for (i = 0, strpos = butstr; i < pos; i++)
 		strpos = BLI_str_find_next_char_utf8(strpos, NULL);
 	
-	return (strpos - but->drawstr);
+	return (strpos - butstr);
 }
 
 static int ui_text_position_to_hidden(uiBut *but, int pos)
 {
-	return BLI_strnlen_utf8(but->drawstr, pos);
+	const char *butstr = butstr = (but->editstr) ? but->editstr : but->drawstr;
+	return BLI_strnlen_utf8(butstr, pos);
 }
 
-void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore)
+void ui_button_text_password_hide(char password_str[UI_MAX_PASSWORD_STR], uiBut *but, const bool restore)
 {
+	char *butstr;
+
 	if (!(but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_PASSWORD))
 		return;
 
+	butstr = (but->editstr) ? but->editstr : but->drawstr;
+
 	if (restore) {
 		/* restore original string */
-		BLI_strncpy(but->drawstr, password_str, UI_MAX_DRAW_STR);
+		BLI_strncpy(butstr, password_str, UI_MAX_PASSWORD_STR);
 
 		/* remap cursor positions */
 		if (but->pos >= 0) {
@@ -1977,8 +1986,8 @@ void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but
 		}
 	}
 	else {
-		/* convert text to hidden test using asterisks (e.g. pass -> ****) */
-		const size_t len = BLI_strlen_utf8(but->drawstr);
+		/* convert text to hidden text using asterisks (e.g. pass -> ****) */
+		const size_t len = BLI_strlen_utf8(butstr);
 
 		/* remap cursor positions */
 		if (but->pos >= 0) {
@@ -1988,10 +1997,9 @@ void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but
 		}
 
 		/* save original string */
-		BLI_strncpy(password_str, but->drawstr, UI_MAX_DRAW_STR);
-
-		memset(but->drawstr, '*', len);
-		but->drawstr[len] = '\0';
+		BLI_strncpy(password_str, butstr, UI_MAX_PASSWORD_STR);
+		memset(butstr, '*', len);
+		butstr[len] = '\0';
 	}
 }
 
@@ -2027,7 +2035,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 	float startx = but->rect.xmin;
 	float starty_dummy = 0.0f;
-	char *origstr, password_str[UI_MAX_DRAW_STR];
+	char *origstr, password_str[UI_MAX_PASSWORD_STR];
 
 	ui_block_to_window_fl(data->region, but->block, &startx, &starty_dummy);
 
