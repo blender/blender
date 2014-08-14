@@ -88,14 +88,14 @@ Controller::Controller()
 	_RootNode = new NodeGroup;
 	_RootNode->addRef();
 
-	_SilhouetteNode = NULL;
 #if 0
+	_SilhouetteNode = NULL;
 	_ProjectedSilhouette = NULL;
 	_VisibleProjectedSilhouette = NULL;
-#endif
 
 	_DebugNode = new NodeGroup;
 	_DebugNode->addRef();
+#endif
 
 	_winged_edge = NULL;
 
@@ -142,6 +142,7 @@ Controller::~Controller()
 			delete _RootNode;
 	}
 
+#if 0
 	if (NULL != _SilhouetteNode) {
 		int ref = _SilhouetteNode->destroy();
 		if (0 == ref)
@@ -153,6 +154,7 @@ Controller::~Controller()
 		if (0 == ref)
 			delete _DebugNode;
 	}
+#endif
 
 	if (_winged_edge) {
 		delete _winged_edge;
@@ -409,6 +411,7 @@ void Controller::DeleteWingedEdge()
 
 void Controller::DeleteViewMap(bool freeCache)
 {
+#if 0
 	_pView->DetachSilhouette();
 	if (NULL != _SilhouetteNode) {
 		int ref = _SilhouetteNode->destroy();
@@ -418,7 +421,6 @@ void Controller::DeleteViewMap(bool freeCache)
 		}
 	}
 
-#if 0
 	if (NULL != _ProjectedSilhouette) {
 		int ref = _ProjectedSilhouette->destroy();
 		if (0 == ref) {
@@ -433,7 +435,6 @@ void Controller::DeleteViewMap(bool freeCache)
 			_VisibleProjectedSilhouette = NULL;
 		}
 	}
-#endif
 
 	_pView->DetachDebug();
 	if (NULL != _DebugNode) {
@@ -441,6 +442,7 @@ void Controller::DeleteViewMap(bool freeCache)
 		if (0 == ref)
 			_DebugNode->addRef();
 	}
+#endif
 
 	if (NULL != _ViewMap) {
 		if (freeCache || !_EnableViewMapCache) {
@@ -563,14 +565,14 @@ void Controller::ComputeViewMap()
 	vmBuilder.setGrid(&_Grid);
 	vmBuilder.setRenderMonitor(_pRenderMonitor);
 
+#if 0
 	// Builds a tesselated form of the silhouette for display purpose:
 	//---------------------------------------------------------------
 	ViewMapTesselator3D sTesselator3d;
-#if 0
 	ViewMapTesselator2D sTesselator2d;
 	sTesselator2d.setNature(_edgeTesselationNature);
-#endif
 	sTesselator3d.setNature(_edgeTesselationNature);
+#endif
 
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "\n===  Building the view map  ===" << endl;
@@ -584,12 +586,12 @@ void Controller::ComputeViewMap()
 		printf("ViewMap edge count : %i\n", _ViewMap->viewedges_size());
 	}
 
+#if 0
 	// Tesselate the 3D edges:
 	_SilhouetteNode = sTesselator3d.Tesselate(_ViewMap);
 	_SilhouetteNode->addRef();
 
 	// Tesselate 2D edges
-#if 0
 	_ProjectedSilhouette = sTesselator2d.Tesselate(_ViewMap);
 	_ProjectedSilhouette->addRef();
 #endif
@@ -599,13 +601,13 @@ void Controller::ComputeViewMap()
 		printf("ViewMap building : %lf\n", duration);
 	}
 
-	_pView->AddSilhouette(_SilhouetteNode);
 #if 0
+	_pView->AddSilhouette(_SilhouetteNode);
 	_pView->AddSilhouette(_WRoot);
 	_pView->Add2DSilhouette(_ProjectedSilhouette);
 	_pView->Add2DVisibleSilhouette(_VisibleProjectedSilhouette);
-#endif
 	_pView->AddDebug(_DebugNode);
+#endif
 
 	// Draw the steerable density map:
 	//--------------------------------

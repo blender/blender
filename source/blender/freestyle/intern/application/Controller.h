@@ -178,11 +178,10 @@ private:
 	// Winged-Edge structure
 	WingedEdge *_winged_edge;
 
-	// Silhouette structure:
 #if 0
+	// Silhouette structure:
 	std::vector<SShape*> _SShapes;
 	NodeGroup *_SRoot;
-#endif
 
 	// Silhouette
 	NodeGroup *_SilhouetteNode;
@@ -191,6 +190,7 @@ private:
 
 	// more Debug info
 	NodeGroup *_DebugNode;
+#endif
 
 	// debug
 	//NodeUser<ViewMap> *_ViewMapNode; // FIXME
