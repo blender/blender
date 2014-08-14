@@ -128,6 +128,13 @@ static EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C), PointerRNA *UN
 	return space_type_items + 1;
 }
 
+static int rna_Area_type_get(PointerRNA *ptr)
+{
+	ScrArea *sa = (ScrArea *)ptr->data;
+	/* read from this instead of 'spacetype' for correct reporting: T41435 */
+	return sa->butspacetype;
+}
+
 static void rna_Area_type_set(PointerRNA *ptr, int value)
 {
 	ScrArea *sa = (ScrArea *)ptr->data;
@@ -232,7 +239,7 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_enum_default(prop, SPACE_VIEW3D);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_Area_type_set", "rna_Area_type_itemf");
+	RNA_def_property_enum_funcs(prop, "rna_Area_type_get", "rna_Area_type_set", "rna_Area_type_itemf");
 	RNA_def_property_ui_text(prop, "Editor Type", "Current editor type for this area");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
