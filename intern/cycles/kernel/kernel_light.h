@@ -27,7 +27,7 @@ typedef struct LightSample {
 	float pdf;			/* light sampling probability density function */
 	float eval_fac;		/* intensity multiplier */
 	int object;			/* object id for triangle/curve lights */
-	int prim;			/* primitive id for triangle/curve ligths */
+	int prim;			/* primitive id for triangle/curve lights */
 	int shader;			/* shader id */
 	int lamp;			/* lamp id */
 	LightType type;		/* type of light */
