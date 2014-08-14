@@ -853,15 +853,33 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 		float3 step_pdf_distance = make_float3(1.0f, 1.0f, 1.0f);
 
 		if(segment->numsteps > 1) {
-			/* todo: optimize using binary search */
 			float3 prev_cdf_distance = make_float3(0.0f, 0.0f, 0.0f);
 
-			for(int i = 0; i < segment->numsteps-1; i++, step++) {
-				if(sample_t < step->t)
-					break;
+			int numsteps = segment->numsteps;
+			int high = numsteps - 1;
+			int low = 0;
+			int mid;
 
-				prev_t = step->t;
-				prev_cdf_distance = step->cdf_distance;
+			while(low < high) {
+				mid = (low + high) >> 1;
+
+				if(sample_t < step[mid].t)
+					high = mid;
+				else if(sample_t >= step[mid + 1].t)
+					low = mid + 1;
+				else {
+					/* found our interval in step[mid] .. step[mid+1] */
+					prev_t = step[mid].t;
+					prev_cdf_distance = step[mid].cdf_distance;
+					step += mid+1;
+					break;
+				}
+			}
+
+			if(low >= numsteps - 1) {
+				prev_t = step[numsteps - 1].t;
+				prev_cdf_distance = step[numsteps-1].cdf_distance;
+				step += numsteps - 1;
 			}
 
 			/* pdf for picking step with distance sampling */
