@@ -7336,7 +7336,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				uiBut *but_other = ui_but_find_mouse_over(ar, event);
 				bool exit = false;
 
-				if ((!ui_block_is_menu(block) || ui_block_is_menu(but->block)) &&
+				if ((!ui_block_is_menu(block) || ui_block_is_pie_menu(but->block)) &&
 				    !ui_mouse_inside_button(ar, but, event->x, event->y))
 				{
 					exit = true;
@@ -7945,7 +7945,7 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
 		if (event->val == KM_RELEASE) {
 			/* pass, needed so we can exit active menu-items when click-dragging out of them */
 		}
-		else if (!ui_block_is_menu(but->block) || ui_block_is_menu(but->block)) {
+		else if (!ui_block_is_menu(but->block) || ui_block_is_pie_menu(but->block)) {
 			/* pass, skip for dialogs */
 		}
 		else if (!ui_mouse_inside_region(but->active->region, event->x, event->y)) {
