@@ -367,6 +367,7 @@ class QuickSmoke(Operator):
 
         tex_slot = mat.texture_slots.add()
         tex_slot.texture = tex
+        tex_slot.texture_coords = 'ORCO'
         tex_slot.use_map_color_emission = False
         tex_slot.use_map_density = True
         tex_slot.use_map_color_reflection = True
@@ -381,6 +382,7 @@ class QuickSmoke(Operator):
 
         tex_slot = mat.texture_slots.add()
         tex_slot.texture = tex
+        tex_slot.texture_coords = 'ORCO'
 
         # add color ramp for flame color
         ramp = tex.color_ramp
