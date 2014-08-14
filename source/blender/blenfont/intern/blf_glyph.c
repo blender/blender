@@ -153,7 +153,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	/* move the index. */
 	gc->cur_tex++;
 
-	if (gc->cur_tex >= gc->ntex) {
+	if (UNLIKELY(gc->cur_tex >= gc->ntex)) {
 		gc->ntex *= 2;
 		gc->textures = (GLuint *)MEM_reallocN((void *)gc->textures, sizeof(GLuint) * gc->ntex);
 	}

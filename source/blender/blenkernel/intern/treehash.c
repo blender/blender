@@ -59,7 +59,7 @@ static TseGroup *tse_group_create(void)
 
 static void tse_group_add(TseGroup *tse_group, TreeStoreElem *elem)
 {
-	if (tse_group->size == tse_group->allocated) {
+	if (UNLIKELY(tse_group->size == tse_group->allocated)) {
 		tse_group->allocated *= 2;
 		tse_group->elems = MEM_reallocN(tse_group->elems, sizeof(TreeStoreElem *) * tse_group->allocated);
 	}

@@ -27,6 +27,8 @@
 
 /** \file blender/editors/mesh/editmesh_knife.c
  *  \ingroup edmesh
+ *
+ * Interactive editmesh knife tool.
  */
 
 #ifdef _MSC_VER
@@ -71,8 +73,6 @@
 
 #include "mesh_intern.h"  /* own include */
 
-/* this code here is kindof messy. . .I might need to eventually rework it - joeedh */
-
 #define KMAXDIST    10  /* max mouse distance from edge before not detecting it */
 
 #define KNIFE_FLT_EPS          0.00001f
@@ -116,7 +116,7 @@ typedef struct KnifeEdge {
 
 typedef struct KnifeLineHit {
 	float hit[3], cagehit[3];
-	float schit[2];
+	float schit[2];  /* screen coordinates for cagehit */
 	float l; /* lambda along cut line */
 	float perc; /* lambda along hit line */
 	float m; /* depth front-to-back */

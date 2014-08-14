@@ -119,7 +119,7 @@ static void _ehash_insert(EHash *eh, EHEntry *entry)
 	eh->buckets[hash] = entry;
 	eh->numEntries++;
 
-	if (eh->numEntries > (numBuckets * 3)) {
+	if (UNLIKELY(eh->numEntries > (numBuckets * 3))) {
 		EHEntry **oldBuckets = eh->buckets;
 		eh->curSize = kHashSizes[++eh->curSizeIdx];
 		
@@ -1274,7 +1274,7 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 	CCGFace *f = NULL, *fNew;
 	int j, k, topologyChanged = 0;
 
-	if (numVerts > ss->lenTempArrays) {
+	if (UNLIKELY(numVerts > ss->lenTempArrays)) {
 		ss->lenTempArrays = (numVerts < ss->lenTempArrays * 2) ? ss->lenTempArrays * 2 : numVerts;
 		ss->tempVerts = MEM_reallocN(ss->tempVerts, sizeof(*ss->tempVerts) * ss->lenTempArrays);
 		ss->tempEdges = MEM_reallocN(ss->tempEdges, sizeof(*ss->tempEdges) * ss->lenTempArrays);
