@@ -1398,8 +1398,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         sub.active = (brush and brush.sculpt_tool != 'MASK')
         if (sculpt.detail_type_method == 'CONSTANT'):
             row = sub.row(align=True)
-            row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
             row.prop(sculpt, "constant_detail")
+            row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
         else:
             sub.prop(sculpt, "detail_size")
         sub.prop(sculpt, "detail_refine_method", text="")
