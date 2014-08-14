@@ -176,6 +176,8 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 	/* compute extinction at the start */
 	float t = 0.0f;
 
+	float3 sum = make_float3(0.0f, 0.0f, 0.0f);
+
 	for(int i = 0; i < max_steps; i++) {
 		/* advance to new position */
 		float new_t = min(ray->t, (i+1) * step);
@@ -190,20 +192,26 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 
 		/* compute attenuation over segment */
 		if(volume_shader_extinction_sample(kg, sd, state, new_P, &sigma_t)) {
-			/* todo: we could avoid computing expf() for each step by summing,
-			 * because exp(a)*exp(b) = exp(a+b), but we still want a quick
-			 * tp_eps check too */
-			tp *= volume_color_transmittance(sigma_t, new_t - t);
+			/* Compute expf() only for every Nth step, to save some calculations
+			 * because exp(a)*exp(b) = exp(a+b), also do a quick tp_eps check then. */
 
-			/* stop if nearly all light blocked */
-			if(tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps)
-				break;
+			sum += (-sigma_t * (new_t - t));
+			if((i & 0x07) == 0) { /* ToDo: Other interval? */
+				tp = *throughput * make_float3(expf(sum.x), expf(sum.y), expf(sum.z));
+
+				/* stop if nearly all light is blocked */
+				if(tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps)
+					break;
+			}
 		}
 
 		/* stop if at the end of the volume */
 		t = new_t;
-		if(t == ray->t)
+		if(t == ray->t) {
+			/* Update throughput in case we haven't done it above */
+			tp = *throughput * make_float3(expf(sum.x), expf(sum.y), expf(sum.z));
 			break;
+		}
 	}
 
 	*throughput = tp;
