@@ -3262,7 +3262,7 @@ static void rna_def_bake_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "cage_extrusion", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0, MAXFLOAT);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 3);
 	RNA_def_property_ui_text(prop, "Cage Extrusion",
 	                         "Distance to use for the inward ray cast when using selected to active");

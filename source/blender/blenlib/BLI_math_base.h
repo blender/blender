@@ -75,11 +75,6 @@
 #define M_LN10          2.30258509299404568402
 #endif
 
-/* non-standard defines, used in some places */
-#ifndef MAXFLOAT
-#define MAXFLOAT  ((float)3.40282347e+38)
-#endif
-
 #if defined(__GNUC__)
 #  define NAN_FLT __builtin_nanf("")
 #else

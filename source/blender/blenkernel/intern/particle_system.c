@@ -2638,7 +2638,7 @@ static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
 		mul_v3_v3fl(sphdata->flow, flow, 1.0f / pfr->tot_neighbors);
 	}
 	else {
-		sphdata->element_size = MAXFLOAT;
+		sphdata->element_size = FLT_MAX;
 		copy_v3_v3(sphdata->flow, flow);
 	}
 }

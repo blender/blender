@@ -34,7 +34,7 @@ ChunkOrder::ChunkOrder()
 void ChunkOrder::determineDistance(ChunkOrderHotspot **hotspots, unsigned int numberOfHotspots)
 {
 	unsigned int index;
-	double distance = MAXFLOAT;
+	double distance = FLT_MAX;
 	for (index = 0; index < numberOfHotspots; index++) {
 		ChunkOrderHotspot *hotspot = hotspots[index];
 		double ndistance = hotspot->determineDistance(this->m_x, this->m_y);

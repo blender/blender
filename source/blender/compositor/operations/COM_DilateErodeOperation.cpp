@@ -371,7 +371,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 	float *rectf = result->buffer;
 
 	// temp holds maxima for every step in the algorithm, buf holds a
-	// single row or column of input values, padded with MAXFLOATs to
+	// single row or column of input values, padded with FLT_MAX's to
 	// simplify the logic.
 	float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
 	float *buf = (float *)MEM_mallocN(sizeof(float) * (max(bwidth, bheight) + 5 * half_window), "dilate erode buf");
@@ -380,7 +380,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 	// first pass, horizontal dilate/erode
 	for (y = ymin; y < ymax; y++) {
 		for (x = 0; x < bwidth + 5 * half_window; x++) {
-			buf[x] = -MAXFLOAT;
+			buf[x] = -FLT_MAX;
 		}
 		for (x = xmin; x < xmax; ++x) {
 			buf[x - rect->xmin + window - 1] = buffer[4 * (y * width + x)];
@@ -405,7 +405,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 	// second pass, vertical dilate/erode
 	for (x = 0; x < bwidth; x++) {
 		for (y = 0; y < bheight + 5 * half_window; y++) {
-			buf[y] = -MAXFLOAT;
+			buf[y] = -FLT_MAX;
 		}
 		for (y = ymin; y < ymax; y++) {
 			buf[y - rect->ymin + window - 1] = rectf[(y - ymin) * bwidth + x];
@@ -498,7 +498,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 	float *rectf = result->buffer;
 
 	// temp holds maxima for every step in the algorithm, buf holds a
-	// single row or column of input values, padded with MAXFLOATs to
+	// single row or column of input values, padded with FLT_MAX's to
 	// simplify the logic.
 	float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
 	float *buf = (float *)MEM_mallocN(sizeof(float) * (max(bwidth, bheight) + 5 * half_window), "dilate erode buf");
@@ -507,7 +507,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 	// first pass, horizontal dilate/erode
 	for (y = ymin; y < ymax; y++) {
 		for (x = 0; x < bwidth + 5 * half_window; x++) {
-			buf[x] = MAXFLOAT;
+			buf[x] = FLT_MAX;
 		}
 		for (x = xmin; x < xmax; ++x) {
 			buf[x - rect->xmin + window - 1] = buffer[4 * (y * width + x)];
@@ -532,7 +532,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 	// second pass, vertical dilate/erode
 	for (x = 0; x < bwidth; x++) {
 		for (y = 0; y < bheight + 5 * half_window; y++) {
-			buf[y] = MAXFLOAT;
+			buf[y] = FLT_MAX;
 		}
 		for (y = ymin; y < ymax; y++) {
 			buf[y - rect->ymin + window - 1] = rectf[(y - ymin) * bwidth + x];
