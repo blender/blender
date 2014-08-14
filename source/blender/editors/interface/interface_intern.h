@@ -166,7 +166,7 @@ extern const short ui_radial_dir_to_angle[8];
 enum {
 	UI_PIE_DEGREES_RANGE_LARGE  = (1 << 0),  /* pie menu item collision is detected at 90 degrees */
 	UI_PIE_INITIAL_DIRECTION    = (1 << 1),  /* use initial center of pie menu to calculate direction */
-	UI_PIE_3_ITEMS              = (1 << 2),  /* pie menu has only 3 items, careful when centering */
+	UI_PIE_DRAG_STYLE           = (1 << 2),  /* pie menu is drag style */
 	UI_PIE_INVALID_DIR          = (1 << 3),  /* mouse not far enough from center position  */
 	UI_PIE_FINISHED             = (1 << 4),  /* pie menu finished but we still wait for a release event  */
 	UI_PIE_CLICK_STYLE          = (1 << 5),  /* pie menu changed to click style, click to confirm  */

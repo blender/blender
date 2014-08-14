@@ -8704,13 +8704,16 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 		if (event->val != KM_RELEASE) {
 			ui_handle_menu_button(C, event, menu);
 
+			if (len_squared_v2v2(event_xy, block->pie_data.pie_center_init) > PIE_CLICK_THRESHOLD_SQ) {
+				block->pie_data.flags |= UI_PIE_DRAG_STYLE;
+			}
 			/* why redraw here? It's simple, we are getting many double click events here.
 			 * Those operate like mouse move events almost */
 			ED_region_tag_redraw(ar);
 		}
 		else {
 			/* distance from initial point */
-			if (len_squared_v2v2(event_xy, block->pie_data.pie_center_init) < PIE_CLICK_THRESHOLD_SQ) {
+			if (!(block->pie_data.flags & UI_PIE_DRAG_STYLE)) {
 				block->pie_data.flags |= UI_PIE_CLICK_STYLE;
 			}
 			else if (!is_click_style) {
@@ -8726,8 +8729,12 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 		switch (event->type) {
 			case MOUSEMOVE:
-				/* mouse move should always refresh the area for pie menus */
+				if (len_squared_v2v2(event_xy, block->pie_data.pie_center_init) > PIE_CLICK_THRESHOLD_SQ) {
+					block->pie_data.flags |= UI_PIE_DRAG_STYLE;
+				}
 				ui_handle_menu_button(C, event, menu);
+				
+				/* mouse move should always refresh the area for pie menus */
 				ED_region_tag_redraw(ar);
 				break;
 
