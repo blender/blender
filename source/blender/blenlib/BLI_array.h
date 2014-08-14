@@ -97,8 +97,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 	 (void)0 /* do nothing */ :                                               \
 	 _bli_array_grow_func((void **)&(arr), _##arr##_static,                   \
 	                       sizeof(*(arr)), _##arr##_count, num,               \
-	                       "BLI_array." #arr),                                \
-	 (void)0)  /* msvc2008 needs this */                                      \
+	                       "BLI_array." #arr))                                \
 	),                                                                        \
 	/* increment the array count, all conditions above are accounted for. */  \
 	(_##arr##_count += num))
