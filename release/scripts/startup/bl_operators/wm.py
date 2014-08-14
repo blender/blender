@@ -1102,13 +1102,13 @@ rna_property = StringProperty(
 
 rna_min = FloatProperty(
         name="Min",
-        default=0.0,
+        default=-10000.0,
         precision=3,
         )
 
 rna_max = FloatProperty(
         name="Max",
-        default=1.0,
+        default=10000.0,
         precision=3,
         )
 
