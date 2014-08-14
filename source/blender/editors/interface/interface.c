@@ -97,6 +97,11 @@ bool ui_block_is_menu(const uiBlock *block)
 	        ((block->flag & UI_BLOCK_KEEP_OPEN) == 0));
 }
 
+bool ui_block_is_pie_menu(const uiBlock *block)
+{
+	return ((block->flag & UI_BLOCK_RADIAL) != 0);
+}
+
 static bool ui_is_but_unit_radians_ex(UnitSettings *unit, const int unit_type)
 {
 	return (unit->system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION);
