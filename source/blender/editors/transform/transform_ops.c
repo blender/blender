@@ -49,6 +49,8 @@
 #include "UI_resources.h"
 
 #include "ED_screen.h"
+/* for USE_LOOPSLIDE_HACK only */
+#include "ED_mesh.h"
 
 #include "transform.h"
 
