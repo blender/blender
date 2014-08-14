@@ -1522,6 +1522,7 @@ typedef struct v2dScrollerMove {
 	short zone; /* -1 is min zoomer, 0 is bar, 1 is max zoomer */             // XXX find some way to provide visual feedback of this (active color?)
 	
 	float fac;              /* view adjustment factor, based on size of region */
+	float fac_round;        /* for pixel rounding (avoid visible UI jitter) */
 	float delta;            /* amount moved by mouse on axis of interest */
 	
 	float scrollbarwidth;   /* width of the scrollbar itself, used for page up/down clicks */
@@ -1640,7 +1641,10 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 		/* horizontal scroller - calculate adjustment factor first */
 		mask_size = (float)BLI_rcti_size_x(&v2d->hor);
 		vsm->fac = BLI_rctf_size_x(&tot_cur_union) / mask_size;
-		
+
+		/* pixel rounding */
+		vsm->fac_round = (BLI_rctf_size_x(&v2d->cur)) / (float)(BLI_rcti_size_x(&ar->winrct) + 1);
+
 		/* get 'zone' (i.e. which part of scroller is activated) */
 		vsm->zone = mouse_in_scroller_handle(event->mval[0],
 		                                     v2d->hor.xmin, v2d->hor.xmax,
@@ -1659,6 +1663,9 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 		mask_size = (float)BLI_rcti_size_y(&v2d->vert);
 		vsm->fac = BLI_rctf_size_y(&tot_cur_union) / mask_size;
 		
+		/* pixel rounding */
+		vsm->fac_round = (BLI_rctf_size_y(&v2d->cur)) / (float)(BLI_rcti_size_y(&ar->winrct) + 1);
+
 		/* get 'zone' (i.e. which part of scroller is activated) */
 		vsm->zone = mouse_in_scroller_handle(event->mval[1],
 		                                     v2d->vert.ymin, v2d->vert.ymax,
@@ -1706,6 +1713,9 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	
 	/* calculate amount to move view by */
 	temp = vsm->fac * vsm->delta;
+
+	/* round to pixel */
+	temp = roundf(temp / vsm->fac_round) * vsm->fac_round;
 	
 	/* type of movement */
 	switch (vsm->zone) {
