@@ -259,6 +259,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 
 		BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint);
 		ts->imapaint.paintcursor = NULL;
+		id_us_plus((ID *)ts->imapaint.stencil);
 		ts->particle.paintcursor = NULL;
 	}
 	
@@ -560,7 +561,9 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->toolsettings->proportional_size = 1.0f;
 
-	sce->toolsettings->imapaint.paint.flags |= PAINT_SHOW_BRUSH;
+	sce->toolsettings->imapaint.paint.flags |= PAINT_SHOW_BRUSH;\
+	sce->toolsettings->imapaint.normal_angle = 80;
+	sce->toolsettings->imapaint.seam_bleed = 2;
 
 	sce->physics_settings.gravity[0] = 0.0f;
 	sce->physics_settings.gravity[1] = 0.0f;
