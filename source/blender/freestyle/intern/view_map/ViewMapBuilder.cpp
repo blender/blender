@@ -2112,14 +2112,14 @@ void ViewMapBuilder::ComputeIntersections(ViewMap *ioViewMap, intersection_algo 
 		default:
 			break;
 	}
-	ViewMap::viewvertices_container& vvertices = ioViewMap->ViewVertices();
-	for (ViewMap::viewvertices_container::iterator vv = vvertices.begin(), vvend = vvertices.end();
-	     vv != vvend;
-	     ++vv)
-	{
-		if ((*vv)->getNature() == Nature::T_VERTEX) {
-			TVertex *tvertex = (TVertex *)(*vv);
-			if (_global.debug & G_DEBUG_FREESTYLE) {
+#if 0
+	if (_global.debug & G_DEBUG_FREESTYLE) {
+		ViewMap::viewvertices_container& vvertices = ioViewMap->ViewVertices();
+		for (ViewMap::viewvertices_container::iterator vv = vvertices.begin(), vvend = vvertices.end();
+		     vv != vvend; ++vv)
+		{
+			if ((*vv)->getNature() == Nature::T_VERTEX) {
+				TVertex *tvertex = (TVertex *)(*vv);
 				cout << "TVertex " << tvertex->getId() << " has :" << endl;
 				cout << "FrontEdgeA: " << tvertex->frontEdgeA().first << endl;
 				cout << "FrontEdgeB: " << tvertex->frontEdgeB().first << endl;
@@ -2128,6 +2128,7 @@ void ViewMapBuilder::ComputeIntersections(ViewMap *ioViewMap, intersection_algo 
 			}
 		}
 	}
+#endif
 }
 
 struct less_SVertex2D : public binary_function<SVertex *, SVertex *, bool>
