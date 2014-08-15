@@ -171,11 +171,14 @@ bool modifier_isPreview(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	if (!(mti->flags & eModifierTypeFlag_UsesPreview))
+	/* Constructive modifiers are highly likely to also modify data like vgroups or vcol! */
+	if (!((mti->flags & eModifierTypeFlag_UsesPreview) || (mti->type == eModifierTypeType_Constructive))) {
 		return false;
+	}
 
-	if (md->mode & eModifierMode_Realtime)
+	if (md->mode & eModifierMode_Realtime) {
 		return true;
+	}
 
 	return false;
 }

@@ -2022,9 +2022,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		previewmd = modifiers_getLastPreview(scene, md, required_mode);
 		/* even if the modifier doesn't need the data, to make a preview it may */
 		if (previewmd) {
-			if (do_mod_wmcol) {
-				previewmask = CD_MASK_MDEFORMVERT;
-			}
+			previewmask = CD_MASK_MDEFORMVERT;
 		}
 	}
 
