@@ -840,6 +840,7 @@ enum {
 	MOD_SOLIDIFY_VGROUP_INV     = (1 << 3),
 	MOD_SOLIDIFY_RIM_MATERIAL   = (1 << 4),  /* deprecated, used in do_versions */
 	MOD_SOLIDIFY_FLIP           = (1 << 5),
+	MOD_SOLIDIFY_NOSHELL        = (1 << 6),
 };
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)
