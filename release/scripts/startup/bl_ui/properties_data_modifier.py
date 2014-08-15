@@ -820,7 +820,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_rim")
         col_rim = col.column()
         col_rim.active = md.use_rim
-        col_rim.prop(md, "rim_only")
+        col_rim.prop(md, "use_rim_only")
 
         col.separator()
 
