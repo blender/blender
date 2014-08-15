@@ -850,7 +850,12 @@ static void rna_def_color_ramp_element(BlenderRNA *brna)
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Color", "Set color of selected color stop");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
-	
+
+	prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "a");
+	RNA_def_property_ui_text(prop, "Alpha", "Set alpha of selected color stop");
+	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
+
 	prop = RNA_def_property(srna, "position", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_range(prop, 0, 1);
@@ -895,14 +900,29 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	FunctionRNA *func;
 
 	static EnumPropertyItem prop_interpolation_items[] = {
-		{1, "EASE", 0, "Ease", ""},
-		{3, "CARDINAL", 0, "Cardinal", ""},
-		{0, "LINEAR", 0, "Linear", ""},
-		{2, "B_SPLINE", 0, "B-Spline", ""},
-		{4, "CONSTANT", 0, "Constant", ""},
+		{COLBAND_INTERP_EASE, "EASE", 0, "Ease", ""},
+		{COLBAND_INTERP_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
+		{COLBAND_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
+		{COLBAND_INTERP_B_SPLINE, "B_SPLINE", 0, "B-Spline", ""},
+		{COLBAND_INTERP_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
+	static EnumPropertyItem prop_mode_items[] = {
+		{COLBAND_BLEND_RGB, "RGB", 0, "RGB", ""},
+		{COLBAND_BLEND_HSV, "HSV", 0, "HSV", ""},
+		{COLBAND_BLEND_HSL, "HSL", 0, "HSL", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_hsv_items[] = {
+		{COLBAND_HUE_NEAR, "NEAR", 0, "Near", ""},
+		{COLBAND_HUE_FAR, "FAR", 0, "Far", ""},
+		{COLBAND_HUE_CW, "CW", 0, "Clockwise", ""},
+		{COLBAND_HUE_CCW, "CCW", 0, "Counter-Clockwise", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ColorRamp", NULL);
 	RNA_def_struct_sdna(srna, "ColorBand");
 	RNA_def_struct_path_func(srna, "rna_ColorRamp_path");
@@ -919,6 +939,18 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "ipotype");
 	RNA_def_property_enum_items(prop, prop_interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "Set interpolation between color stops");
+	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
+
+	prop = RNA_def_property(srna, "hue_interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ipotype_hue");
+	RNA_def_property_enum_items(prop, prop_hsv_items);
+	RNA_def_property_ui_text(prop, "Color Interpolation", "Set color interpolation");
+	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
+
+	prop = RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "color_mode");
+	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_ui_text(prop, "Color Mode", "Set color mode to use for interpolation");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
 
 #if 0 /* use len(elements) */

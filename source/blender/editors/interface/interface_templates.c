@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_brush_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
@@ -1529,7 +1530,15 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 
 	row = uiLayoutRow(split, false);
 
-	uiItemR(row, &ptr, "interpolation", 0, "", ICON_NONE);
+	uiBlockBeginAlign(block);
+	uiItemR(row, &ptr, "color_mode", 0, "", ICON_NONE);
+	if (ELEM(coba->color_mode, COLBAND_BLEND_HSV, COLBAND_BLEND_HSL)) {
+		uiItemR(row, &ptr, "hue_interpolation", 0, "", ICON_NONE);
+	}
+	else {  /* COLBAND_BLEND_RGB */
+		uiItemR(row, &ptr, "interpolation", 0, "", ICON_NONE);
+	}
+	uiBlockEndAlign(block);
 
 	row = uiLayoutRow(layout, false);
 
@@ -1567,7 +1576,7 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 			uiDefButS(block, NUM, 0, "", 0, 0, 5.0f * UI_UNIT_X, UI_UNIT_Y, &coba->cur, 0.0, (float)(MAX2(0, coba->tot - 1)),
 			          0, 0, TIP_("Choose active color stop"));
 			row = uiLayoutRow(subsplit, false);
-			uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
+			uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
 			bt = block->buttons.last;
 			uiButSetFunc(bt, colorband_update_cb, bt, coba);
 
