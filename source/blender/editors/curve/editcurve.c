@@ -1238,8 +1238,17 @@ static void remap_hooks_and_vertex_parents(Object *obedit)
 {
 	Object *object;
 	Curve *curve = (Curve *) obedit->data;
+	EditNurb *editnurb = curve->editnurb;
 	int *old_to_new_map = NULL;
 	int old_totvert;
+
+	if (editnurb->keyindex == NULL) {
+		/* TODO(sergey): Happens when separating curves, this would lead to
+		 * the wrong indices in the hook modifier, address this together with
+		 * other indices issues.
+		 */
+		return;
+	}
 
 	for (object = G.main->object.first; object; object = object->id.next) {
 		ModifierData *md;
