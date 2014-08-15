@@ -251,7 +251,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	 * The growth pattern is:  0, 4, 8, 16, 25, 35, 46, 58, 72, 88, ...
 	 */
 	newsize = newlen;
-	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;\
+	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;
 
 	if (is_grow == false)
 		idp_resize_group_array(prop, newlen, prop->data.pointer);
