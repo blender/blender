@@ -123,7 +123,7 @@ BakeData *BakeManager::init(const int object, const size_t tri_offset, const siz
 void BakeManager::set_shader_limit(const size_t x, const size_t y)
 {
 	m_shader_limit = x * y;
-	m_shader_limit = pow(2, ceil(log(m_shader_limit)/log(2)));
+	m_shader_limit = (size_t)pow(2, ceil(log(m_shader_limit)/log(2)));
 }
 
 bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress, ShaderEvalType shader_type, BakeData *bake_data, float result[])
@@ -135,7 +135,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 
 	/* calculate the total parts for the progress bar */
 	for(size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
-		size_t shader_size = fminf(num_pixels - shader_offset, m_shader_limit);
+		size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
 
 		DeviceTask task(DeviceTask::SHADER);
 		task.shader_w = shader_size;
@@ -146,7 +146,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 	this->num_samples = is_aa_pass(shader_type)? scene->integrator->aa_samples : 1;
 
 	for(size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
-		size_t shader_size = fminf(num_pixels - shader_offset, m_shader_limit);
+		size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
 
 		/* setup input for device task */
 		device_vector<uint4> d_input;
