@@ -78,9 +78,9 @@ void hsv_to_rgb_v(const float hsv[3], float r_rgb[3])
 }
 
 /* convenience function for now */
-void hsl_to_rgb_v(const float hcl[3], float r_rgb[3])
+void hsl_to_rgb_v(const float hsl[3], float r_rgb[3])
 {
-	hsl_to_rgb(hcl[0], hcl[1], hcl[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
+	hsl_to_rgb(hsl[0], hsl[1], hsl[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
 }
 
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
@@ -632,6 +632,9 @@ static float inverse_srgb_companding(float v)
 	}
 }
 
+/**
+ * \note Does sRGB to linear conversion
+ */
 void rgb_to_xyz(float r, float g, float b, float *x, float *y, float *z)
 {
 	r = inverse_srgb_companding(r) * 100.0f;
