@@ -87,7 +87,7 @@ public:
 
 	/**
 	 * Returns pointer to the full-screen window.
-	 * \return	The fll-screen window (0 if not in full-screen).
+	 * \return	The full-screen window (NULL if not in full-screen).
 	 */
 	virtual GHOST_IWindow *getFullScreenWindow(void) const;
 

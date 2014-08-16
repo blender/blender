@@ -670,7 +670,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 #ifdef WITH_X11_XINPUT
 	/* Proximity-Out Events are not reliable, if the tablet is active - check on each event
 	 * this adds a little overhead but only while the tablet is in use.
-	 * in the futire we could have a ghost call window->CheckTabletProximity()
+	 * in the future we could have a ghost call window->CheckTabletProximity()
 	 * but for now enough parts of the code are checking 'Active'
 	 * - campbell */
 	if (window->GetTabletData()->Active != GHOST_kTabletModeNone) {

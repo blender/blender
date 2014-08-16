@@ -151,7 +151,7 @@ extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
 /**
  * Returns the dimensions of all displays combine
  * (the current workspace).
- * No need to worrky about overlapping monitors.
+ * No need to worry about overlapping monitors.
  * \param systemhandle The handle to the system
  * \param width A pointer the width gets put in
  * \param height A pointer the height gets put in
@@ -751,7 +751,7 @@ extern GHOST_TSuccess GHOST_IsEmptyRectangle(GHOST_RectangleHandle rectanglehand
 
 /**
  * Returns whether this rectangle is valid.
- * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b. Thus, emapty rectangles are valid.
+ * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b. Thus, empty rectangles are valid.
  * \param rectanglehandle The handle to the rectangle
  * \return intean value (true == valid rectangle)
  */
@@ -845,7 +845,7 @@ extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
                                           GHOST_RectangleHandle anotherrectanglehandle);
 
 /**
- * Return the data from the clipboad
+ * Return the data from the clipboard
  * \param selection Boolean to return the selection instead, X11 only feature.
  * \return clipboard data
  */

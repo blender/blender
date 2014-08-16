@@ -102,7 +102,7 @@ public:
 
 	/**
 	 * Returns whether this rectangle is valid.
-	 * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b. Thus, emapty rectangles are valid.
+	 * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b. Thus, empty rectangles are valid.
 	 * \return  boolean value (true==valid rectangle)
 	 */
 	virtual inline bool isValid() const;

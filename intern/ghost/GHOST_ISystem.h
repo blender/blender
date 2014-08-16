@@ -48,7 +48,7 @@ class GHOST_IEventConsumer;
  *
  * GHOST is yet another acronym. It stands for "Generic Handy Operating System
  * Toolkit". It has been created to replace the OpenGL utility tool kit
- * <a href="http://www.opengl.org/developers/documentation/glut.html">GLUT</a>.
+ * <a href="http://www.opengl.org/resources/libraries/glut/">GLUT</a>.
  * GLUT was used in <a href="http://www.blender3d.com">Blender</a> until the
  * point that Blender needed to be ported to Apple's Mac OSX. Blender needed a
  * number of modifications in GLUT to work but the GLUT sources for OSX were
@@ -60,31 +60,29 @@ class GHOST_IEventConsumer;
  * In short: everything that Blender needed from GLUT to run on all it's supported
  * operating systems and some extra's.
  * This includes :
- * <ul>
- * <li> Time(r) management.</li>
- * <li> Display/window management (windows are only created on the main display).
- * <li> Event management.</li>
- * <li> Cursor shape management (no custom cursors for now).</li>
- * <li> Access to the state of the mouse buttons and the keyboard.</li>
- * <li> Menus for windows with events generated when they are accessed (this is
- *     work in progress).</li>
- * <li> Video mode switching.</li>
- * <li> Copy/Paste buffers.</li>
- * <li> System paths.</li>
- * </ul>
+ *
+ * - Time(r) management.
+ * - Display/window management (windows are only created on the main display).
+ * - Event management.
+ * - Cursor shape management (no custom cursors for now).
+ * - Access to the state of the mouse buttons and the keyboard.
+ * - Menus for windows with events generated when they are accessed (this is
+ *   work in progress).
+ * - Video mode switching.
+ * - Copy/Paste buffers.
+ * - System paths.
+ *
  * Font management has been moved to a separate library.
  *
  * \section platforms Platforms
  *
  * GHOST supports the following platforms:
- * <ul>
- * <li> OSX Cocoa.</li>
- * <li> OSX Carbon.</li>
- * <li> Windows.</li>
- * <li> X11.</li>
- * <li> SDL1.3 (experimental).</li>
- * <li> NULL (headless mode).</li>
- * </ul>
+ *
+ * - OSX Cocoa.
+ * - Windows.
+ * - X11.
+ * - SDL2 (experimental).
+ * - NULL (headless mode).
  *
  * \section Building GHOST
  *
@@ -92,23 +90,23 @@ class GHOST_IEventConsumer;
  *
  * \section interface Interface
  * GHOST has two programming interfaces:
- * <ul>
- * <li>The C-API. For programs written in C.</li>
- * <li>The C++-API. For programs written in C++.</li>
- * </ul>
- * GHOST itself is writtem in C++ and the C-API is a wrapper around the C++
+ *
+ * - The C-API. For programs written in C.
+ * - The C++-API. For programs written in C++.
+ *
+ * GHOST itself is written in C++ and the C-API is a wrapper around the C++
  * API.
  *
  * \subsection cplusplus_api The C++ API consists of the following files:
- * <ul>
- * <li>GHOST_IEvent.h</li>
- * <li>GHOST_IEventConsumer.h</li>
- * <li>GHOST_ISystem.h</li>
- * <li>GHOST_ITimerTask.h</li>
- * <li>GHOST_IWindow.h</li>
- * <li>GHOST_Rect.h</li>
- * <li>GHOST_Types.h</li>
- * </ul>
+ *
+ * - GHOST_IEvent.h
+ * - GHOST_IEventConsumer.h
+ * - GHOST_ISystem.h
+ * - GHOST_ITimerTask.h
+ * - GHOST_IWindow.h
+ * - GHOST_Rect.h
+ * - GHOST_Types.h
+ *
  * For an example of using the C++-API, have a look at the GHOST_C-Test.cpp
  * program in the ?/ghost/test/gears/ directory.
  *

@@ -76,7 +76,7 @@ extern "C" {
 	extern size_t (*MEM_allocN_len)(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 
 	/**
-	 * Release memory previously allocatred by this module. 
+	 * Release memory previously allocated by this module.
 	 */
 	extern void (*MEM_freeN)(void *vmemh);
 

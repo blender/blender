@@ -46,13 +46,12 @@
  * \see GHOST_ISystem#createWindow
  *
  * There are two coordinate systems:
- * <ul>
- * <li>The screen coordinate system. The origin of the screen is located in the
- * upper left corner of the screen.</li>
- * <li>The client rectangle coordinate system. The client rectangle of a window
- * is the area that is drawable by the application (excluding title bars etc.).
- * </li>
- * </ul>
+ *
+ * - The screen coordinate system. The origin of the screen is located in the
+ *   upper left corner of the screen.</li>
+ * - The client rectangle coordinate system. The client rectangle of a window
+ *   is the area that is drawable by the application (excluding title bars etc.).
+ *
  * \author  Maarten Gribnau
  * \date    May 31, 2001
  */

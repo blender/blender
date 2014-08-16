@@ -1709,7 +1709,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	/* Passes which might need to know material color.
 	 *
 	 * It seems to be faster to just calculate material color
-	 * even if the pass doesn't really need it than tryign to
+	 * even if the pass doesn't really need it than trying to
 	 * figure out whether color is really needed or not.
 	 */
 	const int color_passes =

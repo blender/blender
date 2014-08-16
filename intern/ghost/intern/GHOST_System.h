@@ -250,27 +250,23 @@ public:
 	virtual GHOST_TSuccess pushEvent(GHOST_IEvent *event);
 
 	/**
-	 * Returns the timer manager.
 	 * \return The timer manager.
 	 */
 	inline virtual GHOST_TimerManager *getTimerManager() const;
 
 	/**
-	 * Returns a pointer to our event manager.
 	 * \return A pointer to our event manager.
 	 */
 	virtual inline GHOST_EventManager *getEventManager() const;
 
 	/**
-	 * Returns a pointer to our window manager.
 	 * \return A pointer to our window manager.
 	 */
 	virtual inline GHOST_WindowManager *getWindowManager() const;
 
 #ifdef WITH_INPUT_NDOF
 	/**
-	 * Returns a pointer to our n-degree of freedeom manager.
-	 * \return A pointer to our n-degree of freedeom manager.
+	 * \return A pointer to our n-degree of freedom manager.
 	 */
 	virtual inline GHOST_NDOFManager *getNDOFManager() const;
 #endif
