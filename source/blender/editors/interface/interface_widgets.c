@@ -922,45 +922,12 @@ static void ui_text_clip_give_next_off(uiBut *but, const char *str)
 	but->ofs += bytes;
 }
 
-/**
- * Cut off the start of the text to fit into the width of \a rect
- *
- * \note Sets but->ofs to make sure text is correctly visible.
- * \note Clips right in some cases, this function could be cleaned up.
- */
-static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
-{
-	/* We are not supposed to use labels with that clipping, so we can always apply margins. */
-	const int border = (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
-	const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
-
-	/* need to set this first */
-	uiStyleFontSet(fstyle);
-	
-	if (fstyle->kerning == 1) /* for BLF_width */
-		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-
-	but->ofs = 0;
-	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
-
-	if ((okwidth > 0.0f) && (but->strwidth > okwidth)) {
-		float strwidth;
-		but->ofs = BLF_width_to_rstrlen(fstyle->uifont_id, but->drawstr,
-		                                sizeof(but->drawstr), okwidth, &strwidth);
-		but->strwidth = strwidth;
-	}
-
-	if (fstyle->kerning == 1) {
-		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-	}
-}
-
 /* Helper.
  * This func assumes things like kerning handling have already been handled!
  * Return the length of modified (right-clipped + ellipsis) string.
  */
 static void ui_text_clip_right_ex(uiFontStyle *fstyle, char *str, const size_t max_len, const float okwidth,
-                                  const char *sep, const int sep_len, const float sep_strwidth)
+                                  const char *sep, const int sep_len, const float sep_strwidth, size_t *r_final_len)
 {
 	float tmp;
 	int l_end;
@@ -973,19 +940,27 @@ static void ui_text_clip_right_ex(uiFontStyle *fstyle, char *str, const size_t m
 	if (sep_strwidth / okwidth > 0.2f) {
 		l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, &tmp);
 		str[l_end] = '\0';
+		if (r_final_len) {
+			*r_final_len = (size_t)l_end;
+		}
 	}
 	else {
 		l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, &tmp);
 		memcpy(str + l_end, sep, sep_len + 1);  /* +1 for trailing '\0'. */
+		if (r_final_len) {
+			*r_final_len = (size_t)(l_end + sep_len);
+		}
 	}
 }
 
 /**
  * Cut off the middle of the text to fit into the given width.
  * Note in case this middle clipping would just remove a few chars, it rather clips right, which is more readable.
+ * If rpart_sep is not Null, the part of str starting to first occurrence of rpart_sep is preserved at all cost (useful
+ * for strings with shortcuts, like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
  */
-static float ui_text_clip_middle_ex(uiFontStyle *fstyle, char *str, const float okwidth, const float minwidth,
-                                    const size_t max_len)
+static float ui_text_clip_middle_ex(uiFontStyle *fstyle, char *str, float okwidth, const float minwidth,
+                                    const size_t max_len, const char *rpart_sep)
 {
 	float strwidth;
 
@@ -1004,37 +979,76 @@ static float ui_text_clip_middle_ex(uiFontStyle *fstyle, char *str, const float 
 		/* utf8 ellipsis '...', some compilers complain */
 		const char sep[] = {0xe2, 0x80, 0xa6, 0x0};
 		const int sep_len = sizeof(sep) - 1;
+		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
+		float parts_strwidth;
 		size_t l_end;
 
-		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
-		const float parts_strwidth = ((float)okwidth - sep_strwidth) / 2.0f;
+		char *rpart = NULL, rpart_buf[UI_MAX_DRAW_STR];
+		float rpart_width = 0.0f;
+		size_t rpart_len = 0;
+		size_t final_lpart_len;
 
-		if (min_ff(parts_strwidth, strwidth - okwidth) < minwidth) {
+		if (rpart_sep) {
+			rpart = strstr(str, rpart_sep);
+
+			if (rpart) {
+				rpart_len = strlen(rpart);
+				rpart_width = BLF_width(fstyle->uifont_id, rpart, rpart_len);
+				okwidth -= rpart_width;
+				strwidth -= rpart_width;
+
+				if (okwidth < 0.0f) {
+					/* Not enough place for actual label, just display protected right part.
+					 * Here just for safety, should never happen in real life! */
+					memmove(str, rpart, rpart_len + 1);
+					rpart = NULL;
+					okwidth += rpart_width;
+					strwidth = rpart_width;
+				}
+			}
+		}
+
+		parts_strwidth = (okwidth - sep_strwidth) / 2.0f;
+
+		if (rpart) {
+			strcpy(rpart_buf, rpart);
+			*rpart = '\0';
+			rpart = rpart_buf;
+		}
+
+		l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, parts_strwidth, &rpart_width);
+		if (l_end < 10 || min_ff(parts_strwidth, strwidth - okwidth) < minwidth) {
 			/* If we really have no place, or we would clip a very small piece of string in the middle,
 			 * only show start of string.
 			 */
-			ui_text_clip_right_ex(fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth);
+			ui_text_clip_right_ex(fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth, &final_lpart_len);
 		}
 		else {
 			size_t r_offset, r_len;
 
-			l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, parts_strwidth, &strwidth);
-			r_offset = BLF_width_to_rstrlen(fstyle->uifont_id, str, max_len, parts_strwidth, &strwidth);
-			r_len = strlen(str + r_offset) + 1;  /* +1 for the trailing '\0'... */
+			r_offset = BLF_width_to_rstrlen(fstyle->uifont_id, str, max_len, parts_strwidth, &rpart_width);
+			r_len = strlen(str + r_offset) + 1;  /* +1 for the trailing '\0'. */
 
-			if (l_end + sep_len + r_len > max_len) {
+			if (l_end + sep_len + r_len + rpart_len > max_len) {
 				/* Corner case, the str already takes all available mem, and the ellipsis chars would actually
 				 * add more chars...
 				 * Better to just trim one or two letters to the right in this case...
 				 * Note: with a single-char ellipsis, this should never happen! But better be safe here...
 				 */
-				ui_text_clip_right_ex(fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth);
+				ui_text_clip_right_ex(fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth, &final_lpart_len);
 			}
 			else {
 				memmove(str + l_end + sep_len, str + r_offset, r_len);
 				memcpy(str + l_end, sep, sep_len);
+				final_lpart_len = (size_t)(l_end + sep_len + r_len - 1);  /* -1 to remove trailing '\0'! */
 			}
 		}
+
+		if (rpart) {
+			/* Add back preserved right part to our shorten str. */
+			memcpy(str + final_lpart_len, rpart, rpart_len + 1);  /* +1 for trailing '\0'. */
+		}
+
 		strwidth = BLF_width(fstyle->uifont_id, str, max_len);
 	}
 
@@ -1045,6 +1059,9 @@ static float ui_text_clip_middle_ex(uiFontStyle *fstyle, char *str, const float 
 	return strwidth;
 }
 
+/**
+ * Wrapper around ui_text_clip_middle_ex.
+ */
 static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	/* No margin for labels! */
@@ -1054,7 +1071,23 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 	const float minwidth = (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
 
 	but->ofs = 0;
-	but->strwidth = ui_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len);
+	but->strwidth = ui_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, NULL);
+}
+
+/**
+ * Like ui_text_clip_middle(), but protect/preserve at all cost the right part of the string after sep.
+ * Useful for strings with shortcuts (like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
+ */
+static void ui_text_clip_middle_protect_right(uiFontStyle *fstyle, uiBut *but, const rcti *rect, const char *rsep)
+{
+	/* No margin for labels! */
+	const int border = ELEM(but->type, LABEL, MENU) ? 0 : (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
+	const float okwidth = (float)max_ii(BLI_rcti_size_x(rect) - border, 0);
+	const size_t max_len = sizeof(but->drawstr);
+	const float minwidth = (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
+
+	but->ofs = 0;
+	but->strwidth = ui_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, rsep);
 }
 
 /**
@@ -1431,14 +1464,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	else if (ELEM(but->type, NUM, NUMSLI)) {
 		ui_text_clip_right_label(fstyle, but, rect);
 	}
-#if 0
-	/* Special hack for non-embossed TEX buttons in uiList (we want them to behave as much as possible as labels). */
-	else if ((but->type == TEX) && (but->flag & UI_BUT_LIST_ITEM) && (but->dt & UI_EMBOSSN)) {
-		but->ofs = 0;
-	}
-#endif
 	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == BUT)) {
-		ui_text_clip_left(fstyle, but, rect);
+		/* Clip middle, but protect in all case right part containing the shortcut, if any. */
+		ui_text_clip_middle_protect_right(fstyle, but, rect, "|");
 	}
 	else {
 		ui_text_clip_middle(fstyle, but, rect);
@@ -3921,7 +3949,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 		const float minwidth = (float)(UI_DPI_ICON_SIZE);
 
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
-		ui_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len);
+		ui_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, NULL);
 
 		glColor4ubv((unsigned char *)wt->wcol.text);
 		uiStyleFontDraw(fstyle, rect, drawstr);
@@ -3996,7 +4024,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		const float minwidth = (float)(UI_DPI_ICON_SIZE);
 
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
-		ui_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len);
+		ui_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, NULL);
 
 		glColor4ubv((unsigned char *)wt->wcol.text);
 		uiStyleFontDraw(fstyle, &trect, drawstr);
