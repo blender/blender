@@ -977,7 +977,7 @@ bool isect_line_tri_v3(const float p1[3], const float p2[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -0.000001f) && (a < 0.000001f)) return 0;
+	if (a == 0.0f) return 0;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
@@ -1016,7 +1016,7 @@ bool isect_line_tri_epsilon_v3(const float p1[3], const float p2[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -0.000001f) && (a < 0.000001f)) return 0;
+	if (a == 0.0f) return 0;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
