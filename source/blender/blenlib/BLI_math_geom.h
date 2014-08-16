@@ -130,9 +130,14 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2], const float sp[2]
 int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2]);
 bool isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
 
-int isect_line_line_v3(const float v1[3], const float v2[3],
-                       const float v3[3], const float v4[3],
-                       float i1[3], float i2[3]);
+int isect_line_line_epsilon_v3(
+        const float v1[3], const float v2[3],
+        const float v3[3], const float v4[3], float i1[3], float i2[3],
+        const float epsilon);
+int isect_line_line_v3(
+        const float v1[3], const float v2[3],
+        const float v3[3], const float v4[3],
+        float i1[3], float i2[3]);
 bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
                                const float v3[3], const float v4[3],
                                float vi[3], float *r_lambda);
