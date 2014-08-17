@@ -353,6 +353,7 @@ int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *r_lastPossibleC
 	/* Find the last modifier acting on the cage. */
 	for (i = 0; md; i++, md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		bool supports_mapping;
 
 		md->scene = scene;
 
@@ -360,15 +361,16 @@ int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *r_lastPossibleC
 		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
 		if (md->mode & eModifierMode_DisableTemporary) continue;
 
+		supports_mapping = modifier_supportsMapping(md);
+		if (r_lastPossibleCageIndex && supports_mapping) {
+			*r_lastPossibleCageIndex = i;
+		}
+
 		if (!(md->mode & eModifierMode_Realtime)) continue;
 		if (!(md->mode & eModifierMode_Editmode)) continue;
 
-		if (!modifier_supportsMapping(md))
+		if (!supports_mapping)
 			break;
-
-		if (r_lastPossibleCageIndex) {
-			*r_lastPossibleCageIndex = i;
-		}
 
 		if (md->mode & eModifierMode_OnCage)
 			cageIndex = i;

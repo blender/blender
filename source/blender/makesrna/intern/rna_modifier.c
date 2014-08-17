@@ -3712,7 +3712,8 @@ void RNA_def_modifier(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "show_on_cage", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_OnCage);
-	RNA_def_property_ui_text(prop, "On Cage", "Enable direct editing of modifier control cage");
+	RNA_def_property_ui_text(prop, "On Cage", "Adjust edit cage to modifier result");
+	RNA_def_property_ui_icon(prop, ICON_MESH_DATA, 0);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);

@@ -756,28 +756,6 @@ void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, const char *propna
 
 #define ERROR_LIBDATA_MESSAGE IFACE_("Can't edit external libdata")
 
-static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
-{
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = ob_v;
-	ModifierData *md = md_v;
-	int i, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 0);
-
-	/* undo button operation */
-	md->mode ^= eModifierMode_OnCage;
-
-	for (i = 0, md = ob->modifiers.first; md; ++i, md = md->next) {
-		if (md == md_v) {
-			if (i >= cageIndex)
-				md->mode ^= eModifierMode_OnCage;
-			break;
-		}
-	}
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-}
-
 static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
@@ -834,7 +812,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *box, *column, *row;
+	uiLayout *box, *column, *row, *sub;
 	uiLayout *result = NULL;
 	int isVirtual = (md->mode & eModifierMode_Virtual);
 	char str[128];
@@ -886,29 +864,22 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
 			uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
 			
-			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, &ptr, "show_in_editmode", 0, "", ICON_NONE);
+			if (mti->flags & eModifierTypeFlag_SupportsEditmode) {
+				sub = uiLayoutRow(row, true);
+				if (!(md->mode & eModifierMode_Realtime)) {
+					uiLayoutSetActive(sub, false);
+				}
+				uiItemR(sub, &ptr, "show_in_editmode", 0, "", ICON_NONE);
+			}
 		}
 
 		if (ob->type == OB_MESH) {
-			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) {
-				/* -- convert to rna ? */
-				but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0,
-				                       UI_UNIT_X - 2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
-				                       TIP_("Adjust edit cage to modifier result"));
-				if (index < cageIndex)
-					uiButSetFlag(but, UI_BUT_DISABLED);
-				uiButSetFunc(but, modifiers_setOnCage, ob, md);
-			}
-			else if (modifier_supportsCage(scene, md) && (index <= lastCageIndex)) {
-				uiBlockEndAlign(block);
-
-				/* place holder button */
-				uiBlockSetEmboss(block, UI_EMBOSSN);
-				but = uiDefIconBut(block, BUT, 0, ICON_NONE, 0, 0, UI_UNIT_X - 2, UI_UNIT_Y,
-				                   NULL, 0.0, 0.0, 0.0, 0.0, NULL);
-				uiButSetFlag(but, UI_BUT_DISABLED);
-				uiBlockSetEmboss(block, UI_EMBOSS);
+			if (modifier_supportsCage(scene, md) && (index <= lastCageIndex)) {
+				sub = uiLayoutRow(row, true);
+				if (index < cageIndex || !modifier_couldBeCage(scene, md)) {
+					uiLayoutSetActive(sub, false);
+				}
+				uiItemR(sub, &ptr, "show_on_cage", 0, "", ICON_NONE);
 			}
 		} /* tessellation point for curve-typed objects */
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
@@ -918,7 +889,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 				 * message for this modifiers */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0,
 				                       UI_UNIT_X - 2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
-				                       TIP_("This modifier could be applied on splines' points only"));
+				                       TIP_("This modifier can only be applied on splines' points"));
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			}
 			else if (mti->type != eModifierTypeType_Constructive) {
