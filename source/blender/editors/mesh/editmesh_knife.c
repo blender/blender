@@ -1224,16 +1224,7 @@ static void clip_to_ortho_planes(float v1[3], float v2[3], float d)
 
 static void set_linehit_depth(KnifeTool_OpData *kcd, KnifeLineHit *lh)
 {
-	float vnear[3], vfar[3];
-
-	ED_view3d_win_to_segment(kcd->ar, kcd->vc.v3d, lh->schit, vnear, vfar, true);
-	mul_m4_v3(kcd->ob->imat, vnear);
-	if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
-		if (kcd->ortho_extent == 0.0f)
-			calc_ortho_extent(kcd);
-		clip_to_ortho_planes(vnear, vfar, kcd->ortho_extent + 10.0f);
-	}
-	lh->m = len_v3v3(vnear, lh->cagehit);
+	lh->m = dot_m4_v3_row_z(kcd->vc.rv3d->persmatob, lh->cagehit);
 }
 
 /* Finds visible (or all, if cutting through) edges that intersects the current screen drag line */
