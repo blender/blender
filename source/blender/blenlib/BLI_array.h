@@ -181,5 +181,8 @@ void _bli_array_wrap(void *arr, unsigned int arr_len, size_t arr_stride, int dir
 #define BLI_array_wrap(arr, arr_len, dir) \
 	_bli_array_wrap(arr, arr_len, sizeof(*(arr)), dir)
 
+int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p);
+#define BLI_array_findindex(arr, arr_len, p) \
+	_bli_array_findindex(arr, arr_len, sizeof(*(arr)), p)
 
 #endif  /* __BLI_ARRAY_H__ */

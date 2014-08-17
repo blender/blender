@@ -137,3 +137,18 @@ void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int d
 		BLI_assert(0);
 	}
 }
+
+/**
+ * \note Not efficient, use for error checks/asserts.
+ */
+int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p)
+{
+	const char *arr_step = (const char *)arr;
+	unsigned int i;
+	for (i = 0; i < arr_len; i++, arr_step += arr_stride) {
+		if (memcmp(arr_step, p, arr_stride) == 0) {
+			return (int)i;
+		}
+	}
+	return -1;
+}
