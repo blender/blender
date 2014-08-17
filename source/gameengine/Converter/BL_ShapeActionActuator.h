@@ -59,7 +59,7 @@ public:
 	virtual void ProcessReplica();
 	
 	void SetBlendTime (float newtime);
-	void BlendShape(struct Key* key, float weigth);
+	void BlendShape(struct Key* key, float weight);
 	
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }

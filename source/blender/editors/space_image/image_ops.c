@@ -1486,7 +1486,9 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		else {
 			/* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
 			if ((simopts->im_format.planes == R_IMF_PLANES_RGBA) &&
-			    (ibuf->userflags & IB_BITMAPDIRTY)) { /* it has been painted onto */
+			    /* it has been painted onto */
+			    (ibuf->userflags & IB_BITMAPDIRTY))
+			{
 				/* checks each pixel, not ideal */
 				ibuf->planes = BKE_imbuf_alpha_test(ibuf) ? R_IMF_PLANES_RGBA : R_IMF_PLANES_RGB;
 			}

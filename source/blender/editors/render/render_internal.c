@@ -1202,7 +1202,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 			float mat[4][4];
 			mul_m4_m4m4(mat, rp->viewmat, object->obmat);
 			invert_m4_m4(object->imat_ren, mat);
-        }
+		}
 	}
 
 	use_border = render_view3d_disprect(rp->scene, rp->ar, rp->v3d,

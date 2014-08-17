@@ -78,7 +78,7 @@ private:
 	void Initialize(void);
 
 	/**
-	 * Uninitiailize XDND and all related X atoms
+	 * Uninitialize XDND and all related X atoms
 	 */
 	void Uninitialize(void);
 

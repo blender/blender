@@ -3044,7 +3044,7 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
 		global_glsl_state.exposure = view_settings->exposure;
 		global_glsl_state.gamma = view_settings->gamma;
 
-		/* We're using curve mapping's address as a acache ID,
+		/* We're using curve mapping's address as a cache ID,
 		 * so we need to make sure re-allocation gives new address here.
 		 * We do this by allocating new curve mapping before freeing ol one.
 		 */

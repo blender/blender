@@ -25,7 +25,7 @@
  * again into the appropriate data structures.
  *
  * This way we do not need to accurately track changes, compare dates and
- * invalidate cache entries, at the cost of exta computation. If everything
+ * invalidate cache entries, at the cost of extra computation. If everything
  * is stored in a global cache, computations can perhaps even be shared between
  * different scenes where it may be hard to detect duplicate work.
  */

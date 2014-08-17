@@ -867,7 +867,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 			 * which historically this function supports so better not change */
 
 			/* warning: this only gives stable direction with single polygons,
-			 * ideally we'd calcualte connectivity and calculate each polys normal, see T41047 */
+			 * ideally we'd calculate connectivity and each polys normal, see T41047 */
 			const float *v_prev;
 
 			zero_v3(n);
