@@ -1694,7 +1694,7 @@ check_package_DEB() {
 }
 
 check_package_installed_DEB() {
-  r=`dpkg -s $1 | grep -c '$1'`
+  r=`dpkg-query -W -f='${Status}' $1 | grep -c "install ok"`
 
   if [ $r -ge 1 ]; then
     return 0
@@ -1854,7 +1854,7 @@ install_DEB() {
     # Only install jack if jack2 is not already installed!
     JACK="libjack-dev"
     JACK2="libjack-jackd2-dev"
-    check_package_installed_DEB JACK2
+    check_package_installed_DEB $JACK2
     if [ $? -eq 0 ]; then
       _packages="$_packages $JACK2"
     else
