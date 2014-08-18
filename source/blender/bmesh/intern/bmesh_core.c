@@ -1940,6 +1940,44 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 }
 
 /**
+ * Check if splicing vertices would create any double edges.
+ *
+ * \note assume caller will handle case where verts share an edge.
+ */
+bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
+{
+	bool is_double = false;
+
+	BLI_assert(BM_edge_exists(v_a, v_b) == false);
+
+	if (v_a->e && v_b->e) {
+		SmallHash visit;
+		BMEdge *e, *e_first;
+
+		BLI_smallhash_init(&visit);
+
+		e = e_first = v_a->e;
+		do {
+			BMVert *v_other = BM_edge_other_vert(e, v_a);
+			BLI_smallhash_insert(&visit, (uintptr_t)v_other, NULL);
+		} while ((e = BM_DISK_EDGE_NEXT(e, v_a)) != e_first);
+
+		e = e_first = v_b->e;
+		do {
+			BMVert *v_other = BM_edge_other_vert(e, v_b);
+			if (BLI_smallhash_haskey(&visit, (uintptr_t)v_other)) {
+				is_double = true;
+				break;
+			}
+		} while ((e = BM_DISK_EDGE_NEXT(e, v_b)) != e_first);
+
+		BLI_smallhash_release(&visit);
+	}
+
+	return is_double;
+}
+
+/**
  * \brief Splice Vert
  *
  * Merges two verts into one (\a v into \a vtarget).

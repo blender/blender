@@ -61,6 +61,7 @@ void    bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep,
                             const bool copy_select);
 bool    BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target);
 bool    BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target);
+bool    BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b);
 
 void    bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                             const bool copy_select);
