@@ -72,7 +72,7 @@ typedef struct Path {
 #
 #
 typedef struct BevPoint {
-	float vec[3], alfa, radius, weight;
+	float vec[3], alfa, radius, weight, offset;
 	float sina, cosa;				/* 2D Only */
 	float dir[3], tan[3], quat[4];	/* 3D Only */
 	short split_tag, dupe_tag;
@@ -86,6 +86,8 @@ typedef struct BevList {
 	int nr, dupe_nr;
 	int poly, hole;
 	int charidx;
+	int *segbevcount;
+	float *seglen;
 
 	/* over-alloc */
 	BevPoint bevpoints[0];
