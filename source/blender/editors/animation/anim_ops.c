@@ -168,6 +168,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		
 		case LEFTMOUSE: 
 		case RIGHTMOUSE:
+		case MIDDLEMOUSE:
 			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
 			 * the modal op) doesn't work for some reason
 			 */
