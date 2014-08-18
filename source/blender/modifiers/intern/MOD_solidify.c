@@ -398,7 +398,7 @@ static DerivedMesh *applyModifier(
 
 		for (i = 0, j = (int)numEdges; i < numEdges; i++) {
 			if (!ELEM(edge_users[i], INVALID_UNUSED, INVALID_PAIR)) {
-				MEdge* ed_src, *ed_dst;
+				MEdge *ed_src, *ed_dst;
 				DM_copy_edge_data(dm, result, i, j, 1);
 
 				ed_src = &medge[i];

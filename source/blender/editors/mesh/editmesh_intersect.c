@@ -84,7 +84,6 @@ static void bm_face_split_by_edges(BMesh *bm, BMFace *f, const char hflag)
 			if (BM_elem_flag_test(e, hflag) &&
 			    (BM_elem_index_get(e) == f_index))
 			{
-				BMVert *v;
 				v = BM_edge_other_vert(e, l_iter->v);
 				v->e = e;
 
@@ -180,7 +179,6 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, hflag)) {
 			BMIter viter;
-			BMVert *v;
 			BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
 				BMIter liter;
 				BMLoop *l;
