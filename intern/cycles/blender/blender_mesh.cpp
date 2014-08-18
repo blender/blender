@@ -525,15 +525,18 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	}
 	
 	/* test if we need to sync */
+	bool use_mesh_geometry = render_layer.use_surfaces || render_layer.use_hair;
 	Mesh *mesh;
 
 	if(!mesh_map.sync(&mesh, key)) {
+		bool have_geometry = mesh->verts.size() != 0;
 		
 		/* if transform was applied to mesh, need full update */
 		if(object_updated && mesh->transform_applied);
 		/* test if shaders changed, these can be object level so mesh
 		 * does not get tagged for recalc */
 		else if(mesh->used_shaders != used_shaders);
+		else if(use_mesh_geometry != have_geometry);
 		else {
 			/* even if not tagged for recalc, we may need to sync anyway
 			 * because the shader needs different mesh attributes */
@@ -567,7 +570,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	mesh->used_shaders = used_shaders;
 	mesh->name = ustring(b_ob_data.name().c_str());
 
-	if(render_layer.use_surfaces || render_layer.use_hair) {
+	if(use_mesh_geometry) {
 		/* mesh objects does have special handle in the dependency graph,
 		 * they're ensured to have properly updated.
 		 *
