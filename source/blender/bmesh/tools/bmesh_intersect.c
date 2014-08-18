@@ -307,7 +307,7 @@ static enum ISectType intersect_line_tri(
 						fac = line_point_factor_v3(ix_pair[0], p0, p1);
 						if ((fac >= e->eps_margin) && (fac <= 1.0f - e->eps_margin)) {
 							copy_v3_v3(r_ix, ix_pair[0]);
-							return (IX_EDGE_TRI_EDGE0 + (int)i_t0);
+							return (IX_EDGE_TRI_EDGE0 + (enum ISectType)i_t0);
 						}
 					}
 				}
@@ -402,7 +402,7 @@ static BMVert *bm_isect_edge_tri(
 #ifdef USE_DUMP
 			printf("# cache hit (%d, %d, %d, %d)\n", UNPACK4(k_arr[i]));
 #endif
-			*r_side = (int)i;
+			*r_side = (enum ISectType)i;
 			return iv;
 		}
 	}
