@@ -1172,7 +1172,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
  *
  * shared with NDOF.
  */
-static void view3d_ensure_persp(struct View3D *v3d, ARegion *ar)
+static bool view3d_ensure_persp(struct View3D *v3d, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const bool autopersp = (U.uiflag & USER_AUTOPERSP) != 0;
@@ -1180,7 +1180,7 @@ static void view3d_ensure_persp(struct View3D *v3d, ARegion *ar)
 	BLI_assert((rv3d->viewlock & RV3D_LOCKED) == 0);
 
 	if (ED_view3d_camera_lock_check(v3d, rv3d))
-		return;
+		return false;
 
 	if (rv3d->persp != RV3D_PERSP) {
 		if (rv3d->persp == RV3D_CAMOB) {
@@ -1191,7 +1191,10 @@ static void view3d_ensure_persp(struct View3D *v3d, ARegion *ar)
 		else if (autopersp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
 			rv3d->persp = RV3D_PERSP;
 		}
+		return true;
 	}
+
+	return false;
 }
 
 static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1210,8 +1213,14 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	/* switch from camera view when: */
-	view3d_ensure_persp(vod->v3d, vod->ar);
-	
+	if (view3d_ensure_persp(vod->v3d, vod->ar)) {
+		/* If we're switching from camera view to the perspective one,
+		 * need to tag viewport update, so camera vuew and borders
+		 * are properly updated.
+		 */
+		ED_region_tag_redraw(vod->ar);
+	}
+
 	if (event->type == MOUSEPAN) {
 		/* Rotate direction we keep always same */
 		if (U.uiflag2 & USER_TRACKPAD_NATURAL)
