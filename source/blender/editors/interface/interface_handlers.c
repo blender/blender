@@ -7951,7 +7951,7 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
 		else if (!ui_mouse_inside_region(but->active->region, event->x, event->y)) {
 			/* pass, needed to click-exit outside of non-flaoting menus */
 		}
-		else if ((event->type != MOUSEMOVE) && ISMOUSE(event->type)) {
+		else if ((!ELEM(event->type, MOUSEMOVE, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN)) && ISMOUSE(event->type)) {
 			if (!ui_mouse_inside_button(but->active->region, but, event->x, event->y)) {
 				but = NULL;
 			}
