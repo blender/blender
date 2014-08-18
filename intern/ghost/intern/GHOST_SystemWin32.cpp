@@ -47,6 +47,7 @@
 #include <shlobj.h>
 #include <tlhelp32.h>
 #include <Psapi.h>
+#include <windowsx.h>
 
 #include "utfconv.h"
 
@@ -1056,6 +1057,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					event = processCursorEvent(GHOST_kEventCursorMove, window);
 					break;
 				case WM_MOUSEWHEEL:
+				{
 					/* The WM_MOUSEWHEEL message is sent to the focus window 
 					 * when the mouse wheel is rotated. The DefWindowProc 
 					 * function propagates the message to the window's parent.
@@ -1063,12 +1065,28 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * since DefWindowProc propagates it up the parent chain 
 					 * until it finds a window that processes it.
 					 */
-					event = processWheelEvent(window, wParam, lParam);
+
+					/* Get the winow under the mouse and send event to it's queue. */
+					POINT mouse_pos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+					HWND mouse_hwnd = WindowFromPoint(mouse_pos);
+					GHOST_WindowWin32 *mouse_window = (GHOST_WindowWin32 *)::GetWindowLongPtr(mouse_hwnd, GWLP_USERDATA);
+					if (mouse_window != NULL) {
+						event = processWheelEvent(mouse_window, wParam, lParam);
+					}
+					else {
+						/* If it happened so window under the mouse is not found (which i'm not
+						 * really sure might happen), then we add event to the focused window
+						 * in order to avoid some possible negative side effects.
+						 *                                                    - sergey -
+						 */
+						event = processWheelEvent(window, wParam, lParam);
+					}
 
 #ifdef BROKEN_PEEK_TOUCHPAD
 					PostMessage(hwnd, WM_USER, 0, 0);
 #endif
 					break;
+				}
 				case WM_SETCURSOR:
 					/* The WM_SETCURSOR message is sent to a window if the mouse causes the cursor
 					 * to move within a window and mouse input is not captured.
