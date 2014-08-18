@@ -2376,8 +2376,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
-	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
-	RNA_def_boolean(ot->srna, "use_scripts", 1, "Trusted Source",
+	RNA_def_boolean(ot->srna, "load_ui", true, "Load UI", "Load user interface setup in the .blend file");
+	RNA_def_boolean(ot->srna, "use_scripts", true, "Trusted Source",
 	                "Allow .blend file to execute scripts automatically, default available from system preferences");
 }
 
@@ -2388,7 +2388,14 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 {
 	bool success;
 
-	success = wm_file_read_opwrap(C, G.main->name, op->reports, true);
+	wm_open_init_use_scripts(op, false);
+
+	if (RNA_boolean_get(op->ptr, "use_scripts"))
+		G.f |= G_SCRIPT_AUTOEXEC;
+	else
+		G.f &= ~G_SCRIPT_AUTOEXEC;
+
+	success = wm_file_read_opwrap(C, G.main->name, op->reports, !(G.f & G_SCRIPT_AUTOEXEC));
 
 	if (success) {
 		return OPERATOR_FINISHED;
@@ -2409,6 +2416,9 @@ static void WM_OT_revert_mainfile(wmOperatorType *ot)
 	ot->idname = "WM_OT_revert_mainfile";
 	ot->description = "Reload the saved file";
 	ot->invoke = WM_operator_confirm;
+
+	RNA_def_boolean(ot->srna, "use_scripts", true, "Trusted Source",
+	                "Allow .blend file to execute scripts automatically, default available from system preferences");
 
 	ot->exec = wm_revert_mainfile_exec;
 	ot->poll = wm_revert_mainfile_poll;
