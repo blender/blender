@@ -944,6 +944,12 @@ static void texture_rgb_blend(GPUMaterial *mat, GPUNodeLink *tex, GPUNodeLink *o
 	case MTEX_BLEND_COLOR:
 		GPU_link(mat, "mtex_rgb_color", out, tex, fact, facg, in);
 		break;
+	case MTEX_SOFT_LIGHT:
+		GPU_link(mat, "mtex_rgb_soft", out, tex, fact, facg, in);
+		break;
+	case MTEX_LIN_LIGHT:
+		GPU_link(mat, "mtex_rgb_linear", out, tex, fact, facg, in);
+		break;
 	default:
 		GPU_link(mat, "set_rgb_zero", &in);
 		break;

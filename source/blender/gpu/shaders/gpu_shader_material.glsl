@@ -1012,6 +1012,38 @@ void mtex_rgb_color(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 i
 	incol.rgb = col.rgb;
 }
 
+void mtex_rgb_soft(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
+{
+	float facm;
+
+	fact *= facg;
+	facm = 1.0-fact;
+
+	vec3 one = vec3(1.0);
+	vec3 scr = one - (one - texcol)*(one - outcol);
+	incol = facm*outcol + fact*((one - texcol)*outcol*texcol + outcol*scr);
+}
+
+void mtex_rgb_linear(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
+{
+	fact *= facg;
+
+	if(texcol.r > 0.5)
+		incol.r = outcol.r + fact*(2.0*(texcol.r - 0.5));
+	else
+		incol.r = outcol.r + fact*(2.0*(texcol.r) - 1.0);
+
+	if(texcol.g > 0.5)
+		incol.g = outcol.g + fact*(2.0*(texcol.g - 0.5));
+	else
+		incol.g = outcol.g + fact*(2.0*(texcol.g) - 1.0);
+
+	if(texcol.b > 0.5)
+		incol.b = outcol.b + fact*(2.0*(texcol.b - 0.5));
+	else
+		incol.b = outcol.b + fact*(2.0*(texcol.b) - 1.0);
+}
+
 void mtex_value_vars(inout float fact, float facg, out float facm)
 {
 	fact *= abs(facg);
