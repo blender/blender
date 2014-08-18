@@ -877,6 +877,9 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
 	GG.currentfb = fb->object;
 
+	/* Clean glError buffer. */
+	while (glGetError() != GL_NO_ERROR) {}
+
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, attachment, 
 		tex->target, tex->bindcode, 0);
 
