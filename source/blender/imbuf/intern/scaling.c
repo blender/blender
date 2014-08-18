@@ -320,7 +320,7 @@ MINLINE void straight_uchar_to_premul_ushort(unsigned short result[4], const uns
 	result[0] = color[0] * alpha;
 	result[1] = color[1] * alpha;
 	result[2] = color[2] * alpha;
-	result[3] = alpha * 255;
+	result[3] = alpha * 256;
 }
 
 MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsigned short color[4])
@@ -332,11 +332,11 @@ MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsign
 		result[3] = USHORTTOUCHAR(color[3]);
 	}
 	else {
-		unsigned short alpha = color[3] / 255;
+		unsigned short alpha = color[3] / 256;
 
-		result[0] = USHORTTOUCHAR(color[0] / alpha * 255);
-		result[1] = USHORTTOUCHAR(color[1] / alpha * 255);
-		result[2] = USHORTTOUCHAR(color[2] / alpha * 255);
+		result[0] = USHORTTOUCHAR(color[0] / alpha * 256);
+		result[1] = USHORTTOUCHAR(color[1] / alpha * 256);
+		result[2] = USHORTTOUCHAR(color[2] / alpha * 256);
 		result[3] = USHORTTOUCHAR(color[3]);
 	}
 }
