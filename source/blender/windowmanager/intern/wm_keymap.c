@@ -1421,6 +1421,20 @@ wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id)
 /* Needs to be kept up to date with Keymap and Operator naming */
 wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 {
+	/* Op types purposely skipped  for now:
+	 *     BRUSH_OT
+	 *     BOID_OT
+	 *     BUTTONS_OT
+	 *     CONSTRAINT_OT
+	 *     DPAINT_OT
+	 *     ED_OT
+	 *     FLUID_OT
+	 *     TEXTURE_OT
+	 *     UI_OT
+	 *     VIEW2D_OT
+	 *     WORLD_OT
+	 */
+
 	wmKeyMap *km = NULL;
 	SpaceLink *sl = CTX_wm_space_data(C);
 	
@@ -1428,8 +1442,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	if (strstr(opname, "WM_OT")) {
 		km = WM_keymap_find_all(C, "Window", 0, 0);
 	}
-	/* Screen */
-	else if (strstr(opname, "SCREEN_OT")) {
+	/* Screen & Render */
+	else if (strstr(opname, "SCREEN_OT") || strstr(opname, "RENDER_OT") || strstr(opname, "SOUND_OT") ||
+	         strstr(opname, "SCENE_OT"))
+	{
 		km = WM_keymap_find_all(C, "Screen", 0, 0);
 	}
 	/* Grease Pencil */
@@ -1457,7 +1473,12 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 		else
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 	}
-
+	/* Object mode related */
+	else if (strstr(opname, "GROUP_OT") || strstr(opname, "MATERIAL_OT") || strstr(opname, "PTCACHE_OT") ||
+	         strstr(opname, "RIGIDBODY_OT"))
+	{
+		km = WM_keymap_find_all(C, "Object Mode", 0, 0);
+	}
 	
 	/* Editing Modes */
 	else if (strstr(opname, "MESH_OT")) {
@@ -1468,7 +1489,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 		}
 	}
-	else if (strstr(opname, "CURVE_OT")) {
+	else if (strstr(opname, "CURVE_OT") || strstr(opname, "SURFACE_OT")) {
 		km = WM_keymap_find_all(C, "Curve", 0, 0);
 		
 		/* some curve operators are active in object mode too, like add-prim */
@@ -1476,10 +1497,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 		}
 	}
-	else if (strstr(opname, "ARMATURE_OT")) {
+	else if (strstr(opname, "ARMATURE_OT") || strstr(opname, "SKETCH_OT")) {
 		km = WM_keymap_find_all(C, "Armature", 0, 0);
 	}
-	else if (strstr(opname, "POSE_OT")) {
+	else if (strstr(opname, "POSE_OT") || strstr(opname, "POSELIB_OT")) {
 		km = WM_keymap_find_all(C, "Pose", 0, 0);
 	}
 	else if (strstr(opname, "SCULPT_OT")) {
@@ -1536,6 +1557,13 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	else if (strstr(opname, "IMAGE_OT")) {
 		km = WM_keymap_find_all(C, "Image", sl->spacetype, 0);
 	}
+	/* Clip Editor */
+	else if (strstr(opname, "CLIP_OT")) {
+		km = WM_keymap_find_all(C, "Clip", sl->spacetype, 0);
+	}
+	else if (strstr(opname, "MASK_OT")) {
+		km = WM_keymap_find_all(C, "Mask Editing", 0, 0);
+	}
 	/* UV Editor */
 	else if (strstr(opname, "UV_OT")) {
 		km = WM_keymap_find_all(C, "UV Editor", sl->spacetype, 0);
@@ -1584,10 +1612,21 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	else if (strstr(opname, "INFO_OT")) {
 		km = WM_keymap_find_all(C, "Info", sl->spacetype, 0);
 	}
+	/* File browser */
+	else if (strstr(opname, "FILE_OT")) {
+		km = WM_keymap_find_all(C, "File Browser", sl->spacetype, 0);
+	}
+	/* Logic Editor */
+	else if (strstr(opname, "LOGIC_OT")) {
+		km = WM_keymap_find_all(C, "Logic Editor", sl->spacetype, 0);
+	}
+	/* Outliner */
+	else if (strstr(opname, "OUTLINER_OT")) {
+		km = WM_keymap_find_all(C, "Outliner", sl->spacetype, 0);
+	}
 	
 	/* Transform */
 	else if (strstr(opname, "TRANSFORM_OT")) {
-		
 		/* check for relevant editor */
 		switch (sl->spacetype) {
 			case SPACE_VIEW3D:
