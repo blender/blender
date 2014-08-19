@@ -736,6 +736,20 @@ void RE_ChangeResolution(Render *re, int winx, int winy, rcti *disprect)
 	}
 }
 
+/* TODO(sergey): This is a bit hackish, used to temporary disable freestyle when
+ * doing viewport render. Needs some better integration of BI viewport rendering
+ * into the pipeline.
+ */
+void RE_ChangeModeFlag(Render *re, int flag, bool clear)
+{
+	if (clear) {
+		re->r.mode &= ~flag;
+	}
+	else {
+		re->r.mode |= flag;
+	}
+}
+
 /* update some variables that can be animated, and otherwise wouldn't be due to
  * RenderData getting copied once at the start of animation render */
 void render_update_anim_renderdata(Render *re, RenderData *rd)

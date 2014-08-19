@@ -1032,6 +1032,7 @@ typedef struct RenderPreview {
 
 	int start_resolution_divider;
 	int resolution_divider;
+	bool has_freestyle;
 } RenderPreview;
 
 static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rcti *disprect)
@@ -1150,6 +1151,15 @@ static void render_update_resolution(Render *re, const RenderPreview *rp,
 	else {
 		RE_ChangeResolution(re, winx, winy, NULL);
 	}
+
+	if (rp->has_freestyle) {
+		if (rp->resolution_divider == 1) {
+			RE_ChangeModeFlag(re, R_EDGE_FRS, false);
+		}
+		else {
+			RE_ChangeModeFlag(re, R_EDGE_FRS, true);
+		}
+	}
 }
 
 static void render_view3d_startjob(void *customdata, short *stop, short *do_update, float *UNUSED(progress))
@@ -1163,7 +1173,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	bool orth, restore = 0;
 	char name[32];
 	int update_flag;
-	bool use_border = false;
+	bool use_border;
 
 	update_flag = rp->engine->job_update_flag;
 	rp->engine->job_update_flag = 0;
@@ -1429,6 +1439,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	rp->bmain = CTX_data_main(C);
 	rp->resolution_divider = divider;
 	rp->start_resolution_divider = divider;
+	rp->has_freestyle = scene->r.mode & R_EDGE_FRS;
 	copy_m4_m4(rp->viewmat, rp->rv3d->viewmat);
 	
 	/* clear info text */
