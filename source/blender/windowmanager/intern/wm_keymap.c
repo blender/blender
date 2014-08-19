@@ -1439,49 +1439,55 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	SpaceLink *sl = CTX_wm_space_data(C);
 	
 	/* Window */
-	if (strstr(opname, "WM_OT")) {
+	if (STRPREFIX(opname, "WM_OT")) {
 		km = WM_keymap_find_all(C, "Window", 0, 0);
 	}
 	/* Screen & Render */
-	else if (strstr(opname, "SCREEN_OT") || strstr(opname, "RENDER_OT") || strstr(opname, "SOUND_OT") ||
-	         strstr(opname, "SCENE_OT"))
+	else if (STRPREFIX(opname, "SCREEN_OT") ||
+	         STRPREFIX(opname, "RENDER_OT") ||
+	         STRPREFIX(opname, "SOUND_OT") ||
+	         STRPREFIX(opname, "SCENE_OT"))
 	{
 		km = WM_keymap_find_all(C, "Screen", 0, 0);
 	}
 	/* Grease Pencil */
-	else if (strstr(opname, "GPENCIL_OT")) {
+	else if (STRPREFIX(opname, "GPENCIL_OT")) {
 		km = WM_keymap_find_all(C, "Grease Pencil", 0, 0);
 	}
 	/* Markers */
-	else if (strstr(opname, "MARKER_OT")) {
+	else if (STRPREFIX(opname, "MARKER_OT")) {
 		km = WM_keymap_find_all(C, "Markers", 0, 0);
 	}
 	/* Import/Export*/
-	else if (strstr(opname, "IMPORT_") || strstr(opname, "EXPORT_")) {
+	else if (STRPREFIX(opname, "IMPORT_") ||
+	         STRPREFIX(opname, "EXPORT_"))
+	{
 		km = WM_keymap_find_all(C, "Window", 0, 0);
 	}
 	
 	
 	/* 3D View */
-	else if (strstr(opname, "VIEW3D_OT")) {
+	else if (STRPREFIX(opname, "VIEW3D_OT")) {
 		km = WM_keymap_find_all(C, "3D View", sl->spacetype, 0);
 	}
-	else if (strstr(opname, "OBJECT_OT")) {
+	else if (STRPREFIX(opname, "OBJECT_OT")) {
 		/* exception, this needs to work outside object mode too */
-		if (strstr(opname, "OBJECT_OT_mode_set"))
+		if (STRPREFIX(opname, "OBJECT_OT_mode_set"))
 			km = WM_keymap_find_all(C, "Object Non-modal", 0, 0);
 		else
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 	}
 	/* Object mode related */
-	else if (strstr(opname, "GROUP_OT") || strstr(opname, "MATERIAL_OT") || strstr(opname, "PTCACHE_OT") ||
-	         strstr(opname, "RIGIDBODY_OT"))
+	else if (STRPREFIX(opname, "GROUP_OT") ||
+	         STRPREFIX(opname, "MATERIAL_OT") ||
+	         STRPREFIX(opname, "PTCACHE_OT") ||
+	         STRPREFIX(opname, "RIGIDBODY_OT"))
 	{
 		km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 	}
 	
 	/* Editing Modes */
-	else if (strstr(opname, "MESH_OT")) {
+	else if (STRPREFIX(opname, "MESH_OT")) {
 		km = WM_keymap_find_all(C, "Mesh", 0, 0);
 		
 		/* some mesh operators are active in object mode too, like add-prim */
@@ -1489,7 +1495,9 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 		}
 	}
-	else if (strstr(opname, "CURVE_OT") || strstr(opname, "SURFACE_OT")) {
+	else if (STRPREFIX(opname, "CURVE_OT") ||
+	         STRPREFIX(opname, "SURFACE_OT"))
+	{
 		km = WM_keymap_find_all(C, "Curve", 0, 0);
 		
 		/* some curve operators are active in object mode too, like add-prim */
@@ -1497,13 +1505,17 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 		}
 	}
-	else if (strstr(opname, "ARMATURE_OT") || strstr(opname, "SKETCH_OT")) {
+	else if (STRPREFIX(opname, "ARMATURE_OT") ||
+	         STRPREFIX(opname, "SKETCH_OT"))
+	{
 		km = WM_keymap_find_all(C, "Armature", 0, 0);
 	}
-	else if (strstr(opname, "POSE_OT") || strstr(opname, "POSELIB_OT")) {
+	else if (STRPREFIX(opname, "POSE_OT") ||
+	         STRPREFIX(opname, "POSELIB_OT"))
+	{
 		km = WM_keymap_find_all(C, "Pose", 0, 0);
 	}
-	else if (strstr(opname, "SCULPT_OT")) {
+	else if (STRPREFIX(opname, "SCULPT_OT")) {
 		switch (CTX_data_mode_enum(C)) {
 			case OB_MODE_SCULPT:
 				km = WM_keymap_find_all(C, "Sculpt", 0, 0);
@@ -1513,7 +1525,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 				break;
 		}
 	}
-	else if (strstr(opname, "MBALL_OT")) {
+	else if (STRPREFIX(opname, "MBALL_OT")) {
 		km = WM_keymap_find_all(C, "Metaball", 0, 0);
 		
 		/* some mball operators are active in object mode too, like add-prim */
@@ -1521,16 +1533,16 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 			km = WM_keymap_find_all(C, "Object Mode", 0, 0);
 		}
 	}
-	else if (strstr(opname, "LATTICE_OT")) {
+	else if (STRPREFIX(opname, "LATTICE_OT")) {
 		km = WM_keymap_find_all(C, "Lattice", 0, 0);
 	}
-	else if (strstr(opname, "PARTICLE_OT")) {
+	else if (STRPREFIX(opname, "PARTICLE_OT")) {
 		km = WM_keymap_find_all(C, "Particle", 0, 0);
 	}
-	else if (strstr(opname, "FONT_OT")) {
+	else if (STRPREFIX(opname, "FONT_OT")) {
 		km = WM_keymap_find_all(C, "Font", 0, 0);
 	}
-	else if (strstr(opname, "PAINT_OT")) {
+	else if (STRPREFIX(opname, "PAINT_OT")) {
 		
 		/* check for relevant mode */
 		switch (CTX_data_mode_enum(C)) {
@@ -1546,87 +1558,86 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 		}
 	}
 	/* Paint Face Mask */
-	else if (strstr(opname, "PAINT_OT_face_select")) {
+	else if (STRPREFIX(opname, "PAINT_OT_face_select")) {
 		km = WM_keymap_find_all(C, "Face Mask", sl->spacetype, 0);
 	}
 	/* Timeline */
-	else if (strstr(opname, "TIME_OT")) {
+	else if (STRPREFIX(opname, "TIME_OT")) {
 		km = WM_keymap_find_all(C, "Timeline", sl->spacetype, 0);
 	}
 	/* Image Editor */
-	else if (strstr(opname, "IMAGE_OT")) {
+	else if (STRPREFIX(opname, "IMAGE_OT")) {
 		km = WM_keymap_find_all(C, "Image", sl->spacetype, 0);
 	}
 	/* Clip Editor */
-	else if (strstr(opname, "CLIP_OT")) {
+	else if (STRPREFIX(opname, "CLIP_OT")) {
 		km = WM_keymap_find_all(C, "Clip", sl->spacetype, 0);
 	}
-	else if (strstr(opname, "MASK_OT")) {
+	else if (STRPREFIX(opname, "MASK_OT")) {
 		km = WM_keymap_find_all(C, "Mask Editing", 0, 0);
 	}
 	/* UV Editor */
-	else if (strstr(opname, "UV_OT")) {
+	else if (STRPREFIX(opname, "UV_OT")) {
 		km = WM_keymap_find_all(C, "UV Editor", sl->spacetype, 0);
 	}
 	/* Node Editor */
-	else if (strstr(opname, "NODE_OT")) {
+	else if (STRPREFIX(opname, "NODE_OT")) {
 		km = WM_keymap_find_all(C, "Node Editor", sl->spacetype, 0);
 	}
 	/* Animation Editor Channels */
-	else if (strstr(opname, "ANIM_OT_channels")) {
+	else if (STRPREFIX(opname, "ANIM_OT_channels")) {
 		km = WM_keymap_find_all(C, "Animation Channels", sl->spacetype, 0);
 	}
 	/* Animation Generic - after channels */
-	else if (strstr(opname, "ANIM_OT")) {
+	else if (STRPREFIX(opname, "ANIM_OT")) {
 		km = WM_keymap_find_all(C, "Animation", 0, 0);
 	}
 	/* Graph Editor */
-	else if (strstr(opname, "GRAPH_OT")) {
+	else if (STRPREFIX(opname, "GRAPH_OT")) {
 		km = WM_keymap_find_all(C, "Graph Editor", sl->spacetype, 0);
 	}
 	/* Dopesheet Editor */
-	else if (strstr(opname, "ACTION_OT")) {
+	else if (STRPREFIX(opname, "ACTION_OT")) {
 		km = WM_keymap_find_all(C, "Dopesheet", sl->spacetype, 0);
 	}
 	/* NLA Editor */
-	else if (strstr(opname, "NLA_OT")) {
+	else if (STRPREFIX(opname, "NLA_OT")) {
 		km = WM_keymap_find_all(C, "NLA Editor", sl->spacetype, 0);
 	}
 	/* Script */
-	else if (strstr(opname, "SCRIPT_OT")) {
+	else if (STRPREFIX(opname, "SCRIPT_OT")) {
 		km = WM_keymap_find_all(C, "Script", sl->spacetype, 0);
 	}
 	/* Text */
-	else if (strstr(opname, "TEXT_OT")) {
+	else if (STRPREFIX(opname, "TEXT_OT")) {
 		km = WM_keymap_find_all(C, "Text", sl->spacetype, 0);
 	}
 	/* Sequencer */
-	else if (strstr(opname, "SEQUENCER_OT")) {
+	else if (STRPREFIX(opname, "SEQUENCER_OT")) {
 		km = WM_keymap_find_all(C, "Sequencer", sl->spacetype, 0);
 	}
 	/* Console */
-	else if (strstr(opname, "CONSOLE_OT")) {
+	else if (STRPREFIX(opname, "CONSOLE_OT")) {
 		km = WM_keymap_find_all(C, "Console", sl->spacetype, 0);
 	}
 	/* Console */
-	else if (strstr(opname, "INFO_OT")) {
+	else if (STRPREFIX(opname, "INFO_OT")) {
 		km = WM_keymap_find_all(C, "Info", sl->spacetype, 0);
 	}
 	/* File browser */
-	else if (strstr(opname, "FILE_OT")) {
+	else if (STRPREFIX(opname, "FILE_OT")) {
 		km = WM_keymap_find_all(C, "File Browser", sl->spacetype, 0);
 	}
 	/* Logic Editor */
-	else if (strstr(opname, "LOGIC_OT")) {
+	else if (STRPREFIX(opname, "LOGIC_OT")) {
 		km = WM_keymap_find_all(C, "Logic Editor", sl->spacetype, 0);
 	}
 	/* Outliner */
-	else if (strstr(opname, "OUTLINER_OT")) {
+	else if (STRPREFIX(opname, "OUTLINER_OT")) {
 		km = WM_keymap_find_all(C, "Outliner", sl->spacetype, 0);
 	}
-	
 	/* Transform */
-	else if (strstr(opname, "TRANSFORM_OT")) {
+	else if (STRPREFIX(opname, "TRANSFORM_OT")) {
 		/* check for relevant editor */
 		switch (sl->spacetype) {
 			case SPACE_VIEW3D:
