@@ -259,7 +259,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 		do_edge_recalc = do_fixes;
 	}
 
-	for (i = 1; i < totvert; i++, mv++) {
+	for (i = 0; i < totvert; i++, mv++) {
 		bool fix_normal = true;
 
 		for (j = 0; j < 3; j++) {
