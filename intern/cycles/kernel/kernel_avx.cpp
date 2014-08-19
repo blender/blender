@@ -68,10 +68,10 @@ void kernel_cpu_avx_convert_to_half_float(KernelGlobals *kg, uchar4 *rgba, float
 
 /* Shader Evaluate */
 
-void kernel_cpu_avx_shader(KernelGlobals *kg, uint4 *input, float4 *output, int type, int i, int sample)
+void kernel_cpu_avx_shader(KernelGlobals *kg, uint4 *input, float4 *output, int type, int i, int offset, int sample)
 {
 	if(type >= SHADER_EVAL_BAKE)
-		kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, i, sample);
+		kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, i, offset, sample);
 	else
 		kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, i, sample);
 }

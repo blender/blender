@@ -676,6 +676,7 @@ public:
 		const int shader_chunk_size = 65536;
 		const int start = task.shader_x;
 		const int end = task.shader_x + task.shader_w;
+		int offset = task.offset;
 
 		bool canceled = false;
 		for(int sample = 0; sample < task.num_samples && !canceled; sample++) {
@@ -688,6 +689,7 @@ public:
 								 &task.shader_eval_type,
 								 &shader_x,
 								 &shader_w,
+								 &offset,
 								 &sample};
 
 				/* launch kernel */

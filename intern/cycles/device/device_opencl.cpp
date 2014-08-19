@@ -1004,6 +1004,7 @@ public:
 		cl_int d_shader_eval_type = task.shader_eval_type;
 		cl_int d_shader_x = task.shader_x;
 		cl_int d_shader_w = task.shader_w;
+		cl_int d_offset = task.offset;
 
 		/* sample arguments */
 		cl_uint narg = 0;
@@ -1033,6 +1034,7 @@ public:
 			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type));
 			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x));
 			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w));
+			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_offset), (void*)&d_offset));
 			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_sample), (void*)&d_sample));
 
 			enqueue_kernel(kernel, task.shader_w, 1);

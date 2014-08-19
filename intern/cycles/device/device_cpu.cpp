@@ -435,7 +435,8 @@ public:
 		if(system_cpu_support_avx2()) {
 			for(int sample = 0; sample < task.num_samples; sample++) {
 				for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-					kernel_cpu_avx2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x, sample);
+					kernel_cpu_avx2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output,
+					    task.shader_eval_type, x, task.offset, sample);
 
 				if(task.get_cancel() || task_pool.canceled())
 					break;
@@ -449,7 +450,8 @@ public:
 		if(system_cpu_support_avx()) {
 			for(int sample = 0; sample < task.num_samples; sample++) {
 				for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-					kernel_cpu_avx_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x, sample);
+					kernel_cpu_avx_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output,
+					    task.shader_eval_type, x, task.offset, sample);
 
 				if(task.get_cancel() || task_pool.canceled())
 					break;
@@ -463,7 +465,8 @@ public:
 		if(system_cpu_support_sse41()) {
 			for(int sample = 0; sample < task.num_samples; sample++) {
 				for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-					kernel_cpu_sse41_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x, sample);
+					kernel_cpu_sse41_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output,
+					    task.shader_eval_type, x, task.offset, sample);
 
 				if(task.get_cancel() || task_pool.canceled())
 					break;
@@ -477,7 +480,8 @@ public:
 		if(system_cpu_support_sse3()) {
 			for(int sample = 0; sample < task.num_samples; sample++) {
 				for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-					kernel_cpu_sse3_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x, sample);
+					kernel_cpu_sse3_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output,
+					    task.shader_eval_type, x, task.offset, sample);
 
 				if(task.get_cancel() || task_pool.canceled())
 					break;
@@ -491,7 +495,8 @@ public:
 		if(system_cpu_support_sse2()) {
 			for(int sample = 0; sample < task.num_samples; sample++) {
 				for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-					kernel_cpu_sse2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x, sample);
+					kernel_cpu_sse2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output,
+					    task.shader_eval_type, x, task.offset, sample);
 
 				if(task.get_cancel() || task_pool.canceled())
 					break;
@@ -504,7 +509,8 @@ public:
 		{
 			for(int sample = 0; sample < task.num_samples; sample++) {
 				for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-					kernel_cpu_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x, sample);
+					kernel_cpu_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output,
+					    task.shader_eval_type, x, task.offset, sample);
 
 				if(task.get_cancel() || task_pool.canceled())
 					break;

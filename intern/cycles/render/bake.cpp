@@ -179,6 +179,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		task.shader_output = d_output.device_pointer;
 		task.shader_eval_type = shader_type;
 		task.shader_x = 0;
+		task.offset = shader_offset;
 		task.shader_w = d_output.size();
 		task.num_samples = this->num_samples;
 		task.get_cancel = function_bind(&Progress::get_cancel, &progress);

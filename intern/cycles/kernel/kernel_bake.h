@@ -172,7 +172,8 @@ ccl_device_inline float bake_clamp_mirror_repeat(float u)
 }
 #endif
 
-ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input, ccl_global float4 *output, ShaderEvalType type, int i, int sample)
+ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input, ccl_global float4 *output,
+                                     ShaderEvalType type, int i, int offset, int sample)
 {
 	ShaderData sd;
 	uint4 in = input[i * 2];
@@ -197,7 +198,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	int num_samples = kernel_data.integrator.aa_samples;
 
 	/* random number generator */
-	RNG rng = cmj_hash(i, 0);
+	RNG rng = cmj_hash(offset + i, 0);
 
 #if 0
 	uint rng_state = cmj_hash(i, 0);
