@@ -1368,7 +1368,7 @@ static void calc_bevfac_segment_mapping(BevList *bl, float bevfac, float spline_
 
 	while (bevcount < nr - 1) {
 		normlen = *seglen / spline_length;
-		if (normsum + normlen > bevfac){
+		if (normsum + normlen > bevfac) {
 			bev_fl = bevcount + (bevfac - normsum) / normlen * *segbevcount;
 			*r_bev = (int) bev_fl;
 			*r_blend = bev_fl - *r_bev;

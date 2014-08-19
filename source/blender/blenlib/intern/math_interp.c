@@ -62,7 +62,11 @@ static float P(float k)
 /* older, slower function, works the same as above */
 static float P(float k)
 {
-	return (float)(1.0f / 6.0f) * (pow(MAX2(k + 2.0f, 0), 3.0f) - 4.0f * pow(MAX2(k + 1.0f, 0), 3.0f) + 6.0f * pow(MAX2(k, 0), 3.0f) - 4.0f * pow(MAX2(k - 1.0f, 0), 3.0f));
+	return (float)(1.0f / 6.0f) *
+	        (pow(MAX2(k + 2.0f, 0), 3.0f) - 4.0f *
+	         pow(MAX2(k + 1.0f, 0), 3.0f) + 6.0f *
+	         pow(MAX2(k, 0), 3.0f) - 4.0f *
+	         pow(MAX2(k - 1.0f, 0), 3.0f));
 }
 #endif
 
@@ -416,10 +420,10 @@ static void radangle2imp(float a2, float b2, float th, float *A, float *B, float
 	float ct2 = cosf(th);
 	const float st2 = 1.0f - ct2 * ct2;	/* <- sin(th)^2 */
 	ct2 *= ct2;
-	*A = a2*st2 + b2*ct2;
-	*B = (b2 - a2)*sinf(2.f*th);
-	*C = a2*ct2 + b2*st2;
-	*F = a2*b2;
+	*A = a2 * st2 + b2 * ct2;
+	*B = (b2 - a2) * sinf(2.0f * th);
+	*C = a2 * ct2 + b2 * st2;
+	*F = a2 * b2;
 }
 
 /* all tests here are done to make sure possible overflows are hopefully minimized */
@@ -427,18 +431,18 @@ void BLI_ewa_imp2radangle(float A, float B, float C, float F, float *a, float *b
 {
 	if (F <= 1e-5f) {	/* use arbitrary major radius, zero minor, infinite eccentricity */
 		*a = sqrtf(A > C ? A : C);
-		*b = 0.f;
+		*b = 0.0f;
 		*ecc = 1e10f;
 		*th = 0.5f * (atan2f(B, A - C) + (float)M_PI);
 	}
 	else {
-		const float AmC = A - C, ApC = A + C, F2 = F*2.f;
+		const float AmC = A - C, ApC = A + C, F2 = F * 2.0f;
 		const float r = sqrtf(AmC * AmC + B * B);
 		float d = ApC - r;
-		*a = (d <= 0.f) ? sqrtf(A > C ? A : C) : sqrtf(F2 / d);
+		*a = (d <= 0.0f) ? sqrtf(A > C ? A : C) : sqrtf(F2 / d);
 		d = ApC + r;
-		if (d <= 0.f) {
-			*b = 0.f;
+		if (d <= 0.0f) {
+			*b = 0.0f;
 			*ecc = 1e10f;
 		}
 		else {
@@ -478,10 +482,10 @@ void BLI_ewa_filter(const int width, const int height,
 	 * Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
 	 * and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
 	 * (minimum values: const float rmin = intpol ? 1.f : 0.5f;) */
-	const float rmin = (intpol ? 1.5625f : 0.765625f)/ff2;
+	const float rmin = (intpol ? 1.5625f : 0.765625f) / ff2;
 	BLI_ewa_imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 	if ((b2 = b * b) < rmin) {
-		if ((a2 = a*a) < rmin) {
+		if ((a2 = a * a) < rmin) {
 			B = 0.0f;
 			A = C = rmin;
 			F = A * C;
@@ -533,7 +537,7 @@ void BLI_ewa_filter(const int width, const int height,
 	zero_v4(result);
 	for (v = v1; v <= v2; ++v) {
 		const float V = (float)v - V0;
-		float DQ = ac1 + B*V;
+		float DQ = ac1 + B * V;
 		float Q = (C * V + BU) * V + ac2;
 		for (u = u1; u <= u2; ++u) {
 			if (Q < (float)(EWA_MAXIDX + 1)) {
