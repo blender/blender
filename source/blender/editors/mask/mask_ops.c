@@ -970,8 +970,12 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				free_slide_point_data(op->customdata); /* keep this last! */
 				return OPERATOR_FINISHED;
 			}
-
-			break;
+			else if (event->type != data->event_invoke_type && event->val == KM_PRESS) {
+				/* pass to ESCKEY */
+			}
+			else {
+				break;
+			}
 
 		case ESCKEY:
 			cancel_slide_point(op->customdata);
