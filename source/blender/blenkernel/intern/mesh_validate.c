@@ -502,8 +502,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 						PRINT_ERR("\tLoop %u has invalid vert reference (%u)\n", sp->loopstart + j, ml->v);
 						sp->invalid = true;
 					}
-
-					mverts[ml->v].flag |= ME_VERT_TMP_TAG;
+					else {
+						mverts[ml->v].flag |= ME_VERT_TMP_TAG;
+					}
 					*v = ml->v;
 				}
 
