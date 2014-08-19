@@ -614,6 +614,7 @@ void BKE_deform_flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[
 	char    replace[MAX_VGROUP_NAME] = "";   /* The replacement string */
 	char    number[MAX_VGROUP_NAME]  = "";   /* The number extension string */
 	char    *index = NULL;
+	bool is_set = false;
 
 	/* always copy the name, since this can be called with an uninitialized string */
 	BLI_strncpy(name, from_name, MAX_VGROUP_NAME);
@@ -640,6 +641,7 @@ void BKE_deform_flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[
 
 	/* first case; separator . - _ with extensions r R l L  */
 	if (is_char_sep(name[len - 2])) {
+		is_set = true;
 		switch (name[len - 1]) {
 			case 'l':
 				prefix[len - 1] = 0;
@@ -657,10 +659,14 @@ void BKE_deform_flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[
 				prefix[len - 1] = 0;
 				strcpy(replace, "L");
 				break;
+			default:
+				is_set = false;
 		}
 	}
+
 	/* case; beginning with r R l L, with separator after it */
-	else if (is_char_sep(name[1])) {
+	if (!is_set && is_char_sep(name[1])) {
+		is_set = true;
 		switch (name[0]) {
 			case 'l':
 				strcpy(replace, "r");
@@ -682,39 +688,42 @@ void BKE_deform_flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[
 				BLI_strncpy(suffix, name + 1, sizeof(suffix));
 				prefix[0] = 0;
 				break;
+			default:
+				is_set = false;
 		}
 	}
-	else if (len > 5) {
+
+	if (!is_set && len > 5) {
 		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
-		index = BLI_strcasestr(prefix, "right");
-		if (index == prefix || index == prefix + len - 5) {
-			if (index[0] == 'r')
+		if (((index = BLI_strcasestr(prefix, "right")) == prefix) ||
+		    (index == prefix + len - 5))
+		{
+			is_set = true;
+			if (index[0] == 'r') {
 				strcpy(replace, "left");
+			}
 			else {
-				if (index[1] == 'I')
-					strcpy(replace, "LEFT");
-				else
-					strcpy(replace, "Left");
+				strcpy(replace, (index[1] == 'I') ? "LEFT" : "Left");
 			}
 			*index = 0;
 			BLI_strncpy(suffix, index + 5, sizeof(suffix));
 		}
-		else {
-			index = BLI_strcasestr(prefix, "left");
-			if (index == prefix || index == prefix + len - 4) {
-				if (index[0] == 'l')
-					strcpy(replace, "right");
-				else {
-					if (index[1] == 'E')
-						strcpy(replace, "RIGHT");
-					else
-						strcpy(replace, "Right");
-				}
-				*index = 0;
-				BLI_strncpy(suffix, index + 4, sizeof(suffix));
+		else if (((index = BLI_strcasestr(prefix, "left")) == prefix) ||
+		         (index == prefix + len - 4))
+		{
+			is_set = true;
+			if (index[0] == 'l') {
+				strcpy(replace, "right");
 			}
+			else {
+				strcpy(replace, (index[1] == 'E') ? "RIGHT" : "Right");
+			}
+			*index = 0;
+			BLI_strncpy(suffix, index + 4, sizeof(suffix));
 		}
 	}
+
+	(void)is_set;  /* quiet warning */
 
 	BLI_snprintf(name, MAX_VGROUP_NAME, "%s%s%s%s", prefix, replace, suffix, number);
 }
