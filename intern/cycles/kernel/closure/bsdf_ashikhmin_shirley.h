@@ -77,7 +77,7 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 		NdotI = fmaxf(NdotI, 1e-6f);
 		NdotO = fmaxf(NdotO, 1e-6f);
 		float3 H = normalize(omega_in + I);
-		float HdotI = fmaxf(dot(H, I), 1e-6f);
+		float HdotI = fmaxf(fabsf(dot(H, I)), 1e-6f);
 		float HdotN = fmaxf(dot(H, N), 1e-6f);
 
 		float pump = 1.0f / fmaxf(1e-6f, (HdotI*fmaxf(NdotO, NdotI))); /* pump from original paper (first derivative disc., but cancels the HdotI in the pdf nicely) */
