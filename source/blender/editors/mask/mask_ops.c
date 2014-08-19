@@ -458,7 +458,8 @@ enum {
 	SLIDE_ACTION_NONE    = 0,
 	SLIDE_ACTION_POINT   = 1,
 	SLIDE_ACTION_HANDLE  = 2,
-	SLIDE_ACTION_FEATHER = 3
+	SLIDE_ACTION_FEATHER = 3,
+	SLIDE_ACTION_SPLINE  = 4
 };
 
 typedef struct SlidePointData {
@@ -496,6 +497,96 @@ typedef struct SlidePointData {
 	float prev_feather_coord[2];
 	float weight, weight_scalar;
 } SlidePointData;
+
+static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], const float co[2])
+{
+	BKE_mask_coord_to_movieclip(sc->clip, &sc->user, r_co, co);
+	ED_clip_point_undistorted_pos(sc, r_co, r_co);
+	BKE_mask_coord_from_movieclip(sc->clip, &sc->user, r_co, r_co);
+}
+
+static bool spline_under_mouse_get(const bContext *C,
+                                   Mask *mask, const float co[2],
+                                   MaskLayer **mask_layer_r,
+                                   MaskSpline **mask_spline_r)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MaskLayer *mask_layer;
+	int width, height;
+	float pixel_co[2];
+	float closest_dist_squared;
+	MaskLayer *closest_layer = NULL;
+	MaskSpline *closest_spline = NULL;
+	bool undistort = false;
+	*mask_layer_r = NULL;
+	*mask_spline_r = NULL;
+	ED_mask_get_size(sa, &width, &height);
+	pixel_co[0] = co[0] * width;
+	pixel_co[1] = co[1] * height;
+	if (sc != NULL) {
+		undistort = (sc->clip != NULL) &&
+		            (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
+	}
+	for (mask_layer = mask->masklayers.first;
+	     mask_layer != NULL;
+	     mask_layer = mask_layer->next)
+	{
+		MaskSpline *spline;
+		if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
+			continue;
+		}
+
+		for (spline = mask_layer->splines.first;
+		     spline != NULL;
+		     spline = spline->next)
+		{
+			MaskSplinePoint *points_array;
+			float min[2], max[2], center[2];
+			float dist_squared;
+			int i;
+			float max_bb_side;
+			if ((spline->flag & SELECT) == 0) {
+				continue;
+			}
+
+			points_array = BKE_mask_spline_point_array(spline);
+			INIT_MINMAX2(min, max);
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point_deform = &points_array[i];
+				BezTriple *bezt = &point_deform->bezt;
+
+				float vert[2];
+
+				copy_v2_v2(vert, bezt->vec[1]);
+
+				if (undistort) {
+					mask_point_undistort_pos(sc, vert, vert);
+				}
+
+				minmax_v2v2_v2(min, max, vert);
+			}
+
+			center[0] = (min[0] + max[0]) / 2.0f * width;
+			center[1] = (min[1] + max[1]) / 2.0f * height;
+			dist_squared = len_squared_v2v2(pixel_co, center);
+			max_bb_side = min_ff((max[0] - min[0]) * width, (max[1] - min[1]) * height);
+			if (dist_squared <= max_bb_side * max_bb_side * 0.5f &&
+			    (closest_spline == NULL || dist_squared < closest_dist_squared))
+			{
+				closest_layer = mask_layer;
+				closest_spline = spline;
+				closest_dist_squared = dist_squared;
+			}
+		}
+	}
+	if (closest_spline != NULL) {
+		*mask_layer_r = closest_layer;
+		*mask_spline_r = closest_spline;
+		return true;
+	}
+	return false;
+}
 
 static bool slide_point_check_initial_feather(MaskSpline *spline)
 {
@@ -607,9 +698,14 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 		point = cv_point;
 	}
 
-	if (action != SLIDE_ACTION_NONE) {
-		select_sliding_point(mask, masklay, spline, point, which_handle);
+	if (action == SLIDE_ACTION_NONE) {
+		if (spline_under_mouse_get(C, mask, co, &masklay, &spline)) {
+			action = SLIDE_ACTION_SPLINE;
+			point = NULL;
+		}
+	}
 
+	if (action != SLIDE_ACTION_NONE) {
 		customdata = MEM_callocN(sizeof(SlidePointData), "mask slide point data");
 		customdata->event_invoke_type = event->type;
 		customdata->mask = mask;
@@ -621,12 +717,14 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 		customdata->action = action;
 		customdata->uw = uw;
 
-		customdata->old_h1 = point->bezt.h1;
-		customdata->old_h2 = point->bezt.h2;
-
 		customdata->is_sliding_new_point = RNA_boolean_get(op->ptr, "is_new_point");
 
-		check_sliding_handle_type(point, which_handle);
+		if (customdata->action != SLIDE_ACTION_SPLINE) {
+			customdata->old_h1 = point->bezt.h1;
+			customdata->old_h2 = point->bezt.h2;
+			select_sliding_point(mask, masklay, spline, point, which_handle);
+			check_sliding_handle_type(point, which_handle);
+		}
 
 		if (uw) {
 			float co_uw[2];
@@ -639,7 +737,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 
 			madd_v2_v2v2fl(customdata->prev_feather_coord, co_uw, customdata->no, uw->w * weight_scalar);
 		}
-		else {
+		else if (customdata->action != SLIDE_ACTION_SPLINE) {
 			BezTriple *bezt = &point->bezt;
 
 			customdata->weight = bezt->weight;
@@ -653,10 +751,12 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
 			customdata->is_initial_feather = slide_point_check_initial_feather(spline);
 		}
 
-		copy_m3_m3(customdata->vec, point->bezt.vec);
-		if (which_handle != MASK_WHICH_HANDLE_NONE) {
-			BKE_mask_point_handle(point, which_handle, customdata->orig_handle_coord);
-			copy_v2_v2(customdata->prev_handle_coord, customdata->orig_handle_coord);
+		if (customdata->action != SLIDE_ACTION_SPLINE) {
+			copy_m3_m3(customdata->vec, point->bezt.vec);
+			if (which_handle != MASK_WHICH_HANDLE_NONE) {
+				BKE_mask_point_handle(point, which_handle, customdata->orig_handle_coord);
+				copy_v2_v2(customdata->prev_handle_coord, customdata->orig_handle_coord);
+			}
 		}
 		customdata->which_handle = which_handle;
 
@@ -738,7 +838,7 @@ static void cancel_slide_point(SlidePointData *data)
 			else
 				data->point->bezt.weight = data->weight;
 		}
-		else {
+		else if (data->action != SLIDE_ACTION_SPLINE) {
 			copy_m3_m3(data->point->bezt.vec, data->vec);
 			data->point->bezt.h1 = data->old_h1;
 			data->point->bezt.h2 = data->old_h2;
@@ -933,6 +1033,20 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					}
 
 					copy_v2_v2(data->prev_feather_coord, offco);
+				}
+			}
+			else if (data->action == SLIDE_ACTION_SPLINE) {
+				int i;
+
+				if (data->orig_spline == NULL) {
+					data->orig_spline = BKE_mask_spline_copy(data->spline);
+				}
+
+				for (i = 0; i < data->spline->tot_point; i++) {
+					MaskSplinePoint *point = &data->spline->points[i];
+					add_v2_v2(point->bezt.vec[0], delta);
+					add_v2_v2(point->bezt.vec[1], delta);
+					add_v2_v2(point->bezt.vec[2], delta);
 				}
 			}
 

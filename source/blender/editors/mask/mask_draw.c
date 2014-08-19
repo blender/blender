@@ -133,9 +133,12 @@ static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], const float c
 }
 
 static void draw_circle(const float x, const float y,
-                        const float size, const float xscale, const float yscale)
+                        const float size, const bool fill,
+                        const float xscale, const float yscale)
 {
-	static GLuint displist = 0;
+	static GLuint wire_displist = 0;
+	static GLuint fill_displist = 0;
+	GLuint displist = fill ? fill_displist : wire_displist;
 
 	/* Initialize round circle shape. */
 	if (displist == 0) {
@@ -145,11 +148,18 @@ static void draw_circle(const float x, const float y,
 		glNewList(displist, GL_COMPILE);
 
 		qobj = gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
+		gluQuadricDrawStyle(qobj, fill ? GLU_FILL : GLU_SILHOUETTE);
 		gluDisk(qobj, 0,  0.7, 8, 1);
 		gluDeleteQuadric(qobj);
 
 		glEndList();
+
+		if (fill) {
+			fill_displist = displist;
+		}
+		else {
+			wire_displist = displist;
+		}
 	}
 
 	glPushMatrix();
@@ -219,7 +229,7 @@ static void draw_single_handle(const MaskLayer *mask_layer, const MaskSplinePoin
 		UI_ThemeColor(TH_HANDLE_VERTEX);
 	}
 
-	draw_circle(handle_pos[0], handle_pos[1], handle_size, xscale, yscale);
+	draw_circle(handle_pos[0], handle_pos[1], handle_size, false, xscale, yscale);
 }
 
 /* return non-zero if spline is selected */
@@ -237,6 +247,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 
 	int i, handle_size, tot_feather_point;
 	float (*feather_points)[2], (*fp)[2];
+	float min[2], max[2];
 
 	if (!spline->tot_point)
 		return;
@@ -302,6 +313,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 	}
 
 	/* control points */
+	INIT_MINMAX2(min, max);
 	for (i = 0; i < spline->tot_point; i++) {
 
 		/* watch it! this is intentionally not the deform array, only check for sel */
@@ -354,6 +366,25 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 		glBegin(GL_POINTS);
 		glVertex2fv(vert);
 		glEnd();
+
+		minmax_v2v2_v2(min, max, vert);
+	}
+
+	if (is_spline_sel) {
+		float x = (min[0] + max[0]) / 2.0f;
+		float y = (min[1] + max[1]) / 2.0f;
+		/* TODO(sergey): Remove hardcoded colors. */
+		if (masklay->act_spline == spline) {
+			glColor3ub(255, 255, 255);
+		}
+		else {
+			glColor3ub(255, 255, 0);
+		}
+
+		draw_circle(x, y, 6.0f, true, xscale, yscale);
+
+		glColor3ub(0, 0, 0);
+		draw_circle(x, y, 6.0f, false, xscale, yscale);
 	}
 
 	glPointSize(1.0f);
