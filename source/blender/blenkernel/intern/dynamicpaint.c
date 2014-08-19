@@ -2942,9 +2942,10 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float c
 
 	do {
 		float nearest_tmp[3], dist_sq;
-		int vertex, edge;
-		
-		dist_sq = nearest_point_in_tri_surface_squared(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
+
+		closest_on_tri_to_point_v3(nearest_tmp, co, t0, t1, t2);
+		dist_sq = len_squared_v3v3(co, nearest_tmp);
+
 		if (dist_sq < nearest->dist_sq) {
 			nearest->index = index;
 			nearest->dist_sq = dist_sq;
