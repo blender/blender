@@ -853,7 +853,11 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* modifier name */
+		if (mti->isDisabled && mti->isDisabled(md, 0)) {
+			uiLayoutSetRedAlert(row, true);
+		}
 		uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
+		uiLayoutSetRedAlert(row, false);
 		
 		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
