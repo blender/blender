@@ -1487,7 +1487,7 @@ kmi = km.keymap_items.new('node.delete_reconnect', 'X', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.select_all', 'A', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.select_linked_to', 'L', 'PRESS', shift=True)
 kmi = km.keymap_items.new('node.select_linked_from', 'L', 'PRESS')
-kmi = km.keymap_items.new('node.select_same_type', 'G', 'PRESS', shift=True)
+kmi = km.keymap_items.new('node.select_grouped', 'G', 'PRESS', shift=True)
 kmi = km.keymap_items.new('node.select_same_type_step', 'RIGHT_BRACKET', 'PRESS', shift=True)
 kmi.properties.prev = True
 kmi = km.keymap_items.new('node.select_same_type_step', 'LEFT_BRACKET', 'PRESS', shift=True)
