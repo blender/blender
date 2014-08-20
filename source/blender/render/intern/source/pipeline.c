@@ -728,6 +728,7 @@ static void render_result_rescale(Render *re)
 void RE_ChangeResolution(Render *re, int winx, int winy, rcti *disprect)
 {
 	re_init_resolution(re, NULL, winx, winy, disprect);
+	RE_parts_clamp(re);
 
 	if (re->result) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
