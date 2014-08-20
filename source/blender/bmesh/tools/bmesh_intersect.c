@@ -177,10 +177,9 @@ struct vert_sort_t {
 };
 
 #ifdef USE_SPLICE
-static void edge_verts_sort(BMEdge *e, struct LinkBase *v_ls_base)
+static void edge_verts_sort(const float co[3], struct LinkBase *v_ls_base)
 {
 	/* not optimal but list will be typically < 5 */
-	const float *co = e->v1->co;
 	unsigned int i;
 	struct vert_sort_t *vert_sort = BLI_array_alloca(vert_sort, v_ls_base->list_len);
 	LinkNode *node;
@@ -194,7 +193,7 @@ static void edge_verts_sort(BMEdge *e, struct LinkBase *v_ls_base)
 		vert_sort[i].v   = v;
 	}
 
-	qsort(vert_sort, v_ls_base->list_len, sizeof(*vert_sort), BLI_sortutil_cmp_float_reverse);
+	qsort(vert_sort, v_ls_base->list_len, sizeof(*vert_sort), BLI_sortutil_cmp_float);
 
 	for (i = 0, node = v_ls_base->list; i < v_ls_base->list_len; i++, node = node->next) {
 		node->link = vert_sort[i].v;
@@ -963,20 +962,23 @@ bool BM_mesh_intersect(
 			struct LinkBase *v_ls_base = BLI_ghashIterator_getValue(&gh_iter);
 
 			BMVert *v_start;
+			BMVert *v_end;
 			BMVert *v_prev;
 			bool is_wire;
 
 			LinkNode *node;
 
+			/* direction is arbitrary, could be swapped */
+			v_start = e->v1;
+			v_end = e->v2;
+
 			if (v_ls_base->list_len > 1) {
-				edge_verts_sort(e, v_ls_base);
+				edge_verts_sort(v_start->co, v_ls_base);
 			}
 
 #ifdef USE_DUMP
 			printf("# SPLITTING EDGE: %d, %d\n", e_index, v_ls_base->list_len);
 #endif
-			v_start = e->v1;
-
 			/* intersect */
 			is_wire = BLI_gset_haskey(s.wire_edges,  e);
 
@@ -995,7 +997,9 @@ bool BM_mesh_intersect(
 				const float fac = line_point_factor_v3(vi->co, e->v1->co, e->v2->co);
 
 				if (BM_vert_in_edge(e, v_prev)) {
-					v_prev = BM_edge_split(bm, e, v_prev, &e, CLAMPIS(fac, 0.0f, 1.0f));
+					v_prev = BM_edge_split(bm, e, v_prev, NULL, CLAMPIS(fac, 0.0f, 1.0f));
+					BLI_assert( BM_vert_in_edge(e, v_end));
+
 					if (!BM_edge_exists(v_prev, vi) &&
 					    !BM_vert_splice_check_double(v_prev, vi) &&
 					    !BM_vert_pair_share_face_check(v_prev, vi))
@@ -1259,6 +1263,8 @@ bool BM_mesh_intersect(
 			face_edges_split(bm, f, e_ls_base);
 		}
 	}
+#else
+	(void)totface_orig;
 #endif  /* USE_NET */
 
 
