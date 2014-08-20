@@ -493,11 +493,11 @@ static const char *unit_find_str(const char *str, const char *substr)
  *
  * "1m1cm+2mm"				- Original value
  * "1*1#1*0.01#+2*0.001#"	- Replace numbers
- * "1*1,1*0.01 +2*0.001 "	- Add comma's if ( - + * / % ^ < > ) not found in between
+ * "1*1+1*0.01 +2*0.001 "	- Add add signs if ( + - * / | & ~ < > ^ ! = % ) not found in between
  *
  */
 
-/* not too strict, (- = * /) are most common  */
+/* not too strict, (+ - * /) are most common  */
 static bool ch_is_op(char op)
 {
 	switch (op) {
@@ -589,6 +589,34 @@ static int unit_find(const char *str, bUnitDef *unit)
 	return 0;
 }
 
+static bUnitDef *unit_detect_from_str(bUnitCollection *usys, const char *str, const char *str_prev)
+{
+	/* Try to find a default unit from current or previous string.
+	 * This allows us to handle cases like 2 + 2mm, people would expect to get 4mm, not 2.002m!
+	 * Note this does not handle corner cases like 2 + 2cm + 1 + 2.5mm... We can't support everything. */
+	bUnitDef *unit = NULL;
+
+	/* see which units the new value has */
+	for (unit = usys->units; unit->name; unit++) {
+		if (unit_find(str, unit))
+			break;
+	}
+	/* Else, try to infer the default unit from the previous string. */
+	if (str_prev && (unit == NULL || unit->name == NULL)) {
+		/* see which units the original value had */
+		for (unit = usys->units; unit->name; unit++) {
+			if (unit_find(str_prev, unit))
+				break;
+		}
+	}
+	/* Else, fall back to default unit. */
+	if (unit == NULL || unit->name == NULL) {
+		unit = unit_default(usys);
+	}
+
+	return unit;
+}
+
 /* make a copy of the string that replaces the units with numbers
  * this is used before parsing
  * This is only used when evaluating user input and can afford to be a bit slower
@@ -597,8 +625,8 @@ static int unit_find(const char *str, bUnitDef *unit)
  * 10.1km -> 10.1*1000.0
  * ...will be resolved by python.
  *
- * values will be split by a comma's
- * 5'2" -> 5*0.3048, 2*0.0254
+ * values will be split by an add sign
+ * 5'2" -> 5*0.3048 + 2*0.0254
  *
  * str_prev is optional, when valid it is used to get a base unit when none is set.
  *
@@ -608,7 +636,8 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
-	bUnitDef *unit;
+	bUnitDef *unit = NULL, *default_unit;
+	double scale_pref_base = scale_pref;
 	char str_tmp[TEMP_STR_SIZE];
 	int changed = 0;
 
@@ -619,15 +648,35 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 	/* make lowercase */
 	BLI_ascii_strtolower(str, len_max);
 
+	/* Try to find a default unit from current or previous string. */
+	default_unit = unit_detect_from_str(usys, str, str_prev);
+
+	/* We apply the default unit to the whole expression (default unit is now the reference '1.0' one). */
+	scale_pref_base *= default_unit->scalar;
+
+	/* Apply the default unit on the whole expression, this allows to handle nasty cases like '2+2in'. */
+	if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)*%.9g", str, default_unit->scalar) < sizeof(str_tmp)) {
+		strncpy(str, str_tmp, len_max);
+	}
+	else {
+		/* BLI_snprintf would not fit into str_tmp, cant do much in this case
+		 * check for this because otherwise bUnit_ReplaceString could call its self forever */
+		return 0;
+	}
+
 	for (unit = usys->units; unit->name; unit++) {
 		/* in case there are multiple instances */
-		while (unit_replace(str, len_max, str_tmp, scale_pref, unit))
+		while (unit_replace(str, len_max, str_tmp, scale_pref_base, unit))
 			changed = true;
 	}
 	unit = NULL;
 
 	{
 		/* try other unit systems now, so we can evaluate imperial when metric is set for eg. */
+		/* Note that checking other systems at that point means we do not support their units as 'default' one.
+		 * In other words, when in metrics, typing '2+2in' will give 2 meters 2 inches, not 4 inches.
+		 * I do think this is the desired behavior!
+		 */
 		bUnitCollection *usys_iter;
 		int system_iter;
 
@@ -638,7 +687,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 					for (unit = usys_iter->units; unit->name; unit++) {
 						int ofs = 0;
 						/* in case there are multiple instances */
-						while ((ofs = unit_replace(str + ofs, len_max - ofs, str_tmp, scale_pref, unit)))
+						while ((ofs = unit_replace(str + ofs, len_max - ofs, str_tmp, scale_pref_base, unit)))
 							changed = true;
 					}
 				}
@@ -647,35 +696,9 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 	}
 	unit = NULL;
 
-	if (changed == 0) {
-		/* no units given so infer a unit from the previous string or default */
-		if (str_prev) {
-			/* see which units the original value had */
-			for (unit = usys->units; unit->name; unit++) {
-				if (unit_find(str_prev, unit))
-					break;
-			}
-		}
-
-		if (unit == NULL || unit->name == NULL)
-			unit = unit_default(usys);
-
-		/* add the unit prefix and re-run, use brackets in case there was an expression given */
-		if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
-			strncpy(str, str_tmp, len_max);
-			return bUnit_ReplaceString(str, len_max, NULL, scale_pref, system, type);
-		}
-		else {
-			/* BLI_snprintf would not fit into str_tmp, cant do much in this case
-			 * check for this because otherwise bUnit_ReplaceString could call its self forever */
-			return 0;
-		}
-
-	}
-
-	/* replace # with commas when there is no operator between it and the next number
+	/* replace # with add sign when there is no operator between it and the next number
 	 *
-	 * "1*1# 3*100# * 3"  ->  "1 *1, 3 *100  * 3"
+	 * "1*1# 3*100# * 3"  ->  "1*1+ 3*100  * 3"
 	 *
 	 * */
 	{
@@ -683,25 +706,19 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 		const char *ch = str;
 
 		while ((str_found = strchr(str_found, SEP_CHR))) {
+			bool op_found = false;
 
-			int op_found = 0;
-			/* any operators after this?*/
+			/* any operators after this? */
 			for (ch = str_found + 1; *ch != '\0'; ch++) {
-
 				if (*ch == ' ' || *ch == '\t') {
-					/* do nothing */
+					continue;
 				}
-				else if (ch_is_op(*ch) || *ch == ',') { /* found an op, no need to insert a ',' */
-					op_found = 1;
-					break;
-				}
-				else { /* found a non-op character */
-					op_found = 0;
-					break;
-				}
+				op_found = (ch_is_op(*ch) || ELEM(*ch, ',', ')'));
+				break;
 			}
 
-			*str_found++ = op_found ? ' ' : ',';
+			/* If found an op, comma or closing parenthesis, no need to insert a '+', else we need it. */
+			*str_found++ = op_found ? ' ' : '+';
 		}
 	}
 

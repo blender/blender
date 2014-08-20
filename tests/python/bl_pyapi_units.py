@@ -23,7 +23,10 @@ class UnitsTesting(unittest.TestCase):
         ('METRIC',   'LENGTH', "33.3dm", "1", 0.1),
         ('IMPERIAL', 'LENGTH', "33.3cm", "1", 0.3048),  # ref unit is not in IMPERIAL system, default to feet...
         ('IMPERIAL', 'LENGTH', "33.3ft", "1\"", 0.0254),  # unused ref unit, since one is given already!
-        #('IMPERIAL', 'LENGTH', "", "1+1ft", 0.3048 * 2),  # Will fail with current code!
+        ('IMPERIAL', 'LENGTH', "", "1+1ft", 0.3048 * 2),  # default unit taken from current string (feet).
+        ('METRIC',   'LENGTH', "", "1+1ft", 1.3048),  # no metric units, we default to meters.
+        ('IMPERIAL', 'LENGTH', "", "3+1in+1ft", 0.3048 * 4 + 0.0254),  # bigger unit becomes default one!
+        ('IMPERIAL', 'LENGTH', "", "(3+1)in+1ft", 0.3048 + 0.0254 * 4),
     )
 
     # From 'internal' Blender value to user-friendly printing
