@@ -384,7 +384,7 @@ bool do_colorband(const ColorBand *coba, float in, float out[4])
 				fac = (a != coba->tot) ? 0.0f : 1.0f;
 			}
 
-			if (coba->ipotype == COLBAND_INTERP_CONSTANT) {
+			if (ipotype == COLBAND_INTERP_CONSTANT) {
 				/* constant */
 				out[0] = cbd2->r;
 				out[1] = cbd2->g;
