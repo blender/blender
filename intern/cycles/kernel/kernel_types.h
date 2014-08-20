@@ -66,6 +66,8 @@ CCL_NAMESPACE_BEGIN
 #define __SUBSURFACE__
 #define __CMJ__
 #define __VOLUME__
+#define __VOLUME_DECOUPLED__
+#define __VOLUME_SCATTER__
 #define __SHADOW_RECORD_ALL__
 #endif
 
@@ -76,6 +78,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Experimental on GPU */
 //#define __VOLUME__
+//#define __VOLUME_SCATTER__
 //#define __SUBSURFACE__
 #endif
 

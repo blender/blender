@@ -90,6 +90,8 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
 			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
+
+#ifdef __VOLUME_DECOUPLED__
 			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, false, sampling_method);
 
 			if(decoupled) {
@@ -141,12 +143,15 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 						break;
 				}
 			}
-			else {
+			else
+#endif
+			{
 				/* integrate along volume segment with distance sampling */
 				ShaderData volume_sd;
 				VolumeIntegrateResult result = kernel_volume_integrate(
 					kg, &state, &volume_sd, &volume_ray, L, &throughput, rng);
 
+#ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* direct lighting */
 					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, L, 1.0f);
@@ -157,6 +162,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 					else
 						break;
 				}
+#endif
 			}
 		}
 #endif
@@ -471,6 +477,8 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
 			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
+
+#ifdef __VOLUME_DECOUPLED__
 			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, true, sampling_method);
 
 			if(decoupled) {
@@ -522,12 +530,15 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 						break;
 				}
 			}
-			else {
+			else 
+#endif
+			{
 				/* integrate along volume segment with distance sampling */
 				ShaderData volume_sd;
 				VolumeIntegrateResult result = kernel_volume_integrate(
 					kg, &state, &volume_sd, &volume_ray, &L, &throughput, rng);
 
+#ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* direct lighting */
 					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, 1.0f);
@@ -538,6 +549,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 					else
 						break;
 				}
+#endif
 			}
 		}
 #endif
@@ -804,7 +816,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
-#ifdef __KERNEL_CPU__
+#ifdef __VOLUME_DECOUPLED__
 			/* decoupled ray marching only supported on CPU */
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
 
@@ -891,6 +903,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				VolumeIntegrateResult result = kernel_volume_integrate(
 					kg, &ps, &volume_sd, &volume_ray, &L, &tp, rng);
 				
+#ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* todo: support equiangular, MIS and all light sampling.
 					 * alternatively get decoupled ray marching working on the GPU */
@@ -905,6 +918,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 						path_radiance_reset_indirect(&L);
 					}
 				}
+#endif
 			}
 
 			/* todo: avoid this calculation using decoupled ray marching */

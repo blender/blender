@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef __VOLUME__
+#ifdef __VOLUME_SCATTER__
 
 ccl_device void kernel_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
 	ShaderData *sd, float3 throughput, PathState *state, PathRadiance *L,
