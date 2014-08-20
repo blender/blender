@@ -387,9 +387,14 @@ PyObject *BPy_IntegrationType_from_IntegrationType(IntegrationType i)
 PyObject *BPy_CurvePoint_from_CurvePoint(CurvePoint& cp)
 {
 	PyObject *py_cp = CurvePoint_Type.tp_new(&CurvePoint_Type, 0, 0);
-	((BPy_CurvePoint *) py_cp)->cp = &cp;
+	// CurvePointIterator::operator*() returns a reference of a class data
+	// member whose value is mutable upon iteration over different CurvePoints.
+	// It is likely that such a mutable reference is passed to this function,
+	// so that a new allocated CurvePoint instance is created here to avoid
+	// nasty bugs (cf. T41464).
+	((BPy_CurvePoint *) py_cp)->cp = new CurvePoint(cp);
 	((BPy_CurvePoint *) py_cp)->py_if0D.if0D = ((BPy_CurvePoint *)py_cp)->cp;
-	((BPy_CurvePoint *) py_cp)->py_if0D.borrowed = true;
+	((BPy_CurvePoint *) py_cp)->py_if0D.borrowed = false;
 	return py_cp;
 }
 

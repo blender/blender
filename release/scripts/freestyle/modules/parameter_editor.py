@@ -814,17 +814,17 @@ class FaceMarkOneUP1D(UnaryPredicate1D):
 
 class MaterialBoundaryUP0D(UnaryPredicate0D):
     def __call__(self, it):
-        if (it.is_begin or it.is_end):
+        if it.is_begin:
             return False
-        else:
-            it.decrement()
-            prev = it.object
-            svert = next(it)
-            succ = next(it)
-
-        fe = svert.get_fedge(prev)
+        it_prev = Interface0DIterator(it)
+        it_prev.decrement()
+        v = it.object
+        it.increment()
+        if it.is_end:
+            return False
+        fe = v.get_fedge(it_prev.object)
         idx1 = fe.material_index if fe.is_smooth else fe.material_index_left
-        fe = svert.get_fedge(succ)
+        fe = v.get_fedge(it.object)
         idx2 = fe.material_index if fe.is_smooth else fe.material_index_left
         return idx1 != idx2
 
