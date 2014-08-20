@@ -91,7 +91,7 @@ enum {
 static EnumPropertyItem isect_mode_items[] = {
 	{ISECT_SEL, "SELECT", 0, "Self Intersect",
 	 "Self intersect selected faces"},
-	{ISECT_SEL_UNSEL, "SELECT_UNSELECT", 0, "Select/Unselected",
+	{ISECT_SEL_UNSEL, "SELECT_UNSELECT", 0, "Selected/Unselected",
 	 "Intersect selected with unselected faces"},
 	{0, NULL, 0, NULL, NULL}
 };
