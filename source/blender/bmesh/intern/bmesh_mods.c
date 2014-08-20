@@ -1135,21 +1135,31 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
 /**
  * \brief Edge Split
  *
- * Splits an edge. \a v should be one of the vertices in \a e and defines
- * the "from" end of the splitting operation: the new vertex will be
- * \a percent of the way from \a v to the other end.
- * The newly created edge is attached to \a v and is returned in \a r_e.
- * The original edge \a e will be the other half of the split.
+ * <pre>
+ * Before: v
+ *         +-----------------------------------+
+ *                           e
  *
- * \return The new vert
+ * After:  v                 v_new (returned)
+ *         +-----------------+-----------------+
+ *                 r_e                e
+ * </pre>
+ *
+ * \param e  The edge to split.
+ * \param v  One of the vertices in \a e and defines the the "from" end of the splitting operation,
+ * the new vertex will be \a fac of the way from \a v to the other end.
+ * \param r_e  The newly created edge.
+ * \return  The new vertex.
  */
-BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent)
+BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 {
-	BMVert *v_new, *v2;
+	BMVert *v_new, *v_other;
 	BMFace **oldfaces = NULL;
 	BMEdge *e_dummy;
 	BLI_array_staticdeclare(oldfaces, 32);
 	const bool do_mdisp = (e->l && CustomData_has_layer(&bm->ldata, CD_MDISPS));
+
+	BLI_assert(BM_vert_in_edge(e, v) == true);
 
 	/* we need this for handling multi-res */
 	if (!r_e) {
@@ -1175,22 +1185,22 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 		}
 	}
 
-	v2 = BM_edge_other_vert(e, v);
+	v_other = BM_edge_other_vert(e, v);
 	v_new = bmesh_semv(bm, v, e, r_e);
 
 	BLI_assert(v_new != NULL);
+	BLI_assert(BM_vert_in_edge(*r_e, v) && BM_vert_in_edge(*r_e, v_new));
+	BLI_assert(BM_vert_in_edge(e, v_new) && BM_vert_in_edge(e, v_other));
 
-	sub_v3_v3v3(v_new->co, v2->co, v->co);
-	madd_v3_v3v3fl(v_new->co, v->co, v_new->co, percent);
+	sub_v3_v3v3(v_new->co, v_other->co, v->co);
+	madd_v3_v3v3fl(v_new->co, v->co, v_new->co, fac);
 
-	if (r_e) {
-		(*r_e)->head.hflag = e->head.hflag;
-		BM_elem_attrs_copy(bm, bm, e, *r_e);
-	}
+	(*r_e)->head.hflag = e->head.hflag;
+	BM_elem_attrs_copy(bm, bm, e, *r_e);
 
 	/* v->v_new->v2 */
-	BM_data_interp_face_vert_edge(bm, v2, v, v_new, e, percent);
-	BM_data_interp_from_verts(bm, v, v2, v_new, percent);
+	BM_data_interp_face_vert_edge(bm, v_other, v, v_new, e, fac);
+	BM_data_interp_from_verts(bm, v, v_other, v_new, fac);
 
 	if (do_mdisp) {
 		int i, j;
