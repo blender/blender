@@ -420,12 +420,10 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_LIGHT_FALLOFF:
 				svm_node_light_falloff(sd, stack, node);
 				break;
-#endif			
-#ifdef __ANISOTROPIC__
+#endif
 			case NODE_TANGENT:
 				svm_node_tangent(kg, sd, stack, node);
-				break;
-#endif			
+				break;		
 #ifdef __NORMAL_MAP__
 			case NODE_NORMAL_MAP:
 				svm_node_normal_map(kg, sd, stack, node);

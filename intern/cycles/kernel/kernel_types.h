@@ -106,7 +106,6 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND_MIS__
 #define __LAMP_MIS__
 #define __AO__
-#define __ANISOTROPIC__
 //#define __CAMERA_MOTION__
 //#define __OBJECT_MOTION__
 //#define __HAIR__
@@ -151,7 +150,6 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND_MIS__
 #define __LAMP_MIS__
 #define __AO__
-#define __ANISOTROPIC__
 #define __CAMERA_MOTION__
 #define __OBJECT_MOTION__
 #define __HAIR__

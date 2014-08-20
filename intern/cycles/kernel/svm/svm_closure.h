@@ -294,7 +294,6 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			if(sc) {
 				sc->N = N;
 
-#ifdef __ANISOTROPIC__
 				sc->T = stack_load_float3(stack, data_node.y);
 
 				/* rotate tangent */
@@ -324,9 +323,6 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sd->flag |= bsdf_microfacet_ggx_aniso_setup(sc);
 				else
 					sd->flag |= bsdf_ashikhmin_shirley_aniso_setup(sc);
-#else
-				sd->flag |= bsdf_diffuse_setup(sc);
-#endif
 			}
 			break;
 		}
