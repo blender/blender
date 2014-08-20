@@ -522,7 +522,7 @@ MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
 		tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE,
 		                                     dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname);
 		/* This can fail if we have changed the name in the UV layer list and have assigned the old name in the material
-			 * texture slot.*/
+		 * texture slot.*/
 		if (!tf_base)
 			tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
 	}

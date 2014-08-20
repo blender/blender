@@ -432,7 +432,7 @@ typedef struct FreestyleLineStyle {
 	unsigned short split_dash2, split_gap2;
 	unsigned short split_dash3, split_gap3;
 	int sort_key, integration_type;
- 	float texstep;
+	float texstep;
 	short texact, pr_texture;
 	short use_nodes, pad;
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;

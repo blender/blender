@@ -2544,8 +2544,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 	/* segbevcount alsp requires seglen. */
 	const bool need_seglen =
-		ELEM(cu->bevfac1_mapping,CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE) ||
-		ELEM(cu->bevfac2_mapping,CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE);
+		ELEM(cu->bevfac1_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE) ||
+		ELEM(cu->bevfac2_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE);
 
 
 	bev = &ob->curve_cache->bev;

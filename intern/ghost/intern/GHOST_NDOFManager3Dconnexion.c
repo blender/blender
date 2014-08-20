@@ -30,14 +30,14 @@
 
 /* It is to be noted that these implementations are linked in as
  * 'extern "C"' calls from GHOST_NDOFManagerCocoa.
-
+ *
  * This is done in order to
  * preserve weak linking capability (which as of clang-3.3 and xcode5
  * breaks weak linking when there is name mangling of c++ libraries.)
  *
  * We need to have the weak linked file as pure C.  Therefore we build a 
  * compiled bridge from the real weak linked calls and the calls within C++
-
+ *
  */
 
 OSErr GHOST_NDOFManager3Dconnexion_available(void)

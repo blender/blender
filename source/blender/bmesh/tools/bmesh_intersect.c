@@ -27,7 +27,7 @@
  *
  * Supported:
  * - Concave faces.
- * - Non-planare faces.
+ * - Non-planar faces.
  * - Custom-data (UV's etc).
  *
  * Unsupported:
