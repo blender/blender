@@ -456,7 +456,7 @@ size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system
 	return unit_as_string(str, len_max, value, prec, usys, NULL, pad ? ' ' : '\0');
 }
 
-BLI_INLINE int isalpha_or_utf8(const int ch)
+BLI_INLINE bool isalpha_or_utf8(const int ch)
 {
 	return (ch >= 128 || isalpha(ch));
 }
@@ -514,9 +514,11 @@ static bool ch_is_op(char op)
 		case '!':
 		case '=':
 		case '%':
-			return 1;
+			return true;
+			break;
 		default:
-			return 0;
+			return false;
+			break;
 	}
 }
 
@@ -579,14 +581,14 @@ static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref
 	return ofs;
 }
 
-static int unit_find(const char *str, bUnitDef *unit)
+static bool unit_find(const char *str, bUnitDef *unit)
 {
-	if (unit_find_str(str, unit->name_short))   return 1;
-	if (unit_find_str(str, unit->name_plural))  return 1;
-	if (unit_find_str(str, unit->name_alt))     return 1;
-	if (unit_find_str(str, unit->name))         return 1;
+	if (unit_find_str(str, unit->name_short))   return true;
+	if (unit_find_str(str, unit->name_plural))  return true;
+	if (unit_find_str(str, unit->name_alt))     return true;
+	if (unit_find_str(str, unit->name))         return true;
 
-	return 0;
+	return false;
 }
 
 static bUnitDef *unit_detect_from_str(bUnitCollection *usys, const char *str, const char *str_prev)
@@ -632,17 +634,17 @@ static bUnitDef *unit_detect_from_str(bUnitCollection *usys, const char *str, co
  *
  * return true of a change was made.
  */
-int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type)
+bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
 	bUnitDef *unit = NULL, *default_unit;
 	double scale_pref_base = scale_pref;
 	char str_tmp[TEMP_STR_SIZE];
-	int changed = 0;
+	bool changed = false;
 
 	if (usys == NULL || usys->units[0].name == NULL) {
-		return 0;
+		return changed;
 	}
 
 	/* make lowercase */
@@ -661,7 +663,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 	else {
 		/* BLI_snprintf would not fit into str_tmp, cant do much in this case
 		 * check for this because otherwise bUnit_ReplaceString could call its self forever */
-		return 0;
+		return changed;
 	}
 
 	for (unit = usys->units; unit->name; unit++) {
@@ -788,7 +790,7 @@ double bUnit_BaseScalar(int system, int type)
 }
 
 /* external access */
-int bUnit_IsValid(int system, int type)
+bool bUnit_IsValid(int system, int type)
 {
 	return !(system < 0 || system > UNIT_SYSTEM_TOT || type < 0 || type > B_UNIT_TYPE_TOT);
 }

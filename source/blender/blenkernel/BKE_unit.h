@@ -37,7 +37,7 @@ extern "C" {
 size_t  bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
 
 /* replace units with values, used before python button evaluation */
-int     bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
+bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
 
 /* make string keyboard-friendly: 10µm --> 10um */
 void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type);
@@ -49,7 +49,7 @@ double bUnit_ClosestScalar(double value, int system, int type);
 double bUnit_BaseScalar(int system, int type);
 
 /* return true is the unit system exists */
-int bUnit_IsValid(int system, int type);
+bool bUnit_IsValid(int system, int type);
 
 /* loop over scales, coudl add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
