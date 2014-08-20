@@ -1223,8 +1223,10 @@ bool BM_mesh_intersect(
 					if (!BLI_gset_haskey(verts_invalid, splice_ls[i][0]) &&
 					    !BLI_gset_haskey(verts_invalid, splice_ls[i][1]))
 					{
-						if (!BM_vert_splice_check_double(splice_ls[i][0], splice_ls[i][1])) {
-							BM_vert_splice(bm, splice_ls[i][0], splice_ls[i][1]);
+						if (!BM_edge_exists(UNPACK2(splice_ls[i])) &&
+						    !BM_vert_splice_check_double(UNPACK2(splice_ls[i])))
+						{
+							BM_vert_splice(bm, UNPACK2(splice_ls[i]));
 						}
 					}
 				}
