@@ -850,16 +850,16 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 					VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 						&ps, &pray, &volume_sd, &tp, rphase, rscatter, &volume_segment, NULL, false);
+						
+					kernel_assert(result == VOLUME_PATH_SCATTERED);
 
-					if(result == VOLUME_PATH_SCATTERED) {
-						if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
-							kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
+						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
 
-							/* for render passes, sum and reset indirect light pass variables
-							 * for the next samples */
-							path_radiance_sum_indirect(&L);
-							path_radiance_reset_indirect(&L);
-						}
+						/* for render passes, sum and reset indirect light pass variables
+						 * for the next samples */
+						path_radiance_sum_indirect(&L);
+						path_radiance_reset_indirect(&L);
 					}
 				}
 			}

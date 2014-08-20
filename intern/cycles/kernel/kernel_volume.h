@@ -732,7 +732,9 @@ ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *s
  * scattering, they always scatter if there is any non-zero scattering
  * coefficient.
  *
- * these also do not do emission or modify throughput. */
+ * these also do not do emission or modify throughput. 
+ * 
+ * function is expected to return VOLUME_PATH_SCATTERED when probalistic_scatter is false */
 ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 	KernelGlobals *kg, PathState *state, Ray *ray, ShaderData *sd,
 	float3 *throughput, float rphase, float rscatter,
