@@ -414,13 +414,12 @@ bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode
 
 	md->scene = scene;
 
-	if ((md->mode & required_mode) != required_mode) return 0;
-	if (mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;
-	if (md->mode & eModifierMode_DisableTemporary) return 0;
-	if (required_mode & eModifierMode_Editmode)
-		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
+	if ((md->mode & required_mode) != required_mode) return false;
+	if (mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return false;
+	if (md->mode & eModifierMode_DisableTemporary) return false;
+	if ((required_mode & eModifierMode_Editmode) && !(mti->flags & eModifierTypeFlag_SupportsEditmode)) return false;
 	
-	return 1;
+	return true;
 }
 
 CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md,
