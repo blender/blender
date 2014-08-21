@@ -407,7 +407,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 			                                  BM_vert_at_index(em->bm, face[0]),
 			                                  BM_vert_at_index(em->bm, face[2]),
 			                                  BM_vert_at_index(em->bm, face[1]), NULL,
-			                                  NULL, false);
+			                                  NULL, BM_CREATE_NOP);
 
 			/* set navigation polygon idx to the custom layer */
 			polygonIdx = (int *)CustomData_bmesh_get(&em->bm->pdata, newFace->head.data, CD_RECAST);

@@ -854,7 +854,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 			    l_tri[1]->v,
 			    l_tri[2]->v};
 
-			f_new = BM_face_create_verts(bm, v_tri, 3, f, false, true);
+			f_new = BM_face_create_verts(bm, v_tri, 3, f, BM_CREATE_NOP, true);
 			l_new = BM_FACE_FIRST_LOOP(f_new);
 
 			BLI_assert(v_tri[0] == l_new->v);

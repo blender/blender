@@ -108,11 +108,13 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, normal_pt);
 	
 	for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
-		BMFace *f = BM_face_create_quad_tri(bm,
-		                                    sf_tri->v1->tmp.p, sf_tri->v2->tmp.p, sf_tri->v3->tmp.p, NULL,
-		                                    NULL, true);
+		BMFace *f;
 		BMLoop *l;
 		BMIter liter;
+
+		f = BM_face_create_quad_tri(bm,
+		                            sf_tri->v1->tmp.p, sf_tri->v2->tmp.p, sf_tri->v3->tmp.p, NULL,
+		                            NULL, BM_CREATE_NO_DOUBLE);
 		
 		BMO_elem_flag_enable(bm, f, ELE_NEW);
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {

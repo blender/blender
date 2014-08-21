@@ -819,7 +819,9 @@ bool BM_face_split_edgenet(
 
 	while ((v = STACK_POP(vert_queue))) {
 		if (bm_face_split_edgenet_find_loop(v, f->no, edge_order, edge_order_len, face_verts, &face_verts_len)) {
-			BMFace *f_new = BM_face_create_verts(bm, face_verts, face_verts_len, f, 0, false);
+			BMFace *f_new;
+
+			f_new = BM_face_create_verts(bm, face_verts, face_verts_len, f, BM_CREATE_NOP, false);
 
 			for (i = 0; i < edge_net_len; i++) {
 				BLI_assert(BM_ELEM_API_FLAG_TEST(edge_net[i], EDGE_NET));

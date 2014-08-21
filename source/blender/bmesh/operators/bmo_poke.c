@@ -101,7 +101,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 		do {
 			BMLoop *l_new;
 
-			f_new = BM_face_create_quad_tri(bm, l_iter->v, l_iter->next->v, v_center, NULL, f, false);
+			f_new = BM_face_create_quad_tri(bm, l_iter->v, l_iter->next->v, v_center, NULL, f, BM_CREATE_NOP);
 			l_new = BM_FACE_FIRST_LOOP(f_new);
 
 			if (i == 0) {
