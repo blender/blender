@@ -62,6 +62,8 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3],
 {
 	BMVert *v = BLI_mempool_alloc(bm->vpool);
 
+	BLI_assert((v_example == NULL) || (v_example->head.htype == BM_VERT));
+	BLI_assert(!(create_flag & 1));
 
 	/* --- assign all members --- */
 	v->head.data = NULL;
@@ -136,6 +138,8 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2,
 
 	BLI_assert(v1 != v2);
 	BLI_assert(v1->head.htype == BM_VERT && v2->head.htype == BM_VERT);
+	BLI_assert((e_example == NULL) || (e_example->head.htype == BM_EDGE));
+	BLI_assert(!(create_flag & 1));
 
 	if ((create_flag & BM_CREATE_NO_DOUBLE) && (e = BM_edge_exists(v1, v2)))
 		return e;
@@ -191,11 +195,14 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2,
 }
 
 static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
-                              const BMLoop *example, const eBMCreateFlag create_flag)
+                              const BMLoop *l_example, const eBMCreateFlag create_flag)
 {
 	BMLoop *l = NULL;
 
 	l = BLI_mempool_alloc(bm->lpool);
+
+	BLI_assert((l_example == NULL) || (l_example->head.htype == BM_LOOP));
+	BLI_assert(!(create_flag & 1));
 
 	/* --- assign all members --- */
 	l->head.data = NULL;
@@ -226,8 +233,8 @@ static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
 	bm->totloop++;
 
 	if (!(create_flag & BM_CREATE_SKIP_CD)) {
-		if (example) {
-			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->head.data, &l->head.data);
+		if (l_example) {
+			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_example->head.data, &l->head.data);
 		}
 		else {
 			CustomData_bmesh_set_default(&bm->ldata, &l->head.data);
@@ -388,7 +395,10 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	BMFace *f = NULL;
 	BMLoop *l, *startl, *lastl;
 	int i;
-	
+
+	BLI_assert((f_example == NULL) || (f_example->head.htype == BM_FACE));
+	BLI_assert(!(create_flag & 1));
+
 	if (len == 0) {
 		/* just return NULL for now */
 		return NULL;
@@ -1302,7 +1312,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMLoop *l_v1, BMLoop *l_v2,
 #ifdef USE_BMESH_HOLES
                    ListBase *holes,
 #endif
-                   BMEdge *example,
+                   BMEdge *e_example,
                    const bool no_double
                    )
 {
@@ -1322,7 +1332,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMLoop *l_v1, BMLoop *l_v2,
 	BLI_assert(f == l_v1->f && f == l_v2->f);
 
 	/* allocate new edge between v1 and v2 */
-	e = BM_edge_create(bm, v1, v2, example, no_double ? BM_CREATE_NO_DOUBLE : BM_CREATE_NOP);
+	e = BM_edge_create(bm, v1, v2, e_example, no_double ? BM_CREATE_NO_DOUBLE : BM_CREATE_NOP);
 
 	f2 = bm_face_create__sfme(bm, f);
 	l_f1 = bm_loop_create(bm, v2, e, f, l_v2, 0);
