@@ -285,13 +285,13 @@ static float colorband_hue_interp(
 			else                                     mode = 0;
 			break;
 		}
-		case COLBAND_HUE_CW:
+		case COLBAND_HUE_CCW:
 		{
 			if (h1 > h2) mode = 2;
 			else         mode = 0;
 			break;
 		}
-		case COLBAND_HUE_CCW:
+		case COLBAND_HUE_CW:
 		{
 			if (h1 < h2) mode = 1;
 			else         mode = 0;
