@@ -26,10 +26,12 @@
  * Triangulate faces, also defines triangle fill.
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_listBase.h"
 
 #include "BLI_math.h"
-#include "BLI_smallhash.h"
+#include "BLI_sort_utils.h"
 #include "BLI_scanfill.h"
 
 #include "bmesh.h"
@@ -56,6 +58,10 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 }
 
+struct SortNormal {
+	float value;  /* keep first */
+	float no[3];
+};
 
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 {
@@ -67,7 +73,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	/* ScanFillEdge *sf_edge; */ /* UNUSED */
 	ScanFillFace *sf_tri;
 	GHash *sf_vert_map;
-	float normal[3], *normal_pt;
+	float normal[3];
 	const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS | BLI_SCANFILL_CALC_LOOSE;
 	bool calc_winding = false;
 
@@ -99,16 +105,86 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	}
 	BLI_ghash_free(sf_vert_map, NULL, NULL);
 	
+
 	if (is_zero_v3(normal)) {
-		normal_pt = NULL;
+		/* calculate the normal from the cross product of vert-edge pairs.
+		 * Since we don't know winding, just accumulate */
+		ScanFillVert *sf_vert;
+		struct SortNormal *nors;
+		const unsigned int nors_tot = BLI_ghash_size(sf_vert_map);
+		unsigned int i;
+		bool is_degenerate = true;
+
+		nors = MEM_mallocN(sizeof(*nors) * nors_tot, __func__);
+
+		for (sf_vert = sf_ctx.fillvertbase.first, i = 0; sf_vert; sf_vert = sf_vert->next, i++) {
+			BMVert *v = sf_vert->tmp.p;
+			BMIter eiter;
+			BMEdge *e, *e_pair[2];
+			unsigned int e_index = 0;
+
+			nors[i].value = -1.0f;
+
+			/* only use if 'is_degenerate' stays true */
+			add_v3_v3(normal, v->no);
+
+			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+				if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+					if (e_index == 2) {
+						e_index = 0;
+						break;
+					}
+					e_pair[e_index++] = e;
+				}
+			}
+
+			if (e_index == 2) {
+				float dir_a[3], dir_b[3];
+
+				is_degenerate = false;
+
+				sub_v3_v3v3(dir_a, v->co, BM_edge_other_vert(e_pair[0], v)->co);
+				sub_v3_v3v3(dir_b, v->co, BM_edge_other_vert(e_pair[1], v)->co);
+
+				cross_v3_v3v3(nors[i].no, dir_a, dir_b);
+				nors[i].value = len_squared_v3(nors[i].no);
+
+				/* only to get deterministic behavior (for initial normal) */
+				if (len_squared_v3(dir_a) > len_squared_v3(dir_b)) {
+					negate_v3(nors[i].no);
+				}
+			}
+		}
+
+		if (UNLIKELY(is_degenerate)) {
+			/* no vertices have 2 edges?
+			 * in this case fall back to the average vertex normals */
+		}
+		else {
+			qsort(nors, nors_tot, sizeof(*nors), BLI_sortutil_cmp_float_reverse);
+
+			copy_v3_v3(normal, nors[0].no);
+			for (i = 0; i < nors_tot; i++) {
+				if (UNLIKELY(nors[i].value == -1.0f)) {
+					break;
+				}
+				if (dot_v3v3(normal, nors[i].no) < 0.0f) {
+					negate_v3(nors[i].no);
+				}
+				add_v3_v3(normal, nors[i].no);
+			}
+			normalize_v3(normal);
+		}
+
+		MEM_freeN(nors);
 	}
 	else {
-		normalize_v3(normal);
-		normal_pt = normal;
 		calc_winding = false;
 	}
 
-	BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, normal_pt);
+	normalize_v3(normal);
+
+	BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, normal);
 
 
 	/* if we have existing faces, base winding on those */
