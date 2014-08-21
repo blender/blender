@@ -65,37 +65,36 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	ScanFillContext sf_ctx;
 	/* ScanFillEdge *sf_edge; */ /* UNUSED */
-	ScanFillVert *sf_vert_1, *sf_vert_2;
 	ScanFillFace *sf_tri;
-	SmallHash hash;
+	GHash *sf_vert_map;
 	float normal[3], *normal_pt;
 	const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS | BLI_SCANFILL_CALC_LOOSE;
 
-	BLI_smallhash_init_ex(&hash, BMO_slot_buffer_count(op->slots_in, "edges"));
+	sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_count(op->slots_in, "edges"));
 
 	BMO_slot_vec_get(op->slots_in, "normal", normal);
 	
 	BLI_scanfill_begin(&sf_ctx);
 	
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		BMO_elem_flag_enable(bm, e, EDGE_MARK);
-		
-		if ((sf_vert_1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1)) == NULL) {
-			sf_vert_1 = BLI_scanfill_vert_add(&sf_ctx, e->v1->co);
-			sf_vert_1->tmp.p = e->v1;
-			BLI_smallhash_insert(&hash, (uintptr_t)e->v1, sf_vert_1);
-		}
-		
-		if ((sf_vert_2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2)) == NULL) {
-			sf_vert_2 = BLI_scanfill_vert_add(&sf_ctx, e->v2->co);
-			sf_vert_2->tmp.p = e->v2;
-			BLI_smallhash_insert(&hash, (uintptr_t)e->v2, sf_vert_2);
-		}
-		
+		ScanFillVert *sf_verts[2];
+		BMVert **e_verts = &e->v1;
+		unsigned int i;
 
-		/* sf_edge = */ BLI_scanfill_edge_add(&sf_ctx, sf_vert_1, sf_vert_2);
+		BMO_elem_flag_enable(bm, e, EDGE_MARK);
+
+		for (i = 0; i < 2; i++) {
+			if ((sf_verts[i] = BLI_ghash_lookup(sf_vert_map, e_verts[i])) == NULL) {
+				sf_verts[i] = BLI_scanfill_vert_add(&sf_ctx, e_verts[i]->co);
+				sf_verts[i]->tmp.p = e_verts[i];
+				BLI_ghash_insert(sf_vert_map, e_verts[i], sf_verts[i]);
+			}
+		}
+
+		/* sf_edge = */ BLI_scanfill_edge_add(&sf_ctx, UNPACK2(sf_verts));
 		/* sf_edge->tmp.p = e; */ /* UNUSED */
 	}
+	BLI_ghash_free(sf_vert_map, NULL, NULL);
 	
 	if (is_zero_v3(normal)) {
 		normal_pt = NULL;
@@ -125,7 +124,6 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	BLI_scanfill_end(&sf_ctx);
-	BLI_smallhash_release(&hash);
 	
 	if (use_beauty) {
 		BMOperator bmop;
