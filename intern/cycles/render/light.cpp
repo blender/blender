@@ -206,8 +206,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		}
 
 		/* skip motion blurred deforming meshes, not supported yet */
-		if(mesh->has_motion_blur())
+		if(mesh->has_motion_blur()) {
+			j++;
 			continue;
+		}
 
 		/* skip if we have no emission shaders */
 		foreach(uint sindex, mesh->used_shaders) {
