@@ -834,12 +834,13 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 
 	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
 	glPushMatrix();
-	glTranslatef(x + xofs, y + yofs, 0);
-	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
 
 	if (stabmat) {
 		glMultMatrixf(stabmat);
 	}
+
+	glTranslatef(x + xofs, y + yofs, 0);
+	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
 
 	if (do_draw_cb) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
