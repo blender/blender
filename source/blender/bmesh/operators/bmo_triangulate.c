@@ -69,6 +69,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	GHash *sf_vert_map;
 	float normal[3], *normal_pt;
 	const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS | BLI_SCANFILL_CALC_LOOSE;
+	bool calc_winding = false;
 
 	sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_count(op->slots_in, "edges"));
 
@@ -82,6 +83,8 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		unsigned int i;
 
 		BMO_elem_flag_enable(bm, e, EDGE_MARK);
+
+		calc_winding = (calc_winding || BM_edge_is_boundary(e));
 
 		for (i = 0; i < 2; i++) {
 			if ((sf_verts[i] = BLI_ghash_lookup(sf_vert_map, e_verts[i])) == NULL) {
@@ -102,10 +105,35 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	else {
 		normalize_v3(normal);
 		normal_pt = normal;
+		calc_winding = false;
 	}
 
 	BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, normal_pt);
-	
+
+
+	/* if we have existing faces, base winding on those */
+	if (calc_winding) {
+		int winding_votes = 0;
+		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+			BMVert *v_tri[3] = {sf_tri->v1->tmp.p, sf_tri->v2->tmp.p, sf_tri->v3->tmp.p};
+			unsigned int i, i_prev;
+
+			for (i = 0, i_prev = 2; i < 3; i_prev = i++) {
+				e = BM_edge_exists(v_tri[i], v_tri[i_prev]);
+				if (e && BM_edge_is_boundary(e) && BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+					winding_votes += (e->l->v == v_tri[i]) ? 1 : -1;
+				}
+			}
+		}
+
+		if (winding_votes < 0) {
+			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+				SWAP(struct ScanFillVert *, sf_tri->v2, sf_tri->v3);
+			}
+		}
+	}
+
+
 	for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 		BMFace *f;
 		BMLoop *l;
