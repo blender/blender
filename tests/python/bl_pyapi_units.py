@@ -1,8 +1,7 @@
 # Apache License, Version 2.0
 
-# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_units.py
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_units.py -- --verbose
 import unittest
-from test import support
 
 from bpy.utils import units
 
@@ -70,16 +69,7 @@ class UnitsTesting(unittest.TestCase):
                                 "\"%s\", expected \"%s\"" % (usys, utype, val, prec, sep, compat, opt_str, output))
 
 
-def test_main():
-    try:
-        support.run_unittest(UnitsTesting)
-    except:
-        import traceback
-        traceback.print_exc()
-
-        # alert CTest we failed
-        import sys
-        sys.exit(1)
-
 if __name__ == '__main__':
-    test_main()
+    import sys
+    sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    unittest.main()
