@@ -437,10 +437,15 @@ bool do_colorband(const ColorBand *coba, float in, float out[4])
 					rgb_to_hsv_v(col1, col1);
 					rgb_to_hsv_v(col2, col2);
 
+					col1[2] = srgb_to_linearrgb(col1[2]);
+					col2[2] = srgb_to_linearrgb(col2[2]);
+
 					out[0] = colorband_hue_interp(coba->ipotype_hue, mfac, fac, col1[0], col2[0]);
 					out[1] = mfac * col1[1] + fac * col2[1];
 					out[2] = mfac * col1[2] + fac * col2[2];
 					out[3] = mfac * cbd1->a + fac * cbd2->a;
+
+					out[2] = linearrgb_to_srgb(out[2]);
 
 					hsv_to_rgb_v(out, out);
 
@@ -452,6 +457,9 @@ bool do_colorband(const ColorBand *coba, float in, float out[4])
 					linearrgb_to_srgb_v3_v3(col1, &cbd1->r);
 					linearrgb_to_srgb_v3_v3(col2, &cbd2->r);
 
+					col1[2] = srgb_to_linearrgb(col1[2]);
+					col2[2] = srgb_to_linearrgb(col2[2]);
+
 					rgb_to_hsl_v(col1, col1);
 					rgb_to_hsl_v(col2, col2);
 
@@ -459,6 +467,8 @@ bool do_colorband(const ColorBand *coba, float in, float out[4])
 					out[1] = mfac * col1[1] + fac * col2[1];
 					out[2] = mfac * col1[2] + fac * col2[2];
 					out[3] = mfac * cbd1->a + fac * cbd2->a;
+
+					out[2] = linearrgb_to_srgb(out[2]);
 
 					hsl_to_rgb_v(out, out);
 
