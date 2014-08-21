@@ -72,6 +72,7 @@ void OBJECT_OT_make_links_scene(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_data(struct wmOperatorType *ot);
 void OBJECT_OT_move_to_layer(struct wmOperatorType *ot);
 void OBJECT_OT_drop_named_material(struct wmOperatorType *ot);
+void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 
 /* object_edit.c */
 void OBJECT_OT_mode_set(struct wmOperatorType *ot);

@@ -71,6 +71,7 @@ void IMAGE_OT_view_ndof(struct wmOperatorType *ot);
 
 void IMAGE_OT_new(struct wmOperatorType *ot);
 void IMAGE_OT_open(struct wmOperatorType *ot);
+void IMAGE_OT_unlink(struct wmOperatorType *ot);
 void IMAGE_OT_match_movie_length(struct wmOperatorType *ot);
 void IMAGE_OT_replace(struct wmOperatorType *ot);
 void IMAGE_OT_reload(struct wmOperatorType *ot);

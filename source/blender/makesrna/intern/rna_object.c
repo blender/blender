@@ -370,8 +370,14 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object *)ptr->data;
 	ID *id = value.data;
 
-	if (id == NULL || ob->mode & OB_MODE_EDIT)
+	if (ob->mode & OB_MODE_EDIT) {
 		return;
+	}
+
+	/* assigning NULL only for empties */
+	if ((id == NULL) && (ob->type != OB_EMPTY)) {
+		return;
+	}
 
 	if (ob->type == OB_EMPTY) {
 		if (ob->data) {
@@ -379,7 +385,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 			ob->data = NULL;
 		}
 
-		if (id && GS(id->name) == ID_IM) {
+		if (!id || GS(id->name) == ID_IM) {
 			id_us_plus(id);
 			ob->data = id;
 		}
@@ -391,11 +397,10 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		if (ob->data) {
 			id_us_min((ID *)ob->data);
 		}
-		if (id) {
-			/* no need to type-check here ID. this is done in the _typef() function */
-			BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
-			id_us_plus(id);
-		}
+
+		/* no need to type-check here ID. this is done in the _typef() function */
+		BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+		id_us_plus(id);
 
 		ob->data = id;
 		test_object_materials(G.main, id);

@@ -576,24 +576,33 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	
 	/* delete button */
 	/* don't use RNA_property_is_unlink here */
-	if (id && (flag & UI_ID_DELETE) && (RNA_property_flag(template->prop) & PROP_NEVER_UNLINK) == 0) {
+	if (id && (flag & UI_ID_DELETE)) {
+		/* allow unlink if 'unlinkop' is passed, even when 'PROP_NEVER_UNLINK' is set */
+		but = NULL;
+
 		if (unlinkop) {
 			but = uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 			/* so we can access the template from operators, font unlinking needs this */
 			uiButSetNFunc(but, NULL, MEM_dupallocN(template), NULL);
 		}
 		else {
-			but = uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
-			                   TIP_("Unlink datablock "
-			                        "(Shift + Click to set users to zero, data will then not be saved)"));
-			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
+			if ((RNA_property_flag(template->prop) & PROP_NEVER_UNLINK) == 0) {
+				but = uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+				                   TIP_("Unlink datablock "
+				                        "(Shift + Click to set users to zero, data will then not be saved)"));
+				uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
 
-			if (RNA_property_flag(template->prop) & PROP_NEVER_NULL)
-				uiButSetFlag(but, UI_BUT_DISABLED);
+				if (RNA_property_flag(template->prop) & PROP_NEVER_NULL) {
+					uiButSetFlag(but, UI_BUT_DISABLED);
+				}
+			}
 		}
 
-		if ((idfrom && idfrom->lib) || !editable)
-			uiButSetFlag(but, UI_BUT_DISABLED);
+		if (but) {
+			if ((idfrom && idfrom->lib) || !editable) {
+				uiButSetFlag(but, UI_BUT_DISABLED);
+			}
+		}
 	}
 
 	if (idcode == ID_TE)

@@ -2399,3 +2399,55 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Material", MAX_ID_NAME - 2, "Name", "Material name to assign");
 }
+
+static int object_unlink_data_exec(bContext *C, wmOperator *op)
+{
+	ID *id;
+	PropertyPointerRNA pprop;
+
+	uiIDContextProperty(C, &pprop.ptr, &pprop.prop);
+
+	if (pprop.prop == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Incorrect context for running object data unlink");
+		return OPERATOR_CANCELLED;
+	}
+
+	id = pprop.ptr.id.data;
+
+	if (GS(id->name) == ID_OB) {
+		Object *ob = (Object *)id;
+		if (ob->data) {
+			ID *id_data = ob->data;
+
+			if (GS(id_data->name) == ID_IM) {
+				id_us_min(id_data);
+				ob->data = NULL;
+			}
+			else {
+				BKE_report(op->reports, RPT_ERROR, "Can't unlink this object data");
+				return OPERATOR_CANCELLED;
+			}
+		}
+	}
+
+	RNA_property_update(C, &pprop.ptr, pprop.prop);
+
+	return OPERATOR_FINISHED;
+}
+
+/**
+ * \note Only for empty-image objects, this operator is needed
+ */
+void OBJECT_OT_unlink_data(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unlink";
+	ot->idname = "OBJECT_OT_unlink_data";
+	ot->description = "";
+
+	/* api callbacks */
+	ot->exec = object_unlink_data_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_INTERNAL;
+}
