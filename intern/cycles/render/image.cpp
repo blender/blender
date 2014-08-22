@@ -332,7 +332,7 @@ void ImageManager::tag_reload_image(const string& filename, void *builtin_data, 
 		/* see if it's in a float texture slot */
 		for(slot = 0; slot < float_images.size(); slot++) {
 			if(float_images[slot] && image_equals(float_images[slot], filename, builtin_data, interpolation)) {
-				images[slot]->need_load = true;
+				float_images[slot]->need_load = true;
 				break;
 			}
 		}
