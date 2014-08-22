@@ -146,7 +146,7 @@ kernel_cuda_convert_to_half_float(uchar4 *rgba, float *buffer, float sample_scal
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_shader(uint4 *input, float4 *output, int type, int sx, int sw, int sample)
+kernel_cuda_shader(uint4 *input, float4 *output, int type, int sx, int sw, int offset, int sample)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 
