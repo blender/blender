@@ -84,7 +84,7 @@ static const char *bc_primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type
 		case COLLADAFW::MeshPrimitive::TRIANGLE_FANS:
 			return "TRIANGLE_FANS";
 		case COLLADAFW::MeshPrimitive::TRIANGLE_STRIPS:
-			return "TRIANGLE_FANS";
+			return "TRIANGLE_STRIPS";
 		case COLLADAFW::MeshPrimitive::POINTS:
 			return "POINTS";
 		case COLLADAFW::MeshPrimitive::UNDEFINED_PRIMITIVE_TYPE:
