@@ -135,6 +135,7 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data, bo
 				              (colorspace == "" &&
 				                  (strcmp(in->format_name(), "png") == 0 ||
 				                   strcmp(in->format_name(), "tiff") == 0 ||
+				                   strcmp(in->format_name(), "dpx") == 0 ||
 				                   strcmp(in->format_name(), "jpeg2000") == 0)));
 			}
 			else {
