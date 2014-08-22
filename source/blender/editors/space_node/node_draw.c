@@ -138,6 +138,10 @@ void ED_node_tag_update_id(ID *id)
 		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
 	}
+	else if(id == &ntree->id) {
+		/* node groups */
+		DAG_id_tag_update(id, 0);
+	}
 }
 
 void ED_node_tag_update_nodetree(Main *bmain, bNodeTree *ntree)
