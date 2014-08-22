@@ -2317,7 +2317,7 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
 	out vec3 camera, out vec3 window, out vec3 reflection)
 {
-	generated = attr_orco;
+	generated = attr_orco * 0.5 + vec3(0.5, 0.5, 0.5);
 	normal = normalize((obinvmat*(viewinvmat*vec4(N, 0.0))).xyz);
 	uv = attr_uv;
 	object = (obinvmat*(viewinvmat*vec4(I, 1.0))).xyz;
