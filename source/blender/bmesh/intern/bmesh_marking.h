@@ -98,7 +98,7 @@ void _bm_select_history_store_after(BMesh *bm,  BMEditSelection *ese_ref, BMHead
 void _bm_select_history_store_after_notest(BMesh *bm,  BMEditSelection *ese_ref, BMHeader *ele);
 
 void BM_select_history_validate(BMesh *bm);
-void BM_select_history_clear(BMesh *em);
+void BM_select_history_clear(BMesh *bm);
 bool BM_select_history_active_get(BMesh *bm, struct BMEditSelection *ese);
 
 #endif /* __BMESH_MARKING_H__ */

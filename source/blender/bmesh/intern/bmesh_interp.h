@@ -33,9 +33,9 @@ void  BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
 void  BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac);
 void  BM_data_interp_from_edges(BMesh *bm, BMEdge *e1, BMEdge *e2, BMEdge *e, const float fac);
 void  BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, BMEdge *e1, const float fac);
-void  BM_data_layer_add(BMesh *em, CustomData *data, int type);
+void  BM_data_layer_add(BMesh *bm, CustomData *data, int type);
 void  BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
-void  BM_data_layer_free(BMesh *em, CustomData *data, int type);
+void  BM_data_layer_free(BMesh *bm, CustomData *data, int type);
 void  BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n);
 void  BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int dst_n);
 

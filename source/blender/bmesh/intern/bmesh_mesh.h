@@ -50,7 +50,7 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
                                  const char *msg_a, const char *msg_b);
 
 #ifndef NDEBUG
-bool BM_mesh_elem_table_check(BMesh *em);
+bool BM_mesh_elem_table_check(BMesh *bm);
 #endif
 
 void           BM_mesh_elem_table_ensure(BMesh *bm, const char htype);
