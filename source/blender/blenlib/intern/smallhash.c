@@ -84,6 +84,11 @@ BLI_INLINE bool smallhash_val_is_used(const void *val)
 
 extern const unsigned int hashsizes[];
 
+BLI_INLINE unsigned int smallhash_key(const uintptr_t key)
+{
+	return (unsigned int)key;
+}
+
 /**
  * Check if the number of items in the smallhash is large enough to require more buckets.
  */
@@ -116,7 +121,7 @@ BLI_INLINE void smallhash_buckets_reserve(SmallHash *sh, const unsigned int nent
 BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
 {
 	SmallHashEntry *e;
-	unsigned int h = (unsigned int)key;
+	unsigned int h = smallhash_key(key);
 	unsigned int hoff = 1;
 
 	BLI_assert(key != SMHASH_KEY_UNUSED);
@@ -140,7 +145,7 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
 BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uintptr_t key)
 {
 	SmallHashEntry *e;
-	unsigned int h = (unsigned int)key;
+	unsigned int h = smallhash_key(key);
 	unsigned int hoff = 1;
 
 	for (e = &sh->buckets[h % sh->nbuckets];
@@ -310,6 +315,9 @@ void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
 	return BLI_smallhash_iternext(iter, key);
 }
 
+/** \name Debugging & Introspection
+ * \{ */
+
 /* note, this was called _print_smhash in knifetool.c
  * it may not be intended for general use - campbell */
 #if 0
@@ -343,3 +351,41 @@ void BLI_smallhash_print(SmallHash *sh)
 	fflush(stdout);
 }
 #endif
+
+#ifdef DEBUG
+/**
+ * Measure how well the hash function performs
+ * (1.0 is perfect - no stepping needed).
+ *
+ * Smaller is better!
+ */
+double BLI_smallhash_calc_quality(SmallHash *sh)
+{
+	uint64_t sum = 0;
+	unsigned int i;
+
+	if (sh->nentries == 0)
+		return -1.0;
+
+	for (i = 0; i < sh->nbuckets; i++) {
+		if (sh->buckets[i].key != SMHASH_KEY_UNUSED) {
+			uint64_t count = 0;
+			SmallHashEntry *e, *e_final = &sh->buckets[i];
+			unsigned int h = smallhash_key(e_final->key);
+			unsigned int hoff = 1;
+
+			for (e = &sh->buckets[h % sh->nbuckets];
+			     e != e_final;
+			     h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % sh->nbuckets])
+			{
+				count += 1;
+			}
+
+			sum += count;
+		}
+	}
+	return ((double)(sh->nentries + sum) / (double)sh->nentries);
+}
+#endif
+
+/** \} */
