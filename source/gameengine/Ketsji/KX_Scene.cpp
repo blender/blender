@@ -2501,16 +2501,18 @@ KX_PYMETHODDEF_DOC(KX_Scene, restart,
 
 KX_PYMETHODDEF_DOC(KX_Scene, replace,
 				   "replace(newScene)\n"
-				   "Replaces this scene with another one.\n")
+                   "Replaces this scene with another one.\n"
+                   "Return True if the new scene exists and scheduled for replacement, False otherwise.\n")
 {
 	char* name;
 	
 	if (!PyArg_ParseTuple(args, "s:replace", &name))
 		return NULL;
 	
-	KX_GetActiveEngine()->ReplaceScene(m_sceneName, name);
+    if (KX_GetActiveEngine()->ReplaceScene(m_sceneName, name))
+        Py_RETURN_TRUE;
 	
-	Py_RETURN_NONE;
+    Py_RETURN_FALSE;
 }
 
 KX_PYMETHODDEF_DOC(KX_Scene, suspend,

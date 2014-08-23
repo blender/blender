@@ -258,7 +258,7 @@ public:
 	void			ConvertAndAddScene(const STR_String& scenename,bool overlay);
 
 	void			RemoveScene(const STR_String& scenename);
-	void			ReplaceScene(const STR_String& oldscene,const STR_String& newscene);
+    bool			ReplaceScene(const STR_String& oldscene,const STR_String& newscene);
 	void			SuspendScene(const STR_String& scenename);
 	void			ResumeScene(const STR_String& scenename);
 
