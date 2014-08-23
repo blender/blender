@@ -93,25 +93,31 @@ struct BufferLineAccumulator {
 	 */
 	static float *init_buffer_iterator(MemoryBuffer *input, const float source[2], const float pt_ofs[2],
 	                                   float dist_min, float dist_max,
-	                                   int &x, int &y, int &num, float &v, float &dv)
+	                                   int &x, int &y, int &num, float &v, float &dv, float &falloff_factor)
 	{
 		float pu, pv;
 		buffer_to_sector(pt_ofs[0], pt_ofs[1], pu, pv);
 
 		/* line angle */
 		float tan_phi = pv / pu;
-		float cos_phi = 1.0f / sqrtf(tan_phi * tan_phi + 1.0f);
+		float dr = sqrtf(tan_phi * tan_phi + 1.0f);
+		float cos_phi = 1.0f / dr;
 
-		float umin = pu - cos_phi * dist_min;
-		float umax = pu - cos_phi * dist_max;
+		/* clamp u range to avoid influence of pixels "behind" the source */
+		float umin = max_ff(pu - cos_phi * dist_min, 0.0f);
+		float umax = max_ff(pu - cos_phi * dist_max, 0.0f);
 		v = umin * tan_phi;
 		dv = tan_phi;
 
-		sector_to_buffer(umin, v, x, y);
-		x += source[0];
-		y += source[1];
+		int start = (int)floorf(umax);
+		int end = (int)ceilf(umin);
+		num = end - start;
 
-		num = (int)ceilf(umin) - max_ii((int)floorf(umax), 1);
+		sector_to_buffer(end, (int)ceilf(v), x, y);
+		x += (int)source[0];
+		y += (int)source[1];
+
+		falloff_factor = dist_max > dist_min ? dr / (float)(dist_max - dist_min) : 0.0f;
 
 		float *iter = input->getBuffer() + COM_NUMBER_OF_CHANNELS * (x + input->getWidth() * y);
 		return iter;
@@ -131,11 +137,10 @@ struct BufferLineAccumulator {
 		int buffer_width = input->getWidth();
 		int x, y, num;
 		float v, dv;
+		float falloff_factor;
 
 		/* initialise the iteration variables */
-		float *buffer = init_buffer_iterator(input, source, pt_ofs, dist_min, dist_max, x, y, num, v, dv);
-
-		float falloff_factor = num > 1 ? 1.0f / (float)(num - 1) : 0.0f;
+		float *buffer = init_buffer_iterator(input, source, pt_ofs, dist_min, dist_max, x, y, num, v, dv, falloff_factor);
 
 		int tot = 0;
 
@@ -273,7 +278,7 @@ void SunBeamsOperation::executePixel(float output[4], int x, int y, void *data)
 
 static void calc_ray_shift(rcti *rect, float x, float y, const float source[2], float ray_length)
 {
-	float co[2] = {x, y};
+	float co[2] = {(float)x, (float)y};
 	float dir[2], dist;
 
 	/* move (x,y) vector toward the source by ray_length distance */
