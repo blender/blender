@@ -89,9 +89,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
-			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
 
 #ifdef __VOLUME_DECOUPLED__
+			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
 			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, false, sampling_method);
 
 			if(decoupled) {
@@ -476,9 +476,9 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
 
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
-			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
 
 #ifdef __VOLUME_DECOUPLED__
+			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
 			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, true, sampling_method);
 
 			if(decoupled) {
