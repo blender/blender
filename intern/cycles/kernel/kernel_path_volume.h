@@ -58,8 +58,7 @@ ccl_device void kernel_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
 }
 
 ccl_device bool kernel_path_volume_bounce(KernelGlobals *kg, RNG *rng,
-	ShaderData *sd, float3 *throughput, PathState *state, PathRadiance *L, Ray *ray,
-	float num_samples_adjust)
+	ShaderData *sd, float3 *throughput, PathState *state, PathRadiance *L, Ray *ray)
 {
 	/* sample phase function */
 	float phase_pdf;

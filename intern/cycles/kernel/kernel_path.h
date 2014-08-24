@@ -137,7 +137,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 				kernel_volume_decoupled_free(kg, &volume_segment);
 
 				if(result == VOLUME_PATH_SCATTERED) {
-					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f))
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray))
 						continue;
 					else
 						break;
@@ -157,7 +157,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, L, 1.0f);
 
 					/* indirect light bounce */
-					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray, 1.0f))
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, L, &ray))
 						continue;
 					else
 						break;
@@ -524,7 +524,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 				kernel_volume_decoupled_free(kg, &volume_segment);
 
 				if(result == VOLUME_PATH_SCATTERED) {
-					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f))
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray))
 						continue;
 					else
 						break;
@@ -544,7 +544,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, 1.0f);
 
 					/* indirect light bounce */
-					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray, 1.0f))
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &throughput, &state, &L, &ray))
 						continue;
 					else
 						break;
@@ -866,7 +866,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 						
 					kernel_assert(result == VOLUME_PATH_SCATTERED);
 
-					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray)) {
 						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
 
 						/* for render passes, sum and reset indirect light pass variables
@@ -910,7 +910,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 					 * alternatively get decoupled ray marching working on the GPU */
 					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, num_samples_inv);
 
-					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray, num_samples_inv)) {
+					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray)) {
 						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
 
 						/* for render passes, sum and reset indirect light pass variables
