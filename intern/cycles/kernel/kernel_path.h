@@ -149,7 +149,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 				/* integrate along volume segment with distance sampling */
 				ShaderData volume_sd;
 				VolumeIntegrateResult result = kernel_volume_integrate(
-					kg, &state, &volume_sd, &volume_ray, L, &throughput, rng);
+					kg, &state, &volume_sd, &volume_ray, L, &throughput, rng, heterogeneous);
 
 #ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
@@ -536,7 +536,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 				/* integrate along volume segment with distance sampling */
 				ShaderData volume_sd;
 				VolumeIntegrateResult result = kernel_volume_integrate(
-					kg, &state, &volume_sd, &volume_ray, &L, &throughput, rng);
+					kg, &state, &volume_sd, &volume_ray, &L, &throughput, rng, heterogeneous);
 
 #ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
@@ -815,10 +815,11 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 		if(state.volume_stack[0].shader != SHADER_NONE) {
 			Ray volume_ray = ray;
 			volume_ray.t = (hit)? isect.t: FLT_MAX;
+			
+			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
 
 #ifdef __VOLUME_DECOUPLED__
 			/* decoupled ray marching only supported on CPU */
-			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
 
 			/* cache steps along volume for repeated sampling */
 			VolumeSegment volume_segment;
@@ -901,7 +902,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				path_state_branch(&ps, j, num_samples);
 
 				VolumeIntegrateResult result = kernel_volume_integrate(
-					kg, &ps, &volume_sd, &volume_ray, &L, &tp, rng);
+					kg, &ps, &volume_sd, &volume_ray, &L, &tp, rng, heterogeneous);
 				
 #ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {

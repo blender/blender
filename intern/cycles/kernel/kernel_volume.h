@@ -560,13 +560,12 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
  * between the endpoints. distance sampling is used to decide if we will
  * scatter or not. */
 ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
-	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng)
+	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng, bool heterogeneous)
 {
 	/* workaround to fix correlation bug in T38710, can find better solution
 	 * in random number generator later, for now this is done here to not impact
 	 * performance of rendering without volumes */
 	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
-	bool heterogeneous = volume_stack_is_heterogeneous(kg, state->volume_stack);
 
 	shader_setup_from_volume(kg, sd, ray, state->bounce, state->transparent_bounce);
 
