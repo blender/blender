@@ -1087,6 +1087,9 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 col.label("UV Map")
                 col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
 
+        col.separator()
+        col.operator("image.save_dirty", text="Save All Images")
+
 
 
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
@@ -1626,7 +1629,6 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
         col.row().prop(ipaint, "screen_grab_size", text="")
 
         col.operator("paint.project_image", text="Apply Camera Image")
-        col.operator("image.save_dirty", text="Save All Edited")
 
 
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):

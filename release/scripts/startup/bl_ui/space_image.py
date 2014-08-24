@@ -176,6 +176,8 @@ class IMAGE_MT_image(Menu):
 
         layout.operator("image.read_renderlayers")
 
+        layout.operator("image.save_dirty", text="Save All Images")
+
         if ima:
             if not show_render:
                 layout.operator("image.replace")
