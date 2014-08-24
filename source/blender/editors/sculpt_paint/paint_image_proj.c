@@ -4849,11 +4849,21 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 				Main *bmain = CTX_data_main(C);
 				Image *ima;
 				int type = MAP_COL;
+				int type_id = 0;
 
-				if (op)
+				if (op) {
+					int i;
 					type = RNA_enum_get(op->ptr, "type");
 
-				mtex->tex = add_texture(bmain, DATA_(layer_type_items[type].name));
+					for (i = 0; i < ARRAY_SIZE(layer_type_items); i++) {
+						if (layer_type_items[i].value == type) {
+							type_id = i;
+							break;
+						}
+					}
+				}
+
+				mtex->tex = add_texture(bmain, DATA_(layer_type_items[type_id].name));
 				mtex->mapto = type;
 
 				if (mtex->tex) {
