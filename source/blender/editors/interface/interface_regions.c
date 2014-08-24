@@ -1165,8 +1165,9 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* widget rect, in region coords */
 		data->bbox.xmin = width;
 		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - width;
-		data->bbox.ymin = width;
-		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - width;
+		/* Do not use shadow width for height, gives insane margin with big shadows, and issue T41548 with small ones */
+		data->bbox.ymin = 8 * UI_DPI_FAC;
+		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - 8 * UI_DPI_FAC;
 		
 		/* check if button is lower half */
 		if (but->rect.ymax < BLI_rctf_cent_y(&but->block->rect)) {
