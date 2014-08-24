@@ -1140,11 +1140,6 @@ void BKE_scene_frame_set(struct Scene *scene, double cfra)
 	double intpart;
 	scene->r.subframe = modf(cfra, &intpart);
 	scene->r.cfra = (int)intpart;
-
-	if (cfra < 0.0) {
-		scene->r.cfra -= 1;
-		scene->r.subframe = 1.0f + scene->r.subframe;
-	}
 }
 
 /* drivers support/hacks 
