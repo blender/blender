@@ -908,7 +908,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* todo: support equiangular, MIS and all light sampling.
 					 * alternatively get decoupled ray marching working on the GPU */
-					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L, num_samples_inv);
+					kernel_path_volume_connect_light(kg, rng, &volume_sd, tp, &state, &L, num_samples_inv);
 
 					if(kernel_path_volume_bounce(kg, rng, &volume_sd, &tp, &ps, &L, &pray)) {
 						kernel_path_indirect(kg, rng, pray, tp*num_samples_inv, num_samples, ps, &L);
