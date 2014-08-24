@@ -954,18 +954,6 @@ static void node_shader_buts_subsurface(uiLayout *layout, bContext *C, PointerRN
 }
 
 
-static void node_shader_buts_volume(uiLayout *layout, bContext *C, PointerRNA *UNUSED(ptr))
-{
-	/* Volume does not work on GPU yet */
-	PointerRNA scene = CTX_data_pointer_get(C, "scene");
-	if (scene.data) {
-		PointerRNA cscene = RNA_pointer_get(&scene, "cycles");
-
-		if (cscene.data && (RNA_enum_get(&cscene, "device") == 1 && U.compute_device_type != 0))
-			uiItemL(layout, IFACE_("Volumes not supported on GPU"), ICON_ERROR);
-	}
-}
-
 static void node_shader_buts_toon(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "component", 0, "", ICON_NONE);
@@ -1121,12 +1109,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_SUBSURFACE_SCATTERING:
 			ntype->draw_buttons = node_shader_buts_subsurface;
-			break;
-		case SH_NODE_VOLUME_SCATTER:
-			ntype->draw_buttons = node_shader_buts_volume;
-			break;
-		case SH_NODE_VOLUME_ABSORPTION:
-			ntype->draw_buttons = node_shader_buts_volume;
 			break;
 		case SH_NODE_BSDF_TOON:
 			ntype->draw_buttons = node_shader_buts_toon;
