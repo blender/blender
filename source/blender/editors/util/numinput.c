@@ -442,6 +442,13 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		}
 	}
 
+	/* Up to this point, if we have a ctrl modifier, skip.
+	 * This allows to still access most of modals' shortcuts even in numinput mode.
+	 */
+	if (!updated && event->ctrl) {
+		return false;
+	}
+
 	if ((!utf8_buf || !utf8_buf[0]) && ascii[0]) {
 		/* Fallback to ascii. */
 		utf8_buf = ascii;
