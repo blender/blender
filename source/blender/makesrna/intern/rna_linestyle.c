@@ -583,6 +583,7 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "modifier.flags", LS_MODIFIER_ENABLED);
 	RNA_def_property_ui_text(prop, "Use", "Enable or disable this modifier during stroke rendering");
+	RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
 	prop = RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "modifier.flags", LS_MODIFIER_EXPANDED);
@@ -1349,7 +1350,6 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "panel");
 	RNA_def_property_enum_items(prop, panel_items);
 	RNA_def_property_ui_text(prop, "Panel", "Select the property panel to be shown");
-	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
