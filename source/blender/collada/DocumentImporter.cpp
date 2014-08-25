@@ -488,7 +488,7 @@ void DocumentImporter::report_unknown_reference(const COLLADAFW::Node &node, con
 	std::string id = node.getOriginalId();
 	std::string name = node.getName();
 	fprintf(stderr,
-		"<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown %s.\n",
+		"error: node id=\"%s\", name=\"%s\" refers to an undefined %s.\n",
 		id.c_str(),
 		name.c_str(),
 		object_type.c_str());
