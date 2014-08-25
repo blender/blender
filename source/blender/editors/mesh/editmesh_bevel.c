@@ -73,7 +73,7 @@ typedef struct {
 
 #define HEADER_LENGTH 180
 
-static void edbm_bevel_update_header(wmOperator *op, bContext *C)
+static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 {
 	const char *str = IFACE_("Confirm: (Enter/LMB), Cancel: (Esc/RMB), Mode: %s (M), Offset: %s, Segments: %d");
 
@@ -262,7 +262,7 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	opdata->initial_length = len_v2(mlen);
 	opdata->pixel_size = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
 
-	edbm_bevel_update_header(op, C);
+	edbm_bevel_update_header(C, op);
 
 	if (!edbm_bevel_calc(op)) {
 		edbm_bevel_cancel(C, op);
@@ -329,7 +329,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		applyNumInput(&opdata->num_input, &value);
 		RNA_float_set(op->ptr, "offset", value);
 		edbm_bevel_calc(op);
-		edbm_bevel_update_header(op, C);
+		edbm_bevel_update_header(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
@@ -346,7 +346,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					RNA_float_set(op->ptr, "offset", factor);
 
 					edbm_bevel_calc(op);
-					edbm_bevel_update_header(op, C);
+					edbm_bevel_update_header(C, op);
 					handled = true;
 				}
 				break;
@@ -371,7 +371,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				segments++;
 				RNA_int_set(op->ptr, "segments", segments);
 				edbm_bevel_calc(op);
-				edbm_bevel_update_header(op, C);
+				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
 
@@ -383,7 +383,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				segments = max_ii(segments - 1, 1);
 				RNA_int_set(op->ptr, "segments", segments);
 				edbm_bevel_calc(op);
-				edbm_bevel_update_header(op, C);
+				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
 
@@ -405,7 +405,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					RNA_float_set(op->ptr, "offset", edbm_bevel_mval_factor(op, event));
 				}
 				edbm_bevel_calc(op);
-				edbm_bevel_update_header(op, C);
+				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
 		}
@@ -416,7 +416,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			applyNumInput(&opdata->num_input, &value);
 			RNA_float_set(op->ptr, "offset", value);
 			edbm_bevel_calc(op);
-			edbm_bevel_update_header(op, C);
+			edbm_bevel_update_header(C, op);
 			return OPERATOR_RUNNING_MODAL;
 		}
 	}

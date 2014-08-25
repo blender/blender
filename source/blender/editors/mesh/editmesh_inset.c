@@ -297,25 +297,24 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	InsetData *opdata = op->customdata;
+	const bool has_numinput = hasNumInput(&opdata->num_input);
 
-	if (event->val == KM_PRESS && hasNumInput(&opdata->num_input)) {
-		/* Modal numinput active, try to handle numeric inputs first... */
-		if (handleNumInput(C, &opdata->num_input, event)) {
-			float amounts[2] = {RNA_float_get(op->ptr, "thickness"),
-			                    RNA_float_get(op->ptr, "depth")};
-			applyNumInput(&opdata->num_input, amounts);
-			amounts[0] = max_ff(amounts[0], 0.0f);
-			RNA_float_set(op->ptr, "thickness", amounts[0]);
-			RNA_float_set(op->ptr, "depth", amounts[1]);
+	/* Modal numinput active, try to handle numeric inputs first... */
+	if (event->val == KM_PRESS && has_numinput && handleNumInput(C, &opdata->num_input, event)) {
+		float amounts[2] = {RNA_float_get(op->ptr, "thickness"),
+		                    RNA_float_get(op->ptr, "depth")};
+		applyNumInput(&opdata->num_input, amounts);
+		amounts[0] = max_ff(amounts[0], 0.0f);
+		RNA_float_set(op->ptr, "thickness", amounts[0]);
+		RNA_float_set(op->ptr, "depth", amounts[1]);
 
-			if (edbm_inset_calc(op)) {
-				edbm_inset_update_header(op, C);
-				return OPERATOR_RUNNING_MODAL;
-			}
-			else {
-				edbm_inset_cancel(C, op);
-				return OPERATOR_CANCELLED;
-			}
+		if (edbm_inset_calc(op)) {
+			edbm_inset_update_header(op, C);
+			return OPERATOR_RUNNING_MODAL;
+		}
+		else {
+			edbm_inset_cancel(C, op);
+			return OPERATOR_CANCELLED;
 		}
 	}
 	else {
@@ -327,7 +326,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				return OPERATOR_CANCELLED;
 
 			case MOUSEMOVE:
-				if (!hasNumInput(&opdata->num_input)) {
+				if (!has_numinput) {
 					float mdiff[2];
 					float amount;
 
@@ -455,24 +454,22 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				break;
 		}
 
-		if (!handled && event->val == KM_PRESS) {
-			/* Modal numinput inactive, try to handle numeric inputs last... */
-			if (handleNumInput(C, &opdata->num_input, event)) {
-				float amounts[2] = {RNA_float_get(op->ptr, "thickness"),
-				                    RNA_float_get(op->ptr, "depth")};
-				applyNumInput(&opdata->num_input, amounts);
-				amounts[0] = max_ff(amounts[0], 0.0f);
-				RNA_float_set(op->ptr, "thickness", amounts[0]);
-				RNA_float_set(op->ptr, "depth", amounts[1]);
+		/* Modal numinput inactive, try to handle numeric inputs last... */
+		if (!handled && event->val == KM_PRESS && handleNumInput(C, &opdata->num_input, event)) {
+			float amounts[2] = {RNA_float_get(op->ptr, "thickness"),
+			                    RNA_float_get(op->ptr, "depth")};
+			applyNumInput(&opdata->num_input, amounts);
+			amounts[0] = max_ff(amounts[0], 0.0f);
+			RNA_float_set(op->ptr, "thickness", amounts[0]);
+			RNA_float_set(op->ptr, "depth", amounts[1]);
 
-				if (edbm_inset_calc(op)) {
-					edbm_inset_update_header(op, C);
-					return OPERATOR_RUNNING_MODAL;
-				}
-				else {
-					edbm_inset_cancel(C, op);
-					return OPERATOR_CANCELLED;
-				}
+			if (edbm_inset_calc(op)) {
+				edbm_inset_update_header(op, C);
+				return OPERATOR_RUNNING_MODAL;
+			}
+			else {
+				edbm_inset_cancel(C, op);
+				return OPERATOR_CANCELLED;
 			}
 		}
 	}
