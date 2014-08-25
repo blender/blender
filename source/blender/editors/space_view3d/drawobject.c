@@ -3611,7 +3611,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			draw_dm_vert_normals(em, scene, ob, cageDM);
 		}
 		if (me->drawflag & ME_DRAW_LNORMALS) {
-			UI_ThemeColor(TH_VNORMAL);
+			UI_ThemeColor(TH_LNORMAL);
 			draw_dm_loop_normals(em, scene, ob, cageDM);
 		}
 

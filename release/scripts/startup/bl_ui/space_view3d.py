@@ -2946,7 +2946,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         row = col.row(align=True)
 
         row.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
-        row.prop(mesh, "show_normal_loop", text="", icon='VERTEXSEL')
+        row.prop(mesh, "show_normal_loop", text="", icon='LOOPSEL')
         row.prop(mesh, "show_normal_face", text="", icon='FACESEL')
 
         sub = row.row(align=True)

@@ -245,6 +245,7 @@ typedef struct ThemeSpace {
 	char extra_edge_len[4], extra_edge_angle[4], extra_face_angle[4], extra_face_area[4];
 	char normal[4];
 	char vertex_normal[4];
+	char loop_normal[4];
 	char bone_solid[4], bone_pose[4], bone_pose_active[4];
 	char strip[4], strip_select[4];
 	char cframe[4];
@@ -262,7 +263,7 @@ typedef struct ThemeSpace {
 	char keyborder[4], keyborder_select[4];
 	
 	char console_output[4], console_input[4], console_info[4], console_error[4];
-	char console_cursor[4], console_select[4], pad1[4];
+	char console_cursor[4], console_select[4];
 	
 	char vertex_size, outline_width, facedot_size;
 	char noodle_curving;

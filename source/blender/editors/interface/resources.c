@@ -335,6 +335,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->normal; break;
 				case TH_VNORMAL:
 					cp = ts->vertex_normal; break;
+				case TH_LNORMAL:
+					cp = ts->loop_normal; break;
 				case TH_BONE_SOLID:
 					cp = ts->bone_solid; break;
 				case TH_BONE_POSE:
@@ -866,6 +868,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.face_select, 255, 133, 0, 60);
 	rgba_char_args_set(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
 	rgba_char_args_set(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
+	rgba_char_args_set(btheme->tv3d.loop_normal, 0xDD, 0x23, 0xDD, 255);
 	rgba_char_args_set(btheme->tv3d.face_dot, 255, 133, 0, 255);
 	rgba_char_args_set(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
 	rgba_char_args_set_fl(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
@@ -2476,6 +2479,16 @@ void init_userdef_do_versions(void)
 
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			btheme->tui.wcol_pie_menu = wcol_pie_menu;
+		}
+	}
+
+	{
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* check for (alpha == 0) is safe, then color was never set */
+			if (btheme->tv3d.loop_normal[3] == 0) {
+				rgba_char_args_set(btheme->tv3d.loop_normal, 0xDD, 0x23, 0xDD, 255);
+			}
 		}
 	}
 
