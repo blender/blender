@@ -2187,10 +2187,14 @@ static void viewzoom_apply(ViewOpsData *vod, const int xy[2], const short viewzo
 	}
 
 	if (!use_cam_zoom) {
-		if (zfac != 1.0f && zfac * vod->rv3d->dist > 0.001f * vod->grid &&
-		    zfac * vod->rv3d->dist < 10.0f * vod->far)
-		{
-			view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
+		if (zfac != 1.0f) {
+			const float zfac_min = dist_range[0] / vod->rv3d->dist;
+			const float zfac_max = dist_range[1] / vod->rv3d->dist;
+			CLAMP(zfac, zfac_min, zfac_max);
+
+			if (zfac != 1.0f) {
+				view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
+			}
 		}
 	}
 
