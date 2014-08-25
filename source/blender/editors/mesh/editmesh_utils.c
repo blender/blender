@@ -1328,6 +1328,15 @@ void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_d
 
 	/* don't keep stale derivedMesh data around, see: [#38872] */
 	BKE_editmesh_free_derivedmesh(em);
+
+#ifdef DEBUG
+	{
+		BMEditSelection *ese;
+		for (ese = em->bm->selected.first; ese; ese = ese->next) {
+			BLI_assert(BM_elem_flag_test(ese->ele, BM_ELEM_SELECT));
+		}
+	}
+#endif
 }
 
 /* poll call for mesh operators requiring a view3d context */

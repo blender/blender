@@ -154,7 +154,7 @@ static unsigned int bmesh_face_attribute_fill(BMesh *bm,
 	return face_tot;
 }
 
-void bmo_face_attribute_fill_exec(BMesh *bm, BMOperator *op)
+void  bmo_face_attribute_fill_exec(BMesh *bm, BMOperator *op)
 {
 	const bool use_normals = BMO_slot_bool_get(op->slots_in, "use_normals");
 	const bool use_data = BMO_slot_bool_get(op->slots_in, "use_data");

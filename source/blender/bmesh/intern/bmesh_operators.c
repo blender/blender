@@ -605,7 +605,8 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 void BMO_mesh_selected_remap(BMesh *bm,
                              BMOpSlot *slot_vert_map,
                              BMOpSlot *slot_edge_map,
-                             BMOpSlot *slot_face_map)
+                             BMOpSlot *slot_face_map,
+                             const bool check_select)
 {
 	if (bm->selected.first) {
 		BMEditSelection *ese, *ese_next;
@@ -623,7 +624,7 @@ void BMO_mesh_selected_remap(BMesh *bm,
 			ese->ele = BMO_slot_map_elem_get(slot_elem_map, ese->ele);
 
 			if (UNLIKELY((ese->ele == NULL) ||
-			             (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false)))
+			             (check_select && (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false))))
 			{
 				BLI_remlink(&bm->selected, ese);
 				MEM_freeN(ese);

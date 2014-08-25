@@ -100,5 +100,12 @@ void _bm_select_history_store_after_notest(BMesh *bm,  BMEditSelection *ese_ref,
 void BM_select_history_validate(BMesh *bm);
 void BM_select_history_clear(BMesh *bm);
 bool BM_select_history_active_get(BMesh *bm, struct BMEditSelection *ese);
+struct GHash *BM_select_history_map_create(BMesh *bm);
+
+#define BM_SELECT_HISTORY_BACKUP(bm) { \
+	ListBase _bm_prev_selected = (bm)->selected; BLI_listbase_clear(&(bm)->selected)
+
+#define BM_SELECT_HISTORY_RESTORE(bm) \
+	(bm)->selected = _bm_prev_selected; } (void)0
 
 #endif /* __BMESH_MARKING_H__ */

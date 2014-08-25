@@ -53,8 +53,15 @@ enum {
 
 void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 {
+	const bool use_select_history = BMO_slot_bool_get(op->slots_in, "use_select_history");
+	GHash *select_history_map = NULL;
+
 	BMOIter siter;
 	BMFace *f_org;
+
+	if (use_select_history) {
+		select_history_map = BM_select_history_map_create(bm);
+	}
 
 	BMO_ITER (f_org, &siter, op->slots_in, "faces", BM_FACE) {
 		BMFace *f_new;
@@ -65,6 +72,14 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 
 		f_new = BM_face_copy(bm, bm, f_org, true, true);
 		BMO_elem_flag_enable(bm, f_new, EXT_KEEP);
+
+		if (select_history_map) {
+			BMEditSelection *ese;
+			ese = BLI_ghash_lookup(select_history_map, f_org);
+			if (ese) {
+				ese->ele = (BMElem *)f_new;
+			}
+		}
 
 		l_org = l_org_first = BM_FACE_FIRST_LOOP(f_org);
 		l_new = BM_FACE_FIRST_LOOP(f_new);
@@ -85,8 +100,26 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 			BM_elem_attrs_copy(bm, bm, l_org->next, l_side_iter);  l_side_iter = l_side_iter->next;
 			BM_elem_attrs_copy(bm, bm, l_org, l_side_iter);        l_side_iter = l_side_iter->next;
 			BM_elem_attrs_copy(bm, bm, l_org, l_side_iter);
+
+			if (select_history_map) {
+				BMEditSelection *ese;
+
+				ese = BLI_ghash_lookup(select_history_map, l_org->v);
+				if (ese) {
+					ese->ele = (BMElem *)l_new->v;
+				}
+				ese = BLI_ghash_lookup(select_history_map, l_org->e);
+				if (ese) {
+					ese->ele = (BMElem *)l_new->e;
+				}
+			}
+
 		} while (((l_new = l_new->next),
 		          (l_org = l_org->next)) != l_org_first);
+	}
+
+	if (select_history_map) {
+		BLI_ghash_free(select_history_map, NULL, NULL);
 	}
 
 	BMO_op_callf(bm, op->flag,
@@ -157,7 +190,11 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, e->v2, EXT_INPUT);
 	}
 
-	BMO_op_initf(bm, &dupeop, op->flag, "duplicate geom=%fve", EXT_INPUT);
+	BMO_op_initf(
+	        bm, &dupeop, op->flag,
+	        "duplicate geom=%fve use_select_history=%b",
+	        EXT_INPUT, BMO_slot_bool_get(op->slots_in, "use_select_history"));
+
 	BMO_op_exec(bm, &dupeop);
 
 	/* disable root flag on all new skin nodes */
@@ -205,10 +242,16 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 {
+	const bool use_select_history = BMO_slot_bool_get(op->slots_in, "use_select_history");
 	BMOIter siter;
 	BMVert *v, *dupev;
 	BMEdge *e;
 	const bool has_vskin = CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN);
+	GHash *select_history_map = NULL;
+
+	if (use_select_history) {
+		select_history_map = BM_select_history_map_create(bm);
+	}
 
 	for (v = BMO_iter_new(&siter, op->slots_in, "verts", BM_VERT); v; v = BMO_iter_step(&siter)) {
 		dupev = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
@@ -216,6 +259,14 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 
 		if (has_vskin)
 			bm_extrude_disable_skin_root(bm, v);
+
+		if (select_history_map) {
+			BMEditSelection *ese;
+			ese = BLI_ghash_lookup(select_history_map, v);
+			if (ese) {
+				ese->ele = (BMElem *)dupev;
+			}
+		}
 
 		/* not essential, but ensures face normals from extruded edges are contiguous */
 		if (BM_vert_is_wire_endpoint(v)) {
@@ -226,6 +277,10 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 
 		e = BM_edge_create(bm, v, dupev, NULL, BM_CREATE_NOP);
 		BMO_elem_flag_enable(bm, e, EXT_KEEP);
+	}
+
+	if (select_history_map) {
+		BLI_ghash_free(select_history_map, NULL, NULL);
 	}
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, EXT_KEEP);
@@ -245,8 +300,11 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *slot_edges_exclude;
 
 	/* initialize our sub-operators */
-	BMO_op_init(bm, &dupeop, op->flag, "duplicate");
-	
+	BMO_op_initf(
+	        bm, &dupeop, op->flag,
+	        "duplicate use_select_history=%b",
+	        BMO_slot_bool_get(op->slots_in, "use_select_history"));
+
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_EDGE | BM_FACE, EXT_INPUT);
 	
 	/* if one flagged face is bordered by an un-flagged face, then we delete

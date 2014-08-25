@@ -338,7 +338,8 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *op, const char htype, cons
 void BMO_mesh_selected_remap(BMesh *bm,
                              BMOpSlot *slot_vert_map,
                              BMOpSlot *slot_edge_map,
-                             BMOpSlot *slot_face_map);
+                             BMOpSlot *slot_face_map,
+                             const bool check_select);
 
 /* copies the values from another slot to the end of the output slot */
 #define BMO_slot_buffer_append(op_src, slots_src, slot_name_src,              \

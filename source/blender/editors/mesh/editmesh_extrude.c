@@ -33,6 +33,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -65,105 +66,25 @@ static void add_normal_aligned(float nor[3], const float add[3])
 	}
 }
 
-/* individual face extrude */
-/* will use vertex normals for extrusion directions, so *nor is unaffected */
-static short edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
-{
-	BMOIter siter;
-	BMIter liter;
-	BMFace *f;
-	BMLoop *l;
-	BMOperator bmop;
-
-	EDBM_op_init(em, &bmop, op, "extrude_discrete_faces faces=%hf", hflag);
-
-	/* deselect original verts */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	BMO_op_exec(em->bm, &bmop);
-	
-	BMO_ITER (f, &siter, bmop.slots_out, "faces.out", BM_FACE) {
-		BM_face_select_set(em->bm, f, true);
-
-		/* set face vertex normals to face normal */
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			copy_v3_v3(l->v->no, f->no);
-		}
-	}
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
-	}
-
-	return 's';  /* s is shrink/fatten */
-}
-
-/* extrudes individual edges */
-static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
-{
-	BMOperator bmop;
-
-	EDBM_op_init(em, &bmop, op, "extrude_edge_only edges=%he", hflag);
-
-	/* deselect original verts */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_VERT | BM_EDGE, BM_ELEM_SELECT, true);
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
-	}
-
-	return 'n';  /* n is normal grab */
-}
-
-/* extrudes individual vertices */
-static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
-{
-	BMOperator bmop;
-
-	EDBM_op_init(em, &bmop, op, "extrude_vert_indiv verts=%hv", hflag);
-
-	/* deselect original verts */
-	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_in, "verts", BM_VERT, BM_ELEM_SELECT, true);
-
-	BMO_op_exec(em->bm, &bmop);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, true);
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
-	}
-
-	return 'g';  /* g is grab */
-}
-
-static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag, float nor[3])
+static void edbm_extrude_edge_exclude_mirror(
+        Object *obedit, BMEditMesh *em,
+        const char hflag,
+        BMOperator *op, BMOpSlot *slot_edges_exclude)
 {
 	BMesh *bm = em->bm;
-	BMIter iter;
-	BMOIter siter;
-	BMOperator extop;
-	BMEdge *edge;
-	BMFace *f;
 	ModifierData *md;
-	BMElem *ele;
-	BMOpSlot *slot_edges_exclude;
-	
-	BMO_op_init(bm, &extop, BMO_FLAG_DEFAULTS, "extrude_face_region");
-	BMO_slot_buffer_from_enabled_hflag(bm, &extop, extop.slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, hflag);
 
-	slot_edges_exclude = BMO_slot_get(extop.slots_in, "edges_exclude");
-
-	/* If a mirror modifier with clipping is on, we need to adjust some 
+	/* If a mirror modifier with clipping is on, we need to adjust some
 	 * of the cases above to handle edges on the line of symmetry.
 	 */
-	md = obedit->modifiers.first;
-	for (; md; md = md->next) {
+	for (md = obedit->modifiers.first; md; md = md->next) {
 		if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData *) md;
-		
+
 			if (mmd->flag & MOD_MIR_CLIPPING) {
+				BMIter iter;
+				BMEdge *edge;
+
 				float mtx[4][4];
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
@@ -190,21 +111,21 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 							if ((fabsf(co1[0]) < mmd->tolerance) &&
 							    (fabsf(co2[0]) < mmd->tolerance))
 							{
-								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
+								BMO_slot_map_empty_insert(op, slot_edges_exclude, edge);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Y) {
 							if ((fabsf(co1[1]) < mmd->tolerance) &&
 							    (fabsf(co2[1]) < mmd->tolerance))
 							{
-								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
+								BMO_slot_map_empty_insert(op, slot_edges_exclude, edge);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Z) {
 							if ((fabsf(co1[2]) < mmd->tolerance) &&
 							    (fabsf(co2[2]) < mmd->tolerance))
 							{
-								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
+								BMO_slot_map_empty_insert(op, slot_edges_exclude, edge);
 							}
 						}
 					}
@@ -212,8 +133,119 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 			}
 		}
 	}
+}
 
+/* individual face extrude */
+/* will use vertex normals for extrusion directions, so *nor is unaffected */
+static short edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
+{
+	BMOIter siter;
+	BMIter liter;
+	BMFace *f;
+	BMLoop *l;
+	BMOperator bmop;
+
+	EDBM_op_init(
+	        em, &bmop, op,
+	        "extrude_discrete_faces faces=%hf use_select_history=%b",
+	        hflag, true);
+
+	/* deselect original verts */
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+	BMO_op_exec(em->bm, &bmop);
+	
+	BMO_ITER (f, &siter, bmop.slots_out, "faces.out", BM_FACE) {
+		BM_face_select_set(em->bm, f, true);
+
+		/* set face vertex normals to face normal */
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+			copy_v3_v3(l->v->no, f->no);
+		}
+	}
+
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
+		return 0;
+	}
+
+	return 's';  /* s is shrink/fatten */
+}
+
+/* extrudes individual edges */
+static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
+{
+	BMesh *bm = em->bm;
+	BMOperator bmop;
+
+	EDBM_op_init(
+	        em, &bmop, op,
+	        "extrude_edge_only edges=%he use_select_history=%b",
+	        hflag, true);
+
+	/* deselect original verts */
+	BM_SELECT_HISTORY_BACKUP(bm);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	BM_SELECT_HISTORY_RESTORE(bm);
+
+	BMO_op_exec(em->bm, &bmop);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_VERT | BM_EDGE, BM_ELEM_SELECT, true);
+
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
+		return 0;
+	}
+
+	return 'n';  /* n is normal grab */
+}
+
+/* extrudes individual vertices */
+static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
+{
+	BMOperator bmop;
+
+	EDBM_op_init(
+	        em, &bmop, op,
+	        "extrude_vert_indiv verts=%hv use_select_history=%b",
+	        hflag, true);
+
+	/* deselect original verts */
+	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_in, "verts", BM_VERT, BM_ELEM_SELECT, true);
+
+	BMO_op_exec(em->bm, &bmop);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, true);
+
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
+		return 0;
+	}
+
+	return 'g';  /* g is grab */
+}
+
+static short edbm_extrude_edge_ex(
+        Object *obedit, BMEditMesh *em,
+        const char hflag, float nor[3],
+        const bool use_mirror,
+        const bool use_select_history)
+{
+	BMesh *bm = em->bm;
+	BMOIter siter;
+	BMOperator extop;
+	BMFace *f;
+	BMElem *ele;
+	
+	BMO_op_init(bm, &extop, BMO_FLAG_DEFAULTS, "extrude_face_region");
+	BMO_slot_bool_set(extop.slots_in, "use_select_history", use_select_history);
+	BMO_slot_buffer_from_enabled_hflag(bm, &extop, extop.slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, hflag);
+
+	if (use_mirror) {
+		BMOpSlot *slot_edges_exclude;
+		slot_edges_exclude = BMO_slot_get(extop.slots_in, "edges_exclude");
+
+		edbm_extrude_edge_exclude_mirror(obedit, em, hflag, &extop, slot_edges_exclude);
+	}
+
+	BM_SELECT_HISTORY_BACKUP(bm);
+	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	BM_SELECT_HISTORY_RESTORE(bm);
 
 	BMO_op_exec(bm, &extop);
 
@@ -234,6 +266,13 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 
 	/* grab / normal constraint */
 	return is_zero_v3(nor) ? 'g' : 'n';
+}
+
+static short edbm_extrude_edge(
+        Object *obedit, BMEditMesh *em,
+        const char hflag, float nor[3])
+{
+	return edbm_extrude_edge_ex(obedit, em, hflag, nor, true, true);
 }
 
 static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag, float nor[3])
@@ -288,13 +327,12 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	mul_m3_v3(tmat, dvec);
 
 	for (a = 0; a < steps; a++) {
-		edbm_extrude_edge(obedit, em, BM_ELEM_SELECT, nor);
-		//BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS, "extrude_face_region geom=%hef", BM_ELEM_SELECT);
-		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
-		             "translate vec=%v verts=%hv",
-		             dvec, BM_ELEM_SELECT);
-		//extrudeflag(obedit, em, SELECT, nor);
-		//translateflag(em, SELECT, dvec);
+		edbm_extrude_edge_ex(obedit, em, BM_ELEM_SELECT, nor, false, false);
+
+		BMO_op_callf(
+		        em->bm, BMO_FLAG_DEFAULTS,
+		        "translate vec=%v verts=%hv",
+		        dvec, BM_ELEM_SELECT);
 	}
 	
 	EDBM_mesh_normals_update(em);

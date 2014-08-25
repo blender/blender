@@ -899,6 +899,27 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 	return true;
 }
 
+/**
+ * Return a map from BMVert/Edge/Face -> BMEditSelection
+ */
+GHash *BM_select_history_map_create(BMesh *bm)
+{
+	BMEditSelection *ese;
+	GHash *map;
+
+	if (BLI_listbase_is_empty(&bm->selected)) {
+		return NULL;
+	}
+
+	map = BLI_ghash_ptr_new(__func__);
+
+	for (ese = bm->selected.first; ese; ese = ese->next) {
+		BLI_ghash_insert(map, ese->ele, ese);
+	}
+
+	return map;
+}
+
 void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hflag,
                                      const bool respecthide, const bool overwrite, const char hflag_test)
 {
