@@ -724,6 +724,13 @@ void ED_view3d_depth_tag_update(RegionView3D *rv3d)
 		rv3d->depths->damaged = true;
 }
 
+void ED_view3d_dist_range_get(struct View3D *v3d,
+                              float r_dist_range[2])
+{
+	r_dist_range[0] = v3d->grid * 0.001f;
+	r_dist_range[1] = v3d->far * 10.0f;
+}
+
 /* copies logic of get_view3d_viewplane(), keep in sync */
 bool ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *r_clipsta, float *r_clipend,
                               const bool use_ortho_factor)

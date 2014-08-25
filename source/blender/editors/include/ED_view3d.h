@@ -219,7 +219,8 @@ void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, cons
 /* end */
 
 
-
+void ED_view3d_dist_range_get(struct View3D *v3d,
+                              float r_dist_range[2]);
 bool ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d,
                               float *r_clipsta, float *r_clipend, const bool use_ortho_factor);
 bool ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi,
@@ -349,6 +350,7 @@ void ED_view3D_background_image_clear(struct View3D *v3d);
 
 #define VIEW3D_MARGIN 1.4f
 #define VIEW3D_DIST_FALLBACK 1.0f
+
 float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float dist_fallback);
 void  ED_view3d_distance_set(struct RegionView3D *rv3d, const float dist);
 
