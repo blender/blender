@@ -71,6 +71,9 @@ public:
 	ustring name;
 
 	/* Mesh Data */
+	bool geometry_synced;  /* used to distinguish meshes with no verts
+	                          and meshed for which geometry is not created */
+
 	vector<float3> verts;
 	vector<Triangle> triangles;
 	vector<uint> shader;

@@ -529,14 +529,12 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	Mesh *mesh;
 
 	if(!mesh_map.sync(&mesh, key)) {
-		bool have_geometry = mesh->verts.size() != 0;
-		
 		/* if transform was applied to mesh, need full update */
 		if(object_updated && mesh->transform_applied);
 		/* test if shaders changed, these can be object level so mesh
 		 * does not get tagged for recalc */
 		else if(mesh->used_shaders != used_shaders);
-		else if(use_mesh_geometry != have_geometry);
+		else if(use_mesh_geometry != mesh->geometry_synced);
 		else {
 			/* even if not tagged for recalc, we may need to sync anyway
 			 * because the shader needs different mesh attributes */
@@ -599,6 +597,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 			/* free derived mesh */
 			b_data.meshes.remove(b_mesh);
 		}
+		mesh->geometry_synced = true;
 	}
 
 	/* displacement method */
