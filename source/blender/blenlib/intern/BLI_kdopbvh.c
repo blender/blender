@@ -43,6 +43,9 @@
 #include <omp.h>
 #endif
 
+/* used for iterative_raycast */
+// #define USE_SKIP_LINKS
+
 #define MAX_TREETYPE 32
 
 /* Setting zero so we can catch bugs in OpenMP/KDOPBVH.
@@ -61,7 +64,9 @@ typedef unsigned char axis_t;
 typedef struct BVHNode {
 	struct BVHNode **children;
 	struct BVHNode *parent; /* some user defined traversed need that */
+#ifdef USE_SKIP_LINKS
 	struct BVHNode *skip[2];
+#endif
 	float *bv;      /* Bounding volume of all nodes, max 13 axis */
 	int index;      /* face, edge, vertex index */
 	char totnode;   /* how many nodes are used, used for speedup */
@@ -385,7 +390,7 @@ static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int a
 	return n;
 }
 
-/* --- */
+#ifdef USE_SKIP_LINKS
 static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNode *right)
 {
 	int i;
@@ -402,6 +407,7 @@ static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNod
 		left = node->children[i];
 	}
 }
+#endif
 
 /*
  * BVHTree bounding volumes functions
@@ -942,7 +948,10 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	for (i = 0; i < tree->totbranch; i++)
 		tree->nodes[tree->totleaf + i] = branches_array + i;
 
+#ifdef USE_SKIP_LINKS
 	build_skip_links(tree, tree->nodes[tree->totleaf], NULL, NULL);
+#endif
+
 	/* bvhtree_info(tree); */
 }
 
