@@ -869,7 +869,7 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 {
 	ARegion *ar = CTX_wm_region(C);
 	uiBut *but = NULL;
-	float color[3];
+	float color[4];
 	bool gamma;
 
 	RNA_float_get_array(op->ptr, "color", color);
@@ -880,6 +880,14 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	but = ui_but_find_activated(ar);
 
 	if (but && but->type == COLOR && but->rnaprop) {
+		const int color_len = RNA_property_array_length(&but->rnapoin, but->rnaprop);
+		BLI_assert(color_len <= 4);
+
+		/* keep alpha channel as-is */
+		if (color_len == 4) {
+			color[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+		}
+
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
 			if (!gamma)
 				ui_block_to_display_space_v3(but->block, color);
