@@ -440,7 +440,7 @@ def time_from_frame(frame, fps=None, fps_base=None):
 
     from datetime import timedelta
 
-    return timedelta((frame * fps_base) / fps)
+    return timedelta(0, (frame * fps_base) / fps)
 
 
 def time_to_frame(time, fps=None, fps_base=None):
