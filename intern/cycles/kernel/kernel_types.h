@@ -75,10 +75,11 @@ CCL_NAMESPACE_BEGIN
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
 #define __BRANCHED_PATH__
+#define __VOLUME__
+#define __VOLUME_SCATTER__
 
 /* Experimental on GPU */
-//#define __VOLUME__
-//#define __VOLUME_SCATTER__
+//#define __VOLUME_DECOUPLED__
 //#define __SUBSURFACE__
 #endif
 
