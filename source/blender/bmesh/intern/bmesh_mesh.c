@@ -766,6 +766,8 @@ void bmesh_edit_begin(BMesh *UNUSED(bm), BMOpTypeFlag UNUSED(type_flag))
  */
 void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 {
+	ListBase select_history;
+
 	/* BMO_OPTYPE_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
 #ifdef BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data into tangent space */
@@ -784,8 +786,18 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 		BM_mesh_normals_update(bm);
 	}
 
+
+	if ((type_flag & BMO_OPTYPE_FLAG_SELECT_VALIDATE) == 0) {
+		select_history = bm->selected;
+		BLI_listbase_clear(&bm->selected);
+	}
+
 	if (type_flag & BMO_OPTYPE_FLAG_SELECT_FLUSH) {
 		BM_mesh_select_mode_flush(bm);
+	}
+
+	if ((type_flag & BMO_OPTYPE_FLAG_SELECT_VALIDATE) == 0) {
+		bm->selected = select_history;
 	}
 }
 
