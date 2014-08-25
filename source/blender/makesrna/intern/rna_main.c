@@ -281,6 +281,14 @@ static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRN
 	rna_iterator_listbase_begin(iter, &bmain->linestyle, NULL);
 }
 
+static void rna_Main_version_get(PointerRNA *ptr, int *value)
+{
+	Main *bmain = (Main *)ptr->data;
+	value[0] = bmain->versionfile / 100;
+	value[1] = bmain->versionfile % 100;
+	value[2] = bmain->subversionfile;
+}
+
 #ifdef UNIT_TEST
 
 static PointerRNA rna_Test_test_get(PointerRNA *ptr)
@@ -375,6 +383,12 @@ void RNA_def_main(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_autopack", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_use_autopack_get", "rna_Main_use_autopack_set");
 	RNA_def_property_ui_text(prop, "Use Autopack", "Automatically pack all external data into .blend file");
+
+	prop = RNA_def_int_vector(srna, "version", 3, NULL, 0, INT_MAX,
+	                   "Version", "Version of the blender the .blend was saved with", 0, INT_MAX);
+	RNA_def_property_int_funcs(prop, "rna_Main_version_get", NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_THICK_WRAP);
 
 	for (i = 0; lists[i].name; i++) {
 		prop = RNA_def_property(srna, lists[i].identifier, PROP_COLLECTION, PROP_NONE);

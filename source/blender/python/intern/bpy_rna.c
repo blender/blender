@@ -604,18 +604,34 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 #ifdef USE_MATHUTILS
 	int subtype, totdim;
 	int len;
-	bool is_thick;
 	const int flag = RNA_property_flag(prop);
+	const int type = RNA_property_type(prop);
+	const bool is_thick = (flag & PROP_THICK_WRAP) != 0;
 
 	/* disallow dynamic sized arrays to be wrapped since the size could change
 	 * to a size mathutils does not support */
-	if ((RNA_property_type(prop) != PROP_FLOAT) || (flag & PROP_DYNAMIC))
+	if (flag & PROP_DYNAMIC) {
 		return NULL;
+	}
 
 	len = RNA_property_array_length(ptr, prop);
+	if (type == PROP_FLOAT) {
+		/* pass */
+	}
+	else if (type == PROP_INT) {
+		if (is_thick) {
+			goto thick_wrap_slice;
+		}
+		else {
+			return NULL;
+		}
+	}
+	else {
+		return NULL;
+	}
+
 	subtype = RNA_property_subtype(prop);
 	totdim = RNA_property_array_dimension(ptr, prop, NULL);
-	is_thick = (flag & PROP_THICK_WRAP) != 0;
 
 	if (totdim == 1 || (totdim == 2 && subtype == PROP_MATRIX)) {
 		if (!is_thick)
@@ -712,6 +728,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		if (is_thick) {
 			/* this is an array we cant reference (since its not thin wrappable)
 			 * and cannot be coerced into a mathutils type, so return as a list */
+thick_wrap_slice:
 			ret = pyrna_prop_array_subscript_slice(NULL, ptr, prop, 0, len, len);
 		}
 		else {
@@ -2312,11 +2329,10 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 	int count, totdim;
 	PyObject *tuple;
 
-	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
+	/* isn't needed, internal use only */
+	// PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
 
 	tuple = PyTuple_New(stop - start);
-
-	/* PYRNA_PROP_CHECK_OBJ(self); isn't needed, internal use only */
 
 	totdim = RNA_property_array_dimension(ptr, prop, NULL);
 
