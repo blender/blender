@@ -2447,16 +2447,6 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	{
-		bTheme *btheme;
-		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			ui_theme_space_init_handles_color(&btheme->tclip);
-			ui_theme_space_init_handles_color(&btheme->tima);
-			btheme->tima.handle_vertex_size = 5;
-			btheme->tclip.handle_vertex_size = 5;
-		}
-	}
-
 	if (U.versionfile < 271 || (U.versionfile == 271 && U.subversionfile < 5)) {
 		bTheme *btheme;
 
@@ -2479,10 +2469,15 @@ void init_userdef_do_versions(void)
 
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			btheme->tui.wcol_pie_menu = wcol_pie_menu;
+
+			ui_theme_space_init_handles_color(&btheme->tclip);
+			ui_theme_space_init_handles_color(&btheme->tima);
+			btheme->tima.handle_vertex_size = 5;
+			btheme->tclip.handle_vertex_size = 5;
 		}
 	}
 
-	{
+	if (U.versionfile < 271 || (U.versionfile == 271 && U.subversionfile < 6)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			/* check for (alpha == 0) is safe, then color was never set */
