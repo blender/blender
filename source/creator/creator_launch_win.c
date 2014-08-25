@@ -46,9 +46,10 @@ int main(int argc, char **argv)
 	strncpy(command, BLENDER_BINARY, len - 1);
 	len -= strlen(BLENDER_BINARY);
 	for (i = 1; i < argc; ++i) {
-		strncat(command, " ", len - 1);
-		strncat(command, argv[i], len - 2);
+		strncat(command, " \"", len - 2);
+		strncat(command, argv[i], len - 3);
 		len -= strlen(argv[i]) + 1;
+		strncat(command, "\"", len - 1);
 	}
 
 	result = CreateProcessA(NULL, command, NULL, NULL, TRUE,
