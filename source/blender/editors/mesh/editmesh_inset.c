@@ -90,7 +90,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 	if (sa) {
 		char flts_str[NUM_STR_REP_LEN * 2];
 		if (hasNumInput(&opdata->num_input))
-			outputNumInput(&opdata->num_input, flts_str, sce->unit.scale_length);
+			outputNumInput(&opdata->num_input, flts_str, &sce->unit);
 		else {
 			BLI_snprintf(flts_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "thickness"));
 			BLI_snprintf(flts_str + NUM_STR_REP_LEN, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "depth"));

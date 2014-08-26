@@ -31,6 +31,8 @@
 extern "C" {
 #endif
 
+struct UnitSettings;
+
 /* in all cases the value is assumed to be scaled by the user preference */
 
 /* humanly readable representation of a value in units (used for button drawing) */
@@ -38,6 +40,11 @@ size_t  bUnit_AsString(char *str, int len_max, double value, int prec, int syste
 
 /* replace units with values, used before python button evaluation */
 bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
+
+/* Apply the needed correction factor to value, based on unit_type (only length-related are affected currently)
+ * and unit->scale_length.
+ */
+double bUnit_getScaleUnit(struct UnitSettings *unit, const int unit_type, double value);
 
 /* make string keyboard-friendly: 10µm --> 10um */
 void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type);

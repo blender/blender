@@ -1942,27 +1942,13 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 	UnitSettings *unit = but->block->unit;
 	int unit_type = uiButGetUnitType(but);
 
-	if (unit_type == PROP_UNIT_LENGTH) {
-		return value * (double)unit->scale_length;
-	}
-	else if (unit_type == PROP_UNIT_CAMERA) {
-		return value * (double)unit->scale_length;
-	}
-	else if (unit_type == PROP_UNIT_AREA) {
-		return value * pow(unit->scale_length, 2);
-	}
-	else if (unit_type == PROP_UNIT_VOLUME) {
-		return value * pow(unit->scale_length, 3);
-	}
-	else if (unit_type == PROP_UNIT_MASS) {
-		return value * pow(unit->scale_length, 3);
-	}
-	else if (unit_type == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
+	/* Time unit is a bit special, not handled by bUnit_getScaleUnit() for now. */
+	if (unit_type == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
 		Scene *scene = CTX_data_scene(but->block->evil_C);
 		return FRA2TIME(value);
 	}
 	else {
-		return value;
+		return bUnit_getScaleUnit(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
 	}
 }
 

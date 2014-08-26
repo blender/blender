@@ -686,7 +686,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		char buf[64 + NUM_STR_REP_LEN * 2];
 		char str_rep[NUM_STR_REP_LEN * 2];
 		if (hasNumInput(&lcd->num)) {
-			outputNumInput(&lcd->num, str_rep, sce->unit.scale_length);
+			outputNumInput(&lcd->num, str_rep, &sce->unit);
 		}
 		else {
 			BLI_snprintf(str_rep, NUM_STR_REP_LEN, "%d", cuts);

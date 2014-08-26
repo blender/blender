@@ -64,6 +64,8 @@ enum {
 	/* (1 << 9) and above are reserved for internal flags! */
 };
 
+struct UnitSettings;
+
 /*********************** NumInput ********************************/
 
 /* There are important things to note here for code using numinput:
@@ -76,7 +78,7 @@ enum {
  */
 
 void initNumInput(NumInput *n);
-void outputNumInput(NumInput *n, char *str, const float scale_length);
+void outputNumInput(NumInput *n, char *str, struct UnitSettings *unit_settings);
 bool hasNumInput(const NumInput *n);
 bool applyNumInput(NumInput *n, float *vec);
 bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event);

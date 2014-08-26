@@ -87,7 +87,7 @@ void initNumInput(NumInput *n)
 }
 
 /* str must be NUM_STR_REP_LEN * (idx_max + 1) length. */
-void outputNumInput(NumInput *n, char *str, const float scale_length)
+void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 {
 	short j;
 	const int ln = NUM_STR_REP_LEN;
@@ -98,7 +98,7 @@ void outputNumInput(NumInput *n, char *str, const float scale_length)
 		const short i = (n->flag & NUM_AFFECT_ALL && n->idx != j && !(n->val_flag[j] & NUM_EDITED)) ? 0 : j;
 
 		/* Use scale_length if needed! */
-		const float fac = ELEM(n->unit_type[j], B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME) ? scale_length : 1.0f;
+		const float fac = (float)bUnit_getScaleUnit(unit_settings, n->unit_type[j], 1.0);
 
 		if (n->val_flag[i] & NUM_EDITED) {
 			/* Get the best precision, allows us to draw '10.0001' as '10' instead! */
@@ -478,26 +478,24 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 #ifdef WITH_PYTHON
 		Scene *sce = CTX_data_scene(C);
 		double val;
-		float fac = 1.0f;
 		char str_unit_convert[NUM_STR_REP_LEN * 6];  /* Should be more than enough! */
 		const char *default_unit = NULL;
+
+		/* Use scale_length if needed! */
+		const float fac = (float)bUnit_getScaleUnit(&sce->unit, n->unit_type[idx], 1.0);
 
 		/* Make radian default unit when needed. */
 		if (n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION)
 			default_unit = "r";
 
-		/* Use scale_length if needed! */
-		if (ELEM(n->unit_type[idx], B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME))
-			fac /= sce->unit.scale_length;
-
 		BLI_strncpy(str_unit_convert, n->str, sizeof(str_unit_convert));
 
-		bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), default_unit, 1.0,
+		bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), default_unit, fac,
 		                    n->unit_sys, n->unit_type[idx]);
 
 		/* Note: with angles, we always get values as radians here... */
 		if (BPY_button_exec(C, str_unit_convert, &val, false) != -1) {
-			n->val[idx] = (float)val * fac;
+			n->val[idx] = (float)val;
 			n->val_flag[idx] &= ~NUM_INVALID;
 		}
 		else {

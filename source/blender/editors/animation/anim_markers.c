@@ -637,7 +637,7 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
 	}
 
 	if (hasNumInput(&mm->num)) {
-		outputNumInput(&mm->num, str_offs, scene->unit.scale_length);
+		outputNumInput(&mm->num, str_offs, &scene->unit);
 	}
 	else if (use_time) {
 		BLI_snprintf(str_offs, sizeof(str_offs), "%.2f", FRA2TIME(offs));

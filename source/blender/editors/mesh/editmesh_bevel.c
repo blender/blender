@@ -88,7 +88,7 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "offset_type");
 
 		if (hasNumInput(&opdata->num_input)) {
-			outputNumInput(&opdata->num_input, offset_str, sce->unit.scale_length);
+			outputNumInput(&opdata->num_input, offset_str, &sce->unit);
 		}
 		else {
 			BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "offset"));
