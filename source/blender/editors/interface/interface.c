@@ -51,6 +51,7 @@
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_idprop.h"
 
@@ -1942,13 +1943,13 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 	UnitSettings *unit = but->block->unit;
 	int unit_type = uiButGetUnitType(but);
 
-	/* Time unit is a bit special, not handled by bUnit_getScaleUnit() for now. */
+	/* Time unit is a bit special, not handled by BKE_scene_unit_scale() for now. */
 	if (unit_type == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
 		Scene *scene = CTX_data_scene(but->block->evil_C);
 		return FRA2TIME(value);
 	}
 	else {
-		return bUnit_getScaleUnit(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
+		return BKE_scene_unit_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
 	}
 }
 

@@ -37,11 +37,11 @@
 
 #include "BKE_unit.h"  /* own include */
 
-#include "DNA_scene_types.h"
-
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
+
+/* no BKE or DNA includes! */
 
 #define TEMP_STR_SIZE 256
 
@@ -789,29 +789,6 @@ double bUnit_BaseScalar(int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 	return unit_default(usys)->scalar;
-}
-
-double bUnit_getScaleUnit(UnitSettings *unit, const int unit_type, double value)
-{
-	if (unit->system == USER_UNIT_NONE) {
-		/* Never apply scale_length when not using a unit setting! */
-		return value;
-	}
-
-	switch (unit_type) {
-		case B_UNIT_LENGTH:
-			return value * (double)unit->scale_length;
-		case B_UNIT_CAMERA:
-			return value * (double)unit->scale_length;
-		case B_UNIT_AREA:
-			return value * pow(unit->scale_length, 2);
-		case B_UNIT_VOLUME:
-			return value * pow(unit->scale_length, 3);
-		case B_UNIT_MASS:
-			return value * pow(unit->scale_length, 3);
-		default:
-			return value;
-	}
 }
 
 /* external access */

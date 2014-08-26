@@ -82,6 +82,7 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
+#include "BKE_unit.h"
 #include "BKE_world.h"
 
 #include "RE_engine.h"
@@ -1969,4 +1970,30 @@ int BKE_render_num_threads(const RenderData *rd)
 int BKE_scene_num_threads(const Scene *scene)
 {
 	return BKE_render_num_threads(&scene->r);
+}
+
+/* Apply the needed correction factor to value, based on unit_type (only length-related are affected currently)
+ * and unit->scale_length.
+ */
+double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, double value)
+{
+	if (unit->system == USER_UNIT_NONE) {
+		/* Never apply scale_length when not using a unit setting! */
+		return value;
+	}
+
+	switch (unit_type) {
+		case B_UNIT_LENGTH:
+			return value * (double)unit->scale_length;
+		case B_UNIT_CAMERA:
+			return value * (double)unit->scale_length;
+		case B_UNIT_AREA:
+			return value * pow(unit->scale_length, 2);
+		case B_UNIT_VOLUME:
+			return value * pow(unit->scale_length, 3);
+		case B_UNIT_MASS:
+			return value * pow(unit->scale_length, 3);
+		default:
+			return value;
+	}
 }

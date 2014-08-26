@@ -33,6 +33,7 @@
 #include "BLI_string_cursor_utf8.h"
 
 #include "BKE_context.h"
+#include "BKE_scene.h"
 #include "BKE_unit.h"
 
 #include "DNA_scene_types.h"
@@ -98,7 +99,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 		const short i = (n->flag & NUM_AFFECT_ALL && n->idx != j && !(n->val_flag[j] & NUM_EDITED)) ? 0 : j;
 
 		/* Use scale_length if needed! */
-		const float fac = (float)bUnit_getScaleUnit(unit_settings, n->unit_type[j], 1.0);
+		const float fac = (float)BKE_scene_unit_scale(unit_settings, n->unit_type[j], 1.0);
 
 		if (n->val_flag[i] & NUM_EDITED) {
 			/* Get the best precision, allows us to draw '10.0001' as '10' instead! */
@@ -482,7 +483,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		const char *default_unit = NULL;
 
 		/* Use scale_length if needed! */
-		const float fac = (float)bUnit_getScaleUnit(&sce->unit, n->unit_type[idx], 1.0);
+		const float fac = (float)BKE_scene_unit_scale(&sce->unit, n->unit_type[idx], 1.0);
 
 		/* Make radian default unit when needed. */
 		if (n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION)
