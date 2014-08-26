@@ -22,6 +22,11 @@ CCL_NAMESPACE_BEGIN
 /* todo: find good value, suggested 64 gives pattern on cornell box ceiling */
 #define CMJ_RANDOM_OFFSET_LIMIT 4096
 
+/* TODO(sergey): Consider moving portable ctz/clz stuff to util. */
+#ifdef _MSC_VER
+#  include <intrin.h>
+#endif
+
 ccl_device_inline bool cmj_is_pow2(int i)
 {
 	return (i & (i - 1)) == 0;
@@ -35,8 +40,16 @@ ccl_device_inline int cmj_fast_mod_pow2(int a, int b)
 /* a must be > 0 and b must be > 1 */
 ccl_device_inline int cmj_fast_div_pow2(int a, int b)
 {
-#if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
+	kernel_assert(a > 0);
+	kernel_assert(b > 1);
+#if defined(__KERNEL_SSE2__)
+#  ifdef _MSC_VER
+	unsigned long ctz;
+	_BitScanForward(&ctz, b);
+	return a >> ctz;
+#  else
 	return a >> __builtin_ctz(b);
+#  endif
 #else
 	return a/b;
 #endif
@@ -44,8 +57,15 @@ ccl_device_inline int cmj_fast_div_pow2(int a, int b)
 
 ccl_device_inline uint cmj_w_mask(uint w)
 {
-#if defined(__KERNEL_SSE2__) && !defined(_MSC_VER)
+	kernel_assert(w > 1);
+#if defined(__KERNEL_SSE2__)
+#  ifdef _MSC_VER
+	unsigned long leading_zero;
+	_BitScanReverse(&leading_zero, w);
+	return ((1 << (1 + leading_zero)) - 1);
+#  else
 	return ((1 << (32 - __builtin_clz(w))) - 1);
+#  endif
 #else
 	w |= w >> 1;
 	w |= w >> 2;
