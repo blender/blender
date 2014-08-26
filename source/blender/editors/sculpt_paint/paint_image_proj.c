@@ -2954,7 +2954,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->dm_release = true;
 	}
 
-	if (!CustomData_has_layer(&ps->dm->faceData, CD_MTFACE) ) {
+	if (!CustomData_has_layer(&ps->dm->faceData, CD_MTFACE)) {
 
 		if (ps->dm_release)
 			ps->dm->release(ps->dm);

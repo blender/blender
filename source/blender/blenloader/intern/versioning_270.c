@@ -366,9 +366,10 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 
 			for (md = ob->modifiers.first; md; md = md->next) {
 				if (md->type == eModifierType_ParticleSystem) {
-					ParticleSystemModifierData *pmd = (ParticleSystemModifierData*) md;
-					if (pmd->psys && pmd->psys->clmd)
+					ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
+					if (pmd->psys && pmd->psys->clmd) {
 						pmd->psys->clmd->sim_parms->vel_damping = 1.0f;
+					}
 				}
 			}
 		}

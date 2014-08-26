@@ -408,8 +408,8 @@ void sample_fcurve(FCurve *fcu)
 				 * keyframes while sampling will affect the outcome...
 				 *	- only start sampling+adding from index=1, so that we don't overwrite original keyframe
 				 */
-				range = (int)(ceil(end->vec[1][0] - start->vec[1][0]) );
-				sfra = (int)(floor(start->vec[1][0]) );
+				range = (int)(ceil(end->vec[1][0] - start->vec[1][0]));
+				sfra = (int)(floor(start->vec[1][0]));
 				
 				if (range) {
 					value_cache = MEM_callocN(sizeof(TempFrameValCache) * range, "IcuFrameValCache");

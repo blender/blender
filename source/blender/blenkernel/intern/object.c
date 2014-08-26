@@ -873,9 +873,9 @@ bool BKE_object_is_in_wpaint_select_vert(Object *ob)
 {
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
-		return ( (ob->mode & OB_MODE_WEIGHT_PAINT) &&
-		         (me->edit_btmesh == NULL) &&
-		         (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX) );
+		return ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
+		        (me->edit_btmesh == NULL) &&
+		        (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX));
 	}
 
 	return false;
@@ -2306,7 +2306,7 @@ static bool where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat
 	int a;
 
 	/* include framerate */
-	fac1 = (1.0f / (1.0f + fabsf(ob->sf)) );
+	fac1 = (1.0f / (1.0f + fabsf(ob->sf)));
 	if (fac1 >= 1.0f) return 0;
 	fac2 = 1.0f - fac1;
 

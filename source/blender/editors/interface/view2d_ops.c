@@ -1561,7 +1561,7 @@ enum {
  */
 static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_min, int sh_max)
 {
-	short in_min, in_max, in_bar, out_min, out_max, in_view = 1;
+	bool in_min, in_max, in_bar, out_min, out_max, in_view = 1;
 	
 	/* firstly, check if 
 	 *	- 'bubble' fills entire scroller 
@@ -1584,9 +1584,9 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	
 	/* check if mouse is in or past either handle */
 	/* TODO: check if these extents are still valid or not */
-	in_max = ( (mouse >= (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse <= (sh_max + V2D_SCROLLER_HANDLE_SIZE)) );
-	in_min = ( (mouse <= (sh_min + V2D_SCROLLER_HANDLE_SIZE)) && (mouse >= (sh_min - V2D_SCROLLER_HANDLE_SIZE)) );
-	in_bar = ( (mouse < (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse > (sh_min + V2D_SCROLLER_HANDLE_SIZE)) );
+	in_max = ((mouse >= (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse <= (sh_max + V2D_SCROLLER_HANDLE_SIZE)));
+	in_min = ((mouse <= (sh_min + V2D_SCROLLER_HANDLE_SIZE)) && (mouse >= (sh_min - V2D_SCROLLER_HANDLE_SIZE)));
+	in_bar = ((mouse < (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse > (sh_min + V2D_SCROLLER_HANDLE_SIZE)));
 	out_min = mouse < (sh_min - V2D_SCROLLER_HANDLE_SIZE);
 	out_max = mouse > (sh_max + V2D_SCROLLER_HANDLE_SIZE);
 	

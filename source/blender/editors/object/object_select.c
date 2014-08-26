@@ -753,11 +753,11 @@ static bool select_grouped_color(bContext *C, Object *ob)
 static bool objects_share_gameprop(Object *a, Object *b)
 {
 	bProperty *prop;
-	/*make a copy of all its properties*/
 
 	for (prop = a->prop.first; prop; prop = prop->next) {
-		if (BKE_bproperty_object_get(b, prop->name) )
+		if (BKE_bproperty_object_get(b, prop->name)) {
 			return 1;
+		}
 	}
 	return 0;
 }

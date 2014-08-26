@@ -686,7 +686,7 @@ static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index
 /* This functions returns the number of branches needed to have the requested number of leafs. */
 static int implicit_needed_branches(int tree_type, int leafs)
 {
-	return max_ii(1, (leafs + tree_type - 3) / (tree_type - 1) );
+	return max_ii(1, (leafs + tree_type - 3) / (tree_type - 1));
 }
 
 /**

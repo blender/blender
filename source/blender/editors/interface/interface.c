@@ -1523,7 +1523,7 @@ void uiComposeLinks(uiBlock *block)
 					}
 				}
 				else if (link->poin) {
-					bt = ui_find_inlink(block, *(link->poin) );
+					bt = ui_find_inlink(block, *link->poin);
 					if (bt) {
 						if ((but->flag & UI_BUT_SCA_LINK_GREY) || (bt->flag & UI_BUT_SCA_LINK_GREY)) {
 							ui_add_link_line(&link->lines, but, bt, true);
