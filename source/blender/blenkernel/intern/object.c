@@ -1526,6 +1526,18 @@ Object *BKE_object_copy(Object *ob)
 	return BKE_object_copy_ex(G.main, ob, false);
 }
 
+static void extern_local_object__modifiersForeachIDLink(
+        void *UNUSED(userData), Object *UNUSED(ob),
+        ID **idpoin)
+{
+	if (*idpoin) {
+		/* intentionally omit ID_OB */
+		if (ELEM(GS((*idpoin)->name), ID_IM, ID_TE)) {
+			id_lib_extern(*idpoin);
+		}
+	}
+}
+
 static void extern_local_object(Object *ob)
 {
 	ParticleSystem *psys;
@@ -1539,6 +1551,8 @@ static void extern_local_object(Object *ob)
 
 	for (psys = ob->particlesystem.first; psys; psys = psys->next)
 		id_lib_extern((ID *)psys->part);
+
+	modifiers_foreachIDLink(ob, extern_local_object__modifiersForeachIDLink, NULL);
 }
 
 void BKE_object_make_local(Object *ob)
