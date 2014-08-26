@@ -1851,6 +1851,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{TEX_VD_IMAGE_SEQUENCE, "IMAGE_SEQUENCE", 0, "Image Sequence",
 		                        "Generate voxels from a sequence of image slices"},
 		{TEX_VD_SMOKE, "SMOKE", 0, "Smoke", "Render voxels from a Blender smoke simulation"},
+		{TEX_VD_HAIR, "HAIR", 0, "Hair", "Render voxels from a Blender hair simulation"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	

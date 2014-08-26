@@ -42,6 +42,7 @@ struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
 struct CollisionTree;
+struct VoxelData;
 
 #define DO_INLINE MALWAYS_INLINE
 
@@ -195,6 +196,8 @@ int implicit_init (struct Object *ob, struct ClothModifierData *clmd );
 int implicit_free (struct ClothModifierData *clmd );
 int implicit_solver (struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
 void implicit_set_positions (struct ClothModifierData *clmd );
+
+bool implicit_hair_volume_get_texture_data(struct Object *UNUSED(ob), struct ClothModifierData *clmd, struct ListBase *UNUSED(effectors), struct VoxelData *vd);
 
 /////////////////////////////////////////////////
 // cloth.c

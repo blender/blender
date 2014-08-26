@@ -36,6 +36,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_math.h"
 #include "BLI_linklist.h"
@@ -1293,34 +1294,33 @@ static void hair_velocity_collision(const HairGridVert *collgrid, const float gm
 	}
 }
 
-static void hair_volume_forces(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
+static void hair_volume_get_boundbox(lfVector *lX, unsigned int numverts, float gmin[3], float gmax[3])
 {
-	int size = hair_grid_size(hair_grid_res);
-	HairGridVert *hairgrid;
-	HairGridVert *collgrid;
-	ListBase *colliders;
-	ColliderCache *col = NULL;
-	float gmin[3], gmax[3], density;
-	/* 2.0f is an experimental value that seems to give good results */
-	float smoothfac = 2.0f * clmd->sim_parms->velocity_smooth;
-	float collfac = 2.0f * clmd->sim_parms->collider_friction;
-	unsigned int	v = 0;
-	int	            i = 0;
-
+	int i;
+	
 	INIT_MINMAX(gmin, gmax);
 	for (i = 0; i < numverts; i++)
 		DO_MINMAX(lX[i], gmin, gmax);
+}
+
+static HairGridVert *hair_volume_create_hair_grid(ClothModifierData *clmd, lfVector *lX, lfVector *lV, unsigned int numverts)
+{
+	int size = hair_grid_size(hair_grid_res);
+	HairGridVert *hairgrid;
+	float gmin[3], gmax[3], density;
+	/* 2.0f is an experimental value that seems to give good results */
+	float smoothfac = 2.0f * clmd->sim_parms->velocity_smooth;
+	unsigned int	v = 0;
+	int	            i = 0;
+
+	hair_volume_get_boundbox(lX, numverts, gmin, gmax);
 
 	hairgrid = MEM_mallocN(sizeof(HairGridVert) * size, "hair voxel data");
-	collgrid = MEM_mallocN(sizeof(HairGridVert) * size, "hair collider voxel data");
 
 	/* initialize grid */
 	for (i = 0; i < size; ++i) {
 		zero_v3(hairgrid[i].velocity);
 		hairgrid[i].density = 0.0f;
-		
-		zero_v3(collgrid[i].velocity);
-		collgrid[i].density = 0.0f;
 	}
 
 	/* gather velocities & density */
@@ -1333,6 +1333,42 @@ static void hair_volume_forces(ClothModifierData *clmd, lfVector *lF, lfVector *
 			add_v3_v3(hairgrid[offset].velocity, lV[v]);
 			hairgrid[offset].density += 1.0f;
 		}
+	}
+
+	/* divide velocity with density */
+	for (i = 0; i < size; i++) {
+		density = hairgrid[i].density;
+		if (density > 0.0f) {
+			hairgrid[i].velocity[0] /= density;
+			hairgrid[i].velocity[1] /= density;
+			hairgrid[i].velocity[2] /= density;
+		}
+	}
+	
+	return hairgrid;
+}
+
+
+static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd, lfVector *lX, unsigned int numverts)
+{
+	int size = hair_grid_size(hair_grid_res);
+	HairGridVert *collgrid;
+	ListBase *colliders;
+	ColliderCache *col = NULL;
+	float gmin[3], gmax[3], density;
+	/* 2.0f is an experimental value that seems to give good results */
+	float collfac = 2.0f * clmd->sim_parms->collider_friction;
+	unsigned int	v = 0;
+	int	            i = 0;
+
+	hair_volume_get_boundbox(lX, numverts, gmin, gmax);
+
+	collgrid = MEM_mallocN(sizeof(HairGridVert) * size, "hair collider voxel data");
+
+	/* initialize grid */
+	for (i = 0; i < size; ++i) {
+		zero_v3(collgrid[i].velocity);
+		collgrid[i].density = 0.0f;
 	}
 
 	/* gather colliders */
@@ -1359,13 +1395,6 @@ static void hair_volume_forces(ClothModifierData *clmd, lfVector *lF, lfVector *
 
 	/* divide velocity with density */
 	for (i = 0; i < size; i++) {
-		density = hairgrid[i].density;
-		if (density > 0.0f) {
-			hairgrid[i].velocity[0] /= density;
-			hairgrid[i].velocity[1] /= density;
-			hairgrid[i].velocity[2] /= density;
-		}
-		
 		density = collgrid[i].density;
 		if (density > 0.0f) {
 			collgrid[i].velocity[0] /= density;
@@ -1373,6 +1402,21 @@ static void hair_volume_forces(ClothModifierData *clmd, lfVector *lF, lfVector *
 			collgrid[i].velocity[2] /= density;
 		}
 	}
+	
+	return collgrid;
+}
+
+static void hair_volume_forces(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
+{
+	HairGridVert *hairgrid, *collgrid;
+	float gmin[3], gmax[3];
+	/* 2.0f is an experimental value that seems to give good results */
+	float smoothfac = 2.0f * clmd->sim_parms->velocity_smooth;
+	float collfac = 2.0f * clmd->sim_parms->collider_friction;
+
+	hair_volume_get_boundbox(lX, numverts, gmin, gmax);
+	hairgrid = hair_volume_create_hair_grid(clmd, lX, lV, numverts);
+	collgrid = hair_volume_create_collision_grid(clmd, lX, numverts);
 
 	hair_velocity_smoothing(hairgrid, gmin, gmax, smoothfac, lF, lX, lV, numverts);
 	hair_velocity_collision(collgrid, gmin, gmax, collfac, lF, lX, lV, numverts);
@@ -1380,6 +1424,47 @@ static void hair_volume_forces(ClothModifierData *clmd, lfVector *lF, lfVector *
 	MEM_freeN(hairgrid);
 	MEM_freeN(collgrid);
 }
+
+bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData *clmd, ListBase *UNUSED(effectors), VoxelData *vd)
+{
+	lfVector *lX, *lV;
+	HairGridVert *hairgrid/*, *collgrid*/;
+	int numverts;
+	int totres, i;
+
+	if (!clmd->clothObject || !clmd->clothObject->implicit)
+		return false;
+
+	lX = clmd->clothObject->implicit->X;
+	lV = clmd->clothObject->implicit->V;
+	numverts = clmd->clothObject->numverts;
+
+	hairgrid = hair_volume_create_hair_grid(clmd, lX, lV, numverts);
+//	collgrid = hair_volume_create_collision_grid(clmd, lX, numverts);
+
+	vd->resol[0] = hair_grid_res;
+	vd->resol[1] = hair_grid_res;
+	vd->resol[2] = hair_grid_res;
+	
+	totres = hair_grid_size(hair_grid_res);
+	
+	vd->data_type = TEX_VD_INTENSITY;
+	if (totres > 0) {
+		vd->dataset = (float *)MEM_mapallocN(sizeof(float) * (totres), "hair volume texture data");
+		for (i = 0; i < totres; ++i) {
+			vd->dataset[i] = hairgrid[i].density;
+		}
+	}
+	else
+		vd->dataset = NULL;
+	
+	MEM_freeN(hairgrid);
+//	MEM_freeN(collgrid);
+	
+	return true;
+}
+
+/* ================================ */
 
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
@@ -1798,4 +1883,3 @@ void implicit_set_positions(ClothModifierData *clmd)
 	if (G.debug_value > 0)
 		printf("implicit_set_positions\n");
 }
-
