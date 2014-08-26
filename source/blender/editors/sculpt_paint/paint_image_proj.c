@@ -4966,3 +4966,59 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
 	             "Generated Type", "Fill the image with a grid for UV map testing");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
 }
+
+static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Material *ma;
+	bool use_nodes = BKE_scene_use_new_shading_nodes(scene);
+	TexPaintSlot *slot;
+	int i;
+	
+	/* not supported for node-based engines */
+	if (!ob || use_nodes)
+		return OPERATOR_CANCELLED;
+	
+	ma = give_current_material(ob, ob->actcol);
+	
+	if (!ma->texpaintslot)
+		return OPERATOR_CANCELLED;
+	
+	slot = ma->texpaintslot + ma->paint_active_slot;
+	
+	/* find the material texture slot that corresponds to the current slot */
+	for (i = 0; i < MAX_MTEX; i++) {
+		if (ma->mtex[i] == slot->mtex) {
+			if (ma->mtex[i]->tex)
+				id_us_min(&ma->mtex[i]->tex->id);
+			MEM_freeN(ma->mtex[i]);
+			ma->mtex[i] = NULL;
+			
+			BKE_texpaint_slot_refresh_cache(ma, false);
+			DAG_id_tag_update(&ma->id, 0);
+			WM_event_add_notifier(C, NC_MATERIAL, CTX_data_scene(C));
+			/* we need a notifier for data change since we change the displayed modifier uvs */
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);			
+			return OPERATOR_FINISHED;
+		}
+	}
+	
+	return OPERATOR_CANCELLED;
+}
+
+
+void PAINT_OT_delete_texture_paint_slot(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Delete Texture Paint Slot";
+	ot->description = "Add a texture paint slot";
+	ot->idname = "PAINT_OT_delete_texture_paint_slot";
+
+	/* api callbacks */
+	ot->exec = texture_paint_delete_texture_paint_slot_exec;
+	ot->poll = ED_operator_region_view3d_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}

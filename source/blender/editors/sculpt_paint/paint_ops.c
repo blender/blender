@@ -1083,6 +1083,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_image_from_view);
 	WM_operatortype_append(PAINT_OT_brush_colors_flip);
 	WM_operatortype_append(PAINT_OT_add_texture_paint_slot);
+	WM_operatortype_append(PAINT_OT_delete_texture_paint_slot);
 
 	/* weight */
 	WM_operatortype_append(PAINT_OT_weight_paint_toggle);

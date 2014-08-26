@@ -2211,7 +2211,9 @@ static void rna_def_tex_slot(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "uvname");
 	RNA_def_property_ui_text(prop, "UV Map", "Name of UV map");
 	RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Material_update");
-
+	
+	prop = RNA_def_property(srna, "mtex", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MaterialTextureSlot");
 }
 
 

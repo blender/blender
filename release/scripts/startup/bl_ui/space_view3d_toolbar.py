@@ -1038,12 +1038,16 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                               mat, "paint_active_slot", rows=2)
 
             if (not mat.use_nodes) and (context.scene.render.engine == 'BLENDER_RENDER'):
-                col.operator_menu_enum("paint.add_texture_paint_slot", "type")
+                row = col.row(align=True)
+                row.operator_menu_enum("paint.add_texture_paint_slot", "type")
+                row.operator("paint.delete_texture_paint_slot", text="", icon='X')
 
-                slot = mat.texture_paint_slots[mat.paint_active_slot]
-                col.separator()
-                col.label("UV Map")
-                col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
+                if mat.texture_paint_slots:
+                    slot = mat.texture_paint_slots[mat.paint_active_slot]
+
+                    col.separator()
+                    col.label("UV Map")
+                    col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
 
         col.separator()
         col.operator("image.save_dirty", text="Save All Images")

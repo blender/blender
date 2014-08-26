@@ -86,6 +86,7 @@ typedef struct GameSettings {
 typedef struct TexPaintSlot {
 	struct Image *ima; /* image to be painted on */
 	char *uvname; /* customdata index for uv layer, MAX_NAME*/
+	struct MTex *mtex; /* hook for blender internal materials. Not terribily nice, but serves for usability now  */
 } TexPaintSlot;
 
 typedef struct Material {
