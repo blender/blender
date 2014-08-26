@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
+#include "BLI_stack.h"
 #include "BLI_math.h"
 
 #include "bmesh.h"
@@ -88,13 +89,18 @@ static bool UNUSED_FUNCTION(check_hole_in_region) (BMesh *bm, BMFace *f)
 
 static void bm_face_split(BMesh *bm, const short oflag, bool use_edge_delete)
 {
+	BLI_Stack *edge_delete_verts;
 	BMIter iter;
 	BMVert *v;
 
-	BMIter liter;
+	if (use_edge_delete) {
+		edge_delete_verts = BLI_stack_new(sizeof(BMVert *), __func__);
+	}
+
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, oflag)) {
 			if (BM_vert_is_edge_pair(v) == false) {
+				BMIter liter;
 				BMLoop *l;
 				BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 					if (l->f->len > 3) {
@@ -105,14 +111,23 @@ static void bm_face_split(BMesh *bm, const short oflag, bool use_edge_delete)
 						}
 					}
 				}
-				/* remove surrounding edges & faces */
+
 				if (use_edge_delete) {
-					while (v->e) {
-						BM_edge_kill(bm, v->e);
-					}
+					BLI_stack_push(edge_delete_verts, &v);
 				}
 			}
 		}
+	}
+
+	if (use_edge_delete) {
+		while (!BLI_stack_is_empty(edge_delete_verts)) {
+			/* remove surrounding edges & faces */
+			BLI_stack_pop(edge_delete_verts, &v);
+			while (v->e) {
+				BM_edge_kill(bm, v->e);
+			}
+		}
+		BLI_stack_free(edge_delete_verts);
 	}
 }
 
