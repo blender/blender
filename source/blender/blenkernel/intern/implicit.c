@@ -1804,6 +1804,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	
 	return 1;
 }
+
 int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	unsigned int i=0;
@@ -1888,10 +1889,8 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			//if (do_extra_solve)
 			//	cloth_calc_helper_forces(ob, clmd, initial_cos, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
 			
-			for (i = 0; i < numverts; i++) {
-
-				if (do_extra_solve) {
-					
+			if (do_extra_solve) {
+				for (i = 0; i < numverts; i++) {				
 					if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED))
 						continue;
 
