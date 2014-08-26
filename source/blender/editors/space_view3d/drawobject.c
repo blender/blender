@@ -6017,6 +6017,11 @@ static void draw_editnurb(
 
 	drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
+	/* for shadows only show solid faces */
+	if (v3d->flag2 & V3D_RENDER_SHADOW) {
+		return;
+	}
+
 	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
 	
 	/* first non-selected and active handles */
@@ -6040,11 +6045,11 @@ static void draw_editnurb(
 	
 	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
 
+	glColor3ubv(wire_col);
+
 	/* direction vectors for 3d curve paths
 	 * when at its lowest, don't render normals */
 	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS) == 0) {
-
-		UI_ThemeColor(TH_WIRE_EDIT);
 		for (bl = ob->curve_cache->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
 			BevPoint *bevp = bl->bevpoints;
 			int nr = bl->nr;
