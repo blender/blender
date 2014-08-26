@@ -5881,7 +5881,7 @@ static void editnurb_draw_active_nurbs(Nurb *nu)
 	glLineWidth(1);
 }
 
-static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
+static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 {
 	Nurb *nu;
 	BPoint *bp, *bp1;
@@ -5997,8 +5997,9 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 	}
 }
 
-static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
-                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
+static void draw_editnurb(
+        Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
+        const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	ToolSettings *ts = scene->toolsettings;
 	Object *ob = base->object;
@@ -6028,8 +6029,8 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		}
 		index++;
 	}
-	draw_editnurb(ob, nurb, 0);
-	draw_editnurb(ob, nurb, 1);
+	draw_editnurb_splines(ob, nurb, false);
+	draw_editnurb_splines(ob, nurb, true);
 	/* selected handles */
 	for (nu = nurb; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES) == 0)
@@ -7325,7 +7326,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 				if (cu->editnurb) {
 					ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-					drawnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
+					draw_editnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
