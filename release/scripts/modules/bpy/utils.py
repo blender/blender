@@ -429,7 +429,7 @@ def time_from_frame(frame, fps=None, fps_base=None):
     :arg frame: number.
     :type frame: the frame number
     :return: the time in seconds.
-    :rtype: timedate.timedelta
+    :rtype: datetime.timedelta
     """
 
     if fps is None:
@@ -446,12 +446,12 @@ def time_from_frame(frame, fps=None, fps_base=None):
 def time_to_frame(time, fps=None, fps_base=None):
     """
     Returns a float frame number from a time given in seconds or
-    as a timedate.timedelta object.
+    as a datetime.timedelta object.
 
     If *fps* and *fps_base* are not given the current scene is used.
 
     :arg time: time in seconds.
-    :type time: number or a timedate.timedelta object
+    :type time: number or a datetime.timedelta object
     :return: the frame.
     :rtype: float
     """
