@@ -14,6 +14,11 @@
  * limitations under the License
  */
 
+/* TODO(sergey): Consider moving portable ctz/clz stuff to util. */
+#ifdef _MSC_VER
+#  include <intrin.h>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* "Correlated Multi-Jittered Sampling"
@@ -21,11 +26,6 @@ CCL_NAMESPACE_BEGIN
 
 /* todo: find good value, suggested 64 gives pattern on cornell box ceiling */
 #define CMJ_RANDOM_OFFSET_LIMIT 4096
-
-/* TODO(sergey): Consider moving portable ctz/clz stuff to util. */
-#ifdef _MSC_VER
-#  include <intrin.h>
-#endif
 
 ccl_device_inline bool cmj_is_pow2(int i)
 {
