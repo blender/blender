@@ -35,6 +35,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_brush_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
@@ -42,6 +43,7 @@
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_actuator_types.h"
 
@@ -354,6 +356,21 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		Scene *scene;
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			scene->r.preview_start_resolution = 64;
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 271, 6)) {
+		Object *ob;
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_ParticleSystem) {
+					ParticleSystemModifierData *pmd = (ParticleSystemModifierData*) md;
+					if (pmd->psys && pmd->psys->clmd)
+						pmd->psys->clmd->sim_parms->vel_damping = 1.0f;
+				}
+			}
 		}
 	}
 }
