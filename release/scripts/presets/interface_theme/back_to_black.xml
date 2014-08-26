@@ -307,13 +307,13 @@
                               button_title="#c5c5c5"
                               button_text="#c3c3c3"
                               button_text_hi="#ffffff"
-                              tab_active="#000000"
+                              tab_active="#212947"
                               tab_inactive="#000000"
                               tab_back="#060606ff"
                               tab_outline="#3a3a3a">
             <gradients>
-              <ThemeGradientColors show_grad="FALSE"
-                                   gradient="#393939"
+              <ThemeGradientColors show_grad="TRUE"
+                                   gradient="#0a0a0a"
                                    high_gradient="#000000">
               </ThemeGradientColors>
             </gradients>
@@ -432,21 +432,21 @@
     <nla_editor>
       <ThemeNLAEditor grid="#5e5e5e"
                       view_sliders="#969696"
-                      active_action="#00000000"
-                      active_action_unset="#00000000"
-                      strips="#aa8d8d"
+                      active_action="#cc701a66"
+                      active_action_unset="#9987614d"
+                      strips="#0c0a0a"
                       strips_selected="#ff8c00"
-                      transition_strips="#000000"
-                      transition_strips_selected="#000000"
-                      meta_strips="#000000"
-                      meta_strips_selected="#000000"
-                      sound_strips="#000000"
-                      sound_strips_selected="#000000"
-                      tweak="#000000"
-                      tweak_duplicate="#000000"
+                      transition_strips="#1c2630"
+                      transition_strips_selected="#2e75db"
+                      meta_strips="#332642"
+                      meta_strips_selected="#692196"
+                      sound_strips="#2b3d3d"
+                      sound_strips_selected="#1f7a7a"
+                      tweak="#4df31a"
+                      tweak_duplicate="#d90000"
                       keyframe_border="#000000ff"
                       keyframe_border_selected="#000000ff"
-                      frame_current="#2f6421">
+                      frame_current="#60c040">
         <space>
           <ThemeSpaceGeneric back="#0d0d0d"
                              title="#585858"
@@ -981,9 +981,9 @@
                        handle_sel_align="#f090a0"
                        handle_auto_clamped="#000000"
                        handle_sel_auto_clamped="#000000"
-                       handle_vertex="#e2e2e2"
+                       handle_vertex="#000000"
                        handle_vertex_select="#ffff00"
-                       handle_vertex_size="4">
+                       handle_vertex_size="5">
         <space>
           <ThemeSpaceGeneric back="#0d0d0d"
                              title="#5d5d5d"
