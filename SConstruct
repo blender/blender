@@ -984,8 +984,9 @@ if env['OURPLATFORM']!='darwin':
             dir=os.path.join(env['BF_INSTALLDIR'], VERSION, 'scripts', 'addons','cycles', 'lib')
             for arch in env['BF_CYCLES_CUDA_BINARIES_ARCH']:
                 kernel_build_dir = os.path.join(B.root_build_dir, 'intern/cycles/kernel')
-                cubin_file = os.path.join(kernel_build_dir, "kernel_%s.cubin" % arch)
-                cubininstall.append(env.Install(dir=dir,source=cubin_file))
+                for suffix in ('', '_experimental'):
+                    cubin_file = os.path.join(kernel_build_dir, "kernel%s_%s.cubin" % (suffix, arch))
+                    cubininstall.append(env.Install(dir=dir,source=cubin_file))
 
         # osl shaders
         if env['WITH_BF_CYCLES_OSL']:

@@ -83,30 +83,35 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h') + kernel.Glob('geom/*.h') + kernel.Glob('closure/*.h')
     last_cubin_file = None
 
+    configs = (("kernel_%s.cubin", ''),
+               ("kernel_experimental_%s.cubin", ' -D__KERNEL_CUDA_EXPERIMENTAL__'))
+
     # add command for each cuda architecture
     for arch in cuda_archs:
-        if cuda_version < 60 and arch == "sm_50":
-            print("Can't build kernel for CUDA sm_50 architecture, skipping")
-            continue
+        for config in configs:
+            # TODO(sergey): Use dict instead ocouple in order to increase readability?
+            name = config[0]
+            extra_flags = config[1]
 
-        cubin_file = os.path.join(build_dir, "kernel_%s.cubin" % arch)
+            cubin_file = os.path.join(build_dir, name % arch)
+            current_flags = nvcc_flags + extra_flags
 
-        if env['BF_CYCLES_CUDA_ENV']:
-            MS_SDK = "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
-            command = "\"%s\" & \"%s\" -arch=%s %s \"%s\" -o \"%s\"" % (MS_SDK, nvcc, arch, nvcc_flags, kernel_file, cubin_file)
-        else:
-            command = "\"%s\" -arch=%s %s \"%s\" -o \"%s\"" % (nvcc, arch, nvcc_flags, kernel_file, cubin_file)
+            if env['BF_CYCLES_CUDA_ENV']:
+                MS_SDK = "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
+                command = "\"%s\" & \"%s\" -arch=%s %s \"%s\" -o \"%s\"" % (MS_SDK, nvcc, arch, current_flags, kernel_file, cubin_file)
+            else:
+                command = "\"%s\" -arch=%s %s \"%s\" -o \"%s\"" % (nvcc, arch, current_flags, kernel_file, cubin_file)
 
-        kernel.Command(cubin_file, 'kernel.cu', command)
-        kernel.Depends(cubin_file, dependencies)
+            kernel.Command(cubin_file, 'kernel.cu', command)
+            kernel.Depends(cubin_file, dependencies)
 
-        kernel_binaries.append(cubin_file)
-        
-        if not env['WITH_BF_CYCLES_CUDA_THREADED_COMPILE']:
-            # trick to compile one kernel at a time to reduce memory usage
-            if last_cubin_file:
-                kernel.Depends(cubin_file, last_cubin_file)
-            last_cubin_file = cubin_file
+            kernel_binaries.append(cubin_file)
+
+            if not env['WITH_BF_CYCLES_CUDA_THREADED_COMPILE']:
+                # trick to compile one kernel at a time to reduce memory usage
+                if last_cubin_file:
+                    kernel.Depends(cubin_file, last_cubin_file)
+                last_cubin_file = cubin_file
 
 Return('kernel_binaries')
 

@@ -197,14 +197,18 @@ public:
 		return true;
 	}
 
-	string compile_kernel()
+	string compile_kernel(bool experimental)
 	{
 		/* compute cubin name */
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
 
 		/* attempt to use kernel provided with blender */
-		string cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
+		string cubin;
+		if(experimental)
+			cubin = path_get(string_printf("lib/kernel_experimental_sm_%d%d.cubin", major, minor));
+		else
+			cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
 		if(path_exists(cubin))
 			return cubin;
 
@@ -212,7 +216,10 @@ public:
 		string kernel_path = path_get("kernel");
 		string md5 = path_files_md5_hash(kernel_path);
 
-		cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
+		if(experimental)
+			cubin = string_printf("cycles_kernel_experimental_sm%d%d_%s.cubin", major, minor, md5.c_str());
+		else
+			cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
 		cubin = path_user_get(path_join("cache", cubin));
 
 		/* if exists already, use it */
@@ -263,6 +270,9 @@ public:
 		string command = string_printf("\"%s\" -arch=sm_%d%d -m%d --cubin \"%s\" "
 			"-o \"%s\" --ptxas-options=\"-v\" -I\"%s\" -DNVCC -D__KERNEL_CUDA_VERSION__=%d",
 			nvcc, major, minor, machine, kernel.c_str(), cubin.c_str(), include.c_str(), cuda_version);
+		
+		if(experimental)
+			command += " -D__KERNEL_CUDA_EXPERIMENTAL__";
 
 		printf("%s\n", command.c_str());
 
@@ -293,7 +303,7 @@ public:
 			return false;
 
 		/* get kernel */
-		string cubin = compile_kernel();
+		string cubin = compile_kernel(experimental);
 
 		if(cubin == "")
 			return false;

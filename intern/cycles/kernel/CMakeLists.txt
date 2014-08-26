@@ -160,37 +160,50 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	set(cuda_sources kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_GEOM_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_UTIL_HEADERS})
 	set(cuda_cubins)
 
-	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
-		set(cuda_cubin kernel_${arch}.cubin)
+	macro(CYCLES_CUDA_KERNEL_ADD arch experimental)
+		if(${experimental})
+			set(cuda_extra_flags "-D__KERNEL_CUDA_EXPERIMENTAL__")
+			set(cuda_cubin kernel_experimental_${arch}.cubin)
+		else()
+			set(cuda_extra_flags "")
+			set(cuda_cubin kernel_${arch}.cubin)
+		endif()
 
 		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${CUDA_VERSION}")
 		set(cuda_math_flags "--use_fast_math")
 
-		if(CUDA_VERSION LESS 60 AND ${arch} MATCHES "sm_50")
-			message(WARNING "Can't build kernel for CUDA sm_50 architecture, skipping")
-		else()
-			add_custom_command(
-				OUTPUT ${cuda_cubin}
-				COMMAND ${CUDA_NVCC_EXECUTABLE}
-				        -arch=${arch}
-				        -m${CUDA_BITS}
-				        --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu
-				        -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin}
-				        --ptxas-options="-v"
-				        ${cuda_arch_flags}
-				        ${cuda_version_flags}
-				        ${cuda_math_flags}
-				        -I${CMAKE_CURRENT_SOURCE_DIR}/../util
-				        -I${CMAKE_CURRENT_SOURCE_DIR}/svm
-				        -DCCL_NAMESPACE_BEGIN=
-				        -DCCL_NAMESPACE_END=
-				        -DNVCC
+		add_custom_command(
+			OUTPUT ${cuda_cubin}
+			COMMAND ${CUDA_NVCC_EXECUTABLE}
+					-arch=${arch}
+					-m${CUDA_BITS}
+					--cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu
+					-o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin}
+					--ptxas-options="-v"
+					${cuda_arch_flags}
+					${cuda_version_flags}
+					${cuda_math_flags}
+					${cuda_extra_flags}
+					-I${CMAKE_CURRENT_SOURCE_DIR}/../util
+					-I${CMAKE_CURRENT_SOURCE_DIR}/svm
+					-DCCL_NAMESPACE_BEGIN=
+					-DCCL_NAMESPACE_END=
+					-DNVCC
 
-				DEPENDS ${cuda_sources})
+			DEPENDS ${cuda_sources})
 
-			delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
-			list(APPEND cuda_cubins ${cuda_cubin})
-		endif()
+		delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
+		list(APPEND cuda_cubins ${cuda_cubin})
+
+		unset(cuda_extra_flags)
+	endmacro()
+
+	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
+		# Compile regular kernel
+		CYCLES_CUDA_KERNEL_ADD(${arch} FALSE)
+
+		# Compile experimental kernel
+		CYCLES_CUDA_KERNEL_ADD(${arch} TRUE)
 	endforeach()
 
 	add_custom_target(cycles_kernel_cuda ALL DEPENDS ${cuda_cubins})

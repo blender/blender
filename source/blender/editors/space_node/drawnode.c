@@ -942,12 +942,13 @@ static void node_shader_buts_anisotropic(uiLayout *layout, bContext *UNUSED(C), 
 
 static void node_shader_buts_subsurface(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	/* SSS does not work on GPU yet */
+	/* SSS only enabled in Experimental Kernel */
 	PointerRNA scene = CTX_data_pointer_get(C, "scene");
 	if (scene.data) {
 		PointerRNA cscene = RNA_pointer_get(&scene, "cycles");
-		if (cscene.data && (RNA_enum_get(&cscene, "device") == 1 && U.compute_device_type != 0))
-			uiItemL(layout, IFACE_("SSS not supported on GPU"), ICON_ERROR);
+		if (cscene.data && (RNA_enum_get(&cscene, "device") == 1 && U.compute_device_type != 0
+			&& RNA_enum_get(&cscene, "feature_set") == 0))
+			uiItemL(layout, IFACE_("Only enabled in experimental GPU kernel"), ICON_ERROR);
 	}
 
 	uiItemR(layout, ptr, "falloff", 0, "", ICON_NONE);
