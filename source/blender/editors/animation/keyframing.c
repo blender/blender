@@ -310,20 +310,25 @@ int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
 		if (replace) {
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			if ((i >= 0) && (i < fcu->totvert)) {
-				/* just change the values when replacing, so as to not overwrite handles */
-				BezTriple *dst = (fcu->bezt + i);
-				float dy = bezt->vec[1][1] - dst->vec[1][1];
-				
-				/* just apply delta value change to the handle values */
-				dst->vec[0][1] += dy;
-				dst->vec[1][1] += dy;
-				dst->vec[2][1] += dy;
-				
-				dst->f1 = bezt->f1;
-				dst->f2 = bezt->f2;
-				dst->f3 = bezt->f3;
-				
-				/* TODO: perform some other operations? */
+				if (flag & INSERTKEY_OVERWRITE_FULL) {
+					fcu->bezt[i] = *bezt;
+				}
+				else {
+					/* just change the values when replacing, so as to not overwrite handles */
+					BezTriple *dst = (fcu->bezt + i);
+					float dy = bezt->vec[1][1] - dst->vec[1][1];
+					
+					/* just apply delta value change to the handle values */
+					dst->vec[0][1] += dy;
+					dst->vec[1][1] += dy;
+					dst->vec[2][1] += dy;
+					
+					dst->f1 = bezt->f1;
+					dst->f2 = bezt->f2;
+					dst->f3 = bezt->f3;
+					
+					/* TODO: perform some other operations? */
+				}
 			}
 		}
 		/* keyframing modes allow to not replace keyframe */

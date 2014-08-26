@@ -732,9 +732,9 @@ static void paste_animedit_keys_fcurve(FCurve *fcu, tAnimCopybufItem *aci, float
 		bezt->vec[2][0] += offset;
 		
 		/* insert the keyframe
-		 * NOTE: no special flags here for now
+		 * NOTE: we do not want to inherit handles from existing keyframes in this case!
 		 */
-		insert_bezt_fcurve(fcu, bezt, 0); 
+		insert_bezt_fcurve(fcu, bezt, INSERTKEY_OVERWRITE_FULL);
 		
 		/* un-apply offset from src beztriple after copying */
 		bezt->vec[0][0] -= offset;
