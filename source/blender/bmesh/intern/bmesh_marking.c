@@ -864,7 +864,9 @@ void BM_select_history_validate(BMesh *bm)
 	}
 }
 
-/* utility function */
+/**
+ * Get the active mesh element (with active-face fallback).
+ */
 bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 {
 	BMEditSelection *ese_last = bm->selected.last;
@@ -887,7 +889,8 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 			ese->htype = ese_last->htype;
 		}
 	}
-	else if (efa) { /* no */
+	else if (efa) {
+		/* no edit-selection, fallback to active face */
 		ese->ele   = (BMElem *)efa;
 		ese->htype = BM_FACE;
 	}
