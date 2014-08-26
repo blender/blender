@@ -315,6 +315,9 @@ enum {
 #define PNL_DEFAULT_CLOSED		1
 #define PNL_NO_HEADER			2
 
+/* Default panel category. */
+#define PNL_DEFAULT_CATEGORY "Misc"
+
 /* uiList layout_type */
 enum {
 	UILST_LAYOUT_DEFAULT          = 0,

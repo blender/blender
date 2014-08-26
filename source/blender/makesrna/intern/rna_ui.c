@@ -201,6 +201,9 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 	/* We have to set default context! Else we get a void string... */
 	strcpy(dummypt.translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
 
+	/* We have to set default category! Else we get a void string, and panel goes everywhere! */
+	strcpy(dummypt.category, PNL_DEFAULT_CATEGORY);
+
 	/* validate the python class */
 	if (validate(&dummyptr, data, have_function) != 0)
 		return NULL;
@@ -987,7 +990,7 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_category", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->category");
-	RNA_def_property_string_default(prop, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
+	RNA_def_property_string_default(prop, PNL_DEFAULT_CATEGORY);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
