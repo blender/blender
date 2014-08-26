@@ -184,6 +184,7 @@ void BlenderSync::sync_integrator()
 	integrator->filter_glossy = get_float(cscene, "blur_glossy");
 
 	integrator->seed = get_int(cscene, "seed");
+	integrator->sampling_pattern = (SamplingPattern)RNA_enum_get(&cscene, "sampling_pattern");
 
 	integrator->layer_flag = render_layer.layer;
 
@@ -231,10 +232,6 @@ void BlenderSync::sync_integrator()
 		integrator->subsurface_samples = subsurface_samples;
 		integrator->volume_samples = volume_samples;
 	}
-	
-
-	if(experimental)
-		integrator->sampling_pattern = (SamplingPattern)RNA_enum_get(&cscene, "sampling_pattern");
 
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
