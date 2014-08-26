@@ -1210,28 +1210,95 @@ static float calculateVertexWindForce(const float wind[3], const float vertexnor
 	return dot_v3v3(wind, vertexnormal);
 }
 
-typedef struct HairGridVert {
-	float velocity[3];
-	float density;
-} HairGridVert;
-#define HAIR_GRID_INDEX(vec, min, max, axis) (int)((vec[axis] - min[axis]) / (max[axis] - min[axis]) * 9.99f)
-/* Smoothing of hair velocities:
+/* ================ Volumetric Hair Interaction ================
  * adapted from
  *      Volumetric Methods for Simulation and Rendering of Hair
  *      by Lena Petrovic, Mark Henne and John Anderson
  *      Pixar Technical Memo #06-08, Pixar Animation Studios
  */
-static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
-{
-	/* TODO: This is an initial implementation and should be made much better in due time.
-	 * What should at least be implemented is a grid size parameter and a smoothing kernel
-	 * for bigger grids.
-	 */
 
-	/* 10x10x10 grid gives nice initial results */
-	HairGridVert grid[10][10][10];
-	HairGridVert colg[10][10][10];
-	ListBase *colliders = get_collider_cache(clmd->scene, NULL, NULL);
+/* TODO: This is an initial implementation and should be made much better in due time.
+ * What should at least be implemented is a grid size parameter and a smoothing kernel
+ * for bigger grids.
+ */
+
+/* 10x10x10 grid gives nice initial results */
+static const int hair_grid_res = 10;
+
+static int hair_grid_size(int res)
+{
+	return res * res * res;
+}
+
+typedef struct HairGridVert {
+	float velocity[3];
+	float density;
+} HairGridVert;
+
+#define HAIR_GRID_INDEX_AXIS(vec, min, max, axis) (int)((vec[axis] - min[axis]) / (max[axis] - min[axis]) * 9.99f)
+
+#if 0
+BLI_INLINE void hair_grid_index(lfVector *vec, int res, const float min[3], const float max[3],
+                                float *r_i, float *r_j, float *r_k, float *r_offset)
+{
+	*r_i = HAIR_GRID_INDEX_AXIS(vec, min, max, 0);
+	*r_j = HAIR_GRID_INDEX_AXIS(vec, min, max, 1);
+	*r_k = HAIR_GRID_INDEX_AXIS(vec, min, max, 2);
+	*r_offset = i + (j + k*res)*res;
+}
+#endif
+
+BLI_INLINE int hair_grid_offset(const float vec[3], int res, const float min[3], const float max[3])
+{
+	int i, j, k;
+	i = HAIR_GRID_INDEX_AXIS(vec, min, max, 0);
+	j = HAIR_GRID_INDEX_AXIS(vec, min, max, 1);
+	k = HAIR_GRID_INDEX_AXIS(vec, min, max, 2);
+	return i + (j + k*res)*res;
+}
+
+static void hair_velocity_smoothing(const HairGridVert *hairgrid, const float gmin[3], const float gmax[3], float smoothfac,
+                                    lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
+{
+	int size = hair_grid_size(hair_grid_res);
+	int v;
+	/* calculate forces */
+	for (v = 0; v < numverts; v++) {
+		int offset = hair_grid_offset(lX[v], hair_grid_res, gmin, gmax);
+		if (offset < 0 || offset >= size)
+			continue;
+		
+		lF[v][0] += smoothfac * (hairgrid[offset].velocity[0] - lV[v][0]);
+		lF[v][1] += smoothfac * (hairgrid[offset].velocity[1] - lV[v][1]);
+		lF[v][2] += smoothfac * (hairgrid[offset].velocity[2] - lV[v][2]);
+	}
+}
+
+static void hair_velocity_collision(const HairGridVert *collgrid, const float gmin[3], const float gmax[3], float collfac,
+                                    lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
+{
+	int size = hair_grid_size(hair_grid_res);
+	int v;
+	/* calculate forces */
+	for (v = 0; v < numverts; v++) {
+		int offset = hair_grid_offset(lX[v], hair_grid_res, gmin, gmax);
+		if (offset < 0 || offset >= size)
+			continue;
+		
+		if (collgrid[offset].density > 0.0f) {
+			lF[v][0] += collfac * (collgrid[offset].velocity[0] - lV[v][0]);
+			lF[v][1] += collfac * (collgrid[offset].velocity[1] - lV[v][1]);
+			lF[v][2] += collfac * (collgrid[offset].velocity[2] - lV[v][2]);
+		}
+	}
+}
+
+static void hair_volume_forces(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
+{
+	int size = hair_grid_size(hair_grid_res);
+	HairGridVert *hairgrid;
+	HairGridVert *collgrid;
+	ListBase *colliders;
 	ColliderCache *col = NULL;
 	float gmin[3], gmax[3], density;
 	/* 2.0f is an experimental value that seems to give good results */
@@ -1239,115 +1306,79 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	float collfac = 2.0f * clmd->sim_parms->collider_friction;
 	unsigned int	v = 0;
 	int	            i = 0;
-	int				j = 0;
-	int				k = 0;
 
 	INIT_MINMAX(gmin, gmax);
-
 	for (i = 0; i < numverts; i++)
 		DO_MINMAX(lX[i], gmin, gmax);
 
-	/* initialize grid */
-	for (i = 0; i < 10; i++) {
-		for (j = 0; j < 10; j++) {
-			for (k = 0; k < 10; k++) {
-				grid[i][j][k].velocity[0] = 0.0f;
-				grid[i][j][k].velocity[1] = 0.0f;
-				grid[i][j][k].velocity[2] = 0.0f;
-				grid[i][j][k].density = 0.0f;
+	hairgrid = MEM_mallocN(sizeof(HairGridVert) * size, "hair voxel data");
+	collgrid = MEM_mallocN(sizeof(HairGridVert) * size, "hair collider voxel data");
 
-				colg[i][j][k].velocity[0] = 0.0f;
-				colg[i][j][k].velocity[1] = 0.0f;
-				colg[i][j][k].velocity[2] = 0.0f;
-				colg[i][j][k].density = 0.0f;
-			}
-		}
+	/* initialize grid */
+	for (i = 0; i < size; ++i) {
+		zero_v3(hairgrid[i].velocity);
+		hairgrid[i].density = 0.0f;
+		
+		zero_v3(collgrid[i].velocity);
+		collgrid[i].density = 0.0f;
 	}
 
 	/* gather velocities & density */
-	if (smoothfac > 0.0f) for (v = 0; v < numverts; v++) {
-		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
-		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
-		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
-		if (i < 0 || j < 0 || k < 0 || i >= 10 || j >= 10 || k >= 10)
-			continue;
-
-		grid[i][j][k].velocity[0] += lV[v][0];
-		grid[i][j][k].velocity[1] += lV[v][1];
-		grid[i][j][k].velocity[2] += lV[v][2];
-		grid[i][j][k].density += 1.0f;
+	if (smoothfac > 0.0f) {
+		for (v = 0; v < numverts; v++) {
+			int offset = hair_grid_offset(lX[v], hair_grid_res, gmin, gmax);
+			if (offset < 0 || offset >= size)
+				continue;
+			
+			add_v3_v3(hairgrid[offset].velocity, lV[v]);
+			hairgrid[offset].density += 1.0f;
+		}
 	}
 
 	/* gather colliders */
-	if (colliders && collfac > 0.0f) for (col = colliders->first; col; col = col->next) {
-		MVert *loc0 = col->collmd->x;
-		MVert *loc1 = col->collmd->xnew;
-		float vel[3];
-
-		for (v=0; v<col->collmd->numverts; v++, loc0++, loc1++) {
-			i = HAIR_GRID_INDEX(loc1->co, gmin, gmax, 0);
-
-			if (i>=0 && i<10) {
-				j = HAIR_GRID_INDEX(loc1->co, gmin, gmax, 1);
-
-				if (j>=0 && j<10) {
-					k = HAIR_GRID_INDEX(loc1->co, gmin, gmax, 2);
-
-					if (k>=0 && k<10) {
-						sub_v3_v3v3(vel, loc1->co, loc0->co);
-
-						colg[i][j][k].velocity[0] += vel[0];
-						colg[i][j][k].velocity[1] += vel[1];
-						colg[i][j][k].velocity[2] += vel[2];
-						colg[i][j][k].density += 1.0f;
-					}
-				}
+	colliders = get_collider_cache(clmd->scene, NULL, NULL);
+	if (colliders && collfac > 0.0f) {
+		for (col = colliders->first; col; col = col->next) {
+			MVert *loc0 = col->collmd->x;
+			MVert *loc1 = col->collmd->xnew;
+			float vel[3];
+			
+			for (v=0; v < col->collmd->numverts; v++, loc0++, loc1++) {
+				int offset = hair_grid_offset(loc1->co, hair_grid_res, gmin, gmax);
+				if (offset < 0 || offset >= size)
+					continue;
+				
+				sub_v3_v3v3(vel, loc1->co, loc0->co);
+				
+				add_v3_v3(collgrid[offset].velocity, vel);
+				collgrid[offset].density += 1.0f;
 			}
 		}
 	}
-	
+	free_collider_cache(&colliders);
 
 	/* divide velocity with density */
-	for (i = 0; i < 10; i++) {
-		for (j = 0; j < 10; j++) {
-			for (k = 0; k < 10; k++) {
-				density = grid[i][j][k].density;
-				if (density > 0.0f) {
-					grid[i][j][k].velocity[0] /= density;
-					grid[i][j][k].velocity[1] /= density;
-					grid[i][j][k].velocity[2] /= density;
-				}
-
-				density = colg[i][j][k].density;
-				if (density > 0.0f) {
-					colg[i][j][k].velocity[0] /= density;
-					colg[i][j][k].velocity[1] /= density;
-					colg[i][j][k].velocity[2] /= density;
-				}
-			}
+	for (i = 0; i < size; i++) {
+		density = hairgrid[i].density;
+		if (density > 0.0f) {
+			hairgrid[i].velocity[0] /= density;
+			hairgrid[i].velocity[1] /= density;
+			hairgrid[i].velocity[2] /= density;
+		}
+		
+		density = collgrid[i].density;
+		if (density > 0.0f) {
+			collgrid[i].velocity[0] /= density;
+			collgrid[i].velocity[1] /= density;
+			collgrid[i].velocity[2] /= density;
 		}
 	}
 
-	/* calculate forces */
-	for (v = 0; v < numverts; v++) {
-		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
-		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
-		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
-		if (i < 0 || j < 0 || k < 0 || i >= 10 || j >= 10 || k >= 10)
-			continue;
+	hair_velocity_smoothing(hairgrid, gmin, gmax, smoothfac, lF, lX, lV, numverts);
+	hair_velocity_collision(collgrid, gmin, gmax, collfac, lF, lX, lV, numverts);
 
-		lF[v][0] += smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);
-		lF[v][1] += smoothfac * (grid[i][j][k].velocity[1] - lV[v][1]);
-		lF[v][2] += smoothfac * (grid[i][j][k].velocity[2] - lV[v][2]);
-
-		if (colg[i][j][k].density > 0.0f) {
-			lF[v][0] += collfac * (colg[i][j][k].velocity[0] - lV[v][0]);
-			lF[v][1] += collfac * (colg[i][j][k].velocity[1] - lV[v][1]);
-			lF[v][2] += collfac * (colg[i][j][k].velocity[2] - lV[v][2]);
-		}
-	}
-
-	free_collider_cache(&colliders);
+	MEM_freeN(hairgrid);
+	MEM_freeN(collgrid);
 }
 
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
@@ -1380,7 +1411,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	init_lfvector(lF, gravity, numverts);
 	
 	if (clmd->sim_parms->velocity_smooth > 0.0f || clmd->sim_parms->collider_friction > 0.0f)
-		hair_velocity_smoothing(clmd, lF, lX, lV, numverts);
+		hair_volume_forces(clmd, lF, lX, lV, numverts);
 
 	/* multiply lF with mass matrix
 	 * force = mass * acceleration (in this case: gravity)
