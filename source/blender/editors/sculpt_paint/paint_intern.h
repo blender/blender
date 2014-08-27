@@ -288,7 +288,7 @@ typedef struct {
 	float *wdata; /* actual kernel */
 	int side; /* kernel side */
 	int side_squared; /* data side */
-	float pixel_len; /* pixels around center that kernel is wide */
+	int pixel_len; /* pixels around center that kernel is wide */
 } BlurKernel;
 
 enum BlurKernelType;
