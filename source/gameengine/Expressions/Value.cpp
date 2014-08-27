@@ -86,7 +86,7 @@ struct SmartCValueRef
 std::vector<SmartCValueRef> gRefList;
 #endif
 
-#ifdef _DEBUG
+#ifdef DEBUG
 //int gRefCountValue;
 #endif
 
@@ -101,7 +101,7 @@ effect: constucts a CValue
 */
 {
 	//debug(gRefCountValue++)	// debugging
-#ifdef _DEBUG
+#ifdef DEBUG
 	//gRefCountValue++;
 #ifdef CVALUE_DEBUG
 	gRefList.push_back(SmartCValueRef(this));
@@ -460,7 +460,7 @@ void CValue::DisableRefCount()
 	m_refcount--;
 
 	//debug(gRefCountValue--);
-#ifdef _DEBUG
+#ifdef DEBUG
 	//gRefCountValue--;
 #endif
 	m_ValFlags.RefCountDisabled=true;
@@ -472,7 +472,7 @@ void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 {
 	m_refcount = 1;
 	
-#ifdef _DEBUG
+#ifdef DEBUG
 	//gRefCountValue++;
 #endif
 	PyObjectPlus::ProcessReplica();

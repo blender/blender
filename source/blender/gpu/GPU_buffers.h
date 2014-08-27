@@ -32,11 +32,11 @@
 #ifndef __GPU_BUFFERS_H__
 #define __GPU_BUFFERS_H__
 
-#ifdef _DEBUG
-/*#define DEBUG_VBO(X) printf(X)*/
-#define DEBUG_VBO(X)
+#ifdef DEBUG
+/*  #define DEBUG_VBO(X) printf(X)*/
+#  define DEBUG_VBO(X)
 #else
-#define DEBUG_VBO(X)
+#  define DEBUG_VBO(X)
 #endif
 
 struct BMesh;

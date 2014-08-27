@@ -21,13 +21,13 @@
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
-#ifdef _DEBUG
+#ifdef DEBUG
 //int gRefCountExpr;
 #endif
 CExpression::CExpression()// : m_cached_calculate(NULL)
 {
 	m_refcount = 1;
-#ifdef _DEBUG
+#ifdef DEBUG
 	//gRefCountExpr++;
 #endif
 }

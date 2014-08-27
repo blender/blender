@@ -116,7 +116,7 @@ public:
 
 	virtual CExpression * AddRef() { // please leave multiline, for debugger !!!
 
-#ifdef _DEBUG
+#ifdef DEBUG
 		//gRefCountExpr++;
 		assertd(m_refcount < 255);
 #endif
@@ -124,7 +124,7 @@ public:
 		return this;
 	};
 	virtual CExpression* Release(CExpression* complicatedtrick=NULL) { 
-#ifdef _DEBUG
+#ifdef DEBUG
 		//gRefCountExpr--;
 #endif
 		if (--m_refcount < 1) 

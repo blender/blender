@@ -37,7 +37,7 @@
 #include <shlobj.h>
 #include "utfconv.h"
 
-#if defined(__MINGW32__) || defined(__CYGWIN__)
+#ifdef __MINGW32__
 
 #if !defined(SHARD_PIDL)
 #define SHARD_PIDL      0x00000001L

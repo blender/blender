@@ -36,7 +36,7 @@
 #undef main
 #endif
 
-#ifndef _DEBUG
+#ifndef DEBUG
 #  define JOYSTICK_ECHO(x)
 #else
 #  include <iostream>

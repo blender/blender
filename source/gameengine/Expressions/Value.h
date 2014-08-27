@@ -90,7 +90,7 @@ enum VALUE_DATA_TYPE {
 
 
 
-#ifdef _DEBUG
+#ifdef DEBUG
 //extern int gRefCountValue;		// debugonly variable to check if all CValue Refences are Dereferenced at programexit
 #endif
 
@@ -251,7 +251,7 @@ public:
 		// Increase global reference count, used to see at the end of the program
 		// if all CValue-derived classes have been dereferenced to 0
 		//debug(gRefCountValue++);
-#ifdef _DEBUG
+#ifdef DEBUG
 		//gRefCountValue++;
 #endif
 		m_refcount++; 
@@ -264,7 +264,7 @@ public:
 		// Decrease global reference count, used to see at the end of the program
 		// if all CValue-derived classes have been dereferenced to 0
 		//debug(gRefCountValue--);
-#ifdef _DEBUG
+#ifdef DEBUG
 		//gRefCountValue--;
 #endif
 		// Decrease local reference count, if it reaches 0 the object should be freed

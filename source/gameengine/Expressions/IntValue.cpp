@@ -35,7 +35,7 @@ effect: constructs a new CIntValue
 */
 {
 	
-#ifdef _DEBUG_
+#ifdef DEBUG_
 	m_textval = "Int illegal constructor";
 #endif
 	m_pstrRep=NULL;
