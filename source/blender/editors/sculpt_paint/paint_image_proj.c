@@ -4886,7 +4886,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 					ima = mtex->tex->ima = BKE_image_add_generated(bmain, width, height, imagename, alpha ? 32 : 24, use_float,
 					                                               gen_type, color);
 
-					BKE_texpaint_slot_refresh_cache(ma, false);
+					BKE_texpaint_slot_refresh_cache(scene, ma);
 					BKE_image_signal(ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 					WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, mtex->tex);
 					WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
@@ -4993,7 +4993,7 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 			MEM_freeN(ma->mtex[i]);
 			ma->mtex[i] = NULL;
 			
-			BKE_texpaint_slot_refresh_cache(ma, false);
+			BKE_texpaint_slot_refresh_cache(scene, ma);
 			DAG_id_tag_update(&ma->id, 0);
 			WM_event_add_notifier(C, NC_MATERIAL, CTX_data_scene(C));
 			/* we need a notifier for data change since we change the displayed modifier uvs */

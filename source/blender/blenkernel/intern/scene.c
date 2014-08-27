@@ -1900,6 +1900,12 @@ bool BKE_scene_use_new_shading_nodes(Scene *scene)
 	return (type && type->flag & RE_USE_SHADING_NODES);
 }
 
+bool BKE_scene_uses_blender_internal(struct Scene *scene)
+{
+	return strcmp("BLENDER_INTERNAL", scene->r.engine);
+}
+
+
 void BKE_scene_base_flag_to_objects(struct Scene *scene)
 {
 	Base *base = scene->base.first;

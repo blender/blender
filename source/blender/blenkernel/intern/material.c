@@ -63,6 +63,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_curve.h"
 
@@ -1326,12 +1327,15 @@ static bool get_mtex_slot_valid_texpaint(struct MTex *mtex)
 	        mtex->tex->ima);
 }
 
-void BKE_texpaint_slot_refresh_cache(Material *ma, bool use_nodes)
+void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 {
 	MTex **mtex;
 	short count = 0;
 	short index = 0, i;
 
+	bool use_nodes = BKE_scene_use_new_shading_nodes(scene);
+	bool is_bi = BKE_scene_uses_blender_internal(scene);
+	
 	if (!ma)
 		return;
 
@@ -1340,10 +1344,10 @@ void BKE_texpaint_slot_refresh_cache(Material *ma, bool use_nodes)
 		ma->texpaintslot = NULL;
 	}
 
-	if (use_nodes) {
+	if (use_nodes || ma->use_nodes) {
 		bNode *node, *active_node;
 
-		if (!(ma->use_nodes && ma->nodetree))
+		if (!(ma->nodetree))
 			return;
 
 		for (node = ma->nodetree->nodes.first; node; node = node->next) {
@@ -1369,7 +1373,7 @@ void BKE_texpaint_slot_refresh_cache(Material *ma, bool use_nodes)
 			}
 		}
 	}
-	else {
+	else if (is_bi) {
 		for (mtex = ma->mtex, i = 0; i < MAX_MTEX; i++, mtex++) {
 			if (get_mtex_slot_valid_texpaint(*mtex)) {
 				count++;
@@ -1407,13 +1411,13 @@ void BKE_texpaint_slot_refresh_cache(Material *ma, bool use_nodes)
 	return;
 }
 
-void BKE_texpaint_slots_refresh_object(struct Object *ob, bool use_nodes)
+void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)
 {
 	int i;
 
 	for (i = 1; i < ob->totcol + 1; i++) {
 		Material *ma = give_current_material(ob, i);
-		BKE_texpaint_slot_refresh_cache(ma, use_nodes);
+		BKE_texpaint_slot_refresh_cache(scene, ma);
 	}
 }
 

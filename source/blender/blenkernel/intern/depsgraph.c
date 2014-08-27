@@ -2497,11 +2497,10 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 		}
 
 		if (ELEM(idtype, ID_MA, ID_TE)) {
-			const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(sce);
 			for (obt = bmain->object.first; obt; obt = obt->id.next) {
 				if (obt->mode & OB_MODE_TEXTURE_PAINT) {
 					obt->recalc |= OB_RECALC_DATA;
-					BKE_texpaint_slots_refresh_object(obt, new_shading_nodes);
+					BKE_texpaint_slots_refresh_object(sce, obt);
 					lib_id_recalc_data_tag(bmain, &obt->id);
 				}
 			}

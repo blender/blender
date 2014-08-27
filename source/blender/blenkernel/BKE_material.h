@@ -86,8 +86,8 @@ short find_material_index(struct Object *ob, struct Material *ma);
 bool object_add_material_slot(struct Object *ob);
 bool object_remove_material_slot(struct Object *ob);
 
-void BKE_texpaint_slot_refresh_cache(struct Material *ma, bool use_nodes);
-void BKE_texpaint_slots_refresh_object(struct Object *ob, bool use_nodes);
+void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
+void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
 void BKE_texpaint_slots_clear(struct Material *ma);
 
 /* rna api */
