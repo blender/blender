@@ -46,6 +46,8 @@ struct BlenderCamera {
 
 	float2 pixelaspect;
 
+	float aperture_ratio;
+
 	PanoramaType panorama_type;
 	float fisheye_fov;
 	float fisheye_lens;
@@ -167,6 +169,7 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob, boo
 		bcam->apertureblades = RNA_int_get(&ccamera, "aperture_blades");
 		bcam->aperturerotation = RNA_float_get(&ccamera, "aperture_rotation");
 		bcam->focaldistance = blender_camera_focal_distance(b_ob, b_camera);
+		bcam->aperture_ratio = RNA_float_get(&ccamera, "aperture_ratio");
 
 		bcam->shift.x = b_camera.shift_x();
 		bcam->shift.y = b_camera.shift_y();
@@ -327,6 +330,9 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->panorama_type = bcam->panorama_type;
 	cam->fisheye_fov = bcam->fisheye_fov;
 	cam->fisheye_lens = bcam->fisheye_lens;
+
+	/* anamorphic lens bokeh */
+	cam->aperture_ratio = bcam->aperture_ratio;
 
 	/* perspective */
 	cam->fov = 2.0f * atanf((0.5f * sensor_size) / bcam->lens / aspectratio);

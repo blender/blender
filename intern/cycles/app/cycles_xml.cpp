@@ -329,6 +329,7 @@ static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 	xml_read_float(&cam->aperturesize, node, "aperturesize"); // 0.5*focallength/fstop
 	xml_read_float(&cam->focaldistance, node, "focaldistance");
 	xml_read_float(&cam->shuttertime, node, "shuttertime");
+	xml_read_float(&cam->aperture_ratio, node, "aperture_ratio");
 
 	if(xml_equal_string(node, "type", "orthographic"))
 		cam->type = CAMERA_ORTHOGRAPHIC;

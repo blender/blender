@@ -761,9 +761,12 @@ typedef struct KernelCamera {
 	/* render size */
 	float width, height;
 	int resolution;
+
+	/* anamorphic lens bokeh */
+	float inv_aperture_ratio;
+
 	int pad1;
 	int pad2;
-	int pad3;
 
 	/* more matrices */
 	Transform screentoworld;
