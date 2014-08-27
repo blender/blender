@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_dial.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
@@ -238,12 +239,8 @@ typedef struct StrokeCache {
 	float anchored_location[3];
 
 	float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
-	float previous_vertex_rotation; /* previous rotation, used to detect if we rotate more than
-	                                 * PI radians */
-	short num_vertex_turns; /* records number of full 2*PI turns */
-	float initial_mouse_dir[2]; /* used to calculate initial angle */
-	bool init_dir_set; /* detect if we have initialized the initial mouse direction */
-
+	Dial *dial;
+	
 	char saved_active_brush_name[MAX_ID_NAME];
 	char saved_mask_brush_tool;
 	int saved_smooth_size; /* smooth tool copies the size of the current tool */
@@ -3527,6 +3524,8 @@ static void sculpt_cache_free(StrokeCache *cache)
 {
 	if (cache->face_norms)
 		MEM_freeN(cache->face_norms);
+	if (cache->dial)
+		MEM_freeN(cache->dial);
 	MEM_freeN(cache);
 }
 
@@ -3806,11 +3805,12 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 
 	cache->first_time = 1;
 
-	cache->vertex_rotation = 0;
-	cache->num_vertex_turns = 0;
-	cache->previous_vertex_rotation = 0;
-	cache->init_dir_set = false;
-
+#define PIXEL_INPUT_THRESHHOLD 5
+	if (brush->sculpt_tool == SCULPT_TOOL_ROTATE)
+		cache->dial = BLI_dial_initialize(cache->initial_mouse, PIXEL_INPUT_THRESHHOLD);
+		
+#undef PIXEL_INPUT_THRESHHOLD
+	
 	sculpt_omp_start(sd, ss);
 }
 
@@ -3964,48 +3964,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sculpt_update_brush_delta(ups, ob, brush);
 
 	if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
-#define PIXEL_INPUT_THRESHHOLD 5
-
-		const float dx = cache->mouse[0] - cache->initial_mouse[0];
-		const float dy = cache->mouse[1] - cache->initial_mouse[1];
-
-		/* only update when we have enough precision, by having the mouse adequately away from center
-		 * may be better to convert to radial representation but square works for small values too*/
-		if (fabsf(dx) > PIXEL_INPUT_THRESHHOLD && fabsf(dy) > PIXEL_INPUT_THRESHHOLD) {
-			float mouse_angle;
-			float dir[2] = {dx, dy};
-			float cosval, sinval;
-			normalize_v2(dir);
-
-			if (!cache->init_dir_set) {
-				copy_v2_v2(cache->initial_mouse_dir, dir);
-				cache->init_dir_set = true;
-			}
-
-			/* calculate mouse angle between initial and final mouse position */
-			cosval = dot_v2v2(dir, cache->initial_mouse_dir);
-			sinval = cross_v2v2(dir, cache->initial_mouse_dir);
-
-			/* clamp to avoid nans in acos */
-			CLAMP(cosval, -1.0f, 1.0f);
-			mouse_angle = (sinval > 0) ? acosf(cosval) : -acosf(cosval);
-
-			/* change of sign, we passed the 180 degree threshold. This means we need to add a turn.
-			 * to distinguish between transition from 0 to -1 and -PI to +PI, use comparison with PI/2 */
-			if ((mouse_angle * cache->previous_vertex_rotation < 0.0f) &&
-			    (fabsf(cache->previous_vertex_rotation) > (float)M_PI_2))
-			{
-				if (cache->previous_vertex_rotation < 0)
-					cache->num_vertex_turns--;
-				else
-					cache->num_vertex_turns++;
-			}
-			cache->previous_vertex_rotation = mouse_angle;
-
-			cache->vertex_rotation = -(mouse_angle + 2.0f * (float)M_PI * cache->num_vertex_turns) * cache->bstrength;
-
-#undef PIXEL_INPUT_THRESHHOLD
-		}
+		cache->vertex_rotation = -BLI_dial_angle(cache->dial, cache->mouse) * cache->bstrength;
 
 		ups->draw_anchored = true;
 		copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
