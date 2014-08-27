@@ -1349,38 +1349,34 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 {
 	Mesh *me;
 	int layernum;
-	bool add_material = false;
 	ImagePaintSettings *imapaint = &(CTX_data_tool_settings(C)->imapaint);
 	Brush *br = BKE_paint_brush(&imapaint->paint);
 
 	/* no material, add one */
 	if (ob->totcol == 0) {
-		add_material = true;
+		Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+		/* no material found, just assign to first slot */
+		assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+		proj_paint_add_slot(C, ma, NULL);
 	}
 	else {
 		/* there may be material slots but they may be empty, check */
-		bool has_material = false;
 		int i;
 
 		for (i = 1; i < ob->totcol + 1; i++) {
 			Material *ma = give_current_material(ob, i);
 			if (ma) {
-				has_material = true;
 				if (!ma->texpaintslot) {
 					proj_paint_add_slot(C, ma, NULL);
 				}
 			}
+			else {
+				Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+				/* no material found, just assign to first slot */
+				assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
+				proj_paint_add_slot(C, ma, NULL);				
+			}
 		}
-
-		if (!has_material)
-			add_material = true;
-	}
-
-	if (add_material) {
-		Material *ma = BKE_material_add(CTX_data_main(C), "Material");
-		/* no material found, just assign to first slot */
-		assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
-		proj_paint_add_slot(C, ma, NULL);
 	}
 
 	me = BKE_mesh_from_object(ob);
@@ -1460,7 +1456,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-
+		
 		ob->mode |= mode_flag;
 
 		BKE_paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
