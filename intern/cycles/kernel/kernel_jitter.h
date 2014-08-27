@@ -15,9 +15,6 @@
  */
 
 /* TODO(sergey): Consider moving portable ctz/clz stuff to util. */
-#ifdef _MSC_VER
-#  include <intrin.h>
-#endif
 
 CCL_NAMESPACE_BEGIN
 
