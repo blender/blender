@@ -227,7 +227,7 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Pan
 	Panel *patab, *palast, *panext;
 	const char *drawname = CTX_IFACE_(pt->translation_context, pt->label);
 	const char *idname = pt->idname;
-	const char *tabname = pt->idname;
+	const char *tabname = pt->category;
 	const char *hookname = NULL;
 	const bool newpanel = (pa == NULL);
 	int align = panel_aligned(sa, ar);
