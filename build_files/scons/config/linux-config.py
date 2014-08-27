@@ -241,7 +241,7 @@ if WITH_BF_FFMPEG:
     CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
 REL_CFLAGS = []
 REL_CXXFLAGS = []
-REL_CCFLAGS = ['-DNDEBUG', '-O2']
+REL_CCFLAGS = ['-O2']
 
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wunused-parameter', '-Wstrict-prototypes', '-Werror=declaration-after-statement', '-Werror=implicit-function-declaration', '-Werror=return-type']
 CC_WARN = ['-Wall']
@@ -254,7 +254,7 @@ BF_PROFILE_CCFLAGS = ['-pg','-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR = '../build/linux'
 BF_INSTALLDIR='../install/linux'

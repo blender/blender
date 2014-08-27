@@ -229,7 +229,7 @@ BF_DEBUG_CCFLAGS = ['/Zi', '/Ob0', '/Od', '/FR${TARGET}.sbr']
 CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-D_CRT_SECURE_NO_DEPRECATE', '-DOPJ_STATIC']
 REL_CFLAGS = []
 REL_CXXFLAGS = []
-REL_CCFLAGS = ['-O2', '/Ob2', '-DNDEBUG']
+REL_CCFLAGS = ['-O2', '/Ob2']
 
 C_WARN = []
 CC_WARN = []

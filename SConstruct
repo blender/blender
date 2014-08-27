@@ -210,6 +210,11 @@ if sys.platform=='win32':
     if B.bitness==64:
         env.Append(CPPFLAGS=['-DWIN64']) # -DWIN32 needed too, as it's used all over to target Windows generally
 
+if env['BF_DEBUG']:
+    env.Append(CPPDEFINES=['_DEBUG', 'DEBUG'])
+else:
+    env.Append(CPPDEFINES=['NDEBUG'])
+
 if not env['BF_FANCY']:
     B.bc.disable()
 

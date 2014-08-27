@@ -184,7 +184,7 @@ CXXFLAGS = [ '-fpermissive' ]
 CPPFLAGS = ['-DWIN32', '-DMS_WIN64', '-DFREE_WINDOWS', '-DFREE_WINDOWS64', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE64_SOURCE', '-DBOOST_ALL_NO_LIB', '-DBOOST_THREAD_USE_LIB', '-DGLEW_STATIC', '-DOPJ_STATIC']
 REL_CFLAGS = []
 REL_CXXFLAGS = []
-REL_CCFLAGS = ['-DNDEBUG', '-O2', '-ftree-vectorize']
+REL_CCFLAGS = ['-O2', '-ftree-vectorize']
 
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-prototypes']
 
@@ -199,7 +199,7 @@ PLATFORM_LINKFLAGS = ['-Xlinker', '--stack=2097152']
 # PLATFORM_LINKFLAGS += ["-static-libgcc", "-static-libstdc++"]
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS= ['-g', '-D_DEBUG']
+BF_DEBUG_CCFLAGS= ['-g']
 
 BF_PROFILE_CCFLAGS = ['-pg', '-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
