@@ -152,7 +152,7 @@ else:
                 scons_options.append('MSVS_VERSION=12.0')
                 scons_options.append('MSVC_VERSION=12.0')
                 scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=1')
-                scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc')
+                scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
             scons_options.append('BF_NUMJOBS=1')
 
         elif builder.find('mac') != -1:
