@@ -1363,6 +1363,7 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 	Mesh *me;
 	int layernum;
 	ImagePaintSettings *imapaint = &(CTX_data_tool_settings(C)->imapaint);
+	Scene *scene = CTX_data_scene(C);
 	Brush *br = BKE_paint_brush(&imapaint->paint);
 
 	/* no material, add one */
@@ -1380,7 +1381,12 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 			Material *ma = give_current_material(ob, i);
 			if (ma) {
 				if (!ma->texpaintslot) {
-					proj_paint_add_slot(C, ma, NULL);
+					/* refresh here just in case */
+					BKE_texpaint_slot_refresh_cache(scene, ma);				
+					
+					/* if still no slots, we have to add */
+					if (!ma->texpaintslot)
+						proj_paint_add_slot(C, ma, NULL);
 				}
 			}
 			else {

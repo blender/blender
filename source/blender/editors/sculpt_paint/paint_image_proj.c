@@ -4826,7 +4826,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
-	bool is_blender_internal = BKE_scene_uses_blender_internal(scene);
+	bool is_bi = BKE_scene_uses_blender_internal(scene);
 
 	if (!ob)
 		return false;
@@ -4836,7 +4836,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 
 	if (ma) {
 
-		if (!is_blender_internal || ma->use_nodes) {
+		if (!is_bi || ma->use_nodes) {
 			/* not supported for now */
 		}
 		else {
@@ -4970,12 +4970,12 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
 	Material *ma;
-	bool is_blender_internal = BKE_scene_uses_blender_internal(scene);
+	bool is_bi = BKE_scene_uses_blender_internal(scene);
 	TexPaintSlot *slot;
 	int i;
 	
 	/* not supported for node-based engines */
-	if (!ob || !is_blender_internal)
+	if (!ob || !is_bi)
 		return OPERATOR_CANCELLED;
 	
 	ma = give_current_material(ob, ob->actcol);

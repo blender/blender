@@ -1902,7 +1902,7 @@ bool BKE_scene_use_new_shading_nodes(Scene *scene)
 
 bool BKE_scene_uses_blender_internal(struct Scene *scene)
 {
-	return strcmp("BLENDER_INTERNAL", scene->r.engine);
+	return strcmp("BLENDER_RENDER", scene->r.engine) == 0;
 }
 
 
