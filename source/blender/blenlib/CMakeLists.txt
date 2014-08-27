@@ -42,6 +42,7 @@ set(INC_SYS
 set(SRC
 	intern/BLI_args.c
 	intern/BLI_array.c
+	intern/BLI_dial.c
 	intern/BLI_dynstr.c
 	intern/BLI_ghash.c
 	intern/BLI_heap.c
@@ -118,6 +119,7 @@ set(SRC
 	BLI_compiler_attrs.h
 	BLI_compiler_compat.h
 	BLI_convexhull2d.h
+	BLI_dial.h
 	BLI_dlrbTree.h
 	BLI_dynlib.h
 	BLI_dynstr.h
