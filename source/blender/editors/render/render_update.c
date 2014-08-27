@@ -177,12 +177,11 @@ void ED_render_engine_changed(Main *bmain)
 	for (scene = bmain->scene.first; scene; scene = scene->id.next)
 		ED_render_id_flush_update(bmain, &scene->id);
 
-	/* reset texture painting */
-	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
-		if (ma->texpaintslot) {
-			BKE_texpaint_slots_clear(ma);
-			DAG_id_tag_update(&ma->id, 0);
-		}
+	/* reset texture painting. Sending one dependency graph signal for any material should
+	 * refresh any texture slots */
+	ma = bmain->mat.first;
+	if (ma) {
+		DAG_id_tag_update(&ma->id, 0);
 	}
 }
 

@@ -1307,19 +1307,6 @@ bool object_remove_material_slot(Object *ob)
 	return true;
 }
 
-void BKE_texpaint_slots_clear(struct Material *ma)
-{
-
-	if (ma->texpaintslot) {
-		MEM_freeN(ma->texpaintslot);
-		ma->texpaintslot = NULL;
-	}
-	ma->tot_slots = 0;
-	ma->paint_active_slot = 0;
-	ma->paint_clone_slot = 0;
-}
-
-
 static bool get_mtex_slot_valid_texpaint(struct MTex *mtex)
 {
 	return (mtex && (mtex->texco == TEXCO_UV) &&
