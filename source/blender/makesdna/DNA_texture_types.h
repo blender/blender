@@ -175,8 +175,8 @@ typedef struct VoxelData {
 	short flag;
 	short extend;
 	short smoked_type;
+	short hair_type;
 	short data_type;
-	short pad;
 	int _pad;
 	
 	struct Object *object; /* for rendering smoke sims */
@@ -626,6 +626,11 @@ enum {
 #define TEX_VD_SMOKEHEAT		1
 #define TEX_VD_SMOKEVEL			2
 #define TEX_VD_SMOKEFLAME		3
+
+#define TEX_VD_HAIRDENSITY		0
+#define TEX_VD_HAIRVELOCITY		1
+#define TEX_VD_HAIRENERGY		2
+#define TEX_VD_HAIRRESTDENSITY	3
 
 /* data_type */
 #define TEX_VD_INTENSITY		0

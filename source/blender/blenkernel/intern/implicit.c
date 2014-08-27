@@ -1494,6 +1494,7 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 	HairGridVert *hairgrid/*, *collgrid*/;
 	int numverts;
 	int totres, i;
+	int depth;
 
 	if (!clmd->clothObject || !clmd->clothObject->implicit)
 		return false;
@@ -1511,15 +1512,44 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 	
 	totres = hair_grid_size(hair_grid_res);
 	
-	vd->data_type = TEX_VD_INTENSITY;
+	if (vd->hair_type == TEX_VD_HAIRVELOCITY) {
+		depth = 4;
+		vd->data_type = TEX_VD_RGBA_PREMUL;
+	}
+	else {
+		depth = 1;
+		vd->data_type = TEX_VD_INTENSITY;
+	}
+	
 	if (totres > 0) {
-		vd->dataset = (float *)MEM_mapallocN(sizeof(float) * (totres), "hair volume texture data");
+		vd->dataset = (float *)MEM_mapallocN(sizeof(float) * depth * (totres), "hair volume texture data");
+		
 		for (i = 0; i < totres; ++i) {
-			vd->dataset[i] = hairgrid[i].density;
+			switch (vd->hair_type) {
+				case TEX_VD_HAIRDENSITY:
+					vd->dataset[i] = hairgrid[i].density;
+					break;
+				
+				case TEX_VD_HAIRRESTDENSITY:
+					vd->dataset[i] = 0.0f; // TODO
+					break;
+				
+				case TEX_VD_HAIRVELOCITY:
+					vd->dataset[i + 0*totres] = hairgrid[i].velocity[0];
+					vd->dataset[i + 1*totres] = hairgrid[i].velocity[1];
+					vd->dataset[i + 2*totres] = hairgrid[i].velocity[2];
+					vd->dataset[i + 3*totres] = len_v3(hairgrid[i].velocity);
+					break;
+				
+				case TEX_VD_HAIRENERGY:
+					vd->dataset[i] = 0.0f; // TODO
+					break;
+			}
 		}
 	}
-	else
+	else {
 		vd->dataset = NULL;
+	}
 	
 	MEM_freeN(hairgrid);
 //	MEM_freeN(collgrid);

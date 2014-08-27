@@ -1870,6 +1870,14 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem hair_type_items[] = {
+		{TEX_VD_HAIRDENSITY, "HAIRDENSITY", 0, "Density", "Use hair density as texture data"},
+		{TEX_VD_HAIRRESTDENSITY, "HAIRRESTDENSITY", 0, "Rest Density", "Use hair rest density as texture data"},
+		{TEX_VD_HAIRVELOCITY, "HAIRVELOCITY", 0, "Velocity", "Use hair velocity as texture data"},
+		{TEX_VD_HAIRENERGY, "HAIRENERGY", 0, "Energy", "Use potential hair energy as texture data"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "VoxelData", NULL);
 	RNA_def_struct_sdna(srna, "VoxelData");
 	RNA_def_struct_ui_text(srna, "VoxelData", "Voxel data settings");
@@ -1884,6 +1892,12 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "smoke_data_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "smoked_type");
 	RNA_def_property_enum_items(prop, smoked_type_items);
+	RNA_def_property_ui_text(prop, "Source", "Simulation value to be used as a texture");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
+	
+	prop = RNA_def_property(srna, "hair_data_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "hair_type");
+	RNA_def_property_enum_items(prop, hair_type_items);
 	RNA_def_property_ui_text(prop, "Source", "Simulation value to be used as a texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	

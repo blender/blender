@@ -773,6 +773,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, Panel):
             layout.prop(vd, "smoke_data_type")
         elif vd.file_format == 'HAIR':
             layout.prop(vd, "domain_object")
+            layout.prop(vd, "hair_data_type")
         elif vd.file_format == 'IMAGE_SEQUENCE':
             layout.template_ID(tex, "image", open="image.open")
             layout.template_image(tex, "image", tex.image_user, compact=True)
