@@ -206,11 +206,11 @@ Panel *uiPanelFindByType(ARegion *ar, PanelType *pt)
 	Panel *pa;
 
 	const char *idname = pt->idname;
-	const char *tabname = pt->idname;
+	const char *tabname = pt->category;
 
 	for (pa = ar->panels.first; pa; pa = pa->next) {
 		if (STREQLEN(pa->panelname, idname, sizeof(pa->panelname))) {
-			if (STREQLEN(pa->tabname, tabname, sizeof(pa->panelname))) {
+			if (STREQLEN(pa->tabname, tabname, sizeof(pa->tabname))) {
 				return pa;
 			}
 		}
