@@ -3763,7 +3763,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, f
 	for (yk = 0; yk < kernel->side; yk++) {
 		for (xk = 0; xk < kernel->side; xk++) {
 			float rgba_tmp[4];
-			float co_ofs[2] = {xk - kernel->pixel_len, yk - kernel->pixel_len};
+			float co_ofs[2] = {2.0f * xk - 1.0f, 2.0f * yk - 1.0f};
 
 			add_v2_v2(co_ofs, projPixel->projCoSS);
 
@@ -3819,7 +3819,7 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 	for (yk = 0; yk < kernel->side; yk++) {
 		for (xk = 0; xk < kernel->side; xk++) {
 			float rgba_tmp[4];
-			float co_ofs[2] = {xk - kernel->pixel_len, yk - kernel->pixel_len};
+			float co_ofs[2] = {2.0f * xk - 1.0f, 2.0f * yk - 1.0f};
 
 			add_v2_v2(co_ofs, projPixel->projCoSS);
 
@@ -4453,7 +4453,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 			ps->mode = ((ps->mode == BRUSH_STROKE_INVERT) ^ ((brush->flag & BRUSH_DIR_IN) != 0) ?
 			            BRUSH_STROKE_INVERT : BRUSH_STROKE_NORMAL);
 
-			ps->blurkernel = paint_new_blur_kernel(brush);
+			ps->blurkernel = paint_new_blur_kernel(brush, true);
 		}
 
 		/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */

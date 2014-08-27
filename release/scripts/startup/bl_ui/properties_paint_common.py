@@ -129,7 +129,8 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
         col.row().prop(brush, "direction", expand=True)
         col.separator()
         col.prop(brush, "sharp_threshold")
-        col.prop(brush, "blur_kernel_radius")
+        if not projpaint:
+            col.prop(brush, "blur_kernel_radius")
         col.separator()
         col.prop(brush, "blur_mode")
     elif brush.image_tool == 'MASK':

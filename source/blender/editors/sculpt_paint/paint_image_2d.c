@@ -1249,7 +1249,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
 	}
 
 	if (brush->imagepaint_tool == PAINT_TOOL_SOFTEN) {
-		s->blurkernel = paint_new_blur_kernel(brush);
+		s->blurkernel = paint_new_blur_kernel(brush, false);
 	}
 
 	paint_brush_init_tex(s->brush);
