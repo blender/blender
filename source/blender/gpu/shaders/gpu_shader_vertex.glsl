@@ -18,7 +18,7 @@ void main()
 	int i;
 	for(i = 0; i < 6; i++)
 		gl_ClipDistance[i] = dot(co, gl_ClipPlane[i]);
-#else
+#elif !defined(GPU_ATI)
 	// Setting gl_ClipVertex is necessary to get glClipPlane working on NVIDIA
 	// graphic cards, while on ATI it can cause a software fallback.
 	gl_ClipVertex = co; 
