@@ -4836,7 +4836,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 
 	if (ma) {
 
-		if (use_nodes) {
+		if (use_nodes || ma->use_nodes) {
 			/* not supported for now */
 		}
 		else {
@@ -4980,7 +4980,7 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 	
 	ma = give_current_material(ob, ob->actcol);
 	
-	if (!ma->texpaintslot)
+	if (!ma->texpaintslot || ma->use_nodes)
 		return OPERATOR_CANCELLED;
 	
 	slot = ma->texpaintslot + ma->paint_active_slot;
