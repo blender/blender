@@ -1534,6 +1534,12 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 		const bool is_active = STREQ(category_id, category_id_active);
 
+#ifdef DEBUG
+		if (STREQ(category_id, PNL_CATEGORY_FALLBACK)) {
+			printf("WARNING: Panel has no 'bl_category', script needs updating!\n");
+		}
+#endif
+
 		glEnable(GL_BLEND);
 
 #ifdef USE_FLAT_INACTIVE
