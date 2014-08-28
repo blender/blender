@@ -1391,20 +1391,21 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 						if (!ma->texpaintslot) {
 							proj_paint_add_slot(C, ma, NULL);
 							
-							for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-								ScrArea *sa;
-								for (sa = sc->areabase.first; sa; sa = sa->next) {
-									SpaceLink *sl;
-									for (sl = sa->spacedata.first; sl; sl = sl->next) {
-										if (sl->spacetype == SPACE_IMAGE) {
-											SpaceImage *sima = (SpaceImage *)sl;
-											
-											ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[0].ima);
+							if (ma->texpaintslot) {
+								for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+									ScrArea *sa;
+									for (sa = sc->areabase.first; sa; sa = sa->next) {
+										SpaceLink *sl;
+										for (sl = sa->spacedata.first; sl; sl = sl->next) {
+											if (sl->spacetype == SPACE_IMAGE) {
+												SpaceImage *sima = (SpaceImage *)sl;
+												
+												ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[0].ima);
+											}
 										}
 									}
 								}
-							}
-							
+							}							
 						}
 					}
 				}

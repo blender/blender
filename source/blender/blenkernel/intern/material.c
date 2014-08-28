@@ -1340,8 +1340,11 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 	if (use_nodes || ma->use_nodes) {
 		bNode *node, *active_node;
 
-		if (!(ma->nodetree))
+		if (!(ma->nodetree)) {
+			ma->paint_active_slot = 0;
+			ma->paint_clone_slot = 0;
 			return;
+		}
 
 		for (node = ma->nodetree->nodes.first; node; node = node->next) {
 			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id)
