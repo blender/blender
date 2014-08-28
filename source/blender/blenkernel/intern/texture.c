@@ -852,8 +852,7 @@ Tex *localize_texture(Tex *tex)
 {
 	Tex *texn;
 	
-	texn = BKE_libblock_copy(&tex->id);
-	BLI_remlink(&G.main->tex, texn);
+	texn = BKE_libblock_copy_nolib(&tex->id, false);
 	
 	/* image texture: BKE_texture_free also doesn't decrease */
 	
