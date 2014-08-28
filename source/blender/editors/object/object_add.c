@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -552,6 +553,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
+	Camera *cam;
 	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
@@ -571,6 +573,9 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 			scene->camera = ob;
 		}
 	}
+
+	cam = ob->data;
+	cam->drawsize = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) : ED_scene_grid_scale(scene, NULL);
 
 	return OPERATOR_FINISHED;
 }
