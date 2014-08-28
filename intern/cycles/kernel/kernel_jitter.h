@@ -182,7 +182,8 @@ ccl_device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
 		smodm = cmj_fast_mod_pow2(s, m);
 	}
 	else {
-		sdivm = float_to_int(s * invm);
+		/* Doing s*inmv gives precision issues here. */
+		sdivm = s / m;
 		smodm = s - sdivm*m;
 	}
 
