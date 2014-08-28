@@ -153,7 +153,8 @@ def write_sysinfo(op):
     else:
         output.write("\nOpenGL\n")
         output.write(lilies)
-        output.write("renderer:\t%r\n" % (bgl.glGetString(bgl.GL_RENDERER)))
+        version = bgl.glGetString(bgl.GL_RENDERER);
+        output.write("renderer:\t%r\n" % version)
         output.write("vendor:\t\t%r\n" % (bgl.glGetString(bgl.GL_VENDOR)))
         output.write("version:\t%r\n" % (bgl.glGetString(bgl.GL_VERSION)))
         output.write("extensions:\n")
@@ -162,6 +163,29 @@ def write_sysinfo(op):
         glext = textWrap(glext, 70)
         for l in glext:
             output.write("\t\t%r\n" % (l))
+
+        output.write("\nImplementation Dependent OpenGL Limits:\n")
+        output.write(lilies)
+        limit = bgl.Buffer(bgl.GL_INT, 1)
+        bgl.glGetIntegerv(bgl.GL_MAX_TEXTURE_UNITS, limit)
+        output.write("Maximum Fixed Function Texture Units:\t%d\n" % limit[0])
+
+        output.write("\nGLSL:\n")
+        if version[0] > '1':
+            bgl.glGetIntegerv(bgl.GL_MAX_VARYING_FLOATS, limit)
+            output.write("Maximum Varying Floats:\t%d\n" % limit[0])
+            bgl.glGetIntegerv(bgl.GL_MAX_VERTEX_ATTRIBS, limit)
+            output.write("Maximum Vertex Attributes:\t%d\n" % limit[0])
+            bgl.glGetIntegerv(bgl.GL_MAX_VERTEX_UNIFORM_COMPONENTS, limit)
+            output.write("Maximum Vertex Uniform Components:\t%d\n" % limit[0])
+            bgl.glGetIntegerv(bgl.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, limit)
+            output.write("Maximum Fragment Uniform Components:\t%d\n" % limit[0])
+            bgl.glGetIntegerv(bgl.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, limit)
+            output.write("Maximum Vertex Image Units:\t%d\n" % limit[0])
+            bgl.glGetIntegerv(bgl.GL_MAX_TEXTURE_IMAGE_UNITS, limit)
+            output.write("Maximum Fragment Image Units:\t%d\n" % limit[0])
+            bgl.glGetIntegerv(bgl.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, limit)
+            output.write("Maximum Pipeline Image Units:\t%d\n" % limit[0])
 
     output.current_line_index = 0
 
