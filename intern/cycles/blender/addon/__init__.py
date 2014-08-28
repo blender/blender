@@ -31,7 +31,7 @@ bl_info = {
 import bpy
 
 from . import engine
-
+from . import version_update
 
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
@@ -100,11 +100,15 @@ def register():
     presets.register()
     bpy.utils.register_module(__name__)
 
+    bpy.app.handlers.version_update.append(version_update.do_versions)
+
 
 def unregister():
     from . import ui
     from . import properties
     from . import presets
+
+    bpy.app.handlers.version_update.remove(version_update.do_versions)
 
     ui.unregister()
     properties.unregister()

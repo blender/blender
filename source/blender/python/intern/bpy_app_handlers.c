@@ -59,6 +59,7 @@ static PyStructSequence_Field app_cb_info_fields[] = {
 	{(char *)"scene_update_post", (char *)"Callback list - on updating the scenes data (after)"},
 	{(char *)"game_pre",          (char *)"Callback list - on starting the game engine"},
 	{(char *)"game_post",         (char *)"Callback list - on ending the game engine"},
+	{(char *)"version_update",    (char *)"Callback list - on ending the versioning code"},
 
 	/* sets the permanent tag */
 #   define APP_CB_OTHER_FIELDS 1
