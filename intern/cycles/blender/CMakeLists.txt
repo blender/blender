@@ -43,6 +43,7 @@ set(ADDON_FILES
 	addon/presets.py
 	addon/properties.py
 	addon/ui.py
+	addon/version_update.py
 )
 
 add_definitions(-DGLEW_STATIC)
