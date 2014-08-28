@@ -1363,41 +1363,87 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 	Mesh *me;
 	int layernum;
 	ImagePaintSettings *imapaint = &(CTX_data_tool_settings(C)->imapaint);
+	bScreen *sc;
 	Scene *scene = CTX_data_scene(C);
+	Main *bmain = CTX_data_main(C);
 	Brush *br = BKE_paint_brush(&imapaint->paint);
 
-	/* no material, add one */
-	if (ob->totcol == 0) {
-		Material *ma = BKE_material_add(CTX_data_main(C), "Material");
-		/* no material found, just assign to first slot */
-		assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
-		proj_paint_add_slot(C, ma, NULL);
-	}
-	else {
-		/* there may be material slots but they may be empty, check */
-		int i;
-
-		for (i = 1; i < ob->totcol + 1; i++) {
-			Material *ma = give_current_material(ob, i);
-			if (ma) {
-				if (!ma->texpaintslot) {
-					/* refresh here just in case */
-					BKE_texpaint_slot_refresh_cache(scene, ma);				
-					
-					/* if still no slots, we have to add */
-					if (!ma->texpaintslot)
-						proj_paint_add_slot(C, ma, NULL);
+	if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+		/* no material, add one */
+		if (ob->totcol == 0) {
+			Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+			/* no material found, just assign to first slot */
+			assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+			proj_paint_add_slot(C, ma, NULL);
+		}
+		else {
+			/* there may be material slots but they may be empty, check */
+			int i;
+			
+			for (i = 1; i < ob->totcol + 1; i++) {
+				Material *ma = give_current_material(ob, i);
+				if (ma) {
+					if (!ma->texpaintslot) {
+						/* refresh here just in case */
+						BKE_texpaint_slot_refresh_cache(scene, ma);				
+						
+						/* if still no slots, we have to add */
+						if (!ma->texpaintslot) {
+							proj_paint_add_slot(C, ma, NULL);
+							
+							for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+								ScrArea *sa;
+								for (sa = sc->areabase.first; sa; sa = sa->next) {
+									SpaceLink *sl;
+									for (sl = sa->spacedata.first; sl; sl = sl->next) {
+										if (sl->spacetype == SPACE_IMAGE) {
+											SpaceImage *sima = (SpaceImage *)sl;
+											
+											ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[0].ima);
+										}
+									}
+								}
+							}
+							
+						}
+					}
 				}
-			}
-			else {
-				Material *ma = BKE_material_add(CTX_data_main(C), "Material");
-				/* no material found, just assign to first slot */
-				assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
-				proj_paint_add_slot(C, ma, NULL);				
+				else {
+					Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+					/* no material found, just assign to first slot */
+					assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
+					proj_paint_add_slot(C, ma, NULL);				
+				}
 			}
 		}
 	}
+	else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE){
+		if (imapaint->canvas == NULL) {
+			int width;
+			int height;
+			Main *bmain = CTX_data_main(C);
+			float color[4] = {0.0, 0.0, 0.0, 1.0};
 
+			width = 1024;
+			height = 1024;
+			imapaint->canvas = BKE_image_add_generated(bmain, width, height, "Canvas", 32, false, IMA_GENTYPE_BLANK, color);
+			
+			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+				ScrArea *sa;
+				for (sa = sc->areabase.first; sa; sa = sa->next) {
+					SpaceLink *sl;
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_IMAGE) {
+							SpaceImage *sima = (SpaceImage *)sl;
+							
+							ED_space_image_set(sima, scene, scene->obedit, imapaint->canvas);
+						}
+					}
+				}
+			}			
+		}		
+	}
+		
 	me = BKE_mesh_from_object(ob);
 	layernum = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
 
@@ -1449,7 +1495,8 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 	else {
 		bScreen *sc;
 		Main *bmain = CTX_data_main(C);
-		Material *ma;
+		Image *ima = NULL;
+		ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
 
 		/* This has to stay here to regenerate the texture paint
 		 * cache in case we are loading a file */
@@ -1457,19 +1504,26 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 		paint_proj_mesh_data_ensure(C, ob, op);
 
-		/* set the current material active paint slot on image editor */
-		ma = give_current_material(ob, ob->actcol);
+		/* entering paint mode also sets image to editors */
+		if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+			Material *ma = give_current_material(ob, ob->actcol); /* set the current material active paint slot on image editor */
 
-		if (ma->tot_slots > 0) {
-			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-				ScrArea *sa;
-				for (sa = sc->areabase.first; sa; sa = sa->next) {
-					SpaceLink *sl;
-					for (sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_IMAGE) {
-							SpaceImage *sima = (SpaceImage *)sl;
-							ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[ma->paint_active_slot].ima);
-						}
+			if (ma->texpaintslot)
+				ima = ma->texpaintslot[ma->paint_active_slot].ima;
+		}
+		else if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+			ima = imapaint->canvas;
+		}	
+		
+		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_IMAGE) {
+						SpaceImage *sima = (SpaceImage *)sl;
+						
+						ED_space_image_set(sima, scene, scene->obedit, ima);
 					}
 				}
 			}

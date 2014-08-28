@@ -841,12 +841,14 @@ typedef struct ImagePaintSettings {
 	short seam_bleed, normal_angle;
 	short screen_grab_size[2]; /* capture size for re-projection */
 
-	int pad1;
+	int mode;                  /* mode used for texture painting */
 
-	void *paintcursor;			/* wm handle */
-	struct Image *stencil;      /* workaround until we support true layer masks */
+	void *paintcursor;		   /* wm handle */
+	struct Image *stencil;     /* workaround until we support true layer masks */
+	struct Image *clone;       /* clone layer for image mode for projective texture painting */
+	struct Image *canvas;      /* canvas when the explicit system is used for painting */
 	float stencil_col[3];
-	float pad2;
+	float pad1;
 } ImagePaintSettings;
 
 /* ------------------------------------------- */
@@ -1707,6 +1709,11 @@ typedef enum SculptFlags {
 	/* If set, dynamic-topology detail size will be constant in object space */
 	SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13)
 } SculptFlags;
+
+typedef enum ImagePaintMode {
+	IMAGEPAINT_MODE_MATERIAL, /* detect texture paint slots from the material */
+	IMAGEPAINT_MODE_IMAGE,    /* select texture paint image directly */
+} ImagePaintMode;
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)
 #pragma GCC poison SCULPT_SYMM_X SCULPT_SYMM_Y SCULPT_SYMM_Z SCULPT_SYMMETRY_FEATHER

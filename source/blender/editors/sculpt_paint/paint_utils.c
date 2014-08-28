@@ -312,7 +312,7 @@ static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, c
 			if (mf.v4)
 				dm->getVert(dm, mf.v4, &mv[3]);
 
-			if (!slot->uvname || !(tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, slot->uvname)))
+			if (!(slot && slot->uvname && (tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, slot->uvname))))
 				tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
 
 			tf = &tf_base[a];
@@ -428,6 +428,8 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 		/* first try getting a colour directly from the mesh faces if possible */
 		Object *ob = OBACT;
 		bool sample_success = false;
+		ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
+		bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 
 		if (ob) {
 			DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
@@ -446,51 +448,58 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 				view3d_operator_needs_opengl(C);
 
 				if (imapaint_pick_face(&vc, mval, &faceindex, totface)) {
-					Image *image = imapaint_face_image(dm, faceindex);
-
-					ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
-					if (ibuf && ibuf->rect) {
-						float uv[2];
-						float u, v;
-						imapaint_pick_uv(scene, ob, faceindex, mval, uv);
-						sample_success = true;
-
-						u = fmodf(uv[0], 1.0f);
-						v = fmodf(uv[1], 1.0f);
-
-						if (u < 0.0f) u += 1.0f;
-						if (v < 0.0f) v += 1.0f;
-
-						u = u * ibuf->x - 0.5f;
-						v = v * ibuf->y - 0.5f;
-
-						if (ibuf->rect_float) {
-							float rgba_f[4];
-							bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
-							straight_to_premul_v4(rgba_f);
-							if (use_palette) {
-								linearrgb_to_srgb_v3_v3(color->rgb, rgba_f);
+					Image *image;
+					
+					if (use_material) 
+						image = imapaint_face_image(dm, faceindex);
+					else
+						image = imapaint->canvas;
+					
+					if (image) {
+						ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+						if (ibuf && ibuf->rect) {
+							float uv[2];
+							float u, v;
+							imapaint_pick_uv(scene, ob, faceindex, mval, uv);
+							sample_success = true;
+							
+							u = fmodf(uv[0], 1.0f);
+							v = fmodf(uv[1], 1.0f);
+							
+							if (u < 0.0f) u += 1.0f;
+							if (v < 0.0f) v += 1.0f;
+							
+							u = u * ibuf->x - 0.5f;
+							v = v * ibuf->y - 0.5f;
+							
+							if (ibuf->rect_float) {
+								float rgba_f[4];
+								bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+								straight_to_premul_v4(rgba_f);
+								if (use_palette) {
+									linearrgb_to_srgb_v3_v3(color->rgb, rgba_f);
+								}
+								else {
+									linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
+									BKE_brush_color_set(scene, br, rgba_f);
+								}
 							}
 							else {
-								linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
-								BKE_brush_color_set(scene, br, rgba_f);
+								unsigned char rgba[4];
+								bilinear_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+								if (use_palette) {
+									rgb_uchar_to_float(color->rgb, rgba);
+								}
+								else {
+									float rgba_f[3];
+									rgb_uchar_to_float(rgba_f, rgba);
+									BKE_brush_color_set(scene, br, rgba_f);
+								}
 							}
 						}
-						else {
-							unsigned char rgba[4];
-							bilinear_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
-							if (use_palette) {
-								rgb_uchar_to_float(color->rgb, rgba);
-							}
-							else {
-								float rgba_f[3];
-								rgb_uchar_to_float(rgba_f, rgba);
-								BKE_brush_color_set(scene, br, rgba_f);
-							}
-						}
+					
+						BKE_image_release_ibuf(image, ibuf, NULL);
 					}
-
-					BKE_image_release_ibuf(image, ibuf, NULL);
 				}
 			}
 			dm->release(dm);

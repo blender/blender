@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+from bpy.types import Menu
 
 
 class UnifiedPaintPanel():
@@ -86,6 +87,18 @@ class UnifiedPaintPanel():
         parent.template_color_picker(ptr, prop_name, value_slider=value_slider)
 
 
+class VIEW3D_MT_tools_projectpaint_clone(Menu):
+    bl_label = "Clone Layer"
+
+    def draw(self, context):
+        layout = self.layout
+
+        for i, tex in enumerate(context.active_object.data.uv_textures):
+            props = layout.operator("wm.context_set_int", text=tex.name, translate=False)
+            props.data_path = "active_object.data.uv_texture_clone_index"
+            props.value = i
+
+
 def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=False):
     capabilities = brush.image_paint_capabilities
 
@@ -139,24 +152,38 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
     elif brush.image_tool == 'CLONE':
         col.separator()
         if projpaint:
-            col.prop(settings, "use_clone_layer", text="Clone from paint slot")
+            if settings.mode == 'MATERIAL':
+                col.prop(settings, "use_clone_layer", text="Clone from paint slot")
+            elif settings.mode == 'IMAGE':
+                col.prop(settings, "use_clone_layer", text="Clone from image/UV map")
 
             if settings.use_clone_layer:
                 ob = context.active_object
                 col = layout.column()
 
-                if len(ob.material_slots) > 1:
-                    col.label("Materials")
-                    col.template_list("MATERIAL_UL_matslots", "",
-                                      ob, "material_slots",
-                                      ob, "active_material_index", rows=2)
+                if settings.mode == 'MATERIAL':
+                    if len(ob.material_slots) > 1:
+                        col.label("Materials")
+                        col.template_list("MATERIAL_UL_matslots", "",
+                                          ob, "material_slots",
+                                          ob, "active_material_index", rows=2)
 
-                mat = ob.active_material
-                if mat:
-                    col.label("Clone Slot")
-                    col.template_list("TEXTURE_UL_texpaintslots", "",
-                                      mat, "texture_paint_images",
-                                      mat, "paint_clone_slot", rows=2)
+                    mat = ob.active_material
+                    if mat:
+                        col.label("Clone Slot")
+                        col.template_list("TEXTURE_UL_texpaintslots", "",
+                                          mat, "texture_paint_images",
+                                          mat, "paint_clone_slot", rows=2)
+
+                elif settings.mode == 'IMAGE':
+                    mesh = ob.data
+
+                    clone_text = mesh.uv_texture_clone.name if mesh.uv_texture_clone else ""
+                    col.label("Image")
+                    col.template_ID(settings, "clone_image")
+                    col.label("UV Map")
+                    col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
+                    
 
         else:
             col.prop(brush, "clone_image", text="Image")

@@ -212,7 +212,8 @@ static Material *give_current_material_or_def(Object *ob, int matnr)
 
 static struct TextureDrawState {
 	Object *ob;
-	Image *stencil;
+	Image *stencil; /* texture painting stencil */
+	Image *canvas;  /* texture painting canvas, for image mode */
 	bool stencil_invert;
 	bool use_game_mat;
 	int is_lit, is_tex;
@@ -221,7 +222,8 @@ static struct TextureDrawState {
 	unsigned char obcol[4];
 	float stencil_col[4];
 	bool is_texpaint;
-} Gtexdraw = {NULL, NULL, false, false, 0, 0, 0, false, {0, 0, 0, 0}, {0.0f, 0.0f, 0.0f, 1.0f}, false};
+	bool texpaint_material; /* use material slots for texture painting */
+} Gtexdraw = {NULL, NULL, NULL, false, false, 0, 0, 0, false, {0, 0, 0, 0}, {0.0f, 0.0f, 0.0f, 1.0f}, false, false};
 
 static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
 {
@@ -280,7 +282,10 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 			alphablend = GPU_BLEND_ALPHA;
 	}
 	else if (texpaint && ma) {
-		ima = ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
+		if (gtexdraw.texpaint_material)
+			ima = ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
+		else 
+			ima = gtexdraw.canvas;
 	}
 	else
 		textured = 0;
@@ -394,6 +399,8 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.stencil_invert = ((imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) != 0);
 	Gtexdraw.is_texpaint = (ob->mode == OB_MODE_TEXTURE_PAINT);
 	copy_v3_v3(Gtexdraw.stencil_col, imapaint->stencil_col);
+	Gtexdraw.texpaint_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
+	Gtexdraw.canvas = (Gtexdraw.texpaint_material) ? NULL : imapaint->canvas;
 	Gtexdraw.is_tex = is_tex;
 
 	/* load the stencil texture here */

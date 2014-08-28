@@ -1907,7 +1907,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	char *name = _name;
 	float color[4];
 	int width, height, floatbuf, gen_type, alpha;
-	bool stencil;
 
 	/* retrieve state */
 	sima = CTX_wm_space_image(C);
@@ -1927,7 +1926,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	gen_type = RNA_enum_get(op->ptr, "generated_type");
 	RNA_float_get_array(op->ptr, "color", color);
 	alpha = RNA_boolean_get(op->ptr, "alpha");
-	stencil = RNA_boolean_get(op->ptr, "texstencil");
 
 	if (!alpha)
 		color[3] = 1.0f;
@@ -1959,13 +1957,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 				id_us_min(&tex->ima->id);
 			tex->ima = ima;
 			ED_area_tag_redraw(CTX_wm_area(C));
-		}
-		else if (stencil) {
-			ImagePaintSettings *imapaint = &(CTX_data_tool_settings(C)->imapaint);
-
-			if (imapaint->stencil)
-				id_us_min(&imapaint->stencil->id);
-			imapaint->stencil = ima;
 		}
 	}
 

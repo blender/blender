@@ -1026,31 +1026,39 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         ob = context.active_object
         col = layout.column()
 
-        if len(ob.material_slots) > 1:
-            col.label("Materials")
-            col.template_list("MATERIAL_UL_matslots", "layers",
-                              ob, "material_slots",
-                              ob, "active_material_index", rows=2)
+        col.label("Painting Mode")
+        col.prop(settings, "mode", text = "")
+        col.separator()
 
-        mat = ob.active_material
-        if mat:
-            col.label("Available Paint Slots")
-            col.template_list("TEXTURE_UL_texpaintslots", "",
-                              mat, "texture_paint_images",
-                              mat, "paint_active_slot", rows=2)
+        if settings.mode == 'MATERIAL':
+            if len(ob.material_slots) > 1:
+                col.label("Materials")
+                col.template_list("MATERIAL_UL_matslots", "layers",
+                                  ob, "material_slots",
+                                  ob, "active_material_index", rows=2)
 
-            if (not mat.use_nodes) and (context.scene.render.engine == 'BLENDER_RENDER'):
-                row = col.row(align=True)
-                row.operator_menu_enum("paint.add_texture_paint_slot", "type")
-                row.operator("paint.delete_texture_paint_slot", text="", icon='X')
+            mat = ob.active_material
+            if mat:
+                col.label("Available Paint Slots")
+                col.template_list("TEXTURE_UL_texpaintslots", "",
+                                  mat, "texture_paint_images",
+                                  mat, "paint_active_slot", rows=2)
 
-                if mat.texture_paint_slots:
-                    slot = mat.texture_paint_slots[mat.paint_active_slot]
+                if (not mat.use_nodes) and (context.scene.render.engine == 'BLENDER_RENDER'):
+                    row = col.row(align=True)
+                    row.operator_menu_enum("paint.add_texture_paint_slot", "type")
+                    row.operator("paint.delete_texture_paint_slot", text="", icon='X')
 
-                    col.prop(mat.texture_slots[slot.index], "blend_type")
-                    col.separator()
-                    col.label("UV Map")
-                    col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
+                    if mat.texture_paint_slots:
+                        slot = mat.texture_paint_slots[mat.paint_active_slot]
+
+                        col.prop(mat.texture_slots[slot.index], "blend_type")
+                        col.separator()
+                        col.label("UV Map")
+                        col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
+
+        elif settings.mode == 'IMAGE':
+            col.template_ID(settings, "canvas")
 
         col.separator()
         col.operator("image.save_dirty", text="Save All Images")
@@ -1089,7 +1097,6 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
 
         col.label("Image")
         row = col.row(align=True)
-        row.operator("image.new", icon='ZOOMIN', text="Add New").texstencil = True;
         row.template_ID(ipaint, "stencil_image")
  
         col.label("Visualization")
@@ -1641,18 +1648,6 @@ class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
 
         col = layout.column()
         self.unified_paint_settings(col, context)
-
-
-class VIEW3D_MT_tools_projectpaint_clone(Menu):
-    bl_label = "Clone Layer"
-
-    def draw(self, context):
-        layout = self.layout
-
-        for i, tex in enumerate(context.active_object.data.uv_textures):
-            props = layout.operator("wm.context_set_int", text=tex.name, translate=False)
-            props.data_path = "active_object.data.uv_texture_clone_index"
-            props.value = i
 
 
 class VIEW3D_MT_tools_projectpaint_stencil(Menu):

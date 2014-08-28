@@ -34,8 +34,13 @@
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_paint.h"
+#include "BKE_material.h"
+
+#include "ED_image.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -286,9 +291,42 @@ static void rna_Paint_brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 }
 
-static void rna_ImaPaint_stencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_ImaPaint_viewport_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	/* not the best solution maybe, but will refresh the 3D viewport */
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+}
+
+static void rna_ImaPaint_mode_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	Object *ob = OBACT;
+	
+	/* of course we need to invalidate here */
+	BKE_texpaint_slots_refresh_object(scene, ob);
+
+	/* we assume that changing the current mode will invalidate the uv layers so we need to tag an update */
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);
+}
+
+static void rna_ImaPaint_canvas_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	bScreen *sc;
+	Image *ima = scene->toolsettings->imapaint.canvas;
+	
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		ScrArea *sa;
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
+			SpaceLink *sl;
+			for (sl = sa->spacedata.first; sl; sl = sl->next) {
+				if (sl->spacetype == SPACE_IMAGE) {
+					SpaceImage *sima = (SpaceImage *)sl;
+					ED_space_image_set(sima, scene, scene->obedit, ima);
+				}
+			}
+		}
+	}
+
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 #else
@@ -571,6 +609,14 @@ static void rna_def_image_paint(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static EnumPropertyItem paint_type_items[] = {
+		{IMAGEPAINT_MODE_MATERIAL, "MATERIAL", 0,
+		 "Material", "Detect image slots from the material"},
+		{IMAGEPAINT_MODE_IMAGE, "IMAGE", 0,
+		 "Image", "Set image for texture painting directly"},
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "ImagePaint", "Paint");
 	RNA_def_struct_sdna(srna, "ImagePaintSettings");
@@ -596,24 +642,35 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_stencil_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_STENCIL);
 	RNA_def_property_ui_text(prop, "Stencil Layer", "Set the mask layer from the UV map buttons");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_stencil_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
 	
 	prop = RNA_def_property(srna, "invert_stencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_STENCIL_INV);
 	RNA_def_property_ui_text(prop, "Invert", "Invert the stencil layer");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_stencil_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
 
 	prop = RNA_def_property(srna, "stencil_image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "stencil");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Stencil Image", "Image used as stencil");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_stencil_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
 
+	prop = RNA_def_property(srna, "canvas", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Canvas", "Image used as canvas");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_canvas_update");
+	
+	prop = RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clone");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Clone Image", "Image used as clone source");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+	
 	prop = RNA_def_property(srna, "stencil_color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_float_sdna(prop, NULL, "stencil_col");
 	RNA_def_property_ui_text(prop, "Stencil Color", "Stencil color in the viewport");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_stencil_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
 	
 	prop = RNA_def_property(srna, "use_clone_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);
@@ -634,6 +691,11 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	prop = RNA_def_int_array(srna, "screen_grab_size", 2, NULL, 0, 0, "screen_grab_size",
 	                         "Size to capture the image for re-projecting", 0, 0);
 	RNA_def_property_range(prop, 512, 16384);
+	
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, paint_type_items);
+	RNA_def_property_ui_text(prop, "Mode", "Mode of operation for projection painting");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_mode_update");	
 }
 
 static void rna_def_particle_edit(BlenderRNA *brna)

@@ -5152,6 +5152,14 @@ static void lib_link_scene(FileData *fd, Main *main)
 				sce->toolsettings->imapaint.stencil =
 				        newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.stencil);
 
+			if (sce->toolsettings->imapaint.clone)
+				sce->toolsettings->imapaint.clone =
+				        newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.clone);
+
+			if (sce->toolsettings->imapaint.canvas)
+				sce->toolsettings->imapaint.canvas =
+				        newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.canvas);
+			
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 			
 			for (base = sce->base.first; base; base = next) {
