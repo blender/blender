@@ -1393,8 +1393,15 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 			}
 		}
 	}
+	else {
+		ma->paint_active_slot = 0;
+		ma->paint_clone_slot = 0;
+		return;
+	}	
+
 
 	ma->tot_slots = count;
+	
 	
 	if (ma->paint_active_slot >= count) {
 		ma->paint_active_slot = count - 1;
