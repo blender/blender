@@ -994,11 +994,13 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
 class TEXTURE_UL_texpaintslots(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # ma = data
-        ima = item
+        mat = data
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
+            if (not mat.use_nodes) and (context.scene.render.engine == 'BLENDER_RENDER'):
+                mtex_index = mat.texture_paint_slots[index].index
+                layout.prop(mat, "use_textures", text="", index=mtex_index)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="")
@@ -1045,6 +1047,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 if mat.texture_paint_slots:
                     slot = mat.texture_paint_slots[mat.paint_active_slot]
 
+                    col.prop(mat.texture_slots[slot.index], "blend_type")
                     col.separator()
                     col.label("UV Map")
                     col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")

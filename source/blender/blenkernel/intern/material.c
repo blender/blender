@@ -1380,7 +1380,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 			if (get_mtex_slot_valid_texpaint(*mtex)) {
 				ma->texpaintslot[index].ima = (*mtex)->tex->ima;
 				ma->texpaintslot[index].uvname = (*mtex)->uvname;
-				ma->texpaintslot[index].mtex = *mtex;
+				ma->texpaintslot[index].index = i;
 				
 				index++;
 			}

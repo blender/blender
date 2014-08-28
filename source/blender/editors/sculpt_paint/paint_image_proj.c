@@ -4972,7 +4972,6 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 	Material *ma;
 	bool is_bi = BKE_scene_uses_blender_internal(scene);
 	TexPaintSlot *slot;
-	int i;
 	
 	/* not supported for node-based engines */
 	if (!ob || !is_bi)
@@ -4985,24 +4984,17 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 	
 	slot = ma->texpaintslot + ma->paint_active_slot;
 	
-	/* find the material texture slot that corresponds to the current slot */
-	for (i = 0; i < MAX_MTEX; i++) {
-		if (ma->mtex[i] == slot->mtex) {
-			if (ma->mtex[i]->tex)
-				id_us_min(&ma->mtex[i]->tex->id);
-			MEM_freeN(ma->mtex[i]);
-			ma->mtex[i] = NULL;
-			
-			BKE_texpaint_slot_refresh_cache(scene, ma);
-			DAG_id_tag_update(&ma->id, 0);
-			WM_event_add_notifier(C, NC_MATERIAL, CTX_data_scene(C));
-			/* we need a notifier for data change since we change the displayed modifier uvs */
-			WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);			
-			return OPERATOR_FINISHED;
-		}
-	}
+	if (ma->mtex[slot->index]->tex)
+		id_us_min(&ma->mtex[slot->index]->tex->id);
+	MEM_freeN(ma->mtex[slot->index]);
+	ma->mtex[slot->index] = NULL;
 	
-	return OPERATOR_CANCELLED;
+	BKE_texpaint_slot_refresh_cache(scene, ma);
+	DAG_id_tag_update(&ma->id, 0);
+	WM_event_add_notifier(C, NC_MATERIAL, CTX_data_scene(C));
+	/* we need a notifier for data change since we change the displayed modifier uvs */
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);			
+	return OPERATOR_FINISHED;
 }
 
 
