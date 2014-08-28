@@ -316,6 +316,8 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         sub.prop(cloth, "bending_stiffness", text="Bending")
         sub.prop(cloth, "internal_friction", slider=True)
         sub.prop(cloth, "collider_friction", slider=True)
+        sub.prop(cloth, "pressure", slider=True)
+        sub.prop(cloth, "pressure_threshold", slider=True)
 
         col = split.column()
         col.label(text="Damping:")

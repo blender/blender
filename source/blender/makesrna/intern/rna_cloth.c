@@ -325,6 +325,18 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Collider Friction", "");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+	prop = RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pressure");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "Internal Pressure", "Generate outward force based on hair density");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop = RNA_def_property(srna, "pressure_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pressure_threshold");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "Internal Pressure Threshold", "No pressure force is generated below this pressure value");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
 	/* mass */
 
 	prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
