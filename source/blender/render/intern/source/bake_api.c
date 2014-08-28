@@ -356,7 +356,7 @@ static void mesh_calc_tri_tessface(
 	MFace *mface;
 	MVert *mvert;
 	TSpace *tspace;
-	float *precomputed_normals;
+	float *precomputed_normals = NULL;
 	bool calculate_normal;
 
 	mface = CustomData_get_layer(&me->fdata, CD_MFACE);
@@ -379,7 +379,7 @@ static void mesh_calc_tri_tessface(
 	p_id = -1;
 	for (i = 0; i < me->totface; i++) {
 		MFace *mf = &mface[i];
-		TSpace *ts = &tspace[i * 4];
+		TSpace *ts = tangent ? &tspace[i * 4] : NULL;
 
 		p_id++;
 

@@ -561,7 +561,7 @@ static int bake(
 	int tot_highpoly;
 
 	char restrict_flag_low = ob_low->restrictflag;
-	char restrict_flag_cage;
+	char restrict_flag_cage = 0;
 
 	Mesh *me_low = NULL;
 	Mesh *me_cage = NULL;
