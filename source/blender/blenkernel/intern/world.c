@@ -142,8 +142,7 @@ World *localize_world(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn = BKE_libblock_copy(&wrld->id);
-	BLI_remlink(&G.main->world, wrldn);
+	wrldn = BKE_libblock_copy_nolib(&wrld->id, false);
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (wrld->mtex[a]) {
