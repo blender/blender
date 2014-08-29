@@ -1170,25 +1170,31 @@ struct GPUShader {
 	int totattrib;			/* total number of attributes */
 };
 
-static void shader_print_errors(const char *task, char *log, const char *code)
+static void shader_print_errors(const char *task, char *log, const char **code, int totcode)
 {
-	const char *c, *pos, *end = code + strlen(code);
-	int line = 1;
+	int i;
 
 	fprintf(stderr, "GPUShader: %s error:\n", task);
 
-	if (G.debug & G_DEBUG) {
-		c = code;
-		while ((c < end) && (pos = strchr(c, '\n'))) {
-			fprintf(stderr, "%2d  ", line);
-			fwrite(c, (pos+1)-c, 1, stderr);
-			c = pos+1;
-			line++;
+	for (i = 0; i < totcode; i++) {
+		const char *c, *pos, *end = code[i] + strlen(code[i]);
+		int line = 1;
+				
+		if (G.debug & G_DEBUG) {
+			fprintf(stderr, "===== shader string %d ====\n", i + 1);
+
+			c = code[i];
+			while ((c < end) && (pos = strchr(c, '\n'))) {
+				fprintf(stderr, "%2d  ", line);
+				fwrite(c, (pos+1)-c, 1, stderr);
+				c = pos+1;
+				line++;
+			}
+			
+			fprintf(stderr, "%s", c);
 		}
-
-		fprintf(stderr, "%s", c);
 	}
-
+	
 	fprintf(stderr, "%s\n", log);
 }
 
@@ -1220,7 +1226,7 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
 	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
 		strcat(defines, "#define GPU_ATI\n");
 		if (GLEW_VERSION_3_0)
-			strcat(defines, "#define CLIP_WORKAROUND");
+			strcat(defines, "#define CLIP_WORKAROUND\n");
 	}
 	else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
 		strcat(defines, "#define GPU_NVIDIA\n");
@@ -1282,7 +1288,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 
 		if (!status) {
 			glGetInfoLogARB(shader->vertex, sizeof(log), &length, log);
-			shader_print_errors("compile", log, vertexcode);
+			shader_print_errors("compile", log, source, num_source);
 
 			GPU_shader_free(shader);
 			return NULL;
@@ -1309,7 +1315,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 
 		if (!status) {
 			glGetInfoLogARB(shader->fragment, sizeof(log), &length, log);
-			shader_print_errors("compile", log, fragcode);
+			shader_print_errors("compile", log, source, num_source);
 
 			GPU_shader_free(shader);
 			return NULL;
@@ -1325,9 +1331,9 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	glGetObjectParameterivARB(shader->object, GL_OBJECT_LINK_STATUS_ARB, &status);
 	if (!status) {
 		glGetInfoLogARB(shader->object, sizeof(log), &length, log);
-		if (fragcode) shader_print_errors("linking", log, fragcode);
-		else if (vertexcode) shader_print_errors("linking", log, vertexcode);
-		else if (libcode) shader_print_errors("linking", log, libcode);
+		if (fragcode) shader_print_errors("linking", log, &fragcode, 1);
+		else if (vertexcode) shader_print_errors("linking", log, &vertexcode, 1);
+		else if (libcode) shader_print_errors("linking", log, &libcode, 1);
 
 		GPU_shader_free(shader);
 		return NULL;

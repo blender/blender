@@ -1410,6 +1410,10 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttri
 
 	/* failed? */
 	if (!shader) {
+		if (fragmentcode)
+			MEM_freeN(fragmentcode);
+		if (vertexcode)
+			MEM_freeN(vertexcode);
 		memset(attribs, 0, sizeof(*attribs));
 		memset(builtins, 0, sizeof(*builtins));
 		GPU_nodes_free(nodes);
