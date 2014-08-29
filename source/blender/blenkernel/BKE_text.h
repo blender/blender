@@ -85,6 +85,7 @@ void	txt_delete_char		(struct Text *text);
 void	txt_delete_word		(struct Text *text);
 void	txt_delete_selected	(struct Text *text);
 void	txt_sel_all			(struct Text *text);
+void	txt_sel_clear		(struct Text *text);
 void	txt_sel_line		(struct Text *text);
 char   *txt_sel_to_buf		(struct Text *text);
 void	txt_insert_buf		(struct Text *text, const char *in_buffer);

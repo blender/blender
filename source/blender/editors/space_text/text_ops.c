@@ -1825,11 +1825,17 @@ static int text_move_cursor(bContext *C, int type, bool select)
 
 	switch (type) {
 		case LINE_BEGIN:
+			if (!select) {
+				txt_sel_clear(text);
+			}
 			if (st && st->wordwrap && ar) txt_wrap_move_bol(st, ar, select);
 			else txt_move_bol(text, select);
 			break;
 			
 		case LINE_END:
+			if (!select) {
+				txt_sel_clear(text);
+			}
 			if (st && st->wordwrap && ar) txt_wrap_move_eol(st, ar, select);
 			else txt_move_eol(text, select);
 			break;

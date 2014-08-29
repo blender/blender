@@ -1286,6 +1286,19 @@ void txt_sel_all(Text *text)
 	text->selc = text->sell->len;
 }
 
+/**
+ * Reverse of #txt_pop_sel
+ * Clears the selection and ensures the cursor is located
+ * at the selection (where the cursor is visually while editing).
+ */
+void txt_sel_clear(Text *text)
+{
+	if (text->sell) {
+		text->curl = text->sell;
+		text->curc = text->selc;
+	}
+}
+
 void txt_sel_line(Text *text)
 {
 	if (!text) return;
