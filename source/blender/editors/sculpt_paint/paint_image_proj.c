@@ -4518,9 +4518,9 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 	ps->do_material_slots = (settings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
 	ps->stencil_ima = settings->imapaint.stencil;
 	ps->canvas_ima = (!ps->do_material_slots) ? 
-						 settings->imapaint.canvas : NULL;
+	                 settings->imapaint.canvas : NULL;
 	ps->clone_ima = (!ps->do_material_slots) ? 
-						 settings->imapaint.clone : NULL;
+	                settings->imapaint.clone : NULL;
 
 	/* setup projection painting data */
 	ps->do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;

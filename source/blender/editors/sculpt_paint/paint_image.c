@@ -1413,12 +1413,12 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 					Material *ma = BKE_material_add(CTX_data_main(C), "Material");
 					/* no material found, just assign to first slot */
 					assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
-					proj_paint_add_slot(C, ma, NULL);				
+					proj_paint_add_slot(C, ma, NULL);
 				}
 			}
 		}
 	}
-	else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE){
+	else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
 		if (imapaint->canvas == NULL) {
 			int width;
 			int height;

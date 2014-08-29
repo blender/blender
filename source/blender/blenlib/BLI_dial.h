@@ -52,7 +52,7 @@
 
 typedef struct Dial Dial;
 
-Dial * BLI_dial_initialize(float start_position[2], float threshold);
+Dial *BLI_dial_initialize(float start_position[2], float threshold);
 
 float BLI_dial_angle(Dial *dial, float current_position[2]);
 
