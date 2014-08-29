@@ -24,40 +24,55 @@
  */
 
 /* Binary name to launch. */
-#define BLENDER_BINARY "blender-app.exe"
+#define BLENDER_BINARY L"blender-app.exe"
 
 #define WIN32_LEAN_AND_MEAN
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 
-int main(int argc, char **argv)
+#include <windows.h>
+#include <Shellapi.h>
+
+#include "utfconv.h"
+
+#include "BLI_utildefines.h"
+#include "BLI_winstuff.h"
+
+static void local_hacks_do(void)
+{
+	_putenv_s("OMP_WAIT_POLICY", "PASSIVE");
+}
+
+int main(int argc, const char **UNUSED(argv_c))
 {
 	PROCESS_INFORMATION processInformation = {0};
-	STARTUPINFOA startupInfo = {0};
+	STARTUPINFOW startupInfo = {0};
 	BOOL result;
-	char command[65536];
-	int i, len = sizeof(command);
+	wchar_t command[65536];
+	int i, len = sizeof(command) / sizeof(wchar_t);
+	wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
+	int argci = 0;
 
-	_putenv_s("OMP_WAIT_POLICY", "PASSIVE");
+	local_hacks_do();
 
-	startupInfo.cb = sizeof(startupInfo);
-
-	strncpy(command, BLENDER_BINARY, len - 1);
-	len -= strlen(BLENDER_BINARY);
+	wcsncpy(command, BLENDER_BINARY, len - 1);
+	len -= wcslen(BLENDER_BINARY);
 	for (i = 1; i < argc; ++i) {
-		strncat(command, " \"", len - 2);
-		strncat(command, argv[i], len - 3);
-		len -= strlen(argv[i]) + 1;
-		strncat(command, "\"", len - 1);
+		wcsncat(command, L" \"", len - 2);
+		wcsncat(command, argv_16[i], len - 3);
+		len -= wcslen(argv_16[i]) + 1;
+		wcsncat(command, L"\"", len - 1);
 	}
 
-	result = CreateProcessA(NULL, command, NULL, NULL, TRUE,
+	LocalFree(argv_16);
+
+	startupInfo.cb = sizeof(startupInfo);
+	result = CreateProcessW(NULL, command, NULL, NULL, TRUE,
 	                        0, NULL, NULL,
 	                        &startupInfo, &processInformation);
 
 	if (!result) {
-		fprintf(stderr, "Error launching " BLENDER_BINARY "\n");
+		fprintf(stderr, "%S\n", L"Error launching " BLENDER_BINARY);
 		return EXIT_FAILURE;
 	}
 
