@@ -5020,6 +5020,9 @@ static bool ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int m
 	if (data->draglastx == mx)
 		return changed;
 
+	if (data->coba->tot == 0)
+		return changed;
+
 	dx = ((float)(mx - data->draglastx)) / BLI_rctf_size_x(&but->rect);
 	data->dragcbd->pos += dx;
 	CLAMP(data->dragcbd->pos, 0.0f, 1.0f);

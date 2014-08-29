@@ -1151,9 +1151,11 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	}
 
 	/* layer: active handle */
-	cbd = &coba->data[coba->cur];
-	pos = x1 + cbd->pos * (sizex - 1) + 1;
-	ui_draw_colorband_handle(rect, pos, &cbd->r, display, true);
+	if (coba->tot != 0) {
+		cbd = &coba->data[coba->cur];
+		pos = x1 + cbd->pos * (sizex - 1) + 1;
+		ui_draw_colorband_handle(rect, pos, &cbd->r, display, true);
+	}
 }
 
 void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
