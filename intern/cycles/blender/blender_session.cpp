@@ -116,8 +116,8 @@ void BlenderSession::create_session()
 	if(b_v3d) {
 		if(session_pause == false) {
 			/* full data sync */
-			sync->sync_data(b_v3d, b_engine.camera_override(), &python_thread_state);
 			sync->sync_view(b_v3d, b_rv3d, width, height);
+			sync->sync_data(b_v3d, b_engine.camera_override(), &python_thread_state);
 		}
 	}
 	else {

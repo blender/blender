@@ -15,10 +15,11 @@
  */
 
 #include "attribute.h"
+#include "camera.h"
+#include "curves.h"
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
-#include "curves.h"
 
 #include "blender_sync.h"
 #include "blender_util.h"
@@ -39,7 +40,8 @@ bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Parti
 bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool background, int vcol_num);
 bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool background);
 void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData);
-void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, float3 RotCam);
+void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
+                               float3 RotCam, bool is_ortho);
 void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resolution);
 void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, float3 *uvdata);
 void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, uchar4 *cdata);
@@ -328,7 +330,8 @@ static void set_resolution(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, BL::S
 	}
 }
 
-void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, float3 RotCam)
+void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
+                               float3 RotCam, bool is_ortho)
 {
 	int vertexno = mesh->verts.size();
 	int vertexindex = vertexno;
@@ -362,7 +365,10 @@ void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, float3 RotC
 			float3 ickey_loc = CData->curvekey_co[CData->curve_firstkey[curve]];
 			float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], 0.0f);
 			v1 = CData->curvekey_co[CData->curve_firstkey[curve] + 1] - CData->curvekey_co[CData->curve_firstkey[curve]];
-			xbasis = normalize(cross(RotCam - ickey_loc,v1));
+			if(is_ortho)
+				xbasis = normalize(cross(RotCam, v1));
+			else
+				xbasis = normalize(cross(RotCam - ickey_loc, v1));
 			float3 ickey_loc_shfl = ickey_loc - radius * xbasis;
 			float3 ickey_loc_shfr = ickey_loc + radius * xbasis;
 			mesh->verts.push_back(ickey_loc_shfl);
@@ -386,7 +392,10 @@ void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, float3 RotC
 				if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
 					radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], 0.0f, 0.95f);
 
-				xbasis = normalize(cross(RotCam - ickey_loc,v1));
+				if(is_ortho)
+					xbasis = normalize(cross(RotCam, v1));
+				else
+					xbasis = normalize(cross(RotCam - ickey_loc, v1));
 				float3 ickey_loc_shfl = ickey_loc - radius * xbasis;
 				float3 ickey_loc_shfr = ickey_loc + radius * xbasis;
 				mesh->verts.push_back(ickey_loc_shfl);
@@ -858,20 +867,26 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 
 	ObtainCacheParticleData(mesh, &b_mesh, &b_ob, &CData, !preview);
 
-	/* obtain camera parameters */
-	BL::Object b_CamOb = b_scene.camera();
-	float3 RotCam = make_float3(0.0f, 0.0f, 0.0f);
-	if(b_CamOb) {
-		Transform ctfm = get_transform(b_CamOb.matrix_world());
-		Transform tfm = get_transform(b_ob.matrix_world());
-		Transform itfm = transform_quick_inverse(tfm);
-		RotCam = transform_point(&itfm, make_float3(ctfm.x.w, ctfm.y.w, ctfm.z.w));
-	}
-
 	/* add hair geometry to mesh */
 	if(primitive == CURVE_TRIANGLES) {
-		if(triangle_method == CURVE_CAMERA_TRIANGLES)
-			ExportCurveTrianglePlanes(mesh, &CData, RotCam);
+		if(triangle_method == CURVE_CAMERA_TRIANGLES) {
+			/* obtain camera parameters */
+			float3 RotCam;
+			Camera *camera = scene->camera;
+			Transform &ctfm = camera->matrix;
+			if(camera->type == CAMERA_ORTHOGRAPHIC) {
+				RotCam = -make_float3(ctfm.x.z, ctfm.y.z, ctfm.z.z);
+			}
+			else {
+				Transform tfm = get_transform(b_ob.matrix_world());
+				Transform itfm = transform_quick_inverse(tfm);
+				RotCam = transform_point(&itfm, make_float3(ctfm.x.w,
+				                                            ctfm.y.w,
+				                                            ctfm.z.w));
+			}
+			bool is_ortho = camera->type == CAMERA_ORTHOGRAPHIC;
+			ExportCurveTrianglePlanes(mesh, &CData, RotCam, is_ortho);
+		}
 		else {
 			ExportCurveTriangleGeometry(mesh, &CData, resolution);
 			used_res = resolution;
