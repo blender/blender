@@ -468,9 +468,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 					BLI_remlink(&pc.state_lb, state);
 					MEM_freeN(state);
 				}
-				else {
-					found_all = false;
-				}
+				found_all = false;
 			}
 			else {
 				/* didn't reach the end, remove it,
@@ -481,6 +479,11 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (found_all) {
+#ifdef DEBUG
+			for (state = pc.state_lb.first; state; state = state->next) {
+				BLI_assert(state->link_last->ele == (BMElem *)pc.v_b);
+			}
+#endif
 			break;
 		}
 	}
