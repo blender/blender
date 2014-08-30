@@ -7,5 +7,6 @@ cycles.no_caustics = False
 cycles.diffuse_bounces = 128
 cycles.glossy_bounces = 128
 cycles.transmission_bounces = 128
+cycles.volume_bounces = 128
 cycles.transparent_min_bounces = 8
 cycles.transparent_max_bounces = 128
