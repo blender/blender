@@ -136,6 +136,32 @@ int get_effector_data(struct EffectorCache *eff, struct EffectorData *efd, struc
 /* EffectorData->flag */
 #define PE_VELOCITY_TO_IMPULSE  1
 
+/* ======== Simulation Debugging ======== */
+
+typedef struct SimDebugElement {
+	int type;
+	int hash;
+	float color[3];
+	
+	float v1[3], v2[3];
+} SimDebugElement;
+
+typedef enum eSimDebugElement_Type {
+	SIM_DEBUG_ELEM_DOT,
+	SIM_DEBUG_ELEM_LINE,
+	SIM_DEBUG_ELEM_VECTOR,
+} eSimDebugElement_Type;
+
+typedef struct SimDebugData {
+	struct GHash *gh;
+} SimDebugData;
+
+struct SimDebugData *BKE_sim_debug_data_new(void);
+void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, int hash);
+void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, int hash);
+void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, int hash);
+void BKE_sim_debug_data_clear(struct SimDebugData *debug_data);
+void BKE_sim_debug_data_free(struct SimDebugData *debug_data);
 
 #endif
 

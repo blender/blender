@@ -4674,6 +4674,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 				}
 			}
+			
+			clmd->debug_data = NULL;
 		}
 		else if (md->type == eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;

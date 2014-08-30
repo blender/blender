@@ -51,6 +51,7 @@
 #include "BLI_noise.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "PIL_time.h"
 
@@ -1023,4 +1024,108 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 			}
 		}
 	}
+}
+
+/* ======== Simulation Debugging ======== */
+
+static unsigned int debug_element_hash(const void *key)
+{
+	const SimDebugElement *elem = key;
+	return elem->hash;
+}
+
+static int debug_element_compare(const void *a, const void *b)
+{
+	const SimDebugElement *elem1 = a;
+	const SimDebugElement *elem2 = b;
+
+	if (elem1->hash == elem2->hash) {
+		return 0;
+	}
+	return 1;
+}
+
+static void debug_element_free(void *val)
+{
+	SimDebugElement *elem = val;
+	MEM_freeN(elem);
+}
+
+SimDebugData *BKE_sim_debug_data_new(void)
+{
+	SimDebugData *debug_data = MEM_callocN(sizeof(SimDebugData), "sim debug data");
+	debug_data->gh = BLI_ghash_new(debug_element_hash, debug_element_compare, "sim debug element hash");
+	return debug_data;
+	
+}
+
+static void debug_data_insert(SimDebugData *debug_data, SimDebugElement *elem)
+{
+	SimDebugElement *old_elem = BLI_ghash_lookup(debug_data->gh, elem);
+	if (old_elem) {
+		*old_elem = *elem;
+		MEM_freeN(elem);
+	}
+	else
+		BLI_ghash_insert(debug_data->gh, elem, elem);
+}
+
+void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, int hash)
+{
+	SimDebugElement *elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
+	elem->type = SIM_DEBUG_ELEM_DOT;
+	elem->hash = hash;
+	elem->color[0] = r;
+	elem->color[1] = g;
+	elem->color[2] = b;
+	copy_v3_v3(elem->v1, p);
+	
+	debug_data_insert(debug_data, elem);
+}
+
+void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, int hash)
+{
+	SimDebugElement *elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
+	elem->type = SIM_DEBUG_ELEM_LINE;
+	elem->hash = hash;
+	elem->color[0] = r;
+	elem->color[1] = g;
+	elem->color[2] = b;
+	copy_v3_v3(elem->v1, p1);
+	copy_v3_v3(elem->v2, p2);
+	
+	debug_data_insert(debug_data, elem);
+}
+
+void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, int hash)
+{
+	SimDebugElement *elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
+	elem->type = SIM_DEBUG_ELEM_VECTOR;
+	elem->hash = hash;
+	elem->color[0] = r;
+	elem->color[1] = g;
+	elem->color[2] = b;
+	copy_v3_v3(elem->v1, p);
+	copy_v3_v3(elem->v2, d);
+	
+	debug_data_insert(debug_data, elem);
+}
+
+void BKE_sim_debug_data_clear(SimDebugData *debug_data)
+{
+	if (!debug_data)
+		return;
+	
+	if (debug_data->gh)
+		BLI_ghash_clear(debug_data->gh, NULL, debug_element_free);
+}
+
+void BKE_sim_debug_data_free(SimDebugData *debug_data)
+{
+	if (!debug_data)
+		return;
+	
+	if (debug_data->gh)
+		BLI_ghash_free(debug_data->gh, NULL, debug_element_free);
+	MEM_freeN(debug_data);
 }

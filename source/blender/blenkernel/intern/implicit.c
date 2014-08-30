@@ -109,6 +109,36 @@ static double itval(void)
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
+/* ==== hash functions for debugging ==== */
+static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
+{
+#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
+
+	unsigned int a, b, c;
+
+	a = b = c = 0xdeadbeef + (2 << 2) + 13;
+	a += kx;
+	b += ky;
+
+	c ^= b; c -= rot(b,14);
+	a ^= c; a -= rot(c,11);
+	b ^= a; b -= rot(a,25);
+	c ^= b; c -= rot(b,16);
+	a ^= c; a -= rot(c,4);
+	b ^= a; b -= rot(a,14);
+	c ^= b; c -= rot(b,24);
+
+	return c;
+
+#undef rot
+}
+
+static int hash_vertex(int type, int vertex)
+{
+	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
+}
+/* ================ */
+
 /*
 #define C99
 #ifdef C99
@@ -1922,7 +1952,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	unsigned int i=0;
 	float step=0.0f, tf=clmd->sim_parms->timescale;
 	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts, *cv;
+	ClothVertex *verts = cloth->verts/*, *cv*/;
 	unsigned int numverts = cloth->numverts;
 	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 	float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
@@ -1940,6 +1970,12 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 				sub_v3_v3v3(id->V[i], verts[i].xconst, verts[i].xold);
 				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
 			}
+		}
+	}
+	
+	if (clmd->debug_data) {
+		for (i = 0; i < numverts; i++) {
+			BKE_sim_debug_data_add_dot(clmd->debug_data, verts[i].x, 1.0f, 0.1f, 1.0f, hash_vertex(583, i));
 		}
 	}
 	
