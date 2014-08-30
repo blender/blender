@@ -6714,10 +6714,13 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 		data->tooltiptimer = NULL;
 	}
 
-	if ((U.flag & USER_TOOLTIPS) || (but->flag & UI_OPTION_TOOLTIPS))
-		if (!but->block->tooltipdisabled)
-			if (!wm->drags.first)
+	if ((U.flag & USER_TOOLTIPS) || (but->flag & UI_BUT_TIP_FORCE)) {
+		if (!but->block->tooltipdisabled) {
+			if (!wm->drags.first) {
 				data->tooltiptimer = WM_event_add_timer(data->wm, data->window, TIMER, BUTTON_TOOLTIP_DELAY);
+			}
+		}
+	}
 }
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state)
@@ -7226,11 +7229,13 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *ar)
 	if (event->type == MOUSEMOVE) {
 		but = ui_but_find_mouse_over(ar, event);
 		if (but) {
-			if (event->alt)
+			if (event->alt) {
 				/* display tooltips if holding alt on mouseover when tooltips are off in prefs */
-				but->flag |= UI_OPTION_TOOLTIPS;
-			else
-				but->flag &= ~UI_OPTION_TOOLTIPS;
+				but->flag |= UI_BUT_TIP_FORCE;
+			}
+			else {
+				but->flag &= ~UI_BUT_TIP_FORCE;
+			}
 			button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 		}
 	}
