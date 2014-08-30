@@ -2417,6 +2417,8 @@ static void viewzoom_cancel(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Zoom View";
 	ot->description = "Zoom in/out in the view";
@@ -2433,8 +2435,10 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
-	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
+	prop = RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 

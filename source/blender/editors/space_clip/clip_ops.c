@@ -591,6 +591,8 @@ static void view_zoom_cancel(bContext *C, wmOperator *op)
 
 void CLIP_OT_view_zoom(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "View Zoom";
 	ot->idname = "CLIP_OT_view_zoom";
@@ -607,8 +609,9 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 
 	/* properties */
-	RNA_def_float(ot->srna, "factor", 0.0f, -FLT_MAX, FLT_MAX,
-	              "Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
+	prop = RNA_def_float(ot->srna, "factor", 0.0f, -FLT_MAX, FLT_MAX, "Factor",
+	                     "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /********************** view zoom in/out operator *********************/
@@ -641,6 +644,8 @@ static int view_zoom_in_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "View Zoom In";
 	ot->idname = "CLIP_OT_view_zoom_in";
@@ -652,8 +657,9 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location",
-	                     "Cursor location in screen coordinates", -10.0f, 10.0f);
+	prop = RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location",
+	                            "Cursor location in screen coordinates", -10.0f, 10.0f);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static int view_zoom_out_exec(bContext *C, wmOperator *op)
@@ -684,6 +690,8 @@ static int view_zoom_out_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "View Zoom Out";
 	ot->idname = "CLIP_OT_view_zoom_out";
@@ -695,8 +703,9 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location",
-	                     "Cursor location in normalized (0.0-1.0) coordinates", -10.0f, 10.0f);
+	prop = RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location",
+	                            "Cursor location in normalized (0.0-1.0) coordinates", -10.0f, 10.0f);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /********************** view zoom ratio operator *********************/

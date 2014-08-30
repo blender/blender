@@ -767,6 +767,8 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Zoom In";
 	ot->description = "Zoom in the view";
@@ -778,10 +780,12 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	ot->poll = view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
-	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
+	prop = RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
-	
+
 /* this operator only needs this single callback, where it calls the view_zoom_*() methods */
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
@@ -828,6 +832,8 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Zoom Out";
 	ot->description = "Zoom out the view";
@@ -839,8 +845,10 @@ static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 	ot->poll = view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
-	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
+	prop = RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* ********************************************************* */
@@ -1139,6 +1147,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 
 static void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	/* identifiers */
 	ot->name = "Zoom 2D View";
 	ot->description = "Zoom in/out the view";
@@ -1156,8 +1165,10 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
-	RNA_def_float(ot->srna, "deltay", 0, -FLT_MAX, FLT_MAX, "Delta Y", "", -FLT_MAX, FLT_MAX);
+	prop = RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_float(ot->srna, "deltay", 0, -FLT_MAX, FLT_MAX, "Delta Y", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* ********************************************************* */
