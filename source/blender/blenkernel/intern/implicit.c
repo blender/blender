@@ -1926,9 +1926,8 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	unsigned int numverts = cloth->numverts;
 	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 	float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
-	float (*initial_cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "initial_cos implicit.c");
+	/*float (*initial_cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "initial_cos implicit.c");*/ /* UNUSED */
 	Implicit_Data *id = cloth->implicit;
-	int do_extra_solve;
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
 		
@@ -1972,40 +1971,49 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			copy_v3_v3(verts[i].txold, id->X[i]);
 		}
 
-		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED && clmd->clothObject->bvhtree) {
+		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
+			bool do_extra_solve = false;
+			
 			// collisions 
 			// itstart();
 			
 			// update verts to current positions
 			for (i = 0; i < numverts; i++) {
 				copy_v3_v3(verts[i].tx, id->Xnew[i]);
-
+				
 				sub_v3_v3v3(verts[i].tv, verts[i].tx, verts[i].txold);
 				copy_v3_v3(verts[i].v, verts[i].tv);
 			}
-
-			for (i=0, cv=cloth->verts; i<cloth->numverts; i++, cv++) {
+			
+			/* unused */
+			/*for (i=0, cv=cloth->verts; i<cloth->numverts; i++, cv++) {
 				copy_v3_v3(initial_cos[i], cv->tx);
+			}*/
+			
+			if (clmd->clothObject->bvhtree) {
+				// call collision function
+				// TODO: check if "step" or "step+dt" is correct - dg
+				do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
 			}
-
-			// call collision function
-			// TODO: check if "step" or "step+dt" is correct - dg
-			do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
-
+			else if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_POINTS) {
+				do_extra_solve = cloth_points_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
+			}
+			
 			// copy corrected positions back to simulation
 			for (i = 0; i < numverts; i++) {
 				// correct velocity again, just to be sure we had to change it due to adaptive collisions
 				sub_v3_v3v3(verts[i].tv, verts[i].tx, id->X[i]);
 			}
-
-			//if (do_extra_solve)
-			//	cloth_calc_helper_forces(ob, clmd, initial_cos, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
+			
+			/* unused */
+			/*if (do_extra_solve)
+				cloth_calc_helper_forces(ob, clmd, initial_cos, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);*/
 			
 			if (do_extra_solve) {
 				for (i = 0; i < numverts; i++) {				
 					if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED))
 						continue;
-
+					
 					copy_v3_v3(id->Xnew[i], verts[i].tx);
 					copy_v3_v3(id->Vnew[i], verts[i].tv);
 					mul_v3_fl(id->Vnew[i], spf);
@@ -2014,13 +2022,13 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			
 			// X = Xnew;
 			cp_lfvector(id->X, id->Xnew, numverts);
-
+			
 			// if there were collisions, advance the velocity from v_n+1/2 to v_n+1
 			
 			if (do_extra_solve) {
 				// V = Vnew;
 				cp_lfvector(id->V, id->Vnew, numverts);
-
+				
 				// calculate 
 				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);
 				
@@ -2054,7 +2062,8 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 	}
 	
-	MEM_freeN(initial_cos);
+	/* unused */
+	/*MEM_freeN(initial_cos);*/
 	
 	return 1;
 }
