@@ -461,7 +461,7 @@ bool RE_bake_pixels_populate_from_objects(
 	tris_high = MEM_callocN(sizeof(TriTessFace *) * tot_highpoly, "MVerts Highpoly Mesh Array");
 
 	/* assume all highpoly tessfaces are triangles */
-	dm_highpoly = MEM_callocN(sizeof(DerivedMesh *) * tot_highpoly, "Highpoly Derived Meshes");
+	dm_highpoly = MEM_mallocN(sizeof(DerivedMesh *) * tot_highpoly, "Highpoly Derived Meshes");
 	treeData = MEM_callocN(sizeof(BVHTreeFromMesh) * tot_highpoly, "Highpoly BVH Trees");
 
 	if (!is_cage) {

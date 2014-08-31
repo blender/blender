@@ -618,8 +618,8 @@ static int bake(
 	}
 
 	/* we overallocate in case there is more materials than images */
-	bake_images.data = MEM_callocN(sizeof(BakeImage) * tot_materials, "bake images dimensions (width, height, offset)");
-	bake_images.lookup = MEM_callocN(sizeof(int) * tot_materials, "bake images lookup (from material to BakeImage)");
+	bake_images.data = MEM_mallocN(sizeof(BakeImage) * tot_materials, "bake images dimensions (width, height, offset)");
+	bake_images.lookup = MEM_mallocN(sizeof(int) * tot_materials, "bake images lookup (from material to BakeImage)");
 
 	build_image_lookup(bmain, ob_low, &bake_images);
 
@@ -676,7 +676,7 @@ static int bake(
 		}
 	}
 
-	pixel_array_low = MEM_callocN(sizeof(BakePixel) * num_pixels, "bake pixels low poly");
+	pixel_array_low = MEM_mallocN(sizeof(BakePixel) * num_pixels, "bake pixels low poly");
 	result = MEM_callocN(sizeof(float) * depth * num_pixels, "bake return pixels");
 
 	/* get the mesh as it arrives in the renderer */
@@ -743,10 +743,8 @@ static int bake(
 
 			/* initialize highpoly_data */
 			highpoly[i].ob = ob_iter;
-			highpoly[i].me = NULL;
-			highpoly[i].tri_mod = NULL;
 			highpoly[i].restrict_flag = ob_iter->restrictflag;
-			highpoly[i].pixel_array = MEM_callocN(sizeof(BakePixel) * num_pixels, "bake pixels high poly");
+			highpoly[i].pixel_array = MEM_mallocN(sizeof(BakePixel) * num_pixels, "bake pixels high poly");
 
 
 			/* triangulating so BVH returns the primitive_id that will be used for rendering */
@@ -1280,7 +1278,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_OBJECT_BAKE))
 		return OPERATOR_CANCELLED;
 
-	bkr = MEM_callocN(sizeof(BakeAPIRender), "render bake");
+	bkr = MEM_mallocN(sizeof(BakeAPIRender), "render bake");
 
 	/* init bake render */
 	bake_init_api_data(op, C, bkr);
