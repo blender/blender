@@ -86,11 +86,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->max_diffuse_bounce = max_diffuse_bounce + 1;
 	kintegrator->max_glossy_bounce = max_glossy_bounce + 1;
 	kintegrator->max_transmission_bounce = max_transmission_bounce + 1;
-
-	if(kintegrator->use_volumes)
-		kintegrator->max_volume_bounce = max_volume_bounce + 1;
-	else
-		kintegrator->max_volume_bounce = 1;
+	kintegrator->max_volume_bounce = max_volume_bounce + 1;
 
 	kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
 	kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
