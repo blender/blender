@@ -397,7 +397,8 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 			/* skip hidden part of line */
 			if (skip) {
 				skip--;
-				fstart = fpos; mstart = mend;
+				fstart = fpos = end;
+				mstart = mend;
 				mend = txt_utf8_forward_columns(str + mend, max, &padding) - str;
 				end = (wrap += max - padding);
 				continue;
