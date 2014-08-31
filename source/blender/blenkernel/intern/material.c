@@ -274,7 +274,7 @@ Material *localize_material(Material *ma)
 	if (ma->ramp_col) man->ramp_col = MEM_dupallocN(ma->ramp_col);
 	if (ma->ramp_spec) man->ramp_spec = MEM_dupallocN(ma->ramp_spec);
 
-	ma->texpaintslot = NULL;
+	man->texpaintslot = NULL;
 	man->preview = NULL;
 	
 	if (ma->nodetree)
