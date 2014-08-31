@@ -1137,8 +1137,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     if env['WITH_BF_PYTHON']:
         if env['BF_DEBUG']:
             dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll')
+            dllsources.append('${BF_PYTHON_LIBPATH}/sqlite3_d.dll')
         else:
             dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}.dll')
+            dllsources.append('${BF_PYTHON_LIBPATH}/sqlite3.dll')
 
     if env['WITH_BF_ICONV']:
         if env['OURPLATFORM'] == 'win64-vc':
