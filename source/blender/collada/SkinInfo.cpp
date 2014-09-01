@@ -34,6 +34,10 @@
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
 
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_compiler_attrs.h"
+
 #include "BKE_object.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
@@ -41,8 +45,6 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "BKE_action.h"
-#include "BLI_listbase.h"
-#include "BLI_math.h"
 
 #include "SkinInfo.h"
 #include "collada_utils.h"
