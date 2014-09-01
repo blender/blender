@@ -952,7 +952,9 @@ static bool check_seam(const ProjPaintState *ps,
 
 				/* set up the other face */
 				*other_face = face_index;
-				*orig_fidx = (i1_fidx < i2_fidx) ? i1_fidx : i2_fidx;
+				
+				/* we check if difference is 1 here, else we might have a case of edge 2-0 or 3-0 for quads */
+				*orig_fidx = (i1_fidx < i2_fidx && (i2_fidx - i1_fidx == 1)) ? i1_fidx : i2_fidx;
 
 				/* initialize face winding if needed */
 				if ((ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_INIT) == 0)
