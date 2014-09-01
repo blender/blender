@@ -63,6 +63,7 @@ bool BKE_mball_minmax_ex(struct MetaBall *mb, float min[3], float max[3],
                          float obmat[4][4], const short flag);
 bool BKE_mball_center_median(struct MetaBall *mb, float r_cent[3]);
 bool BKE_mball_center_bounds(struct MetaBall *mb, float r_cent[3]);
+void BKE_mball_transform(struct MetaBall *mb, float mat[4][4]);
 void BKE_mball_translate(struct MetaBall *mb, const float offset[3]);
 
 struct MetaElem *BKE_mball_element_add(struct MetaBall *mb, const int type);

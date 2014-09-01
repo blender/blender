@@ -4282,7 +4282,50 @@ bool BKE_curve_center_bounds(Curve *cu, float cent[3])
 	return false;
 }
 
-void BKE_curve_translate(Curve *cu, float offset[3], const bool do_keys)
+
+void BKE_curve_transform_ex(Curve *cu, float mat[4][4], bool do_keys, float unit_scale)
+{
+	Nurb *nu;
+	BPoint *bp;
+	BezTriple *bezt;
+	int i;
+
+	for (nu = cu->nurb.first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			i = nu->pntsu;
+			for (bezt = nu->bezt; i--; bezt++) {
+				mul_m4_v3(mat, bezt->vec[0]);
+				mul_m4_v3(mat, bezt->vec[1]);
+				mul_m4_v3(mat, bezt->vec[2]);
+				bezt->radius *= unit_scale;
+			}
+			BKE_nurb_handles_calc(nu);
+		}
+		else {
+			i = nu->pntsu * nu->pntsv;
+			for (bp = nu->bp; i--; bp++)
+				mul_m4_v3(mat, bp->vec);
+		}
+	}
+
+	if (do_keys && cu->key) {
+		KeyBlock *kb;
+		for (kb = cu->key->block.first; kb; kb = kb->next) {
+			float *fp = kb->data;
+			for (i = kb->totelem; i--; fp += 3) {
+				mul_m4_v3(mat, fp);
+			}
+		}
+	}
+}
+
+void BKE_curve_transform(Curve *cu, float mat[4][4], bool do_keys)
+{
+	float unit_scale = mat4_to_scale(mat);
+	BKE_curve_transform_ex(cu, mat, do_keys, unit_scale);
+}
+
+void BKE_curve_translate(Curve *cu, float offset[3], bool do_keys)
 {
 	ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
 	Nurb *nu;

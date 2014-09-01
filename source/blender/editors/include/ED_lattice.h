@@ -37,6 +37,5 @@ struct Lattice;
 void free_editLatt(struct Object *ob);
 void make_editLatt(struct Object *obedit);
 void load_editLatt(struct Object *obedit);
-void ED_lattice_transform(struct Lattice *lt, float mat[4][4]);
 
 #endif  /* __ED_LATTICE_H__ */

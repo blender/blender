@@ -150,8 +150,9 @@ bool ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, c
                                     float loc[3], float rot[3],
                                     bool *enter_editmode, unsigned int *layer, bool *is_view_aligned);
 
-struct Object *ED_object_add_type(struct bContext *C, int type, const float loc[3], const float rot[3],
-                                  bool enter_editmode, unsigned int layer);
+struct Object *ED_object_add_type(
+        struct bContext *C, int type, const float loc[3], const float rot[3],
+        bool enter_editmode, unsigned int layer) ATTR_RETURNS_NONNULL;
 
 void ED_object_single_users(struct Main *bmain, struct Scene *scene, bool full, bool copy_groups);
 void ED_object_single_user(struct Main *bmain, struct Scene *scene, struct Object *ob);

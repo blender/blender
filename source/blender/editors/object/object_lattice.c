@@ -174,21 +174,6 @@ void load_editLatt(Object *obedit)
 	}
 }
 
-/*************************** Transform Operator ************************/
-
-void ED_lattice_transform(Lattice *lt, float mat[4][4])
-{
-	BPoint *bp = lt->def;
-	int a = lt->pntsu * lt->pntsv * lt->pntsw;
-
-	while (a--) {
-		mul_m4_v3(mat, bp->vec);
-		bp++;
-	}
-
-	DAG_id_tag_update(&lt->id, 0);
-}
-
 static void bpoint_select_set(BPoint *bp, bool select)
 {
 	if (select) {

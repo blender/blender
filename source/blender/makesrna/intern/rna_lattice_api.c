@@ -38,14 +38,14 @@
 
 #include "BLI_utildefines.h"
 
-#include "ED_lattice.h"
-
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
-static void rna_Lattice_transform(Lattice *lt, float *mat)
+static void rna_Lattice_transform(Lattice *lt, float *mat, int shape_keys)
 {
-	ED_lattice_transform(lt, (float (*)[4])mat);
+	BKE_lattice_transform(lt, (float (*)[4])mat, shape_keys);
+
+	DAG_id_tag_update(&lt->id, 0);
 }
 #else
 
@@ -58,6 +58,7 @@ void RNA_api_lattice(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Transform lattice by a matrix");
 	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
 }
 
 #endif

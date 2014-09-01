@@ -50,6 +50,4 @@ void load_editMball(struct Object *obedit);
 
 void undo_push_mball(struct bContext *C, const char *name);
 
-void ED_mball_transform(struct MetaBall *mb, float mat[4][4]);
-
 #endif  /* __ED_MBALL_H__ */

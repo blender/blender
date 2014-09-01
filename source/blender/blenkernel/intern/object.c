@@ -42,6 +42,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
@@ -1792,6 +1793,55 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->dt = target->dt;
 }
 
+/**
+ * Use with newly created objects to set their size
+ * (used to apply scene-scale).
+ */
+void BKE_object_obdata_size_init(struct Object *ob, const float size)
+{
+	/* apply radius as a scale to types that support it */
+	switch (ob->type) {
+		case OB_EMPTY:
+		{
+			ob->empty_drawsize *= size;
+			break;
+		}
+		case OB_FONT:
+		{
+			Curve *cu = ob->data;
+			cu->fsize *= size;
+			break;
+		}
+		case OB_CAMERA:
+		{
+			Camera *cam = ob->data;
+			cam->drawsize *= size;
+			break;
+		}
+		case OB_LAMP:
+		{
+			Lamp *lamp = ob->data;
+			lamp->dist *= size;
+			lamp->area_size  *= size;
+			lamp->area_sizey *= size;
+			lamp->area_sizez *= size;
+			break;
+		}
+		/* Only lattice (not mesh, curve, mball...),
+		 * because its got data when newly added */
+		case OB_LATTICE:
+		{
+			struct Lattice *lt = ob->data;
+			float mat[4][4];
+
+			unit_m4(mat);
+			scale_m4_fl(mat, size);
+
+			BKE_lattice_transform(lt, (float (*)[4])mat, false);
+			break;
+		}
+	}
+}
 
 /* *************** CALC ****************** */
 

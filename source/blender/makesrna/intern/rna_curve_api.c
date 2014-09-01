@@ -38,14 +38,16 @@
 
 #include "BLI_utildefines.h"
 
-#include "ED_curve.h"
+#include "BKE_curve.h"
 
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
-static void rna_Curve_transform(Curve *cu, float *mat)
+static void rna_Curve_transform(Curve *cu, float *mat, int shape_keys)
 {
-	ED_curve_transform(cu, (float (*)[4])mat);
+	BKE_curve_transform(cu, (float (*)[4])mat, shape_keys);
+
+	DAG_id_tag_update(&cu->id, 0);
 }
 #else
 
@@ -58,6 +60,7 @@ void RNA_api_curve(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Transform curve by a matrix");
 	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
 
 	func = RNA_def_function(srna, "validate_material_indices", "BKE_curve_material_index_validate");
 	RNA_def_function_ui_description(func, "Validate material indices of splines or letters, return True when the curve "

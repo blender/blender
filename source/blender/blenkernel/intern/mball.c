@@ -2442,6 +2442,30 @@ bool BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
 	return 0;
 }
 
+void BKE_mball_transform(MetaBall *mb, float mat[4][4])
+{
+	MetaElem *me;
+	float quat[4];
+	const float scale = mat4_to_scale(mat);
+	const float scale_sqrt = sqrtf(scale);
+
+	mat4_to_quat(quat, mat);
+
+	for (me = mb->elems.first; me; me = me->next) {
+		mul_m4_v3(mat, &me->x);
+		mul_qt_qtqt(me->quat, quat, me->quat);
+		me->rad *= scale;
+		/* hrmf, probably elems shouldn't be
+		 * treating scale differently - campbell */
+		if (!MB_TYPE_SIZE_SQUARED(me->type)) {
+			mul_v3_fl(&me->expx, scale);
+		}
+		else {
+			mul_v3_fl(&me->expx, scale_sqrt);
+		}
+	}
+}
+
 void BKE_mball_translate(MetaBall *mb, const float offset[3])
 {
 	MetaElem *ml;

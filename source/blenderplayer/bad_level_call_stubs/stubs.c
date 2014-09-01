@@ -387,7 +387,6 @@ void ED_area_tag_redraw(struct ScrArea *sa) RET_NONE
 void ED_area_tag_refresh(struct ScrArea *sa) RET_NONE
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type) RET_NONE
 void ED_region_tag_redraw(struct ARegion *ar) RET_NONE
-void ED_curve_transform(struct Curve *cv, float mat[4][4]) RET_NONE
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op) RET_NONE
 void WM_cursor_wait(bool val) RET_NONE
 void ED_node_texture_default(const struct bContext *C, struct Tex *tex) RET_NONE
@@ -439,7 +438,6 @@ void uiLayoutSetScaleX(struct uiLayout *layout, float scale) RET_NONE
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale) RET_NONE
 void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
 void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base) RET_NONE
-void ED_mesh_transform(struct Mesh *me, float mat[4][4]) RET_NONE
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges, int calc_tessface) RET_NONE
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE
@@ -475,8 +473,6 @@ bool ED_texture_context_check_lamp(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_particles(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_others(const struct bContext *C) RET_ZERO
 
-void ED_mball_transform(struct MetaBall *mb, float mat[4][4]) RET_NONE
-
 bool snapObjectsRayEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
                       struct Object **r_ob, float r_obmat[4][4],
                       const float ray_start[3], const float ray_normal[3], float *r_ray_dist,
@@ -484,7 +480,6 @@ bool snapObjectsRayEx(struct Scene *scene, struct Base *base_act, struct View3D 
 
 void make_editLatt(struct Object *obedit) RET_NONE
 void load_editLatt(struct Object *obedit) RET_NONE
-void ED_lattice_transform(struct Lattice *lt, float mat[4][4]) RET_NONE
 
 void load_editNurb(struct Object *obedit) RET_NONE
 void make_editNurb(struct Object *obedit) RET_NONE

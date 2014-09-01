@@ -1869,6 +1869,27 @@ bool BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
 	return (me->totvert != 0);
 }
 
+void BKE_mesh_transform(Mesh *me, float mat[4][4], bool do_keys)
+{
+	int i;
+	MVert *mvert = me->mvert;
+
+	for (i = 0; i < me->totvert; i++, mvert++)
+		mul_m4_v3(mat, mvert->co);
+
+	if (do_keys && me->key) {
+		KeyBlock *kb;
+		for (kb = me->key->block.first; kb; kb = kb->next) {
+			float *fp = kb->data;
+			for (i = kb->totelem; i--; fp += 3) {
+				mul_m4_v3(mat, fp);
+			}
+		}
+	}
+
+	/* don't update normals, caller can do this explicitly */
+}
+
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
 {
 	int i = me->totvert;

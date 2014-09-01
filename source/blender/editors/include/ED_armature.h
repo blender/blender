@@ -133,8 +133,8 @@ EditBone *ED_armature_bone_get_mirrored(const struct ListBase *edbo, EditBone *e
 void ED_armature_sync_selection(struct ListBase *edbo);
 void ED_armature_validate_active(struct bArmature *arm);
 
-void add_primitive_bone(struct Object *obedit_arm, bool view_aligned);
-struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name);
+EditBone *ED_armature_edit_bone_add_primitive(struct Object *obedit_arm, float length, bool view_aligned);
+EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name);
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebone_child);

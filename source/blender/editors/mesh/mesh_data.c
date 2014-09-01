@@ -880,17 +880,6 @@ static void mesh_add_verts(Mesh *mesh, int len)
 	mesh->totvert = totvert;
 }
 
-void ED_mesh_transform(Mesh *me, float mat[4][4])
-{
-	int i;
-	MVert *mvert = me->mvert;
-
-	for (i = 0; i < me->totvert; i++, mvert++)
-		mul_m4_v3(mat, mvert->co);
-
-	/* don't update normals, caller can do this explicitly */
-}
-
 static void mesh_add_edges(Mesh *mesh, int len)
 {
 	CustomData edata;

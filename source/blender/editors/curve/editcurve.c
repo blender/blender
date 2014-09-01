@@ -1476,37 +1476,6 @@ void ED_curve_select_swap(EditNurb *editnurb, bool hide_handles)
 	}
 }
 
-/******************** transform operator **********************/
-
-void ED_curve_transform(Curve *cu, float mat[4][4])
-{
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	int a;
-
-	float scale = mat4_to_scale(mat);
-
-	for (nu = cu->nurb.first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			a = nu->pntsu;
-			for (bezt = nu->bezt; a--; bezt++) {
-				mul_m4_v3(mat, bezt->vec[0]);
-				mul_m4_v3(mat, bezt->vec[1]);
-				mul_m4_v3(mat, bezt->vec[2]);
-				bezt->radius *= scale;
-			}
-			BKE_nurb_handles_calc(nu);
-		}
-		else {
-			a = nu->pntsu * nu->pntsv;
-			for (bp = nu->bp; a--; bp++)
-				mul_m4_v3(mat, bp->vec);
-		}
-	}
-	DAG_id_tag_update(&cu->id, 0);
-}
-
 /******************** separate operator ***********************/
 
 static int separate_exec(bContext *C, wmOperator *op)

@@ -103,6 +103,8 @@ void BKE_object_make_local(struct Object *ob);
 bool BKE_object_is_libdata(struct Object *ob);
 bool BKE_object_obdata_is_libdata(struct Object *ob);
 
+void BKE_object_obdata_size_init(struct Object *ob, const float scale);
+
 void BKE_object_scale_to_mat3(struct Object *ob, float mat[3][3]);
 void BKE_object_rot_to_mat3(struct Object *ob, float mat[3][3], bool use_drot);
 void BKE_object_mat3_to_rot(struct Object *ob, float mat[3][3], bool use_compat);

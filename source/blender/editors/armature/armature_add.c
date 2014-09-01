@@ -84,7 +84,7 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 	return bone;
 }
 
-void add_primitive_bone(Object *obedit_arm, bool view_aligned)
+EditBone *ED_armature_edit_bone_add_primitive(Object *obedit_arm, float length, bool view_aligned)
 {
 	bArmature *arm = obedit_arm->data;
 	EditBone *bone;
@@ -99,10 +99,9 @@ void add_primitive_bone(Object *obedit_arm, bool view_aligned)
 	zero_v3(bone->head);
 	zero_v3(bone->tail);
 
-	if (view_aligned)
-		bone->tail[1] = 1.0f;
-	else
-		bone->tail[2] = 1.0f;
+	bone->tail[view_aligned ? 1 : 2] = length;
+
+	return bone;
 }
 
 
