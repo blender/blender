@@ -99,15 +99,16 @@ typedef struct ClothCollSettings {
 	float	epsilon;		/* min distance for collisions.		*/
 	float	self_friction;		/* Fiction/damping with self contact. */
 	float	friction;		/* Friction/damping applied on contact with other object.*/
+	float	damping;	/* Collision restitution on contact with other object.*/
 	float 	selfepsilon; 		/* for selfcollision */
 	float repel_force, distance_repel;
 	int	flags;			/* collision flags defined in BKE_cloth.h */
 	short	self_loop_count;	/* How many iterations for the selfcollision loop	*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/
+	int pad;
 	struct Group *group;	/* Only use colliders from this group of objects */
 	short	vgroup_selfcol; /* vgroup to paint which vertices are used for self collisions */
-	short pad;
-	int pad2;
+	short pad2[3];
 } ClothCollSettings;
 
 

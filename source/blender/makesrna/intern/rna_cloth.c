@@ -589,6 +589,13 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Friction", "Friction force if a collision happened (higher = less movement)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+	prop = RNA_def_property(srna, "damping", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "damping");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Restitution", "Amount of velocity lost on collision");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
 	prop = RNA_def_property(srna, "collision_quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "loop_count");
 	RNA_def_property_range(prop, 1, 20);

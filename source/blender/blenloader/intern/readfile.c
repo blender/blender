@@ -113,6 +113,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_brush.h"
+#include "BKE_cloth.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -3939,6 +3940,9 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 				psys->clmd->sim_parms->effector_weights = NULL;
 				if (psys->clmd->sim_parms->presets > 10)
 					psys->clmd->sim_parms->presets = 0;
+			}
+			if (psys->clmd->coll_parms) {
+				psys->clmd->coll_parms->flags |= CLOTH_COLLSETTINGS_FLAG_POINTS;
 			}
 			
 			psys->hair_in_dm = psys->hair_out_dm = NULL;

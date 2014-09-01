@@ -160,6 +160,7 @@ struct SimDebugData *BKE_sim_debug_data_new(void);
 void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, int hash);
 void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, int hash);
 void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, int hash);
+void BKE_sim_debug_data_remove(struct SimDebugData *debug_data, int hash);
 void BKE_sim_debug_data_clear(struct SimDebugData *debug_data);
 void BKE_sim_debug_data_free(struct SimDebugData *debug_data);
 

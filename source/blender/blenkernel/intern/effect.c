@@ -1072,7 +1072,11 @@ static void debug_data_insert(SimDebugData *debug_data, SimDebugElement *elem)
 
 void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, int hash)
 {
-	SimDebugElement *elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
+	SimDebugElement *elem;
+	if (!debug_data)
+		return;
+	
+	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = SIM_DEBUG_ELEM_DOT;
 	elem->hash = hash;
 	elem->color[0] = r;
@@ -1085,7 +1089,11 @@ void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3
 
 void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, int hash)
 {
-	SimDebugElement *elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
+	SimDebugElement *elem;
+	if (!debug_data)
+		return;
+	
+	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = SIM_DEBUG_ELEM_LINE;
 	elem->hash = hash;
 	elem->color[0] = r;
@@ -1099,7 +1107,11 @@ void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1
 
 void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, int hash)
 {
-	SimDebugElement *elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
+	SimDebugElement *elem;
+	if (!debug_data)
+		return;
+	
+	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = SIM_DEBUG_ELEM_VECTOR;
 	elem->hash = hash;
 	elem->color[0] = r;
@@ -1109,6 +1121,16 @@ void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float 
 	copy_v3_v3(elem->v2, d);
 	
 	debug_data_insert(debug_data, elem);
+}
+
+void BKE_sim_debug_data_remove(SimDebugData *debug_data, int hash)
+{
+	SimDebugElement dummy;
+	if (!debug_data)
+		return;
+	
+	dummy.hash = hash;
+	BLI_ghash_remove(debug_data->gh, &dummy, NULL, debug_element_free);
 }
 
 void BKE_sim_debug_data_clear(SimDebugData *debug_data)
