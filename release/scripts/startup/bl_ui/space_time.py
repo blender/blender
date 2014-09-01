@@ -176,8 +176,11 @@ class TIME_MT_frame(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("time.start_frame_set")
+        layout.operator("anim.previewrange_clear")
+        layout.operator("anim.previewrange_set")
+        layout.separator()
         layout.operator("time.end_frame_set")
+        layout.operator("time.start_frame_set")
 
         layout.separator()
 
