@@ -144,6 +144,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 					state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
 					
+				(void)result;
 				kernel_assert(result == VOLUME_PATH_SCATTERED);
 
 				/* todo: split up light_sample so we don't have to call it again with new position */
@@ -194,6 +195,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 					state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
 					
+				(void)result;
 				kernel_assert(result == VOLUME_PATH_SCATTERED);
 
 				/* todo: split up light_sample so we don't have to call it again with new position */
@@ -232,6 +234,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 		VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 			state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
 			
+		(void)result;
 		kernel_assert(result == VOLUME_PATH_SCATTERED);
 
 		/* todo: split up light_sample so we don't have to call it again with new position */
