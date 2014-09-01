@@ -968,7 +968,6 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 	
 	float w1, w2, u1, u2, u3;
 	float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
-//	float magrelVel;
 	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
 
 	for ( ; collpair != collision_end; collpair++ ) {
@@ -1034,20 +1033,18 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 			madd_v3_v3v3fl(v_tan_old, v_rel_old, collpair->normal, -v_nor_old);
 			madd_v3_v3v3fl(v_tan_new, v_rel_new, collpair->normal, -v_nor_new);
 			
-			mul_v3_v3fl(repulse, collpair->normal, -margin_distance * inv_dt);
-			sub_v3_v3(repulse, v1);
+			mul_v3_v3fl(repulse, collpair->normal, -(margin_distance * inv_dt + dot_v3v3(v1, collpair->normal)));
 			
-//			if (margin_distance < -epsilon2) {
-			{
+			if (margin_distance < -epsilon2) {
 				float bounce[3];
 				
 				mul_v3_v3fl(bounce, collpair->normal, -(v_nor_new + v_nor_old * restitution));
-//				max_v3_v3v3(impulse, repulse, bounce);
+				max_v3_v3v3(impulse, repulse, bounce);
 				copy_v3_v3(impulse, bounce);
 			}
-//			else {
-//				copy_v3_v3(impulse, repulse);
-//			}
+			else {
+				copy_v3_v3(impulse, repulse);
+			}
 			cloth1->verts[collpair->ap1].impulse_count++;
 			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, impulse, 0.0, 1.0, 0.6, hash_collpair(873, collpair));
 			
