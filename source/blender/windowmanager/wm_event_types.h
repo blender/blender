@@ -89,7 +89,7 @@ enum {
 	/* *** Start of keyboard codes. *** */
 
 	/* standard keyboard.
-	 * XXX from 0x0020 to 0x00ff, and 0x012c to 0x0140 for function keys! */
+	 * XXX from 0x0020 to 0x00ff, and 0x012c to 0x013f for function keys! */
 	AKEY            = 0x0061,  /* 'a' */
 	BKEY            = 0x0062,  /* 'b' */
 	CKEY            = 0x0063,  /* 'c' */
@@ -327,7 +327,9 @@ enum {
 /* note, an alternative could be to check 'event->utf8_buf' */
 
 /* test whether the event is a key on the keyboard */
-#define ISKEYBOARD(event_type)  (event_type >= ' ' && event_type <= 320)
+#define ISKEYBOARD(event_type)                          \
+	((event_type >= 0x0020 && event_type <= 0x00ff) ||  \
+	 (event_type >= 0x012c && event_type <= 0x013f))
 
 /* test whether the event is a modifier key */
 #define ISKEYMODIFIER(event_type)  ((event_type >= LEFTCTRLKEY && event_type <= LEFTSHIFTKEY) || event_type == OSKEY)
