@@ -103,18 +103,30 @@ bool BVH::cache_read(CacheData& key)
 	if(Cache::global.lookup(key, value)) {
 		cache_filename = key.get_filename();
 
-		value.read(pack.root_index);
-		value.read(pack.SAH);
-
-		value.read(pack.nodes);
-		value.read(pack.object_node);
-		value.read(pack.tri_woop);
-		value.read(pack.prim_type);
-		value.read(pack.prim_visibility);
-		value.read(pack.prim_index);
-		value.read(pack.prim_object);
-		value.read(pack.is_leaf);
-
+		if(!(value.read(pack.root_index) &&
+		     value.read(pack.SAH) &&
+		     value.read(pack.nodes) &&
+		     value.read(pack.object_node) &&
+		     value.read(pack.tri_woop) &&
+		     value.read(pack.prim_type) &&
+		     value.read(pack.prim_visibility) &&
+		     value.read(pack.prim_index) &&
+		     value.read(pack.prim_object) &&
+		     value.read(pack.is_leaf)))
+		{
+			/* Clear the pack if load failed. */
+			pack.root_index = 0;
+			pack.SAH = 0.0f;
+			pack.nodes.clear();
+			pack.object_node.clear();
+			pack.tri_woop.clear();
+			pack.prim_type.clear();
+			pack.prim_visibility.clear();
+			pack.prim_index.clear();
+			pack.prim_object.clear();
+			pack.is_leaf.clear();
+			return false;
+		}
 		return true;
 	}
 
