@@ -1020,7 +1020,7 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 		if (mag_v_rel < -ALMOST_ZERO) {
 			float v_nor_old, v_nor_new;
 			float v_tan_old[3], v_tan_new[3];
-			float repulse[3];
+			float bounce, repulse;
 			
 			/* Collision response based on
 			 * "Simulating Complex Hair with Robust Collision Handling" (Choe, Choi, Ko, ACM SIGGRAPH 2005)
@@ -1033,17 +1033,15 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 			madd_v3_v3v3fl(v_tan_old, v_rel_old, collpair->normal, -v_nor_old);
 			madd_v3_v3v3fl(v_tan_new, v_rel_new, collpair->normal, -v_nor_new);
 			
-			mul_v3_v3fl(repulse, collpair->normal, -(margin_distance * inv_dt + dot_v3v3(v1, collpair->normal)));
+			repulse = -margin_distance * inv_dt + dot_v3v3(v1, collpair->normal);
 			
 			if (margin_distance < -epsilon2) {
-				float bounce[3];
-				
-				mul_v3_v3fl(bounce, collpair->normal, -(v_nor_new + v_nor_old * restitution));
-				max_v3_v3v3(impulse, repulse, bounce);
-				copy_v3_v3(impulse, bounce);
+				bounce = -v_nor_new + v_nor_old * restitution;
+				mul_v3_v3fl(impulse, collpair->normal, max_ff(repulse, bounce));
 			}
 			else {
-				copy_v3_v3(impulse, repulse);
+				bounce = 0.0f;
+				mul_v3_v3fl(impulse, collpair->normal, repulse);
 			}
 			cloth1->verts[collpair->ap1].impulse_count++;
 			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, impulse, 0.0, 1.0, 0.6, "collision", hash_collpair(873, collpair));
