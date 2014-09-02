@@ -772,7 +772,7 @@ void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 	int offsx,  offsy,  winx,  winy;
 
 	/* check that we have grease-pencil stuff to draw */
-	gpd = ED_gpencil_data_get_active_v3d(scene); // XXX
+	gpd = ED_gpencil_data_get_active_v3d(scene, v3d);
 	if (gpd == NULL) return;
 
 	/* when rendering to the offscreen buffer we don't want to

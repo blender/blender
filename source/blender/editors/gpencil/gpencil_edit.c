@@ -62,6 +62,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_tracking.h"
 
 #include "UI_interface.h"
@@ -186,15 +187,15 @@ bGPdata *ED_gpencil_data_get_active(const bContext *C)
 	return (gpd_ptr) ? *(gpd_ptr) : NULL;
 }
 
-/* needed for offscreen rendering */
-bGPdata *ED_gpencil_data_get_active_v3d(Scene *scene)
+bGPdata *ED_gpencil_data_get_active_v3d(Scene *scene, View3D *v3d)
 {
 	Base *base = scene->basact;
 	bGPdata *gpd = NULL;
 	/* We have to make sure active object is actually visible and selected, else we must use default scene gpd,
 	 * to be consistent with ED_gpencil_data_get_active's behavior.
 	 */
-	if (base && (scene->lay & base->lay) && (base->object->flag & SELECT)) {
+
+	if (base && TESTBASE(v3d, base)) {
 		gpd = base->object->gpd;
 	}
 	return gpd ? gpd : scene->gpd;
@@ -1399,6 +1400,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
                               const bool norm_weights, const float rad_fac, const bool link_strokes, tGpTimingData *gtd)
 {
 	struct Main *bmain = CTX_data_main(C);
+	View3D *v3d = CTX_wm_view3d(C);  /* may be NULL */
 	Scene *scene = CTX_data_scene(C);
 	bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps, *prev_gps = NULL;
@@ -1493,7 +1495,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	}
 
 	/* set the layer and select */
-	base_new->lay  = ob->lay  = base_orig ? base_orig->lay : scene->lay;
+	base_new->lay  = ob->lay  = base_orig ? base_orig->lay : BKE_screen_view3d_layer_active(v3d, scene);
 	base_new->flag = ob->flag = base_new->flag | SELECT;
 }
 

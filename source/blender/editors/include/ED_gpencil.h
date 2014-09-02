@@ -67,7 +67,7 @@ typedef struct tGPspoint {
 
 struct bGPdata **ED_gpencil_data_get_pointers(const struct bContext *C, struct PointerRNA *ptr);
 struct bGPdata  *ED_gpencil_data_get_active(const struct bContext *C);
-struct bGPdata  *ED_gpencil_data_get_active_v3d(struct Scene *scene); /* for offscreen rendering */
+struct bGPdata  *ED_gpencil_data_get_active_v3d(struct Scene *scene, struct View3D *v3d);
 
 /* ----------- Grease Pencil Operators ----------------- */
 

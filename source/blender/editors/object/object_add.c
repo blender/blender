@@ -84,6 +84,7 @@
 #include "BKE_report.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
 
@@ -338,10 +339,7 @@ bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view
 		}
 		else {
 			Scene *scene = CTX_data_scene(C);
-			if (v3d)
-				*layer = (v3d->scenelock && !v3d->localvd) ? scene->layact : v3d->layact;
-			else
-				*layer = scene->layact;
+			*layer = BKE_screen_view3d_layer_active_ex(v3d, scene, false);
 			for (a = 0; a < 20; a++) {
 				layer_values[a] = *layer & (1 << a);
 			}
@@ -2219,6 +2217,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	wmWindow *win = CTX_wm_window(C);
 	const wmEvent *event = win ? win->eventstate : NULL;
 	Main *bmain = CTX_data_main(C);
+	View3D *v3d = CTX_wm_view3d(C);  /* may be NULL */
 	Scene *scene = CTX_data_scene(C);
 	Base *basen, *base;
 	Object *ob;
@@ -2251,7 +2250,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	basen->lay = basen->object->lay = scene->lay;
+	basen->lay = basen->object->lay = BKE_screen_view3d_layer_active(v3d, scene);
 	basen->object->restrictflag &= ~OB_RESTRICT_VIEW;
 
 	if (event) {

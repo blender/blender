@@ -425,6 +425,32 @@ ScrArea *BKE_screen_find_big_area(bScreen *sc, const int spacetype, const short 
 	return big;
 }
 
+/**
+ * Utility function to get the active layer to use when adding new objects.
+ */
+unsigned int BKE_screen_view3d_layer_active_ex(const View3D *v3d, const Scene *scene, bool use_localvd)
+{
+	unsigned int lay;
+	if ((v3d == NULL) || (v3d->scenelock && !v3d->localvd)) {
+		lay = scene->layact;
+	}
+	else {
+		lay = v3d->layact;
+	}
+
+	if (use_localvd) {
+		if (v3d && v3d->localvd) {
+			lay |= v3d->lay;
+		}
+	}
+
+	return lay;
+}
+unsigned int BKE_screen_view3d_layer_active(const struct View3D *v3d, const struct Scene *scene)
+{
+	return BKE_screen_view3d_layer_active_ex(v3d, scene, true);
+}
+
 void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
 {
 	int bit;
