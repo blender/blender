@@ -2323,8 +2323,11 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	object = (obinvmat*(viewinvmat*vec4(I, 1.0))).xyz;
 	camera = I;
 	window = gl_FragCoord.xyz;
-	reflection = reflect(N, I);
 
+	vec3 shade_I;
+	shade_view(I, shade_I);
+	vec3 view_reflection = reflect(shade_I, normalize(N));
+	reflection = (viewinvmat*vec4(view_reflection, 0.0)).xyz;
 }
 
 /* textures */
