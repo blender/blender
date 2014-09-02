@@ -97,7 +97,11 @@ enum {
 	EKEY            = 0x0065,  /* 'e' */
 	FKEY            = 0x0066,  /* 'f' */
 	GKEY            = 0x0067,  /* 'g' */
+#ifndef _MSC_VER
 	HKEY            = 0x0068,  /* 'h' */
+#else
+#define HKEY 0x0068
+#endif
 	IKEY            = 0x0069,  /* 'i' */
 	JKEY            = 0x006a,  /* 'j' */
 	KKEY            = 0x006b,  /* 'k' */
