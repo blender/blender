@@ -1211,7 +1211,12 @@ void mtex_mapping_size(vec3 texco, vec3 size, out vec3 outtexco)
 
 void mtex_2d_mapping(vec3 vec, out vec3 outvec)
 {
-	outvec = vec3(vec.xy*0.5 + vec2(0.5, 0.5), vec.z);
+	outvec = vec3(vec.xy*0.5 + vec2(0.5), vec.z);
+}
+
+vec3 mtex_2d_mapping(vec3 vec)
+{
+	return vec3(vec.xy*0.5 + vec2(0.5), vec.z);
 }
 
 void mtex_image(vec3 texco, sampler2D ima, out float value, out vec4 color)
@@ -2317,13 +2322,13 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
 	out vec3 camera, out vec3 window, out vec3 reflection)
 {
-	generated = attr_orco * 0.5 + vec3(0.5);
+	generated = mtex_2d_mapping(attr_orco);
 	normal = normalize((obinvmat*(viewinvmat*vec4(N, 0.0))).xyz);
 	uv = attr_uv;
 	object = (obinvmat*(viewinvmat*vec4(I, 1.0))).xyz;
 	camera = I;
-        vec4 projvec = gl_ProjectionMatrix * vec4(I, 1.0);
-	window = (projvec.xyz/projvec.w)*0.5 + vec3(0.5);
+	vec4 projvec = gl_ProjectionMatrix * vec4(I, 1.0);
+	window = mtex_2d_mapping(projvec.xyz/projvec.w);
 
 	vec3 shade_I;
 	shade_view(I, shade_I);
