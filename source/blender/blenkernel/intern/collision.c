@@ -1065,116 +1065,6 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 					cloth1->verts[collpair->ap1].impulse[i] = impulse[i];
 			}
 		}
-
-#if 0
-		/* If v_n_mag < 0 the edges are approaching each other. */
-		if ( magrelVel > ALMOST_ZERO ) {
-			/* Calculate Impulse magnitude to stop all motion in normal direction. */
-			float magtangent = 0, repulse = 0, d = 0;
-			double impulse = 0.0;
-			float vrel_t_pre[3];
-			float temp[3], spf;
-
-			/* calculate tangential velocity */
-			copy_v3_v3 ( temp, collpair->normal );
-			mul_v3_fl(temp, magrelVel);
-			sub_v3_v3v3(vrel_t_pre, relativeVelocity, temp);
-
-			/* Decrease in magnitude of relative tangential velocity due to coulomb friction
-			 * in original formula "magrelVel" should be the "change of relative velocity in normal direction" */
-			magtangent = min_ff(clmd->coll_parms->friction * 0.01f * magrelVel, len_v3(vrel_t_pre));
-
-			/* Apply friction impulse. */
-			if ( magtangent > ALMOST_ZERO ) {
-				normalize_v3(vrel_t_pre);
-
-				impulse = magtangent / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); /* 2.0 * */
-				VECADDMUL ( i1, vrel_t_pre, w1 * impulse );
-				VECADDMUL ( i2, vrel_t_pre, w2 * impulse );
-				VECADDMUL ( i3, vrel_t_pre, w3 * impulse );
-			}
-
-			/* Apply velocity stopping impulse
-			 * I_c = m * v_N / 2.0
-			 * no 2.0 * magrelVel normally, but looks nicer DG */
-			impulse =  magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3 );
-
-			VECADDMUL ( i1, collpair->normal, w1 * impulse );
-			cloth1->verts[collpair->ap1].impulse_count++;
-
-			VECADDMUL ( i2, collpair->normal, w2 * impulse );
-			cloth1->verts[collpair->ap2].impulse_count++;
-
-			VECADDMUL ( i3, collpair->normal, w3 * impulse );
-			cloth1->verts[collpair->ap3].impulse_count++;
-
-			/* Apply repulse impulse if distance too short
-			 * I_r = -min(dt*kd, m(0, 1d/dt - v_n))
-			 * DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:
-			 * v += impulse; x_new = x + v;
-			 * We don't use dt!!
-			 * DG TODO: Fix usage of dt here! */
-			spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
-
-			d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
-			if ( ( magrelVel < 0.1f*d*spf ) && ( d > ALMOST_ZERO ) ) {
-				repulse = MIN2 ( d*1.0f/spf, 0.1f*d*spf - magrelVel );
-
-				/* stay on the safe side and clamp repulse */
-				if ( impulse > ALMOST_ZERO )
-					repulse = min_ff( repulse, 5.0*impulse );
-				repulse = max_ff(impulse, repulse);
-
-				impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); /* original 2.0 / 0.25 */
-				VECADDMUL ( i1, collpair->normal,  impulse );
-				VECADDMUL ( i2, collpair->normal,  impulse );
-				VECADDMUL ( i3, collpair->normal,  impulse );
-			}
-
-			result = 1;
-		}
-		else {
-			/* Apply repulse impulse if distance too short
-			 * I_r = -min(dt*kd, max(0, 1d/dt - v_n))
-			 * DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:
-			 * v += impulse; x_new = x + v;
-			 * We don't use dt!! */
-			float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
-
-			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - (float)collpair->distance;
-			if ( d > ALMOST_ZERO) {
-				/* stay on the safe side and clamp repulse */
-				float repulse = d*1.0f/spf;
-
-				float impulse = repulse / ( 3.0f * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); /* original 2.0 / 0.25 */
-
-				VECADDMUL ( i1, collpair->normal,  impulse );
-				VECADDMUL ( i2, collpair->normal,  impulse );
-				VECADDMUL ( i3, collpair->normal,  impulse );
-
-				cloth1->verts[collpair->ap1].impulse_count++;
-				cloth1->verts[collpair->ap2].impulse_count++;
-				cloth1->verts[collpair->ap3].impulse_count++;
-
-				result = 1;
-			}
-		}
-
-		if (result) {
-			int i = 0;
-
-			for (i = 0; i < 3; i++) {
-				if (cloth1->verts[collpair->ap1].impulse_count > 0 && ABS(cloth1->verts[collpair->ap1].impulse[i]) < ABS(i1[i]))
-					cloth1->verts[collpair->ap1].impulse[i] = i1[i];
-
-				if (cloth1->verts[collpair->ap2].impulse_count > 0 && ABS(cloth1->verts[collpair->ap2].impulse[i]) < ABS(i2[i]))
-					cloth1->verts[collpair->ap2].impulse[i] = i2[i];
-
-				if (cloth1->verts[collpair->ap3].impulse_count > 0 && ABS(cloth1->verts[collpair->ap3].impulse[i]) < ABS(i3[i]))
-					cloth1->verts[collpair->ap3].impulse[i] = i3[i];
-			}
-		}
-#endif
 	}
 	return result;
 }
@@ -1210,7 +1100,12 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	collpair->bp2 = bp2;
 	collpair->bp3 = bp3;
 	
-	copy_v3_v3(collpair->pa, p1);
+	/* note: using the second point here, which is
+	 * the current updated position that needs to be corrected
+	 */
+	copy_v3_v3(collpair->pa, p2);
+	collpair->distance = dot_v3v3(fnor, vec) * lambda;
+	
 	w[0] = 1.0f - uv[0] - uv[1];
 	w[1] = uv[0];
 	w[2] = uv[1];
@@ -1220,7 +1115,6 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	 * it would probably not work with collision response
 	 */
 	copy_v3_v3(collpair->normal, fnor);
-	collpair->distance = -dot_v3v3(fnor, vec) * (1.0f - lambda);
 	copy_v3_v3(collpair->vector, vec);
 	collpair->time = lambda;
 	collpair->flag = 0;
@@ -1238,7 +1132,7 @@ static CollPair* cloth_point_collision(ModifierData *md1, ModifierData *md2,
 	/* Cloth *cloth = clmd->clothObject; */ /* UNUSED */
 	ClothVertex *vert = NULL;
 	MFace *face = NULL;
-	MVert *mverts = collmd->xnew;
+	MVert *mverts = collmd->current_x;
 
 	vert = &clmd->clothObject->verts[overlap->indexA];
 	face = &collmd->mfaces[overlap->indexB];
