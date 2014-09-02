@@ -815,7 +815,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, BMOpSlot slot_
 {
 	BMOpSlot *output = BMO_slot_get(slot_args, slot_name);
 	int totelement = 0, i = 0;
-	const bool respecthide = (op->flag & BMO_FLAG_RESPECT_HIDE) != 0;
+	const bool respecthide = ((op->flag & BMO_FLAG_RESPECT_HIDE) != 0) && ((hflag & BM_ELEM_HIDDEN) == 0);
 
 	BLI_assert(output->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 	BLI_assert(((output->slot_subtype.elem & BM_ALL_NOLOOP) & htype) == htype);

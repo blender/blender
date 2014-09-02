@@ -51,6 +51,15 @@
 
 #define CONNECT_EPS 0.0001f
 #define VERT_OUT 1
+#define VERT_EXCLUDE 2
+
+/* typically hidden faces */
+#define FACE_EXCLUDE 2
+
+#define FACE_WALK_TEST(f)  (CHECK_TYPE_INLINE(f, BMFace *), \
+	BMO_elem_flag_test(pc->bm_bmoflag, f, FACE_EXCLUDE) == 0)
+#define VERT_WALK_TEST(v)  (CHECK_TYPE_INLINE(v, BMVert *), \
+	BMO_elem_flag_test(pc->bm_bmoflag, v, VERT_EXCLUDE) == 0)
 
 // #define DEBUG_PRINT
 
@@ -58,6 +67,9 @@ typedef struct PathContext {
 	ListBase state_lb;
 	float matrix[3][3];
 	float axis_sep;
+
+	/* only to access BMO flags */
+	BMesh *bm_bmoflag;
 
 	BMVert *v_a, *v_b;
 
@@ -204,8 +216,9 @@ static void state_link_add(PathContext *pc, PathLinkState *state,
 	state->link_last = step_new;
 }
 
-static PathLinkState *state_dupe_add(PathContext *pc,
-                                     PathLinkState *state, const PathLinkState *state_orig)
+static PathLinkState *state_dupe_add(
+        PathContext *pc,
+        PathLinkState *state, const PathLinkState *state_orig)
 {
 	state = MEM_mallocN(sizeof(*state), __func__);
 	*state = *state_orig;
@@ -214,16 +227,19 @@ static PathLinkState *state_dupe_add(PathContext *pc,
 }
 
 /* walk around the face edges */
-static PathLinkState *state_step__face_edges(PathContext *pc,
-                                             PathLinkState *state, const PathLinkState *state_orig,
-                                             BMLoop *l_iter, BMLoop *l_last)
+static PathLinkState *state_step__face_edges(
+        PathContext *pc,
+        PathLinkState *state, const PathLinkState *state_orig,
+        BMLoop *l_iter, BMLoop *l_last)
 {
 	do {
 		if (state_isect_co_pair(pc, l_iter->v->co, l_iter->next->v->co)) {
 			BMElem *ele_next      = (BMElem *)l_iter->e;
 			BMElem *ele_next_from = (BMElem *)l_iter->f;
 
-			if (state_link_find(state, ele_next) == false) {
+			if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
+			    (state_link_find(state, ele_next) == false))
+			{
 				if (state_orig->link_last != state->link_last) {
 					state = state_dupe_add(pc, state, state_orig);
 				}
@@ -235,16 +251,19 @@ static PathLinkState *state_step__face_edges(PathContext *pc,
 }
 
 /* walk around the face verts */
-static PathLinkState *state_step__face_verts(PathContext *pc,
-                                             PathLinkState *state, const PathLinkState *state_orig,
-                                             BMLoop *l_iter, BMLoop *l_last)
+static PathLinkState *state_step__face_verts(
+        PathContext *pc,
+        PathLinkState *state, const PathLinkState *state_orig,
+        BMLoop *l_iter, BMLoop *l_last)
 {
 	do {
 		if (state_isect_co_exact(pc, l_iter->v->co)) {
 			BMElem *ele_next      = (BMElem *)l_iter->v;
 			BMElem *ele_next_from = (BMElem *)l_iter->f;
 
-			if (state_link_find(state, ele_next) == false) {
+			if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
+			    state_link_find(state, ele_next) == false)
+			{
 				if (state_orig->link_last != state->link_last) {
 					state = state_dupe_add(pc, state, state_orig);
 				}
@@ -268,7 +287,9 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 		BMLoop *l_start;
 
 		BM_ITER_ELEM (l_start, &liter, e, BM_LOOPS_OF_EDGE) {
-			if (l_start->f != ele_from) {
+			if ((l_start->f != ele_from) &&
+			    FACE_WALK_TEST(l_start->f))
+			{
 				/* very similar to block below */
 				if (BM_vert_in_face(l_start->f, pc->v_b)) {
 					if (state_orig.link_last != state->link_last) {
@@ -295,7 +316,9 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 			BMLoop *l_start;
 
 			BM_ITER_ELEM (l_start, &liter, v, BM_LOOPS_OF_VERT) {
-				if (l_start->f != ele_from) {
+				if ((l_start->f != ele_from) &&
+				    FACE_WALK_TEST(l_start->f))
+				{
 					/* very similar to block above */
 					if (BM_vert_in_face(l_start->f, pc->v_b)) {
 						BMElem *ele_next      = (BMElem *)pc->v_b;
@@ -324,8 +347,10 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 			BMIter eiter;
 			BMEdge *e;
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				if ((BMElem *)e != ele_from) {
-					BMVert *v_other = BM_edge_other_vert(e, v);
+				BMVert *v_other = BM_edge_other_vert(e, v);
+				if (((BMElem *)e != ele_from) &&
+				    VERT_WALK_TEST(v_other))
+				{
 					if (v_other == pc->v_b) {
 						BMElem *ele_next      = (BMElem *)pc->v_b;
 						BMElem *ele_next_from = (BMElem *)e;
@@ -371,6 +396,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		return;
 	}
 
+	pc.bm_bmoflag = bm;
 	pc.v_a = ((BMVert **)op_verts_slot->data.p)[0];
 	pc.v_b = ((BMVert **)op_verts_slot->data.p)[1];
 
@@ -383,6 +409,10 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	printf("%s: v_a: %d\n", __func__, BM_elem_index_get(pc.v_a));
 	printf("%s: v_b: %d\n", __func__, BM_elem_index_get(pc.v_b));
 #endif
+
+	/* tag so we won't touch ever (typically hidden faces) */
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces_exclude", BM_FACE, FACE_EXCLUDE);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts_exclude", BM_VERT, VERT_EXCLUDE);
 
 	/* setup context */
 	{
@@ -536,7 +566,8 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		 * always connect even when resulting faces are degenerate [#39418] */
 		BMOperator op_sub;
 		BMO_op_initf(bm, &op_sub, 0,
-		             "connect_verts verts=%fv", VERT_OUT);
+		             "connect_verts verts=%fv faces_exclude=%s",
+		             VERT_OUT, op, "faces_exclude");
 		BMO_op_exec(bm, &op_sub);
 		BMO_slot_copy(&op_sub, slots_out, "edges.out",
 		              op,      slots_out, "edges.out");

@@ -881,12 +881,18 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 	int len;
 	
 	if (is_pair) {
-		if (!EDBM_op_init(em, &bmop, op, "connect_vert_pair verts=%hv", BM_ELEM_SELECT)) {
+		if (!EDBM_op_init(em, &bmop, op,
+		                  "connect_vert_pair verts=%hv verts_exclude=%hv faces_exclude=%hf",
+		                  BM_ELEM_SELECT, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
+		{
 			return OPERATOR_CANCELLED;
 		}
 	}
 	else {
-		if (!EDBM_op_init(em, &bmop, op, "connect_verts verts=%hv check_degenerate=%b", BM_ELEM_SELECT, true)) {
+		if (!EDBM_op_init(em, &bmop, op,
+		                  "connect_verts verts=%hv faces_exclude=%hf check_degenerate=%b",
+		                  BM_ELEM_SELECT, BM_ELEM_HIDDEN, true))
+		{
 			return OPERATOR_CANCELLED;
 		}
 	}

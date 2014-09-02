@@ -36,8 +36,14 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 #define VERT_INPUT	1
+
 #define EDGE_OUT	1
-#define FACE_TAG	2
+/* Edge spans 2 VERT_INPUT's, its a nop,
+ * but include in "edges.out" */
+#define EDGE_OUT_ADJ	2
+
+#define FACE_TAG		2
+#define FACE_EXCLUDE	4
 
 static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenerate)
 {
@@ -134,7 +140,6 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
-	BMIter iter;
 	BMVert *v;
 	BMFace *f;
 	const bool check_degenerate = BMO_slot_bool_get(op->slots_in,  "check_degenerate");
@@ -142,15 +147,34 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 
 	BLI_LINKSTACK_INIT(faces);
 
+	/* tag so we won't touch ever (typically hidden faces) */
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces_exclude", BM_FACE, FACE_EXCLUDE);
+
 	/* add all faces connected to verts */
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
+		BMIter iter;
+		BMLoop *l_iter;
+
 		BMO_elem_flag_enable(bm, v, VERT_INPUT);
-		BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
-			if (!BMO_elem_flag_test(bm, f, FACE_TAG)) {
-				BMO_elem_flag_enable(bm, f, FACE_TAG);
-				if (f->len > 3) {
-					BLI_LINKSTACK_PUSH(faces, f);
+		BM_ITER_ELEM (l_iter, &iter, v, BM_LOOPS_OF_VERT) {
+			f = l_iter->f;
+			if (!BMO_elem_flag_test(bm, f, FACE_EXCLUDE)) {
+				if (!BMO_elem_flag_test(bm, f, FACE_TAG)) {
+					BMO_elem_flag_enable(bm, f, FACE_TAG);
+					if (f->len > 3) {
+						BLI_LINKSTACK_PUSH(faces, f);
+					}
 				}
+			}
+
+			/* flag edges even if these are not newly created
+			 * this way cut-pairs that include co-linear edges will get
+			 * predictable output. */
+			if (BMO_elem_flag_test(bm, l_iter->prev->v, VERT_INPUT)) {
+				BMO_elem_flag_enable(bm, l_iter->prev->e, EDGE_OUT_ADJ);
+			}
+			if (BMO_elem_flag_test(bm, l_iter->next->v, VERT_INPUT)) {
+				BMO_elem_flag_enable(bm, l_iter->e, EDGE_OUT_ADJ);
 			}
 		}
 	}
@@ -164,5 +188,5 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 
 	BLI_LINKSTACK_FREE(faces);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT | EDGE_OUT_ADJ);
 }
