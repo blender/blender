@@ -45,13 +45,13 @@ ccl_device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint f
 		}
 		case NODE_CONVERT_VF: {
 			float3 f = stack_load_float3(stack, from);
-			float g = (f.x + f.y + f.z)*(1.0f/3.0f);
+			float g = average(f);
 			stack_store_float(stack, to, g);
 			break;
 		}
 		case NODE_CONVERT_VI: {
 			float3 f = stack_load_float3(stack, from);
-			int i = (int)((f.x + f.y + f.z)*(1.0f/3.0f));
+			int i = (int)average(f);
 			stack_store_int(stack, to, i);
 			break;
 		}
