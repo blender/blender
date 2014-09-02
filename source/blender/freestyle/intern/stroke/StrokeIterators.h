@@ -171,6 +171,18 @@ public:
 		return _it == _begin;
 	}
 
+	/*! Returns true if the pointed StrokeVertex is the final valid StrokeVertex of the Stroke. */
+	bool atLast()
+	{
+		if (_it == _end)
+			return false;
+
+		++_it;
+		bool result = (_it == _end);
+		--_it;
+		return result;
+	}
+
 	/*! Returns true if the pointed StrokeVertex is after the last StrokeVertex of the Stroke. */
 	bool isEnd() const
 	{

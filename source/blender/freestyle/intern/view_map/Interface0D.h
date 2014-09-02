@@ -302,6 +302,18 @@ public:
 		return _iterator->isEnd();
 	}
 
+	/*! Returns true when the iterator is pointing to the final valid element. */
+	virtual bool atLast() const
+	{
+		if (_iterator->isEnd())
+			return false;
+
+		_iterator->increment();
+		bool result = _iterator->isEnd();
+		_iterator->decrement();
+		return result;
+	}
+
 	/*! operator == . */
 	bool operator==(const Interface0DIterator& it) const
 	{

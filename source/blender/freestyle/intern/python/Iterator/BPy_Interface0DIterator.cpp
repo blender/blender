@@ -120,19 +120,14 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 		self->if0D_it->decrement();
 	}
 	else {
-		if (self->if0D_it->isEnd()) {
+		if (self->if0D_it->atLast() || self->if0D_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
 		if (self->at_start)
 			self->at_start = false;
-		else {
+		else
 			self->if0D_it->increment();
-			if (self->if0D_it->isEnd()) {
-				PyErr_SetNone(PyExc_StopIteration);
-				return NULL;
-			}
-		}
 	}
 	Interface0D *if0D = self->if0D_it->operator->();
 	return Any_BPy_Interface0D_from_Interface0D(*if0D);
@@ -177,11 +172,24 @@ static PyObject *Interface0DIterator_u_get(BPy_Interface0DIterator *self, void *
 	return PyFloat_FromDouble(self->if0D_it->u());
 }
 
+PyDoc_STRVAR(Interface0DIterator_at_last_doc,
+"True if the interator points to the last valid element.\n"
+"For its counterpart (pointing to the first valid element), use it.is_begin.\n"
+"\n"
+":type: bool");
+
+static PyObject *Interface0DIterator_at_last_get(BPy_Interface0DIterator *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->if0D_it->atLast());
+}
+
 static PyGetSetDef BPy_Interface0DIterator_getseters[] = {
 	{(char *)"object", (getter)Interface0DIterator_object_get, (setter)NULL,
 	                   (char *)Interface0DIterator_object_doc, NULL},
 	{(char *)"t", (getter)Interface0DIterator_t_get, (setter)NULL, (char *)Interface0DIterator_t_doc, NULL},
 	{(char *)"u", (getter)Interface0DIterator_u_get, (setter)NULL, (char *)Interface0DIterator_u_doc, NULL},
+	{(char *)"at_last", (getter)Interface0DIterator_at_last_get, (setter)NULL,
+	                    (char *)Interface0DIterator_at_last_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
