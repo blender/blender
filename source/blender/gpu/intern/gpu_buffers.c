@@ -63,12 +63,12 @@
 #include "bmesh.h"
 
 typedef enum {
-	GPU_BUFFER_VERTEX_STATE = 1,
-	GPU_BUFFER_NORMAL_STATE = 2,
-	GPU_BUFFER_TEXCOORD_UNIT_0_STATE = 4,
-	GPU_BUFFER_TEXCOORD_UNIT_1_STATE = 8,
-	GPU_BUFFER_COLOR_STATE = 16,
-	GPU_BUFFER_ELEMENT_STATE = 32,
+	GPU_BUFFER_VERTEX_STATE = (1 << 0),
+	GPU_BUFFER_NORMAL_STATE = (1 << 1),
+	GPU_BUFFER_TEXCOORD_UNIT_0_STATE = (1 << 2),
+	GPU_BUFFER_TEXCOORD_UNIT_2_STATE = (1 << 3),
+	GPU_BUFFER_COLOR_STATE = (1 << 4),
+	GPU_BUFFER_ELEMENT_STATE = (1 << 5),
 } GPUBufferState;
 
 #define MAX_GPU_ATTRIB_DATA 32
@@ -1159,20 +1159,20 @@ void GPU_texpaint_uv_setup(DerivedMesh *dm)
 	if (useVBOs) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->uv->id);
 		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), 0);
-		glClientActiveTexture(GL_TEXTURE1);
+		glClientActiveTexture(GL_TEXTURE2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), BUFFER_OFFSET(2 * sizeof(float)));
 		glClientActiveTexture(GL_TEXTURE0);
 	}
 	else {
 		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), dm->drawObject->uv->pointer);
-		glClientActiveTexture(GL_TEXTURE1);
+		glClientActiveTexture(GL_TEXTURE2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (char *)dm->drawObject->uv->pointer + 2 * sizeof(float));
 		glClientActiveTexture(GL_TEXTURE0);
 	}
 
-	GLStates |= GPU_BUFFER_TEXCOORD_UNIT_0_STATE | GPU_BUFFER_TEXCOORD_UNIT_1_STATE;
+	GLStates |= GPU_BUFFER_TEXCOORD_UNIT_0_STATE | GPU_BUFFER_TEXCOORD_UNIT_2_STATE;
 }
 
 
@@ -1335,8 +1335,8 @@ void GPU_buffer_unbind(void)
 		glDisableClientState(GL_NORMAL_ARRAY);
 	if (GLStates & GPU_BUFFER_TEXCOORD_UNIT_0_STATE)
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	if (GLStates & GPU_BUFFER_TEXCOORD_UNIT_1_STATE) {
-		glClientActiveTexture(GL_TEXTURE1);
+	if (GLStates & GPU_BUFFER_TEXCOORD_UNIT_2_STATE) {
+		glClientActiveTexture(GL_TEXTURE2);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glClientActiveTexture(GL_TEXTURE0);
 	}
@@ -1348,7 +1348,7 @@ void GPU_buffer_unbind(void)
 		}
 	}
 	GLStates &= ~(GPU_BUFFER_VERTEX_STATE | GPU_BUFFER_NORMAL_STATE |
-	              GPU_BUFFER_TEXCOORD_UNIT_0_STATE | GPU_BUFFER_TEXCOORD_UNIT_1_STATE |
+	              GPU_BUFFER_TEXCOORD_UNIT_0_STATE | GPU_BUFFER_TEXCOORD_UNIT_2_STATE |
 	              GPU_BUFFER_COLOR_STATE | GPU_BUFFER_ELEMENT_STATE);
 
 	for (i = 0; i < MAX_GPU_ATTRIB_DATA; i++) {

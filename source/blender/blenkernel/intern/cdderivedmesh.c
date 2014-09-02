@@ -802,7 +802,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 
 				glBegin(mf->v4 ? GL_QUADS : GL_TRIANGLES);
 				if (tf) glTexCoord2fv(tf->uv[0]);
-				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[0]);
+				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[0]);
 				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 				mvert = &mv[mf->v1];
 				if (lnors) glNormal3sv((const GLshort *)lnors[0][0]);
@@ -810,7 +810,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				glVertex3fv(mvert->co);
 
 				if (tf) glTexCoord2fv(tf->uv[1]);
-				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[1]);
+				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[1]);
 				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				mvert = &mv[mf->v2];
 				if (lnors) glNormal3sv((const GLshort *)lnors[0][1]);
@@ -818,7 +818,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				glVertex3fv(mvert->co);
 
 				if (tf) glTexCoord2fv(tf->uv[2]);
-				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[2]);
+				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[2]);
 				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 				mvert = &mv[mf->v3];
 				if (lnors) glNormal3sv((const GLshort *)lnors[0][2]);
@@ -827,7 +827,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 
 				if (mf->v4) {
 					if (tf) glTexCoord2fv(tf->uv[3]);
-					if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE1, tf->uv[3]);
+					if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[3]);
 					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 					mvert = &mv[mf->v4];
 					if (lnors) glNormal3sv((const GLshort *)lnors[0][3]);

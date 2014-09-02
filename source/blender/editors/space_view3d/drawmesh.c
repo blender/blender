@@ -214,16 +214,14 @@ static struct TextureDrawState {
 	Object *ob;
 	Image *stencil; /* texture painting stencil */
 	Image *canvas;  /* texture painting canvas, for image mode */
-	bool stencil_invert;
 	bool use_game_mat;
 	int is_lit, is_tex;
 	int color_profile;
 	bool use_backface_culling;
 	unsigned char obcol[4];
-	float stencil_col[4];
 	bool is_texpaint;
 	bool texpaint_material; /* use material slots for texture painting */
-} Gtexdraw = {NULL, NULL, NULL, false, false, 0, 0, 0, false, {0, 0, 0, 0}, {0.0f, 0.0f, 0.0f, 1.0f}, false, false};
+} Gtexdraw = {NULL, NULL, NULL, false, 0, 0, 0, false, {0, 0, 0, 0}, false, false};
 
 static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
 {
@@ -308,14 +306,24 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 				c_badtex = false;
 				if (GPU_verify_image(ima, NULL, 0, 1, 0, false)) {
 					glEnable(GL_TEXTURE_2D);
-					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+					
+					glActiveTexture(GL_TEXTURE1);
+					glEnable(GL_TEXTURE_2D);
+					glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+					glActiveTexture(GL_TEXTURE0);					
 				}
 				else {
+					glActiveTexture(GL_TEXTURE1);
+					glDisable(GL_TEXTURE_2D);
+					glBindTexture(GL_TEXTURE_2D, 0);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+					glActiveTexture(GL_TEXTURE0);									
+
 					c_badtex = true;
 					GPU_clear_tpage(true);
 					glDisable(GL_TEXTURE_2D);
-					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 					glBindTexture(GL_TEXTURE_2D, 0);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 				}
 			}
 			else {
@@ -396,35 +404,51 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 
 	Gtexdraw.ob = ob;
 	Gtexdraw.stencil = (imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) ? imapaint->stencil : NULL;
-	Gtexdraw.stencil_invert = ((imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) != 0);
 	Gtexdraw.is_texpaint = (ob->mode == OB_MODE_TEXTURE_PAINT);
-	copy_v3_v3(Gtexdraw.stencil_col, imapaint->stencil_col);
 	Gtexdraw.texpaint_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 	Gtexdraw.canvas = (Gtexdraw.texpaint_material) ? NULL : imapaint->canvas;
 	Gtexdraw.is_tex = is_tex;
 
-	/* load the stencil texture here */
-	if (Gtexdraw.is_texpaint && (Gtexdraw.stencil != NULL)) {
+	/* naughty multitexturing hacks to quickly support stencil + shading + alpha blending 
+	 * in new texpaint code. The better solution here would be to support GLSL */
+	if (Gtexdraw.is_texpaint) {			
 		glActiveTexture(GL_TEXTURE1);
-		if (GPU_verify_image(Gtexdraw.stencil, NULL, false, false, false, false)) {
-			glEnable(GL_TEXTURE_2D);
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB, GL_TEXTURE);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Gtexdraw.stencil_col);
-			if (!Gtexdraw.stencil_invert) {
-				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_ONE_MINUS_SRC_COLOR);
-			}
-			else {
-				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
+		glEnable(GL_TEXTURE_2D);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_PRIMARY_COLOR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB, GL_TEXTURE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);
+		
+		/* load the stencil texture here */
+		if (Gtexdraw.stencil != NULL) {
+			glActiveTexture(GL_TEXTURE2);
+			if (GPU_verify_image(Gtexdraw.stencil, NULL, false, false, false, false)) {
+				float col[4] = {imapaint->stencil_col[0], imapaint->stencil_col[1], imapaint->stencil_col[2], 1.0f};
+				glEnable(GL_TEXTURE_2D);
+				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_CONSTANT);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB, GL_TEXTURE);
+				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_TEXTURE);
+				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
+				if ((imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) == 0) {
+					glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_ONE_MINUS_SRC_COLOR);
+				}
+				else {
+					glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
+				}
 			}
 		}
 		glActiveTexture(GL_TEXTURE0);
 	}
-
+	
 	Gtexdraw.color_profile = BKE_scene_check_color_management_enabled(scene);
 	Gtexdraw.use_game_mat = (RE_engines_find(scene->r.engine)->flag & RE_GAME) != 0;
 	Gtexdraw.use_backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING) != 0;
@@ -439,14 +463,20 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 static void draw_textured_end(void)
 {
 	if (Gtexdraw.ob->mode & OB_MODE_TEXTURE_PAINT) {
+		glActiveTexture(GL_TEXTURE1);
+		glDisable(GL_TEXTURE_2D);
+		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		if (Gtexdraw.stencil != NULL) {
-			glActiveTexture(GL_TEXTURE1);
+			glActiveTexture(GL_TEXTURE2);
 			glDisable(GL_TEXTURE_2D);
 			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glBindTexture(GL_TEXTURE_2D, 0);
-			glActiveTexture(GL_TEXTURE0);
 		}		
+		glActiveTexture(GL_TEXTURE0);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		/* manual reset, since we don't use tpage */
 		glBindTexture(GL_TEXTURE_2D, 0);
