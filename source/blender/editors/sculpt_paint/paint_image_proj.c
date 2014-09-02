@@ -4933,6 +4933,7 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 					BKE_image_signal(ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 					WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, mtex->tex);
 					WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
+					DAG_id_tag_update(&ma->id, 0);
 					ED_area_tag_redraw(CTX_wm_area(C));
 				}
 
