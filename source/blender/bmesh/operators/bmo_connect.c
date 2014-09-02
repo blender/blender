@@ -47,49 +47,57 @@
 
 static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenerate)
 {
-	BMLoop *(*loops_split)[2] = BLI_array_alloca(loops_split, f->len);
+	const unsigned pair_split_max = f->len / 2;
+	BMLoop *(*loops_split)[2] = BLI_array_alloca(loops_split, pair_split_max);
 	STACK_DECLARE(loops_split);
-	BMVert *(*verts_pair)[2] = BLI_array_alloca(verts_pair, f->len);
+	BMVert *(*verts_pair)[2] = BLI_array_alloca(verts_pair, pair_split_max);
 	STACK_DECLARE(verts_pair);
 
-	BMIter liter;
-	BMFace *f_new;
-	BMLoop *l;
-	BMLoop *l_last;
+	BMLoop *l_tag_prev = NULL, *l_tag_first = NULL;
+	BMLoop *l_iter, *l_first;
 	unsigned int i;
 
-	STACK_INIT(loops_split, f->len);
-	STACK_INIT(verts_pair, f->len);
+	STACK_INIT(loops_split, pair_split_max);
+	STACK_INIT(verts_pair, pair_split_max);
 
-	l_last = NULL;
-	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		if (BMO_elem_flag_test(bm, l->v, VERT_INPUT)) {
-			if (!l_last) {
-				l_last = l;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (BMO_elem_flag_test(bm, l_iter->v, VERT_INPUT) &&
+		    /* ensure this vertex isnt part of a contiguous group */
+		    ((BMO_elem_flag_test(bm, l_iter->prev->v, VERT_INPUT) == 0) ||
+		     (BMO_elem_flag_test(bm, l_iter->next->v, VERT_INPUT) == 0)))
+		{
+			if (!l_tag_prev) {
+				l_tag_prev = l_tag_first = l_iter;
 				continue;
 			}
 
-			if (!BM_loop_is_adjacent(l_last, l)) {
+			if (!BM_loop_is_adjacent(l_tag_prev, l_iter)) {
 				BMEdge *e;
-				e = BM_edge_exists(l_last->v, l->v);
+				e = BM_edge_exists(l_tag_prev->v, l_iter->v);
 				if (e == NULL || !BMO_elem_flag_test(bm, e, EDGE_OUT)) {
 					BMLoop **l_pair = STACK_PUSH_RET(loops_split);
-					l_pair[0] = l_last;
-					l_pair[1] = l;
+					l_pair[0] = l_tag_prev;
+					l_pair[1] = l_iter;
 				}
 			}
-			l_last = l;
+
+			l_tag_prev = l_iter;
 		}
-	}
+	} while ((l_iter = l_iter->next) != l_first);
 
 	if (STACK_SIZE(loops_split) == 0) {
 		return 0;
 	}
 
-	if (STACK_SIZE(loops_split) > 1) {
+	if (!BM_loop_is_adjacent(l_tag_first, l_tag_prev) &&
+	    /* ensure we don't add the same pair twice */
+	    (((loops_split[0][0] == l_tag_first) &&
+	      (loops_split[0][1] == l_tag_prev)) == 0))
+	{
 		BMLoop **l_pair = STACK_PUSH_RET(loops_split);
-		l_pair[0] = loops_split[STACK_SIZE(loops_split) - 2][1];
-		l_pair[1] = loops_split[0][0];
+		l_pair[0] = l_tag_first;
+		l_pair[1] = l_tag_prev;
 	}
 
 	if (check_degenerate) {
@@ -111,6 +119,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 	}
 
 	for (i = 0; i < STACK_SIZE(verts_pair); i++) {
+		BMFace *f_new;
 		BMLoop *l_new;
 		BMLoop *l_a, *l_b;
 
