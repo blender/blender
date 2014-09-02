@@ -1010,10 +1010,10 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 
 		/**** DEBUG ****/
 		if (clmd->debug_data) {
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0.9, 0.2, 0.2, hash_collpair(833, collpair));
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 0.2, 0.9, 0.2, hash_collpair(834, collpair));
-			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.8, 0.8, 0.8, hash_collpair(835, collpair));
-			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, collpair->normal, 1.0, 1.0, 0.0, hash_collpair(836, collpair));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0.9, 0.2, 0.2, "collision", hash_collpair(833, collpair));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 0.2, 0.9, 0.2, "collision", hash_collpair(834, collpair));
+			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.8, 0.8, 0.8, "collision", hash_collpair(835, collpair));
+//			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, collpair->normal, 1.0, 1.0, 0.0, "collision", hash_collpair(836, collpair));
 		}
 		/********/
 
@@ -1046,15 +1046,9 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 				copy_v3_v3(impulse, repulse);
 			}
 			cloth1->verts[collpair->ap1].impulse_count++;
-			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, impulse, 0.0, 1.0, 0.6, hash_collpair(873, collpair));
+			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, impulse, 0.0, 1.0, 0.6, "collision", hash_collpair(873, collpair));
 			
 			result = true;
-		}
-		else {
-			BKE_sim_debug_data_remove(clmd->debug_data, hash_collpair(833, collpair));
-			BKE_sim_debug_data_remove(clmd->debug_data, hash_collpair(834, collpair));
-			BKE_sim_debug_data_remove(clmd->debug_data, hash_collpair(835, collpair));
-			BKE_sim_debug_data_remove(clmd->debug_data, hash_collpair(873, collpair));
 		}
 		
 		if (result) {

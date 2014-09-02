@@ -1959,6 +1959,8 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	/*float (*initial_cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "initial_cos implicit.c");*/ /* UNUSED */
 	Implicit_Data *id = cloth->implicit;
 
+	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
+
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
 		
 		/* Update vertex constraints for pinned vertices */
@@ -1975,7 +1977,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	
 	if (clmd->debug_data) {
 		for (i = 0; i < numverts; i++) {
-			BKE_sim_debug_data_add_dot(clmd->debug_data, verts[i].x, 1.0f, 0.1f, 1.0f, hash_vertex(583, i));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, verts[i].x, 1.0f, 0.1f, 1.0f, "points", hash_vertex(583, i));
 		}
 	}
 	

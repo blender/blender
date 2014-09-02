@@ -1070,14 +1070,16 @@ static void debug_data_insert(SimDebugData *debug_data, SimDebugElement *elem)
 		BLI_ghash_insert(debug_data->gh, elem, elem);
 }
 
-void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, int hash)
+void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, const char *category, int hash)
 {
+	int category_hash = (int)BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
 	if (!debug_data)
 		return;
 	
 	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = SIM_DEBUG_ELEM_DOT;
+	elem->category_hash = category_hash;
 	elem->hash = hash;
 	elem->color[0] = r;
 	elem->color[1] = g;
@@ -1087,14 +1089,16 @@ void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3
 	debug_data_insert(debug_data, elem);
 }
 
-void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, int hash)
+void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, const char *category, int hash)
 {
+	int category_hash = (int)BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
 	if (!debug_data)
 		return;
 	
 	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = SIM_DEBUG_ELEM_LINE;
+	elem->category_hash = category_hash;
 	elem->hash = hash;
 	elem->color[0] = r;
 	elem->color[1] = g;
@@ -1105,14 +1109,16 @@ void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1
 	debug_data_insert(debug_data, elem);
 }
 
-void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, int hash)
+void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, const char *category, int hash)
 {
+	int category_hash = (int)BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
 	if (!debug_data)
 		return;
 	
 	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = SIM_DEBUG_ELEM_VECTOR;
+	elem->category_hash = category_hash;
 	elem->hash = hash;
 	elem->color[0] = r;
 	elem->color[1] = g;
@@ -1140,6 +1146,26 @@ void BKE_sim_debug_data_clear(SimDebugData *debug_data)
 	
 	if (debug_data->gh)
 		BLI_ghash_clear(debug_data->gh, NULL, debug_element_free);
+}
+
+void BKE_sim_debug_data_clear_category(SimDebugData *debug_data, const char *category)
+{
+	int category_hash = (int)BLI_ghashutil_strhash_p(category);
+	
+	if (!debug_data)
+		return;
+	
+	if (debug_data->gh) {
+		GHashIterator iter;
+		BLI_ghashIterator_init(&iter, debug_data->gh);
+		while(!BLI_ghashIterator_done(&iter)) {
+			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
+			BLI_ghashIterator_step(&iter); /* removing invalidates the current iterator, so step before removing */
+			
+			if (elem->category_hash == category_hash)
+				BLI_ghash_remove(debug_data->gh, elem, NULL, debug_element_free);
+		}
+	}
 }
 
 void BKE_sim_debug_data_free(SimDebugData *debug_data)
