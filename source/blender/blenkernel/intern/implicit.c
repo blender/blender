@@ -1833,32 +1833,31 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	// printf("\n");
 }
 
-static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, fmatrix3x3 *UNUSED(P), fmatrix3x3 *UNUSED(Pinv), fmatrix3x3 *M, fmatrix3x3 *UNUSED(bigI))
+static void simulate_implicit_euler(Implicit_Data *id, float dt)
 {
-	unsigned int numverts = dFdV[0].vcount;
+	unsigned int numverts = id->dFdV[0].vcount;
 
 	lfVector *dFdXmV = create_lfvector(numverts);
-	zero_lfvector(dV, numverts);
+	zero_lfvector(id->dV, numverts);
 	
-	cp_bfmatrix(A, M);
+	cp_bfmatrix(id->A, id->M);
 	
-	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));
+	subadd_bfmatrixS_bfmatrixS(id->A, id->dFdV, dt, id->dFdX, (dt*dt));
 
-	mul_bfmatrix_lfvector(dFdXmV, dFdX, lV);
+	mul_bfmatrix_lfvector(dFdXmV, id->dFdX, id->V);
 
-	add_lfvectorS_lfvectorS(B, lF, dt, dFdXmV, (dt*dt), numverts);
+	add_lfvectorS_lfvectorS(id->B, id->F, dt, dFdXmV, (dt*dt), numverts);
 
 	// itstart();
 
-	cg_filtered(dV, A, B, z, S); /* conjugate gradient algorithm to solve Ax=b */
-	// cg_filtered_pre(dV, A, B, z, S, P, Pinv, bigI);
+	cg_filtered(id->dV, id->A, id->B, id->z, id->S); /* conjugate gradient algorithm to solve Ax=b */
+	// cg_filtered_pre(id->dV, id->A, id->B, id->z, id->S, id->P, id->Pinv, id->bigI);
 
 	// itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
 
 	// advance velocities
-	add_lfvector_lfvector(Vnew, lV, dV, numverts);
-	
+	add_lfvector_lfvector(id->Vnew, id->V, id->dV, numverts);
 
 	del_lfvector(dFdXmV);
 }
@@ -1984,7 +1983,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
 		
 		// calculate new velocity
-		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv, id->M, id->bigI);
+		simulate_implicit_euler(id, dt);
 		
 		// advance positions
 		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
@@ -2065,7 +2064,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 				// calculate 
 				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);
 				
-				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv, id->M, id->bigI);
+				simulate_implicit_euler(id, dt / 2.0f);
 			}
 		}
 		else {
