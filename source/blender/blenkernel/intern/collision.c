@@ -1133,9 +1133,6 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	float facenor[3], v1p1[3], v1p2[3];
 	float w[3];
 
-//	if (!isect_line_tri_v3(p1, p2, co1, co2, co3, &lambda, uv))
-//		return collpair;
-	
 	if (!cloth_point_face_collision_params(p1, p2, co1, co2, co3, facenor, &lambda, uv))
 		return collpair;
 	
@@ -1159,7 +1156,7 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	 */
 	copy_v3_v3(collpair->pa, p2);
 	collpair->distance = distance2;
-	mul_v3_v3fl(collpair->vector, facenor, distance2);
+	mul_v3_v3fl(collpair->vector, facenor, -distance2);
 	
 	w[0] = 1.0f - uv[0] - uv[1];
 	w[1] = uv[0];
