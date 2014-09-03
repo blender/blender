@@ -281,14 +281,28 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
 {
 	int numfiles;
 
+	/* Values in pixels.
+	 *
+	 * - *_item: size of each (row|col), (including padding)
+	 * - *_view: (x|y) size of the view.
+	 * - *_over: extra pixels, to take into account, when the fit isnt exact
+	 *   (needed since you may see the end of the previous column and the beginning of the next).
+	 *
+	 * Could be more clever and take scorlling into account,
+	 * but for now don't bother.
+	 */
 	if (layout->flag & FILE_LAYOUT_HOR) {
-		int width = (int)(BLI_rctf_size_x(&ar->v2d.cur) - 2 * layout->tile_border_x);
-		numfiles = (int)((float)width / (float)layout->tile_w + 0.5f);
+		const int x_item = layout->tile_w + (2 * layout->tile_border_x);
+		const int x_view = (int)(BLI_rctf_size_x(&ar->v2d.cur));
+		const int x_over = x_item - (x_view % x_item);
+		numfiles = (int)((float)(x_view + x_over) / (float)(x_item));
 		return numfiles * layout->rows;
 	}
 	else {
-		int height = (int)(BLI_rctf_size_y(&ar->v2d.cur) - 2 * layout->tile_border_y);
-		numfiles = (int)((float)height / (float)layout->tile_h + 0.5f);
+		const int y_item = layout->tile_h + (2 * layout->tile_border_y);
+		const int y_view = (int)(BLI_rctf_size_y(&ar->v2d.cur));
+		const int y_over = y_item - (y_view % y_item);
+		numfiles = (int)((float)(y_view + y_over) / (float)(y_item));
 		return numfiles * layout->columns;
 	}
 }
