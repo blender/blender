@@ -1070,7 +1070,7 @@ class IMAGE_PT_view_waveform(Panel):
         layout.template_waveform(sima, "scopes")
         row = layout.split(percentage=0.75)
         row.prop(sima.scopes, "waveform_alpha")
-        row.prop(sima.scopes, "waveform_mode", icon_only=True)
+        row.prop(sima.scopes, "waveform_mode", text="")
 
 
 class IMAGE_PT_view_vectorscope(Panel):
