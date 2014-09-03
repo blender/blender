@@ -593,29 +593,6 @@ typedef struct Implicit_Data  {
 	fmatrix3x3 *P, *Pinv;		/* pre-conditioning matrix */
 } Implicit_Data;
 
-/* Init constraint matrix */
-static void update_matrixS(ClothVertex *verts, int numverts, fmatrix3x3 *S)
-{
-	unsigned int pinned = 0;
-	int i = 0;
-
-	/* Clear matrix from old vertex constraints */
-	for (i = 0; i < S[0].vcount; i++)
-		S[i].c = S[i].r = 0;
-
-	/* Set new vertex constraints */
-	for (i = 0; i < numverts; i++) {
-		if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
-			S[pinned].c = S[pinned].r = i;
-			pinned++;
-		}
-	}
-
-	// S is special and needs specific vcount and scount
-	S[0].vcount = pinned; 
-	S[0].scount = 0;
-}
-
 int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 {
 	unsigned int i = 0;
@@ -655,9 +632,6 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	id->B = create_lfvector(cloth->numverts);
 	id->dV = create_lfvector(cloth->numverts);
 	id->z = create_lfvector(cloth->numverts);
-	
-	id->S[0].vcount = 0;
-	update_matrixS(verts, cloth->numverts, id->S);
 
 	for (i = 0; i < cloth->numverts; i++) {
 		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
@@ -1700,6 +1674,39 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 
 /* ================================ */
 
+/* Init constraint matrix */
+static void setup_constraint_matrix(ClothVertex *verts, int numverts, ColliderContacts *contacts, int totcolliders, fmatrix3x3 *S)
+{
+	int i, j;
+
+	/* Clear matrix from old vertex constraints */
+	for (i = 0; i < S[0].vcount; i++)
+		S[i].c = S[i].r = 0;
+
+	/* pinned vertex constraints */
+	for (i = 0; i < numverts; i++) {
+		S[i].c = S[i].r = i;
+		if (verts[i].flags & CLOTH_VERT_FLAG_PINNED)
+			zero_m3(S[i].m);
+		else
+			unit_m3(S[i].m);
+	}
+
+	for (i = 0; i < totcolliders; ++i) {
+		ColliderContacts *ct = &contacts[i];
+		for (j = 0; j < ct->totcollisions; ++j) {
+			CollPair *collpair = &ct->collisions[j];
+			int v = collpair->face1;
+			
+			/* pinned verts handled separately */
+			if (verts[v].flags & CLOTH_VERT_FLAG_PINNED)
+				continue;
+			
+			zero_m3(S[v].m);
+		}
+	}
+}
+
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
@@ -1970,14 +1977,10 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	Implicit_Data *id = cloth->implicit;
 	ColliderContacts *contacts = NULL;
 	int totcolliders = 0;
-
+	
 	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
-
+	
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
-		
-		/* Update vertex constraints for pinned vertices */
-		update_matrixS(verts, cloth->numverts, id->S);
-
 		for (i = 0; i < numverts; i++) {
 			// update velocities with constrained velocities from pinned verts
 			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
@@ -1999,6 +2002,9 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			cloth_find_point_contacts(ob, clmd, 0.0f, tf, &contacts, &totcolliders);
 		}
 	}
+	
+	/* setup vertex constraints for pinned vertices and contacts */
+	setup_constraint_matrix(verts, cloth->numverts, contacts, totcolliders, id->S);
 	
 	while (step < tf) {
 		// damping velocity for artistic reasons
