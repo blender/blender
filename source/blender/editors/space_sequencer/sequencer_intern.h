@@ -165,6 +165,13 @@ enum {
 	SEQ_UNSELECTED
 };
 
+enum {
+	SEQ_SELECT_LR_NONE = 0,
+	SEQ_SELECT_LR_MOUSE,
+	SEQ_SELECT_LR_LEFT,
+	SEQ_SELECT_LR_RIGHT	
+};
+
 /* defines used internally */
 #define SCE_MARKERS 0 // XXX - dummy
 

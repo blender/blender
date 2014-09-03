@@ -314,7 +314,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	const bool linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
 	const bool linked_time = RNA_boolean_get(op->ptr, "linked_time");
-	bool left_right = RNA_boolean_get(op->ptr, "left_right");
+	int left_right = RNA_enum_get(op->ptr, "left_right");
 	
 	Sequence *seq, *neighbor, *act_orig;
 	int hand, sel_side;
@@ -328,8 +328,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	seq = find_nearest_seq(scene, v2d, &hand, event->mval);
 
 	// XXX - not nice, Ctrl+RMB needs to do left_right only when not over a strip
-	if (seq && linked_time && left_right)
-		left_right = false;
+	if (seq && linked_time && (left_right == SEQ_SELECT_LR_MOUSE))
+		left_right = SEQ_SELECT_LR_NONE;
 
 
 	if (marker) {
@@ -348,12 +348,24 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		}
 		
 	}
-	else if (left_right) {
+	else if (left_right != SEQ_SELECT_LR_NONE) {
 		/* use different logic for this */
 		float x;
 		ED_sequencer_deselect_all(scene);
-		x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
-
+		
+		switch (left_right) {
+			case SEQ_SELECT_LR_MOUSE:
+				x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
+				break;
+				
+			case SEQ_SELECT_LR_LEFT:
+				x = CFRA - 1;
+				break;
+			case SEQ_SELECT_LR_RIGHT:
+				x = CFRA + 1;
+				break;
+		}
+		
 		SEQP_BEGIN (ed, seq)
 		{
 			if (x < CFRA) {
@@ -522,6 +534,14 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
+	static EnumPropertyItem sequencer_select_left_right_types[] = {
+		{SEQ_SELECT_LR_NONE, "NONE", 0, "None", "Don't do left-right selection"},
+		{SEQ_SELECT_LR_MOUSE, "MOUSE", 0, "Mouse", "Use mouse position for selction"},
+		{SEQ_SELECT_LR_LEFT, "LEFT", 0, "Left", "Select left"},
+		{SEQ_SELECT_LR_RIGHT, "RIGHT", 0, "Select Right"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	/* identifiers */
 	ot->name = "Activate/Select";
 	ot->idname = "SEQUENCER_OT_select";
@@ -538,7 +558,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip");
 	/* for animation this is an enum but atm having an enum isn't useful for us */
-	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "Select based on the current frame side the cursor is on");
+	RNA_def_enum(ot->srna, "left_right", sequencer_select_left_right_types, 0, "Left/Right", "Select based on the current frame side the cursor is on");
 	RNA_def_boolean(ot->srna, "linked_time", 0, "Linked Time", "Select other strips at the same time");
 }
 
