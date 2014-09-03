@@ -573,7 +573,7 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 // simulator start
 ///////////////////////////////////////////////////////////////////
 typedef struct Implicit_Data  {
-	lfVector *X, *V, *Xnew, *Vnew, *olddV, *F, *B, *dV, *z;
+	lfVector *X, *V, *Xnew, *Vnew, *F, *B, *dV, *z;
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;
 
@@ -635,8 +635,6 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	id->Xnew = create_lfvector(cloth->numverts);
 	id->V = create_lfvector(cloth->numverts);
 	id->Vnew = create_lfvector(cloth->numverts);
-	id->olddV = create_lfvector(cloth->numverts);
-	zero_lfvector(id->olddV, cloth->numverts);
 	id->F = create_lfvector(cloth->numverts);
 	id->B = create_lfvector(cloth->numverts);
 	id->dV = create_lfvector(cloth->numverts);
@@ -701,7 +699,6 @@ int	implicit_free(ClothModifierData *clmd)
 			del_lfvector(id->Xnew);
 			del_lfvector(id->V);
 			del_lfvector(id->Vnew);
-			del_lfvector(id->olddV);
 			del_lfvector(id->F);
 			del_lfvector(id->B);
 			del_lfvector(id->dV);
@@ -1836,7 +1833,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	// printf("\n");
 }
 
-static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *UNUSED(P), fmatrix3x3 *UNUSED(Pinv), fmatrix3x3 *M, fmatrix3x3 *UNUSED(bigI))
+static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, fmatrix3x3 *UNUSED(P), fmatrix3x3 *UNUSED(Pinv), fmatrix3x3 *M, fmatrix3x3 *UNUSED(bigI))
 {
 	unsigned int numverts = dFdV[0].vcount;
 
@@ -1858,8 +1855,6 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
 
 	// itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
-	
-	cp_lfvector(olddV, dV, numverts);
 
 	// advance velocities
 	add_lfvector_lfvector(Vnew, lV, dV, numverts);
@@ -1989,7 +1984,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
 		
 		// calculate new velocity
-		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
+		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv, id->M, id->bigI);
 		
 		// advance positions
 		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
@@ -2070,7 +2065,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 				// calculate 
 				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);
 				
-				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
+				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv, id->M, id->bigI);
 			}
 		}
 		else {
