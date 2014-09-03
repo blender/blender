@@ -2930,8 +2930,7 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 
 	/* make sorted table with edges and face indices in it */
 	for (a= totface, mf= mface; a>0; a--, mf++) {
-		if (mf->v4) totedge+=4;
-		else if (mf->v3) totedge+=3;
+		totedge += mf->v4 ? 4 : 3;
 	}
 
 	if (totedge==0)
@@ -2946,8 +2945,9 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 			to_edgesort(ed++, 2, 3, mf->v3, mf->v4, a);
 			to_edgesort(ed++, 3, 0, mf->v4, mf->v1, a);
 		}
-		else if (mf->v3)
+		else {
 			to_edgesort(ed++, 2, 3, mf->v3, mf->v1, a);
+		}
 	}
 
 	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
