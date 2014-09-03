@@ -214,6 +214,23 @@ void paint_get_tex_pixel_col(MTex *mtex, float u, float v, float rgba[4], struct
 	CLAMP(rgba[3], 0.0f, 1.0f);
 }
 
+void paint_stroke_operator_properties(wmOperatorType *ot)
+{
+	static EnumPropertyItem stroke_mode_items[] = {
+		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
+		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
+		{BRUSH_STROKE_SMOOTH, "SMOOTH", 0, "Smooth", "Switch brush to smooth mode for duration of stroke"},
+		{0}
+	};
+
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+
+	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, 
+	             "Stroke Mode",
+	             "Action taken when a paint stroke is made");
+	
+}
+
 /* 3D Paint */
 
 static void imapaint_project(float matrix[4][4], const float co[3], float pco[4])

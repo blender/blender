@@ -75,7 +75,6 @@
 
 #include "paint_intern.h"  /* own include */
 
-
 /* check if we can do partial updates and have them draw realtime
  * (without rebuilding the 'derivedFinal') */
 static bool vertex_paint_use_fast_update_check(Object *ob)
@@ -2598,8 +2597,8 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
-
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	
+	paint_stroke_operator_properties(ot);
 }
 
 static int weight_paint_set_exec(bContext *C, wmOperator *op)
@@ -3118,7 +3117,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	paint_stroke_operator_properties(ot);
 }
 
 /* ********************** weight from bones operator ******************* */

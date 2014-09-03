@@ -218,6 +218,9 @@ float paint_get_tex_pixel(struct MTex *mtex, float u, float v, struct ImagePool 
 void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert, struct ColorSpace *colorspace);
 
 void paint_sample_color(bContext *C, struct ARegion *ar, int x, int y, bool texpaint_proj, bool palette);
+
+void paint_stroke_operator_properties(struct wmOperatorType *ot);
+
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
 
 void PAINT_OT_face_select_linked(struct wmOperatorType *ot);

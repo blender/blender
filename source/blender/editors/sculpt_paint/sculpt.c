@@ -4479,13 +4479,6 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
-	static EnumPropertyItem stroke_mode_items[] = {
-		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
-		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
-		{BRUSH_STROKE_SMOOTH, "SMOOTH", 0, "Smooth", "Switch brush to smooth mode for duration of stroke"},
-		{0}
-	};
-
 	/* identifiers */
 	ot->name = "Sculpt";
 	ot->idname = "SCULPT_OT_brush_stroke";
@@ -4503,15 +4496,11 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 	/* properties */
 
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
-
-	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, 
-	             "Sculpt Stroke Mode",
-	             "Action taken when a sculpt stroke is made");
+	paint_stroke_operator_properties(ot);
 
 	RNA_def_boolean(ot->srna, "ignore_background_click", 0,
 	                "Ignore Background Click",
-	                "Clicks on the background do not start the stroke");
+	                "Clicks on the background do not start the stroke");	
 }
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/

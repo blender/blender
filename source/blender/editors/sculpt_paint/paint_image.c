@@ -979,12 +979,6 @@ static int paint_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_image_paint(wmOperatorType *ot)
 {
-	static EnumPropertyItem stroke_mode_items[] = {
-		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
-		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
-		{0}
-	};
-
 	/* identifiers */
 	ot->name = "Image Paint";
 	ot->idname = "PAINT_OT_image_paint";
@@ -1000,11 +994,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;
 
-	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL,
-	             "Paint Stroke Mode",
-	             "Action taken when a paint stroke is made");
-
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	paint_stroke_operator_properties(ot);
 }
 
 
