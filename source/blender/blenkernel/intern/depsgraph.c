@@ -62,6 +62,7 @@
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -79,6 +80,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
+
+#include "GPU_buffers.h"
 
 #include "atomic_ops.h"
 
@@ -2499,9 +2502,8 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 		if (ELEM(idtype, ID_MA, ID_TE)) {
 			obt = sce->basact ? sce->basact->object : NULL;
 			if (obt && obt->mode & OB_MODE_TEXTURE_PAINT) {
-				obt->recalc |= OB_RECALC_DATA;
 				BKE_texpaint_slots_refresh_object(sce, obt);
-				lib_id_recalc_data_tag(bmain, &obt->id);
+				GPU_drawobject_free(obt->derivedFinal);
 			}
 		}
 

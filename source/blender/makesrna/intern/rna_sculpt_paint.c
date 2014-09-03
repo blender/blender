@@ -76,10 +76,13 @@ EnumPropertyItem symmetrize_direction_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_particle.h"
 #include "BKE_depsgraph.h"
 #include "BKE_pbvh.h"
+
+#include "GPU_buffers.h"
 
 #include "ED_particle.h"
 
@@ -304,8 +307,8 @@ static void rna_ImaPaint_mode_update(Main *UNUSED(bmain), Scene *scene, PointerR
 	/* of course we need to invalidate here */
 	BKE_texpaint_slots_refresh_object(scene, ob);
 
-	/* we assume that changing the current mode will invalidate the uv layers so we need to tag an update */
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	/* we assume that changing the current mode will invalidate the uv layers so we need to refresh display */
+	GPU_drawobject_free(ob->derivedFinal);	
 	WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);
 }
 
