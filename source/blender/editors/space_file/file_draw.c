@@ -416,11 +416,12 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 	int i;
 	int sy;
 
+	UI_ThemeColorShade(TH_BACK, -7);
+
 	/* alternating flat shade background */
 	for (i = 0; (i <= layout->rows); i += 2) {
 		sy = (int)v2d->cur.ymax - i * (layout->tile_h + 2 * layout->tile_border_y) - layout->tile_border_y;
 
-		UI_ThemeColorShade(TH_BACK, -7);
 		glRectf(v2d->cur.xmin, (float)sy, v2d->cur.xmax, (float)(sy + layout->tile_h + 2 * layout->tile_border_y));
 		
 	}
@@ -428,18 +429,36 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 
 static void draw_dividers(FileLayout *layout, View2D *v2d)
 {
+	const int step = (layout->tile_w + 2 * layout->tile_border_x);
+	int v1[2], v2[2];
 	int sx;
+	unsigned char col_hi[3], col_lo[3];
+
+	UI_GetThemeColorShade3ubv(TH_BACK,  30, col_hi);
+	UI_GetThemeColorShade3ubv(TH_BACK, -30, col_lo);
+
+	v1[1] = v2d->cur.ymax - layout->tile_border_y;
+	v2[1] = v2d->cur.ymin;
+
+	glBegin(GL_LINES);
 
 	/* vertical column dividers */
 	sx = (int)v2d->tot.xmin;
 	while (sx < v2d->cur.xmax) {
-		sx += (layout->tile_w + 2 * layout->tile_border_x);
-		
-		UI_ThemeColorShade(TH_BACK, 30);
-		sdrawline(sx + 1, (short)(v2d->cur.ymax - layout->tile_border_y),  sx + 1,  (short)v2d->cur.ymin);
-		UI_ThemeColorShade(TH_BACK, -30);
-		sdrawline(sx, (short)(v2d->cur.ymax - layout->tile_border_y),  sx,  (short)v2d->cur.ymin); 
+		sx += step;
+
+		glColor3ubv(col_lo);
+		v1[0] = v2[0] = sx;
+		glVertex2iv(v1);
+		glVertex2iv(v2);
+
+		glColor3ubv(col_hi);
+		v1[0] = v2[0] = sx + 1;
+		glVertex2iv(v1);
+		glVertex2iv(v2);
 	}
+
+	glEnd();
 }
 
 void file_draw_list(const bContext *C, ARegion *ar)
