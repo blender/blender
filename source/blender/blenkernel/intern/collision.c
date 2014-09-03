@@ -1043,8 +1043,19 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 				bounce = 0.0f;
 				mul_v3_v3fl(impulse, collpair->normal, repulse);
 			}
+			{
+				float d[3], md[3];
+				mul_v3_v3fl(d, collpair->normal, -collpair->distance);
+				mul_v3_v3fl(md, collpair->normal, -margin_distance);
+				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, d, 1, 1, 0, "collision", hash_collpair(5, collpair));
+				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, md, 0, 1, 1, "collision", hash_collpair(6, collpair));
+				
+				BKE_sim_debug_data_add_line(clmd->debug_data, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, 0, 0, 1, "collision", hash_collpair(85, collpair));
+				BKE_sim_debug_data_add_line(clmd->debug_data, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, 0, 0, 1, "collision", hash_collpair(86, collpair));
+				BKE_sim_debug_data_add_line(clmd->debug_data, collmd->current_x[collpair->bp3].co, collmd->current_x[collpair->bp1].co, 0, 0, 1, "collision", hash_collpair(87, collpair));
+			}
 			cloth1->verts[collpair->ap1].impulse_count++;
-			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, impulse, 0.0, 1.0, 0.6, "collision", hash_collpair(873, collpair));
+			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, impulse, 1.0, 1.0, 1.0, "collision", hash_collpair(873, collpair));
 			
 			result = true;
 		}
