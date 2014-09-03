@@ -41,6 +41,7 @@ struct Scene;
 struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
+struct CollisionModifierData;
 struct CollisionTree;
 struct VoxelData;
 
@@ -182,9 +183,23 @@ typedef enum {
 // collision.c
 ////////////////////////////////////////////////
 
+struct CollPair;
+
+typedef struct ColliderContacts {
+	struct Object *ob;
+	struct CollisionModifierData *collmd;
+	
+	struct CollPair *collisions;
+	int totcollisions;
+} ColliderContacts;
+
 // needed for implicit.c
 int cloth_bvh_objcollision (struct Object *ob, struct ClothModifierData *clmd, float step, float dt );
 int cloth_points_objcollision(struct Object *ob, struct ClothModifierData *clmd, float step, float dt);
+
+void cloth_find_point_contacts(struct Object *ob, struct ClothModifierData *clmd, float step, float dt,
+                               ColliderContacts **r_collider_contacts, int *r_totcolliders);
+void cloth_free_contacts(ColliderContacts *collider_contacts, int totcolliders);
 
 ////////////////////////////////////////////////
 

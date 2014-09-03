@@ -1968,6 +1968,8 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 	/*float (*initial_cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "initial_cos implicit.c");*/ /* UNUSED */
 	Implicit_Data *id = cloth->implicit;
+	ColliderContacts *contacts = NULL;
+	int totcolliders = 0;
 
 	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
 
@@ -1988,6 +1990,13 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	if (clmd->debug_data) {
 		for (i = 0; i < numverts; i++) {
 			BKE_sim_debug_data_add_dot(clmd->debug_data, verts[i].x, 1.0f, 0.1f, 1.0f, "points", hash_vertex(583, i));
+		}
+	}
+	
+	/* determine contact points */
+	if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
+		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_POINTS) {
+			cloth_find_point_contacts(ob, clmd, 0.0f, tf, &contacts, &totcolliders);
 		}
 	}
 	
@@ -2019,6 +2028,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			copy_v3_v3(verts[i].txold, id->X[i]);
 		}
 
+#if 0
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
 			bool do_extra_solve = false;
 			
@@ -2090,13 +2100,17 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		
 		// itend();
 		// printf("collision time: %f\n", (float)itval());
+#else
+		// X = Xnew;
+		cp_lfvector(id->X, id->Xnew, numverts);
+#endif
 		
 		// V = Vnew;
 		cp_lfvector(id->V, id->Vnew, numverts);
 		
 		step += dt;
 	}
-
+	
 	for (i = 0; i < numverts; i++) {
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED)) {
 			copy_v3_v3(verts[i].txold, verts[i].xconst); // TODO: test --> should be .x
@@ -2108,6 +2122,11 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			copy_v3_v3(verts[i].x, id->X[i]);
 			copy_v3_v3(verts[i].v, id->V[i]);
 		}
+	}
+	
+	/* free contact points */
+	if (contacts) {
+		cloth_free_contacts(contacts, totcolliders);
 	}
 	
 	/* unused */

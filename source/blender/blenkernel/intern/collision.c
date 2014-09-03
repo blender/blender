@@ -1364,3 +1364,135 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 
 	return 1|MIN2 ( ret, 1 );
 }
+
+void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, float dt,
+                               ColliderContacts **r_collider_contacts, int *r_totcolliders)
+{
+	Cloth *cloth= clmd->clothObject;
+	BVHTree *cloth_bvh;
+	unsigned int i=0, numverts = 0;
+	ClothVertex *verts = NULL;
+	
+	ColliderContacts *collider_contacts;
+	
+	Object **collobjs = NULL;
+	unsigned int numcollobj = 0;
+	
+	verts = cloth->verts;
+	numverts = cloth->numverts;
+	
+	////////////////////////////////////////////////////////////
+	// static collisions
+	////////////////////////////////////////////////////////////
+	
+	// create temporary cloth points bvh
+	cloth_bvh = BLI_bvhtree_new(numverts, MAX2(clmd->coll_parms->epsilon, clmd->coll_parms->distance_repel), 4, 6);
+	/* fill tree */
+	for (i = 0; i < numverts; i++) {
+		float co[6];
+		
+		copy_v3_v3(&co[0*3], verts[i].x);
+		copy_v3_v3(&co[1*3], verts[i].tx);
+		
+		BLI_bvhtree_insert(cloth_bvh, i, co, 2);
+	}
+	/* balance tree */
+	BLI_bvhtree_balance(cloth_bvh);
+	
+	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	if (!collobjs) {
+		*r_collider_contacts = NULL;
+		*r_totcolliders = 0;
+		return;
+	}
+	
+	/* move object to position (step) in time */
+	for (i = 0; i < numcollobj; i++) {
+		Object *collob= collobjs[i];
+		CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(collob, eModifierType_Collision);
+		if (!collmd->bvhtree)
+			continue;
+		
+		/* move object to position (step) in time */
+		collision_move_object ( collmd, step + dt, step );
+	}
+	
+	collider_contacts = MEM_callocN(sizeof(ColliderContacts) * numcollobj, "CollPair");
+	
+	// check all collision objects
+	for (i = 0; i < numcollobj; i++) {
+		ColliderContacts *ct = collider_contacts + i;
+		Object *collob= collobjs[i];
+		CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(collob, eModifierType_Collision);
+		BVHTreeOverlap *overlap;
+		unsigned int result = 0;
+		float epsilon;
+		
+		ct->ob = collob;
+		ct->collmd = collmd;
+		ct->collisions = NULL;
+		ct->totcollisions = 0;
+		
+		if (!collmd->bvhtree)
+			continue;
+		
+		/* search for overlapping collision pairs */
+		overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result);
+		epsilon = BLI_bvhtree_getepsilon(collmd->bvhtree);
+		
+		// go to next object if no overlap is there
+		if (result && overlap) {
+			CollPair *collisions_index;
+			
+			/* check if collisions really happen (costly near check) */
+			cloth_points_objcollisions_nearcheck(clmd, collmd, &ct->collisions, &collisions_index,
+			                                     result, overlap, epsilon, dt);
+			ct->totcollisions = (int)(collisions_index - ct->collisions);
+			
+			// resolve nearby collisions
+//			ret += cloth_points_objcollisions_resolve(clmd, collmd, collob->pd, collisions[i], collisions_index[i], dt);
+		}
+		
+		if (overlap)
+			MEM_freeN(overlap);
+	}
+	
+	if (collobjs)
+		MEM_freeN(collobjs);
+
+	BLI_bvhtree_free(cloth_bvh);
+	
+	////////////////////////////////////////////////////////////
+	// update positions
+	// this is needed for bvh_calc_DOP_hull_moving() [kdop.c]
+	////////////////////////////////////////////////////////////
+	
+	// verts come from clmd
+	for (i = 0; i < numverts; i++) {
+		if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) {
+			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
+				continue;
+			}
+		}
+		
+		VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
+	}
+	////////////////////////////////////////////////////////////
+	
+	*r_collider_contacts = collider_contacts;
+	*r_totcolliders = numcollobj;
+}
+
+void cloth_free_contacts(ColliderContacts *collider_contacts, int totcolliders)
+{
+	if (collider_contacts) {
+		int i;
+		for (i = 0; i < totcolliders; ++i) {
+			ColliderContacts *ct = collider_contacts + i;
+			if (ct->collisions) {
+				MEM_freeN(ct->collisions);
+			}
+		}
+		MEM_freeN(collider_contacts);
+	}
+}
