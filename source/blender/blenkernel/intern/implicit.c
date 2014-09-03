@@ -573,8 +573,24 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 // simulator start
 ///////////////////////////////////////////////////////////////////
 typedef struct Implicit_Data  {
-	lfVector *X, *V, *Xnew, *Vnew, *F, *B, *dV, *z;
-	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
+	/* inputs */
+	fmatrix3x3 *bigI;			/* identity (constant) */
+	fmatrix3x3 *M;				/* masses */
+	fmatrix3x3 *dFdV, *dFdX;	/* force jacobians */
+	
+	/* motion state data */
+	lfVector *X, *Xnew;			/* positions */
+	lfVector *V, *Vnew;			/* velocities */
+	lfVector *F;				/* forces */
+	
+	/* internal solver data */
+	lfVector *B;				/* B for A*dV = B */
+	fmatrix3x3 *A;				/* A for A*dV = B */
+	
+	lfVector *dV;				/* velocity change (solution of A*dV = B) */
+	lfVector *z;				/* target velocity in constrained directions */
+	fmatrix3x3 *S;				/* filtering matrix for constraints */
+	fmatrix3x3 *P, *Pinv;		/* pre-conditioning matrix */
 } Implicit_Data;
 
 /* Init constraint matrix */
