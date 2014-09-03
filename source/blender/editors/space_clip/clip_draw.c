@@ -1595,21 +1595,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		}
 	}
 
-	if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
-		MovieTrackingTrack *track = BKE_tracking_track_get_active(&sc->clip->tracking);
-
-		if (track) {
-			int framenr = ED_space_clip_get_clip_frame_number(sc);
-			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-
-			offsx = marker->pos[0];
-			offsy = marker->pos[1];
-
-			gpd = track->gpd;
-		}
-
-	}
-	else {
+	if (sc->gpencil_src != SC_GPENCIL_SRC_TRACK) {
 		gpd = clip->gpd;
 	}
 
@@ -1778,13 +1764,15 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 		return;
 
 	if (onlyv2d) {
-		/* if manual calibration is used then grease pencil data is already
-		 * drawn in draw_distortion */
-		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0) {
+		bool is_track_source = sc->gpencil_src == SC_GPENCIL_SRC_TRACK;
+		/* if manual calibration is used then grease pencil data
+		 * associated with the clip is already drawn in draw_distortion
+		 */
+		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0 || is_track_source) {
 			glPushMatrix();
 			glMultMatrixf(sc->unistabmat);
 
-			if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
+			if (is_track_source) {
 				MovieTrackingTrack *track = BKE_tracking_track_get_active(&sc->clip->tracking);
 
 				if (track) {
