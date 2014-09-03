@@ -1061,6 +1061,7 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 	return result;
 }
 
+#if 0
 BLI_INLINE void face_normal(float co1[3], float co2[3], float co3[3], float nor[3])
 {
 	float p[3], q[3];
@@ -1069,20 +1070,70 @@ BLI_INLINE void face_normal(float co1[3], float co2[3], float co3[3], float nor[
 	cross_v3_v3v3(nor, p, q);
 	normalize_v3(nor);
 }
+#endif
+
+BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float p2[3], const float v0[3], const float v1[3], const float v2[3],
+                                                  float r_nor[3], float *r_lambda, float r_uv[2])
+{
+	float p[3], vec1[3], line[3], edge1[3], edge2[3], q[3];
+	float a, f, u, v;
+
+	sub_v3_v3v3(edge1, v1, v0);
+	sub_v3_v3v3(edge2, v2, v0);
+	sub_v3_v3v3(line, p2, p1);
+
+	cross_v3_v3v3(p, line, edge2);
+	a = dot_v3v3(edge1, p);
+	if (a == 0.0f) return 0;
+	f = 1.0f / a;
+
+	sub_v3_v3v3(vec1, p1, v0);
+
+	u = f * dot_v3v3(vec1, p);
+	if ((u < 0.0f) || (u > 1.0f))
+		return false;
+
+	cross_v3_v3v3(q, vec1, edge1);
+
+	v = f * dot_v3v3(line, q);
+	if ((v < 0.0f) || ((u + v) > 1.0f))
+		return false;
+
+	*r_lambda = f * dot_v3v3(edge2, q);
+	/* don't care about 0..1 lambda range here */
+	/*if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f))
+	 *	return 0;
+	 */
+
+	r_uv[0] = u;
+	r_uv[1] = v;
+
+	cross_v3_v3v3(r_nor, edge1, edge2);
+	normalize_v3(r_nor);
+
+	return true;
+}
 
 static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, int bp1, int bp2, int bp3,
-                                      int index_cloth, int index_coll, CollPair *collpair)
+                                      int index_cloth, int index_coll, float epsilon, CollPair *collpair)
 {
 	float *co1 = mverts[bp1].co, *co2 = mverts[bp2].co, *co3 = mverts[bp3].co;
-	float lambda, uv[2];
-	float fnor[3], vec[3];
+	float lambda, uv[2], distance1, distance2;
+	float facenor[3], v1p1[3], v1p2[3];
 	float w[3];
+
+//	if (!isect_line_tri_v3(p1, p2, co1, co2, co3, &lambda, uv))
+//		return collpair;
 	
-	if (!isect_line_tri_v3(p1, p2, co1, co2, co3, &lambda, uv))
+	if (!cloth_point_face_collision_params(p1, p2, co1, co2, co3, facenor, &lambda, uv))
 		return collpair;
 	
-	face_normal(co1, co2, co3, fnor);
-	sub_v3_v3v3(vec, p2, p1);
+	sub_v3_v3v3(v1p1, p1, co1);
+	distance1 = dot_v3v3(v1p1, facenor);
+	sub_v3_v3v3(v1p2, p2, co1);
+	distance2 = dot_v3v3(v1p2, facenor);
+	if (distance2 > epsilon || (distance1 < 0.0f && distance2 < 0.0f))
+		return collpair;
 	
 	collpair->face1 = index_cloth; /* XXX actually not a face, but equivalent index for point */
 	collpair->face2 = index_coll;
@@ -1096,18 +1147,15 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	 * the current updated position that needs to be corrected
 	 */
 	copy_v3_v3(collpair->pa, p2);
-	collpair->distance = dot_v3v3(fnor, vec) * lambda;
+	collpair->distance = distance2;
+	mul_v3_v3fl(collpair->vector, facenor, distance2);
 	
 	w[0] = 1.0f - uv[0] - uv[1];
 	w[1] = uv[0];
 	w[2] = uv[1];
 	interp_v3_v3v3v3(collpair->pb, co1, co2, co3, w);
 	
-	/* note: face normal smoothing is ignored here,
-	 * it would probably not work with collision response
-	 */
-	copy_v3_v3(collpair->normal, fnor);
-	copy_v3_v3(collpair->vector, vec);
+	copy_v3_v3(collpair->normal, facenor);
 	collpair->time = lambda;
 	collpair->flag = 0;
 	
@@ -1117,7 +1165,7 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 
 //Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
 static CollPair* cloth_point_collision(ModifierData *md1, ModifierData *md2,
-                                       BVHTreeOverlap *overlap, CollPair *collpair, float UNUSED(dt))
+                                       BVHTreeOverlap *overlap, float epsilon, CollPair *collpair, float UNUSED(dt))
 {
 	ClothModifierData *clmd = (ClothModifierData *)md1;
 	CollisionModifierData *collmd = (CollisionModifierData *) md2;
@@ -1129,16 +1177,16 @@ static CollPair* cloth_point_collision(ModifierData *md1, ModifierData *md2,
 	vert = &clmd->clothObject->verts[overlap->indexA];
 	face = &collmd->mfaces[overlap->indexB];
 
-	collpair = cloth_point_collpair(vert->x, vert->tx, mverts, face->v1, face->v2, face->v3, overlap->indexA, overlap->indexB, collpair);
+	collpair = cloth_point_collpair(vert->x, vert->tx, mverts, face->v1, face->v2, face->v3, overlap->indexA, overlap->indexB, epsilon, collpair);
 	if (face->v4)
-		collpair = cloth_point_collpair(vert->x, vert->tx, mverts, face->v3, face->v4, face->v1, overlap->indexA, overlap->indexB, collpair);
+		collpair = cloth_point_collpair(vert->x, vert->tx, mverts, face->v3, face->v4, face->v1, overlap->indexA, overlap->indexB, epsilon, collpair);
 
 	return collpair;
 }
 
 static void cloth_points_objcollisions_nearcheck(ClothModifierData * clmd, CollisionModifierData *collmd,
                                                      CollPair **collisions, CollPair **collisions_index,
-                                                     int numresult, BVHTreeOverlap *overlap, double dt)
+                                                     int numresult, BVHTreeOverlap *overlap, float epsilon, double dt)
 {
 	int i;
 	
@@ -1148,7 +1196,7 @@ static void cloth_points_objcollisions_nearcheck(ClothModifierData * clmd, Colli
 
 	for ( i = 0; i < numresult; i++ ) {
 		*collisions_index = cloth_point_collision((ModifierData *)clmd, (ModifierData *)collmd,
-		                                          overlap+i, *collisions_index, dt);
+		                                          overlap+i, epsilon, *collisions_index, dt);
 	}
 }
 
@@ -1246,18 +1294,20 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 			CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(collob, eModifierType_Collision);
 			BVHTreeOverlap *overlap = NULL;
 			unsigned int result = 0;
+			float epsilon;
 			
 			if (!collmd->bvhtree)
 				continue;
 			
 			/* search for overlapping collision pairs */
 			overlap = BLI_bvhtree_overlap ( cloth_bvh, collmd->bvhtree, &result );
+			epsilon = BLI_bvhtree_getepsilon(collmd->bvhtree);
 			
 			// go to next object if no overlap is there
 			if (result && overlap) {
 				/* check if collisions really happen (costly near check) */
 				cloth_points_objcollisions_nearcheck(clmd, collmd, &collisions[i], &collisions_index[i],
-				                                     result, overlap, round_dt);
+				                                     result, overlap, epsilon, round_dt);
 				
 				// resolve nearby collisions
 				ret += cloth_points_objcollisions_resolve(clmd, collmd, collob->pd, collisions[i], collisions_index[i], round_dt);

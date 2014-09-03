@@ -91,9 +91,6 @@ typedef struct CollPair {
 	int ap1, ap2, ap3, bp1, bp2, bp3;
 #endif
 	int pointsb[4];
-
-	/* hair collision */
-	float va[3], vb[3]; /*  */
 }
 CollPair;
 
