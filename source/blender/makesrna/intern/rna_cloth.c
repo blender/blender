@@ -387,7 +387,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "stepsPerFrame");
-	RNA_def_property_range(prop, 4, 80);
+	RNA_def_property_range(prop, 1, 80);
 	RNA_def_property_ui_text(prop, "Quality",
 	                         "Quality of the simulation in steps per frame (higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
