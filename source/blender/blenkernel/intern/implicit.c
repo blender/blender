@@ -1768,18 +1768,15 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 	int numverts = clmd->clothObject->numverts;
 	int i, j, v;
 
-	/* Clear matrix from old vertex constraints */
-	for (v = 0; v < S[0].vcount; v++)
-		S[v].c = S[v].r = 0;
-
-	/* pinned vertex constraints */
 	for (v = 0; v < numverts; v++) {
 		S[v].c = S[v].r = v;
 		if (verts[v].flags & CLOTH_VERT_FLAG_PINNED) {
-			negate_v3_v3(z[v], verts[v].v);
+			/* pinned vertex constraints */
+			zero_v3(z[v]); /* velocity is defined externally */
 			zero_m3(S[v].m);
 		}
 		else {
+			/* free vertex */
 			zero_v3(z[v]);
 			unit_m3(S[v].m);
 		}
