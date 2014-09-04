@@ -308,7 +308,7 @@ void BKE_sequencer_offset_animdata(struct Scene *scene, struct Sequence *seq, in
 void BKE_sequencer_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
 bool BKE_sequence_base_shuffle(struct ListBase *seqbasep, struct Sequence *test, struct Scene *evil_scene);
 bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, struct Scene *evil_scene);
-bool BKE_sequence_base_isolated_sel_check(struct ListBase *seqbase);
+bool BKE_sequence_base_isolated_sel_check(struct ListBase *seqbase, bool one_only);
 void BKE_sequencer_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, bool for_render);
 struct Sequence *BKE_sequence_dupli_recursive(struct Scene *scene, struct Scene *scene_to, struct Sequence *seq, int dupe_flag);
 int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
