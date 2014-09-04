@@ -1387,32 +1387,32 @@ kmi.properties.camera = 10
 kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS')
 kmi.properties.extend = False
 kmi.properties.linked_handle = False
-kmi.properties.left_right = False
+kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
 kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi.properties.linked_handle = False
-kmi.properties.left_right = False
+kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
 kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', alt=True)
 kmi.properties.extend = False
 kmi.properties.linked_handle = True
-kmi.properties.left_right = False
+kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
 kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.linked_handle = True
-kmi.properties.left_right = False
+kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
 kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', ctrl=True)
 kmi.properties.extend = False
 kmi.properties.linked_handle = False
-kmi.properties.left_right = True
+kmi.properties.left_right = 'MOUSE'
 kmi.properties.linked_time = True
 kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.linked_handle = False
-kmi.properties.left_right = False
+kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = True
 kmi = km.keymap_items.new('sequencer.select_more', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('sequencer.select_less', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
