@@ -761,7 +761,7 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 	}
 }
 
-#if 0
+#if 0 /* this version of the CG algorithm does not work very well with partial constraints (where S has non-zero elements) */
 static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
 	// Solves for unknown X in equation AX=B
@@ -826,7 +826,8 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 
 	return conjgrad_loopcount<conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
 }
-#else
+#endif
+
 static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
 	// Solves for unknown X in equation AX=B
@@ -892,7 +893,6 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 
 	return conjgrad_loopcount < conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
 }
-#endif
 
 #if 0
 // block diagonalizer
