@@ -4121,6 +4121,11 @@ static void *do_projectpaint_thread(void *ph_v)
 							                     projPixel->newColor.ch, ps->blend);
 						}
 					}
+					
+					if (lock_alpha) {
+						if (is_floatbuf) projPixel->pixel.f_pt[3] = projPixel->origColor.f_pt[3];
+						else projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
+					}
 
 					last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
 					last_partial_redraw_cell->x1 = min_ii(last_partial_redraw_cell->x1, (int)projPixel->x_px);
