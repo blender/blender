@@ -993,6 +993,12 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
+	/* we could support this, but not for now */
+	if ((bm->totvertsel > 1) && (bm->totedgesel == 0)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot rip multiple disconnected vertices");
+		return OPERATOR_CANCELLED;
+	}
+
 	/* note on selection:
 	 * When calling edge split we operate on tagged edges rather then selected
 	 * this is important because the edges to operate on are extended by one,
