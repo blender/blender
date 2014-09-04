@@ -1358,21 +1358,22 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Brush *br = BKE_paint_brush(&imapaint->paint);
 
-	if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
-		/* no material, add one */
-		if (ob->totcol == 0) {
-			Material *ma = BKE_material_add(CTX_data_main(C), "Material");
-			/* no material found, just assign to first slot */
-			assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
-			proj_paint_add_slot(C, ma, NULL);
-		}
-		else {
-			/* there may be material slots but they may be empty, check */
-			int i;
-			
-			for (i = 1; i < ob->totcol + 1; i++) {
-				Material *ma = give_current_material(ob, i);
-				if (ma) {
+	/* no material, add one */
+	if (ob->totcol == 0) {
+		Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+		/* no material found, just assign to first slot */
+		assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+		proj_paint_add_slot(C, ma, NULL);
+	}
+	else {
+		/* there may be material slots but they may be empty, check */
+		int i;
+		
+		for (i = 1; i < ob->totcol + 1; i++) {
+			Material *ma = give_current_material(ob, i);
+
+			if (ma) {
+				if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
 					if (!ma->texpaintslot) {
 						/* refresh here just in case */
 						BKE_texpaint_slot_refresh_cache(scene, ma);				
@@ -1399,16 +1400,17 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 						}
 					}
 				}
-				else {
-					Material *ma = BKE_material_add(CTX_data_main(C), "Material");
-					/* no material found, just assign to first slot */
-					assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
-					proj_paint_add_slot(C, ma, NULL);
-				}
+			}
+			else {
+				Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+				/* no material found, just assign to first slot */
+				assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
+				proj_paint_add_slot(C, ma, NULL);
 			}
 		}
 	}
-	else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
+	
+	if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
 		if (imapaint->canvas == NULL) {
 			int width;
 			int height;
