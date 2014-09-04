@@ -1934,9 +1934,6 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 			cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
 		search = search->next;
 	}
-//	printf("====== dFdV ======\n");
-//	print_sparse_matrix(dFdV);
-//	printf("============\n");
 	// printf("\n");
 }
 
