@@ -1020,7 +1020,7 @@ bool cloth_points_collpair_response(ClothModifierData *clmd, CollisionModifierDa
 		repulse = -margin_distance / dt + dot_v3v3(v1, collpair->normal);
 		
 		if (margin_distance < -epsilon2) {
-			bounce = -v_nor_new + v_nor_old * restitution;
+			bounce = -(v_nor_new + v_nor_old * restitution);
 			mul_v3_v3fl(r_impulse, collpair->normal, max_ff(repulse, bounce));
 		}
 		else {

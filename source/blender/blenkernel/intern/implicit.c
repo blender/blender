@@ -1798,13 +1798,10 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 				continue;
 			
 			/* calculate collision response */
-//			if (!cloth_points_collpair_response(clmd, ct->collmd, ct->ob->pd, collpair, dt, impulse))
-//				continue;
-			cloth_points_collpair_response(clmd, ct->collmd, ct->ob->pd, collpair, dt, impulse);
+			if (!cloth_points_collpair_response(clmd, ct->collmd, ct->ob->pd, collpair, dt, impulse))
+				continue;
 			
-//			add_v3_v3(z[v], impulse);
-			negate_v3_v3(z[v], V[v]);
-//			sub_v3_v3(z[v], verts[v].v);
+			add_v3_v3(z[v], impulse);
 			
 			/* modify S to enforce velocity constraint in normal direction */
 			mul_fvectorT_fvector(cmat, collpair->normal, collpair->normal);
@@ -1813,7 +1810,8 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
 			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
 			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
-			{
+			
+			{ /* DEBUG */
 //				float nor[3];
 //				mul_v3_v3fl(nor, collpair->normal, collpair->distance);
 //				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
