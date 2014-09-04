@@ -2143,9 +2143,40 @@ static void tag_localizable_objects(bContext *C, int mode)
 	/* TODO(sergey): Drivers targets? */
 }
 
+/**
+ * Instance indirectly referenced zero user objects,
+ * otherwise they're lost on reload, see T40595.
+ */
+static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene)
+{
+	Object *ob;
+	bool changed = false;
+
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (ob->id.lib && (ob->id.us == 0)) {
+			Base *base;
+
+			ob->id.us = 1;
+
+			/* not essential, but for correctness */
+			id_lib_extern(&ob->id);
+
+			base = BKE_scene_base_add(scene, ob);
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+
+			changed = true;
+		}
+	}
+
+	return changed;
+}
+
 static int make_local_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	AnimData *adt;
 	ParticleSystem *psys;
 	Material *ma, ***matarar;
@@ -2154,6 +2185,14 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	int a, b, mode = RNA_enum_get(op->ptr, "type");
 	
 	if (mode == MAKE_LOCAL_ALL) {
+		/* de-select so the user can differentiate newly instanced from existing objects */
+		BKE_scene_base_deselect_all(scene);
+
+		if (make_local_all__instance_indirect_unused(bmain, scene)) {
+			BKE_report(op->reports, RPT_INFO,
+			           "Orphan library objects added to the current scene to avoid loss");
+		}
+
 		BKE_library_make_local(bmain, NULL, false); /* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
