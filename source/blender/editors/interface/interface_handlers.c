@@ -4333,6 +4333,9 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 				Palette *palette = but->rnapoin.id.data;
 				PaletteColor *color = but->rnapoin.data;
 				palette->active_color = BLI_findindex(&palette->colors, color);
+				
+				/* enforce redraw, sometimes state here can already be exit */
+				ED_region_tag_redraw(data->region);
 
 				if (!event->ctrl) {
 					float color[3];
