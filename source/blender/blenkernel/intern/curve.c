@@ -3313,6 +3313,31 @@ void BKE_nurb_handles_calc(Nurb *nu) /* first, if needed, set handle flags */
 	calchandlesNurb_intern(nu, false);
 }
 
+/**
+ * Workaround #BKE_nurb_handles_calc logic
+ * that makes unselected align to the selected handle.
+ */
+static void nurbList_handles_swap_select(Nurb *nu)
+{
+	BezTriple *bezt;
+	int i;
+
+	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+		if ((bezt->f1 & SELECT) != (bezt->f3 & SELECT)) {
+			bezt->f1 ^= SELECT;
+			bezt->f3 ^= SELECT;
+		}
+	}
+}
+
+/* internal use only (weak) */
+static void nurb_handles_calc__align_selected(Nurb *nu)
+{
+	nurbList_handles_swap_select(nu);
+	BKE_nurb_handles_calc(nu);
+	nurbList_handles_swap_select(nu);
+}
+
 /* similar to BKE_nurb_handle_calc but for curves and
  * figures out the previous and next for us */
 void BKE_nurb_handle_calc_simple(Nurb *nu, BezTriple *bezt)
@@ -3510,7 +3535,9 @@ void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
 					}
 					bezt++;
 				}
-				BKE_nurb_handles_calc(nu);
+
+				/* like BKE_nurb_handles_calc but moves selected */
+				nurb_handles_calc__align_selected(nu);
 			}
 			nu = nu->next;
 		}
@@ -3554,7 +3581,9 @@ void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
 
 					bezt++;
 				}
-				BKE_nurb_handles_calc(nu);
+
+				/* like BKE_nurb_handles_calc but moves selected */
+				nurb_handles_calc__align_selected(nu);
 			}
 		}
 	}
