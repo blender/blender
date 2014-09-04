@@ -3209,7 +3209,13 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 		madd_v3_v3v3fl(p2_h2, p2, dvec_b,  1.0f / 3.0f);
 	}
 
-	if (skip_align || (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) && !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2))) {
+	if (skip_align ||
+	    /* when one handle is free, alignming makes no sense, see: T35952 */
+	    (ELEM(HD_FREE, bezt->h1, bezt->h2)) ||
+	    /* also when no handles are aligned, skip this step */
+	    (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) &&
+	     !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2)))
+	{
 		/* handles need to be updated during animation and applying stuff like hooks,
 		 * but in such situations it's quite difficult to distinguish in which order
 		 * align handles should be aligned so skip them for now */
