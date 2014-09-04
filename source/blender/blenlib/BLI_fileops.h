@@ -101,7 +101,9 @@ int    BLI_access(const char *filename, int mode);
 bool   BLI_file_is_writable(const char *file);
 bool   BLI_file_touch(const char *file);
 
+#if 0  /* UNUSED */
 int    BLI_file_gzip(const char *from, const char *to);
+#endif
 char  *BLI_file_ungzip_to_mem(const char *from_file, int *r_size);
 
 size_t BLI_file_descriptor_size(int file);

@@ -66,7 +66,7 @@
 #include "BLI_fileops.h"
 #include "BLI_sys_types.h" // for intptr_t support
 
-
+#if 0  /* UNUSED */
 /* gzip the file in from and write it to "to". 
  * return -1 if zlib fails, -2 if the originating file does not exist
  * note: will remove the "from" file
@@ -111,6 +111,7 @@ int BLI_file_gzip(const char *from, const char *to)
 
 	return rval;
 }
+#endif
 
 /* gzip the file in from_file and write it to memory to_mem, at most size bytes.
  * return the unziped size

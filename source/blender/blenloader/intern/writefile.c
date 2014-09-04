@@ -183,6 +183,114 @@
 #define MYWRITE_BUFFER_SIZE	100000
 #define MYWRITE_MAX_CHUNK	32768
 
+
+
+/** \name Small API to handle compression.
+ * \{ */
+
+typedef enum {
+	WW_WRAP_NONE = 1,
+	WW_WRAP_ZLIB,
+} eWriteWrapType;
+
+typedef struct WriteWrap WriteWrap;
+struct WriteWrap {
+	/* callbacks */
+	bool   (*open)(WriteWrap *ww, const char *filepath);
+	bool   (*close)(WriteWrap *ww);
+	size_t (*write)(WriteWrap *ww, const char *data, size_t data_len);
+
+	/* internal */
+	union {
+		int file_handle;
+		gzFile gz_handle;
+	} _user_data;
+};
+
+/* none */
+#define FILE_HANDLE(ww) \
+	(ww)->_user_data.file_handle
+
+static bool ww_open_none(WriteWrap *ww, const char *filepath)
+{
+	int file;
+
+	file = BLI_open(filepath, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
+
+	if (file != -1) {
+		FILE_HANDLE(ww) = file;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+static bool ww_close_none(WriteWrap *ww)
+{
+	return (close(FILE_HANDLE(ww)) != -1);
+}
+static size_t ww_write_none(WriteWrap *ww, const char *buf, size_t buf_len)
+{
+	return write(FILE_HANDLE(ww), buf, buf_len);
+}
+#undef FILE_HANDLE
+
+/* zlib */
+#define FILE_HANDLE(ww) \
+	(ww)->_user_data.gz_handle
+
+static bool ww_open_zlib(WriteWrap *ww, const char *filepath)
+{
+	gzFile file;
+
+	file = BLI_gzopen(filepath, "wb1");
+
+	if (file != Z_NULL) {
+		FILE_HANDLE(ww) = file;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+static bool ww_close_zlib(WriteWrap *ww)
+{
+	return (gzclose(FILE_HANDLE(ww)) == Z_OK);
+}
+static size_t ww_write_zlib(WriteWrap *ww, const char *buf, size_t buf_len)
+{
+	return gzwrite(FILE_HANDLE(ww), buf, buf_len);
+}
+#undef FILE_HANDLE
+
+/* --- end compression types --- */
+
+static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
+{
+	memset(r_ww, 0, sizeof(*r_ww));
+
+	switch (ww_type) {
+		case WW_WRAP_ZLIB:
+		{
+			r_ww->open  = ww_open_zlib;
+			r_ww->close = ww_close_zlib;
+			r_ww->write = ww_write_zlib;
+			break;
+		}
+		default:
+		{
+			r_ww->open  = ww_open_none;
+			r_ww->close = ww_close_none;
+			r_ww->write = ww_write_none;
+			break;
+		}
+	}
+}
+
+/** \} */
+
+
+
 typedef struct {
 	struct SDNA *sdna;
 
@@ -192,12 +300,17 @@ typedef struct {
 	
 	int tot, count, error, memsize;
 
+	/* Wrap writing, so we can use zlib or
+	 * other compression types later, see: G_FILE_COMPRESS
+	 * Will be NULL for UNDO. */
+	WriteWrap *ww;
+
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 	char use_mesh_compat; /* option to save with older mesh format */
 #endif
 } WriteData;
 
-static WriteData *writedata_new(int file)
+static WriteData *writedata_new(WriteWrap *ww)
 {
 	WriteData *wd= MEM_callocN(sizeof(*wd), "writedata");
 
@@ -209,7 +322,7 @@ static WriteData *writedata_new(int file)
 
 	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false);
 
-	wd->file= file;
+	wd->ww = ww;
 
 	wd->buf= MEM_mallocN(MYWRITE_BUFFER_SIZE, "wd->buf");
 
@@ -226,9 +339,9 @@ static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 		add_memfilechunk(NULL, wd->current, mem, memlen);
 	}
 	else {
-		if (write(wd->file, mem, memlen) != memlen)
-			wd->error= 1;
-		
+		if (wd->ww->write(wd->ww, mem, memlen) != memlen) {
+			wd->error = 1;
+		}
 	}
 }
 
@@ -302,9 +415,9 @@ static void mywrite(WriteData *wd, const void *adr, int len)
  * \param current The current memory file (can be NULL).
  * \warning Talks to other functions with global parameters
  */
-static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current)
+static WriteData *bgnwrite(WriteWrap *ww, MemFile *compare, MemFile *current)
 {
-	WriteData *wd= writedata_new(file);
+	WriteData *wd= writedata_new(ww);
 
 	if (wd == NULL) return NULL;
 
@@ -3369,8 +3482,11 @@ static void write_thumb(WriteData *wd, const int *img)
 }
 
 /* if MemFile * there's filesave to memory */
-static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFile *current, 
-                             int write_user_block, int write_flags, const int *thumb)
+static int write_file_handle(
+        Main *mainvar,
+        WriteWrap *ww,
+        MemFile *compare, MemFile *current,
+        int write_user_block, int write_flags, const int *thumb)
 {
 	BHead bhead;
 	ListBase mainlist;
@@ -3379,7 +3495,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 
 	blo_split_main(&mainlist, mainvar);
 
-	wd= bgnwrite(handle, compare, current);
+	wd = bgnwrite(ww, compare, current);
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 	wd->use_mesh_compat = (write_flags & G_FILE_MESH_COMPAT) != 0;
@@ -3505,7 +3621,9 @@ static bool do_history(const char *name, ReportList *reports)
 int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, const int *thumb)
 {
 	char tempname[FILE_MAX+1];
-	int file, err, write_user_block;
+	int err, write_user_block;
+	eWriteWrapType ww_type;
+	WriteWrap ww;
 
 	/* path backup/restore */
 	void     *path_list_backup = NULL;
@@ -3514,8 +3632,16 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
-	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
-	if (file == -1) {
+	if (write_flags & G_FILE_COMPRESS) {
+		ww_type = WW_WRAP_ZLIB;
+	}
+	else {
+		ww_type = WW_WRAP_NONE;
+	}
+
+	ww_handle_init(ww_type, &ww);
+
+	if (ww.open(&ww, tempname) == false) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
 	}
@@ -3556,8 +3682,9 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		BKE_bpath_relative_convert(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
-	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);
-	close(file);
+	err = write_file_handle(mainvar, &ww, NULL, NULL, write_user_block, write_flags, thumb);
+
+	ww.close(&ww);
 
 	if (UNLIKELY(path_list_backup)) {
 		BKE_bpath_list_restore(mainvar, path_list_flag, path_list_backup);
@@ -3581,34 +3708,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		}
 	}
 
-	if (write_flags & G_FILE_COMPRESS) {
-		/* compressed files have the same ending as regular files... only from 2.4!!! */
-		char gzname[FILE_MAX+4];
-		int ret;
-
-		/* first write compressed to separate @.gz */
-		BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", filepath);
-		ret = BLI_file_gzip(tempname, gzname);
-		
-		if (0==ret) {
-			/* now rename to real file name, and delete temp @ file too */
-			if (BLI_rename(gzname, filepath) != 0) {
-				BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
-				return 0;
-			}
-
-			BLI_delete(tempname, false, false);
-		}
-		else if (-1==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .gz file");
-			return 0;
-		}
-		else if (-2==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression");
-			return 0;
-		}
-	}
-	else if (BLI_rename(tempname, filepath) != 0) {
+	if (BLI_rename(tempname, filepath) != 0) {
 		BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 		return 0;
 	}
@@ -3621,7 +3721,7 @@ int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int wr
 {
 	int err;
 
-	err= write_file_handle(mainvar, 0, compare, current, 0, write_flags, NULL);
+	err = write_file_handle(mainvar, NULL, compare, current, 0, write_flags, NULL);
 	
 	if (err==0) return 1;
 	return 0;
