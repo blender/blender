@@ -137,6 +137,11 @@ static int hash_vertex(int type, int vertex)
 {
 	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
 }
+
+static int hash_collpair(int type, CollPair *collpair)
+{
+	return hash_int_2d((unsigned int)type, hash_int_2d((unsigned int)collpair->face1, (unsigned int)collpair->face2));
+}
 /* ================ */
 
 /*
@@ -1752,7 +1757,7 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 /* ================================ */
 
 /* Init constraint matrix */
-static void setup_constraint_matrix(ClothVertex *verts, int numverts, ColliderContacts *contacts, int totcolliders, fmatrix3x3 *S)
+static void setup_constraint_matrix(ClothVertex *verts, int numverts, ColliderContacts *contacts, int totcolliders, fmatrix3x3 *S, SimDebugData *debug_data)
 {
 	int i, j;
 
@@ -1784,6 +1789,15 @@ static void setup_constraint_matrix(ClothVertex *verts, int numverts, ColliderCo
 			
 			mul_fvectorT_fvector(cmat, collpair->normal, collpair->normal);
 			sub_m3_m3m3(S[v].m, I, cmat);
+			
+			BKE_sim_debug_data_add_dot(debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
+			BKE_sim_debug_data_add_dot(debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
+			BKE_sim_debug_data_add_line(debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
+			{
+				float nor[3];
+				mul_v3_v3fl(nor, collpair->normal, collpair->distance);
+				BKE_sim_debug_data_add_vector(debug_data, collpair->pb, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
+			}
 		}
 	}
 }
@@ -2080,17 +2094,18 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 	}
 	
-	/* determine contact points */
-	if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
-		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_POINTS) {
-			cloth_find_point_contacts(ob, clmd, 0.0f, tf, &contacts, &totcolliders);
-		}
-	}
-	
-	/* setup vertex constraints for pinned vertices and contacts */
-	setup_constraint_matrix(verts, cloth->numverts, contacts, totcolliders, id->S);
-	
 	while (step < tf) {
+		
+		/* determine contact points */
+		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
+			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_POINTS) {
+				cloth_find_point_contacts(ob, clmd, 0.0f, tf, &contacts, &totcolliders);
+			}
+		}
+		
+		/* setup vertex constraints for pinned vertices and contacts */
+		setup_constraint_matrix(verts, cloth->numverts, contacts, totcolliders, id->S, clmd->debug_data);
+		
 		// damping velocity for artistic reasons
 		mul_lfvectorS(id->V, id->V, clmd->sim_parms->vel_damping, numverts);
 
@@ -2117,12 +2132,16 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			
 			copy_v3_v3(verts[i].txold, id->X[i]);
 			
-//			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0)
-//				BKE_sim_debug_data_add_line(clmd->debug_data, id->Xnew[i], id->Xnew[i-1], 1, 0.5, 0.5, "hair", hash_vertex(4892, i));
-//			BKE_sim_debug_data_add_vector(clmd->debug_data, id->Xnew[i], id->Vnew[i], 0, 0, 1, "velocity", hash_vertex(3158, i));
-			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0)
-				BKE_sim_debug_data_add_line(clmd->debug_data, id->X[i], id->X[i-1], 1, 0.5, 0.5, "hair", hash_vertex(4892, i));
+			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0) {
+				BKE_sim_debug_data_add_line(clmd->debug_data, id->X[i], id->X[i-1], 0.6, 0.3, 0.3, "hair", hash_vertex(4892, i));
+				BKE_sim_debug_data_add_line(clmd->debug_data, id->Xnew[i], id->Xnew[i-1], 1, 0.5, 0.5, "hair", hash_vertex(4893, i));
+			}
 			BKE_sim_debug_data_add_vector(clmd->debug_data, id->X[i], id->V[i], 0, 0, 1, "velocity", hash_vertex(3158, i));
+		}
+		
+		/* free contact points */
+		if (contacts) {
+			cloth_free_contacts(contacts, totcolliders);
 		}
 
 #if 0
@@ -2219,11 +2238,6 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			copy_v3_v3(verts[i].x, id->X[i]);
 			copy_v3_v3(verts[i].v, id->V[i]);
 		}
-	}
-	
-	/* free contact points */
-	if (contacts) {
-		cloth_free_contacts(contacts, totcolliders);
 	}
 	
 	/* unused */

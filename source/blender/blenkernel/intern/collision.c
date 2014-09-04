@@ -1072,17 +1072,6 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 	return result;
 }
 
-#if 0
-BLI_INLINE void face_normal(float co1[3], float co2[3], float co3[3], float nor[3])
-{
-	float p[3], q[3];
-	sub_v3_v3v3(p, co2, co1);
-	sub_v3_v3v3(q, co3, co1);
-	cross_v3_v3v3(nor, p, q);
-	normalize_v3(nor);
-}
-#endif
-
 BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float p2[3], const float v0[3], const float v1[3], const float v2[3],
                                                   float r_nor[3], float *r_lambda, float r_uv[2])
 {
@@ -1126,7 +1115,7 @@ BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float
 }
 
 static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, int bp1, int bp2, int bp3,
-                                      int index_cloth, int index_coll, float epsilon, CollPair *collpair)
+                                      int index_cloth, int index_coll, float epsilon, CollPair *collpair, SimDebugData *debug_data)
 {
 	float *co1 = mverts[bp1].co, *co2 = mverts[bp2].co, *co3 = mverts[bp3].co;
 	float lambda, uv[2], distance1, distance2;
@@ -1140,6 +1129,7 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	distance1 = dot_v3v3(v1p1, facenor);
 	sub_v3_v3v3(v1p2, p2, co1);
 	distance2 = dot_v3v3(v1p2, facenor);
+	BKE_sim_debug_data_add_line(debug_data, p1, p2, 0,1,1, "collision", hash_int_2d(98293, hash_int_2d(index_cloth, index_coll)));
 	if (distance2 > epsilon || (distance1 < 0.0f && distance2 < 0.0f))
 		return collpair;
 	
@@ -1185,9 +1175,9 @@ static CollPair* cloth_point_collision(ModifierData *md1, ModifierData *md2,
 	vert = &clmd->clothObject->verts[overlap->indexA];
 	face = &collmd->mfaces[overlap->indexB];
 
-	collpair = cloth_point_collpair(vert->x, vert->tx, mverts, face->v1, face->v2, face->v3, overlap->indexA, overlap->indexB, epsilon, collpair);
+	collpair = cloth_point_collpair(vert->tx, vert->x, mverts, face->v1, face->v2, face->v3, overlap->indexA, overlap->indexB, epsilon, collpair, clmd->debug_data);
 	if (face->v4)
-		collpair = cloth_point_collpair(vert->x, vert->tx, mverts, face->v3, face->v4, face->v1, overlap->indexA, overlap->indexB, epsilon, collpair);
+		collpair = cloth_point_collpair(vert->tx, vert->x, mverts, face->v3, face->v4, face->v1, overlap->indexA, overlap->indexB, epsilon, collpair, clmd->debug_data);
 
 	return collpair;
 }
