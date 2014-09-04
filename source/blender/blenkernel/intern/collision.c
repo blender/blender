@@ -1073,8 +1073,28 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 }
 
 BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float p2[3], const float v0[3], const float v1[3], const float v2[3],
-                                                  float r_nor[3], float *r_lambda, float r_uv[2])
+                                                  float r_nor[3], float *r_lambda, float r_w[4])
 {
+	float edge1[3], edge2[3], p2face[3], p1p2[3], v0p2[3];
+	float nor_v0p2, nor_p1p2;
+	
+	sub_v3_v3v3(edge1, v1, v0);
+	sub_v3_v3v3(edge2, v2, v0);
+	cross_v3_v3v3(r_nor, edge1, edge2);
+	normalize_v3(r_nor);
+	
+	nor_v0p2 = dot_v3v3(v0p2, r_nor);
+	madd_v3_v3v3fl(p2face, p2, r_nor, -nor_v0p2);
+	interp_weights_face_v3(r_w, v0, v1, v2, NULL, p2face);
+	
+	sub_v3_v3v3(p1p2, p2, p1);
+	sub_v3_v3v3(v0p2, p2, v0);
+	nor_p1p2 = dot_v3v3(p1p2, r_nor);
+	*r_lambda = (nor_p1p2 != 0.0f ? nor_v0p2 / nor_p1p2 : 0.0f);
+	
+	return r_w[1] >= 0.0f && r_w[2] >= 0.0f && r_w[1] + r_w[2] <= 1.0f;
+
+#if 0 /* XXX this method uses the intersection point, but is broken and doesn't work well in general */
 	float p[3], vec1[3], line[3], edge1[3], edge2[3], q[3];
 	float a, f, u, v;
 
@@ -1105,31 +1125,33 @@ BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float
 	 *	return 0;
 	 */
 
-	r_uv[0] = u;
-	r_uv[1] = v;
+	r_w[0] = 1.0f - u - v;
+	r_w[1] = u;
+	r_w[2] = v;
+	r_w[3] = 0.0f;
 
 	cross_v3_v3v3(r_nor, edge1, edge2);
 	normalize_v3(r_nor);
 
 	return true;
+#endif
 }
 
 static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, int bp1, int bp2, int bp3,
                                       int index_cloth, int index_coll, float epsilon, CollPair *collpair, SimDebugData *debug_data)
 {
 	float *co1 = mverts[bp1].co, *co2 = mverts[bp2].co, *co3 = mverts[bp3].co;
-	float lambda, uv[2], distance1, distance2;
+	float lambda, distance1, distance2;
 	float facenor[3], v1p1[3], v1p2[3];
-	float w[3];
+	float w[4];
 
-	if (!cloth_point_face_collision_params(p1, p2, co1, co2, co3, facenor, &lambda, uv))
+	if (!cloth_point_face_collision_params(p1, p2, co1, co2, co3, facenor, &lambda, w))
 		return collpair;
 	
 	sub_v3_v3v3(v1p1, p1, co1);
 	distance1 = dot_v3v3(v1p1, facenor);
 	sub_v3_v3v3(v1p2, p2, co1);
 	distance2 = dot_v3v3(v1p2, facenor);
-	BKE_sim_debug_data_add_line(debug_data, p1, p2, 0,1,1, "collision", hash_int_2d(98293, hash_int_2d(index_cloth, index_coll)));
 	if (distance2 > epsilon || (distance1 < 0.0f && distance2 < 0.0f))
 		return collpair;
 	
@@ -1148,9 +1170,6 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	collpair->distance = distance2;
 	mul_v3_v3fl(collpair->vector, facenor, -distance2);
 	
-	w[0] = 1.0f - uv[0] - uv[1];
-	w[1] = uv[0];
-	w[2] = uv[1];
 	interp_v3_v3v3v3(collpair->pb, co1, co2, co3, w);
 	
 	copy_v3_v3(collpair->normal, facenor);
