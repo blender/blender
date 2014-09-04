@@ -349,8 +349,10 @@ static void print_sparse_matrix(fmatrix3x3 *m)
 {
 	if (m) {
 		unsigned int i;
-		for (i = 0; i < m[0].vcount + m[0].scount; i++)
+		for (i = 0; i < m[0].vcount + m[0].scount; i++) {
+			printf("%d:\n", i);
 			print_fmatrix(m[i].m);
+		}
 	}
 }
 #endif
@@ -1756,23 +1758,30 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 
 /* ================================ */
 
-/* Init constraint matrix */
-static void setup_constraint_matrix(ClothVertex *verts, int numverts, ColliderContacts *contacts, int totcolliders, fmatrix3x3 *S, SimDebugData *debug_data)
+/* Init constraint matrix
+ * This is part of the modified CG method suggested by Baraff/Witkin in
+ * "Large Steps in Cloth Simulation" (Siggraph 1998)
+ */
+static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *contacts, int totcolliders, lfVector *V, fmatrix3x3 *S, lfVector *z, float dt)
 {
-	int i, j;
+	ClothVertex *verts = clmd->clothObject->verts;
+	int numverts = clmd->clothObject->numverts;
+	int i, j, v;
 
 	/* Clear matrix from old vertex constraints */
-	for (i = 0; i < S[0].vcount; i++)
-		S[i].c = S[i].r = 0;
+	for (v = 0; v < S[0].vcount; v++)
+		S[v].c = S[v].r = 0;
 
 	/* pinned vertex constraints */
-	for (i = 0; i < numverts; i++) {
-		S[i].c = S[i].r = i;
-		if (verts[i].flags & CLOTH_VERT_FLAG_PINNED) {
-			zero_m3(S[i].m);
+	for (v = 0; v < numverts; v++) {
+		S[v].c = S[v].r = v;
+		if (verts[v].flags & CLOTH_VERT_FLAG_PINNED) {
+			negate_v3_v3(z[v], verts[v].v);
+			zero_m3(S[v].m);
 		}
 		else {
-			unit_m3(S[i].m);
+			zero_v3(z[v]);
+			unit_m3(S[v].m);
 		}
 	}
 
@@ -1782,21 +1791,34 @@ static void setup_constraint_matrix(ClothVertex *verts, int numverts, ColliderCo
 			CollPair *collpair = &ct->collisions[j];
 			int v = collpair->face1;
 			float cmat[3][3];
+			float impulse[3];
 			
 			/* pinned verts handled separately */
 			if (verts[v].flags & CLOTH_VERT_FLAG_PINNED)
 				continue;
 			
+			/* calculate collision response */
+//			if (!cloth_points_collpair_response(clmd, ct->collmd, ct->ob->pd, collpair, dt, impulse))
+//				continue;
+			cloth_points_collpair_response(clmd, ct->collmd, ct->ob->pd, collpair, dt, impulse);
+			
+//			add_v3_v3(z[v], impulse);
+			negate_v3_v3(z[v], V[v]);
+//			sub_v3_v3(z[v], verts[v].v);
+			
+			/* modify S to enforce velocity constraint in normal direction */
 			mul_fvectorT_fvector(cmat, collpair->normal, collpair->normal);
 			sub_m3_m3m3(S[v].m, I, cmat);
 			
-			BKE_sim_debug_data_add_dot(debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
-			BKE_sim_debug_data_add_dot(debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
-			BKE_sim_debug_data_add_line(debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
+			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
 			{
-				float nor[3];
-				mul_v3_v3fl(nor, collpair->normal, collpair->distance);
-				BKE_sim_debug_data_add_vector(debug_data, collpair->pb, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
+//				float nor[3];
+//				mul_v3_v3fl(nor, collpair->normal, collpair->distance);
+//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
+				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, impulse, 1, 1, 0, "collision", hash_collpair(940, collpair));
+//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, collpair->normal, 1, 1, 0, "collision", hash_collpair(941, collpair));
 			}
 		}
 	}
@@ -2096,6 +2118,12 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	
 	while (step < tf) {
 		
+		/* copy velocities for collision */
+		for (i = 0; i < numverts; i++) {
+			copy_v3_v3(verts[i].tv, id->V[i]);
+			copy_v3_v3(verts[i].v, verts[i].tv);
+		}
+		
 		/* determine contact points */
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
 			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_POINTS) {
@@ -2104,7 +2132,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 		
 		/* setup vertex constraints for pinned vertices and contacts */
-		setup_constraint_matrix(verts, cloth->numverts, contacts, totcolliders, id->S, clmd->debug_data);
+		setup_constraint_matrix(clmd, contacts, totcolliders, id->V, id->S, id->z, dt);
 		
 		// damping velocity for artistic reasons
 		mul_lfvectorS(id->V, id->V, clmd->sim_parms->vel_damping, numverts);

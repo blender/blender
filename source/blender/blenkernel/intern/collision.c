@@ -958,6 +958,82 @@ BLI_INLINE void max_v3_v3v3(float r[3], const float a[3], const float b[3])
 	r[2] = max_ff(a[2], b[2]);
 }
 
+bool cloth_points_collpair_response(ClothModifierData *clmd, CollisionModifierData *collmd, PartDeflect *pd, CollPair *collpair, float dt, float r_impulse[3])
+{
+	bool result = false;
+	float restitution = (1.0f - clmd->coll_parms->damping) * (1.0f - pd->pdef_sbdamp);
+	Cloth *cloth1 = clmd->clothObject;
+	
+	float u1, u2, u3;
+	float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
+	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
+
+	float margin_distance = collpair->distance - epsilon2;
+	float mag_v_rel;
+	
+	zero_v3(r_impulse);
+	
+	if (margin_distance > 0.0f)
+		return false; /* XXX tested before already? */
+	
+	/* only handle static collisions here */
+	if ( collpair->flag & COLLISION_IN_FUTURE )
+		return false;
+	
+	/* compute barycentric coordinates */
+	collision_compute_barycentric(collpair->pb,
+	                              collmd->current_x[collpair->bp1].co,
+	                              collmd->current_x[collpair->bp2].co,
+	                              collmd->current_x[collpair->bp3].co,
+	                              &u1, &u2, &u3 );
+	
+	/* Calculate relative velocity */
+	copy_v3_v3(v1, cloth1->verts[collpair->ap1].tv);
+	
+	collision_interpolateOnTriangle(v2_new, collmd->current_v[collpair->bp1].co, collmd->current_v[collpair->bp2].co, collmd->current_v[collpair->bp3].co, u1, u2, u3);
+	/* XXX assume constant velocity of the collider for now */
+	copy_v3_v3(v2_old, v2_new);
+	
+	/* relative velocity = velocity of the cloth point relative to the collider */
+	sub_v3_v3v3(v_rel_old, v1, v2_old);
+	sub_v3_v3v3(v_rel_new, v1, v2_new);
+	/* normal component of the relative velocity */
+	mag_v_rel = dot_v3v3(v_rel_old, collpair->normal);
+	
+	/* only valid when moving toward the collider */
+	if (mag_v_rel < -ALMOST_ZERO) {
+		float v_nor_old, v_nor_new;
+		float v_tan_old[3], v_tan_new[3];
+		float bounce, repulse;
+		
+		/* Collision response based on
+		 * "Simulating Complex Hair with Robust Collision Handling" (Choe, Choi, Ko, ACM SIGGRAPH 2005)
+		 * http://graphics.snu.ac.kr/publications/2005-choe-HairSim/Choe_2005_SCA.pdf
+		 */
+		
+		v_nor_old = mag_v_rel;
+		v_nor_new = dot_v3v3(v_rel_new, collpair->normal);
+		
+		madd_v3_v3v3fl(v_tan_old, v_rel_old, collpair->normal, -v_nor_old);
+		madd_v3_v3v3fl(v_tan_new, v_rel_new, collpair->normal, -v_nor_new);
+		
+		repulse = -margin_distance / dt + dot_v3v3(v1, collpair->normal);
+		
+		if (margin_distance < -epsilon2) {
+			bounce = -v_nor_new + v_nor_old * restitution;
+			mul_v3_v3fl(r_impulse, collpair->normal, max_ff(repulse, bounce));
+		}
+		else {
+			bounce = 0.0f;
+			mul_v3_v3fl(r_impulse, collpair->normal, repulse);
+		}
+		
+		result = true;
+	}
+	
+	return result;
+}
+
 static bool cloth_points_collision_response_static(ClothModifierData *clmd, CollisionModifierData *collmd, PartDeflect *pd,
                                                   CollPair *collpair, CollPair *collision_end, float dt)
 {
