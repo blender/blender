@@ -651,6 +651,7 @@ void vDM_ColorBand_store(const struct ColorBand *coba, const char alert_color[4]
  * In use now by vertex/weight paint and particles */
 DMCoNo *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 #endif
+void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int totcos);
 
 /* */
 DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,

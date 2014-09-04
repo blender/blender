@@ -44,6 +44,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
@@ -2579,6 +2580,46 @@ DMCoNo *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 }
 
 #endif
+
+/* same as above but for vert coords */
+typedef struct {
+	float (*vertexcos)[3];
+	BLI_bitmap *vertex_visit;
+} MappedUserData;
+
+static void make_vertexcos__mapFunc(void *userData, int index, const float co[3],
+                                    const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	MappedUserData *mappedData = (MappedUserData *)userData;
+
+	if (BLI_BITMAP_TEST(mappedData->vertex_visit, index) == 0) {
+		/* we need coord from prototype vertex, not from copies,
+		 * assume they stored in the beginning of vertex array stored in DM
+		 * (mirror modifier for eg does this) */
+		copy_v3_v3(mappedData->vertexcos[index], co);
+		BLI_BITMAP_ENABLE(mappedData->vertex_visit, index);
+	}
+}
+
+void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int totcos)
+{
+	float (*vertexcos)[3];
+
+	if (dm->foreachMappedVert) {
+		MappedUserData userData;
+		memset(r_cos, 0, sizeof(r_cos) * totcos);
+		userData.vertexcos = r_cos;
+		userData.vertex_visit = BLI_BITMAP_NEW(totcos, "vertexcos flags");
+		dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData, DM_FOREACH_NOP);
+		MEM_freeN(userData.vertex_visit);
+	}
+	else {
+		int i;
+		for (i = 0; i < totcos; i++) {
+			dm->getVertCo(dm, i, vertexcos[i]);
+		}
+	}
+}
 
 /* ******************* GLSL ******************** */
 
