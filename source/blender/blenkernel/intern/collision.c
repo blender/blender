@@ -1228,7 +1228,8 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 	distance1 = dot_v3v3(v1p1, facenor);
 	sub_v3_v3v3(v1p2, p2, co1);
 	distance2 = dot_v3v3(v1p2, facenor);
-	if (distance2 > epsilon || (distance1 < 0.0f && distance2 < 0.0f))
+//	if (distance2 > epsilon || (distance1 < 0.0f && distance2 < 0.0f))
+	if (distance2 > epsilon)
 		return collpair;
 	
 	collpair->face1 = index_cloth; /* XXX actually not a face, but equivalent index for point */
