@@ -729,7 +729,8 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 	Curve *cu;
 	int a;
 	CurveDeform cd;
-	int use_vgroups;
+	MDeformVert *dvert = NULL;
+	int defgrp_index = -1;
 	const bool is_neg_axis = (defaxis > 2);
 
 	if (cuOb->type != OB_CURVE)
@@ -750,75 +751,63 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 		cd.dmax[0] = cd.dmax[1] = cd.dmax[2] =  0.0f;
 	}
 	
-	/* check whether to use vertex groups (only possible if target is a Mesh)
-	 * we want either a Mesh with no derived data, or derived data with
-	 * deformverts
+	/* Check whether to use vertex groups (only possible if target is a Mesh or Lattice).
+	 * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
 	 */
-	if (target->type == OB_MESH) {
-		/* if there's derived data without deformverts, don't use vgroups */
-		if (dm) {
-			use_vgroups = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
-		}
-		else {
-			Mesh *me = target->data;
-			use_vgroups = (me->dvert != NULL);
-		}
-	}
-	else {
-		use_vgroups = false;
-	}
-	
-	if (vgroup && vgroup[0] && use_vgroups) {
-		Mesh *me = target->data;
-		const int defgrp_index = defgroup_name_index(target, vgroup);
+	if (vgroup && vgroup[0] && ELEM(target->type, OB_MESH, OB_LATTICE)) {
+		defgrp_index = defgroup_name_index(target, vgroup);
 
-		if (defgrp_index != -1 && (me->dvert || dm)) {
-			MDeformVert *dvert = me->dvert;
-			float vec[3];
-			float weight;
-	
-
-			if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
-				dvert = me->dvert;
-				for (a = 0; a < numVerts; a++, dvert++) {
-					if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-					weight = defvert_find_weight(dvert, defgrp_index);
-	
-					if (weight > 0.0f) {
-						mul_m4_v3(cd.curvespace, vertexCos[a]);
-						copy_v3_v3(vec, vertexCos[a]);
-						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
-						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
-						mul_m4_v3(cd.objectspace, vertexCos[a]);
-					}
-				}
+		if (defgrp_index != -1) {
+			/* if there's derived data without deformverts, don't use vgroups */
+			if (dm) {
+				dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+			}
+			else if (target->type == OB_LATTICE) {
+				dvert = ((Lattice *)target->data)->dvert;
 			}
 			else {
-				/* set mesh min/max bounds */
-				INIT_MINMAX(cd.dmin, cd.dmax);
-	
-				for (a = 0; a < numVerts; a++, dvert++) {
-					if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-					
-					if (defvert_find_weight(dvert, defgrp_index) > 0.0f) {
-						mul_m4_v3(cd.curvespace, vertexCos[a]);
-						minmax_v3v3_v3(cd.dmin, cd.dmax, vertexCos[a]);
-					}
+				dvert = ((Mesh *)target->data)->dvert;
+			}
+		}
+	}
+
+	if (dvert) {
+		MDeformVert *dvert_iter;
+		float vec[3];
+
+		if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
+			for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
+				const float weight = defvert_find_weight(dvert_iter, defgrp_index);
+
+				if (weight > 0.0f) {
+					mul_m4_v3(cd.curvespace, vertexCos[a]);
+					copy_v3_v3(vec, vertexCos[a]);
+					calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
+					interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
+					mul_m4_v3(cd.objectspace, vertexCos[a]);
 				}
-	
-				dvert = me->dvert;
-				for (a = 0; a < numVerts; a++, dvert++) {
-					if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-					
-					weight = defvert_find_weight(dvert, defgrp_index);
-	
-					if (weight > 0.0f) {
-						/* already in 'cd.curvespace', prev for loop */
-						copy_v3_v3(vec, vertexCos[a]);
-						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
-						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
-						mul_m4_v3(cd.objectspace, vertexCos[a]);
-					}
+			}
+		}
+		else {
+			/* set mesh min/max bounds */
+			INIT_MINMAX(cd.dmin, cd.dmax);
+
+			for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
+				if (defvert_find_weight(dvert_iter, defgrp_index) > 0.0f) {
+					mul_m4_v3(cd.curvespace, vertexCos[a]);
+					minmax_v3v3_v3(cd.dmin, cd.dmax, vertexCos[a]);
+				}
+			}
+
+			for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
+				const float weight = defvert_find_weight(dvert_iter, defgrp_index);
+
+				if (weight > 0.0f) {
+					/* already in 'cd.curvespace', prev for loop */
+					copy_v3_v3(vec, vertexCos[a]);
+					calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
+					interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
+					mul_m4_v3(cd.objectspace, vertexCos[a]);
 				}
 			}
 		}
