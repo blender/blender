@@ -1838,24 +1838,26 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 	
 	BLF_width_and_height_default(printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
 	
-	xco = rect.xmax - (int)printable_size[0] - 10;
-	yco = rect.ymax - (int)printable_size[1] - 10;
+	xco = (rect.xmax - U.widget_unit) - (int)printable_size[0];
+	yco = (rect.ymax - U.widget_unit);
 	
 	/* warning text (to clarify meaning of overlays)
 	 * - original color was red to match the icon, but that clashes badly with a less nasty border
 	 */
 	UI_ThemeColorShade(TH_TEXT_HI, -50);
 #ifdef WITH_INTERNATIONAL
-	BLF_draw_default(xco, ar->winy - 17, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
+	BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
 #else
-	BLF_draw_default_ascii(xco, ar->winy - 17, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
+	BLF_draw_default_ascii(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
 #endif
 	
 	/* autokey recording icon... */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	
-	xco -= (ICON_DEFAULT_WIDTH + 2);
+	xco -= U.widget_unit;
+	yco -= (int)printable_size[1] / 2;
+
 	UI_icon_draw(xco, yco, ICON_REC);
 	
 	glDisable(GL_BLEND);
