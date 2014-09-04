@@ -30,6 +30,7 @@ public:
 	}
 
 	void mem_free(size_t size) {
+		assert(mem_used >= size);
 		mem_used -= size;
 	}
 

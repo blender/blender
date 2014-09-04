@@ -73,8 +73,8 @@ public:
 	void mem_alloc(device_memory& mem, MemoryType type)
 	{
 		mem.device_pointer = mem.data_pointer;
-
-		stats.mem_alloc(mem.memory_size());
+		mem.device_size = mem.memory_size();
+		stats.mem_alloc(mem.device_size);
 	}
 
 	void mem_copy_to(device_memory& mem)
@@ -94,9 +94,11 @@ public:
 
 	void mem_free(device_memory& mem)
 	{
-		mem.device_pointer = 0;
-
-		stats.mem_free(mem.memory_size());
+		if(mem.device_pointer) {
+			mem.device_pointer = 0;
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
+		}
 	}
 
 	void const_copy_to(const char *name, void *host, size_t size)
@@ -108,15 +110,17 @@ public:
 	{
 		kernel_tex_copy(&kernel_globals, name, mem.data_pointer, mem.data_width, mem.data_height, mem.data_depth, interpolation);
 		mem.device_pointer = mem.data_pointer;
-
-		stats.mem_alloc(mem.memory_size());
+		mem.device_size = mem.memory_size();
+		stats.mem_alloc(mem.device_size);
 	}
 
 	void tex_free(device_memory& mem)
 	{
-		mem.device_pointer = 0;
-
-		stats.mem_free(mem.memory_size());
+		if(mem.device_pointer) {
+			mem.device_pointer = 0;
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
+		}
 	}
 
 	void *osl_memory()

@@ -167,6 +167,7 @@ public:
 	int data_elements;
 	device_ptr data_pointer;
 	size_t data_size;
+	size_t device_size;
 	size_t data_width;
 	size_t data_height;
 	size_t data_depth;
@@ -194,6 +195,7 @@ public:
 		data_elements = device_type_traits<T>::num_elements;
 		data_pointer = 0;
 		data_size = 0;
+		device_size = 0;
 		data_width = 0;
 		data_height = 0;
 		data_depth = 0;

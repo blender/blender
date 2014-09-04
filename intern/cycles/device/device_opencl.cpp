@@ -794,6 +794,7 @@ public:
 		opencl_assert_err(ciErr, "clCreateBuffer");
 
 		stats.mem_alloc(size);
+		mem.device_size = size;
 	}
 
 	void mem_copy_to(device_memory& mem)
@@ -825,7 +826,8 @@ public:
 			opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
 			mem.device_pointer = 0;
 
-			stats.mem_free(mem.memory_size());
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
 		}
 	}
 

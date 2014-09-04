@@ -334,6 +334,7 @@ public:
 		size_t size = mem.memory_size();
 		cuda_assert(cuMemAlloc(&device_pointer, size));
 		mem.device_pointer = (device_ptr)device_pointer;
+		mem.device_size = size;
 		stats.mem_alloc(size);
 		cuda_pop_context();
 	}
@@ -381,7 +382,8 @@ public:
 
 			mem.device_pointer = 0;
 
-			stats.mem_free(mem.memory_size());
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
 		}
 	}
 
@@ -473,6 +475,7 @@ public:
 				cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES));
 
 				mem.device_pointer = (device_ptr)handle;
+				mem.device_size = size;
 
 				stats.mem_alloc(size);
 			}
@@ -540,7 +543,8 @@ public:
 				tex_interp_map.erase(tex_interp_map.find(mem.device_pointer));
 				mem.device_pointer = 0;
 
-				stats.mem_free(mem.memory_size());
+				stats.mem_free(mem.device_size);
+				mem.device_size = 0;
 			}
 			else {
 				tex_interp_map.erase(tex_interp_map.find(mem.device_pointer));
@@ -790,7 +794,8 @@ public:
 				mem.device_pointer = pmem.cuTexId;
 				pixel_mem_map[mem.device_pointer] = pmem;
 
-				stats.mem_alloc(mem.memory_size());
+				mem.device_size = mem.memory_size();
+				stats.mem_alloc(mem.device_size);
 
 				return;
 			}
@@ -847,7 +852,8 @@ public:
 				pixel_mem_map.erase(pixel_mem_map.find(mem.device_pointer));
 				mem.device_pointer = 0;
 
-				stats.mem_free(mem.memory_size());
+				stats.mem_free(mem.device_size);
+				mem.device_size = 0;
 
 				return;
 			}
