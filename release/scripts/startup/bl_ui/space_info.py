@@ -127,10 +127,8 @@ class INFO_MT_file(Menu):
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.link_append", text="Link", icon='LINK_BLEND')
-        props = layout.operator("wm.link_append", text="Append", icon='APPEND_BLEND')
-        props.link = False
-        props.instance_groups = False
+        layout.operator("wm.link", text="Link", icon='LINK_BLEND')
+        layout.operator("wm.append", text="Append", icon='APPEND_BLEND')
 
         layout.separator()
 
