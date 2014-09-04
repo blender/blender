@@ -839,7 +839,7 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 {
 	// Solves for unknown X in equation AX=B
 	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
-	float conjgrad_epsilon=0.0001f /* , conjgrad_lasterror=0 */ /* UNUSED */;
+	float conjgrad_epsilon=0.01f;
 	
 	unsigned int numverts = lA[0].vcount;
 	lfVector *fB = create_lfvector(numverts);
