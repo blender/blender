@@ -189,6 +189,7 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 {
 	Cloth *cloth = clmd->clothObject;
 	unsigned int numverts = cloth->numverts;
+	ClothVertex *verts = cloth->verts;
 	float spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float gravity[3] = {0,0,0};
 //	lVector diagonal(3*numverts);
@@ -205,13 +206,15 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 		/* scale gravity force
-		 * XXX this factor looks totally arbitrary ... what is this? lukas_t
+		 * XXX 0.001 factor looks totally arbitrary ... what is this? lukas_t
 		 */
 		mul_v3_v3fl(gravity, clmd->scene->physics_settings.gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity);
 	}
 	
+	/* initialize force with gravity */
 	for (int i = 0; i < numverts; ++i) {
-		copy_v3_v3(lVector_v3(F, i), gravity);
+		/* gravitational mass same as inertial mass */
+		mul_v3_v3(lVector_v3(F, i), gravity, verts[i].mass);
 	}
 
 #if 0
