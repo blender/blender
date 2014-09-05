@@ -2267,31 +2267,28 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 
 static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)
 {
-	BMLoop *l1, *l2, *l;
-	float mid[3];
-	BMIter iter;
-	int v1inside, v2inside;
+	bool v1_inside, v2_inside;
+	bool v1_inface, v2_inface;
 
 	if (!f || !v1 || !v2)
 		return false;
 
-	l1 = NULL;
-	l2 = NULL;
-
 	/* find out if v1 and v2, if set, are part of the face */
-	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
-		if (v1->v && l->v == v1->v)
-			l1 = l;
-		if (v2->v && l->v == v2->v)
-			l2 = l;
-	}
+	v1_inface = v1->v ? BM_vert_in_face(f, v1->v) : false;
+	v2_inface = v2->v ? BM_vert_in_face(f, v2->v) : false;
 
 	/* BM_face_point_inside_test uses best-axis projection so this isn't most accurate test... */
-	v1inside = l1 ? 0 : BM_face_point_inside_test(f, v1->co);
-	v2inside = l2 ? 0 : BM_face_point_inside_test(f, v2->co);
-	if ((l1 && v2inside) || (l2 && v1inside) || (v1inside && v2inside))
+	v1_inside = v1_inface ? false : BM_face_point_inside_test(f, v1->co);
+	v2_inside = v2_inface ? false : BM_face_point_inside_test(f, v2->co);
+	if ((v1_inface && v2_inside) ||
+	    (v2_inface && v1_inside) ||
+	    (v1_inside && v2_inside))
+	{
 		return true;
-	if (l1 && l2) {
+	}
+
+	if (v1_inface && v2_inface) {
+		float mid[3];
 		/* Can have case where v1 and v2 are on shared chain between two faces.
 		 * BM_face_splits_check_legal does visibility and self-intersection tests,
 		 * but it is expensive and maybe a bit buggy, so use a simple
