@@ -82,6 +82,8 @@
 #include "UI_view2d.h"
 #include "UI_interface.h"
 
+#include "ED_image.h"
+#include "ED_mesh.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -97,6 +99,7 @@
 #include "RNA_enum_types.h"
 
 #include "GPU_draw.h"
+#include "GPU_buffers.h"
 
 #include "IMB_colormanagement.h"
 
@@ -4848,6 +4851,129 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER;
 
 	RNA_def_string_file_name(ot->srna, "filepath", NULL, FILE_MAX, "File Path", "Name of the file");
+}
+
+/*********************************************
+ * Data generation for projective texturing  *
+ * *******************************************/
+
+
+/* Make sure that active object has a material, and assign UVs and image layers if they do not exist */
+void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
+{
+	Mesh *me;
+	int layernum;
+	ImagePaintSettings *imapaint = &(CTX_data_tool_settings(C)->imapaint);
+	bScreen *sc;
+	Scene *scene = CTX_data_scene(C);
+	Main *bmain = CTX_data_main(C);
+	Brush *br = BKE_paint_brush(&imapaint->paint);
+
+	/* no material, add one */
+	if (ob->totcol == 0) {
+		Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+		/* no material found, just assign to first slot */
+		assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+		proj_paint_add_slot(C, ma, NULL);
+	}
+	else {
+		/* there may be material slots but they may be empty, check */
+		int i;
+		
+		for (i = 1; i < ob->totcol + 1; i++) {
+			Material *ma = give_current_material(ob, i);
+
+			if (ma) {
+				if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+					if (!ma->texpaintslot) {
+						/* refresh here just in case */
+						BKE_texpaint_slot_refresh_cache(scene, ma);				
+						
+						/* if still no slots, we have to add */
+						if (!ma->texpaintslot) {
+							proj_paint_add_slot(C, ma, NULL);
+							
+							if (ma->texpaintslot) {
+								for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+									ScrArea *sa;
+									for (sa = sc->areabase.first; sa; sa = sa->next) {
+										SpaceLink *sl;
+										for (sl = sa->spacedata.first; sl; sl = sl->next) {
+											if (sl->spacetype == SPACE_IMAGE) {
+												SpaceImage *sima = (SpaceImage *)sl;
+												
+												ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[0].ima);
+											}
+										}
+									}
+								}
+							}							
+						}
+					}
+				}
+			}
+			else {
+				Material *ma = BKE_material_add(CTX_data_main(C), "Material");
+				/* no material found, just assign to first slot */
+				assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
+				proj_paint_add_slot(C, ma, NULL);
+			}
+		}
+	}
+	
+	if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
+		if (imapaint->canvas == NULL) {
+			int width;
+			int height;
+			Main *bmain = CTX_data_main(C);
+			float color[4] = {0.0, 0.0, 0.0, 1.0};
+
+			width = 1024;
+			height = 1024;
+			imapaint->canvas = BKE_image_add_generated(bmain, width, height, "Canvas", 32, false, IMA_GENTYPE_BLANK, color);
+			
+			GPU_drawobject_free(ob->derivedFinal);
+			
+			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+				ScrArea *sa;
+				for (sa = sc->areabase.first; sa; sa = sa->next) {
+					SpaceLink *sl;
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_IMAGE) {
+							SpaceImage *sima = (SpaceImage *)sl;
+							
+							ED_space_image_set(sima, scene, scene->obedit, imapaint->canvas);
+						}
+					}
+				}
+			}			
+		}		
+	}
+		
+	me = BKE_mesh_from_object(ob);
+	layernum = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+
+	if (layernum == 0) {
+		BKE_reportf(op->reports, RPT_WARNING, "Object did not have UV map, manual unwrap recommended");
+
+		ED_mesh_uv_texture_add(me, "UVMap", true);
+	}
+
+	/* Make sure we have a stencil to paint on! */
+	if (br && br->imagepaint_tool == PAINT_TOOL_MASK) {
+		imapaint->flag |= IMAGEPAINT_PROJECT_LAYER_STENCIL;
+
+		if (imapaint->stencil == NULL) {
+			int width;
+			int height;
+			Main *bmain = CTX_data_main(C);
+			float color[4] = {0.0, 0.0, 0.0, 1.0};
+
+			width = 1024;
+			height = 1024;
+			imapaint->stencil = BKE_image_add_generated(bmain, width, height, "Stencil", 32, false, IMA_GENTYPE_BLANK, color);
+		}
+	}
 }
 
 /* Add layer operator */
