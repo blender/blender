@@ -2920,7 +2920,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	MTFace *tf_base;
 
 	MTFace **tf_clone;
-	MTFace *tf_clone_base;
+	MTFace *tf_clone_base = NULL;
 
 	int a, i; /* generic looping vars */
 	int image_index = -1, face_index;
