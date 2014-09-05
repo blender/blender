@@ -731,6 +731,11 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
                 description="Object visibility for shadow rays",
                 default=True,
                 )
+        cls.scatter = BoolProperty(
+                name="Volume Scatter",
+                description="Object visibility for volume scatter rays",
+                default=True,
+                )
 
     @classmethod
     def unregister(cls):

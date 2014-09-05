@@ -254,17 +254,17 @@ enum PathRayFlag {
 	PATH_RAY_SHADOW_TRANSPARENT = 256,
 	PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE|PATH_RAY_SHADOW_TRANSPARENT),
 
-	PATH_RAY_CURVE = 512, /* visibility flag to define curve segments*/
+	PATH_RAY_CURVE = 512, /* visibility flag to define curve segments */
+	PATH_RAY_VOLUME_SCATTER = 1024, /* volume scattering */
 
 	/* note that these can use maximum 12 bits, the other are for layers */
-	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512),
+	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512|1024),
 
-	PATH_RAY_MIS_SKIP = 1024,
-	PATH_RAY_DIFFUSE_ANCESTOR = 2048,
-	PATH_RAY_GLOSSY_ANCESTOR = 4096,
-	PATH_RAY_BSSRDF_ANCESTOR = 8192,
-	PATH_RAY_SINGLE_PASS_DONE = 16384,
-	PATH_RAY_VOLUME_SCATTER = 32768,
+	PATH_RAY_MIS_SKIP = 2048,
+	PATH_RAY_DIFFUSE_ANCESTOR = 4096,
+	PATH_RAY_GLOSSY_ANCESTOR = 8192,
+	PATH_RAY_BSSRDF_ANCESTOR = 16384,
+	PATH_RAY_SINGLE_PASS_DONE = 32768,
 
 	/* we need layer member flags to be the 20 upper bits */
 	PATH_RAY_LAYER_SHIFT = (32-20)
@@ -334,21 +334,25 @@ typedef struct PathRadiance {
 	float3 color_glossy;
 	float3 color_transmission;
 	float3 color_subsurface;
+	float3 color_scatter;
 
 	float3 direct_diffuse;
 	float3 direct_glossy;
 	float3 direct_transmission;
 	float3 direct_subsurface;
+	float3 direct_scatter;
 
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
 	float3 indirect_subsurface;
+	float3 indirect_scatter;
 
 	float3 path_diffuse;
 	float3 path_glossy;
 	float3 path_transmission;
 	float3 path_subsurface;
+	float3 path_scatter;
 
 	float4 shadow;
 	float mist;
@@ -362,6 +366,7 @@ typedef struct BsdfEval {
 	float3 transmission;
 	float3 transparent;
 	float3 subsurface;
+	float3 scatter;
 } BsdfEval;
 
 #else
@@ -382,7 +387,8 @@ typedef enum ShaderFlag {
 	SHADER_EXCLUDE_GLOSSY = (1 << 26),
 	SHADER_EXCLUDE_TRANSMIT = (1 << 25),
 	SHADER_EXCLUDE_CAMERA = (1 << 24),
-	SHADER_EXCLUDE_ANY = (SHADER_EXCLUDE_DIFFUSE|SHADER_EXCLUDE_GLOSSY|SHADER_EXCLUDE_TRANSMIT|SHADER_EXCLUDE_CAMERA),
+	SHADER_EXCLUDE_SCATTER = (1 << 23),
+	SHADER_EXCLUDE_ANY = (SHADER_EXCLUDE_DIFFUSE|SHADER_EXCLUDE_GLOSSY|SHADER_EXCLUDE_TRANSMIT|SHADER_EXCLUDE_CAMERA|SHADER_EXCLUDE_SCATTER),
 
 	SHADER_MASK = ~(SHADER_SMOOTH_NORMAL|SHADER_CAST_SHADOW|SHADER_AREA_LIGHT|SHADER_USE_MIS|SHADER_EXCLUDE_ANY)
 } ShaderFlag;

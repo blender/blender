@@ -78,6 +78,8 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 		kbackground->surface_shader |= SHADER_EXCLUDE_GLOSSY;
 	if(!(visibility & PATH_RAY_TRANSMIT))
 		kbackground->surface_shader |= SHADER_EXCLUDE_TRANSMIT;
+	if(!(visibility & PATH_RAY_VOLUME_SCATTER))
+		kbackground->surface_shader |= SHADER_EXCLUDE_SCATTER;
 	if(!(visibility & PATH_RAY_CAMERA))
 		kbackground->surface_shader |= SHADER_EXCLUDE_CAMERA;
 

@@ -82,6 +82,7 @@ static uint object_ray_visibility(BL::Object b_ob)
 	flag |= get_boolean(cvisibility, "glossy")? PATH_RAY_GLOSSY: 0;
 	flag |= get_boolean(cvisibility, "transmission")? PATH_RAY_TRANSMIT: 0;
 	flag |= get_boolean(cvisibility, "shadow")? PATH_RAY_SHADOW: 0;
+	flag |= get_boolean(cvisibility, "scatter")? PATH_RAY_VOLUME_SCATTER: 0;
 
 	return flag;
 }
@@ -172,6 +173,7 @@ void BlenderSync::sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSI
 	light->use_diffuse = (visibility & PATH_RAY_DIFFUSE) != 0;
 	light->use_glossy = (visibility & PATH_RAY_GLOSSY) != 0;
 	light->use_transmission = (visibility & PATH_RAY_TRANSMIT) != 0;
+	light->use_scatter = (visibility & PATH_RAY_VOLUME_SCATTER) != 0;
 
 	/* tag */
 	light->tag_update(scene);

@@ -121,6 +121,7 @@ Light::Light()
 	use_diffuse = true;
 	use_glossy = true;
 	use_transmission = true;
+	use_scatter = true;
 
 	shader = 0;
 	samples = 1;
@@ -241,6 +242,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			}
 			if(!(object->visibility & PATH_RAY_TRANSMIT)) {
 				shader_flag |= SHADER_EXCLUDE_TRANSMIT;
+				use_light_visibility = true;
+			}
+			if(!(object->visibility & PATH_RAY_VOLUME_SCATTER)) {
+				shader_flag |= SHADER_EXCLUDE_SCATTER;
 				use_light_visibility = true;
 			}
 
@@ -500,6 +505,10 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			shader_id |= SHADER_EXCLUDE_TRANSMIT;
 			use_light_visibility = true;
 		}
+		if(!light->use_scatter) {
+			shader_id |= SHADER_EXCLUDE_SCATTER;
+			use_light_visibility = true;
+		}
 
 		if(light->type == LIGHT_POINT) {
 			shader_id &= ~SHADER_AREA_LIGHT;
@@ -552,6 +561,10 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			}
 			if(!(visibility & PATH_RAY_TRANSMIT)) {
 				shader_id |= SHADER_EXCLUDE_TRANSMIT;
+				use_light_visibility = true;
+			}
+			if(!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+				shader_id |= SHADER_EXCLUDE_SCATTER;
 				use_light_visibility = true;
 			}
 

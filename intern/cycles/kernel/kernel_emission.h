@@ -108,6 +108,8 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd,
 			eval->glossy = make_float3(0.0f, 0.0f, 0.0f);
 		if(ls->shader & SHADER_EXCLUDE_TRANSMIT)
 			eval->transmission = make_float3(0.0f, 0.0f, 0.0f);
+		if(ls->shader & SHADER_EXCLUDE_SCATTER)
+			eval->scatter = make_float3(0.0f, 0.0f, 0.0f);
 	}
 #endif
 
@@ -187,7 +189,8 @@ ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *st
 		if(ls.shader & SHADER_EXCLUDE_ANY) {
 			if(((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (state->flag & PATH_RAY_DIFFUSE)) ||
 			   ((ls.shader & SHADER_EXCLUDE_GLOSSY) && (state->flag & PATH_RAY_GLOSSY)) ||
-			   ((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (state->flag & PATH_RAY_TRANSMIT)))
+			   ((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (state->flag & PATH_RAY_TRANSMIT)) ||
+			   ((ls.shader & SHADER_EXCLUDE_SCATTER) && (state->flag & PATH_RAY_VOLUME_SCATTER)))
 				continue;
 		}
 #endif
@@ -231,7 +234,8 @@ ccl_device_noinline float3 indirect_background(KernelGlobals *kg, PathState *sta
 		if(((shader & SHADER_EXCLUDE_DIFFUSE) && (state->flag & PATH_RAY_DIFFUSE)) ||
 		   ((shader & SHADER_EXCLUDE_GLOSSY) && (state->flag & PATH_RAY_GLOSSY)) ||
 		   ((shader & SHADER_EXCLUDE_TRANSMIT) && (state->flag & PATH_RAY_TRANSMIT)) ||
-		   ((shader & SHADER_EXCLUDE_CAMERA) && (state->flag & PATH_RAY_CAMERA)))
+		   ((shader & SHADER_EXCLUDE_CAMERA) && (state->flag & PATH_RAY_CAMERA)) ||
+		   ((shader & SHADER_EXCLUDE_SCATTER) && (state->flag & PATH_RAY_VOLUME_SCATTER)))
 			return make_float3(0.0f, 0.0f, 0.0f);
 	}
 

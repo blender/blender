@@ -1071,6 +1071,7 @@ void BlenderSync::sync_world(bool update_all)
 			visibility |= get_boolean(cvisibility, "diffuse")? PATH_RAY_DIFFUSE: 0;
 			visibility |= get_boolean(cvisibility, "glossy")? PATH_RAY_GLOSSY: 0;
 			visibility |= get_boolean(cvisibility, "transmission")? PATH_RAY_TRANSMIT: 0;
+			visibility |= get_boolean(cvisibility, "scatter")? PATH_RAY_VOLUME_SCATTER: 0;
 
 			background->visibility = visibility;
 		}
