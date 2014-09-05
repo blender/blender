@@ -164,11 +164,14 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 					CBSDFClosure *bsdf = (CBSDFClosure *)prim;
 					int scattering = bsdf->scattering();
 
-					/* no caustics option */
-					if(scattering == LABEL_GLOSSY && (path_flag & PATH_RAY_DIFFUSE)) {
+					/* caustic options */
+					if((scattering & LABEL_GLOSSY) && (path_flag & PATH_RAY_DIFFUSE)) {
 						KernelGlobals *kg = sd->osl_globals;
-						if(kernel_data.integrator.no_caustics)
+
+						if((!kernel_data.integrator.caustics_reflective && (scattering & LABEL_REFLECT)) ||
+						   (!kernel_data.integrator.caustics_refractive && (scattering & LABEL_TRANSMIT))) {
 							return;
+						}
 					}
 
 					/* sample weight */

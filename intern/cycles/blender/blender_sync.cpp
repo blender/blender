@@ -180,7 +180,8 @@ void BlenderSync::sync_integrator()
 	integrator->volume_max_steps = get_int(cscene, "volume_max_steps");
 	integrator->volume_step_size = get_float(cscene, "volume_step_size");
 
-	integrator->no_caustics = get_boolean(cscene, "no_caustics");
+	integrator->caustics_reflective = get_boolean(cscene, "caustics_reflective");
+	integrator->caustics_refractive = get_boolean(cscene, "caustics_refractive");
 	integrator->filter_glossy = get_float(cscene, "blur_glossy");
 
 	integrator->seed = get_int(cscene, "seed");

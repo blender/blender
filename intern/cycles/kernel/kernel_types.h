@@ -874,7 +874,8 @@ typedef struct KernelIntegrator {
 	int transparent_shadows;
 
 	/* caustics */
-	int no_caustics;
+	int caustics_reflective;
+	int caustics_refractive;
 	float filter_glossy;
 
 	/* seed */

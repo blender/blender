@@ -179,7 +179,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
 		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
 #ifdef __CAUSTICS_TRICKS__
-			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
+			if(!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
 				break;
 #endif
 			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
@@ -207,7 +207,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID: {
 #ifdef __CAUSTICS_TRICKS__
-			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
+			if(!kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
 				break;
 #endif
 			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
@@ -244,8 +244,10 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID: {
 #ifdef __CAUSTICS_TRICKS__
-			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
+			if(!kernel_data.integrator.caustics_reflective &&
+			   !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE)) {
 				break;
+			}
 #endif
 			/* index of refraction */
 			float eta = fmaxf(param2, 1e-5f);
@@ -262,11 +264,20 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float sample_weight = sc->sample_weight;
 
 			sc = svm_node_closure_get_bsdf(sd, mix_weight*fresnel);
-
-			if(sc) {
-				sc->N = N;
-				svm_node_glass_setup(sd, sc, type, eta, roughness, false);
+#ifdef __CAUSTICS_TRICKS__
+			if(kernel_data.integrator.caustics_reflective || (path_flag & PATH_RAY_DIFFUSE) == 0)
+#endif
+			{
+				if(sc) {
+					sc->N = N;
+					svm_node_glass_setup(sd, sc, type, eta, roughness, false);
+				}
 			}
+
+#ifdef __CAUSTICS_TRICKS__
+			if(!kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
+				break;
+#endif
 
 			/* refraction */
 			sc = &sd->closure[sd->num_closure];
@@ -286,7 +297,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
 		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID: {
 #ifdef __CAUSTICS_TRICKS__
-			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
+			if(!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
 				break;
 #endif
 			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);

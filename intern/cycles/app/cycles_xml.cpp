@@ -304,7 +304,8 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 	xml_read_int(&integrator->volume_max_steps, node, "volume_max_steps");
 	
 	/* Various Settings */
-	xml_read_bool(&integrator->no_caustics, node, "no_caustics");
+	xml_read_bool(&integrator->caustics_reflective, node, "caustics_reflective");
+	xml_read_bool(&integrator->caustics_refractive, node, "caustics_refractive");
 	xml_read_float(&integrator->filter_glossy, node, "filter_glossy");
 	
 	xml_read_int(&integrator->seed, node, "seed");

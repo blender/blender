@@ -105,7 +105,7 @@ BSDF_CLOSURE_CLASS_BEGIN(AshikhminVelvet, ashikhmin_velvet, ashikhmin_velvet, LA
 	CLOSURE_FLOAT_PARAM(AshikhminVelvetClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(AshikhminVelvet, ashikhmin_velvet)
 
-BSDF_CLOSURE_CLASS_BEGIN(AshikhminShirley, ashikhmin_shirley_aniso, ashikhmin_shirley, LABEL_GLOSSY)
+BSDF_CLOSURE_CLASS_BEGIN(AshikhminShirley, ashikhmin_shirley_aniso, ashikhmin_shirley, LABEL_GLOSSY|LABEL_REFLECT)
 	CLOSURE_FLOAT3_PARAM(AshikhminShirleyClosure, sc.N),
 	CLOSURE_FLOAT3_PARAM(AshikhminShirleyClosure, sc.T),
 	CLOSURE_FLOAT_PARAM(AshikhminShirleyClosure, sc.data0),
@@ -124,37 +124,37 @@ BSDF_CLOSURE_CLASS_BEGIN(GlossyToon, glossy_toon, glossy_toon, LABEL_GLOSSY)
 	CLOSURE_FLOAT_PARAM(GlossyToonClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(GlossyToon, glossy_toon)
 
-BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGX, microfacet_ggx, microfacet_ggx, LABEL_GLOSSY)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGX, microfacet_ggx, microfacet_ggx, LABEL_GLOSSY|LABEL_REFLECT)
 	CLOSURE_FLOAT3_PARAM(MicrofacetGGXClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(MicrofacetGGX, microfacet_ggx)
 
-BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXAniso, microfacet_ggx_aniso, microfacet_ggx, LABEL_GLOSSY)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXAniso, microfacet_ggx_aniso, microfacet_ggx, LABEL_GLOSSY|LABEL_REFLECT)
 	CLOSURE_FLOAT3_PARAM(MicrofacetGGXAnisoClosure, sc.N),
 	CLOSURE_FLOAT3_PARAM(MicrofacetGGXAnisoClosure, sc.T),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXAnisoClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXAnisoClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(MicrofacetGGXAniso, microfacet_ggx_aniso)
 
-BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmann, microfacet_beckmann, microfacet_beckmann, LABEL_GLOSSY)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmann, microfacet_beckmann, microfacet_beckmann, LABEL_GLOSSY|LABEL_REFLECT)
 	CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(MicrofacetBeckmann, microfacet_beckmann)
 
-BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannAniso, microfacet_beckmann_aniso, microfacet_beckmann, LABEL_GLOSSY)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannAniso, microfacet_beckmann_aniso, microfacet_beckmann, LABEL_GLOSSY|LABEL_REFLECT)
 	CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannAnisoClosure, sc.N),
 	CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannAnisoClosure, sc.T),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannAnisoClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannAnisoClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannAniso, microfacet_beckmann_aniso)
 
-BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXRefraction, microfacet_ggx_refraction, microfacet_ggx, LABEL_GLOSSY)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXRefraction, microfacet_ggx_refraction, microfacet_ggx, LABEL_GLOSSY|LABEL_TRANSMIT)
 	CLOSURE_FLOAT3_PARAM(MicrofacetGGXRefractionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, sc.data2),
 BSDF_CLOSURE_CLASS_END(MicrofacetGGXRefraction, microfacet_ggx_refraction)
 
-BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction, microfacet_beckmann, LABEL_GLOSSY)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction, microfacet_beckmann, LABEL_GLOSSY|LABEL_TRANSMIT)
 	CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannRefractionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, sc.data2),
