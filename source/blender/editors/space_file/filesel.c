@@ -288,7 +288,7 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
 	 * - *_over: extra pixels, to take into account, when the fit isnt exact
 	 *   (needed since you may see the end of the previous column and the beginning of the next).
 	 *
-	 * Could be more clever and take scorlling into account,
+	 * Could be more clever and take scrolling into account,
 	 * but for now don't bother.
 	 */
 	if (layout->flag & FILE_LAYOUT_HOR) {

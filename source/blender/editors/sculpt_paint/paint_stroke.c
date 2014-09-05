@@ -396,8 +396,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const float
 	copy_v2_v2(stroke->last_mouse_position, mouse_in);
 	stroke->last_pressure = pressure;
 
-	if (paint_stroke_use_jitter(mode, brush, stroke->stroke_mode == BRUSH_STROKE_INVERT))
-	{
+	if (paint_stroke_use_jitter(mode, brush, stroke->stroke_mode == BRUSH_STROKE_INVERT)) {
 		float delta[2];
 		float factor = stroke->zoom_2d;
 
