@@ -1728,7 +1728,7 @@ static int composite_needs_render(Scene *sce, int this_scene)
 	if ((sce->r.scemode & R_DOCOMP) == 0) return 1;
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_R_LAYERS)
+		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0)
 			if (this_scene == 0 || node->id == NULL || node->id == &sce->id)
 				return 1;
 	}
@@ -1867,7 +1867,7 @@ static void tag_scenes_for_render(Render *re)
 	/* check for render-layers nodes using other scenes, we tag them LIB_DOIT */
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
 		node->flag &= ~NODE_TEST;
-		if (node->type == CMP_NODE_R_LAYERS) {
+		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
 			if (node->id) {
 				if (!MAIN_VERSION_ATLEAST(re->main, 265, 5)) {
 					if (rlayer_node_uses_alpha(re->scene->nodetree, node)) {
@@ -1916,7 +1916,7 @@ static void ntree_render_scenes(Render *re)
 	/* now foreach render-result node tagged we do a full render */
 	/* results are stored in a way compisitor will find it */
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_R_LAYERS) {
+		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
 			if (node->id && node->id != (ID *)re->scene) {
 				if (node->flag & NODE_TEST) {
 					Scene *scene = (Scene *)node->id;
@@ -2202,7 +2202,7 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 #endif
 
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == CMP_NODE_R_LAYERS) {
+		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
 			Scene *nodescene = (Scene *)node->id;
 			
 			if (nodescene == NULL) nodescene = sce;
@@ -2497,7 +2497,7 @@ static bool check_valid_compositing_camera(Scene *scene, Object *camera_override
 		bNode *node = scene->nodetree->nodes.first;
 
 		while (node) {
-			if (node->type == CMP_NODE_R_LAYERS) {
+			if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
 				Scene *sce = node->id ? (Scene *)node->id : scene;
 
 				if (!sce->camera && !BKE_scene_camera_find(sce)) {
