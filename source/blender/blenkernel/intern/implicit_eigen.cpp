@@ -104,19 +104,48 @@ typedef Eigen::ConjugateGradient<lMatrix, Eigen::Lower, Eigen::DiagonalPrecondit
 using Eigen::ComputationInfo;
 
 
+static void print_lvector(const lVector &v)
+{
+	for (int i = 0; i < v.rows(); ++i) {
+		printf("%f,\n", v[i]);
+	}
+}
+
+static void print_lmatrix(const lMatrix &m)
+{
+	for (int j = 0; j < m.rows(); ++j) {
+		for (int i = 0; i < m.cols(); ++i) {
+			printf("%-16f,", m.coeff(j, i));
+		}
+		printf("\n");
+	}
+}
+
+
 BLI_INLINE void reserve_diagonal(lMatrix &m, int num)
 {
 	m.reserve(Eigen::VectorXi::Constant(m.cols(), num));
 }
 
-BLI_INLINE float *lVector_v3(lVector &v, int index)
+BLI_INLINE float *lVector_v3(lVector &v, int vertex)
 {
-	return v.data() + 3 * index;
+	return v.data() + 3 * vertex;
 }
 
-BLI_INLINE const float *lVector_v3(const lVector &v, int index)
+BLI_INLINE const float *lVector_v3(const lVector &v, int vertex)
 {
-	return v.data() + 3 * index;
+	return v.data() + 3 * vertex;
+}
+
+BLI_INLINE void triplets_m3(TripletList &t, float m[3][3], int i, int j)
+{
+	i *= 3;
+	j *= 3;
+	for (int k = 0; k < 3; ++k) {
+		for (int l = 0; l < 3; ++l) {
+			t.push_back(Triplet(i + k, j + l, m[k][l]));
+		}
+	}
 }
 
 struct Implicit_Data {
@@ -185,6 +214,170 @@ static bool simulate_implicit_euler(Implicit_Data *id, float dt)
 	return cg.info() != Eigen::Success;
 }
 
+static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, const lVector &X, const lVector &V, float time)
+{
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts = cloth->verts;
+	float extent[3];
+	float length = 0, dot = 0;
+	float dir[3] = {0, 0, 0};
+	float vel[3];
+	float k = 0.0f;
+	float L = s->restlen;
+	float cb; /* = clmd->sim_parms->structural; */ /*UNUSED*/
+	
+	float stretch_force[3] = {0, 0, 0};
+	float bending_force[3] = {0, 0, 0};
+	float damping_force[3] = {0, 0, 0};
+	float nulldfdx[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	
+	float scaling = 0.0;
+	
+	int no_compress = clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
+	
+	zero_v3(s->f);
+	zero_m3(s->dfdx);
+	zero_m3(s->dfdv);
+	
+	// calculate elonglation
+	sub_v3_v3v3(extent, lVector_v3(X, s->kl), lVector_v3(X, s->ij));
+	sub_v3_v3v3(vel, lVector_v3(V, s->kl), lVector_v3(V, s->ij));
+	dot = dot_v3v3(extent, extent);
+	length = sqrt(dot);
+	
+	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
+	
+	if (length > ALMOST_ZERO) {
+		/*
+		if (length>L) {
+			if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
+			    ( ((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen )) {
+				// cut spring!
+				s->flags |= CSPRING_FLAG_DEACTIVATE;
+				return;
+			}
+		}
+		*/
+		mul_v3_v3fl(dir, extent, 1.0f/length);
+	}
+	else {
+		zero_v3(dir);
+	}
+	
+#if 0
+	// calculate force of structural + shear springs
+	if ((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR) || (s->type & CLOTH_SPRING_TYPE_SEWING) ) {
+		if (length > L || no_compress) {
+			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+			
+			k = clmd->sim_parms->structural;
+
+			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
+
+			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
+
+			// TODO: verify, half verified (couldn't see error)
+			if (s->type & CLOTH_SPRING_TYPE_SEWING) {
+				// sewing springs usually have a large distance at first so clamp the force so we don't get tunnelling through colission objects
+				float force = k*(length-L);
+				if (force > clmd->sim_parms->max_sewing) {
+					force = clmd->sim_parms->max_sewing;
+				}
+				mul_fvector_S(stretch_force, dir, force);
+			}
+			else {
+				mul_fvector_S(stretch_force, dir, k * (length - L));
+			}
+
+			VECADD(s->f, s->f, stretch_force);
+
+			// Ascher & Boxman, p.21: Damping only during elonglation
+			// something wrong with it...
+			mul_fvector_S(damping_force, dir, clmd->sim_parms->Cdis * dot_v3v3(vel, dir));
+			VECADD(s->f, s->f, damping_force);
+			
+			/* VERIFIED */
+			dfdx_spring(s->dfdx, dir, length, L, k);
+			
+			/* VERIFIED */
+			dfdv_damp(s->dfdv, dir, clmd->sim_parms->Cdis);
+			
+		}
+	}
+	else
+#endif
+	if (s->type & CLOTH_SPRING_TYPE_GOAL) {
+		float target[3];
+		
+		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+		
+		// current_position = xold + t * (xnew - xold)
+		interp_v3_v3v3(target, verts[s->ij].xold, verts[s->ij].xconst, time);
+		sub_v3_v3v3(extent, lVector_v3(X, s->ij), target);
+		BKE_sim_debug_data_add_line(clmd->debug_data, verts[s->ij].xconst, verts[s->ij].xold, 1,0,0, "springs", hash_vertex(7825, s->ij));
+		
+		// SEE MSG BELOW (these are UNUSED)
+		// dot = dot_v3v3(extent, extent);
+		// length = sqrt(dot);
+		
+		k = clmd->sim_parms->goalspring;
+		scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
+			
+		k = verts[s->ij].goal * scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
+		madd_v3_v3fl(s->f, extent, -k);
+		
+		/* XXX this has no effect: dir is always null at this point! - lukas_t
+		madd_v3_v3fl(s->f, dir, clmd->sim_parms->goalfrict * 0.01f * dot_v3v3(vel, dir));
+		*/
+		
+		// HERE IS THE PROBLEM!!!!
+		// dfdx_spring(s->dfdx, dir, length, 0.0, k);
+		// dfdv_damp(s->dfdv, dir, MIN2(1.0, (clmd->sim_parms->goalfrict/100.0)));
+	}
+#if 0
+	else {  /* calculate force of bending springs */
+		if (length < L) {
+			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+			
+			k = clmd->sim_parms->bending;
+			
+			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_bend - k);
+			cb = k = scaling / (20.0f * (clmd->sim_parms->avg_spring_len + FLT_EPSILON));
+
+			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
+			VECADD(s->f, s->f, bending_force);
+
+			dfdx_spring_type2(s->dfdx, dir, length, L, k, cb);
+		}
+	}
+#endif
+}
+
+static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lVector &F, lMatrix &dFdX, lMatrix &dFdV)
+{
+	TripletList trips;
+//	lMatrix tmp(F.rows(), F.rows());
+	
+	if (s->flags & CLOTH_SPRING_FLAG_NEEDED) {
+//		if (!(s->type & CLOTH_SPRING_TYPE_BENDING)) {
+//			triplets_m3(trips, s->dfdv, s->ij, s->kl);
+//			triplets_m3(trips, s->dfdv, s->kl, s->ij);
+//			tmp.setFromTriplets(trips.begin(), trips.end());
+//			dFdV -= tmp;
+//		}
+		
+		add_v3_v3(lVector_v3(F, s->ij), s->f);
+		if (!(s->type & CLOTH_SPRING_TYPE_GOAL))
+			sub_v3_v3(lVector_v3(F, s->kl), s->f);
+		BKE_sim_debug_data_add_vector(clmd->debug_data, clmd->clothObject->verts[s->ij].x, s->f, 1, 1, 1, "hairs", hash_vertex(3924, s->ij));
+		
+//		triplets_m3(trips, s->dfdx, s->ij, s->kl);
+//		triplets_m3(trips, s->dfdx, s->kl, s->ij);
+//		tmp.setFromTriplets(trips.begin(), trips.end());
+//		dFdX -= tmp;
+	}
+}
+
 static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX, lMatrix &dFdV, const lVector &X, const lVector &V, const lMatrix &M, ListBase *effectors, float time)
 {
 	Cloth *cloth = clmd->clothObject;
@@ -196,10 +389,11 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 //	diagonal.setZero
 	TripletList coeff_dFdX, coeff_dFdV;
 	
-	/* set dFdX jacobi matrix to zero */
+	F.setZero();
 	dFdX.setZero();
-	/* set dFdV jacobi matrix diagonal entries to -spring_air */
 	dFdV.setZero();
+	
+	/* set dFdV jacobi matrix diagonal entries to -spring_air */
 //	dFdV.setIdentity();
 //	initdiag_bfmatrix(dFdV, tm2);
 	
@@ -214,7 +408,7 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	/* initialize force with gravity */
 	for (int i = 0; i < numverts; ++i) {
 		/* gravitational mass same as inertial mass */
-		mul_v3_v3(lVector_v3(F, i), gravity, verts[i].mass);
+		mul_v3_v3fl(lVector_v3(F, i), gravity, verts[i].mass);
 	}
 
 #if 0
@@ -341,29 +535,23 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 
 		del_lfvector(winvec);
 	}
+#endif
 		
 	// calculate spring forces
-	search = cloth->springs;
-	while (search) {
+	for (LinkNode *link = cloth->springs; link; link = link->next) {
 		// only handle active springs
-		ClothSpring *spring = search->link;
+		ClothSpring *spring = (ClothSpring *)link->link;
 		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
-
-		search = search->next;
+			cloth_calc_spring_force(clmd, spring, X, V, time);
 	}
 	
 	// apply spring forces
-	search = cloth->springs;
-	while (search) {
+	for (LinkNode *link = cloth->springs; link; link = link->next) {
 		// only handle active springs
-		ClothSpring *spring = search->link;
+		ClothSpring *spring = (ClothSpring *)link->link;
 		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
-		search = search->next;
+			cloth_apply_spring_force(clmd, spring, F, dFdX, dFdV);
 	}
-	// printf("\n");
-#endif
 }
 
 int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
@@ -380,17 +568,15 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	
 	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
 	
-#if 0
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
-		for (i = 0; i < numverts; i++) {
+		for (int i = 0; i < numverts; i++) {
 			// update velocities with constrained velocities from pinned verts
-			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
-				sub_v3_v3v3(id->V[i], verts[i].xconst, verts[i].xold);
+			if (verts[i].flags & CLOTH_VERT_FLAG_PINNED) {
+				sub_v3_v3v3(lVector_v3(id->V, i), verts[i].xconst, verts[i].xold);
 				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
 			}
 		}
 	}
-#endif
 	
 	if (clmd->debug_data) {
 		for (int i = 0; i < numverts; i++) {
@@ -437,10 +623,11 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			
 			copy_v3_v3(verts[i].txold, lVector_v3(id->X, i));
 			
-//			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0) {
-//				BKE_sim_debug_data_add_line(clmd->debug_data, id->X[i], id->X[i-1], 0.6, 0.3, 0.3, "hair", hash_vertex(4892, i));
-//				BKE_sim_debug_data_add_line(clmd->debug_data, id->Xnew[i], id->Xnew[i-1], 1, 0.5, 0.5, "hair", hash_vertex(4893, i));
-//			}
+			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0) {
+				BKE_sim_debug_data_add_line(clmd->debug_data, lVector_v3(id->X, i), lVector_v3(id->X, i-1), 0.6, 0.3, 0.3, "hair", hash_vertex(4892, i));
+				BKE_sim_debug_data_add_line(clmd->debug_data, lVector_v3(id->Xnew, i), lVector_v3(id->Xnew, i-1), 1, 0.5, 0.5, "hair", hash_vertex(4893, i));
+				BKE_sim_debug_data_add_line(clmd->debug_data, verts[i].xconst, verts[i-1].xconst, 0.25, 0.4, 0.25, "hair", hash_vertex(4873, i));
+			}
 //			BKE_sim_debug_data_add_vector(clmd->debug_data, id->X[i], id->V[i], 0, 0, 1, "velocity", hash_vertex(3158, i));
 		}
 		
