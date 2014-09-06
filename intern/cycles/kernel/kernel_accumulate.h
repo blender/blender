@@ -54,7 +54,13 @@ ccl_device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 v
 #endif
 }
 
-ccl_device_inline void bsdf_eval_accum(BsdfEval *eval, ClosureType type, float3 value)
+/* TODO(sergey): This is just a workaround for annoying 6.5 compiler bug. */
+#if !defined(__KERNEL_CUDA__) || __CUDA_ARCH__ < 500
+ccl_device_inline
+#else
+ccl_device_noinline
+#endif
+void bsdf_eval_accum(BsdfEval *eval, ClosureType type, float3 value)
 {
 #ifdef __PASSES__
 	if(eval->use_light_pass) {
