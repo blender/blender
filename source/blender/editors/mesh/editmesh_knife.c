@@ -2387,12 +2387,12 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 	KnifeEdge *kfe;
 	BMFace *fnew, *fnew2, *fhole;
 	ListBase *chain, *hole, *sidechain;
-	ListBase *fnew_kfedges, *fnew2_kfedges;
 	Ref *ref, *refnext;
 	int count, oldcount;
 
 	oldcount = BLI_countlist(kfedges);
 	while ((chain = find_chain(kcd, kfedges)) != NULL) {
+		ListBase fnew_kfedges;
 		knife_make_chain_cut(kcd, f, chain, &fnew);
 		if (!fnew) {
 			return;
@@ -2400,18 +2400,18 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 
 		/* Move kfedges to fnew_kfedges if they are now in fnew.
 		 * The chain edges were removed already */
-		fnew_kfedges = knife_empty_list(kcd);
+		BLI_listbase_clear(&fnew_kfedges);
 		for (ref = kfedges->first; ref; ref = refnext) {
 			kfe = ref->ref;
 			refnext = ref->next;
 			if (knife_edge_in_face(kfe, fnew)) {
 				BLI_remlink(kfedges, ref);
 				kfe->basef = fnew;
-				knife_append_list(kcd, fnew_kfedges, kfe);
+				BLI_addtail(&fnew_kfedges, ref);
 			}
 		}
-		if (fnew_kfedges->first)
-			knife_make_face_cuts(kcd, fnew, fnew_kfedges);
+		if (fnew_kfedges.first)
+			knife_make_face_cuts(kcd, fnew, &fnew_kfedges);
 
 		/* find_chain should always remove edges if it returns true,
 		 * but guard against infinite loop anyway */
@@ -2425,6 +2425,8 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 
 	while ((hole = find_hole(kcd, kfedges)) != NULL) {
 		if (find_hole_chains(kcd, hole, f, &chain, &sidechain)) {
+			ListBase fnew_kfedges, fnew2_kfedges;
+
 			/* chain goes across f and sidechain comes back
 			 * from the second last vertex to the second vertex.
 			 */
@@ -2455,28 +2457,28 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 			BM_face_kill(bm, fhole);
 			/* Move kfedges to either fnew or fnew2 if appropriate.
 			 * The hole edges were removed already */
-			fnew_kfedges = knife_empty_list(kcd);
-			fnew2_kfedges = knife_empty_list(kcd);
+			BLI_listbase_clear(&fnew_kfedges);
+			BLI_listbase_clear(&fnew2_kfedges);
 			for (ref = kfedges->first; ref; ref = refnext) {
 				kfe = ref->ref;
 				refnext = ref->next;
 				if (knife_edge_in_face(kfe, fnew)) {
 					BLI_remlink(kfedges, ref);
 					kfe->basef = fnew;
-					knife_append_list(kcd, fnew_kfedges, kfe);
+					BLI_addtail(&fnew_kfedges, ref);
 				}
 				else if (knife_edge_in_face(kfe, fnew2)) {
 					BLI_remlink(kfedges, ref);
 					kfe->basef = fnew2;
-					knife_append_list(kcd, fnew2_kfedges, kfe);
+					BLI_addtail(&fnew2_kfedges, ref);
 				}
 			}
 			/* We'll skip knife edges that are in the newly formed hole.
 			 * (Maybe we shouldn't have made a hole in the first place?) */
-			if (fnew != fhole && fnew_kfedges->first)
-				knife_make_face_cuts(kcd, fnew, fnew_kfedges);
-			if (fnew2 != fhole && fnew2_kfedges->first)
-				knife_make_face_cuts(kcd, fnew2, fnew2_kfedges);
+			if (fnew != fhole && fnew_kfedges.first)
+				knife_make_face_cuts(kcd, fnew, &fnew_kfedges);
+			if (fnew2 != fhole && fnew2_kfedges.first)
+				knife_make_face_cuts(kcd, fnew2, &fnew2_kfedges);
 			if (f == fhole)
 				break;
 			/* find_hole should always remove edges if it returns true,
