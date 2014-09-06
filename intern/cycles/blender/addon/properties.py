@@ -261,13 +261,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.caustics_reflective = BoolProperty(
                 name="Reflective Caustics",
-                description="Leave out reflective caustics, resulting in a darker image with less noise",
+                description="Use reflective caustics, resulting in a brighter image (more noise but added realism)",
                 default=True,
                 )
 
         cls.caustics_refractive = BoolProperty(
                 name="Refractive Caustics",
-                description="Leave out refractive caustics, resulting in a darker image with less noise",
+                description="Use refractive caustics, resulting in a brighter image (more noise but added realism)",
                 default=True,
                 )
 
