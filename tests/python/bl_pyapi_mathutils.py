@@ -162,6 +162,29 @@ class MatrixTesting(unittest.TestCase):
 
         self.assertEqual(mat.inverted(), inv_mat)
 
+    def test_matrix_inverse_safe(self):
+        mat = Matrix(((1, 4, 0, -1),
+                      (2, -1, 0, -2),
+                      (0, 3, 0, 3),
+                      (-2, 9, 0, 0)))
+
+        # Warning, if we change epsilon in py api we have to update this!!!
+        epsilon = 1e-8
+        inv_mat_safe = mat.copy()
+        inv_mat_safe[0][0] += epsilon
+        inv_mat_safe[1][1] += epsilon
+        inv_mat_safe[2][2] += epsilon
+        inv_mat_safe[3][3] += epsilon
+        inv_mat_safe.invert()
+        '''
+        inv_mat_safe = Matrix(((1.0, -0.5, 0.0, -0.5),
+                               (0.222222, -0.111111, -0.0, 0.0),
+                               (-333333344.0, 316666656.0, 100000000.0,  150000000.0),
+                               (0.888888, -0.9444444, 0.0, -0.5)))
+        '''
+
+        self.assertEqual(mat.inverted_safe(), inv_mat_safe)
+
     def test_matrix_mult(self):
         mat = Matrix(((1, 4, 0, -1),
                       (2, -1, 2, -2),

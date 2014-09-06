@@ -41,6 +41,7 @@ extern PyTypeObject matrix_access_Type;
 #  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (void)0
 #endif
 
+#define MATRIX_ITEM_INDEX_NUMROW(_totrow, _row, _col) ((_totrow * (_col)) + (_row))
 #define MATRIX_ITEM_INDEX(_mat, _row, _col) (MATRIX_ITEM_ASSERT(_mat, _row, _col),(((_mat)->num_row * (_col)) + (_row)))
 #define MATRIX_ITEM_PTR(  _mat, _row, _col) ((_mat)->matrix + MATRIX_ITEM_INDEX(_mat, _row, _col))
 #define MATRIX_ITEM(      _mat, _row, _col) ((_mat)->matrix  [MATRIX_ITEM_INDEX(_mat, _row, _col)])

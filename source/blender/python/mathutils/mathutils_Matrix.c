@@ -910,56 +910,141 @@ static float matrix_determinant_internal(const MatrixObject *self)
 	}
 }
 
+static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const unsigned short dim)
+{
+	/* calculate the classical adjoint */
+	switch (dim) {
+		case 2:
+		{
+			adjoint_m2_m2((float (*)[2])mat_dst, (float (*)[2])mat_src);
+			break;
+		}
+		case 3:
+		{
+			adjoint_m3_m3((float (*)[3])mat_dst, (float (*)[3])mat_src);
+			break;
+		}
+		case 4:
+		{
+			adjoint_m4_m4((float (*)[4])mat_dst, (float (*)[4])mat_src);
+			break;
+		}
+		default:
+			BLI_assert(0);
+	}
+}
+
+static void matrix_invert_with_det_n_internal(float *mat_dst, const float *mat_src, const float det, const unsigned short dim)
+{
+	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
+	unsigned short i, j, k;
+
+	BLI_assert(det != 0.0f);
+
+	adjoint_matrix_n(mat, mat_src, dim);
+
+	/* divide by determinant & set values */
+	k = 0;
+	for (i = 0; i < dim; i++) {  /* num_col */
+		for (j = 0; j < dim; j++) {  /* num_row */
+			mat_dst[MATRIX_ITEM_INDEX_NUMROW(dim, j, i)] = mat[k++] / det;
+		}
+	}
+}
+
 /**
- * \param r_mat can be from ``self->matrix`` or not. */
+ * \param r_mat can be from ``self->matrix`` or not.
+ */
 static bool matrix_invert_internal(const MatrixObject *self, float *r_mat)
 {
 	float det;
-
+	BLI_assert(self->num_col == self->num_row);
 	det = matrix_determinant_internal(self);
 
 	if (det != 0.0f) {
-		float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
-		int x, y, z;
-
-		/* calculate the classical adjoint */
-		switch (self->num_col) {
-			case 2:
-			{
-				adjoint_m2_m2((float (*)[2])mat, (float (*)[2])self->matrix);
-				break;
-			}
-			case 3:
-			{
-				adjoint_m3_m3((float (*)[3])mat, (float (*)[3])self->matrix);
-				break;
-			}
-			case 4:
-			{
-				adjoint_m4_m4((float (*)[4])mat, (float (*)[4])self->matrix);
-				break;
-			}
-			default:
-				BLI_assert(0);
-		}
-		/* divide by determinate */
-		for (x = 0; x < (self->num_col * self->num_row); x++) {
-			mat[x] /= det;
-		}
-		/* set values */
-		z = 0;
-		for (x = 0; x < self->num_col; x++) {
-			for (y = 0; y < self->num_row; y++) {
-				r_mat[MATRIX_ITEM_INDEX(self, y, x)] = mat[z];
-				z++;
-			}
-		}
-
+		matrix_invert_with_det_n_internal(r_mat, self->matrix, det, self->num_col);
 		return true;
 	}
 	else {
 		return false;
 	}
+}
+
+/**
+ * Similar to ``matrix_invert_internal`` but should never error.
+ * \param r_mat can be from ``self->matrix`` or not.
+ */
+static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
+{
+	float det;
+	float *in_mat = self->matrix;
+	BLI_assert(self->num_col == self->num_row);
+	det = matrix_determinant_internal(self);
+
+	if (det == 0.0f) {
+		const float eps = PSEUDOINVERSE_EPSILON;
+
+		/* We will copy self->matrix into r_mat (if needed), and modify it in place to add diagonal epsilon. */
+		in_mat = r_mat;
+
+		switch (self->num_col) {
+			case 2:
+			{
+				float (*mat)[2] = (float (*)[2])in_mat;
+
+				if (in_mat != self->matrix) {
+					copy_m2_m2(mat, (float (*)[2])self->matrix);
+				}
+				mat[0][0] += eps;
+				mat[1][1] += eps;
+
+				if (UNLIKELY((det = determinant_m2(mat[0][0], mat[0][1], mat[1][0], mat[1][1])) == 0.0f)) {
+					unit_m2(mat);
+					det = 1.0f;
+				}
+				break;
+			}
+			case 3:
+			{
+				float (*mat)[3] = (float (*)[3])in_mat;
+
+				if (in_mat != self->matrix) {
+					copy_m3_m3(mat, (float (*)[3])self->matrix);
+				}
+				mat[0][0] += eps;
+				mat[1][1] += eps;
+				mat[2][2] += eps;
+
+				if (UNLIKELY((det = determinant_m3_array(mat)) == 0.0f)) {
+					unit_m3(mat);
+					det = 1.0f;
+				}
+				break;
+			}
+			case 4:
+			{
+				float (*mat)[4] = (float (*)[4])in_mat;
+
+				if (in_mat != self->matrix) {
+					copy_m4_m4(mat, (float (*)[4])self->matrix);
+				}
+				mat[0][0] += eps;
+				mat[1][1] += eps;
+				mat[2][2] += eps;
+				mat[3][3] += eps;
+
+				if (UNLIKELY(det = determinant_m4(mat)) == 0.0f) {
+					unit_m4(mat);
+					det = 1.0f;
+				}
+				break;
+			}
+			default:
+				BLI_assert(0);
+		}
+	}
+
+	matrix_invert_with_det_n_internal(r_mat, in_mat, det, self->num_col);
 }
 
 
@@ -1398,6 +1483,56 @@ static PyObject *Matrix_inverted_noargs(MatrixObject *self)
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Matrix_invert_safe_doc,
+".. method:: invert_safe()\n"
+"\n"
+"   Set the matrix to its inverse, will never error.\n"
+"   If degenerated (e.g. zero scale on an axis), add some epsilon to its diagonal, to get an invertible one.\n"
+"   If tweaked matrix is still degenerated, set to the identity matrix instead.\n"
+"\n"
+"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
+);
+static PyObject *Matrix_invert_safe(MatrixObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (matrix_invert_is_compat(self) == false) {
+		return NULL;
+	}
+
+	matrix_invert_safe_internal(self, self->matrix);
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Matrix_inverted_safe_doc,
+".. method:: inverted_safe()\n"
+"\n"
+"   Return an inverted copy of the matrix, will never error.\n"
+"   If degenerated (e.g. zero scale on an axis), add some epsilon to its diagonal, to get an invertible one.\n"
+"   If tweaked matrix is still degenerated, return the identity matrix instead.\n"
+"\n"
+"   :return: the inverted matrix.\n"
+"   :rtype: :class:`Matrix`\n"
+);
+static PyObject *Matrix_inverted_safe(MatrixObject *self)
+{
+	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (matrix_invert_is_compat(self) == false) {
+		return NULL;
+	}
+
+	matrix_invert_safe_internal(self, mat);
+
+	return Matrix_copy_notest(self, mat);
+}
+
 /*---------------------------matrix.adjugate() ---------------------*/
 PyDoc_STRVAR(Matrix_adjugate_doc,
 ".. method:: adjugate()\n"
@@ -1421,34 +1556,16 @@ static PyObject *Matrix_adjugate(MatrixObject *self)
 	}
 
 	/* calculate the classical adjoint */
-	switch (self->num_col) {
-		case 2:
-		{
-			float mat[2][2];
-			adjoint_m2_m2(mat, (float (*)[2])self->matrix);
-			copy_v4_v4((float *)self->matrix, (float *)mat);
-			break;
-		}
-		case 3:
-		{
-			float mat[3][3];
-			adjoint_m3_m3(mat, (float (*)[3])self->matrix);
-			copy_m3_m3((float (*)[3])self->matrix, mat);
-			break;
-		}
-		case 4:
-		{
-			float mat[4][4];
-			adjoint_m4_m4(mat, (float (*)[4])self->matrix);
-			copy_m4_m4((float (*)[4])self->matrix, mat);
-			break;
-		}
-		default:
+	if (self->num_col <= 4) {
+		adjoint_matrix_n(self->matrix, self->matrix, self->num_col);
+	}
+	else {
 			PyErr_Format(PyExc_ValueError,
 			             "Matrix adjugate(d): size (%d) unsupported",
 			             (int)self->num_col);
 			return NULL;
 	}
+
 
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
@@ -2556,6 +2673,8 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"normalized", (PyCFunction) Matrix_normalized, METH_NOARGS, Matrix_normalized_doc},
 	{"invert", (PyCFunction) Matrix_invert, METH_VARARGS, Matrix_invert_doc},
 	{"inverted", (PyCFunction) Matrix_inverted, METH_VARARGS, Matrix_inverted_doc},
+	{"invert_safe", (PyCFunction) Matrix_invert_safe, METH_NOARGS, Matrix_invert_safe_doc},
+	{"inverted_safe", (PyCFunction) Matrix_inverted_safe, METH_NOARGS, Matrix_inverted_safe_doc},
 	{"adjugate", (PyCFunction) Matrix_adjugate, METH_NOARGS, Matrix_adjugate_doc},
 	{"adjugated", (PyCFunction) Matrix_adjugated, METH_NOARGS, Matrix_adjugated_doc},
 	{"to_3x3", (PyCFunction) Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},
