@@ -1755,10 +1755,7 @@ static PyObject *Matrix_identity(MatrixObject *self)
 	}
 
 	if (self->num_col == 2) {
-		MATRIX_ITEM(self, 0, 0) = 1.0f;
-		MATRIX_ITEM(self, 0, 1) = 0.0f;
-		MATRIX_ITEM(self, 1, 0) = 0.0f;
-		MATRIX_ITEM(self, 1, 1) = 1.0f;
+		unit_m2((float (*)[2])self->matrix);
 	}
 	else if (self->num_col == 3) {
 		unit_m3((float (*)[3])self->matrix);
