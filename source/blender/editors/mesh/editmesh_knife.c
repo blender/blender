@@ -2409,6 +2409,10 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 				kfe->basef = fnew;
 				BLI_addtail(&fnew_kfedges, ref);
 			}
+			else if (!knife_edge_in_face(kfe, f)) {
+				/* Concave ngon's - this edge might not be in either faces, T41730 */
+				BLI_remlink(kfedges, ref);
+			}
 		}
 		if (fnew_kfedges.first)
 			knife_make_face_cuts(kcd, fnew, &fnew_kfedges);
