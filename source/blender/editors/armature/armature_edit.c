@@ -70,7 +70,7 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 	/* Put the armature into editmode */
 	ED_armature_to_edit(arm);
 
-	/* Transform the bones*/
+	/* Transform the bones */
 	ED_armature_transform_bones(arm, mat);
 
 	/* Turn the list into an armature */
@@ -100,7 +100,7 @@ void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4])
 		mul_m4_v3(mat, ebone->head);
 		mul_m4_v3(mat, ebone->tail);
 
-		/* apply the transfiormed roll back */
+		/* apply the transformed roll back */
 		mat3_to_vec_roll(tmat, NULL, &ebone->roll);
 		
 		ebone->rad_head *= scale;
@@ -190,7 +190,7 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 
 	/* Adjust object location for new centerpoint */
 	if (centermode && obedit == NULL) {
-		mul_mat3_m4_v3(ob->obmat, cent); /* ommit translation part */
+		mul_mat3_m4_v3(ob->obmat, cent); /* omit translation part */
 		add_v3_v3(ob->loc, cent);
 	}
 }
