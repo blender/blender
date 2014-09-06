@@ -45,6 +45,7 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_node.h"
 #include "BKE_scene.h"
 
 
@@ -194,14 +195,19 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	}
 
 	/* init material vars */
-	/* note, keep this synced with render_types.h */
-	memcpy(&shi->r, &shi->mat->r, 23 * sizeof(float));
-	shi->har = shi->mat->har;
-	
+	shade_input_init_material(shi);
+
 	/* render */
 	shade_input_set_shade_texco(shi);
-	shade_material_loop(shi, shr); /* todo: nodes */
-	
+
+	if (shi->mat->nodetree && shi->mat->use_nodes) {
+		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
+		shi->mat = vlr->mat;  /* shi->mat is being set in nodetree */
+	}
+	else {
+		shade_material_loop(shi, shr);
+	}
+
 	copy_v3_v3(rad, shr->combined);
 }
 
