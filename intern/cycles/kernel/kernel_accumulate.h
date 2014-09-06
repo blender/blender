@@ -36,7 +36,7 @@ ccl_device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 v
 
 		if(type == CLOSURE_BSDF_TRANSPARENT_ID)
 			eval->transparent = value;
-		else if(CLOSURE_IS_BSDF_DIFFUSE(type) || CLOSURE_IS_PHASE(type))
+		else if(CLOSURE_IS_BSDF_DIFFUSE(type))
 			eval->diffuse = value;
 		else if(CLOSURE_IS_BSDF_GLOSSY(type))
 			eval->glossy = value;
