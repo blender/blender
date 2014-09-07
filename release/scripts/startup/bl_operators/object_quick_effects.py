@@ -302,10 +302,11 @@ class QuickSmoke(Operator):
 
     style = EnumProperty(
             name="Smoke Style",
-            items=(('STREAM', "Stream", ""),
+            items=(('SMOKE', "Smoke", ""),
                    ('FIRE', "Fire", ""),
+                   ('BOTH', "Smoke + Fire", ""),
                    ),
-            default='STREAM',
+            default='SMOKE',
             )
 
     show_flows = BoolProperty(
@@ -331,8 +332,8 @@ class QuickSmoke(Operator):
             bpy.ops.object.modifier_add(fake_context, type='SMOKE')
             obj.modifiers[-1].smoke_type = 'FLOW'
 
-            if self.style == 'FIRE':
-                obj.modifiers[-1].flow_settings.smoke_flow_type = 'FIRE'
+            # set type
+            obj.modifiers[-1].flow_settings.smoke_flow_type = self.style
 
             if not self.show_flows:
                 obj.draw_type = 'WIRE'
@@ -352,7 +353,7 @@ class QuickSmoke(Operator):
         # setup smoke domain
         bpy.ops.object.modifier_add(type='SMOKE')
         obj.modifiers[-1].smoke_type = 'DOMAIN'
-        if self.style == 'FIRE':
+        if self.style == 'FIRE' or self.style == 'BOTH':
             obj.modifiers[-1].domain_settings.use_high_resolution = True
 
         # Setup material
@@ -405,7 +406,7 @@ class QuickSmoke(Operator):
             node_absorption.location = grid_location(3, 2)
             links.new(node_absorption.outputs["Volume"],
                     node_add_shader_2.inputs[1])
-                    
+
             # Density Multiplier
             node_densmult = nodes.new(type='ShaderNodeMath')
             node_densmult.location = grid_location(2, 2)
@@ -422,7 +423,7 @@ class QuickSmoke(Operator):
             node_attrib_density.location = grid_location(1, 2)
             links.new(node_attrib_density.outputs["Fac"],
                     node_densmult.inputs[0])
-                    
+
             # Attribute "color"
             node_attrib_color = nodes.new(type='ShaderNodeAttribute')
             node_attrib_color.attribute_name = "color"
@@ -441,12 +442,39 @@ class QuickSmoke(Operator):
             links.new(node_emission.outputs["Emission"],
                     node_add_shader_1.inputs[1])
 
+            # Flame strength multiplier
+            node_flame_strength_mult = nodes.new(type='ShaderNodeMath')
+            node_flame_strength_mult.location = grid_location(3, 1)
+            node_flame_strength_mult.operation = 'MULTIPLY'
+            node_flame_strength_mult.inputs[1].default_value = 2.5
+            links.new(node_flame_strength_mult.outputs["Value"],
+                    node_emission.inputs["Strength"])
+
+            # Color ramp Flame
+            node_flame_ramp = nodes.new(type='ShaderNodeValToRGB')
+            node_flame_ramp.location = grid_location(1, 1)
+            ramp = node_flame_ramp.color_ramp
+            ramp.interpolation = 'EASE'
+
+            # orange
+            elem = ramp.elements.new(0.5)
+            elem.color = (1.0, 0.128, 0.0, 1.0)
+
+            # yellow
+            elem = ramp.elements.new(0.9)
+            elem.color = (0.9, 0.6, 0.1, 1.0)
+
+            links.new(node_flame_ramp.outputs["Color"],
+                    node_emission.inputs["Color"])
+
             # Attribute "flame"
             node_attrib_flame = nodes.new(type='ShaderNodeAttribute')
             node_attrib_flame.attribute_name = "flame"
-            node_attrib_flame.location = grid_location(3, 1)
+            node_attrib_flame.location = grid_location(0, 1)
             links.new(node_attrib_flame.outputs["Fac"],
-                    node_emission.inputs["Strength"])
+                    node_flame_ramp.inputs["Fac"])
+            links.new(node_attrib_flame.outputs["Fac"],
+                    node_flame_strength_mult.inputs[0])
 
         # Blender Internal
         else:
@@ -487,15 +515,11 @@ class QuickSmoke(Operator):
             ramp = tex.color_ramp
             # dark orange
             elem = ramp.elements.new(0.333)
-            elem.color[0] = 0.2
-            elem.color[1] = 0.03
-            elem.color[2] = 0
-            elem.color[3] = 1
+            elem.color = (0.2, 0.03, 0.0, 1.0)
+
             # yellow glow
             elem = ramp.elements.new(0.666)
-            elem.color[0] = elem.color[3] = 1
-            elem.color[1] = 0.65
-            elem.color[2] = 0.25
+            elem.color = (1, 0.65, 0.25, 1.0)
 
             mat.texture_slots[1].use_map_density = True
             mat.texture_slots[1].use_map_emission = True
