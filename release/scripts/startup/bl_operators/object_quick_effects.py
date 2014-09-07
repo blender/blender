@@ -289,6 +289,10 @@ def obj_bb_minmax(obj, min_co, max_co):
         max_co[0] = max(bb_vec[0], max_co[0])
         max_co[1] = max(bb_vec[1], max_co[1])
         max_co[2] = max(bb_vec[2], max_co[2])
+        
+        
+def grid_location(x, y):
+    return (x * 200, y * 150)
 
 
 class QuickSmoke(Operator):
@@ -351,56 +355,134 @@ class QuickSmoke(Operator):
         if self.style == 'FIRE':
             obj.modifiers[-1].domain_settings.use_high_resolution = True
 
-        # create a volume material with a voxel data texture for the domain
-        bpy.ops.object.material_slot_add()
+        # Setup material
 
-        mat = bpy.data.materials.new("Smoke Domain Material")
-        obj.material_slots[0].material = mat
-        mat.type = 'VOLUME'
-        mat.volume.density = 0
-        mat.volume.density_scale = 5
-        mat.volume.step_size = 0.1
+        # Cycles
+        if context.scene.render.use_shading_nodes:
+            bpy.ops.object.material_slot_add()
 
-        tex = bpy.data.textures.new("Smoke Density", 'VOXEL_DATA')
-        tex.voxel_data.domain_object = obj
-        tex.voxel_data.interpolation = 'TRICUBIC_BSPLINE'
+            mat = bpy.data.materials.new("Smoke Domain Material")
+            obj.material_slots[0].material = mat
 
-        tex_slot = mat.texture_slots.add()
-        tex_slot.texture = tex
-        tex_slot.texture_coords = 'ORCO'
-        tex_slot.use_map_color_emission = False
-        tex_slot.use_map_density = True
-        tex_slot.use_map_color_reflection = True
+            # Make sure we use nodes
+            mat.use_nodes = True
 
-        # for fire add a second texture for flame emission
-        mat.volume.emission_color = Vector((0.0, 0.0, 0.0))
-        tex = bpy.data.textures.new("Flame", 'VOXEL_DATA')
-        tex.voxel_data.domain_object = obj
-        tex.voxel_data.smoke_data_type = 'SMOKEFLAME'
-        tex.voxel_data.interpolation = 'TRICUBIC_BSPLINE'
-        tex.use_color_ramp = True
+            # Set node variables and clear the default nodes
+            tree = mat.node_tree
+            nodes = tree.nodes
+            links = tree.links
 
-        tex_slot = mat.texture_slots.add()
-        tex_slot.texture = tex
-        tex_slot.texture_coords = 'ORCO'
+            nodes.clear()
 
-        # add color ramp for flame color
-        ramp = tex.color_ramp
-        # dark orange
-        elem = ramp.elements.new(0.333)
-        elem.color[0] = 0.2
-        elem.color[1] = 0.03
-        elem.color[2] = 0
-        elem.color[3] = 1
-        # yellow glow
-        elem = ramp.elements.new(0.666)
-        elem.color[0] = elem.color[3] = 1
-        elem.color[1] = 0.65
-        elem.color[2] = 0.25
+            # Create shader nodes
 
-        mat.texture_slots[1].use_map_density = True
-        mat.texture_slots[1].use_map_emission = True
-        mat.texture_slots[1].emission_factor = 5
+            # Material output
+            node_out = nodes.new(type='ShaderNodeOutputMaterial')
+            node_out.location = grid_location(6, 1)
+
+            # Add shader 1
+            node_add_shader_1 = nodes.new(type='ShaderNodeAddShader')
+            node_add_shader_1.location = grid_location(5, 1)
+            links.new(node_add_shader_1.outputs["Shader"],
+                    node_out.inputs["Volume"])
+
+            # Smoke
+
+            # Add shader 2
+            node_add_shader_2 = nodes.new(type='ShaderNodeAddShader')
+            node_add_shader_2.location = grid_location(4, 2)
+            links.new(node_add_shader_2.outputs["Shader"],
+                    node_add_shader_1.inputs[0])
+
+            # Volume scatter
+            node_scatter = nodes.new(type='ShaderNodeVolumeScatter')
+            node_scatter.location = grid_location(3, 3)
+            links.new(node_scatter.outputs["Volume"],
+                    node_add_shader_2.inputs[0])
+
+            # Volume absorption
+            node_absorption = nodes.new(type='ShaderNodeVolumeAbsorption')
+            node_absorption.location = grid_location(3, 2)
+            links.new(node_absorption.outputs["Volume"],
+                    node_add_shader_2.inputs[1])
+
+            # Attribute "density"
+            node_attrib_density = nodes.new(type='ShaderNodeAttribute')
+            node_attrib_density.attribute_name = "density"
+            node_attrib_density.location = grid_location(2, 2)
+            links.new(node_attrib_density.outputs["Fac"],
+                    node_scatter.inputs["Density"])
+            links.new(node_attrib_density.outputs["Fac"],
+                    node_absorption.inputs["Density"])
+
+            # Fire
+
+            # Emission
+            node_emission = nodes.new(type='ShaderNodeEmission')
+            node_emission.inputs["Color"].default_value = (0.8, 0.1, 0.01, 1.0)
+            node_emission.location = grid_location(4, 1)
+            links.new(node_emission.outputs["Emission"],
+                    node_add_shader_1.inputs[1])
+
+            # Attribute "flame"
+            node_attrib_flame = nodes.new(type='ShaderNodeAttribute')
+            node_attrib_flame.attribute_name = "flame"
+            node_attrib_flame.location = grid_location(3, 1)
+            links.new(node_attrib_flame.outputs["Fac"],
+                    node_emission.inputs["Strength"])
+
+        # Blender Internal
+        else:
+            # create a volume material with a voxel data texture for the domain
+            bpy.ops.object.material_slot_add()
+
+            mat = bpy.data.materials.new("Smoke Domain Material")
+            obj.material_slots[0].material = mat
+            mat.type = 'VOLUME'
+            mat.volume.density = 0
+            mat.volume.density_scale = 5
+            mat.volume.step_size = 0.1
+
+            tex = bpy.data.textures.new("Smoke Density", 'VOXEL_DATA')
+            tex.voxel_data.domain_object = obj
+            tex.voxel_data.interpolation = 'TRICUBIC_BSPLINE'
+
+            tex_slot = mat.texture_slots.add()
+            tex_slot.texture = tex
+            tex_slot.texture_coords = 'ORCO'
+            tex_slot.use_map_color_emission = False
+            tex_slot.use_map_density = True
+            tex_slot.use_map_color_reflection = True
+
+            # for fire add a second texture for flame emission
+            mat.volume.emission_color = Vector((0.0, 0.0, 0.0))
+            tex = bpy.data.textures.new("Flame", 'VOXEL_DATA')
+            tex.voxel_data.domain_object = obj
+            tex.voxel_data.smoke_data_type = 'SMOKEFLAME'
+            tex.voxel_data.interpolation = 'TRICUBIC_BSPLINE'
+            tex.use_color_ramp = True
+
+            tex_slot = mat.texture_slots.add()
+            tex_slot.texture = tex
+            tex_slot.texture_coords = 'ORCO'
+
+            # add color ramp for flame color
+            ramp = tex.color_ramp
+            # dark orange
+            elem = ramp.elements.new(0.333)
+            elem.color[0] = 0.2
+            elem.color[1] = 0.03
+            elem.color[2] = 0
+            elem.color[3] = 1
+            # yellow glow
+            elem = ramp.elements.new(0.666)
+            elem.color[0] = elem.color[3] = 1
+            elem.color[1] = 0.65
+            elem.color[2] = 0.25
+
+            mat.texture_slots[1].use_map_density = True
+            mat.texture_slots[1].use_map_emission = True
+            mat.texture_slots[1].emission_factor = 5
 
         return {'FINISHED'}
 
