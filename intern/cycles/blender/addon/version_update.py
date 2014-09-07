@@ -36,12 +36,9 @@ def do_versions(self):
 
     for scene in bpy.data.scenes:
         cscene = scene.cycles
-        try:
-            if (cscene["no_caustics"] and
-                not cscene.is_property_set("caustics_reflective") and
-                not cscene.is_property_set("caustics_refractive")):
+        if (cscene.get("no_caustics", False) and
+            not cscene.is_property_set("caustics_reflective") and
+            not cscene.is_property_set("caustics_refractive")):
 
-                cscene.caustics_reflective = False
-                cscene.caustics_refractive = False
-        except KeyError:
-            pass
+            cscene.caustics_reflective = False
+            cscene.caustics_refractive = False
