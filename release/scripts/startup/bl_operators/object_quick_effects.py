@@ -405,15 +405,32 @@ class QuickSmoke(Operator):
             node_absorption.location = grid_location(3, 2)
             links.new(node_absorption.outputs["Volume"],
                     node_add_shader_2.inputs[1])
+                    
+            # Density Multiplier
+            node_densmult = nodes.new(type='ShaderNodeMath')
+            node_densmult.location = grid_location(2, 2)
+            node_densmult.operation = 'MULTIPLY'
+            node_densmult.inputs[1].default_value = 5.0
+            links.new(node_densmult.outputs["Value"],
+                    node_scatter.inputs["Density"])
+            links.new(node_densmult.outputs["Value"],
+                    node_absorption.inputs["Density"])
 
             # Attribute "density"
             node_attrib_density = nodes.new(type='ShaderNodeAttribute')
             node_attrib_density.attribute_name = "density"
-            node_attrib_density.location = grid_location(2, 2)
+            node_attrib_density.location = grid_location(1, 2)
             links.new(node_attrib_density.outputs["Fac"],
-                    node_scatter.inputs["Density"])
-            links.new(node_attrib_density.outputs["Fac"],
-                    node_absorption.inputs["Density"])
+                    node_densmult.inputs[0])
+                    
+            # Attribute "color"
+            node_attrib_color = nodes.new(type='ShaderNodeAttribute')
+            node_attrib_color.attribute_name = "color"
+            node_attrib_color.location = grid_location(2, 3)
+            links.new(node_attrib_color.outputs["Color"],
+                    node_scatter.inputs["Color"])
+            links.new(node_attrib_color.outputs["Color"],
+                    node_absorption.inputs["Color"])
 
             # Fire
 
