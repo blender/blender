@@ -105,6 +105,13 @@ def group_input_output_item_poll(context):
     return False
 
 
+# only show input/output nodes when editing line style node trees
+def line_style_shader_nodes_poll(context):
+    snode = context.space_data
+    return (snode.tree_type == 'ShaderNodeTree' and
+            snode.shader_type == 'LINESTYLE')
+
+
 # All standard node categories currently used in nodes.
 
 shader_node_categories = [
@@ -169,14 +176,14 @@ shader_node_categories = [
         NodeItem("ShaderNodeParticleInfo"),
         NodeItem("ShaderNodeCameraData"),
         NodeItem("ShaderNodeUVMap"),
-        NodeItem("ShaderNodeUVAlongStroke"),
+        NodeItem("ShaderNodeUVAlongStroke", poll=line_style_shader_nodes_poll),
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_OUTPUT", "Output", items=[
         NodeItem("ShaderNodeOutputMaterial"),
         NodeItem("ShaderNodeOutputLamp"),
         NodeItem("ShaderNodeOutputWorld"),
-        NodeItem("ShaderNodeOutputLineStyle"),
+        NodeItem("ShaderNodeOutputLineStyle", poll=line_style_shader_nodes_poll),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_SHADER", "Shader", items=[
