@@ -3,7 +3,8 @@ cycles = bpy.context.scene.cycles
 
 cycles.max_bounces = 8
 cycles.min_bounces = 8
-cycles.no_caustics = True
+cycles.caustics_reflective = False
+cycles.caustics_refractive = False
 cycles.diffuse_bounces = 0
 cycles.glossy_bounces = 1
 cycles.transmission_bounces = 2
