@@ -2470,7 +2470,7 @@ static short wm_link_append_flag(wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "autoselect")) flag |= FILE_AUTOSELECT;
 	if (RNA_boolean_get(op->ptr, "active_layer")) flag |= FILE_ACTIVELAY;
-	if (RNA_boolean_get(op->ptr, "relative_path")) flag |= FILE_RELPATH;
+	if (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path")) flag |= FILE_RELPATH;
 	if (RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
 	if (RNA_boolean_get(op->ptr, "instance_groups")) flag |= FILE_GROUP_INSTANCE;
 
