@@ -1774,7 +1774,8 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 }
 
 /* node was checked to have lasttime != curtime, and is of type ID_OB */
-static void flush_pointcache_reset(Main *bmain, Scene *scene, DagNode *node, int curtime, int reset)
+static void flush_pointcache_reset(Main *bmain, Scene *scene, DagNode *node,
+                                   int curtime, unsigned int lay, bool reset)
 {
 	DagAdjList *itA;
 	Object *ob;
@@ -1788,14 +1789,17 @@ static void flush_pointcache_reset(Main *bmain, Scene *scene, DagNode *node, int
 
 				if (reset || (ob->recalc & OB_RECALC_ALL)) {
 					if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH)) {
-						ob->recalc |= OB_RECALC_DATA;
-						lib_id_recalc_data_tag(bmain, &ob->id);
+						/* Don't tag nodes which are on invisible layer. */
+						if (itA->node->lay & lay) {
+							ob->recalc |= OB_RECALC_DATA;
+							lib_id_recalc_data_tag(bmain, &ob->id);
+						}
 					}
 
-					flush_pointcache_reset(bmain, scene, itA->node, curtime, 1);
+					flush_pointcache_reset(bmain, scene, itA->node, curtime, lay, true);
 				}
 				else
-					flush_pointcache_reset(bmain, scene, itA->node, curtime, 0);
+					flush_pointcache_reset(bmain, scene, itA->node, curtime, lay, false);
 			}
 		}
 	}
@@ -1912,10 +1916,12 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 						lib_id_recalc_data_tag(bmain, &ob->id);
 					}
 
-					flush_pointcache_reset(bmain, sce, itA->node, lasttime, 1);
+					flush_pointcache_reset(bmain, sce, itA->node, lasttime,
+					                       lay, true);
 				}
 				else
-					flush_pointcache_reset(bmain, sce, itA->node, lasttime, 0);
+					flush_pointcache_reset(bmain, sce, itA->node, lasttime,
+					                       lay, false);
 			}
 		}
 	}
