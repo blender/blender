@@ -273,7 +273,7 @@ void NodeOperationBuilder::add_datatype_conversions()
 		/* proxy operations can skip data type conversion */
 		NodeOperation *from_op = &link.from()->getOperation();
 		NodeOperation *to_op = &link.to()->getOperation();
-		if (!from_op->useDatatypeConversion() || !to_op->useDatatypeConversion())
+		if (!(from_op->useDatatypeConversion() || to_op->useDatatypeConversion()))
 			continue;
 		
 		if (link.from()->getDataType() != link.to()->getDataType())
