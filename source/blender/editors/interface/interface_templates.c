@@ -3495,12 +3495,8 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 
 	RNA_STRUCT_BEGIN (ptr, prop)
 	{
-		int flag = RNA_property_flag(prop);
 		const bool is_set = RNA_property_is_set(ptr, prop);
 		uiBut *but;
-
-		if (flag & PROP_HIDDEN)
-			continue;
 
 		/* recurse for nested properties */
 		if (RNA_property_type(prop) == PROP_POINTER) {
