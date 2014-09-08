@@ -817,6 +817,9 @@ static int set_engine(int argc, const char **argv, void *data)
 				if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
 					BLI_strncpy_utf8(rd->engine, argv[1], sizeof(rd->engine));
 				}
+				else {
+					printf("\nError: engine not found '%s'\n", argv[1]);
+				}
 			}
 			else {
 				printf("\nError: no blend loaded. order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
