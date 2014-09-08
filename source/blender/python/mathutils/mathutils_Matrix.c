@@ -1560,10 +1560,10 @@ static PyObject *Matrix_adjugate(MatrixObject *self)
 		adjoint_matrix_n(self->matrix, self->matrix, self->num_col);
 	}
 	else {
-			PyErr_Format(PyExc_ValueError,
-			             "Matrix adjugate(d): size (%d) unsupported",
-			             (int)self->num_col);
-			return NULL;
+		PyErr_Format(PyExc_ValueError,
+		             "Matrix adjugate(d): size (%d) unsupported",
+		             (int)self->num_col);
+		return NULL;
 	}
 
 

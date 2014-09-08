@@ -391,18 +391,25 @@ endif()
 
 if(UNIX AND NOT APPLE)
 
-	install(
-		CODE
-		"
-		execute_process(COMMAND
-		                ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
-		                ${TARGETDIR}/blender
-		                ${TARGETDIR}/blender.1)
-		"
-	)
+	if(NOT WITH_PYTHON_MODULE)
+		install(
+			CODE
+			"
+			execute_process(COMMAND
+							${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
+							${TARGETDIR}/blender
+							${TARGETDIR}/blender.1)
+			"
+		)
+	endif()
 
 	# there are a few differences between portable and system install
 	if(WITH_INSTALL_PORTABLE)
+		install(
+			FILES ${TARGETDIR}/blender.1
+			DESTINATION ${TARGETDIR}
+		)
+
 		install(
 			FILES
 				${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
@@ -433,6 +440,11 @@ if(UNIX AND NOT APPLE)
 			install(
 				PROGRAMS ${TARGETDIR}/blender
 				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+			)
+			# manpage only with 'blender' binary
+			install(
+				FILES ${TARGETDIR}/blender.1
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 			)
 		endif()
 
@@ -467,10 +479,6 @@ if(UNIX AND NOT APPLE)
 		install(
 			PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-		)
-		install(
-			FILES ${TARGETDIR}/blender.1
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 		)
 		install(
 			FILES ${BLENDER_TEXT_FILES}
