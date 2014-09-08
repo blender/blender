@@ -36,6 +36,10 @@ CCLDeviceInfo *CCL_compute_device_list(int device_type);
 
 void *CCL_python_module_init(void);
 
+void CCL_init_logging(const char *argv0);
+void CCL_start_debug_logging(void);
+void CCL_logging_verbosity_set(int verbosity);
+
 #ifdef __cplusplus
 }
 #endif

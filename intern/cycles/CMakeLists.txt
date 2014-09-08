@@ -128,6 +128,24 @@ add_definitions(
 	-DWITH_MULTI
 )
 
+if(WITH_CYCLES_LOGGING)
+	add_definitions(-DWITH_CYCLES_LOGGING)
+	add_definitions(-DGOOGLE_GLOG_DLL_DECL=)
+	if(WIN32)
+		include_directories(
+			SYSTEM
+			../../extern/libmv/third_party/glog/src/windows
+			../../extern/libmv/third_party/gflags
+		)
+	else()
+		include_directories(
+			SYSTEM
+			../../extern/libmv/third_party/glog/src
+			../../extern/libmv/third_party/gflags
+		)
+	endif()
+endif()
+
 include_directories(
 	SYSTEM
 	${BOOST_INCLUDE_DIR}

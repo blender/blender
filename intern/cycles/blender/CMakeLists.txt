@@ -25,6 +25,7 @@ set(SRC
 	blender_object.cpp
 	blender_particles.cpp
 	blender_curves.cpp
+	blender_logging.cpp
 	blender_python.cpp
 	blender_session.cpp
 	blender_shader.cpp

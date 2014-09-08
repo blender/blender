@@ -149,6 +149,10 @@
 #  include "libmv-capi.h"
 #endif
 
+#ifdef WITH_CYCLES_LOGGING
+#  include "CCL_api.h"
+#endif
+
 /* from buildinfo.c */
 #ifdef BUILD_DATE
 extern char build_date[];
@@ -309,6 +313,9 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 #ifdef WITH_LIBMV
 	BLI_argsPrintArgDoc(ba, "--debug-libmv");
 #endif
+#ifdef WITH_CYCLES_LOGGING
+	BLI_argsPrintArgDoc(ba, "--debug-cycles");
+#endif
 	BLI_argsPrintArgDoc(ba, "--debug-memory");
 	BLI_argsPrintArgDoc(ba, "--debug-jobs");
 	BLI_argsPrintArgDoc(ba, "--debug-python");
@@ -446,6 +453,15 @@ static int debug_mode_libmv(int UNUSED(argc), const char **UNUSED(argv), void *U
 {
 	libmv_startDebugLogging();
 
+	return 0;
+}
+#endif
+
+#ifdef WITH_CYCLES_LOGGING
+static int debug_mode_cycles(int UNUSED(argc), const char **UNUSED(argv),
+                             void *UNUSED(data))
+{
+	CCL_start_debug_logging();
 	return 0;
 }
 #endif
@@ -887,6 +903,8 @@ static int set_verbosity(int argc, const char **argv, void *UNUSED(data))
 
 #ifdef WITH_LIBMV
 		libmv_setLoggingVerbosity(level);
+#elif defined(WITH_CYCLES_LOGGING)
+		CCL_logging_verbosity_set(level);
 #else
 		(void)level;
 #endif
@@ -1419,6 +1437,9 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 #ifdef WITH_LIBMV
 	BLI_argsAdd(ba, 1, NULL, "--debug-libmv", "\n\tEnable debug messages from libmv library", debug_mode_libmv, NULL);
 #endif
+#ifdef WITH_CYCLES_LOGGING
+	BLI_argsAdd(ba, 1, NULL, "--debug-cycles", "\n\tEnable debug messages from Cycles", debug_mode_cycles, NULL);
+#endif
 	BLI_argsAdd(ba, 1, NULL, "--debug-memory", "\n\tEnable fully guarded memory allocation and debugging", debug_mode_memory, NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--debug-value", "<value>\n\tSet debug value of <value> on startup\n", set_debug_value, NULL);
@@ -1583,6 +1604,8 @@ int main(
 
 #ifdef WITH_LIBMV
 	libmv_initLogging(argv[0]);
+#elif defined(WITH_CYCLES_DEBUG)
+	CCL_init_logging(argv[0]);
 #endif
 
 	setCallbacks();

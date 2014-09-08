@@ -11,6 +11,7 @@ set(INC_SYS
 set(SRC
 	util_cache.cpp
 	util_dynlib.cpp
+	util_logging.cpp
 	util_md5.cpp
 	util_path.cpp
 	util_string.cpp
@@ -40,6 +41,7 @@ set(SRC_HEADERS
 	util_hash.h
 	util_image.h
 	util_list.h
+	util_logging.h
 	util_map.h
 	util_math.h
 	util_md5.h

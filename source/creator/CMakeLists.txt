@@ -48,6 +48,11 @@ if(WITH_LIBMV)
 	add_definitions(-DWITH_LIBMV)
 endif()
 
+if(WITH_CYCLES AND WITH_CYCLES_LOGGING)
+	blender_include_dirs(../../intern/cycles/blender)
+	add_definitions(-DWITH_CYCLES_LOGGING)
+endif()
+
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()

@@ -280,6 +280,7 @@ option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
 set(CYCLES_CUDA_BINARIES_ARCH sm_20 sm_21 sm_30 sm_35 sm_50 CACHE STRING "CUDA architectures to build binaries for")
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
+option(WITH_CYCLES_LOGGING	"Build cycles with logging support" OFF)
 
 # LLVM
 option(WITH_LLVM					"Use LLVM" OFF)
