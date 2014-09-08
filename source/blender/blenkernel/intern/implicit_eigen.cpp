@@ -31,9 +31,17 @@
 
 #define IMPLICIT_SOLVER_EIGEN
 
+//#define USE_EIGEN_CORE
+#define USE_EIGEN_CONSTRAINED_CG
+
 #ifdef IMPLICIT_SOLVER_EIGEN
 
 #include <Eigen/Sparse>
+#include <Eigen/src/Core/util/DisableStupidWarnings.h>
+
+#ifdef USE_EIGEN_CONSTRAINED_CG
+#include <intern/ConstrainedConjugateGradient.h>
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -53,7 +61,6 @@ extern "C" {
 #include "BKE_effect.h"
 #include "BKE_global.h"
 }
-
 
 /* ==== hash functions for debugging ==== */
 static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
@@ -100,9 +107,15 @@ typedef Eigen::VectorXf lVector;
 typedef Eigen::Triplet<Scalar> Triplet;
 typedef std::vector<Triplet> TripletList;
 
+#ifdef USE_EIGEN_CORE
 typedef Eigen::ConjugateGradient<lMatrix, Eigen::Lower, Eigen::DiagonalPreconditioner<Scalar> > ConjugateGradient;
+#endif
+#ifdef USE_EIGEN_CONSTRAINED_CG
+typedef Eigen::ConstrainedConjugateGradient<lMatrix, Eigen::Lower, lMatrix,
+                                            Eigen::DiagonalPreconditioner<Scalar> >
+        ConstraintConjGrad;
+#endif
 using Eigen::ComputationInfo;
-
 
 static void print_lvector(const lVector &v)
 {
@@ -115,14 +128,16 @@ static void print_lmatrix(const lMatrix &m)
 {
 	for (int j = 0; j < m.rows(); ++j) {
 		for (int i = 0; i < m.cols(); ++i) {
-			printf("%-16f,", m.coeff(j, i));
+			printf("%-8.3f,", m.coeff(j, i));
 		}
 		printf("\n");
 	}
 }
 
+static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
-BLI_INLINE void reserve_diagonal(lMatrix &m, int num)
+BLI_INLINE void lMatrix_reserve_elems(lMatrix &m, int num)
 {
 	m.reserve(Eigen::VectorXi::Constant(m.cols(), num));
 }
@@ -137,6 +152,59 @@ BLI_INLINE const float *lVector_v3(const lVector &v, int vertex)
 	return v.data() + 3 * vertex;
 }
 
+BLI_INLINE void lMatrix_copy_m3(lMatrix &r, float m[3][3], int i, int j)
+{
+	i *= 3;
+	j *= 3;
+	for (int l = 0; l < 3; ++l) {
+		for (int k = 0; k < 3; ++k) {
+			r.coeffRef(i + k, j + l) = m[k][l];
+		}
+	}
+}
+
+BLI_INLINE void lMatrix_add_m3(lMatrix &r, float m[3][3], int i, int j)
+{
+	lMatrix tmp(r.cols(), r.cols());
+	if (i == j) {
+		lMatrix_copy_m3(tmp, m, i, i);
+	}
+	else {
+		lMatrix_copy_m3(tmp, m, i, j);
+		lMatrix_copy_m3(tmp, m, j, i);
+	}
+	
+	r += tmp;
+}
+
+BLI_INLINE void lMatrix_sub_m3(lMatrix &r, float m[3][3], int i, int j)
+{
+	lMatrix tmp(r.cols(), r.cols());
+	if (i == j) {
+		lMatrix_copy_m3(tmp, m, i, i);
+	}
+	else {
+		lMatrix_copy_m3(tmp, m, i, j);
+		lMatrix_copy_m3(tmp, m, j, i);
+	}
+	
+	r -= tmp;
+}
+
+BLI_INLINE void lMatrix_madd_m3(lMatrix &r, float m[3][3], float s, int i, int j)
+{
+	lMatrix tmp(r.cols(), r.cols());
+	if (i == j) {
+		lMatrix_copy_m3(tmp, m, i, i);
+	}
+	else {
+		lMatrix_copy_m3(tmp, m, i, j);
+		lMatrix_copy_m3(tmp, m, j, i);
+	}
+	
+	r += s * tmp;
+}
+
 BLI_INLINE void triplets_m3(TripletList &t, float m[3][3], int i, int j)
 {
 	i *= 3;
@@ -146,6 +214,13 @@ BLI_INLINE void triplets_m3(TripletList &t, float m[3][3], int i, int j)
 			t.push_back(Triplet(i + k, j + l, m[k][l]));
 		}
 	}
+}
+
+BLI_INLINE void outerproduct(float r[3][3], const float a[3], const float b[3])
+{
+	mul_v3_v3fl(r[0], a, b[0]);
+	mul_v3_v3fl(r[1], a, b[1]);
+	mul_v3_v3fl(r[2], a, b[2]);
 }
 
 struct Implicit_Data {
@@ -199,6 +274,7 @@ struct Implicit_Data {
 
 static bool simulate_implicit_euler(Implicit_Data *id, float dt)
 {
+#ifdef USE_EIGEN_CORE
 	ConjugateGradient cg;
 	cg.setMaxIterations(100);
 	cg.setTolerance(0.01f);
@@ -212,12 +288,62 @@ static bool simulate_implicit_euler(Implicit_Data *id, float dt)
 	id->Vnew = id->V + id->dV;
 	
 	return cg.info() != Eigen::Success;
+#endif
+
+#ifdef USE_EIGEN_CONSTRAINED_CG
+	ConstraintConjGrad cg;
+	cg.setMaxIterations(100);
+	cg.setTolerance(0.01f);
+	
+	id->A = id->M - dt * id->dFdV - dt*dt * id->dFdX;
+	cg.compute(id->A);
+	cg.filter() = id->S;
+	
+	id->B = dt * id->F + dt*dt * id->dFdX * id->V;
+	id->dV = cg.solveWithGuess(id->B, id->z);
+	
+	id->Vnew = id->V + id->dV;
+	
+	return cg.info() != Eigen::Success;
+#endif
+}
+
+BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)
+{
+	// dir is unit length direction, rest is spring's restlength, k is spring constant.
+	//return  ( (I-outerprod(dir, dir))*Min(1.0f, rest/length) - I) * -k;
+	outerproduct(to, dir, dir);
+	sub_m3_m3m3(to, I, to);
+	
+	mul_m3_fl(to, (L/length)); 
+	sub_m3_m3m3(to, to, I);
+	mul_m3_fl(to, -k);
+}
+
+/* unused */
+#if 0
+BLI_INLINE void dfdx_damp(float to[3][3], const float dir[3], float length, const float vel[3], float rest, float damping)
+{
+	// inner spring damping   vel is the relative velocity  of the endpoints.  
+	// 	return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
+	mul_fvectorT_fvector(to, dir, dir);
+	sub_fmatrix_fmatrix(to, I, to);
+	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel)/MAX2(length, rest))));
+}
+#endif
+
+DO_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
+{
+	// derivative of force wrt velocity
+	outerproduct(to, dir, dir);
+	mul_m3_fl(to, damping);
 }
 
 static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, const lVector &X, const lVector &V, float time)
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
+	ClothVertex *v1 = &verts[s->ij], *v2 = &verts[s->kl];
 	float extent[3];
 	float length = 0, dot = 0;
 	float dir[3] = {0, 0, 0};
@@ -228,7 +354,6 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	
 	float stretch_force[3] = {0, 0, 0};
 	float bending_force[3] = {0, 0, 0};
-	float damping_force[3] = {0, 0, 0};
 	float nulldfdx[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 	
 	float scaling = 0.0;
@@ -239,13 +364,16 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	zero_m3(s->dfdx);
 	zero_m3(s->dfdv);
 	
+	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
+	/* ignore springs between pinned vertices */
+	if (v1->flags & CLOTH_VERT_FLAG_PINNED && v2->flags & CLOTH_VERT_FLAG_PINNED)
+		return;
+	
 	// calculate elonglation
 	sub_v3_v3v3(extent, lVector_v3(X, s->kl), lVector_v3(X, s->ij));
 	sub_v3_v3v3(vel, lVector_v3(V, s->kl), lVector_v3(V, s->ij));
 	dot = dot_v3v3(extent, extent);
 	length = sqrt(dot);
-	
-	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
 	
 	if (length > ALMOST_ZERO) {
 		/*
@@ -264,18 +392,15 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 		zero_v3(dir);
 	}
 	
-#if 0
 	// calculate force of structural + shear springs
-	if ((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR) || (s->type & CLOTH_SPRING_TYPE_SEWING) ) {
+	if (ELEM(s->type, CLOTH_SPRING_TYPE_STRUCTURAL, CLOTH_SPRING_TYPE_SHEAR, CLOTH_SPRING_TYPE_SEWING)) {
 		if (length > L || no_compress) {
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
 			k = clmd->sim_parms->structural;
-
 			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
 
 			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
-
 			// TODO: verify, half verified (couldn't see error)
 			if (s->type & CLOTH_SPRING_TYPE_SEWING) {
 				// sewing springs usually have a large distance at first so clamp the force so we don't get tunnelling through colission objects
@@ -283,18 +408,17 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 				if (force > clmd->sim_parms->max_sewing) {
 					force = clmd->sim_parms->max_sewing;
 				}
-				mul_fvector_S(stretch_force, dir, force);
+				mul_v3_v3fl(stretch_force, dir, force);
 			}
 			else {
-				mul_fvector_S(stretch_force, dir, k * (length - L));
+				mul_v3_v3fl(stretch_force, dir, k * (length - L));
 			}
-
-			VECADD(s->f, s->f, stretch_force);
-
+			
+			add_v3_v3(s->f, stretch_force);
+			
 			// Ascher & Boxman, p.21: Damping only during elonglation
 			// something wrong with it...
-			mul_fvector_S(damping_force, dir, clmd->sim_parms->Cdis * dot_v3v3(vel, dir));
-			VECADD(s->f, s->f, damping_force);
+			madd_v3_v3fl(s->f, dir, clmd->sim_parms->Cdis * dot_v3v3(vel, dir));
 			
 			/* VERIFIED */
 			dfdx_spring(s->dfdx, dir, length, L, k);
@@ -304,17 +428,15 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 			
 		}
 	}
-	else
-#endif
-	if (s->type & CLOTH_SPRING_TYPE_GOAL) {
+	else if (s->type & CLOTH_SPRING_TYPE_GOAL) {
 		float target[3];
 		
 		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 		
 		// current_position = xold + t * (xnew - xold)
-		interp_v3_v3v3(target, verts[s->ij].xold, verts[s->ij].xconst, time);
+		interp_v3_v3v3(target, v1->xold, v1->xconst, time);
 		sub_v3_v3v3(extent, lVector_v3(X, s->ij), target);
-		BKE_sim_debug_data_add_line(clmd->debug_data, verts[s->ij].xconst, verts[s->ij].xold, 1,0,0, "springs", hash_vertex(7825, s->ij));
+		BKE_sim_debug_data_add_line(clmd->debug_data, v1->xconst, v1->xold, 1,0,0, "springs", hash_vertex(7825, s->ij));
 		
 		// SEE MSG BELOW (these are UNUSED)
 		// dot = dot_v3v3(extent, extent);
@@ -323,7 +445,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 		k = clmd->sim_parms->goalspring;
 		scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
 			
-		k = verts[s->ij].goal * scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
+		k = v1->goal * scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
 		madd_v3_v3fl(s->f, extent, -k);
 		
 		/* XXX this has no effect: dir is always null at this point! - lukas_t
@@ -355,27 +477,23 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 
 static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lVector &F, lMatrix &dFdX, lMatrix &dFdV)
 {
-	TripletList trips;
-//	lMatrix tmp(F.rows(), F.rows());
+	/* XXX reserve elements in tmp? */
 	
-	if (s->flags & CLOTH_SPRING_FLAG_NEEDED) {
-//		if (!(s->type & CLOTH_SPRING_TYPE_BENDING)) {
-//			triplets_m3(trips, s->dfdv, s->ij, s->kl);
-//			triplets_m3(trips, s->dfdv, s->kl, s->ij);
-//			tmp.setFromTriplets(trips.begin(), trips.end());
-//			dFdV -= tmp;
-//		}
-		
-		add_v3_v3(lVector_v3(F, s->ij), s->f);
-		if (!(s->type & CLOTH_SPRING_TYPE_GOAL))
-			sub_v3_v3(lVector_v3(F, s->kl), s->f);
-		BKE_sim_debug_data_add_vector(clmd->debug_data, clmd->clothObject->verts[s->ij].x, s->f, 1, 1, 1, "hairs", hash_vertex(3924, s->ij));
-		
-//		triplets_m3(trips, s->dfdx, s->ij, s->kl);
-//		triplets_m3(trips, s->dfdx, s->kl, s->ij);
-//		tmp.setFromTriplets(trips.begin(), trips.end());
-//		dFdX -= tmp;
+	/* ignore disabled springs */
+	if (!(s->flags & CLOTH_SPRING_FLAG_NEEDED))
+		return;
+	
+	if (!(s->type & CLOTH_SPRING_TYPE_BENDING)) {
+		lMatrix_sub_m3(dFdV, s->dfdv, s->ij, s->kl);
 	}
+	
+	add_v3_v3(lVector_v3(F, s->ij), s->f);
+	if (!(s->type & CLOTH_SPRING_TYPE_GOAL)) {
+		sub_v3_v3(lVector_v3(F, s->kl), s->f);
+		
+	}
+	
+	lMatrix_sub_m3(dFdX, s->dfdx, s->ij, s->kl);
 }
 
 static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX, lMatrix &dFdV, const lVector &X, const lVector &V, const lMatrix &M, ListBase *effectors, float time)
@@ -554,6 +672,68 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	}
 }
 
+/* Init constraint matrix
+ * This is part of the modified CG method suggested by Baraff/Witkin in
+ * "Large Steps in Cloth Simulation" (Siggraph 1998)
+ */
+static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *contacts, int totcolliders, const lVector &V, lMatrix &S, lVector &z, float dt)
+{
+	ClothVertex *verts = clmd->clothObject->verts;
+	int numverts = clmd->clothObject->numverts;
+	int i, j, v;
+
+	for (v = 0; v < numverts; v++) {
+		if (verts[v].flags & CLOTH_VERT_FLAG_PINNED) {
+			/* pinned vertex constraints */
+			zero_v3(lVector_v3(z, v)); /* velocity is defined externally */
+			lMatrix_copy_m3(S, ZERO, v, v);
+		}
+		else {
+			/* free vertex */
+			zero_v3(lVector_v3(z, v));
+			lMatrix_copy_m3(S, I, v, v);
+		}
+	}
+
+#if 0 // TODO
+	for (i = 0; i < totcolliders; ++i) {
+		ColliderContacts *ct = &contacts[i];
+		for (j = 0; j < ct->totcollisions; ++j) {
+			CollPair *collpair = &ct->collisions[j];
+			int v = collpair->face1;
+			float cmat[3][3];
+			float impulse[3];
+			
+			/* pinned verts handled separately */
+			if (verts[v].flags & CLOTH_VERT_FLAG_PINNED)
+				continue;
+			
+			/* calculate collision response */
+			if (!cloth_points_collpair_response(clmd, ct->collmd, ct->ob->pd, collpair, dt, impulse))
+				continue;
+			
+			add_v3_v3(z[v], impulse);
+			
+			/* modify S to enforce velocity constraint in normal direction */
+			mul_fvectorT_fvector(cmat, collpair->normal, collpair->normal);
+			sub_m3_m3m3(S[v].m, I, cmat);
+			
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
+			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
+			
+			{ /* DEBUG */
+//				float nor[3];
+//				mul_v3_v3fl(nor, collpair->normal, collpair->distance);
+//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
+				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, impulse, 1, 1, 0, "collision", hash_collpair(940, collpair));
+//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, collpair->normal, 1, 1, 0, "collision", hash_collpair(941, collpair));
+			}
+		}
+	}
+#endif
+}
+
 int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	float step=0.0f, tf=clmd->sim_parms->timescale;
@@ -600,7 +780,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 		
 		/* setup vertex constraints for pinned vertices and contacts */
-//		setup_constraint_matrix(clmd, contacts, totcolliders, id->V, id->S, id->z, dt);
+		setup_constraint_matrix(clmd, contacts, totcolliders, id->V, id->S, id->z, dt);
 		
 		// damping velocity for artistic reasons
 //		mul_lfvectorS(id->V, id->V, clmd->sim_parms->vel_damping, numverts);
@@ -683,7 +863,7 @@ static void implicit_set_mass(ClothModifierData *clmd)
 	
 	lMatrix &M = cloth->implicit->M;
 	
-	reserve_diagonal(M, 1);
+	lMatrix_reserve_elems(M, 1);
 	for (int i = 0; i < numverts; ++i) {
 		M.insert(3*i+0, 3*i+0) = verts[i].mass;
 		M.insert(3*i+1, 3*i+1) = verts[i].mass;
