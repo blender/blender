@@ -834,11 +834,6 @@ creob = B.creator(env)
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
-# Hack to pass OSD libraries to linker before extern_{clew,cuew}
-for x in B.create_blender_liblist(env, 'system'):
-    thesyslibs.append(os.path.basename(x))
-    thelibincs.append(os.path.dirname(x))
-
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
     blender_progname = "blender"
     if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):

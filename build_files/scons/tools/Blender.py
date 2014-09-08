@@ -248,6 +248,11 @@ def setup_staticlibs(lenv):
         libincs = [e for e in libincs if SCons.Subst.scons_subst(e, lenv, gvars=lenv.Dictionary()) != "/usr/lib"]
         libincs.append('/usr/lib')
 
+    # Hack to pass OSD libraries to linker before extern_{clew,cuew}
+    # Here we only store library path, actual library name will be added in setup_syslibs()
+    for syslib in create_blender_liblist(lenv, 'system'):
+        libincs.append(os.path.dirname(syslib))
+
     return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -338,6 +343,10 @@ def setup_syslibs(lenv):
 
     if not lenv['WITH_BF_STATICPNG']:
         syslibs += Split(lenv['BF_PNG_LIB'])
+
+    # Hack to pass OSD libraries to linker before extern_{clew,cuew}
+    for syslib in create_blender_liblist(lenv, 'system'):
+        syslibs.append(os.path.basename(syslib))
 
     syslibs += lenv['LLIBS']
 
