@@ -33,6 +33,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_bitmap.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -3191,6 +3192,8 @@ typedef struct DMGradient_userData {
 	int def_nr;
 	short is_init;
 	DMGradient_vertStore *vert_cache;
+	/* only for init */
+	BLI_bitmap *vert_visit;
 
 	/* options */
 	short use_select;
@@ -3198,19 +3201,81 @@ typedef struct DMGradient_userData {
 	float weightpaint;
 } DMGradient_userData;
 
-static void gradientVert__mapFunc(void *userData, int index, const float co[3],
-                                  const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+static void gradientVert_update(DMGradient_userData *grad_data, int index)
+{
+	Mesh *me = grad_data->me;
+	DMGradient_vertStore *vs = &grad_data->vert_cache[index];
+	float alpha;
+
+	if (grad_data->type == WPAINT_GRADIENT_TYPE_LINEAR) {
+		alpha = line_point_factor_v2(vs->sco, grad_data->sco_start, grad_data->sco_end);
+	}
+	else {
+		BLI_assert(grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL);
+		alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
+	}
+	/* no need to clamp 'alpha' yet */
+
+	/* adjust weight */
+	alpha = BKE_brush_curve_strength_clamp(grad_data->brush, alpha, 1.0f);
+
+	if (alpha != 0.0f) {
+		MDeformVert *dv = &me->dvert[index];
+		MDeformWeight *dw = defvert_verify_index(dv, grad_data->def_nr);
+		// dw->weight = alpha; // testing
+		int tool = grad_data->brush->vertexpaint_tool;
+		float testw;
+
+		/* init if we just added */
+		testw = wpaint_blend_tool(tool, vs->weight_orig, grad_data->weightpaint, alpha * grad_data->brush->alpha);
+		CLAMP(testw, 0.0f, 1.0f);
+		dw->weight = testw;
+	}
+	else {
+		MDeformVert *dv = &me->dvert[index];
+		if (vs->flag & VGRAD_STORE_DW_EXIST) {
+			/* normally we NULL check, but in this case we know it exists */
+			MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
+			dw->weight = vs->weight_orig;
+		}
+		else {
+			/* wasn't originally existing, remove */
+			MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
+			if (dw) {
+				defvert_remove_group(dv, dw);
+			}
+		}
+	}
+}
+
+static void gradientVertUpdate__mapFunc(
+        void *userData, int index, const float UNUSED(co[3]),
+        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	DMGradient_userData *grad_data = userData;
+	Mesh *me = grad_data->me;
+	if ((grad_data->use_select == false) || (me->mvert[index].flag & SELECT)) {
+		DMGradient_vertStore *vs = &grad_data->vert_cache[index];
+		if (vs->sco[0] != FLT_MAX) {
+			gradientVert_update(grad_data, index);
+		}
+	}
+}
+
+static void gradientVertInit__mapFunc(
+        void *userData, int index, const float co[3],
+        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	DMGradient_userData *grad_data = userData;
 	Mesh *me = grad_data->me;
 
-	if (grad_data->use_select == false || (me->mvert[index].flag & SELECT)) {
-		DMGradient_vertStore *vs = &grad_data->vert_cache[index];
-
-		/* run first pass only, could be split into its own mapFunc
+	if ((grad_data->use_select == false) || (me->mvert[index].flag & SELECT)) {
+		/* run first pass only,
 		 * the screen coords of the verts need to be cached because
 		 * updating the mesh may move them about (entering feedback loop) */
-		if (grad_data->is_init) {
+
+		if (BLI_BITMAP_TEST(grad_data->vert_visit, index) == 0) {
+			DMGradient_vertStore *vs = &grad_data->vert_cache[index];
 			if (ED_view3d_project_float_object(grad_data->ar,
 			                                   co, vs->sco,
 			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
@@ -3227,55 +3292,14 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 					vs->weight_orig = 0.0f;
 					vs->flag = VGRAD_STORE_NOP;
 				}
+
+				BLI_BITMAP_ENABLE(grad_data->vert_visit, index);
+
+				gradientVert_update(grad_data, index);
 			}
 			else {
 				/* no go */
 				copy_v2_fl(vs->sco, FLT_MAX);
-			}
-		}
-		/* end init */
-
-		if (vs->sco[0] != FLT_MAX) {
-			float alpha;
-
-			if (grad_data->type == WPAINT_GRADIENT_TYPE_LINEAR) {
-				alpha = line_point_factor_v2(vs->sco, grad_data->sco_start, grad_data->sco_end);
-			}
-			else {
-				BLI_assert(grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL);
-				alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
-			}
-			/* no need to clamp 'alpha' yet */
-
-			/* adjust weight */
-			alpha = BKE_brush_curve_strength_clamp(grad_data->brush, alpha, 1.0f);
-
-			if (alpha != 0.0f) {
-				MDeformVert *dv = &me->dvert[index];
-				MDeformWeight *dw = defvert_verify_index(dv, grad_data->def_nr);
-				// dw->weight = alpha; // testing
-				int tool = grad_data->brush->vertexpaint_tool;
-				float testw;
-
-				/* init if we just added */
-				testw = wpaint_blend_tool(tool, vs->weight_orig, grad_data->weightpaint, alpha * grad_data->brush->alpha);
-				CLAMP(testw, 0.0f, 1.0f);
-				dw->weight = testw;
-			}
-			else {
-				MDeformVert *dv = &me->dvert[index];
-				if (vs->flag & VGRAD_STORE_DW_EXIST) {
-					/* normally we NULL check, but in this case we know it exists */
-					MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
-					dw->weight = vs->weight_orig;
-				}
-				else {
-					/* wasn't originally existing, remove */
-					MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
-					if (dw) {
-						defvert_remove_group(dv, dw);
-					}
-				}
 			}
 		}
 	}
@@ -3371,6 +3395,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	data.def_nr = ob->actdef - 1;
 	data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL));
 	data.vert_cache = vert_cache;
+	data.vert_visit = NULL;
 	data.type = RNA_enum_get(op->ptr, "type");
 
 	{
@@ -3386,7 +3411,17 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 	ED_view3d_init_mats_rv3d(ob, ar->regiondata);
 
-	dm->foreachMappedVert(dm, gradientVert__mapFunc, &data, DM_FOREACH_NOP);
+	if (data.is_init) {
+		data.vert_visit = BLI_BITMAP_NEW(me->totvert, __func__);
+
+		dm->foreachMappedVert(dm, gradientVertInit__mapFunc, &data, DM_FOREACH_NOP);
+
+		MEM_freeN(data.vert_visit);
+		data.vert_visit = NULL;
+	}
+	else {
+		dm->foreachMappedVert(dm, gradientVertUpdate__mapFunc, &data, DM_FOREACH_NOP);
+	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
