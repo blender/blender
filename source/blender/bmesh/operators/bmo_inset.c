@@ -39,6 +39,9 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
+/* Merge loop-data that diverges, see: T41445 */
+#define USE_LOOP_CUSTOMDATA_MERGE
+
 #define ELE_NEW		1
 
 
@@ -105,6 +108,155 @@ static void bm_interp_face_free(InterpFace *iface, BMesh *bm)
 		CustomData_bmesh_free_block(&bm->vdata, &blocks_v[i]);
 	}
 }
+
+#ifdef USE_LOOP_CUSTOMDATA_MERGE
+/**
+ * This function merges loop customdata (UV's)
+ * where interpolating the values across the face causes values to diverge.
+ */
+static void bm_loop_customdata_merge(
+        BMesh *bm,
+        BMEdge *e_connect,
+        BMLoop *l_a_outer, BMLoop *l_b_outer,
+        BMLoop *l_a_inner, BMLoop *l_b_inner)
+{
+	/**
+	 * Check for diverged values at the vert shared by
+	 * \a l_a_inner & \a l_b_inner.
+	 *
+	 * <pre>
+	 *  -----------------------+
+	 *           l_a_outer--> /|<--l_b_outer
+	 *                       / |
+	 *      (face a)        /  |
+	 *                     / <--e_connect
+	 *                    /    |
+	 * e_a  l_a_inner--> / <--l_b_inner
+	 * -----------------+      |
+	 *                 /|      |
+	 * l_a/b_inner_inset| (face b)
+	 *               /  |      |
+	 *              /   |e_b   |
+	 *  (inset face(s)) |      |
+	 *            /     |      |
+	 * </pre>
+	 */
+
+	const bool is_flip = (l_a_inner->next == l_a_outer);
+	BMLoop *l_a_inner_inset, *l_b_inner_inset;
+	BMEdge *e_a, *e_b;
+	int layer_n;
+
+	/* paranoid sanity checks */
+	BLI_assert(l_a_outer->v == l_b_outer->v);
+	BLI_assert(l_a_inner->v == l_b_inner->v);
+
+	BLI_assert(l_b_inner->f != l_a_inner->f);
+
+	BLI_assert(l_a_outer->f == l_a_inner->f);
+	BLI_assert(l_b_outer->f == l_b_inner->f);
+
+	BLI_assert(BM_edge_in_face(e_connect, l_a_inner->f));
+	BLI_assert(BM_edge_in_face(e_connect, l_b_inner->f));
+
+	if (is_flip) {
+		e_a = l_a_inner->prev->e;
+		e_b = l_b_inner->e;
+	}
+	else {
+		e_a = l_a_inner->e;
+		e_b = l_b_inner->prev->e;
+	}
+
+	l_a_inner_inset = BM_edge_other_loop(e_a, l_a_inner);
+	l_b_inner_inset = BM_edge_other_loop(e_b, l_b_inner);
+	BLI_assert(l_a_inner_inset->v == l_b_inner_inset->v);
+
+	/* check if ther is no chance of diversion */
+	if (l_a_inner_inset->f == l_b_inner_inset->f) {
+		return;
+	}
+
+	for (layer_n = 0; layer_n < bm->ldata.totlayer; layer_n++) {
+		const int type = bm->ldata.layers[layer_n].type;
+		const int offset = bm->ldata.layers[layer_n].offset;
+		if (!CustomData_layer_has_math(&bm->ldata, layer_n))
+			continue;
+
+		/* check we begin with merged data */
+		if ((CustomData_data_equals(
+		         type,
+		         BM_ELEM_CD_GET_VOID_P(l_a_outer, offset),
+		         BM_ELEM_CD_GET_VOID_P(l_b_outer, offset))  == true)
+
+		/* epsilon for comparing UV's is too big, gives noticable problems */
+#if 0
+		    &&
+		    /* check if the data ends up diverged */
+		    (CustomData_data_equals(
+		         type,
+		         BM_ELEM_CD_GET_VOID_P(l_a_inner, offset),
+		         BM_ELEM_CD_GET_VOID_P(l_b_inner, offset)) == false)
+#endif
+		    )
+		{
+			/* no need to allocate a temp block:
+			 * a = (a + b);
+			 * a *= 0.5f;
+			 * b = a;
+			 */
+			const void *data_src;
+
+			CustomData_data_add(
+			        type,
+			        BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset),
+			        BM_ELEM_CD_GET_VOID_P(l_b_inner_inset, offset));
+			CustomData_data_multiply(
+			        type,
+			        BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset),
+			        0.5f);
+			CustomData_data_copy_value(
+			        type,
+			        BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset),
+			        BM_ELEM_CD_GET_VOID_P(l_b_inner_inset, offset));
+
+			/* use this as a reference (could be 'l_b_inner_inset' too) */
+			data_src = BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset);
+
+			/* check if the 2 faces share an edge */
+			if (is_flip ?
+			    (l_b_inner_inset->e == l_a_inner_inset->prev->e) :
+			    (l_a_inner_inset->e == l_b_inner_inset->prev->e))
+			{
+				/* simple case, we have all loops already */
+			}
+			else {
+				/* compare with (l_a_inner / l_b_inner) and assign the blended value if they match */
+				BMIter iter;
+				BMLoop *l_iter;
+				const void *data_cmp_a = BM_ELEM_CD_GET_VOID_P(l_b_inner, offset);
+				const void *data_cmp_b = BM_ELEM_CD_GET_VOID_P(l_a_inner, offset);
+				BM_ITER_ELEM (l_iter, &iter, l_a_inner_inset->v, BM_LOOPS_OF_VERT) {
+					if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG)) {
+						if (!ELEM(l_iter, l_a_inner, l_b_inner, l_a_inner_inset, l_b_inner_inset)) {
+							void *data_dst = BM_ELEM_CD_GET_VOID_P(l_iter, offset);
+
+							if (CustomData_data_equals(type, data_dst, data_cmp_a) ||
+							    CustomData_data_equals(type, data_dst, data_cmp_b))
+							{
+								CustomData_data_copy_value(type, data_src, data_dst);
+							}
+						}
+					}
+				}
+			}
+
+			CustomData_data_copy_value(type, data_src, BM_ELEM_CD_GET_VOID_P(l_b_inner, offset));
+			CustomData_data_copy_value(type, data_src, BM_ELEM_CD_GET_VOID_P(l_a_inner, offset));
+		}
+	}
+}
+#endif  /* USE_LOOP_CUSTOMDATA_MERGE */
 
 
 /* -------------------------------------------------------------------- */
@@ -395,6 +547,9 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	const bool use_interpolate     = BMO_slot_bool_get(op->slots_in, "use_interpolate");
 	const float thickness          = BMO_slot_float_get(op->slots_in, "thickness");
 	const float depth              = BMO_slot_float_get(op->slots_in, "depth");
+#ifdef USE_LOOP_CUSTOMDATA_MERGE
+	const bool has_math_ldata      = (use_interpolate && CustomData_has_math(&bm->ldata));
+#endif
 
 	int edge_info_len = 0;
 
@@ -903,9 +1058,33 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 			BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
 			BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
 
+			BLI_assert(l_a->f != l_a_other->f);
+			BLI_assert(l_b->f != l_b_other->f);
+
 			/* step around to the opposite side of the quad - warning, this may have no other edges! */
 			l_a = l_a->next->next;
 			l_b = l_a->next;
+
+			/**
+			 * Loops vars from newly created face (face_a/b)
+			 * <pre>
+			 *              l_a->e & l_b->prev->e
+			 * +------------------------------------+
+			 * |\ l_a                          l_b /|
+			 * | \ l_a->prev->e            l_b->e / |
+			 * |  \ l_a->prev          l_b->next /  |
+			 * |   +----------------------------+   |
+			 * |   |l_a_other    ^     l_b_other|   |
+			 * |   |        l_b->next->e &...   |   |
+			 * |   |        l_a->prev->prev->e  |   |
+			 * |   |        (inset face)        |   |
+			 * |   +----------------------------+   |
+			 * |  /                              \  |
+			 * | /                                \ |
+			 * |/                                  \|
+			 * +------------------------------------+
+			 * </pre>
+			 */
 
 			/* swap a<->b intentionally */
 			if (use_interpolate) {
@@ -914,6 +1093,31 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 				const int i_b = BM_elem_index_get(l_b_other);
 				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_a], &l_b->head.data);
 				CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_b], &l_a->head.data);
+
+#ifdef USE_LOOP_CUSTOMDATA_MERGE
+				if (has_math_ldata) {
+					BMEdge *e_connect;
+
+					/* connecting edge 'a' */
+					e_connect = l_a->prev->e;
+					if (BM_edge_is_manifold(e_connect)) {
+						bm_loop_customdata_merge(
+						        bm, e_connect,
+						        l_a,       BM_edge_other_loop(e_connect, l_a),
+						        l_a->prev, BM_edge_other_loop(e_connect, l_a->prev));
+					}
+
+					/* connecting edge 'b' */
+					e_connect = l_b->e;
+					if (BM_edge_is_manifold(e_connect)) {
+						/* swap arg order to maintain winding */
+						bm_loop_customdata_merge(
+						        bm, e_connect,
+						        l_b,       BM_edge_other_loop(e_connect, l_b),
+						        l_b->next, BM_edge_other_loop(e_connect, l_b->next));
+					}
+				}
+#endif  /* USE_LOOP_CUSTOMDATA_MERGE */
 			}
 			else {
 				BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
