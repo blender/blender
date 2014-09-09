@@ -502,19 +502,19 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	Cloth *cloth = clmd->clothObject;
 	unsigned int numverts = cloth->numverts;
 	ClothVertex *verts = cloth->verts;
-	float spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
+	float drag = clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float gravity[3] = {0,0,0};
-//	lVector diagonal(3*numverts);
-//	diagonal.setZero
-	TripletList coeff_dFdX, coeff_dFdV;
 	
 	F.setZero();
 	dFdX.setZero();
 	dFdV.setZero();
 	
-	/* set dFdV jacobi matrix diagonal entries to -spring_air */
-//	dFdV.setIdentity();
-//	initdiag_bfmatrix(dFdV, tm2);
+	/* air drag */
+	lMatrix_reserve_elems(dFdV, 1);
+	for (int i = 0; i < numverts; ++i) {
+		madd_v3_v3fl(lVector_v3(F, i), lVector_v3(V, i), -drag);
+		lMatrix_madd_m3(dFdV, I, -drag, i, i);
+	}
 	
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
