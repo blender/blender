@@ -145,6 +145,7 @@ def main():
         "BMO_OPTYPE_FLAG_NORMALS_CALC",
         "BMO_OPTYPE_FLAG_UNTAN_MULTIRES",
         "BMO_OPTYPE_FLAG_SELECT_FLUSH",
+        "BMO_OPTYPE_FLAG_SELECT_VALIDATE",
         "BMO_OPTYPE_FLAG_NOP",
     )
     vars_dict = {}
