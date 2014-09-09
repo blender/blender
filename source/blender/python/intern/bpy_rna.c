@@ -2919,7 +2919,7 @@ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
 }
 
 static PySequenceMethods pyrna_prop_array_as_sequence = {
-	(lenfunc)pyrna_prop_array_length,       /* Cant set the len otherwise it can evaluate as false */
+	(lenfunc)pyrna_prop_array_length,
 	NULL,       /* sq_concat */
 	NULL,       /* sq_repeat */
 	(ssizeargfunc)pyrna_prop_array_subscript_int, /* sq_item */ /* Only set this so PySequence_Check() returns True */
@@ -2932,7 +2932,7 @@ static PySequenceMethods pyrna_prop_array_as_sequence = {
 };
 
 static PySequenceMethods pyrna_prop_collection_as_sequence = {
-	(lenfunc)pyrna_prop_collection_length,      /* Cant set the len otherwise it can evaluate as false */
+	(lenfunc)pyrna_prop_collection_length,
 	NULL,       /* sq_concat */
 	NULL,       /* sq_repeat */
 	(ssizeargfunc)pyrna_prop_collection_subscript_int, /* sq_item */ /* Only set this so PySequence_Check() returns True */
