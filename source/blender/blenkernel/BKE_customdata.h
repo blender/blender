@@ -81,29 +81,29 @@ void customData_mask_layers__print(CustomDataMask mask);
  * Checks if the layer at physical offset \a layer_n (in data->layers) support math
  * the below operations.
  */
-bool CustomData_layer_has_math(struct CustomData *data, int layer_n);
-bool CustomData_layer_has_interp(struct CustomData *data, int layer_n);
+bool CustomData_layer_has_math(const struct CustomData *data, int layer_n);
+bool CustomData_layer_has_interp(const struct CustomData *data, int layer_n);
 
 /**
  * Checks if any of the customdata layers has math.
  */
-bool CustomData_has_math(struct CustomData *data);
-bool CustomData_has_interp(struct CustomData *data);
-bool CustomData_bmesh_has_free(struct CustomData *data);
+bool CustomData_has_math(const struct CustomData *data);
+bool CustomData_has_interp(const struct CustomData *data);
+bool CustomData_bmesh_has_free(const struct CustomData *data);
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
  * another, while not overwriting anything else (e.g. flags).  probably only
  * implemented for mloopuv/mloopcol, for now.*/
-void CustomData_data_copy_value(int type, void *source, void *dest);
+void CustomData_data_copy_value(int type, const void *source, void *dest);
 
 /* compares if data1 is equal to data2.  type is a valid CustomData type
  * enum (e.g. CD_MLOOPUV). the layer type's equal function is used to compare
  * the data, if it exists, otherwise memcmp is used.*/
-bool CustomData_data_equals(int type, void *data1, void *data2);
+bool CustomData_data_equals(int type, const void *data1, const void *data2);
 void CustomData_data_initminmax(int type, void *min, void *max);
-void CustomData_data_dominmax(int type, void *data, void *min, void *max);
+void CustomData_data_dominmax(int type, const void *data, void *min, void *max);
 void CustomData_data_multiply(int type, void *data, float fac);
-void CustomData_data_add(int type, void *data1, void *data2);
+void CustomData_data_add(int type, void *data1, const void *data2);
 
 /* initializes a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
