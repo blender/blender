@@ -536,9 +536,9 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 {
 	static EnumPropertyItem sequencer_select_left_right_types[] = {
 		{SEQ_SELECT_LR_NONE, "NONE", 0, "None", "Don't do left-right selection"},
-		{SEQ_SELECT_LR_MOUSE, "MOUSE", 0, "Mouse", "Use mouse position for selction"},
+		{SEQ_SELECT_LR_MOUSE, "MOUSE", 0, "Mouse", "Use mouse position for selection"},
 		{SEQ_SELECT_LR_LEFT, "LEFT", 0, "Left", "Select left"},
-		{SEQ_SELECT_LR_RIGHT, "RIGHT", 0, "Select Right"},
+		{SEQ_SELECT_LR_RIGHT, "RIGHT", 0, "Right", "Select right"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
