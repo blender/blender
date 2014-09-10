@@ -107,9 +107,10 @@ set(SRC
 	intern/idprop.c
 	intern/image.c
 	intern/image_gen.c
-	intern/implicit.c
+        intern/implicit.h
+        intern/implicit.c
 	intern/implicit_eigen.cpp
-	intern/ConstrainedConjugateGradient.h # XXX move this to a better place
+        intern/ConstrainedConjugateGradient.h # XXX move this to a better place
 	intern/ipo.c
 	intern/key.c
 	intern/lamp.c

@@ -29,12 +29,12 @@
  *  \ingroup bke
  */
 
-#define IMPLICIT_SOLVER_EIGEN
+#include "implicit.h"
+
+#ifdef IMPLICIT_SOLVER_EIGEN
 
 //#define USE_EIGEN_CORE
 #define USE_EIGEN_CONSTRAINED_CG
-
-#ifdef IMPLICIT_SOLVER_EIGEN
 
 #include <Eigen/Sparse>
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>

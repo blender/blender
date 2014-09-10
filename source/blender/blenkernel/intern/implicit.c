@@ -29,7 +29,7 @@
  *  \ingroup bke
  */
 
-//#define IMPLICIT_SOLVER_BLENDER
+#include "implicit.h"
 
 #ifdef IMPLICIT_SOLVER_BLENDER
 
@@ -49,7 +49,6 @@
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic ignored "-Wtype-limits"
