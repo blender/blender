@@ -222,6 +222,8 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	if (multisample_enabled)
 		glDisable(GL_MULTISAMPLE_ARB);
 
+	wmOrtho2_region_ui(ar);
+
 	/* draw background */
 	ui_draw_tooltip_background(UI_GetStyle(), NULL, &bbox);
 
