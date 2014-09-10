@@ -888,7 +888,7 @@ static int console_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc = CTX_wm_space_console(C);
 
-	DynStr *buf_dyn = BLI_dynstr_new();
+	DynStr *buf_dyn;
 	char *buf_str;
 	
 	ConsoleLine *cl;
@@ -896,14 +896,6 @@ static int console_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	int offset = 0;
 
 	ConsoleLine cl_dummy = {NULL};
-
-#if 0
-	/* copy whole file */
-	for (cl = sc->scrollback.first; cl; cl = cl->next) {
-		BLI_dynstr_append(buf_dyn, cl->line);
-		BLI_dynstr_append(buf_dyn, "\n");
-	}
-#endif
 
 	if (sc->sel_start == sc->sel_end)
 		return OPERATOR_CANCELLED;
@@ -919,6 +911,7 @@ static int console_copy_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	}
 
+	buf_dyn = BLI_dynstr_new();
 	offset -= 1;
 	sel[0] = offset - sc->sel_end;
 	sel[1] = offset - sc->sel_start;
