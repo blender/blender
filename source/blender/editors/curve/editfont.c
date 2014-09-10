@@ -248,6 +248,8 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
 
+	BLI_assert(ef->len >= 0);
+
 	/* run update first since it can move the cursor */
 	if (mode == FO_EDIT) {
 		/* re-tesselllate */
@@ -1583,6 +1585,7 @@ void make_editText(Object *obedit)
 	len_wchar = BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4);
 	BLI_assert(len_wchar == cu->len_wchar);
 	ef->len = len_wchar;
+	BLI_assert(ef->len >= 0);
 
 	memcpy(ef->textbufinfo, cu->strinfo, ef->len * sizeof(CharInfo));
 

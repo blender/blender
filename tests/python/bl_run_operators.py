@@ -66,6 +66,7 @@ op_blacklist = (
     "wm.doc_edit",
     "wm.doc_view_manual",
     "wm.path_open",
+    "wm.copy_prev_settings",
     "wm.theme_install",
     "wm.context_*",
     "wm.properties_add",
