@@ -815,8 +815,10 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 			data->active = 0;
 			ui_searchbox_update(C, ar, but, false);
 		}
-		else if (data->active < -1)
-			data->active = -1;
+		else {
+			/* only let users step into an 'unset' state for unlink buttons */
+			data->active = (but->type == SEARCH_MENU_UNLINK) ? -1 : 0;
+		}
 	}
 	
 	ED_region_tag_redraw(ar);
