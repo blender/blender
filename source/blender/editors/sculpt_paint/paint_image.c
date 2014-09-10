@@ -591,11 +591,12 @@ static Brush *image_paint_brush(bContext *C)
 
 static int image_paint_poll(bContext *C)
 {
-	Object *obact = CTX_data_active_object(C);
+	Object *obact;
 
 	if (!image_paint_brush(C))
 		return 0;
 
+	obact = CTX_data_active_object(C);
 	if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
 		return 1;
 	}

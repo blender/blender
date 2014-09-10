@@ -4541,7 +4541,8 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 	if (ps->tool == PAINT_TOOL_CLONE)
 		ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) ? 1 : 0;
 
-	ps->do_stencil_brush = ps->brush->imagepaint_tool == PAINT_TOOL_MASK;
+
+	ps->do_stencil_brush = (ps->brush && ps->brush->imagepaint_tool == PAINT_TOOL_MASK);
 	/* deactivate stenciling for the stencil brush :) */
 	ps->do_layer_stencil = ((settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) &&
 	                        !(ps->do_stencil_brush) && ps->stencil_ima);
@@ -4660,14 +4661,14 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	IDProperty *view_data = NULL;
 	Object *ob = OBACT;
 
-	paint_proj_mesh_data_ensure(C, ob, op);
-
-	project_state_init(C, ob, &ps, BRUSH_STROKE_NORMAL);
-
-	if (ps.ob == NULL || ps.ob->type != OB_MESH) {
+	if (ob == NULL || ob->type != OB_MESH) {
 		BKE_report(op->reports, RPT_ERROR, "No active mesh object");
 		return OPERATOR_CANCELLED;
 	}
+
+	paint_proj_mesh_data_ensure(C, ob, op);
+
+	project_state_init(C, ob, &ps, BRUSH_STROKE_NORMAL);
 
 	if (image == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Image could not be found");
@@ -4868,6 +4869,8 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Main *bmain = CTX_data_main(C);
 	Brush *br = BKE_paint_brush(&imapaint->paint);
+
+	BLI_assert(ob->type == OB_MESH);
 
 	/* no material, add one */
 	if (ob->totcol == 0) {
