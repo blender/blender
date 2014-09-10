@@ -23,7 +23,7 @@
 import bpy
 
 
-def build_property_typemap(skip_classes):
+def build_property_typemap(skip_classes, skip_typemap):
 
     property_typemap = {}
 
@@ -42,6 +42,18 @@ def build_property_typemap(skip_classes):
         properties.remove("rna_type")
         property_typemap[attr] = properties
 
+    if skip_typemap:
+        for cls_name, properties_blacklist in skip_typemap.items():
+            properties = property_typemap.get(cls_name)
+            if properties is not None:
+                for prop_id in properties_blacklist:
+                    try:
+                        properties.remove(prop_id)
+                    except:
+                        print("skip_typemap unknown prop_id '%s.%s'" % (cls_name, prop_id))
+            else:
+                print("skip_typemap unknown class '%s'" % cls_name)
+
     return property_typemap
 
 
@@ -59,12 +71,27 @@ def rna2xml(fw=print_ln,
                           bpy.types.Panel,
                           bpy.types.KeyingSet,
                           bpy.types.Header,
+                          bpy.types.PropertyGroup,
                           ),
+            skip_typemap=None,
             pretty_format=True,
             method='DATA'):
 
     from xml.sax.saxutils import quoteattr
-    property_typemap = build_property_typemap(skip_classes)
+    property_typemap = build_property_typemap(skip_classes, skip_typemap)
+
+    # don't follow properties of this type, just reference them by name
+    # they MUST have a unique 'name' property.
+    # 'ID' covers most types
+    referenced_classes = (
+        bpy.types.ID,
+        bpy.types.Bone,
+        bpy.types.ActionGroup,
+        bpy.types.PoseBone,
+        bpy.types.Node,
+        bpy.types.Sequence,
+        )
+
 
     def number_to_str(val, val_type):
         if val_type == int:
@@ -107,7 +134,7 @@ def rna2xml(fw=print_ln,
                 node_attrs.append("%s=%s" % (prop, quoteattr("{" + ",".join(list(subvalue)) + "}")))
             elif subvalue is None:
                 node_attrs.append("%s=\"NONE\"" % prop)
-            elif issubclass(subvalue_type, bpy.types.ID):
+            elif issubclass(subvalue_type, referenced_classes):
                 # special case, ID's are always referenced.
                 node_attrs.append("%s=%s" % (prop, quoteattr(subvalue_type.__name__ + "::" + subvalue.name)))
             else:
@@ -361,7 +388,7 @@ def xml_file_run(context, filepath, rna_map):
             xml2rna(xml_node, root_rna=value)
 
 
-def xml_file_write(context, filepath, rna_map):
+def xml_file_write(context, filepath, rna_map, skip_typemap=None):
 
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
@@ -375,7 +402,9 @@ def xml_file_write(context, filepath, rna_map):
                 root_rna=value,
                 method='ATTR',
                 root_ident="  ",
-                ident_val="  ")
+                ident_val="  ",
+                skip_typemap=skip_typemap,
+                )
 
     fw("</bpy>\n")
     file.close()
