@@ -500,7 +500,6 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 		// dfdv_damp(s->dfdv, dir, MIN2(1.0, (clmd->sim_parms->goalfrict/100.0)));
 #endif
 	}
-#if 0
 	else {  /* calculate force of bending springs */
 #ifdef CLOTH_FORCE_SPRING_BEND
 		if (length < L) {
@@ -511,14 +510,13 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_bend - k);
 			cb = k = scaling / (20.0f * (clmd->sim_parms->avg_spring_len + FLT_EPSILON));
 			
-			madd_v3_v3fl(s->f, dir, -fbstar(length, L, k, cb));
+			madd_v3_v3fl(s->f, dir, fbstar(length, L, k, cb));
 			
 			outerproduct(s->dfdx, dir, dir);
-			mul_m3_fl(s->dfdx, -fbstar_jacobi(length, L, k, cb));
+			mul_m3_fl(s->dfdx, fbstar_jacobi(length, L, k, cb));
 		}
 #endif
 	}
-#endif
 }
 
 static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lVector &F, lMatrix &dFdX, lMatrix &dFdV)
