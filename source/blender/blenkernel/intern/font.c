@@ -484,24 +484,50 @@ int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end)
 {
 	Curve *cu = ob->data;
 	EditFont *ef = cu->editfont;
+	int start, end, direction;
 	
 	if ((ob->type != OB_FONT) || (ef == NULL)) return 0;
 
 	BLI_assert(ef->selstart >= 0 && ef->selstart <= ef->len + 1);
-	BLI_assert(ef->selend   >= 0 && ef->selend   <= ef->len + 1);
+	BLI_assert(ef->selend   >= 0 && ef->selend   <= ef->len);
 	BLI_assert(ef->pos      >= 0 && ef->pos      <= ef->len);
 
-	if (ef->selstart == 0) return 0;
+	if (ef->selstart == 0) {
+		return 0;
+	}
+
 	if (ef->selstart <= ef->selend) {
-		*r_start = ef->selstart - 1;
-		*r_end = ef->selend - 1;
-		return 1;
+		start = ef->selstart - 1;
+		end = ef->selend - 1;
+		direction = 1;
 	}
 	else {
-		*r_start = ef->selend;
-		*r_end = ef->selstart - 2;
-		return -1;
+		start = ef->selend;
+		end = ef->selstart - 2;
+		direction = -1;
 	}
+
+	if (start == end + 1) {
+		return 0;
+	}
+	else {
+		BLI_assert(start < end + 1);
+		*r_start = start;
+		*r_end = end;
+		return direction;
+	}
+}
+
+void BKE_vfont_select_clamp(Object *ob)
+{
+	Curve *cu = ob->data;
+	EditFont *ef = cu->editfont;
+
+	BLI_assert((ob->type == OB_FONT) && ef);
+
+	CLAMP_MAX(ef->pos,      ef->len);
+	CLAMP_MAX(ef->selstart, ef->len + 1);
+	CLAMP_MAX(ef->selend,   ef->len);
 }
 
 static float char_width(Curve *cu, VChar *che, CharInfo *info)

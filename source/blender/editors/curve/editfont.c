@@ -1594,6 +1594,9 @@ void make_editText(Object *obedit)
 	ef->pos = cu->pos;
 	ef->selstart = cu->selstart;
 	ef->selend = cu->selend;
+
+	/* text may have been modified by Python */
+	BKE_vfont_select_clamp(obedit);
 }
 
 void load_editText(Object *obedit)

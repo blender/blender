@@ -93,6 +93,7 @@ bool BKE_vfont_to_curve_nubase(struct Main *bmain, struct Object *ob, int mode,
 bool BKE_vfont_to_curve(struct Main *bmain, struct Object *ob, int mode);
 
 int BKE_vfont_select_get(struct Object *ob, int *r_start, int *r_end);
+void BKE_vfont_select_clamp(struct Object *ob);
 
 #ifdef __cplusplus
 }
