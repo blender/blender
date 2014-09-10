@@ -361,6 +361,10 @@ void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, const struct rcti
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
+			/* use for conventions (avoid hard-coded offsets all over) */
+void		wmOrtho2_region_pixelspace(const struct ARegion *ar);
+void		wmOrtho2_region_ui(const struct ARegion *ar);
+void		wmOrtho2_pixelspace(const float x, const float y);
 
 			/* utilities */
 void		WM_framebuffer_index_set(int index);

@@ -107,10 +107,7 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 
 void ED_region_pixelspace(ARegion *ar)
 {
-	int width  = BLI_rcti_size_x(&ar->winrct) + 1;
-	int height = BLI_rcti_size_y(&ar->winrct) + 1;
-	
-	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
+	wmOrtho2_region_pixelspace(ar);
 	glLoadIdentity();
 }
 

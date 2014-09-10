@@ -215,7 +215,7 @@ int wm_subwindow_open(wmWindow *win, const rcti *winrct)
 	
 	/* extra service */
 	wm_swin_size_get(swin, &width, &height);
-	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
+	wmOrtho2_pixelspace(width, height);
 	glLoadIdentity();
 
 	return swin->swinid;
@@ -272,7 +272,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct)
 		/* extra service */
 		wmSubWindowSet(win, swinid);
 		wm_swin_size_get(swin, &width, &height);
-		wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
+		wmOrtho2_pixelspace(width, height);
 	}
 	else {
 		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);
@@ -319,7 +319,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool src
 	else
 		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 	
-	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
+	wmOrtho2_pixelspace(width, height);
 	glLoadIdentity();
 	
 	glFlush();
@@ -356,6 +356,35 @@ void wmOrtho2(float x1, float x2, float y1, float y2)
 	if (y1 == y2) y2 += 1.0f;
 
 	wmOrtho(x1, x2, y1, y2, -100, 100);
+}
+
+static void wmOrtho2_offset(const float x, const float y, const float ofs)
+{
+	wmOrtho2(ofs, x + ofs, ofs, y + ofs);
+}
+
+/**
+ * default pixel alignment.
+ */
+void wmOrtho2_region_pixelspace(const struct ARegion *ar)
+{
+	wmOrtho2_offset(ar->winx + 1, ar->winy + 1, -GLA_PIXEL_OFS);
+}
+
+void wmOrtho2_pixelspace(const float x, const float y)
+{
+	wmOrtho2_offset(x, y, -GLA_PIXEL_OFS);
+}
+
+/**
+ * use for drawing uiBlock, any UI elements and text.
+ * \note prevents blurry text with multi-sample (FSAA), see T41749
+ */
+void wmOrtho2_region_ui(const ARegion *ar)
+{
+	/* note, intentionally no '+ 1',
+	 * as with wmOrtho2_region_pixelspace */
+	wmOrtho2_offset(ar->winx, ar->winy, -0.01f);
 }
 
 /* *************************** Framebuffer color depth, for selection codes ********************** */

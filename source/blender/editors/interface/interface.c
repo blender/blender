@@ -1347,8 +1347,8 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	
-	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
+
+	wmOrtho2_region_ui(ar);
 	
 	/* back */
 	if (block->flag & UI_BLOCK_RADIAL)

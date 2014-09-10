@@ -1020,7 +1020,7 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	uiSearchboxData *data = ar->regiondata;
 	
 	/* pixel space */
-	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
+	wmOrtho2_region_ui(ar);
 
 	if (data->noback == false)
 		ui_draw_search_back(NULL, NULL, &data->bbox);  /* style not used yet */
