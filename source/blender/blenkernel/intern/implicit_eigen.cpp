@@ -382,8 +382,6 @@ BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 
 static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, const lVector &X, const lVector &V, float time)
 {
-	const float structural_scale = 1.0f;
-	
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	ClothVertex *v1 = &verts[s->ij], *v2 = &verts[s->kl];
@@ -439,7 +437,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 			
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
-			k = clmd->sim_parms->structural * structural_scale;
+			k = clmd->sim_parms->structural;
 			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
 			
 			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
@@ -460,13 +458,13 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 			
 			// Ascher & Boxman, p.21: Damping only during elonglation
 			// something wrong with it...
-			madd_v3_v3fl(s->f, dir, clmd->sim_parms->Cdis * dot_v3v3(vel, dir) * structural_scale);
+			madd_v3_v3fl(s->f, dir, clmd->sim_parms->Cdis * dot_v3v3(vel, dir));
 			
 			/* VERIFIED */
 			dfdx_spring(s->dfdx, dir, length, L, k);
 			
 			/* VERIFIED */
-			dfdv_damp(s->dfdv, dir, clmd->sim_parms->Cdis * structural_scale);
+			dfdv_damp(s->dfdv, dir, clmd->sim_parms->Cdis);
 		}
 #endif
 	}
