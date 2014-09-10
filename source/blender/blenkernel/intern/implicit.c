@@ -366,9 +366,9 @@ static void print_lvector(lfVector *v, int numverts)
 		if (i > 0)
 			printf("\n");
 		
-		printf("%f\n", v[i][0]);
-		printf("%f\n", v[i][1]);
-		printf("%f\n", v[i][2]);
+		printf("%f,\n", v[i][0]);
+		printf("%f,\n", v[i][1]);
+		printf("%f,\n", v[i][2]);
 	}
 }
 
