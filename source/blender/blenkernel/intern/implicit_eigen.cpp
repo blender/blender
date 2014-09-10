@@ -384,7 +384,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
-	ClothVertex *v1 = &verts[s->ij], *v2 = &verts[s->kl];
+	ClothVertex *v1 = &verts[s->ij]/*, *v2 = &verts[s->kl]*/;
 	float extent[3];
 	float length = 0, dot = 0;
 	float dir[3] = {0, 0, 0};
@@ -402,9 +402,6 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	zero_m3(s->dfdv);
 	
 	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
-	/* ignore springs between pinned vertices */
-//	if (v1->flags & CLOTH_VERT_FLAG_PINNED && v2->flags & CLOTH_VERT_FLAG_PINNED)
-//		return;
 	
 	// calculate elonglation
 	sub_v3_v3v3(extent, lVector_v3(X, s->kl), lVector_v3(X, s->ij));
@@ -543,6 +540,28 @@ static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lV
 	lMatrix_sub_m3(dFdX, s->dfdx, s->kl, s->ij);
 }
 
+static float calc_nor_area_tri(float nor[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	float n1[3], n2[3];
+	
+	sub_v3_v3v3(n1, v1, v2);
+	sub_v3_v3v3(n2, v2, v3);
+	
+	cross_v3_v3v3(nor, n1, n2);
+	return normalize_v3(nor);
+}
+
+static float calc_nor_area_quad(float nor[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float n1[3], n2[3];
+	
+	sub_v3_v3v3(n1, v1, v3);
+	sub_v3_v3v3(n2, v2, v4);
+	
+	cross_v3_v3v3(nor, n1, n2);
+	return normalize_v3(nor);
+}
+
 static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX, lMatrix &dFdV, const lVector &X, const lVector &V, const lMatrix &M, ListBase *effectors, float time)
 {
 	Cloth *cloth = clmd->clothObject;
@@ -575,6 +594,75 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	for (int i = 0; i < numverts; ++i) {
 		madd_v3_v3fl(lVector_v3(F, i), lVector_v3(V, i), -drag);
 		lMatrix_madd_m3(dFdV, I, -drag, i, i);
+	}
+#endif
+
+#ifdef CLOTH_FORCE_EFFECTORS
+	/* handle external forces like wind */
+	if (effectors) {
+		const float effector_scale = 0.02f;
+		MFace *mfaces = cloth->mfaces;
+		EffectedPoint epoint;
+		lVector winvec(F.rows());
+		winvec.setZero();
+		
+		// precalculate wind forces
+		for (int i = 0; i < cloth->numverts; i++) {
+			pd_point_from_loc(clmd->scene, (float*)lVector_v3(X, i), (float*)lVector_v3(V, i), i, &epoint);
+			pdDoEffectors(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, lVector_v3(winvec, i), NULL);
+		}
+		
+		for (int i = 0; i < cloth->numfaces; i++) {
+			float nor[3], area;
+			float factor;
+			MFace *mf = &mfaces[i];
+			
+			// calculate face normal and area
+			if (mf->v4) {
+				area = calc_nor_area_quad(nor, lVector_v3(X, mf->v1), lVector_v3(X, mf->v2), lVector_v3(X, mf->v3), lVector_v3(X, mf->v4));
+				factor = effector_scale * area * 0.25f;
+			}
+			else {
+				area = calc_nor_area_tri(nor, lVector_v3(X, mf->v1), lVector_v3(X, mf->v2), lVector_v3(X, mf->v3));
+				factor = effector_scale * area / 3.0f;
+			}
+			
+			madd_v3_v3fl(lVector_v3(F, mf->v1), nor, factor * dot_v3v3(lVector_v3(winvec, mf->v1), nor));
+			madd_v3_v3fl(lVector_v3(F, mf->v2), nor, factor * dot_v3v3(lVector_v3(winvec, mf->v2), nor));
+			madd_v3_v3fl(lVector_v3(F, mf->v3), nor, factor * dot_v3v3(lVector_v3(winvec, mf->v3), nor));
+			if (mf->v4)
+				madd_v3_v3fl(lVector_v3(F, mf->v4), nor, factor * dot_v3v3(lVector_v3(winvec, mf->v4), nor));
+		}
+
+		/* Hair has only edges */
+		if (cloth->numfaces == 0) {
+			ClothSpring *spring;
+			float dir[3], length;
+			float factor = 0.01;
+			
+			for (LinkNode *link = cloth->springs; link; link = link->next) {
+				spring = (ClothSpring *)link->link;
+				
+				/* structural springs represent hair strands,
+				 * their length signifies surface area and mass
+				 */
+				if (spring->type != CLOTH_SPRING_TYPE_STRUCTURAL)
+					continue;
+				
+				float *win_ij = lVector_v3(winvec, spring->ij);
+				float *win_kl = lVector_v3(winvec, spring->kl);
+				float win_ortho[3];
+				
+				sub_v3_v3v3(dir, (float*)lVector_v3(X, spring->ij), (float*)lVector_v3(X, spring->kl));
+				length = normalize_v3(dir);
+				
+				madd_v3_v3v3fl(win_ortho, win_ij, dir, -dot_v3v3(win_ij, dir));
+				madd_v3_v3fl(lVector_v3(F, spring->ij), win_ortho, factor * length);
+				
+				madd_v3_v3v3fl(win_ortho, win_kl, dir, -dot_v3v3(win_kl, dir));
+				madd_v3_v3fl(lVector_v3(F, spring->kl), win_ortho, factor * length);
+			}
+		}
 	}
 #endif
 
