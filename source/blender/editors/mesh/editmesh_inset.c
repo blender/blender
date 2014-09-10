@@ -214,17 +214,21 @@ static bool edbm_inset_calc(wmOperator *op)
 
 	if (use_individual) {
 		EDBM_op_init(em, &bmop, op,
-		             "inset_individual faces=%hf use_even_offset=%b  use_relative_offset=%b"
+		             "inset_individual faces=%hf use_even_offset=%b  use_relative_offset=%b "
 		             "use_interpolate=%b thickness=%f depth=%f",
 		             BM_ELEM_SELECT, use_even_offset, use_relative_offset, use_interpolate,
 		             thickness, depth);
 	}
 	else {
 		EDBM_op_init(em, &bmop, op,
-		             "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b"
-		             " use_interpolate=%b thickness=%f depth=%f use_outset=%b use_edge_rail=%b",
+		             "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b "
+		             "use_interpolate=%b thickness=%f depth=%f use_outset=%b use_edge_rail=%b",
 		             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_interpolate,
 		             thickness, depth, use_outset, use_edge_rail);
+
+		if (use_outset) {
+			BMO_slot_buffer_from_enabled_hflag(em->bm, &bmop, bmop.slots_in, "faces_exclude", BM_FACE, BM_ELEM_HIDDEN);
+		}
 	}
 	BMO_op_exec(em->bm, &bmop);
 

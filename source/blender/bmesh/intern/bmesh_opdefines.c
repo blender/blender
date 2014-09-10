@@ -1795,6 +1795,7 @@ static BMOpDefine bmo_inset_region_def = {
 	"inset_region",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
+	 {"faces_exclude", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
 	 {"use_boundary", BMO_OP_SLOT_BOOL},
 	 {"use_even_offset", BMO_OP_SLOT_BOOL},
 	 {"use_interpolate", BMO_OP_SLOT_BOOL},

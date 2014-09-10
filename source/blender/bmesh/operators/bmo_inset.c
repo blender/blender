@@ -587,6 +587,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	else {
 		BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
 		BMO_slot_buffer_hflag_disable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
+		BMO_slot_buffer_hflag_disable(bm, op->slots_in, "faces_exclude", BM_FACE, BM_ELEM_TAG, false);
 	}
 
 	/* first count all inset edges we will split */
