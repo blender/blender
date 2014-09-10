@@ -1243,6 +1243,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	
 	// calculate force of structural + shear springs
 	if ((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR) || (s->type & CLOTH_SPRING_TYPE_SEWING) ) {
+#ifdef CLOTH_FORCE_SPRING_STRUCTURAL
 		if (length > L || no_compress) {
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
@@ -1279,8 +1280,10 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			dfdv_damp(s->dfdv, dir, clmd->sim_parms->Cdis);
 			
 		}
+#endif
 	}
 	else if (s->type & CLOTH_SPRING_TYPE_GOAL) {
+#ifdef CLOTH_FORCE_SPRING_GOAL
 		float tvect[3];
 		
 		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
@@ -1310,8 +1313,10 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		// HERE IS THE PROBLEM!!!!
 		// dfdx_spring(s->dfdx, dir, length, 0.0, k);
 		// dfdv_damp(s->dfdv, dir, MIN2(1.0, (clmd->sim_parms->goalfrict/100.0)));
+#endif
 	}
 	else {  /* calculate force of bending springs */
+#ifdef CLOTH_FORCE_SPRING_BEND
 		if (length < L) {
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
@@ -1325,6 +1330,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 
 			dfdx_spring_type2(s->dfdx, dir, length, L, k, cb);
 		}
+#endif
 	}
 }
 
@@ -1901,30 +1907,23 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	unsigned int i	= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
-	float 		tm2[3][3] 	= {{0}};
 	MFace 		*mfaces 	= cloth->mfaces;
 	unsigned int numverts = cloth->numverts;
 	LinkNode *search;
 	lfVector *winvec;
 	EffectedPoint epoint;
-
-	tm2[0][0] = tm2[1][1] = tm2[2][2] = -spring_air;
 	
+	/* set dFdX jacobi matrix to zero */
+	init_bfmatrix(dFdX, ZERO);
+	init_bfmatrix(dFdV, ZERO);
+
+#ifdef CLOTH_FORCE_GRAVITY
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 		copy_v3_v3(gravity, clmd->scene->physics_settings.gravity);
 		mul_fvector_S(gravity, gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity); /* scale gravity force */
 	}
-
-	/* set dFdX jacobi matrix to zero */
-	init_bfmatrix(dFdX, ZERO);
-	/* set dFdX jacobi matrix diagonal entries to -spring_air */ 
-	initdiag_bfmatrix(dFdV, tm2);
-
 	init_lfvector(lF, gravity, numverts);
-	
-	hair_volume_forces(clmd, lF, lX, lV, numverts);
-
 	/* multiply lF with mass matrix
 	 * force = mass * acceleration (in this case: gravity)
 	 */
@@ -1933,8 +1932,21 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		copy_v3_v3(temp, lF[i]);
 		mul_fmatrix_fvector(lF[i], M[i].m, temp);
 	}
+#else
+	zero_lfvector(lF, numverts);
+#endif
 
+	hair_volume_forces(clmd, lF, lX, lV, numverts);
+
+#ifdef CLOTH_FORCE_DRAG
+	/* set dFdX jacobi matrix diagonal entries to -spring_air */ 
+	for (i = 0; i < numverts; i++) {
+		dFdV[i].m[0][0] -= spring_air;
+		dFdV[i].m[1][1] -= spring_air;
+		dFdV[i].m[2][2] -= spring_air;
+	}
 	submul_lfvectorS(lF, lV, spring_air, numverts);
+#endif
 	
 	/* handle external forces like wind */
 	if (effectors) {

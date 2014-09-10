@@ -420,6 +420,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	
 	// calculate force of structural + shear springs
 	if (ELEM(s->type, CLOTH_SPRING_TYPE_STRUCTURAL, CLOTH_SPRING_TYPE_SHEAR, CLOTH_SPRING_TYPE_SEWING)) {
+#ifdef CLOTH_FORCE_SPRING_STRUCTURAL
 		if (length > L || no_compress) {
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
@@ -452,8 +453,10 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 			/* VERIFIED */
 			dfdv_damp(s->dfdv, dir, clmd->sim_parms->Cdis * structural_scale);
 		}
+#endif
 	}
 	else if (s->type & CLOTH_SPRING_TYPE_GOAL) {
+#ifdef CLOTH_FORCE_SPRING_GOAL
 		float target[3];
 		
 		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
@@ -480,9 +483,11 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 		// HERE IS THE PROBLEM!!!!
 		// dfdx_spring(s->dfdx, dir, length, 0.0, k);
 		// dfdv_damp(s->dfdv, dir, MIN2(1.0, (clmd->sim_parms->goalfrict/100.0)));
+#endif
 	}
 #if 0
 	else {  /* calculate force of bending springs */
+#ifdef CLOTH_FORCE_SPRING_BEND
 		if (length < L) {
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
@@ -496,6 +501,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 
 			dfdx_spring_type2(s->dfdx, dir, length, L, k, cb);
 		}
+#endif
 	}
 #endif
 }
@@ -533,13 +539,7 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	dFdX.setZero();
 	dFdV.setZero();
 	
-	/* air drag */
-	lMatrix_reserve_elems(dFdV, 1);
-	for (int i = 0; i < numverts; ++i) {
-		madd_v3_v3fl(lVector_v3(F, i), lVector_v3(V, i), -drag);
-		lMatrix_madd_m3(dFdV, I, -drag, i, i);
-	}
-	
+#ifdef CLOTH_FORCE_GRAVITY
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 		/* scale gravity force
@@ -547,12 +547,20 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 		 */
 		mul_v3_v3fl(gravity, clmd->scene->physics_settings.gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity);
 	}
-	
-	/* initialize force with gravity */
 	for (int i = 0; i < numverts; ++i) {
 		/* gravitational mass same as inertial mass */
-		mul_v3_v3fl(lVector_v3(F, i), gravity, verts[i].mass);
+		madd_v3_v3fl(lVector_v3(F, i), gravity, verts[i].mass);
 	}
+#endif
+	
+#ifdef CLOTH_FORCE_DRAG
+	/* air drag */
+	lMatrix_reserve_elems(dFdV, 1);
+	for (int i = 0; i < numverts; ++i) {
+		madd_v3_v3fl(lVector_v3(F, i), lVector_v3(V, i), -drag);
+		lMatrix_madd_m3(dFdV, I, -drag, i, i);
+	}
+#endif
 
 #if 0
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
