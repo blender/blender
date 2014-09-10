@@ -32,7 +32,16 @@
  *  \ingroup bke
  */
 
+#include "BLI_utildefines.h"
+
 #define IMPLICIT_SOLVER_EIGEN
 //#define IMPLICIT_SOLVER_BLENDER
+
+#define IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
+
+BLI_INLINE void implicit_print_matrix_elem(float v)
+{
+    printf("%-8.3f", v);
+}
 
 #endif

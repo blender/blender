@@ -359,6 +359,62 @@ static void print_sparse_matrix(fmatrix3x3 *m)
 }
 #endif
 
+static void print_lvector(lfVector *v, int numverts)
+{
+	int i;
+	for (i = 0; i < numverts; ++i) {
+		if (i > 0)
+			printf("\n");
+		
+		printf("%f\n", v[i][0]);
+		printf("%f\n", v[i][1]);
+		printf("%f\n", v[i][2]);
+	}
+}
+
+static void print_bfmatrix(fmatrix3x3 *m)
+{
+	int tot = m[0].vcount + m[0].scount;
+	int size = m[0].vcount * 3;
+	float *t = MEM_callocN(sizeof(float) * size*size, "bfmatrix");
+	int q, i, j;
+	
+	for (q = 0; q < tot; ++q) {
+		int k = 3 * m[q].r;
+		int l = 3 * m[q].c;
+		
+		for (j = 0; j < 3; ++j) {
+			for (i = 0; i < 3; ++i) {
+//				if (t[k + i + (l + j) * size] != 0.0f) {
+//					printf("warning: overwriting value at %d, %d\n", m[q].r, m[q].c);
+//				}
+				if (k == l) {
+					t[k + i + (k + j) * size] += m[q].m[i][j];
+				}
+				else {
+					t[k + i + (l + j) * size] += m[q].m[i][j];
+					t[l + j + (k + i) * size] += m[q].m[j][i];
+				}
+			}
+		}
+	}
+	
+	for (j = 0; j < size; ++j) {
+		if (j > 0 && j % 3 == 0)
+			printf("\n");
+		
+		for (i = 0; i < size; ++i) {
+			if (i > 0 && i % 3 == 0)
+				printf("  ");
+			
+			implicit_print_matrix_elem(t[i + j * size]);
+		}
+		printf("\n");
+	}
+	
+	MEM_freeN(t);
+}
+
 /* copy 3x3 matrix */
 DO_INLINE void cp_fmatrix(float to[3][3], float from[3][3])
 {
@@ -871,6 +927,17 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 	/* delta = r^T * c */
 	delta_new = dot_lfvector(r, c, numverts);
 	
+#ifdef IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
+	printf("==== A ====\n");
+	print_bfmatrix(lA);
+	printf("==== z ====\n");
+	print_lvector(z, numverts);
+	printf("==== B ====\n");
+	print_lvector(lB, numverts);
+	printf("==== S ====\n");
+	print_bfmatrix(S);
+#endif
+	
 	while (delta_new > delta_target && conjgrad_loopcount < conjgrad_looplimit) {
 		mul_bfmatrix_lfvector(q, lA, c);
 		filter(q, S);
@@ -891,6 +958,12 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 		
 		conjgrad_loopcount++;
 	}
+
+#ifdef IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
+	printf("==== dV ====\n");
+	print_lvector(ldV, numverts);
+	printf("========\n");
+#endif
 	
 	del_lfvector(fB);
 	del_lfvector(AdV);

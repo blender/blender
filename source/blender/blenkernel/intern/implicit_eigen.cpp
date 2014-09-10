@@ -120,6 +120,9 @@ using Eigen::ComputationInfo;
 static void print_lvector(const lVector &v)
 {
 	for (int i = 0; i < v.rows(); ++i) {
+		if (i > 0 && i % 3 == 0)
+			printf("\n");
+		
 		printf("%f,\n", v[i]);
 	}
 }
@@ -127,8 +130,14 @@ static void print_lvector(const lVector &v)
 static void print_lmatrix(const lMatrix &m)
 {
 	for (int j = 0; j < m.rows(); ++j) {
+		if (j > 0 && j % 3 == 0)
+			printf("\n");
+		
 		for (int i = 0; i < m.cols(); ++i) {
-			printf("%-8.3f,", m.coeff(j, i));
+			if (i > 0 && i % 3 == 0)
+				printf("  ");
+			
+			implicit_print_matrix_elem(m.coeff(j, i));
 		}
 		printf("\n");
 	}
@@ -300,7 +309,22 @@ static bool simulate_implicit_euler(Implicit_Data *id, float dt)
 	cg.filter() = id->S;
 	
 	id->B = dt * id->F + dt*dt * id->dFdX * id->V;
+#ifdef IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
+	printf("==== A ====\n");
+	print_lmatrix(id->A);
+	printf("==== z ====\n");
+	print_lvector(id->z);
+	printf("==== B ====\n");
+	print_lvector(id->B);
+	printf("==== S ====\n");
+	print_lmatrix(id->S);
+#endif
 	id->dV = cg.solveWithGuess(id->B, id->z);
+#ifdef IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
+	printf("==== dV ====\n");
+	print_lvector(id->dV);
+	printf("========\n");
+#endif
 	
 	id->Vnew = id->V + id->dV;
 	
