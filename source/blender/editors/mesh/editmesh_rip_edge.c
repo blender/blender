@@ -63,6 +63,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 	const float mval_fl[2] = {UNPACK2(event->mval)};
 	float cent_sco[2];
 	int cent_tot;
+	bool changed = false;
 
 	/* mouse direction to view center */
 	float mval_dir[2];
@@ -211,17 +212,24 @@ found_edge:
 					BM_edge_select_set(bm, e_best, true);
 				}
 				BM_elem_flag_enable(v_new, BM_ELEM_TAG);  /* prevent further splitting */
+
+				changed = true;
 			}
 		}
 	}
 
-	BM_select_history_clear(bm);
+	if (changed) {
+		BM_select_history_clear(bm);
 
-	BM_mesh_select_mode_flush(bm);
+		BM_mesh_select_mode_flush(bm);
 
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 
