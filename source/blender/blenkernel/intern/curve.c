@@ -2605,7 +2605,6 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				bp = nu->bp;
 				seglen = bl->seglen;
 				segbevcount = bl->segbevcount;
-				BLI_assert(segcount >= len);
 
 				while (len--) {
 					copy_v3_v3(bevp->vec, bp->vec);
