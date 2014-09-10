@@ -2491,6 +2491,9 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 				    (ui_searchbox_find_index(data->searchbox, but->editstr) == -1))
 				{
 					data->cancel = true;
+
+					/* ensure menu (popup) too is closed! */
+					data->escapecancel = true;
 				}
 			}
 

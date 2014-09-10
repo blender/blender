@@ -888,6 +888,12 @@ bool ui_searchbox_apply(uiBut *but, ARegion *ar)
 
 		return true;
 	}
+	else if (but->type == SEARCH_MENU_UNLINK) {
+		/* It is valid for _UNLINK flavor to have no active element (it's a valid way to unlink). */
+		but->editstr[0] = '\0';
+
+		return true;
+	}
 	else {
 		return false;
 	}
