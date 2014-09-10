@@ -175,42 +175,21 @@ BLI_INLINE void lMatrix_copy_m3(lMatrix &r, float m[3][3], int i, int j)
 BLI_INLINE void lMatrix_add_m3(lMatrix &r, float m[3][3], int i, int j)
 {
 	lMatrix tmp(r.cols(), r.cols());
-	if (i == j) {
-		lMatrix_copy_m3(tmp, m, i, i);
-	}
-	else {
-		lMatrix_copy_m3(tmp, m, i, j);
-		lMatrix_copy_m3(tmp, m, j, i);
-	}
-	
+	lMatrix_copy_m3(tmp, m, i, j);
 	r += tmp;
 }
 
 BLI_INLINE void lMatrix_sub_m3(lMatrix &r, float m[3][3], int i, int j)
 {
 	lMatrix tmp(r.cols(), r.cols());
-	if (i == j) {
-		lMatrix_copy_m3(tmp, m, i, i);
-	}
-	else {
-		lMatrix_copy_m3(tmp, m, i, j);
-		lMatrix_copy_m3(tmp, m, j, i);
-	}
-	
+	lMatrix_copy_m3(tmp, m, i, j);
 	r -= tmp;
 }
 
 BLI_INLINE void lMatrix_madd_m3(lMatrix &r, float m[3][3], float s, int i, int j)
 {
 	lMatrix tmp(r.cols(), r.cols());
-	if (i == j) {
-		lMatrix_copy_m3(tmp, m, i, i);
-	}
-	else {
-		lMatrix_copy_m3(tmp, m, i, j);
-		lMatrix_copy_m3(tmp, m, j, i);
-	}
-	
+	lMatrix_copy_m3(tmp, m, i, j);
 	r += s * tmp;
 }
 
@@ -341,7 +320,7 @@ BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, fl
 	
 	mul_m3_fl(to, (L/length)); 
 	sub_m3_m3m3(to, to, I);
-	mul_m3_fl(to, -k);
+	mul_m3_fl(to, k);
 }
 
 /* unused */
@@ -356,16 +335,54 @@ BLI_INLINE void dfdx_damp(float to[3][3], const float dir[3], float length, cons
 }
 #endif
 
-DO_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
+BLI_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
 {
 	// derivative of force wrt velocity
 	outerproduct(to, dir, dir);
-	mul_m3_fl(to, damping);
+	mul_m3_fl(to, -damping);
+}
+
+BLI_INLINE float fb(float length, float L)
+{
+	float x = length / L;
+	return (-11.541f * powf(x, 4) + 34.193f * powf(x, 3) - 39.083f * powf(x, 2) + 23.116f * x - 9.713f);
+}
+
+BLI_INLINE float fbderiv(float length, float L)
+{
+	float x = length/L;
+
+	return (-46.164f * powf(x, 3) + 102.579f * powf(x, 2) - 78.166f * x + 23.116f);
+}
+
+BLI_INLINE float fbstar(float length, float L, float kb, float cb)
+{
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
+	
+	if (tempfb_fl < fbstar_fl)
+		return fbstar_fl;
+	else
+		return tempfb_fl;
+}
+
+// function to calculae bending spring force (taken from Choi & Co)
+BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
+{
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
+
+	if (tempfb_fl < fbstar_fl) {
+		return cb;
+	}
+	else {
+		return kb * fbderiv(length, L);
+	}
 }
 
 static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, const lVector &X, const lVector &V, float time)
 {
-	const float structural_scale = 0.001f;
+	const float structural_scale = 1.0f;
 	
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
@@ -378,10 +395,6 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	float L = s->restlen;
 	float cb; /* = clmd->sim_parms->structural; */ /*UNUSED*/
 	
-	float stretch_force[3] = {0, 0, 0};
-	float bending_force[3] = {0, 0, 0};
-	float nulldfdx[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-	
 	float scaling = 0.0;
 	
 	int no_compress = clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
@@ -392,8 +405,8 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	
 	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
 	/* ignore springs between pinned vertices */
-	if (v1->flags & CLOTH_VERT_FLAG_PINNED && v2->flags & CLOTH_VERT_FLAG_PINNED)
-		return;
+//	if (v1->flags & CLOTH_VERT_FLAG_PINNED && v2->flags & CLOTH_VERT_FLAG_PINNED)
+//		return;
 	
 	// calculate elonglation
 	sub_v3_v3v3(extent, lVector_v3(X, s->kl), lVector_v3(X, s->ij));
@@ -422,11 +435,13 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	if (ELEM(s->type, CLOTH_SPRING_TYPE_STRUCTURAL, CLOTH_SPRING_TYPE_SHEAR, CLOTH_SPRING_TYPE_SEWING)) {
 #ifdef CLOTH_FORCE_SPRING_STRUCTURAL
 		if (length > L || no_compress) {
+			float stretch_force[3] = {0, 0, 0};
+			
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
 			k = clmd->sim_parms->structural * structural_scale;
 			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
-
+			
 			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
 			// TODO: verify, half verified (couldn't see error)
 			if (s->type & CLOTH_SPRING_TYPE_SEWING) {
@@ -495,11 +510,11 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 			
 			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_bend - k);
 			cb = k = scaling / (20.0f * (clmd->sim_parms->avg_spring_len + FLT_EPSILON));
-
-			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
-			VECADD(s->f, s->f, bending_force);
-
-			dfdx_spring_type2(s->dfdx, dir, length, L, k, cb);
+			
+			madd_v3_v3fl(s->f, dir, -fbstar(length, L, k, cb));
+			
+			outerproduct(s->dfdx, dir, dir);
+			mul_m3_fl(s->dfdx, -fbstar_jacobi(length, L, k, cb));
 		}
 #endif
 	}
@@ -515,16 +530,21 @@ static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lV
 		return;
 	
 	if (!(s->type & CLOTH_SPRING_TYPE_BENDING)) {
+		lMatrix_add_m3(dFdV, s->dfdv, s->ij, s->ij);
+		lMatrix_add_m3(dFdV, s->dfdv, s->kl, s->kl);
 		lMatrix_sub_m3(dFdV, s->dfdv, s->ij, s->kl);
+		lMatrix_sub_m3(dFdV, s->dfdv, s->kl, s->ij);
 	}
 	
 	add_v3_v3(lVector_v3(F, s->ij), s->f);
 	if (!(s->type & CLOTH_SPRING_TYPE_GOAL)) {
 		sub_v3_v3(lVector_v3(F, s->kl), s->f);
-		
 	}
 	
+	lMatrix_add_m3(dFdX, s->dfdx, s->ij, s->ij);
+	lMatrix_add_m3(dFdX, s->dfdx, s->kl, s->kl);
 	lMatrix_sub_m3(dFdX, s->dfdx, s->ij, s->kl);
+	lMatrix_sub_m3(dFdX, s->dfdx, s->kl, s->ij);
 }
 
 static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX, lMatrix &dFdV, const lVector &X, const lVector &V, const lMatrix &M, ListBase *effectors, float time)
