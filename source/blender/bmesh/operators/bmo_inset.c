@@ -156,6 +156,7 @@ static void bm_loop_customdata_merge(
 	BLI_assert(l_a_outer->f == l_a_inner->f);
 	BLI_assert(l_b_outer->f == l_b_inner->f);
 
+	(void) e_connect;
 	BLI_assert(BM_edge_in_face(e_connect, l_a_inner->f));
 	BLI_assert(BM_edge_in_face(e_connect, l_b_inner->f));
 
