@@ -59,6 +59,11 @@ struct PartDeflect;
 #define CLOTH_VERT_FLAG_PINNED 1
 #define CLOTH_VERT_FLAG_NOSELFCOLL 2 /* vertex NOT used for self collisions */
 
+typedef struct ClothHairRoot {
+	float loc[3];
+	float rot[3][3];
+} ClothHairRoot;
+
 /**
  * This structure describes a cloth object against which the
  * simulation can run.

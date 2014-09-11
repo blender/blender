@@ -564,6 +564,8 @@ typedef struct ClothModifierData {
 	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
 	struct PointCache *point_cache;       /* definition is in DNA_object_force.h */
 	struct ListBase ptcaches;
+	/* XXX nasty hack, remove once hair can be separated from cloth modifier data */
+	struct ClothHairRoot *roots;
 	
 	struct SimDebugData *debug_data;      /* debug info */
 } ClothModifierData;
