@@ -333,7 +333,6 @@ BLI_INLINE void loc_world_to_root(float r[3], const float v[3], Implicit_Data *i
 BLI_INLINE void loc_root_to_world(float r[3], const float v[3], Implicit_Data *id, int i)
 {
 	RootTransform &root = id->root[i];
-	float t[3];
 	copy_v3_v3(r, v);
 	mul_m3_v3(root.rot, r);
 	add_v3_v3(r, root.loc);
