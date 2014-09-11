@@ -92,11 +92,20 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
 	kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
 
-	/* At this point kintegrator->transparent_shadows is set automatically
-	 * based on whether shaders use transparent shadows (see shader.cpp).
-	 * If user doesn't want transparent shadows, force them off. */
-	if(!transparent_shadows)
+	/* Transparent Shadows
+	 * We only need to enable transparent shadows, if we actually have 
+	 * transparent shaders in the scene. Otherwise we can disable it
+	 * to improve performance a bit. */
+	if(transparent_shadows) {
+		foreach(Shader *shader, scene->shaders) {
+			/* keep this in sync with SD_HAS_TRANSPARENT_SHADOW in shader.cpp */
+			if((shader->has_surface_transparent && shader->use_transparent_shadow) || shader->has_volume)
+				kintegrator->transparent_shadows = true;
+		}
+	}
+	else {
 		kintegrator->transparent_shadows = false;
+	}
 
 	kintegrator->volume_max_steps = volume_max_steps;
 	kintegrator->volume_step_size = volume_step_size;

@@ -325,7 +325,6 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	uint i = 0;
 	bool has_converter_blackbody = false;
 	bool has_volumes = false;
-	bool has_transparent_shadows = false;
 
 	foreach(Shader *shader, scene->shaders) {
 		uint flag = 0;
@@ -368,10 +367,6 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
-		
-		/* Check if we need transparent shadows */
-		if(flag & SD_HAS_TRANSPARENT_SHADOW)
-			has_transparent_shadows = true;
 	}
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);
@@ -402,7 +397,6 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 	/* integrator */
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
 	kintegrator->use_volumes = has_volumes;
-	kintegrator->transparent_shadows = has_transparent_shadows;
 }
 
 void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scene *scene)
