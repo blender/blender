@@ -630,8 +630,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 	}
 	else {
 		/* use center of object for distance calculus */
-		Object *ob = eff->ob;
-		Object obcopy = *ob;
+		const Object *ob = eff->ob;
 
 		/* use z-axis as normal*/
 		normalize_v3_v3(efd->nor, ob->obmat[2]);
@@ -653,8 +652,6 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 
 		if (real_velocity)
 			copy_v3_v3(efd->vel, eff->velocity);
-
-		*eff->ob = obcopy;
 
 		efd->size = 0.0f;
 
