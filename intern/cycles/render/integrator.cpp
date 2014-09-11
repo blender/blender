@@ -99,8 +99,10 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	if(transparent_shadows) {
 		foreach(Shader *shader, scene->shaders) {
 			/* keep this in sync with SD_HAS_TRANSPARENT_SHADOW in shader.cpp */
-			if((shader->has_surface_transparent && shader->use_transparent_shadow) || shader->has_volume)
+			if((shader->has_surface_transparent && shader->use_transparent_shadow) || shader->has_volume) {
 				kintegrator->transparent_shadows = true;
+				break;
+			}
 		}
 	}
 	else {
