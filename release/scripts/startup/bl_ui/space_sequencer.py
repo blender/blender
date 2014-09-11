@@ -607,7 +607,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "multiply_speed")
-        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'WIPE'}:
+        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER','ALPHA_UNDER','OVER_DROP'}:
             col.prop(strip, "use_default_fade", "Default fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect fader")
