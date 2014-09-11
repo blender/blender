@@ -71,4 +71,6 @@ void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]) ATTR_NONNULL();
 void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3]) ATTR_NONNULL();
 void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4]) ATTR_NONNULL();
 
+void BM_vert_tri_calc_plane(BMVert *verts[3], float r_plane[3]);
+
 #endif /* __BMESH_POLYGON_H__ */

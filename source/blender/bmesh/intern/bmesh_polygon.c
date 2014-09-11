@@ -239,6 +239,25 @@ float BM_face_calc_perimeter(BMFace *f)
 	return perimeter;
 }
 
+void BM_vert_tri_calc_plane(BMVert *verts[3], float r_plane[3])
+{
+	float lens[3];
+	float difs[3];
+	int  order[3] = {0, 1, 2};
+
+	lens[0] = len_v3v3(verts[0]->co, verts[1]->co);
+	lens[1] = len_v3v3(verts[1]->co, verts[2]->co);
+	lens[2] = len_v3v3(verts[2]->co, verts[0]->co);
+
+	/* find the shortest or the longest loop */
+	difs[0] = fabsf(lens[1] - lens[2]);
+	difs[1] = fabsf(lens[2] - lens[0]);
+	difs[2] = fabsf(lens[0] - lens[1]);
+
+	axis_sort_v3(difs, order);
+	sub_v3_v3v3(r_plane, verts[order[0]]->co, verts[(order[0] + 1) % 3]->co);
+}
+
 /**
  * Compute a meaningful direction along the face (use for manipulator axis).
  * \note result isnt normalized.
@@ -247,23 +266,10 @@ void BM_face_calc_plane(BMFace *f, float r_plane[3])
 {
 	if (f->len == 3) {
 		BMVert *verts[3];
-		float lens[3];
-		float difs[3];
-		int  order[3] = {0, 1, 2};
 
 		BM_face_as_array_vert_tri(f, verts);
 
-		lens[0] = len_v3v3(verts[0]->co, verts[1]->co);
-		lens[1] = len_v3v3(verts[1]->co, verts[2]->co);
-		lens[2] = len_v3v3(verts[2]->co, verts[0]->co);
-
-		/* find the shortest or the longest loop */
-		difs[0] = fabsf(lens[1] - lens[2]);
-		difs[1] = fabsf(lens[2] - lens[0]);
-		difs[2] = fabsf(lens[0] - lens[1]);
-
-		axis_sort_v3(difs, order);
-		sub_v3_v3v3(r_plane, verts[order[0]]->co, verts[(order[0] + 1) % 3]->co);
+		BM_vert_tri_calc_plane(verts, r_plane);
 	}
 	else if (f->len == 4) {
 		BMVert *verts[4];
