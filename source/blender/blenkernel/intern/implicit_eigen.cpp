@@ -260,7 +260,17 @@ BLI_INLINE void outerproduct(float r[3][3], const float a[3], const float b[3])
 	mul_v3_v3fl(r[2], a, b[2]);
 }
 
+struct RootTransform {
+	float loc[3];
+	float rot[3][3];
+	
+	float vel[3];
+	float omega[3];
+};
+
 struct Implicit_Data {
+	typedef std::vector<RootTransform> RootTransforms;
+	
 	Implicit_Data(int numverts)
 	{
 		resize(numverts);
@@ -274,6 +284,8 @@ struct Implicit_Data {
 		M.resize(tot, tot);
 		dFdV.resize(tot, tot);
 		dFdX.resize(tot, tot);
+		
+		root.resize(numverts);
 		
 		X.resize(tot);
 		Xnew.resize(tot);
@@ -296,6 +308,8 @@ struct Implicit_Data {
 	lVector F;					/* forces */
 	lMatrix dFdV, dFdX;			/* force jacobians */
 	
+	RootTransforms root;		/* root transforms */
+	
 	/* motion state data */
 	lVector X, Xnew;			/* positions */
 	lVector V, Vnew;			/* velocities */
@@ -308,6 +322,44 @@ struct Implicit_Data {
 	lVector z;					/* target velocity in constrained directions */
 	lMatrix S;					/* filtering matrix for constraints */
 };
+
+BLI_INLINE void loc_world_to_root(float r[3], const float v[3], Implicit_Data *id, int i)
+{
+	RootTransform &root = id->root[i];
+	sub_v3_v3v3(r, v, root.loc);
+	mul_transposed_m3_v3(root.rot, r);
+}
+
+BLI_INLINE void loc_root_to_world(float r[3], const float v[3], Implicit_Data *id, int i)
+{
+	RootTransform &root = id->root[i];
+	float t[3];
+	copy_v3_v3(r, v);
+	mul_m3_v3(root.rot, r);
+	add_v3_v3(r, root.loc);
+}
+
+BLI_INLINE void vel_world_to_root(float r[3], const float x_root[3], const float v[3], Implicit_Data *id, int i)
+{
+	RootTransform &root = id->root[i];
+	float angvel[3];
+	cross_v3_v3v3(angvel, root.omega, x_root);
+	
+	sub_v3_v3v3(r, v, root.vel);
+	mul_transposed_m3_v3(root.rot, r);
+	add_v3_v3(r, angvel);
+}
+
+BLI_INLINE void vel_root_to_world(float r[3], const float x_root[3], const float v[3], Implicit_Data *id, int i)
+{
+	RootTransform &root = id->root[i];
+	float angvel[3];
+	cross_v3_v3v3(angvel, root.omega, x_root);
+	
+	sub_v3_v3v3(r, v, angvel);
+	mul_m3_v3(root.rot, r);
+	add_v3_v3(r, root.vel);
+}
 
 static bool simulate_implicit_euler(Implicit_Data *id, float dt)
 {
@@ -819,8 +871,11 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		for (int i = 0; i < numverts; i++) {
 			// update velocities with constrained velocities from pinned verts
 			if (verts[i].flags & CLOTH_VERT_FLAG_PINNED) {
-				sub_v3_v3v3(lVector_v3(id->V, i), verts[i].xconst, verts[i].xold);
+				float v[3];
+				sub_v3_v3v3(v, verts[i].xconst, verts[i].xold);
 				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
+				/* note: should be zero for root vertices, but other verts could be pinned as well */
+				vel_world_to_root(lVector_v3(id->V, i), lVector_v3(id->X, i), v, id, i);
 			}
 		}
 	}
@@ -835,7 +890,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		
 		/* copy velocities for collision */
 		for (int i = 0; i < numverts; i++) {
-			copy_v3_v3(verts[i].tv, lVector_v3(id->V, i));
+			vel_root_to_world(verts[i].tv, lVector_v3(id->X, i), lVector_v3(id->V, i), id, i);
 			copy_v3_v3(verts[i].v, verts[i].tv);
 		}
 		
@@ -864,11 +919,14 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		for (int i = 0; i < numverts; i++) {
 			/* move pinned verts to correct position */
 			if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) {
-				if (verts[i].flags & CLOTH_VERT_FLAG_PINNED)
-					interp_v3_v3v3(lVector_v3(id->Xnew, i), verts[i].xold, verts[i].xconst, step + dt);
+				if (verts[i].flags & CLOTH_VERT_FLAG_PINNED) {
+					float x[3];
+					interp_v3_v3v3(x, verts[i].xold, verts[i].xconst, step + dt);
+					loc_world_to_root(lVector_v3(id->Xnew, i), x, id, i);
+				}
 			}
 			
-			copy_v3_v3(verts[i].txold, lVector_v3(id->X, i));
+			loc_root_to_world(verts[i].txold, lVector_v3(id->X, i), id, i);
 			
 			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0) {
 				BKE_sim_debug_data_add_line(clmd->debug_data, lVector_v3(id->X, i), lVector_v3(id->X, i-1), 0.6, 0.3, 0.3, "hair", hash_vertex(4892, i));
@@ -894,13 +952,13 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			copy_v3_v3(verts[i].x, verts[i].xconst);
 			copy_v3_v3(verts[i].txold, verts[i].x);
 			
-			copy_v3_v3(verts[i].v, lVector_v3(id->V, i));
+			vel_root_to_world(verts[i].v, lVector_v3(id->X, i), lVector_v3(id->V, i), id, i);
 		}
 		else {
-			copy_v3_v3(verts[i].x, lVector_v3(id->X, i));
+			loc_root_to_world(verts[i].x, lVector_v3(id->X, i), id, i);
 			copy_v3_v3(verts[i].txold, verts[i].x);
 			
-			copy_v3_v3(verts[i].v, lVector_v3(id->V, i));
+			vel_root_to_world(verts[i].v, lVector_v3(id->X, i), lVector_v3(id->V, i), id, i);
 		}
 	}
 	
@@ -910,15 +968,21 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 void implicit_set_positions(ClothModifierData *clmd)
 {
 	Cloth *cloth = clmd->clothObject;
+	Implicit_Data *id = cloth->implicit;
 	ClothVertex *verts = cloth->verts;
+	ClothHairRoot *cloth_roots = clmd->roots;
 	unsigned int numverts = cloth->numverts, i;
 	
+	Implicit_Data::RootTransforms &root = cloth->implicit->root;
 	lVector &X = cloth->implicit->X;
 	lVector &V = cloth->implicit->V;
 	
 	for (i = 0; i < numverts; i++) {
-		copy_v3_v3(lVector_v3(X, i), verts[i].x);
-		copy_v3_v3(lVector_v3(V, i), verts[i].v);
+		copy_v3_v3(root[i].loc, cloth_roots[i].loc);
+		copy_m3_m3(root[i].rot, cloth_roots[i].rot);
+		
+		loc_world_to_root(lVector_v3(X, i), verts[i].x, id, i);
+		vel_world_to_root(lVector_v3(V, i), lVector_v3(X, i), verts[i].v, id, i);
 	}
 }
 

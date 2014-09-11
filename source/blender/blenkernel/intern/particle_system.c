@@ -4033,17 +4033,25 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	/* make vgroup for pin roots etc.. */
 	psys->particles->hair_index = 1;
 	LOOP_PARTICLES {
+		float root_mat[4][4];
+
 		if (p)
 			pa->hair_index = (pa-1)->hair_index + (pa-1)->totkey + 1;
 
 		psys_mat_hair_to_object(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+		mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
 
 		for (k=0, key=pa->hair; k<pa->totkey; k++,key++) {
-			ClothHairRoot *root = &psys->clmd->roots[pa->hair_index + k - 1];
+			ClothHairRoot *root;
 			
 			/* create fake root before actual root to resist bending */
 			if (k==0) {
 				float temp[3];
+				
+				root = &psys->clmd->roots[pa->hair_index - 1];
+				copy_v3_v3(root->loc, root_mat[3]);
+				copy_m3_m4(root->rot, root_mat);
+				
 				sub_v3_v3v3(temp, key->co, (key+1)->co);
 				copy_v3_v3(mvert->co, key->co);
 				add_v3_v3v3(mvert->co, mvert->co, temp);
@@ -4066,8 +4074,9 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 			}
 
 			/* store root transform in cloth data */
-			copy_v3_v3(root->loc, hairmat[3]);
-			copy_m3_m4(root->rot, hairmat);
+			root = &psys->clmd->roots[pa->hair_index + k];
+			copy_v3_v3(root->loc, root_mat[3]);
+			copy_m3_m4(root->rot, root_mat);
 
 			copy_v3_v3(mvert->co, key->co);
 			mul_m4_v3(hairmat, mvert->co);
