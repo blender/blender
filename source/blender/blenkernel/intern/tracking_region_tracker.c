@@ -725,6 +725,35 @@ void BKE_tracking_context_finish(MovieTrackingContext *context)
 	}
 }
 
+static bool refine_marker_reference_frame_get(MovieTrackingTrack *track,
+                                              MovieTrackingMarker *marker,
+                                              bool backwards,
+                                              int *reference_framenr)
+{
+	const MovieTrackingMarker *first_marker = track->markers;
+	const MovieTrackingMarker *last_marker = track->markers + track->markersnr - 1;
+	MovieTrackingMarker *reference = backwards ? marker + 1 : marker - 1;
+
+	while (reference >= first_marker &&
+	       reference <= last_marker &&
+	       (reference->flag & MARKER_DISABLED) != 0)
+	{
+		if (backwards)
+			reference++;
+		else
+			reference--;
+	}
+
+	if (reference < first_marker ||
+	    reference > last_marker)
+	{
+		return false;
+	}
+
+	*reference_framenr = reference->framenr;
+	return (reference->flag & MARKER_DISABLED) == 0;
+}
+
 /* Refine marker's position using previously known keyframe.
  * Direction of searching for a keyframe depends on backwards flag,
  * which means if backwards is false, previous keyframe will be as
@@ -748,14 +777,15 @@ void BKE_tracking_refine_marker(MovieClip *clip, MovieTrackingTrack *track, Movi
 
 	BKE_movieclip_get_size(clip, &user, &frame_width, &frame_height);
 
-	/* Get an image buffer for reference frame, also gets reference marker.
-	 *
-	 * Usually tracking_context_get_reference_ibuf will return current frame
-	 * if marker is keyframed, which is correct for normal tracking. But here
-	 * we'll want to have next/previous frame in such cases. So let's use small
-	 * magic with original frame number used to get reference frame for.
-	 */
-	reference_framenr = backwards ? marker->framenr + 1 : marker->framenr - 1;
+	/* Get an image buffer for reference frame, also gets reference marker. */
+	if (!refine_marker_reference_frame_get(track,
+	                                       marker,
+	                                       backwards,
+	                                       &reference_framenr))
+	{
+		return;
+	}
+
 	reference_ibuf = tracking_context_get_reference_ibuf(clip, &user, clip_flag, track, reference_framenr,
 	                                                     backwards, &reference_marker);
 	if (reference_ibuf == NULL) {
