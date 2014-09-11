@@ -310,41 +310,45 @@ static void do_alphaover_effect(const SeqRenderData *context, Sequence *UNUSED(s
 
 static void do_alphaunder_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-	int fac2, mfac, fac, fac4;
+	float fac2, fac, fac4;
 	int xo;
-	unsigned char *rt1, *rt2, *rt;
+	unsigned char *cp1, *cp2, *rt;
+	float tempc[4], rt1[4], rt2[4];
 
 	xo = x;
-	rt1 = rect1;
-	rt2 = rect2;
+	cp1 = rect1;
+	cp2 = rect2;
 	rt = out;
 
-	fac2 = (int)(256.0f * facf0);
-	fac4 = (int)(256.0f * facf1);
+	fac2 = facf0;
+	fac4 = facf1;
 
 	while (y--) {
 		x = xo;
 		while (x--) {
 			/* rt = rt1 under rt2  (alpha from rt2) */
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
 			/* this complex optimization is because the
 			 * 'skybuf' can be crossed in
 			 */
-			if      (rt2[3] == 0 && fac2 == 256) *((unsigned int *) rt) = *((unsigned int *) rt1);
-			else if (rt2[3] == 255)              *((unsigned int *) rt) = *((unsigned int *) rt2);
+			if      (rt2[3] <= 0.0f && fac2 >= 1.0f) *((unsigned int *) rt) = *((unsigned int *) cp1);
+			else if (rt2[3] >= 1.0f)                 *((unsigned int *) rt) = *((unsigned int *) cp2);
 			else {
-				mfac = rt2[3];
-				fac = (fac2 * (256 - mfac)) >> 8;
+				fac = (fac2 * (1.0f - rt2[3]));
 
-				if (fac == 0) *((unsigned int *) rt) = *((unsigned int *) rt2);
+				if (fac <= 0) *((unsigned int *) rt) = *((unsigned int *) cp2);
 				else {
-					rt[0] = (fac * rt1[0] + mfac * rt2[0]) >> 8;
-					rt[1] = (fac * rt1[1] + mfac * rt2[1]) >> 8;
-					rt[2] = (fac * rt1[2] + mfac * rt2[2]) >> 8;
-					rt[3] = (fac * rt1[3] + mfac * rt2[3]) >> 8;
+					tempc[0] = (fac * rt1[0] + rt2[0]);
+					tempc[1] = (fac * rt1[1] + rt2[1]);
+					tempc[2] = (fac * rt1[2] + rt2[2]);
+					tempc[3] = (fac * rt1[3] + rt2[3]);
+					
+					premul_float_to_straight_uchar(rt, tempc);
 				}
 			}
-			rt1 += 4; rt2 += 4; rt += 4;
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 
 		if (y == 0)
@@ -353,28 +357,32 @@ static void do_alphaunder_effect_byte(float facf0, float facf1, int x, int y, un
 
 		x = xo;
 		while (x--) {
-			if      (rt2[3] == 0 && fac4 == 256) *((unsigned int *) rt) = *((unsigned int *) rt1);
-			else if (rt2[3] == 255)              *((unsigned int *) rt) = *((unsigned int *) rt2);
-			else {
-				mfac = rt2[3];
-				fac = (fac4 * (256 - mfac)) >> 8;
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
+			
+			if      (rt2[3] <= 0.0f && fac4 >= 1.0f) *((unsigned int *) rt) = *((unsigned int *) cp1);
+			else if (rt2[3] >= 1.0f)                 *((unsigned int *) rt) = *((unsigned int *) cp2);
+			else {				
+				fac = (fac4 * (1.0f - rt2[3]));
 
-				if (fac == 0) *((unsigned int *)rt) = *((unsigned int *)rt2);
+				if (fac <= 0) *((unsigned int *)rt) = *((unsigned int *)cp2);
 				else {
-					rt[0] = (fac * rt1[0] + mfac * rt2[0]) >> 8;
-					rt[1] = (fac * rt1[1] + mfac * rt2[1]) >> 8;
-					rt[2] = (fac * rt1[2] + mfac * rt2[2]) >> 8;
-					rt[3] = (fac * rt1[3] + mfac * rt2[3]) >> 8;
+					tempc[0] = (fac * rt1[0] + rt2[0]);
+					tempc[1] = (fac * rt1[1] + rt2[1]);
+					tempc[2] = (fac * rt1[2] + rt2[2]);
+					tempc[3] = (fac * rt1[3] + rt2[3]);
+					
+					premul_float_to_straight_uchar(rt, tempc);
 				}
 			}
-			rt1 += 4; rt2 += 4; rt += 4;
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 	}
 }
 
 static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,  float *rect1, float *rect2, float *out)
 {
-	float fac2, mfac, fac, fac4;
+	float fac2, fac, fac4;
 	int xo;
 	float *rt1, *rt2, *rt;
 
@@ -401,17 +409,16 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,  
 				memcpy(rt, rt2, 4 * sizeof(float));
 			}
 			else {
-				mfac = rt2[3];
-				fac = fac2 * (1.0f - mfac);
+				fac = fac2 * (1.0f - rt2[3]);
 
 				if (fac == 0) {
 					memcpy(rt, rt2, 4 * sizeof(float));
 				}
 				else {
-					rt[0] = fac * rt1[0] + mfac * rt2[0];
-					rt[1] = fac * rt1[1] + mfac * rt2[1];
-					rt[2] = fac * rt1[2] + mfac * rt2[2];
-					rt[3] = fac * rt1[3] + mfac * rt2[3];
+					rt[0] = fac * rt1[0] + rt2[0];
+					rt[1] = fac * rt1[1] + rt2[1];
+					rt[2] = fac * rt1[2] + rt2[2];
+					rt[3] = fac * rt1[3] + rt2[3];
 				}
 			}
 			rt1 += 4; rt2 += 4; rt += 4;
@@ -430,17 +437,16 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,  
 				memcpy(rt, rt2, 4 * sizeof(float));
 			}
 			else {
-				mfac = rt2[3];
-				fac = fac4 * (1.0f - mfac);
+				fac = fac4 * (1.0f - rt2[3]);
 
 				if (fac == 0) {
 					memcpy(rt, rt2, 4 * sizeof(float));
 				}
 				else {
-					rt[0] = fac * rt1[0] + mfac * rt2[0];
-					rt[1] = fac * rt1[1] + mfac * rt2[1];
-					rt[2] = fac * rt1[2] + mfac * rt2[2];
-					rt[3] = fac * rt1[3] + mfac * rt2[3];
+					rt[0] = fac * rt1[0] + rt2[0];
+					rt[1] = fac * rt1[1] + rt2[1];
+					rt[2] = fac * rt1[2] + rt2[2];
+					rt[3] = fac * rt1[3] + rt2[3];
 				}
 			}
 			rt1 += 4; rt2 += 4; rt += 4;
