@@ -32,6 +32,8 @@
  *  \ingroup bke
  */
 
+#include "stdio.h"
+
 #include "BLI_utildefines.h"
 
 #define IMPLICIT_SOLVER_EIGEN

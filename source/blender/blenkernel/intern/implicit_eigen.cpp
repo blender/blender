@@ -161,6 +161,50 @@ BLI_INLINE const float *lVector_v3(const lVector &v, int vertex)
 	return v.data() + 3 * vertex;
 }
 
+BLI_INLINE void triplets_m3(TripletList &tlist, float m[3][3], int i, int j)
+{
+	i *= 3;
+	j *= 3;
+	for (int l = 0; l < 3; ++l) {
+		for (int k = 0; k < 3; ++k) {
+			tlist.push_back(Triplet(i + k, j + l, m[k][l]));
+		}
+	}
+}
+
+BLI_INLINE void triplets_m3fl(TripletList &tlist, float m[3][3], int i, int j, float factor)
+{
+	i *= 3;
+	j *= 3;
+	for (int l = 0; l < 3; ++l) {
+		for (int k = 0; k < 3; ++k) {
+			tlist.push_back(Triplet(i + k, j + l, m[k][l] * factor));
+		}
+	}
+}
+
+BLI_INLINE void lMatrix_add_triplets(lMatrix &r, const TripletList &tlist)
+{
+	lMatrix t(r.rows(), r.cols());
+	t.setFromTriplets(tlist.begin(), tlist.end());
+	r += t;
+}
+
+BLI_INLINE void lMatrix_madd_triplets(lMatrix &r, const TripletList &tlist, float f)
+{
+	lMatrix t(r.rows(), r.cols());
+	t.setFromTriplets(tlist.begin(), tlist.end());
+	r += f * t;
+}
+
+BLI_INLINE void lMatrix_sub_triplets(lMatrix &r, const TripletList &tlist)
+{
+	lMatrix t(r.rows(), r.cols());
+	t.setFromTriplets(tlist.begin(), tlist.end());
+	r -= t;
+}
+
+#if 0
 BLI_INLINE void lMatrix_copy_m3(lMatrix &r, float m[3][3], int i, int j)
 {
 	i *= 3;
@@ -192,17 +236,7 @@ BLI_INLINE void lMatrix_madd_m3(lMatrix &r, float m[3][3], float s, int i, int j
 	lMatrix_copy_m3(tmp, m, i, j);
 	r += s * tmp;
 }
-
-BLI_INLINE void triplets_m3(TripletList &t, float m[3][3], int i, int j)
-{
-	i *= 3;
-	j *= 3;
-	for (int k = 0; k < 3; ++k) {
-		for (int l = 0; l < 3; ++l) {
-			t.push_back(Triplet(i + k, j + l, m[k][l]));
-		}
-	}
-}
+#endif
 
 BLI_INLINE void outerproduct(float r[3][3], const float a[3], const float b[3])
 {
@@ -514,7 +548,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	}
 }
 
-static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lVector &F, lMatrix &dFdX, lMatrix &dFdV)
+static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lVector &F, TripletList &tlist_dFdX, TripletList &tlist_dFdV)
 {
 	/* XXX reserve elements in tmp? */
 	
@@ -523,10 +557,10 @@ static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lV
 		return;
 	
 	if (!(s->type & CLOTH_SPRING_TYPE_BENDING)) {
-		lMatrix_add_m3(dFdV, s->dfdv, s->ij, s->ij);
-		lMatrix_add_m3(dFdV, s->dfdv, s->kl, s->kl);
-		lMatrix_sub_m3(dFdV, s->dfdv, s->ij, s->kl);
-		lMatrix_sub_m3(dFdV, s->dfdv, s->kl, s->ij);
+		triplets_m3fl(tlist_dFdV, s->dfdv, s->ij, s->ij, 1.0f);
+		triplets_m3fl(tlist_dFdV, s->dfdv, s->kl, s->kl, 1.0f);
+		triplets_m3fl(tlist_dFdV, s->dfdv, s->ij, s->kl, -1.0f);
+		triplets_m3fl(tlist_dFdV, s->dfdv, s->kl, s->ij, -1.0f);
 	}
 	
 	add_v3_v3(lVector_v3(F, s->ij), s->f);
@@ -534,10 +568,10 @@ static void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lV
 		sub_v3_v3(lVector_v3(F, s->kl), s->f);
 	}
 	
-	lMatrix_add_m3(dFdX, s->dfdx, s->ij, s->ij);
-	lMatrix_add_m3(dFdX, s->dfdx, s->kl, s->kl);
-	lMatrix_sub_m3(dFdX, s->dfdx, s->ij, s->kl);
-	lMatrix_sub_m3(dFdX, s->dfdx, s->kl, s->ij);
+	triplets_m3fl(tlist_dFdX, s->dfdx, s->ij, s->ij, 1.0f);
+	triplets_m3fl(tlist_dFdX, s->dfdx, s->kl, s->kl, 1.0f);
+	triplets_m3fl(tlist_dFdX, s->dfdx, s->ij, s->kl, -1.0f);
+	triplets_m3fl(tlist_dFdX, s->dfdx, s->kl, s->ij, -1.0f);
 }
 
 static float calc_nor_area_tri(float nor[3], const float v1[3], const float v2[3], const float v3[3])
@@ -574,6 +608,8 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	dFdX.setZero();
 	dFdV.setZero();
 	
+	TripletList tlist_dFdV, tlist_dFdX;
+	
 #ifdef CLOTH_FORCE_GRAVITY
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
@@ -590,10 +626,9 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 	
 #ifdef CLOTH_FORCE_DRAG
 	/* air drag */
-	lMatrix_reserve_elems(dFdV, 1);
 	for (int i = 0; i < numverts; ++i) {
 		madd_v3_v3fl(lVector_v3(F, i), lVector_v3(V, i), -drag);
-		lMatrix_madd_m3(dFdV, I, -drag, i, i);
+		triplets_m3fl(tlist_dFdV, I, i, i, -drag);
 	}
 #endif
 
@@ -665,6 +700,25 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 		}
 	}
 #endif
+	
+	// calculate spring forces
+	for (LinkNode *link = cloth->springs; link; link = link->next) {
+		// only handle active springs
+		ClothSpring *spring = (ClothSpring *)link->link;
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_calc_spring_force(clmd, spring, X, V, time);
+	}
+	
+	// apply spring forces
+	for (LinkNode *link = cloth->springs; link; link = link->next) {
+		// only handle active springs
+		ClothSpring *spring = (ClothSpring *)link->link;
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_apply_spring_force(clmd, spring, F, tlist_dFdX, tlist_dFdV);
+	}
+	
+	lMatrix_add_triplets(dFdV, tlist_dFdV);
+	lMatrix_add_triplets(dFdX, tlist_dFdX);
 
 #if 0
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
@@ -791,22 +845,6 @@ static void cloth_calc_force(ClothModifierData *clmd, lVector &F, lMatrix &dFdX,
 		del_lfvector(winvec);
 	}
 #endif
-		
-	// calculate spring forces
-	for (LinkNode *link = cloth->springs; link; link = link->next) {
-		// only handle active springs
-		ClothSpring *spring = (ClothSpring *)link->link;
-		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_calc_spring_force(clmd, spring, X, V, time);
-	}
-	
-	// apply spring forces
-	for (LinkNode *link = cloth->springs; link; link = link->next) {
-		// only handle active springs
-		ClothSpring *spring = (ClothSpring *)link->link;
-		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_apply_spring_force(clmd, spring, F, dFdX, dFdV);
-	}
 }
 
 /* Init constraint matrix
@@ -817,18 +855,17 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 {
 	ClothVertex *verts = clmd->clothObject->verts;
 	int numverts = clmd->clothObject->numverts;
+	TripletList tlist_sub;
 	int i, j, v;
-
+	
+	S.setIdentity();
+	z.setZero();
+	
 	for (v = 0; v < numverts; v++) {
 		if (verts[v].flags & CLOTH_VERT_FLAG_PINNED) {
 			/* pinned vertex constraints */
 			zero_v3(lVector_v3(z, v)); /* velocity is defined externally */
-			lMatrix_copy_m3(S, ZERO, v, v);
-		}
-		else {
-			/* free vertex */
-			zero_v3(lVector_v3(z, v));
-			lMatrix_copy_m3(S, I, v, v);
+			triplets_m3(tlist_sub, I, v, v);
 		}
 	}
 
@@ -869,6 +906,8 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 		}
 	}
 #endif
+	
+	lMatrix_sub_triplets(S, tlist_sub);
 }
 
 int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
