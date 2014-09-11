@@ -68,13 +68,10 @@ void MovieDistortionOperation::initExecution()
 			{
 				this->m_cache = c;
 				this->m_cache->updateLastUsage();
+				this->m_cache->getMargin(this->m_margin);
 				return;
 			}
 		}
-		DistortionCache *newC = new DistortionCache(this->m_movieClip, this->m_width, this->m_height,
-		                                            calibration_width, calibration_height, this->m_distortion);
-		s_cache.push_back(newC);
-		this->m_cache = newC;
 
 		if (this->m_distortion) {
 			float delta[2];
@@ -96,6 +93,14 @@ void MovieDistortionOperation::initExecution()
 			 */
 			m_margin[0] = m_margin[1] = 0;
 		}
+
+		DistortionCache *newC = new DistortionCache(this->m_movieClip,
+		                                            this->m_width, this->m_height,
+		                                            calibration_width, calibration_height,
+		                                            this->m_distortion,
+		                                            this->m_margin);
+		s_cache.push_back(newC);
+		this->m_cache = newC;
 	}
 	else {
 		this->m_cache = NULL;

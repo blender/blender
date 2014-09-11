@@ -50,9 +50,14 @@ private:
 	float *m_buffer;
 	int *m_bufferCalculated;
 	double timeLastUsage;
+	int m_margin[2];
 	
 public:
-	DistortionCache(MovieClip *movieclip, int width, int height, int calibration_width, int calibration_height, bool inverted) {
+	DistortionCache(MovieClip *movieclip,
+	                int width, int height,
+	                int calibration_width, int calibration_height,
+	                bool inverted,
+	                const int margin[2]) {
 		this->m_k1 = movieclip->tracking.camera.k1;
 		this->m_k2 = movieclip->tracking.camera.k2;
 		this->m_k3 = movieclip->tracking.camera.k3;
@@ -66,6 +71,7 @@ public:
 		this->m_inverted = inverted;
 		this->m_bufferCalculated = (int *)MEM_callocN(sizeof(int) * this->m_width * this->m_height, __func__);
 		this->m_buffer = (float *)MEM_mallocN(sizeof(float) * this->m_width * this->m_height * 2, __func__);
+		copy_v2_v2_int(this->m_margin, margin);
 		this->updateLastUsage();
 	}
 	
@@ -89,7 +95,10 @@ public:
 		return this->timeLastUsage;
 	}
 
-	bool isCacheFor(MovieClip *movieclip, int width, int height, int calibration_width, int claibration_height, bool inverted) {
+	bool isCacheFor(MovieClip *movieclip,
+	                int width, int height,
+	                int calibration_width, int claibration_height,
+	                bool inverted) {
 		return this->m_k1 == movieclip->tracking.camera.k1 &&
 		       this->m_k2 == movieclip->tracking.camera.k2 &&
 		       this->m_k3 == movieclip->tracking.camera.k3 &&
@@ -140,6 +149,11 @@ public:
 			*u = this->m_buffer[offset2];
 			*v = this->m_buffer[offset2 + 1];
 		}
+	}
+
+	void getMargin(int margin[2])
+	{
+		copy_v2_v2_int(margin, m_margin);
 	}
 };
 
