@@ -406,20 +406,22 @@ static int range_compare(const void *a, const void *b)
 	else
 		return 0;
 }
-static void add_in_range(KDTreeNearest **ptn, unsigned int found, unsigned int *totfoundstack, int index, float dist, float *co)
+static void add_in_range(
+        KDTreeNearest **r_foundstack,
+        unsigned int   *r_foundstack_tot_alloc,
+        unsigned int      found,
+        const int index, const float dist, const float *co)
 {
 	KDTreeNearest *to;
 
-	if (found >= *totfoundstack) {
-		KDTreeNearest *temp = MEM_mallocN((*totfoundstack + KD_FOUND_ALLOC_INC) * sizeof(KDTreeNode), "KDTree.treefoundstack");
-		memcpy(temp, *ptn, *totfoundstack * sizeof(KDTreeNearest));
-		if (*ptn)
-			MEM_freeN(*ptn);
-		*ptn = temp;
-		*totfoundstack += KD_FOUND_ALLOC_INC;
+	if (UNLIKELY(found >= *r_foundstack_tot_alloc)) {
+		*r_foundstack = MEM_reallocN_id(
+		        *r_foundstack,
+		        (*r_foundstack_tot_alloc += KD_FOUND_ALLOC_INC) * sizeof(KDTreeNode),
+		        __func__);
 	}
 
-	to = (*ptn) + found;
+	to = (*r_foundstack) + found;
 
 	to->index = index;
 	to->dist = sqrtf(dist);
@@ -464,7 +466,7 @@ int BLI_kdtree_range_search__normal(
 	else {
 		dist2 = squared_distance(root->co, co, nor);
 		if (dist2 <= range2)
-			add_in_range(&foundstack, found++, &totfoundstack, root->index, dist2, root->co);
+			add_in_range(&foundstack, &totfoundstack, found++, root->index, dist2, root->co);
 
 		if (root->left)
 			stack[cur++] = root->left;
@@ -486,7 +488,7 @@ int BLI_kdtree_range_search__normal(
 		else {
 			dist2 = squared_distance(node->co, co, nor);
 			if (dist2 <= range2)
-				add_in_range(&foundstack, found++, &totfoundstack, node->index, dist2, node->co);
+				add_in_range(&foundstack, &totfoundstack, found++, node->index, dist2, node->co);
 
 			if (node->left)
 				stack[cur++] = node->left;
