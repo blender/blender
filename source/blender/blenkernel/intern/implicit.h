@@ -48,6 +48,8 @@
 
 //#define IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
 
+//#define IMPLICIT_ENABLE_EIGEN_DEBUG
+
 BLI_INLINE void implicit_print_matrix_elem(float v)
 {
     printf("%-8.3f", v);

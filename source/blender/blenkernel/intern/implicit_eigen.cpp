@@ -36,11 +36,26 @@
 //#define USE_EIGEN_CORE
 #define USE_EIGEN_CONSTRAINED_CG
 
+#ifndef IMPLICIT_ENABLE_EIGEN_DEBUG
+#ifdef NDEBUG
+#define IMPLICIT_NDEBUG
+#endif
+#define NDEBUG
+#endif
+
 #include <Eigen/Sparse>
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
 #ifdef USE_EIGEN_CONSTRAINED_CG
 #include <intern/ConstrainedConjugateGradient.h>
+#endif
+
+#ifndef IMPLICIT_ENABLE_EIGEN_DEBUG
+#ifndef IMPLICIT_NDEBUG
+#undef NDEBUG
+#else
+#undef IMPLICIT_NDEBUG
+#endif
 #endif
 
 #include "MEM_guardedalloc.h"
