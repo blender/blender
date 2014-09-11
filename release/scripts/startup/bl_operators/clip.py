@@ -458,6 +458,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         world.light_settings.sample_method = 'ADAPTIVE_QMC'
         world.light_settings.samples = 7
         world.light_settings.threshold = 0.005
+        if hasattr(scene, 'cycles'):
+                world.light_settings.ao_factor = 0.05
 
     @staticmethod
     def _findOrCreateCamera(context):
@@ -516,7 +518,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             else:
                 fg = scene.render.layers.new("Foreground")
 
-            fg.use_sky = False
+            fg.use_sky = True
             fg.layers = [True] + [False] * 19
             fg.layers_zmask = [False] * 10 + [True] + [False] * 9
             fg.use_pass_vector = True
