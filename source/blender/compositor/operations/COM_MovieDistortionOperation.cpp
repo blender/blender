@@ -73,26 +73,20 @@ void MovieDistortionOperation::initExecution()
 			}
 		}
 
-		if (this->m_distortion) {
-			float delta[2];
-			rcti full_frame;
-			full_frame.xmin = full_frame.ymin = 0;
-			full_frame.xmax = this->m_width;
-			full_frame.ymax = this->m_height;
-			BKE_tracking_max_undistortion_delta_across_bound(&this->m_movieClip->tracking, &full_frame, delta);
+		float delta[2];
+		rcti full_frame;
+		full_frame.xmin = full_frame.ymin = 0;
+		full_frame.xmax = this->m_width;
+		full_frame.ymax = this->m_height;
+		BKE_tracking_max_distortion_delta_across_bound(
+			&this->m_movieClip->tracking, &full_frame,
+			!this->m_distortion, delta);
 
-			/* 5 is just in case we didn't hit real max of distortion in
-			 * BKE_tracking_max_undistortion_delta_across_bound
-			 */
-			m_margin[0] = delta[0] + 5;
-			m_margin[1] = delta[1] + 5;
-		}
-		else {
-			/* undistortion with sane distortion coefficients would be mapped inside
-			 * of each tile, should be no need in margin in this case
-			 */
-			m_margin[0] = m_margin[1] = 0;
-		}
+		/* 5 is just in case we didn't hit real max of distortion in
+		 * BKE_tracking_max_undistortion_delta_across_bound
+		 */
+		m_margin[0] = delta[0] + 5;
+		m_margin[1] = delta[1] + 5;
 
 		DistortionCache *newC = new DistortionCache(this->m_movieClip,
 		                                            this->m_width, this->m_height,
