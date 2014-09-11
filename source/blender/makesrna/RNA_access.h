@@ -1040,12 +1040,12 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 		CollectionPropertyIterator rna_macro_iter;                            \
 		for (RNA_property_collection_begin(                                   \
 		             sptr,                                                    \
-		             RNA_struct_iterator_property(sptr->type),                \
+		             RNA_struct_iterator_property((sptr)->type),              \
 		             &rna_macro_iter);                                        \
 		     rna_macro_iter.valid;                                            \
 		     RNA_property_collection_next(&rna_macro_iter))                   \
 		{                                                                     \
-			PropertyRNA *prop = rna_macro_iter.ptr.data;
+			PropertyRNA *prop = (PropertyRNA *)rna_macro_iter.ptr.data;
 
 #define RNA_STRUCT_END                                                        \
 		}                                                                     \

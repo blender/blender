@@ -31,6 +31,7 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_types.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_listBase.h"
@@ -448,10 +449,24 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 		}
 
 		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
-			PointerRNA scene_ptr;
-			RNA_pointer_create(NULL, &RNA_Scene, freestyle_scene, &scene_ptr);
+			PointerRNA scene_ptr, freestyle_scene_ptr;
+			RNA_pointer_create(NULL, &RNA_Scene, old_scene, &scene_ptr);
+			RNA_pointer_create(NULL, &RNA_Scene, freestyle_scene, &freestyle_scene_ptr);
+
 			PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
-			RNA_boolean_set(&cycles_ptr, "film_transparent", 1);
+			PointerRNA freestyle_cycles_ptr = RNA_pointer_get(&freestyle_scene_ptr, "cycles");
+
+			int flag;
+			RNA_STRUCT_BEGIN(&freestyle_cycles_ptr, prop)
+			{
+				flag = RNA_property_flag(prop);
+				if (flag & PROP_HIDDEN)
+					continue;
+				RNA_property_copy(&freestyle_cycles_ptr, &cycles_ptr, prop, -1);
+			}
+			RNA_STRUCT_END;
+
+			RNA_boolean_set(&freestyle_cycles_ptr, "film_transparent", 1);
 		}
 
 		iStrokeRep->setMaterial(ma);
