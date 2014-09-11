@@ -57,7 +57,8 @@ public:
 	                int width, int height,
 	                int calibration_width, int calibration_height,
 	                bool inverted,
-	                const int margin[2]) {
+	                const int margin[2])
+	{
 		this->m_k1 = movieclip->tracking.camera.k1;
 		this->m_k2 = movieclip->tracking.camera.k2;
 		this->m_k3 = movieclip->tracking.camera.k3;
@@ -98,7 +99,8 @@ public:
 	bool isCacheFor(MovieClip *movieclip,
 	                int width, int height,
 	                int calibration_width, int claibration_height,
-	                bool inverted) {
+	                bool inverted)
+	{
 		return this->m_k1 == movieclip->tracking.camera.k1 &&
 		       this->m_k2 == movieclip->tracking.camera.k2 &&
 		       this->m_k3 == movieclip->tracking.camera.k3 &&

@@ -550,21 +550,8 @@ static unsigned int bm_mesh_elems_select_get_n__internal(
 		if (i == 0) {
 			/* pass */
 		}
-		else if (n == i) {
-			return i;
-		}
 		else {
-			/* check if the elems we found are all that's selected */
-			unsigned int n_sel;
-			switch (itype) {
-				case BM_VERTS_OF_MESH: n_sel = bm->totvertsel; break;
-				case BM_EDGES_OF_MESH: n_sel = bm->totedgesel; break;
-				default:               n_sel = bm->totfacesel; break;
-			}
-			if (n_sel == i) {
-				return i;
-			}
-			/* start over reading the selection */
+			return i;
 		}
 	}
 

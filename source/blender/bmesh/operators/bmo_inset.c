@@ -190,7 +190,7 @@ static void bm_loop_customdata_merge(
 		         BM_ELEM_CD_GET_VOID_P(l_a_outer, offset),
 		         BM_ELEM_CD_GET_VOID_P(l_b_outer, offset))  == true)
 
-		/* epsilon for comparing UV's is too big, gives noticable problems */
+		    /* epsilon for comparing UV's is too big, gives noticable problems */
 #if 0
 		    &&
 		    /* check if the data ends up diverged */
