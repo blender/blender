@@ -39,6 +39,8 @@
 //#define IMPLICIT_SOLVER_EIGEN
 #define IMPLICIT_SOLVER_BLENDER
 
+#define CLOTH_ROOT_FRAME /* enable use of root frame coordinate transform */
+
 #define CLOTH_FORCE_GRAVITY
 #define CLOTH_FORCE_DRAG
 #define CLOTH_FORCE_SPRING_STRUCTURAL

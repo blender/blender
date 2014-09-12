@@ -806,43 +806,66 @@ int	implicit_free(ClothModifierData *clmd)
 /* x_root = R^T * x_world */
 BLI_INLINE void loc_world_to_root(float r[3], const float v[3], const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	sub_v3_v3v3(r, v, root->loc);
 	mul_transposed_m3_v3((float (*)[3])root->rot, r);
+#else
+	copy_v3_v3(r, v);
+	(void)root;
+#endif
 }
 
 /* x_world = R * x_root */
 BLI_INLINE void loc_root_to_world(float r[3], const float v[3], const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	copy_v3_v3(r, v);
 	mul_m3_v3((float (*)[3])root->rot, r);
 	add_v3_v3(r, root->loc);
+#else
+	copy_v3_v3(r, v);
+	(void)root;
+#endif
 }
 
 /* v_root = cross(w, x_root) + R^T*(v_world - v0) */
 BLI_INLINE void vel_world_to_root(float r[3], const float x_root[3], const float v[3], const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float angvel[3];
 	cross_v3_v3v3(angvel, root->omega, x_root);
 	
 	sub_v3_v3v3(r, v, root->vel);
 	mul_transposed_m3_v3((float (*)[3])root->rot, r);
 	add_v3_v3(r, angvel);
+#else
+	copy_v3_v3(r, v);
+	(void)x_root;
+	(void)root;
+#endif
 }
 
 /* v_world = R*(v_root - cross(w, x_root)) + v0 */
 BLI_INLINE void vel_root_to_world(float r[3], const float x_root[3], const float v[3], const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float angvel[3];
 	cross_v3_v3v3(angvel, root->omega, x_root);
 	
 	sub_v3_v3v3(r, v, angvel);
 	mul_m3_v3((float (*)[3])root->rot, r);
 	add_v3_v3(r, root->vel);
+#else
+	copy_v3_v3(r, v);
+	(void)x_root;
+	(void)root;
+#endif
 }
 
 /* a_root = -cross(dwdt, x_root) - 2*cross(w, v_root) - cross(w, cross(w, x_root)) + R^T*(a_world - a0) */
 BLI_INLINE void force_world_to_root(float r[3], const float x_root[3], const float v_root[3], const float force[3], float mass, const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
 	
 	cross_v3_v3v3(euler, root->domega_dt, x_root);
@@ -856,11 +879,19 @@ BLI_INLINE void force_world_to_root(float r[3], const float x_root[3], const flo
 	madd_v3_v3fl(r, euler, mass);
 	madd_v3_v3fl(r, coriolis, mass);
 	madd_v3_v3fl(r, centrifugal, mass);
+#else
+	copy_v3_v3(r, force);
+	(void)x_root;
+	(void)v_root;
+	(void)mass;
+	(void)root;
+#endif
 }
 
 /* a_world = R*[ a_root + cross(dwdt, x_root) + 2*cross(w, v_root) + cross(w, cross(w, x_root)) ] + a0 */
 BLI_INLINE void force_root_to_world(float r[3], const float x_root[3], const float v_root[3], const float force[3], float mass, const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
 	
 	cross_v3_v3v3(euler, root->domega_dt, x_root);
@@ -874,6 +905,13 @@ BLI_INLINE void force_root_to_world(float r[3], const float x_root[3], const flo
 	madd_v3_v3fl(r, centrifugal, mass);
 	mul_m3_v3((float (*)[3])root->rot, r);
 	madd_v3_v3fl(r, root->acc, mass);
+#else
+	copy_v3_v3(r, force);
+	(void)x_root;
+	(void)v_root;
+	(void)mass;
+	(void)root;
+#endif
 }
 
 BLI_INLINE void acc_world_to_root(float r[3], const float x_root[3], const float v_root[3], const float acc[3], const RootTransform *root)
@@ -903,6 +941,7 @@ BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
 /* dfdx_root = m*[ -cross(dwdt, I) - cross(w, cross(w, I)) ] + R^T*(dfdx_world) */
 BLI_INLINE void dfdx_world_to_root(float m[3][3], float dfdx[3][3], float mass, const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float t[3][3], u[3][3];
 	
 	copy_m3_m3(t, (float (*)[3])root->rot);
@@ -917,11 +956,17 @@ BLI_INLINE void dfdx_world_to_root(float m[3][3], float dfdx[3][3], float mass, 
 	cross_m3_v3m3(t, root->omega, u);
 	mul_m3_fl(t, mass);
 	sub_m3_m3m3(m, m, t);
+#else
+	copy_m3_m3(m, dfdx);
+	(void)mass;
+	(void)root;
+#endif
 }
 
 /* dfdx_world = R*(dfdx_root + m*[ cross(dwdt, I) + cross(w, cross(w, I)) ]) */
 BLI_INLINE void dfdx_root_to_world(float m[3][3], float dfdx[3][3], float mass, const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float t[3][3], u[3][3];
 	
 	cross_v3_identity(t, root->domega_dt);
@@ -934,11 +979,17 @@ BLI_INLINE void dfdx_root_to_world(float m[3][3], float dfdx[3][3], float mass, 
 	add_m3_m3m3(m, m, t);
 	
 	mul_m3_m3m3(m, (float (*)[3])root->rot, m);
+#else
+	copy_m3_m3(m, dfdx);
+	(void)mass;
+	(void)root;
+#endif
 }
 
 /* dfdv_root = -2*m*cross(w, I) + R^T*(dfdv_world) */
 BLI_INLINE void dfdv_world_to_root(float m[3][3], float dfdv[3][3], float mass, const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float t[3][3];
 	
 	copy_m3_m3(t, (float (*)[3])root->rot);
@@ -948,11 +999,17 @@ BLI_INLINE void dfdv_world_to_root(float m[3][3], float dfdv[3][3], float mass, 
 	cross_v3_identity(t, root->omega);
 	mul_m3_fl(t, 2.0f*mass);
 	sub_m3_m3m3(m, m, t);
+#else
+	copy_m3_m3(m, dfdv);
+	(void)mass;
+	(void)root;
+#endif
 }
 
 /* dfdv_world = R*(dfdv_root + 2*m*cross(w, I)) */
 BLI_INLINE void dfdv_root_to_world(float m[3][3], float dfdv[3][3], float mass, const RootTransform *root)
 {
+#ifdef CLOTH_ROOT_FRAME
 	float t[3][3];
 	
 	cross_v3_identity(t, root->omega);
@@ -960,6 +1017,11 @@ BLI_INLINE void dfdv_root_to_world(float m[3][3], float dfdv[3][3], float mass, 
 	add_m3_m3m3(m, dfdv, t);
 	
 	mul_m3_m3m3(m, (float (*)[3])root->rot, m);
+#else
+	copy_m3_m3(m, dfdv);
+	(void)mass;
+	(void)root;
+#endif
 }
 
 /* ================================ */
