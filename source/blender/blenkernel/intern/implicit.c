@@ -2157,8 +2157,8 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 		float t[3][3];
 		copy_m3_m3(t, roots[v].rot);
 		transpose_m3(t);
-		mul_m3_m3m3(S[v].m, S[v].m, t);
-		mul_m3_m3m3(S[v].m, roots[v].rot, S[v].m);
+		mul_m3_m3m3(S[v].m, S[v].m, roots[v].rot);
+		mul_m3_m3m3(S[v].m, t, S[v].m);
 		
 		vel_world_to_root(z[v], X[v], z[v], &roots[v]);
 	}
