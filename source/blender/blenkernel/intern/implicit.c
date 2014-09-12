@@ -2644,8 +2644,14 @@ void implicit_set_positions(ClothModifierData *clmd)
 	Implicit_Data *id = cloth->implicit;
 	
 	for (i = 0; i < numverts; i++) {
+#ifdef CLOTH_ROOT_FRAME
 		copy_v3_v3(id->root[i].loc, cloth_roots[i].loc);
 		copy_m3_m3(id->root[i].rot, cloth_roots[i].rot);
+#else
+		zero_v3(id->root[i].loc);
+		unit_m3(id->root[i].rot);
+		(void)cloth_roots;
+#endif
 		
 		loc_world_to_root(id->X[i], verts[i].x, &id->root[i]);
 		vel_world_to_root(id->V[i], id->X[i], verts[i].v, &id->root[i]);
