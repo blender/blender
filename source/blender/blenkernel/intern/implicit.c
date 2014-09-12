@@ -2182,13 +2182,16 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 			zero_v3(z[v]);
 			unit_m3(S[v].m);
 		}
+		
+		verts[v].impulse_count = 0;
 	}
 
 	for (i = 0; i < totcolliders; ++i) {
 		ColliderContacts *ct = &contacts[i];
 		for (j = 0; j < ct->totcollisions; ++j) {
 			CollPair *collpair = &ct->collisions[j];
-			float restitution = (1.0f - clmd->coll_parms->damping) * (1.0f - ct->ob->pd->pdef_sbdamp);
+//			float restitution = (1.0f - clmd->coll_parms->damping) * (1.0f - ct->ob->pd->pdef_sbdamp);
+			float restitution = 0.0f;
 			int v = collpair->face1;
 			float cnor[3], cmat[3][3];
 			float impulse[3];
@@ -2203,11 +2206,15 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 			
 			vel_world_to_root(impulse, X[v], impulse, &roots[v]);
 			add_v3_v3(z[v], impulse);
+			++verts[v].impulse_count;
+			if (verts[v].impulse_count > 1)
+				continue;
 			
 			/* modify S to enforce velocity constraint in normal direction */
 			copy_v3_v3(cnor, collpair->normal);
 			mul_transposed_m3_v3(roots[v].rot, cnor);
 			mul_fvectorT_fvector(cmat, cnor, cnor);
+			
 			sub_m3_m3m3(S[v].m, I, cmat);
 			
 			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
