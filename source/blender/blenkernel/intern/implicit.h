@@ -36,8 +36,8 @@
 
 #include "BLI_utildefines.h"
 
-#define IMPLICIT_SOLVER_EIGEN
-//#define IMPLICIT_SOLVER_BLENDER
+//#define IMPLICIT_SOLVER_EIGEN
+#define IMPLICIT_SOLVER_BLENDER
 
 #define CLOTH_FORCE_GRAVITY
 #define CLOTH_FORCE_DRAG
