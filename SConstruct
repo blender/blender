@@ -627,31 +627,36 @@ def data_to_c(FILE_FROM, FILE_TO, VAR_NAME):
         FILE_FROM = FILE_FROM.replace("/", "\\")
         FILE_TO   = FILE_TO.replace("/", "\\")
 
-    # first check if we need to bother.
-    if os.path.exists(FILE_TO):
-        if os.path.getmtime(FILE_FROM) < os.path.getmtime(FILE_TO):
-            return
+    try:
+        # first check if we need to bother.
+        if os.path.exists(FILE_TO):
+            if os.path.getmtime(FILE_FROM) < os.path.getmtime(FILE_TO):
+                return
 
-    print(B.bc.HEADER + "Generating: " + B.bc.ENDC + "%r" % os.path.basename(FILE_TO))
-    fpin = open(FILE_FROM, "rb")
-    fpin.seek(0, os.SEEK_END)
-    size = fpin.tell()
-    fpin.seek(0)
+        print(B.bc.HEADER + "Generating: " + B.bc.ENDC + "%r" % os.path.basename(FILE_TO))
+        fpin = open(FILE_FROM, "rb")
+        fpin.seek(0, os.SEEK_END)
+        size = fpin.tell()
+        fpin.seek(0)
 
-    fpout = open(FILE_TO, "w")
-    fpout.write("int  %s_size = %d;\n" % (VAR_NAME, size))
-    fpout.write("char %s[] = {\n" % VAR_NAME)
+        fpout = open(FILE_TO, "w")
+        fpout.write("int  %s_size = %d;\n" % (VAR_NAME, size))
+        fpout.write("char %s[] = {\n" % VAR_NAME)
 
-    while size > 0:
-        size -= 1
-        if size % 32 == 31:
-            fpout.write("\n")
+        while size > 0:
+            size -= 1
+            if size % 32 == 31:
+                fpout.write("\n")
 
-        fpout.write("%3d," % ord(fpin.read(1)))
-    fpout.write("\n  0};\n\n")
+            fpout.write("%3d," % ord(fpin.read(1)))
+        fpout.write("\n  0};\n\n")
 
-    fpin.close()
-    fpout.close()
+        fpin.close()
+        fpout.close()
+    except KeyboardInterrupt:
+        if os.path.exists(FILE_TO):
+            os.remove(FILE_TO)
+        raise KeyboardInterrupt
 
 def data_to_c_simple(FILE_FROM):
 	filename_only = os.path.basename(FILE_FROM)
@@ -676,7 +681,12 @@ def data_to_c_simple_icon(PATH_FROM):
     FILE_TO_PNG = os.path.join(env['DATA_SOURCES'], filename_only + ".png")
     FILE_TO = FILE_TO_PNG + ".c"
     argv = [PATH_FROM, FILE_TO_PNG]
-    datatoc_icon.main_ex(argv)
+    try:
+        datatoc_icon.main_ex(argv)
+    except KeyboardInterrupt:
+        if os.path.exists(FILE_TO_PNG):
+            os.remove(FILE_TO_PNG)
+        raise KeyboardInterrupt
 
     # then the png to a c file
     data_to_c_simple(FILE_TO_PNG)
