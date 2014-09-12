@@ -2094,10 +2094,12 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
  * This is part of the modified CG method suggested by Baraff/Witkin in
  * "Large Steps in Cloth Simulation" (Siggraph 1998)
  */
-static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *contacts, int totcolliders, lfVector *V, fmatrix3x3 *S, lfVector *z, float dt)
+static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *contacts, int totcolliders, lfVector *X, lfVector *V, fmatrix3x3 *S, lfVector *z, float dt)
 {
-	ClothVertex *verts = clmd->clothObject->verts;
-	int numverts = clmd->clothObject->numverts;
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts = cloth->verts;
+	int numverts = cloth->numverts;
+	RootTransform *roots = cloth->implicit->root;
 	int i, j, v;
 
 	for (v = 0; v < numverts; v++) {
@@ -2148,6 +2150,17 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 //				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, collpair->normal, 1, 1, 0, "collision", hash_collpair(941, collpair));
 			}
 		}
+	}
+	
+	/* transform to root space */
+	for (v = 0; v < numverts; v++) {
+		float t[3][3];
+		copy_m3_m3(t, roots[v].rot);
+		transpose_m3(t);
+		mul_m3_m3m3(S[v].m, S[v].m, t);
+		mul_m3_m3m3(S[v].m, roots[v].rot, S[v].m);
+		
+		vel_world_to_root(z[v], X[v], z[v], &roots[v]);
 	}
 }
 
@@ -2493,7 +2506,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 		
 		/* setup vertex constraints for pinned vertices and contacts */
-		setup_constraint_matrix(clmd, contacts, totcolliders, id->V, id->S, id->z, dt);
+		setup_constraint_matrix(clmd, contacts, totcolliders, id->X, id->V, id->S, id->z, dt);
 		
 		// damping velocity for artistic reasons
 		mul_lfvectorS(id->V, id->V, clmd->sim_parms->vel_damping, numverts);
