@@ -646,16 +646,28 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 ///////////////////////////////////////////////////////////////////
 // simulator start
 ///////////////////////////////////////////////////////////////////
+typedef struct RootTransform {
+	float loc[3];
+	float rot[3][3];
+	
+	float vel[3];
+	float omega[3];
+	
+	float acc[3];
+	float domega_dt[3];
+} RootTransform;
+
 typedef struct Implicit_Data  {
 	/* inputs */
 	fmatrix3x3 *bigI;			/* identity (constant) */
 	fmatrix3x3 *M;				/* masses */
+	lfVector *F;				/* forces */
 	fmatrix3x3 *dFdV, *dFdX;	/* force jacobians */
+	RootTransform *root;		/* root transforms */
 	
 	/* motion state data */
 	lfVector *X, *Xnew;			/* positions */
 	lfVector *V, *Vnew;			/* velocities */
-	lfVector *F;				/* forces */
 	
 	/* internal solver data */
 	lfVector *B;				/* B for A*dV = B */
@@ -706,6 +718,8 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	id->B = create_lfvector(cloth->numverts);
 	id->dV = create_lfvector(cloth->numverts);
 	id->z = create_lfvector(cloth->numverts);
+
+	id->root = MEM_callocN(sizeof(RootTransform) * cloth->numverts, "root transforms");
 
 	for (i = 0; i < cloth->numverts; i++) {
 		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
@@ -768,12 +782,187 @@ int	implicit_free(ClothModifierData *clmd)
 			del_lfvector(id->dV);
 			del_lfvector(id->z);
 
+			MEM_freeN(id->root);
+
 			MEM_freeN(id);
 		}
 	}
 
 	return 1;
 }
+
+/* ==== Transformation of Moving Reference Frame ====
+ *   x_world, v_world, f_world, a_world, dfdx_world, dfdv_world : state variables in world space
+ *   x_root, v_root, f_root, a_root, dfdx_root, dfdv_root       : state variables in root space
+ *   
+ *   x0 : translation of the root frame (hair root location)
+ *   v0 : linear velocity of the root frame
+ *   a0 : acceleration of the root frame
+ *   R : rotation matrix of the root frame
+ *   w : angular velocity of the root frame
+ *   dwdt : angular acceleration of the root frame
+ */
+
+/* x_root = R^T * x_world */
+BLI_INLINE void loc_world_to_root(float r[3], const float v[3], const RootTransform *root)
+{
+	sub_v3_v3v3(r, v, root->loc);
+	mul_transposed_m3_v3((float (*)[3])root->rot, r);
+}
+
+/* x_world = R * x_root */
+BLI_INLINE void loc_root_to_world(float r[3], const float v[3], const RootTransform *root)
+{
+	copy_v3_v3(r, v);
+	mul_m3_v3((float (*)[3])root->rot, r);
+	add_v3_v3(r, root->loc);
+}
+
+/* v_root = cross(w, x_root) + R^T*(v_world - v0) */
+BLI_INLINE void vel_world_to_root(float r[3], const float x_root[3], const float v[3], const RootTransform *root)
+{
+	float angvel[3];
+	cross_v3_v3v3(angvel, root->omega, x_root);
+	
+	sub_v3_v3v3(r, v, root->vel);
+	mul_transposed_m3_v3((float (*)[3])root->rot, r);
+	add_v3_v3(r, angvel);
+}
+
+/* v_world = R*(v_root - cross(w, x_root)) + v0 */
+BLI_INLINE void vel_root_to_world(float r[3], const float x_root[3], const float v[3], const RootTransform *root)
+{
+	float angvel[3];
+	cross_v3_v3v3(angvel, root->omega, x_root);
+	
+	sub_v3_v3v3(r, v, angvel);
+	mul_m3_v3((float (*)[3])root->rot, r);
+	add_v3_v3(r, root->vel);
+}
+
+/* a_root = -cross(dwdt, x_root) - 2*cross(w, v_root) - cross(w, cross(w, x_root)) + R^T*(a_world - a0) */
+BLI_INLINE void force_world_to_root(float r[3], const float x_root[3], const float v_root[3], const float force[3], float mass, const RootTransform *root)
+{
+	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
+	
+	cross_v3_v3v3(euler, root->domega_dt, x_root);
+	cross_v3_v3v3(coriolis, root->omega, v_root);
+	mul_v3_fl(coriolis, 2.0f);
+	cross_v3_v3v3(rotvel, root->omega, x_root);
+	cross_v3_v3v3(centrifugal, root->omega, rotvel);
+	
+	madd_v3_v3v3fl(r, force, root->acc, mass);
+	mul_transposed_m3_v3((float (*)[3])root->rot, r);
+	madd_v3_v3fl(r, euler, mass);
+	madd_v3_v3fl(r, coriolis, mass);
+	madd_v3_v3fl(r, centrifugal, mass);
+}
+
+/* a_world = R*[ a_root + cross(dwdt, x_root) + 2*cross(w, v_root) + cross(w, cross(w, x_root)) ] + a0 */
+BLI_INLINE void force_root_to_world(float r[3], const float x_root[3], const float v_root[3], const float force[3], float mass, const RootTransform *root)
+{
+	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
+	
+	cross_v3_v3v3(euler, root->domega_dt, x_root);
+	cross_v3_v3v3(coriolis, root->omega, v_root);
+	mul_v3_fl(coriolis, 2.0f);
+	cross_v3_v3v3(rotvel, root->omega, x_root);
+	cross_v3_v3v3(centrifugal, root->omega, rotvel);
+	
+	madd_v3_v3v3fl(r, force, euler, mass);
+	madd_v3_v3fl(r, coriolis, mass);
+	madd_v3_v3fl(r, centrifugal, mass);
+	mul_m3_v3((float (*)[3])root->rot, r);
+	madd_v3_v3fl(r, root->acc, mass);
+}
+
+BLI_INLINE void acc_world_to_root(float r[3], const float x_root[3], const float v_root[3], const float acc[3], const RootTransform *root)
+{
+	force_world_to_root(r, x_root, v_root, acc, 1.0f, root);
+}
+
+BLI_INLINE void acc_root_to_world(float r[3], const float x_root[3], const float v_root[3], const float acc[3], const RootTransform *root)
+{
+	force_root_to_world(r, x_root, v_root, acc, 1.0f, root);
+}
+
+BLI_INLINE void cross_m3_v3m3(float r[3][3], const float v[3], float m[3][3])
+{
+	cross_v3_v3v3(r[0], v, m[0]);
+	cross_v3_v3v3(r[1], v, m[1]);
+	cross_v3_v3v3(r[2], v, m[2]);
+}
+
+BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
+{
+	r[0][0] = 0.0f;		r[1][0] = v[2];		r[2][0] = -v[1];
+	r[0][1] = -v[2];	r[1][1] = 0.0f;		r[2][1] = v[0];
+	r[0][2] = v[1];		r[1][2] = -v[0];	r[2][2] = 0.0f;
+}
+
+/* dfdx_root = m*[ -cross(dwdt, I) - cross(w, cross(w, I)) ] + R^T*(dfdx_world) */
+BLI_INLINE void dfdx_world_to_root(float m[3][3], float dfdx[3][3], float mass, const RootTransform *root)
+{
+	float t[3][3], u[3][3];
+	
+	copy_m3_m3(t, (float (*)[3])root->rot);
+	transpose_m3(t);
+	mul_m3_m3m3(m, t, dfdx);
+	
+	cross_v3_identity(t, root->domega_dt);
+	mul_m3_fl(t, mass);
+	sub_m3_m3m3(m, m, t);
+	
+	cross_v3_identity(u, root->omega);
+	cross_m3_v3m3(t, root->omega, u);
+	mul_m3_fl(t, mass);
+	sub_m3_m3m3(m, m, t);
+}
+
+/* dfdx_world = R*(dfdx_root + m*[ cross(dwdt, I) + cross(w, cross(w, I)) ]) */
+BLI_INLINE void dfdx_root_to_world(float m[3][3], float dfdx[3][3], float mass, const RootTransform *root)
+{
+	float t[3][3], u[3][3];
+	
+	cross_v3_identity(t, root->domega_dt);
+	mul_m3_fl(t, mass);
+	add_m3_m3m3(m, dfdx, t);
+	
+	cross_v3_identity(u, root->omega);
+	cross_m3_v3m3(t, root->omega, u);
+	mul_m3_fl(t, mass);
+	add_m3_m3m3(m, m, t);
+	
+	mul_m3_m3m3(m, (float (*)[3])root->rot, m);
+}
+
+/* dfdv_root = -2*m*cross(w, I) + R^T*(dfdv_world) */
+BLI_INLINE void dfdv_world_to_root(float m[3][3], float dfdv[3][3], float mass, const RootTransform *root)
+{
+	float t[3][3];
+	
+	copy_m3_m3(t, (float (*)[3])root->rot);
+	transpose_m3(t);
+	mul_m3_m3m3(m, t, dfdv);
+	
+	cross_v3_identity(t, root->omega);
+	mul_m3_fl(t, 2.0f*mass);
+	sub_m3_m3m3(m, m, t);
+}
+
+/* dfdv_world = R*(dfdv_root + 2*m*cross(w, I)) */
+BLI_INLINE void dfdv_root_to_world(float m[3][3], float dfdv[3][3], float mass, const RootTransform *root)
+{
+	float t[3][3];
+	
+	cross_v3_identity(t, root->omega);
+	mul_m3_fl(t, 2.0f*mass);
+	add_m3_m3m3(m, dfdv, t);
+	
+	mul_m3_m3m3(m, (float (*)[3])root->rot, m);
+}
+
+/* ================================ */
 
 DO_INLINE float fb(float length, float L)
 {
@@ -1904,8 +2093,10 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 {
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
+	ClothVertex *verts = cloth->verts;
+	RootTransform *roots = cloth->implicit->root;
 	unsigned int i	= 0;
-	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
+	float 		drag 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
 	MFace 		*mfaces 	= cloth->mfaces;
 	unsigned int numverts = cloth->numverts;
@@ -1913,7 +2104,8 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	lfVector *winvec;
 	EffectedPoint epoint;
 	
-	/* set dFdX jacobi matrix to zero */
+	/* initialize forces to zero */
+	zero_lfvector(lF, numverts);
 	init_bfmatrix(dFdX, ZERO);
 	init_bfmatrix(dFdV, ZERO);
 
@@ -1923,14 +2115,14 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		copy_v3_v3(gravity, clmd->scene->physics_settings.gravity);
 		mul_fvector_S(gravity, gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity); /* scale gravity force */
 	}
-	init_lfvector(lF, gravity, numverts);
 	/* multiply lF with mass matrix
 	 * force = mass * acceleration (in this case: gravity)
 	 */
 	for (i = 0; i < numverts; i++) {
-		float temp[3];
-		copy_v3_v3(temp, lF[i]);
-		mul_fmatrix_fvector(lF[i], M[i].m, temp);
+		float g[3];
+		acc_world_to_root(g, lX[i], lV[i], gravity, &roots[i]);
+		mul_m3_v3(M[i].m, g);
+		add_v3_v3(lF[i], g);
 	}
 #else
 	zero_lfvector(lF, numverts);
@@ -1941,11 +2133,34 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 #ifdef CLOTH_FORCE_DRAG
 	/* set dFdX jacobi matrix diagonal entries to -spring_air */ 
 	for (i = 0; i < numverts; i++) {
-		dFdV[i].m[0][0] -= spring_air;
-		dFdV[i].m[1][1] -= spring_air;
-		dFdV[i].m[2][2] -= spring_air;
+		dFdV[i].m[0][0] -= drag;
+		dFdV[i].m[1][1] -= drag;
+		dFdV[i].m[2][2] -= drag;
 	}
-	submul_lfvectorS(lF, lV, spring_air, numverts);
+	submul_lfvectorS(lF, lV, drag, numverts);
+	for (i = 0; i < numverts; i++) {
+#if 1
+		float tmp[3][3];
+		
+		/* NB: uses root space velocity, no need to transform */
+		madd_v3_v3fl(lF[i], lV[i], -drag);
+		
+		copy_m3_m3(tmp, I);
+		mul_m3_fl(tmp, -drag);
+		add_m3_m3m3(dFdV[i].m, dFdV[i].m, tmp);
+#else
+		float f[3], tmp[3][3], drag_dfdv[3][3], t[3];
+		
+		mul_v3_v3fl(f, lV[i], -drag);
+		force_world_to_root(t, lX[i], lV[i], f, verts[i].mass, &roots[i]);
+		add_v3_v3(lF[i], t);
+		
+		copy_m3_m3(drag_dfdv, I);
+		mul_m3_fl(drag_dfdv, -drag);
+		dfdv_world_to_root(tmp, drag_dfdv, verts[i].mass, &roots[i]);
+		add_m3_m3m3(dFdV[i].m, dFdV[i].m, tmp);
+#endif
+	}
 #endif
 	
 	/* handle external forces like wind */
@@ -2186,8 +2401,10 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		for (i = 0; i < numverts; i++) {
 			// update velocities with constrained velocities from pinned verts
 			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
-				sub_v3_v3v3(id->V[i], verts[i].xconst, verts[i].xold);
+				float v[3];
+				sub_v3_v3v3(v, verts[i].xconst, verts[i].xold);
 				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
+				vel_world_to_root(id->V[i], id->X[i], v, &id->root[i]);
 			}
 		}
 	}
@@ -2202,7 +2419,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		
 		/* copy velocities for collision */
 		for (i = 0; i < numverts; i++) {
-			copy_v3_v3(verts[i].tv, id->V[i]);
+			vel_root_to_world(verts[i].tv, id->X[i], id->V[i], &id->root[i]);
 			copy_v3_v3(verts[i].v, verts[i].tv);
 		}
 		
@@ -2218,7 +2435,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		
 		// damping velocity for artistic reasons
 		mul_lfvectorS(id->V, id->V, clmd->sim_parms->vel_damping, numverts);
-
+		
 		// calculate forces
 		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
 		
@@ -2232,15 +2449,13 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		for (i = 0; i < numverts; i++) {
 			if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) {
 				if (verts[i].flags & CLOTH_VERT_FLAG_PINNED) {
-					float tvect[3] = {0.0f, 0.0f, 0.0f};
-					sub_v3_v3v3(tvect, verts[i].xconst, verts[i].xold);
-					mul_fvector_S(tvect, tvect, step+dt);
-					VECADD(tvect, tvect, verts[i].xold);
-					copy_v3_v3(id->Xnew[i], tvect);
+					float x[3];
+					interp_v3_v3v3(x, verts[i].xold, verts[i].xconst, step + dt);
+					loc_world_to_root(id->Xnew[i], x, &id->root[i]);
 				}
 			}
 			
-			copy_v3_v3(verts[i].txold, id->X[i]);
+			loc_root_to_world(verts[i].txold, id->X[i], &id->root[i]);
 			
 			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0) {
 				BKE_sim_debug_data_add_line(clmd->debug_data, id->X[i], id->X[i-1], 0.6, 0.3, 0.3, "hair", hash_vertex(4892, i));
@@ -2341,12 +2556,14 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED)) {
 			copy_v3_v3(verts[i].txold, verts[i].xconst); // TODO: test --> should be .x
 			copy_v3_v3(verts[i].x, verts[i].xconst);
-			copy_v3_v3(verts[i].v, id->V[i]);
+			
+			vel_root_to_world(verts[i].v, id->X[i], id->V[i], &id->root[i]);
 		}
 		else {
-			copy_v3_v3(verts[i].txold, id->X[i]);
-			copy_v3_v3(verts[i].x, id->X[i]);
-			copy_v3_v3(verts[i].v, id->V[i]);
+			loc_root_to_world(verts[i].txold, id->X[i], &id->root[i]);
+			copy_v3_v3(verts[i].x, verts[i].txold);
+			
+			vel_root_to_world(verts[i].v, id->X[i], id->V[i], &id->root[i]);
 		}
 	}
 	
@@ -2361,11 +2578,15 @@ void implicit_set_positions(ClothModifierData *clmd)
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts, i;
+	ClothHairRoot *cloth_roots = clmd->roots;
 	Implicit_Data *id = cloth->implicit;
 	
 	for (i = 0; i < numverts; i++) {
-		copy_v3_v3(id->X[i], verts[i].x);
-		copy_v3_v3(id->V[i], verts[i].v);
+		copy_v3_v3(id->root[i].loc, cloth_roots[i].loc);
+		copy_m3_m3(id->root[i].rot, cloth_roots[i].rot);
+		
+		loc_world_to_root(id->X[i], verts[i].x, &id->root[i]);
+		vel_world_to_root(id->V[i], id->X[i], verts[i].v, &id->root[i]);
 	}
 	if (G.debug_value > 0)
 		printf("implicit_set_positions\n");
