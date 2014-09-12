@@ -2430,10 +2430,8 @@ static bool simulate_implicit_euler(Implicit_Data *id, float dt)
 	// itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
 
-	if (ok) {
-		// advance velocities
-		add_lfvector_lfvector(id->Vnew, id->V, id->dV, numverts);
-	}
+	// advance velocities
+	add_lfvector_lfvector(id->Vnew, id->V, id->dV, numverts);
 
 	del_lfvector(dFdXmV);
 	
