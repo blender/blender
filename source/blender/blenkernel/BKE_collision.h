@@ -137,6 +137,8 @@ void bvhtree_update_from_mvert(BVHTree *bvhtree, struct MFace *faces, int numfac
 // defined in collisions.c
 void collision_move_object(struct CollisionModifierData *collmd, float step, float prevstep);
 
+void collision_get_collider_velocity(float vel_old[3], float vel_new[3], struct CollisionModifierData *collmd, struct CollPair *collpair);
+
 /////////////////////////////////////////////////
 // used in effect.c
 /////////////////////////////////////////////////

@@ -207,9 +207,6 @@ void cloth_find_point_contacts(struct Object *ob, struct ClothModifierData *clmd
                                ColliderContacts **r_collider_contacts, int *r_totcolliders);
 void cloth_free_contacts(ColliderContacts *collider_contacts, int totcolliders);
 
-bool cloth_points_collpair_response(struct ClothModifierData *clmd, struct CollisionModifierData *collmd, struct PartDeflect *pd,
-                                    struct CollPair *collpair, float dt, float r_impulse[3]);
-
 ////////////////////////////////////////////////
 
 

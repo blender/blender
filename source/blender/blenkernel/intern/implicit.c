@@ -2090,6 +2090,74 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 
 /* ================================ */
 
+static bool collision_response(ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, float restitution, float r_impulse[3])
+{
+	Cloth *cloth = clmd->clothObject;
+	int index = collpair->ap1;
+	bool result = false;
+	
+	float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
+	float epsilon2 = BLI_bvhtree_getepsilon(collmd->bvhtree);
+
+	float margin_distance = collpair->distance - epsilon2;
+	float mag_v_rel;
+	
+	zero_v3(r_impulse);
+	
+	if (margin_distance > 0.0f)
+		return false; /* XXX tested before already? */
+	
+	/* only handle static collisions here */
+	if ( collpair->flag & COLLISION_IN_FUTURE )
+		return false;
+	
+	/* velocity */
+	copy_v3_v3(v1, cloth->verts[index].v);
+	collision_get_collider_velocity(v2_old, v2_new, collmd, collpair);
+	/* relative velocity = velocity of the cloth point relative to the collider */
+	sub_v3_v3v3(v_rel_old, v1, v2_old);
+	sub_v3_v3v3(v_rel_new, v1, v2_new);
+	/* normal component of the relative velocity */
+	mag_v_rel = dot_v3v3(v_rel_old, collpair->normal);
+	
+	/* only valid when moving toward the collider */
+	if (mag_v_rel < -ALMOST_ZERO) {
+		float v_nor_old, v_nor_new;
+		float v_tan_old[3], v_tan_new[3];
+		float bounce, repulse;
+		
+		/* Collision response based on
+		 * "Simulating Complex Hair with Robust Collision Handling" (Choe, Choi, Ko, ACM SIGGRAPH 2005)
+		 * http://graphics.snu.ac.kr/publications/2005-choe-HairSim/Choe_2005_SCA.pdf
+		 */
+		
+		v_nor_old = mag_v_rel;
+		v_nor_new = dot_v3v3(v_rel_new, collpair->normal);
+		
+		madd_v3_v3v3fl(v_tan_old, v_rel_old, collpair->normal, -v_nor_old);
+		madd_v3_v3v3fl(v_tan_new, v_rel_new, collpair->normal, -v_nor_new);
+		
+		/* TODO repulsion forces can easily destabilize the system,
+		 * have to clamp them or construct a linear spring instead
+		 */
+//		repulse = -margin_distance / dt + dot_v3v3(v1, collpair->normal);
+		repulse = 0.0f;
+		
+		if (margin_distance < -epsilon2) {
+			bounce = -(v_nor_new + v_nor_old * restitution);
+			mul_v3_v3fl(r_impulse, collpair->normal, max_ff(repulse, bounce));
+		}
+		else {
+			bounce = 0.0f;
+			mul_v3_v3fl(r_impulse, collpair->normal, repulse);
+		}
+		
+		result = true;
+	}
+	
+	return result;
+}
+
 /* Init constraint matrix
  * This is part of the modified CG method suggested by Baraff/Witkin in
  * "Large Steps in Cloth Simulation" (Siggraph 1998)
@@ -2120,8 +2188,9 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 		ColliderContacts *ct = &contacts[i];
 		for (j = 0; j < ct->totcollisions; ++j) {
 			CollPair *collpair = &ct->collisions[j];
+			float restitution = (1.0f - clmd->coll_parms->damping) * (1.0f - ct->ob->pd->pdef_sbdamp);
 			int v = collpair->face1;
-			float cmat[3][3];
+			float cnor[3], cmat[3][3];
 			float impulse[3];
 			
 			/* pinned verts handled separately */
@@ -2129,13 +2198,16 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 				continue;
 			
 			/* calculate collision response */
-			if (!cloth_points_collpair_response(clmd, ct->collmd, ct->ob->pd, collpair, dt, impulse))
+			if (!collision_response(clmd, ct->collmd, collpair, restitution, impulse))
 				continue;
 			
+			vel_world_to_root(impulse, X[v], impulse, &roots[v]);
 			add_v3_v3(z[v], impulse);
 			
 			/* modify S to enforce velocity constraint in normal direction */
-			mul_fvectorT_fvector(cmat, collpair->normal, collpair->normal);
+			copy_v3_v3(cnor, collpair->normal);
+			mul_transposed_m3_v3(roots[v].rot, cnor);
+			mul_fvectorT_fvector(cmat, cnor, cnor);
 			sub_m3_m3m3(S[v].m, I, cmat);
 			
 			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
@@ -2150,17 +2222,6 @@ static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *c
 //				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, collpair->normal, 1, 1, 0, "collision", hash_collpair(941, collpair));
 			}
 		}
-	}
-	
-	/* transform to root space */
-	for (v = 0; v < numverts; v++) {
-		float t[3][3];
-		copy_m3_m3(t, roots[v].rot);
-		transpose_m3(t);
-		mul_m3_m3m3(S[v].m, S[v].m, roots[v].rot);
-		mul_m3_m3m3(S[v].m, t, S[v].m);
-		
-		vel_world_to_root(z[v], X[v], z[v], &roots[v]);
 	}
 }
 
