@@ -1542,8 +1542,11 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	else if (STRPREFIX(opname, "FONT_OT")) {
 		km = WM_keymap_find_all(C, "Font", 0, 0);
 	}
+	/* Paint Face Mask */
+	else if (STRPREFIX(opname, "PAINT_OT_face_select")) {
+		km = WM_keymap_find_all(C, "Face Mask", 0, 0);
+	}
 	else if (STRPREFIX(opname, "PAINT_OT")) {
-		
 		/* check for relevant mode */
 		switch (CTX_data_mode_enum(C)) {
 			case OB_MODE_WEIGHT_PAINT:
@@ -1556,10 +1559,6 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 				km = WM_keymap_find_all(C, "Image Paint", 0, 0);
 				break;
 		}
-	}
-	/* Paint Face Mask */
-	else if (STRPREFIX(opname, "PAINT_OT_face_select")) {
-		km = WM_keymap_find_all(C, "Face Mask", sl->spacetype, 0);
 	}
 	/* Timeline */
 	else if (STRPREFIX(opname, "TIME_OT")) {
