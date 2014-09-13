@@ -681,58 +681,81 @@ typedef struct Implicit_Data  {
 	fmatrix3x3 *P, *Pinv;		/* pre-conditioning matrix */
 } Implicit_Data;
 
-int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
+Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
 {
-	unsigned int i = 0;
-	Cloth *cloth = NULL;
-	ClothVertex *verts = NULL;
-	ClothSpring *spring = NULL;
-	Implicit_Data *id = NULL;
-	LinkNode *search = NULL;
+	Implicit_Data *id = (Implicit_Data *)MEM_callocN(sizeof(Implicit_Data), "implicit vecmat");
+	
+	/* process diagonal elements */
+	id->A = create_bfmatrix(numverts, numsprings);
+	id->dFdV = create_bfmatrix(numverts, numsprings);
+	id->dFdX = create_bfmatrix(numverts, numsprings);
+	id->S = create_bfmatrix(numverts, 0);
+	id->Pinv = create_bfmatrix(numverts, numsprings);
+	id->P = create_bfmatrix(numverts, numsprings);
+	id->bigI = create_bfmatrix(numverts, numsprings); // TODO 0 springs
+	id->M = create_bfmatrix(numverts, numsprings);
+	id->X = create_lfvector(numverts);
+	id->Xnew = create_lfvector(numverts);
+	id->V = create_lfvector(numverts);
+	id->Vnew = create_lfvector(numverts);
+	id->F = create_lfvector(numverts);
+	id->B = create_lfvector(numverts);
+	id->dV = create_lfvector(numverts);
+	id->z = create_lfvector(numverts);
+
+	id->root = MEM_callocN(sizeof(RootTransform) * numverts, "root transforms");
+
+	return id;
+}
+
+void BPH_mass_spring_solver_free(Implicit_Data *id)
+{
+	del_bfmatrix(id->A);
+	del_bfmatrix(id->dFdV);
+	del_bfmatrix(id->dFdX);
+	del_bfmatrix(id->S);
+	del_bfmatrix(id->P);
+	del_bfmatrix(id->Pinv);
+	del_bfmatrix(id->bigI);
+	del_bfmatrix(id->M);
+	
+	del_lfvector(id->X);
+	del_lfvector(id->Xnew);
+	del_lfvector(id->V);
+	del_lfvector(id->Vnew);
+	del_lfvector(id->F);
+	del_lfvector(id->B);
+	del_lfvector(id->dV);
+	del_lfvector(id->z);
+	
+	MEM_freeN(id->root);
+	
+	MEM_freeN(id);
+}
+
+int BPH_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
+{
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts = cloth->verts;
+	Implicit_Data *id;
+	unsigned int i;
+	LinkNode *search;
 	
 	if (G.debug_value > 0)
 		printf("implicit_init\n");
-
-	// init memory guard
-	// BLI_listbase_clear(&MEMORY_BASE);
-
-	cloth = (Cloth *)clmd->clothObject;
-	verts = cloth->verts;
-
-	// create implicit base
-	id = (Implicit_Data *)MEM_callocN(sizeof(Implicit_Data), "implicit vecmat");
-	cloth->implicit = id;
-
-	/* process diagonal elements */
-	id->A = create_bfmatrix(cloth->numverts, cloth->numsprings);
-	id->dFdV = create_bfmatrix(cloth->numverts, cloth->numsprings);
-	id->dFdX = create_bfmatrix(cloth->numverts, cloth->numsprings);
-	id->S = create_bfmatrix(cloth->numverts, 0);
-	id->Pinv = create_bfmatrix(cloth->numverts, cloth->numsprings);
-	id->P = create_bfmatrix(cloth->numverts, cloth->numsprings);
-	id->bigI = create_bfmatrix(cloth->numverts, cloth->numsprings); // TODO 0 springs
-	id->M = create_bfmatrix(cloth->numverts, cloth->numsprings);
-	id->X = create_lfvector(cloth->numverts);
-	id->Xnew = create_lfvector(cloth->numverts);
-	id->V = create_lfvector(cloth->numverts);
-	id->Vnew = create_lfvector(cloth->numverts);
-	id->F = create_lfvector(cloth->numverts);
-	id->B = create_lfvector(cloth->numverts);
-	id->dV = create_lfvector(cloth->numverts);
-	id->z = create_lfvector(cloth->numverts);
-
-	id->root = MEM_callocN(sizeof(RootTransform) * cloth->numverts, "root transforms");
-
+	
+	cloth->implicit = id = BPH_mass_spring_solver_create(cloth->numverts, cloth->numsprings);
+	
 	for (i = 0; i < cloth->numverts; i++) {
 		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
 		
 		initdiag_fmatrixS(id->M[i].m, verts[i].mass);
 	}
-
+	
 	// init springs 
 	search = cloth->springs;
 	for (i = 0; i < cloth->numsprings; i++) {
-		spring = search->link;
+		ClothSpring *spring = search->link;
 		
 		// dFdV_start[i].r = big_I[i].r = big_zero[i].r = 
 		id->A[i+cloth->numverts].r = id->dFdV[i+cloth->numverts].r = id->dFdX[i+cloth->numverts].r = 
@@ -752,45 +775,18 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	for (i = 0; i < cloth->numverts; i++) {
 		copy_v3_v3(id->X[i], verts[i].x);
 	}
-
+	
 	return 1;
 }
 
-int	implicit_free(ClothModifierData *clmd)
+void BPH_cloth_solver_free(ClothModifierData *clmd)
 {
-	Implicit_Data *id;
-	Cloth *cloth;
-	cloth = (Cloth *)clmd->clothObject;
-
-	if (cloth) {
-		id = cloth->implicit;
-
-		if (id) {
-			del_bfmatrix(id->A);
-			del_bfmatrix(id->dFdV);
-			del_bfmatrix(id->dFdX);
-			del_bfmatrix(id->S);
-			del_bfmatrix(id->P);
-			del_bfmatrix(id->Pinv);
-			del_bfmatrix(id->bigI);
-			del_bfmatrix(id->M);
-
-			del_lfvector(id->X);
-			del_lfvector(id->Xnew);
-			del_lfvector(id->V);
-			del_lfvector(id->Vnew);
-			del_lfvector(id->F);
-			del_lfvector(id->B);
-			del_lfvector(id->dV);
-			del_lfvector(id->z);
-
-			MEM_freeN(id->root);
-
-			MEM_freeN(id);
-		}
+	Cloth *cloth = clmd->clothObject;
+	
+	if (cloth->implicit) {
+		BPH_mass_spring_solver_free(cloth->implicit);
+		cloth->implicit = NULL;
 	}
-
-	return 1;
 }
 
 /* ==== Transformation of Moving Reference Frame ====
@@ -2526,7 +2522,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	return 1;
 }
 
-int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
+int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	unsigned int i=0;
 	float step=0.0f, tf=clmd->sim_parms->timescale;
@@ -2718,7 +2714,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	return 1;
 }
 
-void implicit_set_positions(ClothModifierData *clmd)
+void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;

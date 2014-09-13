@@ -56,8 +56,8 @@
 // 254 = MAX!
 static CM_SOLVER_DEF	solvers [] =
 {
-	{ "Implicit", CM_IMPLICIT, implicit_init, implicit_solver, implicit_free },
-		// { "Implicit C++", CM_IMPLICITCPP, implicitcpp_init, implicitcpp_solver, implicitcpp_free },
+	{ "Implicit", CM_IMPLICIT, BPH_cloth_solver_init, BPH_cloth_solve, BPH_cloth_solver_free },
+	// { "Implicit C++", CM_IMPLICITCPP, implicitcpp_init, implicitcpp_solver, implicitcpp_free },
 };
 
 /* ********** cloth engine ******* */
@@ -345,7 +345,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 			return 0;
 		}
 	
-		implicit_set_positions(clmd);
+		BKE_cloth_solver_set_positions(clmd);
 
 		clmd->clothObject->last_frame= MINFRAME-1;
 	}
@@ -528,7 +528,7 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe);
 
 	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
-		implicit_set_positions(clmd);
+		BKE_cloth_solver_set_positions(clmd);
 		cloth_to_object (ob, clmd, vertexCos);
 
 		BKE_ptcache_validate(cache, framenr);
@@ -541,7 +541,7 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 		return;
 	}
 	else if (cache_result==PTCACHE_READ_OLD) {
-		implicit_set_positions(clmd);
+		BKE_cloth_solver_set_positions(clmd);
 	}
 	else if ( /*ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED)) { /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
 		/* if baked and nothing in cache, do nothing */
@@ -938,7 +938,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	}
 	
 	if (!first)
-		implicit_set_positions(clmd);
+		BKE_cloth_solver_set_positions(clmd);
 
 	clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, MAX2(clmd->coll_parms->epsilon, clmd->coll_parms->distance_repel) );
 	

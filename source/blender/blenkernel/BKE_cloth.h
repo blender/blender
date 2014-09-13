@@ -246,9 +246,9 @@ typedef enum {
 typedef struct {
 	const char		*name;
 	CM_SOLVER_ID	id;
-	int	( *init ) (struct Object *ob, struct ClothModifierData *clmd );
-	int	( *solver ) (struct Object *ob, float framenr, struct ClothModifierData *clmd, struct ListBase *effectors );
-	int	( *free ) (struct ClothModifierData *clmd );
+	int ( *init ) (struct Object *ob, struct ClothModifierData *clmd );
+	int ( *solver ) (struct Object *ob, float framenr, struct ClothModifierData *clmd, struct ListBase *effectors );
+	void ( *free ) (struct ClothModifierData *clmd );
 }
 CM_SOLVER_DEF;
 
