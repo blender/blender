@@ -2645,7 +2645,7 @@ bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *
 		}
 
 #ifdef WITH_FREESTYLE
-		if ((scene->r.mode & R_EDGE_FRS) && (!BKE_scene_use_new_shading_nodes(scene))) {
+		if (scene->r.mode & R_EDGE_FRS) {
 			BKE_report(reports, RPT_ERROR, "Panoramic camera not supported in Freestyle");
 			return 0;
 		}
