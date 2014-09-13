@@ -49,7 +49,7 @@ A quick list of helpful things to know before starting:
 
 * Blender uses Python 3.x; some 3rd party extensions are not available yet.
 
-* The interactive console is great for testing one-liners, It also has autocompleation so you can inspect the api quickly.
+* The interactive console is great for testing one-liners, It also has autocompletion so you can inspect the api quickly.
 
 * Button tool tips show Python attributes and operator names.
 
@@ -247,7 +247,8 @@ Examples:
 Operator Poll()
 ^^^^^^^^^^^^^^^
 
-Many operators have a "poll" function which may check that the mouse is a valid area or that the object is in the correct mode (Edit Mode, Weight Paint etc). When an operator's poll function fails within python, an exception is raised.
+Many operators have a "poll" function which may check that the mouse is in a valid area or that the object is in the correct mode (Edit Mode, Weight Paint etc). 
+When an operator's poll function fails within python, an exception is raised.
 
 For example, calling bpy.ops.view3d.render_border() from the console raises the following error:
 
