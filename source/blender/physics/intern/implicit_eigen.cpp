@@ -26,7 +26,7 @@
  */
 
 /** \file blender/blenkernel/intern/implicit_eigen.cpp
- *  \ingroup bke
+ *  \ingroup bph
  */
 
 #include "implicit.h"
@@ -75,6 +75,8 @@ extern "C" {
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+
+#include "BPH_mass_spring.h"
 }
 
 /* ==== hash functions for debugging ==== */

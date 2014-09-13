@@ -380,7 +380,8 @@ static void init_frame_hair(VoxelData *vd, int UNUSED(cfra))
 		ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
 		
 		if (pmd->psys && pmd->psys->clmd) {
-			found |= implicit_hair_volume_get_texture_data(ob, pmd->psys->clmd, NULL, vd);
+			// XXX TODO was moved into own subfolder, figure out how to handle this (perhaps make a wrapper in BKE)
+//			found |= implicit_hair_volume_get_texture_data(ob, pmd->psys->clmd, NULL, vd);
 		}
 	}
 	

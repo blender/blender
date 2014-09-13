@@ -26,7 +26,7 @@
  */
 
 /** \file blender/blenkernel/intern/implicit.c
- *  \ingroup bke
+ *  \ingroup bph
  */
 
 #include "implicit.h"
@@ -49,6 +49,8 @@
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+
+#include "BPH_mass_spring.h"
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic ignored "-Wtype-limits"

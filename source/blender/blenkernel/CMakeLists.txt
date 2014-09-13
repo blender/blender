@@ -36,6 +36,7 @@ set(INC
 	../bmesh
 	../modifiers
 	../nodes
+	../physics
 	../render/extern/include
 	../../../intern/ghost
 	../../../intern/guardedalloc
@@ -47,7 +48,6 @@ set(INC
 	../../../intern/smoke/extern
 	../../../intern/atomic
 	../../../extern/libmv
-	../../../extern/Eigen3
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
@@ -107,10 +107,6 @@ set(SRC
 	intern/idprop.c
 	intern/image.c
 	intern/image_gen.c
-        intern/implicit.h
-        intern/implicit.c
-	intern/implicit_eigen.cpp
-        intern/ConstrainedConjugateGradient.h # XXX move this to a better place
 	intern/ipo.c
 	intern/key.c
 	intern/lamp.c

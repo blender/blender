@@ -25,36 +25,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BKE_IMPLICIT_H__
-#define __BKE_IMPLICIT_H__
+#ifndef __BPH_MASS_SPRING_H__
+#define __BPH_MASS_SPRING_H__
 
-/** \file implicit.h
- *  \ingroup bke
- */
+int implicit_init (struct Object *ob, struct ClothModifierData *clmd );
+int implicit_free (struct ClothModifierData *clmd );
+int implicit_solver (struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
+void implicit_set_positions (struct ClothModifierData *clmd );
 
-#include "stdio.h"
-
-#include "BLI_utildefines.h"
-
-//#define IMPLICIT_SOLVER_EIGEN
-#define IMPLICIT_SOLVER_BLENDER
-
-#define CLOTH_ROOT_FRAME /* enable use of root frame coordinate transform */
-
-#define CLOTH_FORCE_GRAVITY
-#define CLOTH_FORCE_DRAG
-#define CLOTH_FORCE_SPRING_STRUCTURAL
-#define CLOTH_FORCE_SPRING_BEND
-#define CLOTH_FORCE_SPRING_GOAL
-#define CLOTH_FORCE_EFFECTORS
-
-//#define IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
-
-//#define IMPLICIT_ENABLE_EIGEN_DEBUG
-
-BLI_INLINE void implicit_print_matrix_elem(float v)
-{
-    printf("%-8.3f", v);
-}
+bool implicit_hair_volume_get_texture_data(struct Object *UNUSED(ob), struct ClothModifierData *clmd, struct ListBase *UNUSED(effectors), struct VoxelData *vd);
 
 #endif

@@ -47,6 +47,8 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
+#include "BPH_mass_spring.h"
+
 // #include "PIL_time.h"  /* timing for debug prints */
 
 /* Our available solvers. */

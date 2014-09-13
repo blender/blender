@@ -508,6 +508,7 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 		bf_modifiers
 		bf_bmesh
 		bf_blenkernel
+		bf_physics
 		bf_nodes
 		bf_rna
 		bf_gpu
