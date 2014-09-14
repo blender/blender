@@ -1528,227 +1528,6 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *UNUSED(clmd), ClothSp
 	}
 }
 
-
-static void CalcFloat( float *v1, float *v2, float *v3, float *n)
-{
-	float n1[3], n2[3];
-
-	n1[0] = v1[0]-v2[0];
-	n2[0] = v2[0]-v3[0];
-	n1[1] = v1[1]-v2[1];
-	n2[1] = v2[1]-v3[1];
-	n1[2] = v1[2]-v2[2];
-	n2[2] = v2[2]-v3[2];
-	n[0] = n1[1]*n2[2]-n1[2]*n2[1];
-	n[1] = n1[2]*n2[0]-n1[0]*n2[2];
-	n[2] = n1[0]*n2[1]-n1[1]*n2[0];
-}
-
-static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
-{
-	/* real cross! */
-	float n1[3], n2[3];
-
-	n1[0] = v1[0]-v3[0];
-	n1[1] = v1[1]-v3[1];
-	n1[2] = v1[2]-v3[2];
-
-	n2[0] = v2[0]-v4[0];
-	n2[1] = v2[1]-v4[1];
-	n2[2] = v2[2]-v4[2];
-
-	n[0] = n1[1]*n2[2]-n1[2]*n2[1];
-	n[1] = n1[2]*n2[0]-n1[0]*n2[2];
-	n[2] = n1[0]*n2[1]-n1[1]*n2[0];
-}
-
-static float calculateVertexWindForce(const float wind[3], const float vertexnormal[3])
-{
-	return dot_v3v3(wind, vertexnormal);
-}
-
-static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
-{
-	/* Collect forces and derivatives:  F, dFdX, dFdV */
-	Cloth 		*cloth 		= clmd->clothObject;
-	ClothVertex *verts = cloth->verts;
-	RootTransform *roots = cloth->implicit->root;
-	unsigned int i	= 0;
-	float 		drag 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
-	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
-	MFace 		*mfaces 	= cloth->mfaces;
-	unsigned int numverts = cloth->numverts;
-	LinkNode *search;
-	lfVector *winvec;
-	EffectedPoint epoint;
-	
-	/* initialize forces to zero */
-	zero_lfvector(lF, numverts);
-	init_bfmatrix(dFdX, ZERO);
-	init_bfmatrix(dFdV, ZERO);
-
-#ifdef CLOTH_FORCE_GRAVITY
-	/* global acceleration (gravitation) */
-	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
-		copy_v3_v3(gravity, clmd->scene->physics_settings.gravity);
-		mul_fvector_S(gravity, gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity); /* scale gravity force */
-	}
-	/* multiply lF with mass matrix
-	 * force = mass * acceleration (in this case: gravity)
-	 */
-	for (i = 0; i < numverts; i++) {
-		float g[3];
-		acc_world_to_root(g, lX[i], lV[i], gravity, &roots[i]);
-		mul_m3_v3(M[i].m, g);
-		add_v3_v3(lF[i], g);
-	}
-#else
-	zero_lfvector(lF, numverts);
-#endif
-
-	// XXX TODO
-//	hair_volume_forces(clmd, lF, lX, lV, numverts);
-
-#ifdef CLOTH_FORCE_DRAG
-	/* set dFdX jacobi matrix diagonal entries to -spring_air */ 
-	for (i = 0; i < numverts; i++) {
-		dFdV[i].m[0][0] -= drag;
-		dFdV[i].m[1][1] -= drag;
-		dFdV[i].m[2][2] -= drag;
-	}
-	submul_lfvectorS(lF, lV, drag, numverts);
-	for (i = 0; i < numverts; i++) {
-#if 1
-		float tmp[3][3];
-		
-		/* NB: uses root space velocity, no need to transform */
-		madd_v3_v3fl(lF[i], lV[i], -drag);
-		
-		copy_m3_m3(tmp, I);
-		mul_m3_fl(tmp, -drag);
-		add_m3_m3m3(dFdV[i].m, dFdV[i].m, tmp);
-#else
-		float f[3], tmp[3][3], drag_dfdv[3][3], t[3];
-		
-		mul_v3_v3fl(f, lV[i], -drag);
-		force_world_to_root(t, lX[i], lV[i], f, verts[i].mass, &roots[i]);
-		add_v3_v3(lF[i], t);
-		
-		copy_m3_m3(drag_dfdv, I);
-		mul_m3_fl(drag_dfdv, -drag);
-		dfdv_world_to_root(tmp, drag_dfdv, verts[i].mass, &roots[i]);
-		add_m3_m3m3(dFdV[i].m, dFdV[i].m, tmp);
-#endif
-	}
-#endif
-	
-	/* handle external forces like wind */
-	if (effectors) {
-		// 0 = force, 1 = normalized force
-		winvec = create_lfvector(cloth->numverts);
-		
-		if (!winvec)
-			printf("winvec: out of memory in implicit.c\n");
-		
-		// precalculate wind forces
-		for (i = 0; i < cloth->numverts; i++) {
-			pd_point_from_loc(clmd->scene, (float*)lX[i], (float*)lV[i], i, &epoint);
-			pdDoEffectors(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
-		}
-		
-		for (i = 0; i < cloth->numfaces; i++) {
-			float trinormal[3] = {0, 0, 0}; // normalized triangle normal
-			float triunnormal[3] = {0, 0, 0}; // not-normalized-triangle normal
-			float tmp[3] = {0, 0, 0};
-			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
-			factor *= 0.02f;
-			
-			// calculate face normal
-			if (mfaces[i].v4)
-				CalcFloat4(lX[mfaces[i].v1], lX[mfaces[i].v2], lX[mfaces[i].v3], lX[mfaces[i].v4], triunnormal);
-			else
-				CalcFloat(lX[mfaces[i].v1], lX[mfaces[i].v2], lX[mfaces[i].v3], triunnormal);
-
-			normalize_v3_v3(trinormal, triunnormal);
-			
-			// add wind from v1
-			copy_v3_v3(tmp, trinormal);
-			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v1], triunnormal));
-			VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], tmp, factor);
-			
-			// add wind from v2
-			copy_v3_v3(tmp, trinormal);
-			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v2], triunnormal));
-			VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], tmp, factor);
-			
-			// add wind from v3
-			copy_v3_v3(tmp, trinormal);
-			mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v3], triunnormal));
-			VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], tmp, factor);
-			
-			// add wind from v4
-			if (mfaces[i].v4) {
-				copy_v3_v3(tmp, trinormal);
-				mul_v3_fl(tmp, calculateVertexWindForce(winvec[mfaces[i].v4], triunnormal));
-				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], tmp, factor);
-			}
-		}
-
-		/* Hair has only edges */
-		if (cloth->numfaces == 0) {
-			ClothSpring *spring;
-			float edgevec[3] = {0, 0, 0}; //edge vector
-			float edgeunnormal[3] = {0, 0, 0}; // not-normalized-edge normal
-			float tmp[3] = {0, 0, 0};
-			float factor = 0.01;
-
-			search = cloth->springs;
-			while (search) {
-				spring = search->link;
-				
-				if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL) {
-					sub_v3_v3v3(edgevec, (float*)lX[spring->ij], (float*)lX[spring->kl]);
-
-					project_v3_v3v3(tmp, winvec[spring->ij], edgevec);
-					sub_v3_v3v3(edgeunnormal, winvec[spring->ij], tmp);
-					/* hair doesn't stretch too much so we can use restlen pretty safely */
-					VECADDS(lF[spring->ij], lF[spring->ij], edgeunnormal, spring->restlen * factor);
-
-					project_v3_v3v3(tmp, winvec[spring->kl], edgevec);
-					sub_v3_v3v3(edgeunnormal, winvec[spring->kl], tmp);
-					VECADDS(lF[spring->kl], lF[spring->kl], edgeunnormal, spring->restlen * factor);
-				}
-
-				search = search->next;
-			}
-		}
-
-		del_lfvector(winvec);
-	}
-		
-	// calculate spring forces
-	search = cloth->springs;
-	while (search) {
-		// only handle active springs
-		ClothSpring *spring = search->link;
-		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
-
-		search = search->next;
-	}
-	
-	// apply spring forces
-	search = cloth->springs;
-	while (search) {
-		// only handle active springs
-		ClothSpring *spring = search->link;
-		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
-		search = search->next;
-	}
-	// printf("\n");
-}
-
 bool BPH_mass_spring_solve(Implicit_Data *data, float dt)
 {
 	unsigned int numverts = data->dFdV[0].vcount;
@@ -1923,6 +1702,122 @@ void BPH_mass_spring_add_constraint_ndof2(Implicit_Data *data, int index, const 
 	copy_v3_v3(u, dV);
 	mul_transposed_m3_v3(root->rot, u);
 	add_v3_v3(data->z[index], u);
+}
+
+void BPH_mass_spring_force_clear(Implicit_Data *data)
+{
+	int numverts = data->M[0].vcount;
+	zero_lfvector(data->F, numverts);
+	init_bfmatrix(data->dFdX, ZERO);
+	init_bfmatrix(data->dFdV, ZERO);
+}
+
+void BPH_mass_spring_force_gravity(Implicit_Data *data, const float g[3])
+{
+	int i, numverts = data->M[0].vcount;
+	/* multiply F with mass matrix
+	 * force = mass * acceleration (in this case: gravity)
+	 */
+	for (i = 0; i < numverts; i++) {
+		float f[3];
+		acc_world_to_root(f, data->X[i], data->V[i], g, &data->root[i]);
+		mul_m3_v3(data->M[i].m, f);
+		
+		add_v3_v3(data->F[i], f);
+	}
+}
+
+void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)
+{
+	int i, numverts = data->M[0].vcount;
+	for (i = 0; i < numverts; i++) {
+#if 1
+		float tmp[3][3];
+		
+		/* NB: uses root space velocity, no need to transform */
+		madd_v3_v3fl(data->F[i], data->V[i], -drag);
+		
+		copy_m3_m3(tmp, I);
+		mul_m3_fl(tmp, -drag);
+		add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, tmp);
+#else
+		float f[3], tmp[3][3], drag_dfdv[3][3], t[3];
+		
+		mul_v3_v3fl(f, data->V[i], -drag);
+		force_world_to_root(t, data->X[i], data->V[i], f, verts[i].mass, &data->root[i]);
+		add_v3_v3(data->F[i], t);
+		
+		copy_m3_m3(drag_dfdv, I);
+		mul_m3_fl(drag_dfdv, -drag);
+		dfdv_world_to_root(tmp, drag_dfdv, verts[i].mass, &data->root[i]);
+		add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, tmp);
+#endif
+	}
+}
+
+static float calc_nor_area_tri(float nor[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	float n1[3], n2[3];
+	
+	sub_v3_v3v3(n1, v1, v2);
+	sub_v3_v3v3(n2, v2, v3);
+	
+	cross_v3_v3v3(nor, n1, n2);
+	return normalize_v3(nor);
+}
+
+static float calc_nor_area_quad(float nor[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float n1[3], n2[3];
+	
+	sub_v3_v3v3(n1, v1, v3);
+	sub_v3_v3v3(n2, v2, v4);
+	
+	cross_v3_v3v3(nor, n1, n2);
+	return normalize_v3(nor);
+}
+
+/* XXX does not support force jacobians yet, since the effector system does not provide them either */
+void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, int v4, const float (*winvec)[3])
+{
+	const float effector_scale = 0.02f;
+	float nor[3], area;
+	float factor;
+	
+	// calculate face normal and area
+	if (v4) {
+		area = calc_nor_area_quad(nor, data->X[v1], data->X[v2], data->X[v3], data->X[v4]);
+		factor = effector_scale * area * 0.25f;
+	}
+	else {
+		area = calc_nor_area_tri(nor, data->X[v1], data->X[v2], data->X[v3]);
+		factor = effector_scale * area / 3.0f;
+	}
+	
+	madd_v3_v3fl(data->F[v1], nor, factor * dot_v3v3(winvec[v1], nor));
+	madd_v3_v3fl(data->F[v2], nor, factor * dot_v3v3(winvec[v2], nor));
+	madd_v3_v3fl(data->F[v3], nor, factor * dot_v3v3(winvec[v3], nor));
+	if (v4)
+		madd_v3_v3fl(data->F[v4], nor, factor * dot_v3v3(winvec[v4], nor));
+	
+	
+}
+
+void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
+{
+	const float effector_scale = 0.01;
+	const float *win1 = winvec[v1];
+	const float *win2 = winvec[v2];
+	float win_ortho[3], dir[3], length;
+	
+	sub_v3_v3v3(dir, data->X[v1], data->X[v2]);
+	length = normalize_v3(dir);
+	
+	madd_v3_v3v3fl(win_ortho, win1, dir, -dot_v3v3(win1, dir));
+	madd_v3_v3fl(data->F[v1], win_ortho, effector_scale * length);
+	
+	madd_v3_v3v3fl(win_ortho, win2, dir, -dot_v3v3(win2, dir));
+	madd_v3_v3fl(data->F[v2], win_ortho, effector_scale * length);
 }
 
 #endif /* IMPLICIT_SOLVER_BLENDER */

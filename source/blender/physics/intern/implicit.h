@@ -118,6 +118,12 @@ void BPH_mass_spring_add_constraint_ndof2(struct Implicit_Data *data, int index,
 bool BPH_mass_spring_solve(struct Implicit_Data *data, float dt);
 void BPH_mass_spring_apply_result(struct Implicit_Data *data);
 
+void BPH_mass_spring_force_clear(struct Implicit_Data *data);
+void BPH_mass_spring_force_gravity(struct Implicit_Data *data, const float g[3]);
+void BPH_mass_spring_force_drag(struct Implicit_Data *data, float drag);
+void BPH_mass_spring_force_face_wind(struct Implicit_Data *data, int v1, int v2, int v3, int v4, const float (*winvec)[3]);
+void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, const float (*winvec)[3]);
+
 #ifdef __cplusplus
 }
 #endif

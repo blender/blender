@@ -34,6 +34,7 @@ extern "C" {
 
 #include "DNA_cloth_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -319,6 +320,93 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	return 1;
 }
 
+static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
+{
+	/* Collect forces and derivatives:  F, dFdX, dFdV */
+	Cloth *cloth = clmd->clothObject;
+	Implicit_Data *data = cloth->implicit;
+	unsigned int i	= 0;
+	float 		drag 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
+	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
+	MFace 		*mfaces 	= cloth->mfaces;
+	unsigned int numverts = cloth->numverts;
+	
+	/* initialize forces to zero */
+	BPH_mass_spring_force_clear(data);
+	
+#ifdef CLOTH_FORCE_GRAVITY
+	/* global acceleration (gravitation) */
+	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+		/* scale gravity force */
+		mul_v3_v3fl(gravity, clmd->scene->physics_settings.gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity);
+	}
+	BPH_mass_spring_force_gravity(data, gravity);
+#else
+	zero_lfvector(lF, numverts);
+#endif
+
+	// XXX TODO
+//	hair_volume_forces(clmd, lF, lX, lV, numverts);
+
+#ifdef CLOTH_FORCE_DRAG
+	BPH_mass_spring_force_drag(data, drag);
+#endif
+	
+	/* handle external forces like wind */
+	if (effectors) {
+		/* cache per-vertex forces to avoid redundant calculation */
+		float (*winvec)[3] = (float (*)[3])MEM_callocN(sizeof(float) * 3 * numverts, "effector forces");
+		for (i = 0; i < cloth->numverts; i++) {
+			float x[3], v[3];
+			EffectedPoint epoint;
+			
+			BPH_mass_spring_get_motion_state(data, i, x, v);
+			pd_point_from_loc(clmd->scene, x, v, i, &epoint);
+			pdDoEffectors(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
+		}
+		
+		for (i = 0; i < cloth->numfaces; i++) {
+			MFace *mf = &mfaces[i];
+			BPH_mass_spring_force_face_wind(data, mf->v1, mf->v2, mf->v3, mf->v4, winvec);
+		}
+
+		/* Hair has only edges */
+		if (cloth->numfaces == 0) {
+			for (LinkNode *link = cloth->springs; link; link = link->next) {
+				ClothSpring *spring = (ClothSpring *)link->link;
+				if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
+					BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, winvec);
+			}
+		}
+
+		MEM_freeN(winvec);
+	}
+	
+#if 0
+	// calculate spring forces
+	link = cloth->springs;
+	while (link) {
+		// only handle active springs
+		ClothSpring *spring = link->link;
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_calc_spring_force(clmd, link->link, lF, lX, lV, dFdV, dFdX, time);
+
+		link = link->next;
+	}
+	
+	// apply spring forces
+	link = cloth->springs;
+	while (link) {
+		// only handle active springs
+		ClothSpring *spring = link->link;
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_apply_spring_force(clmd, link->link, lF, lX, lV, dFdV, dFdX);
+		link = link->next;
+	}
+	// printf("\n");
+#endif
+}
+
 int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	unsigned int i=0;
@@ -381,7 +469,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 		
 		// calculate forces
-//		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
+		cloth_calc_force(clmd, frame, effectors, step);
 		
 		// calculate new velocity and position
 		BPH_mass_spring_solve(id, dt);
