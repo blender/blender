@@ -79,42 +79,6 @@ extern "C" {
 #include "BPH_mass_spring.h"
 }
 
-/* ==== hash functions for debugging ==== */
-static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
-{
-#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
-
-	unsigned int a, b, c;
-
-	a = b = c = 0xdeadbeef + (2 << 2) + 13;
-	a += kx;
-	b += ky;
-
-	c ^= b; c -= rot(b,14);
-	a ^= c; a -= rot(c,11);
-	b ^= a; b -= rot(a,25);
-	c ^= b; c -= rot(b,16);
-	a ^= c; a -= rot(c,4);
-	b ^= a; b -= rot(a,14);
-	c ^= b; c -= rot(b,24);
-
-	return c;
-
-#undef rot
-}
-
-static int hash_vertex(int type, int vertex)
-{
-	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
-}
-
-static int hash_collpair(int type, CollPair *collpair)
-{
-	return hash_int_2d((unsigned int)type, hash_int_2d((unsigned int)collpair->face1, (unsigned int)collpair->face2));
-}
-/* ================ */
-
-
 typedef float Scalar;
 
 typedef Eigen::SparseMatrix<Scalar> lMatrix;

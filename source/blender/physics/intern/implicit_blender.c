@@ -113,41 +113,6 @@ static double itval(void)
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
-/* ==== hash functions for debugging ==== */
-static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
-{
-#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
-
-	unsigned int a, b, c;
-
-	a = b = c = 0xdeadbeef + (2 << 2) + 13;
-	a += kx;
-	b += ky;
-
-	c ^= b; c -= rot(b,14);
-	a ^= c; a -= rot(c,11);
-	b ^= a; b -= rot(a,25);
-	c ^= b; c -= rot(b,16);
-	a ^= c; a -= rot(c,4);
-	b ^= a; b -= rot(a,14);
-	c ^= b; c -= rot(b,24);
-
-	return c;
-
-#undef rot
-}
-
-static int hash_vertex(int type, int vertex)
-{
-	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
-}
-
-static int hash_collpair(int type, CollPair *collpair)
-{
-	return hash_int_2d((unsigned int)type, hash_int_2d((unsigned int)collpair->face1, (unsigned int)collpair->face2));
-}
-/* ================ */
-
 /*
 #define C99
 #ifdef C99
@@ -2048,148 +2013,6 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 
 /* ================================ */
 
-static bool collision_response(ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, float restitution, float r_impulse[3])
-{
-	Cloth *cloth = clmd->clothObject;
-	int index = collpair->ap1;
-	bool result = false;
-	
-	float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
-	float epsilon2 = BLI_bvhtree_getepsilon(collmd->bvhtree);
-
-	float margin_distance = collpair->distance - epsilon2;
-	float mag_v_rel;
-	
-	zero_v3(r_impulse);
-	
-	if (margin_distance > 0.0f)
-		return false; /* XXX tested before already? */
-	
-	/* only handle static collisions here */
-	if ( collpair->flag & COLLISION_IN_FUTURE )
-		return false;
-	
-	/* velocity */
-	copy_v3_v3(v1, cloth->verts[index].v);
-	collision_get_collider_velocity(v2_old, v2_new, collmd, collpair);
-	/* relative velocity = velocity of the cloth point relative to the collider */
-	sub_v3_v3v3(v_rel_old, v1, v2_old);
-	sub_v3_v3v3(v_rel_new, v1, v2_new);
-	/* normal component of the relative velocity */
-	mag_v_rel = dot_v3v3(v_rel_old, collpair->normal);
-	
-	/* only valid when moving toward the collider */
-	if (mag_v_rel < -ALMOST_ZERO) {
-		float v_nor_old, v_nor_new;
-		float v_tan_old[3], v_tan_new[3];
-		float bounce, repulse;
-		
-		/* Collision response based on
-		 * "Simulating Complex Hair with Robust Collision Handling" (Choe, Choi, Ko, ACM SIGGRAPH 2005)
-		 * http://graphics.snu.ac.kr/publications/2005-choe-HairSim/Choe_2005_SCA.pdf
-		 */
-		
-		v_nor_old = mag_v_rel;
-		v_nor_new = dot_v3v3(v_rel_new, collpair->normal);
-		
-		madd_v3_v3v3fl(v_tan_old, v_rel_old, collpair->normal, -v_nor_old);
-		madd_v3_v3v3fl(v_tan_new, v_rel_new, collpair->normal, -v_nor_new);
-		
-		/* TODO repulsion forces can easily destabilize the system,
-		 * have to clamp them or construct a linear spring instead
-		 */
-//		repulse = -margin_distance / dt + dot_v3v3(v1, collpair->normal);
-		repulse = 0.0f;
-		
-		if (margin_distance < -epsilon2) {
-			bounce = -(v_nor_new + v_nor_old * restitution);
-			mul_v3_v3fl(r_impulse, collpair->normal, max_ff(repulse, bounce));
-		}
-		else {
-			bounce = 0.0f;
-			mul_v3_v3fl(r_impulse, collpair->normal, repulse);
-		}
-		
-		result = true;
-	}
-	
-	return result;
-}
-
-/* Init constraint matrix
- * This is part of the modified CG method suggested by Baraff/Witkin in
- * "Large Steps in Cloth Simulation" (Siggraph 1998)
- */
-static void setup_constraint_matrix(ClothModifierData *clmd, ColliderContacts *contacts, int totcolliders, lfVector *X, lfVector *V, fmatrix3x3 *S, lfVector *z, float dt)
-{
-	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts;
-	int numverts = cloth->numverts;
-	RootTransform *roots = cloth->implicit->root;
-	int i, j, v;
-
-	for (v = 0; v < numverts; v++) {
-		S[v].c = S[v].r = v;
-		if (verts[v].flags & CLOTH_VERT_FLAG_PINNED) {
-			/* pinned vertex constraints */
-			zero_v3(z[v]); /* velocity is defined externally */
-			zero_m3(S[v].m);
-		}
-		else {
-			/* free vertex */
-			zero_v3(z[v]);
-			unit_m3(S[v].m);
-		}
-		
-		verts[v].impulse_count = 0;
-	}
-
-	for (i = 0; i < totcolliders; ++i) {
-		ColliderContacts *ct = &contacts[i];
-		for (j = 0; j < ct->totcollisions; ++j) {
-			CollPair *collpair = &ct->collisions[j];
-//			float restitution = (1.0f - clmd->coll_parms->damping) * (1.0f - ct->ob->pd->pdef_sbdamp);
-			float restitution = 0.0f;
-			int v = collpair->face1;
-			float cnor[3], cmat[3][3];
-			float impulse[3];
-			
-			/* pinned verts handled separately */
-			if (verts[v].flags & CLOTH_VERT_FLAG_PINNED)
-				continue;
-			
-			/* calculate collision response */
-			if (!collision_response(clmd, ct->collmd, collpair, restitution, impulse))
-				continue;
-			
-			vel_world_to_root(impulse, X[v], impulse, &roots[v]);
-			add_v3_v3(z[v], impulse);
-			++verts[v].impulse_count;
-			if (verts[v].impulse_count > 1)
-				continue;
-			
-			/* modify S to enforce velocity constraint in normal direction */
-			copy_v3_v3(cnor, collpair->normal);
-			mul_transposed_m3_v3(roots[v].rot, cnor);
-			mul_fvectorT_fvector(cmat, cnor, cnor);
-			
-			sub_m3_m3m3(S[v].m, I, cmat);
-			
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
-			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
-			
-			{ /* DEBUG */
-//				float nor[3];
-//				mul_v3_v3fl(nor, collpair->normal, collpair->distance);
-//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
-				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, impulse, 1, 1, 0, "collision", hash_collpair(940, collpair));
-//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, collpair->normal, 1, 1, 0, "collision", hash_collpair(941, collpair));
-			}
-		}
-	}
-}
-
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
@@ -2371,37 +2194,47 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	// printf("\n");
 }
 
-static bool simulate_implicit_euler(Implicit_Data *id, float dt)
+bool BPH_mass_spring_solve(Implicit_Data *data, float dt)
 {
-	unsigned int numverts = id->dFdV[0].vcount;
+	unsigned int numverts = data->dFdV[0].vcount;
 	bool ok;
 
 	lfVector *dFdXmV = create_lfvector(numverts);
-	zero_lfvector(id->dV, numverts);
+	zero_lfvector(data->dV, numverts);
 
-	cp_bfmatrix(id->A, id->M);
+	cp_bfmatrix(data->A, data->M);
 
-	subadd_bfmatrixS_bfmatrixS(id->A, id->dFdV, dt, id->dFdX, (dt*dt));
+	subadd_bfmatrixS_bfmatrixS(data->A, data->dFdV, dt, data->dFdX, (dt*dt));
 
-	mul_bfmatrix_lfvector(dFdXmV, id->dFdX, id->V);
+	mul_bfmatrix_lfvector(dFdXmV, data->dFdX, data->V);
 
-	add_lfvectorS_lfvectorS(id->B, id->F, dt, dFdXmV, (dt*dt), numverts);
+	add_lfvectorS_lfvectorS(data->B, data->F, dt, dFdXmV, (dt*dt), numverts);
 
 	// itstart();
 
-	ok = cg_filtered(id->dV, id->A, id->B, id->z, id->S); /* conjugate gradient algorithm to solve Ax=b */
+	ok = cg_filtered(data->dV, data->A, data->B, data->z, data->S); /* conjugate gradient algorithm to solve Ax=b */
 	// cg_filtered_pre(id->dV, id->A, id->B, id->z, id->S, id->P, id->Pinv, id->bigI);
 
 	// itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
 
 	// advance velocities
-	add_lfvector_lfvector(id->Vnew, id->V, id->dV, numverts);
+	add_lfvector_lfvector(data->Vnew, data->V, data->dV, numverts);
+	// advance positions
+	add_lfvector_lfvectorS(data->Xnew, data->X, data->Vnew, dt, numverts);
 
 	del_lfvector(dFdXmV);
 	
 	return ok;
 }
+
+void BPH_mass_spring_apply_result(Implicit_Data *data)
+{
+	int numverts = data->M[0].vcount;
+	cp_lfvector(data->X, data->Xnew, numverts);
+	cp_lfvector(data->V, data->Vnew, numverts);
+}
+
 
 /* computes where the cloth would be if it were subject to perfectly stiff edges
  * (edge distance constraints) in a lagrangian solver.  then add forces to help
@@ -2482,198 +2315,6 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	return 1;
 }
 
-int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
-{
-	unsigned int i=0;
-	float step=0.0f, tf=clmd->sim_parms->timescale;
-	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts/*, *cv*/;
-	unsigned int numverts = cloth->numverts;
-	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
-	float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
-	/*float (*initial_cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "initial_cos implicit.c");*/ /* UNUSED */
-	Implicit_Data *id = cloth->implicit;
-	ColliderContacts *contacts = NULL;
-	int totcolliders = 0;
-	
-	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
-	
-	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
-		for (i = 0; i < numverts; i++) {
-			// update velocities with constrained velocities from pinned verts
-			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
-				float v[3];
-				sub_v3_v3v3(v, verts[i].xconst, verts[i].xold);
-				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
-				vel_world_to_root(id->V[i], id->X[i], v, &id->root[i]);
-			}
-		}
-	}
-	
-	if (clmd->debug_data) {
-		for (i = 0; i < numverts; i++) {
-			BKE_sim_debug_data_add_dot(clmd->debug_data, verts[i].x, 1.0f, 0.1f, 1.0f, "points", hash_vertex(583, i));
-		}
-	}
-	
-	while (step < tf) {
-		
-		/* copy velocities for collision */
-		for (i = 0; i < numverts; i++) {
-			vel_root_to_world(verts[i].tv, id->X[i], id->V[i], &id->root[i]);
-			copy_v3_v3(verts[i].v, verts[i].tv);
-		}
-		
-		/* determine contact points */
-		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
-			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_POINTS) {
-				cloth_find_point_contacts(ob, clmd, 0.0f, tf, &contacts, &totcolliders);
-			}
-		}
-		
-		/* setup vertex constraints for pinned vertices and contacts */
-		setup_constraint_matrix(clmd, contacts, totcolliders, id->X, id->V, id->S, id->z, dt);
-		
-		// damping velocity for artistic reasons
-		mul_lfvectorS(id->V, id->V, clmd->sim_parms->vel_damping, numverts);
-		
-		// calculate forces
-		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
-		
-		// calculate new velocity
-		simulate_implicit_euler(id, dt);
-		
-		// advance positions
-		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
-		
-		/* move pinned verts to correct position */
-		for (i = 0; i < numverts; i++) {
-			if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) {
-				if (verts[i].flags & CLOTH_VERT_FLAG_PINNED) {
-					float x[3];
-					interp_v3_v3v3(x, verts[i].xold, verts[i].xconst, step + dt);
-					loc_world_to_root(id->Xnew[i], x, &id->root[i]);
-				}
-			}
-			
-			loc_root_to_world(verts[i].txold, id->X[i], &id->root[i]);
-			
-			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0) {
-				BKE_sim_debug_data_add_line(clmd->debug_data, id->X[i], id->X[i-1], 0.6, 0.3, 0.3, "hair", hash_vertex(4892, i));
-				BKE_sim_debug_data_add_line(clmd->debug_data, id->Xnew[i], id->Xnew[i-1], 1, 0.5, 0.5, "hair", hash_vertex(4893, i));
-			}
-			BKE_sim_debug_data_add_vector(clmd->debug_data, id->X[i], id->V[i], 0, 0, 1, "velocity", hash_vertex(3158, i));
-		}
-		
-		/* free contact points */
-		if (contacts) {
-			cloth_free_contacts(contacts, totcolliders);
-		}
-
-#if 0
-		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
-			bool do_extra_solve = false;
-			
-			// collisions 
-			// itstart();
-			
-			// update verts to current positions
-			for (i = 0; i < numverts; i++) {
-				copy_v3_v3(verts[i].tx, id->Xnew[i]);
-				
-				sub_v3_v3v3(verts[i].tv, verts[i].tx, verts[i].txold);
-				copy_v3_v3(verts[i].v, verts[i].tv);
-			}
-			
-			/* unused */
-			/*for (i=0, cv=cloth->verts; i<cloth->numverts; i++, cv++) {
-				copy_v3_v3(initial_cos[i], cv->tx);
-			}*/
-			
-			if (clmd->clothObject->bvhtree) {
-				// call collision function
-				// TODO: check if "step" or "step+dt" is correct - dg
-				do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
-			}
-			else if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_POINTS) {
-				do_extra_solve = cloth_points_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
-			}
-			
-			// copy corrected positions back to simulation
-			for (i = 0; i < numverts; i++) {
-				// correct velocity again, just to be sure we had to change it due to adaptive collisions
-				sub_v3_v3v3(verts[i].tv, verts[i].tx, id->X[i]);
-			}
-			
-			/* unused */
-			/*if (do_extra_solve)
-				cloth_calc_helper_forces(ob, clmd, initial_cos, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);*/
-			
-			if (do_extra_solve) {
-				for (i = 0; i < numverts; i++) {				
-					if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED))
-						continue;
-					
-					copy_v3_v3(id->Xnew[i], verts[i].tx);
-					copy_v3_v3(id->Vnew[i], verts[i].tv);
-					mul_v3_fl(id->Vnew[i], spf);
-				}
-			}
-			
-			// X = Xnew;
-			cp_lfvector(id->X, id->Xnew, numverts);
-			
-			// if there were collisions, advance the velocity from v_n+1/2 to v_n+1
-			
-			if (do_extra_solve) {
-				// V = Vnew;
-				cp_lfvector(id->V, id->Vnew, numverts);
-				
-				// calculate 
-				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);
-				
-				simulate_implicit_euler(id, dt / 2.0f);
-			}
-		}
-		else {
-			// X = Xnew;
-			cp_lfvector(id->X, id->Xnew, numverts);
-		}
-		
-		// itend();
-		// printf("collision time: %f\n", (float)itval());
-#else
-		// X = Xnew;
-		cp_lfvector(id->X, id->Xnew, numverts);
-#endif
-		
-		// V = Vnew;
-		cp_lfvector(id->V, id->Vnew, numverts);
-		
-		step += dt;
-	}
-	
-	for (i = 0; i < numverts; i++) {
-		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED)) {
-			copy_v3_v3(verts[i].txold, verts[i].xconst); // TODO: test --> should be .x
-			copy_v3_v3(verts[i].x, verts[i].xconst);
-			
-			vel_root_to_world(verts[i].v, id->X[i], id->V[i], &id->root[i]);
-		}
-		else {
-			loc_root_to_world(verts[i].txold, id->X[i], &id->root[i]);
-			copy_v3_v3(verts[i].x, verts[i].txold);
-			
-			vel_root_to_world(verts[i].v, id->X[i], id->V[i], &id->root[i]);
-		}
-	}
-	
-	/* unused */
-	/*MEM_freeN(initial_cos);*/
-	
-	return 1;
-}
-
 void BPH_mass_spring_set_root_motion(Implicit_Data *data, int index, const float loc[3], const float vel[3], float rot[3][3], const float angvel[3])
 {
 	RootTransform *root = &data->root[index];
@@ -2703,9 +2344,27 @@ void BPH_mass_spring_set_root_motion(Implicit_Data *data, int index, const float
 void BPH_mass_spring_set_motion_state(Implicit_Data *data, int index, const float x[3], const float v[3])
 {
 	RootTransform *root = &data->root[index];
-	
 	loc_world_to_root(data->X[index], x, root);
 	vel_world_to_root(data->V[index], data->X[index], v, root);
+}
+
+void BPH_mass_spring_set_position(Implicit_Data *data, int index, const float x[3])
+{
+	RootTransform *root = &data->root[index];
+	loc_world_to_root(data->X[index], x, root);
+}
+
+void BPH_mass_spring_set_velocity(Implicit_Data *data, int index, const float v[3])
+{
+	RootTransform *root = &data->root[index];
+	vel_world_to_root(data->V[index], data->X[index], v, root);
+}
+
+void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, float x[3], float v[3])
+{
+	RootTransform *root = &data->root[index];
+	if (x) loc_root_to_world(x, data->X[index], root);
+	if (v) vel_root_to_world(v, data->X[index], data->V[index], root);
 }
 
 void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
@@ -2728,6 +2387,67 @@ int BPH_mass_spring_init_spring(Implicit_Data *data, int index, int v1, int v2)
 	init_fmatrix(data->Pinv + s, v1, v2);
 	
 	return s;
+}
+
+void BPH_mass_spring_clear_constraints(Implicit_Data *data)
+{
+	int i, numverts = data->S[0].vcount;
+	for (i = 0; i < numverts; ++i) {
+		unit_m3(data->S[i].m);
+		zero_v3(data->z[i]);
+	}
+}
+
+void BPH_mass_spring_add_constraint_ndof0(Implicit_Data *data, int index, const float dV[3])
+{
+	RootTransform *root = &data->root[index];
+	
+	zero_m3(data->S[index].m);
+	
+	copy_v3_v3(data->z[index], dV);
+	mul_transposed_m3_v3(root->rot, data->z[index]);
+}
+
+void BPH_mass_spring_add_constraint_ndof1(Implicit_Data *data, int index, const float c1[3], const float c2[3], const float dV[3])
+{
+	RootTransform *root = &data->root[index];
+	float m[3][3], p[3], q[3], u[3], cmat[3][3];
+	
+	copy_v3_v3(p, c1);
+	mul_transposed_m3_v3(root->rot, p);
+	mul_fvectorT_fvector(cmat, p, p);
+	sub_m3_m3m3(m, I, cmat);
+	
+	copy_v3_v3(q, c2);
+	mul_transposed_m3_v3(root->rot, q);
+	mul_fvectorT_fvector(cmat, q, q);
+	sub_m3_m3m3(m, m, cmat);
+	
+	/* XXX not sure but multiplication should work here */
+	copy_m3_m3(data->S[index].m, m);
+//	mul_m3_m3m3(data->S[index].m, data->S[index].m, m);
+	
+	copy_v3_v3(u, dV);
+	mul_transposed_m3_v3(root->rot, u);
+	add_v3_v3(data->z[index], u);
+}
+
+void BPH_mass_spring_add_constraint_ndof2(Implicit_Data *data, int index, const float c1[3], const float dV[3])
+{
+	RootTransform *root = &data->root[index];
+	float m[3][3], p[3], u[3], cmat[3][3];
+	
+	copy_v3_v3(p, c1);
+	mul_transposed_m3_v3(root->rot, p);
+	mul_fvectorT_fvector(cmat, p, p);
+	sub_m3_m3m3(m, I, cmat);
+	
+	copy_m3_m3(data->S[index].m, m);
+//	mul_m3_m3m3(data->S[index].m, data->S[index].m, m);
+	
+	copy_v3_v3(u, dV);
+	mul_transposed_m3_v3(root->rot, u);
+	add_v3_v3(data->z[index], u);
 }
 
 #endif /* IMPLICIT_SOLVER_BLENDER */
