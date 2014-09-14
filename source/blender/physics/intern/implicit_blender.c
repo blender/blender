@@ -549,13 +549,27 @@ static void print_bfmatrix(fmatrix3x3 *m3)
 }
 #endif
 
+BLI_INLINE void init_fmatrix(fmatrix3x3 *matrix, int r, int c)
+{
+	matrix->r = r;
+	matrix->c = c;
+}
+
 /* create big matrix */
 DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 {
 	// TODO: check if memory allocation was successful */
 	fmatrix3x3 *temp = (fmatrix3x3 *)MEM_callocN(sizeof(fmatrix3x3) * (verts + springs), "cloth_implicit_alloc_matrix");
+	int i;
+	
 	temp[0].vcount = verts;
 	temp[0].scount = springs;
+	
+	/* vertex part of the matrix is diagonal blocks */
+	for (i = 0; i < verts; ++i) {
+		init_fmatrix(temp + i, i, i);
+	}
+	
 	return temp;
 }
 /* delete big matrix */
@@ -705,6 +719,8 @@ Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
 
 	id->root = MEM_callocN(sizeof(RootTransform) * numverts, "root transforms");
 
+	initdiag_bfmatrix(id->bigI, I);
+
 	return id;
 }
 
@@ -731,62 +747,6 @@ void BPH_mass_spring_solver_free(Implicit_Data *id)
 	MEM_freeN(id->root);
 	
 	MEM_freeN(id);
-}
-
-int BPH_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
-{
-	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts;
-	Implicit_Data *id;
-	unsigned int i;
-	LinkNode *search;
-	
-	if (G.debug_value > 0)
-		printf("implicit_init\n");
-	
-	cloth->implicit = id = BPH_mass_spring_solver_create(cloth->numverts, cloth->numsprings);
-	
-	for (i = 0; i < cloth->numverts; i++) {
-		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
-		
-		initdiag_fmatrixS(id->M[i].m, verts[i].mass);
-	}
-	
-	// init springs 
-	search = cloth->springs;
-	for (i = 0; i < cloth->numsprings; i++) {
-		ClothSpring *spring = search->link;
-		
-		// dFdV_start[i].r = big_I[i].r = big_zero[i].r = 
-		id->A[i+cloth->numverts].r = id->dFdV[i+cloth->numverts].r = id->dFdX[i+cloth->numverts].r = 
-				id->P[i+cloth->numverts].r = id->Pinv[i+cloth->numverts].r = id->bigI[i+cloth->numverts].r = id->M[i+cloth->numverts].r = spring->ij;
-
-		// dFdV_start[i].c = big_I[i].c = big_zero[i].c = 
-		id->A[i+cloth->numverts].c = id->dFdV[i+cloth->numverts].c = id->dFdX[i+cloth->numverts].c = 
-				id->P[i+cloth->numverts].c = id->Pinv[i+cloth->numverts].c = id->bigI[i+cloth->numverts].c = id->M[i+cloth->numverts].c = spring->kl;
-
-		spring->matrix_index = i + cloth->numverts;
-		
-		search = search->next;
-	}
-	
-	initdiag_bfmatrix(id->bigI, I);
-
-	for (i = 0; i < cloth->numverts; i++) {
-		copy_v3_v3(id->X[i], verts[i].x);
-	}
-	
-	return 1;
-}
-
-void BPH_cloth_solver_free(ClothModifierData *clmd)
-{
-	Cloth *cloth = clmd->clothObject;
-	
-	if (cloth->implicit) {
-		BPH_mass_spring_solver_free(cloth->implicit);
-		cloth->implicit = NULL;
-	}
 }
 
 /* ==== Transformation of Moving Reference Frame ====
@@ -2746,6 +2706,28 @@ void BPH_mass_spring_set_motion_state(Implicit_Data *data, int index, const floa
 	
 	loc_world_to_root(data->X[index], x, root);
 	vel_world_to_root(data->V[index], data->X[index], v, root);
+}
+
+void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
+{
+	unit_m3(data->M[index].m);
+	mul_m3_fl(data->M[index].m, mass);
+}
+
+int BPH_mass_spring_init_spring(Implicit_Data *data, int index, int v1, int v2)
+{
+	int s = data->M[0].vcount + index; /* index from array start */
+	
+	init_fmatrix(data->bigI + s, v1, v2);
+	init_fmatrix(data->M + s, v1, v2);
+	init_fmatrix(data->dFdX + s, v1, v2);
+	init_fmatrix(data->dFdV + s, v1, v2);
+	init_fmatrix(data->A + s, v1, v2);
+//	init_fmatrix(data->S + s, v1, v2); // has no off-diagonal spring entries
+	init_fmatrix(data->P + s, v1, v2);
+	init_fmatrix(data->Pinv + s, v1, v2);
+	
+	return s;
 }
 
 #endif /* IMPLICIT_SOLVER_BLENDER */

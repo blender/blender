@@ -43,6 +43,45 @@
 #include "BPH_mass_spring.h"
 #include "implicit.h"
 
+int BPH_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
+{
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts = cloth->verts;
+	const float ZERO[3] = {0.0f, 0.0f, 0.0f};
+	Implicit_Data *id;
+	unsigned int i;
+	
+	cloth->implicit = id = BPH_mass_spring_solver_create(cloth->numverts, cloth->numsprings);
+	
+	for (i = 0; i < cloth->numverts; i++) {
+		BPH_mass_spring_set_vertex_mass(id, i, verts[i].mass);
+	}
+	
+	// init springs 
+	LinkNode *link = cloth->springs;
+	for (i = 0; link; link = link->next, ++i) {
+		ClothSpring *spring = (ClothSpring *)link->link;
+		
+		spring->matrix_index = BPH_mass_spring_init_spring(id, i, spring->ij, spring->kl);
+	}
+	
+	for (i = 0; i < cloth->numverts; i++) {
+		BPH_mass_spring_set_motion_state(id, i, verts[i].x, ZERO);
+	}
+	
+	return 1;
+}
+
+void BPH_cloth_solver_free(ClothModifierData *clmd)
+{
+	Cloth *cloth = clmd->clothObject;
+	
+	if (cloth->implicit) {
+		BPH_mass_spring_solver_free(cloth->implicit);
+		cloth->implicit = NULL;
+	}
+}
+
 void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 {
 	Cloth *cloth = clmd->clothObject;

@@ -65,6 +65,8 @@ BLI_INLINE void implicit_print_matrix_elem(float v)
 
 void BPH_mass_spring_set_root_motion(struct Implicit_Data *data, int index, const float loc[3], const float vel[3], float rot[3][3], const float angvel[3]);
 void BPH_mass_spring_set_motion_state(struct Implicit_Data *data, int index, const float x[3], const float v[3]);
+void BPH_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
+int BPH_mass_spring_init_spring(struct Implicit_Data *data, int index, int v1, int v2);
 
 #ifdef __cplusplus
 }
