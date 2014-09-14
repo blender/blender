@@ -2714,29 +2714,38 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	return 1;
 }
 
-void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
+void BPH_mass_spring_set_root_motion(Implicit_Data *data, int index, const float loc[3], const float vel[3], float rot[3][3], const float angvel[3])
 {
-	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts;
-	unsigned int numverts = cloth->numverts, i;
-	ClothHairRoot *cloth_roots = clmd->roots;
-	Implicit_Data *id = cloth->implicit;
+	RootTransform *root = &data->root[index];
 	
-	for (i = 0; i < numverts; i++) {
 #ifdef CLOTH_ROOT_FRAME
-		copy_v3_v3(id->root[i].loc, cloth_roots[i].loc);
-		copy_m3_m3(id->root[i].rot, cloth_roots[i].rot);
+	copy_v3_v3(root->loc, loc);
+	copy_v3_v3(root->vel, vel);
+	copy_m3_m3(root->rot, rot);
+	copy_v3_v3(root->omega, angvel);
+	/* XXX root frame acceleration ignored for now */
+	zero_v3(root->acc);
+	zero_v3(root->domega_dt);
 #else
-		zero_v3(id->root[i].loc);
-		unit_m3(id->root[i].rot);
-		(void)cloth_roots;
+	zero_v3(root->loc);
+	zero_v3(root->vel);
+	unit_m3(root->rot);
+	zero_v3(root->omega);
+	zero_v3(root->acc);
+	zero_v3(root->domega_dt);
+	(void)loc;
+	(void)vel;
+	(void)rot;
+	(void)angvel;
 #endif
-		
-		loc_world_to_root(id->X[i], verts[i].x, &id->root[i]);
-		vel_world_to_root(id->V[i], id->X[i], verts[i].v, &id->root[i]);
-	}
-	if (G.debug_value > 0)
-		printf("implicit_set_positions\n");
+}
+
+void BPH_mass_spring_set_motion_state(Implicit_Data *data, int index, const float x[3], const float v[3])
+{
+	RootTransform *root = &data->root[index];
+	
+	loc_world_to_root(data->X[index], x, root);
+	vel_world_to_root(data->V[index], data->X[index], v, root);
 }
 
 #endif /* IMPLICIT_SOLVER_BLENDER */

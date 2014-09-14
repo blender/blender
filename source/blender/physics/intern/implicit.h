@@ -36,6 +36,10 @@
 
 #include "BLI_utildefines.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //#define IMPLICIT_SOLVER_EIGEN
 #define IMPLICIT_SOLVER_BLENDER
 
@@ -52,9 +56,18 @@
 
 //#define IMPLICIT_ENABLE_EIGEN_DEBUG
 
+struct Implicit_Data;
+
 BLI_INLINE void implicit_print_matrix_elem(float v)
 {
     printf("%-8.3f", v);
 }
+
+void BPH_mass_spring_set_root_motion(struct Implicit_Data *data, int index, const float loc[3], const float vel[3], float rot[3][3], const float angvel[3]);
+void BPH_mass_spring_set_motion_state(struct Implicit_Data *data, int index, const float x[3], const float v[3]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
