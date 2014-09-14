@@ -661,12 +661,12 @@ static PolyIndex *pf_ear_tip_find(
 
 static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 {
-	/* localize */
-	PolyIndex *pi_curr;
-	const float (*coords)[2] = pf->coords;
-
 #ifndef USE_KDTREE
 	const float *v1, *v2, *v3;
+#else
+	/* localize */
+	const float (*coords)[2] = pf->coords;
+	PolyIndex *pi_curr;
 #endif
 
 #if defined(USE_CONVEX_SKIP) && !defined(USE_KDTREE)
@@ -711,8 +711,6 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 			return false;
 		}
 	}
-	(void)pi_curr;
-	(void)coords;
 #else
 
 	v1 = coords[pi_ear_tip->prev->index];

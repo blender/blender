@@ -1967,7 +1967,7 @@ static int ui_text_position_from_hidden(uiBut *but, int pos)
 
 static int ui_text_position_to_hidden(uiBut *but, int pos)
 {
-	const char *butstr = butstr = (but->editstr) ? but->editstr : but->drawstr;
+	const char *butstr = (but->editstr) ? but->editstr : but->drawstr;
 	return BLI_strnlen_utf8(butstr, pos);
 }
 

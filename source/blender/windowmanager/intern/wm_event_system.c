@@ -1557,7 +1557,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot = op->type;
 
 		if (!wm_operator_check_locked_interface(C, ot)) {
-			/* Interface is locked and pperator is not allowed to run,
+			/* Interface is locked and operator is not allowed to run,
 			 * nothing to do in this case.
 			 */
 		}
