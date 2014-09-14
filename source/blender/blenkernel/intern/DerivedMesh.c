@@ -2607,7 +2607,7 @@ void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int 
 
 	if (dm->foreachMappedVert) {
 		MappedUserData userData;
-		memset(r_cos, 0, sizeof(r_cos) * totcos);
+		memset(r_cos, 0, sizeof(*r_cos) * totcos);
 		userData.vertexcos = r_cos;
 		userData.vertex_visit = BLI_BITMAP_NEW(totcos, "vertexcos flags");
 		dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData, DM_FOREACH_NOP);
