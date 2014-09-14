@@ -546,7 +546,8 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
 	 * should already make the brush move the vertices only 50%, which means
 	 * that topology updates will also happen less frequent, that should be
 	 * enough. */
-	if ((check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2)) &&
+	if (((eq_ctx->cd_vert_mask_offset == -1) ||
+	     (check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2))) &&
 	    !(BM_elem_flag_test_bool(e->v1, BM_ELEM_HIDDEN) ||
 	      BM_elem_flag_test_bool(e->v2, BM_ELEM_HIDDEN)))
 	{
