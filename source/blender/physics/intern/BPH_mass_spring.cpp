@@ -30,6 +30,8 @@
  */
 
 extern "C" {
+#include "MEM_guardedalloc.h"
+
 #include "DNA_cloth_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -236,6 +238,85 @@ static void cloth_setup_constraints(ClothModifierData *clmd, ColliderContacts *c
 			}
 		}
 	}
+}
+
+/* computes where the cloth would be if it were subject to perfectly stiff edges
+ * (edge distance constraints) in a lagrangian solver.  then add forces to help
+ * guide the implicit solver to that state.  this function is called after
+ * collisions*/
+static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothModifierData *clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
+{
+	Cloth *cloth= clmd->clothObject;
+	float (*cos)[3] = (float (*)[3])MEM_callocN(sizeof(float)*3*cloth->numverts, "cos cloth_calc_helper_forces");
+	float *masses = (float *)MEM_callocN(sizeof(float)*cloth->numverts, "cos cloth_calc_helper_forces");
+	LinkNode *node;
+	ClothSpring *spring;
+	ClothVertex *cv;
+	int i, steps;
+	
+	cv = cloth->verts;
+	for (i=0; i<cloth->numverts; i++, cv++) {
+		copy_v3_v3(cos[i], cv->tx);
+		
+		if (cv->goal == 1.0f || len_squared_v3v3(initial_cos[i], cv->tx) != 0.0f) {
+			masses[i] = 1e+10;
+		}
+		else {
+			masses[i] = cv->mass;
+		}
+	}
+	
+	steps = 55;
+	for (i=0; i<steps; i++) {
+		for (node=cloth->springs; node; node=node->next) {
+			/* ClothVertex *cv1, *cv2; */ /* UNUSED */
+			int v1, v2;
+			float len, c, l, vec[3];
+			
+			spring = (ClothSpring *)node->link;
+			if (spring->type != CLOTH_SPRING_TYPE_STRUCTURAL && spring->type != CLOTH_SPRING_TYPE_SHEAR) 
+				continue;
+			
+			v1 = spring->ij; v2 = spring->kl;
+			/* cv1 = cloth->verts + v1; */ /* UNUSED */
+			/* cv2 = cloth->verts + v2; */ /* UNUSED */
+			len = len_v3v3(cos[v1], cos[v2]);
+			
+			sub_v3_v3v3(vec, cos[v1], cos[v2]);
+			normalize_v3(vec);
+			
+			c = (len - spring->restlen);
+			if (c == 0.0f)
+				continue;
+			
+			l = c / ((1.0f / masses[v1]) + (1.0f / masses[v2]));
+			
+			mul_v3_fl(vec, -(1.0f / masses[v1]) * l);
+			add_v3_v3(cos[v1], vec);
+	
+			sub_v3_v3v3(vec, cos[v2], cos[v1]);
+			normalize_v3(vec);
+			
+			mul_v3_fl(vec, -(1.0f / masses[v2]) * l);
+			add_v3_v3(cos[v2], vec);
+		}
+	}
+	
+	cv = cloth->verts;
+	for (i=0; i<cloth->numverts; i++, cv++) {
+		float vec[3];
+		
+		/*compute forces*/
+		sub_v3_v3v3(vec, cos[i], cv->tx);
+		mul_v3_fl(vec, cv->mass*dt*20.0f);
+		add_v3_v3(cv->tv, vec);
+		//copy_v3_v3(cv->tx, cos[i]);
+	}
+	
+	MEM_freeN(cos);
+	MEM_freeN(masses);
+	
+	return 1;
 }
 
 int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
