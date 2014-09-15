@@ -1418,10 +1418,12 @@ ccl_device bool map_to_sphere(float *r_u, float *r_v,
                               const float x, const float y, const float z)
 {
 	float len = sqrtf(x * x + y * y + z * z);
-	if (len > 0.0f) {
-		if (x == 0.0f && y == 0.0f) *r_u = 0.0f;  /* othwise domain error */
-		else *r_u = (1.0f - atan2f(x, y) / (float)M_PI) / 2.0f;
-		*r_v = 1.0f - safe_acosf(z / len) / (float)M_PI;
+	if(len > 0.0f) {
+		if(x == 0.0f && y == 0.0f)
+			*r_u = 0.0f;  /* othwise domain error */
+		else
+			*r_u = (1.0f - atan2f(x, y) / M_PI_F) / 2.0f;
+		*r_v = 1.0f - safe_acosf(z / len) / M_PI_F;
 		return true;
 	}
 	else {
