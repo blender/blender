@@ -407,8 +407,6 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 		mul_v3_v3fl(gravity, clmd->scene->physics_settings.gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity);
 	}
 	BPH_mass_spring_force_gravity(data, gravity);
-#else
-	zero_lfvector(lF, numverts);
 #endif
 
 	// XXX TODO
