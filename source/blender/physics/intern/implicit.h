@@ -118,17 +118,27 @@ void BPH_mass_spring_add_constraint_ndof2(struct Implicit_Data *data, int index,
 bool BPH_mass_spring_solve(struct Implicit_Data *data, float dt);
 void BPH_mass_spring_apply_result(struct Implicit_Data *data);
 
+/* Clear the force vector at the beginning of the time step */
 void BPH_mass_spring_force_clear(struct Implicit_Data *data);
+/* Fictitious forces introduced by moving coordinate systems */
+void BPH_mass_spring_force_reference_frame(struct Implicit_Data *data, int index);
+/* Simple uniform gravity force */
 void BPH_mass_spring_force_gravity(struct Implicit_Data *data, const float g[3]);
+/* Global drag force (velocity damping) */
 void BPH_mass_spring_force_drag(struct Implicit_Data *data, float drag);
+/* Wind force, acting on a face */
 void BPH_mass_spring_force_face_wind(struct Implicit_Data *data, int v1, int v2, int v3, int v4, const float (*winvec)[3]);
+/* Wind force, acting on an edge */
 void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, const float (*winvec)[3]);
+/* Linear spring force between two points */
 bool BPH_mass_spring_force_spring_linear(struct Implicit_Data *data, int i, int j, int spring_index, float restlen,
                                          float stiffness, float damping, bool no_compress, float clamp_force,
                                          float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);
+/* Bending force, forming a triangle at the base of two structural springs */
 bool BPH_mass_spring_force_spring_bending(struct Implicit_Data *data, int i, int j, int spring_index, float restlen,
                                           float kb, float cb,
                                           float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);
+/* Global goal spring */
 bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, int spring_index, const float goal_x[3], const float goal_v[3],
                                        float stiffness, float damping,
                                        float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);

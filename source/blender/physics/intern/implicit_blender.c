@@ -503,6 +503,20 @@ BLI_INLINE void outerproduct(float r[3][3], const float a[3], const float b[3])
 	mul_v3_v3fl(r[1], a, b[1]);
 	mul_v3_v3fl(r[2], a, b[2]);
 }
+
+BLI_INLINE void cross_m3_v3m3(float r[3][3], const float v[3], float m[3][3])
+{
+	cross_v3_v3v3(r[0], v, m[0]);
+	cross_v3_v3v3(r[1], v, m[1]);
+	cross_v3_v3v3(r[2], v, m[2]);
+}
+
+BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
+{
+	r[0][0] = 0.0f;		r[1][0] = v[2];		r[2][0] = -v[1];
+	r[0][1] = -v[2];	r[1][1] = 0.0f;		r[2][1] = v[0];
+	r[0][2] = v[1];		r[1][2] = -v[0];	r[2][2] = 0.0f;
+}
 /////////////////////////////////////////////////////////////////
 
 ///////////////////////////
@@ -635,14 +649,14 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 // simulator start
 ///////////////////////////////////////////////////////////////////
 typedef struct RootTransform {
-	float loc[3];
-	float rot[3][3];
+	float loc[3];		/* translation in world space */
+	float rot[3][3];	/* rotation from root to world space */
 	
-	float vel[3];
-	float omega[3];
+	float vel[3];		/* velocity in root space */
+	float omega[3];		/* angular velocity in root space */
 	
-	float acc[3];
-	float domega_dt[3];
+	float acc[3];		/* acceleration in root space */
+	float domega_dt[3];	/* angular acceleration in root space */
 } RootTransform;
 
 typedef struct Implicit_Data  {
@@ -1556,6 +1570,50 @@ void BPH_mass_spring_force_clear(Implicit_Data *data)
 	init_bfmatrix(data->dFdV, ZERO);
 }
 
+void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index)
+{
+#ifdef CLOTH_ROOT_FRAME
+	RootTransform *root = &data->root[index];
+	float f[3], dfdx[3][3], dfdv[3][3];
+	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
+	float deuler[3][3], dcoriolis[3][3], dcentrifugal[3][3], drotvel[3][3];
+	
+	cross_v3_v3v3(euler, root->domega_dt, data->X[index]);
+	cross_v3_v3v3(coriolis, root->omega, data->V[index]);
+	mul_v3_fl(coriolis, 2.0f);
+	cross_v3_v3v3(rotvel, root->omega, data->X[index]);
+	cross_v3_v3v3(centrifugal, root->omega, rotvel);
+	
+	sub_v3_v3v3(f, root->acc, euler);
+	sub_v3_v3(f, coriolis);
+	sub_v3_v3(f, centrifugal);
+	
+	mul_m3_v3(data->M[index].m, f); /* F = m * a */
+	
+	cross_v3_identity(deuler, root->domega_dt);
+	cross_v3_identity(dcoriolis, root->omega);
+	mul_m3_fl(dcoriolis, 2.0f);
+	cross_v3_identity(drotvel, root->omega);
+	cross_m3_v3m3(dcentrifugal, root->omega, drotvel);
+	
+	add_m3_m3m3(dfdx, deuler, dcentrifugal);
+	negate_m3(dfdx);
+	mul_m3_m3m3(dfdx, data->M[index].m, dfdx);
+	
+	copy_m3_m3(dfdv, dcoriolis);
+	negate_m3(dfdv);
+	mul_m3_m3m3(dfdv, data->M[index].m, dfdv);
+	
+	add_v3_v3(data->F[index], f);
+	add_m3_m3m3(data->dFdX[index].m, data->dFdX[index].m, dfdx);
+	add_m3_m3m3(data->dFdV[index].m, data->dFdV[index].m, dfdv);
+	
+#else
+	(void)data;
+	(void)index;
+#endif
+}
+
 void BPH_mass_spring_force_gravity(Implicit_Data *data, const float g[3])
 {
 	int i, numverts = data->M[0].vcount;
@@ -1867,9 +1925,7 @@ bool BPH_mass_spring_force_spring_goal(Implicit_Data *data, int i, int UNUSED(sp
 		dfdv_damp(dfdv, dir, damping);
 		
 		add_v3_v3(data->F[i], f);
-		
 		add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, dfdx);
-		
 		add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, dfdv);
 		
 		if (r_f) copy_v3_v3(r_f, f);
