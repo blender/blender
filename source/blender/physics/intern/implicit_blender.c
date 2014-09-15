@@ -735,17 +735,7 @@ void BPH_mass_spring_solver_free(Implicit_Data *id)
 	MEM_freeN(id);
 }
 
-/* ==== Transformation of Moving Reference Frame ====
- *   x_world, v_world, f_world, a_world, dfdx_world, dfdv_world : state variables in world space
- *   x_root, v_root, f_root, a_root, dfdx_root, dfdv_root       : state variables in root space
- *   
- *   x0 : translation of the root frame (hair root location)
- *   v0 : linear velocity of the root frame
- *   a0 : acceleration of the root frame
- *   R : rotation matrix of the root frame
- *   w : angular velocity of the root frame
- *   dwdt : angular acceleration of the root frame
- */
+/* ==== Transformation from/to root reference frames ==== */
 
 BLI_INLINE void point_world_to_root(Implicit_Data *data, int index, float r[3], const float v[3])
 {
@@ -774,274 +764,7 @@ BLI_INLINE void direction_root_to_world(Implicit_Data *data, int index, float r[
 	mul_v3_m3v3(r, root->rot, v);
 }
 
-#if 0
-/* x_root = R^T * x_world */
-BLI_INLINE void loc_world_to_root(float r[3], const float v[3], const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	sub_v3_v3v3(r, v, root->loc);
-	mul_transposed_m3_v3((float (*)[3])root->rot, r);
-#else
-	copy_v3_v3(r, v);
-	(void)root;
-#endif
-}
-
-/* x_world = R * x_root */
-BLI_INLINE void loc_root_to_world(float r[3], const float v[3], const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	copy_v3_v3(r, v);
-	mul_m3_v3((float (*)[3])root->rot, r);
-	add_v3_v3(r, root->loc);
-#else
-	copy_v3_v3(r, v);
-	(void)root;
-#endif
-}
-
-/* v_root = cross(w, x_root) + R^T*(v_world - v0) */
-BLI_INLINE void vel_world_to_root(float r[3], const float x_root[3], const float v[3], const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float angvel[3];
-	cross_v3_v3v3(angvel, root->omega, x_root);
-	
-	sub_v3_v3v3(r, v, root->vel);
-	mul_transposed_m3_v3((float (*)[3])root->rot, r);
-	add_v3_v3(r, angvel);
-#else
-	copy_v3_v3(r, v);
-	(void)x_root;
-	(void)root;
-#endif
-}
-
-/* v_world = R*(v_root - cross(w, x_root)) + v0 */
-BLI_INLINE void vel_root_to_world(float r[3], const float x_root[3], const float v[3], const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float angvel[3];
-	cross_v3_v3v3(angvel, root->omega, x_root);
-	
-	sub_v3_v3v3(r, v, angvel);
-	mul_m3_v3((float (*)[3])root->rot, r);
-	add_v3_v3(r, root->vel);
-#else
-	copy_v3_v3(r, v);
-	(void)x_root;
-	(void)root;
-#endif
-}
-
-/* a_root = -cross(dwdt, x_root) - 2*cross(w, v_root) - cross(w, cross(w, x_root)) + R^T*(a_world - a0) */
-BLI_INLINE void force_world_to_root(float r[3], const float x_root[3], const float v_root[3], const float force[3], float mass, const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
-	
-	cross_v3_v3v3(euler, root->domega_dt, x_root);
-	cross_v3_v3v3(coriolis, root->omega, v_root);
-	mul_v3_fl(coriolis, 2.0f);
-	cross_v3_v3v3(rotvel, root->omega, x_root);
-	cross_v3_v3v3(centrifugal, root->omega, rotvel);
-	
-	madd_v3_v3v3fl(r, force, root->acc, mass);
-	mul_transposed_m3_v3((float (*)[3])root->rot, r);
-	madd_v3_v3fl(r, euler, mass);
-	madd_v3_v3fl(r, coriolis, mass);
-	madd_v3_v3fl(r, centrifugal, mass);
-#else
-	copy_v3_v3(r, force);
-	(void)x_root;
-	(void)v_root;
-	(void)mass;
-	(void)root;
-#endif
-}
-
-/* a_world = R*[ a_root + cross(dwdt, x_root) + 2*cross(w, v_root) + cross(w, cross(w, x_root)) ] + a0 */
-BLI_INLINE void force_root_to_world(float r[3], const float x_root[3], const float v_root[3], const float force[3], float mass, const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
-	
-	cross_v3_v3v3(euler, root->domega_dt, x_root);
-	cross_v3_v3v3(coriolis, root->omega, v_root);
-	mul_v3_fl(coriolis, 2.0f);
-	cross_v3_v3v3(rotvel, root->omega, x_root);
-	cross_v3_v3v3(centrifugal, root->omega, rotvel);
-	
-	madd_v3_v3v3fl(r, force, euler, mass);
-	madd_v3_v3fl(r, coriolis, mass);
-	madd_v3_v3fl(r, centrifugal, mass);
-	mul_m3_v3((float (*)[3])root->rot, r);
-	madd_v3_v3fl(r, root->acc, mass);
-#else
-	copy_v3_v3(r, force);
-	(void)x_root;
-	(void)v_root;
-	(void)mass;
-	(void)root;
-#endif
-}
-
-BLI_INLINE void acc_world_to_root(float r[3], const float x_root[3], const float v_root[3], const float acc[3], const RootTransform *root)
-{
-	force_world_to_root(r, x_root, v_root, acc, 1.0f, root);
-}
-
-BLI_INLINE void acc_root_to_world(float r[3], const float x_root[3], const float v_root[3], const float acc[3], const RootTransform *root)
-{
-	force_root_to_world(r, x_root, v_root, acc, 1.0f, root);
-}
-
-BLI_INLINE void cross_m3_v3m3(float r[3][3], const float v[3], float m[3][3])
-{
-	cross_v3_v3v3(r[0], v, m[0]);
-	cross_v3_v3v3(r[1], v, m[1]);
-	cross_v3_v3v3(r[2], v, m[2]);
-}
-
-BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
-{
-	r[0][0] = 0.0f;		r[1][0] = v[2];		r[2][0] = -v[1];
-	r[0][1] = -v[2];	r[1][1] = 0.0f;		r[2][1] = v[0];
-	r[0][2] = v[1];		r[1][2] = -v[0];	r[2][2] = 0.0f;
-}
-
-/* dfdx_root = m*[ -cross(dwdt, I) - cross(w, cross(w, I)) ] + R^T*(dfdx_world) */
-BLI_INLINE void dfdx_world_to_root(float m[3][3], float dfdx[3][3], float mass, const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float t[3][3], u[3][3];
-	
-	copy_m3_m3(t, (float (*)[3])root->rot);
-	transpose_m3(t);
-	mul_m3_m3m3(m, t, dfdx);
-	
-	cross_v3_identity(t, root->domega_dt);
-	mul_m3_fl(t, mass);
-	sub_m3_m3m3(m, m, t);
-	
-	cross_v3_identity(u, root->omega);
-	cross_m3_v3m3(t, root->omega, u);
-	mul_m3_fl(t, mass);
-	sub_m3_m3m3(m, m, t);
-#else
-	copy_m3_m3(m, dfdx);
-	(void)mass;
-	(void)root;
-#endif
-}
-
-/* dfdx_world = R*(dfdx_root + m*[ cross(dwdt, I) + cross(w, cross(w, I)) ]) */
-BLI_INLINE void dfdx_root_to_world(float m[3][3], float dfdx[3][3], float mass, const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float t[3][3], u[3][3];
-	
-	cross_v3_identity(t, root->domega_dt);
-	mul_m3_fl(t, mass);
-	add_m3_m3m3(m, dfdx, t);
-	
-	cross_v3_identity(u, root->omega);
-	cross_m3_v3m3(t, root->omega, u);
-	mul_m3_fl(t, mass);
-	add_m3_m3m3(m, m, t);
-	
-	mul_m3_m3m3(m, (float (*)[3])root->rot, m);
-#else
-	copy_m3_m3(m, dfdx);
-	(void)mass;
-	(void)root;
-#endif
-}
-
-/* dfdv_root = -2*m*cross(w, I) + R^T*(dfdv_world) */
-BLI_INLINE void dfdv_world_to_root(float m[3][3], float dfdv[3][3], float mass, const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float t[3][3];
-	
-	copy_m3_m3(t, (float (*)[3])root->rot);
-	transpose_m3(t);
-	mul_m3_m3m3(m, t, dfdv);
-	
-	cross_v3_identity(t, root->omega);
-	mul_m3_fl(t, 2.0f*mass);
-	sub_m3_m3m3(m, m, t);
-#else
-	copy_m3_m3(m, dfdv);
-	(void)mass;
-	(void)root;
-#endif
-}
-
-/* dfdv_world = R*(dfdv_root + 2*m*cross(w, I)) */
-BLI_INLINE void dfdv_root_to_world(float m[3][3], float dfdv[3][3], float mass, const RootTransform *root)
-{
-#ifdef CLOTH_ROOT_FRAME
-	float t[3][3];
-	
-	cross_v3_identity(t, root->omega);
-	mul_m3_fl(t, 2.0f*mass);
-	add_m3_m3m3(m, dfdv, t);
-	
-	mul_m3_m3m3(m, (float (*)[3])root->rot, m);
-#else
-	copy_m3_m3(m, dfdv);
-	(void)mass;
-	(void)root;
-#endif
-}
-#endif
-
 /* ================================ */
-
-#if 0
-DO_INLINE float fb(float length, float L)
-{
-	float x = length / L;
-	float xx = x * x;
-	float xxx = xx * x;
-	float xxxx = xxx * x;
-	return (-11.541f * xxxx + 34.193f * xxx - 39.083f * xx + 23.116f * x - 9.713f);
-}
-
-DO_INLINE float fbderiv(float length, float L)
-{
-	float x = length/L;
-	float xx = x * x;
-	float xxx = xx * x;
-	return (-46.164f * xxx + 102.579f * xx - 78.166f * x + 23.116f);
-}
-
-DO_INLINE float fbstar(float length, float L, float kb, float cb)
-{
-	float tempfb_fl = kb * fb(length, L);
-	float fbstar_fl = cb * (length - L);
-	
-	if (tempfb_fl < fbstar_fl)
-		return fbstar_fl;
-	else
-		return tempfb_fl;
-}
-
-// function to calculae bending spring force (taken from Choi & Co)
-DO_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
-{
-	float tempfb_fl = kb * fb(length, L);
-	float fbstar_fl = cb * (length - L);
-
-	if (tempfb_fl < fbstar_fl) {
-		return cb;
-	}
-	else {
-		return kb * fbderiv(length, L);
-	}
-}
-#endif
 
 DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 {
@@ -1743,14 +1466,18 @@ BLI_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
 BLI_INLINE float fb(float length, float L)
 {
 	float x = length / L;
-	return (-11.541f * powf(x, 4) + 34.193f * powf(x, 3) - 39.083f * powf(x, 2) + 23.116f * x - 9.713f);
+	float xx = x * x;
+	float xxx = xx * x;
+	float xxxx = xxx * x;
+	return (-11.541f * xxxx + 34.193f * xxx - 39.083f * xx + 23.116f * x - 9.713f);
 }
 
 BLI_INLINE float fbderiv(float length, float L)
 {
 	float x = length/L;
-
-	return (-46.164f * powf(x, 3) + 102.579f * powf(x, 2) - 78.166f * x + 23.116f);
+	float xx = x * x;
+	float xxx = xx * x;
+	return (-46.164f * xxx + 102.579f * xx - 78.166f * x + 23.116f);
 }
 
 BLI_INLINE float fbstar(float length, float L, float kb, float cb)
