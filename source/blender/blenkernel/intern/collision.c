@@ -110,7 +110,7 @@ void bvhtree_update_from_mvert(BVHTree *bvhtree, MFace *faces, int numfaces, MVe
 	int i;
 	MFace *mfaces = faces;
 	float co[12], co_moving[12];
-	int ret = 0;
+	bool ret = false;
 
 	if ( !bvhtree )
 		return;

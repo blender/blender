@@ -228,7 +228,7 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, int moving)
 	ClothVertex *verts = cloth->verts;
 	MFace *mfaces;
 	float co[12], co_moving[12];
-	int ret = 0;
+	bool ret = false;
 	
 	if (!bvhtree)
 		return;

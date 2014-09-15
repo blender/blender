@@ -537,7 +537,7 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
  * counts number of elements with flag enabled/disabled
  */
 static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
-                              const short respecthide, const bool test_for_enabled)
+                              const bool respecthide, const bool test_for_enabled)
 {
 	BMElem *ele;
 	BMIter iter;

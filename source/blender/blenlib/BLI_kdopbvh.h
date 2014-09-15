@@ -89,7 +89,7 @@ void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoin
 void BLI_bvhtree_balance(BVHTree *tree);
 
 /* update: first update points/nodes, then call update_tree to refit the bounding volumes */
-int BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints);
+bool BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints);
 void BLI_bvhtree_update_tree(BVHTree *tree);
 
 /* collision/overlap: check two trees if they overlap, alloc's *overlap with length of the int return value */

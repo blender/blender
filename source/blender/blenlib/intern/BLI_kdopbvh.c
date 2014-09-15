@@ -979,7 +979,7 @@ void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoin
 
 
 /* call before BLI_bvhtree_update_tree() */
-int BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints)
+bool BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints)
 {
 	BVHNode *node = NULL;
 	axis_t axis_iter;
