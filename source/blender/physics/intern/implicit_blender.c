@@ -733,6 +733,34 @@ void BPH_mass_spring_solver_free(Implicit_Data *id)
  *   dwdt : angular acceleration of the root frame
  */
 
+BLI_INLINE void point_world_to_root(Implicit_Data *data, int index, float r[3], const float v[3])
+{
+	RootTransform *root = &data->root[index];
+	sub_v3_v3v3(r, v, root->loc);
+	mul_transposed_m3_v3(root->rot, r);
+}
+
+BLI_INLINE void point_root_to_world(Implicit_Data *data, int index, float r[3], const float v[3])
+{
+	RootTransform *root = &data->root[index];
+	mul_v3_m3v3(r, root->rot, v);
+	add_v3_v3(r, root->loc);
+}
+
+BLI_INLINE void direction_world_to_root(Implicit_Data *data, int index, float r[3], const float v[3])
+{
+	RootTransform *root = &data->root[index];
+	copy_v3_v3(r, v);
+	mul_transposed_m3_v3(root->rot, r);
+}
+
+BLI_INLINE void direction_root_to_world(Implicit_Data *data, int index, float r[3], const float v[3])
+{
+	RootTransform *root = &data->root[index];
+	mul_v3_m3v3(r, root->rot, v);
+}
+
+#if 0
 /* x_root = R^T * x_world */
 BLI_INLINE void loc_world_to_root(float r[3], const float v[3], const RootTransform *root)
 {
@@ -953,6 +981,7 @@ BLI_INLINE void dfdv_root_to_world(float m[3][3], float dfdv[3][3], float mass, 
 	(void)root;
 #endif
 }
+#endif
 
 /* ================================ */
 
@@ -1416,28 +1445,24 @@ void BPH_mass_spring_set_root_motion(Implicit_Data *data, int index, const float
 
 void BPH_mass_spring_set_motion_state(Implicit_Data *data, int index, const float x[3], const float v[3])
 {
-	RootTransform *root = &data->root[index];
-	loc_world_to_root(data->X[index], x, root);
-	vel_world_to_root(data->V[index], data->X[index], v, root);
+	point_world_to_root(data, index, data->X[index], x);
+	direction_world_to_root(data, index, data->V[index], v);
 }
 
 void BPH_mass_spring_set_position(Implicit_Data *data, int index, const float x[3])
 {
-	RootTransform *root = &data->root[index];
-	loc_world_to_root(data->X[index], x, root);
+	point_world_to_root(data, index, data->X[index], x);
 }
 
 void BPH_mass_spring_set_velocity(Implicit_Data *data, int index, const float v[3])
 {
-	RootTransform *root = &data->root[index];
-	vel_world_to_root(data->V[index], data->X[index], v, root);
+	direction_world_to_root(data, index, data->V[index], v);
 }
 
 void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, float x[3], float v[3])
 {
-	RootTransform *root = &data->root[index];
-	if (x) loc_root_to_world(x, data->X[index], root);
-	if (v) vel_root_to_world(v, data->X[index], data->V[index], root);
+	if (x) point_root_to_world(data, index, x, data->X[index]);
+	if (v) direction_root_to_world(data, index, v, data->V[index]);
 }
 
 void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
@@ -1539,7 +1564,7 @@ void BPH_mass_spring_force_gravity(Implicit_Data *data, const float g[3])
 	 */
 	for (i = 0; i < numverts; i++) {
 		float f[3];
-		acc_world_to_root(f, data->X[i], data->V[i], g, &data->root[i]);
+		direction_world_to_root(data, i, f, g);
 		mul_m3_v3(data->M[i].m, f);
 		
 		add_v3_v3(data->F[i], f);
@@ -1824,8 +1849,8 @@ bool BPH_mass_spring_force_spring_goal(Implicit_Data *data, int i, int UNUSED(sp
 	float f[3], dfdx[3][3], dfdv[3][3];
 	
 	/* goal is in world space */
-	loc_world_to_root(root_goal_x, goal_x, &data->root[i]);
-	vel_world_to_root(root_goal_v, root_goal_x, goal_v, &data->root[i]);
+	point_world_to_root(data, i, root_goal_x, goal_x);
+	direction_world_to_root(data, i, root_goal_v, goal_v);
 	
 	sub_v3_v3v3(extent, root_goal_x, data->X[i]);
 	sub_v3_v3v3(vel, root_goal_v, data->V[i]);
