@@ -15,37 +15,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s):
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BMESH_TOOLS_H__
-#define __BMESH_TOOLS_H__
+#ifndef __BMESH_REGION_MATCH_H__
+#define __BMESH_REGION_MATCH_H__
 
-/** \file blender/bmesh/bmesh_tools.h
+/** \file blender/bmesh/tools/bmesh_region_match.h
  *  \ingroup bmesh
- *
- * Utility functions that operate directly on the BMesh,
- * These can be used by both Modifiers and BMesh-Operators.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int BM_mesh_region_match(
+        BMesh *bm,
+        BMFace **faces_region, unsigned int faces_region_len,
+        ListBase *r_face_regions);
 
-#include "tools/bmesh_beautify.h"
-#include "tools/bmesh_bevel.h"
-#include "tools/bmesh_bisect_plane.h"
-#include "tools/bmesh_decimate.h"
-#include "tools/bmesh_edgenet.h"
-#include "tools/bmesh_edgesplit.h"
-#include "tools/bmesh_path.h"
-#include "tools/bmesh_region_match.h"
-#include "tools/bmesh_triangulate.h"
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __BMESH_TOOLS_H__ */
+#endif /* __BMESH_REGION_MATCH_H__ */

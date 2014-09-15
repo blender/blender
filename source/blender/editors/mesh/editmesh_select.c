@@ -66,6 +66,8 @@
 
 #include "UI_resources.h"
 
+#include "bmesh_tools.h"
+
 #include "mesh_intern.h"  /* own include */
 
 /* use bmesh operator flags for a few operators */
@@ -926,6 +928,96 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
 
 	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "", 0.0, 1.0);
+}
+
+
+/* -------------------------------------------------------------------- */
+/* Select Similar Regions */
+
+static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMesh *bm = em->bm;
+	bool changed = false;
+
+	/* group vars */
+	int *groups_array;
+	int (*group_index)[2];
+	int group_tot;
+	int i;
+
+	if (bm->totfacesel < 2) {
+		BKE_report(op->reports, RPT_ERROR, "No face regions selected");
+		return OPERATOR_CANCELLED;
+	}
+
+	groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__);
+	group_tot = BM_mesh_calc_face_groups(bm, groups_array, &group_index,
+	                                     NULL, NULL,
+	                                     BM_ELEM_SELECT, BM_VERT);
+
+	BM_mesh_elem_table_ensure(bm, BM_FACE);
+
+	for (i = 0; i < group_tot; i++) {
+		ListBase faces_regions;
+		int tot;
+
+		const int fg_sta = group_index[i][0];
+		const int fg_len = group_index[i][1];
+		int j;
+		BMFace **fg = MEM_mallocN(sizeof(*fg) * fg_len, __func__);
+
+
+		for (j = 0; j < fg_len; j++) {
+			fg[j] = BM_face_at_index(bm, groups_array[fg_sta + j]);
+		}
+
+		tot = BM_mesh_region_match(bm, fg, fg_len, &faces_regions);
+
+		MEM_freeN(fg);
+
+		if (tot) {
+			LinkData *link;
+			while ((link = BLI_pophead(&faces_regions))) {
+				BMFace *f, **faces = link->data;
+				unsigned int i = 0;
+				while ((f = faces[i++])) {
+					BM_face_select_set(bm, f, true);
+				}
+				MEM_freeN(faces);
+				MEM_freeN(link);
+
+				changed = true;
+			}
+		}
+	}
+
+	MEM_freeN(groups_array);
+
+	if (changed) {
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	}
+	else {
+		BKE_report(op->reports, RPT_WARNING, "No matching face regions found");
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_similar_region(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Similar Regions";
+	ot->idname = "MESH_OT_select_similar_region";
+	ot->description = "Select similar face regions to the current selection";
+
+	/* api callbacks */
+	ot->exec = edbm_select_similar_region_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 

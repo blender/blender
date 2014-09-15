@@ -130,6 +130,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_edge_face_add);
 	WM_operatortype_append(MESH_OT_shortest_path_pick);
 	WM_operatortype_append(MESH_OT_select_similar);
+	WM_operatortype_append(MESH_OT_select_similar_region);
 	WM_operatortype_append(MESH_OT_select_mode);
 	WM_operatortype_append(MESH_OT_loop_multi_select);
 	WM_operatortype_append(MESH_OT_mark_seam);

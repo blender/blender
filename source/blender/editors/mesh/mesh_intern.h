@@ -137,6 +137,7 @@ void MESH_OT_rip_edge(struct wmOperatorType *ot);
 
 /* *** editmesh_select.c *** */
 void MESH_OT_select_similar(struct wmOperatorType *ot);
+void MESH_OT_select_similar_region(struct wmOperatorType *ot);
 void MESH_OT_select_mode(struct wmOperatorType *ot);
 void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_loop_select(struct wmOperatorType *ot);
