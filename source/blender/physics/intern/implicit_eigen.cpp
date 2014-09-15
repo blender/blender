@@ -612,7 +612,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 	sub_v3_v3v3(extent, lVector_v3(X, s->kl), lVector_v3(X, s->ij));
 	sub_v3_v3v3(vel, lVector_v3(V, s->kl), lVector_v3(V, s->ij));
 	dot = dot_v3v3(extent, extent);
-	length = sqrt(dot);
+	length = sqrtf(dot);
 	
 	if (length > ALMOST_ZERO) {
 		/*
@@ -683,7 +683,7 @@ static void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, con
 		
 		// SEE MSG BELOW (these are UNUSED)
 		// dot = dot_v3v3(extent, extent);
-		// length = sqrt(dot);
+		// length = sqrtf(dot);
 		
 		k = clmd->sim_parms->goalspring;
 		scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);

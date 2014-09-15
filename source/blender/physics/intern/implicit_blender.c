@@ -496,6 +496,13 @@ DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 	to[1] += dot_v3v3(matrix[1], from);
 	to[2] += dot_v3v3(matrix[2], from);
 }
+
+BLI_INLINE void outerproduct(float r[3][3], const float a[3], const float b[3])
+{
+	mul_v3_v3fl(r[0], a, b[0]);
+	mul_v3_v3fl(r[1], a, b[1]);
+	mul_v3_v3fl(r[2], a, b[2]);
+}
 /////////////////////////////////////////////////////////////////
 
 ///////////////////////////
@@ -949,6 +956,7 @@ BLI_INLINE void dfdv_root_to_world(float m[3][3], float dfdv[3][3], float mass, 
 
 /* ================================ */
 
+#if 0
 DO_INLINE float fb(float length, float L)
 {
 	float x = length / L;
@@ -990,6 +998,7 @@ DO_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 		return kb * fbderiv(length, L);
 	}
 }
+#endif
 
 DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 {
@@ -1338,196 +1347,6 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 }
 #endif
 
-DO_INLINE void dfdx_spring_type2(float to[3][3], float dir[3], float length, float L, float k, float cb)
-{
-	// return  outerprod(dir, dir)*fbstar_jacobi(length, L, k, cb);
-	mul_fvectorT_fvectorS(to, dir, dir, fbstar_jacobi(length, L, k, cb));
-}
-
-DO_INLINE void dfdv_damp(float to[3][3], float dir[3], float damping)
-{
-	// derivative of force wrt velocity.  
-	mul_fvectorT_fvectorS(to, dir, dir, damping);
-	
-}
-
-DO_INLINE void dfdx_spring(float to[3][3],  float dir[3], float length, float L, float k)
-{
-	// dir is unit length direction, rest is spring's restlength, k is spring constant.
-	//return  ( (I-outerprod(dir, dir))*Min(1.0f, rest/length) - I) * -k;
-	mul_fvectorT_fvector(to, dir, dir);
-	sub_fmatrix_fmatrix(to, I, to);
-
-	mul_fmatrix_S(to, (L/length)); 
-	sub_fmatrix_fmatrix(to, to, I);
-	mul_fmatrix_S(to, -k);
-}
-
-DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *UNUSED(lF), lfVector *X, lfVector *V, fmatrix3x3 *UNUSED(dFdV), fmatrix3x3 *UNUSED(dFdX), float time)
-{
-	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts;
-	float extent[3];
-	float length = 0, dot = 0;
-	float dir[3] = {0, 0, 0};
-	float vel[3];
-	float k = 0.0f;
-	float L = s->restlen;
-	float cb; /* = clmd->sim_parms->structural; */ /*UNUSED*/
-
-	float nullf[3] = {0, 0, 0};
-	float stretch_force[3] = {0, 0, 0};
-	float bending_force[3] = {0, 0, 0};
-	float damping_force[3] = {0, 0, 0};
-	float nulldfdx[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-	
-	float scaling = 0.0;
-
-	int no_compress = clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
-	
-	copy_v3_v3(s->f, nullf);
-	cp_fmatrix(s->dfdx, nulldfdx);
-	cp_fmatrix(s->dfdv, nulldfdx);
-
-	// calculate elonglation
-	sub_v3_v3v3(extent, X[s->kl], X[s->ij]);
-	sub_v3_v3v3(vel, V[s->kl], V[s->ij]);
-	dot = dot_v3v3(extent, extent);
-	length = sqrtf(dot);
-	
-	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
-	
-	if (length > ALMOST_ZERO) {
-		/*
-		if (length>L)
-		{
-		if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
-		    ((((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen))) // cut spring!
-		{
-		s->flags |= CSPRING_FLAG_DEACTIVATE;
-		return;
-	}
-	}
-		*/
-		mul_fvector_S(dir, extent, 1.0f/length);
-	}
-	else {
-		mul_fvector_S(dir, extent, 0.0f);
-	}
-	
-	// calculate force of structural + shear springs
-	if ((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR) || (s->type & CLOTH_SPRING_TYPE_SEWING) ) {
-#ifdef CLOTH_FORCE_SPRING_STRUCTURAL
-		if (length > L || no_compress) {
-			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
-			
-			k = clmd->sim_parms->structural;
-
-			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
-
-			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
-
-			// TODO: verify, half verified (couldn't see error)
-			if (s->type & CLOTH_SPRING_TYPE_SEWING) {
-				// sewing springs usually have a large distance at first so clamp the force so we don't get tunnelling through colission objects
-				float force = k*(length-L);
-				if (force > clmd->sim_parms->max_sewing) {
-					force = clmd->sim_parms->max_sewing;
-				}
-				mul_fvector_S(stretch_force, dir, force);
-			}
-			else {
-				mul_fvector_S(stretch_force, dir, k * (length - L));
-			}
-
-			VECADD(s->f, s->f, stretch_force);
-
-			// Ascher & Boxman, p.21: Damping only during elonglation
-			// something wrong with it...
-			mul_fvector_S(damping_force, dir, clmd->sim_parms->Cdis * dot_v3v3(vel, dir));
-			VECADD(s->f, s->f, damping_force);
-			
-			/* VERIFIED */
-			dfdx_spring(s->dfdx, dir, length, L, k);
-			
-			/* VERIFIED */
-			dfdv_damp(s->dfdv, dir, clmd->sim_parms->Cdis);
-			
-		}
-#endif
-	}
-	else if (s->type & CLOTH_SPRING_TYPE_GOAL) {
-#ifdef CLOTH_FORCE_SPRING_GOAL
-		float tvect[3];
-		
-		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
-		
-		// current_position = xold + t * (newposition - xold)
-		sub_v3_v3v3(tvect, verts[s->ij].xconst, verts[s->ij].xold);
-		mul_fvector_S(tvect, tvect, time);
-		VECADD(tvect, tvect, verts[s->ij].xold);
-
-		sub_v3_v3v3(extent, X[s->ij], tvect);
-		
-		// SEE MSG BELOW (these are UNUSED)
-		// dot = dot_v3v3(extent, extent);
-		// length = sqrt(dot);
-		
-		k = clmd->sim_parms->goalspring;
-		
-		scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_struct - k);
-			
-		k = verts [s->ij].goal * scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
-		
-		VECADDS(s->f, s->f, extent, -k);
-		
-		mul_fvector_S(damping_force, dir, clmd->sim_parms->goalfrict * 0.01f * dot_v3v3(vel, dir));
-		VECADD(s->f, s->f, damping_force);
-		
-		// HERE IS THE PROBLEM!!!!
-		// dfdx_spring(s->dfdx, dir, length, 0.0, k);
-		// dfdv_damp(s->dfdv, dir, MIN2(1.0, (clmd->sim_parms->goalfrict/100.0)));
-#endif
-	}
-	else {  /* calculate force of bending springs */
-#ifdef CLOTH_FORCE_SPRING_BEND
-		if (length < L) {
-			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
-			
-			k = clmd->sim_parms->bending;
-			
-			scaling = k + s->stiffness * fabsf(clmd->sim_parms->max_bend - k);
-			cb = k = scaling / (20.0f * (clmd->sim_parms->avg_spring_len + FLT_EPSILON));
-
-			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
-			VECADD(s->f, s->f, bending_force);
-
-			dfdx_spring_type2(s->dfdx, dir, length, L, k, cb);
-		}
-#endif
-	}
-}
-
-DO_INLINE void cloth_apply_spring_force(ClothModifierData *UNUSED(clmd), ClothSpring *s, lfVector *lF, lfVector *UNUSED(X), lfVector *UNUSED(V), fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
-{
-	if (s->flags & CLOTH_SPRING_FLAG_NEEDED) {
-		if (!(s->type & CLOTH_SPRING_TYPE_BENDING)) {
-			sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, s->dfdv);
-			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
-			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);
-		}
-
-		VECADD(lF[s->ij], lF[s->ij], s->f);
-		
-		if (!(s->type & CLOTH_SPRING_TYPE_GOAL))
-			sub_v3_v3v3(lF[s->kl], lF[s->kl], s->f);
-		
-		sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
-		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
-		add_fmatrix_fmatrix(dFdX[s->matrix_index].m, dFdX[s->matrix_index].m, s->dfdx);
-	}
-}
-
 bool BPH_mass_spring_solve(Implicit_Data *data, float dt)
 {
 	unsigned int numverts = data->dFdV[0].vcount;
@@ -1731,7 +1550,6 @@ void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)
 {
 	int i, numverts = data->M[0].vcount;
 	for (i = 0; i < numverts; i++) {
-#if 1
 		float tmp[3][3];
 		
 		/* NB: uses root space velocity, no need to transform */
@@ -1740,18 +1558,6 @@ void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)
 		copy_m3_m3(tmp, I);
 		mul_m3_fl(tmp, -drag);
 		add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, tmp);
-#else
-		float f[3], tmp[3][3], drag_dfdv[3][3], t[3];
-		
-		mul_v3_v3fl(f, data->V[i], -drag);
-		force_world_to_root(t, data->X[i], data->V[i], f, verts[i].mass, &data->root[i]);
-		add_v3_v3(data->F[i], t);
-		
-		copy_m3_m3(drag_dfdv, I);
-		mul_m3_fl(drag_dfdv, -drag);
-		dfdv_world_to_root(tmp, drag_dfdv, verts[i].mass, &data->root[i]);
-		add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, tmp);
-#endif
 	}
 }
 
@@ -1803,7 +1609,7 @@ void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3
 	
 }
 
-void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
+void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
 {
 	const float effector_scale = 0.01;
 	const float *win1 = winvec[v1];
@@ -1818,6 +1624,242 @@ void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2,
 	
 	madd_v3_v3v3fl(win_ortho, win2, dir, -dot_v3v3(win2, dir));
 	madd_v3_v3fl(data->F[v2], win_ortho, effector_scale * length);
+}
+
+BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)
+{
+	// dir is unit length direction, rest is spring's restlength, k is spring constant.
+	//return  ( (I-outerprod(dir, dir))*Min(1.0f, rest/length) - I) * -k;
+	outerproduct(to, dir, dir);
+	sub_m3_m3m3(to, I, to);
+	
+	mul_m3_fl(to, (L/length)); 
+	sub_m3_m3m3(to, to, I);
+	mul_m3_fl(to, k);
+}
+
+/* unused */
+#if 0
+BLI_INLINE void dfdx_damp(float to[3][3], const float dir[3], float length, const float vel[3], float rest, float damping)
+{
+	// inner spring damping   vel is the relative velocity  of the endpoints.  
+	// 	return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
+	mul_fvectorT_fvector(to, dir, dir);
+	sub_fmatrix_fmatrix(to, I, to);
+	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel)/MAX2(length, rest))));
+}
+#endif
+
+BLI_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
+{
+	// derivative of force wrt velocity
+	outerproduct(to, dir, dir);
+	mul_m3_fl(to, -damping);
+}
+
+BLI_INLINE float fb(float length, float L)
+{
+	float x = length / L;
+	return (-11.541f * powf(x, 4) + 34.193f * powf(x, 3) - 39.083f * powf(x, 2) + 23.116f * x - 9.713f);
+}
+
+BLI_INLINE float fbderiv(float length, float L)
+{
+	float x = length/L;
+
+	return (-46.164f * powf(x, 3) + 102.579f * powf(x, 2) - 78.166f * x + 23.116f);
+}
+
+BLI_INLINE float fbstar(float length, float L, float kb, float cb)
+{
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
+	
+	if (tempfb_fl < fbstar_fl)
+		return fbstar_fl;
+	else
+		return tempfb_fl;
+}
+
+// function to calculae bending spring force (taken from Choi & Co)
+BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
+{
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
+
+	if (tempfb_fl < fbstar_fl) {
+		return -cb;
+	}
+	else {
+		return -kb * fbderiv(length, L);
+	}
+}
+
+/* calculate elonglation */
+BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[3], float r_dir[3], float *r_length, float r_vel[3])
+{
+	sub_v3_v3v3(r_extent, data->X[j], data->X[i]);
+	sub_v3_v3v3(r_vel, data->V[j], data->V[i]);
+	*r_length = len_v3(r_extent);
+	
+	if (*r_length > ALMOST_ZERO) {
+		/*
+		if (length>L) {
+			if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
+			    ( ((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen )) {
+				// cut spring!
+				s->flags |= CSPRING_FLAG_DEACTIVATE;
+				return false;
+			}
+		}
+		*/
+		mul_v3_v3fl(r_dir, r_extent, 1.0f/(*r_length));
+	}
+	else {
+		zero_v3(r_dir);
+	}
+	
+	return true;
+}
+
+BLI_INLINE void apply_spring(Implicit_Data *data, int i, int j, int spring_index, const float f[3], float dfdx[3][3], float dfdv[3][3])
+{
+	add_v3_v3(data->F[i], f);
+	sub_v3_v3(data->F[j], f);
+	
+	add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, dfdx);
+	add_m3_m3m3(data->dFdX[j].m, data->dFdX[j].m, dfdx);
+	sub_m3_m3m3(data->dFdX[spring_index].m, data->dFdX[spring_index].m, dfdx);
+	
+	add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, dfdv);
+	add_m3_m3m3(data->dFdV[j].m, data->dFdV[j].m, dfdv);
+	sub_m3_m3m3(data->dFdV[spring_index].m, data->dFdV[spring_index].m, dfdv);
+}
+
+bool BPH_mass_spring_force_spring_linear(Implicit_Data *data, int i, int j, int spring_index, float restlen,
+                                         float stiffness, float damping, bool no_compress, float clamp_force,
+                                         float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3])
+{
+	float extent[3], length, dir[3], vel[3];
+	
+	// calculate elonglation
+	spring_length(data, i, j, extent, dir, &length, vel);
+	
+	if (length > restlen || no_compress) {
+		float stretch_force, f[3], dfdx[3][3], dfdv[3][3];
+		
+		stretch_force = stiffness * (length - restlen);
+		if (clamp_force > 0.0f && stretch_force > clamp_force) {
+			stretch_force = clamp_force;
+		}
+		mul_v3_v3fl(f, dir, stretch_force);
+		
+		// Ascher & Boxman, p.21: Damping only during elonglation
+		// something wrong with it...
+		madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
+		
+		dfdx_spring(dfdx, dir, length, restlen, stiffness);
+		dfdv_damp(dfdv, dir, damping);
+		
+		apply_spring(data, i, j, spring_index, f, dfdx, dfdv);
+		
+		if (r_f) copy_v3_v3(r_f, f);
+		if (r_dfdx) copy_m3_m3(r_dfdx, dfdx);
+		if (r_dfdv) copy_m3_m3(r_dfdv, dfdv);
+		
+		return true;
+	}
+	else {
+		if (r_f) zero_v3(r_f);
+		if (r_dfdx) zero_m3(r_dfdx);
+		if (r_dfdv) zero_m3(r_dfdv);
+		
+		return false;
+	}
+}
+
+/* See "Stable but Responsive Cloth" (Choi, Ko 2005) */
+bool BPH_mass_spring_force_spring_bending(Implicit_Data *data, int i, int j, int spring_index, float restlen,
+                                          float kb, float cb,
+                                          float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3])
+{
+	float extent[3], length, dir[3], vel[3];
+	
+	// calculate elonglation
+	spring_length(data, i, j, extent, dir, &length, vel);
+	
+	if (length < restlen) {
+		float f[3], dfdx[3][3], dfdv[3][3];
+		
+		mul_v3_v3fl(f, dir, fbstar(length, restlen, kb, cb));
+		
+		outerproduct(dfdx, dir, dir);
+		mul_m3_fl(dfdx, fbstar_jacobi(length, restlen, kb, cb));
+		
+		/* XXX damping not supported */
+		zero_m3(dfdv);
+		
+		apply_spring(data, i, j, spring_index, f, dfdx, dfdv);
+		
+		if (r_f) copy_v3_v3(r_f, f);
+		if (r_dfdx) copy_m3_m3(r_dfdx, dfdx);
+		if (r_dfdv) copy_m3_m3(r_dfdv, dfdv);
+		
+		return true;
+	}
+	else {
+		if (r_f) zero_v3(r_f);
+		if (r_dfdx) zero_m3(r_dfdx);
+		if (r_dfdv) zero_m3(r_dfdv);
+		
+		return false;
+	}
+}
+
+bool BPH_mass_spring_force_spring_goal(Implicit_Data *data, int i, int UNUSED(spring_index), const float goal_x[3], const float goal_v[3],
+                                       float stiffness, float damping,
+                                       float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3])
+{
+	float root_goal_x[3], root_goal_v[3], extent[3], length, dir[3], vel[3];
+	float f[3], dfdx[3][3], dfdv[3][3];
+	
+	/* goal is in world space */
+	loc_world_to_root(root_goal_x, goal_x, &data->root[i]);
+	vel_world_to_root(root_goal_v, root_goal_x, goal_v, &data->root[i]);
+	
+	sub_v3_v3v3(extent, root_goal_x, data->X[i]);
+	sub_v3_v3v3(vel, root_goal_v, data->V[i]);
+	length = normalize_v3_v3(dir, extent);
+	
+	if (length > ALMOST_ZERO) {
+		mul_v3_v3fl(f, dir, stiffness * length);
+		
+		// Ascher & Boxman, p.21: Damping only during elonglation
+		// something wrong with it...
+		madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
+		
+		dfdx_spring(dfdx, dir, length, 0.0f, stiffness);
+		dfdv_damp(dfdv, dir, damping);
+		
+		add_v3_v3(data->F[i], f);
+		
+		add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, dfdx);
+		
+		add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, dfdv);
+		
+		if (r_f) copy_v3_v3(r_f, f);
+		if (r_dfdx) copy_m3_m3(r_dfdx, dfdx);
+		if (r_dfdv) copy_m3_m3(r_dfdv, dfdv);
+		
+		return true;
+	}
+	else {
+		if (r_f) zero_v3(r_f);
+		if (r_dfdx) zero_m3(r_dfdx);
+		if (r_dfdv) zero_m3(r_dfdv);
+		
+		return false;
+	}
 }
 
 #endif /* IMPLICIT_SOLVER_BLENDER */

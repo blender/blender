@@ -320,6 +320,72 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	return 1;
 }
 
+BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, float time)
+{
+	Cloth *cloth = clmd->clothObject;
+	ClothSimSettings *parms = clmd->sim_parms;
+	Implicit_Data *data = cloth->implicit;
+	ClothVertex *verts = cloth->verts;
+	
+	bool no_compress = parms->flags & CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
+	
+	zero_v3(s->f);
+	zero_m3(s->dfdx);
+	zero_m3(s->dfdv);
+	
+	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
+	
+	// calculate force of structural + shear springs
+	if ((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR) || (s->type & CLOTH_SPRING_TYPE_SEWING) ) {
+#ifdef CLOTH_FORCE_SPRING_STRUCTURAL
+		float k, scaling;
+		
+		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+		
+		scaling = parms->structural + s->stiffness * fabsf(parms->max_struct - parms->structural);
+		k = scaling / (parms->avg_spring_len + FLT_EPSILON);
+		
+		if (s->type & CLOTH_SPRING_TYPE_SEWING) {
+			// TODO: verify, half verified (couldn't see error)
+			// sewing springs usually have a large distance at first so clamp the force so we don't get tunnelling through colission objects
+			BPH_mass_spring_force_spring_linear(data, s->ij, s->kl, s->matrix_index, s->restlen, k, parms->Cdis, no_compress, parms->max_sewing, s->f, s->dfdx, s->dfdv);
+		}
+		else {
+			BPH_mass_spring_force_spring_linear(data, s->ij, s->kl, s->matrix_index, s->restlen, k, parms->Cdis, no_compress, 0.0f, s->f, s->dfdx, s->dfdv);
+		}
+#endif
+	}
+	else if (s->type & CLOTH_SPRING_TYPE_GOAL) {
+#ifdef CLOTH_FORCE_SPRING_GOAL
+		float goal_x[3], goal_v[3];
+		float k, scaling;
+		
+		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+		
+		// current_position = xold + t * (newposition - xold)
+		interp_v3_v3v3(goal_x, verts[s->ij].xold, verts[s->ij].xconst, time);
+		sub_v3_v3v3(goal_v, verts[s->ij].xconst, verts[s->ij].xold); // distance covered over dt==1
+		
+		scaling = parms->goalspring + s->stiffness * fabsf(parms->max_struct - parms->goalspring);
+		k = verts[s->ij].goal * scaling / (parms->avg_spring_len + FLT_EPSILON);
+		
+		BPH_mass_spring_force_spring_goal(data, s->ij, s->matrix_index, goal_x, goal_v, k, parms->goalfrict * 0.01f, s->f, s->dfdx, s->dfdv);
+#endif
+	}
+	else {  /* calculate force of bending springs */
+#ifdef CLOTH_FORCE_SPRING_BEND
+		float kb, cb, scaling;
+		
+		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+		
+		scaling = parms->bending + s->stiffness * fabsf(parms->max_bend - parms->bending);
+		cb = kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
+		
+		BPH_mass_spring_force_spring_bending(data, s->ij, s->kl, s->matrix_index, s->restlen, kb, cb, s->f, s->dfdx, s->dfdv);
+#endif
+	}
+}
+
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
 {
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
@@ -382,29 +448,13 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 		MEM_freeN(winvec);
 	}
 	
-#if 0
 	// calculate spring forces
-	link = cloth->springs;
-	while (link) {
+	for (LinkNode *link = cloth->springs; link; link = link->next) {
+		ClothSpring *spring = (ClothSpring *)link->link;
 		// only handle active springs
-		ClothSpring *spring = link->link;
 		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_calc_spring_force(clmd, link->link, lF, lX, lV, dFdV, dFdX, time);
-
-		link = link->next;
+			cloth_calc_spring_force(clmd, spring, time);
 	}
-	
-	// apply spring forces
-	link = cloth->springs;
-	while (link) {
-		// only handle active springs
-		ClothSpring *spring = link->link;
-		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
-			cloth_apply_spring_force(clmd, link->link, lF, lX, lV, dFdV, dFdX);
-		link = link->next;
-	}
-	// printf("\n");
-#endif
 }
 
 int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
