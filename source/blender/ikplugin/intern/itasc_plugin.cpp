@@ -68,7 +68,7 @@ extern "C" {
 #include "itasc_plugin.h"
 
 // default parameters
-bItasc DefIKParam;
+static bItasc DefIKParam;
 
 // in case of animation mode, feedback and timestep is fixed
 // #define ANIM_TIMESTEP   1.0
