@@ -193,6 +193,7 @@ help:
 	@echo "Utilities (not associated with building blender)"
 	@echo "  * icons    - updates PNG icons from SVG files."
 	@echo "  * tbz      - create a compressed svn export 'blender_archive.tar.bz2'"
+	@echo "  * update   - updates git and all submodules
 	@echo ""
 	@echo "Documentation Targets (not associated with building blender)"
 	@echo "  * doc_py   - generate sphinx python api docs"
@@ -369,6 +370,13 @@ tbz:
 icons:
 	"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
 	"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
+
+update:
+	if [ -d "../lib" ]; then \
+		svn update ../lib/* ; \
+	fi
+	git pull --rebase
+	git submodule foreach git pull --rebase origin master
 
 
 # -----------------------------------------------------------------------------
