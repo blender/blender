@@ -528,6 +528,17 @@ typedef enum AttributeStandard {
 #define MAX_CLOSURE 1
 #endif
 
+/* TODO(sergey): This is rather nasty bug happening in here, which
+ * could be simply a compilers bug for which we can't find a generic
+ * platform indipendent workaround. Also even if it's a compiler
+ * issue, it's not so simple to upgrade the compiler in the release
+ * environment for linux and doing it so closer to the release is
+ * rather a risky business.
+ *
+ * For this release it's probably safer to stick with such a rather
+ * dirty solution, and look for a cleaner fix during the next release
+ * cycle.
+ */
 typedef struct ShaderClosure {
 	ClosureType type;
 	float3 weight;
