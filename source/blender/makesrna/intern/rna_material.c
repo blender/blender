@@ -340,7 +340,7 @@ static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 	if (ma->use_nodes && ma->nodetree == NULL)
 		ED_node_shader_default(C, &ma->id);
 	
-	rna_Material_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+	rna_Material_draw_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
