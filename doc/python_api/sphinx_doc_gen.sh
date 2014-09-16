@@ -26,11 +26,11 @@ SSH_UPLOAD="/data/www/vhosts/www.blender.org/documentation" # blender_python_api
 # 'Blender 2.53 (sub 1) Build' --> '2_53_1' as a shell script.
 # "_".join(str(v) for v in bpy.app.version)
 # custom blender vars
-blender_srcdir=$(dirname $0)/../../
-blender_version=$(grep "BLENDER_VERSION\s" $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
-blender_version_char=$(grep BLENDER_VERSION_CHAR $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
-blender_version_cycle=$(grep BLENDER_VERSION_CYCLE $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
-blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
+blender_srcdir=$(dirname -- $0)/../..
+blender_version=$(grep "BLENDER_VERSION\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender.h" | awk '{print $3}')
+blender_version_char=$(grep "BLENDER_VERSION_CHAR\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender.h" | awk '{print $3}')
+blender_version_cycle=$(grep "BLENDER_VERSION_CYCLE\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender.h" | awk '{print $3}')
+blender_subversion=$(grep "BLENDER_SUBVERSION\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender.h" | awk '{print $3}')
 
 if [ "$blender_version_cycle" = "release" ] ; then
 	BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)$blender_version_char"_release"
