@@ -386,6 +386,64 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 	}
 }
 
+static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax[3])
+{
+	Cloth *cloth = clmd->clothObject;
+	Implicit_Data *data = cloth->implicit;
+	unsigned int numverts = cloth->numverts;
+	int i;
+	
+	INIT_MINMAX(gmin, gmax);
+	for (i = 0; i < numverts; i++) {
+		float x[3];
+		BPH_mass_spring_get_motion_state(data, i, x, NULL);
+		DO_MINMAX(x, gmin, gmax);
+	}
+}
+
+static void cloth_calc_volume_force(ClothModifierData *clmd)
+{
+	ClothSimSettings *parms = clmd->sim_parms;
+	Cloth *cloth = clmd->clothObject;
+	Implicit_Data *data = cloth->implicit;
+	int numverts = cloth->numverts;
+	
+	/* 2.0f is an experimental value that seems to give good results */
+	float smoothfac = 2.0f * parms->velocity_smooth;
+	float collfac = 2.0f * parms->collider_friction;
+	float pressfac = parms->pressure;
+	float minpress = parms->pressure_threshold;
+	float gmin[3], gmax[3];
+	int i;
+	
+	hair_get_boundbox(clmd, gmin, gmax);
+	
+	/* gather velocities & density */
+	if (smoothfac > 0.0f || pressfac > 0.0f) {
+		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(gmin, gmax);
+		
+		for (i = 0; i < numverts; i++) {
+			float x[3], v[3];
+			
+			BPH_mass_spring_get_motion_state(data, i, x, v);
+			BPH_hair_volume_add_vertex(vertex_grid, x, v);
+		}
+		BPH_hair_volume_normalize_vertex_grid(vertex_grid);
+		
+		for (i = 0; i < numverts; i++) {
+			float x[3], v[3], f[3], dfdx[3][3], dfdv[3][3];
+			
+			/* calculate volumetric forces */
+			BPH_mass_spring_get_motion_state(data, i, x, v);
+			BPH_hair_volume_vertex_grid_forces(vertex_grid, x, v, smoothfac, pressfac, minpress, f, dfdx, dfdv);
+			/* apply on hair data */
+			BPH_mass_spring_force_extern(data, i, f, dfdx, dfdv);
+		}
+		
+		BPH_hair_volume_free_vertex_grid(vertex_grid);
+	}
+}
+
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
 {
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
@@ -409,8 +467,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 	BPH_mass_spring_force_gravity(data, gravity);
 #endif
 
-	// XXX TODO
-//	hair_volume_forces(clmd, lF, lX, lV, numverts);
+	cloth_calc_volume_force(clmd);
 
 #ifdef CLOTH_FORCE_DRAG
 	BPH_mass_spring_force_drag(data, drag);

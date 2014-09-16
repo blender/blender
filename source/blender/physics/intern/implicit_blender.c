@@ -764,6 +764,21 @@ BLI_INLINE void direction_root_to_world(Implicit_Data *data, int index, float r[
 	mul_v3_m3v3(r, root->rot, v);
 }
 
+BLI_INLINE void matrix_world_to_root(Implicit_Data *data, int index, float r[3][3], float m[3][3])
+{
+	RootTransform *root = &data->root[index];
+	float trot[3][3];
+	copy_m3_m3(trot, root->rot);
+	transpose_m3(trot);
+	mul_m3_m3m3(r, trot, m);
+}
+
+BLI_INLINE void matrix_root_to_world(Implicit_Data *data, int index, float r[3][3], float m[3][3])
+{
+	RootTransform *root = &data->root[index];
+	mul_m3_m3m3(r, root->rot, m);
+}
+
 /* ================================ */
 
 DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
@@ -1365,6 +1380,18 @@ void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)
 		mul_m3_fl(tmp, -drag);
 		add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, tmp);
 	}
+}
+
+void BPH_mass_spring_force_extern(struct Implicit_Data *data, int i, const float f[3], float dfdx[3][3], float dfdv[3][3])
+{
+	float tf[3], tdfdx[3][3], tdfdv[3][3];
+	direction_world_to_root(data, i, tf, f);
+	matrix_world_to_root(data, i, tdfdx, dfdx);
+	matrix_world_to_root(data, i, tdfdv, dfdv);
+	
+	add_v3_v3(data->F[i], tf);
+	add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, tdfdx);
+	add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, tdfdv);
 }
 
 static float calc_nor_area_tri(float nor[3], const float v1[3], const float v2[3], const float v3[3])
