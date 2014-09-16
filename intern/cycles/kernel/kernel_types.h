@@ -784,7 +784,7 @@ typedef struct KernelCamera {
 	/* anamorphic lens bokeh */
 	float inv_aperture_ratio;
 
-	int pad1;
+	int is_inside_volume;
 	int pad2;
 
 	/* more matrices */

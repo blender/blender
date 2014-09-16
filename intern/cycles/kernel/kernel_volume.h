@@ -954,16 +954,98 @@ ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneou
  * This is an array of object/shared ID's that the current segment of the path
  * is inside of. */
 
-ccl_device void kernel_volume_stack_init(KernelGlobals *kg, VolumeStack *stack)
+ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
+                                         Ray *ray,
+                                         VolumeStack *stack)
 {
-	/* todo: this assumes camera is always in air, need to detect when it isn't */
-	if(kernel_data.background.volume_shader == SHADER_NONE) {
-		stack[0].shader = SHADER_NONE;
+	/* NULL ray happens in the baker, does it need proper initializetion of
+	 * camera in volume?
+	 */
+	if(!kernel_data.cam.is_inside_volume || ray == NULL) {
+		/* Camera is guaranteed to be in the air, only take background volume
+		 * into account in this case.
+		 */
+		if(kernel_data.background.volume_shader != SHADER_NONE) {
+			stack[0].shader = kernel_data.background.volume_shader;
+			stack[0].object = PRIM_NONE;
+			stack[1].shader = SHADER_NONE;
+		}
+		else {
+			stack[0].shader = SHADER_NONE;
+		}
+		return;
 	}
-	else {
+
+	const float3 Pend = ray->P + ray->D*ray->t;
+	Ray volume_ray = *ray;
+	int stack_index = 0, enclosed_index = 0;
+	int enclosed_volumes[VOLUME_STACK_SIZE];
+
+	while(stack_index < VOLUME_STACK_SIZE - 1 &&
+	      enclosed_index < VOLUME_STACK_SIZE - 1)
+	{
+		Intersection isect;
+		bool hit = scene_intersect(kg, &volume_ray, PATH_RAY_ALL_VISIBILITY,
+		                           &isect,
+		                           NULL, 0.0f, 0.0f);
+		if(!hit) {
+			break;
+		}
+
+		ShaderData sd;
+		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
+		if(sd.flag & SD_HAS_VOLUME) {
+			if(sd.flag & SD_BACKFACING) {
+				/* If ray exited the volume and never entered to that volume
+				 * it means that camera is inside such a volume.
+				 */
+				bool is_enclosed = false;
+				for(int i = 0; i < enclosed_index; ++i) {
+					if(enclosed_volumes[i] == sd.object) {
+						is_enclosed = true;
+						break;
+					}
+				}
+				if(is_enclosed == false) {
+					stack[stack_index].object = sd.object;
+					stack[stack_index].shader = sd.shader;
+					++stack_index;
+				}
+			}
+			else {
+				/* If ray from camera enters the volume, this volume shouldn't
+				 * be added to the stak on exit.
+				 */
+				enclosed_volumes[enclosed_index++] = sd.object;
+			}
+		}
+
+		/* Move ray forward. */
+		volume_ray.P = ray_offset(sd.P, -sd.Ng);
+		if(volume_ray.t != FLT_MAX) {
+			volume_ray.D = normalize_len(Pend - volume_ray.P, &volume_ray.t);
+			/* TODO(sergey): Find a faster way detecting that ray_offset moved
+			 * us pass through the end point.
+			 */
+			if(dot(ray->D, volume_ray.D) < 0.0f) {
+				break;
+			}
+		}
+	}
+	/* stack_index of 0 means quick checks outside of the kernel gave false
+	 * positive, nothing to worry about, just we've wasted quite a few of
+	 * ticks just to come into conclusion that camera is in the air.
+	 *
+	 * In this case we're doing the same above -- check whether background has
+	 * volume.
+	 */
+	if(stack_index == 0 && kernel_data.background.volume_shader == SHADER_NONE) {
 		stack[0].shader = kernel_data.background.volume_shader;
 		stack[0].object = PRIM_NONE;
 		stack[1].shader = SHADER_NONE;
+	}
+	else {
+		stack[stack_index].shader = SHADER_NONE;
 	}
 }
 
@@ -1013,4 +1095,3 @@ ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd
 }
 
 CCL_NAMESPACE_END
-

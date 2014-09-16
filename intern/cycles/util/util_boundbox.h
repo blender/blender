@@ -167,6 +167,15 @@ public:
 
 		return result;
 	}
+
+	__forceinline bool intersects(const BoundBox& other)
+	{
+		float3 center_diff = center() - other.center(),
+		       total_size = (size() + other.size()) * 0.5f;
+		return fabsf(center_diff.x) <= total_size.x &&
+		       fabsf(center_diff.y) <= total_size.y &&
+		       fabsf(center_diff.z) <= total_size.z;
+	}
 };
 
 __forceinline BoundBox merge(const BoundBox& bbox, const float3& pt)

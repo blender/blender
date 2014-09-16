@@ -15,13 +15,42 @@
  */
 
 #include "camera.h"
+#include "mesh.h"
+#include "object.h"
 #include "scene.h"
 
 #include "device.h"
 
+#include "util_foreach.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
+
+namespace {
+
+bool object_has_volume(Scene *scene, Object *object)
+{
+	Mesh *mesh = object->mesh;
+	foreach(uint shader, mesh->used_shaders) {
+		if(scene->shaders[shader]->has_volume) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool scene_has_volume(Scene *scene)
+{
+	for(size_t i = 0; i < scene->objects.size(); ++i) {
+		Object *object = scene->objects[i];
+		if(object_has_volume(scene, object)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+}  // namespace
 
 Camera::Camera()
 {
@@ -270,6 +299,40 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	need_device_update = false;
 	previous_need_motion = need_motion;
+
+	/* Camera in volume. */
+	kcam->is_inside_volume = 0;
+	if(use_camera_in_volume) {
+		if(type == CAMERA_PANORAMA) {
+			/* It's not clear how to do viewplace->object intersection for
+			 * panoramic cameras, for now let's just check for whether there
+			 * are any volumes in the scene.
+			 */
+			kcam->is_inside_volume = scene_has_volume(scene);
+		}
+		else {
+			/* TODO(sergey): Whole bunch of stuff here actually:
+			 * - We do rather stupid check with object AABB to camera viewplane
+			 *   AABB intersection, which is quite fast to perform, but which
+			 *   could give some false-positives checks here, More grained check
+			 *   would help avoiding time wasted n the kernel to initialize the
+			 *   volume stack.
+			 * - We could cache has_volume in the cache, would save quite a few
+			 *   CPU ticks when having loads of instanced meshes.
+			 */
+			BoundBox viewplane_boundbox = viewplane_bounds_get();
+			for(size_t i = 0; i < scene->objects.size(); ++i) {
+				Object *object = scene->objects[i];
+				if(object_has_volume(scene, object)) {
+					if(viewplane_boundbox.intersects(object->bounds)) {
+						/* TODO(sergey): Consider adding more grained check. */
+						kcam->is_inside_volume = 1;
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 
 void Camera::device_free(Device *device, DeviceScene *dscene)
@@ -311,6 +374,57 @@ bool Camera::motion_modified(const Camera& cam)
 void Camera::tag_update()
 {
 	need_update = true;
+}
+
+float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
+{
+	float3 D, P;
+	if(type == CAMERA_PERSPECTIVE) {
+		D = transform_perspective(&rastertocamera,
+		                          make_float3(raster_x, raster_y, 0.0f));
+		P = make_float3(0.0f, 0.0f, 0.0f);
+		/* TODO(sergey): Aperture support? */
+		P = transform_point(&cameratoworld, P);
+		D = normalize(transform_direction(&cameratoworld, D));
+		/* TODO(sergey): Clipping is conditional in kernel, and hence it could
+		 * be mistakes in here, currently leading to wrong camera-in-volume
+		 * detection.
+		 */
+		P += nearclip * D;
+	}
+	else if (type == CAMERA_ORTHOGRAPHIC) {
+		D = make_float3(0.0f, 0.0f, 1.0f);
+		/* TODO(sergey): Aperture support? */
+		P = transform_perspective(&rastertocamera,
+		                          make_float3(raster_x, raster_y, 0.0f));
+		P = transform_point(&cameratoworld, P);
+		D = normalize(transform_direction(&cameratoworld, D));
+	}
+	else {
+		assert(!"unsupported camera type");
+	}
+	return P;
+}
+
+BoundBox Camera::viewplane_bounds_get()
+{
+	assert(type != CAMERA_PANORAMA);
+
+	/* TODO(sergey): This is all rather stupid, but is there a way to perform
+	 * checks we need in a more clear and smart fasion?
+	 */
+	BoundBox bounds = BoundBox::empty;
+	bounds.grow(transform_raster_to_world(0.0f, 0.0f));
+	bounds.grow(transform_raster_to_world(0.0f, (float)height));
+	bounds.grow(transform_raster_to_world((float)width, (float)height));
+	bounds.grow(transform_raster_to_world((float)width, 0.0f));
+	if(type == CAMERA_PERSPECTIVE) {
+		/* Center point has the most distancei in local Z axis,
+		 * use it to construct bounding box/
+		 */
+		bounds.grow(transform_raster_to_world(0.5f*width, 0.5f*height));
+	}
+	return bounds;
 }
 
 CCL_NAMESPACE_END

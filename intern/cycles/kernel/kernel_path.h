@@ -469,7 +469,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
 	PathState state;
-	path_state_init(kg, &state, rng, sample);
+	path_state_init(kg, &state, rng, sample, &ray);
 
 	/* path iteration */
 	for(;;) {
@@ -858,7 +858,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
 	PathState state;
-	path_state_init(kg, &state, rng, sample);
+	path_state_init(kg, &state, rng, sample, &ray);
 
 	for(;;) {
 		/* intersect scene */
