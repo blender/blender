@@ -469,19 +469,23 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
 	kcd->prev = kcd->curr;
 	kcd->curr.is_space = 0; /*TODO: why do we do this? */
 
-	if (kcd->prev.vert == NULL && kcd->prev.edge == NULL && is_zero_v3(kcd->prev.cage)) {
-		/* Make prevcage a point on the view ray to mouse closest to a point on model: choose vertex 0 */
+	if (kcd->prev.vert == NULL && kcd->prev.edge == NULL) {
 		float origin[3], origin_ofs[3];
-		BMVert *v0;
+		float ofs_local[3];
+
+		negate_v3_v3(ofs_local, kcd->vc.rv3d->ofs);
+		invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
+		mul_m4_v3(kcd->ob->imat, ofs_local);
 
 		knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
-		v0 = BM_vert_at_index_find(kcd->em->bm, 0);
-		if (v0) {
-			closest_to_line_v3(kcd->prev.cage, v0->co, origin_ofs, origin);
-			copy_v3_v3(kcd->prev.co, kcd->prev.cage); /*TODO: do we need this? */
-			copy_v3_v3(kcd->curr.cage, kcd->prev.cage);
-			copy_v3_v3(kcd->curr.co, kcd->prev.co);
+
+		if (!isect_line_plane_v3(kcd->prev.cage, origin, origin_ofs, ofs_local, kcd->proj_zaxis)) {
+			zero_v3(kcd->prev.cage);
 		}
+
+		copy_v3_v3(kcd->prev.co, kcd->prev.cage); /*TODO: do we need this? */
+		copy_v3_v3(kcd->curr.cage, kcd->prev.cage);
+		copy_v3_v3(kcd->curr.co, kcd->prev.co);
 	}
 }
 
@@ -1649,10 +1653,6 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 	f = knife_find_closest_face(kcd, co, cageco, NULL);
 	*is_space = !f;
 
-	/* set p to co, in case we don't find anything, means a face cut */
-	copy_v3_v3(p, co);
-	copy_v3_v3(cagep, cageco);
-
 	kcd->curr.bmface = f;
 
 	if (f) {
@@ -1662,6 +1662,10 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 		ListBase *lst;
 		Ref *ref;
 		float dis_sq, curdis_sq = FLT_MAX;
+
+		/* set p to co, in case we don't find anything, means a face cut */
+		copy_v3_v3(p, co);
+		copy_v3_v3(cagep, cageco);
 
 		knife_project_v2(kcd, cageco, sco);
 
@@ -1771,9 +1775,6 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 
 	f = knife_find_closest_face(kcd, co, cageco, is_space);
 
-	/* set p to co, in case we don't find anything, means a face cut */
-	copy_v3_v3(p, co);
-	copy_v3_v3(cagep, cageco);
 	kcd->curr.bmface = f;
 
 	if (f) {
@@ -1782,6 +1783,10 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 		Ref *ref;
 		KnifeVert *curv = NULL;
 		float dis_sq, curdis_sq = FLT_MAX;
+
+		/* set p to co, in case we don't find anything, means a face cut */
+		copy_v3_v3(p, co);
+		copy_v3_v3(cagep, cageco);
 
 		knife_project_v2(kcd, cageco, sco);
 
