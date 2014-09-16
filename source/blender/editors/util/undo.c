@@ -213,6 +213,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	}
 	
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	WM_event_add_notifier(C, NC_WM | ND_UNDO, NULL);
 
 	if (win) {
 		win->addmousemove = true;

@@ -420,6 +420,9 @@ static void node_area_listener(bScreen *sc, ScrArea *sa, wmNotifier *wmn)
 						}
 					}
 					break;
+				case ND_LAYER_CONTENT:
+					ED_area_tag_refresh(sa);
+					break;
 			}
 			break;
 
@@ -504,6 +507,11 @@ static void node_area_listener(bScreen *sc, ScrArea *sa, wmNotifier *wmn)
 
 		case NC_LINESTYLE:
 			if (ED_node_is_shader(snode) && shader_type == SNODE_SHADER_LINESTYLE) {
+				ED_area_tag_refresh(sa);
+			}
+			break;
+		case NC_WM:
+			if(wmn->data == ND_UNDO) {
 				ED_area_tag_refresh(sa);
 			}
 			break;
