@@ -714,17 +714,17 @@ void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const f
 
 void print_v2(const char *str, const float v[2])
 {
-	printf("%s: %.3f %.3f\n", str, v[0], v[1]);
+	printf("%s: %.8f %.8f\n", str, v[0], v[1]);
 }
 
 void print_v3(const char *str, const float v[3])
 {
-	printf("%s: %.3f %.3f %.3f\n", str, v[0], v[1], v[2]);
+	printf("%s: %.8f %.8f %.8f\n", str, v[0], v[1], v[2]);
 }
 
 void print_v4(const char *str, const float v[4])
 {
-	printf("%s: %.3f %.3f %.3f %.3f\n", str, v[0], v[1], v[2], v[3]);
+	printf("%s: %.8f %.8f %.8f %.8f\n", str, v[0], v[1], v[2], v[3]);
 }
 
 void print_vn(const char *str, const float v[], const int n)
@@ -732,7 +732,7 @@ void print_vn(const char *str, const float v[], const int n)
 	int i = 0;
 	printf("%s[%d]:", str, n);
 	while (i < n) {
-		printf(" %.3f", v[i++]);
+		printf(" %.8f", v[i++]);
 	}
 	printf("\n");
 }
