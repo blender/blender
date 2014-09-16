@@ -183,6 +183,8 @@ typedef struct KnifeTool_OpData {
 
 	float projmat[4][4];
 	float projmat_inv[4][4];
+	/* vector along view z axis (object space, normalized) */
+	float proj_zaxis[3];
 
 	KnifeColors colors;
 
@@ -1921,8 +1923,12 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 
 		knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
 
-		closest_to_line_v3(kcd->curr.cage, kcd->prev.cage, origin_ofs, origin);
-		copy_v3_v3(kcd->curr.co, kcd->curr.cage);
+		if (!isect_line_plane_v3(kcd->curr.cage, origin, origin_ofs, kcd->prev.cage, kcd->proj_zaxis)) {
+			copy_v3_v3(kcd->curr.cage, kcd->prev.cage);
+
+			/* should never fail! */
+			BLI_assert(0);
+		}
 	}
 
 	if (kcd->mode == MODE_DRAGGING) {
@@ -2620,6 +2626,10 @@ static void knife_recalc_projmat(KnifeTool_OpData *kcd)
 	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
 	ED_view3d_ob_project_mat_get(kcd->ar->regiondata, kcd->ob, kcd->projmat);
 	invert_m4_m4(kcd->projmat_inv, kcd->projmat);
+
+	copy_v3_v3(kcd->proj_zaxis, kcd->vc.rv3d->viewinv[2]);
+	mul_mat3_m4_v3(kcd->ob->imat, kcd->proj_zaxis);
+	normalize_v3(kcd->proj_zaxis);
 
 	kcd->is_ortho = ED_view3d_clip_range_get(kcd->vc.v3d, kcd->vc.rv3d,
 	                                         &kcd->clipsta, &kcd->clipend, true);
