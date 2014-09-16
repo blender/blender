@@ -957,7 +957,7 @@ static void rna_def_collision(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "thickness_inner", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pdef_sbift");
 	RNA_def_property_range(prop, 0.001f, 1.0f);
-	RNA_def_property_ui_text(prop, "Inner Thickness", "Inner face thickness");
+	RNA_def_property_ui_text(prop, "Inner Thickness", "Inner face thickness (only used by softbodies)");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
 	
 	prop = RNA_def_property(srna, "thickness_outer", PROP_FLOAT, PROP_NONE);
