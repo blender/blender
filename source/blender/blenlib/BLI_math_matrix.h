@@ -109,6 +109,7 @@ void mul_mat3_m4_v3(float M[4][4], float r[3]);
 void mul_m4_v4(float M[4][4], float r[4]);
 void mul_v4_m4v4(float r[4], float M[4][4], const float v[4]);
 void mul_project_m4_v3(float M[4][4], float vec[3]);
+void mul_v3_project_m4_v3(float r[3], float mat[4][4], const float vec[3]);
 void mul_v2_project_m4_v3(float r[2], float M[4][4], const float vec[3]);
 
 void mul_m3_v2(float m[3][3], float r[2]);
