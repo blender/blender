@@ -20,6 +20,7 @@ fi
 MANIFEST="blender-$VERSION-manifest.txt"
 TARBALL="blender-$VERSION.tar.gz"
 
+cd "$blender_srcdir"
 
 # Build master list
 echo -n "Building manifest of files:  \"$BASE_DIR/$MANIFEST\" ..."
@@ -27,8 +28,10 @@ git ls-files > $BASE_DIR/$MANIFEST
 
 # Enumerate submodules
 for lcv in $(git submodule | cut -f2 -d" "); do
+	cd "$BASE_DIR"
 	cd "$blender_srcdir/$lcv"
 	git ls-files | awk '$0="'"$lcv"/'"$0' >> $BASE_DIR/$MANIFEST
+	cd "$BASE_DIR"
 done
 echo "OK"
 
