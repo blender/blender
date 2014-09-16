@@ -3976,6 +3976,45 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 		psys_free_path_cache(psys, NULL);
 }
 
+static bool psys_hair_use_simulation(ParticleData *pa, float max_length)
+{
+	/* Minimum segment length relative to average length.
+	 * Hairs with segments below this length will be excluded from the simulation,
+	 * because otherwise the solver will become unstable.
+	 * The hair system should always make sure the hair segments have reasonable length ratios,
+	 * but this can happen in old files when e.g. cutting hair.
+	 */
+	const float min_length = 0.1f * max_length;
+	
+	HairKey *key;
+	int k;
+	
+	if (pa->totkey < 2)
+		return false;
+	
+	for (k=1, key=pa->hair+1; k<pa->totkey; k++,key++) {
+		float length = len_v3v3(key->co, (key-1)->co);
+		if (length < min_length)
+			return false;
+	}
+	
+	return true;
+}
+
+static MDeformVert *hair_set_pinning(MDeformVert *dvert, float weight)
+{
+	if (dvert) {
+		if (!dvert->totweight) {
+			dvert->dw = MEM_callocN(sizeof(MDeformWeight), "deformWeight");
+			dvert->totweight = 1;
+		}
+		
+		dvert->dw->weight = weight;
+		dvert++;
+	}
+	return dvert;
+}
+
 static void do_hair_dynamics(ParticleSimulationData *sim)
 {
 	ParticleSystem *psys = sim->psys;
@@ -3990,6 +4029,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	int k;
 	float hairmat[4][4];
 	float (*deformedVerts)[3];
+	float max_length;
 
 	if (!psys->clmd) {
 		psys->clmd = (ClothModifierData*)modifier_new(eModifierType_Cloth);
@@ -3998,6 +4038,16 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 		psys->clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_GOAL|CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
 		psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;
 		psys->clmd->coll_parms->flags |= CLOTH_COLLSETTINGS_FLAG_POINTS;
+	}
+
+	/* calculate maximum segment length */
+	max_length = 0.0f;
+	LOOP_PARTICLES {
+		for (k=1, key=pa->hair+1; k<pa->totkey; k++,key++) {
+			float length = len_v3v3(key->co, (key-1)->co);
+			if (max_length < length)
+				max_length = length;
+		}
 	}
 
 	/* create a dm from hair vertices */
@@ -4034,6 +4084,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->particles->hair_index = 1;
 	LOOP_PARTICLES {
 		float root_mat[4][4];
+		bool use_hair = psys_hair_use_simulation(pa, max_length);
 
 		if (p)
 			pa->hair_index = (pa-1)->hair_index + (pa-1)->totkey + 1;
@@ -4062,15 +4113,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 				medge->v2 = pa->hair_index;
 				medge++;
 
-				if (dvert) {
-					if (!dvert->totweight) {
-						dvert->dw = MEM_callocN(sizeof(MDeformWeight), "deformWeight");
-						dvert->totweight = 1;
-					}
-
-					dvert->dw->weight = 1.0f;
-					dvert++;
-				}
+				dvert = hair_set_pinning(dvert, 1.0f);
 			}
 
 			/* store root transform in cloth data */
@@ -4088,15 +4131,11 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 				medge++;
 			}
 
-			if (dvert) {
-				if (!dvert->totweight) {
-					dvert->dw = MEM_callocN(sizeof(MDeformWeight), "deformWeight");
-					dvert->totweight = 1;
-				}
-				/* roots should be 1.0, the rest can be anything from 0.0 to 1.0 */
-				dvert->dw->weight = key->weight;
-				dvert++;
-			}
+			/* roots and disabled hairs should be 1.0, the rest can be anything from 0.0 to 1.0 */
+			if (use_hair)
+				dvert = hair_set_pinning(dvert, key->weight);
+			else
+				dvert = hair_set_pinning(dvert, 1.0f);
 		}
 	}
 
