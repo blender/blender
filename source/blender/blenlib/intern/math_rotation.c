@@ -366,7 +366,7 @@ void mat3_to_quat_is_ok(float q[4], float wmat[3][3])
 	mul_m3_v3(matn, mat[0]);
 
 	/* and align x-axes */
-	angle = (float)(0.5 * atan2(mat[0][1], mat[0][0]));
+	angle = 0.5f * atan2f(mat[0][1], mat[0][0]);
 
 	co = cosf(angle);
 	si = sinf(angle);
@@ -765,7 +765,7 @@ void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const f
 	vec[2] = 0.0f;
 	normalize_v3(vec);
 
-	angle = (float)(0.5 * atan2(vec[1], vec[0]));
+	angle = 0.5f * atan2f(vec[1], vec[0]);
 	co = cosf(angle);
 	si = sinf(angle);
 	q2[0] = co;

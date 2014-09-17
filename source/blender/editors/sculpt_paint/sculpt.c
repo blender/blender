@@ -550,7 +550,7 @@ static bool sculpt_brush_test(SculptBrushTest *test, const float co[3])
 		if (sculpt_brush_test_clipping(test, co)) {
 			return 0;
 		}
-		test->dist = sqrt(distsq);
+		test->dist = sqrtf(distsq);
 		return 1;
 	}
 	else {
@@ -2553,7 +2553,7 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 				sub_v3_v3v3(val, intr, vd.co);
 
 				if (plane_trim(ss->cache, brush, val)) {
-					const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrt(test.dist),
+					const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrtf(test.dist),
 					                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 					mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -2626,7 +2626,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 					sub_v3_v3v3(val, intr, vd.co);
 
 					if (plane_trim(ss->cache, brush, val)) {
-						const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrt(test.dist),
+						const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrtf(test.dist),
 						                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -2792,7 +2792,7 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
-						                                            sqrt(test.dist),
+						                                            sqrtf(test.dist),
 						                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -2856,7 +2856,7 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
-						                                            sqrt(test.dist),
+						                                            sqrtf(test.dist),
 						                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -2899,7 +2899,7 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
 
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if (sculpt_brush_test_sq(&test, vd.co)) {
-				const float fade = tex_strength(ss, brush, vd.co, sqrt(test.dist), vd.no,
+				const float fade = tex_strength(ss, brush, vd.co, sqrtf(test.dist), vd.no,
 				                                vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], offset, fade);

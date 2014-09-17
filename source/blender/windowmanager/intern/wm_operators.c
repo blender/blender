@@ -3749,8 +3749,8 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
 			d[0] = (1 - rc->initial_value) * WM_RADIAL_CONTROL_DISPLAY_WIDTH + WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
 			break;
 		case PROP_ANGLE:
-			d[0] = WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(rc->initial_value);
-			d[1] = WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(rc->initial_value);
+			d[0] = WM_RADIAL_CONTROL_DISPLAY_SIZE * cosf(rc->initial_value);
+			d[1] = WM_RADIAL_CONTROL_DISPLAY_SIZE * sinf(rc->initial_value);
 			break;
 		default:
 			return;
@@ -4251,7 +4251,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 					if (snap) new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
 					break;
 				case PROP_ANGLE:
-					new_value = atan2(delta[1], delta[0]) + M_PI + angle_precision;
+					new_value = atan2f(delta[1], delta[0]) + M_PI + angle_precision;
 					new_value = fmod(new_value, 2.0f * (float)M_PI);
 					if (new_value < 0.0f)
 						new_value += 2.0f * (float)M_PI;

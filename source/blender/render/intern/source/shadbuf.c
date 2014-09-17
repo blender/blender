@@ -536,7 +536,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 			if (x< a) minx= x+15-a;
 			else minx= x-a;
 			
-			dist= sqrt( (float)(minx*minx+miny*miny) );
+			dist = sqrtf((float)(minx * minx + miny * miny));
 			
 			if (square==0 && dist>(float)(a+12)) {	/* 12, tested with a onlyshadow lamp */
 				a= 256; verg= 0; /* 0x80000000; */ /* 0x7FFFFFFF; */
@@ -1685,7 +1685,7 @@ static int point_behind_strand(const float p[3], BSPFace *face)
 	if (face->len==0.0f) {
 		rc[0]= p[0]-face->vec1[0];
 		rc[1]= p[1]-face->vec1[1];
-		dist= (float)(sqrt(rc[0]*rc[0]+ rc[1]*rc[1]));
+		dist = len_v2(rc);
 		
 		if (dist < face->radline)
 			return 1;
@@ -1699,10 +1699,10 @@ static int point_behind_strand(const float p[3], BSPFace *face)
 			
 			pt[0]= lambda*face->rc[0]+face->vec1[0];
 			pt[1]= lambda*face->rc[1]+face->vec1[1];
-			
+
 			rc[0]= pt[0]-p[0];
 			rc[1]= pt[1]-p[1];
-			dist= sqrtf(rc[0]*rc[0]+ rc[1]*rc[1]);
+			dist = len_v2(rc);
 			
 			if (dist < face->radline) {
 				float zval= face->vec1[2] + lambda*face->rc[2];

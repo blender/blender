@@ -701,7 +701,7 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 
 	rad1= (float)(1.0f/sqrtf((float)num));
 	rad2= (float)(1.0f/((float)num));
-	rad3= (float)sqrt((float)num)/((float)num);
+	rad3= (float)sqrtf((float)num)/((float)num);
 
 	rng = BLI_rng_new(31415926 + num + seed2);
 	x= 0;

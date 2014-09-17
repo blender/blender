@@ -212,10 +212,10 @@ static int blend(Tex *tex, const float texvec[3], TexResult *texres)
 		texres->tin= (2.0f+x+y)/4.0f;
 	}
 	else if (tex->stype==TEX_RAD) { /* radial */
-		texres->tin= (atan2(y, x) / (2*M_PI) + 0.5);
+		texres->tin = (atan2f(y, x) / (2 * M_PI) + 0.5f);
 	}
 	else {  /* sphere TEX_SPHERE */
-		texres->tin= 1.0-sqrt(x*x+	y*y+texvec[2]*texvec[2]);
+		texres->tin = 1.0 - sqrtf(x * x + y * y + texvec[2] * texvec[2]);
 		if (texres->tin<0.0f) texres->tin= 0.0f;
 		if (tex->stype==TEX_HALO) texres->tin*= texres->tin;  /* halo */
 	}
@@ -266,8 +266,8 @@ static int clouds(Tex *tex, const float texvec[3], TexResult *texres)
 /* creates a sine wave */
 static float tex_sin(float a)
 {
-	a = 0.5 + 0.5*sin(a);
-		
+	a = 0.5 + 0.5 * sinf(a);
+
 	return a;
 }
 
@@ -366,10 +366,10 @@ static float marble_int(Tex *tex, float x, float y, float z)
 	if (mt>=TEX_SOFT) {  /* TEX_SOFT always true */
 		mi = waveform[wf](mi);
 		if (mt==TEX_SHARP) {
-			mi = sqrt(mi);
+			mi = sqrtf(mi);
 		}
 		else if (mt==TEX_SHARPER) {
-			mi = sqrt(sqrt(mi));
+			mi = sqrtf(sqrtf(mi));
 		}
 	}
 
@@ -408,41 +408,41 @@ static int magic(Tex *tex, const float texvec[3], TexResult *texres)
 	n= tex->noisedepth;
 	turb= tex->turbul/5.0f;
 
-	x=  sin( ( texvec[0]+texvec[1]+texvec[2])*5.0f );
-	y=  cos( (-texvec[0]+texvec[1]-texvec[2])*5.0f );
-	z= -cos( (-texvec[0]-texvec[1]+texvec[2])*5.0f );
+	x =  sinf(( texvec[0] + texvec[1] + texvec[2]) * 5.0f);
+	y =  cosf((-texvec[0] + texvec[1] - texvec[2]) * 5.0f);
+	z = -cosf((-texvec[0] - texvec[1] + texvec[2]) * 5.0f);
 	if (n>0) {
 		x*= turb;
 		y*= turb;
 		z*= turb;
-		y= -cos(x-y+z);
+		y= -cosf(x-y+z);
 		y*= turb;
 		if (n>1) {
-			x= cos(x-y-z);
+			x= cosf(x-y-z);
 			x*= turb;
 			if (n>2) {
-				z= sin(-x-y-z);
+				z= sinf(-x-y-z);
 				z*= turb;
 				if (n>3) {
-					x= -cos(-x+y-z);
+					x= -cosf(-x+y-z);
 					x*= turb;
 					if (n>4) {
-						y= -sin(-x+y+z);
+						y= -sinf(-x+y+z);
 						y*= turb;
 						if (n>5) {
-							y= -cos(-x+y+z);
+							y= -cosf(-x+y+z);
 							y*= turb;
 							if (n>6) {
-								x= cos(x+y+z);
+								x= cosf(x+y+z);
 								x*= turb;
 								if (n>7) {
-									z= sin(x+y-z);
+									z= sinf(x+y-z);
 									z*= turb;
 									if (n>8) {
-										x= -cos(-x-y+z);
+										x= -cosf(-x-y+z);
 										x*= turb;
 										if (n>9) {
-											y= -sin(x-y+z);
+											y= -sinf(x-y+z);
 											y*= turb;
 										}
 									}
@@ -2348,8 +2348,8 @@ void do_material_tex(ShadeInput *shi, Render *re)
 						copy_v3_v3(texres.nor, &texres.tr);
 					}
 					else {
-						float co_nor= 0.5*cos(texres.tin-0.5f);
-						float si= 0.5*sin(texres.tin-0.5f);
+						float co_nor= 0.5f * cosf(texres.tin - 0.5f);
+						float si = 0.5f * sinf(texres.tin - 0.5f);
 						float f1, f2;
 
 						f1= shi->vn[0];

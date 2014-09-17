@@ -190,7 +190,7 @@ static float calc_weight(Render *re, float *weight, int i, int j)
 	for (a = 0; a < re->osa; a++) {
 		x = re->jit[a][0] + i;
 		y = re->jit[a][1] + j;
-		dist = sqrt(x * x + y * y);
+		dist = sqrtf(x * x + y * y);
 
 		weight[a] = 0.0;
 

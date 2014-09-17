@@ -273,7 +273,7 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata,
 	Temp_UVData *tmp_uvdata;
 	float diff[2];
 	int i;
-	float radius_root = sqrt(radius);
+	float radius_root = sqrtf(radius);
 	Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
 	tmp_uvdata = (Temp_UVData *)MEM_callocN(sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
@@ -316,7 +316,7 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata,
 		if ((dist = dot_v2v2(diff, diff)) <= radius) {
 			UvElement *element;
 			float strength;
-			strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
+			strength = alpha * BKE_brush_curve_strength(brush, sqrtf(dist), radius_root);
 
 			sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] + strength * (tmp_uvdata[i].p[0] - 0.5f * (tmp_uvdata[i].b[0] + tmp_uvdata[i].sum_b[0] / tmp_uvdata[i].ncounter));
 			sculptdata->uv[i].uv[1] = (1.0f - strength) * sculptdata->uv[i].uv[1] + strength * (tmp_uvdata[i].p[1] - 0.5f * (tmp_uvdata[i].b[1] + tmp_uvdata[i].sum_b[1] / tmp_uvdata[i].ncounter));
@@ -345,7 +345,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 	Temp_UVData *tmp_uvdata;
 	float diff[2];
 	int i;
-	float radius_root = sqrt(radius);
+	float radius_root = sqrtf(radius);
 	Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
 	tmp_uvdata = (Temp_UVData *)MEM_callocN(sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
@@ -380,7 +380,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *scul
 		if ((dist = dot_v2v2(diff, diff)) <= radius) {
 			UvElement *element;
 			float strength;
-			strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
+			strength = alpha * BKE_brush_curve_strength(brush, sqrtf(dist), radius_root);
 
 			sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] + strength * tmp_uvdata[i].p[0];
 			sculptdata->uv[i].uv[1] = (1.0f - strength) * sculptdata->uv[i].uv[1] + strength * tmp_uvdata[i].p[1];
@@ -434,7 +434,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, const wmEvent *e
 
 	/* We will compare squares to save some computation */
 	radius = radius * radius;
-	radius_root = sqrt(radius);
+	radius_root = sqrtf(radius);
 
 	/*
 	 * Pinch Tool
@@ -455,7 +455,7 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, const wmEvent *e
 			if ((dist = dot_v2v2(diff, diff)) <= radius) {
 				UvElement *element;
 				float strength;
-				strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
+				strength = alpha * BKE_brush_curve_strength(brush, sqrtf(dist), radius_root);
 				normalize_v2(diff);
 
 				sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001f;
@@ -803,7 +803,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 			aspectRatio = width / (float)height;
 			radius /= (width * zoomx);
 			radius = radius * radius;
-			radius_root = sqrt(radius);
+			radius_root = sqrtf(radius);
 
 			/* Allocate selection stack */
 			data->initial_stroke = MEM_mallocN(sizeof(*data->initial_stroke), "uv_sculpt_initial_stroke");
@@ -829,7 +829,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 				diff[1] /= aspectRatio;
 				if ((dist = dot_v2v2(diff, diff)) <= radius) {
 					float strength;
-					strength = alpha * BKE_brush_curve_strength(brush, sqrt(dist), radius_root);
+					strength = alpha * BKE_brush_curve_strength(brush, sqrtf(dist), radius_root);
 
 					data->initial_stroke->initialSelection[counter].uv = i;
 					data->initial_stroke->initialSelection[counter].strength = strength;

@@ -4077,7 +4077,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						sub_v2_v2v2(tangent, pos, lastpos);
 						line_len = len_squared_v2(tangent);
 						line_len_sq_inv = 1.0f / line_len;
-						line_len = sqrt(line_len);
+						line_len = sqrtf(line_len);
 
 						switch (brush->gradient_fill_mode) {
 							case BRUSH_GRADIENT_LINEAR:

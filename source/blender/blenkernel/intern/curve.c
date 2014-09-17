@@ -2468,7 +2468,7 @@ static void make_bevel_list_2D(BevList *bl)
 
 		/* first */
 		bevp = bl->bevpoints;
-		angle = atan2(bevp->dir[0], bevp->dir[1]) - M_PI / 2.0;
+		angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)(M_PI / 2.0f);
 		bevp->sina = sinf(angle);
 		bevp->cosa = cosf(angle);
 		vec_to_quat(bevp->quat, bevp->dir, 5, 1);
@@ -2476,7 +2476,7 @@ static void make_bevel_list_2D(BevList *bl)
 		/* last */
 		bevp = bl->bevpoints;
 		bevp += (bl->nr - 1);
-		angle = atan2(bevp->dir[0], bevp->dir[1]) - M_PI / 2.0;
+		angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)(M_PI / 2.0f);
 		bevp->sina = sinf(angle);
 		bevp->cosa = cosf(angle);
 		vec_to_quat(bevp->quat, bevp->dir, 5, 1);

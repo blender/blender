@@ -577,14 +577,14 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 	/* store first and last handle for extrapolation, unit length */
 	cuma->ext_in[0] = bezt[0].vec[0][0] - bezt[0].vec[1][0];
 	cuma->ext_in[1] = bezt[0].vec[0][1] - bezt[0].vec[1][1];
-	range = sqrt(cuma->ext_in[0] * cuma->ext_in[0] + cuma->ext_in[1] * cuma->ext_in[1]);
+	range = sqrtf(cuma->ext_in[0] * cuma->ext_in[0] + cuma->ext_in[1] * cuma->ext_in[1]);
 	cuma->ext_in[0] /= range;
 	cuma->ext_in[1] /= range;
 
 	a = cuma->totpoint - 1;
 	cuma->ext_out[0] = bezt[a].vec[1][0] - bezt[a].vec[2][0];
 	cuma->ext_out[1] = bezt[a].vec[1][1] - bezt[a].vec[2][1];
-	range = sqrt(cuma->ext_out[0] * cuma->ext_out[0] + cuma->ext_out[1] * cuma->ext_out[1]);
+	range = sqrtf(cuma->ext_out[0] * cuma->ext_out[0] + cuma->ext_out[1] * cuma->ext_out[1]);
 	cuma->ext_out[0] /= range;
 	cuma->ext_out[1] /= range;
 	

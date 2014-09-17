@@ -1906,9 +1906,9 @@ static void renderflare(RenderResult *rr, float *rectf, HaloRen *har)
 		fla.hard= 20.0f + fabsf(70.0f*rc[7]);
 		fla.tex= 0;
 		
-		type= (int)(fabs(3.9f*rc[6]));
+		type= (int)(fabsf(3.9f*rc[6]));
 
-		fla.rad= ma->subsize*sqrtf(fabs(2.0f*har->rad*rc[4]));
+		fla.rad = ma->subsize * sqrtf(fabsf(2.0f * har->rad * rc[4]));
 		
 		if (type==3) {
 			fla.rad*= 3.0f;

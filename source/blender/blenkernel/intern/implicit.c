@@ -1236,7 +1236,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	sub_v3_v3v3(extent, X[s->kl], X[s->ij]);
 	sub_v3_v3v3(vel, V[s->kl], V[s->ij]);
 	dot = dot_v3v3(extent, extent);
-	length = sqrt(dot);
+	length = sqrtf(dot);
 	
 	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
 	

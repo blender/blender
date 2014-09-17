@@ -3193,7 +3193,7 @@ void map_to_tube(float *r_u, float *r_v, const float x, const float y, const flo
 
 	len = sqrtf(x * x + y * y);
 	if (len > 0.0f) {
-		*r_u = (float)((1.0 - (atan2(x / len, y / len) / M_PI)) / 2.0);
+		*r_u = (1.0f - (atan2f(x / len, y / len) / (float)M_PI)) / 2.0f;
 	}
 	else {
 		*r_v = *r_u = 0.0f; /* to avoid un-initialized variables */

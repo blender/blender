@@ -144,7 +144,7 @@ float mistfactor(float zcor, float const co[3])
 				/* pass */
 			}
 			else {
-				fac = sqrt(fac);
+				fac = sqrtf(fac);
 			}
 		}
 		else {
@@ -338,9 +338,9 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 			
 		/* now we have 2 points, make three lengths with it */
 		
-		a= sqrt(p1[0]*p1[0]+p1[1]*p1[1]+p1[2]*p1[2]);
-		b= sqrt(p2[0]*p2[0]+p2[1]*p2[1]+p2[2]*p2[2]);
-		c= len_v3v3(p1, p2);
+		a = len_v3(p1);
+		b = len_v3(p2);
+		c = len_v3v3(p1, p2);
 		
 		a/= ladist;
 		a= sqrt(a);
@@ -640,7 +640,7 @@ static float Blinn_Spec(const float n[3], const float l[3], const float v[3], fl
 	
 	/* conversion from 'hardness' (1-255) to 'spec_power' (50 maps at 0.1) */
 	if (spec_power<100.0f)
-		spec_power= sqrt(1.0f/spec_power);
+		spec_power = sqrtf(1.0f / spec_power);
 	else spec_power= 10.0f/spec_power;
 	
 	h[0]= v[0]+l[0];
@@ -731,7 +731,7 @@ static float WardIso_Spec(const float n[3], const float l[3], const float v[3], 
 	if (tangent) nl = sasqrt(1.0f - nl*nl);
 	if (nl<=0.0f) nl = 0.001f;
 
-	angle = tan(saacos(nh));
+	angle = tanf(saacos(nh));
 	alpha = MAX2(rms, 0.001f);
 
 	i= nl * (1.0f/(4.0f*(float)M_PI*alpha*alpha)) * (expf( -(angle*angle)/(alpha*alpha))/(sqrtf(nv*nl)));
@@ -746,7 +746,7 @@ static float Toon_Diff(const float n[3], const float l[3], const float UNUSED(v[
 
 	rslt = n[0]*l[0] + n[1]*l[1] + n[2]*l[2];
 
-	ang = saacos( (double)(rslt) );
+	ang = saacos(rslt);
 
 	if ( ang < size ) rslt = 1.0f;
 	else if ( ang >= (size + smooth) || smooth == 0.0f ) rslt = 0.0f;
@@ -1257,7 +1257,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 							x = max_ff(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
 							/* 1.0f/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 							
-							inpr= 1.0f/(sqrt(1.0f+x*x));
+							inpr = 1.0f / (sqrtf(1.0f + x * x));
 						}
 						else inpr= 0.0f;
 					}

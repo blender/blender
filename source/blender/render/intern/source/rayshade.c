@@ -651,7 +651,7 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		const float dx= shi->co[0] - is->start[0];
 		const float dy= shi->co[1] - is->start[1];
 		const float dz= shi->co[2] - is->start[2];
-		d= sqrt(dx*dx+dy*dy+dz*dz);
+		d = sqrtf(dx * dx + dy * dy + dz * dz);
 		if (d > shi->mat->tx_limit)
 			d= shi->mat->tx_limit;
 
@@ -1117,7 +1117,7 @@ static void QMC_samplePhong(float vec[3], QMCSampler *qsa, int thread, int num, 
 
 	phi = s[0]*2*M_PI;
 	pz = pow(s[1], blur);
-	sqr = sqrt(1.0f-pz*pz);
+	sqr = sqrtf(1.0f - pz * pz);
 
 	vec[0] = (float)(cosf(phi)*sqr);
 	vec[1] = (float)(sinf(phi)*sqr);
@@ -1281,7 +1281,7 @@ static float get_avg_speed(ShadeInput *shi)
 	post_x = (shi->winspeed[2] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[2];
 	post_y = (shi->winspeed[3] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[3];
 	
-	speedavg = (sqrt(pre_x*pre_x + pre_y*pre_y) + sqrt(post_x*post_x + post_y*post_y)) / 2.0;
+	speedavg = (sqrtf(pre_x * pre_x + pre_y * pre_y) + sqrtf(post_x * post_x + post_y * post_y)) / 2.0;
 	
 	return speedavg;
 }
@@ -1786,10 +1786,10 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, in
 			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
 			/* random rotation */
-			ang= BLI_thread_frand(thread);
-			sinfi= sin(ang); cosfi= cos(ang);
-			ang= BLI_thread_frand(thread);
-			sint= sin(ang); cost= cos(ang);
+			ang = BLI_thread_frand(thread);
+			sinfi = sinf(ang); cosfi = cosf(ang);
+			ang = BLI_thread_frand(thread);
+			sint = sinf(ang); cost = cosf(ang);
 			
 			vec= R.wrld.aosphere;
 			vec1= sphere;
@@ -2406,9 +2406,9 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, const float lampco[
 	else {
 		/* sqrt makes nice umbra effect */
 		if (lar->ray_samp_type & LA_SAMP_UMBRA)
-			shadfac[3]= sqrt(1.0f-fac/div);
+			shadfac[3] = sqrtf(1.0f - fac / div);
 		else
-			shadfac[3]= 1.0f-fac/div;
+			shadfac[3] = 1.0f - fac / div;
 	}
 }
 /* extern call from shade_lamp_loop */

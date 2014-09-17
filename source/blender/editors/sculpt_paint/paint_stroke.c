@@ -283,9 +283,9 @@ static bool paint_brush_update(bContext *C,
 		const float dx = mouse[0] - stroke->initial_mouse[0];
 		const float dy = mouse[1] - stroke->initial_mouse[1];
 
-		ups->anchored_size = ups->pixel_radius = sqrt(dx * dx + dy * dy);
+		ups->anchored_size = ups->pixel_radius = sqrtf(dx * dx + dy * dy);
 
-		ups->brush_rotation = atan2(dx, dy) + M_PI;
+		ups->brush_rotation = atan2f(dx, dy) + M_PI;
 
 		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
 			halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
@@ -498,7 +498,7 @@ static float paint_stroke_overlapped_curve(Brush *br, float x, float spacing)
 	for (i = 0; i < n; i++) {
 		float xx;
 
-		xx = fabs(x0 + i * h);
+		xx = fabsf(x0 + i * h);
 
 		if (xx < 1.0f)
 			sum += BKE_brush_curve_strength(br, xx, 1);

@@ -872,7 +872,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 		case PFIELD_HARMONIC:
 			mul_v3_fl(force, -strength * efd->falloff);
 			copy_v3_v3(temp, point->vel);
-			mul_v3_fl(temp, -damp * 2.0f * (float)sqrt(fabs(strength)) * point->vel_to_sec);
+			mul_v3_fl(temp, -damp * 2.0f * sqrtf(fabsf(strength)) * point->vel_to_sec);
 			add_v3_v3(force, temp);
 			break;
 		case PFIELD_CHARGE:

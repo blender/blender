@@ -245,7 +245,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 					invert_m4_m4(imat, premat);
 					mul_m4_m4m4(difmat, imat, postmat);
 					
-					curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
+					curbone->roll -= atan2f(difmat[2][0], difmat[2][2]);
 				}
 				
 				/* Fix Constraints and Other Links to this Bone and Armature */

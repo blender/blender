@@ -872,9 +872,9 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
 		cross_v3_v3v3(tmp, start, end);
 		
 		if (dot_v3v3(tmp, axis) < 0.0f)
-			angle = -acos(dot_v3v3(start, end));
+			angle = -acosf(dot_v3v3(start, end));
 		else
-			angle = acos(dot_v3v3(start, end));
+			angle = acosf(dot_v3v3(start, end));
 	}
 	else {
 		float mtx[3][3];
@@ -884,7 +884,7 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
 		mul_m3_v3(mtx, end);
 		mul_m3_v3(mtx, start);
 		
-		angle = atan2(start[1], start[0]) - atan2(end[1], end[0]);
+		angle = atan2f(start[1], start[0]) - atan2f(end[1], end[0]);
 	}
 	
 	if (angle > (float)M_PI) {

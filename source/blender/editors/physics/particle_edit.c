@@ -319,7 +319,7 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
 	if (pset->flag & PE_FADE_TIME && pset->selectmode==SCE_SELECT_POINT) {
 		LOOP_POINTS {
 			LOOP_KEYS {
-				if (fabs(cfra-*key->time) < pset->fade_frames)
+				if (fabsf(cfra - *key->time) < pset->fade_frames)
 					key->flag &= ~PEK_HIDE;
 				else {
 					key->flag |= PEK_HIDE;
@@ -463,7 +463,7 @@ static bool key_inside_circle(PEData *data, float rad, const float co[3], float 
 
 	dx= data->mval[0] - screen_co[0];
 	dy= data->mval[1] - screen_co[1];
-	dist= sqrt(dx*dx + dy*dy);
+	dist = sqrtf(dx * dx + dy * dy);
 
 	if (dist > rad)
 		return 0;
@@ -2932,7 +2932,7 @@ static void brush_cut(PEData *data, int pa_index)
 			d= dv * rad2 - d*d;
 
 			if (d > 0.0f) {
-				d= sqrt(d);
+				d= sqrtf(d);
 
 				cut_time= -(v0*xo0 + v1*xo1 + d);
 
@@ -3678,7 +3678,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		pset->flag &= ~PE_LOCK_FIRST;
 
 	if (((pset->brushtype == PE_BRUSH_ADD) ?
-	     (sqrt(dx * dx + dy * dy) > pset->brush[PE_BRUSH_ADD].step) : (dx != 0 || dy != 0)) || bedit->first)
+	     (sqrtf(dx * dx + dy * dy) > pset->brush[PE_BRUSH_ADD].step) : (dx != 0 || dy != 0)) || bedit->first)
 	{
 		PEData data= bedit->data;
 

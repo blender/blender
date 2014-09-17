@@ -2172,8 +2172,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	glVertex2f(centx, centy);
 	
 	for (a = 0; a <= tot; a++, ang += radstep) {
-		float si = sin(ang);
-		float co = cos(ang);
+		float si = sinf(ang);
+		float co = cosf(ang);
 		
 		ui_hsvcircle_vals_from_pos(hsv, hsv + 1, rect, centx + co * radius, centy + si * radius);
 
@@ -3841,7 +3841,7 @@ void ui_draw_pie_center(uiBlock *block)
 
 	int subd = 40;
 
-	float angle = atan2(pie_dir[1], pie_dir[0]);
+	float angle = atan2f(pie_dir[1], pie_dir[0]);
 	float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? ((float)M_PI / 2.0f) : ((float)M_PI / 4.0f);
 
 	glPushMatrix();

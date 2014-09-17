@@ -947,7 +947,7 @@ static PyObject *Quaternion_magnitude_get(QuaternionObject *self, void *UNUSED(c
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	return PyFloat_FromDouble(sqrt(dot_qtqt(self->quat, self->quat)));
+	return PyFloat_FromDouble(sqrtf(dot_qtqt(self->quat, self->quat)));
 }
 
 PyDoc_STRVAR(Quaternion_angle_doc,

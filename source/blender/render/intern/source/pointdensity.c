@@ -384,7 +384,7 @@ static void accum_density(void *userdata, int index, float squared_dist)
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_CONSTANT)
 		density = pdr->squared_radius;
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_ROOT)
-		density = sqrt(dist);
+		density = sqrtf(dist);
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_PARTICLE_AGE) {
 		if (pdr->point_data_used & POINT_DATA_LIFE)
 			density = dist*MIN2(pdr->point_data[pdr->offset + index], 1.0f);

@@ -89,14 +89,14 @@ void ClipColor(float c[3])
  * */
 static float AngleBetween(float thetav, float phiv, float theta, float phi)
 {
-	float cospsi = sin(thetav) * sin(theta) * cos(phi - phiv) + cos(thetav) * cos(theta);
+	float cospsi = sinf(thetav) * sinf(theta) * cosf(phi - phiv) + cosf(thetav) * cosf(theta);
 
 	if (cospsi > 1.0f)
 		return 0;
 	if (cospsi < -1.0f)
 		return M_PI;
 
-	return acos(cospsi);
+	return acosf(cospsi);
 }
 
 /**
@@ -112,7 +112,7 @@ static void DirectionToThetaPhi(float *toSun, float *theta, float *phi)
 	if (fabsf(*theta) < 1e-5f)
 		*phi = 0;
 	else
-		*phi = atan2(toSun[1], toSun[0]);
+		*phi = atan2f(toSun[1], toSun[0]);
 }
 
 /**

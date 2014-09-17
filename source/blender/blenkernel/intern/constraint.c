@@ -3592,7 +3592,7 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		cross_v3_v3v3(raxis, obvec, tarvec);
 		
 		rangle = dot_v3v3(obvec, tarvec);
-		rangle = acos(max_ff(-1.0f, min_ff(1.0f, rangle)));
+		rangle = acosf(max_ff(-1.0f, min_ff(1.0f, rangle)));
 		
 		/* construct rotation matrix from the axis-angle rotation found above 
 		 *	- this call takes care to make sure that the axis provided is a unit vector first

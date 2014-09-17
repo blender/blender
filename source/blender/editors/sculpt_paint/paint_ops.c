@@ -667,7 +667,7 @@ static void stencil_set_target(StencilControlData *scd)
 
 	scd->lenorig = len_v2(mdiff);
 
-	scd->init_angle = atan2(mdiff[1], mdiff[0]);
+	scd->init_angle = atan2f(mdiff[1], mdiff[0]);
 }
 
 static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -763,7 +763,7 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
 		{
 			float angle;
 			sub_v2_v2v2(mdiff, mvalf, scd->pos_target);
-			angle = atan2(mdiff[1], mdiff[0]);
+			angle = atan2f(mdiff[1], mdiff[0]);
 			angle = scd->init_rot + angle - scd->init_angle;
 			if (angle < 0.0f)
 				angle += (float)(2 * M_PI);
@@ -916,7 +916,7 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
 			stencil_area = br->stencil_dimension[0] * br->stencil_dimension[1];
 		}
 
-		factor = sqrt(stencil_area / orig_area);
+		factor = sqrtf(stencil_area / orig_area);
 
 		if (do_mask) {
 			br->mask_stencil_dimension[0] = factor * aspx;

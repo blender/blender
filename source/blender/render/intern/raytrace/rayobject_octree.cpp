@@ -657,7 +657,7 @@ static void RE_rayobject_octree_done(RayObject *tree)
 	oc->ocfacy = (oc->ocres - 0.1f) / t01;
 	oc->ocfacz = (oc->ocres - 0.1f) / t02;
 	
-	oc->ocsize = sqrt(t00 * t00 + t01 * t01 + t02 * t02);  /* global, max size octree */
+	oc->ocsize = sqrtf(t00 * t00 + t01 * t01 + t02 * t02);  /* global, max size octree */
 
 	for (c = 0; c < oc->ro_nodes_used; c++) {
 		octree_fill_rayface(oc, oc->ro_nodes[c]);

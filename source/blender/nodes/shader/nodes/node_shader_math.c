@@ -74,25 +74,25 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		case 4: /* Sine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
-				r = sin(a);
+				r = sinf(a);
 			else
-				r = sin(b);
+				r = sinf(b);
 			break;
 		}
 		case 5: /* Cosine */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
-				r = cos(a);
+				r = cosf(a);
 			else
-				r = cos(b);
+				r = cosf(b);
 			break;
 		}
 		case 6: /* Tangent */
 		{
 			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
-				r = tan(a);
+				r = tanf(a);
 			else
-				r = tan(b);
+				r = tanf(b);
 			break;
 		}
 		case 7: /* Arc-Sine */
@@ -100,14 +100,14 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
 				/* Can't do the impossible... */
 				if (a <= 1 && a >= -1)
-					r = asin(a);
+					r = asinf(a);
 				else
 					r = 0.0;
 			}
 			else {
 				/* Can't do the impossible... */
 				if (b <= 1 && b >= -1)
-					r = asin(b);
+					r = asinf(b);
 				else
 					r = 0.0;
 			}
@@ -118,14 +118,14 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 			if (in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
 				/* Can't do the impossible... */
 				if (a <= 1 && a >= -1)
-					r = acos(a);
+					r = acosf(a);
 				else
 					r = 0.0;
 			}
 			else {
 				/* Can't do the impossible... */
 				if (b <= 1 && b >= -1)
-					r = acos(b);
+					r = acosf(b);
 				else
 					r = 0.0;
 			}
@@ -218,7 +218,7 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 		}
 		case 18: /* Absolute */
 		{
-			r = fabs(a);
+			r = fabsf(a);
 			break;
 		}
 	}

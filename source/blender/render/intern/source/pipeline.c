@@ -1013,8 +1013,8 @@ static bool find_next_pano_slice(Render *re, int *slice, int *minx, rctf *viewpl
 		
 		/* rotate database according to part coordinates */
 		project_renderdata(re, projectverto, 1, -R.panodxp * phi, 1);
-		R.panosi = sin(R.panodxp * phi);
-		R.panoco = cos(R.panodxp * phi);
+		R.panosi = sinf(R.panodxp * phi);
+		R.panoco = cosf(R.panodxp * phi);
 	}
 	
 	(*slice)++;

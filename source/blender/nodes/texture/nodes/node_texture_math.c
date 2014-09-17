@@ -72,24 +72,24 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		}
 		case 4: /* Sine */
 		{
-			*out = sin(in0);
+			*out = sinf(in0);
 			break;
 		}
 		case 5: /* Cosine */
 		{
-			*out = cos(in0);
+			*out = cosf(in0);
 			break;
 		}
 		case 6: /* Tangent */
 		{
-			*out = tan(in0);
+			*out = tanf(in0);
 			break;
 		}
 		case 7: /* Arc-Sine */
 		{
 			/* Can't do the impossible... */
 			if (in0 <= 1 && in0 >= -1)
-				*out = asin(in0);
+				*out = asinf(in0);
 			else
 				*out = 0.0;
 			break;
@@ -98,7 +98,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		{
 			/* Can't do the impossible... */
 			if (in0 <= 1 && in0 >= -1)
-				*out = acos(in0);
+				*out = acosf(in0);
 			else
 				*out = 0.0;
 			break;
@@ -185,7 +185,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 
 		case 18: /* Absolute */
 		{
-			*out = fabs(in0);
+			*out = fabsf(in0);
 			break;
 		}
 

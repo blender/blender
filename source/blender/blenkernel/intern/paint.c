@@ -486,7 +486,7 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, const float mouse_
 	sub_v2_v2v2(dpos, ups->last_rake, mouse_pos);
 
 	if (len_squared_v2(dpos) >= r * r) {
-		ups->brush_rotation = atan2(dpos[0], dpos[1]);
+		ups->brush_rotation = atan2f(dpos[0], dpos[1]);
 
 		interp_v2_v2v2(ups->last_rake, ups->last_rake,
 		               mouse_pos, u);

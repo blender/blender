@@ -1155,10 +1155,10 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 		/* this gives results identical to the so-called cosine
 		 * weighted distribution relative to the north pole.
 		 */
-		float SiPhi = sqrt(SiSqPhi);
+		float SiPhi = sqrtf(SiSqPhi);
 		float CoPhi = SiSqPhi < 1.0f ? sqrtf(1.0f - SiSqPhi) : 0;
-		float CoThe = cos(Theta);
-		float SiThe = sin(Theta);
+		float CoThe = cosf(Theta);
+		float SiThe = sinf(Theta);
 
 		const float dx = CoThe * CoPhi;
 		const float dy = SiThe * CoPhi;

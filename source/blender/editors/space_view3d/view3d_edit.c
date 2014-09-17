@@ -1037,8 +1037,8 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		 * - dragged. */
 		phi = si * (float)(M_PI / 2.0);
 
-		q1[0] = cos(phi);
-		mul_v3_fl(q1 + 1, sin(phi));
+		q1[0] = cosf(phi);
+		mul_v3_fl(q1 + 1, sinf(phi));
 		mul_qt_qtqt(vod->viewquat, q1, vod->oldquat);
 
 		viewrotate_apply_dyn_ofs(vod, vod->viewquat);
@@ -1448,7 +1448,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, ScrArea *sa, 
 		/* Perform the up/down rotation */
 		angle = ndof->dt * rot[0];
 		quat[0] = cosf(angle);
-		mul_v3_v3fl(quat + 1, xvec, sin(angle));
+		mul_v3_v3fl(quat + 1, xvec, sinf(angle));
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 
 		/* Perform the orbital rotation */

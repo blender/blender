@@ -160,7 +160,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 					x = max_ff(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
 					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 					
-					inpr= 1.0/(sqrt(1.0f+x*x));
+					inpr = 1.0 / (sqrtf(1.0f + x * x));
 				}
 				else inpr= 0.0;
 			}
@@ -206,7 +206,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		
 		/* dot product and  reflectivity*/
 		
-		inp = 1.0 - fabs(dot_v3v3(vn, lv));
+		inp = 1.0 - fabsf(dot_v3v3(vn, lv));
 		
 		/* inp= cos(0.5*M_PI-acos(inp)); */
 		
@@ -329,7 +329,7 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 		}
 	}
 
-	radist= sqrt(dist);
+	radist = sqrtf(dist);
 
 	/* watch it: not used nicely: flarec is set at zero in pixstruct */
 	if (flarec) har->pixels+= (int)(har->rad-radist);
@@ -366,17 +366,15 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 	else dist= dist/har->radsq;
 
 	if (har->type & HA_FLARECIRC) {
-		
-		dist= 0.5+fabs(dist-0.5f);
-		
+		dist = 0.5 + fabsf(dist - 0.5f);
 	}
 
 	if (har->hard>=30) {
-		dist= sqrt(dist);
+		dist = sqrtf(dist);
 		if (har->hard>=40) {
-			dist= sinf(dist*(float)M_PI_2);
+			dist = sinf(dist*(float)M_PI_2);
 			if (har->hard>=50) {
-				dist= sqrt(dist);
+				dist = sqrtf(dist);
 			}
 		}
 	}
@@ -399,7 +397,7 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 			
 			rc= hashvectf + (ofs % 768);
 			
-			fac= fabs( (xn)*rc[0]+(yn)*rc[1]);
+			fac = fabsf((xn) * rc[0] + (yn) * rc[1]);
 			
 			if (fac< 1.0f )
 				linef+= (1.0f-fac);
@@ -411,15 +409,15 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 	if (har->starpoints) {
 		float ster, angle;
 		/* rotation */
-		angle= atan2(yn, xn);
-		angle*= (1.0f+0.25f*har->starpoints);
+		angle = atan2f(yn, xn);
+		angle *= (1.0f+0.25f*har->starpoints);
 		
 		co= cosf(angle);
 		si= sinf(angle);
 		
 		angle= (co*xn+si*yn)*(co*yn-si*xn);
 		
-		ster= fabs(angle);
+		ster = fabsf(angle);
 		if (ster>1.0f) {
 			ster= (har->rad)/(ster);
 			
