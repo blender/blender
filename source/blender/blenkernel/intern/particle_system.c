@@ -3984,7 +3984,7 @@ static bool psys_hair_use_simulation(ParticleData *pa, float max_length)
 	 * The hair system should always make sure the hair segments have reasonable length ratios,
 	 * but this can happen in old files when e.g. cutting hair.
 	 */
-	const float min_length = 0.1f * max_length;
+	const float min_length = 0.01f * max_length;
 	
 	HairKey *key;
 	int k;
