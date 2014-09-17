@@ -511,7 +511,7 @@ static void node_area_listener(bScreen *sc, ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_WM:
-			if(wmn->data == ND_UNDO) {
+			if (wmn->data == ND_UNDO) {
 				ED_area_tag_refresh(sa);
 			}
 			break;

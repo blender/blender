@@ -530,7 +530,7 @@ typedef enum AttributeStandard {
 
 /* TODO(sergey): This is rather nasty bug happening in here, which
  * could be simply a compilers bug for which we can't find a generic
- * platform indipendent workaround. Also even if it's a compiler
+ * platform independent workaround. Also even if it's a compiler
  * issue, it's not so simple to upgrade the compiler in the release
  * environment for linux and doing it so closer to the release is
  * rather a risky business.

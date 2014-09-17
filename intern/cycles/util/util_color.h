@@ -170,7 +170,7 @@ ccl_device float3 color_srgb_to_scene_linear(float3 c)
 #ifdef __KERNEL_SSE2__
 /*
  * Calculate initial guess for arg^exp based on float representation
- * This method gives a constant bias, which can be easily compensated by multiplicating with bias_coeff.
+ * This method gives a constant bias, which can be easily compensated by multiplication with bias_coeff.
  * Gives better results for exponents near 1 (e. g. 4/5).
  * exp = exponent, encoded as uint32_t
  * e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent), encoded as uint32_t
