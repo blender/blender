@@ -57,9 +57,6 @@
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
-/* 10x10x10 grid gives nice initial results */
-static const int hair_grid_res = 10;
-
 static int hair_grid_size(int res)
 {
 	return res * res * res;
@@ -296,9 +293,8 @@ void BPH_hair_volume_normalize_vertex_grid(HairVertexGrid *grid)
 	}
 }
 
-HairVertexGrid *BPH_hair_volume_create_vertex_grid(const float gmin[3], const float gmax[3])
+HairVertexGrid *BPH_hair_volume_create_vertex_grid(int res, const float gmin[3], const float gmax[3])
 {
-	int res = hair_grid_res;
 	int size = hair_grid_size(res);
 	HairVertexGrid *grid;
 	int	            i = 0;

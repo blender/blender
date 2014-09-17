@@ -75,6 +75,7 @@ typedef struct ClothSimSettings {
 	float	vel_damping; /* damp the velocity to speed up getting to the resting position */
 	float	shrink_min;  /* min amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
 	float	shrink_max;  /* max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
+	int		voxel_res;   /* resolution of voxel grid for interaction */
 
 	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
@@ -88,7 +89,6 @@ typedef struct ClothSimSettings {
 	short	shapekey_rest;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
 	short 	reset;
-	char    pad[4];
 
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;

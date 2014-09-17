@@ -150,7 +150,7 @@ bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, int sp
 struct HairVertexGrid;
 struct HairColliderGrid;
 
-struct HairVertexGrid *BPH_hair_volume_create_vertex_grid(const float gmin[3], const float gmax[3]);
+struct HairVertexGrid *BPH_hair_volume_create_vertex_grid(int res, const float gmin[3], const float gmax[3]);
 void BPH_hair_volume_free_vertex_grid(struct HairVertexGrid *grid);
 
 void BPH_hair_volume_add_vertex(struct HairVertexGrid *grid, const float x[3], const float v[3]);

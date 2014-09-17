@@ -320,6 +320,10 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         sub.prop(cloth, "pressure", slider=True)
         sub.prop(cloth, "pressure_threshold", slider=True)
 
+        sub.separator()
+        
+        sub.prop(cloth, "voxel_resolution")
+
         col = split.column()
         col.label(text="Damping:")
         sub = col.column(align=True)

@@ -421,7 +421,7 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
 	
 	/* gather velocities & density */
 	if (smoothfac > 0.0f || pressfac > 0.0f) {
-		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(gmin, gmax);
+		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
 		
 		for (i = 0; i < numverts; i++) {
 			float x[3], v[3];

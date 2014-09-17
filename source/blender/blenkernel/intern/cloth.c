@@ -132,6 +132,8 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->sim_parms->goalfrict = 0.0f;
 	clmd->sim_parms->velocity_smooth = 0.0f;
 
+	clmd->sim_parms->voxel_res = 32;
+
 	if (!clmd->sim_parms->effector_weights)
 		clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 
