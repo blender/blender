@@ -1451,16 +1451,18 @@ void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3
 void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
 {
 	const float effector_scale = 0.01;
-	float win[3], dir[3], length;
+	float win[3], dir[3], nor[3], length;
 	
 	sub_v3_v3v3(dir, data->X[v1], data->X[v2]);
 	length = normalize_v3(dir);
 	
 	direction_world_to_root(data, v1, win, winvec[v1]);
-	madd_v3_v3v3fl(data->F[v1], win, dir, -effector_scale * length * dot_v3v3(win, dir));
+	madd_v3_v3v3fl(nor, win, dir, -dot_v3v3(win, dir));
+	madd_v3_v3fl(data->F[v1], nor, effector_scale * length);
 	
 	direction_world_to_root(data, v2, win, winvec[v2]);
-	madd_v3_v3v3fl(data->F[v2], win, dir, -effector_scale * length * dot_v3v3(win, dir));
+	madd_v3_v3v3fl(nor, win, dir, -dot_v3v3(win, dir));
+	madd_v3_v3fl(data->F[v2], nor, effector_scale * length);
 }
 
 BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)
