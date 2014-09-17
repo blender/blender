@@ -140,11 +140,19 @@ void tex_do_preview(bNodePreview *preview, const float coord[2], const float col
 void tex_output(bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack *out, TexFn texfn, TexCallData *cdata)
 {
 	TexDelegate *dg;
-	if (!out->data)
-		/* Freed in tex_end_exec (node.c) */
-		dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
-	else
-		dg = out->data;
+	
+	if (node->flag & NODE_MUTED) {
+		/* do not add a delegate if the node is muted */
+		return;
+	}
+	else {
+		if (!out->data)
+			/* Freed in tex_end_exec (node.c) */
+			dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
+		else
+			dg = out->data;
+	}
+
 
 	dg->cdata = cdata;
 	dg->fn = texfn;
