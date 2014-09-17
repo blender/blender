@@ -92,7 +92,6 @@ def rna2xml(fw=print_ln,
         bpy.types.Sequence,
         )
 
-
     def number_to_str(val, val_type):
         if val_type == int:
             return "%d" % val
@@ -245,13 +244,13 @@ def xml2rna(root_xml,
             ):
 
     def rna2xml_node(xml_node, value):
-#        print("evaluating:", xml_node.nodeName)
+        # print("evaluating:", xml_node.nodeName)
 
         # ---------------------------------------------------------------------
         # Simple attributes
 
         for attr in xml_node.attributes.keys():
-#            print("  ", attr)
+            # print("  ", attr)
             subvalue = getattr(value, attr, Ellipsis)
 
             if subvalue is Ellipsis:

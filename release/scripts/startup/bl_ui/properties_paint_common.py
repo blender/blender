@@ -183,13 +183,9 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
                     col.template_ID(settings, "clone_image")
                     col.label("UV Map")
                     col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
-                    
-
         else:
             col.prop(brush, "clone_image", text="Image")
             col.prop(brush, "clone_alpha", text="Alpha")
-
-
 
     col.separator()
 

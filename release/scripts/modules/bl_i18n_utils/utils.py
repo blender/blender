@@ -1343,7 +1343,7 @@ class I18n:
         #key = self.settings.PO_HEADER_KEY
         #for uid, trans in self.trans.items():
             #if key not in trans.msgs:
-                #trans.msgs[key] 
+                #trans.msgs[key]
         self.unescape()
 
     def write(self, kind, langs=set()):

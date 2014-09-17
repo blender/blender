@@ -47,4 +47,3 @@ class GreasePencilPanel():
 
             col.label(text="Measure:")
             col.operator("view3d.ruler")
-

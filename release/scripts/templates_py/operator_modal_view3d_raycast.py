@@ -1,5 +1,4 @@
 import bpy
-from mathutils import Vector
 from bpy_extras import view3d_utils
 
 
@@ -106,4 +105,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

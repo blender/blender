@@ -2198,7 +2198,6 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout = self.layout
 
         with_freestyle = bpy.app.build_options.freestyle
-        scene = context.scene
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -2254,7 +2253,6 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout = self.layout
 
         with_freestyle = bpy.app.build_options.freestyle
-        scene = context.scene
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -2951,7 +2949,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         sub = row.row(align=True)
         sub.active = mesh.show_normal_vertex or mesh.show_normal_face or mesh.show_normal_loop
-        sub.prop(context.scene.tool_settings, "normal_size", text="Size")
+        sub.prop(scene.tool_settings, "normal_size", text="Size")
 
         col.separator()
         split = layout.split()

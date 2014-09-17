@@ -151,6 +151,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
             sub.prop_search(ob, "parent_bone", parent.data, "bones", text="")
         sub.active = (parent is not None)
 
+
 class GROUP_MT_specials(Menu):
     bl_label = "Group Specials"
 

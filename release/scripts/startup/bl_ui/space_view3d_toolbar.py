@@ -1027,7 +1027,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         col = layout.column()
 
         col.label("Painting Mode")
-        col.prop(settings, "mode", text = "")
+        col.prop(settings, "mode", text="")
         col.separator()
 
         if settings.mode == 'MATERIAL':
@@ -1062,7 +1062,6 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
         col.separator()
         col.operator("image.save_dirty", text="Save All Images")
-
 
 
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):

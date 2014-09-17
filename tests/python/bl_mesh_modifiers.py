@@ -851,7 +851,7 @@ if __name__ == "__main__":
                 import traceback
                 traceback.print_exc()
 
-                import sys
+                # import sys
                 # sys.exit(1)  # comment to debug
 
         else:

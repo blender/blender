@@ -8,4 +8,3 @@ collection.foreach_get(attr, some_seq)
 # Python equivalent
 for i in range(len(seq)):
     some_seq[i] = getattr(collection[i], attr)
-

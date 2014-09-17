@@ -343,10 +343,10 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             process_msg(msgs, default_context, cls.__doc__, msgsrc, reports, check_ctxt_rna_tip, settings)
 
         # Panels' "tabs" system.
-        if hasattr(bl_rna, 'bl_category') and  bl_rna.bl_category:
+        if hasattr(bl_rna, 'bl_category') and bl_rna.bl_category:
             process_msg(msgs, default_context, bl_rna.bl_category, msgsrc, reports, check_ctxt_rna, settings)
 
-        if hasattr(bl_rna, 'bl_label') and  bl_rna.bl_label:
+        if hasattr(bl_rna, 'bl_label') and bl_rna.bl_label:
             process_msg(msgs, msgctxt, bl_rna.bl_label, msgsrc, reports, check_ctxt_rna, settings)
 
         walk_properties(cls)

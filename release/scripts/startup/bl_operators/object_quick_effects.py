@@ -289,8 +289,8 @@ def obj_bb_minmax(obj, min_co, max_co):
         max_co[0] = max(bb_vec[0], max_co[0])
         max_co[1] = max(bb_vec[1], max_co[1])
         max_co[2] = max(bb_vec[2], max_co[2])
-        
-        
+
+
 def grid_location(x, y):
     return (x * 200, y * 150)
 

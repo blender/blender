@@ -306,7 +306,8 @@ class UpdateAnimatedTransformConstraint(Operator):
         paths = from_paths | to_paths
 
         def update_cb(base, class_name, old_path, fcurve, options):
-            print(options)
+            # print(options)
+
             def handle_deg2rad(fcurve):
                 if fcurve is not None:
                     if hasattr(fcurve, "keyframes"):

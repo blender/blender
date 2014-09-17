@@ -215,7 +215,7 @@ class SEQUENCER_MT_select(Menu):
         op = layout.operator("sequencer.select", text="All strips to the Right")
         op.left_right = 'RIGHT'
         op.linked_time = True
-        
+
         layout.separator()
         layout.operator("sequencer.select_handles", text="Surrounding Handles").side = 'BOTH'
         layout.operator("sequencer.select_handles", text="Left Handle").side = 'LEFT'
@@ -258,6 +258,7 @@ class SEQUENCER_MT_frame(Menu):
 
         layout.operator("anim.previewrange_clear")
         layout.operator("anim.previewrange_set")
+
 
 class SEQUENCER_MT_add(Menu):
     bl_label = "Add"
@@ -607,7 +608,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "multiply_speed")
-        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER','ALPHA_UNDER','OVER_DROP'}:
+        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER', 'OVER_DROP'}:
             col.prop(strip, "use_default_fade", "Default fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect fader")

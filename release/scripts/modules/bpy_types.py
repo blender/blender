@@ -694,7 +694,7 @@ class _GenericUI:
         draw_funcs = cls._dyn_ui_initialize()
         try:
             draw_funcs.remove(draw_func)
-        except:
+        except ValueError:
             pass
 
 

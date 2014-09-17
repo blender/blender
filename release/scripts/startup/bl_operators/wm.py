@@ -1934,7 +1934,6 @@ class WM_OT_addon_install(Operator):
             try:
                 os.makedirs(path_addons, exist_ok=True)
             except:
-                import traceback
                 traceback.print_exc()
 
         # Check if we are installing from a target path,
