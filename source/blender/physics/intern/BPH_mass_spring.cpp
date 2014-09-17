@@ -107,7 +107,7 @@ void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 	}
 }
 
-static bool collision_response(ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, float restitution, float r_impulse[3])
+static bool collision_response(ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, float dt, float restitution, float r_impulse[3])
 {
 	Cloth *cloth = clmd->clothObject;
 	int index = collpair->ap1;
@@ -154,19 +154,20 @@ static bool collision_response(ClothModifierData *clmd, CollisionModifierData *c
 		madd_v3_v3v3fl(v_tan_old, v_rel_old, collpair->normal, -v_nor_old);
 		madd_v3_v3v3fl(v_tan_new, v_rel_new, collpair->normal, -v_nor_new);
 		
-		/* TODO repulsion forces can easily destabilize the system,
-		 * have to clamp them or construct a linear spring instead
+		bounce = -v_nor_old * restitution;
+		
+		repulse = -margin_distance / dt; /* base repulsion velocity in normal direction */
+		/* XXX this clamping factor is quite arbitrary ...
+		 * not sure if there is a more scientific approach, but seems to give good results
 		 */
-//		repulse = -margin_distance / dt + dot_v3v3(v1, collpair->normal);
-		repulse = 0.0f;
+		CLAMP(repulse, 0.0f, 4.0f * bounce);
 		
 		if (margin_distance < -epsilon2) {
-			bounce = -(v_nor_new + v_nor_old * restitution);
-			mul_v3_v3fl(r_impulse, collpair->normal, max_ff(repulse, bounce));
+			mul_v3_v3fl(r_impulse, collpair->normal, max_ff(repulse, bounce) - v_nor_new);
 		}
 		else {
 			bounce = 0.0f;
-			mul_v3_v3fl(r_impulse, collpair->normal, repulse);
+			mul_v3_v3fl(r_impulse, collpair->normal, repulse - v_nor_new);
 		}
 		
 		result = true;
@@ -220,21 +221,21 @@ static void cloth_setup_constraints(ClothModifierData *clmd, ColliderContacts *c
 				continue;
 			
 			/* calculate collision response */
-			if (!collision_response(clmd, ct->collmd, collpair, restitution, impulse))
+			if (!collision_response(clmd, ct->collmd, collpair, dt, restitution, impulse))
 				continue;
 			
 			BPH_mass_spring_add_constraint_ndof2(data, v, collpair->normal, impulse);
 			++verts[v].impulse_count;
 			
 			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
-			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
+//			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
+//			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
 			
 			{ /* DEBUG */
-//				float nor[3];
-//				mul_v3_v3fl(nor, collpair->normal, collpair->distance);
-//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
-				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, impulse, 1, 1, 0, "collision", hash_collpair(940, collpair));
+				float nor[3];
+				mul_v3_v3fl(nor, collpair->normal, -collpair->distance);
+				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
+//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, impulse, 1, 1, 0, "collision", hash_collpair(940, collpair));
 //				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, collpair->normal, 1, 1, 0, "collision", hash_collpair(941, collpair));
 			}
 		}
