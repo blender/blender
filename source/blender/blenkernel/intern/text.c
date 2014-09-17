@@ -267,14 +267,77 @@ static void cleanup_textline(TextLine *tl)
 	tl->len += txt_extended_ascii_as_utf8(&tl->line);
 }
 
+/**
+ * used for load and reload (unlike txt_insert_buf)
+ * assumes all fields are empty
+ */
+static void text_from_buf(Text *text, const unsigned char *buffer, const int len)
+{
+	int i, llen;
+
+	BLI_assert(BLI_listbase_is_empty(&text->lines));
+
+	text->nlines = 0;
+	llen = 0;
+	for (i = 0; i < len; i++) {
+		if (buffer[i] == '\n') {
+			TextLine *tmp;
+
+			tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
+			tmp->line = (char *) MEM_mallocN(llen + 1, "textline_string");
+			tmp->format = NULL;
+
+			if (llen) memcpy(tmp->line, &buffer[i - llen], llen);
+			tmp->line[llen] = 0;
+			tmp->len = llen;
+
+			cleanup_textline(tmp);
+
+			BLI_addtail(&text->lines, tmp);
+			text->nlines++;
+
+			llen = 0;
+			continue;
+		}
+		llen++;
+	}
+
+	/* create new line in cases:
+	 * - rest of line (if last line in file hasn't got \n terminator).
+	 *   in this case content of such line would be used to fill text line buffer
+	 * - file is empty. in this case new line is needed to start editing from.
+	 * - last characted in buffer is \n. in this case new line is needed to
+	 *   deal with newline at end of file. (see [#28087]) (sergey) */
+	if (llen != 0 || text->nlines == 0 || buffer[len - 1] == '\n') {
+		TextLine *tmp;
+
+		tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
+		tmp->line = (char *) MEM_mallocN(llen + 1, "textline_string");
+		tmp->format = NULL;
+
+		if (llen) memcpy(tmp->line, &buffer[i - llen], llen);
+
+		tmp->line[llen] = 0;
+		tmp->len = llen;
+
+		cleanup_textline(tmp);
+
+		BLI_addtail(&text->lines, tmp);
+		text->nlines++;
+	}
+
+	text->curl = text->sell = text->lines.first;
+	text->curc = text->selc = 0;
+}
+
 int BKE_text_reload(Text *text)
 {
 	FILE *fp;
-	int i, llen, len;
+	int len;
 	unsigned char *buffer;
 	TextLine *tmp;
 	char str[FILE_MAX];
-	struct stat st;
+	BLI_stat_t st;
 
 	if (!text || !text->name) return 0;
 	
@@ -299,13 +362,12 @@ int BKE_text_reload(Text *text)
 	/* clear undo buffer */
 	MEM_freeN(text->undo_buf);
 	init_undo_text(text);
-	
+
 	fseek(fp, 0L, SEEK_END);
 	len = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);
 
-	text->undo_pos = -1;
-	
+
 	buffer = MEM_mallocN(len, "text_buffer");
 	// under windows fread can return less then len bytes because
 	// of CR stripping
@@ -313,51 +375,11 @@ int BKE_text_reload(Text *text)
 
 	fclose(fp);
 
-	stat(str, &st);
+	BLI_stat(str, &st);
 	text->mtime = st.st_mtime;
-	
-	text->nlines = 0;
-	llen = 0;
-	for (i = 0; i < len; i++) {
-		if (buffer[i] == '\n') {
-			tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
-			tmp->line = (char *) MEM_mallocN(llen + 1, "textline_string");
-			tmp->format = NULL;
 
-			if (llen) memcpy(tmp->line, &buffer[i - llen], llen);
-			tmp->line[llen] = 0;
-			tmp->len = llen;
-				
-			cleanup_textline(tmp);
+	text_from_buf(text, buffer, len);
 
-			BLI_addtail(&text->lines, tmp);
-			text->nlines++;
-				
-			llen = 0;
-			continue;
-		}
-		llen++;
-	}
-
-	if (llen != 0 || text->nlines == 0) {
-		tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
-		tmp->line = (char *) MEM_mallocN(llen + 1, "textline_string");
-		tmp->format = NULL;
-		
-		if (llen) memcpy(tmp->line, &buffer[i - llen], llen);
-
-		tmp->line[llen] = 0;
-		tmp->len = llen;
-		
-		cleanup_textline(tmp);
-
-		BLI_addtail(&text->lines, tmp);
-		text->nlines++;
-	}
-	
-	text->curl = text->sell = text->lines.first;
-	text->curc = text->selc = 0;
-	
 	MEM_freeN(buffer);
 	return 1;
 }
@@ -365,12 +387,11 @@ int BKE_text_reload(Text *text)
 Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const bool is_internal)
 {
 	FILE *fp;
-	int i, llen, len;
+	int len;
 	unsigned char *buffer;
-	TextLine *tmp;
 	Text *ta;
 	char str[FILE_MAX];
-	struct stat st;
+	BLI_stat_t st;
 
 	BLI_strncpy(str, file, FILE_MAX);
 	if (relpath) /* can be NULL (bg mode) */
@@ -388,10 +409,6 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	if ((U.flag & USER_TXT_TABSTOSPACES_DISABLE) == 0)
 		ta->flags = TXT_TABSTOSPACES;
 
-	fseek(fp, 0L, SEEK_END);
-	len = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
-
 	if (is_internal == false) {
 		ta->name = MEM_mallocN(strlen(file) + 1, "text_name");
 		strcpy(ta->name, file);
@@ -400,7 +417,12 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 		ta->flags |= TXT_ISMEM | TXT_ISDIRTY;
 	}
 
+	/* clear undo buffer */
 	init_undo_text(ta);
+
+	fseek(fp, 0L, SEEK_END);
+	len = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
 	
 	buffer = MEM_mallocN(len, "text_buffer");
 	// under windows fread can return less then len bytes because
@@ -409,56 +431,10 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 
 	fclose(fp);
 
-	stat(str, &st);
+	BLI_stat(str, &st);
 	ta->mtime = st.st_mtime;
 	
-	ta->nlines = 0;
-	llen = 0;
-	for (i = 0; i < len; i++) {
-		if (buffer[i] == '\n') {
-			tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
-			tmp->line = (char *) MEM_mallocN(llen + 1, "textline_string");
-			tmp->format = NULL;
-
-			if (llen) memcpy(tmp->line, &buffer[i - llen], llen);
-			tmp->line[llen] = 0;
-			tmp->len = llen;
-			
-			cleanup_textline(tmp);
-
-			BLI_addtail(&ta->lines, tmp);
-			ta->nlines++;
-				
-			llen = 0;
-			continue;
-		}
-		llen++;
-	}
-
-	/* create new line in cases:
-	 * - rest of line (if last line in file hasn't got \n terminator).
-	 *   in this case content of such line would be used to fill text line buffer
-	 * - file is empty. in this case new line is needed to start editing from.
-	 * - last characted in buffer is \n. in this case new line is needed to
-	 *   deal with newline at end of file. (see [#28087]) (sergey) */
-	if (llen != 0 || ta->nlines == 0 || buffer[len - 1] == '\n') {
-		tmp = (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
-		tmp->line = (char *) MEM_mallocN(llen + 1, "textline_string");
-		tmp->format = NULL;
-		
-		if (llen) memcpy(tmp->line, &buffer[i - llen], llen);
-
-		tmp->line[llen] = 0;
-		tmp->len = llen;
-		
-		cleanup_textline(tmp);
-
-		BLI_addtail(&ta->lines, tmp);
-		ta->nlines++;
-	}
-	
-	ta->curl = ta->sell = ta->lines.first;
-	ta->curc = ta->selc = 0;
+	text_from_buf(ta, buffer, len);
 	
 	MEM_freeN(buffer);
 

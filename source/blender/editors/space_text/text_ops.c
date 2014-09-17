@@ -473,7 +473,9 @@ static void txt_write_file(Text *text, ReportList *reports)
 
 	for (tmp = text->lines.first; tmp; tmp = tmp->next) {
 		fputs(tmp->line, fp);
-		fputc('\n', fp);
+		if (tmp->next) {
+			fputc('\n', fp);
+		}
 	}
 	
 	fclose(fp);
