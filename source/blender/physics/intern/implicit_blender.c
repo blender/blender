@@ -1420,7 +1420,7 @@ static float calc_nor_area_quad(float nor[3], const float v1[3], const float v2[
 void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, int v4, const float (*winvec)[3])
 {
 	const float effector_scale = 0.02f;
-	float nor[3], area;
+	float win[3], nor[3], area;
 	float factor;
 	
 	// calculate face normal and area
@@ -1433,30 +1433,34 @@ void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3
 		factor = effector_scale * area / 3.0f;
 	}
 	
-	madd_v3_v3fl(data->F[v1], nor, factor * dot_v3v3(winvec[v1], nor));
-	madd_v3_v3fl(data->F[v2], nor, factor * dot_v3v3(winvec[v2], nor));
-	madd_v3_v3fl(data->F[v3], nor, factor * dot_v3v3(winvec[v3], nor));
-	if (v4)
-		madd_v3_v3fl(data->F[v4], nor, factor * dot_v3v3(winvec[v4], nor));
+	direction_world_to_root(data, v1, win, winvec[v1]);
+	madd_v3_v3fl(data->F[v1], nor, factor * dot_v3v3(win, nor));
 	
+	direction_world_to_root(data, v2, win, winvec[v2]);
+	madd_v3_v3fl(data->F[v2], nor, factor * dot_v3v3(win, nor));
 	
+	direction_world_to_root(data, v3, win, winvec[v3]);
+	madd_v3_v3fl(data->F[v3], nor, factor * dot_v3v3(win, nor));
+	
+	if (v4) {
+		direction_world_to_root(data, v4, win, winvec[v4]);
+		madd_v3_v3fl(data->F[v4], nor, factor * dot_v3v3(win, nor));
+	}
 }
 
 void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
 {
 	const float effector_scale = 0.01;
-	const float *win1 = winvec[v1];
-	const float *win2 = winvec[v2];
-	float win_ortho[3], dir[3], length;
+	float win[3], dir[3], length;
 	
 	sub_v3_v3v3(dir, data->X[v1], data->X[v2]);
 	length = normalize_v3(dir);
 	
-	madd_v3_v3v3fl(win_ortho, win1, dir, -dot_v3v3(win1, dir));
-	madd_v3_v3fl(data->F[v1], win_ortho, effector_scale * length);
+	direction_world_to_root(data, v1, win, winvec[v1]);
+	madd_v3_v3v3fl(data->F[v1], win, dir, -effector_scale * length * dot_v3v3(win, dir));
 	
-	madd_v3_v3v3fl(win_ortho, win2, dir, -dot_v3v3(win2, dir));
-	madd_v3_v3fl(data->F[v2], win_ortho, effector_scale * length);
+	direction_world_to_root(data, v2, win, winvec[v2]);
+	madd_v3_v3v3fl(data->F[v2], win, dir, -effector_scale * length * dot_v3v3(win, dir));
 }
 
 BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)
