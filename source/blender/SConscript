@@ -41,6 +41,7 @@ SConscript(['avi/SConscript',
             'nodes/SConscript',
             'modifiers/SConscript',
             'ikplugin/SConscript',
+            'physics/SConscript',
             'windowmanager/SConscript',
             'blenfont/SConscript'])
 

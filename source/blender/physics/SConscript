@@ -41,4 +41,4 @@ incs = [
     '../../../extern/Eigen3',
     ]
 
-env.BlenderLib('bf_physics', sources, incs, defines=defs, libtype=['core'], priority=[164])
+env.BlenderLib('bf_physics', sources, incs, defines=defs, libtype=['core', 'player'], priority=[180, 190])
