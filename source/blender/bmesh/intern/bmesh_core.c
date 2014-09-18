@@ -1473,8 +1473,10 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	valence2 = bmesh_disk_count(tv);
 #endif
 
+	/* order of 'e_new' verts should match 'e'
+	 * (so extruded faces don't flip) */
 	v_new = BM_vert_create(bm, tv->co, tv, BM_CREATE_NOP);
-	e_new = BM_edge_create(bm, v_new, tv, e, BM_CREATE_NOP);
+	e_new = BM_edge_create(bm, tv, v_new, e, BM_CREATE_NOP);
 
 	bmesh_disk_edge_remove(e_new, tv);
 	bmesh_disk_edge_remove(e_new, v_new);
