@@ -695,7 +695,7 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
         fw(ident + ".. data:: %s\n\n" % identifier)
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
-    elif type(descr) in (MethodDescriptorType, ClassMethodDescriptorType):
+    elif type(descr) in {MethodDescriptorType, ClassMethodDescriptorType}:
         write_indented_lines(ident, fw, doc, False)
         fw("\n")
     else:
@@ -889,7 +889,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
     for attribute, value, value_type in module_dir_value_type:
         if value_type == types.FunctionType:
             pyfunc2sphinx("", fw, module_name, None, attribute, value, is_class=False)
-        elif value_type in (types.BuiltinMethodType, types.BuiltinFunctionType):  # both the same at the moment but to be future proof
+        elif value_type in {types.BuiltinMethodType, types.BuiltinFunctionType}:  # both the same at the moment but to be future proof
             # note: can't get args from these, so dump the string as is
             # this means any module used like this must have fully formatted docstrings.
             py_c_func2sphinx("", fw, module_name, None, attribute, value, is_class=False)
@@ -1871,7 +1871,7 @@ def rna2sphinx(basepath):
     if "bpy.context" not in EXCLUDE_MODULES:
         # one of a kind, context doc (uses ctypes to extract info!)
         # doesn't work on mac and windows
-        if PLATFORM not in ["darwin", "windows"]:
+        if PLATFORM not in {"darwin", "windows"}:
             pycontext2sphinx(basepath)
 
     # internal modules

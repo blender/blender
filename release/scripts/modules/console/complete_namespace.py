@@ -186,7 +186,7 @@ def complete(word, namespace, private=True):
         except Exception:
             return []
         # ignore basic types
-        if type(obj) in (bool, float, int, str):
+        if type(obj) in {bool, float, int, str}:
             return []
         # an extra char '[', '(' or '.' will be added
         if hasattr(obj, '__getitem__') and not is_struct_seq(obj):

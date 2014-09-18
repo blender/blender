@@ -39,7 +39,7 @@ class ModalOperator(bpy.types.Operator):
             self.execute(context)
         elif event.type == 'LEFTMOUSE':  # Confirm
             return {'FINISHED'}
-        elif event.type in ('RIGHTMOUSE', 'ESC'):  # Cancel
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:  # Cancel
             context.object.location.x = self.init_loc_x
             return {'CANCELLED'}
 

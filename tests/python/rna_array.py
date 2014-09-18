@@ -266,7 +266,7 @@ def prop_to_list(prop):
     ret= []
 
     for x in prop:
-        if type(x) not in (bool, int, float):
+        if type(x) not in {bool, int, float}:
             ret.append(prop_to_list(x))
         else:
             ret.append(x)
