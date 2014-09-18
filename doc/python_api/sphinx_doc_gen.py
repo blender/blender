@@ -1870,8 +1870,8 @@ def rna2sphinx(basepath):
     # context
     if "bpy.context" not in EXCLUDE_MODULES:
         # one of a kind, context doc (uses ctypes to extract info!)
-        # doesn't work on mac
-        if PLATFORM != "darwin":
+        # doesn't work on mac and windows
+        if PLATFORM not in ["darwin", "windows"]:
             pycontext2sphinx(basepath)
 
     # internal modules
