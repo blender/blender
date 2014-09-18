@@ -2901,8 +2901,15 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	if (but->a1 == UI_PALETTE_COLOR && but->a2 == UI_PALETTE_COLOR_ACTIVE) {
 		float width = rect->xmax - rect->xmin;
 		float height = rect->ymax - rect->ymin;
-
-		glColor4ubv((unsigned char *)wcol->outline);
+		/* find color luminance and change it slightly */
+		float bw = rgb_to_bw(col);
+		
+		if (bw > 0.5)
+			bw -= 0.5;
+		else
+			bw += 0.5;
+		
+		glColor4f(bw, bw, bw, 1.0);
 		glBegin(GL_TRIANGLES);
 		glVertex2f(rect->xmin + 0.1f * width, rect->ymin + 0.9f * height);
 		glVertex2f(rect->xmin + 0.1f * width, rect->ymin + 0.5f * height);
