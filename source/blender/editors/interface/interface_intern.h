@@ -225,7 +225,7 @@ struct uiBut {
 	 * (type == NUM),        Use to store RNA 'precision' value, for dragging and click-step.
 	 * (type == LABEL),      If (a1 == 1.0f) use a2 as a blending factor.
 	 * (type == SEARCH_MENU) Use as number or columns.
-	 * (type == COLOR)       Use as indication of active palette color
+	 * (type == COLOR)       Use as index in palette (not so good, needs refactor)
 	 */
 	float a2;
 

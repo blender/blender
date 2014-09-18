@@ -2407,8 +2407,7 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
 
 		RNA_pointer_create(&palette->id, &RNA_PaletteColor, color, &ptr);
 		uiDefButR(block, COLOR, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, &ptr, "color", -1, 0.0, 1.0,
-		          UI_PALETTE_COLOR, (col_id == palette->active_color) ? UI_PALETTE_COLOR_ACTIVE : 0.0, "");
-
+		          UI_PALETTE_COLOR, col_id, "");
 		row_cols++;
 		col_id++;
 	}

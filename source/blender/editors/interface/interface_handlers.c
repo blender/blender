@@ -4318,9 +4318,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 		else if ((int)(but->a1) == UI_PALETTE_COLOR &&
 		         event->type == DELKEY && event->val == KM_PRESS)
 		{
-			Scene *scene = CTX_data_scene(C);
-			Paint *paint = BKE_paint_get_active(scene);
-			Palette *palette = BKE_paint_palette(paint);
+			Palette *palette = but->rnapoin.id.data;
 			PaletteColor *color = but->rnapoin.data;
 
 			BKE_palette_color_remove(palette, color);

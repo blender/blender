@@ -295,7 +295,6 @@ typedef enum {
 #define UI_GRAD_L_ALT   10
 
 #define UI_PALETTE_COLOR 20
-#define UI_PALETTE_COLOR_ACTIVE 1
 
 /* Drawing
  *

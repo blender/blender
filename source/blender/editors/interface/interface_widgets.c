@@ -2898,7 +2898,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 
 	widgetbase_draw(&wtb, wcol);
 	
-	if (but->a1 == UI_PALETTE_COLOR && but->a2 == UI_PALETTE_COLOR_ACTIVE) {
+	if (but->a1 == UI_PALETTE_COLOR && ((Palette *)but->rnapoin.id.data)->active_color == (int)but->a2) {
 		float width = rect->xmax - rect->xmin;
 		float height = rect->ymax - rect->ymin;
 		/* find color luminance and change it slightly */
