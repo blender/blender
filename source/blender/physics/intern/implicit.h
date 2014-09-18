@@ -100,7 +100,7 @@ BLI_INLINE int hash_collpair(int type, CollPair *collpair)
 }
 /* ================ */
 
-void BPH_mass_spring_set_root_motion(struct Implicit_Data *data, int index, const float loc[3], const float vel[3], float rot[3][3], const float angvel[3]);
+void BPH_mass_spring_set_rest_transform(struct Implicit_Data *data, int index, float rot[3][3]);
 
 void BPH_mass_spring_set_motion_state(struct Implicit_Data *data, int index, const float x[3], const float v[3]);
 void BPH_mass_spring_set_position(struct Implicit_Data *data, int index, const float x[3]);
@@ -121,7 +121,7 @@ void BPH_mass_spring_apply_result(struct Implicit_Data *data);
 /* Clear the force vector at the beginning of the time step */
 void BPH_mass_spring_force_clear(struct Implicit_Data *data);
 /* Fictitious forces introduced by moving coordinate systems */
-void BPH_mass_spring_force_reference_frame(struct Implicit_Data *data, int index);
+void BPH_mass_spring_force_reference_frame(struct Implicit_Data *data, int index, const float acceleration[3], const float omega[3], const float domega_dt[3]);
 /* Simple uniform gravity force */
 void BPH_mass_spring_force_gravity(struct Implicit_Data *data, const float g[3]);
 /* Global drag force (velocity damping) */

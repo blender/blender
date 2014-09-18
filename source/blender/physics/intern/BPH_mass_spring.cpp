@@ -102,7 +102,7 @@ void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 	for (i = 0; i < numverts; i++) {
 		ClothHairRoot *root = &cloth_roots[i];
 		
-		BPH_mass_spring_set_root_motion(id, i, root->loc, ZERO, root->rot, ZERO);
+		BPH_mass_spring_set_rest_transform(id, i, root->rot);
 		BPH_mass_spring_set_motion_state(id, i, verts[i].x, verts[i].v);
 	}
 }

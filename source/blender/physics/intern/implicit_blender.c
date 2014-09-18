@@ -648,24 +648,14 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 ///////////////////////////////////////////////////////////////////
 // simulator start
 ///////////////////////////////////////////////////////////////////
-typedef struct RootTransform {
-	float loc[3];		/* translation in world space */
-	float rot[3][3];	/* rotation from root to world space */
-	
-	float vel[3];		/* velocity in root space */
-	float omega[3];		/* angular velocity in root space */
-	
-	float acc[3];		/* acceleration in root space */
-	float domega_dt[3];	/* angular acceleration in root space */
-} RootTransform;
 
 typedef struct Implicit_Data  {
 	/* inputs */
 	fmatrix3x3 *bigI;			/* identity (constant) */
+	fmatrix3x3 *tfm;			/* local coordinate transform */
 	fmatrix3x3 *M;				/* masses */
 	lfVector *F;				/* forces */
 	fmatrix3x3 *dFdV, *dFdX;	/* force jacobians */
-	RootTransform *root;		/* root transforms */
 	
 	/* motion state data */
 	lfVector *X, *Xnew;			/* positions */
@@ -686,6 +676,7 @@ Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
 	Implicit_Data *id = (Implicit_Data *)MEM_callocN(sizeof(Implicit_Data), "implicit vecmat");
 	
 	/* process diagonal elements */
+	id->tfm = create_bfmatrix(numverts, 0);
 	id->A = create_bfmatrix(numverts, numsprings);
 	id->dFdV = create_bfmatrix(numverts, numsprings);
 	id->dFdX = create_bfmatrix(numverts, numsprings);
@@ -703,8 +694,6 @@ Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
 	id->dV = create_lfvector(numverts);
 	id->z = create_lfvector(numverts);
 
-	id->root = MEM_callocN(sizeof(RootTransform) * numverts, "root transforms");
-
 	initdiag_bfmatrix(id->bigI, I);
 
 	return id;
@@ -712,6 +701,7 @@ Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
 
 void BPH_mass_spring_solver_free(Implicit_Data *id)
 {
+	del_bfmatrix(id->tfm);
 	del_bfmatrix(id->A);
 	del_bfmatrix(id->dFdV);
 	del_bfmatrix(id->dFdX);
@@ -730,53 +720,33 @@ void BPH_mass_spring_solver_free(Implicit_Data *id)
 	del_lfvector(id->dV);
 	del_lfvector(id->z);
 	
-	MEM_freeN(id->root);
-	
 	MEM_freeN(id);
 }
 
 /* ==== Transformation from/to root reference frames ==== */
 
-BLI_INLINE void point_world_to_root(Implicit_Data *data, int index, float r[3], const float v[3])
+BLI_INLINE void world_to_root_v3(Implicit_Data *data, int index, float r[3], const float v[3])
 {
-	RootTransform *root = &data->root[index];
-	sub_v3_v3v3(r, v, root->loc);
-	mul_transposed_m3_v3(root->rot, r);
-}
-
-BLI_INLINE void point_root_to_world(Implicit_Data *data, int index, float r[3], const float v[3])
-{
-	RootTransform *root = &data->root[index];
-	mul_v3_m3v3(r, root->rot, v);
-	add_v3_v3(r, root->loc);
-}
-
-BLI_INLINE void direction_world_to_root(Implicit_Data *data, int index, float r[3], const float v[3])
-{
-	RootTransform *root = &data->root[index];
 	copy_v3_v3(r, v);
-	mul_transposed_m3_v3(root->rot, r);
+	mul_transposed_m3_v3(data->tfm[index].m, r);
 }
 
-BLI_INLINE void direction_root_to_world(Implicit_Data *data, int index, float r[3], const float v[3])
+BLI_INLINE void root_to_world_v3(Implicit_Data *data, int index, float r[3], const float v[3])
 {
-	RootTransform *root = &data->root[index];
-	mul_v3_m3v3(r, root->rot, v);
+	mul_v3_m3v3(r, data->tfm[index].m, v);
 }
 
-BLI_INLINE void matrix_world_to_root(Implicit_Data *data, int index, float r[3][3], float m[3][3])
+BLI_INLINE void world_to_root_m3(Implicit_Data *data, int index, float r[3][3], float m[3][3])
 {
-	RootTransform *root = &data->root[index];
 	float trot[3][3];
-	copy_m3_m3(trot, root->rot);
+	copy_m3_m3(trot, data->tfm[index].m);
 	transpose_m3(trot);
 	mul_m3_m3m3(r, trot, m);
 }
 
-BLI_INLINE void matrix_root_to_world(Implicit_Data *data, int index, float r[3][3], float m[3][3])
+BLI_INLINE void root_to_world_m3(Implicit_Data *data, int index, float r[3][3], float m[3][3])
 {
-	RootTransform *root = &data->root[index];
-	mul_m3_m3m3(r, root->rot, m);
+	mul_m3_m3m3(r, data->tfm[index].m, m);
 }
 
 /* ================================ */
@@ -1169,52 +1139,36 @@ void BPH_mass_spring_apply_result(Implicit_Data *data)
 	cp_lfvector(data->V, data->Vnew, numverts);
 }
 
-void BPH_mass_spring_set_root_motion(Implicit_Data *data, int index, const float loc[3], const float vel[3], float rot[3][3], const float angvel[3])
+void BPH_mass_spring_set_rest_transform(Implicit_Data *data, int index, float tfm[3][3])
 {
-	RootTransform *root = &data->root[index];
-	
 #ifdef CLOTH_ROOT_FRAME
-	copy_v3_v3(root->loc, loc);
-	copy_v3_v3(root->vel, vel);
-	copy_m3_m3(root->rot, rot);
-	copy_v3_v3(root->omega, angvel);
-	/* XXX root frame acceleration ignored for now */
-	zero_v3(root->acc);
-	zero_v3(root->domega_dt);
+	copy_m3_m3(data->tfm[index].m, tfm);
 #else
-	zero_v3(root->loc);
-	zero_v3(root->vel);
-	unit_m3(root->rot);
-	zero_v3(root->omega);
-	zero_v3(root->acc);
-	zero_v3(root->domega_dt);
-	(void)loc;
-	(void)vel;
-	(void)rot;
-	(void)angvel;
+	unit_m3(data->tfm[index].m);
+	(void)tfm;
 #endif
 }
 
 void BPH_mass_spring_set_motion_state(Implicit_Data *data, int index, const float x[3], const float v[3])
 {
-	point_world_to_root(data, index, data->X[index], x);
-	direction_world_to_root(data, index, data->V[index], v);
+	world_to_root_v3(data, index, data->X[index], x);
+	world_to_root_v3(data, index, data->V[index], v);
 }
 
 void BPH_mass_spring_set_position(Implicit_Data *data, int index, const float x[3])
 {
-	point_world_to_root(data, index, data->X[index], x);
+	world_to_root_v3(data, index, data->X[index], x);
 }
 
 void BPH_mass_spring_set_velocity(Implicit_Data *data, int index, const float v[3])
 {
-	direction_world_to_root(data, index, data->V[index], v);
+	world_to_root_v3(data, index, data->V[index], v);
 }
 
 void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, float x[3], float v[3])
 {
-	if (x) point_root_to_world(data, index, x, data->X[index]);
-	if (v) direction_root_to_world(data, index, v, data->V[index]);
+	if (x) root_to_world_v3(data, index, x, data->X[index]);
+	if (v) root_to_world_v3(data, index, v, data->V[index]);
 }
 
 void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
@@ -1250,26 +1204,20 @@ void BPH_mass_spring_clear_constraints(Implicit_Data *data)
 
 void BPH_mass_spring_add_constraint_ndof0(Implicit_Data *data, int index, const float dV[3])
 {
-	RootTransform *root = &data->root[index];
-	
 	zero_m3(data->S[index].m);
 	
-	copy_v3_v3(data->z[index], dV);
-	mul_transposed_m3_v3(root->rot, data->z[index]);
+	world_to_root_v3(data, index, data->z[index], dV);
 }
 
 void BPH_mass_spring_add_constraint_ndof1(Implicit_Data *data, int index, const float c1[3], const float c2[3], const float dV[3])
 {
-	RootTransform *root = &data->root[index];
 	float m[3][3], p[3], q[3], u[3], cmat[3][3];
 	
-	copy_v3_v3(p, c1);
-	mul_transposed_m3_v3(root->rot, p);
+	world_to_root_v3(data, index, p, c1);
 	mul_fvectorT_fvector(cmat, p, p);
 	sub_m3_m3m3(m, I, cmat);
 	
-	copy_v3_v3(q, c2);
-	mul_transposed_m3_v3(root->rot, q);
+	world_to_root_v3(data, index, q, c2);
 	mul_fvectorT_fvector(cmat, q, q);
 	sub_m3_m3m3(m, m, cmat);
 	
@@ -1277,26 +1225,22 @@ void BPH_mass_spring_add_constraint_ndof1(Implicit_Data *data, int index, const 
 	copy_m3_m3(data->S[index].m, m);
 //	mul_m3_m3m3(data->S[index].m, data->S[index].m, m);
 	
-	copy_v3_v3(u, dV);
-	mul_transposed_m3_v3(root->rot, u);
+	world_to_root_v3(data, index, u, dV);
 	add_v3_v3(data->z[index], u);
 }
 
 void BPH_mass_spring_add_constraint_ndof2(Implicit_Data *data, int index, const float c1[3], const float dV[3])
 {
-	RootTransform *root = &data->root[index];
 	float m[3][3], p[3], u[3], cmat[3][3];
 	
-	copy_v3_v3(p, c1);
-	mul_transposed_m3_v3(root->rot, p);
+	world_to_root_v3(data, index, p, c1);
 	mul_fvectorT_fvector(cmat, p, p);
 	sub_m3_m3m3(m, I, cmat);
 	
 	copy_m3_m3(data->S[index].m, m);
 //	mul_m3_m3m3(data->S[index].m, data->S[index].m, m);
 	
-	copy_v3_v3(u, dV);
-	mul_transposed_m3_v3(root->rot, u);
+	world_to_root_v3(data, index, u, dV);
 	add_v3_v3(data->z[index], u);
 }
 
@@ -1308,31 +1252,35 @@ void BPH_mass_spring_force_clear(Implicit_Data *data)
 	init_bfmatrix(data->dFdV, ZERO);
 }
 
-void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index)
+void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index, const float acceleration[3], const float omega[3], const float domega_dt[3])
 {
 #ifdef CLOTH_ROOT_FRAME
-	RootTransform *root = &data->root[index];
+	float acc[3], w[3], dwdt[3];
 	float f[3], dfdx[3][3], dfdv[3][3];
 	float euler[3], coriolis[3], centrifugal[3], rotvel[3];
 	float deuler[3][3], dcoriolis[3][3], dcentrifugal[3][3], drotvel[3][3];
 	
-	cross_v3_v3v3(euler, root->domega_dt, data->X[index]);
-	cross_v3_v3v3(coriolis, root->omega, data->V[index]);
-	mul_v3_fl(coriolis, 2.0f);
-	cross_v3_v3v3(rotvel, root->omega, data->X[index]);
-	cross_v3_v3v3(centrifugal, root->omega, rotvel);
+	world_to_root_v3(data, index, acc, acceleration);
+	world_to_root_v3(data, index, w, omega);
+	world_to_root_v3(data, index, dwdt, domega_dt);
 	
-	sub_v3_v3v3(f, root->acc, euler);
+	cross_v3_v3v3(euler, dwdt, data->X[index]);
+	cross_v3_v3v3(coriolis, w, data->V[index]);
+	mul_v3_fl(coriolis, 2.0f);
+	cross_v3_v3v3(rotvel, w, data->X[index]);
+	cross_v3_v3v3(centrifugal, w, rotvel);
+	
+	sub_v3_v3v3(f, acc, euler);
 	sub_v3_v3(f, coriolis);
 	sub_v3_v3(f, centrifugal);
 	
 	mul_m3_v3(data->M[index].m, f); /* F = m * a */
 	
-	cross_v3_identity(deuler, root->domega_dt);
-	cross_v3_identity(dcoriolis, root->omega);
+	cross_v3_identity(deuler, dwdt);
+	cross_v3_identity(dcoriolis, w);
 	mul_m3_fl(dcoriolis, 2.0f);
-	cross_v3_identity(drotvel, root->omega);
-	cross_m3_v3m3(dcentrifugal, root->omega, drotvel);
+	cross_v3_identity(drotvel, w);
+	cross_m3_v3m3(dcentrifugal, w, drotvel);
 	
 	add_m3_m3m3(dfdx, deuler, dcentrifugal);
 	negate_m3(dfdx);
@@ -1345,10 +1293,12 @@ void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index)
 	add_v3_v3(data->F[index], f);
 	add_m3_m3m3(data->dFdX[index].m, data->dFdX[index].m, dfdx);
 	add_m3_m3m3(data->dFdV[index].m, data->dFdV[index].m, dfdv);
-	
 #else
 	(void)data;
 	(void)index;
+	(void)acceleration;
+	(void)omega;
+	(void)domega_dt;
 #endif
 }
 
@@ -1360,7 +1310,7 @@ void BPH_mass_spring_force_gravity(Implicit_Data *data, const float g[3])
 	 */
 	for (i = 0; i < numverts; i++) {
 		float f[3];
-		direction_world_to_root(data, i, f, g);
+		world_to_root_v3(data, i, f, g);
 		mul_m3_v3(data->M[i].m, f);
 		
 		add_v3_v3(data->F[i], f);
@@ -1385,9 +1335,9 @@ void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)
 void BPH_mass_spring_force_extern(struct Implicit_Data *data, int i, const float f[3], float dfdx[3][3], float dfdv[3][3])
 {
 	float tf[3], tdfdx[3][3], tdfdv[3][3];
-	direction_world_to_root(data, i, tf, f);
-	matrix_world_to_root(data, i, tdfdx, dfdx);
-	matrix_world_to_root(data, i, tdfdv, dfdv);
+	world_to_root_v3(data, i, tf, f);
+	world_to_root_m3(data, i, tdfdx, dfdx);
+	world_to_root_m3(data, i, tdfdv, dfdv);
 	
 	add_v3_v3(data->F[i], tf);
 	add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, tdfdx);
@@ -1433,17 +1383,17 @@ void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3
 		factor = effector_scale * area / 3.0f;
 	}
 	
-	direction_world_to_root(data, v1, win, winvec[v1]);
+	world_to_root_v3(data, v1, win, winvec[v1]);
 	madd_v3_v3fl(data->F[v1], nor, factor * dot_v3v3(win, nor));
 	
-	direction_world_to_root(data, v2, win, winvec[v2]);
+	world_to_root_v3(data, v2, win, winvec[v2]);
 	madd_v3_v3fl(data->F[v2], nor, factor * dot_v3v3(win, nor));
 	
-	direction_world_to_root(data, v3, win, winvec[v3]);
+	world_to_root_v3(data, v3, win, winvec[v3]);
 	madd_v3_v3fl(data->F[v3], nor, factor * dot_v3v3(win, nor));
 	
 	if (v4) {
-		direction_world_to_root(data, v4, win, winvec[v4]);
+		world_to_root_v3(data, v4, win, winvec[v4]);
 		madd_v3_v3fl(data->F[v4], nor, factor * dot_v3v3(win, nor));
 	}
 }
@@ -1456,11 +1406,11 @@ void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const 
 	sub_v3_v3v3(dir, data->X[v1], data->X[v2]);
 	length = normalize_v3(dir);
 	
-	direction_world_to_root(data, v1, win, winvec[v1]);
+	world_to_root_v3(data, v1, win, winvec[v1]);
 	madd_v3_v3v3fl(nor, win, dir, -dot_v3v3(win, dir));
 	madd_v3_v3fl(data->F[v1], nor, effector_scale * length);
 	
-	direction_world_to_root(data, v2, win, winvec[v2]);
+	world_to_root_v3(data, v2, win, winvec[v2]);
 	madd_v3_v3v3fl(nor, win, dir, -dot_v3v3(win, dir));
 	madd_v3_v3fl(data->F[v2], nor, effector_scale * length);
 }
@@ -1667,8 +1617,8 @@ bool BPH_mass_spring_force_spring_goal(Implicit_Data *data, int i, int UNUSED(sp
 	float f[3], dfdx[3][3], dfdv[3][3];
 	
 	/* goal is in world space */
-	point_world_to_root(data, i, root_goal_x, goal_x);
-	direction_world_to_root(data, i, root_goal_v, goal_v);
+	world_to_root_v3(data, i, root_goal_x, goal_x);
+	world_to_root_v3(data, i, root_goal_v, goal_v);
 	
 	sub_v3_v3v3(extent, root_goal_x, data->X[i]);
 	sub_v3_v3v3(vel, root_goal_v, data->V[i]);
