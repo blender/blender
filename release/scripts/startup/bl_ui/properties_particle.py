@@ -323,6 +323,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         sub.separator()
         
         sub.prop(cloth, "voxel_resolution")
+        sub.prop(cloth, "voxel_filter_size")
 
         col = split.column()
         col.label(text="Damping:")

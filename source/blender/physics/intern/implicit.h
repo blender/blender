@@ -155,6 +155,7 @@ void BPH_hair_volume_free_vertex_grid(struct HairVertexGrid *grid);
 
 void BPH_hair_volume_add_vertex(struct HairVertexGrid *grid, const float x[3], const float v[3]);
 void BPH_hair_volume_normalize_vertex_grid(struct HairVertexGrid *grid);
+void BPH_hair_volume_vertex_grid_filter_box(struct HairVertexGrid *grid, int kernel_size);
 void BPH_hair_volume_vertex_grid_forces(struct HairVertexGrid *grid, const float x[3], const float v[3],
                                         float smoothfac, float pressurefac, float minpressure,
                                         float f[3], float dfdx[3][3], float dfdv[3][3]);

@@ -71,6 +71,8 @@ BLI_INLINE void hair_grid_get_scale(int res, const float gmin[3], const float gm
 typedef struct HairGridVert {
 	float velocity[3];
 	float density;
+	
+	float velocity_smooth[3];
 } HairGridVert;
 
 typedef struct HairVertexGrid {
@@ -290,6 +292,75 @@ void BPH_hair_volume_normalize_vertex_grid(HairVertexGrid *grid)
 		float density = grid->verts[i].density;
 		if (density > 0.0f)
 			mul_v3_fl(grid->verts[i].velocity, 1.0f/density);
+	}
+}
+
+/* Velocity filter kernel
+ * See http://en.wikipedia.org/wiki/Filter_%28large_eddy_simulation%29
+ */
+
+BLI_INLINE void hair_volume_filter_box_convolute(HairVertexGrid *grid, float invD, const int kernel_size[3], int i, int j, int k)
+{
+	int res = grid->res;
+	int p, q, r;
+	int minp = max_ii(i - kernel_size[0], 0), maxp = min_ii(i + kernel_size[0], res-1);
+	int minq = max_ii(j - kernel_size[1], 0), maxq = min_ii(j + kernel_size[1], res-1);
+	int minr = max_ii(k - kernel_size[2], 0), maxr = min_ii(k + kernel_size[2], res-1);
+	int offset, kernel_offset, kernel_dq, kernel_dr;
+	HairGridVert *verts;
+	float *vel_smooth;
+	
+	offset = i + (j + k*res)*res;
+	verts = grid->verts;
+	vel_smooth = verts[offset].velocity_smooth;
+	
+	kernel_offset = minp + (minq + minr*res)*res;
+	kernel_dq = res;
+	kernel_dr = res * res;
+	for (r = minr; r <= maxr; ++r) {
+		for (q = minq; q <= maxq; ++q) {
+			for (p = minp; p <= maxp; ++p) {
+				
+				madd_v3_v3fl(vel_smooth, verts[kernel_offset].velocity, invD);
+				
+				kernel_offset += 1;
+			}
+			kernel_offset += kernel_dq;
+		}
+		kernel_offset += kernel_dr;
+	}
+}
+
+void BPH_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_size)
+{
+	int size = hair_grid_size(grid->res);
+	int kernel_sizev[3] = {kernel_size, kernel_size, kernel_size};
+	int tot;
+	float invD;
+	int i, j, k;
+	
+	if (kernel_size <= 0)
+		return;
+	
+	tot = kernel_size * 2 + 1;
+	invD = 1.0f / (float)(tot*tot*tot);
+	
+	/* clear values for convolution */
+	for (i = 0; i < size; ++i) {
+		zero_v3(grid->verts[i].velocity_smooth);
+	}
+	
+	for (i = 0; i < grid->res; ++i) {
+		for (j = 0; j < grid->res; ++j) {
+			for (k = 0; k < grid->res; ++k) {
+				hair_volume_filter_box_convolute(grid, invD, kernel_sizev, i, j, k);
+			}
+		}
+	}
+	
+	/* apply as new velocity */
+	for (i = 0; i < size; ++i) {
+		copy_v3_v3(grid->verts[i].velocity, grid->verts[i].velocity_smooth);
 	}
 }
 
