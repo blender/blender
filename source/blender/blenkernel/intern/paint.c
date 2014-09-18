@@ -316,7 +316,8 @@ void BKE_paint_curve_set(Brush *br, PaintCurve *pc)
 void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
 {
 	if (color) {
-		if ((color == palette->colors.last) && (palette->colors.last != palette->colors.first))
+		int numcolors = BLI_countlist(&palette->colors);
+		if ((numcolors == palette->active_color + 1) && (numcolors != 1))
 			palette->active_color--;
 		
 		BLI_remlink(&palette->colors, color);
