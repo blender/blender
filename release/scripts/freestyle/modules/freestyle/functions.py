@@ -17,10 +17,98 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Functions operating on vertices (0D elements) and polylines (1D
-elements).  Also intended to be a collection of examples for predicate
-definition in Python.
+This module contains functions operating on vertices (0D elements) and
+polylines (1D elements).  The module is also intended to be a
+collection of examples for function definition in Python.
+
+User-defined functions inherit one of the following base classes,
+depending on the object type (0D or 1D) to operate on and the return
+value type:
+
+- :class:`freestyle.types.UnaryFunction0DDouble`
+- :class:`freestyle.types.UnaryFunction0DEdgeNature`
+- :class:`freestyle.types.UnaryFunction0DFloat`
+- :class:`freestyle.types.UnaryFunction0DId`
+- :class:`freestyle.types.UnaryFunction0DMaterial`
+- :class:`freestyle.types.UnaryFunction0DUnsigned`
+- :class:`freestyle.types.UnaryFunction0DVec2f`
+- :class:`freestyle.types.UnaryFunction0DVec3f`
+- :class:`freestyle.types.UnaryFunction0DVectorViewShape`
+- :class:`freestyle.types.UnaryFunction0DViewShape`
+- :class:`freestyle.types.UnaryFunction1DDouble`
+- :class:`freestyle.types.UnaryFunction1DEdgeNature`
+- :class:`freestyle.types.UnaryFunction1DFloat`
+- :class:`freestyle.types.UnaryFunction1DUnsigned`
+- :class:`freestyle.types.UnaryFunction1DVec2f`
+- :class:`freestyle.types.UnaryFunction1DVec3f`
+- :class:`freestyle.types.UnaryFunction1DVectorViewShape`
+- :class:`freestyle.types.UnaryFunction1DVoid`
 """
+
+__all__ = (
+    "ChainingTimeStampF1D",
+    "Curvature2DAngleF0D",
+    "Curvature2DAngleF1D",
+    "CurveMaterialF0D",
+    "CurveNatureF0D",
+    "CurveNatureF1D",
+    "DensityF0D",
+    "DensityF1D",
+    "GetCompleteViewMapDensityF1D",
+    "GetCurvilinearAbscissaF0D",
+    "GetDirectionalViewMapDensityF1D",
+    "GetOccludeeF0D",
+    "GetOccludeeF1D",
+    "GetOccludersF0D",
+    "GetOccludersF1D",
+    "GetParameterF0D",
+    "GetProjectedXF0D",
+    "GetProjectedXF1D",
+    "GetProjectedYF0D",
+    "GetProjectedYF1D",
+    "GetProjectedZF0D",
+    "GetProjectedZF1D",
+    "GetShapeF0D",
+    "GetShapeF1D",
+    "GetSteerableViewMapDensityF1D",
+    "GetViewMapGradientNormF0D",
+    "GetViewMapGradientNormF1D",
+    "GetXF0D",
+    "GetXF1D",
+    "GetYF0D",
+    "GetYF1D",
+    "GetZF0D",
+    "GetZF1D",
+    "IncrementChainingTimeStampF1D",
+    "LocalAverageDepthF0D",
+    "LocalAverageDepthF1D",
+    "MaterialF0D",
+    "Normal2DF0D",
+    "Normal2DF1D",
+    "Orientation2DF1D",
+    "Orientation3DF1D",
+    "QuantitativeInvisibilityF0D",
+    "QuantitativeInvisibilityF1D",
+    "ReadCompleteViewMapPixelF0D",
+    "ReadMapPixelF0D",
+    "ReadSteerableViewMapPixelF0D",
+    "ShapeIdF0D",
+    "TimeStampF1D",
+    "VertexOrientation2DF0D",
+    "VertexOrientation3DF0D",
+    "ZDiscontinuityF0D",
+    "ZDiscontinuityF1D",
+    "pyCurvilinearLengthF0D",
+    "pyDensityAnisotropyF0D",
+    "pyDensityAnisotropyF1D",
+    "pyGetInverseProjectedZF1D",
+    "pyGetSquareInverseProjectedZF1D",
+    "pyInverseCurvature2DAngleF0D",
+    "pyViewMapGradientNormF0D",
+    "pyViewMapGradientNormF1D",
+    "pyViewMapGradientVectorF0D",
+    )
+
 
 # module members
 from _freestyle import (

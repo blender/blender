@@ -274,6 +274,12 @@ else:
         "mathutils.kdtree",
         "mathutils.noise",
         "freestyle",
+        "freestyle.chainingiterators",
+        "freestyle.functions",
+        "freestyle.predicates",
+        "freestyle.shaders",
+        "freestyle.types",
+        "freestyle.utils",
         ]
 
     # ------
@@ -316,7 +322,13 @@ try:
     __import__("freestyle")
 except ImportError:
     BPY_LOGGER.debug("Warning: Built without 'freestyle' module, docs incomplete...")
-    EXCLUDE_MODULES = list(EXCLUDE_MODULES) + ["freestyle"]
+    EXCLUDE_MODULES = list(EXCLUDE_MODULES) + ["freestyle",
+                                               "freestyle.chainingiterators",
+                                               "freestyle.functions",
+                                               "freestyle.predicates",
+                                               "freestyle.shaders",
+                                               "freestyle.types",
+                                               "freestyle.utils"]
 
 # examples
 EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
@@ -1780,8 +1792,14 @@ def write_rst_importable_modules(basepath):
         "mathutils.geometry"   : "Geometry Utilities",
         "mathutils.kdtree"     : "KDTree Utilities",
         "mathutils.noise"      : "Noise Utilities",
-        "freestyle"            : "Freestyle Data Types & Operators",
-    }
+        "freestyle"            : "Freestyle Module",
+        "freestyle.types"      : "Freestyle Types",
+        "freestyle.predicates" : "Freestyle Predicates",
+        "freestyle.functions"  : "Freestyle Functions",
+        "freestyle.chainingiterators" : "Freestyle Chaining Iterators",
+        "freestyle.shaders"    : "Freestyle Shaders",
+        "freestyle.utils"      : "Freestyle Utilities",
+        }
     for mod_name, mod_descr in importable_modules.items():
         if mod_name not in EXCLUDE_MODULES:
             module = __import__(mod_name,

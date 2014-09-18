@@ -17,10 +17,10 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Chaining iterators used for the chaining operation to construct long
-strokes by concatenating feature edges according to selected chaining
-rules.  Also intended to be a collection of examples for defining
-chaining iterators in Python
+This module contains chaining iterators used for the chaining
+operation to construct long strokes by concatenating feature edges
+according to selected chaining rules.  The module is also intended to
+be a collection of examples for defining chaining iterators in Python.
 """
 
 __all__ = (

@@ -17,8 +17,32 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Helper functions used for Freestyle style module writing.
+This module contains helper functions used for Freestyle style module
+writing.
 """
+
+__all__ = (
+    "ContextFunctions",
+    "bound",
+    "bounding_box",
+    "find_matching_vertex",
+    "getCurrentScene",
+    "get_chain_length",
+    "get_test_stroke",
+    "integrate",
+    "iter_distance_along_stroke",
+    "iter_distance_from_camera",
+    "iter_distance_from_object",
+    "iter_material_value",
+    "iter_t2d_along_stroke",
+    "pairwise",
+    "phase_to_direction",
+    "rgb_to_bw",
+    "stroke_curvature",
+    "stroke_normal",
+    "tripplewise",
+    )
+
 
 # module members
 from _freestyle import (
@@ -27,12 +51,12 @@ from _freestyle import (
     integrate,
     )
 
+# constructs for helper functions in Python
 from freestyle.types import (
     Interface0DIterator,
     Stroke,
     StrokeVertexIterator,
     )
-
 
 from mathutils import Vector
 from functools import lru_cache, namedtuple
