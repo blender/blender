@@ -417,12 +417,14 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Voxel Grid Resolution", "Resolution of the voxel grid for interaction effects");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+#if 0 /* disabled */
 	prop = RNA_def_property(srna, "voxel_filter_size", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "voxel_filter_size");
 	RNA_def_property_range(prop, 0, 8);
 	RNA_def_property_int_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Voxel Grid Filter Size", "Number of cells to use for filtering grid velocity");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
+#endif
 
 	/* springs */
 

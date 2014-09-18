@@ -431,8 +431,10 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
 		}
 		BPH_hair_volume_normalize_vertex_grid(vertex_grid);
 		
+#if 0
 		/* apply velocity filter */
 		BPH_hair_volume_vertex_grid_filter_box(vertex_grid, clmd->sim_parms->voxel_filter_size);
+#endif
 		
 		for (i = 0; i < numverts; i++) {
 			float x[3], v[3], f[3], dfdx[3][3], dfdv[3][3];

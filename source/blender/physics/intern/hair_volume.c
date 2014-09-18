@@ -295,6 +295,7 @@ void BPH_hair_volume_normalize_vertex_grid(HairVertexGrid *grid)
 	}
 }
 
+#if 0 /* XXX weighting is incorrect, disabled for now */
 /* Velocity filter kernel
  * See http://en.wikipedia.org/wiki/Filter_%28large_eddy_simulation%29
  */
@@ -363,6 +364,7 @@ void BPH_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_siz
 		copy_v3_v3(grid->verts[i].velocity, grid->verts[i].velocity_smooth);
 	}
 }
+#endif
 
 HairVertexGrid *BPH_hair_volume_create_vertex_grid(int res, const float gmin[3], const float gmax[3])
 {
