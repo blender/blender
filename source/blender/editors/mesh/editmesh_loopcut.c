@@ -75,6 +75,9 @@ typedef struct RingSelOpData {
 	float (*edges)[2][3];
 	int totedge;
 
+	float (*points)[3];
+	int totpoint;
+
 	ViewContext vc;
 
 	Object *ob;
@@ -91,9 +94,8 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RingSelOpData *lcd = arg;
-	int i;
 	
-	if (lcd->totedge > 0) {
+	if ((lcd->totedge > 0) || (lcd->totpoint > 0)) {
 		if (v3d && v3d->zbuf)
 			glDisable(GL_DEPTH_TEST);
 
@@ -101,12 +103,23 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glMultMatrixf(lcd->ob->obmat);
 
 		glColor3ub(255, 0, 255);
-		glBegin(GL_LINES);
-		for (i = 0; i < lcd->totedge; i++) {
-			glVertex3fv(lcd->edges[i][0]);
-			glVertex3fv(lcd->edges[i][1]);
+		if (lcd->totedge > 0) {
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, lcd->edges);
+			glDrawArrays(GL_LINES, 0, lcd->totedge * 2);
+			glDisableClientState(GL_VERTEX_ARRAY);
 		}
-		glEnd();
+
+		if (lcd->totpoint > 0) {
+			glPointSize(3.0f);
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, lcd->points);
+			glDrawArrays(GL_POINTS, 0, lcd->totpoint);
+			glDisableClientState(GL_VERTEX_ARRAY);
+
+			glPointSize(1.0f);
+		}
 
 		glPopMatrix();
 		if (v3d && v3d->zbuf)
@@ -178,52 +191,43 @@ static void edgering_vcos_get(DerivedMesh *dm, BMVert *v[2][2], float r_cos[2][2
 	}
 }
 
-static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
+static void edgering_vcos_get_pair(DerivedMesh *dm, BMVert *v[2], float r_cos[2][3])
 {
-	BMEditMesh *em = lcd->em;
-	DerivedMesh *dm = EDBM_mesh_deform_dm_get(em);
+	if (dm) {
+		int j;
+		for (j = 0; j < 2; j++) {
+			dm->getVertCo(dm, BM_elem_index_get(v[j]), r_cos[j]);
+		}
+	}
+	else {
+		int j;
+		for (j = 0; j < 2; j++) {
+			copy_v3_v3(r_cos[j], v[j]->co);
+		}
+	}
+}
+
+static void edgering_preview_free(RingSelOpData *lcd)
+{
+	MEM_SAFE_FREE(lcd->edges);
+	lcd->totedge = 0;
+
+	MEM_SAFE_FREE(lcd->points);
+	lcd->totpoint = 0;
+}
+
+static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, const int previewlines)
+{
+	BMesh *bm = lcd->em->bm;
+	BMWalker walker;
 	BMEdge *eed_start = lcd->eed;
 	BMEdge *eed, *eed_last;
-	BMVert *v[2][2], *v_last;
-	BMWalker walker;
+	BMVert *v[2][2] = {{NULL}}, *v_last;
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
 	int i, tot = 0;
-	
-	memset(v, 0, sizeof(v));
-	
-	if (!eed_start)
-		return;
 
-	if (lcd->edges) {
-		MEM_freeN(lcd->edges);
-		lcd->edges = NULL;
-		lcd->totedge = 0;
-	}
-
-	if (!lcd->extend) {
-		EDBM_flag_disable_all(lcd->em, BM_ELEM_SELECT);
-	}
-
-	if (select) {
-		BMW_init(&walker, em->bm, BMW_EDGERING,
-		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_TEST_HIDDEN,
-		         BMW_NIL_LAY);
-
-		for (eed = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
-			BM_edge_select_set(em->bm, eed, true);
-		}
-		BMW_end(&walker);
-
-		return;
-	}
-
-	if (dm) {
-		BM_mesh_elem_table_ensure(lcd->em->bm, BM_VERT);
-	}
-
-	BMW_init(&walker, em->bm, BMW_EDGERING,
+	BMW_init(&walker, bm, BMW_EDGERING,
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 	         BMW_FLAG_TEST_HIDDEN,
 	         BMW_NIL_LAY);
@@ -261,7 +265,7 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 		}
 		eed_last = eed;
 	}
-	
+
 	if ((eed_last != eed_start) &&
 #ifdef BMW_EDGERING_NGON
 	    BM_edge_share_face_check(eed_last, eed_start)
@@ -274,7 +278,7 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 		v[1][1] = v[0][1];
 
 		edgering_find_order(eed_last, eed_start, v_last, v);
-		
+
 		BLI_array_grow_items(edges, previewlines);
 
 		for (i = 1; i <= previewlines; i++) {
@@ -298,15 +302,83 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, bool select)
 	lcd->totedge = tot;
 }
 
+static void edgering_preview_calc_points(RingSelOpData *lcd, DerivedMesh *dm, const int previewlines)
+{
+	float v_cos[2][3];
+	float (*points)[3];
+	int i, tot = 0;
+
+	if (dm) {
+		BM_mesh_elem_table_ensure(lcd->em->bm, BM_VERT);
+	}
+
+	points = MEM_mallocN(sizeof(*lcd->points) * previewlines, __func__);
+
+	edgering_vcos_get_pair(dm, &lcd->eed->v1, v_cos);
+
+	for (i = 1; i <= previewlines; i++) {
+		const float fac = (i / ((float)previewlines + 1));
+		interp_v3_v3v3(points[tot], v_cos[0], v_cos[1], fac);
+		tot++;
+	}
+
+	lcd->points = points;
+	lcd->totpoint = previewlines;
+}
+
+static void edgering_preview_calc(RingSelOpData *lcd, const int previewlines)
+{
+	DerivedMesh *dm;
+
+	BLI_assert(lcd->eed != NULL);
+
+	edgering_preview_free(lcd);
+
+	dm = EDBM_mesh_deform_dm_get(lcd->em);
+	if (dm) {
+		BM_mesh_elem_table_ensure(lcd->em->bm, BM_VERT);
+	}
+
+	if (BM_edge_is_wire(lcd->eed)) {
+		edgering_preview_calc_points(lcd, dm, previewlines);
+	}
+	else {
+		edgering_preview_calc_edges(lcd, dm, previewlines);
+	}
+}
+
+static void edgering_select(RingSelOpData *lcd)
+{
+	BMEditMesh *em = lcd->em;
+	BMEdge *eed_start = lcd->eed;
+	BMWalker walker;
+	BMEdge *eed;
+	
+	if (!eed_start)
+		return;
+
+	if (!lcd->extend) {
+		EDBM_flag_disable_all(lcd->em, BM_ELEM_SELECT);
+	}
+
+	BMW_init(&walker, em->bm, BMW_EDGERING,
+			 BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+			 BMW_FLAG_TEST_HIDDEN,
+			 BMW_NIL_LAY);
+
+	for (eed = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
+		BM_edge_select_set(em->bm, eed, true);
+	}
+	BMW_end(&walker);
+}
+
 static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
 {
 	if (lcd->eed) {
-		edgering_sel(lcd, previewlines, false);
+		edgering_preview_calc(lcd, previewlines);
 	}
-	else if (lcd->edges) {
-		MEM_freeN(lcd->edges);
-		lcd->edges = NULL;
-		lcd->totedge = 0;
+	else {
+		edgering_preview_free(lcd);
 	}
 }
 
@@ -324,26 +396,37 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
 	if (lcd->eed) {
 		BMEditMesh *em = lcd->em;
+		BMVert *v_eed_orig[2] = {lcd->eed->v1, lcd->eed->v2};
 
-		edgering_sel(lcd, cuts, true);
+		edgering_select(lcd);
 		
 		if (lcd->do_cut) {
 			const bool is_macro = (op->opm != NULL);
+			/* a single edge (rare, but better support) */
+			const bool is_single = (BM_edge_is_wire(lcd->eed));
+			const int seltype = is_single ? SUBDIV_SELECT_INNER : SUBDIV_SELECT_LOOPCUT;
+
 			/* Enable gridfill, so that intersecting loopcut works as one would expect.
 			 * Note though that it will break edgeslide in this specific case.
 			 * See [#31939]. */
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
 			                   smoothness, smooth_falloff, true,
 			                   0.0f, 0.0f,
-			                   cuts,
-			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, true,
+			                   cuts, seltype, SUBD_PATH, 0, true,
 			                   use_only_quads, 0);
 
 			/* when used in a macro tessface is already re-recalculated */
 			EDBM_update_generic(em, (is_macro == false), true);
 
+			if (is_single) {
+				/* de-select endpoints */
+				BM_vert_select_set(em->bm, v_eed_orig[0], false);
+				BM_vert_select_set(em->bm, v_eed_orig[1], false);
+
+				EDBM_selectmode_flush_ex(lcd->em, SCE_SELECT_VERTEX);
+			}
 			/* we cant slide multiple edges in vertex select mode */
-			if (is_macro && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
+			else if (is_macro && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
 				EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
 			}
 			/* force edge slide to edge select mode in in face select mode */
@@ -378,8 +461,7 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
 	
-	if (lcd->edges)
-		MEM_freeN(lcd->edges);
+	edgering_preview_free(lcd);
 
 	ED_region_tag_redraw(lcd->ar);
 
@@ -594,7 +676,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				ringsel_exit(C, op);
 				ED_area_headerprint(CTX_wm_area(C), NULL);
 
-				return OPERATOR_FINISHED;
+				return OPERATOR_CANCELLED;
 			case ESCKEY:
 				if (event->val == KM_RELEASE) {
 					/* cancel */
