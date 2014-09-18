@@ -228,8 +228,9 @@ static int palette_color_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Palette *palette = paint->palette;
+	PaletteColor *color = BLI_findlink(&palette->colors, palette->active_color);
 
-	BKE_palette_color_delete(palette);
+	BKE_palette_color_remove(palette, color);
 
 	return OPERATOR_FINISHED;
 }
