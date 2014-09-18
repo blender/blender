@@ -1324,13 +1324,11 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					glNormal3fv(nor);
 				}
 			}
-
-			if (lnors) {
-				ln1 = &lnors[0][0];
-				ln2 = &lnors[0][1];
-				ln3 = &lnors[0][2];
-				ln4 = &lnors[0][3];
-				lnors++;
+			else if (lnors) {
+				ln1 = &lnors[a][0];
+				ln2 = &lnors[a][1];
+				ln3 = &lnors[a][2];
+				ln4 = &lnors[a][3];
 			}
 
 			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v1, 0, ln1, smoothnormal);
@@ -1651,13 +1649,11 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 				glNormal3fv(nor);
 			}
 		}
-
-		if (lnors) {
-			ln1 = &lnors[0][0];
-			ln2 = &lnors[0][1];
-			ln3 = &lnors[0][2];
-			ln4 = &lnors[0][3];
-			lnors++;
+		else if (lnors) {
+			ln1 = &lnors[a][0];
+			ln2 = &lnors[a][1];
+			ln3 = &lnors[a][2];
+			ln4 = &lnors[a][3];
 		}
 
 		/* vertices */
