@@ -359,6 +359,40 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 }
 
 #ifdef __SUBSURFACE__
+
+#  ifdef __VOLUME__
+ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
+                                                           Ray *ray,
+                                                           VolumeStack *stack)
+{
+	kernel_assert(kernel_data.integrator.use_volumes);
+
+	Ray volume_ray = *ray;
+	Intersection isect;
+	const float3 Pend = volume_ray.P + volume_ray.D*volume_ray.t;
+
+	while(
+		scene_intersect(kg, &volume_ray, PATH_RAY_ALL_VISIBILITY,
+		                &isect, NULL, 0.0f, 0.0f)) {
+		ShaderData sd;
+		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
+		kernel_volume_stack_enter_exit(kg, &sd, stack);
+
+		/* Move ray forward. */
+		volume_ray.P = ray_offset(sd.P, -sd.Ng);
+		volume_ray.D = normalize_len(Pend - volume_ray.P,
+		                             &volume_ray.t);
+
+		/* TODO(sergey): Find a faster way detecting that ray_offset moved
+		 * us pass through the end point.
+		 */
+		if(dot(ray->D, volume_ray.D) < 0.0f) {
+			break;
+		}
+	}
+}
+#  endif
+
 ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, Ray *ray, float3 *throughput)
 {
 	float bssrdf_probability;
@@ -375,6 +409,9 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 		float bssrdf_u, bssrdf_v;
 		path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 		int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
+#ifdef __VOLUME__
+		Ray volume_ray = *ray;
+#endif
 
 		/* compute lighting with the BSDF closure */
 		for(int hit = 0; hit < num_hits; hit++) {
@@ -390,6 +427,22 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 			if(kernel_path_surface_bounce(kg, rng, &bssrdf_sd[hit], &tp, &hit_state, L, &hit_ray)) {
 #ifdef __LAMP_MIS__
 				hit_state.ray_t = 0.0f;
+#endif
+
+#ifdef __VOLUME__
+				if(kernel_data.integrator.use_volumes) {
+					/* Setup ray from previous surface point to the new one. */
+					volume_ray.D = normalize_len(hit_ray.P - volume_ray.P,
+					                             &volume_ray.t);
+
+					kernel_path_subsurface_update_volume_stack(
+					    kg,
+					    &volume_ray,
+					    hit_state.volume_stack);
+
+					/* Move volume ray forward. */
+					volume_ray.P = hit_ray.P;
+				}
 #endif
 
 				kernel_path_indirect(kg, rng, hit_ray, tp, state->num_samples, hit_state, L);
@@ -718,7 +771,13 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 }
 
 #ifdef __SUBSURFACE__
-ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, float3 throughput)
+ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
+                                                        ShaderData *sd,
+                                                        PathRadiance *L,
+                                                        PathState *state,
+                                                        RNG *rng,
+                                                        Ray *ray,
+                                                        float3 throughput)
 {
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
@@ -741,12 +800,32 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg, Shade
 			float bssrdf_u, bssrdf_v;
 			path_branched_rng_2D(kg, &bssrdf_rng, state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 			int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
+#  ifdef __VOLUME__
+			Ray volume_ray = *ray;
+#  endif
 
 			/* compute lighting with the BSDF closure */
 			for(int hit = 0; hit < num_hits; hit++) {
 				PathState hit_state = *state;
 
 				path_state_branch(&hit_state, j, num_samples);
+
+#ifdef __VOLUME__
+				if(kernel_data.integrator.use_volumes) {
+					/* Setup ray from previous surface point to the new one. */
+					float3 P = ray_offset(bssrdf_sd[hit].P, -bssrdf_sd[hit].Ng);
+					volume_ray.D = normalize_len(P - volume_ray.P,
+					                             &volume_ray.t);
+
+					kernel_path_subsurface_update_volume_stack(
+					    kg,
+					    &volume_ray,
+					    hit_state.volume_stack);
+
+					/* Move volume ray forward. */
+					volume_ray.P = P;
+				}
+#endif
 
 #if defined(__EMISSION__) && defined(__BRANCHED_PATH__)
 				/* direct light */
@@ -1012,7 +1091,8 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object */
 		if(sd.flag & SD_BSSRDF) {
-			kernel_branched_path_subsurface_scatter(kg, &sd, &L, &state, rng, throughput);
+			kernel_branched_path_subsurface_scatter(kg, &sd, &L, &state,
+			                                        rng, &ray, throughput);
 		}
 #endif
 
