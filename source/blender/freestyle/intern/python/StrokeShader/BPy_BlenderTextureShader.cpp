@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char BlenderTextureShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`BlenderTextureShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`BlenderTextureShader`\n"
 "\n"
 "[Texture shader]\n"
 "\n"
@@ -47,7 +47,8 @@ static char BlenderTextureShader___doc__[] =
 "\n"
 "   :arg texture: A line style texture slot or a shader node tree to define\n"
 "       a set of textures.\n"
-"   :type texture: :class:`LineStyleTextureSlot` or :class:`ShaderNodeTree`\n"
+"   :type texture: :class:`bpy.types.LineStyleTextureSlot` or\n"
+"       :class:`bpy.types.ShaderNodeTree`\n"
 "\n"
 ".. method:: shade(stroke)\n"
 "\n"
@@ -55,7 +56,7 @@ static char BlenderTextureShader___doc__[] =
 "   simulate marks.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int BlenderTextureShader___init__(BPy_BlenderTextureShader *self, PyObject *args, PyObject *kwds)
 {

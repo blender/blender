@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ConstantThicknessShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`ConstantThicknessShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`ConstantThicknessShader`\n"
 "\n"
 "[Thickness shader]\n"
 "\n"
@@ -51,7 +51,7 @@ static char ConstantThicknessShader___doc__[] =
 "   Assigns an absolute constant thickness to every vertex of the Stroke.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int ConstantThicknessShader___init__(BPy_ConstantThicknessShader *self, PyObject *args, PyObject *kwds)
 {

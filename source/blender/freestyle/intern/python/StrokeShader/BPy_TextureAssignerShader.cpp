@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char TextureAssignerShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`TextureAssignerShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`TextureAssignerShader`\n"
 "\n"
 "[Texture shader]\n"
 "\n"
@@ -67,7 +67,7 @@ static char TextureAssignerShader___doc__[] =
 "   * Default: `/brushes/smoothAlpha.bmp`, `Stroke.OPAQUE_MEDIUM`\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int TextureAssignerShader___init__(BPy_TextureAssignerShader *self, PyObject *args, PyObject *kwds)
 {

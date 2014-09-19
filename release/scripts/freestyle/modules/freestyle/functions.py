@@ -237,10 +237,15 @@ class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
 
 
 class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
-    """Returns the gradient vector for a pixel.
+    """
+    Returns the gradient vector for a pixel.
 
-    :arg level: the level at which to compute the gradient
-    :type level: int
+    .. method:: __init__(self, level)
+
+       Builds a pyViewMapGradientVectorF0D object.
+
+       :arg level: the level at which to compute the gradient
+       :type level: int
     """
     def __init__(self, level):
         UnaryFunction0DVec2f.__init__(self)

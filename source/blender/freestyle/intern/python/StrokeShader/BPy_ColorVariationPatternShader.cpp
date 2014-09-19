@@ -36,7 +36,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ColorVariationPatternShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`ColorVariationPatternShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`ColorVariationPatternShader`\n"
 "\n"
 "[Color shader]\n"
 "\n"
@@ -57,7 +57,7 @@ static char ColorVariationPatternShader___doc__[] =
 "   result of the multiplication of the pattern and the original color.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int ColorVariationPatternShader___init__(BPy_ColorVariationPatternShader *self, PyObject *args, PyObject *kwds)
 {

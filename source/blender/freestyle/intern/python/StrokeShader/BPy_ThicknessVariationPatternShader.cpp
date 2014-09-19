@@ -36,7 +36,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ThicknessVariationPatternShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`ThicknessVariationPatternShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`ThicknessVariationPatternShader`\n"
 "\n"
 "[Thickness shader]\n"
 "\n"
@@ -61,7 +61,7 @@ static char ThicknessVariationPatternShader___doc__[] =
 "   original thickness.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int ThicknessVariationPatternShader___init__(BPy_ThicknessVariationPatternShader *self,
                                                     PyObject *args, PyObject *kwds)

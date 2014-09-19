@@ -33,7 +33,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char QuantitativeInvisibilityUP1D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate1D` > :class:`QuantitativeInvisibilityUP1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`QuantitativeInvisibilityUP1D`\n"
 "\n"
 ".. method:: __init__(qi=0)\n"
 "\n"
@@ -46,11 +46,12 @@ static char QuantitativeInvisibilityUP1D___doc__[] =
 ".. method:: __call__(inter)\n"
 "\n"
 "   Returns true if the Quantitative Invisibility evaluated at an\n"
-"   Interface1D, using the :class:`QuantitativeInvisibilityF1D`\n"
-"   functor, equals a certain user-defined value.\n"
+"   Interface1D, using the\n"
+"   :class:`freestyle.functions.QuantitativeInvisibilityF1D` functor,\n"
+"   equals a certain user-defined value.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: True if Quantitative Invisibility equals a user-defined\n"
 "      value.\n"
 "   :rtype: bool\n";

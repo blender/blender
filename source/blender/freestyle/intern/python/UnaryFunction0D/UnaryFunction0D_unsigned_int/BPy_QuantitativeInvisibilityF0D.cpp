@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char QuantitativeInvisibilityF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DUnsigned` > :class:`QuantitativeInvisibilityF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DUnsigned` > :class:`QuantitativeInvisibilityF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,17 +43,17 @@ static char QuantitativeInvisibilityF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns the quantitative invisibility of the :class:`Interface0D`\n"
-"   pointed by the Interface0DIterator.  This evaluation can be\n"
-"   ambiguous (in the case of a :class:`TVertex` for example).  This\n"
-"   functor tries to remove this ambiguity using the context offered by\n"
-"   the 1D element to which the Interface0D belongs to.  However, there\n"
-"   still can be problematic cases, and the user willing to deal with\n"
-"   this cases in a specific way should implement its own getQIF0D\n"
-"   functor.\n"
+"   Returns the quantitative invisibility of the\n"
+"   :class:`freestyle.types.Interface0D` pointed by the\n"
+"   Interface0DIterator.  This evaluation can be ambiguous (in the case of\n"
+"   a :class:`freestyle.types.TVertex` for example).  This functor tries\n"
+"   to remove this ambiguity using the context offered by the 1D element\n"
+"   to which the Interface0D belongs to.  However, there still can be\n"
+"   problematic cases, and the user willing to deal with this cases in a\n"
+"   specific way should implement its own getQIF0D functor.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The quantitative invisibility of the pointed Interface0D.\n"
 "   :rtype: int\n";
 

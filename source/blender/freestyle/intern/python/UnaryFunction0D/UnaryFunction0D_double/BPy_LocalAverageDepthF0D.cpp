@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char LocalAverageDepthF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`LocalAverageDepthF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DDouble` > :class:`LocalAverageDepthF0D`\n"
 "\n"
 ".. method:: __init__(mask_size=5.0)\n"
 "\n"
@@ -46,12 +46,13 @@ static char LocalAverageDepthF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns the average depth around the :class:`Interface0D` pointed\n"
-"   by the Interface0DIterator.  The result is obtained by querying the\n"
-"   depth buffer on a window around that point.\n"
+"   Returns the average depth around the\n"
+"   :class:`freestyle.types.Interface0D` pointed by the\n"
+"   Interface0DIterator.  The result is obtained by querying the depth\n"
+"   buffer on a window around that point.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The average depth around the pointed Interface0D.\n"
 "   :rtype: float\n";
 

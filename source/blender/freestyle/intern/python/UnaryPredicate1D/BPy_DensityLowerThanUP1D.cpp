@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char DensityLowerThanUP1D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate1D` > :class:`DensityLowerThanUP1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`DensityLowerThanUP1D`\n"
 "\n"
 ".. method:: __init__(threshold, sigma=2.0)\n"
 "\n"
@@ -45,7 +45,7 @@ static char DensityLowerThanUP1D___doc__[] =
 "      having a density lower than this threshold will match.\n"
 "   :type threshold: float\n"
 "   :arg sigma: The sigma value defining the density evaluation window\n"
-"      size used in the :class:`DensityF0D` functor.\n"
+"      size used in the :class:`freestyle.functions.DensityF0D` functor.\n"
 "   :type sigma: float\n"
 "\n"
 ".. method:: __call__(inter)\n"
@@ -54,7 +54,7 @@ static char DensityLowerThanUP1D___doc__[] =
 "   than a user-defined density value.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: True if the density is lower than a threshold.\n"
 "   :rtype: bool\n";
 

@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char CurveNatureF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DEdgeNature` > :class:`CurveNatureF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DEdgeNature` > :class:`CurveNatureF1D`\n"
 "\n"
 ".. method:: __init__(integration_type=IntegrationType.MEAN)\n"
 "\n"
@@ -45,21 +45,22 @@ static char CurveNatureF1D___doc__[] =
 "\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
-"   Returns the nature of the Interface1D (silhouette, ridge, crease,\n"
-"   and so on).  Except if the Interface1D is a :class:`ViewEdge`, this\n"
-"   result might be ambiguous.  Indeed, the Interface1D might result\n"
-"   from the gathering of several 1D elements, each one being of a\n"
-"   different nature.  An integration method, such as the MEAN, might\n"
-"   give, in this case, irrelevant results.\n"
+"   Returns the nature of the Interface1D (silhouette, ridge, crease, and\n"
+"   so on).  Except if the Interface1D is a\n"
+"   :class:`freestyle.types.ViewEdge`, this result might be ambiguous.\n"
+"   Indeed, the Interface1D might result from the gathering of several 1D\n"
+"   elements, each one being of a different nature.  An integration\n"
+"   method, such as the MEAN, might give, in this case, irrelevant\n"
+"   results.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The nature of the Interface1D.\n"
-"   :rtype: :class:`Nature`\n";
+"   :rtype: :class:`freestyle.types.Nature`\n";
 
 static int CurveNatureF1D___init__(BPy_CurveNatureF1D *self, PyObject *args, PyObject *kwds)
 {

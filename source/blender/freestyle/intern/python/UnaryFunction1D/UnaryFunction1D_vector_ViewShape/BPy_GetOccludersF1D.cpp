@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetOccludersF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVectorViewShape` > :class:`GetOccludersF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DVectorViewShape` > :class:`GetOccludersF1D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -48,9 +48,9 @@ static char GetOccludersF1D___doc__[] =
 "   Returns a list of occluding shapes that cover this Interface1D.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: A list of occluding shapes that cover the Interface1D.\n"
-"   :rtype: list of :class:`ViewShape` objects\n";
+"   :rtype: list of :class:`freestyle.types.ViewShape` objects\n";
 
 static int GetOccludersF1D___init__(BPy_GetOccludersF1D *self, PyObject *args, PyObject *kwds)
 {

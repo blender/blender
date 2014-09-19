@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char StrokeTextureStepShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`StrokeTextureStepShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`StrokeTextureStepShader`\n"
 "\n"
 "[Texture shader]\n"
 "\n"
@@ -51,7 +51,7 @@ static char StrokeTextureStepShader___doc__[] =
 "   Assigns a spacing factor to the texture coordinates of the Stroke.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int StrokeTextureStepShader___init__(BPy_StrokeTextureStepShader *self, PyObject *args, PyObject *kwds)
 {

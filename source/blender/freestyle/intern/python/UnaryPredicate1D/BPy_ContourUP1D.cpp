@@ -33,7 +33,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ContourUP1D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate1D` > :class:`ContourUP1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`ContourUP1D`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
@@ -41,7 +41,7 @@ static char ContourUP1D___doc__[] =
 "   contour if it is borded by a different shape on each of its sides.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: True if the Interface1D is a contour, false otherwise.\n"
 "   :rtype: bool\n";
 

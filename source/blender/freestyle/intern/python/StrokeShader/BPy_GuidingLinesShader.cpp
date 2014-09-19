@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GuidingLinesShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`GuidingLinesShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`GuidingLinesShader`\n"
 "\n"
 "[Geometry shader]\n"
 "\n"
@@ -59,7 +59,7 @@ static char GuidingLinesShader___doc__[] =
 "   approximation is.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int GuidingLinesShader___init__(BPy_GuidingLinesShader *self, PyObject *args, PyObject *kwds)
 {

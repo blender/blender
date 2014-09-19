@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Orientation3DF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVec3f` > :class:`Orientation3DF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DVec3f` > :class:`Orientation3DF1D`\n"
 "\n"
 ".. method:: __init__(integration_type=IntegrationType.MEAN)\n"
 "\n"
@@ -45,14 +45,14 @@ static char Orientation3DF1D___doc__[] =
 "\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
 "   Returns the 3D orientation of the Interface1D.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The 3D orientation of the Interface1D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 

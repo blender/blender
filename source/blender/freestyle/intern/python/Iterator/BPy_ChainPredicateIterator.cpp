@@ -38,7 +38,10 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 PyDoc_STRVAR(ChainPredicateIterator_doc,
-"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator` > "
+
+"Class hierarchy: :class:`freestyle.types.Iterator` >\n"
+":class:`freestyle.types.ViewEdgeIterator` >\n"
+":class:`freestyle.types.ChainingIterator` >\n"
 ":class:`ChainPredicateIterator`\n"
 "\n"
 "A \"generic\" user-controlled ViewEdge iterator.  This iterator is in\n"
@@ -63,7 +66,7 @@ PyDoc_STRVAR(ChainPredicateIterator_doc,
 "      already been chained must be ignored ot not.\n"
 "   :type restrict_to_unvisited: bool\n"
 "   :arg begin: The ViewEdge from where to start the iteration.\n"
-"   :type begin: :class:`ViewEdge` or None\n"
+"   :type begin: :class:`freestyle.types.ViewEdge` or None\n"
 "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
 "      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
 "      false, we'll search over the ViewEdges surrounding the ending\n"
@@ -77,10 +80,10 @@ PyDoc_STRVAR(ChainPredicateIterator_doc,
 "   predicate, a starting ViewEdge and its orientation.\n"
 "\n"
 "   :arg upred: The unary predicate that the next ViewEdge must satisfy.\n"
-"   :type upred: :class:`UnaryPredicate1D`\n"
+"   :type upred: :class:`freestyle.types.UnaryPredicate1D`\n"
 "   :arg bpred: The binary predicate that the next ViewEdge must\n"
 "      satisfy together with the actual pointed ViewEdge.\n"
-"   :type bpred: :class:`BinaryPredicate1D`\n"
+"   :type bpred: :class:`freestyle.types.BinaryPredicate1D`\n"
 "   :arg restrict_to_selection: Indicates whether to force the chaining\n"
 "      to stay within the set of selected ViewEdges or not.\n"
 "   :type restrict_to_selection: bool\n"
@@ -88,7 +91,7 @@ PyDoc_STRVAR(ChainPredicateIterator_doc,
 "      already been chained must be ignored ot not.\n"
 "   :type restrict_to_unvisited: bool\n"
 "   :arg begin: The ViewEdge from where to start the iteration.\n"
-"   :type begin: :class:`ViewEdge` or None\n"
+"   :type begin: :class:`freestyle.types.ViewEdge` or None\n"
 "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
 "      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
 "      false, we'll search over the ViewEdges surrounding the ending\n"

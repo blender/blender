@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ReadCompleteViewMapPixelF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`ReadCompleteViewMapPixelF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DFloat` > :class:`ReadCompleteViewMapPixelF0D`\n"
 "\n"
 ".. method:: __init__(level)\n"
 "\n"
@@ -50,7 +50,7 @@ static char ReadCompleteViewMapPixelF0D___doc__[] =
 "   Reads a pixel in one of the level of the complete viewmap.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: A pixel in one of the level of the complete viewmap.\n"
 "   :rtype: float\n";
 

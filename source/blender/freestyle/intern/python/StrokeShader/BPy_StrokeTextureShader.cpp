@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char StrokeTextureShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`StrokeTextureShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`StrokeTextureShader`\n"
 "\n"
 "[Texture shader]\n"
 "\n"
@@ -49,7 +49,7 @@ static char StrokeTextureShader___doc__[] =
 "   :type texture_file: str\n"
 "   :arg medium_type: The medium type and therefore, the blending mode\n"
 "      that must be used for the rendering of this stroke.\n"
-"   :type medium_type: :class:`MediumType`\n"
+"   :type medium_type: :class:`freestyle.types.MediumType`\n"
 "   :arg tips: Tells whether the texture includes tips or not.  If it\n"
 "      is the case, the texture image must respect the following format.\n"
 "   :type tips: bool\n"
@@ -74,7 +74,7 @@ static char StrokeTextureShader___doc__[] =
 "   simulate its marks system.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int StrokeTextureShader___init__(BPy_StrokeTextureShader *self, PyObject *args, PyObject *kwds)
 {

@@ -33,14 +33,14 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char FalseUP1D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate1D` > :class:`FalseUP1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`FalseUP1D`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
 "   Always returns false.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: False.\n"
 "   :rtype: bool\n";
 

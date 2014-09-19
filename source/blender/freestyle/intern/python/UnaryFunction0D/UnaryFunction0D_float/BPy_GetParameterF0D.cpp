@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetParameterF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`GetParameterF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DFloat` > :class:`GetParameterF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,11 +43,11 @@ static char GetParameterF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns the parameter of the :class:`Interface0D` pointed by the\n"
-"   Interface0DIterator in the context of its 1D element.\n"
+"   Returns the parameter of the :class:`freestyle.types.Interface0D`\n"
+"   pointed by the Interface0DIterator in the context of its 1D element.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The parameter of an Interface0D.\n"
 "   :rtype: float\n";
 

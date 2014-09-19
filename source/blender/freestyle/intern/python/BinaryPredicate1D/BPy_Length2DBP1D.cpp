@@ -33,7 +33,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Length2DBP1D___doc__[] =
-"Class hierarchy: :class:`BinaryPredicate1D` > :class:`Length2DBP1D`\n"
+"Class hierarchy: :class:`freestyle.types.BinaryPredicate1D` > :class:`Length2DBP1D`\n"
 "\n"
 ".. method:: __call__(inter1, inter2)\n"
 "\n"
@@ -41,9 +41,9 @@ static char Length2DBP1D___doc__[] =
 "   of inter2.\n"
 "\n"
 "   :arg inter1: The first Interface1D object.\n"
-"   :type inter1: :class:`Interface1D`\n"
+"   :type inter1: :class:`freestyle.types.Interface1D`\n"
 "   :arg inter2: The second Interface1D object.\n"
-"   :type inter2: :class:`Interface1D`\n"
+"   :type inter2: :class:`freestyle.types.Interface1D`\n"
 "   :return: True or false.\n"
 "   :rtype: bool\n";
 

@@ -33,7 +33,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char WithinImageBoundaryUP1D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate1D` > :class:`WithinImageBoundaryUP1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`WithinImageBoundaryUP1D`\n"
 "\n"
 ".. method:: __init__(xmin, ymin, xmax, ymax)\n"
 "\n"

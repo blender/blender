@@ -33,7 +33,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char EqualToChainingTimeStampUP1D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate1D` > :class:`EqualToChainingTimeStampUP1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`freestyle.types.EqualToChainingTimeStampUP1D`\n"
 "\n"
 ".. method:: __init__(ts)\n"
 "\n"
@@ -48,7 +48,7 @@ static char EqualToChainingTimeStampUP1D___doc__[] =
 "   user-defined value.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: True if the time stamp is equal to a user-defined value.\n"
 "   :rtype: bool\n";
 

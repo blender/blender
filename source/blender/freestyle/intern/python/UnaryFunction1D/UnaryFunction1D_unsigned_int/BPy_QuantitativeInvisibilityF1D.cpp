@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char QuantitativeInvisibilityF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DUnsigned` > :class:`QuantitativeInvisibilityF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DUnsigned` > :class:`QuantitativeInvisibilityF1D`\n"
 "\n"
 ".. method:: __init__(integration_type=IntegrationType.MEAN)\n"
 "\n"
@@ -45,18 +45,18 @@ static char QuantitativeInvisibilityF1D___doc__[] =
 "\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
-"   Returns the Quantitative Invisibility of an Interface1D element.\n"
-"   If the Interface1D is a :class:`ViewEdge`, then there is no\n"
-"   ambiguity concerning the result.  But, if the Interface1D results\n"
+"   Returns the Quantitative Invisibility of an Interface1D element. If\n"
+"   the Interface1D is a :class:`freestyle.types.ViewEdge`, then there is\n"
+"   no ambiguity concerning the result.  But, if the Interface1D results\n"
 "   of a chaining (chain, stroke), then it might be made of several 1D\n"
 "   elements of different Quantitative Invisibilities.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The Quantitative Invisibility of the Interface1D.\n"
 "   :rtype: int\n";
 

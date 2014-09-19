@@ -74,7 +74,7 @@ PyDoc_STRVAR(Operators_select_doc,
 "   condition.\n"
 "\n"
 "   :arg pred: The predicate expressing this condition.\n"
-"   :type pred: UnaryPredicate1D");
+"   :type pred: :class:`UnaryPredicate1D`");
 
 static PyObject *Operators_select(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
@@ -372,7 +372,7 @@ PyDoc_STRVAR(Operators_recursive_split_doc,
 "      condition.  This predicate is evaluated for each curve before it\n"
 "      actually gets split.  If pred_1d(chain) is true, the curve won't be\n"
 "      split anymore.\n"
-"   :type pred: :class:`UnaryPredicate1D`\n"
+"   :type pred_1d: :class:`UnaryPredicate1D`\n"
 "   :arg sampling: The resolution used to sample the chain for the\n"
 "      predicates evaluation. (The chain is not actually resampled, a\n"
 "      virtual point only progresses along the curve using this\n"
@@ -404,7 +404,7 @@ PyDoc_STRVAR(Operators_recursive_split_doc,
 "      condition. This predicate is evaluated for each curve before it\n"
 "      actually gets split.  If pred_1d(chain) is true, the curve won't be\n"
 "      split anymore.\n"
-"   :type pred: :class:`UnaryPredicate1D`\n"
+"   :type pred_1d: :class:`UnaryPredicate1D`\n"
 "   :arg sampling: The resolution used to sample the chain for the\n"
 "      predicates evaluation. (The chain is not actually resampled; a\n"
 "      virtual point only progresses along the curve using this\n"
@@ -484,7 +484,7 @@ PyDoc_STRVAR(Operators_sort_doc,
 "   comparison predicate given as argument.\n"
 "\n"
 "   :arg pred: The binary predicate used for the comparison.\n"
-"   :type pred: BinaryPredicate1D");
+"   :type pred: :class:`BinaryPredicate1D`");
 
 static PyObject *Operators_sort(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
@@ -515,7 +515,7 @@ PyDoc_STRVAR(Operators_create_doc,
 "      transform as a stroke.\n"
 "   :type pred: :class:`UnaryPredicate1D`\n"
 "   :arg shaders: The list of shaders used to shade the strokes.\n"
-"   :type shaders: List of StrokeShader objects");
+"   :type shaders: list of :class:`StrokeShader` objects");
 
 static PyObject *Operators_create(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {

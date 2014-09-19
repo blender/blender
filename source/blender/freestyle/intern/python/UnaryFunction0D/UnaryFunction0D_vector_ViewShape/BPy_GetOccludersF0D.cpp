@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetOccludersF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DVectorViewShape` > :class:`GetOccludersF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DVectorViewShape` > :class:`GetOccludersF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,14 +43,14 @@ static char GetOccludersF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns a list of :class:`ViewShape` objects occluding the\n"
-"   :class:`Interface0D` pointed by the Interface0DIterator.\n"
+"   Returns a list of :class:`freestyle.types.ViewShape` objects occluding the\n"
+"   :class:`freestyle.types.Interface0D` pointed by the Interface0DIterator.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: A list of ViewShape objects occluding the pointed\n"
 "      Interface0D.\n"
-"   :rtype: list of :class:`ViewShape` objects\n";
+"   :rtype: list of :class:`freestyle.types.ViewShape` objects\n";
 
 static int GetOccludersF0D___init__(BPy_GetOccludersF0D *self, PyObject *args, PyObject *kwds)
 {

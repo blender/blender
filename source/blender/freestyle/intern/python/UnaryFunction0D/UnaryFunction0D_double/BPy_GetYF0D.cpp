@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetYF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`GetYF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DDouble` > :class:`GetYF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,11 +43,11 @@ static char GetYF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns the Y 3D coordinate of the :class:`Interface0D` pointed by\n"
+"   Returns the Y 3D coordinate of the :class:`freestyle.types.Interface0D` pointed by\n"
 "   the Interface0DIterator.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The Y 3D coordinate of the pointed Interface0D.\n"
 "   :rtype: float\n";
 

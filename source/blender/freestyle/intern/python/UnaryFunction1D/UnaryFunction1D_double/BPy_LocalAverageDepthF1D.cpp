@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char LocalAverageDepthF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`LocalAverageDepthF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DDouble` > :class:`LocalAverageDepthF1D`\n"
 "\n"
 ".. method:: __init__(sigma, integration_type=IntegrationType.MEAN)\n"
 "\n"
@@ -48,18 +48,18 @@ static char LocalAverageDepthF1D___doc__[] =
 "   :type sigma: float\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
-"   Returns the average depth evaluated for an Interface1D.  The\n"
-"   average depth is evaluated for a set of points along the\n"
-"   Interface1D (using the :class:`LocalAverageDepthF0D` functor) with\n"
-"   a user-defined sampling and then integrated into a single value\n"
-"   using a user-defined integration method.\n"
+"   Returns the average depth evaluated for an Interface1D.  The average\n"
+"   depth is evaluated for a set of points along the Interface1D (using\n"
+"   the :class:`freestyle.functions.LocalAverageDepthF0D` functor) with a\n"
+"   user-defined sampling and then integrated into a single value using a\n"
+"   user-defined integration method.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The average depth evaluated for the Interface1D.\n"
 "   :rtype: float\n";
 

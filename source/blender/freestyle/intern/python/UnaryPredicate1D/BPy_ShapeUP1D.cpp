@@ -33,7 +33,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ShapeUP1D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate1D` > :class:`ShapeUP1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`ShapeUP1D`\n"
 "\n"
 ".. method:: __init__(first, second=0)\n"
 "\n"
@@ -46,11 +46,11 @@ static char ShapeUP1D___doc__[] =
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
-"   Returns true if the shape to which the Interface1D belongs to has\n"
-"   the same :class:`Id` as the one specified by the user.\n"
+"   Returns true if the shape to which the Interface1D belongs to has the\n"
+"   same :class:`freestyle.types.Id` as the one specified by the user.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: True if Interface1D belongs to the shape of the\n"
 "      user-specified Id.\n"
 "   :rtype: bool\n";

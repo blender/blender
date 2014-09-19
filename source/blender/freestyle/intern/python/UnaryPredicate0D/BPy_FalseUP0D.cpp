@@ -33,14 +33,14 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char FalseUP0D___doc__[] =
-"Class hierarchy: :class:`UnaryPredicate0D` > :class:`FalseUP0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryPredicate0D` > :class:`FalseUP0D`\n"
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
 "   Always returns false.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: False.\n"
 "   :rtype: bool\n";
 

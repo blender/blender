@@ -515,7 +515,7 @@ static int StrokeAttribute_alpha_set(BPy_StrokeAttribute *self, PyObject *value,
 PyDoc_STRVAR(StrokeAttribute_color_doc,
 "RGB components of the stroke color.\n"
 "\n"
-":type: mathutils.Color");
+":type: :class:`mathutils.Color`");
 
 static PyObject *StrokeAttribute_color_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
 {
@@ -539,7 +539,7 @@ PyDoc_STRVAR(StrokeAttribute_thickness_doc,
 "The right (left) component is the thickness on the right (left) of the vertex\n"
 "when following the stroke.\n"
 "\n"
-":type: mathutils.Vector");
+":type: :class:`mathutils.Vector`");
 
 static PyObject *StrokeAttribute_thickness_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
 {

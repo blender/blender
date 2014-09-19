@@ -80,9 +80,9 @@ PyDoc_STRVAR(FrsMaterial_doc,
 "   :arg emission: The emissive color.\n"
 "   :type emission: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg shininess: The shininess coefficient.\n"
-"   :type shininess: :class:float\n"
+"   :type shininess: float\n"
 "   :arg priority: The line color priority.\n"
-"   :type priority: :class:int");
+"   :type priority: int");
 
 static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
@@ -311,7 +311,7 @@ void FrsMaterial_mathutils_register_callback()
 PyDoc_STRVAR(FrsMaterial_line_doc,
 "RGBA components of the line color of the material.\n"
 "\n"
-":type: mathutils.Vector");
+":type: :class:`mathutils.Vector`");
 
 static PyObject *FrsMaterial_line_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -333,7 +333,7 @@ static int FrsMaterial_line_set(BPy_FrsMaterial *self, PyObject *value, void *UN
 PyDoc_STRVAR(FrsMaterial_diffuse_doc,
 "RGBA components of the diffuse color of the material.\n"
 "\n"
-":type: mathutils.Vector");
+":type: :class:`mathutils.Vector`");
 
 static PyObject *FrsMaterial_diffuse_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -355,7 +355,7 @@ static int FrsMaterial_diffuse_set(BPy_FrsMaterial *self, PyObject *value, void 
 PyDoc_STRVAR(FrsMaterial_specular_doc,
 "RGBA components of the specular color of the material.\n"
 "\n"
-":type: mathutils.Vector");
+":type: :class:`mathutils.Vector`");
 
 static PyObject *FrsMaterial_specular_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -377,7 +377,7 @@ static int FrsMaterial_specular_set(BPy_FrsMaterial *self, PyObject *value, void
 PyDoc_STRVAR(FrsMaterial_ambient_doc,
 "RGBA components of the ambient color of the material.\n"
 "\n"
-":type: mathutils.Color");
+":type: :class:`mathutils.Color`");
 
 static PyObject *FrsMaterial_ambient_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -399,7 +399,7 @@ static int FrsMaterial_ambient_set(BPy_FrsMaterial *self, PyObject *value, void 
 PyDoc_STRVAR(FrsMaterial_emission_doc,
 "RGBA components of the emissive color of the material.\n"
 "\n"
-":type: mathutils.Color");
+":type: :class:`mathutils.Color`");
 
 static PyObject *FrsMaterial_emission_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {

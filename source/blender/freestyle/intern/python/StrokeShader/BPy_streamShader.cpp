@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char streamShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`streamShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`streamShader`\n"
 "\n"
 "[Output shader]\n"
 "\n"
@@ -48,7 +48,7 @@ static char streamShader___doc__[] =
 "   Streams the Stroke into stdout.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int streamShader___init__(BPy_streamShader *self, PyObject *args, PyObject *kwds)
 {

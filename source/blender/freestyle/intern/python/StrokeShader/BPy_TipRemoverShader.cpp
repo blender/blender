@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char TipRemoverShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`TipRemoverShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`TipRemoverShader`\n"
 "\n"
 "[Geometry shader]\n"
 "\n"
@@ -52,7 +52,7 @@ static char TipRemoverShader___doc__[] =
 "   Removes the stroke's extremities.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int TipRemoverShader___init__(BPy_TipRemoverShader *self, PyObject *args, PyObject *kwds)
 {

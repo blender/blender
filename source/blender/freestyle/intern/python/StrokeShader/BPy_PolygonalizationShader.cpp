@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char PolygonalizationShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`PolygonalizationShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`PolygonalizationShader`\n"
 "\n"
 "[Geometry shader]\n"
 "\n"
@@ -58,7 +58,7 @@ static char PolygonalizationShader___doc__[] =
 "   error is reached.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int PolygonalizationShader___init__(BPy_PolygonalizationShader *self, PyObject *args, PyObject *kwds)
 {

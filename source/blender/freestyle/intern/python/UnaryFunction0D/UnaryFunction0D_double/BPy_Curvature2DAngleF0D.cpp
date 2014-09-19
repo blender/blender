@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Curvature2DAngleF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`Curvature2DAngleF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DDouble` > :class:`Curvature2DAngleF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,13 +43,13 @@ static char Curvature2DAngleF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns a real value giving the 2D curvature (as an angle) of the\n"
-"   1D element to which the :class:`Interface0D` pointed by the\n"
-"   Interface0DIterator belongs.  The 2D curvature is evaluated at the\n"
+"   Returns a real value giving the 2D curvature (as an angle) of the 1D\n"
+"   element to which the :class:`freestyle.types.Interface0D` pointed by\n"
+"   the Interface0DIterator belongs.  The 2D curvature is evaluated at the\n"
 "   Interface0D.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The 2D curvature of the 1D element evaluated at the\n"
 "      pointed Interface0D.\n"
 "   :rtype: float\n";

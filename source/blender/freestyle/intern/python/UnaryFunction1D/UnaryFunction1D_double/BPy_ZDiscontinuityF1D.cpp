@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ZDiscontinuityF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`ZDiscontinuityF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DDouble` > :class:`ZDiscontinuityF1D`\n"
 "\n"
 ".. method:: __init__(integration_type=IntegrationType.MEAN)\n"
 "\n"
@@ -45,7 +45,7 @@ static char ZDiscontinuityF1D___doc__[] =
 "\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
@@ -56,7 +56,7 @@ static char ZDiscontinuityF1D___doc__[] =
 "   Interface1D belongs to, 1 is returned.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The normalized distance between the Interface1D and the occludee.\n"
 "   :rtype: float\n";
 

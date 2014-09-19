@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char SmoothingShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`SmoothingShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`SmoothingShader`\n"
 "\n"
 "[Geometry shader]\n"
 "\n"
@@ -71,7 +71,7 @@ static char SmoothingShader___doc__[] =
 "   prevent the diffusion across corners.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int SmoothingShader___init__(BPy_SmoothingShader *self, PyObject *args, PyObject *kwds)
 {

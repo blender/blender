@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char DensityF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`DensityF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DDouble` > :class:`DensityF1D`\n"
 "\n"
 ".. method:: __init__(sigma=2.0, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
@@ -48,7 +48,7 @@ static char DensityF1D___doc__[] =
 "   :type sigma: float\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "   :arg sampling: The resolution used to sample the chain: the\n"
 "      corresponding 0D function is evaluated at each sample point and\n"
 "      the result is obtained by combining the resulting values into a\n"
@@ -59,12 +59,12 @@ static char DensityF1D___doc__[] =
 "\n"
 "   Returns the density evaluated for an Interface1D. The density is\n"
 "   evaluated for a set of points along the Interface1D (using the\n"
-"   :class:`DensityF0D` functor) with a user-defined sampling and then\n"
-"   integrated into a single value using a user-defined integration\n"
-"   method.\n"
+"   :class:`freestyle.functions.DensityF0D` functor) with a user-defined\n"
+"   sampling and then integrated into a single value using a user-defined\n"
+"   integration method.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The density evaluated for an Interface1D.\n"
 "   :rtype: float\n";
 

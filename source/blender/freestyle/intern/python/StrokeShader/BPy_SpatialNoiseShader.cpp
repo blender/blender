@@ -36,7 +36,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char SpatialNoiseShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`SpatialNoiseShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`SpatialNoiseShader`\n"
 "\n"
 "[Geometry shader]\n"
 "\n"
@@ -61,7 +61,7 @@ static char SpatialNoiseShader___doc__[] =
 "   more noisy.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader *self, PyObject *args, PyObject *kwds)
 {

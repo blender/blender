@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char VertexOrientation3DF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DVec3f` > :class:`VertexOrientation3DF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DVec3f` > :class:`VertexOrientation3DF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,13 +43,13 @@ static char VertexOrientation3DF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns a three-dimensional vector giving the 3D oriented tangent\n"
-"   to the 1D element to which the :class:`Interface0D` pointed by the\n"
-"   Interface0DIterator belongs.  The 3D oriented tangent is evaluated\n"
-"   at the pointed Interface0D.\n"
+"   Returns a three-dimensional vector giving the 3D oriented tangent to\n"
+"   the 1D element to which the :class:`freestyle.types.Interface0D`\n"
+"   pointed by the Interface0DIterator belongs.  The 3D oriented tangent\n"
+"   is evaluated at the pointed Interface0D.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The 3D oriented tangent to the 1D element evaluated at the\n"
 "      pointed Interface0D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";

@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ShapeIdF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DId` > :class:`ShapeIdF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DId` > :class:`ShapeIdF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,19 +43,20 @@ static char ShapeIdF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns the :class:`Id` of the Shape the :class:`Interface0D`\n"
-"   pointed by the Interface0DIterator belongs to. This evaluation can\n"
-"   be ambiguous (in the case of a :class:`TVertex` for example).  This\n"
+"   Returns the :class:`freestyle.types.Id` of the Shape the\n"
+"   :class:`freestyle.types.Interface0D` pointed by the\n"
+"   Interface0DIterator belongs to. This evaluation can be ambiguous (in\n"
+"   the case of a :class:`freestyle.types.TVertex` for example).  This\n"
 "   functor tries to remove this ambiguity using the context offered by\n"
-"   the 1D element to which the Interface0DIterator belongs to.\n"
-"   However, there still can be problematic cases, and the user willing\n"
-"   to deal with this cases in a specific way should implement its own\n"
+"   the 1D element to which the Interface0DIterator belongs to. However,\n"
+"   there still can be problematic cases, and the user willing to deal\n"
+"   with this cases in a specific way should implement its own\n"
 "   getShapeIdF0D functor.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The Id of the Shape the pointed Interface0D belongs to.\n"
-"   :rtype: :class:`Id`\n";
+"   :rtype: :class:`freestyle.types.Id`\n";
 
 static int ShapeIdF0D___init__(BPy_ShapeIdF0D *self, PyObject *args, PyObject *kwds)
 {

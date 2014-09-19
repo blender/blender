@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char IncreasingColorShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`IncreasingColorShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`IncreasingColorShader`\n"
 "\n"
 "[Color shader]\n"
 "\n"
@@ -67,7 +67,7 @@ static char IncreasingColorShader___doc__[] =
 "   between the first and the last vertex.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int IncreasingColorShader___init__(BPy_IncreasingColorShader *self, PyObject *args, PyObject *kwds)
 {

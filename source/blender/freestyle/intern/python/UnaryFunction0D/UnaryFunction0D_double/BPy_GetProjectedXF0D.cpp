@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetProjectedXF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`GetProjectedXF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DDouble` > :class:`GetProjectedXF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
@@ -43,11 +43,11 @@ static char GetProjectedXF0D___doc__[] =
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns the X 3D projected coordinate of the :class:`Interface0D`\n"
+"   Returns the X 3D projected coordinate of the :class:`freestyle.types.Interface0D`\n"
 "   pointed by the Interface0DIterator.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The X 3D projected coordinate of the pointed Interface0D.\n"
 "   :rtype: float\n";
 

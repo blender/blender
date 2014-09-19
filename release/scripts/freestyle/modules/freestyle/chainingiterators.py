@@ -82,12 +82,11 @@ def nature_in_preceding(nature, index):
 
 
 class pyChainSilhouetteIterator(ChainingIterator):
-    """Natural chaining iterator
-
-    Follows the edges of the same nature following the topology of
-    objects, with decreasing priority for silhouettes, then borders,
-    then suggestive contours, then all other edge types.  A ViewEdge
-    is only chained once.
+    """
+    Natural chaining iterator that follows the edges of the same nature
+    following the topology of objects, with decreasing priority for
+    silhouettes, then borders, then suggestive contours, then all other edge
+    types.  A ViewEdge is only chained once.
     """
     def __init__(self, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, True, None, True)
@@ -121,16 +120,20 @@ class pyChainSilhouetteIterator(ChainingIterator):
 
 
 class pyChainSilhouetteGenericIterator(ChainingIterator):
-    """Natural chaining iterator
+    """
+    Natural chaining iterator that follows the edges of the same nature
+    following the topology of objects, with decreasing priority for
+    silhouettes, then borders, then suggestive contours, then all other
+    edge types.
 
-    Follows the edges of the same nature following the topology of
-    objects, with decreasing priority for silhouettes, then borders,
-    then suggestive contours, then all other edge types.
+    .. method:: __init__(self, stayInSelection=True, stayInUnvisited=True)
 
-    :arg stayInSelection: True if it is allowed to go out of the selection
-    :type stayInSelection: bool
-    :arg stayInUnvisited: May the same ViewEdge be chained twice
-    :type stayInUnvisited: bool
+       Builds a pyChainSilhouetteGenericIterator object.
+
+       :arg stayInSelection: True if it is allowed to go out of the selection
+       :type stayInSelection: bool
+       :arg stayInUnvisited: May the same ViewEdge be chained twice
+       :type stayInUnvisited: bool
     """
 
     def __init__(self, stayInSelection=True, stayInUnvisited=True):
@@ -209,14 +212,18 @@ class pyExternalContourChainingIterator(ChainingIterator):
 
 
 class pySketchyChainSilhouetteIterator(ChainingIterator):
-    """Natural chaining iterator with a sketchy multiple touch
+    """
+    Natural chaining iterator with a sketchy multiple touch.  It chains the
+    same ViewEdge multiple times to achieve a sketchy effect.
 
-    Chains the same ViewEdge multiple times to achieve a sketchy effect.
+    .. method:: __init__(self, nRounds=3,stayInSelection=True)
 
-    :arg rounds: Number of times every Viewedge is chained.
-    :type rounds: int
-    :arg stayInSelection: if False, edges outside of the selection can be chained.
-    :type stayInSelection: bool
+       Builds a pySketchyChainSilhouetteIterator object.
+
+       :arg nRounds: Number of times every Viewedge is chained.
+       :type nRounds: int
+       :arg stayInSelection: if False, edges outside of the selection can be chained.
+       :type stayInSelection: bool
     """
 
     def __init__(self, nRounds=3,stayInSelection=True):
@@ -267,10 +274,10 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 
 
 class pySketchyChainingIterator(ChainingIterator):
-    """Chaining iterator designed for sketchy style
-
-    It chaines the same ViewEdge several times in order to produce
-    multiple strokes per ViewEdge.
+    """
+    Chaining iterator designed for sketchy style.  It chaines the same
+    ViewEdge several times in order to produce multiple strokes per
+    ViewEdge.
     """
     def __init__(self, nRounds=3, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
@@ -306,11 +313,16 @@ class pySketchyChainingIterator(ChainingIterator):
 
 
 class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
-    """Chaining iterator that fills small occlusions
+    """
+    Chaining iterator that fills small occlusions
 
-    :arg percent: The maximul length of the occluded part, expressed
-        in a percentage of the total chain length.
-    :type percent: float
+    .. method:: __init__(self, percent)
+
+       Builds a pyFillOcclusionsRelativeChainingIterator object.
+
+       :arg percent: The maximul length of the occluded part, expressed
+           in a percentage of the total chain length.
+       :type percent: float
     """
 
     def __init__(self, percent):
@@ -374,10 +386,15 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 
 
 class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
-    """Chaining iterator that fills small occlusions
+    """
+    Chaining iterator that fills small occlusions
 
-    :arg size: The maximum length of the occluded part in pixels.
-    :type size: int
+    .. method:: __init__(self, length)
+
+       Builds a pyFillOcclusionsAbsoluteChainingIterator object.
+
+       :arg length: The maximum length of the occluded part in pixels.
+       :type length: int
     """
     def __init__(self, length):
         ChainingIterator.__init__(self, False, True, None, True)
@@ -429,12 +446,19 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 
 
 class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
-    """Chaining iterator that fills small occlusions regardless of the
-    selection
+    """
+    Chaining iterator that fills small occlusions regardless of the
+    selection.
 
-    :arg percent: The maximul length of the occluded part as a
-        percentage of the total chain length.
-    :type percent: float
+    .. method:: __init__(self, percent, l)
+
+       Builds a pyFillOcclusionsAbsoluteAndRelativeChainingIterator object.
+
+       :arg percent: The maximul length of the occluded part as a
+           percentage of the total chain length.
+       :type percent: float
+       :arg l: Absolute length.
+       :type l: float
     """
     def __init__(self, percent, l):
         ChainingIterator.__init__(self, False, True, None, True)
@@ -492,12 +516,19 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 
 
 class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
-    """Chaining iterator that fills small occlusions regardless of the
-    selection
+    """
+    Chaining iterator that fills small occlusions regardless of the
+    selection.
 
-    :arg percent: The maximul length of the occluded part as a
-        percentage of the total chain length.
-    :type percent: float
+    .. method:: __init__(self, percent, l)
+
+       Builds a pyFillQi0AbsoluteAndRelativeChainingIterator object.
+
+       :arg percent: The maximul length of the occluded part as a
+           percentage of the total chain length.
+       :type percent: float
+       :arg l: Absolute length.
+       :type l: float
     """
     def __init__(self, percent, l):
         ChainingIterator.__init__(self, False, True, None, True)
@@ -554,15 +585,18 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 
 
 class pyNoIdChainSilhouetteIterator(ChainingIterator):
-    """Natural chaining iterator
+    """
+    Natural chaining iterator that follows the edges of the same nature
+    following the topology of objects, with decreasing priority for
+    silhouettes, then borders, then suggestive contours, then all other edge
+    types.  It won't chain the same ViewEdge twice.
 
-    Follows the edges of the same nature following the topology of
-    objects, with decreasing priority for silhouettes, then borders,
-    then suggestive contours, then all other edge types.  It won't
-    chain the same ViewEdge twice.
+    .. method:: __init__(self, stayInSelection=True)
 
-    :arg stayInSelection: True if it is allowed to go out of the selection
-    :type stayInSelection: bool
+       Builds a pyNoIdChainSilhouetteIterator object.
+
+       :arg stayInSelection: True if it is allowed to go out of the selection
+       :type stayInSelection: bool
     """
 
     def __init__(self, stayInSelection=True):

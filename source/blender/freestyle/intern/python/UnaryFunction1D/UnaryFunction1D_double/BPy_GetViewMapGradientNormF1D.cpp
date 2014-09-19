@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetViewMapGradientNormF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetViewMapGradientNormF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DDouble` > :class:`GetViewMapGradientNormF1D`\n"
 "\n"
 ".. method:: __init__(level, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
@@ -48,7 +48,7 @@ static char GetViewMapGradientNormF1D___doc__[] =
 "   :type level: int\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "   :arg sampling: The resolution used to sample the chain: the\n"
 "      corresponding 0D function is evaluated at each sample point and\n"
 "      the result is obtained by combining the resulting values into a\n"
@@ -58,11 +58,12 @@ static char GetViewMapGradientNormF1D___doc__[] =
 ".. method:: __call__(inter)\n"
 "\n"
 "   Returns the density of the ViewMap for a given Interface1D.  The\n"
-"   density of each :class:`FEdge` is evaluated in the proper steerable\n"
-"   :class:`ViewMap` depending on its orientation.\n"
+"   density of each :class:`freestyle.types.FEdge` is evaluated in the\n"
+"   proper steerable :class:`freestyle.types.ViewMap` depending on its\n"
+"   orientation.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The density of the ViewMap for a given Interface1D.\n"
 "   :rtype: float\n";
 

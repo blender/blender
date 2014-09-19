@@ -226,7 +226,7 @@ void StrokeVertex_mathutils_register_callback()
 PyDoc_STRVAR(StrokeVertex_attribute_doc,
 "StrokeAttribute for this StrokeVertex.\n"
 "\n"
-":type: StrokeAttribute");
+":type: :class:`StrokeAttribute`");
 
 static PyObject *StrokeVertex_attribute_get(BPy_StrokeVertex *self, void *UNUSED(closure))
 {
@@ -267,7 +267,7 @@ static int StrokeVertex_curvilinear_abscissa_set(BPy_StrokeVertex *self, PyObjec
 PyDoc_STRVAR(StrokeVertex_point_doc,
 "2D point coordinates.\n"
 "\n"
-":type: mathutils.Vector");
+":type: :class:`mathutils.Vector`");
 
 static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void *UNUSED(closure))
 {

@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetViewMapGradientNormF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`GetViewMapGradientNormF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DFloat` > :class:`GetViewMapGradientNormF0D`\n"
 "\n"
 ".. method:: __init__(level)\n"
 "\n"
@@ -51,7 +51,7 @@ static char GetViewMapGradientNormF0D___doc__[] =
 "   image.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The norm of the gradient of the global viewmap density\n"
 "      image.\n"
 "   :rtype: float\n";

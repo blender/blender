@@ -38,7 +38,7 @@ extern "C" {
 //ViewMapGradientNormBP1D(int level, IntegrationType iType=MEAN, float sampling=2.0) 
 
 static char ViewMapGradientNormBP1D___doc__[] =
-"Class hierarchy: :class:`BinaryPredicate1D` > :class:`ViewMapGradientNormBP1D`\n"
+"Class hierarchy: :class:`freestyle.types.BinaryPredicate1D` > :class:`ViewMapGradientNormBP1D`\n"
 "\n"
 ".. method:: __init__(level, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
@@ -49,7 +49,7 @@ static char ViewMapGradientNormBP1D___doc__[] =
 "   :type level: int\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "   :arg sampling: The resolution used to sample the chain:\n"
 "      GetViewMapGradientNormF0D is evaluated at each sample point and\n"
 "      the result is obtained by combining the resulting values into a\n"
@@ -62,9 +62,9 @@ static char ViewMapGradientNormBP1D___doc__[] =
 "   higher for inter1 than for inter2.\n"
 "\n"
 "   :arg inter1: The first Interface1D object.\n"
-"   :type inter1: :class:`Interface1D`\n"
+"   :type inter1: :class:`freestyle.types.Interface1D`\n"
 "   :arg inter2: The second Interface1D object.\n"
-"   :type inter2: :class:`Interface1D`\n"
+"   :type inter2: :class:`freestyle.types.Interface1D`\n"
 "   :return: True or false.\n"
 "   :rtype: bool\n";
 

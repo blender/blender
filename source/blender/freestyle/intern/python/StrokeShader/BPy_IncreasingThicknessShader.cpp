@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char IncreasingThicknessShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`IncreasingThicknessShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`IncreasingThicknessShader`\n"
 "\n"
 "[Thickness shader]\n"
 "\n"
@@ -57,7 +57,7 @@ static char IncreasingThicknessShader___doc__[] =
 "   linearly interpolated from A to B.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int IncreasingThicknessShader___init__(BPy_IncreasingThicknessShader *self, PyObject *args, PyObject *kwds)
 {

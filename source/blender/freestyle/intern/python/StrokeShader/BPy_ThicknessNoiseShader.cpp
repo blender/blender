@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ThicknessNoiseShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`ThicknessNoiseShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`ThicknessNoiseShader`\n"
 "\n"
 "[Thickness shader]\n"
 "\n"
@@ -53,7 +53,7 @@ static char ThicknessNoiseShader___doc__[] =
 "   Adds some noise to the stroke thickness.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int ThicknessNoiseShader___init__(BPy_ThicknessNoiseShader *self, PyObject *args, PyObject *kwds)
 {

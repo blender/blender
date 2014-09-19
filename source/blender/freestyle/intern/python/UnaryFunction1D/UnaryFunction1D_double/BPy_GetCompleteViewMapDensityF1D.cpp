@@ -37,7 +37,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetCompleteViewMapDensityF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetCompleteViewMapDensityF1D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > :class:`freestyle.types.UnaryFunction1DDouble` > :class:`GetCompleteViewMapDensityF1D`\n"
 "\n"
 ".. method:: __init__(level, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
@@ -48,7 +48,7 @@ static char GetCompleteViewMapDensityF1D___doc__[] =
 "   :type level: int\n"
 "   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type integration_type: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
 "   :arg sampling: The resolution used to sample the chain: the\n"
 "      corresponding 0D function is evaluated at each sample point and\n"
 "      the result is obtained by combining the resulting values into a\n"
@@ -58,13 +58,14 @@ static char GetCompleteViewMapDensityF1D___doc__[] =
 ".. method:: __call__(inter)\n"
 "\n"
 "   Returns the density evaluated for an Interface1D in the complete\n"
-"   viewmap image.  The density is evaluated for a set of points along\n"
-"   the Interface1D (using the :class:`ReadCompleteViewMapPixelF0D`\n"
-"   functor) and then integrated into a single value using a\n"
-"   user-defined integration method.\n"
+"   viewmap image.  The density is evaluated for a set of points along the\n"
+"   Interface1D (using the\n"
+"   :class:`freestyle.functions.ReadCompleteViewMapPixelF0D` functor) and\n"
+"   then integrated into a single value using a user-defined integration\n"
+"   method.\n"
 "\n"
 "   :arg inter: An Interface1D object.\n"
-"   :type inter: :class:`Interface1D`\n"
+"   :type inter: :class:`freestyle.types.Interface1D`\n"
 "   :return: The density evaluated for the Interface1D in the complete\n"
 "      viewmap image.\n"
 "   :rtype: float\n";

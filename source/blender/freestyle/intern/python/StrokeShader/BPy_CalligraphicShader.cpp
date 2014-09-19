@@ -36,7 +36,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char CalligraphicShader___doc__[] =
-"Class hierarchy: :class:`StrokeShader` > :class:`CalligraphicShader`\n"
+"Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`CalligraphicShader`\n"
 "\n"
 "[Thickness Shader]\n"
 "\n"
@@ -65,7 +65,7 @@ static char CalligraphicShader___doc__[] =
 "   perpendicular to this one, and an interpolation inbetween.\n"
 "\n"
 "   :arg stroke: A Stroke object.\n"
-"   :type stroke: :class:`Stroke`\n";
+"   :type stroke: :class:`freestyle.types.Stroke`\n";
 
 static int CalligraphicShader___init__(BPy_CalligraphicShader *self, PyObject *args, PyObject *kwds)
 {

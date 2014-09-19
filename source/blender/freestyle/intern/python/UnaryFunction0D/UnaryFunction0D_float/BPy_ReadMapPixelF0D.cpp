@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ReadMapPixelF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`ReadMapPixelF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DFloat` > :class:`ReadMapPixelF0D`\n"
 "\n"
 ".. method:: __init__(map_name, level)\n"
 "\n"
@@ -52,7 +52,7 @@ static char ReadMapPixelF0D___doc__[] =
 "   Reads a pixel in a map.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: A pixel in a map.\n"
 "   :rtype: float\n";
 

@@ -35,7 +35,7 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char DensityF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`DensityF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DDouble` > :class:`DensityF0D`\n"
 "\n"
 ".. method:: __init__(sigma=2.0)\n"
 "\n"
@@ -49,12 +49,13 @@ static char DensityF0D___doc__[] =
 ".. method:: __call__(it)\n"
 "\n"
 "   Returns the density of the (result) image evaluated at the\n"
-"   :class:`Interface0D` pointed by the Interface0DIterator.  This\n"
-"   density is evaluated using a pixels square window around the\n"
-"   evaluation point and integrating these values using a gaussian.\n"
+"   :class:`freestyle.types.Interface0D` pointed by the\n"
+"   Interface0DIterator. This density is evaluated using a pixels square\n"
+"   window around the evaluation point and integrating these values using\n"
+"   a gaussian.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The density of the image evaluated at the pointed\n"
 "      Interface0D.\n"
 "   :rtype: float\n";

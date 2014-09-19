@@ -35,21 +35,21 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetShapeF0D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DViewShape` > :class:`GetShapeF0D`\n"
+"Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > :class:`freestyle.types.UnaryFunction0DViewShape` > :class:`GetShapeF0D`\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"
-"   Builds a GetShapeF0D.cpp object.\n"
+"   Builds a GetShapeF0D object.\n"
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
-"   Returns the :class:`ViewShape` containing the Interface0D pointed\n"
-"   by the Interface0DIterator.\n"
+"   Returns the :class:`freestyle.types.ViewShape` containing the\n"
+"   Interface0D pointed by the Interface0DIterator.\n"
 "\n"
 "   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`\n"
+"   :type it: :class:`freestyle.types.Interface0DIterator`\n"
 "   :return: The ViewShape containing the pointed Interface0D.\n"
-"   :rtype: :class:`ViewShape`\n";
+"   :rtype: :class:`freestyle.types.ViewShape`\n";
 
 static int GetShapeF0D___init__(BPy_GetShapeF0D *self, PyObject *args, PyObject *kwds)
 {

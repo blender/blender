@@ -39,7 +39,9 @@ extern "C" {
 // ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 PyDoc_STRVAR(ChainSilhouetteIterator_doc,
-"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator` > "
+"Class hierarchy: :class:`freestyle.types.Iterator` >\n"
+":class:`freestyle.types.ViewEdgeIterator` >\n"
+":class:`freestyle.types.ChainingIterator` >\n"
 ":class:`ChainSilhouetteIterator`\n"
 "\n"
 "A ViewEdge Iterator used to follow ViewEdges the most naturally.  For\n"
@@ -58,7 +60,7 @@ PyDoc_STRVAR(ChainSilhouetteIterator_doc,
 "      to stay within the set of selected ViewEdges or not.\n"
 "   :type restrict_to_selection: bool\n"
 "   :arg begin: The ViewEdge from where to start the iteration.\n"
-"   :type begin: :class:`ViewEdge` or None\n"
+"   :type begin: :class:`freestyle.types.ViewEdge` or None\n"
 "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
 "      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
 "      false, we'll search over the ViewEdges surrounding the ending\n"
