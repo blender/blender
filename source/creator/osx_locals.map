@@ -2,4 +2,7 @@
 ## (aka visibility=hidden) and will not be global in the output file
 *boost*
 *__ZNSt6vector*
+*llvm*
+*LLVM*
+*OSL*
 
