@@ -542,6 +542,8 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	ColliderContacts *contacts = NULL;
 	int totcolliders = 0;
 	
+	BPH_mass_spring_solver_debug_data(id, clmd->debug_data);
+	
 	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
 	
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
@@ -631,6 +633,8 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		BPH_mass_spring_get_motion_state(id, i, verts[i].x, verts[i].v);
 		copy_v3_v3(verts[i].txold, verts[i].x);
 	}
+	
+	BPH_mass_spring_solver_debug_data(id, NULL);
 	
 	return 1;
 }
