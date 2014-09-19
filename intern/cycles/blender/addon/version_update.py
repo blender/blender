@@ -28,12 +28,26 @@ def do_versions(self):
     if not bpy.data.is_saved:
         return
 
+    # Clamp Direct/Indirect separation in 270
+    if bpy.data.version <= (2, 70, 0):
+        for scene in bpy.data.scenes:
+            cscene = scene.cycles
+            sample_clamp = cscene.get("sample_clamp", False)
+            if (sample_clamp and
+                not cscene.is_property_set("sample_clamp_direct") and
+                not cscene.is_property_set("sample_clamp_indirect")):
+
+                cscene.sample_clamp_direct = sample_clamp
+                cscene.sample_clamp_indirect = sample_clamp
+
+    # Change of Volume Bounces in 271
     if bpy.data.version <= (2, 71, 0):
         for scene in bpy.data.scenes:
             cscene = scene.cycles
             if not cscene.is_property_set("volume_bounces"):
                 cscene.volume_bounces = 1
 
+    # Caustics Reflective/Refractive separation in 272
     for scene in bpy.data.scenes:
         cscene = scene.cycles
         if (cscene.get("no_caustics", False) and
