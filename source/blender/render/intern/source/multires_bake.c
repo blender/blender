@@ -42,6 +42,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_ccg.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_multires.h"
@@ -1297,6 +1298,7 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 		}
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
+		DAG_id_tag_update(&ima->id, 0);		
 	}
 }
 

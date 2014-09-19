@@ -56,6 +56,7 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
+#include "BKE_depsgraph.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -260,13 +261,14 @@ static bool write_internal_bake_pixels(
 }
 
 /* force OpenGL reload */
-static void reset_images_gpu(BakeImages *bake_images)
+static void refresh_images(BakeImages *bake_images)
 {
 	int i;
 	for (i = 0; i < bake_images->size; i++) {
 		Image *ima = bake_images->data[i].image;
 		if (ima->ok == IMA_OK_LOADED) {
 			GPU_free_image(ima);
+			DAG_id_tag_update(&ima->id, 0);		
 		}
 	}
 }
@@ -966,7 +968,7 @@ cage_cleanup:
 	}
 
 	if (is_save_internal)
-		reset_images_gpu(&bake_images);
+		refresh_images(&bake_images);
 
 cleanup:
 

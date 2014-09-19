@@ -682,6 +682,7 @@ static void finish_bake_internal(BakeRender *bkr)
 			}
 
 			BKE_image_release_ibuf(ima, ibuf, NULL);
+			DAG_id_tag_update(&ima->id, 0);			
 		}
 	}
 
