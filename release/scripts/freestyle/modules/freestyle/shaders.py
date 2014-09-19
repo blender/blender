@@ -741,10 +741,8 @@ class pyTipRemoverShader(StrokeShader):
 
     @staticmethod
     def check_vertex(v, length):
-        """
-        Returns True if the given strokevertex is less than self._l away
-        from the stroke's tip and therefore should be removed.
-        """
+        # Returns True if the given strokevertex is less than self._l away
+        # from the stroke's tip and therefore should be removed.
         return (v.curvilinear_abscissa < length or v.stroke_length-v.curvilinear_abscissa < length)
 
     def shade(self, stroke):
