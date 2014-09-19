@@ -405,6 +405,7 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 		case NC_OBJECT:
 		{
 			switch (wmn->data) {
+				case ND_BONE_SELECT:
 				case ND_BONE_ACTIVE:
 				case ND_POINTCACHE:
 				case ND_MODIFIER:
