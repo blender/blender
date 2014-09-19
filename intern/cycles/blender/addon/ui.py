@@ -1357,6 +1357,9 @@ def draw_device(self, context):
 
         if engine.with_osl() and use_cpu(context):
             layout.prop(cscene, "shading_system")
+            
+        if device_type == 'CUDA' and cscene.feature_set == 'EXPERIMENTAL':
+            layout.label(text="Using experimental GPU kernel", icon='ERROR')
 
 
 def draw_pause(self, context):
