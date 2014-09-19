@@ -1616,7 +1616,9 @@ bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, in
                                                   float stiffness, float damping,
                                                   float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3])
 {
-	float target[3], dist[3], extent[3], length, dir[3], vel[3];
+	float target[3], targetdir[3];
+	float extent[3], dir[3], length;
+	float dist[3], vel[3];
 	float f[3], dfdx[3][3], dfdv[3][3];
 	
 	target[0] = 0.0f;
@@ -1627,11 +1629,14 @@ bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, in
 //	spring_length(data, i, j, extent, dir, &length, vel);
 	sub_v3_v3v3(extent, data->X[j], data->X[i]);
 	sub_v3_v3v3(vel, data->V[j], data->V[i]);
-	length = len_v3(extent);
+	length = normalize_v3_v3(dir, extent);
+	normalize_v3_v3(targetdir, target);
 	
 	sub_v3_v3v3(dist, target, extent);
 	mul_v3_v3fl(f, dist, stiffness);
-//	mul_v3_v3fl(f, dir, fbstar(length, restlen, kb, cb));
+	
+	madd_v3_v3fl(vel, dir, -dot_v3v3(vel, dir));
+	madd_v3_v3fl(f, vel, damping);
 	
 	zero_m3(dfdx);
 	zero_m3(dfdv);
