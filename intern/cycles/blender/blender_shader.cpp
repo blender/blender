@@ -53,13 +53,13 @@ void BlenderSync::find_shader(BL::ID id, vector<uint>& used_shaders, int default
 static BL::NodeSocket get_node_output(BL::Node b_node, const string& name)
 {
 	BL::Node::outputs_iterator b_out;
-	
+
 	for(b_node.outputs.begin(b_out); b_out != b_node.outputs.end(); ++b_out)
 		if(b_out->name() == name)
 			return *b_out;
-	
+
 	assert(0);
-	
+
 	return *b_out;
 }
 
@@ -229,7 +229,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		BL::ShaderNodeMixRGB b_mix_node(b_node);
 		MixNode *mix = new MixNode();
 		mix->type = MixNode::type_enum[b_mix_node.blend_type()];
-			mix->use_clamp = b_mix_node.use_clamp();
+		mix->use_clamp = b_mix_node.use_clamp();
 		node = mix;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeSeparateRGB)) {
@@ -260,7 +260,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		BL::ShaderNodeMath b_math_node(b_node);
 		MathNode *math = new MathNode();
 		math->type = MathNode::type_enum[b_math_node.operation()];
-			math->use_clamp = b_math_node.use_clamp();
+		math->use_clamp = b_math_node.use_clamp();
 		node = math;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeVectorMath)) {
@@ -280,7 +280,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	else if (b_node.is_a(&RNA_ShaderNodeNormal)) {
 		BL::Node::outputs_iterator out_it;
 		b_node.outputs.begin(out_it);
-		
+
 		NormalNode *norm = new NormalNode();
 		norm->direction = get_node_output_vector(b_node, "Normal");
 		node = norm;
@@ -288,9 +288,9 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	else if (b_node.is_a(&RNA_ShaderNodeMapping)) {
 		BL::ShaderNodeMapping b_mapping_node(b_node);
 		MappingNode *mapping = new MappingNode();
-		
+
 		get_tex_mapping(&mapping->tex_mapping, b_mapping_node);
-		
+
 		node = mapping;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeFresnel)) {
@@ -496,7 +496,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			/* create script node */
 			BL::ShaderNodeScript b_script_node(b_node);
 			OSLScriptNode *script_node = new OSLScriptNode();
-			
+
 			/* Generate inputs/outputs from node sockets
 			 *
 			 * Note: the node sockets are generated from OSL parameters,
@@ -505,38 +505,38 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			 * Note 2: ShaderInput/ShaderOutput store shallow string copies only!
 			 * Socket names must be stored in the extra lists instead. */
 			BL::Node::inputs_iterator b_input;
-			
+
 			for (b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
 				script_node->input_names.push_back(ustring(b_input->name()));
 				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(),
 				                                            convert_socket_type(*b_input));
 				set_default_value(input, b_node, *b_input, b_data, b_ntree);
 			}
-			
+
 			BL::Node::outputs_iterator b_output;
-			
+
 			for (b_script_node.outputs.begin(b_output); b_output != b_script_node.outputs.end(); ++b_output) {
 				script_node->output_names.push_back(ustring(b_output->name()));
 				script_node->add_output(script_node->output_names.back().c_str(),
 				                        convert_socket_type(*b_output));
 			}
-			
+
 			/* load bytecode or filepath */
 			OSLShaderManager *manager = (OSLShaderManager*)scene->shader_manager;
 			string bytecode_hash = b_script_node.bytecode_hash();
-			
+
 			if(!bytecode_hash.empty()) {
 				/* loaded bytecode if not already done */
 				if(!manager->shader_test_loaded(bytecode_hash))
 					manager->shader_load_bytecode(bytecode_hash, b_script_node.bytecode());
-				
+
 				script_node->bytecode_hash = bytecode_hash;
 			}
 			else {
 				/* set filepath */
 				script_node->filepath = blender_absolute_path(b_data, b_ntree, b_script_node.filepath());
 			}
-			
+
 			node = script_node;
 		}
 #endif
@@ -728,7 +728,7 @@ static bool node_use_modified_socket_name(ShaderNode *node)
 {
 	if (node->special_type == SHADER_SPECIAL_TYPE_SCRIPT)
 		return false;
-	
+
 	return true;
 }
 
@@ -740,57 +740,57 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::Node b_node, B
 		BL::Node::inputs_iterator b_input;
 		bool found = false;
 		int counter = 0, total = 0;
-		
+
 		for (b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
 			if (b_input->name() == name) {
 				if (!found)
 					counter++;
 				total++;
 			}
-			
+
 			if(b_input->ptr.data == b_socket.ptr.data)
 				found = true;
 		}
-		
+
 		/* rename if needed */
 		if (name == "Shader")
 			name = "Closure";
-		
+
 		if (total > 1)
 			name = string_printf("%s%d", name.c_str(), counter);
 	}
-	
+
 	return node->input(name.c_str());
 }
 
 static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::Node b_node, BL::NodeSocket b_socket)
 {
 	string name = b_socket.name();
-	
+
 	if (node_use_modified_socket_name(node)) {
 		BL::Node::outputs_iterator b_output;
 		bool found = false;
 		int counter = 0, total = 0;
-		
+
 		for (b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
 			if (b_output->name() == name) {
 				if (!found)
 					counter++;
 				total++;
 			}
-			
+
 			if(b_output->ptr.data == b_socket.ptr.data)
 				found = true;
 		}
-		
+
 		/* rename if needed */
 		if (name == "Shader")
 			name = "Closure";
-		
+
 		if (total > 1)
 			name = string_printf("%s%d", name.c_str(), counter);
 	}
-	
+
 	return node->output(name.c_str());
 }
 
@@ -801,7 +801,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 	BL::ShaderNodeTree::nodes_iterator b_node;
 	PtrInputMap input_map;
 	PtrOutputMap output_map;
-	
+
 	BL::Node::inputs_iterator b_input;
 	BL::Node::outputs_iterator b_output;
 
@@ -831,10 +831,10 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			BL::Node::internal_links_iterator b_link;
 			for (b_node->internal_links.begin(b_link); b_link != b_node->internal_links.end(); ++b_link) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(b_link->to_socket()));
-				
+
 				input_map[b_link->from_socket().ptr.data] = proxy->inputs[0];
 				output_map[b_link->to_socket().ptr.data] = proxy->outputs[0];
-				
+
 				graph->add(proxy);
 			}
 		}
@@ -846,7 +846,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			else
 				b_group_ntree = BL::ShaderNodeTree(((BL::NodeCustomGroup)(*b_node)).node_tree());
 			ProxyMap group_proxy_input_map, group_proxy_output_map;
-			
+
 			/* Add a proxy node for each socket
 			 * Do this even if the node group has no internal tree,
 			 * so that links have something to connect to and assert won't fail.
@@ -854,21 +854,21 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_input));
 				graph->add(proxy);
-				
+
 				/* register the proxy node for internal binding */
 				group_proxy_input_map[b_input->identifier()] = proxy;
-				
+
 				input_map[b_input->ptr.data] = proxy->inputs[0];
-				
+
 				set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
 			}
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_output));
 				graph->add(proxy);
-				
+
 				/* register the proxy node for internal binding */
 				group_proxy_output_map[b_output->identifier()] = proxy;
-				
+
 				output_map[b_output->ptr.data] = proxy->outputs[0];
 			}
 			
@@ -881,7 +881,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				ProxyMap::const_iterator proxy_it = proxy_input_map.find(b_output->identifier());
 				if (proxy_it != proxy_input_map.end()) {
 					ProxyNode *proxy = proxy_it->second;
-					
+
 					output_map[b_output->ptr.data] = proxy->outputs[0];
 				}
 			}
@@ -895,9 +895,9 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 					ProxyMap::const_iterator proxy_it = proxy_output_map.find(b_input->identifier());
 					if (proxy_it != proxy_output_map.end()) {
 						ProxyNode *proxy = proxy_it->second;
-						
+
 						input_map[b_input->ptr.data] = proxy->inputs[0];
-						
+
 						set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
 					}
 				}
@@ -914,7 +914,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 			else {
 				node = add_node(scene, b_data, b_scene, graph, b_ntree, BL::ShaderNode(*b_node));
 			}
-			
+
 			if(node) {
 				/* map node sockets for linking */
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
@@ -924,7 +924,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 						continue;
 					}
 					input_map[b_input->ptr.data] = input;
-					
+
 					set_default_value(input, *b_node, *b_input, b_data, b_ntree);
 				}
 				for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
@@ -949,7 +949,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 
 		ShaderOutput *output = 0;
 		ShaderInput *input = 0;
-		
+
 		PtrOutputMap::iterator output_it = output_map.find(b_from_sock.ptr.data);
 		if (output_it != output_map.end())
 			output = output_it->second;
@@ -981,7 +981,7 @@ void BlenderSync::sync_materials(bool update_all)
 
 	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat) {
 		Shader *shader;
-		
+
 		/* test if we need to sync */
 		if(shader_map.sync(&shader, *b_mat) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
@@ -1036,7 +1036,7 @@ void BlenderSync::sync_world(bool update_all)
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
 			add_nodes(scene, b_data, b_scene, graph, b_ntree);
-			
+
 			/* volume */
 			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
 			shader->heterogeneous_volume = !get_boolean(cworld, "homogeneous_volume");
@@ -1109,7 +1109,7 @@ void BlenderSync::sync_lamps(bool update_all)
 
 	for(b_data.lamps.begin(b_lamp); b_lamp != b_data.lamps.end(); ++b_lamp) {
 		Shader *shader;
-		
+
 		/* test if we need to sync */
 		if(shader_map.sync(&shader, *b_lamp) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
