@@ -250,6 +250,8 @@ public:
 	void remove_unneeded_nodes();
 	void finalize(bool do_bump = false, bool do_osl = false);
 
+	void dump_graph(const char *filename);
+
 protected:
 	typedef pair<ShaderNode* const, ShaderNode*> NodePair;
 
