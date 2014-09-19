@@ -1619,28 +1619,32 @@ bool BPH_mass_spring_force_spring_bending(Implicit_Data *data, int i, int j, int
 /* Angular spring that pulls the vertex toward the local target
  * See "Artistic Simulation of Curly Hair" (Pixar technical memo #12-03a)
  */
-bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, int j, int spring_index, float restlen,
+bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, int j, int k, int spring_index, float restlen,
                                                   float stiffness, float damping,
                                                   float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3])
 {
 	float target[3], targetdir[3];
-	float extent[3], dir[3], length;
+	float extent[3], dir[3];
 	float dist[3], vel[3];
 	float f[3], dfdx[3][3], dfdv[3][3];
 	
-	target[0] = 0.0f;
-	target[1] = 0.0f;
-	target[2] = restlen;
+	sub_v3_v3v3(targetdir, data->X[j], data->X[i]);
+	normalize_v3(targetdir);
+	mul_v3_v3fl(target, targetdir, restlen);
+	{
+		float x[3], d[3];
+		root_to_world_v3(data, j, x, data->X[j]);
+		root_to_world_v3(data, j, d, target);
+		BKE_sim_debug_data_add_vector(data->debug_data, x, d, 1, 0, 0, "spoint", hash_vertex(935, j));
+	}
 	
 	// calculate elonglation
-//	spring_length(data, i, j, extent, dir, &length, vel);
-	sub_v3_v3v3(extent, data->X[j], data->X[i]);
-	sub_v3_v3v3(vel, data->V[j], data->V[i]);
-	length = normalize_v3_v3(dir, extent);
-	normalize_v3_v3(targetdir, target);
+	sub_v3_v3v3(extent, data->X[k], data->X[j]);
+	sub_v3_v3v3(vel, data->V[k], data->V[j]);
+	normalize_v3_v3(dir, extent);
 	
 	sub_v3_v3v3(dist, target, extent);
-	mul_v3_v3fl(f, dist, stiffness);
+	mul_v3_v3fl(f, dist, -stiffness);
 	
 	madd_v3_v3fl(vel, dir, -dot_v3v3(vel, dir));
 	madd_v3_v3fl(f, vel, damping);
@@ -1648,13 +1652,7 @@ bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, in
 	zero_m3(dfdx);
 	zero_m3(dfdv);
 	
-//	outerproduct(dfdx, dir, dir);
-//	mul_m3_fl(dfdx, fbstar_jacobi(length, restlen, kb, cb));
-	
-	/* XXX damping not supported */
-//	zero_m3(dfdv);
-	
-	apply_spring(data, i, j, spring_index, f, dfdx, dfdv);
+	apply_spring(data, j, k, spring_index, f, dfdx, dfdv);
 	
 	if (r_f) copy_v3_v3(r_f, f);
 	if (r_dfdx) copy_m3_m3(r_dfdx, dfdx);

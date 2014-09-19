@@ -144,7 +144,7 @@ bool BPH_mass_spring_force_spring_bending(struct Implicit_Data *data, int i, int
                                           float kb, float cb,
                                           float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);
 /* Angular bending force based on local target vectors */
-bool BPH_mass_spring_force_spring_bending_angular(struct Implicit_Data *data, int i, int j, int spring_index, float restlen,
+bool BPH_mass_spring_force_spring_bending_angular(struct Implicit_Data *data, int i, int j, int k, int spring_index, float restlen,
                                                   float stiffness, float damping,
                                                   float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);
 /* Global goal spring */

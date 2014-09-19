@@ -1302,9 +1302,9 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 						return 0;
 					}
 					
-					spring->ij = tspring->kl;
+					spring->ij = tspring2->ij;
 					spring->kl = tspring->ij;
-					spring->mn = tspring2->ij;
+					spring->mn = tspring->kl;
 					spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 					spring->type = CLOTH_SPRING_TYPE_BENDING_ANG;
 					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
