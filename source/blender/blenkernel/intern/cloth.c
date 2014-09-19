@@ -1287,39 +1287,71 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 	}
 	else if (struct_springs > 2) {
-		/* bending springs for hair strands */
-		/* The current algorightm only goes through the edges in order of the mesh edges list	*/
-		/* and makes springs between the outer vert of edges sharing a vertice. This works just */
-		/* fine for hair, but not for user generated string meshes. This could/should be later	*/
-		/* extended to work with non-ordered edges so that it can be used for general "rope		*/
-		/* dynamics" without the need for the vertices or edges to be ordered through the length*/
-		/* of the strands. -jahka */
-		search = cloth->springs;
-		search2 = search->next;
-		while (search && search2) {
-			tspring = search->link;
-			tspring2 = search2->link;
-
-			if (tspring->ij == tspring2->kl) {
-				spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+		if (G.debug_value != 1112) {
+			search = cloth->springs;
+			search2 = search->next;
+			while (search && search2) {
+				tspring = search->link;
+				tspring2 = search2->link;
 				
-				if (!spring) {
-					cloth_free_errorsprings(cloth, edgelist);
-					return 0;
+				if (tspring->ij == tspring2->kl) {
+					spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+					
+					if (!spring) {
+						cloth_free_errorsprings(cloth, edgelist);
+						return 0;
+					}
+					
+					spring->ij = tspring->kl;
+					spring->kl = tspring->ij;
+					spring->mn = tspring2->ij;
+					spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
+					spring->type = CLOTH_SPRING_TYPE_BENDING_ANG;
+					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
+					bend_springs++;
+					
+					BLI_linklist_prepend ( &cloth->springs, spring );
 				}
-
-				spring->ij = tspring2->ij;
-				spring->kl = tspring->kl;
-				spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
-				spring->type = CLOTH_SPRING_TYPE_BENDING;
-				spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
-				bend_springs++;
-
-				BLI_linklist_prepend ( &cloth->springs, spring );
+				
+				search = search->next;
+				search2 = search2->next;
 			}
-			
-			search = search->next;
-			search2 = search2->next;
+		}
+		else {
+			/* bending springs for hair strands */
+			/* The current algorightm only goes through the edges in order of the mesh edges list	*/
+			/* and makes springs between the outer vert of edges sharing a vertice. This works just */
+			/* fine for hair, but not for user generated string meshes. This could/should be later	*/
+			/* extended to work with non-ordered edges so that it can be used for general "rope		*/
+			/* dynamics" without the need for the vertices or edges to be ordered through the length*/
+			/* of the strands. -jahka */
+			search = cloth->springs;
+			search2 = search->next;
+			while (search && search2) {
+				tspring = search->link;
+				tspring2 = search2->link;
+				
+				if (tspring->ij == tspring2->kl) {
+					spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+					
+					if (!spring) {
+						cloth_free_errorsprings(cloth, edgelist);
+						return 0;
+					}
+					
+					spring->ij = tspring2->ij;
+					spring->kl = tspring->kl;
+					spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
+					spring->type = CLOTH_SPRING_TYPE_BENDING;
+					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
+					bend_springs++;
+					
+					BLI_linklist_prepend ( &cloth->springs, spring );
+				}
+				
+				search = search->next;
+				search2 = search2->next;
+			}
 		}
 	}
 	

@@ -1181,12 +1181,12 @@ int BPH_mass_spring_init_spring(Implicit_Data *data, int index, int v1, int v2)
 {
 	int s = data->M[0].vcount + index; /* index from array start */
 	
+	/* tfm and S don't have spring entries (diagonal blocks only) */
 	init_fmatrix(data->bigI + s, v1, v2);
 	init_fmatrix(data->M + s, v1, v2);
 	init_fmatrix(data->dFdX + s, v1, v2);
 	init_fmatrix(data->dFdV + s, v1, v2);
 	init_fmatrix(data->A + s, v1, v2);
-//	init_fmatrix(data->S + s, v1, v2); // has no off-diagonal spring entries
 	init_fmatrix(data->P + s, v1, v2);
 	init_fmatrix(data->Pinv + s, v1, v2);
 	
@@ -1607,6 +1607,48 @@ bool BPH_mass_spring_force_spring_bending(Implicit_Data *data, int i, int j, int
 		
 		return false;
 	}
+}
+
+/* Angular spring that pulls the vertex toward the local target
+ * See "Artistic Simulation of Curly Hair" (Pixar technical memo #12-03a)
+ */
+bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, int j, int spring_index, float restlen,
+                                                  float stiffness, float damping,
+                                                  float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3])
+{
+	float target[3], dist[3], extent[3], length, dir[3], vel[3];
+	float f[3], dfdx[3][3], dfdv[3][3];
+	
+	target[0] = 0.0f;
+	target[1] = 0.0f;
+	target[2] = restlen;
+	
+	// calculate elonglation
+//	spring_length(data, i, j, extent, dir, &length, vel);
+	sub_v3_v3v3(extent, data->X[j], data->X[i]);
+	sub_v3_v3v3(vel, data->V[j], data->V[i]);
+	length = len_v3(extent);
+	
+	sub_v3_v3v3(dist, target, extent);
+	mul_v3_v3fl(f, dist, stiffness);
+//	mul_v3_v3fl(f, dir, fbstar(length, restlen, kb, cb));
+	
+	zero_m3(dfdx);
+	zero_m3(dfdv);
+	
+//	outerproduct(dfdx, dir, dir);
+//	mul_m3_fl(dfdx, fbstar_jacobi(length, restlen, kb, cb));
+	
+	/* XXX damping not supported */
+//	zero_m3(dfdv);
+	
+	apply_spring(data, i, j, spring_index, f, dfdx, dfdv);
+	
+	if (r_f) copy_v3_v3(r_f, f);
+	if (r_dfdx) copy_m3_m3(r_dfdx, dfdx);
+	if (r_dfdv) copy_m3_m3(r_dfdv, dfdv);
+	
+	return true;
 }
 
 bool BPH_mass_spring_force_spring_goal(Implicit_Data *data, int i, int UNUSED(spring_index), const float goal_x[3], const float goal_v[3],

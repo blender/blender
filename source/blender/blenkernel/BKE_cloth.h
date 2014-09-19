@@ -124,6 +124,7 @@ ClothVertex;
 typedef struct ClothSpring {
 	int	ij;		/* Pij from the paper, one end of the spring.	*/
 	int	kl;		/* Pkl from the paper, one end of the spring.	*/
+	int mn;
 	float	restlen;	/* The original length of the spring.	*/
 	int	matrix_index; 	/* needed for implicit solver (fast lookup) */
 	int	type;		/* types defined in BKE_cloth.h ("springType") */
@@ -175,7 +176,8 @@ typedef enum {
 	CLOTH_SPRING_TYPE_SHEAR       = (1 << 2),
 	CLOTH_SPRING_TYPE_BENDING     = (1 << 3),
 	CLOTH_SPRING_TYPE_GOAL        = (1 << 4),
-	CLOTH_SPRING_TYPE_SEWING      = (1 << 5)
+	CLOTH_SPRING_TYPE_SEWING      = (1 << 5),
+	CLOTH_SPRING_TYPE_BENDING_ANG = (1 << 6),
 } CLOTH_SPRING_TYPES;
 
 /* SPRING FLAGS */

@@ -373,7 +373,7 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		BPH_mass_spring_force_spring_goal(data, s->ij, s->matrix_index, goal_x, goal_v, k, parms->goalfrict * 0.01f, s->f, s->dfdx, s->dfdv);
 #endif
 	}
-	else {  /* calculate force of bending springs */
+	else if (s->type & CLOTH_SPRING_TYPE_BENDING) {  /* calculate force of bending springs */
 #ifdef CLOTH_FORCE_SPRING_BEND
 		float kb, cb, scaling;
 		
@@ -383,6 +383,18 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		cb = kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
 		
 		BPH_mass_spring_force_spring_bending(data, s->ij, s->kl, s->matrix_index, s->restlen, kb, cb, s->f, s->dfdx, s->dfdv);
+#endif
+	}
+	else if (s->type & CLOTH_SPRING_TYPE_BENDING_ANG) {
+#ifdef CLOTH_FORCE_SPRING_BEND
+		float kb, cb, scaling;
+		
+		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+		
+		scaling = parms->bending + s->stiffness * fabsf(parms->max_bend - parms->bending);
+		cb = kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
+		
+		BPH_mass_spring_force_spring_bending_angular(data, s->ij, s->kl, s->matrix_index, s->restlen, kb, cb, s->f, s->dfdx, s->dfdv);
 #endif
 	}
 }
