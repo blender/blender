@@ -391,6 +391,8 @@ void ShaderGraph::remove_unneeded_nodes()
 					if(output)
 						connect(output, input);
 				}
+				removed[mix->id] = true;
+				any_node_removed = true;
 			}
 		
 			/* remove unused mix closure input when factor is 0.0 or 1.0 */
@@ -410,6 +412,8 @@ void ShaderGraph::remove_unneeded_nodes()
 						if(output)
 							connect(output, input);
 					}
+					removed[mix->id] = true;
+					any_node_removed = true;
 				}
 				/* factor 1.0 */
 				else if(mix->inputs[0]->value.x == 1.0f) {
@@ -425,13 +429,15 @@ void ShaderGraph::remove_unneeded_nodes()
 						if(output)
 							connect(output, input);
 					}
+					removed[mix->id] = true;
+					any_node_removed = true;
 				}
 			}
 		}
 	}
 
 	/* remove nodes */
-	if (any_node_removed) {
+	if(any_node_removed) {
 		list<ShaderNode*> newnodes;
 
 		foreach(ShaderNode *node, nodes) {
