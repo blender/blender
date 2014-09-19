@@ -1063,8 +1063,8 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 		WM_jobs_start(CTX_wm_manager(C), wm_job);
 	}
 	else {
-		short dummy_stop, dummy_do_update;
-		float dummy_progress;
+		short dummy_stop = 0, dummy_do_update = 0;
+		float dummy_progress = 0.0f;
 
 		/* blocking, use with exec() */
 		fluidbake_startjob((void *)fb, &dummy_stop, &dummy_do_update, &dummy_progress);
