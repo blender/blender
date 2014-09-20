@@ -64,6 +64,14 @@ typedef struct ClothHairRoot {
 	float rot[3][3];
 } ClothHairRoot;
 
+typedef struct ClothSolverResult {
+	int status;
+	
+	int max_iterations, min_iterations;
+	float avg_iterations;
+	float max_error, min_error, avg_error;
+} ClothSolverResult;
+
 /**
  * This structure describes a cloth object against which the
  * simulation can run.

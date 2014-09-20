@@ -179,6 +179,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tclmd->point_cache->step = 1;
 	tclmd->clothObject = NULL;
 	tclmd->roots = NULL;
+	tclmd->solver_result = NULL;
 	tclmd->debug_data = NULL;
 }
 
@@ -210,6 +211,9 @@ static void freeData(ModifierData *md)
 		
 		if (clmd->roots)
 			MEM_freeN(clmd->roots);
+		
+		if (clmd->solver_result)
+			MEM_freeN(clmd->solver_result);
 		
 		BKE_sim_debug_data_free(clmd->debug_data);
 	}

@@ -530,6 +530,46 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 	}
 }
 
+static void cloth_clear_result(ClothModifierData *clmd)
+{
+	ClothSolverResult *sres = clmd->solver_result;
+	
+	sres->status = 0;
+	sres->max_error = sres->min_error = sres->avg_error = 0.0f;
+	sres->max_iterations = sres->min_iterations = 0;
+	sres->avg_iterations = 0.0f;
+}
+
+static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *result, int steps)
+{
+	ClothSolverResult *sres = clmd->solver_result;
+	
+	if (sres->status) { /* already initialized ? */
+		/* error only makes sense for successful iterations */
+		if (result->status == BPH_SOLVER_SUCCESS) {
+			sres->min_error = min_ff(sres->min_error, result->error);
+			sres->max_error = max_ff(sres->max_error, result->error);
+			sres->avg_error += result->error / (float)steps;
+		}
+		
+		sres->min_iterations = min_ii(sres->min_iterations, result->iterations);
+		sres->max_iterations = max_ii(sres->max_iterations, result->iterations);
+		sres->avg_iterations += (float)result->iterations / (float)steps;
+	}
+	else {
+		/* error only makes sense for successful iterations */
+		if (result->status == BPH_SOLVER_SUCCESS) {
+			sres->min_error = sres->max_error = result->error;
+			sres->avg_error += result->error / (float)steps;
+		}
+		
+		sres->min_iterations = sres->max_iterations  = result->iterations;
+		sres->avg_iterations += (float)result->iterations / (float)steps;
+	}
+	
+	sres->status |= result->status;
+}
+
 int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 {
 	unsigned int i=0;
@@ -545,6 +585,10 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	BPH_mass_spring_solver_debug_data(id, clmd->debug_data);
 	
 	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
+	
+	if (!clmd->solver_result)
+		clmd->solver_result = (ClothSolverResult *)MEM_callocN(sizeof(ClothSolverResult), "cloth solver result");
+	cloth_clear_result(clmd);
 	
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
 		for (i = 0; i < numverts; i++) {
@@ -565,6 +609,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	}
 	
 	while (step < tf) {
+		ImplicitSolverResult result;
 		
 		/* copy velocities for collision */
 		for (i = 0; i < numverts; i++) {
@@ -597,7 +642,8 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		cloth_calc_force(clmd, frame, effectors, step);
 		
 		// calculate new velocity and position
-		BPH_mass_spring_solve(id, dt);
+		BPH_mass_spring_solve(id, dt, &result);
+		cloth_record_result(clmd, &result, clmd->sim_parms->stepsPerFrame);
 		
 		BPH_mass_spring_apply_result(id);
 		

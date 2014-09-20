@@ -304,6 +304,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
 
         cloth_md = psys.cloth
         cloth = cloth_md.settings
+        result = cloth_md.solver_result
 
         layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
 
@@ -335,6 +336,24 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
 
         col.prop(cloth_md, "show_debug_data", text="Debug")
 
+        if result:
+            box = layout.box()
+
+            if not result.status:
+                label = " "
+                icon = 'NONE'
+            elif result.status == {'SUCCESS'}:
+                label = "Success"
+                icon = 'NONE'
+            elif result.status - {'SUCCESS'} == {'NO_CONVERGENCE'}:
+                label = "No Convergence"
+                icon = 'ERROR'
+            else:
+                label = "ERROR"
+                icon = 'ERROR'
+            box.label(label, icon=icon)
+            box.label("Iterations: %d .. %d (avg. %d)" % (result.min_iterations, result.max_iterations, result.avg_iterations))
+            box.label("Error: %.5f .. %.5f (avg. %.5f)" % (result.min_error, result.max_error, result.avg_error))
 
 
 class PARTICLE_PT_cache(ParticleButtonsPanel, Panel):

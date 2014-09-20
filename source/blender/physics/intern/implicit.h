@@ -61,6 +61,13 @@ extern "C" {
 struct Implicit_Data;
 struct SimDebugData;
 
+typedef struct ImplicitSolverResult {
+	int status;
+	
+	int iterations;
+	float error;
+} ImplicitSolverResult;
+
 BLI_INLINE void implicit_print_matrix_elem(float v)
 {
     printf("%-8.3f", v);
@@ -118,7 +125,7 @@ void BPH_mass_spring_add_constraint_ndof0(struct Implicit_Data *data, int index,
 void BPH_mass_spring_add_constraint_ndof1(struct Implicit_Data *data, int index, const float c1[3], const float c2[3], const float dV[3]);
 void BPH_mass_spring_add_constraint_ndof2(struct Implicit_Data *data, int index, const float c1[3], const float dV[3]);
 
-bool BPH_mass_spring_solve(struct Implicit_Data *data, float dt);
+bool BPH_mass_spring_solve(struct Implicit_Data *data, float dt, struct ImplicitSolverResult *result);
 void BPH_mass_spring_apply_result(struct Implicit_Data *data);
 
 /* Clear the force vector at the beginning of the time step */

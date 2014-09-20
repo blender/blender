@@ -834,7 +834,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 }
 #endif
 
-static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
+static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, ImplicitSolverResult *result)
 {
 	// Solves for unknown X in equation AX=B
 	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
@@ -847,14 +847,15 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 	lfVector *c = create_lfvector(numverts);
 	lfVector *q = create_lfvector(numverts);
 	lfVector *s = create_lfvector(numverts);
-	float delta_new, delta_old, delta_target, alpha;
+	float bnorm2, delta_new, delta_old, delta_target, alpha;
 	
 	cp_lfvector(ldV, z, numverts);
 	
 	/* d0 = filter(B)^T * P * filter(B) */
 	cp_lfvector(fB, lB, numverts);
 	filter(fB, S);
-	delta_target = conjgrad_epsilon*conjgrad_epsilon * dot_lfvector(fB, fB, numverts);
+	bnorm2 = dot_lfvector(fB, fB, numverts);
+	delta_target = conjgrad_epsilon*conjgrad_epsilon * bnorm2;
 	
 	/* r = filter(B - A * dV) */
 	mul_bfmatrix_lfvector(AdV, lA, ldV);
@@ -913,6 +914,10 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 	del_lfvector(q);
 	del_lfvector(s);
 	// printf("W/O conjgrad_loopcount: %d\n", conjgrad_loopcount);
+
+	result->status = conjgrad_loopcount < conjgrad_looplimit ? BPH_SOLVER_SUCCESS : BPH_SOLVER_NO_CONVERGENCE;
+	result->iterations = conjgrad_loopcount;
+	result->error = bnorm2 > 0.0f ? sqrt(delta_new / bnorm2) : 0.0f;
 
 	return conjgrad_loopcount < conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
 }
@@ -1105,10 +1110,9 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 }
 #endif
 
-bool BPH_mass_spring_solve(Implicit_Data *data, float dt)
+bool BPH_mass_spring_solve(Implicit_Data *data, float dt, ImplicitSolverResult *result)
 {
 	unsigned int numverts = data->dFdV[0].vcount;
-	bool ok;
 
 	lfVector *dFdXmV = create_lfvector(numverts);
 	zero_lfvector(data->dV, numverts);
@@ -1123,7 +1127,7 @@ bool BPH_mass_spring_solve(Implicit_Data *data, float dt)
 
 	// itstart();
 
-	ok = cg_filtered(data->dV, data->A, data->B, data->z, data->S); /* conjugate gradient algorithm to solve Ax=b */
+	cg_filtered(data->dV, data->A, data->B, data->z, data->S, result); /* conjugate gradient algorithm to solve Ax=b */
 	// cg_filtered_pre(id->dV, id->A, id->B, id->z, id->S, id->P, id->Pinv, id->bigI);
 
 	// itend();
@@ -1136,7 +1140,7 @@ bool BPH_mass_spring_solve(Implicit_Data *data, float dt)
 
 	del_lfvector(dFdXmV);
 	
-	return ok;
+	return result->status == BPH_SOLVER_SUCCESS;
 }
 
 void BPH_mass_spring_apply_result(Implicit_Data *data)

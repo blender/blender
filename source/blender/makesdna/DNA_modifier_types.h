@@ -567,6 +567,8 @@ typedef struct ClothModifierData {
 	/* XXX nasty hack, remove once hair can be separated from cloth modifier data */
 	struct ClothHairRoot *roots;
 	
+	struct ClothSolverResult *solver_result;
+	
 	struct SimDebugData *debug_data;      /* debug info */
 } ClothModifierData;
 

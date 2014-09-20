@@ -293,6 +293,7 @@ blender_include_dirs(
 	../../ikplugin
 	../../makesdna
 	../../nodes/
+	../../physics
 	../../windowmanager
 	../../editors/include
 	../../render/extern/include
